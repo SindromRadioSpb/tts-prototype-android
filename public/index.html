@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>TTS & Translator Dashboard</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f6f9; color: #333; }
+        
+        /* ПАНЕЛЬ СТАТИСТИКИ */
+        .dashboard-header {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stats-box { display: flex; gap: 30px; }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #2c3e50; display: block; }
+        .stat-label { font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+        .stat-sub { font-size: 11px; color: #aaa; margin-top: 4px; }
+        
+        /* КНОПКА GOOGLE CONSOLE */
+        .btn-console {
+            background-color: #fff;
+            border: 2px solid #dfe6e9;
+            color: #636e72;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+        .btn-console:hover { border-color: #b2bec3; background-color: #fdfdfd; color: #2d3436; }
+
+        /* ОСНОВНОЙ ИНТЕРФЕЙС */
+        .main-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        textarea { width: 100%; height: 120px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 16px; margin-bottom: 20px; box-sizing: border-box; resize: vertical; }
+        
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        button, select { padding: 12px 20px; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        select { border: 1px solid #ddd; background: white; }
+
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-primary:hover { background-color: #2980b9; }
+        
+        .btn-success { background-color: #2ecc71; color: white; }
+        .btn-success:hover { background-color: #27ae60; }
+        
+        .btn-word { background-color: #2b579a; color: white; display: none; margin-left: auto; }
+        .btn-word:hover { background-color: #1e3f72; }
+
+        .loader { width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* ТАБЛИЦА */
+        #tableContainer { margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #f0f0f0; }
+        th { background-color: #f8f9fa; color: #2c3e50; font-weight: 600; }
+        .rtl { direction: rtl; text-align: right; font-family: 'Segoe UI', sans-serif; }
+
+        .error { color: #e74c3c; margin-top: 10px; font-weight: 500; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-header">
+        <div class="stats-box">
+            <div class="stat-item">
+                <span id="statTTS" class="stat-value">0</span>
+                <span class="stat-label">TTS Символы</span>
+                <div class="stat-sub">Через это приложение</div>
+            </div>
+            <div class="stat-item">
+                <span id="statGemini" class="stat-value">0</span>
+                <span class="stat-label">Запросы AI</span>
+                <div class="stat-sub">Переводы таблиц</div>
+            </div>
+        </div>
+        
+        <div style="text-align: right;">
+            <div style="font-size: 12px; color: #888; margin-bottom: 5px;">Для просмотра общего лимита:</div>
+            <a href="https://console.cloud.google.com/billing" target="_blank" class="btn-console">
+                📊 Открыть Google Cloud Console
+            </a>
+        </div>
+    </div>
+
+    <div class="main-card">
+        <h2>Рабочая область</h2>
+        <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
+
+        <div class="controls">
+            <select id="langSelect">
+                <option value="he-IL">🇮🇱 Иврит</option>
+                <option value="ru-RU">🇷🇺 Русский</option>
+                <option value="en-US">🇺🇸 Английский</option>
+            </select>
+
+            <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
+            <button class="btn-primary" onclick="saveTTS()">💾 Скачать MP3</button>
+            <div style="width: 1px; background: #ddd; margin: 0 10px;"></div>
+            <button class="btn-success" onclick="translateTable()">🪄 AI Перевод</button>
+            <div id="loader" class="loader"></div>
+            
+            <button id="btnWord" class="btn-word" onclick="downloadWord()">📥 Скачать DOCX</button>
+        </div>
+
+        <div id="audioContainer" style="margin-bottom: 15px;"></div>
+        <div id="errorMsg" class="error"></div>
+        <div id="tableContainer"></div>
+    </div>
+
+    <script>
+        let currentTableData = [];
+
+        // --- Загрузка статистики при старте ---
+        async function loadStats() {
+            try {
+                const res = await fetch("/api/usage");
+                const data = await res.json();
+                document.getElementById("statTTS").textContent = data.ttsChars.toLocaleString();
+                document.getElementById("statGemini").textContent = data.geminiRequests.toLocaleString();
+            } catch (e) { console.error("Ошибка статистики", e); }
+        }
+        loadStats(); // Вызываем сразу
+
+        // --- TTS ---
+        async function playTTS() {
+            if(!validate()) return;
+            try {
+                const res = await apiCall("/api/tts", { text: getText(), language: getLang() });
+                new Audio("data:audio/mp3;base64," + res.audioContent).play();
+                loadStats(); // Обновляем цифры
+            } catch (e) { showError(e.message); }
+        }
+
+        async function saveTTS() {
+            if(!validate()) return;
+            try {
+                const res = await apiCall("/api/save", { text: getText(), language: getLang() });
+                document.getElementById("audioContainer").innerHTML = 
+                    `<audio controls src="${res.audioUrl}" autoplay></audio><br><small>Сохранено: <a href="${res.audioUrl}" target="_blank">файл</a></small>`;
+                loadStats(); // Обновляем цифры
+            } catch (e) { showError(e.message); }
+        }
+
+        // --- Перевод ---
+        async function translateTable() {
+            if(!validate()) return;
+            setLoading(true);
+            document.getElementById("btnWord").style.display = "none";
+            document.getElementById("tableContainer").innerHTML = "";
+            document.getElementById("errorMsg").textContent = ""; // Очистка ошибок
+            
+            try {
+                const res = await apiCall("/api/translate-table", { text: getText() });
+                
+                // Вот здесь была ошибка - теперь функция renderTable существует
+                currentTableData = res.rows;
+                renderTable(res.rows);
+                
+                document.getElementById("btnWord").style.display = "block";
+                loadStats(); // Обновляем цифры
+            } catch (e) { 
+                showError(e.message); 
+            } finally { 
+                setLoading(false); 
+            }
+        }
+
+        // --- ФУНКЦИЯ ОТРИСОВКИ (КОТОРУЮ Я ПРОПУСТИЛ В ПРОШЛЫЙ РАЗ) ---
+        function renderTable(rows) {
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Иврит</th>
+                            <th>Огласовки</th>
+                            <th>Транслит</th>
+                            <th>Перевод</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            rows.forEach(row => {
+                html += `
+                    <tr>
+                        <td class="rtl">${row.he || ""}</td>
+                        <td class="rtl">${row.he_niqqud || ""}</td>
+                        <td>${row.translit || ""}</td>
+                        <td>${row.ru || ""}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `</tbody></table>`;
+            document.getElementById("tableContainer").innerHTML = html;
+        }
+
+        // --- Word ---
+        async function downloadWord() {
+            try {
+                const res = await fetch("/api/export-docx", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ rows: currentTableData })
+                });
+                if(!res.ok) throw new Error("Ошибка экспорта");
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url; a.download = "translation.docx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } catch (e) { showError(e.message); }
+        }
+
+        // --- Утилиты ---
+        function getText() { return document.getElementById("inputText").value; }
+        function getLang() { return document.getElementById("langSelect").value; }
+        function validate() {
+            if(!getText().trim()) { showError("Введите текст!"); return false; }
+            document.getElementById("errorMsg").textContent = "";
+            return true;
+        }
+        function showError(msg) { document.getElementById("errorMsg").textContent = "Ошибка: " + msg; }
+        function setLoading(state) { document.getElementById("loader").style.display = state ? "block" : "none"; }
+        
+        async function apiCall(url, data) {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            if(json.error) throw new Error(json.error + (json.details || ""));
+            return json;
+        }
+    </script>
+</body>
+</html>
