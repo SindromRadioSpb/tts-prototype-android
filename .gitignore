@@ -1,0 +1,5 @@
+node_modules/
+audio/
+usage.json
+*.docx
+*.xlsx
