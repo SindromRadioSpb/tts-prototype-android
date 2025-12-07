@@ -31,7 +31,7 @@ if (process.env.GOOGLE_CLOUD_TTS_KEY) {
 // 2. ИНИЦИАЛИЗАЦИЯ И СТАТИСТИКА
 // --------------------------------------------------------
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
