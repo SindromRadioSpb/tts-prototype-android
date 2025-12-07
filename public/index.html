@@ -90,27 +90,57 @@
 
         .main-card h2 {
             margin-top: 0;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
+            text-align: center;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         textarea {
             width: 100%;
-            height: 120px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
+            height: 140px;
+            padding: 22px 18px;
+            border: 1px solid #b5b5b5;
+            border-radius: 12px;
             font-size: 16px;
+            line-height: 1.6;
             margin-bottom: 20px;
             box-sizing: border-box;
             resize: vertical;
+            direction: ltr;
+            text-align: left;
+            background-color: #ffffff;
+            box-shadow:
+                inset 0 1px 3px rgba(0, 0, 0, 0.12),
+                0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Режим для иврита */
+        textarea.rtl-text {
+            direction: rtl;
+            text-align: right;
+            line-height: 1.9;
         }
 
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
-            align-items: center;
+            align-items: flex-end;
             margin-bottom: 20px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555555;
+            letter-spacing: 0.3px;
         }
 
         button,
@@ -124,26 +154,31 @@
         }
 
         select {
-            border: 1px solid #dddddd;
+            border: 1px solid #d0d4d8;
             background: #ffffff;
+            min-width: 190px;
         }
 
         .btn-primary {
             background-color: #3498db;
             color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.10);
         }
 
         .btn-primary:hover {
             background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
         .btn-success {
             background-color: #2ecc71;
             color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.10);
         }
 
         .btn-success:hover {
             background-color: #27ae60;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
         .btn-word {
@@ -181,9 +216,12 @@
             width: 100%;
             border-collapse: collapse;
             background: #ffffff;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow:
+                inset 0 1px 3px rgba(0,0,0,0.12),
+                0 2px 4px rgba(0,0,0,0.06);
+            border: 1px solid #b5b5b5;
         }
 
         th,
@@ -227,6 +265,14 @@
                 align-items: stretch;
             }
 
+            .field-group {
+                width: 100%;
+            }
+
+            .field-group select {
+                width: 100%;
+            }
+
             button,
             select {
                 width: 100%;
@@ -263,16 +309,19 @@
     </div>
 
     <div class="main-card">
-        <h2>Рабочая область</h2>
+        <h2>Текст для озвучки и перевода</h2>
 
         <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
         <div class="controls">
-            <select id="langSelect">
-                <option value="he-IL">🇮🇱 Иврит</option>
-                <option value="ru-RU">🇷🇺 Русский</option>
-                <option value="en-US">🇺🇸 Английский</option>
-            </select>
+            <div class="field-group">
+                <label for="langSelect" class="input-label">Язык исходного текста</label>
+                <select id="langSelect">
+                    <option value="he-IL">🇮🇱 Иврит</option>
+                    <option value="ru-RU">🇷🇺 Русский</option>
+                    <option value="en-US">🇺🇸 Английский</option>
+                </select>
+            </div>
 
             <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
             <button class="btn-primary" onclick="saveTTS()">💾 Скачать MP3</button>
@@ -293,6 +342,9 @@
     <script>
         let currentTableData = [];
 
+        const inputTextEl = document.getElementById("inputText");
+        const langSelectEl = document.getElementById("langSelect");
+
         // --- Загрузка статистики при старте ---
         async function loadStats() {
             try {
@@ -309,6 +361,22 @@
         }
 
         loadStats();
+
+        // --- Применение направления текста в зависимости от языка ---
+        function applyTextDirection() {
+            const lang = langSelectEl.value;
+
+            if (lang === "he-IL") {
+                inputTextEl.classList.add("rtl-text");
+                inputTextEl.setAttribute("dir", "rtl");
+            } else {
+                inputTextEl.classList.remove("rtl-text");
+                inputTextEl.setAttribute("dir", "ltr");
+            }
+        }
+
+        langSelectEl.addEventListener("change", applyTextDirection);
+        applyTextDirection(); // вызвать при загрузке, учитывая дефолтный язык
 
         // --- TTS ---
         async function playTTS() {
@@ -448,11 +516,11 @@
 
         // --- Утилиты ---
         function getText() {
-            return document.getElementById("inputText").value;
+            return inputTextEl.value;
         }
 
         function getLang() {
-            return document.getElementById("langSelect").value;
+            return langSelectEl.value;
         }
 
         function validate() {
