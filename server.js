@@ -12,6 +12,22 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { Document, Packer, Paragraph, Table, TableCell, TableRow, WidthType, TextRun, AlignmentType } = require("docx");
 
 // --------------------------------------------------------
+// 1.1. ЗАГРУЗКА КЛЮЧА GOOGLE CLOUD ИЗ ПЕРЕМЕННОЙ RAILWAY
+// --------------------------------------------------------
+
+if (process.env.GOOGLE_CLOUD_TTS_KEY) {
+    const keyPath = path.join(__dirname, "gcp-key.json");
+
+    // Если файла ещё нет — создаём
+    if (!fs.existsSync(keyPath)) {
+        fs.writeFileSync(keyPath, process.env.GOOGLE_CLOUD_TTS_KEY);
+    }
+
+    // Говорим SDK, что ключ лежит здесь
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = keyPath;
+}
+
+// --------------------------------------------------------
 // 2. ИНИЦИАЛИЗАЦИЯ И СТАТИСТИКА
 // --------------------------------------------------------
 const app = express();
