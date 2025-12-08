@@ -441,6 +441,9 @@
         const STORAGE_KEY = "ttsDashboard_text_v1";
         let saveTimer = null;
 
+        // состояние результатов: empty | fresh | stale
+        let resultState = "empty";
+
         // независимые состояния
         let tableIsStale = false;
         let audioIsStale = false;
@@ -448,6 +451,9 @@
         // кэш аудио
         let lastAudioBlob = null;
         let lastAudioUrl = null;
+
+        // имя последнего DOCX (по моменту AI-перевода)
+        let lastDocxFilename = null;
 
         // --- Восстановление текста при загрузке ---
         (function restoreText() {
@@ -512,7 +518,6 @@
             if (hasTable || hasAudio) {
                 textChangedNoticeEl.classList.add("notice-visible");
             } else {
-                // даже если результатов ещё нет — можно подсветить, что текст менялся
                 textChangedNoticeEl.classList.add("notice-visible");
             }
         }
@@ -707,11 +712,15 @@
                     tableIsStale = false;
                     if (btnWord) btnWord.classList.remove("disabled");
 
-                    const autoName = generateDocxFileName();
-                    downloadWord(autoName); // авто-скачивание свежего DOCX
+                    // генерируем имя один раз для этого перевода
+                    lastDocxFilename = generateDocxFileName();
+
+                    // авто-скачивание свежего DOCX с этим именем
+                    downloadWord(lastDocxFilename);
                 } else {
                     tableIsStale = false;
                     if (btnWord) btnWord.classList.add("disabled");
+                    lastDocxFilename = null;
                 }
 
                 // audioIsStale специально не трогаем — звук может остаться "старым"
@@ -819,7 +828,13 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = customFilename || "translation.docx";
+
+                // если передали имя — используем его;
+                // если нет — используем сохранённое имя последнего перевода;
+                // если и его нет (на всякий случай) — fallback
+                const filename = customFilename || lastDocxFilename || "translation.docx";
+                a.download = filename;
+
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -882,7 +897,7 @@
             if (!str) return "";
             return String(str)
                 .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
+                .replace(/</g, "&lt;/g")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
