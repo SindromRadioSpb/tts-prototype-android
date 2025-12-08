@@ -611,6 +611,10 @@
                 if (currentTableData.length > 0) {
                     btn.classList.remove("disabled");
                     resultState = "fresh";
+
+                    // авто-скачивание DOCX со снапшотом и датой/временем
+                    const autoName = generateDocxFileName();
+                    downloadWord(autoName);
                 } else {
                     btn.classList.add("disabled");
                     resultState = "empty";
@@ -663,8 +667,23 @@
             document.getElementById("tableContainer").innerHTML = html;
         }
 
+        // --- Генерация имени файла DOCX ---
+        function generateDocxFileName() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+
+            const dd = pad(now.getDate());
+            const mm = pad(now.getMonth() + 1);
+            const yy = String(now.getFullYear()).slice(-2);
+            const hh = pad(now.getHours());
+            const min = pad(now.getMinutes());
+            const ss = pad(now.getSeconds());
+
+            return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.docx`;
+        }
+
         // --- Word ---
-        async function downloadWord() {
+        async function downloadWord(customFilename) {
             const btn = document.getElementById("btnWord");
             if (btn.classList.contains("disabled")) {
                 return;
@@ -690,7 +709,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "translation.docx";
+                a.download = customFilename || "translation.docx";
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -750,14 +769,14 @@
         }
 
         function escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
     </script>
 </body>
 </html>
