@@ -228,6 +228,16 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
+        .btn-secondary {
+            background-color: #f1f2f6;
+            color: #2d3436;
+            border: 1px solid #d0d4d8;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e5ea;
+        }
+
         .loader {
             width: 20px;
             height: 20px;
@@ -328,6 +338,39 @@
             color: #a67c00;
         }
 
+        /* TOAST (Material Snackbar-стиль) */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            max-width: 320px;
+            background: #323232;
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            z-index: 1000;
+        }
+
+        #toast.toast-visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        #toast.toast-error {
+            background: #c0392b;
+        }
+
+        #toast.toast-info {
+            background: #323232;
+        }
+
         @media (max-width: 600px) {
             .dashboard-header {
                 flex-direction: column;
@@ -364,6 +407,9 @@
     </style>
 </head>
 <body>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
 
     <div class="dashboard-header">
         <div class="stats-box">
@@ -423,6 +469,8 @@
             <div id="loader" class="loader"></div>
 
             <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
+
+            <button class="btn-secondary" type="button" onclick="clearAll()">🧹 Очистить всё</button>
         </div>
 
         <div id="audioContainer" style="margin-bottom: 15px;"></div>
@@ -437,9 +485,11 @@
         const langSelectEl = document.getElementById("langSelect");
         const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
         const textChangedNoticeEl = document.getElementById("textChangedNotice");
+        const toastEl = document.getElementById("toast");
 
         const STORAGE_KEY = "ttsDashboard_text_v1";
         let saveTimer = null;
+        let toastTimer = null;
 
         // состояние результатов: empty | fresh | stale
         let resultState = "empty";
@@ -487,35 +537,61 @@
             }, 400);
         }
 
-        function markResultsStale() {
-            if (resultState === "empty") {
-                // даже если ещё нет результатов — просто показать, что текст менялся
-                textChangedNoticeEl.classList.add("notice-visible");
-                return;
-            }
-
+        // --- ЕДИНЫЙ ИСТОЧНИК ПРАВДЫ ДЛЯ СОСТОЯНИЯ ---
+        function setResultState(newState) {
+            resultState = newState;
             const tableEl = document.getElementById("tableContainer");
             const audioEl = document.getElementById("audioContainer");
             const btnWord = document.getElementById("btnWord");
 
-            if (tableEl && tableEl.innerHTML.trim()) {
-                tableEl.classList.add("results-stale");
-                addStaleNote(tableEl);
-            }
-            if (audioEl && audioEl.innerHTML.trim()) {
-                audioEl.classList.add("results-stale");
-            }
-            if (btnWord) {
-                btnWord.classList.add("disabled");
+            if (newState === "empty") {
+                if (tableEl) {
+                    tableEl.innerHTML = "";
+                    tableEl.classList.remove("results-stale");
+                }
+                if (audioEl) {
+                    audioEl.innerHTML = "";
+                    audioEl.classList.remove("results-stale");
+                }
+                if (btnWord) {
+                    btnWord.classList.add("disabled");
+                }
+                textChangedNoticeEl.classList.remove("notice-visible");
             }
 
-            textChangedNoticeEl.classList.add("notice-visible");
-            resultState = "stale";
+            if (newState === "fresh") {
+                clearStaleVisuals();
+                if (btnWord && currentTableData && currentTableData.length > 0) {
+                    btnWord.classList.remove("disabled");
+                }
+            }
+
+            if (newState === "stale") {
+                if (tableEl && tableEl.innerHTML.trim()) {
+                    tableEl.classList.add("results-stale");
+                    addStaleNote(tableEl);
+                }
+                if (audioEl && audioEl.innerHTML.trim()) {
+                    audioEl.classList.add("results-stale");
+                }
+                if (btnWord) {
+                    btnWord.classList.add("disabled");
+                }
+                textChangedNoticeEl.classList.add("notice-visible");
+            }
+        }
+
+        function markResultsStale() {
+            if (resultState === "empty") {
+                // даже если ещё нет результатов — просто показ баннера
+                textChangedNoticeEl.classList.add("notice-visible");
+                return;
+            }
+            setResultState("stale");
         }
 
         function addStaleNote(container) {
             if (container.querySelector(".results-stale-note")) return;
-
             const note = document.createElement("div");
             note.className = "results-stale-note";
             note.textContent = "Текст сверху изменён. Перевод и озвучка ниже могут быть неактуальны.";
@@ -525,7 +601,6 @@
         function clearStaleVisuals() {
             const tableEl = document.getElementById("tableContainer");
             const audioEl = document.getElementById("audioContainer");
-
             if (tableEl) {
                 tableEl.classList.remove("results-stale");
                 const staleNote = tableEl.querySelector(".results-stale-note");
@@ -534,7 +609,6 @@
             if (audioEl) {
                 audioEl.classList.remove("results-stale");
             }
-
             textChangedNoticeEl.classList.remove("notice-visible");
         }
 
@@ -558,7 +632,6 @@
         // --- Направление текста ---
         function applyTextDirection() {
             const lang = langSelectEl.value;
-
             if (lang === "he-IL") {
                 inputTextEl.classList.add("rtl-text");
                 inputTextEl.setAttribute("dir", "rtl");
@@ -578,7 +651,6 @@
         function applyHebrewFont() {
             const value = hebrewFontSelectEl.value;
             let fontStack;
-
             switch (value) {
                 case "assistant":
                     fontStack = "'Assistant', 'Segoe UI', Tahoma, sans-serif";
@@ -591,7 +663,6 @@
                     fontStack = "'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif";
                     break;
             }
-
             document.documentElement.style.setProperty("--hebrew-font", fontStack);
         }
 
@@ -601,7 +672,6 @@
         // --- TTS: озвучить + кэш ---
         async function playTTS() {
             if (!validate()) return;
-
             try {
                 const res = await apiCall("/api/tts", {
                     text: getText(),
@@ -635,27 +705,26 @@
                 audioContainer.classList.remove("results-stale");
 
                 clearStaleVisuals();
-                resultState = "fresh";
+                setResultState("fresh");
 
                 loadStats();
+                showToast("Озвучка выполнена", "info");
             } catch (e) {
                 showError(e.message);
             }
         }
 
-        // --- Сохранить MP3 из кэша (без нового запроса к TTS) ---
+        // --- Сохранить MP3 из кэша ---
         function downloadMp3FromCache() {
             if (!lastAudioBlob) {
                 showError("Нет актуального аудио для сохранения");
                 return;
             }
-
             let url = lastAudioUrl;
             if (!url) {
                 url = URL.createObjectURL(lastAudioBlob);
                 lastAudioUrl = url;
             }
-
             const a = document.createElement("a");
             a.href = url;
             a.download = generateAudioFileName();
@@ -682,17 +751,17 @@
 
                 const btnWord = document.getElementById("btnWord");
 
-                clearStaleVisuals();
-
                 if (currentTableData.length > 0) {
                     btnWord.classList.remove("disabled");
-                    resultState = "fresh";
+                    clearStaleVisuals();
+                    setResultState("fresh");
 
                     const autoName = generateDocxFileName();
-                    downloadWord(autoName);
+                    await downloadWord(autoName);
+                    showToast("Таблица обновлена и DOCX сохранён", "info");
                 } else {
                     btnWord.classList.add("disabled");
-                    resultState = "empty";
+                    setResultState("empty");
                 }
 
                 loadStats();
@@ -746,14 +815,12 @@
         function generateDocxFileName() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, "0");
-
             const dd = pad(now.getDate());
             const mm = pad(now.getMonth() + 1);
             const yy = String(now.getFullYear()).slice(-2);
             const hh = pad(now.getHours());
             const min = pad(now.getMinutes());
             const ss = pad(now.getSeconds());
-
             return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.docx`;
         }
 
@@ -761,14 +828,12 @@
         function generateAudioFileName() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, "0");
-
             const dd = pad(now.getDate());
             const mm = pad(now.getMonth() + 1);
             const yy = String(now.getFullYear()).slice(-2);
             const hh = pad(now.getHours());
             const min = pad(now.getMinutes());
             const ss = pad(now.getSeconds());
-
             return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.mp3`;
         }
 
@@ -809,6 +874,36 @@
             }
         }
 
+        // --- Кнопка "Очистить всё" ---
+        function clearAll() {
+            try {
+                // текст
+                inputTextEl.value = "";
+                autoGrow();
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                } catch (e) {
+                    console.error("LocalStorage remove error", e);
+                }
+
+                // данные
+                currentTableData = [];
+                lastAudioBlob = null;
+                if (lastAudioUrl) {
+                    URL.revokeObjectURL(lastAudioUrl);
+                    lastAudioUrl = null;
+                }
+
+                // визуал
+                document.getElementById("errorMsg").textContent = "";
+                setResultState("empty");
+
+                showToast("Все данные очищены", "info");
+            } catch (e) {
+                showError("Не удалось очистить данные: " + e.message);
+            }
+        }
+
         // --- Утилиты ---
         function getText() {
             return inputTextEl.value;
@@ -829,6 +924,7 @@
 
         function showError(msg) {
             document.getElementById("errorMsg").textContent = "Ошибка: " + msg;
+            showToast(msg, "error");
         }
 
         function setLoading(state) {
@@ -866,6 +962,21 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        // --- Toast ---
+        function showToast(message, type) {
+            if (!toastEl) return;
+            toastEl.textContent = message;
+            toastEl.classList.remove("toast-error", "toast-info");
+            toastEl.classList.add(type === "error" ? "toast-error" : "toast-info", "toast-visible");
+
+            if (toastTimer) {
+                clearTimeout(toastTimer);
+            }
+            toastTimer = setTimeout(() => {
+                toastEl.classList.remove("toast-visible");
+            }, 3500);
         }
     </script>
 </body>
