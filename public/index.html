@@ -199,7 +199,6 @@
             transition: all 0.25s ease;
         }
 
-        /* Состояние disabled */
         .btn-word.disabled {
             background-color: #d0d4d8 !important;
             color: #888 !important;
@@ -208,9 +207,22 @@
             opacity: 0.65;
         }
 
-        /* Активная кнопка */
         .btn-word:not(.disabled):hover {
             background-color: #1e3f72;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        /* Кнопка MP3 как вспомогательная, с состоянием disabled */
+        .btn-mp3.disabled {
+            background-color: #d0d4d8 !important;
+            color: #888 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            opacity: 0.65;
+        }
+
+        .btn-mp3:not(.disabled):hover {
+            background-color: #2980b9;
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
@@ -258,19 +270,16 @@
             text-align: center;
         }
 
-        /* Базовый иврит в таблице */
         .rtl {
             direction: rtl;
             text-align: right;
             font-family: var(--hebrew-font);
         }
 
-        /* Иврит без никуда – чуть крупнее */
         .rtl-he {
             font-size: 18px;
         }
 
-        /* Иврит с никудом – ещё крупнее и с увеличенным межстрочным интервалом */
         .rtl-he-niqqud {
             font-size: 19px;
             line-height: 1.9;
@@ -282,7 +291,6 @@
             font-weight: 500;
         }
 
-        /* УСТАРЕВШИЕ РЕЗУЛЬТАТЫ */
         .results-stale {
             opacity: 0.45;
             filter: grayscale(0.4);
@@ -379,7 +387,7 @@
             </div>
 
             <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
-            <button class="btn-primary" onclick="saveTTS()">💾 Скачать MP3</button>
+            <button id="btnMp3" class="btn-primary btn-mp3 disabled" onclick="saveTTS()">💾 Скачать MP3</button>
 
             <div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
 
@@ -404,8 +412,12 @@
         const STORAGE_KEY = "ttsDashboard_text_v1";
         let saveTimer = null;
 
-        // empty | fresh | stale
+        // состояние результатов: empty | fresh | stale
         let resultState = "empty";
+
+        // кэш аудио
+        let lastAudioBlob = null;
+        let lastAudioUrl = null;
 
         // --- Восстановление текста при загрузке ---
         (function restoreText() {
@@ -426,7 +438,7 @@
             markResultsStale();
         });
 
-        autoGrow(); // первая подгонка высоты после восстановления/дефолта
+        autoGrow();
 
         function autoGrow() {
             inputTextEl.style.height = "auto";
@@ -443,7 +455,7 @@
                 } catch (e) {
                     console.error("LocalStorage save error", e);
                 }
-            }, 400); // дебаунс ~0.4 сек
+            }, 400);
         }
 
         function markResultsStale() {
@@ -451,7 +463,8 @@
 
             const tableEl = document.getElementById("tableContainer");
             const audioEl = document.getElementById("audioContainer");
-            const btn = document.getElementById("btnWord");
+            const btnWord = document.getElementById("btnWord");
+            const btnMp3 = document.getElementById("btnMp3");
 
             if (tableEl && tableEl.innerHTML.trim()) {
                 tableEl.classList.add("results-stale");
@@ -460,8 +473,11 @@
             if (audioEl && audioEl.innerHTML.trim()) {
                 audioEl.classList.add("results-stale");
             }
-            if (btn) {
-                btn.classList.add("disabled");
+            if (btnWord) {
+                btnWord.classList.add("disabled");
+            }
+            if (btnMp3) {
+                btnMp3.classList.add("disabled");
             }
 
             resultState = "stale";
@@ -490,7 +506,7 @@
             }
         }
 
-        // --- Загрузка статистики при старте ---
+        // --- Загрузка статистики ---
         async function loadStats() {
             try {
                 const res = await fetch("/api/usage");
@@ -507,7 +523,7 @@
 
         loadStats();
 
-        // --- Применение направления текста в зависимости от языка ---
+        // --- Направление текста ---
         function applyTextDirection() {
             const lang = langSelectEl.value;
 
@@ -521,9 +537,9 @@
         }
 
         langSelectEl.addEventListener("change", applyTextDirection);
-        applyTextDirection(); // при загрузке
+        applyTextDirection();
 
-        // --- Применение шрифта для иврита ---
+        // --- Шрифт иврита ---
         function applyHebrewFont() {
             const value = hebrewFontSelectEl.value;
             let fontStack;
@@ -545,9 +561,9 @@
         }
 
         hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
-        applyHebrewFont(); // при загрузке
+        applyHebrewFont();
 
-        // --- TTS ---
+        // --- TTS: озвучить + кэш + авто-скачать ---
         async function playTTS() {
             if (!validate()) return;
 
@@ -556,36 +572,75 @@
                     text: getText(),
                     language: getLang()
                 });
-                const audio = new Audio("data:audio/mp3;base64," + res.audioContent);
-                audio.play();
+
+                // base64 → Blob
+                const binary = atob(res.audioContent);
+                const len = binary.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+                lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
+
+                if (lastAudioUrl) {
+                    URL.revokeObjectURL(lastAudioUrl);
+                }
+                lastAudioUrl = URL.createObjectURL(lastAudioBlob);
+
+                // плеер в интерфейсе
+                const audioContainer = document.getElementById("audioContainer");
+                audioContainer.innerHTML =
+                    '<audio controls src="' + lastAudioUrl + '" autoplay></audio>' +
+                    '<br><small>Сгенерировано из текущего текста</small>';
+                audioContainer.classList.remove("results-stale");
+
+                // разблокируем кнопку MP3
+                const btnMp3 = document.getElementById("btnMp3");
+                btnMp3.classList.remove("disabled");
+
+                // отметим результаты как свежие
+                clearStaleVisuals();
+                if (resultState === "empty" || resultState === "stale") {
+                    resultState = "fresh";
+                }
+
+                // авто-скачивание MP3-снапшота
+                downloadMp3FromCache(generateAudioFileName());
+
                 loadStats();
             } catch (e) {
                 showError(e.message);
             }
         }
 
-        async function saveTTS() {
-            if (!validate()) return;
-
-            try {
-                const res = await apiCall("/api/save", {
-                    text: getText(),
-                    language: getLang()
-                });
-
-                const audioContainer = document.getElementById("audioContainer");
-
-                audioContainer.innerHTML =
-                    '<audio controls src="' + res.audioUrl + '" autoplay></audio>' +
-                    '<br><small>Сохранено: <a href="' + res.audioUrl + '" target="_blank">файл</a></small>';
-
-                // если до этого результат был устаревшим, новый звук уже актуален
-                audioContainer.classList.remove("results-stale");
-
-                loadStats();
-            } catch (e) {
-                showError(e.message);
+        // --- Сохранить MP3 из кэша (без нового запроса к TTS) ---
+        function saveTTS() {
+            const btnMp3 = document.getElementById("btnMp3");
+            if (btnMp3.classList.contains("disabled")) {
+                return;
             }
+            if (!lastAudioBlob) {
+                showError("Нет актуального аудио для сохранения");
+                return;
+            }
+            downloadMp3FromCache(generateAudioFileName());
+        }
+
+        function downloadMp3FromCache(customName) {
+            if (!lastAudioBlob) return;
+
+            let url = lastAudioUrl;
+            if (!url) {
+                url = URL.createObjectURL(lastAudioBlob);
+                lastAudioUrl = url;
+            }
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = customName || "tts.mp3";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
         }
 
         // --- Перевод ---
@@ -604,19 +659,18 @@
                 currentTableData = res.rows || [];
                 renderTable(currentTableData);
 
-                const btn = document.getElementById("btnWord");
+                const btnWord = document.getElementById("btnWord");
 
                 clearStaleVisuals();
 
                 if (currentTableData.length > 0) {
-                    btn.classList.remove("disabled");
+                    btnWord.classList.remove("disabled");
                     resultState = "fresh";
 
-                    // авто-скачивание DOCX со снапшотом и датой/временем
                     const autoName = generateDocxFileName();
                     downloadWord(autoName);
                 } else {
-                    btn.classList.add("disabled");
+                    btnWord.classList.add("disabled");
                     resultState = "empty";
                 }
 
@@ -680,6 +734,21 @@
             const ss = pad(now.getSeconds());
 
             return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.docx`;
+        }
+
+        // --- Имя файла для MP3 ---
+        function generateAudioFileName() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+
+            const dd = pad(now.getDate());
+            const mm = pad(now.getMonth() + 1);
+            const yy = String(now.getFullYear()).slice(-2);
+            const hh = pad(now.getHours());
+            const min = pad(now.getMinutes());
+            const ss = pad(now.getSeconds());
+
+            return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.mp3`;
         }
 
         // --- Word ---
