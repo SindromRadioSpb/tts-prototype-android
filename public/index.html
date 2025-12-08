@@ -228,16 +228,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        .btn-secondary {
-            background-color: #f1f2f6;
-            color: #2d3436;
-            border: 1px solid #d0d4d8;
-        }
-
-        .btn-secondary:hover {
-            background-color: #e2e5ea;
-        }
-
         .loader {
             width: 20px;
             height: 20px;
@@ -338,39 +328,6 @@
             color: #a67c00;
         }
 
-        /* TOAST (Material Snackbar-стиль) */
-        #toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            max-width: 320px;
-            background: #323232;
-            color: #ffffff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            opacity: 0;
-            transform: translateY(10px);
-            pointer-events: none;
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            z-index: 1000;
-        }
-
-        #toast.toast-visible {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        #toast.toast-error {
-            background: #c0392b;
-        }
-
-        #toast.toast-info {
-            background: #323232;
-        }
-
         @media (max-width: 600px) {
             .dashboard-header {
                 flex-direction: column;
@@ -407,9 +364,6 @@
     </style>
 </head>
 <body>
-
-    <!-- TOAST -->
-    <div id="toast"></div>
 
     <div class="dashboard-header">
         <div class="stats-box">
@@ -469,8 +423,6 @@
             <div id="loader" class="loader"></div>
 
             <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
-
-            <button class="btn-secondary" type="button" onclick="clearAll()">🧹 Очистить всё</button>
         </div>
 
         <div id="audioContainer" style="margin-bottom: 15px;"></div>
@@ -485,14 +437,13 @@
         const langSelectEl = document.getElementById("langSelect");
         const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
         const textChangedNoticeEl = document.getElementById("textChangedNotice");
-        const toastEl = document.getElementById("toast");
 
         const STORAGE_KEY = "ttsDashboard_text_v1";
         let saveTimer = null;
-        let toastTimer = null;
 
-        // состояние результатов: empty | fresh | stale
-        let resultState = "empty";
+        // независимые состояния
+        let tableIsStale = false;
+        let audioIsStale = false;
 
         // кэш аудио
         let lastAudioBlob = null;
@@ -537,79 +488,73 @@
             }, 400);
         }
 
-        // --- ЕДИНЫЙ ИСТОЧНИК ПРАВДЫ ДЛЯ СОСТОЯНИЯ ---
-        function setResultState(newState) {
-            resultState = newState;
+        // пометка результатов как устаревших
+        function markResultsStale() {
             const tableEl = document.getElementById("tableContainer");
             const audioEl = document.getElementById("audioContainer");
             const btnWord = document.getElementById("btnWord");
 
-            if (newState === "empty") {
-                if (tableEl) {
-                    tableEl.innerHTML = "";
-                    tableEl.classList.remove("results-stale");
-                }
-                if (audioEl) {
-                    audioEl.innerHTML = "";
-                    audioEl.classList.remove("results-stale");
-                }
-                if (btnWord) {
-                    btnWord.classList.add("disabled");
-                }
-                textChangedNoticeEl.classList.remove("notice-visible");
+            const hasTable = tableEl && tableEl.innerHTML.trim();
+            const hasAudio = audioEl && audioEl.innerHTML.trim();
+
+            if (hasTable) {
+                tableEl.classList.add("results-stale");
+                addStaleNote(tableEl);
+                tableIsStale = true;
+                if (btnWord) btnWord.classList.add("disabled");
             }
 
-            if (newState === "fresh") {
-                clearStaleVisuals();
-                if (btnWord && currentTableData && currentTableData.length > 0) {
-                    btnWord.classList.remove("disabled");
-                }
+            if (hasAudio) {
+                audioEl.classList.add("results-stale");
+                audioIsStale = true;
             }
 
-            if (newState === "stale") {
-                if (tableEl && tableEl.innerHTML.trim()) {
-                    tableEl.classList.add("results-stale");
-                    addStaleNote(tableEl);
-                }
-                if (audioEl && audioEl.innerHTML.trim()) {
-                    audioEl.classList.add("results-stale");
-                }
-                if (btnWord) {
-                    btnWord.classList.add("disabled");
-                }
+            if (hasTable || hasAudio) {
+                textChangedNoticeEl.classList.add("notice-visible");
+            } else {
+                // даже если результатов ещё нет — можно подсветить, что текст менялся
                 textChangedNoticeEl.classList.add("notice-visible");
             }
-        }
-
-        function markResultsStale() {
-            if (resultState === "empty") {
-                // даже если ещё нет результатов — просто показ баннера
-                textChangedNoticeEl.classList.add("notice-visible");
-                return;
-            }
-            setResultState("stale");
         }
 
         function addStaleNote(container) {
             if (container.querySelector(".results-stale-note")) return;
+
             const note = document.createElement("div");
             note.className = "results-stale-note";
             note.textContent = "Текст сверху изменён. Перевод и озвучка ниже могут быть неактуальны.";
             container.appendChild(note);
         }
 
-        function clearStaleVisuals() {
-            const tableEl = document.getElementById("tableContainer");
+        function clearAudioStale() {
             const audioEl = document.getElementById("audioContainer");
+            if (audioEl) {
+                audioEl.classList.remove("results-stale");
+            }
+            audioIsStale = false;
+
+            if (!audioIsStale && !tableIsStale) {
+                textChangedNoticeEl.classList.remove("notice-visible");
+            }
+        }
+
+        function clearTableStale() {
+            const tableEl = document.getElementById("tableContainer");
             if (tableEl) {
                 tableEl.classList.remove("results-stale");
                 const staleNote = tableEl.querySelector(".results-stale-note");
                 if (staleNote) staleNote.remove();
             }
-            if (audioEl) {
-                audioEl.classList.remove("results-stale");
+            tableIsStale = false;
+
+            const btnWord = document.getElementById("btnWord");
+            if (btnWord && currentTableData.length > 0) {
+                btnWord.classList.remove("disabled");
             }
-            textChangedNoticeEl.classList.remove("notice-visible");
+
+            if (!audioIsStale && !tableIsStale) {
+                textChangedNoticeEl.classList.remove("notice-visible");
+            }
         }
 
         // --- Загрузка статистики ---
@@ -632,6 +577,7 @@
         // --- Направление текста ---
         function applyTextDirection() {
             const lang = langSelectEl.value;
+
             if (lang === "he-IL") {
                 inputTextEl.classList.add("rtl-text");
                 inputTextEl.setAttribute("dir", "rtl");
@@ -651,6 +597,7 @@
         function applyHebrewFont() {
             const value = hebrewFontSelectEl.value;
             let fontStack;
+
             switch (value) {
                 case "assistant":
                     fontStack = "'Assistant', 'Segoe UI', Tahoma, sans-serif";
@@ -663,6 +610,7 @@
                     fontStack = "'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif";
                     break;
             }
+
             document.documentElement.style.setProperty("--hebrew-font", fontStack);
         }
 
@@ -672,6 +620,7 @@
         // --- TTS: озвучить + кэш ---
         async function playTTS() {
             if (!validate()) return;
+
             try {
                 const res = await apiCall("/api/tts", {
                     text: getText(),
@@ -692,7 +641,6 @@
                 }
                 lastAudioUrl = URL.createObjectURL(lastAudioBlob);
 
-                // плеер в интерфейсе + кнопка "Скачать MP3"
                 const audioContainer = document.getElementById("audioContainer");
                 audioContainer.innerHTML =
                     '<div class="audio-block">' +
@@ -702,29 +650,32 @@
                     '  </button>' +
                     '  <small>Сгенерировано из текущего текста</small>' +
                     '</div>';
-                audioContainer.classList.remove("results-stale");
 
-                clearStaleVisuals();
-                setResultState("fresh");
-
+                clearAudioStale();  // звук стал актуальным
                 loadStats();
-                showToast("Озвучка выполнена", "info");
             } catch (e) {
                 showError(e.message);
             }
         }
 
-        // --- Сохранить MP3 из кэша ---
+        // --- Сохранить MP3 из кэша (без нового запроса к TTS) ---
         function downloadMp3FromCache() {
+            if (audioIsStale) {
+                showError("Текст изменён — озвучьте его заново, чтобы скачать актуальный MP3");
+                return;
+            }
+
             if (!lastAudioBlob) {
                 showError("Нет актуального аудио для сохранения");
                 return;
             }
+
             let url = lastAudioUrl;
             if (!url) {
                 url = URL.createObjectURL(lastAudioBlob);
                 lastAudioUrl = url;
             }
+
             const a = document.createElement("a");
             a.href = url;
             a.download = generateAudioFileName();
@@ -752,18 +703,18 @@
                 const btnWord = document.getElementById("btnWord");
 
                 if (currentTableData.length > 0) {
-                    btnWord.classList.remove("disabled");
-                    clearStaleVisuals();
-                    setResultState("fresh");
+                    clearTableStale();      // актуализируем только таблицу
+                    tableIsStale = false;
+                    if (btnWord) btnWord.classList.remove("disabled");
 
                     const autoName = generateDocxFileName();
-                    await downloadWord(autoName);
-                    showToast("Таблица обновлена и DOCX сохранён", "info");
+                    downloadWord(autoName); // авто-скачивание свежего DOCX
                 } else {
-                    btnWord.classList.add("disabled");
-                    setResultState("empty");
+                    tableIsStale = false;
+                    if (btnWord) btnWord.classList.add("disabled");
                 }
 
+                // audioIsStale специально не трогаем — звук может остаться "старым"
                 loadStats();
             } catch (e) {
                 showError(e.message);
@@ -815,12 +766,14 @@
         function generateDocxFileName() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, "0");
+
             const dd = pad(now.getDate());
             const mm = pad(now.getMonth() + 1);
             const yy = String(now.getFullYear()).slice(-2);
             const hh = pad(now.getHours());
             const min = pad(now.getMinutes());
             const ss = pad(now.getSeconds());
+
             return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.docx`;
         }
 
@@ -828,12 +781,14 @@
         function generateAudioFileName() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, "0");
+
             const dd = pad(now.getDate());
             const mm = pad(now.getMonth() + 1);
             const yy = String(now.getFullYear()).slice(-2);
             const hh = pad(now.getHours());
             const min = pad(now.getMinutes());
             const ss = pad(now.getSeconds());
+
             return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.mp3`;
         }
 
@@ -874,36 +829,6 @@
             }
         }
 
-        // --- Кнопка "Очистить всё" ---
-        function clearAll() {
-            try {
-                // текст
-                inputTextEl.value = "";
-                autoGrow();
-                try {
-                    localStorage.removeItem(STORAGE_KEY);
-                } catch (e) {
-                    console.error("LocalStorage remove error", e);
-                }
-
-                // данные
-                currentTableData = [];
-                lastAudioBlob = null;
-                if (lastAudioUrl) {
-                    URL.revokeObjectURL(lastAudioUrl);
-                    lastAudioUrl = null;
-                }
-
-                // визуал
-                document.getElementById("errorMsg").textContent = "";
-                setResultState("empty");
-
-                showToast("Все данные очищены", "info");
-            } catch (e) {
-                showError("Не удалось очистить данные: " + e.message);
-            }
-        }
-
         // --- Утилиты ---
         function getText() {
             return inputTextEl.value;
@@ -924,7 +849,6 @@
 
         function showError(msg) {
             document.getElementById("errorMsg").textContent = "Ошибка: " + msg;
-            showToast(msg, "error");
         }
 
         function setLoading(state) {
@@ -962,21 +886,6 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
-        }
-
-        // --- Toast ---
-        function showToast(message, type) {
-            if (!toastEl) return;
-            toastEl.textContent = message;
-            toastEl.classList.remove("toast-error", "toast-info");
-            toastEl.classList.add(type === "error" ? "toast-error" : "toast-info", "toast-visible");
-
-            if (toastTimer) {
-                clearTimeout(toastTimer);
-            }
-            toastTimer = setTimeout(() => {
-                toastEl.classList.remove("toast-visible");
-            }, 3500);
         }
     </script>
 </body>
