@@ -5,7 +5,15 @@
     <title>TTS & Translator Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <!-- Шрифты для иврита -->
+    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            /* Текущий шрифт для иврита (управляется селектором) */
+            --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
             max-width: 900px;
@@ -115,11 +123,12 @@
                 0 2px 4px rgba(0, 0, 0, 0.06);
         }
 
-        /* Режим для иврита */
+        /* Режим для иврита (textarea) */
         textarea.rtl-text {
             direction: rtl;
             text-align: right;
             line-height: 1.9;
+            font-family: var(--hebrew-font);
         }
 
         .controls {
@@ -219,7 +228,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ТАБЛИЦА */
+        /* ТАБЛИЦА — учебный Word-стиль */
         #tableContainer {
             margin-top: 20px;
         }
@@ -228,31 +237,42 @@
             width: 100%;
             border-collapse: collapse;
             background: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow:
-                inset 0 1px 3px rgba(0,0,0,0.12),
-                0 2px 4px rgba(0,0,0,0.06);
-            border: 1px solid #b5b5b5;
+            border-radius: 0;
+            box-shadow: none;
+            border: 1px solid #000000;
+            font-size: 15px;
         }
 
         th,
         td {
-            padding: 15px;
+            padding: 6px 8px;
             text-align: left;
-            border-bottom: 1px solid #f0f0f0;
+            border: 1px solid #000000;
         }
 
         th {
-            background-color: #f8f9fa;
-            color: #2c3e50;
-            font-weight: 600;
+            background-color: #f2f2f2;
+            color: #000000;
+            font-weight: 700;
+            text-align: center;
         }
 
+        /* Базовый иврит в таблице */
         .rtl {
             direction: rtl;
             text-align: right;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-family: var(--hebrew-font);
+        }
+
+        /* Иврит без никуда – чуть крупнее */
+        .rtl-he {
+            font-size: 18px;
+        }
+
+        /* Иврит с никудом – ещё крупнее и с увеличенным межстрочным интервалом */
+        .rtl-he-niqqud {
+            font-size: 19px;
+            line-height: 1.9;
         }
 
         .error {
@@ -335,6 +355,15 @@
                 </select>
             </div>
 
+            <div class="field-group">
+                <label for="hebrewFontSelect" class="input-label">Шрифт иврита</label>
+                <select id="hebrewFontSelect">
+                    <option value="frank" selected>Frank Ruhl Libre (рекомендуется)</option>
+                    <option value="assistant">Assistant</option>
+                    <option value="system">Системный</option>
+                </select>
+            </div>
+
             <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
             <button class="btn-primary" onclick="saveTTS()">💾 Скачать MP3</button>
 
@@ -356,6 +385,7 @@
 
         const inputTextEl = document.getElementById("inputText");
         const langSelectEl = document.getElementById("langSelect");
+        const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
 
         // --- Загрузка статистики при старте ---
         async function loadStats() {
@@ -388,7 +418,31 @@
         }
 
         langSelectEl.addEventListener("change", applyTextDirection);
-        applyTextDirection(); // вызвать при загрузке, учитывая дефолтный язык
+        applyTextDirection(); // при загрузке
+
+        // --- Применение шрифта для иврита ---
+        function applyHebrewFont() {
+            const value = hebrewFontSelectEl.value;
+            let fontStack;
+
+            switch (value) {
+                case "assistant":
+                    fontStack = "'Assistant', 'Segoe UI', Tahoma, sans-serif";
+                    break;
+                case "system":
+                    fontStack = "'Segoe UI', Tahoma, sans-serif";
+                    break;
+                case "frank":
+                default:
+                    fontStack = "'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif";
+                    break;
+            }
+
+            document.documentElement.style.setProperty("--hebrew-font", fontStack);
+        }
+
+        hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
+        applyHebrewFont(); // при загрузке
 
         // --- TTS ---
         async function playTTS() {
@@ -485,8 +539,8 @@
 
                 html += '' +
                     '<tr>' +
-                    '  <td class="rtl">' + escapeHtml(he) + '</td>' +
-                    '  <td class="rtl">' + escapeHtml(heNiqqud) + '</td>' +
+                    '  <td class="rtl rtl-he">' + escapeHtml(he) + '</td>' +
+                    '  <td class="rtl rtl-he-niqqud">' + escapeHtml(heNiqqud) + '</td>' +
                     '  <td>' + escapeHtml(translit) + '</td>' +
                     '  <td>' + escapeHtml(ru) + '</td>' +
                     '</tr>';
