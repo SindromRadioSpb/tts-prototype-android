@@ -184,12 +184,24 @@
         .btn-word {
             background-color: #2b579a;
             color: #ffffff;
-            display: none;
             margin-left: auto;
+            opacity: 1;
+            transition: all 0.25s ease;
         }
 
-        .btn-word:hover {
+        /* Состояние disabled */
+        .btn-word.disabled {
+            background-color: #d0d4d8 !important;
+            color: #888 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            opacity: 0.65;
+        }
+
+        /* Активная кнопка */
+        .btn-word:not(.disabled):hover {
             background-color: #1e3f72;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
         .loader {
@@ -331,7 +343,7 @@
             <button class="btn-success" onclick="translateTable()">🪄 AI Перевод</button>
             <div id="loader" class="loader"></div>
 
-            <button id="btnWord" class="btn-word" onclick="downloadWord()">📥 Скачать DOCX</button>
+            <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
         </div>
 
         <div id="audioContainer" style="margin-bottom: 15px;"></div>
@@ -419,9 +431,8 @@
             if (!validate()) return;
 
             setLoading(true);
-            document.getElementById("btnWord").style.display = "none";
-            document.getElementById("tableContainer").innerHTML = "";
             document.getElementById("errorMsg").textContent = "";
+            document.getElementById("tableContainer").innerHTML = "";
 
             try {
                 const res = await apiCall("/api/translate-table", {
@@ -431,8 +442,12 @@
                 currentTableData = res.rows || [];
                 renderTable(currentTableData);
 
+                const btn = document.getElementById("btnWord");
+
                 if (currentTableData.length > 0) {
-                    document.getElementById("btnWord").style.display = "block";
+                    btn.classList.remove("disabled");
+                } else {
+                    btn.classList.add("disabled");
                 }
 
                 loadStats();
@@ -484,6 +499,11 @@
 
         // --- Word ---
         async function downloadWord() {
+            const btn = document.getElementById("btnWord");
+            if (btn.classList.contains("disabled")) {
+                return;
+            }
+
             if (!currentTableData || currentTableData.length === 0) {
                 showError("Нет данных для экспорта");
                 return;
