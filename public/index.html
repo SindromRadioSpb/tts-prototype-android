@@ -112,7 +112,7 @@
             border-radius: 12px;
             font-size: 16px;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             box-sizing: border-box;
             resize: none;          /* auto-grow вместо ручного ресайза */
             overflow-y: hidden;    /* убираем внутренний скролл */
@@ -130,6 +130,22 @@
             text-align: right;
             line-height: 1.9;
             font-family: var(--hebrew-font);
+        }
+
+        /* Баннер "текст изменён" */
+        #textChangedNotice {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border: 1px solid #ffeeba;
+            font-size: 14px;
+            display: none;
+        }
+
+        #textChangedNotice.notice-visible {
+            display: block;
         }
 
         .controls {
@@ -212,20 +228,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        /* Кнопка MP3 как вспомогательная, с состоянием disabled */
-        .btn-mp3.disabled {
-            background-color: #d0d4d8 !important;
-            color: #888 !important;
-            cursor: not-allowed !important;
-            box-shadow: none !important;
-            opacity: 0.65;
-        }
-
-        .btn-mp3:not(.disabled):hover {
-            background-color: #2980b9;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
         .loader {
             width: 20px;
             height: 20px;
@@ -239,6 +241,29 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* Блок аудио */
+        .audio-block {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 0;
+        }
+
+        .audio-download-btn {
+            align-self: flex-start;
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid #d0d4d8;
+            background: #ffffff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .audio-download-btn:hover {
+            background: #f0f4f7;
         }
 
         /* ТАБЛИЦА — учебный Word-стиль */
@@ -367,6 +392,10 @@
 
         <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
+        <div id="textChangedNotice">
+            ⚠ Текст был изменён. Требуется повторная озвучка и AI Перевод.
+        </div>
+
         <div class="controls">
             <div class="field-group">
                 <label for="langSelect" class="input-label">Язык исходного текста</label>
@@ -387,11 +416,10 @@
             </div>
 
             <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
-            <button id="btnMp3" class="btn-primary btn-mp3 disabled" onclick="saveTTS()">💾 Скачать MP3</button>
 
             <div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
 
-            <button class="btn-success" onclick="translateTable()">🪄 AI Перевод</button>
+            <button class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
             <div id="loader" class="loader"></div>
 
             <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
@@ -408,6 +436,7 @@
         const inputTextEl = document.getElementById("inputText");
         const langSelectEl = document.getElementById("langSelect");
         const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
+        const textChangedNoticeEl = document.getElementById("textChangedNotice");
 
         const STORAGE_KEY = "ttsDashboard_text_v1";
         let saveTimer = null;
@@ -459,12 +488,15 @@
         }
 
         function markResultsStale() {
-            if (resultState === "empty") return;
+            if (resultState === "empty") {
+                // даже если ещё нет результатов — просто показать, что текст менялся
+                textChangedNoticeEl.classList.add("notice-visible");
+                return;
+            }
 
             const tableEl = document.getElementById("tableContainer");
             const audioEl = document.getElementById("audioContainer");
             const btnWord = document.getElementById("btnWord");
-            const btnMp3 = document.getElementById("btnMp3");
 
             if (tableEl && tableEl.innerHTML.trim()) {
                 tableEl.classList.add("results-stale");
@@ -476,10 +508,8 @@
             if (btnWord) {
                 btnWord.classList.add("disabled");
             }
-            if (btnMp3) {
-                btnMp3.classList.add("disabled");
-            }
 
+            textChangedNoticeEl.classList.add("notice-visible");
             resultState = "stale";
         }
 
@@ -504,6 +534,8 @@
             if (audioEl) {
                 audioEl.classList.remove("results-stale");
             }
+
+            textChangedNoticeEl.classList.remove("notice-visible");
         }
 
         // --- Загрузка статистики ---
@@ -536,7 +568,10 @@
             }
         }
 
-        langSelectEl.addEventListener("change", applyTextDirection);
+        langSelectEl.addEventListener("change", function () {
+            applyTextDirection();
+            markResultsStale();
+        });
         applyTextDirection();
 
         // --- Шрифт иврита ---
@@ -563,7 +598,7 @@
         hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
         applyHebrewFont();
 
-        // --- TTS: озвучить + кэш + авто-скачать ---
+        // --- TTS: озвучить + кэш ---
         async function playTTS() {
             if (!validate()) return;
 
@@ -587,25 +622,20 @@
                 }
                 lastAudioUrl = URL.createObjectURL(lastAudioBlob);
 
-                // плеер в интерфейсе
+                // плеер в интерфейсе + кнопка "Скачать MP3"
                 const audioContainer = document.getElementById("audioContainer");
                 audioContainer.innerHTML =
-                    '<audio controls src="' + lastAudioUrl + '" autoplay></audio>' +
-                    '<br><small>Сгенерировано из текущего текста</small>';
+                    '<div class="audio-block">' +
+                    '  <audio controls src="' + lastAudioUrl + '" autoplay></audio>' +
+                    '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+                    '    ⬇ Скачать MP3' +
+                    '  </button>' +
+                    '  <small>Сгенерировано из текущего текста</small>' +
+                    '</div>';
                 audioContainer.classList.remove("results-stale");
 
-                // разблокируем кнопку MP3
-                const btnMp3 = document.getElementById("btnMp3");
-                btnMp3.classList.remove("disabled");
-
-                // отметим результаты как свежие
                 clearStaleVisuals();
-                if (resultState === "empty" || resultState === "stale") {
-                    resultState = "fresh";
-                }
-
-                // авто-скачивание MP3-снапшота
-                downloadMp3FromCache(generateAudioFileName());
+                resultState = "fresh";
 
                 loadStats();
             } catch (e) {
@@ -614,20 +644,11 @@
         }
 
         // --- Сохранить MP3 из кэша (без нового запроса к TTS) ---
-        function saveTTS() {
-            const btnMp3 = document.getElementById("btnMp3");
-            if (btnMp3.classList.contains("disabled")) {
-                return;
-            }
+        function downloadMp3FromCache() {
             if (!lastAudioBlob) {
                 showError("Нет актуального аудио для сохранения");
                 return;
             }
-            downloadMp3FromCache(generateAudioFileName());
-        }
-
-        function downloadMp3FromCache(customName) {
-            if (!lastAudioBlob) return;
 
             let url = lastAudioUrl;
             if (!url) {
@@ -637,7 +658,7 @@
 
             const a = document.createElement("a");
             a.href = url;
-            a.download = customName || "tts.mp3";
+            a.download = generateAudioFileName();
             document.body.appendChild(a);
             a.click();
             a.remove();
