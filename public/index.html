@@ -282,6 +282,19 @@
             font-weight: 500;
         }
 
+        /* УСТАРЕВШИЕ РЕЗУЛЬТАТЫ */
+        .results-stale {
+            opacity: 0.45;
+            filter: grayscale(0.4);
+            transition: opacity 0.2s ease, filter 0.2s ease;
+        }
+
+        .results-stale-note {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #a67c00;
+        }
+
         @media (max-width: 600px) {
             .dashboard-header {
                 flex-direction: column;
@@ -388,13 +401,93 @@
         const langSelectEl = document.getElementById("langSelect");
         const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
 
-        // --- Auto-grow textarea ---
-        inputTextEl.addEventListener("input", autoGrow);
-        autoGrow(); // вызвать при загрузке
+        const STORAGE_KEY = "ttsDashboard_text_v1";
+        let saveTimer = null;
+
+        // empty | fresh | stale
+        let resultState = "empty";
+
+        // --- Восстановление текста при загрузке ---
+        (function restoreText() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved && saved.trim()) {
+                    inputTextEl.value = saved;
+                }
+            } catch (e) {
+                console.error("LocalStorage restore error", e);
+            }
+        })();
+
+        // --- Auto-grow + autosave textarea + пометка устаревших результатов ---
+        inputTextEl.addEventListener("input", function () {
+            autoGrow();
+            scheduleSaveText();
+            markResultsStale();
+        });
+
+        autoGrow(); // первая подгонка высоты после восстановления/дефолта
 
         function autoGrow() {
             inputTextEl.style.height = "auto";
             inputTextEl.style.height = (inputTextEl.scrollHeight + 10) + "px";
+        }
+
+        function scheduleSaveText() {
+            if (saveTimer) {
+                clearTimeout(saveTimer);
+            }
+            saveTimer = setTimeout(function () {
+                try {
+                    localStorage.setItem(STORAGE_KEY, inputTextEl.value);
+                } catch (e) {
+                    console.error("LocalStorage save error", e);
+                }
+            }, 400); // дебаунс ~0.4 сек
+        }
+
+        function markResultsStale() {
+            if (resultState === "empty") return;
+
+            const tableEl = document.getElementById("tableContainer");
+            const audioEl = document.getElementById("audioContainer");
+            const btn = document.getElementById("btnWord");
+
+            if (tableEl && tableEl.innerHTML.trim()) {
+                tableEl.classList.add("results-stale");
+                addStaleNote(tableEl);
+            }
+            if (audioEl && audioEl.innerHTML.trim()) {
+                audioEl.classList.add("results-stale");
+            }
+            if (btn) {
+                btn.classList.add("disabled");
+            }
+
+            resultState = "stale";
+        }
+
+        function addStaleNote(container) {
+            if (container.querySelector(".results-stale-note")) return;
+
+            const note = document.createElement("div");
+            note.className = "results-stale-note";
+            note.textContent = "Текст сверху изменён. Перевод и озвучка ниже могут быть неактуальны.";
+            container.appendChild(note);
+        }
+
+        function clearStaleVisuals() {
+            const tableEl = document.getElementById("tableContainer");
+            const audioEl = document.getElementById("audioContainer");
+
+            if (tableEl) {
+                tableEl.classList.remove("results-stale");
+                const staleNote = tableEl.querySelector(".results-stale-note");
+                if (staleNote) staleNote.remove();
+            }
+            if (audioEl) {
+                audioEl.classList.remove("results-stale");
+            }
         }
 
         // --- Загрузка статистики при старте ---
@@ -480,9 +573,14 @@
                     language: getLang()
                 });
 
-                document.getElementById("audioContainer").innerHTML =
+                const audioContainer = document.getElementById("audioContainer");
+
+                audioContainer.innerHTML =
                     '<audio controls src="' + res.audioUrl + '" autoplay></audio>' +
                     '<br><small>Сохранено: <a href="' + res.audioUrl + '" target="_blank">файл</a></small>';
+
+                // если до этого результат был устаревшим, новый звук уже актуален
+                audioContainer.classList.remove("results-stale");
 
                 loadStats();
             } catch (e) {
@@ -508,10 +606,14 @@
 
                 const btn = document.getElementById("btnWord");
 
+                clearStaleVisuals();
+
                 if (currentTableData.length > 0) {
                     btn.classList.remove("disabled");
+                    resultState = "fresh";
                 } else {
                     btn.classList.add("disabled");
+                    resultState = "empty";
                 }
 
                 loadStats();
@@ -648,14 +750,14 @@
         }
 
         function escapeHtml(str) {
-            if (!str) return "";
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+    if (!str) return "";
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
     </script>
 </body>
 </html>
