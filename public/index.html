@@ -328,6 +328,12 @@
             color: #a67c00;
         }
 
+        .cache-restore-note {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
         @media (max-width: 600px) {
             .dashboard-header {
                 flex-direction: column;
@@ -439,12 +445,11 @@
         const textChangedNoticeEl = document.getElementById("textChangedNotice");
 
         const STORAGE_KEY = "ttsDashboard_text_v1";
+        const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
+
         let saveTimer = null;
 
-        // состояние результатов: empty | fresh | stale
-        let resultState = "empty";
-
-        // независимые состояния
+        // состояние "старости" по отдельности
         let tableIsStale = false;
         let audioIsStale = false;
 
@@ -494,6 +499,52 @@
             }, 400);
         }
 
+        // --- Восстановление таблицы из localStorage, если текст совпадает ---
+        (function restoreTableFromCache() {
+            try {
+                const raw = localStorage.getItem(TABLE_CACHE_KEY);
+                if (!raw) return;
+
+                const cache = JSON.parse(raw);
+                if (!cache || !Array.isArray(cache.rows) || !cache.text) return;
+
+                if (cache.text !== inputTextEl.value) return;
+
+                currentTableData = cache.rows;
+                lastDocxFilename = cache.lastDocxFilename || null;
+
+                renderTable(currentTableData);
+
+                const btnWord = document.getElementById("btnWord");
+                if (currentTableData.length > 0 && btnWord) {
+                    btnWord.classList.remove("disabled");
+                }
+
+                tableIsStale = false;
+                addCacheRestoreNote();
+            } catch (e) {
+                console.error("Table cache restore error", e);
+            }
+        })();
+
+        function addCacheRestoreNote() {
+            const container = document.getElementById("tableContainer");
+            if (!container) return;
+            if (container.querySelector(".cache-restore-note")) return;
+
+            const note = document.createElement("div");
+            note.className = "cache-restore-note";
+            note.textContent = "Перевод восстановлен из локального кэша. Новый запрос к AI не выполнялся.";
+            container.appendChild(note);
+        }
+
+        function clearCacheRestoreNote() {
+            const container = document.getElementById("tableContainer");
+            if (!container) return;
+            const note = container.querySelector(".cache-restore-note");
+            if (note) note.remove();
+        }
+
         // пометка результатов как устаревших
         function markResultsStale() {
             const tableEl = document.getElementById("tableContainer");
@@ -505,6 +556,11 @@
 
             if (hasTable) {
                 tableEl.classList.add("results-stale");
+
+                // кэш-нота уже не актуальна
+                const cacheNote = tableEl.querySelector(".cache-restore-note");
+                if (cacheNote) cacheNote.remove();
+
                 addStaleNote(tableEl);
                 tableIsStale = true;
                 if (btnWord) btnWord.classList.add("disabled");
@@ -632,7 +688,6 @@
                     language: getLang()
                 });
 
-                // base64 → Blob
                 const binary = atob(res.audioContent);
                 const len = binary.length;
                 const bytes = new Uint8Array(len);
@@ -656,7 +711,7 @@
                     '  <small>Сгенерировано из текущего текста</small>' +
                     '</div>';
 
-                clearAudioStale();  // звук стал актуальным
+                clearAudioStale();
                 loadStats();
             } catch (e) {
                 showError(e.message);
@@ -703,27 +758,42 @@
                 });
 
                 currentTableData = res.rows || [];
+
+                // новые результаты — кэш-нота уже не нужна
+                clearCacheRestoreNote();
                 renderTable(currentTableData);
 
                 const btnWord = document.getElementById("btnWord");
 
                 if (currentTableData.length > 0) {
-                    clearTableStale();      // актуализируем только таблицу
+                    clearTableStale();
                     tableIsStale = false;
                     if (btnWord) btnWord.classList.remove("disabled");
 
-                    // генерируем имя один раз для этого перевода
-                    lastDocxFilename = generateDocxFileName();
+                    // имя файла по моменту перевода
+                    const autoName = generateDocxFileName();
+                    lastDocxFilename = autoName;
 
-                    // авто-скачивание свежего DOCX с этим именем
-                    downloadWord(lastDocxFilename);
+                    // сохраняем таблицу в localStorage (кэш)
+                    try {
+                        const cache = {
+                            text: getText(),
+                            rows: currentTableData,
+                            createdAt: new Date().toISOString(),
+                            lastDocxFilename: lastDocxFilename
+                        };
+                        localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+                    } catch (e) {
+                        console.error("Table cache save error", e);
+                    }
+
+                    // авто-скачивание свежего DOCX
+                    downloadWord(autoName);
                 } else {
                     tableIsStale = false;
                     if (btnWord) btnWord.classList.add("disabled");
-                    lastDocxFilename = null;
                 }
 
-                // audioIsStale специально не трогаем — звук может остаться "старым"
                 loadStats();
             } catch (e) {
                 showError(e.message);
@@ -813,6 +883,8 @@
                 return;
             }
 
+            const filename = customFilename || lastDocxFilename || "translation.docx";
+
             try {
                 const res = await fetch("/api/export-docx", {
                     method: "POST",
@@ -828,13 +900,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-
-                // если передали имя — используем его;
-                // если нет — используем сохранённое имя последнего перевода;
-                // если и его нет (на всякий случай) — fallback
-                const filename = customFilename || lastDocxFilename || "translation.docx";
                 a.download = filename;
-
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -897,7 +963,7 @@
             if (!str) return "";
             return String(str)
                 .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;/g")
+                .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
