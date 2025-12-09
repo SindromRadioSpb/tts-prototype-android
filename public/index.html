@@ -10,7 +10,6 @@
 
     <style>
         :root {
-            /* Текущий шрифт для иврита (управляется селектором) */
             --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
         }
 
@@ -43,13 +42,20 @@
         }
 
         .stat-item {
-            text-align: center;
+            text-align: left;
             min-width: 120px;
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
+            color: #2c3e50;
+            display: block;
+        }
+
+        .stat-value-sm {
+            font-size: 14px;
+            font-weight: 600;
             color: #2c3e50;
             display: block;
         }
@@ -114,8 +120,8 @@
             line-height: 1.6;
             margin-bottom: 12px;
             box-sizing: border-box;
-            resize: none;          /* auto-grow вместо ручного ресайза */
-            overflow-y: hidden;    /* убираем внутренний скролл */
+            resize: none;
+            overflow-y: hidden;
             direction: ltr;
             text-align: left;
             background-color: #ffffff;
@@ -124,7 +130,6 @@
                 0 2px 4px rgba(0, 0, 0, 0.06);
         }
 
-        /* Режим для иврита (textarea) */
         textarea.rtl-text {
             direction: rtl;
             text-align: right;
@@ -205,6 +210,13 @@
         .btn-success:hover {
             background-color: #27ae60;
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-success.disabled,
+        .btn-success:disabled {
+            background-color: #95a5a6;
+            box-shadow: none;
+            cursor: not-allowed;
         }
 
         .btn-word {
@@ -379,9 +391,14 @@
                 <div class="stat-sub">Через это приложение</div>
             </div>
             <div class="stat-item">
-                <span id="statGemini" class="stat-value">0</span>
-                <span class="stat-label">Запросы AI</span>
-                <div class="stat-sub">Переводы таблиц</div>
+                <span id="statGemini" class="stat-value">0 / 20</span>
+                <span class="stat-label">Запросы AI сегодня</span>
+                <div class="stat-sub">Free Tier лимит: 20/день</div>
+            </div>
+            <div class="stat-item">
+                <span id="statGeminiModel" class="stat-value-sm">Gemini</span>
+                <span class="stat-label" id="statGeminiModelLabel">Модель</span>
+                <div class="stat-sub" id="statGeminiPlanLabel">План</div>
             </div>
         </div>
 
@@ -425,7 +442,7 @@
 
             <div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
 
-            <button class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
+            <button id="btnTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
             <div id="loader" class="loader"></div>
 
             <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
@@ -444,21 +461,24 @@
         const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
         const textChangedNoticeEl = document.getElementById("textChangedNotice");
 
+        const statTTSEl = document.getElementById("statTTS");
+        const statGeminiEl = document.getElementById("statGemini");
+        const statGeminiModelEl = document.getElementById("statGeminiModelLabel");
+        const statGeminiPlanEl = document.getElementById("statGeminiPlanLabel");
+
         const STORAGE_KEY = "ttsDashboard_text_v1";
         const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
 
         let saveTimer = null;
 
-        // состояние "старости" по отдельности
         let tableIsStale = false;
         let audioIsStale = false;
 
-        // кэш аудио
         let lastAudioBlob = null;
         let lastAudioUrl = null;
-
-        // имя последнего DOCX (по моменту AI-перевода)
         let lastDocxFilename = null;
+
+        let quotaTimerId = null;
 
         // --- Восстановление текста при загрузке ---
         (function restoreText() {
@@ -545,7 +565,7 @@
             if (note) note.remove();
         }
 
-        // пометка результатов как устаревших
+        // --- Пометка результатов как устаревших ---
         function markResultsStale() {
             const tableEl = document.getElementById("tableContainer");
             const audioEl = document.getElementById("audioContainer");
@@ -557,7 +577,6 @@
             if (hasTable) {
                 tableEl.classList.add("results-stale");
 
-                // кэш-нота уже не актуальна
                 const cacheNote = tableEl.querySelector(".cache-restore-note");
                 if (cacheNote) cacheNote.remove();
 
@@ -626,8 +645,25 @@
                     throw new Error("Не удалось получить статистику");
                 }
                 const data = await res.json();
-                document.getElementById("statTTS").textContent = (data.ttsChars || 0).toLocaleString();
-                document.getElementById("statGemini").textContent = (data.geminiRequests || 0).toLocaleString();
+
+                if (statTTSEl) {
+                    statTTSEl.textContent = (data.ttsChars || 0).toLocaleString();
+                }
+
+                if (statGeminiEl) {
+                    if (typeof data.geminiRequestsToday === "number" && typeof data.geminiDailyLimit === "number") {
+                        statGeminiEl.textContent = `${data.geminiRequestsToday} / ${data.geminiDailyLimit}`;
+                    } else if (typeof data.geminiRequests === "number") {
+                        statGeminiEl.textContent = data.geminiRequests.toLocaleString();
+                    }
+                }
+
+                if (statGeminiModelEl) {
+                    statGeminiModelEl.textContent = data.geminiModel || "gemini-flash-latest";
+                }
+                if (statGeminiPlanEl) {
+                    statGeminiPlanEl.textContent = data.geminiPlan || "";
+                }
             } catch (e) {
                 console.error("Ошибка статистики", e);
             }
@@ -718,7 +754,7 @@
             }
         }
 
-        // --- Сохранить MP3 из кэша (без нового запроса к TTS) ---
+        // --- Сохранить MP3 из кэша ---
         function downloadMp3FromCache() {
             if (audioIsStale) {
                 showError("Текст изменён — озвучьте его заново, чтобы скачать актуальный MP3");
@@ -759,7 +795,6 @@
 
                 currentTableData = res.rows || [];
 
-                // новые результаты — кэш-нота уже не нужна
                 clearCacheRestoreNote();
                 renderTable(currentTableData);
 
@@ -770,11 +805,9 @@
                     tableIsStale = false;
                     if (btnWord) btnWord.classList.remove("disabled");
 
-                    // имя файла по моменту перевода
                     const autoName = generateDocxFileName();
                     lastDocxFilename = autoName;
 
-                    // сохраняем таблицу в localStorage (кэш)
                     try {
                         const cache = {
                             text: getText(),
@@ -787,7 +820,6 @@
                         console.error("Table cache save error", e);
                     }
 
-                    // авто-скачивание свежего DOCX
                     downloadWord(autoName);
                 } else {
                     tableIsStale = false;
@@ -796,10 +828,74 @@
 
                 loadStats();
             } catch (e) {
-                showError(e.message);
+                // спец-обработка квот
+                if (e.status === 429 && e.data && e.data.error === "GeminiQuota") {
+                    handleGeminiQuota(e.data);
+                } else {
+                    showError(e.message);
+                }
             } finally {
                 setLoading(false);
             }
+        }
+
+        function handleGeminiQuota(quotaInfo) {
+            const kind = quotaInfo.kind || "rate-limit"; // "rate-limit" | "daily-limit"
+            const retrySec = quotaInfo.retryAfterSeconds || 60;
+            const btn = document.getElementById("btnTranslate");
+
+            let message = "";
+            if (kind === "daily-limit") {
+                const unlock = new Date(Date.now() + retrySec * 1000);
+                const hh = String(unlock.getHours()).padStart(2, "0");
+                const mm = String(unlock.getMinutes()).padStart(2, "0");
+                message =
+                    "Лимит бесплатных запросов Gemini на сегодня исчерпан. " +
+                    "Примерное восстановление лимита около " + hh + ":" + mm + ".";
+            } else {
+                message =
+                    "Превышен скоростной лимит запросов Gemini. Подождите примерно " +
+                    retrySec + " секунд и попробуйте ещё раз.";
+            }
+
+            showError(message);
+
+            if (!btn) return;
+
+            btn.disabled = true;
+            btn.classList.add("disabled");
+
+            if (quotaTimerId) {
+                clearInterval(quotaTimerId);
+                quotaTimerId = null;
+            }
+
+            if (kind === "daily-limit") {
+                // Для дневного лимита просто показываем статичное состояние
+                const unlock = new Date(Date.now() + retrySec * 1000);
+                const hh = String(unlock.getHours()).padStart(2, "0");
+                const mm = String(unlock.getMinutes()).padStart(2, "0");
+                btn.textContent = "Лимит на сегодня исчерпан до " + hh + ":" + mm;
+                return;
+            }
+
+            // rate-limit: обратный отсчёт
+            let remaining = retrySec;
+            const baseText = "AI Перевод+SAVE";
+
+            btn.textContent = "Ждите " + remaining + " с...";
+            quotaTimerId = setInterval(() => {
+                remaining -= 1;
+                if (remaining > 0) {
+                    btn.textContent = "Ждите " + remaining + " с...";
+                } else {
+                    clearInterval(quotaTimerId);
+                    quotaTimerId = null;
+                    btn.disabled = false;
+                    btn.classList.remove("disabled");
+                    btn.textContent = baseText;
+                }
+            }, 1000);
         }
 
         // --- Отрисовка таблицы ---
@@ -951,9 +1047,12 @@
             }
 
             if (!res.ok || json.error) {
-                const msg = json && json.error ? json.error : "Ошибка запроса";
-                const details = json && json.details ? " (" + json.details + ")" : "";
-                throw new Error(msg + details);
+                const msg = json.message || json.error || "Ошибка запроса";
+                const details = json.details ? " (" + json.details + ")" : "";
+                const err = new Error(msg + details);
+                err.status = res.status;
+                err.data = json;
+                throw err;
             }
 
             return json;
