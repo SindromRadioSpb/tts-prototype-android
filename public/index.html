@@ -94,6 +94,32 @@
             font-weight: 700;
         }
 
+        /* Прогресс-бар дневного лимита Gemini */
+        .gemini-quota-bar {
+            margin-top: 6px;
+            width: 100%;
+            max-width: 220px;
+            height: 6px;
+            border-radius: 4px;
+            background-color: #eceff1;
+            overflow: hidden;
+        }
+
+        .gemini-quota-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #2e7d32;
+            transition: width 0.3s ease;
+        }
+
+        .gemini-quota-fill.warning {
+            background-color: #ff8f00;
+        }
+
+        .gemini-quota-fill.exceeded {
+            background-color: #c62828;
+        }
+
         /* КНОПКА GOOGLE CONSOLE */
         .btn-console {
             background-color: #ffffff;
@@ -458,6 +484,9 @@
                 <div id="geminiModelInfo" class="stat-sub model-info">Gemini · статус неизвестен</div>
                 <div id="geminiTodayInfo" class="stat-sub today-info">Сегодня: — / —</div>
                 <div id="geminiResetInfo" class="stat-sub reset-info">Сброс квоты через: —</div>
+                <div class="gemini-quota-bar">
+                    <div id="geminiQuotaFill" class="gemini-quota-fill"></div>
+                </div>
             </div>
         </div>
 
@@ -731,7 +760,7 @@
                 const totalReq =
                     (typeof data.geminiRequestsTotal === "number")
                         ? data.geminiRequestsTotal
-                        : (data.geminiRequests || 0);
+                        : (typeof data.geminiRequests === "number" ? data.geminiRequests : 0);
                 document.getElementById("statGeminiTotal").textContent = totalReq.toLocaleString();
 
                 // Модель + тариф
@@ -759,7 +788,10 @@
 
                 // Время следующего сброса
                 if (data.geminiNextResetAt) {
-                    geminiNextResetAt = new Date(data.geminiNextResetAt);
+                    const dt = new Date(data.geminiNextResetAt);
+                    if (!isNaN(dt.getTime())) {
+                        geminiNextResetAt = dt;
+                    }
                 } else if (data.geminiDayStart) {
                     const dayStart = new Date(data.geminiDayStart);
                     if (!isNaN(dayStart.getTime())) {
@@ -785,16 +817,22 @@
         function applyGeminiUsageToUI() {
             const todayInfoEl = document.getElementById("geminiTodayInfo");
             const resetInfoEl = document.getElementById("geminiResetInfo");
+            const quotaFillEl = document.getElementById("geminiQuotaFill");
 
             let used = geminiRequestsToday || 0;
             let limit = geminiDailyLimit || 0;
+            let ratio = 0;
 
             if (!limit) {
                 todayInfoEl.textContent = "Сегодня: — / —";
                 todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
+                if (quotaFillEl) {
+                    quotaFillEl.style.width = "0%";
+                    quotaFillEl.classList.remove("warning", "exceeded");
+                }
             } else {
                 todayInfoEl.textContent = "Сегодня: " + used + " / " + limit;
-                const ratio = used / limit;
+                ratio = used / limit;
 
                 todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
 
@@ -806,6 +844,17 @@
                     todayInfoEl.textContent += " · Осталось мало дневных запросов";
                 } else {
                     todayInfoEl.classList.add("limit-ok");
+                }
+
+                if (quotaFillEl) {
+                    const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+                    quotaFillEl.style.width = percent + "%";
+                    quotaFillEl.classList.remove("warning", "exceeded");
+                    if (ratio >= 1) {
+                        quotaFillEl.classList.add("exceeded");
+                    } else if (ratio >= 0.8) {
+                        quotaFillEl.classList.add("warning");
+                    }
                 }
             }
 
@@ -837,6 +886,18 @@
             }
             return s + " сек";
         }
+
+        // Периодический пересчёт оставшегося времени до сброса квоты (каждую секунду)
+        setInterval(function () {
+            if (geminiNextResetAt && geminiNextResetAt instanceof Date && !isNaN(geminiNextResetAt.getTime())) {
+                applyGeminiUsageToUI();
+            }
+        }, 1000);
+
+        // Периодическое обновление статистики с сервера (каждые 60 секунд)
+        setInterval(function () {
+            loadStats();
+        }, 60000);
 
         // ----------------------------
         // НАПРАВЛЕНИЕ ТЕКСТА
@@ -1120,7 +1181,7 @@
                             createdAt: new Date().toISOString(),
                             lastDocxFilename: lastDocxFilename
                         };
-                            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+                        localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
                     } catch (e) {
                         console.error("Table cache save error", e);
                     }

@@ -22,6 +22,21 @@ const {
 } = require("docx");
 
 // --------------------------------------------------------
+// 1.0. КОНФИГ ЛИМИТОВ GEMINI
+// --------------------------------------------------------
+// Суточный лимит запросов к Gemini (по умолчанию 20 — Free Tier)
+const GEMINI_DAILY_LIMIT = Number(process.env.GEMINI_DAILY_LIMIT || "20");
+
+// Час суточного сброса квоты в UTC (например, 0 = 00:00 UTC)
+const GEMINI_RESET_HOUR_UTC = Number(
+  process.env.GEMINI_RESET_HOUR_UTC || "0"
+);
+
+// Название модели и тип тарифа (для UI)
+const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL_NAME || "Gemini 2.5 Flash";
+const GEMINI_BILLING_TIER = process.env.GEMINI_BILLING_TIER || "free";
+
+// --------------------------------------------------------
 // 1.1. ЗАГРУЗКА КЛЮЧА GOOGLE CLOUD ИЗ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
 // --------------------------------------------------------
 
@@ -57,41 +72,150 @@ app.use("/audio", express.static(audioDir));
 // --------------------------------------------------------
 const USAGE_FILE = path.join(__dirname, "usage.json");
 
+// Хелпер: вычислить начало текущего "дня квоты" по UTC+час сброса
+function getCurrentQuotaDayStartISO() {
+  const now = new Date();
+
+  const utcYear = now.getUTCFullYear();
+  const utcMonth = now.getUTCMonth();
+  const utcDate = now.getUTCDate();
+
+  // Момент сегодняшнего ресета в UTC
+  const todayResetMs = Date.UTC(
+    utcYear,
+    utcMonth,
+    utcDate,
+    GEMINI_RESET_HOUR_UTC,
+    0,
+    0,
+    0
+  );
+
+  let quotaDayStartMs;
+
+  if (now.getTime() >= todayResetMs) {
+    // Уже после сегодняшнего ресета — день квоты начался сегодня
+    quotaDayStartMs = todayResetMs;
+  } else {
+    // Ещё до ресета — день квоты начался вчера в это же время
+    quotaDayStartMs = todayResetMs - 24 * 60 * 60 * 1000;
+  }
+
+  return new Date(quotaDayStartMs).toISOString();
+}
+
+// Получить "пустую" структуру статистики
+function getEmptyUsage() {
+  return {
+    ttsChars: 0, // Символов TTS (всего)
+    geminiRequests: 0, // Запросов к Gemini (всего)
+    geminiRequestsToday: 0, // Запросов к Gemini за текущий день квоты
+    geminiDayStart: getCurrentQuotaDayStartISO(), // Начало текущего дня квоты
+    lastDailyLimitHitAt: null, // Когда последний раз словили daily-limit
+  };
+}
+
+// Нормализовать структуру статистики (добавить недостающие поля + сбросить день)
+function normalizeUsage(stats) {
+  const base = getEmptyUsage();
+
+  const merged = {
+    ...base,
+    ...(stats || {}),
+  };
+
+  const currentDayStartISO = getCurrentQuotaDayStartISO();
+  const currentDayStartMs = Date.parse(currentDayStartISO);
+  const storedDayStartMs = merged.geminiDayStart
+    ? Date.parse(merged.geminiDayStart)
+    : 0;
+
+  // Если сохранённый день квоты "старее" текущего — сбрасываем суточный счётчик
+  if (!merged.geminiDayStart || storedDayStartMs < currentDayStartMs) {
+    merged.geminiRequestsToday = 0;
+    merged.geminiDayStart = currentDayStartISO;
+    merged.lastDailyLimitHitAt = null;
+  }
+
+  return merged;
+}
+
 // Получить текущую статистику
 function getUsage() {
   if (!fs.existsSync(USAGE_FILE)) {
-    return {
-      ttsChars: 0, // Символов TTS
-      geminiRequests: 0, // Запросов к Gemini
-      startDate: new Date().toLocaleDateString("ru-RU"), // Дата начала отсчета
-    };
+    const empty = getEmptyUsage();
+    try {
+      fs.writeFileSync(USAGE_FILE, JSON.stringify(empty, null, 2), "utf8");
+    } catch (e) {
+      console.error("Ошибка первичной записи usage.json:", e);
+    }
+    return empty;
   }
 
   try {
     const raw = fs.readFileSync(USAGE_FILE, "utf8");
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    const normalized = normalizeUsage(parsed);
+
+    // На всякий случай синхронизируем файл с нормализованной структурой
+    try {
+      fs.writeFileSync(
+        USAGE_FILE,
+        JSON.stringify(normalized, null, 2),
+        "utf8"
+      );
+    } catch (e) {
+      console.error("Ошибка синхронизации usage.json:", e);
+    }
+
+    return normalized;
   } catch (e) {
     console.error("Ошибка чтения usage.json:", e);
-    return {
-      ttsChars: 0,
-      geminiRequests: 0,
-      startDate: new Date().toLocaleDateString("ru-RU"),
-    };
+    const empty = getEmptyUsage();
+    try {
+      fs.writeFileSync(USAGE_FILE, JSON.stringify(empty, null, 2), "utf8");
+    } catch (err) {
+      console.error("Ошибка записи usage.json после сбоя:", err);
+    }
+    return empty;
   }
 }
 
-// Обновить статистику
+// Обновить статистику (tts или gemini)
 function updateUsage(type, amount = 1) {
-  const stats = getUsage();
+  const stats = getUsage(); // уже нормализованный
+
   if (type === "tts") {
     stats.ttsChars += amount;
   } else if (type === "gemini") {
+    // считаем и общий, и суточный счётчики
     stats.geminiRequests += amount;
+    stats.geminiRequestsToday += amount;
   }
+
   try {
     fs.writeFileSync(USAGE_FILE, JSON.stringify(stats, null, 2), "utf8");
   } catch (e) {
     console.error("Ошибка записи usage.json:", e);
+  }
+}
+
+// Отметить, что сегодня словили daily-limit (для UI)
+function markGeminiDailyLimitHit() {
+  const stats = getUsage();
+  const nowIso = new Date().toISOString();
+
+  stats.lastDailyLimitHitAt = nowIso;
+
+  // Опционально "дожимаем" суточный счётчик до лимита
+  if (stats.geminiRequestsToday < GEMINI_DAILY_LIMIT) {
+    stats.geminiRequestsToday = GEMINI_DAILY_LIMIT;
+  }
+
+  try {
+    fs.writeFileSync(USAGE_FILE, JSON.stringify(stats, null, 2), "utf8");
+  } catch (e) {
+    console.error("Ошибка записи usage.json при daily-limit:", e);
   }
 }
 
@@ -118,7 +242,31 @@ app.get("/api/health", (req, res) => {
 
 // --- API: Получить статистику для фронтенда ---
 app.get("/api/usage", (req, res) => {
-  res.json(getUsage());
+  const stats = getUsage();
+
+  let geminiNextResetAt = null;
+  try {
+    const dayStartMs = stats.geminiDayStart
+      ? Date.parse(stats.geminiDayStart)
+      : Date.parse(getCurrentQuotaDayStartISO());
+    if (!Number.isNaN(dayStartMs)) {
+      geminiNextResetAt = new Date(
+        dayStartMs + 24 * 60 * 60 * 1000
+      ).toISOString();
+    }
+  } catch (e) {
+    console.error("Ошибка вычисления geminiNextResetAt:", e);
+  }
+
+  res.json({
+    ...stats,
+    geminiDailyLimit: GEMINI_DAILY_LIMIT,
+    geminiResetHourUtc: GEMINI_RESET_HOUR_UTC,
+    geminiNextResetAt,
+    geminiModelName: GEMINI_MODEL_NAME,
+    geminiBillingTier: GEMINI_BILLING_TIER,
+    geminiConfigured: !!GEMINI_API_KEY,
+  });
 });
 
 // --- API: TTS (Озвучка) ---
@@ -134,7 +282,7 @@ app.post("/api/tts", async (req, res) => {
       return res.status(400).json({ error: "Не указан язык" });
     }
 
-    // Считаем символы
+    // Считаем символы (всегда — даже если потом клиент не скачает MP3)
     updateUsage("tts", text.length);
 
     const request = {
@@ -211,9 +359,6 @@ app.post("/api/translate-table", async (req, res) => {
       return res.status(500).json({ error: "API Key не найден" });
     }
 
-    // Считаем запрос
-    updateUsage("gemini", 1);
-
     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     const prompt = `
@@ -237,7 +382,7 @@ Return ONLY valid JSON.
       throw new Error("Пустой ответ от Gemini");
     }
 
-    // Убираем возможную обёртку ```json ... ```
+    // Убираем обёртку ```json ... ```
     const cleanJson = rawText
       .replace(/```json/gi, "")
       .replace(/```/g, "")
@@ -250,7 +395,6 @@ Return ONLY valid JSON.
       console.error("JSON parse error:", e);
       return res.status(500).json({
         error: "Ошибка JSON",
-        details: "Gemini вернул некорректный JSON",
         raw: rawText,
       });
     }
@@ -262,78 +406,108 @@ Return ONLY valid JSON.
       });
     }
 
+    // Если всё прошло успешно — считаем запрос Gemini
+    updateUsage("gemini", 1);
+
     res.json(parsed);
   } catch (error) {
     console.error("Gemini Error:", error);
 
-    // Специальная обработка квот / лимитов (429)
-    if (error && error.status === 429) {
+    // Специальная обработка 429 (лимиты)
+    if (error && (error.status === 429 || error.statusCode === 429)) {
       let retryAfterSec = null;
-      let limitType = "unknown"; // "rate" | "daily" | "unknown"
+      let limitType = "unknown"; // rate | daily | unknown
+      let quotaId = null;
 
-      // Разбираем error.errorDetails из Gemini, если они есть
-      if (Array.isArray(error.errorDetails)) {
-        for (const d of error.errorDetails) {
-          // RetryInfo с retryDelay вида "57s" или "3600s"
+      const details = error.errorDetails || error.details || [];
+
+      if (Array.isArray(details)) {
+        for (const d of details) {
           if (
-            d["@type"] === "type.googleapis.com/google.rpc.RetryInfo" &&
-            d.retryDelay
+            d &&
+            typeof d === "object" &&
+            typeof d["@type"] === "string"
           ) {
-            const match = String(d.retryDelay).match(/^(\d+)/);
-            if (match) {
-              retryAfterSec = parseInt(match[1], 10);
+            if (d["@type"].includes("RetryInfo") && d.retryDelay) {
+              // retryDelay строка вида "57s" или "3600s"
+              const m = String(d.retryDelay).match(/(\d+)/);
+              if (m) {
+                retryAfterSec = Number(m[1]);
+              }
             }
-          }
 
-          // QuotaFailure — можно дополнительно смотреть quotaId / quotaMetric
-          if (
-            d["@type"] === "type.googleapis.com/google.rpc.QuotaFailure" &&
-            Array.isArray(d.violations)
-          ) {
-            for (const v of d.violations) {
-              const quotaId = String(v.quotaId || "").toLowerCase();
-              if (quotaId.includes("perminute")) {
-                limitType = "rate";
-              } else if (quotaId.includes("perday")) {
-                limitType = "daily";
+            if (
+              d["@type"].includes("QuotaFailure") &&
+              Array.isArray(d.violations)
+            ) {
+              const v = d.violations[0];
+              if (v && v.quotaId) {
+                quotaId = v.quotaId;
               }
             }
           }
         }
       }
 
-      // Если из RetryInfo видно, что ждать недолго → rate-limit,
-      // если много секунд (часы) → похоже на daily-limit
-      if (retryAfterSec != null) {
-        if (retryAfterSec <= 120 && limitType === "unknown") {
+      // Определяем тип лимита по quotaId
+      if (quotaId) {
+        const q = quotaId.toLowerCase();
+        if (q.includes("perday")) {
+          limitType = "daily";
+        } else if (q.includes("perminute") || q.includes("permin")) {
           limitType = "rate";
-        } else if (retryAfterSec > 120 && limitType === "unknown") {
+        }
+      }
+
+      // Если quotaId не дал ответа — используем эвристику по retryAfterSec
+      if (limitType === "unknown" && typeof retryAfterSec === "number") {
+        if (retryAfterSec <= 120) {
+          limitType = "rate";
+        } else if (retryAfterSec >= 3600) {
           limitType = "daily";
         }
       }
 
-      let detailsMessage;
-
+      // Готовим errorType и resetAt для фронтенда
+      let errorType = null;
       if (limitType === "rate") {
-        const sec = retryAfterSec || 60;
-        detailsMessage = `Временный лимит запросов Gemini (rate-limit). Подождите около ${sec} секунд и попробуйте снова.`;
+        errorType = "rate-limit";
       } else if (limitType === "daily") {
-        detailsMessage =
-          "Достигнут дневной лимит бесплатных запросов Gemini (daily-quota). Попробуйте завтра или проверьте биллинг/тариф.";
-      } else {
-        detailsMessage =
-          "Лимит запросов Gemini исчерпан. Проверьте биллинг или попробуйте позже.";
+        errorType = "daily-limit";
+      }
+
+      let resetAt = null;
+      if (limitType === "daily") {
+        const stats = getUsage();
+        try {
+          const dayStartMs = stats.geminiDayStart
+            ? Date.parse(stats.geminiDayStart)
+            : Date.parse(getCurrentQuotaDayStartISO());
+          if (!Number.isNaN(dayStartMs)) {
+            resetAt = new Date(
+              dayStartMs + 24 * 60 * 60 * 1000
+            ).toISOString();
+          }
+        } catch (e) {
+          console.error("Ошибка вычисления resetAt для daily-limit:", e);
+        }
+      }
+
+      // Если это daily-limit — отмечаем это в usage.json
+      if (limitType === "daily") {
+        markGeminiDailyLimitHit();
       }
 
       return res.status(429).json({
-        error: "Ошибка лимита Gemini",
-        details: detailsMessage,
-        limitType,
-        retryAfterSec: retryAfterSec ?? null,
+        error: "Лимит Gemini",
+        errorType,
+        retryAfterSec,
+        resetAt,
+        details: error.message,
       });
     }
 
-    // Все остальные ошибки
+    // Остальные ошибки
     res.status(500).json({
       error: "Ошибка Gemini",
       details: error.message,
@@ -405,7 +579,9 @@ app.post("/api/export-docx", async (req, res) => {
             new TableCell({
               children: [
                 new Paragraph({
-                  children: [new TextRun({ text: heNiqqud, rightToLeft: true })],
+                  children: [
+                    new TextRun({ text: heNiqqud, rightToLeft: true }),
+                  ],
                   alignment: AlignmentType.RIGHT,
                 }),
               ],
