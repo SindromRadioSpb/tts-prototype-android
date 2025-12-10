@@ -32,10 +32,6 @@ const GEMINI_RESET_HOUR_UTC = Number(
   process.env.GEMINI_RESET_HOUR_UTC || "0"
 );
 
-// Название модели и тип тарифа (для UI)
-const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL_NAME || "Gemini 2.5 Flash";
-const GEMINI_BILLING_TIER = process.env.GEMINI_BILLING_TIER || "free";
-
 // --------------------------------------------------------
 // 1.1. ЗАГРУЗКА КЛЮЧА GOOGLE CLOUD ИЗ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
 // --------------------------------------------------------
@@ -243,29 +239,10 @@ app.get("/api/health", (req, res) => {
 // --- API: Получить статистику для фронтенда ---
 app.get("/api/usage", (req, res) => {
   const stats = getUsage();
-
-  let geminiNextResetAt = null;
-  try {
-    const dayStartMs = stats.geminiDayStart
-      ? Date.parse(stats.geminiDayStart)
-      : Date.parse(getCurrentQuotaDayStartISO());
-    if (!Number.isNaN(dayStartMs)) {
-      geminiNextResetAt = new Date(
-        dayStartMs + 24 * 60 * 60 * 1000
-      ).toISOString();
-    }
-  } catch (e) {
-    console.error("Ошибка вычисления geminiNextResetAt:", e);
-  }
-
   res.json({
     ...stats,
     geminiDailyLimit: GEMINI_DAILY_LIMIT,
     geminiResetHourUtc: GEMINI_RESET_HOUR_UTC,
-    geminiNextResetAt,
-    geminiModelName: GEMINI_MODEL_NAME,
-    geminiBillingTier: GEMINI_BILLING_TIER,
-    geminiConfigured: !!GEMINI_API_KEY,
   });
 });
 
@@ -419,6 +396,7 @@ Return ONLY valid JSON.
       let limitType = "unknown"; // rate | daily | unknown
       let quotaId = null;
 
+      // error.errorDetails — структура, похожая на то, что ты присылал в логах
       const details = error.errorDetails || error.details || [];
 
       if (Array.isArray(details)) {
@@ -436,10 +414,7 @@ Return ONLY valid JSON.
               }
             }
 
-            if (
-              d["@type"].includes("QuotaFailure") &&
-              Array.isArray(d.violations)
-            ) {
+            if (d["@type"].includes("QuotaFailure") && Array.isArray(d.violations)) {
               const v = d.violations[0];
               if (v && v.quotaId) {
                 quotaId = v.quotaId;
@@ -468,31 +443,6 @@ Return ONLY valid JSON.
         }
       }
 
-      // Готовим errorType и resetAt для фронтенда
-      let errorType = null;
-      if (limitType === "rate") {
-        errorType = "rate-limit";
-      } else if (limitType === "daily") {
-        errorType = "daily-limit";
-      }
-
-      let resetAt = null;
-      if (limitType === "daily") {
-        const stats = getUsage();
-        try {
-          const dayStartMs = stats.geminiDayStart
-            ? Date.parse(stats.geminiDayStart)
-            : Date.parse(getCurrentQuotaDayStartISO());
-          if (!Number.isNaN(dayStartMs)) {
-            resetAt = new Date(
-              dayStartMs + 24 * 60 * 60 * 1000
-            ).toISOString();
-          }
-        } catch (e) {
-          console.error("Ошибка вычисления resetAt для daily-limit:", e);
-        }
-      }
-
       // Если это daily-limit — отмечаем это в usage.json
       if (limitType === "daily") {
         markGeminiDailyLimitHit();
@@ -500,10 +450,9 @@ Return ONLY valid JSON.
 
       return res.status(429).json({
         error: "Лимит Gemini",
-        errorType,
-        retryAfterSec,
-        resetAt,
         details: error.message,
+        limitType,
+        retryAfterSec,
       });
     }
 
@@ -579,9 +528,7 @@ app.post("/api/export-docx", async (req, res) => {
             new TableCell({
               children: [
                 new Paragraph({
-                  children: [
-                    new TextRun({ text: heNiqqud, rightToLeft: true }),
-                  ],
+                  children: [new TextRun({ text: heNiqqud, rightToLeft: true })],
                   alignment: AlignmentType.RIGHT,
                 }),
               ],
