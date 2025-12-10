@@ -88,6 +88,12 @@ if (!fs.existsSync(audioCacheDir)) {
   fs.mkdirSync(audioCacheDir, { recursive: true });
 }
 
+// Директория серверного кэша Gemini (по хэшу текста)
+const geminiCacheDir = path.join(__dirname, "gemini-cache");
+if (!fs.existsSync(geminiCacheDir)) {
+  fs.mkdirSync(geminiCacheDir, { recursive: true });
+}
+
 // --------------------------------------------------------
 // 2.1. СИСТЕМА УЧЁТА ИСПОЛЬЗОВАНИЯ
 // --------------------------------------------------------
@@ -529,12 +535,38 @@ app.post("/api/translate-table", async (req, res) => {
       return res.status(500).json({ error: "API Key не найден" });
     }
 
+    const cleanText = text.trim();
+
+    // --- Серверный кэш Gemini по хэшу текста и формата таблицы ---
+    const hashInput = `he-ru-table-v1||${cleanText}`;
+    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
+    const cacheFile = path.join(geminiCacheDir, `${hashKey}.json`);
+
+    // 1. Пытаемся вернуть из кэша
+    if (fs.existsSync(cacheFile)) {
+      try {
+        const rawCache = fs.readFileSync(cacheFile, "utf8");
+        const cached = JSON.parse(rawCache);
+        if (cached && Array.isArray(cached.rows)) {
+          return res.json({
+            rows: cached.rows,
+            fromCache: true,
+            cacheKey: hashKey,
+            cachedAt: cached.createdAt || null,
+          });
+        }
+      } catch (e) {
+        console.error("Ошибка чтения/парсинга кэша Gemini:", e);
+        // если кэш битый — продолжаем и сделаем живой запрос к модели
+      }
+    }
+
     const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     const prompt = `
 You are a strict JSON generator.
 Task: Translate Hebrew to Russian and produce a table with 4 columns.
-Input: "${text.trim()}"
+Input: "${cleanText}"
 Output format (JSON only, no comments, no markdown, no explanations):
 {
   "rows": [
@@ -576,10 +608,27 @@ Return ONLY valid JSON.
       });
     }
 
-    // Если всё прошло успешно — считаем запрос Gemini
+    // 2. Сохраняем успешный результат в кэш
+    const cachePayload = {
+      text: cleanText,
+      rows: parsed.rows,
+      createdAt: new Date().toISOString(),
+    };
+    try {
+      fs.writeFileSync(cacheFile, JSON.stringify(cachePayload, null, 2), "utf8");
+    } catch (e) {
+      console.error("Ошибка записи в кэш Gemini:", e);
+    }
+
+    // Если всё прошло успешно — считаем запрос Gemini (только при MISS)
     updateUsage("gemini", 1);
 
-    res.json(parsed);
+    res.json({
+      rows: parsed.rows,
+      fromCache: false,
+      cacheKey: hashKey,
+      cachedAt: cachePayload.createdAt,
+    });
   } catch (error) {
     console.error("Gemini Error:", error);
 
