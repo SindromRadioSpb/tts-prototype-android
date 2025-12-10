@@ -43,8 +43,8 @@
         }
 
         .stat-item {
-            text-align: center;
-            min-width: 120px;
+            text-align: left;
+            min-width: 160px;
         }
 
         .stat-value {
@@ -65,6 +65,33 @@
             font-size: 11px;
             color: #aaaaaa;
             margin-top: 4px;
+        }
+
+        .model-info {
+            margin-top: 6px;
+        }
+
+        .today-info {
+            margin-top: 4px;
+        }
+
+        .reset-info {
+            margin-top: 2px;
+        }
+
+        .limit-ok {
+            color: #2e7d32; /* зелёный */
+            font-weight: 600;
+        }
+
+        .limit-warning {
+            color: #ff8f00; /* оранжевый */
+            font-weight: 600;
+        }
+
+        .limit-exceeded {
+            color: #c62828; /* красный */
+            font-weight: 700;
         }
 
         /* КНОПКА GOOGLE CONSOLE */
@@ -138,7 +165,7 @@
             color: #856404;
             padding: 10px 14px;
             border-radius: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             border: 1px solid #ffeeba;
             font-size: 14px;
             display: none;
@@ -149,15 +176,30 @@
         }
 
         /* Баннер лимитов Gemini */
-        .limit-banner {
+        #limitBanner {
+            display: none;
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        #limitBanner.limit-rate {
             background: #fff3cd;
             color: #856404;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-bottom: 12px;
             border: 1px solid #ffeeba;
-            font-size: 13px;
-            display: none;
+        }
+
+        #limitBanner.limit-daily {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        #limitBanner.limit-info {
+            background: #e2f0d9;
+            color: #1e4620;
+            border: 1px solid #c3e6cb;
         }
 
         .controls {
@@ -240,9 +282,14 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        .btn-disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        /* Общий стиль "disabled" для кнопок и через атрибут, и через класс */
+        button.disabled,
+        button:disabled {
+            background-color: #d0d4d8 !important;
+            color: #888 !important;
+            cursor: not-allowed !important;
+            box-shadow: none !important;
+            opacity: 0.65;
         }
 
         .loader {
@@ -362,6 +409,14 @@
                 text-align: center;
             }
 
+            .stats-box {
+                width: 100%;
+            }
+
+            .stat-item {
+                width: 100%;
+            }
+
             .controls {
                 flex-direction: column;
                 align-items: stretch;
@@ -395,11 +450,14 @@
                 <span class="stat-label">TTS Символы</span>
                 <div class="stat-sub">Через это приложение</div>
             </div>
+
             <div class="stat-item">
-                <span id="statGemini" class="stat-value">0</span>
+                <span id="statGeminiTotal" class="stat-value">0</span>
                 <span class="stat-label">Запросы AI</span>
                 <div class="stat-sub">Переводы таблиц (через это приложение)</div>
-                <div class="stat-sub" id="geminiModelInfo">Gemini 2.5 Flash · Free Tier</div>
+                <div id="geminiModelInfo" class="stat-sub model-info">Gemini · статус неизвестен</div>
+                <div id="geminiTodayInfo" class="stat-sub today-info">Сегодня: — / —</div>
+                <div id="geminiResetInfo" class="stat-sub reset-info">Сброс квоты через: —</div>
             </div>
         </div>
 
@@ -414,13 +472,13 @@
     <div class="main-card">
         <h2>Текст для озвучки и перевода</h2>
 
-        <div id="geminiLimitBanner" class="limit-banner"></div>
-
         <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
         <div id="textChangedNotice">
             ⚠ Текст был изменён. Требуется повторная озвучка и AI Перевод.
         </div>
+
+        <div id="limitBanner"></div>
 
         <div class="controls">
             <div class="field-group">
@@ -445,7 +503,7 @@
 
             <div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
 
-            <button id="btnTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
+            <button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
             <div id="loader" class="loader"></div>
 
             <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
@@ -457,18 +515,21 @@
     </div>
 
     <script>
+        // ----------------------------
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        // ----------------------------
         let currentTableData = [];
 
         const inputTextEl = document.getElementById("inputText");
         const langSelectEl = document.getElementById("langSelect");
         const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
         const textChangedNoticeEl = document.getElementById("textChangedNotice");
-        const geminiLimitBannerEl = document.getElementById("geminiLimitBanner");
-        const btnTranslateEl = document.getElementById("btnTranslate");
+        const limitBannerEl = document.getElementById("limitBanner");
+        const btnWordEl = document.getElementById("btnWord");
+        const btnAiTranslateEl = document.getElementById("btnAiTranslate");
 
         const STORAGE_KEY = "ttsDashboard_text_v1";
         const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
-        const GEMINI_LIMIT_STORAGE_KEY = "ttsDashboard_geminiLimit_v1";
 
         let saveTimer = null;
 
@@ -483,11 +544,18 @@
         // имя последнего DOCX (по моменту AI-перевода)
         let lastDocxFilename = null;
 
-        // состояние лимитов Gemini
-        let geminiLimitState = null; // { limitType: 'rate' | 'daily' | 'unknown', unblockAt: number }
-        let geminiLimitTimerId = null;
+        // --- Состояние лимитов Gemini ---
+        let geminiRequestsToday = 0;
+        let geminiDailyLimit = 20;
+        let geminiNextResetAt = null;  // Date или null
 
-        // --- Восстановление текста при загрузке ---
+        let geminiLockType = null;     // "rate" | "daily" | null
+        let geminiLockUntil = null;    // Date или null
+        let geminiLimitTimerId = null; // setInterval id
+
+        // ----------------------------
+        // ВОССТАНОВЛЕНИЕ ТЕКСТА
+        // ----------------------------
         (function restoreText() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -499,7 +567,9 @@
             }
         })();
 
-        // --- Auto-grow + autosave textarea + пометка устаревших результатов ---
+        // ----------------------------
+        // AUTO-GROW + AUTOSAVE + STALE
+        // ----------------------------
         inputTextEl.addEventListener("input", function () {
             autoGrow();
             scheduleSaveText();
@@ -526,7 +596,9 @@
             }, 400);
         }
 
-        // --- Восстановление таблицы из localStorage, если текст совпадает ---
+        // ----------------------------
+        // ВОССТАНОВЛЕНИЕ ТАБЛИЦЫ ИЗ КЭША
+        // ----------------------------
         (function restoreTableFromCache() {
             try {
                 const raw = localStorage.getItem(TABLE_CACHE_KEY);
@@ -542,9 +614,8 @@
 
                 renderTable(currentTableData);
 
-                const btnWord = document.getElementById("btnWord");
-                if (currentTableData.length > 0 && btnWord) {
-                    btnWord.classList.remove("disabled");
+                if (currentTableData.length > 0 && btnWordEl) {
+                    btnWordEl.classList.remove("disabled");
                 }
 
                 tableIsStale = false;
@@ -572,11 +643,12 @@
             if (note) note.remove();
         }
 
-        // пометка результатов как устаревших
+        // ----------------------------
+        // ПОМЕТКА РЕЗУЛЬТАТОВ КАК УСТАРЕВШИХ
+        // ----------------------------
         function markResultsStale() {
             const tableEl = document.getElementById("tableContainer");
             const audioEl = document.getElementById("audioContainer");
-            const btnWord = document.getElementById("btnWord");
 
             const hasTable = tableEl && tableEl.innerHTML.trim();
             const hasAudio = audioEl && audioEl.innerHTML.trim();
@@ -590,7 +662,7 @@
 
                 addStaleNote(tableEl);
                 tableIsStale = true;
-                if (btnWord) btnWord.classList.add("disabled");
+                if (btnWordEl) btnWordEl.classList.add("disabled");
             }
 
             if (hasAudio) {
@@ -598,11 +670,7 @@
                 audioIsStale = true;
             }
 
-            if (hasTable || hasAudio) {
-                textChangedNoticeEl.classList.add("notice-visible");
-            } else {
-                textChangedNoticeEl.classList.add("notice-visible");
-            }
+            textChangedNoticeEl.classList.add("notice-visible");
         }
 
         function addStaleNote(container) {
@@ -635,9 +703,8 @@
             }
             tableIsStale = false;
 
-            const btnWord = document.getElementById("btnWord");
-            if (btnWord && currentTableData.length > 0) {
-                btnWord.classList.remove("disabled");
+            if (btnWordEl && currentTableData.length > 0) {
+                btnWordEl.classList.remove("disabled");
             }
 
             if (!audioIsStale && !tableIsStale) {
@@ -645,166 +712,9 @@
             }
         }
 
-        // --- Восстановление состояния лимитов Gemini ---
-        (function restoreGeminiLimitState() {
-            try {
-                const raw = localStorage.getItem(GEMINI_LIMIT_STORAGE_KEY);
-                if (!raw) return;
-                const parsed = JSON.parse(raw);
-                if (!parsed || typeof parsed.unblockAt !== "number") return;
-
-                geminiLimitState = parsed;
-                applyGeminiLimitState();
-            } catch (e) {
-                console.error("Gemini limit restore error", e);
-            }
-        })();
-
-        function persistGeminiLimitState() {
-            try {
-                if (geminiLimitState) {
-                    localStorage.setItem(GEMINI_LIMIT_STORAGE_KEY, JSON.stringify(geminiLimitState));
-                } else {
-                    localStorage.removeItem(GEMINI_LIMIT_STORAGE_KEY);
-                }
-            } catch (e) {
-                console.error("Gemini limit save error", e);
-            }
-        }
-
-        function clearGeminiLimitTimer() {
-            if (geminiLimitTimerId) {
-                clearInterval(geminiLimitTimerId);
-                geminiLimitTimerId = null;
-            }
-        }
-
-        function setTranslateButtonDisabled(disabled) {
-            if (!btnTranslateEl) return;
-            if (disabled) {
-                btnTranslateEl.classList.add("btn-disabled");
-                btnTranslateEl.disabled = true;
-            } else {
-                btnTranslateEl.classList.remove("btn-disabled");
-                btnTranslateEl.disabled = false;
-            }
-        }
-
-        function hideGeminiLimitBanner() {
-            if (geminiLimitBannerEl) {
-                geminiLimitBannerEl.style.display = "none";
-                geminiLimitBannerEl.textContent = "";
-            }
-        }
-
-        function formatDuration(totalSeconds) {
-            const sec = Math.max(0, totalSeconds);
-            if (sec < 60) {
-                return sec + " сек";
-            }
-            const minutes = Math.floor(sec / 60);
-            const seconds = sec % 60;
-            if (minutes < 60) {
-                return minutes + " мин " + (seconds > 0 ? seconds + " сек" : "");
-            }
-            const hours = Math.floor(minutes / 60);
-            const remMin = minutes % 60;
-            return hours + " ч " + (remMin > 0 ? remMin + " мин" : "");
-        }
-
-        function applyGeminiLimitState() {
-            clearGeminiLimitTimer();
-
-            if (!geminiLimitState) {
-                hideGeminiLimitBanner();
-                setTranslateButtonDisabled(false);
-                return;
-            }
-
-            const now = Date.now();
-            if (geminiLimitState.unblockAt <= now) {
-                geminiLimitState = null;
-                persistGeminiLimitState();
-                hideGeminiLimitBanner();
-                setTranslateButtonDisabled(false);
-                return;
-            }
-
-            setTranslateButtonDisabled(true);
-            updateGeminiLimitBanner();
-            geminiLimitTimerId = setInterval(updateGeminiLimitBanner, 1000);
-        }
-
-        function updateGeminiLimitBanner() {
-            if (!geminiLimitState) {
-                hideGeminiLimitBanner();
-                setTranslateButtonDisabled(false);
-                clearGeminiLimitTimer();
-                return;
-            }
-
-            const now = Date.now();
-            const remainingMs = geminiLimitState.unblockAt - now;
-            if (remainingMs <= 0) {
-                geminiLimitState = null;
-                persistGeminiLimitState();
-                hideGeminiLimitBanner();
-                setTranslateButtonDisabled(false);
-                clearGeminiLimitTimer();
-                return;
-            }
-
-            const remainingSec = Math.round(remainingMs / 1000);
-            if (!geminiLimitBannerEl) return;
-
-            geminiLimitBannerEl.style.display = "block";
-
-            if (geminiLimitState.limitType === "rate") {
-                geminiLimitBannerEl.textContent =
-                    "Временный лимит запросов Gemini (rate-limit). Кнопка AI Перевод+SAVE будет доступна через " +
-                    formatDuration(remainingSec) + ".";
-            } else if (geminiLimitState.limitType === "daily") {
-                const unblockDate = new Date(geminiLimitState.unblockAt);
-                const hh = String(unblockDate.getHours()).padStart(2, "0");
-                const mm = String(unblockDate.getMinutes()).padStart(2, "0");
-                geminiLimitBannerEl.textContent =
-                    "Дневной лимит Gemini исчерпан. Новая квота будет доступна примерно в " +
-                    hh + ":" + mm + ". Осталось: " + formatDuration(remainingSec) + ".";
-            } else {
-                geminiLimitBannerEl.textContent =
-                    "Лимит запросов Gemini. Повторите попытку через " +
-                    formatDuration(remainingSec) + ".";
-            }
-        }
-
-        function handleGeminiLimit(err) {
-            const limitType = err.limitType || "unknown";
-            const retryAfterSec =
-                typeof err.retryAfterSec === "number" && !isNaN(err.retryAfterSec)
-                    ? err.retryAfterSec
-                    : null;
-
-            // дружелюбное сообщение в errorMsg
-            showError(err.message || "Лимит запросов Gemini.");
-
-            if (!retryAfterSec) {
-                // нет информации, просто визуально блокируем кнопку без таймера
-                geminiLimitState = {
-                    limitType: limitType,
-                    unblockAt: Date.now() + 60 * 1000
-                };
-            } else {
-                geminiLimitState = {
-                    limitType: limitType,
-                    unblockAt: Date.now() + retryAfterSec * 1000
-                };
-            }
-
-            persistGeminiLimitState();
-            applyGeminiLimitState();
-        }
-
-        // --- Загрузка статистики ---
+        // ----------------------------
+        // ЗАГРУЗКА СТАТИСТИКИ / ЛИМИТОВ
+        // ----------------------------
         async function loadStats() {
             try {
                 const res = await fetch("/api/usage");
@@ -812,8 +722,59 @@
                     throw new Error("Не удалось получить статистику");
                 }
                 const data = await res.json();
-                document.getElementById("statTTS").textContent = (data.ttsChars || 0).toLocaleString();
-                document.getElementById("statGemini").textContent = (data.geminiRequests || 0).toLocaleString();
+
+                // TTS символы
+                const ttsChars = data.ttsChars || 0;
+                document.getElementById("statTTS").textContent = ttsChars.toLocaleString();
+
+                // Запросы AI — всего
+                const totalReq =
+                    (typeof data.geminiRequestsTotal === "number")
+                        ? data.geminiRequestsTotal
+                        : (data.geminiRequests || 0);
+                document.getElementById("statGeminiTotal").textContent = totalReq.toLocaleString();
+
+                // Модель + тариф
+                const modelName = data.geminiModelName || "Gemini 2.5 Flash";
+                let tierLabel;
+                if (data.geminiBillingTier === "paid") {
+                    tierLabel = "Paid";
+                } else if (data.geminiBillingTier === "free" || !data.geminiBillingTier) {
+                    tierLabel = "Free Tier";
+                } else {
+                    tierLabel = data.geminiBillingTier;
+                }
+                const modelInfoEl = document.getElementById("geminiModelInfo");
+                modelInfoEl.textContent = modelName + " · " + tierLabel;
+
+                // Дневная статистика
+                geminiRequestsToday =
+                    (typeof data.geminiRequestsToday === "number")
+                        ? data.geminiRequestsToday
+                        : 0;
+                geminiDailyLimit =
+                    (typeof data.geminiDailyLimit === "number")
+                        ? data.geminiDailyLimit
+                        : 20;
+
+                // Время следующего сброса
+                if (data.geminiNextResetAt) {
+                    geminiNextResetAt = new Date(data.geminiNextResetAt);
+                } else if (data.geminiDayStart) {
+                    const dayStart = new Date(data.geminiDayStart);
+                    if (!isNaN(dayStart.getTime())) {
+                        geminiNextResetAt = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+                    }
+                } else {
+                    geminiNextResetAt = null;
+                }
+
+                applyGeminiUsageToUI();
+
+                // При необходимости можно учитывать geminiConfigured
+                if (typeof data.geminiConfigured === "boolean" && !data.geminiConfigured) {
+                    hardDisableGemini("Перевод таблиц недоступен: не настроен API-ключ Gemini.");
+                }
             } catch (e) {
                 console.error("Ошибка статистики", e);
             }
@@ -821,7 +782,65 @@
 
         loadStats();
 
-        // --- Направление текста ---
+        function applyGeminiUsageToUI() {
+            const todayInfoEl = document.getElementById("geminiTodayInfo");
+            const resetInfoEl = document.getElementById("geminiResetInfo");
+
+            let used = geminiRequestsToday || 0;
+            let limit = geminiDailyLimit || 0;
+
+            if (!limit) {
+                todayInfoEl.textContent = "Сегодня: — / —";
+                todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
+            } else {
+                todayInfoEl.textContent = "Сегодня: " + used + " / " + limit;
+                const ratio = used / limit;
+
+                todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
+
+                if (ratio >= 1) {
+                    todayInfoEl.classList.add("limit-exceeded");
+                } else if (ratio >= 0.8) {
+                    todayInfoEl.classList.add("limit-warning");
+                    // Мягкое предупреждение при 80%
+                    todayInfoEl.textContent += " · Осталось мало дневных запросов";
+                } else {
+                    todayInfoEl.classList.add("limit-ok");
+                }
+            }
+
+            if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
+                const now = new Date();
+                const diffMs = geminiNextResetAt.getTime() - now.getTime();
+                if (diffMs > 0) {
+                    const sec = Math.floor(diffMs / 1000);
+                    resetInfoEl.textContent = "Сброс квоты через: " + formatDuration(sec);
+                } else {
+                    resetInfoEl.textContent = "Сброс квоты: скоро";
+                }
+            } else {
+                resetInfoEl.textContent = "Сброс квоты через: —";
+            }
+        }
+
+        function formatDuration(totalSec) {
+            if (totalSec < 0) totalSec = 0;
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
+
+            if (h > 0) {
+                return h + " ч " + m + " мин";
+            }
+            if (m > 0) {
+                return m + " мин " + s + " сек";
+            }
+            return s + " сек";
+        }
+
+        // ----------------------------
+        // НАПРАВЛЕНИЕ ТЕКСТА
+        // ----------------------------
         function applyTextDirection() {
             const lang = langSelectEl.value;
 
@@ -840,7 +859,9 @@
         });
         applyTextDirection();
 
-        // --- Шрифт иврита ---
+        // ----------------------------
+        // ШРИФТ ИВРИТА
+        // ----------------------------
         function applyHebrewFont() {
             const value = hebrewFontSelectEl.value;
             let fontStack;
@@ -864,7 +885,9 @@
         hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
         applyHebrewFont();
 
-        // --- TTS: озвучить + кэш ---
+        // ----------------------------
+        // TTS: ОЗВУЧКА + КЭШ
+        // ----------------------------
         async function playTTS() {
             if (!validate()) return;
 
@@ -904,7 +927,9 @@
             }
         }
 
-        // --- Сохранить MP3 из кэша (без нового запроса к TTS) ---
+        // ----------------------------
+        // СКАЧАТЬ MP3 ИЗ КЭША
+        // ----------------------------
         function downloadMp3FromCache() {
             if (audioIsStale) {
                 showError("Текст изменён — озвучьте его заново, чтобы скачать актуальный MP3");
@@ -930,11 +955,140 @@
             a.remove();
         }
 
-        // --- Перевод ---
+        // ----------------------------
+        // ПРОВЕРКА, ЗАБЛОКИРОВАН ЛИ GEMINI
+        // ----------------------------
+        function isGeminiLocked() {
+            if (!geminiLockType || !geminiLockUntil) return false;
+            const now = new Date();
+            return now.getTime() < geminiLockUntil.getTime();
+        }
+
+        function setGeminiLock(type, retryAfterSec, resetAt) {
+            if (!retryAfterSec || retryAfterSec < 0) retryAfterSec = 1;
+
+            geminiLockType = type;
+            geminiLockUntil = new Date(Date.now() + retryAfterSec * 1000);
+
+            if (type === "daily" && resetAt instanceof Date && !isNaN(resetAt.getTime())) {
+                geminiNextResetAt = resetAt;
+            }
+
+            if (geminiLimitTimerId) {
+                clearInterval(geminiLimitTimerId);
+            }
+            updateGeminiLockUI();
+            geminiLimitTimerId = setInterval(updateGeminiLockUI, 1000);
+        }
+
+        function clearGeminiLock() {
+            geminiLockType = null;
+            geminiLockUntil = null;
+            if (geminiLimitTimerId) {
+                clearInterval(geminiLimitTimerId);
+                geminiLimitTimerId = null;
+            }
+            hideLimitBanner();
+            updateAiButtonState();
+        }
+
+        function updateGeminiLockUI() {
+            if (!geminiLockType || !geminiLockUntil) {
+                hideLimitBanner();
+                updateAiButtonState();
+                return;
+            }
+
+            const now = new Date();
+            const diffMs = geminiLockUntil.getTime() - now.getTime();
+
+            if (diffMs <= 0) {
+                // таймер истёк — снимаем лок
+                clearGeminiLock();
+                applyGeminiUsageToUI();
+                return;
+            }
+
+            const sec = Math.ceil(diffMs / 1000);
+            updateAiButtonState(true);
+
+            if (geminiLockType === "rate") {
+                showLimitBanner(
+                    "rate",
+                    "Лимит скорости Gemini (rate-limit). Новый перевод будет доступен через " + formatDuration(sec) + "."
+                );
+            } else if (geminiLockType === "daily") {
+                let text = "Дневной лимит Gemini исчерпан.";
+                if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
+                    const nextDiffSec = Math.max(1, Math.floor((geminiNextResetAt.getTime() - now.getTime()) / 1000));
+                    text += " Новый перевод будет доступен через " + formatDuration(nextDiffSec) + ".";
+                }
+                showLimitBanner("daily", text);
+            }
+        }
+
+        function hardDisableGemini(message) {
+            setAiButtonDisabled(true);
+            showLimitBanner("info", message || "Перевод таблиц недоступен.");
+        }
+
+        function showLimitBanner(type, text) {
+            limitBannerEl.textContent = text || "";
+            limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
+
+            if (type === "rate") {
+                limitBannerEl.classList.add("limit-rate");
+            } else if (type === "daily") {
+                limitBannerEl.classList.add("limit-daily");
+            } else {
+                limitBannerEl.classList.add("limit-info");
+            }
+
+            limitBannerEl.style.display = "block";
+        }
+
+        function hideLimitBanner() {
+            limitBannerEl.style.display = "none";
+            limitBannerEl.textContent = "";
+            limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
+        }
+
+        function updateAiButtonState(forceDisabled) {
+            const shouldDisable = !!forceDisabled || isGeminiLocked();
+            setAiButtonDisabled(shouldDisable);
+        }
+
+        function setAiButtonDisabled(disabled) {
+            if (!btnAiTranslateEl) return;
+            if (disabled) {
+                btnAiTranslateEl.classList.add("disabled");
+                btnAiTranslateEl.setAttribute("disabled", "disabled");
+            } else {
+                btnAiTranslateEl.classList.remove("disabled");
+                btnAiTranslateEl.removeAttribute("disabled");
+            }
+        }
+
+        // ----------------------------
+        // ПЕРЕВОД (Gemini -> таблица)
+        // ----------------------------
         async function translateTable() {
             if (!validate()) return;
 
+            // Если уже заблокировано из-за лимитов — не стреляем в API
+            if (isGeminiLocked()) {
+                if (geminiLockType === "rate") {
+                    showLimitBanner("rate", "Лимит скорости Gemini. Подождите окончания обратного отсчёта.");
+                } else if (geminiLockType === "daily") {
+                    showLimitBanner("daily", "Дневной лимит Gemini уже исчерпан. Новый перевод будет доступен после сброса квоты.");
+                } else {
+                    showError("Лимит Gemini. Повторите попытку позже.");
+                }
+                return;
+            }
+
             setLoading(true);
+            setAiButtonDisabled(true);
             document.getElementById("errorMsg").textContent = "";
             document.getElementById("tableContainer").innerHTML = "";
 
@@ -949,12 +1103,10 @@
                 clearCacheRestoreNote();
                 renderTable(currentTableData);
 
-                const btnWord = document.getElementById("btnWord");
-
                 if (currentTableData.length > 0) {
                     clearTableStale();
                     tableIsStale = false;
-                    if (btnWord) btnWord.classList.remove("disabled");
+                    if (btnWordEl) btnWordEl.classList.remove("disabled");
 
                     // имя файла по моменту перевода
                     const autoName = generateDocxFileName();
@@ -968,7 +1120,7 @@
                             createdAt: new Date().toISOString(),
                             lastDocxFilename: lastDocxFilename
                         };
-                        localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+                            localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
                     } catch (e) {
                         console.error("Table cache save error", e);
                     }
@@ -977,22 +1129,73 @@
                     downloadWord(autoName);
                 } else {
                     tableIsStale = false;
-                    if (btnWord) btnWord.classList.add("disabled");
+                    if (btnWordEl) btnWordEl.classList.add("disabled");
                 }
 
                 loadStats();
+                // после успешного запроса можно снять возможный rate-lock
+                clearGeminiLock();
             } catch (e) {
-                if (e.isGeminiLimit) {
-                    handleGeminiLimit(e);
+                // Специальная обработка 429 (лимиты)
+                if (e.httpStatus === 429) {
+                    handleGeminiLimitError(e);
                 } else {
-                    showError(e.message);
+                    showError(e.message || "Ошибка перевода");
                 }
             } finally {
                 setLoading(false);
+                // кнопку включаем/выключаем по состоянию лимитов
+                updateAiButtonState();
             }
         }
 
-        // --- Отрисовка таблицы ---
+        function handleGeminiLimitError(error) {
+            const type = error.errorType || (error.raw && error.raw.errorType) || null;
+            const retryAfterSecRaw =
+                (typeof error.retryAfterSec === "number")
+                    ? error.retryAfterSec
+                    : (error.raw && typeof error.raw.retryAfterSec === "number"
+                        ? error.raw.retryAfterSec
+                        : null);
+            let retryAfterSec = retryAfterSecRaw;
+
+            let resetAt = null;
+            if (error.resetAt) {
+                resetAt = new Date(error.resetAt);
+            } else if (error.raw && error.raw.resetAt) {
+                resetAt = new Date(error.raw.resetAt);
+            }
+
+            if (type === "rate-limit" || type === "rate") {
+                if (!retryAfterSec || retryAfterSec > 3600) {
+                    retryAfterSec = 60;
+                }
+                setGeminiLock("rate", retryAfterSec);
+                showLimitBanner("rate", "Лимит скорости Gemini. Новый перевод будет доступен через " + formatDuration(retryAfterSec) + ".");
+            } else if (type === "daily-limit" || type === "daily") {
+                // daily-limit: либо есть resetAt, либо fallback на 1 час / до конца дня
+                if (!resetAt && geminiNextResetAt instanceof Date) {
+                    resetAt = geminiNextResetAt;
+                }
+                if (resetAt instanceof Date && !isNaN(resetAt.getTime())) {
+                    const sec = Math.max(1, Math.round((resetAt.getTime() - Date.now()) / 1000));
+                    setGeminiLock("daily", sec, resetAt);
+                } else if (retryAfterSec && retryAfterSec > 0) {
+                    setGeminiLock("daily", retryAfterSec);
+                } else {
+                    // запасной вариант — 6 часов
+                    setGeminiLock("daily", 6 * 3600);
+                }
+                showLimitBanner("daily", "Дневной лимит Gemini исчерпан. Новый перевод будет доступен после сброса квоты.");
+            } else {
+                // Тип лимита неизвестен — показываем общую ошибку
+                showError(error.message || "Ошибка лимитов Gemini");
+            }
+        }
+
+        // ----------------------------
+        // ОТРИСОВКА ТАБЛИЦЫ
+        // ----------------------------
         function renderTable(rows) {
             if (!Array.isArray(rows) || rows.length === 0) {
                 document.getElementById("tableContainer").innerHTML = "";
@@ -1031,7 +1234,9 @@
             document.getElementById("tableContainer").innerHTML = html;
         }
 
-        // --- Генерация имени файла DOCX ---
+        // ----------------------------
+        // ИМЕНА ФАЙЛОВ DOCX / MP3
+        // ----------------------------
         function generateDocxFileName() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, "0");
@@ -1046,7 +1251,6 @@
             return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.docx`;
         }
 
-        // --- Имя файла для MP3 ---
         function generateAudioFileName() {
             const now = new Date();
             const pad = (n) => String(n).padStart(2, "0");
@@ -1061,10 +1265,11 @@
             return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.mp3`;
         }
 
-        // --- Word ---
+        // ----------------------------
+        // WORD (DOCX)
+        // ----------------------------
         async function downloadWord(customFilename) {
-            const btn = document.getElementById("btnWord");
-            if (btn.classList.contains("disabled")) {
+            if (btnWordEl.classList.contains("disabled")) {
                 return;
             }
 
@@ -1100,7 +1305,9 @@
             }
         }
 
-        // --- Утилиты ---
+        // ----------------------------
+        // УТИЛИТЫ
+        // ----------------------------
         function getText() {
             return inputTextEl.value;
         }
@@ -1137,23 +1344,31 @@
             try {
                 json = await res.json();
             } catch (e) {
-                throw new Error("Неверный ответ сервера");
+                // если вообще не JSON
+                if (!res.ok) {
+                    const err = new Error("Ошибка запроса");
+                    err.httpStatus = res.status;
+                    throw err;
+                }
+                return {};
             }
 
             if (!res.ok || json.error) {
                 const msg = json && json.error ? json.error : "Ошибка запроса";
                 const details = json && json.details ? " (" + json.details + ")" : "";
                 const err = new Error(msg + details);
-
-                // Специальный случай: лимиты Gemini (статус 429)
-                if (res.status === 429 && json && (json.limitType || json.retryAfterSec !== undefined)) {
-                    err.isGeminiLimit = true;
-                    err.limitType = json.limitType || "unknown";
-                    if (typeof json.retryAfterSec === "number") {
-                        err.retryAfterSec = json.retryAfterSec;
-                    }
+                err.httpStatus = res.status;
+                if (json) {
+                    err.errorType = json.errorType || (json.details && json.details.errorType) || null;
+                    err.retryAfterSec =
+                        (typeof json.retryAfterSec === "number")
+                            ? json.retryAfterSec
+                            : (json.details && typeof json.details.retryAfterSec === "number"
+                                ? json.details.retryAfterSec
+                                : null);
+                    err.resetAt = json.resetAt || (json.details && json.details.resetAt) || null;
+                    err.raw = json;
                 }
-
                 throw err;
             }
 
