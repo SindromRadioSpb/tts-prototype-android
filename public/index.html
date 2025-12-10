@@ -424,6 +424,12 @@
             color: #6c757d;
         }
 
+        .table-source-note {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
         /* Слайдеры скорости и тона */
         input[type="range"] {
             width: 180px;
@@ -698,15 +704,34 @@
             }
         })();
 
-        function addCacheRestoreNote() {
+        function setTableSourceNote(mode) {
             const container = document.getElementById("tableContainer");
             if (!container) return;
-            if (container.querySelector(".cache-restore-note")) return;
+
+            // удалить предыдущие подписи источника
+            const oldNotes = container.querySelectorAll(".table-source-note");
+            oldNotes.forEach(function (n) { n.remove(); });
+
+            let text = "";
+            if (mode === "server-cache") {
+                text = "Сгенерировано из серверного кэша (без запроса к Gemini)";
+            } else if (mode === "local-cache") {
+                text = "Перевод восстановлен из локального кэша браузера (без запроса к Gemini)";
+            } else if (mode === "gemini-api") {
+                text = "Сгенерировано через Gemini API";
+            } else {
+                return;
+            }
 
             const note = document.createElement("div");
-            note.className = "cache-restore-note";
-            note.textContent = "Перевод восстановлен из локального кэша. Новый запрос к AI не выполнялся.";
+            note.className = "cache-restore-note table-source-note";
+            note.textContent = text;
             container.appendChild(note);
+        }
+
+        function addCacheRestoreNote() {
+            // Исторический хелпер — теперь просто устанавливает подпись "локальный кэш"
+            setTableSourceNote("local-cache");
         }
 
         function clearCacheRestoreNote() {
@@ -1268,7 +1293,44 @@
         async function translateTable() {
             if (!validate()) return;
 
-            // Если уже заблокировано из-за лимитов — не стреляем в API
+            const currentText = getText().trim();
+
+            // 1) Попытка использовать ЛОКАЛЬНЫЙ кэш таблицы без обращения к серверу / Gemini
+            try {
+                const rawCache = localStorage.getItem(TABLE_CACHE_KEY);
+                if (rawCache) {
+                    const cache = JSON.parse(rawCache);
+                    if (
+                        cache &&
+                        typeof cache.text === "string" &&
+                        cache.text.trim() === currentText &&
+                        Array.isArray(cache.rows) &&
+                        cache.rows.length > 0
+                    ) {
+                        currentTableData = cache.rows;
+                        lastDocxFilename = cache.lastDocxFilename || generateDocxFileName();
+
+                        renderTable(currentTableData);
+                        clearTableStale();
+                        tableIsStale = false;
+                        if (btnWordEl) btnWordEl.classList.remove("disabled");
+
+                        // Подпись источника: локальный кэш браузера (без запроса к Gemini)
+                        setTableSourceNote("local-cache");
+
+                        // Авто-скачивание DOCX (без запроса к Gemini)
+                        downloadWord(lastDocxFilename);
+
+                        // Обновим статистику (на всякий случай, хотя лимиты Gemini не менялись)
+                        loadStats();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error("Local table cache short-circuit error", e);
+            }
+
+            // 2) Если лимиты уже заблокированы — не стреляем в API
             if (isGeminiLocked()) {
                 if (geminiLockType === "rate") {
                     showLimitBanner("rate", "Лимит скорости Gemini. Подождите окончания обратного отсчёта.");
@@ -1280,6 +1342,7 @@
                 return;
             }
 
+            // 3) Живой запрос к серверу (/api/translate-table)
             setLoading(true);
             setAiButtonDisabled(true);
             document.getElementById("errorMsg").textContent = "";
@@ -1292,7 +1355,7 @@
 
                 currentTableData = res.rows || [];
 
-                // новые результаты — кэш-нота уже не нужна
+                // новые результаты — старая кэш-нота уже не нужна
                 clearCacheRestoreNote();
                 renderTable(currentTableData);
 
@@ -1308,7 +1371,7 @@
                     // сохраняем таблицу в localStorage (кэш)
                     try {
                         const cache = {
-                            text: getText(),
+                            text: getText().trim(),
                             rows: currentTableData,
                             createdAt: new Date().toISOString(),
                             lastDocxFilename: lastDocxFilename
@@ -1316,6 +1379,13 @@
                         localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
                     } catch (e) {
                         console.error("Table cache save error", e);
+                    }
+
+                    // Подпись источника: либо серверный кэш, либо живой вызов Gemini
+                    if (res.fromCache === true) {
+                        setTableSourceNote("server-cache");
+                    } else {
+                        setTableSourceNote("gemini-api");
                     }
 
                     // авто-скачивание свежего DOCX
