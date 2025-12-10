@@ -1,5 +1,28 @@
+# Node.js зависимости
 node_modules/
-audio/
+
+# Логи и отчёты
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# Кэши приложения
+audio-cache/
+gemini-cache/
+
+# Файлы статистики и ключи, которые не должны быть в репозитории
 usage.json
-*.docx
-*.xlsx
+gcp-key.json
+
+# Временные файлы редакторов (Word, VS Code и т.п.)
+~$*.docx
+~$*.tmp
+*.tmp
+
+# Системные файлы ОС
+.DS_Store
+Thumbs.db
+desktop.ini
