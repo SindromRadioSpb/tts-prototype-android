@@ -6,6 +6,7 @@ const bodyParser = require("body-parser");
 const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+const crypto = require("crypto");
 
 const textToSpeech = require("@google-cloud/text-to-speech");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -37,7 +38,21 @@ const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL_NAME || "Gemini 2.5 Flash";
 const GEMINI_BILLING_TIER = process.env.GEMINI_BILLING_TIER || "free";
 
 // --------------------------------------------------------
-// 1.1. ЗАГРУЗКА КЛЮЧА GOOGLE CLOUD ИЗ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
+// 1.1. КОНФИГ ЦЕНЫ И НАСТРОЕК TTS
+// --------------------------------------------------------
+
+// Стоимость TTS за 1M символов (USD) — указать свой тариф Google Cloud
+const TTS_PRICE_PER_1M_CHARS_USD = Number(
+  process.env.TTS_PRICE_PER_1M_CHARS_USD || "4.00"
+);
+
+// Значения по умолчанию для TTS
+const TTS_DEFAULT_VOICE = process.env.TTS_DEFAULT_VOICE || "";
+const TTS_DEFAULT_RATE = Number(process.env.TTS_DEFAULT_RATE || "1.0");
+const TTS_DEFAULT_PITCH = Number(process.env.TTS_DEFAULT_PITCH || "0.0");
+
+// --------------------------------------------------------
+// 1.2. ЗАГРУЗКА КЛЮЧА GOOGLE CLOUD ИЗ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
 // --------------------------------------------------------
 
 if (process.env.GOOGLE_CLOUD_TTS_KEY) {
@@ -66,6 +81,12 @@ if (!fs.existsSync(audioDir)) {
   fs.mkdirSync(audioDir, { recursive: true });
 }
 app.use("/audio", express.static(audioDir));
+
+// Директория серверного кэша MP3 (по хэшу текста + настроек)
+const audioCacheDir = path.join(__dirname, "audio-cache");
+if (!fs.existsSync(audioCacheDir)) {
+  fs.mkdirSync(audioCacheDir, { recursive: true });
+}
 
 // --------------------------------------------------------
 // 2.1. СИСТЕМА УЧЁТА ИСПОЛЬЗОВАНИЯ
@@ -107,7 +128,9 @@ function getCurrentQuotaDayStartISO() {
 // Получить "пустую" структуру статистики
 function getEmptyUsage() {
   return {
-    ttsChars: 0, // Символов TTS (всего)
+    ttsChars: 0, // Символов TTS (всего, реально отправленных в Google)
+    ttsFirstUseAt: null, // Первый вызов TTS
+    ttsLastUseAt: null, // Последний вызов TTS
     geminiRequests: 0, // Запросов к Gemini (всего)
     geminiRequestsToday: 0, // Запросов к Gemini за текущий день квоты
     geminiDayStart: getCurrentQuotaDayStartISO(), // Начало текущего дня квоты
@@ -184,9 +207,14 @@ function getUsage() {
 // Обновить статистику (tts или gemini)
 function updateUsage(type, amount = 1) {
   const stats = getUsage(); // уже нормализованный
+  const nowIso = new Date().toISOString();
 
   if (type === "tts") {
     stats.ttsChars += amount;
+    if (!stats.ttsFirstUseAt) {
+      stats.ttsFirstUseAt = nowIso;
+    }
+    stats.ttsLastUseAt = nowIso;
   } else if (type === "gemini") {
     // считаем и общий, и суточный счётчики
     stats.geminiRequests += amount;
@@ -258,6 +286,26 @@ app.get("/api/usage", (req, res) => {
     console.error("Ошибка вычисления geminiNextResetAt:", e);
   }
 
+  // Расчёт примерной стоимости TTS
+  const pricePer1M = TTS_PRICE_PER_1M_CHARS_USD > 0 ? TTS_PRICE_PER_1M_CHARS_USD : 0;
+  let ttsCostTotalUsd = null;
+  let ttsMonthlyEstimateUsd = null;
+
+  if (pricePer1M > 0) {
+    ttsCostTotalUsd = (stats.ttsChars / 1_000_000) * pricePer1M;
+
+    if (stats.ttsFirstUseAt) {
+      const firstMs = Date.parse(stats.ttsFirstUseAt);
+      const nowMs = Date.now();
+      if (!Number.isNaN(firstMs) && nowMs > firstMs) {
+        const days = Math.max(1, (nowMs - firstMs) / (24 * 60 * 60 * 1000));
+        const avgCharsPerDay = stats.ttsChars / days;
+        const monthlyChars = avgCharsPerDay * 30;
+        ttsMonthlyEstimateUsd = (monthlyChars / 1_000_000) * pricePer1M;
+      }
+    }
+  }
+
   res.json({
     ...stats,
     geminiDailyLimit: GEMINI_DAILY_LIMIT,
@@ -266,13 +314,25 @@ app.get("/api/usage", (req, res) => {
     geminiModelName: GEMINI_MODEL_NAME,
     geminiBillingTier: GEMINI_BILLING_TIER,
     geminiConfigured: !!GEMINI_API_KEY,
+    // Стоимость TTS
+    ttsPricePer1MCharsUsd: pricePer1M || null,
+    ttsCostTotalUsd,
+    ttsMonthlyEstimateUsd,
   });
 });
 
 // --- API: TTS (Озвучка) ---
 app.post("/api/tts", async (req, res) => {
   try {
-    const { text, language, languageCode } = req.body || {};
+    const {
+      text,
+      language,
+      languageCode,
+      voiceId,
+      speakingRate,
+      pitch,
+    } = req.body || {};
+
     const lang = language || languageCode;
 
     if (!text || typeof text !== "string" || !text.trim()) {
@@ -282,21 +342,74 @@ app.post("/api/tts", async (req, res) => {
       return res.status(400).json({ error: "Не указан язык" });
     }
 
-    // Считаем символы (всегда — даже если потом клиент не скачает MP3)
-    updateUsage("tts", text.length);
+    // Нормализуем голос и параметры
+    const effectiveVoice = voiceId || TTS_DEFAULT_VOICE || null;
+
+    let rate = typeof speakingRate === "number" ? speakingRate : Number(speakingRate);
+    if (!rate || Number.isNaN(rate)) {
+      rate = TTS_DEFAULT_RATE;
+    }
+
+    let pitchVal = typeof pitch === "number" ? pitch : Number(pitch);
+    if (Number.isNaN(pitchVal)) {
+      pitchVal = TTS_DEFAULT_PITCH;
+    }
+
+    // Хэш для серверного кэша (учитывает текст + язык + голос + настройки)
+    const hashInput = `${lang}||${effectiveVoice || "auto"}||${rate}||${pitchVal}||${text}`;
+    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
+    const cacheFile = path.join(audioCacheDir, `${hashKey}.mp3`);
+
+    // 1. Пытаемся отдать из кэша
+    if (fs.existsSync(cacheFile)) {
+      try {
+        const audioBuffer = fs.readFileSync(cacheFile);
+        const base64Audio = audioBuffer.toString("base64");
+        return res.json({
+          audioContent: base64Audio,
+          mimeType: "audio/mpeg",
+          fromCache: true,
+        });
+      } catch (e) {
+        console.error("Ошибка чтения кэша TTS:", e);
+        // если кэш не прочитался — пойдём в Google TTS ниже
+      }
+    }
+
+    // 2. Генерируем новый звук через Google TTS
+    const voiceConfig = effectiveVoice
+      ? { languageCode: lang, name: effectiveVoice }
+      : { languageCode: lang, ssmlGender: "NEUTRAL" };
 
     const request = {
       input: { text },
-      voice: { languageCode: lang, ssmlGender: "NEUTRAL" },
-      audioConfig: { audioEncoding: "MP3" },
+      voice: voiceConfig,
+      audioConfig: {
+        audioEncoding: "MP3",
+        speakingRate: rate,
+        pitch: pitchVal,
+      },
     };
 
     const [response] = await ttsClient.synthesizeSpeech(request);
-    const base64Audio = Buffer.from(response.audioContent).toString("base64");
+    const audioBuffer = Buffer.from(response.audioContent);
+
+    // Сохраняем в кэш
+    try {
+      fs.writeFileSync(cacheFile, audioBuffer);
+    } catch (e) {
+      console.error("Ошибка записи в кэш TTS:", e);
+    }
+
+    // Обновляем usage только при MISS (реальный вызов Google TTS)
+    updateUsage("tts", text.length);
+
+    const base64Audio = audioBuffer.toString("base64");
 
     res.json({
       audioContent: base64Audio,
       mimeType: "audio/mpeg",
+      fromCache: false,
     });
   } catch (error) {
     console.error("TTS Error:", error);
@@ -307,7 +420,14 @@ app.post("/api/tts", async (req, res) => {
 // --- API: SAVE (Сохранение MP3 на диск) ---
 app.post("/api/save", async (req, res) => {
   try {
-    const { text, language, languageCode } = req.body || {};
+    const {
+      text,
+      language,
+      languageCode,
+      voiceId,
+      speakingRate,
+      pitch,
+    } = req.body || {};
     const lang = language || languageCode;
 
     if (!text || typeof text !== "string" || !text.trim()) {
@@ -317,22 +437,72 @@ app.post("/api/save", async (req, res) => {
       return res.status(400).json({ error: "Не указан язык" });
     }
 
-    // Считаем символы
-    updateUsage("tts", text.length);
+    // Нормализуем голос и параметры
+    const effectiveVoice = voiceId || TTS_DEFAULT_VOICE || null;
+
+    let rate = typeof speakingRate === "number" ? speakingRate : Number(speakingRate);
+    if (!rate || Number.isNaN(rate)) {
+      rate = TTS_DEFAULT_RATE;
+    }
+
+    let pitchVal = typeof pitch === "number" ? pitch : Number(pitch);
+    if (Number.isNaN(pitchVal)) {
+      pitchVal = TTS_DEFAULT_PITCH;
+    }
 
     const id = uuidv4();
     const audioFile = path.join(audioDir, `${id}.mp3`);
     const textFile = path.join(audioDir, `${id}.txt`);
 
-    const request = {
-      input: { text },
-      voice: { languageCode: lang, ssmlGender: "NEUTRAL" },
-      audioConfig: { audioEncoding: "MP3" },
-    };
+    // Ключ кэша
+    const hashInput = `${lang}||${effectiveVoice || "auto"}||${rate}||${pitchVal}||${text}`;
+    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
+    const cacheFile = path.join(audioCacheDir, `${hashKey}.mp3`);
 
-    const [response] = await ttsClient.synthesizeSpeech(request);
+    let audioBuffer = null;
 
-    fs.writeFileSync(audioFile, response.audioContent, "binary");
+    // 1. Пытаемся использовать кэш
+    if (fs.existsSync(cacheFile)) {
+      try {
+        audioBuffer = fs.readFileSync(cacheFile);
+      } catch (e) {
+        console.error("Ошибка чтения кэша TTS (SAVE):", e);
+        audioBuffer = null;
+      }
+    }
+
+    // 2. Если в кэше нет — генерируем новый звук
+    if (!audioBuffer) {
+      const voiceConfig = effectiveVoice
+        ? { languageCode: lang, name: effectiveVoice }
+        : { languageCode: lang, ssmlGender: "NEUTRAL" };
+
+      const request = {
+        input: { text },
+        voice: voiceConfig,
+        audioConfig: {
+          audioEncoding: "MP3",
+          speakingRate: rate,
+          pitch: pitchVal,
+        },
+      };
+
+      const [response] = await ttsClient.synthesizeSpeech(request);
+      audioBuffer = Buffer.from(response.audioContent);
+
+      // Сохраняем в кэш
+      try {
+        fs.writeFileSync(cacheFile, audioBuffer);
+      } catch (e) {
+        console.error("Ошибка записи в кэш TTS (SAVE):", e);
+      }
+
+      // Обновляем usage только при MISS
+      updateUsage("tts", text.length);
+    }
+
+    // 3. Сохраняем пользовательский файл и текст
+    fs.writeFileSync(audioFile, audioBuffer, "binary");
     fs.writeFileSync(textFile, text, "utf8");
 
     res.json({

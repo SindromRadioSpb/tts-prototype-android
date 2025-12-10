@@ -259,7 +259,7 @@
             transition: 0.2s;
         }
 
-        select {
+       select {
             border: 1px solid #d0d4d8;
             background: #ffffff;
             min-width: 190px;
@@ -424,6 +424,11 @@
             color: #6c757d;
         }
 
+        /* Слайдеры скорости и тона */
+        input[type="range"] {
+            width: 180px;
+        }
+
         @media (max-width: 600px) {
             .dashboard-header {
                 flex-direction: column;
@@ -452,7 +457,8 @@
                 width: 100%;
             }
 
-            .field-group select {
+            .field-group select,
+            .field-group input[type="range"] {
                 width: 100%;
             }
 
@@ -475,6 +481,7 @@
                 <span id="statTTS" class="stat-value">0</span>
                 <span class="stat-label">TTS Символы</span>
                 <div class="stat-sub">Через это приложение</div>
+                <div id="ttsCostInfo" class="stat-sub"></div>
             </div>
 
             <div class="stat-item">
@@ -528,6 +535,19 @@
                 </select>
             </div>
 
+            <div class="field-group">
+                <label for="voiceSelect" class="input-label">Голос TTS</label>
+                <select id="voiceSelect">
+                    <option value="">Авто (по умолчанию)</option>
+                    <option value="he-IL-Standard-A">he-IL-Standard-A (ж, иврит)</option>
+                    <option value="he-IL-Standard-B">he-IL-Standard-B (м, иврит)</option>
+                    <option value="ru-RU-Standard-A">ru-RU-Standard-A (ж, русский)</option>
+                    <option value="ru-RU-Standard-B">ru-RU-Standard-B (м, русский)</option>
+                    <option value="en-US-Standard-C">en-US-Standard-C (ж, англ.)</option>
+                    <option value="en-US-Standard-D">en-US-Standard-D (м, англ.)</option>
+                </select>
+            </div>
+
             <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
 
             <div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
@@ -536,6 +556,19 @@
             <div id="loader" class="loader"></div>
 
             <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
+        </div>
+
+        <div class="controls" style="margin-top: 0;">
+            <div class="field-group">
+                <label for="rateRange" class="input-label">Скорость речи</label>
+                <input id="rateRange" type="range" min="0.8" max="1.2" step="0.05" value="1.0">
+                <span id="rateValue" class="stat-sub">1.00×</span>
+            </div>
+            <div class="field-group">
+                <label for="pitchRange" class="input-label">Тон (pitch)</label>
+                <input id="pitchRange" type="range" min="-5" max="5" step="0.5" value="0">
+                <span id="pitchValue" class="stat-sub">0.0</span>
+            </div>
         </div>
 
         <div id="audioContainer" style="margin-bottom: 15px;"></div>
@@ -557,8 +590,15 @@
         const btnWordEl = document.getElementById("btnWord");
         const btnAiTranslateEl = document.getElementById("btnAiTranslate");
 
+        const voiceSelectEl = document.getElementById("voiceSelect");
+        const rateRangeEl = document.getElementById("rateRange");
+        const pitchRangeEl = document.getElementById("pitchRange");
+        const rateValueEl = document.getElementById("rateValue");
+        const pitchValueEl = document.getElementById("pitchValue");
+
         const STORAGE_KEY = "ttsDashboard_text_v1";
         const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
+        const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
 
         let saveTimer = null;
 
@@ -582,6 +622,9 @@
         let geminiLockUntil = null;    // Date или null
         let geminiLimitTimerId = null; // setInterval id
 
+        // --- Состояние usage для TTS-стоимости ---
+        let lastUsageData = null;
+
         // ----------------------------
         // ВОССТАНОВЛЕНИЕ ТЕКСТА
         // ----------------------------
@@ -603,6 +646,7 @@
             autoGrow();
             scheduleSaveText();
             markResultsStale();
+            updateTtsCostInfo();
         });
 
         autoGrow();
@@ -670,6 +714,87 @@
             if (!container) return;
             const note = container.querySelector(".cache-restore-note");
             if (note) note.remove();
+        }
+
+        // ----------------------------
+        // ВОССТАНОВЛЕНИЕ НАСТРОЕК TTS (ГОЛОС, СКОРОСТЬ, ТОН)
+        // ----------------------------
+        (function restoreTtsVoiceConfig() {
+            try {
+                const raw = localStorage.getItem(TTS_VOICE_STORAGE_KEY);
+                if (!raw) {
+                    updateTtsControlsUI();
+                    return;
+                }
+
+                const cfg = JSON.parse(raw);
+                if (cfg && typeof cfg === "object") {
+                    if (voiceSelectEl && typeof cfg.voice === "string") {
+                        voiceSelectEl.value = cfg.voice;
+                    }
+                    if (rateRangeEl && typeof cfg.rate === "number") {
+                        rateRangeEl.value = cfg.rate;
+                    }
+                    if (pitchRangeEl && typeof cfg.pitch === "number") {
+                        pitchRangeEl.value = cfg.pitch;
+                    }
+                }
+            } catch (e) {
+                console.error("TTS voice config restore error", e);
+            }
+            updateTtsControlsUI();
+        })();
+
+        function saveTtsVoiceConfig() {
+            try {
+                const cfg = {
+                    voice: voiceSelectEl ? voiceSelectEl.value : "",
+                    rate: rateRangeEl ? Number(rateRangeEl.value) : 1.0,
+                    pitch: pitchRangeEl ? Number(pitchRangeEl.value) : 0.0
+                };
+                localStorage.setItem(TTS_VOICE_STORAGE_KEY, JSON.stringify(cfg));
+            } catch (e) {
+                console.error("TTS voice config save error", e);
+            }
+        }
+
+        function updateTtsControlsUI() {
+            if (rateRangeEl && rateValueEl) {
+                const val = Number(rateRangeEl.value);
+                rateValueEl.textContent = val.toFixed(2) + "×";
+            }
+            if (pitchRangeEl && pitchValueEl) {
+                const val = Number(pitchRangeEl.value);
+                const sign = val > 0 ? "+" : "";
+                pitchValueEl.textContent = sign + val.toFixed(1);
+            }
+        }
+
+        function getTtsVoiceConfig() {
+            const voiceId = voiceSelectEl ? voiceSelectEl.value : "";
+            const rate = rateRangeEl ? Number(rateRangeEl.value) : 1.0;
+            const pitch = pitchRangeEl ? Number(pitchRangeEl.value) : 0.0;
+            return { voiceId, rate, pitch };
+        }
+
+        if (voiceSelectEl) {
+            voiceSelectEl.addEventListener("change", function () {
+                saveTtsVoiceConfig();
+            });
+        }
+
+        if (rateRangeEl) {
+            rateRangeEl.addEventListener("input", function () {
+                updateTtsControlsUI();
+                saveTtsVoiceConfig();
+            });
+        }
+
+        if (pitchRangeEl) {
+            pitchRangeEl.addEventListener("input", function () {
+                updateTtsControlsUI();
+                saveTtsVoiceConfig();
+            });
         }
 
         // ----------------------------
@@ -751,6 +876,7 @@
                     throw new Error("Не удалось получить статистику");
                 }
                 const data = await res.json();
+                lastUsageData = data;
 
                 // TTS символы
                 const ttsChars = data.ttsChars || 0;
@@ -802,6 +928,7 @@
                 }
 
                 applyGeminiUsageToUI();
+                updateTtsCostInfo();
 
                 // При необходимости можно учитывать geminiConfigured
                 if (typeof data.geminiConfigured === "boolean" && !data.geminiConfigured) {
@@ -900,7 +1027,7 @@
         }, 60000);
 
         // ----------------------------
-        // НАПРАВЛЕНИЕ ТЕКСТА
+        // ТЕКСТОВЫЙ БЛОК: НАПРАВЛЕНИЕ ТЕКСТА
         // ----------------------------
         function applyTextDirection() {
             const lang = langSelectEl.value;
@@ -953,9 +1080,14 @@
             if (!validate()) return;
 
             try {
+                const cfg = getTtsVoiceConfig();
+
                 const res = await apiCall("/api/tts", {
                     text: getText(),
-                    language: getLang()
+                    language: getLang(),
+                    voiceId: cfg.voiceId,
+                    speakingRate: cfg.rate,
+                    pitch: cfg.pitch
                 });
 
                 const binary = atob(res.audioContent);
@@ -978,11 +1110,11 @@
                     '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
                     '    ⬇ Скачать MP3' +
                     '  </button>' +
-                    '  <small>Сгенерировано из текущего текста</small>' +
+                    '  <small>' + (res.fromCache ? 'Сгенерировано из серверного кэша (без запроса к Google TTS)' : 'Сгенерировано через Google TTS') + '</small>' +
                     '</div>';
 
                 clearAudioStale();
-                loadStats();
+                loadStats(); // обновим счётчик символов и стоимость
             } catch (e) {
                 showError(e.message);
             }
@@ -1444,6 +1576,56 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        // ----------------------------
+        // ОБНОВЛЕНИЕ ИНФОРМАЦИИ О СТОИМОСТИ TTS
+        // ----------------------------
+        function updateTtsCostInfo() {
+            const el = document.getElementById("ttsCostInfo");
+            if (!el) return;
+
+            if (!lastUsageData) {
+                el.textContent = "";
+                return;
+            }
+
+            const pricePer1M = (typeof lastUsageData.ttsPricePer1MCharsUsd === "number")
+                ? lastUsageData.ttsPricePer1MCharsUsd
+                : null;
+
+            const totalUsd = (typeof lastUsageData.ttsCostTotalUsd === "number")
+                ? lastUsageData.ttsCostTotalUsd
+                : null;
+
+            const monthlyUsd = (typeof lastUsageData.ttsMonthlyEstimateUsd === "number")
+                ? lastUsageData.ttsMonthlyEstimateUsd
+                : null;
+
+            if (!pricePer1M || pricePer1M <= 0) {
+                el.textContent = "Стоимость: нет данных по тарифу TTS";
+                return;
+            }
+
+            const charsCurrent = inputTextEl.value ? inputTextEl.value.length : 0;
+            const pricePerChar = pricePer1M / 1_000_000;
+            const currentReqCost = charsCurrent > 0 ? charsCurrent * pricePerChar : 0;
+
+            const parts = [];
+
+            if (totalUsd !== null) {
+                parts.push("всего ≈ $" + totalUsd.toFixed(3));
+            }
+
+            if (monthlyUsd !== null) {
+                parts.push("≈ $" + monthlyUsd.toFixed(2) + " / мес");
+            }
+
+            if (currentReqCost > 0) {
+                parts.push("этот текст ≈ $" + currentReqCost.toFixed(4));
+            }
+
+            el.textContent = "Стоимость: " + (parts.length ? parts.join(" · ") : "нет данных");
         }
     </script>
 </body>
