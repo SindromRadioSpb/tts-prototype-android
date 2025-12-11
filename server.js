@@ -233,41 +233,97 @@ async function synthesizeWithCache(text, languageCode, voiceName, speakingRate, 
 }
 
 // --------------------------------------------------------
-// 7. API: TTS-ОЗВУЧКА
+// 7. API: TTS-ОЗВУЧКА (расширенная диагностика)
 // --------------------------------------------------------
 app.post("/api/tts", async (req, res) => {
   try {
     const { text, language, voiceId, speakingRate, pitch } = req.body || {};
 
+    // 1. Валидация текста
     if (!text || typeof text !== "string" || !text.trim()) {
       return res.status(400).json({ error: "Нет текста" });
     }
 
-    let languageCode = "he-IL";
-    if (language === "ru") languageCode = "ru-RU";
-    if (language === "en") languageCode = "en-US";
+    const cleanText = text.trim();
 
+    // 2. Нормализуем language с учётом значений из фронтенда
+    //    (he-IL / ru-RU / en-US) + старые короткие коды.
+    let languageCode = "he-IL";
+
+    switch (language) {
+      case "he":
+      case "he-IL":
+        languageCode = "he-IL";
+        break;
+      case "ru":
+      case "ru-RU":
+        languageCode = "ru-RU";
+        break;
+      case "en":
+      case "en-US":
+        languageCode = "en-US";
+        break;
+      default:
+        // если что-то странное пришло — логируем, но не падаем
+        console.warn("[TTS] Неожиданный language из клиента:", language);
+        languageCode = "he-IL";
+        break;
+    }
+
+    // 3. Логируем факт вызова (без самого текста, только длину и параметры)
+    console.log("[TTS] Запрос озвучки:", {
+      textLength: cleanText.length,
+      language,
+      languageCode,
+      voiceId: voiceId || null,
+      speakingRate: speakingRate || 1.0,
+      pitch: pitch || 0.0,
+      envNode: process.env.NODE_ENV || "undefined",
+    });
+
+    // 4. Синтез с учётом кэша
     const { audioContent, fromCache, cacheId } = await synthesizeWithCache(
-      text.trim(),
+      cleanText,
       languageCode,
       voiceId,
       speakingRate,
       pitch
     );
 
-    // Обновляем usage по символам (только если не из кэша)
+    // 5. Обновляем usage по символам (только если НЕ из кэша)
     if (!fromCache) {
-      updateUsage("tts", text.trim().length);
+      updateUsage("tts", cleanText.length);
     }
 
+    // 6. Отдаём результат клиенту
     res.json({
       audioContent,
       fromCache,
       cacheId,
     });
   } catch (error) {
-    console.error("TTS Error:", error);
-    res.status(500).json({ error: "Ошибка TTS" });
+    // 7. Подробный лог на сервере
+    console.error("[TTS] Ошибка при озвучке:", {
+      message: error && error.message,
+      code: error && (error.code || error.statusCode),
+      details: error && (error.details || error.errorDetails),
+      stack: error && error.stack,
+    });
+
+    // 8. Диагностичный ответ клиенту
+    const payload = {
+      error: "Ошибка TTS",
+      message: error && error.message ? String(error.message) : null,
+      code: error && (error.code || error.statusCode) ? String(error.code || error.statusCode) : null,
+      details: error && (error.details || error.errorDetails)
+        ? error.details || error.errorDetails
+        : null,
+      // Минимальная проверка окружения, чтобы понять, встал ли вопрос в кредах
+      hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || null,
+    };
+
+    res.status(500).json(payload);
   }
 });
 
