@@ -437,7 +437,8 @@
 
         /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
         .hotkeys-panel {
-            margin-top: 20px;
+            margin-top: 10px;
+            margin-bottom: 12px;
             padding: 12px 14px;
             background: #f8f9fa;
             border-radius: 8px;
@@ -621,6 +622,23 @@
     <div class="main-card">
         <h2>Текст для озвучки и перевода</h2>
 
+        <!-- Блок горячих клавиш — сразу под заголовком (Вариант A) -->
+        <div id="hotkeysPanel" class="hotkeys-panel">
+            <div class="hotkeys-header">
+                <strong>Горячие клавиши</strong>
+                <span class="hotkeys-hint">
+                    Нажмите <code>Ctrl+/</code>, чтобы скрыть или показать этот блок.
+                </span>
+            </div>
+            <ul class="hotkeys-list">
+                <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
+                <li><code>Ctrl+Shift+Enter</code> — AI Перевод + SAVE (и авто-DOCX)</li>
+                <li><code>Ctrl+Shift+S</code> — Сохранить MP3 озвучки текущего текста</li>
+                <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
+                <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
+            </ul>
+        </div>
+
         <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
         <div id="textChangedNotice">
@@ -687,1256 +705,1259 @@
         <div id="audioContainer" style="margin-bottom: 15px;"></div>
         <div id="errorMsg" class="error"></div>
         <div id="tableContainer"></div>
-
-        <div id="hotkeysPanel" class="hotkeys-panel">
-            <div class="hotkeys-header">
-                <strong>Горячие клавиши</strong>
-                <span class="hotkeys-hint">Нажмите <code>Ctrl+/</code>, чтобы скрыть или показать этот блок.</span>
-            </div>
-            <ul class="hotkeys-list">
-                <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
-                <li><code>Ctrl+Shift+Enter</code> — AI Перевод + SAVE (и авто-DOCX)</li>
-                <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
-                <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
-            </ul>
-        </div>
     </div>
 
     <script>
         // ----------------------------
-// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
-// ----------------------------
-let currentTableData = [];
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        // ----------------------------
+        let currentTableData = [];
 
-const inputTextEl = document.getElementById("inputText");
-const langSelectEl = document.getElementById("langSelect");
-const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
-const textChangedNoticeEl = document.getElementById("textChangedNotice");
-const limitBannerEl = document.getElementById("limitBanner");
-const btnWordEl = document.getElementById("btnWord");
-const btnAiTranslateEl = document.getElementById("btnAiTranslate");
-const hotkeysPanelEl = document.getElementById("hotkeysPanel");
+        const inputTextEl = document.getElementById("inputText");
+        const langSelectEl = document.getElementById("langSelect");
+        const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
+        const textChangedNoticeEl = document.getElementById("textChangedNotice");
+        const limitBannerEl = document.getElementById("limitBanner");
+        const btnWordEl = document.getElementById("btnWord");
+        const btnAiTranslateEl = document.getElementById("btnAiTranslate");
+        const hotkeysPanelEl = document.getElementById("hotkeysPanel");
 
-const voiceSelectEl = document.getElementById("voiceSelect");
-const rateRangeEl = document.getElementById("rateRange");
-const pitchRangeEl = document.getElementById("pitchRange");
-const rateValueEl = document.getElementById("rateValue");
-const pitchValueEl = document.getElementById("pitchValue");
+        const voiceSelectEl = document.getElementById("voiceSelect");
+        const rateRangeEl = document.getElementById("rateRange");
+        const pitchRangeEl = document.getElementById("pitchRange");
+        const rateValueEl = document.getElementById("rateValue");
+        const pitchValueEl = document.getElementById("pitchValue");
 
-const STORAGE_KEY = "ttsDashboard_text_v1";
-const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
-const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
+        const STORAGE_KEY = "ttsDashboard_text_v1";
+        const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
+        const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
 
-let saveTimer = null;
+        let saveTimer = null;
 
-// состояние "старости" по отдельности
-let tableIsStale = false;
-let audioIsStale = false;
+        // состояние "старости" по отдельности
+        let tableIsStale = false;
+        let audioIsStale = false;
 
-// кэш аудио
-let lastAudioBlob = null;
-let lastAudioUrl = null;
+        // кэш аудио
+        let lastAudioBlob = null;
+        let lastAudioUrl = null;
 
-// имя последнего DOCX (по моменту AI-перевода)
-let lastDocxFilename = null;
+        // имя последнего DOCX (по моменту AI-перевода)
+        let lastDocxFilename = null;
 
-// --- Состояние лимитов Gemini ---
-let geminiRequestsToday = 0;
-let geminiDailyLimit = 20;
-let geminiNextResetAt = null;  // Date или null
+        // --- Состояние лимитов Gemini ---
+        let geminiRequestsToday = 0;
+        let geminiDailyLimit = 20;
+        let geminiNextResetAt = null;  // Date или null
 
-let geminiLockType = null;     // "rate" | "daily" | null
-let geminiLockUntil = null;    // Date или null
-let geminiLimitTimerId = null; // setInterval id
+        let geminiLockType = null;     // "rate" | "daily" | null
+        let geminiLockUntil = null;    // Date или null
+        let geminiLimitTimerId = null; // setInterval id
 
-// --- Состояние usage для TTS-стоимости ---
-let lastUsageData = null;
+        // --- Состояние usage для TTS-стоимости ---
+        let lastUsageData = null;
 
-// ----------------------------
-// ВОССТАНОВЛЕНИЕ ТЕКСТА
-// ----------------------------
-(function restoreText() {
-    try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved && saved.trim()) {
-            inputTextEl.value = saved;
-        }
-    } catch (e) {
-        console.error("LocalStorage restore error", e);
-    }
-})();
-
-// ----------------------------
-// AUTO-GROW + AUTOSAVE + STALE
-// ----------------------------
-inputTextEl.addEventListener("input", function () {
-    autoGrow();
-    scheduleSaveText();
-    markResultsStale();
-    updateTtsCostInfo();
-});
-
-autoGrow();
-
-function autoGrow() {
-    inputTextEl.style.height = "auto";
-    inputTextEl.style.height = (inputTextEl.scrollHeight + 10) + "px";
-}
-
-function scheduleSaveText() {
-    if (saveTimer) {
-        clearTimeout(saveTimer);
-    }
-    saveTimer = setTimeout(function () {
-        try {
-            localStorage.setItem(STORAGE_KEY, inputTextEl.value);
-        } catch (e) {
-            console.error("LocalStorage save error", e);
-        }
-    }, 400);
-}
-
-// ----------------------------
-// ВОССТАНОВЛЕНИЕ ТАБЛИЦЫ ИЗ КЭША
-// ----------------------------
-(function restoreTableFromCache() {
-    try {
-        const raw = localStorage.getItem(TABLE_CACHE_KEY);
-        if (!raw) return;
-
-        const cache = JSON.parse(raw);
-        if (!cache || !Array.isArray(cache.rows) || !cache.text) return;
-
-        if (cache.text !== inputTextEl.value) return;
-
-        currentTableData = cache.rows;
-        lastDocxFilename = cache.lastDocxFilename || null;
-
-        renderTable(currentTableData);
-
-        if (currentTableData.length > 0 && btnWordEl) {
-            btnWordEl.classList.remove("disabled");
-        }
-
-        tableIsStale = false;
-        addCacheRestoreNote();
-    } catch (e) {
-        console.error("Table cache restore error", e);
-    }
-})();
-
-function setTableSourceNote(mode) {
-    const container = document.getElementById("tableContainer");
-    if (!container) return;
-
-    // удалить предыдущие подписи источника
-    const oldNotes = container.querySelectorAll(".table-source-note");
-    oldNotes.forEach(function (n) { n.remove(); });
-
-    let text = "";
-    if (mode === "server-cache") {
-        text = "Сгенерировано из серверного кэша (без запроса к Gemini)";
-    } else if (mode === "local-cache") {
-        text = "Перевод восстановлен из локального кэша браузера (без запроса к Gemini)";
-    } else if (mode === "gemini-api") {
-        text = "Сгенерировано через Gemini API";
-    } else {
-        return;
-    }
-
-    const note = document.createElement("div");
-    note.className = "cache-restore-note table-source-note";
-    note.textContent = text;
-    container.appendChild(note);
-}
-
-function addCacheRestoreNote() {
-    // Исторический хелпер — теперь просто устанавливает подпись "локальный кэш"
-    setTableSourceNote("local-cache");
-}
-
-function clearCacheRestoreNote() {
-    const container = document.getElementById("tableContainer");
-    if (!container) return;
-    const note = container.querySelector(".cache-restore-note");
-    if (note) note.remove();
-}
-
-// ----------------------------
-// ВОССТАНОВЛЕНИЕ НАСТРОЕК TTS (ГОЛОС, СКОРОСТЬ, ТОН)
-// ----------------------------
-(function restoreTtsVoiceConfig() {
-    try {
-        const raw = localStorage.getItem(TTS_VOICE_STORAGE_KEY);
-        if (!raw) {
-            updateTtsControlsUI();
-            return;
-        }
-
-        const cfg = JSON.parse(raw);
-        if (cfg && typeof cfg === "object") {
-            if (voiceSelectEl && typeof cfg.voice === "string") {
-                voiceSelectEl.value = cfg.voice;
+        // ----------------------------
+        // ВОССТАНОВЛЕНИЕ ТЕКСТА
+        // ----------------------------
+        (function restoreText() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved && saved.trim()) {
+                    inputTextEl.value = saved;
+                }
+            } catch (e) {
+                console.error("LocalStorage restore error", e);
             }
-            if (rateRangeEl && typeof cfg.rate === "number") {
-                rateRangeEl.value = cfg.rate;
-            }
-            if (pitchRangeEl && typeof cfg.pitch === "number") {
-                pitchRangeEl.value = cfg.pitch;
-            }
-        }
-    } catch (e) {
-        console.error("TTS voice config restore error", e);
-    }
-    updateTtsControlsUI();
-})();
+        })();
 
-function saveTtsVoiceConfig() {
-    try {
-        const cfg = {
-            voice: voiceSelectEl ? voiceSelectEl.value : "",
-            rate: rateRangeEl ? Number(rateRangeEl.value) : 1.0,
-            pitch: pitchRangeEl ? Number(pitchRangeEl.value) : 0.0
-        };
-        localStorage.setItem(TTS_VOICE_STORAGE_KEY, JSON.stringify(cfg));
-    } catch (e) {
-        console.error("TTS voice config save error", e);
-    }
-}
-
-function updateTtsControlsUI() {
-    if (rateRangeEl && rateValueEl) {
-        const val = Number(rateRangeEl.value);
-        rateValueEl.textContent = val.toFixed(2) + "×";
-    }
-    if (pitchRangeEl && pitchValueEl) {
-        const val = Number(pitchRangeEl.value);
-        const sign = val > 0 ? "+" : "";
-        pitchValueEl.textContent = sign + val.toFixed(1);
-    }
-}
-
-function getTtsVoiceConfig() {
-    const voiceId = voiceSelectEl ? voiceSelectEl.value : "";
-    const rate = rateRangeEl ? Number(rateRangeEl.value) : 1.0;
-    const pitch = pitchRangeEl ? Number(pitchRangeEl.value) : 0.0;
-    return { voiceId, rate, pitch };
-}
-
-if (voiceSelectEl) {
-    voiceSelectEl.addEventListener("change", function () {
-        saveTtsVoiceConfig();
-    });
-}
-
-if (rateRangeEl) {
-    rateRangeEl.addEventListener("input", function () {
-        updateTtsControlsUI();
-        saveTtsVoiceConfig();
-    });
-}
-
-if (pitchRangeEl) {
-    pitchRangeEl.addEventListener("input", function () {
-        updateTtsControlsUI();
-        saveTtsVoiceConfig();
-    });
-}
-
-// ----------------------------
-// ПОМЕТКА РЕЗУЛЬТАТОВ КАК УСТАРЕВШИХ
-// ----------------------------
-function markResultsStale() {
-    const tableEl = document.getElementById("tableContainer");
-    const audioEl = document.getElementById("audioContainer");
-
-    const hasTable = tableEl && tableEl.innerHTML.trim();
-    const hasAudio = audioEl && audioEl.innerHTML.trim();
-
-    if (hasTable) {
-        tableEl.classList.add("results-stale");
-
-        // кэш-нота уже не актуальна
-        const cacheNote = tableEl.querySelector(".cache-restore-note");
-        if (cacheNote) cacheNote.remove();
-
-        addStaleNote(tableEl);
-        tableIsStale = true;
-        if (btnWordEl) btnWordEl.classList.add("disabled");
-    }
-
-    if (hasAudio) {
-        audioEl.classList.add("results-stale");
-        audioIsStale = true;
-    }
-
-    textChangedNoticeEl.classList.add("notice-visible");
-}
-
-function addStaleNote(container) {
-    if (container.querySelector(".results-stale-note")) return;
-
-    const note = document.createElement("div");
-    note.className = "results-stale-note";
-    note.textContent = "Текст сверху изменён. Перевод и озвучка ниже могут быть неактуальны.";
-    container.appendChild(note);
-}
-
-function clearAudioStale() {
-    const audioEl = document.getElementById("audioContainer");
-    if (audioEl) {
-        audioEl.classList.remove("results-stale");
-    }
-    audioIsStale = false;
-
-    if (!audioIsStale && !tableIsStale) {
-        textChangedNoticeEl.classList.remove("notice-visible");
-    }
-}
-
-function clearTableStale() {
-    const tableEl = document.getElementById("tableContainer");
-    if (tableEl) {
-        tableEl.classList.remove("results-stale");
-        const staleNote = tableEl.querySelector(".results-stale-note");
-        if (staleNote) staleNote.remove();
-    }
-    tableIsStale = false;
-
-    if (btnWordEl && currentTableData.length > 0) {
-        btnWordEl.classList.remove("disabled");
-    }
-
-    if (!audioIsStale && !tableIsStale) {
-        textChangedNoticeEl.classList.remove("notice-visible");
-    }
-}
-
-// Полная очистка текста и результатов (для Ctrl+Shift+Backspace)
-function clearTextWithConfirm() {
-    if (!inputTextEl) return;
-    if (!inputTextEl.value || !inputTextEl.value.trim()) {
-        return;
-    }
-
-    const ok = window.confirm("Очистить текущий текст?\nПеревод, озвучка и локальный кэш таблицы будут сброшены.");
-    if (!ok) return;
-
-    // Очистка текста
-    inputTextEl.value = "";
-    scheduleSaveText();
-    autoGrow();
-
-    // Очистка таблицы и аудио
-    const audioEl = document.getElementById("audioContainer");
-    const tableEl = document.getElementById("tableContainer");
-    if (audioEl) {
-        audioEl.innerHTML = "";
-        audioEl.classList.remove("results-stale");
-    }
-    if (tableEl) {
-        tableEl.innerHTML = "";
-        tableEl.classList.remove("results-stale");
-    }
-
-    audioIsStale = false;
-    tableIsStale = false;
-    currentTableData = [];
-    lastAudioBlob = null;
-    lastAudioUrl = null;
-    lastDocxFilename = null;
-
-    if (btnWordEl) {
-        btnWordEl.classList.add("disabled");
-    }
-
-    textChangedNoticeEl.classList.remove("notice-visible");
-
-    // Сбрасываем кэш таблицы
-    try {
-        localStorage.removeItem(TABLE_CACHE_KEY);
-    } catch (e) {
-        console.error("Table cache clear error", e);
-    }
-
-    updateTtsCostInfo();
-}
-
-// ----------------------------
-// ЗАГРУЗКА СТАТИСТИКИ / ЛИМИТОВ
-// ----------------------------
-async function loadStats() {
-    try {
-        const res = await fetch("/api/usage");
-        if (!res.ok) {
-            throw new Error("Не удалось получить статистику");
-        }
-        const data = await res.json();
-        lastUsageData = data;
-
-        // TTS символы
-        const ttsChars = data.ttsChars || 0;
-        document.getElementById("statTTS").textContent = ttsChars.toLocaleString();
-
-        // Запросы AI — всего
-        const totalReq =
-            (typeof data.geminiRequestsTotal === "number")
-                ? data.geminiRequestsTotal
-                : (typeof data.geminiRequests === "number" ? data.geminiRequests : 0);
-        document.getElementById("statGeminiTotal").textContent = totalReq.toLocaleString();
-
-        // Модель + тариф
-        const modelName = data.geminiModelName || "Gemini 2.5 Flash";
-        let tierLabel;
-        if (data.geminiBillingTier === "paid") {
-            tierLabel = "Paid";
-        } else if (data.geminiBillingTier === "free" || !data.geminiBillingTier) {
-            tierLabel = "Free Tier";
-        } else {
-            tierLabel = data.geminiBillingTier;
-        }
-        const modelInfoEl = document.getElementById("geminiModelInfo");
-        modelInfoEl.textContent = modelName + " · " + tierLabel;
-
-        // Дневная статистика
-        geminiRequestsToday =
-            (typeof data.geminiRequestsToday === "number")
-                ? data.geminiRequestsToday
-                : 0;
-        geminiDailyLimit =
-            (typeof data.geminiDailyLimit === "number")
-                ? data.geminiDailyLimit
-                : 20;
-
-        // Время следующего сброса
-        if (data.geminiNextResetAt) {
-            const dt = new Date(data.geminiNextResetAt);
-            if (!isNaN(dt.getTime())) {
-                geminiNextResetAt = dt;
-            }
-        } else if (data.geminiDayStart) {
-            const dayStart = new Date(data.geminiDayStart);
-            if (!isNaN(dayStart.getTime())) {
-                geminiNextResetAt = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-            }
-        } else {
-            geminiNextResetAt = null;
-        }
-
-        applyGeminiUsageToUI();
-        updateTtsCostInfo();
-
-        // При необходимости можно учитывать geminiConfigured
-        if (typeof data.geminiConfigured === "boolean" && !data.geminiConfigured) {
-            hardDisableGemini("Перевод таблиц недоступен: не настроен API-ключ Gemini.");
-        }
-    } catch (e) {
-        console.error("Ошибка статистики", e);
-    }
-}
-
-loadStats();
-
-function applyGeminiUsageToUI() {
-    const todayInfoEl = document.getElementById("geminiTodayInfo");
-    const resetInfoEl = document.getElementById("geminiResetInfo");
-    const quotaFillEl = document.getElementById("geminiQuotaFill");
-
-    let used = geminiRequestsToday || 0;
-    let limit = geminiDailyLimit || 0;
-    let ratio = 0;
-
-    if (!limit) {
-        todayInfoEl.textContent = "Сегодня: — / —";
-        todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
-        if (quotaFillEl) {
-            quotaFillEl.style.width = "0%";
-            quotaFillEl.classList.remove("warning", "exceeded");
-        }
-    } else {
-        todayInfoEl.textContent = "Сегодня: " + used + " / " + limit;
-        ratio = used / limit;
-
-        todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
-
-        if (ratio >= 1) {
-            todayInfoEl.classList.add("limit-exceeded");
-        } else if (ratio >= 0.8) {
-            todayInfoEl.classList.add("limit-warning");
-            // Мягкое предупреждение при 80%
-            todayInfoEl.textContent += " · Осталось мало дневных запросов";
-        } else {
-            todayInfoEl.classList.add("limit-ok");
-        }
-
-        if (quotaFillEl) {
-            const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
-            quotaFillEl.style.width = percent + "%";
-            quotaFillEl.classList.remove("warning", "exceeded");
-            if (ratio >= 1) {
-                quotaFillEl.classList.add("exceeded");
-            } else if (ratio >= 0.8) {
-                quotaFillEl.classList.add("warning");
-            }
-        }
-    }
-
-    if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
-        const now = new Date();
-        const diffMs = geminiNextResetAt.getTime() - now.getTime();
-        if (diffMs > 0) {
-            const sec = Math.floor(diffMs / 1000);
-            resetInfoEl.textContent = "Сброс квоты через: " + formatDuration(sec);
-        } else {
-            resetInfoEl.textContent = "Сброс квоты: скоро";
-        }
-    } else {
-        resetInfoEl.textContent = "Сброс квоты через: —";
-    }
-}
-
-function formatDuration(totalSec) {
-    if (totalSec < 0) totalSec = 0;
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-    const s = totalSec % 60;
-
-    if (h > 0) {
-        return h + " ч " + m + " мин";
-    }
-    if (m > 0) {
-        return m + " мин " + s + " сек";
-    }
-    return s + " сек";
-}
-
-// Периодический пересчёт оставшегося времени до сброса квоты (каждую секунду)
-setInterval(function () {
-    if (geminiNextResetAt && geminiNextResetAt instanceof Date && !isNaN(geminiNextResetAt.getTime())) {
-        applyGeminiUsageToUI();
-    }
-}, 1000);
-
-// Периодическое обновление статистики с сервера (каждые 5 секунд)
-setInterval(function () {
-    loadStats();
-}, 5000);
-
-// ----------------------------
-// ТЕКСТОВЫЙ БЛОК: НАПРАВЛЕНИЕ ТЕКСТА
-// ----------------------------
-function applyTextDirection() {
-    const lang = langSelectEl.value;
-
-    if (lang === "he-IL") {
-        inputTextEl.classList.add("rtl-text");
-        inputTextEl.setAttribute("dir", "rtl");
-    } else {
-        inputTextEl.classList.remove("rtl-text");
-        inputTextEl.setAttribute("dir", "ltr");
-    }
-}
-
-langSelectEl.addEventListener("change", function () {
-    applyTextDirection();
-    markResultsStale();
-});
-applyTextDirection();
-
-// ----------------------------
-// ШРИФТ ИВРИТА
-// ----------------------------
-function applyHebrewFont() {
-    const value = hebrewFontSelectEl.value;
-    let fontStack;
-
-    switch (value) {
-        case "assistant":
-            fontStack = "'Assistant', 'Segoe UI', Tahoma, sans-serif";
-            break;
-        case "system":
-            fontStack = "'Segoe UI', Tahoma, sans-serif";
-            break;
-        case "frank":
-        default:
-            fontStack = "'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif";
-            break;
-    }
-
-    document.documentElement.style.setProperty("--hebrew-font", fontStack);
-}
-
-hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
-applyHebrewFont();
-
-// ----------------------------
-// TTS: ОЗВУЧКА + КЭШ
-// ----------------------------
-async function playTTS() {
-    if (!validate()) return;
-
-    try {
-        const cfg = getTtsVoiceConfig();
-
-        const res = await apiCall("/api/tts", {
-            text: getText(),
-            language: getLang(),
-            voiceId: cfg.voiceId,
-            speakingRate: cfg.rate,
-            pitch: cfg.pitch
+        // ----------------------------
+        // AUTO-GROW + AUTOSAVE + STALE
+        // ----------------------------
+        inputTextEl.addEventListener("input", function () {
+            autoGrow();
+            scheduleSaveText();
+            markResultsStale();
+            updateTtsCostInfo();
         });
 
-        const binary = atob(res.audioContent);
-        const len = binary.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binary.charCodeAt(i);
+        autoGrow();
+
+        function autoGrow() {
+            inputTextEl.style.height = "auto";
+            inputTextEl.style.height = (inputTextEl.scrollHeight + 10) + "px";
         }
-        lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
 
-        if (lastAudioUrl) {
-            URL.revokeObjectURL(lastAudioUrl);
+        function scheduleSaveText() {
+            if (saveTimer) {
+                clearTimeout(saveTimer);
+            }
+            saveTimer = setTimeout(function () {
+                try {
+                    localStorage.setItem(STORAGE_KEY, inputTextEl.value);
+                } catch (e) {
+                    console.error("LocalStorage save error", e);
+                }
+            }, 400);
         }
-        lastAudioUrl = URL.createObjectURL(lastAudioBlob);
 
-        const audioContainer = document.getElementById("audioContainer");
-        audioContainer.innerHTML =
-            '<div class="audio-block">' +
-            '  <audio controls src="' + lastAudioUrl + '" autoplay></audio>' +
-            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-            '    ⬇ Скачать MP3' +
-            '  </button>' +
-            '  <small>' + (res.fromCache ? 'Сгенерировано из серверного кэша (без запроса к Google TTS)' : 'Сгенерировано через Google TTS') + '</small>' +
-            '</div>';
+        // ----------------------------
+        // ВОССТАНОВЛЕНИЕ ТАБЛИЦЫ ИЗ КЭША
+        // ----------------------------
+        (function restoreTableFromCache() {
+            try {
+                const raw = localStorage.getItem(TABLE_CACHE_KEY);
+                if (!raw) return;
 
-        clearAudioStale();
-        loadStats(); // обновим счётчик символов и стоимость
-    } catch (e) {
-        showError(e.message);
-    }
-}
+                const cache = JSON.parse(raw);
+                if (!cache || !Array.isArray(cache.rows) || !cache.text) return;
 
-// ----------------------------
-// СКАЧАТЬ MP3 ИЗ КЭША
-// ----------------------------
-function downloadMp3FromCache() {
-    if (audioIsStale) {
-        showError("Текст изменён — озвучьте его заново, чтобы скачать актуальный MP3");
-        return;
-    }
+                if (cache.text !== inputTextEl.value) return;
 
-    if (!lastAudioBlob) {
-        showError("Нет актуального аудио для сохранения");
-        return;
-    }
-
-    let url = lastAudioUrl;
-    if (!url) {
-        url = URL.createObjectURL(lastAudioBlob);
-        lastAudioUrl = url;
-    }
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = generateAudioFileName();
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-}
-
-// ----------------------------
-// ПРОВЕРКА, ЗАБЛОКИРОВАН ЛИ GEMINI
-// ----------------------------
-function isGeminiLocked() {
-    if (!geminiLockType || !geminiLockUntil) return false;
-    const now = new Date();
-    return now.getTime() < geminiLockUntil.getTime();
-}
-
-function setGeminiLock(type, retryAfterSec, resetAt) {
-    if (!retryAfterSec || retryAfterSec < 0) retryAfterSec = 1;
-
-    geminiLockType = type;
-    geminiLockUntil = new Date(Date.now() + retryAfterSec * 1000);
-
-    if (type === "daily" && resetAt instanceof Date && !isNaN(resetAt.getTime())) {
-        geminiNextResetAt = resetAt;
-    }
-
-    if (geminiLimitTimerId) {
-        clearInterval(geminiLimitTimerId);
-    }
-    updateGeminiLockUI();
-    geminiLimitTimerId = setInterval(updateGeminiLockUI, 1000);
-}
-
-function clearGeminiLock() {
-    geminiLockType = null;
-    geminiLockUntil = null;
-    if (geminiLimitTimerId) {
-        clearInterval(geminiLimitTimerId);
-        geminiLimitTimerId = null;
-    }
-    hideLimitBanner();
-    updateAiButtonState();
-}
-
-function updateGeminiLockUI() {
-    if (!geminiLockType || !geminiLockUntil) {
-        hideLimitBanner();
-        updateAiButtonState();
-        return;
-    }
-
-    const now = new Date();
-    const diffMs = geminiLockUntil.getTime() - now.getTime();
-
-    if (diffMs <= 0) {
-        // таймер истёк — снимаем лок
-        clearGeminiLock();
-        applyGeminiUsageToUI();
-        return;
-    }
-
-    const sec = Math.ceil(diffMs / 1000);
-    updateAiButtonState(true);
-
-    if (geminiLockType === "rate") {
-        showLimitBanner(
-            "rate",
-            "Лимит скорости Gemini (rate-limit). Новый перевод будет доступен через " + formatDuration(sec) + "."
-        );
-    } else if (geminiLockType === "daily") {
-        let text = "Дневной лимит Gemini исчерпан.";
-        if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
-            const nextDiffSec = Math.max(1, Math.floor((geminiNextResetAt.getTime() - now.getTime()) / 1000));
-            text += " Новый перевод будет доступен через " + formatDuration(nextDiffSec) + ".";
-        }
-        showLimitBanner("daily", text);
-    }
-}
-
-function hardDisableGemini(message) {
-    setAiButtonDisabled(true);
-    showLimitBanner("info", message || "Перевод таблиц недоступен.");
-}
-
-function showLimitBanner(type, text) {
-    limitBannerEl.textContent = text || "";
-    limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
-
-    if (type === "rate") {
-        limitBannerEl.classList.add("limit-rate");
-    } else if (type === "daily") {
-        limitBannerEl.classList.add("limit-daily");
-    } else {
-        limitBannerEl.classList.add("limit-info");
-    }
-
-    limitBannerEl.style.display = "block";
-}
-
-function hideLimitBanner() {
-    limitBannerEl.style.display = "none";
-    limitBannerEl.textContent = "";
-    limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
-}
-
-function updateAiButtonState(forceDisabled) {
-    const shouldDisable = !!forceDisabled || isGeminiLocked();
-    setAiButtonDisabled(shouldDisable);
-}
-
-function setAiButtonDisabled(disabled) {
-    if (!btnAiTranslateEl) return;
-    if (disabled) {
-        btnAiTranslateEl.classList.add("disabled");
-        btnAiTranslateEl.setAttribute("disabled", "disabled");
-    } else {
-        btnAiTranslateEl.classList.remove("disabled");
-        btnAiTranslateEl.removeAttribute("disabled");
-    }
-}
-
-// ----------------------------
-// ПЕРЕВОД (Gemini -> таблица)
-// ----------------------------
-async function translateTable() {
-    if (!validate()) return;
-
-    const currentText = getText().trim();
-
-    // 1) Попытка использовать ЛОКАЛЬНЫЙ кэш таблицы без обращения к серверу / Gemini
-    try {
-        const rawCache = localStorage.getItem(TABLE_CACHE_KEY);
-        if (rawCache) {
-            const cache = JSON.parse(rawCache);
-            if (
-                cache &&
-                typeof cache.text === "string" &&
-                cache.text.trim() === currentText &&
-                Array.isArray(cache.rows) &&
-                cache.rows.length > 0
-            ) {
                 currentTableData = cache.rows;
-                lastDocxFilename = cache.lastDocxFilename || generateDocxFileName();
+                lastDocxFilename = cache.lastDocxFilename || null;
 
                 renderTable(currentTableData);
-                clearTableStale();
+
+                if (currentTableData.length > 0 && btnWordEl) {
+                    btnWordEl.classList.remove("disabled");
+                }
+
                 tableIsStale = false;
-                if (btnWordEl) btnWordEl.classList.remove("disabled");
+                addCacheRestoreNote();
+            } catch (e) {
+                console.error("Table cache restore error", e);
+            }
+        })();
 
-                // Подпись источника: локальный кэш браузера (без запроса к Gemini)
-                setTableSourceNote("local-cache");
+        function setTableSourceNote(mode) {
+            const container = document.getElementById("tableContainer");
+            if (!container) return;
 
-                // Авто-скачивание DOCX (без запроса к Gemini)
-                downloadWord(lastDocxFilename);
+            // удалить предыдущие подписи источника
+            const oldNotes = container.querySelectorAll(".table-source-note");
+            oldNotes.forEach(function (n) { n.remove(); });
 
-                // Обновим статистику (на всякий случай, хотя лимиты Gemini не менялись)
-                loadStats();
+            let text = "";
+            if (mode === "server-cache") {
+                text = "Сгенерировано из серверного кэша (без запроса к Gemini)";
+            } else if (mode === "local-cache") {
+                text = "Перевод восстановлен из локального кэша браузера (без запроса к Gemini)";
+            } else if (mode === "gemini-api") {
+                text = "Сгенерировано через Gemini API";
+            } else {
                 return;
             }
+
+            const note = document.createElement("div");
+            note.className = "cache-restore-note table-source-note";
+            note.textContent = text;
+            container.appendChild(note);
         }
-    } catch (e) {
-        console.error("Local table cache short-circuit error", e);
-    }
 
-    // 2) Если лимиты уже заблокированы — не стреляем в API
-    if (isGeminiLocked()) {
-        if (geminiLockType === "rate") {
-            showLimitBanner("rate", "Лимит скорости Gemini. Подождите окончания обратного отсчёта.");
-        } else if (geminiLockType === "daily") {
-            showLimitBanner("daily", "Дневной лимит Gemini уже исчерпан. Новый перевод будет доступен после сброса квоты.");
-        } else {
-            showError("Лимит Gemini. Повторите попытку позже.");
+        function addCacheRestoreNote() {
+            // Исторический хелпер — теперь просто устанавливает подпись "локальный кэш"
+            setTableSourceNote("local-cache");
         }
-        return;
-    }
 
-    // 3) Живой запрос к серверу (/api/translate-table)
-    setLoading(true);
-    setAiButtonDisabled(true);
-    document.getElementById("errorMsg").textContent = "";
-    document.getElementById("tableContainer").innerHTML = "";
+        function clearCacheRestoreNote() {
+            const container = document.getElementById("tableContainer");
+            if (!container) return;
+            const note = container.querySelector(".cache-restore-note");
+            if (note) note.remove();
+        }
 
-    try {
-        const res = await apiCall("/api/translate-table", {
-            text: getText()
-        });
-
-        currentTableData = res.rows || [];
-
-        // новые результаты — старая кэш-нота уже не нужна
-        clearCacheRestoreNote();
-        renderTable(currentTableData);
-
-        if (currentTableData.length > 0) {
-            clearTableStale();
-            tableIsStale = false;
-            if (btnWordEl) btnWordEl.classList.remove("disabled");
-
-            // имя файла по моменту перевода
-            const autoName = generateDocxFileName();
-            lastDocxFilename = autoName;
-
-            // сохраняем таблицу в localStorage (кэш)
+        // ----------------------------
+        // ВОССТАНОВЛЕНИЕ НАСТРОЕК TTS (ГОЛОС, СКОРОСТЬ, ТОН)
+        // ----------------------------
+        (function restoreTtsVoiceConfig() {
             try {
-                const cache = {
-                    text: getText().trim(),
-                    rows: currentTableData,
-                    createdAt: new Date().toISOString(),
-                    lastDocxFilename: lastDocxFilename
-                };
-                localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+                const raw = localStorage.getItem(TTS_VOICE_STORAGE_KEY);
+                if (!raw) {
+                    updateTtsControlsUI();
+                    return;
+                }
+
+                const cfg = JSON.parse(raw);
+                if (cfg && typeof cfg === "object") {
+                    if (voiceSelectEl && typeof cfg.voice === "string") {
+                        voiceSelectEl.value = cfg.voice;
+                    }
+                    if (rateRangeEl && typeof cfg.rate === "number") {
+                        rateRangeEl.value = cfg.rate;
+                    }
+                    if (pitchRangeEl && typeof cfg.pitch === "number") {
+                        pitchRangeEl.value = cfg.pitch;
+                    }
+                }
             } catch (e) {
-                console.error("Table cache save error", e);
+                console.error("TTS voice config restore error", e);
+            }
+            updateTtsControlsUI();
+        })();
+
+        function saveTtsVoiceConfig() {
+            try {
+                const cfg = {
+                    voice: voiceSelectEl ? voiceSelectEl.value : "",
+                    rate: rateRangeEl ? Number(rateRangeEl.value) : 1.0,
+                    pitch: pitchRangeEl ? Number(pitchRangeEl.value) : 0.0
+                };
+                localStorage.setItem(TTS_VOICE_STORAGE_KEY, JSON.stringify(cfg));
+            } catch (e) {
+                console.error("TTS voice config save error", e);
+            }
+        }
+
+        function updateTtsControlsUI() {
+            if (rateRangeEl && rateValueEl) {
+                const val = Number(rateRangeEl.value);
+                rateValueEl.textContent = val.toFixed(2) + "×";
+            }
+            if (pitchRangeEl && pitchValueEl) {
+                const val = Number(pitchRangeEl.value);
+                const sign = val > 0 ? "+" : "";
+                pitchValueEl.textContent = sign + val.toFixed(1);
+            }
+        }
+
+        function getTtsVoiceConfig() {
+            const voiceId = voiceSelectEl ? voiceSelectEl.value : "";
+            const rate = rateRangeEl ? Number(rateRangeEl.value) : 1.0;
+            const pitch = pitchRangeEl ? Number(pitchRangeEl.value) : 0.0;
+            return { voiceId, rate, pitch };
+        }
+
+        if (voiceSelectEl) {
+            voiceSelectEl.addEventListener("change", function () {
+                saveTtsVoiceConfig();
+            });
+        }
+
+        if (rateRangeEl) {
+            rateRangeEl.addEventListener("input", function () {
+                updateTtsControlsUI();
+                saveTtsVoiceConfig();
+            });
+        }
+
+        if (pitchRangeEl) {
+            pitchRangeEl.addEventListener("input", function () {
+                updateTtsControlsUI();
+                saveTtsVoiceConfig();
+            });
+        }
+
+        // ----------------------------
+        // ПОМЕТКА РЕЗУЛЬТАТОВ КАК УСТАРЕВШИХ
+        // ----------------------------
+        function markResultsStale() {
+            const tableEl = document.getElementById("tableContainer");
+            const audioEl = document.getElementById("audioContainer");
+
+            const hasTable = tableEl && tableEl.innerHTML.trim();
+            const hasAudio = audioEl && audioEl.innerHTML.trim();
+
+            if (hasTable) {
+                tableEl.classList.add("results-stale");
+
+                // кэш-нота уже не актуальна
+                const cacheNote = tableEl.querySelector(".cache-restore-note");
+                if (cacheNote) cacheNote.remove();
+
+                addStaleNote(tableEl);
+                tableIsStale = true;
+                if (btnWordEl) btnWordEl.classList.add("disabled");
             }
 
-            // Подпись источника: либо серверный кэш, либо живой вызов Gemini
-            if (res.fromCache === true) {
-                setTableSourceNote("server-cache");
-            } else {
-                setTableSourceNote("gemini-api");
+            if (hasAudio) {
+                audioEl.classList.add("results-stale");
+                audioIsStale = true;
             }
 
-            // авто-скачивание свежего DOCX
-            downloadWord(autoName);
-        } else {
+            textChangedNoticeEl.classList.add("notice-visible");
+        }
+
+        function addStaleNote(container) {
+            if (container.querySelector(".results-stale-note")) return;
+
+            const note = document.createElement("div");
+            note.className = "results-stale-note";
+            note.textContent = "Текст сверху изменён. Перевод и озвучка ниже могут быть неактуальны.";
+            container.appendChild(note);
+        }
+
+        function clearAudioStale() {
+            const audioEl = document.getElementById("audioContainer");
+            if (audioEl) {
+                audioEl.classList.remove("results-stale");
+            }
+            audioIsStale = false;
+
+            if (!audioIsStale && !tableIsStale) {
+                textChangedNoticeEl.classList.remove("notice-visible");
+            }
+        }
+
+        function clearTableStale() {
+            const tableEl = document.getElementById("tableContainer");
+            if (tableEl) {
+                tableEl.classList.remove("results-stale");
+                const staleNote = tableEl.querySelector(".results-stale-note");
+                if (staleNote) staleNote.remove();
+            }
             tableIsStale = false;
-            if (btnWordEl) btnWordEl.classList.add("disabled");
+
+            if (btnWordEl && currentTableData.length > 0) {
+                btnWordEl.classList.remove("disabled");
+            }
+
+            if (!audioIsStale && !tableIsStale) {
+                textChangedNoticeEl.classList.remove("notice-visible");
+            }
+        }
+
+        // Полная очистка текста и результатов (для Ctrl+Shift+Backspace)
+        function clearTextWithConfirm() {
+            if (!inputTextEl) return;
+            if (!inputTextEl.value || !inputTextEl.value.trim()) {
+                return;
+            }
+
+            const ok = window.confirm("Очистить текущий текст?\nПеревод, озвучка и локальный кэш таблицы будут сброшены.");
+            if (!ok) return;
+
+            // Очистка текста
+            inputTextEl.value = "";
+            scheduleSaveText();
+            autoGrow();
+
+            // Очистка таблицы и аудио
+            const audioEl = document.getElementById("audioContainer");
+            const tableEl = document.getElementById("tableContainer");
+            if (audioEl) {
+                audioEl.innerHTML = "";
+                audioEl.classList.remove("results-stale");
+            }
+            if (tableEl) {
+                tableEl.innerHTML = "";
+                tableEl.classList.remove("results-stale");
+            }
+
+            audioIsStale = false;
+            tableIsStale = false;
+            currentTableData = [];
+            lastAudioBlob = null;
+            lastAudioUrl = null;
+            lastDocxFilename = null;
+
+            if (btnWordEl) {
+                btnWordEl.classList.add("disabled");
+            }
+
+            textChangedNoticeEl.classList.remove("notice-visible");
+
+            // Сбрасываем кэш таблицы
+            try {
+                localStorage.removeItem(TABLE_CACHE_KEY);
+            } catch (e) {
+                console.error("Table cache clear error", e);
+            }
+
+            updateTtsCostInfo();
+        }
+
+        // ----------------------------
+        // ЗАГРУЗКА СТАТИСТИКИ / ЛИМИТОВ
+        // ----------------------------
+        async function loadStats() {
+            try {
+                const res = await fetch("/api/usage");
+                if (!res.ok) {
+                    throw new Error("Не удалось получить статистику");
+                }
+                const data = await res.json();
+                lastUsageData = data;
+
+                // TTS символы
+                const ttsChars = data.ttsChars || 0;
+                document.getElementById("statTTS").textContent = ttsChars.toLocaleString();
+
+                // Запросы AI — всего
+                const totalReq =
+                    (typeof data.geminiRequestsTotal === "number")
+                        ? data.geminiRequestsTotal
+                        : (typeof data.geminiRequests === "number" ? data.geminiRequests : 0);
+                document.getElementById("statGeminiTotal").textContent = totalReq.toLocaleString();
+
+                // Модель + тариф
+                const modelName = data.geminiModelName || "Gemini 2.5 Flash";
+                let tierLabel;
+                if (data.geminiBillingTier === "paid") {
+                    tierLabel = "Paid";
+                } else if (data.geminiBillingTier === "free" || !data.geminiBillingTier) {
+                    tierLabel = "Free Tier";
+                } else {
+                    tierLabel = data.geminiBillingTier;
+                }
+                const modelInfoEl = document.getElementById("geminiModelInfo");
+                modelInfoEl.textContent = modelName + " · " + tierLabel;
+
+                // Дневная статистика
+                geminiRequestsToday =
+                    (typeof data.geminiRequestsToday === "number")
+                        ? data.geminiRequestsToday
+                        : 0;
+                geminiDailyLimit =
+                    (typeof data.geminiDailyLimit === "number")
+                        ? data.geminiDailyLimit
+                        : 20;
+
+                // Время следующего сброса
+                if (data.geminiNextResetAt) {
+                    const dt = new Date(data.geminiNextResetAt);
+                    if (!isNaN(dt.getTime())) {
+                        geminiNextResetAt = dt;
+                    }
+                } else if (data.geminiDayStart) {
+                    const dayStart = new Date(data.geminiDayStart);
+                    if (!isNaN(dayStart.getTime())) {
+                        geminiNextResetAt = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+                    }
+                } else {
+                    geminiNextResetAt = null;
+                }
+
+                applyGeminiUsageToUI();
+                updateTtsCostInfo();
+
+                // При необходимости можно учитывать geminiConfigured
+                if (typeof data.geminiConfigured === "boolean" && !data.geminiConfigured) {
+                    hardDisableGemini("Перевод таблиц недоступен: не настроен API-ключ Gemini.");
+                }
+            } catch (e) {
+                console.error("Ошибка статистики", e);
+            }
         }
 
         loadStats();
-        // после успешного запроса можно снять возможный rate-lock
-        clearGeminiLock();
-    } catch (e) {
-        // Специальная обработка 429 (лимиты)
-        if (e.httpStatus === 429) {
-            handleGeminiLimitError(e);
-        } else {
-            showError(e.message || "Ошибка перевода");
+
+        function applyGeminiUsageToUI() {
+            const todayInfoEl = document.getElementById("geminiTodayInfo");
+            const resetInfoEl = document.getElementById("geminiResetInfo");
+            const quotaFillEl = document.getElementById("geminiQuotaFill");
+
+            let used = geminiRequestsToday || 0;
+            let limit = geminiDailyLimit || 0;
+            let ratio = 0;
+
+            if (!limit) {
+                todayInfoEl.textContent = "Сегодня: — / —";
+                todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
+                if (quotaFillEl) {
+                    quotaFillEl.style.width = "0%";
+                    quotaFillEl.classList.remove("warning", "exceeded");
+                }
+            } else {
+                todayInfoEl.textContent = "Сегодня: " + used + " / " + limit;
+                ratio = used / limit;
+
+                todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
+
+                if (ratio >= 1) {
+                    todayInfoEl.classList.add("limit-exceeded");
+                } else if (ratio >= 0.8) {
+                    todayInfoEl.classList.add("limit-warning");
+                    // Мягкое предупреждение при 80%
+                    todayInfoEl.textContent += " · Осталось мало дневных запросов";
+                } else {
+                    todayInfoEl.classList.add("limit-ok");
+                }
+
+                if (quotaFillEl) {
+                    const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
+                    quotaFillEl.style.width = percent + "%";
+                    quotaFillEl.classList.remove("warning", "exceeded");
+                    if (ratio >= 1) {
+                        quotaFillEl.classList.add("exceeded");
+                    } else if (ratio >= 0.8) {
+                        quotaFillEl.classList.add("warning");
+                    }
+                }
+            }
+
+            if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
+                const now = new Date();
+                const diffMs = geminiNextResetAt.getTime() - now.getTime();
+                if (diffMs > 0) {
+                    const sec = Math.floor(diffMs / 1000);
+                    resetInfoEl.textContent = "Сброс квоты через: " + formatDuration(sec);
+                } else {
+                    resetInfoEl.textContent = "Сброс квоты: скоро";
+                }
+            } else {
+                resetInfoEl.textContent = "Сброс квоты через: —";
+            }
         }
-    } finally {
-        setLoading(false);
-        // кнопку включаем/выключаем по состоянию лимитов
-        updateAiButtonState();
-    }
-}
 
-function handleGeminiLimitError(error) {
-    const type = error.errorType || (error.raw && error.raw.errorType) || null;
-    const retryAfterSecRaw =
-        (typeof error.retryAfterSec === "number")
-            ? error.retryAfterSec
-            : (error.raw && typeof error.raw.retryAfterSec === "number"
-                ? error.raw.retryAfterSec
-                : null);
-    let retryAfterSec = retryAfterSecRaw;
+        function formatDuration(totalSec) {
+            if (totalSec < 0) totalSec = 0;
+            const h = Math.floor(totalSec / 3600);
+            const m = Math.floor((totalSec % 3600) / 60);
+            const s = totalSec % 60;
 
-    let resetAt = null;
-    if (error.resetAt) {
-        resetAt = new Date(error.resetAt);
-    } else if (error.raw && error.raw.resetAt) {
-        resetAt = new Date(error.raw.resetAt);
-    }
-
-    if (type === "rate-limit" || type === "rate") {
-        if (!retryAfterSec || retryAfterSec > 3600) {
-            retryAfterSec = 60;
+            if (h > 0) {
+                return h + " ч " + m + " мин";
+            }
+            if (m > 0) {
+                return m + " мин " + s + " сек";
+            }
+            return s + " сек";
         }
-        setGeminiLock("rate", retryAfterSec);
-        showLimitBanner("rate", "Лимит скорости Gemini. Новый перевод будет доступен через " + formatDuration(retryAfterSec) + ".");
-    } else if (type === "daily-limit" || type === "daily") {
-        // daily-limit: либо есть resetAt, либо fallback на 1 час / до конца дня
-        if (!resetAt && geminiNextResetAt instanceof Date) {
-            resetAt = geminiNextResetAt;
+
+        // Периодический пересчёт оставшегося времени до сброса квоты (каждую секунду)
+        setInterval(function () {
+            if (geminiNextResetAt && geminiNextResetAt instanceof Date && !isNaN(geminiNextResetAt.getTime())) {
+                applyGeminiUsageToUI();
+            }
+        }, 1000);
+
+        // Периодическое обновление статистики с сервера (каждые 5 секунд)
+        setInterval(function () {
+            loadStats();
+        }, 5000);
+
+        // ----------------------------
+        // ТЕКСТОВЫЙ БЛОК: НАПРАВЛЕНИЕ ТЕКСТА
+        // ----------------------------
+        function applyTextDirection() {
+            const lang = langSelectEl.value;
+
+            if (lang === "he-IL") {
+                inputTextEl.classList.add("rtl-text");
+                inputTextEl.setAttribute("dir", "rtl");
+            } else {
+                inputTextEl.classList.remove("rtl-text");
+                inputTextEl.setAttribute("dir", "ltr");
+            }
         }
-        if (resetAt instanceof Date && !isNaN(resetAt.getTime())) {
-            const sec = Math.max(1, Math.round((resetAt.getTime() - Date.now()) / 1000));
-            setGeminiLock("daily", sec, resetAt);
-        } else if (retryAfterSec && retryAfterSec > 0) {
-            setGeminiLock("daily", retryAfterSec);
-        } else {
-            // запасной вариант — 6 часов
-            setGeminiLock("daily", 6 * 3600);
-        }
-        showLimitBanner("daily", "Дневной лимит Gemini исчерпан. Новый перевод будет доступен после сброса квоты.");
-    } else {
-        // Тип лимита неизвестен — показываем общую ошибку
-        showError(error.message || "Ошибка лимитов Gemini");
-    }
-}
 
-// ----------------------------
-// ОТРИСОВКА ТАБЛИЦЫ
-// ----------------------------
-function renderTable(rows) {
-    if (!Array.isArray(rows) || rows.length === 0) {
-        document.getElementById("tableContainer").innerHTML = "";
-        return;
-    }
-
-    let html = '' +
-        '<table>' +
-        '  <thead>' +
-        '    <tr>' +
-        '      <th>Иврит</th>' +
-        '      <th>Огласовки</th>' +
-        '      <th>Транслит</th>' +
-        '      <th>Перевод</th>' +
-        '    </tr>' +
-        '  </thead>' +
-        '  <tbody>';
-
-    rows.forEach(function (row) {
-        const he = row.he || "";
-        const heNiqqud = row.he_niqqud || "";
-        const translit = row.translit || "";
-        const ru = row.ru || "";
-
-        html += '' +
-            '<tr>' +
-            '  <td class="rtl rtl-he">' + escapeHtml(he) + '</td>' +
-            '  <td class="rtl rtl-he-niqqud">' + escapeHtml(heNiqqud) + '</td>' +
-            '  <td>' + escapeHtml(translit) + '</td>' +
-            '  <td>' + escapeHtml(ru) + '</td>' +
-            '</tr>';
-    });
-
-    html += '  </tbody></table>';
-
-    document.getElementById("tableContainer").innerHTML = html;
-}
-
-// ----------------------------
-// ИМЕНА ФАЙЛОВ DOCX / MP3
-// ----------------------------
-function generateDocxFileName() {
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-
-    const dd = pad(now.getDate());
-    const mm = pad(now.getMonth() + 1);
-    const yy = String(now.getFullYear()).slice(-2);
-    const hh = pad(now.getHours());
-    const min = pad(now.getMinutes());
-    const ss = pad(now.getSeconds());
-
-    return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.docx`;
-}
-
-function generateAudioFileName() {
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, "0");
-
-    const dd = pad(now.getDate());
-    const mm = pad(now.getMonth() + 1);
-    const yy = String(now.getFullYear()).slice(-2);
-    const hh = pad(now.getHours());
-    const min = pad(now.getMinutes());
-    const ss = pad(now.getSeconds());
-
-    return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.mp3`;
-}
-
-// ----------------------------
-// WORD (DOCX)
-// ----------------------------
-async function downloadWord(customFilename) {
-    if (btnWordEl.classList.contains("disabled")) {
-        return;
-    }
-
-    if (!currentTableData || currentTableData.length === 0) {
-        showError("Нет данных для экспорта");
-        return;
-    }
-
-    const filename = customFilename || lastDocxFilename || "translation.docx";
-
-    try {
-        const res = await fetch("/api/export-docx", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ rows: currentTableData })
+        langSelectEl.addEventListener("change", function () {
+            applyTextDirection();
+            markResultsStale();
         });
+        applyTextDirection();
 
-        if (!res.ok) {
-            throw new Error("Ошибка экспорта");
+        // ----------------------------
+        // ШРИФТ ИВРИТА
+        // ----------------------------
+        function applyHebrewFont() {
+            const value = hebrewFontSelectEl.value;
+            let fontStack;
+
+            switch (value) {
+                case "assistant":
+                    fontStack = "'Assistant', 'Segoe UI', Tahoma, sans-serif";
+                    break;
+                case "system":
+                    fontStack = "'Segoe UI', Tahoma, sans-serif";
+                    break;
+                case "frank":
+                default:
+                    fontStack = "'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif";
+                    break;
+            }
+
+            document.documentElement.style.setProperty("--hebrew-font", fontStack);
         }
 
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-    } catch (e) {
-        showError(e.message);
-    }
-}
+        hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
+        applyHebrewFont();
 
-// ----------------------------
-// УТИЛИТЫ
-// ----------------------------
-function getText() {
-    return inputTextEl.value;
-}
+        // ----------------------------
+        // TTS: ОЗВУЧКА + КЭШ
+        // ----------------------------
+        async function playTTS() {
+            if (!validate()) return;
 
-function getLang() {
-    return langSelectEl.value;
-}
+            try {
+                const cfg = getTtsVoiceConfig();
 
-function validate() {
-    if (!getText().trim()) {
-        showError("Введите текст!");
-        return false;
-    }
-    document.getElementById("errorMsg").textContent = "";
-    return true;
-}
+                const res = await apiCall("/api/tts", {
+                    text: getText(),
+                    language: getLang(),
+                    voiceId: cfg.voiceId,
+                    speakingRate: cfg.rate,
+                    pitch: cfg.pitch
+                });
 
-function showError(msg) {
-    document.getElementById("errorMsg").textContent = "Ошибка: " + msg;
-}
+                const binary = atob(res.audioContent);
+                const len = binary.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binary.charCodeAt(i);
+                }
+                lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
 
-function setLoading(state) {
-    document.getElementById("loader").style.display = state ? "block" : "none";
-}
+                if (lastAudioUrl) {
+                    URL.revokeObjectURL(lastAudioUrl);
+                }
+                lastAudioUrl = URL.createObjectURL(lastAudioBlob);
 
-async function apiCall(url, data) {
-    const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data || {})
-    });
+                const audioContainer = document.getElementById("audioContainer");
+                audioContainer.innerHTML =
+                    '<div class="audio-block">' +
+                    '  <audio controls src="' + lastAudioUrl + '" autoplay></audio>' +
+                    '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+                    '    ⬇ Скачать MP3' +
+                    '  </button>' +
+                    '  <small>' + (res.fromCache ? 'Сгенерировано из серверного кэша (без запроса к Google TTS)' : 'Сгенерировано через Google TTS') + '</small>' +
+                    '</div>';
 
-    let json;
-    try {
-        json = await res.json();
-    } catch (e) {
-        // если вообще не JSON
-        if (!res.ok) {
-            const err = new Error("Ошибка запроса");
-            err.httpStatus = res.status;
-            throw err;
+                clearAudioStale();
+                loadStats(); // обновим счётчик символов и стоимость
+            } catch (e) {
+                showError(e.message);
+            }
         }
-        return {};
-    }
 
-    if (!res.ok || json.error) {
-        const msg = json && json.error ? json.error : "Ошибка запроса";
-        const details = json && json.details ? " (" + json.details + ")" : "";
-        const err = new Error(msg + details);
-        err.httpStatus = res.status;
-        if (json) {
-            err.errorType = json.errorType || (json.details && json.details.errorType) || null;
-            err.retryAfterSec =
-                (typeof json.retryAfterSec === "number")
-                    ? json.retryAfterSec
-                    : (json.details && typeof json.details.retryAfterSec === "number"
-                        ? json.details.retryAfterSec
+        // ----------------------------
+        // СКАЧАТЬ MP3 ИЗ КЭША
+        // ----------------------------
+        function downloadMp3FromCache() {
+            if (audioIsStale) {
+                showError("Текст изменён — озвучьте его заново, чтобы скачать актуальный MP3");
+                return;
+            }
+
+            if (!lastAudioBlob) {
+                showError("Нет актуального аудио для сохранения");
+                return;
+            }
+
+            let url = lastAudioUrl;
+            if (!url) {
+                url = URL.createObjectURL(lastAudioBlob);
+                lastAudioUrl = url;
+            }
+
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = generateAudioFileName();
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        // ----------------------------
+        // ПРОВЕРКА, ЗАБЛОКИРОВАН ЛИ GEMINI
+        // ----------------------------
+        function isGeminiLocked() {
+            if (!geminiLockType || !geminiLockUntil) return false;
+            const now = new Date();
+            return now.getTime() < geminiLockUntil.getTime();
+        }
+
+        function setGeminiLock(type, retryAfterSec, resetAt) {
+            if (!retryAfterSec || retryAfterSec < 0) retryAfterSec = 1;
+
+            geminiLockType = type;
+            geminiLockUntil = new Date(Date.now() + retryAfterSec * 1000);
+
+            if (type === "daily" && resetAt instanceof Date && !isNaN(resetAt.getTime())) {
+                geminiNextResetAt = resetAt;
+            }
+
+            if (geminiLimitTimerId) {
+                clearInterval(geminiLimitTimerId);
+            }
+            updateGeminiLockUI();
+            geminiLimitTimerId = setInterval(updateGeminiLockUI, 1000);
+        }
+
+        function clearGeminiLock() {
+            geminiLockType = null;
+            geminiLockUntil = null;
+            if (geminiLimitTimerId) {
+                clearInterval(geminiLimitTimerId);
+                geminiLimitTimerId = null;
+            }
+            hideLimitBanner();
+            updateAiButtonState();
+        }
+
+        function updateGeminiLockUI() {
+            if (!geminiLockType || !geminiLockUntil) {
+                hideLimitBanner();
+                updateAiButtonState();
+                return;
+            }
+
+            const now = new Date();
+            const diffMs = geminiLockUntil.getTime() - now.getTime();
+
+            if (diffMs <= 0) {
+                // таймер истёк — снимаем лок
+                clearGeminiLock();
+                applyGeminiUsageToUI();
+                return;
+            }
+
+            const sec = Math.ceil(diffMs / 1000);
+            updateAiButtonState(true);
+
+            if (geminiLockType === "rate") {
+                showLimitBanner(
+                    "rate",
+                    "Лимит скорости Gemini (rate-limit). Новый перевод будет доступен через " + formatDuration(sec) + "."
+                );
+            } else if (geminiLockType === "daily") {
+                let text = "Дневной лимит Gemini исчерпан.";
+                if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
+                    const nextDiffSec = Math.max(1, Math.floor((geminiNextResetAt.getTime() - now.getTime()) / 1000));
+                    text += " Новый перевод будет доступен через " + formatDuration(nextDiffSec) + ".";
+                }
+                showLimitBanner("daily", text);
+            }
+        }
+
+        function hardDisableGemini(message) {
+            setAiButtonDisabled(true);
+            showLimitBanner("info", message || "Перевод таблиц недоступен.");
+        }
+
+        function showLimitBanner(type, text) {
+            limitBannerEl.textContent = text || "";
+            limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
+
+            if (type === "rate") {
+                limitBannerEl.classList.add("limit-rate");
+            } else if (type === "daily") {
+                limitBannerEl.classList.add("limit-daily");
+            } else {
+                limitBannerEl.classList.add("limit-info");
+            }
+
+            limitBannerEl.style.display = "block";
+        }
+
+        function hideLimitBanner() {
+            limitBannerEl.style.display = "none";
+            limitBannerEl.textContent = "";
+            limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
+        }
+
+        function updateAiButtonState(forceDisabled) {
+            const shouldDisable = !!forceDisabled || isGeminiLocked();
+            setAiButtonDisabled(shouldDisable);
+        }
+
+        function setAiButtonDisabled(disabled) {
+            if (!btnAiTranslateEl) return;
+            if (disabled) {
+                btnAiTranslateEl.classList.add("disabled");
+                btnAiTranslateEl.setAttribute("disabled", "disabled");
+            } else {
+                btnAiTranslateEl.classList.remove("disabled");
+                btnAiTranslateEl.removeAttribute("disabled");
+            }
+        }
+
+        // ----------------------------
+        // ПЕРЕВОД (Gemini -> таблица)
+        // ----------------------------
+        async function translateTable() {
+            if (!validate()) return;
+
+            const currentText = getText().trim();
+
+            // 1) Попытка использовать ЛОКАЛЬНЫЙ кэш таблицы без обращения к серверу / Gemini
+            try {
+                const rawCache = localStorage.getItem(TABLE_CACHE_KEY);
+                if (rawCache) {
+                    const cache = JSON.parse(rawCache);
+                    if (
+                        cache &&
+                        typeof cache.text === "string" &&
+                        cache.text.trim() === currentText &&
+                        Array.isArray(cache.rows) &&
+                        cache.rows.length > 0
+                    ) {
+                        currentTableData = cache.rows;
+                        lastDocxFilename = cache.lastDocxFilename || generateDocxFileName();
+
+                        renderTable(currentTableData);
+                        clearTableStale();
+                        tableIsStale = false;
+                        if (btnWordEl) btnWordEl.classList.remove("disabled");
+
+                        // Подпись источника: локальный кэш браузера (без запроса к Gemini)
+                        setTableSourceNote("local-cache");
+
+                        // Авто-скачивание DOCX (без запроса к Gemini)
+                        downloadWord(lastDocxFilename);
+
+                        // Обновим статистику (на всякий случай, хотя лимиты Gemini не менялись)
+                        loadStats();
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error("Local table cache short-circuit error", e);
+            }
+
+            // 2) Если лимиты уже заблокированы — не стреляем в API
+            if (isGeminiLocked()) {
+                if (geminiLockType === "rate") {
+                    showLimitBanner("rate", "Лимит скорости Gemini. Подождите окончания обратного отсчёта.");
+                } else if (geminiLockType === "daily") {
+                    showLimitBanner("daily", "Дневной лимит Gemini уже исчерпан. Новый перевод будет доступен после сброса квоты.");
+                } else {
+                    showError("Лимит Gemini. Повторите попытку позже.");
+                }
+                return;
+            }
+
+            // 3) Живой запрос к серверу (/api/translate-table)
+            setLoading(true);
+            setAiButtonDisabled(true);
+            document.getElementById("errorMsg").textContent = "";
+            document.getElementById("tableContainer").innerHTML = "";
+
+            try {
+                const res = await apiCall("/api/translate-table", {
+                    text: getText()
+                });
+
+                currentTableData = res.rows || [];
+
+                // новые результаты — старая кэш-нота уже не нужна
+                clearCacheRestoreNote();
+                renderTable(currentTableData);
+
+                if (currentTableData.length > 0) {
+                    clearTableStale();
+                    tableIsStale = false;
+                    if (btnWordEl) btnWordEl.classList.remove("disabled");
+
+                    // имя файла по моменту перевода
+                    const autoName = generateDocxFileName();
+                    lastDocxFilename = autoName;
+
+                    // сохраняем таблицу в localStorage (кэш)
+                    try {
+                        const cache = {
+                            text: getText().trim(),
+                            rows: currentTableData,
+                            createdAt: new Date().toISOString(),
+                            lastDocxFilename: lastDocxFilename
+                        };
+                        localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+                    } catch (e) {
+                        console.error("Table cache save error", e);
+                    }
+
+                    // Подпись источника: либо серверный кэш, либо живой вызов Gemini
+                    if (res.fromCache === true) {
+                        setTableSourceNote("server-cache");
+                    } else {
+                        setTableSourceNote("gemini-api");
+                    }
+
+                    // авто-скачивание свежего DOCX
+                    downloadWord(autoName);
+                } else {
+                    tableIsStale = false;
+                    if (btnWordEl) btnWordEl.classList.add("disabled");
+                }
+
+                loadStats();
+                // после успешного запроса можно снять возможный rate-lock
+                clearGeminiLock();
+            } catch (e) {
+                // Специальная обработка 429 (лимиты)
+                if (e.httpStatus === 429) {
+                    handleGeminiLimitError(e);
+                } else {
+                    showError(e.message || "Ошибка перевода");
+                }
+            } finally {
+                setLoading(false);
+                // кнопку включаем/выключаем по состоянию лимитов
+                updateAiButtonState();
+            }
+        }
+
+        function handleGeminiLimitError(error) {
+            const type = error.errorType || (error.raw && error.raw.errorType) || null;
+            const retryAfterSecRaw =
+                (typeof error.retryAfterSec === "number")
+                    ? error.retryAfterSec
+                    : (error.raw && typeof error.raw.retryAfterSec === "number"
+                        ? error.raw.retryAfterSec
                         : null);
-            err.resetAt = json.resetAt || (json.details && json.details.resetAt) || null;
-            err.raw = json;
+            let retryAfterSec = retryAfterSecRaw;
+
+            let resetAt = null;
+            if (error.resetAt) {
+                resetAt = new Date(error.resetAt);
+            } else if (error.raw && error.raw.resetAt) {
+                resetAt = new Date(error.raw.resetAt);
+            }
+
+            if (type === "rate-limit" || type === "rate") {
+                if (!retryAfterSec || retryAfterSec > 3600) {
+                    retryAfterSec = 60;
+                }
+                setGeminiLock("rate", retryAfterSec);
+                showLimitBanner("rate", "Лимит скорости Gemini. Новый перевод будет доступен через " + formatDuration(retryAfterSec) + ".");
+            } else if (type === "daily-limit" || type === "daily") {
+                // daily-limit: либо есть resetAt, либо fallback на 1 час / до конца дня
+                if (!resetAt && geminiNextResetAt instanceof Date) {
+                    resetAt = geminiNextResetAt;
+                }
+                if (resetAt instanceof Date && !isNaN(resetAt.getTime())) {
+                    const sec = Math.max(1, Math.round((resetAt.getTime() - Date.now()) / 1000));
+                    setGeminiLock("daily", sec, resetAt);
+                } else if (retryAfterSec && retryAfterSec > 0) {
+                    setGeminiLock("daily", retryAfterSec);
+                } else {
+                    // запасной вариант — 6 часов
+                    setGeminiLock("daily", 6 * 3600);
+                }
+                showLimitBanner("daily", "Дневной лимит Gemini исчерпан. Новый перевод будет доступен после сброса квоты.");
+            } else {
+                // Тип лимита неизвестен — показываем общую ошибку
+                showError(error.message || "Ошибка лимитов Gemini");
+            }
         }
-        throw err;
-    }
 
-    return json;
-}
+        // ----------------------------
+        // ОТРИСОВКА ТАБЛИЦЫ
+        // ----------------------------
+        function renderTable(rows) {
+            if (!Array.isArray(rows) || rows.length === 0) {
+                document.getElementById("tableContainer").innerHTML = "";
+                return;
+            }
 
-function escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+            let html = '' +
+                '<table>' +
+                '  <thead>' +
+                '    <tr>' +
+                '      <th>Иврит</th>' +
+                '      <th>Огласовки</th>' +
+                '      <th>Транслит</th>' +
+                '      <th>Перевод</th>' +
+                '    </tr>' +
+                '  </thead>' +
+                '  <tbody>';
 
-// ----------------------------
-// ОБНОВЛЕНИЕ ИНФОРМАЦИИ О СТОИМОСТИ TTS
-// ----------------------------
-function updateTtsCostInfo() {
-    const el = document.getElementById("ttsCostInfo");
-    if (!el) return;
+            rows.forEach(function (row) {
+                const he = row.he || "";
+                const heNiqqud = row.he_niqqud || "";
+                const translit = row.translit || "";
+                const ru = row.ru || "";
 
-    if (!lastUsageData) {
-        el.textContent = "";
-        return;
-    }
+                html += '' +
+                    '<tr>' +
+                    '  <td class="rtl rtl-he">' + escapeHtml(he) + '</td>' +
+                    '  <td class="rtl rtl-he-niqqud">' + escapeHtml(heNiqqud) + '</td>' +
+                    '  <td>' + escapeHtml(translit) + '</td>' +
+                    '  <td>' + escapeHtml(ru) + '</td>' +
+                    '</tr>';
+            });
 
-    const pricePer1M = (typeof lastUsageData.ttsPricePer1MCharsUsd === "number")
-        ? lastUsageData.ttsPricePer1MCharsUsd
-        : null;
+            html += '  </tbody></table>';
 
-    const totalUsd = (typeof lastUsageData.ttsCostTotalUsd === "number")
-        ? lastUsageData.ttsCostTotalUsd
-        : null;
+            document.getElementById("tableContainer").innerHTML = html;
+        }
 
-    const monthlyUsd = (typeof lastUsageData.ttsMonthlyEstimateUsd === "number")
-        ? lastUsageData.ttsMonthlyEstimateUsd
-        : null;
+        // ----------------------------
+        // ИМЕНА ФАЙЛОВ DOCX / MP3
+        // ----------------------------
+        function generateDocxFileName() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
 
-    if (!pricePer1M || pricePer1M <= 0) {
-        el.textContent = "Стоимость: нет данных по тарифу TTS";
-        return;
-    }
+            const dd = pad(now.getDate());
+            const mm = pad(now.getMonth() + 1);
+            const yy = String(now.getFullYear()).slice(-2);
+            const hh = pad(now.getHours());
+            const min = pad(now.getMinutes());
+            const ss = pad(now.getSeconds());
 
-    const charsCurrent = inputTextEl.value ? inputTextEl.value.length : 0;
-    const pricePerChar = pricePer1M / 1_000_000;
-    const currentReqCost = charsCurrent > 0 ? charsCurrent * pricePerChar : 0;
+            return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.docx`;
+        }
 
-    const parts = [];
+        function generateAudioFileName() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
 
-    if (totalUsd !== null) {
-        parts.push("всего ≈ $" + totalUsd.toFixed(3));
-    }
+            const dd = pad(now.getDate());
+            const mm = pad(now.getMonth() + 1);
+            const yy = String(now.getFullYear()).slice(-2);
+            const hh = pad(now.getHours());
+            const min = pad(now.getMinutes());
+            const ss = pad(now.getSeconds());
 
-    if (monthlyUsd !== null) {
-        parts.push("≈ $" + monthlyUsd.toFixed(2) + " / мес");
-    }
+            return `${dd}.${mm}.${yy} ${hh}.${min}.${ss}.mp3`;
+        }
 
-    if (currentReqCost > 0) {
-        parts.push("этот текст ≈ $" + currentReqCost.toFixed(4));
-    }
+        // ----------------------------
+        // WORD (DOCX)
+        // ----------------------------
+        async function downloadWord(customFilename) {
+            if (btnWordEl.classList.contains("disabled")) {
+                return;
+            }
 
-    el.textContent = "Стоимость: " + (parts.length ? parts.join(" · ") : "нет данных");
-}
+            if (!currentTableData || currentTableData.length === 0) {
+                showError("Нет данных для экспорта");
+                return;
+            }
 
-// ----------------------------
-// УПРАВЛЕНИЕ БЛОКОМ ГОРЯЧИХ КЛАВИШ
-// ----------------------------
-function toggleHotkeysPanel(forceState) {
-    if (!hotkeysPanelEl) return;
-    if (typeof forceState === "boolean") {
-        hotkeysPanelEl.classList.toggle("hotkeys-hidden", !forceState);
-    } else {
-        hotkeysPanelEl.classList.toggle("hotkeys-hidden");
-    }
-}
+            const filename = customFilename || lastDocxFilename || "translation.docx";
 
-// ----------------------------
-// ГЛОБАЛЬНЫЕ ГОРЯЧИЕ КЛАВИШИ
-// ----------------------------
-document.addEventListener("keydown", function (event) {
-    // Ctrl+Enter — Озвучить (TTS)
-    if (
-        event.ctrlKey &&
-        !event.shiftKey &&
-        !event.altKey &&
-        !event.metaKey &&
-        event.key === "Enter"
-    ) {
-        event.preventDefault();
-        playTTS();
-        return;
-    }
+            try {
+                const res = await fetch("/api/export-docx", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ rows: currentTableData })
+                });
 
-    // Ctrl+Shift+Enter — AI Перевод + SAVE
-    if (
-        event.ctrlKey &&
-        event.shiftKey &&
-        !event.altKey &&
-        !event.metaKey &&
-        event.key === "Enter"
-    ) {
-        event.preventDefault();
-        translateTable();
-        return;
-    }
+                if (!res.ok) {
+                    throw new Error("Ошибка экспорта");
+                }
 
-    // Ctrl+Shift+Backspace — Очистка текста и результатов
-    if (
-        event.ctrlKey &&
-        event.shiftKey &&
-        !event.altKey &&
-        !event.metaKey &&
-        (event.key === "Backspace" || event.key === "Delete")
-    ) {
-        event.preventDefault();
-        clearTextWithConfirm();
-        return;
-    }
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            } catch (e) {
+                showError(e.message);
+            }
+        }
 
-    // Ctrl+/ — Показать/скрыть блок "Горячие клавиши"
-    if (
-        event.ctrlKey &&
-        !event.shiftKey &&
-        !event.altKey &&
-        !event.metaKey &&
-        (event.key === "/" || event.code === "Slash")
-    ) {
-        event.preventDefault();
-        toggleHotkeysPanel();
-        return;
-    }
-});
+        // ----------------------------
+        // УТИЛИТЫ
+        // ----------------------------
+        function getText() {
+            return inputTextEl.value;
+        }
+
+        function getLang() {
+            return langSelectEl.value;
+        }
+
+        function validate() {
+            if (!getText().trim()) {
+                showError("Введите текст!");
+                return false;
+            }
+            document.getElementById("errorMsg").textContent = "";
+            return true;
+        }
+
+        function showError(msg) {
+            document.getElementById("errorMsg").textContent = "Ошибка: " + msg;
+        }
+
+        function setLoading(state) {
+            document.getElementById("loader").style.display = state ? "block" : "none";
+        }
+
+        async function apiCall(url, data) {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data || {})
+            });
+
+            let json;
+            try {
+                json = await res.json();
+            } catch (e) {
+                // если вообще не JSON
+                if (!res.ok) {
+                    const err = new Error("Ошибка запроса");
+                    err.httpStatus = res.status;
+                    throw err;
+                }
+                return {};
+            }
+
+            if (!res.ok || json.error) {
+                const msg = json && json.error ? json.error : "Ошибка запроса";
+                const details = json && json.details ? " (" + json.details + ")" : "";
+                const err = new Error(msg + details);
+                err.httpStatus = res.status;
+                if (json) {
+                    err.errorType = json.errorType || (json.details && json.details.errorType) || null;
+                    err.retryAfterSec =
+                        (typeof json.retryAfterSec === "number")
+                            ? json.retryAfterSec
+                            : (json.details && typeof json.details.retryAfterSec === "number"
+                                ? json.details.retryAfterSec
+                                : null);
+                    err.resetAt = json.resetAt || (json.details && json.details.resetAt) || null;
+                    err.raw = json;
+                }
+                throw err;
+            }
+
+            return json;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // ----------------------------
+        // ОБНОВЛЕНИЕ ИНФОРМАЦИИ О СТОИМОСТИ TTS
+        // ----------------------------
+        function updateTtsCostInfo() {
+            const el = document.getElementById("ttsCostInfo");
+            if (!el) return;
+
+            if (!lastUsageData) {
+                el.textContent = "";
+                return;
+            }
+
+            const pricePer1M = (typeof lastUsageData.ttsPricePer1MCharsUsd === "number")
+                ? lastUsageData.ttsPricePer1MCharsUsd
+                : null;
+
+            const totalUsd = (typeof lastUsageData.ttsCostTotalUsd === "number")
+                ? lastUsageData.ttsCostTotalUsd
+                : null;
+
+            const monthlyUsd = (typeof lastUsageData.ttsMonthlyEstimateUsd === "number")
+                ? lastUsageData.ttsMonthlyEstimateUsd
+                : null;
+
+            if (!pricePer1M || pricePer1M <= 0) {
+                el.textContent = "Стоимость: нет данных по тарифу TTS";
+                return;
+            }
+
+            const charsCurrent = inputTextEl.value ? inputTextEl.value.length : 0;
+            const pricePerChar = pricePer1M / 1_000_000;
+            const currentReqCost = charsCurrent > 0 ? charsCurrent * pricePerChar : 0;
+
+            const parts = [];
+
+            if (totalUsd !== null) {
+                parts.push("всего ≈ $" + totalUsd.toFixed(3));
+            }
+
+            if (monthlyUsd !== null) {
+                parts.push("≈ $" + monthlyUsd.toFixed(2) + " / мес");
+            }
+
+            if (currentReqCost > 0) {
+                parts.push("этот текст ≈ $" + currentReqCost.toFixed(4));
+            }
+
+            el.textContent = "Стоимость: " + (parts.length ? parts.join(" · ") : "нет данных");
+        }
+
+        // ----------------------------
+        // УПРАВЛЕНИЕ БЛОКОМ ГОРЯЧИХ КЛАВИШ
+        // ----------------------------
+        function toggleHotkeysPanel(forceState) {
+            if (!hotkeysPanelEl) return;
+            if (typeof forceState === "boolean") {
+                hotkeysPanelEl.classList.toggle("hotkeys-hidden", !forceState);
+            } else {
+                hotkeysPanelEl.classList.toggle("hotkeys-hidden");
+            }
+        }
+
+        // ----------------------------
+        // ГЛОБАЛЬНЫЕ ГОРЯЧИЕ КЛАВИШИ
+        // ----------------------------
+        document.addEventListener("keydown", function (event) {
+            // Ctrl+Enter — Озвучить (TTS)
+            if (
+                event.ctrlKey &&
+                !event.shiftKey &&
+                !event.altKey &&
+                !event.metaKey &&
+                event.key === "Enter"
+            ) {
+                event.preventDefault();
+                playTTS();
+                return;
+            }
+
+            // Ctrl+Shift+Enter — AI Перевод + SAVE
+            if (
+                event.ctrlKey &&
+                event.shiftKey &&
+                !event.altKey &&
+                !event.metaKey &&
+                event.key === "Enter"
+            ) {
+                event.preventDefault();
+                translateTable();
+                return;
+            }
+
+            // Ctrl+Shift+Backspace — Очистка текста и результатов
+            if (
+                event.ctrlKey &&
+                event.shiftKey &&
+                !event.altKey &&
+                !event.metaKey &&
+                (event.key === "Backspace" || event.key === "Delete")
+            ) {
+                event.preventDefault();
+                clearTextWithConfirm();
+                return;
+            }
+
+            // Ctrl+Shift+S — Сохранить MP3 озвучки текущего текста
+            if (
+                event.ctrlKey &&
+                event.shiftKey &&
+                !event.altKey &&
+                !event.metaKey &&
+                (
+                    event.code === "KeyS" ||                                // раскладка-независимый вариант
+                    (typeof event.key === "string" && event.key.toLowerCase() === "s") // запасной вариант
+                )
+            ) {
+                event.preventDefault();
+                downloadMp3FromCache();
+                return;
+            }
+
+            // Ctrl+/ — Показать/скрыть блок "Горячие клавиши"
+            if (
+                event.ctrlKey &&
+                !event.shiftKey &&
+                !event.altKey &&
+                !event.metaKey &&
+                (event.key === "/" || event.code === "Slash")
+            ) {
+                event.preventDefault();
+                toggleHotkeysPanel();
+                return;
+            }
+        });
     </script>
 </body>
 </html>

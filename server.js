@@ -29,7 +29,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json({ limit: "10mb" }));
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, "public")));
 
 // --------------------------------------------------------
 // 3. ПУТИ И ДИРЕКТОРИИ
