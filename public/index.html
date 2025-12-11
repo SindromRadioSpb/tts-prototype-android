@@ -259,7 +259,7 @@
             transition: 0.2s;
         }
 
-       select {
+        select {
             border: 1px solid #d0d4d8;
             background: #ffffff;
             min-width: 190px;
@@ -435,6 +435,60 @@
             width: 180px;
         }
 
+        /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
+        .hotkeys-panel {
+            margin-top: 20px;
+            padding: 12px 14px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px dashed #cfd4da;
+            font-size: 13px;
+            color: #495057;
+        }
+
+        .hotkeys-panel.hotkeys-hidden {
+            display: none;
+        }
+
+        .hotkeys-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .hotkeys-header strong {
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #343a40;
+        }
+
+        .hotkeys-hint {
+            font-size: 11px;
+            color: #868e96;
+            text-align: right;
+        }
+
+        .hotkeys-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .hotkeys-list li {
+            margin-bottom: 4px;
+        }
+
+        .hotkeys-list code {
+            font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
+            font-size: 12px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            background: #e9ecef;
+        }
+
         @media (max-width: 600px) {
             .dashboard-header {
                 flex-direction: column;
@@ -475,6 +529,15 @@
 
             .btn-word {
                 margin-left: 0;
+            }
+
+            .hotkeys-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .hotkeys-hint {
+                text-align: left;
             }
         }
     </style>
@@ -624,6 +687,19 @@
         <div id="audioContainer" style="margin-bottom: 15px;"></div>
         <div id="errorMsg" class="error"></div>
         <div id="tableContainer"></div>
+
+        <div id="hotkeysPanel" class="hotkeys-panel">
+            <div class="hotkeys-header">
+                <strong>Горячие клавиши</strong>
+                <span class="hotkeys-hint">Нажмите <code>Ctrl+/</code>, чтобы скрыть или показать этот блок.</span>
+            </div>
+            <ul class="hotkeys-list">
+                <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
+                <li><code>Ctrl+Shift+Enter</code> — AI Перевод + SAVE (и авто-DOCX)</li>
+                <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
+                <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -639,6 +715,7 @@ const textChangedNoticeEl = document.getElementById("textChangedNotice");
 const limitBannerEl = document.getElementById("limitBanner");
 const btnWordEl = document.getElementById("btnWord");
 const btnAiTranslateEl = document.getElementById("btnAiTranslate");
+const hotkeysPanelEl = document.getElementById("hotkeysPanel");
 
 const voiceSelectEl = document.getElementById("voiceSelect");
 const rateRangeEl = document.getElementById("rateRange");
@@ -933,6 +1010,56 @@ function clearTableStale() {
     if (!audioIsStale && !tableIsStale) {
         textChangedNoticeEl.classList.remove("notice-visible");
     }
+}
+
+// Полная очистка текста и результатов (для Ctrl+Shift+Backspace)
+function clearTextWithConfirm() {
+    if (!inputTextEl) return;
+    if (!inputTextEl.value || !inputTextEl.value.trim()) {
+        return;
+    }
+
+    const ok = window.confirm("Очистить текущий текст?\nПеревод, озвучка и локальный кэш таблицы будут сброшены.");
+    if (!ok) return;
+
+    // Очистка текста
+    inputTextEl.value = "";
+    scheduleSaveText();
+    autoGrow();
+
+    // Очистка таблицы и аудио
+    const audioEl = document.getElementById("audioContainer");
+    const tableEl = document.getElementById("tableContainer");
+    if (audioEl) {
+        audioEl.innerHTML = "";
+        audioEl.classList.remove("results-stale");
+    }
+    if (tableEl) {
+        tableEl.innerHTML = "";
+        tableEl.classList.remove("results-stale");
+    }
+
+    audioIsStale = false;
+    tableIsStale = false;
+    currentTableData = [];
+    lastAudioBlob = null;
+    lastAudioUrl = null;
+    lastDocxFilename = null;
+
+    if (btnWordEl) {
+        btnWordEl.classList.add("disabled");
+    }
+
+    textChangedNoticeEl.classList.remove("notice-visible");
+
+    // Сбрасываем кэш таблицы
+    try {
+        localStorage.removeItem(TABLE_CACHE_KEY);
+    } catch (e) {
+        console.error("Table cache clear error", e);
+    }
+
+    updateTtsCostInfo();
 }
 
 // ----------------------------
@@ -1741,6 +1868,75 @@ function updateTtsCostInfo() {
 
     el.textContent = "Стоимость: " + (parts.length ? parts.join(" · ") : "нет данных");
 }
+
+// ----------------------------
+// УПРАВЛЕНИЕ БЛОКОМ ГОРЯЧИХ КЛАВИШ
+// ----------------------------
+function toggleHotkeysPanel(forceState) {
+    if (!hotkeysPanelEl) return;
+    if (typeof forceState === "boolean") {
+        hotkeysPanelEl.classList.toggle("hotkeys-hidden", !forceState);
+    } else {
+        hotkeysPanelEl.classList.toggle("hotkeys-hidden");
+    }
+}
+
+// ----------------------------
+// ГЛОБАЛЬНЫЕ ГОРЯЧИЕ КЛАВИШИ
+// ----------------------------
+document.addEventListener("keydown", function (event) {
+    // Ctrl+Enter — Озвучить (TTS)
+    if (
+        event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey &&
+        !event.metaKey &&
+        event.key === "Enter"
+    ) {
+        event.preventDefault();
+        playTTS();
+        return;
+    }
+
+    // Ctrl+Shift+Enter — AI Перевод + SAVE
+    if (
+        event.ctrlKey &&
+        event.shiftKey &&
+        !event.altKey &&
+        !event.metaKey &&
+        event.key === "Enter"
+    ) {
+        event.preventDefault();
+        translateTable();
+        return;
+    }
+
+    // Ctrl+Shift+Backspace — Очистка текста и результатов
+    if (
+        event.ctrlKey &&
+        event.shiftKey &&
+        !event.altKey &&
+        !event.metaKey &&
+        (event.key === "Backspace" || event.key === "Delete")
+    ) {
+        event.preventDefault();
+        clearTextWithConfirm();
+        return;
+    }
+
+    // Ctrl+/ — Показать/скрыть блок "Горячие клавиши"
+    if (
+        event.ctrlKey &&
+        !event.shiftKey &&
+        !event.altKey &&
+        !event.metaKey &&
+        (event.key === "/" || event.code === "Slash")
+    ) {
+        event.preventDefault();
+        toggleHotkeysPanel();
+        return;
+    }
+});
     </script>
 </body>
 </html>
