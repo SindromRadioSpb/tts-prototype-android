@@ -158,32 +158,37 @@
         }
 
         textarea {
-            width: 100%;
-            height: 140px;
-            padding: 22px 18px;
-            border: 1px solid #b5b5b5;
-            border-radius: 12px;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 12px;
-            box-sizing: border-box;
-            resize: none;          /* auto-grow вместо ручного ресайза */
-            overflow-y: hidden;    /* убираем внутренний скролл */
-            direction: ltr;
-            text-align: left;
-            background-color: #ffffff;
-            box-shadow:
-                inset 0 1px 3px rgba(0, 0, 0, 0.12),
-                0 2px 4px rgba(0, 0, 0, 0.06);
-        }
+    width: 100%;
+    height: 140px;              /* стартовая высота */
+    padding: 22px 18px;
+    border: 1px solid #b5b5b5;
+    border-radius: 12px;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+    resize: none;               /* управляем ростом сами через JS */
+    overflow-y: auto;           /* внутренний скролл для длинного текста */
+    max-height: 280px;          /* ограничение роста textarea */
+    direction: ltr;
+    text-align: left;
+    background-color: #ffffff;
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.12),
+        0 2px 4px rgba(0, 0, 0, 0.06);
+}
 
-        /* Режим для иврита (textarea) */
-        textarea.rtl-text {
-            direction: rtl;
-            text-align: right;
-            line-height: 1.9;
-            font-family: var(--hebrew-font);
-        }
+/* Режим для иврита (textarea) */
+textarea.rtl-text {
+    direction: rtl;
+    text-align: right;
+    line-height: 1.9;
+    font-family: var(--hebrew-font);
+
+    /* лёгкий визуальный баланс: больше отступ справа, меньше слева */
+    padding-right: 22px;
+    padding-left: 14px;
+}
 
         /* Баннер "текст изменён" */
         #textChangedNotice {
@@ -855,21 +860,57 @@
         })();
 
         // ----------------------------
-        // AUTO-GROW + AUTOSAVE + STALE
-        // ----------------------------
-        inputTextEl.addEventListener("input", function () {
-            autoGrow();
-            scheduleSaveText();
-            markResultsStale();
-            updateTtsCostInfo();
-        });
+// AUTO-GROW + AUTOSAVE + STALE
+// ----------------------------
+inputTextEl.addEventListener("input", function () {
+    // при вводе текста растим поле и аккуратно автоскроллим вниз
+    autoGrow(true);
+    scheduleSaveText();
+    markResultsStale();
+    updateTtsCostInfo();
+});
 
-        autoGrow();
+// первичная подстройка высоты без автоскролла
+autoGrow(false);
 
-        function autoGrow() {
-            inputTextEl.style.height = "auto";
-            inputTextEl.style.height = (inputTextEl.scrollHeight + 10) + "px";
+/**
+ * Автоматический рост textarea с ограничением по высоте
+ * и (опциональным) автоскроллом страницы вниз.
+ *
+ * @param {boolean} shouldScroll — если true, при нехватке места снизу
+ *                                 страница чуть прокручивается вниз.
+ */
+function autoGrow(shouldScroll) {
+    if (!inputTextEl) return;
+
+    // сброс высоты, чтобы корректно прочитать scrollHeight
+    inputTextEl.style.height = "auto";
+
+    const extraPadding = 10;
+    const newHeight = inputTextEl.scrollHeight + extraPadding;
+    const maxHeight = 280; // должен совпадать с max-height в CSS
+
+    if (newHeight > maxHeight) {
+        inputTextEl.style.height = maxHeight + "px";
+    } else {
+        inputTextEl.style.height = newHeight + "px";
+    }
+
+    // Автоскролл вниз — только когда явно просили (при вводе текста)
+    if (shouldScroll) {
+        const rect = inputTextEl.getBoundingClientRect();
+        const bottomGap = window.innerHeight - rect.bottom;
+
+        // если до низа окна осталось меньше 80px — подвинем страницу
+        if (bottomGap < 80) {
+            inputTextEl.scrollIntoView({
+                block: "end",
+                behavior: "smooth"
+            });
         }
+    }
+}
+
 
         function scheduleSaveText() {
             if (saveTimer) {
@@ -1311,25 +1352,37 @@
         }, 5000);
 
         // ----------------------------
-        // ТЕКСТОВЫЙ БЛОК: НАПРАВЛЕНИЕ ТЕКСТА
-        // ----------------------------
-        function applyTextDirection() {
-            const lang = langSelectEl.value;
+// ТЕКСТОВЫЙ БЛОК: НАПРАВЛЕНИЕ ТЕКСТА
+// ----------------------------
+function applyTextDirection() {
+    const lang = langSelectEl.value;
 
-            if (lang === "he-IL") {
-                inputTextEl.classList.add("rtl-text");
-                inputTextEl.setAttribute("dir", "rtl");
-            } else {
-                inputTextEl.classList.remove("rtl-text");
-                inputTextEl.setAttribute("dir", "ltr");
-            }
-        }
+    if (lang === "he-IL") {
+        inputTextEl.classList.add("rtl-text");
+        inputTextEl.setAttribute("dir", "rtl");
+    } else {
+        inputTextEl.classList.remove("rtl-text");
+        inputTextEl.setAttribute("dir", "ltr");
+    }
+}
 
-        langSelectEl.addEventListener("change", function () {
-            applyTextDirection();
-            markResultsStale();
-        });
-        applyTextDirection();
+/**
+ * При смене языка:
+ * 1) меняем направление текста (LTR/RTL),
+ * 2) помечаем результаты как устаревшие,
+ * 3) пересчитываем высоту textarea без автоскролла
+ *    (шрифт / direction могут немного изменить scrollHeight).
+ */
+langSelectEl.addEventListener("change", function () {
+    applyTextDirection();
+    markResultsStale();
+    autoGrow(false);
+});
+
+// начальная инициализация направления и корректной высоты поля
+applyTextDirection();
+autoGrow(false);
+
 
         // ----------------------------
         // ШРИФТ ИВРИТА
