@@ -48,11 +48,39 @@ if (!fs.existsSync(geminiCacheDir)) fs.mkdirSync(geminiCacheDir);
 // 4. ИНИЦИАЛИЗАЦИЯ КЛИЕНТОВ
 // --------------------------------------------------------
 
-// Google Cloud TTS
-const ttsClient = new textToSpeech.TextToSpeechClient();
+// 4.1. Google Cloud TTS — креды из переменной GOOGLE_CLOUD_TTS_KEY
+let ttsServiceAccount = null;
 
-// Gemini
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+if (process.env.GOOGLE_CLOUD_TTS_KEY) {
+  try {
+    ttsServiceAccount = JSON.parse(process.env.GOOGLE_CLOUD_TTS_KEY);
+    console.log("[TTS] GOOGLE_CLOUD_TTS_KEY загружен и успешно разобран как JSON");
+  } catch (e) {
+    console.error("[TTS] Невозможно разобрать GOOGLE_CLOUD_TTS_KEY как JSON:", e);
+    ttsServiceAccount = null;
+  }
+} else {
+  console.warn("[TTS] Переменная GOOGLE_CLOUD_TTS_KEY не задана — будет попытка использовать дефолтные креды");
+}
+
+const ttsClient = ttsServiceAccount
+  ? new textToSpeech.TextToSpeechClient({
+      projectId: ttsServiceAccount.project_id,
+      credentials: {
+        client_email: ttsServiceAccount.client_email,
+        private_key: ttsServiceAccount.private_key,
+      },
+    })
+  : new textToSpeech.TextToSpeechClient();
+
+console.log(
+  "[TTS] Клиент инициализирован, режим кредов:",
+  ttsServiceAccount ? "service_account из GOOGLE_CLOUD_TTS_KEY" : "Application Default Credentials"
+);
+
+// 4.2. Gemini
+const GEMINI_API_KEY =
+  process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
 let genAI = null;
 if (GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -64,7 +92,7 @@ if (GEMINI_API_KEY) {
 
 // Структура usage.json (пример):
 // {
-//   "ttsChars": 12345,        // всего символов через TTS
+//   "ttsChars": 12345,        // всего символов через TTS (без учёта кэша)
 //   "ttsCost": 0.12,          // условная стоимость
 //   "geminiRequests": 7,      // всего запросов к Gemini
 //   "geminiDayStart": "2024-12-10T00:00:00.000Z"
@@ -117,7 +145,9 @@ const TTS_COST_PER_MILLION = 16;
 const GEMINI_DAILY_LIMIT = Number(process.env.GEMINI_DAILY_LIMIT || "50");
 
 // Час "сброса дня" квоты в UTC (например, 21:00 UTC = 23:00 по Израилю зимой)
-const GEMINI_RESET_HOUR_UTC = Number(process.env.GEMINI_RESET_HOUR_UTC || "21");
+const GEMINI_RESET_HOUR_UTC = Number(
+  process.env.GEMINI_RESET_HOUR_UTC || "21"
+);
 
 // Определяем "начало дня квоты" с учётом GEMINI_RESET_HOUR_UTC
 function getCurrentQuotaDayStartISO() {
@@ -144,8 +174,7 @@ function getCurrentQuotaDayStartISO() {
     quotaDayStartMs = todayResetMs;
   } else {
     // Ещё до ресета — день квоты начался вчера
-    quotaDayStartMs =
-      todayResetMs - 24 * 60 * 60 * 1000;
+    quotaDayStartMs = todayResetMs - 24 * 60 * 60 * 1000;
   }
 
   return new Date(quotaDayStartMs).toISOString();
@@ -190,11 +219,19 @@ function markGeminiDailyLimitHit() {
 // 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ TTS
 // --------------------------------------------------------
 
-async function synthesizeWithCache(text, languageCode, voiceName, speakingRate, pitch) {
+async function synthesizeWithCache(
+  text,
+  languageCode,
+  voiceName,
+  speakingRate,
+  pitch
+) {
   // Ключ кэша зависит от текста и параметров голоса
   const hash = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ text, languageCode, voiceName, speakingRate, pitch }))
+    .update(
+      JSON.stringify({ text, languageCode, voiceName, speakingRate, pitch })
+    )
     .digest("hex");
 
   const cachePath = path.join(audioCacheDir, `${hash}.mp3`);
@@ -232,7 +269,9 @@ async function synthesizeWithCache(text, languageCode, voiceName, speakingRate, 
   return { audioContent, fromCache: false, cacheId: hash };
 }
 
-// 7. --- API: TTS (Google Cloud Text-to-Speech с расширенной диагностикой) ---
+// --------------------------------------------------------
+// 7. API: TTS (Google Cloud Text-to-Speech с расширенной диагностикой)
+// --------------------------------------------------------
 app.post("/api/tts", async (req, res) => {
   const requestId = uuidv4();
   const startedAt = Date.now();
@@ -260,9 +299,8 @@ app.post("/api/tts", async (req, res) => {
     const cleanText = text.trim();
 
     // Нормализуем голос и язык
-    const voiceName = voiceId && String(voiceId).trim()
-      ? String(voiceId).trim()
-      : "";
+    const voiceName =
+      voiceId && String(voiceId).trim() ? String(voiceId).trim() : "";
 
     // Если указан конкретный голос he-IL-Standard-A → берём язык из него,
     // иначе используем lang, пришедший с клиента.
@@ -301,45 +339,31 @@ app.post("/api/tts", async (req, res) => {
       speakingRate: rate,
       pitch: pitchVal,
       nodeEnv: process.env.NODE_ENV || null,
-      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      hasServiceAccount: !!ttsServiceAccount,
+      hasGoogleApplicationCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
     });
 
-    const ttsRequest = {
-      input: { text: cleanText },
-      voice: {
-        languageCode: languageCodeForRequest,
-        name: voiceName || undefined,
-      },
-      audioConfig: {
-        audioEncoding: "MP3",
-        speakingRate: rate,
-        pitch: pitchVal,
-      },
-    };
+    // Синтез с кэшем
+    const ttsResult = await synthesizeWithCache(
+      cleanText,
+      languageCodeForRequest,
+      voiceName || undefined,
+      rate,
+      pitchVal
+    );
 
-    const [ttsResponse] = await ttsClient.synthesizeSpeech(ttsRequest);
-
-    if (!ttsResponse || !ttsResponse.audioContent) {
-      throw new Error("Пустой ответ от Google TTS (нет audioContent)");
+    // usage TTS считаем только на MISS (реальный вызов Google TTS)
+    if (!ttsResult.fromCache) {
+      updateUsage("tts", cleanText.length);
     }
 
-    let base64Audio;
-
-    // В разных версиях SDK audioContent может быть строкой base64 или Buffer
-    if (Buffer.isBuffer(ttsResponse.audioContent)) {
-      base64Audio = ttsResponse.audioContent.toString("base64");
-    } else if (typeof ttsResponse.audioContent === "string") {
-      base64Audio = ttsResponse.audioContent;
-    } else {
-      throw new Error(
-        "Неожиданный тип audioContent: " + typeof ttsResponse.audioContent
-      );
-    }
+    const base64Audio = ttsResult.audioContent;
 
     return res.json({
       audioContent: base64Audio,
       mimeType: "audio/mpeg",
-      fromCache: false,
+      fromCache: !!ttsResult.fromCache,
+      cacheId: ttsResult.cacheId,
       debug: {
         requestId,
         durationMs: Date.now() - startedAt,
@@ -356,7 +380,8 @@ app.post("/api/tts", async (req, res) => {
       details: error && error.details,
       stack: error && error.stack,
       nodeEnv: process.env.NODE_ENV || null,
-      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      hasServiceAccount: !!ttsServiceAccount,
+      hasGoogleApplicationCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
     });
 
     const safeDetails = {
@@ -401,6 +426,9 @@ app.post("/api/save-audio", async (req, res) => {
   }
 });
 
+// --------------------------------------------------------
+// 9. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ GEMINI
+// --------------------------------------------------------
 function buildRowsFromGeminiPayload(parsed) {
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Пустой ответ от Gemini");
@@ -419,7 +447,11 @@ function buildRowsFromGeminiPayload(parsed) {
     segments.forEach((seg, idx) => {
       if (!seg || typeof seg !== "object") return;
       let index = seg.index;
-      if (typeof index !== "number" || !Number.isFinite(index) || index <= 0) {
+      if (
+        typeof index !== "number" ||
+        !Number.isFinite(index) ||
+        index <= 0
+      ) {
         index = idx + 1;
       }
       const heBase = (seg.he || "").trim();
@@ -432,7 +464,11 @@ function buildRowsFromGeminiPayload(parsed) {
   const preparedRows = rows.map((row, idx) => {
     if (!row || typeof row !== "object") row = {};
     let segIndex = row.segment_index;
-    if (typeof segIndex !== "number" || !Number.isFinite(segIndex) || segIndex <= 0) {
+    if (
+      typeof segIndex !== "number" ||
+      !Number.isFinite(segIndex) ||
+      segIndex <= 0
+    ) {
       segIndex = idx + 1;
     }
 
@@ -453,7 +489,9 @@ function buildRowsFromGeminiPayload(parsed) {
   return preparedRows;
 }
 
-// --- API: TRANSLATE (Gemini -> таблица) ---
+// --------------------------------------------------------
+// 10. API: TRANSLATE (Gemini -> таблица)
+// --------------------------------------------------------
 app.post("/api/translate-table", async (req, res) => {
   try {
     const { text } = req.body || {};
@@ -600,11 +638,7 @@ Rules:
       const details = error.errorDetails || error.details || [];
 
       for (const d of details) {
-        if (
-          d &&
-          typeof d === "object" &&
-          typeof d["@type"] === "string"
-        ) {
+        if (d && typeof d === "object" && typeof d["@type"] === "string") {
           if (d["@type"].includes("RetryInfo") && d.retryDelay) {
             // retryDelay строка вида "57s" или "3600s"
             const m = String(d.retryDelay).match(/(\d+)/);
@@ -613,10 +647,7 @@ Rules:
             }
           }
 
-          if (
-            d["@type"].includes("QuotaFailure") &&
-            Array.isArray(d.violations)
-          ) {
+          if (d["@type"].includes("QuotaFailure") && Array.isArray(d.violations)) {
             const v = d.violations[0];
             if (v) {
               const q = String(v.description || "").toLowerCase();
@@ -658,9 +689,7 @@ Rules:
             ? Date.parse(stats.geminiDayStart)
             : Date.parse(getCurrentQuotaDayStartISO());
           if (!Number.isNaN(dayStartMs)) {
-            resetAt = new Date(
-              dayStartMs + 24 * 60 * 60 * 1000
-            ).toISOString();
+            resetAt = new Date(dayStartMs + 24 * 60 * 60 * 1000).toISOString();
           }
         } catch (e) {
           console.error("Ошибка вычисления resetAt для daily-limit:", e);
@@ -689,7 +718,9 @@ Rules:
   }
 });
 
-// --- API: EXPORT DOCX ---
+// --------------------------------------------------------
+// 11. API: EXPORT DOCX
+// --------------------------------------------------------
 app.post("/api/export-docx", async (req, res) => {
   try {
     const { rows } = req.body || {};
@@ -780,8 +811,14 @@ app.post("/api/export-docx", async (req, res) => {
 
     const buffer = await Packer.toBuffer(doc);
 
-    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    res.setHeader("Content-Disposition", 'attachment; filename="translation.docx"');
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="translation.docx"'
+    );
     res.send(buffer);
   } catch (error) {
     console.error("DOCX Export Error:", error);
@@ -789,7 +826,9 @@ app.post("/api/export-docx", async (req, res) => {
   }
 });
 
-// --- API: USAGE (для фронтенда) ---
+// --------------------------------------------------------
+// 12. API: USAGE (для фронтенда)
+// --------------------------------------------------------
 app.get("/api/usage", (req, res) => {
   try {
     ensureGeminiDay();
@@ -815,7 +854,7 @@ app.get("/api/usage", (req, res) => {
 });
 
 // --------------------------------------------------------
-// 9. ЗАПУСК СЕРВЕРА
+// 13. ЗАПУСК СЕРВЕРА
 // --------------------------------------------------------
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
