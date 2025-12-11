@@ -232,98 +232,144 @@ async function synthesizeWithCache(text, languageCode, voiceName, speakingRate, 
   return { audioContent, fromCache: false, cacheId: hash };
 }
 
-// --------------------------------------------------------
-// 7. API: TTS-ОЗВУЧКА (расширенная диагностика)
-// --------------------------------------------------------
+// 7. --- API: TTS (Google Cloud Text-to-Speech с расширенной диагностикой) ---
 app.post("/api/tts", async (req, res) => {
-  try {
-    const { text, language, voiceId, speakingRate, pitch } = req.body || {};
+  const requestId = uuidv4();
+  const startedAt = Date.now();
 
-    // 1. Валидация текста
+  try {
+    const {
+      text,
+      language,
+      languageCode,
+      voiceId,
+      speakingRate,
+      pitch,
+    } = req.body || {};
+
+    const lang = language || languageCode;
+
     if (!text || typeof text !== "string" || !text.trim()) {
-      return res.status(400).json({ error: "Нет текста" });
+      return res.status(400).json({ error: "Нет текста для озвучки" });
+    }
+
+    if (!lang || typeof lang !== "string") {
+      return res.status(400).json({ error: "Не указан язык для озвучки" });
     }
 
     const cleanText = text.trim();
 
-    // 2. Нормализуем language с учётом значений из фронтенда
-    //    (he-IL / ru-RU / en-US) + старые короткие коды.
-    let languageCode = "he-IL";
+    // Нормализуем голос и язык
+    const voiceName = voiceId && String(voiceId).trim()
+      ? String(voiceId).trim()
+      : "";
 
-    switch (language) {
-      case "he":
-      case "he-IL":
-        languageCode = "he-IL";
-        break;
-      case "ru":
-      case "ru-RU":
-        languageCode = "ru-RU";
-        break;
-      case "en":
-      case "en-US":
-        languageCode = "en-US";
-        break;
-      default:
-        // если что-то странное пришло — логируем, но не падаем
-        console.warn("[TTS] Неожиданный language из клиента:", language);
-        languageCode = "he-IL";
-        break;
+    // Если указан конкретный голос he-IL-Standard-A → берём язык из него,
+    // иначе используем lang, пришедший с клиента.
+    let languageCodeForRequest = lang;
+    if (voiceName && voiceName.includes("-")) {
+      const parts = voiceName.split("-");
+      if (parts.length >= 2) {
+        languageCodeForRequest = parts[0] + "-" + parts[1];
+      }
     }
 
-    // 3. Логируем факт вызова (без самого текста, только длину и параметры)
-    console.log("[TTS] Запрос озвучки:", {
+    // Скорость и тон
+    let rate = 1.0;
+    if (typeof speakingRate === "number") {
+      rate = speakingRate;
+    } else if (typeof speakingRate === "string" && speakingRate.trim() !== "") {
+      const num = Number(speakingRate);
+      if (!Number.isNaN(num) && num > 0) rate = num;
+    }
+
+    let pitchVal = 0.0;
+    if (typeof pitch === "number") {
+      pitchVal = pitch;
+    } else if (typeof pitch === "string" && pitch.trim() !== "") {
+      const num = Number(pitch);
+      if (!Number.isNaN(num)) pitchVal = num;
+    }
+
+    // Логируем, ЧТО именно отправляем в Google, чтобы понять, где падает Railway
+    console.log("[/api/tts] request", {
+      requestId,
       textLength: cleanText.length,
-      language,
-      languageCode,
-      voiceId: voiceId || null,
-      speakingRate: speakingRate || 1.0,
-      pitch: pitch || 0.0,
-      envNode: process.env.NODE_ENV || "undefined",
+      langFromClient: lang,
+      languageCodeForRequest,
+      voiceName: voiceName || "auto",
+      speakingRate: rate,
+      pitch: pitchVal,
+      nodeEnv: process.env.NODE_ENV || null,
+      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
     });
 
-    // 4. Синтез с учётом кэша
-    const { audioContent, fromCache, cacheId } = await synthesizeWithCache(
-      cleanText,
-      languageCode,
-      voiceId,
-      speakingRate,
-      pitch
-    );
-
-    // 5. Обновляем usage по символам (только если НЕ из кэша)
-    if (!fromCache) {
-      updateUsage("tts", cleanText.length);
-    }
-
-    // 6. Отдаём результат клиенту
-    res.json({
-      audioContent,
-      fromCache,
-      cacheId,
-    });
-  } catch (error) {
-    // 7. Подробный лог на сервере
-    console.error("[TTS] Ошибка при озвучке:", {
-      message: error && error.message,
-      code: error && (error.code || error.statusCode),
-      details: error && (error.details || error.errorDetails),
-      stack: error && error.stack,
-    });
-
-    // 8. Диагностичный ответ клиенту
-    const payload = {
-      error: "Ошибка TTS",
-      message: error && error.message ? String(error.message) : null,
-      code: error && (error.code || error.statusCode) ? String(error.code || error.statusCode) : null,
-      details: error && (error.details || error.errorDetails)
-        ? error.details || error.errorDetails
-        : null,
-      // Минимальная проверка окружения, чтобы понять, встал ли вопрос в кредах
-      hasCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
-      projectId: process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT || null,
+    const ttsRequest = {
+      input: { text: cleanText },
+      voice: {
+        languageCode: languageCodeForRequest,
+        name: voiceName || undefined,
+      },
+      audioConfig: {
+        audioEncoding: "MP3",
+        speakingRate: rate,
+        pitch: pitchVal,
+      },
     };
 
-    res.status(500).json(payload);
+    const [ttsResponse] = await ttsClient.synthesizeSpeech(ttsRequest);
+
+    if (!ttsResponse || !ttsResponse.audioContent) {
+      throw new Error("Пустой ответ от Google TTS (нет audioContent)");
+    }
+
+    let base64Audio;
+
+    // В разных версиях SDK audioContent может быть строкой base64 или Buffer
+    if (Buffer.isBuffer(ttsResponse.audioContent)) {
+      base64Audio = ttsResponse.audioContent.toString("base64");
+    } else if (typeof ttsResponse.audioContent === "string") {
+      base64Audio = ttsResponse.audioContent;
+    } else {
+      throw new Error(
+        "Неожиданный тип audioContent: " + typeof ttsResponse.audioContent
+      );
+    }
+
+    return res.json({
+      audioContent: base64Audio,
+      mimeType: "audio/mpeg",
+      fromCache: false,
+      debug: {
+        requestId,
+        durationMs: Date.now() - startedAt,
+      },
+    });
+  } catch (error) {
+    // Максимально подробный лог в консоль Railway
+    console.error("[/api/tts] Ошибка TTS", {
+      requestId,
+      message: error && error.message,
+      name: error && error.name,
+      code: error && error.code,
+      status: error && error.status,
+      details: error && error.details,
+      stack: error && error.stack,
+      nodeEnv: process.env.NODE_ENV || null,
+      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    });
+
+    const safeDetails = {
+      requestId,
+      message: (error && error.message) || "Неизвестная ошибка TTS",
+      code: (error && error.code) || null,
+      status: (error && error.status) || null,
+    };
+
+    return res.status(500).json({
+      error: "Ошибка TTS",
+      details: safeDetails,
+    });
   }
 });
 
