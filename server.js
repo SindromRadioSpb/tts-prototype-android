@@ -101,22 +101,35 @@ if (GEMINI_API_KEY) {
 function getUsage() {
   try {
     if (!fs.existsSync(usageFile)) {
+      // начальное состояние, если файла ещё нет
       return {
         ttsChars: 0,
         ttsCost: 0,
+        // ДНЕВНОЙ счётчик запросов Gemini
         geminiRequests: 0,
+        // ОБЩИЙ счётчик запросов Gemini (не сбрасывается)
+        geminiRequestsTotal: 0,
         geminiDayStart: null,
         geminiDailyLimitHit: false,
       };
     }
+
     const raw = fs.readFileSync(usageFile, "utf8");
     const data = JSON.parse(raw);
-    if (!data.ttsChars) data.ttsChars = 0;
-    if (!data.ttsCost) data.ttsCost = 0;
-    if (!data.geminiRequests) data.geminiRequests = 0;
+
+    if (typeof data.ttsChars !== "number") data.ttsChars = 0;
+    if (typeof data.ttsCost !== "number") data.ttsCost = 0;
+
+    // дневной счётчик
+    if (typeof data.geminiRequests !== "number") data.geminiRequests = 0;
+    // общий счётчик
+    if (typeof data.geminiRequestsTotal !== "number") data.geminiRequestsTotal = 0;
+
+    if (!data.geminiDayStart) data.geminiDayStart = null;
     if (!Object.prototype.hasOwnProperty.call(data, "geminiDailyLimitHit")) {
       data.geminiDailyLimitHit = false;
     }
+
     return data;
   } catch (e) {
     console.error("Ошибка чтения usage.json:", e);
@@ -124,6 +137,7 @@ function getUsage() {
       ttsChars: 0,
       ttsCost: 0,
       geminiRequests: 0,
+      geminiRequestsTotal: 0,
       geminiDayStart: null,
       geminiDailyLimitHit: false,
     };
@@ -186,12 +200,15 @@ function ensureGeminiDay() {
   const currentDayStart = getCurrentQuotaDayStartISO();
 
   if (usage.geminiDayStart !== currentDayStart) {
+    // день квоты поменялся → сбрасываем ТОЛЬКО дневной счётчик
     usage.geminiDayStart = currentDayStart;
     usage.geminiRequests = 0;
     usage.geminiDailyLimitHit = false;
+    // ОБЩИЙ счётчик НЕ трогаем
     saveUsage(usage);
   }
 }
+
 
 // Увеличить usage по TTS и Gemini
 function updateUsage(type, value) {
@@ -203,11 +220,23 @@ function updateUsage(type, value) {
     usage.ttsCost = (usage.ttsChars / 1_000_000) * TTS_COST_PER_MILLION;
   } else if (type === "gemini") {
     ensureGeminiDay();
-    usage.geminiRequests += value || 1;
+
+    const inc = value || 1;
+
+    // дневной счётчик (сбрасывается по квоте)
+    if (typeof usage.geminiRequests !== "number") usage.geminiRequests = 0;
+    usage.geminiRequests += inc;
+
+    // общий счётчик (не сбрасывается никогда)
+    if (typeof usage.geminiRequestsTotal !== "number") {
+      usage.geminiRequestsTotal = 0;
+    }
+    usage.geminiRequestsTotal += inc;
   }
 
   saveUsage(usage);
 }
+
 
 function markGeminiDailyLimitHit() {
   const usage = getUsage();
@@ -834,24 +863,39 @@ app.get("/api/usage", (req, res) => {
     ensureGeminiDay();
     const usage = getUsage();
 
-    const usedToday = usage.geminiRequests || 0;
+    const usedToday = typeof usage.geminiRequests === "number"
+      ? usage.geminiRequests
+      : 0;
     const limit = GEMINI_DAILY_LIMIT;
     const dayStart = usage.geminiDayStart || getCurrentQuotaDayStartISO();
+    const totalGemini = typeof usage.geminiRequestsTotal === "number"
+      ? usage.geminiRequestsTotal
+      : 0;
 
     res.json({
+      // TTS
       ttsChars: usage.ttsChars,
       ttsCost: usage.ttsCost,
+
+      // Gemini — дневная статистика
       geminiRequestsToday: usedToday,
       geminiDailyLimit: limit,
       geminiDayStart: dayStart,
       geminiDailyLimitHit: !!usage.geminiDailyLimitHit,
       resetHourUTC: GEMINI_RESET_HOUR_UTC,
+
+      // Для совместимости со старым фронтом
+      geminiRequests: usedToday,
+
+      // НОВОЕ поле: общий счётчик запросов
+      geminiRequestsTotal: totalGemini,
     });
   } catch (error) {
     console.error("Usage Error:", error);
     res.status(500).json({ error: "Ошибка чтения usage" });
   }
 });
+
 
 // --------------------------------------------------------
 // 13. ЗАПУСК СЕРВЕРА
