@@ -490,6 +490,27 @@
             background: #e9ecef;
         }
 
+        /* Внешний переключатель для блока горячих клавиш (для мобилы) */
+        .hotkeys-toggle-outer {
+            margin-bottom: 6px;
+            text-align: right;
+            display: none; /* по умолчанию скрыт, JS включает при необходимости */
+        }
+
+        .hotkeys-toggle-link {
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 12px;
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .hotkeys-toggle-link:hover {
+            text-decoration: none;
+        }
+
         @media (max-width: 600px) {
             .dashboard-header {
                 flex-direction: column;
@@ -622,13 +643,31 @@
     <div class="main-card">
         <h2>Текст для озвучки и перевода</h2>
 
+        <!-- Внешняя кнопка для показа панели горячих клавиш (важно для мобилы) -->
+        <div id="hotkeysToggleOuter" class="hotkeys-toggle-outer">
+            <button
+                type="button"
+                class="hotkeys-toggle-link"
+                onclick="toggleHotkeysPanel(true)"
+            >
+                Показать подсказки по горячим клавишам
+            </button>
+        </div>
+
         <!-- Блок горячих клавиш — сразу под заголовком (Вариант A) -->
         <div id="hotkeysPanel" class="hotkeys-panel">
             <div class="hotkeys-header">
                 <strong>Горячие клавиши</strong>
                 <span class="hotkeys-hint">
-                    Нажмите <code>Ctrl+/</code>, чтобы скрыть или показать этот блок.
+                    На компьютере: используйте <code>Ctrl+/</code> для скрытия/показа.
                 </span>
+                <button
+                    type="button"
+                    class="hotkeys-toggle-link"
+                    onclick="toggleHotkeysPanel()"
+                >
+                    Скрыть подсказки
+                </button>
             </div>
             <ul class="hotkeys-list">
                 <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
@@ -721,6 +760,7 @@
         const btnWordEl = document.getElementById("btnWord");
         const btnAiTranslateEl = document.getElementById("btnAiTranslate");
         const hotkeysPanelEl = document.getElementById("hotkeysPanel");
+        const hotkeysToggleOuterEl = document.getElementById("hotkeysToggleOuter");
 
         const voiceSelectEl = document.getElementById("voiceSelect");
         const rateRangeEl = document.getElementById("rateRange");
@@ -731,6 +771,7 @@
         const STORAGE_KEY = "ttsDashboard_text_v1";
         const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
         const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
+        const HOTKEYS_VISIBILITY_KEY = "ttsDashboard_hotkeys_hidden_v1";
 
         let saveTimer = null;
 
@@ -1875,16 +1916,57 @@
         }
 
         // ----------------------------
-        // УПРАВЛЕНИЕ БЛОКОМ ГОРЯЧИХ КЛАВИШ
+        // УПРАВЛЕНИЕ БЛОКОМ ГОРЯЧИХ КЛАВИШ (состояние хранится в localStorage)
         // ----------------------------
-        function toggleHotkeysPanel(forceState) {
+        function applyHotkeysInitialState() {
             if (!hotkeysPanelEl) return;
-            if (typeof forceState === "boolean") {
-                hotkeysPanelEl.classList.toggle("hotkeys-hidden", !forceState);
+
+            let hidden = false;
+            try {
+                const val = localStorage.getItem(HOTKEYS_VISIBILITY_KEY);
+                hidden = (val === "1");
+            } catch (e) {
+                console.error("Hotkeys visibility restore error", e);
+            }
+
+            if (hidden) {
+                hotkeysPanelEl.classList.add("hotkeys-hidden");
             } else {
-                hotkeysPanelEl.classList.toggle("hotkeys-hidden");
+                hotkeysPanelEl.classList.remove("hotkeys-hidden");
+            }
+
+            if (hotkeysToggleOuterEl) {
+                hotkeysToggleOuterEl.style.display = hidden ? "block" : "none";
             }
         }
+
+        function toggleHotkeysPanel(forceState) {
+            if (!hotkeysPanelEl) return;
+
+            let willBeHidden;
+
+            if (typeof forceState === "boolean") {
+                // true = показать, false = скрыть
+                willBeHidden = !forceState;
+                hotkeysPanelEl.classList.toggle("hotkeys-hidden", willBeHidden);
+            } else {
+                hotkeysPanelEl.classList.toggle("hotkeys-hidden");
+                willBeHidden = hotkeysPanelEl.classList.contains("hotkeys-hidden");
+            }
+
+            if (hotkeysToggleOuterEl) {
+                hotkeysToggleOuterEl.style.display = willBeHidden ? "block" : "none";
+            }
+
+            try {
+                localStorage.setItem(HOTKEYS_VISIBILITY_KEY, willBeHidden ? "1" : "0");
+            } catch (e) {
+                console.error("Hotkeys visibility save error", e);
+            }
+        }
+
+        // применяем сохранённое состояние панели горячих клавиш при загрузке
+        applyHotkeysInitialState();
 
         // ----------------------------
         // ГЛОБАЛЬНЫЕ ГОРЯЧИЕ КЛАВИШИ
@@ -1936,8 +2018,8 @@
                 !event.altKey &&
                 !event.metaKey &&
                 (
-                    event.code === "KeyS" ||                                // раскладка-независимый вариант
-                    (typeof event.key === "string" && event.key.toLowerCase() === "s") // запасной вариант
+                    event.code === "KeyS" ||
+                    (typeof event.key === "string" && event.key.toLowerCase() === "s")
                 )
             ) {
                 event.preventDefault();
