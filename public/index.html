@@ -67,32 +67,13 @@
             margin-top: 4px;
         }
 
-        .model-info {
-            margin-top: 6px;
-        }
+        .model-info { margin-top: 6px; }
+        .today-info { margin-top: 4px; }
+        .reset-info { margin-top: 2px; }
 
-        .today-info {
-            margin-top: 4px;
-        }
-
-        .reset-info {
-            margin-top: 2px;
-        }
-
-        .limit-ok {
-            color: #2e7d32; /* зелёный */
-            font-weight: 600;
-        }
-
-        .limit-warning {
-            color: #ff8f00; /* оранжевый */
-            font-weight: 600;
-        }
-
-        .limit-exceeded {
-            color: #c62828; /* красный */
-            font-weight: 700;
-        }
+        .limit-ok { color: #2e7d32; font-weight: 600; }
+        .limit-warning { color: #ff8f00; font-weight: 600; }
+        .limit-exceeded { color: #c62828; font-weight: 700; }
 
         /* Прогресс-бар дневного лимита Gemini */
         .gemini-quota-bar {
@@ -112,13 +93,8 @@
             transition: width 0.3s ease;
         }
 
-        .gemini-quota-fill.warning {
-            background-color: #ff8f00;
-        }
-
-        .gemini-quota-fill.exceeded {
-            background-color: #c62828;
-        }
+        .gemini-quota-fill.warning { background-color: #ff8f00; }
+        .gemini-quota-fill.exceeded { background-color: #c62828; }
 
         /* Прогресс-бар месячного лимита TTS (4 000 000 символов) */
         .tts-quota-bar {
@@ -177,7 +153,7 @@
 
         textarea {
             width: 100%;
-            height: 140px;              /* стартовая высота */
+            height: 140px;
             padding: 22px 18px;
             border: 1px solid #b5b5b5;
             border-radius: 12px;
@@ -185,9 +161,9 @@
             line-height: 1.6;
             margin-bottom: 12px;
             box-sizing: border-box;
-            resize: none;               /* управляем ростом сами через JS */
-            overflow-y: auto;           /* внутренний скролл для длинного текста */
-            max-height: 280px;          /* ограничение роста textarea */
+            resize: none;
+            overflow-y: auto;
+            max-height: 280px;
             direction: ltr;
             text-align: left;
             background-color: #ffffff;
@@ -202,8 +178,6 @@
             text-align: right;
             line-height: 1.9;
             font-family: var(--hebrew-font);
-
-            /* лёгкий визуальный баланс: больше отступ справа, меньше слева */
             padding-right: 22px;
             padding-left: 14px;
         }
@@ -220,9 +194,7 @@
             display: none;
         }
 
-        #textChangedNotice.notice-visible {
-            display: block;
-        }
+        #textChangedNotice.notice-visible { display: block; }
 
         /* Баннер лимитов Gemini */
         #limitBanner {
@@ -272,8 +244,7 @@
             letter-spacing: 0.3px;
         }
 
-        button,
-        select {
+        button, select {
             padding: 12px 20px;
             font-size: 15px;
             border: none;
@@ -331,9 +302,8 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
 
-        /* Общий стиль "disabled" для кнопок и через атрибут, и через класс */
-        button.disabled,
-        button:disabled {
+        /* Общий стиль "disabled" */
+        button.disabled, button:disabled {
             background-color: #d0d4d8 !important;
             color: #888 !important;
             cursor: not-allowed !important;
@@ -375,16 +345,12 @@
             transition: 0.2s;
         }
 
-        .audio-download-btn:hover {
-            background: #f0f4f7;
-        }
+        .audio-download-btn:hover { background: #f0f4f7; }
 
-        /* ТАБЛИЦА — учебный Word-стиль */
-        #tableContainer {
-            margin-top: 20px;
-        }
+        /* ТАБЛИЦА */
+        #tableContainer { margin-top: 20px; }
 
-        /* НАСТРОЙКИ ТАБЛИЦЫ (колонки / пресеты) */
+        /* НАСТРОЙКИ ТАБЛИЦЫ */
         .table-settings {
             margin-top: 10px;
             margin-bottom: 10px;
@@ -418,8 +384,7 @@
             justify-content: flex-end;
         }
 
-        .btn-mini,
-        .btn-mini-secondary {
+        .btn-mini, .btn-mini-secondary {
             padding: 6px 10px;
             font-size: 12px;
             border-radius: 8px;
@@ -430,10 +395,7 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        .btn-mini:hover,
-        .btn-mini-secondary:hover {
-            background: #f0f4f7;
-        }
+        .btn-mini:hover, .btn-mini-secondary:hover { background: #f0f4f7; }
 
         .btn-mini.active {
             border-color: #3498db;
@@ -445,9 +407,7 @@
             border-style: dashed;
         }
 
-        .table-settings-cols {
-            justify-content: flex-start;
-        }
+        .table-settings-cols { justify-content: flex-start; }
 
         .table-chk {
             display: inline-flex;
@@ -459,9 +419,7 @@
             white-space: nowrap;
         }
 
-        .table-chk input[type="checkbox"] {
-            transform: translateY(0.5px);
-        }
+        .table-chk input[type="checkbox"] { transform: translateY(0.5px); }
 
         .table-settings-sub {
             margin-top: 8px;
@@ -474,12 +432,8 @@
         }
 
         @media (max-width: 600px) {
-            .table-settings-row {
-                justify-content: flex-start;
-            }
-            .table-presets {
-                justify-content: flex-start;
-            }
+            .table-settings-row { justify-content: flex-start; }
+            .table-presets { justify-content: flex-start; }
         }
 
         table {
@@ -490,13 +444,16 @@
             box-shadow: none;
             border: 1px solid #000000;
             font-size: 15px;
+            table-layout: fixed; /* важно для стабильной работы процентов и resize */
         }
 
-        th,
-        td {
+        th, td {
             padding: 6px 8px;
             text-align: left;
             border: 1px solid #000000;
+            vertical-align: top;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         th {
@@ -504,6 +461,8 @@
             color: #000000;
             font-weight: 700;
             text-align: center;
+            position: relative; /* для грипа */
+            user-select: none;
         }
 
         .rtl {
@@ -512,14 +471,8 @@
             font-family: var(--hebrew-font);
         }
 
-        .rtl-he {
-            font-size: 18px;
-        }
-
-        .rtl-he-niqqud {
-            font-size: 19px;
-            line-height: 1.9;
-        }
+        .rtl-he { font-size: 18px; }
+        .rtl-he-niqqud { font-size: 19px; line-height: 1.9; }
 
         .error {
             color: #e74c3c;
@@ -551,7 +504,7 @@
             color: #6c757d;
         }
 
-        /* Метаданные результатов (источник озвучки и таблицы) */
+        /* Метаданные результатов */
         #resultsMeta {
             display: none;
             margin-top: 4px;
@@ -560,20 +513,11 @@
             color: #6c757d;
         }
 
-        .results-meta-line {
-            margin-bottom: 2px;
-        }
+        .results-meta-line { margin-bottom: 2px; }
+        .results-meta-label { font-weight: 600; margin-right: 4px; color: #495057; }
 
-        .results-meta-label {
-            font-weight: 600;
-            margin-right: 4px;
-            color: #495057;
-        }
-
-        /* Слайдеры скорости и тона */
-        input[type="range"] {
-            width: 180px;
-        }
+        /* Слайдеры */
+        input[type="range"] { width: 180px; }
 
         /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
         .hotkeys-panel {
@@ -587,9 +531,7 @@
             color: #495057;
         }
 
-        .hotkeys-panel.hotkeys-hidden {
-            display: none;
-        }
+        .hotkeys-panel.hotkeys-hidden { display: none; }
 
         .hotkeys-header {
             display: flex;
@@ -618,9 +560,7 @@
             margin: 0;
         }
 
-        .hotkeys-list li {
-            margin-bottom: 4px;
-        }
+        .hotkeys-list li { margin-bottom: 4px; }
 
         .hotkeys-list code {
             font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
@@ -630,7 +570,7 @@
             background: #e9ecef;
         }
 
-        /* ТОСТ-ИНДИКАТОР */
+        /* ТОСТ */
         #toastContainer {
             position: fixed;
             left: 50%;
@@ -663,55 +603,72 @@
         }
 
         @media (max-width: 600px) {
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+            .dashboard-header { flex-direction: column; align-items: flex-start; }
+            .btn-console { width: 100%; text-align: center; }
+            .stats-box { width: 100%; }
+            .stat-item { width: 100%; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .field-group { width: 100%; }
+            .field-group select, .field-group input[type="range"] { width: 100%; }
+            button, select { width: 100%; }
+            .btn-word { margin-left: 0; }
+            .hotkeys-header { flex-direction: column; align-items: flex-start; }
+            .hotkeys-hint { text-align: left; }
+        }
 
-            .btn-console {
-                width: 100%;
-                text-align: center;
-            }
+        /* ============================
+           PRO: RESIZE COLUMNS (Excel-style)
+           ============================ */
 
-            .stats-box {
-                width: 100%;
-            }
+        /* Курсор во время drag */
+        body.resizing-cols {
+            cursor: col-resize !important;
+            user-select: none !important;
+        }
 
-            .stat-item {
-                width: 100%;
-            }
+        /* Грип (ручка) в заголовке */
+        .col-resizer {
+            position: absolute;
+            top: 0;
+            right: -4px;
+            width: 10px;
+            height: 100%;
+            cursor: col-resize;
+            touch-action: none;
+            background: transparent;
+        }
 
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
+        /* Тонкая вертикальная линия внутри грипа */
+        .col-resizer::after {
+            content: "";
+            position: absolute;
+            top: 15%;
+            bottom: 15%;
+            left: 50%;
+            width: 2px;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.18);
+            border-radius: 2px;
+        }
 
-            .field-group {
-                width: 100%;
-            }
+        th:hover .col-resizer::after {
+            background: rgba(0,0,0,0.35);
+        }
 
-            .field-group select,
-            .field-group input[type="range"] {
-                width: 100%;
-            }
+        /* Чтобы на последней видимой колонке не рисовать грип */
+        .col-resizer.hidden {
+            display: none;
+        }
 
-            button,
-            select {
-                width: 100%;
-            }
-
-            .btn-word {
-                margin-left: 0;
-            }
-
-            .hotkeys-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .hotkeys-hint {
-                text-align: left;
-            }
+        /* Невидимый измеритель текста для autofit */
+        #measureBox {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            visibility: hidden;
+            white-space: nowrap;
+            padding: 0;
+            margin: 0;
         }
     </style>
 </head>
@@ -738,14 +695,12 @@
                     class="stat-sub"
                     title="Тариф Google Cloud TTS для стандартных голосов."
                 >
-                    <!-- Текст заполнится из JS -->
                 </div>
                 <div
                     id="ttsQuotaInfo"
                     class="stat-sub"
                     title="Использование базового бесплатного лимита 4 000 000 символов в месяц."
                 >
-                    <!-- Текст заполнится из JS -->
                 </div>
                 <div
                     class="tts-quota-bar"
@@ -809,7 +764,7 @@
     <div class="main-card">
         <h2>Текст для озвучки и перевода</h2>
 
-        <!-- Блок горячих клавиш — сразу под заголовком -->
+        <!-- Блок горячих клавиш -->
         <div id="hotkeysPanel" class="hotkeys-panel">
             <div class="hotkeys-header">
                 <strong>Горячие клавиши</strong>
@@ -890,10 +845,9 @@
         </div>
 
         <div id="audioContainer" style="margin-bottom: 4px;"></div>
-        <!-- Единый блок метаданных результатов (озвучка + таблица) -->
         <div id="resultsMeta"></div>
 
-        <!-- Настройки таблицы (колонки / пресеты) -->
+        <!-- Настройки таблицы -->
         <div id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
             <div class="table-settings-row">
                 <div class="table-settings-title">🧩 Таблица: отображение колонок</div>
@@ -922,10 +876,13 @@
         <div id="tableContainer"></div>
     </div>
 
-    <!-- Контейнер для тост-индикаторов -->
+    <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-    <script>
+    <!-- измеритель текста для auto-fit -->
+    <div id="measureBox"></div>
+
+<script>
     // ----------------------------
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
@@ -949,6 +906,8 @@
     const toastContainerEl = document.getElementById("toastContainer");
     const resultsMetaEl = document.getElementById("resultsMeta");
 
+    const measureBoxEl = document.getElementById("measureBox");
+
     let toastTimeoutId = null;
 
     const STORAGE_KEY = "ttsDashboard_text_v1";
@@ -964,7 +923,7 @@
     // Порядок колонок фиксированный (источник истины)
     const TABLE_COL_ORDER = ["he", "niqqud", "translit", "ru"];
 
-    // Видимость колонок (минимум 1 колонка должна оставаться видимой)
+    // Видимость колонок
     let tableVisibleColumns = {
         he: true,
         niqqud: true,
@@ -972,12 +931,31 @@
         ru: true
     };
 
-    // Базовые ширины (в процентах) — храним всегда 4, независимо от видимости.
-    // Эффективные ширины считаются как ренормализация видимых весов до 100%.
+    // Базовые ширины (проценты) — всегда 4 значения
     let tableBaseWidths = [22, 22, 24, 32];
 
-    // Последний выбранный пресет (для UX-стабильности)
+    // Последний выбранный пресет
     let tablePreset = "full";
+
+    // ----------------------------
+    // PRO RESIZE: параметры
+    // ----------------------------
+    const RESIZE_MIN_COL_PERCENT = 6;   // минимальная ширина видимой колонки в процентах
+    const RESIZE_MAX_COL_PERCENT = 90;  // защита от “почти всё в одну”
+    const RESIZE_SNAP_EPS = 0.00001;
+
+    // Drag state
+    const resizeState = {
+        active: false,
+        pointerId: null,
+        startX: 0,
+        tableWidthPx: 0,
+        leftKey: null,
+        rightKey: null,
+        startLeft: 0,
+        startRight: 0,
+        preferNeighbor: "right"
+    };
 
     function loadTableSettings() {
         try {
@@ -1010,11 +988,14 @@
                 tablePreset = parsed.preset.trim();
             }
 
-            // Защита: не допускаем состояния "всё скрыто"
+            // Защита: не допускаем "всё скрыто"
             if (countVisibleColumns() < 1) {
                 tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
                 tablePreset = "full";
             }
+
+            // Строгий контроль суммы (видимые => 100)
+            normalizeVisibleBaseWidthsTo100();
         } catch (e) {
             console.error("Table settings load error", e);
         }
@@ -1043,7 +1024,6 @@
     }
 
     function computeEffectiveWidths() {
-        // Возвращает объект {he: xx, niqqud: yy, translit: zz, ru: ww} где сумма видимых = 100
         const weights = {};
         let sum = 0;
 
@@ -1059,19 +1039,18 @@
         });
 
         if (sum <= 0) {
-            // аварийный fallback
-            TABLE_COL_ORDER.forEach(function (k) { weights[k] = tableVisibleColumns[k] ? (100 / countVisibleColumns()) : 0; });
+            TABLE_COL_ORDER.forEach(function (k) {
+                weights[k] = tableVisibleColumns[k] ? (100 / countVisibleColumns()) : 0;
+            });
             return weights;
         }
 
-        // нормализация
         TABLE_COL_ORDER.forEach(function (k) {
             if (weights[k] > 0) {
                 weights[k] = (weights[k] / sum) * 100;
             }
         });
 
-        // корректируем округление, чтобы итог был ровно 100.00
         const visibleKeys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
         if (visibleKeys.length > 0) {
             let total = 0;
@@ -1087,7 +1066,6 @@
         const root = document.getElementById("tableSettings");
         if (!root) return;
 
-        // чекбоксы
         const inputs = root.querySelectorAll('input[type="checkbox"][data-col]');
         inputs.forEach(function (inp) {
             const key = inp.getAttribute("data-col");
@@ -1096,7 +1074,6 @@
             }
         });
 
-        // пресеты: active
         const presetButtons = root.querySelectorAll('button[data-preset]');
         presetButtons.forEach(function (btn) {
             btn.classList.toggle("active", btn.getAttribute("data-preset") === tablePreset);
@@ -1110,7 +1087,6 @@
         const root = document.getElementById("tableSettings");
         if (!root) return;
 
-        // клики по пресетам
         root.addEventListener("click", function (e) {
             const btn = e.target && e.target.closest ? e.target.closest("button[data-preset]") : null;
             if (!btn) return;
@@ -1121,13 +1097,11 @@
             applyPreset(preset);
             applyTableSettingsToUI();
 
-            // перерисовка таблицы, если она уже есть
             if (Array.isArray(currentTableData) && currentTableData.length > 0) {
                 renderTable(currentTableData);
             }
         });
 
-        // переключение чекбоксов
         root.addEventListener("change", function (e) {
             const inp = e.target;
             if (!inp || inp.tagName !== "INPUT" || inp.type !== "checkbox") return;
@@ -1135,13 +1109,10 @@
             if (!key || !Object.prototype.hasOwnProperty.call(tableVisibleColumns, key)) return;
 
             const next = !!inp.checked;
-
-            // защита: нельзя отключить последнюю колонку
             const prevValue = !!tableVisibleColumns[key];
             tableVisibleColumns[key] = next;
 
             if (countVisibleColumns() < 1) {
-                // откат
                 tableVisibleColumns[key] = prevValue;
                 inp.checked = prevValue;
                 showToast("Нельзя скрыть все колонки. Минимум одна должна оставаться видимой.");
@@ -1149,6 +1120,10 @@
             }
 
             tablePreset = "custom";
+
+            // Строгий контроль суммы после изменения набора видимых
+            normalizeVisibleBaseWidthsTo100();
+
             saveTableSettings();
             applyTableSettingsToUI();
 
@@ -1157,13 +1132,15 @@
             }
         });
 
-        // сброс
         const resetBtn = document.getElementById("btnTableReset");
         if (resetBtn) {
             resetBtn.addEventListener("click", function () {
                 tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
                 tableBaseWidths = [22, 22, 24, 32];
                 tablePreset = "full";
+
+                normalizeVisibleBaseWidthsTo100();
+
                 saveTableSettings();
                 applyTableSettingsToUI();
                 if (Array.isArray(currentTableData) && currentTableData.length > 0) {
@@ -1173,12 +1150,12 @@
             });
         }
 
-        // первичное сохранение, чтобы состояние стало стабильным
+        // первичное сохранение
+        normalizeVisibleBaseWidthsTo100();
         saveTableSettings();
     }
 
     function applyPreset(preset) {
-        // Presets: full, he_ru, phonetics, he_only
         if (preset === "full") {
             tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
         } else if (preset === "he_ru") {
@@ -1188,37 +1165,36 @@
         } else if (preset === "he_only") {
             tableVisibleColumns = { he: true, niqqud: false, translit: false, ru: false };
         } else {
-            // custom / unknown
             preset = "custom";
         }
 
-        // безопасность
         if (countVisibleColumns() < 1) {
             tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
             preset = "full";
         }
 
         tablePreset = preset;
+
+        // Строгий контроль суммы
+        normalizeVisibleBaseWidthsTo100();
+
         saveTableSettings();
     }
 
-    // Предзагрузка настроек (важно до восстановлений таблицы из кэша)
+    // Предзагрузка настроек
     loadTableSettings();
 
     let saveTimer = null;
 
-    // состояние "старости" по отдельности
     let tableIsStale = false;
     let audioIsStale = false;
 
-    // кэш аудио в памяти
     let lastAudioBlob = null;
     let lastAudioUrl = null;
 
-    // имя последнего DOCX (по моменту AI-перевода)
     let lastDocxFilename = null;
 
-    // --- Состояние лимитов Gemini ---
+    // --- Gemini ---
     let geminiRequestsToday = 0;
     let geminiDailyLimit = 20;
     let geminiNextResetAt = null;
@@ -1227,17 +1203,14 @@
     let geminiLockUntil = null;
     let geminiLimitTimerId = null;
 
-    // --- Состояние usage для TTS-стоимости ---
+    // --- TTS usage ---
     let lastUsageData = null;
 
-    // --- Состояние метаданных результатов (озвучка / таблица) ---
-    const resultsMetaState = {
-        audioSource: null,
-        tableSource: null
-    };
+    // --- results meta ---
+    const resultsMetaState = { audioSource: null, tableSource: null };
 
     // ----------------------------
-    // ПРОСТОЙ ТОСТ-ИНДИКАТОР
+    // ТОСТ
     // ----------------------------
     function showToast(message) {
         if (!toastContainerEl) return;
@@ -1277,11 +1250,11 @@
         }, 2500);
     }
 
-    // Инициализация UI настроек таблицы (чекбоксы/пресеты)
+    // Инициализация UI таблицы
     initTableSettingsUI();
 
     // ----------------------------
-    // МЕТАДАННЫЕ РЕЗУЛЬТАТОВ
+    // RESULTS META
     // ----------------------------
     function renderResultsMeta() {
         if (!resultsMetaEl) return;
@@ -1335,17 +1308,13 @@
     }
 
     function clearResultsMeta(part) {
-        if (!part || part === "audio") {
-            resultsMetaState.audioSource = null;
-        }
-        if (!part || part === "table") {
-            resultsMetaState.tableSource = null;
-        }
+        if (!part || part === "audio") resultsMetaState.audioSource = null;
+        if (!part || part === "table") resultsMetaState.tableSource = null;
         renderResultsMeta();
     }
 
     // ----------------------------
-    // ВОССТАНОВЛЕНИЕ ТЕКСТА
+    // RESTORE TEXT
     // ----------------------------
     (function restoreText() {
         try {
@@ -1390,18 +1359,13 @@
             const bottomGap = window.innerHeight - rect.bottom;
 
             if (bottomGap < 80) {
-                inputTextEl.scrollIntoView({
-                    block: "end",
-                    behavior: "smooth"
-                });
+                inputTextEl.scrollIntoView({ block: "end", behavior: "smooth" });
             }
         }
     }
 
     function scheduleSaveText() {
-        if (saveTimer) {
-            clearTimeout(saveTimer);
-        }
+        if (saveTimer) clearTimeout(saveTimer);
         saveTimer = setTimeout(function () {
             try {
                 localStorage.setItem(STORAGE_KEY, inputTextEl.value);
@@ -1412,7 +1376,7 @@
     }
 
     // ----------------------------
-    // ВОССТАНОВЛЕНИЕ ТАБЛИЦЫ ИЗ КЭША
+    // RESTORE TABLE CACHE
     // ----------------------------
     (function restoreTableFromCache() {
         try {
@@ -1434,17 +1398,14 @@
             }
 
             tableIsStale = false;
-            setResultsMeta(
-                "table",
-                "перевод восстановлен из локального кэша браузера (без запроса к Gemini)"
-            );
+            setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
         } catch (e) {
             console.error("Table cache restore error", e);
         }
     })();
 
     // ----------------------------
-    // ВОССТАНОВЛЕНИЕ НАСТРОЕК TTS (ГОЛОС, СКОРОСТЬ, ТОН)
+    // RESTORE TTS VOICE CONFIG
     // ----------------------------
     (function restoreTtsVoiceConfig() {
         try {
@@ -1504,28 +1465,12 @@
         return { voiceId, rate, pitch };
     }
 
-    if (voiceSelectEl) {
-        voiceSelectEl.addEventListener("change", function () {
-            saveTtsVoiceConfig();
-        });
-    }
-
-    if (rateRangeEl) {
-        rateRangeEl.addEventListener("input", function () {
-            updateTtsControlsUI();
-            saveTtsVoiceConfig();
-        });
-    }
-
-    if (pitchRangeEl) {
-        pitchRangeEl.addEventListener("input", function () {
-            updateTtsControlsUI();
-            saveTtsVoiceConfig();
-        });
-    }
+    if (voiceSelectEl) voiceSelectEl.addEventListener("change", saveTtsVoiceConfig);
+    if (rateRangeEl) rateRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
+    if (pitchRangeEl) pitchRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
 
     // ----------------------------
-    // ПОМЕТКА РЕЗУЛЬТАТОВ КАК УСТАРЕВШИХ
+    // STALE
     // ----------------------------
     function markResultsStale() {
         const tableEl = document.getElementById("tableContainer");
@@ -1536,10 +1481,8 @@
 
         if (hasTable) {
             tableEl.classList.add("results-stale");
-
             const cacheNote = tableEl.querySelector(".cache-restore-note");
             if (cacheNote) cacheNote.remove();
-
             addStaleNote(tableEl);
             tableIsStale = true;
             if (btnWordEl) btnWordEl.classList.add("disabled");
@@ -1555,7 +1498,6 @@
 
     function addStaleNote(container) {
         if (container.querySelector(".results-stale-note")) return;
-
         const note = document.createElement("div");
         note.className = "results-stale-note";
         note.textContent = "Текст сверху изменён. Перевод и озвучка ниже могут быть неактуальны.";
@@ -1564,9 +1506,7 @@
 
     function clearAudioStale() {
         const audioEl = document.getElementById("audioContainer");
-        if (audioEl) {
-            audioEl.classList.remove("results-stale");
-        }
+        if (audioEl) audioEl.classList.remove("results-stale");
         audioIsStale = false;
 
         if (!audioIsStale && !tableIsStale) {
@@ -1592,12 +1532,9 @@
         }
     }
 
-    // Полная очистка текста и результатов (для Ctrl+Shift+Backspace)
     function clearTextWithConfirm() {
         if (!inputTextEl) return;
-        if (!inputTextEl.value || !inputTextEl.value.trim()) {
-            return;
-        }
+        if (!inputTextEl.value || !inputTextEl.value.trim()) return;
 
         const ok = window.confirm("Очистить текущий текст?\nПеревод, озвучка и локальный кэш таблицы будут сброшены.");
         if (!ok) return;
@@ -1608,14 +1545,8 @@
 
         const audioEl = document.getElementById("audioContainer");
         const tableEl = document.getElementById("tableContainer");
-        if (audioEl) {
-            audioEl.innerHTML = "";
-            audioEl.classList.remove("results-stale");
-        }
-        if (tableEl) {
-            tableEl.innerHTML = "";
-            tableEl.classList.remove("results-stale");
-        }
+        if (audioEl) { audioEl.innerHTML = ""; audioEl.classList.remove("results-stale"); }
+        if (tableEl) { tableEl.innerHTML = ""; tableEl.classList.remove("results-stale"); }
 
         audioIsStale = false;
         tableIsStale = false;
@@ -1624,10 +1555,7 @@
         lastAudioUrl = null;
         lastDocxFilename = null;
 
-        if (btnWordEl) {
-            btnWordEl.classList.add("disabled");
-        }
-
+        if (btnWordEl) btnWordEl.classList.add("disabled");
         textChangedNoticeEl.classList.remove("notice-visible");
 
         try {
@@ -1642,14 +1570,12 @@
     }
 
     // ----------------------------
-    // ЗАГРУЗКА СТАТИСТИКИ / ЛИМИТОВ
+    // STATS / LIMITS
     // ----------------------------
     async function loadStats() {
         try {
             const res = await fetch("/api/usage");
-            if (!res.ok) {
-                throw new Error("Не удалось получить статистику");
-            }
+            if (!res.ok) throw new Error("Не удалось получить статистику");
             const data = await res.json();
             lastUsageData = data;
 
@@ -1664,35 +1590,21 @@
 
             const modelName = data.geminiModelName || "Gemini 2.5 Flash";
             let tierLabel;
-            if (data.geminiBillingTier === "paid") {
-                tierLabel = "Paid";
-            } else if (data.geminiBillingTier === "free" || !data.geminiBillingTier) {
-                tierLabel = "Free Tier";
-            } else {
-                tierLabel = data.geminiBillingTier;
-            }
-            const modelInfoEl = document.getElementById("geminiModelInfo");
-            modelInfoEl.textContent = modelName + " · " + tierLabel;
+            if (data.geminiBillingTier === "paid") tierLabel = "Paid";
+            else if (data.geminiBillingTier === "free" || !data.geminiBillingTier) tierLabel = "Free Tier";
+            else tierLabel = data.geminiBillingTier;
 
-            geminiRequestsToday =
-                (typeof data.geminiRequestsToday === "number")
-                    ? data.geminiRequestsToday
-                    : 0;
-            geminiDailyLimit =
-                (typeof data.geminiDailyLimit === "number")
-                    ? data.geminiDailyLimit
-                    : 20;
+            document.getElementById("geminiModelInfo").textContent = modelName + " · " + tierLabel;
+
+            geminiRequestsToday = (typeof data.geminiRequestsToday === "number") ? data.geminiRequestsToday : 0;
+            geminiDailyLimit = (typeof data.geminiDailyLimit === "number") ? data.geminiDailyLimit : 20;
 
             if (data.geminiNextResetAt) {
                 const dt = new Date(data.geminiNextResetAt);
-                if (!isNaN(dt.getTime())) {
-                    geminiNextResetAt = dt;
-                }
+                if (!isNaN(dt.getTime())) geminiNextResetAt = dt;
             } else if (data.geminiDayStart) {
                 const dayStart = new Date(data.geminiDayStart);
-                if (!isNaN(dayStart.getTime())) {
-                    geminiNextResetAt = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-                }
+                if (!isNaN(dayStart.getTime())) geminiNextResetAt = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
             } else {
                 geminiNextResetAt = null;
             }
@@ -1745,11 +1657,8 @@
                 const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
                 quotaFillEl.style.width = percent + "%";
                 quotaFillEl.classList.remove("warning", "exceeded");
-                if (ratio >= 1) {
-                    quotaFillEl.classList.add("exceeded");
-                } else if (ratio >= 0.8) {
-                    quotaFillEl.classList.add("warning");
-                }
+                if (ratio >= 1) quotaFillEl.classList.add("exceeded");
+                else if (ratio >= 0.8) quotaFillEl.classList.add("warning");
             }
         }
 
@@ -1773,12 +1682,8 @@
         const m = Math.floor((totalSec % 3600) / 60);
         const s = totalSec % 60;
 
-        if (h > 0) {
-            return h + " ч " + m + " мин";
-        }
-        if (m > 0) {
-            return m + " мин " + s + " сек";
-        }
+        if (h > 0) return h + " ч " + m + " мин";
+        if (m > 0) return m + " мин " + s + " сек";
         return s + " сек";
     }
 
@@ -1788,16 +1693,13 @@
         }
     }, 1000);
 
-    setInterval(function () {
-        loadStats();
-    }, 5000);
+    setInterval(function () { loadStats(); }, 5000);
 
     // ----------------------------
-    // ТЕКСТОВЫЙ БЛОК: НАПРАВЛЕНИЕ ТЕКСТА
+    // TEXT DIRECTION
     // ----------------------------
     function applyTextDirection() {
         const lang = langSelectEl.value;
-
         if (lang === "he-IL") {
             inputTextEl.classList.add("rtl-text");
             inputTextEl.setAttribute("dir", "rtl");
@@ -1817,7 +1719,7 @@
     autoGrow(false);
 
     // ----------------------------
-    // ШРИФТ ИВРИТА
+    // HEBREW FONT
     // ----------------------------
     function applyHebrewFont() {
         const value = hebrewFontSelectEl.value;
@@ -1837,13 +1739,18 @@
         }
 
         document.documentElement.style.setProperty("--hebrew-font", fontStack);
+
+        // если таблица на экране — перерисуем автофит/ширины не ломая базовые
+        if (Array.isArray(currentTableData) && currentTableData.length > 0) {
+            applyColgroupWidthsToDom(); // просто обновим проценты (они не зависят от шрифта), но header измерения в future
+        }
     }
 
     hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
     applyHebrewFont();
 
     // ----------------------------
-    // TTS: ОЗВУЧКА + ЛОКАЛЬНЫЙ/СЕРВЕРНЫЙ КЭШ
+    // TTS
     // ----------------------------
     async function playTTS() {
         if (!validate()) return;
@@ -1852,7 +1759,7 @@
         const currentLang = getLang();
         const cfg = getTtsVoiceConfig();
 
-        // 1) Попытка взять аудио из локального кэша браузера
+        // 1) local cache
         try {
             const raw = localStorage.getItem(AUDIO_CACHE_KEY);
             if (raw) {
@@ -1870,7 +1777,7 @@
                     renderAudioFromBase64(
                         cache.audioBase64,
                         "восстановлена из локального кэша браузера (без запроса к серверу)",
-    true
+                        true
                     );
                     showToast("Озвучка восстановлена из локального кэша");
                     loadStats();
@@ -1881,7 +1788,7 @@
             console.error("Audio local cache short-circuit error", e);
         }
 
-        // 2) Запрос на сервер (/api/tts) с серверным кэшем
+        // 2) server
         try {
             const res = await apiCall("/api/tts", {
                 text: getText(),
@@ -1903,12 +1810,7 @@
                 console.error("Audio cache save error", e);
             }
 
-            if (res.fromCache) {
-                showToast("Озвучка восстановлена из серверного кэша");
-            } else {
-                showToast("Озвучка сгенерирована через Google TTS");
-            }
-
+            showToast(res.fromCache ? "Озвучка восстановлена из серверного кэша" : "Озвучка сгенерирована через Google TTS");
             loadStats();
         } catch (e) {
             showError(e.message);
@@ -1916,35 +1818,30 @@
     }
 
     function renderAudioFromBase64(base64Audio, noteText, shouldAutoplay) {
-    const binary = atob(base64Audio);
-    const len = binary.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binary.charCodeAt(i);
+        const binary = atob(base64Audio);
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+
+        lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
+
+        if (lastAudioUrl) URL.revokeObjectURL(lastAudioUrl);
+        lastAudioUrl = URL.createObjectURL(lastAudioBlob);
+
+        const audioContainer = document.getElementById("audioContainer");
+        const autoplayAttr = shouldAutoplay ? " autoplay" : "";
+
+        audioContainer.innerHTML =
+            '<div class="audio-block">' +
+            '  <audio controls src="' + lastAudioUrl + '"' + autoplayAttr + '></audio>' +
+            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+            '    ⬇ Скачать MP3' +
+            '  </button>' +
+            '</div>';
+
+        clearAudioStale();
+        setResultsMeta("audio", noteText || null);
     }
-    lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
-
-    if (lastAudioUrl) {
-        URL.revokeObjectURL(lastAudioUrl);
-    }
-    lastAudioUrl = URL.createObjectURL(lastAudioBlob);
-
-    const audioContainer = document.getElementById("audioContainer");
-
-    const autoplayAttr = shouldAutoplay ? " autoplay" : "";
-
-    audioContainer.innerHTML =
-        '<div class="audio-block">' +
-        '  <audio controls src="' + lastAudioUrl + '"' + autoplayAttr + '></audio>' +
-        '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-        '    ⬇ Скачать MP3' +
-        '  </button>' +
-        '</div>';
-
-    clearAudioStale();
-    setResultsMeta("audio", noteText || null);
-}
-
 
     function saveAudioCache(text, lang, cfg, base64Audio) {
         const payload = {
@@ -1955,14 +1852,9 @@
             pitch: cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0.0,
             audioBase64: base64Audio
         };
-        try {
-            localStorage.setItem(AUDIO_CACHE_KEY, JSON.stringify(payload));
-        } catch (e) {
-            console.error("Audio cache save error", e);
-        }
+        localStorage.setItem(AUDIO_CACHE_KEY, JSON.stringify(payload));
     }
 
-    // ВОССТАНОВЛЕНИЕ АУДИО ИЗ ЛОКАЛЬНОГО КЭША ПРИ ЗАГРУЗКЕ
     (function restoreAudioFromCache() {
         try {
             const raw = localStorage.getItem(AUDIO_CACHE_KEY);
@@ -1980,14 +1872,12 @@
                 (typeof cache.voiceId === "string" && cache.voiceId !== cfgNow.voiceId) ||
                 (typeof cache.rate === "number" && cache.rate !== cfgNow.rate) ||
                 (typeof cache.pitch === "number" && cache.pitch !== cfgNow.pitch)
-            ) {
-                return;
-            }
+            ) return;
 
             renderAudioFromBase64(
                 cache.audioBase64,
                 "восстановлена из локального кэша браузера (без запроса к серверу)",
-    false
+                false
             );
         } catch (e) {
             console.error("Audio cache restore error", e);
@@ -1995,7 +1885,7 @@
     })();
 
     // ----------------------------
-    // СКАЧАТЬ MP3 ИЗ КЭША
+    // DOWNLOAD MP3
     // ----------------------------
     function downloadMp3FromCache() {
         if (audioIsStale) {
@@ -2025,7 +1915,7 @@
     }
 
     // ----------------------------
-    // ПРОВЕРКА, ЗАБЛОКИРОВАН ЛИ GEMINI
+    // GEMINI LOCK UI
     // ----------------------------
     function isGeminiLocked() {
         if (!geminiLockType || !geminiLockUntil) return false;
@@ -2043,9 +1933,7 @@
             geminiNextResetAt = resetAt;
         }
 
-        if (geminiLimitTimerId) {
-            clearInterval(geminiLimitTimerId);
-        }
+        if (geminiLimitTimerId) clearInterval(geminiLimitTimerId);
         updateGeminiLockUI();
         geminiLimitTimerId = setInterval(updateGeminiLockUI, 1000);
     }
@@ -2081,10 +1969,7 @@
         updateAiButtonState(true);
 
         if (geminiLockType === "rate") {
-            showLimitBanner(
-                "rate",
-                "Лимит скорости Gemini (rate-limit). Новый перевод будет доступен через " + formatDuration(sec) + "."
-            );
+            showLimitBanner("rate", "Лимит скорости Gemini (rate-limit). Новый перевод будет доступен через " + formatDuration(sec) + ".");
         } else if (geminiLockType === "daily") {
             let text = "Дневной лимит Gemini исчерпан.";
             if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
@@ -2103,15 +1988,9 @@
     function showLimitBanner(type, text) {
         limitBannerEl.textContent = text || "";
         limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
-
-        if (type === "rate") {
-            limitBannerEl.classList.add("limit-rate");
-        } else if (type === "daily") {
-            limitBannerEl.classList.add("limit-daily");
-        } else {
-            limitBannerEl.classList.add("limit-info");
-        }
-
+        if (type === "rate") limitBannerEl.classList.add("limit-rate");
+        else if (type === "daily") limitBannerEl.classList.add("limit-daily");
+        else limitBannerEl.classList.add("limit-info");
         limitBannerEl.style.display = "block";
     }
 
@@ -2138,14 +2017,14 @@
     }
 
     // ----------------------------
-    // ПЕРЕВОД (Gemini -> таблица)
+    // TRANSLATE TABLE
     // ----------------------------
     async function translateTable() {
         if (!validate()) return;
 
         const currentText = getText().trim();
 
-        // сначала попытка локального табличного кэша
+        // local table cache first
         try {
             const rawCache = localStorage.getItem(TABLE_CACHE_KEY);
             if (rawCache) {
@@ -2165,10 +2044,7 @@
                     tableIsStale = false;
                     if (btnWordEl) btnWordEl.classList.remove("disabled");
 
-                    setResultsMeta(
-                        "table",
-                        "перевод восстановлен из локального кэша браузера (без запроса к Gemini)"
-                    );
+                    setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
 
                     downloadWord(lastDocxFilename);
 
@@ -2198,12 +2074,9 @@
         clearResultsMeta("table");
 
         try {
-            const res = await apiCall("/api/translate-table", {
-                text: getText()
-            });
+            const res = await apiCall("/api/translate-table", { text: getText() });
 
             currentTableData = res.rows || [];
-
             renderTable(currentTableData);
 
             if (currentTableData.length > 0) {
@@ -2227,15 +2100,9 @@
                 }
 
                 if (res.fromCache === true) {
-                    setResultsMeta(
-                        "table",
-                        "сгенерирована из серверного кэша (без запроса к Gemini)"
-                    );
+                    setResultsMeta("table", "сгенерирована из серверного кэша (без запроса к Gemini)");
                 } else {
-                    setResultsMeta(
-                        "table",
-                        "сгенерирована через Gemini API"
-                    );
+                    setResultsMeta("table", "сгенерирована через Gemini API");
                 }
 
                 downloadWord(autoName);
@@ -2264,28 +2131,20 @@
         const retryAfterSecRaw =
             (typeof error.retryAfterSec === "number")
                 ? error.retryAfterSec
-                : (error.raw && typeof error.raw.retryAfterSec === "number"
-                    ? error.raw.retryAfterSec
-                    : null);
+                : (error.raw && typeof error.raw.retryAfterSec === "number" ? error.raw.retryAfterSec : null);
         let retryAfterSec = retryAfterSecRaw;
 
         let resetAt = null;
-        if (error.resetAt) {
-            resetAt = new Date(error.resetAt);
-        } else if (error.raw && error.raw.resetAt) {
-            resetAt = new Date(error.raw.resetAt);
-        }
+        if (error.resetAt) resetAt = new Date(error.resetAt);
+        else if (error.raw && error.raw.resetAt) resetAt = new Date(error.raw.resetAt);
 
         if (type === "rate-limit" || type === "rate") {
-            if (!retryAfterSec || retryAfterSec > 3600) {
-                retryAfterSec = 60;
-            }
+            if (!retryAfterSec || retryAfterSec > 3600) retryAfterSec = 60;
             setGeminiLock("rate", retryAfterSec);
             showLimitBanner("rate", "Лимит скорости Gemini. Новый перевод будет доступен через " + formatDuration(retryAfterSec) + ".");
         } else if (type === "daily-limit" || type === "daily") {
-            if (!resetAt && geminiNextResetAt instanceof Date) {
-                resetAt = geminiNextResetAt;
-            }
+            if (!resetAt && geminiNextResetAt instanceof Date) resetAt = geminiNextResetAt;
+
             if (resetAt instanceof Date && !isNaN(resetAt.getTime())) {
                 const sec = Math.max(1, Math.round((resetAt.getTime() - Date.now()) / 1000));
                 setGeminiLock("daily", sec, resetAt);
@@ -2301,7 +2160,112 @@
     }
 
     // ----------------------------
-    // ОТРИСОВКА ТАБЛИЦЫ (с учётом видимых колонок + автоширины)
+    // PRO: strict sum widths = 100% (visible)
+    // ----------------------------
+    function normalizeVisibleBaseWidthsTo100() {
+        const visibleKeys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
+        if (visibleKeys.length < 1) return;
+
+        // соберём текущие базовые веса видимых
+        let sum = 0;
+        const idxMap = {};
+        visibleKeys.forEach(function (k) {
+            const idx = TABLE_COL_ORDER.indexOf(k);
+            idxMap[k] = idx;
+            const v = Number(tableBaseWidths[idx]);
+            const safe = Number.isFinite(v) && v > RESIZE_SNAP_EPS ? v : 1;
+            sum += safe;
+        });
+
+        if (sum <= 0) {
+            // равномерно
+            const each = 100 / visibleKeys.length;
+            visibleKeys.forEach(function (k) {
+                const idx = idxMap[k];
+                tableBaseWidths[idx] = each;
+            });
+            // скрытые оставляем как есть
+            return;
+        }
+
+        const factor = 100 / sum;
+        visibleKeys.forEach(function (k) {
+            const idx = idxMap[k];
+            tableBaseWidths[idx] = tableBaseWidths[idx] * factor;
+        });
+
+        // корректируем округление в последнюю видимую
+        let total = 0;
+        visibleKeys.forEach(function (k) {
+            const idx = idxMap[k];
+            total += Number(tableBaseWidths[idx]) || 0;
+        });
+        const delta = 100 - total;
+        const lastKey = visibleKeys[visibleKeys.length - 1];
+        tableBaseWidths[idxMap[lastKey]] = (Number(tableBaseWidths[idxMap[lastKey]]) || 0) + delta;
+
+        // минимальные границы: если после нормализации что-то ушло ниже минимума, мягко поправим
+        enforceMinWidthsWithLocalAdjust();
+    }
+
+    function enforceMinWidthsWithLocalAdjust() {
+        const visibleKeys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
+        if (visibleKeys.length < 1) return;
+
+        // Если 1 колонка — она =100
+        if (visibleKeys.length === 1) {
+            const idx = TABLE_COL_ORDER.indexOf(visibleKeys[0]);
+            tableBaseWidths[idx] = 100;
+            return;
+        }
+
+        // Поддержим минимум: если какие-то ниже минимума — поднимем, отнимем у самой широкой.
+        // Это “страховка” — основной clamp выполняется при drag/autofit.
+        let changed = false;
+        for (let i = 0; i < visibleKeys.length; i++) {
+            const k = visibleKeys[i];
+            const idx = TABLE_COL_ORDER.indexOf(k);
+            const v = Number(tableBaseWidths[idx]) || 0;
+            if (v < RESIZE_MIN_COL_PERCENT) {
+                const deficit = RESIZE_MIN_COL_PERCENT - v;
+                tableBaseWidths[idx] = RESIZE_MIN_COL_PERCENT;
+                changed = true;
+
+                // отнимем у max
+                let maxKey = null;
+                let maxVal = -1;
+                for (let j = 0; j < visibleKeys.length; j++) {
+                    const kk = visibleKeys[j];
+                    if (kk === k) continue;
+                    const ii = TABLE_COL_ORDER.indexOf(kk);
+                    const vv = Number(tableBaseWidths[ii]) || 0;
+                    if (vv > maxVal) { maxVal = vv; maxKey = kk; }
+                }
+                if (maxKey) {
+                    const mi = TABLE_COL_ORDER.indexOf(maxKey);
+                    tableBaseWidths[mi] = Math.max(RESIZE_MIN_COL_PERCENT, (Number(tableBaseWidths[mi]) || 0) - deficit);
+                }
+            }
+        }
+
+        if (changed) {
+            // вернём сумму к 100
+            const keys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
+            let sum = 0;
+            keys.forEach(function (k) {
+                const idx = TABLE_COL_ORDER.indexOf(k);
+                sum += Number(tableBaseWidths[idx]) || 0;
+            });
+            if (sum !== 100) {
+                const lastKey = keys[keys.length - 1];
+                const li = TABLE_COL_ORDER.indexOf(lastKey);
+                tableBaseWidths[li] = (Number(tableBaseWidths[li]) || 0) + (100 - sum);
+            }
+        }
+    }
+
+    // ----------------------------
+    // RENDER TABLE (with colgroup + grips)
     // ----------------------------
     function renderTable(rows) {
         if (!Array.isArray(rows) || rows.length === 0) {
@@ -2309,19 +2273,17 @@
             return;
         }
 
-        // Эффективные ширины видимых колонок (ренормализация базовых весов до 100%)
-        const eff = computeEffectiveWidths();
+        // гарантируем строгую сумму базовых ширин
+        normalizeVisibleBaseWidthsTo100();
 
-        // Какие колонки сейчас отображаются (в фиксированном порядке)
+        const eff = computeEffectiveWidths();
         const cols = TABLE_COL_ORDER.filter(function (k) { return !!tableVisibleColumns[k]; });
 
         if (!cols || cols.length < 1) {
-            // Защита: если по какой-то причине нет видимых колонок — откатываемся к полной таблице
             applyPreset("full");
             return renderTable(rows);
         }
 
-        // Заголовки и шаблоны вывода
         const colMeta = {
             he: { title: "Иврит", headerClass: "rtl", cellClass: "rtl rtl-he" },
             niqqud: { title: "Огласовки", headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
@@ -2330,12 +2292,12 @@
         };
 
         let html = '' +
-            '<table>' +
+            '<table id="proTable" data-cols="' + cols.join(",") + '">' +
             '  <colgroup>';
 
         cols.forEach(function (k) {
             const w = eff[k] || 0;
-            html += '<col style="width:' + Number(w).toFixed(4) + '%;">';
+            html += '<col data-col="' + k + '" style="width:' + Number(w).toFixed(6) + '%;">';
         });
 
         html += '' +
@@ -2343,10 +2305,18 @@
             '  <thead>' +
             '    <tr>';
 
-        cols.forEach(function (k) {
+        cols.forEach(function (k, idx) {
             const meta = colMeta[k] || { title: k };
             const cls = meta.headerClass ? (' class="' + meta.headerClass + '"') : "";
-            html += '<th' + cls + '>' + escapeHtml(meta.title) + '</th>';
+            const isLast = (idx === cols.length - 1);
+
+            // грип только если есть сосед справа
+            const gripClass = isLast ? "col-resizer hidden" : "col-resizer";
+
+            html += '<th data-col="' + k + '"' + cls + '>' +
+                escapeHtml(meta.title) +
+                '<div class="' + gripClass + '" data-resize="1" title="Потяните для изменения ширины. Двойной клик — auto-fit."></div>' +
+                '</th>';
         });
 
         html += '' +
@@ -2371,7 +2341,7 @@
                 else if (k === "translit") value = translit;
                 else if (k === "ru") value = ru;
 
-                html += '<td' + tdClass + '>' + escapeHtml(value) + '</td>';
+                html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
             });
 
             html += '</tr>';
@@ -2380,10 +2350,323 @@
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
+
+        // подключаем resize-handlers к свежесозданной таблице
+        attachResizeHandlers();
+    }
+
+    function applyColgroupWidthsToDom() {
+        const table = document.getElementById("proTable");
+        if (!table) return;
+
+        const colsStr = table.getAttribute("data-cols") || "";
+        const cols = colsStr.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+        if (cols.length < 1) return;
+
+        normalizeVisibleBaseWidthsTo100();
+        const eff = computeEffectiveWidths();
+
+        const colEls = table.querySelectorAll("colgroup col[data-col]");
+        colEls.forEach(function (colEl) {
+            const k = colEl.getAttribute("data-col");
+            if (!k) return;
+            const w = eff[k] || 0;
+            colEl.style.width = Number(w).toFixed(6) + "%";
+        });
+
+        // сохраняем настройки при любом применении (после resize/autofit)
+        saveTableSettings();
     }
 
     // ----------------------------
-    // ИМЕНА ФАЙЛОВ DOCX / MP3
+    // PRO RESIZE: handlers (pointer)
+    // ----------------------------
+    function attachResizeHandlers() {
+        const table = document.getElementById("proTable");
+        if (!table) return;
+
+        // делегирование событий
+        table.addEventListener("pointerdown", onResizePointerDown);
+        table.addEventListener("dblclick", onResizeDoubleClick);
+    }
+
+    function onResizePointerDown(e) {
+        const grip = e.target && e.target.closest ? e.target.closest(".col-resizer[data-resize='1']") : null;
+        if (!grip || grip.classList.contains("hidden")) return;
+
+        const th = grip.closest("th");
+        const table = grip.closest("table");
+        if (!th || !table) return;
+
+        const leftKey = th.getAttribute("data-col");
+        if (!leftKey) return;
+
+        const colsStr = table.getAttribute("data-cols") || "";
+        const cols = colsStr.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+        const leftIndex = cols.indexOf(leftKey);
+        if (leftIndex < 0) return;
+
+        // по умолчанию сосед справа
+        const rightKey = (leftIndex + 1 < cols.length) ? cols[leftIndex + 1] : null;
+        if (!rightKey) return;
+
+        const tableRect = table.getBoundingClientRect();
+        const wPx = tableRect.width;
+        if (!wPx || wPx < 20) return;
+
+        // стартовые base widths (именно базовые, не эффективные)
+        const leftBase = getBaseWidthForKey(leftKey);
+        const rightBase = getBaseWidthForKey(rightKey);
+
+        resizeState.active = true;
+        resizeState.pointerId = e.pointerId;
+        resizeState.startX = e.clientX;
+        resizeState.tableWidthPx = wPx;
+        resizeState.leftKey = leftKey;
+        resizeState.rightKey = rightKey;
+        resizeState.startLeft = leftBase;
+        resizeState.startRight = rightBase;
+        resizeState.preferNeighbor = "right";
+
+        document.body.classList.add("resizing-cols");
+
+        try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+
+        window.addEventListener("pointermove", onResizePointerMove, { passive: false });
+        window.addEventListener("pointerup", onResizePointerUp, { passive: false });
+        window.addEventListener("pointercancel", onResizePointerUp, { passive: false });
+
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function onResizePointerMove(e) {
+        if (!resizeState.active) return;
+        if (resizeState.pointerId !== e.pointerId) return;
+
+        const dx = e.clientX - resizeState.startX;
+        const deltaPercent = (dx / resizeState.tableWidthPx) * 100;
+
+        applyLinkedResize(resizeState.leftKey, resizeState.rightKey, resizeState.startLeft, resizeState.startRight, deltaPercent);
+
+        // применяем к DOM без полной перерисовки
+        applyColgroupWidthsToDom();
+
+        e.preventDefault();
+    }
+
+    function onResizePointerUp(e) {
+        if (!resizeState.active) return;
+        if (resizeState.pointerId !== e.pointerId) return;
+
+        resizeState.active = false;
+        resizeState.pointerId = null;
+
+        document.body.classList.remove("resizing-cols");
+
+        window.removeEventListener("pointermove", onResizePointerMove, { passive: false });
+        window.removeEventListener("pointerup", onResizePointerUp, { passive: false });
+        window.removeEventListener("pointercancel", onResizePointerUp, { passive: false });
+
+        // финальное сохранение
+        normalizeVisibleBaseWidthsTo100();
+        saveTableSettings();
+
+        e.preventDefault();
+    }
+
+    function onResizeDoubleClick(e) {
+        const grip = e.target && e.target.closest ? e.target.closest(".col-resizer[data-resize='1']") : null;
+        if (!grip || grip.classList.contains("hidden")) return;
+
+        const th = grip.closest("th");
+        const table = grip.closest("table");
+        if (!th || !table) return;
+
+        const leftKey = th.getAttribute("data-col");
+        if (!leftKey) return;
+
+        const colsStr = table.getAttribute("data-cols") || "";
+        const cols = colsStr.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+        const leftIndex = cols.indexOf(leftKey);
+        if (leftIndex < 0) return;
+
+        let neighborKey = null;
+        // prefer right; if none, use left
+        if (leftIndex + 1 < cols.length) neighborKey = cols[leftIndex + 1];
+        else if (leftIndex - 1 >= 0) neighborKey = cols[leftIndex - 1];
+
+        if (!neighborKey) return;
+
+        autoFitColumn(leftKey, neighborKey);
+
+        applyColgroupWidthsToDom();
+        showToast("Auto-fit: ширина колонки подобрана по контенту");
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function getBaseWidthForKey(key) {
+        const idx = TABLE_COL_ORDER.indexOf(key);
+        if (idx < 0) return 0;
+        const v = Number(tableBaseWidths[idx]);
+        return (Number.isFinite(v) ? v : 0);
+    }
+
+    function setBaseWidthForKey(key, value) {
+        const idx = TABLE_COL_ORDER.indexOf(key);
+        if (idx < 0) return;
+        tableBaseWidths[idx] = value;
+    }
+
+    function applyLinkedResize(leftKey, rightKey, startLeft, startRight, deltaPercent) {
+        // Сумма левой и правой сохраняется (linked movement)
+        let newLeft = startLeft + deltaPercent;
+        let newRight = startRight - deltaPercent;
+
+        // ограничения
+        const min = RESIZE_MIN_COL_PERCENT;
+        const max = RESIZE_MAX_COL_PERCENT;
+
+        // если обе колонки видимы — clamp с учётом сохранения суммы
+        const total = startLeft + startRight;
+
+        // clamp left
+        if (newLeft < min) { newLeft = min; newRight = total - newLeft; }
+        if (newLeft > max) { newLeft = max; newRight = total - newLeft; }
+
+        // clamp right
+        if (newRight < min) { newRight = min; newLeft = total - newRight; }
+        if (newRight > max) { newRight = max; newLeft = total - newRight; }
+
+        // дополнительная защита на случай крайних значений
+        newLeft = Math.max(min, Math.min(max, newLeft));
+        newRight = Math.max(min, Math.min(max, newRight));
+
+        // записываем базовые
+        setBaseWidthForKey(leftKey, newLeft);
+        setBaseWidthForKey(rightKey, newRight);
+
+        // строгая сумма видимых = 100 (остальные видимые масштабируем)
+        normalizeVisibleBaseWidthsTo100();
+    }
+
+    // ----------------------------
+    // AUTO-FIT
+    // ----------------------------
+    function autoFitColumn(targetKey, neighborKey) {
+        const table = document.getElementById("proTable");
+        if (!table) return;
+
+        const tableRect = table.getBoundingClientRect();
+        const tableWidthPx = tableRect.width;
+        if (!tableWidthPx || tableWidthPx < 20) return;
+
+        // измерим желаемую ширину targetKey в px
+        const desiredPx = measureDesiredColumnWidthPx(table, targetKey);
+        const desiredPercent = (desiredPx / tableWidthPx) * 100;
+
+        // текущее base
+        const curTarget = getBaseWidthForKey(targetKey);
+        const curNei = getBaseWidthForKey(neighborKey);
+        const total = curTarget + curNei;
+
+        // желаемое — в пределах min..(total-min)
+        let newTarget = desiredPercent;
+        newTarget = Math.max(RESIZE_MIN_COL_PERCENT, newTarget);
+        newTarget = Math.min(Math.min(RESIZE_MAX_COL_PERCENT, total - RESIZE_MIN_COL_PERCENT), newTarget);
+
+        const newNeighbor = total - newTarget;
+
+        setBaseWidthForKey(targetKey, newTarget);
+        setBaseWidthForKey(neighborKey, Math.max(RESIZE_MIN_COL_PERCENT, newNeighbor));
+
+        normalizeVisibleBaseWidthsTo100();
+        saveTableSettings();
+    }
+
+    function measureDesiredColumnWidthPx(table, colKey) {
+        // цель: найти максимальную “идеальную” ширину (без переносов) по header+cells
+        // делаем через hidden span, чтобы не ломать DOM.
+        if (!measureBoxEl) return 120;
+
+        const paddingExtra = 18; // приблизительно padding + border
+
+        // header
+        let maxPx = 0;
+        const th = table.querySelector("thead th[data-col='" + cssEscape(colKey) + "']");
+        if (th) {
+            const headerText = (th.textContent || "").trim();
+            maxPx = Math.max(maxPx, measureTextPx(headerText, th.className) + paddingExtra);
+        }
+
+        // cells: берем до 120 строк для защиты (у вас обычно до 100)
+        const tds = table.querySelectorAll("tbody td[data-col='" + cssEscape(colKey) + "']");
+        const limit = Math.min(tds.length, 120);
+        for (let i = 0; i < limit; i++) {
+            const td = tds[i];
+            const text = (td.textContent || "").trim();
+            maxPx = Math.max(maxPx, measureTextPx(text, td.className) + paddingExtra);
+        }
+
+        // не даём autofit расширить больше ширины таблицы
+        maxPx = Math.min(maxPx, table.getBoundingClientRect().width - 10);
+
+        // минимальная разумная ширина
+        maxPx = Math.max(maxPx, 80);
+
+        return maxPx;
+    }
+
+    function measureTextPx(text, className) {
+        if (!measureBoxEl) return 0;
+
+        measureBoxEl.className = className || "";
+        // важное: measureBox наследует CSS (в т.ч. --hebrew-font), класс td/rtl применится
+        measureBoxEl.textContent = text || " ";
+        const rect = measureBoxEl.getBoundingClientRect();
+        return rect.width || 0;
+    }
+
+    // ----------------------------
+    // DOCX
+    // ----------------------------
+    async function downloadWord(customFilename) {
+        if (btnWordEl.classList.contains("disabled")) return;
+        if (!currentTableData || currentTableData.length === 0) {
+            showError("Нет данных для экспорта");
+            return;
+        }
+
+        const filename = customFilename || lastDocxFilename || "translation.docx";
+
+        try {
+            const res = await fetch("/api/export-docx", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ rows: currentTableData })
+            });
+
+            if (!res.ok) throw new Error("Ошибка экспорта");
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            showToast("DOCX-файл сохранён");
+        } catch (e) {
+            showError(e.message);
+        }
+    }
+
+    // ----------------------------
+    // FILENAMES
     // ----------------------------
     function generateDocxFileName() {
         const now = new Date();
@@ -2414,57 +2697,10 @@
     }
 
     // ----------------------------
-    // WORD (DOCX)
+    // UTILS
     // ----------------------------
-    async function downloadWord(customFilename) {
-        if (btnWordEl.classList.contains("disabled")) {
-            return;
-        }
-
-        if (!currentTableData || currentTableData.length === 0) {
-            showError("Нет данных для экспорта");
-            return;
-        }
-
-        const filename = customFilename || lastDocxFilename || "translation.docx";
-
-        try {
-            const res = await fetch("/api/export-docx", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rows: currentTableData })
-            });
-
-            if (!res.ok) {
-                throw new Error("Ошибка экспорта");
-            }
-
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
-            showToast("DOCX-файл сохранён");
-        } catch (e) {
-            showError(e.message);
-        }
-    }
-
-    // ----------------------------
-    // УТИЛИТЫ
-    // ----------------------------
-    function getText() {
-        return inputTextEl.value;
-    }
-
-    function getLang() {
-        return langSelectEl.value;
-    }
+    function getText() { return inputTextEl.value; }
+    function getLang() { return langSelectEl.value; }
 
     function validate() {
         if (!getText().trim()) {
@@ -2507,14 +2743,13 @@
             const details = json && json.details ? " (" + json.details + ")" : "";
             const err = new Error(msg + details);
             err.httpStatus = res.status;
+
             if (json) {
                 err.errorType = json.errorType || (json.details && json.details.errorType) || null;
                 err.retryAfterSec =
                     (typeof json.retryAfterSec === "number")
                         ? json.retryAfterSec
-                        : (json.details && typeof json.details.retryAfterSec === "number"
-                            ? json.details.retryAfterSec
-                            : null);
+                        : (json.details && typeof json.details.retryAfterSec === "number" ? json.details.retryAfterSec : null);
                 err.resetAt = json.resetAt || (json.details && json.details.resetAt) || null;
                 err.raw = json;
             }
@@ -2534,8 +2769,13 @@
             .replace(/'/g, "&#039;");
     }
 
+    function cssEscape(s) {
+        // простая защита для селекторов
+        return String(s || "").replace(/'/g, "\\'");
+    }
+
     // ----------------------------
-    // ОБНОВЛЕНИЕ ИНФОРМАЦИИ О TTS-ТАРИФЕ И ЛИМИТЕ
+    // TTS COST INFO
     // ----------------------------
     function updateTtsCostInfo() {
         const infoEl = document.getElementById("ttsCostInfo");
@@ -2545,13 +2785,10 @@
         const FREE_LIMIT = 4_000_000;
 
         if (infoEl) {
-            infoEl.textContent =
-                "Standard voices • до 4M символов/мес бесплатно, далее ≈4 $ за 1M";
+            infoEl.textContent = "Standard voices • до 4M символов/мес бесплатно, далее ≈4 $ за 1M";
         }
 
-        if (!quotaInfoEl || !quotaFillEl) {
-            return;
-        }
+        if (!quotaInfoEl || !quotaFillEl) return;
 
         const totalChars =
             lastUsageData && typeof lastUsageData.ttsChars === "number"
@@ -2572,7 +2809,7 @@
     }
 
     // ----------------------------
-    // УПРАВЛЕНИЕ БЛОКОМ ГОРЯЧИХ КЛАВИШ
+    // HOTKEYS PANEL
     // ----------------------------
     function toggleHotkeysPanel(forceState) {
         if (!hotkeysPanelEl) return;
@@ -2584,73 +2821,42 @@
     }
 
     // ----------------------------
-    // ГЛОБАЛЬНЫЕ ГОРЯЧИЕ КЛАВИШИ
+    // GLOBAL HOTKEYS
     // ----------------------------
     document.addEventListener("keydown", function (event) {
-        if (
-            event.ctrlKey &&
-            !event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            event.key === "Enter"
-        ) {
+        if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key === "Enter") {
             event.preventDefault();
             playTTS();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            event.key === "Enter"
-        ) {
+        if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && event.key === "Enter") {
             event.preventDefault();
             translateTable();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            (event.key === "Backspace" || event.key === "Delete")
-        ) {
+        if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && (event.key === "Backspace" || event.key === "Delete")) {
             event.preventDefault();
             clearTextWithConfirm();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            (
-                event.code === "KeyS" ||
-                (typeof event.key === "string" && event.key.toLowerCase() === "s")
-            )
-        ) {
+        if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey &&
+            (event.code === "KeyS" || (typeof event.key === "string" && event.key.toLowerCase() === "s"))) {
             event.preventDefault();
             downloadMp3FromCache();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            !event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            (event.key === "/" || event.code === "Slash")
-        ) {
+        if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey &&
+            (event.key === "/" || event.code === "Slash")) {
             event.preventDefault();
             toggleHotkeysPanel();
             return;
         }
     });
-    </script>
+</script>
 
 </body>
 </html>
