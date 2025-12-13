@@ -23,52 +23,7 @@ const {
 } = require("docx");
 
 // --------------------------------------------------------
-// 1.0. КОНФИГ ЛИМИТОВ GEMINI
-// --------------------------------------------------------
-// Суточный лимит запросов к Gemini (по умолчанию 20 — Free Tier)
-const GEMINI_DAILY_LIMIT = Number(process.env.GEMINI_DAILY_LIMIT || "20");
-
-// Час суточного сброса квоты в UTC (например, 0 = 00:00 UTC)
-const GEMINI_RESET_HOUR_UTC = Number(
-  process.env.GEMINI_RESET_HOUR_UTC || "0"
-);
-
-// Название модели и тип тарифа (для UI)
-const GEMINI_MODEL_NAME = process.env.GEMINI_MODEL_NAME || "Gemini 2.5 Flash";
-const GEMINI_BILLING_TIER = process.env.GEMINI_BILLING_TIER || "free";
-
-// --------------------------------------------------------
-// 1.1. КОНФИГ ЦЕНЫ И НАСТРОЕК TTS
-// --------------------------------------------------------
-
-// Стоимость TTS за 1M символов (USD) — указать свой тариф Google Cloud
-const TTS_PRICE_PER_1M_CHARS_USD = Number(
-  process.env.TTS_PRICE_PER_1M_CHARS_USD || "4.00"
-);
-
-// Значения по умолчанию для TTS
-const TTS_DEFAULT_VOICE = process.env.TTS_DEFAULT_VOICE || "";
-const TTS_DEFAULT_RATE = Number(process.env.TTS_DEFAULT_RATE || "1.0");
-const TTS_DEFAULT_PITCH = Number(process.env.TTS_DEFAULT_PITCH || "0.0");
-
-// --------------------------------------------------------
-// 1.2. ЗАГРУЗКА КЛЮЧА GOOGLE CLOUD ИЗ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
-// --------------------------------------------------------
-
-if (process.env.GOOGLE_CLOUD_TTS_KEY) {
-  const keyPath = path.join(__dirname, "gcp-key.json");
-
-  // Если файла ещё нет — создаём
-  if (!fs.existsSync(keyPath)) {
-    fs.writeFileSync(keyPath, process.env.GOOGLE_CLOUD_TTS_KEY);
-  }
-
-  // Сообщаем SDK, где лежит ключ
-  process.env.GOOGLE_APPLICATION_CREDENTIALS = keyPath;
-}
-
-// --------------------------------------------------------
-// 2. ИНИЦИАЛИЗАЦИЯ СЕРВЕРА И СТАТИКИ
+// 2. НАСТРОЙКИ СЕРВЕРА
 // --------------------------------------------------------
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -76,38 +31,147 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
+// --------------------------------------------------------
+// 3. ПУТИ И ДИРЕКТОРИИ
+// --------------------------------------------------------
 const audioDir = path.join(__dirname, "audio");
-if (!fs.existsSync(audioDir)) {
-  fs.mkdirSync(audioDir, { recursive: true });
-}
-app.use("/audio", express.static(audioDir));
-
-// Директория серверного кэша MP3 (по хэшу текста + настроек)
+const usageFile = path.join(__dirname, "usage.json");
 const audioCacheDir = path.join(__dirname, "audio-cache");
-if (!fs.existsSync(audioCacheDir)) {
-  fs.mkdirSync(audioCacheDir, { recursive: true });
-}
-
-// Директория серверного кэша Gemini (по хэшу текста)
 const geminiCacheDir = path.join(__dirname, "gemini-cache");
-if (!fs.existsSync(geminiCacheDir)) {
-  fs.mkdirSync(geminiCacheDir, { recursive: true });
+
+// Создаём директории при необходимости
+if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir);
+if (!fs.existsSync(audioCacheDir)) fs.mkdirSync(audioCacheDir);
+if (!fs.existsSync(geminiCacheDir)) fs.mkdirSync(geminiCacheDir);
+
+// --------------------------------------------------------
+// 4. ИНИЦИАЛИЗАЦИЯ КЛИЕНТОВ
+// --------------------------------------------------------
+
+// 4.1. Google Cloud TTS — креды из переменной GOOGLE_CLOUD_TTS_KEY
+let ttsServiceAccount = null;
+
+if (process.env.GOOGLE_CLOUD_TTS_KEY) {
+  try {
+    ttsServiceAccount = JSON.parse(process.env.GOOGLE_CLOUD_TTS_KEY);
+    console.log("[TTS] GOOGLE_CLOUD_TTS_KEY загружен и успешно разобран как JSON");
+  } catch (e) {
+    console.error("[TTS] Невозможно разобрать GOOGLE_CLOUD_TTS_KEY как JSON:", e);
+    ttsServiceAccount = null;
+  }
+} else {
+  console.warn("[TTS] Переменная GOOGLE_CLOUD_TTS_KEY не задана — будет попытка использовать дефолтные креды");
+}
+
+const ttsClient = ttsServiceAccount
+  ? new textToSpeech.TextToSpeechClient({
+      projectId: ttsServiceAccount.project_id,
+      credentials: {
+        client_email: ttsServiceAccount.client_email,
+        private_key: ttsServiceAccount.private_key,
+      },
+    })
+  : new textToSpeech.TextToSpeechClient();
+
+console.log(
+  "[TTS] Клиент инициализирован, режим кредов:",
+  ttsServiceAccount ? "service_account из GOOGLE_CLOUD_TTS_KEY" : "Application Default Credentials"
+);
+
+// 4.2. Gemini
+const GEMINI_API_KEY =
+  process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
+let genAI = null;
+if (GEMINI_API_KEY) {
+  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 }
 
 // --------------------------------------------------------
-// 2.1. СИСТЕМА УЧЁТА ИСПОЛЬЗОВАНИЯ
+// 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ USAGE/ЛИМИТОВ
 // --------------------------------------------------------
-const USAGE_FILE = path.join(__dirname, "usage.json");
 
-// Хелпер: вычислить начало текущего "дня квоты" по UTC+час сброса
+// Структура usage.json (пример):
+// {
+//   "ttsChars": 12345,
+//   "ttsCost": 0.12,
+//   "geminiRequests": 7,
+//   "geminiRequestsTotal": 20,
+//   "geminiDayStart": "2024-12-10T00:00:00.000Z",
+//   "geminiDailyLimitHit": false
+// }
+
+function getUsage() {
+  try {
+    if (!fs.existsSync(usageFile)) {
+      // начальное состояние, если файла ещё нет
+      return {
+        ttsChars: 0,
+        ttsCost: 0,
+        // ДНЕВНОЙ счётчик запросов Gemini
+        geminiRequests: 0,
+        // ОБЩИЙ счётчик запросов Gemini (не сбрасывается)
+        geminiRequestsTotal: 0,
+        geminiDayStart: null,
+        geminiDailyLimitHit: false,
+      };
+    }
+
+    const raw = fs.readFileSync(usageFile, "utf8");
+    const data = JSON.parse(raw);
+
+    if (typeof data.ttsChars !== "number") data.ttsChars = 0;
+    if (typeof data.ttsCost !== "number") data.ttsCost = 0;
+
+    // дневной счётчик
+    if (typeof data.geminiRequests !== "number") data.geminiRequests = 0;
+    // общий счётчик
+    if (typeof data.geminiRequestsTotal !== "number") data.geminiRequestsTotal = 0;
+
+    if (!data.geminiDayStart) data.geminiDayStart = null;
+    if (!Object.prototype.hasOwnProperty.call(data, "geminiDailyLimitHit")) {
+      data.geminiDailyLimitHit = false;
+    }
+
+    return data;
+  } catch (e) {
+    console.error("Ошибка чтения usage.json:", e);
+    return {
+      ttsChars: 0,
+      ttsCost: 0,
+      geminiRequests: 0,
+      geminiRequestsTotal: 0,
+      geminiDayStart: null,
+      geminiDailyLimitHit: false,
+    };
+  }
+}
+
+function saveUsage(data) {
+  try {
+    fs.writeFileSync(usageFile, JSON.stringify(data, null, 2), "utf8");
+  } catch (e) {
+    console.error("Ошибка записи usage.json:", e);
+  }
+}
+
+// Условная стоимость TTS: 1M символов = 16$ (пример)
+const TTS_COST_PER_MILLION = 16;
+
+// Ежедневный лимит по количеству запросов к Gemini
+const GEMINI_DAILY_LIMIT = Number(process.env.GEMINI_DAILY_LIMIT || "50");
+
+// Час "сброса дня" квоты в UTC (например, 21:00 UTC)
+const GEMINI_RESET_HOUR_UTC = Number(
+  process.env.GEMINI_RESET_HOUR_UTC || "21"
+);
+
+// Определяем "начало дня квоты" с учётом GEMINI_RESET_HOUR_UTC
 function getCurrentQuotaDayStartISO() {
   const now = new Date();
-
   const utcYear = now.getUTCFullYear();
   const utcMonth = now.getUTCMonth();
   const utcDate = now.getUTCDate();
 
-  // Момент сегодняшнего ресета в UTC
   const todayResetMs = Date.UTC(
     utcYear,
     utcMonth,
@@ -121,214 +185,115 @@ function getCurrentQuotaDayStartISO() {
   let quotaDayStartMs;
 
   if (now.getTime() >= todayResetMs) {
-    // Уже после сегодняшнего ресета — день квоты начался сегодня
     quotaDayStartMs = todayResetMs;
   } else {
-    // Ещё до ресета — день квоты начался вчера в это же время
     quotaDayStartMs = todayResetMs - 24 * 60 * 60 * 1000;
   }
 
   return new Date(quotaDayStartMs).toISOString();
 }
 
-// Получить "пустую" структуру статистики
-function getEmptyUsage() {
-  return {
-    ttsChars: 0, // Символов TTS (всего, реально отправленных в Google)
-    ttsFirstUseAt: null, // Первый вызов TTS
-    ttsLastUseAt: null, // Последний вызов TTS
-    geminiRequests: 0, // Запросов к Gemini (всего)
-    geminiRequestsToday: 0, // Запросов к Gemini за текущий день квоты
-    geminiDayStart: getCurrentQuotaDayStartISO(), // Начало текущего дня квоты
-    lastDailyLimitHitAt: null, // Когда последний раз словили daily-limit
-  };
-}
+// Сбросить счётчик Gemini, если "день квоты" поменялся
+function ensureGeminiDay() {
+  const usage = getUsage();
+  const currentDayStart = getCurrentQuotaDayStartISO();
 
-// Нормализовать структуру статистики (добавить недостающие поля + сбросить день)
-function normalizeUsage(stats) {
-  const base = getEmptyUsage();
-
-  const merged = {
-    ...base,
-    ...(stats || {}),
-  };
-
-  const currentDayStartISO = getCurrentQuotaDayStartISO();
-  const currentDayStartMs = Date.parse(currentDayStartISO);
-  const storedDayStartMs = merged.geminiDayStart
-    ? Date.parse(merged.geminiDayStart)
-    : 0;
-
-  // Если сохранённый день квоты "старее" текущего — сбрасываем суточный счётчик
-  if (!merged.geminiDayStart || storedDayStartMs < currentDayStartMs) {
-    merged.geminiRequestsToday = 0;
-    merged.geminiDayStart = currentDayStartISO;
-    merged.lastDailyLimitHitAt = null;
-  }
-
-  return merged;
-}
-
-// Получить текущую статистику
-function getUsage() {
-  if (!fs.existsSync(USAGE_FILE)) {
-    const empty = getEmptyUsage();
-    try {
-      fs.writeFileSync(USAGE_FILE, JSON.stringify(empty, null, 2), "utf8");
-    } catch (e) {
-      console.error("Ошибка первичной записи usage.json:", e);
-    }
-    return empty;
-  }
-
-  try {
-    const raw = fs.readFileSync(USAGE_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    const normalized = normalizeUsage(parsed);
-
-    // На всякий случай синхронизируем файл с нормализованной структурой
-    try {
-      fs.writeFileSync(
-        USAGE_FILE,
-        JSON.stringify(normalized, null, 2),
-        "utf8"
-      );
-    } catch (e) {
-      console.error("Ошибка синхронизации usage.json:", e);
-    }
-
-    return normalized;
-  } catch (e) {
-    console.error("Ошибка чтения usage.json:", e);
-    const empty = getEmptyUsage();
-    try {
-      fs.writeFileSync(USAGE_FILE, JSON.stringify(empty, null, 2), "utf8");
-    } catch (err) {
-      console.error("Ошибка записи usage.json после сбоя:", err);
-    }
-    return empty;
+  if (usage.geminiDayStart !== currentDayStart) {
+    usage.geminiDayStart = currentDayStart;
+    usage.geminiRequests = 0;
+    usage.geminiDailyLimitHit = false;
+    saveUsage(usage);
   }
 }
 
-// Обновить статистику (tts или gemini)
-function updateUsage(type, amount = 1) {
-  const stats = getUsage(); // уже нормализованный
-  const nowIso = new Date().toISOString();
+// Увеличить usage по TTS и Gemini
+function updateUsage(type, value) {
+  const usage = getUsage();
 
   if (type === "tts") {
-    stats.ttsChars += amount;
-    if (!stats.ttsFirstUseAt) {
-      stats.ttsFirstUseAt = nowIso;
-    }
-    stats.ttsLastUseAt = nowIso;
+    const chars = value || 0;
+    usage.ttsChars += chars;
+    usage.ttsCost = (usage.ttsChars / 1_000_000) * TTS_COST_PER_MILLION;
   } else if (type === "gemini") {
-    // считаем и общий, и суточный счётчики
-    stats.geminiRequests += amount;
-    stats.geminiRequestsToday += amount;
+    ensureGeminiDay();
+
+    const inc = value || 1;
+
+    if (typeof usage.geminiRequests !== "number") usage.geminiRequests = 0;
+    usage.geminiRequests += inc;
+
+    if (typeof usage.geminiRequestsTotal !== "number") {
+      usage.geminiRequestsTotal = 0;
+    }
+    usage.geminiRequestsTotal += inc;
   }
 
-  try {
-    fs.writeFileSync(USAGE_FILE, JSON.stringify(stats, null, 2), "utf8");
-  } catch (e) {
-    console.error("Ошибка записи usage.json:", e);
-  }
+  saveUsage(usage);
 }
 
-// Отметить, что сегодня словили daily-limit (для UI)
 function markGeminiDailyLimitHit() {
-  const stats = getUsage();
-  const nowIso = new Date().toISOString();
-
-  stats.lastDailyLimitHitAt = nowIso;
-
-  // Опционально "дожимаем" суточный счётчик до лимита
-  if (stats.geminiRequestsToday < GEMINI_DAILY_LIMIT) {
-    stats.geminiRequestsToday = GEMINI_DAILY_LIMIT;
-  }
-
-  try {
-    fs.writeFileSync(USAGE_FILE, JSON.stringify(stats, null, 2), "utf8");
-  } catch (e) {
-    console.error("Ошибка записи usage.json при daily-limit:", e);
-  }
+  const usage = getUsage();
+  usage.geminiDailyLimitHit = true;
+  saveUsage(usage);
 }
 
 // --------------------------------------------------------
-// 3. КЛИЕНТЫ ВНЕШНИХ API
-// --------------------------------------------------------
-const ttsClient = new textToSpeech.TextToSpeechClient();
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
-
-// --------------------------------------------------------
-// 4. API ЭНДПОИНТЫ
+// 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ TTS
 // --------------------------------------------------------
 
-// --- API: Healthcheck (удобно для Android/WebView и Railway) ---
-app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
-    ttsConfigured: !!process.env.GOOGLE_CLOUD_TTS_KEY,
-    geminiConfigured: !!GEMINI_API_KEY,
-  });
-});
+async function synthesizeWithCache(
+  text,
+  languageCode,
+  voiceName,
+  speakingRate,
+  pitch
+) {
+  const hash = crypto
+    .createHash("sha256")
+    .update(
+      JSON.stringify({ text, languageCode, voiceName, speakingRate, pitch })
+    )
+    .digest("hex");
 
-// --- API: Получить статистику для фронтенда ---
-app.get("/api/usage", (req, res) => {
-  const stats = getUsage();
+  const cachePath = path.join(audioCacheDir, `${hash}.mp3`);
 
-  let geminiNextResetAt = null;
+  if (fs.existsSync(cachePath)) {
+    const audioContent = fs.readFileSync(cachePath).toString("base64");
+    return { audioContent, fromCache: true, cacheId: hash };
+  }
+
+  const request = {
+    input: { text },
+    voice: {
+      languageCode,
+      name: voiceName || undefined,
+    },
+    audioConfig: {
+      audioEncoding: "MP3",
+      speakingRate: speakingRate || 1.0,
+      pitch: pitch || 0.0,
+    },
+  };
+
+  const [response] = await ttsClient.synthesizeSpeech(request);
+  const audioContent = response.audioContent.toString("base64");
+
   try {
-    const dayStartMs = stats.geminiDayStart
-      ? Date.parse(stats.geminiDayStart)
-      : Date.parse(getCurrentQuotaDayStartISO());
-    if (!Number.isNaN(dayStartMs)) {
-      geminiNextResetAt = new Date(
-        dayStartMs + 24 * 60 * 60 * 1000
-      ).toISOString();
-    }
+    fs.writeFileSync(cachePath, Buffer.from(audioContent, "base64"));
   } catch (e) {
-    console.error("Ошибка вычисления geminiNextResetAt:", e);
+    console.error("Ошибка записи в audio-cache:", e);
   }
 
-  // Расчёт примерной стоимости TTS
-  const pricePer1M = TTS_PRICE_PER_1M_CHARS_USD > 0 ? TTS_PRICE_PER_1M_CHARS_USD : 0;
-  let ttsCostTotalUsd = null;
-  let ttsMonthlyEstimateUsd = null;
+  return { audioContent, fromCache: false, cacheId: hash };
+}
 
-  if (pricePer1M > 0) {
-    ttsCostTotalUsd = (stats.ttsChars / 1_000_000) * pricePer1M;
-
-    if (stats.ttsFirstUseAt) {
-      const firstMs = Date.parse(stats.ttsFirstUseAt);
-      const nowMs = Date.now();
-      if (!Number.isNaN(firstMs) && nowMs > firstMs) {
-        const days = Math.max(1, (nowMs - firstMs) / (24 * 60 * 60 * 1000));
-        const avgCharsPerDay = stats.ttsChars / days;
-        const monthlyChars = avgCharsPerDay * 30;
-        ttsMonthlyEstimateUsd = (monthlyChars / 1_000_000) * pricePer1M;
-      }
-    }
-  }
-
-  res.json({
-    ...stats,
-    geminiDailyLimit: GEMINI_DAILY_LIMIT,
-    geminiResetHourUtc: GEMINI_RESET_HOUR_UTC,
-    geminiNextResetAt,
-    geminiModelName: GEMINI_MODEL_NAME,
-    geminiBillingTier: GEMINI_BILLING_TIER,
-    geminiConfigured: !!GEMINI_API_KEY,
-    // Стоимость TTS
-    ttsPricePer1MCharsUsd: pricePer1M || null,
-    ttsCostTotalUsd,
-    ttsMonthlyEstimateUsd,
-  });
-});
-
-// --- API: TTS (Озвучка) ---
+// --------------------------------------------------------
+// 7. API: TTS (Google Cloud TTS + серверный кэш)
+// --------------------------------------------------------
 app.post("/api/tts", async (req, res) => {
+  const requestId = uuidv4();
+  const startedAt = Date.now();
+
   try {
     const {
       text,
@@ -342,177 +307,130 @@ app.post("/api/tts", async (req, res) => {
     const lang = language || languageCode;
 
     if (!text || typeof text !== "string" || !text.trim()) {
-      return res.status(400).json({ error: "Нет текста" });
-    }
-    if (!lang) {
-      return res.status(400).json({ error: "Не указан язык" });
+      return res.status(400).json({ error: "Нет текста для озвучки" });
     }
 
-    // Нормализуем голос и параметры
-    const effectiveVoice = voiceId || TTS_DEFAULT_VOICE || null;
-
-    let rate = typeof speakingRate === "number" ? speakingRate : Number(speakingRate);
-    if (!rate || Number.isNaN(rate)) {
-      rate = TTS_DEFAULT_RATE;
+    if (!lang || typeof lang !== "string") {
+      return res.status(400).json({ error: "Не указан язык для озвучки" });
     }
 
-    let pitchVal = typeof pitch === "number" ? pitch : Number(pitch);
-    if (Number.isNaN(pitchVal)) {
-      pitchVal = TTS_DEFAULT_PITCH;
-    }
+    const cleanText = text.trim();
 
-    // Хэш для серверного кэша (учитывает текст + язык + голос + настройки)
-    const hashInput = `${lang}||${effectiveVoice || "auto"}||${rate}||${pitchVal}||${text}`;
-    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
-    const cacheFile = path.join(audioCacheDir, `${hashKey}.mp3`);
+    const voiceName = voiceId && String(voiceId).trim()
+      ? String(voiceId).trim()
+      : "";
 
-    // 1. Пытаемся отдать из кэша
-    if (fs.existsSync(cacheFile)) {
-      try {
-        const audioBuffer = fs.readFileSync(cacheFile);
-        const base64Audio = audioBuffer.toString("base64");
-        return res.json({
-          audioContent: base64Audio,
-          mimeType: "audio/mpeg",
-          fromCache: true,
-        });
-      } catch (e) {
-        console.error("Ошибка чтения кэша TTS:", e);
-        // если кэш не прочитался — пойдём в Google TTS ниже
+    let languageCodeForRequest = lang;
+    if (voiceName && voiceName.includes("-")) {
+      const parts = voiceName.split("-");
+      if (parts.length >= 2) {
+        languageCodeForRequest = parts[0] + "-" + parts[1];
       }
     }
 
-    // 2. Генерируем новый звук через Google TTS
-    const voiceConfig = effectiveVoice
-      ? { languageCode: lang, name: effectiveVoice }
-      : { languageCode: lang, ssmlGender: "NEUTRAL" };
-
-    const request = {
-      input: { text },
-      voice: voiceConfig,
-      audioConfig: {
-        audioEncoding: "MP3",
-        speakingRate: rate,
-        pitch: pitchVal,
-      },
-    };
-
-    const [response] = await ttsClient.synthesizeSpeech(request);
-    const audioBuffer = Buffer.from(response.audioContent);
-
-    // Сохраняем в кэш
-    try {
-      fs.writeFileSync(cacheFile, audioBuffer);
-    } catch (e) {
-      console.error("Ошибка записи в кэш TTS:", e);
+    let rate = 1.0;
+    if (typeof speakingRate === "number") {
+      rate = speakingRate;
+    } else if (typeof speakingRate === "string" && speakingRate.trim() !== "") {
+      const num = Number(speakingRate);
+      if (!Number.isNaN(num) && num > 0) rate = num;
     }
 
-    // Обновляем usage только при MISS (реальный вызов Google TTS)
-    updateUsage("tts", text.length);
+    let pitchVal = 0.0;
+    if (typeof pitch === "number") {
+      pitchVal = pitch;
+    } else if (typeof pitch === "string" && pitch.trim() !== "") {
+      const num = Number(pitch);
+      if (!Number.isNaN(num)) pitchVal = num;
+    }
 
-    const base64Audio = audioBuffer.toString("base64");
+    console.log("[/api/tts] request", {
+      requestId,
+      textLength: cleanText.length,
+      langFromClient: lang,
+      languageCodeForRequest,
+      voiceName: voiceName || "auto",
+      speakingRate: rate,
+      pitch: pitchVal,
+      nodeEnv: process.env.NODE_ENV || null,
+      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    });
 
-    res.json({
-      audioContent: base64Audio,
+    // КЛЮЧЕВОЕ: используем серверный кэш
+    const {
+      audioContent,
+      fromCache,
+      cacheId,
+    } = await synthesizeWithCache(
+      cleanText,
+      languageCodeForRequest,
+      voiceName || undefined,
+      rate,
+      pitchVal
+    );
+
+    // считаем символы ТОЛЬКО если это не кэш
+    if (!fromCache) {
+      updateUsage("tts", cleanText.length);
+    }
+
+    return res.json({
+      audioContent,
       mimeType: "audio/mpeg",
-      fromCache: false,
+      fromCache: !!fromCache,
+      cacheId: cacheId || null,
+      debug: {
+        requestId,
+        durationMs: Date.now() - startedAt,
+        fromCache: !!fromCache,
+      },
     });
   } catch (error) {
-    console.error("TTS Error:", error);
-    res.status(500).json({ error: "Ошибка синтеза" });
+    console.error("[/api/tts] Ошибка TTS", {
+      requestId,
+      message: error && error.message,
+      name: error && error.name,
+      code: error && error.code,
+      status: error && error.status,
+      details: error && error.details,
+      stack: error && error.stack,
+      nodeEnv: process.env.NODE_ENV || null,
+      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    });
+
+    const safeDetails = {
+      requestId,
+      message: (error && error.message) || "Неизвестная ошибка TTS",
+      code: (error && error.code) || null,
+      status: (error && error.status) || null,
+    };
+
+    return res.status(500).json({
+      error: "Ошибка TTS",
+      details: safeDetails,
+    });
   }
 });
 
-// --- API: SAVE (Сохранение MP3 на диск) ---
-app.post("/api/save", async (req, res) => {
+// --------------------------------------------------------
+// 8. API: СОХРАНЕНИЕ АУДИО НА ДИСК
+// --------------------------------------------------------
+app.post("/api/save-audio", async (req, res) => {
   try {
-    const {
-      text,
-      language,
-      languageCode,
-      voiceId,
-      speakingRate,
-      pitch,
-    } = req.body || {};
-    const lang = language || languageCode;
-
-    if (!text || typeof text !== "string" || !text.trim()) {
-      return res.status(400).json({ error: "Нет текста" });
-    }
-    if (!lang) {
-      return res.status(400).json({ error: "Не указан язык" });
-    }
-
-    // Нормализуем голос и параметры
-    const effectiveVoice = voiceId || TTS_DEFAULT_VOICE || null;
-
-    let rate = typeof speakingRate === "number" ? speakingRate : Number(speakingRate);
-    if (!rate || Number.isNaN(rate)) {
-      rate = TTS_DEFAULT_RATE;
-    }
-
-    let pitchVal = typeof pitch === "number" ? pitch : Number(pitch);
-    if (Number.isNaN(pitchVal)) {
-      pitchVal = TTS_DEFAULT_PITCH;
+    const { text, audioContent } = req.body || {};
+    if (!text || !audioContent) {
+      return res.status(400).json({ error: "Нет данных для сохранения" });
     }
 
     const id = uuidv4();
-    const audioFile = path.join(audioDir, `${id}.mp3`);
-    const textFile = path.join(audioDir, `${id}.txt`);
+    const audioPath = path.join(audioDir, `${id}.mp3`);
+    const textPath = path.join(audioDir, `${id}.txt`);
 
-    // Ключ кэша
-    const hashInput = `${lang}||${effectiveVoice || "auto"}||${rate}||${pitchVal}||${text}`;
-    const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
-    const cacheFile = path.join(audioCacheDir, `${hashKey}.mp3`);
-
-    let audioBuffer = null;
-
-    // 1. Пытаемся использовать кэш
-    if (fs.existsSync(cacheFile)) {
-      try {
-        audioBuffer = fs.readFileSync(cacheFile);
-      } catch (e) {
-        console.error("Ошибка чтения кэша TTS (SAVE):", e);
-        audioBuffer = null;
-      }
-    }
-
-    // 2. Если в кэше нет — генерируем новый звук
-    if (!audioBuffer) {
-      const voiceConfig = effectiveVoice
-        ? { languageCode: lang, name: effectiveVoice }
-        : { languageCode: lang, ssmlGender: "NEUTRAL" };
-
-      const request = {
-        input: { text },
-        voice: voiceConfig,
-        audioConfig: {
-          audioEncoding: "MP3",
-          speakingRate: rate,
-          pitch: pitchVal,
-        },
-      };
-
-      const [response] = await ttsClient.synthesizeSpeech(request);
-      audioBuffer = Buffer.from(response.audioContent);
-
-      // Сохраняем в кэш
-      try {
-        fs.writeFileSync(cacheFile, audioBuffer);
-      } catch (e) {
-        console.error("Ошибка записи в кэш TTS (SAVE):", e);
-      }
-
-      // Обновляем usage только при MISS
-      updateUsage("tts", text.length);
-    }
-
-    // 3. Сохраняем пользовательский файл и текст
-    fs.writeFileSync(audioFile, audioBuffer, "binary");
-    fs.writeFileSync(textFile, text, "utf8");
+    fs.writeFileSync(audioPath, Buffer.from(audioContent, "base64"));
+    fs.writeFileSync(textPath, text, "utf8");
 
     res.json({
-      success: true,
+      id,
       audioUrl: `/audio/${id}.mp3`,
       textUrl: `/audio/${id}.txt`,
     });
@@ -522,7 +440,71 @@ app.post("/api/save", async (req, res) => {
   }
 });
 
-// --- API: TRANSLATE (Gemini -> таблица) ---
+// --------------------------------------------------------
+// 9. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ GEMINI
+// --------------------------------------------------------
+function buildRowsFromGeminiPayload(parsed) {
+  if (!parsed || typeof parsed !== "object") {
+    throw new Error("Пустой ответ от Gemini");
+  }
+
+  const rows = Array.isArray(parsed.rows) ? parsed.rows : null;
+  const segments = Array.isArray(parsed.segments) ? parsed.segments : null;
+
+  if (!rows || rows.length === 0) {
+    throw new Error("Пустой массив rows");
+  }
+
+  const segMap = new Map();
+  if (segments && segments.length > 0) {
+    segments.forEach((seg, idx) => {
+      if (!seg || typeof seg !== "object") return;
+      let index = seg.index;
+      if (
+        typeof index !== "number" ||
+        !Number.isFinite(index) ||
+        index <= 0
+      ) {
+        index = idx + 1;
+      }
+      const heBase = (seg.he || "").trim();
+      if (heBase) {
+        segMap.set(index, heBase);
+      }
+    });
+  }
+
+  const preparedRows = rows.map((row, idx) => {
+    if (!row || typeof row !== "object") row = {};
+    let segIndex = row.segment_index;
+    if (
+      typeof segIndex !== "number" ||
+      !Number.isFinite(segIndex) ||
+      segIndex <= 0
+    ) {
+      segIndex = idx + 1;
+    }
+
+    let heBase = segMap.get(segIndex);
+    if (!heBase) {
+      heBase = (row.he || "").trim();
+    }
+
+    return {
+      segmentId: segIndex,
+      he: heBase || "",
+      he_niqqud: row.he_niqqud || "",
+      translit: row.translit || "",
+      ru: row.ru || "",
+    };
+  });
+
+  return preparedRows;
+}
+
+// --------------------------------------------------------
+// 10. API: TRANSLATE (Gemini -> таблица)
+// --------------------------------------------------------
 app.post("/api/translate-table", async (req, res) => {
   try {
     const { text } = req.body || {};
@@ -537,12 +519,10 @@ app.post("/api/translate-table", async (req, res) => {
 
     const cleanText = text.trim();
 
-    // --- Серверный кэш Gemini по хэшу текста и формата таблицы ---
     const hashInput = `he-ru-table-v1||${cleanText}`;
     const hashKey = crypto.createHash("sha256").update(hashInput).digest("hex");
     const cacheFile = path.join(geminiCacheDir, `${hashKey}.json`);
 
-    // 1. Пытаемся вернуть из кэша
     if (fs.existsSync(cacheFile)) {
       try {
         const rawCache = fs.readFileSync(cacheFile, "utf8");
@@ -557,7 +537,6 @@ app.post("/api/translate-table", async (req, res) => {
         }
       } catch (e) {
         console.error("Ошибка чтения/парсинга кэша Gemini:", e);
-        // если кэш битый — продолжаем и сделаем живой запрос к модели
       }
     }
 
@@ -565,34 +544,56 @@ app.post("/api/translate-table", async (req, res) => {
 
     const prompt = `
 You are a strict JSON generator.
-Task: Translate Hebrew to Russian and produce a table with 4 columns.
-Input: "${cleanText}"
-Output format (JSON only, no comments, no markdown, no explanations):
+
+Task:
+1) Split the input Hebrew text into logical sentences / segments in the original order.
+2) Translate each segment into Russian.
+3) Produce JSON with:
+   - "segments": list of original segments.
+   - "rows": table rows for the UI, one row per segment.
+
+Input text (Hebrew, may contain newlines):
+
+"""
+${cleanText}
+"""
+
+Strict output format (JSON only, no comments, no markdown):
 {
+  "segments": [
+    { "index": 1, "he": "..." }
+  ],
   "rows": [
-    { "he": "...", "he_niqqud": "...", "translit": "...", "ru": "..." }
+    {
+      "segment_index": 1,
+      "he": "...",
+      "he_niqqud": "...",
+      "translit": "...",
+      "ru": "..."
+    }
   ]
 }
-Return ONLY valid JSON.
-    `;
+
+Rules:
+- Preserve the original order of sentences.
+- Do NOT merge semantically different sentences into a single row.
+- If the input contains line breaks, you MAY use them as additional hints for segmentation.
+- Always return ALL data inside a single JSON object exactly in the format above.
+`;
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const rawText = response.text();
 
-    if (!rawText || !rawText.trim()) {
-      throw new Error("Пустой ответ от Gemini");
-    }
-
-    // Убираем обёртку ```json ... ```
-    const cleanJson = rawText
-      .replace(/```json/gi, "")
-      .replace(/```/g, "")
+    const cleaned = rawText
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/```\s*$/i, "")
       .trim();
 
     let parsed;
     try {
-      parsed = JSON.parse(cleanJson);
+      parsed = JSON.parse(cleaned);
     } catch (e) {
       console.error("JSON parse error:", e);
       return res.status(500).json({
@@ -601,17 +602,21 @@ Return ONLY valid JSON.
       });
     }
 
-    if (!parsed.rows || !Array.isArray(parsed.rows)) {
+    let preparedRows;
+    try {
+      preparedRows = buildRowsFromGeminiPayload(parsed);
+    } catch (e) {
+      console.error("Gemini payload error:", e);
       return res.status(500).json({
-        error: "Неверный формат JSON: нет массива rows",
+        error: "Неверный формат данных от Gemini",
         raw: rawText,
+        details: e.message,
       });
     }
 
-    // 2. Сохраняем успешный результат в кэш
     const cachePayload = {
       text: cleanText,
-      rows: parsed.rows,
+      rows: preparedRows,
       createdAt: new Date().toISOString(),
     };
     try {
@@ -620,11 +625,10 @@ Return ONLY valid JSON.
       console.error("Ошибка записи в кэш Gemini:", e);
     }
 
-    // Если всё прошло успешно — считаем запрос Gemini (только при MISS)
     updateUsage("gemini", 1);
 
     res.json({
-      rows: parsed.rows,
+      rows: preparedRows,
       fromCache: false,
       cacheKey: hashKey,
       cachedAt: cachePayload.createdAt,
@@ -632,53 +636,38 @@ Return ONLY valid JSON.
   } catch (error) {
     console.error("Gemini Error:", error);
 
-    // Специальная обработка 429 (лимиты)
     if (error && (error.status === 429 || error.statusCode === 429)) {
       let retryAfterSec = null;
-      let limitType = "unknown"; // rate | daily | unknown
+      let limitType = "unknown";
       let quotaId = null;
 
       const details = error.errorDetails || error.details || [];
 
-      if (Array.isArray(details)) {
-        for (const d of details) {
-          if (
-            d &&
-            typeof d === "object" &&
-            typeof d["@type"] === "string"
-          ) {
-            if (d["@type"].includes("RetryInfo") && d.retryDelay) {
-              // retryDelay строка вида "57s" или "3600s"
-              const m = String(d.retryDelay).match(/(\d+)/);
-              if (m) {
-                retryAfterSec = Number(m[1]);
-              }
+      for (const d of details) {
+        if (d && typeof d === "object" && typeof d["@type"] === "string") {
+          if (d["@type"].includes("RetryInfo") && d.retryDelay) {
+            const m = String(d.retryDelay).match(/(\d+)/);
+            if (m) {
+              retryAfterSec = Number(m[1]);
             }
+          }
 
-            if (
-              d["@type"].includes("QuotaFailure") &&
-              Array.isArray(d.violations)
-            ) {
-              const v = d.violations[0];
-              if (v && v.quotaId) {
-                quotaId = v.quotaId;
+          if (d["@type"].includes("QuotaFailure") && Array.isArray(d.violations)) {
+            const v = d.violations[0];
+            if (v) {
+              const q = String(v.description || "").toLowerCase();
+              quotaId = v.subject || null;
+
+              if (q.includes("perday") || q.includes("daily")) {
+                limitType = "daily";
+              } else if (q.includes("perminute") || q.includes("permin")) {
+                limitType = "rate";
               }
             }
           }
         }
       }
 
-      // Определяем тип лимита по quotaId
-      if (quotaId) {
-        const q = quotaId.toLowerCase();
-        if (q.includes("perday")) {
-          limitType = "daily";
-        } else if (q.includes("perminute") || q.includes("permin")) {
-          limitType = "rate";
-        }
-      }
-
-      // Если quotaId не дал ответа — используем эвристику по retryAfterSec
       if (limitType === "unknown" && typeof retryAfterSec === "number") {
         if (retryAfterSec <= 120) {
           limitType = "rate";
@@ -687,7 +676,6 @@ Return ONLY valid JSON.
         }
       }
 
-      // Готовим errorType и resetAt для фронтенда
       let errorType = null;
       if (limitType === "rate") {
         errorType = "rate-limit";
@@ -703,16 +691,13 @@ Return ONLY valid JSON.
             ? Date.parse(stats.geminiDayStart)
             : Date.parse(getCurrentQuotaDayStartISO());
           if (!Number.isNaN(dayStartMs)) {
-            resetAt = new Date(
-              dayStartMs + 24 * 60 * 60 * 1000
-            ).toISOString();
+            resetAt = new Date(dayStartMs + 24 * 60 * 60 * 1000).toISOString();
           }
         } catch (e) {
           console.error("Ошибка вычисления resetAt для daily-limit:", e);
         }
       }
 
-      // Если это daily-limit — отмечаем это в usage.json
       if (limitType === "daily") {
         markGeminiDailyLimitHit();
       }
@@ -726,7 +711,6 @@ Return ONLY valid JSON.
       });
     }
 
-    // Остальные ошибки
     res.status(500).json({
       error: "Ошибка Gemini",
       details: error.message,
@@ -734,7 +718,9 @@ Return ONLY valid JSON.
   }
 });
 
-// --- API: EXPORT DOCX ---
+// --------------------------------------------------------
+// 11. API: EXPORT DOCX
+// --------------------------------------------------------
 app.post("/api/export-docx", async (req, res) => {
   try {
     const { rows } = req.body || {};
@@ -743,11 +729,14 @@ app.post("/api/export-docx", async (req, res) => {
       return res.status(400).json({ error: "Нет данных для экспорта" });
     }
 
+    const tableRows = [];
+
     const headerRow = new TableRow({
       children: [
         new TableCell({
           children: [
             new Paragraph({
+              alignment: AlignmentType.CENTER,
               children: [new TextRun({ text: "Иврит", bold: true })],
             }),
           ],
@@ -755,6 +744,7 @@ app.post("/api/export-docx", async (req, res) => {
         new TableCell({
           children: [
             new Paragraph({
+              alignment: AlignmentType.CENTER,
               children: [new TextRun({ text: "Огласовки", bold: true })],
             }),
           ],
@@ -762,6 +752,7 @@ app.post("/api/export-docx", async (req, res) => {
         new TableCell({
           children: [
             new Paragraph({
+              alignment: AlignmentType.CENTER,
               children: [new TextRun({ text: "Транслит", bold: true })],
             }),
           ],
@@ -769,6 +760,7 @@ app.post("/api/export-docx", async (req, res) => {
         new TableCell({
           children: [
             new Paragraph({
+              alignment: AlignmentType.CENTER,
               children: [new TextRun({ text: "Перевод", bold: true })],
             }),
           ],
@@ -776,7 +768,7 @@ app.post("/api/export-docx", async (req, res) => {
       ],
     });
 
-    const tableRows = [headerRow];
+    tableRows.push(headerRow);
 
     rows.forEach((row) => {
       const he = row.he || "";
@@ -784,49 +776,33 @@ app.post("/api/export-docx", async (req, res) => {
       const translit = row.translit || "";
       const ru = row.ru || "";
 
-      tableRows.push(
-        new TableRow({
-          children: [
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [new TextRun({ text: he, rightToLeft: true })],
-                  alignment: AlignmentType.RIGHT,
-                }),
-              ],
-            }),
-            new TableCell({
-              children: [
-                new Paragraph({
-                  children: [
-                    new TextRun({ text: heNiqqud, rightToLeft: true }),
-                  ],
-                  alignment: AlignmentType.RIGHT,
-                }),
-              ],
-            }),
-            new TableCell({
-              children: [new Paragraph({ text: translit })],
-            }),
-            new TableCell({
-              children: [new Paragraph({ text: ru })],
-            }),
-          ],
-        })
-      );
+      const docxRow = new TableRow({
+        children: [
+          new TableCell({
+            children: [new Paragraph({ children: [new TextRun(he)] })],
+          }),
+          new TableCell({
+            children: [new Paragraph({ children: [new TextRun(heNiqqud)] })],
+          }),
+          new TableCell({
+            children: [new Paragraph({ children: [new TextRun(translit)] })],
+          }),
+          new TableCell({
+            children: [new Paragraph({ children: [new TextRun(ru)] })],
+          }),
+        ],
+      });
+
+      tableRows.push(docxRow);
     });
 
     const doc = new Document({
       sections: [
         {
           children: [
-            new Paragraph({
-              text: "Таблица перевода",
-              heading: "Heading1",
-            }),
             new Table({
-              rows: tableRows,
               width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: tableRows,
             }),
           ],
         },
@@ -835,23 +811,58 @@ app.post("/api/export-docx", async (req, res) => {
 
     const buffer = await Packer.toBuffer(doc);
 
-    res.writeHead(200, {
-      "Content-Type":
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "Content-Disposition": 'attachment; filename="translation.docx"',
-      "Content-Length": buffer.length,
-    });
-
-    res.end(buffer);
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      'attachment; filename="translation.docx"'
+    );
+    res.send(buffer);
   } catch (error) {
-    console.error("Docx Error:", error);
-    res.status(500).json({ error: "Ошибка Docx" });
+    console.error("DOCX Export Error:", error);
+    res.status(500).json({ error: "Ошибка экспорта DOCX" });
   }
 });
 
 // --------------------------------------------------------
-// 5. ЗАПУСК СЕРВЕРА
+// 12. API: USAGE (для фронтенда)
+// --------------------------------------------------------
+app.get("/api/usage", (req, res) => {
+  try {
+    ensureGeminiDay();
+    const usage = getUsage();
+
+    const usedToday = typeof usage.geminiRequests === "number"
+      ? usage.geminiRequests
+      : 0;
+    const limit = GEMINI_DAILY_LIMIT;
+    const dayStart = usage.geminiDayStart || getCurrentQuotaDayStartISO();
+    const totalGemini = typeof usage.geminiRequestsTotal === "number"
+      ? usage.geminiRequestsTotal
+      : 0;
+
+    res.json({
+      ttsChars: usage.ttsChars,
+      ttsCost: usage.ttsCost,
+      geminiRequestsToday: usedToday,
+      geminiDailyLimit: limit,
+      geminiDayStart: dayStart,
+      geminiDailyLimitHit: !!usage.geminiDailyLimitHit,
+      resetHourUTC: GEMINI_RESET_HOUR_UTC,
+      geminiRequests: usedToday,
+      geminiRequestsTotal: totalGemini,
+    });
+  } catch (error) {
+    console.error("Usage Error:", error);
+    res.status(500).json({ error: "Ошибка чтения usage" });
+  }
+});
+
+// --------------------------------------------------------
+// 13. ЗАПУСК СЕРВЕРА
 // --------------------------------------------------------
 app.listen(PORT, () => {
-  console.log(`Сервер запущен на порту ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
