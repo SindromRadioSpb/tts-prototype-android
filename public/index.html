@@ -384,6 +384,104 @@
             margin-top: 20px;
         }
 
+        /* НАСТРОЙКИ ТАБЛИЦЫ (колонки / пресеты) */
+        .table-settings {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border: 1px solid #e6eaee;
+        }
+
+        .table-settings-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .table-settings-title {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #343a40;
+            flex: 1 1 auto;
+        }
+
+        .table-presets {
+            display: inline-flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn-mini,
+        .btn-mini-secondary {
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 8px;
+            border: 1px solid #d0d4d8;
+            background: #ffffff;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .btn-mini:hover,
+        .btn-mini-secondary:hover {
+            background: #f0f4f7;
+        }
+
+        .btn-mini.active {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
+        }
+
+        .btn-mini-secondary {
+            background: #ffffff;
+            border-style: dashed;
+        }
+
+        .table-settings-cols {
+            justify-content: flex-start;
+        }
+
+        .table-chk {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #495057;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .table-chk input[type="checkbox"] {
+            transform: translateY(0.5px);
+        }
+
+        .table-settings-sub {
+            margin-top: 8px;
+            justify-content: space-between;
+        }
+
+        .table-settings-note {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 600px) {
+            .table-settings-row {
+                justify-content: flex-start;
+            }
+            .table-presets {
+                justify-content: flex-start;
+            }
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -795,6 +893,31 @@
         <!-- Единый блок метаданных результатов (озвучка + таблица) -->
         <div id="resultsMeta"></div>
 
+        <!-- Настройки таблицы (колонки / пресеты) -->
+        <div id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
+            <div class="table-settings-row">
+                <div class="table-settings-title">🧩 Таблица: отображение колонок</div>
+                <div class="table-presets" role="group" aria-label="Пресеты таблицы">
+                    <button type="button" class="btn-mini" data-preset="full" title="Показать все 4 колонки">Полная</button>
+                    <button type="button" class="btn-mini" data-preset="he_ru" title="Иврит + Перевод (без огласовок и транслита)">Иврит+рус</button>
+                    <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)">Фонетика</button>
+                    <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)">Только иврит</button>
+                </div>
+            </div>
+
+            <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
+                <label class="table-chk"><input type="checkbox" data-col="he"> Иврит</label>
+                <label class="table-chk"><input type="checkbox" data-col="niqqud"> Огласовки</label>
+                <label class="table-chk"><input type="checkbox" data-col="translit"> Транслит</label>
+                <label class="table-chk"><input type="checkbox" data-col="ru"> Перевод</label>
+            </div>
+
+            <div class="table-settings-row table-settings-sub">
+                <button type="button" id="btnTableReset" class="btn-mini-secondary" title="Сбросить видимость и базовые ширины к значениям по умолчанию">Сбросить настройки</button>
+                <span class="table-settings-note">Настройки таблицы сохраняются на этом устройстве.</span>
+            </div>
+        </div>
+
         <div id="errorMsg" class="error"></div>
         <div id="tableContainer"></div>
     </div>
@@ -832,6 +955,255 @@
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
     const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
+
+    // ----------------------------
+    // НАСТРОЙКИ ТАБЛИЦЫ: ВИДИМОСТЬ КОЛОНОК + АВТОШИРИНЫ (PRO)
+    // ----------------------------
+    const TABLE_SETTINGS_KEY = "ttsDashboard_table_settings_v1";
+
+    // Порядок колонок фиксированный (источник истины)
+    const TABLE_COL_ORDER = ["he", "niqqud", "translit", "ru"];
+
+    // Видимость колонок (минимум 1 колонка должна оставаться видимой)
+    let tableVisibleColumns = {
+        he: true,
+        niqqud: true,
+        translit: true,
+        ru: true
+    };
+
+    // Базовые ширины (в процентах) — храним всегда 4, независимо от видимости.
+    // Эффективные ширины считаются как ренормализация видимых весов до 100%.
+    let tableBaseWidths = [22, 22, 24, 32];
+
+    // Последний выбранный пресет (для UX-стабильности)
+    let tablePreset = "full";
+
+    function loadTableSettings() {
+        try {
+            const raw = localStorage.getItem(TABLE_SETTINGS_KEY);
+            if (!raw) return;
+
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== "object") return;
+
+            if (parsed.visible && typeof parsed.visible === "object") {
+                const v = parsed.visible;
+                TABLE_COL_ORDER.forEach(function (k) {
+                    if (typeof v[k] === "boolean") {
+                        tableVisibleColumns[k] = v[k];
+                    }
+                });
+            }
+
+            if (Array.isArray(parsed.baseWidths) && parsed.baseWidths.length === 4) {
+                const bw = parsed.baseWidths.map(function (n) {
+                    const num = Number(n);
+                    return Number.isFinite(num) && num > 0 ? num : null;
+                });
+                if (bw.every(function (x) { return x !== null; })) {
+                    tableBaseWidths = bw;
+                }
+            }
+
+            if (typeof parsed.preset === "string" && parsed.preset.trim()) {
+                tablePreset = parsed.preset.trim();
+            }
+
+            // Защита: не допускаем состояния "всё скрыто"
+            if (countVisibleColumns() < 1) {
+                tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
+                tablePreset = "full";
+            }
+        } catch (e) {
+            console.error("Table settings load error", e);
+        }
+    }
+
+    function saveTableSettings() {
+        try {
+            const payload = {
+                visible: tableVisibleColumns,
+                baseWidths: tableBaseWidths,
+                preset: tablePreset,
+                savedAt: new Date().toISOString()
+            };
+            localStorage.setItem(TABLE_SETTINGS_KEY, JSON.stringify(payload));
+        } catch (e) {
+            console.error("Table settings save error", e);
+        }
+    }
+
+    function countVisibleColumns() {
+        let n = 0;
+        TABLE_COL_ORDER.forEach(function (k) {
+            if (tableVisibleColumns[k]) n++;
+        });
+        return n;
+    }
+
+    function computeEffectiveWidths() {
+        // Возвращает объект {he: xx, niqqud: yy, translit: zz, ru: ww} где сумма видимых = 100
+        const weights = {};
+        let sum = 0;
+
+        TABLE_COL_ORDER.forEach(function (k, idx) {
+            if (tableVisibleColumns[k]) {
+                const w = Number(tableBaseWidths[idx]);
+                const safe = Number.isFinite(w) && w > 0 ? w : 1;
+                weights[k] = safe;
+                sum += safe;
+            } else {
+                weights[k] = 0;
+            }
+        });
+
+        if (sum <= 0) {
+            // аварийный fallback
+            TABLE_COL_ORDER.forEach(function (k) { weights[k] = tableVisibleColumns[k] ? (100 / countVisibleColumns()) : 0; });
+            return weights;
+        }
+
+        // нормализация
+        TABLE_COL_ORDER.forEach(function (k) {
+            if (weights[k] > 0) {
+                weights[k] = (weights[k] / sum) * 100;
+            }
+        });
+
+        // корректируем округление, чтобы итог был ровно 100.00
+        const visibleKeys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
+        if (visibleKeys.length > 0) {
+            let total = 0;
+            visibleKeys.forEach(function (k) { total += weights[k]; });
+            const delta = 100 - total;
+            weights[visibleKeys[visibleKeys.length - 1]] += delta;
+        }
+
+        return weights;
+    }
+
+    function applyTableSettingsToUI() {
+        const root = document.getElementById("tableSettings");
+        if (!root) return;
+
+        // чекбоксы
+        const inputs = root.querySelectorAll('input[type="checkbox"][data-col]');
+        inputs.forEach(function (inp) {
+            const key = inp.getAttribute("data-col");
+            if (key && Object.prototype.hasOwnProperty.call(tableVisibleColumns, key)) {
+                inp.checked = !!tableVisibleColumns[key];
+            }
+        });
+
+        // пресеты: active
+        const presetButtons = root.querySelectorAll('button[data-preset]');
+        presetButtons.forEach(function (btn) {
+            btn.classList.toggle("active", btn.getAttribute("data-preset") === tablePreset);
+        });
+    }
+
+    function initTableSettingsUI() {
+        loadTableSettings();
+        applyTableSettingsToUI();
+
+        const root = document.getElementById("tableSettings");
+        if (!root) return;
+
+        // клики по пресетам
+        root.addEventListener("click", function (e) {
+            const btn = e.target && e.target.closest ? e.target.closest("button[data-preset]") : null;
+            if (!btn) return;
+
+            const preset = btn.getAttribute("data-preset");
+            if (!preset) return;
+
+            applyPreset(preset);
+            applyTableSettingsToUI();
+
+            // перерисовка таблицы, если она уже есть
+            if (Array.isArray(currentTableData) && currentTableData.length > 0) {
+                renderTable(currentTableData);
+            }
+        });
+
+        // переключение чекбоксов
+        root.addEventListener("change", function (e) {
+            const inp = e.target;
+            if (!inp || inp.tagName !== "INPUT" || inp.type !== "checkbox") return;
+            const key = inp.getAttribute("data-col");
+            if (!key || !Object.prototype.hasOwnProperty.call(tableVisibleColumns, key)) return;
+
+            const next = !!inp.checked;
+
+            // защита: нельзя отключить последнюю колонку
+            const prevValue = !!tableVisibleColumns[key];
+            tableVisibleColumns[key] = next;
+
+            if (countVisibleColumns() < 1) {
+                // откат
+                tableVisibleColumns[key] = prevValue;
+                inp.checked = prevValue;
+                showToast("Нельзя скрыть все колонки. Минимум одна должна оставаться видимой.");
+                return;
+            }
+
+            tablePreset = "custom";
+            saveTableSettings();
+            applyTableSettingsToUI();
+
+            if (Array.isArray(currentTableData) && currentTableData.length > 0) {
+                renderTable(currentTableData);
+            }
+        });
+
+        // сброс
+        const resetBtn = document.getElementById("btnTableReset");
+        if (resetBtn) {
+            resetBtn.addEventListener("click", function () {
+                tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
+                tableBaseWidths = [22, 22, 24, 32];
+                tablePreset = "full";
+                saveTableSettings();
+                applyTableSettingsToUI();
+                if (Array.isArray(currentTableData) && currentTableData.length > 0) {
+                    renderTable(currentTableData);
+                }
+                showToast("Настройки таблицы сброшены");
+            });
+        }
+
+        // первичное сохранение, чтобы состояние стало стабильным
+        saveTableSettings();
+    }
+
+    function applyPreset(preset) {
+        // Presets: full, he_ru, phonetics, he_only
+        if (preset === "full") {
+            tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
+        } else if (preset === "he_ru") {
+            tableVisibleColumns = { he: true, niqqud: false, translit: false, ru: true };
+        } else if (preset === "phonetics") {
+            tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: false };
+        } else if (preset === "he_only") {
+            tableVisibleColumns = { he: true, niqqud: false, translit: false, ru: false };
+        } else {
+            // custom / unknown
+            preset = "custom";
+        }
+
+        // безопасность
+        if (countVisibleColumns() < 1) {
+            tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
+            preset = "full";
+        }
+
+        tablePreset = preset;
+        saveTableSettings();
+    }
+
+    // Предзагрузка настроек (важно до восстановлений таблицы из кэша)
+    loadTableSettings();
 
     let saveTimer = null;
 
@@ -904,6 +1276,9 @@
             }, 250);
         }, 2500);
     }
+
+    // Инициализация UI настроек таблицы (чекбоксы/пресеты)
+    initTableSettingsUI();
 
     // ----------------------------
     // МЕТАДАННЫЕ РЕЗУЛЬТАТОВ
@@ -1494,7 +1869,8 @@
                 ) {
                     renderAudioFromBase64(
                         cache.audioBase64,
-                        "восстановлена из локального кэша браузера (без запроса к серверу)"
+                        "восстановлена из локального кэша браузера (без запроса к серверу)",
+    true
                     );
                     showToast("Озвучка восстановлена из локального кэша");
                     loadStats();
@@ -1519,7 +1895,7 @@
                 ? "восстановлена из серверного кэша (без запроса к Google TTS)"
                 : "сгенерирована через Google TTS";
 
-            renderAudioFromBase64(res.audioContent, noteText);
+            renderAudioFromBase64(res.audioContent, noteText, true);
 
             try {
                 saveAudioCache(currentText, currentLang, cfg, res.audioContent);
@@ -1539,32 +1915,36 @@
         }
     }
 
-    function renderAudioFromBase64(base64Audio, noteText) {
-        const binary = atob(base64Audio);
-        const len = binary.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-        lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
-
-        if (lastAudioUrl) {
-            URL.revokeObjectURL(lastAudioUrl);
-        }
-        lastAudioUrl = URL.createObjectURL(lastAudioBlob);
-
-        const audioContainer = document.getElementById("audioContainer");
-        audioContainer.innerHTML =
-            '<div class="audio-block">' +
-            '  <audio controls src="' + lastAudioUrl + '" autoplay></audio>' +
-            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-            '    ⬇ Скачать MP3' +
-            '  </button>' +
-            '</div>';
-
-        clearAudioStale();
-        setResultsMeta("audio", noteText || null);
+    function renderAudioFromBase64(base64Audio, noteText, shouldAutoplay) {
+    const binary = atob(base64Audio);
+    const len = binary.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binary.charCodeAt(i);
     }
+    lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
+
+    if (lastAudioUrl) {
+        URL.revokeObjectURL(lastAudioUrl);
+    }
+    lastAudioUrl = URL.createObjectURL(lastAudioBlob);
+
+    const audioContainer = document.getElementById("audioContainer");
+
+    const autoplayAttr = shouldAutoplay ? " autoplay" : "";
+
+    audioContainer.innerHTML =
+        '<div class="audio-block">' +
+        '  <audio controls src="' + lastAudioUrl + '"' + autoplayAttr + '></audio>' +
+        '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+        '    ⬇ Скачать MP3' +
+        '  </button>' +
+        '</div>';
+
+    clearAudioStale();
+    setResultsMeta("audio", noteText || null);
+}
+
 
     function saveAudioCache(text, lang, cfg, base64Audio) {
         const payload = {
@@ -1606,7 +1986,8 @@
 
             renderAudioFromBase64(
                 cache.audioBase64,
-                "восстановлена из локального кэша браузера (без запроса к серверу)"
+                "восстановлена из локального кэша браузера (без запроса к серверу)",
+    false
             );
         } catch (e) {
             console.error("Audio cache restore error", e);
@@ -1920,7 +2301,7 @@
     }
 
     // ----------------------------
-    // ОТРИСОВКА ТАБЛИЦЫ
+    // ОТРИСОВКА ТАБЛИЦЫ (с учётом видимых колонок + автоширины)
     // ----------------------------
     function renderTable(rows) {
         if (!Array.isArray(rows) || rows.length === 0) {
@@ -1928,14 +2309,47 @@
             return;
         }
 
+        // Эффективные ширины видимых колонок (ренормализация базовых весов до 100%)
+        const eff = computeEffectiveWidths();
+
+        // Какие колонки сейчас отображаются (в фиксированном порядке)
+        const cols = TABLE_COL_ORDER.filter(function (k) { return !!tableVisibleColumns[k]; });
+
+        if (!cols || cols.length < 1) {
+            // Защита: если по какой-то причине нет видимых колонок — откатываемся к полной таблице
+            applyPreset("full");
+            return renderTable(rows);
+        }
+
+        // Заголовки и шаблоны вывода
+        const colMeta = {
+            he: { title: "Иврит", headerClass: "rtl", cellClass: "rtl rtl-he" },
+            niqqud: { title: "Огласовки", headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
+            translit: { title: "Транслит", headerClass: "", cellClass: "" },
+            ru: { title: "Перевод", headerClass: "", cellClass: "" }
+        };
+
         let html = '' +
             '<table>' +
+            '  <colgroup>';
+
+        cols.forEach(function (k) {
+            const w = eff[k] || 0;
+            html += '<col style="width:' + Number(w).toFixed(4) + '%;">';
+        });
+
+        html += '' +
+            '  </colgroup>' +
             '  <thead>' +
-            '    <tr>' +
-            '      <th>Иврит</th>' +
-            '      <th>Огласовки</th>' +
-            '      <th>Транслит</th>' +
-            '      <th>Перевод</th>' +
+            '    <tr>';
+
+        cols.forEach(function (k) {
+            const meta = colMeta[k] || { title: k };
+            const cls = meta.headerClass ? (' class="' + meta.headerClass + '"') : "";
+            html += '<th' + cls + '>' + escapeHtml(meta.title) + '</th>';
+        });
+
+        html += '' +
             '    </tr>' +
             '  </thead>' +
             '  <tbody>';
@@ -1946,13 +2360,21 @@
             const translit = row.translit || "";
             const ru = row.ru || "";
 
-            html += '' +
-                '<tr>' +
-                '  <td class="rtl rtl-he">' + escapeHtml(he) + '</td>' +
-                '  <td class="rtl rtl-he-niqqud">' + escapeHtml(heNiqqud) + '</td>' +
-                '  <td>' + escapeHtml(translit) + '</td>' +
-                '  <td>' + escapeHtml(ru) + '</td>' +
-                '</tr>';
+            html += '<tr>';
+
+            cols.forEach(function (k) {
+                const meta = colMeta[k] || {};
+                const tdClass = meta.cellClass ? (' class="' + meta.cellClass + '"') : "";
+                let value = "";
+                if (k === "he") value = he;
+                else if (k === "niqqud") value = heNiqqud;
+                else if (k === "translit") value = translit;
+                else if (k === "ru") value = ru;
+
+                html += '<td' + tdClass + '>' + escapeHtml(value) + '</td>';
+            });
+
+            html += '</tr>';
         });
 
         html += '  </tbody></table>';
