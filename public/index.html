@@ -9,668 +9,724 @@
     <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            /* Текущий шрифт для иврита (управляется селектором) */
-            --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f6f9;
-            color: #333;
-        }
-
-        /* ПАНЕЛЬ СТАТИСТИКИ */
-        .dashboard-header {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .stats-box {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            text-align: left;
-            min-width: 160px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-sub {
-            font-size: 11px;
-            color: #aaaaaa;
-            margin-top: 4px;
-        }
-
-        .model-info { margin-top: 6px; }
-        .today-info { margin-top: 4px; }
-        .reset-info { margin-top: 2px; }
-
-        .limit-ok { color: #2e7d32; font-weight: 600; }
-        .limit-warning { color: #ff8f00; font-weight: 600; }
-        .limit-exceeded { color: #c62828; font-weight: 700; }
-
-        /* Прогресс-бар дневного лимита Gemini */
-        .gemini-quota-bar {
-            margin-top: 6px;
-            width: 100%;
-            max-width: 220px;
-            height: 6px;
-            border-radius: 4px;
-            background-color: #eceff1;
-            overflow: hidden;
-        }
-
-        .gemini-quota-fill {
-            height: 100%;
-            width: 0%;
-            background-color: #2e7d32;
-            transition: width 0.3s ease;
-        }
-
-        .gemini-quota-fill.warning { background-color: #ff8f00; }
-        .gemini-quota-fill.exceeded { background-color: #c62828; }
-
-        /* Прогресс-бар месячного лимита TTS (4 000 000 символов) */
-        .tts-quota-bar {
-            margin-top: 6px;
-            width: 100%;
-            max-width: 220px;
-            height: 6px;
-            border-radius: 4px;
-            background-color: #eceff1;
-            overflow: hidden;
-        }
-
-        .tts-quota-fill {
-            height: 100%;
-            width: 0%;
-            background-color: #3498db;
-            transition: width 0.3s ease;
-        }
-
-        /* КНОПКА GOOGLE CONSOLE */
-        .btn-console {
-            background-color: #ffffff;
-            border: 2px solid #dfe6e9;
-            color: #636e72;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .btn-console:hover {
-            border-color: #b2bec3;
-            background-color: #fdfdfd;
-            color: #2d3436;
-        }
-
-        /* ОСНОВНОЙ ИНТЕРФЕЙС */
-        .main-card {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .main-card h2 {
-            margin-top: 0;
-            margin-bottom: 18px;
-            text-align: center;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 140px;
-            padding: 22px 18px;
-            border: 1px solid #b5b5b5;
-            border-radius: 12px;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 12px;
-            box-sizing: border-box;
-            resize: none;
-            overflow-y: auto;
-            max-height: 280px;
-            direction: ltr;
-            text-align: left;
-            background-color: #ffffff;
-            box-shadow:
-                inset 0 1px 3px rgba(0, 0, 0, 0.12),
-                0 2px 4px rgba(0, 0, 0, 0.06);
-        }
-
-        /* Режим для иврита (textarea) */
-        textarea.rtl-text {
-            direction: rtl;
-            text-align: right;
-            line-height: 1.9;
-            font-family: var(--hebrew-font);
-            padding-right: 22px;
-            padding-left: 14px;
-        }
-
-        /* Баннер "текст изменён" */
-        #textChangedNotice {
-            background: #fff3cd;
-            color: #856404;
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid #ffeeba;
-            font-size: 14px;
-            display: none;
-        }
-
-        #textChangedNotice.notice-visible { display: block; }
-
-        /* Баннер лимитов Gemini */
-        #limitBanner {
-            display: none;
-            margin-bottom: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        #limitBanner.limit-rate {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-
-        #limitBanner.limit-daily {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        #limitBanner.limit-info {
-            background: #e2f0d9;
-            color: #1e4620;
-            border: 1px solid #c3e6cb;
-        }
-
-        .controls {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            margin-bottom: 20px;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .input-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #555555;
-            letter-spacing: 0.3px;
-        }
-
-        button, select {
-            padding: 12px 20px;
-            font-size: 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        select {
-            border: 1px solid #d0d4d8;
-            background: #ffffff;
-            min-width: 190px;
-        }
-
-        .btn-primary {
-            background-color: #3498db;
-            color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.10);
-        }
-
-        .btn-primary:hover {
-            background-color: #2980b9;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .btn-success {
-            background-color: #2ecc71;
-            color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.10);
-        }
-
-        .btn-success:hover {
-            background-color: #27ae60;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .btn-word {
-            background-color: #2b579a;
-            color: #ffffff;
-            margin-left: auto;
-            opacity: 1;
-            transition: all 0.25s ease;
-        }
-
-        .btn-word.disabled {
-            background-color: #d0d4d8 !important;
-            color: #888 !important;
-            cursor: not-allowed !important;
-            box-shadow: none !important;
-            opacity: 0.65;
-        }
-
-        .btn-word:not(.disabled):hover {
-            background-color: #1e3f72;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        /* Общий стиль "disabled" */
-        button.disabled, button:disabled {
-            background-color: #d0d4d8 !important;
-            color: #888 !important;
-            cursor: not-allowed !important;
-            box-shadow: none !important;
-            opacity: 0.65;
-        }
-
-        .loader {
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: none;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Блок аудио */
-        .audio-block {
-            display: inline-flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 8px 0;
-        }
-
-        .audio-download-btn {
-            align-self: flex-start;
-            padding: 6px 12px;
-            font-size: 13px;
-            border-radius: 6px;
-            border: 1px solid #d0d4d8;
-            background: #ffffff;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .audio-download-btn:hover { background: #f0f4f7; }
-
-        /* ТАБЛИЦА */
-        #tableContainer { margin-top: 20px; }
-
-        /* НАСТРОЙКИ ТАБЛИЦЫ */
-        .table-settings {
-            margin-top: 10px;
-            margin-bottom: 10px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            border: 1px solid #e6eaee;
-        }
-
-        .table-settings-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px 12px;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .table-settings-title {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: #343a40;
-            flex: 1 1 auto;
-        }
-
-        .table-presets {
-            display: inline-flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .btn-mini, .btn-mini-secondary {
-            padding: 6px 10px;
-            font-size: 12px;
-            border-radius: 8px;
-            border: 1px solid #d0d4d8;
-            background: #ffffff;
-            cursor: pointer;
-            transition: 0.15s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .btn-mini:hover, .btn-mini-secondary:hover { background: #f0f4f7; }
-
-        .btn-mini.active {
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
-        }
-
-        .btn-mini-secondary {
-            background: #ffffff;
-            border-style: dashed;
-        }
-
-        .table-settings-cols { justify-content: flex-start; }
-
-        .table-chk {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #495057;
-            user-select: none;
-            white-space: nowrap;
-        }
-
-        .table-chk input[type="checkbox"] { transform: translateY(0.5px); }
-
-        .table-settings-sub {
-            margin-top: 8px;
-            justify-content: space-between;
-        }
-
-        .table-settings-note {
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        @media (max-width: 600px) {
-            .table-settings-row { justify-content: flex-start; }
-            .table-presets { justify-content: flex-start; }
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #ffffff;
-            border-radius: 0;
-            box-shadow: none;
-            border: 1px solid #000000;
-            font-size: 15px;
-            table-layout: fixed; /* важно для стабильной работы процентов и resize */
-        }
-
-        th, td {
-            padding: 6px 8px;
-            text-align: left;
-            border: 1px solid #000000;
-            vertical-align: top;
-            word-break: break-word;
-            overflow-wrap: anywhere;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            color: #000000;
-            font-weight: 700;
-            text-align: center;
-            position: relative; /* для грипа */
-            user-select: none;
-        }
-
-        .rtl {
-            direction: rtl;
-            text-align: right;
-            font-family: var(--hebrew-font);
-        }
-
-        .rtl-he { font-size: 18px; }
-        .rtl-he-niqqud { font-size: 19px; line-height: 1.9; }
-
-        .error {
-            color: #e74c3c;
-            margin-top: 10px;
-            font-weight: 500;
-        }
-
-        .results-stale {
-            opacity: 0.45;
-            filter: grayscale(0.4);
-            transition: opacity 0.2s ease, filter 0.2s ease;
-        }
-
-        .results-stale-note {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #a67c00;
-        }
-
-        .cache-restore-note {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .table-source-note {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        /* Метаданные результатов */
-        #resultsMeta {
-            display: none;
-            margin-top: 4px;
-            margin-bottom: 10px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .results-meta-line { margin-bottom: 2px; }
-        .results-meta-label { font-weight: 600; margin-right: 4px; color: #495057; }
-
-        /* Слайдеры */
-        input[type="range"] { width: 180px; }
-
-        /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
-        .hotkeys-panel {
-            margin-top: 10px;
-            margin-bottom: 12px;
-            padding: 12px 14px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px dashed #cfd4da;
-            font-size: 13px;
-            color: #495057;
-        }
-
-        .hotkeys-panel.hotkeys-hidden { display: none; }
-
-        .hotkeys-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
-        .hotkeys-header strong {
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: #343a40;
-        }
-
-        .hotkeys-hint {
-            font-size: 11px;
-            color: #868e96;
-            text-align: right;
-        }
-
-        .hotkeys-list {
-            list-style: none;
-            padding-left: 0;
-            margin: 0;
-        }
-
-        .hotkeys-list li { margin-bottom: 4px; }
-
-        .hotkeys-list code {
-            font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
-            font-size: 12px;
-            padding: 2px 4px;
-            border-radius: 4px;
-            background: #e9ecef;
-        }
-
-        /* ТОСТ */
-        #toastContainer {
-            position: fixed;
-            left: 50%;
-            bottom: 20px;
-            transform: translateX(-50%);
-            z-index: 9999;
-            pointer-events: none;
-        }
-
-        .toast {
-            display: inline-block;
-            min-width: 260px;
-            max-width: 90vw;
-            padding: 10px 14px;
-            border-radius: 6px;
-            background: #323232;
-            color: #ffffff;
-            font-size: 14px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            pointer-events: auto;
-        }
-
-        .toast-show {
-            opacity: 0.96;
-            transform: translateY(0);
-        }
-
-        @media (max-width: 600px) {
-            .dashboard-header { flex-direction: column; align-items: flex-start; }
-            .btn-console { width: 100%; text-align: center; }
-            .stats-box { width: 100%; }
-            .stat-item { width: 100%; }
-            .controls { flex-direction: column; align-items: stretch; }
-            .field-group { width: 100%; }
-            .field-group select, .field-group input[type="range"] { width: 100%; }
-            button, select { width: 100%; }
-            .btn-word { margin-left: 0; }
-            .hotkeys-header { flex-direction: column; align-items: flex-start; }
-            .hotkeys-hint { text-align: left; }
-        }
-
-        /* ============================
-           PRO: RESIZE COLUMNS (Excel-style)
-           ============================ */
-
-        /* Курсор во время drag */
-        body.resizing-cols {
-            cursor: col-resize !important;
-            user-select: none !important;
-        }
-
-        /* Грип (ручка) в заголовке */
-        .col-resizer {
-            position: absolute;
-            top: 0;
-            right: -4px;
-            width: 10px;
-            height: 100%;
-            cursor: col-resize;
-            touch-action: none;
-            background: transparent;
-        }
-
-        /* Тонкая вертикальная линия внутри грипа */
-        .col-resizer::after {
-            content: "";
-            position: absolute;
-            top: 15%;
-            bottom: 15%;
-            left: 50%;
-            width: 2px;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.18);
-            border-radius: 2px;
-        }
-
-        th:hover .col-resizer::after {
-            background: rgba(0,0,0,0.35);
-        }
-
-        /* Чтобы на последней видимой колонке не рисовать грип */
-        .col-resizer.hidden {
-            display: none;
-        }
-
-        /* Невидимый измеритель текста для autofit */
-        #measureBox {
-            position: absolute;
-            left: -9999px;
-            top: -9999px;
-            visibility: hidden;
-            white-space: nowrap;
-            padding: 0;
-            margin: 0;
-        }
-    </style>
+    :root {
+        /* Текущий шрифт для иврита (управляется селектором) */
+        --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f4f6f9;
+        color: #333;
+    }
+
+    /* ПАНЕЛЬ СТАТИСТИКИ */
+    .dashboard-header {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .stats-box {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        text-align: left;
+        min-width: 160px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c3e50;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-sub {
+        font-size: 11px;
+        color: #aaaaaa;
+        margin-top: 4px;
+    }
+
+    .model-info { margin-top: 6px; }
+    .today-info { margin-top: 4px; }
+    .reset-info { margin-top: 2px; }
+
+    .limit-ok { color: #2e7d32; font-weight: 600; }
+    .limit-warning { color: #ff8f00; font-weight: 600; }
+    .limit-exceeded { color: #c62828; font-weight: 700; }
+
+    /* Прогресс-бар дневного лимита Gemini */
+    .gemini-quota-bar {
+        margin-top: 6px;
+        width: 100%;
+        max-width: 220px;
+        height: 6px;
+        border-radius: 4px;
+        background-color: #eceff1;
+        overflow: hidden;
+    }
+
+    .gemini-quota-fill {
+        height: 100%;
+        width: 0%;
+        background-color: #2e7d32;
+        transition: width 0.3s ease;
+    }
+
+    .gemini-quota-fill.warning { background-color: #ff8f00; }
+    .gemini-quota-fill.exceeded { background-color: #c62828; }
+
+    /* Прогресс-бар месячного лимита TTS (4 000 000 символов) */
+    .tts-quota-bar {
+        margin-top: 6px;
+        width: 100%;
+        max-width: 220px;
+        height: 6px;
+        border-radius: 4px;
+        background-color: #eceff1;
+        overflow: hidden;
+    }
+
+    .tts-quota-fill {
+        height: 100%;
+        width: 0%;
+        background-color: #3498db;
+        transition: width 0.3s ease;
+    }
+
+    /* КНОПКА GOOGLE CONSOLE */
+    .btn-console {
+        background-color: #ffffff;
+        border: 2px solid #dfe6e9;
+        color: #636e72;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .btn-console:hover {
+        border-color: #b2bec3;
+        background-color: #fdfdfd;
+        color: #2d3436;
+    }
+
+    /* ОСНОВНОЙ ИНТЕРФЕЙС */
+    .main-card {
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .main-card h2 {
+        margin-top: 0;
+        margin-bottom: 18px;
+        text-align: center;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 140px;
+        padding: 22px 18px;
+        border: 1px solid #b5b5b5;
+        border-radius: 12px;
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        box-sizing: border-box;
+        resize: none;
+        overflow-y: auto;
+        max-height: 280px;
+        direction: ltr;
+        text-align: left;
+        background-color: #ffffff;
+        box-shadow:
+            inset 0 1px 3px rgba(0, 0, 0, 0.12),
+            0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Режим для иврита (textarea) */
+    textarea.rtl-text {
+        direction: rtl;
+        text-align: right;
+        line-height: 1.9;
+        font-family: var(--hebrew-font);
+        padding-right: 22px;
+        padding-left: 14px;
+    }
+
+    /* Баннер "текст изменён" */
+    #textChangedNotice {
+        background: #fff3cd;
+        color: #856404;
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: 1px solid #ffeeba;
+        font-size: 14px;
+        display: none;
+    }
+
+    #textChangedNotice.notice-visible { display: block; }
+
+    /* Баннер лимитов Gemini */
+    #limitBanner {
+        display: none;
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    #limitBanner.limit-rate {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    #limitBanner.limit-daily {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    #limitBanner.limit-info {
+        background: #e2f0d9;
+        color: #1e4620;
+        border: 1px solid #c3e6cb;
+    }
+
+    .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .input-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #555555;
+        letter-spacing: 0.3px;
+    }
+
+    button, select {
+        padding: 12px 20px;
+        font-size: 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    select {
+        border: 1px solid #d0d4d8;
+        background: #ffffff;
+        min-width: 190px;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.10);
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-success {
+        background-color: #2ecc71;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.10);
+    }
+
+    .btn-success:hover {
+        background-color: #27ae60;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-word {
+        background-color: #2b579a;
+        color: #ffffff;
+        margin-left: auto;
+        opacity: 1;
+        transition: all 0.25s ease;
+    }
+
+    .btn-word.disabled {
+        background-color: #d0d4d8 !important;
+        color: #888 !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+        opacity: 0.65;
+    }
+
+    .btn-word:not(.disabled):hover {
+        background-color: #1e3f72;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    /* Общий стиль "disabled" */
+    button.disabled, button:disabled {
+        background-color: #d0d4d8 !important;
+        color: #888 !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+        opacity: 0.65;
+    }
+
+    .loader {
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Блок аудио */
+    .audio-block {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px 0;
+    }
+
+    .audio-download-btn {
+        align-self: flex-start;
+        padding: 6px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+        border: 1px solid #d0d4d8;
+        background: #ffffff;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .audio-download-btn:hover { background: #f0f4f7; }
+
+    /* ТАБЛИЦА */
+    #tableContainer { margin-top: 20px; }
+
+    /* НАСТРОЙКИ ТАБЛИЦЫ */
+    .table-settings {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #f8f9fa;
+        border: 1px solid #e6eaee;
+    }
+
+    .table-settings-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 12px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .table-settings-title {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #343a40;
+        flex: 1 1 auto;
+    }
+
+    .table-presets {
+        display: inline-flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .btn-mini, .btn-mini-secondary {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 8px;
+        border: 1px solid #d0d4d8;
+        background: #ffffff;
+        cursor: pointer;
+        transition: 0.15s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .btn-mini:hover, .btn-mini-secondary:hover { background: #f0f4f7; }
+
+    .btn-mini.active {
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
+    }
+
+    .btn-mini-secondary {
+        background: #ffffff;
+        border-style: dashed;
+    }
+
+    .table-settings-cols { justify-content: flex-start; }
+
+    .table-chk {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #495057;
+        user-select: none;
+        white-space: nowrap;
+    }
+
+    .table-chk input[type="checkbox"] { transform: translateY(0.5px); }
+
+    .table-settings-sub {
+        margin-top: 8px;
+        justify-content: space-between;
+    }
+
+    .table-settings-note {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    @media (max-width: 600px) {
+        .table-settings-row { justify-content: flex-start; }
+        .table-presets { justify-content: flex-start; }
+    }
+
+    /* === TABLE: Premium Readability (CSS only) === */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;
+        border-radius: 0;
+        box-shadow: none;
+
+        table-layout: fixed; /* важно для стабильной работы процентов и resize */
+        font-size: 14px;     /* чуть компактнее, меньше визуального шума */
+        border: 1px solid rgba(0,0,0,0.75); /* смягчаем сетку, сохраняя контраст */
+    }
+
+    th, td {
+        padding: 6px 8px;
+        text-align: left;
+        border: 1px solid rgba(0,0,0,0.75);
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+
+        line-height: 1.45; /* стабильный ритм чтения */
+    }
+
+    th {
+        background: #f5f6f7;
+        color: #000000;
+        font-weight: 700;
+        text-align: center;
+        position: relative; /* для грипа */
+        user-select: none;
+    }
+	/* === PRO: Sticky header + Premium header look (CSS only) === */
+#tableContainer{
+  max-height: 62vh;          /* подберите: 55–70vh */
+  overflow: auto;
+  border-radius: 10px;       /* “премиум” скролл-контейнер */
+}
+
+/* важно: не ломает table-layout: fixed */
+thead th{
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #f7f8fa;       /* непрозрачный фон для sticky */
+  box-shadow: 0 1px 0 rgba(0,0,0,0.14), 0 8px 18px rgba(0,0,0,0.08);
+}
+
+/* тонкий “разделитель” между sticky header и body */
+thead th::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:-1px;
+  height:1px;
+  background: rgba(0,0,0,0.18);
+}
+/* === Premium: softer grid + nicer typography === */
+table { border-radius: 10px; }
+th, td { border-color: rgba(0,0,0,0.55); }
+tbody tr:hover td { background: rgba(0,0,0,0.03); }
+tbody tr:hover td.rtl { background: rgba(0,0,0,0.04); }
+
+	
+	/*  PRO: STICKY HEADER */
+#proTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;          /* выше ячеек tbody */
+    background: #f5f6f7; /* важно: чтобы не было "прозрачного" наложения */
+}
+
+#proTable thead th::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: rgba(0,0,0,0.35);
+}
+
+
+    tbody tr:hover td { background: rgba(0,0,0,0.035); }       /* ведение строки */
+    tbody tr:hover td.rtl { background: rgba(0,0,0,0.045); }   /* чуть заметнее для RTL */
+
+    .rtl {
+        direction: rtl;
+        text-align: right;
+        font-family: var(--hebrew-font);
+    }
+
+    .rtl-he {
+        font-size: 17px;
+        line-height: 1.75; /* иврит читабельнее без “воздуха-шума” */
+    }
+
+    .rtl-he-niqqud {
+        font-size: 18px;
+        line-height: 2.05;       /* ключ: никуда перестаёт “слипаться” */
+        letter-spacing: 0.15px;  /* микропомощь для огласовок */
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    .error {
+        color: #e74c3c;
+        margin-top: 10px;
+        font-weight: 500;
+    }
+
+    .results-stale {
+        opacity: 0.45;
+        filter: grayscale(0.4);
+        transition: opacity 0.2s ease, filter 0.2s ease;
+    }
+
+    .results-stale-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #a67c00;
+    }
+
+    .cache-restore-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .table-source-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    /* Метаданные результатов */
+    #resultsMeta {
+        display: none;
+        margin-top: 4px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .results-meta-line { margin-bottom: 2px; }
+    .results-meta-label { font-weight: 600; margin-right: 4px; color: #495057; }
+
+    /* Слайдеры */
+    input[type="range"] { width: 180px; }
+
+    /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
+    .hotkeys-panel {
+        margin-top: 10px;
+        margin-bottom: 12px;
+        padding: 12px 14px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #cfd4da;
+        font-size: 13px;
+        color: #495057;
+    }
+
+    .hotkeys-panel.hotkeys-hidden { display: none; }
+
+    .hotkeys-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .hotkeys-header strong {
+        font-size: 13px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #343a40;
+    }
+
+    .hotkeys-hint {
+        font-size: 11px;
+        color: #868e96;
+        text-align: right;
+    }
+
+    .hotkeys-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+    }
+
+    .hotkeys-list li { margin-bottom: 4px; }
+
+    .hotkeys-list code {
+        font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
+        font-size: 12px;
+        padding: 2px 4px;
+        border-radius: 4px;
+        background: #e9ecef;
+    }
+
+    /* ТОСТ */
+    #toastContainer {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .toast {
+        display: inline-block;
+        min-width: 260px;
+        max-width: 90vw;
+        padding: 10px 14px;
+        border-radius: 6px;
+        background: #323232;
+        color: #ffffff;
+        font-size: 14px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        pointer-events: auto;
+    }
+
+    .toast-show {
+        opacity: 0.96;
+        transform: translateY(0);
+    }
+
+    @media (max-width: 600px) {
+        .dashboard-header { flex-direction: column; align-items: flex-start; }
+        .btn-console { width: 100%; text-align: center; }
+        .stats-box { width: 100%; }
+        .stat-item { width: 100%; }
+        .controls { flex-direction: column; align-items: stretch; }
+        .field-group { width: 100%; }
+        .field-group select, .field-group input[type="range"] { width: 100%; }
+        button, select { width: 100%; }
+        .btn-word { margin-left: 0; }
+        .hotkeys-header { flex-direction: column; align-items: flex-start; }
+        .hotkeys-hint { text-align: left; }
+    }
+
+    /* ============================
+       PRO: RESIZE COLUMNS (Excel-style)
+       ============================ */
+
+    /* Курсор во время drag */
+    body.resizing-cols {
+        cursor: col-resize !important;
+        user-select: none !important;
+    }
+
+    /* Грип (ручка) в заголовке */
+    .col-resizer {
+        position: absolute;
+        top: 0;
+        right: -4px;
+        width: 10px;
+        height: 100%;
+        cursor: col-resize;
+        touch-action: none;
+        background: transparent;
+    }
+
+    /* Тонкая вертикальная линия внутри грипа */
+    .col-resizer::after {
+        content: "";
+        position: absolute;
+        top: 15%;
+        bottom: 15%;
+        left: 50%;
+        width: 2px;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.18);
+        border-radius: 2px;
+    }
+
+    th:hover .col-resizer::after {
+        background: rgba(0,0,0,0.35);
+    }
+
+    /* Чтобы на последней видимой колонке не рисовать грип */
+    .col-resizer.hidden {
+        display: none;
+    }
+
+    
+</style>
+
 </head>
 <body>
 
@@ -879,8 +935,7 @@
     <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-    <!-- измеритель текста для auto-fit -->
-    <div id="measureBox"></div>
+    
 
 <script>
     // ----------------------------
@@ -906,7 +961,7 @@
     const toastContainerEl = document.getElementById("toastContainer");
     const resultsMetaEl = document.getElementById("resultsMeta");
 
-    const measureBoxEl = document.getElementById("measureBox");
+    
 
     let toastTimeoutId = null;
 
@@ -953,9 +1008,7 @@
         leftKey: null,
         rightKey: null,
         startLeft: 0,
-        startRight: 0,
-        preferNeighbor: "right"
-    };
+        startRight: 0};
 
     function loadTableSettings() {
         try {
@@ -1180,10 +1233,6 @@
 
         saveTableSettings();
     }
-
-    // Предзагрузка настроек
-    loadTableSettings();
-
     let saveTimer = null;
 
     let tableIsStale = false;
@@ -2315,7 +2364,7 @@
 
             html += '<th data-col="' + k + '"' + cls + '>' +
                 escapeHtml(meta.title) +
-                '<div class="' + gripClass + '" data-resize="1" title="Потяните для изменения ширины. Двойной клик — auto-fit."></div>' +
+'<div class="' + gripClass + '" data-resize="1" title="Потяните для изменения ширины."></div>'
                 '</th>';
         });
 
@@ -2385,10 +2434,14 @@
         const table = document.getElementById("proTable");
         if (!table) return;
 
-        // делегирование событий
+        // Защита от повторного навешивания при каждом renderTable()
+        if (table.dataset.resizeBound === "1") return;
+        table.dataset.resizeBound = "1";
+
         table.addEventListener("pointerdown", onResizePointerDown);
-        table.addEventListener("dblclick", onResizeDoubleClick);
     }
+
+
 
     function onResizePointerDown(e) {
         const grip = e.target && e.target.closest ? e.target.closest(".col-resizer[data-resize='1']") : null;
@@ -2426,8 +2479,6 @@
         resizeState.rightKey = rightKey;
         resizeState.startLeft = leftBase;
         resizeState.startRight = rightBase;
-        resizeState.preferNeighbor = "right";
-
         document.body.classList.add("resizing-cols");
 
         try { grip.setPointerCapture(e.pointerId); } catch (_) {}
@@ -2475,36 +2526,7 @@
         e.preventDefault();
     }
 
-    function onResizeDoubleClick(e) {
-        const grip = e.target && e.target.closest ? e.target.closest(".col-resizer[data-resize='1']") : null;
-        if (!grip || grip.classList.contains("hidden")) return;
-
-        const th = grip.closest("th");
-        const table = grip.closest("table");
-        if (!th || !table) return;
-
-        const leftKey = th.getAttribute("data-col");
-        if (!leftKey) return;
-
-        const colsStr = table.getAttribute("data-cols") || "";
-        const cols = colsStr.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
-        const leftIndex = cols.indexOf(leftKey);
-        if (leftIndex < 0) return;
-
-        let neighborKey = null;
-        // prefer right; if none, use left
-        if (leftIndex + 1 < cols.length) neighborKey = cols[leftIndex + 1];
-        else if (leftIndex - 1 >= 0) neighborKey = cols[leftIndex - 1];
-
-        if (!neighborKey) return;
-
-        autoFitColumn(leftKey, neighborKey);
-
-        applyColgroupWidthsToDom();
-        showToast("Auto-fit: ширина колонки подобрана по контенту");
-        e.preventDefault();
-        e.stopPropagation();
-    }
+    
 
     function getBaseWidthForKey(key) {
         const idx = TABLE_COL_ORDER.indexOf(key);
@@ -2549,83 +2571,6 @@
 
         // строгая сумма видимых = 100 (остальные видимые масштабируем)
         normalizeVisibleBaseWidthsTo100();
-    }
-
-    // ----------------------------
-    // AUTO-FIT
-    // ----------------------------
-    function autoFitColumn(targetKey, neighborKey) {
-        const table = document.getElementById("proTable");
-        if (!table) return;
-
-        const tableRect = table.getBoundingClientRect();
-        const tableWidthPx = tableRect.width;
-        if (!tableWidthPx || tableWidthPx < 20) return;
-
-        // измерим желаемую ширину targetKey в px
-        const desiredPx = measureDesiredColumnWidthPx(table, targetKey);
-        const desiredPercent = (desiredPx / tableWidthPx) * 100;
-
-        // текущее base
-        const curTarget = getBaseWidthForKey(targetKey);
-        const curNei = getBaseWidthForKey(neighborKey);
-        const total = curTarget + curNei;
-
-        // желаемое — в пределах min..(total-min)
-        let newTarget = desiredPercent;
-        newTarget = Math.max(RESIZE_MIN_COL_PERCENT, newTarget);
-        newTarget = Math.min(Math.min(RESIZE_MAX_COL_PERCENT, total - RESIZE_MIN_COL_PERCENT), newTarget);
-
-        const newNeighbor = total - newTarget;
-
-        setBaseWidthForKey(targetKey, newTarget);
-        setBaseWidthForKey(neighborKey, Math.max(RESIZE_MIN_COL_PERCENT, newNeighbor));
-
-        normalizeVisibleBaseWidthsTo100();
-        saveTableSettings();
-    }
-
-    function measureDesiredColumnWidthPx(table, colKey) {
-        // цель: найти максимальную “идеальную” ширину (без переносов) по header+cells
-        // делаем через hidden span, чтобы не ломать DOM.
-        if (!measureBoxEl) return 120;
-
-        const paddingExtra = 18; // приблизительно padding + border
-
-        // header
-        let maxPx = 0;
-        const th = table.querySelector("thead th[data-col='" + cssEscape(colKey) + "']");
-        if (th) {
-            const headerText = (th.textContent || "").trim();
-            maxPx = Math.max(maxPx, measureTextPx(headerText, th.className) + paddingExtra);
-        }
-
-        // cells: берем до 120 строк для защиты (у вас обычно до 100)
-        const tds = table.querySelectorAll("tbody td[data-col='" + cssEscape(colKey) + "']");
-        const limit = Math.min(tds.length, 120);
-        for (let i = 0; i < limit; i++) {
-            const td = tds[i];
-            const text = (td.textContent || "").trim();
-            maxPx = Math.max(maxPx, measureTextPx(text, td.className) + paddingExtra);
-        }
-
-        // не даём autofit расширить больше ширины таблицы
-        maxPx = Math.min(maxPx, table.getBoundingClientRect().width - 10);
-
-        // минимальная разумная ширина
-        maxPx = Math.max(maxPx, 80);
-
-        return maxPx;
-    }
-
-    function measureTextPx(text, className) {
-        if (!measureBoxEl) return 0;
-
-        measureBoxEl.className = className || "";
-        // важное: measureBox наследует CSS (в т.ч. --hebrew-font), класс td/rtl применится
-        measureBoxEl.textContent = text || " ";
-        const rect = measureBoxEl.getBoundingClientRect();
-        return rect.width || 0;
     }
 
     // ----------------------------
@@ -2767,11 +2712,6 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
-    }
-
-    function cssEscape(s) {
-        // простая защита для селекторов
-        return String(s || "").replace(/'/g, "\\'");
     }
 
     // ----------------------------
