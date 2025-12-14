@@ -612,55 +612,66 @@ th, td { border-color: rgba(0,0,0,0.55); }
     input[type="range"] { width: 180px; }
 
     /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
-    .hotkeys-panel {
-        margin-top: 10px;
-        margin-bottom: 12px;
-        padding: 12px 14px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border: 1px dashed #cfd4da;
-        font-size: 13px;
-        color: #495057;
-    }
+.hotkeys-panel {
+    margin-top: 10px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #cfd4da;
+    font-size: 13px;
+    color: #495057;
+}
 
-    .hotkeys-panel.hotkeys-hidden { display: none; }
+/* УДАЛЯЕМ режим полного скрытия — он больше не нужен */
+/* .hotkeys-panel.hotkeys-hidden { display: none; } */
 
-    .hotkeys-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        gap: 12px;
-        margin-bottom: 8px;
-    }
+/* Новый режим: свёрнуто по умолчанию (видны header+hint, скрыт список) */
+.hotkeys-panel.hotkeys-collapsed .hotkeys-list {
+    display: none;
+}
 
-    .hotkeys-header strong {
-        font-size: 13px;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        color: #343a40;
-    }
+/* (опционально) чуть компактнее в свёрнутом состоянии */
+.hotkeys-panel.hotkeys-collapsed {
+    padding-bottom: 10px;
+}
 
-    .hotkeys-hint {
-        font-size: 11px;
-        color: #868e96;
-        text-align: right;
-    }
+.hotkeys-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+}
 
-    .hotkeys-list {
-        list-style: none;
-        padding-left: 0;
-        margin: 0;
-    }
+.hotkeys-header strong {
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #343a40;
+}
 
-    .hotkeys-list li { margin-bottom: 4px; }
+.hotkeys-hint {
+    font-size: 11px;
+    color: #868e96;
+    text-align: right;
+}
 
-    .hotkeys-list code {
-        font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
-        font-size: 12px;
-        padding: 2px 4px;
-        border-radius: 4px;
-        background: #e9ecef;
-    }
+.hotkeys-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.hotkeys-list li { margin-bottom: 4px; }
+
+.hotkeys-list code {
+    font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: #e9ecef;
+}
 
     /* ТОСТ */
     #toastContainer {
@@ -1044,7 +1055,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         <h2>Текст для озвучки и перевода</h2>
 
         <!-- Блок горячих клавиш -->
-        <div id="hotkeysPanel" class="hotkeys-panel">
+        <div id="hotkeysPanel" class="hotkeys-panel hotkeys-collapsed">
             <div class="hotkeys-header">
                 <strong>Горячие клавиши</strong>
                 <span class="hotkeys-hint">
@@ -3444,14 +3455,18 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
     // ----------------------------
     // HOTKEYS PANEL
     // ----------------------------
-    function toggleHotkeysPanel(forceState) {
-        if (!hotkeysPanelEl) return;
-        if (typeof forceState === "boolean") {
-            hotkeysPanelEl.classList.toggle("hotkeys-hidden", !forceState);
-        } else {
-            hotkeysPanelEl.classList.toggle("hotkeys-hidden");
-        }
+    function toggleHotkeysPanel(forceExpanded) {
+    if (!hotkeysPanelEl) return;
+
+    // expanded=true  => раскрыть (убрать collapsed)
+    // expanded=false => свернуть (добавить collapsed)
+    if (typeof forceExpanded === "boolean") {
+        hotkeysPanelEl.classList.toggle("hotkeys-collapsed", !forceExpanded);
+    } else {
+        hotkeysPanelEl.classList.toggle("hotkeys-collapsed");
     }
+}
+
 
     // ----------------------------
     // GLOBAL HOTKEYS
