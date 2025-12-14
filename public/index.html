@@ -842,6 +842,59 @@ th, td { border-color: rgba(0,0,0,0.55); }
     pointer-events: auto !important;
 }
 
+/* ============================
+   Variant A — Luxury Focus Mode
+   Playing/Error row is highlighted; other rows are softly dimmed
+   ============================ */
+
+#proTable.focus-mode tbody tr td {
+    transition: opacity 160ms ease, filter 160ms ease, background-color 160ms ease;
+}
+
+/* Dim all non-active rows */
+#proTable.focus-mode tbody tr:not(.row-playing):not(.row-error) td {
+    opacity: 0.38;
+    filter: grayscale(0.15);
+}
+
+/* Keep active rows crisp */
+#proTable.focus-mode tbody tr.row-playing td,
+#proTable.focus-mode tbody tr.row-error td {
+    opacity: 1;
+    filter: none;
+}
+
+/* Safe focus rail: draw inside the first cell (does not affect table layout) */
+#proTable tbody tr.row-playing td:first-child {
+    box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.75);
+}
+#proTable tbody tr.row-error td:first-child {
+    box-shadow: inset 3px 0 0 rgba(231, 76, 60, 0.8);
+}
+
+
+/* Slightly strengthen the active row background */
+#proTable tbody tr.row-playing td {
+    background: rgba(52, 152, 219, 0.085);
+}
+#proTable tbody tr.row-playing td.rtl {
+    background: rgba(52, 152, 219, 0.11);
+}
+
+#proTable tbody tr.row-error td {
+    background: rgba(231, 76, 60, 0.06);
+}
+#proTable tbody tr.row-error td.rtl {
+    background: rgba(231, 76, 60, 0.075);
+}
+
+/* Ensure Row TTS button stays fully visible in focus mode */
+#proTable.focus-mode tbody tr .row-tts-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
 </style>
 
 </head>
@@ -1226,6 +1279,8 @@ function clearRowPlayingState() {
         try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {}
         rowAudioUrl = null;
     }
+
+    updateRowFocusMode();
 }
 
 function clearRowErrorState(rowIdx) {
@@ -1246,6 +1301,8 @@ function clearRowErrorState(rowIdx) {
             btn.textContent = "▶";
         }
     }
+
+    updateRowFocusMode();
 }
 
 function setRowErrorState(rowIdx, message) {
@@ -1269,6 +1326,8 @@ function setRowErrorState(rowIdx, message) {
         btn.title = safeMsg;
         btn.setAttribute("aria-label", "Ошибка озвучивания строки: " + safeMsg);
     }
+
+    updateRowFocusMode();
 }
 
 
@@ -1303,6 +1362,8 @@ function setRowPlayingUI(rowIdx, playing) {
         btn.removeAttribute("aria-busy");
         btn.textContent = playing ? "■" : "▶";
     }
+
+    updateRowFocusMode();
 }
 
 // Получение текста строки для озвучки по правилам видимости
@@ -3183,6 +3244,18 @@ clearRowPlayingState();
     });
 	
 	// ----------------------------
+// Variant A: focus-mode (dim non-active rows when there is an active playing/error row)
+function updateRowFocusMode() {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    const hasPlaying = !!table.querySelector("tbody tr.row-playing");
+    const hasError = !!table.querySelector("tbody tr.row-error");
+
+    if (hasPlaying || hasError) table.classList.add("focus-mode");
+    else table.classList.remove("focus-mode");
+}
+
 // Row TTS v1: event delegation
 // ----------------------------
 document.addEventListener("click", async function (e) {
@@ -3285,20 +3358,20 @@ loadStats();
     setRowErrorState(rowIdx, "Ошибка: " + msg);
     showToast("Ошибка Row TTS: " + msg);
 } finally {
-    // P0.1: снимаем loading ТОЛЬКО если строка не перешла в playing
-    if (rowPlayingRowIdx === rowIdx) {
+    // Variant A/P0: снимаем loading корректно:
+    // - если строка уже в playing (кнопка = ■ и класс row-tts-playing) — НЕ трогаем текст, только снимаем aria-busy
+    // - иначе — возвращаем кнопку в обычное состояние
     const table = document.getElementById("proTable");
     const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
 
-    // если playing — просто снять busy, не трогая текст кнопки
     if (btnNow && btnNow.classList.contains("row-tts-playing")) {
         btnNow.removeAttribute("aria-busy");
         btnNow.disabled = false;
     } else {
-        // если НЕ playing (ошибка/ранний return/не стартануло) — снять loading нормально
         setRowButtonLoading(rowIdx, false);
     }
-}
+
+    updateRowFocusMode();
 }
 });
 
