@@ -440,8 +440,7 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        background: #ffffff;
-        border-radius: 0;
+        background: #ffffff;    
         box-shadow: none;
 
         table-layout: fixed; /* важно для стабильной работы процентов и resize */
@@ -468,35 +467,11 @@
         position: relative; /* для грипа */
         user-select: none;
     }
-	/* === PRO: Sticky header + Premium header look (CSS only) === */
-#tableContainer{
-  max-height: 62vh;          /* подберите: 55–70vh */
-  overflow: auto;
-  border-radius: 10px;       /* “премиум” скролл-контейнер */
-}
-
-/* важно: не ломает table-layout: fixed */
-thead th{
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: #f7f8fa;       /* непрозрачный фон для sticky */
-  box-shadow: 0 1px 0 rgba(0,0,0,0.14), 0 8px 18px rgba(0,0,0,0.08);
-}
-
-/* тонкий “разделитель” между sticky header и body */
-thead th::after{
-  content:"";
-  position:absolute;
-  left:0; right:0; bottom:-1px;
-  height:1px;
-  background: rgba(0,0,0,0.18);
-}
+	
 /* === Premium: softer grid + nicer typography === */
 table { border-radius: 10px; }
 th, td { border-color: rgba(0,0,0,0.55); }
-tbody tr:hover td { background: rgba(0,0,0,0.03); }
-tbody tr:hover td.rtl { background: rgba(0,0,0,0.04); }
+
 
 	
 	/*  PRO: STICKY HEADER */
@@ -3310,8 +3285,20 @@ loadStats();
     setRowErrorState(rowIdx, "Ошибка: " + msg);
     showToast("Ошибка Row TTS: " + msg);
 } finally {
-    // P0: гарантированно снимаем loading с той строки, по которой кликали
-    setRowButtonLoading(rowIdx, false);
+    // P0.1: снимаем loading ТОЛЬКО если строка не перешла в playing
+    if (rowPlayingRowIdx === rowIdx) {
+    const table = document.getElementById("proTable");
+    const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
+
+    // если playing — просто снять busy, не трогая текст кнопки
+    if (btnNow && btnNow.classList.contains("row-tts-playing")) {
+        btnNow.removeAttribute("aria-busy");
+        btnNow.disabled = false;
+    } else {
+        // если НЕ playing (ошибка/ранний return/не стартануло) — снять loading нормально
+        setRowButtonLoading(rowIdx, false);
+    }
+}
 }
 });
 
