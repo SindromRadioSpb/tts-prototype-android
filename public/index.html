@@ -724,7 +724,149 @@ tbody tr:hover td.rtl { background: rgba(0,0,0,0.04); }
         display: none;
     }
 
-    
+    /* ============================
+   Row TTS v1 (per-row playback)
+   ============================ */
+
+.cell-he-wrap {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.row-tts-btn {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #d0d4d8;
+    background: #ffffff;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
+.row-tts-btn:active { transform: translateY(0px); }
+
+.row-tts-btn[aria-busy="true"] {
+    cursor: progress;
+    opacity: 0.85;
+}
+
+.row-tts-btn.row-tts-playing {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
+}
+
+.row-tts-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background: #f3f5f7;
+}
+
+.row-tts-text {
+    flex: 1 1 auto;
+    min-width: 0; /* важно для переноса в flex */
+}
+
+/* Подсветка играющей строки */
+#proTable tbody tr.row-playing td {
+    background: rgba(52, 152, 219, 0.07);
+}
+#proTable tbody tr.row-playing td.rtl {
+    background: rgba(52, 152, 219, 0.09);
+}
+
+
+/* ============================
+   PRO: Row TTS button visibility
+   Desktop: show on row hover/focus
+   Touch: always visible
+   ============================ */
+
+/* Базово: кнопка скрыта, но место остаётся (layout не прыгает) */
+#proTable tbody tr .row-tts-btn {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0);
+  transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+}
+
+/* Показать на hover строки (мышь/трекпад) */
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-tts-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Показать при фокусе внутри строки (клавиатура, клик по кнопке, будущие hotkeys) */
+#proTable tbody tr:focus-within .row-tts-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Важно: если сейчас loading/playing — кнопка видна всегда, независимо от hover */
+#proTable tbody tr .row-tts-btn.row-tts-playing,
+#proTable tbody tr .row-tts-btn[aria-busy="true"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Touch devices: hover отсутствует — делаем кнопку видимой всегда */
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr .row-tts-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Микро-полировка: на десктопе можно добавить чуть "премиум" появления */
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-tts-btn {
+    transform: translateY(-1px);
+  }
+}
+
+/* ============================
+   Row TTS: Error state (P0)
+   ============================ */
+
+.row-tts-btn.row-tts-error {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.18);
+}
+
+.row-tts-btn.row-tts-error:hover {
+    background: rgba(231, 76, 60, 0.06);
+}
+
+/* Мягкая подсветка строки с ошибкой */
+#proTable tbody tr.row-error td {
+    background: rgba(231, 76, 60, 0.05);
+}
+#proTable tbody tr.row-error td.rtl {
+    background: rgba(231, 76, 60, 0.06);
+}
+
+/* Error всегда видим, как loading/playing */
+#proTable tbody tr .row-tts-btn.row-tts-error {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
 </style>
 
 </head>
@@ -969,6 +1111,247 @@ tbody tr:hover td.rtl { background: rgba(0,0,0,0.04); }
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
     const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
+	
+	// ----------------------------
+// Row TTS v1 (per-row)
+// ----------------------------
+const ROW_AUDIO_CACHE_KEY = "ttsDashboard_row_audio_cache_v1";
+const ROW_AUDIO_CACHE_LIMIT = 80;
+
+// In-memory cache: key -> base64
+const rowAudioMemCache = new Map();
+
+// LRU cache in localStorage: { entries: [{k, b64, t}], savedAt }
+function loadRowAudioCacheFromStorage() {
+    try {
+        const raw = localStorage.getItem(ROW_AUDIO_CACHE_KEY);
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        if (!obj || !Array.isArray(obj.entries)) return;
+
+        // заполняем in-memory (последние важнее)
+        rowAudioMemCache.clear();
+        obj.entries.forEach(function (it) {
+            if (it && typeof it.k === "string" && typeof it.b64 === "string" && it.k && it.b64) {
+                rowAudioMemCache.set(it.k, it.b64);
+            }
+        });
+    } catch (e) {
+        console.error("Row audio cache load error", e);
+    }
+}
+
+function persistRowAudioCacheToStorage() {
+    try {
+        const entries = [];
+        // Map хранит в insertion order; нам нужен LRU: последние — самые новые
+        rowAudioMemCache.forEach(function (b64, k) {
+            entries.push({ k: k, b64: b64, t: Date.now() });
+        });
+        // ограничиваем до лимита (оставляем хвост)
+        const trimmed = entries.slice(Math.max(0, entries.length - ROW_AUDIO_CACHE_LIMIT));
+        localStorage.setItem(ROW_AUDIO_CACHE_KEY, JSON.stringify({ entries: trimmed, savedAt: new Date().toISOString() }));
+    } catch (e) {
+        console.error("Row audio cache persist error", e);
+    }
+}
+
+function rowCacheGet(key) {
+    if (!key) return null;
+    if (rowAudioMemCache.has(key)) {
+        // LRU bump: удалить и заново вставить
+        const val = rowAudioMemCache.get(key);
+        rowAudioMemCache.delete(key);
+        rowAudioMemCache.set(key, val);
+        return val;
+    }
+    return null;
+}
+
+function rowCacheSet(key, base64Audio) {
+    if (!key || !base64Audio) return;
+    if (rowAudioMemCache.has(key)) rowAudioMemCache.delete(key);
+    rowAudioMemCache.set(key, base64Audio);
+
+    // ограничение in-memory
+    while (rowAudioMemCache.size > ROW_AUDIO_CACHE_LIMIT) {
+        const firstKey = rowAudioMemCache.keys().next().value;
+        rowAudioMemCache.delete(firstKey);
+    }
+    persistRowAudioCacheToStorage();
+}
+
+// FNV-1a hash для стабильного короткого ключа
+function fnv1aHash(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return ("0000000" + h.toString(16)).slice(-8);
+}
+
+function buildRowTtsCacheKey(text, lang, cfg) {
+    const voiceId = cfg && typeof cfg.voiceId === "string" ? cfg.voiceId : "";
+    const rate = cfg && typeof cfg.rate === "number" ? cfg.rate : 1.0;
+    const pitch = cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0.0;
+
+    const payload = [
+        "v1",
+        lang || "",
+        voiceId,
+        String(rate),
+        String(pitch),
+        (text || "").trim()
+    ].join("|");
+
+    return fnv1aHash(payload);
+}
+
+// Единый аудиоплеер для строк
+let rowAudioPlayer = null;
+let rowAudioUrl = null;
+let rowPlayingRowIdx = null;
+let rowPlayingCacheKey = null;
+
+function ensureRowAudioPlayer() {
+    if (rowAudioPlayer) return rowAudioPlayer;
+    rowAudioPlayer = new Audio();
+    rowAudioPlayer.preload = "auto";
+
+    rowAudioPlayer.addEventListener("ended", function () {
+        clearRowPlayingState();
+    });
+    rowAudioPlayer.addEventListener("error", function () {
+        clearRowPlayingState();
+        showToast("Не удалось воспроизвести аудио строки");
+    });
+    return rowAudioPlayer;
+}
+
+function clearRowPlayingState() {
+    // снять playing подсветку и состояния кнопки
+    const table = document.getElementById("proTable");
+    if (table) {
+        const prev = table.querySelector('tbody tr[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        if (prev) prev.classList.remove("row-playing");
+        const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        if (btn) {
+            btn.classList.remove("row-tts-playing");
+            btn.removeAttribute("aria-busy");
+            btn.textContent = "▶";
+            btn.disabled = false;
+        }
+    }
+
+    rowPlayingRowIdx = null;
+    rowPlayingCacheKey = null;
+
+    if (rowAudioUrl) {
+        try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {}
+        rowAudioUrl = null;
+    }
+}
+
+function clearRowErrorState(rowIdx) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+
+    if (tr) tr.classList.remove("row-error");
+
+    if (btn) {
+        btn.classList.remove("row-tts-error");
+        btn.title = "Озвучить эту строку";
+        btn.setAttribute("aria-label", "Озвучить строку");
+
+        if (!btn.classList.contains("row-tts-playing") && btn.getAttribute("aria-busy") !== "true") {
+            btn.textContent = "▶";
+        }
+    }
+}
+
+function setRowErrorState(rowIdx, message) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    const safeMsg = (message && String(message).trim())
+        ? String(message).trim()
+        : "Ошибка озвучивания строки";
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+
+    if (tr) tr.classList.add("row-error");
+
+    if (btn) {
+        btn.classList.add("row-tts-error");
+        btn.removeAttribute("aria-busy");
+        btn.disabled = false;
+        btn.textContent = "!";
+        btn.title = safeMsg;
+        btn.setAttribute("aria-label", "Ошибка озвучивания строки: " + safeMsg);
+    }
+}
+
+
+function setRowButtonLoading(rowIdx, isLoading) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+    if (!btn) return;
+
+    if (isLoading) {
+        btn.setAttribute("aria-busy", "true");
+        btn.disabled = true;
+        btn.textContent = "…";
+    } else {
+        btn.removeAttribute("aria-busy");
+        btn.disabled = false;
+        if (!btn.classList.contains("row-tts-playing")) btn.textContent = "▶";
+    }
+}
+
+function setRowPlayingUI(rowIdx, playing) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+
+    if (tr) tr.classList.toggle("row-playing", !!playing);
+    if (btn) {
+        btn.classList.toggle("row-tts-playing", !!playing);
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+        btn.textContent = playing ? "■" : "▶";
+    }
+}
+
+// Получение текста строки для озвучки по правилам видимости
+function getRowTtsTextForRow(row) {
+    if (!row || typeof row !== "object") return "";
+
+    const niqqud = String(row.he_niqqud || "").trim();
+    if (niqqud) return niqqud;
+
+    const he = String(row.he || "").trim();
+    if (he) return he;
+
+    return "";
+}
+
+
+// Язык строки: фиксируем иврит для Row TTS (табличный тренажёр чтения)
+function getRowTtsLanguage() {
+    return "he-IL";
+}
+
+// Инициализация: восстановить cache
+loadRowAudioCacheFromStorage();
+
 
     // ----------------------------
     // НАСТРОЙКИ ТАБЛИЦЫ: ВИДИМОСТЬ КОЛОНОК + АВТОШИРИНЫ (PRO)
@@ -1603,6 +1986,12 @@ tbody tr:hover td.rtl { background: rgba(0,0,0,0.04); }
         lastAudioBlob = null;
         lastAudioUrl = null;
         lastDocxFilename = null;
+		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
+try {
+    if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause();
+} catch (_) {}
+clearRowPlayingState();
+
 
         if (btnWordEl) btnWordEl.classList.add("disabled");
         textChangedNoticeEl.classList.remove("notice-visible");
@@ -2373,28 +2762,49 @@ tbody tr:hover td.rtl { background: rgba(0,0,0,0.04); }
             '  </thead>' +
             '  <tbody>';
 
-        rows.forEach(function (row) {
-            const he = row.he || "";
-            const heNiqqud = row.he_niqqud || "";
-            const translit = row.translit || "";
-            const ru = row.ru || "";
+        rows.forEach(function (row, rowIdx) {
+    const he = row.he || "";
+    const heNiqqud = row.he_niqqud || "";
+    const translit = row.translit || "";
+    const ru = row.ru || "";
 
-            html += '<tr>';
+    // Куда ставим кнопку: he если видима, иначе niqqud если видима
+    const putBtnIn = tableVisibleColumns.he ? "he" : (tableVisibleColumns.niqqud ? "niqqud" : null);
 
-            cols.forEach(function (k) {
-                const meta = colMeta[k] || {};
-                const tdClass = meta.cellClass ? (' class="' + meta.cellClass + '"') : "";
-                let value = "";
-                if (k === "he") value = he;
-                else if (k === "niqqud") value = heNiqqud;
-                else if (k === "translit") value = translit;
-                else if (k === "ru") value = ru;
+    html += '<tr data-row-idx="' + rowIdx + '">';
 
-                html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
-            });
+    cols.forEach(function (k) {
+        const meta = colMeta[k] || {};
+        const tdClass = meta.cellClass ? (' class="' + meta.cellClass + '"') : "";
 
-            html += '</tr>';
-        });
+        let value = "";
+        if (k === "he") value = he;
+        else if (k === "niqqud") value = heNiqqud;
+        else if (k === "translit") value = translit;
+        else if (k === "ru") value = ru;
+
+        // Row TTS button only in the chosen column
+        if (putBtnIn && k === putBtnIn) {
+            const safeText = escapeHtml(value);
+            const btnHtml =
+                '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
+                'title="Озвучить эту строку" aria-label="Озвучить строку">' +
+                '▶</button>';
+
+            html += '<td data-col="' + k + '"' + tdClass + '>' +
+                    '<div class="cell-he-wrap">' +
+                    btnHtml +
+                    '<div class="row-tts-text">' + safeText + '</div>' +
+                    '</div>' +
+                    '</td>';
+        } else {
+            html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
+        }
+    });
+
+    html += '</tr>';
+});
+
 
         html += '  </tbody></table>';
 
@@ -2796,6 +3206,117 @@ tbody tr:hover td.rtl { background: rgba(0,0,0,0.04); }
             return;
         }
     });
+	
+	// ----------------------------
+// Row TTS v1: event delegation
+// ----------------------------
+document.addEventListener("click", async function (e) {
+    const btn = e.target && e.target.closest ? e.target.closest("button.row-tts-btn") : null;
+    if (!btn) return;
+
+    const rowIdxStr = btn.getAttribute("data-row-idx");
+    const rowIdx = Number(rowIdxStr);
+    if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
+
+    // если нет таблицы/данных
+    if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) {
+        showToast("Строка не найдена");
+        return;
+    }
+	
+	// P0: очищаем прошлую ошибку этой строки перед новым запуском
+	clearRowErrorState(rowIdx);
+
+
+    // Stop, если кликаем по уже играющей строке
+    if (rowPlayingRowIdx === rowIdx && rowAudioPlayer && !rowAudioPlayer.paused) {
+        try { rowAudioPlayer.pause(); } catch (_) {}
+        clearRowPlayingState();
+        return;
+    }
+
+    // Остановить предыдущую строку
+    if (rowAudioPlayer && !rowAudioPlayer.paused) {
+        try { rowAudioPlayer.pause(); } catch (_) {}
+    }
+    clearRowPlayingState();
+
+    const row = currentTableData[rowIdx];
+    const text = getRowTtsTextForRow(row);
+
+    if (!text) {
+        showToast("Нет текста для озвучки в этой строке");
+        return;
+    }
+
+    const cfg = getTtsVoiceConfig();
+    const lang = getRowTtsLanguage();
+    const cacheKey = buildRowTtsCacheKey(text, lang, cfg);
+
+    rowPlayingRowIdx = rowIdx;
+    rowPlayingCacheKey = cacheKey;
+
+    setRowButtonLoading(rowIdx, true);
+
+    try {
+        // 1) cache hit
+        const cachedB64 = rowCacheGet(cacheKey);
+        if (cachedB64) {
+            const audio = ensureRowAudioPlayer();
+            const bytes = Uint8Array.from(atob(cachedB64), c => c.charCodeAt(0));
+            const blob = new Blob([bytes], { type: "audio/mpeg" });
+
+            if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+            rowAudioUrl = URL.createObjectURL(blob);
+
+            audio.src = rowAudioUrl;
+            setRowPlayingUI(rowIdx, true);
+            await audio.play();
+            return;
+        }
+
+        // 2) server
+        const res = await apiCall("/api/tts", {
+            text: text,
+            language: lang,
+            voiceId: cfg.voiceId,
+            speakingRate: cfg.rate,
+            pitch: cfg.pitch
+        });
+
+        const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
+        if (!b64) throw new Error("Пустой ответ TTS");
+
+        rowCacheSet(cacheKey, b64);
+
+        const audio = ensureRowAudioPlayer();
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+        const blob = new Blob([bytes], { type: "audio/mpeg" });
+
+        if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+        rowAudioUrl = URL.createObjectURL(blob);
+
+        audio.src = rowAudioUrl;
+        setRowPlayingUI(rowIdx, true);
+        await audio.play();
+
+       // опционально: обновим usage (не чаще, чем нужно)
+loadStats();
+} catch (err) {
+    clearRowPlayingState();
+
+    const msg = (err && err.message) ? err.message : "неизвестная";
+
+    setRowErrorState(rowIdx, "Ошибка: " + msg);
+    showToast("Ошибка Row TTS: " + msg);
+} finally {
+    // P0: гарантированно снимаем loading с той строки, по которой кликали
+    setRowButtonLoading(rowIdx, false);
+}
+});
+
+
+
 </script>
 
 </body>
