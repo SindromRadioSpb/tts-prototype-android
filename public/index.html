@@ -347,8 +347,61 @@
 
     .audio-download-btn:hover { background: #f0f4f7; }
 
+	/* ============================
+   PRO: Resizable Split (Table height)
+   ============================ */
+
+/* курсор во время drag по высоте */
+body.resizing-rows {
+    cursor: row-resize !important;
+    user-select: none !important;
+}
+
+/* сам ресайзер */
+.table-resizer-y {
+    height: 14px;
+    margin: 8px 0 10px;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, #f7f8fa, #eef1f5);
+    border: 1px solid #e2e6ea;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    cursor: row-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none; /* важно для pointer events */
+}
+
+/* “грип” по центру */
+.table-resizer-grip {
+    width: 64px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.18);
+}
+
+.table-resizer-y:hover .table-resizer-grip {
+    background: rgba(0,0,0,0.32);
+}
+
+	
     /* ТАБЛИЦА */
-    #tableContainer { margin-top: 20px; }
+#tableContainer{
+  /* Внутренняя прокрутка таблицы */
+  overflow: auto;
+
+  /* Минимальная высота (≈ 5 строк) — ключевое требование */
+  min-height: 360px;
+
+  /* Variant A: управляем реальной высотой, а не max-height */
+  height: var(--tableH, 62vh);
+  max-height: none;
+
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+
 
     /* НАСТРОЙКИ ТАБЛИЦЫ */
     .table-settings {
@@ -1099,7 +1152,16 @@ th, td { border-color: rgba(0,0,0,0.55); }
         </div>
 
         <div id="errorMsg" class="error"></div>
-        <div id="tableContainer"></div>
+
+<!-- PRO: Resizable split (vertical) -->
+<div id="tableHeightResizer" class="table-resizer-y" role="separator"
+     aria-orientation="horizontal" aria-label="Изменить высоту таблицы"
+     title="Потяните вверх/вниз для изменения высоты таблицы. Двойной клик — сброс.">
+  <span class="table-resizer-grip" aria-hidden="true"></span>
+</div>
+
+<div id="tableContainer"></div>
+
     </div>
 
     <!-- Контейнер для тостов -->
@@ -1139,6 +1201,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
     const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
+	// PRO: user-resizable table height
+const TABLE_HEIGHT_STORAGE_KEY = "ttsDashboard_table_height_v1";
+
 	
 	// ----------------------------
 // Row TTS v1 (per-row)
@@ -1618,6 +1683,11 @@ loadRowAudioCacheFromStorage();
                 if (Array.isArray(currentTableData) && currentTableData.length > 0) {
                     renderTable(currentTableData);
                 }
+				
+				// PRO: reset table height too
+    clearTableHeightSetting();
+    applyTableHeightNow();
+				
                 showToast("Настройки таблицы сброшены");
             });
         }
@@ -2848,7 +2918,184 @@ clearRowPlayingState();
 
         // подключаем resize-handlers к свежесозданной таблице
         attachResizeHandlers();
+		scheduleAdaptiveTableHeight();
     }
+
+	// ----------------------------
+// PRO: Resizable Split (Table height) — Variant A (real height, no viewport ceiling)
+// ----------------------------
+let __tableHTimer = null;
+
+const TABLE_MIN_H = 360;     // ≈ 5 строк — фиксированное требование
+
+// user height: если null — авто-режим (под контент/вьюпорт по умолчанию)
+let tableUserHeightPx = null;
+
+// ---------- storage ----------
+function loadTableHeightSetting() {
+    try {
+        const raw = localStorage.getItem(TABLE_HEIGHT_STORAGE_KEY);
+        if (!raw) return;
+
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj !== "object") return;
+
+        const v = Number(obj.heightPx);
+        if (Number.isFinite(v) && v >= TABLE_MIN_H) {
+            tableUserHeightPx = Math.floor(v);
+        }
+    } catch (e) {
+        console.error("Table height load error", e);
+    }
+}
+
+function saveTableHeightSetting(heightPx) {
+    try {
+        localStorage.setItem(
+            TABLE_HEIGHT_STORAGE_KEY,
+            JSON.stringify({ heightPx: heightPx, savedAt: new Date().toISOString() })
+        );
+    } catch (e) {
+        console.error("Table height save error", e);
+    }
+}
+
+function clearTableHeightSetting() {
+    tableUserHeightPx = null;
+    try { localStorage.removeItem(TABLE_HEIGHT_STORAGE_KEY); } catch (_) {}
+}
+
+// ---------- compute default ----------
+function computeAutoTableHeightPx() {
+    // Variant A: авто-режим = “комфортная высота”
+    // 62vh, но не меньше TABLE_MIN_H.
+    const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+    const autoPx = Math.floor(vh * 0.62);
+    return Math.max(TABLE_MIN_H, autoPx);
+}
+
+// ---------- apply ----------
+function applyTableHeightNow() {
+    const container = document.getElementById("tableContainer");
+    if (!container) return;
+
+    const target = (tableUserHeightPx && Number.isFinite(tableUserHeightPx))
+        ? Math.max(TABLE_MIN_H, Math.floor(tableUserHeightPx))
+        : computeAutoTableHeightPx();
+
+    // Variant A: управляем реальной высотой
+    container.style.height = target + "px";
+    container.style.maxHeight = "none";
+    container.style.setProperty("--tableH", target + "px");
+}
+
+function scheduleAdaptiveTableHeight() {
+    if (__tableHTimer) clearTimeout(__tableHTimer);
+    __tableHTimer = setTimeout(function () {
+        requestAnimationFrame(applyTableHeightNow);
+    }, 60);
+}
+
+// ---------- drag handler ----------
+const tableResizeState = {
+    active: false,
+    pointerId: null,
+    startY: 0,
+    startHeight: 0
+};
+
+function initTableHeightResizer() {
+    loadTableHeightSetting();
+
+    const resizer = document.getElementById("tableHeightResizer");
+    if (!resizer) return;
+
+    resizer.addEventListener("pointerdown", function (e) {
+        const container = document.getElementById("tableContainer");
+        if (!container) return;
+
+        // Обновим текущую высоту перед стартом
+        applyTableHeightNow();
+
+        const currentH = parseInt(container.style.height || "0", 10);
+        const startH = Number.isFinite(currentH) && currentH > 0 ? currentH : computeAutoTableHeightPx();
+
+        tableResizeState.active = true;
+        tableResizeState.pointerId = e.pointerId;
+        tableResizeState.startY = e.clientY;
+        tableResizeState.startHeight = startH;
+
+        document.body.classList.add("resizing-rows");
+        try { resizer.setPointerCapture(e.pointerId); } catch (_) {}
+
+        window.addEventListener("pointermove", onTableResizerMove, { passive: false });
+        window.addEventListener("pointerup", onTableResizerUp, { passive: false });
+        window.addEventListener("pointercancel", onTableResizerUp, { passive: false });
+
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    // double click = reset to Auto
+    resizer.addEventListener("dblclick", function () {
+        clearTableHeightSetting();
+        applyTableHeightNow();
+        showToast("Высота таблицы сброшена (Auto)");
+    });
+
+    // первичное применение
+    applyTableHeightNow();
+}
+
+function onTableResizerMove(e) {
+    if (!tableResizeState.active) return;
+    if (tableResizeState.pointerId !== e.pointerId) return;
+
+    const container = document.getElementById("tableContainer");
+    if (!container) return;
+
+    const dy = e.clientY - tableResizeState.startY;
+    const next = tableResizeState.startHeight + dy;
+
+    // Variant A: clamp только по MIN (без потолка viewport)
+    const clamped = Math.max(TABLE_MIN_H, Math.floor(next));
+
+    tableUserHeightPx = clamped;
+    container.style.height = clamped + "px";
+    container.style.maxHeight = "none";
+    container.style.setProperty("--tableH", clamped + "px");
+
+    e.preventDefault();
+}
+
+function onTableResizerUp(e) {
+    if (!tableResizeState.active) return;
+    if (tableResizeState.pointerId !== e.pointerId) return;
+
+    tableResizeState.active = false;
+    tableResizeState.pointerId = null;
+
+    document.body.classList.remove("resizing-rows");
+
+    window.removeEventListener("pointermove", onTableResizerMove, { passive: false });
+    window.removeEventListener("pointerup", onTableResizerUp, { passive: false });
+    window.removeEventListener("pointercancel", onTableResizerUp, { passive: false });
+
+    if (tableUserHeightPx && Number.isFinite(tableUserHeightPx)) {
+        saveTableHeightSetting(tableUserHeightPx);
+        showToast("Высота таблицы сохранена");
+    }
+
+    e.preventDefault();
+}
+
+// init
+window.addEventListener("load", function () {
+    initTableHeightResizer();
+    scheduleAdaptiveTableHeight();
+});
+window.addEventListener("resize", scheduleAdaptiveTableHeight);
+
 
     function applyColgroupWidthsToDom() {
         const table = document.getElementById("proTable");
