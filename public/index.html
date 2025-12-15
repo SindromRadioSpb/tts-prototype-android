@@ -10,9 +10,11 @@
 
     <style>
     :root {
-        /* Текущий шрифт для иврита (управляется селектором) */
-        --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
-    }
+    /* Текущий шрифт для иврита (управляется селектором) */
+    --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
+    --row-yellow: rgba(255, 230, 0, 0.35);
+}
+
 
     body {
         font-family: 'Segoe UI', Tahoma, sans-serif;
@@ -830,13 +832,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
     min-width: 0; /* важно для переноса в flex */
 }
 
-/* Подсветка играющей строки */
-#proTable tbody tr.row-playing td {
-    background: rgba(52, 152, 219, 0.07);
-}
-#proTable tbody tr.row-playing td.rtl {
-    background: rgba(52, 152, 219, 0.09);
-}
+
 
 
 /* ============================
@@ -907,14 +903,6 @@ th, td { border-color: rgba(0,0,0,0.55); }
     background: rgba(231, 76, 60, 0.06);
 }
 
-/* Мягкая подсветка строки с ошибкой */
-#proTable tbody tr.row-error td {
-    background: rgba(231, 76, 60, 0.05);
-}
-#proTable tbody tr.row-error td.rtl {
-    background: rgba(231, 76, 60, 0.06);
-}
-
 /* Error всегда видим, как loading/playing */
 #proTable tbody tr .row-tts-btn.row-tts-error {
     opacity: 1 !important;
@@ -932,17 +920,19 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 /* Dim all non-active rows */
-#proTable.focus-mode tbody tr:not(.row-playing):not(.row-error) td {
+#proTable.focus-mode tbody tr:not(.row-playing):not(.row-selected):not(.row-error) td {
     opacity: 0.38;
     filter: grayscale(0.15);
 }
 
 /* Keep active rows crisp */
 #proTable.focus-mode tbody tr.row-playing td,
+#proTable.focus-mode tbody tr.row-selected td,
 #proTable.focus-mode tbody tr.row-error td {
     opacity: 1;
     filter: none;
 }
+
 
 /* Safe focus rail: draw inside the first cell (does not affect table layout) */
 #proTable tbody tr.row-playing td:first-child {
@@ -950,15 +940,6 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 #proTable tbody tr.row-error td:first-child {
     box-shadow: inset 3px 0 0 rgba(231, 76, 60, 0.8);
-}
-
-
-/* Slightly strengthen the active row background */
-#proTable tbody tr.row-playing td {
-    background: rgba(52, 152, 219, 0.085);
-}
-#proTable tbody tr.row-playing td.rtl {
-    background: rgba(52, 152, 219, 0.11);
 }
 
 #proTable tbody tr.row-error td {
@@ -1133,76 +1114,66 @@ th, td { border-color: rgba(0,0,0,0.55); }
 /* ⚠️ Все state-классы (focus-mode / row-playing / row-error)
    остаются сильнее этого слоя — конфликтов нет */
 
-   /* =========================================================
-   Row Hover Highlight v2 (P0)
-   - Desktop hover
-   - Keyboard focus (focus-within)
-   - Touch feedback (:active)
-   - Visible even in results-stale
-   - Does NOT override row-playing / row-error
+/* =========================================================
+   P0 FIX: Yellow row highlight always (hover + focus + playing)
+   - Overrides existing gray hover/focus rules (same selectors, later wins)
+   - Makes row-playing also yellow. Работающая подсветка строки 
    ========================================================= */
 
-#proTable tbody tr:not(.row-playing):not(.row-error) td {
-  transition: background-color 120ms ease;
+
+
+/* 1) Воспроизведение: вся строка жёлтая (все 4 ячейки) */
+#proTable tbody tr.row-playing td,
+#proTable tbody tr.row-playing td.rtl{
+background-color: var(--row-yellow) !important;
 }
 
-/* Desktop/мышь */
+/* 1.1) Последняя озвученная строка (липкая подсветка до следующего запуска) */
+#proTable tbody tr.row-selected td,
+#proTable tbody tr.row-selected td.rtl{
+  background-color: var(--row-yellow) !important;
+}
+
+
+/* 2) Hover на десктопе: вся строка жёлтая */
 @media (hover: hover) and (pointer: fine) {
-  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td {
-    background-color: rgba(0, 0, 0, 0.055) !important;
-  }
-  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl {
-    background-color: rgba(0, 0, 0, 0.07) !important;
+  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td,
+  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl{
+    background-color: var(--row-yellow) !important;
   }
 
-  /* focus-mode: НЕ ломаем dim-идею, но даём лёгкий hover */
-  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td {
-    background-color: rgba(0, 0, 0, 0.03) !important;
-  }
-  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td.rtl {
-    background-color: rgba(0, 0, 0, 0.04) !important;
+  /* если focus-mode включён — тоже жёлтый на hover */
+  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td,
+  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td.rtl{
+    background-color: var(--row-yellow) !important;
   }
 
-  /* Если таблица "устарела" (opacity 0.45) — усиливаем hover */
-  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td {
-    background-color: rgba(0, 0, 0, 0.11) !important;
-  }
-  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl {
-    background-color: rgba(0, 0, 0, 0.14) !important;
+  /* если таблица stale — всё равно жёлтый */
+  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td,
+  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl{
+    background-color: var(--row-yellow) !important;
   }
 }
 
-/* Клавиатура/фокус внутри строки (кнопка ▶, будущие hotkeys и т.п.) */
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td {
-  background-color: rgba(0, 0, 0, 0.055) !important;
-}
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td.rtl {
-  background-color: rgba(0, 0, 0, 0.07) !important;
+/* 3) Фокус внутри строки (кнопка ▶ и т.п.): тоже жёлтый */
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td,
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td.rtl{
+  background-color: var(--row-yellow) !important;
 }
 
-/* Touch: “нажатие” даёт короткую подсветку (hover там нет) */
+/* 4) Touch active: тоже жёлтый */
 @media (hover: none), (pointer: coarse) {
-  #proTable tbody tr:active:not(.row-playing):not(.row-error) td {
-    background-color: rgba(0, 0, 0, 0.07) !important;
-  }
-  #proTable tbody tr:active:not(.row-playing):not(.row-error) td.rtl {
-    background-color: rgba(0, 0, 0, 0.09) !important;
+  #proTable tbody tr:active:not(.row-playing):not(.row-error) td,
+  #proTable tbody tr:active:not(.row-playing):not(.row-error) td.rtl{
+    background-color: var(--row-yellow) !important;
   }
 }
 
-
-/* Клавиатура/фокус внутри строки: подсветка как hover */
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td {
-  background-color: rgba(0, 0, 0, 0.055) !important;
-}
-
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td.rtl {
-  background-color: rgba(0, 0, 0, 0.07) !important;
-}
-
-/* В focus-mode при фокусе тоже не перебиваем состояния */
-#proTable.focus-mode tbody tr:focus-within td {
-  background-color: inherit !important;
+/* 5) Убираем «яркое пятно» от внутренних обёрток (но кнопку не трогаем) */
+#proTable tbody tr td .cell-he-wrap,
+#proTable tbody tr td .row-tts-text{
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
    
@@ -1565,6 +1536,8 @@ let rowAudioPlayer = null;
 let rowAudioUrl = null;
 let rowPlayingRowIdx = null;
 let rowPlayingCacheKey = null;
+let rowSelectedRowIdx = null; // последняя озвученная строка (липкая подсветка)
+
 
 function ensureRowAudioPlayer() {
     if (rowAudioPlayer) return rowAudioPlayer;
@@ -1572,16 +1545,18 @@ function ensureRowAudioPlayer() {
     rowAudioPlayer.preload = "auto";
 
     rowAudioPlayer.addEventListener("ended", function () {
-        clearRowPlayingState();
-    });
+    clearRowPlayingState(false);
+});
+
     rowAudioPlayer.addEventListener("error", function () {
-        clearRowPlayingState();
-        showToast("Не удалось воспроизвести аудио строки");
-    });
+    clearRowPlayingState(true); // сбросить selected
+    showToast("Не удалось воспроизвести аудио строки");
+});
+
     return rowAudioPlayer;
 }
 
-function clearRowPlayingState() {
+function clearRowPlayingState(alsoClearSelected) {
     // снять playing подсветку и состояния кнопки
     const table = document.getElementById("proTable");
     if (table) {
@@ -1602,6 +1577,11 @@ function clearRowPlayingState() {
     if (rowAudioUrl) {
         try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {}
         rowAudioUrl = null;
+    }
+
+    // НОВОЕ: по необходимости сбрасываем selected полностью
+    if (alsoClearSelected) {
+        clearRowSelectedUI();
     }
 
     updateRowFocusMode();
@@ -1672,9 +1652,40 @@ function setRowButtonLoading(rowIdx, isLoading) {
     }
 }
 
+function setRowSelectedUI(rowIdx) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    // снять selected с предыдущей строки, если новая другая
+    if (rowSelectedRowIdx !== null && rowSelectedRowIdx !== rowIdx) {
+        const prev = table.querySelector('tbody tr[data-row-idx="' + String(rowSelectedRowIdx) + '"]');
+        if (prev) prev.classList.remove("row-selected");
+    }
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    if (tr) tr.classList.add("row-selected");
+
+    rowSelectedRowIdx = rowIdx;
+}
+
+function clearRowSelectedUI() {
+    const table = document.getElementById("proTable");
+    if (table) {
+        table.querySelectorAll("tbody tr.row-selected").forEach(function (tr) {
+            tr.classList.remove("row-selected");
+        });
+    }
+    rowSelectedRowIdx = null;
+}
+
+
 function setRowPlayingUI(rowIdx, playing) {
     const table = document.getElementById("proTable");
     if (!table) return;
+	
+	if (playing) {
+        setRowSelectedUI(rowIdx); // <-- ДОБАВИТЬ: фиксируем "последнюю" строку
+    }
 
     const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
     const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
@@ -2355,7 +2366,7 @@ loadRowAudioCacheFromStorage();
 try {
     if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause();
 } catch (_) {}
-clearRowPlayingState();
+clearRowPlayingState(true);
 
 
         if (btnWordEl) btnWordEl.classList.add("disabled");
