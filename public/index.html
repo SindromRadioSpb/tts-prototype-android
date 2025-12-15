@@ -544,8 +544,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 
-    tbody tr:hover td { background: rgba(0,0,0,0.035); }       /* ведение строки */
-    tbody tr:hover td.rtl { background: rgba(0,0,0,0.045); }   /* чуть заметнее для RTL */
+     
 
     .rtl {
         direction: rtl;
@@ -558,13 +557,30 @@ th, td { border-color: rgba(0,0,0,0.55); }
         line-height: 1.75; /* иврит читабельнее без “воздуха-шума” */
     }
 
-    .rtl-he-niqqud {
-        font-size: 18px;
-        line-height: 2.05;       /* ключ: никуда перестаёт “слипаться” */
-        letter-spacing: 0.15px;  /* микропомощь для огласовок */
-        -webkit-font-smoothing: antialiased;
-        text-rendering: optimizeLegibility;
-    }
+    /* === Week 5: Niqqud Readability (Zero-risk, CSS-only) === */
+.rtl-he-niqqud {
+    font-size: 18px;
+
+    /* 1) “Воздух” для диакритики: чуть больше, но без визуальных прыжков */
+    line-height: 2.18;
+
+    /* 2) Микро-типографика: меньше “дрожи” на длинных строках */
+    letter-spacing: 0.12px;
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1;
+
+    /* 3) Очень мягкое “успокоение” тона: не серим, но убираем жёсткость */
+    color: rgba(0, 0, 0, 0.92);
+
+    /* 4) Немного вертикального буфера в ячейке (важно при 100 строках) */
+    padding-top: 7px;
+    padding-bottom: 7px;
+
+    /* 5) Рендеринг */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
 
     .error {
         color: #e74c3c;
@@ -959,6 +975,238 @@ th, td { border-color: rgba(0,0,0,0.55); }
     pointer-events: auto !important;
 }
 
+		/* =========================================================
+   Week 5 — Apple-quality Reading UI (Zero-risk CSS override)
+   Совместимо с: resize / sticky / focus / row-playing
+   ========================================================= */
+
+/* 1) Главная фикса: вертикальный ритм и “карточность” строки */
+#proTable tbody td {
+  /* было: vertical-align: top; -> для reading UI выглядит “дешево” */
+  vertical-align: middle;
+
+  /* было: padding 6px 8px; -> мало “воздуха”, текст липнет к границам */
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  /* сглаживание на длинных чтениях */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 2) Если строка реально “очень высокая”, центрирование может мешать.
+      Делаем мягкий компромисс: большие блоки остаются ближе к верху.
+      (Никакого JS — чистый CSS) */
+#proTable tbody td:has(br):not(.rtl-he-niqqud) {
+  vertical-align: top;
+}
+
+/* 3) Niqqud: максимум “воздуха” без автоскейла/прыжков */
+#proTable tbody td.rtl-he-niqqud {
+  line-height: 2.18;          /* больше “воздуха” для огласовок */
+  letter-spacing: 0.12px;     /* меньше визуальной дрожи */
+  color: rgba(0,0,0,0.92);    /* мягче, но не “серое” */
+}
+
+/* 4) Иврит без никуда: чуть стабильнее ритм, чтобы строка выглядела единообразно */
+#proTable tbody td.rtl-he {
+  line-height: 1.78;          /* было 1.75 — минимальная доводка */
+}
+
+/* 5) Транслит/перевод: читаемость как в premium-приложениях (без изменения размеров шрифта) */
+#proTable tbody td:not(.rtl) {
+  line-height: 1.52;          /* чуть комфортнее при многострочных строках */
+}
+
+/* 6) Сетка: тоньше и “дороже”, но без потери читабельности */
+#proTable th, 
+#proTable td {
+  border-color: rgba(0,0,0,0.42); /* было ~0.55/0.75 — визуально тяжеловато */
+}
+
+
+
+/* 8) Совместимость с focus-mode и row-playing:
+      не трогаем opacity/фон активных стейтов — только “база” чтения. */
+
+		/* =========================================================
+   Week 5 — Glass-smooth micro polish (Zero-risk override)
+   Цель: тоньше сетка, ровнее ритм, “hairline” под sticky header
+   ========================================================= */
+
+/* A) Сетка: превращаем “черные линии” в premium hairline */
+#proTable {
+  border: 1px solid rgba(0,0,0,0.26) !important; /* внешний контур легче */
+  background: #fff;
+}
+
+#proTable th,
+#proTable td {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: rgba(0,0,0,0.26) !important;     /* ключ: облегчить сетку */
+}
+
+/* B) Sticky header: делаем нижнюю линию “дорогой” и стабильной */
+#proTable thead th {
+  background: #f6f7f8 !important;
+  border-color: rgba(0,0,0,0.22) !important;
+}
+
+#proTable thead th::before {
+  /* твой текущий “подчеркивающий” слой оставляем, но делаем hairline */
+  background: rgba(0,0,0,0.24) !important;
+  height: 1px !important;
+  opacity: 1 !important;
+}
+
+/* C) Ритм чтения: тонкая финальная доводка интерлиньяжа */
+#proTable tbody td.rtl-he-niqqud {
+  /* было 2.18: слегка плотнее, чтобы строка не “распухала” */
+  line-height: 2.14 !important;
+  letter-spacing: 0.10px !important; /* чуть тише, аккуратнее */
+}
+
+#proTable tbody td.rtl-he {
+  line-height: 1.72 !important; /* чуть более “Apple-like” плотность */
+}
+
+#proTable tbody td:not(.rtl) {
+  line-height: 1.48 !important; /* транслит/перевод: мягче и компактнее */
+}
+
+/* D) Лёгкая дифференциация строк без “зебры” (не конфликтует с focus-mode) */
+#proTable tbody tr {
+  background: #ffffff;
+}
+#proTable tbody td {
+  background: transparent;
+}
+
+
+#proTable tbody tr:nth-child(even) td {
+  background: rgba(0,0,0,0.012); /* почти незаметно, но “дорого” */
+}
+
+/* F) Не трогаем состояния: row-playing / row-error / focus-mode — они должны победить */
+
+/* =========================================================
+   Week 5 — Glass-smooth FINAL micro polish (zero-risk)
+   Цель: iOS / Apple Books quality reading table
+   ========================================================= */
+
+/* 1) Вертикальные линии — тише горизонтальных */
+#proTable th:not(:last-child),
+#proTable td:not(:last-child) {
+  border-right-color: rgba(0,0,0,0.18) !important;
+}
+
+#proTable th,
+#proTable td {
+  border-bottom-color: rgba(0,0,0,0.26) !important;
+}
+
+/* 2) Заголовки: меньше веса, больше “воздуха смысла” */
+#proTable thead th {
+  font-weight: 600 !important;      /* было визуально ближе к 700 */
+  letter-spacing: 0.2px;
+  color: rgba(0,0,0,0.88);
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+/* 3) Финальный вертикальный баланс иврита */
+#proTable tbody td.rtl-he,
+#proTable tbody td.rtl-he-niqqud {
+  padding-top: 11px;   /* +1px вверх */
+  padding-bottom: 11px;
+}
+
+/* 4) Многострочные ячейки: первый ряд “оседает” мягче */
+#proTable tbody td.rtl-he br:first-child,
+#proTable tbody td.rtl-he-niqqud br:first-child {
+  line-height: 1.95;
+}
+
+/* ⚠️ Все state-классы (focus-mode / row-playing / row-error)
+   остаются сильнее этого слоя — конфликтов нет */
+
+   /* =========================================================
+   Row Hover Highlight v2 (P0)
+   - Desktop hover
+   - Keyboard focus (focus-within)
+   - Touch feedback (:active)
+   - Visible even in results-stale
+   - Does NOT override row-playing / row-error
+   ========================================================= */
+
+#proTable tbody tr:not(.row-playing):not(.row-error) td {
+  transition: background-color 120ms ease;
+}
+
+/* Desktop/мышь */
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td {
+    background-color: rgba(0, 0, 0, 0.055) !important;
+  }
+  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl {
+    background-color: rgba(0, 0, 0, 0.07) !important;
+  }
+
+  /* focus-mode: НЕ ломаем dim-идею, но даём лёгкий hover */
+  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+  }
+  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td.rtl {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+  }
+
+  /* Если таблица "устарела" (opacity 0.45) — усиливаем hover */
+  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td {
+    background-color: rgba(0, 0, 0, 0.11) !important;
+  }
+  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl {
+    background-color: rgba(0, 0, 0, 0.14) !important;
+  }
+}
+
+/* Клавиатура/фокус внутри строки (кнопка ▶, будущие hotkeys и т.п.) */
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td {
+  background-color: rgba(0, 0, 0, 0.055) !important;
+}
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td.rtl {
+  background-color: rgba(0, 0, 0, 0.07) !important;
+}
+
+/* Touch: “нажатие” даёт короткую подсветку (hover там нет) */
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr:active:not(.row-playing):not(.row-error) td {
+    background-color: rgba(0, 0, 0, 0.07) !important;
+  }
+  #proTable tbody tr:active:not(.row-playing):not(.row-error) td.rtl {
+    background-color: rgba(0, 0, 0, 0.09) !important;
+  }
+}
+
+
+/* Клавиатура/фокус внутри строки: подсветка как hover */
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td {
+  background-color: rgba(0, 0, 0, 0.055) !important;
+}
+
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td.rtl {
+  background-color: rgba(0, 0, 0, 0.07) !important;
+}
+
+/* В focus-mode при фокусе тоже не перебиваем состояния */
+#proTable.focus-mode tbody tr:focus-within td {
+  background-color: inherit !important;
+}
+
+   
+	  
 </style>
 
 </head>
@@ -3640,6 +3888,8 @@ loadStats();
 
 
 </script>
+
+
 
 </body>
 </html>
