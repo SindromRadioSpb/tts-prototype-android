@@ -22,6 +22,11 @@
 
   /* playing (distinct) */
   --row-hl-playing:  rgba(255, 230, 0, 0.35); /* сейчас проигрывается */
+  
+   /* Micro-IDE rails (P1, non-background) */
+  --row-rail-selected: rgba(255, 180, 0, 0.85);
+  --row-rail-playing:  rgba(52, 152, 219, 0.75);
+  --row-rail-error:    rgba(231, 76, 60, 0.80);
 }
 
 
@@ -846,6 +851,22 @@ th, td { border-color: rgba(0,0,0,0.55); }
 .row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
 .row-tts-btn:active { transform: translateY(0px); }
 
+/* Accessibility: visible focus ring for ▶ button */
+.row-tts-btn:focus-visible {
+    outline: 2px solid rgba(46, 125, 50, 0.45);
+    outline-offset: 2px;
+}
+
+/* Fallback for browsers without :focus-visible */
+.row-tts-btn:focus {
+    outline: 2px solid rgba(46, 125, 50, 0.45);
+    outline-offset: 2px;
+}
+.row-tts-btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+
 .row-tts-btn[aria-busy="true"] {
     cursor: progress;
     opacity: 0.85;
@@ -969,13 +990,17 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 
-/* Safe focus rail: draw inside the first cell (does not affect table layout) */
+/* Micro-IDE rails: inset line inside first visible cell (no background override) */
+#proTable tbody tr.row-selected td:first-child {
+    box-shadow: inset 3px 0 0 var(--row-rail-selected);
+}
 #proTable tbody tr.row-playing td:first-child {
-    box-shadow: inset 3px 0 0 rgba(52, 152, 219, 0.75);
+    box-shadow: inset 3px 0 0 var(--row-rail-playing);
 }
 #proTable tbody tr.row-error td:first-child {
-    box-shadow: inset 3px 0 0 rgba(231, 76, 60, 0.8);
+    box-shadow: inset 3px 0 0 var(--row-rail-error);
 }
+
 
 /* Ensure Row TTS button stays fully visible in focus mode */
 #proTable.focus-mode tbody tr .row-tts-btn {
