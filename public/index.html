@@ -12,8 +12,7 @@
     :root {
     /* Текущий шрифт для иврита (управляется селектором) */
     --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
-    --row-yellow: rgba(255, 230, 0, 0.35);
-
+   
 	/* Row highlight tokens (P0 single source of truth) */
  /* interaction family (warm) */
   --row-hl-hover:    rgba(46, 125, 50, 0.22); /* hover (мышь) */
@@ -952,13 +951,6 @@ th, td { border-color: rgba(0,0,0,0.55); }
     box-shadow: inset 3px 0 0 rgba(231, 76, 60, 0.8);
 }
 
-#proTable tbody tr.row-error td {
-    background: rgba(231, 76, 60, 0.06);
-}
-#proTable tbody tr.row-error td.rtl {
-    background: rgba(231, 76, 60, 0.075);
-}
-
 /* Ensure Row TTS button stays fully visible in focus mode */
 #proTable.focus-mode tbody tr .row-tts-btn {
     opacity: 1 !important;
@@ -1442,6 +1434,30 @@ const TABLE_HEIGHT_STORAGE_KEY = "ttsDashboard_table_height_v1";
 const ROW_AUDIO_CACHE_KEY = "ttsDashboard_row_audio_cache_v1";
 const ROW_AUDIO_CACHE_LIMIT = 80;
 
+// P0.5+: persistent last selected row (for view changes / quick orientation)
+const LAST_SELECTED_ROW_STORAGE_KEY = "ttsDashboard_last_selected_row_idx_v1";
+
+function loadLastSelectedRowIdx() {
+    try {
+        const raw = localStorage.getItem(LAST_SELECTED_ROW_STORAGE_KEY);
+        if (raw === null || raw === "") return null;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function saveLastSelectedRowIdx(idx) {
+    try {
+        if (typeof idx === "number" && Number.isFinite(idx) && idx >= 0) {
+            localStorage.setItem(LAST_SELECTED_ROW_STORAGE_KEY, String(idx));
+        } else {
+            localStorage.removeItem(LAST_SELECTED_ROW_STORAGE_KEY);
+        }
+    } catch (_) {}
+}
+
 // In-memory cache: key -> base64
 const rowAudioMemCache = new Map();
 
@@ -1667,6 +1683,8 @@ function setRowSelectedUI(rowIdx) {
     if (tr) tr.classList.add("row-selected");
 
     rowSelectedRowIdx = rowIdx;
+saveLastSelectedRowIdx(rowSelectedRowIdx);
+
 }
 
 function clearRowSelectedUI() {
@@ -1677,6 +1695,8 @@ function clearRowSelectedUI() {
         });
     }
     rowSelectedRowIdx = null;
+saveLastSelectedRowIdx(null);
+
 }
 
 
@@ -2885,14 +2905,22 @@ clearRowPlayingState(true);
         setLoading(true);
         setAiButtonDisabled(true);
         document.getElementById("errorMsg").textContent = "";
+		
+		// P0.5 safety: при новом переводе сбрасываем навигационный якорь, чтобы не подсвечивать “старый индекс” на новом контенте
+        try { if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause(); } catch (_) {}
+		
+        clearRowPlayingState(true); // true => также очистит selected
         document.getElementById("tableContainer").innerHTML = "";
         clearResultsMeta("table");
 
         try {
             const res = await apiCall("/api/translate-table", { text: getText() });
 
-            currentTableData = res.rows || [];
-            renderTable(currentTableData);
+// P0.5 safety: новый контент => не подсвечиваем “старый индекс”
+clearRowSelectedUI();
+
+currentTableData = res.rows || [];
+renderTable(currentTableData);
 
             if (currentTableData.length > 0) {
                 clearTableStale();
@@ -3187,9 +3215,41 @@ clearRowPlayingState(true);
 
         document.getElementById("tableContainer").innerHTML = html;
 
-        // подключаем resize-handlers к свежесозданной таблице
-        attachResizeHandlers();
-		scheduleAdaptiveTableHeight();
+// P0.5+: восстановить sticky-состояния строк после пересборки DOM (пресеты/чекбоксы/сброс настроек)
+// Важно: НЕ сбрасываем selected из-за “битого” playing-индекса во время view-операций.
+let playingRestored = false;
+
+if (typeof rowPlayingRowIdx === "number" && Number.isFinite(rowPlayingRowIdx)) {
+    if (rowPlayingRowIdx >= 0 && rowPlayingRowIdx < rows.length) {
+        setRowPlayingUI(rowPlayingRowIdx, true);
+        playingRestored = true;
+    } else {
+        // view-change: просто сбрасываем playing, но selected не трогаем
+        rowPlayingRowIdx = null;
+    }
+}
+
+// Если selected ещё не задан в памяти — пробуем поднять из localStorage
+if (rowSelectedRowIdx === null || !Number.isFinite(rowSelectedRowIdx)) {
+    const stored = loadLastSelectedRowIdx();
+    if (typeof stored === "number" && Number.isFinite(stored)) {
+        rowSelectedRowIdx = stored;
+    }
+}
+
+if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) {
+    if (rowSelectedRowIdx >= 0 && rowSelectedRowIdx < rows.length) {
+        setRowSelectedUI(rowSelectedRowIdx);
+    } else {
+        rowSelectedRowIdx = null;
+        saveLastSelectedRowIdx(null);
+    }
+}
+
+// подключаем resize-handlers к свежесозданной таблице
+attachResizeHandlers();
+scheduleAdaptiveTableHeight();
+
     }
 
 	// ----------------------------
@@ -3777,6 +3837,37 @@ function updateRowFocusMode() {
     if (hasPlaying || hasError) table.classList.add("focus-mode");
     else table.classList.remove("focus-mode");
 }
+
+// ----------------------------
+// P0.5: Click on row => selected (without starting Row-TTS)
+// ----------------------------
+document.addEventListener("click", function (e) {
+    // не выбираем строки во время ресайза колонок/высоты таблицы
+    if (document.body.classList.contains("resizing-cols") || document.body.classList.contains("resizing-rows")) {
+        return;
+    }
+
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    // выбираем только строки тела таблицы
+    const tr = e.target && e.target.closest
+        ? e.target.closest("#proTable tbody tr[data-row-idx]")
+        : null;
+
+    if (!tr) return;
+
+    const rowIdxStr = tr.getAttribute("data-row-idx");
+    const rowIdx = Number(rowIdxStr);
+
+    if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
+
+    // если данных нет/не совпадает индекс — не падаем
+    if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) return;
+
+    setRowSelectedUI(rowIdx);
+});
+
 
 // Row TTS v1: event delegation
 // ----------------------------
