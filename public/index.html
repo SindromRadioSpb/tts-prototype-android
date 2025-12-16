@@ -1280,6 +1280,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
                 <li><code>Ctrl+Shift+S</code> — Сохранить MP3 озвучки текущего текста</li>
                 <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
                 <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
+				<li><code>↑/↓</code> — Навигация по строкам таблицы (после выбора строки)</li>
+                <li><code>Enter</code> — Озвучить выбранную строку (▶)</li>
             </ul>
         </div>
 
@@ -3176,7 +3178,7 @@ renderTable(currentTableData);
     // Куда ставим кнопку: he если видима, иначе niqqud если видима
     const putBtnIn = tableVisibleColumns.he ? "he" : (tableVisibleColumns.niqqud ? "niqqud" : null);
 
-    html += '<tr data-row-idx="' + rowIdx + '">';
+    html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1">';
 
     cols.forEach(function (k) {
         const meta = colMeta[k] || {};
@@ -3823,7 +3825,110 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
             toggleHotkeysPanel();
             return;
         }
+		        // ----------------------------
+        // P1: Keyboard navigation in table (↑/↓ + Enter)
+        // Активируется только если уже есть навигационный “якорь” (selected или playing),
+        // и только когда пользователь НЕ печатает в input/textarea/select/contenteditable.
+        // ----------------------------
+        (function () {
+            if (document.body.classList.contains("resizing-cols") || document.body.classList.contains("resizing-rows")) return;
+
+            const activeEl = document.activeElement;
+
+            function isTypingContext(el) {
+                if (!el) return false;
+                const tag = (el.tagName || "").toUpperCase();
+                if (tag === "TEXTAREA") return true;
+                if (tag === "SELECT") return true;
+                if (tag === "INPUT") {
+                    const t = (el.getAttribute("type") || "text").toLowerCase();
+                    const typingTypes = new Set(["text", "search", "email", "url", "tel", "password", "number"]);
+                    return typingTypes.has(t);
+                }
+                if (el.isContentEditable) return true;
+                return false;
+            }
+
+            // не вмешиваемся, если пользователь печатает/редактирует текст
+            if (isTypingContext(activeEl)) return;
+
+            const table = document.getElementById("proTable");
+            if (!table) return;
+
+            const hasSelected = (typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx));
+            const hasPlaying = (typeof rowPlayingRowIdx === "number" && Number.isFinite(rowPlayingRowIdx));
+
+            // стартуем навигацию только если уже есть “якорь” (выбранная или проигрываемая строка)
+            if (!hasSelected && !hasPlaying) return;
+
+            // не мешаем вашим Ctrl/Alt/Meta хоткеям
+            if (event.ctrlKey || event.altKey || event.metaKey) return;
+			if (event.shiftKey) return;
+
+
+            const key = event.key;
+            if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter") return;
+
+            const rows = table.querySelectorAll("tbody tr[data-row-idx]");
+            if (!rows || rows.length < 1) return;
+
+            function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+            function getBaseRowIdx() {
+                if (hasSelected) return rowSelectedRowIdx;
+                if (hasPlaying) return rowPlayingRowIdx;
+                return 0;
+            }
+
+            function scrollRowIntoView(rowIdx) {
+                const container = document.getElementById("tableContainer");
+                const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+                if (!container || !tr) return;
+
+                const cRect = container.getBoundingClientRect();
+                const rRect = tr.getBoundingClientRect();
+                const pad = 8;
+
+                if (rRect.top < cRect.top + pad) {
+                    container.scrollTop -= (cRect.top + pad - rRect.top);
+                } else if (rRect.bottom > cRect.bottom - pad) {
+                    container.scrollTop += (rRect.bottom - (cRect.bottom - pad));
+                }
+            }
+
+            function selectRow(nextIdx) {
+                nextIdx = clamp(nextIdx, 0, rows.length - 1);
+                setRowSelectedUI(nextIdx);
+                scrollRowIntoView(nextIdx);
+            }
+
+            if (key === "ArrowDown") {
+                event.preventDefault();
+                selectRow(getBaseRowIdx() + 1);
+                return;
+            }
+
+            if (key === "ArrowUp") {
+                event.preventDefault();
+                selectRow(getBaseRowIdx() - 1);
+                return;
+            }
+
+            if (key === "Enter") {
+                const idx = getBaseRowIdx();
+                const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]');
+                if (btn) {
+                    event.preventDefault();
+                    btn.click(); // используем существующую логику Row-TTS
+                }
+                return;
+            }
+        })();
+
     });
+	
+	
+	
 	
 	// ----------------------------
 // Variant A: focus-mode (dim non-active rows when there is an active playing/error row)
