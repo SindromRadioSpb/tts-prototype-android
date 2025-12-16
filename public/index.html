@@ -13,6 +13,18 @@
     /* Текущий шрифт для иврита (управляется селектором) */
     --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
     --row-yellow: rgba(255, 230, 0, 0.35);
+
+	/* Row highlight tokens (P0 single source of truth) */
+ /* interaction family (warm) */
+  --row-hl-hover:    rgba(46, 125, 50, 0.22); /* подсветка при наведении мышью */
+  --row-hl-focus:    rgba(46, 125, 50, 0.22); /* подсветка при фокусе внутри строки */
+  --row-hl-active:   rgba(46, 125, 50, 0.22); /* подсветка при нажатии (touch/press) */
+  --row-hl-selected: rgba(255, 230, 0, 0.35); /* подсветка строки, которая сейчас проигрывается */
+
+  /* playing (distinct) */
+  --row-hl-playing:  rgba(46, 125, 50, 0.22); /* подсветка “последней выбранной/последней проигранной” строки */
+
+
 }
 
 
@@ -1115,66 +1127,57 @@ th, td { border-color: rgba(0,0,0,0.55); }
    остаются сильнее этого слоя — конфликтов нет */
 
 /* =========================================================
-   P0 FIX: Yellow row highlight always (hover + focus + playing)
-   - Overrides existing gray hover/focus rules (same selectors, later wins)
-   - Makes row-playing also yellow. Работающая подсветка строки 
+   P0: Row highlight system (single source of truth)
+   Priority: error > playing > selected > focus-within > hover > active
    ========================================================= */
 
-
-
-/* 1) Воспроизведение: вся строка жёлтая (все 4 ячейки) */
-#proTable tbody tr.row-playing td,
-#proTable tbody tr.row-playing td.rtl{
-background-color: var(--row-yellow) !important;
+/* 0) Error — всегда сильнее любых интерактивных подсветок */
+#proTable tbody tr.row-error td,
+#proTable tbody tr.row-error td.rtl {
+  background-color: rgba(231, 76, 60, 0.06) !important;
 }
 
-/* 1.1) Последняя озвученная строка (липкая подсветка до следующего запуска) */
-#proTable tbody tr.row-selected td,
-#proTable tbody tr.row-selected td.rtl{
-  background-color: var(--row-yellow) !important;
+/* 1) Playing */
+#proTable tbody tr.row-playing:not(.row-error) td,
+#proTable tbody tr.row-playing:not(.row-error) td.rtl {
+  background-color: var(--row-hl-playing) !important;
 }
 
+/* 2) Selected (last played) */
+#proTable tbody tr.row-selected:not(.row-error) td,
+#proTable tbody tr.row-selected:not(.row-error) td.rtl {
+  background-color: var(--row-hl-selected) !important;
+}
 
-/* 2) Hover на десктопе: вся строка жёлтая */
+/* 3) Focus within row (keyboard / focus on ▶ button, etc.) */
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td,
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+  background-color: var(--row-hl-focus) !important;
+}
+
+/* 4) Hover (desktop) */
 @media (hover: hover) and (pointer: fine) {
-  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td,
-  #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl{
-    background-color: var(--row-yellow) !important;
-  }
-
-  /* если focus-mode включён — тоже жёлтый на hover */
-  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td,
-  #proTable.focus-mode tbody tr:hover:not(.row-playing):not(.row-error) td.rtl{
-    background-color: var(--row-yellow) !important;
-  }
-
-  /* если таблица stale — всё равно жёлтый */
-  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td,
-  #tableContainer.results-stale #proTable tbody tr:hover:not(.row-playing):not(.row-error) td.rtl{
-    background-color: var(--row-yellow) !important;
+  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+    background-color: var(--row-hl-hover) !important;
   }
 }
 
-/* 3) Фокус внутри строки (кнопка ▶ и т.п.): тоже жёлтый */
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td,
-#proTable tbody tr:focus-within:not(.row-playing):not(.row-error) td.rtl{
-  background-color: var(--row-yellow) !important;
-}
-
-/* 4) Touch active: тоже жёлтый */
+/* 5) Active (touch) */
 @media (hover: none), (pointer: coarse) {
-  #proTable tbody tr:active:not(.row-playing):not(.row-error) td,
-  #proTable tbody tr:active:not(.row-playing):not(.row-error) td.rtl{
-    background-color: var(--row-yellow) !important;
+  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+    background-color: var(--row-hl-active) !important;
   }
 }
 
-/* 5) Убираем «яркое пятно» от внутренних обёрток (но кнопку не трогаем) */
-#proTable tbody tr td .cell-he-wrap,
-#proTable tbody tr td .row-tts-text{
+/* 6) Убираем “пятна” от внутренних flex-обёрток (кнопку не трогаем) */
+#proTable tbody td .cell-he-wrap,
+#proTable tbody td .row-tts-text {
   background: transparent !important;
   background-color: transparent !important;
 }
+
 
    
 	  
