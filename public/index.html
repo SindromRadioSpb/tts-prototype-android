@@ -482,6 +482,32 @@ body.resizing-rows {
         user-select: none;
         white-space: nowrap;
     }
+	
+	 .table-autonext {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12px;
+    opacity: 0.95;
+}
+
+.table-autonext .playlist-btn {
+    width: 100%;
+}
+
+.table-autonext .playlist-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .table-autonext .playlist-btn {
+        padding: 10px 12px;   /* крупнее тап-таргет */
+    }
+}
+
+
 
     .table-chk input[type="checkbox"] { transform: translateY(0.5px); }
 
@@ -1361,6 +1387,20 @@ th, td { border-color: rgba(0,0,0,0.55); }
                     <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)">Фонетика</button>
                     <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)">Только иврит</button>
                 </div>
+				    <div class="table-autonext" title="Плейлист: Shift+Enter запускает непрерывное построчное проигрывание (Auto-next)">
+                    <label class="table-chk">
+                        <input type="checkbox" id="autoNextToggle">
+                        Плейлист (Auto-next)
+                    </label>
+					
+					<button type="button" id="btnPlaylistRun" class="btn-mini-secondary playlist-btn"
+                    title="Плейлист: Старт/Стоп. Можно также Shift+Enter (desktop).">
+                    ▶▶ Старт
+                    </button>
+
+					
+                </div>
+
             </div>
 
             <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
@@ -1408,6 +1448,10 @@ th, td { border-color: rgba(0,0,0,0.55); }
     const btnWordEl = document.getElementById("btnWord");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
     const hotkeysPanelEl = document.getElementById("hotkeysPanel");
+	
+	const autoNextToggleEl = document.getElementById("autoNextToggle");
+	
+	const btnPlaylistRunEl = document.getElementById("btnPlaylistRun");
 
     const voiceSelectEl = document.getElementById("voiceSelect");
     const rateRangeEl = document.getElementById("rateRange");
@@ -1563,12 +1607,50 @@ function ensureRowAudioPlayer() {
     rowAudioPlayer = new Audio();
     rowAudioPlayer.preload = "auto";
 
-    rowAudioPlayer.addEventListener("ended", function () {
-    clearRowPlayingState(false);
-});
+        rowAudioPlayer.addEventListener("ended", function () {
+        clearRowPlayingState(false);
+
+        // Playlist: if a playlist run is active and toggle ON => auto-play next row
+        if (!autoNextEnabled || !rowPlaylistRunActive) return;
+
+        if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
+            rowPlaylistRunActive = false;
+            return;
+        }
+
+        const baseIdx = (typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) ? rowSelectedRowIdx : null;
+        if (baseIdx === null) {
+            rowPlaylistRunActive = false;
+            return;
+        }
+
+        const nextIdx = baseIdx + 1;
+        if (nextIdx >= currentTableData.length) {
+            rowPlaylistRunActive = false; // конец таблицы
+            showToast("Плейлист: конец таблицы");
+			updatePlaylistButtonUI();
+            return;
+        }
+
+        // move selection
+        setRowSelectedUI(nextIdx);
+
+        // start next row via existing button logic
+        const table = document.getElementById("proTable");
+        if (!table) { rowPlaylistRunActive = false; return; }
+
+        const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(nextIdx) + '"]');
+        if (!btn) { rowPlaylistRunActive = false; return; }
+
+        rowPlaylistAutoplayClick = true;
+        btn.click();
+    });
+
 
     rowAudioPlayer.addEventListener("error", function () {
     clearRowPlayingState(true); // сбросить selected
+	rowPlaylistRunActive = false;
+	updatePlaylistButtonUI();
     showToast("Не удалось воспроизвести аудио строки");
 });
 
@@ -1751,6 +1833,54 @@ loadRowAudioCacheFromStorage();
     // НАСТРОЙКИ ТАБЛИЦЫ: ВИДИМОСТЬ КОЛОНОК + АВТОШИРИНЫ (PRO)
     // ----------------------------
     const TABLE_SETTINGS_KEY = "ttsDashboard_table_settings_v1";
+	
+	    // ----------------------------
+    // P1.2 (Playlist): Auto-next toggle (persistent)
+    // ----------------------------
+    const AUTO_NEXT_KEY = "ttsDashboard_row_auto_next_v1";
+    let autoNextEnabled = false;
+
+    // Runtime flags for playlist runs (started via Shift+Enter when toggle ON)
+    let rowPlaylistRunActive = false;
+    let rowPlaylistAutoplayClick = false; // internal marker to not cancel playlist on programmatic clicks
+
+    function loadAutoNextSetting() {
+        try {
+            const raw = localStorage.getItem(AUTO_NEXT_KEY);
+            autoNextEnabled = (raw === "1");
+        } catch (_) {
+            autoNextEnabled = false;
+        }
+
+        if (autoNextToggleEl) {
+            autoNextToggleEl.checked = !!autoNextEnabled;
+        }
+		updatePlaylistButtonUI();
+    }
+
+    function saveAutoNextSetting(enabled) {
+        try {
+            localStorage.setItem(AUTO_NEXT_KEY, enabled ? "1" : "0");
+        } catch (_) {}
+    }
+	
+	function updatePlaylistButtonUI() {
+    if (!btnPlaylistRunEl) return;
+
+    const table = document.getElementById("proTable");
+    const hasRows = !!(table && table.querySelector('tbody tr[data-row-idx]'));
+
+    // кнопку можно показывать всегда, но если таблицы нет — отключаем
+    btnPlaylistRunEl.disabled = !hasRows;
+
+    if (rowPlaylistRunActive) {
+        btnPlaylistRunEl.textContent = "■ Стоп";
+    } else {
+        btnPlaylistRunEl.textContent = "▶▶ Старт";
+    }
+}
+
+
 
     // Порядок колонок фиксированный (источник истины)
     const TABLE_COL_ORDER = ["he", "niqqud", "translit", "ru"];
@@ -1916,7 +2046,88 @@ loadRowAudioCacheFromStorage();
 
         const root = document.getElementById("tableSettings");
         if (!root) return;
+		
+		        // playlist toggle
+if (autoNextToggleEl) {
+    autoNextToggleEl.checked = !!autoNextEnabled;
 
+    autoNextToggleEl.addEventListener("change", function () {
+        autoNextEnabled = !!autoNextToggleEl.checked;
+        saveAutoNextSetting(autoNextEnabled);
+
+        // Если выключили — прекращаем цепочку авто-переходов.
+        if (!autoNextEnabled) {
+            rowPlaylistRunActive = false;
+            updatePlaylistButtonUI(); // важно: сразу обновить текст кнопки
+        }
+
+        showToast(autoNextEnabled ? "Плейлист включён (Auto-next)" : "Плейлист выключен");
+    });
+} // <-- ВОТ ЭТА СКОБКА ОБЯЗАТЕЛЬНА
+
+// Playlist button (mobile-friendly)
+if (btnPlaylistRunEl) {
+    btnPlaylistRunEl.addEventListener("click", function () {
+        const table = document.getElementById("proTable");
+        if (!table) {
+            showToast("Сначала сделайте AI-перевод, чтобы появилась таблица");
+            return;
+        }
+
+        const rows = table.querySelectorAll("tbody tr[data-row-idx]");
+        if (!rows || rows.length < 1) {
+            showToast("Нет строк для проигрывания");
+            return;
+        }
+
+        // Если toggle выключен — включаем и сохраняем (кнопка “просто работает”)
+        if (!autoNextEnabled) {
+            autoNextEnabled = true;
+            if (autoNextToggleEl) autoNextToggleEl.checked = true;
+            saveAutoNextSetting(true);
+            showToast("Плейлист включён (Auto-next)");
+        }
+
+        // Toggle start/stop
+        if (rowPlaylistRunActive) {
+            rowPlaylistRunActive = false;
+
+            // остановить текущую строку, если играет
+            try {
+                if (rowAudioPlayer && !rowAudioPlayer.paused) {
+                    rowAudioPlayer.pause();
+                    rowAudioPlayer.currentTime = 0;
+                }
+            } catch (_) {}
+
+            clearRowPlayingState(false); // selected оставляем
+            updateRowFocusMode();
+            updatePlaylistButtonUI();
+            return;
+        }
+
+        // start playlist from selected (or 0)
+        let idx = (typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) ? rowSelectedRowIdx : 0;
+        if (idx < 0 || idx >= rows.length) idx = 0;
+
+        setRowSelectedUI(idx);
+
+        const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]');
+        if (!btn) {
+            showToast("Не найдена кнопка озвучки для выбранной строки");
+            return;
+        }
+
+        rowPlaylistRunActive = true;
+        rowPlaylistAutoplayClick = true; // чтобы click-handler не отменил плейлист
+        updatePlaylistButtonUI();
+        btn.click();
+    });
+}
+
+// initial paint
+updatePlaylistButtonUI();
+           
         root.addEventListener("click", function (e) {
             const btn = e.target && e.target.closest ? e.target.closest("button[data-preset]") : null;
             if (!btn) return;
@@ -2082,6 +2293,7 @@ loadRowAudioCacheFromStorage();
     }
 
     // Инициализация UI таблицы
+	loadAutoNextSetting();
     initTableSettingsUI();
 
     // ----------------------------
@@ -3219,10 +3431,15 @@ renderTable(currentTableData);
 
 // P0.5+: восстановить sticky-состояния строк после пересборки DOM (пресеты/чекбоксы/сброс настроек)
 // Важно: НЕ сбрасываем selected из-за “битого” playing-индекса во время view-операций.
+
+const __tableEl = document.getElementById("proTable");
+const __rowsEls = __tableEl ? __tableEl.querySelectorAll('tbody tr[data-row-idx]') : [];
+const __rowCount = __rowsEls.length;
+
 let playingRestored = false;
 
 if (typeof rowPlayingRowIdx === "number" && Number.isFinite(rowPlayingRowIdx)) {
-    if (rowPlayingRowIdx >= 0 && rowPlayingRowIdx < rows.length) {
+    if (rowPlayingRowIdx >= 0 && rowPlayingRowIdx < __rowCount) {
         setRowPlayingUI(rowPlayingRowIdx, true);
         playingRestored = true;
     } else {
@@ -3240,7 +3457,7 @@ if (rowSelectedRowIdx === null || !Number.isFinite(rowSelectedRowIdx)) {
 }
 
 if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) {
-    if (rowSelectedRowIdx >= 0 && rowSelectedRowIdx < rows.length) {
+    if (rowSelectedRowIdx >= 0 && rowSelectedRowIdx < __rowCount) {
         setRowSelectedUI(rowSelectedRowIdx);
     } else {
         rowSelectedRowIdx = null;
@@ -3248,9 +3465,11 @@ if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite
     }
 }
 
+
 // подключаем resize-handlers к свежесозданной таблице
 attachResizeHandlers();
 scheduleAdaptiveTableHeight();
+updatePlaylistButtonUI();
 
     }
 
@@ -3863,11 +4082,32 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
 
             // не мешаем вашим Ctrl/Alt/Meta хоткеям
             if (event.ctrlKey || event.altKey || event.metaKey) return;
-			if (event.shiftKey) return;
+			const key = event.key;
+
+// Shift разрешаем только для Shift+Enter в плейлист-режиме.
+const isShiftEnterPlaylist = (key === "Enter" && event.shiftKey && autoNextEnabled);
+
+// Для стрелок/esc и для Shift+Enter при выключенном toggle — игнорируем.
+if (event.shiftKey && !isShiftEnterPlaylist) return;
+
+if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter" && key !== "Escape") return;
 
 
-            const key = event.key;
-            if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter") return;
+			if (key === "Escape") {
+    rowPlaylistRunActive = false;
+    updatePlaylistButtonUI();
+
+    if (typeof rowAudioPlayer !== "undefined" && rowAudioPlayer && !rowAudioPlayer.paused) {
+        event.preventDefault();
+        try { rowAudioPlayer.pause(); } catch (_) {}
+        try { rowAudioPlayer.currentTime = 0; } catch (_) {}
+        clearRowPlayingState(false);
+        updateRowFocusMode();
+    }
+    return;
+}
+
+
 
             const rows = table.querySelectorAll("tbody tr[data-row-idx]");
             if (!rows || rows.length < 1) return;
@@ -3915,14 +4155,27 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
             }
 
             if (key === "Enter") {
-                const idx = getBaseRowIdx();
-                const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]');
-                if (btn) {
-                    event.preventDefault();
-                    btn.click(); // используем существующую логику Row-TTS
-                }
-                return;
-            }
+    const idx = getBaseRowIdx();
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]');
+
+    if (btn) {
+        event.preventDefault();
+
+        if (event.shiftKey && autoNextEnabled) {
+    rowPlaylistRunActive = true;
+    rowPlaylistAutoplayClick = true;
+    updatePlaylistButtonUI();
+    btn.click();
+} else if (!event.shiftKey) {
+    rowPlaylistRunActive = false;
+    updatePlaylistButtonUI();
+    btn.click();
+}
+
+    }
+    return;
+}
+
         })();
 
     });
@@ -3984,6 +4237,17 @@ document.addEventListener("click", async function (e) {
     const rowIdx = Number(rowIdxStr);
     if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
 
+	// Playlist: distinguish manual click vs playlist-driven click
+    const __isPlaylistAutoplay = !!rowPlaylistAutoplayClick;
+    rowPlaylistAutoplayClick = false;
+
+    // Любой ручной запуск строки отменяет цепочку плейлиста
+    if (!__isPlaylistAutoplay) {
+        rowPlaylistRunActive = false;
+		updatePlaylistButtonUI();
+    }
+
+	
     // если нет таблицы/данных
     if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) {
         showToast("Строка не найдена");
@@ -4070,6 +4334,8 @@ document.addEventListener("click", async function (e) {
 loadStats();
 } catch (err) {
     clearRowPlayingState();
+	rowPlaylistRunActive = false;
+
 
     const msg = (err && err.message) ? err.message : "неизвестная";
 
