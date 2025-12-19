@@ -1628,50 +1628,232 @@ let rowPlayingCacheKey = null;
 let rowSelectedRowIdx = null; // последняя озвученная строка (липкая подсветка)
 
 
+
+// =========================================================
+// Week 6 — AR-11: Index mismatch guards (selected/playing)
+// =========================================================
+
+function getDomRowCount() {
+    const table = document.getElementById("proTable");
+    if (!table) return 0;
+    const rows = table.querySelectorAll('tbody tr[data-row-idx]');
+    return rows ? rows.length : 0;
+}
+
+function getEffectiveRowCount() {
+    const dom = getDomRowCount();
+    const data = Array.isArray(currentTableData) ? currentTableData.length : 0;
+    if (dom && data) return Math.min(dom, data);
+    return dom || data || 0;
+}
+
+function normalizeRowIdxOrNull(idx, rowCount) {
+    if (idx === null || idx === undefined) return null;
+    const n = Number(idx);
+    if (!Number.isFinite(n)) return null;
+    const i = Math.trunc(n);
+    if (i < 0 || i >= rowCount) return null;
+    return i;
+}
+
+/**
+ * AR-11: Нормализует rowSelectedRowIdx/rowPlayingRowIdx под текущую таблицу.
+ * - НЕ добавляет функционал, только снимает некорректные состояния.
+ * - Возвращает true, если что-то было исправлено.
+ */
+function normalizeRowStateIndices(reason) {
+    const table = document.getElementById("proTable");
+    const rowCount = getEffectiveRowCount();
+
+    let changed = false;
+
+    // если таблицы нет — индексы не должны "жить в воздухе"
+    if (!table || rowCount < 1) {
+        if (rowSelectedRowIdx !== null) {
+            rowSelectedRowIdx = null;
+            saveLastSelectedRowIdx(null);
+            changed = true;
+        }
+        if (rowPlayingRowIdx !== null || rowPlayingCacheKey !== null) {
+            rowPlayingRowIdx = null;
+            rowPlayingCacheKey = null;
+            changed = true;
+        }
+        if (rowPlaylistRunActive) {
+            rowPlaylistRunActive = false;
+            changed = true;
+        }
+        return changed;
+    } 
+
+
+    const normSel = normalizeRowIdxOrNull(rowSelectedRowIdx, rowCount);
+    if (normSel !== rowSelectedRowIdx) {
+        rowSelectedRowIdx = normSel;
+        saveLastSelectedRowIdx(normSel);
+        changed = true;
+    }
+
+    const normPlay = normalizeRowIdxOrNull(rowPlayingRowIdx, rowCount);
+    if (normPlay !== rowPlayingRowIdx) {
+        rowPlayingRowIdx = normPlay;
+        if (normPlay === null) rowPlayingCacheKey = null;
+        changed = true;
+    }
+	
+	// AR-11: cacheKey не должен жить без валидного playing-индекса
+if (rowPlayingRowIdx === null && rowPlayingCacheKey !== null) {
+    rowPlayingCacheKey = null;
+    changed = true;
+}
+
+    // плейлист не может быть активен без валидного selected и включенного toggle
+    if (rowPlaylistRunActive && (!autoNextEnabled || rowSelectedRowIdx === null || rowCount < 1)) {
+        rowPlaylistRunActive = false;
+        changed = true;
+    }
+
+    // синхронизируем классы (после пересборки DOM это полезно всегда)
+    // selected
+    table.querySelectorAll("tbody tr.row-selected").forEach(function (tr) {
+        tr.classList.remove("row-selected");
+    });
+    if (rowSelectedRowIdx !== null) {
+        const trSel = table.querySelector('tbody tr[data-row-idx="' + String(rowSelectedRowIdx) + '"]');
+        if (trSel) trSel.classList.add("row-selected");
+    }
+
+    // playing + кнопка
+    table.querySelectorAll("tbody tr.row-playing").forEach(function (tr) {
+        tr.classList.remove("row-playing");
+    });
+    table.querySelectorAll("button.row-tts-btn.row-tts-playing").forEach(function (btn) {
+        btn.classList.remove("row-tts-playing");
+        btn.removeAttribute("aria-busy");
+        btn.disabled = false;
+        btn.textContent = "▶";
+    });
+    if (rowPlayingRowIdx !== null) {
+        const trPlay = table.querySelector('tbody tr[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        const btnPlay = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        if (trPlay) trPlay.classList.add("row-playing");
+        if (btnPlay) {
+            btnPlay.classList.add("row-tts-playing");
+            btnPlay.disabled = false;
+            btnPlay.removeAttribute("aria-busy");
+            btnPlay.textContent = "■";
+        }
+    }
+
+    updateRowFocusMode();
+    return changed;
+}
+
+// =========================================================
+// Week 6 — AR-12: Regression invariants / self-checks
+// =========================================================
+
+const ROW_UX_DEBUG = false; // включать вручную при отладке
+
+let __rowUxInvariantLock = false;
+
+function rowUxInvariantCheck(context) {
+    if (__rowUxInvariantLock) return;
+    __rowUxInvariantLock = true;
+
+    try {
+        const table = document.getElementById("proTable");
+        const rowCount = getEffectiveRowCount();
+
+        // Инвариант: активный плейлист невозможен без toggle и строк
+        if (rowPlaylistRunActive && (!autoNextEnabled || rowCount < 1)) {
+            rowPlaylistRunActive = false;
+        }
+
+        // Инвариант: playing не должен "залипать", если аудио реально не играет
+        if (rowPlayingRowIdx !== null && rowAudioPlayer && rowAudioPlayer.paused) {
+		clearRowPlayingState(false); // снимает UI и индексы корректно
+}
+
+
+        // Инвариант: индексы и DOM-классы должны быть согласованы
+        normalizeRowStateIndices("AR-12/" + String(context || "check"));
+
+        if (ROW_UX_DEBUG && table) {
+            const sel = table.querySelectorAll("tbody tr.row-selected").length;
+            const play = table.querySelectorAll("tbody tr.row-playing").length;
+
+            if (sel > 1) console.warn("[RowUX][AR-12]", context, "multiple row-selected:", sel);
+            if (play > 1) console.warn("[RowUX][AR-12]", context, "multiple row-playing:", play);
+
+            const dom = getDomRowCount();
+            const data = Array.isArray(currentTableData) ? currentTableData.length : 0;
+            if (dom && data && dom !== data) {
+                console.warn("[RowUX][AR-12]", context, "DOM/data rowcount mismatch:", { dom: dom, data: data });
+            }
+        }
+    } finally {
+        __rowUxInvariantLock = false;
+    }
+}
+	
+
+
 function ensureRowAudioPlayer() {
     if (rowAudioPlayer) return rowAudioPlayer;
     rowAudioPlayer = new Audio();
     rowAudioPlayer.preload = "auto";
 
         rowAudioPlayer.addEventListener("ended", function () {
-        clearRowPlayingState(false);
+    clearRowPlayingState(false);
 
-        // Playlist: if a playlist run is active and toggle ON => auto-play next row
-        if (!autoNextEnabled || !rowPlaylistRunActive) return;
+    // Playlist: if a playlist run is active and toggle ON => auto-play next row
+    if (!autoNextEnabled || !rowPlaylistRunActive) return;
 
-        if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-            rowPlaylistRunActive = false;
-            return;
-        }
+    const rowCount = getEffectiveRowCount();
+    if (rowCount < 1) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
 
-        const baseIdx = (typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) ? rowSelectedRowIdx : null;
-        if (baseIdx === null) {
-            rowPlaylistRunActive = false;
-            return;
-        }
+    // AR-11: baseIdx только валидный
+    const baseIdx = normalizeRowIdxOrNull(rowSelectedRowIdx, rowCount);
+    if (baseIdx === null) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
 
-        const nextIdx = baseIdx + 1;
-        if (nextIdx >= currentTableData.length) {
-            rowPlaylistRunActive = false; // конец таблицы
-            showToast("Плейлист: конец таблицы");
-			updatePlaylistButtonUI();
-            return;
-        }
+    const nextIdx = baseIdx + 1;
+    if (nextIdx >= rowCount) {
+        rowPlaylistRunActive = false; // конец таблицы
+        showToast("Плейлист: конец таблицы");
+        updatePlaylistButtonUI();
+        return;
+    }
 
-        // move selection
-        setRowSelectedUI(nextIdx);
+    // move selection
+    setRowSelectedUI(nextIdx);
 
-        // start next row via existing button logic
-        const table = document.getElementById("proTable");
-        if (!table) { rowPlaylistRunActive = false; return; }
+    // start next row via existing button logic
+    const table = document.getElementById("proTable");
+    if (!table) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
 
-        const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(nextIdx) + '"]');
-        if (!btn) { rowPlaylistRunActive = false; return; }
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(nextIdx) + '"]');
+    if (!btn) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
 
-        rowPlaylistAutoplayClick = true;
-        btn.click();
-    });
-
+    rowPlaylistAutoplayClick = true;
+    btn.click();
+});
 
     rowAudioPlayer.addEventListener("error", function () {
     clearRowPlayingState(true); // сбросить selected
@@ -1782,6 +1964,16 @@ function setRowButtonLoading(rowIdx, isLoading) {
 function setRowSelectedUI(rowIdx) {
     const table = document.getElementById("proTable");
     if (!table) return;
+	
+	    // AR-11: не допускаем установки selected в несуществующую строку
+    const rc = getDomRowCount();
+    const normIdx = normalizeRowIdxOrNull(rowIdx, rc);
+    if (normIdx === null) {
+        clearRowSelectedUI(); // централизованный сброс + Week 6 guard
+        return;
+    }
+    rowIdx = normIdx;
+
 
     // снять selected с предыдущей строки, если новая другая
     if (rowSelectedRowIdx !== null && rowSelectedRowIdx !== rowIdx) {
@@ -1815,9 +2007,18 @@ updateRowFocusMode(); // Week 6 guard
 }
 
 
+
+
 function setRowPlayingUI(rowIdx, playing) {
     const table = document.getElementById("proTable");
     if (!table) return;
+	
+	// AR-11: playing возможен только для существующей строки
+    const rc = getDomRowCount();
+    const normIdx = normalizeRowIdxOrNull(rowIdx, rc);
+    if (normIdx === null) return;
+    rowIdx = normIdx;
+
 	
 	if (playing) {
         setRowSelectedUI(rowIdx); // <-- ДОБАВИТЬ: фиксируем "последнюю" строку
@@ -3373,8 +3574,15 @@ renderTable(currentTableData);
     rowPlaylistRunActive = false;
     updatePlaylistButtonUI();
 
+    // AR-11: индексы не должны сохраняться без таблицы
+    rowPlayingRowIdx = null;
+    rowPlayingCacheKey = null;
+    rowSelectedRowIdx = null;
+    saveLastSelectedRowIdx(null);
+
     return;
 }
+
 
 
         // гарантируем строгую сумму базовых ширин
@@ -3490,9 +3698,10 @@ if (typeof rowPlayingRowIdx === "number" && Number.isFinite(rowPlayingRowIdx)) {
         setRowPlayingUI(rowPlayingRowIdx, true);
         playingRestored = true;
     } else {
-        // view-change: просто сбрасываем playing, но selected не трогаем
-        rowPlayingRowIdx = null;
-    }
+    // view-change: просто сбрасываем playing, но selected не трогаем
+    rowPlayingRowIdx = null;
+    rowPlayingCacheKey = null; // AR-11/PATCH-07.2
+	}
 }
 
 // Если selected ещё не задан в памяти — пробуем поднять из localStorage
@@ -3516,8 +3725,12 @@ if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite
 // подключаем resize-handlers к свежесозданной таблице
 attachResizeHandlers();
 scheduleAdaptiveTableHeight();
-updatePlaylistButtonUI();
 
+// AR-11: после innerHTML-пересборки — выравниваем индексы/классы
+normalizeRowStateIndices("renderTable/post");
+rowUxInvariantCheck("renderTable/post");
+
+updatePlaylistButtonUI();
     }
 
 	// ----------------------------
@@ -4154,10 +4367,9 @@ if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter" && key !== "Esca
     return;
 }
 
-
-
             const rows = table.querySelectorAll("tbody tr[data-row-idx]");
             if (!rows || rows.length < 1) return;
+			rowUxInvariantCheck("hotkeys");
 
             function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
 
