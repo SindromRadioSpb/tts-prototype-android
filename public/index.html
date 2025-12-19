@@ -1809,6 +1809,7 @@ function clearRowSelectedUI() {
     }
     rowSelectedRowIdx = null;
 saveLastSelectedRowIdx(null);
+
 updateRowFocusMode(); // Week 6 guard
 
 }
@@ -2131,9 +2132,9 @@ if (btnPlaylistRunEl) {
             } catch (_) {}
 
             clearRowPlayingState(false); // selected оставляем
-            updateRowFocusMode();
-            updatePlaylistButtonUI();
-            return;
+			updatePlaylistButtonUI();
+			return;
+
         }
 
         // start playlist from selected (or 0)
@@ -2632,6 +2633,11 @@ try {
     if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause();
 } catch (_) {}
 clearRowPlayingState(true);
+
+// Week 6 guard: очистка таблицы должна останавливать плейлист и обновлять UI кнопки
+rowPlaylistRunActive = false;
+updatePlaylistButtonUI();
+
 
 
         if (btnWordEl) btnWordEl.classList.add("disabled");
@@ -3153,8 +3159,13 @@ clearRowPlayingState(true);
 		// P0.5 safety: при новом переводе сбрасываем навигационный якорь, чтобы не подсвечивать “старый индекс” на новом контенте
         try { if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause(); } catch (_) {}
 		
-        clearRowPlayingState(true); // true => также очистит selected
-        document.getElementById("tableContainer").innerHTML = "";
+        // Week 6 guard: новый перевод/перерисовка таблицы => плейлист должен быть остановлен
+rowPlaylistRunActive = false;
+updatePlaylistButtonUI();
+
+clearRowPlayingState(true); // true => также очистит selected
+document.getElementById("tableContainer").innerHTML = "";
+
         clearResultsMeta("table");
 
         try {
@@ -3356,9 +3367,15 @@ renderTable(currentTableData);
     // ----------------------------
     function renderTable(rows) {
         if (!Array.isArray(rows) || rows.length === 0) {
-            document.getElementById("tableContainer").innerHTML = "";
-            return;
-        }
+    document.getElementById("tableContainer").innerHTML = "";
+
+    // Week 6 guard: если таблицы нет — плейлист не может быть активен
+    rowPlaylistRunActive = false;
+    updatePlaylistButtonUI();
+
+    return;
+}
+
 
         // гарантируем строгую сумму базовых ширин
         normalizeVisibleBaseWidthsTo100();
@@ -4132,7 +4149,7 @@ if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter" && key !== "Esca
         try { rowAudioPlayer.pause(); } catch (_) {}
         try { rowAudioPlayer.currentTime = 0; } catch (_) {}
         clearRowPlayingState(false);
-        updateRowFocusMode();
+        
     }
     return;
 }
@@ -4246,6 +4263,12 @@ function initRowUxDelegatesOnce() {
             ? e.target.closest("#proTable tbody tr[data-row-idx]")
             : null;
         if (!tr) return;
+		
+		// Week 6 guard: клики по ресайзерам не должны менять selection
+			if (e.target && e.target.closest) {
+			if (e.target.closest(".col-resizer") || e.target.closest("#tableResizer")) return;
+}
+
 
         // не считаем “клик по ▶” как отдельный выбор строки — это обработает второй делегат
         if (e.target && e.target.closest && e.target.closest("button.row-tts-btn")) return;
