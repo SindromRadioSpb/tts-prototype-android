@@ -1168,7 +1168,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
    остаются сильнее этого слоя — конфликтов нет */
 
 /* =========================================================
-   P0: Row highlight system (single source of truth)
+   Week 6 (Row UX) — P0 LOCKED: Row highlight system
+   Single source of truth. Do not add other td background rules below.
    Priority: error > playing > selected > focus-within > hover > active
    ========================================================= */
 
@@ -1794,6 +1795,9 @@ function setRowSelectedUI(rowIdx) {
     rowSelectedRowIdx = rowIdx;
 saveLastSelectedRowIdx(rowSelectedRowIdx);
 
+updateRowFocusMode(); // Week 6 guard: keep visual modes consistent after selection change
+
+
 }
 
 function clearRowSelectedUI() {
@@ -1805,6 +1809,7 @@ function clearRowSelectedUI() {
     }
     rowSelectedRowIdx = null;
 saveLastSelectedRowIdx(null);
+updateRowFocusMode(); // Week 6 guard
 
 }
 
@@ -3485,10 +3490,10 @@ if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite
     if (rowSelectedRowIdx >= 0 && rowSelectedRowIdx < __rowCount) {
         setRowSelectedUI(rowSelectedRowIdx);
     } else {
-        rowSelectedRowIdx = null;
-        saveLastSelectedRowIdx(null);
+        clearRowSelectedUI(); // централизованный сброс + Week 6 guard
     }
 }
+
 
 
 // подключаем resize-handlers к свежесозданной таблице
@@ -4221,104 +4226,118 @@ function updateRowFocusMode() {
     else table.classList.remove("focus-mode");
 }
 
-// ----------------------------
-// P0.5: Click on row => selected (without starting Row-TTS)
-// ----------------------------
-document.addEventListener("click", function (e) {
-    // не выбираем строки во время ресайза колонок/высоты таблицы
-    if (document.body.classList.contains("resizing-cols") || document.body.classList.contains("resizing-rows")) {
-        return;
-    }
+// =========================================================
+// Week 6 (Row UX) — Delegates (single bind, regression-safe)
+// =========================================================
+function initRowUxDelegatesOnce() {
+    if (window.__rowUxDelegatesBound === true) return;
+    window.__rowUxDelegatesBound = true;
 
-    const table = document.getElementById("proTable");
-    if (!table) return;
+    // P0.5: Click on row => selected (without starting Row-TTS)
+    document.addEventListener("click", function (e) {
+        if (document.body.classList.contains("resizing-cols") || document.body.classList.contains("resizing-rows")) {
+            return;
+        }
 
-    // выбираем только строки тела таблицы
-    const tr = e.target && e.target.closest
-        ? e.target.closest("#proTable tbody tr[data-row-idx]")
-        : null;
+        const table = document.getElementById("proTable");
+        if (!table) return;
 
-    if (!tr) return;
+        const tr = e.target && e.target.closest
+            ? e.target.closest("#proTable tbody tr[data-row-idx]")
+            : null;
+        if (!tr) return;
 
-    const rowIdxStr = tr.getAttribute("data-row-idx");
-    const rowIdx = Number(rowIdxStr);
+        // не считаем “клик по ▶” как отдельный выбор строки — это обработает второй делегат
+        if (e.target && e.target.closest && e.target.closest("button.row-tts-btn")) return;
 
-    if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
+        const rowIdx = Number(tr.getAttribute("data-row-idx"));
+        if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
+        if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) return;
 
-    // если данных нет/не совпадает индекс — не падаем
-    if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) return;
+        setRowSelectedUI(rowIdx);
+    });
 
-    setRowSelectedUI(rowIdx);
-});
+    // Row TTS v1: event delegation
+    document.addEventListener("click", async function (e) {
+        const btn = e.target && e.target.closest ? e.target.closest("button.row-tts-btn") : null;
+        if (!btn) return;
 
+        const rowIdx = Number(btn.getAttribute("data-row-idx"));
+        if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
 
-// Row TTS v1: event delegation
-// ----------------------------
-document.addEventListener("click", async function (e) {
-    const btn = e.target && e.target.closest ? e.target.closest("button.row-tts-btn") : null;
-    if (!btn) return;
+        const __isPlaylistAutoplay = !!rowPlaylistAutoplayClick;
+        rowPlaylistAutoplayClick = false;
 
-    const rowIdxStr = btn.getAttribute("data-row-idx");
-    const rowIdx = Number(rowIdxStr);
-    if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
+        if (!__isPlaylistAutoplay) {
+            rowPlaylistRunActive = false;
+            updatePlaylistButtonUI();
+        }
 
-	// Playlist: distinguish manual click vs playlist-driven click
-    const __isPlaylistAutoplay = !!rowPlaylistAutoplayClick;
-    rowPlaylistAutoplayClick = false;
+        if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) {
+            showToast("Строка не найдена");
+            return;
+        }
 
-    // Любой ручной запуск строки отменяет цепочку плейлиста
-    if (!__isPlaylistAutoplay) {
-        rowPlaylistRunActive = false;
-		updatePlaylistButtonUI();
-    }
+        clearRowErrorState(rowIdx);
 
-	
-    // если нет таблицы/данных
-    if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) {
-        showToast("Строка не найдена");
-        return;
-    }
-	
-	// P0: очищаем прошлую ошибку этой строки перед новым запуском
-	clearRowErrorState(rowIdx);
+        if (rowPlayingRowIdx === rowIdx && rowAudioPlayer && !rowAudioPlayer.paused) {
+            try { rowAudioPlayer.pause(); } catch (_) {}
+            clearRowPlayingState();
+            return;
+        }
 
-
-    // Stop, если кликаем по уже играющей строке
-    if (rowPlayingRowIdx === rowIdx && rowAudioPlayer && !rowAudioPlayer.paused) {
-        try { rowAudioPlayer.pause(); } catch (_) {}
+        if (rowAudioPlayer && !rowAudioPlayer.paused) {
+            try { rowAudioPlayer.pause(); } catch (_) {}
+        }
         clearRowPlayingState();
-        return;
-    }
 
-    // Остановить предыдущую строку
-    if (rowAudioPlayer && !rowAudioPlayer.paused) {
-        try { rowAudioPlayer.pause(); } catch (_) {}
-    }
-    clearRowPlayingState();
+        const row = currentTableData[rowIdx];
+        const text = getRowTtsTextForRow(row);
+        if (!text) {
+            showToast("Нет текста для озвучки в этой строке");
+            return;
+        }
 
-    const row = currentTableData[rowIdx];
-    const text = getRowTtsTextForRow(row);
+        const cfg = getTtsVoiceConfig();
+        const lang = getRowTtsLanguage();
+        const cacheKey = buildRowTtsCacheKey(text, lang, cfg);
 
-    if (!text) {
-        showToast("Нет текста для озвучки в этой строке");
-        return;
-    }
+        rowPlayingRowIdx = rowIdx;
+        rowPlayingCacheKey = cacheKey;
 
-    const cfg = getTtsVoiceConfig();
-    const lang = getRowTtsLanguage();
-    const cacheKey = buildRowTtsCacheKey(text, lang, cfg);
+        setRowButtonLoading(rowIdx, true);
 
-    rowPlayingRowIdx = rowIdx;
-    rowPlayingCacheKey = cacheKey;
+        try {
+            const cachedB64 = rowCacheGet(cacheKey);
+            if (cachedB64) {
+                const audio = ensureRowAudioPlayer();
+                const bytes = Uint8Array.from(atob(cachedB64), c => c.charCodeAt(0));
+                const blob = new Blob([bytes], { type: "audio/mpeg" });
 
-    setRowButtonLoading(rowIdx, true);
+                if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+                rowAudioUrl = URL.createObjectURL(blob);
 
-    try {
-        // 1) cache hit
-        const cachedB64 = rowCacheGet(cacheKey);
-        if (cachedB64) {
+                audio.src = rowAudioUrl;
+                setRowPlayingUI(rowIdx, true);
+                await audio.play();
+                return;
+            }
+
+            const res = await apiCall("/api/tts", {
+                text: text,
+                language: lang,
+                voiceId: cfg.voiceId,
+                speakingRate: cfg.rate,
+                pitch: cfg.pitch
+            });
+
+            const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
+            if (!b64) throw new Error("Пустой ответ TTS");
+
+            rowCacheSet(cacheKey, b64);
+
             const audio = ensureRowAudioPlayer();
-            const bytes = Uint8Array.from(atob(cachedB64), c => c.charCodeAt(0));
+            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
             const blob = new Blob([bytes], { type: "audio/mpeg" });
 
             if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
@@ -4327,62 +4346,35 @@ document.addEventListener("click", async function (e) {
             audio.src = rowAudioUrl;
             setRowPlayingUI(rowIdx, true);
             await audio.play();
-            return;
+
+            loadStats();
+        } catch (err) {
+            clearRowPlayingState();
+            rowPlaylistRunActive = false;
+
+            const msg = (err && err.message) ? err.message : "неизвестная";
+            setRowErrorState(rowIdx, "Ошибка: " + msg);
+            showToast("Ошибка Row TTS: " + msg);
+        } finally {
+            const table = document.getElementById("proTable");
+            const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
+
+            if (btnNow && btnNow.classList.contains("row-tts-playing")) {
+                btnNow.removeAttribute("aria-busy");
+                btnNow.disabled = false;
+            } else {
+                setRowButtonLoading(rowIdx, false);
+            }
+
+            updateRowFocusMode();
         }
-
-        // 2) server
-        const res = await apiCall("/api/tts", {
-            text: text,
-            language: lang,
-            voiceId: cfg.voiceId,
-            speakingRate: cfg.rate,
-            pitch: cfg.pitch
-        });
-
-        const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
-        if (!b64) throw new Error("Пустой ответ TTS");
-
-        rowCacheSet(cacheKey, b64);
-
-        const audio = ensureRowAudioPlayer();
-        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-        const blob = new Blob([bytes], { type: "audio/mpeg" });
-
-        if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
-        rowAudioUrl = URL.createObjectURL(blob);
-
-        audio.src = rowAudioUrl;
-        setRowPlayingUI(rowIdx, true);
-        await audio.play();
-
-       // опционально: обновим usage (не чаще, чем нужно)
-loadStats();
-} catch (err) {
-    clearRowPlayingState();
-	rowPlaylistRunActive = false;
-
-
-    const msg = (err && err.message) ? err.message : "неизвестная";
-
-    setRowErrorState(rowIdx, "Ошибка: " + msg);
-    showToast("Ошибка Row TTS: " + msg);
-} finally {
-    // Variant A/P0: снимаем loading корректно:
-    // - если строка уже в playing (кнопка = ■ и класс row-tts-playing) — НЕ трогаем текст, только снимаем aria-busy
-    // - иначе — возвращаем кнопку в обычное состояние
-    const table = document.getElementById("proTable");
-    const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
-
-    if (btnNow && btnNow.classList.contains("row-tts-playing")) {
-        btnNow.removeAttribute("aria-busy");
-        btnNow.disabled = false;
-    } else {
-        setRowButtonLoading(rowIdx, false);
-    }
-
-    updateRowFocusMode();
+    });
 }
-});
+
+// bind once
+initRowUxDelegatesOnce();
+
+
 
 
 
