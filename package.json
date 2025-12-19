@@ -5,15 +5,20 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "migrate": "node src/platform/db/migrate.js"
+    "migrate": "node src/platform/db/migrate.js",
+    "bootstrap:teacher": "node src/platform/scripts/bootstrapTeacher.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",
     "@google/generative-ai": "^0.19.0",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
+    "connect-pg-simple": "^9.0.1",
+    "cookie-parser": "^1.4.6",
     "docx": "^8.5.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "express-session": "^1.18.0",
     "pg": "^8.13.0",
     "uuid": "^9.0.0"
   },
