@@ -1,6 +1,8 @@
 // --------------------------------------------------------
 // 1. ИМПОРТЫ
 // --------------------------------------------------------
+require("dotenv").config();
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
@@ -21,6 +23,8 @@ const {
   TextRun,
   AlignmentType,
 } = require("docx");
+
+const { mountPlatform } = require("./src/platform");
 
 // --------------------------------------------------------
 // 2. НАСТРОЙКИ СЕРВЕРА
@@ -1008,6 +1012,12 @@ app.get("/api/usage", (req, res) => {
     res.status(500).json({ error: "Ошибка чтения usage" });
   }
 });
+
+// --------------------------------------------------------
+// 12.5 PLATFORM (Week 7.5) — mount without touching Week 6/7 endpoints
+// --------------------------------------------------------
+mountPlatform(app);
+
 
 // --------------------------------------------------------
 // 13. ЗАПУСК СЕРВЕРА

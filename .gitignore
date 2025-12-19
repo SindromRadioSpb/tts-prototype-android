@@ -31,3 +31,8 @@ Thumbs.db
 
 # Случайные файлы типа "h origin v0.2.0-week2"
 h origin v0.2.0-week2
+
+# Env (secrets)
+.env
+.env.*
+!.env.example
