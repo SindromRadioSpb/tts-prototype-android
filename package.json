@@ -4,7 +4,8 @@
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "migrate": "node src/platform/db/migrate.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",
@@ -13,6 +14,7 @@
     "docx": "^8.5.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "pg": "^8.13.0",
     "uuid": "^9.0.0"
   },
   "engines": {
