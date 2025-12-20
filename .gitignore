@@ -37,5 +37,14 @@ h origin v0.2.0-week2
 .env.*
 !.env.example
 
+# Local test artifacts (do not commit)
+cookies.txt
+cookies*.txt
+student.txt
+login.json
+docker
+docker/
+
+
 
 
