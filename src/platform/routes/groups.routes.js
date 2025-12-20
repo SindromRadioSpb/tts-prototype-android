@@ -7,6 +7,8 @@ const { requireAuth } = require('../middleware/requireAuth');
 const { requireRole } = require('../middleware/requireRole');
 const { query } = require('../db/pool');
 
+const { createGroupAndAddCreatorMember } = require('../services/groups.service');
+
 function safeError(res, status, error, message) {
   return res.status(status).json({ error, message });
 }
@@ -28,6 +30,7 @@ function groupsRouter() {
       const user = req.session.user;
 
       if (user.role === 'teacher') {
+        // Teacher видит группы, созданные им (и members_count для каждой)
         const r = await query(
           `SELECT
              g.id, g.name, g.created_by, g.created_at,
@@ -40,10 +43,11 @@ function groupsRouter() {
         return res.status(200).json({ ok: true, groups: r.rows });
       }
 
-      // student
+      // student видит группы, где он состоит
       const r = await query(
         `SELECT
            g.id, g.name, g.created_by, g.created_at,
+           (SELECT COUNT(*)::int FROM group_members gm2 WHERE gm2.group_id = g.id) AS members_count,
            gm.joined_at
          FROM group_members gm
          JOIN groups g ON g.id = gm.group_id
@@ -58,7 +62,7 @@ function groupsRouter() {
     }
   });
 
-  // Teacher-only: create group
+  // Teacher-only: create group (auto-add creator to group_members)
   router.post('/', requireRole('teacher'), async (req, res) => {
     try {
       const user = req.session.user;
@@ -68,15 +72,18 @@ function groupsRouter() {
         return safeError(res, 400, 'INVALID_NAME', 'Group name is required');
       }
 
-      const r = await query(
-        `INSERT INTO groups(name, created_by)
-         VALUES($1, $2)
-         RETURNING id, name, created_by, created_at`,
-        [name, user.id]
-      );
+      const group = await createGroupAndAddCreatorMember({
+        name,
+        creatorUserId: user.id,
+      });
 
-      return res.status(201).json({ ok: true, group: r.rows[0] });
+      return res.status(201).json({ ok: true, group });
     } catch (e) {
+      // service may throw BAD_REQUEST
+      if (e && (e.code === 'BAD_REQUEST' || e.code === 'INVALID_NAME')) {
+        return safeError(res, 400, 'INVALID_NAME', e.message || 'Group name is required');
+      }
+
       console.error('[groups/create] error:', e && e.message ? e.message : e);
       return safeError(res, 500, 'INTERNAL', 'Internal error');
     }
