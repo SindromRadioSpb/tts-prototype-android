@@ -13,6 +13,39 @@ const {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function isUuid(v) { return typeof v === 'string' && UUID_RE.test(v); }
 
+function badRequest(res, code, message) {
+  return res.status(400).json({ error: code, message });
+}
+
+function normalizeQuery(keys) {
+  return (req, _res, next) => {
+    if (req && req.query) {
+      for (const k of keys) {
+        if (typeof req.query[k] === 'string') req.query[k] = req.query[k].trim();
+      }
+    }
+    next();
+  };
+}
+
+function normalizeBody(keys) {
+  return (req, _res, next) => {
+    if (req && req.body) {
+      for (const k of keys) {
+        if (typeof req.body[k] === 'string') req.body[k] = req.body[k].trim();
+      }
+    }
+    next();
+  };
+}
+
+function parseRowOrNull(v) {
+  if (v === undefined) return null;
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.trunc(n));
+}
+
 function progressRouter() {
   const router = express.Router();
 
@@ -20,6 +53,7 @@ function progressRouter() {
   router.post(
     '/upsert',
     requireAuth,
+    normalizeBody(['groupId', 'textId', 'assignmentId']),
     requireGroupMemberFrom((req) => req.body && req.body.groupId),
     async (req, res) => {
       try {
@@ -29,10 +63,11 @@ function progressRouter() {
         const textId = body.textId;
         const assignmentId = body.assignmentId;
 
-        if (!isUuid(groupId)) return res.status(400).json({ error: 'BAD_REQUEST', message: 'groupId must be uuid' });
-        if (!isUuid(textId)) return res.status(400).json({ error: 'BAD_REQUEST', message: 'textId must be uuid' });
+        if (!isUuid(groupId)) return badRequest(res, 'INVALID_GROUP_ID', 'groupId must be uuid');
+        if (!isUuid(textId)) return badRequest(res, 'INVALID_TEXT_ID', 'textId must be uuid');
+
         if (assignmentId !== undefined && assignmentId !== null && assignmentId !== '' && !isUuid(assignmentId)) {
-          return res.status(400).json({ error: 'BAD_REQUEST', message: 'assignmentId must be uuid' });
+          return badRequest(res, 'INVALID_ASSIGNMENT_ID', 'assignmentId must be uuid');
         }
 
         const t = await assertTextInGroup(textId, groupId);
@@ -43,20 +78,17 @@ function progressRouter() {
           const a = await assertAssignmentInGroup(assignmentId, groupId, textId);
           if (!a) return res.status(404).json({ error: 'NOT_FOUND', message: 'assignment not found' });
           if (a === 'CROSS_GROUP') return res.status(403).json({ error: 'FORBIDDEN' });
-          if (a === 'TEXT_MISMATCH') return res.status(400).json({ error: 'BAD_REQUEST', message: 'assignmentId does not match textId' });
+          if (a === 'TEXT_MISMATCH') return badRequest(res, 'INVALID_ASSIGNMENT_TEXT', 'assignmentId does not match textId');
         }
 
-        const lastSelectedRow =
-          body.lastSelectedRow === undefined ? null : (Number.isFinite(Number(body.lastSelectedRow)) ? Number(body.lastSelectedRow) : null);
-
-        const lastPlayedRow =
-          body.lastPlayedRow === undefined ? null : (Number.isFinite(Number(body.lastPlayedRow)) ? Number(body.lastPlayedRow) : null);
+        const lastSelectedRow = parseRowOrNull(body.lastSelectedRow);
+        const lastPlayedRow = parseRowOrNull(body.lastPlayedRow);
 
         let completion = null;
         if (body.completion !== undefined) {
           const c = Number(body.completion);
           if (!Number.isFinite(c) || c < 0 || c > 100) {
-            return res.status(400).json({ error: 'BAD_REQUEST', message: 'completion must be 0..100' });
+            return badRequest(res, 'INVALID_COMPLETION', 'completion must be 0..100');
           }
           completion = Math.round(c);
         }
@@ -88,14 +120,17 @@ function progressRouter() {
   router.get(
     '/',
     requireAuth,
+    normalizeQuery(['groupId', 'textId', 'assignmentId']),
     requireGroupMemberFrom((req) => req.query && req.query.groupId),
     async (req, res) => {
       try {
         const { groupId, textId, assignmentId } = req.query || {};
-        if (!isUuid(groupId)) return res.status(400).json({ error: 'BAD_REQUEST', message: 'groupId must be uuid' });
-        if (!isUuid(textId)) return res.status(400).json({ error: 'BAD_REQUEST', message: 'textId must be uuid' });
+
+        if (!isUuid(groupId)) return badRequest(res, 'INVALID_GROUP_ID', 'groupId must be uuid');
+        if (!isUuid(textId)) return badRequest(res, 'INVALID_TEXT_ID', 'textId must be uuid');
+
         if (assignmentId !== undefined && assignmentId !== null && assignmentId !== '' && !isUuid(assignmentId)) {
-          return res.status(400).json({ error: 'BAD_REQUEST', message: 'assignmentId must be uuid' });
+          return badRequest(res, 'INVALID_ASSIGNMENT_ID', 'assignmentId must be uuid');
         }
 
         const t = await assertTextInGroup(textId, groupId);
@@ -106,7 +141,7 @@ function progressRouter() {
           const a = await assertAssignmentInGroup(assignmentId, groupId, textId);
           if (!a) return res.status(404).json({ error: 'NOT_FOUND', message: 'assignment not found' });
           if (a === 'CROSS_GROUP') return res.status(403).json({ error: 'FORBIDDEN' });
-          if (a === 'TEXT_MISMATCH') return res.status(400).json({ error: 'BAD_REQUEST', message: 'assignmentId does not match textId' });
+          if (a === 'TEXT_MISMATCH') return badRequest(res, 'INVALID_ASSIGNMENT_TEXT', 'assignmentId does not match textId');
         }
 
         const row = await getProgress({

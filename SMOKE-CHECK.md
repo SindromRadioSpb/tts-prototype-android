@@ -297,6 +297,58 @@ Expected: `403 Forbidden` for all
 
 ✅ Week 8 smoke PASS (Library/Assignments/Progress + RBAC) — 2025-12-20
 
+-----
+## Week 8 — Closeout (Negative tests) — PASS (date)
+
+Цель: доказать, что невалидные входы дают 400 с понятным error-кодом (а не 500).
+
+### N1) groupId trim/uuid → 400
+
+```bat
+curl -i -b teacher.cookie "%BASE_URL%/api/library/texts?groupId= %GROUP_ID%"
+curl -i -b teacher.cookie "%BASE_URL%/api/library/texts?groupId=not-a-uuid"
+
+Expected:
+
+HTTP 400
+
+error: INVALID_GROUP_ID
+
+N2) limit/offset hardening
+
+curl -i -b teacher.cookie "%BASE_URL%/api/library/texts?groupId=%GROUP_ID%&limit=1000&offset=0"
+curl -i -b teacher.cookie "%BASE_URL%/api/library/texts?groupId=%GROUP_ID%&limit=1&offset=1"
+
+Expected:
+
+limit=1000 → limit returns as 200 (clamp)
+
+limit=1 → one item
+
+offset=1 shifts window
+
+N3) completion bounds → 400
+
+curl -i -b teacher.cookie -H "Content-Type: application/json" -X POST "%BASE_URL%/api/progress/upsert" --data-binary "{\"groupId\":\"%GROUP_ID%\",\"textId\":\"%TEXT_ID%\",\"completion\":101}"
+curl -i -b teacher.cookie -H "Content-Type: application/json" -X POST "%BASE_URL%/api/progress/upsert" --data-binary "{\"groupId\":\"%GROUP_ID%\",\"textId\":\"%TEXT_ID%\",\"completion\":-1}"
+
+Expected:
+
+HTTP 400
+
+error: INVALID_COMPLETION
+
+N4) mode invalid → 400 (assignments)
+
+curl -i -b teacher.cookie -H "Content-Type: application/json" -X POST "%BASE_URL%/api/assignments" --data-binary "{\"groupId\":\"%GROUP_ID%\",\"textId\":\"%TEXT_ID%\",\"title\":\"Bad mode\",\"mode\":\"unknown\",\"settings\":{},\"dueAt\":null}"
+
+Expected:
+
+HTTP 400
+
+error: INVALID_MODE
+
+
 ---
 Date: 2025-12-20
 
@@ -314,4 +366,8 @@ Branch: <ветка деплоя>
 
 Commit: <SHA>
 ---------
+
+Result: Week 8 Smoke PASS — branch=week8-library, commit=<SHA>, date=2025-12-20
+
+
 ```
