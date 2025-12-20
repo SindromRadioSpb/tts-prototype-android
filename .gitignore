@@ -57,6 +57,7 @@ docker/
 
 # Local curl/smoke artifacts (do not commit)
 cookies*.txt
+*.cookie
 student*.txt
 login.json
 student-login.json
