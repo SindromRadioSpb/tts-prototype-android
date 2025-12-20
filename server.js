@@ -1,6 +1,8 @@
 // --------------------------------------------------------
 // 1. ИМПОРТЫ
 // --------------------------------------------------------
+require("dotenv").config();
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const fs = require("fs");
@@ -22,6 +24,8 @@ const {
   AlignmentType,
 } = require("docx");
 
+const { mountPlatform } = require("./src/platform");
+
 // --------------------------------------------------------
 // 2. НАСТРОЙКИ СЕРВЕРА
 // --------------------------------------------------------
@@ -42,6 +46,102 @@ const geminiCacheDir = path.join(__dirname, "gemini-cache");
 // Создаём директории при необходимости
 if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir);
 if (!fs.existsSync(audioCacheDir)) fs.mkdirSync(audioCacheDir);
+
+// --------------------------------------------------------
+// TTS helpers
+// Google Cloud Text-to-Speech synthesizeSpeech ограничивает input.text/input.ssml
+// примерно до 5000 BYTES (не символов). Для длинных текстов делаем безопасное
+// разбиение на чанки и склеиваем MP3-буферы.
+// --------------------------------------------------------
+const TTS_MAX_INPUT_BYTES = 4900; // небольшой запас от 5000
+
+// Безопасный целевой размер чанка (можно переопределить env-переменной)
+const TTS_SAFE_TARGET_BYTES = (() => {
+  const v = Number(process.env.TTS_SAFE_TARGET_BYTES);
+  // по умолчанию — чуть меньше, чем TTS_MAX_INPUT_BYTES (чтобы не упереться в 5000 bytes из-за нюансов)
+  if (Number.isFinite(v) && v >= 1000 && v <= TTS_MAX_INPUT_BYTES) return v;
+  return 4700;
+})();
+
+function utf8ByteLength(s) {
+  return Buffer.byteLength(String(s || ""), "utf8");
+}
+
+function splitTextForTts(text, maxBytes = TTS_MAX_INPUT_BYTES) {
+  const src = String(text || "").trim();
+  if (!src) return [];
+  if (utf8ByteLength(src) <= maxBytes) return [src];
+
+  const parts = [];
+  let buf = "";
+
+  // 1) сначала режем по строкам, чтобы уважать естественные границы
+  const lines = src.split(/\r?\n/);
+
+  function pushBuf() {
+    const t = buf.trim();
+    if (t) parts.push(t);
+    buf = "";
+  }
+
+  function appendWithLimit(piece) {
+    const candidate = buf ? (buf + "\n" + piece) : piece;
+    if (utf8ByteLength(candidate) <= maxBytes) {
+      buf = candidate;
+      return;
+    }
+    // если буфер не пуст — сначала выгрузим
+    if (buf) pushBuf();
+
+    // если один кусок всё равно слишком большой — режем на предложения/слова
+    if (utf8ByteLength(piece) > maxBytes) {
+      // 2) предложения
+      const sentences = piece.split(/(?<=[\.\!\?…])\s+/g);
+      let sBuf = "";
+      for (const s of sentences) {
+        const c = sBuf ? (sBuf + " " + s) : s;
+        if (utf8ByteLength(c) <= maxBytes) {
+          sBuf = c;
+          continue;
+        }
+        if (sBuf) {
+          parts.push(sBuf.trim());
+          sBuf = "";
+        }
+        // 3) слово/символ: крайний случай
+        if (utf8ByteLength(s) > maxBytes) {
+          let wBuf = "";
+          for (const ch of Array.from(s)) {
+            const cc = wBuf + ch;
+            if (utf8ByteLength(cc) <= maxBytes) wBuf = cc;
+            else {
+              if (wBuf.trim()) parts.push(wBuf.trim());
+              wBuf = ch;
+            }
+          }
+          if (wBuf.trim()) parts.push(wBuf.trim());
+        } else {
+          parts.push(s.trim());
+        }
+      }
+      if (sBuf.trim()) parts.push(sBuf.trim());
+      return;
+    }
+
+    // кусок влезает — кладём в буфер
+    buf = piece;
+  }
+
+  for (const line of lines) {
+    const piece = line.trim();
+    if (!piece) continue;
+    appendWithLimit(piece);
+  }
+  if (buf) pushBuf();
+
+  // гарантия: ни один чанк не превышает лимит
+  return parts.filter(Boolean);
+}
 if (!fs.existsSync(geminiCacheDir)) fs.mkdirSync(geminiCacheDir);
 
 // --------------------------------------------------------
@@ -262,6 +362,58 @@ async function synthesizeWithCache(
     return { audioContent, fromCache: true, cacheId: hash };
   }
 
+  // Если текст превышает лимит по BYTES, синтезируем чанками и склеиваем MP3.
+  // Это устойчивее, чем падать с INVALID_ARGUMENT.
+  const byteLen = Buffer.byteLength(String(text || ""), "utf8");
+  if (byteLen > TTS_MAX_INPUT_BYTES) {
+    const parts = splitTextForTts(String(text || ""), TTS_SAFE_TARGET_BYTES);
+
+	console.log("[TTS] chunking", {
+    byteLen,
+    partsCount: parts.length,
+    maxPartBytes: Math.max(...parts.map(p => Buffer.byteLength(p, "utf8"))),
+    safeTarget: TTS_SAFE_TARGET_BYTES,
+    hardLimit: TTS_MAX_INPUT_BYTES
+  });
+	
+    const buffers = [];
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (!part || !part.trim()) continue;
+
+      const requestPart = {
+        input: { text: part },
+        voice: {
+          languageCode,
+          name: voiceName || undefined,
+        },
+        audioConfig: {
+          audioEncoding: "MP3",
+          speakingRate: speakingRate || 1.0,
+          pitch: pitch || 0.0,
+        },
+      };
+
+      // Важно: response.audioContent — это Buffer.
+      const [resp] = await ttsClient.synthesizeSpeech(requestPart);
+      if (!resp || !resp.audioContent) {
+        throw new Error("TTS: empty audioContent for chunk #" + (i + 1));
+      }
+      buffers.push(Buffer.from(resp.audioContent));
+    }
+
+    const merged = Buffer.concat(buffers);
+    const audioContent = merged.toString("base64");
+
+    try {
+      fs.writeFileSync(cachePath, merged);
+    } catch (e) {
+      console.error("Ошибка записи в audio-cache (chunked):", e);
+    }
+
+    return { audioContent, fromCache: false, cacheId: hash, chunked: true, chunks: parts.length };
+  }
+
   const request = {
     input: { text },
     voice: {
@@ -353,7 +505,7 @@ app.post("/api/tts", async (req, res) => {
       speakingRate: rate,
       pitch: pitchVal,
       nodeEnv: process.env.NODE_ENV || null,
-      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+hasGoogleCredentials:!!process.env.GOOGLE_APPLICATION_CREDENTIALS || !!process.env.GOOGLE_CLOUD_TTS_KEY,
     });
 
     // КЛЮЧЕВОЕ: используем серверный кэш
@@ -395,7 +547,8 @@ app.post("/api/tts", async (req, res) => {
       details: error && error.details,
       stack: error && error.stack,
       nodeEnv: process.env.NODE_ENV || null,
-      hasGoogleCredentials: !!process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      hasGoogleCredentials:!!process.env.GOOGLE_APPLICATION_CREDENTIALS || !!process.env.GOOGLE_CLOUD_TTS_KEY,
+
     });
 
     const safeDetails = {
@@ -859,6 +1012,12 @@ app.get("/api/usage", (req, res) => {
     res.status(500).json({ error: "Ошибка чтения usage" });
   }
 });
+
+// --------------------------------------------------------
+// 12.5 PLATFORM (Week 7.5) — mount without touching Week 6/7 endpoints
+// --------------------------------------------------------
+mountPlatform(app);
+
 
 // --------------------------------------------------------
 // 13. ЗАПУСК СЕРВЕРА

@@ -31,3 +31,39 @@ Thumbs.db
 
 # Случайные файлы типа "h origin v0.2.0-week2"
 h origin v0.2.0-week2
+
+# Env (secrets)
+.env
+.env.*
+!.env.example
+
+# Local test artifacts (do not commit)
+cookies.txt
+cookies*.txt
+student.txt
+student*.txt
+student-login.json
+login.json
+docker
+docker/
+
+# Local curl/smoke artifacts (do not commit)
+cookies*.txt
+student*.txt
+login.json
+smoke-values.local.txt
+docker
+docker/
+
+# Local curl/smoke artifacts (do not commit)
+cookies*.txt
+student*.txt
+login.json
+student-login.json
+smoke-values.local.txt
+docker
+docker/
+
+
+
+

@@ -9,711 +9,1222 @@
     <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            /* Текущий шрифт для иврита (управляется селектором) */
-            --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f4f6f9;
-            color: #333;
-        }
-
-        /* ПАНЕЛЬ СТАТИСТИКИ */
-        .dashboard-header {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .stats-box {
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .stat-item {
-            text-align: left;
-            min-width: 160px;
-        }
-
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #2c3e50;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-sub {
-            font-size: 11px;
-            color: #aaaaaa;
-            margin-top: 4px;
-        }
-
-        .model-info {
-            margin-top: 6px;
-        }
-
-        .today-info {
-            margin-top: 4px;
-        }
-
-        .reset-info {
-            margin-top: 2px;
-        }
-
-        .limit-ok {
-            color: #2e7d32; /* зелёный */
-            font-weight: 600;
-        }
-
-        .limit-warning {
-            color: #ff8f00; /* оранжевый */
-            font-weight: 600;
-        }
-
-        .limit-exceeded {
-            color: #c62828; /* красный */
-            font-weight: 700;
-        }
-
-        /* Прогресс-бар дневного лимита Gemini */
-        .gemini-quota-bar {
-            margin-top: 6px;
-            width: 100%;
-            max-width: 220px;
-            height: 6px;
-            border-radius: 4px;
-            background-color: #eceff1;
-            overflow: hidden;
-        }
-
-        .gemini-quota-fill {
-            height: 100%;
-            width: 0%;
-            background-color: #2e7d32;
-            transition: width 0.3s ease;
-        }
-
-        .gemini-quota-fill.warning {
-            background-color: #ff8f00;
-        }
-
-        .gemini-quota-fill.exceeded {
-            background-color: #c62828;
-        }
-
-        /* Прогресс-бар месячного лимита TTS (4 000 000 символов) */
-        .tts-quota-bar {
-            margin-top: 6px;
-            width: 100%;
-            max-width: 220px;
-            height: 6px;
-            border-radius: 4px;
-            background-color: #eceff1;
-            overflow: hidden;
-        }
-
-        .tts-quota-fill {
-            height: 100%;
-            width: 0%;
-            background-color: #3498db;
-            transition: width 0.3s ease;
-        }
-
-        /* КНОПКА GOOGLE CONSOLE */
-        .btn-console {
-            background-color: #ffffff;
-            border: 2px solid #dfe6e9;
-            color: #636e72;
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 13px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .btn-console:hover {
-            border-color: #b2bec3;
-            background-color: #fdfdfd;
-            color: #2d3436;
-        }
-
-        /* ОСНОВНОЙ ИНТЕРФЕЙС */
-        .main-card {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .main-card h2 {
-            margin-top: 0;
-            margin-bottom: 18px;
-            text-align: center;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        textarea {
-            width: 100%;
-            height: 140px;              /* стартовая высота */
-            padding: 22px 18px;
-            border: 1px solid #b5b5b5;
-            border-radius: 12px;
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 12px;
-            box-sizing: border-box;
-            resize: none;               /* управляем ростом сами через JS */
-            overflow-y: auto;           /* внутренний скролл для длинного текста */
-            max-height: 280px;          /* ограничение роста textarea */
-            direction: ltr;
-            text-align: left;
-            background-color: #ffffff;
-            box-shadow:
-                inset 0 1px 3px rgba(0, 0, 0, 0.12),
-                0 2px 4px rgba(0, 0, 0, 0.06);
-        }
-
-        /* Режим для иврита (textarea) */
-        textarea.rtl-text {
-            direction: rtl;
-            text-align: right;
-            line-height: 1.9;
-            font-family: var(--hebrew-font);
-
-            /* лёгкий визуальный баланс: больше отступ справа, меньше слева */
-            padding-right: 22px;
-            padding-left: 14px;
-        }
-
-        /* Баннер "текст изменён" */
-        #textChangedNotice {
-            background: #fff3cd;
-            color: #856404;
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            border: 1px solid #ffeeba;
-            font-size: 14px;
-            display: none;
-        }
-
-        #textChangedNotice.notice-visible {
-            display: block;
-        }
-
-        /* Баннер лимитов Gemini */
-        #limitBanner {
-            display: none;
-            margin-bottom: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        #limitBanner.limit-rate {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-
-        #limitBanner.limit-daily {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        #limitBanner.limit-info {
-            background: #e2f0d9;
-            color: #1e4620;
-            border: 1px solid #c3e6cb;
-        }
-
-        .controls {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            margin-bottom: 20px;
-        }
-
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .input-label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #555555;
-            letter-spacing: 0.3px;
-        }
-
-        button,
-        select {
-            padding: 12px 20px;
-            font-size: 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        select {
-            border: 1px solid #d0d4d8;
-            background: #ffffff;
-            min-width: 190px;
-        }
-
-        .btn-primary {
-            background-color: #3498db;
-            color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.10);
-        }
-
-        .btn-primary:hover {
-            background-color: #2980b9;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .btn-success {
-            background-color: #2ecc71;
-            color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.10);
-        }
-
-        .btn-success:hover {
-            background-color: #27ae60;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        .btn-word {
-            background-color: #2b579a;
-            color: #ffffff;
-            margin-left: auto;
-            opacity: 1;
-            transition: all 0.25s ease;
-        }
-
-        .btn-word.disabled {
-            background-color: #d0d4d8 !important;
-            color: #888 !important;
-            cursor: not-allowed !important;
-            box-shadow: none !important;
-            opacity: 0.65;
-        }
-
-        .btn-word:not(.disabled):hover {
-            background-color: #1e3f72;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-
-        /* Общий стиль "disabled" для кнопок и через атрибут, и через класс */
-        button.disabled,
-        button:disabled {
-            background-color: #d0d4d8 !important;
-            color: #888 !important;
-            cursor: not-allowed !important;
-            box-shadow: none !important;
-            opacity: 0.65;
-        }
-
-        .loader {
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            display: none;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Блок аудио */
-        .audio-block {
-            display: inline-flex;
-            flex-direction: column;
-            gap: 6px;
-            padding: 8px 0;
-        }
-
-        .audio-download-btn {
-            align-self: flex-start;
-            padding: 6px 12px;
-            font-size: 13px;
-            border-radius: 6px;
-            border: 1px solid #d0d4d8;
-            background: #ffffff;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .audio-download-btn:hover {
-            background: #f0f4f7;
-        }
-
-        /* ТАБЛИЦА — учебный Word-стиль */
-        #tableContainer {
-            margin-top: 20px;
-        }
-
-        /* НАСТРОЙКИ ТАБЛИЦЫ (колонки / пресеты) */
-        .table-settings {
-            margin-top: 10px;
-            margin-bottom: 10px;
-            padding: 10px 12px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            border: 1px solid #e6eaee;
-        }
-
-        .table-settings-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px 12px;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .table-settings-title {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: #343a40;
-            flex: 1 1 auto;
-        }
-
-        .table-presets {
-            display: inline-flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .btn-mini,
-        .btn-mini-secondary {
-            padding: 6px 10px;
-            font-size: 12px;
-            border-radius: 8px;
-            border: 1px solid #d0d4d8;
-            background: #ffffff;
-            cursor: pointer;
-            transition: 0.15s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .btn-mini:hover,
-        .btn-mini-secondary:hover {
-            background: #f0f4f7;
-        }
-
-        .btn-mini.active {
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
-        }
-
-        .btn-mini-secondary {
-            background: #ffffff;
-            border-style: dashed;
-        }
-
-        .table-settings-cols {
-            justify-content: flex-start;
-        }
-
-        .table-chk {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: #495057;
-            user-select: none;
-            white-space: nowrap;
-        }
-
-        .table-chk input[type="checkbox"] {
-            transform: translateY(0.5px);
-        }
-
-        .table-settings-sub {
-            margin-top: 8px;
-            justify-content: space-between;
-        }
-
-        .table-settings-note {
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        @media (max-width: 600px) {
-            .table-settings-row {
-                justify-content: flex-start;
-            }
-            .table-presets {
-                justify-content: flex-start;
-            }
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #ffffff;
-            border-radius: 0;
-            box-shadow: none;
-            border: 1px solid #000000;
-            font-size: 15px;
-        }
-
-        th,
-        td {
-            padding: 6px 8px;
-            text-align: left;
-            border: 1px solid #000000;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            color: #000000;
-            font-weight: 700;
-            text-align: center;
-        }
-
-        .rtl {
-            direction: rtl;
-            text-align: right;
-            font-family: var(--hebrew-font);
-        }
-
-        .rtl-he {
-            font-size: 18px;
-        }
-
-        .rtl-he-niqqud {
-            font-size: 19px;
-            line-height: 1.9;
-        }
-
-        .error {
-            color: #e74c3c;
-            margin-top: 10px;
-            font-weight: 500;
-        }
-
-        .results-stale {
-            opacity: 0.45;
-            filter: grayscale(0.4);
-            transition: opacity 0.2s ease, filter 0.2s ease;
-        }
-
-        .results-stale-note {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #a67c00;
-        }
-
-        .cache-restore-note {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .table-source-note {
-            margin-top: 6px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        /* Метаданные результатов (источник озвучки и таблицы) */
-        #resultsMeta {
-            display: none;
-            margin-top: 4px;
-            margin-bottom: 10px;
-            font-size: 12px;
-            color: #6c757d;
-        }
-
-        .results-meta-line {
-            margin-bottom: 2px;
-        }
-
-        .results-meta-label {
-            font-weight: 600;
-            margin-right: 4px;
-            color: #495057;
-        }
-
-        /* Слайдеры скорости и тона */
-        input[type="range"] {
-            width: 180px;
-        }
-
-        /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
-        .hotkeys-panel {
-            margin-top: 10px;
-            margin-bottom: 12px;
-            padding: 12px 14px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border: 1px dashed #cfd4da;
-            font-size: 13px;
-            color: #495057;
-        }
-
-        .hotkeys-panel.hotkeys-hidden {
-            display: none;
-        }
-
-        .hotkeys-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
-        .hotkeys-header strong {
-            font-size: 13px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: #343a40;
-        }
-
-        .hotkeys-hint {
-            font-size: 11px;
-            color: #868e96;
-            text-align: right;
-        }
-
-        .hotkeys-list {
-            list-style: none;
-            padding-left: 0;
-            margin: 0;
-        }
-
-        .hotkeys-list li {
-            margin-bottom: 4px;
-        }
-
-        .hotkeys-list code {
-            font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
-            font-size: 12px;
-            padding: 2px 4px;
-            border-radius: 4px;
-            background: #e9ecef;
-        }
-
-        /* ТОСТ-ИНДИКАТОР */
-        #toastContainer {
-            position: fixed;
-            left: 50%;
-            bottom: 20px;
-            transform: translateX(-50%);
-            z-index: 9999;
-            pointer-events: none;
-        }
-
-        .toast {
-            display: inline-block;
-            min-width: 260px;
-            max-width: 90vw;
-            padding: 10px 14px;
-            border-radius: 6px;
-            background: #323232;
-            color: #ffffff;
-            font-size: 14px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
-            pointer-events: auto;
-        }
-
-        .toast-show {
-            opacity: 0.96;
-            transform: translateY(0);
-        }
-
-        @media (max-width: 600px) {
-            .dashboard-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .btn-console {
-                width: 100%;
-                text-align: center;
-            }
-
-            .stats-box {
-                width: 100%;
-            }
-
-            .stat-item {
-                width: 100%;
-            }
-
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .field-group {
-                width: 100%;
-            }
-
-            .field-group select,
-            .field-group input[type="range"] {
-                width: 100%;
-            }
-
-            button,
-            select {
-                width: 100%;
-            }
-
-            .btn-word {
-                margin-left: 0;
-            }
-
-            .hotkeys-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .hotkeys-hint {
-                text-align: left;
-            }
-        }
-    </style>
+    :root {
+    /* Текущий шрифт для иврита (управляется селектором) */
+    --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
+   
+	/* Row highlight tokens (P0 single source of truth) */
+ /* interaction family (warm) */
+  --row-hl-hover:    rgba(46, 125, 50, 0.22); /* hover (мышь) */
+  --row-hl-focus:    rgba(46, 125, 50, 0.22); /* focus-within (клавиатура/фокус внутри строки) */
+  --row-hl-active:   rgba(255, 230, 0, 0.35); /* active (нажатие/touch) */
+  --row-hl-selected: rgba(255, 230, 0, 0.35); /* последняя выбранная/последняя проигранная */
+
+  /* playing (distinct) */
+  --row-hl-playing:  rgba(255, 230, 0, 0.35); /* сейчас проигрывается */
+  
+   /* Micro-IDE rails (P1, non-background) */
+  --row-rail-selected: rgba(255, 180, 0, 0.85);
+  --row-rail-playing:  rgba(52, 152, 219, 0.75);
+  --row-rail-error:    rgba(231, 76, 60, 0.80);
+}
+
+
+    body {
+        font-family: 'Segoe UI', Tahoma, sans-serif;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f4f6f9;
+        color: #333;
+    }
+
+    /* ПАНЕЛЬ СТАТИСТИКИ */
+    .dashboard-header {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .stats-box {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        text-align: left;
+        min-width: 160px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c3e50;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-sub {
+        font-size: 11px;
+        color: #aaaaaa;
+        margin-top: 4px;
+    }
+
+    .model-info { margin-top: 6px; }
+    .today-info { margin-top: 4px; }
+    .reset-info { margin-top: 2px; }
+
+    .limit-ok { color: #2e7d32; font-weight: 600; }
+    .limit-warning { color: #ff8f00; font-weight: 600; }
+    .limit-exceeded { color: #c62828; font-weight: 700; }
+
+    /* Прогресс-бар дневного лимита Gemini */
+    .gemini-quota-bar {
+        margin-top: 6px;
+        width: 100%;
+        max-width: 220px;
+        height: 6px;
+        border-radius: 4px;
+        background-color: #eceff1;
+        overflow: hidden;
+    }
+
+    .gemini-quota-fill {
+        height: 100%;
+        width: 0%;
+        background-color: #2e7d32;
+        transition: width 0.3s ease;
+    }
+
+    .gemini-quota-fill.warning { background-color: #ff8f00; }
+    .gemini-quota-fill.exceeded { background-color: #c62828; }
+
+    /* Прогресс-бар месячного лимита TTS (4 000 000 символов) */
+    .tts-quota-bar {
+        margin-top: 6px;
+        width: 100%;
+        max-width: 220px;
+        height: 6px;
+        border-radius: 4px;
+        background-color: #eceff1;
+        overflow: hidden;
+    }
+
+    .tts-quota-fill {
+        height: 100%;
+        width: 0%;
+        background-color: #3498db;
+        transition: width 0.3s ease;
+    }
+
+    /* КНОПКА GOOGLE CONSOLE */
+    .btn-console {
+        background-color: #ffffff;
+        border: 2px solid #dfe6e9;
+        color: #636e72;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .btn-console:hover {
+        border-color: #b2bec3;
+        background-color: #fdfdfd;
+        color: #2d3436;
+    }
+
+    /* ОСНОВНОЙ ИНТЕРФЕЙС */
+    .main-card {
+        background: #ffffff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .main-card h2 {
+        margin-top: 0;
+        margin-bottom: 18px;
+        text-align: center;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 140px;
+        padding: 22px 18px;
+        border: 1px solid #b5b5b5;
+        border-radius: 12px;
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 12px;
+        box-sizing: border-box;
+        resize: none;
+        overflow-y: auto;
+        max-height: 280px;
+        direction: ltr;
+        text-align: left;
+        background-color: #ffffff;
+        box-shadow:
+            inset 0 1px 3px rgba(0, 0, 0, 0.12),
+            0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Режим для иврита (textarea) */
+    textarea.rtl-text {
+        direction: rtl;
+        text-align: right;
+        line-height: 1.9;
+        font-family: var(--hebrew-font);
+        padding-right: 22px;
+        padding-left: 14px;
+    }
+
+    /* Баннер "текст изменён" */
+    #textChangedNotice {
+        background: #fff3cd;
+        color: #856404;
+        padding: 10px 14px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        border: 1px solid #ffeeba;
+        font-size: 14px;
+        display: none;
+    }
+
+    #textChangedNotice.notice-visible { display: block; }
+
+    /* Баннер лимитов Gemini */
+    #limitBanner {
+        display: none;
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    #limitBanner.limit-rate {
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+    }
+
+    #limitBanner.limit-daily {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    #limitBanner.limit-info {
+        background: #e2f0d9;
+        color: #1e4620;
+        border: 1px solid #c3e6cb;
+    }
+
+    .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        margin-bottom: 20px;
+    }
+
+    .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .input-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #555555;
+        letter-spacing: 0.3px;
+    }
+
+    button, select {
+        padding: 12px 20px;
+        font-size: 15px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    select {
+        border: 1px solid #d0d4d8;
+        background: #ffffff;
+        min-width: 190px;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.10);
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-success {
+        background-color: #2ecc71;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.10);
+    }
+
+    .btn-success:hover {
+        background-color: #27ae60;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-word {
+        background-color: #2b579a;
+        color: #ffffff;
+        margin-left: auto;
+        opacity: 1;
+        transition: all 0.25s ease;
+    }
+
+    .btn-word.disabled {
+        background-color: #d0d4d8 !important;
+        color: #888 !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+        opacity: 0.65;
+    }
+
+    .btn-word:not(.disabled):hover {
+        background-color: #1e3f72;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    /* Общий стиль "disabled" */
+    button.disabled, button:disabled {
+        background-color: #d0d4d8 !important;
+        color: #888 !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+        opacity: 0.65;
+    }
+
+    .loader {
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Блок аудио */
+    .audio-block {
+        display: inline-flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px 0;
+    }
+
+    .audio-download-btn {
+        align-self: flex-start;
+        padding: 6px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+        border: 1px solid #d0d4d8;
+        background: #ffffff;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .audio-download-btn:hover { background: #f0f4f7; }
+
+	/* ============================
+   PRO: Resizable Split (Table height)
+   ============================ */
+
+/* курсор во время drag по высоте */
+body.resizing-rows {
+    cursor: row-resize !important;
+    user-select: none !important;
+}
+
+/* сам ресайзер */
+.table-resizer-y {
+    height: 14px;
+    margin: 8px 0 10px;
+    border-radius: 10px;
+    background: linear-gradient(to bottom, #f7f8fa, #eef1f5);
+    border: 1px solid #e2e6ea;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    cursor: row-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none; /* важно для pointer events */
+}
+
+/* “грип” по центру */
+.table-resizer-grip {
+    width: 64px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(0,0,0,0.18);
+}
+
+.table-resizer-y:hover .table-resizer-grip {
+    background: rgba(0,0,0,0.32);
+}
+
+	
+    /* ТАБЛИЦА */
+#tableContainer{
+  /* Внутренняя прокрутка таблицы */
+  overflow: auto;
+
+  /* Минимальная высота (≈ 5 строк) — ключевое требование */
+  min-height: 360px;
+
+  /* Variant A: управляем реальной высотой, а не max-height */
+  height: var(--tableH, 62vh);
+  max-height: none;
+
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+
+
+    /* НАСТРОЙКИ ТАБЛИЦЫ */
+    .table-settings {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #f8f9fa;
+        border: 1px solid #e6eaee;
+    }
+
+    .table-settings-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 12px;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .table-settings-title {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #343a40;
+        flex: 1 1 auto;
+    }
+
+    .table-presets {
+        display: inline-flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .btn-mini, .btn-mini-secondary {
+        padding: 6px 10px;
+        font-size: 12px;
+        border-radius: 8px;
+        border: 1px solid #d0d4d8;
+        background: #ffffff;
+        cursor: pointer;
+        transition: 0.15s;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .btn-mini:hover, .btn-mini-secondary:hover { background: #f0f4f7; }
+
+    .btn-mini.active {
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
+    }
+
+    .btn-mini-secondary {
+        background: #ffffff;
+        border-style: dashed;
+    }
+
+    .table-settings-cols { justify-content: flex-start; }
+
+    .table-chk {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #495057;
+        user-select: none;
+        white-space: nowrap;
+    }
+	
+	 .table-autonext {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    font-size: 12px;
+    opacity: 0.95;
+}
+
+.table-autonext .playlist-btn {
+    width: 100%;
+}
+
+.table-autonext .playlist-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .table-autonext .playlist-btn {
+        padding: 10px 12px;   /* крупнее тап-таргет */
+    }
+}
+
+
+
+    .table-chk input[type="checkbox"] { transform: translateY(0.5px); }
+
+    .table-settings-sub {
+        margin-top: 8px;
+        justify-content: space-between;
+    }
+
+    .table-settings-note {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    @media (max-width: 600px) {
+        .table-settings-row { justify-content: flex-start; }
+        .table-presets { justify-content: flex-start; }
+    }
+
+    /* === TABLE: Premium Readability (CSS only) === */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #ffffff;    
+        box-shadow: none;
+
+        table-layout: fixed; /* важно для стабильной работы процентов и resize */
+        font-size: 14px;     /* чуть компактнее, меньше визуального шума */
+        border: 1px solid rgba(0,0,0,0.75); /* смягчаем сетку, сохраняя контраст */
+    }
+
+    th, td {
+        padding: 6px 8px;
+        text-align: left;
+        border: 1px solid rgba(0,0,0,0.75);
+        vertical-align: top;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+
+        line-height: 1.45; /* стабильный ритм чтения */
+    }
+
+    th {
+        background: #f5f6f7;
+        color: #000000;
+        font-weight: 700;
+        text-align: center;
+        position: relative; /* для грипа */
+        user-select: none;
+    }
+	
+/* === Premium: softer grid + nicer typography === */
+table { border-radius: 10px; }
+th, td { border-color: rgba(0,0,0,0.55); }
+
+
+	
+	/*  PRO: STICKY HEADER */
+#proTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;          /* выше ячеек tbody */
+    background: #f5f6f7; /* важно: чтобы не было "прозрачного" наложения */
+}
+
+#proTable thead th::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: rgba(0,0,0,0.35);
+}
+
+
+     
+
+    .rtl {
+        direction: rtl;
+        text-align: right;
+        font-family: var(--hebrew-font);
+    }
+
+    .rtl-he {
+        font-size: 17px;
+        line-height: 1.75; /* иврит читабельнее без “воздуха-шума” */
+    }
+
+    /* === Week 5: Niqqud Readability (Zero-risk, CSS-only) === */
+.rtl-he-niqqud {
+    font-size: 18px;
+
+    /* 1) “Воздух” для диакритики: чуть больше, но без визуальных прыжков */
+    line-height: 2.18;
+
+    /* 2) Микро-типографика: меньше “дрожи” на длинных строках */
+    letter-spacing: 0.12px;
+    font-kerning: normal;
+    font-feature-settings: "kern" 1, "liga" 1;
+
+    /* 3) Очень мягкое “успокоение” тона: не серим, но убираем жёсткость */
+    color: rgba(0, 0, 0, 0.92);
+
+    /* 4) Немного вертикального буфера в ячейке (важно при 100 строках) */
+    padding-top: 7px;
+    padding-bottom: 7px;
+
+    /* 5) Рендеринг */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+
+
+    .error {
+        color: #e74c3c;
+        margin-top: 10px;
+        font-weight: 500;
+    }
+
+    .results-stale {
+        opacity: 0.45;
+        filter: grayscale(0.4);
+        transition: opacity 0.2s ease, filter 0.2s ease;
+    }
+
+    .results-stale-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #a67c00;
+    }
+
+    .cache-restore-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .table-source-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    /* Метаданные результатов */
+    #resultsMeta {
+        display: none;
+        margin-top: 4px;
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .results-meta-line { margin-bottom: 2px; }
+    .results-meta-label { font-weight: 600; margin-right: 4px; color: #495057; }
+
+    /* Слайдеры */
+    input[type="range"] { width: 180px; }
+
+    /* БЛОК "ГОРЯЧИЕ КЛАВИШИ" */
+.hotkeys-panel {
+    margin-top: 10px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px dashed #cfd4da;
+    font-size: 13px;
+    color: #495057;
+}
+
+/* УДАЛЯЕМ режим полного скрытия — он больше не нужен */
+/* .hotkeys-panel.hotkeys-hidden { display: none; } */
+
+/* Новый режим: свёрнуто по умолчанию (видны header+hint, скрыт список) */
+.hotkeys-panel.hotkeys-collapsed .hotkeys-list {
+    display: none;
+}
+
+/* (опционально) чуть компактнее в свёрнутом состоянии */
+.hotkeys-panel.hotkeys-collapsed {
+    padding-bottom: 10px;
+}
+
+.hotkeys-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.hotkeys-header strong {
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #343a40;
+}
+
+.hotkeys-hint {
+    font-size: 11px;
+    color: #868e96;
+    text-align: right;
+}
+
+.hotkeys-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.hotkeys-list li { margin-bottom: 4px; }
+
+.hotkeys-list code {
+    font-family: Consolas, "SFMono-Regular", Menlo, Monaco, monospace;
+    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: #e9ecef;
+}
+
+    /* ТОСТ */
+    #toastContainer {
+        position: fixed;
+        left: 50%;
+        bottom: 20px;
+        transform: translateX(-50%);
+        z-index: 9999;
+        pointer-events: none;
+    }
+
+    .toast {
+        display: inline-block;
+        min-width: 260px;
+        max-width: 90vw;
+        padding: 10px 14px;
+        border-radius: 6px;
+        background: #323232;
+        color: #ffffff;
+        font-size: 14px;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        pointer-events: auto;
+    }
+
+    .toast-show {
+        opacity: 0.96;
+        transform: translateY(0);
+    }
+
+    @media (max-width: 600px) {
+        .dashboard-header { flex-direction: column; align-items: flex-start; }
+        .btn-console { width: 100%; text-align: center; }
+        .stats-box { width: 100%; }
+        .stat-item { width: 100%; }
+        .controls { flex-direction: column; align-items: stretch; }
+        .field-group { width: 100%; }
+        .field-group select, .field-group input[type="range"] { width: 100%; }
+        button, select { width: 100%; }
+        .btn-word { margin-left: 0; }
+        .hotkeys-header { flex-direction: column; align-items: flex-start; }
+        .hotkeys-hint { text-align: left; }
+    }
+
+    /* ============================
+       PRO: RESIZE COLUMNS (Excel-style)
+       ============================ */
+
+    /* Курсор во время drag */
+    body.resizing-cols {
+        cursor: col-resize !important;
+        user-select: none !important;
+    }
+
+    /* Грип (ручка) в заголовке */
+    .col-resizer {
+        position: absolute;
+        top: 0;
+        right: -4px;
+        width: 10px;
+        height: 100%;
+        cursor: col-resize;
+        touch-action: none;
+        background: transparent;
+    }
+
+    /* Тонкая вертикальная линия внутри грипа */
+    .col-resizer::after {
+        content: "";
+        position: absolute;
+        top: 15%;
+        bottom: 15%;
+        left: 50%;
+        width: 2px;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.18);
+        border-radius: 2px;
+    }
+
+    th:hover .col-resizer::after {
+        background: rgba(0,0,0,0.35);
+    }
+
+    /* Чтобы на последней видимой колонке не рисовать грип */
+    .col-resizer.hidden {
+        display: none;
+    }
+
+    /* ============================
+   Row TTS v1 (per-row playback)
+   ============================ */
+
+.cell-he-wrap {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.row-tts-btn {
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid #d0d4d8;
+    background: #ffffff;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
+.row-tts-btn:active { transform: translateY(0px); }
+
+/* Accessibility: visible focus ring for ▶ button */
+.row-tts-btn:focus-visible {
+    outline: 2px solid rgba(46, 125, 50, 0.45);
+    outline-offset: 2px;
+}
+
+/* Fallback for browsers without :focus-visible */
+.row-tts-btn:focus {
+    outline: 2px solid rgba(46, 125, 50, 0.45);
+    outline-offset: 2px;
+}
+.row-tts-btn:focus:not(:focus-visible) {
+    outline: none;
+}
+
+
+.row-tts-btn[aria-busy="true"] {
+    cursor: progress;
+    opacity: 0.85;
+}
+
+.row-tts-btn.row-tts-playing {
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
+}
+
+.row-tts-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    background: #f3f5f7;
+}
+
+.row-tts-text {
+    flex: 1 1 auto;
+    min-width: 0; /* важно для переноса в flex */
+}
+
+
+
+
+/* ============================
+   PRO: Row TTS button visibility
+   Desktop: show on row hover/focus
+   Touch: always visible
+   ============================ */
+
+/* Базово: кнопка скрыта, но место остаётся (layout не прыгает) */
+#proTable tbody tr .row-tts-btn {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0);
+  transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+}
+
+/* Показать на hover строки (мышь/трекпад) */
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-tts-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Показать при фокусе внутри строки (клавиатура, клик по кнопке, будущие hotkeys) */
+#proTable tbody tr:focus-within .row-tts-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Важно: если сейчас loading/playing — кнопка видна всегда, независимо от hover */
+#proTable tbody tr .row-tts-btn.row-tts-playing,
+#proTable tbody tr .row-tts-btn[aria-busy="true"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Touch devices: hover отсутствует — делаем кнопку видимой всегда */
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr .row-tts-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* Микро-полировка: на десктопе можно добавить чуть "премиум" появления */
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-tts-btn {
+    transform: translateY(-1px);
+  }
+}
+
+/* ============================
+   Row TTS: Error state (P0)
+   ============================ */
+
+.row-tts-btn.row-tts-error {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.18);
+}
+
+.row-tts-btn.row-tts-error:hover {
+    background: rgba(231, 76, 60, 0.06);
+}
+
+/* Error всегда видим, как loading/playing */
+#proTable tbody tr .row-tts-btn.row-tts-error {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* ============================
+   Variant A — Luxury Focus Mode
+   Playing/Error row is highlighted; other rows are softly dimmed
+   ============================ */
+
+#proTable.focus-mode tbody tr td {
+    transition: opacity 160ms ease, filter 160ms ease, background-color 160ms ease;
+}
+
+/* Dim all non-active rows */
+#proTable.focus-mode tbody tr:not(.row-playing):not(.row-selected):not(.row-error) td {
+    opacity: 0.38;
+    filter: grayscale(0.15);
+}
+
+/* Keep active rows crisp */
+#proTable.focus-mode tbody tr.row-playing td,
+#proTable.focus-mode tbody tr.row-selected td,
+#proTable.focus-mode tbody tr.row-error td {
+    opacity: 1;
+    filter: none;
+}
+
+
+/* Micro-IDE rails: inset line inside first visible cell (no background override) */
+#proTable tbody tr.row-selected td:first-child {
+    box-shadow: inset 3px 0 0 var(--row-rail-selected);
+}
+#proTable tbody tr.row-playing td:first-child {
+    box-shadow: inset 3px 0 0 var(--row-rail-playing);
+}
+#proTable tbody tr.row-error td:first-child {
+    box-shadow: inset 3px 0 0 var(--row-rail-error);
+}
+
+
+/* Ensure Row TTS button stays fully visible in focus mode */
+#proTable.focus-mode tbody tr .row-tts-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+		/* =========================================================
+   Week 5 — Apple-quality Reading UI (Zero-risk CSS override)
+   Совместимо с: resize / sticky / focus / row-playing
+   ========================================================= */
+
+/* 1) Главная фикса: вертикальный ритм и “карточность” строки */
+#proTable tbody td {
+  /* было: vertical-align: top; -> для reading UI выглядит “дешево” */
+  vertical-align: middle;
+
+  /* было: padding 6px 8px; -> мало “воздуха”, текст липнет к границам */
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  /* сглаживание на длинных чтениях */
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 2) Если строка реально “очень высокая”, центрирование может мешать.
+      Делаем мягкий компромисс: большие блоки остаются ближе к верху.
+      (Никакого JS — чистый CSS) */
+#proTable tbody td:has(br):not(.rtl-he-niqqud) {
+  vertical-align: top;
+}
+
+/* 3) Niqqud: максимум “воздуха” без автоскейла/прыжков */
+#proTable tbody td.rtl-he-niqqud {
+  line-height: 2.18;          /* больше “воздуха” для огласовок */
+  letter-spacing: 0.12px;     /* меньше визуальной дрожи */
+  color: rgba(0,0,0,0.92);    /* мягче, но не “серое” */
+}
+
+/* 4) Иврит без никуда: чуть стабильнее ритм, чтобы строка выглядела единообразно */
+#proTable tbody td.rtl-he {
+  line-height: 1.78;          /* было 1.75 — минимальная доводка */
+}
+
+/* 5) Транслит/перевод: читаемость как в premium-приложениях (без изменения размеров шрифта) */
+#proTable tbody td:not(.rtl) {
+  line-height: 1.52;          /* чуть комфортнее при многострочных строках */
+}
+
+/* 6) Сетка: тоньше и “дороже”, но без потери читабельности */
+#proTable th, 
+#proTable td {
+  border-color: rgba(0,0,0,0.42); /* было ~0.55/0.75 — визуально тяжеловато */
+}
+
+
+
+/* 8) Совместимость с focus-mode и row-playing:
+      не трогаем opacity/фон активных стейтов — только “база” чтения. */
+
+		/* =========================================================
+   Week 5 — Glass-smooth micro polish (Zero-risk override)
+   Цель: тоньше сетка, ровнее ритм, “hairline” под sticky header
+   ========================================================= */
+
+/* A) Сетка: превращаем “черные линии” в premium hairline */
+#proTable {
+  border: 1px solid rgba(0,0,0,0.26) !important; /* внешний контур легче */
+  background: #fff;
+}
+
+#proTable th,
+#proTable td {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: rgba(0,0,0,0.26) !important;     /* ключ: облегчить сетку */
+}
+
+/* B) Sticky header: делаем нижнюю линию “дорогой” и стабильной */
+#proTable thead th {
+  background: #f6f7f8 !important;
+  border-color: rgba(0,0,0,0.22) !important;
+}
+
+#proTable thead th::before {
+  /* твой текущий “подчеркивающий” слой оставляем, но делаем hairline */
+  background: rgba(0,0,0,0.24) !important;
+  height: 1px !important;
+  opacity: 1 !important;
+}
+
+/* C) Ритм чтения: тонкая финальная доводка интерлиньяжа */
+#proTable tbody td.rtl-he-niqqud {
+  /* было 2.18: слегка плотнее, чтобы строка не “распухала” */
+  line-height: 2.14 !important;
+  letter-spacing: 0.10px !important; /* чуть тише, аккуратнее */
+}
+
+#proTable tbody td.rtl-he {
+  line-height: 1.72 !important; /* чуть более “Apple-like” плотность */
+}
+
+#proTable tbody td:not(.rtl) {
+  line-height: 1.48 !important; /* транслит/перевод: мягче и компактнее */
+}
+
+/* D) Лёгкая дифференциация строк без “зебры” (не конфликтует с focus-mode) */
+#proTable tbody tr {
+  background: #ffffff;
+}
+#proTable tbody td {
+  background: transparent;
+}
+
+
+#proTable tbody tr:nth-child(even) td {
+  background: rgba(0,0,0,0.012); /* почти незаметно, но “дорого” */
+}
+
+/* F) Не трогаем состояния: row-playing / row-error / focus-mode — они должны победить */
+
+/* =========================================================
+   Week 5 — Glass-smooth FINAL micro polish (zero-risk)
+   Цель: iOS / Apple Books quality reading table
+   ========================================================= */
+
+/* 1) Вертикальные линии — тише горизонтальных */
+#proTable th:not(:last-child),
+#proTable td:not(:last-child) {
+  border-right-color: rgba(0,0,0,0.18) !important;
+}
+
+#proTable th,
+#proTable td {
+  border-bottom-color: rgba(0,0,0,0.26) !important;
+}
+
+/* 2) Заголовки: меньше веса, больше “воздуха смысла” */
+#proTable thead th {
+  font-weight: 600 !important;      /* было визуально ближе к 700 */
+  letter-spacing: 0.2px;
+  color: rgba(0,0,0,0.88);
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+/* 3) Финальный вертикальный баланс иврита */
+#proTable tbody td.rtl-he,
+#proTable tbody td.rtl-he-niqqud {
+  padding-top: 11px;   /* +1px вверх */
+  padding-bottom: 11px;
+}
+
+/* 4) Многострочные ячейки: первый ряд “оседает” мягче */
+#proTable tbody td.rtl-he br:first-child,
+#proTable tbody td.rtl-he-niqqud br:first-child {
+  line-height: 1.95;
+}
+
+/* ⚠️ Все state-классы (focus-mode / row-playing / row-error)
+   остаются сильнее этого слоя — конфликтов нет */
+
+/* =========================================================
+   Week 6 (Row UX) — P0 LOCKED: Row highlight system
+   Single source of truth. Do not add other td background rules below.
+   Priority: error > playing > selected > focus-within > hover > active
+   ========================================================= */
+
+/* 0) Error — всегда сильнее любых интерактивных подсветок */
+#proTable tbody tr.row-error td,
+#proTable tbody tr.row-error td.rtl {
+  background-color: rgba(231, 76, 60, 0.06) !important;
+}
+
+/* 1) Playing */
+#proTable tbody tr.row-playing:not(.row-error) td,
+#proTable tbody tr.row-playing:not(.row-error) td.rtl {
+  background-color: var(--row-hl-playing) !important;
+}
+
+/* 2) Selected (last played) */
+#proTable tbody tr.row-selected:not(.row-error) td,
+#proTable tbody tr.row-selected:not(.row-error) td.rtl {
+  background-color: var(--row-hl-selected) !important;
+}
+
+/* 3) Focus within row (keyboard / focus on ▶ button, etc.) */
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td,
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+  background-color: var(--row-hl-focus) !important;
+}
+
+/* 4) Hover (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+    background-color: var(--row-hl-hover) !important;
+  }
+}
+
+/* 5) Active (touch) */
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+    background-color: var(--row-hl-active) !important;
+  }
+}
+
+/* 6) Убираем “пятна” от внутренних flex-обёрток (кнопку не трогаем) */
+#proTable tbody td .cell-he-wrap,
+#proTable tbody td .row-tts-text {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+
+   
+	  
+</style>
+
 </head>
 <body>
 
@@ -738,14 +1249,12 @@
                     class="stat-sub"
                     title="Тариф Google Cloud TTS для стандартных голосов."
                 >
-                    <!-- Текст заполнится из JS -->
                 </div>
                 <div
                     id="ttsQuotaInfo"
                     class="stat-sub"
                     title="Использование базового бесплатного лимита 4 000 000 символов в месяц."
                 >
-                    <!-- Текст заполнится из JS -->
                 </div>
                 <div
                     class="tts-quota-bar"
@@ -809,8 +1318,8 @@
     <div class="main-card">
         <h2>Текст для озвучки и перевода</h2>
 
-        <!-- Блок горячих клавиш — сразу под заголовком -->
-        <div id="hotkeysPanel" class="hotkeys-panel">
+        <!-- Блок горячих клавиш -->
+        <div id="hotkeysPanel" class="hotkeys-panel hotkeys-collapsed">
             <div class="hotkeys-header">
                 <strong>Горячие клавиши</strong>
                 <span class="hotkeys-hint">
@@ -823,6 +1332,8 @@
                 <li><code>Ctrl+Shift+S</code> — Сохранить MP3 озвучки текущего текста</li>
                 <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
                 <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
+				<li><code>↑/↓</code> — Навигация по строкам таблицы (после выбора строки)</li>
+                <li><code>Enter</code> — Озвучить выбранную строку (▶)</li>
             </ul>
         </div>
 
@@ -890,10 +1401,9 @@
         </div>
 
         <div id="audioContainer" style="margin-bottom: 4px;"></div>
-        <!-- Единый блок метаданных результатов (озвучка + таблица) -->
         <div id="resultsMeta"></div>
 
-        <!-- Настройки таблицы (колонки / пресеты) -->
+        <!-- Настройки таблицы -->
         <div id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
             <div class="table-settings-row">
                 <div class="table-settings-title">🧩 Таблица: отображение колонок</div>
@@ -903,6 +1413,20 @@
                     <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)">Фонетика</button>
                     <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)">Только иврит</button>
                 </div>
+				    <div class="table-autonext" title="Плейлист: Shift+Enter запускает непрерывное построчное проигрывание (Auto-next)">
+                    <label class="table-chk">
+                        <input type="checkbox" id="autoNextToggle">
+                        Плейлист (Auto-next)
+                    </label>
+					
+					<button type="button" id="btnPlaylistRun" class="btn-mini-secondary playlist-btn"
+                    title="Плейлист: Старт/Стоп. Можно также Shift+Enter (desktop).">
+                    ▶▶ Старт
+                    </button>
+
+					
+                </div>
+
             </div>
 
             <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
@@ -919,13 +1443,24 @@
         </div>
 
         <div id="errorMsg" class="error"></div>
-        <div id="tableContainer"></div>
+
+<!-- PRO: Resizable split (vertical) -->
+<div id="tableHeightResizer" class="table-resizer-y" role="separator"
+     aria-orientation="horizontal" aria-label="Изменить высоту таблицы"
+     title="Потяните вверх/вниз для изменения высоты таблицы. Двойной клик — сброс.">
+  <span class="table-resizer-grip" aria-hidden="true"></span>
+</div>
+
+<div id="tableContainer"></div>
+
     </div>
 
-    <!-- Контейнер для тост-индикаторов -->
+    <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-    <script>
+    
+
+<script>
     // ----------------------------
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
@@ -939,6 +1474,10 @@
     const btnWordEl = document.getElementById("btnWord");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
     const hotkeysPanelEl = document.getElementById("hotkeysPanel");
+	
+	const autoNextToggleEl = document.getElementById("autoNextToggle");
+	
+	const btnPlaylistRunEl = document.getElementById("btnPlaylistRun");
 
     const voiceSelectEl = document.getElementById("voiceSelect");
     const rateRangeEl = document.getElementById("rateRange");
@@ -949,22 +1488,633 @@
     const toastContainerEl = document.getElementById("toastContainer");
     const resultsMetaEl = document.getElementById("resultsMeta");
 
+    
+
     let toastTimeoutId = null;
 
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
     const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
+	// PRO: user-resizable table height
+const TABLE_HEIGHT_STORAGE_KEY = "ttsDashboard_table_height_v1";
+
+	
+	// ----------------------------
+// Row TTS v1 (per-row)
+// ----------------------------
+const ROW_AUDIO_CACHE_KEY = "ttsDashboard_row_audio_cache_v1";
+const ROW_AUDIO_CACHE_LIMIT = 80;
+
+// P0.5+: persistent last selected row (for view changes / quick orientation)
+const LAST_SELECTED_ROW_STORAGE_KEY = "ttsDashboard_last_selected_row_idx_v1";
+
+function loadLastSelectedRowIdx() {
+    try {
+        const raw = localStorage.getItem(LAST_SELECTED_ROW_STORAGE_KEY);
+        if (raw === null || raw === "") return null;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+    } catch (_) {
+        return null;
+    }
+}
+
+function saveLastSelectedRowIdx(idx) {
+    try {
+        if (typeof idx === "number" && Number.isFinite(idx) && idx >= 0) {
+            localStorage.setItem(LAST_SELECTED_ROW_STORAGE_KEY, String(idx));
+        } else {
+            localStorage.removeItem(LAST_SELECTED_ROW_STORAGE_KEY);
+        }
+    } catch (_) {}
+}
+
+// In-memory cache: key -> base64
+const rowAudioMemCache = new Map();
+
+// LRU cache in localStorage: { entries: [{k, b64, t}], savedAt }
+function loadRowAudioCacheFromStorage() {
+    try {
+        const raw = localStorage.getItem(ROW_AUDIO_CACHE_KEY);
+        if (!raw) return;
+        const obj = JSON.parse(raw);
+        if (!obj || !Array.isArray(obj.entries)) return;
+
+        // заполняем in-memory (последние важнее)
+        rowAudioMemCache.clear();
+        obj.entries.forEach(function (it) {
+            if (it && typeof it.k === "string" && typeof it.b64 === "string" && it.k && it.b64) {
+                rowAudioMemCache.set(it.k, it.b64);
+            }
+        });
+    } catch (e) {
+        console.error("Row audio cache load error", e);
+    }
+}
+
+function persistRowAudioCacheToStorage() {
+    try {
+        const entries = [];
+        // Map хранит в insertion order; нам нужен LRU: последние — самые новые
+        rowAudioMemCache.forEach(function (b64, k) {
+            entries.push({ k: k, b64: b64, t: Date.now() });
+        });
+        // ограничиваем до лимита (оставляем хвост)
+        const trimmed = entries.slice(Math.max(0, entries.length - ROW_AUDIO_CACHE_LIMIT));
+        localStorage.setItem(ROW_AUDIO_CACHE_KEY, JSON.stringify({ entries: trimmed, savedAt: new Date().toISOString() }));
+    } catch (e) {
+        console.error("Row audio cache persist error", e);
+    }
+}
+
+function rowCacheGet(key) {
+    if (!key) return null;
+    if (rowAudioMemCache.has(key)) {
+        // LRU bump: удалить и заново вставить
+        const val = rowAudioMemCache.get(key);
+        rowAudioMemCache.delete(key);
+        rowAudioMemCache.set(key, val);
+        return val;
+    }
+    return null;
+}
+
+function rowCacheSet(key, base64Audio) {
+    if (!key || !base64Audio) return;
+    if (rowAudioMemCache.has(key)) rowAudioMemCache.delete(key);
+    rowAudioMemCache.set(key, base64Audio);
+
+    // ограничение in-memory
+    while (rowAudioMemCache.size > ROW_AUDIO_CACHE_LIMIT) {
+        const firstKey = rowAudioMemCache.keys().next().value;
+        rowAudioMemCache.delete(firstKey);
+    }
+    persistRowAudioCacheToStorage();
+}
+
+// FNV-1a hash для стабильного короткого ключа
+function fnv1aHash(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+    }
+    return ("0000000" + h.toString(16)).slice(-8);
+}
+
+function buildRowTtsCacheKey(text, lang, cfg) {
+    const voiceId = cfg && typeof cfg.voiceId === "string" ? cfg.voiceId : "";
+    const rate = cfg && typeof cfg.rate === "number" ? cfg.rate : 1.0;
+    const pitch = cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0.0;
+
+    const payload = [
+        "v1",
+        lang || "",
+        voiceId,
+        String(rate),
+        String(pitch),
+        (text || "").trim()
+    ].join("|");
+
+    return fnv1aHash(payload);
+}
+
+// Единый аудиоплеер для строк
+let rowAudioPlayer = null;
+let rowAudioUrl = null;
+let rowPlayingRowIdx = null;
+let rowPlayingCacheKey = null;
+let rowSelectedRowIdx = null; // последняя озвученная строка (липкая подсветка)
+
+
+
+// =========================================================
+// Week 6 — AR-11: Index mismatch guards (selected/playing/playlist)
+// =========================================================
+function getDomRowCount() {
+    const table = document.getElementById("proTable");
+    if (!table) return 0;
+    const rows = table.querySelectorAll('tbody tr[data-row-idx]');
+    return rows ? rows.length : 0;
+}
+
+function getEffectiveRowCount() {
+    const dom = getDomRowCount();
+    const data = Array.isArray(currentTableData) ? currentTableData.length : 0;
+    if (dom && data) return Math.min(dom, data);
+    return dom || data || 0;
+}
+
+function normalizeRowIdxOrNull(idx, rowCount) {
+    if (idx === null || idx === undefined) return null;
+    const n = Number(idx);
+    if (!Number.isFinite(n)) return null;
+    const i = Math.trunc(n);
+    if (i < 0 || i >= rowCount) return null;
+    return i;
+}
+
+/**
+ * AR-11: Нормализует rowSelectedRowIdx/rowPlayingRowIdx под текущую таблицу.
+ * - НЕ добавляет функционал, только снимает некорректные состояния.
+ * - Возвращает true, если что-то было исправлено.
+ */
+function normalizeRowStateIndices(reason) {
+    const table = document.getElementById("proTable");
+    const rowCount = getEffectiveRowCount();
+
+    let changed = false;
+
+    // если таблицы нет — индексы не должны "жить в воздухе"
+    if (!table || rowCount < 1) {
+        if (rowSelectedRowIdx !== null) {
+            rowSelectedRowIdx = null;
+            saveLastSelectedRowIdx(null);
+            changed = true;
+        }
+        if (rowPlayingRowIdx !== null || rowPlayingCacheKey !== null) {
+            rowPlayingRowIdx = null;
+            rowPlayingCacheKey = null;
+            changed = true;
+        }
+        if (rowPlaylistRunActive) {
+            rowPlaylistRunActive = false;
+            changed = true;
+        }
+        updateRowFocusMode();
+        return changed;
+    }
+
+    const normSel = normalizeRowIdxOrNull(rowSelectedRowIdx, rowCount);
+    if (normSel !== rowSelectedRowIdx) {
+        rowSelectedRowIdx = normSel;
+        saveLastSelectedRowIdx(normSel);
+        changed = true;
+    }
+
+    const normPlay = normalizeRowIdxOrNull(rowPlayingRowIdx, rowCount);
+    if (normPlay !== rowPlayingRowIdx) {
+        rowPlayingRowIdx = normPlay;
+        if (normPlay === null) rowPlayingCacheKey = null;
+        changed = true;
+    }
+
+    // AR-11: cacheKey не должен "жить" без валидного playing-индекса
+    if (rowPlayingRowIdx === null && rowPlayingCacheKey !== null) {
+        rowPlayingCacheKey = null;
+        changed = true;
+    }
+
+    // плейлист не может быть активен без валидного selected и включенного toggle
+    if (rowPlaylistRunActive && (!autoNextEnabled || rowSelectedRowIdx === null || rowCount < 1)) {
+        rowPlaylistRunActive = false;
+        changed = true;
+    }
+
+    // синхронизируем классы (после пересборки DOM это полезно всегда)
+    // selected
+    table.querySelectorAll("tbody tr.row-selected").forEach(function (tr) {
+        tr.classList.remove("row-selected");
+    });
+    if (rowSelectedRowIdx !== null) {
+        const trSel = table.querySelector('tbody tr[data-row-idx="' + String(rowSelectedRowIdx) + '"]');
+        if (trSel) trSel.classList.add("row-selected");
+    }
+
+    // playing + кнопка
+    table.querySelectorAll("tbody tr.row-playing").forEach(function (tr) {
+        tr.classList.remove("row-playing");
+    });
+    table.querySelectorAll("button.row-tts-btn.row-tts-playing").forEach(function (btn) {
+        btn.classList.remove("row-tts-playing");
+        btn.removeAttribute("aria-busy");
+        btn.disabled = false;
+        btn.textContent = "▶";
+    });
+    if (rowPlayingRowIdx !== null) {
+        const trPlay = table.querySelector('tbody tr[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        const btnPlay = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        if (trPlay) trPlay.classList.add("row-playing");
+        if (btnPlay) {
+            btnPlay.classList.add("row-tts-playing");
+            btnPlay.disabled = false;
+            btnPlay.removeAttribute("aria-busy");
+            btnPlay.textContent = "■";
+        }
+    }
+
+    updateRowFocusMode();
+    return changed;
+}
+
+// =========================================================
+// Week 6 — AR-12: Regression invariants / self-checks (re-entrancy guard)
+// =========================================================
+const ROW_UX_DEBUG = false; // включать вручную при отладке
+let __rowUxInvariantLock = false;
+
+function rowUxInvariantCheck(context) {
+    if (__rowUxInvariantLock) return;
+    __rowUxInvariantLock = true;
+
+    try {
+        const table = document.getElementById("proTable");
+        const rowCount = getEffectiveRowCount();
+
+        // Инвариант: активный плейлист невозможен без toggle и строк
+        if (rowPlaylistRunActive && (!autoNextEnabled || rowCount < 1)) {
+            rowPlaylistRunActive = false;
+        }
+
+        // Инвариант: playing не должен "залипать", если аудио реально не играет
+        if (rowPlayingRowIdx !== null && rowAudioPlayer && rowAudioPlayer.paused) {
+            clearRowPlayingState(false); // снимает UI + индексы корректно
+        }
+
+        // Инвариант: индексы и DOM-классы должны быть согласованы
+        normalizeRowStateIndices("AR-12/" + String(context || "check"));
+
+        if (ROW_UX_DEBUG && table) {
+            const sel = table.querySelectorAll("tbody tr.row-selected").length;
+            const play = table.querySelectorAll("tbody tr.row-playing").length;
+
+            if (sel > 1) console.warn("[RowUX][AR-12]", context, "multiple row-selected:", sel);
+            if (play > 1) console.warn("[RowUX][AR-12]", context, "multiple row-playing:", play);
+
+            const dom = getDomRowCount();
+            const data = Array.isArray(currentTableData) ? currentTableData.length : 0;
+            if (dom && data && dom !== data) {
+                console.warn("[RowUX][AR-12]", context, "DOM/data rowcount mismatch:", { dom: dom, data: data });
+            }
+        }
+    } finally {
+        __rowUxInvariantLock = false;
+    }
+}
+
+	
+
+
+function ensureRowAudioPlayer() {
+    if (rowAudioPlayer) return rowAudioPlayer;
+    rowAudioPlayer = new Audio();
+    rowAudioPlayer.preload = "auto";
+
+        rowAudioPlayer.addEventListener("ended", function () {
+    clearRowPlayingState(false);
+
+    // Playlist: if a playlist run is active and toggle ON => auto-play next row
+    if (!autoNextEnabled || !rowPlaylistRunActive) return;
+
+    const rowCount = getEffectiveRowCount();
+    if (rowCount < 1) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
+
+    // AR-11: baseIdx только валидный
+    const baseIdx = normalizeRowIdxOrNull(rowSelectedRowIdx, rowCount);
+    if (baseIdx === null) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
+
+    const nextIdx = baseIdx + 1;
+    if (nextIdx >= rowCount) {
+        rowPlaylistRunActive = false; // конец таблицы
+        showToast("Плейлист: конец таблицы");
+        updatePlaylistButtonUI();
+        return;
+    }
+
+    // move selection
+    setRowSelectedUI(nextIdx);
+
+    // start next row via existing button logic
+    const table = document.getElementById("proTable");
+    if (!table) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
+
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(nextIdx) + '"]');
+    if (!btn) {
+        rowPlaylistRunActive = false;
+        updatePlaylistButtonUI();
+        return;
+    }
+
+    rowPlaylistAutoplayClick = true;
+    btn.click();
+});
+
+    rowAudioPlayer.addEventListener("error", function () {
+    clearRowPlayingState(true); // сбросить selected
+	rowPlaylistRunActive = false;
+	updatePlaylistButtonUI();
+    showToast("Не удалось воспроизвести аудио строки");
+});
+
+    return rowAudioPlayer;
+}
+
+function clearRowPlayingState(alsoClearSelected) {
+    // снять playing подсветку и состояния кнопки
+    const table = document.getElementById("proTable");
+    if (table) {
+        const prev = table.querySelector('tbody tr[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        if (prev) prev.classList.remove("row-playing");
+        const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
+        if (btn) {
+            btn.classList.remove("row-tts-playing");
+            btn.removeAttribute("aria-busy");
+            btn.textContent = "▶";
+            btn.disabled = false;
+        }
+    }
+
+    rowPlayingRowIdx = null;
+    rowPlayingCacheKey = null;
+
+    if (rowAudioUrl) {
+        try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {}
+        rowAudioUrl = null;
+    }
+
+    // НОВОЕ: по необходимости сбрасываем selected полностью
+    if (alsoClearSelected) {
+        clearRowSelectedUI();
+    }
+
+    updateRowFocusMode();
+}
+
+function clearRowErrorState(rowIdx) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+
+    if (tr) tr.classList.remove("row-error");
+
+    if (btn) {
+        btn.classList.remove("row-tts-error");
+        btn.title = "Озвучить эту строку";
+        btn.setAttribute("aria-label", "Озвучить строку");
+
+        if (!btn.classList.contains("row-tts-playing") && btn.getAttribute("aria-busy") !== "true") {
+            btn.textContent = "▶";
+        }
+    }
+
+    updateRowFocusMode();
+}
+
+function setRowErrorState(rowIdx, message) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    const safeMsg = (message && String(message).trim())
+        ? String(message).trim()
+        : "Ошибка озвучивания строки";
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+
+    if (tr) tr.classList.add("row-error");
+
+    if (btn) {
+        btn.classList.add("row-tts-error");
+        btn.removeAttribute("aria-busy");
+        btn.disabled = false;
+        btn.textContent = "!";
+        btn.title = safeMsg;
+        btn.setAttribute("aria-label", "Ошибка озвучивания строки: " + safeMsg);
+    }
+
+    updateRowFocusMode();
+}
+
+
+function setRowButtonLoading(rowIdx, isLoading) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+    if (!btn) return;
+
+    if (isLoading) {
+        btn.setAttribute("aria-busy", "true");
+        btn.disabled = true;
+        btn.textContent = "…";
+    } else {
+        btn.removeAttribute("aria-busy");
+        btn.disabled = false;
+        if (!btn.classList.contains("row-tts-playing")) btn.textContent = "▶";
+    }
+}
+
+function setRowSelectedUI(rowIdx) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+	
+	    // AR-11: не допускаем установки selected в несуществующую строку
+    const rc = getDomRowCount();
+    const normIdx = normalizeRowIdxOrNull(rowIdx, rc);
+    if (normIdx === null) {
+        clearRowSelectedUI(); // централизованный сброс + Week 6 guard
+        return;
+    }
+    rowIdx = normIdx;
+
+
+    // снять selected с предыдущей строки, если новая другая
+    if (rowSelectedRowIdx !== null && rowSelectedRowIdx !== rowIdx) {
+        const prev = table.querySelector('tbody tr[data-row-idx="' + String(rowSelectedRowIdx) + '"]');
+        if (prev) prev.classList.remove("row-selected");
+    }
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    if (tr) tr.classList.add("row-selected");
+
+    rowSelectedRowIdx = rowIdx;
+saveLastSelectedRowIdx(rowSelectedRowIdx);
+
+updateRowFocusMode(); // Week 6 guard: keep visual modes consistent after selection change
+
+
+}
+
+function clearRowSelectedUI() {
+    const table = document.getElementById("proTable");
+    if (table) {
+        table.querySelectorAll("tbody tr.row-selected").forEach(function (tr) {
+            tr.classList.remove("row-selected");
+        });
+    }
+    rowSelectedRowIdx = null;
+saveLastSelectedRowIdx(null);
+
+updateRowFocusMode(); // Week 6 guard
+
+}
+
+
+
+
+function setRowPlayingUI(rowIdx, playing) {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+	
+	// AR-11: playing возможен только для существующей строки
+    const rc = getDomRowCount();
+    const normIdx = normalizeRowIdxOrNull(rowIdx, rc);
+    if (normIdx === null) return;
+    rowIdx = normIdx;
+
+	
+	if (playing) {
+        setRowSelectedUI(rowIdx); // <-- ДОБАВИТЬ: фиксируем "последнюю" строку
+    }
+
+    const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
+
+    if (tr) tr.classList.toggle("row-playing", !!playing);
+    if (btn) {
+        btn.classList.toggle("row-tts-playing", !!playing);
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+        btn.textContent = playing ? "■" : "▶";
+    }
+
+    updateRowFocusMode();
+}
+
+// Получение текста строки для озвучки по правилам видимости
+function getRowTtsTextForRow(row) {
+    if (!row || typeof row !== "object") return "";
+
+    const niqqud = String(row.he_niqqud || "").trim();
+    if (niqqud) return niqqud;
+
+    const he = String(row.he || "").trim();
+    if (he) return he;
+
+    return "";
+}
+
+
+// Язык строки: фиксируем иврит для Row TTS (табличный тренажёр чтения)
+function getRowTtsLanguage() {
+    return "he-IL";
+}
+
+// Инициализация: восстановить cache
+loadRowAudioCacheFromStorage();
+
 
     // ----------------------------
     // НАСТРОЙКИ ТАБЛИЦЫ: ВИДИМОСТЬ КОЛОНОК + АВТОШИРИНЫ (PRO)
     // ----------------------------
     const TABLE_SETTINGS_KEY = "ttsDashboard_table_settings_v1";
+	
+	    // ----------------------------
+    // P1.2 (Playlist): Auto-next toggle (persistent)
+    // ----------------------------
+    const AUTO_NEXT_KEY = "ttsDashboard_row_auto_next_v1";
+    let autoNextEnabled = false;
+
+    // Runtime flags for playlist runs (started via Shift+Enter when toggle ON)
+    let rowPlaylistRunActive = false;
+    let rowPlaylistAutoplayClick = false; // internal marker to not cancel playlist on programmatic clicks
+
+    function loadAutoNextSetting() {
+        try {
+            const raw = localStorage.getItem(AUTO_NEXT_KEY);
+            autoNextEnabled = (raw === "1");
+        } catch (_) {
+            autoNextEnabled = false;
+        }
+
+        if (autoNextToggleEl) {
+            autoNextToggleEl.checked = !!autoNextEnabled;
+        }
+		updatePlaylistButtonUI();
+    }
+
+    function saveAutoNextSetting(enabled) {
+        try {
+            localStorage.setItem(AUTO_NEXT_KEY, enabled ? "1" : "0");
+        } catch (_) {}
+    }
+	
+	function updatePlaylistButtonUI() {
+    if (!btnPlaylistRunEl) return;
+
+    const table = document.getElementById("proTable");
+    const hasRows = !!(table && table.querySelector('tbody tr[data-row-idx]'));
+
+    // кнопку можно показывать всегда, но если таблицы нет — отключаем
+    btnPlaylistRunEl.disabled = !hasRows;
+
+    if (rowPlaylistRunActive) {
+        btnPlaylistRunEl.textContent = "■ Стоп";
+    } else {
+        btnPlaylistRunEl.textContent = "▶▶ Старт";
+    }
+}
+
+
 
     // Порядок колонок фиксированный (источник истины)
     const TABLE_COL_ORDER = ["he", "niqqud", "translit", "ru"];
 
-    // Видимость колонок (минимум 1 колонка должна оставаться видимой)
+    // Видимость колонок
     let tableVisibleColumns = {
         he: true,
         niqqud: true,
@@ -972,12 +2122,29 @@
         ru: true
     };
 
-    // Базовые ширины (в процентах) — храним всегда 4, независимо от видимости.
-    // Эффективные ширины считаются как ренормализация видимых весов до 100%.
+    // Базовые ширины (проценты) — всегда 4 значения
     let tableBaseWidths = [22, 22, 24, 32];
 
-    // Последний выбранный пресет (для UX-стабильности)
+    // Последний выбранный пресет
     let tablePreset = "full";
+
+    // ----------------------------
+    // PRO RESIZE: параметры
+    // ----------------------------
+    const RESIZE_MIN_COL_PERCENT = 6;   // минимальная ширина видимой колонки в процентах
+    const RESIZE_MAX_COL_PERCENT = 90;  // защита от “почти всё в одну”
+    const RESIZE_SNAP_EPS = 0.00001;
+
+    // Drag state
+    const resizeState = {
+        active: false,
+        pointerId: null,
+        startX: 0,
+        tableWidthPx: 0,
+        leftKey: null,
+        rightKey: null,
+        startLeft: 0,
+        startRight: 0};
 
     function loadTableSettings() {
         try {
@@ -1010,11 +2177,14 @@
                 tablePreset = parsed.preset.trim();
             }
 
-            // Защита: не допускаем состояния "всё скрыто"
+            // Защита: не допускаем "всё скрыто"
             if (countVisibleColumns() < 1) {
                 tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
                 tablePreset = "full";
             }
+
+            // Строгий контроль суммы (видимые => 100)
+            normalizeVisibleBaseWidthsTo100();
         } catch (e) {
             console.error("Table settings load error", e);
         }
@@ -1043,7 +2213,6 @@
     }
 
     function computeEffectiveWidths() {
-        // Возвращает объект {he: xx, niqqud: yy, translit: zz, ru: ww} где сумма видимых = 100
         const weights = {};
         let sum = 0;
 
@@ -1059,19 +2228,18 @@
         });
 
         if (sum <= 0) {
-            // аварийный fallback
-            TABLE_COL_ORDER.forEach(function (k) { weights[k] = tableVisibleColumns[k] ? (100 / countVisibleColumns()) : 0; });
+            TABLE_COL_ORDER.forEach(function (k) {
+                weights[k] = tableVisibleColumns[k] ? (100 / countVisibleColumns()) : 0;
+            });
             return weights;
         }
 
-        // нормализация
         TABLE_COL_ORDER.forEach(function (k) {
             if (weights[k] > 0) {
                 weights[k] = (weights[k] / sum) * 100;
             }
         });
 
-        // корректируем округление, чтобы итог был ровно 100.00
         const visibleKeys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
         if (visibleKeys.length > 0) {
             let total = 0;
@@ -1087,7 +2255,6 @@
         const root = document.getElementById("tableSettings");
         if (!root) return;
 
-        // чекбоксы
         const inputs = root.querySelectorAll('input[type="checkbox"][data-col]');
         inputs.forEach(function (inp) {
             const key = inp.getAttribute("data-col");
@@ -1096,7 +2263,6 @@
             }
         });
 
-        // пресеты: active
         const presetButtons = root.querySelectorAll('button[data-preset]');
         presetButtons.forEach(function (btn) {
             btn.classList.toggle("active", btn.getAttribute("data-preset") === tablePreset);
@@ -1109,8 +2275,88 @@
 
         const root = document.getElementById("tableSettings");
         if (!root) return;
+		
+		        // playlist toggle
+if (autoNextToggleEl) {
+    autoNextToggleEl.checked = !!autoNextEnabled;
 
-        // клики по пресетам
+    autoNextToggleEl.addEventListener("change", function () {
+        autoNextEnabled = !!autoNextToggleEl.checked;
+        saveAutoNextSetting(autoNextEnabled);
+
+        // Если выключили — прекращаем цепочку авто-переходов.
+        if (!autoNextEnabled) {
+            rowPlaylistRunActive = false;
+            updatePlaylistButtonUI(); // важно: сразу обновить текст кнопки
+        }
+
+        showToast(autoNextEnabled ? "Плейлист включён (Auto-next)" : "Плейлист выключен");
+    });
+} // <-- ВОТ ЭТА СКОБКА ОБЯЗАТЕЛЬНА
+
+// Playlist button (mobile-friendly)
+if (btnPlaylistRunEl) {
+    btnPlaylistRunEl.addEventListener("click", function () {
+        const table = document.getElementById("proTable");
+        if (!table) {
+            showToast("Сначала сделайте AI-перевод, чтобы появилась таблица");
+            return;
+        }
+
+        const rows = table.querySelectorAll("tbody tr[data-row-idx]");
+        if (!rows || rows.length < 1) {
+            showToast("Нет строк для проигрывания");
+            return;
+        }
+
+        // Если toggle выключен — включаем и сохраняем (кнопка “просто работает”)
+        if (!autoNextEnabled) {
+            autoNextEnabled = true;
+            if (autoNextToggleEl) autoNextToggleEl.checked = true;
+            saveAutoNextSetting(true);
+            showToast("Плейлист включён (Auto-next)");
+        }
+
+        // Toggle start/stop
+        if (rowPlaylistRunActive) {
+            rowPlaylistRunActive = false;
+
+            // остановить текущую строку, если играет
+            try {
+                if (rowAudioPlayer && !rowAudioPlayer.paused) {
+                    rowAudioPlayer.pause();
+                    rowAudioPlayer.currentTime = 0;
+                }
+            } catch (_) {}
+
+            clearRowPlayingState(false); // selected оставляем
+			updatePlaylistButtonUI();
+			return;
+
+        }
+
+        // start playlist from selected (or 0)
+        let idx = (typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) ? rowSelectedRowIdx : 0;
+        if (idx < 0 || idx >= rows.length) idx = 0;
+
+        setRowSelectedUI(idx);
+
+        const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]');
+        if (!btn) {
+            showToast("Не найдена кнопка озвучки для выбранной строки");
+            return;
+        }
+
+        rowPlaylistRunActive = true;
+        rowPlaylistAutoplayClick = true; // чтобы click-handler не отменил плейлист
+        updatePlaylistButtonUI();
+        btn.click();
+    });
+}
+
+// initial paint
+updatePlaylistButtonUI();
+           
         root.addEventListener("click", function (e) {
             const btn = e.target && e.target.closest ? e.target.closest("button[data-preset]") : null;
             if (!btn) return;
@@ -1121,13 +2367,11 @@
             applyPreset(preset);
             applyTableSettingsToUI();
 
-            // перерисовка таблицы, если она уже есть
             if (Array.isArray(currentTableData) && currentTableData.length > 0) {
                 renderTable(currentTableData);
             }
         });
 
-        // переключение чекбоксов
         root.addEventListener("change", function (e) {
             const inp = e.target;
             if (!inp || inp.tagName !== "INPUT" || inp.type !== "checkbox") return;
@@ -1135,13 +2379,10 @@
             if (!key || !Object.prototype.hasOwnProperty.call(tableVisibleColumns, key)) return;
 
             const next = !!inp.checked;
-
-            // защита: нельзя отключить последнюю колонку
             const prevValue = !!tableVisibleColumns[key];
             tableVisibleColumns[key] = next;
 
             if (countVisibleColumns() < 1) {
-                // откат
                 tableVisibleColumns[key] = prevValue;
                 inp.checked = prevValue;
                 showToast("Нельзя скрыть все колонки. Минимум одна должна оставаться видимой.");
@@ -1149,6 +2390,10 @@
             }
 
             tablePreset = "custom";
+
+            // Строгий контроль суммы после изменения набора видимых
+            normalizeVisibleBaseWidthsTo100();
+
             saveTableSettings();
             applyTableSettingsToUI();
 
@@ -1157,28 +2402,35 @@
             }
         });
 
-        // сброс
         const resetBtn = document.getElementById("btnTableReset");
         if (resetBtn) {
             resetBtn.addEventListener("click", function () {
                 tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
                 tableBaseWidths = [22, 22, 24, 32];
                 tablePreset = "full";
+
+                normalizeVisibleBaseWidthsTo100();
+
                 saveTableSettings();
                 applyTableSettingsToUI();
                 if (Array.isArray(currentTableData) && currentTableData.length > 0) {
                     renderTable(currentTableData);
                 }
+				
+				// PRO: reset table height too
+    clearTableHeightSetting();
+    applyTableHeightNow();
+				
                 showToast("Настройки таблицы сброшены");
             });
         }
 
-        // первичное сохранение, чтобы состояние стало стабильным
+        // первичное сохранение
+        normalizeVisibleBaseWidthsTo100();
         saveTableSettings();
     }
 
     function applyPreset(preset) {
-        // Presets: full, he_ru, phonetics, he_only
         if (preset === "full") {
             tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
         } else if (preset === "he_ru") {
@@ -1188,37 +2440,32 @@
         } else if (preset === "he_only") {
             tableVisibleColumns = { he: true, niqqud: false, translit: false, ru: false };
         } else {
-            // custom / unknown
             preset = "custom";
         }
 
-        // безопасность
         if (countVisibleColumns() < 1) {
             tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
             preset = "full";
         }
 
         tablePreset = preset;
+
+        // Строгий контроль суммы
+        normalizeVisibleBaseWidthsTo100();
+
         saveTableSettings();
     }
-
-    // Предзагрузка настроек (важно до восстановлений таблицы из кэша)
-    loadTableSettings();
-
     let saveTimer = null;
 
-    // состояние "старости" по отдельности
     let tableIsStale = false;
     let audioIsStale = false;
 
-    // кэш аудио в памяти
     let lastAudioBlob = null;
     let lastAudioUrl = null;
 
-    // имя последнего DOCX (по моменту AI-перевода)
     let lastDocxFilename = null;
 
-    // --- Состояние лимитов Gemini ---
+    // --- Gemini ---
     let geminiRequestsToday = 0;
     let geminiDailyLimit = 20;
     let geminiNextResetAt = null;
@@ -1227,17 +2474,14 @@
     let geminiLockUntil = null;
     let geminiLimitTimerId = null;
 
-    // --- Состояние usage для TTS-стоимости ---
+    // --- TTS usage ---
     let lastUsageData = null;
 
-    // --- Состояние метаданных результатов (озвучка / таблица) ---
-    const resultsMetaState = {
-        audioSource: null,
-        tableSource: null
-    };
+    // --- results meta ---
+    const resultsMetaState = { audioSource: null, tableSource: null };
 
     // ----------------------------
-    // ПРОСТОЙ ТОСТ-ИНДИКАТОР
+    // ТОСТ
     // ----------------------------
     function showToast(message) {
         if (!toastContainerEl) return;
@@ -1277,11 +2521,12 @@
         }, 2500);
     }
 
-    // Инициализация UI настроек таблицы (чекбоксы/пресеты)
+    // Инициализация UI таблицы
+	loadAutoNextSetting();
     initTableSettingsUI();
 
     // ----------------------------
-    // МЕТАДАННЫЕ РЕЗУЛЬТАТОВ
+    // RESULTS META
     // ----------------------------
     function renderResultsMeta() {
         if (!resultsMetaEl) return;
@@ -1335,17 +2580,13 @@
     }
 
     function clearResultsMeta(part) {
-        if (!part || part === "audio") {
-            resultsMetaState.audioSource = null;
-        }
-        if (!part || part === "table") {
-            resultsMetaState.tableSource = null;
-        }
+        if (!part || part === "audio") resultsMetaState.audioSource = null;
+        if (!part || part === "table") resultsMetaState.tableSource = null;
         renderResultsMeta();
     }
 
     // ----------------------------
-    // ВОССТАНОВЛЕНИЕ ТЕКСТА
+    // RESTORE TEXT
     // ----------------------------
     (function restoreText() {
         try {
@@ -1390,18 +2631,13 @@
             const bottomGap = window.innerHeight - rect.bottom;
 
             if (bottomGap < 80) {
-                inputTextEl.scrollIntoView({
-                    block: "end",
-                    behavior: "smooth"
-                });
+                inputTextEl.scrollIntoView({ block: "end", behavior: "smooth" });
             }
         }
     }
 
     function scheduleSaveText() {
-        if (saveTimer) {
-            clearTimeout(saveTimer);
-        }
+        if (saveTimer) clearTimeout(saveTimer);
         saveTimer = setTimeout(function () {
             try {
                 localStorage.setItem(STORAGE_KEY, inputTextEl.value);
@@ -1412,7 +2648,7 @@
     }
 
     // ----------------------------
-    // ВОССТАНОВЛЕНИЕ ТАБЛИЦЫ ИЗ КЭША
+    // RESTORE TABLE CACHE
     // ----------------------------
     (function restoreTableFromCache() {
         try {
@@ -1434,17 +2670,14 @@
             }
 
             tableIsStale = false;
-            setResultsMeta(
-                "table",
-                "перевод восстановлен из локального кэша браузера (без запроса к Gemini)"
-            );
+            setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
         } catch (e) {
             console.error("Table cache restore error", e);
         }
     })();
 
     // ----------------------------
-    // ВОССТАНОВЛЕНИЕ НАСТРОЕК TTS (ГОЛОС, СКОРОСТЬ, ТОН)
+    // RESTORE TTS VOICE CONFIG
     // ----------------------------
     (function restoreTtsVoiceConfig() {
         try {
@@ -1504,28 +2737,12 @@
         return { voiceId, rate, pitch };
     }
 
-    if (voiceSelectEl) {
-        voiceSelectEl.addEventListener("change", function () {
-            saveTtsVoiceConfig();
-        });
-    }
-
-    if (rateRangeEl) {
-        rateRangeEl.addEventListener("input", function () {
-            updateTtsControlsUI();
-            saveTtsVoiceConfig();
-        });
-    }
-
-    if (pitchRangeEl) {
-        pitchRangeEl.addEventListener("input", function () {
-            updateTtsControlsUI();
-            saveTtsVoiceConfig();
-        });
-    }
+    if (voiceSelectEl) voiceSelectEl.addEventListener("change", saveTtsVoiceConfig);
+    if (rateRangeEl) rateRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
+    if (pitchRangeEl) pitchRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
 
     // ----------------------------
-    // ПОМЕТКА РЕЗУЛЬТАТОВ КАК УСТАРЕВШИХ
+    // STALE
     // ----------------------------
     function markResultsStale() {
         const tableEl = document.getElementById("tableContainer");
@@ -1536,10 +2753,8 @@
 
         if (hasTable) {
             tableEl.classList.add("results-stale");
-
             const cacheNote = tableEl.querySelector(".cache-restore-note");
             if (cacheNote) cacheNote.remove();
-
             addStaleNote(tableEl);
             tableIsStale = true;
             if (btnWordEl) btnWordEl.classList.add("disabled");
@@ -1555,7 +2770,6 @@
 
     function addStaleNote(container) {
         if (container.querySelector(".results-stale-note")) return;
-
         const note = document.createElement("div");
         note.className = "results-stale-note";
         note.textContent = "Текст сверху изменён. Перевод и озвучка ниже могут быть неактуальны.";
@@ -1564,9 +2778,7 @@
 
     function clearAudioStale() {
         const audioEl = document.getElementById("audioContainer");
-        if (audioEl) {
-            audioEl.classList.remove("results-stale");
-        }
+        if (audioEl) audioEl.classList.remove("results-stale");
         audioIsStale = false;
 
         if (!audioIsStale && !tableIsStale) {
@@ -1592,12 +2804,9 @@
         }
     }
 
-    // Полная очистка текста и результатов (для Ctrl+Shift+Backspace)
     function clearTextWithConfirm() {
         if (!inputTextEl) return;
-        if (!inputTextEl.value || !inputTextEl.value.trim()) {
-            return;
-        }
+        if (!inputTextEl.value || !inputTextEl.value.trim()) return;
 
         const ok = window.confirm("Очистить текущий текст?\nПеревод, озвучка и локальный кэш таблицы будут сброшены.");
         if (!ok) return;
@@ -1608,14 +2817,8 @@
 
         const audioEl = document.getElementById("audioContainer");
         const tableEl = document.getElementById("tableContainer");
-        if (audioEl) {
-            audioEl.innerHTML = "";
-            audioEl.classList.remove("results-stale");
-        }
-        if (tableEl) {
-            tableEl.innerHTML = "";
-            tableEl.classList.remove("results-stale");
-        }
+        if (audioEl) { audioEl.innerHTML = ""; audioEl.classList.remove("results-stale"); }
+        if (tableEl) { tableEl.innerHTML = ""; tableEl.classList.remove("results-stale"); }
 
         audioIsStale = false;
         tableIsStale = false;
@@ -1623,11 +2826,19 @@
         lastAudioBlob = null;
         lastAudioUrl = null;
         lastDocxFilename = null;
+		// сброс состояния Row TTS (кэш строк оставляем — он полезен)
+try {
+    if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause();
+} catch (_) {}
+clearRowPlayingState(true);
 
-        if (btnWordEl) {
-            btnWordEl.classList.add("disabled");
-        }
+// Week 6 guard: очистка таблицы должна останавливать плейлист и обновлять UI кнопки
+rowPlaylistRunActive = false;
+updatePlaylistButtonUI();
 
+
+
+        if (btnWordEl) btnWordEl.classList.add("disabled");
         textChangedNoticeEl.classList.remove("notice-visible");
 
         try {
@@ -1642,14 +2853,12 @@
     }
 
     // ----------------------------
-    // ЗАГРУЗКА СТАТИСТИКИ / ЛИМИТОВ
+    // STATS / LIMITS
     // ----------------------------
     async function loadStats() {
         try {
             const res = await fetch("/api/usage");
-            if (!res.ok) {
-                throw new Error("Не удалось получить статистику");
-            }
+            if (!res.ok) throw new Error("Не удалось получить статистику");
             const data = await res.json();
             lastUsageData = data;
 
@@ -1664,35 +2873,21 @@
 
             const modelName = data.geminiModelName || "Gemini 2.5 Flash";
             let tierLabel;
-            if (data.geminiBillingTier === "paid") {
-                tierLabel = "Paid";
-            } else if (data.geminiBillingTier === "free" || !data.geminiBillingTier) {
-                tierLabel = "Free Tier";
-            } else {
-                tierLabel = data.geminiBillingTier;
-            }
-            const modelInfoEl = document.getElementById("geminiModelInfo");
-            modelInfoEl.textContent = modelName + " · " + tierLabel;
+            if (data.geminiBillingTier === "paid") tierLabel = "Paid";
+            else if (data.geminiBillingTier === "free" || !data.geminiBillingTier) tierLabel = "Free Tier";
+            else tierLabel = data.geminiBillingTier;
 
-            geminiRequestsToday =
-                (typeof data.geminiRequestsToday === "number")
-                    ? data.geminiRequestsToday
-                    : 0;
-            geminiDailyLimit =
-                (typeof data.geminiDailyLimit === "number")
-                    ? data.geminiDailyLimit
-                    : 20;
+            document.getElementById("geminiModelInfo").textContent = modelName + " · " + tierLabel;
+
+            geminiRequestsToday = (typeof data.geminiRequestsToday === "number") ? data.geminiRequestsToday : 0;
+            geminiDailyLimit = (typeof data.geminiDailyLimit === "number") ? data.geminiDailyLimit : 20;
 
             if (data.geminiNextResetAt) {
                 const dt = new Date(data.geminiNextResetAt);
-                if (!isNaN(dt.getTime())) {
-                    geminiNextResetAt = dt;
-                }
+                if (!isNaN(dt.getTime())) geminiNextResetAt = dt;
             } else if (data.geminiDayStart) {
                 const dayStart = new Date(data.geminiDayStart);
-                if (!isNaN(dayStart.getTime())) {
-                    geminiNextResetAt = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-                }
+                if (!isNaN(dayStart.getTime())) geminiNextResetAt = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
             } else {
                 geminiNextResetAt = null;
             }
@@ -1745,11 +2940,8 @@
                 const percent = Math.max(0, Math.min(100, Math.round(ratio * 100)));
                 quotaFillEl.style.width = percent + "%";
                 quotaFillEl.classList.remove("warning", "exceeded");
-                if (ratio >= 1) {
-                    quotaFillEl.classList.add("exceeded");
-                } else if (ratio >= 0.8) {
-                    quotaFillEl.classList.add("warning");
-                }
+                if (ratio >= 1) quotaFillEl.classList.add("exceeded");
+                else if (ratio >= 0.8) quotaFillEl.classList.add("warning");
             }
         }
 
@@ -1773,12 +2965,8 @@
         const m = Math.floor((totalSec % 3600) / 60);
         const s = totalSec % 60;
 
-        if (h > 0) {
-            return h + " ч " + m + " мин";
-        }
-        if (m > 0) {
-            return m + " мин " + s + " сек";
-        }
+        if (h > 0) return h + " ч " + m + " мин";
+        if (m > 0) return m + " мин " + s + " сек";
         return s + " сек";
     }
 
@@ -1788,16 +2976,13 @@
         }
     }, 1000);
 
-    setInterval(function () {
-        loadStats();
-    }, 5000);
+    setInterval(function () { loadStats(); }, 5000);
 
     // ----------------------------
-    // ТЕКСТОВЫЙ БЛОК: НАПРАВЛЕНИЕ ТЕКСТА
+    // TEXT DIRECTION
     // ----------------------------
     function applyTextDirection() {
         const lang = langSelectEl.value;
-
         if (lang === "he-IL") {
             inputTextEl.classList.add("rtl-text");
             inputTextEl.setAttribute("dir", "rtl");
@@ -1817,7 +3002,7 @@
     autoGrow(false);
 
     // ----------------------------
-    // ШРИФТ ИВРИТА
+    // HEBREW FONT
     // ----------------------------
     function applyHebrewFont() {
         const value = hebrewFontSelectEl.value;
@@ -1837,13 +3022,18 @@
         }
 
         document.documentElement.style.setProperty("--hebrew-font", fontStack);
+
+        // если таблица на экране — перерисуем автофит/ширины не ломая базовые
+        if (Array.isArray(currentTableData) && currentTableData.length > 0) {
+            applyColgroupWidthsToDom(); // просто обновим проценты (они не зависят от шрифта), но header измерения в future
+        }
     }
 
     hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
     applyHebrewFont();
 
     // ----------------------------
-    // TTS: ОЗВУЧКА + ЛОКАЛЬНЫЙ/СЕРВЕРНЫЙ КЭШ
+    // TTS
     // ----------------------------
     async function playTTS() {
         if (!validate()) return;
@@ -1852,7 +3042,7 @@
         const currentLang = getLang();
         const cfg = getTtsVoiceConfig();
 
-        // 1) Попытка взять аудио из локального кэша браузера
+        // 1) local cache
         try {
             const raw = localStorage.getItem(AUDIO_CACHE_KEY);
             if (raw) {
@@ -1870,7 +3060,7 @@
                     renderAudioFromBase64(
                         cache.audioBase64,
                         "восстановлена из локального кэша браузера (без запроса к серверу)",
-    true
+                        true
                     );
                     showToast("Озвучка восстановлена из локального кэша");
                     loadStats();
@@ -1881,7 +3071,7 @@
             console.error("Audio local cache short-circuit error", e);
         }
 
-        // 2) Запрос на сервер (/api/tts) с серверным кэшем
+        // 2) server
         try {
             const res = await apiCall("/api/tts", {
                 text: getText(),
@@ -1903,12 +3093,7 @@
                 console.error("Audio cache save error", e);
             }
 
-            if (res.fromCache) {
-                showToast("Озвучка восстановлена из серверного кэша");
-            } else {
-                showToast("Озвучка сгенерирована через Google TTS");
-            }
-
+            showToast(res.fromCache ? "Озвучка восстановлена из серверного кэша" : "Озвучка сгенерирована через Google TTS");
             loadStats();
         } catch (e) {
             showError(e.message);
@@ -1916,35 +3101,30 @@
     }
 
     function renderAudioFromBase64(base64Audio, noteText, shouldAutoplay) {
-    const binary = atob(base64Audio);
-    const len = binary.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binary.charCodeAt(i);
+        const binary = atob(base64Audio);
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+
+        lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
+
+        if (lastAudioUrl) URL.revokeObjectURL(lastAudioUrl);
+        lastAudioUrl = URL.createObjectURL(lastAudioBlob);
+
+        const audioContainer = document.getElementById("audioContainer");
+        const autoplayAttr = shouldAutoplay ? " autoplay" : "";
+
+        audioContainer.innerHTML =
+            '<div class="audio-block">' +
+            '  <audio controls src="' + lastAudioUrl + '"' + autoplayAttr + '></audio>' +
+            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+            '    ⬇ Скачать MP3' +
+            '  </button>' +
+            '</div>';
+
+        clearAudioStale();
+        setResultsMeta("audio", noteText || null);
     }
-    lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
-
-    if (lastAudioUrl) {
-        URL.revokeObjectURL(lastAudioUrl);
-    }
-    lastAudioUrl = URL.createObjectURL(lastAudioBlob);
-
-    const audioContainer = document.getElementById("audioContainer");
-
-    const autoplayAttr = shouldAutoplay ? " autoplay" : "";
-
-    audioContainer.innerHTML =
-        '<div class="audio-block">' +
-        '  <audio controls src="' + lastAudioUrl + '"' + autoplayAttr + '></audio>' +
-        '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-        '    ⬇ Скачать MP3' +
-        '  </button>' +
-        '</div>';
-
-    clearAudioStale();
-    setResultsMeta("audio", noteText || null);
-}
-
 
     function saveAudioCache(text, lang, cfg, base64Audio) {
         const payload = {
@@ -1955,14 +3135,9 @@
             pitch: cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0.0,
             audioBase64: base64Audio
         };
-        try {
-            localStorage.setItem(AUDIO_CACHE_KEY, JSON.stringify(payload));
-        } catch (e) {
-            console.error("Audio cache save error", e);
-        }
+        localStorage.setItem(AUDIO_CACHE_KEY, JSON.stringify(payload));
     }
 
-    // ВОССТАНОВЛЕНИЕ АУДИО ИЗ ЛОКАЛЬНОГО КЭША ПРИ ЗАГРУЗКЕ
     (function restoreAudioFromCache() {
         try {
             const raw = localStorage.getItem(AUDIO_CACHE_KEY);
@@ -1980,14 +3155,12 @@
                 (typeof cache.voiceId === "string" && cache.voiceId !== cfgNow.voiceId) ||
                 (typeof cache.rate === "number" && cache.rate !== cfgNow.rate) ||
                 (typeof cache.pitch === "number" && cache.pitch !== cfgNow.pitch)
-            ) {
-                return;
-            }
+            ) return;
 
             renderAudioFromBase64(
                 cache.audioBase64,
                 "восстановлена из локального кэша браузера (без запроса к серверу)",
-    false
+                false
             );
         } catch (e) {
             console.error("Audio cache restore error", e);
@@ -1995,7 +3168,7 @@
     })();
 
     // ----------------------------
-    // СКАЧАТЬ MP3 ИЗ КЭША
+    // DOWNLOAD MP3
     // ----------------------------
     function downloadMp3FromCache() {
         if (audioIsStale) {
@@ -2025,7 +3198,7 @@
     }
 
     // ----------------------------
-    // ПРОВЕРКА, ЗАБЛОКИРОВАН ЛИ GEMINI
+    // GEMINI LOCK UI
     // ----------------------------
     function isGeminiLocked() {
         if (!geminiLockType || !geminiLockUntil) return false;
@@ -2043,9 +3216,7 @@
             geminiNextResetAt = resetAt;
         }
 
-        if (geminiLimitTimerId) {
-            clearInterval(geminiLimitTimerId);
-        }
+        if (geminiLimitTimerId) clearInterval(geminiLimitTimerId);
         updateGeminiLockUI();
         geminiLimitTimerId = setInterval(updateGeminiLockUI, 1000);
     }
@@ -2081,10 +3252,7 @@
         updateAiButtonState(true);
 
         if (geminiLockType === "rate") {
-            showLimitBanner(
-                "rate",
-                "Лимит скорости Gemini (rate-limit). Новый перевод будет доступен через " + formatDuration(sec) + "."
-            );
+            showLimitBanner("rate", "Лимит скорости Gemini (rate-limit). Новый перевод будет доступен через " + formatDuration(sec) + ".");
         } else if (geminiLockType === "daily") {
             let text = "Дневной лимит Gemini исчерпан.";
             if (geminiNextResetAt && !isNaN(geminiNextResetAt.getTime())) {
@@ -2103,15 +3271,9 @@
     function showLimitBanner(type, text) {
         limitBannerEl.textContent = text || "";
         limitBannerEl.classList.remove("limit-rate", "limit-daily", "limit-info");
-
-        if (type === "rate") {
-            limitBannerEl.classList.add("limit-rate");
-        } else if (type === "daily") {
-            limitBannerEl.classList.add("limit-daily");
-        } else {
-            limitBannerEl.classList.add("limit-info");
-        }
-
+        if (type === "rate") limitBannerEl.classList.add("limit-rate");
+        else if (type === "daily") limitBannerEl.classList.add("limit-daily");
+        else limitBannerEl.classList.add("limit-info");
         limitBannerEl.style.display = "block";
     }
 
@@ -2138,14 +3300,14 @@
     }
 
     // ----------------------------
-    // ПЕРЕВОД (Gemini -> таблица)
+    // TRANSLATE TABLE
     // ----------------------------
     async function translateTable() {
         if (!validate()) return;
 
         const currentText = getText().trim();
 
-        // сначала попытка локального табличного кэша
+        // local table cache first
         try {
             const rawCache = localStorage.getItem(TABLE_CACHE_KEY);
             if (rawCache) {
@@ -2165,10 +3327,7 @@
                     tableIsStale = false;
                     if (btnWordEl) btnWordEl.classList.remove("disabled");
 
-                    setResultsMeta(
-                        "table",
-                        "перевод восстановлен из локального кэша браузера (без запроса к Gemini)"
-                    );
+                    setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
 
                     downloadWord(lastDocxFilename);
 
@@ -2194,17 +3353,27 @@
         setLoading(true);
         setAiButtonDisabled(true);
         document.getElementById("errorMsg").textContent = "";
-        document.getElementById("tableContainer").innerHTML = "";
+		
+		// P0.5 safety: при новом переводе сбрасываем навигационный якорь, чтобы не подсвечивать “старый индекс” на новом контенте
+        try { if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause(); } catch (_) {}
+		
+        // Week 6 guard: новый перевод/перерисовка таблицы => плейлист должен быть остановлен
+rowPlaylistRunActive = false;
+updatePlaylistButtonUI();
+
+clearRowPlayingState(true); // true => также очистит selected
+document.getElementById("tableContainer").innerHTML = "";
+
         clearResultsMeta("table");
 
         try {
-            const res = await apiCall("/api/translate-table", {
-                text: getText()
-            });
+            const res = await apiCall("/api/translate-table", { text: getText() });
 
-            currentTableData = res.rows || [];
+// P0.5 safety: новый контент => не подсвечиваем “старый индекс”
+clearRowSelectedUI();
 
-            renderTable(currentTableData);
+currentTableData = res.rows || [];
+renderTable(currentTableData);
 
             if (currentTableData.length > 0) {
                 clearTableStale();
@@ -2227,15 +3396,9 @@
                 }
 
                 if (res.fromCache === true) {
-                    setResultsMeta(
-                        "table",
-                        "сгенерирована из серверного кэша (без запроса к Gemini)"
-                    );
+                    setResultsMeta("table", "сгенерирована из серверного кэша (без запроса к Gemini)");
                 } else {
-                    setResultsMeta(
-                        "table",
-                        "сгенерирована через Gemini API"
-                    );
+                    setResultsMeta("table", "сгенерирована через Gemini API");
                 }
 
                 downloadWord(autoName);
@@ -2264,28 +3427,20 @@
         const retryAfterSecRaw =
             (typeof error.retryAfterSec === "number")
                 ? error.retryAfterSec
-                : (error.raw && typeof error.raw.retryAfterSec === "number"
-                    ? error.raw.retryAfterSec
-                    : null);
+                : (error.raw && typeof error.raw.retryAfterSec === "number" ? error.raw.retryAfterSec : null);
         let retryAfterSec = retryAfterSecRaw;
 
         let resetAt = null;
-        if (error.resetAt) {
-            resetAt = new Date(error.resetAt);
-        } else if (error.raw && error.raw.resetAt) {
-            resetAt = new Date(error.raw.resetAt);
-        }
+        if (error.resetAt) resetAt = new Date(error.resetAt);
+        else if (error.raw && error.raw.resetAt) resetAt = new Date(error.raw.resetAt);
 
         if (type === "rate-limit" || type === "rate") {
-            if (!retryAfterSec || retryAfterSec > 3600) {
-                retryAfterSec = 60;
-            }
+            if (!retryAfterSec || retryAfterSec > 3600) retryAfterSec = 60;
             setGeminiLock("rate", retryAfterSec);
             showLimitBanner("rate", "Лимит скорости Gemini. Новый перевод будет доступен через " + formatDuration(retryAfterSec) + ".");
         } else if (type === "daily-limit" || type === "daily") {
-            if (!resetAt && geminiNextResetAt instanceof Date) {
-                resetAt = geminiNextResetAt;
-            }
+            if (!resetAt && geminiNextResetAt instanceof Date) resetAt = geminiNextResetAt;
+
             if (resetAt instanceof Date && !isNaN(resetAt.getTime())) {
                 const sec = Math.max(1, Math.round((resetAt.getTime() - Date.now()) / 1000));
                 setGeminiLock("daily", sec, resetAt);
@@ -2301,27 +3456,143 @@
     }
 
     // ----------------------------
-    // ОТРИСОВКА ТАБЛИЦЫ (с учётом видимых колонок + автоширины)
+    // PRO: strict sum widths = 100% (visible)
     // ----------------------------
-    function renderTable(rows) {
-        if (!Array.isArray(rows) || rows.length === 0) {
-            document.getElementById("tableContainer").innerHTML = "";
+    function normalizeVisibleBaseWidthsTo100() {
+        const visibleKeys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
+        if (visibleKeys.length < 1) return;
+
+        // соберём текущие базовые веса видимых
+        let sum = 0;
+        const idxMap = {};
+        visibleKeys.forEach(function (k) {
+            const idx = TABLE_COL_ORDER.indexOf(k);
+            idxMap[k] = idx;
+            const v = Number(tableBaseWidths[idx]);
+            const safe = Number.isFinite(v) && v > RESIZE_SNAP_EPS ? v : 1;
+            sum += safe;
+        });
+
+        if (sum <= 0) {
+            // равномерно
+            const each = 100 / visibleKeys.length;
+            visibleKeys.forEach(function (k) {
+                const idx = idxMap[k];
+                tableBaseWidths[idx] = each;
+            });
+            // скрытые оставляем как есть
             return;
         }
 
-        // Эффективные ширины видимых колонок (ренормализация базовых весов до 100%)
-        const eff = computeEffectiveWidths();
+        const factor = 100 / sum;
+        visibleKeys.forEach(function (k) {
+            const idx = idxMap[k];
+            tableBaseWidths[idx] = tableBaseWidths[idx] * factor;
+        });
 
-        // Какие колонки сейчас отображаются (в фиксированном порядке)
+        // корректируем округление в последнюю видимую
+        let total = 0;
+        visibleKeys.forEach(function (k) {
+            const idx = idxMap[k];
+            total += Number(tableBaseWidths[idx]) || 0;
+        });
+        const delta = 100 - total;
+        const lastKey = visibleKeys[visibleKeys.length - 1];
+        tableBaseWidths[idxMap[lastKey]] = (Number(tableBaseWidths[idxMap[lastKey]]) || 0) + delta;
+
+        // минимальные границы: если после нормализации что-то ушло ниже минимума, мягко поправим
+        enforceMinWidthsWithLocalAdjust();
+    }
+
+    function enforceMinWidthsWithLocalAdjust() {
+        const visibleKeys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
+        if (visibleKeys.length < 1) return;
+
+        // Если 1 колонка — она =100
+        if (visibleKeys.length === 1) {
+            const idx = TABLE_COL_ORDER.indexOf(visibleKeys[0]);
+            tableBaseWidths[idx] = 100;
+            return;
+        }
+
+        // Поддержим минимум: если какие-то ниже минимума — поднимем, отнимем у самой широкой.
+        // Это “страховка” — основной clamp выполняется при drag/autofit.
+        let changed = false;
+        for (let i = 0; i < visibleKeys.length; i++) {
+            const k = visibleKeys[i];
+            const idx = TABLE_COL_ORDER.indexOf(k);
+            const v = Number(tableBaseWidths[idx]) || 0;
+            if (v < RESIZE_MIN_COL_PERCENT) {
+                const deficit = RESIZE_MIN_COL_PERCENT - v;
+                tableBaseWidths[idx] = RESIZE_MIN_COL_PERCENT;
+                changed = true;
+
+                // отнимем у max
+                let maxKey = null;
+                let maxVal = -1;
+                for (let j = 0; j < visibleKeys.length; j++) {
+                    const kk = visibleKeys[j];
+                    if (kk === k) continue;
+                    const ii = TABLE_COL_ORDER.indexOf(kk);
+                    const vv = Number(tableBaseWidths[ii]) || 0;
+                    if (vv > maxVal) { maxVal = vv; maxKey = kk; }
+                }
+                if (maxKey) {
+                    const mi = TABLE_COL_ORDER.indexOf(maxKey);
+                    tableBaseWidths[mi] = Math.max(RESIZE_MIN_COL_PERCENT, (Number(tableBaseWidths[mi]) || 0) - deficit);
+                }
+            }
+        }
+
+        if (changed) {
+            // вернём сумму к 100
+            const keys = TABLE_COL_ORDER.filter(function (k) { return tableVisibleColumns[k]; });
+            let sum = 0;
+            keys.forEach(function (k) {
+                const idx = TABLE_COL_ORDER.indexOf(k);
+                sum += Number(tableBaseWidths[idx]) || 0;
+            });
+            if (sum !== 100) {
+                const lastKey = keys[keys.length - 1];
+                const li = TABLE_COL_ORDER.indexOf(lastKey);
+                tableBaseWidths[li] = (Number(tableBaseWidths[li]) || 0) + (100 - sum);
+            }
+        }
+    }
+
+    // ----------------------------
+    // RENDER TABLE (with colgroup + grips)
+    // ----------------------------
+    function renderTable(rows) {
+        if (!Array.isArray(rows) || rows.length === 0) {
+    document.getElementById("tableContainer").innerHTML = "";
+
+    // Week 6 guard: если таблицы нет — плейлист не может быть активен
+    rowPlaylistRunActive = false;
+    updatePlaylistButtonUI();
+
+    // AR-11: индексы не должны сохраняться без таблицы
+    rowPlayingRowIdx = null;
+    rowPlayingCacheKey = null;
+    rowSelectedRowIdx = null;
+    saveLastSelectedRowIdx(null);
+
+    return;
+}
+
+
+
+        // гарантируем строгую сумму базовых ширин
+        normalizeVisibleBaseWidthsTo100();
+
+        const eff = computeEffectiveWidths();
         const cols = TABLE_COL_ORDER.filter(function (k) { return !!tableVisibleColumns[k]; });
 
         if (!cols || cols.length < 1) {
-            // Защита: если по какой-то причине нет видимых колонок — откатываемся к полной таблице
             applyPreset("full");
             return renderTable(rows);
         }
 
-        // Заголовки и шаблоны вывода
         const colMeta = {
             he: { title: "Иврит", headerClass: "rtl", cellClass: "rtl rtl-he" },
             niqqud: { title: "Огласовки", headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
@@ -2330,12 +3601,12 @@
         };
 
         let html = '' +
-            '<table>' +
+            '<table id="proTable" data-cols="' + cols.join(",") + '">' +
             '  <colgroup>';
 
         cols.forEach(function (k) {
             const w = eff[k] || 0;
-            html += '<col style="width:' + Number(w).toFixed(4) + '%;">';
+            html += '<col data-col="' + k + '" style="width:' + Number(w).toFixed(6) + '%;">';
         });
 
         html += '' +
@@ -2343,10 +3614,18 @@
             '  <thead>' +
             '    <tr>';
 
-        cols.forEach(function (k) {
+        cols.forEach(function (k, idx) {
             const meta = colMeta[k] || { title: k };
             const cls = meta.headerClass ? (' class="' + meta.headerClass + '"') : "";
-            html += '<th' + cls + '>' + escapeHtml(meta.title) + '</th>';
+            const isLast = (idx === cols.length - 1);
+
+            // грип только если есть сосед справа
+            const gripClass = isLast ? "col-resizer hidden" : "col-resizer";
+
+            html += '<th data-col="' + k + '"' + cls + '>' +
+                escapeHtml(meta.title) +
+'<div class="' + gripClass + '" data-resize="1" title="Потяните для изменения ширины."></div>'
+                '</th>';
         });
 
         html += '' +
@@ -2354,36 +3633,486 @@
             '  </thead>' +
             '  <tbody>';
 
-        rows.forEach(function (row) {
-            const he = row.he || "";
-            const heNiqqud = row.he_niqqud || "";
-            const translit = row.translit || "";
-            const ru = row.ru || "";
+        rows.forEach(function (row, rowIdx) {
+    const he = row.he || "";
+    const heNiqqud = row.he_niqqud || "";
+    const translit = row.translit || "";
+    const ru = row.ru || "";
 
-            html += '<tr>';
+    // Куда ставим кнопку: he если видима, иначе niqqud если видима
+    const putBtnIn = tableVisibleColumns.he ? "he" : (tableVisibleColumns.niqqud ? "niqqud" : null);
 
-            cols.forEach(function (k) {
-                const meta = colMeta[k] || {};
-                const tdClass = meta.cellClass ? (' class="' + meta.cellClass + '"') : "";
-                let value = "";
-                if (k === "he") value = he;
-                else if (k === "niqqud") value = heNiqqud;
-                else if (k === "translit") value = translit;
-                else if (k === "ru") value = ru;
+    html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1">';
 
-                html += '<td' + tdClass + '>' + escapeHtml(value) + '</td>';
-            });
+    cols.forEach(function (k) {
+        const meta = colMeta[k] || {};
+        const tdClass = meta.cellClass ? (' class="' + meta.cellClass + '"') : "";
 
-            html += '</tr>';
-        });
+        let value = "";
+        if (k === "he") value = he;
+        else if (k === "niqqud") value = heNiqqud;
+        else if (k === "translit") value = translit;
+        else if (k === "ru") value = ru;
+
+        // Row TTS button only in the chosen column
+        if (putBtnIn && k === putBtnIn) {
+            const safeText = escapeHtml(value);
+            const btnHtml =
+                '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
+                'title="Озвучить эту строку" aria-label="Озвучить строку">' +
+                '▶</button>';
+
+            html += '<td data-col="' + k + '"' + tdClass + '>' +
+                    '<div class="cell-he-wrap">' +
+                    btnHtml +
+                    '<div class="row-tts-text">' + safeText + '</div>' +
+                    '</div>' +
+                    '</td>';
+        } else {
+            html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
+        }
+    });
+
+    html += '</tr>';
+});
+
 
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
+
+// P0.5+: восстановить sticky-состояния строк после пересборки DOM (пресеты/чекбоксы/сброс настроек)
+// Важно: НЕ сбрасываем selected из-за “битого” playing-индекса во время view-операций.
+
+const __tableEl = document.getElementById("proTable");
+const __rowsEls = __tableEl ? __tableEl.querySelectorAll('tbody tr[data-row-idx]') : [];
+const __rowCount = __rowsEls.length;
+
+let playingRestored = false;
+
+if (typeof rowPlayingRowIdx === "number" && Number.isFinite(rowPlayingRowIdx)) {
+    if (rowPlayingRowIdx >= 0 && rowPlayingRowIdx < __rowCount) {
+        setRowPlayingUI(rowPlayingRowIdx, true);
+        playingRestored = true;
+    } else {
+    // AR-11/PATCH-07.2: invalid playing restore => clear playing + cacheKey (не трогаем selected)
+    clearRowPlayingState(false);
+}
+}
+
+// Если selected ещё не задан в памяти — пробуем поднять из localStorage
+if (rowSelectedRowIdx === null || !Number.isFinite(rowSelectedRowIdx)) {
+    const stored = loadLastSelectedRowIdx();
+    if (typeof stored === "number" && Number.isFinite(stored)) {
+        rowSelectedRowIdx = stored;
+    }
+}
+
+if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx)) {
+    if (rowSelectedRowIdx >= 0 && rowSelectedRowIdx < __rowCount) {
+        setRowSelectedUI(rowSelectedRowIdx);
+    } else {
+        clearRowSelectedUI(); // централизованный сброс + Week 6 guard
+    }
+}
+
+
+
+// подключаем resize-handlers к свежесозданной таблице
+attachResizeHandlers();
+scheduleAdaptiveTableHeight();
+
+// AR-11: после innerHTML-пересборки — выравниваем индексы/классы
+normalizeRowStateIndices("renderTable/post");
+rowUxInvariantCheck("renderTable/post");
+
+updatePlaylistButtonUI();
+    }
+
+	// ----------------------------
+// PRO: Resizable Split (Table height) — Variant A (real height, no viewport ceiling)
+// ----------------------------
+let __tableHTimer = null;
+
+const TABLE_MIN_H = 360;     // ≈ 5 строк — фиксированное требование
+
+// user height: если null — авто-режим (под контент/вьюпорт по умолчанию)
+let tableUserHeightPx = null;
+
+// ---------- storage ----------
+function loadTableHeightSetting() {
+    try {
+        const raw = localStorage.getItem(TABLE_HEIGHT_STORAGE_KEY);
+        if (!raw) return;
+
+        const obj = JSON.parse(raw);
+        if (!obj || typeof obj !== "object") return;
+
+        const v = Number(obj.heightPx);
+        if (Number.isFinite(v) && v >= TABLE_MIN_H) {
+            tableUserHeightPx = Math.floor(v);
+        }
+    } catch (e) {
+        console.error("Table height load error", e);
+    }
+}
+
+function saveTableHeightSetting(heightPx) {
+    try {
+        localStorage.setItem(
+            TABLE_HEIGHT_STORAGE_KEY,
+            JSON.stringify({ heightPx: heightPx, savedAt: new Date().toISOString() })
+        );
+    } catch (e) {
+        console.error("Table height save error", e);
+    }
+}
+
+function clearTableHeightSetting() {
+    tableUserHeightPx = null;
+    try { localStorage.removeItem(TABLE_HEIGHT_STORAGE_KEY); } catch (_) {}
+}
+
+// ---------- compute default ----------
+function computeAutoTableHeightPx() {
+    // Variant A: авто-режим = “комфортная высота”
+    // 62vh, но не меньше TABLE_MIN_H.
+    const vh = window.innerHeight || document.documentElement.clientHeight || 800;
+    const autoPx = Math.floor(vh * 0.62);
+    return Math.max(TABLE_MIN_H, autoPx);
+}
+
+// ---------- apply ----------
+function applyTableHeightNow() {
+    const container = document.getElementById("tableContainer");
+    if (!container) return;
+
+    const target = (tableUserHeightPx && Number.isFinite(tableUserHeightPx))
+        ? Math.max(TABLE_MIN_H, Math.floor(tableUserHeightPx))
+        : computeAutoTableHeightPx();
+
+    // Variant A: управляем реальной высотой
+    container.style.height = target + "px";
+    container.style.maxHeight = "none";
+    container.style.setProperty("--tableH", target + "px");
+}
+
+function scheduleAdaptiveTableHeight() {
+    if (__tableHTimer) clearTimeout(__tableHTimer);
+    __tableHTimer = setTimeout(function () {
+        requestAnimationFrame(applyTableHeightNow);
+    }, 60);
+}
+
+// ---------- drag handler ----------
+const tableResizeState = {
+    active: false,
+    pointerId: null,
+    startY: 0,
+    startHeight: 0
+};
+
+function initTableHeightResizer() {
+    loadTableHeightSetting();
+
+    const resizer = document.getElementById("tableHeightResizer");
+    if (!resizer) return;
+
+    resizer.addEventListener("pointerdown", function (e) {
+        const container = document.getElementById("tableContainer");
+        if (!container) return;
+
+        // Обновим текущую высоту перед стартом
+        applyTableHeightNow();
+
+        const currentH = parseInt(container.style.height || "0", 10);
+        const startH = Number.isFinite(currentH) && currentH > 0 ? currentH : computeAutoTableHeightPx();
+
+        tableResizeState.active = true;
+        tableResizeState.pointerId = e.pointerId;
+        tableResizeState.startY = e.clientY;
+        tableResizeState.startHeight = startH;
+
+        document.body.classList.add("resizing-rows");
+        try { resizer.setPointerCapture(e.pointerId); } catch (_) {}
+
+        window.addEventListener("pointermove", onTableResizerMove, { passive: false });
+        window.addEventListener("pointerup", onTableResizerUp, { passive: false });
+        window.addEventListener("pointercancel", onTableResizerUp, { passive: false });
+
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    // double click = reset to Auto
+    resizer.addEventListener("dblclick", function () {
+        clearTableHeightSetting();
+        applyTableHeightNow();
+        showToast("Высота таблицы сброшена (Auto)");
+    });
+
+    // первичное применение
+    applyTableHeightNow();
+}
+
+function onTableResizerMove(e) {
+    if (!tableResizeState.active) return;
+    if (tableResizeState.pointerId !== e.pointerId) return;
+
+    const container = document.getElementById("tableContainer");
+    if (!container) return;
+
+    const dy = e.clientY - tableResizeState.startY;
+    const next = tableResizeState.startHeight + dy;
+
+    // Variant A: clamp только по MIN (без потолка viewport)
+    const clamped = Math.max(TABLE_MIN_H, Math.floor(next));
+
+    tableUserHeightPx = clamped;
+    container.style.height = clamped + "px";
+    container.style.maxHeight = "none";
+    container.style.setProperty("--tableH", clamped + "px");
+
+    e.preventDefault();
+}
+
+function onTableResizerUp(e) {
+    if (!tableResizeState.active) return;
+    if (tableResizeState.pointerId !== e.pointerId) return;
+
+    tableResizeState.active = false;
+    tableResizeState.pointerId = null;
+
+    document.body.classList.remove("resizing-rows");
+
+    window.removeEventListener("pointermove", onTableResizerMove, { passive: false });
+    window.removeEventListener("pointerup", onTableResizerUp, { passive: false });
+    window.removeEventListener("pointercancel", onTableResizerUp, { passive: false });
+
+    if (tableUserHeightPx && Number.isFinite(tableUserHeightPx)) {
+        saveTableHeightSetting(tableUserHeightPx);
+        showToast("Высота таблицы сохранена");
+    }
+
+    e.preventDefault();
+}
+
+// init
+window.addEventListener("load", function () {
+    initTableHeightResizer();
+    scheduleAdaptiveTableHeight();
+});
+window.addEventListener("resize", scheduleAdaptiveTableHeight);
+
+
+    function applyColgroupWidthsToDom() {
+        const table = document.getElementById("proTable");
+        if (!table) return;
+
+        const colsStr = table.getAttribute("data-cols") || "";
+        const cols = colsStr.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+        if (cols.length < 1) return;
+
+        normalizeVisibleBaseWidthsTo100();
+        const eff = computeEffectiveWidths();
+
+        const colEls = table.querySelectorAll("colgroup col[data-col]");
+        colEls.forEach(function (colEl) {
+            const k = colEl.getAttribute("data-col");
+            if (!k) return;
+            const w = eff[k] || 0;
+            colEl.style.width = Number(w).toFixed(6) + "%";
+        });
+
+        // сохраняем настройки при любом применении (после resize/autofit)
+        saveTableSettings();
     }
 
     // ----------------------------
-    // ИМЕНА ФАЙЛОВ DOCX / MP3
+    // PRO RESIZE: handlers (pointer)
+    // ----------------------------
+    function attachResizeHandlers() {
+        const table = document.getElementById("proTable");
+        if (!table) return;
+
+        // Защита от повторного навешивания при каждом renderTable()
+        if (table.dataset.resizeBound === "1") return;
+        table.dataset.resizeBound = "1";
+
+        table.addEventListener("pointerdown", onResizePointerDown);
+    }
+
+
+
+    function onResizePointerDown(e) {
+        const grip = e.target && e.target.closest ? e.target.closest(".col-resizer[data-resize='1']") : null;
+        if (!grip || grip.classList.contains("hidden")) return;
+
+        const th = grip.closest("th");
+        const table = grip.closest("table");
+        if (!th || !table) return;
+
+        const leftKey = th.getAttribute("data-col");
+        if (!leftKey) return;
+
+        const colsStr = table.getAttribute("data-cols") || "";
+        const cols = colsStr.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+        const leftIndex = cols.indexOf(leftKey);
+        if (leftIndex < 0) return;
+
+        // по умолчанию сосед справа
+        const rightKey = (leftIndex + 1 < cols.length) ? cols[leftIndex + 1] : null;
+        if (!rightKey) return;
+
+        const tableRect = table.getBoundingClientRect();
+        const wPx = tableRect.width;
+        if (!wPx || wPx < 20) return;
+
+        // стартовые base widths (именно базовые, не эффективные)
+        const leftBase = getBaseWidthForKey(leftKey);
+        const rightBase = getBaseWidthForKey(rightKey);
+
+        resizeState.active = true;
+        resizeState.pointerId = e.pointerId;
+        resizeState.startX = e.clientX;
+        resizeState.tableWidthPx = wPx;
+        resizeState.leftKey = leftKey;
+        resizeState.rightKey = rightKey;
+        resizeState.startLeft = leftBase;
+        resizeState.startRight = rightBase;
+        document.body.classList.add("resizing-cols");
+
+        try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+
+        window.addEventListener("pointermove", onResizePointerMove, { passive: false });
+        window.addEventListener("pointerup", onResizePointerUp, { passive: false });
+        window.addEventListener("pointercancel", onResizePointerUp, { passive: false });
+
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    function onResizePointerMove(e) {
+        if (!resizeState.active) return;
+        if (resizeState.pointerId !== e.pointerId) return;
+
+        const dx = e.clientX - resizeState.startX;
+        const deltaPercent = (dx / resizeState.tableWidthPx) * 100;
+
+        applyLinkedResize(resizeState.leftKey, resizeState.rightKey, resizeState.startLeft, resizeState.startRight, deltaPercent);
+
+        // применяем к DOM без полной перерисовки
+        applyColgroupWidthsToDom();
+
+        e.preventDefault();
+    }
+
+    function onResizePointerUp(e) {
+        if (!resizeState.active) return;
+        if (resizeState.pointerId !== e.pointerId) return;
+
+        resizeState.active = false;
+        resizeState.pointerId = null;
+
+        document.body.classList.remove("resizing-cols");
+
+        window.removeEventListener("pointermove", onResizePointerMove, { passive: false });
+        window.removeEventListener("pointerup", onResizePointerUp, { passive: false });
+        window.removeEventListener("pointercancel", onResizePointerUp, { passive: false });
+
+        // финальное сохранение
+        normalizeVisibleBaseWidthsTo100();
+        saveTableSettings();
+
+        e.preventDefault();
+    }
+
+    
+
+    function getBaseWidthForKey(key) {
+        const idx = TABLE_COL_ORDER.indexOf(key);
+        if (idx < 0) return 0;
+        const v = Number(tableBaseWidths[idx]);
+        return (Number.isFinite(v) ? v : 0);
+    }
+
+    function setBaseWidthForKey(key, value) {
+        const idx = TABLE_COL_ORDER.indexOf(key);
+        if (idx < 0) return;
+        tableBaseWidths[idx] = value;
+    }
+
+    function applyLinkedResize(leftKey, rightKey, startLeft, startRight, deltaPercent) {
+        // Сумма левой и правой сохраняется (linked movement)
+        let newLeft = startLeft + deltaPercent;
+        let newRight = startRight - deltaPercent;
+
+        // ограничения
+        const min = RESIZE_MIN_COL_PERCENT;
+        const max = RESIZE_MAX_COL_PERCENT;
+
+        // если обе колонки видимы — clamp с учётом сохранения суммы
+        const total = startLeft + startRight;
+
+        // clamp left
+        if (newLeft < min) { newLeft = min; newRight = total - newLeft; }
+        if (newLeft > max) { newLeft = max; newRight = total - newLeft; }
+
+        // clamp right
+        if (newRight < min) { newRight = min; newLeft = total - newRight; }
+        if (newRight > max) { newRight = max; newLeft = total - newRight; }
+
+        // дополнительная защита на случай крайних значений
+        newLeft = Math.max(min, Math.min(max, newLeft));
+        newRight = Math.max(min, Math.min(max, newRight));
+
+        // записываем базовые
+        setBaseWidthForKey(leftKey, newLeft);
+        setBaseWidthForKey(rightKey, newRight);
+
+        // строгая сумма видимых = 100 (остальные видимые масштабируем)
+        normalizeVisibleBaseWidthsTo100();
+    }
+
+    // ----------------------------
+    // DOCX
+    // ----------------------------
+    async function downloadWord(customFilename) {
+        if (btnWordEl.classList.contains("disabled")) return;
+        if (!currentTableData || currentTableData.length === 0) {
+            showError("Нет данных для экспорта");
+            return;
+        }
+
+        const filename = customFilename || lastDocxFilename || "translation.docx";
+
+        try {
+            const res = await fetch("/api/export-docx", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ rows: currentTableData })
+            });
+
+            if (!res.ok) throw new Error("Ошибка экспорта");
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            showToast("DOCX-файл сохранён");
+        } catch (e) {
+            showError(e.message);
+        }
+    }
+
+    // ----------------------------
+    // FILENAMES
     // ----------------------------
     function generateDocxFileName() {
         const now = new Date();
@@ -2414,57 +4143,10 @@
     }
 
     // ----------------------------
-    // WORD (DOCX)
+    // UTILS
     // ----------------------------
-    async function downloadWord(customFilename) {
-        if (btnWordEl.classList.contains("disabled")) {
-            return;
-        }
-
-        if (!currentTableData || currentTableData.length === 0) {
-            showError("Нет данных для экспорта");
-            return;
-        }
-
-        const filename = customFilename || lastDocxFilename || "translation.docx";
-
-        try {
-            const res = await fetch("/api/export-docx", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rows: currentTableData })
-            });
-
-            if (!res.ok) {
-                throw new Error("Ошибка экспорта");
-            }
-
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
-            showToast("DOCX-файл сохранён");
-        } catch (e) {
-            showError(e.message);
-        }
-    }
-
-    // ----------------------------
-    // УТИЛИТЫ
-    // ----------------------------
-    function getText() {
-        return inputTextEl.value;
-    }
-
-    function getLang() {
-        return langSelectEl.value;
-    }
+    function getText() { return inputTextEl.value; }
+    function getLang() { return langSelectEl.value; }
 
     function validate() {
         if (!getText().trim()) {
@@ -2507,14 +4189,13 @@
             const details = json && json.details ? " (" + json.details + ")" : "";
             const err = new Error(msg + details);
             err.httpStatus = res.status;
+
             if (json) {
                 err.errorType = json.errorType || (json.details && json.details.errorType) || null;
                 err.retryAfterSec =
                     (typeof json.retryAfterSec === "number")
                         ? json.retryAfterSec
-                        : (json.details && typeof json.details.retryAfterSec === "number"
-                            ? json.details.retryAfterSec
-                            : null);
+                        : (json.details && typeof json.details.retryAfterSec === "number" ? json.details.retryAfterSec : null);
                 err.resetAt = json.resetAt || (json.details && json.details.resetAt) || null;
                 err.raw = json;
             }
@@ -2535,7 +4216,7 @@
     }
 
     // ----------------------------
-    // ОБНОВЛЕНИЕ ИНФОРМАЦИИ О TTS-ТАРИФЕ И ЛИМИТЕ
+    // TTS COST INFO
     // ----------------------------
     function updateTtsCostInfo() {
         const infoEl = document.getElementById("ttsCostInfo");
@@ -2545,13 +4226,10 @@
         const FREE_LIMIT = 4_000_000;
 
         if (infoEl) {
-            infoEl.textContent =
-                "Standard voices • до 4M символов/мес бесплатно, далее ≈4 $ за 1M";
+            infoEl.textContent = "Standard voices • до 4M символов/мес бесплатно, далее ≈4 $ за 1M";
         }
 
-        if (!quotaInfoEl || !quotaFillEl) {
-            return;
-        }
+        if (!quotaInfoEl || !quotaFillEl) return;
 
         const totalChars =
             lastUsageData && typeof lastUsageData.ttsChars === "number"
@@ -2572,85 +4250,368 @@
     }
 
     // ----------------------------
-    // УПРАВЛЕНИЕ БЛОКОМ ГОРЯЧИХ КЛАВИШ
+    // HOTKEYS PANEL
     // ----------------------------
-    function toggleHotkeysPanel(forceState) {
-        if (!hotkeysPanelEl) return;
-        if (typeof forceState === "boolean") {
-            hotkeysPanelEl.classList.toggle("hotkeys-hidden", !forceState);
-        } else {
-            hotkeysPanelEl.classList.toggle("hotkeys-hidden");
-        }
+    function toggleHotkeysPanel(forceExpanded) {
+    if (!hotkeysPanelEl) return;
+
+    // expanded=true  => раскрыть (убрать collapsed)
+    // expanded=false => свернуть (добавить collapsed)
+    if (typeof forceExpanded === "boolean") {
+        hotkeysPanelEl.classList.toggle("hotkeys-collapsed", !forceExpanded);
+    } else {
+        hotkeysPanelEl.classList.toggle("hotkeys-collapsed");
     }
+}
+
 
     // ----------------------------
-    // ГЛОБАЛЬНЫЕ ГОРЯЧИЕ КЛАВИШИ
+    // GLOBAL HOTKEYS
     // ----------------------------
     document.addEventListener("keydown", function (event) {
-        if (
-            event.ctrlKey &&
-            !event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            event.key === "Enter"
-        ) {
+        if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey && event.key === "Enter") {
             event.preventDefault();
             playTTS();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            event.key === "Enter"
-        ) {
+        if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && event.key === "Enter") {
             event.preventDefault();
             translateTable();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            (event.key === "Backspace" || event.key === "Delete")
-        ) {
+        if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey && (event.key === "Backspace" || event.key === "Delete")) {
             event.preventDefault();
             clearTextWithConfirm();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            (
-                event.code === "KeyS" ||
-                (typeof event.key === "string" && event.key.toLowerCase() === "s")
-            )
-        ) {
+        if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey &&
+            (event.code === "KeyS" || (typeof event.key === "string" && event.key.toLowerCase() === "s"))) {
             event.preventDefault();
             downloadMp3FromCache();
             return;
         }
 
-        if (
-            event.ctrlKey &&
-            !event.shiftKey &&
-            !event.altKey &&
-            !event.metaKey &&
-            (event.key === "/" || event.code === "Slash")
-        ) {
+        if (event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey &&
+            (event.key === "/" || event.code === "Slash")) {
             event.preventDefault();
             toggleHotkeysPanel();
             return;
         }
+		        // ----------------------------
+        // P1: Keyboard navigation in table (↑/↓ + Enter)
+        // Активируется только если уже есть навигационный “якорь” (selected или playing),
+        // и только когда пользователь НЕ печатает в input/textarea/select/contenteditable.
+        // ----------------------------
+        (function () {
+            if (document.body.classList.contains("resizing-cols") || document.body.classList.contains("resizing-rows")) return;
+
+            const activeEl = document.activeElement;
+
+            function isTypingContext(el) {
+                if (!el) return false;
+                const tag = (el.tagName || "").toUpperCase();
+                if (tag === "TEXTAREA") return true;
+                if (tag === "SELECT") return true;
+                if (tag === "INPUT") {
+                    const t = (el.getAttribute("type") || "text").toLowerCase();
+                    const typingTypes = new Set(["text", "search", "email", "url", "tel", "password", "number"]);
+                    return typingTypes.has(t);
+                }
+                if (el.isContentEditable) return true;
+                return false;
+            }
+
+            // не вмешиваемся, если пользователь печатает/редактирует текст
+            if (isTypingContext(activeEl)) return;
+
+            const table = document.getElementById("proTable");
+            if (!table) return;
+
+            const hasSelected = (typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx));
+            const hasPlaying = (typeof rowPlayingRowIdx === "number" && Number.isFinite(rowPlayingRowIdx));
+
+            // стартуем навигацию только если уже есть “якорь” (выбранная или проигрываемая строка)
+            if (!hasSelected && !hasPlaying) return;
+
+            // не мешаем вашим Ctrl/Alt/Meta хоткеям
+            if (event.ctrlKey || event.altKey || event.metaKey) return;
+			const key = event.key;
+
+// Shift разрешаем только для Shift+Enter в плейлист-режиме.
+const isShiftEnterPlaylist = (key === "Enter" && event.shiftKey && autoNextEnabled);
+
+// Для стрелок/esc и для Shift+Enter при выключенном toggle — игнорируем.
+if (event.shiftKey && !isShiftEnterPlaylist) return;
+
+if (key !== "ArrowDown" && key !== "ArrowUp" && key !== "Enter" && key !== "Escape") return;
+
+
+			if (key === "Escape") {
+    rowPlaylistRunActive = false;
+    updatePlaylistButtonUI();
+
+    if (typeof rowAudioPlayer !== "undefined" && rowAudioPlayer && !rowAudioPlayer.paused) {
+        event.preventDefault();
+        try { rowAudioPlayer.pause(); } catch (_) {}
+        try { rowAudioPlayer.currentTime = 0; } catch (_) {}
+        clearRowPlayingState(false);
+        
+    }
+    return;
+}
+
+            const rows = table.querySelectorAll("tbody tr[data-row-idx]");
+            if (!rows || rows.length < 1) return;
+			rowUxInvariantCheck("hotkeys");
+
+            function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+            function getBaseRowIdx() {
+                if (hasSelected) return rowSelectedRowIdx;
+                if (hasPlaying) return rowPlayingRowIdx;
+                return 0;
+            }
+
+            function scrollRowIntoView(rowIdx) {
+                const container = document.getElementById("tableContainer");
+                const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+                if (!container || !tr) return;
+
+                const cRect = container.getBoundingClientRect();
+                const rRect = tr.getBoundingClientRect();
+                const pad = 8;
+
+                if (rRect.top < cRect.top + pad) {
+                    container.scrollTop -= (cRect.top + pad - rRect.top);
+                } else if (rRect.bottom > cRect.bottom - pad) {
+                    container.scrollTop += (rRect.bottom - (cRect.bottom - pad));
+                }
+            }
+
+            function selectRow(nextIdx) {
+                nextIdx = clamp(nextIdx, 0, rows.length - 1);
+                setRowSelectedUI(nextIdx);
+                scrollRowIntoView(nextIdx);
+            }
+
+            if (key === "ArrowDown") {
+                event.preventDefault();
+                selectRow(getBaseRowIdx() + 1);
+                return;
+            }
+
+            if (key === "ArrowUp") {
+                event.preventDefault();
+                selectRow(getBaseRowIdx() - 1);
+                return;
+            }
+
+            if (key === "Enter") {
+    const idx = getBaseRowIdx();
+    const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]');
+
+    if (btn) {
+        event.preventDefault();
+
+        if (event.shiftKey && autoNextEnabled) {
+    rowPlaylistRunActive = true;
+    rowPlaylistAutoplayClick = true;
+    updatePlaylistButtonUI();
+    btn.click();
+} else if (!event.shiftKey) {
+    rowPlaylistRunActive = false;
+    updatePlaylistButtonUI();
+    btn.click();
+}
+
+    }
+    return;
+}
+
+        })();
+
     });
-    </script>
+	
+	
+	
+	
+	// ----------------------------
+// Variant A: focus-mode (dim non-active rows when there is an active playing/error row)
+function updateRowFocusMode() {
+    const table = document.getElementById("proTable");
+    if (!table) return;
+
+    const hasPlaying = !!table.querySelector("tbody tr.row-playing");
+    const hasError = !!table.querySelector("tbody tr.row-error");
+
+    if (hasPlaying || hasError) table.classList.add("focus-mode");
+    else table.classList.remove("focus-mode");
+}
+
+// =========================================================
+// Week 6 (Row UX) — Delegates (single bind, regression-safe)
+// =========================================================
+function initRowUxDelegatesOnce() {
+    if (window.__rowUxDelegatesBound === true) return;
+    window.__rowUxDelegatesBound = true;
+
+    // P0.5: Click on row => selected (without starting Row-TTS)
+    document.addEventListener("click", function (e) {
+        if (document.body.classList.contains("resizing-cols") || document.body.classList.contains("resizing-rows")) {
+            return;
+        }
+
+        const table = document.getElementById("proTable");
+        if (!table) return;
+
+        const tr = e.target && e.target.closest
+            ? e.target.closest("#proTable tbody tr[data-row-idx]")
+            : null;
+        if (!tr) return;
+		
+		// Week 6 guard: клики по ресайзерам не должны менять selection
+			if (e.target && e.target.closest) {
+			if (e.target.closest(".col-resizer") || e.target.closest("#tableResizer")) return;
+}
+
+
+        // не считаем “клик по ▶” как отдельный выбор строки — это обработает второй делегат
+        if (e.target && e.target.closest && e.target.closest("button.row-tts-btn")) return;
+
+        const rowIdx = Number(tr.getAttribute("data-row-idx"));
+        if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
+        if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) return;
+
+        setRowSelectedUI(rowIdx);
+    });
+
+    // Row TTS v1: event delegation
+    document.addEventListener("click", async function (e) {
+        const btn = e.target && e.target.closest ? e.target.closest("button.row-tts-btn") : null;
+        if (!btn) return;
+
+        const rowIdx = Number(btn.getAttribute("data-row-idx"));
+        if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
+
+        const __isPlaylistAutoplay = !!rowPlaylistAutoplayClick;
+        rowPlaylistAutoplayClick = false;
+
+        if (!__isPlaylistAutoplay) {
+            rowPlaylistRunActive = false;
+            updatePlaylistButtonUI();
+        }
+
+        if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) {
+            showToast("Строка не найдена");
+            return;
+        }
+
+        clearRowErrorState(rowIdx);
+
+        if (rowPlayingRowIdx === rowIdx && rowAudioPlayer && !rowAudioPlayer.paused) {
+            try { rowAudioPlayer.pause(); } catch (_) {}
+            clearRowPlayingState();
+            return;
+        }
+
+        if (rowAudioPlayer && !rowAudioPlayer.paused) {
+            try { rowAudioPlayer.pause(); } catch (_) {}
+        }
+        clearRowPlayingState();
+
+        const row = currentTableData[rowIdx];
+        const text = getRowTtsTextForRow(row);
+        if (!text) {
+            showToast("Нет текста для озвучки в этой строке");
+            return;
+        }
+
+        const cfg = getTtsVoiceConfig();
+        const lang = getRowTtsLanguage();
+        const cacheKey = buildRowTtsCacheKey(text, lang, cfg);
+
+        rowPlayingRowIdx = rowIdx;
+        rowPlayingCacheKey = cacheKey;
+
+        setRowButtonLoading(rowIdx, true);
+
+        try {
+            const cachedB64 = rowCacheGet(cacheKey);
+            if (cachedB64) {
+                const audio = ensureRowAudioPlayer();
+                const bytes = Uint8Array.from(atob(cachedB64), c => c.charCodeAt(0));
+                const blob = new Blob([bytes], { type: "audio/mpeg" });
+
+                if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+                rowAudioUrl = URL.createObjectURL(blob);
+
+                audio.src = rowAudioUrl;
+                setRowPlayingUI(rowIdx, true);
+                await audio.play();
+                return;
+            }
+
+            const res = await apiCall("/api/tts", {
+                text: text,
+                language: lang,
+                voiceId: cfg.voiceId,
+                speakingRate: cfg.rate,
+                pitch: cfg.pitch
+            });
+
+            const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
+            if (!b64) throw new Error("Пустой ответ TTS");
+
+            rowCacheSet(cacheKey, b64);
+
+            const audio = ensureRowAudioPlayer();
+            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            const blob = new Blob([bytes], { type: "audio/mpeg" });
+
+            if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+            rowAudioUrl = URL.createObjectURL(blob);
+
+            audio.src = rowAudioUrl;
+            setRowPlayingUI(rowIdx, true);
+            await audio.play();
+
+            loadStats();
+        } catch (err) {
+            clearRowPlayingState();
+            rowPlaylistRunActive = false;
+
+            const msg = (err && err.message) ? err.message : "неизвестная";
+            setRowErrorState(rowIdx, "Ошибка: " + msg);
+            showToast("Ошибка Row TTS: " + msg);
+        } finally {
+            const table = document.getElementById("proTable");
+            const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
+
+            if (btnNow && btnNow.classList.contains("row-tts-playing")) {
+                btnNow.removeAttribute("aria-busy");
+                btnNow.disabled = false;
+            } else {
+                setRowButtonLoading(rowIdx, false);
+            }
+
+            updateRowFocusMode();
+        }
+    });
+}
+
+// bind once
+initRowUxDelegatesOnce();
+
+
+
+
+
+</script>
+
+
 
 </body>
 </html>
