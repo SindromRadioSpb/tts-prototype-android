@@ -41,6 +41,7 @@ h origin v0.2.0-week2
 cookies.txt
 cookies*.txt
 student.txt
+student*.txt
 login.json
 docker
 docker/

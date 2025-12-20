@@ -10,6 +10,9 @@ const { env, assertPlatformEnv } = require('../config/env');
 const { hasDb, pool, query } = require('./db/pool');
 const { authRouter } = require('./routes/auth.routes');
 
+const { groupsRouter } = require('./routes/groups.routes');
+const { invitesRouter } = require('./routes/invites.routes');
+
 function getSessionSecret() {
   if (env.sessionSecret) return env.sessionSecret;
 
@@ -49,13 +52,19 @@ function mountPlatform(app) {
     assertPlatformEnv();
   }
 
-  // Если DB не настроена — auth endpoints должны говорить “service unavailable”
+  // Если DB не настроена — platform endpoints должны говорить “service unavailable”
   if (!env.databaseUrl || !hasDb()) {
-    app.use('/api/auth', (req, res) => {
+    const dbNotConfigured = (req, res) => {
       res.status(503).json({ error: 'DB_NOT_CONFIGURED', message: 'DATABASE_URL is not set' });
-    });
+    };
+
+    app.use('/api/auth', dbNotConfigured);
+    app.use('/api/groups', dbNotConfigured);
+    app.use('/api/invites', dbNotConfigured);
+
     return;
   }
+
 
   // Sessions (PG store)
   const PgSession = PgSessionFactory(session);
@@ -82,6 +91,10 @@ function mountPlatform(app) {
 
   // Auth routes (не трогают старые /api/... Week 6/7)
   app.use('/api/auth', authRouter());
+  
+  app.use('/api/groups', groupsRouter());
+  app.use('/api/invites', invitesRouter());
+
 }
 
 module.exports = { mountPlatform };
