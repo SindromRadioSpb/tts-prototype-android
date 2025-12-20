@@ -298,5 +298,20 @@ Expected: `403 Forbidden` for all
 ✅ Week 8 smoke PASS (Library/Assignments/Progress + RBAC) — 2025-12-20
 
 ---
+Date: 2025-12-20
 
+Result: POST /api/groups auto-membership PASS (members_count=1), POST /api/library/texts без SSH PASS
+
+(опционально) id группы/текста можно не писать, они одноразовые.
+
+Date: 2025-12-20
+
+P1: POST /api/groups auto-add creator → members_count: 1 PASS
+
+P1: Week8 “No SSH” POST /api/library/texts → 201 PASS
+
+Branch: <ветка деплоя>
+
+Commit: <SHA>
+---------
 ```
