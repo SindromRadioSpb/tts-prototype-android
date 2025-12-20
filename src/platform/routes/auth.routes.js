@@ -1,5 +1,7 @@
 'use strict';
 
+const rateLimit = require('express-rate-limit');
+
 const express = require('express');
 const { requireAuth } = require('../middleware/requireAuth');
 const {
@@ -14,10 +16,19 @@ function safeError(res, status, error, message) {
 
 function authRouter() {
   const router = express.Router();
+  
+  const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 минут
+  limit: 30,                // 30 попыток на IP за окно
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'RATE_LIMIT', message: 'Too many requests' }
+});
+
 
   // Register: по умолчанию создаём только student.
   // Teacher создаётся через bootstrap:teacher (безопаснее).
-  router.post('/register', async (req, res) => {
+  router.post('/register', authLimiter, async (req, res) => {
     try {
       const { email, password, role } = req.body || {};
 
@@ -40,7 +51,7 @@ function authRouter() {
     }
   });
 
-  router.post('/login', async (req, res) => {
+  router.post('/login', authLimiter, async (req, res) => {
     try {
       const { email, password } = req.body || {};
       const user = await getUserByEmail(email);

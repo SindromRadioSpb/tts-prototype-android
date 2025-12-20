@@ -42,9 +42,19 @@ cookies.txt
 cookies*.txt
 student.txt
 student*.txt
+student-login.json
 login.json
 docker
 docker/
+
+# Local curl/smoke artifacts (do not commit)
+cookies*.txt
+student*.txt
+login.json
+smoke-values.local.txt
+docker
+docker/
+
 
 
 
