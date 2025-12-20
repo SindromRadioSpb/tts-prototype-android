@@ -13,6 +13,11 @@ const { authRouter } = require('./routes/auth.routes');
 const { groupsRouter } = require('./routes/groups.routes');
 const { invitesRouter } = require('./routes/invites.routes');
 
+// + добавить рядом с текущими require(...)
+const { libraryRouter } = require('./routes/library.routes');
+const { assignmentsRouter } = require('./routes/assignments.routes');
+const { progressRouter } = require('./routes/progress.routes');
+
 function getSessionSecret() {
   if (env.sessionSecret) return env.sessionSecret;
 
@@ -91,9 +96,14 @@ function mountPlatform(app) {
 
   // Auth routes (не трогают старые /api/... Week 6/7)
   app.use('/api/auth', authRouter());
-  
+
   app.use('/api/groups', groupsRouter());
   app.use('/api/invites', invitesRouter());
+
+  // Week 8 (Library / Assignments / Progress) — всегда требуют логин (даже при REQUIRE_AUTH=0)
+  app.use('/api/library', libraryRouter());
+  app.use('/api/assignments', assignmentsRouter());
+  app.use('/api/progress', progressRouter());
 
 }
 

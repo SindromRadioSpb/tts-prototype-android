@@ -23,3 +23,8 @@
 ```bash
 git fetch --all --tags
 git checkout multiuser-foundation
+
+## 20-12-25
+## “Week 7.5 merged to main”
+## тэг week7-5-stable
+## Railway healthz ok
