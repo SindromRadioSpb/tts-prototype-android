@@ -19,7 +19,7 @@ function authRouter() {
   
   const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 минут
-  limit: 30,                // 30 попыток на IP за окно
+  limit: 30,                // 30 запросов на IP
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'RATE_LIMIT', message: 'Too many requests' }
