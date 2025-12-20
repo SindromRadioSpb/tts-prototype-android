@@ -7,6 +7,19 @@
 
 # Release gate (manual)
 
+ - [x] Railway: npm run migrate applied/ok + /healthz returns db:"ok"
+
+ - [x] Railway: platform smoke PASS (auth/groups/invites/rbac)
+
+ - [x] Railway: Week 6/7 UI smoke PASS (REQUIRE_AUTH=0)
+
+Last verified:
+- Date: 2025-12-20
+- Branch: multiuser-foundation
+- Commit: "docs(smoke): record Railway PASS (migrate/healthz + platform + Week6/7 UI)"
+
+------------------------------------------------
+
 - [x] Week 6/7 regression smoke passed on `multiuser-foundation` (REQUIRE_AUTH=0)
 - [x] Week 7.5 platform smoke (Auth/Groups/Invites/RBAC) passed
 
