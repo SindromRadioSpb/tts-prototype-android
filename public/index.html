@@ -3488,25 +3488,30 @@ updatePlaylistButtonUI();
 -------------------------------------------------------- */
 let v3ActiveTextId = null;
 let v3ProgressTimer = null;
-let v3ProgressPendingRowIdx = null;
+/**
+ * Pending progress is stored WITH the textId captured at the time of selection.
+ * This prevents "cross-text" writes when the user switches texts faster than debounce delay.
+ */
+let v3ProgressPending = null; // { textId: string, rowIdx: number|null }
 
-window.v3SetActiveTextId = function (textId) {
-  v3ActiveTextId = textId ? String(textId) : null;
-};
+function v3NormalizeRowIdx(rowIdx) {
+  if (rowIdx === null || rowIdx === undefined) return null;
+  const n = Number(rowIdx);
+  if (!Number.isFinite(n)) return null;
+  return Math.trunc(n);
+}
 
-window.v3ClearActiveTextId = function () {
-  v3ActiveTextId = null;
-};
+async function v3PostProgressNow(textId, rowIdx) {
+  if (!textId) return;
 
-async function v3PostProgressNow(rowIdx) {
-  if (!v3ActiveTextId) return;
+  const normIdx = v3NormalizeRowIdx(rowIdx);
 
   try {
-    await fetch("/api/progress/" + encodeURIComponent(v3ActiveTextId), {
+    await fetch("/api/progress/" + encodeURIComponent(String(textId)), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        lastRowIdx: rowIdx,
+        lastRowIdx: normIdx,
         lastStepId: null
       })
     });
@@ -3516,16 +3521,54 @@ async function v3PostProgressNow(rowIdx) {
   }
 }
 
+function v3FlushProgressNow() {
+  if (v3ProgressTimer) {
+    clearTimeout(v3ProgressTimer);
+    v3ProgressTimer = null;
+  }
+  if (v3ProgressPending && v3ProgressPending.textId) {
+    const p = v3ProgressPending;
+    v3ProgressPending = null;
+    // fire-and-forget
+    v3PostProgressNow(p.textId, p.rowIdx);
+  }
+}
+
+// expose flush so we can call it from UI events (e.g., opening Library modal)
+window.v3FlushProgressNow = v3FlushProgressNow;
+
+window.v3SetActiveTextId = function (textId) {
+  const next = textId ? String(textId) : null;
+  if (next === v3ActiveTextId) return;
+
+  // Important: flush pending save for the previous text before switching.
+  try { v3FlushProgressNow(); } catch (_) {}
+
+  v3ActiveTextId = next;
+};
+
+window.v3ClearActiveTextId = function () {
+  // flush whatever is pending for the current active text, then clear context
+  try { v3FlushProgressNow(); } catch (_) {}
+  v3ActiveTextId = null;
+};
+
 function v3DebouncedSaveProgress(rowIdx) {
   if (!v3ActiveTextId) return;
 
-  v3ProgressPendingRowIdx = rowIdx;
+  v3ProgressPending = {
+    textId: v3ActiveTextId,
+    rowIdx: v3NormalizeRowIdx(rowIdx)
+  };
 
   if (v3ProgressTimer) clearTimeout(v3ProgressTimer);
   v3ProgressTimer = setTimeout(function () {
-    const idx = v3ProgressPendingRowIdx;
-    v3ProgressPendingRowIdx = null;
-    v3PostProgressNow(idx);
+    const p = v3ProgressPending;
+    v3ProgressPending = null;
+    v3ProgressTimer = null;
+
+    if (!p || !p.textId) return;
+    v3PostProgressNow(p.textId, p.rowIdx);
   }, 450);
 }
 	
@@ -3606,6 +3649,9 @@ async function v3Delete(url) {
 }
 
 function v3LibraryOpen() {
+  // Ensure progress is persisted even if user opens the modal immediately after selecting a row
+  try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
+
   const modal = v3LibEl("v3LibraryModal");
   if (!modal) return;
   modal.classList.remove("hidden");
