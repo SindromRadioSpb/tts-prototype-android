@@ -1631,7 +1631,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
     <div class="v3-modal-body">
       <div class="v3-lib-toolbar">
-        <input id="v3LibrarySearch" type="text" placeholder="Поиск (локальный фильтр P0): title / tags / level" oninput="v3LibraryApplyFilter()" />
+        <input id="v3LibrarySearch" type="text" placeholder="Поиск (локальный фильтр P0): title / tags / level" oninput="v3LibraryOnSearchInput()" />
         <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
       </div>
 
@@ -3684,6 +3684,21 @@ window.addEventListener("pagehide", function () {
 let v3LibraryTexts = [];
 let v3LibraryLastLoadedAt = null;
 
+let v3LibrarySearchTimer = null;
+let v3LibraryLastRenderKey = null; // memo to avoid redundant renders
+let v3LibraryLastQuery = "";
+
+function v3LibraryOnSearchInput() {
+  if (v3LibrarySearchTimer) clearTimeout(v3LibrarySearchTimer);
+  v3LibrarySearchTimer = setTimeout(() => {
+    v3LibrarySearchTimer = null;
+    v3LibraryApplyFilter();
+  }, 180);
+}
+
+// expose for inline handler
+window.v3LibraryOnSearchInput = v3LibraryOnSearchInput;
+
 // meta about last AI generation (for tableModelMeta hook)
 let v3LastGeminiMeta = null;
 
@@ -3773,8 +3788,13 @@ async function v3LibraryRefresh() {
   try {
     const data = await v3GetJson("/api/library/texts?limit=15");
     v3LibraryTexts = (data && data.texts) ? data.texts : [];
-    v3LibraryLastLoadedAt = new Date().toISOString();
-    v3LibraryApplyFilter();
+	v3LibraryLastLoadedAt = new Date().toISOString();
+
+	// reset memo so fresh data re-renders even if query is the same
+	v3LibraryLastRenderKey = null;
+
+	v3LibraryApplyFilter();
+
     if (statusEl) statusEl.textContent = "Загружено: " + v3LibraryTexts.length + " · " + v3FmtDate(v3LibraryLastLoadedAt);
   } catch (e) {
     console.warn("v3LibraryRefresh failed", e);
@@ -3796,12 +3816,34 @@ function v3ParseTags(tagsJson) {
 
 function v3LibraryApplyFilter() {
   const q = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim().toLowerCase();
-  const filtered = !q ? v3LibraryTexts : v3LibraryTexts.filter(t => {
+
+  // If query hasn't changed and data hasn't changed, v3LibraryRenderList memo will skip rebuild.
+  v3LibraryLastQuery = q;
+
+  if (!q) {
+    v3LibraryRenderList(v3LibraryTexts);
+    return;
+  }
+
+  const filtered = [];
+  for (let i = 0; i < v3LibraryTexts.length; i++) {
+    const t = v3LibraryTexts[i];
     const title = String(t.title || t.name || "").toLowerCase();
     const level = String(t.level || "").toLowerCase();
-    const tags = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null).join(" ").toLowerCase();
-    return title.includes(q) || level.includes(q) || tags.includes(q);
-  });
+
+    // Only parse tags if needed
+    let tagsStr = "";
+    try {
+      tagsStr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null).join(" ").toLowerCase();
+    } catch (_) {
+      tagsStr = "";
+    }
+
+    if (title.includes(q) || level.includes(q) || tagsStr.includes(q)) {
+      filtered.push(t);
+    }
+  }
+
   v3LibraryRenderList(filtered);
 }
 
@@ -3809,13 +3851,32 @@ function v3LibraryRenderList(texts) {
   const listEl = v3LibEl("v3LibraryList");
   if (!listEl) return;
 
+  // memo-key: query + count + ids + archived flags + last_opened_at
+  // (достаточно для P0, чтобы не перерендеривать одинаковое)
+  const q = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim().toLowerCase();
+  const idsKey = (texts || []).map(t =>
+    String(t.id || "") + ":" +
+    String(t.is_archived || t.isArchived ? "1" : "0") + ":" +
+    String(t.last_opened_at || t.lastOpenedAt || "") + ":" +
+    String(t.updated_at || t.updatedAt || "")
+  ).join("|");
+  const renderKey = q + "##" + idsKey;
+
+  if (v3LibraryLastRenderKey === renderKey) {
+    return; // avoid redundant DOM rebuild
+  }
+  v3LibraryLastRenderKey = renderKey;
+
   if (!texts || texts.length === 0) {
     listEl.innerHTML = "<div class='v3-lib-card v3-lib-muted'>Пока нет сохранённых текстов (или фильтр ничего не нашёл).</div>";
     return;
   }
 
-  listEl.innerHTML = "";
-  texts.forEach((t) => {
+  // Build off-DOM and append once
+  const frag = document.createDocumentFragment();
+
+  for (let i = 0; i < texts.length; i++) {
+    const t = texts[i];
     const id = String(t.id || "");
     const title = String(t.title || "Без названия");
     const level = t.level ? String(t.level) : "";
@@ -3827,14 +3888,13 @@ function v3LibraryRenderList(texts) {
     const lastOpened = t.last_opened_at || t.lastOpenedAt || null;
     const createdAt = t.created_at || t.createdAt || null;
 
-    // progress может прийти уже в listTexts (если вы это делали в repo),
-    // но если нет — UI всё равно работает, просто покажет "—".
     const lastRowIdx = (t.last_row_idx ?? t.lastRowIdx ?? (t.progress && t.progress.lastRowIdx) ?? null);
     const progressText = (lastRowIdx === null || lastRowIdx === undefined) ? "—" : String(lastRowIdx);
 
     const card = document.createElement("div");
     card.className = "v3-lib-card" + (isArchived ? " v3-lib-muted" : "");
 
+    // Avoid heavy string concatenations in loops where possible
     card.innerHTML = `
       <div class="v3-lib-card-top">
         <div>
@@ -3856,6 +3916,7 @@ function v3LibraryRenderList(texts) {
       </div>
     `;
 
+    // Event handlers (still per-card, but attached while off-DOM)
     const btnOpen = card.querySelector('button[data-act="open"]');
     const btnResume = card.querySelector('button[data-act="resume"]');
     const btnArchive = card.querySelector('button[data-act="archive"]');
@@ -3866,8 +3927,12 @@ function v3LibraryRenderList(texts) {
     if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
 
-    listEl.appendChild(card);
-  });
+    frag.appendChild(card);
+  }
+
+  // single DOM write
+  listEl.innerHTML = "";
+  listEl.appendChild(frag);
 }
 
 function v3PrepareForNewTableRender() {
