@@ -3581,6 +3581,21 @@ function v3SendLatestNow(textId, opts) {
   v3PostProgress(textId, latest.rowIdx, latest.seq, opts);
 }
 
+function v3SendProgressBeacon(textId, rowIdx, seq) {
+  try {
+    if (!navigator || typeof navigator.sendBeacon !== "function") return false;
+    const url = "/api/progress/" + encodeURIComponent(String(textId));
+    const payload = {
+      lastRowIdx: v3NormalizeRowIdx(rowIdx),
+      lastStepId: null
+    };
+    const blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+    return navigator.sendBeacon(url, blob);
+  } catch (_) {
+    return false;
+  }
+}
+
 function v3FlushProgressNow(opts) {
   const keepalive = !!(opts && opts.keepalive);
 
@@ -3633,9 +3648,28 @@ document.addEventListener("visibilitychange", function () {
 });
 
 window.addEventListener("pagehide", function () {
-  try { v3FlushProgressNow({ keepalive: true }); } catch (_) {}
-});
+  try {
+    // Cancel all debounces immediately
+    Object.keys(v3ProgressTimers).forEach((tid) => {
+      if (v3ProgressTimers[tid]) {
+        clearTimeout(v3ProgressTimers[tid]);
+        v3ProgressTimers[tid] = null;
+      }
+    });
 
+    // Best-effort delivery: sendBeacon first, keepalive fetch fallback
+    Object.keys(v3ProgressLatest).forEach((tid) => {
+      const latest = v3ProgressLatest[tid];
+      if (!latest) return;
+
+      const okBeacon = v3SendProgressBeacon(tid, latest.rowIdx, latest.seq);
+      if (!okBeacon) {
+        // fallback: keepalive fetch
+        v3PostProgress(tid, latest.rowIdx, latest.seq, { keepalive: true });
+      }
+    });
+  } catch (_) {}
+});
 	
 	/* --------------------------------------------------------
    V3 Library UI (P0)
@@ -3723,6 +3757,8 @@ function v3LibraryOpen() {
 }
 
 function v3LibraryClose() {
+  try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
+
   const modal = v3LibEl("v3LibraryModal");
   if (!modal) return;
   modal.classList.add("hidden");
@@ -3849,6 +3885,9 @@ function v3PrepareForNewTableRender() {
 
 async function v3LibraryOpenText(textId, opts) {
   const resume = !!(opts && opts.resume);
+
+  // flush any pending progress before switching table
+  try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 
   try {
     // meta + sentences
@@ -4017,7 +4056,9 @@ window.v3LibrarySaveCurrent = v3LibrarySaveCurrent;
 
         const currentText = getText().trim();
 		
+		try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 		try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
+
 
         // local table cache first
         try {
