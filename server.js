@@ -39,6 +39,13 @@ const {
   deleteTextById,
 } = require("./db/libraryRepo");
 
+const {
+  getSentenceCount,
+  getProgressByTextId,
+  setProgress,
+  clearProgress,
+} = require("./db/progressRepo");
+
 // --------------------------------------------------------
 // 2. НАСТРОЙКИ СЕРВЕРА
 // --------------------------------------------------------
@@ -1068,6 +1075,69 @@ function requireDbOr503(res) {
   }
   return true;
 }
+
+// --------------------------------------------------------
+// Progress (V3-PROG-01)
+// --------------------------------------------------------
+app.get("/api/progress/:textId", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.textId || "");
+    const text = await getTextById(textId);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const progress = await getProgressByTextId(textId);
+    res.json({ ok: true, progress });
+  } catch (e) {
+    console.error("GET /api/progress/:textId error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/progress/:textId", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.textId || "");
+    const text = await getTextById(textId);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const body = req.body || {};
+    const hasLastRow = Object.prototype.hasOwnProperty.call(body, "lastRowIdx");
+    if (!hasLastRow) return res.status(400).json({ error: "VALIDATION", field: "lastRowIdx" });
+
+    const lastStepId =
+      (body.lastStepId === null || body.lastStepId === undefined) ? null : String(body.lastStepId);
+
+    // null => clear progress
+    if (body.lastRowIdx === null) {
+      const cleared = await clearProgress(textId);
+      return res.json({ ok: true, progress: cleared });
+    }
+
+    const lastRowIdx = Number(body.lastRowIdx);
+    if (!Number.isInteger(lastRowIdx) || lastRowIdx < 0) {
+      return res.status(400).json({ error: "VALIDATION", field: "lastRowIdx" });
+    }
+
+    const cnt = await getSentenceCount(textId);
+    if (cnt > 0 && lastRowIdx >= cnt) {
+      return res.status(400).json({
+        error: "RANGE",
+        field: "lastRowIdx",
+        details: { maxExclusive: cnt }
+      });
+    }
+
+    const progress = await setProgress({ textId, lastRowIdx, lastStepId });
+    res.json({ ok: true, progress });
+  } catch (e) {
+    console.error("POST /api/progress/:textId error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
 
 // List texts
 app.get("/api/library/texts", async (req, res) => {

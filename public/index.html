@@ -1984,6 +1984,8 @@ function setRowSelectedUI(rowIdx) {
     rowSelectedRowIdx = rowIdx;
 saveLastSelectedRowIdx(rowSelectedRowIdx);
 
+v3DebouncedSaveProgress(rowSelectedRowIdx);
+
 updateRowFocusMode(); // Week 6 guard: keep visual modes consistent after selection change
 
 
@@ -3299,6 +3301,53 @@ updatePlaylistButtonUI();
         }
     }
 
+	/* --------------------------------------------------------
+   V3 Progress context (safe): does NOTHING unless activeTextId is set.
+   No audio listeners. Only debounced POST on row selection.
+-------------------------------------------------------- */
+let v3ActiveTextId = null;
+let v3ProgressTimer = null;
+let v3ProgressPendingRowIdx = null;
+
+window.v3SetActiveTextId = function (textId) {
+  v3ActiveTextId = textId ? String(textId) : null;
+};
+
+window.v3ClearActiveTextId = function () {
+  v3ActiveTextId = null;
+};
+
+async function v3PostProgressNow(rowIdx) {
+  if (!v3ActiveTextId) return;
+
+  try {
+    await fetch("/api/progress/" + encodeURIComponent(v3ActiveTextId), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        lastRowIdx: rowIdx,
+        lastStepId: null
+      })
+    });
+  } catch (e) {
+    // silent fail: progress must never break UX
+    console.warn("v3 progress save failed", e);
+  }
+}
+
+function v3DebouncedSaveProgress(rowIdx) {
+  if (!v3ActiveTextId) return;
+
+  v3ProgressPendingRowIdx = rowIdx;
+
+  if (v3ProgressTimer) clearTimeout(v3ProgressTimer);
+  v3ProgressTimer = setTimeout(function () {
+    const idx = v3ProgressPendingRowIdx;
+    v3ProgressPendingRowIdx = null;
+    v3PostProgressNow(idx);
+  }, 450);
+}
+	
     // ----------------------------
     // TRANSLATE TABLE
     // ----------------------------
@@ -3306,6 +3355,8 @@ updatePlaylistButtonUI();
         if (!validate()) return;
 
         const currentText = getText().trim();
+		
+		try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
 
         // local table cache first
         try {
