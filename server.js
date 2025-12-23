@@ -1317,6 +1317,252 @@ app.delete("/api/library/texts/:id", async (req, res) => {
 });
 
 // --------------------------------------------------------
+// V3-IMP-01: Export/Import JSON (P0)
+// --------------------------------------------------------
+
+function v3SafeJsonParse(str, fallback) {
+  try {
+    if (str == null) return fallback;
+    if (typeof str !== "string") return str; // уже объект
+    const s = str.trim();
+    if (!s) return fallback;
+    return JSON.parse(s);
+  } catch (_) {
+    return fallback;
+  }
+}
+
+// Export whole library (texts + sentences + progress)
+app.get("/api/library/export", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    // По умолчанию экспортируем ВСЁ, включая архив
+    const includeArchived = String(req.query.includeArchived || "1") === "1";
+    const limit = Number(req.query.limit || "100000");
+
+    const rows = await listTexts({ limit, includeArchived });
+
+    const exportedTexts = [];
+    for (const r of rows) {
+      const textId = String(r.id);
+      const [text, sentences, progress] = await Promise.all([
+        getTextById(textId),
+        getSentencesByTextId(textId),
+        getProgressByTextId(textId).catch(() => null),
+      ]);
+      if (!text) continue;
+      exportedTexts.push({
+        text,
+        sentences: Array.isArray(sentences) ? sentences : [],
+        progress: progress || null,
+      });
+    }
+
+    const migrationsHealth = getMigrationsHealth ? getMigrationsHealth() : null;
+
+    res.json({
+      exportType: "linguist-pro-library",
+      exportVersion: 1,
+      exportedAt: new Date().toISOString(),
+      migrations: migrationsHealth || null,
+      texts: exportedTexts,
+    });
+  } catch (e) {
+    console.error("GET /api/library/export error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Import library JSON (safe by default: skip duplicates)
+app.post("/api/library/import", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const body = req.body || {};
+    const mode = String(body.mode || "skip"); // "skip" | "asNew"
+    const payload = body.payload || body; // поддержим и прямую отправку payload без обёртки
+
+    if (!payload || typeof payload !== "object") {
+      return res.status(400).json({ error: "VALIDATION", field: "payload" });
+    }
+
+    const exportType = String(payload.exportType || "");
+    const items = Array.isArray(payload.texts) ? payload.texts : [];
+
+    if (exportType && exportType !== "linguist-pro-library") {
+      return res.status(400).json({ error: "VALIDATION", field: "exportType" });
+    }
+    if (!Array.isArray(items) || items.length < 1) {
+      return res.status(400).json({ error: "VALIDATION", field: "texts" });
+    }
+
+    let importedCount = 0;
+    let skippedCount = 0;
+    let errorCount = 0;
+    const errors = [];
+
+    for (const item of items) {
+      try {
+        const t = (item && (item.text || item.meta)) ? (item.text || item.meta) : item;
+        const sentencesIn = Array.isArray(item && item.sentences) ? item.sentences : (Array.isArray(t && t.sentences) ? t.sentences : []);
+        const progressIn = (item && item.progress) ? item.progress : (t && t.progress ? t.progress : null);
+
+        const sourceText = String((t && (t.source_text || t.sourceText)) || "").trim();
+        if (!sourceText) {
+          errorCount++;
+          errors.push({ error: "NO_SOURCE_TEXT", title: t && t.title ? String(t.title) : null });
+          continue;
+        }
+
+        const title = (t && t.title && String(t.title).trim()) ? String(t.title).trim() : guessTitle(sourceText);
+        const level = (t && t.level && String(t.level).trim()) ? String(t.level).trim() : null;
+
+        const tagsArr =
+          (t && t.tags_json) ? v3SafeJsonParse(t.tags_json, []) :
+          (t && Array.isArray(t.tags)) ? t.tags :
+          [];
+        const tagsJson = Array.isArray(tagsArr) ? JSON.stringify(tagsArr) : null;
+
+        const sourceMetaJson =
+          (t && t.source_meta_json) ? String(t.source_meta_json) :
+          (t && t.sourceMeta) ? JSON.stringify(t.sourceMeta) :
+          null;
+
+        const ttsProfileObj =
+          (t && t.tts_profile_json) ? v3SafeJsonParse(t.tts_profile_json, null) :
+          (t && t.ttsProfile) ? t.ttsProfile :
+          null;
+        const ttsProfileJson = ttsProfileObj ? JSON.stringify(ttsProfileObj) : null;
+
+        const tableModelMetaObj =
+          (t && t.table_model_meta_json) ? v3SafeJsonParse(t.table_model_meta_json, null) :
+          (t && t.tableModelMeta) ? t.tableModelMeta :
+          null;
+
+        let tableModelMetaJson = tableModelMetaObj ? JSON.stringify(tableModelMetaObj) : null;
+
+        // textKey: либо из файла, либо вычисляем; в режиме asNew — добавляем соль
+        let textKey = String((t && (t.text_key || t.textKey)) || "").trim();
+        if (!textKey) {
+          textKey = computeTextKey({
+            sourceText,
+            ttsProfile: ttsProfileObj || null,
+            tableModelMeta: tableModelMetaObj || null,
+          });
+        }
+
+        if (mode === "asNew") {
+          const salt = uuidv4();
+          const meta2 = (tableModelMetaObj && typeof tableModelMetaObj === "object")
+            ? { ...tableModelMetaObj, importSalt: salt }
+            : { importSalt: salt };
+
+          textKey = computeTextKey({
+            sourceText,
+            ttsProfile: ttsProfileObj || null,
+            tableModelMeta: meta2,
+          });
+          tableModelMetaJson = JSON.stringify(meta2);
+        }
+
+        // Собираем rows в формате createTextWithSentences
+        const rows = (sentencesIn || []).map((r, idx) => {
+          const hePlain = String((r && (r.he_plain || r.he)) || "");
+          const heNiq = String((r && (r.he_niqqud || r.heNiq || r.he_niqqud_text)) || "");
+          const translit = String((r && r.translit) || "");
+          const ru = String((r && r.ru) || "");
+
+          const rowHash = (r && r.row_hash) ? String(r.row_hash) : crypto
+            .createHash("sha256")
+            .update(JSON.stringify({ hePlain, heNiq, translit, ru }), "utf8")
+            .digest("hex");
+
+          const metaJson =
+            (r && r.meta_json != null) ? (typeof r.meta_json === "string" ? r.meta_json : JSON.stringify(r.meta_json)) :
+            null;
+
+          return {
+            id: uuidv4(),
+            he_plain: hePlain,
+            he_niqqud: heNiq,
+            translit,
+            ru,
+            row_hash: rowHash,
+            meta_json: metaJson,
+            order_index: Number.isInteger(r && r.order_index) ? r.order_index : idx,
+          };
+        });
+
+        if (!Array.isArray(rows) || rows.length < 1) {
+          errorCount++;
+          errors.push({ error: "NO_SENTENCES", title });
+          continue;
+        }
+
+        const newTextId = uuidv4();
+
+        const created = await createTextWithSentences({
+          id: newTextId,
+          textKey,
+          title,
+          level,
+          tagsJson,
+          sourceText,
+          sourceMetaJson,
+          ttsProfileJson,
+          tableModelMetaJson,
+          rows,
+        });
+
+        importedCount++;
+
+        // Прогресс (если есть)
+        if (progressIn && Number.isInteger(progressIn.lastRowIdx) && progressIn.lastRowIdx >= 0) {
+          const lastStepId = (progressIn.lastStepId != null) ? String(progressIn.lastStepId) : null;
+          try {
+            await setProgress({ textId: newTextId, lastRowIdx: progressIn.lastRowIdx, lastStepId });
+          } catch (_) {
+            // прогресс не должен валить импорт
+          }
+        }
+
+        // Архивность (если в файле было is_archived=true) — применим после импорта
+        if (t && (t.is_archived === true || t.is_archived === 1)) {
+          try { await archiveTextById(newTextId); } catch (_) {}
+        }
+
+        // created не используем дальше, но оставим на будущее
+        void created;
+      } catch (e) {
+        const msg = String(e && e.message ? e.message : e);
+
+        // UNIQUE text_key => дубликат
+        if (msg.includes("ux_texts_text_key") || msg.includes("UNIQUE") || msg.includes("text_key")) {
+          skippedCount++;
+          continue;
+        }
+
+        errorCount++;
+        errors.push({ error: msg });
+      }
+    }
+
+    res.json({
+      ok: true,
+      mode,
+      importedCount,
+      skippedCount,
+      errorCount,
+      errors: errors.slice(0, 50),
+    });
+  } catch (e) {
+    console.error("POST /api/library/import error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
 // 13. ЗАПУСК СЕРВЕРА
 // --------------------------------------------------------
 app.listen(PORT, () => {
