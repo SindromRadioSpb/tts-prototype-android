@@ -8,6 +8,9 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 
+// v3.0 foundation: SQLite (Library/Progress source of truth)
+const { initDb, getDbHealth } = require("./db/sqlite");
+
 const textToSpeech = require("@google-cloud/text-to-speech");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const {
@@ -32,12 +35,31 @@ app.use(bodyParser.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // --------------------------------------------------------
+// 2.1 DB_PATH (SQLite) — safe init; process must not crash on DB errors
+// --------------------------------------------------------
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, "data", "app.db");
+// Fire-and-forget; errors are reflected in /healthz.
+initDb(DB_PATH);
+
+// --------------------------------------------------------
 // 3. ПУТИ И ДИРЕКТОРИИ
 // --------------------------------------------------------
 const audioDir = path.join(__dirname, "audio");
 const usageFile = path.join(__dirname, "usage.json");
 const audioCacheDir = path.join(__dirname, "audio-cache");
 const geminiCacheDir = path.join(__dirname, "gemini-cache");
+
+// --------------------------------------------------------
+// 3.1 HEALTHZ (always 200; db status is informative)
+// --------------------------------------------------------
+app.get("/healthz", (req, res) => {
+  res.json({
+    ok: true,
+    uptimeSec: Math.round(process.uptime()),
+    now: new Date().toISOString(),
+    db: getDbHealth(),
+  });
+});
 
 // Создаём директории при необходимости
 if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir);
