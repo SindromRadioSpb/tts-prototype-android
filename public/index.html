@@ -3883,6 +3883,58 @@ function v3PrepareForNewTableRender() {
   try { document.getElementById("tableContainer").innerHTML = ""; } catch (_) {}
 }
 
+// --------------------------------------------------------
+// V3 Resume gating (P0): apply selection ONLY after DOM/layout is stable
+// --------------------------------------------------------
+let v3TableRenderToken = 0;
+
+function v3RenderTableFromLibrary(rows) {
+  v3TableRenderToken += 1;
+  const token = v3TableRenderToken;
+
+  // предотвратить localStorage-restore "чужой" строки (мигает перед resume)
+  try {
+    if (typeof rowSelectedRowIdx !== "number" || !Number.isFinite(rowSelectedRowIdx)) {
+      rowSelectedRowIdx = 0;
+    }
+  } catch (_) {}
+
+  currentTableData = rows;
+  renderTable(currentTableData);
+  return token;
+}
+
+function v3AfterRenderStable(token, fn) {
+  // 2x rAF: гарантируем, что DOM вставлен + layout посчитан (scrollIntoView начинает работать стабильно)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (token !== v3TableRenderToken) return; // table was re-rendered => ignore stale resume
+      try { fn(); } catch (e) { console.warn("v3AfterRenderStable fn failed", e); }
+    });
+  });
+}
+
+function v3ApplyResumeSelection(token, rowIdx) {
+  const n = Number(rowIdx);
+  if (!Number.isFinite(n)) return;
+
+  v3AfterRenderStable(token, () => {
+    // clamp to current table length
+    const max = Array.isArray(currentTableData) ? (currentTableData.length - 1) : -1;
+    const clamped = (max >= 0) ? Math.max(0, Math.min(Math.trunc(n), max)) : Math.trunc(n);
+
+    setRowSelectedUI(clamped);
+
+    // scroll after selection; use rAF once more to avoid rare "no scroll" on heavy DOM
+    requestAnimationFrame(() => {
+      try {
+        const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(clamped) + '"]');
+        if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
+      } catch (_) {}
+    });
+  });
+}
+
 async function v3LibraryOpenText(textId, opts) {
   const resume = !!(opts && opts.resume);
 
@@ -3927,24 +3979,17 @@ async function v3LibraryOpenText(textId, opts) {
 
     v3PrepareForNewTableRender();
 
-    currentTableData = rows;
-    renderTable(currentTableData);
+	const renderToken = v3RenderTableFromLibrary(rows);
 
-    // resume logic: fetch progress then set selected row
-    if (resume) {
-      try {
+		// resume logic: fetch progress then set selected row
+		if (resume) {
+			try {
         const p = await v3GetJson("/api/progress/" + encodeURIComponent(textId));
         const prog = p && p.progress ? p.progress : null;
         const idx = prog && (prog.last_row_idx ?? prog.lastRowIdx);
-        if (idx !== null && idx !== undefined && Number.isInteger(Number(idx))) {
-          const n = Number(idx);
-          setRowSelectedUI(n);
-          // scroll into view
-          try {
-            const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(n) + '"]');
-            if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
-          } catch (_) {}
-        }
+if (idx !== null && idx !== undefined && Number.isFinite(Number(idx))) {
+  v3ApplyResumeSelection(renderToken, Number(idx));
+}
       } catch (e) {
         console.warn("resume progress fetch failed (non-critical)", e);
       }
