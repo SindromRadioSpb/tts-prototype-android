@@ -1220,6 +1220,160 @@ th, td { border-color: rgba(0,0,0,0.55); }
   background-color: transparent !important;
 }
 
+/* --------------------------------------------------------
+   V3 Library Modal (P0)
+-------------------------------------------------------- */
+.btn-secondary {
+  background: #e9ecef;
+  color: #212529;
+  border: 1px solid #d0d7de;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.05s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn-secondary:hover { background: #f1f3f5; }
+.btn-secondary:active { transform: translateY(1px); }
+
+.v3-modal.hidden { display: none; }
+.v3-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+}
+
+.v3-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+
+.v3-modal-panel {
+  position: relative;
+  width: min(980px, calc(100vw - 32px));
+  height: min(720px, calc(100vh - 32px));
+  margin: 16px auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.v3-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef1f5;
+  background: linear-gradient(to bottom, #fafbfc, #f6f8fa);
+}
+
+.v3-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.v3-modal-body {
+  padding: 12px 14px;
+  overflow: auto;
+  flex: 1;
+}
+
+.v3-lib-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.v3-lib-toolbar input[type="text"]{
+  flex: 1;
+  min-width: 240px;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  padding: 10px 12px;
+  outline: none;
+}
+.v3-lib-toolbar input[type="text"]:focus{
+  border-color: rgba(46,125,50,0.55);
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.18);
+}
+
+.v3-lib-status {
+  color: #6b7280;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.v3-lib-list {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.v3-lib-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px 12px;
+  background: #fff;
+}
+
+.v3-lib-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.v3-lib-card-title {
+  font-weight: 900;
+  color: #111827;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.v3-lib-card-meta {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.v3-lib-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.v3-lib-chip {
+  display: inline-block;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.v3-lib-danger {
+  border-color: #fecaca !important;
+  background: #fff1f2 !important;
+  color: #9f1239 !important;
+}
+
+.v3-lib-muted {
+  opacity: 0.65;
+}
 
    
 	  
@@ -1377,14 +1531,18 @@ th, td { border-color: rgba(0,0,0,0.55); }
                 </select>
             </div>
 
-            <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
+           <button class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
 
-            <div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
+			<div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
 
-            <button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
-            <div id="loader" class="loader"></div>
+			<button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()">📚 Библиотека</button>
+			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Save</button>
 
-            <button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
+			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
+			<div id="loader" class="loader"></div>
+
+			<button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
+			
         </div>
 
         <div class="controls" style="margin-top: 0;">
@@ -1458,7 +1616,30 @@ th, td { border-color: rgba(0,0,0,0.55); }
     <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
-    
+    <!-- V3: Library Modal (P0) -->
+<div id="v3LibraryModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Библиотека текстов">
+  <div class="v3-modal-backdrop" onclick="v3LibraryClose()" aria-hidden="true"></div>
+
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title">Библиотека (v3)</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn-secondary" onclick="v3LibraryRefresh()">Обновить</button>
+        <button class="btn-secondary" onclick="v3LibraryClose()">Закрыть</button>
+      </div>
+    </div>
+
+    <div class="v3-modal-body">
+      <div class="v3-lib-toolbar">
+        <input id="v3LibrarySearch" type="text" placeholder="Поиск (локальный фильтр P0): title / tags / level" oninput="v3LibraryApplyFilter()" />
+        <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
+      </div>
+
+      <div id="v3LibraryStatus" class="v3-lib-status"></div>
+      <div id="v3LibraryList" class="v3-lib-list"></div>
+    </div>
+  </div>
+</div>
 
 <script>
     // ----------------------------
@@ -3348,6 +3529,376 @@ function v3DebouncedSaveProgress(rowIdx) {
   }, 450);
 }
 	
+	/* --------------------------------------------------------
+   V3 Library UI (P0)
+   - list (15)
+   - open / resume (loads sentences -> renderTable)
+   - archive / delete
+   - save current table as text
+   Safety:
+   - never adds audio listeners
+   - errors must not break Week6/7 UX
+-------------------------------------------------------- */
+let v3LibraryTexts = [];
+let v3LibraryLastLoadedAt = null;
+
+// meta about last AI generation (for tableModelMeta hook)
+let v3LastGeminiMeta = null;
+
+function v3LibEl(id) { return document.getElementById(id); }
+
+function v3EscapeHtml(s) {
+  return String(s || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function v3FmtDate(iso) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleString("ru-RU", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+  } catch (_) { return "—"; }
+}
+
+async function v3GetJson(url) {
+  const r = await fetch(url, { method: "GET" });
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    const e = new Error("HTTP " + r.status);
+    e.httpStatus = r.status;
+    e.bodyText = t;
+    throw e;
+  }
+  return await r.json();
+}
+
+async function v3PostJson(url, bodyObj) {
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(bodyObj || {})
+  });
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    const e = new Error("HTTP " + r.status);
+    e.httpStatus = r.status;
+    e.bodyText = t;
+    throw e;
+  }
+  return await r.json();
+}
+
+async function v3Delete(url) {
+  const r = await fetch(url, { method: "DELETE" });
+  if (!r.ok) {
+    const t = await r.text().catch(() => "");
+    const e = new Error("HTTP " + r.status);
+    e.httpStatus = r.status;
+    e.bodyText = t;
+    throw e;
+  }
+  return await r.json();
+}
+
+function v3LibraryOpen() {
+  const modal = v3LibEl("v3LibraryModal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  v3LibraryRefresh();
+}
+
+function v3LibraryClose() {
+  const modal = v3LibEl("v3LibraryModal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+}
+
+async function v3LibraryRefresh() {
+  const statusEl = v3LibEl("v3LibraryStatus");
+  const listEl = v3LibEl("v3LibraryList");
+  if (statusEl) statusEl.textContent = "Загрузка списка…";
+  if (listEl) listEl.innerHTML = "";
+
+  try {
+    const data = await v3GetJson("/api/library/texts?limit=15");
+    v3LibraryTexts = (data && data.texts) ? data.texts : [];
+    v3LibraryLastLoadedAt = new Date().toISOString();
+    v3LibraryApplyFilter();
+    if (statusEl) statusEl.textContent = "Загружено: " + v3LibraryTexts.length + " · " + v3FmtDate(v3LibraryLastLoadedAt);
+  } catch (e) {
+    console.warn("v3LibraryRefresh failed", e);
+    if (statusEl) statusEl.textContent = "Ошибка загрузки библиотеки (не критично).";
+    if (listEl) listEl.innerHTML = "<div class='v3-lib-card v3-lib-danger'>Не удалось загрузить список. Проверьте DB/сервер. UI не сломан.</div>";
+  }
+}
+
+function v3ParseTags(tagsJson) {
+  if (!tagsJson) return [];
+  if (Array.isArray(tagsJson)) return tagsJson.map(String);
+  try {
+    const x = JSON.parse(String(tagsJson));
+    if (Array.isArray(x)) return x.map(String);
+  } catch (_) {}
+  // если это строка "a,b,c"
+  return String(tagsJson).split(",").map(s => s.trim()).filter(Boolean);
+}
+
+function v3LibraryApplyFilter() {
+  const q = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim().toLowerCase();
+  const filtered = !q ? v3LibraryTexts : v3LibraryTexts.filter(t => {
+    const title = String(t.title || t.name || "").toLowerCase();
+    const level = String(t.level || "").toLowerCase();
+    const tags = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null).join(" ").toLowerCase();
+    return title.includes(q) || level.includes(q) || tags.includes(q);
+  });
+  v3LibraryRenderList(filtered);
+}
+
+function v3LibraryRenderList(texts) {
+  const listEl = v3LibEl("v3LibraryList");
+  if (!listEl) return;
+
+  if (!texts || texts.length === 0) {
+    listEl.innerHTML = "<div class='v3-lib-card v3-lib-muted'>Пока нет сохранённых текстов (или фильтр ничего не нашёл).</div>";
+    return;
+  }
+
+  listEl.innerHTML = "";
+  texts.forEach((t) => {
+    const id = String(t.id || "");
+    const title = String(t.title || "Без названия");
+    const level = t.level ? String(t.level) : "";
+    const isArchived = !!(t.is_archived || t.isArchived);
+
+    const tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null);
+    const tagsHtml = tagsArr.slice(0, 6).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(x) + "</span>").join("");
+
+    const lastOpened = t.last_opened_at || t.lastOpenedAt || null;
+    const createdAt = t.created_at || t.createdAt || null;
+
+    // progress может прийти уже в listTexts (если вы это делали в repo),
+    // но если нет — UI всё равно работает, просто покажет "—".
+    const lastRowIdx = (t.last_row_idx ?? t.lastRowIdx ?? (t.progress && t.progress.lastRowIdx) ?? null);
+    const progressText = (lastRowIdx === null || lastRowIdx === undefined) ? "—" : String(lastRowIdx);
+
+    const card = document.createElement("div");
+    card.className = "v3-lib-card" + (isArchived ? " v3-lib-muted" : "");
+
+    card.innerHTML = `
+      <div class="v3-lib-card-top">
+        <div>
+          <div class="v3-lib-card-title">${v3EscapeHtml(title)}</div>
+          <div class="v3-lib-card-meta">
+            ${level ? ("Level: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
+            Progress lastRowIdx: <b>${v3EscapeHtml(progressText)}</b><br/>
+            Last opened: ${v3EscapeHtml(v3FmtDate(lastOpened))} · Created: ${v3EscapeHtml(v3FmtDate(createdAt))}
+          </div>
+          <div style="margin-top:6px;">${tagsHtml}</div>
+        </div>
+
+        <div class="v3-lib-card-actions">
+          <button class="btn-primary" data-act="open">Open</button>
+          <button class="btn-success" data-act="resume">Resume</button>
+          <button class="btn-secondary" data-act="archive">Archive</button>
+          <button class="btn-secondary v3-lib-danger" data-act="delete">Delete</button>
+        </div>
+      </div>
+    `;
+
+    const btnOpen = card.querySelector('button[data-act="open"]');
+    const btnResume = card.querySelector('button[data-act="resume"]');
+    const btnArchive = card.querySelector('button[data-act="archive"]');
+    const btnDelete = card.querySelector('button[data-act="delete"]');
+
+    if (btnOpen) btnOpen.addEventListener("click", () => v3LibraryOpenText(id, { resume: false }));
+    if (btnResume) btnResume.addEventListener("click", () => v3LibraryOpenText(id, { resume: true }));
+    if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
+    if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
+
+    listEl.appendChild(card);
+  });
+}
+
+function v3PrepareForNewTableRender() {
+  // Week 6 guard pattern: stop playlist/audio, clear state, then render
+  try { if (rowAudioPlayer && !rowAudioPlayer.paused) rowAudioPlayer.pause(); } catch (_) {}
+  try {
+    rowPlaylistRunActive = false;
+    updatePlaylistButtonUI();
+  } catch (_) {}
+
+  try { clearRowPlayingState(true); } catch (_) {}
+  try { clearRowSelectedUI(); } catch (_) {}
+  try { document.getElementById("tableContainer").innerHTML = ""; } catch (_) {}
+}
+
+async function v3LibraryOpenText(textId, opts) {
+  const resume = !!(opts && opts.resume);
+
+  try {
+    // meta + sentences
+    const [meta, sents] = await Promise.all([
+      v3GetJson("/api/library/texts/" + encodeURIComponent(textId)),
+      v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences")
+    ]);
+
+    const text = meta && meta.text ? meta.text : null;
+    const sentences = sents && (sents.sentences || sents.rows || []) ? (sents.sentences || sents.rows || []) : [];
+
+    // set active context for progress auto-save
+    try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(textId); } catch (_) {}
+
+    // touch opened (non-blocking)
+    fetch("/api/library/texts/" + encodeURIComponent(textId) + "/opened", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .catch(() => {});
+
+    // show source text in textarea (optional, but useful)
+    try {
+      if (text && (text.source_text || text.sourceText)) {
+        inputTextEl.value = String(text.source_text || text.sourceText);
+        inputTextEl.dispatchEvent(new Event("input"));
+      }
+    } catch (_) {}
+
+    // map sentences -> UI rows
+    const rows = sentences
+      .slice()
+      .sort((a,b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
+      .map((r) => ({
+        he: String(r.he_plain ?? r.he ?? ""),
+        he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
+        translit: String(r.translit ?? ""),
+        ru: String(r.ru ?? "")
+      }));
+
+    v3PrepareForNewTableRender();
+
+    currentTableData = rows;
+    renderTable(currentTableData);
+
+    // resume logic: fetch progress then set selected row
+    if (resume) {
+      try {
+        const p = await v3GetJson("/api/progress/" + encodeURIComponent(textId));
+        const prog = p && p.progress ? p.progress : null;
+        const idx = prog && (prog.last_row_idx ?? prog.lastRowIdx);
+        if (idx !== null && idx !== undefined && Number.isInteger(Number(idx))) {
+          const n = Number(idx);
+          setRowSelectedUI(n);
+          // scroll into view
+          try {
+            const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(n) + '"]');
+            if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
+          } catch (_) {}
+        }
+      } catch (e) {
+        console.warn("resume progress fetch failed (non-critical)", e);
+      }
+    }
+
+    showToast(resume ? "Resume: текст загружен" : "Open: текст загружен", "success");
+    v3LibraryClose();
+  } catch (e) {
+    console.warn("v3LibraryOpenText failed", e);
+    showToast("Не удалось открыть текст (см. консоль).", "error");
+  }
+}
+
+async function v3LibraryArchiveText(textId) {
+  try {
+    await v3PostJson("/api/library/texts/" + encodeURIComponent(textId) + "/archive", {});
+    showToast("Текст архивирован", "success");
+    v3LibraryRefresh();
+  } catch (e) {
+    console.warn("archive failed", e);
+    showToast("Не удалось архивировать", "error");
+  }
+}
+
+async function v3LibraryDeleteText(textId) {
+  const ok = confirm("Удалить текст НАВСЕГДА? Это удалит и строки (CASCADE).");
+  if (!ok) return;
+
+  try {
+    await v3Delete("/api/library/texts/" + encodeURIComponent(textId));
+    showToast("Текст удалён", "success");
+    v3LibraryRefresh();
+  } catch (e) {
+    console.warn("delete failed", e);
+    showToast("Не удалось удалить", "error");
+  }
+}
+
+function v3BuildTtsProfileForSave() {
+  // Hook: сохраняем текущие TTS-настройки как default profile
+  const language = String((langSelectEl && langSelectEl.value) || "").trim();
+  const voiceName = String((document.getElementById("voiceSelect") && document.getElementById("voiceSelect").value) || "").trim();
+  const rate = Number((document.getElementById("rateRange") && document.getElementById("rateRange").value) || "1.0");
+  const pitch = Number((document.getElementById("pitchRange") && document.getElementById("pitchRange").value) || "0.0");
+
+  return {
+    language: language || null,
+    voiceName: voiceName || null,
+    speakingRate: Number.isFinite(rate) ? rate : 1.0,
+    pitch: Number.isFinite(pitch) ? pitch : 0.0
+  };
+}
+
+async function v3LibrarySaveCurrent() {
+  try {
+    const sourceText = String(getText() || "").trim();
+    if (!sourceText) {
+      showToast("Нет исходного текста для сохранения", "error");
+      return;
+    }
+    if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
+      showToast("Нет таблицы для сохранения (сначала AI перевод/таблица)", "error");
+      return;
+    }
+
+    const payload = {
+      sourceText,
+      rows: currentTableData,
+      ttsProfile: v3BuildTtsProfileForSave(),
+      tableModelMeta: v3LastGeminiMeta || null
+    };
+
+    const created = await v3PostJson("/api/library/texts", payload);
+    const text = created && created.text ? created.text : null;
+
+    // set active context for progress auto-save
+    if (text && text.id) {
+      try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(String(text.id)); } catch (_) {}
+    }
+
+    showToast("Сохранено в библиотеку", "success");
+    // обновим список, если модалка открыта
+    const modal = v3LibEl("v3LibraryModal");
+    if (modal && !modal.classList.contains("hidden")) v3LibraryRefresh();
+  } catch (e) {
+    // 409 duplicate
+    if (e && e.httpStatus === 409) {
+      showToast("Этот текст уже есть в библиотеке (duplicate key)", "error");
+      return;
+    }
+    console.warn("v3LibrarySaveCurrent failed", e);
+    showToast("Не удалось сохранить (см. консоль).", "error");
+  }
+}
+
+// expose open/close globally for onclick
+window.v3LibraryOpen = v3LibraryOpen;
+window.v3LibraryClose = v3LibraryClose;
+window.v3LibraryRefresh = v3LibraryRefresh;
+window.v3LibraryApplyFilter = v3LibraryApplyFilter;
+window.v3LibrarySaveCurrent = v3LibrarySaveCurrent;
+
+	
     // ----------------------------
     // TRANSLATE TABLE
     // ----------------------------
@@ -3425,6 +3976,17 @@ clearRowSelectedUI();
 
 currentTableData = res.rows || [];
 renderTable(currentTableData);
+
+// hook: сохраним мета про генерацию (для Library save)
+try {
+  v3LastGeminiMeta = {
+    promptId: "he-ru-table-v1",
+    model: "gemini-flash-latest",
+    cacheKey: res.cacheKey || null,
+    fromCache: (res.fromCache === true),
+    generatedAt: new Date().toISOString()
+  };
+} catch (_) {}
 
             if (currentTableData.length > 0) {
                 clearTableStale();
