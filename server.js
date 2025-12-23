@@ -27,6 +27,18 @@ const {
   AlignmentType,
 } = require("docx");
 
+const {
+  computeTextKey,
+  guessTitle,
+  createTextWithSentences,
+  listTexts,
+  getTextById,
+  getSentencesByTextId,
+  touchTextOpened,
+  archiveTextById,
+  deleteTextById,
+} = require("./db/libraryRepo");
+
 // --------------------------------------------------------
 // 2. НАСТРОЙКИ СЕРВЕРА
 // --------------------------------------------------------
@@ -1040,6 +1052,197 @@ app.get("/api/usage", (req, res) => {
   } catch (error) {
     console.error("Usage Error:", error);
     res.status(500).json({ error: "Ошибка чтения usage" });
+  }
+});
+
+// --------------------------------------------------------
+// 12.1 Routes
+// --------------------------------------------------------
+
+// Helper для DB-ошибок
+function requireDbOr503(res) {
+  const h = getDbHealth();
+  if (!h || !h.ok) {
+    res.status(503).json({ error: "DB_NOT_AVAILABLE", db: h || null });
+    return false;
+  }
+  return true;
+}
+
+// List texts
+app.get("/api/library/texts", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const limit = Number(req.query.limit || "15");
+    const includeArchived = String(req.query.includeArchived || "0") === "1";
+
+    const rows = await listTexts({ limit, includeArchived });
+    res.json({ ok: true, texts: rows });
+  } catch (e) {
+    console.error("GET /api/library/texts error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+//Create text (атомарно)
+app.post("/api/library/texts", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const body = req.body || {};
+    const sourceText = String(body.sourceText || "").trim();
+    const rowsIn = Array.isArray(body.rows) ? body.rows : [];
+
+    if (!sourceText) return res.status(400).json({ error: "VALIDATION", field: "sourceText" });
+    if (!Array.isArray(rowsIn) || rowsIn.length < 1) return res.status(400).json({ error: "VALIDATION", field: "rows" });
+
+    // tags: принимаем массив или строку
+    let tagsJson = null;
+    if (Array.isArray(body.tags)) tagsJson = JSON.stringify(body.tags.map(String));
+    else if (typeof body.tags === "string" && body.tags.trim()) tagsJson = JSON.stringify(body.tags.split(",").map(s => s.trim()).filter(Boolean));
+
+    const ttsProfileJson = body.ttsProfile ? JSON.stringify(body.ttsProfile) : null;
+    const tableModelMetaJson = body.tableModelMeta ? JSON.stringify(body.tableModelMeta) : null;
+    const sourceMetaJson = body.sourceMeta ? JSON.stringify(body.sourceMeta) : null;
+
+    const textKey = String(body.textKey || "") || computeTextKey({
+      sourceText,
+      ttsProfile: body.ttsProfile || null,
+      tableModelMeta: body.tableModelMeta || null,
+    });
+
+    const textId = body.id ? String(body.id) : uuidv4();
+    const title = (body.title && String(body.title).trim()) ? String(body.title).trim() : guessTitle(sourceText);
+    const level = (body.level && String(body.level).trim()) ? String(body.level).trim() : null;
+
+    const rows = rowsIn.map((r, idx) => {
+      const hePlain = String((r && r.he) || "");
+      const heNiq = String((r && r.he_niqqud) || "");
+      const translit = String((r && r.translit) || "");
+      const ru = String((r && r.ru) || "");
+
+      // row_hash — опционально; полезно для будущего дедуп/сверок
+      const rowHash = crypto
+        .createHash("sha256")
+        .update(JSON.stringify({ hePlain, heNiq, translit, ru }), "utf8")
+        .digest("hex");
+
+      // meta_json — крючок под будущие verbs[] без миграций UI
+      const meta = (r && typeof r === "object" && r.verbs) ? { verbs: r.verbs } : null;
+
+      return {
+        id: uuidv4(),
+        he_plain: hePlain,
+        he_niqqud: heNiq,
+        translit,
+        ru,
+        row_hash: rowHash,
+        meta_json: meta ? JSON.stringify(meta) : null,
+        order_index: idx,
+      };
+    });
+
+    const created = await createTextWithSentences({
+      id: textId,
+      textKey,
+      title,
+      level,
+      tagsJson,
+      sourceText,
+      sourceMetaJson,
+      ttsProfileJson,
+      tableModelMetaJson,
+      rows,
+    });
+
+    res.json({ ok: true, text: created });
+  } catch (e) {
+    // уникальность text_key: если такой уже есть — возвращаем понятный код
+    const msg = String(e && e.message ? e.message : e);
+    if (msg.includes("ux_texts_text_key") || msg.includes("UNIQUE") || msg.includes("text_key")) {
+      return res.status(409).json({ error: "DUPLICATE_TEXT_KEY" });
+    }
+    console.error("POST /api/library/texts error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Get text meta
+app.get("/api/library/texts/:id", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const text = await getTextById(req.params.id);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    res.json({ ok: true, text });
+  } catch (e) {
+    console.error("GET /api/library/texts/:id error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Get sentences
+app.get("/api/library/texts/:id/sentences", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const text = await getTextById(req.params.id);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const sentences = await getSentencesByTextId(req.params.id);
+    res.json({ ok: true, textId: req.params.id, sentences });
+  } catch (e) {
+    console.error("GET /api/library/texts/:id/sentences error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Mark opened (last_opened_at)
+app.post("/api/library/texts/:id/opened", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const text = await getTextById(req.params.id);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const updated = await touchTextOpened(req.params.id);
+    res.json({ ok: true, text: updated });
+  } catch (e) {
+    console.error("POST /api/library/texts/:id/opened error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Archive / Delete
+app.post("/api/library/texts/:id/archive", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const text = await getTextById(req.params.id);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const updated = await archiveTextById(req.params.id);
+    res.json({ ok: true, text: updated });
+  } catch (e) {
+    console.error("POST /api/library/texts/:id/archive error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+app.delete("/api/library/texts/:id", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const text = await getTextById(req.params.id);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const r = await deleteTextById(req.params.id);
+    res.json(r);
+  } catch (e) {
+    console.error("DELETE /api/library/texts/:id error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
 
