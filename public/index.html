@@ -3483,16 +3483,29 @@ updatePlaylistButtonUI();
     }
 
 	/* --------------------------------------------------------
-   V3 Progress context (safe): does NOTHING unless activeTextId is set.
-   No audio listeners. Only debounced POST on row selection.
+   V3 Progress Hardening (P0)
+   Goal: deterministic progress without "pauses" even on fast switching.
+   - per-text debounce
+   - per-text single-flight
+   - abort previous inflight when a newer state exists (last-write-wins)
+   Safety:
+   - no audio listeners
+   - silent failures
 -------------------------------------------------------- */
+
 let v3ActiveTextId = null;
-let v3ProgressTimer = null;
-/**
- * Pending progress is stored WITH the textId captured at the time of selection.
- * This prevents "cross-text" writes when the user switches texts faster than debounce delay.
- */
-let v3ProgressPending = null; // { textId: string, rowIdx: number|null }
+
+// seq counter for "newer wins" logic on the client
+let v3ProgressSeq = 0;
+
+// latest desired state per textId: { rowIdx: number|null, seq: number }
+const v3ProgressLatest = Object.create(null);
+
+// debounce timer per textId
+const v3ProgressTimers = Object.create(null);
+
+// inflight per textId: { controller: AbortController, seq: number }
+const v3ProgressInflight = Object.create(null);
 
 function v3NormalizeRowIdx(rowIdx) {
   if (rowIdx === null || rowIdx === undefined) return null;
@@ -3501,76 +3514,128 @@ function v3NormalizeRowIdx(rowIdx) {
   return Math.trunc(n);
 }
 
-async function v3PostProgressNow(textId, rowIdx) {
+async function v3PostProgress(textId, rowIdx, seq, opts) {
   if (!textId) return;
 
-  const normIdx = v3NormalizeRowIdx(rowIdx);
+  const url = "/api/progress/" + encodeURIComponent(String(textId));
+  const payload = {
+    lastRowIdx: v3NormalizeRowIdx(rowIdx),
+    lastStepId: null
+  };
+
+  const keepalive = !!(opts && opts.keepalive);
+
+  // Abort older inflight if any (older seq) to guarantee last-write-wins on server arrival order.
+  const inF = v3ProgressInflight[textId];
+  if (inF && inF.controller && seq > inF.seq) {
+    try { inF.controller.abort(); } catch (_) {}
+    delete v3ProgressInflight[textId];
+  }
+
+  // Create new inflight controller
+  const controller = new AbortController();
+  v3ProgressInflight[textId] = { controller, seq };
 
   try {
-    await fetch("/api/progress/" + encodeURIComponent(String(textId)), {
+    await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lastRowIdx: normIdx,
-        lastStepId: null
-      })
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+      // keepalive useful for pagehide; we do NOT rely on it for normal flow
+      keepalive: keepalive
     });
   } catch (e) {
-    // silent fail: progress must never break UX
+    // Abort is normal in this strategy
+    if (e && (e.name === "AbortError" || String(e).includes("AbortError"))) return;
     console.warn("v3 progress save failed", e);
+  } finally {
+    const cur = v3ProgressInflight[textId];
+    if (cur && cur.seq === seq) delete v3ProgressInflight[textId];
+  }
+
+  // If a newer state appeared while we were inflight, send the newest now.
+  const latest = v3ProgressLatest[textId];
+  if (latest && latest.seq > seq) {
+    v3SendLatestNow(textId, { keepalive: false });
   }
 }
 
-function v3FlushProgressNow() {
-  if (v3ProgressTimer) {
-    clearTimeout(v3ProgressTimer);
-    v3ProgressTimer = null;
-  }
-  if (v3ProgressPending && v3ProgressPending.textId) {
-    const p = v3ProgressPending;
-    v3ProgressPending = null;
-    // fire-and-forget
-    v3PostProgressNow(p.textId, p.rowIdx);
-  }
+function v3QueueProgress(textId, rowIdx) {
+  if (!textId) return;
+
+  const seq = ++v3ProgressSeq;
+  v3ProgressLatest[textId] = { rowIdx: v3NormalizeRowIdx(rowIdx), seq };
+
+  // per-text debounce
+  if (v3ProgressTimers[textId]) clearTimeout(v3ProgressTimers[textId]);
+  v3ProgressTimers[textId] = setTimeout(function () {
+    v3ProgressTimers[textId] = null;
+    v3SendLatestNow(textId, { keepalive: false });
+  }, 350); // faster than 450ms to reduce "pause feel"
 }
 
-// expose flush so we can call it from UI events (e.g., opening Library modal)
-window.v3FlushProgressNow = v3FlushProgressNow;
+function v3SendLatestNow(textId, opts) {
+  const latest = v3ProgressLatest[textId];
+  if (!latest) return;
+  v3PostProgress(textId, latest.rowIdx, latest.seq, opts);
+}
+
+function v3FlushProgressNow(opts) {
+  const keepalive = !!(opts && opts.keepalive);
+
+  // cancel all debounces and send latest for all texts that have pending state
+  Object.keys(v3ProgressTimers).forEach((tid) => {
+    if (v3ProgressTimers[tid]) {
+      clearTimeout(v3ProgressTimers[tid]);
+      v3ProgressTimers[tid] = null;
+    }
+  });
+
+  // send newest for each textId we have ever touched
+  Object.keys(v3ProgressLatest).forEach((tid) => {
+    v3SendLatestNow(tid, { keepalive });
+  });
+}
+
+// expose flush so UI can call it
+window.v3FlushProgressNow = function () {
+  try { v3FlushProgressNow({ keepalive: false }); } catch (_) {}
+};
 
 window.v3SetActiveTextId = function (textId) {
   const next = textId ? String(textId) : null;
   if (next === v3ActiveTextId) return;
 
-  // Important: flush pending save for the previous text before switching.
-  try { v3FlushProgressNow(); } catch (_) {}
-
+  // flush pending saves BEFORE switching context
+  try { v3FlushProgressNow({ keepalive: false }); } catch (_) {}
   v3ActiveTextId = next;
 };
 
 window.v3ClearActiveTextId = function () {
-  // flush whatever is pending for the current active text, then clear context
-  try { v3FlushProgressNow(); } catch (_) {}
+  // flush pending saves BEFORE clearing context
+  try { v3FlushProgressNow({ keepalive: false }); } catch (_) {}
   v3ActiveTextId = null;
 };
 
 function v3DebouncedSaveProgress(rowIdx) {
   if (!v3ActiveTextId) return;
-
-  v3ProgressPending = {
-    textId: v3ActiveTextId,
-    rowIdx: v3NormalizeRowIdx(rowIdx)
-  };
-
-  if (v3ProgressTimer) clearTimeout(v3ProgressTimer);
-  v3ProgressTimer = setTimeout(function () {
-    const p = v3ProgressPending;
-    v3ProgressPending = null;
-    v3ProgressTimer = null;
-
-    if (!p || !p.textId) return;
-    v3PostProgressNow(p.textId, p.rowIdx);
-  }, 450);
+  v3QueueProgress(v3ActiveTextId, rowIdx);
 }
+
+// flush on visibility/pagehide to avoid losing last click when user reloads quickly
+document.addEventListener("visibilitychange", function () {
+  try {
+    if (document.visibilityState === "hidden") {
+      v3FlushProgressNow({ keepalive: true });
+    }
+  } catch (_) {}
+});
+
+window.addEventListener("pagehide", function () {
+  try { v3FlushProgressNow({ keepalive: true }); } catch (_) {}
+});
+
 	
 	/* --------------------------------------------------------
    V3 Library UI (P0)
@@ -3649,7 +3714,6 @@ async function v3Delete(url) {
 }
 
 function v3LibraryOpen() {
-  // Ensure progress is persisted even if user opens the modal immediately after selecting a row
   try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 
   const modal = v3LibEl("v3LibraryModal");
