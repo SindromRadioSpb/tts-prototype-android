@@ -11,6 +11,8 @@ const crypto = require("crypto");
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth } = require("./db/sqlite");
 
+const { runMigrations, getMigrationsHealth } = require("./db/migrate");
+
 const textToSpeech = require("@google-cloud/text-to-speech");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const {
@@ -39,7 +41,16 @@ app.use(express.static(path.join(__dirname, "public")));
 // --------------------------------------------------------
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "data", "app.db");
 // Fire-and-forget; errors are reflected in /healthz.
-initDb(DB_PATH);
+
+const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR || path.join(__dirname, "migrations");
+
+initDb(DB_PATH)
+  .then(() => runMigrations({ migrationsDir: MIGRATIONS_DIR }))
+  .catch((e) => {
+    // initDb уже safe и отражает ошибку в health; сюда обычно не попадаем
+    console.error("initDb unexpected error:", e);
+  });
+
 
 // --------------------------------------------------------
 // 3. ПУТИ И ДИРЕКТОРИИ
@@ -58,6 +69,7 @@ app.get("/healthz", (req, res) => {
     uptimeSec: Math.round(process.uptime()),
     now: new Date().toISOString(),
     db: getDbHealth(),
+	migrations: getMigrationsHealth(),
   });
 });
 

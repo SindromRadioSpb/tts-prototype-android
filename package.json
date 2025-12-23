@@ -4,17 +4,18 @@
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "db:migrate": "node db/migrate-cli.js"
   },
   "dependencies": {
-  "@google-cloud/text-to-speech": "^5.7.0",
-  "@google/generative-ai": "^0.19.0",
-  "body-parser": "^1.20.3",
-  "docx": "^8.5.0",
-  "express": "^4.21.2",
-  "sqlite3": "^5.1.7",
-  "uuid": "^9.0.0"
-},
+    "@google-cloud/text-to-speech": "^5.7.0",
+    "@google/generative-ai": "^0.19.0",
+    "body-parser": "^1.20.3",
+    "docx": "^8.5.0",
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7",
+    "uuid": "^9.0.0"
+  },
   "engines": {
     "node": ">=18"
   }
