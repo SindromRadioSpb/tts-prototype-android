@@ -90,6 +90,58 @@ const audioCacheDir = path.join(__dirname, "audio-cache");
 const geminiCacheDir = path.join(__dirname, "gemini-cache");
 
 // --------------------------------------------------------
+// V3 Audio Assets helpers (P0)
+// --------------------------------------------------------
+const TTS_ENGINE_VERSION = "gcp-tts-v1"; // bump when you change engine/ssml normalization etc.
+
+function ensureAudioCacheDir() {
+  try {
+    if (!fs.existsSync(audioCacheDir)) fs.mkdirSync(audioCacheDir, { recursive: true });
+  } catch (e) {
+    console.error("ensureAudioCacheDir failed:", e);
+  }
+}
+
+function stableStringify(obj) {
+  if (obj === null || obj === undefined) return JSON.stringify(obj);
+  if (typeof obj !== "object") return JSON.stringify(obj);
+  const keys = Object.keys(obj).sort();
+  const out = {};
+  for (const k of keys) out[k] = obj[k];
+  return JSON.stringify(out);
+}
+
+function normalizeTtsProfile(profile) {
+  const p = profile && typeof profile === "object" ? profile : {};
+  return {
+    language: p.language || null,
+    voiceName: p.voiceName || null,
+    speakingRate: (p.speakingRate == null ? 1.0 : Number(p.speakingRate)),
+    pitch: (p.pitch == null ? 0.0 : Number(p.pitch)),
+  };
+}
+
+function computeAssetKey({ text, ttsProfile, assetType }) {
+  const payload = {
+    assetType: String(assetType || "row"),
+    engine: TTS_ENGINE_VERSION,
+    ttsProfile: normalizeTtsProfile(ttsProfile),
+    text: String(text || ""),
+  };
+  return crypto.createHash("sha256").update(stableStringify(payload), "utf8").digest("hex");
+}
+
+function getAudioRelativePath(assetKey) {
+  return `audio-cache/${assetKey}.mp3`;
+}
+
+function writeMp3IfNotExists(absPath, mp3Buffer) {
+  if (fs.existsSync(absPath)) return { written: false };
+  fs.writeFileSync(absPath, mp3Buffer);
+  return { written: true };
+}
+
+// --------------------------------------------------------
 // 3.1 HEALTHZ (always 200; db status is informative)
 // --------------------------------------------------------
 app.get("/healthz", (req, res) => {
@@ -202,6 +254,9 @@ function splitTextForTts(text, maxBytes = TTS_MAX_INPUT_BYTES) {
   return parts.filter(Boolean);
 }
 if (!fs.existsSync(geminiCacheDir)) fs.mkdirSync(geminiCacheDir);
+
+
+
 
 // --------------------------------------------------------
 // 4. ИНИЦИАЛИЗАЦИЯ КЛИЕНТОВ
@@ -1126,19 +1181,25 @@ app.post("/api/progress/:textId", async (req, res) => {
       return res.json({ ok: true, progress: cleared });
     }
 
-    const lastRowIdx = Number(body.lastRowIdx);
-    if (!Number.isInteger(lastRowIdx) || lastRowIdx < 0) {
-      return res.status(400).json({ error: "VALIDATION", field: "lastRowIdx" });
-    }
+    let lastRowIdx = Number(body.lastRowIdx);
+if (!Number.isFinite(lastRowIdx)) {
+  return res.status(400).json({ error: "VALIDATION", field: "lastRowIdx" });
+}
+// normalize to integer
+lastRowIdx = Math.trunc(lastRowIdx);
 
-    const cnt = await getSentenceCount(textId);
-    if (cnt > 0 && lastRowIdx >= cnt) {
-      return res.status(400).json({
-        error: "RANGE",
-        field: "lastRowIdx",
-        details: { maxExclusive: cnt }
-      });
-    }
+// clamp negative (defensive)
+if (lastRowIdx < 0) lastRowIdx = 0;
+
+const cnt = await getSentenceCount(textId);
+
+// If text has no sentences yet (or unexpected state) — clear progress safely
+if (cnt <= 0) {
+  lastRowIdx = null;
+} else {
+  // clamp instead of RANGE error to avoid silent progress loss on boundary races
+  if (lastRowIdx >= cnt) lastRowIdx = cnt - 1;
+}
 
     const progress = await setProgress({ textId, lastRowIdx, lastStepId });
     res.json({ ok: true, progress });
@@ -1325,6 +1386,8 @@ app.delete("/api/library/texts/:id", async (req, res) => {
     res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
+
+
 
 // --------------------------------------------------------
 // V3-IMP-01: Export/Import JSON (P0)
@@ -1571,6 +1634,7 @@ app.post("/api/library/import", async (req, res) => {
     res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
+
 
 // --------------------------------------------------------
 // 13. ЗАПУСК СЕРВЕРА

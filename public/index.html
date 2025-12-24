@@ -3621,6 +3621,28 @@ function v3FlushProgressNow(opts) {
   Object.keys(v3ProgressLatest).forEach((tid) => {
     v3SendLatestNow(tid, { keepalive });
   });
+  
+  function v3FlushProgressForText(textId, opts) {
+  try {
+    if (!textId) return;
+    const tid = String(textId);
+    const keepalive = !!(opts && opts.keepalive);
+
+    // cancel debounce for this text only
+    if (v3ProgressTimers[tid]) {
+      clearTimeout(v3ProgressTimers[tid]);
+      v3ProgressTimers[tid] = null;
+    }
+
+    // send only if we have pending/latest state for this text
+    if (v3ProgressLatest[tid]) {
+      v3SendLatestNow(tid, { keepalive });
+    }
+  } catch (_) {}
+}
+
+// expose for targeted flush (perf-safe)
+window.v3FlushProgressForText = v3FlushProgressForText;
 }
 
 // expose flush so UI can call it
@@ -3632,14 +3654,21 @@ window.v3SetActiveTextId = function (textId) {
   const next = textId ? String(textId) : null;
   if (next === v3ActiveTextId) return;
 
-  // flush pending saves BEFORE switching context
-  try { v3FlushProgressNow({ keepalive: false }); } catch (_) {}
+  // flush ONLY previous active text to avoid "global flush" pauses
+  const prev = v3ActiveTextId;
+  if (prev) {
+    try { v3FlushProgressForText(prev, { keepalive: false }); } catch (_) {}
+  }
+
   v3ActiveTextId = next;
 };
 
 window.v3ClearActiveTextId = function () {
-  // flush pending saves BEFORE clearing context
-  try { v3FlushProgressNow({ keepalive: false }); } catch (_) {}
+  // flush ONLY current active text; keep global flush for pagehide/visibilitychange
+  const cur = v3ActiveTextId;
+  if (cur) {
+    try { v3FlushProgressForText(cur, { keepalive: false }); } catch (_) {}
+  }
   v3ActiveTextId = null;
 };
 
