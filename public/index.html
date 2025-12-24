@@ -1622,12 +1622,22 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">Библиотека (v3)</div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <button class="btn-secondary" onclick="v3LibraryRefresh()">Обновить</button>
-        <button class="btn-secondary" onclick="v3LibraryClose()">Закрыть</button>
-      </div>
-    </div>
+  <div class="v3-modal-title">Библиотека (v3)</div>
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <button class="btn-secondary" onclick="v3LibraryExport()">Экспорт JSON</button>
+    <button class="btn-secondary" onclick="v3LibraryImport()">Импорт JSON</button>
+    <button class="btn-secondary" onclick="v3LibraryRefresh()">Обновить</button>
+    <button class="btn-secondary" onclick="v3LibraryClose()">Закрыть</button>
+
+    <input
+      id="v3LibraryImportInput"
+      type="file"
+      accept="application/json"
+      style="display:none"
+      onchange="v3LibraryOnImportSelected(event)"
+    />
+  </div>
+</div>
 
     <div class="v3-modal-body">
       <div class="v3-lib-toolbar">
@@ -4150,6 +4160,108 @@ async function v3LibrarySaveCurrent() {
   }
 }
 
+function v3LibraryMakeExportFilename(prefix) {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, "0");
+  return (
+    prefix +
+    "-" +
+    d.getFullYear() +
+    pad(d.getMonth() + 1) +
+    pad(d.getDate()) +
+    "-" +
+    pad(d.getHours()) +
+    pad(d.getMinutes()) +
+    pad(d.getSeconds()) +
+    ".json"
+  );
+}
+
+async function v3LibraryExport() {
+  try {
+    showToast("Экспорт библиотеки…");
+    // Экспортируем всё (включая архив)
+    const payload = await v3GetJson("/api/library/export?includeArchived=1");
+
+    const jsonText = JSON.stringify(payload, null, 2);
+    const blob = new Blob([jsonText], { type: "application/json" });
+
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = v3LibraryMakeExportFilename("library-export");
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    showToast("Экспорт готов (файл скачан)", "success");
+  } catch (e) {
+    console.warn("v3LibraryExport failed", e);
+    showToast("Не удалось экспортировать (см. консоль).", "error");
+  }
+}
+
+function v3LibraryImport() {
+  try {
+    const input = v3LibEl("v3LibraryImportInput");
+    if (!input) {
+      showToast("Импорт недоступен: input не найден", "error");
+      return;
+    }
+    input.value = "";
+    input.click();
+  } catch (e) {
+    console.warn("v3LibraryImport click failed", e);
+    showToast("Не удалось открыть выбор файла (см. консоль).", "error");
+  }
+}
+
+async function v3LibraryOnImportSelected(ev) {
+  try {
+    const input = ev && ev.target ? ev.target : null;
+    const file = input && input.files && input.files[0] ? input.files[0] : null;
+    if (!file) return;
+
+    const raw = await file.text();
+    let parsed = null;
+    try {
+      parsed = JSON.parse(raw);
+    } catch (_) {
+      showToast("Файл не является корректным JSON", "error");
+      return;
+    }
+
+    // безопасный режим по умолчанию: не перетирать, дубликаты — пропустить
+    const ok = window.confirm("Импортировать библиотеку из файла?\nДубликаты будут пропущены.");
+    if (!ok) return;
+
+    showToast("Импорт библиотеки…");
+
+    const resp = await v3PostJson("/api/library/import", {
+      mode: "skip",
+      payload: parsed
+    });
+
+    if (resp && resp.ok) {
+      const msg =
+        "Импорт: добавлено " +
+        Number(resp.importedCount || 0) +
+        ", пропущено " +
+        Number(resp.skippedCount || 0) +
+        (resp.errorCount ? (", ошибок " + Number(resp.errorCount || 0)) : "");
+      showToast(msg, "success");
+      v3LibraryRefresh();
+    } else {
+      showToast("Импорт завершился неожиданно (см. консоль).", "error");
+      console.warn("Import response:", resp);
+    }
+  } catch (e) {
+    console.warn("v3LibraryOnImportSelected failed", e);
+    showToast("Не удалось импортировать (см. консоль).", "error");
+  }
+}
+
 // expose open/close globally for onclick
 window.v3LibraryOpen = v3LibraryOpen;
 window.v3LibraryClose = v3LibraryClose;
@@ -4157,6 +4269,9 @@ window.v3LibraryRefresh = v3LibraryRefresh;
 window.v3LibraryApplyFilter = v3LibraryApplyFilter;
 window.v3LibrarySaveCurrent = v3LibrarySaveCurrent;
 
+window.v3LibraryExport = v3LibraryExport;
+window.v3LibraryImport = v3LibraryImport;
+window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
 	
     // ----------------------------
     // TRANSLATE TABLE
