@@ -46,6 +46,16 @@ const {
   clearProgress,
 } = require("./db/progressRepo");
 
+const {
+  upsertAudioAsset,
+  getAudioAssetByKey,
+  touchAudioAsset,
+  linkSentenceAudio,
+  linkTextAudio,
+  getSentenceAudio,
+  getTextAudio,
+} = require("./db/audioRepo");
+
 // --------------------------------------------------------
 // 2. НАСТРОЙКИ СЕРВЕРА
 // --------------------------------------------------------
