@@ -136,9 +136,20 @@ function getAudioRelativePath(assetKey) {
 }
 
 function writeMp3IfNotExists(absPath, mp3Buffer) {
-  if (fs.existsSync(absPath)) return { written: false };
-  fs.writeFileSync(absPath, mp3Buffer);
-  return { written: true };
+  try {
+    // Atomic create: avoids partial writes / races on concurrent requests.
+    const fd = fs.openSync(absPath, "wx"); // throws EEXIST if already created
+    try {
+      fs.writeFileSync(fd, mp3Buffer);
+    } finally {
+      try { fs.closeSync(fd); } catch (_) {}
+    }
+    return { written: true };
+  } catch (e) {
+    if (e && e.code === "EEXIST") return { written: false };
+    console.error("writeMp3IfNotExists failed:", e);
+    return { written: false, error: String(e && e.message ? e.message : e) };
+  }
 }
 
 // --------------------------------------------------------
@@ -554,6 +565,181 @@ async function synthesizeWithCache(
 }
 
 // --------------------------------------------------------
+// V3 Audio Assets (Step 8.2): asset_key → mp3 in audio-cache → upsert audio_assets → link
+// Safety:
+// - does NOT change the single audio pipeline in UI (no new listeners)
+// - DB failures are non-fatal for TTS response
+// --------------------------------------------------------
+
+async function synthesizeMp3Buffer(
+  text,
+  languageCode,
+  voiceName,
+  speakingRate,
+  pitch
+) {
+  const clean = String(text || "").trim();
+  if (!clean) return Buffer.alloc(0);
+
+  const byteLen = Buffer.byteLength(clean, "utf8");
+
+  if (byteLen > TTS_MAX_INPUT_BYTES) {
+    const parts = splitTextForTts(clean, TTS_SAFE_TARGET_BYTES);
+
+    console.log("[TTS] chunking", {
+      byteLen,
+      partsCount: parts.length,
+      maxPartBytes: Math.max(...parts.map((p) => Buffer.byteLength(p, "utf8"))),
+      safeTarget: TTS_SAFE_TARGET_BYTES,
+      hardLimit: TTS_MAX_INPUT_BYTES,
+    });
+
+    const buffers = [];
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (!part || !part.trim()) continue;
+
+      const requestPart = {
+        input: { text: part },
+        voice: {
+          languageCode,
+          name: voiceName || undefined,
+        },
+        audioConfig: {
+          audioEncoding: "MP3",
+          speakingRate: speakingRate || 1.0,
+          pitch: pitch || 0.0,
+        },
+      };
+
+      const [resp] = await ttsClient.synthesizeSpeech(requestPart);
+      if (!resp || !resp.audioContent) {
+        throw new Error("TTS: empty audioContent for chunk #" + (i + 1));
+      }
+      buffers.push(Buffer.from(resp.audioContent));
+    }
+
+    return Buffer.concat(buffers);
+  }
+
+  const request = {
+    input: { text: clean },
+    voice: {
+      languageCode,
+      name: voiceName || undefined,
+    },
+    audioConfig: {
+      audioEncoding: "MP3",
+      speakingRate: speakingRate || 1.0,
+      pitch: pitch || 0.0,
+    },
+  };
+
+  const [response] = await ttsClient.synthesizeSpeech(request);
+  if (!response || !response.audioContent) {
+    throw new Error("TTS: empty audioContent");
+  }
+  return Buffer.from(response.audioContent);
+}
+
+async function ensureAudioAsset(params) {
+  const {
+    text,
+    assetType,
+    ttsProfile,
+    sentenceId,
+    textId,
+    languageCode,
+    voiceName,
+    speakingRate,
+    pitch,
+  } = params || {};
+
+  const cleanText = String(text || "").trim();
+  if (!cleanText) {
+    return { audioContent: "", fromCache: false, assetKey: null, relativePath: null };
+  }
+
+  ensureAudioCacheDir();
+
+  const normalizedProfile = normalizeTtsProfile(
+    ttsProfile || {
+      language: languageCode || null,
+      voiceName: voiceName || null,
+      speakingRate: speakingRate == null ? 1.0 : Number(speakingRate),
+      pitch: pitch == null ? 0.0 : Number(pitch),
+    }
+  );
+
+  const assetKey = computeAssetKey({
+    text: cleanText,
+    ttsProfile: normalizedProfile,
+    assetType: String(assetType || "row"),
+  });
+
+  const relativePath = getAudioRelativePath(assetKey);
+  const absPath = path.join(__dirname, relativePath);
+
+  let fromCache = false;
+  let mp3Buffer = null;
+
+  if (fs.existsSync(absPath)) {
+    fromCache = true;
+    mp3Buffer = fs.readFileSync(absPath);
+  } else {
+    mp3Buffer = await synthesizeMp3Buffer(
+      cleanText,
+      normalizedProfile.language || languageCode,
+      normalizedProfile.voiceName || voiceName,
+      normalizedProfile.speakingRate,
+      normalizedProfile.pitch
+    );
+
+    const wr = writeMp3IfNotExists(absPath, mp3Buffer);
+
+    // If concurrent writer created it, read the file for consistency.
+    if (!wr.written && fs.existsSync(absPath)) {
+      fromCache = true;
+      mp3Buffer = fs.readFileSync(absPath);
+    }
+  }
+
+  // Best-effort DB upsert + linking. Must never break TTS response.
+  try {
+    const h = getDbHealth();
+    if (h && h.ok) {
+      const row = await upsertAudioAsset({
+        id: uuidv4(),
+        assetKey,
+        assetType: String(assetType || "row"),
+        relativePath,
+        mime: "audio/mpeg",
+        durationMs: null,
+        sizeBytes: mp3Buffer ? mp3Buffer.length : null,
+        ttsProfileJson: JSON.stringify(normalizedProfile),
+      });
+
+      if (row && row.id) {
+        if (sentenceId) {
+          await linkSentenceAudio(String(sentenceId), String(row.id), 1);
+        }
+        if (textId) {
+          await linkTextAudio(String(textId), String(row.id), 1);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("[v3-audio] db upsert/link failed (non-fatal)", {
+      assetKey,
+      message: e && e.message,
+    });
+  }
+
+  const audioContent = mp3Buffer ? mp3Buffer.toString("base64") : "";
+  return { audioContent, fromCache, assetKey, relativePath };
+}
+
+// --------------------------------------------------------
 // 7. API: TTS (Google Cloud TTS + серверный кэш)
 // --------------------------------------------------------
 app.post("/api/tts", async (req, res) => {
@@ -562,13 +748,19 @@ app.post("/api/tts", async (req, res) => {
 
   try {
     const {
-      text,
-      language,
-      languageCode,
-      voiceId,
-      speakingRate,
-      pitch,
-    } = req.body || {};
+  text,
+  language,
+  languageCode,
+  voiceId,
+  speakingRate,
+  pitch,
+
+  // v3 context (optional) — Step 8.2
+  assetType,
+  ttsProfile,
+  sentenceId,
+  textId,
+} = req.body || {};
 
     const lang = language || languageCode;
 
@@ -609,6 +801,33 @@ app.post("/api/tts", async (req, res) => {
       const num = Number(pitch);
       if (!Number.isNaN(num)) pitchVal = num;
     }
+	
+	// -------------------------------
+// Step 8.2: normalize v3 context
+// включаем v3-ветку ТОЛЬКО когда есть линковка (sentenceId/textId)
+// -------------------------------
+const v3SentenceId =
+  (sentenceId === null || sentenceId === undefined || String(sentenceId).trim() === "")
+    ? null
+    : String(sentenceId).trim();
+
+const v3TextId =
+  (textId === null || textId === undefined || String(textId).trim() === "")
+    ? null
+    : String(textId).trim();
+
+let v3TtsProfile = null;
+if (ttsProfile && typeof ttsProfile === "object") {
+  v3TtsProfile = ttsProfile;
+} else if (typeof ttsProfile === "string" && ttsProfile.trim()) {
+  try { v3TtsProfile = JSON.parse(ttsProfile); } catch (_) { v3TtsProfile = null; }
+}
+
+const v3AssetType =
+  (assetType && String(assetType).trim()) ? String(assetType).trim() : null;
+
+// v3 mode is enabled only when linking is requested (keeps legacy calls unchanged)
+const hasV3Context = !!(v3SentenceId || v3TextId);
 
     console.log("[/api/tts] request", {
       requestId,
@@ -618,22 +837,63 @@ app.post("/api/tts", async (req, res) => {
       voiceName: voiceName || "auto",
       speakingRate: rate,
       pitch: pitchVal,
+		hasV3Context,
+		v3SentenceId,
+		v3TextId,
+		v3AssetType,
       nodeEnv: process.env.NODE_ENV || null,
 hasGoogleCredentials:!!process.env.GOOGLE_APPLICATION_CREDENTIALS || !!process.env.GOOGLE_CLOUD_TTS_KEY,
     });
 
-    // КЛЮЧЕВОЕ: используем серверный кэш
-    const {
-      audioContent,
-      fromCache,
-      cacheId,
-    } = await synthesizeWithCache(
-      cleanText,
-      languageCodeForRequest,
-      voiceName || undefined,
-      rate,
-      pitchVal
-    );
+    // --------------------------------------------------------
+// Step 8.2 routing:
+// - legacy: synthesizeWithCache (старый hash cacheId)
+// - v3: ensureAudioAsset (stable asset_key + mp3 file + DB upsert + linking)
+// --------------------------------------------------------
+let audioContent, fromCache, cacheId, assetKeyOut, relativePathOut;
+
+if (hasV3Context) {
+  const ensured = await ensureAudioAsset({
+    text: cleanText,
+    assetType: v3AssetType || (v3SentenceId ? "row" : "text"),
+    // если профиль не пришёл — соберём из текущих параметров запроса
+    ttsProfile: v3TtsProfile || {
+      language: languageCodeForRequest,
+      voiceName: voiceName || null,
+      speakingRate: rate,
+      pitch: pitchVal,
+    },
+    sentenceId: v3SentenceId,
+    textId: v3TextId,
+    languageCode: languageCodeForRequest,
+    voiceName: voiceName || undefined,
+    speakingRate: rate,
+    pitch: pitchVal,
+  });
+
+  audioContent = ensured.audioContent;
+  fromCache = ensured.fromCache;
+  assetKeyOut = ensured.assetKey;
+  relativePathOut = ensured.relativePath;
+
+  // оставим cacheId для обратной совместимости (теперь это stable assetKey)
+  cacheId = ensured.assetKey || null;
+} else {
+  const legacy = await synthesizeWithCache(
+    cleanText,
+    languageCodeForRequest,
+    voiceName || undefined,
+    rate,
+    pitchVal
+  );
+
+  audioContent = legacy.audioContent;
+  fromCache = legacy.fromCache;
+  cacheId = legacy.cacheId;
+
+  assetKeyOut = null;
+  relativePathOut = null;
+}
 
     // считаем символы ТОЛЬКО если это не кэш
     if (!fromCache) {
@@ -641,16 +901,26 @@ hasGoogleCredentials:!!process.env.GOOGLE_APPLICATION_CREDENTIALS || !!process.e
     }
 
     return res.json({
-      audioContent,
-      mimeType: "audio/mpeg",
-      fromCache: !!fromCache,
-      cacheId: cacheId || null,
-      debug: {
-        requestId,
-        durationMs: Date.now() - startedAt,
-        fromCache: !!fromCache,
-      },
-    });
+  audioContent,
+  mimeType: "audio/mpeg",
+  fromCache: !!fromCache,
+
+  // legacy field: for backward compatibility
+  cacheId: cacheId || null,
+
+  // v3 fields (Step 8.2)
+  assetKey: assetKeyOut || null,
+  relativePath: relativePathOut || null,
+
+  debug: {
+    requestId,
+    durationMs: Date.now() - startedAt,
+    fromCache: !!fromCache,
+    hasV3Context: !!hasV3Context,
+    assetKey: assetKeyOut || null,
+  },
+});
+
   } catch (error) {
     console.error("[/api/tts] Ошибка TTS", {
       requestId,
