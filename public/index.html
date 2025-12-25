@@ -4071,15 +4071,22 @@ async function v3LibraryOpenText(textId, opts) {
     } catch (_) {}
 
     // map sentences -> UI rows
-    const rows = sentences
+        const rows = sentences
       .slice()
       .sort((a,b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
-      .map((r) => ({
-        he: String(r.he_plain ?? r.he ?? ""),
-        he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
-        translit: String(r.translit ?? ""),
-        ru: String(r.ru ?? "")
-      }));
+      .map((r) => {
+        const sid = r && (r.id ?? r.sentence_id ?? r.sentenceId);
+        return {
+          he: String(r.he_plain ?? r.he ?? ""),
+          he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
+          translit: String(r.translit ?? ""),
+          ru: String(r.ru ?? ""),
+
+          // V3 Audio Assets context (Step 8.2): стабильные идентификаторы для линковки
+          _v3_sentenceId: sid ? String(sid) : null,
+          _v3_textId: String(textId)
+        };
+      });
 
     v3PrepareForNewTableRender();
 
@@ -5541,7 +5548,10 @@ function initRowUxDelegatesOnce() {
         clearRowPlayingState();
 
         const row = currentTableData[rowIdx];
-        const text = getRowTtsTextForRow(row);
+		const hasV3Ctx = !!(row && row._v3_sentenceId);
+
+		const text = getRowTtsTextForRow(row);
+
         if (!text) {
             showToast("Нет текста для озвучки в этой строке");
             return;
@@ -5557,33 +5567,48 @@ function initRowUxDelegatesOnce() {
         setRowButtonLoading(rowIdx, true);
 
         try {
-            const cachedB64 = rowCacheGet(cacheKey);
-            if (cachedB64) {
-                const audio = ensureRowAudioPlayer();
-                const bytes = Uint8Array.from(atob(cachedB64), c => c.charCodeAt(0));
-                const blob = new Blob([bytes], { type: "audio/mpeg" });
+// Browser cache используем только для НЕ-Library строк.
+// Для Library-строк обязателен поход на сервер (Step 8.2: запись mp3 + upsert + линковка).
+const cachedB64 = hasV3Ctx ? null : rowCacheGet(cacheKey);
+if (cachedB64) {
+  const audio = ensureRowAudioPlayer();
+  const bytes = Uint8Array.from(atob(cachedB64), c => c.charCodeAt(0));
+  const blob = new Blob([bytes], { type: "audio/mpeg" });
 
-                if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
-                rowAudioUrl = URL.createObjectURL(blob);
+  if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+  rowAudioUrl = URL.createObjectURL(blob);
 
-                audio.src = rowAudioUrl;
-                setRowPlayingUI(rowIdx, true);
-                await audio.play();
-                return;
-            }
+  audio.src = rowAudioUrl;
+  setRowPlayingUI(rowIdx, true);
+  await audio.play();
+  return;
+}
 
-            const res = await apiCall("/api/tts", {
-                text: text,
-                language: lang,
-                voiceId: cfg.voiceId,
-                speakingRate: cfg.rate,
-                pitch: cfg.pitch
-            });
+            const ttsBody = {
+  text: text,
+  language: lang,
+  voiceId: cfg.voiceId,
+  speakingRate: cfg.rate,
+  pitch: cfg.pitch
+};
+
+// V3 Library context: только если строка пришла из Library
+if (hasV3Ctx) {
+  ttsBody.sentenceId = String(row._v3_sentenceId);
+  ttsBody.textId = String(row._v3_textId);
+  ttsBody.assetType = "row";
+}
+
+const res = await apiCall("/api/tts", ttsBody);
+
 
             const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
             if (!b64) throw new Error("Пустой ответ TTS");
 
-            rowCacheSet(cacheKey, b64);
+            if (!hasV3Ctx) {
+				rowCacheSet(cacheKey, b64);
+				}
+
 
             const audio = ensureRowAudioPlayer();
             const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
