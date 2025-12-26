@@ -5601,7 +5601,26 @@ if (hasV3Ctx) {
 
 const res = await apiCall("/api/tts", ttsBody);
 
+			// Step 8.4 (P0): для Library-строк играем через /api/audio/:assetKey (без Blob)
+if (hasV3Ctx) {
+  const assetKey = res && typeof res.assetKey === "string" ? res.assetKey.trim() : "";
+  if (!assetKey) throw new Error("TTS: assetKey отсутствует (v3)");
 
+  const audio = ensureRowAudioPlayer();
+
+  // на всякий случай: если был старый blob url — освободим
+  if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+  rowAudioUrl = null;
+
+  audio.src = "/api/audio/" + encodeURIComponent(assetKey);
+  setRowPlayingUI(rowIdx, true);
+  await audio.play();
+
+  loadStats();
+  return;
+}
+
+			
             const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
             if (!b64) throw new Error("Пустой ответ TTS");
 

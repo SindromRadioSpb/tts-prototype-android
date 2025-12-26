@@ -35,3 +35,13 @@ h origin v0.2.0-week2
 # SQLite (Library/Progress)
 data/
 *.db
+
+@"
+# Step 8.x smoke artifacts
+out.mp3
+part.bin
+
+# Runtime audio cache (generated)
+audio-cache/
+"@ | Add-Content .gitignore
+
