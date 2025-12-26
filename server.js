@@ -950,6 +950,108 @@ if (hasV3Context) {
 });
 
 // --------------------------------------------------------
+// 8.3 API: Stream MP3 by assetKey (V3 audio assets)
+// GET /api/audio/:assetKey
+// - Streams file from audio-cache/<assetKey>.mp3
+// - Supports Range requests (seeking)
+// - ETag = assetKey (content-addressed)
+// --------------------------------------------------------
+app.get("/api/audio/:assetKey", async (req, res) => {
+  const assetKey = String(req.params.assetKey || "").trim();
+
+  // Strict validation: sha256 hex (64)
+  if (!/^[a-f0-9]{64}$/i.test(assetKey)) {
+    return res.status(400).json({ error: "BAD_ASSET_KEY" });
+  }
+
+  // Best-effort DB touch (do not block streaming)
+  try {
+    const h = typeof getDbHealth === "function" ? getDbHealth() : null;
+    if (h && h.ok && typeof touchAudioAsset === "function") {
+      touchAudioAsset(assetKey).catch(() => {});
+    }
+  } catch (_) {}
+
+  // Resolve file relative path (prefer DB relative_path if present; fallback to deterministic)
+  let rel = (typeof getAudioRelativePath === "function")
+    ? getAudioRelativePath(assetKey)
+    : `audio-cache/${assetKey}.mp3`;
+
+  try {
+    const h = typeof getDbHealth === "function" ? getDbHealth() : null;
+    if (h && h.ok && typeof getAudioAssetByKey === "function") {
+      const row = await getAudioAssetByKey(assetKey);
+      if (row && row.relative_path) rel = String(row.relative_path);
+    }
+  } catch (_) {}
+
+  // Only allow paths inside audio-cache
+  const audioCacheRoot = path.resolve(audioCacheDir);
+  const absPath = path.resolve(__dirname, rel);
+
+  if (!absPath.startsWith(audioCacheRoot + path.sep)) {
+    return res.status(400).json({ error: "BAD_ASSET_PATH" });
+  }
+
+  let stat;
+  try {
+    stat = fs.statSync(absPath);
+    if (!stat.isFile()) throw new Error("NOT_FILE");
+  } catch (_) {
+    return res.status(404).json({ error: "NOT_FOUND" });
+  }
+
+  const size = stat.size;
+
+  // Headers
+  res.setHeader("Content-Type", "audio/mpeg");
+  res.setHeader("Accept-Ranges", "bytes");
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("ETag", `"${assetKey}"`);
+
+  // 304 support
+  const ifNoneMatchRaw = String(req.headers["if-none-match"] || "");
+  const ifNoneMatch = ifNoneMatchRaw.replace(/"/g, "");
+  if (ifNoneMatch && ifNoneMatch === assetKey) {
+    return res.status(304).end();
+  }
+
+  // Range support
+  const range = req.headers.range;
+  if (range) {
+    const m = /^bytes=(\d*)-(\d*)$/.exec(range);
+    if (!m) {
+      res.setHeader("Content-Range", `bytes */${size}`);
+      return res.status(416).end();
+    }
+
+    let start = m[1] ? parseInt(m[1], 10) : 0;
+    let end = m[2] ? parseInt(m[2], 10) : size - 1;
+
+    if (Number.isNaN(start) || Number.isNaN(end) || start > end || start >= size) {
+      res.setHeader("Content-Range", `bytes */${size}`);
+      return res.status(416).end();
+    }
+
+    end = Math.min(end, size - 1);
+
+    res.status(206);
+    res.setHeader("Content-Range", `bytes ${start}-${end}/${size}`);
+    res.setHeader("Content-Length", String(end - start + 1));
+
+    const stream = fs.createReadStream(absPath, { start, end });
+    stream.on("error", () => res.end());
+    return stream.pipe(res);
+  }
+
+  // Full file
+  res.setHeader("Content-Length", String(size));
+  const stream = fs.createReadStream(absPath);
+  stream.on("error", () => res.end());
+  return stream.pipe(res);
+});
+
+// --------------------------------------------------------
 // 8. API: СОХРАНЕНИЕ АУДИО НА ДИСК
 // --------------------------------------------------------
 app.post("/api/save-audio", async (req, res) => {
