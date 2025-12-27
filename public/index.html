@@ -4602,6 +4602,9 @@ function v3DashboardOnModeChange() {
 
   try { localStorage.setItem(V3_DASH_MODE_KEY, mode); } catch (_) {}
   v3DashboardApplyMode(mode);
+
+  // Важно: режим меняется без нового fetch — просто перерисуем текущие карточки.
+  v3DashboardRender();
 }
 
 function v3DashIsAutoPlayContinueOn() {
@@ -4722,11 +4725,24 @@ function v3DashMatches(t, q, level) {
 
 function v3DashBadges(t, recent) {
   const badges = [];
-  if (t.level) badges.push(`level: ${t.level}`);
-  if (t.topic) badges.push(`topic: ${t.topic}`);
-  if (t.source) badges.push(`source: ${t.source}`);
-  if (recent && recent.seen_count) badges.push(`seen: ${recent.seen_count}`);
-  if (recent && recent.last_seen_at) badges.push(`last: ${v3FmtDate(recent.last_seen_at)}`);
+
+  const mode = (typeof v3DashboardGetMode === "function") ? v3DashboardGetMode() : "learning";
+  const isCompact = (mode === "compact");
+
+  // В compact скрываем “метаданные учебного объекта”
+  if (!isCompact) {
+    if (t.level)  badges.push(`level: ${t.level}`);
+    if (t.topic)  badges.push(`topic: ${t.topic}`);
+    if (t.source) badges.push(`source: ${t.source}`);
+  }
+
+  // Всегда оставляем “активность”
+  const seen = recent ? (recent.seen_count ?? recent.seenCount ?? 0) : 0;
+  if (seen) badges.push(`seen: ${seen}`);
+
+  const lastSeenAt = recent ? (recent.last_seen_at ?? recent.lastSeenAt ?? null) : null;
+  if (lastSeenAt) badges.push(`last: ${v3FmtDate(lastSeenAt)}`);
+
   return badges;
 }
 
