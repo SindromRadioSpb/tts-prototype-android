@@ -5613,6 +5613,21 @@ if (hasV3Ctx) {
   rowAudioUrl = null;
 
   audio.src = "/api/audio/" + encodeURIComponent(assetKey);
+  
+    // Week 9 (P0): History event (fire-and-forget). Только для Library-строк (hasV3Ctx=true).
+  try {
+    fetch("/api/history/event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        textId: String(row._v3_textId),
+        sentenceId: String(row._v3_sentenceId),
+        eventType: "row_tts",
+        assetKey: assetKey || null
+      })
+    }).catch(() => {});
+  } catch (_) {}
+  
   setRowPlayingUI(rowIdx, true);
   await audio.play();
 
