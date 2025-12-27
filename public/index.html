@@ -1798,8 +1798,23 @@ th, td { border-color: rgba(0,0,0,0.55); }
           <input id="v3DashIncludeArchived" type="checkbox" onchange="v3DashboardRefresh()" />
           includeArchived
         </label>
-      </div>
+		
+		<label
+			title="Если включено: кнопка «Продолжить» откроет текст, перейдёт к последней строке и автоматически запустит её воспроизведение. По умолчанию выключено."
+			style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;"
+		>
+			<input
+				id="v3DashAutoPlayContinue"
+				type="checkbox"
+				onchange="v3DashboardOnAutoPlayChange()"
+				aria-label="Autoplay on Continue"
+			/>
+			autoplay (Continue)
+			</label>
 
+		
+      </div>
+	  
       <div id="v3DashStatus" class="v3-lib-status"></div>
 
  <div class="v3-dash-layout">
@@ -4515,6 +4530,20 @@ let v3DashLibTexts = [];
 let v3DashRecent = [];
 let v3DashRecentByTextId = new Map();
 
+const V3_DASH_AUTOPLAY_CONTINUE_KEY = "v3Dash_autoplay_continue_v1";
+
+function v3DashIsAutoPlayContinueOn() {
+  const el = v3DashEl("v3DashAutoPlayContinue");
+  if (el) return !!el.checked;
+  try { return localStorage.getItem(V3_DASH_AUTOPLAY_CONTINUE_KEY) === "1"; } catch (_) { return false; }
+}
+
+function v3DashboardOnAutoPlayChange() {
+  const el = v3DashEl("v3DashAutoPlayContinue");
+  const v = (el && el.checked) ? "1" : "0";
+  try { localStorage.setItem(V3_DASH_AUTOPLAY_CONTINUE_KEY, v); } catch (_) {}
+}
+
 let v3DashActiveTextId = null;
 let v3DashActiveRows = [];
 let v3DashRowsCache = new Map(); // textId -> rows[]
@@ -4531,6 +4560,13 @@ function v3DashboardOpen() {
     const inc = v3DashEl("v3DashIncludeArchived");
     if (inc) inc.checked = true;
   }
+  
+  const ap = v3DashEl("v3DashAutoPlayContinue");
+if (ap) {
+  let saved = "0";
+  try { saved = localStorage.getItem(V3_DASH_AUTOPLAY_CONTINUE_KEY) || "0"; } catch (_) {}
+  ap.checked = (saved === "1"); // default OFF
+}
 
   v3DashboardRefresh();
 
@@ -4834,10 +4870,33 @@ async function v3DashboardOpenText(textId) {
 }
 
 async function v3DashboardContinue(textId) {
-  const r = v3DashRecentByTextId.get(textId);
-  const resumeSentenceId = (r && r.last_sentence_id) ? r.last_sentence_id : null;
+  const recent = v3DashRecentByTextId.get(textId) || null;
+  const resumeSentenceId = (recent && recent.last_sentence_id) ? String(recent.last_sentence_id) : null;
+
   v3DashboardClose();
   await v3LibraryOpenText(textId, { resumeSentenceId });
+
+  // Без last_sentence_id — не автоплеим (иначе будет неожиданно играть 1-я строка)
+  if (!resumeSentenceId) return;
+  if (!v3DashIsAutoPlayContinueOn()) return;
+
+  // Дать UI “доприменить” resume (обычно там rAF/scroll), затем кликнуть Play по selected row
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      try {
+        const idx = (typeof rowSelectedRowIdx === "number" && Number.isFinite(rowSelectedRowIdx))
+          ? rowSelectedRowIdx
+          : null;
+        if (idx === null) return;
+
+        const table = document.getElementById("proTable");
+        const btn = table && table.querySelector(`button.row-tts-btn[data-row-idx="${idx}"]`);
+        if (btn) btn.click();
+      } catch (e) {
+        console.warn("[v3DashboardContinue autoplay] failed:", e);
+      }
+    });
+  });
 }
 
 async function v3DashboardTogglePin(textId) {
