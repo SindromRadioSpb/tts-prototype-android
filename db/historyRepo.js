@@ -1,5 +1,7 @@
 "use strict";
 
+const crypto = require("crypto");
+
 const { getDb, _exec } = require("./sqlite");
 
 // init-once guard (и защита от параллельных вызовов)
@@ -8,6 +10,11 @@ let _schemaInitPromise = null;
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function genId() {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  return crypto.randomBytes(16).toString("hex");
 }
 
 function dbGet(db, sql, params = []) {
@@ -64,7 +71,7 @@ async function ensureHistorySchema() {
         text_id     TEXT NOT NULL,
         sentence_id TEXT NOT NULL,
         asset_key   TEXT,
-        created_at  TEXT NOT NULL
+        created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
       );
 
       CREATE INDEX IF NOT EXISTS idx_history_events_text_id
@@ -115,12 +122,18 @@ async function insertHistoryEvent({ id, eventType, textId, sentenceId, assetKey,
   await ensureHistorySchema();
   const db = getDb();
 
+  const eid = id || genId();
+  const eType = eventType || "ROW_TTS";
+  const ts = createdAt || nowIso();
+
   await dbRun(
     db,
     `INSERT INTO history_events (id, event_type, text_id, sentence_id, asset_key, created_at)
      VALUES (?, ?, ?, ?, ?, ?)`,
-    [id, eventType, textId, sentenceId, assetKey || null, createdAt]
+    [eid, eType, textId, sentenceId, assetKey || null, ts]
   );
+
+  return { id: eid, createdAt: ts };
 }
 
 async function touchRecentText({ textId, sentenceId, assetKey, seenAt }) {
@@ -144,16 +157,36 @@ async function touchRecentRow({ textId, sentenceId, assetKey, seenAt }) {
   await ensureHistorySchema();
   const db = getDb();
 
-  await dbRun(
-    db,
-    `INSERT INTO recent_rows (text_id, sentence_id, last_seen_at, seen_count, last_asset_key)
-     VALUES (?, ?, ?, 1, ?)
-     ON CONFLICT(text_id, sentence_id) DO UPDATE SET
-       last_seen_at   = excluded.last_seen_at,
-       seen_count     = recent_rows.seen_count + 1,
-       last_asset_key = COALESCE(excluded.last_asset_key, recent_rows.last_asset_key)`,
-    [textId, sentenceId, seenAt, assetKey || null]
-  );
+  // Основная (новая) схема: last_seen_at + seen_count
+  try {
+    await dbRun(
+      db,
+      `INSERT INTO recent_rows (text_id, sentence_id, last_seen_at, seen_count, last_asset_key)
+       VALUES (?, ?, ?, 1, ?)
+       ON CONFLICT(text_id, sentence_id) DO UPDATE SET
+         last_seen_at   = excluded.last_seen_at,
+         seen_count     = recent_rows.seen_count + 1,
+         last_asset_key = COALESCE(excluded.last_asset_key, recent_rows.last_asset_key)`,
+      [textId, sentenceId, seenAt, assetKey || null]
+    );
+    return;
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err);
+    const isSchemaMismatch = msg.includes("no such column") || msg.includes("has no column named");
+    if (!isSchemaMismatch) throw err;
+
+    // Legacy-схема (если таблица была создана старой версией): last_event_at + play_count
+    await dbRun(
+      db,
+      `INSERT INTO recent_rows (text_id, sentence_id, last_event_at, play_count, last_asset_key)
+       VALUES (?, ?, ?, 1, ?)
+       ON CONFLICT(text_id, sentence_id) DO UPDATE SET
+         last_event_at  = excluded.last_event_at,
+         play_count     = recent_rows.play_count + 1,
+         last_asset_key = COALESCE(excluded.last_asset_key, recent_rows.last_asset_key)`,
+      [textId, sentenceId, seenAt, assetKey || null]
+    );
+  }
 }
 
 /**
@@ -163,33 +196,47 @@ async function touchRecentRow({ textId, sentenceId, assetKey, seenAt }) {
  */
 async function recordRowTtsEvent({ id, eventType, textId, sentenceId, assetKey }) {
   await ensureHistorySchema();
+  const db = getDb();
 
+  const eid = id || genId();
+  const eType = eventType || "ROW_TTS";
   const createdAt = nowIso();
 
-  await insertHistoryEvent({
-    id,
-    eventType,
-    textId,
-    sentenceId,
-    assetKey,
-    createdAt
-  });
+  // Важно: транзакция, чтобы recent_texts и recent_rows не расходились.
+  await dbRun(db, "BEGIN IMMEDIATE;");
+  try {
+    await insertHistoryEvent({
+      id: eid,
+      eventType: eType,
+      textId,
+      sentenceId,
+      assetKey,
+      createdAt,
+    });
 
-  await touchRecentText({
-    textId,
-    sentenceId,
-    assetKey,
-    seenAt: createdAt
-  });
+    await touchRecentText({
+      textId,
+      sentenceId,
+      assetKey,
+      seenAt: createdAt,
+    });
 
-  await touchRecentRow({
-    textId,
-    sentenceId,
-    assetKey,
-    seenAt: createdAt
-  });
+    await touchRecentRow({
+      textId,
+      sentenceId,
+      assetKey,
+      seenAt: createdAt,
+    });
 
-  return { ok: true, id, createdAt };
+    await dbRun(db, "COMMIT;");
+  } catch (err) {
+    try {
+      await dbRun(db, "ROLLBACK;");
+    } catch (_) {}
+    throw err;
+  }
+
+  return { ok: true, id: eid, createdAt };
 }
 
 /**
@@ -232,22 +279,46 @@ async function listRecentRowsByText({ textId, limit = 25 } = {}) {
 
   const lim = Math.max(1, Math.min(200, Number(limit) || 25));
 
-  const rows = await dbAll(
-    db,
-    `SELECT
-       text_id,
-       sentence_id,
-       last_seen_at,
-       seen_count,
-       last_asset_key
-     FROM recent_rows
-     WHERE text_id = ?
-     ORDER BY last_seen_at DESC
-     LIMIT ?`,
-    [textId, lim]
-  );
+  // Основная (новая) схема
+  try {
+    const rows = await dbAll(
+      db,
+      `SELECT
+         text_id,
+         sentence_id,
+         last_seen_at,
+         seen_count,
+         last_asset_key
+       FROM recent_rows
+       WHERE text_id = ?
+       ORDER BY last_seen_at DESC
+       LIMIT ?`,
+      [textId, lim]
+    );
+    return rows || [];
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err);
+    const isSchemaMismatch = msg.includes("no such column") || msg.includes("has no column named");
+    if (!isSchemaMismatch) throw err;
 
-  return rows || [];
+    // Legacy-схема: last_event_at + play_count
+    const rows = await dbAll(
+      db,
+      `SELECT
+         text_id,
+         sentence_id,
+         last_event_at AS last_seen_at,
+         play_count    AS seen_count,
+         last_asset_key
+       FROM recent_rows
+       WHERE text_id = ?
+       ORDER BY last_event_at DESC
+       LIMIT ?`,
+      [textId, lim]
+    );
+
+    return rows || [];
+  }
 }
 
 module.exports = {
@@ -261,5 +332,5 @@ module.exports = {
   touchRecentRow,
 
   // на будущее — для тестов/диагностики
-  ensureHistorySchema
+  ensureHistorySchema,
 };

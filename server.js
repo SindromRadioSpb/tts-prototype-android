@@ -1873,85 +1873,145 @@ app.patch("/api/library/texts/:id/meta", async (req, res) => {
 
 // --------------------------------------------------------
 // Week9 (P0): Dashboard History API (Recent texts + Recent rows)
-// --------------------------------------------------------
-
-function v9ClampLimit(raw, def, max) {
-  const n = Number(raw);
-  if (!Number.isFinite(n)) return def;
-  const i = Math.trunc(n);
-  return Math.max(1, Math.min(max, i));
-}
 
 // POST /api/history/event
-// body: { textId, sentenceId, eventType?, assetKey? }
-// эффект: history_events + recent_rows + recent_texts (через recordRowTtsEvent)
-app.post("/api/history/event", async (req, res) => {
+// body: { textId, sentenceId, assetKey?, audioLang?, voiceName? }
+// также поддерживает legacy-ключи: text_id, sentence_id, asset_key, audio_lang, voice_name
+app.post("/api/history/event", express.json({ limit: "64kb" }), async (req, res) => {
+  const db = requireDbOr503(res);
+  if (!db) return;
+
   try {
-    if (!requireDbOr503(res)) return;
-
     const body = req.body || {};
-    const textId = String(body.textId || "").trim();
-    const sentenceId = String(body.sentenceId || "").trim();
+    const textId = body.textId || body.text_id;
+    const sentenceId = body.sentenceId || body.sentence_id;
 
-    if (!textId) return res.status(400).json({ error: "VALIDATION", field: "textId" });
-    if (!sentenceId) return res.status(400).json({ error: "VALIDATION", field: "sentenceId" });
+    const assetKey = body.assetKey || body.asset_key || null;
+    const audioLang = body.audioLang || body.audio_lang || null;
+    const voiceName = body.voiceName || body.voice_name || null;
 
-    const eventTypeRaw = body.eventType == null ? "row_tts" : String(body.eventType).trim();
-    const eventType = eventTypeRaw || "row_tts";
+    if (!textId || !sentenceId) {
+      return res.status(400).json({ ok: false, error: "textId and sentenceId are required" });
+    }
 
-    const assetKeyRaw = body.assetKey == null ? null : String(body.assetKey).trim();
-    const assetKey = assetKeyRaw ? assetKeyRaw : null;
-
-    // основной путь (P0): фиксируем событие и витрины recents
-    await recordRowTtsEvent({
-      id: uuidv4(),
-      eventType,
+    // Унифицируем вызов: если historyRepo ожидает иной объект — он сам может игнорировать лишние поля.
+    const result = await recordRowTtsEvent({
       textId,
       sentenceId,
       assetKey,
+      audioLang,
+      voiceName,
+      // legacy-поля (на случай старой реализации repo)
+      id: body.id || uuidv4(),
+      eventType: body.eventType || body.event_type || "ROW_TTS",
     });
 
-    res.json({ ok: true });
+    return res.json({ ok: true, result });
   } catch (e) {
-    console.error("POST /api/history/event error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.error("history/event failed", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
   }
 });
 
-// GET /api/history/recent-texts?limit=30&includeArchived=0
-app.get("/api/history/recent-texts", async (req, res) => {
+// GET /api/history/recent-texts?limit=20&includeArchived=0|1
+	app.get("/api/history/recent-texts", async (req, res) => {
+  const db = requireDbOr503(res);
+  if (!db) return;
+
   try {
-    if (!requireDbOr503(res)) return;
+    const limit = Math.max(1, Math.min(200, Number(req.query.limit) || 20));
+    const includeArchived = String(req.query.includeArchived || req.query.include_archived || "") === "1";
 
-    const limit = v9ClampLimit(req.query.limit, 30, 200);
-    const includeArchived =
-      req.query.includeArchived === "1" || req.query.includeArchived === "true";
+    const recentRes = await listRecentTexts({ limit, includeArchived });
+    const recent = Array.isArray(recentRes) ? recentRes : (recentRes && recentRes.texts ? recentRes.texts : []);
 
-    const texts = await listRecentTexts({ limit, includeArchived });
-    res.json({ ok: true, texts });
+    const out = [];
+    for (const r of (recent || [])) {
+      const textId = r.text_id || r.textId || r.id; // подстраховка
+      if (!textId) continue;
+
+      // Подтягиваем полную карточку текста (как /api/library/texts/:id)
+      let t = null;
+      try {
+        t = await getTextById(textId);
+      } catch (_) {}
+
+      const isArchived = !!(t && (t.is_archived === 1 || t.is_archived === true));
+      if (!includeArchived && isArchived) continue;
+
+      // Нормализуем поля времени/счётчика под UI:
+      const lastSeenAt = r.last_seen_at || r.lastSeenAt || r.last_event_at || r.lastEventAt || null;
+      const seenCount = (r.seen_count ?? r.seenCount ?? r.play_count ?? r.playCount ?? 0);
+
+      out.push({
+        text_id: textId,
+        last_seen_at: lastSeenAt,
+        seen_count: seenCount,
+        last_sentence_id: r.last_sentence_id || r.lastSentenceId || null,
+        last_asset_key: r.last_asset_key || r.lastAssetKey || null,
+        ...(t || {}),
+      });
+    }
+
+    return res.json({ ok: true, texts: out });
   } catch (e) {
-    console.error("GET /api/history/recent-texts error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.error("history/recent-texts failed", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
   }
 });
 
-// GET /api/history/texts/:id/recent-rows?limit=100
-app.get("/api/history/texts/:id/recent-rows", async (req, res) => {
+// GET /api/history/texts/:textId/recent-rows
+app.get("/api/history/texts/:textId/recent-rows", async (req, res) => {
+  const db = requireDbOr503(res);
+  if (!db) return;
+
+  const textId = req.params.textId;
+
   try {
-    if (!requireDbOr503(res)) return;
+    const textId = req.params.textId;
+    const limit = Math.max(1, Math.min(200, Number(req.query.limit) || 25));
 
-    const textId = String(req.params.id || "").trim();
-    if (!textId) return res.status(400).json({ error: "VALIDATION", field: "textId" });
+    const recentRes = await listRecentRowsByText({ textId, limit });
+    const recent = Array.isArray(recentRes) ? recentRes : (recentRes && recentRes.rows ? recentRes.rows : []);
 
-    const limit = v9ClampLimit(req.query.limit, 100, 500);
-    const rows = await listRecentRowsByText({ textId, limit });
+    // Обогащаем строками из library sentences (order_index + тексты), чтобы Dashboard мог показывать превью
+    let sentences = [];
+    try {
+      sentences = await getSentencesByTextId(textId);
+    } catch (_) {}
 
-    res.json({ ok: true, textId, rows });
+    const byId = new Map((sentences || []).map(s => [s.id, s]));
+
+    const rows = (recent || []).map(r => {
+      const sentenceId = r.sentence_id || r.sentenceId;
+      const s = sentenceId ? byId.get(sentenceId) : null;
+
+      const lastSeenAt = r.last_seen_at || r.lastSeenAt || r.last_event_at || r.lastEventAt || null;
+      const seenCount = (r.seen_count ?? r.seenCount ?? r.play_count ?? r.playCount ?? 0);
+
+      return {
+        text_id: r.text_id || textId,
+        sentence_id: sentenceId,
+        last_seen_at: lastSeenAt,
+        seen_count: seenCount,
+        last_asset_key: r.last_asset_key || r.lastAssetKey || null,
+        ...(s ? {
+          order_index: s.order_index,
+          he_plain: s.he_plain,
+          he_niqqud: s.he_niqqud,
+          translit: s.translit,
+          ru: s.ru,
+        } : {}),
+      };
+    });
+
+    return res.json({ ok: true, textId, rows });
   } catch (e) {
-    console.error("GET /api/history/texts/:id/recent-rows error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.error("history/texts/:textId/recent-rows failed", e);
+  return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
   }
 });
+
 
 // Archive / Delete
 app.post("/api/library/texts/:id/archive", async (req, res) => {
