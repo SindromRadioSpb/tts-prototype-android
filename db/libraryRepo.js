@@ -81,8 +81,16 @@ async function createTextWithSentences({
   sourceMetaJson,
   ttsProfileJson,
   tableModelMetaJson,
+
+  // Week9 dashboard meta (optional)
+  source,
+  topic,
+  isPinned,
+  pinOrder,
+
   rows,
 }) {
+
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
@@ -93,13 +101,16 @@ async function createTextWithSentences({
   try {
     await dbRun(
       db,
-      `
+         `
       INSERT INTO texts (
         id, text_key, title, level, tags_json,
         source_text, source_meta_json,
         tts_profile_json, table_model_meta_json,
+
+        source, topic, is_pinned, pin_order,
+
         is_archived, created_at, updated_at, last_opened_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, NULL);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, NULL);
       `,
       [
         tId,
@@ -111,6 +122,12 @@ async function createTextWithSentences({
         sourceMetaJson || null,
         ttsProfileJson || null,
         tableModelMetaJson || null,
+
+        (source == null ? null : String(source)),
+        (topic == null ? null : String(topic)),
+        isPinned ? 1 : 0,
+        (pinOrder == null ? null : Number(pinOrder)),
+
         now,
         now,
       ]
@@ -164,6 +181,7 @@ async function listTexts({ limit = 15, includeArchived = false }) {
     `
     SELECT
       id, text_key, title, level, tags_json,
+      source, topic, is_pinned, pin_order,
       is_archived, created_at, updated_at, last_opened_at
     FROM texts
     WHERE ${where}
@@ -185,6 +203,9 @@ async function getTextById(textId) {
       id, text_key, title, level, tags_json,
       source_text, source_meta_json,
       tts_profile_json, table_model_meta_json,
+
+      source, topic, is_pinned, pin_order,
+
       is_archived, created_at, updated_at, last_opened_at
     FROM texts
     WHERE id = ?;
@@ -247,6 +268,64 @@ async function deleteTextById(textId) {
   return { ok: true };
 }
 
+async function updateTextMeta(textId, patch) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const p = patch || {};
+  const fields = [];
+  const params = [];
+
+  // различаем undefined (не трогаем) и null (очистить поле)
+  if (Object.prototype.hasOwnProperty.call(p, "title")) {
+    const v = (p.title == null) ? null : String(p.title).trim();
+    fields.push("title = ?");
+    params.push(v === "" ? null : v);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(p, "level")) {
+    const v = (p.level == null) ? null : String(p.level).trim();
+    fields.push("level = ?");
+    params.push(v === "" ? null : v);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(p, "source")) {
+    const v = (p.source == null) ? null : String(p.source).trim();
+    fields.push("source = ?");
+    params.push(v === "" ? null : v);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(p, "topic")) {
+    const v = (p.topic == null) ? null : String(p.topic).trim();
+    fields.push("topic = ?");
+    params.push(v === "" ? null : v);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(p, "isPinned")) {
+    fields.push("is_pinned = ?");
+    params.push(p.isPinned ? 1 : 0);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(p, "pinOrder")) {
+    const v = (p.pinOrder === "" || p.pinOrder === null || p.pinOrder === undefined) ? null : Number(p.pinOrder);
+    fields.push("pin_order = ?");
+    params.push(v);
+  }
+
+  if (fields.length === 0) {
+    return getTextById(textId);
+  }
+
+  const now = nowIso();
+  fields.push("updated_at = ?");
+  params.push(now);
+
+  params.push(String(textId));
+
+  await dbRun(db, `UPDATE texts SET ${fields.join(", ")} WHERE id = ?;`, params);
+  return getTextById(textId);
+}
+
 module.exports = {
   computeTextKey,
   guessTitle,
@@ -257,4 +336,8 @@ module.exports = {
   touchTextOpened,
   archiveTextById,
   deleteTextById,
+
+  // Week9 dashboard meta
+  updateTextMeta,
 };
+

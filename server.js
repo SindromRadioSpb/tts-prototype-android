@@ -37,6 +37,9 @@ const {
   touchTextOpened,
   archiveTextById,
   deleteTextById,
+
+  // Week9 dashboard meta
+  updateTextMeta,
 } = require("./db/libraryRepo");
 
 const {
@@ -1629,6 +1632,36 @@ app.post("/api/library/texts", async (req, res) => {
     const title = (body.title && String(body.title).trim()) ? String(body.title).trim() : guessTitle(sourceText);
     const level = (body.level && String(body.level).trim()) ? String(body.level).trim() : null;
 
+	// Week9 dashboard meta (optional)
+const source = Object.prototype.hasOwnProperty.call(body, "source")
+  ? ((body.source == null) ? null : String(body.source).trim() || null)
+  : null;
+
+const topic = Object.prototype.hasOwnProperty.call(body, "topic")
+  ? ((body.topic == null) ? null : String(body.topic).trim() || null)
+  : null;
+
+// isPinned: accept boolean / 0|1 / "0"|"1"
+let isPinned = 0;
+if (Object.prototype.hasOwnProperty.call(body, "isPinned")) {
+  const v = body.isPinned;
+  if (v === true || v === 1 || v === "1") isPinned = 1;
+  else isPinned = 0;
+}
+
+// pinOrder: optional integer (only meaningful if pinned)
+let pinOrder = null;
+if (Object.prototype.hasOwnProperty.call(body, "pinOrder")) {
+  if (body.pinOrder === null || body.pinOrder === "" || body.pinOrder === undefined) {
+    pinOrder = null;
+  } else {
+    const n = Number(body.pinOrder);
+    if (Number.isFinite(n)) pinOrder = Math.trunc(n);
+  }
+}
+if (!isPinned) pinOrder = null;
+
+	
     const rows = rowsIn.map((r, idx) => {
       const hePlain = String((r && r.he) || "");
       const heNiq = String((r && r.he_niqqud) || "");
@@ -1656,7 +1689,7 @@ app.post("/api/library/texts", async (req, res) => {
       };
     });
 
-    const created = await createTextWithSentences({
+      const created = await createTextWithSentences({
       id: textId,
       textKey,
       title,
@@ -1666,6 +1699,13 @@ app.post("/api/library/texts", async (req, res) => {
       sourceMetaJson,
       ttsProfileJson,
       tableModelMetaJson,
+
+      // Week9 dashboard meta
+      source,
+      topic,
+      isPinned,
+      pinOrder,
+
       rows,
     });
 
@@ -1724,6 +1764,103 @@ app.post("/api/library/texts/:id/opened", async (req, res) => {
     res.json({ ok: true, text: updated });
   } catch (e) {
     console.error("POST /api/library/texts/:id/opened error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Update text meta (title/level/source/topic/pin) — does NOT touch content/sentences
+app.patch("/api/library/texts/:id/meta", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id || "");
+    const text = await getTextById(textId);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const body = req.body || {};
+    const patch = {};
+
+    // title
+    if (Object.prototype.hasOwnProperty.call(body, "title")) {
+      patch.title = (body.title == null) ? null : String(body.title).trim();
+    }
+
+    // level normalization: accept RU and EN
+    if (Object.prototype.hasOwnProperty.call(body, "level")) {
+      if (body.level == null) {
+        patch.level = null;
+      } else {
+        const raw = String(body.level).trim();
+        const s = raw.toLowerCase();
+
+        const map = {
+          "alef": "alef",
+          "aleph": "alef",
+          "алеф": "alef",
+          "א": "alef",
+
+          "bet": "bet",
+          "beth": "bet",
+          "бет": "bet",
+          "ב": "bet",
+
+          "gimel": "gimel",
+          "гимель": "gimel",
+          "ג": "gimel",
+
+          "unknown": "unknown",
+          "неизвестный": "unknown",
+        };
+
+        const normalized = map[s];
+        if (!normalized) {
+          return res.status(400).json({ error: "VALIDATION", field: "level" });
+        }
+        patch.level = normalized;
+      }
+    }
+
+    // source/topic
+    if (Object.prototype.hasOwnProperty.call(body, "source")) {
+      patch.source = (body.source == null) ? null : String(body.source).trim();
+    }
+    if (Object.prototype.hasOwnProperty.call(body, "topic")) {
+      patch.topic = (body.topic == null) ? null : String(body.topic).trim();
+    }
+
+    // isPinned + pinOrder
+    let hasPin = false;
+    let isPinned = null;
+
+    if (Object.prototype.hasOwnProperty.call(body, "isPinned")) {
+      hasPin = true;
+      const v = body.isPinned;
+      isPinned = (v === true || v === 1 || v === "1") ? 1 : 0;
+      patch.isPinned = isPinned;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "pinOrder")) {
+      hasPin = true;
+      if (body.pinOrder === null || body.pinOrder === "" || body.pinOrder === undefined) {
+        patch.pinOrder = null;
+      } else {
+        const n = Number(body.pinOrder);
+        if (!Number.isFinite(n)) {
+          return res.status(400).json({ error: "VALIDATION", field: "pinOrder" });
+        }
+        patch.pinOrder = Math.trunc(n);
+      }
+    }
+
+    // If unpinning — force pinOrder=null (single source of truth)
+    if (hasPin && isPinned === 0) {
+      patch.pinOrder = null;
+    }
+
+    const updated = await updateTextMeta(textId, patch);
+    res.json({ ok: true, text: updated });
+  } catch (e) {
+    console.error("PATCH /api/library/texts/:id/meta error:", e);
     res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
@@ -1862,6 +1999,38 @@ app.post("/api/library/import", async (req, res) => {
 
         const title = (t && t.title && String(t.title).trim()) ? String(t.title).trim() : guessTitle(sourceText);
         const level = (t && t.level && String(t.level).trim()) ? String(t.level).trim() : null;
+		
+		        // Week9 dashboard meta (optional)
+        const source =
+          (t && Object.prototype.hasOwnProperty.call(t, "source"))
+            ? ((t.source == null) ? null : String(t.source).trim() || null)
+            : null;
+
+        const topic =
+          (t && Object.prototype.hasOwnProperty.call(t, "topic"))
+            ? ((t.topic == null) ? null : String(t.topic).trim() || null)
+            : null;
+
+        // isPinned: accept boolean / 0|1 / "0"|"1" (supports both isPinned and is_pinned)
+        let isPinned = 0;
+        const pinRaw =
+          (t && Object.prototype.hasOwnProperty.call(t, "isPinned")) ? t.isPinned :
+          (t && Object.prototype.hasOwnProperty.call(t, "is_pinned")) ? t.is_pinned :
+          undefined;
+        if (pinRaw === true || pinRaw === 1 || pinRaw === "1") isPinned = 1;
+
+        // pinOrder: supports both pinOrder and pin_order
+        let pinOrder = null;
+        const poRaw =
+          (t && Object.prototype.hasOwnProperty.call(t, "pinOrder")) ? t.pinOrder :
+          (t && Object.prototype.hasOwnProperty.call(t, "pin_order")) ? t.pin_order :
+          undefined;
+
+        if (poRaw !== undefined && poRaw !== null && poRaw !== "") {
+          const n = Number(poRaw);
+          if (Number.isFinite(n)) pinOrder = Math.trunc(n);
+        }
+        if (!isPinned) pinOrder = null;
 
         const tagsArr =
           (t && t.tags_json) ? v3SafeJsonParse(t.tags_json, []) :
@@ -1948,17 +2117,24 @@ app.post("/api/library/import", async (req, res) => {
         const newTextId = uuidv4();
 
         const created = await createTextWithSentences({
-          id: newTextId,
-          textKey,
-          title,
-          level,
-          tagsJson,
-          sourceText,
-          sourceMetaJson,
-          ttsProfileJson,
-          tableModelMetaJson,
-          rows,
-        });
+  id: newTextId,
+  textKey,
+  title,
+  level,
+  tagsJson,
+  sourceText,
+  sourceMetaJson,
+  ttsProfileJson,
+  tableModelMetaJson,
+
+  // Week9 dashboard meta
+  source,
+  topic,
+  isPinned,
+  pinOrder,
+
+  rows,
+});
 
         importedCount++;
 
