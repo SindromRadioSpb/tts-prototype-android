@@ -1375,8 +1375,61 @@ th, td { border-color: rgba(0,0,0,0.55); }
   opacity: 0.65;
 }
 
-   
-	  
+  /* V3 Dashboard UI (P0) */
+  .v3-dash-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+  .v3-dash-toolbar input[type="text"] { flex:1; min-width: 240px; }
+  .v3-dash-toolbar select { min-width: 140px; }
+  .v3-dash-sections { display:flex; gap:14px; flex-direction:column; }
+
+  .v3-dash-section {
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px;
+    padding:10px;
+    background: rgba(255,255,255,0.01);
+  }
+
+  .v3-dash-section h3 {
+    margin:0 0 8px;
+    font-size:14px;
+    font-weight:700;
+    opacity:0.92;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .v3-dash-empty { opacity:0.65; font-size:12px; padding:8px 2px; }
+
+  .v3-dash-item {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    padding:10px;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:12px;
+    margin-bottom:8px;
+    background: rgba(255,255,255,0.02);
+  }
+  .v3-dash-item:last-child { margin-bottom:0; }
+
+  .v3-dash-title { font-weight:700; font-size:13px; line-height:1.25; }
+  .v3-dash-meta { opacity:0.82; font-size:12px; margin-top:4px; line-height:1.25; }
+
+  .v3-dash-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .v3-dash-badge {
+    display:inline-flex;
+    align-items:center;
+    padding:2px 6px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.12);
+    font-size:11px;
+    opacity:0.92;
+  }
+
+  .v3-dash-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+  .v3-dash-actions button { padding:6px 10px; font-size:12px; }
+  	  
 </style>
 
 </head>
@@ -1536,6 +1589,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
 			<div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
 
 			<button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()">📚 Библиотека</button>
+			
+			<button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()">📈 Дашборд</button>
+			
 			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Save</button>
 
 			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
@@ -1647,6 +1703,59 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="v3DashboardModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Дашборд обучения">
+  <div class="v3-modal-backdrop" onclick="v3DashboardClose()" aria-hidden="true"></div>
+
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title">Дашборд (v3)</div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="v3DashboardRefresh()">Обновить</button>
+        <button class="btn-secondary" onclick="v3DashboardClose()">Закрыть</button>
+      </div>
+    </div>
+
+    <div class="v3-modal-body">
+      <div class="v3-dash-toolbar">
+        <input
+          id="v3DashSearch"
+          type="text"
+          placeholder="Поиск (P0): title / topic / source / level"
+          oninput="v3DashboardOnFilterChange()"
+        />
+
+        <select id="v3DashLevel" onchange="v3DashboardOnFilterChange()">
+          <option value="">Все уровни</option>
+          <option value="alef">alef</option>
+          <option value="alef+">alef+</option>
+          <option value="bet">bet</option>
+          <option value="gimel">gimel</option>
+          <option value="dalet">dalet</option>
+        </select>
+
+        <label style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;">
+          <input id="v3DashIncludeArchived" type="checkbox" onchange="v3DashboardRefresh()" />
+          includeArchived
+        </label>
+      </div>
+
+      <div id="v3DashStatus" class="v3-lib-status"></div>
+
+      <div class="v3-dash-sections">
+        <div class="v3-dash-section">
+          <h3>📌 Закреплённые</h3>
+          <div id="v3DashPinnedList"></div>
+        </div>
+
+        <div class="v3-dash-section">
+          <h3>🕘 Недавние</h3>
+          <div id="v3DashRecentList"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -4040,7 +4149,8 @@ function v3ApplyResumeSelection(token, rowIdx) {
 }
 
 async function v3LibraryOpenText(textId, opts) {
-  const resume = !!(opts && opts.resume);
+  const resumeSentenceId = (opts && opts.resumeSentenceId) ? String(opts.resumeSentenceId) : null;
+const resume = !!(opts && (opts.resume || resumeSentenceId));
 
   // flush any pending progress before switching table
   try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
@@ -4091,20 +4201,29 @@ async function v3LibraryOpenText(textId, opts) {
     v3PrepareForNewTableRender();
 
 	const renderToken = v3RenderTableFromLibrary(rows);
-
-		// resume logic: fetch progress then set selected row
-		if (resume) {
-			try {
-        const p = await v3GetJson("/api/progress/" + encodeURIComponent(textId));
-        const prog = p && p.progress ? p.progress : null;
-        const idx = prog && (prog.last_row_idx ?? prog.lastRowIdx);
-if (idx !== null && idx !== undefined && Number.isFinite(Number(idx))) {
-  v3ApplyResumeSelection(renderToken, Number(idx));
+	
+	// resume by sentenceId (Dashboard Continue)
+let resumeRowIdx = null;
+if (resumeSentenceId) {
+  const idxBySid = rows.findIndex(r => r && r._v3_sentenceId === resumeSentenceId);
+  if (idxBySid >= 0) resumeRowIdx = idxBySid;
 }
-      } catch (e) {
-        console.warn("resume progress fetch failed (non-critical)", e);
-      }
+
+if (resumeRowIdx !== null) {
+  v3ApplyResumeSelection(renderToken, resumeRowIdx);
+} else if (resume) {
+  // resume logic: fetch progress then set selected row (fallback)
+  try {
+    const p = await v3GetJson("/api/progress/" + encodeURIComponent(textId));
+    const prog = p && p.progress ? p.progress : null;
+    const idx = prog && (prog.last_row_idx ?? prog.lastRowIdx);
+    if (idx !== null && idx !== undefined && Number.isFinite(Number(idx))) {
+      v3ApplyResumeSelection(renderToken, Number(idx));
     }
+  } catch (e) {
+    console.warn("resume progress fetch failed (non-critical)", e);
+  }
+}
 
     showToast(resume ? "Resume: текст загружен" : "Open: текст загружен", "success");
     v3LibraryClose();
@@ -4308,6 +4427,241 @@ window.v3LibrarySaveCurrent = v3LibrarySaveCurrent;
 window.v3LibraryExport = v3LibraryExport;
 window.v3LibraryImport = v3LibraryImport;
 window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
+
+/* --------------------------------------------------------
+   V3 Dashboard UI (P0)
+   - pinned + recent texts
+   - search + filters (client-side)
+   - open / continue (resume via history last_sentence_id)
+   - pin/unpin via PATCH meta
+   Safety:
+   - never adds audio listeners
+-------------------------------------------------------- */
+
+let v3DashOpenOnce = false;
+let v3DashLibTexts = [];
+let v3DashRecent = [];
+let v3DashRecentByTextId = new Map();
+
+function v3DashEl(id) { return document.getElementById(id); }
+
+function v3DashboardOpen() {
+  const m = v3DashEl("v3DashboardModal");
+  if (!m) return;
+  m.classList.remove("hidden");
+
+  if (!v3DashOpenOnce) {
+    v3DashOpenOnce = true;
+    const inc = v3DashEl("v3DashIncludeArchived");
+    if (inc) inc.checked = true;
+  }
+
+  v3DashboardRefresh();
+
+  const s = v3DashEl("v3DashSearch");
+  if (s) setTimeout(() => { try { s.focus(); } catch (_) {} }, 0);
+}
+
+function v3DashboardClose() {
+  const m = v3DashEl("v3DashboardModal");
+  if (!m) return;
+  m.classList.add("hidden");
+}
+
+async function v3DashboardRefresh() {
+  const statusEl = v3DashEl("v3DashStatus");
+  const pinnedEl = v3DashEl("v3DashPinnedList");
+  const recentEl = v3DashEl("v3DashRecentList");
+
+  const includeArchived = (v3DashEl("v3DashIncludeArchived") && v3DashEl("v3DashIncludeArchived").checked) ? 1 : 0;
+
+  if (statusEl) statusEl.textContent = "Загрузка…";
+
+  try {
+    const [libRes, recentRes] = await Promise.all([
+      v3GetJson(`/api/library/texts?limit=200&includeArchived=${includeArchived}`),
+      v3GetJson(`/api/history/recent-texts?limit=80&includeArchived=${includeArchived}`)
+    ]);
+
+    v3DashLibTexts = (libRes && libRes.ok && Array.isArray(libRes.texts)) ? libRes.texts : [];
+    v3DashRecent = (recentRes && recentRes.ok && Array.isArray(recentRes.texts)) ? recentRes.texts : [];
+
+    v3DashRecentByTextId = new Map();
+    for (const r of v3DashRecent) {
+      if (r && r.text_id) v3DashRecentByTextId.set(r.text_id, r);
+    }
+
+    const pinnedCount = v3DashLibTexts.filter(t => Number(t.is_pinned) === 1).length;
+    if (statusEl) statusEl.textContent = `Pinned: ${pinnedCount} · Recent: ${v3DashRecent.length}`;
+
+    v3DashboardRender();
+  } catch (e) {
+    console.error("[v3DashboardRefresh] error:", e);
+    if (statusEl) statusEl.textContent = "Ошибка загрузки (см. console).";
+    if (pinnedEl) pinnedEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
+    if (recentEl) recentEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
+  }
+}
+
+function v3DashboardOnFilterChange() {
+  v3DashboardRender();
+}
+
+function v3DashNorm(s) { return String(s || "").trim().toLowerCase(); }
+
+function v3DashMatches(t, q, level) {
+  if (!t) return false;
+
+  if (level) {
+    const lv = v3DashNorm(t.level);
+    if (lv !== v3DashNorm(level)) return false;
+  }
+
+  if (!q) return true;
+
+  const hay = [
+    t.title, t.level, t.source, t.topic, t.tags_json
+  ].map(v3DashNorm).join(" ");
+
+  return hay.includes(q);
+}
+
+function v3DashBadges(t, recent) {
+  const badges = [];
+  if (t.level) badges.push(`level: ${t.level}`);
+  if (t.topic) badges.push(`topic: ${t.topic}`);
+  if (t.source) badges.push(`source: ${t.source}`);
+  if (recent && recent.seen_count) badges.push(`seen: ${recent.seen_count}`);
+  if (recent && recent.last_seen_at) badges.push(`last: ${v3FmtDate(recent.last_seen_at)}`);
+  return badges;
+}
+
+function v3DashboardRender() {
+  const pinnedEl = v3DashEl("v3DashPinnedList");
+  const recentEl = v3DashEl("v3DashRecentList");
+  if (!pinnedEl || !recentEl) return;
+
+  const q = v3DashNorm(v3DashEl("v3DashSearch") ? v3DashEl("v3DashSearch").value : "");
+  const level = v3DashEl("v3DashLevel") ? v3DashEl("v3DashLevel").value : "";
+
+  const pinned = v3DashLibTexts
+    .filter(t => Number(t.is_pinned) === 1)
+    .sort((a, b) => {
+      const ao = (a.pin_order === null || a.pin_order === undefined) ? 1e9 : Number(a.pin_order);
+      const bo = (b.pin_order === null || b.pin_order === undefined) ? 1e9 : Number(b.pin_order);
+      return ao - bo;
+    })
+    .filter(t => v3DashMatches(t, q, level));
+
+  pinnedEl.innerHTML = pinned.length
+    ? pinned.map(t => v3DashRenderItem(t)).join("")
+    : '<div class="v3-dash-empty">Пока нет закреплённых текстов.</div>';
+
+  const recent = v3DashRecent
+    .filter(r => r && r.id)
+    .filter(r => v3DashMatches(r, q, level));
+
+  recentEl.innerHTML = recent.length
+    ? recent.map(r => v3DashRenderItem(r)).join("")
+    : '<div class="v3-dash-empty">История пока пуста. Проиграйте строку в Library.</div>';
+}
+
+function v3DashRenderItem(t) {
+  const id = t.id || t.text_id;
+  const recent = v3DashRecentByTextId.get(id) || null;
+
+  const title = v3EscapeHtml(t.title || "(без названия)");
+  const pinFlag = Number(t.is_pinned) === 1;
+
+  const metaParts = [];
+  if (pinFlag) metaParts.push(`pin_order: ${t.pin_order ?? "—"}`);
+  if (recent && recent.last_sentence_id) metaParts.push(`last_sentence: ${String(recent.last_sentence_id).slice(0, 8)}…`);
+  const metaLine = metaParts.length ? `<div class="v3-dash-meta">${v3EscapeHtml(metaParts.join(" · "))}</div>` : "";
+
+  const badges = v3DashBadges(t, recent);
+  const badgeHtml = badges.length
+    ? `<div class="v3-dash-badges">${badges.map(b => `<span class="v3-dash-badge">${v3EscapeHtml(b)}</span>`).join("")}</div>`
+    : "";
+
+  const pinLabel = pinFlag ? "Unpin" : "Pin";
+
+  return `
+    <div class="v3-dash-item">
+      <div style="min-width:0;">
+        <div class="v3-dash-title">${title}</div>
+        ${metaLine}
+        ${badgeHtml}
+      </div>
+      <div class="v3-dash-actions">
+        <button class="btn-success" onclick="v3DashboardContinue('${id}')">Продолжить</button>
+        <button class="btn-secondary" onclick="v3DashboardOpenText('${id}')">Открыть</button>
+        <button class="btn-secondary" onclick="v3DashboardTogglePin('${id}')">${pinLabel}</button>
+      </div>
+    </div>
+  `;
+}
+
+async function v3DashboardOpenText(textId) {
+  v3DashboardClose();
+  await v3LibraryOpenText(textId, {});
+}
+
+async function v3DashboardContinue(textId) {
+  const r = v3DashRecentByTextId.get(textId);
+  const resumeSentenceId = (r && r.last_sentence_id) ? r.last_sentence_id : null;
+  v3DashboardClose();
+  await v3LibraryOpenText(textId, { resumeSentenceId });
+}
+
+async function v3DashboardTogglePin(textId) {
+  const fromLib = v3DashLibTexts.find(x => x && x.id === textId) || null;
+  const fromRecent = v3DashRecent.find(x => x && x.id === textId) || null;
+  const t = fromLib || fromRecent;
+
+  const isPinnedNow = t ? Number(t.is_pinned) === 1 : false;
+
+  let payload;
+  if (isPinnedNow) {
+    payload = { isPinned: 0, pinOrder: null };
+  } else {
+    const pinnedOrders = v3DashLibTexts
+      .filter(x => x && Number(x.is_pinned) === 1)
+      .map(x => (x.pin_order === null || x.pin_order === undefined) ? 0 : Number(x.pin_order))
+      .filter(n => Number.isFinite(n));
+    const nextOrder = (pinnedOrders.length ? Math.max(...pinnedOrders) : 0) + 1;
+    payload = { isPinned: 1, pinOrder: nextOrder };
+  }
+
+  try {
+    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/meta`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const j = await res.json().catch(() => null);
+    if (!res.ok || !j || !j.ok) {
+      console.error("[v3DashboardTogglePin] bad response:", res.status, j);
+      alert("Не удалось обновить pin/meta (см. console).");
+      return;
+    }
+
+    await v3DashboardRefresh();
+  } catch (e) {
+    console.error("[v3DashboardTogglePin] error:", e);
+    alert("Не удалось обновить pin/meta (см. console).");
+  }
+}
+
+// expose globally (onclick hooks)
+window.v3DashboardOpen = v3DashboardOpen;
+window.v3DashboardClose = v3DashboardClose;
+window.v3DashboardRefresh = v3DashboardRefresh;
+window.v3DashboardContinue = v3DashboardContinue;
+window.v3DashboardOpenText = v3DashboardOpenText;
+window.v3DashboardTogglePin = v3DashboardTogglePin;
+window.v3DashboardOnFilterChange = v3DashboardOnFilterChange;
+
 	
     // ----------------------------
     // TRANSLATE TABLE
