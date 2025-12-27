@@ -100,6 +100,7 @@ async function initDb(dbPath) {
 }
 
 function getDb() {
+  if (!_db) throw new Error("DB not initialized. Call initDb(dbPath) first.");
   return _db;
 }
 
