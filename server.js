@@ -50,6 +50,12 @@ const {
 } = require("./db/progressRepo");
 
 const {
+  recordRowTtsEvent,
+  listRecentTexts,
+  listRecentRowsByText,
+} = require("./db/historyRepo");
+
+const {
   upsertAudioAsset,
   getAudioAssetByKey,
   touchAudioAsset,
@@ -1861,6 +1867,88 @@ app.patch("/api/library/texts/:id/meta", async (req, res) => {
     res.json({ ok: true, text: updated });
   } catch (e) {
     console.error("PATCH /api/library/texts/:id/meta error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// Week9 (P0): Dashboard History API (Recent texts + Recent rows)
+// --------------------------------------------------------
+
+function v9ClampLimit(raw, def, max) {
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return def;
+  const i = Math.trunc(n);
+  return Math.max(1, Math.min(max, i));
+}
+
+// POST /api/history/event
+// body: { textId, sentenceId, eventType?, assetKey? }
+// эффект: history_events + recent_rows + recent_texts (через recordRowTtsEvent)
+app.post("/api/history/event", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const body = req.body || {};
+    const textId = String(body.textId || "").trim();
+    const sentenceId = String(body.sentenceId || "").trim();
+
+    if (!textId) return res.status(400).json({ error: "VALIDATION", field: "textId" });
+    if (!sentenceId) return res.status(400).json({ error: "VALIDATION", field: "sentenceId" });
+
+    const eventTypeRaw = body.eventType == null ? "row_tts" : String(body.eventType).trim();
+    const eventType = eventTypeRaw || "row_tts";
+
+    const assetKeyRaw = body.assetKey == null ? null : String(body.assetKey).trim();
+    const assetKey = assetKeyRaw ? assetKeyRaw : null;
+
+    // основной путь (P0): фиксируем событие и витрины recents
+    await recordRowTtsEvent({
+      id: uuidv4(),
+      eventType,
+      textId,
+      sentenceId,
+      assetKey,
+    });
+
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("POST /api/history/event error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// GET /api/history/recent-texts?limit=30&includeArchived=0
+app.get("/api/history/recent-texts", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const limit = v9ClampLimit(req.query.limit, 30, 200);
+    const includeArchived =
+      req.query.includeArchived === "1" || req.query.includeArchived === "true";
+
+    const texts = await listRecentTexts({ limit, includeArchived });
+    res.json({ ok: true, texts });
+  } catch (e) {
+    console.error("GET /api/history/recent-texts error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// GET /api/history/texts/:id/recent-rows?limit=100
+app.get("/api/history/texts/:id/recent-rows", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id || "").trim();
+    if (!textId) return res.status(400).json({ error: "VALIDATION", field: "textId" });
+
+    const limit = v9ClampLimit(req.query.limit, 100, 500);
+    const rows = await listRecentRowsByText({ textId, limit });
+
+    res.json({ ok: true, textId, rows });
+  } catch (e) {
+    console.error("GET /api/history/texts/:id/recent-rows error:", e);
     res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
