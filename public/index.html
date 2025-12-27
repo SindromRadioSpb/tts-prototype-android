@@ -1486,6 +1486,40 @@ th, td { border-color: rgba(0,0,0,0.55); }
   cursor: not-allowed;
 }
 
+/* Dashboard modes */
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-item {
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-title {
+  font-size: 13px;
+}
+
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-meta {
+  display: none; /* скрываем pin_order / last_sentence и прочую "техническую" мету */
+}
+
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-badges {
+  margin-top: 4px;
+}
+
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-badge {
+  font-size: 11px;
+  padding: 1px 6px;
+}
+
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-actions button {
+  padding: 5px 8px;
+  font-size: 11px;
+}
+
+/* Если у вас есть панель recent-rows (P1-1B) */
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-row-tr,
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-row-ru,
+#v3DashboardModal.v3-dash-mode-compact .v3-dash-row-meta {
+  display: none; /* в compact оставляем только he + кнопки */
+}
   	  
 </style>
 
@@ -1793,6 +1827,16 @@ th, td { border-color: rgba(0,0,0,0.55); }
           <option value="gimel">gimel</option>
           <option value="dalet">dalet</option>
         </select>
+		
+		<select
+			id="v3DashMode"
+			onchange="v3DashboardOnModeChange()"
+			title="Learning: больше контекста и деталей. Compact: плотный список в стиле IDE (меньше мета, меньше отступы)."
+		>
+			<option value="learning">Learning</option>
+			<option value="compact">Compact</option>
+		</select>
+
 
         <label style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;">
           <input id="v3DashIncludeArchived" type="checkbox" onchange="v3DashboardRefresh()" />
@@ -4532,6 +4576,34 @@ let v3DashRecentByTextId = new Map();
 
 const V3_DASH_AUTOPLAY_CONTINUE_KEY = "v3Dash_autoplay_continue_v1";
 
+const V3_DASH_MODE_KEY = "v3Dash_mode_v1";
+
+function v3DashboardGetMode() {
+  try {
+    const v = localStorage.getItem(V3_DASH_MODE_KEY);
+    return (v === "compact" || v === "learning") ? v : "learning";
+  } catch (_) {
+    return "learning";
+  }
+}
+
+function v3DashboardApplyMode(mode) {
+  const m = v3DashEl("v3DashboardModal");
+  if (!m) return;
+
+  const isCompact = (mode === "compact");
+  m.classList.toggle("v3-dash-mode-compact", isCompact);
+  m.classList.toggle("v3-dash-mode-learning", !isCompact);
+}
+
+function v3DashboardOnModeChange() {
+  const sel = v3DashEl("v3DashMode");
+  const mode = sel ? String(sel.value || "learning") : "learning";
+
+  try { localStorage.setItem(V3_DASH_MODE_KEY, mode); } catch (_) {}
+  v3DashboardApplyMode(mode);
+}
+
 function v3DashIsAutoPlayContinueOn() {
   const el = v3DashEl("v3DashAutoPlayContinue");
   if (el) return !!el.checked;
@@ -4567,6 +4639,12 @@ if (ap) {
   try { saved = localStorage.getItem(V3_DASH_AUTOPLAY_CONTINUE_KEY) || "0"; } catch (_) {}
   ap.checked = (saved === "1"); // default OFF
 }
+
+  // init + apply mode
+  const mode = v3DashboardGetMode();
+  const sel = v3DashEl("v3DashMode");
+  if (sel) sel.value = mode;
+  v3DashboardApplyMode(mode);
 
   v3DashboardRefresh();
 
