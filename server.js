@@ -1774,67 +1774,143 @@ app.post("/api/library/texts/:id/opened", async (req, res) => {
   }
 });
 
-// Update text meta (title/level/source/topic/pin) — does NOT touch content/sentences
-app.patch("/api/library/texts/:id/meta", async (req, res) => {
+function v3NormalizeLevel(raw) {
+  if (raw == null) return null;
+  const s0 = String(raw).trim();
+  if (!s0 || s0 === "—") return null;
+
+  const s = s0.toLowerCase().replace(/\s+/g, "");
+
+  const map = Object.freeze({
+    // canonical
+    "alef": "alef",
+    "alef+": "alef+",
+    "bet": "bet",
+    "bet+": "bet+",
+    "gimel": "gimel",
+    "gimel+": "gimel+",
+    "dalet": "dalet",
+    "dalet+": "dalet+",
+    "he": "he",
+    "he+": "he+",
+    "vav": "vav",
+    "vav+": "vav+",
+    "unknown": "unknown",
+
+    // synonyms (минимально полезные)
+    "aleph": "alef",
+    "aleph+": "alef+",
+    "א": "alef",
+    "א+": "alef+",
+    "ב": "bet",
+    "ב+": "bet+",
+    "ג": "gimel",
+    "ג+": "gimel+",
+    "ד": "dalet",
+    "ד+": "dalet+",
+    "ה": "he",
+    "ה+": "he+",
+    "ו": "vav",
+    "ו+": "vav+",
+
+    "алеф": "alef",
+    "алеф+": "alef+",
+    "бет": "bet",
+    "бет+": "bet+",
+    "гимел": "gimel",
+    "гимел+": "gimel+",
+    "далет": "dalet",
+    "далет+": "dalet+",
+    "хей": "he",
+    "хей+": "he+",
+    "вав": "vav",
+    "вав+": "vav+",
+    "неизвестно": "unknown"
+  });
+
+  if (map[s]) return map[s];
+
+  // Безопасный “escape hatch” на будущее (чтобы не блокировать новые уровни)
+  // Разрешаем короткий токен вида "alef++" не нужно, поэтому строго:
+  if (/^[a-z0-9][a-z0-9+_-]{0,24}$/i.test(s0)) return s0;
+
+  return null;
+}
+
+function v3NormalizeTags(raw) {
+  if (raw == null) return [];
+  let items = [];
+  if (Array.isArray(raw)) {
+    items = raw;
+  } else if (typeof raw === "string") {
+    items = raw.split(","); // CSV
+  } else {
+    return [];
+  }
+
+  const out = [];
+  const seen = new Set();
+
+  for (const it of items) {
+    const t = String(it || "").trim();
+    if (!t) continue;
+    const k = t.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+    if (out.length >= 25) break; // защита от мусора
+  }
+  return out;
+}
+
+// PATCH /api/library/texts/:id/meta
+app.patch("/api/library/texts/:id/meta", express.json({ limit: "64kb" }), async (req, res) => {
+  const db = requireDbOr503(res);
+  if (!db) return;
+
   try {
-    if (!requireDbOr503(res)) return;
+    const textId = String(req.params.id || "").trim();
+    if (!textId) return res.status(400).json({ error: "BAD_TEXT_ID" });
 
-    const textId = String(req.params.id || "");
-    const text = await getTextById(textId);
-    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
-
-    const body = req.body || {};
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
     const patch = {};
 
     // title
     if (Object.prototype.hasOwnProperty.call(body, "title")) {
-      patch.title = (body.title == null) ? null : String(body.title).trim();
+      const v = body.title == null ? null : String(body.title).trim();
+      patch.title = (v && v.length) ? v : null;
     }
 
-    // level normalization: accept RU and EN
+    // level
     if (Object.prototype.hasOwnProperty.call(body, "level")) {
-      if (body.level == null) {
-        patch.level = null;
-      } else {
-        const raw = String(body.level).trim();
-        const s = raw.toLowerCase();
+      const raw = body.level;
+      const norm = v3NormalizeLevel(raw);
 
-        const map = {
-          "alef": "alef",
-          "aleph": "alef",
-          "алеф": "alef",
-          "א": "alef",
-
-          "bet": "bet",
-          "beth": "bet",
-          "бет": "bet",
-          "ב": "bet",
-
-          "gimel": "gimel",
-          "гимель": "gimel",
-          "ג": "gimel",
-
-          "unknown": "unknown",
-          "неизвестный": "unknown",
-        };
-
-        const normalized = map[s];
-        if (!normalized) {
-          return res.status(400).json({ error: "VALIDATION", field: "level" });
-        }
-        patch.level = normalized;
+      // если поле было прислано НЕ пустым — обязаны распарсить
+      if (raw != null && String(raw).trim() && !norm) {
+        return res.status(400).json({ error: "BAD_LEVEL" });
       }
+      patch.level = norm; // null или нормализованный токен
+    }
+
+    // tags (принимаем "a,b,c" или ["a","b"])
+    if (Object.prototype.hasOwnProperty.call(body, "tags")) {
+      const tagsArr = v3NormalizeTags(body.tags);
+      patch.tagsJson = tagsArr.length ? JSON.stringify(tagsArr) : null;
     }
 
     // source/topic
     if (Object.prototype.hasOwnProperty.call(body, "source")) {
-      patch.source = (body.source == null) ? null : String(body.source).trim();
-    }
-    if (Object.prototype.hasOwnProperty.call(body, "topic")) {
-      patch.topic = (body.topic == null) ? null : String(body.topic).trim();
+      const v = body.source == null ? null : String(body.source).trim();
+      patch.source = (v && v.length) ? v : null;
     }
 
-    // isPinned + pinOrder
+    if (Object.prototype.hasOwnProperty.call(body, "topic")) {
+      const v = body.topic == null ? null : String(body.topic).trim();
+      patch.topic = (v && v.length) ? v : null;
+    }
+
+    // pinning
     let hasPin = false;
     let isPinned = null;
 
@@ -1842,32 +1918,38 @@ app.patch("/api/library/texts/:id/meta", async (req, res) => {
       hasPin = true;
       const v = body.isPinned;
       isPinned = (v === true || v === 1 || v === "1") ? 1 : 0;
-      patch.isPinned = isPinned;
+      patch.isPinned = (isPinned === 1); // boolean
     }
 
     if (Object.prototype.hasOwnProperty.call(body, "pinOrder")) {
       hasPin = true;
-      if (body.pinOrder === null || body.pinOrder === "" || body.pinOrder === undefined) {
+
+      const raw = body.pinOrder;
+      if (raw === null || raw === undefined || String(raw).trim() === "") {
         patch.pinOrder = null;
       } else {
-        const n = Number(body.pinOrder);
+        const n = Number(raw);
         if (!Number.isFinite(n)) {
-          return res.status(400).json({ error: "VALIDATION", field: "pinOrder" });
+          return res.status(400).json({ error: "BAD_PIN_ORDER" });
         }
         patch.pinOrder = Math.trunc(n);
       }
     }
 
-    // If unpinning — force pinOrder=null (single source of truth)
+    // Single source of truth: если снимаем pin — pinOrder всегда null
     if (hasPin && isPinned === 0) {
       patch.pinOrder = null;
     }
 
-    const updated = await updateTextMeta(textId, patch);
-    res.json({ ok: true, text: updated });
+    if (!Object.keys(patch).length) {
+      return res.status(400).json({ error: "EMPTY_PATCH" });
+    }
+
+    const r = await updateTextMeta(textId, patch);
+return res.json({ ok: true, result: r });
   } catch (e) {
-    console.error("PATCH /api/library/texts/:id/meta error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.error("PATCH /api/library/texts/:id/meta failed:", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
 

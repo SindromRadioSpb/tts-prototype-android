@@ -289,6 +289,13 @@ async function updateTextMeta(textId, patch) {
     params.push(v === "" ? null : v);
   }
 
+  // NEW: tags_json
+  if (Object.prototype.hasOwnProperty.call(p, "tagsJson")) {
+    const v = (p.tagsJson == null) ? null : String(p.tagsJson).trim();
+    fields.push("tags_json = ?");
+    params.push(v === "" ? null : v);
+  }
+
   if (Object.prototype.hasOwnProperty.call(p, "source")) {
     const v = (p.source == null) ? null : String(p.source).trim();
     fields.push("source = ?");
@@ -302,14 +309,22 @@ async function updateTextMeta(textId, patch) {
   }
 
   if (Object.prototype.hasOwnProperty.call(p, "isPinned")) {
+    const v = p.isPinned;
+    const isPinned = (v === true || v === 1 || v === "1");
     fields.push("is_pinned = ?");
-    params.push(p.isPinned ? 1 : 0);
+    params.push(isPinned ? 1 : 0);
   }
 
   if (Object.prototype.hasOwnProperty.call(p, "pinOrder")) {
-    const v = (p.pinOrder === "" || p.pinOrder === null || p.pinOrder === undefined) ? null : Number(p.pinOrder);
-    fields.push("pin_order = ?");
-    params.push(v);
+    const raw = p.pinOrder;
+    if (raw === null || raw === undefined || String(raw).trim() === "") {
+      fields.push("pin_order = ?");
+      params.push(null);
+    } else {
+      const n = Number(raw);
+      fields.push("pin_order = ?");
+      params.push(Number.isFinite(n) ? Math.trunc(n) : null);
+    }
   }
 
   if (fields.length === 0) {
@@ -321,8 +336,8 @@ async function updateTextMeta(textId, patch) {
   params.push(now);
 
   params.push(String(textId));
-
   await dbRun(db, `UPDATE texts SET ${fields.join(", ")} WHERE id = ?;`, params);
+
   return getTextById(textId);
 }
 
