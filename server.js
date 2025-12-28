@@ -54,6 +54,8 @@ const {
   listRecentTexts,
   listRecentRowsByText,
   listRecentActivity,
+  getAnalyticsSummary,
+  listTopTextsByPlays,
 } = require("./db/historyRepo");
 
 const {
@@ -2065,6 +2067,29 @@ app.get("/api/history/recent-activity", async (req, res) => {
     return res.json({ ok: true, rows });
   } catch (e) {
     console.error("history/recent-activity failed", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+// GET /api/history/analytics?days=7&includeArchived=0|1&level=...
+app.get("/api/history/analytics", async (req, res) => {
+  const db = requireDbOr503(res);
+  if (!db) return;
+
+  try {
+    const days = Math.max(0, Math.min(3650, Number(req.query.days) || 7));
+    const includeArchived = String(req.query.includeArchived || req.query.include_archived || "") === "1";
+
+    const levelRaw = String(req.query.level || "").trim();
+    const level = levelRaw ? levelRaw : null;
+
+    const period = await getAnalyticsSummary({ days, includeArchived, level });
+    const all = await getAnalyticsSummary({ days: 0, includeArchived, level });
+    const topTexts = await listTopTextsByPlays({ days, limit: 8, includeArchived, level });
+
+    return res.json({ ok: true, period, all, topTexts });
+  } catch (e) {
+    console.error("history/analytics failed", e);
     return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
   }
 });
