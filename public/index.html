@@ -5136,6 +5136,14 @@ async function v3DashboardRefresh() {
 
 function v3DashboardOnFilterChange() {
   v3DashboardRender();
+
+  // Variant A: если уже выбран текст — перерисовываем “Недавние строки (внутри текста)”
+  // чтобы применился строгий gate по level.
+  try {
+    if (v3DashActiveTextId) v3DashboardRenderRowsPanel();
+  } catch (e) {
+    console.warn("[v3DashboardOnFilterChange] render rows panel failed", e);
+  }
 }
 
 function v3DashNorm(s) { return String(s || "").trim().toLowerCase(); }
@@ -5293,6 +5301,34 @@ function v3DashboardRenderRowsPanel() {
   const t = fromLib || fromRecent;
 
   if (t && t.title) title = String(t.title);
+  
+    // ----------------------------
+  // Variant A (strict): level-filter gates the “recent rows (within text)” panel
+  // ----------------------------
+  const levelFilter = v3DashEl("v3DashLevel") ? String(v3DashEl("v3DashLevel").value || "").trim() : "";
+  if (levelFilter) {
+    const textLevel = (t && t.level) ? String(t.level).trim() : "";
+    if (v3DashNorm(textLevel) !== v3DashNorm(levelFilter)) {
+      const headerEl = v3DashEl("v3DashRowsHeader");
+      const rowsEl = v3DashEl("v3DashRowsList");
+
+      if (headerEl) {
+        headerEl.textContent =
+          `${title} · level: ${textLevel || "—"} · (filtered out by level: ${levelFilter})`;
+      }
+
+      if (rowsEl) {
+        rowsEl.innerHTML = `
+          <div class="v3-dash-empty">
+            Выбранный текст <b>${v3EscapeHtml(title)}</b> имеет level <b>${v3EscapeHtml(textLevel || "—")}</b>,
+            который не соответствует фильтру level <b>${v3EscapeHtml(levelFilter)}</b>.
+            Снимите фильтр или выберите другой текст.
+          </div>
+        `;
+      }
+      return;
+    }
+  }
 
   const recent = v3DashRecentByTextId.get(v3DashActiveTextId) || null;
   const lastSeen = recent && recent.last_seen_at ? v3FmtDate(recent.last_seen_at) : "—";
