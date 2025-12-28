@@ -1288,20 +1288,23 @@ th, td { border-color: rgba(0,0,0,0.55); }
 /* -----------------------------------------
    Week9 P1: Meta Edit mini-modal (PRO)
 ----------------------------------------- */
-#v3TextMetaModal .v3-modal-panel {
+#v3TextMetaModal .v3-modal-panel,
+#v3SaveMetaModal .v3-modal-panel {
   width: min(640px, calc(100vw - 32px));
   height: auto;
   max-height: calc(100vh - 56px);
 }
 
-#v3TextMetaModal .v3-form-row {
+#v3TextMetaModal .v3-form-row,
+#v3SaveMetaModal .v3-form-row {
   display: flex;
   gap: 10px;
   align-items: center;
   margin: 10px 0;
 }
 
-#v3TextMetaModal .v3-form-row label {
+#v3TextMetaModal .v3-form-row label,
+#v3SaveMetaModal .v3-form-row label {
   min-width: 86px;
   font-size: 12px;
   color: #7f8c8d;
@@ -1310,7 +1313,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 #v3TextMetaModal input[type="text"],
-#v3TextMetaModal select {
+#v3TextMetaModal select,
+#v3SaveMetaModal input[type="text"],
+#v3SaveMetaModal select {
   flex: 1;
   padding: 10px 12px;
   border: 1px solid #e6e9ef;
@@ -1321,24 +1326,29 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 #v3TextMetaModal input[type="text"]:focus,
-#v3TextMetaModal select:focus {
+#v3TextMetaModal select:focus,
+#v3SaveMetaModal input[type="text"]:focus,
+#v3SaveMetaModal select:focus {
   border-color: rgba(52, 152, 219, 0.65);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
 }
 
-#v3TextMetaModal .v3-help {
+#v3TextMetaModal .v3-help,
+#v3SaveMetaModal .v3-help {
   font-size: 12px;
   color: #7f8c8d;
   margin-top: 6px;
   line-height: 1.35;
 }
 
-#v3TextMetaModal .v3-help.v3-error {
+#v3TextMetaModal .v3-help.v3-error,
+#v3SaveMetaModal .v3-help.v3-error {
   color: #c62828;
   font-weight: 600;
 }
 
-#v3TextMetaModal .v3-modal-actions {
+#v3TextMetaModal .v3-modal-actions,
+#v3SaveMetaModal .v3-modal-actions {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
@@ -2008,6 +2018,61 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
       <div class="v3-help">
         Tags вводите через запятую. Пустое поле = очистка значения.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- -----------------------------------------
+     Week9 P1: Save Meta mini-modal (on Save current table)
+------------------------------------------ -->
+<div id="v3SaveMetaModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Сохранить в библиотеку">
+  <div class="v3-modal-backdrop" onclick="v3SaveMetaClose()" aria-hidden="true"></div>
+
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title">Сохранить в библиотеку</div>
+      <button class="btn-secondary" onclick="v3SaveMetaClose()">Закрыть</button>
+    </div>
+
+    <div class="v3-modal-body">
+      <div id="v3SaveMetaStatus" class="v3-help"></div>
+
+      <div class="v3-form-row">
+        <label for="v3SaveMetaTitle">Title*</label>
+        <input id="v3SaveMetaTitle" type="text" maxlength="160" placeholder="Например: Песня / статья / урок" />
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3SaveMetaLevel">Level</label>
+        <select id="v3SaveMetaLevel">
+          <option value="">—</option>
+        </select>
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3SaveMetaTags">Tags</label>
+        <input id="v3SaveMetaTags" type="text" placeholder="song, idf, lyrics" />
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3SaveMetaSource">Source</label>
+        <input id="v3SaveMetaSource" type="text" placeholder="youtube / news / book ..." />
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3SaveMetaTopic">Topic</label>
+        <input id="v3SaveMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
+      </div>
+
+      <div class="v3-modal-actions">
+        <button class="btn-secondary" onclick="v3SaveMetaClose()">Cancel</button>
+        <button id="v3SaveMetaSaveBtn" class="btn-primary" onclick="v3SaveMetaSave()">Save</button>
+      </div>
+
+      <div class="v3-help">
+        Title обязателен. Если оставить пустым — подставим автоматически (первая непустая строка исходного текста).
+        Tags вводите через запятую.
       </div>
     </div>
   </div>
@@ -4566,22 +4631,47 @@ function v3BuildTtsProfileForSave() {
 }
 
 async function v3LibrarySaveCurrent() {
+  // Week9 P1: вместо “немого” сохранения — всегда просим мету (PRO / Premium hygiene).
+  // Важно: никаких новых audio listeners — только UI-модалка.
+  try {
+    v3SaveMetaOpen();
+  } catch (e) {
+    console.warn("v3LibrarySaveCurrent (open modal) failed", e);
+    showToast("Не удалось открыть форму сохранения (см. консоль).", "error");
+  }
+}
+
+async function v3LibrarySaveCurrentCore(meta) {
   try {
     const sourceText = String(getText() || "").trim();
     if (!sourceText) {
       showToast("Нет исходного текста для сохранения", "error");
-      return;
+      return null;
     }
     if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
       showToast("Нет таблицы для сохранения (сначала AI перевод/таблица)", "error");
-      return;
+      return null;
     }
+
+    const m = (meta && typeof meta === "object") ? meta : {};
+    const title = String(m.title || "").trim();
+    const level = String(m.level || "").trim();
+    const tags = String(m.tags || "").trim();
+    const source = String(m.source || "").trim();
+    const topic = String(m.topic || "").trim();
 
     const payload = {
       sourceText,
       rows: currentTableData,
       ttsProfile: v3BuildTtsProfileForSave(),
-      tableModelMeta: v3LastGeminiMeta || null
+      tableModelMeta: v3LastGeminiMeta || null,
+
+      // Week9 dashboard meta (POST supports these fields)
+      title: title || null,
+      level: level || null,
+      tags: tags || "",
+      source: source || null,
+      topic: topic || null
     };
 
     const created = await v3PostJson("/api/library/texts", payload);
@@ -4593,17 +4683,29 @@ async function v3LibrarySaveCurrent() {
     }
 
     showToast("Сохранено в библиотеку", "success");
+
     // обновим список, если модалка открыта
-    const modal = v3LibEl("v3LibraryModal");
-    if (modal && !modal.classList.contains("hidden")) v3LibraryRefresh();
+    try {
+      const libModal = v3LibEl("v3LibraryModal");
+      if (libModal && !libModal.classList.contains("hidden")) v3LibraryRefresh();
+    } catch (_) {}
+
+    // подтянем dash cache (pinned/meta)
+    try {
+      const dashModal = document.getElementById("v3DashboardModal");
+      if (dashModal && !dashModal.classList.contains("hidden")) await v3DashboardRefresh();
+    } catch (_) {}
+
+    return text;
   } catch (e) {
     // 409 duplicate
     if (e && e.httpStatus === 409) {
       showToast("Этот текст уже есть в библиотеке (duplicate key)", "error");
-      return;
+      return null;
     }
-    console.warn("v3LibrarySaveCurrent failed", e);
+    console.warn("v3LibrarySaveCurrentCore failed", e);
     showToast("Не удалось сохранить (см. консоль).", "error");
+    return null;
   }
 }
 
@@ -5194,6 +5296,230 @@ async function v3DashboardTogglePin(textId) {
     alert("Не удалось обновить pin/meta (см. console).");
   }
 }
+
+// ----------------------------
+// Week9 P1: Save Meta mini-modal (on Save current table)
+// + Week9 P1: LEVEL ENUM (UI single source of truth)
+// ----------------------------
+const V3_LEVEL_ENUM = Object.freeze([
+  { value: "", label: "—" },
+  { value: "alef", label: "alef" },
+  { value: "alef+", label: "alef+" },
+  { value: "bet", label: "bet" },
+  { value: "bet+", label: "bet+" },
+  { value: "gimel", label: "gimel" },
+  { value: "gimel+", label: "gimel+" },
+  { value: "dalet", label: "dalet" },
+  { value: "dalet+", label: "dalet+" },
+  { value: "he", label: "he" },
+  { value: "he+", label: "he+" },
+  { value: "vav", label: "vav" },
+  { value: "vav+", label: "vav+" },
+  { value: "unknown", label: "unknown" }
+]);
+
+function v3FillLevelSelect(selectId, opts) {
+  const o = opts || {};
+  const includeEmpty = (o.includeEmpty !== false);
+  const emptyLabel = (typeof o.emptyLabel === "string") ? o.emptyLabel : "—";
+
+  const el = document.getElementById(selectId);
+  if (!el) return;
+
+  const cur = String(el.value || "");
+  const parts = [];
+
+  for (const item of V3_LEVEL_ENUM) {
+    if (!includeEmpty && item.value === "") continue;
+    const lbl = (item.value === "") ? emptyLabel : item.label;
+    parts.push(`<option value="${v3EscapeHtml(item.value)}">${v3EscapeHtml(lbl)}</option>`);
+  }
+
+  el.innerHTML = parts.join("");
+
+  // восстановим предыдущее значение, если оно валидно
+  const allowed = new Set(V3_LEVEL_ENUM.map(x => x.value));
+  el.value = allowed.has(cur) ? cur : "";
+}
+
+function v3InitLevelEnumUi() {
+  // “Все уровни” для фильтра, “—” для мета-форм
+  v3FillLevelSelect("v3DashLevel", { includeEmpty: true, emptyLabel: "Все уровни" });
+  v3FillLevelSelect("v3TextMetaLevel", { includeEmpty: true, emptyLabel: "—" });
+  v3FillLevelSelect("v3SaveMetaLevel", { includeEmpty: true, emptyLabel: "—" });
+}
+
+const V3_SAVE_META_DEFAULTS_KEY = "v3_save_meta_defaults_v1";
+
+function v3LoadSaveMetaDefaults() {
+  try {
+    const raw = localStorage.getItem(V3_SAVE_META_DEFAULTS_KEY);
+    if (!raw) return { level: "", source: "", topic: "" };
+    const j = JSON.parse(raw);
+    return {
+      level: String((j && j.level) || ""),
+      source: String((j && j.source) || ""),
+      topic: String((j && j.topic) || "")
+    };
+  } catch (_) {
+    return { level: "", source: "", topic: "" };
+  }
+}
+
+function v3StoreSaveMetaDefaults(next) {
+  try {
+    const n = next && typeof next === "object" ? next : {};
+    const payload = {
+      level: String(n.level || ""),
+      source: String(n.source || ""),
+      topic: String(n.topic || "")
+    };
+    localStorage.setItem(V3_SAVE_META_DEFAULTS_KEY, JSON.stringify(payload));
+  } catch (_) {}
+}
+
+function v3GuessTitleFromSourceText(sourceText) {
+  const raw = String(sourceText || "");
+  const lines = raw.split(/\r?\n/).map(s => String(s || "").trim()).filter(Boolean);
+  let line = lines.length ? lines[0] : "";
+  if (!line) return "";
+
+  // Лёгкая нормализация (без “умной” магии)
+  line = line.replace(/\s+/g, " ").trim();
+
+  // Ограничим длину, чтобы UI не распухал
+  if (line.length > 120) line = line.slice(0, 120).trim() + "…";
+  return line;
+}
+
+function v3SaveMetaEl(id) { return document.getElementById(id); }
+
+function v3SaveMetaSetStatus(msg, isError) {
+  const el = v3SaveMetaEl("v3SaveMetaStatus");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.className = "v3-help" + (isError ? " v3-error" : "");
+}
+
+function v3SaveMetaShow(open) {
+  const m = v3SaveMetaEl("v3SaveMetaModal");
+  if (!m) return;
+  if (open) m.classList.remove("hidden");
+  else m.classList.add("hidden");
+}
+
+function v3SaveMetaOpen() {
+  const sourceText = String(getText() || "").trim();
+  if (!sourceText) {
+    showToast("Нет исходного текста для сохранения", "error");
+    return;
+  }
+  if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
+    showToast("Нет таблицы для сохранения (сначала AI перевод/таблица)", "error");
+    return;
+  }
+
+  // гарантируем единый enum уровней (и для новой модалки тоже)
+  try { v3InitLevelEnumUi(); } catch (_) {}
+
+  const def = v3LoadSaveMetaDefaults();
+  const titleGuess = v3GuessTitleFromSourceText(sourceText);
+
+  const titleEl = v3SaveMetaEl("v3SaveMetaTitle");
+  const levelEl = v3SaveMetaEl("v3SaveMetaLevel");
+  const tagsEl = v3SaveMetaEl("v3SaveMetaTags");
+  const sourceEl = v3SaveMetaEl("v3SaveMetaSource");
+  const topicEl = v3SaveMetaEl("v3SaveMetaTopic");
+
+  if (titleEl) titleEl.value = titleGuess;
+  if (levelEl) levelEl.value = String(def.level || "");
+  if (tagsEl) tagsEl.value = "";
+  if (sourceEl) sourceEl.value = String(def.source || "");
+  if (topicEl) topicEl.value = String(def.topic || "");
+
+  v3SaveMetaSetStatus("", false);
+  v3SaveMetaShow(true);
+
+  try { if (titleEl) titleEl.focus(); } catch (_) {}
+}
+
+function v3SaveMetaClose() {
+  v3SaveMetaSetStatus("", false);
+  v3SaveMetaShow(false);
+}
+
+async function v3SaveMetaSave() {
+  const btn = v3SaveMetaEl("v3SaveMetaSaveBtn");
+  if (btn) btn.disabled = true;
+
+  try {
+    const sourceText = String(getText() || "").trim();
+
+    const titleEl = v3SaveMetaEl("v3SaveMetaTitle");
+    const levelEl = v3SaveMetaEl("v3SaveMetaLevel");
+    const tagsEl = v3SaveMetaEl("v3SaveMetaTags");
+    const sourceEl = v3SaveMetaEl("v3SaveMetaSource");
+    const topicEl = v3SaveMetaEl("v3SaveMetaTopic");
+
+    let title = String((titleEl && titleEl.value) || "").trim();
+    const level = String((levelEl && levelEl.value) || "").trim();
+    const tags = String((tagsEl && tagsEl.value) || "").trim();
+    const source = String((sourceEl && sourceEl.value) || "").trim();
+    const topic = String((topicEl && topicEl.value) || "").trim();
+
+    // Title required + auto-fill
+    if (!title) {
+      const guessed = v3GuessTitleFromSourceText(sourceText);
+      if (guessed) {
+        title = guessed;
+        if (titleEl) titleEl.value = title;
+      } else {
+        v3SaveMetaSetStatus("Title обязателен.", true);
+        if (btn) btn.disabled = false;
+        try { if (titleEl) titleEl.focus(); } catch (_) {}
+        return;
+      }
+    }
+
+    v3SaveMetaSetStatus("Сохранение...", false);
+
+    const createdText = await v3LibrarySaveCurrentCore({
+      title,
+      level: level || null,
+      tags: tags || "",
+      source: source || null,
+      topic: topic || null
+    });
+
+    if (!createdText) {
+      // Ошибка уже показана через showToast в core. Оставим модалку открытой.
+      v3SaveMetaSetStatus("Не удалось сохранить (см. toast/console).", true);
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    // запомним удобные “дефолты” (уровень + источник/топик)
+    v3StoreSaveMetaDefaults({ level, source, topic });
+
+    v3SaveMetaClose();
+  } catch (e) {
+    console.error("[v3SaveMetaSave] error:", e);
+    v3SaveMetaSetStatus("Ошибка сохранения (см. console).", true);
+    if (btn) btn.disabled = false;
+    return;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// expose globally (onclick hooks)
+window.v3SaveMetaOpen = v3SaveMetaOpen;
+window.v3SaveMetaClose = v3SaveMetaClose;
+window.v3SaveMetaSave = v3SaveMetaSave;
+
+// init once (script is after DOM)
+try { v3InitLevelEnumUi(); } catch (_) {}
+
 
 // ----------------------------
 // Week9 P1: Meta Edit mini-modal
