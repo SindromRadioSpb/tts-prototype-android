@@ -1946,14 +1946,35 @@ th, td { border-color: rgba(0,0,0,0.55); }
     </div>
   </div>
 
-  <div class="v3-dash-right">
+    <div class="v3-dash-right">
+
     <div class="v3-dash-section">
-      <h3>🎯 Недавние строки</h3>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h3 style="margin:0;">🧾 Активность</h3>
+        <select
+          id="v3DashActText"
+          onchange="v3DashboardOnActivityTextChange()"
+          title="Фильтр activity по тексту"
+        >
+          <option value="">Все тексты</option>
+        </select>
+      </div>
+
+      <div id="v3DashActivityHeader" class="v3-dash-rows-header v3-lib-muted">
+        Последние строки по всем текстам (уникальные textId+sentenceId).
+      </div>
+
+      <div id="v3DashActivityList"></div>
+    </div>
+
+    <div class="v3-dash-section">
+      <h3>🎯 Недавние строки (внутри текста)</h3>
       <div id="v3DashRowsHeader" class="v3-dash-rows-header v3-lib-muted">
         Выберите текст слева — покажем последние строки.
       </div>
       <div id="v3DashRowsList"></div>
     </div>
+
   </div>
 </div>
 
@@ -4837,6 +4858,9 @@ let v3DashLibTexts = [];
 let v3DashRecent = [];
 let v3DashRecentByTextId = new Map();
 
+let v3DashActivity = []; // global recent activity (rows across texts)
+const V3_DASH_ACTIVITY_TEXT_KEY = "v3Dash_activity_text_v1";
+
 const V3_DASH_AUTOPLAY_CONTINUE_KEY = "v3Dash_autoplay_continue_v1";
 
 const V3_DASH_MODE_KEY = "v3Dash_mode_v1";
@@ -4888,6 +4912,144 @@ let v3DashRowsCache = new Map(); // textId -> rows[]
 
 function v3DashEl(id) { return document.getElementById(id); }
 
+function v3DashGetActivityTextFilter() {
+  const el = v3DashEl("v3DashActText");
+  if (el) return String(el.value || "");
+  try { return localStorage.getItem(V3_DASH_ACTIVITY_TEXT_KEY) || ""; } catch (_) { return ""; }
+}
+
+function v3DashboardOnActivityTextChange() {
+  const el = v3DashEl("v3DashActText");
+  const v = el ? String(el.value || "") : "";
+  try { localStorage.setItem(V3_DASH_ACTIVITY_TEXT_KEY, v); } catch (_) {}
+  v3DashboardRender();
+}
+
+function v3DashboardUpdateActivityTextOptions() {
+  const sel = v3DashEl("v3DashActText");
+  if (!sel) return;
+
+  let keep = "";
+  try { keep = String(sel.value || ""); } catch (_) { keep = ""; }
+  if (!keep) {
+    try { keep = localStorage.getItem(V3_DASH_ACTIVITY_TEXT_KEY) || ""; } catch (_) {}
+  }
+
+  const byId = new Map();
+
+  for (const t of (v3DashLibTexts || [])) {
+    if (t && t.id) byId.set(String(t.id), t);
+  }
+
+  for (const r of (v3DashRecent || [])) {
+    const id = r ? (r.id || r.text_id) : null;
+    if (id && !byId.has(String(id))) byId.set(String(id), r);
+  }
+
+  const arr = Array.from(byId.entries()).map(([id, t]) => ({ _id: id, ...(t || {}) }));
+
+  arr.sort((a, b) => {
+    const ap = Number(a.is_pinned) === 1 ? 0 : 1;
+    const bp = Number(b.is_pinned) === 1 ? 0 : 1;
+    if (ap !== bp) return ap - bp;
+
+    const at = String(a.title || "").toLowerCase();
+    const bt = String(b.title || "").toLowerCase();
+    if (at < bt) return -1;
+    if (at > bt) return 1;
+    return String(a._id).localeCompare(String(b._id));
+  });
+
+  const options = [
+    `<option value="">Все тексты</option>`,
+    ...arr.map(t => {
+      const pin = (Number(t.is_pinned) === 1) ? "📌 " : "";
+      const title = t.title ? String(t.title) : "(без названия)";
+      const lvl = t.level ? ` [${String(t.level)}]` : "";
+      const label = pin + title + lvl;
+      return `<option value="${v3EscapeHtml(t._id)}">${v3EscapeHtml(label)}</option>`;
+    })
+  ].join("");
+
+  sel.innerHTML = options;
+
+  if (keep && byId.has(String(keep))) sel.value = String(keep);
+  else sel.value = "";
+
+  try { localStorage.setItem(V3_DASH_ACTIVITY_TEXT_KEY, String(sel.value || "")); } catch (_) {}
+}
+
+function v3DashRenderActivityRow(r) {
+  const textId = String(r.text_id || r.textId || "");
+  const sentId = String(r.sentence_id || r.sentenceId || "");
+
+  const title = v3EscapeHtml(r.title || "(без названия)");
+  const level = (r.level && String(r.level).trim()) ? String(r.level).trim() : "";
+  const levelPart = level ? ` · level: ${v3EscapeHtml(level)}` : "";
+
+  const he = v3EscapeHtml(r.he_niqqud || r.he_plain || "");
+  const tr = v3EscapeHtml(r.translit || "");
+  const ru = v3EscapeHtml(r.ru || "");
+
+  const assetKey = (r.last_asset_key && String(r.last_asset_key).trim()) ? String(r.last_asset_key).trim() : "";
+  const seenCount = (r.seen_count ?? r.seenCount ?? 0);
+  const lastSeenAt = r.last_seen_at ? v3FmtDate(r.last_seen_at) : "—";
+
+  const playDisabled = assetKey ? "" : "disabled";
+
+  return `
+    <div class="v3-dash-row-item">
+      <div class="v3-dash-row-text">
+        <div class="v3-dash-row-meta">
+          <span style="cursor:pointer; font-weight:700;" onclick="v3DashboardSelectText('${textId}')">${title}</span>${levelPart}
+        </div>
+        <div class="v3-dash-row-he">${he || "(пусто)"}</div>
+        ${tr ? `<div class="v3-dash-row-tr">${tr}</div>` : ""}
+        ${ru ? `<div class="v3-dash-row-ru">${ru}</div>` : ""}
+        <div class="v3-dash-row-meta">seen: ${seenCount} · last: ${lastSeenAt}</div>
+      </div>
+      <div class="v3-dash-row-actions">
+        <button class="btn-secondary" onclick="v3DashboardGoRow('${textId}','${sentId}')">Go</button>
+        <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${textId}','${sentId}','${v3EscapeHtml(assetKey)}')">Play</button>
+      </div>
+    </div>
+  `;
+}
+
+function v3DashboardRenderActivityPanel(q, level) {
+  const headerEl = v3DashEl("v3DashActivityHeader");
+  const listEl = v3DashEl("v3DashActivityList");
+  if (!headerEl || !listEl) return;
+
+  const textFilter = v3DashGetActivityTextFilter();
+
+  let rows = Array.isArray(v3DashActivity) ? v3DashActivity.slice() : [];
+  rows = rows
+    .filter(r => r && (r.text_id || r.textId) && (r.sentence_id || r.sentenceId))
+    .filter(r => v3DashMatches(r, q, level));
+
+  if (textFilter) {
+    rows = rows.filter(r => String(r.text_id || r.textId) === String(textFilter));
+  }
+
+  const shown = rows.slice(0, 50);
+
+  let scopeLabel = "Все тексты";
+  if (textFilter) {
+    const fromLib = (v3DashLibTexts || []).find(x => x && String(x.id) === String(textFilter)) || null;
+    const fromRecent = v3DashRecentByTextId.get(String(textFilter)) || null;
+    const t = fromLib || fromRecent;
+    if (t && t.title) scopeLabel = String(t.title);
+    else scopeLabel = String(textFilter);
+  }
+
+  headerEl.textContent = `Показано: ${shown.length} (из ${rows.length}) · Scope: ${scopeLabel}`;
+
+  listEl.innerHTML = shown.length
+    ? shown.map(v3DashRenderActivityRow).join("")
+    : '<div class="v3-dash-empty">Активности пока нет. Проиграйте строку в Library (Row-TTS).</div>';
+}
+
 function v3DashboardOpen() {
   const m = v3DashEl("v3DashboardModal");
   if (!m) return;
@@ -4928,31 +5090,38 @@ async function v3DashboardRefresh() {
   const statusEl = v3DashEl("v3DashStatus");
   const pinnedEl = v3DashEl("v3DashPinnedList");
   const recentEl = v3DashEl("v3DashRecentList");
+  const actEl = v3DashEl("v3DashActivityList");
+  const actHeaderEl = v3DashEl("v3DashActivityHeader");
 
   const includeArchived = (v3DashEl("v3DashIncludeArchived") && v3DashEl("v3DashIncludeArchived").checked) ? 1 : 0;
 
   if (statusEl) statusEl.textContent = "Загрузка…";
+  if (actHeaderEl) actHeaderEl.textContent = "Загрузка…";
 
   try {
-    const [libRes, recentRes] = await Promise.all([
+    const [libRes, recentRes, actRes] = await Promise.all([
       v3GetJson(`/api/library/texts?limit=200&includeArchived=${includeArchived}`),
-      v3GetJson(`/api/history/recent-texts?limit=80&includeArchived=${includeArchived}`)
+      v3GetJson(`/api/history/recent-texts?limit=80&includeArchived=${includeArchived}`),
+      v3GetJson(`/api/history/recent-activity?limit=120&includeArchived=${includeArchived}`)
     ]);
 
     v3DashLibTexts = (libRes && libRes.ok && Array.isArray(libRes.texts)) ? libRes.texts : [];
     v3DashRecent = (recentRes && recentRes.ok && Array.isArray(recentRes.texts)) ? recentRes.texts : [];
+    v3DashActivity = (actRes && actRes.ok && Array.isArray(actRes.rows)) ? actRes.rows : [];
 
     v3DashRecentByTextId = new Map();
-for (const r of v3DashRecent) {
-  if (!r) continue;
-  const a = r.id ? String(r.id) : "";
-  const b = r.text_id ? String(r.text_id) : "";
-  if (a) v3DashRecentByTextId.set(a, r);
-  if (b) v3DashRecentByTextId.set(b, r);
-}
+    for (const r of v3DashRecent) {
+      if (!r) continue;
+      const a = r.id ? String(r.id) : "";
+      const b = r.text_id ? String(r.text_id) : "";
+      if (a) v3DashRecentByTextId.set(a, r);
+      if (b) v3DashRecentByTextId.set(b, r);
+    }
+
+    v3DashboardUpdateActivityTextOptions();
 
     const pinnedCount = v3DashLibTexts.filter(t => Number(t.is_pinned) === 1).length;
-    if (statusEl) statusEl.textContent = `Pinned: ${pinnedCount} · Recent: ${v3DashRecent.length}`;
+    if (statusEl) statusEl.textContent = `Pinned: ${pinnedCount} · Recent: ${v3DashRecent.length} · Activity: ${v3DashActivity.length}`;
 
     v3DashboardRender();
   } catch (e) {
@@ -4960,6 +5129,8 @@ for (const r of v3DashRecent) {
     if (statusEl) statusEl.textContent = "Ошибка загрузки (см. console).";
     if (pinnedEl) pinnedEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
     if (recentEl) recentEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
+    if (actHeaderEl) actHeaderEl.textContent = "Не удалось загрузить активность.";
+    if (actEl) actEl.innerHTML = '<div class="v3-dash-empty">Ошибка загрузки активности.</div>';
   }
 }
 
@@ -5031,12 +5202,15 @@ function v3DashboardRender() {
     : '<div class="v3-dash-empty">Пока нет закреплённых текстов.</div>';
 
   const recent = v3DashRecent
-  .filter(r => r && (r.id || r.text_id))
-  .filter(r => v3DashMatches(r, q, level));
+    .filter(r => r && (r.id || r.text_id))
+    .filter(r => v3DashMatches(r, q, level));
 
   recentEl.innerHTML = recent.length
     ? recent.map(r => v3DashRenderItem(r)).join("")
     : '<div class="v3-dash-empty">История пока пуста. Проиграйте строку в Library.</div>';
+
+  // Global recent activity feed (rows across all texts)
+  v3DashboardRenderActivityPanel(q, level);
 }
 
 function v3DashRenderItem(t) {
