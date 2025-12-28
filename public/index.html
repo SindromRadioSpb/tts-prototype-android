@@ -1285,6 +1285,66 @@ th, td { border-color: rgba(0,0,0,0.55); }
   flex: 1;
 }
 
+/* -----------------------------------------
+   Week9 P1: Meta Edit mini-modal (PRO)
+----------------------------------------- */
+#v3TextMetaModal .v3-modal-panel {
+  width: min(640px, calc(100vw - 32px));
+  height: auto;
+  max-height: calc(100vh - 56px);
+}
+
+#v3TextMetaModal .v3-form-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+#v3TextMetaModal .v3-form-row label {
+  min-width: 86px;
+  font-size: 12px;
+  color: #7f8c8d;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+#v3TextMetaModal input[type="text"],
+#v3TextMetaModal select {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #333;
+  outline: none;
+}
+
+#v3TextMetaModal input[type="text"]:focus,
+#v3TextMetaModal select:focus {
+  border-color: rgba(52, 152, 219, 0.65);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+#v3TextMetaModal .v3-help {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+#v3TextMetaModal .v3-help.v3-error {
+  color: #c62828;
+  font-weight: 600;
+}
+
+#v3TextMetaModal .v3-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
 .v3-lib-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -1887,6 +1947,68 @@ th, td { border-color: rgba(0,0,0,0.55); }
   </div>
 </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- -----------------------------------------
+     Week9 P1: Text Meta Edit mini-modal
+------------------------------------------ -->
+<div id="v3TextMetaModal" class="v3-modal hidden" role="dialog" aria-modal="true">
+  <div class="v3-modal-backdrop" onclick="v3TextMetaClose()"></div>
+
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title">Метаданные текста</div>
+      <button class="btn-secondary" onclick="v3TextMetaClose()">Закрыть</button>
+    </div>
+
+    <div class="v3-modal-body">
+      <div id="v3TextMetaStatus" class="v3-help"></div>
+
+      <div class="v3-form-row">
+        <label for="v3TextMetaTitle">Title*</label>
+        <input id="v3TextMetaTitle" type="text" maxlength="160" placeholder="Например: Песня / статья / урок" />
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3TextMetaLevel">Level</label>
+        <select id="v3TextMetaLevel">
+          <option value="">—</option>
+          <option value="alef">alef</option>
+          <option value="alef+">alef+</option>
+          <option value="bet">bet</option>
+          <option value="bet+">bet+</option>
+          <option value="gimel">gimel</option>
+          <option value="gimel+">gimel+</option>
+          <option value="dalet">dalet</option>
+          <option value="dalet+">dalet+</option>
+        </select>
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3TextMetaTags">Tags</label>
+        <input id="v3TextMetaTags" type="text" placeholder="song, idf, lyrics" />
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3TextMetaSource">Source</label>
+        <input id="v3TextMetaSource" type="text" placeholder="youtube / news / book ..." />
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3TextMetaTopic">Topic</label>
+        <input id="v3TextMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
+      </div>
+
+      <div class="v3-modal-actions">
+        <button class="btn-secondary" onclick="v3TextMetaClose()">Cancel</button>
+        <button id="v3TextMetaSaveBtn" class="btn-primary" onclick="v3TextMetaSave()">Save</button>
+      </div>
+
+      <div class="v3-help">
+        Tags вводите через запятую. Пустое поле = очистка значения.
+      </div>
     </div>
   </div>
 </div>
@@ -4029,6 +4151,23 @@ async function v3PostJson(url, bodyObj) {
   return await r.json();
 }
 
+async function v3PatchJson(url, payload) {
+  const res = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload || {})
+  });
+
+  const j = await res.json().catch(() => null);
+  if (!res.ok) {
+    const err = new Error("HTTP_" + res.status);
+    err.status = res.status;
+    err.body = j;
+    throw err;
+  }
+  return j;
+}
+
 async function v3Delete(url) {
   const r = await fetch(url, { method: "DELETE" });
   if (!r.ok) {
@@ -4189,7 +4328,8 @@ function v3LibraryRenderList(texts) {
         <div class="v3-lib-card-actions">
           <button class="btn-primary" data-act="open">Open</button>
           <button class="btn-success" data-act="resume">Resume</button>
-          <button class="btn-secondary" data-act="archive">Archive</button>
+		  <button class="btn-secondary" data-act="edit">Edit</button>
+		  <button class="btn-secondary" data-act="archive">Archive</button>
           <button class="btn-secondary v3-lib-danger" data-act="delete">Delete</button>
         </div>
       </div>
@@ -4198,13 +4338,34 @@ function v3LibraryRenderList(texts) {
     // Event handlers (still per-card, but attached while off-DOM)
     const btnOpen = card.querySelector('button[data-act="open"]');
     const btnResume = card.querySelector('button[data-act="resume"]');
-    const btnArchive = card.querySelector('button[data-act="archive"]');
+	const btnEdit = card.querySelector('button[data-act="edit"]');
+	const btnArchive = card.querySelector('button[data-act="archive"]');
     const btnDelete = card.querySelector('button[data-act="delete"]');
 
     if (btnOpen) btnOpen.addEventListener("click", () => v3LibraryOpenText(id, { resume: false }));
     if (btnResume) btnResume.addEventListener("click", () => v3LibraryOpenText(id, { resume: true }));
+	if (btnEdit) btnEdit.addEventListener("click", () => v3TextMetaOpen(id));
     if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
+	
+	if (btnEdit) btnEdit.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  try {
+    if (typeof window.v3TextMetaOpen === "function") {
+      window.v3TextMetaOpen(id);
+    } else if (typeof v3TextMetaOpen === "function") {
+      v3TextMetaOpen(id);
+    } else {
+      console.error("[Library/Edit] v3TextMetaOpen is not defined");
+      alert("Meta Edit недоступен: v3TextMetaOpen не найден (см. console).");
+    }
+  } catch (err) {
+    console.error("[Library/Edit] failed:", err);
+    alert("Не удалось открыть Meta Edit (см. console).");
+  }
+});
+
 
     frag.appendChild(card);
   }
@@ -4805,6 +4966,7 @@ function v3DashRenderItem(t) {
       <div class="v3-dash-actions">
         <button class="btn-success" onclick="v3DashboardContinue('${id}')">Продолжить</button>
         <button class="btn-secondary" onclick="v3DashboardOpenText('${id}')">Открыть</button>
+		<button class="btn-secondary" onclick="v3TextMetaOpen('${id}')">Edit</button>
         <button class="btn-secondary" onclick="v3DashboardTogglePin('${id}')">${pinLabel}</button>
       </div>
     </div>
@@ -5032,6 +5194,221 @@ async function v3DashboardTogglePin(textId) {
     alert("Не удалось обновить pin/meta (см. console).");
   }
 }
+
+// ----------------------------
+// Week9 P1: Meta Edit mini-modal
+// ----------------------------
+let v3TextMetaEditingId = null;
+
+function v3MetaEl(id) { return document.getElementById(id); }
+
+function v3TextMetaSetStatus(msg, isError) {
+  const el = v3MetaEl("v3TextMetaStatus");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.className = "v3-help" + (isError ? " v3-error" : "");
+}
+
+function v3TextMetaShow(open) {
+  const m = v3MetaEl("v3TextMetaModal");
+  if (!m) return;
+  if (open) m.classList.remove("hidden");
+  else m.classList.add("hidden");
+}
+
+function v3FindTextById(textId) {
+  const id = String(textId || "");
+
+  // 1) Library cache
+  try {
+    if (Array.isArray(v3LibraryTexts)) {
+      const x = v3LibraryTexts.find(t => String(t.id || t.text_id || "") === id);
+      if (x) return x;
+    }
+  } catch (_) {}
+
+  // 2) Dashboard library cache
+  try {
+    if (Array.isArray(v3DashLibTexts)) {
+      const x = v3DashLibTexts.find(t => String(t.id || t.text_id || "") === id);
+      if (x) return x;
+    }
+  } catch (_) {}
+
+  // 3) Recent texts cache (has extra fields like last_seen_at)
+  try {
+    if (Array.isArray(v3DashRecent)) {
+      const x = v3DashRecent.find(t => String(t.id || t.text_id || "") === id || String(t.text_id || "") === id);
+      if (x) return x;
+    }
+  } catch (_) {}
+
+  // 4) Map (if present)
+  try {
+    if (v3DashRecentByTextId && typeof v3DashRecentByTextId.get === "function") {
+      const x = v3DashRecentByTextId.get(id);
+      if (x) return x;
+    }
+  } catch (_) {}
+
+  return null;
+}
+
+function v3TagsToCsv(tagsJson) {
+  try {
+    const arr = v3ParseTags(tagsJson || null);
+    return (arr || []).join(", ");
+  } catch (_) {
+    return "";
+  }
+}
+
+function v3MergeIntoArrayById(arr, id, patchObj) {
+  if (!Array.isArray(arr) || !patchObj) return;
+
+  for (let i = 0; i < arr.length; i++) {
+    const cur = arr[i];
+    const curId = String(cur && (cur.id || cur.text_id) || "");
+    if (curId === id) {
+      // merge, чтобы не терять last_seen_at/seen_count и т.п.
+      arr[i] = Object.assign({}, cur, patchObj);
+      return;
+    }
+  }
+}
+
+function v3ApplyMetaUpdateToCaches(textId, updated) {
+  const id = String(textId || "");
+  if (!updated) return;
+
+  // library list cache
+  try { v3MergeIntoArrayById(v3LibraryTexts, id, updated); } catch (_) {}
+
+  // dashboard library cache
+  try { v3MergeIntoArrayById(v3DashLibTexts, id, updated); } catch (_) {}
+
+  // recent cache (keep last_seen_at etc)
+  try { v3MergeIntoArrayById(v3DashRecent, id, updated); } catch (_) {}
+
+  // recent map refresh (if exists)
+  try {
+    if (v3DashRecentByTextId && typeof v3DashRecentByTextId.set === "function") {
+      // если в v3DashRecent есть объект — положим его в map как source of truth
+      const r = Array.isArray(v3DashRecent) ? v3DashRecent.find(x => String(x.id || x.text_id || "") === id || String(x.text_id || "") === id) : null;
+      if (r) v3DashRecentByTextId.set(id, r);
+      else v3DashRecentByTextId.set(id, Object.assign({}, updated));
+    }
+  } catch (_) {}
+}
+
+function v3TextMetaOpen(textId) {
+  const id = String(textId || "");
+  v3TextMetaEditingId = id;
+
+  const t = v3FindTextById(id) || {};
+
+  const title = String(t.title || t.name || "").trim();
+  const level = String(t.level || "").trim();
+  const tagsCsv = v3TagsToCsv(t.tags_json || t.tagsJson || t.tags || null);
+  const source = String(t.source || "").trim();
+  const topic = String(t.topic || "").trim();
+
+  v3MetaEl("v3TextMetaTitle").value = title;
+  v3MetaEl("v3TextMetaLevel").value = level;
+  v3MetaEl("v3TextMetaTags").value = tagsCsv;
+  v3MetaEl("v3TextMetaSource").value = source;
+  v3MetaEl("v3TextMetaTopic").value = topic;
+
+  v3TextMetaSetStatus("", false);
+  v3TextMetaShow(true);
+
+  // UX: фокус в title
+  try { v3MetaEl("v3TextMetaTitle").focus(); } catch (_) {}
+}
+
+function v3TextMetaClose() {
+  v3TextMetaEditingId = null;
+  v3TextMetaSetStatus("", false);
+  v3TextMetaShow(false);
+}
+
+async function v3TextMetaSave() {
+  const id = String(v3TextMetaEditingId || "");
+  if (!id) return;
+
+  const btn = v3MetaEl("v3TextMetaSaveBtn");
+  if (btn) btn.disabled = true;
+
+  try {
+    const title = String(v3MetaEl("v3TextMetaTitle").value || "").trim();
+    const level = String(v3MetaEl("v3TextMetaLevel").value || "").trim();
+    const tags = String(v3MetaEl("v3TextMetaTags").value || "").trim();
+    const source = String(v3MetaEl("v3TextMetaSource").value || "").trim();
+    const topic = String(v3MetaEl("v3TextMetaTopic").value || "").trim();
+
+    if (!title) {
+      v3TextMetaSetStatus("Title обязателен.", true);
+      if (btn) btn.disabled = false;
+      try { v3MetaEl("v3TextMetaTitle").focus(); } catch (_) {}
+      return;
+    }
+
+    // payload: server умеет нормализовать level/tags; UI держим простым и безопасным
+    const payload = {
+      title,
+      level: level || null,
+      tags: tags || "",      // пустая строка => очистка (как в вашем curl)
+      source: source || null,
+      topic: topic || null
+    };
+
+    v3TextMetaSetStatus("Сохранение...", false);
+
+    const j = await v3PatchJson(`/api/library/texts/${encodeURIComponent(id)}/meta`, payload);
+
+    if (!j || !j.ok) {
+      v3TextMetaSetStatus("Не удалось сохранить (см. console).", true);
+      console.error("[v3TextMetaSave] bad response:", j);
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    // server может вернуть result или text — поддержим оба
+    const updated = j.result || j.text || null;
+    if (updated) v3ApplyMetaUpdateToCaches(id, updated);
+
+    // форсируем перерисовку списков (без новых listeners в аудио)
+    try { v3LibraryLastRenderKey = null; } catch (_) {}
+
+    try {
+      const libModal = document.getElementById("v3LibraryModal");
+      if (libModal && !libModal.classList.contains("hidden")) {
+        v3LibraryApplyFilter();
+      }
+    } catch (_) {}
+
+    try {
+      const dashModal = document.getElementById("v3DashboardModal");
+      if (dashModal && !dashModal.classList.contains("hidden")) {
+        v3DashboardRender();
+      }
+    } catch (_) {}
+
+    v3TextMetaClose();
+  } catch (e) {
+    console.error("[v3TextMetaSave] error:", e);
+    v3TextMetaSetStatus("Ошибка сохранения (см. console).", true);
+    if (btn) btn.disabled = false;
+    return;
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// expose globally (onclick hooks)
+window.v3TextMetaOpen = v3TextMetaOpen;
+window.v3TextMetaClose = v3TextMetaClose;
+window.v3TextMetaSave = v3TextMetaSave;
 
 // expose globally (onclick hooks)
 window.v3DashboardOpen = v3DashboardOpen;
