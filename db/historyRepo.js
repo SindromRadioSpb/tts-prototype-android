@@ -321,10 +321,121 @@ async function listRecentRowsByText({ textId, limit = 25 } = {}) {
   }
 }
 
+async function listRecentActivity({ limit = 80, includeArchived = true, textId = null, level = null } = {}) {
+  await ensureHistorySchema();
+  const db = getDb();
+
+  const lim = Math.max(1, Math.min(200, Number(limit) || 80));
+
+  const where = [];
+  const params = [];
+
+  if (!includeArchived) {
+    where.push("t.is_archived = 0");
+  }
+
+  const tId = (textId && String(textId).trim()) ? String(textId).trim() : null;
+  if (tId) {
+    where.push("rr.text_id = ?");
+    params.push(tId);
+  }
+
+  const lv = (level && String(level).trim()) ? String(level).trim() : null;
+  if (lv) {
+    where.push("lower(COALESCE(t.level,'')) = lower(?)");
+    params.push(lv);
+  }
+
+  const whereSql = where.length ? ("WHERE " + where.join(" AND ")) : "";
+
+  // Основная (новая) схема: last_seen_at + seen_count
+  try {
+    const rows = await dbAll(
+      db,
+      `
+      SELECT
+        rr.text_id,
+        rr.sentence_id,
+        rr.last_seen_at,
+        rr.seen_count,
+        rr.last_asset_key,
+
+        t.title,
+        t.level,
+        t.tags_json,
+        t.source,
+        t.topic,
+        t.is_archived,
+        t.is_pinned,
+        t.pin_order,
+
+        s.order_index,
+        s.he_plain,
+        s.he_niqqud,
+        s.translit,
+        s.ru
+      FROM recent_rows rr
+      JOIN texts t ON t.id = rr.text_id
+      LEFT JOIN sentences s
+        ON s.id = rr.sentence_id AND s.text_id = rr.text_id
+      ${whereSql}
+      ORDER BY rr.last_seen_at DESC
+      LIMIT ?
+      `,
+      [...params, lim]
+    );
+
+    return rows || [];
+  } catch (err) {
+    const msg = String(err && err.message ? err.message : err);
+    const isSchemaMismatch = msg.includes("no such column") || msg.includes("has no column named");
+    if (!isSchemaMismatch) throw err;
+
+    // Legacy-схема: last_event_at + play_count
+    const rows = await dbAll(
+      db,
+      `
+      SELECT
+        rr.text_id,
+        rr.sentence_id,
+        rr.last_event_at AS last_seen_at,
+        rr.play_count    AS seen_count,
+        rr.last_asset_key,
+
+        t.title,
+        t.level,
+        t.tags_json,
+        t.source,
+        t.topic,
+        t.is_archived,
+        t.is_pinned,
+        t.pin_order,
+
+        s.order_index,
+        s.he_plain,
+        s.he_niqqud,
+        s.translit,
+        s.ru
+      FROM recent_rows rr
+      JOIN texts t ON t.id = rr.text_id
+      LEFT JOIN sentences s
+        ON s.id = rr.sentence_id AND s.text_id = rr.text_id
+      ${whereSql}
+      ORDER BY rr.last_event_at DESC
+      LIMIT ?
+      `,
+      [...params, lim]
+    );
+
+    return rows || [];
+  }
+}
+
 module.exports = {
   recordRowTtsEvent,
   listRecentTexts,
   listRecentRowsByText,
+  listRecentActivity,
 
   // экспортируем и «внутренние», если где-то уже использовались
   insertHistoryEvent,
