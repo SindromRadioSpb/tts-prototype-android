@@ -431,6 +431,174 @@ async function listRecentActivity({ limit = 80, includeArchived = true, textId =
   }
 }
 
+function isoDaysAgo(days) {
+  const d = new Date(Date.now() - (Number(days) || 0) * 24 * 60 * 60 * 1000);
+  return d.toISOString();
+}
+
+async function tableExists(db, tableName) {
+  const row = await dbGet(
+    db,
+    "SELECT name FROM sqlite_master WHERE type='table' AND name = ?",
+    [String(tableName)]
+  );
+  return !!row;
+}
+
+async function getAnalyticsSummary({ days = 7, includeArchived = true, level = null } = {}) {
+  await ensureHistorySchema();
+  const db = getDb();
+
+  const daysVal = Number(days);
+const daysNum = Number.isFinite(daysVal)
+  ? Math.max(0, Math.min(3650, daysVal))
+  : 7;
+  const cutoffIso = daysNum > 0 ? isoDaysAgo(daysNum) : null;
+
+  const where = [];
+  const params = [];
+
+  // архивность и level фильтруем через texts
+  if (!includeArchived) where.push("t.is_archived = 0");
+
+  const lv = (level && String(level).trim()) ? String(level).trim() : null;
+  if (lv) {
+    where.push("lower(COALESCE(t.level,'')) = lower(?)");
+    params.push(lv);
+  }
+
+  if (cutoffIso) {
+    where.push("he.created_at >= ?");
+    params.push(cutoffIso);
+  }
+
+  const whereSql = where.length ? ("WHERE " + where.join(" AND ")) : "";
+
+  // plays
+  const playsRow = await dbGet(
+    db,
+    `
+    SELECT COUNT(*) AS plays
+    FROM history_events he
+    JOIN texts t ON t.id = he.text_id
+    ${whereSql}
+    `,
+    params
+  );
+
+  // unique rows (text_id + sentence_id)
+  const uniqRowsRow = await dbGet(
+    db,
+    `
+    SELECT COUNT(DISTINCT (he.text_id || '|' || he.sentence_id)) AS unique_rows
+    FROM history_events he
+    JOIN texts t ON t.id = he.text_id
+    ${whereSql}
+    `,
+    params
+  );
+
+  // unique texts
+  const uniqTextsRow = await dbGet(
+    db,
+    `
+    SELECT COUNT(DISTINCT he.text_id) AS unique_texts
+    FROM history_events he
+    JOIN texts t ON t.id = he.text_id
+    ${whereSql}
+    `,
+    params
+  );
+
+  // time (если есть audio_assets)
+  let timeMs = null;
+  try {
+    const hasAudio = await tableExists(db, "audio_assets");
+    if (hasAudio) {
+      const timeRow = await dbGet(
+        db,
+        `
+        SELECT COALESCE(SUM(COALESCE(a.duration_ms, 0)), 0) AS time_ms
+        FROM history_events he
+        JOIN texts t ON t.id = he.text_id
+        LEFT JOIN audio_assets a ON a.asset_key = he.asset_key
+        ${whereSql}
+        `,
+        params
+      );
+      timeMs = Number((timeRow && timeRow.time_ms) || 0);
+    }
+  } catch (e) {
+    // не валим аналитику, если audio_assets отсутствует/сломана
+    timeMs = null;
+  }
+
+  return {
+    days: daysNum,
+    cutoffIso: cutoffIso || null,
+    plays: Number((playsRow && playsRow.plays) || 0),
+    unique_rows: Number((uniqRowsRow && uniqRowsRow.unique_rows) || 0),
+    unique_texts: Number((uniqTextsRow && uniqTextsRow.unique_texts) || 0),
+    time_ms: timeMs,
+  };
+}
+
+async function listTopTextsByPlays({ days = 7, limit = 8, includeArchived = true, level = null } = {}) {
+  await ensureHistorySchema();
+  const db = getDb();
+
+  const lim = Math.max(1, Math.min(25, Number(limit) || 8));
+  const daysVal = Number(days);
+const daysNum = Number.isFinite(daysVal)
+  ? Math.max(0, Math.min(3650, daysVal))
+  : 7;
+  const cutoffIso = daysNum > 0 ? isoDaysAgo(daysNum) : null;
+
+  const where = [];
+  const params = [];
+
+  if (!includeArchived) where.push("t.is_archived = 0");
+
+  const lv = (level && String(level).trim()) ? String(level).trim() : null;
+  if (lv) {
+    where.push("lower(COALESCE(t.level,'')) = lower(?)");
+    params.push(lv);
+  }
+
+  if (cutoffIso) {
+    where.push("he.created_at >= ?");
+    params.push(cutoffIso);
+  }
+
+  const whereSql = where.length ? ("WHERE " + where.join(" AND ")) : "";
+
+  const hasAudio = await tableExists(db, "audio_assets");
+
+  const rows = await dbAll(
+    db,
+    `
+    SELECT
+      he.text_id,
+      t.title,
+      t.level,
+      COUNT(*) AS plays,
+      COUNT(DISTINCT he.sentence_id) AS unique_rows,
+      MAX(he.created_at) AS last_seen_at
+      ${hasAudio ? ", COALESCE(SUM(COALESCE(a.duration_ms,0)),0) AS time_ms" : ""}
+    FROM history_events he
+    JOIN texts t ON t.id = he.text_id
+    ${hasAudio ? "LEFT JOIN audio_assets a ON a.asset_key = he.asset_key" : ""}
+    ${whereSql}
+    GROUP BY he.text_id
+    ORDER BY plays DESC, last_seen_at DESC
+    LIMIT ?
+    `,
+    [...params, lim]
+  );
+
+  return rows || [];
+}
+
 module.exports = {
   recordRowTtsEvent,
   listRecentTexts,
@@ -444,4 +612,7 @@ module.exports = {
 
   // на будущее — для тестов/диагностики
   ensureHistorySchema,
+  
+    getAnalyticsSummary,
+  listTopTextsByPlays,
 };

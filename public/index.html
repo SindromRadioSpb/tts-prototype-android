@@ -1930,6 +1930,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
       </div>
 	  
       <div id="v3DashStatus" class="v3-lib-status"></div>
+	  
+	  <div id="v3DashMetrics" class="v3-lib-muted" style="margin-top:6px;"></div>
 
  <div class="v3-dash-layout">
   <div class="v3-dash-left">
@@ -4855,6 +4857,10 @@ window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
 
 let v3DashOpenOnce = false;
 let v3DashLibTexts = [];
+
+let v3DashAnalytics = null;
+let v3DashAnalyticsTimer = null;
+
 let v3DashRecent = [];
 let v3DashRecentByTextId = new Map();
 
@@ -4911,6 +4917,59 @@ let v3DashActiveRows = [];
 let v3DashRowsCache = new Map(); // textId -> rows[]
 
 function v3DashEl(id) { return document.getElementById(id); }
+
+function v3FmtMs(ms) {
+  if (ms == null) return "—";
+  const n = Math.max(0, Number(ms) || 0);
+  const sec = Math.floor(n / 1000);
+  const m = Math.floor(sec / 60);
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  const ss = sec % 60;
+  if (h > 0) return `${h}ч ${mm}м`;
+  if (mm > 0) return `${mm}м ${ss}с`;
+  return `${ss}с`;
+}
+
+async function v3DashboardRefreshAnalytics() {
+  const metricsEl = v3DashEl("v3DashMetrics");
+  if (metricsEl) metricsEl.textContent = "Метрики: загрузка…";
+
+  const includeArchived = (v3DashEl("v3DashIncludeArchived") && v3DashEl("v3DashIncludeArchived").checked) ? 1 : 0;
+  const level = v3DashEl("v3DashLevel") ? String(v3DashEl("v3DashLevel").value || "").trim() : "";
+  const levelQ = level ? `&level=${encodeURIComponent(level)}` : "";
+
+  try {
+    const res = await v3GetJson(`/api/history/analytics?days=7&includeArchived=${includeArchived}${levelQ}`);
+    v3DashAnalytics = (res && res.ok) ? res : null;
+    v3DashboardRenderMetrics();
+  } catch (e) {
+    console.warn("[v3DashboardRefreshAnalytics] failed", e);
+    v3DashAnalytics = null;
+    if (metricsEl) metricsEl.textContent = "Метрики: ошибка загрузки (см. console).";
+  }
+}
+
+function v3DashboardRenderMetrics() {
+  const metricsEl = v3DashEl("v3DashMetrics");
+  if (!metricsEl) return;
+
+  if (!v3DashAnalytics || !v3DashAnalytics.ok) {
+    metricsEl.textContent = "Метрики: —";
+    return;
+  }
+
+  const p = v3DashAnalytics.period || {};
+  const a = v3DashAnalytics.all || {};
+
+  const line1 =
+    `7d: plays ${Number(p.plays || 0)} · unique rows ${Number(p.unique_rows || 0)} · unique texts ${Number(p.unique_texts || 0)} · time ${v3FmtMs(p.time_ms)}`;
+
+  const line2 =
+    `all: plays ${Number(a.plays || 0)} · unique rows ${Number(a.unique_rows || 0)} · unique texts ${Number(a.unique_texts || 0)} · time ${v3FmtMs(a.time_ms)}`;
+
+  metricsEl.innerHTML = `<div>${v3EscapeHtml(line1)}</div><div>${v3EscapeHtml(line2)}</div>`;
+}
 
 function v3DashGetActivityTextFilter() {
   const el = v3DashEl("v3DashActText");
@@ -5124,6 +5183,7 @@ async function v3DashboardRefresh() {
     if (statusEl) statusEl.textContent = `Pinned: ${pinnedCount} · Recent: ${v3DashRecent.length} · Activity: ${v3DashActivity.length}`;
 
     v3DashboardRender();
+	v3DashboardRefreshAnalytics();
   } catch (e) {
     console.error("[v3DashboardRefresh] error:", e);
     if (statusEl) statusEl.textContent = "Ошибка загрузки (см. console).";
@@ -5144,6 +5204,13 @@ function v3DashboardOnFilterChange() {
   } catch (e) {
     console.warn("[v3DashboardOnFilterChange] render rows panel failed", e);
   }
+    // debounce analytics refresh (без лишних сетевых вызовов при наборе текста)
+  try {
+    if (v3DashAnalyticsTimer) clearTimeout(v3DashAnalyticsTimer);
+    v3DashAnalyticsTimer = setTimeout(() => {
+      v3DashboardRefreshAnalytics();
+    }, 250);
+  } catch (_) {}
 }
 
 function v3DashNorm(s) { return String(s || "").trim().toLowerCase(); }
