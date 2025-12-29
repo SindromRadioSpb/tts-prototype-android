@@ -1858,7 +1858,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
     <div class="v3-modal-body">
       <div class="v3-lib-toolbar">
-        <input id="v3LibrarySearch" type="text" placeholder="Поиск (локальный фильтр P0): title / tags / level" oninput="v3LibraryOnSearchInput()" />
+        <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): title / source / topic / level / tags (#tag или tag:tag)" oninput="v3LibraryOnSearchInput()" />
         <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
       </div>
 
@@ -1885,7 +1885,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         <input
           id="v3DashSearch"
           type="text"
-          placeholder="Поиск (P0): title / topic / source / level"
+          placeholder="Поиск (PRO): title / topic / source / level / tags (#tag или tag:tag)"
           oninput="v3DashboardOnFilterChange()"
         />
 
@@ -4177,10 +4177,20 @@ let v3LibrarySearchTimer = null;
 let v3LibraryLastRenderKey = null; // memo to avoid redundant renders
 let v3LibraryLastQuery = "";
 
+const V3_LIB_SEARCH_KEY = "v3_lib_search_v1";
+
 function v3LibraryOnSearchInput() {
   if (v3LibrarySearchTimer) clearTimeout(v3LibrarySearchTimer);
   v3LibrarySearchTimer = setTimeout(() => {
     v3LibrarySearchTimer = null;
+
+    // persist search
+    try {
+      const s = v3LibEl("v3LibrarySearch");
+      const v = String((s && s.value) || "");
+      localStorage.setItem(V3_LIB_SEARCH_KEY, v);
+    } catch (_) {}
+
     v3LibraryApplyFilter();
   }, 180);
 }
@@ -4269,12 +4279,20 @@ async function v3Delete(url) {
 }
 
 function v3LibraryOpen() {
-  try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
+  const m = v3LibEl("v3LibraryModal");
+  if (!m) return;
+  m.classList.remove("hidden");
 
-  const modal = v3LibEl("v3LibraryModal");
-  if (!modal) return;
-  modal.classList.remove("hidden");
+  // Restore last search (PRO hygiene)
+  try {
+    const s = v3LibEl("v3LibrarySearch");
+    if (s) s.value = String(localStorage.getItem(V3_LIB_SEARCH_KEY) || "");
+  } catch (_) {}
+
   v3LibraryRefresh();
+
+  const s2 = v3LibEl("v3LibrarySearch");
+  if (s2) setTimeout(() => { try { s2.focus(); } catch (_) {} }, 0);
 }
 
 function v3LibraryClose() {
@@ -4292,7 +4310,7 @@ async function v3LibraryRefresh() {
   if (listEl) listEl.innerHTML = "";
 
   try {
-    const data = await v3GetJson("/api/library/texts?limit=15");
+    const data = await v3GetJson("/api/library/texts?limit=200");
     v3LibraryTexts = (data && data.texts) ? data.texts : [];
 	v3LibraryLastLoadedAt = new Date().toISOString();
 
@@ -4320,13 +4338,114 @@ function v3ParseTags(tagsJson) {
   return String(tagsJson).split(",").map(s => s.trim()).filter(Boolean);
 }
 
+function v3NormalizeTagsInput(tags) {
+  // UI-side normalization: trim, dedupe (case-insensitive), max 25.
+  // Accepts: array OR "a,b,c" OR null.
+  const out = [];
+  const seen = new Set();
+
+  let arr = [];
+  if (Array.isArray(tags)) arr = tags;
+  else if (typeof tags === "string") arr = tags.split(",");
+  else if (tags == null) arr = [];
+  else arr = [String(tags)];
+
+  for (let i = 0; i < arr.length; i++) {
+    const raw = String(arr[i] || "").trim();
+    if (!raw) continue;
+    const key = raw.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(raw);
+    if (out.length >= 25) break;
+  }
+  return out;
+}
+
+function v3SplitQueryTokens(qRaw) {
+  const raw = String(qRaw || "").trim();
+  if (!raw) return { raw: "", textTokens: [], tagTokens: [] };
+
+  const parts = raw.split(/\s+/).map(s => s.trim()).filter(Boolean);
+  const textTokens = [];
+  const tagTokens = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    if (!p) continue;
+
+    if (p[0] === "#") {
+      const t = p.slice(1).trim();
+      if (t) tagTokens.push(t);
+      continue;
+    }
+    if (/^tag:/i.test(p)) {
+      const t = p.slice(4).trim();
+      if (t) tagTokens.push(t);
+      continue;
+    }
+    textTokens.push(p);
+  }
+
+  return { raw, textTokens, tagTokens };
+}
+
+function v3TextMatchesQuery(t, qObj, levelFilter) {
+  if (!t) return false;
+
+  const lvl = String(t.level || "").trim();
+  if (levelFilter) {
+    const want = String(levelFilter || "").trim();
+    if (want && lvl.toLowerCase() !== want.toLowerCase()) return false;
+  }
+
+  const q = qObj || { raw: "", textTokens: [], tagTokens: [] };
+  const hasAny = (q.textTokens && q.textTokens.length) || (q.tagTokens && q.tagTokens.length);
+  if (!hasAny) return true;
+
+  // tags as array (NOT JSON string)
+  let tagsArr = [];
+  try { tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null); } catch (_) { tagsArr = []; }
+  const tagsLower = tagsArr.map(s => String(s || "").trim().toLowerCase()).filter(Boolean);
+
+  // Tag tokens: AND semantics
+  if (q.tagTokens && q.tagTokens.length) {
+    for (let i = 0; i < q.tagTokens.length; i++) {
+      const tok = String(q.tagTokens[i] || "").trim().toLowerCase();
+      if (!tok) continue;
+      const ok = tagsLower.some(x => x.includes(tok));
+      if (!ok) return false;
+    }
+  }
+
+  // Text tokens: AND semantics over meta + tags
+  const hay = [
+    t.title || t.name || "",
+    t.source || "",
+    t.topic || "",
+    lvl,
+    tagsLower.join(" ")
+  ].map(x => String(x || "").toLowerCase()).join(" ");
+
+  for (let i = 0; i < (q.textTokens || []).length; i++) {
+    const tok = String(q.textTokens[i] || "").trim().toLowerCase();
+    if (!tok) continue;
+    if (!hay.includes(tok)) return false;
+  }
+
+  return true;
+}
+
 function v3LibraryApplyFilter() {
-  const q = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim().toLowerCase();
+  const qRaw = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim();
 
   // If query hasn't changed and data hasn't changed, v3LibraryRenderList memo will skip rebuild.
-  v3LibraryLastQuery = q;
+  v3LibraryLastQuery = qRaw.toLowerCase();
 
-  if (!q) {
+  const qObj = v3SplitQueryTokens(qRaw);
+  const hasAny = (qObj.textTokens && qObj.textTokens.length) || (qObj.tagTokens && qObj.tagTokens.length);
+
+  if (!hasAny) {
     v3LibraryRenderList(v3LibraryTexts);
     return;
   }
@@ -4334,20 +4453,7 @@ function v3LibraryApplyFilter() {
   const filtered = [];
   for (let i = 0; i < v3LibraryTexts.length; i++) {
     const t = v3LibraryTexts[i];
-    const title = String(t.title || t.name || "").toLowerCase();
-    const level = String(t.level || "").toLowerCase();
-
-    // Only parse tags if needed
-    let tagsStr = "";
-    try {
-      tagsStr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null).join(" ").toLowerCase();
-    } catch (_) {
-      tagsStr = "";
-    }
-
-    if (title.includes(q) || level.includes(q) || tagsStr.includes(q)) {
-      filtered.push(t);
-    }
+    if (v3TextMatchesQuery(t, qObj, null)) filtered.push(t);
   }
 
   v3LibraryRenderList(filtered);
@@ -4679,7 +4785,7 @@ async function v3LibrarySaveCurrentCore(meta) {
     const m = (meta && typeof meta === "object") ? meta : {};
     const title = String(m.title || "").trim();
     const level = String(m.level || "").trim();
-    const tags = String(m.tags || "").trim();
+    const tags = v3NormalizeTagsInput(m.tags);
     const source = String(m.source || "").trim();
     const topic = String(m.topic || "").trim();
 
@@ -4692,7 +4798,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       // Week9 dashboard meta (POST supports these fields)
       title: title || null,
       level: level || null,
-      tags: tags || "",
+      tags,
       source: source || null,
       topic: topic || null
     };
@@ -4868,6 +4974,9 @@ let v3DashActivity = []; // global recent activity (rows across texts)
 const V3_DASH_ACTIVITY_TEXT_KEY = "v3Dash_activity_text_v1";
 
 const V3_DASH_AUTOPLAY_CONTINUE_KEY = "v3Dash_autoplay_continue_v1";
+
+const V3_DASH_FILTER_Q_KEY = "v3Dash_filter_q_v1";
+const V3_DASH_FILTER_LEVEL_KEY = "v3Dash_filter_level_v1";
 
 const V3_DASH_MODE_KEY = "v3Dash_mode_v1";
 
@@ -5121,11 +5230,21 @@ function v3DashboardOpen() {
   }
   
   const ap = v3DashEl("v3DashAutoPlayContinue");
-if (ap) {
-  let saved = "0";
-  try { saved = localStorage.getItem(V3_DASH_AUTOPLAY_CONTINUE_KEY) || "0"; } catch (_) {}
-  ap.checked = (saved === "1"); // default OFF
-}
+  if (ap) {
+    let saved = "0";
+    try { saved = localStorage.getItem(V3_DASH_AUTOPLAY_CONTINUE_KEY) || "0"; } catch (_) {}
+    ap.checked = (saved === "1"); // default OFF
+  }
+
+  // Restore filters (search + level)
+  try {
+    const s = v3DashEl("v3DashSearch");
+    if (s) s.value = String(localStorage.getItem(V3_DASH_FILTER_Q_KEY) || "");
+  } catch (_) {}
+  try {
+    const lv = v3DashEl("v3DashLevel");
+    if (lv) lv.value = String(localStorage.getItem(V3_DASH_FILTER_LEVEL_KEY) || "");
+  } catch (_) {}
 
   // init + apply mode
   const mode = v3DashboardGetMode();
@@ -5135,8 +5254,8 @@ if (ap) {
 
   v3DashboardRefresh();
 
-  const s = v3DashEl("v3DashSearch");
-  if (s) setTimeout(() => { try { s.focus(); } catch (_) {} }, 0);
+  const s2 = v3DashEl("v3DashSearch");
+  if (s2) setTimeout(() => { try { s2.focus(); } catch (_) {} }, 0);
 }
 
 function v3DashboardClose() {
@@ -5195,6 +5314,16 @@ async function v3DashboardRefresh() {
 }
 
 function v3DashboardOnFilterChange() {
+  // persist filters (PRO hygiene)
+  try {
+    const q = String((v3DashEl("v3DashSearch") && v3DashEl("v3DashSearch").value) || "");
+    localStorage.setItem(V3_DASH_FILTER_Q_KEY, q);
+  } catch (_) {}
+  try {
+    const lv = String((v3DashEl("v3DashLevel") && v3DashEl("v3DashLevel").value) || "");
+    localStorage.setItem(V3_DASH_FILTER_LEVEL_KEY, lv);
+  } catch (_) {}
+
   v3DashboardRender();
 
   // Variant A: если уже выбран текст — перерисовываем “Недавние строки (внутри текста)”
@@ -5204,7 +5333,8 @@ function v3DashboardOnFilterChange() {
   } catch (e) {
     console.warn("[v3DashboardOnFilterChange] render rows panel failed", e);
   }
-    // debounce analytics refresh (без лишних сетевых вызовов при наборе текста)
+
+  // debounce analytics refresh (без лишних сетевых вызовов при наборе текста)
   try {
     if (v3DashAnalyticsTimer) clearTimeout(v3DashAnalyticsTimer);
     v3DashAnalyticsTimer = setTimeout(() => {
@@ -5215,21 +5345,9 @@ function v3DashboardOnFilterChange() {
 
 function v3DashNorm(s) { return String(s || "").trim().toLowerCase(); }
 
-function v3DashMatches(t, q, level) {
-  if (!t) return false;
-
-  if (level) {
-    const lv = v3DashNorm(t.level);
-    if (lv !== v3DashNorm(level)) return false;
-  }
-
-  if (!q) return true;
-
-  const hay = [
-    t.title, t.level, t.source, t.topic, t.tags_json
-  ].map(v3DashNorm).join(" ");
-
-  return hay.includes(q);
+function v3DashMatches(t, qRaw, level) {
+  const qObj = v3SplitQueryTokens(qRaw);
+  return v3TextMatchesQuery(t, qObj, level);
 }
 
 function v3DashBadges(t, recent) {
@@ -5260,7 +5378,7 @@ function v3DashboardRender() {
   const recentEl = v3DashEl("v3DashRecentList");
   if (!pinnedEl || !recentEl) return;
 
-  const q = v3DashNorm(v3DashEl("v3DashSearch") ? v3DashEl("v3DashSearch").value : "");
+  const q = String((v3DashEl("v3DashSearch") ? v3DashEl("v3DashSearch").value : "") || "").trim();
   const level = v3DashEl("v3DashLevel") ? v3DashEl("v3DashLevel").value : "";
 
   const pinned = v3DashLibTexts
@@ -5740,7 +5858,7 @@ async function v3SaveMetaSave() {
 
     let title = String((titleEl && titleEl.value) || "").trim();
     const level = String((levelEl && levelEl.value) || "").trim();
-    const tags = String((tagsEl && tagsEl.value) || "").trim();
+    const tags = v3NormalizeTagsInput((tagsEl && tagsEl.value) || "");
     const source = String((sourceEl && sourceEl.value) || "").trim();
     const topic = String((topicEl && topicEl.value) || "").trim();
 
@@ -5763,7 +5881,7 @@ async function v3SaveMetaSave() {
     const createdText = await v3LibrarySaveCurrentCore({
       title,
       level: level || null,
-      tags: tags || "",
+      tags,
       source: source || null,
       topic: topic || null
     });
@@ -5945,7 +6063,7 @@ async function v3TextMetaSave() {
   try {
     const title = String(v3MetaEl("v3TextMetaTitle").value || "").trim();
     const level = String(v3MetaEl("v3TextMetaLevel").value || "").trim();
-    const tags = String(v3MetaEl("v3TextMetaTags").value || "").trim();
+    const tags = v3NormalizeTagsInput(v3MetaEl("v3TextMetaTags").value || "");
     const source = String(v3MetaEl("v3TextMetaSource").value || "").trim();
     const topic = String(v3MetaEl("v3TextMetaTopic").value || "").trim();
 
@@ -5960,7 +6078,7 @@ async function v3TextMetaSave() {
     const payload = {
       title,
       level: level || null,
-      tags: tags || "",      // пустая строка => очистка (как в вашем curl)
+      tags,
       source: source || null,
       topic: topic || null
     };

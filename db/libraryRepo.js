@@ -169,12 +169,66 @@ async function createTextWithSentences({
   return getTextById(tId);
 }
 
-async function listTexts({ limit = 15, includeArchived = false }) {
+async function listTexts({ limit = 15, includeArchived = false, q = null, level = null, tags = null } = {}) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
   const lim = Math.max(1, Math.min(200, Number(limit) || 15));
-  const where = includeArchived ? "1=1" : "is_archived = 0";
+
+  const whereParts = [];
+  const params = [];
+
+  if (!includeArchived) whereParts.push("is_archived = 0");
+  else whereParts.push("1=1");
+
+  // Optional strict level filter (case-insensitive)
+  if (level != null && String(level).trim()) {
+    whereParts.push("LOWER(COALESCE(level,'')) = LOWER(?)");
+    params.push(String(level).trim());
+  }
+
+  // Optional tags filter: tags can be "a,b,c" OR ["a","b"] OR "a" (repeatable query param).
+  let tagArr = [];
+  if (Array.isArray(tags)) tagArr = tags;
+  else if (typeof tags === "string") tagArr = tags.split(",");
+  else if (tags != null) tagArr = [String(tags)];
+
+  const tagNorm = [];
+  const seen = new Set();
+  for (let i = 0; i < tagArr.length; i++) {
+    const raw = String(tagArr[i] || "").trim();
+    if (!raw) continue;
+    const key = raw.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    tagNorm.push(raw);
+    if (tagNorm.length >= 25) break;
+  }
+
+  // Every tag is required (AND), match via JSON quoted token: %"tag"%.
+  for (let i = 0; i < tagNorm.length; i++) {
+    const t = tagNorm[i];
+    whereParts.push("COALESCE(tags_json,'') LIKE ?");
+    params.push("%" + JSON.stringify(t) + "%");
+  }
+
+  // Optional free-text query across title/source/topic/level/tags_json (case-insensitive).
+  const qRaw = (q == null) ? "" : String(q).trim();
+  if (qRaw) {
+    const pat = "%" + qRaw.toLowerCase() + "%";
+    whereParts.push(`(
+      LOWER(COALESCE(title,'')) LIKE ?
+      OR LOWER(COALESCE(source,'')) LIKE ?
+      OR LOWER(COALESCE(topic,'')) LIKE ?
+      OR LOWER(COALESCE(level,'')) LIKE ?
+      OR LOWER(COALESCE(tags_json,'')) LIKE ?
+    )`);
+    params.push(pat, pat, pat, pat, pat);
+  }
+
+  const whereSql = whereParts.length ? whereParts.join(" AND ") : "1=1";
+
+  params.push(lim);
 
   return dbAll(
     db,
@@ -184,11 +238,11 @@ async function listTexts({ limit = 15, includeArchived = false }) {
       source, topic, is_pinned, pin_order,
       is_archived, created_at, updated_at, last_opened_at
     FROM texts
-    WHERE ${where}
+    WHERE ${whereSql}
     ORDER BY COALESCE(last_opened_at, updated_at) DESC, updated_at DESC
     LIMIT ?;
     `,
-    [lim]
+    params
   );
 }
 

@@ -1600,9 +1600,12 @@ app.get("/api/library/texts", async (req, res) => {
     if (!requireDbOr503(res)) return;
 
     const limit = Number(req.query.limit || "15");
-    const includeArchived = String(req.query.includeArchived || "0") === "1";
+	const includeArchived = String(req.query.includeArchived || "0") === "1";
+	const q = (req.query.q || req.query.search || "").toString();
+	const level = (req.query.level == null) ? null : (String(req.query.level).trim() || null);
+	const tags = (req.query.tags == null) ? null : req.query.tags;
 
-    const rows = await listTexts({ limit, includeArchived });
+	const rows = await listTexts({ limit, includeArchived, q, level, tags });
     res.json({ ok: true, texts: rows });
   } catch (e) {
     console.error("GET /api/library/texts error:", e);
@@ -1622,10 +1625,13 @@ app.post("/api/library/texts", async (req, res) => {
     if (!sourceText) return res.status(400).json({ error: "VALIDATION", field: "sourceText" });
     if (!Array.isArray(rowsIn) || rowsIn.length < 1) return res.status(400).json({ error: "VALIDATION", field: "rows" });
 
-    // tags: принимаем массив или строку
-    let tagsJson = null;
-    if (Array.isArray(body.tags)) tagsJson = JSON.stringify(body.tags.map(String));
-    else if (typeof body.tags === "string" && body.tags.trim()) tagsJson = JSON.stringify(body.tags.split(",").map(s => s.trim()).filter(Boolean));
+    // tags: accept array or CSV string; normalize and store as JSON array
+		let tagsJson = null;
+		try {
+			const normTags = v3NormalizeTags(body.tags);
+			if (normTags.length) tagsJson = JSON.stringify(normTags);
+		} catch (_) {}
+
 
     const ttsProfileJson = body.ttsProfile ? JSON.stringify(body.ttsProfile) : null;
     const tableModelMetaJson = body.tableModelMeta ? JSON.stringify(body.tableModelMeta) : null;
