@@ -1858,7 +1858,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
     <div class="v3-modal-body">
       <div class="v3-lib-toolbar">
-        <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): title / source / topic / level / tags (#tag или tag:tag)" oninput="v3LibraryOnSearchInput()" />
+        <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): название / тема / источник / уровень / теги (#tag)" oninput="v3LibraryOnSearchInput()" />
         <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
       </div>
 
@@ -1885,7 +1885,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         <input
           id="v3DashSearch"
           type="text"
-          placeholder="Поиск (PRO): название / тема / источник / уровень / теги (#tag или tag:tag)"
+          placeholder="Поиск (PRO): название / тема / источник / уровень / теги (#tag)"
           oninput="v3DashboardOnFilterChange()"
         />
 
@@ -4501,7 +4501,9 @@ function v3LibraryRenderList(texts) {
     const createdAt = t.created_at || t.createdAt || null;
 
     const lastRowIdx = (t.last_row_idx ?? t.lastRowIdx ?? (t.progress && t.progress.lastRowIdx) ?? null);
-    const progressText = (lastRowIdx === null || lastRowIdx === undefined) ? "—" : String(lastRowIdx);
+    const progressText = (lastRowIdx === null || lastRowIdx === undefined)
+      ? "—"
+      : (Number.isFinite(Number(lastRowIdx)) ? String(Number(lastRowIdx) + 1) : String(lastRowIdx));
 
     const card = document.createElement("div");
     card.className = "v3-lib-card" + (isArchived ? " v3-lib-muted" : "");
@@ -4512,10 +4514,10 @@ function v3LibraryRenderList(texts) {
         <div>
           <div class="v3-lib-card-title">${v3EscapeHtml(title)}</div>
           <div class="v3-lib-card-meta">
-            ${level ? ("Level: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
-            Progress lastRowIdx: <b>${v3EscapeHtml(progressText)}</b><br/>
-            Last opened: ${v3EscapeHtml(v3FmtDate(lastOpened))} · Created: ${v3EscapeHtml(v3FmtDate(createdAt))}
-          </div>
+             ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
+             Прогресс: строка № <b>${v3EscapeHtml(progressText)}</b><br/>
+             Последнее открытие: ${v3EscapeHtml(v3FmtDate(lastOpened))} · Создан: ${v3EscapeHtml(v3FmtDate(createdAt))}
+           </div>
           <div style="margin-top:6px;">${tagsHtml}</div>
         </div>
 
@@ -5174,7 +5176,7 @@ function v3DashRenderActivityRow(r) {
         <div class="v3-dash-row-he">${he || "(пусто)"}</div>
         ${tr ? `<div class="v3-dash-row-tr">${tr}</div>` : ""}
         ${ru ? `<div class="v3-dash-row-ru">${ru}</div>` : ""}
-        <div class="v3-dash-row-meta">прослушано: ${seenCount} · last: ${lastSeenAt}</div>
+        <div class="v3-dash-row-meta">прослушано: ${seenCount} · последний раз: ${lastSeenAt}</div>
       </div>
       <div class="v3-dash-row-actions">
         <button class="btn-secondary" onclick="v3DashboardGoRow('${textId}','${sentId}')">Перейти</button>
@@ -5357,10 +5359,16 @@ function v3DashBadges(t, recent) {
   const isCompact = (mode === "compact");
 
   // В compact скрываем “метаданные учебного объекта”
-  if (!isCompact) {
+    if (!isCompact) {
     if (t.level)  badges.push(`уровень: ${t.level}`);
     if (t.topic)  badges.push(`тема: ${t.topic}`);
     if (t.source) badges.push(`ссылка: ${t.source}`);
+
+    const tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null);
+    if (tagsArr.length) {
+      const shown = tagsArr.slice(0, 6);
+      badges.push(`теги: ${shown.join(", ")}${tagsArr.length > 6 ? "…" : ""}`);
+    }
   }
 
   // Всегда оставляем “активность”
@@ -5413,10 +5421,8 @@ function v3DashRenderItem(t) {
   const title = v3EscapeHtml(t.title || "(без названия)");
   const pinFlag = Number(t.is_pinned) === 1;
 
-  const metaParts = [];
-  if (pinFlag) metaParts.push(`порядок закрепления: ${t.pin_order ?? "—"}`);
-  if (recent && recent.last_sentence_id) metaParts.push(`последняя строка: ${String(recent.last_sentence_id).slice(0, 8)}…`);
-  const metaLine = metaParts.length ? `<div class="v3-dash-meta">${v3EscapeHtml(metaParts.join(" · "))}</div>` : "";
+    const metaParts = [];
+  const metaLine = "";
 
   const badges = v3DashBadges(t, recent);
   const badgeHtml = badges.length
@@ -5520,7 +5526,7 @@ function v3DashboardRenderRowsPanel() {
   const seen = recent && (recent.seen_count ?? recent.seenCount) ? (recent.seen_count ?? recent.seenCount) : 0;
 
   if (headerEl) {
-    headerEl.textContent = `${title} · прослушано: ${seen} · last: ${lastSeen}`;
+    headerEl.textContent = `${title} · прослушано: ${seen} · последний раз: ${lastSeen}`;
   }
 
   if (!rowsEl) return;
@@ -5547,7 +5553,7 @@ function v3DashboardRenderRowsPanel() {
           <div class="v3-dash-row-he">${he || "(пусто)"}</div>
           ${tr ? `<div class="v3-dash-row-tr">${tr}</div>` : ""}
           ${ru ? `<div class="v3-dash-row-ru">${ru}</div>` : ""}
-          <div class="v3-dash-row-meta">прослушано: ${seenCount} · last: ${lastSeenAt}</div>
+          <div class="v3-dash-row-meta">прослушано: ${seenCount} · последний раз: ${lastSeenAt}</div>
         </div>
         <div class="v3-dash-row-actions">
           <button class="btn-secondary" onclick="v3DashboardGoRow('${v3DashActiveTextId}','${sentId}')">Перейти</button>
