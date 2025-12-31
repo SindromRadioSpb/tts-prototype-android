@@ -1514,11 +1514,40 @@ th, td { border-color: rgba(0,0,0,0.55); }
   user-select: none;
   line-height: 1;
 }
+
+ /* Desktop fix: Activity header select must not push collapse chevron out of view */
+.v3-dash-sec-head > div { min-width: 0; }              /* allow flex child to shrink */
+#v3DashActText { max-width: 420px; width: auto; }      /* prevent overly wide select */
+
 .v3-dash-sec-toggle:hover { filter: brightness(0.99); }
 .v3-dash-sec-toggle:active { transform: translateY(0.5px); }
 
 .v3-dash-section.v3-dash-collapsed .v3-dash-sec-body { display: none; }
 .v3-dash-section.v3-dash-collapsed .v3-dash-sec-toggle { transform: rotate(-90deg); }
+
+/* Mobile fix: collapse chevron button must stay small (avoid huge rotated button on iOS) */
+@media (max-width: 520px) {
+  .v3-dash-sec-toggle {
+    /* force compact square icon button */
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-size: 12px;
+    border-radius: 10px;
+    transform-origin: 50% 50%;
+  }
+  
+ 
+
+  /* rotate + slightly scale down to avoid "giant rotated pill" look */
+  .v3-dash-section.v3-dash-collapsed .v3-dash-sec-toggle {
+    transform: rotate(-90deg) scale(0.82);
+  }
+}
   
   .v3-dash-sections { display:flex; gap:14px; flex-direction:column; }
 
