@@ -1753,7 +1753,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 			
 			<button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()">📈 Дашборд</button>
 			
-			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Save</button>
+			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
 
 			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
 			<div id="loader" class="loader"></div>
@@ -1885,7 +1885,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         <input
           id="v3DashSearch"
           type="text"
-          placeholder="Поиск (PRO): title / topic / source / level / tags (#tag или tag:tag)"
+          placeholder="Поиск (PRO): название / тема / источник / уровень / теги (#tag или tag:tag)"
           oninput="v3DashboardOnFilterChange()"
         />
 
@@ -1910,7 +1910,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
         <label style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;">
           <input id="v3DashIncludeArchived" type="checkbox" onchange="v3DashboardRefresh()" />
-          includeArchived
+          Показывать архивные
         </label>
 		
 		<label
@@ -1921,9 +1921,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
 				id="v3DashAutoPlayContinue"
 				type="checkbox"
 				onchange="v3DashboardOnAutoPlayChange()"
-				aria-label="Autoplay on Continue"
+				aria-label="Автовоспр. при «Продолжить»"
 			/>
-			autoplay (Continue)
+			Автовоспр. при «Продолжить»
 			</label>
 
 		
@@ -2030,7 +2030,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
       </div>
 
       <div class="v3-form-row">
-        <label for="v3TextMetaTopic">Topic</label>
+        <label for="v3TextMetaTopic">Тема</label>
         <input id="v3TextMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
       </div>
 
@@ -2084,7 +2084,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
       </div>
 
       <div class="v3-form-row">
-        <label for="v3SaveMetaTopic">Topic</label>
+        <label for="v3SaveMetaTopic">Тема</label>
         <input id="v3SaveMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
       </div>
 
@@ -4520,11 +4520,11 @@ function v3LibraryRenderList(texts) {
         </div>
 
         <div class="v3-lib-card-actions">
-          <button class="btn-primary" data-act="open">Open</button>
-          <button class="btn-success" data-act="resume">Resume</button>
-		  <button class="btn-secondary" data-act="edit">Edit</button>
-		  <button class="btn-secondary" data-act="archive">Archive</button>
-          <button class="btn-secondary v3-lib-danger" data-act="delete">Delete</button>
+          <button class="btn-primary" data-act="open">Открыть</button>
+          <button class="btn-success" data-act="resume">Продолжить</button>
+		  <button class="btn-secondary" data-act="edit">Изменить</button>
+		  <button class="btn-secondary" data-act="archive">В архив</button>
+          <button class="btn-secondary v3-lib-danger" data-act="delete">Удалить</button>
         </div>
       </div>
     `;
@@ -5072,10 +5072,10 @@ function v3DashboardRenderMetrics() {
   const a = v3DashAnalytics.all || {};
 
   const line1 =
-    `7d: plays ${Number(p.plays || 0)} · unique rows ${Number(p.unique_rows || 0)} · unique texts ${Number(p.unique_texts || 0)} · time ${v3FmtMs(p.time_ms)}`;
+    `За 7 дней: Уникальных проигрываний ${Number(p.plays || 0)} · уникальных строк ${Number(p.unique_rows || 0)} · уникальных текстов ${Number(p.unique_texts || 0)} · время прослушивания ${v3FmtMs(p.time_ms)}`;
 
   const line2 =
-    `all: plays ${Number(a.plays || 0)} · unique rows ${Number(a.unique_rows || 0)} · unique texts ${Number(a.unique_texts || 0)} · time ${v3FmtMs(a.time_ms)}`;
+    `Всего: Уникальных проигрываний ${Number(a.plays || 0)} · уникальных строк ${Number(a.unique_rows || 0)} · уникальных текстов ${Number(a.unique_texts || 0)} · время прослушивания ${v3FmtMs(a.time_ms)}`;
 
   metricsEl.innerHTML = `<div>${v3EscapeHtml(line1)}</div><div>${v3EscapeHtml(line2)}</div>`;
 }
@@ -5174,11 +5174,11 @@ function v3DashRenderActivityRow(r) {
         <div class="v3-dash-row-he">${he || "(пусто)"}</div>
         ${tr ? `<div class="v3-dash-row-tr">${tr}</div>` : ""}
         ${ru ? `<div class="v3-dash-row-ru">${ru}</div>` : ""}
-        <div class="v3-dash-row-meta">seen: ${seenCount} · last: ${lastSeenAt}</div>
+        <div class="v3-dash-row-meta">прослушано: ${seenCount} · last: ${lastSeenAt}</div>
       </div>
       <div class="v3-dash-row-actions">
-        <button class="btn-secondary" onclick="v3DashboardGoRow('${textId}','${sentId}')">Go</button>
-        <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${textId}','${sentId}','${v3EscapeHtml(assetKey)}')">Play</button>
+        <button class="btn-secondary" onclick="v3DashboardGoRow('${textId}','${sentId}')">Перейти</button>
+        <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${textId}','${sentId}','${v3EscapeHtml(assetKey)}')">Прослушать</button>
       </div>
     </div>
   `;
@@ -5211,11 +5211,11 @@ function v3DashboardRenderActivityPanel(q, level) {
     else scopeLabel = String(textFilter);
   }
 
-  headerEl.textContent = `Показано: ${shown.length} (из ${rows.length}) · Scope: ${scopeLabel}`;
+  headerEl.textContent = `Показано: ${shown.length} (из ${rows.length}) · Источник: ${scopeLabel}`;
 
   listEl.innerHTML = shown.length
     ? shown.map(v3DashRenderActivityRow).join("")
-    : '<div class="v3-dash-empty">Активности пока нет. Проиграйте строку в Library (Row-TTS).</div>';
+    : '<div class="v3-dash-empty">Активности пока нет. Проиграйте строку текста, загруженного из Библиотеки (Row-TTS).</div>';
 }
 
 function v3DashboardOpen() {
@@ -5299,7 +5299,7 @@ async function v3DashboardRefresh() {
     v3DashboardUpdateActivityTextOptions();
 
     const pinnedCount = v3DashLibTexts.filter(t => Number(t.is_pinned) === 1).length;
-    if (statusEl) statusEl.textContent = `Pinned: ${pinnedCount} · Recent: ${v3DashRecent.length} · Activity: ${v3DashActivity.length}`;
+    if (statusEl) statusEl.textContent = `Закреплено: ${pinnedCount} · Недавние: ${v3DashRecent.length} · Активных текстов: ${v3DashActivity.length}`;
 
     v3DashboardRender();
 	v3DashboardRefreshAnalytics();
@@ -5358,17 +5358,17 @@ function v3DashBadges(t, recent) {
 
   // В compact скрываем “метаданные учебного объекта”
   if (!isCompact) {
-    if (t.level)  badges.push(`level: ${t.level}`);
-    if (t.topic)  badges.push(`topic: ${t.topic}`);
-    if (t.source) badges.push(`source: ${t.source}`);
+    if (t.level)  badges.push(`уровень: ${t.level}`);
+    if (t.topic)  badges.push(`тема: ${t.topic}`);
+    if (t.source) badges.push(`ссылка: ${t.source}`);
   }
 
   // Всегда оставляем “активность”
   const seen = recent ? (recent.seen_count ?? recent.seenCount ?? 0) : 0;
-  if (seen) badges.push(`seen: ${seen}`);
+  if (seen) badges.push(`прослушано: ${seen}`);
 
   const lastSeenAt = recent ? (recent.last_seen_at ?? recent.lastSeenAt ?? null) : null;
-  if (lastSeenAt) badges.push(`last: ${v3FmtDate(lastSeenAt)}`);
+  if (lastSeenAt) badges.push(`последний раз: ${v3FmtDate(lastSeenAt)}`);
 
   return badges;
 }
@@ -5414,8 +5414,8 @@ function v3DashRenderItem(t) {
   const pinFlag = Number(t.is_pinned) === 1;
 
   const metaParts = [];
-  if (pinFlag) metaParts.push(`pin_order: ${t.pin_order ?? "—"}`);
-  if (recent && recent.last_sentence_id) metaParts.push(`last_sentence: ${String(recent.last_sentence_id).slice(0, 8)}…`);
+  if (pinFlag) metaParts.push(`порядок закрепления: ${t.pin_order ?? "—"}`);
+  if (recent && recent.last_sentence_id) metaParts.push(`последняя строка: ${String(recent.last_sentence_id).slice(0, 8)}…`);
   const metaLine = metaParts.length ? `<div class="v3-dash-meta">${v3EscapeHtml(metaParts.join(" · "))}</div>` : "";
 
   const badges = v3DashBadges(t, recent);
@@ -5423,7 +5423,7 @@ function v3DashRenderItem(t) {
     ? `<div class="v3-dash-badges">${badges.map(b => `<span class="v3-dash-badge">${v3EscapeHtml(b)}</span>`).join("")}</div>`
     : "";
 
-  const pinLabel = pinFlag ? "Unpin" : "Pin";
+  const pinLabel = pinFlag ? "Открепить" : "Закрепить";
 
   return `
     <div class="v3-dash-item">
@@ -5435,7 +5435,7 @@ function v3DashRenderItem(t) {
       <div class="v3-dash-actions">
         <button class="btn-success" onclick="v3DashboardContinue('${id}')">Продолжить</button>
         <button class="btn-secondary" onclick="v3DashboardOpenText('${id}')">Открыть</button>
-		<button class="btn-secondary" onclick="v3TextMetaOpen('${id}')">Edit</button>
+		<button class="btn-secondary" onclick="v3TextMetaOpen('${id}')">Изменить</button>
         <button class="btn-secondary" onclick="v3DashboardTogglePin('${id}')">${pinLabel}</button>
       </div>
     </div>
@@ -5520,7 +5520,7 @@ function v3DashboardRenderRowsPanel() {
   const seen = recent && (recent.seen_count ?? recent.seenCount) ? (recent.seen_count ?? recent.seenCount) : 0;
 
   if (headerEl) {
-    headerEl.textContent = `${title} · seen: ${seen} · last: ${lastSeen}`;
+    headerEl.textContent = `${title} · прослушано: ${seen} · last: ${lastSeen}`;
   }
 
   if (!rowsEl) return;
@@ -5547,11 +5547,11 @@ function v3DashboardRenderRowsPanel() {
           <div class="v3-dash-row-he">${he || "(пусто)"}</div>
           ${tr ? `<div class="v3-dash-row-tr">${tr}</div>` : ""}
           ${ru ? `<div class="v3-dash-row-ru">${ru}</div>` : ""}
-          <div class="v3-dash-row-meta">seen: ${seenCount} · last: ${lastSeenAt}</div>
+          <div class="v3-dash-row-meta">прослушано: ${seenCount} · last: ${lastSeenAt}</div>
         </div>
         <div class="v3-dash-row-actions">
-          <button class="btn-secondary" onclick="v3DashboardGoRow('${v3DashActiveTextId}','${sentId}')">Go</button>
-          <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${v3DashActiveTextId}','${sentId}','${v3EscapeHtml(assetKey)}')">Play</button>
+          <button class="btn-secondary" onclick="v3DashboardGoRow('${v3DashActiveTextId}','${sentId}')">Перейти</button>
+          <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${v3DashActiveTextId}','${sentId}','${v3EscapeHtml(assetKey)}')">Прослушать</button>
         </div>
       </div>
     `;
