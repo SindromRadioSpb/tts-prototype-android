@@ -1463,6 +1463,52 @@ th, td { border-color: rgba(0,0,0,0.55); }
   .v3-dash-toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
   .v3-dash-toolbar input[type="text"] { flex:1; min-width: 240px; }
   .v3-dash-toolbar select { min-width: 140px; }
+  
+  /* --- Dashboard View menu (PRO): ⚙️ Вид + popover + collapsible sections --- */
+.v3-dash-view { position: relative; }
+.v3-dash-view-btn { white-space: nowrap; }
+
+.v3-dash-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  min-width: 260px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(0,0,0,0.18);
+}
+
+.v3-dash-popover-title { font-weight: 800; font-size: 12px; margin: 0 0 8px; opacity: 0.92; }
+.v3-dash-poprow { display: flex; gap: 8px; align-items: center; font-size: 12px; padding: 6px 4px; cursor: pointer; user-select: none; }
+.v3-dash-poprow input { transform: translateY(0.5px); }
+.v3-dash-popdivider { height: 1px; background: rgba(0,0,0,0.08); margin: 8px 0; }
+.v3-dash-popbtn { width: 100%; text-align: left; }
+
+/* PRO View menu: hard guarantee that "hidden" hides dashboard sections/popover */
+.v3-dash-section.hidden,
+.v3-dash-popover.hidden,
+#v3DashMetrics.hidden { display: none !important; }
+
+.v3-dash-sec-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.v3-dash-sec-toggle {
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: rgba(255,255,255,0.6);
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+}
+.v3-dash-sec-toggle:hover { filter: brightness(0.99); }
+.v3-dash-sec-toggle:active { transform: translateY(0.5px); }
+
+.v3-dash-section.v3-dash-collapsed .v3-dash-sec-body { display: none; }
+.v3-dash-section.v3-dash-collapsed .v3-dash-sec-toggle { transform: rotate(-90deg); }
+  
   .v3-dash-sections { display:flex; gap:14px; flex-direction:column; }
 
   .v3-dash-section {
@@ -1903,8 +1949,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
     <div class="v3-modal-header">
   <div class="v3-modal-title">Библиотека (v3)</div>
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-    <button class="btn-secondary" onclick="v3LibraryExport()">Экспорт JSON</button>
-    <button class="btn-secondary" onclick="v3LibraryImport()">Импорт JSON</button>
+    <button class="btn-secondary" onclick="v3LibraryExport()">Экспорт Библиотеки</button>
+    <button class="btn-secondary" onclick="v3LibraryImport()">Импорт Библиотеки</button>
     <button class="btn-secondary" onclick="v3LibraryRefresh()">Обновить</button>
     <button class="btn-secondary" onclick="v3LibraryClose()">Закрыть</button>
 
@@ -1969,7 +2015,44 @@ th, td { border-color: rgba(0,0,0,0.55); }
 			<option value="compact">Compact</option>
 		</select>
 
+		<div class="v3-dash-view">
+  <button id="v3DashViewBtn" class="btn-secondary v3-dash-view-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+    ⚙️ Вид
+  </button>
 
+  <div id="v3DashViewMenu" class="v3-dash-popover hidden" role="menu" aria-label="Вид">
+    <div class="v3-dash-popover-title">Вид</div>
+
+    <label class="v3-dash-poprow">
+      <input id="v3DashViewPinned" type="checkbox" />
+      Закреплённые
+    </label>
+
+    <label class="v3-dash-poprow">
+      <input id="v3DashViewRecent" type="checkbox" />
+      Недавние
+    </label>
+
+    <label class="v3-dash-poprow">
+      <input id="v3DashViewActivity" type="checkbox" />
+      Активность
+    </label>
+
+    <label class="v3-dash-poprow">
+      <input id="v3DashViewRows" type="checkbox" />
+      Недавние строки
+    </label>
+
+    <div class="v3-dash-popdivider"></div>
+
+    <div class="v3-dash-popover-title">Пресеты</div>
+
+    <button id="v3DashViewPresetDefault" class="btn-secondary v3-dash-popbtn" type="button">По умолчанию</button>
+    <button id="v3DashViewPresetReading" class="btn-secondary v3-dash-popbtn" type="button">Фокус: чтение</button>
+    <button id="v3DashViewPresetAnalytics" class="btn-secondary v3-dash-popbtn" type="button">Фокус: аналитика</button>
+  </div>
+</div>
+		
         <label style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;">
           <input id="v3DashIncludeArchived" type="checkbox" onchange="v3DashboardRefresh()" />
           Показывать архивные
@@ -1998,46 +2081,68 @@ th, td { border-color: rgba(0,0,0,0.55); }
  <div class="v3-dash-layout">
   <div class="v3-dash-left">
     <div class="v3-dash-sections">
-      <div class="v3-dash-section">
-        <h3>📌 Закреплённые</h3>
-        <div id="v3DashPinnedList"></div>
-      </div>
+      <div id="v3DashSecPinned" class="v3-dash-section" data-sec="pinned">
+  <div class="v3-dash-sec-head">
+    <h3>📌 Закреплённые</h3>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="pinned" aria-label="Свернуть/развернуть: Закреплённые" title="Свернуть/развернуть">▾</button>
+  </div>
+  <div class="v3-dash-sec-body">
+    <div id="v3DashPinnedList"></div>
+  </div>
+</div>
 
-      <div class="v3-dash-section">
-        <h3>🕘 Недавние</h3>
-        <div id="v3DashRecentList"></div>
-      </div>
+      <div id="v3DashSecRecent" class="v3-dash-section" data-sec="recent">
+  <div class="v3-dash-sec-head">
+    <h3>🕘 Недавние</h3>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="recent" aria-label="Свернуть/развернуть: Недавние" title="Свернуть/развернуть">▾</button>
+  </div>
+  <div class="v3-dash-sec-body">
+    <div id="v3DashRecentList"></div>
+  </div>
+</div>
     </div>
   </div>
 
     <div class="v3-dash-right">
 
-    <div class="v3-dash-section">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
-        <h3 style="margin:0;">🧾 Активность</h3>
-        <select
-          id="v3DashActText"
-          onchange="v3DashboardOnActivityTextChange()"
-          title="Фильтр activity по тексту"
-        >
-          <option value="">Все тексты</option>
-        </select>
-      </div>
-
-      <div id="v3DashActivityHeader" class="v3-dash-rows-header v3-lib-muted">
-        Последние строки по всем текстам (уникальные textId+sentenceId).
-      </div>
-
-      <div id="v3DashActivityList"></div>
+    <div id="v3DashSecActivity" class="v3-dash-section" data-sec="activity">
+  <div class="v3-dash-sec-head">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; flex:1;">
+      <h3 style="margin:0;">🧾 Активность</h3>
+      <select
+        id="v3DashActText"
+        onchange="v3DashboardOnActivityTextChange()"
+        title="Фильтр активности по тексту"
+      >
+        <option value="">Все тексты</option>
+      </select>
     </div>
 
-    <div class="v3-dash-section">
-      <h3>🎯 Недавние строки (внутри текста)</h3>
-      <div id="v3DashRowsHeader" class="v3-dash-rows-header v3-lib-muted">
-        Выберите текст слева — покажем последние строки.
-      </div>
-      <div id="v3DashRowsList"></div>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="activity" aria-label="Свернуть/развернуть: Активность" title="Свернуть/развернуть">▾</button>
+  </div>
+
+  <div class="v3-dash-sec-body">
+    <div id="v3DashActivityHeader" class="v3-dash-rows-header v3-lib-muted">
+      Последние строки по всем текстам (уникальные textId+sentenceId).
     </div>
+
+    <div id="v3DashActivityList"></div>
+  </div>
+</div>
+
+    <div id="v3DashSecRows" class="v3-dash-section" data-sec="rows">
+  <div class="v3-dash-sec-head">
+    <h3>🎯 Недавние строки (внутри текста)</h3>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="rows" aria-label="Свернуть/развернуть: Недавние строки" title="Свернуть/развернуть">▾</button>
+  </div>
+
+  <div class="v3-dash-sec-body">
+    <div id="v3DashRowsHeader" class="v3-dash-rows-header v3-lib-muted">
+      Выберите текст слева — покажем последние строки.
+    </div>
+    <div id="v3DashRowsList"></div>
+  </div>
+</div>
 
   </div>
 </div>
@@ -5465,6 +5570,11 @@ function v3DashboardOpen() {
 
   v3DashboardRefresh();
   v3DashboardBindTagClicksOnce();
+  
+  v3DashboardBindViewControlsOnce();
+try { v3DashApplyViewState(); } catch (_) {}
+try { v3DashApplyCollapsedState(); } catch (_) {}
+try { v3DashCloseViewMenu(); } catch (_) {}
 
   const s2 = v3DashEl("v3DashSearch");
   if (s2) setTimeout(() => { try { s2.focus(); } catch (_) {} }, 0);
@@ -5472,9 +5582,10 @@ function v3DashboardOpen() {
 
 function v3DashboardClose() {
   const m = v3DashEl("v3DashboardModal");
+  try { v3DashCloseViewMenu(); } catch (_) {}
   if (!m) return;
   m.classList.add("hidden");
-}
+  }
 
 async function v3DashboardRefresh() {
   const statusEl = v3DashEl("v3DashStatus");
@@ -5523,6 +5634,9 @@ async function v3DashboardRefresh() {
     if (actHeaderEl) actHeaderEl.textContent = "Не удалось загрузить активность.";
     if (actEl) actEl.innerHTML = '<div class="v3-dash-empty">Ошибка загрузки активности.</div>';
   }
+  // ensure View state (show/hide sections) is applied after refresh renders
+try { v3DashApplyViewState(); } catch (_) {}
+try { v3DashApplyCollapsedState(); } catch (_) {}
 }
 
 function v3DashboardOnFilterChange() {
@@ -6467,8 +6581,300 @@ function v3DashboardBindTagClicksOnce() {
   });
 }
 
+// ----------------------------
+// Dashboard View menu (PRO): ⚙️ Вид + presets + collapsible sections
+// ----------------------------
+let v3DashViewBound = false;
+let v3DashViewState = null;
+let v3DashViewMenuOpen = false;
 
+let v3DashCollapsedState = null;
 
+const V3_DASH_VIEW_STATE_KEY = "v3Dash.view.sections.v1";
+const V3_DASH_COLLAPSED_KEY = "v3Dash.view.collapsed.v1";
+
+function v3DashViewDefaultState() {
+  return { pinned: true, recent: true, activity: true, rows: true };
+}
+
+function v3DashViewLoadState() {
+  if (v3DashViewState) return v3DashViewState;
+
+  const def = v3DashViewDefaultState();
+  try {
+    const raw = localStorage.getItem(V3_DASH_VIEW_STATE_KEY);
+    if (!raw) {
+      v3DashViewState = def;
+      return v3DashViewState;
+    }
+    const obj = JSON.parse(raw);
+    v3DashViewState = {
+      pinned: (typeof obj.pinned === "boolean") ? obj.pinned : def.pinned,
+      recent: (typeof obj.recent === "boolean") ? obj.recent : def.recent,
+      activity: (typeof obj.activity === "boolean") ? obj.activity : def.activity,
+      rows: (typeof obj.rows === "boolean") ? obj.rows : def.rows,
+    };
+    return v3DashViewState;
+  } catch (_) {
+    v3DashViewState = def;
+    return v3DashViewState;
+  }
+}
+
+function v3DashViewSaveState() {
+  try {
+    const st = v3DashViewState || v3DashViewDefaultState();
+    localStorage.setItem(V3_DASH_VIEW_STATE_KEY, JSON.stringify(st));
+  } catch (_) {}
+}
+
+function v3DashCollapsedDefaultState() {
+  return { pinned: false, recent: false, activity: false, rows: false };
+}
+
+function v3DashCollapsedLoadState() {
+  if (v3DashCollapsedState) return v3DashCollapsedState;
+
+  const def = v3DashCollapsedDefaultState();
+  try {
+    const raw = localStorage.getItem(V3_DASH_COLLAPSED_KEY);
+    if (!raw) {
+      v3DashCollapsedState = def;
+      return v3DashCollapsedState;
+    }
+    const obj = JSON.parse(raw);
+    v3DashCollapsedState = {
+      pinned: (typeof obj.pinned === "boolean") ? obj.pinned : def.pinned,
+      recent: (typeof obj.recent === "boolean") ? obj.recent : def.recent,
+      activity: (typeof obj.activity === "boolean") ? obj.activity : def.activity,
+      rows: (typeof obj.rows === "boolean") ? obj.rows : def.rows,
+    };
+    return v3DashCollapsedState;
+  } catch (_) {
+    v3DashCollapsedState = def;
+    return v3DashCollapsedState;
+  }
+}
+
+function v3DashCollapsedSaveState() {
+  try {
+    const st = v3DashCollapsedState || v3DashCollapsedDefaultState();
+    localStorage.setItem(V3_DASH_COLLAPSED_KEY, JSON.stringify(st));
+  } catch (_) {}
+}
+
+function v3DashApplyViewState() {
+  const st = v3DashViewLoadState();
+
+  const setVis = (id, on) => {
+    const el = v3DashEl(id);
+    if (!el) return;
+    el.classList.toggle("hidden", !on);
+  };
+
+  setVis("v3DashSecPinned", !!st.pinned);
+  setVis("v3DashSecRecent", !!st.recent);
+  setVis("v3DashSecActivity", !!st.activity);
+  setVis("v3DashSecRows", !!st.rows);
+
+  // Метрики — часть "аналитики", в режиме "Фокус: чтение" скрываем вместе с Активностью
+  const metrics = v3DashEl("v3DashMetrics");
+  if (metrics) metrics.classList.toggle("hidden", !st.activity);
+
+  // sync checkboxes (if exist)
+  const cbPinned = v3DashEl("v3DashViewPinned");
+  const cbRecent = v3DashEl("v3DashViewRecent");
+  const cbActivity = v3DashEl("v3DashViewActivity");
+  const cbRows = v3DashEl("v3DashViewRows");
+
+  if (cbPinned) cbPinned.checked = !!st.pinned;
+  if (cbRecent) cbRecent.checked = !!st.recent;
+  if (cbActivity) cbActivity.checked = !!st.activity;
+  if (cbRows) cbRows.checked = !!st.rows;
+}
+
+function v3DashApplyCollapsedState() {
+  const st = v3DashCollapsedLoadState();
+
+  const apply = (id, key) => {
+    const el = v3DashEl(id);
+    if (!el) return;
+    el.classList.toggle("v3-dash-collapsed", !!st[key]);
+  };
+
+  apply("v3DashSecPinned", "pinned");
+  apply("v3DashSecRecent", "recent");
+  apply("v3DashSecActivity", "activity");
+  apply("v3DashSecRows", "rows");
+}
+
+function v3DashToggleCollapsed(key) {
+  if (!key) return;
+  const st = v3DashCollapsedLoadState();
+  if (typeof st[key] !== "boolean") return;
+  st[key] = !st[key];
+  v3DashCollapsedSaveState();
+  v3DashApplyCollapsedState();
+}
+
+function v3DashCloseViewMenu() {
+  const menu = v3DashEl("v3DashViewMenu");
+  const btn = v3DashEl("v3DashViewBtn");
+  if (menu) menu.classList.add("hidden");
+  if (btn) btn.setAttribute("aria-expanded", "false");
+  v3DashViewMenuOpen = false;
+}
+
+function v3DashToggleViewMenu() {
+  const menu = v3DashEl("v3DashViewMenu");
+  const btn = v3DashEl("v3DashViewBtn");
+  if (!menu || !btn) return;
+
+  const isHidden = menu.classList.contains("hidden");
+  if (isHidden) {
+    menu.classList.remove("hidden");
+    btn.setAttribute("aria-expanded", "true");
+    v3DashViewMenuOpen = true;
+  } else {
+    v3DashCloseViewMenu();
+  }
+}
+
+function v3DashApplyViewPreset(preset) {
+  const st = v3DashViewLoadState();
+
+  if (preset === "default") {
+    const def = v3DashViewDefaultState();
+    st.pinned = def.pinned;
+    st.recent = def.recent;
+    st.activity = def.activity;
+    st.rows = def.rows;
+  } else if (preset === "reading") {
+    // чтение: максимум контента, минимум аналитики
+    st.pinned = true;
+    st.recent = true;
+    st.activity = false; // вместе с метриками
+    st.rows = true;
+  } else if (preset === "analytics") {
+    // аналитика: только активность + метрики
+    st.pinned = false;
+    st.recent = false;
+    st.activity = true;
+    st.rows = false;
+  }
+
+  v3DashViewSaveState();
+  v3DashApplyViewState();
+  v3DashCloseViewMenu();
+}
+
+function v3DashboardBindViewControlsOnce() {
+  if (v3DashViewBound) return;
+  const modal = v3DashEl("v3DashboardModal");
+  if (!modal) return;
+
+  v3DashViewBound = true;
+  
+  // always start with popover closed
+try { v3DashCloseViewMenu(); } catch (_) {}
+
+  // init apply
+  try { v3DashApplyViewState(); } catch (_) {}
+  try { v3DashApplyCollapsedState(); } catch (_) {}
+
+  // View button toggles
+  const btn = v3DashEl("v3DashViewBtn");
+  if (btn) {
+    btn.addEventListener("click", (ev) => {
+      try {
+        ev.preventDefault();
+        ev.stopPropagation();
+        v3DashToggleViewMenu();
+      } catch (_) {}
+    });
+  }
+
+  // checkbox binds
+  const bindCb = (id, key) => {
+    const cb = v3DashEl(id);
+    if (!cb) return;
+    cb.addEventListener("change", (ev) => {
+      try {
+        const st = v3DashViewLoadState();
+        st[key] = !!cb.checked;
+        v3DashViewSaveState();
+        v3DashApplyViewState();
+      } catch (_) {}
+    });
+  };
+
+  bindCb("v3DashViewPinned", "pinned");
+  bindCb("v3DashViewRecent", "recent");
+  bindCb("v3DashViewActivity", "activity");
+  bindCb("v3DashViewRows", "rows");
+
+  // preset binds
+  const bindPreset = (id, preset) => {
+    const b = v3DashEl(id);
+    if (!b) return;
+    b.addEventListener("click", (ev) => {
+      try {
+        ev.preventDefault();
+        ev.stopPropagation();
+        v3DashApplyViewPreset(preset);
+      } catch (_) {}
+    });
+  };
+
+  bindPreset("v3DashViewPresetDefault", "default");
+  bindPreset("v3DashViewPresetReading", "reading");
+  bindPreset("v3DashViewPresetAnalytics", "analytics");
+
+  // collapse buttons (delegated)
+  modal.addEventListener("click", (ev) => {
+    try {
+      const tgt = ev && ev.target;
+      if (!tgt || !tgt.closest) return;
+
+      const btn2 = tgt.closest(".v3-dash-sec-toggle");
+      if (!btn2) return;
+
+      const key = String(btn2.getAttribute("data-sec") || "").trim();
+      if (!key) return;
+
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      v3DashToggleCollapsed(key);
+    } catch (_) {}
+  });
+
+  // outside click closes menu (capture to be reliable)
+  document.addEventListener("mousedown", (ev) => {
+    try {
+      const m2 = v3DashEl("v3DashboardModal");
+      if (!m2 || m2.classList.contains("hidden")) return;
+      if (!v3DashViewMenuOpen) return;
+
+      const tgt = ev && ev.target;
+      if (tgt && tgt.closest && tgt.closest(".v3-dash-view")) return;
+
+      v3DashCloseViewMenu();
+    } catch (_) {}
+  }, true);
+
+  // ESC closes popover (do not close dashboard)
+  modal.addEventListener("keydown", (ev) => {
+    try {
+      if (!ev) return;
+      if (ev.key !== "Escape") return;
+      if (!v3DashViewMenuOpen) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      v3DashCloseViewMenu();
+    } catch (_) {}
+  });
+}
 	
     // ----------------------------
     // TRANSLATE TABLE
