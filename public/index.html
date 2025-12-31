@@ -1436,6 +1436,19 @@ th, td { border-color: rgba(0,0,0,0.55); }
   cursor: pointer;
 }
 
+.v3-lib-topic-chip {
+  display: inline-block;
+  background: #fef9c3; /* neutral light-yellow */
+  border: 1px solid #fde68a;
+  color: #854d0e;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 800;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
 .v3-lib-danger {
   border-color: #fecaca !important;
   background: #fff1f2 !important;
@@ -4226,19 +4239,23 @@ function v3LibraryBindTagClicksOnce() {
       const tgt = ev && ev.target;
       if (!tgt || !tgt.closest) return;
 
-      const chip = tgt.closest(".v3-lib-chip");
-      if (!chip) return;
+      const chip = tgt.closest(".v3-lib-chip, .v3-lib-topic-chip");
+if (!chip) return;
 
-     const tag = v3ExtractTagFromChipText(chip);
-      if (!tag) return;
+const val = v3ExtractTagFromChipText(chip);
+if (!val) return;
 
-      ev.preventDefault();
-      ev.stopPropagation();
+const isTopic = !!(chip.classList && chip.classList.contains("v3-lib-topic-chip"));
 
-      const s = v3LibEl("v3LibrarySearch");
-      if (!s) return;
-      s.value = v3MergeTagIntoQuery(s.value, tag);
-      v3LibraryOnSearchInput();
+ev.preventDefault();
+ev.stopPropagation();
+
+const s = v3LibEl("v3LibrarySearch");
+if (!s) return;
+
+s.value = isTopic ? v3MergeTopicIntoQuery(s.value, val) : v3MergeTagIntoQuery(s.value, val);
+v3LibraryOnSearchInput();
+
     } catch (_) {}
   });
 }
@@ -4461,6 +4478,31 @@ function v3SplitQueryTokens(qRaw) {
   return (q ? (q + " #" + tag) : ("#" + tag)); // toggle ON
 }
 
+function v3MergeTopicIntoQuery(qRaw, topicRaw) {
+  const topic = String(topicRaw || "").trim();
+  if (!topic) return String(qRaw || "").trim();
+
+  const token = ("topic:" + topic);
+  const want = token.toLowerCase();
+
+  const q = String(qRaw || "").trim();
+  const parts = q ? q.split(/\s+/).map(x => x.trim()).filter(Boolean) : [];
+
+  let found = false;
+  const kept = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    const orig = String(parts[i] || "").trim();
+    const p = orig.toLowerCase();
+    if (!p) continue;
+    if (p === want) { found = true; continue; } // toggle OFF
+    kept.push(orig);
+  }
+
+  if (found) return kept.join(" ").trim();
+  return (q ? (q + " " + token) : token); // toggle ON
+}
+
 function v3ExtractTagFromChipText(el) {
   const raw = String((el && el.textContent) || "").trim();
   if (!raw) return "";
@@ -4507,10 +4549,19 @@ function v3TextMatchesQuery(t, qObj, levelFilter) {
   ].map(x => String(x || "").toLowerCase()).join(" ");
 
   for (let i = 0; i < (q.textTokens || []).length; i++) {
-    const tok = String(q.textTokens[i] || "").trim().toLowerCase();
-    if (!tok) continue;
-    if (!hay.includes(tok)) return false;
+  const tok = String(q.textTokens[i] || "").trim().toLowerCase();
+  if (!tok) continue;
+
+  if (tok.startsWith("topic:")) {
+    const need = tok.slice(6).trim();
+    if (!need) continue;
+    const top = String(t.topic || "").toLowerCase();
+    if (!top.includes(need)) return false;
+    continue;
   }
+
+  if (!hay.includes(tok)) return false;
+}
 
   return true;
 }
@@ -4572,6 +4623,9 @@ function v3LibraryRenderList(texts) {
     const title = String(t.title || "Без названия");
     const level = t.level ? String(t.level) : "";
     const isArchived = !!(t.is_archived || t.isArchived);
+	
+	const topic = t.topic ? String(t.topic) : "";
+	const topicHtml = topic ? (" <span class='v3-lib-topic-chip'>" + v3EscapeHtml(topic) + "</span>") : "";
 
     const tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null);
     const tagsHtml = tagsArr.slice(0, 6).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(x) + "</span>").join("");
@@ -4591,7 +4645,7 @@ function v3LibraryRenderList(texts) {
     card.innerHTML = `
       <div class="v3-lib-card-top">
         <div>
-          <div class="v3-lib-card-title">${v3EscapeHtml(title)}</div>
+          <div class="v3-lib-card-title">${v3EscapeHtml(title)}${topicHtml}</div>
           <div class="v3-lib-card-meta">
              ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
              Прогресс: строка № <b>${v3EscapeHtml(progressText)}</b><br/>
@@ -5382,7 +5436,7 @@ async function v3DashboardRefresh() {
     v3DashboardUpdateActivityTextOptions();
 
     const pinnedCount = v3DashLibTexts.filter(t => Number(t.is_pinned) === 1).length;
-    if (statusEl) statusEl.textContent = `Закреплено: ${pinnedCount} · Недавние: ${v3DashRecent.length} · Активных текстов: ${v3DashActivity.length}`;
+    if (statusEl) statusEl.textContent = `Закреплено: ${pinnedCount} · Недавние: ${v3DashRecent.length} · Активность: ${v3DashActivity.length}`;
 
     v3DashboardRender();
 	v3DashboardRefreshAnalytics();
