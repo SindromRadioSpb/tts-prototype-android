@@ -1511,19 +1511,53 @@ th, td { border-color: rgba(0,0,0,0.55); }
     opacity:0.92;
   }
 
-  .v3-dash-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-  .v3-dash-tag {
-    display:inline-flex;
-    align-items:center;
-    padding:2px 8px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,0.12);
-    background: rgba(255,255,255,0.04);
-    font-size:11px;
-    font-weight:700;
-    opacity:0.95;
-	cursor: pointer;
-  }
+  /* --- Dashboard chips (Week9: topic chip + tags like Library) --- */
+.v3-dash-title-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+	}
+
+	/* Topic chip (light-yellow, clickable) */
+.v3-dash-topic-chip{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:12px;
+  border:1px solid #fde68a;
+  background:#fef9c3;
+  color:#854d0e;
+  cursor:pointer;
+  user-select:none;
+}
+
+	.v3-dash-topic-chip:hover{ filter:brightness(0.98); }
+	.v3-dash-topic-chip:active{ transform:translateY(0.5px); }
+  
+ /* Tags chips (grey, like Library) */
+.v3-dash-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:6px;
+}
+
+
+  .v3-dash-tag{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:12px;
+  background:#f3f4f6;
+  border:1px solid #e5e7eb;
+  color:#374151;
+  cursor:pointer;
+  user-select:none;
+}
+
+.v3-dash-tag:hover{ filter:brightness(0.98); }
+.v3-dash-tag:active{ transform:translateY(0.5px); }
   
   .v3-dash-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
   .v3-dash-actions button { padding:6px 10px; font-size:12px; }
@@ -4503,6 +4537,44 @@ function v3MergeTopicIntoQuery(qRaw, topicRaw) {
   return (q ? (q + " " + token) : token); // toggle ON
 }
 
+function v3EnsureTopicInQuery(qRaw, topicRaw) {
+  const topic = String(topicRaw || "").trim();
+  if (!topic) return String(qRaw || "").trim();
+
+  const token = ("topic:" + topic);
+  const want = token.toLowerCase();
+
+  const q = String(qRaw || "").trim();
+  const parts = q ? q.split(/\s+/).map(x => x.trim()).filter(Boolean) : [];
+
+  for (let i = 0; i < parts.length; i++) {
+    const p = String(parts[i] || "").trim().toLowerCase();
+    if (p === want) return q; // already present (add-only)
+  }
+
+  return (q ? (q + " " + token) : token);
+}
+
+function v3RemoveTopicFromQuery(qRaw, topicRaw) {
+  const topic = String(topicRaw || "").trim();
+  if (!topic) return String(qRaw || "").trim();
+
+  const want = ("topic:" + topic).toLowerCase();
+
+  const q = String(qRaw || "").trim();
+  const parts = q ? q.split(/\s+/).map(x => x.trim()).filter(Boolean) : [];
+
+  const kept = [];
+  for (let i = 0; i < parts.length; i++) {
+    const orig = String(parts[i] || "").trim();
+    const p = orig.toLowerCase();
+    if (!p) continue;
+    if (p === want) continue; // remove-only
+    kept.push(orig);
+  }
+  return kept.join(" ").trim();
+}
+
 function v3ExtractTagFromChipText(el) {
   const raw = String((el && el.textContent) || "").trim();
   if (!raw) return "";
@@ -5098,6 +5170,9 @@ window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
 
 let v3DashOpenOnce = false;
 let v3DashTagClicksBound = false;
+
+let v3DashTopicClickTimer = null;
+
 let v3DashLibTexts = [];
 
 let v3DashAnalytics = null;
@@ -5550,6 +5625,11 @@ function v3DashRenderItem(t) {
   const title = v3EscapeHtml(t.title || "(без названия)");
   const pinFlag = Number(t.is_pinned) === 1;
   
+  const topic = t.topic ? String(t.topic) : "";
+const topicHtml = topic
+  ? (` <span class="v3-dash-topic-chip" data-topic="${v3EscapeHtml(topic)}" title="Фильтр по теме: ${v3EscapeHtml(topic)}">${v3EscapeHtml(topic)}</span>`)
+  : "";
+  
   const fromLib = v3DashLibTexts.find(x => x && String(x.id || x.text_id || "") === String(id)) || null;
   const tagsArr = v3ParseTags(
     t.tags_json || t.tagsJson || t.tags ||
@@ -5562,7 +5642,7 @@ function v3DashRenderItem(t) {
     ? `<div class="v3-dash-tags">${tagsShown.map(x => `<span class="v3-dash-tag">#${v3EscapeHtml(x)}</span>`).join("")}${tagsMore ? `<span class="v3-dash-tag">+${tagsMore}</span>` : ""}</div>`
     : "";
 
-    const metaParts = [];
+  const metaParts = [];
   const metaLine = "";
 
   const badges = v3DashBadges(t, recent);
@@ -5575,7 +5655,10 @@ function v3DashRenderItem(t) {
   return `
     <div class="v3-dash-item">
       <div style="min-width:0;">
-        <div class="v3-dash-title" style="cursor:pointer;" onclick="v3DashboardSelectText('${id}')">${title}</div>
+        <div class="v3-dash-title-row">
+			<span class="v3-dash-title" onclick="v3DashboardSelectText('${id}')">${title}</span>
+				${topicHtml}
+		</div>
         ${metaLine}
         ${badgeHtml}
 		${tagsHtml}
@@ -6290,16 +6373,47 @@ window.v3DashboardOnFilterChange = v3DashboardOnFilterChange;
 
 function v3DashboardBindTagClicksOnce() {
   if (v3DashTagClicksBound) return;
+
   const modal = v3DashEl("v3DashboardModal");
   if (!modal) return;
 
   v3DashTagClicksBound = true;
 
+  // CLICK: topic chip (toggle, delayed) OR tag chip (toggle via v3MergeTagIntoQuery)
   modal.addEventListener("click", (ev) => {
     try {
       const tgt = ev && ev.target;
       if (!tgt || !tgt.closest) return;
 
+      // 1) Topic chip: toggle with delay (so dblclick can cancel it)
+      const topicChip = tgt.closest(".v3-dash-topic-chip");
+      if (topicChip) {
+        const topic = String(
+          topicChip.getAttribute("data-topic") || topicChip.textContent || ""
+        ).trim();
+        if (!topic) return;
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        // delay to allow dblclick to cancel
+        if (v3DashTopicClickTimer) clearTimeout(v3DashTopicClickTimer);
+        v3DashTopicClickTimer = setTimeout(() => {
+          v3DashTopicClickTimer = null;
+
+          const s = v3DashEl("v3DashSearch");
+          if (!s) return;
+
+          // TOGGLE: повторный клик снимает topic:<value>
+          s.value = v3MergeTopicIntoQuery(s.value, topic);
+          v3DashboardOnFilterChange();
+          try { s.focus(); } catch (_) {}
+        }, 240);
+
+        return;
+      }
+
+      // 2) Tag chip: как было (toggle через v3MergeTagIntoQuery)
       const chip = tgt.closest(".v3-dash-tag");
       if (!chip) return;
 
@@ -6311,11 +6425,49 @@ function v3DashboardBindTagClicksOnce() {
 
       const s = v3DashEl("v3DashSearch");
       if (!s) return;
+
       s.value = v3MergeTagIntoQuery(s.value, tag);
       v3DashboardOnFilterChange();
     } catch (_) {}
   });
+
+  // DBLCLICK: topic chip (remove-only) + cancel pending click timer
+  modal.addEventListener("dblclick", (ev) => {
+    try {
+      const tgt = ev && ev.target;
+      if (!tgt || !tgt.closest) return;
+
+      const topicChip = tgt.closest(".v3-dash-topic-chip");
+      if (!topicChip) return;
+
+      const topic = String(
+        topicChip.getAttribute("data-topic") || topicChip.textContent || ""
+      ).trim();
+      if (!topic) return;
+
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      // cancel pending click action
+      if (v3DashTopicClickTimer) {
+        clearTimeout(v3DashTopicClickTimer);
+        v3DashTopicClickTimer = null;
+      }
+
+      const s = v3DashEl("v3DashSearch");
+      if (!s) return;
+
+      // remove-only: удаляем topic:<value> из query
+      s.value = v3RemoveTopicFromQuery(s.value, topic);
+      v3DashboardOnFilterChange();
+      try { s.focus(); } catch (_) {}
+    } catch (e) {
+      console.error("[v3Dash dblclick] error:", e);
+    }
+  });
 }
+
+
 
 	
     // ----------------------------
