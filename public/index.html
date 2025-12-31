@@ -1481,6 +1481,17 @@ th, td { border-color: rgba(0,0,0,0.55); }
   box-shadow: 0 18px 48px rgba(0,0,0,0.18);
 }
 
+/* Mobile: держим popover "Вид" внутри экрана (не уезжает влево) */
+@media (max-width: 520px) {
+  .v3-dash-popover {
+    right: auto;
+    left: 0;
+    min-width: 0;
+    width: calc(100vw - 20px);
+    max-width: 340px;
+  }
+}
+
 .v3-dash-popover-title { font-weight: 800; font-size: 12px; margin: 0 0 8px; opacity: 0.92; }
 .v3-dash-poprow { display: flex; gap: 8px; align-items: center; font-size: 12px; padding: 6px 4px; cursor: pointer; user-select: none; }
 .v3-dash-poprow input { transform: translateY(0.5px); }
