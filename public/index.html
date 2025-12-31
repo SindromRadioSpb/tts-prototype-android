@@ -4381,18 +4381,18 @@ function v3ParseTags(tagsJson) {
     if (Array.isArray(x)) return x.map(String);
   } catch (_) {}
   // если это строка "a,b,c"
-  return String(tagsJson).split(",").map(s => s.trim()).filter(Boolean);
+  return String(tagsJson).split(/[\s,]+/).map(s => s.trim()).filter(Boolean);
 }
 
 function v3NormalizeTagsInput(tags) {
   // UI-side normalization: trim, dedupe (case-insensitive), max 25.
-  // Accepts: array OR "a,b,c" OR null.
+  // Accepts: array OR "a,b,c" OR "a b c" OR null.
   const out = [];
   const seen = new Set();
 
   let arr = [];
   if (Array.isArray(tags)) arr = tags;
-  else if (typeof tags === "string") arr = tags.split(",");
+  else if (typeof tags === "string") arr = tags.split(/[\s,]+/);
   else if (tags == null) arr = [];
   else arr = [String(tags)];
 
@@ -4446,13 +4446,19 @@ function v3SplitQueryTokens(qRaw) {
   const want1 = ("#" + tag).toLowerCase();
   const want2 = ("tag:" + tag).toLowerCase();
 
+  let found = false;
+  const kept = [];
+
   for (let i = 0; i < parts.length; i++) {
-    const p = String(parts[i] || "").trim().toLowerCase();
+    const orig = String(parts[i] || "").trim();
+    const p = orig.toLowerCase();
     if (!p) continue;
-    if (p === want1 || p === want2) return q;
+    if (p === want1 || p === want2) { found = true; continue; } // toggle OFF
+    kept.push(orig);
   }
 
-  return (q ? (q + " #" + tag) : ("#" + tag));
+  if (found) return kept.join(" ").trim();
+  return (q ? (q + " #" + tag) : ("#" + tag)); // toggle ON
 }
 
 function v3ExtractTagFromChipText(el) {
