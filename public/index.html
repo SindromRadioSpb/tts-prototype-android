@@ -1433,13 +1433,14 @@ th, td { border-color: rgba(0,0,0,0.55); }
   font-size: 12px;
   font-weight: 700;
   margin-right: 6px;
+  cursor: pointer;
 }
 
 .v3-lib-danger {
   border-color: #fecaca !important;
   background: #fff1f2 !important;
   color: #9f1239 !important;
-}
+  }
 
 .v3-lib-muted {
   opacity: 0.65;
@@ -1497,6 +1498,20 @@ th, td { border-color: rgba(0,0,0,0.55); }
     opacity:0.92;
   }
 
+  .v3-dash-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .v3-dash-tag {
+    display:inline-flex;
+    align-items:center;
+    padding:2px 8px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    font-size:11px;
+    font-weight:700;
+    opacity:0.95;
+	cursor: pointer;
+  }
+  
   .v3-dash-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
   .v3-dash-actions button { padding:6px 10px; font-size:12px; }
   
@@ -1858,7 +1873,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
     <div class="v3-modal-body">
       <div class="v3-lib-toolbar">
-        <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): название / тема / источник / уровень / теги (#tag)" oninput="v3LibraryOnSearchInput()" />
+        <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)" oninput="v3LibraryOnSearchInput()" />
         <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
       </div>
 
@@ -1885,7 +1900,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         <input
           id="v3DashSearch"
           type="text"
-          placeholder="Поиск (PRO): название / тема / источник / уровень / теги (#tag)"
+          placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)"
           oninput="v3DashboardOnFilterChange()"
         />
 
@@ -4174,6 +4189,7 @@ let v3LibraryTexts = [];
 let v3LibraryLastLoadedAt = null;
 
 let v3LibrarySearchTimer = null;
+let v3LibraryTagClicksBound = false;
 let v3LibraryLastRenderKey = null; // memo to avoid redundant renders
 let v3LibraryLastQuery = "";
 
@@ -4197,6 +4213,35 @@ function v3LibraryOnSearchInput() {
 
 // expose for inline handler
 window.v3LibraryOnSearchInput = v3LibraryOnSearchInput;
+
+function v3LibraryBindTagClicksOnce() {
+  if (v3LibraryTagClicksBound) return;
+  const listEl = v3LibEl("v3LibraryList");
+  if (!listEl) return;
+
+  v3LibraryTagClicksBound = true;
+
+  listEl.addEventListener("click", (ev) => {
+    try {
+      const tgt = ev && ev.target;
+      if (!tgt || !tgt.closest) return;
+
+      const chip = tgt.closest(".v3-lib-chip");
+      if (!chip) return;
+
+     const tag = v3ExtractTagFromChipText(chip);
+      if (!tag) return;
+
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const s = v3LibEl("v3LibrarySearch");
+      if (!s) return;
+      s.value = v3MergeTagIntoQuery(s.value, tag);
+      v3LibraryOnSearchInput();
+    } catch (_) {}
+  });
+}
 
 // meta about last AI generation (for tableModelMeta hook)
 let v3LastGeminiMeta = null;
@@ -4290,6 +4335,7 @@ function v3LibraryOpen() {
   } catch (_) {}
 
   v3LibraryRefresh();
+  v3LibraryBindTagClicksOnce();
 
   const s2 = v3LibEl("v3LibrarySearch");
   if (s2) setTimeout(() => { try { s2.focus(); } catch (_) {} }, 0);
@@ -4388,6 +4434,33 @@ function v3SplitQueryTokens(qRaw) {
   }
 
   return { raw, textTokens, tagTokens };
+  }
+  
+  function v3MergeTagIntoQuery(qRaw, tagRaw) {
+  const tag = String(tagRaw || "").trim();
+  if (!tag) return String(qRaw || "").trim();
+
+  const q = String(qRaw || "").trim();
+  const parts = q ? q.split(/\s+/).map(x => x.trim()).filter(Boolean) : [];
+
+  const want1 = ("#" + tag).toLowerCase();
+  const want2 = ("tag:" + tag).toLowerCase();
+
+  for (let i = 0; i < parts.length; i++) {
+    const p = String(parts[i] || "").trim().toLowerCase();
+    if (!p) continue;
+    if (p === want1 || p === want2) return q;
+  }
+
+  return (q ? (q + " #" + tag) : ("#" + tag));
+}
+
+function v3ExtractTagFromChipText(el) {
+  const raw = String((el && el.textContent) || "").trim();
+  if (!raw) return "";
+  if (raw[0] === "+") return "";
+  if (raw[0] === "#") return raw.slice(1).trim();
+  return raw;
 }
 
 function v3TextMatchesQuery(t, qObj, levelFilter) {
@@ -4964,6 +5037,7 @@ window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
 -------------------------------------------------------- */
 
 let v3DashOpenOnce = false;
+let v3DashTagClicksBound = false;
 let v3DashLibTexts = [];
 
 let v3DashAnalytics = null;
@@ -5255,6 +5329,7 @@ function v3DashboardOpen() {
   v3DashboardApplyMode(mode);
 
   v3DashboardRefresh();
+  v3DashboardBindTagClicksOnce();
 
   const s2 = v3DashEl("v3DashSearch");
   if (s2) setTimeout(() => { try { s2.focus(); } catch (_) {} }, 0);
@@ -5363,13 +5438,7 @@ function v3DashBadges(t, recent) {
     if (t.level)  badges.push(`уровень: ${t.level}`);
     if (t.topic)  badges.push(`тема: ${t.topic}`);
     if (t.source) badges.push(`ссылка: ${t.source}`);
-
-    const tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null);
-    if (tagsArr.length) {
-      const shown = tagsArr.slice(0, 6);
-      badges.push(`теги: ${shown.join(", ")}${tagsArr.length > 6 ? "…" : ""}`);
-    }
-  }
+   }
 
   // Всегда оставляем “активность”
   const seen = recent ? (recent.seen_count ?? recent.seenCount ?? 0) : 0;
@@ -5420,6 +5489,18 @@ function v3DashRenderItem(t) {
 
   const title = v3EscapeHtml(t.title || "(без названия)");
   const pinFlag = Number(t.is_pinned) === 1;
+  
+  const fromLib = v3DashLibTexts.find(x => x && String(x.id || x.text_id || "") === String(id)) || null;
+  const tagsArr = v3ParseTags(
+    t.tags_json || t.tagsJson || t.tags ||
+    (fromLib ? (fromLib.tags_json || fromLib.tagsJson || fromLib.tags) : null) ||
+    null
+  );
+  const tagsShown = tagsArr.slice(0, 6);
+  const tagsMore = Math.max(0, tagsArr.length - tagsShown.length);
+  const tagsHtml = tagsShown.length
+    ? `<div class="v3-dash-tags">${tagsShown.map(x => `<span class="v3-dash-tag">#${v3EscapeHtml(x)}</span>`).join("")}${tagsMore ? `<span class="v3-dash-tag">+${tagsMore}</span>` : ""}</div>`
+    : "";
 
     const metaParts = [];
   const metaLine = "";
@@ -5437,6 +5518,7 @@ function v3DashRenderItem(t) {
         <div class="v3-dash-title" style="cursor:pointer;" onclick="v3DashboardSelectText('${id}')">${title}</div>
         ${metaLine}
         ${badgeHtml}
+		${tagsHtml}
       </div>
       <div class="v3-dash-actions">
         <button class="btn-success" onclick="v3DashboardContinue('${id}')">Продолжить</button>
@@ -6145,6 +6227,35 @@ window.v3DashboardContinue = v3DashboardContinue;
 window.v3DashboardOpenText = v3DashboardOpenText;
 window.v3DashboardTogglePin = v3DashboardTogglePin;
 window.v3DashboardOnFilterChange = v3DashboardOnFilterChange;
+
+function v3DashboardBindTagClicksOnce() {
+  if (v3DashTagClicksBound) return;
+  const modal = v3DashEl("v3DashboardModal");
+  if (!modal) return;
+
+  v3DashTagClicksBound = true;
+
+  modal.addEventListener("click", (ev) => {
+    try {
+      const tgt = ev && ev.target;
+      if (!tgt || !tgt.closest) return;
+
+      const chip = tgt.closest(".v3-dash-tag");
+      if (!chip) return;
+
+      const tag = v3ExtractTagFromChipText(chip);
+      if (!tag) return;
+
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const s = v3DashEl("v3DashSearch");
+      if (!s) return;
+      s.value = v3MergeTagIntoQuery(s.value, tag);
+      v3DashboardOnFilterChange();
+    } catch (_) {}
+  });
+}
 
 	
     // ----------------------------
