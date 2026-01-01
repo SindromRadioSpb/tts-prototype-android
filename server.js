@@ -7,6 +7,7 @@ const fs = require("fs");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
+const { execFile } = require("child_process");
 
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth } = require("./db/sqlite");
@@ -162,6 +163,49 @@ function writeMp3IfNotExists(absPath, mp3Buffer) {
     console.error("writeMp3IfNotExists failed:", e);
     return { written: false, error: String(e && e.message ? e.message : e) };
   }
+}
+
+function probeMp3DurationMs(absPath) {
+  return new Promise((resolve) => {
+    try {
+      if (!absPath || typeof absPath !== "string") return resolve(null);
+      if (!fs.existsSync(absPath)) return resolve(null);
+
+      // ffprobe must be available in PATH (ffmpeg install). Best-effort only.
+      const args = [
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        absPath,
+      ];
+
+      execFile("ffprobe", args, { windowsHide: true }, (err, stdout, stderr) => {
+        try {
+          if (err) {
+            // Do not spam logs too much; keep it compact.
+            console.warn("[v3-audio] ffprobe failed (duration_ms stays null)", {
+              code: err.code,
+              message: err.message,
+            });
+            return resolve(null);
+          }
+
+          const raw = String(stdout || "").trim();
+          if (!raw) return resolve(null);
+
+          const sec = Number(raw);
+          if (!Number.isFinite(sec) || sec <= 0) return resolve(null);
+
+          const ms = Math.max(0, Math.round(sec * 1000));
+          return resolve(ms);
+        } catch (_) {
+          return resolve(null);
+        }
+      });
+    } catch (_) {
+      return resolve(null);
+    }
+  });
 }
 
 // --------------------------------------------------------
@@ -716,6 +760,16 @@ async function ensureAudioAsset(params) {
     }
   }
 
+    // Best-effort duration probe (server-side, no UI listeners).
+  // If ffprobe is missing or fails, durationMs remains null (allowed).
+  let durationMs = null;
+  try {
+    // Prefer probing the file we just ensured on disk.
+    durationMs = await probeMp3DurationMs(absPath);
+  } catch (_) {
+    durationMs = null;
+  }
+
   // Best-effort DB upsert + linking. Must never break TTS response.
   try {
     const h = getDbHealth();
@@ -726,7 +780,7 @@ async function ensureAudioAsset(params) {
         assetType: String(assetType || "row"),
         relativePath,
         mime: "audio/mpeg",
-        durationMs: null,
+        durationMs: durationMs,
         sizeBytes: mp3Buffer ? mp3Buffer.length : null,
         ttsProfileJson: JSON.stringify(normalizedProfile),
       });
