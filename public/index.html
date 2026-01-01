@@ -1449,6 +1449,44 @@ th, td { border-color: rgba(0,0,0,0.55); }
   cursor: pointer;
 }
 
+/* Active filter chips + reset */
+.v3-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.v3-filter-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.v3-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1.2;
+}
+.v3-filter-chip-x {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: #6b7280;
+  padding: 0 2px;
+}
+.v3-filter-chip-x:hover { color: #111827; }
+.v3-filter-reset { white-space: nowrap; }
+
 /* Source (humanize + copy) */
 .v3-source { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
 .v3-source-label { display: inline-block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2017,6 +2055,12 @@ th, td { border-color: rgba(0,0,0,0.55); }
         <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
       </div>
 
+	  <div class="v3-filter-row">
+		<div id="v3LibraryActiveChips" class="v3-filter-chips"></div>
+		<button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3LibraryResetFilters()">Сбросить</button>
+		</div>
+
+	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
     </div>
@@ -2121,7 +2165,12 @@ th, td { border-color: rgba(0,0,0,0.55); }
 		
       </div>
 	  
-      <div id="v3DashStatus" class="v3-lib-status"></div>
+	  <div class="v3-filter-row">
+		<div id="v3DashActiveChips" class="v3-filter-chips"></div>
+		<button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()">Сбросить</button>
+		</div>
+
+	  <div id="v3DashStatus" class="v3-lib-status"></div>
 	  
 	  <div id="v3DashMetrics" class="v3-lib-muted" style="margin-top:6px;"></div>
 
@@ -4413,6 +4462,84 @@ function v3LibraryOnSearchInput() {
 // expose for inline handler
 window.v3LibraryOnSearchInput = v3LibraryOnSearchInput;
 
+// ----------------------------
+// Library (v3): Active filter chips + Reset + remove logic
+// ----------------------------
+function v3LibraryRenderActiveChips() {
+  const qRaw = String(v3LibEl("v3LibrarySearch")?.value || "").trim();
+  const chips = v3BuildActiveChipsFromQuery(qRaw);
+  v3RenderActiveChips(v3LibEl("v3LibraryActiveChips"), chips);
+}
+
+function v3LibraryResetFilters() {
+  const input = v3LibEl("v3LibrarySearch");
+  if (input) input.value = "";
+
+  // clear persisted query
+  try { localStorage.removeItem(V3_LIB_SEARCH_KEY); } catch (_) {}
+
+  // force rerender to avoid memo-key edge cases
+  v3LibraryLastRenderKey = null;
+  v3LibraryLastQuery = "";
+
+  v3LibraryApplyFilter();
+  v3LibraryRenderActiveChips();
+}
+
+let v3LibraryFilterUiBound = false;
+function v3LibraryBindFilterUiOnce() {
+  if (v3LibraryFilterUiBound) return;
+  v3LibraryFilterUiBound = true;
+
+  const modal = v3LibEl("v3LibraryModal");
+  if (!modal) return;
+
+  // Reset button bind
+  const resetBtn = v3LibEl("v3LibraryResetFilters");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => v3LibraryResetFilters());
+  }
+
+  // Remove chip by X
+  modal.addEventListener("click", (ev) => {
+    try {
+      const tgt = ev && ev.target;
+      if (!tgt || !tgt.closest) return;
+
+      const xBtn = tgt.closest(".v3-filter-chip-x");
+      if (!xBtn) return;
+
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const chip = xBtn.closest(".v3-filter-chip");
+      const kind = chip?.getAttribute("data-kind") || "";
+      const value = chip?.getAttribute("data-value") || "";
+
+      const input = v3LibEl("v3LibrarySearch");
+      const qRaw = String(input?.value || "").trim();
+
+      const next = v3RemoveQueryParts(qRaw, (p) => {
+        const part = String(p || "");
+        if (!part) return false;
+        if (kind === "topic") return part.toLowerCase() === ("topic:" + value).toLowerCase();
+        if (kind === "tag") {
+          const v = String(value || "").toLowerCase();
+          return part.toLowerCase() === ("#" + v) || part.toLowerCase() === ("tag:" + v);
+        }
+        if (kind === "q") return part === value;
+        return false;
+      });
+
+      if (input) input.value = next;
+      v3LibraryOnSearchInput(); // сохранит localStorage + применит (debounce)
+    } catch (_) {}
+  });
+}
+
+// safety for inline calls (если где-то есть onclick)
+try { window.v3LibraryResetFilters = v3LibraryResetFilters; } catch (_) {}
+
 function v3LibraryBindTagClicksOnce() {
   if (v3LibraryTagClicksBound) return;
   const listEl = v3LibEl("v3LibraryList");
@@ -4630,13 +4757,17 @@ function v3LibraryOpen() {
   m.classList.remove("hidden");
 
   // Restore last search (PRO hygiene)
-  try {
+    try {
     const s = v3LibEl("v3LibrarySearch");
     if (s) s.value = String(localStorage.getItem(V3_LIB_SEARCH_KEY) || "");
   } catch (_) {}
 
+  // render chips immediately (even if refresh fails)
+  try { v3LibraryRenderActiveChips(); } catch (_) {}
+
   v3LibraryRefresh();
   v3LibraryBindTagClicksOnce();
+  v3LibraryBindFilterUiOnce();
 
   const s2 = v3LibEl("v3LibrarySearch");
   if (s2) setTimeout(() => { try { s2.focus(); } catch (_) {} }, 0);
@@ -4736,6 +4867,53 @@ function v3SplitQueryTokens(qRaw) {
 
   return { raw, textTokens, tagTokens };
   }
+  
+ function v3RemoveQueryParts(rawQuery, shouldDropPart) {
+  const raw = String(rawQuery || "");
+  const parts = raw.split(/\s+/).filter(Boolean);
+  const kept = parts.filter(p => !shouldDropPart(p));
+  return kept.join(" ");
+}
+
+function v3BuildActiveChipsFromQuery(rawQuery) {
+  const qObj = v3SplitQueryTokens(rawQuery);
+  const chips = [];
+
+  if (qObj.topicToken) {
+    const topic = qObj.topicToken.split(":").slice(1).join(":");
+    if (topic) chips.push({ kind: "topic", value: topic, label: "Тема: " + topic });
+  }
+
+  (qObj.tagTokens || []).forEach(t => {
+    const tag = String(t).replace(/^#/, "").trim();
+    if (tag) chips.push({ kind: "tag", value: tag, label: "#" + tag });
+  });
+
+  (qObj.textTokens || []).forEach(tok => {
+    const v = String(tok || "").trim();
+    if (v) chips.push({ kind: "q", value: v, label: v });
+  });
+
+  return chips;
+}
+
+function v3RenderActiveChips(containerEl, chips) {
+  if (!containerEl) return;
+  if (!chips || !chips.length) {
+    containerEl.innerHTML = "";
+    return;
+  }
+
+  containerEl.innerHTML = chips.map(c => {
+    const kind = v3EscapeHtml(c.kind);
+    const value = v3EscapeHtml(c.value);
+    const label = v3EscapeHtml(c.label);
+    return `<span class="v3-filter-chip" data-kind="${kind}" data-value="${value}">
+      <span>${label}</span>
+      <button class="v3-filter-chip-x" type="button" title="Убрать">×</button>
+    </span>`;
+  }).join("");
+}
   
   function v3MergeTagIntoQuery(qRaw, tagRaw) {
   const tag = String(tagRaw || "").trim();
@@ -4899,6 +5077,7 @@ function v3LibraryApplyFilter() {
 
   if (!hasAny) {
     v3LibraryRenderList(v3LibraryTexts);
+	v3LibraryRenderActiveChips();
     return;
   }
 
@@ -4907,8 +5086,9 @@ function v3LibraryApplyFilter() {
     const t = v3LibraryTexts[i];
     if (v3TextMatchesQuery(t, qObj, null)) filtered.push(t);
   }
-
+    
   v3LibraryRenderList(filtered);
+   v3LibraryRenderActiveChips();
 }
 
 function v3LibraryRenderList(texts) {
@@ -5873,6 +6053,33 @@ function v3DashBadges(t, recent) {
   return badges;
 }
 
+function v3DashboardRenderActiveChips() {
+  const qRaw = String(v3LibEl("v3DashSearch")?.value || "").trim();
+  const chips = v3BuildActiveChipsFromQuery(qRaw);
+
+  const level = String(v3LibEl("v3DashLevel")?.value || "").trim();
+  if (level) chips.unshift({ kind: "level", value: level, label: "Уровень: " + level });
+
+  const incArch = !!v3LibEl("v3DashIncludeArchived")?.checked;
+  if (incArch) chips.unshift({ kind: "archived", value: "1", label: "Архив: включён" });
+
+  v3RenderActiveChips(v3LibEl("v3DashActiveChips"), chips);
+}
+
+function v3DashboardResetFilters() {
+  const q = v3LibEl("v3DashSearch");
+  if (q) q.value = "";
+  const lvl = v3LibEl("v3DashLevel");
+  if (lvl) lvl.value = "";
+
+  const inc = v3LibEl("v3DashIncludeArchived");
+  const wasInc = !!inc?.checked;
+  if (inc) inc.checked = false;
+
+  v3DashboardOnFilterChange();
+  if (wasInc) v3DashboardRefresh(); // снять archived требует refetch
+}
+
 function v3DashboardRender() {
   const pinnedEl = v3DashEl("v3DashPinnedList");
   const recentEl = v3DashEl("v3DashRecentList");
@@ -5904,6 +6111,9 @@ function v3DashboardRender() {
 
   // Global recent activity feed (rows across all texts)
   v3DashboardRenderActivityPanel(q, level);
+
+  // NEW: active chips render (COMMIT 2)
+  v3DashboardRenderActiveChips();
 }
 
 function v3DashRenderItem(t) {
@@ -6708,19 +6918,76 @@ function v3DashboardBindTagClicksOnce() {
     try {
       const tgt = ev && ev.target;
       if (!tgt || !tgt.closest) return;
-	  
-	  // Source copy button (inside cards)
-const copyBtn = tgt.closest(".v3-src-copy");
-if (copyBtn) {
-  const payload = String(copyBtn.getAttribute("data-copy") || "").trim();
-  if (payload) {
-    ev.preventDefault();
-    ev.stopPropagation();
-    v3CopyTextToClipboard(payload);
-    showToast("Источник скопирован", "success");
-  }
-  return;
-}
+
+      // Source copy button (inside cards)
+      const copyBtn = tgt.closest(".v3-src-copy");
+      if (copyBtn) {
+        const payload = String(copyBtn.getAttribute("data-copy") || "").trim();
+        if (payload) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          v3CopyTextToClipboard(payload);
+          showToast("Источник скопирован", "success");
+        }
+        return;
+      }
+
+      // NEW: allow source link to open (do not trigger any dashboard filters/actions)
+      const srcLink = tgt.closest("a.v3-source-label");
+      if (srcLink) {
+        ev.stopPropagation();
+        return; // no preventDefault => browser opens link normally
+      }
+
+      // NEW: Active filter chips (remove)
+      const xBtn = tgt.closest(".v3-filter-chip-x");
+      if (xBtn) {
+        const chipEl = xBtn.closest(".v3-filter-chip");
+        const kind = (chipEl && chipEl.getAttribute("data-kind")) ? chipEl.getAttribute("data-kind") : "";
+        const value = (chipEl && chipEl.getAttribute("data-value")) ? chipEl.getAttribute("data-value") : "";
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        if (kind === "level") {
+          const lvl = v3DashEl("v3DashLevel");
+          if (lvl) lvl.value = "";
+          v3DashboardOnFilterChange();
+          return;
+        }
+
+        if (kind === "archived") {
+          const inc = v3DashEl("v3DashIncludeArchived");
+          if (inc) inc.checked = false;
+          v3DashboardOnFilterChange();
+          v3DashboardRefresh();
+          return;
+        }
+
+        // topic/tag/q → чистим строку поиска
+        const input = v3DashEl("v3DashSearch");
+        const qRaw = String(input ? input.value : "").trim();
+
+        const next = v3RemoveQueryParts(qRaw, (p) => {
+          const part = String(p || "");
+          if (!part) return false;
+
+          if (kind === "topic") return part.toLowerCase() === ("topic:" + value).toLowerCase();
+
+          if (kind === "tag") {
+            const v = String(value || "").toLowerCase();
+            return part.toLowerCase() === ("#" + v) || part.toLowerCase() === ("tag:" + v);
+          }
+
+          if (kind === "q") return part === value;
+
+          return false;
+        });
+
+        if (input) input.value = next;
+        v3DashboardOnFilterChange();
+        return;
+      }
 
       // 1) Topic chip: toggle with delay (so dblclick can cancel it)
       const topicChip = tgt.closest(".v3-dash-topic-chip");
