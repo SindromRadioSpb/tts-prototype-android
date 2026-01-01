@@ -1449,6 +1449,34 @@ th, td { border-color: rgba(0,0,0,0.55); }
   cursor: pointer;
 }
 
+/* Source (humanize + copy) */
+.v3-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 320px;
+  vertical-align: middle;
+}
+.v3-source-label {
+  display: inline-block;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+}
+.v3-src-copy {
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #374151;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.v3-src-copy:hover { background: #f9fafb; }
+
 .v3-lib-danger {
   border-color: #fecaca !important;
   background: #fff1f2 !important;
@@ -4417,6 +4445,19 @@ function v3LibraryBindTagClicksOnce() {
     try {
       const tgt = ev && ev.target;
       if (!tgt || !tgt.closest) return;
+	  
+	  // Source copy button (inside cards)
+	const copyBtn = tgt.closest(".v3-src-copy");
+	if (copyBtn) {
+	const payload = String(copyBtn.getAttribute("data-copy") || "").trim();
+	if (payload) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    v3CopyTextToClipboard(payload);
+    showToast("Источник скопирован", "success");
+	}
+	return;
+	}
 
       const chip = tgt.closest(".v3-lib-chip, .v3-lib-topic-chip");
 if (!chip) return;
@@ -4460,6 +4501,80 @@ function v3FmtDate(iso) {
     if (Number.isNaN(d.getTime())) return "—";
     return d.toLocaleString("ru-RU", { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
   } catch (_) { return "—"; }
+}
+
+// --- Source helpers (humanize + copy) ---
+function v3ShortenText(s, maxLen) {
+  const x = String(s || "");
+  const m = Number(maxLen || 0);
+  if (!m || x.length <= m) return x;
+  return x.slice(0, Math.max(0, m - 1)) + "…";
+}
+
+function v3IsProbablyUrl(s) {
+  const raw = String(s || "").trim();
+  if (!raw) return false;
+  // allow scheme-less domains like example.com/path
+  return /^(https?:\/\/|www\.|[a-z0-9-]+\.[a-z]{2,})(\/|\?|#|$)/i.test(raw);
+}
+
+function v3HumanizeSource(sourceRaw) {
+  const raw = String(sourceRaw || "").trim();
+  if (!raw) return null;
+  const full = raw;
+  let label = raw;
+  let isUrl = false;
+  let domain = "";
+
+  if (v3IsProbablyUrl(raw)) {
+    try {
+      const u = new URL(raw.includes("://") ? raw : ("https://" + raw));
+      domain = String(u.hostname || "").toLowerCase();
+      if (domain.startsWith("www.")) domain = domain.slice(4);
+      label = domain || raw;
+      isUrl = true;
+    } catch (_) {
+      // fall back to raw
+    }
+  }
+
+  if (!isUrl) {
+    label = v3ShortenText(raw, 56);
+  }
+  return { full, label, isUrl, domain };
+}
+
+function v3CopyTextToClipboard(text) {
+  const payload = String(text || "");
+  if (!payload) return;
+
+  // Best-effort clipboard API
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(payload).catch(() => {
+        // ignore and fall back
+      });
+      return;
+    }
+  } catch (_) {
+    // ignore and fall back
+  }
+
+  // Fallback
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = payload;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    ta.style.top = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+  } catch (_) {
+    // no-op
+  }
 }
 
 async function v3GetJson(url) {
@@ -4846,6 +4961,14 @@ function v3LibraryRenderList(texts) {
 
     const tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null);
     const tagsHtml = tagsArr.slice(0, 6).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(x) + "</span>").join("");
+	
+	const sourceRaw = String(t.source || "").trim();
+	const src = v3HumanizeSource(sourceRaw);
+	const sourceHtml = src
+  ? (`<span class="v3-source" title="${v3EscapeHtml(src.full)}"><span class="v3-source-label">${v3EscapeHtml(src.label)}</span>` +
+     ` <button type="button" class="v3-src-copy" data-copy="${v3EscapeHtml(src.full)}" title="Копировать полный источник">⧉</button>` +
+     `</span>`)
+  : "—";
 
     const lastOpened = t.last_opened_at || t.lastOpenedAt || null;
     const createdAt = t.created_at || t.createdAt || null;
@@ -4865,8 +4988,9 @@ function v3LibraryRenderList(texts) {
           <div class="v3-lib-card-title">${v3EscapeHtml(title)}${topicHtml}</div>
           <div class="v3-lib-card-meta">
              ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
-             Прогресс: строка № <b>${v3EscapeHtml(progressText)}</b><br/>
-             Последнее открытие: ${v3EscapeHtml(v3FmtDate(lastOpened))} · Создан: ${v3EscapeHtml(v3FmtDate(createdAt))}
+				Прогресс: строка № <b>${v3EscapeHtml(progressText)}</b><br/>
+				Источник: ${sourceHtml}<br/>
+				Последнее открытие: ${v3EscapeHtml(v3FmtDate(lastOpened))} · Создан: ${v3EscapeHtml(v3FmtDate(createdAt))}
            </div>
           <div style="margin-top:6px;">${tagsHtml}</div>
         </div>
@@ -5428,10 +5552,10 @@ function v3DashboardRenderMetrics() {
   const a = v3DashAnalytics.all || {};
 
   const line1 =
-    `За 7 дней: Уникальных проигрываний ${Number(p.plays || 0)} · уникальных строк ${Number(p.unique_rows || 0)} · уникальных текстов ${Number(p.unique_texts || 0)} · время прослушивания ${v3FmtMs(p.time_ms)}`;
+    `За 7 дней: Воспроизведено строк ${Number(p.plays || 0)} · из них - уникальных ${Number(p.unique_rows || 0)} · уникальных текстов ${Number(p.unique_texts || 0)} · время прослушивания ${v3FmtMs(p.time_ms)}`;
 
   const line2 =
-    `Всего: Уникальных проигрываний ${Number(a.plays || 0)} · уникальных строк ${Number(a.unique_rows || 0)} · уникальных текстов ${Number(a.unique_texts || 0)} · время прослушивания ${v3FmtMs(a.time_ms)}`;
+    `Всего: Воспроизведено строк ${Number(a.plays || 0)} · из них - уникальных ${Number(a.unique_rows || 0)} · уникальных текстов ${Number(a.unique_texts || 0)} · время прослушивания ${v3FmtMs(a.time_ms)}`;
 
   metricsEl.innerHTML = `<div>${v3EscapeHtml(line1)}</div><div>${v3EscapeHtml(line2)}</div>`;
 }
@@ -5797,7 +5921,27 @@ const topicHtml = topic
     : "";
 
   const metaParts = [];
-  const metaLine = "";
+
+// Source (humanize + copy)
+try {
+  const sourceRaw = String(
+    t.source ||
+    (fromLib ? (fromLib.source || "") : "") ||
+    ""
+  ).trim();
+  const src = v3HumanizeSource(sourceRaw);
+  if (src) {
+    metaParts.push(
+      `Источник: <span class="v3-source" title="${v3EscapeHtml(src.full)}"><span class="v3-source-label">${v3EscapeHtml(src.label)}</span>` +
+      ` <button type="button" class="v3-src-copy" data-copy="${v3EscapeHtml(src.full)}" title="Копировать полный источник">⧉</button>` +
+      `</span>`
+    );
+  }
+} catch (_) {}
+
+const metaLine = metaParts.length
+  ? (`<div class="v3-dash-meta">${metaParts.join(" · ")}</div>`)
+  : "";
 
   const badges = v3DashBadges(t, recent);
   const badgeHtml = badges.length
@@ -6538,6 +6682,19 @@ function v3DashboardBindTagClicksOnce() {
     try {
       const tgt = ev && ev.target;
       if (!tgt || !tgt.closest) return;
+	  
+	  // Source copy button (inside cards)
+const copyBtn = tgt.closest(".v3-src-copy");
+if (copyBtn) {
+  const payload = String(copyBtn.getAttribute("data-copy") || "").trim();
+  if (payload) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    v3CopyTextToClipboard(payload);
+    showToast("Источник скопирован", "success");
+  }
+  return;
+}
 
       // 1) Topic chip: toggle with delay (so dblclick can cancel it)
       const topicChip = tgt.closest(".v3-dash-topic-chip");
