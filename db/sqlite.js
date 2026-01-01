@@ -70,6 +70,15 @@ function get(db, sql, params = []) {
   });
 }
 
+function all(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows || []);
+    });
+  });
+}
+
 async function initDb(dbPath) {
   // idempotent
   if (_state.ready) return;
@@ -123,6 +132,38 @@ async function closeDb() {
   });
 }
 
+// --------------------------------------------------------
+// PATCH B (W10 analytics): schema guard for audio_assets.duration_ms
+// - idempotent
+// - safe: must not crash process
+// - best executed AFTER migrations
+// --------------------------------------------------------
+async function ensureAudioAssetsDurationMsColumn() {
+  // DB not ready => skip silently
+  if (!_db || !_state || !_state.ok) {
+    return { ok: false, skipped: true, reason: "DB_NOT_READY" };
+  }
+
+  try {
+    const cols = await all(_db, "PRAGMA table_info(audio_assets);", []);
+
+    // If table does not exist yet (or PRAGMA returned empty) — skip
+    if (!Array.isArray(cols) || cols.length === 0) {
+      return { ok: true, skipped: true, reason: "NO_TABLE" };
+    }
+
+    const has = cols.some((c) => String(c && c.name ? c.name : "") === "duration_ms");
+    if (has) return { ok: true, changed: false };
+
+    await exec(_db, "ALTER TABLE audio_assets ADD COLUMN duration_ms INTEGER;");
+    return { ok: true, changed: true };
+  } catch (e) {
+    // Never throw: schema guard must not bring the server down
+    const msg = String(e && e.message ? e.message : e);
+    return { ok: false, error: msg };
+  }
+}
+
 module.exports = {
   initDb,
   getDb,
@@ -130,5 +171,8 @@ module.exports = {
   // helpers exposed for future repos/migrations
   _exec: exec,
   _get: get,
+  _all: all,
+  ensureAudioAssetsDurationMsColumn,
   closeDb,
 };
+

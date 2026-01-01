@@ -10,7 +10,7 @@ const crypto = require("crypto");
 const { execFile } = require("child_process");
 
 // v3.0 foundation: SQLite (Library/Progress source of truth)
-const { initDb, getDbHealth } = require("./db/sqlite");
+const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
 
 const { runMigrations, getMigrationsHealth } = require("./db/migrate");
 
@@ -88,11 +88,21 @@ const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR || path.join(__dirname, "migra
 
 initDb(DB_PATH)
   .then(() => runMigrations({ migrationsDir: MIGRATIONS_DIR }))
+  .then(async () => {
+    // PATCH B: schema guard for duration_ms (idempotent, non-fatal)
+    try {
+      const r = await ensureAudioAssetsDurationMsColumn();
+      if (r && r.ok === false && !r.skipped) {
+        console.warn("[db] ensureAudioAssetsDurationMsColumn failed (non-fatal):", r);
+      }
+    } catch (e) {
+      console.warn("[db] ensureAudioAssetsDurationMsColumn threw (non-fatal):", e && e.message);
+    }
+  })
   .catch((e) => {
     // initDb уже safe и отражает ошибку в health; сюда обычно не попадаем
     console.error("initDb unexpected error:", e);
   });
-
 
 // --------------------------------------------------------
 // 3. ПУТИ И ДИРЕКТОРИИ
