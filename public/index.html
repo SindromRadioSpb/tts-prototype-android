@@ -1487,6 +1487,27 @@ th, td { border-color: rgba(0,0,0,0.55); }
 .v3-filter-chip-x:hover { color: #111827; }
 .v3-filter-reset { white-space: nowrap; }
 
+/* Tag facets */
+.v3-facets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.v3-facet-chip {
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.v3-facet-chip:hover { background: #f9fafb; }
+.v3-facet-count {
+  margin-left: 6px;
+  color: #6b7280;
+}
+
 /* Source (humanize + copy) */
 .v3-source { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
 .v3-source-label { display: inline-block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2055,11 +2076,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
         <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
       </div>
 
-	  <div class="v3-filter-row">
-		<div id="v3LibraryActiveChips" class="v3-filter-chips"></div>
-		<button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3LibraryResetFilters()">Сбросить</button>
-		</div>
-
+<div class="v3-filter-row">
+  <div id="v3LibraryActiveChips" class="v3-filter-chips"></div>
+  <div id="v3LibraryFacets" class="v3-facets"></div>
+  <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button">Сбросить</button>
+</div>
 	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
@@ -2162,13 +2183,14 @@ th, td { border-color: rgba(0,0,0,0.55); }
 			Автовоспр. при «Продолжить»
 			</label>
 
-		
-      </div>
+		      </div>
 	  
 	  <div class="v3-filter-row">
-		<div id="v3DashActiveChips" class="v3-filter-chips"></div>
-		<button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()">Сбросить</button>
-		</div>
+  <div id="v3DashActiveChips" class="v3-filter-chips"></div>
+  <div id="v3DashFacets" class="v3-facets"></div>
+  <button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()">Сбросить</button>
+	</div>
+
 
 	  <div id="v3DashStatus" class="v3-lib-status"></div>
 	  
@@ -4216,7 +4238,7 @@ updatePlaylistButtonUI();
    - silent failures
 -------------------------------------------------------- */
 
-let v3ActiveTextId = null;
+var v3ActiveTextId = null;
 
 // seq counter for "newer wins" logic on the client
 let v3ProgressSeq = 0;
@@ -4500,12 +4522,31 @@ function v3LibraryBindFilterUiOnce() {
     resetBtn.addEventListener("click", () => v3LibraryResetFilters());
   }
 
-  // Remove chip by X
+  // Facets + Remove chip by X
   modal.addEventListener("click", (ev) => {
     try {
       const tgt = ev && ev.target;
       if (!tgt || !tgt.closest) return;
 
+      // 0) Facet chip: toggle tag into query (#tag)
+      const facet = tgt.closest(".v3-facet-chip");
+      if (facet) {
+        const tag = String(facet.getAttribute("data-tag") || "").trim();
+        if (!tag) return;
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const input = v3LibEl("v3LibrarySearch");
+        const qRaw = String(input?.value || "").trim();
+        const next = v3MergeTagIntoQuery(qRaw, tag); // toggle
+        if (input) input.value = next;
+
+        v3LibraryOnSearchInput(); // persist + apply
+        return;
+      }
+
+      // 1) Active chips: remove by X
       const xBtn = tgt.closest(".v3-filter-chip-x");
       if (!xBtn) return;
 
@@ -4522,12 +4563,16 @@ function v3LibraryBindFilterUiOnce() {
       const next = v3RemoveQueryParts(qRaw, (p) => {
         const part = String(p || "");
         if (!part) return false;
+
         if (kind === "topic") return part.toLowerCase() === ("topic:" + value).toLowerCase();
+
         if (kind === "tag") {
           const v = String(value || "").toLowerCase();
           return part.toLowerCase() === ("#" + v) || part.toLowerCase() === ("tag:" + v);
         }
+
         if (kind === "q") return part === value;
+
         return false;
       });
 
@@ -4914,6 +4959,50 @@ function v3RenderActiveChips(containerEl, chips) {
     </span>`;
   }).join("");
 }
+
+function v3ComputeTagFacetCounts(texts) {
+  const map = new Map();
+
+  (texts || []).forEach(t => {
+    let tags = [];
+    try {
+      tags = v3ParseTags(
+        (t && (t.tags_json || t.tagsJson || t.tags)) || null
+      );
+    } catch (_) {
+      tags = [];
+    }
+
+    tags.forEach(tag => {
+      const k = String(tag || "").trim();
+      if (!k) return;
+      map.set(k, (map.get(k) || 0) + 1);
+    });
+  });
+
+  const arr = Array.from(map.entries()).map(([tag, count]) => ({ tag, count }));
+  arr.sort((a, b) => (b.count - a.count) || a.tag.localeCompare(b.tag));
+  return arr;
+}
+
+function v3RenderTagFacets(containerEl, texts, limit) {
+  if (!containerEl) return;
+  const lim = Number(limit || 18);
+  const rows = v3ComputeTagFacetCounts(texts).slice(0, lim);
+
+  if (!rows.length) {
+    containerEl.innerHTML = "";
+    return;
+  }
+
+  containerEl.innerHTML = rows.map(r => {
+    const t = v3EscapeHtml(r.tag);
+    const c = v3EscapeHtml(String(r.count));
+    return `<button type="button" class="v3-facet-chip" data-tag="${t}" title="Фильтровать по #${t}">
+      #${t}<span class="v3-facet-count">${c}</span>
+    </button>`;
+  }).join("");
+}
   
   function v3MergeTagIntoQuery(qRaw, tagRaw) {
   const tag = String(tagRaw || "").trim();
@@ -5078,6 +5167,7 @@ function v3LibraryApplyFilter() {
   if (!hasAny) {
     v3LibraryRenderList(v3LibraryTexts);
 	v3LibraryRenderActiveChips();
+	v3RenderTagFacets(v3LibEl("v3LibraryFacets"), v3LibraryTexts, 18);
     return;
   }
 
@@ -5088,7 +5178,8 @@ function v3LibraryApplyFilter() {
   }
     
   v3LibraryRenderList(filtered);
-   v3LibraryRenderActiveChips();
+  v3LibraryRenderActiveChips();
+  v3RenderTagFacets(v3LibEl("v3LibraryFacets"), filtered, 18);
 }
 
 function v3LibraryRenderList(texts) {
@@ -5949,22 +6040,64 @@ async function v3DashboardRefresh() {
   const actEl = v3DashEl("v3DashActivityList");
   const actHeaderEl = v3DashEl("v3DashActivityHeader");
 
-  const includeArchived = (v3DashEl("v3DashIncludeArchived") && v3DashEl("v3DashIncludeArchived").checked) ? 1 : 0;
+  const includeArchived =
+    (v3DashEl("v3DashIncludeArchived") && v3DashEl("v3DashIncludeArchived").checked) ? 1 : 0;
 
   if (statusEl) statusEl.textContent = "Загрузка…";
   if (actHeaderEl) actHeaderEl.textContent = "Загрузка…";
 
   try {
-    const [libRes, recentRes, actRes] = await Promise.all([
-      v3GetJson(`/api/library/texts?limit=200&includeArchived=${includeArchived}`),
-      v3GetJson(`/api/history/recent-texts?limit=80&includeArchived=${includeArchived}`),
-      v3GetJson(`/api/history/recent-activity?limit=120&includeArchived=${includeArchived}`)
-    ]);
+    // 1) Library texts — критично
+    const libRes = await v3GetJson(`/api/library/texts?limit=200&includeArchived=${includeArchived}`);
 
+    // 2) Recent texts — не критично (с fallback)
+    let recentRes = null;
+    try {
+      recentRes = await v3GetJson(`/api/history/recent-texts?limit=80&includeArchived=${includeArchived}`);
+    } catch (e) {
+      console.warn("[v3DashboardRefresh] recent-texts failed; trying fallback", e);
+      try {
+        const p = new URLSearchParams();
+        p.set("days", "7");
+        p.set("includeArchived", String(includeArchived));
+        recentRes = await v3GetJson(`/api/dashboard/recent?${p.toString()}`);
+      } catch (e2) {
+        console.warn("[v3DashboardRefresh] recent fallback failed; continue with empty recent", e2);
+        recentRes = { ok: false, texts: [], items: [] };
+      }
+    }
+
+    // 3) Activity — не критично (с fallback)
+    let actRes = null;
+    try {
+      actRes = await v3GetJson(`/api/history/recent-activity?limit=120&includeArchived=${includeArchived}`);
+    } catch (e) {
+      console.warn("[v3DashboardRefresh] recent-activity failed; trying fallback", e);
+      try {
+        const p = new URLSearchParams();
+        p.set("limit", "120");
+        p.set("includeArchived", String(includeArchived));
+        actRes = await v3GetJson(`/api/history/activity?${p.toString()}`);
+      } catch (e2) {
+        console.warn("[v3DashboardRefresh] activity fallback failed; continue with empty activity", e2);
+        actRes = { ok: false, rows: [] };
+      }
+    }
+
+    // normalize: lib
     v3DashLibTexts = (libRes && libRes.ok && Array.isArray(libRes.texts)) ? libRes.texts : [];
-    v3DashRecent = (recentRes && recentRes.ok && Array.isArray(recentRes.texts)) ? recentRes.texts : [];
+
+    // normalize: recent (fallback может вернуть items[])
+    const recentArr =
+      (recentRes && recentRes.ok && Array.isArray(recentRes.texts)) ? recentRes.texts :
+      (recentRes && recentRes.ok && Array.isArray(recentRes.items)) ? recentRes.items :
+      [];
+    v3DashRecent = recentArr;
+
+    // normalize: activity
     v3DashActivity = (actRes && actRes.ok && Array.isArray(actRes.rows)) ? actRes.rows : [];
 
+    // index recent by both id and text_id
     v3DashRecentByTextId = new Map();
     for (const r of v3DashRecent) {
       if (!r) continue;
@@ -5977,10 +6110,23 @@ async function v3DashboardRefresh() {
     v3DashboardUpdateActivityTextOptions();
 
     const pinnedCount = v3DashLibTexts.filter(t => Number(t.is_pinned) === 1).length;
-    if (statusEl) statusEl.textContent = `Закреплено: ${pinnedCount} · Недавние: ${v3DashRecent.length} · Активность: ${v3DashActivity.length}`;
+
+    const warnings = [];
+    if (!(recentRes && recentRes.ok)) warnings.push("Недавние");
+    if (!(actRes && actRes.ok)) warnings.push("Активность");
+
+    if (statusEl) {
+      statusEl.textContent =
+        `Закреплено: ${pinnedCount} · Недавние: ${v3DashRecent.length} · Активность: ${v3DashActivity.length}` +
+        (warnings.length ? ` · (частично: ${warnings.join(", ")})` : "");
+    }
 
     v3DashboardRender();
-	v3DashboardRefreshAnalytics();
+
+    // analytics — не должен валить Dashboard
+    if (typeof v3DashboardRefreshAnalytics === "function") {
+      try { v3DashboardRefreshAnalytics(); } catch (_) {}
+    }
   } catch (e) {
     console.error("[v3DashboardRefresh] error:", e);
     if (statusEl) statusEl.textContent = "Ошибка загрузки (см. console).";
@@ -5989,9 +6135,10 @@ async function v3DashboardRefresh() {
     if (actHeaderEl) actHeaderEl.textContent = "Не удалось загрузить активность.";
     if (actEl) actEl.innerHTML = '<div class="v3-dash-empty">Ошибка загрузки активности.</div>';
   }
+
   // ensure View state (show/hide sections) is applied after refresh renders
-try { v3DashApplyViewState(); } catch (_) {}
-try { v3DashApplyCollapsedState(); } catch (_) {}
+  try { v3DashApplyViewState(); } catch (_) {}
+  try { v3DashApplyCollapsedState(); } catch (_) {}
 }
 
 function v3DashboardOnFilterChange() {
@@ -6029,6 +6176,11 @@ function v3DashNorm(s) { return String(s || "").trim().toLowerCase(); }
 function v3DashMatches(t, qRaw, level) {
   const qObj = v3SplitQueryTokens(qRaw);
   return v3TextMatchesQuery(t, qObj, level);
+}
+
+// Back-compat: facet code may call v3DashMatchesText()
+function v3DashMatchesText(t, qRaw, level) {
+  return v3DashMatches(t, qRaw, level);
 }
 
 function v3DashBadges(t, recent) {
@@ -6114,6 +6266,8 @@ function v3DashboardRender() {
 
   // NEW: active chips render (COMMIT 2)
   v3DashboardRenderActiveChips();
+  
+  v3RenderTagFacets(v3LibEl("v3DashFacets"), v3DashboardGetTextsForFacets(), 18);
 }
 
 function v3DashRenderItem(t) {
@@ -6939,6 +7093,24 @@ function v3DashboardBindTagClicksOnce() {
         return; // no preventDefault => browser opens link normally
       }
 
+	  // Facet chip: toggle tag in query
+const facet = tgt.closest(".v3-facet-chip");
+if (facet) {
+  const tag = String(facet.getAttribute("data-tag") || "").trim();
+  if (!tag) return;
+
+  ev.preventDefault();
+  ev.stopPropagation();
+
+  const input = v3DashEl("v3DashSearch");
+  const qRaw = String(input?.value || "").trim();
+  const next = v3MergeTagIntoQuery(qRaw, tag); // toggle
+  if (input) input.value = next;
+
+  v3DashboardOnFilterChange();
+  return;
+}
+  
       // NEW: Active filter chips (remove)
       const xBtn = tgt.closest(".v3-filter-chip-x");
       if (xBtn) {
@@ -6964,7 +7136,7 @@ function v3DashboardBindTagClicksOnce() {
           return;
         }
 
-        // topic/tag/q → чистим строку поиска
+		// topic/tag/q → чистим строку поиска
         const input = v3DashEl("v3DashSearch");
         const qRaw = String(input ? input.value : "").trim();
 
@@ -7069,6 +7241,31 @@ function v3DashboardBindTagClicksOnce() {
       console.error("[v3Dash dblclick] error:", e);
     }
   });
+}
+
+function v3DashboardGetTextsForFacets() {
+  const qRaw = String(v3LibEl("v3DashSearch")?.value || "").trim();
+  const level = String(v3LibEl("v3DashLevel")?.value || "").trim();
+  const includeArchived = !!v3LibEl("v3DashIncludeArchived")?.checked;
+
+  const pool = [];
+  (v3DashLibTexts || []).forEach(t => pool.push(t));
+  (v3DashRecent || []).forEach(r => pool.push(r?.text || r));
+
+  const seen = new Set();
+  const out = [];
+  for (const t of pool) {
+    const id = String(t?.id || "");
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+
+    const isArchived = !!t?.is_archived;
+    if (!includeArchived && isArchived) continue;
+
+    if (!v3DashMatchesText(t, qRaw, level)) continue;
+    out.push(t);
+  }
+  return out;
 }
 
 // ----------------------------
