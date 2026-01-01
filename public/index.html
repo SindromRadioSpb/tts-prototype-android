@@ -7262,7 +7262,7 @@ function v3DashboardGetTextsForFacets() {
     const isArchived = !!t?.is_archived;
     if (!includeArchived && isArchived) continue;
 
-    if (!v3DashMatchesText(t, qRaw, level)) continue;
+	if (!v3DashMatches(t, qRaw, level)) continue;
     out.push(t);
   }
   return out;
