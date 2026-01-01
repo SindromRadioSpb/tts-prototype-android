@@ -1450,31 +1450,10 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 /* Source (humanize + copy) */
-.v3-source {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  max-width: 320px;
-  vertical-align: middle;
-}
-.v3-source-label {
-  display: inline-block;
-  max-width: 260px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: inherit;
-}
-.v3-src-copy {
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #374151;
-  border-radius: 8px;
-  padding: 1px 6px;
-  font-size: 12px;
-  line-height: 1.2;
-  cursor: pointer;
-}
+.v3-source { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
+.v3-source-label { display: inline-block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v3-src-copy { flex: 0 0 auto; }
+
 .v3-src-copy:hover { background: #f9fafb; }
 
 .v3-lib-danger {
@@ -4521,28 +4500,39 @@ function v3IsProbablyUrl(s) {
 function v3HumanizeSource(sourceRaw) {
   const raw = String(sourceRaw || "").trim();
   if (!raw) return null;
-  const full = raw;
-  let label = raw;
-  let isUrl = false;
-  let domain = "";
 
-  if (v3IsProbablyUrl(raw)) {
+  const isUrl = v3IsProbablyUrl(raw);
+
+  let full = raw;
+  let label = raw;
+  let domain = "";
+  let href = null;
+
+  if (isUrl) {
     try {
       const u = new URL(raw.includes("://") ? raw : ("https://" + raw));
-      domain = String(u.hostname || "").toLowerCase();
-      if (domain.startsWith("www.")) domain = domain.slice(4);
-      label = domain || raw;
-      isUrl = true;
+      href = u.href;
+      domain = u.hostname || "";
+      full = href;
+
+      // человеко-читаемый label: домен + путь (без мусора)
+      label = domain ? (domain + ((u.pathname && u.pathname !== "/") ? u.pathname : "")) : href;
+      if (label.length > 60) label = label.slice(0, 57) + "…";
     } catch (_) {
-      // fall back to raw
+      // даже если URL не парсится, даём рабочий href
+      href = raw.includes("://") ? raw : ("https://" + raw);
+      full = raw;
+      label = (raw.length > 60) ? (raw.slice(0, 57) + "…") : raw;
+      domain = "";
     }
+    return { full, label, isUrl: true, domain, href };
   }
 
-  if (!isUrl) {
-    label = v3ShortenText(raw, 56);
-  }
-  return { full, label, isUrl, domain };
+  // не URL
+  label = (raw.length > 60) ? (raw.slice(0, 57) + "…") : raw;
+  return { full: raw, label, isUrl: false, domain: "", href: null };
 }
+
 
 function v3CopyTextToClipboard(text) {
   const payload = String(text || "");
@@ -4963,12 +4953,33 @@ function v3LibraryRenderList(texts) {
     const tagsHtml = tagsArr.slice(0, 6).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(x) + "</span>").join("");
 	
 	const sourceRaw = String(t.source || "").trim();
-	const src = v3HumanizeSource(sourceRaw);
-	const sourceHtml = src
-  ? (`<span class="v3-source" title="${v3EscapeHtml(src.full)}"><span class="v3-source-label">${v3EscapeHtml(src.label)}</span>` +
+const src = v3HumanizeSource(sourceRaw);
+
+// не полагаемся только на src.isUrl — определяем URL сами
+const isUrl = !!(src && (
+  src.isUrl ||
+  /^https?:\/\//i.test(src.full || "") ||
+  /^www\./i.test(src.full || "")
+));
+
+const href = isUrl
+  ? String(src.href || src.full || "").trim().startsWith("http")
+      ? String(src.href || src.full).trim()
+      : ("https://" + String(src.href || src.full).trim())
+  : "";
+
+const labelHtml = src
+  ? (isUrl
+      ? `<a class="v3-source-label" href="${v3EscapeHtml(href)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(src.label)}</a>`
+      : `<span class="v3-source-label">${v3EscapeHtml(src.label)}</span>`)
+  : "";
+
+const sourceHtml = src
+  ? (`<span class="v3-source" title="${v3EscapeHtml(src.full)}">${labelHtml}` +
      ` <button type="button" class="v3-src-copy" data-copy="${v3EscapeHtml(src.full)}" title="Копировать полный источник">⧉</button>` +
      `</span>`)
   : "—";
+
 
     const lastOpened = t.last_opened_at || t.lastOpenedAt || null;
     const createdAt = t.created_at || t.createdAt || null;
@@ -5850,8 +5861,7 @@ function v3DashBadges(t, recent) {
     if (!isCompact) {
     if (t.level)  badges.push(`уровень: ${t.level}`);
     if (t.topic)  badges.push(`тема: ${t.topic}`);
-    if (t.source) badges.push(`ссылка: ${t.source}`);
-   }
+     }
 
   // Всегда оставляем “активность”
   const seen = recent ? (recent.seen_count ?? recent.seenCount ?? 0) : 0;
@@ -5930,13 +5940,29 @@ try {
     ""
   ).trim();
   const src = v3HumanizeSource(sourceRaw);
-  if (src) {
-    metaParts.push(
-      `Источник: <span class="v3-source" title="${v3EscapeHtml(src.full)}"><span class="v3-source-label">${v3EscapeHtml(src.label)}</span>` +
-      ` <button type="button" class="v3-src-copy" data-copy="${v3EscapeHtml(src.full)}" title="Копировать полный источник">⧉</button>` +
-      `</span>`
-    );
-  }
+if (src) {
+  const isUrl = !!(
+    src.isUrl ||
+    /^https?:\/\//i.test(src.full || "") ||
+    /^www\./i.test(src.full || "")
+  );
+
+  const href = isUrl
+    ? String(src.href || src.full || "").trim().startsWith("http")
+        ? String(src.href || src.full).trim()
+        : ("https://" + String(src.href || src.full).trim())
+    : "";
+
+  const labelHtml = isUrl
+    ? `<a class="v3-source-label" href="${v3EscapeHtml(href)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(src.label)}</a>`
+    : `<span class="v3-source-label">${v3EscapeHtml(src.label)}</span>`;
+
+  metaParts.push(
+    `Источник: <span class="v3-source" title="${v3EscapeHtml(src.full)}">${labelHtml}` +
+    ` <button type="button" class="v3-src-copy" data-copy="${v3EscapeHtml(src.full)}" title="Копировать полный источник">⧉</button>` +
+    `</span>`
+  );
+}
 } catch (_) {}
 
 const metaLine = metaParts.length
