@@ -69,6 +69,13 @@ const {
   getTextAudio,
 } = require("./db/audioRepo");
 
+const {
+  listNotesByTextId,
+  getNote,
+  upsertNote,
+  deleteNote,
+} = require("./db/notesRepo");
+
 // --------------------------------------------------------
 // 2. НАСТРОЙКИ СЕРВЕРА
 // --------------------------------------------------------
@@ -1828,6 +1835,81 @@ app.get("/api/library/texts/:id/sentences", async (req, res) => {
     res.json({ ok: true, textId: req.params.id, sentences });
   } catch (e) {
     console.error("GET /api/library/texts/:id/sentences error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// W10 Notes API: notes per sentence (Library)
+// --------------------------------------------------------
+
+// List notes for text
+app.get("/api/library/texts/:id/notes", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id);
+    const text = await getTextById(textId);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const notes = await listNotesByTextId(textId);
+    res.json({ ok: true, textId, notes });
+  } catch (e) {
+    console.error("GET /api/library/texts/:id/notes error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Upsert note for sentence
+app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id);
+    const sentenceId = String(req.params.sentenceId);
+
+    const text = await getTextById(textId);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const body = req.body || {};
+    if (!Object.prototype.hasOwnProperty.call(body, "note")) {
+      return res.status(400).json({ error: "VALIDATION", field: "note" });
+    }
+    if (typeof body.note !== "string") {
+      return res.status(400).json({ error: "VALIDATION", field: "note", details: "note must be string" });
+    }
+
+    const noteTrim = body.note.trim();
+
+    // трактуем пустую строку как delete (удобнее для UI; не плодим “пустые заметки”)
+    if (!noteTrim) {
+      await deleteNote(textId, sentenceId);
+      return res.json({ ok: true, deleted: true });
+    }
+
+    const saved = await upsertNote({ textId, sentenceId, note: noteTrim });
+    res.json({ ok: true, note: saved });
+  } catch (e) {
+    console.error("PUT /api/library/texts/:id/notes/:sentenceId error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// Delete note
+app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id);
+    const sentenceId = String(req.params.sentenceId);
+
+    const text = await getTextById(textId);
+    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+
+    await deleteNote(textId, sentenceId);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("DELETE /api/library/texts/:id/notes/:sentenceId error:", e);
     res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
