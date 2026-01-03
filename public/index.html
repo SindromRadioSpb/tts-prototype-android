@@ -2420,7 +2420,47 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
     const STORAGE_KEY = "ttsDashboard_text_v1";
     const TABLE_CACHE_KEY = "ttsDashboard_table_cache_v1";
-    const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
+    
+
+// Session state (restore last opened Library/Dashboard text after reload)
+// This MUST NOT rely on textarea "input" events (those mark results as stale).
+const V3_SESSION_STATE_KEY = "ttsDashboard_session_state_v1";
+
+function v3SessionGet() {
+  try {
+    const raw = localStorage.getItem(V3_SESSION_STATE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== "object") return null;
+    return obj;
+  } catch (e) {
+    return null;
+  }
+}
+
+function v3SessionSet(patch) {
+  try {
+    const prev = v3SessionGet() || {};
+    const next = Object.assign({}, prev, patch || {});
+    next.updatedAt = new Date().toISOString();
+    localStorage.setItem(V3_SESSION_STATE_KEY, JSON.stringify(next));
+  } catch (e) {
+    // non-fatal
+  }
+}
+
+function v3SessionMarkDraft() {
+  v3SessionSet({
+    mode: "draft",
+    textId: null,
+    origin: null,
+    openMode: null,
+    resumeSentenceId: null,
+    title: null,
+  });
+}
+
+const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
 	// PRO: user-resizable table height
 const TABLE_HEIGHT_STORAGE_KEY = "ttsDashboard_table_height_v1";
@@ -3534,7 +3574,8 @@ updatePlaylistButtonUI();
         autoGrow(true);
         scheduleSaveText();
         markResultsStale();
-        updateTtsCostInfo();
+      try { v3SessionMarkDraft(); } catch (_) {};
+      updateTtsCostInfo();
     });
 
     autoGrow(false);
@@ -4740,7 +4781,7 @@ function v3CopyTextToClipboard(text) {
 }
 
 async function v3GetJson(url) {
-  const r = await fetch(url, { method: "GET" });
+  const r = await fetch(url, { method: "GET", cache: "no-store" });
   if (!r.ok) {
     const t = await r.text().catch(() => "");
     const e = new Error("HTTP " + r.status);
@@ -5392,6 +5433,7 @@ function v3ApplyResumeSelection(token, rowIdx) {
   });
 }
 
+
 function v3SetSourceTextFromLibrary(raw) {
   try {
     if (!inputTextEl) return;
@@ -5433,6 +5475,21 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     ]);
 
     const text = meta && meta.text ? meta.text : null;
+
+    // Persist "last opened saved text" for restore-on-reload.
+    // Do this AFTER meta fetch so we can store the title.
+    try {
+      v3SessionSet({
+        mode: "library",
+        textId: String(textId),
+        origin: (opts && opts.origin) ? String(opts.origin) : "library",
+        openMode: (opts && opts.openMode) ? String(opts.openMode) : (resume ? "resume" : "open"),
+        resumeSentenceId: resumeSentenceId ? String(resumeSentenceId) : null,
+        title: (text && text.title) ? String(text.title) : null,
+      });
+    } catch (_) {}
+
+
     const sentences = sents && (sents.sentences || sents.rows || []) ? (sents.sentences || sents.rows || []) : [];
 
     // set active context for progress auto-save
@@ -6571,7 +6628,7 @@ async function v3DashboardContinue(textId) {
   const resumeSentenceId = (recent && recent.last_sentence_id) ? String(recent.last_sentence_id) : null;
 
   v3DashboardClose();
-  await v3LibraryOpenText(textId, { resumeSentenceId });
+  await v3LibraryOpenText(textId, { resumeSentenceId, origin: "dashboard", openMode: "resume" });
 
   // Без last_sentence_id — не автоплеим (иначе будет неожиданно играть 1-я строка)
   if (!resumeSentenceId) return;
@@ -8964,6 +9021,41 @@ initRowUxDelegatesOnce();
 
 
 
+
+
+
+// Restore last opened Library/Dashboard text after reload (F5).
+// Runs after initial UI bootstrap; safe even if the Library modal is closed.
+window.addEventListener("load", () => {
+  try {
+    const st = v3SessionGet();
+    if (!st || st.mode !== "library" || !st.textId) return;
+
+    if (window.__v3_restoreOnLoadRan) return;
+    window.__v3_restoreOnLoadRan = true;
+
+    // Defer: allow layout to settle and avoid competing with other on-load UI work.
+    setTimeout(() => {
+      try {
+        const openMode = (st.openMode === "open") ? "open" : "resume";
+        const opts = {
+          origin: st.origin || "restore",
+          openMode,
+          resume: (openMode === "resume"),
+          resumeSentenceId: st.resumeSentenceId || null,
+          fromRestore: true,
+        };
+        v3LibraryOpenText(String(st.textId), opts).catch((e) => {
+          console.warn("restore-on-load: failed to reopen last text", e);
+        });
+      } catch (e) {
+        console.warn("restore-on-load: failed", e);
+      }
+    }, 0);
+  } catch (e) {
+    // non-fatal
+  }
+});
 
 </script>
 
