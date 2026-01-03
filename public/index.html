@@ -2506,6 +2506,7 @@ function v3SessionSet(patch) {
   
   // Keep header/status in sync with session state
   try { v3UiUpdateActiveHeader(); } catch (_) {}
+  try { v3UiSyncSaveButtons(); } catch (_) {}
 }
 
 function v3SessionMarkDraft() {
@@ -3794,6 +3795,10 @@ updatePlaylistButtonUI();
         }
 
         textChangedNoticeEl.classList.add("notice-visible");
+		
+		    // Sync Save UI + header with stale state (critical to prevent duplicate / stale saves)
+		try { v3UiSyncSaveButtons(); } catch (_) {}
+		try { v3UiUpdateActiveHeader(); } catch (_) {}
     }
 
     function addStaleNote(container) {
@@ -3830,6 +3835,9 @@ updatePlaylistButtonUI();
         if (!audioIsStale && !tableIsStale) {
             textChangedNoticeEl.classList.remove("notice-visible");
         }
+		
+		 try { v3UiSyncSaveButtons(); } catch (_) {}
+		 try { v3UiUpdateActiveHeader(); } catch (_) {}
     }
 
     function clearTextWithConfirm() {
@@ -4794,6 +4802,38 @@ function v3UiUpdateActiveHeader() {
   box.style.display = "";
 }
 
+function v3UiSyncSaveButtons() {
+  try {
+    const btn = document.getElementById("btnSaveToLibrary");
+    if (!btn) return;
+
+    const hasTable = Array.isArray(currentTableData) && currentTableData.length > 0;
+    const stale = !!tableIsStale;
+
+    // disable если таблицы нет или она устарела
+    const disabled = stale || !hasTable;
+    btn.disabled = disabled;
+
+    if (stale) {
+      btn.title = "Сначала «AI Перевод»: таблица устарела и не соответствует текущему тексту.";
+    } else if (!hasTable) {
+      btn.title = "Сначала сформируйте таблицу (нажмите «AI Перевод»).";
+    } else {
+      btn.title = "Сохранить текст в библиотеку";
+    }
+
+    // Если модалка сохранения открыта — тоже блокируем кнопку Save внутри
+    const saveBtn = document.getElementById("v3SaveMetaSaveBtn");
+    if (saveBtn) {
+      saveBtn.disabled = stale || !hasTable;
+      if (stale) saveBtn.title = "Сначала «AI Перевод»: таблица устарела.";
+      else saveBtn.title = "";
+    }
+  } catch (_) {
+    // non-fatal
+  }
+}
+
 function v3EscapeHtml(s) {
   return String(s || "")
     .replace(/&/g, "&amp;")
@@ -5723,6 +5763,15 @@ async function v3LibrarySaveCurrent() {
   // Week9 P1: вместо “немого” сохранения — всегда просим мету (PRO / Premium hygiene).
   // Важно: никаких новых audio listeners — только UI-модалка.
   try {
+      // Guard: нельзя сохранять устаревшую таблицу
+    if (tableIsStale) {
+      showToast("Сначала нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.", "error");
+      return;
+    }
+    if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
+      showToast("Нет таблицы для сохранения (сначала «AI Перевод»).", "error");
+      return;
+    }
     v3SaveMetaOpen();
   } catch (e) {
     console.warn("v3LibrarySaveCurrent (open modal) failed", e);
@@ -6951,6 +7000,16 @@ function v3SaveMetaOpen() {
     return;
   }
 
+  // Guard: нельзя сохранять устаревшую таблицу (иначе будут дубликаты/неактуальные карточки)
+if (typeof tableIsStale !== "undefined" && tableIsStale) {
+  showToast("Текст изменён — таблица устарела. Нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.", "error");
+  try { v3UiSyncSaveButtons(); } catch (_) {}
+  return;
+}
+
+// На всякий случай синхронизируем кнопку сохранения перед показом модалки
+try { v3UiSyncSaveButtons(); } catch (_) {}
+  
   // гарантируем единый enum уровней (и для новой модалки тоже)
   try { v3InitLevelEnumUi(); } catch (_) {}
 
