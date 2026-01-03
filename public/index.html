@@ -5392,6 +5392,32 @@ function v3ApplyResumeSelection(token, rowIdx) {
   });
 }
 
+function v3SetSourceTextFromLibrary(raw) {
+  try {
+    if (!inputTextEl) return;
+    const s = String(raw ?? "");
+
+    // Важно: загрузка из Library/Dashboard = "истина".
+    // Мы НЕ должны помечать результаты как устаревшие (results-stale),
+    // и НЕ должны затирать черновик в localStorage, поэтому НЕ триггерим input event.
+    inputTextEl.value = s;
+
+    // Обновим зависимые UI-части без dispatchEvent("input")
+    try { autoGrow(false); } catch (_) {}
+    try { updateTtsCostInfo(); } catch (_) {}
+
+    // Снятие stale (таблица/аудио) — раз мы загрузили сохранённый материал
+    try { clearTableStale(); } catch (_) {}
+    try { clearAudioStale(); } catch (_) {}
+    try {
+      const notice = document.getElementById("textChangedNotice");
+      if (notice) notice.classList.remove("notice-visible");
+    } catch (_) {}
+  } catch (e) {
+    console.warn("v3SetSourceTextFromLibrary failed", e);
+  }
+}
+
 async function v3LibraryOpenText(textId, opts) {
   const resumeSentenceId = (opts && opts.resumeSentenceId) ? String(opts.resumeSentenceId) : null;
 const resume = !!(opts && (opts.resume || resumeSentenceId));
@@ -5419,8 +5445,7 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     // show source text in textarea (optional, but useful)
     try {
       if (text && (text.source_text || text.sourceText)) {
-        inputTextEl.value = String(text.source_text || text.sourceText);
-        inputTextEl.dispatchEvent(new Event("input"));
+        v3SetSourceTextFromLibrary(String(text.source_text || text.sourceText));
       }
     } catch (_) {}
 
