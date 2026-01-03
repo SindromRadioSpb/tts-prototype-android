@@ -653,6 +653,52 @@ th, td { border-color: rgba(0,0,0,0.55); }
         font-size: 12px;
         color: #6c757d;
     }
+	
+	/* V3 Active Text Header (above table) */
+.v3-active-header {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 12px;
+  background: rgba(255,255,255,.6);
+}
+
+.v3-active-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.v3-active-title {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v3-active-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: .85;
+}
+
+.v3-pill {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid rgba(0,0,0,.12);
+  background: rgba(255,255,255,.7);
+  white-space: nowrap;
+}
+
+.v3-pill-draft {
+  border-style: dashed;
+  background: rgba(255,255,255,.35);
+}
 
     /* Метаданные результатов */
     #resultsMeta {
@@ -2040,9 +2086,19 @@ th, td { border-color: rgba(0,0,0,0.55); }
   <span class="table-resizer-grip" aria-hidden="true"></span>
 </div>
 
+<div id="v3ActiveTextHeader" class="v3-active-header" style="display:none;">
+  <div class="v3-active-header-row">
+    <div id="v3ActiveTextTitle" class="v3-active-title">—</div>
+    <div class="v3-active-badges">
+      <span id="v3ActiveTextStatus" class="v3-pill v3-pill-saved">Сохранён</span>
+    </div>
+  </div>
+  <div id="v3ActiveTextSub" class="v3-active-sub"></div>
+</div>
+
 <div id="tableContainer"></div>
 
-    </div>
+</div>
 
     <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
@@ -2447,6 +2503,9 @@ function v3SessionSet(patch) {
   } catch (e) {
     // non-fatal
   }
+  
+  // Keep header/status in sync with session state
+  try { v3UiUpdateActiveHeader(); } catch (_) {}
 }
 
 function v3SessionMarkDraft() {
@@ -4677,6 +4736,64 @@ let v3LastGeminiMeta = null;
 
 function v3LibEl(id) { return document.getElementById(id); }
 
+function v3GuessDraftTitleFromTextarea() {
+  const ta = document.getElementById("inputText");
+  const raw = (ta && ta.value ? String(ta.value) : "").trim();
+  if (!raw) return "Черновик (без текста)";
+  const first = raw.split(/\r?\n/).map(s => s.trim()).find(Boolean);
+  if (!first) return "Черновик (без заголовка)";
+  return first.length > 80 ? (first.slice(0, 77) + "...") : first;
+}
+
+function v3UiUpdateActiveHeader() {
+  const box = document.getElementById("v3ActiveTextHeader");
+  if (!box) return;
+
+  const titleEl = document.getElementById("v3ActiveTextTitle");
+  const statusEl = document.getElementById("v3ActiveTextStatus");
+  const subEl = document.getElementById("v3ActiveTextSub");
+
+  if (!titleEl || !statusEl || !subEl) return;
+
+  const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
+  const hasTable = (typeof currentTableData !== "undefined") && Array.isArray(currentTableData) && currentTableData.length > 0;
+
+  // Если таблицы нет и состояния нет — скрываем.
+  if (!hasTable && !st.mode) {
+    box.style.display = "none";
+    return;
+  }
+
+  const mode = st.mode || "draft";
+  let title = st.title || "";
+  let statusText = "";
+  let sub = "";
+
+  if (mode === "draft") {
+    statusText = "Черновик";
+    if (!title) title = v3GuessDraftTitleFromTextarea();
+    sub = "Текст изменён — таблица устарела и не соответствует текущему тексту.\n" +
+      "Нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.\n" +
+      "Сохранение таблицы рекомендуется после обновления.";
+    statusEl.classList.remove("v3-pill-saved");
+    statusEl.classList.add("v3-pill-draft");
+  } else {
+    statusText = "Сохранён";
+    if (!title) title = "(без названия)";
+    const origin = st.origin || "library";
+    sub = (origin === "dashboard") ? "Открыт из Dashboard" : "Открыт из Library";
+    if (st.openMode === "resume") sub += " • режим: продолжить";
+    statusEl.classList.remove("v3-pill-draft");
+    statusEl.classList.add("v3-pill-saved");
+  }
+
+  titleEl.textContent = title;
+  statusEl.textContent = statusText;
+  subEl.textContent = sub;
+
+  box.style.display = "";
+}
+
 function v3EscapeHtml(s) {
   return String(s || "")
     .replace(/&/g, "&amp;")
@@ -5379,6 +5496,9 @@ function v3PrepareForNewTableRender() {
   try { clearRowPlayingState(true); } catch (_) {}
   try { clearRowSelectedUI(); } catch (_) {}
   try { document.getElementById("tableContainer").innerHTML = ""; } catch (_) {}
+  
+  // C3: header follows table presence (table cleared before new render)
+	try { v3UiUpdateActiveHeader(); } catch (_) {}
 }
 
 // --------------------------------------------------------
@@ -5650,6 +5770,22 @@ async function v3LibrarySaveCurrentCore(meta) {
     if (text && text.id) {
       try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(String(text.id)); } catch (_) {}
     }
+	
+	// C4: draft -> saved + bind id/title into session (for header/status + restore)
+    try {
+      const effectiveTitle =
+        String((text && text.title) || title || "").trim() ||
+        (typeof v3GuessDraftTitleFromTextarea === "function" ? String(v3GuessDraftTitleFromTextarea() || "").trim() : "") ||
+        "—";
+
+      v3SessionSet({
+        mode: "saved",
+        textId: String(text.id),
+        title: effectiveTitle,
+        origin: "library",
+        openMode: "open"
+      });
+    } catch (_) {}
 
     showToast("Сохранено в библиотеку", "success");
 
@@ -7927,6 +8063,9 @@ try {
     function renderTable(rows) {
         if (!Array.isArray(rows) || rows.length === 0) {
     document.getElementById("tableContainer").innerHTML = "";
+	
+	// C3: header follows table presence (table cleared)
+	try { v3UiUpdateActiveHeader(); } catch (_) {}
 
     // Week 6 guard: если таблицы нет — плейлист не может быть активен
     rowPlaylistRunActive = false;
@@ -8041,6 +8180,10 @@ try {
         html += '  </tbody></table>';
 
         document.getElementById("tableContainer").innerHTML = html;
+		
+		// C3: header follows table render (table present)
+		try { v3UiUpdateActiveHeader(); } catch (_) {}
+
 
 // P0.5+: восстановить sticky-состояния строк после пересборки DOM (пресеты/чекбоксы/сброс настроек)
 // Важно: НЕ сбрасываем selected из-за “битого” playing-индекса во время view-операций.
