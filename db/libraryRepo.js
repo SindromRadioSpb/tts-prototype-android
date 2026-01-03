@@ -389,7 +389,7 @@ await dbRun(db, `UPDATE sentences SET order_index = order_index + ? WHERE text_i
       const keepSet = usedIds; // reused sentence ids
       const toDelete = existingIds.filter((sid) => !keepSet.has(sid));
 
-      if (toDelete.length > 0) {
+            if (toDelete.length > 0) {
         const ph = toDelete.map(() => "?").join(",");
 
         // Optional table: sentence_audio (present only in some branches).
@@ -404,6 +404,22 @@ await dbRun(db, `UPDATE sentences SET order_index = order_index + ? WHERE text_i
           const msg = String((e && e.message) ? e.message : "");
           const msgLc = msg.toLowerCase();
           if (!(msgLc.includes("no such table") && msgLc.includes("sentence_audio"))) {
+            throw e;
+          }
+        }
+
+        // W10-NOTES-01: Optional table sentence_notes (ignore if not migrated yet).
+        // Delete notes BEFORE deleting sentences to avoid orphans even if FK cascades are off.
+        try {
+          await dbRun(
+            db,
+            `DELETE FROM sentence_notes WHERE sentence_id IN (${ph});`,
+            [...toDelete]
+          );
+        } catch (e) {
+          const msg = String((e && e.message) ? e.message : "");
+          const msgLc = msg.toLowerCase();
+          if (!(msgLc.includes("no such table") && msgLc.includes("sentence_notes"))) {
             throw e;
           }
         }

@@ -1988,77 +1988,114 @@ app.get("/api/library/texts/:id/sentences", async (req, res) => {
 });
 
 // --------------------------------------------------------
-// W10 Notes API: notes per sentence (Library)
+// Notes per sentence (W10-NOTES-01)
 // --------------------------------------------------------
+const _UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function isUuid(s) {
+  return _UUID_RE.test(String(s || ""));
+}
 
-// List notes for text
+function normalizeNoteDto(r) {
+  if (!r) return null;
+  return {
+    sentenceId: String(r.sentenceId ?? r.sentence_id ?? ""),
+    note: String(r.note ?? ""),
+    updatedAt: r.updatedAt ?? r.updated_at ?? null,
+  };
+}
+
+// GET all notes for text
 app.get("/api/library/texts/:id/notes", async (req, res) => {
   try {
-    if (!requireDbOr503(res)) return;
+    const textId = String(req.params.id || "");
+    if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
 
-    const textId = String(req.params.id);
-    const text = await getTextById(textId);
-    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+    const t = await getTextById(textId);
+    if (!t) return res.status(404).json({ error: "TEXT_NOT_FOUND" });
 
-    const notes = await listNotesByTextId(textId);
-    res.json({ ok: true, textId, notes });
+    const rows = await listNotesByTextId(textId);
+    const notes = (rows || []).map(normalizeNoteDto).filter((x) => x && x.sentenceId);
+
+    return res.json({ ok: true, notes });
   } catch (e) {
-    console.error("GET /api/library/texts/:id/notes error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.warn("GET notes failed", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
 
-// Upsert note for sentence
+// PUT upsert note for sentence (sentence must belong to text)
 app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
   try {
-    if (!requireDbOr503(res)) return;
+    const textId = String(req.params.id || "");
+    const sentenceId = String(req.params.sentenceId || "");
+    if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
+    if (!isUuid(sentenceId)) return res.status(400).json({ error: "BAD_SENTENCE_ID" });
 
-    const textId = String(req.params.id);
-    const sentenceId = String(req.params.sentenceId);
+    const t = await getTextById(textId);
+    if (!t) return res.status(404).json({ error: "TEXT_NOT_FOUND" });
 
-    const text = await getTextById(textId);
-    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+    const raw = req.body ? req.body.note : undefined;
+    if (typeof raw !== "string") return res.status(400).json({ error: "BAD_NOTE" });
 
-    const body = req.body || {};
-    if (!Object.prototype.hasOwnProperty.call(body, "note")) {
-      return res.status(400).json({ error: "VALIDATION", field: "note" });
-    }
-    if (typeof body.note !== "string") {
-      return res.status(400).json({ error: "VALIDATION", field: "note", details: "note must be string" });
-    }
+    const note = raw.trim();
 
-    const noteTrim = body.note.trim();
-
-    // трактуем пустую строку как delete (удобнее для UI; не плодим “пустые заметки”)
-    if (!noteTrim) {
-      await deleteNote(textId, sentenceId);
+    // предпочитаем не хранить пустые заметки: пусто => delete
+    if (!note) {
+      try {
+        await deleteNote({ textId, sentenceId });
+      } catch (e2) {
+        // если sentence не в text => 404 обязателен
+        if (e2 && (e2.code === "SENTENCE_NOT_IN_TEXT")) {
+          return res.status(404).json({ error: "SENTENCE_NOT_IN_TEXT" });
+        }
+        // если просто "не было заметки" — считаем ok
+      }
       return res.json({ ok: true, deleted: true });
     }
 
-    const saved = await upsertNote({ textId, sentenceId, note: noteTrim });
-    res.json({ ok: true, note: saved });
+    if (note.length > 16000) return res.status(400).json({ error: "NOTE_TOO_LONG" });
+
+    let saved = null;
+    try {
+      saved = await upsertNote({ textId, sentenceId, note });
+    } catch (e2) {
+      if (e2 && (e2.code === "SENTENCE_NOT_IN_TEXT")) {
+        return res.status(404).json({ error: "SENTENCE_NOT_IN_TEXT" });
+      }
+      throw e2;
+    }
+
+    return res.json({ ok: true, note: normalizeNoteDto(saved) });
   } catch (e) {
-    console.error("PUT /api/library/texts/:id/notes/:sentenceId error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.warn("PUT note failed", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
 
-// Delete note
+// DELETE note for sentence (sentence must belong to text)
 app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
   try {
-    if (!requireDbOr503(res)) return;
+    const textId = String(req.params.id || "");
+    const sentenceId = String(req.params.sentenceId || "");
+    if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
+    if (!isUuid(sentenceId)) return res.status(400).json({ error: "BAD_SENTENCE_ID" });
 
-    const textId = String(req.params.id);
-    const sentenceId = String(req.params.sentenceId);
+    const t = await getTextById(textId);
+    if (!t) return res.status(404).json({ error: "TEXT_NOT_FOUND" });
 
-    const text = await getTextById(textId);
-    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+    try {
+      await deleteNote({ textId, sentenceId });
+    } catch (e2) {
+      if (e2 && (e2.code === "SENTENCE_NOT_IN_TEXT")) {
+        return res.status(404).json({ error: "SENTENCE_NOT_IN_TEXT" });
+      }
+      throw e2;
+    }
 
-    await deleteNote(textId, sentenceId);
-    res.json({ ok: true });
+    return res.json({ ok: true });
   } catch (e) {
-    console.error("DELETE /api/library/texts/:id/notes/:sentenceId error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
+    console.warn("DELETE note failed", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
 
