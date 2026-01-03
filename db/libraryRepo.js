@@ -1,6 +1,16 @@
 "use strict";
 
 const crypto = require("crypto");
+
+function uuidv4() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  const b = crypto.randomBytes(16);
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = b.toString("hex");
+  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+}
+
 const { getDb } = require("./sqlite");
 
 function dbExec(db, sql) {
@@ -163,6 +173,256 @@ async function createTextWithSentences({
     try {
       await dbExec(db, "ROLLBACK;");
     } catch (_) {}
+    throw err;
+  }
+
+  return getTextById(tId);
+}
+
+async function updateTextWithSentences({
+  // Back-compat: server may pass `id` (preferred), older code may pass `textId`
+  id,
+  textId,
+
+  textKey,
+  title,
+  level,
+  tagsJson,
+  sourceText,
+  sourceMetaJson,
+  ttsProfileJson,
+  tableModelMetaJson,
+
+  // Week9 dashboard meta
+  source,
+  topic,
+
+  rows,
+}) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const tId = id || textId;
+  if (!tId) {
+    const err = new Error("NOT_FOUND");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+
+  // Ensure text exists
+  const existingText = await getTextById(tId);
+  if (!existingText) {
+    const err = new Error("NOT_FOUND");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+
+  const now = nowIso();
+
+  // Load existing sentences to preserve ids when possible (critical for sentence_audio / Notes)
+  const existingSentences = await dbAll(
+    db,
+    `
+      SELECT id, row_hash, order_index
+        FROM sentences
+       WHERE text_id = ?
+       ORDER BY order_index ASC;
+    `,
+    [tId]
+  );
+
+  const existingIds = [];
+  const hashQueues = new Map(); // row_hash -> queue of ids (handles duplicates by preserving multiplicity)
+  let existingWithHash = 0;
+
+  for (const s of existingSentences || []) {
+    existingIds.push(s.id);
+
+    const h = String(s.row_hash || "").trim();
+    if (!h) continue; // legacy rows may have NULL/empty hashes
+    existingWithHash++;
+
+    if (!hashQueues.has(h)) hashQueues.set(h, []);
+    hashQueues.get(h).push(s.id);
+  }
+
+  // Heuristic: if most existing sentences have no hash, prefer index-based reuse
+  const preferIndexReuse = (existingIds.length > 0)
+    ? (existingWithHash < Math.floor(existingIds.length * 0.6))
+    : false;
+
+  const usedIds = new Set();
+
+  // Plan: reuse ids where possible (hash first, then index fallback)
+  const planned = (rows || []).map((r, idx) => {
+    const row_hash = String(r && r.row_hash ? r.row_hash : "").trim();
+
+    let reuseId = null;
+
+    if (row_hash) {
+      const q = hashQueues.get(row_hash);
+      const cand = (q && q.length) ? q.shift() : null;
+      if (cand && !usedIds.has(cand)) reuseId = cand;
+    }
+
+    if (!reuseId && preferIndexReuse && (existingSentences && idx < existingSentences.length)) {
+      const cand = existingSentences[idx] ? existingSentences[idx].id : null;
+      if (cand && !usedIds.has(cand)) reuseId = cand;
+    }
+
+    if (reuseId) usedIds.add(reuseId);
+
+    const providedId = (r && r.id) ? String(r.id) : null;
+
+    return {
+      reuseId,
+      newId: reuseId ? null : (providedId || uuidv4()),
+      order_index: idx,
+      he_plain: String(r && r.he_plain ? r.he_plain : ""),
+      he_niqqud: String(r && r.he_niqqud ? r.he_niqqud : ""),
+      translit: String(r && r.translit ? r.translit : ""),
+      ru: String(r && r.ru ? r.ru : ""),
+      row_hash: row_hash || null,
+      meta_json: (r && r.meta_json != null) ? String(r.meta_json) : null,
+    };
+  });
+
+  await dbExec(db, "BEGIN IMMEDIATE;");
+  try {
+    // Update text row (do not touch pin/archive fields)
+    await dbRun(
+      db,
+      `
+        UPDATE texts
+           SET text_key = ?,
+               title = ?,
+               level = ?,
+               tags_json = ?,
+               source_text = ?,
+               source_meta_json = ?,
+               tts_profile_json = ?,
+               table_model_meta_json = ?,
+               source = ?,
+               topic = ?,
+               updated_at = ?
+         WHERE id = ?;
+      `,
+      [
+        textKey,
+        title,
+        level || null,
+        tagsJson || null,
+        sourceText,
+        sourceMetaJson || null,
+        ttsProfileJson || null,
+        tableModelMetaJson || null,
+        (source == null ? null : String(source)),
+        (topic == null ? null : String(topic)),
+        now,
+        tId,
+      ]
+    );
+
+	// Avoid UNIQUE(text_id, order_index) collisions while reordering/upserting sentences.
+// We preserve sentence IDs (for sentence_audio and future Notes/SRS), so we cannot do wholesale delete+reinsert.
+// Strategy: temporarily shift all existing order_index values out of the 0..N range, then write final indices.
+const SHIFT = 1000000;
+await dbRun(db, `UPDATE sentences SET order_index = order_index + ? WHERE text_id = ?;`, [SHIFT, tId]);
+	
+    // Update reused sentences / insert new sentences
+    for (const r of planned) {
+      if (r.reuseId) {
+        await dbRun(
+          db,
+          `
+            UPDATE sentences
+               SET order_index = ?,
+                   he_plain = ?,
+                   he_niqqud = ?,
+                   translit = ?,
+                   ru = ?,
+                   row_hash = ?,
+                   meta_json = ?
+             WHERE id = ?
+               AND text_id = ?;
+          `,
+          [
+            r.order_index,
+            r.he_plain,
+            r.he_niqqud,
+            r.translit,
+            r.ru,
+            r.row_hash,
+            r.meta_json,
+            r.reuseId,
+            tId,
+          ]
+        );
+      } else {
+        await dbRun(
+          db,
+          `
+            INSERT INTO sentences (
+              id, text_id, order_index,
+              he_plain, he_niqqud, translit, ru,
+              row_hash, meta_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+          `,
+          [
+            r.newId,
+            tId,
+            r.order_index,
+            r.he_plain,
+            r.he_niqqud,
+            r.translit,
+            r.ru,
+            r.row_hash,
+            r.meta_json,
+            now,
+          ]
+        );
+      }
+    }
+
+    // Delete only sentences that are no longer present
+    if (existingIds.length > 0) {
+      const keepSet = usedIds; // reused sentence ids
+      const toDelete = existingIds.filter((sid) => !keepSet.has(sid));
+
+      if (toDelete.length > 0) {
+        const ph = toDelete.map(() => "?").join(",");
+
+        // Optional table: sentence_audio (present only in some branches).
+        // If it does not exist, ignore the error.
+        try {
+          await dbRun(
+            db,
+            `DELETE FROM sentence_audio WHERE sentence_id IN (${ph});`,
+            [...toDelete]
+          );
+        } catch (e) {
+          const msg = String((e && e.message) ? e.message : "");
+          const msgLc = msg.toLowerCase();
+          if (!(msgLc.includes("no such table") && msgLc.includes("sentence_audio"))) {
+            throw e;
+          }
+        }
+
+        await dbRun(
+          db,
+          `
+            DELETE FROM sentences
+             WHERE text_id = ?
+               AND id IN (${ph});
+          `,
+          [tId, ...toDelete]
+        );
+      }
+    }
+
+    await dbExec(db, "COMMIT;");
+  } catch (err) {
+    try { await dbExec(db, "ROLLBACK;"); } catch (_) {}
     throw err;
   }
 
@@ -399,6 +659,7 @@ module.exports = {
   computeTextKey,
   guessTitle,
   createTextWithSentences,
+  updateTextWithSentences,
   listTexts,
   getTextById,
   getSentencesByTextId,
@@ -409,4 +670,3 @@ module.exports = {
   // Week9 dashboard meta
   updateTextMeta,
 };
-

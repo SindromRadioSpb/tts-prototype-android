@@ -32,6 +32,7 @@ const {
   computeTextKey,
   guessTitle,
   createTextWithSentences,
+  updateTextWithSentences,
   listTexts,
   getTextById,
   getSentencesByTextId,
@@ -1800,11 +1801,158 @@ if (!isPinned) pinOrder = null;
   } catch (e) {
     // уникальность text_key: если такой уже есть — возвращаем понятный код
     const msg = String(e && e.message ? e.message : e);
-    if (msg.includes("ux_texts_text_key") || msg.includes("UNIQUE") || msg.includes("text_key")) {
+    const msgLc = msg.toLowerCase();
+	if (msg.includes("ux_texts_text_key") || (msgLc.includes("text_key") && (msgLc.includes("unique") || msgLc.includes("duplicate")))) {
       return res.status(409).json({ error: "DUPLICATE_TEXT_KEY" });
     }
     console.error("POST /api/library/texts error:", e);
     res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// PUT /api/library/texts/:id — update existing text (Saved-update)
+app.put("/api/library/texts/:id", express.json({ limit: "2mb" }), async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id || "").trim();
+    if (!textId) return res.status(400).json({ error: "BAD_REQUEST" });
+
+    // Must exist
+    const existing = await getTextById(textId);
+    if (!existing) return res.status(404).json({ error: "NOT_FOUND" });
+
+    const sourceText = String((req.body && req.body.sourceText) ? req.body.sourceText : "").trim();
+    const rowsRaw = (req.body && Array.isArray(req.body.rows)) ? req.body.rows : null;
+
+    if (!sourceText) return res.status(400).json({ error: "MISSING_SOURCE_TEXT" });
+    if (!rowsRaw || rowsRaw.length < 1) return res.status(400).json({ error: "MISSING_ROWS" });
+
+    // meta: if empty in request, keep existing (avoid wiping)
+    const titleIn = (req.body && req.body.title != null) ? String(req.body.title).trim() : "";
+    const levelIn = (req.body && req.body.level != null) ? String(req.body.level).trim() : "";
+    const sourceIn = (req.body && req.body.source != null) ? String(req.body.source).trim() : "";
+    const topicIn = (req.body && req.body.topic != null) ? String(req.body.topic).trim() : "";
+
+    const title =
+      titleIn ||
+      (existing && existing.title ? String(existing.title) : "") ||
+      guessTitle(sourceText);
+
+    const level =
+      (levelIn || (existing && existing.level ? String(existing.level) : "")).trim() || null;
+
+    const source =
+      (sourceIn || (existing && existing.source ? String(existing.source) : "")).trim() || null;
+
+    const topic =
+      (topicIn || (existing && existing.topic ? String(existing.topic) : "")).trim() || null;
+
+    // tags: request tags -> else existing tags_json -> else []
+    let tags = [];
+    if (req.body && Array.isArray(req.body.tags)) {
+      tags = req.body.tags;
+    } else {
+      try { tags = existing && existing.tags_json ? JSON.parse(String(existing.tags_json)) : []; }
+      catch (_) { tags = []; }
+    }
+    const tagsJson = (tags && tags.length) ? JSON.stringify(tags) : null;
+
+    // preserve ttsProfile/tableModelMeta if client didn't send them
+    let ttsProfile = null;
+    let tableModelMeta = null;
+
+    if (req.body && ("ttsProfile" in req.body)) ttsProfile = req.body.ttsProfile;
+    else {
+      try { ttsProfile = existing && existing.tts_profile_json ? JSON.parse(String(existing.tts_profile_json)) : null; }
+      catch (_) { ttsProfile = null; }
+    }
+
+    if (req.body && ("tableModelMeta" in req.body)) tableModelMeta = req.body.tableModelMeta;
+    else {
+      try { tableModelMeta = existing && existing.table_model_meta_json ? JSON.parse(String(existing.table_model_meta_json)) : null; }
+      catch (_) { tableModelMeta = null; }
+    }
+
+    const ttsProfileJson = JSON.stringify(ttsProfile || null);
+    const tableModelMetaJson = JSON.stringify(tableModelMeta || null);
+
+    // For PUT update we keep the existing text_key to avoid UNIQUE collisions.
+// Fork-as-new (POST) is the path that creates a new key.
+const textKey = (existing && existing.text_key != null && String(existing.text_key).trim())
+  ? String(existing.text_key).trim()
+  : null;
+
+    // normalize rows + stable row_hash (server-side truth)
+    const rows = rowsRaw.map((r, idx) => {
+      const he_plain = String((r && (r.he_plain || r.he)) ? (r.he_plain || r.he) : "").trim();
+      const he_niqqud = String((r && r.he_niqqud) ? r.he_niqqud : "").trim();
+      const translit = String((r && r.translit) ? r.translit : "").trim();
+      const ru = String((r && r.ru) ? r.ru : "").trim();
+
+      const hePlain = he_plain;
+	const heNiq = he_niqqud;
+
+	const row_hash = crypto
+  .createHash("sha256")
+  .update(JSON.stringify({ hePlain, heNiq, translit, ru }), "utf8")
+  .digest("hex");
+
+
+      let meta_json = null;
+      if (r && r.meta_json != null) meta_json = String(r.meta_json);
+      else if (r && typeof r === "object" && r.verbs) meta_json = JSON.stringify({ verbs: r.verbs });
+      else meta_json = null;
+
+      // IMPORTANT: your sentences insert expects explicit id
+      const sId = (r && r.id) ? String(r.id) : uuidv4();
+
+      return {
+        id: sId,
+        order_index: idx,
+        he_plain,
+        he_niqqud,
+        translit,
+        ru,
+        row_hash,
+        meta_json,
+      };
+    });
+
+    const sourceMetaJson = JSON.stringify({
+      updatedFrom: "ui-save",
+      updatedAt: new Date().toISOString(),
+    });
+
+    const updatedText = await updateTextWithSentences({
+      id: textId,                 // keep repo style (like createTextWithSentences)
+      textKey,
+      title,
+      level,
+      tagsJson,
+      sourceText,
+      sourceMetaJson,
+      ttsProfileJson,
+      tableModelMetaJson,
+      source,
+      topic,
+      rows,
+    });
+
+    return res.json({ ok: true, text: updatedText });
+  } catch (e) {
+    if (e && (e.code === "NOT_FOUND" || String(e.message || "").includes("NOT_FOUND"))) {
+      return res.status(404).json({ error: "NOT_FOUND" });
+    }
+
+    const msg = String(e && (e.message || e) ? (e.message || e) : "");
+    const msgLc = msg.toLowerCase();
+	if (msg.includes("ux_texts_text_key") || msg.includes("texts.text_key") || (msgLc.includes("text_key") && (msgLc.includes("unique") || msgLc.includes("duplicate")))) {
+      return res.status(409).json({ error: "DUPLICATE_KEY" });
+    }
+
+    console.warn("PUT /api/library/texts/:id failed", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
 
@@ -2593,7 +2741,8 @@ app.post("/api/library/import", async (req, res) => {
         const msg = String(e && e.message ? e.message : e);
 
         // UNIQUE text_key => дубликат
-        if (msg.includes("ux_texts_text_key") || msg.includes("UNIQUE") || msg.includes("text_key")) {
+        const msgLc = msg.toLowerCase();
+		if (msg.includes("ux_texts_text_key") || (msgLc.includes("text_key") && (msgLc.includes("unique") || msgLc.includes("duplicate")))) {
           skippedCount++;
           continue;
         }
