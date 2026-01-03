@@ -2430,9 +2430,18 @@ th, td { border-color: rgba(0,0,0,0.55); }
       </div>
 
       <div class="v3-modal-actions">
-        <button class="btn-secondary" onclick="v3SaveMetaClose()">Cancel</button>
-        <button id="v3SaveMetaSaveBtn" class="btn-primary" onclick="v3SaveMetaSave()">Save</button>
-      </div>
+  <button class="btn-secondary" onclick="v3SaveMetaClose()">Cancel</button>
+
+  <button id="v3SaveMetaSaveAsNewBtn"
+          class="btn-secondary"
+          onclick="v3SaveMetaSaveAsNew()"
+          style="display:none;">
+    Сохранить как новый
+  </button>
+
+  <button id="v3SaveMetaSaveBtn" class="btn-primary" onclick="v3SaveMetaSave()">Save</button>
+</div>
+
 
       <div class="v3-help">
         Title обязателен. Если оставить пустым — подставим автоматически (первая непустая строка исходного текста).
@@ -2510,14 +2519,30 @@ function v3SessionSet(patch) {
 }
 
 function v3SessionMarkDraft() {
-  v3SessionSet({
-    mode: "draft",
-    textId: null,
-    origin: null,
-    openMode: null,
-    resumeSentenceId: null,
-    title: null,
-  });
+  try {
+    const st = v3SessionGet() || {};
+    const baseTextId = st.baseTextId || st.textId || null;
+
+    v3SessionSet({
+      mode: "draft",
+      textId: null,           // не авто-восстанавливаем “saved” карточку на F5
+      baseTextId: baseTextId, // target для PUT после редактирования
+      title: null,
+      origin: st.origin || null,
+      openMode: null,
+      resumeSentenceId: null
+    });
+  } catch (_) {}
+}
+
+function v3SessionGetUpdateTextId() {
+  try {
+    const st = v3SessionGet() || {};
+    const id = st.baseTextId || st.textId || null;
+    return id ? String(id) : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
@@ -4804,31 +4829,51 @@ function v3UiUpdateActiveHeader() {
 
 function v3UiSyncSaveButtons() {
   try {
-    const btn = document.getElementById("btnSaveToLibrary");
-    if (!btn) return;
+    const btnSaveToLibrary = document.getElementById("btnSaveToLibrary");
+    if (!btnSaveToLibrary) return;
 
     const hasTable = Array.isArray(currentTableData) && currentTableData.length > 0;
-    const stale = !!tableIsStale;
+    const stale = !!(typeof tableIsStale !== "undefined" && tableIsStale);
+
+    const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
+    const updateId = (typeof v3SessionGetUpdateTextId === "function") ? v3SessionGetUpdateTextId() : null;
+    const hasBase = !!st.baseTextId;
+    const hasUpdate = !!updateId;
 
     // disable если таблицы нет или она устарела
     const disabled = stale || !hasTable;
-    btn.disabled = disabled;
+    btnSaveToLibrary.disabled = disabled;
 
+    // Label + tooltip
+    btnSaveToLibrary.textContent = hasUpdate ? "💾 Обновить" : "💾 Сохранить";
     if (stale) {
-      btn.title = "Сначала «AI Перевод»: таблица устарела и не соответствует текущему тексту.";
+      btnSaveToLibrary.title = "Сначала «AI Перевод»: таблица устарела и не соответствует текущему тексту.";
     } else if (!hasTable) {
-      btn.title = "Сначала сформируйте таблицу (нажмите «AI Перевод»).";
+      btnSaveToLibrary.title = "Сначала сформируйте таблицу (нажмите «AI Перевод»).";
     } else {
-      btn.title = "Сохранить текст в библиотеку";
+      btnSaveToLibrary.title = hasBase
+        ? "Обновить исходную карточку (в модалке есть также «Сохранить как новый»)"
+        : (hasUpdate ? "Обновить текущую карточку" : "Сохранить новый текст в библиотеку");
     }
 
-    // Если модалка сохранения открыта — тоже блокируем кнопку Save внутри
-    const saveBtn = document.getElementById("v3SaveMetaSaveBtn");
-    if (saveBtn) {
-      saveBtn.disabled = stale || !hasTable;
-      if (stale) saveBtn.title = "Сначала «AI Перевод»: таблица устарела.";
-      else saveBtn.title = "";
-    }
+    // Если модалка сохранения открыта — синхронизируем её кнопки тоже
+    try {
+      const saveBtn = document.getElementById("v3SaveMetaSaveBtn");
+      const asNewBtn = document.getElementById("v3SaveMetaSaveAsNewBtn");
+
+      if (saveBtn) {
+        saveBtn.disabled = disabled;
+        if (stale) saveBtn.title = "Сначала «AI Перевод»: таблица устарела.";
+        else saveBtn.title = "";
+      }
+      if (asNewBtn) {
+        asNewBtn.disabled = disabled;
+        if (stale) asNewBtn.title = "Сначала «AI Перевод»: таблица устарела.";
+        else asNewBtn.title = "";
+      }
+
+      if (typeof v3SaveMetaSyncMode === "function") v3SaveMetaSyncMode();
+    } catch (_) {}
   } catch (_) {
     // non-fatal
   }
@@ -4963,6 +5008,28 @@ async function v3PostJson(url, bodyObj) {
     throw e;
   }
   return await r.json();
+}
+
+async function v3PutJson(url, body) {
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {})
+  });
+
+  const txt = await res.text();
+  let json = null;
+  try { json = txt ? JSON.parse(txt) : null; } catch (_) {}
+
+  if (!res.ok) {
+    const err = new Error((json && json.error) ? String(json.error) : (txt || res.statusText));
+    err.httpStatus = res.status;
+    err.payload = json;
+    err.bodyText = txt;
+    throw err;
+  }
+
+  return json;
 }
 
 async function v3PatchJson(url, payload) {
@@ -5640,13 +5707,15 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     // Do this AFTER meta fetch so we can store the title.
     try {
       v3SessionSet({
-        mode: "library",
-        textId: String(textId),
-        origin: (opts && opts.origin) ? String(opts.origin) : "library",
-        openMode: (opts && opts.openMode) ? String(opts.openMode) : (resume ? "resume" : "open"),
-        resumeSentenceId: resumeSentenceId ? String(resumeSentenceId) : null,
-        title: (text && text.title) ? String(text.title) : null,
-      });
+	mode: "library",
+	textId: String(textId),
+	baseTextId: null,
+	origin: (opts && opts.origin) ? String(opts.origin) : "library",
+	openMode: (opts && opts.openMode) ? String(opts.openMode) : (resume ? "resume" : "open"),
+	resumeSentenceId: resumeSentenceId ? String(resumeSentenceId) : null,
+	title: (text && text.title) ? String(text.title) : null,
+	});
+
     } catch (_) {}
 
 
@@ -5828,12 +5897,15 @@ async function v3LibrarySaveCurrentCore(meta) {
         "—";
 
       v3SessionSet({
-        mode: "saved",
-        textId: String(text.id),
-        title: effectiveTitle,
-        origin: "library",
-        openMode: "open"
-      });
+  mode: "saved",
+  textId: String(text.id),
+  baseTextId: null,
+  resumeSentenceId: null,
+  title: effectiveTitle,
+  origin: "library",
+  openMode: "open"
+});
+
     } catch (_) {}
 
     showToast("Сохранено в библиотеку", "success");
@@ -5859,6 +5931,88 @@ async function v3LibrarySaveCurrentCore(meta) {
     }
     console.warn("v3LibrarySaveCurrentCore failed", e);
     showToast("Не удалось сохранить (см. консоль).", "error");
+    return null;
+  }
+}
+
+async function v3LibraryUpdateCurrentCore(textId, meta) {
+  try {
+    const sourceText = String(getText() || "").trim();
+    if (!sourceText) {
+      showToast("Нет исходного текста для сохранения", "error");
+      return null;
+    }
+    if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
+      showToast("Нет таблицы для сохранения (сначала AI перевод/таблица)", "error");
+      return null;
+    }
+    if (!textId) {
+      showToast("Нет ID для обновления (откройте текст из Library/Dashboard)", "error");
+      return null;
+    }
+
+    const m = (meta && typeof meta === "object") ? meta : {};
+    const title = String(m.title || "").trim();
+    const level = String(m.level || "").trim();
+    const tags = v3NormalizeTagsInput(m.tags);
+    const source = String(m.source || "").trim();
+    const topic = String(m.topic || "").trim();
+
+    const payload = {
+      sourceText,
+      rows: currentTableData,
+      ttsProfile: v3BuildTtsProfileForSave(),
+      tableModelMeta: v3LastGeminiMeta || null,
+
+      title: title || null,
+      level: level || null,
+      tags,
+      source: source || null,
+      topic: topic || null
+    };
+
+    const updated = await v3PutJson("/api/library/texts/" + encodeURIComponent(String(textId)), payload);
+    const text = updated && updated.text ? updated.text : null;
+
+    if (text && text.id) {
+      try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(String(text.id)); } catch (_) {}
+      try {
+        v3SessionSet({
+          mode: "saved",
+          textId: String(text.id),
+          baseTextId: null,
+          resumeSentenceId: null,
+          title: (text.title ? String(text.title) : null),
+          origin: "library",
+          openMode: "open"
+        });
+      } catch (_) {}
+    }
+
+    showToast("Обновлено", "success");
+
+    try {
+      const libModal = v3LibEl("v3LibraryModal");
+      if (libModal && !libModal.classList.contains("hidden")) v3LibraryRefresh();
+    } catch (_) {}
+
+    try {
+      const dashModal = document.getElementById("v3DashboardModal");
+      if (dashModal && !dashModal.classList.contains("hidden")) await v3DashboardRefresh();
+    } catch (_) {}
+
+    return text;
+  } catch (e) {
+    if (e && e.httpStatus === 409) {
+      showToast("Такой текст уже есть в библиотеке (duplicate key)", "error");
+      return null;
+    }
+    if (e && e.httpStatus === 404) {
+      showToast("Текст для обновления не найден (404).", "error");
+      return null;
+    }
+    console.warn("v3LibraryUpdateCurrentCore failed", e);
+    showToast("Не удалось обновить (см. консоль).", "error");
     return null;
   }
 }
@@ -6975,6 +7129,25 @@ function v3GuessTitleFromSourceText(sourceText) {
 
 function v3SaveMetaEl(id) { return document.getElementById(id); }
 
+function v3SaveMetaSyncMode() {
+  const st = v3SessionGet() || {};
+  const hasBase = !!st.baseTextId;
+  const updateId = v3SessionGetUpdateTextId();
+  const hasUpdate = !!updateId;
+
+  const btnSave = v3SaveMetaEl("v3SaveMetaSaveBtn");
+  const btnAsNew = v3SaveMetaEl("v3SaveMetaSaveAsNewBtn");
+
+  if (btnSave) btnSave.textContent = hasUpdate ? "Обновить" : "Сохранить";
+  if (btnAsNew) btnAsNew.style.display = hasBase ? "" : "none";
+
+  const stale = !!(typeof tableIsStale !== "undefined" && tableIsStale);
+  const canSave = !stale && Array.isArray(currentTableData) && currentTableData.length > 0;
+
+  if (btnSave) btnSave.disabled = !canSave;
+  if (btnAsNew) btnAsNew.disabled = !canSave;
+}
+
 function v3SaveMetaSetStatus(msg, isError) {
   const el = v3SaveMetaEl("v3SaveMetaStatus");
   if (!el) return;
@@ -6987,6 +7160,8 @@ function v3SaveMetaShow(open) {
   if (!m) return;
   if (open) m.classList.remove("hidden");
   else m.classList.add("hidden");
+
+  if (open) { try { v3SaveMetaSyncMode(); } catch (_) {} }
 }
 
 function v3SaveMetaOpen() {
@@ -7030,6 +7205,7 @@ try { v3UiSyncSaveButtons(); } catch (_) {}
 
   v3SaveMetaSetStatus("", false);
   v3SaveMetaShow(true);
+  try { v3SaveMetaSyncMode(); } catch (_) {}
 
   try { if (titleEl) titleEl.focus(); } catch (_) {}
 }
@@ -7066,7 +7242,6 @@ async function v3SaveMetaSave() {
         if (titleEl) titleEl.value = title;
       } else {
         v3SaveMetaSetStatus("Title обязателен.", true);
-        if (btn) btn.disabled = false;
         try { if (titleEl) titleEl.focus(); } catch (_) {}
         return;
       }
@@ -7074,32 +7249,90 @@ async function v3SaveMetaSave() {
 
     v3SaveMetaSetStatus("Сохранение...", false);
 
-    const createdText = await v3LibrarySaveCurrentCore({
+    const meta = {
       title,
       level: level || null,
       tags,
       source: source || null,
       topic: topic || null
-    });
+    };
 
-    if (!createdText) {
-      // Ошибка уже показана через showToast в core. Оставим модалку открытой.
+    const st = v3SessionGet() || {};
+    const updateId = v3SessionGetUpdateTextId();
+    const hasBase = !!st.baseTextId;
+
+    let text = null;
+
+    if (updateId && hasBase) {
+      const ok = confirm(
+        "Это обновит исходную карточку в библиотеке.\n" +
+        "Если хотите новую карточку — нажмите «Сохранить как новый».\n\n" +
+        "Продолжить обновление?"
+      );
+      if (!ok) return;
+      text = await v3LibraryUpdateCurrentCore(updateId, meta);
+    } else if (updateId && !hasBase) {
+      text = await v3LibraryUpdateCurrentCore(updateId, meta);
+    } else {
+      text = await v3LibrarySaveCurrentCore(meta);
+    }
+
+    if (!text) {
       v3SaveMetaSetStatus("Не удалось сохранить (см. toast/console).", true);
-      if (btn) btn.disabled = false;
       return;
     }
 
-    // запомним удобные “дефолты” (уровень + источник/топик)
     v3StoreSaveMetaDefaults({ level, source, topic });
-
     v3SaveMetaClose();
   } catch (e) {
     console.error("[v3SaveMetaSave] error:", e);
     v3SaveMetaSetStatus("Ошибка сохранения (см. console).", true);
-    if (btn) btn.disabled = false;
-    return;
   } finally {
     if (btn) btn.disabled = false;
+    try { v3SaveMetaSyncMode(); } catch (_) {}
+  }
+}
+
+async function v3SaveMetaSaveAsNew() {
+  const btn = v3SaveMetaEl("v3SaveMetaSaveAsNewBtn");
+  if (btn) btn.disabled = true;
+
+  try {
+    if (typeof tableIsStale !== "undefined" && tableIsStale) {
+      showToast("Сначала AI Перевод: таблица устарела.", "error");
+      return;
+    }
+
+    const title = String(v3SaveMetaEl("v3SaveMetaTitle") ? v3SaveMetaEl("v3SaveMetaTitle").value : "").trim();
+    const level = String(v3SaveMetaEl("v3SaveMetaLevel") ? v3SaveMetaEl("v3SaveMetaLevel").value : "").trim();
+    const tags = String(v3SaveMetaEl("v3SaveMetaTags") ? v3SaveMetaEl("v3SaveMetaTags").value : "");
+    const source = String(v3SaveMetaEl("v3SaveMetaSource") ? v3SaveMetaEl("v3SaveMetaSource").value : "").trim();
+    const topic = String(v3SaveMetaEl("v3SaveMetaTopic") ? v3SaveMetaEl("v3SaveMetaTopic").value : "").trim();
+
+    const meta = { title, level, tags, source, topic };
+
+    const text = await v3LibrarySaveCurrentCore(meta);
+    if (text && text.id) {
+      try {
+        v3SessionSet({
+          mode: "saved",
+          textId: String(text.id),
+          baseTextId: null,
+          resumeSentenceId: null,
+          title: (text.title ? String(text.title) : null),
+          origin: "library",
+          openMode: "open"
+        });
+      } catch (_) {}
+
+      showToast("Сохранено как новый текст", "success");
+      v3SaveMetaClose();
+      try { v3UiUpdateActiveHeader(); } catch (_) {}
+      try { v3UiSyncSaveButtons(); } catch (_) {}
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    try { v3SaveMetaSyncMode(); } catch (_) {}
   }
 }
 
@@ -7107,6 +7340,7 @@ async function v3SaveMetaSave() {
 window.v3SaveMetaOpen = v3SaveMetaOpen;
 window.v3SaveMetaClose = v3SaveMetaClose;
 window.v3SaveMetaSave = v3SaveMetaSave;
+window.v3SaveMetaSaveAsNew = v3SaveMetaSaveAsNew;
 
 // init once (script is after DOM)
 try { v3InitLevelEnumUi(); } catch (_) {}
