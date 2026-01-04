@@ -2007,6 +2007,7 @@ function normalizeNoteDto(r) {
 // GET all notes for text
 app.get("/api/library/texts/:id/notes", async (req, res) => {
   try {
+	  if (!requireDbOr503(res)) return;
     const textId = String(req.params.id || "");
     if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
 
@@ -2026,6 +2027,7 @@ app.get("/api/library/texts/:id/notes", async (req, res) => {
 // PUT upsert note for sentence (sentence must belong to text)
 app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
   try {
+	  if (!requireDbOr503(res)) return;
     const textId = String(req.params.id || "");
     const sentenceId = String(req.params.sentenceId || "");
     if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
@@ -2075,6 +2077,7 @@ app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
 // DELETE note for sentence (sentence must belong to text)
 app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
   try {
+	  if (!requireDbOr503(res)) return;
     const textId = String(req.params.id || "");
     const sentenceId = String(req.params.sentenceId || "");
     if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
