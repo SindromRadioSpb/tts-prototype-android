@@ -2030,7 +2030,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
             </div>
             <ul class="hotkeys-list">
                 <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
-                <li><code>Ctrl+Shift+Enter</code> — AI Перевод + SAVE (и авто-DOCX)</li>
+                <li><code>Ctrl+Shift+Enter</code> — AI Перевод + SAVE</li>
                 <li><code>Ctrl+Shift+S</code> — Сохранить MP3 озвучки текущего текста</li>
                 <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
                 <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
@@ -2092,7 +2092,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
 			<div id="loader" class="loader"></div>
 
-			<button id="btnWord" class="btn-word disabled" onclick="downloadWord()">📥 Скачать DOCX</button>
+			<button id="btnWord" class="btn-word disabled" title="Сначала сохраните текст в Library" onclick="downloadWord()" disabled>Скачать таблицу</button>
 			
         </div>
 
@@ -3990,10 +3990,6 @@ updatePlaylistButtonUI();
 
             renderTable(currentTableData);
 
-            if (currentTableData.length > 0 && btnWordEl) {
-                btnWordEl.classList.remove("disabled");
-            }
-
             tableIsStale = false;
             setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
         } catch (e) {
@@ -4082,7 +4078,6 @@ updatePlaylistButtonUI();
             if (cacheNote) cacheNote.remove();
             addStaleNote(tableEl);
             tableIsStale = true;
-            if (btnWordEl) btnWordEl.classList.add("disabled");
         }
 
         if (hasAudio) {
@@ -4124,11 +4119,7 @@ updatePlaylistButtonUI();
         }
         tableIsStale = false;
 
-        if (btnWordEl && currentTableData.length > 0) {
-            btnWordEl.classList.remove("disabled");
-        }
-
-        if (!audioIsStale && !tableIsStale) {
+            if (!audioIsStale && !tableIsStale) {
             textChangedNoticeEl.classList.remove("notice-visible");
         }
 		
@@ -4170,7 +4161,6 @@ updatePlaylistButtonUI();
 
 
 
-        if (btnWordEl) btnWordEl.classList.add("disabled");
         textChangedNoticeEl.classList.remove("notice-visible");
 
         try {
@@ -5127,6 +5117,32 @@ function v3UiSyncSaveButtons() {
         : (hasUpdate ? "Обновить текущую карточку" : "Сохранить новый текст в библиотеку");
     }
 
+	    // --- W10-EXPORT-DOCX-UI-REPLACE-01: sync DOCX export button (Library-only) ---
+    try {
+      if (typeof btnWordEl !== "undefined" && btnWordEl) {
+        const exportId = (typeof v3SessionGetUpdateTextId === "function")
+          ? v3SessionGetUpdateTextId()
+          : (st && st.textId ? st.textId : null);
+
+        const isUuid =
+          typeof exportId === "string" &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
+
+        if (isUuid) {
+          btnWordEl.disabled = false;
+          btnWordEl.classList.remove("disabled");
+          btnWordEl.title = "Карточка из Library (с Notes+Audio)";
+        } else {
+          btnWordEl.disabled = true;
+          btnWordEl.classList.add("disabled");
+          btnWordEl.title = "Сначала сохраните текст в Library";
+        }
+
+        // фиксируем текст кнопки (на случай старого DOM-кэша/вставок)
+        if (btnWordEl.textContent !== "Скачать таблицу") btnWordEl.textContent = "Скачать таблицу";
+      }
+    } catch (_) {}
+	
     // Если модалка сохранения открыта — синхронизируем её кнопки тоже
     try {
       const saveBtn = document.getElementById("v3SaveMetaSaveBtn");
@@ -8415,11 +8431,8 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     renderTable(currentTableData);
                     clearTableStale();
                     tableIsStale = false;
-                    if (btnWordEl) btnWordEl.classList.remove("disabled");
-
+                    
                     setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
-
-                    downloadWord(lastDocxFilename);
 
                     loadStats();
                     return;
@@ -8479,8 +8492,7 @@ try {
             if (currentTableData.length > 0) {
                 clearTableStale();
                 tableIsStale = false;
-                if (btnWordEl) btnWordEl.classList.remove("disabled");
-
+                
                 const autoName = generateDocxFileName();
                 lastDocxFilename = autoName;
 
@@ -8501,11 +8513,9 @@ try {
                 } else {
                     setResultsMeta("table", "сгенерирована через Gemini API");
                 }
-
-                downloadWord(autoName);
+                
             } else {
-                tableIsStale = false;
-                if (btnWordEl) btnWordEl.classList.add("disabled");
+                tableIsStale = false;                
                 clearResultsMeta("table");
             }
 
@@ -9201,37 +9211,78 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
     // ----------------------------
     // DOCX
     // ----------------------------
-    async function downloadWord(customFilename) {
-        if (btnWordEl.classList.contains("disabled")) return;
-        if (!currentTableData || currentTableData.length === 0) {
-            showError("Нет данных для экспорта");
-            return;
-        }
-
-        const filename = customFilename || lastDocxFilename || "translation.docx";
-
+        async function downloadWord() {
         try {
-            const res = await fetch("/api/export-docx", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rows: currentTableData })
-            });
+            if (!btnWordEl || btnWordEl.disabled || btnWordEl.classList.contains("disabled")) return;
 
-            if (!res.ok) throw new Error("Ошибка экспорта");
+            const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
+            const exportId = (typeof v3SessionGetUpdateTextId === "function")
+              ? v3SessionGetUpdateTextId()
+              : (st && st.textId ? st.textId : null);
+
+            const isUuid =
+              typeof exportId === "string" &&
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
+
+            if (!isUuid) {
+                showToast("Сначала сохраните текст в Library");
+                return;
+            }
+
+            const url = "/api/library/texts/" + encodeURIComponent(String(exportId)) + "/export/docx";
+
+            const res = await fetch(url, { method: "GET" });
+
+            if (!res.ok) {
+                // try parse JSON error
+                let errCode = null;
+                try {
+                    const ct = (res.headers.get("content-type") || "").toLowerCase();
+                    if (ct.includes("application/json")) {
+                        const j = await res.json();
+                        errCode = j && j.error ? String(j.error) : null;
+                    }
+                } catch (_) {}
+
+                if (res.status === 404 || errCode === "TEXT_NOT_FOUND") {
+                    showToast("Текст не найден");
+                } else if (res.status === 503 || errCode === "DB_NOT_AVAILABLE") {
+                    showToast("База недоступна");
+                } else {
+                    showToast("Ошибка экспорта");
+                }
+                return;
+            }
+
+            // filename from Content-Disposition (fallback to Title_YYYY-MM-DD.docx)
+            const cd = res.headers.get("content-disposition") || "";
+            let filename = "";
+            try {
+                const m = cd.match(/filename\*?=(?:UTF-8''|\"?)([^\";\n]+)/i);
+                if (m && m[1]) filename = decodeURIComponent(String(m[1]).replace(/\"/g, "").trim());
+            } catch (_) {}
+
+            if (!filename) {
+                const titleRaw = String(st.title || "text").trim() || "text";
+                const safe = titleRaw.replace(/[\\\/:*?"<>|]+/g, " ").replace(/\s+/g, " ").trim();
+                const yyyyMmDd = new Date().toISOString().slice(0, 10);
+                filename = (safe || "text") + "_" + yyyyMmDd + ".docx";
+            }
 
             const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
+            const dlUrl = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
-            a.href = url;
+            a.href = dlUrl;
             a.download = filename;
             document.body.appendChild(a);
             a.click();
             a.remove();
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(dlUrl);
 
-            showToast("DOCX-файл сохранён");
+            showToast("DOCX скачан");
         } catch (e) {
-            showError(e.message);
+            console.warn("downloadWord (library export) failed", e);
+            showToast("Ошибка экспорта");
         }
     }
 
