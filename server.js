@@ -2247,9 +2247,10 @@ app.get("/api/library/texts/:id/export/docx", async (req, res) => {
       return cell(u, AlignmentType.LEFT, false);
     }
 
-    const header = new TableRow({
+        const header = new TableRow({
       children: [
         cell("#", AlignmentType.CENTER, true),
+        cell("Hebrew", AlignmentType.CENTER, true),
         cell("Hebrew (niqqud)", AlignmentType.CENTER, true),
         cell("Translit", AlignmentType.CENTER, true),
         cell("Russian", AlignmentType.CENTER, true),
@@ -2264,7 +2265,8 @@ app.get("/api/library/texts/:id/export/docx", async (req, res) => {
       const r = rows[i] || {};
       const idx = i + 1;
 
-      const he = String(r.he_niqqud || "");
+      const hePlain = String(r.he_plain || "");
+      const heNiq = String(r.he_niqqud || "");
       const tr = String(r.translit || "");
       const ru = String(r.ru || "");
       const note = String(r.note || "");
@@ -2277,7 +2279,8 @@ app.get("/api/library/texts/:id/export/docx", async (req, res) => {
         new TableRow({
           children: [
             cell(String(idx), AlignmentType.CENTER, false),
-            cell(he),
+            cell(hePlain),
+            cell(heNiq),
             cell(tr),
             cell(ru),
             cell(note),
@@ -2291,7 +2294,7 @@ app.get("/api/library/texts/:id/export/docx", async (req, res) => {
       sections: [
         {
           children: [
-            new Paragraph({ children: [new TextRun({ text: title || "Untitled", bold: true })] }),
+            new Paragraph({ children: [new TextRun({ text: `Title: ${title || "Untitled"}` })] }),
             new Paragraph({ children: [new TextRun({ text: `ExportedAt: ${exportedAtIso}` })] }),
             new Paragraph({ children: [new TextRun({ text: `Level: ${level}` })] }),
             new Paragraph({ children: [new TextRun({ text: `Topic: ${topic}` })] }),

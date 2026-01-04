@@ -575,6 +575,7 @@ async function getExportRowsByTextId(textId) {
     SELECT
       s.id            AS sentence_id,
       s.order_index   AS order_index,
+      s.he_plain      AS he_plain,
       s.he_niqqud     AS he_niqqud,
       s.translit      AS translit,
       s.ru            AS ru,
