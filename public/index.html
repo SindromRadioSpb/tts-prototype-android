@@ -2533,7 +2533,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">Заметка к строке</div>
+      <div class="v3-modal-title">Заметка к строке (Ctrl+Enter - сохранить заметку)</div>
       <button class="btn-secondary" onclick="v3NotesClose()">Закрыть</button>
     </div>
 
@@ -2577,6 +2577,12 @@ let v3NotesBySentenceId = Object.create(null);
 let v3NotesModalTextId = null;
 let v3NotesModalSentenceId = null;
 let v3NotesModalRowIdx = null;
+
+// UX-03: unsaved guard baseline
+let v3NotesModalOriginalValue = "";
+
+// UX-02: hotkeys handler (bind/unbind while modal open)
+let v3NotesHotkeyHandler = null;
 
 function v3NotesReset() {
   v3NotesActiveTextId = null;
@@ -9879,6 +9885,95 @@ function v3NotesSafeSetStatus(el, message, isError) {
   } catch (_) {}
 }
 
+// UX-01: format "YYYY-MM-DD HH:MM" in local time
+function v3NotesFmtLocalYmdHm(iso) {
+  try {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    const y = d.getFullYear();
+    const m = pad(d.getMonth() + 1);
+    const day = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mm = pad(d.getMinutes());
+    return `${y}-${m}-${day} ${hh}:${mm}`;
+  } catch (_) {
+    return "";
+  }
+}
+
+function v3NotesGetUpdatedAt(sentenceId) {
+  try {
+    const sid = String(sentenceId || "");
+    const x = v3NotesBySentenceId && v3NotesBySentenceId[sid];
+    return x ? (x.updatedAt ?? null) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function v3NotesIsOpen() {
+  const modal = v3NotesEl("v3NotesModal");
+  return !!(modal && !modal.classList.contains("hidden"));
+}
+
+// actual close (no guard)
+function v3NotesForceClose() {
+  const modal = v3NotesEl("v3NotesModal");
+  if (modal) modal.classList.add("hidden");
+
+  // UX-02: unbind hotkeys
+  try {
+    if (v3NotesHotkeyHandler) {
+      document.removeEventListener("keydown", v3NotesHotkeyHandler, true);
+      v3NotesHotkeyHandler = null;
+    }
+  } catch (_) {}
+
+  v3NotesModalTextId = null;
+  v3NotesModalSentenceId = null;
+  v3NotesModalRowIdx = null;
+  v3NotesModalOriginalValue = "";
+}
+
+// UX-02: hotkeys (Esc / Ctrl+Enter) active only while modal open + focus in panel
+function v3NotesBindHotkeysOnce() {
+  try {
+    if (v3NotesHotkeyHandler) return;
+
+    v3NotesHotkeyHandler = (ev) => {
+      try {
+        if (!v3NotesIsOpen()) return;
+
+        const modal = v3NotesEl("v3NotesModal");
+        const panel = modal ? modal.querySelector(".v3-modal-panel") : null;
+        const ae = document.activeElement;
+        const focusInside = !!(panel && ae && panel.contains(ae));
+
+        // Esc closes (with guard)
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          v3NotesClose(); // guard-aware
+          return;
+        }
+
+        // Ctrl+Enter saves (only if focus is inside modal)
+        if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+          if (!focusInside) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          v3NotesSave();
+          return;
+        }
+      } catch (_) {}
+    };
+
+    document.addEventListener("keydown", v3NotesHotkeyHandler, true);
+  } catch (_) {}
+}
+
 function v3NotesOpen(textId, sentenceId, rowIdx) {
   v3NotesModalTextId = String(textId || "");
   v3NotesModalSentenceId = String(sentenceId || "");
@@ -9889,26 +9984,69 @@ function v3NotesOpen(textId, sentenceId, rowIdx) {
   const st = v3NotesEl("v3NotesStatus");
   const delBtn = v3NotesEl("v3NotesDeleteBtn");
 
-  v3NotesSafeSetStatus(st, "", false);
-
   const existing = (typeof v3NotesGet === "function") ? v3NotesGet(v3NotesModalSentenceId) : "";
+  const existingUpdatedAt = (typeof v3NotesGetUpdatedAt === "function") ? v3NotesGetUpdatedAt(v3NotesModalSentenceId) : null;
+
   v3NotesSafeSetTextareaValue(ta, existing || "");
+
+  // UX-03: baseline for unsaved guard
+  v3NotesModalOriginalValue = String(existing || "");
+
+  // UX-01: show last saved time (if available)
+  const t = existingUpdatedAt ? v3NotesFmtLocalYmdHm(existingUpdatedAt) : "";
+  v3NotesSafeSetStatus(st, t ? ("Сохранено в " + t) : "", false);
 
   const has = existing && String(existing).trim().length > 0;
   if (delBtn) delBtn.style.display = has ? "" : "none";
 
   if (modal) modal.classList.remove("hidden");
+  
+  // UX-02: hotkeys active while modal open
+  v3NotesBindHotkeysOnce();
 
   // focus textarea (safe)
   try { if (ta) setTimeout(() => ta.focus(), 0); } catch (_) {}
 }
 
 function v3NotesClose() {
-  const modal = v3NotesEl("v3NotesModal");
-  if (modal) modal.classList.add("hidden");
-  v3NotesModalTextId = null;
-  v3NotesModalSentenceId = null;
-  v3NotesModalRowIdx = null;
+  try {
+    if (!v3NotesIsOpen()) return;
+
+    const ta = v3NotesEl("v3NotesText");
+    const current = ta ? String(ta.value || "") : "";
+    const baseline = String(v3NotesModalOriginalValue || "");
+
+    const changed = current !== baseline;
+
+    if (!changed) {
+      v3NotesForceClose();
+      return;
+    }
+
+    // 3-way confirm:
+    // 1) Save
+    // 2) Close without saving
+    // 3) Cancel (stay open)
+    const wantSave = window.confirm("Есть несохранённые изменения.\n\nСохранить?");
+    if (wantSave) {
+      Promise.resolve(v3NotesSave())
+        .then(() => { v3NotesForceClose(); })
+        .catch(() => { /* v3NotesSave already toasts */ });
+      return;
+    }
+
+    const closeNoSave = window.confirm("Закрыть без сохранения?");
+    if (closeNoSave) {
+      v3NotesForceClose();
+      return;
+    }
+
+    // Cancel close => do nothing
+    return;
+  } catch (_) {
+    // fail-safe: close hard
+    v3NotesForceClose();
+  }
 }
 
 function v3NotesUpdateButtonRow(rowIdx, sentenceId) {
@@ -9953,6 +10091,7 @@ async function v3NotesSave() {
       v3NotesSetLocal(sentenceId, "", null);
       if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
+      v3NotesModalOriginalValue = "";
       v3NotesSafeSetStatus(st, "Заметка удалена.", false);
       if (delBtn) delBtn.style.display = "none";
       showToast("Заметка удалена", "success");
@@ -9966,14 +10105,21 @@ async function v3NotesSave() {
 
     const resp = await v3PutJson(url, { note });
     const dto = resp && resp.note ? resp.note : null;
-    updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
+        updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
+    if (!updatedAt) updatedAt = new Date().toISOString(); // fallback for UX-01
 
     v3NotesSetLocal(sentenceId, note, updatedAt);
     if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
-    v3NotesSafeSetStatus(st, "Сохранено.", false);
+    // UX-03: update baseline after successful save
+    v3NotesModalOriginalValue = String(note || "");
+
+    const t = v3NotesFmtLocalYmdHm(updatedAt);
+    v3NotesSafeSetStatus(st, t ? ("Сохранено в " + t) : "Сохранено.", false);
+
     if (delBtn) delBtn.style.display = "";
     showToast("Заметка сохранена", "success");
+
   } catch (e) {
     console.warn("v3NotesSave failed", e);
     showToast("Не удалось сохранить заметку", "error");
@@ -9996,9 +10142,15 @@ async function v3NotesDelete() {
 
     const ta = v3NotesEl("v3NotesText");
     if (ta) ta.value = "";
+	
+	// UX-03 baseline update (no unsaved changes after delete)
+    v3NotesModalOriginalValue = "";
 
     const delBtn = v3NotesEl("v3NotesDeleteBtn");
     if (delBtn) delBtn.style.display = "none";
+
+    const st = v3NotesEl("v3NotesStatus");
+    v3NotesSafeSetStatus(st, "Заметка удалена.", false);
 
     showToast("Заметка удалена", "success");
   } catch (e) {
