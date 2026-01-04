@@ -26,6 +26,7 @@ const {
   WidthType,
   TextRun,
   AlignmentType,
+  ExternalHyperlink,
 } = require("docx");
 
 const {
@@ -1599,6 +1600,43 @@ function requireDbOr503(res) {
 }
 
 // --------------------------------------------------------
+// W10-EXPORT-DOCX-01 helpers
+// --------------------------------------------------------
+function getBaseUrl(req) {
+  const xfProto = req.headers["x-forwarded-proto"];
+  const xfHost = req.headers["x-forwarded-host"];
+  const proto = String(xfProto || req.protocol || "http").split(",")[0].trim();
+  const host = String(xfHost || req.get("host") || "").split(",")[0].trim();
+  if (!host) return "";
+  return `${proto}://${host}`;
+}
+
+function makeSafeFilenameBase(title, fallback) {
+  const raw = String(title || "").trim() || String(fallback || "export");
+  const cleaned = raw
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (cleaned || String(fallback || "export")).slice(0, 80);
+}
+
+function setAttachment(res, filename) {
+  const asciiFallback = String(filename).replace(/[^\x20-\x7E]/g, "_");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(filename)}`
+  );
+}
+
+function safeJsonParse(s, fallback) {
+  try {
+    return JSON.parse(s);
+  } catch (_) {
+    return fallback;
+  }
+}
+
+// --------------------------------------------------------
 // W10-EXPORT-ANKI-01 helpers
 // --------------------------------------------------------
 function getBaseUrl(req) {
@@ -2142,6 +2180,147 @@ app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
     return res.json({ ok: true });
   } catch (e) {
     console.warn("DELETE note failed", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// Export DOCX from Library text (W10-EXPORT-DOCX-01)
+// --------------------------------------------------------
+app.get("/api/library/texts/:id/export/docx", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id || "");
+    if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
+
+    const t = await getTextById(textId);
+    if (!t) return res.status(404).json({ error: "TEXT_NOT_FOUND" });
+
+    const rows = await getExportRowsByTextId(textId);
+    const baseUrl = getBaseUrl(req);
+    const exportedAtIso = new Date().toISOString();
+
+    // tags_json может быть JSON-массивом строк
+    let tagsStr = "";
+    if (t.tags_json) {
+      const parsed = safeJsonParse(String(t.tags_json), null);
+      if (Array.isArray(parsed)) tagsStr = parsed.filter(Boolean).join(", ");
+      else tagsStr = String(t.tags_json || "");
+    }
+
+    const title = String(t.title || "");
+    const level = String(t.level || "");
+    const topic = String(t.topic || "");
+    const source = String(t.source || "");
+
+    function cell(text, align = AlignmentType.LEFT, bold = false) {
+      return new TableCell({
+        children: [
+          new Paragraph({
+            alignment: align,
+            children: [new TextRun({ text: String(text ?? ""), bold })],
+          }),
+        ],
+      });
+    }
+
+    function linkCell(url) {
+      const u = String(url || "");
+      if (!u) return cell("", AlignmentType.LEFT, false);
+
+      // Prefer real hyperlink if available, else plain text URL
+      if (typeof ExternalHyperlink === "function") {
+        return new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new ExternalHyperlink({
+                  link: u,
+                  children: [new TextRun({ text: u, style: "Hyperlink" })],
+                }),
+              ],
+            }),
+          ],
+        });
+      }
+      return cell(u, AlignmentType.LEFT, false);
+    }
+
+    const header = new TableRow({
+      children: [
+        cell("#", AlignmentType.CENTER, true),
+        cell("Hebrew (niqqud)", AlignmentType.CENTER, true),
+        cell("Translit", AlignmentType.CENTER, true),
+        cell("Russian", AlignmentType.CENTER, true),
+        cell("Notes", AlignmentType.CENTER, true),
+        cell("Audio URL", AlignmentType.CENTER, true),
+      ],
+    });
+
+    const tableRows = [header];
+
+    for (let i = 0; i < (rows || []).length; i++) {
+      const r = rows[i] || {};
+      const idx = i + 1;
+
+      const he = String(r.he_niqqud || "");
+      const tr = String(r.translit || "");
+      const ru = String(r.ru || "");
+      const note = String(r.note || "");
+      const assetKey = String(r.audio_asset_key || "");
+      const audioUrl = assetKey
+        ? ((baseUrl ? `${baseUrl}` : "") + `/api/audio/${encodeURIComponent(assetKey)}`)
+        : "";
+
+      tableRows.push(
+        new TableRow({
+          children: [
+            cell(String(idx), AlignmentType.CENTER, false),
+            cell(he),
+            cell(tr),
+            cell(ru),
+            cell(note),
+            linkCell(audioUrl),
+          ],
+        })
+      );
+    }
+
+    const doc = new Document({
+      sections: [
+        {
+          children: [
+            new Paragraph({ children: [new TextRun({ text: title || "Untitled", bold: true })] }),
+            new Paragraph({ children: [new TextRun({ text: `ExportedAt: ${exportedAtIso}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Level: ${level}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Topic: ${topic}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Source: ${source}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Tags: ${tagsStr}` })] }),
+            new Paragraph({ text: "" }),
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: tableRows,
+            }),
+          ],
+        },
+      ],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+
+    const yyyyMmDd = exportedAtIso.slice(0, 10);
+    const baseName = makeSafeFilenameBase(title, "text");
+    const filename = `${baseName}_${yyyyMmDd}.docx`;
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    setAttachment(res, filename);
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error("GET /api/library/texts/:id/export/docx error:", e);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
