@@ -36,6 +36,7 @@ const {
   listTexts,
   getTextById,
   getSentencesByTextId,
+  getExportRowsByTextId,
   touchTextOpened,
   archiveTextById,
   deleteTextById,
@@ -1598,6 +1599,49 @@ function requireDbOr503(res) {
 }
 
 // --------------------------------------------------------
+// W10-EXPORT-ANKI-01 helpers
+// --------------------------------------------------------
+function getBaseUrl(req) {
+  const xfProto = req.headers["x-forwarded-proto"];
+  const xfHost = req.headers["x-forwarded-host"];
+  const proto = String(xfProto || req.protocol || "http").split(",")[0].trim();
+  const host = String(xfHost || req.get("host") || "").split(",")[0].trim();
+  if (!host) return "";
+  return `${proto}://${host}`;
+}
+
+function csvEscape(v) {
+  const s = String(v ?? "");
+  if (/[",\r\n]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function csvLine(values) {
+  return (values || []).map(csvEscape).join(",");
+}
+
+// Make filename safe for Windows + headers; keep Unicode but strip illegal chars
+function makeSafeFilenameBase(title, fallback) {
+  const raw = String(title || "").trim() || String(fallback || "export");
+  const cleaned = raw
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (cleaned || String(fallback || "export")).slice(0, 80);
+}
+
+function setAttachment(res, filename) {
+  const asciiFallback = String(filename).replace(/[^\x20-\x7E]/g, "_");
+  // Both filename + RFC5987 filename* for Unicode
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(filename)}`
+  );
+}
+
+// --------------------------------------------------------
 // Progress (V3-PROG-01)
 // --------------------------------------------------------
 app.get("/api/progress/:textId", async (req, res) => {
@@ -2098,6 +2142,53 @@ app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
     return res.json({ ok: true });
   } catch (e) {
     console.warn("DELETE note failed", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// Export Anki CSV (W10-EXPORT-ANKI-01)
+// --------------------------------------------------------
+app.get("/api/library/texts/:id/export/anki", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const textId = String(req.params.id || "");
+    if (!isUuid(textId)) return res.status(400).json({ error: "BAD_TEXT_ID" });
+
+    const t = await getTextById(textId);
+    if (!t) return res.status(404).json({ error: "TEXT_NOT_FOUND" });
+
+    const rows = await getExportRowsByTextId(textId);
+
+    const baseUrl = getBaseUrl(req);
+    const exportedAt = new Date().toISOString().slice(0, 10);
+    const baseName = makeSafeFilenameBase(t.title, "text");
+    const filename = `${baseName}_${exportedAt}_anki.csv`;
+
+    // UTF-8 BOM for Excel compatibility
+    const header = ["he_niqqud", "translit", "ru", "note", "audio_url", "audio_asset_key"];
+    let out = "\ufeff" + header.join(",") + "\n";
+
+    for (const r of rows || []) {
+      const he = String(r.he_niqqud || "");
+      const translit = String(r.translit || "");
+      const ru = String(r.ru || "");
+      const note = String(r.note || "");
+      const assetKey = String(r.audio_asset_key || "");
+
+      const audioUrl = assetKey
+        ? ((baseUrl ? `${baseUrl}` : "") + `/api/audio/${encodeURIComponent(assetKey)}`)
+        : "";
+
+      out += csvLine([he, translit, ru, note, audioUrl, assetKey]) + "\n";
+    }
+
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    setAttachment(res, filename);
+    return res.status(200).send(out);
+  } catch (e) {
+    console.error("GET /api/library/texts/:id/export/anki error:", e);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });

@@ -563,6 +563,41 @@ async function getSentencesByTextId(textId) {
   );
 }
 
+async function getExportRowsByTextId(textId) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  // Export join:
+  // sentences + optional notes + optional default sentence audio (asset_key)
+  const rows = await dbAll(
+    db,
+    `
+    SELECT
+      s.id            AS sentence_id,
+      s.order_index   AS order_index,
+      s.he_niqqud     AS he_niqqud,
+      s.translit      AS translit,
+      s.ru            AS ru,
+      COALESCE(n.note, '') AS note,
+      COALESCE(a.asset_key, '') AS audio_asset_key
+    FROM sentences s
+    LEFT JOIN sentence_notes n
+      ON n.sentence_id = s.id
+     AND n.text_id     = s.text_id
+    LEFT JOIN sentence_audio sa
+      ON sa.sentence_id = s.id
+     AND sa.is_default = 1
+    LEFT JOIN audio_assets a
+      ON a.id = sa.audio_id
+    WHERE s.text_id = ?
+    ORDER BY s.order_index ASC;
+    `,
+    [String(textId)]
+  );
+
+  return Array.isArray(rows) ? rows : [];
+}
+
 async function touchTextOpened(textId) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -679,6 +714,7 @@ module.exports = {
   listTexts,
   getTextById,
   getSentencesByTextId,
+  getExportRowsByTextId,
   touchTextOpened,
   archiveTextById,
   deleteTextById,
