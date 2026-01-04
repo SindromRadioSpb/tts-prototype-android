@@ -1925,6 +1925,92 @@ th, td { border-color: rgba(0,0,0,0.55); }
   display: none; /* в compact оставляем только he + кнопки */
 }
   	  
+	  /* --------------------------------------------------------
+   W10-NOTES-UX-MD-01: Notes Markdown toolbar + safe preview
+-------------------------------------------------------- */
+.v3-notes-md { flex: 1; min-width: 0; }
+
+.v3-notes-md-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 6px 0 10px 0;
+}
+
+.v3-notes-md-btn {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.v3-notes-md-split {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+#v3NotesText {
+  flex: 1;
+  min-height: 240px;
+  resize: vertical;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  outline: none;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fff;
+}
+
+.v3-notes-md-preview {
+  flex: 1;
+  min-height: 240px;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 10px;
+  overflow: auto;
+  background: #fff;
+}
+
+.v3-notes-md-preview code {
+  padding: 1px 6px;
+  border-radius: 8px;
+  border: 1px solid #eef1f6;
+  background: #f8fafc;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+}
+
+.v3-notes-md-preview pre {
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #eef1f6;
+  background: #f8fafc;
+  overflow: auto;
+}
+
+.v3-notes-md-preview blockquote {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-left: 4px solid #d0d7de;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.v3-notes-md-preview h1 { font-size: 18px; margin: 10px 0 6px 0; }
+.v3-notes-md-preview h2 { font-size: 16px; margin: 10px 0 6px 0; }
+.v3-notes-md-preview h3 { font-size: 14px; margin: 10px 0 6px 0; }
+.v3-notes-md-preview p  { margin: 8px 0; }
+.v3-notes-md-preview ul,
+.v3-notes-md-preview ol { margin: 8px 0 8px 18px; }
+.v3-notes-md-preview mark { padding: 0 4px; border-radius: 6px; }
+
+@media (max-width: 780px) {
+  .v3-notes-md-split { flex-direction: column; }
+}
+	  
 </style>
 
 </head>
@@ -2541,12 +2627,34 @@ th, td { border-color: rgba(0,0,0,0.55); }
       <div id="v3NotesStatus" class="v3-help"></div>
 
       <div class="v3-form-row" style="align-items:flex-start;">
-        <label for="v3NotesText" style="padding-top:10px;">Note</label>
-        <textarea id="v3NotesText"
-                  maxlength="16000"
-                  style="flex:1; min-height:220px; resize:vertical; padding:10px 12px; border:1px solid #e6e9ef; border-radius:10px; outline:none;"
-                  placeholder="Напишите заметку к этой строке (сохранится по sentence_id)"></textarea>
-      </div>
+  <label for="v3NotesText" style="padding-top:10px;">Note</label>
+
+  <div id="v3NotesMdWrap" class="v3-notes-md">
+    <div class="v3-notes-md-toolbar" aria-label="Markdown toolbar">
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('bold')" title="Bold (**text**)">B</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('italic')" title="Italic (*text*)"><span style="font-style:italic;">I</span></button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('code')" title="Inline code (`code`)">{ }</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('highlight')" title="Highlight (==text==)">HL</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('ul')" title="Bulleted list (- item)">• List</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('quote')" title="Quote (&gt; text)">&gt; Quote</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('link')" title="Link ([text](https://...))">Link</button>
+
+      <button id="v3NotesPreviewToggleBtn" type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdTogglePreview()" title="Toggle Preview">Preview</button>
+    </div>
+
+    <div class="v3-notes-md-split">
+      <textarea id="v3NotesText"
+                maxlength="16000"
+                placeholder="Напишите заметку к этой строке (сохранится по sentence_id)"></textarea>
+
+      <div id="v3NotesPreview" class="v3-notes-md-preview hidden" aria-label="Markdown preview"></div>
+    </div>
+
+    <div class="v3-help" style="margin-top:8px;">
+      Markdown: <b>**жирный**</b>, <i>*курсив*</i>, <code>`код`</code>, <mark>==выделение==</mark>, <b>-</b> список, <b>&gt;</b> цитата, <b>[текст](https://...)</b>
+    </div>
+  </div>
+</div>
 
       <div class="v3-modal-actions" style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
         <button id="v3NotesDeleteBtn" class="btn-secondary" onclick="v3NotesDelete()">Удалить</button>
@@ -2587,6 +2695,9 @@ let v3NotesModalOriginalValue = "";
 
 // UX-02: hotkeys handler (bind/unbind while modal open)
 let v3NotesHotkeyHandler = null;
+
+// W10-NOTES-UX-MD-01: preview state (markdown preview in notes modal)
+let v3NotesPreviewVisible = false;
 
 function v3NotesReset() {
   v3NotesActiveTextId = null;
@@ -9904,6 +10015,249 @@ function v3NotesSafeSetStatus(el, message, isError) {
   } catch (_) {}
 }
 
+// --------------------------------------------------------
+// W10-NOTES-UX-MD-01: Markdown toolbar + SAFE preview
+// - сохраняем note как plain text (markdown)
+// - preview рендерим безопасно: raw HTML запрещён (escape + whitelist)
+// --------------------------------------------------------
+
+function v3NotesMdResetUi() {
+  try {
+    v3NotesPreviewVisible = false;
+    const pv = v3NotesEl("v3NotesPreview");
+    const btn = v3NotesEl("v3NotesPreviewToggleBtn");
+    if (pv) {
+      pv.classList.add("hidden");
+      pv.innerHTML = "";
+    }
+    if (btn) btn.textContent = "Preview";
+  } catch (_) {}
+}
+
+function v3NotesMdTogglePreview() {
+  try {
+    v3NotesPreviewVisible = !v3NotesPreviewVisible;
+    const pv = v3NotesEl("v3NotesPreview");
+    const btn = v3NotesEl("v3NotesPreviewToggleBtn");
+    if (pv) pv.classList.toggle("hidden", !v3NotesPreviewVisible);
+    if (btn) btn.textContent = v3NotesPreviewVisible ? "Edit" : "Preview";
+    if (v3NotesPreviewVisible) v3NotesMdRenderPreview();
+  } catch (_) {}
+}
+
+function v3NotesMdRenderPreview() {
+  try {
+    const pv = v3NotesEl("v3NotesPreview");
+    const ta = v3NotesEl("v3NotesText");
+    if (!pv || !ta) return;
+    const md = String(ta.value ?? "");
+    pv.innerHTML = v3NotesMdToSafeHtml(md);
+  } catch (_) {}
+}
+
+function v3NotesMdEscapeHtml(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function v3NotesMdSafeUrl(urlRaw) {
+  try {
+    const raw = String(urlRaw ?? "").trim();
+    if (!raw) return "";
+    const u = new URL(raw, window.location.origin);
+    if (u.protocol === "http:" || u.protocol === "https:") return u.href;
+    return "";
+  } catch (_) {
+    return "";
+  }
+}
+
+function v3NotesMdApplyInline(s) {
+  // s уже ЭКРАНИРОВАН (escapeHtml), дальше только whitelist-замены
+  let x = String(s ?? "");
+
+  // inline code
+  x = x.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+
+  // highlight ==text==
+  x = x.replace(/==([^=\n][\s\S]*?[^=\n])==/g, "<mark>$1</mark>");
+
+  // bold **text**
+  x = x.replace(/\*\*([^\*\n][\s\S]*?[^\*\n])\*\*/g, "<strong>$1</strong>");
+
+  // italic *text* (простая эвристика: не трогаем **)
+  x = x.replace(/(^|[^*])\*([^*\n][\s\S]*?[^*\n])\*(?!\*)/g, "$1<em>$2</em>");
+
+  // links [text](url) — только http/https
+  x = x.replace(/\[([^\]\n]+)\]\(([^)\n]+)\)/g, function (_m, t, u) {
+    const safe = v3NotesMdSafeUrl(u);
+    if (!safe) return `${t} (${u})`;
+    return `<a href="${safe}" target="_blank" rel="noopener noreferrer">${t}</a>`;
+  });
+
+  return x;
+}
+
+function v3NotesMdToSafeHtml(md) {
+  const src = String(md ?? "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+  // код-блоки ```...``` — режем простым split (дешево и предсказуемо)
+  const parts = src.split(/```/);
+
+  let out = "";
+  for (let pi = 0; pi < parts.length; pi++) {
+    const part = parts[pi];
+
+    // code block
+    if (pi % 2 === 1) {
+      const codeEsc = v3NotesMdEscapeHtml(part);
+      out += `<pre><code>${codeEsc}</code></pre>`;
+      continue;
+    }
+
+    // normal markdown -> block parser
+    const lines = String(part).split("\n");
+    let i = 0;
+    let inUl = false;
+    let inOl = false;
+    let inQuote = false;
+
+    const closeLists = () => {
+      if (inUl) { out += "</ul>"; inUl = false; }
+      if (inOl) { out += "</ol>"; inOl = false; }
+      if (inQuote) { out += "</blockquote>"; inQuote = false; }
+    };
+
+    while (i < lines.length) {
+      const rawLine = lines[i];
+      const lineTrim = String(rawLine ?? "").trim();
+
+      // пустая строка закрывает блоки
+      if (!lineTrim) {
+        closeLists();
+        i++;
+        continue;
+      }
+
+      // headings
+      const h1 = rawLine.match(/^#\s+(.*)$/);
+      const h2 = rawLine.match(/^##\s+(.*)$/);
+      const h3 = rawLine.match(/^###\s+(.*)$/);
+      if (h1) { closeLists(); out += `<h1>${v3NotesMdApplyInline(v3NotesMdEscapeHtml(h1[1]))}</h1>`; i++; continue; }
+      if (h2) { closeLists(); out += `<h2>${v3NotesMdApplyInline(v3NotesMdEscapeHtml(h2[1]))}</h2>`; i++; continue; }
+      if (h3) { closeLists(); out += `<h3>${v3NotesMdApplyInline(v3NotesMdEscapeHtml(h3[1]))}</h3>`; i++; continue; }
+
+      // blockquote
+      const q = rawLine.match(/^>\s+(.*)$/);
+      if (q) {
+        if (!inQuote) { closeLists(); out += "<blockquote>"; inQuote = true; }
+        const esc = v3NotesMdEscapeHtml(q[1]);
+        out += `<p>${v3NotesMdApplyInline(esc)}</p>`;
+        i++;
+        continue;
+      }
+
+      // unordered list
+      const ul = rawLine.match(/^[-*]\s+(.*)$/);
+      if (ul) {
+        if (!inUl) { closeLists(); out += "<ul>"; inUl = true; }
+        const esc = v3NotesMdEscapeHtml(ul[1]);
+        out += `<li>${v3NotesMdApplyInline(esc)}</li>`;
+        i++;
+        continue;
+      }
+
+      // ordered list
+      const ol = rawLine.match(/^\d+\.\s+(.*)$/);
+      if (ol) {
+        if (!inOl) { closeLists(); out += "<ol>"; inOl = true; }
+        const esc = v3NotesMdEscapeHtml(ol[1]);
+        out += `<li>${v3NotesMdApplyInline(esc)}</li>`;
+        i++;
+        continue;
+      }
+
+      // обычный параграф
+      closeLists();
+      const esc = v3NotesMdEscapeHtml(rawLine);
+      out += `<p>${v3NotesMdApplyInline(esc)}</p>`;
+      i++;
+    }
+
+    closeLists();
+  }
+
+  return out;
+}
+
+function v3NotesMdCmd(cmd) {
+  try {
+    const ta = v3NotesEl("v3NotesText");
+    if (!ta) return;
+
+    ta.focus();
+
+    const val = String(ta.value ?? "");
+    const start = Number.isFinite(ta.selectionStart) ? ta.selectionStart : 0;
+    const end = Number.isFinite(ta.selectionEnd) ? ta.selectionEnd : start;
+    const sel = val.slice(start, end);
+
+    const setValue = (newVal, selStart, selEnd) => {
+      ta.value = newVal;
+      try { ta.setSelectionRange(selStart, selEnd); } catch (_) {}
+      // триггерим existing oninput (dirty tracking) + preview update
+      try { if (typeof ta.oninput === "function") ta.oninput(); } catch (_) {}
+      try { if (v3NotesPreviewVisible) v3NotesMdRenderPreview(); } catch (_) {}
+    };
+
+    const wrap = (l, r, placeholder) => {
+      const mid = sel || placeholder;
+      const newVal = val.slice(0, start) + l + mid + r + val.slice(end);
+      const a = start + l.length;
+      const b = a + mid.length;
+      setValue(newVal, a, b);
+    };
+
+    const prefixLines = (prefix) => {
+      const chosen = sel || "";
+      const block = chosen || "";
+      const from = start;
+      const to = end;
+
+      const lines = (block ? block : "").split("\n");
+      const outLines = lines.length ? lines.map((ln) => (ln.trim() ? (prefix + ln) : ln)) : [prefix];
+      const newBlock = outLines.join("\n");
+
+      const newVal = val.slice(0, from) + newBlock + val.slice(to);
+      const a = from;
+      const b = from + newBlock.length;
+      setValue(newVal, a, b);
+    };
+
+    if (cmd === "bold") return wrap("**", "**", "текст");
+    if (cmd === "italic") return wrap("*", "*", "текст");
+    if (cmd === "code") return wrap("`", "`", "код");
+    if (cmd === "highlight") return wrap("==", "==", "выделить");
+    if (cmd === "ul") return prefixLines("- ");
+    if (cmd === "quote") return prefixLines("> ");
+
+    if (cmd === "link") {
+      const text = sel || "текст";
+      const url = window.prompt("URL (http/https):", "https://");
+      if (url === null) return;
+      const ins = `[${text}](${String(url || "").trim()})`;
+      const newVal = val.slice(0, start) + ins + val.slice(end);
+      const a = start + 1;
+      const b = start + 1 + text.length;
+      return setValue(newVal, a, b);
+    }
+  } catch (_) {}
+}
+
 function v3NotesFmtSavedAt(iso) {
   try {
     if (!iso) return "";
@@ -10037,6 +10391,9 @@ function v3NotesOpen(textId, sentenceId, rowIdx) {
   const savedAt = v3NotesFmtSavedAt(existingUpdatedAt);
   if (savedAt) v3NotesSafeSetStatus(st, `Сохранено в ${savedAt}`, false);
   else v3NotesSafeSetStatus(st, "", false);
+  
+  // W10-NOTES-UX-MD-01: reset preview UI on open
+try { v3NotesMdResetUi(); } catch (_) {}
 
   if (modal) modal.classList.remove("hidden");
 
@@ -10044,11 +10401,14 @@ function v3NotesOpen(textId, sentenceId, rowIdx) {
   try {
     if (ta) {
       ta.oninput = function () {
-        try {
-          const cur = String(ta.value || "");
-          v3NotesModalIsDirty = (cur.trim() !== String(v3NotesModalOriginalText || "").trim());
-        } catch (_) {}
-      };
+  try {
+    const cur = String(ta.value || "");
+    v3NotesModalIsDirty = (cur.trim() !== String(v3NotesModalOriginalText || "").trim());
+  } catch (_) {}
+  try {
+    if (v3NotesPreviewVisible) v3NotesMdRenderPreview();
+  } catch (_) {}
+};
     }
   } catch (_) {}
 
@@ -10088,6 +10448,8 @@ function v3NotesOpen(textId, sentenceId, rowIdx) {
 function v3NotesForceClose() {
   const modal = v3NotesEl("v3NotesModal");
   if (modal) modal.classList.add("hidden");
+
+  try { v3NotesMdResetUi(); } catch (_) {}
 
   // unbind hotkeys
   try {
