@@ -2578,6 +2578,10 @@ let v3NotesModalTextId = null;
 let v3NotesModalSentenceId = null;
 let v3NotesModalRowIdx = null;
 
+let v3NotesModalOriginalText = "";
+let v3NotesModalIsDirty = false;
+let v3NotesModalHotkeysHandler = null;
+
 // UX-03: unsaved guard baseline
 let v3NotesModalOriginalValue = "";
 
@@ -2590,6 +2594,9 @@ function v3NotesReset() {
   v3NotesModalTextId = null;
   v3NotesModalSentenceId = null;
   v3NotesModalRowIdx = null;
+  v3NotesModalOriginalText = "";
+  v3NotesModalIsDirty = false;
+  v3NotesModalHotkeysHandler = null;
 }
 
 function v3NotesIngest(textId, notesArr) {
@@ -2619,6 +2626,12 @@ function v3NotesGet(sentenceId) {
   const sid = String(sentenceId || "");
   const x = v3NotesBySentenceId && v3NotesBySentenceId[sid];
   return x ? String(x.note || "") : "";
+}
+
+function v3NotesGetUpdatedAt(sentenceId) {
+  const sid = String(sentenceId || "");
+  const x = v3NotesBySentenceId && v3NotesBySentenceId[sid];
+  return x ? (x.updatedAt ?? null) : null;
 }
 
 function v3NotesSetLocal(sentenceId, note, updatedAt) {
@@ -5343,15 +5356,21 @@ async function v3PatchJson(url, payload) {
 }
 
 async function v3Delete(url) {
-  const r = await fetch(url, { method: "DELETE" });
-  if (!r.ok) {
-    const t = await r.text().catch(() => "");
-    const e = new Error("HTTP " + r.status);
-    e.httpStatus = r.status;
-    e.bodyText = t;
-    throw e;
+  const res = await fetch(url, { method: "DELETE" });
+
+  const txt = await res.text().catch(() => "");
+  let json = null;
+  try { json = txt ? JSON.parse(txt) : null; } catch (_) {}
+
+  if (!res.ok) {
+    const err = new Error((json && json.error) ? String(json.error) : (txt || res.statusText));
+    err.httpStatus = res.status;
+    err.payload = json;
+    err.bodyText = txt;
+    throw err;
   }
-  return await r.json();
+
+  return json;
 }
 
 function v3LibraryOpen() {
@@ -9885,6 +9904,23 @@ function v3NotesSafeSetStatus(el, message, isError) {
   } catch (_) {}
 }
 
+function v3NotesFmtSavedAt(iso) {
+  try {
+    if (!iso) return "";
+    const d = new Date(String(iso));
+    if (Number.isNaN(d.getTime())) return "";
+    const pad = (n) => String(n).padStart(2, "0");
+    const y = d.getFullYear();
+    const m = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mm = pad(d.getMinutes());
+    return `${y}-${m}-${dd} ${hh}:${mm}`;
+  } catch (_) {
+    return "";
+  }
+}
+
 // UX-01: format "YYYY-MM-DD HH:MM" in local time
 function v3NotesFmtLocalYmdHm(iso) {
   try {
@@ -9985,66 +10021,107 @@ function v3NotesOpen(textId, sentenceId, rowIdx) {
   const delBtn = v3NotesEl("v3NotesDeleteBtn");
 
   const existing = (typeof v3NotesGet === "function") ? v3NotesGet(v3NotesModalSentenceId) : "";
-  const existingUpdatedAt = (typeof v3NotesGetUpdatedAt === "function") ? v3NotesGetUpdatedAt(v3NotesModalSentenceId) : null;
+  const existingUpdatedAt = (typeof v3NotesGetUpdatedAt === "function")
+    ? v3NotesGetUpdatedAt(v3NotesModalSentenceId)
+    : null;
 
   v3NotesSafeSetTextareaValue(ta, existing || "");
 
-  // UX-03: baseline for unsaved guard
-  v3NotesModalOriginalValue = String(existing || "");
-
-  // UX-01: show last saved time (if available)
-  const t = existingUpdatedAt ? v3NotesFmtLocalYmdHm(existingUpdatedAt) : "";
-  v3NotesSafeSetStatus(st, t ? ("Сохранено в " + t) : "", false);
+  v3NotesModalOriginalText = String(existing || "");
+  v3NotesModalIsDirty = false;
 
   const has = existing && String(existing).trim().length > 0;
   if (delBtn) delBtn.style.display = has ? "" : "none";
 
-  if (modal) modal.classList.remove("hidden");
-  
-  // UX-02: hotkeys active while modal open
-  v3NotesBindHotkeysOnce();
+  // UX-01: статус "Сохранено в ..."
+  const savedAt = v3NotesFmtSavedAt(existingUpdatedAt);
+  if (savedAt) v3NotesSafeSetStatus(st, `Сохранено в ${savedAt}`, false);
+  else v3NotesSafeSetStatus(st, "", false);
 
-  // focus textarea (safe)
+  if (modal) modal.classList.remove("hidden");
+
+  // UX-03: dirty tracking
+  try {
+    if (ta) {
+      ta.oninput = function () {
+        try {
+          const cur = String(ta.value || "");
+          v3NotesModalIsDirty = (cur.trim() !== String(v3NotesModalOriginalText || "").trim());
+        } catch (_) {}
+      };
+    }
+  } catch (_) {}
+
+  // UX-02: hotkeys only while modal open + focus inside
+  try {
+    if (v3NotesModalHotkeysHandler) {
+      document.removeEventListener("keydown", v3NotesModalHotkeysHandler, true);
+      v3NotesModalHotkeysHandler = null;
+    }
+    v3NotesModalHotkeysHandler = function (ev) {
+      try {
+        const m = v3NotesEl("v3NotesModal");
+        if (!m || m.classList.contains("hidden")) return;
+        if (!m.contains(ev.target)) return;
+
+        if (ev.key === "Escape") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          v3NotesClose(); // с guard (UX-03)
+          return;
+        }
+        if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          v3NotesSave();
+          return;
+        }
+      } catch (_) {}
+    };
+    document.addEventListener("keydown", v3NotesModalHotkeysHandler, true);
+  } catch (_) {}
+
+  // focus textarea
   try { if (ta) setTimeout(() => ta.focus(), 0); } catch (_) {}
 }
 
-function v3NotesClose() {
+function v3NotesForceClose() {
+  const modal = v3NotesEl("v3NotesModal");
+  if (modal) modal.classList.add("hidden");
+
+  // unbind hotkeys
   try {
-    if (!v3NotesIsOpen()) return;
+    if (v3NotesModalHotkeysHandler) {
+      document.removeEventListener("keydown", v3NotesModalHotkeysHandler, true);
+    }
+  } catch (_) {}
+  v3NotesModalHotkeysHandler = null;
 
-    const ta = v3NotesEl("v3NotesText");
-    const current = ta ? String(ta.value || "") : "";
-    const baseline = String(v3NotesModalOriginalValue || "");
+  v3NotesModalTextId = null;
+  v3NotesModalSentenceId = null;
+  v3NotesModalRowIdx = null;
+  v3NotesModalOriginalText = "";
+  v3NotesModalIsDirty = false;
+}
 
-    const changed = current !== baseline;
-
-    if (!changed) {
+async function v3NotesClose() {
+  try {
+    if (v3NotesModalIsDirty) {
+      const wantSave = window.confirm("Есть несохранённые изменения.\nСохранить перед закрытием?");
+      if (wantSave) {
+        await v3NotesSave();
+        v3NotesForceClose();
+        return;
+      }
+      const discard = window.confirm("Закрыть без сохранения?\n(Отмена — вернуться к редактированию)");
+      if (!discard) return;
       v3NotesForceClose();
       return;
     }
 
-    // 3-way confirm:
-    // 1) Save
-    // 2) Close without saving
-    // 3) Cancel (stay open)
-    const wantSave = window.confirm("Есть несохранённые изменения.\n\nСохранить?");
-    if (wantSave) {
-      Promise.resolve(v3NotesSave())
-        .then(() => { v3NotesForceClose(); })
-        .catch(() => { /* v3NotesSave already toasts */ });
-      return;
-    }
-
-    const closeNoSave = window.confirm("Закрыть без сохранения?");
-    if (closeNoSave) {
-      v3NotesForceClose();
-      return;
-    }
-
-    // Cancel close => do nothing
-    return;
+    v3NotesForceClose();
   } catch (_) {
-    // fail-safe: close hard
+    // worst-case fallback
     v3NotesForceClose();
   }
 }
@@ -10077,11 +10154,15 @@ async function v3NotesSave() {
     const raw = ta ? String(ta.value || "") : "";
     const note = raw.trim();
 
-    // пусто => delete semantics (согласно API)
-    const url = "/api/library/texts/" + encodeURIComponent(textId) + "/notes/" + encodeURIComponent(sentenceId);
+    const url =
+      "/api/library/texts/" +
+      encodeURIComponent(textId) +
+      "/notes/" +
+      encodeURIComponent(sentenceId);
 
     let updatedAt = null;
 
+    // пусто => delete semantics (согласно API)
     if (!note) {
       await v3Delete(url).catch(async () => {
         // если DELETE не прошел (например 404/500) — попробуем PUT(empty) как fallback
@@ -10091,7 +10172,10 @@ async function v3NotesSave() {
       v3NotesSetLocal(sentenceId, "", null);
       if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
-      v3NotesModalOriginalValue = "";
+      // F6: после удаления сбросить dirty/original
+      v3NotesModalOriginalText = "";
+      v3NotesModalIsDirty = false;
+
       v3NotesSafeSetStatus(st, "Заметка удалена.", false);
       if (delBtn) delBtn.style.display = "none";
       showToast("Заметка удалена", "success");
@@ -10105,21 +10189,24 @@ async function v3NotesSave() {
 
     const resp = await v3PutJson(url, { note });
     const dto = resp && resp.note ? resp.note : null;
-        updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
-    if (!updatedAt) updatedAt = new Date().toISOString(); // fallback for UX-01
+    updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
+
+    // fallback для UX-01 (на случай неконсистентного ответа сервера)
+    if (!updatedAt) updatedAt = new Date().toISOString();
 
     v3NotesSetLocal(sentenceId, note, updatedAt);
     if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
-    // UX-03: update baseline after successful save
-    v3NotesModalOriginalValue = String(note || "");
+    // F6: после успешного save сбросить dirty + обновить baseline
+    v3NotesModalOriginalText = note;
+    v3NotesModalIsDirty = false;
 
-    const t = v3NotesFmtLocalYmdHm(updatedAt);
-    v3NotesSafeSetStatus(st, t ? ("Сохранено в " + t) : "Сохранено.", false);
+    // F6: вместо "Сохранено." показываем "Сохранено в ..."
+    const savedAt = v3NotesFmtSavedAt(updatedAt);
+    v3NotesSafeSetStatus(st, savedAt ? `Сохранено в ${savedAt}` : "Сохранено.", false);
 
     if (delBtn) delBtn.style.display = "";
     showToast("Заметка сохранена", "success");
-
   } catch (e) {
     console.warn("v3NotesSave failed", e);
     showToast("Не удалось сохранить заметку", "error");
@@ -10134,7 +10221,12 @@ async function v3NotesDelete() {
 
     if (!textId || !sentenceId) return;
 
-    const url = "/api/library/texts/" + encodeURIComponent(textId) + "/notes/" + encodeURIComponent(sentenceId);
+    const url =
+      "/api/library/texts/" +
+      encodeURIComponent(textId) +
+      "/notes/" +
+      encodeURIComponent(sentenceId);
+
     await v3Delete(url);
 
     v3NotesSetLocal(sentenceId, "", null);
@@ -10142,9 +10234,10 @@ async function v3NotesDelete() {
 
     const ta = v3NotesEl("v3NotesText");
     if (ta) ta.value = "";
-	
-	// UX-03 baseline update (no unsaved changes after delete)
-    v3NotesModalOriginalValue = "";
+
+    // F7: сбросить dirty/original после успешного удаления
+    v3NotesModalOriginalText = "";
+    v3NotesModalIsDirty = false;
 
     const delBtn = v3NotesEl("v3NotesDeleteBtn");
     if (delBtn) delBtn.style.display = "none";
