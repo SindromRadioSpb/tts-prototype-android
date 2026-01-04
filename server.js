@@ -2059,7 +2059,7 @@ app.get("/api/library/texts/:id/sentences", async (req, res) => {
     if (!requireDbOr503(res)) return;
 
     const text = await getTextById(req.params.id);
-    if (!text) return res.status(404).json({ error: "NOT_FOUND" });
+    if (!text) return res.status(404).json({ error: "TEXT_NOT_FOUND" });
 
     const sentences = await getSentencesByTextId(req.params.id);
     res.json({ ok: true, textId: req.params.id, sentences });
@@ -2077,12 +2077,24 @@ function isUuid(s) {
   return _UUID_RE.test(String(s || ""));
 }
 
+function normalizeIsoZ(x) {
+  if (!x) return null;
+  const s = String(x);
+  // already ISO-ish
+  if (s.includes("T")) return s;
+  // sqlite CURRENT_TIMESTAMP: "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SSZ"
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(s)) {
+    return s.replace(" ", "T") + "Z";
+  }
+  return s;
+}
+
 function normalizeNoteDto(r) {
   if (!r) return null;
   return {
     sentenceId: String(r.sentenceId ?? r.sentence_id ?? ""),
     note: String(r.note ?? ""),
-    updatedAt: r.updatedAt ?? r.updated_at ?? null,
+    updatedAt: normalizeIsoZ(r.updatedAt ?? r.updated_at ?? null),
   };
 }
 
@@ -2134,7 +2146,11 @@ app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
         }
         // если просто "не было заметки" — считаем ok
       }
-      return res.json({ ok: true, deleted: true });
+      return res.json({
+  ok: true,
+  deleted: true,
+  note: { sentenceId, note: "", updatedAt: new Date().toISOString() }
+});
     }
 
     if (note.length > 16000) return res.status(400).json({ error: "NOTE_TOO_LONG" });
@@ -2177,7 +2193,11 @@ app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
       throw e2;
     }
 
-    return res.json({ ok: true });
+    return res.json({
+  ok: true,
+  deleted: true,
+  note: { sentenceId, note: "", updatedAt: new Date().toISOString() }
+});
   } catch (e) {
     console.warn("DELETE note failed", e);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
@@ -2247,17 +2267,17 @@ app.get("/api/library/texts/:id/export/docx", async (req, res) => {
       return cell(u, AlignmentType.LEFT, false);
     }
 
-        const header = new TableRow({
-      children: [
-        cell("#", AlignmentType.CENTER, true),
-        cell("Hebrew", AlignmentType.CENTER, true),
-        cell("Hebrew (niqqud)", AlignmentType.CENTER, true),
-        cell("Translit", AlignmentType.CENTER, true),
-        cell("Russian", AlignmentType.CENTER, true),
-        cell("Notes", AlignmentType.CENTER, true),
-        cell("Audio URL", AlignmentType.CENTER, true),
-      ],
-    });
+       const header = new TableRow({
+  children: [
+    cell("#", AlignmentType.CENTER, true),
+    cell("Hebrew", AlignmentType.CENTER, true),
+    cell("Hebrew (niqqud)", AlignmentType.CENTER, true),
+    cell("Translit", AlignmentType.CENTER, true),
+    cell("Russian", AlignmentType.CENTER, true),
+    cell("Notes", AlignmentType.CENTER, true),
+    cell("Audio URL", AlignmentType.CENTER, true),
+  ],
+});
 
     const tableRows = [header];
 
@@ -2265,29 +2285,29 @@ app.get("/api/library/texts/:id/export/docx", async (req, res) => {
       const r = rows[i] || {};
       const idx = i + 1;
 
-      const hePlain = String(r.he_plain || "");
-      const heNiq = String(r.he_niqqud || "");
-      const tr = String(r.translit || "");
-      const ru = String(r.ru || "");
-      const note = String(r.note || "");
-      const assetKey = String(r.audio_asset_key || "");
-      const audioUrl = assetKey
-        ? ((baseUrl ? `${baseUrl}` : "") + `/api/audio/${encodeURIComponent(assetKey)}`)
-        : "";
+const hePlain = String(r.he_plain || "");
+const heNiq = String(r.he_niqqud || "");
+const tr = String(r.translit || "");
+const ru = String(r.ru || "");
+const note = String(r.note || "");
+const assetKey = String(r.audio_asset_key || "");
+const audioUrl = assetKey
+  ? ((baseUrl ? `${baseUrl}` : "") + `/api/audio/${encodeURIComponent(assetKey)}`)
+  : "";
 
-      tableRows.push(
-        new TableRow({
-          children: [
-            cell(String(idx), AlignmentType.CENTER, false),
-            cell(hePlain),
-            cell(heNiq),
-            cell(tr),
-            cell(ru),
-            cell(note),
-            linkCell(audioUrl),
-          ],
-        })
-      );
+tableRows.push(
+  new TableRow({
+    children: [
+      cell(String(idx), AlignmentType.CENTER, false),
+      cell(hePlain),
+      cell(heNiq),
+      cell(tr),
+      cell(ru),
+      cell(note),
+      linkCell(audioUrl),
+    ],
+  })
+);
     }
 
     const doc = new Document({

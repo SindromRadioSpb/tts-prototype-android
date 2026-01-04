@@ -573,14 +573,14 @@ async function getExportRowsByTextId(textId) {
     db,
     `
     SELECT
-      s.id            AS sentence_id,
-      s.order_index   AS order_index,
-      s.he_plain      AS he_plain,
-      s.he_niqqud     AS he_niqqud,
-      s.translit      AS translit,
-      s.ru            AS ru,
-      COALESCE(n.note, '') AS note,
-      COALESCE(a.asset_key, '') AS audio_asset_key
+  s.id            AS sentence_id,
+  s.order_index   AS order_index,
+  s.he_plain      AS he_plain,
+  s.he_niqqud     AS he_niqqud,
+  s.translit      AS translit,
+  s.ru            AS ru,
+  COALESCE(n.note, '') AS note,
+  COALESCE(a.asset_key, '') AS audio_asset_key
     FROM sentences s
     LEFT JOIN sentence_notes n
       ON n.sentence_id = s.id
@@ -591,7 +591,7 @@ async function getExportRowsByTextId(textId) {
     LEFT JOIN audio_assets a
       ON a.id = sa.audio_id
     WHERE s.text_id = ?
-    ORDER BY s.order_index ASC;
+    ORDER BY s.order_index ASC, s.id ASC;
     `,
     [String(textId)]
   );
