@@ -897,6 +897,80 @@ th, td { border-color: rgba(0,0,0,0.55); }
 .row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
 .row-tts-btn:active { transform: translateY(0px); }
 
+/* ============================
+   Notes per sentence (W10-NOTES-01)
+   ============================ */
+
+.row-note-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #d0d4d8;
+  background: #ffffff;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.row-note-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
+.row-note-btn:active { transform: translateY(0px); }
+
+.row-note-btn:focus-visible,
+.row-note-btn:focus {
+  outline: 2px solid rgba(243, 156, 18, 0.35);
+  outline-offset: 2px;
+}
+.row-note-btn:focus:not(:focus-visible) { outline: none; }
+
+.row-note-btn.row-note-active {
+  border-color: rgba(243, 156, 18, 0.85);
+  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.18);
+}
+
+/* Visibility: как у Row-TTS */
+#proTable tbody tr .row-note-btn {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0);
+  transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-note-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+#proTable tbody tr:focus-within .row-note-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Если note есть — показываем всегда */
+#proTable tbody tr .row-note-btn.row-note-active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr .row-note-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
 /* Accessibility: visible focus ring for ▶ button */
 .row-tts-btn:focus-visible {
     outline: 2px solid rgba(46, 125, 50, 0.45);
@@ -2451,11 +2525,108 @@ th, td { border-color: rgba(0,0,0,0.55); }
   </div>
 </div>
 
+<!-- -----------------------------------------
+     W10-NOTES-01: Notes per sentence modal
+------------------------------------------ -->
+<div id="v3NotesModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Заметка к строке">
+  <div class="v3-modal-backdrop" onclick="v3NotesClose()" aria-hidden="true"></div>
+
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title">Заметка к строке</div>
+      <button class="btn-secondary" onclick="v3NotesClose()">Закрыть</button>
+    </div>
+
+    <div class="v3-modal-body">
+      <div id="v3NotesStatus" class="v3-help"></div>
+
+      <div class="v3-form-row" style="align-items:flex-start;">
+        <label for="v3NotesText" style="padding-top:10px;">Note</label>
+        <textarea id="v3NotesText"
+                  maxlength="16000"
+                  style="flex:1; min-height:220px; resize:vertical; padding:10px 12px; border:1px solid #e6e9ef; border-radius:10px; outline:none;"
+                  placeholder="Напишите заметку к этой строке (сохранится по sentence_id)"></textarea>
+      </div>
+
+      <div class="v3-modal-actions" style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
+        <button id="v3NotesDeleteBtn" class="btn-secondary" onclick="v3NotesDelete()">Удалить</button>
+        <button id="v3NotesSaveBtn" class="btn-primary" onclick="v3NotesSave()">Сохранить</button>
+      </div>
+
+      <div class="v3-help">
+        Пустая заметка не хранится: используйте “Удалить” либо очистите и “Сохранить” (UI преобразует в delete).
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
     // ----------------------------
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
     let currentTableData = [];
+	
+	// ----------------------------
+// W10-NOTES-01: Notes state
+// ----------------------------
+let v3NotesActiveTextId = null;
+// sentenceId -> { note, updatedAt }
+let v3NotesBySentenceId = Object.create(null);
+
+// modal state
+let v3NotesModalTextId = null;
+let v3NotesModalSentenceId = null;
+let v3NotesModalRowIdx = null;
+
+function v3NotesReset() {
+  v3NotesActiveTextId = null;
+  v3NotesBySentenceId = Object.create(null);
+  v3NotesModalTextId = null;
+  v3NotesModalSentenceId = null;
+  v3NotesModalRowIdx = null;
+}
+
+function v3NotesIngest(textId, notesArr) {
+  v3NotesActiveTextId = String(textId || "");
+  v3NotesBySentenceId = Object.create(null);
+
+  const arr = Array.isArray(notesArr) ? notesArr : [];
+  for (const n of arr) {
+    const sid = String(n && (n.sentenceId ?? n.sentence_id) ? (n.sentenceId ?? n.sentence_id) : "").trim();
+    if (!sid) continue;
+    const note = String(n && (n.note ?? "")).trim();
+    if (!note) continue;
+    v3NotesBySentenceId[sid] = {
+      note,
+      updatedAt: n.updatedAt ?? n.updated_at ?? null
+    };
+  }
+}
+
+function v3NotesHas(sentenceId) {
+  const sid = String(sentenceId || "");
+  const x = v3NotesBySentenceId && v3NotesBySentenceId[sid];
+  return !!(x && String(x.note || "").trim());
+}
+
+function v3NotesGet(sentenceId) {
+  const sid = String(sentenceId || "");
+  const x = v3NotesBySentenceId && v3NotesBySentenceId[sid];
+  return x ? String(x.note || "") : "";
+}
+
+function v3NotesSetLocal(sentenceId, note, updatedAt) {
+  const sid = String(sentenceId || "");
+  const n = String(note || "").trim();
+  if (!sid) return;
+
+  if (!n) {
+    if (v3NotesBySentenceId) delete v3NotesBySentenceId[sid];
+    return;
+  }
+
+  v3NotesBySentenceId[sid] = { note: n, updatedAt: updatedAt ?? null };
+}
 
     const inputTextEl = document.getElementById("inputText");
     const langSelectEl = document.getElementById("langSelect");
@@ -5696,10 +5867,15 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
 
   try {
     // meta + sentences
-    const [meta, sents] = await Promise.all([
-      v3GetJson("/api/library/texts/" + encodeURIComponent(textId)),
-      v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences")
-    ]);
+   const [meta, sents, notesRes] = await Promise.all([
+  v3GetJson("/api/library/texts/" + encodeURIComponent(textId)),
+  v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences"),
+  v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/notes")
+    .catch((e) => {
+      console.warn("notes preload failed (non-critical)", e);
+      return { ok: false, notes: [] };
+    })
+]);
 
     const text = meta && meta.text ? meta.text : null;
 
@@ -5753,6 +5929,15 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
         };
       });
 
+	  // W10-NOTES-01: preload notes into map (non-fatal)
+try {
+  const notes = (notesRes && notesRes.ok && Array.isArray(notesRes.notes)) ? notesRes.notes : [];
+  v3NotesIngest(textId, notes);
+} catch (e) {
+  console.warn("v3NotesIngest failed (non-critical)", e);
+  v3NotesReset();
+}
+	  
     v3PrepareForNewTableRender();
 
 	const renderToken = v3RenderTableFromLibrary(rows);
@@ -8451,16 +8636,32 @@ try {
         if (putBtnIn && k === putBtnIn) {
             const safeText = escapeHtml(value);
             const btnHtml =
-                '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
-                'title="Озвучить эту строку" aria-label="Озвучить строку">' +
-                '▶</button>';
+			'<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
+			'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>';
 
-            html += '<td data-col="' + k + '"' + tdClass + '>' +
-                    '<div class="cell-he-wrap">' +
-                    btnHtml +
-                    '<div class="row-tts-text">' + safeText + '</div>' +
-                    '</div>' +
-                    '</td>';
+		let noteBtnHtml = "";
+		try {
+			const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
+			const tid = row && row._v3_textId ? String(row._v3_textId) : "";
+		if (sid && tid) {
+			const hasNote = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
+			noteBtnHtml =
+			'<button type="button" class="row-note-btn' + (hasNote ? ' row-note-active' : '') + '" ' +
+			'data-row-idx="' + rowIdx + '" ' +
+			'data-sentence-id="' + escapeHtml(sid) + '" ' +
+			'title="' + (hasNote ? 'Заметка (есть)' : 'Добавить заметку') + '" ' +
+			'aria-label="Заметка">📝</button>';
+		}
+		} catch (_) {}
+
+			html += '<td data-col="' + k + '"' + tdClass + '>' +
+				'<div class="cell-he-wrap">' +
+			btnHtml +
+			noteBtnHtml +
+				'<div class="row-tts-text">' + safeText + '</div>' +
+				'</div>' +
+			'</td>';
+
         } else {
             html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
         }
@@ -9275,8 +9476,9 @@ function initRowUxDelegatesOnce() {
 }
 
 
-        // не считаем “клик по ▶” как отдельный выбор строки — это обработает второй делегат
-        if (e.target && e.target.closest && e.target.closest("button.row-tts-btn")) return;
+        // не считаем клики по action-кнопкам строки как выбор строки — обработают отдельные делегаты
+		if (e.target && e.target.closest && e.target.closest("button.row-tts-btn")) return;
+		if (e.target && e.target.closest && e.target.closest("button.row-note-btn")) return;
 
         const rowIdx = Number(tr.getAttribute("data-row-idx"));
         if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
@@ -9449,16 +9651,169 @@ if (hasV3Ctx) {
             updateRowFocusMode();
         }
     });
+	
+	    // Notes button delegate (no audio listeners)
+    document.addEventListener("click", function (e) {
+        const btn = e.target && e.target.closest ? e.target.closest("button.row-note-btn") : null;
+        if (!btn) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        try {
+            const rowIdx = Number(btn.getAttribute("data-row-idx"));
+            if (!Number.isFinite(rowIdx)) return;
+
+            const row = Array.isArray(currentTableData) ? currentTableData[rowIdx] : null;
+            const textId = row && row._v3_textId ? String(row._v3_textId) : "";
+            const sentenceId = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
+
+            if (!textId || !sentenceId) {
+                showToast("Notes доступны только для текстов из Library (нужны sentence_id).", "error");
+                return;
+            }
+
+            v3NotesOpen(textId, sentenceId, rowIdx);
+        } catch (err) {
+            console.warn("row-note click handler failed", err);
+            showToast("Не удалось открыть заметку (см. консоль).", "error");
+        }
+    });
+
+}
+
+function v3NotesEl(id) { return document.getElementById(id); }
+
+function v3NotesOpen(textId, sentenceId, rowIdx) {
+  v3NotesModalTextId = String(textId || "");
+  v3NotesModalSentenceId = String(sentenceId || "");
+  v3NotesModalRowIdx = Number.isFinite(Number(rowIdx)) ? Number(rowIdx) : null;
+
+  const modal = v3NotesEl("v3NotesModal");
+  const ta = v3NotesEl("v3NotesText");
+  const st = v3NotesEl("v3NotesStatus");
+  const delBtn = v3NotesEl("v3NotesDeleteBtn");
+
+  if (st) { st.textContent = ""; st.classList.remove("v3-error"); }
+
+  const existing = (typeof v3NotesGet === "function") ? v3NotesGet(v3NotesModalSentenceId) : "";
+  if (ta) ta.value = existing || "";
+
+  const has = existing && String(existing).trim().length > 0;
+  if (delBtn) delBtn.style.display = has ? "" : "none";
+
+  if (modal) modal.classList.remove("hidden");
+
+  // focus textarea (safe)
+  try { if (ta) setTimeout(() => ta.focus(), 0); } catch (_) {}
+}
+
+function v3NotesClose() {
+  const modal = v3NotesEl("v3NotesModal");
+  if (modal) modal.classList.add("hidden");
+  v3NotesModalTextId = null;
+  v3NotesModalSentenceId = null;
+  v3NotesModalRowIdx = null;
+}
+
+function v3NotesUpdateButtonRow(rowIdx, sentenceId) {
+  try {
+    const btn = document.querySelector('button.row-note-btn[data-row-idx="' + String(rowIdx) + '"]');
+    if (!btn) return;
+
+    const has = (typeof v3NotesHas === "function") ? v3NotesHas(sentenceId) : false;
+    if (has) btn.classList.add("row-note-active");
+    else btn.classList.remove("row-note-active");
+
+    btn.title = has ? "Заметка (есть)" : "Добавить заметку";
+  } catch (_) {}
+}
+
+async function v3NotesSave() {
+  try {
+    const textId = String(v3NotesModalTextId || "");
+    const sentenceId = String(v3NotesModalSentenceId || "");
+    const rowIdx = v3NotesModalRowIdx;
+
+    const ta = v3NotesEl("v3NotesText");
+    const st = v3NotesEl("v3NotesStatus");
+    const delBtn = v3NotesEl("v3NotesDeleteBtn");
+
+    if (!textId || !sentenceId) return;
+
+    const raw = ta ? String(ta.value || "") : "";
+    const note = raw.trim();
+
+    // пусто => delete semantics (согласно API)
+    const url = "/api/library/texts/" + encodeURIComponent(textId) + "/notes/" + encodeURIComponent(sentenceId);
+
+    let updatedAt = null;
+
+    if (!note) {
+      await v3Delete(url).catch(async () => {
+        // если DELETE не прошел (например 404/500) — попробуем PUT(empty) как fallback
+        await v3PutJson(url, { note: "" });
+      });
+
+      v3NotesSetLocal(sentenceId, "", null);
+      if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
+
+      if (st) { st.textContent = "Заметка удалена."; st.classList.remove("v3-error"); }
+      if (delBtn) delBtn.style.display = "none";
+      showToast("Заметка удалена", "success");
+      return;
+    }
+
+    if (note.length > 16000) {
+      showToast("Заметка слишком длинная (макс. 16000).", "error");
+      return;
+    }
+
+    const resp = await v3PutJson(url, { note });
+    const dto = resp && resp.note ? resp.note : null;
+    updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
+
+    v3NotesSetLocal(sentenceId, note, updatedAt);
+    if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
+
+    if (st) { st.textContent = "Сохранено."; st.classList.remove("v3-error"); }
+    if (delBtn) delBtn.style.display = "";
+    showToast("Заметка сохранена", "success");
+  } catch (e) {
+    console.warn("v3NotesSave failed", e);
+    showToast("Не удалось сохранить заметку", "error");
+  }
+}
+
+async function v3NotesDelete() {
+  try {
+    const textId = String(v3NotesModalTextId || "");
+    const sentenceId = String(v3NotesModalSentenceId || "");
+    const rowIdx = v3NotesModalRowIdx;
+
+    if (!textId || !sentenceId) return;
+
+    const url = "/api/library/texts/" + encodeURIComponent(textId) + "/notes/" + encodeURIComponent(sentenceId);
+    await v3Delete(url);
+
+    v3NotesSetLocal(sentenceId, "", null);
+    if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
+
+    const ta = v3NotesEl("v3NotesText");
+    if (ta) ta.value = "";
+
+    const delBtn = v3NotesEl("v3NotesDeleteBtn");
+    if (delBtn) delBtn.style.display = "none";
+
+    showToast("Заметка удалена", "success");
+  } catch (e) {
+    console.warn("v3NotesDelete failed", e);
+    showToast("Не удалось удалить заметку", "error");
+  }
 }
 
 // bind once
 initRowUxDelegatesOnce();
-
-
-
-
-
-
 
 // Restore last opened Library/Dashboard text after reload (F5).
 // Runs after initial UI bootstrap; safe even if the Library modal is closed.
