@@ -2628,6 +2628,20 @@ function v3NotesSetLocal(sentenceId, note, updatedAt) {
   v3NotesBySentenceId[sid] = { note: n, updatedAt: updatedAt ?? null };
 }
 
+// W10-NOTES-PREMIUM-03: refresh all note buttons after async preload
+function v3NotesRefreshAllButtons() {
+  try {
+    const btns = document.querySelectorAll('button.row-note-btn[data-sentence-id]');
+    for (const btn of btns) {
+      const sid = String(btn.getAttribute("data-sentence-id") || "");
+      const has = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
+      if (has) btn.classList.add("row-note-active");
+      else btn.classList.remove("row-note-active");
+      btn.title = has ? "Заметка (есть)" : "Добавить заметку";
+    }
+  } catch (_) {}
+}
+
     const inputTextEl = document.getElementById("inputText");
     const langSelectEl = document.getElementById("langSelect");
     const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
@@ -2661,6 +2675,92 @@ function v3NotesSetLocal(sentenceId, note, updatedAt) {
 // Session state (restore last opened Library/Dashboard text after reload)
 // This MUST NOT rely on textarea "input" events (those mark results as stale).
 const V3_SESSION_STATE_KEY = "ttsDashboard_session_state_v1";
+
+// --------------------------------------------------------
+// V3 Library offline cache (restore last opened Library text on F5 even when Offline)
+// --------------------------------------------------------
+const V3_LIBRARY_CACHE_PREFIX = "ttsDashboard_v3_library_cache_v1:";
+
+function v3LibraryCacheKey(textId) {
+  return V3_LIBRARY_CACHE_PREFIX + String(textId || "");
+}
+
+function v3LibraryCacheSave(textId, payload) {
+  try {
+    const tid = String(textId || "").trim();
+    if (!tid) return;
+    const obj = (payload && typeof payload === "object") ? payload : null;
+    if (!obj) return;
+    localStorage.setItem(v3LibraryCacheKey(tid), JSON.stringify(obj));
+  } catch (_) {}
+}
+
+function v3LibraryCacheLoad(textId) {
+  try {
+    const tid = String(textId || "").trim();
+    if (!tid) return null;
+    const raw = localStorage.getItem(v3LibraryCacheKey(tid));
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== "object") return null;
+    if (!Array.isArray(obj.rows)) return null;
+    return obj;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Tries to restore table UI from local cache (Offline scenario).
+ * Returns true if table was restored.
+ */
+function v3LibraryTryRestoreFromCache(st) {
+  try {
+    const textId = st && st.textId ? String(st.textId) : "";
+    if (!textId) return false;
+
+    const cached = v3LibraryCacheLoad(textId);
+    if (!cached) return false;
+
+    // Prepare UI for table render (stop audio, clear selection, etc.)
+    try { v3PrepareForNewTableRender(); } catch (_) {}
+
+    // Ensure progress context still points to this text
+    try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(textId); } catch (_) {}
+
+    // Source text (optional)
+    try {
+      if (typeof cached.sourceText === "string" && cached.sourceText.length) {
+        v3SetSourceTextFromLibrary(cached.sourceText);
+      }
+    } catch (_) {}
+
+    // Notes: Offline => empty ingest, keep UI consistent (no active notes)
+    try { v3NotesIngest(textId, []); } catch (_) { try { v3NotesReset(); } catch (_) {} }
+    try { v3NotesRefreshAllButtons(); } catch (_) {}
+
+    // Render cached rows
+    const rows = cached.rows;
+    const token = v3RenderTableFromLibrary(rows);
+
+    // Resume selection by sentenceId if present
+    try {
+      const resumeSid = st && st.resumeSentenceId ? String(st.resumeSentenceId) : null;
+      if (resumeSid) {
+        const idx = rows.findIndex(r => r && r._v3_sentenceId === resumeSid);
+        if (idx >= 0) v3ApplyResumeSelection(token, idx);
+      }
+    } catch (_) {}
+
+    // Sync header/buttons (best-effort)
+    try { v3UiUpdateActiveHeader(); } catch (_) {}
+    try { v3UiSyncSaveButtons(); } catch (_) {}
+
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
 
 function v3SessionGet() {
   try {
@@ -5866,15 +5966,17 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
   try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 
   try {
-    // meta + sentences
-   const [meta, sents, notesRes] = await Promise.all([
+  // meta + sentences (blocking)
+// notes preload is non-blocking (W10-NOTES-PREMIUM-03)
+const notesPromise = v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/notes")
+  .catch((e) => {
+    console.warn("notes preload failed (non-critical)", e);
+    return { ok: false, notes: [] };
+  });
+
+const [meta, sents] = await Promise.all([
   v3GetJson("/api/library/texts/" + encodeURIComponent(textId)),
-  v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences"),
-  v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/notes")
-    .catch((e) => {
-      console.warn("notes preload failed (non-critical)", e);
-      return { ok: false, notes: [] };
-    })
+  v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences")
 ]);
 
     const text = meta && meta.text ? meta.text : null;
@@ -5928,19 +6030,43 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
           _v3_textId: String(textId)
         };
       });
+	  
+	      // Save offline cache for restore-on-load (Offline+F5)
+    try {
+      v3LibraryCacheSave(textId, {
+        v: 1,
+        savedAt: new Date().toISOString(),
+        textId: String(textId),
+        title: (text && text.title) ? String(text.title) : null,
+        level: (text && text.level) ? String(text.level) : null,
+        topic: (text && (text.topic ?? text.topic_text ?? text.topicText)) ? String(text.topic ?? text.topic_text ?? text.topicText) : null,
+        source: (text && (text.source ?? text.source_text ?? text.sourceText)) ? String(text.source ?? text.source_text ?? text.sourceText) : null,
+        tags: (text && (text.tags_json ?? text.tagsJson ?? text.tags)) ? (text.tags_json ?? text.tagsJson ?? text.tags) : null,
+        sourceText: (text && (text.source_text || text.sourceText)) ? String(text.source_text || text.sourceText) : "",
+        rows: rows
+      });
+    } catch (_) {}
 
-	  // W10-NOTES-01: preload notes into map (non-fatal)
-try {
-  const notes = (notesRes && notesRes.ok && Array.isArray(notesRes.notes)) ? notesRes.notes : [];
-  v3NotesIngest(textId, notes);
-} catch (e) {
-  console.warn("v3NotesIngest failed (non-critical)", e);
-  v3NotesReset();
-}
+	  //// W10-NOTES-PREMIUM-03: reset notes for this text BEFORE render (avoid cross-text leakage)
+try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 	  
     v3PrepareForNewTableRender();
 
 	const renderToken = v3RenderTableFromLibrary(rows);
+	
+	// W10-NOTES-PREMIUM-03: async notes ingest AFTER table render (never blocks UX)
+notesPromise.then((notesRes) => {
+  try {
+    const notes = (notesRes && notesRes.ok && Array.isArray(notesRes.notes)) ? notesRes.notes : [];
+    v3NotesIngest(textId, notes);
+    v3NotesRefreshAllButtons();
+  } catch (e) {
+    console.warn("async v3NotesIngest failed (non-critical)", e);
+    try { v3NotesReset(); } catch (_) {}
+  }
+}).catch((e) => {
+  // already handled in catch above; keep non-fatal
+});
 	
 	// resume by sentenceId (Dashboard Continue)
 let resumeRowIdx = null;
@@ -9684,6 +9810,24 @@ if (hasV3Ctx) {
 
 function v3NotesEl(id) { return document.getElementById(id); }
 
+// W10-NOTES-PREMIUM-04: Anti-XSS helpers (notes must be plain text)
+function v3NotesSafeSetTextareaValue(el, value) {
+  try {
+    if (!el) return;
+    // textarea.value is safe for user content (no HTML execution)
+    el.value = String(value ?? "");
+  } catch (_) {}
+}
+
+function v3NotesSafeSetStatus(el, message, isError) {
+  try {
+    if (!el) return;
+    el.textContent = String(message ?? "");
+    if (isError) el.classList.add("v3-error");
+    else el.classList.remove("v3-error");
+  } catch (_) {}
+}
+
 function v3NotesOpen(textId, sentenceId, rowIdx) {
   v3NotesModalTextId = String(textId || "");
   v3NotesModalSentenceId = String(sentenceId || "");
@@ -9694,10 +9838,10 @@ function v3NotesOpen(textId, sentenceId, rowIdx) {
   const st = v3NotesEl("v3NotesStatus");
   const delBtn = v3NotesEl("v3NotesDeleteBtn");
 
-  if (st) { st.textContent = ""; st.classList.remove("v3-error"); }
+  v3NotesSafeSetStatus(st, "", false);
 
   const existing = (typeof v3NotesGet === "function") ? v3NotesGet(v3NotesModalSentenceId) : "";
-  if (ta) ta.value = existing || "";
+  v3NotesSafeSetTextareaValue(ta, existing || "");
 
   const has = existing && String(existing).trim().length > 0;
   if (delBtn) delBtn.style.display = has ? "" : "none";
@@ -9758,7 +9902,7 @@ async function v3NotesSave() {
       v3NotesSetLocal(sentenceId, "", null);
       if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
-      if (st) { st.textContent = "Заметка удалена."; st.classList.remove("v3-error"); }
+      v3NotesSafeSetStatus(st, "Заметка удалена.", false);
       if (delBtn) delBtn.style.display = "none";
       showToast("Заметка удалена", "success");
       return;
@@ -9776,7 +9920,7 @@ async function v3NotesSave() {
     v3NotesSetLocal(sentenceId, note, updatedAt);
     if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
-    if (st) { st.textContent = "Сохранено."; st.classList.remove("v3-error"); }
+    v3NotesSafeSetStatus(st, "Сохранено.", false);
     if (delBtn) delBtn.style.display = "";
     showToast("Заметка сохранена", "success");
   } catch (e) {
@@ -9827,6 +9971,19 @@ window.addEventListener("load", () => {
 
     // Defer: allow layout to settle and avoid competing with other on-load UI work.
     setTimeout(() => {
+	      // W10-NOTES-PREMIUM-03: if offline on reload, restore from local cache instead of blocking
+      try {
+        if (typeof navigator !== "undefined" && navigator && navigator.onLine === false) {
+          const ok = v3LibraryTryRestoreFromCache(st);
+          if (ok) {
+            showToast("Офлайн: таблица восстановлена из кэша. Заметки не загружены.", "info");
+          } else {
+            showToast("Офлайн: кэш для восстановления не найден (откройте текст онлайн хотя бы один раз).", "error");
+          }
+          return;
+        }
+      } catch (_) {}
+
       try {
         const openMode = (st.openMode === "open") ? "open" : "resume";
         const opts = {
