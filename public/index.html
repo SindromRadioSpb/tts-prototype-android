@@ -300,10 +300,36 @@
     .btn-word {
         background-color: #2b579a;
         color: #ffffff;
-        margin-left: auto;
         opacity: 1;
         transition: all 0.25s ease;
     }
+	
+	.export-actions {
+    margin-left: auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-anki {
+    background-color: #2d7dd2;
+    color: #ffffff;
+    opacity: 1;
+    transition: all 0.25s ease;
+}
+
+.btn-anki.disabled {
+    background-color: #d0d4d8 !important;
+    color: #888 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    opacity: 0.65;
+}
+
+.btn-anki:not(.disabled):hover {
+    background-color: #2466ab;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
 
     .btn-word.disabled {
         background-color: #d0d4d8 !important;
@@ -818,7 +844,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .field-group { width: 100%; }
         .field-group select, .field-group input[type="range"] { width: 100%; }
         button, select { width: 100%; }
-        .btn-word { margin-left: 0; }
+        .export-actions { margin-left: 0; width: 100%; flex-direction: column; }
         .hotkeys-header { flex-direction: column; align-items: flex-start; }
         .hotkeys-hint { text-align: left; }
     }
@@ -1409,7 +1435,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
    Week9 P1: Meta Edit mini-modal (PRO)
 ----------------------------------------- */
 #v3TextMetaModal .v3-modal-panel,
-#v3SaveMetaModal .v3-modal-panel {
+#v3SaveMetaModal .v3-modal-panel,
+#v3AnkiModal .v3-modal-panel {
   width: min(640px, calc(100vw - 32px));
   height: auto;
   max-height: calc(100vh - 56px);
@@ -1424,7 +1451,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 #v3TextMetaModal .v3-form-row label,
-#v3SaveMetaModal .v3-form-row label {
+#v3SaveMetaModal .v3-form-row label,
+#v3AnkiModal .v3-form-row label {
   min-width: 86px;
   font-size: 12px;
   color: #7f8c8d;
@@ -1435,7 +1463,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
 #v3TextMetaModal input[type="text"],
 #v3TextMetaModal select,
 #v3SaveMetaModal input[type="text"],
-#v3SaveMetaModal select {
+#v3SaveMetaModal select,
+#v3AnkiModal input[type="text"],
+#v3AnkiModal select {
   flex: 1;
   padding: 10px 12px;
   border: 1px solid #e6e9ef;
@@ -1448,7 +1478,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
 #v3TextMetaModal input[type="text"]:focus,
 #v3TextMetaModal select:focus,
 #v3SaveMetaModal input[type="text"]:focus,
-#v3SaveMetaModal select:focus {
+#v3SaveMetaModal select:focus,
+#v3AnkiModal input[type="text"]:focus,
+#v3AnkiModal select:focus {
   border-color: rgba(52, 152, 219, 0.65);
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
 }
@@ -1462,7 +1494,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
 }
 
 #v3TextMetaModal .v3-help.v3-error,
-#v3SaveMetaModal .v3-help.v3-error {
+#v3SaveMetaModal .v3-help.v3-error,
+#v3AnkiModal .v3-help.v3-error {
   color: #c62828;
   font-weight: 600;
 }
@@ -2178,7 +2211,10 @@ th, td { border-color: rgba(0,0,0,0.55); }
 			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
 			<div id="loader" class="loader"></div>
 
-			<button id="btnWord" class="btn-word disabled" title="Сначала сохраните текст в Library" onclick="downloadWord()" disabled>Скачать таблицу</button>
+			<div class="export-actions">
+				<button id="btnAnki" class="btn-anki disabled" title="Сначала сохраните текст в Library" onclick="v3AnkiOpenModal()" disabled>Anki</button>
+				<button id="btnWord" class="btn-word disabled" title="Сначала сохраните текст в Library" onclick="downloadWord()" disabled>Скачать таблицу</button>
+			</div>
 			
         </div>
 
@@ -2612,6 +2648,55 @@ th, td { border-color: rgba(0,0,0,0.55); }
 </div>
 
 <!-- -----------------------------------------
+     W11-ANKI-CONNECT-01: One-click export to local Anki (AnkiConnect)
+------------------------------------------ -->
+<div id="v3AnkiModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Экспорт в Anki">
+  <div class="v3-modal-backdrop" onclick="v3AnkiCloseModal()" aria-hidden="true"></div>
+
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title">Экспорт в Anki (AnkiConnect)</div>
+      <button class="btn-secondary" onclick="v3AnkiCloseModal()">Закрыть</button>
+    </div>
+
+    <div class="v3-modal-body">
+      <div id="v3AnkiStatus" class="v3-help"></div>
+
+      <div class="v3-form-row">
+        <label for="v3AnkiDeck">Deck</label>
+        <input id="v3AnkiDeck" type="text" maxlength="120" placeholder="LinguistPro::A1" />
+      </div>
+
+      <div class="v3-form-row">
+        <label for="v3AnkiFrontMode">Front Hebrew</label>
+        <select id="v3AnkiFrontMode">
+          <option value="plain">Hebrew (без никуда)</option>
+          <option value="niqqud">HebrewNiqqud (с никуда)</option>
+        </select>
+      </div>
+
+      <div class="v3-form-row">
+        <label>Опции</label>
+        <div class="v3-checkboxes">
+          <label><input type="checkbox" id="v3AnkiIncludeHint" checked /> Подсказка (тема/уровень)</label>
+          <label><input type="checkbox" id="v3AnkiIncludeNoteHtml" /> NoteHtml (safe markdown)</label>
+          <label><input type="checkbox" id="v3AnkiMoveToDeck" checked /> Переместить существующие карточки в выбранный deck</label>
+        </div>
+      </div>
+
+      <div class="v3-modal-footer">
+        <button id="v3AnkiCheckBtn" class="btn-secondary" onclick="v3AnkiHealth()">Проверить AnkiConnect</button>
+        <button id="v3AnkiPushBtn" class="btn-primary" onclick="v3AnkiPushNow()">Экспортировать</button>
+      </div>
+
+      <div class="v3-modal-hint">
+        Требуется запущенный Anki Desktop и установленный AnkiConnect. Dashboard должен быть запущен локально (localhost:3000).
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- -----------------------------------------
      W10-NOTES-01: Notes per sentence modal
 ------------------------------------------ -->
 <div id="v3NotesModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Заметка к строке">
@@ -2777,6 +2862,7 @@ function v3NotesRefreshAllButtons() {
     const hebrewFontSelectEl = document.getElementById("hebrewFontSelect");
     const textChangedNoticeEl = document.getElementById("textChangedNotice");
     const limitBannerEl = document.getElementById("limitBanner");
+    const btnAnkiEl = document.getElementById("btnAnki");
     const btnWordEl = document.getElementById("btnWord");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
     const hotkeysPanelEl = document.getElementById("hotkeysPanel");
@@ -5262,10 +5348,23 @@ function v3UiSyncSaveButtons() {
           btnWordEl.disabled = false;
           btnWordEl.classList.remove("disabled");
           btnWordEl.title = "Карточка из Library (с Notes+Audio)";
+		  
+		 if (typeof btnAnkiEl !== "undefined" && btnAnkiEl) {
+            btnAnkiEl.disabled = false;
+            btnAnkiEl.classList.remove("disabled");
+            btnAnkiEl.title = "Экспорт в Anki (AnkiConnect)";
+          }
+		  
         } else {
           btnWordEl.disabled = true;
           btnWordEl.classList.add("disabled");
           btnWordEl.title = "Сначала сохраните текст в Library";
+		  
+		   if (typeof btnAnkiEl !== "undefined" && btnAnkiEl) {
+            btnAnkiEl.disabled = true;
+            btnAnkiEl.classList.add("disabled");
+            btnAnkiEl.title = "Сначала сохраните текст в Library";
+          }
         }
 
         // фиксируем текст кнопки (на случай старого DOM-кэша/вставок)
@@ -9422,6 +9521,268 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
         }
     }
 
+	
+// --------------------------------------------------------
+// W11-ANKI-CONNECT-01: AnkiConnect one-click export (UI)
+// --------------------------------------------------------
+const V3_ANKI_OPTS_KEY = "v3_anki_opts_v1";
+
+function v3AnkiGetExportId() {
+    const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
+    const exportId = (typeof v3SessionGetUpdateTextId === "function")
+      ? v3SessionGetUpdateTextId()
+      : (st && st.textId ? st.textId : null);
+    return exportId;
+}
+
+function v3AnkiShow(open) {
+    const modal = document.getElementById("v3AnkiModal");
+    if (!modal) return;
+
+    if (open) {
+        modal.classList.remove("hidden");
+        modal.setAttribute("aria-hidden", "false");
+        const deckEl = document.getElementById("v3AnkiDeck");
+        if (deckEl) setTimeout(() => deckEl.focus(), 0);
+    } else {
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden", "true");
+    }
+}
+
+function v3AnkiCloseModal() {
+    v3AnkiShow(false);
+}
+
+function v3AnkiSetStatus(msg, isError) {
+    const el = document.getElementById("v3AnkiStatus");
+    if (!el) return;
+    el.textContent = String(msg || "");
+    el.classList.toggle("v3-error", !!isError);
+}
+
+function v3AnkiFmtDetails(d) {
+  if (!d) return "";
+  if (typeof d === "string") return d;
+
+  if (typeof d === "object") {
+    const msg = (d.message ? String(d.message) : "");
+    const stage = (d.stage ? String(d.stage) : "");
+    const ms = (typeof d.elapsedMs === "number" ? String(d.elapsedMs) : "");
+
+    const parts = [];
+    if (msg) parts.push(msg);
+    if (stage) parts.push("stage=" + stage);
+    if (ms) parts.push("ms=" + ms);
+
+    if (parts.length) return parts.join(" | ");
+
+    try { return JSON.stringify(d); } catch { return String(d); }
+  }
+
+  return String(d);
+}
+
+function v3AnkiReadOpts() {
+    try {
+        const raw = localStorage.getItem(V3_ANKI_OPTS_KEY);
+        const j = raw ? JSON.parse(raw) : {};
+        return (j && typeof j === "object") ? j : {};
+    } catch {
+        return {};
+    }
+}
+
+function v3AnkiWriteOpts(opts) {
+    try {
+        localStorage.setItem(V3_ANKI_OPTS_KEY, JSON.stringify(opts || {}));
+    } catch { /* ignore */ }
+}
+
+function v3AnkiOpenModal() {
+    if (!btnAnkiEl || btnAnkiEl.disabled || btnAnkiEl.classList.contains("disabled")) return;
+
+    const exportId = v3AnkiGetExportId();
+    const isUuid =
+      typeof exportId === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
+
+    if (!isUuid) {
+        if (typeof showToast === "function") showToast("Сначала сохраните текст в Library", "warning");
+        return;
+    }
+
+    v3AnkiShow(true);
+
+    const opts = v3AnkiReadOpts();
+    const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
+
+    const deckEl = document.getElementById("v3AnkiDeck");
+    const frontEl = document.getElementById("v3AnkiFrontMode");
+    const hintEl = document.getElementById("v3AnkiIncludeHint");
+    const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
+    const moveEl = document.getElementById("v3AnkiMoveToDeck");
+
+    // Default deck suggestion: LinguistPro::<level>
+    const level = (st && st.level) ? String(st.level || "").trim() : "";
+    const suggestedDeck = level ? `LinguistPro::${level}` : "LinguistPro";
+
+    if (deckEl) deckEl.value = String(opts.deckName || deckEl.value || suggestedDeck);
+    if (frontEl) frontEl.value = String(opts.frontMode || frontEl.value || "plain");
+    if (hintEl) hintEl.checked = (opts.includeHint !== false);
+    if (htmlEl) htmlEl.checked = !!opts.includeNoteHtml;
+    if (moveEl) moveEl.checked = (opts.moveToDeck !== false);
+
+    v3AnkiSetStatus("Проверьте AnkiConnect и нажмите «Экспортировать».", false);
+    v3AnkiHealth();
+
+    // Hotkeys inside modal (Esc = close, Ctrl+Enter = export)
+    if (!window.__v3AnkiKeysBound) {
+        window.__v3AnkiKeysBound = true;
+        document.addEventListener("keydown", (e) => {
+            const modal = document.getElementById("v3AnkiModal");
+            if (!modal || modal.classList.contains("hidden")) return;
+
+            if (e.key === "Escape") {
+                e.preventDefault();
+                v3AnkiCloseModal();
+                return;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.preventDefault();
+                v3AnkiPushNow();
+            }
+        });
+    }
+}
+
+// --------------------------------------------------------
+// W11-ANKI-CONNECT-01: UI details formatter (avoid [object Object])
+// --------------------------------------------------------
+function v3AnkiFormatDetails(j, r) {
+  const httpPart =
+    (r && typeof r.status === "number" && r.status)
+      ? `HTTP_${r.status}`
+      : "";
+
+  // prefer details, fallback to error
+  let d = (j && (j.details !== undefined && j.details !== null))
+    ? j.details
+    : (j && (j.error !== undefined && j.error !== null) ? j.error : "");
+
+  // no body at all
+  if ((d === "" || d === null || d === undefined) && httpPart) return httpPart;
+
+  // object -> render message + stage/ms if present
+  if (d && typeof d === "object") {
+    const msg = (d.message !== undefined && d.message !== null) ? String(d.message) : "";
+    const stage = (d.stage !== undefined && d.stage !== null) ? String(d.stage) : "";
+    const ms = (d.elapsedMs !== undefined && d.elapsedMs !== null) ? String(d.elapsedMs) : "";
+
+    const meta = [];
+    if (stage) meta.push(`stage=${stage}`);
+    if (ms) meta.push(`ms=${ms}`);
+
+    let base = msg;
+    if (!base) {
+      try { base = JSON.stringify(d); } catch { base = "[details]"; }
+    }
+
+    return meta.length ? `${base} (${meta.join(", ")})` : base;
+  }
+
+  // string/number/bool
+  const s = String(d || "");
+  return s || httpPart || "UNKNOWN";
+}
+
+async function v3AnkiHealth() {
+  const btn = document.getElementById("v3AnkiCheckBtn");
+  if (btn) btn.disabled = true;
+
+  try {
+    v3AnkiSetStatus("Проверяю AnkiConnect…", false);
+
+    const r = await fetch("/api/anki/health", { method: "GET" });
+    const j = await r.json().catch(() => ({}));
+
+    if (r.ok && j && j.ok) {
+      const ver = (j.ankiConnect && j.ankiConnect.version) ? j.ankiConnect.version : "—";
+      v3AnkiSetStatus(`AnkiConnect доступен (version: ${ver}).`, false);
+    } else {
+      const details = v3AnkiFormatDetails(j, r);
+      v3AnkiSetStatus(`AnkiConnect недоступен: ${details}`, true);
+    }
+  } catch (e) {
+    v3AnkiSetStatus(`AnkiConnect недоступен: ${String((e && e.message) || e)}`, true);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function v3AnkiPushNow() {
+  const exportId = v3AnkiGetExportId();
+  const isUuid =
+    typeof exportId === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
+
+  if (!isUuid) {
+    if (typeof showToast === "function") showToast("Сначала сохраните текст в Library", "warning");
+    return;
+  }
+
+  const deckEl = document.getElementById("v3AnkiDeck");
+  const frontEl = document.getElementById("v3AnkiFrontMode");
+  const hintEl = document.getElementById("v3AnkiIncludeHint");
+  const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
+  const moveEl = document.getElementById("v3AnkiMoveToDeck");
+
+  const payload = {
+    deckName: deckEl ? String(deckEl.value || "").trim() : "",
+    frontMode: frontEl ? String(frontEl.value || "plain") : "plain",
+    includeHint: hintEl ? !!hintEl.checked : true,
+    includeNoteHtml: htmlEl ? !!htmlEl.checked : false,
+    moveToDeck: moveEl ? !!moveEl.checked : true,
+  };
+
+  v3AnkiWriteOpts(payload);
+
+  const pushBtn = document.getElementById("v3AnkiPushBtn");
+  const checkBtn = document.getElementById("v3AnkiCheckBtn");
+  if (pushBtn) pushBtn.disabled = true;
+  if (checkBtn) checkBtn.disabled = true;
+
+  try {
+    v3AnkiSetStatus("Экспортирую в Anki… (создаю/обновляю карточки)", false);
+
+    const r = await fetch(`/api/library/texts/${encodeURIComponent(exportId)}/push/anki`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const j = await r.json().catch(() => ({}));
+
+    if (!r.ok || !j || !j.ok) {
+      const details = v3AnkiFormatDetails(j, r);
+      v3AnkiSetStatus(`Ошибка экспорта: ${details}`, true);
+      if (typeof showToast === "function") showToast("Ошибка экспорта в Anki", "error");
+      return;
+    }
+
+    const s = j.stats || {};
+    const msg = `Готово: создано ${s.created || 0}, обновлено ${s.updated || 0}, аудио поставлено в очередь ${s.audioQueued || 0}.`;
+    v3AnkiSetStatus(msg, false);
+    if (typeof showToast === "function") showToast("Экспорт в Anki выполнен", "success");
+  } catch (e) {
+    v3AnkiSetStatus(`Ошибка экспорта: ${String((e && e.message) || e)}`, true);
+    if (typeof showToast === "function") showToast("Ошибка экспорта в Anki", "error");
+  } finally {
+    if (pushBtn) pushBtn.disabled = false;
+    if (checkBtn) checkBtn.disabled = false;
+  }
+}
+	
     // ----------------------------
     // FILENAMES
     // ----------------------------

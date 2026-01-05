@@ -8,6 +8,7 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const { execFile } = require("child_process");
+const http = require("http");
 
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
@@ -1680,6 +1681,311 @@ function setAttachment(res, filename) {
 }
 
 // --------------------------------------------------------
+// W11-ANKI-CONNECT-01 helpers (server-side bridge to local AnkiConnect)
+// --------------------------------------------------------
+const ANKI_CONNECT_HOST = process.env.ANKI_CONNECT_HOST || "127.0.0.1";
+const ANKI_CONNECT_PORT = Number(process.env.ANKI_CONNECT_PORT || 8765);
+const ANKI_CONNECT_VERSION = Number(process.env.ANKI_CONNECT_VERSION || 6);
+const ANKI_CONNECT_API_KEY = process.env.ANKI_CONNECT_API_KEY || null;
+// If AnkiConnect permission/origin checks are enabled, this Origin may be required.
+const ANKI_CONNECT_ORIGIN = process.env.ANKI_CONNECT_ORIGIN || "";
+const ANKI_CONNECT_TIMEOUT_MS = Number(process.env.ANKI_CONNECT_TIMEOUT_MS || 60000);
+
+// Retry settings (transient socket resets are common on local bridges)
+const ANKI_CONNECT_RETRIES = Number(process.env.ANKI_CONNECT_RETRIES || 3);
+const ANKI_CONNECT_RETRY_DELAY_MS = Number(process.env.ANKI_CONNECT_RETRY_DELAY_MS || 250);
+
+// Force a conservative agent (avoid keep-alive weirdness)
+const ANKI_HTTP_AGENT = new http.Agent({ keepAlive: false, maxSockets: 1 });
+
+function ankiSleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function ankiIsTransientNetErr(e) {
+  const msg = String((e && e.message) || e || "");
+  return /ECONNRESET|ECONNREFUSED|EPIPE|ETIMEDOUT|socket hang up|ANKI_CONNECT_TIMEOUT/i.test(msg);
+}
+
+function ankiSafeTagPart(x, maxLen) {
+  const s = String(x || "").trim();
+  if (!s) return "";
+  // Anki tags: no spaces; be conservative (letters/digits/_ only)
+  const cleaned = s
+    .replace(/\s+/g, "_")
+    .replace(/[^A-Za-z0-9_\-]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return cleaned.slice(0, maxLen || 48);
+}
+
+function ankiNoDashId(uuid) {
+  return String(uuid || "").replace(/-/g, "");
+}
+
+function ankiNoteHtmlFromMarkdown(mdRaw) {
+  // Conservative: escape everything, then allow a tiny safe subset of markdown-like formatting.
+  // NO raw HTML passthrough.
+  const md = String(mdRaw || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  if (!md.trim()) return "";
+  const esc = (s) => String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+  const safeLink = (url) => {
+    const u = String(url || "").trim();
+    if (!u) return null;
+    if (/^https?:\/\//i.test(u)) return u;
+    return null;
+  };
+
+  const lines = md.split("\n");
+  const out = [];
+  let inUl = false;
+
+  const flushUl = () => {
+    if (inUl) { out.push("</ul>"); inUl = false; }
+  };
+
+  for (let raw of lines) {
+    const line = String(raw || "");
+
+    // Bullets
+    const mBul = line.match(/^\s*[-*]\s+(.*)$/);
+    if (mBul) {
+      if (!inUl) { out.push("<ul>"); inUl = true; }
+      out.push("<li>" + esc(mBul[1]) + "</li>");
+      continue;
+    } else {
+      flushUl();
+    }
+
+    // Quote
+    const mQ = line.match(/^\s*>\s?(.*)$/);
+    if (mQ) {
+      out.push("<blockquote>" + esc(mQ[1]) + "</blockquote>");
+      continue;
+    }
+
+    // Paragraph / empty line
+    if (!line.trim()) {
+      out.push("<br>");
+      continue;
+    }
+
+    out.push("<p>" + esc(line) + "</p>");
+  }
+  flushUl();
+
+  let html = out.join("");
+
+  // Inline formatting (operate after escaping)
+  html = html
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/==([^=]+)==/g, "<mark>$1</mark>");
+
+  // Links: [text](url)
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, text, url) => {
+    const href = safeLink(url);
+    const t = esc(text);
+    if (!href) return t;
+    return `<a href="${href}" target="_blank" rel="noreferrer noopener">${t}</a>`;
+  });
+
+  return html;
+}
+
+function ankiHttpJsonOnce(payload) {
+  return new Promise((resolve, reject) => {
+    const bodyStr = JSON.stringify(payload || {});
+
+    const reqOpts = {
+      host: ANKI_CONNECT_HOST,
+      port: ANKI_CONNECT_PORT,
+      path: "/",
+      method: "POST",
+      family: 4, // force IPv4 (важно, если кто-то выставит host=localhost)
+      agent: ANKI_HTTP_AGENT,
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(bodyStr),
+      },
+    };
+
+    const req = http.request(reqOpts, (res) => {
+      const status = Number(res.statusCode || 0);
+      let raw = "";
+
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => (raw += chunk));
+      res.on("end", () => {
+        let json = null;
+        try {
+          json = raw ? JSON.parse(raw) : null;
+        } catch (_) {
+          json = null;
+        }
+
+        resolve({
+          status,
+          json,
+          rawBody: raw,
+        });
+      });
+    });
+
+    req.on("error", (err) => {
+      // добавим контекст цели, чтобы видеть "куда стучались"
+      err.details = Object.assign({}, err.details, {
+        host: ANKI_CONNECT_HOST,
+        port: ANKI_CONNECT_PORT,
+      });
+      reject(err);
+    });
+
+    req.setTimeout(ANKI_CONNECT_TIMEOUT_MS, () => {
+      const err = new Error("ANKI_CONNECT_TIMEOUT");
+      err.code = "ANKI_CONNECT_TIMEOUT";
+      err.details = {
+        host: ANKI_CONNECT_HOST,
+        port: ANKI_CONNECT_PORT,
+        timeoutMs: ANKI_CONNECT_TIMEOUT_MS,
+      };
+      req.destroy(err);
+    });
+
+    req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function ankiHttpJson(payload) {
+  const attempts = Math.max(1, ANKI_CONNECT_RETRIES | 0);
+
+  let lastErr = null;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      return await ankiHttpJsonOnce(payload);
+    } catch (e) {
+      lastErr = e;
+
+      // Only retry on transient socket-level errors
+      if (!ankiIsTransientNetErr(e) || i === attempts) throw e;
+
+      // Small backoff
+      await ankiSleep(ANKI_CONNECT_RETRY_DELAY_MS * i);
+    }
+  }
+  throw lastErr || new Error("ANKI_CONNECT_ERROR");
+}
+
+async function ankiInvoke(action, params) {
+  const payload = {
+    action: String(action || ""),
+    version: ANKI_CONNECT_VERSION,
+    params: params || {},
+  };
+  if (ANKI_CONNECT_API_KEY) payload.key = ANKI_CONNECT_API_KEY;
+
+const resp = await ankiHttpJson(payload);
+
+// Нормализация: поддерживаем оба формата:
+// 1) Новый правильный: { status, json, rawBody }
+// 2) Старый/сломанный: { result, error } (без status/json/rawBody)
+let status = 0;
+let json = null;
+let rawBody = "";
+
+if (resp && typeof resp === "object" && ("status" in resp || "json" in resp || "rawBody" in resp)) {
+  status = Number(resp.status || 0);
+  json = resp.json;
+  rawBody = String(resp.rawBody || "");
+} else {
+  status = 200;
+  json = resp;
+  try {
+    rawBody = JSON.stringify(resp || {});
+  } catch (_) {
+    rawBody = "";
+  }
+}
+  // HTTP-level guard
+  if (!status || status < 200 || status >= 300) {
+    const e = new Error(`ANKI_CONNECT_HTTP_${status || 0}`);
+    e.code = "ANKI_CONNECT_HTTP_ERROR";
+    e.status = status || 0;
+    e.details = {
+      action: payload.action,
+      status: status || 0,
+      rawBodySnippet: String(rawBody || "").slice(0, 400),
+    };
+    throw e;
+  }
+
+  // Schema guard (AnkiConnect must return {result:..., error:...})
+  if (!json || typeof json !== "object") {
+  const err = new Error("ANKI_CONNECT_BAD_JSON");
+  err.details = { action, status, rawBodySnippet: String(rawBody || "").slice(0, 240) };
+  throw err;
+}
+
+  const hasResult = Object.prototype.hasOwnProperty.call(json, "result");
+  const hasError = Object.prototype.hasOwnProperty.call(json, "error");
+  if (!hasResult || !hasError) {
+    const e = new Error("ANKI_CONNECT_BAD_SCHEMA");
+    e.code = "ANKI_CONNECT_BAD_SCHEMA";
+    e.status = status;
+    e.details = { action: payload.action, status, jsonKeys: Object.keys(json), rawBodySnippet: String(rawBody || "").slice(0, 400) };
+    throw e;
+  }
+
+  if (json.error) {
+    const e = new Error(String(json.error));
+    e.code = "ANKI_CONNECT_ERROR";
+    e.status = status;
+    e.details = { action: payload.action, status, error: String(json.error) };
+    throw e;
+  }
+
+  return json.result;
+}
+
+async function ankiMulti(actions) {
+  const arr = Array.isArray(actions) ? actions : [];
+  return ankiInvoke("multi", { actions: arr.map((a) => ({ action: a.action, params: a.params || {} })) });
+}
+
+async function ankiEnsureDeck(deckName) {
+  const name = String(deckName || "").trim();
+  if (!name) throw new Error("ANKI_BAD_DECK_NAME");
+
+  // createDeck is safe/idempotent: returns existing id if already exists
+  await ankiInvoke("createDeck", { deck: name });
+}
+
+async function ankiEnsureModel(modelName, spec) {
+  const name = String(modelName || "").trim();
+  if (!name) throw new Error("ANKI_MODEL_REQUIRED");
+
+  const names = await ankiInvoke("modelNames", {});
+  const exists = Array.isArray(names) && names.includes(name);
+  if (exists) return;
+
+  // spec: { inOrderFields, css, cardTemplates:[{Name, Front, Back}] }
+  const s = spec || {};
+  await ankiInvoke("createModel", {
+    modelName: name,
+    inOrderFields: Array.isArray(s.inOrderFields) ? s.inOrderFields : [],
+    css: String(s.css || ""),
+    cardTemplates: Array.isArray(s.cardTemplates) ? s.cardTemplates : [],
+  });
+}
+
+// --------------------------------------------------------
 // Progress (V3-PROG-01)
 // --------------------------------------------------------
 app.get("/api/progress/:textId", async (req, res) => {
@@ -2393,6 +2699,430 @@ app.get("/api/library/texts/:id/export/anki", async (req, res) => {
     console.error("GET /api/library/texts/:id/export/anki error:", e);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
+});
+
+// --------------------------------------------------------
+// W11-ANKI-CONNECT-01 (One-click): server-side bridge to local AnkiConnect
+// --------------------------------------------------------
+
+app.get("/api/anki/health", async (req, res) => {
+  try {
+    // If AnkiConnect is reachable, this will return a number (e.g. 6).
+    const v = await ankiInvoke("version", {});
+    res.json({ ok: true, ankiConnect: { version: v } });
+  } catch (e) {
+    res.status(503).json({
+      ok: false,
+      error: "ANKI_CONNECT_UNAVAILABLE",
+      details: (e && typeof e === "object" && e.details)
+  ? Object.assign({ message: String(e.message || "") }, e.details)
+  : { message: String((e && e.message) || e || "") },
+      hint: "Start Anki desktop and ensure AnkiConnect add-on is installed and running on 127.0.0.1:8765.",
+    });
+  }
+});
+
+app.post("/api/library/texts/:id/push/anki", async (req, res) => {
+  if (!requireDbOr503(res)) return;
+
+  const textId = String(req.params.id || "").trim();
+  if (!isUuid(textId)) return res.status(400).json({ ok: false, error: "BAD_ID" });
+  
+  let stage = "start";
+	const startedAt = Date.now();
+
+  try {
+    const textRec = await getTextById(textId);
+    if (!textRec) return res.status(404).json({ ok: false, error: "TEXT_NOT_FOUND" });
+
+    const rows = await getExportRowsByTextId(textId);
+
+    const body = req.body || {};
+    const frontMode = String(body.frontMode || "plain"); // "plain" | "niqqud"
+    const includeHint = body.includeHint !== false;
+    const includeNoteHtml = !!body.includeNoteHtml;
+    const moveToDeck = body.moveToDeck !== false; // default true
+
+    const defaultDeck = (() => {
+      const lvl = String(textRec.level || "").trim();
+      if (lvl) return `LinguistPro::${ankiSafeTagPart(lvl, 32) || lvl}`;
+      return "LinguistPro";
+    })();
+
+    const deckName = String(body.deckName || defaultDeck).trim() || defaultDeck;
+    const modelName = String(body.modelName || "LinguistPro Sentence v1").trim() || "LinguistPro Sentence v1";
+
+    const baseUrl = getBaseUrl(req);
+
+    const modelSpec = {
+      inOrderFields: [
+        "UID",
+        "SentenceId",
+        "TextId",
+        "RowIdx",
+        "Hebrew",
+        "HebrewNiqqud",
+        "FrontHebrew",
+        "Translit",
+        "Russian",
+        "Note",
+        "NoteHtml",
+        "Sound",
+        "AudioUrl",
+        "AudioAssetKey",
+        "Hint",
+      ],
+      css: `
+.card {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  line-height: 1.35;
+  text-align: left;
+}
+.he {
+  direction: rtl;
+  text-align: right;
+  font-size: 38px;
+  font-weight: 700;
+  margin: 8px 0 10px;
+}
+.hint {
+  font-size: 12px;
+  opacity: 0.65;
+  margin-top: 4px;
+  text-align: right;
+  direction: rtl;
+}
+.row {
+  margin: 10px 0;
+}
+.label {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-bottom: 3px;
+}
+.val {
+  font-size: 18px;
+}
+.note {
+  margin-top: 10px;
+  font-size: 15px;
+}
+.note pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  background: rgba(0,0,0,0.04);
+  padding: 8px;
+  border-radius: 6px;
+}
+.fallback a { font-size: 12px; }
+mark { background: #fff2a8; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+blockquote { border-left: 3px solid rgba(0,0,0,0.2); margin: 6px 0; padding-left: 10px; opacity: 0.9; }
+ul { margin: 6px 0 6px 22px; }
+`.trim(),
+      cardTemplates: [
+        {
+          Name: "Sentence",
+          Front: `
+<div class="he">{{FrontHebrew}}</div>
+{{#Sound}}<div>{{Sound}}</div>{{/Sound}}
+{{#Hint}}<div class="hint">{{Hint}}</div>{{/Hint}}
+`.trim(),
+          Back: `
+<div class="he">{{FrontHebrew}}</div>
+{{#Sound}}<div>{{Sound}}</div>{{/Sound}}
+
+<div class="row">
+  <div class="label">Translit</div>
+  <div class="val">{{Translit}}</div>
+</div>
+
+<div class="row">
+  <div class="label">RU</div>
+  <div class="val">{{Russian}}</div>
+</div>
+
+{{#NoteHtml}}
+  <div class="note">{{NoteHtml}}</div>
+{{/NoteHtml}}
+{{^NoteHtml}}
+  {{#Note}}
+    <div class="note"><pre>{{Note}}</pre></div>
+  {{/Note}}
+{{/NoteHtml}}
+
+{{#AudioUrl}}
+  <div class="row fallback"><a href="{{AudioUrl}}">audio url</a></div>
+{{/AudioUrl}}
+
+{{#Hint}}<div class="hint">{{Hint}}</div>{{/Hint}}
+`.trim(),
+        },
+      ],
+    };
+
+    // Ensure AnkiConnect is reachable + deck/model exist
+stage = "ankiEnsureDeck";
+await ankiEnsureDeck(deckName);
+
+stage = "ankiEnsureModel";
+await ankiEnsureModel(modelName, modelSpec);
+
+    // Find existing notes for this text (by tag + note type)
+    const textTag = `lp_text_${ankiNoDashId(textId)}`;
+    const q = `note:"${modelName.replace(/"/g, '\\"')}" tag:${textTag}`;
+stage = "ankiFindExisting";
+const existingNoteIds = await ankiInvoke("findNotes", { query: q });
+
+    const noteIdBySentenceId = new Map();
+if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
+  stage = "ankiNotesInfo";
+  const infos = await ankiInvoke("notesInfo", { notes: existingNoteIds });
+      if (Array.isArray(infos)) {
+        for (const n of infos) {
+          const fields = (n && n.fields) || {};
+          const sid =
+            (fields.SentenceId && fields.SentenceId.value) ||
+            (fields.UID && fields.UID.value) ||
+            "";
+          const s = String(sid || "").trim();
+          if (s) noteIdBySentenceId.set(s, Number(n.noteId || n.note || 0) || Number(n.id || 0));
+        }
+      }
+    }
+
+    const createdNotes = [];
+    const updateActions = [];
+
+    let audioQueued = 0;
+
+    for (const r of rows) {
+      const sentenceId = String(r.sentence_id || "").trim();
+      if (!sentenceId) continue;
+
+      const hePlain = String(r.he_plain || "");
+      const heNiqqud = String(r.he_niqqud || "");
+      const frontHebrew = (frontMode === "niqqud") ? heNiqqud : hePlain;
+
+      const audioAssetKey = String(r.audio_asset_key || "");
+      const audioUrl = audioAssetKey ? `${baseUrl}/api/audio/${encodeURIComponent(audioAssetKey)}` : "";
+
+      const hint = (() => {
+        if (!includeHint) return "";
+        const topic = String(textRec.topic || "").trim();
+        const title = String(textRec.title || "").trim();
+        const lvl = String(textRec.level || "").trim();
+        const left = topic || title;
+        if (left && lvl) return `${left} · ${lvl}`;
+        return left || lvl || "";
+      })();
+
+      const noteText = String(r.note || "");
+      const noteHtml = includeNoteHtml ? ankiNoteHtmlFromMarkdown(noteText) : "";
+
+      const fieldsAll = {
+        UID: sentenceId,
+        SentenceId: sentenceId,
+        TextId: textId,
+        RowIdx: String((Number(r.order_index) || 0) + 1),
+        Hebrew: hePlain,
+        HebrewNiqqud: heNiqqud,
+        FrontHebrew: frontHebrew,
+        Translit: String(r.translit || ""),
+        Russian: String(r.ru || ""),
+        Note: noteText,
+        NoteHtml: noteHtml,
+        Sound: "",
+        AudioUrl: audioUrl,
+        AudioAssetKey: audioAssetKey,
+        Hint: hint,
+      };
+
+      const tags = [
+        "lp",
+        "lp_ver_w11",
+        textTag,
+        `lp_uid_${ankiNoDashId(sentenceId)}`,
+      ];
+      const lvlTag = ankiSafeTagPart(textRec.level, 24);
+      if (lvlTag) tags.push(`lp_level_${lvlTag}`);
+      const topicTag = ankiSafeTagPart(textRec.topic, 24);
+      if (topicTag) tags.push(`lp_topic_${topicTag}`);
+
+      const existingNoteId = noteIdBySentenceId.get(sentenceId);
+
+      if (!existingNoteId) {
+        const note = {
+          deckName,
+          modelName,
+          fields: fieldsAll,
+          tags,
+        };
+
+        // Optional media: let AnkiConnect fetch audio from our URL and set [sound:...] into Sound field.
+        if (audioUrl) {
+          const filename = `lp_${audioAssetKey}.mp3`;
+          note.audio = [
+				{
+					url: audioUrl,
+					filename,
+					fields: ["Sound"],
+				},
+				];
+          note.fields.Sound = `[sound:${filename}]`;
+          audioQueued += 1;
+        }
+
+        createdNotes.push(note);
+      } else {
+        const fieldsUpdate = { ...fieldsAll };
+        // Do not overwrite Sound on update; keep whatever Anki already has.
+        delete fieldsUpdate.Sound;
+
+        updateActions.push({
+          action: "updateNoteFields",
+          params: { note: { id: existingNoteId, fields: fieldsUpdate } },
+        });
+      }
+    }
+
+    let created = 0;
+    let updated = 0;
+	
+	// Debug/verify (dev-safe)
+	let createdIdsSample = [];
+	let createdNullIdxSample = [];
+	let verifyQ = "";
+	let verifyFoundNotes = 0;
+
+    // Create (batch) — strict: never report "created" unless AnkiConnect confirms ids
+if (createdNotes.length) {
+  stage = "ankiAddNotes";
+  const createdIds = await ankiInvoke("addNotes", { notes: createdNotes });
+
+  // Contract: addNotes must return an array (ids or nulls per note)
+  if (!Array.isArray(createdIds)) {
+    return res.status(502).json({
+      ok: false,
+      error: "ANKI_BAD_RESULT_ADDNOTES",
+      details: {
+        gotType: typeof createdIds,
+        gotIsNull: createdIds === null,
+        deckName,
+        modelName,
+        textTag,
+        intendedCreate: createdNotes.length,
+        stage,
+        elapsedMs: Date.now() - startedAt,
+      },
+    });
+  }
+
+  let ok = 0;
+  for (let i = 0; i < createdIds.length; i++) {
+    const v = createdIds[i];
+    if (v === null || v === undefined) {
+      if (createdNullIdxSample.length < 10) createdNullIdxSample.push(i);
+      continue;
+    }
+    ok += 1;
+    if (createdIdsSample.length < 5) createdIdsSample.push(v);
+  }
+  created = ok;
+}
+
+    // Update (batch via multi)
+    if (updateActions.length) {
+  stage = "ankiMultiUpdate";
+  await ankiMulti(updateActions);
+  updated = updateActions.length;
+}	
+	// Verify: ensure notes exist in Anki for this textTag (prevents "false OK")
+verifyQ = `tag:${textTag}`;
+stage = "ankiVerifyFindNotes";
+const verifyNoteIds = await ankiInvoke("findNotes", { query: verifyQ });
+verifyFoundNotes = Array.isArray(verifyNoteIds) ? verifyNoteIds.length : 0;
+
+if ((createdNotes.length || updateActions.length) && verifyFoundNotes === 0) {
+  return res.status(502).json({
+    ok: false,
+    error: "ANKI_VERIFY_FAILED",
+    details: {
+      verifyQ,
+      deckName,
+      modelName,
+      textTag,
+      intendedCreate: createdNotes.length,
+      intendedUpdate: updateActions.length,
+      created,
+      updated,
+      audioQueued,
+      createdIdsSample,
+      createdNullIdxSample,
+      stage,
+      elapsedMs: Date.now() - startedAt,
+    },
+  });
+}
+
+    // Optional: move all cards for this text into selected deck (keeps deck switch intuitive)
+    if (moveToDeck) {
+  stage = "ankiFindCards";
+  const cardIds = await ankiInvoke("findCards", { query: q });
+
+  if (Array.isArray(cardIds) && cardIds.length) {
+    stage = "ankiChangeDeck";
+    await ankiInvoke("changeDeck", { cards: cardIds, deck: deckName });
+  }
+}
+
+
+    res.json({
+  ok: true,
+  textId,
+  deckName,
+  modelName,
+  stats: {
+    totalRows: rows.length,
+    created,
+    updated,
+    audioQueued,
+  },
+  verify: {
+    query: verifyQ || null,
+    foundNotes: verifyFoundNotes,
+  },
+  debug: {
+    textTag,
+    createdIdsSample,
+    createdNullIdxSample,
+  },
+});
+
+ } catch (e) {
+  const msg = String((e && e.message) || e || "");
+  const isConn = /ECONNREFUSED|ECONNRESET|EPIPE|socket hang up|ANKI_CONNECT_UNAVAILABLE|ANKI_CONNECT_TIMEOUT/i.test(msg);
+
+  let details = (e && typeof e === "object" && e.details) ? e.details : msg;
+
+  // нормализуем details в объект, чтобы в UI не было "[object Object]"
+  if (details && typeof details === "object") {
+    details = { ...details };
+  } else {
+    details = { message: String(details || "") };
+  }
+
+  details.stage = stage;
+  details.elapsedMs = Date.now() - startedAt;
+
+  return res.status(isConn ? 503 : 500).json({
+    ok: false,
+    error: isConn ? "ANKI_CONNECT_UNAVAILABLE" : "ANKI_CONNECT_ERROR",
+    details,
+  });
+}
 });
 
 // Mark opened (last_opened_at)
