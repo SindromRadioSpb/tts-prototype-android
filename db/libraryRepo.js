@@ -548,18 +548,48 @@ async function getSentencesByTextId(textId) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
+  // PRO: avoid duplicates even if legacy data had multiple is_default=1 rows.
+  // Use correlated subqueries with LIMIT 1 to pick a single "best" default audio.
   return dbAll(
     db,
     `
     SELECT
-      id, text_id, order_index,
-      he_plain, he_niqqud, translit, ru,
-      row_hash, meta_json, created_at
-    FROM sentences
-    WHERE text_id = ?
-    ORDER BY order_index ASC;
+      s.id         AS id,
+      s.text_id    AS text_id,
+      s.order_index AS order_index,
+      s.he_plain   AS he_plain,
+      s.he_niqqud  AS he_niqqud,
+      s.translit   AS translit,
+      s.ru         AS ru,
+      s.row_hash   AS row_hash,
+      s.meta_json  AS meta_json,
+      s.created_at AS created_at,
+
+      COALESCE((
+        SELECT a.asset_key
+        FROM sentence_audio sa
+        JOIN audio_assets a ON a.id = sa.audio_id
+        WHERE sa.sentence_id = s.id
+          AND sa.is_default = 1
+        ORDER BY a.last_used_at DESC, a.created_at DESC
+        LIMIT 1
+      ), '') AS audio_asset_key,
+
+      COALESCE((
+        SELECT a.tts_profile_json
+        FROM sentence_audio sa
+        JOIN audio_assets a ON a.id = sa.audio_id
+        WHERE sa.sentence_id = s.id
+          AND sa.is_default = 1
+        ORDER BY a.last_used_at DESC, a.created_at DESC
+        LIMIT 1
+      ), '') AS audio_tts_profile_json
+
+    FROM sentences s
+    WHERE s.text_id = ?
+    ORDER BY s.order_index ASC;
     `,
-    [textId]
+    [String(textId)]
   );
 }
 
@@ -571,25 +601,40 @@ async function getExportRowsByTextId(textId) {
   // sentences + optional notes + optional default sentence audio (asset_key)
   const rows = await dbAll(
     db,
-    `
+     `
     SELECT
-  s.id            AS sentence_id,
-  s.order_index   AS order_index,
-  s.he_plain      AS he_plain,
-  s.he_niqqud     AS he_niqqud,
-  s.translit      AS translit,
-  s.ru            AS ru,
-  COALESCE(n.note, '') AS note,
-  COALESCE(a.asset_key, '') AS audio_asset_key
+      s.id          AS sentence_id,
+      s.order_index AS order_index,
+      s.he_plain    AS he_plain,
+      s.he_niqqud   AS he_niqqud,
+      s.translit    AS translit,
+      s.ru          AS ru,
+      COALESCE(n.note, '') AS note,
+
+      COALESCE((
+        SELECT a.asset_key
+        FROM sentence_audio sa
+        JOIN audio_assets a ON a.id = sa.audio_id
+        WHERE sa.sentence_id = s.id
+          AND sa.is_default = 1
+        ORDER BY a.last_used_at DESC, a.created_at DESC
+        LIMIT 1
+      ), '') AS audio_asset_key,
+
+      COALESCE((
+        SELECT a.tts_profile_json
+        FROM sentence_audio sa
+        JOIN audio_assets a ON a.id = sa.audio_id
+        WHERE sa.sentence_id = s.id
+          AND sa.is_default = 1
+        ORDER BY a.last_used_at DESC, a.created_at DESC
+        LIMIT 1
+      ), '') AS audio_tts_profile_json
+
     FROM sentences s
     LEFT JOIN sentence_notes n
       ON n.sentence_id = s.id
      AND n.text_id     = s.text_id
-    LEFT JOIN sentence_audio sa
-      ON sa.sentence_id = s.id
-     AND sa.is_default = 1
-    LEFT JOIN audio_assets a
-      ON a.id = sa.audio_id
     WHERE s.text_id = ?
     ORDER BY s.order_index ASC, s.id ASC;
     `,

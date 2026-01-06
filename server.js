@@ -67,10 +67,17 @@ const {
   upsertAudioAsset,
   getAudioAssetByKey,
   touchAudioAsset,
+
+  // linking / defaults
   linkSentenceAudio,
   linkTextAudio,
+  setSentenceDefaultAudio,
+  setTextDefaultAudio,
+
+  // read
   getSentenceAudio,
   getTextAudio,
+  getDefaultSentenceAudioMap,
 } = require("./db/audioRepo");
 
 const {
@@ -807,13 +814,14 @@ async function ensureAudioAsset(params) {
       });
 
       if (row && row.id) {
-        if (sentenceId) {
-          await linkSentenceAudio(String(sentenceId), String(row.id), 1);
-        }
-        if (textId) {
-          await linkTextAudio(String(textId), String(row.id), 1);
-        }
-      }
+  // PRO: keep a single default audio per sentence/text
+  if (sentenceId) {
+    await setSentenceDefaultAudio(String(sentenceId), String(row.id));
+  }
+  if (textId) {
+    await setTextDefaultAudio(String(textId), String(row.id));
+  }
+}
     }
   } catch (e) {
     console.warn("[v3-audio] db upsert/link failed (non-fatal)", {
@@ -822,8 +830,9 @@ async function ensureAudioAsset(params) {
     });
   }
 
-  const audioContent = mp3Buffer ? mp3Buffer.toString("base64") : "";
-  return { audioContent, fromCache, assetKey, relativePath };
+  const wantAudioContent = !(params && params.returnAudioContent === false);
+const audioContent = wantAudioContent && mp3Buffer ? mp3Buffer.toString("base64") : "";
+return { audioContent, fromCache, assetKey, relativePath };
 }
 
 // --------------------------------------------------------
@@ -1136,6 +1145,461 @@ app.get("/api/audio/:assetKey", async (req, res) => {
   const stream = fs.createReadStream(absPath);
   stream.on("error", () => res.end());
   return stream.pipe(res);
+});
+
+// --------------------------------------------------------
+// W12-AUDIO-PREFETCH-API-01: Batch audio prefetch jobs (PRO)
+// - job model: start/status/cancel
+// - profile-aware: regenerate if TTS params changed (new default)
+// - onlyMissing: skip rows that already have default audio for this profile
+// - concurrency + retry/backoff
+// Notes:
+// - In-memory jobs (server restart clears them) — acceptable for local tooling.
+// - Endpoints are LOCAL-ONLY by default (set ALLOW_REMOTE_AUDIO_PREFETCH=1 to enable remotely).
+// --------------------------------------------------------
+
+const V3_AUDIO_PREFETCH_MAX_ROWS = 2000;
+const V3_AUDIO_PREFETCH_DEFAULT_CONCURRENCY = 3;
+const V3_AUDIO_PREFETCH_MAX_CONCURRENCY = 6;
+
+const V3_AUDIO_PREFETCH_DEFAULT_RETRY_ATTEMPTS = 3;
+const V3_AUDIO_PREFETCH_DEFAULT_RETRY_BASE_DELAY_MS = 500;
+const V3_AUDIO_PREFETCH_DEFAULT_RETRY_MAX_DELAY_MS = 8000;
+
+const V3_AUDIO_PREFETCH_JOB_TTL_MS = 30 * 60 * 1000; // keep finished jobs for 30 min
+const v3AudioPrefetchJobs = new Map();
+
+function v3ClampInt(v, min, max, defVal) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return defVal;
+  const i = Math.floor(n);
+  return Math.max(min, Math.min(max, i));
+}
+
+function v3Sleep(ms) {
+  const t = Math.max(0, Number(ms) || 0);
+  return new Promise((resolve) => setTimeout(resolve, t));
+}
+
+function v3BackoffDelayMs(attempt, baseDelayMs, maxDelayMs) {
+  const base = Math.max(50, Number(baseDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_BASE_DELAY_MS);
+  const max = Math.max(base, Number(maxDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_MAX_DELAY_MS);
+  const exp = Math.min(max, base * Math.pow(2, Math.max(0, attempt - 1)));
+  // jitter 0.75..1.25
+  const jitter = 0.75 + Math.random() * 0.5;
+  return Math.min(max, Math.floor(exp * jitter));
+}
+
+function v3AudioPrefetchIsAllowed(req) {
+  if (process.env.ALLOW_REMOTE_AUDIO_PREFETCH === "1") return true;
+  // reuse existing local-only check
+  if (typeof ankiIsLocalHttpRequest === "function") return ankiIsLocalHttpRequest(req);
+  return false;
+}
+
+function v3AudioPrefetchNormalizeIncomingTts(body) {
+  const b = body && typeof body === "object" ? body : {};
+  const tts = (b.tts && typeof b.tts === "object") ? b.tts : (b.ttsProfile && typeof b.ttsProfile === "object" ? b.ttsProfile : {});
+  const language = (tts.language || b.language || b.languageCode || null);
+  const voiceName = (tts.voiceName || tts.voiceId || b.voiceId || b.voiceName || null);
+  const speakingRate = (tts.speakingRate != null ? tts.speakingRate : b.speakingRate);
+  const pitch = (tts.pitch != null ? tts.pitch : b.pitch);
+
+  const normalized = normalizeTtsProfile({
+    language,
+    voiceName,
+    speakingRate,
+    pitch,
+  });
+
+  // stable JSON for comparisons (matches computeAssetKey normalization)
+  const profileJson = JSON.stringify(normalized);
+  return { profile: normalized, profileJson };
+}
+
+function v3AudioPrefetchJobPublic(job) {
+  if (!job) return null;
+
+  const now = Date.now();
+  const startedAt = job.startedAtMs || null;
+  const elapsedMs = startedAt ? (now - startedAt) : 0;
+
+  const total = job.total || 0;
+  const done = job.done || 0;
+  const skipped = job.skipped || 0;
+  const failed = job.failed || 0;
+  const inFlight = job.inFlight || 0;
+
+  const finished = job.state === "done" || job.state === "cancelled" || job.state === "error";
+  const finishedAtMs = job.finishedAtMs || null;
+
+  const pct = total > 0 ? Math.round(((done + skipped + failed) / total) * 100) : 0;
+
+  return {
+    jobId: job.jobId,
+    state: job.state,
+    cancelRequested: !!job.cancelRequested,
+
+    createdAtIso: job.createdAtIso || null,
+    startedAtIso: job.startedAtIso || null,
+    finishedAtIso: job.finishedAtIso || null,
+
+    textId: job.textId || null,
+    onlyMissing: !!job.onlyMissing,
+
+    ttsProfile: job.ttsProfile || null,
+    ttsProfileJson: job.ttsProfileJson || null,
+
+    concurrency: job.concurrency || null,
+    retry: job.retry || null,
+
+    totals: {
+      total,
+      done,
+      skipped,
+      failed,
+      inFlight,
+
+      generated: job.generated || 0,
+      cached: job.cached || 0,
+      unlinked: job.unlinked || 0,
+      empty: job.empty || 0,
+    },
+
+    progress: {
+      pct,
+      elapsedMs,
+      finished,
+      finishedAtMs,
+    },
+
+    errorsSample: Array.isArray(job.errorsSample) ? job.errorsSample.slice(-10) : [],
+    fatalError: job.fatalError || null,
+  };
+}
+
+function v3AudioPrefetchCleanup() {
+  const now = Date.now();
+  for (const [jobId, job] of v3AudioPrefetchJobs.entries()) {
+    if (!job) {
+      v3AudioPrefetchJobs.delete(jobId);
+      continue;
+    }
+    const finishedAt = job.finishedAtMs || 0;
+    if (finishedAt && (now - finishedAt) > V3_AUDIO_PREFETCH_JOB_TTL_MS) {
+      v3AudioPrefetchJobs.delete(jobId);
+    }
+  }
+}
+
+// cleanup timer (do not keep node alive on its own)
+try {
+  const t = setInterval(v3AudioPrefetchCleanup, 60 * 1000);
+  if (t && typeof t.unref === "function") t.unref();
+} catch (_) {}
+
+async function v3AudioPrefetchRun(job) {
+  job.state = "running";
+  job.startedAtMs = Date.now();
+  job.startedAtIso = new Date(job.startedAtMs).toISOString();
+
+  const rows = Array.isArray(job.rows) ? job.rows : [];
+  job.total = rows.length;
+
+  // onlyMissing map: sentenceId -> {assetKey, ttsProfileJson, ...} for CURRENT DEFAULT
+  let defaultMap = new Map();
+  if (job.onlyMissing) {
+    try {
+      const sentenceIds = [];
+      const seen = new Set();
+      for (const r of rows) {
+        const sid = r && r.sentenceId ? String(r.sentenceId) : "";
+        if (!sid || seen.has(sid)) continue;
+        seen.add(sid);
+        sentenceIds.push(sid);
+      }
+
+      const h = typeof getDbHealth === "function" ? getDbHealth() : null;
+      if (h && h.ok && typeof getDefaultSentenceAudioMap === "function" && sentenceIds.length) {
+        defaultMap = await getDefaultSentenceAudioMap(sentenceIds);
+      }
+    } catch (e) {
+      // Non-fatal: if map fails, we just won't skip.
+      defaultMap = new Map();
+    }
+  }
+
+  let nextIdx = 0;
+  const concurrency = Math.max(1, job.concurrency || V3_AUDIO_PREFETCH_DEFAULT_CONCURRENCY);
+
+  const worker = async () => {
+    while (true) {
+      if (job.cancelRequested) return;
+
+      const i = nextIdx++;
+      if (i >= rows.length) return;
+
+      const r = rows[i] || {};
+      const sentenceId = r.sentenceId ? String(r.sentenceId) : "";
+      const rawText = String(r.text || r.ttsText || r.he_niqqud || r.he || "").trim();
+
+      if (!rawText) {
+        job.empty = (job.empty || 0) + 1;
+        continue;
+      }
+
+      // onlyMissing: skip if default audio already matches CURRENT profile AND file exists
+      if (job.onlyMissing && sentenceId) {
+        const def = defaultMap.get(sentenceId);
+        if (def && def.ttsProfileJson && def.assetKey && def.ttsProfileJson === job.ttsProfileJson) {
+          const ak = String(def.assetKey || "").trim();
+          if (/^[a-f0-9]{64}$/i.test(ak)) {
+            const abs = path.join(__dirname, getAudioRelativePath(ak));
+            if (fs.existsSync(abs)) {
+              job.skipped = (job.skipped || 0) + 1;
+              continue;
+            }
+          }
+        }
+      }
+
+      job.inFlight = (job.inFlight || 0) + 1;
+
+      const attempts = Math.max(1, (job.retry && job.retry.attempts) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_ATTEMPTS);
+      const baseDelayMs = (job.retry && job.retry.baseDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_BASE_DELAY_MS;
+      const maxDelayMs = (job.retry && job.retry.maxDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_MAX_DELAY_MS;
+
+      let ok = false;
+      let lastErr = null;
+
+      for (let attempt = 1; attempt <= attempts; attempt++) {
+        if (job.cancelRequested) break;
+
+        try {
+          const ensured = await ensureAudioAsset({
+            text: rawText,
+            assetType: "row",
+            ttsProfile: job.ttsProfile,
+            sentenceId: sentenceId || null,
+            textId: job.textId || null,
+            languageCode: job.ttsProfile && job.ttsProfile.language,
+            voiceName: job.ttsProfile && job.ttsProfile.voiceName,
+            speakingRate: job.ttsProfile && job.ttsProfile.speakingRate,
+            pitch: job.ttsProfile && job.ttsProfile.pitch,
+            returnAudioContent: false, // PRO: avoid base64 overhead for batch jobs
+          });
+
+          // Usage accounting: count only when actually generated (not from cache)
+          if (ensured && ensured.assetKey) {
+            if (ensured.fromCache) {
+              job.cached = (job.cached || 0) + 1;
+            } else {
+              job.generated = (job.generated || 0) + 1;
+              try { updateUsage("tts", rawText.length); } catch (_) {}
+            }
+
+            if (!sentenceId) {
+              job.unlinked = (job.unlinked || 0) + 1;
+            } else if (job.onlyMissing) {
+              // update map so repeated sentenceIds in the same job can skip
+              defaultMap.set(sentenceId, { assetKey: ensured.assetKey, ttsProfileJson: job.ttsProfileJson });
+            }
+          }
+
+          job.done = (job.done || 0) + 1;
+          ok = true;
+          break;
+        } catch (e) {
+          lastErr = e;
+          if (attempt < attempts && !job.cancelRequested) {
+            const delay = v3BackoffDelayMs(attempt, baseDelayMs, maxDelayMs);
+            await v3Sleep(delay);
+            continue;
+          }
+        }
+      }
+
+      if (!ok) {
+        job.failed = (job.failed || 0) + 1;
+        const msg = lastErr && lastErr.message ? String(lastErr.message) : String(lastErr || "UNKNOWN_ERROR");
+
+        if (!Array.isArray(job.errorsSample)) job.errorsSample = [];
+        job.errorsSample.push({
+          idx: i,
+          sentenceId: sentenceId || null,
+          message: msg,
+        });
+      }
+
+      job.inFlight = Math.max(0, (job.inFlight || 1) - 1);
+    }
+  };
+
+  try {
+    const workers = [];
+    for (let w = 0; w < concurrency; w++) workers.push(worker());
+    await Promise.all(workers);
+
+    job.finishedAtMs = Date.now();
+    job.finishedAtIso = new Date(job.finishedAtMs).toISOString();
+
+    if (job.cancelRequested) {
+      job.state = "cancelled";
+    } else {
+      job.state = "done";
+    }
+  } catch (e) {
+    job.finishedAtMs = Date.now();
+    job.finishedAtIso = new Date(job.finishedAtMs).toISOString();
+    job.state = "error";
+    job.fatalError = (e && e.message) ? String(e.message) : String(e);
+  }
+}
+
+// POST /api/audio/prefetch/start
+app.post("/api/audio/prefetch/start", async (req, res) => {
+  try {
+    if (!v3AudioPrefetchIsAllowed(req)) {
+      return res.status(403).json({ ok: false, error: "LOCAL_ONLY" });
+    }
+
+    const body = req.body && typeof req.body === "object" ? req.body : {};
+    const { profile, profileJson } = v3AudioPrefetchNormalizeIncomingTts(body);
+
+    const textId = body.textId != null ? String(body.textId) : null;
+    const onlyMissing = (body.onlyMissing == null) ? true : !!body.onlyMissing;
+
+    const concurrency = v3ClampInt(
+      body.concurrency,
+      1,
+      V3_AUDIO_PREFETCH_MAX_CONCURRENCY,
+      V3_AUDIO_PREFETCH_DEFAULT_CONCURRENCY
+    );
+
+    const retry = body.retry && typeof body.retry === "object" ? body.retry : {};
+    const retryCfg = {
+      attempts: v3ClampInt(retry.attempts, 1, 10, V3_AUDIO_PREFETCH_DEFAULT_RETRY_ATTEMPTS),
+      baseDelayMs: v3ClampInt(retry.baseDelayMs, 50, 60000, V3_AUDIO_PREFETCH_DEFAULT_RETRY_BASE_DELAY_MS),
+      maxDelayMs: v3ClampInt(retry.maxDelayMs, 200, 120000, V3_AUDIO_PREFETCH_DEFAULT_RETRY_MAX_DELAY_MS),
+    };
+
+    const rowsRaw = Array.isArray(body.rows) ? body.rows : [];
+    if (!rowsRaw.length) {
+      return res.status(400).json({ ok: false, error: "NO_ROWS" });
+    }
+
+    if (rowsRaw.length > V3_AUDIO_PREFETCH_MAX_ROWS) {
+      return res.status(400).json({ ok: false, error: "TOO_MANY_ROWS", limit: V3_AUDIO_PREFETCH_MAX_ROWS });
+    }
+
+    const rows = rowsRaw.map((r, idx) => {
+      const rr = r && typeof r === "object" ? r : {};
+      return {
+        idx: idx,
+        sentenceId: rr.sentenceId != null ? String(rr.sentenceId) : null,
+        text: (rr.text != null ? String(rr.text) : null),
+        // optional fallbacks (handy if caller passes row objects)
+        ttsText: (rr.ttsText != null ? String(rr.ttsText) : null),
+        he_niqqud: (rr.he_niqqud != null ? String(rr.he_niqqud) : null),
+        he: (rr.he != null ? String(rr.he) : null),
+      };
+    });
+
+    const jobId = uuidv4();
+    const createdAtMs = Date.now();
+
+    const job = {
+      jobId,
+      state: "queued",
+      cancelRequested: false,
+
+      createdAtMs,
+      createdAtIso: new Date(createdAtMs).toISOString(),
+
+      startedAtMs: null,
+      startedAtIso: null,
+      finishedAtMs: null,
+      finishedAtIso: null,
+
+      textId,
+      onlyMissing,
+
+      ttsProfile: profile,
+      ttsProfileJson: profileJson,
+
+      concurrency,
+      retry: retryCfg,
+
+      rows,
+
+      total: rows.length,
+      done: 0,
+      skipped: 0,
+      failed: 0,
+      inFlight: 0,
+      generated: 0,
+      cached: 0,
+      unlinked: 0,
+      empty: 0,
+
+      errorsSample: [],
+      fatalError: null,
+    };
+
+    v3AudioPrefetchJobs.set(jobId, job);
+
+    // Run async (do not await)
+    v3AudioPrefetchRun(job).catch((e) => {
+      job.state = "error";
+      job.finishedAtMs = Date.now();
+      job.finishedAtIso = new Date(job.finishedAtMs).toISOString();
+      job.fatalError = (e && e.message) ? String(e.message) : String(e);
+    });
+
+    return res.json({ ok: true, jobId });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: "PREFETCH_START_FAILED", details: { message: e && e.message ? e.message : String(e) } });
+  }
+});
+
+// GET /api/audio/prefetch/status?jobId=...
+app.get("/api/audio/prefetch/status", async (req, res) => {
+  try {
+    if (!v3AudioPrefetchIsAllowed(req)) {
+      return res.status(403).json({ ok: false, error: "LOCAL_ONLY" });
+    }
+
+    const jobId = String((req.query && req.query.jobId) || "").trim();
+    if (!jobId) return res.status(400).json({ ok: false, error: "NO_JOB_ID" });
+
+    const job = v3AudioPrefetchJobs.get(jobId);
+    if (!job) return res.status(404).json({ ok: false, error: "JOB_NOT_FOUND" });
+
+    return res.json({ ok: true, job: v3AudioPrefetchJobPublic(job) });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: "PREFETCH_STATUS_FAILED", details: { message: e && e.message ? e.message : String(e) } });
+  }
+});
+
+// POST /api/audio/prefetch/cancel
+app.post("/api/audio/prefetch/cancel", async (req, res) => {
+  try {
+    if (!v3AudioPrefetchIsAllowed(req)) {
+      return res.status(403).json({ ok: false, error: "LOCAL_ONLY" });
+    }
+
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const jobId = String(body.jobId || (req.query && req.query.jobId) || "").trim();
+    if (!jobId) return res.status(400).json({ ok: false, error: "NO_JOB_ID" });
+
+    const job = v3AudioPrefetchJobs.get(jobId);
+    if (!job) return res.status(404).json({ ok: false, error: "JOB_NOT_FOUND" });
+
+    job.cancelRequested = true;
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: "PREFETCH_CANCEL_FAILED", details: { message: e && e.message ? e.message : String(e) } });
+  }
 });
 
 // --------------------------------------------------------

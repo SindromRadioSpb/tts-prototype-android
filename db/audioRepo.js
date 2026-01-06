@@ -137,6 +137,110 @@ async function linkTextAudio(textId, audioId, isDefault = 1) {
   );
 }
 
+async function setSentenceDefaultAudio(sentenceId, audioId) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const sId = String(sentenceId);
+  const aId = String(audioId);
+
+  await dbRun(db, "BEGIN IMMEDIATE TRANSACTION;");
+  try {
+    // Ensure a single default per sentence
+    await dbRun(db, `UPDATE sentence_audio SET is_default = 0 WHERE sentence_id = ?;`, [sId]);
+
+    await dbRun(
+      db,
+      `
+      INSERT INTO sentence_audio (sentence_id, audio_id, is_default)
+      VALUES (?, ?, 1)
+      ON CONFLICT(sentence_id, audio_id) DO UPDATE SET
+        is_default = 1;
+      `,
+      [sId, aId]
+    );
+
+    await dbRun(db, "COMMIT;");
+  } catch (e) {
+    try { await dbRun(db, "ROLLBACK;"); } catch (_) {}
+    throw e;
+  }
+}
+
+async function setTextDefaultAudio(textId, audioId) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const tId = String(textId);
+  const aId = String(audioId);
+
+  await dbRun(db, "BEGIN IMMEDIATE TRANSACTION;");
+  try {
+    // Ensure a single default per text
+    await dbRun(db, `UPDATE text_audio SET is_default = 0 WHERE text_id = ?;`, [tId]);
+
+    await dbRun(
+      db,
+      `
+      INSERT INTO text_audio (text_id, audio_id, is_default)
+      VALUES (?, ?, 1)
+      ON CONFLICT(text_id, audio_id) DO UPDATE SET
+        is_default = 1;
+      `,
+      [tId, aId]
+    );
+
+    await dbRun(db, "COMMIT;");
+  } catch (e) {
+    try { await dbRun(db, "ROLLBACK;"); } catch (_) {}
+    throw e;
+  }
+}
+
+async function getDefaultSentenceAudioMap(sentenceIds) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const ids = Array.isArray(sentenceIds) ? sentenceIds.map((s) => String(s)).filter(Boolean) : [];
+  const out = new Map();
+  if (!ids.length) return out;
+
+  const placeholders = ids.map(() => "?").join(",");
+  const rows = await dbAll(
+    db,
+    `
+    SELECT
+      sa.sentence_id AS sentence_id,
+      sa.audio_id AS audio_id,
+      a.asset_key AS asset_key,
+      a.relative_path AS relative_path,
+      a.tts_profile_json AS tts_profile_json,
+      a.last_used_at AS last_used_at,
+      a.created_at AS created_at
+    FROM sentence_audio sa
+    JOIN audio_assets a ON a.id = sa.audio_id
+    WHERE sa.is_default = 1
+      AND sa.sentence_id IN (${placeholders})
+    ORDER BY sa.sentence_id ASC, a.last_used_at DESC, a.created_at DESC;
+    `,
+    ids
+  );
+
+  for (const r of (rows || [])) {
+    const sid = String(r.sentence_id || "");
+    if (!sid || out.has(sid)) continue;
+    out.set(sid, {
+      sentenceId: sid,
+      audioId: String(r.audio_id || ""),
+      assetKey: String(r.asset_key || ""),
+      relativePath: String(r.relative_path || ""),
+      ttsProfileJson: (r.tts_profile_json == null ? null : String(r.tts_profile_json)),
+    });
+  }
+
+  return out;
+}
+
 async function getSentenceAudio(sentenceId) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -183,8 +287,15 @@ module.exports = {
   upsertAudioAsset,
   getAudioAssetByKey,
   touchAudioAsset,
+
+  // link / defaults
   linkSentenceAudio,
   linkTextAudio,
+  setSentenceDefaultAudio,
+  setTextDefaultAudio,
+
+  // read
   getSentenceAudio,
   getTextAudio,
+  getDefaultSentenceAudioMap,
 };
