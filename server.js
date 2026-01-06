@@ -1723,6 +1723,44 @@ function ankiNoDashId(uuid) {
   return String(uuid || "").replace(/-/g, "");
 }
 
+function ankiIsLocalHttpRequest(req) {
+  const ipRaw = String((req && (req.ip || (req.socket && req.socket.remoteAddress) || "")) || "");
+  const ip = ipRaw.replace(/^::ffff:/, "");
+  return ip === "127.0.0.1" || ip === "::1";
+}
+
+// baseUrl специально для AnkiConnect (скачивание audio по URL).
+// ВАЖНО: форсим 127.0.0.1 ТОЛЬКО когда запрос локальный и host=localhost/[::1]/0.0.0.0
+function getBaseUrlForAnki(req) {
+  const xfProto = req.headers["x-forwarded-proto"];
+  const xfHost = req.headers["x-forwarded-host"];
+  const proto = String(xfProto || req.protocol || "http").split(",")[0].trim();
+
+  let host = String(xfHost || req.get("host") || "").split(",")[0].trim();
+  if (!host) return "";
+
+  if (ankiIsLocalHttpRequest(req)) {
+    const lower = host.toLowerCase();
+
+    // localhost:3000 -> 127.0.0.1:3000
+    if (lower === "localhost" || lower.startsWith("localhost:")) {
+      host = host.replace(/^localhost\b/i, "127.0.0.1");
+    }
+
+    // [::1]:3000 -> 127.0.0.1:3000
+    if (lower.startsWith("[::1]")) {
+      host = host.replace(/^\[::1\]/i, "127.0.0.1");
+    }
+
+    // 0.0.0.0:3000 -> 127.0.0.1:3000 (иногда встречается в host)
+    if (lower === "0.0.0.0" || lower.startsWith("0.0.0.0:")) {
+      host = host.replace(/^0\.0\.0\.0\b/i, "127.0.0.1");
+    }
+  }
+
+  return `${proto}://${host}`;
+}
+
 function ankiNoteHtmlFromMarkdown(mdRaw) {
   // Conservative: escape everything, then allow a tiny safe subset of markdown-like formatting.
   // NO raw HTML passthrough.
@@ -2752,7 +2790,7 @@ app.post("/api/library/texts/:id/push/anki", async (req, res) => {
     const deckName = String(body.deckName || defaultDeck).trim() || defaultDeck;
     const modelName = String(body.modelName || "LinguistPro Sentence v1").trim() || "LinguistPro Sentence v1";
 
-    const baseUrl = getBaseUrl(req);
+    const baseUrl = getBaseUrlForAnki(req);
 
     const modelSpec = {
       inOrderFields: [
