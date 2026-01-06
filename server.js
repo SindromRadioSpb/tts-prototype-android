@@ -1726,6 +1726,35 @@ function ankiNoDashId(uuid) {
   return String(uuid || "").replace(/-/g, "");
 }
 
+function ankiDedupSoundFieldValue(soundRaw) {
+  const raw = String(soundRaw || "");
+  if (!raw) return raw;
+
+  const tags = raw.match(/\[sound:[^\]]+\]/g) || [];
+  if (!tags.length) return raw;
+
+  const uniq = [];
+  const seen = new Set();
+  for (const t of tags) {
+    if (!seen.has(t)) {
+      seen.add(t);
+      uniq.push(t);
+    }
+  }
+
+  // Меняем только если есть дубликаты и в поле нет ничего кроме sound-тегов/пробелов.
+  if (uniq.length === tags.length) return raw;
+
+  const remainder = raw
+    .replace(/\[sound:[^\]]+\]/g, "")
+    .replace(/\s+/g, "")
+    .trim();
+
+  if (remainder) return raw;
+
+  return uniq.join("\n");
+}
+
 function ankiIsLocalHttpRequest(req) {
   const ipRaw = String((req && (req.ip || (req.socket && req.socket.remoteAddress) || "")) || "");
   const ip = ipRaw.replace(/^::ffff:/, "");
@@ -2987,6 +3016,7 @@ stage = "ankiFindExisting";
 const existingNoteIds = await ankiInvoke("findNotes", { query: q });
 
     const noteIdBySentenceId = new Map();
+	const soundBySentenceId = new Map();
 if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
   stage = "ankiNotesInfo";
   const infos = await ankiInvoke("notesInfo", { notes: existingNoteIds });
@@ -2998,7 +3028,11 @@ if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
             (fields.UID && fields.UID.value) ||
             "";
           const s = String(sid || "").trim();
-          if (s) noteIdBySentenceId.set(s, Number(n.noteId || n.note || 0) || Number(n.id || 0));
+          if (s) {
+            noteIdBySentenceId.set(s, Number(n.noteId || n.note || 0) || Number(n.id || 0));
+            const snd = (fields.Sound && fields.Sound.value) || "";
+            soundBySentenceId.set(s, String(snd || ""));
+          }
         }
       }
     }
@@ -3081,15 +3115,20 @@ if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
 					fields: ["Sound"],
 				},
 				];
-          note.fields.Sound = `[sound:${filename}]`;
           audioQueued += 1;
         }
 
         createdNotes.push(note);
-      } else {
+            } else {
         const fieldsUpdate = { ...fieldsAll };
-        // Do not overwrite Sound on update; keep whatever Anki already has.
+        // Do not overwrite Sound on update; only repair duplicate [sound:...] if detected.
         delete fieldsUpdate.Sound;
+
+        const existingSound = soundBySentenceId.get(sentenceId) || "";
+        const dedupSound = ankiDedupSoundFieldValue(existingSound);
+        if (dedupSound !== existingSound) {
+          fieldsUpdate.Sound = dedupSound;
+        }
 
         updateActions.push({
           action: "updateNoteFields",
