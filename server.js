@@ -1695,6 +1695,9 @@ const ANKI_CONNECT_TIMEOUT_MS = Number(process.env.ANKI_CONNECT_TIMEOUT_MS || 60
 const ANKI_CONNECT_RETRIES = Number(process.env.ANKI_CONNECT_RETRIES || 3);
 const ANKI_CONNECT_RETRY_DELAY_MS = Number(process.env.ANKI_CONNECT_RETRY_DELAY_MS || 250);
 
+const ANKI_ADDNOTES_CHUNK = Math.max(5, Math.min(100, Number(process.env.ANKI_ADDNOTES_CHUNK || 25)));
+const ANKI_MULTI_CHUNK = Math.max(10, Math.min(200, Number(process.env.ANKI_MULTI_CHUNK || 50)));
+
 // Force a conservative agent (avoid keep-alive weirdness)
 const ANKI_HTTP_AGENT = new http.Agent({ keepAlive: false, maxSockets: 1 });
 
@@ -3035,48 +3038,65 @@ if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
 	let verifyQ = "";
 	let verifyFoundNotes = 0;
 
-    // Create (batch) — strict: never report "created" unless AnkiConnect confirms ids
+    // Create (chunked) — strict: never report "created" unless AnkiConnect confirms ids
+let createdNull = 0;
+
 if (createdNotes.length) {
-  stage = "ankiAddNotes";
-  const createdIds = await ankiInvoke("addNotes", { notes: createdNotes });
+  const total = createdNotes.length;
+  const chunkSize = ANKI_ADDNOTES_CHUNK;
 
-  // Contract: addNotes must return an array (ids or nulls per note)
-  if (!Array.isArray(createdIds)) {
-    return res.status(502).json({
-      ok: false,
-      error: "ANKI_BAD_RESULT_ADDNOTES",
-      details: {
-        gotType: typeof createdIds,
-        gotIsNull: createdIds === null,
-        deckName,
-        modelName,
-        textTag,
-        intendedCreate: createdNotes.length,
-        stage,
-        elapsedMs: Date.now() - startedAt,
-      },
-    });
-  }
+  for (let offset = 0; offset < total; offset += chunkSize) {
+    const chunk = createdNotes.slice(offset, offset + chunkSize);
+    stage = `ankiAddNotes_${Math.floor(offset / chunkSize) + 1}`;
 
-  let ok = 0;
-  for (let i = 0; i < createdIds.length; i++) {
-    const v = createdIds[i];
-    if (v === null || v === undefined) {
-      if (createdNullIdxSample.length < 10) createdNullIdxSample.push(i);
-      continue;
+    const createdIds = await ankiInvoke("addNotes", { notes: chunk });
+
+    if (!Array.isArray(createdIds)) {
+      return res.status(502).json({
+        ok: false,
+        error: "ANKI_BAD_RESULT_ADDNOTES",
+        details: {
+          gotType: typeof createdIds,
+          gotIsNull: createdIds === null,
+          deckName,
+          modelName,
+          textTag,
+          intendedCreate: total,
+          chunkOffset: offset,
+          chunkSize: chunk.length,
+          stage,
+          elapsedMs: Date.now() - startedAt,
+        },
+      });
     }
-    ok += 1;
-    if (createdIdsSample.length < 5) createdIdsSample.push(v);
+
+    for (let i = 0; i < createdIds.length; i++) {
+      const v = createdIds[i];
+      if (v === null || v === undefined) {
+        createdNull += 1;
+        const globalIdx = offset + i;
+        if (createdNullIdxSample.length < 10) createdNullIdxSample.push(globalIdx);
+        continue;
+      }
+      created += 1;
+      if (createdIdsSample.length < 5) createdIdsSample.push(v);
+    }
   }
-  created = ok;
 }
 
-    // Update (batch via multi)
-    if (updateActions.length) {
-  stage = "ankiMultiUpdate";
-  await ankiMulti(updateActions);
-  updated = updateActions.length;
-}	
+// Update (chunked via multi)
+if (updateActions.length) {
+  const total = updateActions.length;
+  const chunkSize = ANKI_MULTI_CHUNK;
+
+  for (let offset = 0; offset < total; offset += chunkSize) {
+    const chunk = updateActions.slice(offset, offset + chunkSize);
+    stage = `ankiMultiUpdate_${Math.floor(offset / chunkSize) + 1}`;
+    await ankiMulti(chunk);
+    updated += chunk.length;
+  }
+}
+
 	// Verify: ensure notes exist in Anki for this textTag (prevents "false OK")
 verifyQ = `tag:${textTag}`;
 stage = "ankiVerifyFindNotes";
@@ -3095,6 +3115,7 @@ if ((createdNotes.length || updateActions.length) && verifyFoundNotes === 0) {
       intendedCreate: createdNotes.length,
       intendedUpdate: updateActions.length,
       created,
+	  createdNull,
       updated,
       audioQueued,
       createdIdsSample,
@@ -3125,6 +3146,7 @@ if ((createdNotes.length || updateActions.length) && verifyFoundNotes === 0) {
   stats: {
     totalRows: rows.length,
     created,
+	createdNull,
     updated,
     audioQueued,
   },
