@@ -1493,6 +1493,15 @@ th, td { border-color: rgba(0,0,0,0.55); }
   line-height: 1.35;
 }
 
+#v3AnkiModal .v3-help {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 6px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 #v3TextMetaModal .v3-help.v3-error,
 #v3SaveMetaModal .v3-help.v3-error,
 #v3AnkiModal .v3-help.v3-error {
@@ -2685,12 +2694,13 @@ th, td { border-color: rgba(0,0,0,0.55); }
       </div>
 
       <div class="v3-modal-footer">
-        <button id="v3AnkiCheckBtn" class="btn-secondary" onclick="v3AnkiHealth()">Проверить AnkiConnect</button>
-        <button id="v3AnkiPushBtn" class="btn-primary" onclick="v3AnkiPushNow()">Экспортировать</button>
-      </div>
+  <button id="v3AnkiCheckBtn" class="btn-secondary" onclick="v3AnkiHealth()">Проверить AnkiConnect</button>
+  <button id="v3AnkiCopyBtn" class="btn-secondary" onclick="v3AnkiCopyDiagnostics()" disabled>Скопировать диагностику</button>
+  <button id="v3AnkiPushBtn" class="btn-primary" onclick="v3AnkiPushNow()">Экспортировать</button>
+</div>
 
       <div class="v3-modal-hint">
-        Требуется запущенный Anki Desktop и установленный AnkiConnect. Dashboard должен быть запущен локально (localhost:3000).
+        Требуется запущенный Anki Desktop и установленный AnkiConnect. Dashboard должен быть запущен локально (127.0.0.1:3000).
       </div>
     </div>
   </div>
@@ -9554,11 +9564,55 @@ function v3AnkiCloseModal() {
     v3AnkiShow(false);
 }
 
+let v3AnkiLastStatusText = "";
+let v3AnkiLastStatusIsError = false;
+
 function v3AnkiSetStatus(msg, isError) {
-    const el = document.getElementById("v3AnkiStatus");
-    if (!el) return;
-    el.textContent = String(msg || "");
-    el.classList.toggle("v3-error", !!isError);
+  const el = document.getElementById("v3AnkiStatus");
+  if (!el) return;
+
+  v3AnkiLastStatusText = String(msg || "");
+  v3AnkiLastStatusIsError = !!isError;
+
+  el.textContent = v3AnkiLastStatusText;
+  el.classList.toggle("v3-error", v3AnkiLastStatusIsError);
+
+  const copyBtn = document.getElementById("v3AnkiCopyBtn");
+  if (copyBtn) copyBtn.disabled = !v3AnkiLastStatusText.trim();
+}
+
+async function v3AnkiCopyDiagnostics() {
+  const text = String(v3AnkiLastStatusText || "").trim();
+  if (!text) return;
+
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+      await navigator.clipboard.writeText(text);
+      if (typeof showToast === "function") showToast("Диагностика скопирована");
+      return;
+    }
+  } catch (_) {
+    // fallthrough
+  }
+
+  // Fallback: execCommand
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "true");
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    ta.style.top = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
+    if (typeof showToast === "function") showToast("Диагностика скопирована");
+  } catch (e) {
+    console.warn("v3AnkiCopyDiagnostics failed:", e);
+    if (typeof showToast === "function") showToast("Не удалось скопировать диагностику");
+  }
 }
 
 function v3AnkiFmtDetails(d) {
@@ -9660,40 +9714,37 @@ function v3AnkiOpenModal() {
 // W11-ANKI-CONNECT-01: UI details formatter (avoid [object Object])
 // --------------------------------------------------------
 function v3AnkiFormatDetails(j, r) {
-  const httpPart =
-    (r && typeof r.status === "number" && r.status)
-      ? `HTTP_${r.status}`
-      : "";
+  const httpPart = (r && r.status) ? `HTTP ${r.status}` : "";
+  const errCode = (j && j.error) ? String(j.error) : (httpPart || "UNKNOWN_ERROR");
+  const details = (j && j.details != null) ? j.details : (j && j.hint ? { hint: j.hint } : null);
 
-  // prefer details, fallback to error
-  let d = (j && (j.details !== undefined && j.details !== null))
-    ? j.details
-    : (j && (j.error !== undefined && j.error !== null) ? j.error : "");
+  const lines = [];
+  lines.push(errCode + (httpPart && httpPart !== errCode ? ` (${httpPart})` : ""));
 
-  // no body at all
-  if ((d === "" || d === null || d === undefined) && httpPart) return httpPart;
+  // human-friendly message first
+  let stage = "";
+  let elapsedMs = null;
 
-  // object -> render message + stage/ms if present
-  if (d && typeof d === "object") {
-    const msg = (d.message !== undefined && d.message !== null) ? String(d.message) : "";
-    const stage = (d.stage !== undefined && d.stage !== null) ? String(d.stage) : "";
-    const ms = (d.elapsedMs !== undefined && d.elapsedMs !== null) ? String(d.elapsedMs) : "";
+  if (details && typeof details === "object") {
+    if (details.message) lines.push(String(details.message));
+    stage = details.stage ? String(details.stage) : "";
+    elapsedMs = (typeof details.elapsedMs === "number") ? details.elapsedMs : null;
 
     const meta = [];
     if (stage) meta.push(`stage=${stage}`);
-    if (ms) meta.push(`ms=${ms}`);
+    if (elapsedMs != null) meta.push(`elapsedMs=${elapsedMs}`);
+    if (meta.length) lines.push(meta.join(" | "));
 
-    let base = msg;
-    if (!base) {
-      try { base = JSON.stringify(d); } catch { base = "[details]"; }
+    try {
+      lines.push(JSON.stringify(details, null, 2));
+    } catch (_) {
+      lines.push(String(details));
     }
-
-    return meta.length ? `${base} (${meta.join(", ")})` : base;
+  } else if (details != null) {
+    lines.push(String(details));
   }
 
-  // string/number/bool
-  const s = String(d || "");
-  return s || httpPart || "UNKNOWN";
+  return lines.join("\n");
 }
 
 async function v3AnkiHealth() {
