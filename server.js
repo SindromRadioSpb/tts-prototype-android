@@ -2763,6 +2763,75 @@ app.get("/api/anki/health", async (req, res) => {
   }
 });
 
+app.get("/api/anki/debug", async (req, res) => {
+  try {
+    if (!ankiIsLocalHttpRequest(req)) {
+      return res.status(403).json({ ok: false, error: "FORBIDDEN_LOCAL_ONLY" });
+    }
+
+    const out = {
+      ok: true,
+      localOnly: true,
+      env: {
+        host: ANKI_CONNECT_HOST,
+        port: ANKI_CONNECT_PORT,
+        version: ANKI_CONNECT_VERSION,
+        timeoutMs: ANKI_CONNECT_TIMEOUT_MS,
+        retries: ANKI_CONNECT_RETRIES,
+        retryDelayMs: ANKI_CONNECT_RETRY_DELAY_MS,
+        origin: ANKI_CONNECT_ORIGIN || null,
+        hasApiKey: !!ANKI_CONNECT_API_KEY,
+      },
+      checks: {},
+    };
+
+    try {
+      out.checks.version = await ankiInvoke("version", {});
+    } catch (e) {
+      out.checks.versionError = {
+        message: String((e && e.message) || e || ""),
+        details: (e && e.details) ? e.details : null,
+      };
+    }
+
+    try {
+      const decks = await ankiInvoke("deckNames", {});
+      const arr = Array.isArray(decks) ? decks : [];
+      out.checks.deckNames = {
+        total: arr.length,
+        linguistPro: arr.filter((n) => /^LinguistPro/i.test(String(n || ""))).slice(0, 50),
+      };
+    } catch (e) {
+      out.checks.deckNamesError = {
+        message: String((e && e.message) || e || ""),
+        details: (e && e.details) ? e.details : null,
+      };
+    }
+
+    try {
+      const models = await ankiInvoke("modelNames", {});
+      const arr = Array.isArray(models) ? models : [];
+      out.checks.modelNames = {
+        total: arr.length,
+        linguistPro: arr.filter((n) => /LinguistPro/i.test(String(n || ""))).slice(0, 50),
+      };
+    } catch (e) {
+      out.checks.modelNamesError = {
+        message: String((e && e.message) || e || ""),
+        details: (e && e.details) ? e.details : null,
+      };
+    }
+
+    return res.json(out);
+  } catch (e) {
+    return res.status(500).json({
+      ok: false,
+      error: "INTERNAL_ERROR",
+      details: { message: String((e && e.message) || e || "") },
+    });
+  }
+});
+
 app.post("/api/library/texts/:id/push/anki", async (req, res) => {
   if (!requireDbOr503(res)) return;
 
