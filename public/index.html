@@ -2469,9 +2469,19 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
     <div class="v3-modal-body">
       <div class="v3-lib-toolbar">
-        <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)" oninput="v3LibraryOnSearchInput()" />
-        <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
-      </div>
+  <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)" oninput="v3LibraryOnSearchInput()" />
+
+  <select
+    id="v3TagMatchModeLib"
+    onchange="v3OnTagMatchModeChange(this.value)"
+    title="Теги: ALL — показывать тексты, где есть ВСЕ выбранные теги. ANY — показывать тексты, где есть хотя бы один тег."
+  >
+    <option value="all">Теги: ALL</option>
+    <option value="any">Теги: ANY</option>
+  </select>
+
+  <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
+</div>
 
 <div class="v3-filter-row">
   <div id="v3LibraryActiveChips" class="v3-filter-chips"></div>
@@ -2505,6 +2515,15 @@ th, td { border-color: rgba(0,0,0,0.55); }
           placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)"
           oninput="v3DashboardOnFilterChange()"
         />
+		
+		<select
+  id="v3TagMatchModeDash"
+  onchange="v3OnTagMatchModeChange(this.value)"
+  title="Теги: ALL — показывать тексты, где есть ВСЕ выбранные теги. ANY — показывать тексты, где есть хотя бы один тег."
+>
+  <option value="all">Теги: ALL</option>
+  <option value="any">Теги: ANY</option>
+</select>
 
         <select id="v3DashLevel" onchange="v3DashboardOnFilterChange()">
           <option value="">Все уровни</option>
@@ -5282,6 +5301,76 @@ let v3LibraryLastQuery = "";
 
 const V3_LIB_SEARCH_KEY = "v3_lib_search_v1";
 
+// --------------------------------------------------------
+// W9 TAGS UX (PRO-PREMIUM): AND/OR tag matching toggle
+// - ALL (AND): text must contain ALL selected tag tokens
+// - ANY (OR): text must contain at least one selected tag token
+// Persisted globally (applies to Library + Dashboard)
+// --------------------------------------------------------
+const V3_TAG_MATCH_MODE_KEY = "v3_tag_match_mode_v1";
+
+function v3GetTagMatchMode() {
+  try {
+    const raw = String(localStorage.getItem(V3_TAG_MATCH_MODE_KEY) || "").trim().toLowerCase();
+    return (raw === "any" || raw === "or") ? "any" : "all";
+  } catch (_) {
+    return "all";
+  }
+}
+
+function v3SyncTagMatchModeUi() {
+  const mode = v3GetTagMatchMode();
+  const lib = document.getElementById("v3TagMatchModeLib");
+  if (lib) lib.value = mode;
+  const dash = document.getElementById("v3TagMatchModeDash");
+  if (dash) dash.value = mode;
+}
+
+function v3ReapplyFiltersAfterTagModeChange() {
+  try {
+    const m = document.getElementById("v3LibraryModal");
+    if (m && !m.classList.contains("hidden")) {
+      v3LibraryApplyFilter();
+      try { v3LibraryRenderActiveChips(); } catch (_) {}
+    }
+  } catch (_) {}
+
+  try {
+    const m = document.getElementById("v3DashboardModal");
+    if (m && !m.classList.contains("hidden")) {
+      v3DashboardRender();
+      try {
+        if (typeof v3DashActiveTextId !== "undefined" && v3DashActiveTextId) v3DashboardRenderRowsPanel();
+      } catch (_) {}
+    }
+  } catch (_) {}
+}
+
+function v3SetTagMatchMode(mode, opts) {
+  const next = (String(mode || "").trim().toLowerCase() === "any") ? "any" : "all";
+  try { localStorage.setItem(V3_TAG_MATCH_MODE_KEY, next); } catch (_) {}
+  v3SyncTagMatchModeUi();
+
+  const o = opts && typeof opts === "object" ? opts : {};
+  if (!o.noRerender) v3ReapplyFiltersAfterTagModeChange();
+}
+
+function v3OnTagMatchModeChange(mode) {
+  v3SetTagMatchMode(mode);
+}
+
+function v3InitTagMatchModeUi() {
+  // ensure default exists (best-effort)
+  try {
+    const cur = localStorage.getItem(V3_TAG_MATCH_MODE_KEY);
+    if (cur == null) localStorage.setItem(V3_TAG_MATCH_MODE_KEY, "all");
+  } catch (_) {}
+  v3SyncTagMatchModeUi();
+}
+
+// expose for inline handlers
+window.v3OnTagMatchModeChange = v3OnTagMatchModeChange;
+
 function v3LibraryOnSearchInput() {
   if (v3LibrarySearchTimer) clearTimeout(v3LibrarySearchTimer);
   v3LibrarySearchTimer = setTimeout(() => {
@@ -5812,6 +5901,9 @@ function v3LibraryOpen() {
     const s = v3LibEl("v3LibrarySearch");
     if (s) s.value = String(localStorage.getItem(V3_LIB_SEARCH_KEY) || "");
   } catch (_) {}
+  
+  // Restore tag match mode (ALL/ANY)
+try { v3SyncTagMatchModeUi(); } catch (_) {}
 
   // render chips immediately (even if refresh fails)
   try { v3LibraryRenderActiveChips(); } catch (_) {}
@@ -6145,15 +6237,29 @@ function v3TextMatchesQuery(t, qObj, levelFilter) {
   try { tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null); } catch (_) { tagsArr = []; }
   const tagsLower = tagsArr.map(s => String(s || "").trim().toLowerCase()).filter(Boolean);
 
-  // Tag tokens: AND semantics
-  if (q.tagTokens && q.tagTokens.length) {
-    for (let i = 0; i < q.tagTokens.length; i++) {
-      const tok = String(q.tagTokens[i] || "").trim().toLowerCase();
-      if (!tok) continue;
-      const ok = tagsLower.some(x => x.includes(tok));
+  // Tag tokens: ALL (AND) vs ANY (OR)
+if (q.tagTokens && q.tagTokens.length) {
+  const mode = (typeof v3GetTagMatchMode === "function") ? v3GetTagMatchMode() : "all";
+  const wantAny = (mode === "any");
+
+  let anyOk = false;
+  let hadTok = false;
+
+  for (let i = 0; i < q.tagTokens.length; i++) {
+    const tok = String(q.tagTokens[i] || "").trim().toLowerCase();
+    if (!tok) continue;
+    hadTok = true;
+
+    const ok = tagsLower.some(x => x.includes(tok));
+    if (wantAny) {
+      if (ok) { anyOk = true; break; }
+    } else {
       if (!ok) return false;
     }
   }
+
+  if (wantAny && hadTok && !anyOk) return false;
+}
 
   // Text tokens: AND semantics over meta + tags
   const hay = [
@@ -7234,6 +7340,9 @@ function v3DashboardOpen() {
     if (lv) lv.value = String(localStorage.getItem(V3_DASH_FILTER_LEVEL_KEY) || "");
   } catch (_) {}
 
+    // Restore tag match mode (ALL/ANY)
+  try { v3SyncTagMatchModeUi(); } catch (_) {}
+  
   // init + apply mode
   const mode = v3DashboardGetMode();
   const sel = v3DashEl("v3DashMode");
@@ -8150,7 +8259,7 @@ window.v3SaveMetaSaveAsNew = v3SaveMetaSaveAsNew;
 
 // init once (script is after DOM)
 try { v3InitLevelEnumUi(); } catch (_) {}
-
+try { v3InitTagMatchModeUi(); } catch (_) {}
 
 // ----------------------------
 // Week9 P1: Meta Edit mini-modal
