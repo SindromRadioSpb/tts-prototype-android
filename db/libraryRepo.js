@@ -81,6 +81,79 @@ function guessTitle(sourceText) {
   return sliced || "Untitled";
 }
 
+// ------------------------------
+// W9-TAGS-API-01: tags_json helpers
+// Canon: tags_json is always JSON array string, never NULL.
+// DTO: always exposes tags: string[]
+// ------------------------------
+function parseTagsJson(input) {
+  if (input == null) return [];
+
+  let arr = null;
+
+  if (Array.isArray(input)) {
+    arr = input;
+  } else {
+    const s0 = String(input || "").trim();
+    if (!s0) return [];
+
+    // Prefer JSON array if it looks like one
+    if (s0[0] === "[") {
+      try {
+        const x = JSON.parse(s0);
+        if (Array.isArray(x)) arr = x;
+      } catch (_) {}
+    }
+
+    // Sometimes could be a JSON string or other legacy
+    if (!arr) {
+      try {
+        const x = JSON.parse(s0);
+        if (Array.isArray(x)) arr = x;
+        else if (typeof x === "string") arr = [x];
+      } catch (_) {}
+    }
+
+    // Fallback: treat as CSV if it contains comma, else as a single tag
+    if (!arr) {
+      arr = s0.includes(",") ? s0.split(",") : [s0];
+    }
+  }
+
+  // Normalize: trim, truncate<=48, dedupe by lower-case key, limit<=50
+  const out = [];
+  const seen = new Set();
+
+  for (const it of arr) {
+    let t = String(it || "").trim();
+    if (!t) continue;
+
+    if (t.length > 48) t = t.slice(0, 48).trim();
+    if (!t) continue;
+
+    const k = t.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+
+    out.push(t);
+    if (out.length >= 50) break;
+  }
+
+  return out;
+}
+
+function canonicalTagsJson(input) {
+  return JSON.stringify(parseTagsJson(input));
+}
+
+function withTagsDto(row) {
+  if (!row) return row;
+  const tags = parseTagsJson(row.tags_json);
+  // Back-compat hygiene: ensure tags_json is never null in DTO
+  const tags_json = JSON.stringify(tags);
+  return { ...row, tags, tags_json };
+}
+
 async function createTextWithSentences({
   id,
   textKey,
@@ -127,7 +200,7 @@ async function createTextWithSentences({
         textKey,
         title,
         level || null,
-        tagsJson || null,
+        canonicalTagsJson(tagsJson),
         sourceText,
         sourceMetaJson || null,
         ttsProfileJson || null,
@@ -311,7 +384,7 @@ async function updateTextWithSentences({
         textKey,
         title,
         level || null,
-        tagsJson || null,
+        canonicalTagsJson(tagsJson),
         sourceText,
         sourceMetaJson || null,
         ttsProfileJson || null,
@@ -506,7 +579,7 @@ async function listTexts({ limit = 15, includeArchived = false, q = null, level 
 
   params.push(lim);
 
-  return dbAll(
+    const rows = await dbAll(
     db,
     `
     SELECT
@@ -520,13 +593,15 @@ async function listTexts({ limit = 15, includeArchived = false, q = null, level 
     `,
     params
   );
+
+  return (rows || []).map(withTagsDto);
 }
 
 async function getTextById(textId) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
-  return dbGet(
+    const row = await dbGet(
     db,
     `
     SELECT
@@ -542,6 +617,8 @@ async function getTextById(textId) {
     `,
     [textId]
   );
+
+  return withTagsDto(row);
 }
 
 async function getSentencesByTextId(textId) {
@@ -701,11 +778,11 @@ async function updateTextMeta(textId, patch) {
   }
 
   // NEW: tags_json
-  if (Object.prototype.hasOwnProperty.call(p, "tagsJson")) {
-    const v = (p.tagsJson == null) ? null : String(p.tagsJson).trim();
-    fields.push("tags_json = ?");
-    params.push(v === "" ? null : v);
-  }
+ // NEW: tags_json (canonical: always JSON array string, never NULL)
+if (Object.prototype.hasOwnProperty.call(p, "tagsJson")) {
+  fields.push("tags_json = ?");
+  params.push(canonicalTagsJson(p.tagsJson));
+}
 
   if (Object.prototype.hasOwnProperty.call(p, "source")) {
     const v = (p.source == null) ? null : String(p.source).trim();
