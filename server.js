@@ -3480,31 +3480,44 @@ stage = "ankiFindExisting";
 const existingNoteIds = await ankiInvoke("findNotes", { query: q });
 
     const noteIdBySentenceId = new Map();
-	const soundBySentenceId = new Map();
+const soundBySentenceId = new Map();
+
 if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
   stage = "ankiNotesInfo";
   const infos = await ankiInvoke("notesInfo", { notes: existingNoteIds });
-      if (Array.isArray(infos)) {
-        for (const n of infos) {
-          const fields = (n && n.fields) || {};
-          const sid =
-            (fields.SentenceId && fields.SentenceId.value) ||
-            (fields.UID && fields.UID.value) ||
-            "";
-          const s = String(sid || "").trim();
-          if (s) {
-            noteIdBySentenceId.set(s, Number(n.noteId || n.note || 0) || Number(n.id || 0));
-            const snd = (fields.Sound && fields.Sound.value) || "";
-            soundBySentenceId.set(s, String(snd || ""));
-          }
-        }
-      }
+
+  if (Array.isArray(infos)) {
+    for (const inf of infos) {
+      const f = inf && inf.fields ? inf.fields : null;
+
+      const sid = (f && f.SentenceId)
+        ? String((f.SentenceId.value ?? "")).trim()
+        : "";
+
+      if (!sid) continue;
+
+      noteIdBySentenceId.set(sid, inf.noteId);
+
+      const sraw = (f && f.Sound)
+        ? String((f.Sound.value ?? ""))
+        : "";
+
+      if (sraw) soundBySentenceId.set(sid, sraw);
     }
+  }
+}
+    
 
     const createdNotes = [];
     const updateActions = [];
 
     let audioQueued = 0;
+	const mediaStoreOps = []; // { actionIdx, assetKey, filename }
+
+let audioStored = 0;
+let audioStoreFailed = 0;
+	
+
 
     for (const r of rows) {
       const sentenceId = String(r.sentence_id || "").trim();
@@ -3569,38 +3582,65 @@ if (Array.isArray(existingNoteIds) && existingNoteIds.length) {
           tags,
         };
 
-        // Optional media: let AnkiConnect fetch audio from our URL and set [sound:...] into Sound field.
-        if (audioUrl) {
-          const filename = `lp_${audioAssetKey}.mp3`;
-          note.audio = [
-				{
-					url: audioUrl,
-					filename,
-					fields: ["Sound"],
-				},
-				];
-          audioQueued += 1;
-        }
+        // Optional media (CREATE only): AnkiConnect will fetch audio from our URL and set [sound:...] into Sound field.
+// IMPORTANT: do NOT set note.fields.Sound manually here — иначе ловите дубли.
+if (audioUrl && audioAssetKey) {
+  const filename = `lp_${audioAssetKey}.mp3`;
+  note.audio = [
+    {
+      url: audioUrl,
+      filename,
+      fields: ["Sound"],
+    },
+  ];
+  audioQueued += 1;
+}
 
         createdNotes.push(note);
-            } else {
-        const fieldsUpdate = { ...fieldsAll };
-        // Do not overwrite Sound on update; only repair duplicate [sound:...] if detected.
-        delete fieldsUpdate.Sound;
+} else {
+  const fieldsUpdate = { ...fieldsAll };
 
-        const existingSound = soundBySentenceId.get(sentenceId) || "";
-        const dedupSound = ankiDedupSoundFieldValue(existingSound);
-        if (dedupSound !== existingSound) {
-          fieldsUpdate.Sound = dedupSound;
-        }
+  // По умолчанию — не трогаем Sound, чтобы не затирать пользовательское/старое.
+  delete fieldsUpdate.Sound;
 
-        updateActions.push({
-          action: "updateNoteFields",
-          params: { note: { id: existingNoteId, fields: fieldsUpdate } },
-        });
-      }
+  const existingSoundRaw = (typeof soundBySentenceId !== "undefined")
+    ? String(soundBySentenceId.get(sentenceId) || "")
+    : "";
+
+  // Если аудио есть локально — “repair” на реэкспорте:
+  // 1) загрузить mp3 в коллекцию (storeMediaFile)
+  // 2) поставить Sound = [sound:lp_<assetKey>.mp3]
+  let needStore = false;
+  let filename = null;
+
+  if (audioUrl && audioAssetKey) {
+    filename = `lp_${audioAssetKey}.mp3`;
+    const desiredSound = `[sound:${filename}]`;
+
+    const hasDesired = existingSoundRaw.includes(desiredSound);
+    if (!hasDesired) {
+      fieldsUpdate.Sound = desiredSound;
+      needStore = true;
     }
+  }
 
+  const actionIdx = updateActions.length;
+
+  updateActions.push({
+    action: "updateNoteFields",
+    params: { note: { id: existingNoteId, fields: fieldsUpdate } },
+  });
+
+  if (needStore && audioAssetKey && filename) {
+    mediaStoreOps.push({
+      actionIdx,
+      assetKey: audioAssetKey,
+      filename,
+      fallbackSound: existingSoundRaw || "",
+    });
+  }
+}
+}
     let created = 0;
     let updated = 0;
 	
@@ -3656,6 +3696,71 @@ if (createdNotes.length) {
   }
 }
 
+// For UPDATE repairs: push media into Anki collection via storeMediaFile (reliable, no HTTP fetch).
+if (mediaStoreOps.length) {
+  const audioCacheRoot = path.resolve(audioCacheDir) + path.sep;
+
+  for (const op of mediaStoreOps) {
+    const { actionIdx, assetKey, filename, fallbackSound } = op;
+
+    try {
+      stage = "ankiStoreMediaFile";
+
+      const asset = await getAudioAssetByKey(assetKey);
+      const rel = asset && asset.relative_path ? String(asset.relative_path || "") : "";
+
+      let absPath = null;
+
+      if (rel) {
+        absPath = path.resolve(__dirname, rel);
+      } else {
+        absPath = path.resolve(audioCacheDir, `${assetKey}.mp3`);
+      }
+
+      // safety: не даём выйти за audio-cache
+      if (!(absPath + path.sep).startsWith(audioCacheRoot) && !absPath.startsWith(audioCacheRoot)) {
+        throw new Error("AUDIO_PATH_OUTSIDE_CACHE");
+      }
+
+      // fallback если rel битый
+      if (!fs.existsSync(absPath)) {
+        const fb = path.resolve(audioCacheDir, `${assetKey}.mp3`);
+        if ((fb + path.sep).startsWith(audioCacheRoot) || fb.startsWith(audioCacheRoot)) {
+          if (fs.existsSync(fb)) absPath = fb;
+        }
+      }
+
+      if (!fs.existsSync(absPath)) {
+        throw new Error("AUDIO_FILE_NOT_FOUND");
+      }
+
+      const b64 = fs.readFileSync(absPath).toString("base64");
+      await ankiInvoke("storeMediaFile", { filename, data: b64 });
+
+      audioStored += 1;
+      audioQueued += 1; // чтобы UI видел, что аудио реально “обработано”
+    } catch (e) {
+      audioStoreFailed += 1;
+
+      // Если не смогли сохранить media — нельзя оставлять Sound, который указывает на несуществующий файл
+      try {
+        const act = updateActions[actionIdx];
+        const fields = act && act.params && act.params.note && act.params.note.fields ? act.params.note.fields : null;
+        if (fields) {
+          if (fallbackSound) fields.Sound = fallbackSound;
+          else delete fields.Sound;
+        }
+      } catch (_) {}
+
+      console.warn("[anki-push] storeMediaFile failed", {
+        assetKey,
+        filename,
+        message: (e && e.message) ? String(e.message) : String(e),
+      });
+    }
+  }
+}
+
 // Update (chunked via multi)
 if (updateActions.length) {
   const total = updateActions.length;
@@ -3690,6 +3795,8 @@ if ((createdNotes.length || updateActions.length) && verifyFoundNotes === 0) {
 	  createdNull,
       updated,
       audioQueued,
+	  audioStored,
+audioStoreFailed,
       createdIdsSample,
       createdNullIdxSample,
       stage,
@@ -3715,13 +3822,15 @@ if ((createdNotes.length || updateActions.length) && verifyFoundNotes === 0) {
   textId,
   deckName,
   modelName,
-  stats: {
+    stats: {
     totalRows: rows.length,
     created,
-	createdNull,
     updated,
     audioQueued,
+    audioStored,
+    audioStoreFailed,
   },
+
   verify: {
     query: verifyQ || null,
     foundNotes: verifyFoundNotes,
