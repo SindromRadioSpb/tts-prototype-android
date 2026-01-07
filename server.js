@@ -2619,13 +2619,14 @@ app.post("/api/library/texts", async (req, res) => {
     if (!sourceText) return res.status(400).json({ error: "VALIDATION", field: "sourceText" });
     if (!Array.isArray(rowsIn) || rowsIn.length < 1) return res.status(400).json({ error: "VALIDATION", field: "rows" });
 
-    // tags: accept array or CSV string; normalize and store as JSON array
-		let tagsJson = null;
-		try {
-			const normTags = v3NormalizeTags(body.tags);
-			if (normTags.length) tagsJson = JSON.stringify(normTags);
-		} catch (_) {}
-
+        // tags: accept array or string; normalize and store as JSON array (never NULL)
+    let tagsJson = "[]";
+    try {
+      const normTags = v3NormalizeTags(body.tags);
+      tagsJson = JSON.stringify(normTags);
+    } catch (_) {
+      tagsJson = "[]";
+    }
 
     const ttsProfileJson = body.ttsProfile ? JSON.stringify(body.ttsProfile) : null;
     const tableModelMetaJson = body.tableModelMeta ? JSON.stringify(body.tableModelMeta) : null;
@@ -2778,7 +2779,7 @@ app.put("/api/library/texts/:id", express.json({ limit: "2mb" }), async (req, re
       try { tags = existing && existing.tags_json ? JSON.parse(String(existing.tags_json)) : []; }
       catch (_) { tags = []; }
     }
-    const tagsJson = (tags && tags.length) ? JSON.stringify(tags) : null;
+    const tagsJson = JSON.stringify(v3NormalizeTags(tags));
 
     // preserve ttsProfile/tableModelMeta if client didn't send them
     let ttsProfile = null;
@@ -3947,11 +3948,13 @@ function v3NormalizeLevel(raw) {
 
 function v3NormalizeTags(raw) {
   if (raw == null) return [];
+
   let items = [];
   if (Array.isArray(raw)) {
     items = raw;
   } else if (typeof raw === "string") {
-    items = raw.split(","); // CSV
+    // allow CSV / whitespace-separated
+    items = raw.split(/[\s,]+/);
   } else {
     return [];
   }
@@ -3960,14 +3963,20 @@ function v3NormalizeTags(raw) {
   const seen = new Set();
 
   for (const it of items) {
-    const t = String(it || "").trim();
+    let t = String(it || "").trim();
     if (!t) continue;
+
+    if (t.length > 48) t = t.slice(0, 48).trim();
+    if (!t) continue;
+
     const k = t.toLowerCase();
     if (seen.has(k)) continue;
     seen.add(k);
+
     out.push(t);
-    if (out.length >= 25) break; // защита от мусора
+    if (out.length >= 50) break;
   }
+
   return out;
 }
 
@@ -4004,7 +4013,7 @@ app.patch("/api/library/texts/:id/meta", express.json({ limit: "64kb" }), async 
     // tags (принимаем "a,b,c" или ["a","b"])
     if (Object.prototype.hasOwnProperty.call(body, "tags")) {
       const tagsArr = v3NormalizeTags(body.tags);
-      patch.tagsJson = tagsArr.length ? JSON.stringify(tagsArr) : null;
+      patch.tagsJson = JSON.stringify(tagsArr);
     }
 
     // source/topic
@@ -4422,7 +4431,7 @@ app.post("/api/library/import", async (req, res) => {
           (t && t.tags_json) ? v3SafeJsonParse(t.tags_json, []) :
           (t && Array.isArray(t.tags)) ? t.tags :
           [];
-        const tagsJson = Array.isArray(tagsArr) ? JSON.stringify(tagsArr) : null;
+        const tagsJson = JSON.stringify(v3NormalizeTags(tagsArr));
 
         const sourceMetaJson =
           (t && t.source_meta_json) ? String(t.source_meta_json) :

@@ -5840,7 +5840,8 @@ async function v3LibraryRefresh() {
 
   try {
     const data = await v3GetJson("/api/library/texts?limit=200");
-    v3LibraryTexts = (data && data.texts) ? data.texts : [];
+    const raw = (data && data.texts) ? data.texts : [];
+    v3LibraryTexts = raw.map(v3NormalizeTextDto);
 	v3LibraryLastLoadedAt = new Date().toISOString();
 
 	// reset memo so fresh data re-renders even if query is the same
@@ -5885,10 +5886,30 @@ function v3NormalizeTagsInput(tags) {
     const key = raw.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push(raw);
-    if (out.length >= 25) break;
+    let t = raw;
+    if (t.length > 48) t = t.slice(0, 48).trim();
+    if (!t) continue;
+
+    out.push(t);
+    if (out.length >= 50) break;
   }
   return out;
+}
+
+function v3NormalizeTextDto(t) {
+  if (!t || typeof t !== "object") return t;
+
+  // Prefer server contract tags[], fallback to legacy tags_json/tagsJson
+  let tags = [];
+  try {
+    if (Array.isArray(t.tags)) tags = t.tags.map(String);
+    else tags = v3ParseTags(t.tags_json || t.tagsJson || null);
+  } catch (_) { tags = []; }
+
+  // UI-side hygiene: enforce same limits as server
+  tags = v3NormalizeTagsInput(tags);
+
+  return { ...t, tags };
 }
 
 function v3SplitQueryTokens(qRaw) {
@@ -7290,14 +7311,15 @@ async function v3DashboardRefresh() {
     }
 
     // normalize: lib
-    v3DashLibTexts = (libRes && libRes.ok && Array.isArray(libRes.texts)) ? libRes.texts : [];
+    const libRaw = (libRes && libRes.ok && Array.isArray(libRes.texts)) ? libRes.texts : [];
+    v3DashLibTexts = libRaw.map(v3NormalizeTextDto);
 
     // normalize: recent (fallback может вернуть items[])
     const recentArr =
       (recentRes && recentRes.ok && Array.isArray(recentRes.texts)) ? recentRes.texts :
       (recentRes && recentRes.ok && Array.isArray(recentRes.items)) ? recentRes.items :
       [];
-    v3DashRecent = recentArr;
+    v3DashRecent = (recentArr || []).map(v3NormalizeTextDto);
 
     // normalize: activity
     v3DashActivity = (actRes && actRes.ok && Array.isArray(actRes.rows)) ? actRes.rows : [];
