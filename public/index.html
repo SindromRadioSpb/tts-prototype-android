@@ -2468,8 +2468,21 @@ th, td { border-color: rgba(0,0,0,0.55); }
 </div>
 
     <div class="v3-modal-body">
-      <div class="v3-lib-toolbar">
-  <input id="v3LibrarySearch" type="text" placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)" oninput="v3LibraryOnSearchInput()" />
+     <div class="v3-lib-toolbar">
+  <input
+    id="v3LibrarySearch"
+    type="text"
+    placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)"
+    oninput="v3LibraryOnSearchInput()"
+  />
+
+  <select
+    id="v3LibraryLevel"
+    onchange="v3LibraryOnLevelChange()"
+    title="Фильтр по уровню (alef, bet, gimel...)"
+  >
+    <option value="">Все уровни</option>
+  </select>
 
   <select
     id="v3TagMatchModeLib"
@@ -2478,6 +2491,18 @@ th, td { border-color: rgba(0,0,0,0.55); }
   >
     <option value="all">Теги: ALL</option>
     <option value="any">Теги: ANY</option>
+  </select>
+
+  <select
+    id="v3LibrarySort"
+    onchange="v3LibraryOnSortChange()"
+    title="Сортировка списка в библиотеке"
+  >
+    <option value="opened_desc">Сорт: Последние открытые</option>
+    <option value="updated_desc">Сорт: Последние изменённые</option>
+    <option value="title_asc">Сорт: Название A→Я</option>
+    <option value="level_asc">Сорт: Уровень A→Я</option>
+    <option value="topic_asc">Сорт: Тема A→Я</option>
   </select>
 
   <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
@@ -5300,6 +5325,8 @@ let v3LibraryLastRenderKey = null; // memo to avoid redundant renders
 let v3LibraryLastQuery = "";
 
 const V3_LIB_SEARCH_KEY = "v3_lib_search_v1";
+const V3_LIB_FILTER_LEVEL_KEY = "v3_lib_filter_level_v1";
+const V3_LIB_SORT_KEY = "v3_lib_sort_v1";
 
 // --------------------------------------------------------
 // W9 TAGS UX (PRO-PREMIUM): AND/OR tag matching toggle
@@ -5389,6 +5416,32 @@ function v3LibraryOnSearchInput() {
 
 // expose for inline handler
 window.v3LibraryOnSearchInput = v3LibraryOnSearchInput;
+
+function v3LibraryGetSortKey() {
+  try { return String(localStorage.getItem(V3_LIB_SORT_KEY) || "opened_desc"); } catch (_) {}
+  return "opened_desc";
+}
+
+function v3LibraryOnLevelChange() {
+  try {
+    const lv = String((v3LibEl("v3LibraryLevel") && v3LibEl("v3LibraryLevel").value) || "");
+    localStorage.setItem(V3_LIB_FILTER_LEVEL_KEY, lv);
+  } catch (_) {}
+  v3LibraryApplyFilter();
+}
+
+function v3LibraryOnSortChange() {
+  try {
+    const sk = String((v3LibEl("v3LibrarySort") && v3LibEl("v3LibrarySort").value) || "opened_desc");
+    localStorage.setItem(V3_LIB_SORT_KEY, sk);
+  } catch (_) {}
+  // чтобы гарантировать пересортировку даже при memo-key
+  v3LibraryLastRenderKey = null;
+  v3LibraryApplyFilter();
+}
+
+window.v3LibraryOnLevelChange = v3LibraryOnLevelChange;
+window.v3LibraryOnSortChange = v3LibraryOnSortChange;
 
 // ----------------------------
 // Library (v3): Active filter chips + Reset + remove logic
@@ -5902,6 +5955,16 @@ function v3LibraryOpen() {
     if (s) s.value = String(localStorage.getItem(V3_LIB_SEARCH_KEY) || "");
   } catch (_) {}
   
+    try {
+    const lv = v3LibEl("v3LibraryLevel");
+    if (lv) lv.value = String(localStorage.getItem(V3_LIB_FILTER_LEVEL_KEY) || "");
+  } catch (_) {}
+
+  try {
+    const sk = v3LibEl("v3LibrarySort");
+    if (sk) sk.value = String(localStorage.getItem(V3_LIB_SORT_KEY) || "opened_desc");
+  } catch (_) {}
+  
   // Restore tag match mode (ALL/ANY)
 try { v3SyncTagMatchModeUi(); } catch (_) {}
 
@@ -6290,29 +6353,107 @@ if (q.tagTokens && q.tagTokens.length) {
 
 function v3LibraryApplyFilter() {
   const qRaw = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim();
+  const levelFilter = String((v3LibEl("v3LibraryLevel") && v3LibEl("v3LibraryLevel").value) || "").trim();
+  const sortKey = String((v3LibEl("v3LibrarySort") && v3LibEl("v3LibrarySort").value) || "opened_desc").trim() || "opened_desc";
 
   // If query hasn't changed and data hasn't changed, v3LibraryRenderList memo will skip rebuild.
   v3LibraryLastQuery = qRaw.toLowerCase();
 
   const qObj = v3SplitQueryTokens(qRaw);
-  const hasAny = (qObj.textTokens && qObj.textTokens.length) || (qObj.tagTokens && qObj.tagTokens.length);
 
-  if (!hasAny) {
-    v3LibraryRenderList(v3LibraryTexts);
-	v3LibraryRenderActiveChips();
-	v3RenderTagFacets(v3LibEl("v3LibraryFacets"), v3LibraryTexts, 18);
-    return;
+  const hasQuery =
+    (qObj.textTokens && qObj.textTokens.length) ||
+    (qObj.tagTokens && qObj.tagTokens.length);
+
+  const hasAny = hasQuery || !!levelFilter;
+
+  // Helper: safe date -> ms
+  function v3Ms(iso) {
+    if (!iso) return 0;
+    const t = Date.parse(String(iso));
+    return Number.isFinite(t) ? t : 0;
   }
 
-  const filtered = [];
-  for (let i = 0; i < v3LibraryTexts.length; i++) {
-    const t = v3LibraryTexts[i];
-    if (v3TextMatchesQuery(t, qObj, null)) filtered.push(t);
+  // Helper: sort copy (do NOT mutate original arrays)
+  function v3SortTextsCopy(arr, key) {
+    const a = Array.isArray(arr) ? arr.slice() : [];
+    a.sort((x, y) => {
+      const tx = x || {};
+      const ty = y || {};
+
+      if (key === "opened_desc") {
+        const ax = v3Ms(tx.last_opened_at) || v3Ms(tx.updated_at) || v3Ms(tx.created_at);
+        const ay = v3Ms(ty.last_opened_at) || v3Ms(ty.updated_at) || v3Ms(ty.created_at);
+        if (ay !== ax) return ay - ax;
+        // tie-breaker
+        const bx = v3Ms(tx.updated_at) || v3Ms(tx.created_at);
+        const by = v3Ms(ty.updated_at) || v3Ms(ty.created_at);
+        if (by !== bx) return by - bx;
+        return String(tx.title || "").localeCompare(String(ty.title || ""), "ru");
+      }
+
+      if (key === "updated_desc") {
+        const ax = v3Ms(tx.updated_at) || v3Ms(tx.created_at);
+        const ay = v3Ms(ty.updated_at) || v3Ms(ty.created_at);
+        if (ay !== ax) return ay - ax;
+        return String(tx.title || "").localeCompare(String(ty.title || ""), "ru");
+      }
+
+      if (key === "title_asc") {
+        const ax = String(tx.title || "");
+        const ay = String(ty.title || "");
+        const c = ax.localeCompare(ay, "ru");
+        if (c !== 0) return c;
+        // tie-breaker
+        const bx = v3Ms(tx.updated_at) || v3Ms(tx.created_at);
+        const by = v3Ms(ty.updated_at) || v3Ms(ty.created_at);
+        return by - bx;
+      }
+
+      if (key === "level_asc") {
+        const ax = String(tx.level || "");
+        const ay = String(ty.level || "");
+        const c = ax.localeCompare(ay, "ru");
+        if (c !== 0) return c;
+        return String(tx.title || "").localeCompare(String(ty.title || ""), "ru");
+      }
+
+      if (key === "topic_asc") {
+        const ax = String(tx.topic || "");
+        const ay = String(ty.topic || "");
+        const c = ax.localeCompare(ay, "ru");
+        if (c !== 0) return c;
+        return String(tx.title || "").localeCompare(String(ty.title || ""), "ru");
+      }
+
+      // default fallback
+      const ax = v3Ms(tx.last_opened_at) || v3Ms(tx.updated_at) || v3Ms(tx.created_at);
+      const ay = v3Ms(ty.last_opened_at) || v3Ms(ty.updated_at) || v3Ms(ty.created_at);
+      if (ay !== ax) return ay - ax;
+      return String(tx.title || "").localeCompare(String(ty.title || ""), "ru");
+    });
+    return a;
   }
-    
-  v3LibraryRenderList(filtered);
+
+  // 1) Filter
+  let filtered = v3LibraryTexts;
+
+  if (hasAny) {
+    const out = [];
+    for (let i = 0; i < v3LibraryTexts.length; i++) {
+      const t = v3LibraryTexts[i];
+      if (v3TextMatchesQuery(t, qObj, levelFilter || null)) out.push(t);
+    }
+    filtered = out;
+  }
+
+  // 2) Sort (always apply)
+  const sorted = v3SortTextsCopy(filtered, sortKey);
+
+  // 3) Render
+  v3LibraryRenderList(sorted);
   v3LibraryRenderActiveChips();
-  v3RenderTagFacets(v3LibEl("v3LibraryFacets"), filtered, 18);
+  v3RenderTagFacets(v3LibEl("v3LibraryFacets"), sorted, 18);
 }
 
 function v3LibraryRenderList(texts) {
@@ -7993,6 +8134,7 @@ function v3FillLevelSelect(selectId, opts) {
 }
 
 function v3InitLevelEnumUi() {
+v3FillLevelSelect("v3LibraryLevel", { includeEmpty: true, emptyLabel: "Все уровни" });
   // “Все уровни” для фильтра, “—” для мета-форм
   v3FillLevelSelect("v3DashLevel", { includeEmpty: true, emptyLabel: "Все уровни" });
   v3FillLevelSelect("v3TextMetaLevel", { includeEmpty: true, emptyLabel: "—" });
