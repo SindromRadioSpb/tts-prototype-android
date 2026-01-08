@@ -1671,6 +1671,90 @@ th, td { border-color: rgba(0,0,0,0.55); }
   margin-bottom: 10px;
 }
 
+/* --------------------------------------------------------
+   Wave D (Premium PRO): Notes search UI (D3)
+-------------------------------------------------------- */
+.v3-notes-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.75);
+  font-size: 12px;
+  color: #374151;
+  user-select: none;
+}
+.v3-notes-toggle input[type="checkbox"] {
+  transform: translateY(1px);
+}
+
+.btn-mini {
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.v3-notes-matches {
+  margin: 10px 0 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 10px 12px;
+}
+
+.v3-notes-matches-title {
+  font-weight: 900;
+  font-size: 13px;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.v3-note-hit {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  margin-top: 10px;
+}
+.v3-note-hit:first-child {
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.v3-note-hit-title {
+  font-weight: 900;
+  font-size: 13px;
+  color: #111827;
+  line-height: 1.2;
+}
+.v3-note-hit-meta {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.v3-note-hit-snippet {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #111827;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.v3-note-hit-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.v3-note-empty {
+  color: #6b7280;
+  font-size: 12px;
+}
+
 .v3-lib-list {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -2493,6 +2577,16 @@ th, td { border-color: rgba(0,0,0,0.55); }
     <option value="any">Теги: ANY</option>
   </select>
 
+  <label class="v3-notes-toggle" title="Искать совпадения в заметках (Premium)">
+  <input id="v3LibIncludeNotes" type="checkbox" onchange="v3NotesOnToggleChange('lib')" />
+  Заметки
+</label>
+
+<label class="v3-notes-toggle" title="Искать только по заметкам (Premium)">
+  <input id="v3LibNotesOnly" type="checkbox" onchange="v3NotesOnToggleChange('lib')" />
+  Только заметки
+</label>
+  
   <select
     id="v3LibrarySort"
     onchange="v3LibraryOnSortChange()"
@@ -2515,6 +2609,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 </div>
 	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
+	  <div id="v3LibraryNotesMatches" class="v3-notes-matches" style="display:none;"></div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
     </div>
   </div>
@@ -2558,6 +2653,16 @@ th, td { border-color: rgba(0,0,0,0.55); }
           <option value="gimel">gimel</option>
           <option value="dalet">dalet</option>
         </select>
+		
+		<label class="v3-notes-toggle" title="Искать совпадения в заметках (Premium)">
+  <input id="v3DashIncludeNotes" type="checkbox" onchange="v3NotesOnToggleChange('dash')" />
+  Заметки
+</label>
+
+<label class="v3-notes-toggle" title="Искать только по заметкам (Premium)">
+  <input id="v3DashNotesOnly" type="checkbox" onchange="v3NotesOnToggleChange('dash')" />
+  Только заметки
+</label>
 		
 		<select
 			id="v3DashMode"
@@ -2636,6 +2741,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
 	  <div id="v3DashStatus" class="v3-lib-status"></div>
 	  
 	  <div id="v3DashMetrics" class="v3-lib-muted" style="margin-top:6px;"></div>
+	  
+	  <div id="v3DashNotesMatches" class="v3-notes-matches" style="display:none;"></div>
 
  <div class="v3-dash-layout">
   <div class="v3-dash-left">
@@ -5398,6 +5505,388 @@ function v3InitTagMatchModeUi() {
 // expose for inline handlers
 window.v3OnTagMatchModeChange = v3OnTagMatchModeChange;
 
+// --------------------------------------------------------
+// Wave D (Premium PRO): Notes search UI (D3)
+// --------------------------------------------------------
+const V3_NOTES_INCLUDE_KEY = "v3_notes_include_v1";
+const V3_NOTES_ONLY_KEY = "v3_notes_only_v1";
+
+let v3NotesTimerLib = null;
+let v3NotesTimerDash = null;
+
+let v3NotesLastKeyLib = null;
+let v3NotesLastKeyDash = null;
+
+let v3NotesClicksBoundLib = false;
+let v3NotesClicksBoundDash = false;
+
+function v3NotesGetState() {
+  let includeNotes = false;
+  let notesOnly = false;
+  try { includeNotes = (localStorage.getItem(V3_NOTES_INCLUDE_KEY) === "1"); } catch (_) {}
+  try { notesOnly = (localStorage.getItem(V3_NOTES_ONLY_KEY) === "1"); } catch (_) {}
+  if (notesOnly) includeNotes = true;
+  return { includeNotes, notesOnly };
+}
+
+function v3NotesSetState(includeNotes, notesOnly) {
+  try { localStorage.setItem(V3_NOTES_INCLUDE_KEY, includeNotes ? "1" : "0"); } catch (_) {}
+  try { localStorage.setItem(V3_NOTES_ONLY_KEY, notesOnly ? "1" : "0"); } catch (_) {}
+}
+
+function v3NotesSyncUi() {
+  const st = v3NotesGetState();
+
+  const libInc = document.getElementById("v3LibIncludeNotes");
+  const libOnly = document.getElementById("v3LibNotesOnly");
+  if (libInc) libInc.checked = !!st.includeNotes;
+  if (libOnly) libOnly.checked = !!st.notesOnly;
+
+  const dashInc = document.getElementById("v3DashIncludeNotes");
+  const dashOnly = document.getElementById("v3DashNotesOnly");
+  if (dashInc) dashInc.checked = !!st.includeNotes;
+  if (dashOnly) dashOnly.checked = !!st.notesOnly;
+}
+
+function v3NotesOnToggleChange(scope) {
+  const isLib = (scope === "lib");
+  const incEl = document.getElementById(isLib ? "v3LibIncludeNotes" : "v3DashIncludeNotes");
+  const onlyEl = document.getElementById(isLib ? "v3LibNotesOnly" : "v3DashNotesOnly");
+
+  let includeNotes = !!(incEl && incEl.checked);
+  let notesOnly = !!(onlyEl && onlyEl.checked);
+
+  if (notesOnly) includeNotes = true;
+  if (!includeNotes) notesOnly = false;
+
+  v3NotesSetState(includeNotes, notesOnly);
+  v3NotesSyncUi();
+
+  // refresh blocks (best-effort)
+  try {
+    const mLib = document.getElementById("v3LibraryModal");
+    if (mLib && !mLib.classList.contains("hidden")) v3NotesSearchSchedule("lib", { force: true });
+  } catch (_) {}
+  try {
+    const mDash = document.getElementById("v3DashboardModal");
+    if (mDash && !mDash.classList.contains("hidden")) v3NotesSearchSchedule("dash", { force: true });
+  } catch (_) {}
+}
+
+window.v3NotesOnToggleChange = v3NotesOnToggleChange;
+
+function v3NotesBindClicksOnce(scope) {
+  if (scope === "lib") {
+    if (v3NotesClicksBoundLib) return;
+    const box = document.getElementById("v3LibraryNotesMatches");
+    if (!box) return;
+    v3NotesClicksBoundLib = true;
+
+    box.addEventListener("click", (ev) => {
+      try {
+        const tgt = ev && ev.target;
+        if (!tgt || !tgt.closest) return;
+
+        const chip = tgt.closest(".v3-lib-chip, .v3-lib-topic-chip");
+        if (!chip) return;
+
+        const val = v3ExtractTagFromChipText(chip);
+        if (!val) return;
+
+        const isTopic = !!(chip.classList && chip.classList.contains("v3-lib-topic-chip"));
+
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        const s = document.getElementById("v3LibrarySearch");
+        if (!s) return;
+
+        s.value = isTopic ? v3MergeTopicIntoQuery(s.value, val) : v3MergeTagIntoQuery(s.value, val);
+        v3LibraryOnSearchInput(); // сохранит localStorage + применит фильтры
+      } catch (_) {}
+    });
+
+    return;
+  }
+
+  // dash
+  if (v3NotesClicksBoundDash) return;
+  const box2 = document.getElementById("v3DashNotesMatches");
+  if (!box2) return;
+  v3NotesClicksBoundDash = true;
+
+  box2.addEventListener("click", (ev) => {
+    try {
+      const tgt = ev && ev.target;
+      if (!tgt || !tgt.closest) return;
+
+      const chip = tgt.closest(".v3-lib-chip, .v3-lib-topic-chip");
+      if (!chip) return;
+
+      const val = v3ExtractTagFromChipText(chip);
+      if (!val) return;
+
+      const isTopic = !!(chip.classList && chip.classList.contains("v3-lib-topic-chip"));
+
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      const s = document.getElementById("v3DashSearch");
+      if (!s) return;
+
+      s.value = isTopic ? v3MergeTopicIntoQuery(s.value, val) : v3MergeTagIntoQuery(s.value, val);
+      v3DashboardOnFilterChange();
+    } catch (_) {}
+  });
+}
+
+function v3NotesSearchSchedule(scope, opts) {
+  const delayMs = 300;
+
+  if (scope === "lib") {
+    if (v3NotesTimerLib) clearTimeout(v3NotesTimerLib);
+    v3NotesTimerLib = setTimeout(() => {
+      v3NotesTimerLib = null;
+      v3NotesSearchNow("lib", opts || {});
+    }, delayMs);
+    return;
+  }
+
+  if (v3NotesTimerDash) clearTimeout(v3NotesTimerDash);
+  v3NotesTimerDash = setTimeout(() => {
+    v3NotesTimerDash = null;
+    v3NotesSearchNow("dash", opts || {});
+  }, delayMs);
+}
+
+function v3NotesRegexEscape(s) {
+  return String(s || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function v3NotesMakeSnippet(raw, maxLen) {
+  const s = String(raw || "").replace(/\s+/g, " ").trim();
+  if (!maxLen || s.length <= maxLen) return s;
+  return s.slice(0, Math.max(0, maxLen - 1)).trimEnd() + "…";
+}
+
+function v3NotesMark(rawText, needles) {
+  let t = String(rawText || "");
+  const ns = (needles || [])
+    .map(x => String(x || "").trim())
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length)
+    .slice(0, 5);
+
+  for (const n of ns) {
+    const re = new RegExp(v3NotesRegexEscape(n), "gi");
+    t = t.replace(re, (m) => "\u0000" + m + "\u0001");
+  }
+
+  let esc = v3EscapeHtml(t);
+  esc = esc.replace(/\u0000/g, "<mark>").replace(/\u0001/g, "</mark>");
+  return esc;
+}
+
+function v3NotesExtractNeedles(qRaw) {
+  try {
+    const qObj = v3SplitQueryTokens(String(qRaw || ""));
+    const toks = Array.isArray(qObj.textTokens) ? qObj.textTokens : [];
+    // исключаем “служебные” токены, если пользователь их ввёл как текст
+    return toks.filter(x => {
+      const s = String(x || "").trim();
+      if (!s) return false;
+      if (/^topic:/i.test(s)) return false;
+      if (/^in:notes$/i.test(s)) return false;
+      if (/^note:/i.test(s)) return false;
+      return true;
+    });
+  } catch (_) {
+    return [];
+  }
+}
+
+function v3NotesRender(scope, qRaw, results, notesOnly) {
+  const boxId = (scope === "lib") ? "v3LibraryNotesMatches" : "v3DashNotesMatches";
+  const box = document.getElementById(boxId);
+  if (!box) return;
+
+  const n = Array.isArray(results) ? results.length : 0;
+
+  // в режиме includeNotes показываем блок только если есть совпадения
+  if (!notesOnly && n === 0) {
+    box.style.display = "none";
+    box.innerHTML = "";
+    return;
+  }
+
+  const title = notesOnly ? `Заметки: результаты (${n})` : `Совпадения в заметках (${n})`;
+  const needles = v3NotesExtractNeedles(qRaw);
+
+  let html = `<div class="v3-notes-matches-title">${v3EscapeHtml(title)}</div>`;
+
+  if (n === 0) {
+    html += `<div class="v3-note-empty">Ничего не найдено.</div>`;
+    box.style.display = "block";
+    box.innerHTML = html;
+    return;
+  }
+
+  for (const r of results) {
+    const textId = String(r.textId || "");
+    const sentenceId = String(r.sentenceId || "");
+    const orderIndex = Number(r.orderIndex);
+
+    const tTitle = String(r.title || "Без названия");
+    const level = String(r.level || "");
+    const topic = String(r.topic || "");
+
+    const sentenceText = String(r.sentenceText || "");
+    const note = String(r.note || "");
+    const noteUpdatedAt = String(r.noteUpdatedAt || "");
+
+    const tagsArr = Array.isArray(r.tags) ? r.tags : [];
+    const tagsHtml = tagsArr.slice(0, 8).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(String(x)) + "</span>").join("");
+    const topicHtml = topic ? (" <span class='v3-lib-topic-chip'>" + v3EscapeHtml(topic) + "</span>") : "";
+
+    const noteSnippetRaw = v3NotesMakeSnippet(note, 180);
+    const sentSnippetRaw = v3NotesMakeSnippet(sentenceText, 140);
+
+    html += `
+      <div class="v3-note-hit" data-text-id="${v3EscapeHtml(textId)}" data-sentence-id="${v3EscapeHtml(sentenceId)}">
+        <div class="v3-note-hit-title">${v3EscapeHtml(tTitle)}${topicHtml}</div>
+        <div class="v3-note-hit-meta">
+          ${Number.isFinite(orderIndex) ? ("Строка № <b>" + v3EscapeHtml(String(orderIndex + 1)) + "</b> · ") : ""}
+          ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
+          ${noteUpdatedAt ? ("Note updated: " + v3EscapeHtml(v3FmtDate(noteUpdatedAt))) : ""}
+        </div>
+
+        ${tagsHtml ? (`<div style="margin-top:6px;">${tagsHtml}</div>`) : ""}
+
+        ${sentSnippetRaw ? (`<div class="v3-note-hit-snippet"><b>Предложение:</b> ${v3NotesMark(sentSnippetRaw, needles)}</div>`) : ""}
+        <div class="v3-note-hit-snippet"><b>Заметка:</b> ${v3NotesMark(noteSnippetRaw, needles)}</div>
+
+        <div class="v3-note-hit-actions">
+          <button class="btn-secondary btn-mini" onclick="v3NotesJumpStub('${v3EscapeHtml(textId)}','${v3EscapeHtml(sentenceId)}',${Number.isFinite(orderIndex)?orderIndex:"null"})">Перейти к строке</button>
+        </div>
+      </div>
+    `;
+  }
+
+  box.style.display = "block";
+  box.innerHTML = html;
+}
+
+function v3NotesHide(scope) {
+  const boxId = (scope === "lib") ? "v3LibraryNotesMatches" : "v3DashNotesMatches";
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  box.style.display = "none";
+  box.innerHTML = "";
+}
+
+async function v3NotesSearchNow(scope, opts) {
+  const st = v3NotesGetState();
+  const includeNotes = !!st.includeNotes;
+  const notesOnly = !!st.notesOnly;
+
+  // container + clicks
+  try { v3NotesBindClicksOnce(scope); } catch (_) {}
+
+  if (!includeNotes) {
+    v3NotesHide(scope);
+    return;
+  }
+
+  const qElId = (scope === "lib") ? "v3LibrarySearch" : "v3DashSearch";
+  const qRaw = String((document.getElementById(qElId) && document.getElementById(qElId).value) || "").trim();
+
+  // UX-guard: в notesOnly не показываем “всё подряд”
+  if (!qRaw) {
+    if (notesOnly) {
+      v3NotesRender(scope, qRaw, [], true);
+    } else {
+      v3NotesHide(scope);
+    }
+    return;
+  }
+
+  if (notesOnly && qRaw.length < 2) {
+    // как в API: защита от сканирования
+    v3NotesRender(scope, qRaw, [], true);
+    return;
+  }
+
+  const levelElId = (scope === "lib") ? "v3LibraryLevel" : "v3DashLevel";
+  const level = String((document.getElementById(levelElId) && document.getElementById(levelElId).value) || "").trim() || null;
+
+  let includeArchived = false;
+  if (scope === "dash") {
+    includeArchived = !!(document.getElementById("v3DashIncludeArchived") && document.getElementById("v3DashIncludeArchived").checked);
+  } else {
+    // Library: по текущей семантике библиотека грузит тексты без includeArchived-параметра,
+    // поэтому для notes search тоже держим includeArchived=0
+    includeArchived = false;
+  }
+
+  const tagMode = (typeof v3GetTagMatchMode === "function") ? v3GetTagMatchMode() : "all";
+
+  const key = [
+    scope,
+    qRaw,
+    includeArchived ? "1" : "0",
+    level || "",
+    tagMode || "",
+    notesOnly ? "1" : "0"
+  ].join("||");
+
+  if (!opts || !opts.force) {
+    if (scope === "lib" && v3NotesLastKeyLib === key) return;
+    if (scope === "dash" && v3NotesLastKeyDash === key) return;
+  }
+
+  if (scope === "lib") v3NotesLastKeyLib = key;
+  else v3NotesLastKeyDash = key;
+
+  const p = new URLSearchParams();
+  p.set("q", qRaw);
+  p.set("includeArchived", includeArchived ? "1" : "0");
+  if (level) p.set("level", level);
+  p.set("tagMode", tagMode);
+  p.set("notesOnly", notesOnly ? "1" : "0");
+  p.set("limit", "50");
+  p.set("offset", "0");
+
+  // show "loading"
+  const boxId = (scope === "lib") ? "v3LibraryNotesMatches" : "v3DashNotesMatches";
+  const box = document.getElementById(boxId);
+  if (box) {
+    box.style.display = "block";
+    box.innerHTML = `<div class="v3-notes-matches-title">Совпадения в заметках…</div><div class="v3-note-empty">Поиск…</div>`;
+  }
+
+  try {
+    const res = await v3GetJson(`/api/notes/search?${p.toString()}`);
+    const results = (res && res.ok && Array.isArray(res.results)) ? res.results : [];
+    v3NotesRender(scope, qRaw, results, notesOnly);
+  } catch (e) {
+    console.warn("[v3NotesSearchNow] failed:", e);
+    if (box) {
+      box.style.display = "block";
+      box.innerHTML = `<div class="v3-notes-matches-title">Совпадения в заметках</div><div class="v3-note-empty">Ошибка поиска (см. console).</div>`;
+    }
+  }
+}
+
+// Stub for D4 (Jump-to-sentence)
+function v3NotesJumpStub(textId, sentenceId, orderIndex) {
+  try {
+    showToast("Jump-to-sentence будет в Patch D4 (пока заглушка).", "success");
+  } catch (_) {
+    alert("Jump-to-sentence будет в Patch D4 (пока заглушка).");
+  }
+}
+window.v3NotesJumpStub = v3NotesJumpStub;
+
 function v3LibraryOnSearchInput() {
   if (v3LibrarySearchTimer) clearTimeout(v3LibrarySearchTimer);
   v3LibrarySearchTimer = setTimeout(() => {
@@ -5968,6 +6457,9 @@ function v3LibraryOpen() {
   // Restore tag match mode (ALL/ANY)
 try { v3SyncTagMatchModeUi(); } catch (_) {}
 
+  // Wave D (D3): restore Notes toggles (localStorage)
+  try { v3NotesSyncUi(); } catch (_) {}
+
   // render chips immediately (even if refresh fails)
   try { v3LibraryRenderActiveChips(); } catch (_) {}
 
@@ -6454,6 +6946,8 @@ function v3LibraryApplyFilter() {
   v3LibraryRenderList(sorted);
   v3LibraryRenderActiveChips();
   v3RenderTagFacets(v3LibEl("v3LibraryFacets"), sorted, 18);
+    // Wave D (D3): schedule notes search block update
+  try { v3NotesSearchSchedule("lib"); } catch (_) {}
 }
 
 function v3LibraryRenderList(texts) {
@@ -7484,6 +7978,9 @@ function v3DashboardOpen() {
     // Restore tag match mode (ALL/ANY)
   try { v3SyncTagMatchModeUi(); } catch (_) {}
   
+    // Wave D (D3): restore Notes toggles (localStorage)
+  try { v3NotesSyncUi(); } catch (_) {}
+  
   // init + apply mode
   const mode = v3DashboardGetMode();
   const sel = v3DashEl("v3DashMode");
@@ -7616,6 +8113,8 @@ async function v3DashboardRefresh() {
   // ensure View state (show/hide sections) is applied after refresh renders
   try { v3DashApplyViewState(); } catch (_) {}
   try { v3DashApplyCollapsedState(); } catch (_) {}
+    // Wave D (D3): refresh notes matches after dashboard data refresh (best-effort)
+  try { v3NotesSearchSchedule("dash", { force: true }); } catch (_) {}
 }
 
 function v3DashboardOnFilterChange() {
@@ -7646,6 +8145,8 @@ function v3DashboardOnFilterChange() {
       v3DashboardRefreshAnalytics();
     }, 250);
   } catch (_) {}
+    // Wave D (D3): schedule notes search block update
+  try { v3NotesSearchSchedule("dash"); } catch (_) {}
 }
 
 function v3DashNorm(s) { return String(s || "").trim().toLowerCase(); }
