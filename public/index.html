@@ -2588,15 +2588,15 @@ th, td { border-color: rgba(0,0,0,0.55); }
     <option value="any">Теги: ANY</option>
   </select>
 
-  <label class="v3-notes-toggle" title="Искать совпадения в заметках (Premium)">
-  <input id="v3LibIncludeNotes" type="checkbox" onchange="v3NotesOnToggleChange('lib')" />
-  Заметки
-</label>
-
-<label class="v3-notes-toggle" title="Искать только по заметкам (Premium)">
-  <input id="v3LibNotesOnly" type="checkbox" onchange="v3NotesOnToggleChange('lib')" />
-  Только заметки
-</label>
+   <select
+    id="v3SearchScopeLib"
+    onchange="v3OnSearchScopeChange(this.value, 'lib')"
+    title="Поиск: Тексты — только карточки текстов; Тексты + заметки — метаданные + notes; Только заметки — только notes (Premium)"
+  >
+    <option value="texts">Поиск: Тексты</option>
+    <option value="both">Поиск: Тексты + заметки</option>
+    <option value="notes">Поиск: Только заметки</option>
+  </select>
   
   <select
     id="v3LibrarySort"
@@ -2665,15 +2665,15 @@ th, td { border-color: rgba(0,0,0,0.55); }
           <option value="dalet">dalet</option>
         </select>
 		
-		<label class="v3-notes-toggle" title="Искать совпадения в заметках (Premium)">
-  <input id="v3DashIncludeNotes" type="checkbox" onchange="v3NotesOnToggleChange('dash')" />
-  Заметки
-</label>
-
-<label class="v3-notes-toggle" title="Искать только по заметкам (Premium)">
-  <input id="v3DashNotesOnly" type="checkbox" onchange="v3NotesOnToggleChange('dash')" />
-  Только заметки
-</label>
+		<select
+			id="v3SearchScopeDash"
+			onchange="v3OnSearchScopeChange(this.value, 'dash')"
+			title="Поиск: Тексты — только карточки текстов; Тексты + заметки — метаданные + notes; Только заметки — только notes (Premium)"
+		>
+			<option value="texts">Поиск: Тексты</option>
+			<option value="both">Поиск: Тексты + заметки</option>
+			<option value="notes">Поиск: Только заметки</option>
+		</select>
 		
 		<select
 			id="v3DashMode"
@@ -2755,7 +2755,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 	  
 	  <div id="v3DashNotesMatches" class="v3-notes-matches" style="display:none;"></div>
 
- <div class="v3-dash-layout">
+ <div id="v3DashLayout" class="v3-dash-layout">
   <div class="v3-dash-left">
     <div class="v3-dash-sections">
       <div id="v3DashSecPinned" class="v3-dash-section" data-sec="pinned">
@@ -5519,6 +5519,8 @@ window.v3OnTagMatchModeChange = v3OnTagMatchModeChange;
 // --------------------------------------------------------
 // Wave D (Premium PRO): Notes search UI (D3)
 // --------------------------------------------------------
+const V3_SEARCH_SCOPE_KEY = "v3_search_scope_v1";
+// legacy keys kept for back-compat with previous D3 toggles
 const V3_NOTES_INCLUDE_KEY = "v3_notes_include_v1";
 const V3_NOTES_ONLY_KEY = "v3_notes_only_v1";
 
@@ -5531,49 +5533,137 @@ let v3NotesLastKeyDash = null;
 let v3NotesClicksBoundLib = false;
 let v3NotesClicksBoundDash = false;
 
-function v3NotesGetState() {
+function v3SearchScopeNormalize(v) {
+  const s = String(v || "").trim().toLowerCase();
+  if (s === "notes") return "notes";
+  if (s === "both") return "both";
+  return "texts";
+}
+
+function v3SearchScopeDeriveFromLegacy() {
   let includeNotes = false;
   let notesOnly = false;
   try { includeNotes = (localStorage.getItem(V3_NOTES_INCLUDE_KEY) === "1"); } catch (_) {}
   try { notesOnly = (localStorage.getItem(V3_NOTES_ONLY_KEY) === "1"); } catch (_) {}
   if (notesOnly) includeNotes = true;
-  return { includeNotes, notesOnly };
+
+  if (notesOnly) return "notes";
+  if (includeNotes) return "both";
+  return "texts";
 }
 
-function v3NotesSetState(includeNotes, notesOnly) {
+function v3SearchScopeGet() {
+  let raw = "";
+  try { raw = String(localStorage.getItem(V3_SEARCH_SCOPE_KEY) || ""); } catch (_) {}
+  let scope = v3SearchScopeNormalize(raw);
+
+  // if key absent, derive from legacy and persist once
+  if (!raw) {
+    scope = v3SearchScopeDeriveFromLegacy();
+    try { localStorage.setItem(V3_SEARCH_SCOPE_KEY, scope); } catch (_) {}
+  }
+  return v3SearchScopeNormalize(scope);
+}
+
+function v3SearchScopeSet(scope) {
+  const s = v3SearchScopeNormalize(scope);
+  try { localStorage.setItem(V3_SEARCH_SCOPE_KEY, s); } catch (_) {}
+
+  // keep legacy keys in sync (best-effort)
+  const includeNotes = (s !== "texts");
+  const notesOnly = (s === "notes");
   try { localStorage.setItem(V3_NOTES_INCLUDE_KEY, includeNotes ? "1" : "0"); } catch (_) {}
   try { localStorage.setItem(V3_NOTES_ONLY_KEY, notesOnly ? "1" : "0"); } catch (_) {}
 }
 
-function v3NotesSyncUi() {
-  const st = v3NotesGetState();
-
-  const libInc = document.getElementById("v3LibIncludeNotes");
-  const libOnly = document.getElementById("v3LibNotesOnly");
-  if (libInc) libInc.checked = !!st.includeNotes;
-  if (libOnly) libOnly.checked = !!st.notesOnly;
-
-  const dashInc = document.getElementById("v3DashIncludeNotes");
-  const dashOnly = document.getElementById("v3DashNotesOnly");
-  if (dashInc) dashInc.checked = !!st.includeNotes;
-  if (dashOnly) dashOnly.checked = !!st.notesOnly;
+function v3NotesGetState() {
+  const s = v3SearchScopeGet();
+  const includeNotes = (s !== "texts");
+  const notesOnly = (s === "notes");
+  return { includeNotes, notesOnly, scope: s };
 }
 
-function v3NotesOnToggleChange(scope) {
-  const isLib = (scope === "lib");
-  const incEl = document.getElementById(isLib ? "v3LibIncludeNotes" : "v3DashIncludeNotes");
-  const onlyEl = document.getElementById(isLib ? "v3LibNotesOnly" : "v3DashNotesOnly");
+function v3ApplySearchScopeUi(scope) {
+  const s = v3SearchScopeNormalize(scope);
 
-  let includeNotes = !!(incEl && incEl.checked);
-  let notesOnly = !!(onlyEl && onlyEl.checked);
+  // Library: hide text list in Notes-only scope
+  try {
+    const list = document.getElementById("v3LibraryList");
+    if (list) list.style.display = (s === "notes") ? "none" : "";
+  } catch (_) {}
 
-  if (notesOnly) includeNotes = true;
-  if (!includeNotes) notesOnly = false;
+  // Dashboard: hide main layout + metrics in Notes-only scope
+  try {
+    const lay = document.getElementById("v3DashLayout") || document.querySelector("#v3DashboardModal .v3-dash-layout");
+    if (lay) lay.style.display = (s === "notes") ? "none" : "";
+  } catch (_) {}
+  try {
+    const met = document.getElementById("v3DashMetrics");
+    if (met) met.style.display = (s === "notes") ? "none" : "";
+  } catch (_) {}
 
-  v3NotesSetState(includeNotes, notesOnly);
+  // In Texts scope we hide notes blocks explicitly
+  if (s === "texts") {
+    try { v3NotesHide("lib"); } catch (_) {}
+    try { v3NotesHide("dash"); } catch (_) {}
+  }
+}
+
+function v3NotesSyncUi() {
+  const st = v3NotesGetState();
+  const s = st.scope || v3SearchScopeGet();
+
+  const libSel = document.getElementById("v3SearchScopeLib");
+  const dashSel = document.getElementById("v3SearchScopeDash");
+  if (libSel) libSel.value = s;
+  if (dashSel) dashSel.value = s;
+
+  v3ApplySearchScopeUi(s);
+}
+
+function v3OnSearchScopeChange(scope, origin) {
+  const s = v3SearchScopeNormalize(scope);
+  v3SearchScopeSet(s);
   v3NotesSyncUi();
 
   // refresh blocks (best-effort)
+  try {
+    const mLib = document.getElementById("v3LibraryModal");
+    if (mLib && !mLib.classList.contains("hidden")) {
+      if (typeof v3LibraryApplyFilter === "function") v3LibraryApplyFilter();
+      v3NotesSearchSchedule("lib", { force: true });
+    }
+  } catch (_) {}
+  try {
+    const mDash = document.getElementById("v3DashboardModal");
+    if (mDash && !mDash.classList.contains("hidden")) {
+      if (typeof v3DashboardOnFilterChange === "function") v3DashboardOnFilterChange();
+      v3NotesSearchSchedule("dash", { force: true });
+    }
+  } catch (_) {}
+}
+
+window.v3OnSearchScopeChange = v3OnSearchScopeChange;
+
+// Legacy hook (old markup). Safe no-op / mapping.
+function v3NotesOnToggleChange(scope) {
+  try {
+    const isLib = (scope === "lib");
+    const incEl = document.getElementById(isLib ? "v3LibIncludeNotes" : "v3DashIncludeNotes");
+    const onlyEl = document.getElementById(isLib ? "v3LibNotesOnly" : "v3DashNotesOnly");
+    if (incEl || onlyEl) {
+      let includeNotes = !!(incEl && incEl.checked);
+      let notesOnly = !!(onlyEl && onlyEl.checked);
+      if (notesOnly) includeNotes = true;
+      if (!includeNotes) notesOnly = false;
+      const s = includeNotes ? (notesOnly ? "notes" : "both") : "texts";
+      v3OnSearchScopeChange(s, scope);
+      return;
+    }
+  } catch (_) {}
+
+  // fallback: re-apply current scope + refresh matches if panels open
+  try { v3NotesSyncUi(); } catch (_) {}
   try {
     const mLib = document.getElementById("v3LibraryModal");
     if (mLib && !mLib.classList.contains("hidden")) v3NotesSearchSchedule("lib", { force: true });
