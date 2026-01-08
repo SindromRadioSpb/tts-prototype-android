@@ -38,6 +38,7 @@ const {
   listTexts,
   getTextById,
   getSentencesByTextId,
+  searchSentences,
   getExportRowsByTextId,
   touchTextOpened,
   archiveTextById,
@@ -2940,6 +2941,93 @@ function normalizeNoteDto(r) {
   };
 }
 
+// --------------------------------------------------------
+// Wave D: shared search token parser (server-side)
+// Supports: #tag, tag:xxx, topic:xxx
+// --------------------------------------------------------
+function v3SearchStripQuotes(s) {
+  const x = String(s || "").trim();
+  if (!x) return "";
+  if ((x.startsWith('"') && x.endsWith('"')) || (x.startsWith("'") && x.endsWith("'"))) {
+    return x.slice(1, -1).trim();
+  }
+  return x;
+}
+
+function v3SearchParseQueryTokens(qRaw) {
+  const raw = String(qRaw || "").trim();
+  const toks = raw ? raw.split(/\s+/).filter(Boolean) : [];
+
+  const textTokens = [];
+  const tagTokens = [];
+  let topicNeedle = null;
+
+  for (const tok0 of toks) {
+    const tok = String(tok0 || "").trim();
+    if (!tok) continue;
+
+    // #tag
+    if (tok[0] === "#" && tok.length > 1) {
+      const t = v3SearchStripQuotes(tok.slice(1));
+      if (t) tagTokens.push(t);
+      continue;
+    }
+
+    const low = tok.toLowerCase();
+
+    // tag:xxx
+    if (low.startsWith("tag:") && tok.length > 4) {
+      const t = v3SearchStripQuotes(tok.slice(4));
+      if (t) tagTokens.push(t);
+      continue;
+    }
+
+    // topic:xxx
+    if (low.startsWith("topic:") && tok.length > 6) {
+      const t = v3SearchStripQuotes(tok.slice(6));
+      if (t) topicNeedle = t;
+      continue;
+    }
+
+    // otherwise it is a text token
+    textTokens.push(tok);
+  }
+
+  // de-dup tags, keep order
+  const seen = new Set();
+  const tags = [];
+  for (const t of tagTokens) {
+    const k = String(t || "").trim();
+    if (!k) continue;
+    const key = k.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    // strip leading # defensively
+    tags.push(k[0] === "#" ? k.slice(1) : k);
+    if (tags.length >= 25) break;
+  }
+
+  return {
+    qText: textTokens.join(" ").trim(),
+    tagTokens: tags,
+    topicNeedle: topicNeedle ? String(topicNeedle).trim() : null,
+  };
+}
+
+function v3SearchNormTagMode(x) {
+  const m = String(x || "all").trim().toLowerCase();
+  return (m === "any") ? "any" : "all";
+}
+
+function v3ClampInt(n, lo, hi, fallback) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return fallback;
+  const z = Math.trunc(v);
+  if (z < lo) return lo;
+  if (z > hi) return hi;
+  return z;
+}
+
 function v3SplitQueryParts(qRaw) {
   const s = String(qRaw || "").trim();
   if (!s) return [];
@@ -3285,6 +3373,82 @@ app.get("/api/notes/search", async (req, res) => {
     return res.json({ ok: true, query, results, more });
   } catch (e) {
     console.error("GET /api/notes/search error:", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// Wave D (Premium PRO): Rows search (E1.2) — API
+// --------------------------------------------------------
+app.get("/api/sentences/search", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const qRaw = String(req.query.q || "").trim();
+    if (qRaw.length > 128) return res.status(400).json({ error: "Q_TOO_LONG" });
+
+    const includeArchived = String(req.query.includeArchived || "0") === "1";
+    const level = (req.query.level == null) ? null : (String(req.query.level).trim() || null);
+
+    const limit = v3ClampInt(req.query.limit, 1, 200, 50);
+    const offset = v3ClampInt(req.query.offset, 0, 5000, 0);
+    const tagMode = v3SearchNormTagMode(req.query.tagMode || "all");
+
+    // Parse tokens inside q: #tag / topic:
+    const parsed = v3SearchParseQueryTokens(qRaw);
+    const qText = (parsed && parsed.qText) ? String(parsed.qText) : "";
+    const tagTokens = (parsed && Array.isArray(parsed.tagTokens)) ? parsed.tagTokens : [];
+    const topicNeedle = (parsed && parsed.topicNeedle) ? String(parsed.topicNeedle) : null;
+
+    // Guard: do not scan all rows
+    if (!qText || qText.trim().length < 2) {
+      return res.json({
+        ok: true,
+        query: { q: qRaw, includeArchived, level, tagMode, limit, offset },
+        results: [],
+        more: false,
+      });
+    }
+
+    const rows = await searchSentences({
+      q: qText,
+      includeArchived,
+      level,
+      tagTokens,
+      tagMode,
+      topicNeedle,
+      limit,
+      offset,
+    });
+
+    // Normalize DTO for API (do not leak tags_json etc unless needed)
+    const results = (rows || []).map((r) => ({
+      textId: String(r.textId || ""),
+      sentenceId: String(r.sentenceId || ""),
+      orderIndex: Number.isFinite(Number(r.orderIndex)) ? Number(r.orderIndex) : null,
+
+      he: String(r.he_plain || ""),
+      he_niqqud: String(r.he_niqqud || ""),
+      translit: String(r.translit || ""),
+      ru: String(r.ru || ""),
+
+      title: String(r.title || ""),
+      level: (r.level == null) ? null : String(r.level),
+      topic: (r.topic == null) ? null : String(r.topic),
+      source: (r.source == null) ? null : String(r.source),
+      tags: Array.isArray(r.tags) ? r.tags : [],
+    }));
+
+    const more = results.length === limit;
+
+    return res.json({
+      ok: true,
+      query: { q: qRaw, includeArchived, level, tagMode, limit, offset },
+      results,
+      more,
+    });
+  } catch (e) {
+    console.error("GET /api/sentences/search error:", e);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
