@@ -1755,6 +1755,17 @@ th, td { border-color: rgba(0,0,0,0.55); }
   font-size: 12px;
 }
 
+/* --------------------------------------------------------
+   Wave D (Premium PRO): Jump-to-sentence flash (D4)
+-------------------------------------------------------- */
+#proTable tbody tr.v3-jump-flash td {
+  box-shadow: inset 0 0 0 9999px rgba(255, 230, 120, 0.14);
+  transition: box-shadow 180ms ease-in-out;
+}
+#proTable tbody tr.v3-jump-flash td:first-child {
+  box-shadow: inset 4px 0 0 var(--row-rail-selected), inset 0 0 0 9999px rgba(255, 230, 120, 0.14);
+}
+
 .v3-lib-list {
   display: grid;
   grid-template-columns: repeat(1, minmax(0, 1fr));
@@ -5877,14 +5888,125 @@ async function v3NotesSearchNow(scope, opts) {
   }
 }
 
-// Stub for D4 (Jump-to-sentence)
-function v3NotesJumpStub(textId, sentenceId, orderIndex) {
+// --------------------------------------------------------
+// Wave D (Premium PRO): Jump-to-sentence (D4)
+// --------------------------------------------------------
+let v3JumpFlashTimer = null;
+let v3JumpFlashRowIdx = null;
+
+function v3NotesFindRowIdxBySentenceId(sentenceId) {
+  const sid = String(sentenceId || "").trim();
+  if (!sid) return null;
+
   try {
-    showToast("Jump-to-sentence будет в Patch D4 (пока заглушка).", "success");
+    if (!Array.isArray(currentTableData) || currentTableData.length < 1) return null;
+    const idx = currentTableData.findIndex(r => r && String(r._v3_sentenceId || "") === sid);
+    return (idx >= 0) ? idx : null;
   } catch (_) {
-    alert("Jump-to-sentence будет в Patch D4 (пока заглушка).");
+    return null;
   }
 }
+
+function v3NotesFlashRow(rowIdx) {
+  try {
+    const n = Number(rowIdx);
+    if (!Number.isFinite(n)) return;
+
+    // clear previous flash
+    if (v3JumpFlashTimer) {
+      clearTimeout(v3JumpFlashTimer);
+      v3JumpFlashTimer = null;
+    }
+    if (typeof v3JumpFlashRowIdx === "number" && Number.isFinite(v3JumpFlashRowIdx)) {
+      const prev = document.querySelector('#proTable tbody tr[data-row-idx="' + String(v3JumpFlashRowIdx) + '"]');
+      if (prev) prev.classList.remove("v3-jump-flash");
+    }
+
+    const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(n) + '"]');
+    if (!tr) return;
+
+    tr.classList.add("v3-jump-flash");
+    v3JumpFlashRowIdx = n;
+
+    // remove after 2.6s (2–3s requirement)
+    v3JumpFlashTimer = setTimeout(() => {
+      try {
+        const cur = document.querySelector('#proTable tbody tr[data-row-idx="' + String(n) + '"]');
+        if (cur) cur.classList.remove("v3-jump-flash");
+      } catch (_) {}
+      v3JumpFlashTimer = null;
+      v3JumpFlashRowIdx = null;
+    }, 2600);
+  } catch (_) {}
+}
+
+async function v3NotesJumpStub(textId, sentenceId, orderIndex) {
+  const tid = String(textId || "").trim();
+  const sid = String(sentenceId || "").trim();
+
+  if (!tid || !sid) {
+    try { showToast("Невозможно перейти: пустой textId/sentenceId.", "error"); } catch (_) {}
+    return;
+  }
+
+  // If this text is already open, jump without reloading
+  try {
+    if (typeof v3ActiveTextId !== "undefined" && v3ActiveTextId && String(v3ActiveTextId) === tid) {
+      const idx = v3NotesFindRowIdxBySentenceId(sid);
+      if (idx !== null) {
+        setRowSelectedUI(idx);
+        try {
+          const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(idx) + '"]');
+          if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
+        } catch (_) {}
+        v3NotesFlashRow(idx);
+
+        // close modals if user clicked from them
+        try { v3LibraryClose(); } catch (_) {}
+        try { v3DashboardClose(); } catch (_) {}
+        return;
+      }
+    }
+  } catch (_) {}
+
+  // Close Dashboard modal if open (Library modal will be closed by v3LibraryOpenText)
+  try {
+    const mDash = document.getElementById("v3DashboardModal");
+    if (mDash && !mDash.classList.contains("hidden")) {
+      v3DashboardClose();
+    }
+  } catch (_) {}
+
+  // Open text and resume by sentenceId (built-in logic)
+  try {
+    const preToken = (typeof v3TableRenderToken === "number") ? v3TableRenderToken : null;
+
+    await v3LibraryOpenText(tid, {
+      resumeSentenceId: sid,
+      origin: "notes",
+      openMode: "jump"
+    });
+
+    const token = (typeof v3TableRenderToken === "number") ? v3TableRenderToken : preToken;
+
+    // After DOM is stable, flash the target row (best effort)
+    if (typeof v3AfterRenderStable === "function" && typeof token === "number" && Number.isFinite(token)) {
+      v3AfterRenderStable(token, () => {
+        const idx2 = v3NotesFindRowIdxBySentenceId(sid);
+        if (idx2 !== null) v3NotesFlashRow(idx2);
+      });
+    } else {
+      setTimeout(() => {
+        const idx2 = v3NotesFindRowIdxBySentenceId(sid);
+        if (idx2 !== null) v3NotesFlashRow(idx2);
+      }, 450);
+    }
+  } catch (e) {
+    console.warn("v3NotesJumpStub failed", e);
+    try { showToast("Не удалось перейти к строке (см. консоль).", "error"); } catch (_) {}
+  }
+}
+
 window.v3NotesJumpStub = v3NotesJumpStub;
 
 function v3LibraryOnSearchInput() {
