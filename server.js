@@ -85,6 +85,7 @@ const {
   getNote,
   upsertNote,
   deleteNote,
+  searchNotes,
 } = require("./db/notesRepo");
 
 // --------------------------------------------------------
@@ -2939,6 +2940,85 @@ function normalizeNoteDto(r) {
   };
 }
 
+function v3SplitQueryParts(qRaw) {
+  const s = String(qRaw || "").trim();
+  if (!s) return [];
+  // Split by whitespace but keep quoted segments together: "..." or bare token
+  const parts = s.match(/"[^"]*"|\S+/g) || [];
+  const out = [];
+  for (const p of parts) {
+    let t = String(p || "").trim();
+    if (!t) continue;
+    if (t.length >= 2 && t[0] === '"' && t[t.length - 1] === '"') {
+      t = t.slice(1, -1).trim();
+    }
+    if (!t) continue;
+    out.push(t);
+    if (out.length >= 64) break; // defensive
+  }
+  return out;
+}
+
+function v3ParseNotesSearchQuery(qRaw) {
+  const parts = v3SplitQueryParts(qRaw);
+  const tagTokens = [];
+  let topicNeedle = null;
+  let notesOnly = false;
+  const textParts = [];
+
+  for (let i = 0; i < parts.length; i++) {
+    const tok0 = parts[i];
+    const tok = String(tok0 || "").trim();
+    if (!tok) continue;
+
+    const lc = tok.toLowerCase();
+
+    // Notes-only markers (support UI token experiments)
+    if (lc === "in:notes" || lc === "in:note" || lc === "notes-only" || lc === "notesonly" || lc === "notes") {
+      notesOnly = true;
+      continue;
+    }
+    if (lc === "note:" || lc === "notes:" || lc.startsWith("note:") || lc.startsWith("notes:")) {
+      notesOnly = true;
+      continue;
+    }
+
+    // tags
+    if (tok[0] === "#" && tok.length > 1) {
+      tagTokens.push(tok.slice(1));
+      continue;
+    }
+    if (lc.startsWith("tag:") || lc.startsWith("tags:")) {
+      let v = tok.slice(tok.indexOf(":") + 1).trim();
+      if (!v && i + 1 < parts.length) v = parts[++i];
+      if (v) tagTokens.push(v);
+      continue;
+    }
+
+    // topic
+    if (lc.startsWith("topic:")) {
+      let v = tok.slice(tok.indexOf(":") + 1).trim();
+      if (!v && i + 1 < parts.length) v = parts[++i];
+      if (v) topicNeedle = String(v || "").trim() || null;
+      continue;
+    }
+
+    // ignore "in:texts" token if user toggles back in UI experiments
+    if (lc === "in:texts" || lc === "texts") {
+      continue;
+    }
+
+    textParts.push(tok);
+  }
+
+  return {
+    qText: String(textParts.join(" ") || "").trim(),
+    tagTokens: v3NormalizeTags(tagTokens),
+    topicNeedle,
+    notesOnly,
+  };
+}
+
 // GET all notes for text
 app.get("/api/library/texts/:id/notes", async (req, res) => {
   try {
@@ -3041,6 +3121,166 @@ app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
 });
   } catch (e) {
     console.warn("DELETE note failed", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// Wave D (D2): Notes search API
+// GET /api/notes/search
+// --------------------------------------------------------
+app.get("/api/notes/search", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const qRaw = String((req.query.q ?? req.query.search ?? "") || "").trim();
+    const includeArchived = String(req.query.includeArchived || "0") === "1";
+
+    // notesOnly: explicit flag OR token inside q
+    const notesOnlyParam = String(req.query.notesOnly || "0") === "1";
+    const parsed = v3ParseNotesSearchQuery(qRaw);
+    const notesOnly = notesOnlyParam || !!parsed.notesOnly;
+
+    // hard limits (security/UX)
+    if (qRaw.length > 128) {
+      return res.status(400).json({ error: "QUERY_TOO_LONG", maxLen: 128 });
+    }
+
+    // limit/offset
+    const lim0 = Number(req.query.limit == null ? 50 : req.query.limit);
+    const off0 = Number(req.query.offset == null ? 0 : req.query.offset);
+
+    const limit = Number.isFinite(lim0) ? Math.max(0, Math.min(200, Math.trunc(lim0))) : 50;
+    const offset = Number.isFinite(off0) ? Math.max(0, Math.trunc(off0)) : 0;
+
+    if (offset > 5000) {
+      return res.status(400).json({ error: "OFFSET_TOO_LARGE", maxOffset: 5000 });
+    }
+
+    // level (optional)
+    const levelRaw = (req.query.level == null) ? null : (String(req.query.level).trim() || null);
+    const level = levelRaw ? v3NormalizeLevel(levelRaw) : null;
+    if (levelRaw && !level) {
+      return res.status(400).json({ error: "BAD_LEVEL" });
+    }
+
+    // tags: from query string (?tags=tag1,tag2 OR JSON array) + from q tokens (#tag / tag:)
+    let tagsIn = [];
+    if (Object.prototype.hasOwnProperty.call(req.query, "tags") && req.query.tags != null) {
+      const raw = req.query.tags;
+      if (Array.isArray(raw)) {
+        tagsIn = raw;
+      } else {
+        const s = String(raw || "").trim();
+        if (s) {
+          // try JSON first, else treat as CSV/space
+          let parsedTags = null;
+          if (s[0] === "[") {
+            try {
+              const x = JSON.parse(s);
+              if (Array.isArray(x)) parsedTags = x;
+            } catch (_) {}
+          }
+          tagsIn = parsedTags || s.split(/[\s,]+/g);
+        }
+      }
+    }
+
+    const tagItems = [];
+    for (const t of (Array.isArray(tagsIn) ? tagsIn : [])) tagItems.push(t);
+    for (const t of (Array.isArray(parsed.tagTokens) ? parsed.tagTokens : [])) tagItems.push(t);
+    const tagTokens = v3NormalizeTags(tagItems);
+
+    // tagMode
+    const tagModeRaw = String(req.query.tagMode || "all").toLowerCase();
+    const tagMode = (tagModeRaw === "any") ? "any" : "all";
+
+    // topic: explicit param or token topic:
+    const topicNeedle =
+      (req.query.topic != null && String(req.query.topic).trim())
+        ? String(req.query.topic).trim()
+        : (parsed.topicNeedle ? String(parsed.topicNeedle).trim() : null);
+
+    // Free-text needle for note search: remove filters/tokens
+    const qText = String(parsed.qText || "").trim();
+
+    // Guards: never scan all notes
+    if (!qText) {
+      const query = {
+        q: qRaw,
+        includeNotes: true,
+        notesOnly,
+        includeArchived,
+        level,
+        tagMode,
+        limit,
+        offset,
+      };
+      return res.json({ ok: true, query, results: [], more: false });
+    }
+
+    // Stronger guard only in notesOnly mode (per Wave D spec)
+    if (notesOnly && qText.length < 2) {
+      const query = {
+        q: qRaw,
+        includeNotes: true,
+        notesOnly,
+        includeArchived,
+        level,
+        tagMode,
+        limit,
+        offset,
+      };
+      return res.json({ ok: true, query, results: [], more: false });
+    }
+
+    // Fetch (limit+1 for "more")
+    const rows = await searchNotes({
+      q: qText,
+      includeArchived,
+      level,
+      tagTokens,
+      tagMode,
+      topicNeedle,
+      limit: Math.min(200, limit + 1),
+      offset,
+    });
+
+    const more = Array.isArray(rows) && rows.length > limit;
+    const slice = more ? rows.slice(0, limit) : (rows || []);
+
+    const results = slice.map((r) => ({
+      textId: String(r.textId || ""),
+      sentenceId: String(r.sentenceId || ""),
+      orderIndex: (r.orderIndex == null ? null : Number(r.orderIndex)),
+
+      note: String(r.note ?? ""),
+      noteUpdatedAt: normalizeIsoZ(r.noteUpdatedAt ?? r.note_updated_at ?? null),
+
+      sentenceText: String(r.sentenceText ?? ""),
+
+      title: String(r.title ?? ""),
+      level: (r.level == null ? null : String(r.level)),
+      topic: (r.topic == null ? null : String(r.topic)),
+      source: (r.source == null ? null : String(r.source)),
+
+      tags: Array.isArray(r.tags) ? r.tags : [],
+    }));
+
+    const query = {
+      q: qRaw,
+      includeNotes: true,
+      notesOnly,
+      includeArchived,
+      level,
+      tagMode,
+      limit,
+      offset,
+    };
+
+    return res.json({ ok: true, query, results, more });
+  } catch (e) {
+    console.error("GET /api/notes/search error:", e);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
