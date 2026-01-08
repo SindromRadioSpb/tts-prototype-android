@@ -346,23 +346,56 @@ async function searchNotes({
   }
 
   if (tags.length) {
-    if (mode === "any") {
-      const ors = [];
-      for (const tg of tags) {
-        // tags_json stores JSON array; quick filter via '"tag"' substring
-        const jsonNeedle = `"${String(tg).replace(/"/g, '\\"')}"`;
-        ors.push(`t.tags_json LIKE ? ESCAPE '\\'`);
+  const mkNeedles = (tg) => {
+    const s = String(tg || "").trim();
+    if (!s) return [];
+
+    const base = (s[0] === "#") ? s.slice(1) : s;
+
+    // variants: exact as provided, base without '#', and with '#'
+    const variants = [];
+    const add = (x) => {
+      const v = String(x || "").trim();
+      if (!v) return;
+      if (!variants.includes(v)) variants.push(v);
+    };
+
+    add(s);
+    add(base);
+    add("#" + base);
+
+    // JSON-array needle form: '"tag"'
+    return variants.map((v) => `"${v.replace(/"/g, '\\"')}"`);
+  };
+
+  if (mode === "any") {
+    const ors = [];
+    for (const tg of tags) {
+      const needles = mkNeedles(tg);
+      if (!needles.length) continue;
+
+      const sub = [];
+      for (const jsonNeedle of needles) {
+        sub.push(`t.tags_json LIKE ? ESCAPE '\\'`);
         params.push(`%${escapeLikeNeedle(jsonNeedle)}%`);
       }
-      where.push(`(${ors.join(" OR ")})`);
-    } else {
-      for (const tg of tags) {
-        const jsonNeedle = `"${String(tg).replace(/"/g, '\\"')}"`;
-        where.push(`t.tags_json LIKE ? ESCAPE '\\'`);
+      ors.push(`(${sub.join(" OR ")})`);
+    }
+    if (ors.length) where.push(`(${ors.join(" OR ")})`);
+  } else {
+    for (const tg of tags) {
+      const needles = mkNeedles(tg);
+      if (!needles.length) continue;
+
+      const sub = [];
+      for (const jsonNeedle of needles) {
+        sub.push(`t.tags_json LIKE ? ESCAPE '\\'`);
         params.push(`%${escapeLikeNeedle(jsonNeedle)}%`);
       }
+      where.push(`(${sub.join(" OR ")})`);
     }
   }
+}
 
   const sql = `
     SELECT

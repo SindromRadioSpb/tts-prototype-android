@@ -2985,13 +2985,17 @@ function v3ParseNotesSearchQuery(qRaw) {
 
     // tags
     if (tok[0] === "#" && tok.length > 1) {
-      tagTokens.push(tok.slice(1));
-      continue;
-    }
+  tagTokens.push(tok); // сохраняем # как в UI
+  continue;
+}
     if (lc.startsWith("tag:") || lc.startsWith("tags:")) {
       let v = tok.slice(tok.indexOf(":") + 1).trim();
       if (!v && i + 1 < parts.length) v = parts[++i];
-      if (v) tagTokens.push(v);
+      if (v) {
+  v = String(v || "").trim();
+  if (v && v[0] !== "#") v = "#" + v;  // приводим к UI формату
+  if (v) tagTokens.push(v);
+}
       continue;
     }
 
