@@ -3428,6 +3428,209 @@ function v3SessionGetUpdateTextId() {
   }
 }
 
+// --------------------------------------------------------
+// Wave D (Premium PRO): unified search nav session (A3.1)
+// --------------------------------------------------------
+const V3_SEARCH_SESSION_KEY = "v3_search_session_v1";
+let v3SearchSession = null;
+
+function v3SearchSessionDefaults() {
+  return {
+    origin: null,                // 'lib' | 'dash'
+    scope: null,                 // 'texts' | 'both' | 'notes' | 'rows'
+    qRaw: "",
+    filtersKey: "",
+    notesResults: [],
+    rowsResults: [],
+    activeType: null,            // 'notes' | 'rows'
+    activeIndex: 0,
+    scrollRestore: {},           // key -> {scrollTop, savedAt}
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function v3SearchSessionLoad() {
+  if (v3SearchSession) return v3SearchSession;
+
+  let obj = null;
+  try {
+    const raw = sessionStorage.getItem(V3_SEARCH_SESSION_KEY);
+    if (raw) obj = JSON.parse(raw);
+  } catch (_) {}
+
+  if (!obj || typeof obj !== "object") obj = v3SearchSessionDefaults();
+
+  // sanitize
+  if (obj.origin !== "lib" && obj.origin !== "dash") obj.origin = null;
+  if (obj.scope !== "texts" && obj.scope !== "both" && obj.scope !== "notes" && obj.scope !== "rows") obj.scope = null;
+  if (typeof obj.qRaw !== "string") obj.qRaw = "";
+  if (typeof obj.filtersKey !== "string") obj.filtersKey = "";
+  if (!Array.isArray(obj.notesResults)) obj.notesResults = [];
+  if (!Array.isArray(obj.rowsResults)) obj.rowsResults = [];
+  if (obj.activeType !== "notes" && obj.activeType !== "rows") obj.activeType = null;
+  const ai = Number(obj.activeIndex);
+  obj.activeIndex = (Number.isFinite(ai) && ai >= 0) ? ai : 0;
+  if (!obj.scrollRestore || typeof obj.scrollRestore !== "object") obj.scrollRestore = {};
+
+  obj.updatedAt = new Date().toISOString();
+  v3SearchSession = obj;
+  return v3SearchSession;
+}
+
+function v3SearchSessionPersist() {
+  try {
+    if (!v3SearchSession) return;
+    sessionStorage.setItem(V3_SEARCH_SESSION_KEY, JSON.stringify(v3SearchSession));
+  } catch (_) {}
+}
+
+function v3SearchSessionGet() {
+  return v3SearchSessionLoad();
+}
+
+function v3SearchSessionSet(patch, opts) {
+  const prev = v3SearchSessionGet();
+  const next = Object.assign({}, prev, patch || {});
+
+  // deep-merge scrollRestore
+  if (patch && patch.scrollRestore && typeof patch.scrollRestore === "object") {
+    next.scrollRestore = Object.assign({}, prev.scrollRestore || {}, patch.scrollRestore || {});
+  }
+
+  next.updatedAt = new Date().toISOString();
+  v3SearchSession = next;
+
+  const persist = !(opts && opts.persist === false);
+  if (persist) v3SearchSessionPersist();
+  return v3SearchSession;
+}
+
+function v3SearchSessionReset() {
+  v3SearchSession = v3SearchSessionDefaults();
+  v3SearchSessionPersist();
+  return v3SearchSession;
+}
+
+function v3SearchSessionNormalizeOrigin(originScope) {
+  return (originScope === "dash") ? "dash" : "lib";
+}
+
+function v3SearchSessionBuildFiltersKey(originScope, extra) {
+  const origin = v3SearchSessionNormalizeOrigin(originScope);
+  let level = "";
+  let includeArchived = false;
+  let tagMode = "all";
+
+  try {
+    const levelElId = (origin === "lib") ? "v3LibraryLevel" : "v3DashLevel";
+    level = String((document.getElementById(levelElId) && document.getElementById(levelElId).value) || "").trim();
+  } catch (_) {}
+
+  try {
+    if (origin === "dash") {
+      includeArchived = !!(document.getElementById("v3DashIncludeArchived") && document.getElementById("v3DashIncludeArchived").checked);
+    }
+  } catch (_) {}
+
+  try {
+    tagMode = (typeof v3GetTagMatchMode === "function") ? (v3GetTagMatchMode() || "all") : "all";
+  } catch (_) {
+    tagMode = "all";
+  }
+
+  const notesOnly = (extra && extra.notesOnly) ? "1" : "0";
+  const rowsOnly = (extra && extra.rowsOnly) ? "1" : "0";
+
+  return [
+    "level=" + encodeURIComponent(level || ""),
+    "arch=" + (includeArchived ? "1" : "0"),
+    "tagMode=" + encodeURIComponent(tagMode || "all"),
+    "notesOnly=" + notesOnly,
+    "rowsOnly=" + rowsOnly
+  ].join("&");
+}
+
+function v3SearchSessionReadQueryFromUi(originScope) {
+  const origin = v3SearchSessionNormalizeOrigin(originScope);
+  const id = (origin === "lib") ? "v3LibrarySearch" : "v3DashSearch";
+  try {
+    return String((document.getElementById(id) && document.getElementById(id).value) || "").trim();
+  } catch (_) {
+    return "";
+  }
+}
+
+function v3SearchSessionReadScopeFromUi() {
+  try {
+    if (typeof v3SearchScopeGet === "function") {
+      const s = v3SearchScopeGet();
+      if (s === "texts" || s === "both" || s === "notes" || s === "rows") return s;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function v3SearchSessionUpdateResults(type, originScope, qRaw, results, extra) {
+  const t = (type === "rows") ? "rows" : "notes";
+  const origin = v3SearchSessionNormalizeOrigin(originScope);
+  const q = (typeof qRaw === "string") ? qRaw : v3SearchSessionReadQueryFromUi(origin);
+  const scope = v3SearchSessionReadScopeFromUi();
+  const filtersKey = v3SearchSessionBuildFiltersKey(origin, extra || {});
+
+  let rs = Array.isArray(results) ? results : [];
+  if (rs.length > 200) rs = rs.slice(0, 200); // hard safety
+
+  const patch = { origin, scope, qRaw: q, filtersKey };
+  if (t === "notes") patch.notesResults = rs;
+  else patch.rowsResults = rs;
+
+  v3SearchSessionSet(patch);
+}
+
+function v3SearchSessionSetActive(type, index) {
+  const t = (type === "rows") ? "rows" : "notes";
+  const n = Number(index);
+  v3SearchSessionSet({
+    activeType: t,
+    activeIndex: (Number.isFinite(n) && n >= 0) ? n : 0
+  });
+}
+
+function v3SearchSessionCaptureScroll(type, originScope) {
+  const t = (type === "rows") ? "rows" : "notes";
+  const origin = v3SearchSessionNormalizeOrigin(originScope);
+
+  let boxId = "";
+  if (t === "notes") boxId = (origin === "lib") ? "v3LibraryNotesMatches" : "v3DashNotesMatches";
+  else boxId = (origin === "lib") ? "v3LibraryRowsMatches" : "v3DashRowsMatches";
+
+  let scrollTop = 0;
+  try {
+    const box = document.getElementById(boxId);
+    if (box && typeof box.scrollTop === "number") scrollTop = box.scrollTop;
+  } catch (_) {}
+
+  const key = origin + ":" + t;
+  const sr = {};
+  sr[key] = { scrollTop: scrollTop, savedAt: new Date().toISOString() };
+  v3SearchSessionSet({ scrollRestore: sr });
+}
+
+async function v3NavOnHitJump(type, index, textId, sentenceId, orderIndex, originScope) {
+  try {
+    // remember where the hit came from (Library/Dashboard)
+    v3SearchSessionSet({ origin: v3SearchSessionNormalizeOrigin(originScope) });
+    v3SearchSessionSetActive(type, index);
+    v3SearchSessionCaptureScroll(type, originScope);
+  } catch (_) {}
+  return v3NotesJumpStub(textId, sentenceId, orderIndex);
+}
+
+// expose for debugging
+try { window.v3NavOnHitJump = v3NavOnHitJump; } catch (_) {}
+try { window.v3SearchSessionGet = v3SearchSessionGet; } catch (_) {}
+try { window.v3SearchSessionReset = v3SearchSessionReset; } catch (_) {}
+
 const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
 	// PRO: user-resizable table height
@@ -5876,7 +6079,9 @@ function v3NotesRender(scope, qRaw, results, notesOnly) {
     return;
   }
 
-  for (const r of results) {
+	let hitIdx = -1;
+	for (const r of results) {
+	hitIdx++;
     const textId = String(r.textId || "");
     const sentenceId = String(r.sentenceId || "");
     const orderIndex = Number(r.orderIndex);
@@ -5911,7 +6116,7 @@ function v3NotesRender(scope, qRaw, results, notesOnly) {
         <div class="v3-note-hit-snippet"><b>Заметка:</b> ${v3NotesMark(noteSnippetRaw, needles)}</div>
 
         <div class="v3-note-hit-actions">
-          <button class="btn-secondary btn-mini" onclick="v3NotesJumpStub('${v3EscapeHtml(textId)}','${v3EscapeHtml(sentenceId)}',${Number.isFinite(orderIndex)?orderIndex:"null"})">Перейти к строке</button>
+<button class="btn-secondary btn-mini" onclick="v3NavOnHitJump('notes',${hitIdx},'${v3EscapeHtml(textId)}','${v3EscapeHtml(sentenceId)}',${Number.isFinite(orderIndex)?orderIndex:"null"},'${scope}')">Перейти к строке</button>
         </div>
       </div>
     `;
@@ -5952,12 +6157,14 @@ async function v3NotesSearchNow(scope, opts) {
     } else {
       v3NotesHide(scope);
     }
+	try { v3SearchSessionUpdateResults("notes", scope, qRaw, [], { notesOnly: notesOnly }); } catch (_) {}
     return;
   }
 
   if (notesOnly && qRaw.length < 2) {
     // как в API: защита от сканирования
     v3NotesRender(scope, qRaw, [], true);
+	try { v3SearchSessionUpdateResults("notes", scope, qRaw, [], { notesOnly: notesOnly }); } catch (_) {}
     return;
   }
 
@@ -6012,9 +6219,14 @@ async function v3NotesSearchNow(scope, opts) {
   try {
     const res = await v3GetJson(`/api/notes/search?${p.toString()}`);
     const results = (res && res.ok && Array.isArray(res.results)) ? res.results : [];
+	try { v3SearchSessionUpdateResults("notes", scope, qRaw, results, { notesOnly: notesOnly }); } catch (_) {}
     v3NotesRender(scope, qRaw, results, notesOnly);
   } catch (e) {
     console.warn("[v3NotesSearchNow] failed:", e);
+	
+	// A3.1 / 4.4: сбросить results в session state при ошибке (до показа ошибки в UI)
+  try { v3SearchSessionUpdateResults("notes", scope, qRaw, [], { notesOnly: notesOnly }); } catch (_) {}
+	
     if (box) {
       box.style.display = "block";
       box.innerHTML = `<div class="v3-notes-matches-title">Совпадения в заметках</div><div class="v3-note-empty">Ошибка поиска (см. console).</div>`;
@@ -6128,7 +6340,9 @@ function v3RowsRender(scope, qRaw, results, rowsOnly) {
     return;
   }
 
-  for (const r of rs) {
+	let hitIdx = -1;
+	for (const r of rs) {
+	hitIdx++;
     const textId = String(r.textId || "");
     const sentenceId = String(r.sentenceId || "");
     const orderIndex = Number(r.orderIndex);
@@ -6171,7 +6385,7 @@ function v3RowsRender(scope, qRaw, results, rowsOnly) {
         ${ruSnippet ? (`<div class="v3-note-hit-snippet"><b>Перевод:</b> ${v3NotesMark(ruSnippet, needles)}</div>`) : ""}
 
         <div class="v3-note-hit-actions">
-          <button class="btn-secondary btn-mini" onclick="v3NotesJumpStub('${tidJs}','${sidJs}',${idxJs})">Перейти к строке</button>
+		<button class="btn-secondary btn-mini" onclick="v3NavOnHitJump('rows',${hitIdx},'${tidJs}','${sidJs}',${idxJs},'${scope}')">Перейти к строке</button>
         </div>
       </div>
     `;
@@ -6213,11 +6427,13 @@ async function v3RowsSearchNow(scope, opts) {
   if (!qRaw) {
     if (st.rowsOnly) v3RowsRender(scope, qRaw, [], true);
     else v3RowsHide(scope);
+	try { v3SearchSessionUpdateResults("rows", scope, qRaw, [], { rowsOnly: !!st.rowsOnly }); } catch (_) {}
     return;
   }
 
   if (st.rowsOnly && qRaw.length < 2) {
     v3RowsRender(scope, qRaw, [], true);
+	try { v3SearchSessionUpdateResults("rows", scope, qRaw, [], { rowsOnly: !!st.rowsOnly }); } catch (_) {}
     return;
   }
 
@@ -6263,9 +6479,11 @@ async function v3RowsSearchNow(scope, opts) {
     const url = "/api/sentences/search?" + p.toString();
     const res = await v3GetJson(url);
     const results = (res && Array.isArray(res.results)) ? res.results : [];
+	try { v3SearchSessionUpdateResults("rows", scope, qRaw, results, { rowsOnly: !!st.rowsOnly }); } catch (_) {}
     v3RowsRender(scope, qRaw, results, !!st.rowsOnly);
   } catch (e) {
     console.warn("[v3RowsSearchNow] failed:", e);
+	try { v3SearchSessionUpdateResults("rows", scope, qRaw, [], { rowsOnly: !!st.rowsOnly }); } catch (_) {}
     if (box) {
       box.style.display = "block";
       box.innerHTML = `<div class="v3-notes-matches-title">Совпадения в строках</div><div class="v3-note-empty">Ошибка поиска (см. console).</div>`;
