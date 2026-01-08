@@ -16,6 +16,98 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function normalizeIsoZ(x) {
+  if (!x) return null;
+  const s = String(x);
+  // already ISO-ish
+  if (s.includes("T")) return s;
+  // sqlite CURRENT_TIMESTAMP: "YYYY-MM-DD HH:MM:SS" -> "YYYY-MM-DDTHH:MM:SSZ"
+  if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(s)) {
+    return s.replace(" ", "T") + "Z";
+  }
+  return s;
+}
+
+function escapeLikeNeedle(s) {
+  // Escape LIKE wildcards; use with "... LIKE ? ESCAPE '\\'"
+  return String(s || "").replace(/[\\%_]/g, "\\$&");
+}
+
+function splitNeedleTokens(q) {
+  if (Array.isArray(q)) {
+    return q
+      .map((x) => String(x || "").trim())
+      .filter(Boolean)
+      .slice(0, 16);
+  }
+  const s = String(q || "").trim();
+  if (!s) return [];
+  return s
+    .split(/\s+/g)
+    .map((x) => String(x || "").trim())
+    .filter(Boolean)
+    .slice(0, 16);
+}
+
+// Back-compat with W9 tags canonicalization:
+// - DB stores tags_json as JSON array string
+// - DTO exposes tags: string[]
+function parseTagsJson(input) {
+  if (input == null) return [];
+
+  let arr = null;
+
+  if (Array.isArray(input)) {
+    arr = input;
+  } else {
+    const s0 = String(input || "").trim();
+    if (!s0) return [];
+
+    // Prefer JSON array if it looks like one
+    if (s0[0] === "[") {
+      try {
+        const x = JSON.parse(s0);
+        if (Array.isArray(x)) arr = x;
+      } catch (_) {}
+    }
+
+    // Sometimes could be a JSON string or other legacy
+    if (!arr) {
+      try {
+        const x = JSON.parse(s0);
+        if (Array.isArray(x)) arr = x;
+        else if (typeof x === "string") arr = [x];
+      } catch (_) {}
+    }
+
+    // Fallback: treat as CSV if it contains comma, else as a single tag
+    if (!arr) {
+      arr = s0.includes(",") ? s0.split(",") : [s0];
+    }
+  }
+
+  // Normalize: trim, truncate<=48, dedupe by lower-case key, limit<=50
+  const out = [];
+  const seen = new Set();
+
+  for (const it of arr) {
+    let t = String(it || "").trim();
+    if (!t) continue;
+
+    if (t.length > 48) t = t.slice(0, 48).trim();
+    if (!t) continue;
+
+    const k = t.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+
+    out.push(t);
+    if (out.length >= 50) break;
+  }
+
+  return out;
+}
+
 function dbGet(db, sql, params = []) {
   return new Promise((resolve, reject) => {
     db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
@@ -193,10 +285,146 @@ async function listNotesByTextId(textId) {
   return Array.isArray(rows) ? rows : [];
 }
 
+// --------------------------------------------------------
+// Wave D (D1): Search in sentence_notes (LIKE v1)
+// - token parsing is handled at API/UI level; repo expects already-extracted filters.
+// - returns DTO-ish rows (camelCase + tags[]), ready for /api/notes/search
+// --------------------------------------------------------
+async function searchNotes({
+  q,
+  includeArchived = false,
+  level = null,
+  tagTokens = [],
+  tagMode = "all",
+  topicNeedle = null,
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const db = await assertDbReady();
+
+  const qTokens = splitNeedleTokens(q);
+  if (!qTokens.length) return [];
+
+  const lim0 = Number(limit);
+  const off0 = Number(offset);
+  const lim = Number.isFinite(lim0) ? Math.max(0, Math.min(200, Math.trunc(lim0))) : 50;
+  const off = Number.isFinite(off0) ? Math.max(0, Math.trunc(off0)) : 0;
+
+  const lvl = (level == null || String(level).trim() === "") ? null : String(level).trim();
+  const topic = (topicNeedle == null || String(topicNeedle).trim() === "") ? null : String(topicNeedle).trim();
+
+  const tagsRaw = Array.isArray(tagTokens) ? tagTokens : [];
+  const tags = tagsRaw
+    .map((x) => String(x || "").trim())
+    .filter(Boolean)
+    .slice(0, 50);
+
+  const mode = (String(tagMode || "all").toLowerCase() === "any") ? "any" : "all";
+
+  const where = [];
+  const params = [];
+
+  // Note match: AND all free-text tokens
+  for (const tok of qTokens) {
+    const needle = escapeLikeNeedle(tok);
+    where.push(`n.note LIKE ? ESCAPE '\\'`);
+    params.push(`%${needle}%`);
+  }
+
+  if (!includeArchived) {
+    where.push(`t.is_archived = 0`);
+  }
+
+  if (lvl) {
+    where.push(`t.level = ?`);
+    params.push(lvl);
+  }
+
+  if (topic) {
+    where.push(`LOWER(COALESCE(t.topic, '')) LIKE ? ESCAPE '\\'`);
+    params.push(`%${escapeLikeNeedle(topic.toLowerCase())}%`);
+  }
+
+  if (tags.length) {
+    if (mode === "any") {
+      const ors = [];
+      for (const tg of tags) {
+        // tags_json stores JSON array; quick filter via '"tag"' substring
+        const jsonNeedle = `"${String(tg).replace(/"/g, '\\"')}"`;
+        ors.push(`t.tags_json LIKE ? ESCAPE '\\'`);
+        params.push(`%${escapeLikeNeedle(jsonNeedle)}%`);
+      }
+      where.push(`(${ors.join(" OR ")})`);
+    } else {
+      for (const tg of tags) {
+        const jsonNeedle = `"${String(tg).replace(/"/g, '\\"')}"`;
+        where.push(`t.tags_json LIKE ? ESCAPE '\\'`);
+        params.push(`%${escapeLikeNeedle(jsonNeedle)}%`);
+      }
+    }
+  }
+
+  const sql = `
+    SELECT
+      t.id          AS text_id,
+      s.id          AS sentence_id,
+      s.order_index AS order_index,
+
+      n.note        AS note,
+      n.updated_at  AS note_updated_at,
+
+      s.he_plain    AS sentence_text,
+
+      t.title       AS title,
+      t.level       AS level,
+      t.topic       AS topic,
+      t.source      AS source,
+      t.tags_json   AS tags_json
+    FROM sentence_notes n
+    JOIN sentences s
+      ON s.id = n.sentence_id
+     AND s.text_id = n.text_id
+    JOIN texts t
+      ON t.id = n.text_id
+    WHERE ${where.length ? where.join(" AND ") : "1=1"}
+    ORDER BY
+      n.updated_at DESC,
+      t.updated_at DESC,
+      s.order_index ASC
+    LIMIT ?
+    OFFSET ?;
+  `;
+
+  const rows = await dbAll(db, sql, [...params, lim, off]);
+
+  return (rows || []).map((r) => {
+    const tags2 = parseTagsJson(r.tags_json);
+    return {
+      textId: String(r.text_id || ""),
+      sentenceId: String(r.sentence_id || ""),
+      orderIndex: Number.isFinite(Number(r.order_index)) ? Number(r.order_index) : null,
+
+      note: String(r.note ?? ""),
+      noteUpdatedAt: normalizeIsoZ(r.note_updated_at),
+
+      sentenceText: String(r.sentence_text ?? ""),
+
+      title: String(r.title ?? ""),
+      level: (r.level == null ? null : String(r.level)),
+      topic: (r.topic == null ? null : String(r.topic)),
+      source: (r.source == null ? null : String(r.source)),
+
+      tags: tags2,
+      tags_json: JSON.stringify(tags2),
+    };
+  });
+}
+
 module.exports = {
   listNotesByTextId,
   getNote,
   upsertNote,
   deleteNote,
   getNoteBySentenceId,
+  searchNotes,
 };
