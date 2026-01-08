@@ -1697,6 +1697,48 @@ th, td { border-color: rgba(0,0,0,0.55); }
   font-weight: 700 !important;
 }
 
+/* --------------------------------------------------------
+   Wave D (Premium PRO): Sticky nav bar (A3.2)
+-------------------------------------------------------- */
+.v3-nav-sticky.hidden { display: none; }
+.v3-nav-sticky {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+
+  width: min(900px, calc(100vw - 24px));
+  z-index: 99999;
+  pointer-events: auto;
+
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  backdrop-filter: blur(8px);
+
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v3-nav-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.v3-nav-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.v3-nav-pos {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  white-space: nowrap;
+}
+
+@media (max-width: 520px) {
+  .v3-nav-sticky { gap: 8px; padding: 8px 10px; }
+  .v3-nav-pos { display: none; }
+}
+
 .v3-notes-matches {
   margin: 10px 0 12px;
   border: 1px solid #e5e7eb;
@@ -3623,13 +3665,196 @@ async function v3NavOnHitJump(type, index, textId, sentenceId, orderIndex, origi
     v3SearchSessionSetActive(type, index);
     v3SearchSessionCaptureScroll(type, originScope);
   } catch (_) {}
-  return v3NotesJumpStub(textId, sentenceId, orderIndex);
+
+  let out;
+  try {
+    out = await v3NotesJumpStub(textId, sentenceId, orderIndex);
+  } finally {
+    try {
+      // defer: даём модалкам/scroll завершить синхронные изменения DOM
+      setTimeout(() => { try { v3NavStickyShow(); } catch (_) {} }, 0);
+    } catch (_) {}
+  }
+  return out;
 }
 
 // expose for debugging
 try { window.v3NavOnHitJump = v3NavOnHitJump; } catch (_) {}
 try { window.v3SearchSessionGet = v3SearchSessionGet; } catch (_) {}
 try { window.v3SearchSessionReset = v3SearchSessionReset; } catch (_) {}
+
+// --------------------------------------------------------
+// Wave D (Premium PRO): Sticky nav bar (A3.2)
+// --------------------------------------------------------
+let v3NavStickyBound = false;
+
+function v3NavStickyGetEl(id) { return document.getElementById(id); }
+
+function v3NavStickyBindOnce() {
+  if (v3NavStickyBound) return;
+  v3NavStickyBound = true;
+
+  const prevBtn = v3NavStickyGetEl("v3NavPrevBtn");
+  const nextBtn = v3NavStickyGetEl("v3NavNextBtn");
+  const closeBtn = v3NavStickyGetEl("v3NavCloseBtn");
+  const backBtn = v3NavStickyGetEl("v3NavBackBtn");
+
+  if (prevBtn) prevBtn.addEventListener("click", () => { v3NavPrev(); });
+  if (nextBtn) nextBtn.addEventListener("click", () => { v3NavNext(); });
+  if (closeBtn) closeBtn.addEventListener("click", () => { v3NavStickyHide(); });
+
+  // Back-to-matches (A3.3) will be wired later; keep disabled for now.
+  if (backBtn) backBtn.addEventListener("click", () => { /* A3.3 */ });
+
+  // keyboard shortcuts (when bar is visible)
+  document.addEventListener("keydown", (ev) => {
+    const bar = v3NavStickyGetEl("v3NavSticky");
+    if (!bar || bar.classList.contains("hidden")) return;
+
+    // don't steal typing
+    const tag = (ev.target && ev.target.tagName) ? String(ev.target.tagName).toLowerCase() : "";
+    if (tag === "input" || tag === "textarea" || (ev.target && ev.target.isContentEditable)) return;
+
+    if (ev.key === "Escape") { v3NavStickyHide(); return; }
+    if (ev.key === "ArrowLeft") { v3NavPrev(); return; }
+    if (ev.key === "ArrowRight") { v3NavNext(); return; }
+  }, { passive: true });
+}
+
+function v3NavClampIndex(idx, total) {
+  const n = Number(idx);
+  if (!Number.isFinite(n)) return 0;
+  if (n < 0) return 0;
+  if (total <= 0) return 0;
+  if (n >= total) return total - 1;
+  return n;
+}
+
+function v3NavStickyUpdate() {
+  const bar = v3NavStickyGetEl("v3NavSticky");
+  if (!bar) return;
+
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const t = (st.activeType === "rows") ? "rows" : "notes";
+  const list = (t === "rows")
+    ? (Array.isArray(st.rowsResults) ? st.rowsResults : [])
+    : (Array.isArray(st.notesResults) ? st.notesResults : []);
+
+  const total = list.length;
+  const idx = v3NavClampIndex(st.activeIndex, total);
+
+  const posEl = v3NavStickyGetEl("v3NavPos");
+  if (posEl) {
+    const label = (t === "rows") ? "Rows" : "Notes";
+    posEl.textContent = (total > 0) ? (label + " " + String(idx + 1) + "/" + String(total)) : (label + " 0/0");
+  }
+
+  const prevBtn = v3NavStickyGetEl("v3NavPrevBtn");
+  const nextBtn = v3NavStickyGetEl("v3NavNextBtn");
+  if (prevBtn) prevBtn.disabled = !(total > 0 && idx > 0);
+  if (nextBtn) nextBtn.disabled = !(total > 0 && idx < total - 1);
+
+  const backBtn = v3NavStickyGetEl("v3NavBackBtn");
+  if (backBtn) backBtn.disabled = true; // A3.3
+}
+
+function v3NavStickyShow() {
+  v3NavStickyBindOnce();
+
+  const bar = v3NavStickyGetEl("v3NavSticky");
+  if (!bar) return;
+
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const hasNotes = Array.isArray(st.notesResults) && st.notesResults.length > 0;
+  const hasRows = Array.isArray(st.rowsResults) && st.rowsResults.length > 0;
+
+  if (!hasNotes && !hasRows) {
+    v3NavStickyHide();
+    return;
+  }
+
+  bar.classList.remove("hidden");
+  
+    // hard-ensure visibility (на случай конкурирующих стилей/контекстов)
+  try {
+    bar.style.display = "flex";
+    bar.style.visibility = "visible";
+    bar.style.opacity = "1";
+    bar.style.pointerEvents = "auto";
+    bar.style.zIndex = "99999";
+  } catch (_) {}
+  
+  // update after layout settles
+  setTimeout(() => { try { v3NavStickyUpdate(); } catch (_) {} }, 0);
+}
+
+function v3NavStickyHide() {
+  const bar = v3NavStickyGetEl("v3NavSticky");
+  if (!bar) return;
+  bar.classList.add("hidden");
+}
+
+async function v3NavJumpByIndex(type, newIndex) {
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const t = (type === "rows") ? "rows" : "notes";
+  const list = (t === "rows")
+    ? (Array.isArray(st.rowsResults) ? st.rowsResults : [])
+    : (Array.isArray(st.notesResults) ? st.notesResults : []);
+
+  const total = list.length;
+  const idx = v3NavClampIndex(newIndex, total);
+  if (!(total > 0) || !list[idx]) { v3NavStickyUpdate(); return; }
+
+  const r = list[idx] || {};
+  const textId = String(r.textId || "");
+  const sentenceId = String(r.sentenceId || "");
+  const orderIndex = Number(r.orderIndex);
+
+  // update active pointer (no search rebuild)
+  v3SearchSessionSetActive(t, idx);
+
+  const originScope = (st.origin === "dash") ? "dash" : "lib";
+  return v3NavOnHitJump(
+    t,
+    idx,
+    textId,
+    sentenceId,
+    Number.isFinite(orderIndex) ? orderIndex : null,
+    originScope
+  );
+}
+
+async function v3NavPrev() {
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const t = (st.activeType === "rows") ? "rows" : "notes";
+  const list = (t === "rows")
+    ? (Array.isArray(st.rowsResults) ? st.rowsResults : [])
+    : (Array.isArray(st.notesResults) ? st.notesResults : []);
+
+  const total = list.length;
+  const idx = v3NavClampIndex(st.activeIndex, total);
+  if (!(total > 0) || idx <= 0) { v3NavStickyUpdate(); return; }
+  return v3NavJumpByIndex(t, idx - 1);
+}
+
+async function v3NavNext() {
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const t = (st.activeType === "rows") ? "rows" : "notes";
+  const list = (t === "rows")
+    ? (Array.isArray(st.rowsResults) ? st.rowsResults : [])
+    : (Array.isArray(st.notesResults) ? st.notesResults : []);
+
+  const total = list.length;
+  const idx = v3NavClampIndex(st.activeIndex, total);
+  if (!(total > 0) || idx >= total - 1) { v3NavStickyUpdate(); return; }
+  return v3NavJumpByIndex(t, idx + 1);
+}
+
+// debug exports
+try { window.v3NavPrev = v3NavPrev; } catch (_) {}
+try { window.v3NavNext = v3NavNext; } catch (_) {}
+try { window.v3NavStickyShow = v3NavStickyShow; } catch (_) {}
+try { window.v3NavStickyHide = v3NavStickyHide; } catch (_) {}
 
 const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
@@ -13733,7 +13958,18 @@ try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchRe
 
 </script>
 
-
+<!-- Wave D (Premium PRO): Sticky nav bar for matches (A3.2) -->
+<div id="v3NavSticky" class="v3-nav-sticky hidden" role="region" aria-label="Навигация по совпадениям">
+  <div class="v3-nav-left">
+    <button id="v3NavBackBtn" class="btn-secondary btn-mini" disabled title="Вернуться к списку совпадений">← Back to matches</button>
+    <span id="v3NavPos" class="v3-nav-pos"></span>
+  </div>
+  <div class="v3-nav-right">
+    <button id="v3NavPrevBtn" class="btn-secondary btn-mini">Prev</button>
+    <button id="v3NavNextBtn" class="btn-secondary btn-mini">Next</button>
+    <button id="v3NavCloseBtn" class="btn-secondary btn-mini">Close</button>
+  </div>
+</div>
 
 </body>
 </html>
