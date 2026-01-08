@@ -670,6 +670,149 @@ async function getSentencesByTextId(textId) {
   );
 }
 
+// --------------------------------------------------------
+// Wave D (Premium PRO): Rows Search (E1.1) — LIKE v1
+// --------------------------------------------------------
+async function searchSentences({
+  q,
+  includeArchived = false,
+  level = null,
+  tagTokens = null,
+  tagMode = "all",
+  topicNeedle = null,
+  limit = 50,
+  offset = 0,
+} = {}) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const qRaw = (q == null) ? "" : String(q).trim();
+
+  // Guard: do not scan all rows
+  if (!qRaw) return [];
+  if (qRaw.length < 2) return [];
+
+  const lim = Math.max(1, Math.min(200, Number(limit) || 50));
+  const off = Math.max(0, Math.min(5000, Number(offset) || 0));
+
+  const whereParts = [];
+  const params = [];
+
+  if (!includeArchived) whereParts.push("t.is_archived = 0");
+  else whereParts.push("1=1");
+
+  // Optional strict level filter (case-insensitive)
+  if (level != null && String(level).trim()) {
+    whereParts.push("LOWER(COALESCE(t.level,'')) = LOWER(?)");
+    params.push(String(level).trim());
+  }
+
+  // Optional topic filter (substring, case-insensitive)
+  if (topicNeedle != null && String(topicNeedle).trim()) {
+    const patTopic = "%" + String(topicNeedle).trim().toLowerCase() + "%";
+    whereParts.push("LOWER(COALESCE(t.topic,'')) LIKE ?");
+    params.push(patTopic);
+  }
+
+  // Tags filter (ALL/ANY), supports both "materials" and "#materials" stored forms
+  let tagArr = [];
+  if (Array.isArray(tagTokens)) tagArr = tagTokens;
+  else if (typeof tagTokens === "string") tagArr = tagTokens.split(",");
+  else if (tagTokens != null) tagArr = [String(tagTokens)];
+
+  const tagNorm = [];
+  const seen = new Set();
+  for (let i = 0; i < tagArr.length; i++) {
+    let raw = String(tagArr[i] || "").trim();
+    if (!raw) continue;
+    if (raw[0] === "#") raw = raw.slice(1).trim();
+    if (!raw) continue;
+
+    const key = raw.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    tagNorm.push(raw);
+    if (tagNorm.length >= 25) break;
+  }
+
+  function pushTagGroup(base) {
+    const variants = [base, "#" + base];
+    const parts = [];
+    for (let k = 0; k < variants.length; k++) {
+      parts.push("COALESCE(t.tags_json,'') LIKE ?");
+      params.push("%" + JSON.stringify(variants[k]) + "%");
+    }
+    return "(" + parts.join(" OR ") + ")";
+  }
+
+  const mode = String(tagMode || "all").trim().toLowerCase();
+  if (tagNorm.length) {
+    if (mode === "any") {
+      const orGroups = [];
+      for (let i = 0; i < tagNorm.length; i++) {
+        orGroups.push(pushTagGroup(tagNorm[i]));
+      }
+      whereParts.push("(" + orGroups.join(" OR ") + ")");
+    } else {
+      // default: ALL
+      for (let i = 0; i < tagNorm.length; i++) {
+        whereParts.push(pushTagGroup(tagNorm[i]));
+      }
+    }
+  }
+
+  // Main query across sentence fields (case-insensitive)
+  const pat = "%" + qRaw.toLowerCase() + "%";
+  whereParts.push(`(
+    LOWER(COALESCE(s.he_plain,''))  LIKE ?
+    OR LOWER(COALESCE(s.he_niqqud,'')) LIKE ?
+    OR LOWER(COALESCE(s.translit,'')) LIKE ?
+    OR LOWER(COALESCE(s.ru,''))       LIKE ?
+  )`);
+  params.push(pat, pat, pat, pat);
+
+  const whereSql = whereParts.length ? whereParts.join(" AND ") : "1=1";
+
+  const rows = await dbAll(
+    db,
+    `
+    SELECT
+      s.id          AS sentenceId,
+      s.text_id     AS textId,
+      s.order_index AS orderIndex,
+
+      s.he_plain    AS he_plain,
+      s.he_niqqud   AS he_niqqud,
+      s.translit    AS translit,
+      s.ru          AS ru,
+
+      t.title       AS title,
+      t.level       AS level,
+      t.topic       AS topic,
+      t.source      AS source,
+      t.tags_json   AS tags_json,
+
+      t.is_archived AS is_archived,
+      t.created_at  AS created_at,
+      t.updated_at  AS updated_at,
+      t.last_opened_at AS last_opened_at
+
+    FROM sentences s
+    JOIN texts t ON t.id = s.text_id
+    WHERE ${whereSql}
+    ORDER BY COALESCE(t.last_opened_at, t.updated_at, t.created_at) DESC,
+             t.id ASC,
+             s.order_index ASC
+    LIMIT ? OFFSET ?;
+    `,
+    [...params, lim, off]
+  );
+
+  // Ensure tags/tags_json are canonical in DTO
+  return rows.map(withTagsDto);
+}
+
 async function getExportRowsByTextId(textId) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -837,6 +980,7 @@ module.exports = {
   listTexts,
   getTextById,
   getSentencesByTextId,
+  searchSentences,
   getExportRowsByTextId,
   touchTextOpened,
   archiveTextById,
