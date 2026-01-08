@@ -2228,6 +2228,23 @@ th, td { border-color: rgba(0,0,0,0.55); }
   background: #fff;
 }
 
+/* --------------------------------------------------------
+   A2: Jump -> auto-open Notes modal + focus + highlight
+   -------------------------------------------------------- */
+#v3NotesText.v3-notes-focus-flash {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+}
+
+.v3-notes-sentence-ctx {
+  margin: 10px 0 0 0;
+  padding: 8px 10px;
+  border: 1px dashed #e6e9ef;
+  border-radius: 10px;
+  background: #fff;
+  line-height: 1.35;
+}
+
 .v3-notes-md-preview {
   flex: 1;
   min-height: 240px;
@@ -6039,6 +6056,12 @@ async function v3NotesJumpStub(textId, sentenceId, orderIndex) {
     return;
   }
 
+  // A2 (3.1): вычисляем needles из текущего q (best-effort)
+  const _a2 = (typeof v3NotesGetJumpNeedlesFromUi === "function")
+    ? v3NotesGetJumpNeedlesFromUi("notes")
+    : { needles: [] };
+  const _a2Needles = _a2 && Array.isArray(_a2.needles) ? _a2.needles : [];
+
   // If this text is already open, jump without reloading
   try {
     if (typeof v3ActiveTextId !== "undefined" && v3ActiveTextId && String(v3ActiveTextId) === tid) {
@@ -6050,6 +6073,13 @@ async function v3NotesJumpStub(textId, sentenceId, orderIndex) {
           if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
         } catch (_) {}
         v3NotesFlashRow(idx);
+
+        // A2 (3.2): auto-open Notes modal + focus + highlight
+        try {
+          if (typeof v3NotesOpenForJump === "function") {
+            await v3NotesOpenForJump(tid, sid, idx, "notes", _a2Needles);
+          }
+        } catch (_) {}
 
         // close modals if user clicked from them
         try { v3LibraryClose(); } catch (_) {}
@@ -6083,12 +6113,30 @@ async function v3NotesJumpStub(textId, sentenceId, orderIndex) {
     if (typeof v3AfterRenderStable === "function" && typeof token === "number" && Number.isFinite(token)) {
       v3AfterRenderStable(token, () => {
         const idx2 = v3NotesFindRowIdxBySentenceId(sid);
-        if (idx2 !== null) v3NotesFlashRow(idx2);
+        if (idx2 !== null) {
+          v3NotesFlashRow(idx2);
+
+          // A2 (3.3): auto-open Notes modal + focus + highlight
+          try {
+            if (typeof v3NotesOpenForJump === "function") {
+              v3NotesOpenForJump(tid, sid, idx2, "notes", _a2Needles);
+            }
+          } catch (_) {}
+        }
       });
     } else {
       setTimeout(() => {
         const idx2 = v3NotesFindRowIdxBySentenceId(sid);
-        if (idx2 !== null) v3NotesFlashRow(idx2);
+        if (idx2 !== null) {
+          v3NotesFlashRow(idx2);
+
+          // A2 (3.3): auto-open Notes modal + focus + highlight
+          try {
+            if (typeof v3NotesOpenForJump === "function") {
+              v3NotesOpenForJump(tid, sid, idx2, "notes", _a2Needles);
+            }
+          } catch (_) {}
+        }
       }, 450);
     }
   } catch (e) {
@@ -12735,6 +12783,233 @@ try { v3NotesMdResetUi(); } catch (_) {}
   // focus textarea
   try { if (ta) setTimeout(() => ta.focus(), 0); } catch (_) {}
 }
+
+// --------------------------------------------------------
+// A2: Jump -> auto-open Notes modal + focus + highlight
+// --------------------------------------------------------
+let v3NotesJumpFlashTimer = null;
+const v3NotesJumpFetchInflight = Object.create(null);
+const v3NotesJumpFetchStampMs = Object.create(null);
+
+function v3NotesPickNeedle(needles) {
+  const arr = Array.isArray(needles) ? needles.slice() : [];
+  const cleaned = arr
+    .map(s => String(s || "").trim())
+    .filter(s => s.length >= 2);
+  if (!cleaned.length) return "";
+  cleaned.sort((a, b) => b.length - a.length);
+  return cleaned[0];
+}
+
+function v3NotesSelectNeedleInTextarea(ta, needles) {
+  try {
+    if (!ta) return;
+    const needle = v3NotesPickNeedle(needles);
+    if (!needle) return;
+
+    const hay = String(ta.value || "");
+    const idx = hay.toLowerCase().indexOf(needle.toLowerCase());
+    if (idx < 0) return;
+
+    // selection as "highlight" inside textarea
+    ta.focus();
+    ta.setSelectionRange(idx, idx + needle.length);
+  } catch (_) {}
+}
+
+function v3NotesFlashTextarea(ta) {
+  try {
+    if (!ta) return;
+    ta.classList.add("v3-notes-focus-flash");
+    if (v3NotesJumpFlashTimer) clearTimeout(v3NotesJumpFlashTimer);
+    v3NotesJumpFlashTimer = setTimeout(() => {
+      try { ta.classList.remove("v3-notes-focus-flash"); } catch (_) {}
+    }, 2600);
+  } catch (_) {}
+}
+
+function v3NotesEnsureSentenceContext(rowIdx) {
+  try {
+    const modal = v3NotesEl("v3NotesModal");
+    if (!modal) return;
+
+    let ctx = v3NotesEl("v3NotesSentenceCtx");
+    if (!ctx) {
+      const body = modal.querySelector(".v3-modal-body");
+      const st = v3NotesEl("v3NotesStatus");
+      if (!body || !st) return;
+
+      ctx = document.createElement("div");
+      ctx.id = "v3NotesSentenceCtx";
+      ctx.className = "v3-notes-sentence-ctx";
+      // insert right after status line
+      if (st.nextSibling) body.insertBefore(ctx, st.nextSibling);
+      else body.appendChild(ctx);
+    }
+
+    const idx = Number(rowIdx);
+    const r = (Array.isArray(currentTableData) && Number.isFinite(idx)) ? currentTableData[idx] : null;
+    const he = r ? String(r.he_niqqud || r.he || "").trim() : "";
+    const ru = r ? String(r.ru || "").trim() : "";
+    const tr = r ? String(r.translit || "").trim() : "";
+
+    const parts = [];
+    parts.push(`<div><b>Строка:</b> #${Number.isFinite(idx) ? (idx + 1) : "?"}</div>`);
+    if (he) parts.push(`<div style="margin-top:6px;"><b>HE:</b> ${v3EscapeHtml(he)}</div>`);
+    if (tr) parts.push(`<div style="margin-top:4px;"><b>TR:</b> ${v3EscapeHtml(tr)}</div>`);
+    if (ru) parts.push(`<div style="margin-top:4px;"><b>RU:</b> ${v3EscapeHtml(ru)}</div>`);
+
+    ctx.innerHTML = parts.join("");
+  } catch (_) {}
+}
+
+function v3NotesGetJumpNeedlesFromUi(scope) {
+  // scope: "lib" | "dash" (best-effort)
+  let qRaw = "";
+  try {
+    const libQ = document.getElementById("v3LibrarySearch");
+    const dashQ = document.getElementById("v3DashboardSearch");
+    if (scope === "dash") qRaw = String((dashQ && dashQ.value) || "").trim();
+    else qRaw = String((libQ && libQ.value) || "").trim();
+  } catch (_) {}
+
+  // fallback: try any available input
+  if (!qRaw) {
+    try {
+      const libQ = document.getElementById("v3LibrarySearch");
+      const dashQ = document.getElementById("v3DashboardSearch");
+      qRaw = String((libQ && libQ.value) || (dashQ && dashQ.value) || "").trim();
+    } catch (_) {}
+  }
+
+  let needles = [];
+  try {
+    if (typeof v3NotesExtractNeedles === "function") {
+      needles = v3NotesExtractNeedles(qRaw);
+    } else {
+      // fallback tokenizer: exclude #tags and key:value tokens
+      needles = String(qRaw || "")
+        .split(/\s+/)
+        .map(s => String(s || "").trim())
+        .filter(s => s && s[0] !== "#" && s.indexOf(":") < 0);
+    }
+  } catch (_) {}
+
+  return { qRaw, needles };
+}
+
+async function v3NotesEnsureFetchedForText(textId) {
+  const tid = String(textId || "");
+  if (!tid) return;
+
+  const now = Date.now();
+  const last = Number(v3NotesJumpFetchStampMs[tid] || 0);
+  if (last && (now - last) < 3000 && v3NotesActiveTextId === tid) return;
+
+  if (v3NotesJumpFetchInflight[tid]) {
+    try { await v3NotesJumpFetchInflight[tid]; } catch (_) {}
+    return;
+  }
+
+  v3NotesJumpFetchInflight[tid] = (async () => {
+    try {
+      const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(tid) + "/notes");
+      const notes = (res && res.ok && Array.isArray(res.notes)) ? res.notes : [];
+      v3NotesIngest(tid, notes);
+      v3NotesRefreshAllButtons();
+      v3NotesJumpFetchStampMs[tid] = Date.now();
+    } catch (e) {
+      console.warn("A2 notes ensure fetch failed (non-critical)", e);
+    }
+  })();
+
+  try { await v3NotesJumpFetchInflight[tid]; } catch (_) {}
+  try { delete v3NotesJumpFetchInflight[tid]; } catch (_) {}
+}
+
+async function v3NotesOpenForJump(textId, sentenceId, rowIdx, scope, needles) {
+  const tid = String(textId || "");
+  const sid = String(sentenceId || "");
+  const idx = Number(rowIdx);
+
+  if (!tid || !sid || !Number.isFinite(idx)) return;
+
+  // guard: avoid losing unsaved edits when switching sentence
+  try {
+    if (v3NotesIsOpen && v3NotesIsOpen()) {
+      const curSid = String(v3NotesModalSentenceId || "");
+      if (v3NotesModalIsDirty && curSid && curSid !== sid) {
+        const ok = window.confirm("Есть несохранённые изменения в заметке.\nПерейти к другой строке и потерять изменения?");
+        if (!ok) return;
+        try { v3NotesForceClose(); } catch (_) {}
+      }
+    }
+  } catch (_) {}
+
+  // open modal immediately (best-effort)
+  try { v3NotesOpen(tid, sid, idx); } catch (_) {}
+
+  // context in modal (sentence preview)
+  try { v3NotesEnsureSentenceContext(idx); } catch (_) {}
+
+  // focus + highlight (textarea flash + selection)
+  setTimeout(() => {
+    try {
+      const ta = v3NotesEl("v3NotesText");
+      if (!ta) return;
+      ta.focus();
+      v3NotesSelectNeedleInTextarea(ta, needles);
+      v3NotesFlashTextarea(ta);
+    } catch (_) {}
+  }, 0);
+
+  // ensure notes fetched (so existing note appears even if preload lagged)
+  try {
+    await v3NotesEnsureFetchedForText(tid);
+
+    // if modal still targets same sentence and user hasn't edited => refresh content from cache
+    const modalOpen = (typeof v3NotesIsOpen === "function") ? v3NotesIsOpen() : false;
+    if (!modalOpen) return;
+    if (String(v3NotesModalSentenceId || "") !== sid) return;
+    if (v3NotesModalIsDirty) return;
+
+    const ta = v3NotesEl("v3NotesText");
+    if (!ta) return;
+
+    const newest = (typeof v3NotesGet === "function") ? String(v3NotesGet(sid) || "") : "";
+    const cur = String(ta.value || "");
+    if (cur.trim() !== newest.trim()) {
+      v3NotesSafeSetTextareaValue(ta, newest);
+      v3NotesModalOriginalText = String(newest || "");
+      v3NotesModalIsDirty = false;
+
+      // status + delete visibility
+      try {
+        const delBtn = v3NotesEl("v3NotesDeleteBtn");
+        if (delBtn) delBtn.style.display = newest.trim() ? "" : "none";
+      } catch (_) {}
+      try {
+        const st = v3NotesEl("v3NotesStatus");
+        const savedAt = (typeof v3NotesFmtSavedAt === "function")
+          ? v3NotesFmtSavedAt((typeof v3NotesGetUpdatedAt === "function") ? v3NotesGetUpdatedAt(sid) : null)
+          : "";
+        if (savedAt) v3NotesSafeSetStatus(st, `Сохранено в ${savedAt}`, false);
+      } catch (_) {}
+
+      // re-apply highlight after content refresh
+      setTimeout(() => {
+        try {
+          const ta2 = v3NotesEl("v3NotesText");
+          if (!ta2) return;
+          v3NotesSelectNeedleInTextarea(ta2, needles);
+          v3NotesFlashTextarea(ta2);
+        } catch (_) {}
+      }, 0);
+    }
+  } catch (_) {}
+}
+
+window.v3NotesOpenForJump = v3NotesOpenForJump;
 
 function v3NotesForceClose() {
   const modal = v3NotesEl("v3NotesModal");
