@@ -1770,6 +1770,24 @@ th, td { border-color: rgba(0,0,0,0.55); }
   margin-top: 0;
 }
 
+/* Wave D (Premium PRO): active hit highlight (A3.3) */
+.v3-note-hit.v3-hit-active {
+  position: relative;
+  border-radius: 14px;
+  padding: 10px 12px;
+  margin: 10px -6px 0;
+  background: #fffbeb;
+  box-shadow: 0 1px 8px rgba(17, 24, 39, 0.08);
+}
+.v3-note-hit.v3-hit-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  border: 1px solid #f59e0b;
+  pointer-events: none;
+}
+
 .v3-note-hit-title {
   font-weight: 900;
   font-size: 13px;
@@ -3642,14 +3660,17 @@ function v3SearchSessionCaptureScroll(type, originScope) {
   const t = (type === "rows") ? "rows" : "notes";
   const origin = v3SearchSessionNormalizeOrigin(originScope);
 
-  let boxId = "";
-  if (t === "notes") boxId = (origin === "lib") ? "v3LibraryNotesMatches" : "v3DashNotesMatches";
-  else boxId = (origin === "lib") ? "v3LibraryRowsMatches" : "v3DashRowsMatches";
-
+  // NOTE: matches boxes are not scroll-containers; the modal body scrolls.
   let scrollTop = 0;
   try {
-    const box = document.getElementById(boxId);
-    if (box && typeof box.scrollTop === "number") scrollTop = box.scrollTop;
+    const body = (origin === "lib")
+      ? document.querySelector("#v3LibraryModal .v3-modal-body")
+      : document.querySelector("#v3DashboardModal .v3-modal-body");
+    if (body && typeof body.scrollTop === "number") {
+      scrollTop = body.scrollTop;
+    } else if (document.scrollingElement && typeof document.scrollingElement.scrollTop === "number") {
+      scrollTop = document.scrollingElement.scrollTop;
+    }
   } catch (_) {}
 
   const key = origin + ":" + t;
@@ -3701,10 +3722,10 @@ function v3NavStickyBindOnce() {
 
   if (prevBtn) prevBtn.addEventListener("click", () => { v3NavPrev(); });
   if (nextBtn) nextBtn.addEventListener("click", () => { v3NavNext(); });
-  if (closeBtn) closeBtn.addEventListener("click", () => { v3NavStickyHide(); });
+  if (closeBtn) closeBtn.addEventListener("click", () => { v3NavClose(); });
 
   // Back-to-matches (A3.3) will be wired later; keep disabled for now.
-  if (backBtn) backBtn.addEventListener("click", () => { /* A3.3 */ });
+  if (backBtn) backBtn.addEventListener("click", () => { v3NavBackToMatches(); });
 
   // keyboard shortcuts (when bar is visible)
   document.addEventListener("keydown", (ev) => {
@@ -3746,7 +3767,9 @@ function v3NavStickyUpdate() {
   const posEl = v3NavStickyGetEl("v3NavPos");
   if (posEl) {
     const label = (t === "rows") ? "Rows" : "Notes";
-    posEl.textContent = (total > 0) ? (label + " " + String(idx + 1) + "/" + String(total)) : (label + " 0/0");
+    posEl.textContent = (total > 0)
+      ? (label + " " + String(idx + 1) + "/" + String(total))
+      : (label + " 0/0");
   }
 
   const prevBtn = v3NavStickyGetEl("v3NavPrevBtn");
@@ -3754,8 +3777,14 @@ function v3NavStickyUpdate() {
   if (prevBtn) prevBtn.disabled = !(total > 0 && idx > 0);
   if (nextBtn) nextBtn.disabled = !(total > 0 && idx < total - 1);
 
+  // A3.3: enable Back when we have any cached hits and a valid origin.
   const backBtn = v3NavStickyGetEl("v3NavBackBtn");
-  if (backBtn) backBtn.disabled = true; // A3.3
+  const hasAny =
+    (Array.isArray(st.notesResults) && st.notesResults.length > 0) ||
+    (Array.isArray(st.rowsResults) && st.rowsResults.length > 0);
+
+  const canBack = hasAny && (st.origin === "lib" || st.origin === "dash");
+  if (backBtn) backBtn.disabled = !canBack;
 }
 
 function v3NavStickyShow() {
@@ -3791,7 +3820,254 @@ function v3NavStickyShow() {
 function v3NavStickyHide() {
   const bar = v3NavStickyGetEl("v3NavSticky");
   if (!bar) return;
+
+  // class-based hide
   bar.classList.add("hidden");
+
+  // IMPORTANT: inline styles may override `.hidden { display:none }`
+  // because A3.2 visibility-fix sets `bar.style.display = "flex"`.
+  try {
+    bar.style.display = "none";
+    bar.style.visibility = "hidden";
+    bar.style.opacity = "0";
+    bar.style.pointerEvents = "none";
+  } catch (_) {}
+}
+
+function v3NavResolveTypeForBack(st) {
+  const hasNotes = Array.isArray(st && st.notesResults) && st.notesResults.length > 0;
+  const hasRows = Array.isArray(st && st.rowsResults) && st.rowsResults.length > 0;
+  const t = (st && st.activeType === "rows") ? "rows" : "notes";
+  if (t === "rows" && hasRows) return "rows";
+  if (t === "notes" && hasNotes) return "notes";
+  if (hasNotes) return "notes";
+  if (hasRows) return "rows";
+  return "notes";
+}
+
+function v3NavGetModalBody(origin) {
+  try {
+    return (origin === "dash")
+      ? document.querySelector("#v3DashboardModal .v3-modal-body")
+      : document.querySelector("#v3LibraryModal .v3-modal-body");
+  } catch (_) {
+    return null;
+  }
+}
+
+function v3NavGetMatchesBoxId(origin, type) {
+  const o = (origin === "dash") ? "dash" : "lib";
+  const t = (type === "rows") ? "rows" : "notes";
+  if (t === "notes") return (o === "lib") ? "v3LibraryNotesMatches" : "v3DashNotesMatches";
+  return (o === "lib") ? "v3LibraryRowsMatches" : "v3DashRowsMatches";
+}
+
+function v3NavClearActiveHit(box) {
+  try {
+    if (!box) return;
+    const els = box.querySelectorAll(".v3-note-hit.v3-hit-active");
+    if (!els || !els.length) return;
+    els.forEach(el => el.classList.remove("v3-hit-active"));
+  } catch (_) {}
+}
+
+function v3NavIsVisibleWithinScroll(scrollEl, el, pad) {
+  try {
+    if (!scrollEl || !el) return false;
+    const p = Number.isFinite(Number(pad)) ? Number(pad) : 24;
+    const r = el.getBoundingClientRect();
+    const sr = scrollEl.getBoundingClientRect();
+    const topOk = (r.top >= sr.top + p);
+    const botOk = (r.bottom <= sr.bottom - p);
+    return topOk && botOk;
+  } catch (_) {
+    return false;
+  }
+}
+
+function v3NavMarkActiveHit(origin, type, index) {
+  const t = (type === "rows") ? "rows" : "notes";
+  const o = (origin === "dash") ? "dash" : "lib";
+
+  const boxId = v3NavGetMatchesBoxId(o, t);
+  const box = document.getElementById(boxId);
+  if (!box) return;
+
+  v3NavClearActiveHit(box);
+
+  const idx = Number(index);
+  if (!Number.isFinite(idx) || idx < 0) return;
+
+  const el = box.querySelector('.v3-note-hit[data-hit-type="' + t + '"][data-hit-idx="' + String(idx) + '"]');
+  if (!el) return;
+  el.classList.add("v3-hit-active");
+
+  const body = v3NavGetModalBody(o) || document.scrollingElement;
+  if (body && !v3NavIsVisibleWithinScroll(body, el, 18)) {
+    try { el.scrollIntoView({ block: "center", behavior: "auto" }); } catch (_) {}
+  }
+}
+
+function v3NavMarkActiveHitWithRetry(origin, type, index, attempt) {
+  const a = Number(attempt) || 0;
+  const max = 8; // ~ до 500-700ms суммарно
+
+  try { v3NavMarkActiveHit(origin, type, index); } catch (_) {}
+
+  if (a >= max) return;
+
+  // check if highlight survived (dashboard may re-render and wipe classes)
+  let ok = false;
+  try {
+    const t = (type === "rows") ? "rows" : "notes";
+    const o = (origin === "dash") ? "dash" : "lib";
+    const boxId = v3NavGetMatchesBoxId(o, t);
+    const box = document.getElementById(boxId);
+    const idx = Number(index);
+
+    if (box && Number.isFinite(idx) && idx >= 0) {
+      const el = box.querySelector('.v3-note-hit[data-hit-type="' + t + '"][data-hit-idx="' + String(idx) + '"]');
+      ok = !!(el && el.classList.contains("v3-hit-active"));
+    }
+  } catch (_) {}
+
+  if (ok) return;
+
+  const delays = [0, 30, 60, 120, 180, 220, 260, 320, 380];
+  const d = delays[Math.min(a + 1, delays.length - 1)];
+  setTimeout(() => {
+    try { v3NavMarkActiveHitWithRetry(origin, type, index, a + 1); } catch (_) {}
+  }, d);
+}
+
+function v3NavAutoApplyActiveHitFromSession(scope, type) {
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const origin = (scope === "dash") ? "dash" : "lib";
+  const t = (type === "rows") ? "rows" : "notes";
+
+  // apply only when there is an active pointer for this list
+  if (st.activeType !== t) return;
+
+  const idx = Number(st.activeIndex);
+  if (!Number.isFinite(idx) || idx < 0) return;
+
+  const list = (t === "rows") ? st.rowsResults : st.notesResults;
+  if (!Array.isArray(list) || list.length <= 0) return;
+
+  // defer to allow innerHTML commit + any sync DOM work to finish
+  setTimeout(() => {
+    try {
+      if (typeof v3NavMarkActiveHitWithRetry === "function") {
+        v3NavMarkActiveHitWithRetry(origin, t, idx, 0);
+      } else if (typeof v3NavMarkActiveHit === "function") {
+        v3NavMarkActiveHit(origin, t, idx);
+      }
+    } catch (_) {}
+  }, 0);
+}
+
+function v3NavRestoreMatchesScroll(origin, type) {
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const o = (origin === "dash") ? "dash" : "lib";
+  const t = (type === "rows") ? "rows" : "notes";
+  const key = o + ":" + t;
+  const rec = (st && st.scrollRestore) ? st.scrollRestore[key] : null;
+
+  const body = v3NavGetModalBody(o) || document.scrollingElement;
+  if (body && rec && typeof rec.scrollTop === "number") {
+    try { body.scrollTop = rec.scrollTop; } catch (_) {}
+    return;
+  }
+
+  // fallback: jump to the matches box
+  try {
+    const boxId = v3NavGetMatchesBoxId(o, t);
+    const box = document.getElementById(boxId);
+    if (box) box.scrollIntoView({ block: "start", behavior: "auto" });
+  } catch (_) {}
+}
+
+function v3NavEnsureMatchesRendered(origin) {
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const o = (origin === "dash") ? "dash" : "lib";
+  const q = String(st.qRaw || "");
+
+  // keep scope UI consistent, but avoid triggering network searches
+  try {
+    if (st.scope && typeof v3SearchScopeSet === "function") v3SearchScopeSet(st.scope);
+    if (typeof v3NotesSyncUi === "function") v3NotesSyncUi();
+  } catch (_) {}
+
+  try {
+    const qElId = (o === "dash") ? "v3DashSearch" : "v3LibrarySearch";
+    const qEl = document.getElementById(qElId);
+    if (qEl && typeof qEl.value === "string" && q) qEl.value = q;
+  } catch (_) {}
+
+  try {
+    const ns = (typeof v3NotesGetState === "function") ? v3NotesGetState() : { includeNotes: true, notesOnly: false };
+    if (ns && ns.includeNotes && typeof v3NotesRender === "function") {
+      v3NotesRender(o, q, Array.isArray(st.notesResults) ? st.notesResults : [], !!ns.notesOnly);
+    }
+  } catch (_) {}
+
+  try {
+    const rs = (typeof v3RowsGetState === "function") ? v3RowsGetState() : { includeRows: true, rowsOnly: false };
+    if (rs && rs.includeRows && typeof v3RowsRender === "function") {
+      v3RowsRender(o, q, Array.isArray(st.rowsResults) ? st.rowsResults : [], !!rs.rowsOnly);
+    }
+  } catch (_) {}
+}
+
+function v3NavClose() {
+  // Close is "exit navigation". It must never throw.
+  try { v3NavStickyHide(); } catch (_) {}
+}
+
+async function v3NavBackToMatches() {
+  const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
+  const hasAny = (Array.isArray(st.notesResults) && st.notesResults.length > 0) || (Array.isArray(st.rowsResults) && st.rowsResults.length > 0);
+  if (!hasAny) return;
+
+  const origin = (st.origin === "dash") ? "dash" : "lib";
+  const type = v3NavResolveTypeForBack(st);
+  const idx = Number.isFinite(Number(st.activeIndex)) ? Number(st.activeIndex) : 0;
+
+  // prevent double-modals: close Notes modal first (respect dirty state)
+  try {
+    const nm = document.getElementById("v3NotesModal");
+    const isOpen = !!(nm && !nm.classList.contains("hidden"));
+    if (isOpen && typeof v3NotesClose === "function") {
+      await v3NotesClose();
+      if (nm && !nm.classList.contains("hidden")) return; // user cancelled
+    }
+  } catch (_) {}
+
+  // open the originating modal
+  try {
+    if (origin === "dash") {
+      if (typeof v3DashboardOpen === "function") v3DashboardOpen();
+      else {
+        const m = document.getElementById("v3DashboardModal");
+        if (m) m.classList.remove("hidden");
+      }
+    } else {
+      if (typeof v3LibraryOpen === "function") v3LibraryOpen();
+      else {
+        const m = document.getElementById("v3LibraryModal");
+        if (m) m.classList.remove("hidden");
+      }
+    }
+  } catch (_) {}
+
+  // render from cached session results (no network)
+  try { v3NavEnsureMatchesRendered(origin); } catch (_) {}
+
+  // restore scroll + highlight active hit
+  setTimeout(() => {
+  try { v3NavRestoreMatchesScroll(origin, type); } catch (_) {}
+  try { v3NavMarkActiveHitWithRetry(origin, type, idx, 0); } catch (_) {}
+	}, 0);
 }
 
 async function v3NavJumpByIndex(type, newIndex) {
@@ -6327,7 +6603,7 @@ function v3NotesRender(scope, qRaw, results, notesOnly) {
     const sentSnippetRaw = v3NotesMakeSnippet(sentenceText, 140);
 
     html += `
-      <div class="v3-note-hit" data-text-id="${v3EscapeHtml(textId)}" data-sentence-id="${v3EscapeHtml(sentenceId)}">
+      <div class="v3-note-hit" data-hit-type="notes" data-hit-idx="${hitIdx}" data-text-id="${v3EscapeHtml(textId)}" data-sentence-id="${v3EscapeHtml(sentenceId)}">
         <div class="v3-note-hit-title">${v3EscapeHtml(tTitle)}${topicHtml}</div>
         <div class="v3-note-hit-meta">
           ${Number.isFinite(orderIndex) ? ("Строка № <b>" + v3EscapeHtml(String(orderIndex + 1)) + "</b> · ") : ""}
@@ -6349,6 +6625,9 @@ function v3NotesRender(scope, qRaw, results, notesOnly) {
 
   box.style.display = "block";
   box.innerHTML = html;
+
+  // A3.3 FIX: Dashboard may re-render notes asynchronously; keep active highlight stable
+  try { v3NavAutoApplyActiveHitFromSession(scope, "notes"); } catch (_) {}
 }
 
 function v3NotesHide(scope) {
@@ -6595,8 +6874,8 @@ function v3RowsRender(scope, qRaw, results, rowsOnly) {
     const idxJs = Number.isFinite(orderIndex) ? String(orderIndex) : "null";
 
     html += `
-      <div class="v3-note-hit" data-text-id="${v3EscapeHtml(textId)}" data-sentence-id="${v3EscapeHtml(sentenceId)}">
-        <div class="v3-note-hit-title">${v3EscapeHtml(tTitle)}${topicHtml}</div>
+      <div class="v3-note-hit" data-hit-type="rows" data-hit-idx="${hitIdx}" data-text-id="${v3EscapeHtml(textId)}" data-sentence-id="${v3EscapeHtml(sentenceId)}">
+         <div class="v3-note-hit-title">${v3EscapeHtml(tTitle)}${topicHtml}</div>
         <div class="v3-note-hit-meta">
           ${Number.isFinite(orderIndex) ? ("Строка № <b>" + v3EscapeHtml(String(orderIndex + 1)) + "</b> · ") : ""}
           ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b>") : ""}
@@ -6616,9 +6895,13 @@ function v3RowsRender(scope, qRaw, results, rowsOnly) {
     `;
   }
 
-  box.style.display = "block";
+    box.style.display = "block";
   box.innerHTML = html;
+
+  // keep active highlight stable on any re-render
+  try { v3NavAutoApplyActiveHitFromSession(scope, "rows"); } catch (_) {}
 }
+
 
 function v3RowsSearchSchedule(scope, opts) {
   const st = v3RowsGetState();
