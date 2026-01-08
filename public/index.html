@@ -1705,6 +1705,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
   padding: 10px 12px;
 }
 
+.v3-notes-matches mark {
+  padding: 0 2px;
+  border-radius: 6px;
+}
+
 .v3-notes-matches-title {
   font-weight: 900;
   font-size: 13px;
@@ -2608,10 +2613,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
    <select
     id="v3SearchScopeLib"
     onchange="v3OnSearchScopeChange(this.value, 'lib')"
-    title="Поиск: Тексты — только карточки текстов; Тексты + заметки — метаданные + notes; Только заметки — только notes (Premium)"
+    title="Поиск: Тексты — карточки текстов (метаданные); Both — тексты + заметки + строки; Только строки — поиск внутри строк (he/translit/ru); Только заметки — поиск в заметках (Premium)"
   >
     <option value="texts">Поиск: Тексты</option>
-    <option value="both">Поиск: Тексты + заметки</option>
+    <option value="both">Поиск: Тексты + заметки + строки</option>
+    <option value="rows">Поиск: Только строки</option>
     <option value="notes">Поиск: Только заметки</option>
   </select>
   
@@ -2638,6 +2644,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
 	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
 	  <div id="v3LibraryNotesMatches" class="v3-notes-matches" style="display:none;"></div>
+	  <div id="v3LibraryRowsMatches" class="v3-notes-matches" style="display:none;"></div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
     </div>
   </div>
@@ -2685,10 +2692,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
 		<select
 			id="v3SearchScopeDash"
 			onchange="v3OnSearchScopeChange(this.value, 'dash')"
-			title="Поиск: Тексты — только карточки текстов; Тексты + заметки — метаданные + notes; Только заметки — только notes (Premium)"
+			title="Поиск: Тексты — карточки текстов (метаданные); Both — тексты + заметки + строки; Только строки — поиск внутри строк (he/translit/ru); Только заметки — поиск в заметках (Premium)"
 		>
 			<option value="texts">Поиск: Тексты</option>
-			<option value="both">Поиск: Тексты + заметки</option>
+			<option value="both">Поиск: Тексты + заметки + строки</option>
+			<option value="rows">Поиск: Только строки</option>
 			<option value="notes">Поиск: Только заметки</option>
 		</select>
 		
@@ -2771,6 +2779,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
 	  <div id="v3DashMetrics" class="v3-lib-muted" style="margin-top:6px;"></div>
 	  
 	  <div id="v3DashNotesMatches" class="v3-notes-matches" style="display:none;"></div>
+	  
+	  <div id="v3DashRowsMatches" class="v3-notes-matches" style="display:none;"></div>
 
  <div id="v3DashLayout" class="v3-dash-layout">
   <div class="v3-dash-left">
@@ -5553,6 +5563,7 @@ let v3NotesClicksBoundDash = false;
 function v3SearchScopeNormalize(v) {
   const s = String(v || "").trim().toLowerCase();
   if (s === "notes") return "notes";
+  if (s === "rows") return "rows";
   if (s === "both") return "both";
   return "texts";
 }
@@ -5595,34 +5606,45 @@ function v3SearchScopeSet(scope) {
 
 function v3NotesGetState() {
   const s = v3SearchScopeGet();
-  const includeNotes = (s !== "texts");
+  const includeNotes = (s === "both" || s === "notes");
   const notesOnly = (s === "notes");
   return { includeNotes, notesOnly, scope: s };
+}
+
+function v3RowsGetState() {
+  const s = v3SearchScopeGet();
+  const includeRows = (s === "both" || s === "rows");
+  const rowsOnly = (s === "rows");
+  return { includeRows, rowsOnly, scope: s };
 }
 
 function v3ApplySearchScopeUi(scope) {
   const s = v3SearchScopeNormalize(scope);
 
-  // Library: hide text list in Notes-only scope
+  // Library: hide text list in Notes-only / Rows-only scope
   try {
     const list = document.getElementById("v3LibraryList");
-    if (list) list.style.display = (s === "notes") ? "none" : "";
+    if (list) list.style.display = (s === "notes" || s === "rows") ? "none" : "";
   } catch (_) {}
 
-  // Dashboard: hide main layout + metrics in Notes-only scope
+  // Dashboard: hide main layout + metrics in Notes-only / Rows-only scope
   try {
     const lay = document.getElementById("v3DashLayout") || document.querySelector("#v3DashboardModal .v3-dash-layout");
-    if (lay) lay.style.display = (s === "notes") ? "none" : "";
+    if (lay) lay.style.display = (s === "notes" || s === "rows") ? "none" : "";
   } catch (_) {}
   try {
     const met = document.getElementById("v3DashMetrics");
-    if (met) met.style.display = (s === "notes") ? "none" : "";
+    if (met) met.style.display = (s === "notes" || s === "rows") ? "none" : "";
   } catch (_) {}
 
-  // In Texts scope we hide notes blocks explicitly
-  if (s === "texts") {
+  // In scopes where a block must be hidden explicitly
+  if (s === "texts" || s === "rows") {
     try { v3NotesHide("lib"); } catch (_) {}
     try { v3NotesHide("dash"); } catch (_) {}
+  }
+  if (s === "texts" || s === "notes") {
+    try { v3RowsHide("lib"); } catch (_) {}
+    try { v3RowsHide("dash"); } catch (_) {}
   }
 }
 
@@ -5643,19 +5665,24 @@ function v3OnSearchScopeChange(scope, origin) {
   v3SearchScopeSet(s);
   v3NotesSyncUi();
 
-  // refresh blocks (best-effort)
+ // refresh blocks (best-effort)
   try {
     const mLib = document.getElementById("v3LibraryModal");
     if (mLib && !mLib.classList.contains("hidden")) {
       if (typeof v3LibraryApplyFilter === "function") v3LibraryApplyFilter();
-      v3NotesSearchSchedule("lib", { force: true });
+
+      try { if (typeof v3NotesSearchSchedule === "function") v3NotesSearchSchedule("lib", { force: true }); } catch (_) {}
+      try { if (typeof v3RowsSearchSchedule === "function") v3RowsSearchSchedule("lib", { force: true }); } catch (_) {}
     }
   } catch (_) {}
+
   try {
     const mDash = document.getElementById("v3DashboardModal");
     if (mDash && !mDash.classList.contains("hidden")) {
       if (typeof v3DashboardOnFilterChange === "function") v3DashboardOnFilterChange();
-      v3NotesSearchSchedule("dash", { force: true });
+
+      try { if (typeof v3NotesSearchSchedule === "function") v3NotesSearchSchedule("dash", { force: true }); } catch (_) {}
+      try { if (typeof v3RowsSearchSchedule === "function") v3RowsSearchSchedule("dash", { force: true }); } catch (_) {}
     }
   } catch (_) {}
 }
@@ -5994,6 +6021,260 @@ async function v3NotesSearchNow(scope, opts) {
     }
   }
 }
+
+// --------------------------------------------------------
+// Wave E (Premium PRO): Rows search UI (E1.3)
+// --------------------------------------------------------
+let v3RowsTimerLib = null;
+let v3RowsTimerDash = null;
+let v3RowsLastKeyLib = null;
+let v3RowsLastKeyDash = null;
+let v3RowsClicksBoundLib = false;
+let v3RowsClicksBoundDash = false;
+
+function v3RowsBoxId(scope) {
+  return (scope === "lib") ? "v3LibraryRowsMatches" : "v3DashRowsMatches";
+}
+
+function v3RowsJsQuote(s) {
+  return String(s || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+}
+
+function v3RowsBindClicksOnce(scope) {
+  if (scope === "lib") {
+    if (v3RowsClicksBoundLib) return;
+    const box = document.getElementById("v3LibraryRowsMatches");
+    if (!box) return;
+    v3RowsClicksBoundLib = true;
+
+    box.addEventListener("click", (ev) => {
+      try {
+        const tgt = ev && ev.target;
+        if (!tgt || !tgt.closest) return;
+
+        const chip = tgt.closest(".v3-lib-chip, .v3-lib-topic-chip");
+        if (!chip) return;
+
+        const val = v3ExtractTagFromChipText(chip);
+        if (!val) return;
+
+        const isTopic = chip.classList && chip.classList.contains("v3-lib-topic-chip");
+        const s = v3LibEl("v3LibrarySearch");
+        if (!s) return;
+
+        s.value = isTopic ? v3MergeTopicIntoQuery(s.value, val) : v3MergeTagIntoQuery(s.value, val);
+        v3LibraryOnSearchInput();
+      } catch (_) {}
+    });
+
+    return;
+  }
+
+  if (v3RowsClicksBoundDash) return;
+  const box2 = document.getElementById("v3DashRowsMatches");
+  if (!box2) return;
+  v3RowsClicksBoundDash = true;
+
+  box2.addEventListener("click", (ev) => {
+    try {
+      const tgt = ev && ev.target;
+      if (!tgt || !tgt.closest) return;
+
+      const chip = tgt.closest(".v3-lib-chip, .v3-lib-topic-chip");
+      if (!chip) return;
+
+      const val = v3ExtractTagFromChipText(chip);
+      if (!val) return;
+
+      const isTopic = chip.classList && chip.classList.contains("v3-lib-topic-chip");
+      const s = v3DashEl("v3DashSearch");
+      if (!s) return;
+
+      s.value = isTopic ? v3MergeTopicIntoQuery(s.value, val) : v3MergeTagIntoQuery(s.value, val);
+      v3DashboardOnFilterChange();
+    } catch (_) {}
+  });
+}
+
+function v3RowsHide(scope) {
+  const box = document.getElementById(v3RowsBoxId(scope));
+  if (!box) return;
+  box.style.display = "none";
+  box.innerHTML = "";
+}
+
+function v3RowsRender(scope, qRaw, results, rowsOnly) {
+  const box = document.getElementById(v3RowsBoxId(scope));
+  if (!box) return;
+
+  const q = String(qRaw || "").trim();
+  const rs = Array.isArray(results) ? results : [];
+  const n = rs.length;
+
+  if (!rowsOnly && n === 0) {
+    v3RowsHide(scope);
+    return;
+  }
+
+  const needles = v3NotesExtractNeedles(q);
+
+  let html = `<div class="v3-notes-matches-title">Совпадения в строках (${n})</div>`;
+
+  // rowsOnly: не “сканируем всё”, при пустом q просто показываем “ничего”
+  if (!q || n === 0) {
+    html += `<div class="v3-note-empty">Ничего не найдено.</div>`;
+    box.style.display = "block";
+    box.innerHTML = html;
+    return;
+  }
+
+  for (const r of rs) {
+    const textId = String(r.textId || "");
+    const sentenceId = String(r.sentenceId || "");
+    const orderIndex = Number(r.orderIndex);
+
+    const tTitle = String(r.title || "Без названия");
+    const level = String(r.level || "");
+    const topic = String(r.topic || "");
+
+    const he = String(r.he || "");
+    const heNiq = String(r.he_niqqud || "");
+    const translit = String(r.translit || "");
+    const ru = String(r.ru || "");
+
+    const tagsArr = Array.isArray(r.tags) ? r.tags : [];
+    const tagsHtml = tagsArr.slice(0, 8).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(String(x)) + "</span>").join("");
+    const topicHtml = topic ? (" <span class='v3-lib-topic-chip'>" + v3EscapeHtml(topic) + "</span>") : "";
+
+    const heSnippet = v3NotesMakeSnippet(he, 180);
+    const heNiqSnippet = (heNiq && heNiq !== he) ? v3NotesMakeSnippet(heNiq, 180) : "";
+    const trSnippet = translit ? v3NotesMakeSnippet(translit, 180) : "";
+    const ruSnippet = ru ? v3NotesMakeSnippet(ru, 220) : "";
+
+    const tidJs = v3RowsJsQuote(textId);
+    const sidJs = v3RowsJsQuote(sentenceId);
+    const idxJs = Number.isFinite(orderIndex) ? String(orderIndex) : "null";
+
+    html += `
+      <div class="v3-note-hit" data-text-id="${v3EscapeHtml(textId)}" data-sentence-id="${v3EscapeHtml(sentenceId)}">
+        <div class="v3-note-hit-title">${v3EscapeHtml(tTitle)}${topicHtml}</div>
+        <div class="v3-note-hit-meta">
+          ${Number.isFinite(orderIndex) ? ("Строка № <b>" + v3EscapeHtml(String(orderIndex + 1)) + "</b> · ") : ""}
+          ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b>") : ""}
+        </div>
+
+        ${tagsHtml ? (`<div style="margin-top:6px;">${tagsHtml}</div>`) : ""}
+
+        ${heSnippet ? (`<div class="v3-note-hit-snippet"><b>Иврит:</b> ${v3NotesMark(heSnippet, needles)}</div>`) : ""}
+        ${heNiqSnippet ? (`<div class="v3-note-hit-snippet"><b>Иврит (никуд):</b> ${v3NotesMark(heNiqSnippet, needles)}</div>`) : ""}
+        ${trSnippet ? (`<div class="v3-note-hit-snippet"><b>Транскрипция:</b> ${v3NotesMark(trSnippet, needles)}</div>`) : ""}
+        ${ruSnippet ? (`<div class="v3-note-hit-snippet"><b>Перевод:</b> ${v3NotesMark(ruSnippet, needles)}</div>`) : ""}
+
+        <div class="v3-note-hit-actions">
+          <button class="btn-secondary btn-mini" onclick="v3NotesJumpStub('${tidJs}','${sidJs}',${idxJs})">Перейти к строке</button>
+        </div>
+      </div>
+    `;
+  }
+
+  box.style.display = "block";
+  box.innerHTML = html;
+}
+
+function v3RowsSearchSchedule(scope, opts) {
+  const st = v3RowsGetState();
+  if (!st.includeRows) {
+    v3RowsHide(scope);
+    return;
+  }
+
+  if (scope === "lib") {
+    if (v3RowsTimerLib) clearTimeout(v3RowsTimerLib);
+    v3RowsTimerLib = setTimeout(() => v3RowsSearchNow("lib", opts), 300);
+    return;
+  }
+
+  if (v3RowsTimerDash) clearTimeout(v3RowsTimerDash);
+  v3RowsTimerDash = setTimeout(() => v3RowsSearchNow("dash", opts), 300);
+}
+
+async function v3RowsSearchNow(scope, opts) {
+  const st = v3RowsGetState();
+  if (!st.includeRows) {
+    v3RowsHide(scope);
+    return;
+  }
+
+  v3RowsBindClicksOnce(scope);
+
+  const qElId = (scope === "lib") ? "v3LibrarySearch" : "v3DashSearch";
+  const qRaw = String((document.getElementById(qElId) && document.getElementById(qElId).value) || "").trim();
+
+  if (!qRaw) {
+    if (st.rowsOnly) v3RowsRender(scope, qRaw, [], true);
+    else v3RowsHide(scope);
+    return;
+  }
+
+  if (st.rowsOnly && qRaw.length < 2) {
+    v3RowsRender(scope, qRaw, [], true);
+    return;
+  }
+
+  const levelElId = (scope === "lib") ? "v3LibraryLevel" : "v3DashLevel";
+  const level = String((document.getElementById(levelElId) && document.getElementById(levelElId).value) || "").trim() || null;
+
+  let includeArchived = false;
+  if (scope === "dash") {
+    includeArchived = !!(document.getElementById("v3DashIncludeArchived") && document.getElementById("v3DashIncludeArchived").checked);
+  }
+
+  const tagMode = (typeof v3GetTagMatchMode === "function") ? v3GetTagMatchMode() : "all";
+  const limit = 50;
+  const offset = 0;
+
+  const keyObj = { q: qRaw, includeArchived: !!includeArchived, level: level || null, tagMode: tagMode || "all", limit, offset };
+  const key = JSON.stringify(keyObj);
+  const force = !!(opts && opts.force);
+
+  if (scope === "lib") {
+    if (!force && v3RowsLastKeyLib === key) return;
+    v3RowsLastKeyLib = key;
+  } else {
+    if (!force && v3RowsLastKeyDash === key) return;
+    v3RowsLastKeyDash = key;
+  }
+
+  const box = document.getElementById(v3RowsBoxId(scope));
+  if (box) {
+    box.style.display = "block";
+    box.innerHTML = `<div class="v3-notes-matches-title">Совпадения в строках</div><div class="v3-note-empty">Поиск…</div>`;
+  }
+
+  try {
+    const p = new URLSearchParams();
+    p.set("q", qRaw);
+    p.set("includeArchived", includeArchived ? "1" : "0");
+    if (level) p.set("level", level);
+    p.set("tagMode", tagMode || "all");
+    p.set("limit", String(limit));
+    p.set("offset", String(offset));
+
+    const url = "/api/sentences/search?" + p.toString();
+    const res = await v3GetJson(url);
+    const results = (res && Array.isArray(res.results)) ? res.results : [];
+    v3RowsRender(scope, qRaw, results, !!st.rowsOnly);
+  } catch (e) {
+    console.warn("[v3RowsSearchNow] failed:", e);
+    if (box) {
+      box.style.display = "block";
+      box.innerHTML = `<div class="v3-notes-matches-title">Совпадения в строках</div><div class="v3-note-empty">Ошибка поиска (см. console).</div>`;
+    }
+  }
+}
+
+window.v3RowsSearchSchedule = v3RowsSearchSchedule;
+window.v3RowsSearchNow = v3RowsSearchNow;
 
 // --------------------------------------------------------
 // Wave D (Premium PRO): Jump-to-sentence (D4)
@@ -7208,6 +7489,7 @@ function v3LibraryApplyFilter() {
   v3RenderTagFacets(v3LibEl("v3LibraryFacets"), sorted, 18);
     // Wave D (D3): schedule notes search block update
   try { v3NotesSearchSchedule("lib"); } catch (_) {}
+    try { v3RowsSearchSchedule("lib"); } catch (_) {}
 }
 
 function v3LibraryRenderList(texts) {
@@ -8407,6 +8689,7 @@ function v3DashboardOnFilterChange() {
   } catch (_) {}
     // Wave D (D3): schedule notes search block update
   try { v3NotesSearchSchedule("dash"); } catch (_) {}
+    try { v3RowsSearchSchedule("dash"); } catch (_) {}
 }
 
 function v3DashNorm(s) { return String(s || "").trim().toLowerCase(); }
