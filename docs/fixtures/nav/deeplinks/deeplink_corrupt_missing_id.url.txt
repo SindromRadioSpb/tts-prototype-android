@@ -1,0 +1,3 @@
+/#/t/eyJ2IjoxLCJ0eXBlIjoic2VudGVuY2UifQ
+Payload decodes to JSON: {"v":1,"type":"sentence"}  (schema invalid: missing required "id")
+Expected: CORRUPT UI (“Некорректная ссылка”) + CTA “Открыть Dashboard”.

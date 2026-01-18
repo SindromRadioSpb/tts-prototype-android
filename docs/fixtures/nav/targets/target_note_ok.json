@@ -1,0 +1,22 @@
+{
+  "v": 1,
+  "type": "note",
+  "id": "n_501",
+  "ref": {
+    "textId": "t_1001",
+    "sentenceId": "s_0007",
+    "rowId": null,
+    "noteId": "n_501",
+    "scope": "both",
+    "q": "corrosion",
+    "filtersKey": "level=&arch=0&tagMode=all"
+  },
+  "context": {
+    "ui": {
+      "origin": "lib",
+      "activeType": "notes",
+      "activeIndex": 0,
+      "scroll": { "key": "lib:notes", "top": 120 }
+    }
+  }
+}

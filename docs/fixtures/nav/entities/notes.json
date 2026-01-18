@@ -1,0 +1,21 @@
+{
+  "v": 1,
+  "notes": [
+    {
+      "noteId": "n_501",
+      "textId": "t_1001",
+      "sentenceId": "s_0007",
+      "rowId": null,
+      "updatedAt": "2026-01-18T00:10:00Z",
+      "content_md": "Fixture note n_501: кратко про осадки и упрочнение (precipitation hardening)."
+    },
+    {
+      "noteId": "n_502",
+      "textId": "t_1002",
+      "sentenceId": "s_0003",
+      "rowId": null,
+      "updatedAt": "2026-01-18T00:12:00Z",
+      "content_md": "Fixture note n_502: питтинг в хлоридной среде; напоминание про пассивацию."
+    }
+  ]
+}

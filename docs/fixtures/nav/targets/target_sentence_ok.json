@@ -1,0 +1,22 @@
+{
+  "v": 1,
+  "type": "sentence",
+  "id": "s_0003",
+  "ref": {
+    "textId": "t_1002",
+    "sentenceId": null,
+    "rowId": null,
+    "noteId": null,
+    "scope": "both",
+    "q": "corrosion",
+    "filtersKey": "level=&arch=0&tagMode=all"
+  },
+  "context": {
+    "ui": {
+      "origin": "lib",
+      "activeType": "rows",
+      "activeIndex": 1,
+      "scroll": { "key": "lib:rows", "top": 520 }
+    }
+  }
+}

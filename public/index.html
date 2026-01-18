@@ -4132,6 +4132,355 @@ try { window.v3NavNext = v3NavNext; } catch (_) {}
 try { window.v3NavStickyShow = v3NavStickyShow; } catch (_) {}
 try { window.v3NavStickyHide = v3NavStickyHide; } catch (_) {}
 
+// --------------------------------------------------------
+// NAV-DEEPLINK-RUNTIME-01: Deep link boot + decode + resolve
+// Contracts: CONTRACTS_NAVIGATION.md, ADR-0001, ADR-0002
+// --------------------------------------------------------
+
+const V3_DEEPLINK_PREFIX = "/#/t/";
+const V3_DEEPLINK_TARGET_TYPES = ["text", "sentence", "note", "search"];
+const V3_DEEPLINK_SUPPORTED_VERSION = 1;
+
+/**
+ * base64url decode (URL-safe alphabet, no padding)
+ * @param {string} str
+ * @returns {string|null} decoded UTF-8 string or null on error
+ */
+function v3DeeplinkBase64urlDecode(str) {
+  try {
+    if (!str || typeof str !== "string") return null;
+    // Replace URL-safe chars with standard base64
+    let b64 = str.replace(/-/g, "+").replace(/_/g, "/");
+    // Add padding if needed
+    const pad = b64.length % 4;
+    if (pad === 2) b64 += "==";
+    else if (pad === 3) b64 += "=";
+    else if (pad === 1) return null; // invalid
+    // Decode
+    const bin = atob(b64);
+    // UTF-8 decode via TextDecoder
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder("utf-8").decode(bytes);
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Parse deep link hash → Target object or error
+ * @param {string} hash - location.hash (e.g. "#/t/eyJ2Ijo...")
+ * @returns {{ ok: boolean, target?: object, error?: string }}
+ */
+function v3DeeplinkParse(hash) {
+  try {
+    if (!hash || typeof hash !== "string") return { ok: false, error: "EMPTY_HASH" };
+
+    // Remove leading # if present
+    const h = hash.startsWith("#") ? hash.slice(1) : hash;
+
+    // Check prefix
+    if (!h.startsWith("/t/")) return { ok: false, error: "NO_DEEPLINK" };
+
+    const payload = h.slice(3); // after "/t/"
+    if (!payload) return { ok: false, error: "EMPTY_PAYLOAD" };
+
+    // Decode base64url
+    const jsonStr = v3DeeplinkBase64urlDecode(payload);
+    if (!jsonStr) return { ok: false, error: "CORRUPT_BASE64" };
+
+    // Parse JSON
+    let target = null;
+    try {
+      target = JSON.parse(jsonStr);
+    } catch (_) {
+      return { ok: false, error: "CORRUPT_JSON" };
+    }
+
+    if (!target || typeof target !== "object") return { ok: false, error: "CORRUPT_NOT_OBJECT" };
+
+    return { ok: true, target };
+  } catch (_) {
+    return { ok: false, error: "CORRUPT_UNKNOWN" };
+  }
+}
+
+/**
+ * Validate Target schema (minimal: v, type, id)
+ * @param {object} target
+ * @returns {{ ok: boolean, error?: string }}
+ */
+function v3DeeplinkValidateTarget(target) {
+  if (!target || typeof target !== "object") return { ok: false, error: "CORRUPT_NOT_OBJECT" };
+
+  // v must be integer
+  if (typeof target.v !== "number" || !Number.isInteger(target.v)) {
+    return { ok: false, error: "CORRUPT_MISSING_V" };
+  }
+
+  // Check supported version
+  if (target.v !== V3_DEEPLINK_SUPPORTED_VERSION) {
+    return { ok: false, error: "UNSUPPORTED_VERSION" };
+  }
+
+  // type must be string in enum
+  if (typeof target.type !== "string" || !V3_DEEPLINK_TARGET_TYPES.includes(target.type)) {
+    return { ok: false, error: "UNSUPPORTED_TYPE" };
+  }
+
+  // id must be non-empty string
+  if (typeof target.id !== "string" || target.id.length === 0) {
+    return { ok: false, error: "CORRUPT_MISSING_ID" };
+  }
+
+  return { ok: true };
+}
+
+/**
+ * Show CORRUPT UI banner with CTA
+ * @param {string} errorCode
+ */
+function v3DeeplinkShowCorrupt(errorCode) {
+  const msg = "Некорректная ссылка" + (errorCode ? " (" + errorCode + ")" : "");
+  console.warn("[NAV-DEEPLINK] CORRUPT:", errorCode);
+
+  // Use toast + open Dashboard as safe fallback
+  if (typeof showToast === "function") showToast(msg, "error");
+
+  // Show confirmation dialog with CTA
+  setTimeout(() => {
+    if (confirm(msg + "\n\nОткрыть Dashboard?")) {
+      try { if (typeof v3DashboardOpen === "function") v3DashboardOpen(); } catch (_) {}
+    }
+  }, 100);
+}
+
+/**
+ * Show NOT_FOUND UI banner with CTA
+ * @param {object} target
+ */
+function v3DeeplinkShowNotFound(target) {
+  const typeLabel = target && target.type ? String(target.type) : "элемент";
+  const idLabel = target && target.id ? String(target.id) : "";
+  const msg = "Элемент не найден: " + typeLabel + (idLabel ? " " + idLabel : "");
+  console.warn("[NAV-DEEPLINK] NOT_FOUND:", target);
+
+  if (typeof showToast === "function") showToast(msg, "error");
+
+  setTimeout(() => {
+    if (confirm(msg + "\n\nОткрыть Dashboard?")) {
+      try { if (typeof v3DashboardOpen === "function") v3DashboardOpen(); } catch (_) {}
+    }
+  }, 100);
+}
+
+/**
+ * Resolve Target and navigate
+ * @param {object} target
+ * @returns {Promise<{ ok: boolean, error?: string }>}
+ */
+async function v3DeeplinkResolveTarget(target) {
+  try {
+    const type = target.type;
+    const id = target.id;
+
+    // Get textId from ref or id (for type=text)
+    const textId = (type === "text")
+      ? id
+      : (target.ref && target.ref.textId) ? String(target.ref.textId) : null;
+
+    // Get sentenceId for jump
+    const sentenceId = (type === "sentence")
+      ? id
+      : (target.ref && target.ref.sentenceId) ? String(target.ref.sentenceId) : null;
+
+    // type=sentence requires textId for navigation
+    if (type === "sentence") {
+      if (!textId) {
+        // Gap: need API /api/nav/resolve to lookup textId by sentenceId
+        // For now, show NOT_FOUND since we cannot resolve without textId
+        console.warn("[NAV-DEEPLINK] type=sentence without ref.textId — cannot resolve (Gap: needs backend resolve)");
+        return { ok: false, error: "MISSING_TEXT_ID" };
+      }
+
+      // Open text and jump to sentence
+      try {
+        await v3LibraryOpenText(textId, { resumeSentenceId: sentenceId, origin: "deeplink" });
+
+        // Wait for DOM to stabilize, then find and flash the sentence
+        await new Promise(r => setTimeout(r, 300));
+
+        const rowIdx = (typeof v3NotesFindRowIdxBySentenceId === "function")
+          ? v3NotesFindRowIdxBySentenceId(sentenceId)
+          : null;
+
+        if (rowIdx === null) {
+          // Sentence not found in loaded text
+          return { ok: false, error: "SENTENCE_NOT_IN_TEXT" };
+        }
+
+        // Flash and scroll
+        if (typeof setRowSelectedUI === "function") setRowSelectedUI(rowIdx);
+        if (typeof v3NotesFlashRow === "function") v3NotesFlashRow(rowIdx);
+
+        try {
+          const tr = document.querySelector('#proTable tbody tr[data-row-idx="' + String(rowIdx) + '"]');
+          if (tr && tr.scrollIntoView) tr.scrollIntoView({ block: "center", behavior: "smooth" });
+        } catch (_) {}
+
+        return { ok: true };
+      } catch (e) {
+        const msg = e && e.message ? String(e.message) : "";
+        if (msg.includes("NOT_FOUND") || msg.includes("404")) {
+          return { ok: false, error: "TEXT_NOT_FOUND" };
+        }
+        throw e;
+      }
+    }
+
+    // type=text: open text (optionally jump to anchor)
+    if (type === "text") {
+      const anchorSentenceId = (target.context && target.context.anchor && target.context.anchor.sentence_id)
+        ? String(target.context.anchor.sentence_id)
+        : null;
+
+      try {
+        await v3LibraryOpenText(id, { resumeSentenceId: anchorSentenceId, origin: "deeplink" });
+        return { ok: true };
+      } catch (e) {
+        const msg = e && e.message ? String(e.message) : "";
+        if (msg.includes("NOT_FOUND") || msg.includes("404")) {
+          return { ok: false, error: "TEXT_NOT_FOUND" };
+        }
+        throw e;
+      }
+    }
+
+    // type=note: open text + note modal (simplified for now)
+    if (type === "note") {
+      // noteId = id, need textId + sentenceId from ref
+      const noteTextId = (target.ref && target.ref.textId) ? String(target.ref.textId) : null;
+      const noteSentenceId = (target.ref && target.ref.sentenceId) ? String(target.ref.sentenceId) : null;
+
+      if (!noteTextId) {
+        return { ok: false, error: "MISSING_TEXT_ID_FOR_NOTE" };
+      }
+
+      try {
+        await v3LibraryOpenText(noteTextId, { resumeSentenceId: noteSentenceId, origin: "deeplink" });
+
+        // Wait and try to open note modal
+        await new Promise(r => setTimeout(r, 300));
+
+        if (noteSentenceId && typeof v3NotesOpen === "function") {
+          const rowIdx = (typeof v3NotesFindRowIdxBySentenceId === "function")
+            ? v3NotesFindRowIdxBySentenceId(noteSentenceId)
+            : null;
+          if (rowIdx !== null) {
+            v3NotesOpen(noteTextId, noteSentenceId, rowIdx);
+          }
+        }
+
+        return { ok: true };
+      } catch (e) {
+        const msg = e && e.message ? String(e.message) : "";
+        if (msg.includes("NOT_FOUND") || msg.includes("404")) {
+          return { ok: false, error: "TEXT_NOT_FOUND" };
+        }
+        throw e;
+      }
+    }
+
+    // type=search: restore search session (simplified — just open Dashboard with context)
+    if (type === "search") {
+      // Restore search context if available
+      const searchScope = (target.ref && target.ref.scope) ? String(target.ref.scope) : null;
+      const searchQ = (target.ref && target.ref.q) ? String(target.ref.q) : null;
+
+      // Set session and open Dashboard
+      if (typeof v3SearchSessionSet === "function" && searchQ) {
+        v3SearchSessionSet({
+          origin: "dash",
+          scope: searchScope,
+          qRaw: searchQ,
+        });
+      }
+
+      if (typeof v3DashboardOpen === "function") v3DashboardOpen();
+      return { ok: true };
+    }
+
+    // Unknown type (should not happen after validation)
+    return { ok: false, error: "UNSUPPORTED_TYPE" };
+  } catch (e) {
+    console.error("[NAV-DEEPLINK] resolveTarget error:", e);
+    return { ok: false, error: "RESOLVE_ERROR" };
+  }
+}
+
+/**
+ * Boot from deep link (entry point)
+ * Priority: hash > session > default (ADR-0001)
+ * @returns {Promise<boolean>} true if deep link was handled
+ */
+async function v3DeeplinkBoot() {
+  const hash = window.location.hash;
+
+  // No hash or not a deep link
+  if (!hash || !hash.includes("/t/")) {
+    return false;
+  }
+
+  console.log("[NAV-DEEPLINK] Boot from hash:", hash);
+
+  // Parse
+  const parsed = v3DeeplinkParse(hash);
+  if (!parsed.ok) {
+    if (parsed.error === "NO_DEEPLINK" || parsed.error === "EMPTY_HASH") {
+      return false; // Not a deep link, continue with session/default
+    }
+    // CORRUPT
+    v3DeeplinkShowCorrupt(parsed.error);
+    // Clear hash to prevent re-trigger
+    try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {}
+    return true;
+  }
+
+  // Validate
+  const validation = v3DeeplinkValidateTarget(parsed.target);
+  if (!validation.ok) {
+    v3DeeplinkShowCorrupt(validation.error);
+    try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {}
+    return true;
+  }
+
+  // Resolve
+  const result = await v3DeeplinkResolveTarget(parsed.target);
+  if (!result.ok) {
+    v3DeeplinkShowNotFound(parsed.target);
+    try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {}
+    return true;
+  }
+
+  // Success — clear hash to avoid re-trigger on reload
+  try { history.replaceState(null, "", window.location.pathname + window.location.search); } catch (_) {}
+  return true;
+}
+
+// hashchange listener for in-app navigation
+window.addEventListener("hashchange", async () => {
+  try {
+    await v3DeeplinkBoot();
+  } catch (e) {
+    console.error("[NAV-DEEPLINK] hashchange error:", e);
+  }
+});
+
+// Debug exports
+try { window.v3DeeplinkBoot = v3DeeplinkBoot; } catch (_) {}
+try { window.v3DeeplinkParse = v3DeeplinkParse; } catch (_) {}
+try { window.v3DeeplinkResolveTarget = v3DeeplinkResolveTarget; } catch (_) {}
+
 const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
     const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
 	// PRO: user-resizable table height
@@ -14194,8 +14543,22 @@ initRowUxDelegatesOnce();
 
 // Restore last opened Library/Dashboard text after reload (F5).
 // Runs after initial UI bootstrap; safe even if the Library modal is closed.
-window.addEventListener("load", () => {
+// NAV-DEEPLINK-RUNTIME-01: boot priority is hash > session (ADR-0001)
+window.addEventListener("load", async () => {
 try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchResumeIfNeeded({ openModalIfRunning: false }); } catch (_) {}
+
+  // NAV-DEEPLINK-RUNTIME-01: check hash deeplink FIRST (priority over session restore)
+  try {
+    const deeplinkHandled = await v3DeeplinkBoot();
+    if (deeplinkHandled) {
+      console.log("[NAV-DEEPLINK] Boot handled deeplink, skipping session restore");
+      window.__v3_restoreOnLoadRan = true;
+      return;
+    }
+  } catch (e) {
+    console.warn("[NAV-DEEPLINK] Boot error (non-fatal, continue with session restore):", e);
+  }
+
   try {
     const st = v3SessionGet();
     if (!st || st.mode !== "library" || !st.textId) return;
