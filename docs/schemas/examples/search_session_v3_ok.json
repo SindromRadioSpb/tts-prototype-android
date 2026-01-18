@@ -1,0 +1,41 @@
+{
+  "origin": "lib",
+  "scope": "both",
+  "qRaw": "corrosion",
+  "filtersKey": "level=&arch=0&tagMode=all&notesOnly=0&rowsOnly=0",
+  "notesResults": [
+    {
+      "textId": "t_1001",
+      "sentenceId": "s_0007",
+      "orderIndex": 7,
+      "noteId": "n_501",
+      "snippet": "…corrosion mechanisms…",
+      "highlight": "corrosion"
+    }
+  ],
+  "rowsResults": [
+    {
+      "textId": "t_1001",
+      "sentenceId": "s_0012",
+      "orderIndex": 12,
+      "rowId": "r_0012",
+      "snippet": "…pitting corrosion…",
+      "highlight": "pitting"
+    },
+    {
+      "textId": "t_1002",
+      "sentenceId": "s_0003",
+      "orderIndex": 3,
+      "rowId": "r_0003",
+      "snippet": "…stress corrosion cracking (SCC)…",
+      "highlight": "SCC"
+    }
+  ],
+  "activeType": "rows",
+  "activeIndex": 1,
+  "scrollRestore": {
+    "lib:rows": { "scrollTop": 520, "savedAt": "2026-01-18T05:10:00.000Z" },
+    "lib:notes": { "scrollTop": 120, "savedAt": "2026-01-18T05:09:30.000Z" }
+  },
+  "updatedAt": "2026-01-18T05:10:05.000Z"
+}

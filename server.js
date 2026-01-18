@@ -14,6 +14,8 @@ const http = require("http");
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
 
 const { runMigrations, getMigrationsHealth } = require("./db/migrate");
+const { startupCheck } = require("./db/integrity");
+const { createBackup, cleanupBackups, DEFAULT_MAX_BACKUPS } = require("./db/backup");
 
 const textToSpeech = require("@google-cloud/text-to-speech");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -117,6 +119,15 @@ initDb(DB_PATH)
       }
     } catch (e) {
       console.warn("[db] ensureAudioAssetsDurationMsColumn threw (non-fatal):", e && e.message);
+    }
+
+    // DATA-PROTECT-01: startup integrity check (non-blocking)
+    try {
+      const { getDb } = require("./db/sqlite");
+      const db = getDb();
+      await startupCheck(db);
+    } catch (e) {
+      console.warn("[db] startupCheck failed (non-fatal):", e && e.message);
     }
   })
   .catch((e) => {
@@ -4780,6 +4791,24 @@ app.post("/api/library/import", async (req, res) => {
     }
     if (!Array.isArray(items) || items.length < 1) {
       return res.status(400).json({ error: "VALIDATION", field: "texts" });
+    }
+
+    // DATA-PROTECT-01: Pre-import backup for large imports (>10 texts)
+    const LARGE_IMPORT_THRESHOLD = 10;
+    let preImportBackupPath = null;
+    if (items.length > LARGE_IMPORT_THRESHOLD) {
+      try {
+        const backupResult = createBackup(DB_PATH, { label: "pre-import" });
+        if (backupResult.ok) {
+          preImportBackupPath = backupResult.backupPath;
+          console.log(`[import] Pre-import backup created: ${preImportBackupPath}`);
+          cleanupBackups(DEFAULT_MAX_BACKUPS);
+        } else {
+          console.warn(`[import] Pre-import backup failed (continuing): ${backupResult.error}`);
+        }
+      } catch (e) {
+        console.warn("[import] Pre-import backup error (continuing):", e && e.message);
+      }
     }
 
     let importedCount = 0;

@@ -95,6 +95,9 @@ async function initDb(dbPath) {
     // Enforce FK constraints.
     await exec(_db, "PRAGMA foreign_keys = ON;");
 
+    // Enable WAL mode for better crash recovery and concurrent access.
+    await exec(_db, "PRAGMA journal_mode = WAL;");
+
     // Minimal ping.
     await get(_db, "SELECT 1 AS one;");
 

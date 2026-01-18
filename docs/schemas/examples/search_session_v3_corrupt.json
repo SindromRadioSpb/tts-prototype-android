@@ -1,0 +1,20 @@
+{
+  "origin": "library",
+  "scope": "all",
+  "qRaw": 123,
+  "filtersKey": null,
+  "notesResults": {},
+  "rowsResults": [
+    {
+      "textId": "",
+      "sentenceId": "",
+      "orderIndex": -5
+    }
+  ],
+  "activeType": "rows",
+  "activeIndex": -1,
+  "scrollRestore": {
+    "lib:rows": { "top": "oops" }
+  },
+  "updatedAt": "not-a-date"
+}

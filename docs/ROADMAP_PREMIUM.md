@@ -112,3 +112,37 @@
 - задокументированы любые изменения контрактов,
 - smoke-check проходит в "зелёном" режиме,
 - QA-reviewer не блокирует релиз.
+
+---
+
+## DOC-AUDIT-NAV-01 — Coverage & Gaps (Single Source of Truth)
+
+Этот раздел фиксирует **только аудит/дыры документации** и НЕ является контрактом поведения.
+Контракты поведения: `docs/CONTRACTS_NAVIGATION.md`, схемы: `docs/schemas/*`, проверки: `docs/SMOKE-CHECK.md`.
+
+### Coverage (что уже формально описано)
+- Target v=1: структура + инварианты + ошибки: см. `docs/CONTRACTS_NAVIGATION.md`
+- Deep links: формат/encoding/boot priority/legacy: см. `docs/CONTRACTS_NAVIGATION.md`
+- NAV acceptance: NAV-01..NAV-07: см. `docs/CONTRACTS_NAVIGATION.md`
+- DB invariants по stable IDs: см. `docs/DB_SCHEMA.md`
+- Smoke triggers + NAV quick checks: см. `docs/SMOKE-CHECK.md`
+
+### Gap Register (открытые дыры)
+| Gap ID | Коротко | Где проявляется | Риск | Закрываем патчем |
+|---|---|---|---|---|
+| NAV-GAP-ROW-01 | row присутствует в терминах/примерах, но отсутствует в enum типов Target | CONTRACTS_NAVIGATION | невалидные target’ы / путаница type/id | DOC-GLOSSARY-DOMAIN-01 (+ выравнивание CONTRACTS) |
+| NAV-GAP-ID-SENT-02 | не зафиксирована уникальность sentenceId и необходимость ref.textId | CONTRACTS_NAVIGATION + DB_SCHEMA | deep link sentence может быть нерезолвим | DOC-GLOSSARY-DOMAIN-01 + DB evidence patch |
+| NAV-GAP-SEARCHKEY-03 | не определён searchKey (opaque) и его хранение | CONTRACTS_NAVIGATION | невоспроизводимые ссылки на выдачу | DOC-SCHEMA-SEARCH-SESSION-V3-01 + API_CONTRACTS |
+| NAV-GAP-SESSION-V3-04 | отсутствует контракт v3SearchSession (schema + examples) | CONTRACTS_NAVIGATION | restore/boot не детерминирован | DOC-SCHEMA-SEARCH-SESSION-V3-01 |
+| NAV-GAP-NAVSTACK-05 | не зафиксированы storage keys/limits/формат nav_stack | CONTRACTS_NAVIGATION | регрессии Back-to-results | DOC-NAV-CODEMAP-01 + schemas |
+| NAV-GAP-UI-MAP-06 | отсутствует UI_MAP (selectors/data-attrs) | SMOKE-CHECK (sticky bar) | ломается автоматизация/тестирование | DOC-UI-MAP-01 |
+| NAV-GAP-API-CONTRACTS-07 | нет API_CONTRACTS по search endpoints и hit invariants | ROADMAP P1/P2 | Claude “угадывает” JSON shape | DOC-API-CONTRACTS-01 |
+| NAV-GAP-FIXTURES-08 | нет fixtures для NAV сценариев (2 минуты) | SMOKE-CHECK | невоспроизводимость | DOC-FIXTURES-NAV-01 |
+| DB-GAP-REALITY-09 | DB_SCHEMA не подтверждена миграциями (таблицы/PK/FK могут отличаться) | DB_SCHEMA | контракт может не совпасть с фактом | DB evidence patch |
+| NAV-GAP-ORDERINDEX-10 | не описано где допустим orderIndex (только как UI-якорь, не ID) | CONTRACTS + UI | риск использования orderIndex как ID | DOC-GLOSSARY-DOMAIN-01 (+ Target schema запреты) |
+
+### Правило
+Любой патч, который закрывает Gap ID, обязан:
+1) обновить соответствующий контракт/схему,
+2) добавить/обновить smoke/acceptance,
+3) удалить или пометить Gap ID как CLOSED (с ссылкой на Patch ID).

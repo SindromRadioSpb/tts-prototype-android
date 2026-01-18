@@ -22,6 +22,25 @@
    - имеют стабильную канонизацию (например tags_json canonicalization)
    - документированы
 
+## 2.1. Navigation IDs — источник истины и стабильность
+
+Навигация (Premium) использует **только стабильные ID**. Позиционные индексы используются только как UI-помощники.
+
+| ID | Таблица/поле (контракт) | Стабильность | Примечание |
+|---|---|---|---|
+| textId | (таблица текстов).text_id | MUST | Используется для открытия текста и контекста sentence |
+| sentenceId | (таблица предложений).sentence_id или library_rows.row_id | MUST | Ключ jump-to-sentence и deep link sentence |
+| rowId | library_rows.row_id | MUST | Если строки выделены отдельно от sentence |
+| noteId | sentence_notes.note_id | MUST | Ключ deep link note |
+| order_index | sentences.order_index | NOT stable | Запрещено использовать как deep link id |
+| audio_id | audio_assets.audio_id | MUST | Привязка аудио к сущности по stable id |
+
+Обязательные связи для навигации:
+- sentenceId -> textId (иначе deep link sentence не может открыть правильный текст)
+- noteId -> sentenceId или rowId (иначе note deep link не может восстановить контекст)
+
+Если фактические имена таблиц отличаются — этот раздел должен быть обновлён на основании `migrations/*.sql` и `db/*Repo.js`.
+
 ## 3) Слои данных (логическая модель)
 ### 3.1. Library
 Назначение: хранение строк/текстов обучения и их метаданных.
@@ -116,3 +135,31 @@ Premium расширение:
 - Инструмент db-check (если есть) проходит.
 - Индексы присутствуют.
 - Контракты (docs) обновлены.
+
+---
+
+## DOC-AUDIT pointers (DOC-AUDIT-NAV-01)
+
+### Важно (DB evidence required)
+Этот документ — **контракт**, а фактическая схема подтверждается `migrations/*.sql` и `db/*Repo.js`.
+Перед тем как считать контракты NAV/Search/SRS/Notes “финальными”, требуется DB evidence patch.
+
+Минимальный чеклист DB evidence (точечно, без чтения больших файлов целиком):
+1) Подтвердить реальные таблицы и PK:
+   - texts: text_id
+   - rows/sentences: row_id и/или sentence_id
+   - notes: note_id
+2) Подтвердить связь для NAV resolver:
+   - sentenceId -> textId
+   - noteId -> sentenceId или rowId
+3) Подтвердить, что `order_index` существует и используется только как позиция (не как ID).
+4) Зафиксировать, где хранится `filtersKey`/search state (если в БД) и/или какая часть живёт только в sessionStorage.
+
+### Open gaps (см. единый реестр)
+Единый реестр дыр: `docs/ROADMAP_PREMIUM.md` → `DOC-AUDIT-NAV-01 — Gap Register`.
+
+Ссылки на ключевые Gap ID:
+- DB-GAP-REALITY-09
+- NAV-GAP-ROW-01
+- NAV-GAP-ID-SENT-02
+- NAV-GAP-ORDERINDEX-10

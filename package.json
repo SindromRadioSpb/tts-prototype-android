@@ -5,7 +5,12 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "db:migrate": "node db/migrate-cli.js"
+    "db:migrate": "node db/migrate-cli.js",
+    "db:backup": "node db/backup-cli.js",
+    "db:backup:list": "node db/backup-cli.js list",
+    "db:backup:cleanup": "node db/backup-cli.js cleanup",
+    "db:restore": "node db/restore-cli.js",
+    "db:integrity": "node db/integrity-cli.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",
