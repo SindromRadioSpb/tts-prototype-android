@@ -1,0 +1,32 @@
+name: smoke-check
+
+on:
+  push:
+    branches:
+      - week_11
+      - week_12_premium_foundation
+  pull_request:
+    branches:
+      - week_11
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: DB migrate
+        run: npm run db:migrate
+
+      - name: Smoke-check (bash)
+        run: bash scripts/smoke-check.sh
