@@ -15,9 +15,15 @@ audio-cache/
 gemini-cache/
 usage.json
 
+# caches/artifacts
+*.mp3
+*.wav
+*.ogg
+
 # OS / IDE
 .DS_Store
 Thumbs.db
+*.tmp
 .vscode/
 .idea/
 
@@ -36,6 +42,10 @@ h origin v0.2.0-week2
 data/
 *.db
 
+# local db
+data/*.db
+data/*.db-*
+
 @"
 # Step 8.x smoke artifacts
 out.mp3
@@ -44,4 +54,7 @@ part.bin
 # Runtime audio cache (generated)
 audio-cache/
 "@ | Add-Content .gitignore
+
+
+repo_tree.txt
 

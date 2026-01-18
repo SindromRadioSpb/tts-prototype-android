@@ -1,0 +1,69 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Grep(**)",
+      "Glob(**)",
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(git diff --name-only)",
+      "Bash(git log -n 30 --oneline)",
+      "Bash(node -v)",
+      "Bash(npm -v)",
+      "Bash(python --version)"
+    ],
+    "ask": [
+      "Edit(**)",
+      "Write(**)",
+      "Bash(*)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/*secret*)",
+      "Read(**/*secrets*)",
+      "Read(**/*token*)",
+      "Read(**/*apikey*)",
+      "Read(**/*api_key*)",
+      "Read(**/*credentials*)",
+      "Read(**/*id_rsa*)",
+      "Read(**/*.pem)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          { "type": "command", "command": "python ~/.claude/hooks/block_secrets.py" }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          { "type": "command", "command": "python ~/.claude/hooks/block_secrets.py" }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "python ~/.claude/hooks/block_secrets.py" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python ~/.claude/hooks/validate_bash.py" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "python ~/.claude/hooks/quality_gate.py" }
+        ]
+      }
+    ]
+  }
+}
