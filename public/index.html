@@ -2380,11 +2380,1090 @@ th, td { border-color: rgba(0,0,0,0.55); }
 @media (max-width: 780px) {
   .v3-notes-md-split { flex-direction: column; }
 }
-	  
+
+/* ============================================
+   V3 IDE WORKSPACE LAYOUT (Week 12+)
+   Feature-flagged via body.v3-ide-mode
+   ============================================ */
+
+/* --- IDE Mode: Hide classic content --- */
+body.v3-ide-mode .dashboard-header,
+body.v3-ide-mode .main-card {
+  display: none !important;
+}
+
+body.v3-ide-mode #v3IdeWorkspace {
+  display: flex !important;
+}
+
+/* --- IDE Workspace Container --- */
+.v3-ide-workspace {
+  display: none;
+  flex-direction: row;
+  height: calc(100vh - 56px); /* minus header */
+  background: #f8fafc;
+  overflow: hidden;
+}
+
+/* --- IDE Header (above workspace) --- */
+.v3-ide-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 16px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.v3-ide-header-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.v3-ide-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.v3-ide-header .btn-ide {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.25);
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.v3-ide-header .btn-ide:hover {
+  background: rgba(255,255,255,0.25);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.v3-ide-header .btn-ide.btn-ide-active {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.5);
+}
+
+/* --- IDE Panels --- */
+.v3-ide-left,
+.v3-ide-right {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.v3-ide-left {
+  width: 280px;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+.v3-ide-right {
+  width: 320px;
+  min-width: 240px;
+  max-width: 480px;
+  border-right: none;
+  border-left: 1px solid #e5e7eb;
+}
+
+.v3-ide-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  overflow: hidden;
+  min-width: 400px;
+}
+
+/* --- IDE Tabs --- */
+.v3-ide-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.v3-ide-tab {
+  flex: 1;
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v3-ide-tab:hover {
+  color: #334155;
+  background: #e2e8f0;
+}
+
+.v3-ide-tab.v3-ide-tab-active {
+  color: #1e40af;
+  background: #fff;
+  border-bottom-color: #3b82f6;
+}
+
+.v3-ide-tab-icon {
+  margin-right: 4px;
+}
+
+/* --- IDE Panel Content --- */
+.v3-ide-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 12px;
+}
+
+/* --- IDE Panel Header (inside panels) --- */
+.v3-ide-panel-header {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.v3-ide-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+/* --- IDE Search Input --- */
+.v3-ide-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v3-ide-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  background: #f9fafb;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.v3-ide-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+  background: #fff;
+}
+
+.v3-ide-search-scope {
+  display: flex;
+  gap: 4px;
+}
+
+.v3-ide-search-scope select {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 12px;
+  background: #fff;
+}
+
+/* --- IDE Results List --- */
+.v3-ide-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.v3-ide-result-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.v3-ide-result-item:hover {
+  background: #f1f5f9;
+}
+
+.v3-ide-result-item.v3-ide-result-active {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+  padding-left: 9px;
+}
+
+.v3-ide-result-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.v3-ide-result-meta {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.v3-ide-result-snippet {
+  font-size: 12px;
+  color: #475569;
+  margin-top: 6px;
+  line-height: 1.5;
+  background: #f8fafc;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border-left: 2px solid #e2e8f0;
+}
+
+.v3-ide-result-snippet mark {
+  background: #fef08a;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* --- IDE Library Cards (in left panel) --- */
+.v3-ide-lib-card {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.v3-ide-lib-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.1);
+}
+
+.v3-ide-lib-card.v3-ide-lib-active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.v3-ide-lib-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.v3-ide-lib-meta {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.v3-ide-lib-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.v3-ide-lib-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 4px;
+}
+
+/* --- IDE Center Header --- */
+.v3-ide-center-header {
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.v3-ide-center-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.v3-ide-center-sub {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.v3-ide-center-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* --- IDE Center Content (table area) --- */
+.v3-ide-center-content {
+  flex: 1;
+  overflow: auto;
+  padding: 12px 16px;
+}
+
+/* Override proTable styles in IDE mode */
+body.v3-ide-mode .v3-ide-center-content #proTable {
+  width: 100%;
+}
+
+/* --- IDE Inspector Sections --- */
+.v3-ide-inspector-section {
+  margin-bottom: 16px;
+}
+
+.v3-ide-inspector-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.v3-ide-inspector-content {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+/* --- IDE Notes Editor (in right panel) --- */
+.v3-ide-notes-editor {
+  width: 100%;
+  min-height: 150px;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  resize: vertical;
+  background: #fff;
+}
+
+.v3-ide-notes-editor:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.v3-ide-notes-preview {
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100px;
+}
+
+/* --- IDE SRS Card --- */
+.v3-ide-srs-card {
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.v3-ide-srs-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.v3-ide-srs-status-badge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.v3-ide-srs-status-new { background: #dbeafe; color: #1e40af; }
+.v3-ide-srs-status-learning { background: #fef3c7; color: #92400e; }
+.v3-ide-srs-status-review { background: #d1fae5; color: #065f46; }
+.v3-ide-srs-status-due { background: #fee2e2; color: #991b1b; }
+
+.v3-ide-srs-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.v3-ide-srs-btn {
+  flex: 1;
+  min-width: 60px;
+  padding: 8px 12px;
+  font-size: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  background: #fff;
+}
+
+.v3-ide-srs-btn:hover {
+  background: #f1f5f9;
+}
+
+.v3-ide-srs-btn-again { border-color: #f87171; color: #dc2626; }
+.v3-ide-srs-btn-again:hover { background: #fef2f2; }
+.v3-ide-srs-btn-hard { border-color: #fb923c; color: #ea580c; }
+.v3-ide-srs-btn-hard:hover { background: #fff7ed; }
+.v3-ide-srs-btn-good { border-color: #4ade80; color: #16a34a; }
+.v3-ide-srs-btn-good:hover { background: #f0fdf4; }
+.v3-ide-srs-btn-easy { border-color: #60a5fa; color: #2563eb; }
+.v3-ide-srs-btn-easy:hover { background: #eff6ff; }
+
+/* --- IDE Audio Panel --- */
+.v3-ide-audio-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.v3-ide-audio-play {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #fff;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.v3-ide-audio-play:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+}
+
+.v3-ide-audio-info {
+  flex: 1;
+}
+
+.v3-ide-audio-status {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* --- IDE Export Panel --- */
+.v3-ide-export-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v3-ide-export-btn {
+  padding: 10px 14px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #fff;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.v3-ide-export-btn:hover {
+  background: #f1f5f9;
+  border-color: #3b82f6;
+}
+
+.v3-ide-export-icon {
+  font-size: 16px;
+}
+
+/* --- IDE Empty State --- */
+.v3-ide-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: #64748b;
+}
+
+.v3-ide-empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.v3-ide-empty-text {
+  font-size: 13px;
+}
+
+/* --- IDE Panel Collapse/Expand --- */
+.v3-ide-panel-toggle {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 40px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #64748b;
+  z-index: 10;
+  transition: background 0.15s;
+}
+
+.v3-ide-panel-toggle:hover {
+  background: #f1f5f9;
+}
+
+.v3-ide-left .v3-ide-panel-toggle {
+  right: -10px;
+}
+
+.v3-ide-right .v3-ide-panel-toggle {
+  left: -10px;
+}
+
+/* --- IDE Responsive --- */
+@media (max-width: 1200px) {
+  .v3-ide-left { width: 240px; }
+  .v3-ide-right { width: 280px; }
+}
+
+@media (max-width: 1024px) {
+  /* Right panel becomes overlay */
+  body.v3-ide-mode .v3-ide-right {
+    position: fixed;
+    right: 0;
+    top: 56px;
+    height: calc(100vh - 56px);
+    z-index: 90;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+
+  body.v3-ide-mode .v3-ide-right.v3-ide-panel-open {
+    transform: translateX(0);
+  }
+
+  body.v3-ide-mode .v3-ide-center {
+    min-width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Both panels become overlays */
+  body.v3-ide-mode .v3-ide-left {
+    position: fixed;
+    left: 0;
+    top: 56px;
+    height: calc(100vh - 56px);
+    z-index: 90;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+  }
+
+  body.v3-ide-mode .v3-ide-left.v3-ide-panel-open {
+    transform: translateX(0);
+  }
+
+  .v3-ide-workspace {
+    height: calc(100vh - 56px);
+  }
+
+  .v3-ide-center {
+    min-width: 100%;
+  }
+
+  .v3-ide-header-logo span:not(.v3-ide-logo-icon) {
+    display: none;
+  }
+}
+
+/* --- IDE Panel Overlay Backdrop --- */
+.v3-ide-panel-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  top: 56px;
+  background: rgba(0,0,0,0.3);
+  z-index: 85;
+}
+
+@media (max-width: 1024px) {
+  body.v3-ide-mode .v3-ide-panel-backdrop.v3-ide-backdrop-active {
+    display: block;
+  }
+}
+
+/* --- IDE History Items --- */
+.v3-ide-history-item {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.v3-ide-history-item:hover {
+  background: #f1f5f9;
+}
+
+.v3-ide-history-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.v3-ide-history-time {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* --- Classic Mode Toggle Button --- */
+.v3-mode-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 1000;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.v3-mode-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+body.v3-ide-mode .v3-mode-toggle {
+  background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+/* --- Loading spinner for IDE panels --- */
+.v3-ide-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.v3-ide-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: v3-ide-spin 0.8s linear infinite;
+}
+
+@keyframes v3-ide-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- IDE Table Styles (in center panel) --- */
+body.v3-ide-mode .v3-ide-center-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+body.v3-ide-mode .v3-ide-center-content table thead {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  z-index: 5;
+}
+
+body.v3-ide-mode .v3-ide-center-content table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 2px solid #e5e7eb;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+body.v3-ide-mode .v3-ide-center-content table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: top;
+}
+
+body.v3-ide-mode .v3-ide-center-content table tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+body.v3-ide-mode .v3-ide-center-content table tbody tr:hover {
+  background: #f8fafc;
+}
+
+body.v3-ide-mode .v3-ide-center-content table tbody tr.row-selected {
+  background: #eff6ff;
+  border-left: 3px solid #3b82f6;
+}
+
+body.v3-ide-mode .v3-ide-center-content table tbody tr.row-selected td:first-child {
+  padding-left: 9px;
+}
+
+body.v3-ide-mode .v3-ide-center-content table tbody tr.row-playing {
+  background: #fef3c7;
+}
+
+body.v3-ide-mode .v3-ide-center-content table .rtl-he,
+body.v3-ide-mode .v3-ide-center-content table .rtl-he-niqqud {
+  direction: rtl;
+  text-align: right;
+  font-family: "Frank Ruhl Libre", "David Libre", "SBL Hebrew", serif;
+  font-size: 16px;
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-tts-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-tts-btn:hover {
+  background: #f1f5f9;
+  border-color: #3b82f6;
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-tts-btn.row-tts-playing {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-note-indicator {
+  margin-left: 4px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* --- IDE Scrollbar Styling --- */
+body.v3-ide-mode .v3-ide-panel-content::-webkit-scrollbar,
+body.v3-ide-mode .v3-ide-center-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+body.v3-ide-mode .v3-ide-panel-content::-webkit-scrollbar-track,
+body.v3-ide-mode .v3-ide-center-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+body.v3-ide-mode .v3-ide-panel-content::-webkit-scrollbar-thumb,
+body.v3-ide-mode .v3-ide-center-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+body.v3-ide-mode .v3-ide-panel-content::-webkit-scrollbar-thumb:hover,
+body.v3-ide-mode .v3-ide-center-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* --- IDE Focus States --- */
+body.v3-ide-mode .v3-ide-tab:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+}
+
+body.v3-ide-mode .v3-ide-result-item:focus-visible,
+body.v3-ide-mode .v3-ide-lib-card:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* --- IDE Transitions --- */
+body.v3-ide-mode .v3-ide-workspace {
+  transition: opacity 0.2s ease;
+}
+
+body.v3-ide-mode .v3-ide-left,
+body.v3-ide-mode .v3-ide-right {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
 </style>
 
 </head>
 <body>
+
+<!-- V3 IDE Header (shown in IDE mode) -->
+<header id="v3IdeHeader" class="v3-ide-header" style="display:none;">
+  <div class="v3-ide-header-logo">
+    <span class="v3-ide-logo-icon">📚</span>
+    <span>Hebrew Learning IDE</span>
+  </div>
+  <div class="v3-ide-header-actions">
+    <button id="v3IdeLeftToggle" class="btn-ide" onclick="v3IdeToggleLeft()" title="Toggle Library Panel (Ctrl+1)">
+      📖 Library
+    </button>
+    <button id="v3IdeRightToggle" class="btn-ide" onclick="v3IdeToggleRight()" title="Toggle Inspector Panel (Ctrl+2)">
+      📝 Inspector
+    </button>
+    <button id="v3IdeDashBtn" class="btn-ide" onclick="v3DashboardOpen()" title="Open Dashboard">
+      📊 Dashboard
+    </button>
+    <button id="v3IdeExitBtn" class="btn-ide" onclick="v3IdeModeToggle()" title="Switch to Classic Mode">
+      ↩ Classic
+    </button>
+  </div>
+</header>
+
+<!-- V3 IDE Workspace Container -->
+<div id="v3IdeWorkspace" class="v3-ide-workspace">
+  <!-- Left Panel: Search / Library / History -->
+  <aside id="v3IdeLeft" class="v3-ide-left v3-ide-panel-open">
+    <div class="v3-ide-tabs">
+      <button class="v3-ide-tab v3-ide-tab-active" data-tab="search" onclick="v3IdeLeftTabSwitch('search')">
+        <span class="v3-ide-tab-icon">🔍</span>Search
+      </button>
+      <button class="v3-ide-tab" data-tab="library" onclick="v3IdeLeftTabSwitch('library')">
+        <span class="v3-ide-tab-icon">📚</span>Library
+      </button>
+      <button class="v3-ide-tab" data-tab="history" onclick="v3IdeLeftTabSwitch('history')">
+        <span class="v3-ide-tab-icon">📜</span>History
+      </button>
+    </div>
+
+    <!-- Search Tab Content -->
+    <div id="v3IdeLeftSearch" class="v3-ide-panel-content">
+      <div class="v3-ide-panel-header">
+        <div class="v3-ide-search-wrap">
+          <input
+            id="v3IdeSearchInput"
+            type="text"
+            class="v3-ide-search-input"
+            placeholder="Search texts, rows, notes..."
+            oninput="v3IdeSearchDebounced()"
+          />
+          <div class="v3-ide-search-scope">
+            <select id="v3IdeSearchScope" onchange="v3IdeSearchScopeChange()">
+              <option value="both">All (texts + rows + notes)</option>
+              <option value="texts">Texts only</option>
+              <option value="rows">Rows only</option>
+              <option value="notes">Notes only</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="v3IdeSearchResults" class="v3-ide-results">
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">🔍</div>
+          <div class="v3-ide-empty-text">Enter a search query to find texts, rows, or notes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Library Tab Content -->
+    <div id="v3IdeLeftLibrary" class="v3-ide-panel-content" style="display:none;">
+      <div class="v3-ide-panel-header">
+        <div class="v3-ide-search-wrap">
+          <input
+            id="v3IdeLibraryFilter"
+            type="text"
+            class="v3-ide-search-input"
+            placeholder="Filter library..."
+            oninput="v3IdeLibraryFilterDebounced()"
+          />
+          <div class="v3-ide-search-scope">
+            <select id="v3IdeLibraryLevel" onchange="v3IdeLibraryLevelChange()">
+              <option value="">All levels</option>
+              <option value="alef">Alef</option>
+              <option value="alef+">Alef+</option>
+              <option value="bet">Bet</option>
+              <option value="gimel">Gimel</option>
+              <option value="dalet">Dalet</option>
+            </select>
+            <select id="v3IdeLibrarySort" onchange="v3IdeLibrarySortChange()">
+              <option value="opened_desc">Recent</option>
+              <option value="title_asc">A-Z</option>
+              <option value="level_asc">Level</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div id="v3IdeLibraryList">
+        <div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- History Tab Content -->
+    <div id="v3IdeLeftHistory" class="v3-ide-panel-content" style="display:none;">
+      <div class="v3-ide-panel-header">
+        <div class="v3-ide-panel-title">Recent Activity</div>
+      </div>
+      <div id="v3IdeHistoryList">
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">📜</div>
+          <div class="v3-ide-empty-text">No recent activity yet</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Center Panel: Content Viewer -->
+  <main id="v3IdeCenter" class="v3-ide-center">
+    <div id="v3IdeCenterHeader" class="v3-ide-center-header" style="display:none;">
+      <h2 id="v3IdeCenterTitle" class="v3-ide-center-title">No text selected</h2>
+      <div id="v3IdeCenterSub" class="v3-ide-center-sub"></div>
+      <div class="v3-ide-center-actions">
+        <button class="btn-secondary" onclick="v3IdePlayAll()" title="Play all rows">▶ Play All</button>
+        <button class="btn-secondary" onclick="v3IdeOpenInClassic()" title="Open in classic view">Open Classic</button>
+      </div>
+    </div>
+    <div id="v3IdeCenterContent" class="v3-ide-center-content">
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">📖</div>
+        <div class="v3-ide-empty-text">Select a text from the Library or search results</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Right Panel: Inspector (Notes / SRS / Audio / Export) -->
+  <aside id="v3IdeRight" class="v3-ide-right v3-ide-panel-open">
+    <div class="v3-ide-tabs">
+      <button class="v3-ide-tab v3-ide-tab-active" data-tab="notes" onclick="v3IdeRightTabSwitch('notes')">
+        <span class="v3-ide-tab-icon">📝</span>Notes
+      </button>
+      <button class="v3-ide-tab" data-tab="srs" onclick="v3IdeRightTabSwitch('srs')">
+        <span class="v3-ide-tab-icon">🔁</span>SRS
+      </button>
+      <button class="v3-ide-tab" data-tab="audio" onclick="v3IdeRightTabSwitch('audio')">
+        <span class="v3-ide-tab-icon">🔊</span>Audio
+      </button>
+      <button class="v3-ide-tab" data-tab="export" onclick="v3IdeRightTabSwitch('export')">
+        <span class="v3-ide-tab-icon">📤</span>Export
+      </button>
+    </div>
+
+    <!-- Notes Tab Content -->
+    <div id="v3IdeRightNotes" class="v3-ide-panel-content">
+      <div id="v3IdeNotesContent">
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">📝</div>
+          <div class="v3-ide-empty-text">Select a row to view or edit notes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SRS Tab Content -->
+    <div id="v3IdeRightSrs" class="v3-ide-panel-content" style="display:none;">
+      <div id="v3IdeSrsContent">
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">🔁</div>
+          <div class="v3-ide-empty-text">Select a row to manage SRS cards</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Audio Tab Content -->
+    <div id="v3IdeRightAudio" class="v3-ide-panel-content" style="display:none;">
+      <div id="v3IdeAudioContent">
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">🔊</div>
+          <div class="v3-ide-empty-text">Select a row to play audio</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Tab Content -->
+    <div id="v3IdeRightExport" class="v3-ide-panel-content" style="display:none;">
+      <div id="v3IdeExportContent">
+        <div class="v3-ide-inspector-section">
+          <div class="v3-ide-inspector-label">Export Selected Row</div>
+          <div class="v3-ide-export-actions">
+            <button class="v3-ide-export-btn" onclick="v3IdeExportAnki()">
+              <span class="v3-ide-export-icon">📇</span>
+              <span>Add to Anki</span>
+            </button>
+            <button class="v3-ide-export-btn" onclick="v3IdeExportCopy()">
+              <span class="v3-ide-export-icon">📋</span>
+              <span>Copy Formatted</span>
+            </button>
+          </div>
+        </div>
+        <div class="v3-ide-inspector-section">
+          <div class="v3-ide-inspector-label">Export Full Text</div>
+          <div class="v3-ide-export-actions">
+            <button class="v3-ide-export-btn" onclick="v3IdeExportTextAnki()">
+              <span class="v3-ide-export-icon">📚</span>
+              <span>Export All to Anki</span>
+            </button>
+            <button class="v3-ide-export-btn" onclick="v3IdeExportDocx()">
+              <span class="v3-ide-export-icon">📄</span>
+              <span>Export to DOCX</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- IDE Panel Backdrop (for mobile overlay) -->
+<div id="v3IdePanelBackdrop" class="v3-ide-panel-backdrop" onclick="v3IdeCloseOverlays()"></div>
+
+<!-- Mode Toggle Button (always visible) -->
+<button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Switch between IDE and Classic mode">
+  🖥️ IDE Mode
+</button>
 
     <div class="dashboard-header">
         <div class="stats-box">
@@ -3236,7 +4315,1173 @@ th, td { border-color: rgba(0,0,0,0.55); }
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
     let currentTableData = [];
-	
+
+// ============================================
+// V3 IDE WORKSPACE STATE (Week 12+)
+// ============================================
+const V3_IDE_MODE_KEY = "v3_ide_mode_enabled";  // "0" | "1"
+const V3_IDE_STATE_KEY = "v3_ide_state_v1";
+
+let v3IdeState = {
+  leftTab: "search",      // "search" | "library" | "history"
+  rightTab: "notes",      // "notes" | "srs" | "audio" | "export"
+  leftOpen: true,
+  rightOpen: true,
+  selectedRowIdx: null,
+  activeTextId: null,
+  searchQuery: "",
+  searchScope: "both"
+};
+
+// Debounce timers
+let v3IdeSearchTimer = null;
+let v3IdeLibraryFilterTimer = null;
+
+// Library cache for IDE
+let v3IdeLibraryCache = null;
+let v3IdeLibraryCacheTime = 0;
+
+// --- IDE Mode Detection ---
+function v3IdeModeEnabled() {
+  return localStorage.getItem(V3_IDE_MODE_KEY) === "1";
+}
+
+// --- IDE State Persistence ---
+function v3IdeSaveState() {
+  try {
+    localStorage.setItem(V3_IDE_STATE_KEY, JSON.stringify(v3IdeState));
+  } catch (e) { /* quota exceeded */ }
+}
+
+function v3IdeLoadState() {
+  try {
+    const raw = localStorage.getItem(V3_IDE_STATE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      v3IdeState = { ...v3IdeState, ...parsed };
+    }
+  } catch (e) { /* parse error */ }
+}
+
+// --- IDE Mode Toggle ---
+function v3IdeModeToggle() {
+  const enabled = v3IdeModeEnabled();
+  localStorage.setItem(V3_IDE_MODE_KEY, enabled ? "0" : "1");
+  v3IdeApplyMode(!enabled);
+}
+
+function v3IdeApplyMode(enabled) {
+  const body = document.body;
+  const header = document.getElementById("v3IdeHeader");
+  const workspace = document.getElementById("v3IdeWorkspace");
+  const toggleBtn = document.getElementById("v3ModeToggle");
+
+  if (enabled) {
+    body.classList.add("v3-ide-mode");
+    if (header) header.style.display = "flex";
+    if (workspace) workspace.style.display = "flex";
+    if (toggleBtn) toggleBtn.textContent = "📋 Classic Mode";
+
+    // Close any open modals
+    v3IdeCloseAllModals();
+
+    // Apply saved state
+    v3IdeLoadState();
+    v3IdeLeftTabSwitch(v3IdeState.leftTab);
+    v3IdeRightTabSwitch(v3IdeState.rightTab);
+
+    // Load library data
+    v3IdeRefreshLibrary();
+
+    // Restore active text if any
+    if (v3IdeState.activeTextId) {
+      v3IdeOpenTextInCenter(v3IdeState.activeTextId);
+    }
+  } else {
+    body.classList.remove("v3-ide-mode");
+    if (header) header.style.display = "none";
+    if (workspace) workspace.style.display = "none";
+    if (toggleBtn) toggleBtn.textContent = "🖥️ IDE Mode";
+  }
+}
+
+// --- Close All Modals (when switching to IDE mode) ---
+function v3IdeCloseAllModals() {
+  try { if (typeof v3LibraryClose === "function") v3LibraryClose(); } catch (e) {}
+  try { if (typeof v3DashboardClose === "function") v3DashboardClose(); } catch (e) {}
+  try { if (typeof v3NotesClose === "function") v3NotesClose(); } catch (e) {}
+}
+
+// --- IDE Left Panel Tab Switching ---
+function v3IdeLeftTabSwitch(tab) {
+  v3IdeState.leftTab = tab;
+  v3IdeSaveState();
+
+  const tabs = document.querySelectorAll("#v3IdeLeft .v3-ide-tab");
+  tabs.forEach(t => {
+    t.classList.toggle("v3-ide-tab-active", t.dataset.tab === tab);
+  });
+
+  const contents = {
+    search: document.getElementById("v3IdeLeftSearch"),
+    library: document.getElementById("v3IdeLeftLibrary"),
+    history: document.getElementById("v3IdeLeftHistory")
+  };
+
+  Object.keys(contents).forEach(k => {
+    if (contents[k]) contents[k].style.display = k === tab ? "block" : "none";
+  });
+
+  // Load data for tab if needed
+  if (tab === "library") {
+    v3IdeRefreshLibrary();
+  } else if (tab === "history") {
+    v3IdeRefreshHistory();
+  }
+}
+
+// --- IDE Right Panel Tab Switching ---
+function v3IdeRightTabSwitch(tab) {
+  v3IdeState.rightTab = tab;
+  v3IdeSaveState();
+
+  const tabs = document.querySelectorAll("#v3IdeRight .v3-ide-tab");
+  tabs.forEach(t => {
+    t.classList.toggle("v3-ide-tab-active", t.dataset.tab === tab);
+  });
+
+  const contents = {
+    notes: document.getElementById("v3IdeRightNotes"),
+    srs: document.getElementById("v3IdeRightSrs"),
+    audio: document.getElementById("v3IdeRightAudio"),
+    export: document.getElementById("v3IdeRightExport")
+  };
+
+  Object.keys(contents).forEach(k => {
+    if (contents[k]) contents[k].style.display = k === tab ? "block" : "none";
+  });
+
+  // Refresh inspector content for current row
+  v3IdeRefreshInspector();
+}
+
+// --- IDE Panel Toggle (for responsive) ---
+function v3IdeToggleLeft() {
+  const panel = document.getElementById("v3IdeLeft");
+  const backdrop = document.getElementById("v3IdePanelBackdrop");
+  if (!panel) return;
+
+  v3IdeState.leftOpen = !v3IdeState.leftOpen;
+  panel.classList.toggle("v3-ide-panel-open", v3IdeState.leftOpen);
+
+  // Update backdrop for mobile
+  v3IdeUpdateBackdrop();
+  v3IdeSaveState();
+}
+
+function v3IdeToggleRight() {
+  const panel = document.getElementById("v3IdeRight");
+  if (!panel) return;
+
+  v3IdeState.rightOpen = !v3IdeState.rightOpen;
+  panel.classList.toggle("v3-ide-panel-open", v3IdeState.rightOpen);
+
+  v3IdeUpdateBackdrop();
+  v3IdeSaveState();
+}
+
+function v3IdeUpdateBackdrop() {
+  const backdrop = document.getElementById("v3IdePanelBackdrop");
+  if (!backdrop) return;
+
+  const leftOpen = document.getElementById("v3IdeLeft")?.classList.contains("v3-ide-panel-open");
+  const rightOpen = document.getElementById("v3IdeRight")?.classList.contains("v3-ide-panel-open");
+
+  // Only show backdrop on mobile when panels are open
+  const isMobile = window.innerWidth <= 1024;
+  backdrop.classList.toggle("v3-ide-backdrop-active", isMobile && (leftOpen || rightOpen));
+}
+
+function v3IdeCloseOverlays() {
+  const left = document.getElementById("v3IdeLeft");
+  const right = document.getElementById("v3IdeRight");
+
+  if (left) left.classList.remove("v3-ide-panel-open");
+  if (right) right.classList.remove("v3-ide-panel-open");
+
+  v3IdeState.leftOpen = false;
+  v3IdeState.rightOpen = false;
+  v3IdeUpdateBackdrop();
+  v3IdeSaveState();
+}
+
+// --- IDE Initialize on DOM Ready ---
+function v3IdeInit() {
+  // Apply mode based on saved preference
+  const enabled = v3IdeModeEnabled();
+  v3IdeApplyMode(enabled);
+
+  // Listen for resize to update backdrop
+  window.addEventListener("resize", v3IdeUpdateBackdrop);
+
+  // Keyboard shortcuts
+  document.addEventListener("keydown", v3IdeKeyHandler);
+}
+
+function v3IdeKeyHandler(e) {
+  if (!v3IdeModeEnabled()) return;
+
+  // Ctrl+1/2/3 - left panel tabs
+  if (e.ctrlKey && !e.shiftKey && !e.altKey) {
+    if (e.key === "1") { e.preventDefault(); v3IdeLeftTabSwitch("search"); }
+    if (e.key === "2") { e.preventDefault(); v3IdeLeftTabSwitch("library"); }
+    if (e.key === "3") { e.preventDefault(); v3IdeLeftTabSwitch("history"); }
+  }
+
+  // Ctrl+Shift+1/2/3/4 - right panel tabs
+  if (e.ctrlKey && e.shiftKey && !e.altKey) {
+    if (e.key === "!") { e.preventDefault(); v3IdeRightTabSwitch("notes"); }
+    if (e.key === "@") { e.preventDefault(); v3IdeRightTabSwitch("srs"); }
+    if (e.key === "#") { e.preventDefault(); v3IdeRightTabSwitch("audio"); }
+    if (e.key === "$") { e.preventDefault(); v3IdeRightTabSwitch("export"); }
+  }
+
+  // Escape - close overlays on mobile
+  if (e.key === "Escape") {
+    if (window.innerWidth <= 1024) {
+      v3IdeCloseOverlays();
+    }
+  }
+}
+
+// ============================================
+// V3 IDE SEARCH (Left Panel)
+// ============================================
+function v3IdeSearchDebounced() {
+  clearTimeout(v3IdeSearchTimer);
+  v3IdeSearchTimer = setTimeout(v3IdeSearchExecute, 300);
+}
+
+function v3IdeSearchScopeChange() {
+  const scope = document.getElementById("v3IdeSearchScope")?.value || "both";
+  v3IdeState.searchScope = scope;
+  v3IdeSaveState();
+  v3IdeSearchExecute();
+}
+
+async function v3IdeSearchExecute() {
+  const input = document.getElementById("v3IdeSearchInput");
+  const results = document.getElementById("v3IdeSearchResults");
+  if (!input || !results) return;
+
+  const query = input.value.trim();
+  v3IdeState.searchQuery = query;
+  v3IdeSaveState();
+
+  if (!query || query.length < 2) {
+    results.innerHTML = `
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">🔍</div>
+        <div class="v3-ide-empty-text">Enter at least 2 characters to search</div>
+      </div>
+    `;
+    return;
+  }
+
+  results.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
+
+  try {
+    const scope = v3IdeState.searchScope;
+    let html = "";
+
+    // Search texts
+    if (scope === "both" || scope === "texts") {
+      const textsRes = await fetch(`/api/library/texts?q=${encodeURIComponent(query)}&limit=20`);
+      if (textsRes.ok) {
+        const textsData = await textsRes.json();
+        if (textsData.texts && textsData.texts.length > 0) {
+          html += '<div class="v3-ide-inspector-label">Texts</div>';
+          textsData.texts.forEach(t => {
+            html += v3IdeRenderTextResult(t, query);
+          });
+        }
+      }
+    }
+
+    // Search rows
+    if (scope === "both" || scope === "rows") {
+      const rowsRes = await fetch(`/api/sentences/search?q=${encodeURIComponent(query)}&limit=20`);
+      if (rowsRes.ok) {
+        const rowsData = await rowsRes.json();
+        const rowsResults = rowsData.results || rowsData.hits || [];
+        if (rowsResults.length > 0) {
+          html += '<div class="v3-ide-inspector-label" style="margin-top:16px;">Rows</div>';
+          rowsResults.forEach((hit, idx) => {
+            html += v3IdeRenderRowResult(hit, idx, query);
+          });
+        }
+      }
+    }
+
+    // Search notes
+    if (scope === "both" || scope === "notes") {
+      const notesRes = await fetch(`/api/notes/search?q=${encodeURIComponent(query)}&limit=20`);
+      if (notesRes.ok) {
+        const notesData = await notesRes.json();
+        const notesResults = notesData.results || notesData.hits || [];
+        if (notesResults.length > 0) {
+          html += '<div class="v3-ide-inspector-label" style="margin-top:16px;">Notes</div>';
+          notesResults.forEach((hit, idx) => {
+            html += v3IdeRenderNoteResult(hit, idx, query);
+          });
+        }
+      }
+    }
+
+    if (!html) {
+      html = `
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">🔍</div>
+          <div class="v3-ide-empty-text">No results found for "${v3EscapeHtml(query)}"</div>
+        </div>
+      `;
+    }
+
+    results.innerHTML = html;
+  } catch (err) {
+    results.innerHTML = `
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">⚠️</div>
+        <div class="v3-ide-empty-text">Search error: ${v3EscapeHtml(err.message)}</div>
+      </div>
+    `;
+  }
+}
+
+function v3IdeRenderTextResult(text, query) {
+  const title = v3EscapeHtml(text.title || "Untitled");
+  const level = v3EscapeHtml(text.level || "");
+  const topic = v3EscapeHtml(text.topic || "");
+  return `
+    <div class="v3-ide-result-item" onclick="v3IdeOpenTextFromSearch('${text.id}')">
+      <div class="v3-ide-result-title">📄 ${title}</div>
+      <div class="v3-ide-result-meta">${level}${topic ? " · " + topic : ""}</div>
+    </div>
+  `;
+}
+
+function v3IdeRenderRowResult(hit, idx, query) {
+  const textTitle = v3EscapeHtml(hit.title || hit.textTitle || hit.text_title || "");
+  const level = hit.level ? v3EscapeHtml(hit.level) : "";
+  const he = hit.he || hit.he_plain || hit.hebrew || "";
+  const translit = hit.translit || "";
+
+  // Use snippet from API if available, with highlights
+  let snippetHtml = "";
+  if (hit.snippet) {
+    // API provides pre-computed snippet, just escape and apply highlights
+    snippetHtml = v3IdeApplyHighlights(hit.snippet, hit.highlights, query);
+  } else {
+    // Fallback: use Hebrew text with manual highlighting
+    snippetHtml = v3IdeHighlightSnippet(he, query);
+  }
+
+  return `
+    <div class="v3-ide-result-item" onclick="v3IdeOpenRowFromSearch('${hit.textId || hit.text_id}', '${hit.sentenceId || hit.sentence_id}', ${hit.orderIndex ?? idx})">
+      <div class="v3-ide-result-title">📝 ${textTitle}${level ? ` <span style="opacity:0.6">(${level})</span>` : ""}</div>
+      <div class="v3-ide-result-snippet">${snippetHtml}</div>
+      ${translit ? `<div style="font-size:11px; color:#64748b; margin-top:4px;">${v3EscapeHtml(translit)}</div>` : ""}
+    </div>
+  `;
+}
+
+function v3IdeRenderNoteResult(hit, idx, query) {
+  const textTitle = v3EscapeHtml(hit.title || hit.textTitle || hit.text_title || "");
+  const note = hit.note || "";
+  const sentenceText = hit.sentenceText || "";
+
+  // Use snippet from API if available
+  let snippetHtml = "";
+  if (hit.snippet) {
+    snippetHtml = v3IdeApplyHighlights(hit.snippet, hit.highlights, query);
+  } else {
+    snippetHtml = v3IdeHighlightSnippet(note.substring(0, 150), query);
+  }
+
+  return `
+    <div class="v3-ide-result-item" onclick="v3IdeOpenNoteFromSearch('${hit.textId || hit.text_id}', '${hit.sentenceId || hit.sentence_id}', ${hit.orderIndex ?? idx})">
+      <div class="v3-ide-result-title">💬 ${textTitle}</div>
+      ${sentenceText ? `<div style="font-size:12px; color:#475569; direction:rtl; text-align:right; margin-bottom:4px;">${v3EscapeHtml(sentenceText.substring(0, 80))}</div>` : ""}
+      <div class="v3-ide-result-snippet">${snippetHtml}</div>
+    </div>
+  `;
+}
+
+function v3IdeApplyHighlights(text, highlights, query) {
+  // If highlights object contains pre-marked spans, use them
+  // Otherwise fall back to manual highlighting
+  if (!text) return "";
+
+  // For now, just escape and apply manual highlighting
+  // API might return highlights with positions - can be enhanced later
+  return v3IdeHighlightSnippet(text, query);
+}
+
+function v3IdeHighlightSnippet(text, query) {
+  if (!text || !query) return v3EscapeHtml(text || "");
+  const escaped = v3EscapeHtml(text);
+  const queryEscaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${queryEscaped})`, "gi");
+  return escaped.replace(regex, "<mark>$1</mark>");
+}
+
+// ============================================
+// V3 IDE LIBRARY (Left Panel)
+// ============================================
+function v3IdeLibraryFilterDebounced() {
+  clearTimeout(v3IdeLibraryFilterTimer);
+  v3IdeLibraryFilterTimer = setTimeout(v3IdeRenderLibraryList, 200);
+}
+
+function v3IdeLibraryLevelChange() {
+  v3IdeRenderLibraryList();
+}
+
+function v3IdeLibrarySortChange() {
+  v3IdeRenderLibraryList();
+}
+
+async function v3IdeRefreshLibrary() {
+  const listEl = document.getElementById("v3IdeLibraryList");
+  if (!listEl) return;
+
+  // Use cache if fresh (30 seconds)
+  const now = Date.now();
+  if (v3IdeLibraryCache && (now - v3IdeLibraryCacheTime) < 30000) {
+    v3IdeRenderLibraryList();
+    return;
+  }
+
+  listEl.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
+
+  try {
+    const res = await fetch("/api/library/texts?limit=500");
+    if (!res.ok) throw new Error("Failed to load library");
+    const data = await res.json();
+    v3IdeLibraryCache = data.texts || [];
+    v3IdeLibraryCacheTime = now;
+    v3IdeRenderLibraryList();
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">⚠️</div>
+        <div class="v3-ide-empty-text">Error: ${v3EscapeHtml(err.message)}</div>
+      </div>
+    `;
+  }
+}
+
+function v3IdeRenderLibraryList() {
+  const listEl = document.getElementById("v3IdeLibraryList");
+  if (!listEl || !v3IdeLibraryCache) return;
+
+  const filter = (document.getElementById("v3IdeLibraryFilter")?.value || "").toLowerCase().trim();
+  const level = document.getElementById("v3IdeLibraryLevel")?.value || "";
+  const sort = document.getElementById("v3IdeLibrarySort")?.value || "opened_desc";
+
+  let items = [...v3IdeLibraryCache];
+
+  // Filter
+  if (filter) {
+    items = items.filter(t => {
+      const title = (t.title || "").toLowerCase();
+      const topic = (t.topic || "").toLowerCase();
+      return title.includes(filter) || topic.includes(filter);
+    });
+  }
+
+  if (level) {
+    items = items.filter(t => t.level === level);
+  }
+
+  // Sort
+  items.sort((a, b) => {
+    if (sort === "opened_desc") {
+      return (b.openedAt || 0) - (a.openedAt || 0);
+    } else if (sort === "title_asc") {
+      return (a.title || "").localeCompare(b.title || "");
+    } else if (sort === "level_asc") {
+      const levels = ["alef", "alef+", "bet", "gimel", "dalet"];
+      return levels.indexOf(a.level || "") - levels.indexOf(b.level || "");
+    }
+    return 0;
+  });
+
+  if (items.length === 0) {
+    listEl.innerHTML = `
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">📚</div>
+        <div class="v3-ide-empty-text">No texts found</div>
+      </div>
+    `;
+    return;
+  }
+
+  let html = "";
+  items.forEach(t => {
+    const isActive = v3IdeState.activeTextId === String(t.id);
+    html += `
+      <div class="v3-ide-lib-card ${isActive ? "v3-ide-lib-active" : ""}" onclick="v3IdeOpenTextFromLibrary('${t.id}')">
+        <div class="v3-ide-lib-title">${v3EscapeHtml(t.title || "Untitled")}</div>
+        <div class="v3-ide-lib-meta">${v3EscapeHtml(t.level || "")}${t.topic ? " · " + v3EscapeHtml(t.topic) : ""}</div>
+        ${t.tags && t.tags.length ? `<div class="v3-ide-lib-badges">${(Array.isArray(t.tags) ? t.tags : String(t.tags).split(",")).map(tag => `<span class="v3-ide-lib-badge">${v3EscapeHtml(String(tag).trim())}</span>`).join("")}</div>` : ""}
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = html;
+}
+
+// ============================================
+// V3 IDE HISTORY (Left Panel)
+// ============================================
+async function v3IdeRefreshHistory() {
+  const listEl = document.getElementById("v3IdeHistoryList");
+  if (!listEl) return;
+
+  listEl.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
+
+  try {
+    const res = await fetch("/api/history/recent-activity?limit=30");
+    if (!res.ok) throw new Error("Failed to load history");
+    const data = await res.json();
+    const items = data.rows || [];
+
+    if (items.length === 0) {
+      listEl.innerHTML = `
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">📜</div>
+          <div class="v3-ide-empty-text">No recent activity</div>
+        </div>
+      `;
+      return;
+    }
+
+    // Group by text to avoid duplicates
+    const textMap = new Map();
+    items.forEach(item => {
+      const tid = item.text_id || item.textId;
+      if (!tid) return;
+      if (!textMap.has(tid)) {
+        textMap.set(tid, item);
+      }
+    });
+
+    let html = "";
+    textMap.forEach((item, tid) => {
+      const title = v3EscapeHtml(item.text_title || item.title || "Untitled");
+      const time = item.played_at ? v3IdeFormatTime(item.played_at) : "";
+      const he = v3EscapeHtml(item.he || item.hebrew || "");
+      html += `
+        <div class="v3-ide-history-item" onclick="v3IdeOpenTextFromHistory('${tid}')">
+          <div class="v3-ide-history-title">${title}</div>
+          ${he ? `<div style="font-size:12px; color:#475569; direction:rtl; text-align:right; margin-top:4px;">${he}</div>` : ""}
+          <div class="v3-ide-history-time">${time}</div>
+        </div>
+      `;
+    });
+
+    listEl.innerHTML = html;
+  } catch (err) {
+    listEl.innerHTML = `
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">⚠️</div>
+        <div class="v3-ide-empty-text">Error: ${v3EscapeHtml(err.message)}</div>
+      </div>
+    `;
+  }
+}
+
+function v3IdeFormatTime(ts) {
+  try {
+    const d = new Date(ts);
+    const now = new Date();
+    const diff = now - d;
+    if (diff < 60000) return "just now";
+    if (diff < 3600000) return Math.floor(diff / 60000) + "m ago";
+    if (diff < 86400000) return Math.floor(diff / 3600000) + "h ago";
+    return d.toLocaleDateString();
+  } catch (e) {
+    return "";
+  }
+}
+
+// ============================================
+// V3 IDE CENTER PANEL (Content Viewer)
+// ============================================
+async function v3IdeOpenTextFromSearch(textId) {
+  await v3IdeOpenTextInCenter(textId);
+}
+
+async function v3IdeOpenTextFromLibrary(textId) {
+  await v3IdeOpenTextInCenter(textId);
+}
+
+async function v3IdeOpenTextFromHistory(textId) {
+  await v3IdeOpenTextInCenter(textId);
+}
+
+async function v3IdeOpenRowFromSearch(textId, sentenceId, orderIndex) {
+  await v3IdeOpenTextInCenter(textId, sentenceId, orderIndex);
+}
+
+async function v3IdeOpenNoteFromSearch(textId, sentenceId, orderIndex) {
+  await v3IdeOpenTextInCenter(textId, sentenceId, orderIndex);
+  // Switch to notes tab
+  v3IdeRightTabSwitch("notes");
+}
+
+async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex) {
+  const header = document.getElementById("v3IdeCenterHeader");
+  const content = document.getElementById("v3IdeCenterContent");
+  if (!content) return;
+
+  v3IdeState.activeTextId = String(textId);
+  v3IdeSaveState();
+
+  // Show loading
+  content.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
+  if (header) header.style.display = "none";
+
+  try {
+    // Load text metadata
+    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}`);
+    if (!res.ok) throw new Error("Failed to load text");
+    const textData = await res.json();
+
+    // Update header
+    if (header) {
+      header.style.display = "block";
+      const titleEl = document.getElementById("v3IdeCenterTitle");
+      const subEl = document.getElementById("v3IdeCenterSub");
+      if (titleEl) titleEl.textContent = textData.title || "Untitled";
+      if (subEl) subEl.textContent = `${textData.level || ""} · ${textData.sentence_count || textData.rowCount || 0} rows`;
+    }
+
+    // Load sentences (rows)
+    const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/sentences`);
+    if (!rowsRes.ok) throw new Error("Failed to load sentences");
+    const rowsData = await rowsRes.json();
+    const rows = rowsData.sentences || rowsData.rows || [];
+
+    // Store in global for compatibility
+    currentTableData = rows;
+
+    // Also set v3ActiveTextId for notes compatibility
+    if (typeof window.v3SetActiveTextId === "function") {
+      window.v3SetActiveTextId(textId);
+    }
+
+    // Load notes for this text
+    try {
+      const notesRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/notes`);
+      if (notesRes.ok) {
+        const notesData = await notesRes.json();
+        if (typeof v3NotesIngest === "function") {
+          v3NotesIngest(textId, notesData.notes || []);
+        }
+      }
+    } catch (e) { /* notes optional */ }
+
+    // Render table in center panel
+    v3IdeRenderTable(rows, textId);
+
+    // Jump to specific row if requested
+    if (jumpToSentenceId || jumpToOrderIndex !== undefined) {
+      const rowIdx = jumpToOrderIndex ?? rows.findIndex(r => String(r.sentenceId || r.sentence_id) === String(jumpToSentenceId));
+      if (rowIdx >= 0) {
+        v3IdeSelectRow(rowIdx);
+        // Scroll to row
+        setTimeout(() => {
+          const tr = content.querySelector(`tr[data-row-idx="${rowIdx}"]`);
+          if (tr) tr.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+      }
+    }
+
+    // Refresh library list to show active state
+    v3IdeRenderLibraryList();
+
+  } catch (err) {
+    content.innerHTML = `
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">⚠️</div>
+        <div class="v3-ide-empty-text">Error: ${v3EscapeHtml(err.message)}</div>
+      </div>
+    `;
+  }
+}
+
+function v3IdeRenderTable(rows, textId) {
+  const content = document.getElementById("v3IdeCenterContent");
+  if (!content) return;
+
+  if (!rows || rows.length === 0) {
+    content.innerHTML = `
+      <div class="v3-ide-empty">
+        <div class="v3-ide-empty-icon">📄</div>
+        <div class="v3-ide-empty-text">This text has no rows</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Enrich rows with _v3_textId and _v3_sentenceId for TTS compatibility
+  rows.forEach(row => {
+    row._v3_textId = textId;
+    row._v3_sentenceId = row.sentenceId || row.sentence_id || row.id || "";
+  });
+
+  // Build table HTML
+  let html = `
+    <table id="proTable" class="proTable" data-text-id="${textId}">
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th>Hebrew</th>
+          <th>Niqqud</th>
+          <th>Translit</th>
+          <th>Translation</th>
+          <th style="width:80px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  rows.forEach((row, idx) => {
+    const he = v3EscapeHtml(row.he || row.he_plain || row.hebrew || "");
+    const niqqud = v3EscapeHtml(row.he_niqqud || row.niqqud || "");
+    const translit = v3EscapeHtml(row.translit || row.transliteration || "");
+    const ru = v3EscapeHtml(row.ru || row.translation || "");
+    const sentenceId = row._v3_sentenceId;
+
+    // Check if row has note
+    const hasNote = v3NotesBySentenceId && v3NotesBySentenceId[sentenceId];
+
+    html += `
+      <tr data-row-idx="${idx}" data-sentence-id="${sentenceId}" onclick="v3IdeOnRowClick(${idx})">
+        <td>${idx + 1}</td>
+        <td class="rtl-he">${he}</td>
+        <td class="rtl-he-niqqud">${niqqud}</td>
+        <td>${translit}</td>
+        <td>${ru}</td>
+        <td style="white-space:nowrap;">
+          <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Play TTS" aria-label="Play TTS" onclick="event.stopPropagation();">▶</button>
+          <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  content.innerHTML = html;
+}
+
+function v3IdeOnRowClick(idx) {
+  v3IdeSelectRow(idx);
+}
+
+function v3IdeSelectRow(idx) {
+  v3IdeState.selectedRowIdx = idx;
+  v3IdeSaveState();
+
+  // Update table UI
+  const table = document.querySelector("#v3IdeCenterContent #proTable");
+  if (table) {
+    table.querySelectorAll("tbody tr").forEach(tr => {
+      tr.classList.remove("row-selected");
+    });
+    const tr = table.querySelector(`tbody tr[data-row-idx="${idx}"]`);
+    if (tr) tr.classList.add("row-selected");
+  }
+
+  // Also call setRowSelectedUI for compatibility
+  if (typeof setRowSelectedUI === "function") {
+    setRowSelectedUI(idx);
+  }
+
+  // Refresh inspector
+  v3IdeRefreshInspector();
+}
+
+function v3IdePlayRow(idx) {
+  // Use existing TTS infrastructure by clicking the row TTS button
+  const btn = document.querySelector(`#proTable button.row-tts-btn[data-row-idx="${idx}"]`);
+  if (btn) {
+    btn.click();
+  }
+}
+
+function v3IdePlayAll() {
+  // Use existing playlist functionality
+  if (typeof togglePlaylist === "function") {
+    togglePlaylist();
+  }
+}
+
+function v3IdeOpenInClassic() {
+  const textId = v3IdeState.activeTextId;
+  if (!textId) return;
+
+  // Switch to classic mode and open text
+  v3IdeModeToggle();
+  setTimeout(() => {
+    if (typeof v3LibraryOpenText === "function") {
+      v3LibraryOpenText(textId, {});
+    }
+  }, 100);
+}
+
+// ============================================
+// V3 IDE INSPECTOR (Right Panel)
+// ============================================
+function v3IdeRefreshInspector() {
+  const tab = v3IdeState.rightTab;
+  const rowIdx = v3IdeState.selectedRowIdx;
+
+  if (rowIdx === null || !currentTableData || !currentTableData[rowIdx]) {
+    v3IdeShowInspectorEmpty();
+    return;
+  }
+
+  const row = currentTableData[rowIdx];
+
+  if (tab === "notes") {
+    v3IdeRenderNotesInspector(row, rowIdx);
+  } else if (tab === "srs") {
+    v3IdeRenderSrsInspector(row, rowIdx);
+  } else if (tab === "audio") {
+    v3IdeRenderAudioInspector(row, rowIdx);
+  }
+  // Export tab is static, no need to refresh
+}
+
+function v3IdeShowInspectorEmpty() {
+  const tabs = ["notes", "srs", "audio"];
+  tabs.forEach(tab => {
+    const el = document.getElementById(`v3Ide${tab.charAt(0).toUpperCase() + tab.slice(1)}Content`);
+    if (el) {
+      el.innerHTML = `
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">${tab === "notes" ? "📝" : tab === "srs" ? "🔁" : "🔊"}</div>
+          <div class="v3-ide-empty-text">Select a row to ${tab === "notes" ? "view or edit notes" : tab === "srs" ? "manage SRS cards" : "play audio"}</div>
+        </div>
+      `;
+    }
+  });
+}
+
+function v3IdeRenderNotesInspector(row, rowIdx) {
+  const el = document.getElementById("v3IdeNotesContent");
+  if (!el) return;
+
+  const sentenceId = row._v3_sentenceId || row.sentenceId || row.sentence_id || row.id || "";
+  const existingNote = v3NotesBySentenceId && v3NotesBySentenceId[sentenceId];
+  const noteText = existingNote ? existingNote.note : "";
+
+  el.innerHTML = `
+    <div class="v3-ide-inspector-section">
+      <div class="v3-ide-inspector-label">Row ${rowIdx + 1}</div>
+      <div class="v3-ide-inspector-content">
+        <div style="font-size:14px; color:#1e293b; direction:rtl; text-align:right;">
+          ${v3EscapeHtml(row.he || row.he_plain || row.hebrew || "")}
+        </div>
+        <div style="font-size:12px; color:#64748b; margin-top:4px;">
+          ${v3EscapeHtml(row.ru || row.translation || "")}
+        </div>
+      </div>
+    </div>
+    <div class="v3-ide-inspector-section">
+      <div class="v3-ide-inspector-label">Note</div>
+      <textarea
+        id="v3IdeNoteEditor"
+        class="v3-ide-notes-editor"
+        placeholder="Add a note for this row..."
+        onblur="v3IdeSaveNote('${sentenceId}')"
+      >${v3EscapeHtml(noteText)}</textarea>
+      <div style="font-size:11px; color:#94a3b8; margin-top:6px;">
+        Markdown supported. Auto-saves on blur.
+      </div>
+    </div>
+  `;
+}
+
+async function v3IdeSaveNote(sentenceId) {
+  const editor = document.getElementById("v3IdeNoteEditor");
+  if (!editor) return;
+
+  const note = editor.value.trim();
+  const textId = v3IdeState.activeTextId;
+
+  if (!textId || !sentenceId) return;
+
+  try {
+    // Use PUT for upsert (empty note = delete on server side)
+    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/notes/${encodeURIComponent(sentenceId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.deleted || !note) {
+        // Note was deleted
+        delete v3NotesBySentenceId[sentenceId];
+      } else {
+        // Note was saved
+        v3NotesBySentenceId[sentenceId] = { note, updatedAt: Date.now() };
+      }
+
+      // Refresh table to update note indicators
+      v3IdeRenderTable(currentTableData, textId);
+      v3IdeSelectRow(v3IdeState.selectedRowIdx);
+    }
+  } catch (e) {
+    console.error("Failed to save note:", e);
+  }
+}
+
+function v3IdeRenderSrsInspector(row, rowIdx) {
+  const el = document.getElementById("v3IdeSrsContent");
+  if (!el) return;
+
+  const sentenceId = row._v3_sentenceId || row.sentenceId || row.sentence_id || row.id || "";
+
+  // TODO: Fetch actual SRS card status from API
+  el.innerHTML = `
+    <div class="v3-ide-inspector-section">
+      <div class="v3-ide-inspector-label">Row ${rowIdx + 1}</div>
+      <div class="v3-ide-inspector-content">
+        <div style="font-size:14px; color:#1e293b; direction:rtl; text-align:right;">
+          ${v3EscapeHtml(row.he || row.he_plain || row.hebrew || "")}
+        </div>
+      </div>
+    </div>
+    <div class="v3-ide-inspector-section">
+      <div class="v3-ide-srs-card">
+        <div class="v3-ide-srs-status">
+          <span class="v3-ide-srs-status-badge v3-ide-srs-status-new">New</span>
+          <span style="font-size:12px; color:#64748b;">Not in SRS yet</span>
+        </div>
+        <button class="v3-ide-srs-btn" onclick="v3IdeAddToSrs('${sentenceId}')" style="width:100%; margin-bottom:12px;">
+          ➕ Add to SRS
+        </button>
+        <div class="v3-ide-inspector-label">Quick Review</div>
+        <div class="v3-ide-srs-actions">
+          <button class="v3-ide-srs-btn v3-ide-srs-btn-again" onclick="v3IdeSrsReview('${sentenceId}', 1)">Again</button>
+          <button class="v3-ide-srs-btn v3-ide-srs-btn-hard" onclick="v3IdeSrsReview('${sentenceId}', 2)">Hard</button>
+          <button class="v3-ide-srs-btn v3-ide-srs-btn-good" onclick="v3IdeSrsReview('${sentenceId}', 3)">Good</button>
+          <button class="v3-ide-srs-btn v3-ide-srs-btn-easy" onclick="v3IdeSrsReview('${sentenceId}', 4)">Easy</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function v3IdeAddToSrs(sentenceId) {
+  // TODO: Implement SRS card creation
+  console.log("Add to SRS:", sentenceId);
+  alert("SRS feature coming soon!");
+}
+
+async function v3IdeSrsReview(sentenceId, rating) {
+  // TODO: Implement SRS review
+  console.log("SRS Review:", sentenceId, rating);
+  alert("SRS feature coming soon!");
+}
+
+function v3IdeRenderAudioInspector(row, rowIdx) {
+  const el = document.getElementById("v3IdeAudioContent");
+  if (!el) return;
+
+  el.innerHTML = `
+    <div class="v3-ide-inspector-section">
+      <div class="v3-ide-inspector-label">Row ${rowIdx + 1}</div>
+      <div class="v3-ide-audio-player">
+        <button class="v3-ide-audio-play" onclick="v3IdePlayRow(${rowIdx})">▶</button>
+        <div class="v3-ide-audio-info">
+          <div style="font-size:13px; color:#1e293b; direction:rtl;">${v3EscapeHtml(row.he || row.he_plain || row.hebrew || "")}</div>
+          <div class="v3-ide-audio-status">Ready to play</div>
+        </div>
+      </div>
+    </div>
+    <div class="v3-ide-inspector-section">
+      <div class="v3-ide-inspector-label">Voice Settings</div>
+      <div class="v3-ide-inspector-content">
+        <select id="v3IdeVoiceSelect" style="width:100%; padding:8px; border-radius:6px; border:1px solid #d1d5db;">
+          <option value="">Auto (default)</option>
+          <option value="he-IL-Standard-A">Hebrew Female</option>
+          <option value="he-IL-Standard-B">Hebrew Male</option>
+        </select>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================
+// V3 IDE EXPORT (Right Panel)
+// ============================================
+function v3IdeExportAnki() {
+  const rowIdx = v3IdeState.selectedRowIdx;
+  if (rowIdx === null || !currentTableData || !currentTableData[rowIdx]) {
+    if (typeof showToast === "function") showToast("Select a row first");
+    else alert("Select a row first");
+    return;
+  }
+
+  // Open Anki modal with this specific row pre-selected
+  // Use existing v3AnkiOpen if available
+  if (typeof v3AnkiOpen === "function") {
+    v3AnkiOpen({ rowIndex: rowIdx });
+  } else {
+    // Fallback: show row info
+    const row = currentTableData[rowIdx];
+    const msg = `Row ${rowIdx + 1}:\n${row.he || ""}\n→ ${row.ru || ""}`;
+    if (typeof showToast === "function") showToast("Anki modal not available. Row: " + (rowIdx + 1));
+    else alert(msg);
+  }
+}
+
+function v3IdeExportCopy() {
+  const rowIdx = v3IdeState.selectedRowIdx;
+  if (rowIdx === null || !currentTableData || !currentTableData[rowIdx]) {
+    if (typeof showToast === "function") showToast("Select a row first");
+    else alert("Select a row first");
+    return;
+  }
+
+  const row = currentTableData[rowIdx];
+  const parts = [
+    row.he || row.hebrew || "",
+    row.he_niqqud || row.niqqud || "",
+    row.translit || row.transliteration || "",
+    row.ru || row.translation || ""
+  ].filter(p => p.trim());
+
+  const text = parts.join("\n");
+
+  navigator.clipboard.writeText(text).then(() => {
+    if (typeof showToast === "function") showToast("Copied to clipboard!");
+    else alert("Copied!");
+  }).catch(err => {
+    console.error("Copy failed:", err);
+    if (typeof showToast === "function") showToast("Copy failed");
+  });
+}
+
+function v3IdeExportTextAnki() {
+  const textId = v3IdeState.activeTextId;
+  if (!textId) {
+    if (typeof showToast === "function") showToast("No text selected");
+    return;
+  }
+
+  // Use existing Anki modal
+  if (typeof v3AnkiOpen === "function") {
+    v3AnkiOpen();
+  } else {
+    // Fallback: open Anki export link
+    window.open(`/api/library/texts/${encodeURIComponent(textId)}/export/anki`, "_blank");
+  }
+}
+
+async function v3IdeExportDocx() {
+  const textId = v3IdeState.activeTextId;
+  if (!textId) {
+    if (typeof showToast === "function") showToast("No text selected");
+    return;
+  }
+
+  try {
+    if (typeof showToast === "function") showToast("Generating DOCX...");
+
+    // Trigger download via API
+    const url = `/api/library/texts/${encodeURIComponent(textId)}/export/docx`;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    if (typeof showToast === "function") showToast("DOCX download started");
+  } catch (err) {
+    console.error("DOCX export failed:", err);
+    if (typeof showToast === "function") showToast("DOCX export failed");
+  }
+}
+
+// ============================================
+// V3 IDE UTILITY
+// ============================================
+function v3EscapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Expose IDE functions to global scope for onclick handlers
+window.v3IdeToggleLeft = v3IdeToggleLeft;
+window.v3IdeToggleRight = v3IdeToggleRight;
+window.v3IdeLeftTabSwitch = v3IdeLeftTabSwitch;
+window.v3IdeRightTabSwitch = v3IdeRightTabSwitch;
+window.v3IdeModeToggle = v3IdeModeToggle;
+window.v3IdeOpenTextInCenter = v3IdeOpenTextInCenter;
+window.v3IdeCloseOverlays = v3IdeCloseOverlays;
+window.v3IdeOnRowClick = v3IdeOnRowClick;
+window.v3IdeSaveNote = v3IdeSaveNote;
+window.v3IdePlayRow = v3IdePlayRow;
+window.v3IdeAddToSrs = v3IdeAddToSrs;
+window.v3IdeSrsReview = v3IdeSrsReview;
+// Search functions
+window.v3IdeSearchDebounced = v3IdeSearchDebounced;
+window.v3IdeSearchScopeChange = v3IdeSearchScopeChange;
+// Open text from various sources
+window.v3IdeOpenTextFromSearch = v3IdeOpenTextFromSearch;
+window.v3IdeOpenRowFromSearch = v3IdeOpenRowFromSearch;
+window.v3IdeOpenNoteFromSearch = v3IdeOpenNoteFromSearch;
+window.v3IdeOpenTextFromLibrary = v3IdeOpenTextFromLibrary;
+window.v3IdeOpenTextFromHistory = v3IdeOpenTextFromHistory;
+// Center panel actions
+window.v3IdePlayAll = v3IdePlayAll;
+window.v3IdeOpenInClassic = v3IdeOpenInClassic;
+// Export functions
+window.v3IdeExportAnki = v3IdeExportAnki;
+window.v3IdeExportCopy = v3IdeExportCopy;
+window.v3IdeExportTextAnki = v3IdeExportTextAnki;
+window.v3IdeExportDocx = v3IdeExportDocx;
+// Library filter functions
+window.v3IdeLibraryFilterDebounced = v3IdeLibraryFilterDebounced;
+window.v3IdeLibraryLevelChange = v3IdeLibraryLevelChange;
+window.v3IdeLibrarySortChange = v3IdeLibrarySortChange;
+
+// Initialize IDE on DOMContentLoaded
+document.addEventListener("DOMContentLoaded", v3IdeInit);
+
+// ============================================
+// END V3 IDE WORKSPACE
+// ============================================
+
 	// ----------------------------
 // W10-NOTES-01: Notes state
 // ----------------------------
@@ -3704,6 +5949,25 @@ function v3SearchSessionCaptureScroll(type, originScope) {
 }
 
 async function v3NavOnHitJump(type, index, textId, sentenceId, orderIndex, originScope) {
+  // V3 IDE: Handle navigation in IDE mode
+  if (typeof v3IdeModeEnabled === "function" && v3IdeModeEnabled()) {
+    try {
+      // Remember search context for back navigation
+      v3SearchSessionSet({ origin: v3SearchSessionNormalizeOrigin(originScope) });
+      v3SearchSessionSetActive(type, index);
+      v3SearchSessionCaptureScroll(type, originScope);
+    } catch (_) {}
+
+    // Open text in IDE center panel
+    await v3IdeOpenTextInCenter(textId, sentenceId, orderIndex);
+
+    // Switch left panel to search tab and highlight active hit
+    v3IdeLeftTabSwitch("search");
+
+    return { ok: true };
+  }
+
+  // Classic mode: original behavior
   try {
     // remember where the hit came from (Library/Dashboard)
     v3SearchSessionSet({ origin: v3SearchSessionNormalizeOrigin(originScope) });
@@ -4055,6 +6319,14 @@ function v3NavClose() {
 }
 
 async function v3NavBackToMatches() {
+  // V3 IDE: Handle back navigation in IDE mode
+  if (typeof v3IdeModeEnabled === "function" && v3IdeModeEnabled()) {
+    // In IDE mode, just switch to search tab in left panel
+    v3IdeLeftTabSwitch("search");
+    return;
+  }
+
+  // Classic mode: original behavior
   const st = (typeof v3SearchSessionGet === "function") ? (v3SearchSessionGet() || {}) : {};
   const hasAny = (Array.isArray(st.notesResults) && st.notesResults.length > 0) || (Array.isArray(st.rowsResults) && st.rowsResults.length > 0);
   if (!hasAny) return;
@@ -5302,6 +7574,11 @@ v3DebouncedSaveProgress(rowSelectedRowIdx);
 
 updateRowFocusMode(); // Week 6 guard: keep visual modes consistent after selection change
 
+// V3 IDE: sync inspector when row selected
+if (typeof v3IdeModeEnabled === "function" && v3IdeModeEnabled()) {
+  v3IdeState.selectedRowIdx = rowIdx;
+  if (typeof v3IdeRefreshInspector === "function") v3IdeRefreshInspector();
+}
 
 }
 
@@ -10483,6 +12760,11 @@ window.v3DashboardPlayRow = v3DashboardPlayRow;
 
 async function v3DashboardOpenText(textId) {
   v3DashboardClose();
+  // IDE mode: open in center panel instead of classic view
+  if (typeof v3IdeModeEnabled === "function" && v3IdeModeEnabled()) {
+    await v3IdeOpenTextInCenter(textId);
+    return;
+  }
   await v3LibraryOpenText(textId, {});
 }
 
@@ -10491,13 +12773,38 @@ async function v3DashboardContinue(textId) {
   const resumeSentenceId = (recent && recent.last_sentence_id) ? String(recent.last_sentence_id) : null;
 
   v3DashboardClose();
+
+  // IDE mode: open in center panel with resume
+  if (typeof v3IdeModeEnabled === "function" && v3IdeModeEnabled()) {
+    await v3IdeOpenTextInCenter(textId, resumeSentenceId);
+
+    // Autoplay in IDE mode
+    if (!resumeSentenceId) return;
+    if (!v3DashIsAutoPlayContinueOn()) return;
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try {
+          const idx = v3IdeState.selectedRowIdx;
+          if (idx === null || idx === undefined) return;
+          const table = document.getElementById("v3IdeTable");
+          const btn = table && table.querySelector(`button.row-tts-btn[data-row-idx="${idx}"]`);
+          if (btn) btn.click();
+        } catch (e) {
+          console.warn("[v3DashboardContinue IDE autoplay] failed:", e);
+        }
+      });
+    });
+    return;
+  }
+
   await v3LibraryOpenText(textId, { resumeSentenceId, origin: "dashboard", openMode: "resume" });
 
   // Без last_sentence_id — не автоплеим (иначе будет неожиданно играть 1-я строка)
   if (!resumeSentenceId) return;
   if (!v3DashIsAutoPlayContinueOn()) return;
 
-  // Дать UI “доприменить” resume (обычно там rAF/scroll), затем кликнуть Play по selected row
+  // Дать UI "доприменить" resume (обычно там rAF/scroll), затем кликнуть Play по selected row
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       try {
@@ -12072,7 +14379,7 @@ if (!playingRestored && typeof rowSelectedRowIdx === "number" && Number.isFinite
 
 // подключаем resize-handlers к свежесозданной таблице
 attachResizeHandlers();
-scheduleAdaptiveTableHeight();
+if (typeof scheduleAdaptiveTableHeight === "function") scheduleAdaptiveTableHeight();
 
 // AR-11: после innerHTML-пересборки — выравниваем индексы/классы
 normalizeRowStateIndices("renderTable/post");
@@ -12084,7 +14391,7 @@ updatePlaylistButtonUI();
 	// ----------------------------
 // PRO: Resizable Split (Table height) — Variant A (real height, no viewport ceiling)
 // ----------------------------
-let __tableHTimer = null;
+var __tableHTimer = null;  // var for hoisting (used before declaration in renderTable)
 
 const TABLE_MIN_H = 360;     // ≈ 5 строк — фиксированное требование
 
