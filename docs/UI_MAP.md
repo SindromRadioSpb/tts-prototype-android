@@ -178,3 +178,112 @@ Hotkeys:
 | Row TTS button | `button.row-tts-btn[data-row-idx]` | озвучка строки |
 | Row Notes button | `button.row-note-btn[data-row-idx]` | заметка строки |
 
+## 7) V3 IDE Workspace Layout (Week 12+)
+
+Новый 3-панельный IDE layout, активируемый через feature flag.
+
+### 7.1. Feature Flag
+
+| Ключ | Хранилище | Значения | Назначение |
+|---|---|---|---|
+| `v3_ide_mode_enabled` | localStorage | `"0"` / `"1"` | Включение IDE mode |
+| `v3_ide_state_v1` | localStorage | JSON | Состояние IDE (tabs, panels) |
+
+CSS-режим: `body.v3-ide-mode` — включает IDE layout, скрывает classic.
+
+### 7.2. IDE Header
+
+| Элемент | Selector | Назначение |
+|---|---|---|
+| Header root | `#v3IdeHeader` | Заголовок IDE (logo + actions) |
+| Left toggle | `#v3IdeLeftToggle` | Переключение левой панели |
+| Right toggle | `#v3IdeRightToggle` | Переключение правой панели |
+| Dashboard btn | `#v3IdeDashBtn` | Открыть Dashboard |
+| Exit btn | `#v3IdeExitBtn` | Выход в Classic mode |
+
+### 7.3. IDE Workspace Container
+
+| Элемент | Selector | Назначение |
+|---|---|---|
+| Workspace root | `#v3IdeWorkspace` | Контейнер 3-panel layout |
+| Left panel | `#v3IdeLeft` | Левая панель (Search/Library/History) |
+| Center panel | `#v3IdeCenter` | Центральная панель (Content Viewer) |
+| Right panel | `#v3IdeRight` | Правая панель (Inspector) |
+| Panel backdrop | `#v3IdePanelBackdrop` | Затемнение для мобильных overlays |
+
+### 7.4. IDE Left Panel Tabs
+
+| Элемент | Selector | Назначение |
+|---|---|---|
+| Search tab content | `#v3IdeLeftSearch` | Контент вкладки Search |
+| Library tab content | `#v3IdeLeftLibrary` | Контент вкладки Library |
+| History tab content | `#v3IdeLeftHistory` | Контент вкладки History |
+| Search input | `#v3IdeSearchInput` | Поле поиска (IDE) |
+| Search scope | `#v3IdeSearchScope` | Scope поиска (IDE) |
+| Search results | `#v3IdeSearchResults` | Результаты поиска (IDE) |
+| Library filter | `#v3IdeLibraryFilter` | Фильтр библиотеки |
+| Library level | `#v3IdeLibraryLevel` | Выбор уровня |
+| Library sort | `#v3IdeLibrarySort` | Сортировка |
+| Library list | `#v3IdeLibraryList` | Список текстов |
+| History list | `#v3IdeHistoryList` | Список истории |
+
+### 7.5. IDE Center Panel
+
+| Элемент | Selector | Назначение |
+|---|---|---|
+| Header | `#v3IdeCenterHeader` | Заголовок активного текста |
+| Title | `#v3IdeCenterTitle` | Название текста |
+| Subtitle | `#v3IdeCenterSub` | Мета-информация |
+| Content area | `#v3IdeCenterContent` | Контент (таблица строк) |
+
+### 7.6. IDE Right Panel Tabs (Inspector)
+
+| Элемент | Selector | Назначение |
+|---|---|---|
+| Notes tab content | `#v3IdeRightNotes` | Контент вкладки Notes |
+| SRS tab content | `#v3IdeRightSrs` | Контент вкладки SRS |
+| Audio tab content | `#v3IdeRightAudio` | Контент вкладки Audio |
+| Export tab content | `#v3IdeRightExport` | Контент вкладки Export |
+| Notes content | `#v3IdeNotesContent` | Внутренний контент Notes |
+| SRS content | `#v3IdeSrsContent` | Внутренний контент SRS |
+| Audio content | `#v3IdeAudioContent` | Внутренний контент Audio |
+| Export content | `#v3IdeExportContent` | Внутренний контент Export |
+| Note editor | `#v3IdeNoteEditor` | Редактор заметки (IDE) |
+
+### 7.7. IDE Tab Contract
+
+Tabs переключаются через:
+- `.v3-ide-tab[data-tab="<tabname>"]` — кнопка вкладки
+- `.v3-ide-tab-active` — активная вкладка
+
+Left tabs: `search`, `library`, `history`
+Right tabs: `notes`, `srs`, `audio`, `export`
+
+### 7.8. IDE Mode Toggle
+
+| Элемент | Selector | Назначение |
+|---|---|---|
+| Toggle button | `#v3ModeToggle` | Переключение Classic ↔ IDE |
+
+### 7.9. IDE Keyboard Shortcuts
+
+| Комбинация | Действие |
+|---|---|
+| `Ctrl+1` | Left panel → Search tab |
+| `Ctrl+2` | Left panel → Library tab |
+| `Ctrl+3` | Left panel → History tab |
+| `Ctrl+Shift+1` | Right panel → Notes tab |
+| `Ctrl+Shift+2` | Right panel → SRS tab |
+| `Ctrl+Shift+3` | Right panel → Audio tab |
+| `Ctrl+Shift+4` | Right panel → Export tab |
+| `Escape` | Close mobile overlays |
+
+### 7.10. IDE Responsive Breakpoints
+
+| Breakpoint | Поведение |
+|---|---|
+| `>1200px` | Full 3-panel layout |
+| `1024-1200px` | Narrower panels |
+| `768-1024px` | Right panel becomes overlay |
+| `<768px` | Both panels become overlays |
+

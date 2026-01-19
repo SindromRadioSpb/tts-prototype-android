@@ -171,6 +171,48 @@ console.log("NAV-12 PASS");
 - AN-01..AN-06 из `CONTRACTS_ANALYTICS.md`
 - проверить privacy: payload не содержит секретов и больших текстов
 
+### 3.7. IDE Layout зона (Week 12+)
+Триггер:
+- изменения в IDE workspace коде (`v3Ide*` функции/селекторы)
+- изменения CSS под `body.v3-ide-mode`
+- изменения в левой/центральной/правой панелях IDE
+
+Обязательно:
+- IDE-01..IDE-10 (см. ниже)
+- проверить, что Classic mode по-прежнему работает
+
+#### 3.7.1. IDE Quick Checks (ручные, 3-5 минут)
+
+| ID | Сценарий | Шаги | Ожидаемое |
+|----|----------|------|-----------|
+| IDE-01 | Mode toggle | Нажать кнопку "IDE Mode" | Переключение в IDE layout, скрытие classic |
+| IDE-02 | Classic toggle | В IDE mode нажать "Classic" | Возврат в classic layout |
+| IDE-03 | Left tabs | Переключить Search → Library → History | Контент каждой вкладки показывается |
+| IDE-04 | Right tabs | Переключить Notes → SRS → Audio → Export | Контент каждой вкладки показывается |
+| IDE-05 | Library open text | В Library вкладке кликнуть на текст | Текст открывается в центральной панели |
+| IDE-06 | Row selection | Кликнуть на строку в таблице | Строка выделена, Inspector обновляется |
+| IDE-07 | Notes edit | Выбрать строку → отредактировать заметку → blur | Заметка сохраняется, индикатор появляется |
+| IDE-08 | Search | Ввести запрос в Search → кликнуть на результат | Текст открывается, строка выбрана |
+| IDE-09 | Responsive (1024px) | Уменьшить ширину до 1024px | Правая панель становится overlay |
+| IDE-10 | Responsive (768px) | Уменьшить ширину до 768px | Обе панели становятся overlays |
+
+#### 3.7.2. IDE + NAV Integration Checks
+
+| ID | Сценарий | Шаги | Ожидаемое |
+|----|----------|------|-----------|
+| IDE-NAV-01 | Deep link в IDE mode | Включить IDE mode → перейти по deeplink | Текст открывается в центре, строка выбрана |
+| IDE-NAV-02 | Search → Jump | В IDE search кликнуть на row hit | Текст открывается, переход к строке |
+| IDE-NAV-03 | Back to search | После jump нажать Back | Возврат к search tab с результатами |
+| IDE-NAV-04 | State persistence | Закрыть/открыть браузер в IDE mode | IDE mode сохраняется, tabs восстанавливаются |
+
+#### 3.7.3. IDE Keyboard Shortcuts
+
+| Комбинация | Проверка |
+|---|---|
+| `Ctrl+1/2/3` | Переключение left tabs |
+| `Ctrl+Shift+1/2/3/4` | Переключение right tabs |
+| `Escape` | Закрытие mobile overlays |
+
 ## 4) Политика документации (блокирующая)
 Если патч:
 - меняет формат данных,
