@@ -1,49 +1,98 @@
-# CONFIG — окружение и безопасная настройка
+# Configuration Reference
 
-## Цель
-Стандартизировать локальное окружение и переменные так, чтобы:
-- не утекали ключи,
-- работа была воспроизводимой,
-- агенты не ломали систему (артефакты не попадают в git).
+This document describes all environment variables and configuration options for the TTS Prototype application.
 
-## Требования
-- Node.js >= 18 (см. package.json engines).
-- Git установлен.
-- Рекомендуется: PowerShell для smoke-check.ps1; WSL для smoke-check.sh.
+## Quick Start
 
-## Переменные окружения (пример)
-Ключи и токены **не хранятся в git**.
+1. Copy `.env.example` to `.env`
+2. Fill in required values (at minimum: `GEMINI_API_KEY` for translation)
+3. Run `node server.js`
 
-Создать:
-- `.env` — локально (не коммитить)
-- `.env.example` — в git (без значений, только имена)
+## Environment Variables
 
-Рекомендуемый набор:
-- `GEMINI_API_KEY` — ключ Gemini API (если используется)
-- `DB_PATH` — путь к SQLite (опционально; дефолт: `data/app.db`)
-- `MIGRATIONS_DIR` — путь к миграциям (опционально; дефолт: `migrations/`)
+### Server
 
-## Локальные артефакты (не коммитить)
-- `data/app.db` (SQLite база)
-- `audio-cache/` (кэш аудио)
-- `gemini-cache/` (кэш ответов AI)
-- `node_modules/`
-- любые большие `.mp3/.wav/.ogg`
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `3000` | HTTP server port |
+| `NODE_ENV` | — | Environment mode (`development`, `production`) |
 
-## Запуск проекта (примерный)
-- Миграции: `npm run db:migrate`
-- Сервер: `npm start` (если script задан)
-- Smoke-check: `scripts/smoke-check.ps1` (Windows)
+### Database (SQLite)
 
-## Политика секретов
-- Ключи/токены/пароли не попадают в:
-  - исходники
-  - логи
-  - коммиты
-- Любая попытка чтения `.env` должна быть заблокирована хуками Claude Code.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_PATH` | `data/app.db` | Path to SQLite database file |
+| `MIGRATIONS_DIR` | `migrations` | Path to SQL migration files |
+| `BACKUPS_DIR` | `data/backups` | Path to database backups |
+| `NO_BACKUP` | `0` | Set to `1` to skip auto-backup before migrations |
 
-## Диагностика
-Если миграции не запускаются:
-1) Проверьте Node версии.
-2) Проверьте, что `data/` существует (если ожидается дефолтный DB_PATH).
-3) Убедитесь, что MIGRATIONS_DIR указывает на существующий каталог.
+### Google Cloud TTS
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GOOGLE_APPLICATION_CREDENTIALS` | — | Path to service account JSON file |
+| `GOOGLE_CLOUD_TTS_KEY` | — | Inline service account JSON (alternative to file path) |
+| `TTS_SAFE_TARGET_BYTES` | `4800` | Safety limit for TTS input size |
+| `ALLOW_REMOTE_AUDIO_PREFETCH` | `0` | Allow audio prefetch from non-localhost (`1` = allow) |
+
+**Note:** Either `GOOGLE_APPLICATION_CREDENTIALS` or `GOOGLE_CLOUD_TTS_KEY` is required for TTS functionality.
+
+### Google Gemini AI
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GEMINI_API_KEY` | — | API key for Google Gemini |
+| `GOOGLE_API_KEY` | — | Alternative key name (fallback) |
+| `GEMINI_DAILY_LIMIT` | `50` | Maximum AI translation requests per day |
+| `GEMINI_RESET_HOUR_UTC` | `21` | Hour (UTC) when daily counter resets |
+
+### AnkiConnect Integration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ANKI_CONNECT_HOST` | `127.0.0.1` | AnkiConnect server host |
+| `ANKI_CONNECT_PORT` | `8765` | AnkiConnect server port |
+| `ANKI_CONNECT_VERSION` | `6` | AnkiConnect API version |
+| `ANKI_CONNECT_API_KEY` | — | API key (if AnkiConnect requires auth) |
+| `ANKI_CONNECT_ORIGIN` | — | Origin header for CORS |
+| `ANKI_CONNECT_TIMEOUT_MS` | `60000` | Request timeout (ms) |
+| `ANKI_CONNECT_RETRIES` | `3` | Number of retry attempts |
+| `ANKI_CONNECT_RETRY_DELAY_MS` | `250` | Delay between retries (ms) |
+| `ANKI_ADDNOTES_CHUNK` | `25` | Batch size for addNotes (5-100) |
+| `ANKI_MULTI_CHUNK` | `50` | Batch size for multi commands (10-200) |
+
+## File Structure
+
+```
+tts-prototype-android/
+├── .env                 # Your local config (gitignored)
+├── .env.example         # Template with defaults
+├── data/
+│   ├── app.db           # SQLite database (gitignored)
+│   └── backups/         # Auto-backups (gitignored)
+├── audio-cache/         # TTS audio cache (gitignored)
+├── gemini-cache/        # AI response cache (gitignored)
+└── migrations/          # SQL migration files
+```
+
+## Security Notes
+
+1. **Never commit `.env`** — it contains secrets
+2. **Service account JSON** should be stored securely, not in the repo
+3. **API keys** should be rotated periodically
+4. **Backups** may contain sensitive user data — handle appropriately
+
+## Troubleshooting
+
+### TTS not working
+- Check `GOOGLE_APPLICATION_CREDENTIALS` or `GOOGLE_CLOUD_TTS_KEY`
+- Verify the service account has Text-to-Speech API enabled
+
+### Translation not working
+- Check `GEMINI_API_KEY` is set
+- Check daily limit hasn't been exceeded (`/api/gemini/status`)
+
+### AnkiConnect errors
+- Ensure Anki is running with AnkiConnect add-on
+- Check `ANKI_CONNECT_HOST` and `ANKI_CONNECT_PORT`
+- Try increasing `ANKI_CONNECT_TIMEOUT_MS` for slow connections

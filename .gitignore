@@ -1,3 +1,11 @@
+# Secrets / Environment
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials*.json
+
 # Node
 node_modules/
 npm-debug.log*
