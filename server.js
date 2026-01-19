@@ -40,6 +40,7 @@ const {
   listTexts,
   getTextById,
   getSentencesByTextId,
+  getSentenceById,
   searchSentences,
   getExportRowsByTextId,
   touchTextOpened,
@@ -89,6 +90,7 @@ const {
   upsertNote,
   deleteNote,
   searchNotes,
+  getNoteWithContext,
 } = require("./db/notesRepo");
 
 // --------------------------------------------------------
@@ -3352,6 +3354,7 @@ app.get("/api/notes/search", async (req, res) => {
     const more = Array.isArray(rows) && rows.length > limit;
     const slice = more ? rows.slice(0, limit) : (rows || []);
 
+    // PATCH-05: Include snippet and highlights from search results
     const results = slice.map((r) => ({
       textId: String(r.textId || ""),
       sentenceId: String(r.sentenceId || ""),
@@ -3368,6 +3371,11 @@ app.get("/api/notes/search", async (req, res) => {
       source: (r.source == null ? null : String(r.source)),
 
       tags: Array.isArray(r.tags) ? r.tags : [],
+
+      // PATCH-05: Snippet and highlights
+      snippet: r.snippet || null,
+      snippetField: r.snippetField || null,
+      highlights: r.highlights || {},
     }));
 
     const query = {
@@ -3433,6 +3441,7 @@ app.get("/api/sentences/search", async (req, res) => {
     });
 
     // Normalize DTO for API (do not leak tags_json etc unless needed)
+    // PATCH-05: Include snippet and highlights from search results
     const results = (rows || []).map((r) => ({
       textId: String(r.textId || ""),
       sentenceId: String(r.sentenceId || ""),
@@ -3448,6 +3457,11 @@ app.get("/api/sentences/search", async (req, res) => {
       topic: (r.topic == null) ? null : String(r.topic),
       source: (r.source == null) ? null : String(r.source),
       tags: Array.isArray(r.tags) ? r.tags : [],
+
+      // PATCH-05: Snippet and highlights
+      snippet: r.snippet || null,
+      snippetField: r.snippetField || null,
+      highlights: r.highlights || {},
     }));
 
     const more = results.length === limit;
@@ -3461,6 +3475,80 @@ app.get("/api/sentences/search", async (req, res) => {
   } catch (e) {
     console.error("GET /api/sentences/search error:", e);
     return res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// PATCH-03: Navigation resolver API
+// GET /api/nav/resolve?type=<type>&id=<id>
+// Resolves navigation target to entity context (textId, sentenceId, etc.)
+// --------------------------------------------------------
+app.get("/api/nav/resolve", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const type = String(req.query.type || "").trim().toLowerCase();
+    const id = String(req.query.id || "").trim();
+
+    if (!type || !id) {
+      return res.status(400).json({ ok: false, error: "MISSING_PARAMS", message: "type and id are required" });
+    }
+
+    // Validate type
+    const VALID_TYPES = ["text", "sentence", "note"];
+    if (!VALID_TYPES.includes(type)) {
+      return res.status(400).json({ ok: false, error: "UNSUPPORTED_TYPE", message: `Unsupported type: ${type}` });
+    }
+
+    // Resolve based on type
+    if (type === "text") {
+      const text = await getTextById(id);
+      if (!text) {
+        return res.status(404).json({ ok: false, error: "NOT_FOUND", message: "Text not found" });
+      }
+      return res.json({
+        ok: true,
+        type: "text",
+        id: text.id,
+        textId: text.id,
+        title: text.title || null,
+      });
+    }
+
+    if (type === "sentence") {
+      const sentence = await getSentenceById(id);
+      if (!sentence) {
+        return res.status(404).json({ ok: false, error: "NOT_FOUND", message: "Sentence not found" });
+      }
+      return res.json({
+        ok: true,
+        type: "sentence",
+        id: sentence.sentenceId,
+        textId: sentence.textId,
+        orderIndex: sentence.orderIndex,
+        hePlain: sentence.hePlain,
+      });
+    }
+
+    if (type === "note") {
+      const note = await getNoteWithContext(id);
+      if (!note) {
+        return res.status(404).json({ ok: false, error: "NOT_FOUND", message: "Note not found" });
+      }
+      return res.json({
+        ok: true,
+        type: "note",
+        id: note.noteId,
+        textId: note.textId,
+        sentenceId: note.sentenceId,
+      });
+    }
+
+    // Should not reach here
+    return res.status(400).json({ ok: false, error: "UNSUPPORTED_TYPE" });
+  } catch (e) {
+    console.error("GET /api/nav/resolve error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
   }
 });
 

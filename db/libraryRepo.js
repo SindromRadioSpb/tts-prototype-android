@@ -12,6 +12,8 @@ function uuidv4() {
 }
 
 const { getDb } = require("./sqlite");
+const { normalizeHebrew, normalizeQuery, containsHebrew } = require("./hebrewNorm");
+const { generateSnippetForFields } = require("./searchUtils");
 
 function dbExec(db, sql) {
   return new Promise((resolve, reject) => {
@@ -762,15 +764,34 @@ async function searchSentences({
     }
   }
 
+  // PATCH-05: Check if query contains Hebrew for normalization
+  const queryHasHebrew = containsHebrew(qRaw);
+  const queryNorm = queryHasHebrew ? normalizeQuery(qRaw) : qRaw.toLowerCase();
+
   // Main query across sentence fields (case-insensitive)
+  // PATCH-05: Also search he_norm column when query contains Hebrew
   const pat = "%" + qRaw.toLowerCase() + "%";
-  whereParts.push(`(
-    LOWER(COALESCE(s.he_plain,''))  LIKE ?
-    OR LOWER(COALESCE(s.he_niqqud,'')) LIKE ?
-    OR LOWER(COALESCE(s.translit,'')) LIKE ?
-    OR LOWER(COALESCE(s.ru,''))       LIKE ?
-  )`);
-  params.push(pat, pat, pat, pat);
+  const patNorm = "%" + queryNorm + "%";
+
+  if (queryHasHebrew) {
+    // When searching Hebrew, prioritize normalized matching
+    whereParts.push(`(
+      LOWER(COALESCE(s.he_norm,'')) LIKE ?
+      OR LOWER(COALESCE(s.he_plain,''))  LIKE ?
+      OR LOWER(COALESCE(s.he_niqqud,'')) LIKE ?
+      OR LOWER(COALESCE(s.translit,'')) LIKE ?
+      OR LOWER(COALESCE(s.ru,''))       LIKE ?
+    )`);
+    params.push(patNorm, pat, pat, pat, pat);
+  } else {
+    whereParts.push(`(
+      LOWER(COALESCE(s.he_plain,''))  LIKE ?
+      OR LOWER(COALESCE(s.he_niqqud,'')) LIKE ?
+      OR LOWER(COALESCE(s.translit,'')) LIKE ?
+      OR LOWER(COALESCE(s.ru,''))       LIKE ?
+    )`);
+    params.push(pat, pat, pat, pat);
+  }
 
   const whereSql = whereParts.length ? whereParts.join(" AND ") : "1=1";
 
@@ -784,6 +805,7 @@ async function searchSentences({
 
       s.he_plain    AS he_plain,
       s.he_niqqud   AS he_niqqud,
+      s.he_norm     AS he_norm,
       s.translit    AS translit,
       s.ru          AS ru,
 
@@ -809,8 +831,29 @@ async function searchSentences({
     [...params, lim, off]
   );
 
-  // Ensure tags/tags_json are canonical in DTO
-  return rows.map(withTagsDto);
+  // PATCH-05: Generate snippet and highlights for each result
+  return rows.map(row => {
+    const baseDto = withTagsDto(row);
+
+    // Generate snippet and highlights
+    const snippetResult = generateSnippetForFields(
+      {
+        he_plain: row.he_plain,
+        he_niqqud: row.he_niqqud,
+        ru: row.ru,
+        translit: row.translit,
+      },
+      qRaw,
+      { useHebrewNorm: queryHasHebrew }
+    );
+
+    return {
+      ...baseDto,
+      snippet: snippetResult.snippet,
+      snippetField: snippetResult.snippetField,
+      highlights: snippetResult.highlights,
+    };
+  });
 }
 
 async function getExportRowsByTextId(textId) {
@@ -899,6 +942,47 @@ async function deleteTextById(textId) {
   return { ok: true };
 }
 
+// --------------------------------------------------------
+// PATCH-03: Get sentence by ID for NAV resolver
+// Returns sentence with textId for deep link resolution
+// --------------------------------------------------------
+async function getSentenceById(sentenceId) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  if (!sentenceId) return null;
+
+  const row = await dbGet(
+    db,
+    `
+    SELECT
+      s.id          AS sentenceId,
+      s.text_id     AS textId,
+      s.order_index AS orderIndex,
+      s.he_plain    AS hePlain,
+      s.he_niqqud   AS heNiqqud,
+      s.translit    AS translit,
+      s.ru          AS ru
+    FROM sentences s
+    WHERE s.id = ?
+    LIMIT 1;
+    `,
+    [String(sentenceId)]
+  );
+
+  if (!row) return null;
+
+  return {
+    sentenceId: row.sentenceId,
+    textId: row.textId,
+    orderIndex: row.orderIndex,
+    hePlain: row.hePlain || "",
+    heNiqqud: row.heNiqqud || "",
+    translit: row.translit || "",
+    ru: row.ru || "",
+  };
+}
+
 async function updateTextMeta(textId, patch) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
@@ -980,6 +1064,7 @@ module.exports = {
   listTexts,
   getTextById,
   getSentencesByTextId,
+  getSentenceById,
   searchSentences,
   getExportRowsByTextId,
   touchTextOpened,

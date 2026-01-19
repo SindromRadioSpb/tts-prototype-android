@@ -4523,16 +4523,30 @@ async function v3DeeplinkResolveTarget(target) {
 
     // type=sentence requires textId for navigation
     if (type === "sentence") {
-      if (!textId) {
-        // Gap: need API /api/nav/resolve to lookup textId by sentenceId
-        // For now, show NOT_FOUND since we cannot resolve without textId
-        console.warn("[NAV-DEEPLINK] type=sentence without ref.textId — cannot resolve (Gap: needs backend resolve)");
-        return { ok: false, error: "MISSING_TEXT_ID" };
+      let resolvedTextId = textId;
+
+      if (!resolvedTextId) {
+        // PATCH-03: Call backend API to resolve sentenceId -> textId
+        console.log("[NAV-DEEPLINK] Resolving sentence via /api/nav/resolve...");
+        try {
+          const resolveRes = await fetch(`/api/nav/resolve?type=sentence&id=${encodeURIComponent(id)}`);
+          const resolveData = await resolveRes.json();
+          if (resolveData && resolveData.ok && resolveData.textId) {
+            resolvedTextId = resolveData.textId;
+            console.log("[NAV-DEEPLINK] Resolved textId:", resolvedTextId);
+          } else {
+            console.warn("[NAV-DEEPLINK] Could not resolve sentence:", resolveData);
+            return { ok: false, error: resolveData?.error || "NOT_FOUND" };
+          }
+        } catch (resolveErr) {
+          console.error("[NAV-DEEPLINK] Resolve API error:", resolveErr);
+          return { ok: false, error: "RESOLVE_ERROR" };
+        }
       }
 
       // Open text and jump to sentence
       try {
-        await v3LibraryOpenText(textId, { resumeSentenceId: sentenceId, origin: "deeplink" });
+        await v3LibraryOpenText(resolvedTextId, { resumeSentenceId: sentenceId, origin: "deeplink" });
 
         // Wait for DOM to stabilize, then find and flash the sentence
         await new Promise(r => setTimeout(r, 300));
@@ -4586,11 +4600,29 @@ async function v3DeeplinkResolveTarget(target) {
     // type=note: open text + note modal (simplified for now)
     if (type === "note") {
       // noteId = id, need textId + sentenceId from ref
-      const noteTextId = (target.ref && target.ref.textId) ? String(target.ref.textId) : null;
-      const noteSentenceId = (target.ref && target.ref.sentenceId) ? String(target.ref.sentenceId) : null;
+      let noteTextId = (target.ref && target.ref.textId) ? String(target.ref.textId) : null;
+      let noteSentenceId = (target.ref && target.ref.sentenceId) ? String(target.ref.sentenceId) : null;
 
       if (!noteTextId) {
-        return { ok: false, error: "MISSING_TEXT_ID_FOR_NOTE" };
+        // PATCH-03: Call backend API to resolve noteId -> textId + sentenceId
+        console.log("[NAV-DEEPLINK] Resolving note via /api/nav/resolve...");
+        try {
+          const resolveRes = await fetch(`/api/nav/resolve?type=note&id=${encodeURIComponent(id)}`);
+          const resolveData = await resolveRes.json();
+          if (resolveData && resolveData.ok && resolveData.textId) {
+            noteTextId = resolveData.textId;
+            if (!noteSentenceId && resolveData.sentenceId) {
+              noteSentenceId = resolveData.sentenceId;
+            }
+            console.log("[NAV-DEEPLINK] Resolved note context:", { textId: noteTextId, sentenceId: noteSentenceId });
+          } else {
+            console.warn("[NAV-DEEPLINK] Could not resolve note:", resolveData);
+            return { ok: false, error: resolveData?.error || "NOT_FOUND" };
+          }
+        } catch (resolveErr) {
+          console.error("[NAV-DEEPLINK] Resolve API error:", resolveErr);
+          return { ok: false, error: "RESOLVE_ERROR" };
+        }
       }
 
       try {

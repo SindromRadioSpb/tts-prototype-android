@@ -2,6 +2,8 @@
 
 const crypto = require("crypto");
 const { getDb } = require("./sqlite");
+const { containsHebrew } = require("./hebrewNorm");
+const { generateSnippetForFields } = require("./searchUtils");
 
 function uuidv4() {
   if (crypto.randomUUID) return crypto.randomUUID();
@@ -430,8 +432,23 @@ async function searchNotes({
 
   const rows = await dbAll(db, sql, [...params, lim, off]);
 
+  // PATCH-05: Reconstruct original query from tokens for snippet generation
+  const originalQuery = qTokens.join(" ");
+  const queryHasHebrew = containsHebrew(originalQuery);
+
   return (rows || []).map((r) => {
     const tags2 = parseTagsJson(r.tags_json);
+
+    // PATCH-05: Generate snippet and highlights for note content
+    const snippetResult = generateSnippetForFields(
+      {
+        note: r.note,
+        sentenceText: r.sentence_text,
+      },
+      originalQuery,
+      { useHebrewNorm: queryHasHebrew }
+    );
+
     return {
       textId: String(r.text_id || ""),
       sentenceId: String(r.sentence_id || ""),
@@ -449,8 +466,49 @@ async function searchNotes({
 
       tags: tags2,
       tags_json: JSON.stringify(tags2),
+
+      // PATCH-05: Snippet and highlights
+      snippet: snippetResult.snippet,
+      snippetField: snippetResult.snippetField,
+      highlights: snippetResult.highlights,
     };
   });
+}
+
+// --------------------------------------------------------
+// PATCH-03: Get note with full context for NAV resolver
+// Returns note with textId and sentenceId for deep link resolution
+// --------------------------------------------------------
+async function getNoteWithContext(noteId) {
+  const db = await assertDbReady();
+
+  if (!noteId) return null;
+
+  const row = await dbGet(
+    db,
+    `
+    SELECT
+      n.id          AS noteId,
+      n.text_id     AS textId,
+      n.sentence_id AS sentenceId,
+      n.note        AS note,
+      n.updated_at  AS updatedAt
+    FROM sentence_notes n
+    WHERE n.id = ?
+    LIMIT 1;
+    `,
+    [String(noteId)]
+  );
+
+  if (!row) return null;
+
+  return {
+    noteId: row.noteId,
+    textId: row.textId,
+    sentenceId: row.sentenceId,
+    note: row.note || "",
+    updatedAt: row.updatedAt || null,
+  };
 }
 
 module.exports = {
@@ -460,4 +518,5 @@ module.exports = {
   deleteNote,
   getNoteBySentenceId,
   searchNotes,
+  getNoteWithContext,
 };
