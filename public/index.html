@@ -3241,6 +3241,45 @@ body.v3-ide-mode .v3-ide-center-content table .row-tts-btn.row-tts-playing {
   color: #fff;
 }
 
+/* PATCH-17.6: Audio cache indicator in IDE mode */
+body.v3-ide-mode .v3-ide-center-content table .row-audio-ind {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+  background: rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.20);
+  opacity: 0.95;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-ok {
+  background: rgba(46, 204, 113, 0.95);
+  border-color: rgba(39, 174, 96, 0.55);
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-missing {
+  background: rgba(0,0,0,0.12);
+  border-color: rgba(0,0,0,0.20);
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-mismatch {
+  background: rgba(241, 196, 15, 0.95);
+  border-color: rgba(243, 156, 18, 0.60);
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-too-long {
+  background: rgba(231, 76, 60, 0.92);
+  border-color: rgba(192, 57, 43, 0.60);
+}
+
+body.v3-ide-mode .v3-ide-center-content table .row-audio-ind.state-working {
+  background: rgba(52, 152, 219, 0.92);
+  border-color: rgba(41, 128, 185, 0.65);
+}
+
 body.v3-ide-mode .v3-ide-center-content table .row-note-indicator {
   margin-left: 4px;
   font-size: 12px;
@@ -4544,6 +4583,18 @@ function v3IdeCloseAllModals() {
   try { if (typeof v3NotesClose === "function") v3NotesClose(); } catch (e) {}
 }
 
+// --- PATCH-17.6: Helper to find active proTable (Classic or IDE mode) ---
+// In IDE mode, the table is inside #v3IdeCenterContent
+// In Classic mode, the table is in the main content area
+function v3GetActiveProTable() {
+  if (document.body.classList.contains("v3-ide-mode")) {
+    // IDE mode: look for table inside IDE center content
+    return document.querySelector("#v3IdeCenterContent #proTable");
+  }
+  // Classic mode: standard lookup
+  return document.getElementById("proTable");
+}
+
 // --- IDE Left Panel Tab Switching ---
 function v3IdeLeftTabSwitch(tab) {
   v3IdeState.leftTab = tab;
@@ -5218,6 +5269,7 @@ function v3IdeRenderTable(rows, textId) {
         ${showTr ? `<td>${translit}</td>` : ''}
         ${showRu ? `<td>${ru}</td>` : ''}
         <td style="white-space:nowrap;">
+          <span class="row-audio-ind" data-row-idx="${idx}" aria-hidden="true"></span>
           <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Play TTS" aria-label="Play TTS" onclick="event.stopPropagation();">▶</button>
           <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
         </td>
@@ -5231,6 +5283,13 @@ function v3IdeRenderTable(rows, textId) {
   `;
 
   content.innerHTML = html;
+
+  // PATCH-17.6: Refresh audio cache indicators after table render
+  try {
+    if (typeof v3AudioPrefetchRefreshMarkers === "function") {
+      v3AudioPrefetchRefreshMarkers();
+    }
+  } catch (_) {}
 }
 
 function v3IdeOnRowClick(idx) {
@@ -5261,8 +5320,9 @@ function v3IdeSelectRow(idx) {
 }
 
 function v3IdePlayRow(idx) {
-  // Use existing TTS infrastructure by clicking the row TTS button
-  const btn = document.querySelector(`#proTable button.row-tts-btn[data-row-idx="${idx}"]`);
+  // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
+  const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
+  const btn = table ? table.querySelector(`button.row-tts-btn[data-row-idx="${idx}"]`) : null;
   if (btn) {
     btn.click();
   }
@@ -7595,7 +7655,8 @@ function ensureRowAudioPlayer() {
 
 function clearRowPlayingState(alsoClearSelected) {
     // снять playing подсветку и состояния кнопки
-    const table = document.getElementById("proTable");
+    // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
+    const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
     if (table) {
         const prev = table.querySelector('tbody tr[data-row-idx="' + String(rowPlayingRowIdx) + '"]');
         if (prev) prev.classList.remove("row-playing");
@@ -7625,7 +7686,8 @@ function clearRowPlayingState(alsoClearSelected) {
 }
 
 function clearRowErrorState(rowIdx) {
-    const table = document.getElementById("proTable");
+    // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
+    const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
     if (!table) return;
 
     const tr = table.querySelector('tbody tr[data-row-idx="' + String(rowIdx) + '"]');
@@ -7647,7 +7709,8 @@ function clearRowErrorState(rowIdx) {
 }
 
 function setRowErrorState(rowIdx, message) {
-    const table = document.getElementById("proTable");
+    // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
+    const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
     if (!table) return;
 
     const safeMsg = (message && String(message).trim())
@@ -7673,7 +7736,8 @@ function setRowErrorState(rowIdx, message) {
 
 
 function setRowButtonLoading(rowIdx, isLoading) {
-    const table = document.getElementById("proTable");
+    // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
+    const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
     if (!table) return;
     const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]');
     if (!btn) return;
@@ -7745,16 +7809,17 @@ updateRowFocusMode(); // Week 6 guard
 
 
 function setRowPlayingUI(rowIdx, playing) {
-    const table = document.getElementById("proTable");
+    // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
+    const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
     if (!table) return;
-	
+
 	// AR-11: playing возможен только для существующей строки
     const rc = getDomRowCount();
     const normIdx = normalizeRowIdxOrNull(rowIdx, rc);
     if (normIdx === null) return;
     rowIdx = normIdx;
 
-	
+
 	if (playing) {
         setRowSelectedUI(rowIdx); // <-- ДОБАВИТЬ: фиксируем "последнюю" строку
     }
@@ -15515,7 +15580,8 @@ async function v3AudioPrefetchRefreshAudioFromServer() {
 }
 
 function v3AudioPrefetchUpdateMarkerForRow(rowIdx) {
-  const table = document.getElementById("proTable");
+  // PATCH-17.6: Use helper to find correct table in Classic or IDE mode
+  const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
   if (!table) return;
 
   const el = table.querySelector('span.row-audio-ind[data-row-idx="' + String(rowIdx) + '"]');
