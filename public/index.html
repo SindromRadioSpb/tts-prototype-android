@@ -2722,6 +2722,58 @@ body.v3-ide-mode #v3IdeWorkspace {
   margin-top: 8px;
 }
 
+/* --- IDE Column Visibility Settings --- */
+.v3-ide-col-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.v3-ide-col-settings label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+.v3-ide-col-settings input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.v3-ide-col-settings .v3-ide-col-reset {
+  margin-left: auto;
+  font-size: 12px;
+  color: #6366f1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.v3-ide-col-settings .v3-ide-col-reset:hover {
+  color: #4f46e5;
+}
+.v3-ide-col-settings .v3-ide-col-note {
+  font-size: 11px;
+  color: #94a3b8;
+  width: 100%;
+  margin-top: 2px;
+}
+@media (max-width: 600px) {
+  .v3-ide-col-settings {
+    gap: 8px;
+  }
+  .v3-ide-col-settings label {
+    font-size: 12px;
+  }
+}
+
 /* --- IDE Center Content (table area) --- */
 .v3-ide-center-content {
   flex: 1;
@@ -3366,6 +3418,15 @@ body.v3-ide-mode .v3-ide-right {
       <div class="v3-ide-center-actions">
         <button class="btn-secondary" onclick="v3IdePlayAll()" title="Play all rows">▶ Play All</button>
         <button class="btn-secondary" onclick="v3IdeOpenInClassic()" title="Open in classic view">Open Classic</button>
+      </div>
+      <!-- Column Visibility Toggles -->
+      <div id="v3IdeColSettings" class="v3-ide-col-settings">
+        <label><input type="checkbox" id="v3IdeColHebrew" onchange="v3IdeToggleColumn('hebrew')" checked> Hebrew</label>
+        <label><input type="checkbox" id="v3IdeColNiqqud" onchange="v3IdeToggleColumn('niqqud')" checked> Niqqud</label>
+        <label><input type="checkbox" id="v3IdeColTranslit" onchange="v3IdeToggleColumn('translit')" checked> Translit</label>
+        <label><input type="checkbox" id="v3IdeColTranslation" onchange="v3IdeToggleColumn('translation')" checked> Translation</label>
+        <button type="button" class="v3-ide-col-reset" onclick="v3IdeResetColumns()">Reset</button>
+        <span class="v3-ide-col-note">Table settings saved on this device.</span>
       </div>
     </div>
     <div id="v3IdeCenterContent" class="v3-ide-center-content">
@@ -4363,6 +4424,77 @@ function v3IdeLoadState() {
   } catch (e) { /* parse error */ }
 }
 
+// --- IDE Column Visibility (PATCH-17.5) ---
+const V3_IDE_TABLE_COLS_KEY = "ide.table.columns.v1";
+const V3_IDE_TABLE_COLS_DEFAULT = { hebrew: true, niqqud: true, translit: true, translation: true };
+let v3IdeVisibleColumns = { ...V3_IDE_TABLE_COLS_DEFAULT };
+
+function v3IdeLoadColumnSettings() {
+  try {
+    const raw = localStorage.getItem(V3_IDE_TABLE_COLS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      v3IdeVisibleColumns = { ...V3_IDE_TABLE_COLS_DEFAULT, ...parsed };
+    }
+  } catch (e) { /* parse error, use defaults */ }
+  v3IdeApplyColumnCheckboxes();
+}
+
+function v3IdeSaveColumnSettings() {
+  try {
+    localStorage.setItem(V3_IDE_TABLE_COLS_KEY, JSON.stringify(v3IdeVisibleColumns));
+  } catch (e) { /* quota exceeded */ }
+}
+
+function v3IdeApplyColumnCheckboxes() {
+  const ids = { hebrew: "v3IdeColHebrew", niqqud: "v3IdeColNiqqud", translit: "v3IdeColTranslit", translation: "v3IdeColTranslation" };
+  for (const [key, id] of Object.entries(ids)) {
+    const el = document.getElementById(id);
+    if (el) el.checked = !!v3IdeVisibleColumns[key];
+  }
+}
+
+function v3IdeCountVisibleColumns() {
+  return Object.values(v3IdeVisibleColumns).filter(Boolean).length;
+}
+
+function v3IdeToggleColumn(key) {
+  if (!V3_IDE_TABLE_COLS_DEFAULT.hasOwnProperty(key)) return;
+
+  // Guard: cannot hide the last visible column
+  if (v3IdeVisibleColumns[key] && v3IdeCountVisibleColumns() <= 1) {
+    // Restore checkbox to checked state
+    v3IdeApplyColumnCheckboxes();
+    return;
+  }
+
+  v3IdeVisibleColumns[key] = !v3IdeVisibleColumns[key];
+  v3IdeSaveColumnSettings();
+
+  // Re-render table if there's an active text
+  if (v3IdeState.activeTextId && currentTableData && currentTableData.length > 0) {
+    v3IdeRenderTable(currentTableData, v3IdeState.activeTextId);
+    // Restore row selection if any
+    if (v3IdeState.selectedRowIdx !== null) {
+      v3IdeSelectRow(v3IdeState.selectedRowIdx);
+    }
+  }
+}
+
+function v3IdeResetColumns() {
+  v3IdeVisibleColumns = { ...V3_IDE_TABLE_COLS_DEFAULT };
+  v3IdeSaveColumnSettings();
+  v3IdeApplyColumnCheckboxes();
+
+  // Re-render table if there's an active text
+  if (v3IdeState.activeTextId && currentTableData && currentTableData.length > 0) {
+    v3IdeRenderTable(currentTableData, v3IdeState.activeTextId);
+    if (v3IdeState.selectedRowIdx !== null) {
+      v3IdeSelectRow(v3IdeState.selectedRowIdx);
+    }
+  }
+}
+
 // --- IDE Mode Toggle ---
 function v3IdeModeToggle() {
   const enabled = v3IdeModeEnabled();
@@ -4520,6 +4652,9 @@ function v3IdeInit() {
   // Apply mode based on saved preference
   const enabled = v3IdeModeEnabled();
   v3IdeApplyMode(enabled);
+
+  // Load column visibility settings (PATCH-17.5)
+  v3IdeLoadColumnSettings();
 
   // Listen for resize to update backdrop
   window.addEventListener("resize", v3IdeUpdateBackdrop);
@@ -5042,16 +5177,23 @@ function v3IdeRenderTable(rows, textId) {
     row._v3_sentenceId = row.sentenceId || row.sentence_id || row.id || "";
   });
 
-  // Build table HTML
+  // Column visibility (PATCH-17.5)
+  const cols = v3IdeVisibleColumns || V3_IDE_TABLE_COLS_DEFAULT;
+  const showHe = cols.hebrew;
+  const showNiq = cols.niqqud;
+  const showTr = cols.translit;
+  const showRu = cols.translation;
+
+  // Build table HTML with conditional columns
   let html = `
     <table id="proTable" class="proTable" data-text-id="${textId}">
       <thead>
         <tr>
           <th style="width:40px;">#</th>
-          <th>Hebrew</th>
-          <th>Niqqud</th>
-          <th>Translit</th>
-          <th>Translation</th>
+          ${showHe ? '<th>Hebrew</th>' : ''}
+          ${showNiq ? '<th>Niqqud</th>' : ''}
+          ${showTr ? '<th>Translit</th>' : ''}
+          ${showRu ? '<th>Translation</th>' : ''}
           <th style="width:80px;">Actions</th>
         </tr>
       </thead>
@@ -5071,10 +5213,10 @@ function v3IdeRenderTable(rows, textId) {
     html += `
       <tr data-row-idx="${idx}" data-sentence-id="${sentenceId}" onclick="v3IdeOnRowClick(${idx})">
         <td>${idx + 1}</td>
-        <td class="rtl-he">${he}</td>
-        <td class="rtl-he-niqqud">${niqqud}</td>
-        <td>${translit}</td>
-        <td>${ru}</td>
+        ${showHe ? `<td class="rtl-he">${he}</td>` : ''}
+        ${showNiq ? `<td class="rtl-he-niqqud">${niqqud}</td>` : ''}
+        ${showTr ? `<td>${translit}</td>` : ''}
+        ${showRu ? `<td>${ru}</td>` : ''}
         <td style="white-space:nowrap;">
           <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Play TTS" aria-label="Play TTS" onclick="event.stopPropagation();">▶</button>
           <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
@@ -5474,6 +5616,9 @@ window.v3IdeExportDocx = v3IdeExportDocx;
 window.v3IdeLibraryFilterDebounced = v3IdeLibraryFilterDebounced;
 window.v3IdeLibraryLevelChange = v3IdeLibraryLevelChange;
 window.v3IdeLibrarySortChange = v3IdeLibrarySortChange;
+// Column visibility functions (PATCH-17.5)
+window.v3IdeToggleColumn = v3IdeToggleColumn;
+window.v3IdeResetColumns = v3IdeResetColumns;
 
 // Initialize IDE on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", v3IdeInit);
