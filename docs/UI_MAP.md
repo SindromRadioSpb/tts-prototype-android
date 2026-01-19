@@ -46,13 +46,15 @@
 |---|---|---|
 | Sticky root | `#v3NavSticky` | контейнер sticky-панели NAV |
 | Back | `#v3NavBackBtn` | back-to-matches |
+| Copy Link | `#v3NavCopyLinkBtn` | копировать deeplink текущего контекста |
 | Prev | `#v3NavPrevBtn` | предыдущий hit |
 | Next | `#v3NavNextBtn` | следующий hit |
-| Status | `#v3NavStatus` | текстовый статус (например “2 / 10”) |
+| Status | `#v3NavPos` | текстовый статус (например "Rows 2/10") |
 
 ### 2.1. Хоткеи (NAV)
-- Prev: `Alt + [`
-- Next: `Alt + ]`
+- Prev: `ArrowLeft` (когда NAV bar visible)
+- Next: `ArrowRight` (когда NAV bar visible)
+- Copy Link: `Ctrl+Shift+L` (global)
 
 ## 3) Search Modals: Library / Dashboard
 

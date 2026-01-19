@@ -109,7 +109,31 @@ Guardrail больших файлов:
 
 Acceptance:
 - Пункты A/B/C обязаны соответствовать NAV-01/NAV-02/NAV-07 и Error handling контракту:contentReference[oaicite:9]{index=9}.
-- “orderIndex changed…” обязан подтверждать, что deep link не зависит от позиционных полей (см. ADR-0002).
+- "orderIndex changed…" обязан подтверждать, что deep link не зависит от позиционных полей (см. ADR-0002).
+
+#### 3.2.3 NAV Copy Link checks (NAV-08..NAV-12)
+
+Цель: проверить создание и копирование deeplinks.
+
+| ID | Сценарий | Шаги | Ожидаемое |
+|----|----------|------|-----------|
+| NAV-08 | Copy text link | Открыть текст → `Ctrl+Shift+L` → вставить в новую вкладку | Открывается тот же текст |
+| NAV-09 | Copy sentence link | Выбрать строку (row-selected) → `Ctrl+Shift+L` → вставить | Открывается текст + jump to sentence |
+| NAV-10 | Copy link via NAV bar | Search → Jump to hit → 🔗 button → вставить | Открывается та же сущность |
+| NAV-11 | Copy search link | Search → results visible → `Ctrl+Shift+L` → вставить | Восстанавливается поисковая выдача (scope/q/filters) |
+| NAV-12 | Link roundtrip encoding | Создать target → encode → decode → validate | target идентичен исходному |
+
+Проверка NAV-12 (программная):
+```javascript
+// В консоли браузера:
+const t = v3DeeplinkBuildTarget("text", "test-id-123");
+const link = v3DeeplinkBuildLink(t);
+const hash = "#" + link.split("#")[1];
+const parsed = v3DeeplinkParse(hash);
+console.assert(parsed.ok === true, "Parse failed");
+console.assert(parsed.target.id === "test-id-123", "ID mismatch");
+console.log("NAV-12 PASS");
+```
 
 ### 3.3. Search зона
 Триггер:

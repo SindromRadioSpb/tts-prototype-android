@@ -1961,8 +1961,30 @@ th, td { border-color: rgba(0,0,0,0.55); }
 .v3-source { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
 .v3-source-label { display: inline-block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .v3-src-copy { flex: 0 0 auto; }
-
 .v3-src-copy:hover { background: #f9fafb; }
+
+/* Title deeplink copy button */
+.v3-title-copy {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  padding: 2px 5px;
+  font-size: 12px;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+.v3-title-copy:hover { background: #f3f4f6; }
+
+/* Clickable title link */
+.v3-lib-card-title a {
+  color: #111827;
+  text-decoration: none;
+}
+.v3-lib-card-title a:hover {
+  text-decoration: underline;
+}
 
 .v3-lib-danger {
   border-color: #fecaca !important;
@@ -2099,6 +2121,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
   .v3-dash-item:last-child { margin-bottom:0; }
 
   .v3-dash-title { font-weight:700; font-size:13px; line-height:1.25; }
+  a.v3-dash-title { color: inherit; text-decoration: none; }
+  a.v3-dash-title:hover { text-decoration: underline; }
   .v3-dash-meta { opacity:0.82; font-size:12px; margin-top:4px; line-height:1.25; }
 
   .v3-dash-badges { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
@@ -3719,6 +3743,7 @@ function v3NavStickyBindOnce() {
   const nextBtn = v3NavStickyGetEl("v3NavNextBtn");
   const closeBtn = v3NavStickyGetEl("v3NavCloseBtn");
   const backBtn = v3NavStickyGetEl("v3NavBackBtn");
+  const copyLinkBtn = v3NavStickyGetEl("v3NavCopyLinkBtn");
 
   if (prevBtn) prevBtn.addEventListener("click", () => { v3NavPrev(); });
   if (nextBtn) nextBtn.addEventListener("click", () => { v3NavNext(); });
@@ -3726,6 +3751,11 @@ function v3NavStickyBindOnce() {
 
   // Back-to-matches (A3.3) will be wired later; keep disabled for now.
   if (backBtn) backBtn.addEventListener("click", () => { v3NavBackToMatches(); });
+
+  // Copy link button (NAV-DEEPLINK-FULL-01)
+  if (copyLinkBtn) copyLinkBtn.addEventListener("click", () => {
+    if (typeof v3DeeplinkCopyCurrentContext === "function") v3DeeplinkCopyCurrentContext();
+  });
 
   // keyboard shortcuts (when bar is visible)
   document.addEventListener("keydown", (ev) => {
@@ -4168,6 +4198,203 @@ function v3DeeplinkBase64urlDecode(str) {
 }
 
 /**
+ * base64url encode (URL-safe alphabet, no padding)
+ * @param {string} str - UTF-8 string
+ * @returns {string} base64url encoded string
+ */
+function v3DeeplinkBase64urlEncode(str) {
+  try {
+    if (!str || typeof str !== "string") return "";
+    // UTF-8 encode
+    const bytes = new TextEncoder().encode(str);
+    // Convert to binary string
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    // Base64 encode
+    let b64 = btoa(bin);
+    // Convert to URL-safe (replace + with -, / with _, remove padding)
+    return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  } catch (_) {
+    return "";
+  }
+}
+
+/**
+ * Build canonical Target object for deeplink
+ * Keys are ordered deterministically per CONTRACTS_NAVIGATION.md
+ * @param {"text"|"sentence"|"note"|"search"} type
+ * @param {string} id - stable ID for the entity
+ * @param {object} [opts] - optional ref/context fields
+ * @returns {object} Target v1 object
+ */
+function v3DeeplinkBuildTarget(type, id, opts) {
+  opts = opts || {};
+
+  // Canonical structure with fixed key order
+  const target = {
+    v: 1,
+    type: type,
+    id: String(id)
+  };
+
+  // Add ref if needed (for sentence needs textId, for note needs context)
+  if (type === "sentence" && opts.textId) {
+    target.ref = { textId: String(opts.textId) };
+  } else if (type === "note") {
+    const ref = {};
+    if (opts.textId) ref.textId = String(opts.textId);
+    if (opts.sentenceId) ref.sentenceId = String(opts.sentenceId);
+    if (Object.keys(ref).length > 0) target.ref = ref;
+  } else if (type === "search") {
+    // Search requires ref with scope/q/filtersKey
+    target.ref = {
+      scope: opts.scope || "both",
+      q: opts.q || "",
+      filtersKey: opts.filtersKey || ""
+    };
+  }
+
+  // Add context.anchor if provided (for text with sentence anchor)
+  if (type === "text" && opts.anchorSentenceId) {
+    target.context = {
+      anchor: { sentence_id: String(opts.anchorSentenceId) }
+    };
+  }
+
+  return target;
+}
+
+/**
+ * Build full deeplink URL from Target
+ * @param {object} target - Target v1 object
+ * @returns {string} Full URL with hash (e.g. "http://host/#/t/eyJ2...")
+ */
+function v3DeeplinkBuildLink(target) {
+  try {
+    const json = JSON.stringify(target);
+    const payload = v3DeeplinkBase64urlEncode(json);
+    const base = window.location.origin + window.location.pathname;
+    return base + "#/t/" + payload;
+  } catch (_) {
+    return "";
+  }
+}
+
+/**
+ * Build deeplink for current entity and copy to clipboard
+ * @param {"text"|"sentence"|"note"|"search"} type
+ * @param {string} id
+ * @param {object} [opts] - ref/context options
+ * @returns {Promise<boolean>} success
+ */
+async function v3DeeplinkCopyLink(type, id, opts) {
+  try {
+    const target = v3DeeplinkBuildTarget(type, id, opts);
+    const link = v3DeeplinkBuildLink(target);
+
+    if (!link) {
+      if (typeof showToast === "function") showToast("Не удалось создать ссылку", "error");
+      return false;
+    }
+
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(link);
+    } else {
+      // Fallback for older browsers
+      const ta = document.createElement("textarea");
+      ta.value = link;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+
+    if (typeof showToast === "function") showToast("Ссылка скопирована", "info");
+    console.log("[NAV-DEEPLINK] Link copied:", link);
+    return true;
+  } catch (e) {
+    console.error("[NAV-DEEPLINK] Copy failed:", e);
+    if (typeof showToast === "function") showToast("Ошибка копирования", "error");
+    return false;
+  }
+}
+
+/**
+ * Get current context for copy link (determines what to copy based on UI state)
+ * @returns {{ type: string, id: string, opts: object }|null}
+ */
+function v3DeeplinkGetCurrentContext() {
+  // Priority: 1) Open note modal, 2) Open text, 3) Search results
+
+  // 1) Check if Notes modal is open
+  const notesModal = document.getElementById("v3NotesModal");
+  if (notesModal && !notesModal.classList.contains("hidden")) {
+    // Get note context from modal
+    const noteId = notesModal.dataset.noteId;
+    const textId = notesModal.dataset.textId;
+    const sentenceId = notesModal.dataset.sentenceId;
+    if (noteId) {
+      return { type: "note", id: noteId, opts: { textId, sentenceId } };
+    }
+  }
+
+  // 2) Check if text is open (proTable visible with data)
+  const proTable = document.getElementById("proTable");
+  const textId = v3ActiveTextId || (proTable && proTable.dataset.textId);
+  if (textId && proTable && proTable.style.display !== "none") {
+    // Check if there's a selected row for sentence-level link
+    const selectedRow = proTable.querySelector("tr.row-selected");
+    if (selectedRow && selectedRow.dataset.sentenceId) {
+      return {
+        type: "sentence",
+        id: selectedRow.dataset.sentenceId,
+        opts: { textId }
+      };
+    }
+    // Otherwise return text link
+    return { type: "text", id: textId, opts: {} };
+  }
+
+  // 3) Check search results
+  const session = (typeof v3SearchSessionGet === "function") ? v3SearchSessionGet() : null;
+  if (session && (session.notesResults?.length > 0 || session.rowsResults?.length > 0)) {
+    const searchKey = `${session.origin}_${session.scope}_${Date.now()}`;
+    return {
+      type: "search",
+      id: searchKey,
+      opts: {
+        scope: session.scope,
+        q: session.qRaw,
+        filtersKey: session.filtersKey
+      }
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Copy link based on current UI context (for keyboard shortcut)
+ */
+async function v3DeeplinkCopyCurrentContext() {
+  const ctx = v3DeeplinkGetCurrentContext();
+  if (!ctx) {
+    if (typeof showToast === "function") showToast("Нечего копировать", "warning");
+    return false;
+  }
+  return v3DeeplinkCopyLink(ctx.type, ctx.id, ctx.opts);
+}
+
+// Encoding debug exports
+try { window.v3DeeplinkBase64urlEncode = v3DeeplinkBase64urlEncode; } catch (_) {}
+try { window.v3DeeplinkBuildTarget = v3DeeplinkBuildTarget; } catch (_) {}
+try { window.v3DeeplinkBuildLink = v3DeeplinkBuildLink; } catch (_) {}
+try { window.v3DeeplinkCopyLink = v3DeeplinkCopyLink; } catch (_) {}
+
+/**
  * Parse deep link hash → Target object or error
  * @param {string} hash - location.hash (e.g. "#/t/eyJ2Ijo...")
  * @returns {{ ok: boolean, target?: object, error?: string }}
@@ -4391,22 +4618,90 @@ async function v3DeeplinkResolveTarget(target) {
       }
     }
 
-    // type=search: restore search session (simplified — just open Dashboard with context)
+    // type=search: restore search session and execute search
     if (type === "search") {
-      // Restore search context if available
-      const searchScope = (target.ref && target.ref.scope) ? String(target.ref.scope) : null;
-      const searchQ = (target.ref && target.ref.q) ? String(target.ref.q) : null;
+      // Parse origin from id (format: {origin}_{scope}_{timestamp}, e.g. "lib_both_1768766837797")
+      const idParts = id ? String(id).split("_") : [];
+      const idOrigin = (idParts[0] === "lib" || idParts[0] === "dash") ? idParts[0] : "dash";
+      const origin = idOrigin === "lib" ? "lib" : "dash";
 
-      // Set session and open Dashboard
-      if (typeof v3SearchSessionSet === "function" && searchQ) {
+      // Extract search params from ref
+      const searchScope = (target.ref && target.ref.scope) ? String(target.ref.scope) : "both";
+      const searchQ = (target.ref && target.ref.q) ? String(target.ref.q) : "";
+      const filtersKey = (target.ref && target.ref.filtersKey) ? String(target.ref.filtersKey) : "";
+
+      // Set session with full context
+      if (typeof v3SearchSessionSet === "function") {
         v3SearchSessionSet({
-          origin: "dash",
+          origin: origin,
           scope: searchScope,
           qRaw: searchQ,
+          filtersKey: filtersKey
         });
       }
 
-      if (typeof v3DashboardOpen === "function") v3DashboardOpen();
+      // Restore scope UI
+      if (searchScope && typeof v3SearchScopeSet === "function") {
+        try { v3SearchScopeSet(searchScope); } catch (_) {}
+      }
+      if (typeof v3NotesSyncUi === "function") {
+        try { v3NotesSyncUi(); } catch (_) {}
+      }
+
+      // Open the correct modal based on origin
+      if (origin === "lib") {
+        if (typeof v3LibraryOpen === "function") v3LibraryOpen();
+        else {
+          const m = document.getElementById("v3LibraryModal");
+          if (m) m.classList.remove("hidden");
+        }
+      } else {
+        if (typeof v3DashboardOpen === "function") v3DashboardOpen();
+        else {
+          const m = document.getElementById("v3DashboardModal");
+          if (m) m.classList.remove("hidden");
+        }
+      }
+
+      // Set search input value
+      const qElId = (origin === "lib") ? "v3LibrarySearch" : "v3DashSearch";
+      const qEl = document.getElementById(qElId);
+      if (qEl && searchQ) {
+        qEl.value = searchQ;
+      }
+
+      // Restore filters from filtersKey (format: "level=alef&arch=1&tagMode=all&notesOnly=0&rowsOnly=0")
+      if (filtersKey) {
+        try {
+          const fp = new URLSearchParams(filtersKey);
+          const level = fp.get("level") || "";
+          const arch = fp.get("arch");
+          const includeArchived = (arch === "1");
+
+          if (origin === "lib") {
+            const lvEl = document.getElementById("v3LibraryLevel");
+            if (lvEl) lvEl.value = level;
+            const archEl = document.getElementById("v3LibraryIncludeArchived");
+            if (archEl) archEl.checked = includeArchived;
+          } else {
+            const lvEl = document.getElementById("v3DashLevel");
+            if (lvEl) lvEl.value = level;
+            const archEl = document.getElementById("v3DashIncludeArchived");
+            if (archEl) archEl.checked = includeArchived;
+          }
+        } catch (_) {}
+      }
+
+      // Execute the search (with small delay to let UI settle)
+      setTimeout(() => {
+        try {
+          if (typeof v3NotesSearchSchedule === "function") v3NotesSearchSchedule(origin, { force: true });
+        } catch (_) {}
+        try {
+          if (typeof v3RowsSearchSchedule === "function") v3RowsSearchSchedule(origin, { force: true });
+        } catch (_) {}
+      }, 100);
+
       return { ok: true };
     }
 
@@ -7674,6 +7969,19 @@ function v3LibraryBindTagClicksOnce() {
 	return;
 	}
 
+      // Title deeplink copy button (inside cards)
+      const titleCopyBtn = tgt.closest(".v3-title-copy");
+      if (titleCopyBtn) {
+        const tid = titleCopyBtn.getAttribute("data-text-id");
+        if (tid) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          v3DeeplinkCopyLink("text", tid, {});
+          showToast("Ссылка на текст скопирована", "success");
+        }
+        return;
+      }
+
       const chip = tgt.closest(".v3-lib-chip, .v3-lib-topic-chip");
 if (!chip) return;
 
@@ -8636,6 +8944,10 @@ const sourceHtml = src
      `</span>`)
   : "—";
 
+// Build text deeplink for title
+const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3DeeplinkBuildTarget === "function")
+  ? v3DeeplinkBuildLink(v3DeeplinkBuildTarget("text", id, {}))
+  : "";
 
     const lastOpened = t.last_opened_at || t.lastOpenedAt || null;
     const createdAt = t.created_at || t.createdAt || null;
@@ -8652,7 +8964,7 @@ const sourceHtml = src
     card.innerHTML = `
       <div class="v3-lib-card-top">
         <div>
-          <div class="v3-lib-card-title">${v3EscapeHtml(title)}${topicHtml}</div>
+          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button></div>
           <div class="v3-lib-card-meta">
              ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				Прогресс: строка № <b>${v3EscapeHtml(progressText)}</b><br/>
@@ -9877,7 +10189,12 @@ function v3DashRenderItem(t) {
 const topicHtml = topic
   ? (` <span class="v3-dash-topic-chip" data-topic="${v3EscapeHtml(topic)}" title="Фильтр по теме: ${v3EscapeHtml(topic)}">${v3EscapeHtml(topic)}</span>`)
   : "";
-  
+
+// Build text deeplink for title
+const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3DeeplinkBuildTarget === "function")
+  ? v3DeeplinkBuildLink(v3DeeplinkBuildTarget("text", id, {}))
+  : "";
+
   const fromLib = v3DashLibTexts.find(x => x && String(x.id || x.text_id || "") === String(id)) || null;
   const tagsArr = v3ParseTags(
     t.tags_json || t.tagsJson || t.tags ||
@@ -9940,8 +10257,8 @@ const metaLine = metaParts.length
     <div class="v3-dash-item">
       <div style="min-width:0;">
         <div class="v3-dash-title-row">
-			<span class="v3-dash-title" onclick="v3DashboardSelectText('${id}')">${title}</span>
-				${topicHtml}
+			${textDeeplink ? `<a class="v3-dash-title" href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${title}</a>` : `<span class="v3-dash-title" onclick="v3DashboardSelectText('${id}')">${title}</span>`}
+				${topicHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button>
 		</div>
         ${metaLine}
         ${badgeHtml}
@@ -10769,6 +11086,19 @@ function v3DashboardBindTagClicksOnce() {
           ev.stopPropagation();
           v3CopyTextToClipboard(payload);
           showToast("Источник скопирован", "success");
+        }
+        return;
+      }
+
+      // Title deeplink copy button (inside cards)
+      const titleCopyBtn = tgt.closest(".v3-title-copy");
+      if (titleCopyBtn) {
+        const tid = titleCopyBtn.getAttribute("data-text-id");
+        if (tid) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          v3DeeplinkCopyLink("text", tid, {});
+          showToast("Ссылка на текст скопирована", "success");
         }
         return;
       }
@@ -13297,6 +13627,17 @@ async function v3AnkiPushNow() {
             toggleHotkeysPanel();
             return;
         }
+
+        // NAV-DEEPLINK-FULL-01: Copy link to current context (Ctrl+Shift+L)
+        if (event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey &&
+            (event.code === "KeyL" || (typeof event.key === "string" && event.key.toLowerCase() === "l"))) {
+            event.preventDefault();
+            if (typeof v3DeeplinkCopyCurrentContext === "function") {
+              v3DeeplinkCopyCurrentContext();
+            }
+            return;
+        }
+
 		        // ----------------------------
         // P1: Keyboard navigation in table (↑/↓ + Enter)
         // Активируется только если уже есть навигационный “якорь” (selected или playing),
@@ -14611,6 +14952,7 @@ try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchRe
     <span id="v3NavPos" class="v3-nav-pos"></span>
   </div>
   <div class="v3-nav-right">
+    <button id="v3NavCopyLinkBtn" class="btn-secondary btn-mini" title="Копировать ссылку (Ctrl+Shift+L)">🔗</button>
     <button id="v3NavPrevBtn" class="btn-secondary btn-mini">Prev</button>
     <button id="v3NavNextBtn" class="btn-secondary btn-mini">Next</button>
     <button id="v3NavCloseBtn" class="btn-secondary btn-mini">Close</button>
