@@ -2416,6 +2416,12 @@ body.v3-ide-mode #v3IdeWorkspace {
 }
 
 /* --- IDE Workspace Container --- */
+/* --- IDE Mode: fixed header requires content offset + prevent body scroll --- */
+body.v3-ide-mode {
+  padding-top: var(--v3-ide-header-offset);
+  overflow: hidden;
+}
+
 .v3-ide-workspace {
   display: none;
   flex-direction: row;
@@ -2434,13 +2440,19 @@ body.v3-ide-mode #v3IdeWorkspace {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  padding: 0 16px;
   background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
   color: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  position: sticky;
+
+  /* Height is safe-area aware (iOS notch) and matches JS-computed --v3-ide-header-offset */
+  height: calc(56px + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 16px 0 16px;
+  box-sizing: border-box;
+
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
@@ -3620,22 +3632,6 @@ body.v3-ide-mode .v3-ide-left,
 body.v3-ide-mode .v3-ide-right {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-
-/* --- Mobile: force panels below the real IDE header height (final override) --- */
-@media (max-width: 768px) {
-  body.v3-ide-mode .v3-ide-left,
-  body.v3-ide-mode .v3-ide-right,
-  body.v3-ide-mode .v3-ide-panel-backdrop {
-    top: var(--v3-ide-header-offset) !important;
-  }
-
-  body.v3-ide-mode .v3-ide-left,
-  body.v3-ide-mode .v3-ide-right {
-    height: calc(100vh - var(--v3-ide-header-offset)) !important;
-    height: calc(100dvh - var(--v3-ide-header-offset)) !important;
-  }
-}
-
 
 </style>
 
