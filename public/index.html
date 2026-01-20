@@ -3644,7 +3644,7 @@ body.v3-ide-mode .v3-ide-right {
 <!-- V3 IDE Workspace Container -->
 <div id="v3IdeWorkspace" class="v3-ide-workspace">
   <!-- Left Panel: Search / Library / History -->
-  <aside id="v3IdeLeft" class="v3-ide-left v3-ide-panel-open">
+  <aside id="v3IdeLeft" class="v3-ide-left">
     <div class="v3-ide-tabs">
       <button class="v3-ide-tab v3-ide-tab-active" data-tab="search" onclick="v3IdeLeftTabSwitch('search')">
         <span class="v3-ide-tab-icon">🔍</span>Search
@@ -3826,7 +3826,7 @@ body.v3-ide-mode .v3-ide-right {
 </div>
 
   <!-- Right Panel: Inspector (Notes / SRS / Audio / Export) -->
-  <aside id="v3IdeRight" class="v3-ide-right v3-ide-panel-open">
+  <aside id="v3IdeRight" class="v3-ide-right">
     <div class="v3-ide-tabs">
       <button class="v3-ide-tab v3-ide-tab-active" data-tab="notes" onclick="v3IdeRightTabSwitch('notes')">
         <span class="v3-ide-tab-icon">📝</span>Notes
@@ -4867,6 +4867,8 @@ let v3IdeState = {
   rightTab: "notes",      // "notes" | "srs" | "audio" | "export"
   leftOpen: true,
   rightOpen: true,
+    // On phones we want panels hidden by default; apply only once per device.
+    mobileInitCollapsed: false,
   selectedRowIdx: null,
   activeTextId: null,
   searchQuery: "",
@@ -5013,9 +5015,26 @@ function v3IdeApplyMode(enabled) {
     v3IdeCloseAllModals();
 
     // Apply saved state
-    v3IdeLoadState();
-    v3IdeLeftTabSwitch(v3IdeState.leftTab);
-    v3IdeRightTabSwitch(v3IdeState.rightTab);
+v3IdeLoadState();
+
+// Mobile UX: on phones we hide Library/Inspector by default to prioritize content.
+// We do this only once per device; afterward the user's open/close choice persists.
+if (v3IdeIsPhoneLayout() && !v3IdeState.mobileInitCollapsed) {
+  v3IdeState.leftOpen = false;
+  v3IdeState.rightOpen = false;
+  v3IdeState.mobileInitCollapsed = true;
+  v3IdeSaveState();
+}
+
+// Sync DOM open/close with state (do not rely on HTML defaults)
+const leftPanel = document.getElementById("v3IdeLeft");
+const rightPanel = document.getElementById("v3IdeRight");
+if (leftPanel) leftPanel.classList.toggle("v3-ide-panel-open", !!v3IdeState.leftOpen);
+if (rightPanel) rightPanel.classList.toggle("v3-ide-panel-open", !!v3IdeState.rightOpen);
+v3IdeUpdateBackdrop();
+
+v3IdeLeftTabSwitch(v3IdeState.leftTab);
+v3IdeRightTabSwitch(v3IdeState.rightTab);
 
     // Load library data
     v3IdeRefreshLibrary();
@@ -5152,6 +5171,14 @@ function v3IdeUpdateBackdrop() {
     (leftOverlayMode && leftOpen);
 
   backdrop.classList.toggle("v3-ide-backdrop-active", shouldShowBackdrop);
+}
+
+// Phone layout = left overlay rules (portrait phones + phone-landscape)
+// We use this to apply mobile-specific defaults without affecting tablet/desktop.
+function v3IdeIsPhoneLayout() {
+  const w = window.innerWidth || 0;
+  const h = window.innerHeight || 0;
+  return (w <= 768) || (w <= 1024 && h <= 520);
 }
 
 function v3IdeCloseOverlays() {
