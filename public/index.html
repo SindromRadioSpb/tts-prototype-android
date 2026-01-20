@@ -3571,27 +3571,32 @@ body.v3-ide-mode .v3-ide-right {
   <!-- Center Panel: Content Viewer -->
   <main id="v3IdeCenter" class="v3-ide-center">
     <div id="v3IdeCenterHeader" class="v3-ide-center-header" style="display:none;">
-      <div class="v3-ide-center-title-tools">
-  <button
-    id="v3IdeCenterTitleCopy"
-    type="button"
-    class="v3-title-copy"
-    style="display:none;"
-    title="Копировать ссылку на текст"
-    onclick="v3IdeCopyActiveTextDeeplink(event)"
-  >🔗</button>
+      <div class="v3-ide-center-title-row">
+  <h2 id="v3IdeCenterTitle" class="v3-ide-center-title">No text selected</h2>
 
-  <button
-    id="v3IdeCenterPlayAllMini"
-    type="button"
-    class="v3-title-copy"
-    title="Play all rows"
-    aria-label="Play all rows"
-    onclick="v3IdePlayAll()"
-  >▶</button>
+  <div class="v3-ide-center-title-tools">
+    <button
+      id="v3IdeCenterTitleCopy"
+      type="button"
+      class="v3-title-copy"
+      style="display:none;"
+      title="Копировать ссылку на текст"
+      onclick="v3IdeCopyActiveTextDeeplink(event)"
+    >🔗</button>
+
+    <button
+      id="v3IdeCenterPlayAllMini"
+      type="button"
+      class="v3-title-copy"
+      title="Play all rows"
+      aria-label="Play all rows"
+      onclick="v3IdePlayAll()"
+    >▶</button>
+  </div>
 </div>
 
-  <div id="v3IdeCenterSub" class="v3-ide-center-sub"></div>
+<div id="v3IdeCenterSub" class="v3-ide-center-sub"></div>
+
       <div class="v3-ide-center-actions">
         <button class="btn-secondary" onclick="v3IdePlayAll()" title="Play all rows">▶ Play All</button>
         <button class="btn-secondary" onclick="v3IdeOpenInClassic()" title="Open in classic view">Open Classic</button>
