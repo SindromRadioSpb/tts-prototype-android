@@ -160,6 +160,7 @@ const TTS_ENGINE_VERSION = "gcp-tts-v1"; // bump when you change engine/ssml nor
 
 function ensureAudioCacheDir() {
   try {
+    if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
     if (!fs.existsSync(audioCacheDir)) fs.mkdirSync(audioCacheDir, { recursive: true });
   } catch (e) {
     console.error("ensureAudioCacheDir failed:", e);
@@ -788,8 +789,8 @@ async function ensureAudioAsset(params) {
     assetType: String(assetType || "row"),
   });
 
-  const relativePath = getAudioRelativePath(assetKey);
-  const absPath = path.join(__dirname, relativePath);
+  const relativePath = getAudioRelativePath(assetKey).replace(/\\/g, "/");
+const absPath = path.resolve(DATA_DIR, relativePath);
 
   let fromCache = false;
   let mp3Buffer = null;
@@ -1110,11 +1111,16 @@ app.get("/api/audio/:assetKey", async (req, res) => {
 
   // Only allow paths inside audio-cache
   const audioCacheRoot = path.resolve(audioCacheDir);
-  const absPath = path.resolve(__dirname, rel);
 
-  if (!absPath.startsWith(audioCacheRoot + path.sep)) {
-    return res.status(400).json({ error: "BAD_ASSET_PATH" });
-  }
+// нормализация на случай путей, попавших в БД с Windows-разделителями
+rel = String(rel || "").replace(/\\/g, "/");
+
+// ВАЖНО: резолвим от DATA_DIR (volume root), а не от __dirname
+const absPath = path.resolve(DATA_DIR, rel);
+
+if (!absPath.startsWith(audioCacheRoot + path.sep)) {
+  return res.status(400).json({ error: "BAD_ASSET_PATH" });
+}
 
   let stat;
   try {
@@ -1381,11 +1387,13 @@ async function v3AudioPrefetchRun(job) {
         if (def && def.ttsProfileJson && def.assetKey && def.ttsProfileJson === job.ttsProfileJson) {
           const ak = String(def.assetKey || "").trim();
           if (/^[a-f0-9]{64}$/i.test(ak)) {
-            const abs = path.join(__dirname, getAudioRelativePath(ak));
-            if (fs.existsSync(abs)) {
-              job.skipped = (job.skipped || 0) + 1;
-              continue;
-            }
+            const relMp3 = getAudioRelativePath(ak).replace(/\\/g, "/");
+			const abs = path.resolve(DATA_DIR, relMp3);
+
+			if (fs.existsSync(abs)) {
+			job.skipped = (job.skipped || 0) + 1;
+			continue;
+			}
           }
         }
       }
@@ -4231,10 +4239,16 @@ if (mediaStoreOps.length) {
 
       let absPath = null;
 
-      if (rel) {
-        absPath = path.resolve(__dirname, rel);
-      } else {
-        absPath = path.resolve(audioCacheDir, `${assetKey}.mp3`);
+      let absPath = null;
+
+if (rel) {
+  const relNorm = String(rel || "").replace(/\\/g, "/");
+  absPath = path.resolve(DATA_DIR, relNorm);
+} else {
+  const relMp3 = getAudioRelativePath(assetKey).replace(/\\/g, "/");
+  absPath = path.resolve(DATA_DIR, relMp3);
+}
+
       }
 
       // safety: не даём выйти за audio-cache
