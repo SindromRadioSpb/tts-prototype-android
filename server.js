@@ -4235,11 +4235,9 @@ if (mediaStoreOps.length) {
       stage = "ankiStoreMediaFile";
 
       const asset = await getAudioAssetByKey(assetKey);
-      const rel = asset && asset.relative_path ? String(asset.relative_path || "") : "";
+const rel = asset && asset.relative_path ? String(asset.relative_path || "") : "";
 
-      let absPath = null;
-
-      let absPath = null;
+let absPath = null;
 
 if (rel) {
   const relNorm = String(rel || "").replace(/\\/g, "/");
@@ -4248,8 +4246,6 @@ if (rel) {
   const relMp3 = getAudioRelativePath(assetKey).replace(/\\/g, "/");
   absPath = path.resolve(DATA_DIR, relMp3);
 }
-
-      }
 
       // safety: не даём выйти за audio-cache
       if (!(absPath + path.sep).startsWith(audioCacheRoot) && !absPath.startsWith(audioCacheRoot)) {
