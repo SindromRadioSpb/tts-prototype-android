@@ -3296,15 +3296,22 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 
   /* Both panels become overlays */
   body.v3-ide-mode .v3-ide-left {
-    position: fixed;
-    left: 0;
-    top: 56px;
-    height: calc(100vh - 56px);
-    z-index: 90;
-    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-  }
+  position: fixed;
+  left: 0;
+
+  /* Start BELOW the REAL header height (JS updates this var) */
+  top: var(--v3-ide-header-offset);
+
+  /* Fallback */
+  height: calc(100vh - var(--v3-ide-header-offset));
+  /* Better on mobile Safari */
+  height: calc(100dvh - var(--v3-ide-header-offset));
+
+  z-index: 90;
+  box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+}
 
   body.v3-ide-mode .v3-ide-left.v3-ide-panel-open {
     transform: translateX(0);
