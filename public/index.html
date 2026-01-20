@@ -5303,33 +5303,46 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex)
   if (header) header.style.display = "none";
 
   try {
-    // Load text metadata
-    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}`);
-    if (!res.ok) throw new Error("Failed to load text");
-    const textData = await res.json();
+  // Load text metadata
+  const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}`);
+  if (!res.ok) throw new Error("Failed to load text");
+  const textData = await res.json();
 
-    // Update header
-if (header) {
-  header.style.display = "block";
-  const titleEl = document.getElementById("v3IdeCenterTitle");
-  const subEl = document.getElementById("v3IdeCenterSub");
-  const copyEl = document.getElementById("v3IdeCenterTitleCopy");
+  // Server may return { ok: true, text: {...} } or a flat text object
+  const t = (textData && textData.text) ? textData.text : textData;
 
-  if (titleEl) titleEl.textContent = textData.title || "Untitled";
-  if (subEl) subEl.textContent = `${textData.level || ""} · ${textData.sentence_count || textData.rowCount || 0} rows`;
+  // Update header
+  if (header) {
+    header.style.display = "block";
+    const titleEl = document.getElementById("v3IdeCenterTitle");
+    const subEl = document.getElementById("v3IdeCenterSub");
+    const copyEl = document.getElementById("v3IdeCenterTitleCopy");
 
-  // Deeplink copy button (text-level)
-  if (copyEl) {
-    copyEl.style.display = "inline-block";
-    copyEl.setAttribute("data-text-id", String(textId));
+    if (titleEl) titleEl.textContent = (t && t.title) ? t.title : "Untitled";
+    if (subEl) subEl.textContent = `${(t && t.level) ? t.level : ""} · ${((t && (t.sentence_count ?? t.rowCount)) != null) ? (t.sentence_count ?? t.rowCount) : 0} rows`;
+
+    // Deeplink copy button (text-level)
+    if (copyEl) {
+      copyEl.style.display = "inline-block";
+      copyEl.setAttribute("data-text-id", String(textId));
+    }
   }
-}
 
     // Load sentences (rows)
-    const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/sentences`);
-    if (!rowsRes.ok) throw new Error("Failed to load sentences");
-    const rowsData = await rowsRes.json();
-    const rows = rowsData.sentences || rowsData.rows || [];
+const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/sentences`);
+if (!rowsRes.ok) throw new Error("Failed to load sentences");
+
+const rowsData = await rowsRes.json();
+const rows = rowsData.sentences || rowsData.rows || [];
+
+// After rows loaded: update header rows count with actual loaded rows
+if (header) {
+  const subEl = document.getElementById("v3IdeCenterSub");
+  if (subEl) {
+    const lvl = (t && t.level) ? t.level : "";
+    subEl.textContent = `${lvl} · ${rows.length} rows`;
+  }
+}
 
     // Store in global for compatibility
     currentTableData = rows;
