@@ -2812,6 +2812,138 @@ body.v3-ide-mode #v3IdeWorkspace {
   border-radius: 6px;
   font-size: 13px;
 }
+
+/* --- Mobile Columns button + Bottom Sheet (UI-MOBILE-COLLAPSE-COLS-03) --- */
+.v3-ide-mobile-colsbar {
+  display: none;
+  margin-top: 10px;
+}
+
+.v3-ide-columns-btn {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+/* Prevent background scroll when sheet is open */
+body.v3-no-scroll {
+  overflow: hidden;
+}
+
+/* Backdrop sits below the real IDE header */
+.v3-sheet-backdrop {
+  position: fixed;
+  top: var(--v3-ide-header-offset, 0px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(2, 6, 23, 0.45);
+  z-index: 9997;
+}
+
+.v3-bottom-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  padding: 12px 16px 16px;
+
+  max-height: 70vh;
+  overflow: auto;
+
+  transform: translateY(100%);
+  transition: transform 160ms ease;
+}
+
+.v3-sheet-backdrop.open .v3-bottom-sheet {
+  transform: translateY(0);
+}
+
+.v3-bottom-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.v3-bottom-sheet-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+}
+
+.v3-bottom-sheet-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px;
+  border-radius: 10px;
+}
+
+.v3-bottom-sheet-body {
+  padding-bottom: 4px;
+}
+
+/* When col settings are inside the sheet, make them "panel-like" */
+.v3-bottom-sheet .v3-ide-col-settings {
+  margin-top: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.v3-bottom-sheet .v3-ide-col-settings label {
+  font-size: 15px;
+}
+
+.v3-bottom-sheet .v3-ide-col-settings input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+/* Reset becomes a compact icon button inside sheet */
+.v3-bottom-sheet .v3-ide-col-settings .v3-ide-col-reset {
+  margin-left: 0;
+  margin-top: 6px;
+  align-self: flex-end;
+  text-decoration: none;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 6px 10px;
+  background: #fff;
+  color: #334155;
+
+  font-size: 0; /* hide text */
+}
+
+.v3-bottom-sheet .v3-ide-col-settings .v3-ide-col-reset::before {
+  content: "↺";
+  font-size: 16px;
+}
+
+.v3-bottom-sheet .v3-ide-col-settings .v3-ide-col-reset:hover {
+  border-color: #cbd5e1;
+  color: #111827;
+}
+
+/* In sheet we may show the note as a hint (not on main screen) */
+.v3-bottom-sheet .v3-ide-col-settings .v3-ide-col-note {
+  display: block !important;
+}
+
 .v3-ide-col-settings label {
   display: flex;
   align-items: center;
@@ -2850,6 +2982,12 @@ body.v3-ide-mode #v3IdeWorkspace {
     font-size: 12px;
   }
   .v3-ide-col-settings .v3-ide-col-note { display: none; }
+  
+  /* NEW: показать кнопку Columns на мобиле */
+  .v3-ide-mobile-colsbar { display: flex; }
+
+  /* NEW: скрыть “карточку колонок” под таблицей на мобиле */
+  #v3IdeColSettingsMount { display: none; }
 }
 
 /* --- IDE Center Content (table area) --- */
@@ -3624,11 +3762,22 @@ body.v3-ide-mode .v3-ide-right {
 
 <div id="v3IdeCenterSub" class="v3-ide-center-sub"></div>
 
+<div class="v3-ide-mobile-colsbar">
+  <button
+    id="v3IdeColumnsBtn"
+    type="button"
+    class="btn-secondary v3-ide-columns-btn"
+    onclick="v3IdeOpenColumnsPanel()"
+    title="Columns"
+  >Columns ▦</button>
+</div>
+
       <div class="v3-ide-center-actions">
         <button class="btn-secondary" onclick="v3IdePlayAll()" title="Play all rows">▶ Play All</button>
         <button class="btn-secondary" onclick="v3IdeOpenInClassic()" title="Open in classic view">Open Classic</button>
       </div>
       <!-- Column Visibility Toggles -->
+	  <div id="v3IdeColSettingsMount">
       <div id="v3IdeColSettings" class="v3-ide-col-settings">
         <label><input type="checkbox" id="v3IdeColHebrew" onchange="v3IdeToggleColumn('hebrew')" checked> Hebrew</label>
         <label><input type="checkbox" id="v3IdeColNiqqud" onchange="v3IdeToggleColumn('niqqud')" checked> Niqqud</label>
@@ -3637,6 +3786,7 @@ body.v3-ide-mode .v3-ide-right {
         <button type="button" class="v3-ide-col-reset" onclick="v3IdeResetColumns()">Reset</button>
         <span class="v3-ide-col-note">Table settings saved on this device.</span>
       </div>
+	  </div>
     </div>
     <div id="v3IdeCenterContent" class="v3-ide-center-content">
       <div class="v3-ide-empty">
@@ -3645,6 +3795,35 @@ body.v3-ide-mode .v3-ide-right {
       </div>
     </div>
   </main>
+  
+  <div
+  id="v3IdeColsSheetBackdrop"
+  class="v3-sheet-backdrop"
+  style="display:none;"
+  onclick="v3IdeCloseColumnsPanel(event)"
+>
+  <div
+    id="v3IdeColsSheet"
+    class="v3-bottom-sheet"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Columns"
+    onclick="event.stopPropagation()"
+  >
+    <div class="v3-bottom-sheet-header">
+      <div class="v3-bottom-sheet-title">Columns</div>
+      <button
+        type="button"
+        class="v3-bottom-sheet-close"
+        onclick="v3IdeCloseColumnsPanel()"
+        aria-label="Close"
+        title="Close"
+      >✕</button>
+    </div>
+
+    <div id="v3IdeColsSheetBody" class="v3-bottom-sheet-body"></div>
+  </div>
+</div>
 
   <!-- Right Panel: Inspector (Notes / SRS / Audio / Export) -->
   <aside id="v3IdeRight" class="v3-ide-right v3-ide-panel-open">
@@ -4613,6 +4792,68 @@ function v3ShowToast(msg) {
   v3ToastHideTimer = setTimeout(() => {
     el.classList.remove("show");
   }, 1300);
+}
+
+// --- Columns bottom-sheet (UI-MOBILE-COLLAPSE-COLS-03) ---
+let v3IdeColsKeyHandler = null;
+
+function v3IdeOpenColumnsPanel() {
+  if (typeof v3IsMobile600 === "function" && !v3IsMobile600()) return;
+
+  const backdrop = document.getElementById("v3IdeColsSheetBackdrop");
+  const sheetBody = document.getElementById("v3IdeColsSheetBody");
+  const settings = document.getElementById("v3IdeColSettings");
+  if (!backdrop || !sheetBody || !settings) return;
+
+  // Ensure the overlay starts below the real header height
+  try { if (typeof v3IdeSyncHeaderOffsetVar === "function") v3IdeSyncHeaderOffsetVar(); } catch (e) {}
+
+  // Move the existing settings block into the sheet (no duplicate IDs)
+  if (settings.parentElement !== sheetBody) {
+    sheetBody.appendChild(settings);
+  }
+
+  backdrop.style.display = "block";
+  requestAnimationFrame(() => backdrop.classList.add("open"));
+
+  document.body.classList.add("v3-no-scroll");
+
+  if (!v3IdeColsKeyHandler) {
+    v3IdeColsKeyHandler = (ev) => {
+      if (ev.key === "Escape") v3IdeCloseColumnsPanel();
+    };
+  }
+  window.addEventListener("keydown", v3IdeColsKeyHandler);
+
+  // Optional: focus first checkbox
+  const firstCb = settings.querySelector('input[type="checkbox"]');
+  if (firstCb && typeof firstCb.focus === "function") {
+    try { firstCb.focus({ preventScroll: true }); } catch (e) { firstCb.focus(); }
+  }
+}
+
+function v3IdeCloseColumnsPanel(ev) {
+  // If handler is called via backdrop click, close only when clicking the backdrop itself
+  if (ev && ev.target && ev.target.id && ev.target.id !== "v3IdeColsSheetBackdrop") return;
+
+  const backdrop = document.getElementById("v3IdeColsSheetBackdrop");
+  const mount = document.getElementById("v3IdeColSettingsMount");
+  const settings = document.getElementById("v3IdeColSettings");
+
+  if (!backdrop) return;
+
+  backdrop.classList.remove("open");
+
+  // After transition: hide + move back
+  setTimeout(() => {
+    backdrop.style.display = "none";
+    if (mount && settings && settings.parentElement !== mount) {
+      mount.appendChild(settings);
+    }
+  }, 170);
+
+  document.body.classList.remove("v3-no-scroll");
+  if (v3IdeColsKeyHandler) window.removeEventListener("keydown", v3IdeColsKeyHandler);
 }
 
 // ============================================
