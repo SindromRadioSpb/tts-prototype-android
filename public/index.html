@@ -2755,6 +2755,32 @@ body.v3-ide-mode #v3IdeWorkspace {
   margin-left: 0;
 }
 
+/* Mobile toast */
+.v3-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%) translateY(6px);
+  opacity: 0;
+  pointer-events: none;
+
+  background: rgba(15, 23, 42, 0.92);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.2;
+
+  z-index: 9999;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.v3-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 .v3-ide-center-title-row {
   display: flex;
   align-items: center;
@@ -2823,6 +2849,7 @@ body.v3-ide-mode #v3IdeWorkspace {
   .v3-ide-col-settings label {
     font-size: 12px;
   }
+  .v3-ide-col-settings .v3-ide-col-note { display: none; }
 }
 
 /* --- IDE Center Content (table area) --- */
@@ -4558,6 +4585,35 @@ body.v3-ide-mode .v3-ide-right {
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
     let currentTableData = [];
+	
+	// --- Mobile toast helper (UI-MOBILE-COLNOTE-02) ---
+function v3IsMobile600() {
+  return !!(window.matchMedia && window.matchMedia("(max-width: 600px)").matches);
+}
+
+let v3ToastHideTimer = null;
+
+function v3ShowToast(msg) {
+  if (!v3IsMobile600()) return;
+
+  let el = document.getElementById("v3Toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "v3Toast";
+    el.className = "v3-toast";
+    el.setAttribute("role", "status");
+    el.setAttribute("aria-live", "polite");
+    document.body.appendChild(el);
+  }
+
+  el.textContent = msg;
+  el.classList.add("show");
+
+  if (v3ToastHideTimer) clearTimeout(v3ToastHideTimer);
+  v3ToastHideTimer = setTimeout(() => {
+    el.classList.remove("show");
+  }, 1300);
+}
 
 // ============================================
 // V3 IDE WORKSPACE STATE (Week 12+)
@@ -4625,6 +4681,7 @@ function v3IdeLoadColumnSettings() {
 function v3IdeSaveColumnSettings() {
   try {
     localStorage.setItem(V3_IDE_TABLE_COLS_KEY, JSON.stringify(v3IdeVisibleColumns));
+    v3ShowToast("Saved on this device");
   } catch (e) { /* quota exceeded */ }
 }
 
