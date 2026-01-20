@@ -16575,11 +16575,11 @@ try {
             }
 
             v3NotesOpen(textId, sentenceId, rowIdx);
-        } catch (err) {
-            console.warn("row-note click handler failed", err);
-            showToast("Не удалось открыть заметку (см. консоль).", "error");
-        }
-    });
+         } catch (err) {
+        console.warn("row-note click handler failed", err);
+        showToast("Не удалось открыть заметку (см. консоль).", "error");
+			}
+	}, { capture: true });
 
 }
 
