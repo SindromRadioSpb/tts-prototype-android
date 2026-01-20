@@ -2732,6 +2732,27 @@ body.v3-ide-mode #v3IdeWorkspace {
   font-weight: 600;
   color: #1e293b;
   margin: 0;
+
+  /* NEW: чтобы справа всегда помещались кнопки */
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* NEW: правая группа кнопок (🔗, ▶) */
+.v3-ide-center-title-tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+/* NEW: внутри tools не нужен margin-left (gap уже есть) */
+.v3-ide-center-title-tools .v3-title-copy {
+  margin-left: 0;
 }
 
 .v3-ide-center-title-row {
@@ -3550,27 +3571,25 @@ body.v3-ide-mode .v3-ide-right {
   <!-- Center Panel: Content Viewer -->
   <main id="v3IdeCenter" class="v3-ide-center">
     <div id="v3IdeCenterHeader" class="v3-ide-center-header" style="display:none;">
-      <div class="v3-ide-center-title-row">
-    <h2 id="v3IdeCenterTitle" class="v3-ide-center-title">No text selected</h2>
-
-    <button
-      id="v3IdeCenterTitleCopy"
-      type="button"
-      class="v3-title-copy"
-      style="display:none;"
-      title="Копировать ссылку на текст"
-      onclick="v3IdeCopyActiveTextDeeplink(event)"
-    >🔗</button>
-  </div>
-  
+      <div class="v3-ide-center-title-tools">
   <button
-  id="v3IdeCenterPlayAllMini"
-  type="button"
-  class="v3-title-copy v3-only-mobile"
-  title="Play all rows"
-  aria-label="Play all rows"
-  onclick="v3IdePlayAll()"
-	>▶</button>
+    id="v3IdeCenterTitleCopy"
+    type="button"
+    class="v3-title-copy"
+    style="display:none;"
+    title="Копировать ссылку на текст"
+    onclick="v3IdeCopyActiveTextDeeplink(event)"
+  >🔗</button>
+
+  <button
+    id="v3IdeCenterPlayAllMini"
+    type="button"
+    class="v3-title-copy"
+    title="Play all rows"
+    aria-label="Play all rows"
+    onclick="v3IdePlayAll()"
+  >▶</button>
+</div>
 
   <div id="v3IdeCenterSub" class="v3-ide-center-sub"></div>
       <div class="v3-ide-center-actions">
