@@ -3621,6 +3621,22 @@ body.v3-ide-mode .v3-ide-right {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+/* --- Mobile: force panels below the real IDE header height (final override) --- */
+@media (max-width: 768px) {
+  body.v3-ide-mode .v3-ide-left,
+  body.v3-ide-mode .v3-ide-right,
+  body.v3-ide-mode .v3-ide-panel-backdrop {
+    top: var(--v3-ide-header-offset) !important;
+  }
+
+  body.v3-ide-mode .v3-ide-left,
+  body.v3-ide-mode .v3-ide-right {
+    height: calc(100vh - var(--v3-ide-header-offset)) !important;
+    height: calc(100dvh - var(--v3-ide-header-offset)) !important;
+  }
+}
+
+
 </style>
 
 </head>
