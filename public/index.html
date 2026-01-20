@@ -2385,6 +2385,13 @@ th, td { border-color: rgba(0,0,0,0.55); }
    V3 IDE WORKSPACE LAYOUT (Week 12+)
    Feature-flagged via body.v3-ide-mode
    ============================================ */
+   
+  :root {
+  /* Реальная высота верхней IDE-шапки (включая кейсы iOS/landscape).
+     JS будет обновлять значение динамически. */
+  --v3-ide-header-offset: 56px;
+}
+ 
 
 /* --- IDE Mode: Hide classic content --- */
 body.v3-ide-mode .dashboard-header,
@@ -2400,7 +2407,12 @@ body.v3-ide-mode #v3IdeWorkspace {
 .v3-ide-workspace {
   display: none;
   flex-direction: row;
-  height: calc(100vh - 56px); /* minus header */
+
+  /* Fallback */
+  height: calc(100vh - var(--v3-ide-header-offset));
+  /* Better on mobile Safari (dynamic viewport) */
+  height: calc(100dvh - var(--v3-ide-header-offset));
+
   background: #f8fafc;
   overflow: hidden;
 }
@@ -3022,10 +3034,15 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 @media (max-width: 1024px) {
   /* Right panel becomes overlay */
   body.v3-ide-mode .v3-ide-right {
-    position: fixed;
-    right: 0;
-    top: 56px;
-    height: calc(100vh - 56px);
+  position: fixed;
+  right: 0;
+
+  top: var(--v3-ide-header-offset);
+
+  /* Fallback */
+  height: calc(100vh - var(--v3-ide-header-offset));
+  /* Better on mobile Safari */
+  height: calc(100dvh - var(--v3-ide-header-offset));
     z-index: 90;
     box-shadow: -4px 0 20px rgba(0,0,0,0.15);
     transform: translateX(100%);
@@ -3044,11 +3061,14 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 /* --- Phone landscape: make LEFT panel overlay too (avoid mismatch with backdrop logic) --- */
 @media (max-width: 1024px) and (max-height: 520px) {
   body.v3-ide-mode .v3-ide-left {
-    position: fixed;
-    left: 0;
-    top: 56px;
-    height: calc(100vh - 56px);
-    z-index: 90;
+  position: fixed;
+  left: 0;
+  top: var(--v3-ide-header-offset);
+  /* Fallback */
+  height: calc(100vh - var(--v3-ide-header-offset));
+  /* Better on mobile Safari */
+  height: calc(100dvh - var(--v3-ide-header-offset));
+  z-index: 90;
     box-shadow: 4px 0 20px rgba(0,0,0,0.15);
     transform: translateX(-100%);
     transition: transform 0.25s ease;
@@ -3077,8 +3097,9 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
   }
 
   .v3-ide-workspace {
-    height: calc(100vh - 56px);
-  }
+  height: calc(100vh - var(--v3-ide-header-offset));
+  height: calc(100dvh - var(--v3-ide-header-offset));
+}
 
   .v3-ide-center {
     min-width: 100%;
@@ -3108,7 +3129,7 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
   display: none;
   position: fixed;
   inset: 0;
-  top: 56px;
+  top: var(--v3-ide-header-offset);
   background: rgba(0,0,0,0.3);
   z-index: 85;
 }
@@ -4590,6 +4611,17 @@ function v3IdeModeToggle() {
   v3IdeApplyMode(!enabled);
 }
 
+function v3IdeSyncHeaderOffsetVar() {
+  const header = document.getElementById("v3IdeHeader");
+  if (!header) return;
+
+  // Реальная высота шапки (на iOS/landscape может отличаться от "56px")
+  const rect = header.getBoundingClientRect();
+  const h = Math.max(0, Math.round(rect.height));
+
+  document.documentElement.style.setProperty("--v3-ide-header-offset", `${h}px`);
+}
+
 function v3IdeApplyMode(enabled) {
   const body = document.body;
   const header = document.getElementById("v3IdeHeader");
@@ -4601,6 +4633,10 @@ function v3IdeApplyMode(enabled) {
     if (header) header.style.display = "flex";
     if (workspace) workspace.style.display = "flex";
     if (toggleBtn) toggleBtn.textContent = "📋 Classic Mode";
+	
+	// Sync CSS offset so overlay panels/backdrop start BELOW the real header height
+	v3IdeSyncHeaderOffsetVar();
+	setTimeout(v3IdeSyncHeaderOffsetVar, 0);
 
     // Close any open modals
     v3IdeCloseAllModals();
@@ -4770,7 +4806,26 @@ function v3IdeInit() {
   v3IdeLoadColumnSettings();
 
   // Listen for resize to update backdrop
-  window.addEventListener("resize", v3IdeUpdateBackdrop);
+  // Keep header offset + backdrop logic correct on mobile Safari
+  window.addEventListener("resize", () => {
+    v3IdeSyncHeaderOffsetVar();
+    v3IdeUpdateBackdrop();
+  });
+
+  window.addEventListener("orientationchange", () => {
+    setTimeout(() => {
+      v3IdeSyncHeaderOffsetVar();
+      v3IdeUpdateBackdrop();
+    }, 50);
+  });
+
+  // (Optional but helpful on iOS) visualViewport reacts when address bar collapses/expands
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      v3IdeSyncHeaderOffsetVar();
+      v3IdeUpdateBackdrop();
+    });
+  }
 
   // Keyboard shortcuts
   document.addEventListener("keydown", v3IdeKeyHandler);
