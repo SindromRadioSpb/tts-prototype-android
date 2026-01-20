@@ -5270,7 +5270,7 @@ function v3IdeRenderTable(rows, textId) {
         ${showRu ? `<td>${ru}</td>` : ''}
         <td style="white-space:nowrap;">
           <span class="row-audio-ind" data-row-idx="${idx}" aria-hidden="true"></span>
-          <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Play TTS" aria-label="Play TTS" onclick="event.stopPropagation();">▶</button>
+          <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Play TTS" aria-label="Play TTS">▶</button>
           <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
         </td>
       </tr>
@@ -16551,7 +16551,7 @@ try {
 
             updateRowFocusMode();
         }
-    });
+    }, { capture: true });
 	
 	    // Notes button delegate (no audio listeners)
     document.addEventListener("click", function (e) {
