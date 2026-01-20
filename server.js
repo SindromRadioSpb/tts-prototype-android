@@ -10,6 +10,15 @@ const crypto = require("crypto");
 const { execFile } = require("child_process");
 const http = require("http");
 
+const {
+  DATA_DIR,
+  DB_PATH,
+  USAGE_FILE,
+  AUDIO_CACHE_DIR,
+  GEMINI_CACHE_DIR,
+  BACKUPS_DIR,
+} = require("./storage");
+
 // v3.0 foundation: SQLite (Library/Progress source of truth)
 const { initDb, getDbHealth, ensureAudioAssetsDurationMsColumn } = require("./db/sqlite");
 
@@ -105,7 +114,6 @@ app.use(express.static(path.join(__dirname, "public")));
 // --------------------------------------------------------
 // 2.1 DB_PATH (SQLite) — safe init; process must not crash on DB errors
 // --------------------------------------------------------
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, "data", "app.db");
 // Fire-and-forget; errors are reflected in /healthz.
 
 const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR || path.join(__dirname, "migrations");
@@ -140,10 +148,10 @@ initDb(DB_PATH)
 // --------------------------------------------------------
 // 3. ПУТИ И ДИРЕКТОРИИ
 // --------------------------------------------------------
-const audioDir = path.join(__dirname, "audio");
-const usageFile = path.join(__dirname, "usage.json");
-const audioCacheDir = path.join(__dirname, "audio-cache");
-const geminiCacheDir = path.join(__dirname, "gemini-cache");
+const audioDir = path.join(__dirname, "audio"); // если это статика/ассеты репо — оставляем
+const usageFile = USAGE_FILE;
+const audioCacheDir = AUDIO_CACHE_DIR;
+const geminiCacheDir = GEMINI_CACHE_DIR;
 
 // --------------------------------------------------------
 // V3 Audio Assets helpers (P0)
@@ -261,6 +269,10 @@ app.get("/healthz", (req, res) => {
     now: new Date().toISOString(),
     db: getDbHealth(),
 	migrations: getMigrationsHealth(),
+	
+	dataDir: DATA_DIR,
+    dbPath: DB_PATH,
+    backupsDir: BACKUPS_DIR,
   });
 });
 

@@ -10,7 +10,10 @@
 const fs = require("fs");
 const path = require("path");
 
-const DEFAULT_BACKUPS_DIR = path.join(__dirname, "..", "data", "backups");
+// IMPORTANT: default dirs must point to persistent storage (Railway Volume)
+const { DB_PATH, BACKUPS_DIR } = require("../storage");
+
+const DEFAULT_BACKUPS_DIR = BACKUPS_DIR; // was: path.join(__dirname, "..", "data", "backups")
 const DEFAULT_MAX_BACKUPS = 10;
 
 /**
@@ -209,7 +212,7 @@ function restoreBackup(backupPath, targetDbPath, options = {}) {
  * @returns {string}
  */
 function getDefaultDbPath() {
-  return process.env.DB_PATH || path.join(__dirname, "..", "data", "app.db");
+  return DB_PATH;
 }
 
 /**
