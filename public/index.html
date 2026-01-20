@@ -1987,6 +1987,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
   vertical-align: middle;
 }
 .v3-title-copy:hover { background: #f3f4f6; }
+.v3-only-mobile { display: none; }
 
 /* Clickable title link */
 .v3-lib-card-title a {
@@ -3097,6 +3098,16 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 }
 
 @media (max-width: 768px) {
+
+/* IDE: mobile — убираем огромные CTA-кнопки под заголовком */
+.v3-ide-center-actions { display: none !important; }
+
+/* Показываем компактные элементы только на мобильном */
+.v3-only-mobile { display: inline-flex !important; }
+
+/* На всякий случай: иконки не должны растягиваться на 100% ширины */
+.v3-title-copy { width: auto !important; }
+
   /* Both panels become overlays */
   body.v3-ide-mode .v3-ide-left {
     position: fixed;
@@ -3551,6 +3562,15 @@ body.v3-ide-mode .v3-ide-right {
       onclick="v3IdeCopyActiveTextDeeplink(event)"
     >🔗</button>
   </div>
+  
+  <button
+  id="v3IdeCenterPlayAllMini"
+  type="button"
+  class="v3-title-copy v3-only-mobile"
+  title="Play all rows"
+  aria-label="Play all rows"
+  onclick="v3IdePlayAll()"
+	>▶</button>
 
   <div id="v3IdeCenterSub" class="v3-ide-center-sub"></div>
       <div class="v3-ide-center-actions">
