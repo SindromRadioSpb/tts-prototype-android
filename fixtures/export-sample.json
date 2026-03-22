@@ -1,0 +1,82 @@
+[
+  {
+    "id": "row_001",
+    "hebrew": "קורוזיה",
+    "hebrew_niqqud": "קוֹרוֹזְיָה",
+    "translit": "korozya",
+    "ru": "коррозия",
+    "tags": ["materials", "corrosion"],
+    "source": "fixtures",
+    "notes_md": "Термин общего назначения для материаловедения."
+  },
+  {
+    "id": "row_002",
+    "hebrew": "מאמץ",
+    "hebrew_niqqud": "מַאֲמָץ",
+    "translit": "ma'amats",
+    "ru": "напряжение (stress)",
+    "tags": ["mechanics", "sigma"],
+    "source": "fixtures",
+    "notes_md": "Проверка символов: σ, ≥, %, MPa, mm."
+  },
+  {
+    "id": "row_003",
+    "hebrew": "הזדקנות מלאכותית",
+    "hebrew_niqqud": "הַזְדְּקָנוּת מְלָאכוּתִית",
+    "translit": "hazdkanut melakhutit",
+    "ru": "искусственное старение",
+    "tags": ["aluminum", "heat-treatment"],
+    "source": "fixtures",
+    "notes_md": "Проверка сочетаний слов и пробелов."
+  },
+  {
+    "id": "row_004",
+    "hebrew": "סדיקה בקורוזיה במאמץ",
+    "hebrew_niqqud": "סְדִיקָה בְּקוֹרוֹזְיָה בְּמַאֲמָץ",
+    "translit": "sdika be-korozya be-ma'amats",
+    "ru": "коррозионное растрескивание под напряжением",
+    "tags": ["SCC", "corrosion"],
+    "source": "fixtures",
+    "notes_md": "Латинские аббревиатуры: (SCC)."
+  },
+  {
+    "id": "row_005",
+    "hebrew": "פיטינג",
+    "hebrew_niqqud": "פִּיטִינְג",
+    "translit": "piting",
+    "ru": "питтинг (Pitting)",
+    "tags": ["Pitting", "corrosion"],
+    "source": "fixtures",
+    "notes_md": "Проверка: иврит + латиница в скобках."
+  },
+  {
+    "id": "row_006",
+    "hebrew": "דוּפְּלֶקְס",
+    "hebrew_niqqud": "דּוּפְּלֶקְס",
+    "translit": "dupleks",
+    "ru": "дуплексная сталь (Duplex)",
+    "tags": ["Duplex", "steel"],
+    "source": "fixtures",
+    "notes_md": "Тест: (Duplex) + RTL/LTR."
+  },
+  {
+    "id": "row_007",
+    "hebrew": "תחמוצת כרום",
+    "hebrew_niqqud": "תַּחְמוֹצֶת כְּרוֹם",
+    "translit": "takhmotset krom",
+    "ru": "оксид хрома Cr₂O₃",
+    "tags": ["chemistry", "passivation"],
+    "source": "fixtures",
+    "notes_md": "Химия: Cr₂O₃, ионы: Cl⁻."
+  },
+  {
+    "id": "row_008",
+    "hebrew": "בדיקת חוזק: σ ≥ 250 MPa",
+    "hebrew_niqqud": "בְּדִיקַת חוֹזֶק: σ ≥ 250 MPa",
+    "translit": "bdikat khozek: sigma ≥ 250 MPa",
+    "ru": "проверка прочности: σ ≥ 250 MPa",
+    "tags": ["formula", "sigma"],
+    "source": "fixtures",
+    "notes_md": "Формулы внутри строки (опасно для BiDi)."
+  }
+]

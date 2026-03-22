@@ -1,0 +1,23 @@
+{
+  "origin": "dash",
+  "scope": "notes",
+  "qRaw": "aging aluminum",
+  "filtersKey": "level=B&arch=1&tagMode=any&notesOnly=1&rowsOnly=0",
+  "notesResults": [
+    {
+      "textId": "t_deleted_9999",
+      "sentenceId": "s_deleted_8888",
+      "orderIndex": 4,
+      "noteId": "n_deleted_7777",
+      "snippet": "…precipitation hardening…",
+      "highlight": "precipitation"
+    }
+  ],
+  "rowsResults": [],
+  "activeType": "notes",
+  "activeIndex": 0,
+  "scrollRestore": {
+    "dash:notes": { "scrollTop": 300, "savedAt": "2026-01-18T05:12:00.000Z" }
+  },
+  "updatedAt": "2026-01-18T05:12:10.000Z"
+}

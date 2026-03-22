@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "docs/schemas/nav_target_v1.schema.json",
+  "title": "Navigation Target v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "id"],
+  "properties": {
+    "v": {
+      "type": "integer",
+      "const": 1,
+      "description": "Версия контракта Target. Любое иное значение должно трактоваться как UNSUPPORTED_VERSION."
+    },
+    "type": {
+      "type": "string",
+      "enum": ["text", "sentence", "note", "search"],
+      "description": "Канонический тип цели навигации. Любое иное значение = UNSUPPORTED_TYPE. Важно: 'row' НЕ входит в канонический enum v1 (см. CONTRACTS_NAVIGATION.md)."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Семантика зависит от type: text->textId, sentence->sentenceId, note->noteId, search->searchKey (opaque). Запрещено: использовать order_index/позиционные индексы как id."
+    },
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Дополнительные ссылки/контекст для резолва и воспроизведения выдачи. Для type=search ref.scope/ref.q/ref.filtersKey обязательны для воспроизведения.",
+      "properties": {
+        "textId": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "sentenceId": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "rowId": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "noteId": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "scope": { "$ref": "#/$defs/nullableScope" },
+        "q": { "$ref": "#/$defs/nullableNonEmptyString" },
+        "filtersKey": { "$ref": "#/$defs/nullableNonEmptyString" }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Контекст 'откуда пришли' и UI-параметры для восстановления состояния/подсветки/скролла. Это контекст, НЕ идентификаторы.",
+      "properties": {
+        "search": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "scope": { "$ref": "#/$defs/nullableScope" },
+            "q": { "$ref": "#/$defs/nullableNonEmptyString" },
+            "lang": { "$ref": "#/$defs/nullableLang" },
+            "filters": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "tags": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/nonEmptyString" },
+                  "default": [],
+                  "description": "Теги фильтра. Пустой массив допустим."
+                },
+                "topic": { "$ref": "#/$defs/nullableNonEmptyString" },
+                "level": { "$ref": "#/$defs/nullableNonEmptyString" },
+                "tagMode": { "$ref": "#/$defs/nullableTagMode" },
+                "includeArchived": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            },
+            "sort": { "$ref": "#/$defs/nullableSort" },
+            "page": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          }
+        },
+        "ui": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "origin": { "$ref": "#/$defs/nullableOrigin" },
+            "activeType": { "$ref": "#/$defs/nullableActiveType" },
+            "activeIndex": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "description": "UI-индекс активного hit в массиве результатов. НЕ путать с order_index и НЕ использовать как ID."
+            },
+            "scroll": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "key": { "$ref": "#/$defs/nullableNonEmptyString" },
+                "top": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "default": 0
+                }
+              }
+            }
+          }
+        },
+        "anchor": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Внутренний якорь (например, type=text открыть текст и прыгнуть к sentence). Не является ID.",
+          "properties": {
+            "sentence_id": { "$ref": "#/$defs/nullableNonEmptyString" }
+          }
+        }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "if": {
+        "properties": { "type": { "const": "search" } },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["ref"],
+        "properties": {
+          "ref": {
+            "required": ["scope", "q", "filtersKey"],
+            "properties": {
+              "scope": { "$ref": "#/$defs/scope" },
+              "q": { "$ref": "#/$defs/nonEmptyString" },
+              "filtersKey": { "$ref": "#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "description": "Для type=search обязательны ref.scope/ref.q/ref.filtersKey для воспроизведения выдачи (детерминированный restore без reliance на session-only)."
+      }
+    }
+  ],
+
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "nullableNonEmptyString": {
+      "description": "Строка или null. Пустая строка запрещена (minLength=1).",
+      "anyOf": [
+        { "$ref": "#/$defs/nonEmptyString" },
+        { "type": "null" }
+      ]
+    },
+
+    "scope": {
+      "type": "string",
+      "enum": ["texts", "both", "notes", "rows"]
+    },
+    "nullableScope": {
+      "anyOf": [
+        { "$ref": "#/$defs/scope" },
+        { "type": "null" }
+      ]
+    },
+
+    "lang": {
+      "type": "string",
+      "enum": ["he", "ru", "en", "auto"]
+    },
+    "nullableLang": {
+      "anyOf": [
+        { "$ref": "#/$defs/lang" },
+        { "type": "null" }
+      ]
+    },
+
+    "tagMode": {
+      "type": "string",
+      "enum": ["all", "any"]
+    },
+    "nullableTagMode": {
+      "anyOf": [
+        { "$ref": "#/$defs/tagMode" },
+        { "type": "null" }
+      ]
+    },
+
+    "sort": {
+      "type": "string",
+      "enum": ["relevance", "recent", "alpha"]
+    },
+    "nullableSort": {
+      "anyOf": [
+        { "$ref": "#/$defs/sort" },
+        { "type": "null" }
+      ]
+    },
+
+    "origin": {
+      "type": "string",
+      "enum": ["lib", "dash", "deeplink"]
+    },
+    "nullableOrigin": {
+      "anyOf": [
+        { "$ref": "#/$defs/origin" },
+        { "type": "null" }
+      ]
+    },
+
+    "activeType": {
+      "type": "string",
+      "enum": ["notes", "rows"]
+    },
+    "nullableActiveType": {
+      "anyOf": [
+        { "$ref": "#/$defs/activeType" },
+        { "type": "null" }
+      ]
+    }
+  }
+}

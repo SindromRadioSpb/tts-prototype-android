@@ -1,0 +1,139 @@
+{
+  "v": 1,
+  "note": "v2 shifts orderIndex inside t_1002 by inserting a new first row; sentenceId values remain stable.",
+  "texts": [
+    {
+      "textId": "t_1001",
+      "title": "Aluminum ageing — fixture",
+      "level": "A",
+      "topic": "metals",
+      "source": "fixture",
+      "tags": ["materials", "aluminum"],
+      "archived": false
+    },
+    {
+      "textId": "t_1002",
+      "title": "Corrosion basics — fixture (orderIndex shifted)",
+      "level": "A",
+      "topic": "corrosion",
+      "source": "fixture",
+      "tags": ["materials", "corrosion"],
+      "archived": false
+    }
+  ],
+  "rows": [
+    {
+      "textId": "t_1001",
+      "rowId": "s_0006",
+      "sentenceId": "s_0006",
+      "orderIndex": 1,
+      "he": "הזדקנות אלומיניום משנה את החוזק.",
+      "he_niqqud": "הַזְדָּקְנוּת אֲלוּמִינְיוּם מְשַׁנָּה אֶת הַחוֹזֶק.",
+      "translit": "hazdaknút aluminjúm meshanná et haḥózek.",
+      "ru": "Старение алюминия изменяет прочность.",
+      "tags": ["materials", "aluminum"],
+      "level": "A",
+      "topic": "metals",
+      "source": "fixture"
+    },
+    {
+      "textId": "t_1001",
+      "rowId": "s_0007",
+      "sentenceId": "s_0007",
+      "orderIndex": 2,
+      "he": "הקשיה משקעים תלויה בזמן ובטמפרטורה.",
+      "he_niqqud": "הַקְשָׁיָה מִשְׁקָעִים תְּלוּיָה בִּזְמַן וּבְטֶמְפֶּרָטוּרָה.",
+      "translit": "hakshayá mishka'ím tluyá bizmán uvetemperatúra.",
+      "ru": "Упрочнение выделениями зависит от времени и температуры.",
+      "tags": ["materials", "aluminum"],
+      "level": "A",
+      "topic": "metals",
+      "source": "fixture"
+    },
+    {
+      "textId": "t_1001",
+      "rowId": "s_0008",
+      "sentenceId": "s_0008",
+      "orderIndex": 3,
+      "he": "הזדקנות טבעית מתרחשת בטמפרטורת חדר.",
+      "he_niqqud": "הַזְדָּקְנוּת טִבְעִית מִתְרַחֶשֶׁת בְּטֶמְפֶּרָטוּרַת חֶדֶר.",
+      "translit": "hazdaknút tiv'ít mitraḥéshet betemperatúrat ḥéder.",
+      "ru": "Естественное старение происходит при комнатной температуре.",
+      "tags": ["materials", "aluminum"],
+      "level": "A",
+      "topic": "metals",
+      "source": "fixture"
+    },
+
+    {
+      "textId": "t_1002",
+      "rowId": "s_0999",
+      "sentenceId": "s_0999",
+      "orderIndex": 1,
+      "he": "נוספה שורה בתחילת הטקסט (לבדיקת יציבות מזהים).",
+      "he_niqqud": "נוֹסְפָה שׁוּרָה בִּתְחִלַּת הַטֶּקְסְט (לִבְדִיקַת יְצִיבוּת מְזַהִים).",
+      "translit": "nosfá shurá bitḥilát hatekst (livdikát yetsivút mezahím).",
+      "ru": "Добавлена строка в начало текста (для проверки стабильности идентификаторов).",
+      "tags": ["materials", "corrosion"],
+      "level": "A",
+      "topic": "corrosion",
+      "source": "fixture"
+    },
+    {
+      "textId": "t_1002",
+      "rowId": "s_0001",
+      "sentenceId": "s_0001",
+      "orderIndex": 2,
+      "he": "קורוזיה היא תגובה כימית עם הסביבה.",
+      "he_niqqud": "קוֹרוֹזְיָה הִיא תְּגוּבָה כִּימִית עִם הַסְּבִיבָה.",
+      "translit": "korózya hi tguvá kimít im hasvivá.",
+      "ru": "Коррозия — химическая реакция со средой.",
+      "tags": ["materials", "corrosion"],
+      "level": "A",
+      "topic": "corrosion",
+      "source": "fixture"
+    },
+    {
+      "textId": "t_1002",
+      "rowId": "s_0002",
+      "sentenceId": "s_0002",
+      "orderIndex": 3,
+      "he": "הגנה קתודית יכולה להפחית קורוזיה.",
+      "he_niqqud": "הֲגָנָה קָתוֹדִית יְכוֹלָה לְהַפְחִית קוֹרוֹזְיָה.",
+      "translit": "haganá katódít ykholá lehafḥít korózya.",
+      "ru": "Катодная защита может снизить коррозию.",
+      "tags": ["materials", "corrosion"],
+      "level": "A",
+      "topic": "corrosion",
+      "source": "fixture"
+    },
+    {
+      "textId": "t_1002",
+      "rowId": "s_0003",
+      "sentenceId": "s_0003",
+      "orderIndex": 4,
+      "he": "בסביבה כלורידית מתפתח פיטינג.",
+      "he_niqqud": "בִּסְבִיבָה כְּלוֹרִידִית מִתְפַּתֵּחַ פִּיטִינְג.",
+      "translit": "bisvivá kloridít mitpatéaḥ piting.",
+      "ru": "В хлоридной среде развивается питтинг.",
+      "tags": ["materials", "corrosion"],
+      "level": "A",
+      "topic": "corrosion",
+      "source": "fixture"
+    },
+    {
+      "textId": "t_1002",
+      "rowId": "s_0004",
+      "sentenceId": "s_0004",
+      "orderIndex": 5,
+      "he": "שכבת פסיבציה יכולה להגן על מתכת.",
+      "he_niqqud": "שִׁכְבַת פָּסִיבַצְיָה יְכוֹלָה לְהָגֵן עַל מַתֶּכֶת.",
+      "translit": "shikhvát pasivatsyá ykholá lehagén al matékhet.",
+      "ru": "Пассивирующий слой может защищать металл.",
+      "tags": ["materials", "corrosion"],
+      "level": "A",
+      "topic": "corrosion",
+      "source": "fixture"
+    }
+  ]
+}

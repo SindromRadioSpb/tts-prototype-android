@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "docs/schemas/deeplink_payload_v1.schema.json",
+  "title": "DeepLink Payload v1 (decoded JSON)",
+  "type": "object",
+  "description": "Эта схема валидирует DECODED payload deep link после base64url decode и JSON.parse. По контракту deep link имеет формат `/#/t/<base64url(utf8(json_target))>`, где json_target — объект Target v1. Валидация строки URL (base64url/utf8) и канонизация порядка ключей — описаны в CONTRACTS_NAVIGATION.md, но не выражаются JSON Schema. Запрещены 'временные' поля (timestamps/runtime flags) и любые дополнительные поля вне Target v1.",
+  "allOf": [
+    {
+      "$ref": "./nav_target_v1.schema.json"
+    }
+  ]
+}

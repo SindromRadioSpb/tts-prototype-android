@@ -1,3 +1,11 @@
+# Secrets / Environment
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials*.json
+
 # Node
 node_modules/
 npm-debug.log*
@@ -15,9 +23,15 @@ audio-cache/
 gemini-cache/
 usage.json
 
+# caches/artifacts
+*.mp3
+*.wav
+*.ogg
+
 # OS / IDE
 .DS_Store
 Thumbs.db
+*.tmp
 .vscode/
 .idea/
 
@@ -31,39 +45,19 @@ Thumbs.db
 
 # Случайные файлы типа "h origin v0.2.0-week2"
 h origin v0.2.0-week2
+nul
 
-# Env (secrets)
-.env
-.env.*
-!.env.example
+# SQLite (Library/Progress)
+data/
+data/*.db
+data/*.db-*
+data/backups/
+*.db
 
-# Local test artifacts (do not commit)
-cookies.txt
-cookies*.txt
-student.txt
-student*.txt
-student-login.json
-login.json
-docker
-docker/
+# Step 8.x smoke artifacts
+out.mp3
+part.bin
 
-# Local curl/smoke artifacts (do not commit)
-cookies*.txt
-student*.txt
-login.json
-smoke-values.local.txt
-docker
-docker/
-
-# Local curl/smoke artifacts (do not commit)
-cookies*.txt
-student*.txt
-login.json
-student-login.json
-smoke-values.local.txt
-docker
-docker/
-
-
-
+# Misc
+repo_tree.txt
 

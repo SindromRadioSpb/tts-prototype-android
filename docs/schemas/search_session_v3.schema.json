@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "docs/schemas/search_session_v3.schema.json",
+  "title": "SearchSession v3 (sessionStorage: v3_search_session_v1)",
+  "type": "object",
+  "additionalProperties": false,
+  "description": "Структура unified search navigation session (Wave D / A3.1). Отражает реальный shape v3SearchSessionDefaults() + инварианты для Back-to-results / Prev/Next / Jump.",
+  "required": [
+    "origin",
+    "scope",
+    "qRaw",
+    "filtersKey",
+    "notesResults",
+    "rowsResults",
+    "activeType",
+    "activeIndex",
+    "scrollRestore",
+    "updatedAt"
+  ],
+  "properties": {
+    "v": {
+      "type": "integer",
+      "const": 3,
+      "description": "Опциональная версия SearchSession. В текущей реализации может отсутствовать; добавлена для будущей явной версионизации без изменения shape."
+    },
+
+    "origin": {
+      "description": "Откуда пришли результаты/навигация. null допускается (нет сохранённого контекста).",
+      "anyOf": [
+        { "type": "null" },
+        { "type": "string", "enum": ["lib", "dash"] }
+      ]
+    },
+
+    "scope": {
+      "description": "Текущий scope поиска. null допускается (нет сохранённого scope).",
+      "anyOf": [
+        { "type": "null" },
+        { "type": "string", "enum": ["texts", "both", "notes", "rows"] }
+      ]
+    },
+
+    "qRaw": {
+      "type": "string",
+      "description": "Сырая строка поиска (как в UI). Пустая строка допустима."
+    },
+
+    "filtersKey": {
+      "type": "string",
+      "description": "Детерминированный ключ фильтров (строка). Формат ключа фиксируется UI-кодом; пустая строка допустима."
+    },
+
+    "notesResults": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "$ref": "#/$defs/navHit" },
+      "description": "Сохранённые hits для Notes. Максимум 200 (hard safety)."
+    },
+
+    "rowsResults": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "$ref": "#/$defs/navHit" },
+      "description": "Сохранённые hits для Rows. Максимум 200 (hard safety)."
+    },
+
+    "activeType": {
+      "description": "Какая лента hits активна (куда применяются prev/next). null допустим.",
+      "anyOf": [
+        { "type": "null" },
+        { "type": "string", "enum": ["notes", "rows"] }
+      ]
+    },
+
+    "activeIndex": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "UI-индекс активного hit в массиве выбранного типа. Должен быть >= 0."
+    },
+
+    "scrollRestore": {
+      "type": "object",
+      "description": "Карта ключ->позиция скролла для восстановления back-to-results.",
+      "default": {},
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^(lib|dash):(notes|rows)$"
+      },
+      "additionalProperties": { "$ref": "#/$defs/scrollRestoreEntry" }
+    },
+
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp. Перезаписывается при load/set (операционный маркер обновления)."
+    }
+  },
+
+  "$defs": {
+    "navHit": {
+      "type": "object",
+      "description": "Минимальный hit для навигации. NAV-код читает textId + sentenceId (+ опционально orderIndex). Дополнительные поля допускаются (API contracts будут фиксировать полный shape отдельно).",
+      "required": ["textId", "sentenceId"],
+      "properties": {
+        "textId": { "type": "string", "minLength": 1 },
+        "sentenceId": { "type": "string", "minLength": 1 },
+        "orderIndex": {
+          "description": "Позиционный индекс в тексте (НЕ ID). Может отсутствовать или быть null.",
+          "anyOf": [
+            { "type": "integer", "minimum": 0 },
+            { "type": "null" }
+          ]
+        },
+
+        "noteId": { "type": "st
