@@ -169,6 +169,37 @@ console.log("NAV-12 PASS");
 - SRS-01..SRS-10 из `CONTRACTS_SRS.md`
 - событие `srs_review` логируется в events (если analytics включена)
 
+#### 3.5.1. SRS -> Anki (ручной QA)
+
+Проверить два сценария.
+
+Сценарий A: AnkiConnect недоступен
+- открыть IDE mode
+- выбрать строку и вкладку `SRS`
+- если карточки нет, нажать `Add to SRS`
+- нажать `Check Anki`
+- ожидаемо:
+  - появляется явная диагностика недоступности AnkiConnect
+  - `Export to Anki` не даёт ложный success-toast
+  - ошибка показывает reason, а не только `HTTP 503`
+
+Сценарий B: live export работает
+- запустить `Anki Desktop` и убедиться, что `AnkiConnect` активен
+- в IDE `SRS` вкладке нажать `Check Anki`
+- ожидаемо:
+  - success message с version
+- нажать `Preview Anki`
+- ожидаемо:
+  - виден deck/model/direction/prompt/answer
+- нажать `Export to Anki`
+- ожидаемо:
+  - success message содержит число note/card
+  - статус меняется на `Anki: synced`
+- открыть ту же карточку в Trainer и нажать `Export to Anki`
+- ожидаемо:
+  - повторный export не создаёт дубликаты
+  - карточка остаётся idempotent по локальному status/export metadata
+
 ### 3.6. Analytics зона
 Триггер:
 - изменения event ingestion/агрегаций/дашборда аналитики

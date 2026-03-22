@@ -6239,6 +6239,7 @@ function v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, opts) {
             ${v3EscapeHtml(v3SrsAnkiStatusText(exportStatus))}
           </div>
           <div class="v3-ide-srs-actions" style="margin-bottom:12px;">
+            <button class="btn-secondary" onclick="v3SrsAnkiCheckConnect(true)">Check Anki</button>
             <button class="btn-secondary" onclick="v3IdeSrsAnkiPreview('${v3EscapeHtml(card.id)}')">Preview Anki</button>
             <button class="btn-secondary" onclick="v3IdeSrsExportAnki('${v3EscapeHtml(card.id)}')">Export to Anki</button>
           </div>
@@ -6330,30 +6331,81 @@ async function v3IdeSrsReview(sentenceId, rating) {
   }
 }
 
+function v3SrsAnkiParseBodyText(bodyText) {
+  try {
+    return bodyText ? JSON.parse(String(bodyText)) : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function v3SrsAnkiFormatThrownError(e) {
+  const payload = e && e.bodyText ? v3SrsAnkiParseBodyText(e.bodyText) : null;
+  if (payload) return v3AnkiFormatDetails(payload, { status: e.httpStatus || 0 });
+  if (e && e.message) return String(e.message);
+  return String(e || "UNKNOWN_ERROR");
+}
+
+async function v3SrsAnkiCheckConnect(verbose) {
+  try {
+    const r = await fetch("/api/anki/health", { method: "GET" });
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j && j.ok) {
+      const ver = j.ankiConnect && j.ankiConnect.version ? String(j.ankiConnect.version) : "—";
+      if (verbose) {
+        if (typeof showToast === "function") showToast(`AnkiConnect available (version ${ver})`, "success");
+      }
+      return { ok: true, version: ver };
+    }
+    const details = v3AnkiFormatDetails(j, r);
+    if (verbose) {
+      window.alert(`AnkiConnect is not available.\n\n${details}`);
+    }
+    return { ok: false, details };
+  } catch (e) {
+    const details = String((e && e.message) || e || "");
+    if (verbose) {
+      window.alert(`AnkiConnect is not available.\n\n${details}`);
+    }
+    return { ok: false, details };
+  }
+}
+
 async function v3IdeSrsAnkiPreview(cardId) {
   try {
     const res = await v3GetJson(`/api/srs/export/anki/preview?cardId=${encodeURIComponent(String(cardId || "").trim())}`);
     const p = res && res.preview ? res.preview : {};
+    const st = res && res.status ? res.status : {};
     window.alert([
       `Deck: ${res.deckName || "LinguistPro::SRS"}`,
+      `Model: ${res.modelName || "LinguistPro SRS Card v1"}`,
       `Direction: ${p.templateLabel || p.templateCode || "SRS"}`,
+      `Status: ${st.isUpToDate ? "synced" : st.isExported ? "outdated" : "not exported"}`,
       `Prompt: ${String(p.promptText || "").slice(0, 120) || "—"}`,
       `Answer: ${String(p.answerText || "").slice(0, 120) || "—"}`,
+      `Audio: ${p.hasAudio ? "yes" : "no"} | Note: ${p.hasNote ? "yes" : "no"}`,
     ].join("\n"));
   } catch (e) {
     console.error("SRS Anki preview failed:", e);
-    if (typeof showToast === "function") showToast("Failed to load Anki preview");
+    window.alert(`Failed to load Anki preview.\n\n${v3SrsAnkiFormatThrownError(e)}`);
   }
 }
 
 async function v3IdeSrsExportAnki(cardId) {
   try {
-    await v3PostJson("/api/srs/export/anki", { cardId: String(cardId || "").trim() });
-    if (typeof showToast === "function") showToast("SRS card exported to Anki", "success");
+    const health = await v3SrsAnkiCheckConnect(false);
+    if (!health.ok) {
+      window.alert(`AnkiConnect is not available.\n\n${health.details || ""}`);
+      return;
+    }
+    const res = await v3PostJson("/api/srs/export/anki", { cardId: String(cardId || "").trim() });
+    const foundNotes = res && res.verify ? Number(res.verify.foundNotes || 0) : 0;
+    const foundCards = res && res.verify ? Number(res.verify.foundCards || 0) : 0;
+    if (typeof showToast === "function") showToast(`SRS card exported to Anki (${foundNotes} note, ${foundCards} card)`, "success");
     v3IdeRefreshInspector();
   } catch (e) {
     console.error("SRS Anki export failed:", e);
-    if (typeof showToast === "function") showToast("Failed to export SRS card to Anki", "error");
+    window.alert(`Failed to export SRS card to Anki.\n\n${v3SrsAnkiFormatThrownError(e)}`);
   }
 }
 
@@ -13491,6 +13543,7 @@ function v3SrsTrainerRenderSession() {
     <div class="v3-srs-toolbar">
       <div class="v3-srs-progress">Progress ${Number(progress.completed || 0)} / ${Number(progress.total || 0)} · Remaining ${Number(progress.remaining || 0)} · Direction ${v3EscapeHtml(v3SrsTrainerTemplateLabel((card.template && card.template.code) || v3SrsTrainerState.templateCode))} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="v3SrsAnkiCheckConnect(true)">Check Anki</button>
         <button class="btn-secondary" onclick="v3SrsTrainerExportAnki()">Export to Anki</button>
         <button class="btn-secondary" onclick="v3SrsTrainerFinish()">Finish Session</button>
       </div>
@@ -13716,17 +13769,25 @@ async function v3SrsTrainerExportAnki() {
     const current = v3SrsTrainerState.current;
     const cardId = current && current.card && current.card.id ? String(current.card.id) : "";
     if (!cardId) return;
-    await v3PostJson("/api/srs/export/anki", { cardId });
-    if (typeof showToast === "function") showToast("Current SRS card exported to Anki", "success");
+    const health = await v3SrsAnkiCheckConnect(false);
+    if (!health.ok) {
+      window.alert(`AnkiConnect is not available.\n\n${health.details || ""}`);
+      return;
+    }
+    const res = await v3PostJson("/api/srs/export/anki", { cardId });
+    const foundNotes = res && res.verify ? Number(res.verify.foundNotes || 0) : 0;
+    const foundCards = res && res.verify ? Number(res.verify.foundCards || 0) : 0;
+    if (typeof showToast === "function") showToast(`Current SRS card exported to Anki (${foundNotes} note, ${foundCards} card)`, "success");
   } catch (e) {
     console.error("SRS trainer Anki export failed:", e);
-    if (typeof showToast === "function") showToast("Failed to export current SRS card to Anki", "error");
+    window.alert(`Failed to export current SRS card to Anki.\n\n${v3SrsAnkiFormatThrownError(e)}`);
   }
 }
 
 window.v3SrsTrainerSetMode = v3SrsTrainerSetMode;
 window.v3SrsTrainerPlayAudio = v3SrsTrainerPlayAudio;
 window.v3SrsTrainerCheckAnswer = v3SrsTrainerCheckAnswer;
+window.v3SrsAnkiCheckConnect = v3SrsAnkiCheckConnect;
 window.v3IdeSrsAnkiPreview = v3IdeSrsAnkiPreview;
 window.v3IdeSrsExportAnki = v3IdeSrsExportAnki;
 window.v3SrsTrainerExportAnki = v3SrsTrainerExportAnki;
