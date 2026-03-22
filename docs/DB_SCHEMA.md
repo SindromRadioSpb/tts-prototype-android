@@ -1,7 +1,7 @@
 # DB_SCHEMA — целевая схема и инварианты (SQLite)
 
-## 0) Current Repo Reality (2026-03-22)
-Этот документ содержит и целевую модель, и фактическую схему, подтверждённую репозиторием на 2026-03-22.
+## 0) Current Repo Reality (2026-03-23)
+Этот документ содержит и целевую модель, и фактическую схему, подтверждённую репозиторием на 2026-03-23.
 
 Фактически подтверждено:
 - `texts(id TEXT PRIMARY KEY, text_key, title, level, tags_json, source_text, source_meta_json, tts_profile_json, table_model_meta_json, is_archived, created_at, updated_at, last_opened_at)` — см. `migrations/002_v3_library.sql`
@@ -13,6 +13,8 @@
 - `srs_session_runs` — см. `migrations/011_srs_sessions.sql`
 - `srs_card_templates`, template-aware `srs_cards` — см. `migrations/012_srs_templates.sql`
 - repaired FK для `srs_review_events -> srs_cards` — см. `migrations/013_srs_review_events_fk_fix.sql`
+- `srs_attempts` — см. `migrations/014_srs_attempts.sql`
+- `events` — см. `migrations/015_events_layer.sql`
 - search normalization хранится в `sentences.he_norm` с индексом `ix_sentences_he_norm` — см. `migrations/009_hebrew_norm.sql`
 
 Проверки, подтверждающие факт:
@@ -134,9 +136,25 @@ Premium расширение:
 
 ### 3.6. Analytics events
 Текущее фактическое состояние:
-- отдельной таблицы `events` пока нет
-- текущая аналитика построена на `history_events`, `recent_rows`, `recent_texts`
-- архитектурное решение по `history_events` vs `events` должно быть принято отдельным патчем
+- legacy/runtime analytics:
+  - `history_events`
+  - `recent_rows`
+  - `recent_texts`
+- unified event ingestion layer:
+  - `events`
+    - `id` (PK)
+    - `ts`
+    - `event_type`
+    - `entity_type`, `entity_id`
+    - `session_id`
+    - `text_id`, `sentence_id`, `note_id`, `card_id`
+    - `source`
+    - `payload_json`
+
+PATCH-07 decision:
+- `history_events` сохраняется как source для существующих dashboard summary
+- `events` используется для новых cross-feature analytics events
+- полный перенос агрегатов на `events` остаётся отдельным будущим шагом
 
 ### 3.7. Audio assets
 - `audio_assets`

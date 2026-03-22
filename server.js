@@ -76,6 +76,10 @@ const {
   getAnalyticsSummary,
   listTopTextsByPlays,
 } = require("./db/historyRepo");
+const {
+  recordEvent,
+  countEventsByType,
+} = require("./db/eventsRepo");
 
 const {
   listTemplates,
@@ -125,6 +129,14 @@ const {
   searchNotes,
   getNoteWithContext,
 } = require("./db/notesRepo");
+
+async function v3TrackEventSafe(event) {
+  try {
+    await recordEvent(event);
+  } catch (e) {
+    console.warn("[events] track failed:", e && e.message ? e.message : e);
+  }
+}
 
 // --------------------------------------------------------
 // 2. НАСТРОЙКИ СЕРВЕРА
@@ -3216,6 +3228,15 @@ app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
     if (!note) {
       try {
         await deleteNote({ textId, sentenceId });
+        await v3TrackEventSafe({
+          eventType: "save_note",
+          entityType: "note",
+          entityId: sentenceId,
+          textId,
+          sentenceId,
+          source: "api",
+          payload: { action: "delete", via: "put-empty" },
+        });
       } catch (e2) {
         // если sentence не в text => 404 обязателен
         if (e2 && (e2.code === "SENTENCE_NOT_IN_TEXT")) {
@@ -3235,6 +3256,16 @@ app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
     let saved = null;
     try {
       saved = await upsertNote({ textId, sentenceId, note });
+      await v3TrackEventSafe({
+        eventType: "save_note",
+        entityType: "note",
+        entityId: saved && saved.id ? saved.id : sentenceId,
+        textId,
+        sentenceId,
+        noteId: saved && saved.id ? saved.id : null,
+        source: "api",
+        payload: { action: "upsert", length: String(note || "").trim().length },
+      });
     } catch (e2) {
       if (e2 && (e2.code === "SENTENCE_NOT_IN_TEXT")) {
         return res.status(404).json({ error: "SENTENCE_NOT_IN_TEXT" });
@@ -3263,6 +3294,15 @@ app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
 
     try {
       await deleteNote({ textId, sentenceId });
+      await v3TrackEventSafe({
+        eventType: "save_note",
+        entityType: "note",
+        entityId: sentenceId,
+        textId,
+        sentenceId,
+        source: "api",
+        payload: { action: "delete", via: "delete" },
+      });
     } catch (e2) {
       if (e2 && (e2.code === "SENTENCE_NOT_IN_TEXT")) {
         return res.status(404).json({ error: "SENTENCE_NOT_IN_TEXT" });
@@ -3440,6 +3480,21 @@ app.get("/api/notes/search", async (req, res) => {
       offset,
     };
 
+    await v3TrackEventSafe({
+      eventType: "search_query",
+      entityType: "search",
+      source: "api",
+      payload: {
+        scope: "notes",
+        qLength: qRaw.length,
+        includeArchived,
+        level,
+        limit,
+        offset,
+        resultsCount: results.length,
+      },
+    });
+
     return res.json({ ok: true, query, results, more });
   } catch (e) {
     console.error("GET /api/notes/search error:", e);
@@ -3516,6 +3571,21 @@ app.get("/api/sentences/search", async (req, res) => {
     }));
 
     const more = results.length === limit;
+
+    await v3TrackEventSafe({
+      eventType: "search_query",
+      entityType: "search",
+      source: "api",
+      payload: {
+        scope: "sentences",
+        qLength: qRaw.length,
+        includeArchived,
+        level,
+        limit,
+        offset,
+        resultsCount: results.length,
+      },
+    });
 
     return res.json({
       ok: true,
@@ -3717,6 +3787,22 @@ app.post("/api/srs/review", async (req, res) => {
     }
 
     const snapshot = await reviewSentenceCard({ cardId, sentenceId, templateCode, rating, reviewTimeMs });
+    await v3TrackEventSafe({
+      eventType: "srs_review",
+      entityType: "srs_card",
+      entityId: snapshot && snapshot.card ? snapshot.card.id : null,
+      textId: snapshot && snapshot.sentence ? snapshot.sentence.textId : null,
+      sentenceId: snapshot && snapshot.sentence ? snapshot.sentence.sentenceId : null,
+      cardId: snapshot && snapshot.card ? snapshot.card.id : null,
+      source: "api",
+      payload: {
+        rating,
+        reviewTimeMs: reviewTimeMs == null ? null : Number(reviewTimeMs) || 0,
+        templateCode: snapshot && snapshot.card && snapshot.card.template ? snapshot.card.template.code : templateCode || null,
+        state: snapshot && snapshot.card ? snapshot.card.state : null,
+        intervalDays: snapshot && snapshot.card ? Number(snapshot.card.intervalDays || 0) : null,
+      },
+    });
     return res.json({ ok: true, sentence: snapshot.sentence, card: snapshot.card });
   } catch (e) {
     const msg = String(e && e.message || "");
@@ -3786,6 +3872,20 @@ app.post("/api/srs/attempts/check", async (req, res) => {
       answer,
       latencyMs,
     });
+    await v3TrackEventSafe({
+      eventType: "trainer_attempt",
+      entityType: "srs_card",
+      entityId: result && result.cardId ? result.cardId : cardId,
+      sessionId: sessionId || null,
+      cardId: result && result.cardId ? result.cardId : cardId,
+      source: "api",
+      payload: {
+        attemptType,
+        isCorrect: !!(result && result.isCorrect),
+        latencyMs: latencyMs == null ? null : Number(latencyMs) || 0,
+        templateCode: result && result.trainer ? result.trainer.templateCode : null,
+      },
+    });
     return res.json(result);
   } catch (e) {
     const msg = String(e && e.message || "");
@@ -3841,6 +3941,18 @@ app.post("/api/srs/sessions", async (req, res) => {
     const templateCode = String(req.body && req.body.templateCode || "").trim();
     const session = await createTodaySession({ limit, source, mode, templateCode });
     const next = await getSessionNext(session.id);
+    await v3TrackEventSafe({
+      eventType: "srs_session_started",
+      entityType: "srs_session",
+      entityId: next && next.session ? next.session.id : session.id,
+      sessionId: next && next.session ? next.session.id : session.id,
+      source: "api",
+      payload: {
+        mode,
+        templateCode: templateCode || null,
+        cardsTotal: next && next.session ? Number(next.session.cardsTotal || 0) : Number(session.cardsTotal || 0),
+      },
+    });
     return res.json({
       ok: true,
       session: next.session,
@@ -3910,6 +4022,39 @@ app.post("/api/srs/sessions/:id/review", async (req, res) => {
     }
 
     const result = await reviewSessionNext({ sessionId, rating, reviewTimeMs });
+    await v3TrackEventSafe({
+      eventType: "srs_review",
+      entityType: "srs_card",
+      entityId: result && result.reviewed && result.reviewed.card ? result.reviewed.card.id : null,
+      sessionId,
+      textId: result && result.reviewed && result.reviewed.sentence ? result.reviewed.sentence.textId : null,
+      sentenceId: result && result.reviewed && result.reviewed.sentence ? result.reviewed.sentence.sentenceId : null,
+      cardId: result && result.reviewed && result.reviewed.card ? result.reviewed.card.id : null,
+      source: "api",
+      payload: {
+        rating,
+        reviewTimeMs: reviewTimeMs == null ? null : Number(reviewTimeMs) || 0,
+        templateCode: result && result.reviewed && result.reviewed.card && result.reviewed.card.template ? result.reviewed.card.template.code : null,
+        state: result && result.reviewed && result.reviewed.card ? result.reviewed.card.state : null,
+        intervalDays: result && result.reviewed && result.reviewed.card ? Number(result.reviewed.card.intervalDays || 0) : null,
+      },
+    });
+    if (result && result.done && result.session) {
+      await v3TrackEventSafe({
+        eventType: "srs_session_finished",
+        entityType: "srs_session",
+        entityId: result.session.id,
+        sessionId,
+        source: "api",
+        payload: {
+          mode: result.session.mode || null,
+          status: result.session.status || null,
+          cardsTotal: Number(result.session.cardsTotal || 0),
+          reviewsDone: Number(result.session.reviewsDone || 0),
+          trigger: "review-complete",
+        },
+      });
+    }
     return res.json({
       ok: true,
       session: result.session,
@@ -3942,6 +4087,19 @@ app.post("/api/srs/sessions/:id/finish", async (req, res) => {
     if (!sessionId) return res.status(400).json({ ok: false, error: "BAD_SESSION_ID" });
 
     const session = await finishSession(sessionId);
+    await v3TrackEventSafe({
+      eventType: "srs_session_finished",
+      entityType: "srs_session",
+      entityId: session && session.id ? session.id : sessionId,
+      sessionId,
+      source: "api",
+      payload: {
+        mode: session && session.mode ? session.mode : null,
+        status: session && session.status ? session.status : null,
+        cardsTotal: session ? Number(session.cardsTotal || 0) : null,
+        reviewsDone: session ? Number(session.reviewsDone || 0) : null,
+      },
+    });
     return res.json({ ok: true, session });
   } catch (e) {
     if (String(e && e.message || "") === "SESSION_NOT_FOUND") {
@@ -5013,6 +5171,19 @@ app.post("/api/history/event", express.json({ limit: "64kb" }), async (req, res)
       id: body.id || uuidv4(),
       eventType: body.eventType || body.event_type || "ROW_TTS",
     });
+    await v3TrackEventSafe({
+      eventType: "play_audio",
+      entityType: "sentence",
+      entityId: sentenceId,
+      textId,
+      sentenceId,
+      source: "api",
+      payload: {
+        assetKey: assetKey || null,
+        audioLang: audioLang || null,
+        voiceName: voiceName || null,
+      },
+    });
 
     return res.json({ ok: true, result });
   } catch (e) {
@@ -5107,9 +5278,16 @@ app.get("/api/history/analytics", async (req, res) => {
 
     const period = await getAnalyticsSummary({ days, includeArchived, level });
     const all = await getAnalyticsSummary({ days: 0, includeArchived, level });
+    const periodEventCounts = await countEventsByType({ days });
+    const allEventCounts = await countEventsByType({ days: 0 });
     const topTexts = await listTopTextsByPlays({ days, limit: 8, includeArchived, level });
 
-    return res.json({ ok: true, period, all, topTexts });
+    return res.json({
+      ok: true,
+      period: { ...period, eventCounts: periodEventCounts },
+      all: { ...all, eventCounts: allEventCounts },
+      topTexts,
+    });
   } catch (e) {
     console.error("history/analytics failed", e);
     return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });

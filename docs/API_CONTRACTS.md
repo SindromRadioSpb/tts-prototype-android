@@ -266,3 +266,49 @@ more = (results.length === limit)
 4. Guard-поведение (пустой qText / слишком короткий qText) — это часть контракта: endpoint обязан быстро возвращать пустые результаты вместо сканирования.
 
 5. Оба search endpoints в текущей реализации возвращают `snippet`, `snippetField` и `highlights`; UI/IDE вправе опираться на эти поля, а не вычислять snippet заново.
+
+## 5) GET /api/history/analytics
+
+### 5.1. Purpose
+Возвращает hybrid analytics payload:
+- legacy summary по `history_events`
+- event counts по новой таблице `events`
+- top texts по plays
+
+### 5.2. Query params
+
+| Param | Type | Default | Meaning |
+| --- | --- | --- | --- |
+| `days` | number | `7` | Период в днях; `0` = all time summary |
+| `includeArchived` | `0 \| 1` | `0` | Включать архивные тексты |
+| `level` | string | `""` | Фильтр по level |
+
+### 5.3. Success response (shape)
+
+```ts
+type AnalyticsSummary = {
+  plays: number,
+  uniqueRows: number,
+  uniqueTexts: number,
+  timeMs: number,
+  eventCounts: Record<string, number>
+};
+
+type TopText = {
+  textId: string,
+  title: string,
+  level: string | null,
+  plays: number,
+  lastPlayedAt: string | null
+};
+
+type HistoryAnalyticsResponse = {
+  ok: true,
+  period: AnalyticsSummary,
+  all: AnalyticsSummary,
+  topTexts: TopText[]
+};
+```
+
+### 5.4. Contract note
+`period` и `all` summary пока считаются поверх `history_events`, а `eventCounts` читаются из `events`. Это допустимый PATCH-07 hybrid contract и не должно ломаться без обновления `CONTRACTS_ANALYTICS.md`.

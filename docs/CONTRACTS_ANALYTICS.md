@@ -1,21 +1,31 @@
 # CONTRACTS — Analytics PRO
 
-## 0) Current Repo Status (2026-03-22)
-Текущее состояние репозитория НЕ совпадает с целевым контрактом ниже полностью.
+## 0) Current Repo Status (2026-03-23)
+Текущее состояние репозитория теперь является hybrid-моделью: runtime dashboard по-прежнему опирается на `history_events`, а новый forward-compatible event layer живёт в таблице `events`.
 
 Что уже реализовано:
 - `history_events`, `recent_rows`, `recent_texts`
+- таблица `events`
 - endpoints `/api/history/event`, `/api/history/recent-texts`, `/api/history/recent-activity`, `/api/history/analytics`
 - агрегаты по plays/unique_rows/unique_texts/time_ms поверх `history_events`
-- `srs_review_events` как отдельный SRS review log вне единого analytics layer
+- event logging в `events` для:
+  - `search_query`
+  - `save_note`
+  - `play_audio`
+  - `srs_review`
+  - `trainer_attempt`
+  - `srs_session_started`
+  - `srs_session_finished`
+- `srs_review_events` как детальный SRS review log, отдельный от analytics event layer
 
-Что ещё не реализовано в контрактном виде:
-- отдельная таблица `events`
-- `session_start/session_heartbeat/session_end`
-- cohort-метрики v1
-- логирование `search_query` и `srs_review` в едином event layer
+Что ещё не реализовано в полном контрактном виде:
+- `session_start/session_heartbeat/session_end` как time-spent v2 модель
+- cohort-метрики v1 по level/topic/tags
+- полный перенос dashboard-агрегаций с `history_events` на `events`
 
-Этот документ описывает целевое состояние. До PATCH-04 analytics-alignment фактическим source of truth для runtime-аналитики остаётся `history_events`.
+Текущий source of truth:
+- dashboard period/all summary: `history_events`
+- cross-feature event ingestion: `events`
 
 ## 1) Цель
 Analytics PRO измеряет учебную активность:
@@ -23,8 +33,9 @@ Analytics PRO измеряет учебную активность:
 - cohort по уровням/темам,
 - метрики эффективности Premium (SRS, поиск, заметки).
 
-## 2) Событийная модель (обязательный контракт)
-Все метрики строятся на таблице `events`.
+## 2) Событийная модель
+В целевом состоянии все кросс-фичевые метрики строятся на таблице `events`.
+В текущем PATCH-07 это уже верно для event ingestion, но не для всех dashboard aggregate queries.
 
 ### 2.1. Event schema (логический контракт)
 Минимальный набор полей:
@@ -35,6 +46,16 @@ Analytics PRO измеряет учебную активность:
 - `entity_id` (optional)
 - `session_id` (string)
 - `payload_json` (json) — строго ограниченный по размеру
+
+Фактическая схема PATCH-07:
+- `id` (PK)
+- `ts`
+- `event_type`
+- `entity_type`, `entity_id`
+- `session_id`
+- `text_id`, `sentence_id`, `note_id`, `card_id`
+- `source`
+- `payload_json`
 
 ### 2.2. Правила безопасности
 - В events **не записывать**: ключи API, токены, полные тексты (если есть риск приватности).
@@ -89,6 +110,23 @@ Cohort — группа строк/предложений, связанных с
 - `srs_review` (payload: rating)
 - `export_anki`, `export_docx` (если есть)
 
+Фактически подтверждено в PATCH-07:
+- `search_query`
+- `save_note`
+- `play_audio`
+- `srs_review`
+- `trainer_attempt`
+- `srs_session_started`
+- `srs_session_finished`
+
+## 5.1. Hybrid contract for `/api/history/analytics`
+Текущий endpoint `/api/history/analytics` возвращает hybrid payload:
+- `period` и `all` summary по `history_events`
+- `period.eventCounts` и `all.eventCounts` по таблице `events`
+- `topTexts` по существующей history analytics логике
+
+Это считается допустимым контрактом PATCH-07, пока dashboard не переведён полностью на `events`.
+
 ## 6) Acceptance Tests
 | ID | Сценарий | Шаги | Ожидаемое |
 |---|---|---|---|
@@ -98,3 +136,9 @@ Cohort — группа строк/предложений, связанных с
 | AN-04 | search event | сделать поиск | events содержит search_query |
 | AN-05 | cohort metrics | rows с level/topic | агрегат строится |
 | AN-06 | privacy | payload size | payload ограничен |
+
+## 7) PATCH-07 decision
+Архитектурное решение для текущего репозитория:
+- не ломать существующий `history_events` dashboard слой
+- ввести отдельный `events` слой для всех новых feature events
+- расширять dashboard постепенно, читая `events` там, где это даёт ценность без регрессий

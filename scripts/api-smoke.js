@@ -31,6 +31,15 @@ function dbGet(db, sql, params = []) {
   });
 }
 
+function dbAll(db, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows || []);
+    });
+  });
+}
+
 function dbRun(db, sql, params = []) {
   return new Promise((resolve, reject) => {
     db.run(sql, params, function onRun(err) {
@@ -443,6 +452,29 @@ async function run() {
         throw new Error(`Unexpected /api/srs/sessions/:id/finish payload: ${JSON.stringify(sessionFinished)}`);
       }
       console.log("PASS /api/srs/sessions/:id/finish -> session can be closed");
+
+      const analyticsDb = await openDb(DB_PATH);
+      try {
+        const eventRows = await dbAll(
+          analyticsDb,
+          `
+          SELECT event_type, COUNT(*) AS count
+          FROM events
+          WHERE event_type IN ('search_query', 'srs_review', 'trainer_attempt', 'srs_session_started', 'srs_session_finished')
+          GROUP BY event_type
+          ORDER BY event_type ASC
+          `
+        );
+        const counts = Object.fromEntries(eventRows.map((row) => [String(row.event_type || ""), Number(row.count || 0)]));
+        for (const type of ["search_query", "srs_review", "trainer_attempt", "srs_session_started", "srs_session_finished"]) {
+          if (!counts[type] || counts[type] < 1) {
+            throw new Error(`Expected analytics event "${type}" to be written into events table; got ${JSON.stringify(counts)}`);
+          }
+        }
+      } finally {
+        await closeDb(analyticsDb);
+      }
+      console.log("PASS analytics events -> search/SRS/session hooks write into events layer");
     } else {
       console.log("SKIP /api/srs/* -> no clean sentence without existing SRS card was available");
     }

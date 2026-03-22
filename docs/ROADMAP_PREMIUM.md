@@ -75,10 +75,11 @@
 - правила расчёта time-spent (gap thresholds)
 - агрегации (on-demand или периодические)
 
-Статус репозитория на 2026-03-22:
+Статус репозитория на 2026-03-23:
 - В коде уже используется `history_events` + `recent_rows` + `recent_texts` и endpoints `/api/history/*`.
-- Контрактный слой `events` ещё не выровнен с фактической реализацией.
-- Требуется архитектурное решение: развивать `history_events` или вводить отдельный `events`.
+- PATCH-07 baseline реализован: добавлена таблица `events`, event repo и server-side logging для `search_query`, `save_note`, `play_audio`, `srs_review`, `trainer_attempt`, `srs_session_started`, `srs_session_finished`.
+- `/api/history/analytics` теперь возвращает hybrid payload: legacy summary + `eventCounts` из `events`.
+- Не закрыты time-spent v2 (`session_start/session_heartbeat/session_end`) и cohort aggregates по `events`.
 
 ---
 
@@ -174,8 +175,10 @@
 - automatic API smoke coverage для `trainer-view` и `attempts/check`
 
 ### PATCH-07 — Analytics Alignment
+- статус: baseline реализован
 - выравнивание `history_events`, `srs_review_events`, будущего `events`
-- SRS/trainer events в едином analytics layer
+- SRS/trainer/search/notes/audio events уже пишутся в единый analytics layer
+- дальнейший шаг: постепенно переводить dashboard aggregates на `events`
 
 ### PATCH-08 — Anki Export v1
 - export preview
