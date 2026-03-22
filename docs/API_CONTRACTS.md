@@ -131,7 +131,11 @@ type NoteSearchHit = {
   topic: string | null,
   source: string | null,
 
-  tags: string[]
+  tags: string[],
+
+  snippet: string | null,
+  snippetField: string | null,
+  highlights: Record<string, Array<{ start: number, end: number }>>
 };
 
 type NotesSearchResponse = {
@@ -223,7 +227,11 @@ type SentenceSearchHit = {
   topic: string | null,
   source: string | null,
 
-  tags: string[]
+  tags: string[],
+
+  snippet: string | null,
+  snippetField: string | null,
+  highlights: Record<string, Array<{ start: number, end: number }>>
 };
 
 type SentencesSearchResponse = {
@@ -256,3 +264,5 @@ more = (results.length === limit)
 3. tags в API-ответах — массив строк (не JSON-строка). Для UI это контракт.
 
 4. Guard-поведение (пустой qText / слишком короткий qText) — это часть контракта: endpoint обязан быстро возвращать пустые результаты вместо сканирования.
+
+5. Оба search endpoints в текущей реализации возвращают `snippet`, `snippetField` и `highlights`; UI/IDE вправе опираться на эти поля, а не вычислять snippet заново.

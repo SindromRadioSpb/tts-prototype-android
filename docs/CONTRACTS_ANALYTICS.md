@@ -1,5 +1,22 @@
 # CONTRACTS — Analytics PRO
 
+## 0) Current Repo Status (2026-03-22)
+Текущее состояние репозитория НЕ совпадает с целевым контрактом ниже полностью.
+
+Что уже реализовано:
+- `history_events`, `recent_rows`, `recent_texts`
+- endpoints `/api/history/event`, `/api/history/recent-texts`, `/api/history/recent-activity`, `/api/history/analytics`
+- агрегаты по plays/unique_rows/unique_texts/time_ms поверх `history_events`
+- `srs_review_events` как отдельный SRS review log вне единого analytics layer
+
+Что ещё не реализовано в контрактном виде:
+- отдельная таблица `events`
+- `session_start/session_heartbeat/session_end`
+- cohort-метрики v1
+- логирование `search_query` и `srs_review` в едином event layer
+
+Этот документ описывает целевое состояние. До PATCH-04 analytics-alignment фактическим source of truth для runtime-аналитики остаётся `history_events`.
+
 ## 1) Цель
 Analytics PRO измеряет учебную активность:
 - time-spent без listeners (событийная модель),
