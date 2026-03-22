@@ -13477,6 +13477,9 @@ async function v3SrsTrainerRefresh() {
 async function v3SrsTrainerOpen() {
   const modal = v3SrsTrainerEl("v3SrsTrainerModal");
   if (!modal) return;
+  if (modal.parentElement !== document.body) {
+    document.body.appendChild(modal);
+  }
   modal.classList.remove("hidden");
   await v3SrsTrainerRefresh();
 }
