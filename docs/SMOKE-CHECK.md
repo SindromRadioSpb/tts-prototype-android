@@ -42,10 +42,11 @@ Guardrail больших файлов:
 - `node tools/step8_2-db-check.js` (если существует)
 - `npm run test:api-smoke` (если существует)
 - guard: запрещённые tracked артефакты (db/cache/node_modules)
+- для Windows smoke-check имеет fallback: если `npm ci` упирается в `EPERM unlink ... node_sqlite3.node`, скрипт автоматически пробует `npm install`
 
 Примечание по Windows:
 - `npm ci` может падать на `EPERM unlink ... node_sqlite3.node`, если native binary `sqlite3` удерживается внешним процессом или антивирусом.
-- В таком случае отдельно подтвердить runtime через `npm run db:migrate`, `node db/integrity-cli.js`, `npm run test:api-smoke`.
+- Текущий `scripts/smoke-check.ps1` умеет отработать этот сценарий автоматически и продолжает проверку через `npm install`, если fallback успешен.
 
 ## 3) Триггеры по зонам изменений (обязательные правила)
 ### 3.1. DB / Migrations зона

@@ -60,7 +60,7 @@
 - Есть минимальный API smoke happy path для SRS create/review/today.
 - PATCH-04 foundation уже начат: есть отдельный trainer entry point, `today summary` и session API.
 - PATCH-05 core уже поднят: есть `srs_card_templates`, template-driven card model, `GET /api/srs/templates`, `POST /api/srs/cards/generate`, session queue на `cardId`.
-- Ещё не закрыты dashboard Today integration, richer trainer modes, suspend/delete semantics, audio/cloze templates и склейка review events с единым analytics contract.
+- Ещё не закрыты dashboard Today integration, suspend/delete semantics, audio/cloze-specific templates и склейка review events с единым analytics contract.
 
 ---
 
@@ -167,9 +167,11 @@
 - audio/cloze variants остаются на следующие патчи
 
 ### PATCH-06 — Trainer Modes
+- статус: базовый PATCH-06 реализован
 - reveal / typing / listening / cloze
-- answer checking
-- attempts logging
+- server-side answer checking
+- attempts logging (`srs_attempts`)
+- automatic API smoke coverage для `trainer-view` и `attempts/check`
 
 ### PATCH-07 — Analytics Alignment
 - выравнивание `history_events`, `srs_review_events`, будущего `events`

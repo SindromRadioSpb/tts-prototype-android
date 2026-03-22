@@ -124,6 +124,13 @@ Premium расширение:
   - `current_index`, `cards_total`, `cards_seen`, `reviews_done`
   - `stats_json`
   - `started_at`, `finished_at`
+- `srs_attempts` (trainer attempts log)
+  - `id` (PK)
+  - `session_id` (nullable FK -> `srs_session_runs`)
+  - `card_id` (FK -> `srs_cards`)
+  - `attempt_type`
+  - `user_answer`, `normalized_answer`, `normalized_expected`
+  - `is_correct`, `latency_ms`, `meta_json`, `created_at`
 
 ### 3.6. Analytics events
 Текущее фактическое состояние:

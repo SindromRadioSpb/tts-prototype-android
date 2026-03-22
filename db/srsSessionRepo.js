@@ -151,7 +151,7 @@ async function getTodaySummary({ limit = 200 } = {}) {
   return summary;
 }
 
-async function createTodaySession({ limit = 50, source = "ui" } = {}) {
+async function createTodaySession({ limit = 50, source = "ui", mode = "reveal" } = {}) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
@@ -174,11 +174,12 @@ async function createTodaySession({ limit = 50, source = "ui" } = {}) {
       id, status, mode, source,
       queue_json, current_index, cards_total, cards_seen, reviews_done, stats_json,
       started_at, finished_at
-    ) VALUES (?, ?, 'today', ?, ?, 0, ?, 0, 0, ?, ?, ?);
+    ) VALUES (?, ?, ?, ?, ?, 0, ?, 0, 0, ?, ?, ?);
     `,
     [
       id,
       status,
+      String(mode || "reveal").slice(0, 24) || "reveal",
       source || "ui",
       JSON.stringify(queue),
       cardsTotal,

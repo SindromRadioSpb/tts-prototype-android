@@ -95,6 +95,10 @@ const {
   reviewSessionNext,
   finishSession,
 } = require("./db/srsSessionRepo");
+const {
+  buildTrainerPayload,
+  checkAttempt,
+} = require("./db/srsAttemptRepo");
 
 const {
   upsertAudioAsset,
@@ -3733,6 +3737,72 @@ app.post("/api/srs/review", async (req, res) => {
   }
 });
 
+app.get("/api/srs/cards/:id/trainer-view", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const cardId = String(req.params.id || "").trim();
+    const mode = String(req.query.mode || "reveal").trim().toLowerCase();
+    if (!cardId) return res.status(400).json({ ok: false, error: "BAD_CARD_ID" });
+    if (!["reveal", "typing", "listening", "cloze"].includes(mode)) {
+      return res.status(400).json({ ok: false, error: "BAD_TRAINER_MODE" });
+    }
+
+    const snapshot = await getCardSnapshotById(cardId);
+    if (!snapshot || !snapshot.card) {
+      return res.status(404).json({ ok: false, error: "CARD_NOT_FOUND" });
+    }
+
+    const trainer = buildTrainerPayload(snapshot, mode);
+    return res.json({ ok: true, sentence: snapshot.sentence, card: snapshot.card, trainer });
+  } catch (e) {
+    console.error("GET /api/srs/cards/:id/trainer-view error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/attempts/check", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const cardId = String(req.body && req.body.cardId || "").trim();
+    const sessionId = String(req.body && req.body.sessionId || "").trim();
+    const attemptType = String(req.body && req.body.attemptType || "").trim().toLowerCase();
+    const answer = String(req.body && req.body.answer || "");
+    const latencyMs = req.body && req.body.latencyMs;
+
+    if (!cardId) return res.status(400).json({ ok: false, error: "BAD_CARD_ID" });
+    if (!["typing", "listening", "cloze"].includes(attemptType)) {
+      return res.status(400).json({ ok: false, error: "BAD_ATTEMPT_TYPE" });
+    }
+    if (!answer.trim()) {
+      return res.status(400).json({ ok: false, error: "BAD_ATTEMPT_ANSWER" });
+    }
+
+    const result = await checkAttempt({
+      sessionId: sessionId || null,
+      cardId,
+      attemptType,
+      answer,
+      latencyMs,
+    });
+    return res.json(result);
+  } catch (e) {
+    const msg = String(e && e.message || "");
+    if (msg === "CARD_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "CARD_NOT_FOUND" });
+    }
+    if (msg === "BAD_ATTEMPT_TYPE") {
+      return res.status(400).json({ ok: false, error: "BAD_ATTEMPT_TYPE" });
+    }
+    if (msg === "BAD_ATTEMPT_ANSWER") {
+      return res.status(400).json({ ok: false, error: "BAD_ATTEMPT_ANSWER" });
+    }
+    console.error("POST /api/srs/attempts/check error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
 app.get("/api/srs/today", async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
@@ -3765,7 +3835,8 @@ app.post("/api/srs/sessions", async (req, res) => {
 
     const limit = v3ClampInt(req.body && req.body.limit, 1, 200, 50);
     const source = String(req.body && req.body.source || "ui").trim().slice(0, 32) || "ui";
-    const session = await createTodaySession({ limit, source });
+    const mode = String(req.body && req.body.mode || "reveal").trim().slice(0, 24) || "reveal";
+    const session = await createTodaySession({ limit, source, mode });
     const next = await getSessionNext(session.id);
     return res.json({
       ok: true,

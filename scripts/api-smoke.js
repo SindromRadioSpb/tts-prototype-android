@@ -340,6 +340,33 @@ async function run() {
       }
       console.log("PASS /api/srs/cards/generate -> created secondary template card");
 
+      const trainerView = await fetchJson(
+        `${BASE_URL}/api/srs/cards/${encodeURIComponent(srsCreated.card.id)}/trainer-view?mode=typing`
+      );
+      if (!trainerView.ok || !trainerView.trainer || trainerView.trainer.mode !== "typing") {
+        throw new Error(`Unexpected /api/srs/cards/:id/trainer-view payload: ${JSON.stringify(trainerView)}`);
+      }
+      console.log("PASS /api/srs/cards/:id/trainer-view -> typing payload responds");
+
+      const expectedTypingAnswer = String(
+        (trainerView.card && trainerView.card.template && trainerView.card.template.code === "he_to_ru")
+          ? (trainerView.sentence && trainerView.sentence.ru)
+          : (trainerView.sentence && (trainerView.sentence.heNiqqud || trainerView.sentence.hePlain))
+      ).trim();
+      if (!expectedTypingAnswer) {
+        throw new Error(`Could not derive expected trainer answer from payload: ${JSON.stringify(trainerView)}`);
+      }
+      const attemptChecked = await postJson(`${BASE_URL}/api/srs/attempts/check`, {
+        cardId: srsCreated.card.id,
+        attemptType: "typing",
+        answer: expectedTypingAnswer,
+        latencyMs: 900,
+      });
+      if (!attemptChecked.ok || !attemptChecked.isCorrect || attemptChecked.attemptType !== "typing") {
+        throw new Error(`Unexpected /api/srs/attempts/check payload: ${JSON.stringify(attemptChecked)}`);
+      }
+      console.log("PASS /api/srs/attempts/check -> typing answer accepted");
+
       const srsReviewed = await postJson(`${BASE_URL}/api/srs/review`, {
         sentenceId: fixtureData.srsSentence.sentenceId,
         templateCode: "ru_to_he",
@@ -369,9 +396,12 @@ async function run() {
       }
       console.log("PASS /api/srs/today/summary -> summary endpoint responds");
 
-      const sessionStarted = await postJson(`${BASE_URL}/api/srs/sessions`, { source: "api-smoke", limit: 20 });
+      const sessionStarted = await postJson(`${BASE_URL}/api/srs/sessions`, { source: "api-smoke", limit: 20, mode: "typing" });
       if (!sessionStarted.ok || !sessionStarted.session || !sessionStarted.session.id) {
         throw new Error(`Unexpected /api/srs/sessions payload: ${JSON.stringify(sessionStarted)}`);
+      }
+      if (sessionStarted.session.mode !== "typing") {
+        throw new Error(`Session did not preserve trainer mode: ${JSON.stringify(sessionStarted)}`);
       }
       console.log("PASS /api/srs/sessions -> started trainer session");
 
@@ -382,6 +412,17 @@ async function run() {
         throw new Error(`Unexpected /api/srs/sessions/:id/next payload: ${JSON.stringify(sessionNext)}`);
       }
       console.log("PASS /api/srs/sessions/:id/next -> next-card endpoint responds");
+
+      if (sessionNext.current && sessionNext.current.card && sessionNext.current.card.id) {
+        const sessionReviewed = await postJson(
+          `${BASE_URL}/api/srs/sessions/${encodeURIComponent(sessionStarted.session.id)}/review`,
+          { rating: 1, reviewTimeMs: 750 }
+        );
+        if (!sessionReviewed.ok || !sessionReviewed.reviewed || !sessionReviewed.session) {
+          throw new Error(`Unexpected /api/srs/sessions/:id/review payload: ${JSON.stringify(sessionReviewed)}`);
+        }
+        console.log("PASS /api/srs/sessions/:id/review -> session review advances queue");
+      }
 
       const sessionFinished = await postJson(
         `${BASE_URL}/api/srs/sessions/${encodeURIComponent(sessionStarted.session.id)}/finish`,

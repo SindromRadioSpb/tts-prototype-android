@@ -39,8 +39,43 @@ function EnsureNodeVersion() {
 
 function InstallDeps() {
   if (HasFile "package-lock.json") {
-    npm ci --no-audit --no-fund
-    AssertLastExit "npm ci"
+    $npmCiOutput = @()
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+      npm ci --no-audit --no-fund 2>&1 | Tee-Object -Variable npmCiOutput
+    } finally {
+      $ErrorActionPreference = $prevEap
+    }
+    if ($LASTEXITCODE -eq 0) {
+      return
+    }
+
+    $ciLog = ($npmCiOutput | Out-String)
+    if ($ciLog -match "EPERM" -and $ciLog -match "node_sqlite3\.node") {
+      Info "npm ci hit a Windows lock on sqlite3 native module; retrying with npm install"
+      $npmInstallOutput = @()
+      $prevEapInstall = $ErrorActionPreference
+      $ErrorActionPreference = "Continue"
+      try {
+        npm install --no-audit --no-fund 2>&1 | Tee-Object -Variable npmInstallOutput
+      } finally {
+        $ErrorActionPreference = $prevEapInstall
+      }
+      if ($LASTEXITCODE -eq 0) {
+        Info "npm install restored node_modules; continuing"
+        return
+      }
+
+      Info "npm install also failed; verifying current install instead"
+      node -e "require('sqlite3'); require('express'); console.log('deps-ok')"
+      if ($LASTEXITCODE -eq 0) {
+        Info "Existing node_modules are usable; continuing without reinstall"
+        return
+      }
+    }
+
+    Fail "npm ci failed with exit code $LASTEXITCODE."
   } else {
     Info "package-lock.json not found -> using npm install"
     npm install --no-audit --no-fund

@@ -18,9 +18,11 @@
 Уже реализовано:
 - `GET /api/srs/templates`
 - `GET /api/srs/cards?sentenceId=...`
+- `GET /api/srs/cards/:id/trainer-view`
 - `POST /api/srs/cards`
 - `POST /api/srs/cards/generate`
 - `POST /api/srs/review`
+- `POST /api/srs/attempts/check`
 - `GET /api/srs/today`
 - `GET /api/srs/today/summary`
 - `POST /api/srs/sessions`
@@ -184,7 +186,81 @@ Body:
 - `404 SENTENCE_NOT_FOUND`
 - `500 INTERNAL_ERROR`
 
-### 1.6. `GET /api/srs/today?limit=25`
+### 1.6. `GET /api/srs/cards/:id/trainer-view?mode=reveal|typing|listening|cloze`
+Назначение:
+- вернуть trainer payload для отдельной card и выбранного режима
+
+Успех:
+```json
+{
+  "ok": true,
+  "sentence": { "...": "..." },
+  "card": { "...": "..." },
+  "trainer": {
+    "mode": "typing",
+    "templateCode": "ru_to_he",
+    "promptText": "Privet",
+    "promptLang": "ru",
+    "answerText": "שלום",
+    "answerLang": "he",
+    "supportText": "shalom",
+    "audioAssetKey": "asset-key-or-empty",
+    "cloze": null
+  }
+}
+```
+
+Ошибки:
+- `400 BAD_CARD_ID`
+- `400 BAD_TRAINER_MODE`
+- `404 CARD_NOT_FOUND`
+- `500 INTERNAL_ERROR`
+
+### 1.7. `POST /api/srs/attempts/check`
+Body:
+```json
+{
+  "cardId": "uuid",
+  "sessionId": "uuid|null",
+  "attemptType": "typing",
+  "answer": "שלום",
+  "latencyMs": 900
+}
+```
+
+Назначение:
+- проверить ответ пользователя и записать попытку в `srs_attempts`
+
+Успех:
+```json
+{
+  "ok": true,
+  "cardId": "uuid",
+  "attemptType": "typing",
+  "isCorrect": true,
+  "normalizedAnswer": "שלום",
+  "normalizedExpected": "שלום",
+  "trainer": {
+    "mode": "typing",
+    "templateCode": "ru_to_he",
+    "promptText": "Privet",
+    "promptLang": "ru",
+    "answerLang": "he",
+    "supportText": "shalom",
+    "audioAssetKey": "",
+    "clozePrompt": null
+  }
+}
+```
+
+Ошибки:
+- `400 BAD_CARD_ID`
+- `400 BAD_ATTEMPT_TYPE`
+- `400 BAD_ATTEMPT_ANSWER`
+- `404 CARD_NOT_FOUND`
+- `500 INTERNAL_ERROR`
+
+### 1.8. `GET /api/srs/today?limit=25`
 Назначение:
 - вернуть due queue для template-cards
 
@@ -225,9 +301,12 @@ Endpoint’ы PATCH-04:
 - trainer session queue переведена на `cardId`
 
 ### PATCH-06 — Trainer Modes
-Добавить:
-- reveal / typing / listening / cloze
-- attempts layer
+Статус:
+- реализовано базовое trainer ядро
+- `GET /api/srs/cards/:id/trainer-view`
+- `POST /api/srs/attempts/check`
+- UI modes: reveal / typing / listening / cloze
+- session start теперь принимает `mode`
 
 ### PATCH-07 — Analytics Alignment
 Добавить:

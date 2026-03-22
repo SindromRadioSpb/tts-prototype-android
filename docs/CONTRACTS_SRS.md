@@ -8,7 +8,9 @@
 - миграция `011_srs_sessions.sql`
 - миграция `012_srs_templates.sql`
 - миграция `013_srs_review_events_fk_fix.sql`
+- миграция `014_srs_attempts.sql`
 - таблицы `srs_cards`, `srs_card_templates`, `srs_review_events`
+- таблица `srs_attempts`
 - `GET /api/srs/templates`
 - `GET /api/srs/cards?sentenceId=...&templateCode=...`
 - `POST /api/srs/cards`
@@ -21,9 +23,12 @@
 - `GET /api/srs/sessions/:id/next`
 - `POST /api/srs/sessions/:id/review`
 - `POST /api/srs/sessions/:id/finish`
+- `GET /api/srs/cards/:id/trainer-view`
+- `POST /api/srs/attempts/check`
 - рабочий SRS inspector в IDE: fetch/add/review без заглушек
 - отдельный trainer entry point с session flow `start -> reveal -> rate -> next`
-- API smoke happy path для create/review/today
+- trainer modes `reveal`, `typing`, `listening`, `cloze`
+- API smoke happy path для create/review/today + trainer attempts/session review
 
 Что ещё не реализовано:
 - dashboard-level Today widget
@@ -170,9 +175,12 @@ SRS — ядро “платной учебности”:
 - audio/cloze остаются planned
 
 ### PATCH-06 — Trainer Modes
-- typing/listening/cloze attempts
-- answer checking
-- hint/reveal contracts
+- статус: реализовано базовое ядро
+- trainer modes: `reveal`, `typing`, `listening`, `cloze`
+- answer checking server-side через `POST /api/srs/attempts/check`
+- trainer payload через `GET /api/srs/cards/:id/trainer-view`
+- attempts logging в `srs_attempts`
+- richer hint system и audio/cloze-specific templates остаются на следующие патчи
 
 ### PATCH-07 — Analytics Alignment
 - `srs_review`

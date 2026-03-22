@@ -13213,47 +13213,115 @@ let v3SrsTrainerState = {
   summary: null,
   progress: null,
   session: null,
+  mode: "reveal",
+  trainer: null,
+  lastAttempt: null,
+  cardStartedAt: null,
 };
 
 function v3SrsTrainerEl(id) {
   return document.getElementById(id);
 }
 
-function v3SrsTrainerBuildCardView(current) {
-  const s = current && current.sentence ? current.sentence : {};
-  const card = current && current.card ? current.card : {};
-  const template = card && card.template ? card.template : {};
-  const code = String(template.code || "ru_to_he");
+function v3SrsTrainerModeLabel(mode) {
+  const normalized = String(mode || "reveal").trim().toLowerCase();
+  if (normalized === "typing") return "Typing";
+  if (normalized === "listening") return "Listening";
+  if (normalized === "cloze") return "Cloze";
+  return "Reveal";
+}
 
-  if (code === "he_to_ru") {
-    return {
-      templateLabel: template.label || "Hebrew -> Russian",
-      promptLabel: "Prompt",
-      promptHtml: `<div class="v3-srs-he">${v3EscapeHtml(s.heNiqqud || s.hePlain || "")}</div>`,
-      revealHtml: `
-        <div class="v3-srs-trainer-answer">
-          <div style="font-size:18px; color:#0f172a;">${v3EscapeHtml(s.ru || "No translation available")}</div>
-          ${s.translit ? `<div class="v3-srs-subtle">${v3EscapeHtml(s.translit)}</div>` : ""}
-          ${s.textTitle ? `<div class="v3-srs-subtle">Text: ${v3EscapeHtml(s.textTitle)}</div>` : ""}
-          <div class="v3-srs-subtle">State: ${v3EscapeHtml(card.state || "new")} · Due: ${v3EscapeHtml(card.dueDate || "today")}</div>
-        </div>
-      `,
-    };
+function v3SrsTrainerRenderModeButtons() {
+  const modes = [
+    ["reveal", "Reveal"],
+    ["typing", "Typing"],
+    ["listening", "Listening"],
+    ["cloze", "Cloze"],
+  ];
+  return `
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+      ${modes.map(([mode, label]) => `
+        <button
+          class="${v3SrsTrainerState.mode === mode ? "btn-primary" : "btn-secondary"}"
+          onclick="v3SrsTrainerSetMode('${mode}')"
+        >${label}</button>
+      `).join("")}
+    </div>
+  `;
+}
+
+async function v3SrsTrainerHydrateCurrent() {
+  const current = v3SrsTrainerState.current;
+  const cardId = current && current.card && current.card.id ? String(current.card.id) : "";
+  v3SrsTrainerState.trainer = null;
+  v3SrsTrainerState.lastAttempt = null;
+  v3SrsTrainerState.cardStartedAt = Date.now();
+  if (!cardId) return;
+
+  if (v3SrsTrainerState.mode === "reveal") return;
+
+  const res = await v3GetJson(`/api/srs/cards/${encodeURIComponent(cardId)}/trainer-view?mode=${encodeURIComponent(v3SrsTrainerState.mode)}`);
+  v3SrsTrainerState.trainer = res && res.trainer ? res.trainer : null;
+}
+
+function v3SrsTrainerRenderPrompt(trainer, sentence) {
+  const payload = trainer || {};
+  const promptText = String(payload.promptText || "");
+  const promptLang = String(payload.promptLang || "");
+  const audioAssetKey = String(payload.audioAssetKey || "");
+
+  if (promptLang === "audio" || (v3SrsTrainerState.mode === "listening" && audioAssetKey)) {
+    return `
+      <div class="v3-srs-trainer-prompt">Listen to the prompt audio and answer from memory.</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn-primary" onclick="v3SrsTrainerPlayAudio()" ${audioAssetKey ? "" : "disabled"}>Play Audio</button>
+        ${audioAssetKey ? `<div class="v3-srs-subtle">Asset: ${v3EscapeHtml(audioAssetKey)}</div>` : '<div class="v3-srs-subtle">Audio not available for this card</div>'}
+      </div>
+      ${sentence && sentence.textTitle ? `<div class="v3-srs-subtle">Text: ${v3EscapeHtml(sentence.textTitle)}</div>` : ""}
+    `;
   }
 
-  return {
-    templateLabel: template.label || "Russian -> Hebrew",
-    promptLabel: "Prompt",
-    promptHtml: `<div class="v3-srs-trainer-prompt">${v3EscapeHtml(s.ru || s.hePlain || "No prompt available")}</div>`,
-    revealHtml: `
-      <div class="v3-srs-trainer-answer">
-        <div class="v3-srs-he">${v3EscapeHtml(s.heNiqqud || s.hePlain || "")}</div>
-        ${s.translit ? `<div class="v3-srs-subtle">${v3EscapeHtml(s.translit)}</div>` : ""}
-        ${s.textTitle ? `<div class="v3-srs-subtle">Text: ${v3EscapeHtml(s.textTitle)}</div>` : ""}
-        <div class="v3-srs-subtle">State: ${v3EscapeHtml(card.state || "new")} · Due: ${v3EscapeHtml(card.dueDate || "today")}</div>
-      </div>
-    `,
-  };
+  if (promptLang === "he") {
+    return `<div class="v3-srs-he">${v3EscapeHtml(promptText || sentence && (sentence.heNiqqud || sentence.hePlain) || "")}</div>`;
+  }
+
+  return `<div class="v3-srs-trainer-prompt">${v3EscapeHtml(promptText || sentence && (sentence.ru || sentence.hePlain) || "No prompt available")}</div>`;
+}
+
+function v3SrsTrainerRenderReveal(trainer, sentence, card) {
+  const payload = trainer || {};
+  const answerText = String(payload.answerText || sentence && (sentence.heNiqqud || sentence.hePlain || sentence.ru) || "");
+  const answerLang = String(payload.answerLang || "");
+  const supportText = String(payload.supportText || "");
+
+  return `
+    <div class="v3-srs-trainer-answer">
+      <div class="${answerLang === "he" ? "v3-srs-he" : ""}" style="${answerLang === "he" ? "" : "font-size:18px; color:#0f172a;"}">${v3EscapeHtml(answerText || "No answer available")}</div>
+      ${supportText ? `<div class="v3-srs-subtle">${v3EscapeHtml(supportText)}</div>` : ""}
+      ${sentence && sentence.textTitle ? `<div class="v3-srs-subtle">Text: ${v3EscapeHtml(sentence.textTitle)}</div>` : ""}
+      <div class="v3-srs-subtle">State: ${v3EscapeHtml(card.state || "new")} · Due: ${v3EscapeHtml(card.dueDate || "today")} · Mode: ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
+    </div>
+  `;
+}
+
+function v3SrsTrainerRenderAttemptPanel(trainer) {
+  if (!trainer || !["typing", "listening", "cloze"].includes(v3SrsTrainerState.mode)) return "";
+
+  const result = v3SrsTrainerState.lastAttempt;
+  const feedback = result
+    ? `<div class="v3-srs-subtle" style="margin-top:8px; color:${result.isCorrect ? "#166534" : "#b91c1c"};">
+        ${result.isCorrect ? "Correct answer" : "Answer differs from expected"}${result.normalizedExpected ? ` · expected: ${v3EscapeHtml(result.normalizedExpected)}` : ""}
+      </div>`
+    : "";
+
+  return `
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; align-items:center;">
+      <input id="v3SrsTrainerAnswerInput" class="v3-input" style="flex:1 1 260px;" placeholder="Type your answer" autocomplete="off" />
+      <button class="btn-primary" onclick="v3SrsTrainerCheckAnswer()">Check</button>
+      ${v3SrsTrainerState.mode === "listening" ? `<button class="btn-secondary" onclick="v3SrsTrainerPlayAudio()" ${trainer.audioAssetKey ? "" : "disabled"}>Replay</button>` : ""}
+    </div>
+    ${feedback}
+  `;
 }
 
 function v3SrsTrainerRenderHome() {
@@ -13266,7 +13334,7 @@ function v3SrsTrainerRenderHome() {
 
   el.innerHTML = `
     <div class="v3-srs-toolbar">
-      <div class="v3-srs-progress">Today queue ready</div>
+      <div class="v3-srs-progress">Today queue ready · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
       <button class="btn-primary" onclick="v3SrsTrainerStart()" ${dueCount > 0 ? "" : "disabled"}>Start Session</button>
     </div>
     <div class="v3-srs-trainer-summary">
@@ -13292,8 +13360,9 @@ function v3SrsTrainerRenderHome() {
         Trainer uses the current Today queue. Add cards from IDE and then start a focused review session here.
       </div>
       <div class="v3-srs-subtle">
-        Session flow in PATCH-04: start, reveal, rate, next. More trainer modes will land in later patches.
+        Choose a trainer mode before session start. Reveal is the classic flashcard flow, while Typing, Listening and Cloze validate the answer before rating.
       </div>
+      ${v3SrsTrainerRenderModeButtons()}
     </div>
   `;
 }
@@ -13322,32 +13391,54 @@ function v3SrsTrainerRenderSession() {
 
   const s = current.sentence;
   const card = current.card || {};
-  const view = v3SrsTrainerBuildCardView(current);
-  const revealHtml = v3SrsTrainerState.revealed
-    ? view.revealHtml
-    : "";
+  const template = card.template || {};
+  const trainer = v3SrsTrainerState.trainer || {
+    mode: "reveal",
+    promptText: template.code === "he_to_ru" ? (s.heNiqqud || s.hePlain || "") : (s.ru || s.hePlain || ""),
+    promptLang: template.code === "he_to_ru" ? "he" : "ru",
+    answerText: template.code === "he_to_ru" ? (s.ru || "") : (s.heNiqqud || s.hePlain || ""),
+    answerLang: template.code === "he_to_ru" ? "ru" : "he",
+    supportText: s.translit || "",
+    audioAssetKey: s.audioAssetKey || "",
+  };
+  const revealHtml = v3SrsTrainerState.revealed ? v3SrsTrainerRenderReveal(trainer, s, card) : "";
+  const canRate = v3SrsTrainerState.revealed;
 
   el.innerHTML = `
     <div class="v3-srs-toolbar">
-      <div class="v3-srs-progress">Progress ${Number(progress.completed || 0)} / ${Number(progress.total || 0)} · Remaining ${Number(progress.remaining || 0)}</div>
+      <div class="v3-srs-progress">Progress ${Number(progress.completed || 0)} / ${Number(progress.total || 0)} · Remaining ${Number(progress.remaining || 0)} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
       <button class="btn-secondary" onclick="v3SrsTrainerFinish()">Finish Session</button>
     </div>
     <div class="v3-srs-card-panel">
-      <div class="v3-srs-subtle">${v3EscapeHtml(view.templateLabel || "Card")}</div>
-      <div class="v3-srs-subtle">${v3EscapeHtml(view.promptLabel || "Prompt")}</div>
-      ${view.promptHtml}
+      <div class="v3-srs-subtle">${v3EscapeHtml(template.label || "Card")}</div>
+      <div class="v3-srs-subtle">Prompt</div>
+      ${v3SrsTrainerRenderPrompt(trainer, s)}
+      ${v3SrsTrainerRenderAttemptPanel(trainer)}
       ${revealHtml}
       <div style="display:flex; gap:10px; flex-wrap:wrap;">
         ${v3SrsTrainerState.revealed ? "" : `<button class="btn-primary" onclick="v3SrsTrainerReveal()">Reveal</button>`}
       </div>
       <div class="v3-ide-srs-actions">
-        <button class="v3-ide-srs-btn v3-ide-srs-btn-again" onclick="v3SrsTrainerReview(1)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Again</button>
-        <button class="v3-ide-srs-btn v3-ide-srs-btn-hard" onclick="v3SrsTrainerReview(2)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Hard</button>
-        <button class="v3-ide-srs-btn v3-ide-srs-btn-good" onclick="v3SrsTrainerReview(3)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Good</button>
-        <button class="v3-ide-srs-btn v3-ide-srs-btn-easy" onclick="v3SrsTrainerReview(4)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Easy</button>
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-again" onclick="v3SrsTrainerReview(1)" ${canRate ? "" : "disabled"}>Again</button>
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-hard" onclick="v3SrsTrainerReview(2)" ${canRate ? "" : "disabled"}>Hard</button>
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-good" onclick="v3SrsTrainerReview(3)" ${canRate ? "" : "disabled"}>Good</button>
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-easy" onclick="v3SrsTrainerReview(4)" ${canRate ? "" : "disabled"}>Easy</button>
       </div>
     </div>
   `;
+
+  const answerInput = v3SrsTrainerEl("v3SrsTrainerAnswerInput");
+  if (answerInput && !v3SrsTrainerState.revealed) {
+    setTimeout(() => {
+      try { answerInput.focus(); } catch (_) {}
+    }, 0);
+    answerInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        v3SrsTrainerCheckAnswer();
+      }
+    }, { once: true });
+  }
 }
 
 async function v3SrsTrainerRefresh() {
@@ -13365,6 +13456,10 @@ async function v3SrsTrainerRefresh() {
       summary: res.summary || null,
       progress: null,
       session: null,
+      mode: v3SrsTrainerState.mode || "reveal",
+      trainer: null,
+      lastAttempt: null,
+      cardStartedAt: null,
     };
     v3SrsTrainerRenderHome();
   } catch (e) {
@@ -13395,12 +13490,13 @@ function v3SrsTrainerClose() {
 async function v3SrsTrainerStart() {
   try {
     const source = document.body.classList.contains("v3-ide-mode") ? "ide" : "classic";
-    const res = await v3PostJson("/api/srs/sessions", { source, limit: 50 });
+    const res = await v3PostJson("/api/srs/sessions", { source, limit: 50, mode: v3SrsTrainerState.mode || "reveal" });
     v3SrsTrainerState.sessionId = res.session && res.session.id || null;
     v3SrsTrainerState.current = res.current || null;
     v3SrsTrainerState.revealed = false;
     v3SrsTrainerState.progress = res.progress || null;
     v3SrsTrainerState.session = res.session || null;
+    await v3SrsTrainerHydrateCurrent();
     v3SrsTrainerRenderSession();
   } catch (e) {
     console.error("SRS trainer start failed:", e);
@@ -13413,16 +13509,82 @@ function v3SrsTrainerReveal() {
   v3SrsTrainerRenderSession();
 }
 
+function v3SrsTrainerSetMode(mode) {
+  const normalized = String(mode || "reveal").trim().toLowerCase();
+  if (!["reveal", "typing", "listening", "cloze"].includes(normalized)) return;
+  v3SrsTrainerState.mode = normalized;
+  v3SrsTrainerState.revealed = false;
+  if (!v3SrsTrainerState.sessionId) {
+    v3SrsTrainerRenderHome();
+    return;
+  }
+  v3SrsTrainerHydrateCurrent()
+    .then(() => v3SrsTrainerRenderSession())
+    .catch((e) => {
+      console.error("SRS trainer mode switch failed:", e);
+      if (typeof showToast === "function") showToast("Failed to switch trainer mode");
+    });
+}
+
+function v3SrsTrainerPlayAudio() {
+  const trainer = v3SrsTrainerState.trainer || {};
+  const assetKey = String(trainer.audioAssetKey || v3SrsTrainerState.current && v3SrsTrainerState.current.sentence && v3SrsTrainerState.current.sentence.audioAssetKey || "").trim();
+  if (!assetKey) {
+    if (typeof showToast === "function") showToast("Audio is not available for this card");
+    return;
+  }
+  try {
+    const audio = new Audio(`/api/audio/${encodeURIComponent(assetKey)}`);
+    audio.play().catch((e) => console.warn("SRS trainer audio playback failed:", e));
+  } catch (e) {
+    console.warn("SRS trainer audio init failed:", e);
+  }
+}
+
+async function v3SrsTrainerCheckAnswer() {
+  try {
+    if (!v3SrsTrainerState.sessionId || !v3SrsTrainerState.current || !v3SrsTrainerState.current.card) return;
+    if (!["typing", "listening", "cloze"].includes(v3SrsTrainerState.mode)) {
+      v3SrsTrainerReveal();
+      return;
+    }
+    const input = v3SrsTrainerEl("v3SrsTrainerAnswerInput");
+    const answer = String(input && input.value || "").trim();
+    if (!answer) {
+      if (typeof showToast === "function") showToast("Type the answer first");
+      return;
+    }
+    const startedAt = Number(v3SrsTrainerState.cardStartedAt || Date.now());
+    const latencyMs = Math.max(0, Date.now() - startedAt);
+    const res = await v3PostJson("/api/srs/attempts/check", {
+      cardId: String(v3SrsTrainerState.current.card.id || ""),
+      sessionId: v3SrsTrainerState.sessionId,
+      attemptType: v3SrsTrainerState.mode,
+      answer,
+      latencyMs,
+    });
+    v3SrsTrainerState.lastAttempt = res || null;
+    v3SrsTrainerState.revealed = true;
+    v3SrsTrainerRenderSession();
+  } catch (e) {
+    console.error("SRS trainer attempt failed:", e);
+    if (typeof showToast === "function") showToast("Failed to check trainer answer");
+  }
+}
+
 async function v3SrsTrainerReview(rating) {
   try {
     if (!v3SrsTrainerState.sessionId) return;
+    const startedAt = Number(v3SrsTrainerState.cardStartedAt || Date.now());
     const res = await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/review`, {
       rating: Number(rating),
+      reviewTimeMs: Math.max(0, Date.now() - startedAt),
     });
     v3SrsTrainerState.current = res.next || null;
     v3SrsTrainerState.revealed = false;
     v3SrsTrainerState.progress = res.progress || null;
     v3SrsTrainerState.session = res.session || null;
+    await v3SrsTrainerHydrateCurrent();
     v3SrsTrainerRenderSession();
   } catch (e) {
     console.error("SRS trainer review failed:", e);
@@ -13440,6 +13602,10 @@ async function v3SrsTrainerFinish() {
   }
   await v3SrsTrainerRefresh();
 }
+
+window.v3SrsTrainerSetMode = v3SrsTrainerSetMode;
+window.v3SrsTrainerPlayAudio = v3SrsTrainerPlayAudio;
+window.v3SrsTrainerCheckAnswer = v3SrsTrainerCheckAnswer;
 
 function v3DashboardOpen() {
   const m = v3DashEl("v3DashboardModal");
