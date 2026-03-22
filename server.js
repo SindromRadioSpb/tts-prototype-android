@@ -3808,8 +3808,9 @@ app.get("/api/srs/today", async (req, res) => {
     if (!requireDbOr503(res)) return;
 
     const limit = v3ClampInt(req.query.limit, 1, 200, 25);
-    const cards = await listTodayCards({ limit });
-    return res.json({ ok: true, limit, cards });
+    const templateCode = String(req.query.templateCode || "").trim();
+    const cards = await listTodayCards({ limit, templateCode });
+    return res.json({ ok: true, limit, templateCode: templateCode || null, cards });
   } catch (e) {
     console.error("GET /api/srs/today error:", e);
     return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
@@ -3821,8 +3822,9 @@ app.get("/api/srs/today/summary", async (req, res) => {
     if (!requireDbOr503(res)) return;
 
     const limit = v3ClampInt(req.query.limit, 1, 500, 200);
-    const summary = await getTodaySummary({ limit });
-    return res.json({ ok: true, summary, limit });
+    const templateCode = String(req.query.templateCode || "").trim();
+    const summary = await getTodaySummary({ limit, templateCode });
+    return res.json({ ok: true, summary, limit, templateCode: templateCode || null });
   } catch (e) {
     console.error("GET /api/srs/today/summary error:", e);
     return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
@@ -3836,7 +3838,8 @@ app.post("/api/srs/sessions", async (req, res) => {
     const limit = v3ClampInt(req.body && req.body.limit, 1, 200, 50);
     const source = String(req.body && req.body.source || "ui").trim().slice(0, 32) || "ui";
     const mode = String(req.body && req.body.mode || "reveal").trim().slice(0, 24) || "reveal";
-    const session = await createTodaySession({ limit, source, mode });
+    const templateCode = String(req.body && req.body.templateCode || "").trim();
+    const session = await createTodaySession({ limit, source, mode, templateCode });
     const next = await getSessionNext(session.id);
     return res.json({
       ok: true,
@@ -3844,6 +3847,7 @@ app.post("/api/srs/sessions", async (req, res) => {
       done: next.done,
       current: next.current,
       progress: next.progress,
+      templateCode: templateCode || null,
     });
   } catch (e) {
     console.error("POST /api/srs/sessions error:", e);

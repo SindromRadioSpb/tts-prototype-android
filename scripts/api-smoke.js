@@ -381,27 +381,35 @@ async function run() {
       }
       console.log("PASS /api/srs/review -> advanced card schedule");
 
-      const srsToday = await fetchJson(`${BASE_URL}/api/srs/today?limit=10`);
+      const srsToday = await fetchJson(`${BASE_URL}/api/srs/today?limit=10&templateCode=ru_to_he`);
       if (!srsToday.ok || !Array.isArray(srsToday.cards)) {
         throw new Error(`Unexpected /api/srs/today payload: ${JSON.stringify(srsToday)}`);
       }
-      if (!srsToday.cards.every((row) => row && row.card && row.card.id)) {
+      if (!srsToday.cards.every((row) => row && row.card && row.card.id && row.card.template && row.card.template.code === "ru_to_he")) {
         throw new Error(`Today queue did not return card-backed items: ${JSON.stringify(srsToday)}`);
       }
-      console.log("PASS /api/srs/today -> queue endpoint responds");
+      console.log("PASS /api/srs/today -> queue endpoint respects template filter");
 
-      const srsSummary = await fetchJson(`${BASE_URL}/api/srs/today/summary?limit=20`);
+      const srsSummary = await fetchJson(`${BASE_URL}/api/srs/today/summary?limit=20&templateCode=ru_to_he`);
       if (!srsSummary.ok || !srsSummary.summary || typeof srsSummary.summary.dueCount !== "number") {
         throw new Error(`Unexpected /api/srs/today/summary payload: ${JSON.stringify(srsSummary)}`);
       }
-      console.log("PASS /api/srs/today/summary -> summary endpoint responds");
+      console.log("PASS /api/srs/today/summary -> summary endpoint respects template filter");
 
-      const sessionStarted = await postJson(`${BASE_URL}/api/srs/sessions`, { source: "api-smoke", limit: 20, mode: "typing" });
+      const sessionStarted = await postJson(`${BASE_URL}/api/srs/sessions`, {
+        source: "api-smoke",
+        limit: 20,
+        mode: "typing",
+        templateCode: "ru_to_he",
+      });
       if (!sessionStarted.ok || !sessionStarted.session || !sessionStarted.session.id) {
         throw new Error(`Unexpected /api/srs/sessions payload: ${JSON.stringify(sessionStarted)}`);
       }
       if (sessionStarted.session.mode !== "typing") {
         throw new Error(`Session did not preserve trainer mode: ${JSON.stringify(sessionStarted)}`);
+      }
+      if (sessionStarted.current && sessionStarted.current.card && sessionStarted.current.card.template && sessionStarted.current.card.template.code !== "ru_to_he") {
+        throw new Error(`Session queue leaked a card from another template: ${JSON.stringify(sessionStarted)}`);
       }
       console.log("PASS /api/srs/sessions -> started trainer session");
 
@@ -410,6 +418,9 @@ async function run() {
       );
       if (!sessionNext.ok || !sessionNext.session) {
         throw new Error(`Unexpected /api/srs/sessions/:id/next payload: ${JSON.stringify(sessionNext)}`);
+      }
+      if (sessionNext.current && sessionNext.current.card && sessionNext.current.card.template && sessionNext.current.card.template.code !== "ru_to_he") {
+        throw new Error(`Session next returned a card from another template: ${JSON.stringify(sessionNext)}`);
       }
       console.log("PASS /api/srs/sessions/:id/next -> next-card endpoint responds");
 

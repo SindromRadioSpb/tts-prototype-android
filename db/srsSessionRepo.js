@@ -129,8 +129,8 @@ async function getSessionById(sessionId) {
   return mapSessionRow(row);
 }
 
-async function getTodaySummary({ limit = 200 } = {}) {
-  const cards = await listTodayCards({ limit });
+async function getTodaySummary({ limit = 200, templateCode = "" } = {}) {
+  const cards = await listTodayCards({ limit, templateCode });
   const summary = {
     dueCount: cards.length,
     byState: {
@@ -151,11 +151,11 @@ async function getTodaySummary({ limit = 200 } = {}) {
   return summary;
 }
 
-async function createTodaySession({ limit = 50, source = "ui", mode = "reveal" } = {}) {
+async function createTodaySession({ limit = 50, source = "ui", mode = "reveal", templateCode = "" } = {}) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
-  const todayCards = await listTodayCards({ limit });
+  const todayCards = await listTodayCards({ limit, templateCode });
   const queue = todayCards
     .map((item) => item && item.card && item.card.id)
     .filter(Boolean);

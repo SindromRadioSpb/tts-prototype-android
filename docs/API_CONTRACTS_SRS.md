@@ -260,18 +260,39 @@ Body:
 - `404 CARD_NOT_FOUND`
 - `500 INTERNAL_ERROR`
 
-### 1.8. `GET /api/srs/today?limit=25`
+### 1.8. `GET /api/srs/today?limit=25&templateCode=he_to_ru`
 Назначение:
 - вернуть due queue для template-cards
+- если передан `templateCode`, очередь фильтруется по направлению карточки
 
 Успех:
 ```json
 {
   "ok": true,
   "limit": 25,
+  "templateCode": "he_to_ru",
   "cards": [ { "sentence": { ... }, "card": { ... } } ]
 }
 ```
+
+### 1.9. `GET /api/srs/today/summary?limit=200&templateCode=he_to_ru`
+Назначение:
+- вернуть summary по Today queue c optional template filter
+
+### 1.10. `POST /api/srs/sessions`
+Body:
+```json
+{
+  "source": "ui",
+  "limit": 50,
+  "mode": "typing",
+  "templateCode": "he_to_ru"
+}
+```
+
+Назначение:
+- стартовать trainer session для выбранного режима и направления карточек
+- если передан `templateCode`, в queue попадают только card’ы этого template
 
 ---
 
@@ -306,7 +327,8 @@ Endpoint’ы PATCH-04:
 - `GET /api/srs/cards/:id/trainer-view`
 - `POST /api/srs/attempts/check`
 - UI modes: reveal / typing / listening / cloze
-- session start теперь принимает `mode`
+- session start теперь принимает `mode` и `templateCode`
+- trainer home явно показывает card direction (`Hebrew -> Russian` / `Russian -> Hebrew`)
 
 ### PATCH-07 — Analytics Alignment
 Добавить:

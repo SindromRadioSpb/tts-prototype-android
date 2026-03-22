@@ -6159,13 +6159,13 @@ function v3IdeSrsMetaText(card) {
 }
 
 function v3IdeNormalizeSrsTemplateCode(templateCode) {
-  const code = String(templateCode || "ru_to_he").trim();
-  return code || "ru_to_he";
+  const code = String(templateCode || "he_to_ru").trim();
+  return code || "he_to_ru";
 }
 
 function v3IdeGetSelectedSrsTemplate(sentenceId) {
   const sid = String(sentenceId || "").trim();
-  return v3IdeNormalizeSrsTemplateCode(v3IdeSrsTemplateBySentenceId.get(sid) || "ru_to_he");
+  return v3IdeNormalizeSrsTemplateCode(v3IdeSrsTemplateBySentenceId.get(sid) || "he_to_ru");
 }
 
 async function v3IdeEnsureSrsTemplates() {
@@ -6178,10 +6178,10 @@ async function v3IdeEnsureSrsTemplates() {
 function v3IdeRenderSrsTemplateOptions(templates, selectedCode) {
   const rows = Array.isArray(templates) && templates.length
     ? templates
-    : [{ code: "ru_to_he", label: "Russian -> Hebrew" }];
+    : [{ code: "he_to_ru", label: "Hebrew -> Russian" }];
   return rows
     .map((item) => {
-      const code = v3EscapeHtml(item && item.code || "ru_to_he");
+      const code = v3EscapeHtml(item && item.code || "he_to_ru");
       const label = v3EscapeHtml(item && item.label || code);
       const selected = String(item && item.code || "") === String(selectedCode || "") ? "selected" : "";
       return `<option value="${code}" ${selected}>${label}</option>`;
@@ -6194,7 +6194,7 @@ function v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, opts) {
   const card = snapshot && snapshot.card ? snapshot.card : null;
   const templates = opts && Array.isArray(opts.templates) ? opts.templates : v3SrsTemplateOptions;
   const selectedTemplateCode = v3IdeNormalizeSrsTemplateCode(
-    (opts && opts.templateCode) || (card && card.template && card.template.code) || "ru_to_he"
+    (opts && opts.templateCode) || (card && card.template && card.template.code) || "he_to_ru"
   );
   const statusLabel = card ? String(card.state || "new") : "new";
   const statusText = statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1);
@@ -13214,6 +13214,7 @@ let v3SrsTrainerState = {
   progress: null,
   session: null,
   mode: "reveal",
+  templateCode: "he_to_ru",
   trainer: null,
   lastAttempt: null,
   cardStartedAt: null,
@@ -13229,6 +13230,36 @@ function v3SrsTrainerModeLabel(mode) {
   if (normalized === "listening") return "Listening";
   if (normalized === "cloze") return "Cloze";
   return "Reveal";
+}
+
+function v3SrsTrainerTemplateLabel(templateCode) {
+  const code = String(templateCode || "he_to_ru").trim();
+  const item = Array.isArray(v3SrsTemplateOptions)
+    ? v3SrsTemplateOptions.find((row) => row && String(row.code || "") === code)
+    : null;
+  if (item && item.label) return String(item.label);
+  if (code === "ru_to_he") return "Russian -> Hebrew";
+  if (code === "he_to_ru") return "Hebrew -> Russian";
+  return code || "Unknown template";
+}
+
+function v3SrsTrainerRenderTemplateButtons() {
+  const rows = Array.isArray(v3SrsTemplateOptions) && v3SrsTemplateOptions.length
+    ? v3SrsTemplateOptions.filter((item) => item && item.code)
+    : [
+        { code: "he_to_ru", label: "Hebrew -> Russian" },
+        { code: "ru_to_he", label: "Russian -> Hebrew" },
+      ];
+  return `
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+      ${rows.map((item) => `
+        <button
+          class="${v3SrsTrainerState.templateCode === item.code ? "btn-primary" : "btn-secondary"}"
+          onclick="v3SrsTrainerSetTemplate('${String(item.code)}')"
+        >${v3EscapeHtml(String(item.label || item.code))}</button>
+      `).join("")}
+    </div>
+  `;
 }
 
 function v3SrsTrainerRenderModeButtons() {
@@ -13334,7 +13365,7 @@ function v3SrsTrainerRenderHome() {
 
   el.innerHTML = `
     <div class="v3-srs-toolbar">
-      <div class="v3-srs-progress">Today queue ready · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
+      <div class="v3-srs-progress">Today queue ready · Direction ${v3EscapeHtml(v3SrsTrainerTemplateLabel(v3SrsTrainerState.templateCode))} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
       <button class="btn-primary" onclick="v3SrsTrainerStart()" ${dueCount > 0 ? "" : "disabled"}>Start Session</button>
     </div>
     <div class="v3-srs-trainer-summary">
@@ -13360,8 +13391,11 @@ function v3SrsTrainerRenderHome() {
         Trainer uses the current Today queue. Add cards from IDE and then start a focused review session here.
       </div>
       <div class="v3-srs-subtle">
-        Choose a trainer mode before session start. Reveal is the classic flashcard flow, while Typing, Listening and Cloze validate the answer before rating.
+        Choose card direction and trainer mode before session start. The queue is filtered by the selected template, so opposite-direction cards do not enter the session.
       </div>
+      <div class="v3-srs-subtle" style="margin-top:10px;">Card Direction</div>
+      ${v3SrsTrainerRenderTemplateButtons()}
+      <div class="v3-srs-subtle" style="margin-top:12px;">Trainer Mode</div>
       ${v3SrsTrainerRenderModeButtons()}
     </div>
   `;
@@ -13406,7 +13440,7 @@ function v3SrsTrainerRenderSession() {
 
   el.innerHTML = `
     <div class="v3-srs-toolbar">
-      <div class="v3-srs-progress">Progress ${Number(progress.completed || 0)} / ${Number(progress.total || 0)} · Remaining ${Number(progress.remaining || 0)} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
+      <div class="v3-srs-progress">Progress ${Number(progress.completed || 0)} / ${Number(progress.total || 0)} · Remaining ${Number(progress.remaining || 0)} · Direction ${v3EscapeHtml(v3SrsTrainerTemplateLabel((card.template && card.template.code) || v3SrsTrainerState.templateCode))} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
       <button class="btn-secondary" onclick="v3SrsTrainerFinish()">Finish Session</button>
     </div>
     <div class="v3-srs-card-panel">
@@ -13448,19 +13482,24 @@ async function v3SrsTrainerRefresh() {
   }
 
   try {
-    const res = await v3GetJson("/api/srs/today/summary");
+    try {
+      await v3IdeEnsureSrsTemplates();
+    } catch (_) {}
     v3SrsTrainerState = {
       sessionId: null,
       current: null,
       revealed: false,
-      summary: res.summary || null,
+      summary: null,
       progress: null,
       session: null,
       mode: v3SrsTrainerState.mode || "reveal",
+      templateCode: v3SrsTrainerState.templateCode || "he_to_ru",
       trainer: null,
       lastAttempt: null,
       cardStartedAt: null,
     };
+    const res = await v3GetJson(`/api/srs/today/summary?templateCode=${encodeURIComponent(v3SrsTrainerState.templateCode)}`);
+    v3SrsTrainerState.summary = res.summary || null;
     v3SrsTrainerRenderHome();
   } catch (e) {
     if (el) {
@@ -13493,7 +13532,12 @@ function v3SrsTrainerClose() {
 async function v3SrsTrainerStart() {
   try {
     const source = document.body.classList.contains("v3-ide-mode") ? "ide" : "classic";
-    const res = await v3PostJson("/api/srs/sessions", { source, limit: 50, mode: v3SrsTrainerState.mode || "reveal" });
+    const res = await v3PostJson("/api/srs/sessions", {
+      source,
+      limit: 50,
+      mode: v3SrsTrainerState.mode || "reveal",
+      templateCode: v3SrsTrainerState.templateCode || "he_to_ru",
+    });
     v3SrsTrainerState.sessionId = res.session && res.session.id || null;
     v3SrsTrainerState.current = res.current || null;
     v3SrsTrainerState.revealed = false;
@@ -13527,6 +13571,15 @@ function v3SrsTrainerSetMode(mode) {
       console.error("SRS trainer mode switch failed:", e);
       if (typeof showToast === "function") showToast("Failed to switch trainer mode");
     });
+}
+
+async function v3SrsTrainerSetTemplate(templateCode) {
+  v3SrsTrainerState.templateCode = v3IdeNormalizeSrsTemplateCode(templateCode);
+  if (!v3SrsTrainerState.sessionId) {
+    await v3SrsTrainerRefresh();
+    return;
+  }
+  await v3SrsTrainerFinish();
 }
 
 function v3SrsTrainerPlayAudio() {
@@ -14831,6 +14884,7 @@ window.v3SrsTrainerClose = v3SrsTrainerClose;
 window.v3SrsTrainerRefresh = v3SrsTrainerRefresh;
 window.v3SrsTrainerStart = v3SrsTrainerStart;
 window.v3SrsTrainerReveal = v3SrsTrainerReveal;
+window.v3SrsTrainerSetTemplate = v3SrsTrainerSetTemplate;
 window.v3SrsTrainerReview = v3SrsTrainerReview;
 window.v3SrsTrainerFinish = v3SrsTrainerFinish;
 

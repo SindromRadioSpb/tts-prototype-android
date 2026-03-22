@@ -600,12 +600,15 @@ async function reviewSentenceCard({
   }
 }
 
-async function listTodayCards({ limit = 25 } = {}) {
+async function listTodayCards({ limit = 25, templateCode = "" } = {}) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
   const lim = Math.max(1, Math.min(200, Number(limit) || 25));
   const today = todayIsoDate();
+  const normalizedTemplateCode = String(templateCode || "").trim();
+  const templateFilterSql = normalizedTemplateCode ? "AND tpl.code = ?" : "";
+  const params = normalizedTemplateCode ? [today, normalizedTemplateCode, lim] : [today, lim];
   const rows = await dbAll(
     db,
     `
@@ -662,6 +665,7 @@ async function listTodayCards({ limit = 25 } = {}) {
       AND c.state <> 'suspended'
       AND tpl.is_active = 1
       AND COALESCE(c.due_date, '9999-12-31') <= ?
+      ${templateFilterSql}
     ORDER BY
       c.due_date ASC,
       CASE c.state WHEN 'learning' THEN 0 WHEN 'relearning' THEN 1 ELSE 2 END ASC,
@@ -669,7 +673,7 @@ async function listTodayCards({ limit = 25 } = {}) {
       tpl.sort_order ASC
     LIMIT ?;
     `,
-    [today, lim]
+    params
   );
 
   return rows.map(mapSnapshotRow);

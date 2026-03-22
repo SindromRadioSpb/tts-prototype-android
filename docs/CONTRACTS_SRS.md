@@ -28,6 +28,7 @@
 - рабочий SRS inspector в IDE: fetch/add/review без заглушек
 - отдельный trainer entry point с session flow `start -> reveal -> rate -> next`
 - trainer modes `reveal`, `typing`, `listening`, `cloze`
+- template-filtered trainer queue (`he_to_ru` / `ru_to_he`)
 - API smoke happy path для create/review/today + trainer attempts/session review
 
 Что ещё не реализовано:
@@ -180,6 +181,8 @@ SRS — ядро “платной учебности”:
 - answer checking server-side через `POST /api/srs/attempts/check`
 - trainer payload через `GET /api/srs/cards/:id/trainer-view`
 - attempts logging в `srs_attempts`
+- trainer queue фильтруется по `templateCode`, чтобы opposite-direction cards не смешивались
+- IDE default template selection: `Hebrew -> Russian`
 - richer hint system и audio/cloze-specific templates остаются на следующие патчи
 
 ### PATCH-07 — Analytics Alignment
