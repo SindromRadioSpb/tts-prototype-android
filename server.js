@@ -103,6 +103,11 @@ const {
   buildTrainerPayload,
   checkAttempt,
 } = require("./db/srsAttemptRepo");
+const {
+  computeSrsExportHash,
+  getSrsCardExport,
+  upsertSrsCardExport,
+} = require("./db/ankiExportRepo");
 
 const {
   upsertAudioAsset,
@@ -124,6 +129,7 @@ const {
 const {
   listNotesByTextId,
   getNote,
+  getNoteBySentenceId,
   upsertNote,
   deleteNote,
   searchNotes,
@@ -2597,6 +2603,239 @@ async function ankiEnsureModel(modelName, spec) {
   });
 }
 
+function getDefaultSrsAnkiDeck(textRec) {
+  const level = textRec && textRec.level ? String(textRec.level || "").trim() : "";
+  return level ? `LinguistPro::SRS::${level}` : "LinguistPro::SRS";
+}
+
+function getDefaultSrsAnkiModelName() {
+  return "LinguistPro SRS Card v1";
+}
+
+function getSrsAnkiModelSpec() {
+  return {
+    inOrderFields: [
+      "UID",
+      "CardId",
+      "SentenceId",
+      "TextId",
+      "TemplateCode",
+      "Prompt",
+      "Answer",
+      "Hebrew",
+      "HebrewNiqqud",
+      "Russian",
+      "Translit",
+      "Note",
+      "NoteHtml",
+      "Sound",
+      "AudioUrl",
+      "AudioAssetKey",
+      "Hint",
+    ],
+    css: `
+.card {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  line-height: 1.4;
+  text-align: left;
+}
+.prompt-he, .answer-he {
+  direction: rtl;
+  text-align: right;
+  font-size: 34px;
+  font-weight: 700;
+  margin: 8px 0 10px;
+}
+.prompt, .answer {
+  font-size: 24px;
+  margin: 8px 0 10px;
+}
+.subtle {
+  font-size: 12px;
+  opacity: 0.68;
+  margin-top: 6px;
+}
+.row {
+  margin: 10px 0;
+}
+.label {
+  font-size: 11px;
+  opacity: 0.6;
+  margin-bottom: 3px;
+}
+.val {
+  font-size: 18px;
+}
+.note {
+  margin-top: 10px;
+  font-size: 15px;
+}
+.note pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 13px;
+  background: rgba(0,0,0,0.04);
+  padding: 8px;
+  border-radius: 6px;
+}
+mark { background: #fff2a8; }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+blockquote { border-left: 3px solid rgba(0,0,0,0.2); margin: 6px 0; padding-left: 10px; opacity: 0.9; }
+ul { margin: 6px 0 6px 22px; }
+`.trim(),
+    cardTemplates: [
+      {
+        Name: "SRS Card",
+        Front: `
+<div class="prompt">{{Prompt}}</div>
+{{#Sound}}<div>{{Sound}}</div>{{/Sound}}
+{{#Hint}}<div class="subtle">{{Hint}}</div>{{/Hint}}
+        `.trim(),
+        Back: `
+{{#Sound}}<div>{{Sound}}</div>{{/Sound}}
+<div class="prompt">{{Prompt}}</div>
+<div class="answer">{{Answer}}</div>
+
+<div class="row">
+  <div class="label">Translit</div>
+  <div class="val">{{Translit}}</div>
+</div>
+
+{{#NoteHtml}}
+  <div class="note">{{NoteHtml}}</div>
+{{/NoteHtml}}
+{{^NoteHtml}}
+  {{#Note}}
+    <div class="note"><pre>{{Note}}</pre></div>
+  {{/Note}}
+{{/NoteHtml}}
+
+{{#AudioUrl}}
+  <div class="row"><a href="{{AudioUrl}}">audio url</a></div>
+{{/AudioUrl}}
+
+{{#Hint}}<div class="subtle">{{Hint}}</div>{{/Hint}}
+        `.trim(),
+      },
+    ],
+  };
+}
+
+function buildSrsAnkiHint(textRec) {
+  const topic = String(textRec && textRec.topic || "").trim();
+  const title = String(textRec && textRec.title || "").trim();
+  const level = String(textRec && textRec.level || "").trim();
+  const left = topic || title;
+  if (left && level) return `${left} · ${level}`;
+  return left || level || "";
+}
+
+async function buildSrsAnkiPreview(req, {
+  cardId,
+  deckName = "",
+  modelName = "",
+  includeNoteHtml = false,
+} = {}) {
+  const snapshot = await getCardSnapshotById(cardId);
+  if (!snapshot || !snapshot.card) throw new Error("CARD_NOT_FOUND");
+
+  const sentence = snapshot.sentence || {};
+  const card = snapshot.card || {};
+  const template = card.template || {};
+  const textRec = sentence.textId ? await getTextById(sentence.textId) : null;
+  const noteRec = sentence.sentenceId ? await getNoteBySentenceId(sentence.sentenceId) : null;
+  const trainer = buildTrainerPayload(snapshot, "reveal");
+  const noteText = String(noteRec && noteRec.note || "");
+  const noteHtml = includeNoteHtml ? ankiNoteHtmlFromMarkdown(noteText) : "";
+  const chosenDeck = String(deckName || getDefaultSrsAnkiDeck(textRec)).trim() || getDefaultSrsAnkiDeck(textRec);
+  const chosenModel = String(modelName || getDefaultSrsAnkiModelName()).trim() || getDefaultSrsAnkiModelName();
+  const audioAssetKey = String(sentence.audioAssetKey || "").trim();
+  const baseUrl = getBaseUrlForAnki(req);
+  const audioUrl = audioAssetKey ? `${baseUrl}/api/audio/${encodeURIComponent(audioAssetKey)}` : "";
+  const cardTag = `lp_srs_card_${ankiNoDashId(card.id)}`;
+  const textTag = sentence.textId ? `lp_text_${ankiNoDashId(sentence.textId)}` : "";
+  const templateTag = template.code ? `lp_srs_tpl_${ankiSafeTagPart(template.code, 32)}` : "";
+  const levelTag = ankiSafeTagPart(textRec && textRec.level, 24);
+  const topicTag = ankiSafeTagPart(textRec && textRec.topic, 24);
+  const fields = {
+    UID: card.id,
+    CardId: card.id,
+    SentenceId: sentence.sentenceId || "",
+    TextId: sentence.textId || "",
+    TemplateCode: template.code || "",
+    Prompt: String(trainer.promptText || ""),
+    Answer: String(trainer.answerText || ""),
+    Hebrew: String(sentence.hePlain || ""),
+    HebrewNiqqud: String(sentence.heNiqqud || ""),
+    Russian: String(sentence.ru || ""),
+    Translit: String(sentence.translit || ""),
+    Note: noteText,
+    NoteHtml: noteHtml,
+    Sound: audioAssetKey ? `[sound:lp_${audioAssetKey}.mp3]` : "",
+    AudioUrl: audioUrl,
+    AudioAssetKey: audioAssetKey,
+    Hint: buildSrsAnkiHint(textRec),
+  };
+  const tags = ["lp", "lp_srs", "lp_ver_patch08", cardTag];
+  if (textTag) tags.push(textTag);
+  if (templateTag) tags.push(templateTag);
+  if (levelTag) tags.push(`lp_level_${levelTag}`);
+  if (topicTag) tags.push(`lp_topic_${topicTag}`);
+
+  const note = {
+    deckName: chosenDeck,
+    modelName: chosenModel,
+    fields,
+    tags,
+  };
+  if (audioUrl && audioAssetKey) {
+    note.audio = [
+      {
+        url: audioUrl,
+        filename: `lp_${audioAssetKey}.mp3`,
+        fields: ["Sound"],
+      },
+    ];
+  }
+
+  const exportHash = computeSrsExportHash({
+    deckName: chosenDeck,
+    modelName: chosenModel,
+    fields,
+    tags,
+    audioFilename: audioAssetKey ? `lp_${audioAssetKey}.mp3` : "",
+  });
+  const exportRec = await getSrsCardExport("anki", card.id);
+  const status = {
+    export: exportRec,
+    isExported: !!(exportRec && exportRec.externalNoteId),
+    isUpToDate: !!(exportRec && exportRec.exportHash === exportHash && exportRec.lastSyncStatus === "ok"),
+  };
+
+  return {
+    cardId: card.id,
+    sentenceId: sentence.sentenceId || "",
+    textId: sentence.textId || "",
+    deckName: chosenDeck,
+    modelName: chosenModel,
+    exportHash,
+    note,
+    preview: {
+      templateCode: template.code || "",
+      templateLabel: template.label || "",
+      promptText: String(trainer.promptText || ""),
+      promptLang: String(trainer.promptLang || ""),
+      answerText: String(trainer.answerText || ""),
+      answerLang: String(trainer.answerLang || ""),
+      supportText: String(trainer.supportText || ""),
+      hasAudio: !!audioAssetKey,
+      hasNote: !!noteText.trim(),
+    },
+    status,
+  };
+}
+
 // --------------------------------------------------------
 // Progress (V3-PROG-01)
 // --------------------------------------------------------
@@ -4387,6 +4626,214 @@ app.get("/api/anki/debug", async (req, res) => {
       ok: false,
       error: "INTERNAL_ERROR",
       details: { message: String((e && e.message) || e || "") },
+    });
+  }
+});
+
+app.get("/api/srs/export/status", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const cardId = String(req.query.cardId || "").trim();
+    if (!cardId) return res.status(400).json({ ok: false, error: "BAD_CARD_ID" });
+
+    const preview = await buildSrsAnkiPreview(req, { cardId });
+    return res.json({
+      ok: true,
+      provider: "anki",
+      cardId: preview.cardId,
+      export: preview.status.export,
+      currentExportHash: preview.exportHash,
+      isExported: preview.status.isExported,
+      isUpToDate: preview.status.isUpToDate,
+    });
+  } catch (e) {
+    if (String(e && e.message || "") === "CARD_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "CARD_NOT_FOUND" });
+    }
+    console.error("GET /api/srs/export/status error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.get("/api/srs/export/anki/preview", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const cardId = String(req.query.cardId || "").trim();
+    const deckName = String(req.query.deckName || "").trim();
+    const modelName = String(req.query.modelName || "").trim();
+    const includeNoteHtml = String(req.query.includeNoteHtml || "") === "1";
+    if (!cardId) return res.status(400).json({ ok: false, error: "BAD_CARD_ID" });
+
+    const preview = await buildSrsAnkiPreview(req, {
+      cardId,
+      deckName,
+      modelName,
+      includeNoteHtml,
+    });
+    return res.json({ ok: true, provider: "anki", ...preview });
+  } catch (e) {
+    if (String(e && e.message || "") === "CARD_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "CARD_NOT_FOUND" });
+    }
+    console.error("GET /api/srs/export/anki/preview error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/export/anki", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const cardId = String(req.body && req.body.cardId || "").trim();
+    const deckName = String(req.body && req.body.deckName || "").trim();
+    const modelName = String(req.body && req.body.modelName || "").trim();
+    const includeNoteHtml = !!(req.body && req.body.includeNoteHtml);
+    const dryRun = !!(req.body && req.body.dryRun);
+    if (!cardId) return res.status(400).json({ ok: false, error: "BAD_CARD_ID" });
+
+    const built = await buildSrsAnkiPreview(req, {
+      cardId,
+      deckName,
+      modelName,
+      includeNoteHtml,
+    });
+
+    if (dryRun) {
+      return res.json({ ok: true, dryRun: true, provider: "anki", ...built });
+    }
+
+    let noteId = built.status.export && built.status.export.externalNoteId
+      ? String(built.status.export.externalNoteId)
+      : "";
+
+    await ankiEnsureDeck(built.deckName);
+    await ankiEnsureModel(built.modelName, getSrsAnkiModelSpec());
+
+    if (!noteId) {
+      const q = `note:"${built.modelName.replace(/"/g, '\\"')}" tag:lp_srs_card_${ankiNoDashId(built.cardId)}`;
+      const foundNoteIds = await ankiInvoke("findNotes", { query: q });
+      if (Array.isArray(foundNoteIds) && foundNoteIds.length) noteId = String(foundNoteIds[0]);
+    }
+
+    if (!noteId) {
+      const createdId = await ankiInvoke("addNote", { note: built.note });
+      if (createdId != null) noteId = String(createdId);
+      if (!noteId) {
+        const q = `tag:lp_srs_card_${ankiNoDashId(built.cardId)}`;
+        const foundNoteIds = await ankiInvoke("findNotes", { query: q });
+        if (Array.isArray(foundNoteIds) && foundNoteIds.length) noteId = String(foundNoteIds[0]);
+      }
+    } else {
+      const fieldsUpdate = { ...built.note.fields };
+      delete fieldsUpdate.Sound;
+      await ankiInvoke("updateNoteFields", {
+        note: { id: Number(noteId), fields: fieldsUpdate },
+      });
+    }
+
+    if (!noteId) {
+      throw new Error("ANKI_EXPORT_FAILED");
+    }
+
+    if (built.preview.hasAudio && built.note.fields.AudioAssetKey) {
+      const assetKey = String(built.note.fields.AudioAssetKey || "").trim();
+      const filename = `lp_${assetKey}.mp3`;
+      const asset = await getAudioAssetByKey(assetKey);
+      const rel = asset && asset.relative_path ? String(asset.relative_path || "").replace(/\\/g, "/") : "";
+      let absPath = rel ? path.resolve(DATA_DIR, rel) : path.resolve(audioCacheDir, `${assetKey}.mp3`);
+      const audioCacheRoot = path.resolve(audioCacheDir) + path.sep;
+      if (!(absPath + path.sep).startsWith(audioCacheRoot) && !absPath.startsWith(audioCacheRoot)) {
+        throw new Error("AUDIO_PATH_OUTSIDE_CACHE");
+      }
+      if (!fs.existsSync(absPath)) {
+        absPath = path.resolve(audioCacheDir, `${assetKey}.mp3`);
+      }
+      if (fs.existsSync(absPath)) {
+        const b64 = fs.readFileSync(absPath).toString("base64");
+        await ankiInvoke("storeMediaFile", { filename, data: b64 });
+        await ankiInvoke("updateNoteFields", {
+          note: { id: Number(noteId), fields: { Sound: `[sound:${filename}]` } },
+        });
+      }
+    }
+
+    const verifyNoteIds = await ankiInvoke("findNotes", { query: `tag:lp_srs_card_${ankiNoDashId(built.cardId)}` });
+    const cardIds = await ankiInvoke("findCards", { query: `tag:lp_srs_card_${ankiNoDashId(built.cardId)}` });
+    if (!Array.isArray(verifyNoteIds) || !verifyNoteIds.length) {
+      throw new Error("ANKI_VERIFY_FAILED");
+    }
+
+    const exportRec = await upsertSrsCardExport({
+      provider: "anki",
+      cardId: built.cardId,
+      deckName: built.deckName,
+      modelName: built.modelName,
+      templateCode: built.preview.templateCode,
+      externalNoteId: noteId,
+      externalCardIds: Array.isArray(cardIds) ? cardIds : [],
+      exportHash: built.exportHash,
+      lastSyncStatus: "ok",
+      lastError: null,
+      exportedAt: new Date().toISOString(),
+    });
+
+    await v3TrackEventSafe({
+      eventType: "export_anki",
+      entityType: "srs_card",
+      entityId: built.cardId,
+      textId: built.textId || null,
+      sentenceId: built.sentenceId || null,
+      cardId: built.cardId,
+      source: "api",
+      payload: {
+        provider: "anki",
+        templateCode: built.preview.templateCode,
+        deckName: built.deckName,
+      },
+    });
+
+    return res.json({
+      ok: true,
+      provider: "anki",
+      cardId: built.cardId,
+      export: exportRec,
+      verify: {
+        foundNotes: verifyNoteIds.length,
+        foundCards: Array.isArray(cardIds) ? cardIds.length : 0,
+      },
+    });
+  } catch (e) {
+    const cardId = String(req.body && req.body.cardId || "").trim();
+    if (cardId) {
+      try {
+        const built = await buildSrsAnkiPreview(req, { cardId });
+        await upsertSrsCardExport({
+          provider: "anki",
+          cardId,
+          deckName: built.deckName,
+          modelName: built.modelName,
+          templateCode: built.preview.templateCode,
+          externalNoteId: built.status.export && built.status.export.externalNoteId || null,
+          externalCardIds: built.status.export && built.status.export.externalCardIds || [],
+          exportHash: built.exportHash,
+          lastSyncStatus: "error",
+          lastError: String(e && e.message || e || ""),
+          exportedAt: built.status.export && built.status.export.exportedAt || null,
+        });
+      } catch (_) {}
+    }
+    if (String(e && e.message || "") === "CARD_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "CARD_NOT_FOUND" });
+    }
+    const msg = String(e && e.message || "");
+    const isConn = /ANKI_CONNECT|ECONNREFUSED|ECONNRESET|EPIPE|socket hang up/i.test(msg);
+    console.error("POST /api/srs/export/anki error:", e);
+    return res.status(isConn ? 503 : 500).json({
+      ok: false,
+      error: isConn ? "ANKI_CONNECT_UNAVAILABLE" : "ANKI_EXPORT_FAILED",
+      details: { message: msg },
     });
   }
 });

@@ -181,9 +181,11 @@
 - дальнейший шаг: постепенно переводить dashboard aggregates на `events`
 
 ### PATCH-08 — Anki Export v1
-- export preview
-- idempotent export
-- stable metadata per exported card
+- статус: baseline реализован
+- SRS card preview/status/export endpoints добавлены
+- `srs_card_exports` хранит stable metadata per exported card
+- automatic smoke покрывает preview/status/dry-run path
+- полноценный live push зависит от локально запущенного Anki Desktop + AnkiConnect
 
 Правило:
 - каждый PATCH должен быть independently runnable/testable

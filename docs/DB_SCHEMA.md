@@ -15,6 +15,7 @@
 - repaired FK для `srs_review_events -> srs_cards` — см. `migrations/013_srs_review_events_fk_fix.sql`
 - `srs_attempts` — см. `migrations/014_srs_attempts.sql`
 - `events` — см. `migrations/015_events_layer.sql`
+- `srs_card_exports` — см. `migrations/016_srs_card_exports.sql`
 - search normalization хранится в `sentences.he_norm` с индексом `ix_sentences_he_norm` — см. `migrations/009_hebrew_norm.sql`
 
 Проверки, подтверждающие факт:
@@ -133,6 +134,14 @@ Premium расширение:
   - `attempt_type`
   - `user_answer`, `normalized_answer`, `normalized_expected`
   - `is_correct`, `latency_ms`, `meta_json`, `created_at`
+- `srs_card_exports` (SRS export metadata)
+  - `id` (PK)
+  - `provider`, `card_id` (unique pair)
+  - `deck_name`, `model_name`, `template_code`
+  - `external_note_id`, `external_card_ids_json`
+  - `export_hash`
+  - `last_sync_status`, `last_error`
+  - `exported_at`, `created_at`, `updated_at`
 
 ### 3.6. Analytics events
 Текущее фактическое состояние:

@@ -192,6 +192,10 @@ SRS — ядро “платной учебности”:
 - `srs_session_finished`
 
 ### PATCH-08 — Anki Export v1
-- preview/export/status
-- idempotent export metadata
-- stable note type mapping
+- статус: baseline реализован
+- `GET /api/srs/export/status`
+- `GET /api/srs/export/anki/preview`
+- `POST /api/srs/export/anki`
+- локальная metadata-таблица `srs_card_exports`
+- idempotent export metadata и stable note type mapping
+- automatic smoke покрывает preview/status/dry-run; реальный push требует запущенный Anki Desktop + AnkiConnect

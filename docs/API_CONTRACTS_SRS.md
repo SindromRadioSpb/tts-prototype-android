@@ -331,14 +331,30 @@ Endpoint’ы PATCH-04:
 - trainer home явно показывает card direction (`Hebrew -> Russian` / `Russian -> Hebrew`)
 
 ### PATCH-07 — Analytics Alignment
-Добавить:
+Статус:
+- baseline реализован
 - event layer для `srs_review`, `trainer_attempt`, `session_started`, `session_finished`
 
 ### PATCH-08 — Anki Export v1
-Добавить:
-- preview/export/status
-- stable export metadata
-- idempotent mapping to Anki
+Статус:
+- baseline реализован
+- `GET /api/srs/export/status?cardId=<id>`
+- `GET /api/srs/export/anki/preview?cardId=<id>`
+- `POST /api/srs/export/anki`
+- `dryRun: true` поддерживается для smoke и локальной проверки без AnkiConnect
+- stable export metadata хранится в `srs_card_exports`
+- idempotent mapping опирается на `(provider, card_id)` + stable tag `lp_srs_card_<cardId>`
+
+### PATCH-08 endpoint notes
+`GET /api/srs/export/status`
+- возвращает текущий persisted export status и `currentExportHash`
+
+`GET /api/srs/export/anki/preview`
+- возвращает deck/model/note preview без записи в Anki
+
+`POST /api/srs/export/anki`
+- при `dryRun: true` не пишет в Anki, а только строит export payload
+- без `dryRun` требует доступный AnkiConnect
 
 ---
 

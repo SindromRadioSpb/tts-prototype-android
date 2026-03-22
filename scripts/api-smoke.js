@@ -242,9 +242,13 @@ async function cleanupSrsArtifacts(dbPath, sentenceId) {
       });
     });
     for (const row of rows) {
+      await dbRun(db, `DELETE FROM srs_card_exports WHERE card_id = ?`, [row.id]);
+      await dbRun(db, `DELETE FROM srs_attempts WHERE card_id = ?`, [row.id]);
       await dbRun(db, `DELETE FROM srs_review_events WHERE card_id = ?`, [row.id]);
+      await dbRun(db, `DELETE FROM events WHERE card_id = ?`, [row.id]);
       await dbRun(db, `DELETE FROM srs_cards WHERE id = ?`, [row.id]);
     }
+    await dbRun(db, `DELETE FROM srs_session_runs WHERE source = ?`, ["api-smoke"]);
   } finally {
     await closeDb(db);
   }
@@ -452,6 +456,34 @@ async function run() {
         throw new Error(`Unexpected /api/srs/sessions/:id/finish payload: ${JSON.stringify(sessionFinished)}`);
       }
       console.log("PASS /api/srs/sessions/:id/finish -> session can be closed");
+
+      const ankiPreview = await fetchJson(
+        `${BASE_URL}/api/srs/export/anki/preview?cardId=${encodeURIComponent(srsCreated.card.id)}`
+      );
+      if (!ankiPreview.ok || !ankiPreview.note || !ankiPreview.preview || !ankiPreview.exportHash) {
+        throw new Error(`Unexpected /api/srs/export/anki/preview payload: ${JSON.stringify(ankiPreview)}`);
+      }
+      if (ankiPreview.preview.templateCode !== "ru_to_he") {
+        throw new Error(`SRS Anki preview lost template direction: ${JSON.stringify(ankiPreview)}`);
+      }
+      console.log("PASS /api/srs/export/anki/preview -> builds stable export preview");
+
+      const ankiStatusBefore = await fetchJson(
+        `${BASE_URL}/api/srs/export/status?cardId=${encodeURIComponent(srsCreated.card.id)}`
+      );
+      if (!ankiStatusBefore.ok || ankiStatusBefore.isExported !== false) {
+        throw new Error(`Unexpected initial /api/srs/export/status payload: ${JSON.stringify(ankiStatusBefore)}`);
+      }
+      console.log("PASS /api/srs/export/status -> reports not exported before first sync");
+
+      const ankiDryRun = await postJson(`${BASE_URL}/api/srs/export/anki`, {
+        cardId: srsCreated.card.id,
+        dryRun: true,
+      });
+      if (!ankiDryRun.ok || !ankiDryRun.dryRun || ankiDryRun.exportHash !== ankiPreview.exportHash) {
+        throw new Error(`Unexpected dry-run /api/srs/export/anki payload: ${JSON.stringify(ankiDryRun)}`);
+      }
+      console.log("PASS /api/srs/export/anki -> dry-run path works without AnkiConnect");
 
       const analyticsDb = await openDb(DB_PATH);
       try {

@@ -6168,6 +6168,14 @@ function v3IdeGetSelectedSrsTemplate(sentenceId) {
   return v3IdeNormalizeSrsTemplateCode(v3IdeSrsTemplateBySentenceId.get(sid) || "he_to_ru");
 }
 
+function v3SrsAnkiStatusText(status) {
+  const exp = status && status.export ? status.export : null;
+  if (!exp) return "Anki: not exported";
+  if (status && status.isUpToDate) return `Anki: synced${exp.deckName ? ` · ${exp.deckName}` : ""}`;
+  if (exp.lastSyncStatus === "error") return `Anki: last export failed${exp.lastError ? ` · ${String(exp.lastError).slice(0, 80)}` : ""}`;
+  return "Anki: card changed since last export";
+}
+
 async function v3IdeEnsureSrsTemplates() {
   if (Array.isArray(v3SrsTemplateOptions) && v3SrsTemplateOptions.length) return v3SrsTemplateOptions;
   const res = await v3GetJson("/api/srs/templates");
@@ -6192,6 +6200,7 @@ function v3IdeRenderSrsTemplateOptions(templates, selectedCode) {
 function v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, opts) {
   const sentenceId = v3IdeGetSentenceId(row);
   const card = snapshot && snapshot.card ? snapshot.card : null;
+  const exportStatus = opts && opts.exportStatus ? opts.exportStatus : null;
   const templates = opts && Array.isArray(opts.templates) ? opts.templates : v3SrsTemplateOptions;
   const selectedTemplateCode = v3IdeNormalizeSrsTemplateCode(
     (opts && opts.templateCode) || (card && card.template && card.template.code) || "he_to_ru"
@@ -6226,6 +6235,13 @@ function v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, opts) {
           <div style="font-size:12px; color:#64748b; margin-bottom:12px;">
             ${card.template && card.template.label ? `${v3EscapeHtml(card.template.label)} • ` : ""}Ease ${Number(card.easeFactor || 0).toFixed(2)} • lapses ${Number(card.lapses || 0)}
           </div>
+          <div style="font-size:12px; color:#64748b; margin-bottom:10px;">
+            ${v3EscapeHtml(v3SrsAnkiStatusText(exportStatus))}
+          </div>
+          <div class="v3-ide-srs-actions" style="margin-bottom:12px;">
+            <button class="btn-secondary" onclick="v3IdeSrsAnkiPreview('${v3EscapeHtml(card.id)}')">Preview Anki</button>
+            <button class="btn-secondary" onclick="v3IdeSrsExportAnki('${v3EscapeHtml(card.id)}')">Export to Anki</button>
+          </div>
         ` : `
           <button class="v3-ide-srs-btn" onclick="v3IdeAddToSrs('${sentenceId}')" style="width:100%; margin-bottom:12px;">
             Add to SRS
@@ -6251,11 +6267,17 @@ async function v3IdeLoadSrsInspector(row, rowIdx, sentenceId, reqSeq) {
     const templates = await v3IdeEnsureSrsTemplates();
     const templateCode = v3IdeGetSelectedSrsTemplate(sentenceId);
     const snapshot = await v3GetJson(`/api/srs/cards?sentenceId=${encodeURIComponent(sentenceId)}&templateCode=${encodeURIComponent(templateCode)}`);
+    let exportStatus = null;
+    if (snapshot && snapshot.card && snapshot.card.id) {
+      try {
+        exportStatus = await v3GetJson(`/api/srs/export/status?cardId=${encodeURIComponent(snapshot.card.id)}`);
+      } catch (_) {}
+    }
     if (!el || reqSeq !== v3IdeSrsInspectorReqSeq) return;
     if (v3IdeState.rightTab !== "srs") return;
     const currentRow = currentTableData && currentTableData[v3IdeState.selectedRowIdx];
     if (v3IdeGetSentenceId(currentRow) !== sentenceId) return;
-    el.innerHTML = v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, { loading: false, templates, templateCode });
+    el.innerHTML = v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, { loading: false, templates, templateCode, exportStatus });
   } catch (e) {
     if (!el || reqSeq !== v3IdeSrsInspectorReqSeq) return;
     el.innerHTML = v3IdeRenderSrsInspectorHtml(row, rowIdx, null, { loading: false, templates: v3SrsTemplateOptions, templateCode: v3IdeGetSelectedSrsTemplate(sentenceId) });
@@ -6305,6 +6327,33 @@ async function v3IdeSrsReview(sentenceId, rating) {
   } catch (e) {
     console.error("SRS review failed:", e);
     if (typeof showToast === "function") showToast("Failed to save SRS review");
+  }
+}
+
+async function v3IdeSrsAnkiPreview(cardId) {
+  try {
+    const res = await v3GetJson(`/api/srs/export/anki/preview?cardId=${encodeURIComponent(String(cardId || "").trim())}`);
+    const p = res && res.preview ? res.preview : {};
+    window.alert([
+      `Deck: ${res.deckName || "LinguistPro::SRS"}`,
+      `Direction: ${p.templateLabel || p.templateCode || "SRS"}`,
+      `Prompt: ${String(p.promptText || "").slice(0, 120) || "—"}`,
+      `Answer: ${String(p.answerText || "").slice(0, 120) || "—"}`,
+    ].join("\n"));
+  } catch (e) {
+    console.error("SRS Anki preview failed:", e);
+    if (typeof showToast === "function") showToast("Failed to load Anki preview");
+  }
+}
+
+async function v3IdeSrsExportAnki(cardId) {
+  try {
+    await v3PostJson("/api/srs/export/anki", { cardId: String(cardId || "").trim() });
+    if (typeof showToast === "function") showToast("SRS card exported to Anki", "success");
+    v3IdeRefreshInspector();
+  } catch (e) {
+    console.error("SRS Anki export failed:", e);
+    if (typeof showToast === "function") showToast("Failed to export SRS card to Anki", "error");
   }
 }
 
@@ -13441,7 +13490,10 @@ function v3SrsTrainerRenderSession() {
   el.innerHTML = `
     <div class="v3-srs-toolbar">
       <div class="v3-srs-progress">Progress ${Number(progress.completed || 0)} / ${Number(progress.total || 0)} · Remaining ${Number(progress.remaining || 0)} · Direction ${v3EscapeHtml(v3SrsTrainerTemplateLabel((card.template && card.template.code) || v3SrsTrainerState.templateCode))} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
-      <button class="btn-secondary" onclick="v3SrsTrainerFinish()">Finish Session</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="v3SrsTrainerExportAnki()">Export to Anki</button>
+        <button class="btn-secondary" onclick="v3SrsTrainerFinish()">Finish Session</button>
+      </div>
     </div>
     <div class="v3-srs-card-panel">
       <div class="v3-srs-subtle">${v3EscapeHtml(template.label || "Card")}</div>
@@ -13659,9 +13711,25 @@ async function v3SrsTrainerFinish() {
   await v3SrsTrainerRefresh();
 }
 
+async function v3SrsTrainerExportAnki() {
+  try {
+    const current = v3SrsTrainerState.current;
+    const cardId = current && current.card && current.card.id ? String(current.card.id) : "";
+    if (!cardId) return;
+    await v3PostJson("/api/srs/export/anki", { cardId });
+    if (typeof showToast === "function") showToast("Current SRS card exported to Anki", "success");
+  } catch (e) {
+    console.error("SRS trainer Anki export failed:", e);
+    if (typeof showToast === "function") showToast("Failed to export current SRS card to Anki", "error");
+  }
+}
+
 window.v3SrsTrainerSetMode = v3SrsTrainerSetMode;
 window.v3SrsTrainerPlayAudio = v3SrsTrainerPlayAudio;
 window.v3SrsTrainerCheckAnswer = v3SrsTrainerCheckAnswer;
+window.v3IdeSrsAnkiPreview = v3IdeSrsAnkiPreview;
+window.v3IdeSrsExportAnki = v3IdeSrsExportAnki;
+window.v3SrsTrainerExportAnki = v3SrsTrainerExportAnki;
 
 function v3DashboardOpen() {
   const m = v3DashEl("v3DashboardModal");
