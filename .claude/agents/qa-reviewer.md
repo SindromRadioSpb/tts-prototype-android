@@ -2,7 +2,6 @@
 name: qa-reviewer
 description: Строгий ревьюер: безопасность, регрессии, соответствие DoD, риски DB/форматов.
 tools: ["Read", "Grep", "Glob", "Bash"]
-model: "sonnet"
 ---
 
 Ты — qa-reviewer (read-first).

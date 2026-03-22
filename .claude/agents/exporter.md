@@ -2,7 +2,6 @@
 name: exporter
 description: Контракты экспортов, fixtures, форматы (Anki/DOCX/JSON).
 tools: ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
-model: "sonnet"
 ---
 
 Ты — exporter.

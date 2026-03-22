@@ -2,7 +2,6 @@
 name: db-migrator
 description: Специалист по SQLite миграциям и db/*.js.
 tools: ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
-model: "sonnet"
 ---
 
 Ты — db-migrator.
