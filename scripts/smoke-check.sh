@@ -79,6 +79,12 @@ run_db_check() {
   node tools/step8_2-db-check.js "$db_path" "$asset_key" "$sentence_id" "$text_id"
 }
 
+run_api_smoke() {
+  [[ -f scripts/api-smoke.js ]] || { info "API smoke script not found. Skipping."; return 0; }
+  info "Running API smoke: npm run test:api-smoke"
+  npm run test:api-smoke
+}
+
 echo "=== SMOKE-CHECK v2.1 (bash) ==="
 
 ensure_git_repo
@@ -103,6 +109,9 @@ run_db_migrate
 
 echo "6) DB check tool (args auto-pick)"
 run_db_check
+
+echo "7) API smoke"
+run_api_smoke
 
 echo
 echo "=== SMOKE-CHECK OK ==="

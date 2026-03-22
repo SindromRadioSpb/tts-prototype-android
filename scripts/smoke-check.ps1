@@ -12,8 +12,15 @@ function Info([string]$msg) {
 
 function HasFile([string]$p) { return Test-Path $p }
 
+function AssertLastExit([string]$action) {
+  if ($LASTEXITCODE -ne 0) {
+    Fail "$action failed with exit code $LASTEXITCODE."
+  }
+}
+
 function GetNodeMajor() {
   $v = node -p "process.versions.node"
+  AssertLastExit "node version check"
   $major = [int]($v.Split('.')[0])
   return $major
 }
@@ -33,9 +40,11 @@ function EnsureNodeVersion() {
 function InstallDeps() {
   if (HasFile "package-lock.json") {
     npm ci --no-audit --no-fund
+    AssertLastExit "npm ci"
   } else {
     Info "package-lock.json not found -> using npm install"
     npm install --no-audit --no-fund
+    AssertLastExit "npm install"
   }
 }
 
@@ -50,10 +59,13 @@ function CheckTrackedArtifacts() {
 }
 
 function RunDbMigrate() {
+  $dbPathForLog = if ($env:DB_PATH) { $env:DB_PATH } else { "<default: data/app.db>" }
+  $migrationsDirForLog = if ($env:MIGRATIONS_DIR) { $env:MIGRATIONS_DIR } else { "<default: migrations/>" }
   Info "Running npm script: db:migrate"
-  Info ("DB_PATH=" + ($env:DB_PATH ? $env:DB_PATH : "<default: data/app.db>"))
-  Info ("MIGRATIONS_DIR=" + ($env:MIGRATIONS_DIR ? $env:MIGRATIONS_DIR : "<default: migrations/>"))
+  Info ("DB_PATH=" + $dbPathForLog)
+  Info ("MIGRATIONS_DIR=" + $migrationsDirForLog)
   npm run db:migrate
+  AssertLastExit "npm run db:migrate"
 }
 
 function PickDbCheckArgs([string]$dbPath) {
@@ -84,7 +96,7 @@ function RunDbCheck() {
   }
 
   # dbPath: берем DB_PATH если задан, иначе дефолт как в migrate-cli (root/data/app.db)
-  $dbPath = ($env:DB_PATH ? $env:DB_PATH : "data/app.db")
+  $dbPath = if ($env:DB_PATH) { $env:DB_PATH } else { "data/app.db" }
 
   $args = PickDbCheckArgs $dbPath
   $assetKey = $args[0]
@@ -98,6 +110,18 @@ function RunDbCheck() {
   Info "textId=$textId"
 
   node tools/step8_2-db-check.js $dbPath $assetKey $sentenceId $textId
+  AssertLastExit "DB check tool"
+}
+
+function RunApiSmoke() {
+  if (!(HasFile "scripts/api-smoke.js")) {
+    Info "API smoke script not found (scripts/api-smoke.js). Skipping."
+    return
+  }
+
+  Info "Running API smoke: npm run test:api-smoke"
+  npm run test:api-smoke
+  AssertLastExit "API smoke"
 }
 
 Write-Host "=== SMOKE-CHECK v2.1 (PowerShell) ==="
@@ -106,12 +130,16 @@ EnsureGitRepo
 
 Write-Host "1) Toolchain"
 node -v
+AssertLastExit "node -v"
 npm -v
+AssertLastExit "npm -v"
 EnsureNodeVersion
 
 Write-Host "2) Git status"
 git status
+AssertLastExit "git status"
 git diff --stat
+AssertLastExit "git diff --stat"
 
 Write-Host "3) Guard: forbidden tracked artifacts"
 CheckTrackedArtifacts
@@ -124,6 +152,9 @@ RunDbMigrate
 
 Write-Host "6) DB check tool (args auto-pick)"
 RunDbCheck
+
+Write-Host "7) API smoke"
+RunApiSmoke
 
 Write-Host ""
 Write-Host "=== SMOKE-CHECK OK ===" -ForegroundColor Green

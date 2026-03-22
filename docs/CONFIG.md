@@ -5,8 +5,12 @@ This document describes all environment variables and configuration options for 
 ## Quick Start
 
 1. Copy `.env.example` to `.env`
-2. Fill in required values (at minimum: `GEMINI_API_KEY` for translation)
-3. Run `node server.js`
+2. Fill in required values:
+   - `GEMINI_API_KEY` for AI translation
+   - `GOOGLE_APPLICATION_CREDENTIALS` or `GOOGLE_CLOUD_TTS_KEY` for TTS
+3. Run `node server.js` or `npm start`
+
+`server.js` now auto-loads `.env` from the repo root via `dotenv`, so separate `--env-file` flags are not required.
 
 ## Environment Variables
 
@@ -87,6 +91,8 @@ tts-prototype-android/
 ### TTS not working
 - Check `GOOGLE_APPLICATION_CREDENTIALS` or `GOOGLE_CLOUD_TTS_KEY`
 - Verify the service account has Text-to-Speech API enabled
+- If using `GOOGLE_APPLICATION_CREDENTIALS`, use an absolute Windows path, for example:
+  `GOOGLE_APPLICATION_CREDENTIALS=E:\keys\gcp-tts-service-account.json`
 
 ### Translation not working
 - Check `GEMINI_API_KEY` is set

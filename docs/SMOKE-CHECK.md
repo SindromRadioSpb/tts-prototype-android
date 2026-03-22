@@ -40,7 +40,12 @@ Guardrail больших файлов:
 - установка зависимостей
 - `npm run db:migrate`
 - `node tools/step8_2-db-check.js` (если существует)
+- `npm run test:api-smoke` (если существует)
 - guard: запрещённые tracked артефакты (db/cache/node_modules)
+
+Примечание по Windows:
+- `npm ci` может падать на `EPERM unlink ... node_sqlite3.node`, если native binary `sqlite3` удерживается внешним процессом или антивирусом.
+- В таком случае отдельно подтвердить runtime через `npm run db:migrate`, `node db/integrity-cli.js`, `npm run test:api-smoke`.
 
 ## 3) Триггеры по зонам изменений (обязательные правила)
 ### 3.1. DB / Migrations зона
