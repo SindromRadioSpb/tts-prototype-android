@@ -3122,6 +3122,73 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 .v3-ide-srs-btn-easy { border-color: #60a5fa; color: #2563eb; }
 .v3-ide-srs-btn-easy:hover { background: #eff6ff; }
 
+.v3-srs-trainer-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.v3-srs-stat {
+  border: 1px solid #dbe4ee;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 14px;
+}
+.v3-srs-stat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+.v3-srs-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.v3-srs-card-panel {
+  border: 1px solid #dbe4ee;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.v3-srs-trainer-prompt {
+  font-size: 22px;
+  line-height: 1.5;
+  color: #0f172a;
+}
+.v3-srs-trainer-answer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.v3-srs-he {
+  font-size: 24px;
+  line-height: 1.6;
+  direction: rtl;
+  text-align: right;
+  color: #1e293b;
+}
+.v3-srs-subtle {
+  font-size: 13px;
+  color: #64748b;
+}
+.v3-srs-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.v3-srs-progress {
+  font-size: 13px;
+  color: #64748b;
+}
+
 /* --- IDE Audio Panel --- */
 .v3-ide-audio-player {
   display: flex;
@@ -3654,6 +3721,9 @@ body.v3-ide-mode .v3-ide-right {
     <button id="v3IdeDashBtn" class="btn-ide" onclick="v3DashboardOpen()" title="Open Dashboard">
       📊 Dashboard
     </button>
+    <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" title="Open SRS Trainer">
+      🎯 Train
+    </button>
     <button id="v3IdeExitBtn" class="btn-ide" onclick="v3IdeModeToggle()" title="Switch to Classic Mode">
       ↩ Classic
     </button>
@@ -4089,6 +4159,7 @@ body.v3-ide-mode .v3-ide-right {
 			<button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()">📚 Библиотека</button>
 			
 			<button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()">📈 Дашборд</button>
+			<button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()">🎯 SRS Trainer</button>
 			
 			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
 
@@ -4375,6 +4446,29 @@ body.v3-ide-mode .v3-ide-right {
     <button id="v3DashViewPresetDefault" class="btn-secondary v3-dash-popbtn" type="button">По умолчанию</button>
     <button id="v3DashViewPresetReading" class="btn-secondary v3-dash-popbtn" type="button">Фокус: чтение</button>
     <button id="v3DashViewPresetAnalytics" class="btn-secondary v3-dash-popbtn" type="button">Фокус: аналитика</button>
+  </div>
+</div>
+
+<div id="v3SrsTrainerModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="SRS trainer">
+  <div class="v3-modal-backdrop" onclick="v3SrsTrainerClose()" aria-hidden="true"></div>
+
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title">SRS Trainer</div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="v3SrsTrainerRefresh()">Обновить</button>
+        <button class="btn-secondary" onclick="v3SrsTrainerClose()">Закрыть</button>
+      </div>
+    </div>
+
+    <div class="v3-modal-body">
+      <div id="v3SrsTrainerContent">
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">🎯</div>
+          <div class="v3-ide-empty-text">SRS trainer is loading…</div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 		
@@ -6041,31 +6135,102 @@ async function v3IdeSaveNote(sentenceId) {
   }
 }
 
-function v3IdeRenderSrsInspector(row, rowIdx) {
-  const el = document.getElementById("v3IdeSrsContent");
-  if (!el) return;
+let v3IdeSrsInspectorReqSeq = 0;
+let v3SrsTemplateOptions = [];
+const v3IdeSrsTemplateBySentenceId = new Map();
 
-  const sentenceId = row._v3_sentenceId || row.sentenceId || row.sentence_id || row.id || "";
+function v3IdeGetSentenceId(row) {
+  return String(row && (row._v3_sentenceId || row.sentenceId || row.sentence_id || row.id) || "").trim();
+}
 
-  // TODO: Fetch actual SRS card status from API
-  el.innerHTML = `
+function v3IdeSrsBadgeClass(state) {
+  const s = String(state || "new").toLowerCase();
+  if (s === "review") return "v3-ide-srs-status-review";
+  if (s === "learning" || s === "relearning") return "v3-ide-srs-status-learning";
+  return "v3-ide-srs-status-new";
+}
+
+function v3IdeSrsMetaText(card) {
+  if (!card) return "Not in SRS yet";
+  const due = card.dueDate ? `Due ${card.dueDate}` : "Due today";
+  const interval = `interval ${Number(card.intervalDays || 0)}d`;
+  const reps = `reps ${Number(card.reps || 0)}`;
+  return [due, interval, reps].join(" • ");
+}
+
+function v3IdeNormalizeSrsTemplateCode(templateCode) {
+  const code = String(templateCode || "ru_to_he").trim();
+  return code || "ru_to_he";
+}
+
+function v3IdeGetSelectedSrsTemplate(sentenceId) {
+  const sid = String(sentenceId || "").trim();
+  return v3IdeNormalizeSrsTemplateCode(v3IdeSrsTemplateBySentenceId.get(sid) || "ru_to_he");
+}
+
+async function v3IdeEnsureSrsTemplates() {
+  if (Array.isArray(v3SrsTemplateOptions) && v3SrsTemplateOptions.length) return v3SrsTemplateOptions;
+  const res = await v3GetJson("/api/srs/templates");
+  v3SrsTemplateOptions = Array.isArray(res && res.templates) ? res.templates : [];
+  return v3SrsTemplateOptions;
+}
+
+function v3IdeRenderSrsTemplateOptions(templates, selectedCode) {
+  const rows = Array.isArray(templates) && templates.length
+    ? templates
+    : [{ code: "ru_to_he", label: "Russian -> Hebrew" }];
+  return rows
+    .map((item) => {
+      const code = v3EscapeHtml(item && item.code || "ru_to_he");
+      const label = v3EscapeHtml(item && item.label || code);
+      const selected = String(item && item.code || "") === String(selectedCode || "") ? "selected" : "";
+      return `<option value="${code}" ${selected}>${label}</option>`;
+    })
+    .join("");
+}
+
+function v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, opts) {
+  const sentenceId = v3IdeGetSentenceId(row);
+  const card = snapshot && snapshot.card ? snapshot.card : null;
+  const templates = opts && Array.isArray(opts.templates) ? opts.templates : v3SrsTemplateOptions;
+  const selectedTemplateCode = v3IdeNormalizeSrsTemplateCode(
+    (opts && opts.templateCode) || (card && card.template && card.template.code) || "ru_to_he"
+  );
+  const statusLabel = card ? String(card.state || "new") : "new";
+  const statusText = statusLabel.charAt(0).toUpperCase() + statusLabel.slice(1);
+  const he = row.he || row.he_plain || row.hebrew || "";
+  const ru = row.ru || row.translation || "";
+  const loading = !!(opts && opts.loading);
+
+  return `
     <div class="v3-ide-inspector-section">
       <div class="v3-ide-inspector-label">Row ${rowIdx + 1}</div>
       <div class="v3-ide-inspector-content">
         <div style="font-size:14px; color:#1e293b; direction:rtl; text-align:right;">
-          ${v3EscapeHtml(row.he || row.he_plain || row.hebrew || "")}
+          ${v3EscapeHtml(he)}
         </div>
+        ${ru ? `<div style="font-size:12px; color:#64748b; margin-top:6px;">${v3EscapeHtml(ru)}</div>` : ""}
       </div>
     </div>
     <div class="v3-ide-inspector-section">
       <div class="v3-ide-srs-card">
+        <div class="v3-ide-inspector-label">Card Template</div>
+        <select onchange="v3IdeSrsTemplateChange('${sentenceId}', this.value)" style="width:100%; margin-bottom:12px; padding:8px; border-radius:8px; border:1px solid #d1d5db;">
+          ${v3IdeRenderSrsTemplateOptions(templates, selectedTemplateCode)}
+        </select>
         <div class="v3-ide-srs-status">
-          <span class="v3-ide-srs-status-badge v3-ide-srs-status-new">New</span>
-          <span style="font-size:12px; color:#64748b;">Not in SRS yet</span>
+          <span class="v3-ide-srs-status-badge ${v3IdeSrsBadgeClass(statusLabel)}">${v3EscapeHtml(statusText)}</span>
+          <span style="font-size:12px; color:#64748b;">${v3EscapeHtml(loading ? "Loading SRS status..." : v3IdeSrsMetaText(card))}</span>
         </div>
-        <button class="v3-ide-srs-btn" onclick="v3IdeAddToSrs('${sentenceId}')" style="width:100%; margin-bottom:12px;">
-          ➕ Add to SRS
-        </button>
+        ${card ? `
+          <div style="font-size:12px; color:#64748b; margin-bottom:12px;">
+            ${card.template && card.template.label ? `${v3EscapeHtml(card.template.label)} • ` : ""}Ease ${Number(card.easeFactor || 0).toFixed(2)} • lapses ${Number(card.lapses || 0)}
+          </div>
+        ` : `
+          <button class="v3-ide-srs-btn" onclick="v3IdeAddToSrs('${sentenceId}')" style="width:100%; margin-bottom:12px;">
+            Add to SRS
+          </button>
+        `}
         <div class="v3-ide-inspector-label">Quick Review</div>
         <div class="v3-ide-srs-actions">
           <button class="v3-ide-srs-btn v3-ide-srs-btn-again" onclick="v3IdeSrsReview('${sentenceId}', 1)">Again</button>
@@ -6078,16 +6243,79 @@ function v3IdeRenderSrsInspector(row, rowIdx) {
   `;
 }
 
+async function v3IdeLoadSrsInspector(row, rowIdx, sentenceId, reqSeq) {
+  const el = document.getElementById("v3IdeSrsContent");
+  if (!el || !sentenceId) return;
+
+  try {
+    const templates = await v3IdeEnsureSrsTemplates();
+    const templateCode = v3IdeGetSelectedSrsTemplate(sentenceId);
+    const snapshot = await v3GetJson(`/api/srs/cards?sentenceId=${encodeURIComponent(sentenceId)}&templateCode=${encodeURIComponent(templateCode)}`);
+    if (!el || reqSeq !== v3IdeSrsInspectorReqSeq) return;
+    if (v3IdeState.rightTab !== "srs") return;
+    const currentRow = currentTableData && currentTableData[v3IdeState.selectedRowIdx];
+    if (v3IdeGetSentenceId(currentRow) !== sentenceId) return;
+    el.innerHTML = v3IdeRenderSrsInspectorHtml(row, rowIdx, snapshot, { loading: false, templates, templateCode });
+  } catch (e) {
+    if (!el || reqSeq !== v3IdeSrsInspectorReqSeq) return;
+    el.innerHTML = v3IdeRenderSrsInspectorHtml(row, rowIdx, null, { loading: false, templates: v3SrsTemplateOptions, templateCode: v3IdeGetSelectedSrsTemplate(sentenceId) });
+  }
+}
+
+function v3IdeRenderSrsInspector(row, rowIdx) {
+  const el = document.getElementById("v3IdeSrsContent");
+  if (!el) return;
+
+  const sentenceId = v3IdeGetSentenceId(row);
+  v3IdeSrsInspectorReqSeq += 1;
+  const reqSeq = v3IdeSrsInspectorReqSeq;
+
+  el.innerHTML = v3IdeRenderSrsInspectorHtml(row, rowIdx, null, { loading: true });
+  if (!sentenceId) return;
+
+  v3IdeLoadSrsInspector(row, rowIdx, sentenceId, reqSeq);
+}
+
 async function v3IdeAddToSrs(sentenceId) {
-  // TODO: Implement SRS card creation
-  console.log("Add to SRS:", sentenceId);
-  alert("SRS feature coming soon!");
+  try {
+    const sid = String(sentenceId || "").trim();
+    if (!sid) {
+      if (typeof showToast === "function") showToast("Sentence is not available for SRS");
+      return;
+    }
+    await v3PostJson("/api/srs/cards", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid) });
+    if (typeof showToast === "function") showToast("Added to SRS");
+    v3IdeRefreshInspector();
+  } catch (e) {
+    console.error("Add to SRS failed:", e);
+    if (typeof showToast === "function") showToast("Failed to add to SRS");
+  }
 }
 
 async function v3IdeSrsReview(sentenceId, rating) {
-  // TODO: Implement SRS review
-  console.log("SRS Review:", sentenceId, rating);
-  alert("SRS feature coming soon!");
+  try {
+    const sid = String(sentenceId || "").trim();
+    if (!sid) {
+      if (typeof showToast === "function") showToast("Sentence is not available for review");
+      return;
+    }
+    await v3PostJson("/api/srs/review", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid), rating: Number(rating) });
+    if (typeof showToast === "function") showToast("SRS review saved");
+    v3IdeRefreshInspector();
+  } catch (e) {
+    console.error("SRS review failed:", e);
+    if (typeof showToast === "function") showToast("Failed to save SRS review");
+  }
+}
+
+function v3IdeSrsTemplateChange(sentenceId, templateCode) {
+  const sid = String(sentenceId || "").trim();
+  if (!sid) return;
+  v3IdeSrsTemplateBySentenceId.set(sid, v3IdeNormalizeSrsTemplateCode(templateCode));
+  const currentRow = currentTableData && currentTableData[v3IdeState.selectedRowIdx];
+  if (v3IdeGetSentenceId(currentRow) === sid) {
+    v3IdeRefreshInspector();
+  }
 }
 
 function v3IdeRenderAudioInspector(row, rowIdx) {
@@ -12978,6 +13206,241 @@ function v3DashboardRenderActivityPanel(q, level) {
     : '<div class="v3-dash-empty">Активности пока нет. Проиграйте строку текста, загруженного из Библиотеки (Row-TTS).</div>';
 }
 
+let v3SrsTrainerState = {
+  sessionId: null,
+  current: null,
+  revealed: false,
+  summary: null,
+  progress: null,
+  session: null,
+};
+
+function v3SrsTrainerEl(id) {
+  return document.getElementById(id);
+}
+
+function v3SrsTrainerBuildCardView(current) {
+  const s = current && current.sentence ? current.sentence : {};
+  const card = current && current.card ? current.card : {};
+  const template = card && card.template ? card.template : {};
+  const code = String(template.code || "ru_to_he");
+
+  if (code === "he_to_ru") {
+    return {
+      templateLabel: template.label || "Hebrew -> Russian",
+      promptLabel: "Prompt",
+      promptHtml: `<div class="v3-srs-he">${v3EscapeHtml(s.heNiqqud || s.hePlain || "")}</div>`,
+      revealHtml: `
+        <div class="v3-srs-trainer-answer">
+          <div style="font-size:18px; color:#0f172a;">${v3EscapeHtml(s.ru || "No translation available")}</div>
+          ${s.translit ? `<div class="v3-srs-subtle">${v3EscapeHtml(s.translit)}</div>` : ""}
+          ${s.textTitle ? `<div class="v3-srs-subtle">Text: ${v3EscapeHtml(s.textTitle)}</div>` : ""}
+          <div class="v3-srs-subtle">State: ${v3EscapeHtml(card.state || "new")} · Due: ${v3EscapeHtml(card.dueDate || "today")}</div>
+        </div>
+      `,
+    };
+  }
+
+  return {
+    templateLabel: template.label || "Russian -> Hebrew",
+    promptLabel: "Prompt",
+    promptHtml: `<div class="v3-srs-trainer-prompt">${v3EscapeHtml(s.ru || s.hePlain || "No prompt available")}</div>`,
+    revealHtml: `
+      <div class="v3-srs-trainer-answer">
+        <div class="v3-srs-he">${v3EscapeHtml(s.heNiqqud || s.hePlain || "")}</div>
+        ${s.translit ? `<div class="v3-srs-subtle">${v3EscapeHtml(s.translit)}</div>` : ""}
+        ${s.textTitle ? `<div class="v3-srs-subtle">Text: ${v3EscapeHtml(s.textTitle)}</div>` : ""}
+        <div class="v3-srs-subtle">State: ${v3EscapeHtml(card.state || "new")} · Due: ${v3EscapeHtml(card.dueDate || "today")}</div>
+      </div>
+    `,
+  };
+}
+
+function v3SrsTrainerRenderHome() {
+  const el = v3SrsTrainerEl("v3SrsTrainerContent");
+  if (!el) return;
+
+  const summary = v3SrsTrainerState.summary || { dueCount: 0, byState: {} };
+  const dueCount = Number(summary.dueCount || 0);
+  const byState = summary.byState || {};
+
+  el.innerHTML = `
+    <div class="v3-srs-toolbar">
+      <div class="v3-srs-progress">Today queue ready</div>
+      <button class="btn-primary" onclick="v3SrsTrainerStart()" ${dueCount > 0 ? "" : "disabled"}>Start Session</button>
+    </div>
+    <div class="v3-srs-trainer-summary">
+      <div class="v3-srs-stat">
+        <div class="v3-srs-stat-label">Due Today</div>
+        <div class="v3-srs-stat-value">${dueCount}</div>
+      </div>
+      <div class="v3-srs-stat">
+        <div class="v3-srs-stat-label">Learning</div>
+        <div class="v3-srs-stat-value">${Number(byState.learning || 0) + Number(byState.relearning || 0)}</div>
+      </div>
+      <div class="v3-srs-stat">
+        <div class="v3-srs-stat-label">Review</div>
+        <div class="v3-srs-stat-value">${Number(byState.review || 0)}</div>
+      </div>
+      <div class="v3-srs-stat">
+        <div class="v3-srs-stat-label">New</div>
+        <div class="v3-srs-stat-value">${Number(byState.new || 0)}</div>
+      </div>
+    </div>
+    <div class="v3-srs-card-panel">
+      <div class="v3-srs-subtle">
+        Trainer uses the current Today queue. Add cards from IDE and then start a focused review session here.
+      </div>
+      <div class="v3-srs-subtle">
+        Session flow in PATCH-04: start, reveal, rate, next. More trainer modes will land in later patches.
+      </div>
+    </div>
+  `;
+}
+
+function v3SrsTrainerRenderSession() {
+  const el = v3SrsTrainerEl("v3SrsTrainerContent");
+  if (!el) return;
+
+  const current = v3SrsTrainerState.current;
+  const session = v3SrsTrainerState.session;
+  const progress = v3SrsTrainerState.progress || { completed: 0, total: 0, remaining: 0 };
+
+  if (!current || !current.sentence) {
+    el.innerHTML = `
+      <div class="v3-srs-card-panel">
+        <div class="v3-srs-trainer-prompt">Session finished</div>
+        <div class="v3-srs-subtle">Reviewed: ${Number(session && session.reviewsDone || 0)} / ${Number(session && session.cardsTotal || 0)}</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn-primary" onclick="v3SrsTrainerRefresh()">Back to Today</button>
+          <button class="btn-secondary" onclick="v3SrsTrainerClose()">Close</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const s = current.sentence;
+  const card = current.card || {};
+  const view = v3SrsTrainerBuildCardView(current);
+  const revealHtml = v3SrsTrainerState.revealed
+    ? view.revealHtml
+    : "";
+
+  el.innerHTML = `
+    <div class="v3-srs-toolbar">
+      <div class="v3-srs-progress">Progress ${Number(progress.completed || 0)} / ${Number(progress.total || 0)} · Remaining ${Number(progress.remaining || 0)}</div>
+      <button class="btn-secondary" onclick="v3SrsTrainerFinish()">Finish Session</button>
+    </div>
+    <div class="v3-srs-card-panel">
+      <div class="v3-srs-subtle">${v3EscapeHtml(view.templateLabel || "Card")}</div>
+      <div class="v3-srs-subtle">${v3EscapeHtml(view.promptLabel || "Prompt")}</div>
+      ${view.promptHtml}
+      ${revealHtml}
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        ${v3SrsTrainerState.revealed ? "" : `<button class="btn-primary" onclick="v3SrsTrainerReveal()">Reveal</button>`}
+      </div>
+      <div class="v3-ide-srs-actions">
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-again" onclick="v3SrsTrainerReview(1)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Again</button>
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-hard" onclick="v3SrsTrainerReview(2)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Hard</button>
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-good" onclick="v3SrsTrainerReview(3)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Good</button>
+        <button class="v3-ide-srs-btn v3-ide-srs-btn-easy" onclick="v3SrsTrainerReview(4)" ${v3SrsTrainerState.revealed ? "" : "disabled"}>Easy</button>
+      </div>
+    </div>
+  `;
+}
+
+async function v3SrsTrainerRefresh() {
+  const el = v3SrsTrainerEl("v3SrsTrainerContent");
+  if (el) {
+    el.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
+  }
+
+  try {
+    const res = await v3GetJson("/api/srs/today/summary");
+    v3SrsTrainerState = {
+      sessionId: null,
+      current: null,
+      revealed: false,
+      summary: res.summary || null,
+      progress: null,
+      session: null,
+    };
+    v3SrsTrainerRenderHome();
+  } catch (e) {
+    if (el) {
+      el.innerHTML = `
+        <div class="v3-ide-empty">
+          <div class="v3-ide-empty-icon">⚠️</div>
+          <div class="v3-ide-empty-text">Failed to load SRS summary</div>
+        </div>
+      `;
+    }
+  }
+}
+
+async function v3SrsTrainerOpen() {
+  const modal = v3SrsTrainerEl("v3SrsTrainerModal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  await v3SrsTrainerRefresh();
+}
+
+function v3SrsTrainerClose() {
+  const modal = v3SrsTrainerEl("v3SrsTrainerModal");
+  if (!modal) return;
+  modal.classList.add("hidden");
+}
+
+async function v3SrsTrainerStart() {
+  try {
+    const source = document.body.classList.contains("v3-ide-mode") ? "ide" : "classic";
+    const res = await v3PostJson("/api/srs/sessions", { source, limit: 50 });
+    v3SrsTrainerState.sessionId = res.session && res.session.id || null;
+    v3SrsTrainerState.current = res.current || null;
+    v3SrsTrainerState.revealed = false;
+    v3SrsTrainerState.progress = res.progress || null;
+    v3SrsTrainerState.session = res.session || null;
+    v3SrsTrainerRenderSession();
+  } catch (e) {
+    console.error("SRS trainer start failed:", e);
+    if (typeof showToast === "function") showToast("Failed to start SRS session");
+  }
+}
+
+function v3SrsTrainerReveal() {
+  v3SrsTrainerState.revealed = true;
+  v3SrsTrainerRenderSession();
+}
+
+async function v3SrsTrainerReview(rating) {
+  try {
+    if (!v3SrsTrainerState.sessionId) return;
+    const res = await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/review`, {
+      rating: Number(rating),
+    });
+    v3SrsTrainerState.current = res.next || null;
+    v3SrsTrainerState.revealed = false;
+    v3SrsTrainerState.progress = res.progress || null;
+    v3SrsTrainerState.session = res.session || null;
+    v3SrsTrainerRenderSession();
+  } catch (e) {
+    console.error("SRS trainer review failed:", e);
+    if (typeof showToast === "function") showToast("Failed to save trainer review");
+  }
+}
+
+async function v3SrsTrainerFinish() {
+  try {
+    if (v3SrsTrainerState.sessionId) {
+      await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/finish`, {});
+    }
+  } catch (e) {
+    console.error("SRS trainer finish failed:", e);
+  }
+  await v3SrsTrainerRefresh();
+}
+
 function v3DashboardOpen() {
   const m = v3DashEl("v3DashboardModal");
   if (!m) return;
@@ -14194,6 +14657,13 @@ window.v3DashboardContinue = v3DashboardContinue;
 window.v3DashboardOpenText = v3DashboardOpenText;
 window.v3DashboardTogglePin = v3DashboardTogglePin;
 window.v3DashboardOnFilterChange = v3DashboardOnFilterChange;
+window.v3SrsTrainerOpen = v3SrsTrainerOpen;
+window.v3SrsTrainerClose = v3SrsTrainerClose;
+window.v3SrsTrainerRefresh = v3SrsTrainerRefresh;
+window.v3SrsTrainerStart = v3SrsTrainerStart;
+window.v3SrsTrainerReveal = v3SrsTrainerReveal;
+window.v3SrsTrainerReview = v3SrsTrainerReview;
+window.v3SrsTrainerFinish = v3SrsTrainerFinish;
 
 function v3DashboardBindTagClicksOnce() {
   if (v3DashTagClicksBound) return;

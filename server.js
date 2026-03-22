@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const { execFile } = require("child_process");
 const http = require("http");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const {
   DATA_DIR,
@@ -75,6 +76,25 @@ const {
   getAnalyticsSummary,
   listTopTextsByPlays,
 } = require("./db/historyRepo");
+
+const {
+  listTemplates,
+  getSentenceCardSnapshot,
+  getCardSnapshotById,
+  createSentenceCard,
+  generateSentenceCards,
+  reviewSentenceCard,
+  listTodayCards,
+} = require("./db/srsRepo");
+
+const {
+  getTodaySummary,
+  createTodaySession,
+  getSessionById,
+  getSessionNext,
+  reviewSessionNext,
+  finishSession,
+} = require("./db/srsSessionRepo");
 
 const {
   upsertAudioAsset,
@@ -385,8 +405,9 @@ if (!fs.existsSync(geminiCacheDir)) fs.mkdirSync(geminiCacheDir);
 // 4. ИНИЦИАЛИЗАЦИЯ КЛИЕНТОВ
 // --------------------------------------------------------
 
-// 4.1. Google Cloud TTS — креды из переменной GOOGLE_CLOUD_TTS_KEY
+// 4.1. Google Cloud TTS — креды из GOOGLE_CLOUD_TTS_KEY или GOOGLE_APPLICATION_CREDENTIALS
 let ttsServiceAccount = null;
+const ttsCredentialsPath = String(process.env.GOOGLE_APPLICATION_CREDENTIALS || "").trim();
 
 if (process.env.GOOGLE_CLOUD_TTS_KEY) {
   try {
@@ -396,8 +417,10 @@ if (process.env.GOOGLE_CLOUD_TTS_KEY) {
     console.error("[TTS] Невозможно разобрать GOOGLE_CLOUD_TTS_KEY как JSON:", e);
     ttsServiceAccount = null;
   }
+} else if (ttsCredentialsPath) {
+  console.log("[TTS] Используется GOOGLE_APPLICATION_CREDENTIALS:", ttsCredentialsPath);
 } else {
-  console.warn("[TTS] Переменная GOOGLE_CLOUD_TTS_KEY не задана — будет попытка использовать дефолтные креды");
+  console.warn("[TTS] Не заданы GOOGLE_CLOUD_TTS_KEY и GOOGLE_APPLICATION_CREDENTIALS — будет попытка использовать дефолтные креды");
 }
 
 const ttsClient = ttsServiceAccount
@@ -412,7 +435,9 @@ const ttsClient = ttsServiceAccount
 
 console.log(
   "[TTS] Клиент инициализирован, режим кредов:",
-  ttsServiceAccount ? "service_account из GOOGLE_CLOUD_TTS_KEY" : "Application Default Credentials"
+  ttsServiceAccount
+    ? "service_account из GOOGLE_CLOUD_TTS_KEY"
+    : (ttsCredentialsPath ? "GOOGLE_APPLICATION_CREDENTIALS" : "Application Default Credentials")
 );
 
 // 4.2. Gemini
@@ -421,6 +446,8 @@ const GEMINI_API_KEY =
 let genAI = null;
 if (GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+} else {
+  console.warn("[Gemini] GEMINI_API_KEY / GOOGLE_API_KEY не задан — AI translation отключен");
 }
 
 // --------------------------------------------------------
@@ -3568,6 +3595,284 @@ app.get("/api/nav/resolve", async (req, res) => {
     return res.status(400).json({ ok: false, error: "UNSUPPORTED_TYPE" });
   } catch (e) {
     console.error("GET /api/nav/resolve error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+// --------------------------------------------------------
+// PATCH-03: SRS v1 API
+// --------------------------------------------------------
+app.get("/api/srs/templates", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+    const includeInactive = String(req.query.includeInactive || "") === "1";
+    const templates = await listTemplates({ includeInactive });
+    return res.json({ ok: true, templates });
+  } catch (e) {
+    console.error("GET /api/srs/templates error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.get("/api/srs/cards", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const cardId = String(req.query.cardId || "").trim();
+    const sentenceId = String(req.query.sentenceId || "").trim();
+    const templateCode = String(req.query.templateCode || "").trim();
+    if (!cardId && !sentenceId) {
+      return res.status(400).json({ ok: false, error: "BAD_CARD_QUERY" });
+    }
+
+    const snapshot = cardId
+      ? await getCardSnapshotById(cardId)
+      : await getSentenceCardSnapshot(sentenceId, { templateCode });
+    if (!snapshot) {
+      return res.status(404).json({ ok: false, error: cardId ? "CARD_NOT_FOUND" : "SENTENCE_NOT_FOUND" });
+    }
+
+    return res.json({ ok: true, sentence: snapshot.sentence, card: snapshot.card });
+  } catch (e) {
+    if (String(e && e.message || "") === "BAD_TEMPLATE") {
+      return res.status(400).json({ ok: false, error: "BAD_TEMPLATE" });
+    }
+    console.error("GET /api/srs/cards error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/cards", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const sentenceId = String(req.body && req.body.sentenceId || "").trim();
+    const templateCode = String(req.body && req.body.templateCode || "").trim();
+    if (!sentenceId) {
+      return res.status(400).json({ ok: false, error: "BAD_SENTENCE_ID" });
+    }
+
+    const snapshot = await createSentenceCard({ sentenceId, templateCode });
+    return res.json({ ok: true, sentence: snapshot.sentence, card: snapshot.card });
+  } catch (e) {
+    const msg = String(e && e.message || "");
+    if (msg === "SENTENCE_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "SENTENCE_NOT_FOUND" });
+    }
+    if (msg === "BAD_TEMPLATE") {
+      return res.status(400).json({ ok: false, error: "BAD_TEMPLATE" });
+    }
+    console.error("POST /api/srs/cards error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/cards/generate", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const sentenceId = String(req.body && req.body.sentenceId || "").trim();
+    const templateCodes = Array.isArray(req.body && req.body.templateCodes) ? req.body.templateCodes : [];
+    if (!sentenceId) {
+      return res.status(400).json({ ok: false, error: "BAD_SENTENCE_ID" });
+    }
+
+    const cards = await generateSentenceCards({ sentenceId, templateCodes });
+    return res.json({
+      ok: true,
+      cards: cards.map((item) => ({ sentence: item.sentence, card: item.card })),
+    });
+  } catch (e) {
+    const msg = String(e && e.message || "");
+    if (msg === "SENTENCE_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "SENTENCE_NOT_FOUND" });
+    }
+    if (msg === "BAD_TEMPLATE") {
+      return res.status(400).json({ ok: false, error: "BAD_TEMPLATE" });
+    }
+    console.error("POST /api/srs/cards/generate error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/review", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const cardId = String(req.body && req.body.cardId || "").trim();
+    const sentenceId = String(req.body && req.body.sentenceId || "").trim();
+    const templateCode = String(req.body && req.body.templateCode || "").trim();
+    const rating = Number(req.body && req.body.rating);
+    const reviewTimeMs = req.body && req.body.reviewTimeMs;
+
+    if (!cardId && !sentenceId) {
+      return res.status(400).json({ ok: false, error: "BAD_SENTENCE_ID" });
+    }
+    if (![1, 2, 3, 4].includes(rating)) {
+      return res.status(400).json({ ok: false, error: "BAD_RATING" });
+    }
+
+    const snapshot = await reviewSentenceCard({ cardId, sentenceId, templateCode, rating, reviewTimeMs });
+    return res.json({ ok: true, sentence: snapshot.sentence, card: snapshot.card });
+  } catch (e) {
+    const msg = String(e && e.message || "");
+    if (msg === "SENTENCE_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "SENTENCE_NOT_FOUND" });
+    }
+    if (msg === "CARD_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "CARD_NOT_FOUND" });
+    }
+    if (msg === "BAD_RATING") {
+      return res.status(400).json({ ok: false, error: "BAD_RATING" });
+    }
+    if (msg === "BAD_TEMPLATE") {
+      return res.status(400).json({ ok: false, error: "BAD_TEMPLATE" });
+    }
+    console.error("POST /api/srs/review error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.get("/api/srs/today", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const limit = v3ClampInt(req.query.limit, 1, 200, 25);
+    const cards = await listTodayCards({ limit });
+    return res.json({ ok: true, limit, cards });
+  } catch (e) {
+    console.error("GET /api/srs/today error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.get("/api/srs/today/summary", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const limit = v3ClampInt(req.query.limit, 1, 500, 200);
+    const summary = await getTodaySummary({ limit });
+    return res.json({ ok: true, summary, limit });
+  } catch (e) {
+    console.error("GET /api/srs/today/summary error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/sessions", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const limit = v3ClampInt(req.body && req.body.limit, 1, 200, 50);
+    const source = String(req.body && req.body.source || "ui").trim().slice(0, 32) || "ui";
+    const session = await createTodaySession({ limit, source });
+    const next = await getSessionNext(session.id);
+    return res.json({
+      ok: true,
+      session: next.session,
+      done: next.done,
+      current: next.current,
+      progress: next.progress,
+    });
+  } catch (e) {
+    console.error("POST /api/srs/sessions error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.get("/api/srs/sessions/:id", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const sessionId = String(req.params.id || "").trim();
+    if (!sessionId) return res.status(400).json({ ok: false, error: "BAD_SESSION_ID" });
+
+    const session = await getSessionById(sessionId);
+    if (!session) return res.status(404).json({ ok: false, error: "SESSION_NOT_FOUND" });
+
+    return res.json({ ok: true, session });
+  } catch (e) {
+    console.error("GET /api/srs/sessions/:id error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.get("/api/srs/sessions/:id/next", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const sessionId = String(req.params.id || "").trim();
+    if (!sessionId) return res.status(400).json({ ok: false, error: "BAD_SESSION_ID" });
+
+    const next = await getSessionNext(sessionId);
+    return res.json({
+      ok: true,
+      session: next.session,
+      done: next.done,
+      current: next.current,
+      progress: next.progress,
+    });
+  } catch (e) {
+    if (String(e && e.message || "") === "SESSION_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "SESSION_NOT_FOUND" });
+    }
+    console.error("GET /api/srs/sessions/:id/next error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/sessions/:id/review", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const sessionId = String(req.params.id || "").trim();
+    const rating = Number(req.body && req.body.rating);
+    const reviewTimeMs = req.body && req.body.reviewTimeMs;
+
+    if (!sessionId) return res.status(400).json({ ok: false, error: "BAD_SESSION_ID" });
+    if (![1, 2, 3, 4].includes(rating)) {
+      return res.status(400).json({ ok: false, error: "BAD_RATING" });
+    }
+
+    const result = await reviewSessionNext({ sessionId, rating, reviewTimeMs });
+    return res.json({
+      ok: true,
+      session: result.session,
+      reviewed: result.reviewed,
+      done: result.done,
+      next: result.next,
+      progress: result.progress,
+    });
+  } catch (e) {
+    const msg = String(e && e.message || "");
+    if (msg === "SESSION_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "SESSION_NOT_FOUND" });
+    }
+    if (msg === "SESSION_NOT_ACTIVE" || msg === "SESSION_EMPTY") {
+      return res.status(409).json({ ok: false, error: msg });
+    }
+    if (msg === "BAD_RATING") {
+      return res.status(400).json({ ok: false, error: "BAD_RATING" });
+    }
+    console.error("POST /api/srs/sessions/:id/review error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.post("/api/srs/sessions/:id/finish", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const sessionId = String(req.params.id || "").trim();
+    if (!sessionId) return res.status(400).json({ ok: false, error: "BAD_SESSION_ID" });
+
+    const session = await finishSession(sessionId);
+    return res.json({ ok: true, session });
+  } catch (e) {
+    if (String(e && e.message || "") === "SESSION_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: "SESSION_NOT_FOUND" });
+    }
+    console.error("POST /api/srs/sessions/:id/finish error:", e);
     return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
   }
 });
