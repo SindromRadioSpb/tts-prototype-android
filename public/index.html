@@ -16654,6 +16654,13 @@ function v3AudioPrefetchIsUuid(id) {
 }
 
 function v3AudioPrefetchGetTextId() {
+  try {
+    if (document.body.classList.contains("v3-ide-mode")) {
+      const ideTextId = v3IdeState && v3IdeState.activeTextId ? String(v3IdeState.activeTextId) : "";
+      if (ideTextId) return ideTextId;
+    }
+  } catch (_) {}
+
   const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
   const exportId = (typeof v3SessionGetUpdateTextId === "function")
     ? v3SessionGetUpdateTextId()
@@ -17058,6 +17065,7 @@ v3AudioPrefetchSetStatsKv({
         v3AudioPrefetchSetDiag(job);
         v3AudioPrefetchStopPolling();
         try { localStorage.removeItem(V3_AUDIO_PREFETCH_JOB_KEY); } catch (_) {}
+        try { await v3AudioPrefetchRefreshAudioFromServer(); } catch (_) {}
         showToast("Audio prefetch: ошибка (см. диагностику)", "error");
         return;
       }
