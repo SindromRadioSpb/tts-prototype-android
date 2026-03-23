@@ -5844,6 +5844,22 @@ if (header) {
     if (typeof window.v3SetActiveTextId === "function") {
       window.v3SetActiveTextId(textId);
     }
+    try {
+      const rawMeta = (t && (t.table_model_meta_json || t.tableModelMetaJson)) ? String(t.table_model_meta_json || t.tableModelMetaJson) : "";
+      v3LastGeminiMeta = rawMeta ? JSON.parse(rawMeta) : null;
+    } catch (_) {
+      v3LastGeminiMeta = null;
+    }
+    try {
+      if (window.v3SetActiveLibraryTextMeta) {
+        window.v3SetActiveLibraryTextMeta({
+          textId: String(textId),
+          sourceText: String((t && (t.source_text || t.sourceText)) || ""),
+          audioAssetKey: String((t && (t.audio_asset_key || t.audioAssetKey)) || ""),
+          audioTtsProfileJson: String((t && (t.audio_tts_profile_json || t.audioTtsProfileJson)) || ""),
+        });
+      }
+    } catch (_) {}
 
     // Load notes for this text
     try {
@@ -5903,6 +5919,8 @@ function v3IdeRenderTable(rows, textId) {
   rows.forEach(row => {
     row._v3_textId = textId;
     row._v3_sentenceId = row.sentenceId || row.sentence_id || row.id || "";
+    row._v3_audioAssetKey = row.audio_asset_key || row.audioAssetKey || row._v3_audioAssetKey || "";
+    row._v3_audioTtsProfileJson = row.audio_tts_profile_json || row.audioTtsProfileJson || row._v3_audioTtsProfileJson || "";
   });
 
   // Column visibility (PATCH-17.5)
@@ -9745,15 +9763,145 @@ updatePlaylistButtonUI();
     hebrewFontSelectEl.addEventListener("change", applyHebrewFont);
     applyHebrewFont();
 
+    function v3MapSentenceApiRowToUiRow(r, textId) {
+        const sid = r && (r.id ?? r.sentence_id ?? r.sentenceId);
+        return {
+            he: String(r.he_plain ?? r.he ?? ""),
+            he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
+            translit: String(r.translit ?? ""),
+            ru: String(r.ru ?? ""),
+            _v3_audioAssetKey: String(r.audio_asset_key ?? r.audioAssetKey ?? ""),
+            _v3_audioTtsProfileJson: String(r.audio_tts_profile_json ?? r.audioTtsProfileJson ?? ""),
+            _v3_sentenceId: sid ? String(sid) : null,
+            _v3_textId: textId ? String(textId) : null
+        };
+    }
+
+    async function v3RestoreSavedTableIfUnchanged(currentText) {
+        try {
+            const textId = (typeof v3SessionGetUpdateTextId === "function") ? v3SessionGetUpdateTextId() : null;
+            const meta = v3ActiveLibraryTextMeta;
+            if (!textId || !meta) return false;
+            if (String(meta.textId || "") !== String(textId)) return false;
+            if (String(meta.sourceText || "").trim() !== String(currentText || "").trim()) return false;
+
+            const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(String(textId))}/sentences`);
+            if (!rowsRes.ok) throw new Error("Failed to restore saved rows");
+            const rowsData = await rowsRes.json();
+            const rows = Array.isArray(rowsData.sentences || rowsData.rows) ? (rowsData.sentences || rowsData.rows) : [];
+            if (!rows.length) return false;
+
+            currentTableData = rows.map((r) => v3MapSentenceApiRowToUiRow(r, textId));
+            renderTable(currentTableData);
+            clearTableStale();
+            tableIsStale = false;
+            clearResultsMeta("audio");
+            setResultsMeta("table", "восстановлена из Library (без запроса к Gemini)");
+
+            try {
+                const cache = {
+                    text: String(currentText || "").trim(),
+                    rows: currentTableData,
+                    createdAt: new Date().toISOString(),
+                    lastDocxFilename: lastDocxFilename || generateDocxFileName()
+                };
+                localStorage.setItem(TABLE_CACHE_KEY, JSON.stringify(cache));
+            } catch (_) {}
+
+            loadStats();
+            return true;
+        } catch (e) {
+            console.warn("v3RestoreSavedTableIfUnchanged failed", e);
+            return false;
+        }
+    }
+
     // ----------------------------
     // TTS
     // ----------------------------
+    function v3TextAudioProfilesMatch(storedProfile, lang, cfg) {
+        if (!storedProfile || typeof storedProfile !== "object") return false;
+        const normalizedStored = (typeof v3AudioPrefetchNormalizeProfileForCompare === "function")
+            ? v3AudioPrefetchNormalizeProfileForCompare(storedProfile)
+            : storedProfile;
+        const normalizedCurrent = (typeof v3AudioPrefetchNormalizeProfileForCompare === "function")
+            ? v3AudioPrefetchNormalizeProfileForCompare({
+                language: lang,
+                voiceName: cfg && cfg.voiceId ? cfg.voiceId : "",
+                speakingRate: cfg && typeof cfg.rate === "number" ? cfg.rate : 1,
+                pitch: cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0
+            })
+            : {
+                language: lang,
+                voiceName: cfg && cfg.voiceId ? cfg.voiceId : "",
+                speakingRate: cfg && typeof cfg.rate === "number" ? cfg.rate : 1,
+                pitch: cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0
+            };
+
+        return !!(
+            normalizedStored &&
+            normalizedCurrent &&
+            String(normalizedStored.language || "") === String(normalizedCurrent.language || "") &&
+            String(normalizedStored.voiceName || "") === String(normalizedCurrent.voiceName || "") &&
+            Number(normalizedStored.speakingRate) === Number(normalizedCurrent.speakingRate) &&
+            Number(normalizedStored.pitch) === Number(normalizedCurrent.pitch)
+        );
+    }
+
+    function renderAudioFromUrl(audioUrl, noteText, shouldAutoplay) {
+        lastAudioBlob = null;
+        lastAudioUrl = audioUrl ? String(audioUrl) : null;
+
+        const audioContainer = document.getElementById("audioContainer");
+        const autoplayAttr = shouldAutoplay ? " autoplay" : "";
+
+        audioContainer.innerHTML =
+            '<div class="audio-block">' +
+            '  <audio controls src="' + v3EscapeHtml(String(audioUrl || "")) + '"' + autoplayAttr + '></audio>' +
+            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+            '    ⬇ Скачать MP3' +
+            '  </button>' +
+            '</div>';
+
+        clearAudioStale();
+        setResultsMeta("audio", noteText || null);
+    }
+
+    function v3TryPlaySavedTextAudioDirectly(currentText, currentLang, cfg) {
+        try {
+            const updateId = (typeof v3SessionGetUpdateTextId === "function") ? v3SessionGetUpdateTextId() : null;
+            const meta = v3ActiveLibraryTextMeta;
+            if (!updateId || !meta || String(meta.textId || "") !== String(updateId)) return false;
+            if (String(meta.sourceText || "").trim() !== String(currentText || "").trim()) return false;
+
+            const assetKey = String(meta.audioAssetKey || "").trim();
+            if (!assetKey) return false;
+
+            const storedProfile = (typeof v3AudioPrefetchSafeParseJson === "function")
+                ? v3AudioPrefetchSafeParseJson(meta.audioTtsProfileJson || "")
+                : null;
+            if (!v3TextAudioProfilesMatch(storedProfile, currentLang, cfg)) return false;
+
+            renderAudioFromUrl("/api/audio/" + encodeURIComponent(assetKey), "восстановлена из Library audio cache (без запроса к TTS)", true);
+            showToast("Озвучка восстановлена из Library", "success");
+            loadStats();
+            return true;
+        } catch (e) {
+            console.warn("v3TryPlaySavedTextAudioDirectly failed", e);
+            return false;
+        }
+    }
+
     async function playTTS() {
         if (!validate()) return;
 
         const currentText = getText().trim();
         const currentLang = getLang();
         const cfg = getTtsVoiceConfig();
+
+        if (v3TryPlaySavedTextAudioDirectly(currentText, currentLang, cfg)) {
+            return;
+        }
 
         // 1) local cache
         try {
@@ -9786,19 +9934,47 @@ updatePlaylistButtonUI();
 
         // 2) server
         try {
+            const updateId = (typeof v3SessionGetUpdateTextId === "function") ? v3SessionGetUpdateTextId() : null;
+            const activeSourceText = v3ActiveLibraryTextMeta && v3ActiveLibraryTextMeta.sourceText
+                ? String(v3ActiveLibraryTextMeta.sourceText)
+                : "";
+            const canLinkToLibraryText = !!(updateId && activeSourceText && activeSourceText === currentText);
+
             const res = await apiCall("/api/tts", {
                 text: getText(),
                 language: currentLang,
                 voiceId: cfg.voiceId,
                 speakingRate: cfg.rate,
-                pitch: cfg.pitch
+                pitch: cfg.pitch,
+                textId: canLinkToLibraryText ? String(updateId) : undefined,
+                assetType: canLinkToLibraryText ? "text" : undefined
             });
 
             const noteText = res.fromCache
                 ? "восстановлена из серверного кэша (без запроса к Google TTS)"
                 : "сгенерирована через Google TTS";
 
-            renderAudioFromBase64(res.audioContent, noteText, true);
+            if (canLinkToLibraryText && res && typeof res.assetKey === "string" && res.assetKey.trim()) {
+                const nextProfile = JSON.stringify({
+                    language: currentLang,
+                    voiceName: cfg.voiceId || "",
+                    speakingRate: cfg.rate,
+                    pitch: cfg.pitch
+                });
+                try {
+                    window.v3SetActiveLibraryTextMeta({
+                        ...(v3ActiveLibraryTextMeta || {}),
+                        textId: String(updateId),
+                        sourceText: currentText,
+                        audioAssetKey: res.assetKey,
+                        audioTtsProfileJson: nextProfile
+                    });
+                } catch (_) {}
+
+                renderAudioFromUrl("/api/audio/" + encodeURIComponent(res.assetKey), noteText, true);
+            } else {
+                renderAudioFromBase64(res.audioContent, noteText, true);
+            }
 
             try {
                 saveAudioCache(currentText, currentLang, cfg, res.audioContent);
@@ -9889,15 +10065,14 @@ updatePlaylistButtonUI();
             return;
         }
 
-        if (!lastAudioBlob) {
-            showError("Нет актуального аудио для сохранения");
-            return;
-        }
-
         let url = lastAudioUrl;
-        if (!url) {
+        if (!url && lastAudioBlob) {
             url = URL.createObjectURL(lastAudioBlob);
             lastAudioUrl = url;
+        }
+        if (!url) {
+            showError("Нет актуального аудио для сохранения");
+            return;
         }
 
         const a = document.createElement("a");
@@ -10024,6 +10199,7 @@ updatePlaylistButtonUI();
 -------------------------------------------------------- */
 
 var v3ActiveTextId = null;
+let v3ActiveLibraryTextMeta = null;
 
 // seq counter for "newer wins" logic on the client
 let v3ProgressSeq = 0;
@@ -10183,6 +10359,20 @@ window.v3SetActiveTextId = function (textId) {
   v3ActiveTextId = next;
 };
 
+window.v3SetActiveLibraryTextMeta = function (meta) {
+  if (!meta || typeof meta !== "object") {
+    v3ActiveLibraryTextMeta = null;
+    return;
+  }
+
+  v3ActiveLibraryTextMeta = {
+    textId: meta.textId ? String(meta.textId) : null,
+    sourceText: String(meta.sourceText || "").trim(),
+    audioAssetKey: String(meta.audioAssetKey || "").trim(),
+    audioTtsProfileJson: String(meta.audioTtsProfileJson || "").trim(),
+  };
+};
+
 window.v3ClearActiveTextId = function () {
   // flush ONLY current active text; keep global flush for pagehide/visibilitychange
   const cur = v3ActiveTextId;
@@ -10190,6 +10380,7 @@ window.v3ClearActiveTextId = function () {
     try { v3FlushProgressForText(cur, { keepalive: false }); } catch (_) {}
   }
   v3ActiveTextId = null;
+  v3ActiveLibraryTextMeta = null;
 };
 
 function v3DebouncedSaveProgress(rowIdx) {
@@ -12593,6 +12784,22 @@ const [meta, sents] = await Promise.all([
 
     // set active context for progress auto-save
     try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(textId); } catch (_) {}
+    try {
+      const rawMeta = (text && (text.table_model_meta_json || text.tableModelMetaJson)) ? String(text.table_model_meta_json || text.tableModelMetaJson) : "";
+      v3LastGeminiMeta = rawMeta ? JSON.parse(rawMeta) : null;
+    } catch (_) {
+      v3LastGeminiMeta = null;
+    }
+    try {
+      if (window.v3SetActiveLibraryTextMeta) {
+        window.v3SetActiveLibraryTextMeta({
+          textId: String(textId),
+          sourceText: String((text && (text.source_text || text.sourceText)) || ""),
+          audioAssetKey: String((text && (text.audio_asset_key || text.audioAssetKey)) || ""),
+          audioTtsProfileJson: String((text && (text.audio_tts_profile_json || text.audioTtsProfileJson)) || ""),
+        });
+      }
+    } catch (_) {}
 
     // touch opened (non-blocking)
     fetch("/api/library/texts/" + encodeURIComponent(textId) + "/opened", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
@@ -12610,20 +12817,7 @@ const [meta, sents] = await Promise.all([
       .slice()
       .sort((a,b) => Number(a.order_index ?? a.orderIndex ?? 0) - Number(b.order_index ?? b.orderIndex ?? 0))
       .map((r) => {
-        const sid = r && (r.id ?? r.sentence_id ?? r.sentenceId);
-        return {
-          he: String(r.he_plain ?? r.he ?? ""),
-          he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
-          translit: String(r.translit ?? ""),
-          ru: String(r.ru ?? ""),
-		  // W12-AUDIO-PREFETCH-DATA-01: audio metadata from Library API
-		_v3_audioAssetKey: String(r.audio_asset_key ?? r.audioAssetKey ?? ""),
-		_v3_audioTtsProfileJson: String(r.audio_tts_profile_json ?? r.audioTtsProfileJson ?? ""),
-
-          // V3 Audio Assets context (Step 8.2): стабильные идентификаторы для линковки
-          _v3_sentenceId: sid ? String(sid) : null,
-          _v3_textId: String(textId)
-        };
+        return v3MapSentenceApiRowToUiRow(r, textId);
       });
 	  
 	      // Save offline cache for restore-on-load (Offline+F5)
@@ -12793,6 +12987,16 @@ async function v3LibrarySaveCurrentCore(meta) {
     // set active context for progress auto-save
     if (text && text.id) {
       try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(String(text.id)); } catch (_) {}
+      try {
+        if (window.v3SetActiveLibraryTextMeta) {
+          window.v3SetActiveLibraryTextMeta({
+            textId: String(text.id),
+            sourceText,
+            audioAssetKey: String((text.audio_asset_key || text.audioAssetKey) || ""),
+            audioTtsProfileJson: String((text.audio_tts_profile_json || text.audioTtsProfileJson) || ""),
+          });
+        }
+      } catch (_) {}
     }
 	
 	// C4: draft -> saved + bind id/title into session (for header/status + restore)
@@ -12882,6 +13086,16 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
 
     if (text && text.id) {
       try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(String(text.id)); } catch (_) {}
+      try {
+        if (window.v3SetActiveLibraryTextMeta) {
+          window.v3SetActiveLibraryTextMeta({
+            textId: String(text.id),
+            sourceText,
+            audioAssetKey: String((text.audio_asset_key || text.audioAssetKey) || ""),
+            audioTtsProfileJson: String((text.audio_tts_profile_json || text.audioTtsProfileJson) || ""),
+          });
+        }
+      } catch (_) {}
       try {
         v3SessionSet({
           mode: "saved",
@@ -15541,12 +15755,13 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         if (!validate()) return;
 
         const currentText = getText().trim();
-		
-		try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
-		try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
 
+        // 0) Library source-of-truth: if opened saved text was not changed, never regenerate via Gemini
+        if (await v3RestoreSavedTableIfUnchanged(currentText)) {
+            return;
+        }
 
-        // local table cache first
+        // 1) local table cache first
         try {
             const rawCache = localStorage.getItem(TABLE_CACHE_KEY);
             if (rawCache) {
@@ -15574,6 +15789,9 @@ try { v3DashCloseViewMenu(); } catch (_) {}
         } catch (e) {
             console.error("Local table cache short-circuit error", e);
         }
+
+		try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
+		try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
 
         if (isGeminiLocked()) {
             if (geminiLockType === "rate") {
@@ -17046,6 +17264,34 @@ function v3AudioPrefetchRefreshMarkers() {
   }
 }
 
+function v3RowTtsMatchesCurrentProfile(row) {
+  try {
+    const haveKey = row && row._v3_audioAssetKey ? String(row._v3_audioAssetKey).trim() : "";
+    if (!haveKey) return false;
+    const storedProfile = v3AudioPrefetchSafeParseJson(row && row._v3_audioTtsProfileJson ? row._v3_audioTtsProfileJson : "");
+    const currentProfile = v3AudioPrefetchGetCurrentProfileForCompare();
+    return !!(storedProfile && v3AudioPrefetchProfilesEqual(storedProfile, currentProfile));
+  } catch (_) {
+    return false;
+  }
+}
+
+function v3RowTtsTrackPlay(row, assetKey) {
+  try {
+    if (!row || !row._v3_textId || !row._v3_sentenceId) return;
+    fetch("/api/history/event", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        textId: String(row._v3_textId),
+        sentenceId: String(row._v3_sentenceId),
+        eventType: "row_tts",
+        assetKey: assetKey || null
+      })
+    }).catch(() => {});
+  } catch (_) {}
+}
+
 async function v3AudioPrefetchCopyDiagnostics() {
   const tracked = v3AudioPrefetchGetTrackedJob();
   const diag = {
@@ -17853,6 +18099,26 @@ if (cachedB64) {
   return;
 }
 
+if (hasV3Ctx && v3RowTtsMatchesCurrentProfile(row)) {
+  const assetKey = String(row._v3_audioAssetKey || "").trim();
+  if (assetKey) {
+    const audio = ensureRowAudioPlayer();
+    if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+    rowAudioUrl = null;
+    audio.src = "/api/audio/" + encodeURIComponent(assetKey);
+    try {
+      if (typeof v3AudioPrefetchUpdateMarkerForRow === "function") {
+        v3AudioPrefetchUpdateMarkerForRow(rowIdx);
+      }
+    } catch (_) {}
+    v3RowTtsTrackPlay(row, assetKey);
+    setRowPlayingUI(rowIdx, true);
+    await audio.play();
+    loadStats();
+    return;
+  }
+}
+
             const ttsBody = {
   text: text,
   language: lang,
@@ -17894,19 +18160,7 @@ try {
   }
 } catch (_) {}
   
-    // Week 9 (P0): History event (fire-and-forget). Только для Library-строк (hasV3Ctx=true).
-  try {
-    fetch("/api/history/event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        textId: String(row._v3_textId),
-        sentenceId: String(row._v3_sentenceId),
-        eventType: "row_tts",
-        assetKey: assetKey || null
-      })
-    }).catch(() => {});
-  } catch (_) {}
+  v3RowTtsTrackPlay(row, assetKey);
   
   setRowPlayingUI(rowIdx, true);
   await audio.play();

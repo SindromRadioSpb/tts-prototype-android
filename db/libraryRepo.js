@@ -611,6 +611,26 @@ async function getTextById(textId) {
       source_text, source_meta_json,
       tts_profile_json, table_model_meta_json,
 
+      COALESCE((
+        SELECT a.asset_key
+        FROM text_audio ta
+        JOIN audio_assets a ON a.id = ta.audio_id
+        WHERE ta.text_id = texts.id
+          AND ta.is_default = 1
+        ORDER BY a.last_used_at DESC, a.created_at DESC
+        LIMIT 1
+      ), '') AS audio_asset_key,
+
+      COALESCE((
+        SELECT a.tts_profile_json
+        FROM text_audio ta
+        JOIN audio_assets a ON a.id = ta.audio_id
+        WHERE ta.text_id = texts.id
+          AND ta.is_default = 1
+        ORDER BY a.last_used_at DESC, a.created_at DESC
+        LIMIT 1
+      ), '') AS audio_tts_profile_json,
+
       source, topic, is_pinned, pin_order,
 
       is_archived, created_at, updated_at, last_opened_at

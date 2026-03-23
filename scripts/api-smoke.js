@@ -275,6 +275,20 @@ async function run() {
     }
     console.log("PASS /api/nav/resolve -> resolved sentence to expected text");
 
+    const textMeta = await fetchJson(
+      `${BASE_URL}/api/library/texts/${encodeURIComponent(fixtureData.sentence.textId)}`
+    );
+    const textMetaRow = textMeta && textMeta.text ? textMeta.text : textMeta;
+    if (
+      !textMeta.ok ||
+      !textMetaRow ||
+      !Object.prototype.hasOwnProperty.call(textMetaRow, "audio_asset_key") ||
+      !Object.prototype.hasOwnProperty.call(textMetaRow, "audio_tts_profile_json")
+    ) {
+      throw new Error(`Unexpected /api/library/texts/:id payload: ${JSON.stringify(textMeta)}`);
+    }
+    console.log("PASS /api/library/texts/:id -> returns text-level audio metadata");
+
     if (fixtureData.note && fixtureData.note.q) {
       const notesSearch = await fetchJson(
         `${BASE_URL}/api/notes/search?q=${encodeURIComponent(fixtureData.note.q)}&limit=10`
