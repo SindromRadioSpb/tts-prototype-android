@@ -1411,124 +1411,142 @@ async function v3AudioPrefetchRun(job) {
     }
   }
 
-  let nextIdx = 0;
   const concurrency = Math.max(1, job.concurrency || V3_AUDIO_PREFETCH_DEFAULT_CONCURRENCY);
+  const attempts = Math.max(1, (job.retry && job.retry.attempts) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_ATTEMPTS);
+  const baseDelayMs = (job.retry && job.retry.baseDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_BASE_DELAY_MS;
+  const maxDelayMs = (job.retry && job.retry.maxDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_MAX_DELAY_MS;
+  const maxPasses = 3;
 
-  const worker = async () => {
-    while (true) {
-      if (job.cancelRequested) return;
+  const processBatch = async (batchRows, passNo) => {
+    let nextIdx = 0;
+    const failedRows = [];
 
-      const i = nextIdx++;
-      if (i >= rows.length) return;
+    const worker = async () => {
+      while (true) {
+        if (job.cancelRequested) return;
 
-      const r = rows[i] || {};
-      const sentenceId = r.sentenceId ? String(r.sentenceId) : "";
-      const rawText = String(r.text || r.ttsText || r.he_niqqud || r.he || "").trim();
+        const i = nextIdx++;
+        if (i >= batchRows.length) return;
 
-      if (!rawText) {
-        job.empty = (job.empty || 0) + 1;
-        continue;
-      }
+        const r = batchRows[i] || {};
+        const sentenceId = r.sentenceId ? String(r.sentenceId) : "";
+        const rawText = String(r.text || r.ttsText || r.he_niqqud || r.he || "").trim();
 
-      // onlyMissing: skip if default audio already matches CURRENT profile AND file exists
-      if (job.onlyMissing && sentenceId) {
-        const def = defaultMap.get(sentenceId);
-        if (def && def.ttsProfileJson && def.assetKey && def.ttsProfileJson === job.ttsProfileJson) {
-          const ak = String(def.assetKey || "").trim();
-          if (/^[a-f0-9]{64}$/i.test(ak)) {
-            const relMp3 = getAudioRelativePath(ak).replace(/\\/g, "/");
-			const abs = path.resolve(DATA_DIR, relMp3);
+        if (!rawText) {
+          job.empty = (job.empty || 0) + 1;
+          continue;
+        }
 
-			if (fs.existsSync(abs)) {
-			job.skipped = (job.skipped || 0) + 1;
-			continue;
-			}
+        if (job.onlyMissing && sentenceId) {
+          const def = defaultMap.get(sentenceId);
+          if (def && def.ttsProfileJson && def.assetKey && def.ttsProfileJson === job.ttsProfileJson) {
+            const ak = String(def.assetKey || "").trim();
+            if (/^[a-f0-9]{64}$/i.test(ak)) {
+              const relMp3 = getAudioRelativePath(ak).replace(/\\/g, "/");
+              const abs = path.resolve(DATA_DIR, relMp3);
+              if (fs.existsSync(abs)) {
+                job.skipped = (job.skipped || 0) + 1;
+                continue;
+              }
+            }
           }
         }
-      }
 
-      job.inFlight = (job.inFlight || 0) + 1;
+        job.inFlight = (job.inFlight || 0) + 1;
 
-      const attempts = Math.max(1, (job.retry && job.retry.attempts) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_ATTEMPTS);
-      const baseDelayMs = (job.retry && job.retry.baseDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_BASE_DELAY_MS;
-      const maxDelayMs = (job.retry && job.retry.maxDelayMs) || V3_AUDIO_PREFETCH_DEFAULT_RETRY_MAX_DELAY_MS;
+        let ok = false;
+        let lastErr = null;
 
-      let ok = false;
-      let lastErr = null;
+        for (let attempt = 1; attempt <= attempts; attempt++) {
+          if (job.cancelRequested) break;
 
-      for (let attempt = 1; attempt <= attempts; attempt++) {
-        if (job.cancelRequested) break;
+          try {
+            const ensured = await ensureAudioAsset({
+              text: rawText,
+              assetType: "row",
+              ttsProfile: job.ttsProfile,
+              sentenceId: sentenceId || null,
+              textId: job.textId || null,
+              languageCode: job.ttsProfile && job.ttsProfile.language,
+              voiceName: job.ttsProfile && job.ttsProfile.voiceName,
+              speakingRate: job.ttsProfile && job.ttsProfile.speakingRate,
+              pitch: job.ttsProfile && job.ttsProfile.pitch,
+              returnAudioContent: false,
+            });
 
-        try {
-          const ensured = await ensureAudioAsset({
-            text: rawText,
-            assetType: "row",
-            ttsProfile: job.ttsProfile,
-            sentenceId: sentenceId || null,
-            textId: job.textId || null,
-            languageCode: job.ttsProfile && job.ttsProfile.language,
-            voiceName: job.ttsProfile && job.ttsProfile.voiceName,
-            speakingRate: job.ttsProfile && job.ttsProfile.speakingRate,
-            pitch: job.ttsProfile && job.ttsProfile.pitch,
-            returnAudioContent: false, // PRO: avoid base64 overhead for batch jobs
+            if (ensured && ensured.assetKey) {
+              if (ensured.fromCache) {
+                job.cached = (job.cached || 0) + 1;
+              } else {
+                job.generated = (job.generated || 0) + 1;
+                try { updateUsage("tts", rawText.length); } catch (_) {}
+              }
+
+              if (!sentenceId) {
+                job.unlinked = (job.unlinked || 0) + 1;
+              } else if (job.onlyMissing) {
+                defaultMap.set(sentenceId, { assetKey: ensured.assetKey, ttsProfileJson: job.ttsProfileJson });
+              }
+            }
+
+            job.done = (job.done || 0) + 1;
+            ok = true;
+            break;
+          } catch (e) {
+            lastErr = e;
+            if (attempt < attempts && !job.cancelRequested) {
+              const delay = v3BackoffDelayMs(attempt, baseDelayMs, maxDelayMs);
+              await v3Sleep(delay);
+            }
+          }
+        }
+
+        if (!ok) {
+          failedRows.push({
+            ...r,
+            _lastErrorMessage: lastErr && lastErr.message ? String(lastErr.message) : String(lastErr || "UNKNOWN_ERROR"),
+            _passNo: passNo,
           });
-
-          // Usage accounting: count only when actually generated (not from cache)
-          if (ensured && ensured.assetKey) {
-            if (ensured.fromCache) {
-              job.cached = (job.cached || 0) + 1;
-            } else {
-              job.generated = (job.generated || 0) + 1;
-              try { updateUsage("tts", rawText.length); } catch (_) {}
-            }
-
-            if (!sentenceId) {
-              job.unlinked = (job.unlinked || 0) + 1;
-            } else if (job.onlyMissing) {
-              // update map so repeated sentenceIds in the same job can skip
-              defaultMap.set(sentenceId, { assetKey: ensured.assetKey, ttsProfileJson: job.ttsProfileJson });
-            }
-          }
-
-          job.done = (job.done || 0) + 1;
-          ok = true;
-          break;
-        } catch (e) {
-          lastErr = e;
-          if (attempt < attempts && !job.cancelRequested) {
-            const delay = v3BackoffDelayMs(attempt, baseDelayMs, maxDelayMs);
-            await v3Sleep(delay);
-            continue;
-          }
         }
+
+        job.inFlight = Math.max(0, (job.inFlight || 1) - 1);
       }
+    };
 
-      if (!ok) {
-        job.failed = (job.failed || 0) + 1;
-        const msg = lastErr && lastErr.message ? String(lastErr.message) : String(lastErr || "UNKNOWN_ERROR");
-
-        if (!Array.isArray(job.errorsSample)) job.errorsSample = [];
-        job.errorsSample.push({
-          idx: i,
-          sentenceId: sentenceId || null,
-          message: msg,
-        });
-      }
-
-      job.inFlight = Math.max(0, (job.inFlight || 1) - 1);
-    }
-  };
-
-  try {
     const workers = [];
     for (let w = 0; w < concurrency; w++) workers.push(worker());
     await Promise.all(workers);
+    return failedRows;
+  };
+
+  try {
+    let pendingRows = rows.slice();
+    for (let passNo = 1; passNo <= maxPasses && pendingRows.length && !job.cancelRequested; passNo++) {
+      pendingRows = await processBatch(pendingRows, passNo);
+    }
+
+    if (pendingRows.length) {
+      job.failed = pendingRows.length;
+      if (!Array.isArray(job.errorsSample)) job.errorsSample = [];
+      for (const r of pendingRows.slice(0, 10)) {
+        job.errorsSample.push({
+          idx: r.idx,
+          sentenceId: r.sentenceId ? String(r.sentenceId) : null,
+          message: r._lastErrorMessage || "UNKNOWN_ERROR",
+          passNo: r._passNo || null,
+        });
+      }
+    } else {
+      job.failed = 0;
+    }
 
     job.finishedAtMs = Date.now();
     job.finishedAtIso = new Date(job.finishedAtMs).toISOString();
 
     if (job.cancelRequested) {
       job.state = "cancelled";
+    } else if (job.failed > 0) {
+      job.state = "failed";
     } else {
       job.state = "done";
     }

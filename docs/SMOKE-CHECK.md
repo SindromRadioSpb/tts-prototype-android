@@ -262,6 +262,23 @@ console.log("NAV-12 PASS");
 | IDE-09 | Responsive (1024px) | Уменьшить ширину до 1024px | Правая панель становится overlay |
 | IDE-10 | Responsive (768px) | Уменьшить ширину до 768px | Обе панели становятся overlays |
 
+Дополнительно для `Inspector -> Export`:
+- `Create Missing Audio` должен открывать тот же Audio Prefetch modal, что и в Classic mode
+- `Export All to Anki` должен открывать тот же live Anki modal, что и в Classic mode
+- `Copy Selected Row` должен работать только для одной выбранной строки
+- CSV не должен скачиваться из IDE export path
+
+#### 3.7.1.a Audio Prefetch completion
+
+- открыть сохранённый текст из `Library`
+- нажать `Audio`
+- оставить `only missing = on`
+- нажать `Создать аудио`
+- ожидаемо:
+  - job не должен завершаться успешным статусом, если часть строк реально не озвучена
+  - временные provider/db сбои должны дожиматься внутренними retry/pass без повторных кликов
+  - если после внутренних retry остались ошибки, статус должен быть `failed/error` с диагностикой
+
 #### 3.7.2. IDE + NAV Integration Checks
 
 | ID | Сценарий | Шаги | Ожидаемое |

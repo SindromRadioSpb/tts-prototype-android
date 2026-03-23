@@ -3965,21 +3965,12 @@ body.v3-ide-mode .v3-ide-right {
     <div id="v3IdeRightExport" class="v3-ide-panel-content" style="display:none;">
       <div id="v3IdeExportContent">
         <div class="v3-ide-inspector-section">
-          <div class="v3-ide-inspector-label">Export Selected Row</div>
+          <div class="v3-ide-inspector-label">Full Text Export</div>
           <div class="v3-ide-export-actions">
-            <button class="v3-ide-export-btn" onclick="v3IdeExportAnki()">
-              <span class="v3-ide-export-icon">📇</span>
-              <span>Add to Anki</span>
+            <button class="v3-ide-export-btn" onclick="v3IdeExportCreateAudio()">
+              <span class="v3-ide-export-icon">🔊</span>
+              <span>Create Missing Audio</span>
             </button>
-            <button class="v3-ide-export-btn" onclick="v3IdeExportCopy()">
-              <span class="v3-ide-export-icon">📋</span>
-              <span>Copy Formatted</span>
-            </button>
-          </div>
-        </div>
-        <div class="v3-ide-inspector-section">
-          <div class="v3-ide-inspector-label">Export Full Text</div>
-          <div class="v3-ide-export-actions">
             <button class="v3-ide-export-btn" onclick="v3IdeExportTextAnki()">
               <span class="v3-ide-export-icon">📚</span>
               <span>Export All to Anki</span>
@@ -3989,6 +3980,17 @@ body.v3-ide-mode .v3-ide-right {
               <span>Export to DOCX</span>
             </button>
           </div>
+          <div class="v3-ide-empty-text" style="margin-top:10px;">IDE export now uses the same live Anki flow as Classic mode.</div>
+        </div>
+        <div class="v3-ide-inspector-section">
+          <div class="v3-ide-inspector-label">Selected Row</div>
+          <div class="v3-ide-export-actions">
+            <button class="v3-ide-export-btn" onclick="v3IdeExportCopy()">
+              <span class="v3-ide-export-icon">📋</span>
+              <span>Copy Selected Row</span>
+            </button>
+          </div>
+          <div class="v3-ide-empty-text" style="margin-top:10px;">Single-row live export to Anki is not supported in IDE export. Use SRS or full-text export.</div>
         </div>
       </div>
     </div>
@@ -6468,25 +6470,17 @@ function v3IdeRenderAudioInspector(row, rowIdx) {
 // ============================================
 // V3 IDE EXPORT (Right Panel)
 // ============================================
-function v3IdeExportAnki() {
-  const rowIdx = v3IdeState.selectedRowIdx;
-  if (rowIdx === null || !currentTableData || !currentTableData[rowIdx]) {
-    if (typeof showToast === "function") showToast("Select a row first");
-    else alert("Select a row first");
+function v3IdeExportCreateAudio() {
+  const textId = v3IdeState.activeTextId;
+  if (!textId) {
+    if (typeof showToast === "function") showToast("Open a Library text first", "warning");
     return;
   }
-
-  // Open Anki modal with this specific row pre-selected
-  // Use existing v3AnkiOpen if available
-  if (typeof v3AnkiOpen === "function") {
-    v3AnkiOpen({ rowIndex: rowIdx });
-  } else {
-    // Fallback: show row info
-    const row = currentTableData[rowIdx];
-    const msg = `Row ${rowIdx + 1}:\n${row.he || ""}\n→ ${row.ru || ""}`;
-    if (typeof showToast === "function") showToast("Anki modal not available. Row: " + (rowIdx + 1));
-    else alert(msg);
+  if (typeof v3AudioPrefetchOpenModal === "function") {
+    v3AudioPrefetchOpenModal();
+    return;
   }
+  if (typeof showToast === "function") showToast("Audio batch modal is not available", "error");
 }
 
 function v3IdeExportCopy() {
@@ -6519,17 +6513,16 @@ function v3IdeExportCopy() {
 function v3IdeExportTextAnki() {
   const textId = v3IdeState.activeTextId;
   if (!textId) {
-    if (typeof showToast === "function") showToast("No text selected");
+    if (typeof showToast === "function") showToast("Open a Library text first", "warning");
     return;
   }
 
-  // Use existing Anki modal
-  if (typeof v3AnkiOpen === "function") {
-    v3AnkiOpen();
-  } else {
-    // Fallback: open Anki export link
-    window.open(`/api/library/texts/${encodeURIComponent(textId)}/export/anki`, "_blank");
+  if (typeof v3AnkiOpenModal === "function") {
+    v3AnkiOpenModal();
+    return;
   }
+
+  if (typeof showToast === "function") showToast("Anki export modal is not available", "error");
 }
 
 async function v3IdeExportDocx() {
@@ -6598,7 +6591,7 @@ window.v3IdeOpenTextFromHistory = v3IdeOpenTextFromHistory;
 window.v3IdePlayAll = v3IdePlayAll;
 window.v3IdeOpenInClassic = v3IdeOpenInClassic;
 // Export functions
-window.v3IdeExportAnki = v3IdeExportAnki;
+window.v3IdeExportCreateAudio = v3IdeExportCreateAudio;
 window.v3IdeExportCopy = v3IdeExportCopy;
 window.v3IdeExportTextAnki = v3IdeExportTextAnki;
 window.v3IdeExportDocx = v3IdeExportDocx;
