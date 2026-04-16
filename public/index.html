@@ -473,17 +473,31 @@ body.resizing-rows {
   }
 }
 
-/* Action column: compact, centered, no text wrap, both modes */
+/* Action column: compact flex-column, buttons contained in cell */
 .col-action-cell {
   text-align: center !important;
-  white-space: nowrap;
-  padding: 4px 4px !important;
+  padding: 4px 3px !important;
   vertical-align: middle !important;
+  overflow: hidden;
 }
-.col-action-cell .row-tts-btn,
-.col-action-cell .row-note-btn {
-  display: inline-block;
-  margin: 1px 2px;
+
+/* td body: flex-column layout — ▶+circle top, 📝 bottom */
+td.col-action-cell {
+  display: table-cell; /* keep as table cell */
+}
+.col-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+}
+.col-action-row-top { margin-bottom: 2px; }
+.col-action-row-bot {}
+
+/* Ensure resize grips on th are never clipped */
+#proTable thead th {
+  overflow: visible;
 }
 
 
@@ -3896,6 +3910,7 @@ body.v3-ide-mode .v3-ide-right {
       <!-- Column Visibility Toggles -->
 	  <div id="v3IdeColSettingsMount">
       <div id="v3IdeColSettings" class="v3-ide-col-settings">
+        <label><input type="checkbox" id="v3IdeColAction" onchange="v3IdeToggleColumn('action')" checked> Actions</label>
         <label><input type="checkbox" id="v3IdeColHebrew" onchange="v3IdeToggleColumn('hebrew')" checked> Hebrew</label>
         <label><input type="checkbox" id="v3IdeColNiqqud" onchange="v3IdeToggleColumn('niqqud')" checked> Niqqud</label>
         <label><input type="checkbox" id="v3IdeColTranslit" onchange="v3IdeToggleColumn('translit')" checked> Translit</label>
@@ -5051,7 +5066,7 @@ function v3IdeLoadState() {
 
 // --- IDE Column Visibility (PATCH-17.5) ---
 const V3_IDE_TABLE_COLS_KEY = "ide.table.columns.v1";
-const V3_IDE_TABLE_COLS_DEFAULT = { hebrew: true, niqqud: true, translit: true, translation: true };
+const V3_IDE_TABLE_COLS_DEFAULT = { action: true, hebrew: true, niqqud: true, translit: true, translation: true };
 let v3IdeVisibleColumns = { ...V3_IDE_TABLE_COLS_DEFAULT };
 
 function v3IdeLoadColumnSettings() {
@@ -5073,7 +5088,7 @@ function v3IdeSaveColumnSettings() {
 }
 
 function v3IdeApplyColumnCheckboxes() {
-  const ids = { hebrew: "v3IdeColHebrew", niqqud: "v3IdeColNiqqud", translit: "v3IdeColTranslit", translation: "v3IdeColTranslation" };
+  const ids = { action: "v3IdeColAction", hebrew: "v3IdeColHebrew", niqqud: "v3IdeColNiqqud", translit: "v3IdeColTranslit", translation: "v3IdeColTranslation" };
   for (const [key, id] of Object.entries(ids)) {
     const el = document.getElementById(id);
     if (el) el.checked = !!v3IdeVisibleColumns[key];
@@ -5961,14 +5976,15 @@ function v3IdeRenderTable(rows, textId) {
   const showTr = cols.translit;
   const showRu = cols.translation;
 
-  // Build table HTML with conditional columns
-  // Actions — первая колонка (по требованию мобильного UI)
+  // Column visibility
+  const showAction = !!cols.action;
+
+  // Build table HTML — Actions first (if visible), then content columns, no # column
   let html = `
     <table id="proTable" class="proTable" data-text-id="${textId}">
       <thead>
         <tr>
-          <th class="col-action-cell">▶📝</th>
-          <th style="width:32px;">#</th>
+          ${showAction ? '<th class="col-action-cell">▶📝</th>' : ''}
           ${showHe ? '<th>Hebrew</th>' : ''}
           ${showNiq ? '<th>Niqqud</th>' : ''}
           ${showTr ? '<th>Translit</th>' : ''}
@@ -5990,12 +6006,16 @@ function v3IdeRenderTable(rows, textId) {
 
     html += `
       <tr data-row-idx="${idx}" data-sentence-id="${sentenceId}" onclick="v3IdeOnRowClick(${idx})">
+        ${showAction ? `
         <td class="col-action-cell">
-          <span class="row-audio-ind" data-row-idx="${idx}" aria-hidden="true"></span>
-          <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Озвучить" aria-label="Озвучить">▶</button>
-          <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
-        </td>
-        <td>${idx + 1}</td>
+          <div class="col-action-row col-action-row-top">
+            <span class="row-audio-ind" data-row-idx="${idx}" aria-hidden="true"></span>
+            <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Озвучить" aria-label="Озвучить">▶</button>
+          </div>
+          <div class="col-action-row col-action-row-bot">
+            <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
+          </div>
+        </td>` : ''}
         ${showHe ? `<td class="rtl rtl-he">${he}</td>` : ''}
         ${showNiq ? `<td class="rtl rtl-he-niqqud">${niqqud}</td>` : ''}
         ${showTr ? `<td>${translit}</td>` : ''}
@@ -8941,7 +8961,7 @@ loadRowAudioCacheFromStorage();
 
             // Защита: не допускаем "всё скрыто"
             if (countVisibleColumns() < 1) {
-                tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
+                tableVisibleColumns = { action: true, he: true, niqqud: true, translit: true, ru: true };
                 tablePreset = "full";
             }
 
@@ -16134,10 +16154,8 @@ try {
     const translit = row.translit || "";
     const ru = row.ru || "";
 
-    // Куда ставим кнопку: если action-колонка видима — кнопки идут туда;
-    // иначе — fallback в he или niqqud (старое поведение)
-    const putBtnIn = tableVisibleColumns.action ? null
-        : (tableVisibleColumns.he ? "he" : (tableVisibleColumns.niqqud ? "niqqud" : null));
+    // Кнопки только в action-колонке. Если action скрыта — кнопки не отображаются.
+    const putBtnIn = null;
 
     html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1">';
 
@@ -16145,7 +16163,7 @@ try {
         const meta = colMeta[k] || {};
         const tdClass = meta.cellClass ? (' class="' + meta.cellClass + '"') : "";
 
-        // --- Action column: TTS + Note buttons ---
+        // --- Action column: TTS + Note buttons (flex-column: ▶+circle top, 📝 bottom) ---
         if (k === "action") {
             const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
             const tid = row && row._v3_textId ? String(row._v3_textId) : "";
@@ -16154,17 +16172,21 @@ try {
                 if (sid && tid) {
                     const hasNote = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
                     noteBtnHtml =
+                        '<div class="col-action-row col-action-row-bot">' +
                         '<button type="button" class="row-note-btn' + (hasNote ? ' row-note-active' : '') + '" ' +
                         'data-row-idx="' + rowIdx + '" ' +
                         'data-sentence-id="' + escapeHtml(sid) + '" ' +
                         'title="' + (hasNote ? 'Заметка (есть)' : 'Добавить заметку') + '" ' +
-                        'aria-label="Заметка">📝</button>';
+                        'aria-label="Заметка">📝</button>' +
+                        '</div>';
                 }
             } catch (_) {}
             html += '<td data-col="action" class="col-action-cell">' +
+                '<div class="col-action-row col-action-row-top">' +
                 '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>' +
                 '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
                 'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>' +
+                '</div>' +
                 noteBtnHtml +
                 '</td>';
             return;
@@ -16176,36 +16198,8 @@ try {
         else if (k === "translit") value = translit;
         else if (k === "ru") value = ru;
 
-        // Fallback: если action-колонка скрыта — кнопки идут в he/niqqud (старое поведение)
-        if (putBtnIn && k === putBtnIn) {
-            const safeText = escapeHtml(value);
-            const btnHtml =
-                '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
-                'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>';
-            const audioIndHtml = '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>';
-            let noteBtnHtml = "";
-            try {
-                const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
-                const tid = row && row._v3_textId ? String(row._v3_textId) : "";
-                if (sid && tid) {
-                    const hasNote = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
-                    noteBtnHtml =
-                        '<button type="button" class="row-note-btn' + (hasNote ? ' row-note-active' : '') + '" ' +
-                        'data-row-idx="' + rowIdx + '" ' +
-                        'data-sentence-id="' + escapeHtml(sid) + '" ' +
-                        'title="' + (hasNote ? 'Заметка (есть)' : 'Добавить заметку') + '" ' +
-                        'aria-label="Заметка">📝</button>';
-                }
-            } catch (_) {}
-            html += '<td data-col="' + k + '"' + tdClass + '>' +
-                '<div class="cell-he-wrap">' +
-                btnHtml + audioIndHtml + noteBtnHtml +
-                '<div class="row-tts-text">' + safeText + '</div>' +
-                '</div>' +
-                '</td>';
-        } else {
-            html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
-        }
+        // Content cell: plain text only (buttons are in dedicated action column)
+        html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
     });
 
     html += '</tr>';
