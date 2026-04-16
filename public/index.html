@@ -465,14 +465,25 @@ body.resizing-rows {
   background: #ffffff;
 }
 
-/* Mobile: компактная высота контейнера + горизонтальный скролл таблицы */
+/* Mobile: компактная высота контейнера */
 @media (max-width: 600px) {
   #tableContainer {
     min-height: 200px;
     height: var(--tableH, 55vh);
   }
-  /* min-width гарантирует горизонтальный скролл вместо сжатия колонок */
-  #proTable { min-width: 480px; }
+}
+
+/* Action column: compact, centered, no text wrap, both modes */
+.col-action-cell {
+  text-align: center !important;
+  white-space: nowrap;
+  padding: 4px 4px !important;
+  vertical-align: middle !important;
+}
+.col-action-cell .row-tts-btn,
+.col-action-cell .row-note-btn {
+  display: inline-block;
+  margin: 1px 2px;
 }
 
 
@@ -4244,6 +4255,7 @@ body.v3-ide-mode .v3-ide-right {
             </div>
 
             <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
+                <label class="table-chk"><input type="checkbox" data-col="action"> Действие</label>
                 <label class="table-chk"><input type="checkbox" data-col="he"> Иврит</label>
                 <label class="table-chk"><input type="checkbox" data-col="niqqud"> Огласовки</label>
                 <label class="table-chk"><input type="checkbox" data-col="translit"> Транслит</label>
@@ -5950,16 +5962,17 @@ function v3IdeRenderTable(rows, textId) {
   const showRu = cols.translation;
 
   // Build table HTML with conditional columns
+  // Actions — первая колонка (по требованию мобильного UI)
   let html = `
     <table id="proTable" class="proTable" data-text-id="${textId}">
       <thead>
         <tr>
-          <th style="width:40px;">#</th>
+          <th class="col-action-cell">▶📝</th>
+          <th style="width:32px;">#</th>
           ${showHe ? '<th>Hebrew</th>' : ''}
           ${showNiq ? '<th>Niqqud</th>' : ''}
           ${showTr ? '<th>Translit</th>' : ''}
           ${showRu ? '<th>Translation</th>' : ''}
-          <th style="width:80px;">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -5977,16 +5990,16 @@ function v3IdeRenderTable(rows, textId) {
 
     html += `
       <tr data-row-idx="${idx}" data-sentence-id="${sentenceId}" onclick="v3IdeOnRowClick(${idx})">
-        <td>${idx + 1}</td>
-        ${showHe ? `<td class="rtl-he">${he}</td>` : ''}
-        ${showNiq ? `<td class="rtl-he-niqqud">${niqqud}</td>` : ''}
-        ${showTr ? `<td>${translit}</td>` : ''}
-        ${showRu ? `<td>${ru}</td>` : ''}
-        <td style="white-space:nowrap;">
+        <td class="col-action-cell">
           <span class="row-audio-ind" data-row-idx="${idx}" aria-hidden="true"></span>
-          <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Play TTS" aria-label="Play TTS">▶</button>
+          <button type="button" class="row-tts-btn" data-row-idx="${idx}" title="Озвучить" aria-label="Озвучить">▶</button>
           <button type="button" class="row-note-btn${hasNote ? ' row-note-active' : ''}" data-row-idx="${idx}" data-sentence-id="${sentenceId}" title="${hasNote ? 'Edit note' : 'Add note'}" aria-label="Note" onclick="event.stopPropagation();">📝</button>
         </td>
+        <td>${idx + 1}</td>
+        ${showHe ? `<td class="rtl rtl-he">${he}</td>` : ''}
+        ${showNiq ? `<td class="rtl rtl-he-niqqud">${niqqud}</td>` : ''}
+        ${showTr ? `<td>${translit}</td>` : ''}
+        ${showRu ? `<td>${ru}</td>` : ''}
       </tr>
     `;
   });
@@ -8855,18 +8868,20 @@ loadRowAudioCacheFromStorage();
 
 
     // Порядок колонок фиксированный (источник истины)
-    const TABLE_COL_ORDER = ["he", "niqqud", "translit", "ru"];
+    // action — первая колонка (кнопки ▶📝), затем контентные колонки
+    const TABLE_COL_ORDER = ["action", "he", "niqqud", "translit", "ru"];
 
     // Видимость колонок
     let tableVisibleColumns = {
+        action: true,
         he: true,
         niqqud: true,
         translit: true,
         ru: true
     };
 
-    // Базовые ширины (проценты) — всегда 4 значения
-    let tableBaseWidths = [22, 22, 24, 32];
+    // Базовые ширины (проценты) — 5 значений: action, he, niqqud, translit, ru
+    let tableBaseWidths = [15, 20, 20, 21, 24];
 
     // Последний выбранный пресет
     let tablePreset = "full";
@@ -8906,8 +8921,12 @@ loadRowAudioCacheFromStorage();
                 });
             }
 
-            if (Array.isArray(parsed.baseWidths) && parsed.baseWidths.length === 4) {
-                const bw = parsed.baseWidths.map(function (n) {
+            if (Array.isArray(parsed.baseWidths) &&
+                    (parsed.baseWidths.length === 5 || parsed.baseWidths.length === 4)) {
+                let rawBw = parsed.baseWidths.slice();
+                // Migrate: 4-element (pre-action) → 5-element (prepend action default 15%)
+                if (rawBw.length === 4) rawBw = [15].concat(rawBw);
+                const bw = rawBw.map(function (n) {
                     const num = Number(n);
                     return Number.isFinite(num) && num > 0 ? num : null;
                 });
@@ -9148,8 +9167,8 @@ updatePlaylistButtonUI();
         const resetBtn = document.getElementById("btnTableReset");
         if (resetBtn) {
             resetBtn.addEventListener("click", function () {
-                tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
-                tableBaseWidths = [22, 22, 24, 32];
+                tableVisibleColumns = { action: true, he: true, niqqud: true, translit: true, ru: true };
+                tableBaseWidths = [15, 20, 20, 21, 24];
                 tablePreset = "full";
 
                 normalizeVisibleBaseWidthsTo100();
@@ -9175,19 +9194,19 @@ updatePlaylistButtonUI();
 
     function applyPreset(preset) {
         if (preset === "full") {
-            tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
+            tableVisibleColumns = { action: true, he: true, niqqud: true, translit: true, ru: true };
         } else if (preset === "he_ru") {
-            tableVisibleColumns = { he: true, niqqud: false, translit: false, ru: true };
+            tableVisibleColumns = { action: true, he: true, niqqud: false, translit: false, ru: true };
         } else if (preset === "phonetics") {
-            tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: false };
+            tableVisibleColumns = { action: true, he: true, niqqud: true, translit: true, ru: false };
         } else if (preset === "he_only") {
-            tableVisibleColumns = { he: true, niqqud: false, translit: false, ru: false };
+            tableVisibleColumns = { action: true, he: true, niqqud: false, translit: false, ru: false };
         } else {
             preset = "custom";
         }
 
         if (countVisibleColumns() < 1) {
-            tableVisibleColumns = { he: true, niqqud: true, translit: true, ru: true };
+            tableVisibleColumns = { action: true, he: true, niqqud: true, translit: true, ru: true };
             preset = "full";
         }
 
@@ -16069,6 +16088,7 @@ try {
         }
 
         const colMeta = {
+            action: { title: "▶📝", headerClass: "", cellClass: "col-action-cell" },
             he: { title: "Иврит", headerClass: "rtl", cellClass: "rtl rtl-he" },
             niqqud: { title: "Огласовки", headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
             translit: { title: "Транслит", headerClass: "", cellClass: "" },
@@ -16114,8 +16134,10 @@ try {
     const translit = row.translit || "";
     const ru = row.ru || "";
 
-    // Куда ставим кнопку: he если видима, иначе niqqud если видима
-    const putBtnIn = tableVisibleColumns.he ? "he" : (tableVisibleColumns.niqqud ? "niqqud" : null);
+    // Куда ставим кнопку: если action-колонка видима — кнопки идут туда;
+    // иначе — fallback в he или niqqud (старое поведение)
+    const putBtnIn = tableVisibleColumns.action ? null
+        : (tableVisibleColumns.he ? "he" : (tableVisibleColumns.niqqud ? "niqqud" : null));
 
     html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1">';
 
@@ -16123,46 +16145,64 @@ try {
         const meta = colMeta[k] || {};
         const tdClass = meta.cellClass ? (' class="' + meta.cellClass + '"') : "";
 
+        // --- Action column: TTS + Note buttons ---
+        if (k === "action") {
+            const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
+            const tid = row && row._v3_textId ? String(row._v3_textId) : "";
+            let noteBtnHtml = "";
+            try {
+                if (sid && tid) {
+                    const hasNote = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
+                    noteBtnHtml =
+                        '<button type="button" class="row-note-btn' + (hasNote ? ' row-note-active' : '') + '" ' +
+                        'data-row-idx="' + rowIdx + '" ' +
+                        'data-sentence-id="' + escapeHtml(sid) + '" ' +
+                        'title="' + (hasNote ? 'Заметка (есть)' : 'Добавить заметку') + '" ' +
+                        'aria-label="Заметка">📝</button>';
+                }
+            } catch (_) {}
+            html += '<td data-col="action" class="col-action-cell">' +
+                '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>' +
+                '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
+                'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>' +
+                noteBtnHtml +
+                '</td>';
+            return;
+        }
+
         let value = "";
         if (k === "he") value = he;
         else if (k === "niqqud") value = heNiqqud;
         else if (k === "translit") value = translit;
         else if (k === "ru") value = ru;
 
-        // Row TTS button only in the chosen column
+        // Fallback: если action-колонка скрыта — кнопки идут в he/niqqud (старое поведение)
         if (putBtnIn && k === putBtnIn) {
             const safeText = escapeHtml(value);
             const btnHtml =
-			'<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
-			'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>';
-			
-		const audioIndHtml = '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>';
-
-
-		let noteBtnHtml = "";
-		try {
-			const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
-			const tid = row && row._v3_textId ? String(row._v3_textId) : "";
-		if (sid && tid) {
-			const hasNote = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
-			noteBtnHtml =
-			'<button type="button" class="row-note-btn' + (hasNote ? ' row-note-active' : '') + '" ' +
-			'data-row-idx="' + rowIdx + '" ' +
-			'data-sentence-id="' + escapeHtml(sid) + '" ' +
-			'title="' + (hasNote ? 'Заметка (есть)' : 'Добавить заметку') + '" ' +
-			'aria-label="Заметка">📝</button>';
-		}
-		} catch (_) {}
-
-			html += '<td data-col="' + k + '"' + tdClass + '>' +
-				'<div class="cell-he-wrap">' +
-				btnHtml +
-				audioIndHtml +
-				noteBtnHtml +
-					'<div class="row-tts-text">' + safeText + '</div>' +
-				'</div>' +
-			'</td>';
-
+                '<button type="button" class="row-tts-btn" data-row-idx="' + rowIdx + '" ' +
+                'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>';
+            const audioIndHtml = '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>';
+            let noteBtnHtml = "";
+            try {
+                const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
+                const tid = row && row._v3_textId ? String(row._v3_textId) : "";
+                if (sid && tid) {
+                    const hasNote = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
+                    noteBtnHtml =
+                        '<button type="button" class="row-note-btn' + (hasNote ? ' row-note-active' : '') + '" ' +
+                        'data-row-idx="' + rowIdx + '" ' +
+                        'data-sentence-id="' + escapeHtml(sid) + '" ' +
+                        'title="' + (hasNote ? 'Заметка (есть)' : 'Добавить заметку') + '" ' +
+                        'aria-label="Заметка">📝</button>';
+                }
+            } catch (_) {}
+            html += '<td data-col="' + k + '"' + tdClass + '>' +
+                '<div class="cell-he-wrap">' +
+                btnHtml + audioIndHtml + noteBtnHtml +
+                '<div class="row-tts-text">' + safeText + '</div>' +
+                '</div>' +
+                '</td>';
         } else {
             html += '<td data-col="' + k + '"' + tdClass + '>' + escapeHtml(value) + '</td>';
         }
