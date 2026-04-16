@@ -465,6 +465,16 @@ body.resizing-rows {
   background: #ffffff;
 }
 
+/* Mobile: компактная высота контейнера + горизонтальный скролл таблицы */
+@media (max-width: 600px) {
+  #tableContainer {
+    min-height: 200px;
+    height: var(--tableH, 55vh);
+  }
+  /* min-width гарантирует горизонтальный скролл вместо сжатия колонок */
+  #proTable { min-width: 480px; }
+}
+
 
 
     /* НАСТРОЙКИ ТАБЛИЦЫ */
@@ -876,10 +886,17 @@ th, td { border-color: rgba(0,0,0,0.55); }
 		button.btn-anki,
 		button.btn-audio-prefetch,
 		select { width: 100%; }
+		/* Exception: не растягивать кнопки/селекты внутри блока управления таблицей */
+		#tableContainer button, #tableContainer select,
+		.table-settings-row button, .table-settings-row select,
+		.table-autonext button { width: auto !important; }
   
         .export-actions { margin-left: 0; width: 100%; flex-direction: column; }
         .hotkeys-header { flex-direction: column; align-items: flex-start; }
         .hotkeys-hint { text-align: left; }
+        /* Mobile: reduce padding to reclaim space for the table */
+        body { padding: 12px; }
+        .main-card { padding: 14px 12px; }
     }
 
     /* ============================
@@ -3409,9 +3426,9 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
     display: none;
   }
   
-   /* --- Mobile: compact # column --- */
-  #proTable th:nth-child(1),
-  #proTable td:nth-child(1) {
+   /* --- Mobile: compact # column (IDE mode only — не применять в classic) --- */
+  body.v3-ide-mode #proTable th:nth-child(1),
+  body.v3-ide-mode #proTable td:nth-child(1) {
     width: 2.2em;
     min-width: 2.2em;
     max-width: 2.2em;
