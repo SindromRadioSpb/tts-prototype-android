@@ -61,3 +61,6 @@ part.bin
 # Misc
 repo_tree.txt
 
+.mcp.json
+Архив/.claude/worktrees/
+.claude/settings.local.json

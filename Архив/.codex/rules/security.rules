@@ -1,0 +1,20 @@
+# Project security and permission guardrails synced from E:\projects\tts-prototype-android\.claude\settings.json
+
+def check(tool_call):
+    file_path = str(tool_call.get("file_path", "")).lower()
+    patterns = [
+        "\\.env",
+        "\\.env.",
+        "secret",
+        "secrets",
+        "token",
+        "apikey",
+        "api_key",
+        "credentials",
+        "id_rsa",
+        ".pem",
+    ]
+    for pattern in patterns:
+        if pattern.strip('\\') in file_path:
+            return prefix_rule(decision="deny", reason="Protected secret or credential file")
+    return None

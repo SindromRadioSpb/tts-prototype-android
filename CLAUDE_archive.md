@@ -1,5 +1,8 @@
 # tts-prototype-android — Project Blueprint for Claude Code
 
+Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven Execution.
+Adapt to the real architecture you see.
+
 ## 0) Цель репозитория
 Это сервер + локальная база (SQLite) для “Программа изучение иврита (ии, голос, комп.зрение)”.
 Ключевые свойства:
