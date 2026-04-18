@@ -1,16 +1,29 @@
 "use strict";
 
-// STUB — Phase 1.7 will wire `hebrew-transliteration` (SBL Academic profile).
-// The contract below is what 1.7 must preserve:
+// SBL Academic Hebrew transliteration via the `hebrew-transliteration` package.
+// The output uses macrons + diacritics (e.g. שָׁלוֹם → "šālôm") which is the
+// scholarly standard. If the user later wants a popular profile (e.g. plain
+// "shalom"), bump TRANSLIT_PROFILE in versions.js so existing cache rows
+// invalidate gracefully.
 //
-//   transliterate(heWithNiqqud) -> string
-//   - Input: single segment of Hebrew with full niqqud markers
-//   - Output: Latin transliteration per the configured TRANSLIT_PROFILE
-//   - Returns "" if input is empty
+// The library throws on empty or whitespace-only input ("Cannot set properties
+// of undefined (setting 'siblings')"), so we guard at the boundary. Hebrew
+// without niqqud is passed through unchanged — that's the library's default,
+// and we treat it as a soft no-op rather than an error.
 
-function transliterate(_heWithNiqqud) {
-  // Intentional blank until Phase 1.7.
-  return "";
+const { transliterate: sblTransliterate } = require("hebrew-transliteration");
+
+function transliterate(heWithNiqqud) {
+  if (typeof heWithNiqqud !== "string") return "";
+  const trimmed = heWithNiqqud.trim();
+  if (!trimmed) return "";
+  try {
+    return sblTransliterate(trimmed);
+  } catch (_) {
+    // Library can throw on certain unusual cluster shapes; fall through silently
+    // since transliteration is a best-effort field and the row is still usable.
+    return "";
+  }
 }
 
 module.exports = { transliterate };
