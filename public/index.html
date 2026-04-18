@@ -9343,14 +9343,15 @@ updatePlaylistButtonUI();
     // Инициализация UI таблицы
 	loadAutoNextSetting();
     initTableSettingsUI();
-    initProviderSelect();
-    startPremiumStatusPolling();
+    // Phase 1.9 init runs after the let-declarations below to avoid TDZ
+    // when this inline script is evaluated top-to-bottom.
 
     // ----------------------------
     // PREMIUM STATUS POLLING (Phase 1.9)
     // ----------------------------
-    let _premiumStatusTimer = null;
-    let _premiumStatusBackoffMs = 0;
+    var _premiumStatusTimer = null;
+    var _premiumStatusBackoffMs = 0;
+    var _premiumStatusRefreshTimer = null;
     const PREMIUM_STATUS_INTERVAL_MS = 30 * 1000;
     const PREMIUM_STATUS_MAX_BACKOFF_MS = 5 * 60 * 1000;
 
@@ -9441,11 +9442,14 @@ updatePlaylistButtonUI();
     }
 
     // Refresh after a v2 call so the GCP usage % updates without waiting 30s.
-    let _premiumStatusRefreshTimer = null;
     function schedulePremiumStatusRefresh() {
         if (_premiumStatusRefreshTimer) clearTimeout(_premiumStatusRefreshTimer);
         _premiumStatusRefreshTimer = setTimeout(fetchPremiumStatus, 500);
     }
+
+    // Now safe to bootstrap — all let/const above is initialized.
+    initProviderSelect();
+    startPremiumStatusPolling();
 
     // ----------------------------
     // RESULTS META
