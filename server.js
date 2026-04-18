@@ -2011,6 +2011,54 @@ Rules:
 });
 
 // --------------------------------------------------------
+// 10b. API: PREMIUM AI TRANSLATE (v2, behind PREMIUM_V2 flag)
+// --------------------------------------------------------
+const PREMIUM_V2_ENABLED = process.env.PREMIUM_V2 === "1";
+
+if (PREMIUM_V2_ENABLED) {
+  const premiumPipeline = require("./db/premium/pipeline");
+
+  app.post("/api/translate-table-v2", async (req, res) => {
+    try {
+      const {
+        text,
+        target_lang = "ru",
+        provider = "madlad",
+        text_id = null,
+        note = null,
+      } = req.body || {};
+
+      const out = await premiumPipeline.translateTable({
+        text,
+        target_lang,
+        provider,
+        text_id,
+        note,
+      });
+
+      res.json(out);
+    } catch (e) {
+      if (e.code === "BAD_INPUT") {
+        return res.status(400).json({ error: e.message });
+      }
+      if (e.upstream) {
+        // Sidecar reachable but returned non-2xx, or network/timeout failure.
+        const code = e.status === 0 ? 502 : e.status || 502;
+        return res.status(code).json({
+          error: "premium upstream failed",
+          upstream: e.upstream,
+          details: e.message,
+        });
+      }
+      console.error("[premium] translate-table-v2 error:", e);
+      res.status(500).json({ error: "Ошибка premium pipeline", details: e.message });
+    }
+  });
+
+  console.log("[premium] /api/translate-table-v2 enabled (PREMIUM_V2=1)");
+}
+
+// --------------------------------------------------------
 // 11. API: EXPORT DOCX
 // --------------------------------------------------------
 app.post("/api/export-docx", async (req, res) => {
