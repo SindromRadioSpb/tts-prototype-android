@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai_local"
+version = "0.1.0"
+description = "Local Hebrew NLP service: nikud (DictaBERT-menaked) + translation (MADLAD-400 via CTranslate2)"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "fastapi>=0.115,<0.116",
+    "uvicorn[standard]>=0.30,<0.31",
+    "pydantic>=2.8,<3.0",
+    "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+runtime = [
+    "transformers>=4.45,<4.50",
+    "ctranslate2>=4.4,<4.6",
+    "sentencepiece>=0.2,<0.3",
+    "huggingface-hub>=0.25,<0.30",
+    "safetensors>=0.4",
+]
+dev = [
+    "pytest>=8.0,<9.0",
+    "pytest-asyncio>=0.23,<0.25",
+    "pytest-timeout>=2.3,<3.0",
+    "httpx>=0.27,<0.28",
+]
+
+[tool.setuptools.packages.find]
+include = ["ai_local*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+timeout = 30
+testpaths = ["tests"]
