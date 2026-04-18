@@ -11871,12 +11871,24 @@ function v3UiUpdateActiveHeader() {
   let statusText = "";
   let sub = "";
 
+  const _providerLabelMap = { gcp: "GCP Cloud Translation v3", madlad: "MADLAD-400 (local)", gemini: "Google Gemini" };
+  const _meta = (typeof v3LastGeminiMeta !== "undefined" && v3LastGeminiMeta) ? v3LastGeminiMeta : null;
+  const _providerLabel = _meta && _meta.provider
+    ? (_providerLabelMap[_meta.provider] || _meta.provider)
+    : null;
+
   if (mode === "draft") {
     statusText = "Черновик";
     if (!title) title = v3GuessDraftTitleFromTextarea();
-    sub = "Текст изменён — таблица устарела и не соответствует текущему тексту.\n" +
-      "Нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.\n" +
-      "Сохранение таблицы рекомендуется после обновления.";
+    const staleNow = !!(typeof tableIsStale !== "undefined" && tableIsStale);
+    if (staleNow) {
+      sub = "Текст изменён — таблица устарела и не соответствует текущему тексту.\n" +
+        "Нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.\n" +
+        "Сохранение таблицы рекомендуется после обновления.";
+    } else {
+      sub = "Таблица сформирована";
+      if (_providerLabel) sub += " · Provider: " + _providerLabel;
+    }
     statusEl.classList.remove("v3-pill-saved");
     statusEl.classList.add("v3-pill-draft");
   } else {
@@ -11885,6 +11897,7 @@ function v3UiUpdateActiveHeader() {
     const origin = st.origin || "library";
     sub = (origin === "dashboard") ? "Открыт из Dashboard" : "Открыт из Library";
     if (st.openMode === "resume") sub += " • режим: продолжить";
+    if (_providerLabel) sub += " · Provider: " + _providerLabel;
     statusEl.classList.remove("v3-pill-draft");
     statusEl.classList.add("v3-pill-saved");
   }
