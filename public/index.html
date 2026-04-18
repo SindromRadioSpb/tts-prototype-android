@@ -11945,46 +11945,53 @@ function v3UiSyncSaveButtons() {
           ? v3SessionGetUpdateTextId()
           : (st && st.textId ? st.textId : null);
 
+        // Export/Audio/Anki require a SAVED Library entry (mode === "saved"/"library" + valid UUID).
+        // "library" = opened from Library/Dashboard; "saved" = just saved/updated this session.
+        // In draft mode baseTextId is still set (points to old saved card) — ignore it here
+        // to prevent exporting stale data under the illusion it matches the current table.
+        const isSaved = st.mode === "saved" || st.mode === "library";
         const isUuid =
+          isSaved &&
           typeof exportId === "string" &&
           /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
+
+        const unsavedTip = "Сохраните таблицу в Library (кнопка «Сохранить»), чтобы использовать эту функцию";
 
         if (isUuid) {
           btnWordEl.disabled = false;
           btnWordEl.classList.remove("disabled");
           btnWordEl.title = "Карточка из Library (с Notes+Audio)";
-		  
-		 if (typeof btnAnkiEl !== "undefined" && btnAnkiEl) {
+
+          if (typeof btnAnkiEl !== "undefined" && btnAnkiEl) {
             btnAnkiEl.disabled = false;
             btnAnkiEl.classList.remove("disabled");
             btnAnkiEl.title = "Экспорт в Anki (AnkiConnect)";
           }
-		  
-		  if (typeof btnAudioPrefetchEl !== "undefined" && btnAudioPrefetchEl) {
-  btnAudioPrefetchEl.disabled = false;
-  btnAudioPrefetchEl.classList.remove("disabled");
-  btnAudioPrefetchEl.title = "Batch озвучка всех строк (локально)";
-}
-		 
-       } else {
-  btnWordEl.disabled = true;
-  btnWordEl.classList.add("disabled");
-  btnWordEl.title = "Сначала сохраните текст в Library";
 
-  if (typeof btnAnkiEl !== "undefined" && btnAnkiEl) {
-    btnAnkiEl.disabled = true;
-    btnAnkiEl.classList.add("disabled");
-    btnAnkiEl.title = "Сначала сохраните текст в Library";
-  }
+          if (typeof btnAudioPrefetchEl !== "undefined" && btnAudioPrefetchEl) {
+            btnAudioPrefetchEl.disabled = false;
+            btnAudioPrefetchEl.classList.remove("disabled");
+            btnAudioPrefetchEl.title = "Batch озвучка всех строк (локально)";
+          }
+        } else {
+          btnWordEl.disabled = true;
+          btnWordEl.classList.add("disabled");
+          btnWordEl.title = unsavedTip;
 
-  if (typeof btnAudioPrefetchEl !== "undefined" && btnAudioPrefetchEl) {
-    btnAudioPrefetchEl.disabled = true;
-    btnAudioPrefetchEl.classList.add("disabled");
-    btnAudioPrefetchEl.title = "Сначала сохраните текст в Library";
-  }
-}
-	
-		// фиксируем текст кнопки (на случай старого DOM-кэша/вставок)
+          if (typeof btnAnkiEl !== "undefined" && btnAnkiEl) {
+            btnAnkiEl.disabled = true;
+            btnAnkiEl.classList.add("disabled");
+            btnAnkiEl.title = unsavedTip;
+          }
+
+          if (typeof btnAudioPrefetchEl !== "undefined" && btnAudioPrefetchEl) {
+            btnAudioPrefetchEl.disabled = true;
+            btnAudioPrefetchEl.classList.add("disabled");
+            btnAudioPrefetchEl.title = unsavedTip;
+          }
+        }
+
+        // фиксируем текст кнопки (на случай старого DOM-кэша/вставок)
         if (btnWordEl.textContent !== "Скачать таблицу") btnWordEl.textContent = "Скачать таблицу";
       }
     } catch (_) {}
@@ -13103,6 +13110,8 @@ if (resumeRowIdx !== null) {
 
     showToast(resume ? "Resume: текст загружен" : "Open: текст загружен", "success");
     v3LibraryClose();
+    try { v3UiSyncSaveButtons(); } catch (_) {}
+    try { v3UiUpdateActiveHeader(); } catch (_) {}
   } catch (e) {
     console.warn("v3LibraryOpenText failed", e);
     showToast("Не удалось открыть текст (см. консоль).", "error");
@@ -13147,6 +13156,51 @@ function v3BuildTtsProfileForSave() {
     speakingRate: Number.isFinite(rate) ? rate : 1.0,
     pitch: Number.isFinite(pitch) ? pitch : 0.0
   };
+}
+
+// After save/update: enrich currentTableData rows with sentenceId + audioAssetKey,
+// load notes, and re-render so note buttons, audio indicators, Audio/Anki work
+// immediately — without requiring the user to re-open from Library/Dashboard.
+async function v3ClassicEnrichSavedRows(textId) {
+  try {
+    if (!textId) return;
+
+    // 1. Fetch saved sentences (ordered by order_index)
+    const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/sentences");
+    const sentences = (res && Array.isArray(res.sentences)) ? res.sentences : [];
+    if (!sentences.length) return;
+
+    // 2. Enrich currentTableData rows by position (sentences are order_index-sorted)
+    if (Array.isArray(currentTableData)) {
+      sentences.forEach(function (s, i) {
+        const row = currentTableData[i];
+        if (!row) return;
+        row._v3_textId          = String(textId);
+        row._v3_sentenceId      = String(s.id || "");
+        row._v3_audioAssetKey   = String(s.audio_asset_key || "");
+        row._v3_audioTtsProfileJson = String(s.audio_tts_profile_json || "");
+      });
+    }
+
+    // 3. Fetch notes for this text and ingest into in-memory store
+    try {
+      const notesRes = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/notes");
+      if (typeof v3NotesIngest === "function") {
+        v3NotesIngest(String(textId), (notesRes && notesRes.notes) ? notesRes.notes : []);
+      }
+    } catch (_) {}
+
+    // 4. Re-render table so note buttons and audio indicators appear
+    if (Array.isArray(currentTableData) && currentTableData.length > 0) {
+      renderTable(currentTableData);
+    }
+
+    // 5. Refresh audio status markers (grey/green/yellow circles)
+    try { v3AudioPrefetchRefreshMarkers(); } catch (_) {}
+
+  } catch (e) {
+    console.warn("[v3ClassicEnrichSavedRows] failed:", e.message);
+  }
 }
 
 async function v3LibrarySaveCurrent() {
@@ -13241,6 +13295,12 @@ async function v3LibrarySaveCurrentCore(meta) {
 
     showToast("Сохранено в библиотеку", "success");
 
+    // Enrich rows with sentenceIds/audioKeys and re-render so note buttons,
+    // audio indicators and Audio/Anki work immediately without re-opening.
+    if (text && text.id) {
+      await v3ClassicEnrichSavedRows(String(text.id));
+    }
+
     // обновим список, если модалка открыта
     try {
       const libModal = v3LibEl("v3LibraryModal");
@@ -13331,6 +13391,12 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
     }
 
     showToast("Обновлено", "success");
+
+    // Enrich rows with sentenceIds/audioKeys and re-render so note buttons,
+    // audio indicators and Audio/Anki work immediately without re-opening.
+    if (text && text.id) {
+      await v3ClassicEnrichSavedRows(String(text.id));
+    }
 
     try {
       const libModal = v3LibEl("v3LibraryModal");
@@ -16013,6 +16079,10 @@ try { v3DashCloseViewMenu(); } catch (_) {}
 
 		try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 		try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
+
+        // Mark draft: a fresh translation makes the current table unsaved,
+        // so export/audio/anki buttons must stay locked until the user saves.
+        try { v3SessionMarkDraft(); } catch (_) {}
 
         if (isGeminiLocked()) {
             if (geminiLockType === "rate") {

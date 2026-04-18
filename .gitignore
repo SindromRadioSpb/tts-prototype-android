@@ -47,6 +47,9 @@ Thumbs.db
 h origin v0.2.0-week2
 nul
 
+# Debug/temp scripts
+public/check_script.js
+
 # SQLite (Library/Progress)
 data/
 data/*.db
