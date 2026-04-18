@@ -2017,6 +2017,19 @@ const PREMIUM_V2_ENABLED = process.env.PREMIUM_V2 === "1";
 
 if (PREMIUM_V2_ENABLED) {
   const premiumPipeline = require("./db/premium/pipeline");
+  const GCP_KEY_PATH = path.join(DATA_DIR, "gcp-translate-key.json");
+  const ORIGINAL_GCP_KEY_ENV = process.env.GCP_TRANSLATE_KEY_FILE;
+  const REQUIRED_GCP_KEY_FIELDS = ["type", "project_id", "private_key", "client_email"];
+
+  // Boot-time: if a user-uploaded key file exists, prefer it over any env setting.
+  try {
+    if (fs.existsSync(GCP_KEY_PATH)) {
+      process.env.GCP_TRANSLATE_KEY_FILE = GCP_KEY_PATH;
+      console.log(`[premium] using user-uploaded GCP key at ${GCP_KEY_PATH}`);
+    }
+  } catch (e) {
+    console.warn("[premium] failed to check GCP key file at boot:", e.message);
+  }
 
   app.post("/api/translate-table-v2", async (req, res) => {
     try {
@@ -2058,6 +2071,15 @@ if (PREMIUM_V2_ENABLED) {
           details: e.message,
         });
       }
+      // Python sidecar (ai-local) не запущен. Встречается только при provider=madlad
+      // — для GCP пайплайн мягко обходит недоступность и лишь теряет огласовку/транслит.
+      if (e.kind === "sidecar_down") {
+        return res.status(503).json({
+          error: "Python sidecar (ai-local) не запущен",
+          details: e.message,
+          hint: "Запустите ai-local (uvicorn) на 127.0.0.1:8765 или выберите провайдер GCP Translate",
+        });
+      }
       if (e.upstream) {
         // Sidecar reachable but returned non-2xx, or network/timeout failure.
         const code = e.status === 0 ? 502 : e.status || 502;
@@ -2082,6 +2104,78 @@ if (PREMIUM_V2_ENABLED) {
         madlad: { configured: true /* always available via sidecar */ },
       },
     });
+  });
+
+  // GCP key management: upload/replace/delete a service account JSON without editing .env.
+  // GET returns a safe summary (never the private_key).
+  app.get("/api/premium/gcp-key", (_req, res) => {
+    try {
+      const keyFile = process.env.GCP_TRANSLATE_KEY_FILE;
+      const uploaded = fs.existsSync(GCP_KEY_PATH);
+      const source = uploaded && keyFile === GCP_KEY_PATH ? "uploaded" : (keyFile ? "env" : null);
+      if (!keyFile || !fs.existsSync(keyFile)) {
+        return res.json({ configured: false, source: null });
+      }
+      let project_id = null, client_email = null;
+      try {
+        const raw = JSON.parse(fs.readFileSync(keyFile, "utf8"));
+        project_id = raw.project_id || null;
+        client_email = raw.client_email || null;
+      } catch (_) {}
+      res.json({ configured: true, source, project_id, client_email });
+    } catch (e) {
+      res.status(500).json({ error: "Не удалось прочитать статус GCP ключа", details: e.message });
+    }
+  });
+
+  app.post("/api/premium/gcp-key", (req, res) => {
+    try {
+      const key = req.body && req.body.key;
+      if (!key || typeof key !== "object") {
+        return res.status(400).json({ error: "Ожидается {key: {...service_account JSON...}}" });
+      }
+      if (key.type !== "service_account") {
+        return res.status(400).json({ error: 'Поле "type" должно быть "service_account"' });
+      }
+      for (const f of REQUIRED_GCP_KEY_FIELDS) {
+        if (!key[f] || typeof key[f] !== "string") {
+          return res.status(400).json({ error: `Отсутствует или пустое поле: ${f}` });
+        }
+      }
+      if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+      fs.writeFileSync(GCP_KEY_PATH, JSON.stringify(key, null, 2), { encoding: "utf8" });
+      try { fs.chmodSync(GCP_KEY_PATH, 0o600); } catch (_) { /* Windows: чмод — no-op */ }
+
+      process.env.GCP_TRANSLATE_KEY_FILE = GCP_KEY_PATH;
+      premiumGcp._reset();
+
+      res.json({
+        ok: true,
+        configured: true,
+        source: "uploaded",
+        project_id: key.project_id,
+        client_email: key.client_email,
+      });
+    } catch (e) {
+      console.error("[premium] gcp-key upload error:", e);
+      res.status(500).json({ error: "Не удалось сохранить GCP ключ", details: e.message });
+    }
+  });
+
+  app.delete("/api/premium/gcp-key", (_req, res) => {
+    try {
+      if (fs.existsSync(GCP_KEY_PATH)) fs.unlinkSync(GCP_KEY_PATH);
+      if (ORIGINAL_GCP_KEY_ENV) {
+        process.env.GCP_TRANSLATE_KEY_FILE = ORIGINAL_GCP_KEY_ENV;
+      } else {
+        delete process.env.GCP_TRANSLATE_KEY_FILE;
+      }
+      premiumGcp._reset();
+      res.json({ ok: true, configured: premiumGcp.isAvailable() });
+    } catch (e) {
+      console.error("[premium] gcp-key delete error:", e);
+      res.status(500).json({ error: "Не удалось удалить GCP ключ", details: e.message });
+    }
   });
 
   console.log("[premium] /api/translate-table-v2 enabled (PREMIUM_V2=1)");
@@ -4474,6 +4568,27 @@ app.get("/api/library/texts/:id/export/docx", async (req, res) => {
     const topic = String(t.topic || "");
     const source = String(t.source || "");
 
+    // Provenance of the AI translation (provider/model/generatedAt) lives in
+    // table_model_meta_json. Older rows may not have it.
+    let meta = null;
+    try {
+      meta = t.table_model_meta_json ? JSON.parse(String(t.table_model_meta_json)) : null;
+    } catch (_) { meta = null; }
+    const metaProvider = meta && meta.provider ? String(meta.provider) : "";
+    const metaModel    = meta && meta.model    ? String(meta.model)    : "";
+    const metaGenAt    = meta && meta.generatedAt ? String(meta.generatedAt) : "";
+    const providerLabelMap = {
+      gcp: "GCP Cloud Translation v3",
+      madlad: "MADLAD-400 (local)",
+      gemini: "Google Gemini",
+    };
+    const providerHuman = metaProvider
+      ? (providerLabelMap[metaProvider] || metaProvider)
+      : "—";
+    const providerLine = metaProvider
+      ? `Provider: ${providerHuman}${metaModel ? ` · ${metaModel}` : ""}${metaGenAt ? ` · generated ${metaGenAt}` : ""}`
+      : "Provider: неизвестен (старый перевод без метаданных)";
+
     function cell(text, align = AlignmentType.LEFT, bold = false) {
       return new TableCell({
         children: [
@@ -4556,6 +4671,7 @@ tableRows.push(
           children: [
             new Paragraph({ children: [new TextRun({ text: `Title: ${title || "Untitled"}` })] }),
             new Paragraph({ children: [new TextRun({ text: `ExportedAt: ${exportedAtIso}` })] }),
+            new Paragraph({ children: [new TextRun({ text: providerLine, bold: true })] }),
             new Paragraph({ children: [new TextRun({ text: `Level: ${level}` })] }),
             new Paragraph({ children: [new TextRun({ text: `Topic: ${topic}` })] }),
             new Paragraph({ children: [new TextRun({ text: `Source: ${source}` })] }),

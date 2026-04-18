@@ -41,10 +41,20 @@ async function fetchNiqqud(texts) {
   if (!texts.length) return { results: [], model_version: NIKUD_VERSION };
   const r = await pythonClient.nakdan(texts);
   if (!r.ok) {
-    const err = new Error(`nakdan upstream failed: ${r.status} ${r.error || ""}`);
-    err.upstream = "nakdan";
-    err.status = r.status;
-    throw err;
+    // Nikud is display-only (translit derives from it, translation does not).
+    // Any upstream failure — sidecar unreachable (status=0), model not loaded
+    // (500 "ModuleNotFoundError"), malformed batch, anything — degrades the UI
+    // gracefully instead of aborting the whole translation.
+    const reason = r.status === 0 ? "sidecar_unreachable"
+                  : r.status >= 500 ? "sidecar_error"
+                  : "sidecar_rejected";
+    console.warn(`[premium] nakdan degraded: ${r.status} ${r.error || ""} (reason=${reason})`);
+    return {
+      results: texts.map(() => ""),
+      model_version: NIKUD_VERSION,
+      degraded: true,
+      reason,
+    };
   }
   return r.body;
 }
@@ -52,11 +62,20 @@ async function fetchNiqqud(texts) {
 async function _madladTranslate(segmentsForApi, target) {
   const r = await pythonClient.translate(segmentsForApi, target);
   if (!r.ok) {
+    if (r.status === 0) {
+      const err = new Error("Python sidecar (ai-local) не запущен на 127.0.0.1:8765 — MADLAD недоступен");
+      err.provider = "madlad";
+      err.upstream = "translate";
+      err.status = 0;
+      err.kind = "sidecar_down";
+      err.fallbackable = false;
+      throw err;
+    }
     const err = new Error(`madlad upstream failed: ${r.status} ${r.error || ""}`);
     err.provider = "madlad";
     err.upstream = "translate";
     err.status = r.status;
-    err.kind = r.status === 0 || (r.status >= 500 && r.status < 600) ? "transient" : "unknown";
+    err.kind = (r.status >= 500 && r.status < 600) ? "transient" : "unknown";
     err.fallbackable = false; // madlad is the fallback target; don't fallback again
     throw err;
   }
@@ -238,8 +257,8 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
   nikudResp.results.forEach((heNiqqud, i) => {
     const idx = needNikud[i].index;
     const row = resolved.get(idx);
-    row.he_niqqud = heNiqqud;
-    row._sources.he_niqqud = "model";
+    row.he_niqqud = heNiqqud || null;
+    if (heNiqqud) row._sources.he_niqqud = "model";
   });
 
   // Run transliteration locally on whatever he_niqqud we now have (model or cache).
@@ -332,6 +351,10 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
   if (transResp.actualProvider && transResp.actualProvider !== provider) {
     prov.actual_provider = transResp.actualProvider;
     prov.fallback_reason = transResp.fallbackReason || "transient";
+  }
+  if (nikudResp.degraded) {
+    prov.nikud_degraded = true;
+    prov.nikud_degraded_reason = nikudResp.reason || "sidecar_unreachable";
   }
 
   return {
