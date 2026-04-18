@@ -12,7 +12,8 @@
     "db:restore": "node db/restore-cli.js",
     "db:integrity": "node db/integrity-cli.js",
     "test:api-smoke": "node scripts/api-smoke.js",
-    "test": "node --test"
+    "test": "node --test",
+    "bench:premium": "node tests/premium/bench.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

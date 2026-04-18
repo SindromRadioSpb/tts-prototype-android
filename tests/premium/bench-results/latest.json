@@ -1,0 +1,671 @@
+{
+  "timestamp": "2026-04-18T14:01:07.066Z",
+  "fixture_version": "1",
+  "entries": [
+    {
+      "id": "short-01",
+      "category": "short_phrase",
+      "chars": 5,
+      "produced": [
+        "שלום."
+      ],
+      "latency_ms": 0.563,
+      "ref_segments": [
+        "שלום."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "short-02",
+      "category": "short_phrase",
+      "chars": 9,
+      "produced": [
+        "בוקר טוב."
+      ],
+      "latency_ms": 0.065,
+      "ref_segments": [
+        "בוקר טוב."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "short-03",
+      "category": "short_phrase",
+      "chars": 9,
+      "produced": [
+        "מה שלומך?"
+      ],
+      "latency_ms": 0.013,
+      "ref_segments": [
+        "מה שלומך?"
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "short-04",
+      "category": "short_phrase",
+      "chars": 9,
+      "produced": [
+        "תודה רבה!"
+      ],
+      "latency_ms": 0.06,
+      "ref_segments": [
+        "תודה רבה!"
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "short-05",
+      "category": "short_phrase",
+      "chars": 12,
+      "produced": [
+        "להתראות מחר."
+      ],
+      "latency_ms": 0.032,
+      "ref_segments": [
+        "להתראות מחר."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "medium-01",
+      "category": "medium_paragraph",
+      "chars": 18,
+      "produced": [
+        "בוקר טוב.",
+        "איך אתה?"
+      ],
+      "latency_ms": 0.016,
+      "ref_segments": [
+        "בוקר טוב.",
+        "איך אתה?"
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "medium-02",
+      "category": "medium_paragraph",
+      "chars": 50,
+      "produced": [
+        "אני גר בתל אביב.",
+        "היום יום ראשון.",
+        "השעה שמונה בבוקר."
+      ],
+      "latency_ms": 0.059,
+      "ref_segments": [
+        "אני גר בתל אביב.",
+        "היום יום ראשון.",
+        "השעה שמונה בבוקר."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "medium-03",
+      "category": "medium_paragraph",
+      "chars": 50,
+      "produced": [
+        "הספר על השולחן.",
+        "הוא כחול ויפה.",
+        "אני אוהב אותו מאוד."
+      ],
+      "latency_ms": 0.013,
+      "ref_segments": [
+        "הספר על השולחן.",
+        "הוא כחול ויפה.",
+        "אני אוהב אותו מאוד."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "long-01",
+      "category": "long_paragraph",
+      "chars": 99,
+      "produced": [
+        "היום מזג האוויר נעים.",
+        "השמש זורחת והרוח קלה.",
+        "בערב יירד גשם קל.",
+        "מחר יהיה חם יותר.",
+        "בסוף השבוע נסע לים."
+      ],
+      "latency_ms": 0.012,
+      "ref_segments": [
+        "היום מזג האוויר נעים.",
+        "השמש זורחת והרוח קלה.",
+        "בערב יירד גשם קל.",
+        "מחר יהיה חם יותר.",
+        "בסוף השבוע נסע לים."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 5,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "long-02",
+      "category": "long_paragraph",
+      "chars": 167,
+      "produced": [
+        "בעיר תל אביב נפתחה היום תערוכה חדשה.",
+        "אלפי מבקרים הגיעו כבר בשעה הראשונה.",
+        "המארגנים הופתעו מהעניין הרב.",
+        "לפי ההערכות, התערוכה תישאר פתוחה חודש.",
+        "הכניסה חופשית לכל הגילאים."
+      ],
+      "latency_ms": 0.013,
+      "ref_segments": [
+        "בעיר תל אביב נפתחה היום תערוכה חדשה.",
+        "אלפי מבקרים הגיעו כבר בשעה הראשונה.",
+        "המארגנים הופתעו מהעניין הרב.",
+        "לפי ההערכות, התערוכה תישאר פתוחה חודש.",
+        "הכניסה חופשית לכל הגילאים."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 5,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "tech-01",
+      "category": "technical",
+      "chars": 39,
+      "produced": [
+        "מערכת ההפעלה לינוקס מבוססת על קוד פתוח."
+      ],
+      "latency_ms": 0.006,
+      "ref_segments": [
+        "מערכת ההפעלה לינוקס מבוססת על קוד פתוח."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "tech-02",
+      "category": "technical",
+      "chars": 41,
+      "produced": [
+        "חוק אוהם קובע: V = I × R.",
+        "שים לב ליחידות!"
+      ],
+      "latency_ms": 0.006,
+      "ref_segments": [
+        "חוק אוהם קובע: V = I × R.",
+        "שים לב ליחידות!"
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "tech-03",
+      "category": "technical",
+      "chars": 36,
+      "produced": [
+        "הפרוטוקול HTTPS מצפין נתונים בהעברה."
+      ],
+      "latency_ms": 0.005,
+      "ref_segments": [
+        "הפרוטוקול HTTPS מצפין נתונים בהעברה."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "learn-01",
+      "category": "learning",
+      "chars": 46,
+      "produced": [
+        "היום יום שני.",
+        "מחר יום שלישי.",
+        "אחר כך יום רביעי."
+      ],
+      "latency_ms": 0.006,
+      "ref_segments": [
+        "היום יום שני.",
+        "מחר יום שלישי.",
+        "אחר כך יום רביעי."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "learn-02",
+      "category": "learning",
+      "chars": 35,
+      "produced": [
+        "יש לי אח ואחות.",
+        "אני אוהב אותם מאוד."
+      ],
+      "latency_ms": 0.005,
+      "ref_segments": [
+        "יש לי אח ואחות.",
+        "אני אוהב אותם מאוד."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "learn-03",
+      "category": "learning",
+      "chars": 31,
+      "produced": [
+        "אני רוצה לאכול לחם, חמאה וריבה."
+      ],
+      "latency_ms": 0.004,
+      "ref_segments": [
+        "אני רוצה לאכול לחם, חמאה וריבה."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "abbr-01",
+      "category": "abbreviations",
+      "chars": 20,
+      "produced": [
+        "ד״ר כהן הגיע לעבודה."
+      ],
+      "latency_ms": 0.049,
+      "ref_segments": [
+        "ד״ר כהן הגיע לעבודה."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "abbr-02",
+      "category": "abbreviations",
+      "chars": 34,
+      "produced": [
+        "עו״ד לוי כתב מכתב.",
+        "הוא נשלח אתמול."
+      ],
+      "latency_ms": 0.011,
+      "ref_segments": [
+        "עו״ד לוי כתב מכתב.",
+        "הוא נשלח אתמול."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "abbr-03",
+      "category": "abbreviations",
+      "chars": 29,
+      "produced": [
+        "קניתי עיתון, ספר, מחברת וכו׳."
+      ],
+      "latency_ms": 0.007,
+      "ref_segments": [
+        "קניתי עיתון, ספר, מחברת וכו׳."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "abbr-04",
+      "category": "abbreviations",
+      "chars": 44,
+      "produced": [
+        "כתובת: ת״ד 1234, תל אביב.",
+        "טלפון: 03-1234567."
+      ],
+      "latency_ms": 0.015,
+      "ref_segments": [
+        "כתובת: ת״ד 1234, תל אביב.",
+        "טלפון: 03-1234567."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "mixed-01",
+      "category": "mixed_he_latin",
+      "chars": 41,
+      "produced": [
+        "קניתי iPhone חדש אתמול.",
+        "המכשיר מהיר מאוד."
+      ],
+      "latency_ms": 0.006,
+      "ref_segments": [
+        "קניתי iPhone חדש אתמול.",
+        "המכשיר מהיר מאוד."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "mixed-02",
+      "category": "mixed_he_latin",
+      "chars": 38,
+      "produced": [
+        "ה-CEO של החברה הגיע מארה״ב אתמול בערב."
+      ],
+      "latency_ms": 0.006,
+      "ref_segments": [
+        "ה-CEO של החברה הגיע מארה״ב אתמול בערב."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "word-01",
+      "category": "word_copied",
+      "chars": 34,
+      "produced": [
+        "הוא אמר: “שלום” וחייך.",
+        "אחר כך יצא."
+      ],
+      "latency_ms": 0.008,
+      "ref_segments": [
+        "הוא אמר: “שלום” וחייך.",
+        "אחר כך יצא."
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "bidi-01",
+      "category": "bidi_marks",
+      "chars": 21,
+      "produced": [
+        "שלום עולם.",
+        "איך אתה?"
+      ],
+      "latency_ms": 0.011,
+      "ref_segments": [
+        "שלום עולם.",
+        "איך אתה?"
+      ],
+      "scores": {
+        "precision": 1,
+        "recall": 1,
+        "f1": 1,
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "exact_match": true
+    }
+  ],
+  "translit_checks": [
+    {
+      "id": "tr-01",
+      "niqqud": "שָׁלוֹם",
+      "expected": "šālôm",
+      "got": "šālôm",
+      "exact": true,
+      "near": true,
+      "edit_distance": 0,
+      "latency_ms": 6.815
+    },
+    {
+      "id": "tr-02",
+      "niqqud": "בֹּקֶר",
+      "expected": "bōqer",
+      "got": "bōqer",
+      "exact": true,
+      "near": true,
+      "edit_distance": 0,
+      "latency_ms": 0.571
+    },
+    {
+      "id": "tr-03",
+      "niqqud": "טוֹב",
+      "expected": "ṭôb",
+      "got": "ṭôb",
+      "exact": true,
+      "near": true,
+      "edit_distance": 0,
+      "latency_ms": 0.451
+    },
+    {
+      "id": "tr-04",
+      "niqqud": "אֱלֹהִים",
+      "expected": "ʾĕlōhîm",
+      "got": "ʾĕlōhîm",
+      "exact": true,
+      "near": true,
+      "edit_distance": 0,
+      "latency_ms": 0.814
+    },
+    {
+      "id": "tr-05",
+      "niqqud": "יִשְׂרָאֵל",
+      "expected": "yiśrāʾēl",
+      "got": "yiśrāʾēl",
+      "exact": true,
+      "near": true,
+      "edit_distance": 0,
+      "latency_ms": 0.847
+    }
+  ],
+  "aggregate": {
+    "entries_total": 24,
+    "segmentation": {
+      "entries_with_ref": 24,
+      "mean_f1": 1,
+      "exact_match_rate": 100,
+      "latency_ms_p50": 0.012,
+      "latency_ms_p95": 0.065,
+      "by_category": {
+        "short_phrase": {
+          "entries": 5,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "medium_paragraph": {
+          "entries": 3,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "long_paragraph": {
+          "entries": 2,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "technical": {
+          "entries": 3,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "learning": {
+          "entries": 3,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "abbreviations": {
+          "entries": 4,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "mixed_he_latin": {
+          "entries": 2,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "word_copied": {
+          "entries": 1,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        },
+        "bidi_marks": {
+          "entries": 1,
+          "exact_match_rate": 100,
+          "mean_f1": 1
+        }
+      }
+    },
+    "translit": {
+      "checks_total": 5,
+      "exact_rate": 100,
+      "near_rate": 100,
+      "latency_ms_p50": 0.814,
+      "latency_ms_p95": 5.621
+    }
+  },
+  "notes": "offline bench: segmenter + translit only; online providers not exercised"
+}

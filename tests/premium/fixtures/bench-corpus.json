@@ -1,0 +1,237 @@
+{
+  "version": "1",
+  "description": "Bench corpus for the premium pipeline. Reference segmentations are authored against the current segmenter contract (NFKC + BIDI-strip + split on [.!?׃]+ with abbreviation whitelist). When the segmenter disagrees, the delta is a bug report, not a fixture patch.",
+  "created_at": "2026-04-18",
+  "entries": [
+    {
+      "id": "short-01",
+      "category": "short_phrase",
+      "text": "שלום.",
+      "ref": { "segments": ["שלום."] }
+    },
+    {
+      "id": "short-02",
+      "category": "short_phrase",
+      "text": "בוקר טוב.",
+      "ref": { "segments": ["בוקר טוב."] }
+    },
+    {
+      "id": "short-03",
+      "category": "short_phrase",
+      "text": "מה שלומך?",
+      "ref": { "segments": ["מה שלומך?"] }
+    },
+    {
+      "id": "short-04",
+      "category": "short_phrase",
+      "text": "תודה רבה!",
+      "ref": { "segments": ["תודה רבה!"] }
+    },
+    {
+      "id": "short-05",
+      "category": "short_phrase",
+      "text": "להתראות מחר.",
+      "ref": { "segments": ["להתראות מחר."] }
+    },
+
+    {
+      "id": "medium-01",
+      "category": "medium_paragraph",
+      "text": "בוקר טוב. איך אתה?",
+      "ref": { "segments": ["בוקר טוב.", "איך אתה?"] }
+    },
+    {
+      "id": "medium-02",
+      "category": "medium_paragraph",
+      "text": "אני גר בתל אביב. היום יום ראשון. השעה שמונה בבוקר.",
+      "ref": {
+        "segments": [
+          "אני גר בתל אביב.",
+          "היום יום ראשון.",
+          "השעה שמונה בבוקר."
+        ]
+      }
+    },
+    {
+      "id": "medium-03",
+      "category": "medium_paragraph",
+      "text": "הספר על השולחן. הוא כחול ויפה. אני אוהב אותו מאוד.",
+      "ref": {
+        "segments": [
+          "הספר על השולחן.",
+          "הוא כחול ויפה.",
+          "אני אוהב אותו מאוד."
+        ]
+      }
+    },
+
+    {
+      "id": "long-01",
+      "category": "long_paragraph",
+      "text": "היום מזג האוויר נעים. השמש זורחת והרוח קלה. בערב יירד גשם קל. מחר יהיה חם יותר. בסוף השבוע נסע לים.",
+      "ref": {
+        "segments": [
+          "היום מזג האוויר נעים.",
+          "השמש זורחת והרוח קלה.",
+          "בערב יירד גשם קל.",
+          "מחר יהיה חם יותר.",
+          "בסוף השבוע נסע לים."
+        ]
+      }
+    },
+    {
+      "id": "long-02",
+      "category": "long_paragraph",
+      "text": "בעיר תל אביב נפתחה היום תערוכה חדשה. אלפי מבקרים הגיעו כבר בשעה הראשונה. המארגנים הופתעו מהעניין הרב. לפי ההערכות, התערוכה תישאר פתוחה חודש. הכניסה חופשית לכל הגילאים.",
+      "ref": {
+        "segments": [
+          "בעיר תל אביב נפתחה היום תערוכה חדשה.",
+          "אלפי מבקרים הגיעו כבר בשעה הראשונה.",
+          "המארגנים הופתעו מהעניין הרב.",
+          "לפי ההערכות, התערוכה תישאר פתוחה חודש.",
+          "הכניסה חופשית לכל הגילאים."
+        ]
+      }
+    },
+
+    {
+      "id": "tech-01",
+      "category": "technical",
+      "text": "מערכת ההפעלה לינוקס מבוססת על קוד פתוח.",
+      "ref": { "segments": ["מערכת ההפעלה לינוקס מבוססת על קוד פתוח."] }
+    },
+    {
+      "id": "tech-02",
+      "category": "technical",
+      "text": "חוק אוהם קובע: V = I × R. שים לב ליחידות!",
+      "ref": {
+        "segments": [
+          "חוק אוהם קובע: V = I × R.",
+          "שים לב ליחידות!"
+        ]
+      }
+    },
+    {
+      "id": "tech-03",
+      "category": "technical",
+      "text": "הפרוטוקול HTTPS מצפין נתונים בהעברה.",
+      "ref": { "segments": ["הפרוטוקול HTTPS מצפין נתונים בהעברה."] }
+    },
+
+    {
+      "id": "learn-01",
+      "category": "learning",
+      "text": "היום יום שני. מחר יום שלישי. אחר כך יום רביעי.",
+      "ref": {
+        "segments": [
+          "היום יום שני.",
+          "מחר יום שלישי.",
+          "אחר כך יום רביעי."
+        ]
+      }
+    },
+    {
+      "id": "learn-02",
+      "category": "learning",
+      "text": "יש לי אח ואחות. אני אוהב אותם מאוד.",
+      "ref": {
+        "segments": [
+          "יש לי אח ואחות.",
+          "אני אוהב אותם מאוד."
+        ]
+      }
+    },
+    {
+      "id": "learn-03",
+      "category": "learning",
+      "text": "אני רוצה לאכול לחם, חמאה וריבה.",
+      "ref": { "segments": ["אני רוצה לאכול לחם, חמאה וריבה."] }
+    },
+
+    {
+      "id": "abbr-01",
+      "category": "abbreviations",
+      "text": "ד״ר כהן הגיע לעבודה.",
+      "ref": { "segments": ["ד״ר כהן הגיע לעבודה."] }
+    },
+    {
+      "id": "abbr-02",
+      "category": "abbreviations",
+      "text": "עו״ד לוי כתב מכתב. הוא נשלח אתמול.",
+      "ref": {
+        "segments": [
+          "עו״ד לוי כתב מכתב.",
+          "הוא נשלח אתמול."
+        ]
+      }
+    },
+    {
+      "id": "abbr-03",
+      "category": "abbreviations",
+      "text": "קניתי עיתון, ספר, מחברת וכו׳.",
+      "ref": { "segments": ["קניתי עיתון, ספר, מחברת וכו׳."] }
+    },
+    {
+      "id": "abbr-04",
+      "category": "abbreviations",
+      "text": "כתובת: ת״ד 1234, תל אביב. טלפון: 03-1234567.",
+      "ref": {
+        "segments": [
+          "כתובת: ת״ד 1234, תל אביב.",
+          "טלפון: 03-1234567."
+        ]
+      }
+    },
+
+    {
+      "id": "mixed-01",
+      "category": "mixed_he_latin",
+      "text": "קניתי iPhone חדש אתמול. המכשיר מהיר מאוד.",
+      "ref": {
+        "segments": [
+          "קניתי iPhone חדש אתמול.",
+          "המכשיר מהיר מאוד."
+        ]
+      }
+    },
+    {
+      "id": "mixed-02",
+      "category": "mixed_he_latin",
+      "text": "ה-CEO של החברה הגיע מארה״ב אתמול בערב.",
+      "ref": { "segments": ["ה-CEO של החברה הגיע מארה״ב אתמול בערב."] }
+    },
+
+    {
+      "id": "word-01",
+      "category": "word_copied",
+      "text": "הוא אמר: \u201cשלום\u201d וחייך. אחר כך יצא.",
+      "_comment": "U+201C/U+201D smart quotes — after NFKC they stay as smart quotes; the segmenter shouldn't treat them as sentence enders",
+      "ref": {
+        "segments": [
+          "הוא אמר: \u201cשלום\u201d וחייך.",
+          "אחר כך יצא."
+        ]
+      }
+    },
+
+    {
+      "id": "bidi-01",
+      "category": "bidi_marks",
+      "text": "שלום\u200e עולם.\u200f איך אתה?",
+      "_comment": "U+200E LRM and U+200F RLM scattered — must be stripped before splitting",
+      "ref": {
+        "segments": [
+          "שלום עולם.",
+          "איך אתה?"
+        ]
+      }
+    }
+  ],
+  "translit_checks": [
+    { "id": "tr-01", "niqqud": "שָׁלוֹם",    "expected": "šālôm"    },
+    { "id": "tr-02", "niqqud": "בֹּקֶר",      "expected": "bōqer"    },
+    { "id": "tr-03", "niqqud": "טוֹב",        "expected": "ṭôb"      },
+    { "id": "tr-04", "niqqud": "אֱלֹהִים",    "expected": "ʾĕlōhîm" },
+    { "id": "tr-05", "niqqud": "יִשְׂרָאֵל",  "expected": "yiśrāʾēl" }
+  ]
+}

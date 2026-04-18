@@ -1,0 +1,3 @@
+# Timestamped runs accumulate locally; only the baseline is versioned.
+bench-*.json
+!latest.json
