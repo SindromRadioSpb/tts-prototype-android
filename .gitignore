@@ -50,6 +50,9 @@ nul
 # Debug/temp scripts
 public/check_script.js
 
+# Claude Code runtime
+.claude/scheduled_tasks.lock
+
 # SQLite (Library/Progress)
 data/
 data/*.db
