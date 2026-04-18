@@ -28,8 +28,10 @@ const { SEGMENTER_VERSION, NIKUD_VERSION, TRANSLIT_PROFILE, translatorVersion } 
 const { segment } = require("./segmenter");
 const { transliterate } = require("./translit");
 const pythonClient = require("./pythonClient");
+const gcpProvider = require("./providers/gcp");
+const quota = require("./quota");
 
-const SUPPORTED_PROVIDERS = new Set(["madlad"]); // GCP added in Phase 1.8.
+const SUPPORTED_PROVIDERS = new Set(["madlad", "gcp"]);
 
 function nowIso() {
   return new Date().toISOString();
@@ -47,16 +49,74 @@ async function fetchNiqqud(texts) {
   return r.body;
 }
 
-async function fetchTranslations(segmentsForApi, target) {
-  if (!segmentsForApi.length) return { results: [], model_version: "" };
+async function _madladTranslate(segmentsForApi, target) {
   const r = await pythonClient.translate(segmentsForApi, target);
   if (!r.ok) {
-    const err = new Error(`translate upstream failed: ${r.status} ${r.error || ""}`);
+    const err = new Error(`madlad upstream failed: ${r.status} ${r.error || ""}`);
+    err.provider = "madlad";
     err.upstream = "translate";
     err.status = r.status;
+    err.kind = r.status === 0 || (r.status >= 500 && r.status < 600) ? "transient" : "unknown";
+    err.fallbackable = false; // madlad is the fallback target; don't fallback again
     throw err;
   }
-  return r.body;
+  return { ...r.body, chars: 0 }; // chars not metered for local model
+}
+
+async function _gcpTranslate(segmentsForApi, target) {
+  const out = await gcpProvider.translateBatch(segmentsForApi, target);
+  // Persist usage on success (chars meter the free-tier).
+  quota.recordGcpUsage({ chars: out.chars });
+  return out;
+}
+
+// Dispatcher with optional fallback. Returns:
+//   { results, model_version, chars, actualProvider, fallbackReason? }
+async function fetchTranslations(segmentsForApi, target, requestedProvider) {
+  if (!segmentsForApi.length) {
+    return { results: [], model_version: "", chars: 0, actualProvider: requestedProvider };
+  }
+
+  if (requestedProvider === "gcp") {
+    if (!gcpProvider.isAvailable()) {
+      const err = new Error("GCP provider not configured (set GCP_TRANSLATE_KEY_FILE)");
+      err.provider = "gcp";
+      err.upstream = "translate";
+      err.kind = "config";
+      err.fallbackable = false;
+      throw err;
+    }
+    try {
+      const out = await _gcpTranslate(segmentsForApi, target);
+      return { ...out, actualProvider: "gcp" };
+    } catch (e) {
+      // Quota errors propagate to the caller — no auto-fallback per project policy.
+      if (e.kind === "quota") {
+        quota.recordGcpUsage({ chars: 0, error: { kind: "quota", at: nowIso() } });
+        throw e;
+      }
+      // Transient: try once more, then fall back to madlad.
+      if (e.fallbackable) {
+        try {
+          const out = await _gcpTranslate(segmentsForApi, target);
+          return { ...out, actualProvider: "gcp" };
+        } catch (e2) {
+          if (e2.kind === "quota") {
+            quota.recordGcpUsage({ chars: 0, error: { kind: "quota", at: nowIso() } });
+            throw e2;
+          }
+          // Fall through to madlad.
+          const fb = await _madladTranslate(segmentsForApi, target);
+          return { ...fb, actualProvider: "madlad", fallbackReason: e2.kind || "transient" };
+        }
+      }
+      throw e;
+    }
+  }
+
+  // Default: madlad.
+  const out = await _madladTranslate(segmentsForApi, target);
+  return { ...out, actualProvider: "madlad" };
 }
 
 async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null } = {}) {
@@ -168,10 +228,10 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     resolved.set(m.index, row);
   }
 
-  // 5) Call Python sidecar in parallel for nikud + translation work sets.
+  // 5) Call sidecar (nikud) and the chosen translation provider in parallel.
   const [nikudResp, transResp] = await Promise.all([
     fetchNiqqud(needNikud.map((s) => s.he)),
-    fetchTranslations(needTrans, target_lang),
+    fetchTranslations(needTrans, target_lang, provider),
   ]);
 
   // Merge nikud results back by position (input order preserved by sidecar).
@@ -268,12 +328,18 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     });
   }
 
+  const prov = _provenance(provider, target_lang, "mixed", modelTranslatorVersion);
+  if (transResp.actualProvider && transResp.actualProvider !== provider) {
+    prov.actual_provider = transResp.actualProvider;
+    prov.fallback_reason = transResp.fallbackReason || "transient";
+  }
+
   return {
     rows,
     fromCache: false,
     cacheKey: docKey,
     cachedAt: nowIso(),
-    provenance: _provenance(provider, target_lang, "mixed", modelTranslatorVersion),
+    provenance: prov,
   };
 }
 

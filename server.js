@@ -2041,6 +2041,23 @@ if (PREMIUM_V2_ENABLED) {
       if (e.code === "BAD_INPUT") {
         return res.status(400).json({ error: e.message });
       }
+      // GCP-specific: quota exhaustion (or 403/429) maps to 402 Payment
+      // Required so the UI can surface "upgrade to paid tier" — auto-fallback
+      // is intentionally NOT triggered for quota errors.
+      if (e.provider === "gcp" && e.kind === "quota") {
+        return res.status(402).json({
+          error: "GCP translation quota reached",
+          upstream: e.upstream,
+          details: e.message,
+        });
+      }
+      // GCP misconfiguration (no key file, etc.).
+      if (e.provider === "gcp" && e.kind === "config") {
+        return res.status(503).json({
+          error: "GCP translation provider not configured",
+          details: e.message,
+        });
+      }
       if (e.upstream) {
         // Sidecar reachable but returned non-2xx, or network/timeout failure.
         const code = e.status === 0 ? 502 : e.status || 502;
@@ -2053,6 +2070,18 @@ if (PREMIUM_V2_ENABLED) {
       console.error("[premium] translate-table-v2 error:", e);
       res.status(500).json({ error: "Ошибка premium pipeline", details: e.message });
     }
+  });
+
+  const premiumQuota = require("./db/premium/quota");
+  const premiumGcp = require("./db/premium/providers/gcp");
+
+  app.get("/api/premium/status", (_req, res) => {
+    res.json({
+      providers: {
+        gcp: { configured: premiumGcp.isAvailable(), quota: premiumQuota.getGcpStatus() },
+        madlad: { configured: true /* always available via sidecar */ },
+      },
+    });
   });
 
   console.log("[premium] /api/translate-table-v2 enabled (PREMIUM_V2=1)");
