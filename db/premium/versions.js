@@ -6,7 +6,7 @@
 
 const SEGMENTER_VERSION = "regex-v1";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
-const TRANSLIT_PROFILE  = "sbl-v1";
+const TRANSLIT_PROFILE  = "sbl-v3-spirant";
 
 // Per-provider translator versions. The key only uses the one that matches the
 // call's provider, so switching providers produces disjoint cache namespaces.

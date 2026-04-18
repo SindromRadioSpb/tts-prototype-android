@@ -230,7 +230,7 @@
   "translit_checks": [
     { "id": "tr-01", "niqqud": "שָׁלוֹם",    "expected": "šālôm"    },
     { "id": "tr-02", "niqqud": "בֹּקֶר",      "expected": "bōqer"    },
-    { "id": "tr-03", "niqqud": "טוֹב",        "expected": "ṭôb"      },
+    { "id": "tr-03", "niqqud": "טוֹב",        "expected": "ṭôḇ"      },
     { "id": "tr-04", "niqqud": "אֱלֹהִים",    "expected": "ʾĕlōhîm" },
     { "id": "tr-05", "niqqud": "יִשְׂרָאֵל",  "expected": "yiśrāʾēl" }
   ]

@@ -23,8 +23,8 @@ test("שָׁלוֹם → šālôm (SBL Academic)", () => {
   assert.equal(transliterate("שָׁלוֹם"), "šālôm");
 });
 
-test("בֹּקֶר טוֹב → bōqer ṭôb", () => {
-  assert.equal(transliterate("בֹּקֶר טוֹב"), "bōqer ṭôb");
+test("בֹּקֶר טוֹב → bōqer ṭôḇ", () => {
+  assert.equal(transliterate("בֹּקֶר טוֹב"), "bōqer ṭôḇ");
 });
 
 test("אֱלֹהִים → ʾĕlōhîm", () => {
@@ -46,6 +46,6 @@ test("Hebrew without niqqud passes through (no error)", () => {
 test("multi-word verse בְּרֵאשִׁית בָּרָא אֱלֹהִים", () => {
   assert.equal(
     transliterate("בְּרֵאשִׁית בָּרָא אֱלֹהִים"),
-    "bərēʾšît bārāʾ ʾĕlōhîm"
+    "bərēʾšîṯ bārāʾ ʾĕlōhîm"
   );
 });
