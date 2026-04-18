@@ -795,6 +795,38 @@ th, td { border-color: rgba(0,0,0,0.55); }
     .results-meta-line { margin-bottom: 2px; }
     .results-meta-label { font-weight: 600; margin-right: 4px; color: #495057; }
 
+    /* Provider selector (Phase 1.9) */
+    .provider-select {
+        height: 32px;
+        padding: 0 8px;
+        margin-left: 4px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        background: #fff;
+        font-size: 13px;
+        color: #212529;
+        cursor: pointer;
+    }
+    .provider-select:disabled { background: #e9ecef; cursor: not-allowed; }
+    .provider-select option:disabled { color: #adb5bd; }
+
+    /* Provenance badge — appended after the table source line */
+    .provenance-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 8px;
+        padding: 1px 8px;
+        font-size: 11px;
+        line-height: 16px;
+        border-radius: 10px;
+        background: #e7f1ff;
+        color: #0b3b8c;
+        border: 1px solid #b6d4fe;
+    }
+    .provenance-badge.is-fallback { background: #fff3cd; color: #664d03; border-color: #ffe69c; }
+    .provenance-badge.is-cache    { background: #d1e7dd; color: #0a3622; border-color: #a3cfbb; }
+
     /* Слайдеры */
     input[type="range"] { width: 180px; }
 
@@ -4209,6 +4241,11 @@ body.v3-ide-mode .v3-ide-right {
 			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
 
 			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
+			<select id="providerSelect" class="provider-select" title="Поставщик перевода (Gemini = старый /api/translate-table, GCP/MADLAD = premium v2)">
+			    <option value="gemini">Gemini (legacy)</option>
+			    <option value="gcp">GCP Translate</option>
+			    <option value="madlad">MADLAD (local)</option>
+			</select>
 			<div id="loader" class="loader"></div>
 
 			<div class="export-actions">
@@ -9306,6 +9343,109 @@ updatePlaylistButtonUI();
     // Инициализация UI таблицы
 	loadAutoNextSetting();
     initTableSettingsUI();
+    initProviderSelect();
+    startPremiumStatusPolling();
+
+    // ----------------------------
+    // PREMIUM STATUS POLLING (Phase 1.9)
+    // ----------------------------
+    let _premiumStatusTimer = null;
+    let _premiumStatusBackoffMs = 0;
+    const PREMIUM_STATUS_INTERVAL_MS = 30 * 1000;
+    const PREMIUM_STATUS_MAX_BACKOFF_MS = 5 * 60 * 1000;
+
+    async function fetchPremiumStatus() {
+        try {
+            const r = await fetch("/api/premium/status", { method: "GET" });
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            const json = await r.json();
+            applyPremiumStatusToUI(json);
+            _premiumStatusBackoffMs = 0;
+        } catch (_) {
+            // Endpoint absent (PREMIUM_V2 disabled) or offline.
+            // Disable premium options so the user cannot pick something the server can't serve.
+            applyPremiumStatusToUI(null);
+            _premiumStatusBackoffMs = Math.min(
+                _premiumStatusBackoffMs ? _premiumStatusBackoffMs * 2 : 60 * 1000,
+                PREMIUM_STATUS_MAX_BACKOFF_MS
+            );
+        }
+    }
+
+    function applyPremiumStatusToUI(status) {
+        const el = document.getElementById("providerSelect");
+        if (!el) return;
+        const gcpOpt    = el.querySelector('option[value="gcp"]');
+        const madladOpt = el.querySelector('option[value="madlad"]');
+
+        if (!status || !status.providers) {
+            // Premium API unreachable → disable v2 options, force back to gemini if needed.
+            if (gcpOpt) {
+                gcpOpt.disabled = true;
+                gcpOpt.textContent = "GCP Translate (offline)";
+                gcpOpt.title = "Premium API недоступен";
+            }
+            if (madladOpt) {
+                madladOpt.disabled = true;
+                madladOpt.textContent = "MADLAD (offline)";
+                madladOpt.title = "Premium API недоступен";
+            }
+            if (el.value !== "gemini") el.value = "gemini";
+            return;
+        }
+
+        const gcp = status.providers.gcp || { configured: false };
+        if (gcpOpt) {
+            const q = gcp.quota || {};
+            const used = Number(q.chars || 0);
+            const lim  = Number(q.freeTierLimit || 0);
+            const ratio = lim > 0 ? used / lim : 0;
+            const pct = lim > 0 ? Math.round(ratio * 100) : null;
+
+            if (!gcp.configured) {
+                gcpOpt.disabled = true;
+                gcpOpt.textContent = "GCP Translate (нет ключа)";
+                gcpOpt.title = "GCP_TRANSLATE_KEY_FILE не задан";
+            } else {
+                gcpOpt.disabled = false;
+                const warn = q.near_limit ? " ⚠️" : "";
+                gcpOpt.textContent = "GCP Translate" + warn + (pct !== null ? ` (${pct}%)` : "");
+                gcpOpt.title =
+                    `Использовано ${used.toLocaleString("ru-RU")} / ${lim.toLocaleString("ru-RU")} символов в этом месяце` +
+                    (q.near_limit ? " — близко к бесплатному лимиту" : "");
+            }
+            if (el.value === "gcp" && gcpOpt.disabled) el.value = "gemini";
+        }
+
+        const madlad = status.providers.madlad || { configured: false };
+        if (madladOpt) {
+            madladOpt.disabled = !madlad.configured;
+            madladOpt.textContent = madlad.configured ? "MADLAD (local)" : "MADLAD (offline)";
+            madladOpt.title = madlad.configured ? "Локальный сидекар" : "Сидекар недоступен";
+            if (el.value === "madlad" && madladOpt.disabled) el.value = "gemini";
+        }
+    }
+
+    function startPremiumStatusPolling() {
+        if (_premiumStatusTimer) return;
+        // Kick once immediately, then every 30s while page is visible.
+        fetchPremiumStatus();
+        _premiumStatusTimer = setInterval(() => {
+            if (document.visibilityState === "visible") {
+                fetchPremiumStatus();
+            }
+        }, PREMIUM_STATUS_INTERVAL_MS);
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") fetchPremiumStatus();
+        });
+    }
+
+    // Refresh after a v2 call so the GCP usage % updates without waiting 30s.
+    let _premiumStatusRefreshTimer = null;
+    function schedulePremiumStatusRefresh() {
+        if (_premiumStatusRefreshTimer) clearTimeout(_premiumStatusRefreshTimer);
+        _premiumStatusRefreshTimer = setTimeout(fetchPremiumStatus, 500);
+    }
 
     // ----------------------------
     // RESULTS META
@@ -15869,8 +16009,15 @@ document.getElementById("tableContainer").innerHTML = "";
 
         clearResultsMeta("table");
 
+        const provider = getSelectedProvider();
+        const usePremium = provider === "gcp" || provider === "madlad";
+        const endpoint = usePremium ? "/api/translate-table-v2" : "/api/translate-table";
+        const payload = usePremium
+            ? { text: getText(), provider, target_lang: "ru" }
+            : { text: getText() };
+
         try {
-            const res = await apiCall("/api/translate-table", { text: getText() });
+            const res = await apiCall(endpoint, payload);
 
 // P0.5 safety: новый контент => не подсвечиваем “старый индекс”
 clearRowSelectedUI();
@@ -15880,19 +16027,31 @@ renderTable(currentTableData);
 
 // hook: сохраним мета про генерацию (для Library save)
 try {
-  v3LastGeminiMeta = {
-    promptId: "he-ru-table-v1",
-    model: "gemini-flash-latest",
-    cacheKey: res.cacheKey || null,
-    fromCache: (res.fromCache === true),
-    generatedAt: new Date().toISOString()
-  };
+  if (usePremium) {
+    const prov = res.provenance || {};
+    v3LastGeminiMeta = {
+      promptId: "he-ru-table-v2",
+      model: prov.translator_version || provider,
+      cacheKey: res.cacheKey || null,
+      fromCache: (res.fromCache === true),
+      provider: prov.actual_provider || prov.provider || provider,
+      generatedAt: new Date().toISOString()
+    };
+  } else {
+    v3LastGeminiMeta = {
+      promptId: "he-ru-table-v1",
+      model: "gemini-flash-latest",
+      cacheKey: res.cacheKey || null,
+      fromCache: (res.fromCache === true),
+      generatedAt: new Date().toISOString()
+    };
+  }
 } catch (_) {}
 
             if (currentTableData.length > 0) {
                 clearTableStale();
                 tableIsStale = false;
-                
+
                 const autoName = generateDocxFileName();
                 lastDocxFilename = autoName;
 
@@ -15908,21 +16067,27 @@ try {
                     console.error("Table cache save error", e);
                 }
 
-                if (res.fromCache === true) {
+                if (usePremium) {
+                    setResultsMetaWithProvenance(res);
+                } else if (res.fromCache === true) {
                     setResultsMeta("table", "сгенерирована из серверного кэша (без запроса к Gemini)");
                 } else {
                     setResultsMeta("table", "сгенерирована через Gemini API");
                 }
-                
+
             } else {
-                tableIsStale = false;                
+                tableIsStale = false;
                 clearResultsMeta("table");
             }
 
             loadStats();
-            clearGeminiLock();
+            if (!usePremium) clearGeminiLock();
+            // After a v2 success the GCP quota counter advanced — refresh.
+            if (usePremium) schedulePremiumStatusRefresh();
         } catch (e) {
-            if (e.httpStatus === 429) {
+            if (usePremium) {
+                handlePremiumError(e, provider);
+            } else if (e.httpStatus === 429) {
                 handleGeminiLimitError(e);
             } else {
                 showError(e.message || "Ошибка перевода");
@@ -15931,6 +16096,76 @@ try {
             setLoading(false);
             updateAiButtonState();
         }
+    }
+
+    // ----------------------------
+    // PROVIDER SELECTOR (Phase 1.9)
+    // ----------------------------
+    const PROVIDER_LS_KEY = "v3.translateProvider";
+
+    function getSelectedProvider() {
+        const el = document.getElementById("providerSelect");
+        if (!el) return "gemini";
+        return el.value || "gemini";
+    }
+
+    function initProviderSelect() {
+        const el = document.getElementById("providerSelect");
+        if (!el) return;
+        try {
+            const saved = localStorage.getItem(PROVIDER_LS_KEY);
+            if (saved && ["gemini", "gcp", "madlad"].includes(saved)) {
+                el.value = saved;
+            }
+        } catch (_) {}
+        el.addEventListener("change", () => {
+            try { localStorage.setItem(PROVIDER_LS_KEY, el.value); } catch (_) {}
+        });
+    }
+
+    function setResultsMetaWithProvenance(res) {
+        const prov = res.provenance || {};
+        const requested = prov.provider || "?";
+        const actual = prov.actual_provider || requested;
+        const cache = prov.cache_level || "none";
+        const ver = prov.translator_version || "";
+
+        let label;
+        if (res.fromCache === true || cache === "doc") {
+            label = `сгенерирована из кэша (${requested}, doc)`;
+        } else if (cache === "segment") {
+            label = `сгенерирована из кэша сегментов (${requested})`;
+        } else if (cache === "mixed") {
+            label = `сгенерирована через ${actual}` + (ver ? ` · ${ver}` : "");
+        } else {
+            label = `сгенерирована через ${actual}` + (ver ? ` · ${ver}` : "");
+        }
+        if (actual !== requested) {
+            label += ` · fallback ${requested}→${actual} (${prov.fallback_reason || "transient"})`;
+        }
+        setResultsMeta("table", label);
+    }
+
+    function handlePremiumError(e, provider) {
+        const status = e.httpStatus || 0;
+        if (status === 402) {
+            showError(`GCP free-tier лимит исчерпан. Переключитесь на MADLAD или дождитесь начала следующего месяца. (${e.message || ""})`);
+            schedulePremiumStatusRefresh();
+            return;
+        }
+        if (status === 503) {
+            showError(`Провайдер «${provider}» не настроен на сервере: ${e.message || "проверьте GCP_TRANSLATE_KEY_FILE"}`);
+            return;
+        }
+        if (status === 502 || status === 504) {
+            showError(`Сервис перевода временно недоступен (${e.message || "upstream"}). Попробуйте ещё раз.`);
+            return;
+        }
+        if (status === 400) {
+            showError(`Неверный запрос: ${e.message || "BAD_INPUT"}`);
+            return;
+        }
+        showError(e.message || `Ошибка premium перевода (${provider})`);
     }
 
     function handleGeminiLimitError(error) {
