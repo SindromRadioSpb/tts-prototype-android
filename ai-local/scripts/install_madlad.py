@@ -71,7 +71,6 @@ try:
             "tokenizer_config.json",
             "generation_config.json",
         ],
-        low_cpu_mem_usage=True,
     )
     converter.convert(
         output_dir=str(CT2_OUT),
