@@ -2182,6 +2182,88 @@ if (PREMIUM_V2_ENABLED) {
 }
 
 // --------------------------------------------------------
+// 11a. API: DIAGNOSTICS (aggregated system status for the Dashboard panel)
+// --------------------------------------------------------
+app.get("/api/diag", async (_req, res) => {
+  const { getDb } = require("./db/sqlite");
+  const {
+    SEGMENTER_VERSION, NIKUD_VERSION, TRANSLIT_PROFILE_VERSIONS, TRANSLATOR_VERSIONS,
+  } = require("./db/premium/versions");
+  const pythonClient = require("./db/premium/pythonClient");
+
+  // ── 1. Sidecar health (non-blocking, short timeout) ──────────────────────
+  let sidecar = { ok: false, status: 0, models: null };
+  try {
+    const r = await pythonClient.healthz();
+    sidecar.ok = !!r.ok;
+    sidecar.status = r.status || 0;
+    if (r.ok) {
+      const m = await pythonClient.modelsStatus();
+      if (m.ok && m.body) sidecar.models = m.body;
+    }
+  } catch (_) {}
+
+  // ── 2. Premium providers ─────────────────────────────────────────────────
+  let providers = { gcp: { configured: false, quota: null }, madlad: { configured: true } };
+  if (PREMIUM_V2_ENABLED) {
+    try {
+      const premiumGcp   = require("./db/premium/providers/gcp");
+      const premiumQuota = require("./db/premium/quota");
+      providers.gcp.configured = premiumGcp.isAvailable();
+      providers.gcp.quota      = premiumQuota.getGcpStatus();
+    } catch (_) {}
+  }
+
+  // ── 3. DB stats (cache + library) ────────────────────────────────────────
+  let db_stats = null;
+  try {
+    const db = getDb();
+    const q = (sql) => new Promise((ok, err) =>
+      db.get(sql, [], (e, r) => e ? err(e) : ok(r)));
+
+    const [docCache, segCache, overrides, texts, textsActive, sentences, provRows] =
+      await Promise.all([
+        q("SELECT COUNT(*) AS n FROM translation_doc_cache"),
+        q("SELECT COUNT(*) AS n FROM translation_segment_cache"),
+        q("SELECT COUNT(*) AS n FROM translation_overrides"),
+        q("SELECT COUNT(*) AS n FROM texts"),
+        q("SELECT COUNT(*) AS n FROM texts WHERE archived = 0 OR archived IS NULL"),
+        q("SELECT COUNT(*) AS n FROM sentences"),
+        new Promise((ok) =>
+          db.all(
+            "SELECT provider, COUNT(*) AS n FROM texts GROUP BY provider",
+            [],
+            (e, rows) => ok(e ? [] : (rows || []))
+          )
+        ),
+      ]);
+
+    db_stats = {
+      doc_cache:   docCache?.n  ?? 0,
+      seg_cache:   segCache?.n  ?? 0,
+      overrides:   overrides?.n ?? 0,
+      texts:       texts?.n     ?? 0,
+      texts_active: textsActive?.n ?? 0,
+      sentences:   sentences?.n ?? 0,
+      by_provider: provRows.reduce((acc, r) => {
+        acc[r.provider || "unknown"] = r.n;
+        return acc;
+      }, {}),
+    };
+  } catch (_) {}
+
+  // ── 4. Versions ───────────────────────────────────────────────────────────
+  const versions = {
+    segmenter:  SEGMENTER_VERSION,
+    nikud:      NIKUD_VERSION,
+    translit:   TRANSLIT_PROFILE_VERSIONS,
+    translators: TRANSLATOR_VERSIONS,
+  };
+
+  res.json({ ok: true, sidecar, providers, db_stats, versions, ts: new Date().toISOString() });
+});
+
+// --------------------------------------------------------
 // 11. API: EXPORT DOCX
 // --------------------------------------------------------
 app.post("/api/export-docx", async (req, res) => {

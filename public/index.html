@@ -2363,6 +2363,72 @@ th, td { border-color: rgba(0,0,0,0.55); }
 #v3DashboardModal.v3-dash-mode-compact .v3-dash-row-meta {
   display: none; /* в compact оставляем только he + кнопки */
 }
+
+/* ── Diagnostic panel (6.8) ──────────────────────────────────────────── */
+.v3-diag-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+@media (max-width: 520px) {
+  .v3-diag-grid { grid-template-columns: 1fr; }
+}
+.v3-diag-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.v3-diag-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+  margin-bottom: 8px;
+}
+.v3-diag-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.v3-diag-row:last-child { border-bottom: none; }
+.v3-diag-label { opacity: 0.7; }
+.v3-diag-val   { font-weight: 500; text-align: right; }
+.v3-diag-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.v3-diag-dot-ok    { background: #4caf50; }
+.v3-diag-dot-warn  { background: #ff9800; }
+.v3-diag-dot-err   { background: #f44336; }
+.v3-diag-dot-off   { background: #888; }
+.v3-diag-loading { opacity: 0.5; font-size: 12px; padding: 6px 0; }
+.v3-diag-bar-wrap {
+  flex: 1;
+  height: 5px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 0 6px;
+  align-self: center;
+}
+.v3-diag-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: #4caf50;
+  transition: width 0.3s;
+}
+.v3-diag-bar-fill.warn { background: #ff9800; }
+.v3-diag-bar-fill.crit { background: #f44336; }
   	  
 	  /* --------------------------------------------------------
    W10-NOTES-UX-MD-01: Notes Markdown toolbar + safe preview
@@ -4660,6 +4726,20 @@ body.v3-ide-mode .v3-ide-right {
       Выберите текст слева — покажем последние строки.
     </div>
     <div id="v3DashRowsList"></div>
+  </div>
+</div>
+
+<!-- 6.8 Diagnostic panel — collapsed by default to avoid noise during study -->
+<div id="v3DashSecDiag" class="v3-dash-section v3-dash-collapsed" data-sec="diag">
+  <div class="v3-dash-sec-head">
+    <h3>🔧 Диагностика системы</h3>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="diag"
+      aria-label="Свернуть/развернуть: Диагностика системы" title="Свернуть/развернуть">▾</button>
+  </div>
+  <div class="v3-dash-sec-body">
+    <div id="v3DiagContent">
+      <div class="v3-diag-loading">Загрузка…</div>
+    </div>
   </div>
 </div>
 
@@ -14300,6 +14380,141 @@ window.v3IdeSrsAnkiPreview = v3IdeSrsAnkiPreview;
 window.v3IdeSrsExportAnki = v3IdeSrsExportAnki;
 window.v3SrsTrainerExportAnki = v3SrsTrainerExportAnki;
 
+// ── 6.8 Diagnostic panel ─────────────────────────────────────────────────
+async function v3DiagLoad() {
+    const el = document.getElementById("v3DiagContent");
+    if (!el) return;
+    try {
+        const data = await v3GetJson("/api/diag");
+        el.innerHTML = v3DiagRender(data);
+    } catch (e) {
+        el.innerHTML = '<div class="v3-diag-loading">Ошибка загрузки диагностики.</div>';
+    }
+}
+
+function v3DiagDot(ok, warn) {
+    const cls = ok ? (warn ? "v3-diag-dot-warn" : "v3-diag-dot-ok") : "v3-diag-dot-err";
+    return '<span class="v3-diag-dot ' + cls + '"></span>';
+}
+
+function v3DiagFmt(n) {
+    return (typeof n === "number") ? n.toLocaleString("ru-RU") : "—";
+}
+
+function v3DiagRender(d) {
+    const sc = d.sidecar || {};
+    const prov = d.providers || {};
+    const gcp = prov.gcp || {};
+    const q = gcp.quota || {};
+    const db = d.db_stats || {};
+    const ver = d.versions || {};
+
+    // ── Sidecar card ──
+    const sidecarOk = !!sc.ok;
+    let sidecarRows = '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">' + v3DiagDot(sidecarOk) + 'Python sidecar</span>' +
+        '<span class="v3-diag-val">' + (sidecarOk ? "онлайн" : "недоступен") + '</span></div>';
+
+    if (sidecarOk && sc.models) {
+        const ms = sc.models;
+        const nakdanLoaded = !!(ms.nakdan && ms.nakdan.loaded);
+        const madladLoaded = !!(ms.madlad && ms.madlad.loaded);
+        sidecarRows += '<div class="v3-diag-row">' +
+            '<span class="v3-diag-label">' + v3DiagDot(nakdanLoaded) + 'Nakdan (niqqud)</span>' +
+            '<span class="v3-diag-val">' + (nakdanLoaded ? "загружен" : "не загружен") + '</span></div>';
+        sidecarRows += '<div class="v3-diag-row">' +
+            '<span class="v3-diag-label">' + v3DiagDot(madladLoaded) + 'MADLAD-400</span>' +
+            '<span class="v3-diag-val">' + (madladLoaded ? "загружен" : "не загружен") + '</span></div>';
+    }
+
+    // ── GCP card ──
+    const gcpOk = !!gcp.configured;
+    let gcpRows = '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">' + v3DiagDot(gcpOk) + 'GCP Translate</span>' +
+        '<span class="v3-diag-val">' + (gcpOk ? "настроен" : "не настроен") + '</span></div>';
+
+    if (gcpOk && q.freeTierLimit) {
+        const usedRatio = q.used_ratio || 0;
+        const pct = Math.round(usedRatio * 100);
+        const barCls = pct >= 90 ? "crit" : pct >= 70 ? "warn" : "";
+        gcpRows += '<div class="v3-diag-row">' +
+            '<span class="v3-diag-label">Квота (символы)</span>' +
+            '<div class="v3-diag-bar-wrap"><div class="v3-diag-bar-fill ' + barCls + '" style="width:' + pct + '%"></div></div>' +
+            '<span class="v3-diag-val">' + pct + '%</span></div>';
+        gcpRows += '<div class="v3-diag-row">' +
+            '<span class="v3-diag-label">Использовано</span>' +
+            '<span class="v3-diag-val">' + v3DiagFmt(q.chars) + ' / ' + v3DiagFmt(q.freeTierLimit) + '</span></div>';
+        if (q.near_limit) {
+            gcpRows += '<div class="v3-diag-row">' +
+                '<span class="v3-diag-label">' + v3DiagDot(false, true) + 'Квота</span>' +
+                '<span class="v3-diag-val" style="color:#ff9800;">Почти исчерпана</span></div>';
+        }
+        if (q.monthStart) {
+            gcpRows += '<div class="v3-diag-row">' +
+                '<span class="v3-diag-label">Период с</span>' +
+                '<span class="v3-diag-val">' + q.monthStart.slice(0, 10) + '</span></div>';
+        }
+    }
+
+    // ── Cache & Library card ──
+    let cacheRows = '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">Doc cache</span>' +
+        '<span class="v3-diag-val">' + v3DiagFmt(db.doc_cache) + '</span></div>' +
+        '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">Segment cache</span>' +
+        '<span class="v3-diag-val">' + v3DiagFmt(db.seg_cache) + '</span></div>' +
+        '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">Overrides</span>' +
+        '<span class="v3-diag-val">' + v3DiagFmt(db.overrides) + '</span></div>';
+
+    let libRows = '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">Текстов (активных)</span>' +
+        '<span class="v3-diag-val">' + v3DiagFmt(db.texts_active) + ' / ' + v3DiagFmt(db.texts) + '</span></div>' +
+        '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">Предложений</span>' +
+        '<span class="v3-diag-val">' + v3DiagFmt(db.sentences) + '</span></div>';
+
+    const byProv = db.by_provider || {};
+    Object.keys(byProv).forEach(function(p) {
+        libRows += '<div class="v3-diag-row">' +
+            '<span class="v3-diag-label" style="padding-left:10px;">' + p + '</span>' +
+            '<span class="v3-diag-val">' + v3DiagFmt(byProv[p]) + '</span></div>';
+    });
+
+    // ── Versions card ──
+    let verRows = '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">Segmenter</span>' +
+        '<span class="v3-diag-val" style="font-size:11px;">' + (ver.segmenter || "—") + '</span></div>' +
+        '<div class="v3-diag-row">' +
+        '<span class="v3-diag-label">Nikud model</span>' +
+        '<span class="v3-diag-val" style="font-size:10px;">' + (ver.nikud || "—") + '</span></div>';
+    const tv = ver.translit || {};
+    Object.keys(tv).forEach(function(k) {
+        verRows += '<div class="v3-diag-row">' +
+            '<span class="v3-diag-label">Translit/' + k + '</span>' +
+            '<span class="v3-diag-val" style="font-size:10px;">' + tv[k] + '</span></div>';
+    });
+    const tr = ver.translators || {};
+    Object.keys(tr).forEach(function(k) {
+        verRows += '<div class="v3-diag-row">' +
+            '<span class="v3-diag-label">' + k + '</span>' +
+            '<span class="v3-diag-val" style="font-size:10px;">' + tr[k] + '</span></div>';
+    });
+
+    const ts = d.ts ? (' · ' + d.ts.replace('T', ' ').slice(0, 19) + ' UTC') : '';
+
+    return '<div class="v3-diag-grid">' +
+        '<div class="v3-diag-card"><div class="v3-diag-card-title">Sidecar (AI local)</div>' + sidecarRows + '</div>' +
+        '<div class="v3-diag-card"><div class="v3-diag-card-title">GCP Translate</div>' + gcpRows + '</div>' +
+        '<div class="v3-diag-card"><div class="v3-diag-card-title">Кэш (pipeline)</div>' + cacheRows + '</div>' +
+        '<div class="v3-diag-card"><div class="v3-diag-card-title">Библиотека</div>' + libRows + '</div>' +
+        '</div>' +
+        '<div class="v3-diag-grid" style="margin-top:10px;">' +
+        '<div class="v3-diag-card" style="grid-column:1/-1"><div class="v3-diag-card-title">Версии компонентов</div>' + verRows + '</div>' +
+        '</div>' +
+        '<div class="v3-diag-loading" style="margin-top:8px;text-align:right;">Обновлено' + ts + '</div>';
+}
+
 function v3DashboardOpen() {
   const m = v3DashEl("v3DashboardModal");
   if (!m) return;
@@ -14468,6 +14683,14 @@ async function v3DashboardRefresh() {
   try { v3DashApplyCollapsedState(); } catch (_) {}
     // Wave D (D3): refresh notes matches after dashboard data refresh (best-effort)
   try { v3NotesSearchSchedule("dash", { force: true }); } catch (_) {}
+
+  // 6.8: diagnostic panel — load only if section is expanded (avoid unnecessary server call)
+  try {
+    const diagSec = document.getElementById("v3DashSecDiag");
+    if (diagSec && !diagSec.classList.contains("v3-dash-collapsed")) {
+      v3DiagLoad();
+    }
+  } catch (_) {}
 }
 
 function v3DashboardOnFilterChange() {
@@ -15795,7 +16018,7 @@ function v3DashViewSaveState() {
 }
 
 function v3DashCollapsedDefaultState() {
-  return { pinned: false, recent: false, activity: false, rows: false };
+  return { pinned: false, recent: false, activity: false, rows: false, diag: true };
 }
 
 function v3DashCollapsedLoadState() {
@@ -15814,6 +16037,7 @@ function v3DashCollapsedLoadState() {
       recent: (typeof obj.recent === "boolean") ? obj.recent : def.recent,
       activity: (typeof obj.activity === "boolean") ? obj.activity : def.activity,
       rows: (typeof obj.rows === "boolean") ? obj.rows : def.rows,
+      diag: (typeof obj.diag === "boolean") ? obj.diag : def.diag,
     };
     return v3DashCollapsedState;
   } catch (_) {
@@ -15872,6 +16096,7 @@ function v3DashApplyCollapsedState() {
   apply("v3DashSecRecent", "recent");
   apply("v3DashSecActivity", "activity");
   apply("v3DashSecRows", "rows");
+  apply("v3DashSecDiag", "diag");
 }
 
 function v3DashToggleCollapsed(key) {
@@ -15881,6 +16106,10 @@ function v3DashToggleCollapsed(key) {
   st[key] = !st[key];
   v3DashCollapsedSaveState();
   v3DashApplyCollapsedState();
+  // Load diagnostic data the first time the section is expanded.
+  if (key === "diag" && !st[key]) {
+    try { v3DiagLoad(); } catch (_) {}
+  }
 }
 
 function v3DashCloseViewMenu() {
