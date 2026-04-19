@@ -23,6 +23,7 @@ function translitProfileVersion(profile) {
 const TRANSLATOR_VERSIONS = {
   madlad:          "madlad-400-10b-ct2-int8f16",
   gcp:             "gcp-translate-v3-nmt",
+  "google-free":   "google-free-gtx-v1",
   "legacy-gemini": "gemini-flash-latest",
   manual:          "manual-v1",
 };

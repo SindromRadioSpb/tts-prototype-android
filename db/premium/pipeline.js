@@ -30,10 +30,11 @@ const {
 const { segment } = require("./segmenter");
 const { transliterateWithProfile } = require("./translit");
 const pythonClient = require("./pythonClient");
-const gcpProvider = require("./providers/gcp");
+const gcpProvider        = require("./providers/gcp");
+const googleFreeProvider = require("./providers/googleFree");
 const quota = require("./quota");
 
-const SUPPORTED_PROVIDERS = new Set(["madlad", "gcp"]);
+const SUPPORTED_PROVIDERS = new Set(["madlad", "gcp", "google-free"]);
 
 // Both translits (SBL + Russian phonetic) are always computed for every row.
 // The cache key reflects this with a single fixed string so the two profiles
@@ -96,11 +97,26 @@ async function _gcpTranslate(segmentsForApi, target) {
   return out;
 }
 
+async function _googleFreeTranslate(segmentsForApi, target) {
+  const out = await googleFreeProvider.translateBatch(segmentsForApi, target);
+  return { ...out, chars: 0 }; // not metered
+}
+
 // Dispatcher with optional fallback. Returns:
 //   { results, model_version, chars, actualProvider, fallbackReason? }
 async function fetchTranslations(segmentsForApi, target, requestedProvider) {
   if (!segmentsForApi.length) {
     return { results: [], model_version: "", chars: 0, actualProvider: requestedProvider };
+  }
+
+  if (requestedProvider === "google-free") {
+    try {
+      const out = await _googleFreeTranslate(segmentsForApi, target);
+      return { ...out, actualProvider: "google-free" };
+    } catch (e) {
+      e.provider = "google-free";
+      throw e;
+    }
   }
 
   if (requestedProvider === "gcp") {

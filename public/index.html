@@ -4307,10 +4307,11 @@ body.v3-ide-mode .v3-ide-right {
 			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
 
 			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
-			<select id="providerSelect" class="provider-select" title="Поставщик перевода (Gemini = старый /api/translate-table, GCP/MADLAD = premium v2)">
-			    <option value="gemini">Gemini (legacy)</option>
-			    <option value="gcp">GCP Translate</option>
+			<select id="providerSelect" class="provider-select" title="Поставщик перевода">
+			    <option value="google-free">Google Translate</option>
+			    <option value="gcp">GCP Translate (API)</option>
 			    <option value="madlad">MADLAD (local)</option>
+			    <option value="gemini">Gemini (legacy)</option>
 			</select>
 			<select id="translitProfileSelect" class="provider-select" title="Профиль транслитерации иврита">
 			    <option value="sbl" selected>Транслит: SBL Academic</option>
@@ -11958,7 +11959,7 @@ function v3UiUpdateActiveHeader() {
   let statusText = "";
   let sub = "";
 
-  const _providerLabelMap = { gcp: "GCP Cloud Translation v3", madlad: "MADLAD-400 (local)", gemini: "Google Gemini" };
+  const _providerLabelMap = { "google-free": "Google Translate", gcp: "GCP Cloud Translation v3", madlad: "MADLAD-400 (local)", gemini: "Google Gemini" };
   const _meta = (typeof v3LastGeminiMeta !== "undefined" && v3LastGeminiMeta) ? v3LastGeminiMeta : null;
   const _providerLabel = _meta && _meta.provider
     ? (_providerLabelMap[_meta.provider] || _meta.provider)
@@ -16365,7 +16366,7 @@ document.getElementById("tableContainer").innerHTML = "";
         clearResultsMeta("table");
 
         const provider = getSelectedProvider();
-        const usePremium = provider === "gcp" || provider === "madlad";
+        const usePremium = provider === "gcp" || provider === "madlad" || provider === "google-free";
         const endpoint = usePremium ? "/api/translate-table-v2" : "/api/translate-table";
         const translitProfileEl = document.getElementById("translitProfileSelect");
         const translit_profile = translitProfileEl ? (translitProfileEl.value || "sbl") : "sbl";
@@ -16503,8 +16504,10 @@ try {
         if (!el) return;
         try {
             const saved = localStorage.getItem(PROVIDER_LS_KEY);
-            if (saved && ["gemini", "gcp", "madlad"].includes(saved)) {
+            if (saved && ["gemini", "gcp", "madlad", "google-free"].includes(saved)) {
                 el.value = saved;
+            } else {
+                el.value = "google-free"; // default provider
             }
         } catch (_) {}
         el.addEventListener("change", () => {
