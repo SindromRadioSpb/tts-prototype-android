@@ -1198,10 +1198,15 @@ async function addSentence(textId, { afterOrderIndex, afterSentenceId, he = "", 
   let insertAt;
   if (afterOrderIndex != null && afterOrderIndex <= maxIdx) {
     insertAt = afterOrderIndex + 1;
-    // Shift rows to make room.
+    // Shift rows to make room using OFFSET to avoid UNIQUE(text_id, order_index) violations.
+    const OFFSET = 100000;
     await dbRun(db,
-      "UPDATE sentences SET order_index = order_index + 1 WHERE text_id = ? AND order_index >= ?",
-      [textId, insertAt]
+      "UPDATE sentences SET order_index = order_index + ? WHERE text_id = ? AND order_index >= ?",
+      [OFFSET + 1, textId, insertAt]
+    );
+    await dbRun(db,
+      "UPDATE sentences SET order_index = order_index - ? WHERE text_id = ? AND order_index >= ?",
+      [OFFSET, textId, insertAt + 1]
     );
   } else {
     insertAt = maxIdx + 1;

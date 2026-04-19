@@ -17609,28 +17609,48 @@ function tableEditAddRow() {
 function tableEditResetAll() {
     const rows = currentTableData;
     if (!rows) return;
-    const editedRows = rows.filter(function(r) {
-        if (!r || !r.edit_meta_json) return false;
+    // Partition: manually-added rows must be deleted; edited rows must be reset.
+    const toDelete = [];
+    const toReset  = [];
+    rows.forEach(function(r) {
+        if (!r || !r.edit_meta_json) return;
         try {
             const m = typeof r.edit_meta_json === "string" ? JSON.parse(r.edit_meta_json) : r.edit_meta_json;
-            return m && m.edited && Object.values(m.edited).some(Boolean);
-        } catch (_) { return false; }
+            if (!m) return;
+            if (m.added) { toDelete.push(r); return; }
+            if (m.edited && Object.values(m.edited).some(Boolean)) toReset.push(r);
+        } catch (_) {}
     });
-    if (!editedRows.length) return;
-    if (!confirm("Сбросить все ручные правки (" + editedRows.length + " строк)?")) return;
-    const firstTid = editedRows[0]._v3_textId;
-    // Reset all in sequence
+    if (!toDelete.length && !toReset.length) return;
+    const total = toDelete.length + toReset.length;
+    if (!confirm("Сбросить все ручные правки (" + total + " строк)?\nДобавленные вручную строки (" + toDelete.length + ") будут удалены.")) return;
+
     var chain = Promise.resolve();
-    editedRows.forEach(function(row) {
+    // Delete added rows
+    toDelete.forEach(function(row) {
+        chain = chain.then(function() {
+            return fetch("/api/library/texts/" + row._v3_textId + "/sentences/" + row._v3_sentenceId, { method: "DELETE" })
+                .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw e; }); })
+                .then(function() {
+                    const idx = currentTableData.indexOf(row);
+                    if (idx !== -1) currentTableData.splice(idx, 1);
+                });
+        });
+    });
+    // Reset edited rows
+    toReset.forEach(function(row) {
         chain = chain.then(function() {
             return fetch("/api/library/texts/" + row._v3_textId + "/sentences/" + row._v3_sentenceId + "/reset", { method: "POST" })
                 .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw e; }); })
                 .then(function(data) {
                     if (data.sentence) {
                         Object.assign(row, {
-                            he: data.sentence.he, he_niqqud: data.sentence.he_niqqud,
-                            translit: data.sentence.translit, translit_ru: data.sentence.translit_ru,
-                            ru: data.sentence.ru, edit_meta_json: null,
+                            he: data.sentence.he_plain ?? data.sentence.he ?? row.he,
+                            he_niqqud: data.sentence.he_niqqud,
+                            translit: data.sentence.translit,
+                            translit_ru: data.sentence.translit_ru,
+                            ru: data.sentence.ru,
+                            edit_meta_json: null,
                         });
                     }
                 });
@@ -17722,7 +17742,7 @@ function tableEditDndEnable() {
         const tid = srcRow && srcRow._v3_textId;
         if (tid) {
             const orderPayload = rows.map(function(r, i) {
-                return { sentence_id: r._v3_sentenceId, order_index: i };
+                return { id: r._v3_sentenceId, order_index: i };
             }).filter(function(x) { return x.sentence_id; });
             fetch("/api/library/texts/" + tid + "/sentences/reorder", {
                 method: "PATCH",
