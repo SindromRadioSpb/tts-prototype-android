@@ -6,7 +6,17 @@
 
 const SEGMENTER_VERSION = "regex-v1";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
-const TRANSLIT_PROFILE  = "sbl-v3-spirant";
+const TRANSLIT_PROFILE  = "sbl-v3-spirant"; // default; also the cache-key string for profile "sbl"
+
+// Stable cache-key strings per profile. Bump when the corresponding schema changes.
+const TRANSLIT_PROFILE_VERSIONS = {
+  "sbl":         "sbl-v3-spirant",
+  "ru-phonetic": "ru-phonetic-v1",
+};
+
+function translitProfileVersion(profile) {
+  return TRANSLIT_PROFILE_VERSIONS[profile] || TRANSLIT_PROFILE;
+}
 
 // Per-provider translator versions. The key only uses the one that matches the
 // call's provider, so switching providers produces disjoint cache namespaces.
@@ -25,6 +35,8 @@ module.exports = {
   SEGMENTER_VERSION,
   NIKUD_VERSION,
   TRANSLIT_PROFILE,
+  TRANSLIT_PROFILE_VERSIONS,
+  translitProfileVersion,
   TRANSLATOR_VERSIONS,
   translatorVersion,
 };

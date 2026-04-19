@@ -13,13 +13,14 @@ function sha256Hex(s) {
 }
 
 // Document-level cache key: full pipeline identity + the normalized source.
-// Changing any version or the provider/target produces a different key.
-function buildDocKey({ provider, target_lang, normalizedSource }) {
+// translitProfile: the versioned profile string (e.g. "sbl-v3-spirant"), not the
+// short profile name — callers must resolve via translitProfileVersion() first.
+function buildDocKey({ provider, target_lang, normalizedSource, translitProfile }) {
   const parts = [
     "doc",
     SEGMENTER_VERSION,
     NIKUD_VERSION,
-    TRANSLIT_PROFILE,
+    translitProfile || TRANSLIT_PROFILE,
     translatorVersion(provider),
     provider,
     target_lang,
@@ -28,14 +29,12 @@ function buildDocKey({ provider, target_lang, normalizedSource }) {
   return sha256Hex(parts.join("\x1f"));
 }
 
-// Segment-level cache key: segmentation is irrelevant (the segment is already
-// isolated), so SEGMENTER_VERSION is not part of the key — same segment text
-// is reusable across different segmentations of the surrounding document.
-function buildSegmentKey({ provider, target_lang, normalizedSegment }) {
+// Segment-level cache key. Same translitProfile convention as buildDocKey.
+function buildSegmentKey({ provider, target_lang, normalizedSegment, translitProfile }) {
   const parts = [
     "seg",
     NIKUD_VERSION,
-    TRANSLIT_PROFILE,
+    translitProfile || TRANSLIT_PROFILE,
     translatorVersion(provider),
     provider,
     target_lang,

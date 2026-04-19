@@ -2039,6 +2039,7 @@ if (PREMIUM_V2_ENABLED) {
         provider = "madlad",
         text_id = null,
         note = null,
+        translit_profile = "sbl",
       } = req.body || {};
 
       const out = await premiumPipeline.translateTable({
@@ -2047,6 +2048,7 @@ if (PREMIUM_V2_ENABLED) {
         provider,
         text_id,
         note,
+        translit_profile,
       });
 
       res.json(out);

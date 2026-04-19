@@ -4246,6 +4246,10 @@ body.v3-ide-mode .v3-ide-right {
 			    <option value="gcp">GCP Translate</option>
 			    <option value="madlad">MADLAD (local)</option>
 			</select>
+			<select id="translitProfileSelect" class="provider-select" title="Профиль транслитерации иврита">
+			    <option value="sbl" selected>Транслит: SBL Academic</option>
+			    <option value="ru-phonetic">Транслит: Русская фонетика</option>
+			</select>
 			<button id="btnGcpKey" class="btn-secondary" style="padding:4px 8px;" title="Загрузить service account JSON для GCP Translate" onclick="gcpKeyOpen()">🔑</button>
 			<input type="file" id="gcpKeyFileInput" accept="application/json,.json" style="display:none" onchange="gcpKeyOnFileChosen(event)">
 			<span id="gcpKeyStatus" class="provenance-badge" style="display:none"></span>
@@ -9452,6 +9456,7 @@ updatePlaylistButtonUI();
 
     // Now safe to bootstrap — all let/const above is initialized.
     initProviderSelect();
+    initTranslitProfileSelect();
     startPremiumStatusPolling();
     // Deferred: the key badge + button live further down in the document,
     // so run after the next tick once DOM handlers are registered.
@@ -16114,8 +16119,10 @@ document.getElementById("tableContainer").innerHTML = "";
         const provider = getSelectedProvider();
         const usePremium = provider === "gcp" || provider === "madlad";
         const endpoint = usePremium ? "/api/translate-table-v2" : "/api/translate-table";
+        const translitProfileEl = document.getElementById("translitProfileSelect");
+        const translit_profile = translitProfileEl ? (translitProfileEl.value || "sbl") : "sbl";
         const payload = usePremium
-            ? { text: getText(), provider, target_lang: "ru" }
+            ? { text: getText(), provider, target_lang: "ru", translit_profile }
             : { text: getText() };
 
         try {
@@ -16204,12 +16211,19 @@ try {
     // ----------------------------
     // PROVIDER SELECTOR (Phase 1.9)
     // ----------------------------
-    const PROVIDER_LS_KEY = "v3.translateProvider";
+    const PROVIDER_LS_KEY        = "v3.translateProvider";
+    const TRANSLIT_PROFILE_LS_KEY = "v3.translitProfile";
 
     function getSelectedProvider() {
         const el = document.getElementById("providerSelect");
         if (!el) return "gemini";
         return el.value || "gemini";
+    }
+
+    function getSelectedTranslitProfile() {
+        const el = document.getElementById("translitProfileSelect");
+        if (!el) return "sbl";
+        return el.value || "sbl";
     }
 
     function initProviderSelect() {
@@ -16223,6 +16237,24 @@ try {
         } catch (_) {}
         el.addEventListener("change", () => {
             try { localStorage.setItem(PROVIDER_LS_KEY, el.value); } catch (_) {}
+        });
+    }
+
+    function initTranslitProfileSelect() {
+        const el = document.getElementById("translitProfileSelect");
+        if (!el) return;
+        try {
+            const saved = localStorage.getItem(TRANSLIT_PROFILE_LS_KEY);
+            if (saved && ["sbl", "ru-phonetic"].includes(saved)) {
+                el.value = saved;
+            }
+        } catch (_) {}
+        el.addEventListener("change", () => {
+            try { localStorage.setItem(TRANSLIT_PROFILE_LS_KEY, el.value); } catch (_) {}
+            // Mark table stale if one exists — the translit column will differ after retranslation.
+            if (Array.isArray(currentTableData) && currentTableData.length > 0) {
+                try { markInputStale(); } catch (_) {}
+            }
         });
     }
 

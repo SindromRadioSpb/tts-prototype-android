@@ -23,15 +23,18 @@ const historyRepo   = require("../translationHistoryRepo");
 
 const { normalizeForDisplay, normalizeForKey } = require("./normalize");
 const { buildDocKey, buildSegmentKey, hashString } = require("./keys");
-const { SEGMENTER_VERSION, NIKUD_VERSION, TRANSLIT_PROFILE, translatorVersion } =
-  require("./versions");
+const {
+  SEGMENTER_VERSION, NIKUD_VERSION, TRANSLIT_PROFILE,
+  translatorVersion, translitProfileVersion,
+} = require("./versions");
 const { segment } = require("./segmenter");
-const { transliterate } = require("./translit");
+const { transliterateWithProfile } = require("./translit");
 const pythonClient = require("./pythonClient");
 const gcpProvider = require("./providers/gcp");
 const quota = require("./quota");
 
 const SUPPORTED_PROVIDERS = new Set(["madlad", "gcp"]);
+const SUPPORTED_TRANSLIT_PROFILES = new Set(["sbl", "ru-phonetic"]);
 
 function nowIso() {
   return new Date().toISOString();
@@ -138,7 +141,7 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider) {
   return { ...out, actualProvider: "madlad" };
 }
 
-async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null } = {}) {
+async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null, translit_profile = "sbl" } = {}) {
   if (typeof text !== "string" || !text.trim()) {
     const err = new Error("text is required");
     err.code = "BAD_INPUT";
@@ -150,11 +153,14 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     throw err;
   }
 
+  const tProfile     = SUPPORTED_TRANSLIT_PROFILES.has(translit_profile) ? translit_profile : "sbl";
+  const tProfileKey  = translitProfileVersion(tProfile); // versioned string for cache key
+
   const displaySource = normalizeForDisplay(text);
   const keySource = normalizeForKey(text);
   const sourceHash = hashString(keySource);
 
-  const docKey = buildDocKey({ provider, target_lang, normalizedSource: keySource });
+  const docKey = buildDocKey({ provider, target_lang, normalizedSource: keySource, translitProfile: tProfileKey });
 
   // 1) Doc cache fast path
   const hit = await cacheRepo.getDocByKey(docKey);
@@ -184,7 +190,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
       fromCache: false,
       cacheKey: docKey,
       cachedAt: null,
-      provenance: _provenance(provider, target_lang, "none"),
+      provenance: _provenance(provider, target_lang, "none", undefined, tProfileKey),
     };
   }
 
@@ -196,7 +202,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
       heDisplay: s.he,
       heKey: heNormKey,
       heHash: hashString(heNormKey),
-      cacheKey: buildSegmentKey({ provider, target_lang, normalizedSegment: heNormKey }),
+      cacheKey: buildSegmentKey({ provider, target_lang, normalizedSegment: heNormKey, translitProfile: tProfileKey }),
     };
   });
 
@@ -265,7 +271,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
   for (const m of segMeta) {
     const row = resolved.get(m.index);
     if (!row.translit && row.he_niqqud) {
-      const t = transliterate(row.he_niqqud);
+      const t = transliterateWithProfile(row.he_niqqud, tProfile);
       if (t) {
         row.translit = t;
         row._sources.translit = "translit-local";
@@ -310,7 +316,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
         provider,
         targetLang: target_lang,
         nikudVersion: NIKUD_VERSION,
-        translitProfile: TRANSLIT_PROFILE,
+        translitProfile: tProfileKey,
         translatorVersion: modelTranslatorVersion,
       });
     })
@@ -324,7 +330,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     targetLang: target_lang,
     segmenterVersion: SEGMENTER_VERSION,
     nikudVersion: NIKUD_VERSION,
-    translitProfile: TRANSLIT_PROFILE,
+    translitProfile: tProfileKey,
     translatorVersion: modelTranslatorVersion,
     rows,
   });
@@ -337,7 +343,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
       targetLang: target_lang,
       segmenterVersion: SEGMENTER_VERSION,
       nikudVersion: NIKUD_VERSION,
-      translitProfile: TRANSLIT_PROFILE,
+      translitProfile: tProfileKey,
       translatorVersion: modelTranslatorVersion,
       rows,
       note,
@@ -347,7 +353,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     });
   }
 
-  const prov = _provenance(provider, target_lang, "mixed", modelTranslatorVersion);
+  const prov = _provenance(provider, target_lang, "mixed", modelTranslatorVersion, tProfileKey);
   if (transResp.actualProvider && transResp.actualProvider !== provider) {
     prov.actual_provider = transResp.actualProvider;
     prov.fallback_reason = transResp.fallbackReason || "transient";
@@ -366,13 +372,13 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
   };
 }
 
-function _provenance(provider, target_lang, cacheLevel, translator_version) {
+function _provenance(provider, target_lang, cacheLevel, translator_version, tProfileKey) {
   return {
     provider,
     target_lang,
     segmenter_version: SEGMENTER_VERSION,
     nikud_version: NIKUD_VERSION,
-    translit_profile: TRANSLIT_PROFILE,
+    translit_profile: tProfileKey || TRANSLIT_PROFILE,
     translator_version: translator_version || translatorVersion(provider),
     cache_level: cacheLevel,
   };
