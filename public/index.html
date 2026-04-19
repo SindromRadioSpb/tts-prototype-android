@@ -14398,7 +14398,7 @@ function v3DiagDot(ok, warn) {
 }
 
 function v3DiagFmt(n) {
-    return (typeof n === "number") ? n.toLocaleString("ru-RU") : "—";
+    return (n !== null && n !== undefined && typeof n === "number") ? n.toLocaleString("ru-RU") : "—";
 }
 
 function v3DiagRender(d) {
@@ -14417,14 +14417,31 @@ function v3DiagRender(d) {
 
     if (sidecarOk && sc.models) {
         const ms = sc.models;
-        const nakdanLoaded = !!(ms.nakdan && ms.nakdan.loaded);
-        const madladLoaded = !!(ms.madlad && ms.madlad.loaded);
+        // Sidecar model state: "ready" = loaded, "unloaded" = idle-unloaded (auto-unloads after timeout)
+        const nakdan = ms.nakdan || {};
+        const translator = ms.translator || {};
+        const nakdanReady = nakdan.state === "ready";
+        const translatorReady = translator.state === "ready";
+        // "unloaded" after idle is normal — show as warning (was active, now sleeping)
+        const translatorUnloaded = translator.state === "unloaded" && !!translator.last_used_at;
+
         sidecarRows += '<div class="v3-diag-row">' +
-            '<span class="v3-diag-label">' + v3DiagDot(nakdanLoaded) + 'Nakdan (niqqud)</span>' +
-            '<span class="v3-diag-val">' + (nakdanLoaded ? "загружен" : "не загружен") + '</span></div>';
+            '<span class="v3-diag-label">' + v3DiagDot(nakdanReady) + 'Nakdan (niqqud)</span>' +
+            '<span class="v3-diag-val">' + (nakdanReady ? "готов" : (nakdan.state || "—")) + '</span></div>';
         sidecarRows += '<div class="v3-diag-row">' +
-            '<span class="v3-diag-label">' + v3DiagDot(madladLoaded) + 'MADLAD-400</span>' +
-            '<span class="v3-diag-val">' + (madladLoaded ? "загружен" : "не загружен") + '</span></div>';
+            '<span class="v3-diag-label">' + v3DiagDot(translatorReady, translatorUnloaded) + 'MADLAD-400</span>' +
+            '<span class="v3-diag-val">' + (translatorReady ? "готов" : translatorUnloaded ? "выгружен (idle)" : (translator.state || "—")) + '</span></div>';
+        if (translator.last_used_at) {
+            const lastUsed = translator.last_used_at.replace('T', ' ').slice(0, 16) + ' UTC';
+            sidecarRows += '<div class="v3-diag-row">' +
+                '<span class="v3-diag-label" style="padding-left:10px;">Последний запрос</span>' +
+                '<span class="v3-diag-val" style="font-size:11px;">' + lastUsed + '</span></div>';
+        }
+        if (typeof translator.idle_timeout_sec === "number") {
+            sidecarRows += '<div class="v3-diag-row">' +
+                '<span class="v3-diag-label" style="padding-left:10px;">Idle timeout</span>' +
+                '<span class="v3-diag-val">' + (translator.idle_timeout_sec / 60 | 0) + ' мин</span></div>';
+        }
     }
 
     // ── GCP card ──

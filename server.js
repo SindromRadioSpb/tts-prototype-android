@@ -2199,6 +2199,8 @@ app.get("/api/diag", async (_req, res) => {
     sidecar.status = r.status || 0;
     if (r.ok) {
       const m = await pythonClient.modelsStatus();
+      // Sidecar returns { nakdan: { state, loaded_at, last_used_at, ... },
+      //                   translator: { state, ... } }
       if (m.ok && m.body) sidecar.models = m.body;
     }
   } catch (_) {}
@@ -2215,36 +2217,38 @@ app.get("/api/diag", async (_req, res) => {
   }
 
   // ── 3. DB stats (cache + library) ────────────────────────────────────────
+  // Each query is isolated — one failure does not blank all stats.
   let db_stats = null;
   try {
     const db = getDb();
-    const q = (sql) => new Promise((ok, err) =>
-      db.get(sql, [], (e, r) => e ? err(e) : ok(r)));
+    // Resolves to row on success, null on error (never rejects).
+    const qSafe = (sql) => new Promise((ok) =>
+      db.get(sql, [], (e, r) => ok(e ? null : r)));
+    const qAllSafe = (sql) => new Promise((ok) =>
+      db.all(sql, [], (e, rows) => ok(e ? [] : (rows || []))));
 
     const [docCache, segCache, overrides, texts, textsActive, sentences, provRows] =
       await Promise.all([
-        q("SELECT COUNT(*) AS n FROM translation_doc_cache"),
-        q("SELECT COUNT(*) AS n FROM translation_segment_cache"),
-        q("SELECT COUNT(*) AS n FROM translation_overrides"),
-        q("SELECT COUNT(*) AS n FROM texts"),
-        q("SELECT COUNT(*) AS n FROM texts WHERE archived = 0 OR archived IS NULL"),
-        q("SELECT COUNT(*) AS n FROM sentences"),
-        new Promise((ok) =>
-          db.all(
-            "SELECT provider, COUNT(*) AS n FROM texts GROUP BY provider",
-            [],
-            (e, rows) => ok(e ? [] : (rows || []))
-          )
+        qSafe("SELECT COUNT(*) AS n FROM translation_doc_cache"),
+        qSafe("SELECT COUNT(*) AS n FROM translation_segment_cache"),
+        qSafe("SELECT COUNT(*) AS n FROM translation_overrides"),
+        qSafe("SELECT COUNT(*) AS n FROM texts"),
+        qSafe("SELECT COUNT(*) AS n FROM texts WHERE is_archived = 0 OR is_archived IS NULL"),
+        qSafe("SELECT COUNT(*) AS n FROM sentences"),
+        // Provider breakdown via sentences.translation_provider (texts has no provider column).
+        qAllSafe(
+          "SELECT translation_provider AS provider, COUNT(DISTINCT text_id) AS n " +
+          "FROM sentences WHERE translation_provider IS NOT NULL GROUP BY translation_provider"
         ),
       ]);
 
     db_stats = {
-      doc_cache:   docCache?.n  ?? 0,
-      seg_cache:   segCache?.n  ?? 0,
-      overrides:   overrides?.n ?? 0,
-      texts:       texts?.n     ?? 0,
-      texts_active: textsActive?.n ?? 0,
-      sentences:   sentences?.n ?? 0,
+      doc_cache:    docCache?.n   ?? null,
+      seg_cache:    segCache?.n   ?? null,
+      overrides:    overrides?.n  ?? null,
+      texts:        texts?.n      ?? null,
+      texts_active: textsActive?.n ?? null,
+      sentences:    sentences?.n  ?? null,
       by_provider: provRows.reduce((acc, r) => {
         acc[r.provider || "unknown"] = r.n;
         return acc;
