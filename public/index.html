@@ -1511,6 +1511,174 @@ th, td { border-color: rgba(0,0,0,0.55); }
   background-color: transparent !important;
 }
 
+/* =========================================================
+   Table Edit Mode
+   ========================================================= */
+
+/* Edit toolbar */
+#tableEditToolbar {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+#tableEditToolbar.visible { display: flex; }
+
+.tbl-edit-toggle-btn {
+  padding: 5px 14px;
+  border-radius: 7px;
+  border: 1px solid #ced4da;
+  background: #fff;
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+  white-space: nowrap;
+}
+.tbl-edit-toggle-btn:hover { background: #f0f4f7; }
+.tbl-edit-toggle-btn.active { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
+
+.tbl-edit-status {
+  font-size: 0.80rem;
+  color: #6c757d;
+  flex: 1;
+  min-width: 0;
+}
+.tbl-edit-status.has-changes { color: #e65100; font-weight: 600; }
+
+.tbl-edit-reset-all-btn {
+  padding: 4px 11px;
+  border-radius: 6px;
+  border: 1px solid #ffccbc;
+  background: #fff3e0;
+  color: #bf360c;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: none;
+}
+.tbl-edit-reset-all-btn.visible { display: inline-block; }
+.tbl-edit-reset-all-btn:hover { background: #ffe0b2; }
+
+.tbl-edit-add-btn {
+  padding: 4px 11px;
+  border-radius: 6px;
+  border: 1px solid #b3e5fc;
+  background: #e1f5fe;
+  color: #01579b;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tbl-edit-add-btn:hover { background: #b3e5fc; }
+
+/* Edit mode table state */
+#proTable.tbl-edit-mode tbody td[data-col="he"],
+#proTable.tbl-edit-mode tbody td[data-col="niqqud"],
+#proTable.tbl-edit-mode tbody td[data-col="translit"],
+#proTable.tbl-edit-mode tbody td[data-col="ru"] {
+  cursor: text;
+  position: relative;
+}
+#proTable.tbl-edit-mode tbody td[data-col="he"]:hover,
+#proTable.tbl-edit-mode tbody td[data-col="niqqud"]:hover,
+#proTable.tbl-edit-mode tbody td[data-col="translit"]:hover,
+#proTable.tbl-edit-mode tbody td[data-col="ru"]:hover {
+  background-color: #fff8e1 !important;
+  outline: 1px dashed #ffc107;
+}
+
+/* Edited cell indicator */
+#proTable tbody td.cell-edited {
+  border-left: 3px solid #ff9800;
+  padding-left: 7px;
+}
+#proTable tbody tr.row-edited td:first-child {
+  box-shadow: inset 3px 0 0 #ff9800;
+}
+
+/* Active textarea editor */
+.cell-editor-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.cell-editor-textarea {
+  width: 100%;
+  min-height: 52px;
+  resize: vertical;
+  border: 1px solid #42a5f5;
+  border-radius: 5px;
+  padding: 5px 7px;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: 1.5;
+  background: #fff;
+  box-sizing: border-box;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(66,165,245,0.2);
+}
+.cell-editor-textarea:focus {
+  border-color: #1e88e5;
+  box-shadow: 0 0 0 2px rgba(30,136,229,0.25);
+}
+.cell-editor-hint {
+  font-size: 0.70rem;
+  color: #90a4ae;
+  text-align: right;
+  pointer-events: none;
+}
+
+/* Action column edit-mode buttons */
+.row-edit-actions {
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+#proTable.tbl-edit-mode .row-edit-actions { display: flex; }
+#proTable.tbl-edit-mode .col-action-row-top,
+#proTable.tbl-edit-mode .col-action-row-bot { display: none; }
+
+.row-edit-btn {
+  padding: 3px 6px;
+  border-radius: 5px;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  font-size: 0.80rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.1s;
+  min-width: 28px;
+  text-align: center;
+}
+.row-edit-btn:hover { background: #f0f4f7; }
+.row-edit-btn.btn-up   { color: #1565c0; }
+.row-edit-btn.btn-down { color: #1565c0; }
+.row-edit-btn.btn-del  { color: #c62828; border-color: #ffcdd2; }
+.row-edit-btn.btn-del:hover { background: #ffebee; }
+.row-edit-btn.btn-reset { color: #e65100; border-color: #ffe0b2; font-size: 0.72rem; }
+.row-edit-btn.btn-reset:hover { background: #fff3e0; }
+.row-edit-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* Hide niqqud column in edit mode when in Gemini provider (no niqqud data) */
+#proTable.tbl-edit-mode.tbl-edit-hide-niqqud th[data-col="niqqud"],
+#proTable.tbl-edit-mode.tbl-edit-hide-niqqud td[data-col="niqqud"] { display: none; }
+
+/* Mobile bottom sheet for edit confirm */
+@media (pointer: coarse) {
+  .cell-editor-textarea { min-height: 72px; font-size: 1rem; }
+  .row-edit-btn { padding: 5px 9px; font-size: 0.85rem; min-width: 34px; }
+}
+
 /* --------------------------------------------------------
    V3 Library Modal (P0)
 -------------------------------------------------------- */
@@ -4413,6 +4581,12 @@ body.v3-ide-mode .v3-ide-right {
   <div id="v3ActiveTextSub" class="v3-active-sub"></div>
 </div>
 
+<div id="tableEditToolbar" role="toolbar" aria-label="Редактирование таблицы">
+  <button id="tableEditToggleBtn" class="tbl-edit-toggle-btn" type="button" title="Включить режим редактирования таблицы">✎ Редактировать</button>
+  <span id="tableEditStatus" class="tbl-edit-status"></span>
+  <button id="tableEditAddBtn" class="tbl-edit-add-btn" type="button" title="Добавить пустую строку в конец">+ Строка</button>
+  <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям">↺ Сбросить всё</button>
+</div>
 <div id="tableContainer"></div>
 
 </div>
@@ -16829,6 +17003,7 @@ try {
 
     currentTableHasRuTranslit = false;
     try { syncTranslitSelectEnabled(); } catch (_) {}
+    try { tableEditModeExit(true); tableEditToolbarUpdate(false); } catch (_) {}
 
     return;
 }
@@ -16932,6 +17107,17 @@ try {
                         '</div>';
                 }
             } catch (_) {}
+            const isFirst = rowIdx === 0;
+            const isLast = rowIdx === rows.length - 1;
+            const hasLibData = !!(sid && tid);
+            const editActionsHtml = hasLibData
+                ? '<div class="row-edit-actions">' +
+                  '<button type="button" class="row-edit-btn btn-up" data-edit-action="up" data-row-idx="' + rowIdx + '" title="Выше"' + (isFirst ? ' disabled' : '') + '>↑</button>' +
+                  '<button type="button" class="row-edit-btn btn-down" data-edit-action="down" data-row-idx="' + rowIdx + '" title="Ниже"' + (isLast ? ' disabled' : '') + '>↓</button>' +
+                  '<button type="button" class="row-edit-btn btn-reset" data-edit-action="reset" data-row-idx="' + rowIdx + '" title="Сбросить правки строки">↺</button>' +
+                  '<button type="button" class="row-edit-btn btn-del" data-edit-action="del" data-row-idx="' + rowIdx + '" title="Удалить строку">✕</button>' +
+                  '</div>'
+                : '';
             html += '<td data-col="action" class="col-action-cell">' +
                 '<div class="col-action-row col-action-row-top">' +
                 '<span class="row-audio-ind" data-row-idx="' + rowIdx + '" aria-hidden="true"></span>' +
@@ -16939,6 +17125,7 @@ try {
                 'title="Озвучить эту строку" aria-label="Озвучить строку">▶</button>' +
                 '</div>' +
                 noteBtnHtml +
+                editActionsHtml +
                 '</td>';
             return;
         }
@@ -17017,7 +17204,437 @@ updatePlaylistButtonUI();
 
 // Sync translit selector enabled state based on actual table data (not just providerSelect).
 try { syncTranslitSelectEnabled(); } catch (_) {}
+
+// Show edit toolbar when table has library-linked rows
+try {
+    const _hasLibRows = rows.some(function(r) { return r && r._v3_textId; });
+    tableEditToolbarUpdate(_hasLibRows);
+    tableEditApplyEditedMarkers();
+} catch (_) {}
     }
+
+    // ----------------------------
+// TABLE EDIT MODE
+// ----------------------------
+
+var tableEditActive = false; // current edit mode state
+var tableEditPendingCount = 0; // unsaved edit count (debounce targets)
+var _tableEditDebounceTimers = {}; // { "rowIdx:col": timerId }
+var _tableEditSaving = {}; // { "rowIdx:col": true } — in-flight saves
+
+function tableEditToolbarUpdate(show) {
+    const tb = document.getElementById("tableEditToolbar");
+    if (!tb) return;
+    if (!show) {
+        tb.classList.remove("visible");
+        return;
+    }
+    tb.classList.add("visible");
+    tableEditUpdateStatus();
+}
+
+function tableEditUpdateStatus() {
+    const el = document.getElementById("tableEditStatus");
+    const resetBtn = document.getElementById("tableEditResetAllBtn");
+    if (!el) return;
+    if (!tableEditActive) {
+        el.textContent = "";
+        el.className = "tbl-edit-status";
+        if (resetBtn) resetBtn.classList.remove("visible");
+        return;
+    }
+    // Count edited rows from currentTableData
+    let editedCount = 0;
+    (currentTableData || []).forEach(function(r) {
+        try {
+            if (r && r.edit_meta_json) {
+                const m = typeof r.edit_meta_json === "string" ? JSON.parse(r.edit_meta_json) : r.edit_meta_json;
+                if (m && m.edited && Object.values(m.edited).some(Boolean)) editedCount++;
+            }
+        } catch (_) {}
+    });
+    if (editedCount > 0) {
+        el.textContent = editedCount + " " + (editedCount === 1 ? "строка изменена" : "строк изменено");
+        el.className = "tbl-edit-status has-changes";
+        if (resetBtn) resetBtn.classList.add("visible");
+    } else {
+        el.textContent = "Нет изменений";
+        el.className = "tbl-edit-status";
+        if (resetBtn) resetBtn.classList.remove("visible");
+    }
+}
+
+function tableEditModeEnter() {
+    tableEditActive = true;
+    const btn = document.getElementById("tableEditToggleBtn");
+    if (btn) { btn.textContent = "✓ Готово"; btn.classList.add("active"); }
+    const tbl = document.getElementById("proTable");
+    if (!tbl) return;
+    tbl.classList.add("tbl-edit-mode");
+    // Hide niqqud in edit mode if no niqqud data (Gemini compat)
+    if (!currentTableHasRuTranslit) tbl.classList.add("tbl-edit-hide-niqqud");
+    tableEditUpdateStatus();
+    tableEditAttachCellClick();
+}
+
+function tableEditModeExit(silent) {
+    tableEditActive = false;
+    const btn = document.getElementById("tableEditToggleBtn");
+    if (btn) { btn.textContent = "✎ Редактировать"; btn.classList.remove("active"); }
+    const tbl = document.getElementById("proTable");
+    if (tbl) {
+        tbl.classList.remove("tbl-edit-mode", "tbl-edit-hide-niqqud");
+        // Close any open editors
+        tbl.querySelectorAll(".cell-editor-wrap").forEach(function(wrap) {
+            const td = wrap.closest("td");
+            if (td) td.innerHTML = escapeHtml(wrap.dataset.origText || "");
+        });
+    }
+    tableEditUpdateStatus();
+}
+
+function tableEditApplyEditedMarkers() {
+    const tbl = document.getElementById("proTable");
+    if (!tbl) return;
+    (currentTableData || []).forEach(function(row, idx) {
+        if (!row || !row.edit_meta_json) return;
+        try {
+            const m = typeof row.edit_meta_json === "string" ? JSON.parse(row.edit_meta_json) : row.edit_meta_json;
+            if (!m || !m.edited) return;
+            const tr = tbl.querySelector('tr[data-row-idx="' + idx + '"]');
+            if (!tr) return;
+            const colMap = { ru: "ru", translit: "translit", he_niqqud: "niqqud", translit_ru: "translit" };
+            let anyEdited = false;
+            Object.entries(m.edited).forEach(function(entry) {
+                if (!entry[1]) return;
+                anyEdited = true;
+                const col = colMap[entry[0]];
+                if (col) {
+                    const td = tr.querySelector('td[data-col="' + col + '"]');
+                    if (td) td.classList.add("cell-edited");
+                }
+            });
+            if (anyEdited) tr.classList.add("row-edited");
+        } catch (_) {}
+    });
+}
+
+function tableEditAttachCellClick() {
+    const tbl = document.getElementById("proTable");
+    if (!tbl || tbl._editClickAttached) return;
+    tbl._editClickAttached = true;
+    tbl.addEventListener("click", function(e) {
+        if (!tableEditActive) return;
+        const td = e.target.closest("td[data-col]");
+        if (!td) return;
+        const col = td.getAttribute("data-col");
+        if (!["he", "niqqud", "translit", "ru"].includes(col)) return;
+        // Don't re-open if already has textarea
+        if (td.querySelector("textarea")) return;
+        const tr = td.closest("tr[data-row-idx]");
+        if (!tr) return;
+        const rowIdx = parseInt(tr.getAttribute("data-row-idx"), 10);
+        tableEditOpenCellEditor(td, col, rowIdx);
+    });
+}
+
+function tableEditOpenCellEditor(td, col, rowIdx) {
+    const currentText = td.textContent || "";
+    const wrap = document.createElement("div");
+    wrap.className = "cell-editor-wrap";
+    wrap.dataset.origText = currentText;
+    const ta = document.createElement("textarea");
+    ta.className = "cell-editor-textarea";
+    ta.value = currentText;
+    if (col === "he" || col === "niqqud") {
+        ta.setAttribute("dir", "rtl");
+        ta.style.fontFamily = "inherit";
+    }
+    const hint = document.createElement("div");
+    hint.className = "cell-editor-hint";
+    hint.textContent = "Esc — отмена";
+    wrap.appendChild(ta);
+    wrap.appendChild(hint);
+    td.innerHTML = "";
+    td.appendChild(wrap);
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+
+    // Debounced autosave
+    ta.addEventListener("input", function() {
+        const key = rowIdx + ":" + col;
+        if (_tableEditDebounceTimers[key]) clearTimeout(_tableEditDebounceTimers[key]);
+        _tableEditDebounceTimers[key] = setTimeout(function() {
+            tableEditSaveCell(rowIdx, col, ta.value, td);
+        }, 800);
+    });
+
+    ta.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") {
+            const key = rowIdx + ":" + col;
+            if (_tableEditDebounceTimers[key]) clearTimeout(_tableEditDebounceTimers[key]);
+            td.innerHTML = escapeHtml(currentText);
+            e.stopPropagation();
+        } else if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            ta.blur();
+        }
+    });
+
+    ta.addEventListener("blur", function() {
+        const key = rowIdx + ":" + col;
+        if (_tableEditDebounceTimers[key]) {
+            clearTimeout(_tableEditDebounceTimers[key]);
+            delete _tableEditDebounceTimers[key];
+        }
+        const newVal = ta.value;
+        if (newVal !== currentText) {
+            tableEditSaveCell(rowIdx, col, newVal, td);
+        } else {
+            td.innerHTML = escapeHtml(currentText);
+        }
+    });
+}
+
+// Map UI column names to API field names
+var _colToApiField = { he: "he", niqqud: "he_niqqud", translit: "translit", ru: "ru" };
+
+function tableEditSaveCell(rowIdx, col, newVal, td) {
+    const row = currentTableData && currentTableData[rowIdx];
+    if (!row || !row._v3_sentenceId || !row._v3_textId) return;
+    const sid = row._v3_sentenceId;
+    const tid = row._v3_textId;
+    const field = _colToApiField[col];
+    if (!field) return;
+
+    const payload = {};
+    payload[field] = newVal;
+
+    // Handle translit column: could be translit or translit_ru depending on current profile
+    // We save to the correct field based on current profile selection
+    let apiField = field;
+    if (col === "translit") {
+        const profile = (typeof getSelectedTranslitProfile === "function") ? getSelectedTranslitProfile() : "sbl";
+        apiField = (profile === "ru-phonetic") ? "translit_ru" : "translit";
+        const p2 = {};
+        p2[apiField] = newVal;
+        Object.assign(payload, p2);
+        delete payload.translit;
+    }
+
+    fetch("/api/library/texts/" + tid + "/sentences/" + sid, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    })
+    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
+    .then(function(data) {
+        // Update in-memory row
+        if (data.sentence) {
+            Object.assign(row, {
+                he: data.sentence.he,
+                he_niqqud: data.sentence.he_niqqud,
+                translit: data.sentence.translit,
+                translit_ru: data.sentence.translit_ru,
+                ru: data.sentence.ru,
+                edit_meta_json: data.sentence.edit_meta_json,
+            });
+        }
+        // Update cell display
+        let displayVal = newVal;
+        if (td) td.innerHTML = escapeHtml(displayVal);
+        // Re-apply edited markers
+        tableEditApplyEditedMarkers();
+        tableEditUpdateStatus();
+    })
+    .catch(function(err) {
+        console.error("[edit] save cell failed:", err);
+        if (td) {
+            td.innerHTML = escapeHtml(newVal); // keep user's value visible
+            td.style.outline = "2px solid #e53935";
+            setTimeout(function() { if (td) td.style.outline = ""; }, 2000);
+        }
+        try { showToast("Ошибка сохранения: " + err.message, "error"); } catch (_) {}
+    });
+}
+
+function tableEditResetRow(rowIdx) {
+    const row = currentTableData && currentTableData[rowIdx];
+    if (!row || !row._v3_sentenceId || !row._v3_textId) return;
+    const sid = row._v3_sentenceId;
+    const tid = row._v3_textId;
+    fetch("/api/library/texts/" + tid + "/sentences/" + sid + "/reset", { method: "POST" })
+    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
+    .then(function(data) {
+        if (data.sentence) {
+            Object.assign(row, {
+                he: data.sentence.he, he_niqqud: data.sentence.he_niqqud,
+                translit: data.sentence.translit, translit_ru: data.sentence.translit_ru,
+                ru: data.sentence.ru, edit_meta_json: null,
+            });
+        }
+        renderTable(currentTableData);
+    })
+    .catch(function(err) {
+        try { showToast("Ошибка сброса: " + err.message, "error"); } catch (_) {}
+    });
+}
+
+function tableEditDeleteRow(rowIdx) {
+    const row = currentTableData && currentTableData[rowIdx];
+    if (!row || !row._v3_sentenceId || !row._v3_textId) return;
+    if (!confirm("Удалить строку? Это действие необратимо.")) return;
+    const sid = row._v3_sentenceId;
+    const tid = row._v3_textId;
+    fetch("/api/library/texts/" + tid + "/sentences/" + sid, { method: "DELETE" })
+    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
+    .then(function() {
+        currentTableData.splice(rowIdx, 1);
+        renderTable(currentTableData);
+    })
+    .catch(function(err) {
+        try { showToast("Ошибка удаления: " + err.message, "error"); } catch (_) {}
+    });
+}
+
+function tableEditMoveRow(rowIdx, direction) {
+    const rows = currentTableData;
+    if (!rows) return;
+    const targetIdx = rowIdx + direction;
+    if (targetIdx < 0 || targetIdx >= rows.length) return;
+    const row = rows[rowIdx];
+    const tid = row && row._v3_textId;
+    if (!tid) return;
+
+    // Swap in memory first for instant feedback
+    rows[rowIdx] = rows[targetIdx];
+    rows[targetIdx] = row;
+    renderTable(rows);
+
+    // Build new order array: [[sentence_id, order_index], ...]
+    const orderPayload = rows.map(function(r, i) {
+        return { sentence_id: r._v3_sentenceId, order_index: i };
+    }).filter(function(x) { return x.sentence_id; });
+
+    fetch("/api/library/texts/" + tid + "/sentences/reorder", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: orderPayload }),
+    })
+    .catch(function(err) {
+        console.error("[edit] reorder failed:", err);
+        try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+    });
+}
+
+function tableEditAddRow() {
+    const rows = currentTableData;
+    if (!rows || !rows.length) return;
+    const firstLibRow = rows.find(function(r) { return r && r._v3_textId; });
+    if (!firstLibRow) return;
+    const tid = firstLibRow._v3_textId;
+
+    fetch("/api/library/texts/" + tid + "/sentences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ he: "", ru: "", he_niqqud: "", translit: "", translit_ru: "" }),
+    })
+    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
+    .then(function(data) {
+        if (data.sentence) {
+            const newRow = {
+                he: data.sentence.he || "",
+                he_niqqud: data.sentence.he_niqqud || "",
+                translit: data.sentence.translit || "",
+                translit_ru: data.sentence.translit_ru || "",
+                ru: data.sentence.ru || "",
+                _v3_sentenceId: data.sentence.id,
+                _v3_textId: tid,
+                edit_meta_json: null,
+            };
+            currentTableData.push(newRow);
+            renderTable(currentTableData);
+            // Scroll to last row and open editor
+            setTimeout(function() {
+                const tbl = document.getElementById("proTable");
+                if (!tbl) return;
+                const lastTr = tbl.querySelector("tbody tr:last-child");
+                if (lastTr) lastTr.scrollIntoView({ behavior: "smooth", block: "end" });
+            }, 100);
+        }
+    })
+    .catch(function(err) {
+        try { showToast("Ошибка добавления строки: " + err.message, "error"); } catch (_) {}
+    });
+}
+
+function tableEditResetAll() {
+    const rows = currentTableData;
+    if (!rows) return;
+    const editedRows = rows.filter(function(r) {
+        if (!r || !r.edit_meta_json) return false;
+        try {
+            const m = typeof r.edit_meta_json === "string" ? JSON.parse(r.edit_meta_json) : r.edit_meta_json;
+            return m && m.edited && Object.values(m.edited).some(Boolean);
+        } catch (_) { return false; }
+    });
+    if (!editedRows.length) return;
+    if (!confirm("Сбросить все ручные правки (" + editedRows.length + " строк)?")) return;
+    const firstTid = editedRows[0]._v3_textId;
+    // Reset all in sequence
+    var chain = Promise.resolve();
+    editedRows.forEach(function(row) {
+        chain = chain.then(function() {
+            return fetch("/api/library/texts/" + row._v3_textId + "/sentences/" + row._v3_sentenceId + "/reset", { method: "POST" })
+                .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw e; }); })
+                .then(function(data) {
+                    if (data.sentence) {
+                        Object.assign(row, {
+                            he: data.sentence.he, he_niqqud: data.sentence.he_niqqud,
+                            translit: data.sentence.translit, translit_ru: data.sentence.translit_ru,
+                            ru: data.sentence.ru, edit_meta_json: null,
+                        });
+                    }
+                });
+        });
+    });
+    chain.then(function() {
+        renderTable(currentTableData);
+    }).catch(function(err) {
+        renderTable(currentTableData);
+        try { showToast("Ошибка сброса: " + err.message, "error"); } catch (_) {}
+    });
+}
+
+// Wire up toolbar buttons
+(function() {
+    function _onToggleBtn() {
+        if (!tableEditActive) { tableEditModeEnter(); }
+        else { tableEditModeExit(false); }
+    }
+    function _onAddBtn() { if (tableEditActive) tableEditAddRow(); }
+    function _onResetAllBtn() { tableEditResetAll(); }
+
+    document.addEventListener("click", function(e) {
+        const toggleBtn = e.target.closest("#tableEditToggleBtn");
+        if (toggleBtn) { _onToggleBtn(); return; }
+        const addBtn = e.target.closest("#tableEditAddBtn");
+        if (addBtn) { _onAddBtn(); return; }
+        const resetAllBtn = e.target.closest("#tableEditResetAllBtn");
+        if (resetAllBtn) { _onResetAllBtn(); return; }
+
+        // Action column edit buttons
+        const editBtn = e.target.closest("[data-edit-action]");
+        if (!editBtn || !tableEditActive) return;
+        const action = editBtn.getAttribute("data-edit-action");
+        const rowIdx = parseInt(editBtn.getAttribute("data-row-idx"), 10);
+        if (isNaN(rowIdx)) return;
+        if (action === "up")    tableEditMoveRow(rowIdx, -1);
+        if (action === "down")  tableEditMoveRow(rowIdx, +1);
+        if (action === "del")   tableEditDeleteRow(rowIdx);
+        if (action === "reset") tableEditResetRow(rowIdx);
+    });
+})();
 
 	// ----------------------------
 // PRO: Resizable Split (Table height) — Variant A (real height, no viewport ceiling)
