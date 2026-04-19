@@ -9982,6 +9982,7 @@ updatePlaylistButtonUI();
             he: String(r.he_plain ?? r.he ?? ""),
             he_niqqud: String(r.he_niqqud ?? r.heNiqqud ?? ""),
             translit: String(r.translit ?? ""),
+            translit_ru: String(r.translit_ru ?? ""),
             ru: String(r.ru ?? ""),
             _v3_audioAssetKey: String(r.audio_asset_key ?? r.audioAssetKey ?? ""),
             _v3_audioTtsProfileJson: String(r.audio_tts_profile_json ?? r.audioTtsProfileJson ?? ""),
@@ -16251,9 +16252,9 @@ try {
         } catch (_) {}
         el.addEventListener("change", () => {
             try { localStorage.setItem(TRANSLIT_PROFILE_LS_KEY, el.value); } catch (_) {}
-            // Mark table stale if one exists — the translit column will differ after retranslation.
+            // Both translits are always stored in every row — just re-render to switch columns.
             if (Array.isArray(currentTableData) && currentTableData.length > 0) {
-                try { markInputStale(); } catch (_) {}
+                try { renderTable(currentTableData); } catch (_) {}
             }
         });
     }
@@ -16566,11 +16567,13 @@ try {
             return renderTable(rows);
         }
 
+        const _tProfile = getSelectedTranslitProfile ? getSelectedTranslitProfile() : "sbl";
+        const _tTitle = _tProfile === "ru-phonetic" ? "Транслит (рус.)" : "Транслит (SBL)";
         const colMeta = {
             action: { title: "▶📝", headerClass: "", cellClass: "col-action-cell" },
             he: { title: "Иврит", headerClass: "rtl", cellClass: "rtl rtl-he" },
             niqqud: { title: "Огласовки", headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
-            translit: { title: "Транслит", headerClass: "", cellClass: "" },
+            translit: { title: _tTitle, headerClass: "", cellClass: "" },
             ru: { title: "Перевод", headerClass: "", cellClass: "" }
         };
 
@@ -16610,7 +16613,9 @@ try {
         rows.forEach(function (row, rowIdx) {
     const he = row.he || "";
     const heNiqqud = row.he_niqqud || "";
-    const translit = row.translit || "";
+    const translit = _tProfile === "ru-phonetic"
+        ? (row.translit_ru || row.translit || "")
+        : (row.translit || "");
     const ru = row.ru || "";
 
     // Кнопки только в action-колонке. Если action скрыта — кнопки не отображаются.

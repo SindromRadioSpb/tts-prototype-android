@@ -100,7 +100,7 @@ const RU_SCHEMA = new Schema({
   DIVINE_NAME:    "Яхве",
   // ── Library options ──
   DAGESH:         "",
-  DAGESH_CHAZAQ:  true,
+  DAGESH_CHAZAQ:  false, // no gemination in Russian phonetic — ккк → к
   MAQAF:          "-",
   PASEQ:          "",
   SOF_PASUQ:      "",

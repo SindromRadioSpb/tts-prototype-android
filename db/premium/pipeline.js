@@ -25,7 +25,7 @@ const { normalizeForDisplay, normalizeForKey } = require("./normalize");
 const { buildDocKey, buildSegmentKey, hashString } = require("./keys");
 const {
   SEGMENTER_VERSION, NIKUD_VERSION, TRANSLIT_PROFILE,
-  translatorVersion, translitProfileVersion,
+  translatorVersion,
 } = require("./versions");
 const { segment } = require("./segmenter");
 const { transliterateWithProfile } = require("./translit");
@@ -34,7 +34,11 @@ const gcpProvider = require("./providers/gcp");
 const quota = require("./quota");
 
 const SUPPORTED_PROVIDERS = new Set(["madlad", "gcp"]);
-const SUPPORTED_TRANSLIT_PROFILES = new Set(["sbl", "ru-phonetic"]);
+
+// Both translits (SBL + Russian phonetic) are always computed for every row.
+// The cache key reflects this with a single fixed string so the two profiles
+// share one cache namespace and both values are always available for display.
+const TRANSLIT_PROFILE_KEY_BOTH = "both-v1";
 
 function nowIso() {
   return new Date().toISOString();
@@ -141,7 +145,7 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider) {
   return { ...out, actualProvider: "madlad" };
 }
 
-async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null, translit_profile = "sbl" } = {}) {
+async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null } = {}) {
   if (typeof text !== "string" || !text.trim()) {
     const err = new Error("text is required");
     err.code = "BAD_INPUT";
@@ -153,8 +157,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     throw err;
   }
 
-  const tProfile     = SUPPORTED_TRANSLIT_PROFILES.has(translit_profile) ? translit_profile : "sbl";
-  const tProfileKey  = translitProfileVersion(tProfile); // versioned string for cache key
+  const tProfileKey = TRANSLIT_PROFILE_KEY_BOTH;
 
   const displaySource = normalizeForDisplay(text);
   const keySource = normalizeForKey(text);
@@ -227,7 +230,8 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     const row = {
       he: m.heDisplay,
       he_niqqud: null,
-      translit: null,
+      translit: null,    // SBL Academic (always computed)
+      translit_ru: null, // Russian phonetic (always computed)
       ru: null,
       _sources: { he_niqqud: null, translit: null, ru: null },
     };
@@ -267,14 +271,19 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     if (heNiqqud) row._sources.he_niqqud = "model";
   });
 
-  // Run transliteration locally on whatever he_niqqud we now have (model or cache).
+  // Compute both translits for every row that has he_niqqud.
+  // translit     = SBL Academic (scholarly diacritics)
+  // translit_ru  = Russian phonetic (Cyrillic, dagesh chazaq suppressed)
   for (const m of segMeta) {
     const row = resolved.get(m.index);
-    if (!row.translit && row.he_niqqud) {
-      const t = transliterateWithProfile(row.he_niqqud, tProfile);
-      if (t) {
-        row.translit = t;
-        row._sources.translit = "translit-local";
+    if (row.he_niqqud) {
+      if (!row.translit) {
+        const t = transliterateWithProfile(row.he_niqqud, "sbl");
+        if (t) { row.translit = t; row._sources.translit = "translit-local"; }
+      }
+      if (!row.translit_ru) {
+        const t = transliterateWithProfile(row.he_niqqud, "ru-phonetic");
+        if (t) row.translit_ru = t;
       }
     }
   }
@@ -296,6 +305,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
       he: r.he,
       he_niqqud: r.he_niqqud || "",
       translit: r.translit || "",
+      translit_ru: r.translit_ru || "",
       ru: r.ru || "",
     };
   });

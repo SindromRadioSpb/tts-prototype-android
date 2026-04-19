@@ -2039,7 +2039,6 @@ if (PREMIUM_V2_ENABLED) {
         provider = "madlad",
         text_id = null,
         note = null,
-        translit_profile = "sbl",
       } = req.body || {};
 
       const out = await premiumPipeline.translateTable({
@@ -2048,7 +2047,6 @@ if (PREMIUM_V2_ENABLED) {
         provider,
         text_id,
         note,
-        translit_profile,
       });
 
       res.json(out);
@@ -3411,7 +3409,18 @@ app.get("/api/library/texts/:id/sentences", async (req, res) => {
     if (!text) return res.status(404).json({ error: "TEXT_NOT_FOUND" });
 
     const sentences = await getSentencesByTextId(req.params.id);
-    res.json({ ok: true, textId: req.params.id, sentences });
+
+    // Enrich each sentence with translit_ru (Russian phonetic) computed from he_niqqud.
+    // Kept out of the DB to avoid a migration; deterministic and fast (pure JS, no I/O).
+    const { transliterateWithProfile } = require("./db/premium/translit");
+    const enriched = sentences.map((s) => {
+      const heNiqqud = s.he_niqqud || s.heNiqqud || "";
+      return Object.assign({}, s, {
+        translit_ru: heNiqqud ? (transliterateWithProfile(heNiqqud, "ru-phonetic") || "") : "",
+      });
+    });
+
+    res.json({ ok: true, textId: req.params.id, sentences: enriched });
   } catch (e) {
     console.error("GET /api/library/texts/:id/sentences error:", e);
     res.status(500).json({ error: "INTERNAL_ERROR" });
