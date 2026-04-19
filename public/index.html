@@ -4729,8 +4729,11 @@ body.v3-ide-mode .v3-ide-right {
   </div>
 </div>
 
-<!-- 6.8 Diagnostic panel — collapsed by default to avoid noise during study -->
-<div id="v3DashSecDiag" class="v3-dash-section v3-dash-collapsed" data-sec="diag">
+  </div>
+</div>
+
+<!-- 6.8 Diagnostic panel — full-width, collapsed by default -->
+<div id="v3DashSecDiag" class="v3-dash-section v3-dash-collapsed" data-sec="diag" style="margin-top:14px;">
   <div class="v3-dash-sec-head">
     <h3>🔧 Диагностика системы</h3>
     <button class="v3-dash-sec-toggle" type="button" data-sec="diag"
@@ -4738,11 +4741,8 @@ body.v3-ide-mode .v3-ide-right {
   </div>
   <div class="v3-dash-sec-body">
     <div id="v3DiagContent">
-      <div class="v3-diag-loading">Загрузка…</div>
+      <div class="v3-diag-loading">Нажмите ▾ для загрузки диагностики</div>
     </div>
-  </div>
-</div>
-
   </div>
 </div>
 
@@ -16586,8 +16586,8 @@ try {
             const j = await r.json();
             if (j.configured) {
                 const src = j.source === "uploaded" ? "загружен" : "из .env";
-                badge.textContent = `🔑 ${src}${j.client_email ? " · " + j.client_email : ""}`;
-                badge.title = `project_id: ${j.project_id || "?"} — правый клик по 🔑, чтобы удалить`;
+                badge.textContent = `🔑 ${src}`;
+                badge.title = `${j.client_email || ""}${j.project_id ? " · project: " + j.project_id : ""} — правый клик по 🔑, чтобы удалить`;
                 badge.style.display = "";
             } else {
                 badge.textContent = "";
