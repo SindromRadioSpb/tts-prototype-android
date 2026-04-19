@@ -16227,6 +16227,20 @@ try {
         return el.value || "sbl";
     }
 
+    // Sync the translit profile <select> enabled/disabled state based on the chosen provider.
+    // Gemini Legacy generates its own Latin-only transliteration — the profile selector
+    // has no effect and must be visually disabled to avoid confusion.
+    function syncTranslitSelectEnabled() {
+        const provEl = document.getElementById("providerSelect");
+        const trEl   = document.getElementById("translitProfileSelect");
+        if (!trEl) return;
+        const isGemini = !provEl || provEl.value === "gemini";
+        trEl.disabled = isGemini;
+        trEl.title = isGemini
+            ? "Gemini Legacy формирует транслит самостоятельно (только латиница). Выбор профиля недоступен."
+            : "Профиль транслитерации иврита";
+    }
+
     function initProviderSelect() {
         const el = document.getElementById("providerSelect");
         if (!el) return;
@@ -16238,7 +16252,9 @@ try {
         } catch (_) {}
         el.addEventListener("change", () => {
             try { localStorage.setItem(PROVIDER_LS_KEY, el.value); } catch (_) {}
+            syncTranslitSelectEnabled();
         });
+        syncTranslitSelectEnabled();
     }
 
     function initTranslitProfileSelect() {
@@ -16567,8 +16583,15 @@ try {
             return renderTable(rows);
         }
 
-        const _tProfile = getSelectedTranslitProfile ? getSelectedTranslitProfile() : "sbl";
-        const _tTitle = _tProfile === "ru-phonetic" ? "Транслит (рус.)" : "Транслит (SBL)";
+        // Gemini Legacy generates its own Latin-only translit and never populates translit_ru.
+        // Detect by checking if any row has a non-empty translit_ru value.
+        const _hasRuTranslit = rows.some(function(r) { return r && r.translit_ru; });
+        const _tProfile = _hasRuTranslit && getSelectedTranslitProfile
+            ? getSelectedTranslitProfile()
+            : "sbl";
+        const _tTitle = !_hasRuTranslit
+            ? "Транслит (Латиница)"
+            : (_tProfile === "ru-phonetic" ? "Транслит (рус.)" : "Транслит (SBL)");
         const colMeta = {
             action: { title: "▶📝", headerClass: "", cellClass: "col-action-cell" },
             he: { title: "Иврит", headerClass: "rtl", cellClass: "rtl rtl-he" },
