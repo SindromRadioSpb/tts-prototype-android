@@ -3586,6 +3586,7 @@ app.post("/api/library/texts/:id/sentences", express.json({ limit: "32kb" }), as
     const body = req.body || {};
     const sentence = await addSentence(req.params.id, {
       afterOrderIndex: body.afterOrderIndex != null ? Number(body.afterOrderIndex) : null,
+      afterSentenceId: body.afterSentenceId != null ? String(body.afterSentenceId) : null,
       he:         String(body.he         || ""),
       ru:         String(body.ru         || ""),
       translit:   String(body.translit   || ""),

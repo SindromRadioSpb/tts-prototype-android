@@ -1082,7 +1082,7 @@ if (Object.prototype.hasOwnProperty.call(p, "tagsJson")) {
 // TABLE EDITING (018_sentence_edits)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const EDITABLE_FIELDS = new Set(["ru", "translit", "translit_ru", "he_niqqud"]);
+const EDITABLE_FIELDS = new Set(["ru", "translit", "translit_ru", "he_niqqud", "he_plain"]);
 
 // PATCH one or more fields on a sentence.
 // Stores original values in edit_meta_json on first edit (immutable after that).
@@ -1178,12 +1178,18 @@ async function deleteSentence(textId, sentenceId) {
 }
 
 // Add a new empty sentence at the end (or after a given order_index).
-async function addSentence(textId, { afterOrderIndex, he = "", ru = "", translit = "", translit_ru = "", he_niqqud = "" } = {}) {
+async function addSentence(textId, { afterOrderIndex, afterSentenceId, he = "", ru = "", translit = "", translit_ru = "", he_niqqud = "" } = {}) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
 
   const text = await dbGet(db, "SELECT id FROM texts WHERE id = ?", [textId]);
   if (!text) throw Object.assign(new Error("TEXT_NOT_FOUND"), { code: "NOT_FOUND" });
+
+  // Resolve afterSentenceId → afterOrderIndex if given.
+  if (afterSentenceId != null && afterOrderIndex == null) {
+    const ref = await dbGet(db, "SELECT order_index FROM sentences WHERE id = ? AND text_id = ?", [afterSentenceId, textId]);
+    if (ref) afterOrderIndex = ref.order_index;
+  }
 
   // Determine insertion point.
   const maxRow = await dbGet(db, "SELECT MAX(order_index) AS mx FROM sentences WHERE text_id = ?", [textId]);

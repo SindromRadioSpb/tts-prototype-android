@@ -1673,6 +1673,13 @@ th, td { border-color: rgba(0,0,0,0.55); }
 #proTable.tbl-edit-mode.tbl-edit-hide-niqqud th[data-col="niqqud"],
 #proTable.tbl-edit-mode.tbl-edit-hide-niqqud td[data-col="niqqud"] { display: none; }
 
+/* Drag-and-drop row reorder */
+#proTable.tbl-edit-mode tbody tr[data-draggable="1"] { cursor: grab; }
+#proTable.tbl-edit-mode tbody tr[data-draggable="1"]:active { cursor: grabbing; }
+#proTable.tbl-edit-mode tbody tr.row-drag-over-top td { border-top: 2px solid #42a5f5 !important; }
+#proTable.tbl-edit-mode tbody tr.row-drag-over-bot td { border-bottom: 2px solid #42a5f5 !important; }
+#proTable.tbl-edit-mode tbody tr.row-dragging { opacity: 0.4; }
+
 /* Mobile bottom sheet for edit confirm */
 @media (pointer: coarse) {
   .cell-editor-textarea { min-height: 72px; font-size: 1rem; }
@@ -10240,10 +10247,12 @@ updatePlaylistButtonUI();
             translit: String(r.translit ?? ""),
             translit_ru: String(r.translit_ru ?? ""),
             ru: String(r.ru ?? ""),
+            edit_meta_json: r.edit_meta_json ?? null,
             _v3_audioAssetKey: String(r.audio_asset_key ?? r.audioAssetKey ?? ""),
             _v3_audioTtsProfileJson: String(r.audio_tts_profile_json ?? r.audioTtsProfileJson ?? ""),
             _v3_sentenceId: sid ? String(sid) : null,
-            _v3_textId: textId ? String(textId) : null
+            _v3_textId: textId ? String(textId) : null,
+            _v3_orderIndex: r.order_index ?? null,
         };
     }
 
@@ -17083,7 +17092,8 @@ try {
     // Кнопки только в action-колонке. Если action скрыта — кнопки не отображаются.
     const putBtnIn = null;
 
-    html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1">';
+    const hasSid = !!(row && row._v3_sentenceId);
+    html += '<tr data-row-idx="' + rowIdx + '" tabindex="-1"' + (hasSid ? ' draggable="false" data-draggable="1"' : '') + '>';
 
     cols.forEach(function (k) {
         const meta = colMeta[k] || {};
@@ -17275,6 +17285,7 @@ function tableEditModeEnter() {
     if (!currentTableHasRuTranslit) tbl.classList.add("tbl-edit-hide-niqqud");
     tableEditUpdateStatus();
     tableEditAttachCellClick();
+    tableEditDndEnable();
 }
 
 function tableEditModeExit(silent) {
@@ -17397,7 +17408,7 @@ function tableEditOpenCellEditor(td, col, rowIdx) {
 }
 
 // Map UI column names to API field names
-var _colToApiField = { he: "he", niqqud: "he_niqqud", translit: "translit", ru: "ru" };
+var _colToApiField = { he: "he_plain", niqqud: "he_niqqud", translit: "translit", ru: "ru" };
 
 function tableEditSaveCell(rowIdx, col, newVal, td) {
     const row = currentTableData && currentTableData[rowIdx];
@@ -17429,10 +17440,10 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
     })
     .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
     .then(function(data) {
-        // Update in-memory row
+        // Update in-memory row (API returns he_plain; frontend uses row.he)
         if (data.sentence) {
             Object.assign(row, {
-                he: data.sentence.he,
+                he: data.sentence.he_plain ?? data.sentence.he ?? row.he,
                 he_niqqud: data.sentence.he_niqqud,
                 translit: data.sentence.translit,
                 translit_ru: data.sentence.translit_ru,
@@ -17534,33 +17545,60 @@ function tableEditAddRow() {
     if (!firstLibRow) return;
     const tid = firstLibRow._v3_textId;
 
+    // Insert after the currently selected/playing row, or at end if none.
+    var insertAfterIdx = null;
+    var insertAfterSid = null;
+    if (typeof rowSelectedRowIdx === "number" && rowSelectedRowIdx >= 0 && rowSelectedRowIdx < rows.length) {
+        insertAfterIdx = rowSelectedRowIdx;
+    } else if (typeof rowPlayingRowIdx === "number" && rowPlayingRowIdx >= 0 && rowPlayingRowIdx < rows.length) {
+        insertAfterIdx = rowPlayingRowIdx;
+    }
+    if (insertAfterIdx !== null && rows[insertAfterIdx] && rows[insertAfterIdx]._v3_sentenceId) {
+        insertAfterSid = rows[insertAfterIdx]._v3_sentenceId;
+    }
+
+    const postBody = { he: "", ru: "", he_niqqud: "", translit: "", translit_ru: "" };
+    if (insertAfterSid) postBody.afterSentenceId = insertAfterSid;
+
     fetch("/api/library/texts/" + tid + "/sentences", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ he: "", ru: "", he_niqqud: "", translit: "", translit_ru: "" }),
+        body: JSON.stringify(postBody),
     })
     .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
     .then(function(data) {
         if (data.sentence) {
             const newRow = {
-                he: data.sentence.he || "",
+                he: data.sentence.he_plain || data.sentence.he || "",
                 he_niqqud: data.sentence.he_niqqud || "",
                 translit: data.sentence.translit || "",
                 translit_ru: data.sentence.translit_ru || "",
                 ru: data.sentence.ru || "",
                 _v3_sentenceId: data.sentence.id,
                 _v3_textId: tid,
-                edit_meta_json: null,
+                _v3_orderIndex: data.sentence.order_index ?? null,
+                edit_meta_json: data.sentence.edit_meta_json || null,
             };
-            currentTableData.push(newRow);
-            renderTable(currentTableData);
-            // Scroll to last row and open editor
+            // Insert in the right position (after insertAfterIdx) or append.
+            if (insertAfterIdx !== null) {
+                rows.splice(insertAfterIdx + 1, 0, newRow);
+            } else {
+                rows.push(newRow);
+            }
+            renderTable(rows);
+            // Scroll to and highlight the new row
+            const newRowIdx = insertAfterIdx !== null ? insertAfterIdx + 1 : rows.length - 1;
             setTimeout(function() {
                 const tbl = document.getElementById("proTable");
                 if (!tbl) return;
-                const lastTr = tbl.querySelector("tbody tr:last-child");
-                if (lastTr) lastTr.scrollIntoView({ behavior: "smooth", block: "end" });
-            }, 100);
+                const newTr = tbl.querySelector('tr[data-row-idx="' + newRowIdx + '"]');
+                if (newTr) {
+                    newTr.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    // Open the Hebrew cell editor for immediate typing
+                    const heTd = newTr.querySelector('td[data-col="he"]') || newTr.querySelector('td[data-col="ru"]');
+                    if (heTd && tableEditActive) tableEditOpenCellEditor(heTd, heTd.getAttribute("data-col"), newRowIdx);
+                }
+            }, 80);
         }
     })
     .catch(function(err) {
@@ -17603,6 +17641,98 @@ function tableEditResetAll() {
     }).catch(function(err) {
         renderTable(currentTableData);
         try { showToast("Ошибка сброса: " + err.message, "error"); } catch (_) {}
+    });
+}
+
+// Drag-and-drop row reorder
+var _dndDragSrcIdx = null;
+
+function tableEditDndEnable() {
+    const tbl = document.getElementById("proTable");
+    if (!tbl || tbl._dndAttached) return;
+    tbl._dndAttached = true;
+
+    tbl.addEventListener("mousedown", function(e) {
+        if (!tableEditActive) return;
+        const tr = e.target.closest("tr[data-draggable='1']");
+        if (!tr) return;
+        // Don't activate drag if clicking inside a textarea or button
+        if (e.target.closest("textarea,button,input")) return;
+        tr.draggable = true;
+    });
+
+    tbl.addEventListener("dragstart", function(e) {
+        if (!tableEditActive) return;
+        const tr = e.target.closest("tr[data-draggable='1']");
+        if (!tr) { e.preventDefault(); return; }
+        _dndDragSrcIdx = parseInt(tr.getAttribute("data-row-idx"), 10);
+        tr.classList.add("row-dragging");
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", String(_dndDragSrcIdx));
+    });
+
+    tbl.addEventListener("dragend", function(e) {
+        _dndDragSrcIdx = null;
+        tbl.querySelectorAll("tr").forEach(function(r) {
+            r.classList.remove("row-dragging", "row-drag-over-top", "row-drag-over-bot");
+            r.draggable = false;
+        });
+    });
+
+    tbl.addEventListener("dragover", function(e) {
+        if (!tableEditActive || _dndDragSrcIdx === null) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        const tr = e.target.closest("tr[data-row-idx]");
+        if (!tr) return;
+        tbl.querySelectorAll("tr").forEach(function(r) { r.classList.remove("row-drag-over-top", "row-drag-over-bot"); });
+        const rect = tr.getBoundingClientRect();
+        const mid = rect.top + rect.height / 2;
+        if (e.clientY < mid) tr.classList.add("row-drag-over-top");
+        else tr.classList.add("row-drag-over-bot");
+    });
+
+    tbl.addEventListener("dragleave", function(e) {
+        const tr = e.target.closest("tr[data-row-idx]");
+        if (tr) tr.classList.remove("row-drag-over-top", "row-drag-over-bot");
+    });
+
+    tbl.addEventListener("drop", function(e) {
+        if (!tableEditActive || _dndDragSrcIdx === null) return;
+        e.preventDefault();
+        const tr = e.target.closest("tr[data-row-idx]");
+        if (!tr) return;
+        const targetIdx = parseInt(tr.getAttribute("data-row-idx"), 10);
+        if (isNaN(targetIdx) || targetIdx === _dndDragSrcIdx) return;
+
+        const rect = tr.getBoundingClientRect();
+        const mid = rect.top + rect.height / 2;
+        const insertBefore = e.clientY < mid;
+
+        const rows = currentTableData;
+        const srcRow = rows.splice(_dndDragSrcIdx, 1)[0];
+        let destIdx = insertBefore ? targetIdx : targetIdx + 1;
+        // Adjust for removal of source
+        if (_dndDragSrcIdx < destIdx) destIdx--;
+        rows.splice(destIdx, 0, srcRow);
+        _dndDragSrcIdx = null;
+        renderTable(rows);
+
+        // Persist new order
+        const tid = srcRow && srcRow._v3_textId;
+        if (tid) {
+            const orderPayload = rows.map(function(r, i) {
+                return { sentence_id: r._v3_sentenceId, order_index: i };
+            }).filter(function(x) { return x.sentence_id; });
+            fetch("/api/library/texts/" + tid + "/sentences/reorder", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ order: orderPayload }),
+            }).catch(function(err) {
+                console.error("[dnd] reorder failed:", err);
+                try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+            });
+        }
     });
 }
 
