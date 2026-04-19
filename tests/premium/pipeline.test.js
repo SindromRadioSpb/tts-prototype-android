@@ -35,6 +35,10 @@ const quota         = require("../../db/premium/quota");
 
 const pipeline = require("../../db/premium/pipeline");
 
+// Save real recordGcpUsage before beforeEach stubs overwrite it.
+// Tests that need to assert quota file state restore this reference.
+const _realRecordGcpUsage = quota.recordGcpUsage;
+
 let docCacheStore, segCacheStore;
 let gcpCalls, pyNakdanCalls, pyTranslateCalls, quotaCalls;
 
@@ -285,4 +289,59 @@ test("BAD_INPUT: unsupported provider rejects before any provider is touched", a
   assert.equal(gcpCalls.length, 0);
   assert.equal(pyNakdanCalls.length, 0);
   assert.equal(pyTranslateCalls.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// 5.4 additions: quota HTTP status propagation + near_limit transition
+// ---------------------------------------------------------------------------
+
+test("quota error (HTTP 429): err.status propagated and quota state records kind=quota, no madlad", async () => {
+  // Use real quota accounting so we can assert the persisted state, not just the stub spy.
+  quota._resetForTest();
+  quota.recordGcpUsage = _realRecordGcpUsage;
+
+  gcpProvider.translateBatch = async () => {
+    const e = new Error("GCP quota exceeded (HTTP 429)");
+    e.provider = "gcp"; e.upstream = "translate";
+    e.status = 429; e.kind = "quota"; e.fallbackable = false;
+    throw e;
+  };
+
+  await assert.rejects(
+    pipeline.translateTable({ text: "שלום עולם.", provider: "gcp" }),
+    (err) => {
+      assert.equal(err.kind, "quota");
+      assert.equal(err.status, 429, "HTTP status must be preserved on the thrown error");
+      return true;
+    }
+  );
+
+  assert.equal(pyTranslateCalls.length, 0, "no madlad fallback on HTTP 429 quota error");
+
+  const st = quota.getGcpStatus();
+  assert.equal(st.chars, 0, "no chars debited when gcp throws quota error");
+  assert.equal(st.lastError && st.lastError.kind, "quota", "quota error must be persisted to quota state");
+});
+
+test("near_limit: gcp call that crosses 90% threshold flips near_limit in quota state", async () => {
+  // Use real quota accounting so we can observe the near_limit transition.
+  quota._resetForTest();
+  quota.recordGcpUsage = _realRecordGcpUsage;
+
+  // Pre-seed to 89% (8900/10000) — near_limit must be false at this point.
+  _realRecordGcpUsage({ chars: 8900 });
+  assert.equal(quota.getGcpStatus().near_limit, false, "sanity: 89% is below near_limit threshold");
+
+  // GCP returns 200 chars → cumulative 9100/10000 = 91%, crosses the 90% threshold.
+  gcpProvider.translateBatch = async (segs) => ({
+    results: segs.map(s => ({ index: s.index, ru: `GCP[${s.he}]` })),
+    model_version: "gcp-translate-v3-nmt",
+    chars: 200,
+  });
+
+  await pipeline.translateTable({ text: "שלום עולם.", provider: "gcp" });
+
+  const st = quota.getGcpStatus();
+  assert.ok(st.near_limit, "near_limit must flip true after cumulative chars cross 90%");
+  assert.ok(st.chars >= 9100, `expected >=9100 chars recorded, got ${st.chars}`);
 });
