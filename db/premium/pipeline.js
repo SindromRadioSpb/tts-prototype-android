@@ -38,7 +38,7 @@ const SUPPORTED_PROVIDERS = new Set(["madlad", "gcp"]);
 // Both translits (SBL + Russian phonetic) are always computed for every row.
 // The cache key reflects this with a single fixed string so the two profiles
 // share one cache namespace and both values are always available for display.
-const TRANSLIT_PROFILE_KEY_BOTH = "both-v1";
+const TRANSLIT_PROFILE_KEY_BOTH = "both-v2"; // v2: SBL DAGESH_CHAZAQ disabled
 
 function nowIso() {
   return new Date().toISOString();

@@ -22,14 +22,16 @@ const { transliterate: _lib, Schema } = require("hebrew-transliteration");
 const { sblAcademicSpirantization }   = require("hebrew-transliteration/schemas");
 
 // ── SBL Academic (spirantized) ──────────────────────────────────────────────
-// Two overrides vs library defaults (which use U+0331 macron-below):
-//   GIMEL:     g+U+0304 → ḡ U+1E21  (g+U+0331 does not NFC-compose)
-//   PE/FINAL_PE: p+U+0304 → p̄       (SBL standard = macron above, not below)
+// Overrides vs library defaults:
+//   GIMEL:       g+U+0304 → ḡ U+1E21  (g+U+0331 does not NFC-compose)
+//   PE/FINAL_PE: p+U+0304 → p̄         (SBL standard = macron above, not below)
+//   DAGESH_CHAZAQ: false               (no gemination — אַבָּא → ʾābāʾ, not ʾabbāʾ)
 const SBL_SCHEMA = new Schema({
   ...sblAcademicSpirantization,
-  GIMEL:    "g\u0304",
-  PE:       "p\u0304",
-  FINAL_PE: "p\u0304",
+  GIMEL:         "g\u0304",
+  PE:            "p\u0304",
+  FINAL_PE:      "p\u0304",
+  DAGESH_CHAZAQ: false,
 });
 
 // ── Russian Phonetic ────────────────────────────────────────────────────────

@@ -6,11 +6,11 @@
 
 const SEGMENTER_VERSION = "regex-v1";
 const NIKUD_VERSION     = "dictabert-large-char-menaked@dicta-il";
-const TRANSLIT_PROFILE  = "sbl-v3-spirant"; // default; also the cache-key string for profile "sbl"
+const TRANSLIT_PROFILE  = "sbl-v4-nodagesh"; // default; also the cache-key string for profile "sbl"
 
 // Stable cache-key strings per profile. Bump when the corresponding schema changes.
 const TRANSLIT_PROFILE_VERSIONS = {
-  "sbl":         "sbl-v3-spirant",
+  "sbl":         "sbl-v4-nodagesh",   // v4: DAGESH_CHAZAQ disabled (no gemination)
   "ru-phonetic": "ru-phonetic-v1",
 };
 

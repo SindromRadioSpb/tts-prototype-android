@@ -3501,8 +3501,12 @@ app.get("/api/library/texts/:id/sentences", async (req, res) => {
     const { transliterateWithProfile } = require("./db/premium/translit");
     const enriched = sentences.map((s) => {
       const heNiqqud = s.he_niqqud || s.heNiqqud || "";
+      // Always recompute both translits on-the-fly from he_niqqud so that
+      // existing library rows reflect the current schema (e.g. after a
+      // DAGESH_CHAZAQ fix) without requiring a DB migration or re-translation.
       return Object.assign({}, s, {
-        translit_ru: heNiqqud ? (transliterateWithProfile(heNiqqud, "ru-phonetic") || "") : "",
+        translit:    heNiqqud ? (transliterateWithProfile(heNiqqud, "sbl")         || s.translit    || "") : (s.translit    || ""),
+        translit_ru: heNiqqud ? (transliterateWithProfile(heNiqqud, "ru-phonetic") || s.translit_ru || "") : (s.translit_ru || ""),
       });
     });
 
