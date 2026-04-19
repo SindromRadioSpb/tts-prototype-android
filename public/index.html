@@ -4967,7 +4967,8 @@ body.v3-ide-mode .v3-ide-right {
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
     let currentTableData = [];
-	
+    let currentTableHasRuTranslit = false; // set by renderTable; drives translit selector state
+
 	// --- Mobile toast helper (UI-MOBILE-COLNOTE-02) ---
 function v3IsMobile600() {
   return !!(window.matchMedia && window.matchMedia("(max-width: 600px)").matches);
@@ -16231,9 +16232,19 @@ try {
     // Gemini Legacy generates its own Latin-only transliteration — the profile selector
     // has no effect and must be visually disabled to avoid confusion.
     function syncTranslitSelectEnabled() {
-        const provEl = document.getElementById("providerSelect");
-        const trEl   = document.getElementById("translitProfileSelect");
+        const trEl = document.getElementById("translitProfileSelect");
         if (!trEl) return;
+
+        if (currentTableHasRuTranslit) {
+            // Loaded table has dual-translit data — enable regardless of provider dropdown.
+            trEl.disabled = false;
+            trEl.title = "Профиль транслитерации иврита";
+            return;
+        }
+
+        // No table loaded, or the loaded table is Gemini-only (Latin translit).
+        // Fall back to provider selection to decide state for the *next* translation.
+        const provEl = document.getElementById("providerSelect");
         const isGemini = !provEl || provEl.value === "gemini";
         trEl.disabled = isGemini;
         trEl.title = isGemini
@@ -16567,6 +16578,9 @@ try {
     rowSelectedRowIdx = null;
     saveLastSelectedRowIdx(null);
 
+    currentTableHasRuTranslit = false;
+    try { syncTranslitSelectEnabled(); } catch (_) {}
+
     return;
 }
 
@@ -16586,6 +16600,7 @@ try {
         // Gemini Legacy generates its own Latin-only translit and never populates translit_ru.
         // Detect by checking if any row has a non-empty translit_ru value.
         const _hasRuTranslit = rows.some(function(r) { return r && r.translit_ru; });
+        currentTableHasRuTranslit = _hasRuTranslit;
         const _tProfile = _hasRuTranslit && getSelectedTranslitProfile
             ? getSelectedTranslitProfile()
             : "sbl";
@@ -16750,6 +16765,9 @@ normalizeRowStateIndices("renderTable/post");
 rowUxInvariantCheck("renderTable/post");
 
 updatePlaylistButtonUI();
+
+// Sync translit selector enabled state based on actual table data (not just providerSelect).
+try { syncTranslitSelectEnabled(); } catch (_) {}
     }
 
 	// ----------------------------
