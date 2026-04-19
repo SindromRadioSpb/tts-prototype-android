@@ -3500,13 +3500,18 @@ app.get("/api/library/texts/:id/sentences", async (req, res) => {
     // Kept out of the DB to avoid a migration; deterministic and fast (pure JS, no I/O).
     const { transliterateWithProfile } = require("./db/premium/translit");
     const enriched = sentences.map((s) => {
-      const heNiqqud = s.he_niqqud || s.heNiqqud || "";
-      // Always recompute both translits on-the-fly from he_niqqud so that
-      // existing library rows reflect the current schema (e.g. after a
-      // DAGESH_CHAZAQ fix) without requiring a DB migration or re-translation.
+      const heNiqqud = s.he_niqqud || "";
+      let edited = {};
+      try { edited = JSON.parse(s.edit_meta_json || "{}").edited || {}; } catch (_) {}
+
+      // Recompute translits from he_niqqud (picks up schema fixes like DAGESH_CHAZAQ).
+      // Skip recompute for fields the user has manually edited — respect their value.
+      const computedTranslit   = heNiqqud ? (transliterateWithProfile(heNiqqud, "sbl")         || "") : "";
+      const computedTranslitRu = heNiqqud ? (transliterateWithProfile(heNiqqud, "ru-phonetic") || "") : "";
+
       return Object.assign({}, s, {
-        translit:    heNiqqud ? (transliterateWithProfile(heNiqqud, "sbl")         || s.translit    || "") : (s.translit    || ""),
-        translit_ru: heNiqqud ? (transliterateWithProfile(heNiqqud, "ru-phonetic") || s.translit_ru || "") : (s.translit_ru || ""),
+        translit:    edited.translit    ? (s.translit    || "") : (computedTranslit    || s.translit    || ""),
+        translit_ru: edited.translit_ru ? (s.translit_ru || "") : (computedTranslitRu || s.translit_ru || ""),
       });
     });
 
@@ -3516,6 +3521,101 @@ app.get("/api/library/texts/:id/sentences", async (req, res) => {
     res.status(500).json({ error: "INTERNAL_ERROR" });
   }
 });
+
+// ────────────────────────────────────────────────────────
+// TABLE EDITING (018_sentence_edits)
+// ────────────────────────────────────────────────────────
+
+const {
+  patchSentenceFields,
+  resetSentenceEdit,
+  deleteSentence,
+  addSentence,
+  reorderSentences,
+} = require("./db/libraryRepo");
+
+// PATCH /api/library/texts/:id/sentences/:sid — edit cell fields
+app.patch("/api/library/texts/:id/sentences/:sid", express.json({ limit: "32kb" }), async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+    const { fields } = req.body || {};
+    if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
+      return res.status(400).json({ error: "BAD_INPUT", message: "body.fields must be an object" });
+    }
+    const updated = await patchSentenceFields(req.params.id, req.params.sid, fields);
+    res.json({ ok: true, sentence: updated });
+  } catch (e) {
+    if (e.code === "NOT_FOUND") return res.status(404).json({ error: e.message });
+    if (e.code === "BAD_INPUT") return res.status(400).json({ error: e.message });
+    console.error("PATCH sentence error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// POST /api/library/texts/:id/sentences/:sid/reset — restore original pipeline values
+app.post("/api/library/texts/:id/sentences/:sid/reset", express.json({ limit: "8kb" }), async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+    const fields = (req.body && Array.isArray(req.body.fields)) ? req.body.fields : [];
+    const updated = await resetSentenceEdit(req.params.id, req.params.sid, fields);
+    res.json({ ok: true, sentence: updated });
+  } catch (e) {
+    if (e.code === "NOT_FOUND") return res.status(404).json({ error: e.message });
+    console.error("POST sentence/reset error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// DELETE /api/library/texts/:id/sentences/:sid
+app.delete("/api/library/texts/:id/sentences/:sid", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+    const result = await deleteSentence(req.params.id, req.params.sid);
+    res.json(result);
+  } catch (e) {
+    if (e.code === "NOT_FOUND") return res.status(404).json({ error: e.message });
+    console.error("DELETE sentence error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// POST /api/library/texts/:id/sentences — add new sentence
+app.post("/api/library/texts/:id/sentences", express.json({ limit: "32kb" }), async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+    const body = req.body || {};
+    const sentence = await addSentence(req.params.id, {
+      afterOrderIndex: body.afterOrderIndex != null ? Number(body.afterOrderIndex) : null,
+      he:         String(body.he         || ""),
+      ru:         String(body.ru         || ""),
+      translit:   String(body.translit   || ""),
+      translit_ru:String(body.translit_ru|| ""),
+      he_niqqud:  String(body.he_niqqud  || ""),
+    });
+    res.status(201).json({ ok: true, sentence });
+  } catch (e) {
+    if (e.code === "NOT_FOUND") return res.status(404).json({ error: e.message });
+    console.error("POST sentence error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// PATCH /api/library/texts/:id/sentences/reorder
+app.patch("/api/library/texts/:id/sentences/reorder", express.json({ limit: "64kb" }), async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+    const { order } = req.body || {};
+    if (!Array.isArray(order)) return res.status(400).json({ error: "BAD_INPUT", message: "body.order must be array" });
+    const result = await reorderSentences(req.params.id, order);
+    res.json(result);
+  } catch (e) {
+    if (e.code === "BAD_INPUT") return res.status(400).json({ error: e.message });
+    console.error("PATCH sentences/reorder error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// ────────────────────────────────────────────────────────
 
 // --------------------------------------------------------
 // Notes per sentence (W10-NOTES-01)

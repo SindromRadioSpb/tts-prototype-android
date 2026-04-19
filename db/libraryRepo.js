@@ -659,7 +659,9 @@ async function getSentencesByTextId(textId) {
       s.he_plain   AS he_plain,
       s.he_niqqud  AS he_niqqud,
       s.translit   AS translit,
-      s.ru         AS ru,
+      s.ru              AS ru,
+      s.translit_ru     AS translit_ru,
+      s.edit_meta_json  AS edit_meta_json,
       s.row_hash   AS row_hash,
       s.meta_json  AS meta_json,
       s.created_at AS created_at,
@@ -1076,6 +1078,167 @@ if (Object.prototype.hasOwnProperty.call(p, "tagsJson")) {
   return getTextById(textId);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TABLE EDITING (018_sentence_edits)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EDITABLE_FIELDS = new Set(["ru", "translit", "translit_ru", "he_niqqud"]);
+
+// PATCH one or more fields on a sentence.
+// Stores original values in edit_meta_json on first edit (immutable after that).
+async function patchSentenceFields(textId, sentenceId, fields) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  // Validate keys
+  const invalid = Object.keys(fields).filter((k) => !EDITABLE_FIELDS.has(k));
+  if (invalid.length) throw Object.assign(new Error("INVALID_FIELDS: " + invalid.join(",")), { code: "BAD_INPUT" });
+
+  const row = await dbGet(db, "SELECT * FROM sentences WHERE id = ? AND text_id = ?", [sentenceId, textId]);
+  if (!row) throw Object.assign(new Error("SENTENCE_NOT_FOUND"), { code: "NOT_FOUND" });
+
+  // Build edit_meta_json — preserve original on first edit only.
+  let meta = {};
+  try { meta = JSON.parse(row.edit_meta_json || "{}"); } catch (_) {}
+  if (!meta.edited)   meta.edited   = {};
+  if (!meta.original) meta.original = {};
+
+  for (const [key, val] of Object.entries(fields)) {
+    if (!meta.edited[key]) {
+      // First edit for this field — save original.
+      meta.original[key] = row[key] != null ? String(row[key]) : null;
+    }
+    meta.edited[key] = true;
+  }
+
+  const setClauses = Object.keys(fields).map((k) => `${k} = ?`);
+  setClauses.push("edit_meta_json = ?");
+  const vals = [...Object.values(fields).map((v) => (v != null ? String(v) : null)), JSON.stringify(meta)];
+  vals.push(sentenceId, textId);
+
+  await dbRun(db, `UPDATE sentences SET ${setClauses.join(", ")} WHERE id = ? AND text_id = ?`, vals);
+
+  const updated = await dbGet(db, "SELECT * FROM sentences WHERE id = ?", [sentenceId]);
+  return updated;
+}
+
+// Reset one or all fields of a sentence to original pipeline values.
+// fields: array of field names to reset, or null/[] = reset all edited fields.
+async function resetSentenceEdit(textId, sentenceId, fields) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const row = await dbGet(db, "SELECT * FROM sentences WHERE id = ? AND text_id = ?", [sentenceId, textId]);
+  if (!row) throw Object.assign(new Error("SENTENCE_NOT_FOUND"), { code: "NOT_FOUND" });
+
+  let meta = {};
+  try { meta = JSON.parse(row.edit_meta_json || "{}"); } catch (_) {}
+  if (!meta.edited || !meta.original) {
+    return row; // Nothing to reset.
+  }
+
+  const toReset = (fields && fields.length) ? fields : Object.keys(meta.edited);
+  if (!toReset.length) return row;
+
+  const setClauses = [];
+  const vals = [];
+  for (const key of toReset) {
+    if (!EDITABLE_FIELDS.has(key)) continue;
+    const orig = meta.original[key];
+    setClauses.push(`${key} = ?`);
+    vals.push(orig);
+    delete meta.edited[key];
+    delete meta.original[key];
+  }
+
+  const hasEdits = Object.keys(meta.edited).length > 0;
+  setClauses.push("edit_meta_json = ?");
+  vals.push(hasEdits ? JSON.stringify(meta) : null);
+  vals.push(sentenceId, textId);
+
+  await dbRun(db, `UPDATE sentences SET ${setClauses.join(", ")} WHERE id = ? AND text_id = ?`, vals);
+  return dbGet(db, "SELECT * FROM sentences WHERE id = ?", [sentenceId]);
+}
+
+// Delete a sentence and compact order_index.
+async function deleteSentence(textId, sentenceId) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const row = await dbGet(db, "SELECT * FROM sentences WHERE id = ? AND text_id = ?", [sentenceId, textId]);
+  if (!row) throw Object.assign(new Error("SENTENCE_NOT_FOUND"), { code: "NOT_FOUND" });
+
+  await dbRun(db, "DELETE FROM sentences WHERE id = ? AND text_id = ?", [sentenceId, textId]);
+  // Compact: shift order_index of all rows after the deleted one.
+  await dbRun(db,
+    "UPDATE sentences SET order_index = order_index - 1 WHERE text_id = ? AND order_index > ?",
+    [textId, row.order_index]
+  );
+  return { ok: true, deletedOrderIndex: row.order_index };
+}
+
+// Add a new empty sentence at the end (or after a given order_index).
+async function addSentence(textId, { afterOrderIndex, he = "", ru = "", translit = "", translit_ru = "", he_niqqud = "" } = {}) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  const text = await dbGet(db, "SELECT id FROM texts WHERE id = ?", [textId]);
+  if (!text) throw Object.assign(new Error("TEXT_NOT_FOUND"), { code: "NOT_FOUND" });
+
+  // Determine insertion point.
+  const maxRow = await dbGet(db, "SELECT MAX(order_index) AS mx FROM sentences WHERE text_id = ?", [textId]);
+  const maxIdx = maxRow && maxRow.mx != null ? maxRow.mx : -1;
+
+  let insertAt;
+  if (afterOrderIndex != null && afterOrderIndex <= maxIdx) {
+    insertAt = afterOrderIndex + 1;
+    // Shift rows to make room.
+    await dbRun(db,
+      "UPDATE sentences SET order_index = order_index + 1 WHERE text_id = ? AND order_index >= ?",
+      [textId, insertAt]
+    );
+  } else {
+    insertAt = maxIdx + 1;
+  }
+
+  const id = uuidv4();
+  await dbRun(db,
+    `INSERT INTO sentences (id, text_id, order_index, he_plain, he_niqqud, translit, translit_ru, ru, edit_meta_json)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, textId, insertAt, he || null, he_niqqud || null, translit || null, translit_ru || null, ru || null,
+     JSON.stringify({ edited: { ru: !!ru, translit: !!translit, he_niqqud: !!he_niqqud, translit_ru: !!translit_ru }, original: {}, added: true })]
+  );
+
+  return dbGet(db, "SELECT * FROM sentences WHERE id = ?", [id]);
+}
+
+// Reorder sentences: accepts array of {id, order_index} and applies in a transaction.
+async function reorderSentences(textId, order) {
+  const db = getDb();
+  if (!db) throw new Error("DB_NOT_AVAILABLE");
+
+  if (!Array.isArray(order) || !order.length) throw Object.assign(new Error("INVALID_ORDER"), { code: "BAD_INPUT" });
+
+  // Validate all ids belong to this text.
+  const rows = await dbAll(db, "SELECT id FROM sentences WHERE text_id = ?", [textId]);
+  const validIds = new Set(rows.map((r) => r.id));
+  for (const { id } of order) {
+    if (!validIds.has(id)) throw Object.assign(new Error("SENTENCE_NOT_IN_TEXT: " + id), { code: "BAD_INPUT" });
+  }
+
+  // Use large temp offsets to avoid UNIQUE constraint violations during update.
+  const OFFSET = 100000;
+  for (const { id, order_index } of order) {
+    await dbRun(db, "UPDATE sentences SET order_index = ? WHERE id = ? AND text_id = ?",
+      [order_index + OFFSET, id, textId]);
+  }
+  for (const { id, order_index } of order) {
+    await dbRun(db, "UPDATE sentences SET order_index = ? WHERE id = ? AND text_id = ?",
+      [order_index, id, textId]);
+  }
+  return { ok: true };
+}
+
 module.exports = {
   computeTextKey,
   guessTitle,
@@ -1093,4 +1256,11 @@ module.exports = {
 
   // Week9 dashboard meta
   updateTextMeta,
+
+  // Table editing (018_sentence_edits)
+  patchSentenceFields,
+  resetSentenceEdit,
+  deleteSentence,
+  addSentence,
+  reorderSentences,
 };
