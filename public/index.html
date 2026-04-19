@@ -17425,7 +17425,7 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
     fetch("/api/library/texts/" + tid + "/sentences/" + sid, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ fields: payload }),
     })
     .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
     .then(function(data) {
