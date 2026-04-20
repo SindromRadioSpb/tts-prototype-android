@@ -1530,6 +1530,25 @@ th, td { border-color: rgba(0,0,0,0.55); }
   top: 0;
   z-index: 120;
 }
+/* On mobile, fix toolbar at top of viewport so iOS keyboard doesn't push it off-screen */
+@media (max-width: 768px) {
+  #tableEditToolbar.visible {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    margin-bottom: 0;
+    z-index: 200;
+  }
+  /* Push table down so fixed toolbar doesn't overlap it */
+  body.edit-mode-active #tableContainer {
+    margin-top: 50px;
+  }
+}
 #tableEditToolbar.visible { display: flex; }
 
 .tbl-edit-toggle-btn {
@@ -17343,6 +17362,7 @@ function tableEditUpdateStatus() {
 
 function tableEditModeEnter() {
     tableEditActive = true;
+    document.body.classList.add("edit-mode-active");
     const btn = document.getElementById("tableEditToggleBtn");
     if (btn) { btn.textContent = "✓ Готово"; btn.classList.add("active"); }
     const tbl = document.getElementById("proTable");
@@ -17359,6 +17379,7 @@ function tableEditModeEnter() {
 
 function tableEditModeExit(silent) {
     tableEditActive = false;
+    document.body.classList.remove("edit-mode-active");
     const btn = document.getElementById("tableEditToggleBtn");
     if (btn) { btn.textContent = "✎ Редактировать"; btn.classList.remove("active"); }
     const tbl = document.getElementById("proTable");
@@ -17462,7 +17483,12 @@ function tableEditOpenCellEditor(td, col, rowIdx) {
         ta.setAttribute("dir", "rtl");
         ta.style.fontFamily = "inherit";
     }
-    // touch-action: none on textarea prevents double-tap zoom on mobile
+    // Suppress iOS autofill QuickType bar (password/card/address icons above keyboard)
+    ta.setAttribute("autocomplete", "off");
+    ta.setAttribute("autocorrect", "off");
+    ta.setAttribute("autocapitalize", "off");
+    ta.setAttribute("spellcheck", "false");
+    // touch-action: manipulation prevents double-tap zoom on mobile
     ta.style.touchAction = "manipulation";
     const hint = document.createElement("div");
     hint.className = "cell-editor-hint";
