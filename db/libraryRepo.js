@@ -1118,6 +1118,14 @@ async function patchSentenceFields(textId, sentenceId, fields) {
 
   await dbRun(db, `UPDATE sentences SET ${setClauses.join(", ")} WHERE id = ? AND text_id = ?`, vals);
 
+  // If the Hebrew source text changed, the cached audio is no longer valid — clear the default flag
+  // so the next play request generates fresh audio instead of replaying the old recording.
+  if ("he_plain" in fields || "he_niqqud" in fields) {
+    try {
+      await dbRun(db, "UPDATE sentence_audio SET is_default = 0 WHERE sentence_id = ?", [sentenceId]);
+    } catch (_) {} // sentence_audio may not exist in all deployments
+  }
+
   const updated = await dbGet(db, "SELECT * FROM sentences WHERE id = ?", [sentenceId]);
   return updated;
 }

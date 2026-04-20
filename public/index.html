@@ -17451,6 +17451,13 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
                 edit_meta_json: data.sentence.edit_meta_json,
             });
         }
+        // Editing the Hebrew source invalidates the cached audio — clear in memory too
+        // so the next ▶ press generates new audio instead of replaying the old recording.
+        if ("he_plain" in payload || "he_niqqud" in payload) {
+            row._v3_audioAssetKey = "";
+            row._v3_audioTtsProfileJson = "";
+            try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}
+        }
         // Update cell display
         let displayVal = newVal;
         if (td) td.innerHTML = escapeHtml(displayVal);
