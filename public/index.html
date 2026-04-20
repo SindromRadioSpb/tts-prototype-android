@@ -17360,6 +17360,17 @@ function tableEditUpdateStatus() {
     }
 }
 
+function _tableEditToolbarPin() {
+    if (!tableEditActive) return;
+    const tb = document.getElementById("tableEditToolbar");
+    if (!tb) return;
+    if (window.visualViewport) {
+        tb.style.top = window.visualViewport.offsetTop + "px";
+        tb.style.left = window.visualViewport.offsetLeft + "px";
+        tb.style.width = window.visualViewport.width + "px";
+    }
+}
+
 function tableEditModeEnter() {
     tableEditActive = true;
     document.body.classList.add("edit-mode-active");
@@ -17375,11 +17386,22 @@ function tableEditModeEnter() {
     tableEditAttachCellClick();
     tableEditDndEnable();
     tableEditAttachDoubleTap();
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", _tableEditToolbarPin);
+        window.visualViewport.addEventListener("scroll", _tableEditToolbarPin);
+        _tableEditToolbarPin();
+    }
 }
 
 function tableEditModeExit(silent) {
     tableEditActive = false;
     document.body.classList.remove("edit-mode-active");
+    if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", _tableEditToolbarPin);
+        window.visualViewport.removeEventListener("scroll", _tableEditToolbarPin);
+    }
+    const tb = document.getElementById("tableEditToolbar");
+    if (tb) { tb.style.top = ""; tb.style.left = ""; tb.style.width = ""; }
     const btn = document.getElementById("tableEditToggleBtn");
     if (btn) { btn.textContent = "✎ Редактировать"; btn.classList.remove("active"); }
     const tbl = document.getElementById("proTable");
@@ -17499,7 +17521,12 @@ function tableEditOpenCellEditor(td, col, rowIdx) {
     td.appendChild(wrap);
     _tableEditActiveEditorTd = td;
     ta.focus();
-    ta.setSelectionRange(ta.value.length, ta.value.length);
+    // RTL columns: cursor at pos 0 = visual right (start of Hebrew word); LTR: cursor at end
+    if (col === "he" || col === "niqqud") {
+        ta.setSelectionRange(0, 0);
+    } else {
+        ta.setSelectionRange(ta.value.length, ta.value.length);
+    }
 
     // Bug 1 fix: explicit paste handler — read text/plain only to prevent table content bleed
     ta.addEventListener("paste", function(e) {
