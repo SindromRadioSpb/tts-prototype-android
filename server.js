@@ -2054,6 +2054,20 @@ if (PREMIUM_V2_ENABLED) {
       if (e.code === "BAD_INPUT") {
         return res.status(400).json({ error: e.message });
       }
+      // google-free: rate limit (429 from Google's free endpoint).
+      if (e.provider === "google-free" && (e.kind === "rate_limit" || e.status === 429)) {
+        return res.status(429).json({
+          error: "Google Translate: лимит бесплатных запросов исчерпан",
+          details: e.message,
+        });
+      }
+      // google-free: any other upstream error (network, timeout, HTTP error from Google).
+      if (e.provider === "google-free") {
+        return res.status(502).json({
+          error: "Google Translate недоступен",
+          details: e.message,
+        });
+      }
       // GCP-specific: quota exhaustion (or 403/429) maps to 402 Payment
       // Required so the UI can surface "upgrade to paid tier" — auto-fallback
       // is intentionally NOT triggered for quota errors.
@@ -2179,6 +2193,11 @@ if (PREMIUM_V2_ENABLED) {
   });
 
   console.log("[premium] /api/translate-table-v2 enabled (PREMIUM_V2=1)");
+} else {
+  // PREMIUM_V2 not set — register a stub that returns a clear JSON error instead of HTML 404.
+  app.post("/api/translate-table-v2", (_req, res) => {
+    res.status(503).json({ error: "Premium pipeline не включён (нужен PREMIUM_V2=1 в .env)" });
+  });
 }
 
 // --------------------------------------------------------
@@ -6547,6 +6566,14 @@ app.post("/api/library/import", async (req, res) => {
   }
 });
 
+
+// Global error handler — ensures all unhandled Express errors return JSON, never HTML.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error("[server] unhandled error:", err);
+  if (res.headersSent) return;
+  res.status(err.status || 500).json({ error: err.message || "Internal server error" });
+});
 
 // --------------------------------------------------------
 // 13. ЗАПУСК СЕРВЕРА

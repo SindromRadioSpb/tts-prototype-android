@@ -16878,6 +16878,10 @@ try {
             showError(`Провайдер «${provider}» не настроен на сервере: ${e.message || ""}`);
             return;
         }
+        if (status === 429) {
+            showError(`Лимит запросов провайдера «${provider}» исчерпан. Попробуйте позже или выберите другой провайдер. (${e.message || ""})`);
+            return;
+        }
         if (status === 502 || status === 504) {
             showError(`Сервис перевода временно недоступен (${e.message || "upstream"}). Попробуйте ещё раз.`);
             return;
