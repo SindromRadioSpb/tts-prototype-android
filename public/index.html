@@ -12169,6 +12169,7 @@ function v3UiUpdateActiveHeader() {
     sub = (origin === "dashboard") ? "Открыт из Dashboard" : "Открыт из Library";
     if (st.openMode === "resume") sub += " • режим: продолжить";
     if (_providerLabel) sub += " · Provider: " + _providerLabel;
+    sub += " · Аудио: Огласовки → Иврит";
     statusEl.classList.remove("v3-pill-draft");
     statusEl.classList.add("v3-pill-saved");
   }
