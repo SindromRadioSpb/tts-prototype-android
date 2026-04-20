@@ -104,7 +104,10 @@ function _tokensToNiqqud(tokens) {
     parts.push(Array.isArray(best) ? (best[0] || "") : String(best || ""));
   }
 
-  return parts.join("").replace(/\s{2,}/g, " ").trim();
+  // Strip Dicta morpheme-boundary markers (|) that the cloud API inserts
+  // between prefix particles and stems (e.g. לְ|לֵילוֹת → לְלֵילוֹת).
+  // The local sidecar does not emit these; removing them keeps output consistent.
+  return parts.join("").replace(/\|/g, "").replace(/\s{2,}/g, " ").trim();
 }
 
 // ── Single-text niqqud ────────────────────────────────────────────────────────
