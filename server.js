@@ -3534,6 +3534,21 @@ const {
   reorderSentences,
 } = require("./db/libraryRepo");
 
+// PATCH /api/library/texts/:id/sentences/reorder  ← MUST be before /:sid route
+app.patch("/api/library/texts/:id/sentences/reorder", express.json({ limit: "64kb" }), async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+    const { order } = req.body || {};
+    if (!Array.isArray(order)) return res.status(400).json({ error: "BAD_INPUT", message: "body.order must be array" });
+    const result = await reorderSentences(req.params.id, order);
+    res.json(result);
+  } catch (e) {
+    if (e.code === "BAD_INPUT") return res.status(400).json({ error: e.message });
+    console.error("PATCH sentences/reorder error:", e);
+    res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
 // PATCH /api/library/texts/:id/sentences/:sid — edit cell fields
 app.patch("/api/library/texts/:id/sentences/:sid", express.json({ limit: "32kb" }), async (req, res) => {
   try {
@@ -3573,7 +3588,8 @@ app.delete("/api/library/texts/:id/sentences/:sid", async (req, res) => {
     const result = await deleteSentence(req.params.id, req.params.sid);
     res.json(result);
   } catch (e) {
-    if (e.code === "NOT_FOUND") return res.status(404).json({ error: e.message });
+    // Treat already-deleted as success: memory is stale, let frontend sync.
+    if (e.code === "NOT_FOUND") return res.json({ ok: true, alreadyGone: true });
     console.error("DELETE sentence error:", e);
     res.status(500).json({ error: "INTERNAL_ERROR" });
   }
@@ -3601,20 +3617,7 @@ app.post("/api/library/texts/:id/sentences", express.json({ limit: "32kb" }), as
   }
 });
 
-// PATCH /api/library/texts/:id/sentences/reorder
-app.patch("/api/library/texts/:id/sentences/reorder", express.json({ limit: "64kb" }), async (req, res) => {
-  try {
-    if (!requireDbOr503(res)) return;
-    const { order } = req.body || {};
-    if (!Array.isArray(order)) return res.status(400).json({ error: "BAD_INPUT", message: "body.order must be array" });
-    const result = await reorderSentences(req.params.id, order);
-    res.json(result);
-  } catch (e) {
-    if (e.code === "BAD_INPUT") return res.status(400).json({ error: e.message });
-    console.error("PATCH sentences/reorder error:", e);
-    res.status(500).json({ error: "INTERNAL_ERROR" });
-  }
-});
+// (PATCH /sentences/reorder is defined earlier, before the /:sid catch-all route)
 
 // ────────────────────────────────────────────────────────
 

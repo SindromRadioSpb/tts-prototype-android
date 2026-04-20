@@ -1178,9 +1178,16 @@ async function deleteSentence(textId, sentenceId) {
 
   await dbRun(db, "DELETE FROM sentences WHERE id = ? AND text_id = ?", [sentenceId, textId]);
   // Compact: shift order_index of all rows after the deleted one.
+  // Use OFFSET to avoid UNIQUE(text_id, order_index) violations when consecutive rows exist.
+  const OFFSET = 100000;
+  const above = row.order_index;
   await dbRun(db,
-    "UPDATE sentences SET order_index = order_index - 1 WHERE text_id = ? AND order_index > ?",
-    [textId, row.order_index]
+    "UPDATE sentences SET order_index = order_index + ? WHERE text_id = ? AND order_index > ?",
+    [OFFSET - 1, textId, above]
+  );
+  await dbRun(db,
+    "UPDATE sentences SET order_index = order_index - ? WHERE text_id = ? AND order_index > ?",
+    [OFFSET, textId, above + OFFSET - 1]
   );
   return { ok: true, deletedOrderIndex: row.order_index };
 }

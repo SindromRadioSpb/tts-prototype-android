@@ -1526,6 +1526,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
   border-radius: 8px;
   margin-bottom: 6px;
   flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 120;
 }
 #tableEditToolbar.visible { display: flex; }
 
@@ -1672,6 +1675,51 @@ th, td { border-color: rgba(0,0,0,0.55); }
 /* Hide niqqud column in edit mode when in Gemini provider (no niqqud data) */
 #proTable.tbl-edit-mode.tbl-edit-hide-niqqud th[data-col="niqqud"],
 #proTable.tbl-edit-mode.tbl-edit-hide-niqqud td[data-col="niqqud"] { display: none; }
+
+/* Bug 1 fix: prevent selection from bleeding outside textarea on mobile */
+#proTable.tbl-edit-mode tbody tr,
+#proTable.tbl-edit-mode tbody td,
+.cell-editor-hint {
+  -webkit-user-select: none;
+  user-select: none;
+}
+#proTable.tbl-edit-mode .cell-editor-textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Mobile FAB: floating edit toggle when scrolled down */
+#tableEditFab {
+  display: none;
+  position: fixed;
+  bottom: 22px;
+  right: 18px;
+  z-index: 200;
+  padding: 12px 18px;
+  border-radius: 28px;
+  border: none;
+  background: #1976d2;
+  color: #fff;
+  font-size: 0.90rem;
+  font-weight: 700;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, transform 0.1s;
+}
+#tableEditFab.active { background: #2e7d32; }
+#tableEditFab:active { transform: scale(0.95); }
+@media (pointer: coarse) {
+  #tableEditFab.fab-visible { display: inline-flex; align-items: center; gap: 6px; }
+}
+
+/* Double-click/tap hint cursor on cells when NOT in edit mode */
+#proTable:not(.tbl-edit-mode) tbody td[data-col="he"],
+#proTable:not(.tbl-edit-mode) tbody td[data-col="niqqud"],
+#proTable:not(.tbl-edit-mode) tbody td[data-col="translit"],
+#proTable:not(.tbl-edit-mode) tbody td[data-col="ru"] {
+  cursor: default;
+}
 
 /* Drag-and-drop row reorder */
 #proTable.tbl-edit-mode tbody tr[data-draggable="1"] { cursor: grab; }
@@ -4594,6 +4642,7 @@ body.v3-ide-mode .v3-ide-right {
   <button id="tableEditAddBtn" class="tbl-edit-add-btn" type="button" title="Добавить пустую строку в конец">+ Строка</button>
   <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям">↺ Сбросить всё</button>
 </div>
+<button id="tableEditFab" type="button" title="Режим редактирования">✎</button>
 <div id="tableContainer"></div>
 
 </div>
@@ -17238,10 +17287,26 @@ function tableEditToolbarUpdate(show) {
     if (!tb) return;
     if (!show) {
         tb.classList.remove("visible");
+        tableEditFabUpdate(false);
         return;
     }
     tb.classList.add("visible");
     tableEditUpdateStatus();
+    tableEditFabUpdate(true);
+}
+
+function tableEditFabUpdate(show) {
+    const fab = document.getElementById("tableEditFab");
+    if (!fab) return;
+    if (!show) { fab.classList.remove("fab-visible", "active"); return; }
+    fab.classList.add("fab-visible");
+    if (tableEditActive) {
+        fab.textContent = "✓ Готово";
+        fab.classList.add("active");
+    } else {
+        fab.textContent = "✎";
+        fab.classList.remove("active");
+    }
 }
 
 function tableEditUpdateStatus() {
@@ -17284,9 +17349,11 @@ function tableEditModeEnter() {
     tbl.classList.add("tbl-edit-mode");
     // Hide niqqud in edit mode if no niqqud data (Gemini compat)
     if (!currentTableHasRuTranslit) tbl.classList.add("tbl-edit-hide-niqqud");
+    tableEditFabUpdate(true);
     tableEditUpdateStatus();
     tableEditAttachCellClick();
     tableEditDndEnable();
+    tableEditAttachDoubleTap();
 }
 
 function tableEditModeExit(silent) {
@@ -17297,11 +17364,13 @@ function tableEditModeExit(silent) {
     if (tbl) {
         tbl.classList.remove("tbl-edit-mode", "tbl-edit-hide-niqqud");
         // Close any open editors
+        _tableEditActiveEditorTd = null;
         tbl.querySelectorAll(".cell-editor-wrap").forEach(function(wrap) {
             const td = wrap.closest("td");
             if (td) td.innerHTML = escapeHtml(wrap.dataset.origText || "");
         });
     }
+    tableEditFabUpdate(false);
     tableEditUpdateStatus();
 }
 
@@ -17350,7 +17419,37 @@ function tableEditAttachCellClick() {
     });
 }
 
+var _tableEditActiveEditorTd = null; // currently open cell td
+
+function tableEditCloseEditor(save) {
+    const td = _tableEditActiveEditorTd;
+    if (!td) return;
+    _tableEditActiveEditorTd = null;
+    const wrap = td.querySelector(".cell-editor-wrap");
+    if (!wrap) return;
+    const ta = wrap.querySelector("textarea");
+    if (!ta) { td.innerHTML = escapeHtml(wrap.dataset.origText || ""); return; }
+    const col = td.getAttribute("data-col");
+    const tr = td.closest("tr[data-row-idx]");
+    const rowIdx = tr ? parseInt(tr.getAttribute("data-row-idx"), 10) : -1;
+    const key = rowIdx + ":" + col;
+    if (_tableEditDebounceTimers[key]) { clearTimeout(_tableEditDebounceTimers[key]); delete _tableEditDebounceTimers[key]; }
+    const newVal = ta.value;
+    const origText = wrap.dataset.origText || "";
+    if (save && newVal !== origText && rowIdx >= 0) {
+        tableEditSaveCell(rowIdx, col, newVal, td);
+    } else {
+        td.innerHTML = escapeHtml(origText);
+    }
+}
+
 function tableEditOpenCellEditor(td, col, rowIdx) {
+    // Close any open editor first (saves it)
+    if (_tableEditActiveEditorTd && _tableEditActiveEditorTd !== td) {
+        tableEditCloseEditor(true);
+    }
+    if (_tableEditActiveEditorTd === td) return; // already open
+
     const currentText = td.textContent || "";
     const wrap = document.createElement("div");
     wrap.className = "cell-editor-wrap";
@@ -17362,50 +17461,64 @@ function tableEditOpenCellEditor(td, col, rowIdx) {
         ta.setAttribute("dir", "rtl");
         ta.style.fontFamily = "inherit";
     }
+    // touch-action: none on textarea prevents double-tap zoom on mobile
+    ta.style.touchAction = "manipulation";
     const hint = document.createElement("div");
     hint.className = "cell-editor-hint";
-    hint.textContent = "Esc — отмена";
+    hint.textContent = "Enter — сохранить · Esc — отмена";
     wrap.appendChild(ta);
     wrap.appendChild(hint);
     td.innerHTML = "";
     td.appendChild(wrap);
+    _tableEditActiveEditorTd = td;
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
 
-    // Debounced autosave
+    // Bug 1 fix: explicit paste handler — read text/plain only to prevent table content bleed
+    ta.addEventListener("paste", function(e) {
+        e.preventDefault();
+        const text = ((e.clipboardData || window.clipboardData) && (e.clipboardData || window.clipboardData).getData("text/plain")) || "";
+        const s = ta.selectionStart, end = ta.selectionEnd;
+        ta.value = ta.value.slice(0, s) + text + ta.value.slice(end);
+        ta.selectionStart = ta.selectionEnd = s + text.length;
+        ta.dispatchEvent(new Event("input"));
+    });
+
+    // Debounced autosave on input (2s for slow typers)
     ta.addEventListener("input", function() {
         const key = rowIdx + ":" + col;
         if (_tableEditDebounceTimers[key]) clearTimeout(_tableEditDebounceTimers[key]);
         _tableEditDebounceTimers[key] = setTimeout(function() {
-            tableEditSaveCell(rowIdx, col, ta.value, td);
-        }, 800);
+            if (_tableEditActiveEditorTd === td) tableEditSaveCell(rowIdx, col, ta.value, td);
+        }, 2000);
     });
 
     ta.addEventListener("keydown", function(e) {
         if (e.key === "Escape") {
             const key = rowIdx + ":" + col;
             if (_tableEditDebounceTimers[key]) clearTimeout(_tableEditDebounceTimers[key]);
+            _tableEditActiveEditorTd = null;
             td.innerHTML = escapeHtml(currentText);
             e.stopPropagation();
         } else if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            ta.blur();
+            tableEditCloseEditor(true);
         }
     });
 
-    ta.addEventListener("blur", function() {
-        const key = rowIdx + ":" + col;
-        if (_tableEditDebounceTimers[key]) {
-            clearTimeout(_tableEditDebounceTimers[key]);
-            delete _tableEditDebounceTimers[key];
+    // Bug 2.1 fix: don't close on blur — close only when user taps OUTSIDE the current td
+    // pointerdown fires before focus moves, so we can check reliably
+    var _outsideHandler = function(e) {
+        if (!_tableEditActiveEditorTd) { document.removeEventListener("pointerdown", _outsideHandler, true); return; }
+        if (!td.contains(e.target)) {
+            document.removeEventListener("pointerdown", _outsideHandler, true);
+            tableEditCloseEditor(true);
         }
-        const newVal = ta.value;
-        if (newVal !== currentText) {
-            tableEditSaveCell(rowIdx, col, newVal, td);
-        } else {
-            td.innerHTML = escapeHtml(currentText);
-        }
-    });
+    };
+    // Attach with a small delay to avoid firing for the click that OPENED the editor
+    setTimeout(function() {
+        document.addEventListener("pointerdown", _outsideHandler, true);
+    }, 80);
 }
 
 // Map UI column names to API field names
@@ -17764,6 +17877,53 @@ function tableEditDndEnable() {
     });
 }
 
+// Double-click (desktop) / double-tap (mobile) to enter edit mode + open editor
+function tableEditAttachDoubleTap() {
+    const tbl = document.getElementById("proTable");
+    if (!tbl || tbl._dblEditAttached) return;
+    tbl._dblEditAttached = true;
+
+    // Desktop: dblclick
+    tbl.addEventListener("dblclick", function(e) {
+        if (tableEditActive) return; // already in edit mode; click handler opens editor
+        const td = e.target.closest("td[data-col]");
+        if (!td) return;
+        const col = td.getAttribute("data-col");
+        if (!["he", "niqqud", "translit", "ru"].includes(col)) return;
+        const tr = td.closest("tr[data-row-idx]");
+        if (!tr) return;
+        const rowIdx = parseInt(tr.getAttribute("data-row-idx"), 10);
+        if (!currentTableData || !currentTableData[rowIdx] || !currentTableData[rowIdx]._v3_sentenceId) return;
+        tableEditModeEnter();
+        setTimeout(function() { tableEditOpenCellEditor(td, col, rowIdx); }, 30);
+    });
+
+    // Mobile: double-tap detection (two taps within 320ms on same td)
+    var _lastTapTd = null, _lastTapTime = 0;
+    tbl.addEventListener("touchend", function(e) {
+        if (tableEditActive) return;
+        const td = e.target.closest("td[data-col]");
+        if (!td) return;
+        const col = td.getAttribute("data-col");
+        if (!["he", "niqqud", "translit", "ru"].includes(col)) return;
+        const now = Date.now();
+        if (_lastTapTd === td && now - _lastTapTime < 320) {
+            // Double tap
+            e.preventDefault();
+            _lastTapTd = null; _lastTapTime = 0;
+            const tr = td.closest("tr[data-row-idx]");
+            if (!tr) return;
+            const rowIdx = parseInt(tr.getAttribute("data-row-idx"), 10);
+            if (!currentTableData || !currentTableData[rowIdx] || !currentTableData[rowIdx]._v3_sentenceId) return;
+            tableEditModeEnter();
+            setTimeout(function() { tableEditOpenCellEditor(td, col, rowIdx); }, 30);
+        } else {
+            _lastTapTd = td;
+            _lastTapTime = now;
+        }
+    }, { passive: false });
+}
+
 // Wire up toolbar buttons
 (function() {
     function _onToggleBtn() {
@@ -17776,6 +17936,8 @@ function tableEditDndEnable() {
     document.addEventListener("click", function(e) {
         const toggleBtn = e.target.closest("#tableEditToggleBtn");
         if (toggleBtn) { _onToggleBtn(); return; }
+        const fab = e.target.closest("#tableEditFab");
+        if (fab) { _onToggleBtn(); tableEditFabUpdate(true); return; }
         const addBtn = e.target.closest("#tableEditAddBtn");
         if (addBtn) { _onAddBtn(); return; }
         const resetAllBtn = e.target.closest("#tableEditResetAllBtn");
