@@ -2196,6 +2196,37 @@ Rules:
 // --------------------------------------------------------
 // 11a. API: DIAGNOSTICS (aggregated system status for the Dashboard panel)
 // --------------------------------------------------------
+// 10c. API: NIQQUD ANNOTATION GATEWAY
+// --------------------------------------------------------
+app.post("/api/niqqud", async (req, res) => {
+  try {
+    const { text, genre = "modern" } = req.body || {};
+    if (!text || typeof text !== "string" || !text.trim()) {
+      return res.status(400).json({
+        ok: false, input: "", niqqud: "",
+        translit: { sblAcademic: "", ruPhonetic: "" },
+        provider: "none", degraded: true,
+        warnings: ["text is required"],
+      });
+    }
+    const { annotate } = require("./db/premium/niqqudGateway");
+    const result = await annotate(text.trim(), genre);
+    res.json(result);
+  } catch (e) {
+    console.error("[niqqud] error:", e);
+    res.status(500).json({
+      ok: false,
+      input: (req.body && req.body.text) || "",
+      niqqud: "",
+      translit: { sblAcademic: "", ruPhonetic: "" },
+      provider: "none",
+      degraded: true,
+      warnings: [e.message || "Internal error"],
+    });
+  }
+});
+
+// --------------------------------------------------------
 app.get("/api/diag", async (_req, res) => {
   const { getDb } = require("./db/sqlite");
   const {

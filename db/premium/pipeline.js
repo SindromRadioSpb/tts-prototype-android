@@ -8,14 +8,12 @@
 // Responsibilities:
 //   1. Check doc cache by full pipeline key → fast path on hit.
 //   2. Segment, then check segment cache + overrides for each piece.
-//   3. For segments that remain, call Python sidecar: /nakdan + /translate.
+//   3. For segments that remain, call niqqudGateway (sidecar → Dicta cloud)
+//      and the chosen translation provider in parallel.
 //   4. Run local transliteration on niqqud output.
 //   5. Apply overrides (field-level) on top of model output.
 //   6. Assemble rows in original order, persist segment + doc caches.
 //   7. If text_id provided, append to translation_history.
-//
-// GCP-specific translation lives in Phase 1.8 and will plug in behind the
-// `provider` switch without changing this file's shape.
 
 const cacheRepo    = require("../translationCacheRepo");
 const overridesRepo = require("../translationOverridesRepo");
@@ -29,7 +27,7 @@ const {
 } = require("./versions");
 const { segment } = require("./segmenter");
 const { transliterateWithProfile } = require("./translit");
-const pythonClient = require("./pythonClient");
+const niqqudGateway = require("./niqqudGateway");
 const gcpProvider        = require("./providers/gcp");
 const googleFreeProvider = require("./providers/googleFree");
 const quota = require("./quota");
@@ -45,26 +43,11 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+// Delegates to niqqudGateway: local sidecar → Dicta cloud → graceful degradation.
+// Returns { results, model_version, provider, degraded, reason? }
 async function fetchNiqqud(texts) {
-  if (!texts.length) return { results: [], model_version: NIKUD_VERSION };
-  const r = await pythonClient.nakdan(texts);
-  if (!r.ok) {
-    // Nikud is display-only (translit derives from it, translation does not).
-    // Any upstream failure — sidecar unreachable (status=0), model not loaded
-    // (500 "ModuleNotFoundError"), malformed batch, anything — degrades the UI
-    // gracefully instead of aborting the whole translation.
-    const reason = r.status === 0 ? "sidecar_unreachable"
-                  : r.status >= 500 ? "sidecar_error"
-                  : "sidecar_rejected";
-    console.warn(`[premium] nakdan degraded: ${r.status} ${r.error || ""} (reason=${reason})`);
-    return {
-      results: texts.map(() => ""),
-      model_version: NIKUD_VERSION,
-      degraded: true,
-      reason,
-    };
-  }
-  return r.body;
+  if (!texts.length) return { results: [], model_version: NIKUD_VERSION, provider: "none", degraded: false };
+  return niqqudGateway.fetchNiqqud(texts);
 }
 
 async function _madladTranslate(segmentsForApi, target) {
@@ -384,9 +367,11 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
     prov.actual_provider = transResp.actualProvider;
     prov.fallback_reason = transResp.fallbackReason || "transient";
   }
+  prov.nikud_provider = nikudResp.provider || "local-sidecar";
   if (nikudResp.degraded) {
     prov.nikud_degraded = true;
     prov.nikud_degraded_reason = nikudResp.reason || "sidecar_unreachable";
+    prov.nikud_provider = "none";
   }
 
   return {

@@ -12228,9 +12228,13 @@ function v3UiUpdateActiveHeader() {
   let sub = "";
 
   const _providerLabelMap = { "google-free": "Google Translate", gcp: "GCP Cloud Translation v3", madlad: "MADLAD-400 (local)", gemini: "Google Gemini" };
+  const _nikudLabelMap   = { "local-sidecar": "локальный", "dicta-cloud": "Dicta Cloud", "none": "недоступны" };
   const _meta = (typeof v3LastGeminiMeta !== "undefined" && v3LastGeminiMeta) ? v3LastGeminiMeta : null;
   const _providerLabel = _meta && _meta.provider
     ? (_providerLabelMap[_meta.provider] || _meta.provider)
+    : null;
+  const _nikudLabel = _meta && _meta.nikudProvider
+    ? (_nikudLabelMap[_meta.nikudProvider] || _meta.nikudProvider)
     : null;
 
   if (mode === "draft") {
@@ -12244,6 +12248,7 @@ function v3UiUpdateActiveHeader() {
     } else {
       sub = "Таблица сформирована";
       if (_providerLabel) sub += " · Provider: " + _providerLabel;
+      if (_nikudLabel) sub += " · Огласовки: " + _nikudLabel;
     }
     statusEl.classList.remove("v3-pill-saved");
     statusEl.classList.add("v3-pill-draft");
@@ -12254,6 +12259,7 @@ function v3UiUpdateActiveHeader() {
     sub = (origin === "dashboard") ? "Открыт из Dashboard" : "Открыт из Library";
     if (st.openMode === "resume") sub += " • режим: продолжить";
     if (_providerLabel) sub += " · Provider: " + _providerLabel;
+    if (_nikudLabel) sub += " · Огласовки: " + _nikudLabel;
     sub += " · Аудио: Огласовки → Иврит";
     statusEl.classList.remove("v3-pill-draft");
     statusEl.classList.add("v3-pill-saved");
@@ -16688,6 +16694,8 @@ try {
       cacheKey: res.cacheKey || null,
       fromCache: (res.fromCache === true),
       provider: prov.actual_provider || prov.provider || provider,
+      nikudProvider: prov.nikud_provider || null,
+      nikudDegraded: prov.nikud_degraded || false,
       generatedAt: new Date().toISOString()
     };
   } else {
@@ -16699,6 +16707,13 @@ try {
       provider: "gemini",
       generatedAt: new Date().toISOString()
     };
+  }
+} catch (_) {}
+
+// Warn user when niqqud degraded (columns Огласовки/Транслит will be empty)
+try {
+  if (usePremium && v3LastGeminiMeta && v3LastGeminiMeta.nikudDegraded) {
+    showToast("Огласовки/транслит недоступны: сервис никуда не отвечает", "warning");
   }
 } catch (_) {}
 
