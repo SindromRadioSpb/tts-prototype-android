@@ -17527,14 +17527,7 @@ function tableEditOpenCellEditor(td, col, rowIdx) {
     td.appendChild(wrap);
     _tableEditActiveEditorTd = td;
     ta.focus();
-    if (col === "he" || col === "niqqud") {
-        // RTL: place cursor at the visual right of the last line (= string start of last line)
-        const lastNl = ta.value.lastIndexOf("\n");
-        const lastLineStart = lastNl === -1 ? 0 : lastNl + 1;
-        ta.setSelectionRange(lastLineStart, lastLineStart);
-    } else {
-        ta.setSelectionRange(ta.value.length, ta.value.length);
-    }
+    ta.setSelectionRange(ta.value.length, ta.value.length);
 
     // Bug 1 fix: explicit paste handler — read text/plain only to prevent table content bleed
     ta.addEventListener("paste", function(e) {
