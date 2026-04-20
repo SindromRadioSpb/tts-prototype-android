@@ -17521,9 +17521,11 @@ function tableEditOpenCellEditor(td, col, rowIdx) {
     td.appendChild(wrap);
     _tableEditActiveEditorTd = td;
     ta.focus();
-    // RTL columns: cursor at pos 0 = visual right (start of Hebrew word); LTR: cursor at end
     if (col === "he" || col === "niqqud") {
-        ta.setSelectionRange(0, 0);
+        // RTL: place cursor at the visual right of the last line (= string start of last line)
+        const lastNl = ta.value.lastIndexOf("\n");
+        const lastLineStart = lastNl === -1 ? 0 : lastNl + 1;
+        ta.setSelectionRange(lastLineStart, lastLineStart);
     } else {
         ta.setSelectionRange(ta.value.length, ta.value.length);
     }
