@@ -2011,11 +2011,9 @@ Rules:
 });
 
 // --------------------------------------------------------
-// 10b. API: PREMIUM AI TRANSLATE (v2, behind PREMIUM_V2 flag)
+// 10b. API: PREMIUM AI TRANSLATE (v2)
 // --------------------------------------------------------
-const PREMIUM_V2_ENABLED = process.env.PREMIUM_V2 === "1";
-
-if (PREMIUM_V2_ENABLED) {
+{
   const premiumPipeline = require("./db/premium/pipeline");
   const GCP_KEY_PATH = path.join(DATA_DIR, "gcp-translate-key.json");
   const ORIGINAL_GCP_KEY_ENV = process.env.GCP_TRANSLATE_KEY_FILE;
@@ -2192,12 +2190,7 @@ if (PREMIUM_V2_ENABLED) {
     }
   });
 
-  console.log("[premium] /api/translate-table-v2 enabled (PREMIUM_V2=1)");
-} else {
-  // PREMIUM_V2 not set — register a stub that returns a clear JSON error instead of HTML 404.
-  app.post("/api/translate-table-v2", (_req, res) => {
-    res.status(503).json({ error: "Premium pipeline не включён (нужен PREMIUM_V2=1 в .env)" });
-  });
+  console.log("[premium] /api/translate-table-v2 enabled");
 }
 
 // --------------------------------------------------------
