@@ -13383,6 +13383,7 @@ const [meta, sents] = await Promise.all([
 	openMode: (opts && opts.openMode) ? String(opts.openMode) : (resume ? "resume" : "open"),
 	resumeSentenceId: resumeSentenceId ? String(resumeSentenceId) : null,
 	title: (text && text.title) ? String(text.title) : null,
+	source: (text && text.source) ? String(text.source) : null,
 	});
 
     } catch (_) {}
@@ -13667,6 +13668,7 @@ async function v3LibrarySaveCurrentCore(meta) {
   baseTextId: null,
   resumeSentenceId: null,
   title: effectiveTitle,
+  source: (text && text.source) ? String(text.source) : null,
   origin: "library",
   openMode: "open"
 });
@@ -13764,6 +13766,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
           baseTextId: null,
           resumeSentenceId: null,
           title: (text.title ? String(text.title) : null),
+          source: (text && text.source) ? String(text.source) : null,
           origin: "library",
           openMode: "open"
         });
