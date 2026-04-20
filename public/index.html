@@ -17270,6 +17270,7 @@ try {
     const _hasLibRows = rows.some(function(r) { return r && r._v3_textId; });
     tableEditToolbarUpdate(_hasLibRows);
     tableEditApplyEditedMarkers();
+    if (_hasLibRows) { try { tableEditAttachDoubleTap(); } catch (_e) {} }
 } catch (_) {}
     }
 
