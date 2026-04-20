@@ -17643,10 +17643,9 @@ function tableEditMoveRow(rowIdx, direction) {
     rows[targetIdx] = row;
     renderTable(rows);
 
-    // Build new order array: [[sentence_id, order_index], ...]
     const orderPayload = rows.map(function(r, i) {
-        return { sentence_id: r._v3_sentenceId, order_index: i };
-    }).filter(function(x) { return x.sentence_id; });
+        return { id: r._v3_sentenceId, order_index: i };
+    }).filter(function(x) { return x.id; });
 
     fetch("/api/library/texts/" + tid + "/sentences/reorder", {
         method: "PATCH",
