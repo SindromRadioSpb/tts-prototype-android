@@ -768,6 +768,16 @@ th, td { border-color: rgba(0,0,0,0.55); }
   opacity: .85;
 }
 
+.v3-active-source {
+  margin-top: 4px;
+  font-size: 12px;
+}
+.v3-active-source a {
+  color: #1565c0;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
 .v3-pill {
   display: inline-block;
   padding: 3px 8px;
@@ -4659,6 +4669,7 @@ body.v3-ide-mode .v3-ide-right {
     </div>
   </div>
   <div id="v3ActiveTextSub" class="v3-active-sub"></div>
+  <div id="v3ActiveTextSource" class="v3-active-source" style="display:none;"></div>
 </div>
 
 <div id="tableEditToolbar" role="toolbar" aria-label="Редактирование таблицы">
@@ -12251,6 +12262,29 @@ function v3UiUpdateActiveHeader() {
   titleEl.textContent = title;
   statusEl.textContent = statusText;
   subEl.textContent = sub;
+
+  const sourceEl = document.getElementById("v3ActiveTextSource");
+  if (sourceEl) {
+    const sourceVal = String(st.source || "").trim();
+    if (sourceVal) {
+      const isUrl = /^https?:\/\//i.test(sourceVal);
+      if (isUrl) {
+        const a = document.createElement("a");
+        a.href = sourceVal;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = sourceVal;
+        sourceEl.textContent = "Источник: ";
+        sourceEl.appendChild(a);
+      } else {
+        sourceEl.textContent = "Источник: " + sourceVal;
+      }
+      sourceEl.style.display = "";
+    } else {
+      sourceEl.textContent = "";
+      sourceEl.style.display = "none";
+    }
+  }
 
   box.style.display = "";
 }
