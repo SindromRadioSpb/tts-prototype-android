@@ -4541,6 +4541,16 @@ body.v3-ide-mode .v3-ide-right {
             </div>
 
             <div class="field-group">
+                <label for="ttsProviderSelect" class="input-label">TTS Provider</label>
+                <select id="ttsProviderSelect">
+                    <option value="online_tts">Online TTS</option>
+                    <option value="hebrew_phonikud_piper">Hebrew Local Piper</option>
+                    <option value="local_neural_tts_piper">Local Piper / Web WASM</option>
+                    <option value="system_fallback">Browser fallback</option>
+                </select>
+            </div>
+
+            <div class="field-group">
                 <label for="voiceSelect" class="input-label">Голос TTS</label>
                 <select id="voiceSelect">
                     <option value="">Авто (по умолчанию)</option>
@@ -4607,6 +4617,7 @@ body.v3-ide-mode .v3-ide-right {
                 <label for="pitchRange" class="input-label">Тон (pitch)</label>
                 <input id="pitchRange" type="range" min="-5" max="5" step="0.5" value="0">
                 <span id="pitchValue" class="stat-sub">0.0</span>
+                <div id="ttsPitchSupportNote" class="v3-help" style="font-size:12px;"></div>
 	        </div>
 
 	        <div id="localTtsDiagnostics" class="v3-help" style="display:none; margin-top:8px;"></div>
@@ -5313,6 +5324,8 @@ body.v3-ide-mode .v3-ide-right {
 </div>
 
 <script src="/tts/core.js"></script>
+<script src="/tts/providerPolicy.js"></script>
+<script src="/tts/settings.js"></script>
 <script src="/tts/runtime/runtimeStatus.js"></script>
 <script src="/tts/runtime/sherpaOnnxAdapter.js"></script>
 <script src="/tts/backends.js"></script>
@@ -7175,14 +7188,16 @@ function v3NotesRefreshAllButtons() {
     const hotkeysPanelEl = document.getElementById("hotkeysPanel");
 	
 	const autoNextToggleEl = document.getElementById("autoNextToggle");
-	
+
 	const btnPlaylistRunEl = document.getElementById("btnPlaylistRun");
 
+    const ttsProviderSelectEl = document.getElementById("ttsProviderSelect");
     const voiceSelectEl = document.getElementById("voiceSelect");
     const rateRangeEl = document.getElementById("rateRange");
     const pitchRangeEl = document.getElementById("pitchRange");
     const rateValueEl = document.getElementById("rateValue");
     const pitchValueEl = document.getElementById("pitchValue");
+    const ttsPitchSupportNoteEl = document.getElementById("ttsPitchSupportNote");
 
     const toastContainerEl = document.getElementById("toastContainer");
     const resultsMetaEl = document.getElementById("resultsMeta");
@@ -8663,7 +8678,65 @@ try { window.v3DeeplinkParse = v3DeeplinkParse; } catch (_) {}
 try { window.v3DeeplinkResolveTarget = v3DeeplinkResolveTarget; } catch (_) {}
 
 const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
-    const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
+const TTS_PROVIDER_IDS = window.TtsSettingsStore ? window.TtsSettingsStore.PROVIDERS : ["online_tts", "hebrew_phonikud_piper", "local_neural_tts_piper", "system_fallback"];
+const TTS_PROVIDER_DEFS = {
+    online_tts: { label: "Online TTS" },
+    hebrew_phonikud_piper: { label: "Hebrew Local Piper" },
+    local_neural_tts_piper: { label: "Local Piper / Web WASM" },
+    system_fallback: { label: "Browser fallback" }
+};
+const TTS_PROVIDER_VOICE_OPTIONS = {
+    online_tts: {
+        "he-IL": [
+            { value: "", label: "Авто (по умолчанию)" },
+            { value: "he-IL-Standard-A", label: "he-IL-Standard-A (ж, иврит)" },
+            { value: "he-IL-Standard-B", label: "he-IL-Standard-B (м, иврит)" }
+        ],
+        "ru-RU": [
+            { value: "", label: "Авто (по умолчанию)" },
+            { value: "ru-RU-Standard-A", label: "ru-RU-Standard-A (ж, русский)" },
+            { value: "ru-RU-Standard-B", label: "ru-RU-Standard-B (м, русский)" }
+        ],
+        "en-US": [
+            { value: "", label: "Авто (по умолчанию)" },
+            { value: "en-US-Standard-C", label: "en-US-Standard-C (ж, англ.)" },
+            { value: "en-US-Standard-D", label: "en-US-Standard-D (м, англ.)" }
+        ]
+    },
+    hebrew_phonikud_piper: {
+        "he-IL": [
+            { value: "shaul", label: "Shaul (Hebrew Local Piper)" }
+        ]
+    },
+    local_neural_tts_piper: {
+        default: [
+            { value: "en-default", label: "en-default (English Piper Local)" }
+        ]
+    },
+    system_fallback: {
+        default: [
+            { value: "", label: "Auto (browser default)" }
+        ]
+    }
+};
+let ttsSettingsState = window.TtsSettingsStore
+    ? window.TtsSettingsStore.cloneDefaultSettings()
+    : {
+        selectedProvider: "online_tts",
+        speed: 1.0,
+        pitch: 0.0,
+        voices: {
+            online_tts: "",
+            hebrew_phonikud_piper: "shaul",
+            local_neural_tts_piper: "en-default",
+            system_fallback: ""
+        }
+    };
+let hebrewLocalHealthSnapshot = null;
+let lastAudioMimeType = "audio/mpeg";
+let lastAudioFileExt = "mp3";
+let lastAudioPlaybackRate = 1.0;
+const AUDIO_CACHE_KEY = "ttsDashboard_audio_cache_v1";
 	// PRO: user-resizable table height
 const TABLE_HEIGHT_STORAGE_KEY = "ttsDashboard_table_height_v1";
 
@@ -8772,12 +8845,14 @@ function fnv1aHash(str) {
 }
 
 function buildRowTtsCacheKey(text, lang, cfg) {
+    const providerId = cfg && typeof cfg.providerId === "string" ? cfg.providerId : "online_tts";
     const voiceId = cfg && typeof cfg.voiceId === "string" ? cfg.voiceId : "";
     const rate = cfg && typeof cfg.rate === "number" ? cfg.rate : 1.0;
     const pitch = cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0.0;
 
     const payload = [
         "v1",
+        providerId,
         lang || "",
         voiceId,
         String(rate),
@@ -9982,42 +10057,39 @@ updatePlaylistButtonUI();
     // ----------------------------
     // RESTORE TTS VOICE CONFIG
     // ----------------------------
-    (function restoreTtsVoiceConfig() {
-        try {
-            const raw = localStorage.getItem(TTS_VOICE_STORAGE_KEY);
-            if (!raw) {
-                updateTtsControlsUI();
-                return;
-            }
+    function getStoredTtsSettings() {
+        const raw = localStorage.getItem(TTS_VOICE_STORAGE_KEY);
+        if (window.TtsSettingsStore) return window.TtsSettingsStore.parseStoredSettings(raw);
+        return Object.assign({}, ttsSettingsState);
+    }
 
-            const cfg = JSON.parse(raw);
-            if (cfg && typeof cfg === "object") {
-                if (voiceSelectEl && typeof cfg.voice === "string") {
-                    voiceSelectEl.value = cfg.voice;
-                }
-                if (rateRangeEl && typeof cfg.rate === "number") {
-                    rateRangeEl.value = cfg.rate;
-                }
-                if (pitchRangeEl && typeof cfg.pitch === "number") {
-                    pitchRangeEl.value = cfg.pitch;
-                }
-            }
-        } catch (e) {
-            console.error("TTS voice config restore error", e);
-        }
-        updateTtsControlsUI();
-    })();
+    function getSelectedTtsProvider() {
+        const providerId = ttsProviderSelectEl ? ttsProviderSelectEl.value : ttsSettingsState.selectedProvider;
+        return String(providerId || "online_tts");
+    }
 
-    function saveTtsVoiceConfig() {
-        try {
-            const cfg = {
-                voice: voiceSelectEl ? voiceSelectEl.value : "",
-                rate: rateRangeEl ? Number(rateRangeEl.value) : 1.0,
-                pitch: pitchRangeEl ? Number(pitchRangeEl.value) : 0.0
-            };
-            localStorage.setItem(TTS_VOICE_STORAGE_KEY, JSON.stringify(cfg));
-        } catch (e) {
-            console.error("TTS voice config save error", e);
+    function buildTtsProviderVoiceOptions(providerId, lang) {
+        const byProvider = TTS_PROVIDER_VOICE_OPTIONS[providerId] || {};
+        return byProvider[lang] || byProvider.default || [{ value: "", label: "Авто (по умолчанию)" }];
+    }
+
+    function isPitchSupportedForProvider(providerId) {
+        return providerId !== "hebrew_phonikud_piper";
+    }
+
+    function renderTtsVoiceOptions(providerId, lang, selectedVoiceId) {
+        if (!voiceSelectEl) return;
+        const options = buildTtsProviderVoiceOptions(providerId, lang);
+        voiceSelectEl.innerHTML = options.map(function (item) {
+            const isSelected = String(item.value) === String(selectedVoiceId || "");
+            return '<option value="' + escapeHtml(String(item.value || "")) + '"' + (isSelected ? " selected" : "") + ">" +
+                escapeHtml(String(item.label || item.value || "")) +
+                "</option>";
+        }).join("");
+
+        const matched = options.some(function (item) { return String(item.value) === String(selectedVoiceId || ""); });
+        if (!matched && options[0]) {
+            voiceSelectEl.value = String(options[0].value || "");
         }
     }
 
@@ -10031,14 +10103,88 @@ updatePlaylistButtonUI();
             const sign = val > 0 ? "+" : "";
             pitchValueEl.textContent = sign + val.toFixed(1);
         }
+
+        const providerId = getSelectedTtsProvider();
+        const pitchSupported = isPitchSupportedForProvider(providerId);
+        if (pitchRangeEl) pitchRangeEl.disabled = !pitchSupported;
+        if (ttsPitchSupportNoteEl) {
+            ttsPitchSupportNoteEl.textContent = pitchSupported
+                ? ""
+                : "Pitch не поддерживается Hebrew Local Piper";
+        }
+    }
+
+    function applyTtsSettingsToUi() {
+        const lang = getLang();
+        const providerId = ttsSettingsState.selectedProvider || "online_tts";
+        if (ttsProviderSelectEl) ttsProviderSelectEl.value = providerId;
+        if (rateRangeEl) rateRangeEl.value = String(ttsSettingsState.speed);
+        if (pitchRangeEl) pitchRangeEl.value = String(ttsSettingsState.pitch);
+        renderTtsVoiceOptions(providerId, lang, ttsSettingsState.voices[providerId] || "");
+        updateTtsControlsUI();
+    }
+
+    function saveTtsVoiceConfig() {
+        try {
+            const currentProvider = getSelectedTtsProvider();
+            const next = window.TtsSettingsStore
+                ? window.TtsSettingsStore.normalizeSettings(ttsSettingsState)
+                : Object.assign({}, ttsSettingsState);
+            next.selectedProvider = currentProvider;
+            next.speed = rateRangeEl ? Number(rateRangeEl.value) : 1.0;
+            next.pitch = pitchRangeEl ? Number(pitchRangeEl.value) : 0.0;
+            next.voices = Object.assign({}, next.voices || {});
+            next.voices[currentProvider] = voiceSelectEl ? String(voiceSelectEl.value || "") : "";
+            ttsSettingsState = window.TtsSettingsStore
+                ? window.TtsSettingsStore.normalizeSettings(next)
+                : next;
+            localStorage.setItem(
+                TTS_VOICE_STORAGE_KEY,
+                window.TtsSettingsStore
+                    ? window.TtsSettingsStore.serializeSettings(ttsSettingsState)
+                    : JSON.stringify(ttsSettingsState)
+            );
+        } catch (e) {
+            console.error("TTS voice config save error", e);
+        }
     }
 
     function getTtsVoiceConfig() {
+        const providerId = getSelectedTtsProvider();
         const voiceId = voiceSelectEl ? voiceSelectEl.value : "";
         const rate = rateRangeEl ? Number(rateRangeEl.value) : 1.0;
         const pitch = pitchRangeEl ? Number(pitchRangeEl.value) : 0.0;
-        return { voiceId, rate, pitch };
+        return {
+            providerId,
+            voiceId,
+            rate,
+            pitch,
+            fallbackVoiceId: ttsSettingsState && ttsSettingsState.voices ? (ttsSettingsState.voices.online_tts || "") : ""
+        };
     }
+
+    async function refreshHebrewLocalHealth() {
+        try {
+            const response = await fetch("/api/tts/hebrew-local/health", { cache: "no-store" });
+            hebrewLocalHealthSnapshot = await response.json();
+        } catch (error) {
+            hebrewLocalHealthSnapshot = {
+                status: "unavailable",
+                provider: "hebrew_phonikud_piper",
+                error: error && error.message ? error.message : "health_request_failed"
+            };
+        }
+        return hebrewLocalHealthSnapshot;
+    }
+
+    (function restoreTtsVoiceConfig() {
+        try {
+            ttsSettingsState = getStoredTtsSettings();
+        } catch (e) {
+            console.error("TTS voice config restore error", e);
+        }
+        applyTtsSettingsToUi();
+    })();
 
     let v3PortableTtsRuntimePromise = null;
     let v3PortableTtsRuntime = null;
@@ -10052,7 +10198,60 @@ updatePlaylistButtonUI();
 
     function v3PortableTtsResolveVoiceId(lang) {
         const normalizedLang = v3PortableTtsMapLang(lang);
+        const selectedVoice = ttsSettingsState && ttsSettingsState.voices
+            ? ttsSettingsState.voices.local_neural_tts_piper
+            : "";
+        if (selectedVoice) return selectedVoice;
         return normalizedLang + "-default";
+    }
+
+    function v3PortableTtsShouldUseLocal(lang) {
+        const providerId = getSelectedTtsProvider();
+        if (providerId !== "local_neural_tts_piper") return false;
+        if (!window.LocalNeuralTtsProviderPolicy) return true;
+        const config = v3PortableTtsRuntime && v3PortableTtsRuntime.config ? v3PortableTtsRuntime.config : {};
+        return window.LocalNeuralTtsProviderPolicy.isProviderSupportedForLang(providerId, lang, config);
+    }
+
+    function v3PortableTtsRefreshProviderPolicyUi() {
+        const currentLang = getLang();
+        const selectedProvider = getSelectedTtsProvider();
+        if (selectedProvider === "online_tts") {
+            v3PortableTtsRenderBadge("TTS: Online TTS");
+            v3PortableTtsRenderDiagnostics("Selected provider: Online TTS");
+            return;
+        }
+        if (selectedProvider === "system_fallback") {
+            v3PortableTtsRenderBadge("TTS: Browser fallback");
+            v3PortableTtsRenderDiagnostics("Selected provider: Browser fallback");
+            return;
+        }
+        if (selectedProvider === "hebrew_phonikud_piper") {
+            const snapshot = hebrewLocalHealthSnapshot || {};
+            const status = String(snapshot.status || "init");
+            const licenseMode = snapshot.licenseMode ? " · License: " + snapshot.licenseMode : "";
+            const badgeText = status === "ready"
+                ? "TTS: Hebrew Local Piper / ready"
+                : status === "disabled"
+                    ? "TTS: Hebrew Local Piper / disabled"
+                    : status === "blocked"
+                        ? "TTS: Hebrew Local Piper / blocked"
+                        : status === "degraded"
+                            ? "TTS: Hebrew Local Piper / degraded"
+                            : "TTS: Hebrew Local Piper / unavailable";
+            v3PortableTtsRenderBadge(badgeText);
+            v3PortableTtsRenderDiagnostics("Selected provider: Hebrew Local Piper · status=" + status + licenseMode);
+            return;
+        }
+
+        if (!v3PortableTtsShouldUseLocal(currentLang)) {
+            v3PortableTtsRenderBadge("TTS: Piper Local / unsupported for current language");
+            v3PortableTtsRenderDiagnostics("Selected provider: Local Piper / Web WASM · unsupported for current language");
+            return;
+        }
+        const snapshot = v3PortableTtsGetStatusSnapshot();
+        v3PortableTtsRenderBadge(v3PortableTtsFormatBadge(snapshot.status, snapshot.config));
+        v3PortableTtsRenderDiagnostics();
     }
 
     function v3PortableTtsRenderBadge(text) {
@@ -10114,14 +10313,16 @@ updatePlaylistButtonUI();
 
         const d = Object.assign({}, snapshot.status || {}, resultOrText && resultOrText.diagnostics ? resultOrText.diagnostics : {});
         const parts = [
+            "Selected provider: " + String(d.selectedProvider || getSelectedTtsProvider()),
             "Provider: " + String(d.provider || "local_neural_tts_piper"),
+            "Actual provider: " + String(d.actualProvider || d.provider || "unknown"),
             "Preferred backend: " + String(d.preferredBackend || snapshot.config.preferredBackend || "web_wasm"),
             "Actual backend: " + String(d.actualBackend || d.backend || resultOrText.backend || "unknown"),
             "Runtime: " + String(d.runtime || "sherpa-onnx"),
             "Runtime status: " + String(d.runtimeStatus || "runtime_missing"),
             "Model status: " + String(d.modelStatus || "model_missing"),
             "Synthesis status: " + String(d.synthesisStatus || "idle"),
-            "Voice: " + String(d.voiceId || resultOrText.voiceId || "unknown"),
+            "Voice: " + String(d.voice || d.voiceId || resultOrText.voiceId || "unknown"),
             "Model path: " + String(d.modelPath || "n/a"),
             "Config path: " + String(d.configPath || "n/a"),
             "Tokens path: " + String(d.tokensPath || "n/a"),
@@ -10131,9 +10332,17 @@ updatePlaylistButtonUI();
             "Cache: " + (d.cacheHit ? "hit" : "miss"),
             "Text chars: " + String(d.textChars != null ? d.textChars : 0),
             "Model version: " + String(d.modelVersion || "n/a"),
+            "Phonikud version: " + String(d.phonikudVersion || "n/a"),
+            "Piper model version: " + String(d.piperModelVersion || "n/a"),
+            "License: " + String(d.licenseMode || "n/a"),
+            "License status: " + String(d.licenseStatus || "n/a"),
+            "Quality: " + String(d.qualityTier || "n/a"),
+            "Speed supported: " + String(d.speedSupported != null ? d.speedSupported : "n/a"),
+            "Pitch supported: " + String(d.pitchSupported != null ? d.pitchSupported : "n/a"),
             "Model load: " + String(d.modelLoadMs != null ? d.modelLoadMs : "n/a") + " ms",
             "Synthesis: " + String(d.synthMs != null ? d.synthMs : 0) + " ms",
             "Render: " + String(d.renderMs != null ? d.renderMs : "n/a") + " ms",
+            "Fallback chain: " + String(Array.isArray(d.fallbackChain) ? d.fallbackChain.join(" -> ") : "n/a"),
             "Fallback reason: " + String(d.fallbackReason || "n/a")
         ];
 
@@ -10228,6 +10437,7 @@ updatePlaylistButtonUI();
                 v3PortableTtsRenderBadge(v3PortableTtsFormatBadge(webBackend.getStatus(), config));
                 v3PortableTtsRenderDiagnostics();
                 v3PortableTtsApplyUiState();
+                v3PortableTtsRefreshProviderPolicyUi();
                 return v3PortableTtsRuntime;
             } catch (error) {
                 console.warn("[portable-tts] init failed:", error && error.message ? error.message : error);
@@ -10240,6 +10450,7 @@ updatePlaylistButtonUI();
 
     async function v3PortableTtsStopPlayback() {
         const runtime = await v3PortableTtsEnsureRuntime();
+        v3SystemSpeechStop();
         if (!runtime || !runtime.provider) return false;
         try {
             await runtime.provider.stop();
@@ -10332,6 +10543,7 @@ updatePlaylistButtonUI();
         const runtime = await v3PortableTtsEnsureRuntime();
         if (!runtime) return false;
         if (runtime.config.enabled === false) return true;
+        if (!v3PortableTtsShouldUseLocal(getRowTtsLanguage())) return false;
 
         const __isPlaylistAutoplay = !!rowPlaylistAutoplayClick;
         rowPlaylistAutoplayClick = false;
@@ -10426,12 +10638,29 @@ updatePlaylistButtonUI();
         }
     }
 
+    if (ttsProviderSelectEl) {
+        ttsProviderSelectEl.addEventListener("change", function () {
+            ttsSettingsState.selectedProvider = ttsProviderSelectEl.value || "online_tts";
+            applyTtsSettingsToUi();
+            saveTtsVoiceConfig();
+            if (ttsSettingsState.selectedProvider === "hebrew_phonikud_piper") {
+                refreshHebrewLocalHealth().then(function () {
+                    v3PortableTtsRefreshProviderPolicyUi();
+                });
+                return;
+            }
+            v3PortableTtsRefreshProviderPolicyUi();
+        });
+    }
     if (voiceSelectEl) voiceSelectEl.addEventListener("change", saveTtsVoiceConfig);
     if (rateRangeEl) rateRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
     if (pitchRangeEl) pitchRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
     setTimeout(function () {
         v3PortableTtsEnsureRuntime().then(function () {
             v3PortableTtsApplyUiState();
+            refreshHebrewLocalHealth().then(function () {
+                v3PortableTtsRefreshProviderPolicyUi();
+            });
         });
     }, 0);
 
@@ -10691,6 +10920,8 @@ updatePlaylistButtonUI();
         applyTextDirection();
         markResultsStale();
         autoGrow(false);
+        applyTtsSettingsToUi();
+        v3PortableTtsRefreshProviderPolicyUi();
     });
 
     applyTextDirection();
@@ -10815,20 +11046,81 @@ updatePlaylistButtonUI();
         );
     }
 
-    function renderAudioFromUrl(audioUrl, noteText, shouldAutoplay) {
+    function v3SystemSpeechIsAvailable() {
+        return !!(window.speechSynthesis && window.SpeechSynthesisUtterance);
+    }
+
+    function v3SystemSpeechPickVoice(lang) {
+        if (!v3SystemSpeechIsAvailable() || typeof window.speechSynthesis.getVoices !== "function") return null;
+        const voices = window.speechSynthesis.getVoices() || [];
+        const lower = String(lang || "").toLowerCase();
+        return voices.find(function (voice) {
+            return String(voice && voice.lang || "").toLowerCase().indexOf(lower.slice(0, 2)) === 0;
+        }) || null;
+    }
+
+    async function v3SystemSpeechSpeak(text, lang, cfg, diagnostics) {
+        if (!v3SystemSpeechIsAvailable()) {
+            throw new Error("Browser fallback is not available");
+        }
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(String(text || ""));
+        utterance.lang = lang;
+        utterance.rate = cfg && typeof cfg.rate === "number" ? cfg.rate : 1.0;
+        utterance.pitch = cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0.0;
+        const pickedVoice = v3SystemSpeechPickVoice(lang);
+        if (pickedVoice) utterance.voice = pickedVoice;
+
+        return new Promise(function (resolve, reject) {
+            utterance.onend = function () {
+                resolve({
+                    diagnostics: Object.assign({
+                        provider: "system_fallback",
+                        selectedProvider: cfg && cfg.providerId ? cfg.providerId : "system_fallback",
+                        actualProvider: "system_fallback",
+                        fallbackChain: ["system_fallback", "unavailable"],
+                        fallbackReason: null,
+                        cacheHit: false,
+                        runtime: "browser_speech_synthesis",
+                        speedSupported: true,
+                        pitchSupported: true
+                    }, diagnostics || {})
+                });
+            };
+            utterance.onerror = function (event) {
+                reject(new Error(event && event.error ? event.error : "speech_synthesis_failed"));
+            };
+            window.speechSynthesis.speak(utterance);
+        });
+    }
+
+    function v3SystemSpeechStop() {
+        if (window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    function renderAudioFromUrl(audioUrl, noteText, shouldAutoplay, options) {
+        const opts = options || {};
         lastAudioBlob = null;
         lastAudioUrl = audioUrl ? String(audioUrl) : null;
+        lastAudioMimeType = String(opts.mimeType || "audio/mpeg");
+        lastAudioFileExt = String(opts.fileExt || (lastAudioMimeType.indexOf("wav") >= 0 ? "wav" : "mp3"));
+        lastAudioPlaybackRate = Number.isFinite(Number(opts.playbackRate)) ? Number(opts.playbackRate) : 1.0;
 
         const audioContainer = document.getElementById("audioContainer");
-        const autoplayAttr = shouldAutoplay ? " autoplay" : "";
-
         audioContainer.innerHTML =
             '<div class="audio-block">' +
-            '  <audio controls src="' + v3EscapeHtml(String(audioUrl || "")) + '"' + autoplayAttr + '></audio>' +
+            '  <audio controls src="' + v3EscapeHtml(String(audioUrl || "")) + '"></audio>' +
             '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-            '    ⬇ Скачать MP3' +
+            '    ⬇ Скачать audio' +
             '  </button>' +
             '</div>';
+        const audioEl = audioContainer.querySelector("audio");
+        if (audioEl) {
+            audioEl.playbackRate = lastAudioPlaybackRate;
+            if (shouldAutoplay) {
+                Promise.resolve().then(function () { return audioEl.play(); }).catch(function (_) {});
+            }
+        }
 
         clearAudioStale();
         setResultsMeta("audio", noteText || null);
@@ -10849,7 +11141,12 @@ updatePlaylistButtonUI();
                 : null;
             if (!v3TextAudioProfilesMatch(storedProfile, currentLang, cfg)) return false;
 
-            renderAudioFromUrl("/api/audio/" + encodeURIComponent(assetKey), "восстановлена из Library audio cache (без запроса к TTS)", true);
+            renderAudioFromUrl(
+                "/api/audio/" + encodeURIComponent(assetKey),
+                "восстановлена из Library audio cache (без запроса к TTS)",
+                true,
+                { mimeType: "audio/mpeg", fileExt: "mp3", playbackRate: cfg && cfg.rate ? cfg.rate : 1.0 }
+            );
             showToast("Озвучка восстановлена из Library", "success");
             loadStats();
             return true;
@@ -10859,8 +11156,54 @@ updatePlaylistButtonUI();
         }
     }
 
+    async function playHebrewLocalMainTts(currentText, cfg) {
+        const res = await apiCall("/api/tts/hebrew-local", {
+            text: currentText,
+            voiceId: cfg.voiceId || "shaul",
+            speakingRate: cfg.rate,
+            pitch: cfg.pitch,
+            fallbackVoiceId: cfg.fallbackVoiceId || "",
+            selectedProvider: cfg.providerId
+        });
+        const mimeType = res && res.mimeType ? res.mimeType : "audio/wav";
+        const fileExt = String(mimeType).indexOf("wav") >= 0 ? "wav" : "mp3";
+        const playbackRate = res.actualProvider === "hebrew_phonikud_piper" ? cfg.rate : 1.0;
+        const noteText = res.actualProvider === "hebrew_phonikud_piper"
+            ? (res.fromCache ? "Hebrew Local Piper: cache hit" : "Hebrew Local Piper: sidecar synthesis")
+            : (res.fromCache ? "Fallback Online TTS: server cache hit" : "Fallback Online TTS");
+
+        renderAudioFromBase64(res.audioContent, noteText, true, {
+            mimeType: mimeType,
+            fileExt: fileExt,
+            playbackRate: playbackRate
+        });
+        if (res.actualProvider === "hebrew_phonikud_piper") {
+            saveAudioCache(currentText, getLang(), cfg, res.audioContent, mimeType, res.diagnostics || null);
+        }
+        v3PortableTtsRenderDiagnostics({ diagnostics: res.diagnostics || {} });
+        return res;
+    }
+
+    async function playBrowserFallbackMainTts(currentText, cfg) {
+        const result = await v3SystemSpeechSpeak(currentText, getLang(), cfg, {
+            qualityTier: "fallback",
+            licenseMode: hebrewLocalHealthSnapshot && hebrewLocalHealthSnapshot.licenseMode
+                ? hebrewLocalHealthSnapshot.licenseMode
+                : "n/a"
+        });
+        const audioContainer = document.getElementById("audioContainer");
+        if (audioContainer) {
+            audioContainer.innerHTML =
+                '<div class="audio-block"><div class="stat-sub">Playback via browser speechSynthesis fallback.</div></div>';
+        }
+        clearAudioStale();
+        setResultsMeta("audio", "Browser fallback");
+        v3PortableTtsRenderDiagnostics(result);
+    }
+
     async function playTTS() {
-        if (typeof v3PortableTtsPlayText === "function") {
+        const selectedProvider = getSelectedTtsProvider();
+        if (selectedProvider === "local_neural_tts_piper" && typeof v3PortableTtsPlayText === "function" && v3PortableTtsShouldUseLocal(getLang())) {
             const handled = await v3PortableTtsPlayText();
             if (handled) return;
         }
@@ -10870,6 +11213,30 @@ updatePlaylistButtonUI();
         const currentText = getText().trim();
         const currentLang = getLang();
         const cfg = getTtsVoiceConfig();
+
+        if (selectedProvider === "hebrew_phonikud_piper" && v3PortableTtsMapLang(currentLang) === "he") {
+            try {
+                await playHebrewLocalMainTts(currentText, cfg);
+                return;
+            } catch (error) {
+                try {
+                    await playBrowserFallbackMainTts(currentText, cfg);
+                    return;
+                } catch (_) {}
+                showError(error.message || "Ошибка Hebrew Local Piper");
+                return;
+            }
+        }
+
+        if (selectedProvider === "system_fallback") {
+            try {
+                await playBrowserFallbackMainTts(currentText, cfg);
+                return;
+            } catch (error) {
+                showError(error.message || "Browser fallback unavailable");
+                return;
+            }
+        }
 
         if (v3TryPlaySavedTextAudioDirectly(currentText, currentLang, cfg)) {
             return;
@@ -10886,6 +11253,7 @@ updatePlaylistButtonUI();
                     cache.audioBase64 &&
                     cache.text === currentText &&
                     cache.lang === currentLang &&
+                    cache.providerId === cfg.providerId &&
                     cache.voiceId === cfg.voiceId &&
                     Number(cache.rate) === cfg.rate &&
                     Number(cache.pitch) === cfg.pitch
@@ -10893,8 +11261,14 @@ updatePlaylistButtonUI();
                     renderAudioFromBase64(
                         cache.audioBase64,
                         "восстановлена из локального кэша браузера (без запроса к серверу)",
-                        true
+                        true,
+                        {
+                            mimeType: cache.mimeType || "audio/mpeg",
+                            fileExt: String(cache.mimeType || "").indexOf("wav") >= 0 ? "wav" : "mp3",
+                            playbackRate: cache.providerId === "hebrew_phonikud_piper" ? cfg.rate : 1.0
+                        }
                     );
+                    if (cache.diagnostics) v3PortableTtsRenderDiagnostics({ diagnostics: cache.diagnostics });
                     showToast("Озвучка восстановлена из локального кэша");
                     loadStats();
                     return;
@@ -10943,13 +11317,25 @@ updatePlaylistButtonUI();
                     });
                 } catch (_) {}
 
-                renderAudioFromUrl("/api/audio/" + encodeURIComponent(res.assetKey), noteText, true);
+                renderAudioFromUrl("/api/audio/" + encodeURIComponent(res.assetKey), noteText, true, {
+                    mimeType: "audio/mpeg",
+                    fileExt: "mp3",
+                    playbackRate: 1.0
+                });
             } else {
-                renderAudioFromBase64(res.audioContent, noteText, true);
+                renderAudioFromBase64(res.audioContent, noteText, true, {
+                    mimeType: "audio/mpeg",
+                    fileExt: "mp3",
+                    playbackRate: 1.0
+                });
             }
 
             try {
-                saveAudioCache(currentText, currentLang, cfg, res.audioContent);
+                saveAudioCache(currentText, currentLang, cfg, res.audioContent, "audio/mpeg", {
+                    selectedProvider: "online_tts",
+                    actualProvider: "online_tts",
+                    cacheHit: !!res.fromCache
+                });
             } catch (e) {
                 console.error("Audio cache save error", e);
             }
@@ -10961,40 +11347,53 @@ updatePlaylistButtonUI();
         }
     }
 
-    function renderAudioFromBase64(base64Audio, noteText, shouldAutoplay) {
+    function renderAudioFromBase64(base64Audio, noteText, shouldAutoplay, options) {
+        const opts = options || {};
+        const mimeType = String(opts.mimeType || "audio/mpeg");
         const binary = atob(base64Audio);
         const len = binary.length;
         const bytes = new Uint8Array(len);
         for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
 
-        lastAudioBlob = new Blob([bytes], { type: "audio/mpeg" });
+        lastAudioBlob = new Blob([bytes], { type: mimeType });
+        lastAudioMimeType = mimeType;
+        lastAudioFileExt = String(opts.fileExt || (mimeType.indexOf("wav") >= 0 ? "wav" : "mp3"));
+        lastAudioPlaybackRate = Number.isFinite(Number(opts.playbackRate)) ? Number(opts.playbackRate) : 1.0;
 
         if (lastAudioUrl) URL.revokeObjectURL(lastAudioUrl);
         lastAudioUrl = URL.createObjectURL(lastAudioBlob);
 
         const audioContainer = document.getElementById("audioContainer");
-        const autoplayAttr = shouldAutoplay ? " autoplay" : "";
-
         audioContainer.innerHTML =
             '<div class="audio-block">' +
-            '  <audio controls src="' + lastAudioUrl + '"' + autoplayAttr + '></audio>' +
+            '  <audio controls src="' + lastAudioUrl + '"></audio>' +
             '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-            '    ⬇ Скачать MP3' +
+            '    ⬇ Скачать audio' +
             '  </button>' +
             '</div>';
+        const audioEl = audioContainer.querySelector("audio");
+        if (audioEl) {
+            audioEl.playbackRate = lastAudioPlaybackRate;
+            if (shouldAutoplay) {
+                Promise.resolve().then(function () { return audioEl.play(); }).catch(function (_) {});
+            }
+        }
 
         clearAudioStale();
         setResultsMeta("audio", noteText || null);
     }
 
-    function saveAudioCache(text, lang, cfg, base64Audio) {
+    function saveAudioCache(text, lang, cfg, base64Audio, mimeType, diagnostics) {
         const payload = {
             text: (text || "").trim(),
             lang: lang || "",
+            providerId: cfg && cfg.providerId ? cfg.providerId : "online_tts",
             voiceId: cfg && cfg.voiceId ? cfg.voiceId : "",
             rate: cfg && typeof cfg.rate === "number" ? cfg.rate : 1.0,
             pitch: cfg && typeof cfg.pitch === "number" ? cfg.pitch : 0.0,
-            audioBase64: base64Audio
+            audioBase64: base64Audio,
+            mimeType: mimeType || "audio/mpeg",
+            diagnostics: diagnostics || null
         };
         localStorage.setItem(AUDIO_CACHE_KEY, JSON.stringify(payload));
     }
@@ -11013,6 +11412,7 @@ updatePlaylistButtonUI();
             const cfgNow = getTtsVoiceConfig();
             if (
                 (cache.lang && cache.lang !== getLang()) ||
+                (typeof cache.providerId === "string" && cache.providerId !== cfgNow.providerId) ||
                 (typeof cache.voiceId === "string" && cache.voiceId !== cfgNow.voiceId) ||
                 (typeof cache.rate === "number" && cache.rate !== cfgNow.rate) ||
                 (typeof cache.pitch === "number" && cache.pitch !== cfgNow.pitch)
@@ -11021,19 +11421,25 @@ updatePlaylistButtonUI();
             renderAudioFromBase64(
                 cache.audioBase64,
                 "восстановлена из локального кэша браузера (без запроса к серверу)",
-                false
+                false,
+                {
+                    mimeType: cache.mimeType || "audio/mpeg",
+                    fileExt: String(cache.mimeType || "").indexOf("wav") >= 0 ? "wav" : "mp3",
+                    playbackRate: cfgNow.providerId === "hebrew_phonikud_piper" ? cfgNow.rate : 1.0
+                }
             );
+            if (cache.diagnostics) v3PortableTtsRenderDiagnostics({ diagnostics: cache.diagnostics });
         } catch (e) {
             console.error("Audio cache restore error", e);
         }
     })();
 
     // ----------------------------
-    // DOWNLOAD MP3
+    // DOWNLOAD AUDIO
     // ----------------------------
     function downloadMp3FromCache() {
         if (audioIsStale) {
-            showError("Текст изменён — озвучьте его заново, чтобы скачать актуальный MP3");
+            showError("Текст изменён — озвучьте его заново, чтобы скачать актуальный audio");
             return;
         }
 
@@ -11049,12 +11455,12 @@ updatePlaylistButtonUI();
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = generateAudioFileName();
+        a.download = generateAudioFileName().replace(/\.mp3$/i, "." + lastAudioFileExt);
         document.body.appendChild(a);
         a.click();
         a.remove();
 
-        showToast("MP3-файл сохранён");
+        showToast("Аудиофайл сохранён");
     }
 
     // ----------------------------
@@ -20298,7 +20704,9 @@ function initRowUxDelegatesOnce() {
         const rowIdx = Number(btn.getAttribute("data-row-idx"));
         if (!Number.isFinite(rowIdx) || rowIdx < 0) return;
 
-        if (typeof v3PortableTtsHandleRowClick === "function") {
+        const selectedProvider = getSelectedTtsProvider();
+
+        if (selectedProvider === "local_neural_tts_piper" && typeof v3PortableTtsHandleRowClick === "function") {
             const handled = await v3PortableTtsHandleRowClick(rowIdx);
             if (handled) return;
         }
@@ -20349,6 +20757,68 @@ function initRowUxDelegatesOnce() {
         setRowButtonLoading(rowIdx, true);
 
         try {
+if (selectedProvider === "hebrew_phonikud_piper") {
+  const cachedHebrewB64 = rowCacheGet(cacheKey);
+  if (cachedHebrewB64) {
+    const audio = ensureRowAudioPlayer();
+    const bytes = Uint8Array.from(atob(cachedHebrewB64), c => c.charCodeAt(0));
+    const blob = new Blob([bytes], { type: "audio/wav" });
+    if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+    rowAudioUrl = URL.createObjectURL(blob);
+    audio.src = rowAudioUrl;
+    audio.playbackRate = cfg.rate;
+    setRowPlayingUI(rowIdx, true);
+    v3PortableTtsRenderDiagnostics({ diagnostics: {
+      selectedProvider: "hebrew_phonikud_piper",
+      actualProvider: "hebrew_phonikud_piper",
+      provider: "hebrew_phonikud_piper",
+      cacheHit: true,
+      speedSupported: false,
+      pitchSupported: false
+    } });
+    await audio.play();
+    return;
+  }
+
+  const res = await apiCall("/api/tts/hebrew-local", {
+    text: text,
+    voiceId: cfg.voiceId || "shaul",
+    speakingRate: cfg.rate,
+    pitch: cfg.pitch,
+    fallbackVoiceId: cfg.fallbackVoiceId || "",
+    selectedProvider: cfg.providerId
+  });
+
+  const audio = ensureRowAudioPlayer();
+  const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
+  if (!b64) throw new Error("Пустой ответ Hebrew Local Piper");
+  const mimeType = res && res.mimeType ? res.mimeType : "audio/wav";
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const blob = new Blob([bytes], { type: mimeType });
+  if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+  rowAudioUrl = URL.createObjectURL(blob);
+  audio.src = rowAudioUrl;
+  audio.playbackRate = res.actualProvider === "hebrew_phonikud_piper" ? cfg.rate : 1.0;
+  if (res.actualProvider === "hebrew_phonikud_piper") {
+    rowCacheSet(cacheKey, b64);
+  }
+  setRowPlayingUI(rowIdx, true);
+  v3PortableTtsRenderDiagnostics({ diagnostics: res.diagnostics || {} });
+  await audio.play();
+  return;
+}
+
+if (selectedProvider === "system_fallback") {
+  setRowPlayingUI(rowIdx, true);
+  await v3SystemSpeechSpeak(text, lang, cfg, {
+    selectedProvider: "system_fallback",
+    actualProvider: "system_fallback",
+    fallbackChain: ["system_fallback", "unavailable"]
+  });
+  clearRowPlayingState(false);
+  return;
+}
+
 // Browser cache используем только для НЕ-Library строк.
 // Для Library-строк обязателен поход на сервер (Step 8.2: запись mp3 + upsert + линковка).
 const cachedB64 = hasV3Ctx ? null : rowCacheGet(cacheKey);

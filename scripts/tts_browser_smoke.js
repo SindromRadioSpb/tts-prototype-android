@@ -1,4 +1,5 @@
 const { spawn } = require("node:child_process");
+const net = require("node:net");
 const path = require("node:path");
 
 async function delay(ms) {
@@ -17,11 +18,32 @@ async function waitForServer(baseUrl, timeoutMs) {
   throw new Error("Server did not become ready in time");
 }
 
+async function reservePort() {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on("error", reject);
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      const port = address && typeof address === "object" ? address.port : 0;
+      server.close((closeError) => {
+        if (closeError) {
+          reject(closeError);
+          return;
+        }
+        resolve(port);
+      });
+    });
+  });
+}
+
 async function withServer(envOverrides, run) {
   const repoRoot = path.resolve(__dirname, "..");
+  const port = await reservePort();
+  const baseUrl = "http://127.0.0.1:" + port;
   const server = spawn(process.execPath, ["server.js"], {
     cwd: repoRoot,
-    env: { ...process.env, PORT: "3000", ...envOverrides },
+    env: { ...process.env, PORT: String(port), ...envOverrides },
     stdio: ["ignore", "pipe", "pipe"]
   });
 
@@ -35,9 +57,9 @@ async function withServer(envOverrides, run) {
   });
 
   try {
-    await waitForServer("http://127.0.0.1:3000", 60000);
+    await waitForServer(baseUrl, 60000);
     return await run({
-      baseUrl: "http://127.0.0.1:3000",
+      baseUrl,
       getLogs: () => ({ stdout, stderr })
     });
   } finally {
