@@ -29,6 +29,7 @@ const { createBackup, cleanupBackups, DEFAULT_MAX_BACKUPS } = require("./db/back
 
 const textToSpeech = require("@google-cloud/text-to-speech");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const hebrewTtsClient = require("./db/premium/hebrewTtsClient");
 const {
   Document,
   Packer,
@@ -165,6 +166,7 @@ app.get("/api/client-config", (_req, res) => {
   const runtimePathRaw = String(process.env.TTS_WEB_WASM_RUNTIME_PATH || "/tts/runtime/sherpa-onnx").trim();
   const cacheMaxMbRaw = Number(process.env.TTS_CACHE_MAX_MB || "250");
   const hebrewLocalExperimentalRaw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
+  const hebrewLocalLicenseMode = String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "research_only").trim().toLowerCase() || "research_only";
 
   const enabled = !(ttsEnabledRaw === "false" || ttsEnabledRaw === "0" || ttsEnabledRaw === "off");
   const debugDiagnostics =
@@ -215,12 +217,67 @@ app.get("/api/client-config", (_req, res) => {
       modelStagingRequired,
       cacheEnabled,
       hebrewLocalExperimentalEnabled,
+      hebrewLocalLicenseMode,
       maxChars: 2000,
       cacheMaxMb: Number.isFinite(cacheMaxMbRaw) && cacheMaxMbRaw > 0 ? cacheMaxMbRaw : 250,
       defaultSpeed: 1.0,
       debugDiagnostics
     }
   });
+});
+
+app.get("/api/tts/hebrew-local/health", async (_req, res) => {
+  const licenseMode = getHebrewLocalLicenseMode();
+  const licenseStatus = HEBREW_TTS_LICENSE_MODES_ALLOWED.has(licenseMode)
+    ? (licenseMode === "noncommercial" ? "noncommercial_allowed" : "research_only")
+    : "license_mode_blocked";
+
+  if (!isHebrewLocalExperimentalEnabled()) {
+    return res.json({
+      status: "disabled",
+      provider: HEBREW_TTS_PROVIDER,
+      licenseMode,
+      licenseStatus,
+      voices: ["shaul"],
+      modelLoaded: false,
+      phonikudReady: false,
+      piperReady: false
+    });
+  }
+
+  if (HEBREW_TTS_LICENSE_MODES_BLOCKED.has(licenseMode)) {
+    return res.json({
+      status: "blocked",
+      provider: HEBREW_TTS_PROVIDER,
+      licenseMode,
+      licenseStatus,
+      voices: ["shaul"],
+      modelLoaded: false,
+      phonikudReady: false,
+      piperReady: false
+    });
+  }
+
+  const health = await hebrewTtsClient.healthz();
+  if (!health.ok || !health.body) {
+    return res.status(503).json({
+      status: "unavailable",
+      provider: HEBREW_TTS_PROVIDER,
+      licenseMode,
+      licenseStatus,
+      voices: ["shaul"],
+      modelLoaded: false,
+      phonikudReady: false,
+      piperReady: false,
+      error: health.error || "sidecar_unavailable"
+    });
+  }
+
+  return res.json(Object.assign({}, health.body, {
+    provider: HEBREW_TTS_PROVIDER,
+    licenseMode: health.body.licenseMode || licenseMode,
+    licenseStatus: health.body.licenseStatus || licenseStatus
+  }));
 });
 
 // --------------------------------------------------------
@@ -264,6 +321,10 @@ const audioDir = path.join(__dirname, "audio"); // если это статик�
 const usageFile = USAGE_FILE;
 const audioCacheDir = AUDIO_CACHE_DIR;
 const geminiCacheDir = GEMINI_CACHE_DIR;
+const hebrewLocalCacheDir = path.join(audioCacheDir, "hebrew-local");
+const HEBREW_TTS_PROVIDER = "hebrew_phonikud_piper";
+const HEBREW_TTS_LICENSE_MODES_ALLOWED = new Set(["research_only", "noncommercial"]);
+const HEBREW_TTS_LICENSE_MODES_BLOCKED = new Set(["commercial", "premium_commercial"]);
 
 // --------------------------------------------------------
 // V3 Audio Assets helpers (P0)
@@ -274,6 +335,7 @@ function ensureAudioCacheDir() {
   try {
     if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
     if (!fs.existsSync(audioCacheDir)) fs.mkdirSync(audioCacheDir, { recursive: true });
+    if (!fs.existsSync(hebrewLocalCacheDir)) fs.mkdirSync(hebrewLocalCacheDir, { recursive: true });
   } catch (e) {
     console.error("ensureAudioCacheDir failed:", e);
   }
@@ -982,9 +1044,350 @@ const audioContent = wantAudioContent && mp3Buffer ? mp3Buffer.toString("base64"
 return { audioContent, fromCache, assetKey, relativePath };
 }
 
+function isHebrewLocalExperimentalEnabled() {
+  const raw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
+  return !(raw === "false" || raw === "0" || raw === "off" || raw === "no");
+}
+
+function getHebrewLocalLicenseMode() {
+  return String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "research_only").trim().toLowerCase() || "research_only";
+}
+
+function normalizeHebrewLocalText(text) {
+  return String(text || "").replace(/\s+/g, " ").trim();
+}
+
+function normalizeHebrewLocalVoice(voiceId) {
+  const value = String(voiceId || "shaul").trim().toLowerCase();
+  return value || "shaul";
+}
+
+function normalizeHebrewLocalSpeed(speed) {
+  const value = Number(speed);
+  if (!Number.isFinite(value)) return 1.0;
+  return Math.max(0.5, Math.min(2.0, Math.round(value * 10) / 10));
+}
+
+function normalizeHebrewLocalPitch(pitch) {
+  const value = Number(pitch);
+  if (!Number.isFinite(value)) return 0.0;
+  return Math.max(-5, Math.min(5, Math.round(value * 10) / 10));
+}
+
+function buildHebrewLocalCacheKey(payload) {
+  return crypto.createHash("sha256").update(stableStringify(payload), "utf8").digest("hex");
+}
+
+function getHebrewLocalCachePaths(cacheKey) {
+  return {
+    audioPath: path.join(hebrewLocalCacheDir, `${cacheKey}.wav`),
+    metaPath: path.join(hebrewLocalCacheDir, `${cacheKey}.json`)
+  };
+}
+
+function readHebrewLocalCache(cacheKey) {
+  const paths = getHebrewLocalCachePaths(cacheKey);
+  if (!fs.existsSync(paths.audioPath) || !fs.existsSync(paths.metaPath)) return null;
+  try {
+    const metadata = JSON.parse(fs.readFileSync(paths.metaPath, "utf8"));
+    const audioContent = fs.readFileSync(paths.audioPath).toString("base64");
+    return { audioContent, metadata };
+  } catch (error) {
+    console.warn("[hebrew-local-tts] cache read failed", { cacheKey, message: error && error.message });
+    return null;
+  }
+}
+
+function writeHebrewLocalCache(cacheKey, buffer, metadata) {
+  const paths = getHebrewLocalCachePaths(cacheKey);
+  try {
+    fs.writeFileSync(paths.audioPath, buffer);
+    fs.writeFileSync(paths.metaPath, JSON.stringify(metadata, null, 2), "utf8");
+  } catch (error) {
+    console.warn("[hebrew-local-tts] cache write failed", { cacheKey, message: error && error.message });
+  }
+}
+
+function mapHebrewLocalErrorToFallbackReason(upstream) {
+  const bodyError = upstream && upstream.body && upstream.body.error ? String(upstream.body.error) : "";
+  const details = String(upstream && upstream.error ? upstream.error : bodyError).toLowerCase();
+  if (!upstream || upstream.status === 0 || details === "timeout") return "timeout";
+  if (bodyError === "sidecar_disabled") return "sidecar_disabled";
+  if (bodyError === "license_mode_blocked") return "license_mode_blocked";
+  if (bodyError === "unsupported_voice") return "unsupported_voice";
+  if (details.indexOf("model") >= 0) return "model_missing";
+  return "synthesis_failed";
+}
+
+async function synthesizeViaOnlineFallback({
+  text,
+  fallbackVoiceId,
+  speakingRate,
+  pitch,
+  selectedProvider,
+  fallbackReason,
+  fallbackChain
+}) {
+  const online = await synthesizeWithCache(
+    text,
+    "he-IL",
+    fallbackVoiceId || undefined,
+    speakingRate,
+    pitch
+  );
+  return {
+    audioContent: online.audioContent,
+    mimeType: "audio/mpeg",
+    fromCache: !!online.fromCache,
+    selectedProvider,
+    actualProvider: "online_tts",
+    fallbackReason,
+    fallbackChain,
+    diagnostics: {
+      provider: HEBREW_TTS_PROVIDER,
+      runtime: "node_server",
+      selectedProvider,
+      actualProvider: "online_tts",
+      fallbackReason,
+      fallbackChain,
+      cacheHit: !!online.fromCache,
+      voice: fallbackVoiceId || "",
+      qualityTier: "fallback",
+      speedSupported: true,
+      pitchSupported: true,
+      speedApplied: speakingRate,
+      pitchApplied: pitch,
+      licenseMode: getHebrewLocalLicenseMode(),
+      licenseStatus: HEBREW_TTS_LICENSE_MODES_ALLOWED.has(getHebrewLocalLicenseMode())
+        ? (getHebrewLocalLicenseMode() === "noncommercial" ? "noncommercial_allowed" : "research_only")
+        : "license_mode_blocked"
+    }
+  };
+}
+
+async function synthesizeHebrewLocalProvider({
+  text,
+  voiceId,
+  speakingRate,
+  pitch,
+  fallbackVoiceId,
+  selectedProvider
+}) {
+  const normalizedText = normalizeHebrewLocalText(text);
+  const normalizedVoice = normalizeHebrewLocalVoice(voiceId);
+  const normalizedSpeed = normalizeHebrewLocalSpeed(speakingRate);
+  const normalizedPitch = normalizeHebrewLocalPitch(pitch);
+  const fallbackChain = [HEBREW_TTS_PROVIDER, "online_tts", "system_fallback", "unavailable"];
+  const licenseMode = getHebrewLocalLicenseMode();
+  const licenseStatus = HEBREW_TTS_LICENSE_MODES_ALLOWED.has(licenseMode)
+    ? (licenseMode === "noncommercial" ? "noncommercial_allowed" : "research_only")
+    : "license_mode_blocked";
+
+  if (!normalizedText) {
+    const error = new Error("Нет текста для озвучки");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!isHebrewLocalExperimentalEnabled()) {
+    return synthesizeViaOnlineFallback({
+      text: normalizedText,
+      fallbackVoiceId,
+      speakingRate: normalizedSpeed,
+      pitch: normalizedPitch,
+      selectedProvider,
+      fallbackReason: "sidecar_disabled",
+      fallbackChain
+    });
+  }
+
+  if (HEBREW_TTS_LICENSE_MODES_BLOCKED.has(licenseMode)) {
+    return synthesizeViaOnlineFallback({
+      text: normalizedText,
+      fallbackVoiceId,
+      speakingRate: normalizedSpeed,
+      pitch: normalizedPitch,
+      selectedProvider,
+      fallbackReason: "license_mode_blocked",
+      fallbackChain
+    });
+  }
+
+  const health = await hebrewTtsClient.healthz();
+  if (!health.ok || !health.body) {
+    return synthesizeViaOnlineFallback({
+      text: normalizedText,
+      fallbackVoiceId,
+      speakingRate: normalizedSpeed,
+      pitch: normalizedPitch,
+      selectedProvider,
+      fallbackReason: "sidecar_unavailable",
+      fallbackChain
+    });
+  }
+
+  if (String(health.body.status || "").toLowerCase() === "blocked") {
+    return synthesizeViaOnlineFallback({
+      text: normalizedText,
+      fallbackVoiceId,
+      speakingRate: normalizedSpeed,
+      pitch: normalizedPitch,
+      selectedProvider,
+      fallbackReason: "license_mode_blocked",
+      fallbackChain
+    });
+  }
+
+  if (health.body.modelLoaded === false || health.body.phonikudReady === false || health.body.piperReady === false) {
+    return synthesizeViaOnlineFallback({
+      text: normalizedText,
+      fallbackVoiceId,
+      speakingRate: normalizedSpeed,
+      pitch: normalizedPitch,
+      selectedProvider,
+      fallbackReason: "model_missing",
+      fallbackChain
+    });
+  }
+
+  const modelVersion = String(health.body.modelVersion || "unknown");
+  const phonikudVersion = String(health.body.phonikudVersion || "unknown");
+  const piperModelVersion = String(health.body.piperModelVersion || "unknown");
+  const cacheKey = buildHebrewLocalCacheKey({
+    provider: HEBREW_TTS_PROVIDER,
+    voice: normalizedVoice,
+    normalizedText,
+    speed: normalizedSpeed,
+    pitch: normalizedPitch,
+    modelVersion,
+    phonikudVersion,
+    piperModelVersion
+  });
+
+  const cached = readHebrewLocalCache(cacheKey);
+  if (cached && cached.audioContent) {
+    const diagnostics = Object.assign({}, cached.metadata && cached.metadata.diagnostics ? cached.metadata.diagnostics : {}, {
+      selectedProvider,
+      actualProvider: HEBREW_TTS_PROVIDER,
+      fallbackChain,
+      fallbackReason: null,
+      cacheHit: true
+    });
+    return {
+      audioContent: cached.audioContent,
+      mimeType: "audio/wav",
+      fromCache: true,
+      selectedProvider,
+      actualProvider: HEBREW_TTS_PROVIDER,
+      fallbackReason: null,
+      fallbackChain,
+      diagnostics
+    };
+  }
+
+  const upstream = await hebrewTtsClient.synthesize({
+    text: normalizedText,
+    voice: normalizedVoice,
+    speed: normalizedSpeed,
+    pitch: normalizedPitch,
+    format: "wav"
+  });
+  if (!upstream.ok || !upstream.buffer) {
+    return synthesizeViaOnlineFallback({
+      text: normalizedText,
+      fallbackVoiceId,
+      speakingRate: normalizedSpeed,
+      pitch: normalizedPitch,
+      selectedProvider,
+      fallbackReason: mapHebrewLocalErrorToFallbackReason(upstream),
+      fallbackChain
+    });
+  }
+
+  const diagnostics = Object.assign({}, upstream.diagnostics || {}, {
+    provider: HEBREW_TTS_PROVIDER,
+    runtime: "python_sidecar",
+    selectedProvider,
+    actualProvider: HEBREW_TTS_PROVIDER,
+    fallbackChain,
+    fallbackReason: null,
+    licenseMode,
+    licenseStatus,
+    qualityTier: upstream.diagnostics && upstream.diagnostics.qualityTier ? upstream.diagnostics.qualityTier : "acceptable",
+    cacheHit: false
+  });
+
+  writeHebrewLocalCache(cacheKey, upstream.buffer, {
+    diagnostics,
+    modelVersion,
+    phonikudVersion,
+    piperModelVersion
+  });
+
+  return {
+    audioContent: upstream.buffer.toString("base64"),
+    mimeType: upstream.headers && upstream.headers.contentType ? upstream.headers.contentType : "audio/wav",
+    fromCache: false,
+    selectedProvider,
+    actualProvider: HEBREW_TTS_PROVIDER,
+    fallbackReason: null,
+    fallbackChain,
+    diagnostics
+  };
+}
+
 // --------------------------------------------------------
 // 7. API: TTS (Google Cloud TTS + серверный кэш)
 // --------------------------------------------------------
+app.post("/api/tts/hebrew-local", async (req, res) => {
+  const startedAt = Date.now();
+  const requestId = uuidv4();
+
+  try {
+    const {
+      text,
+      voiceId,
+      speakingRate,
+      pitch,
+      fallbackVoiceId,
+      selectedProvider
+    } = req.body || {};
+
+    const result = await synthesizeHebrewLocalProvider({
+      text,
+      voiceId,
+      speakingRate,
+      pitch,
+      fallbackVoiceId,
+      selectedProvider: selectedProvider || HEBREW_TTS_PROVIDER
+    });
+
+    return res.json({
+      audioContent: result.audioContent,
+      mimeType: result.mimeType,
+      fromCache: !!result.fromCache,
+      selectedProvider: result.selectedProvider,
+      actualProvider: result.actualProvider,
+      fallbackReason: result.fallbackReason || null,
+      fallbackChain: result.fallbackChain,
+      diagnostics: Object.assign({}, result.diagnostics || {}, {
+        requestId,
+        durationMs: Date.now() - startedAt
+      })
+    });
+  } catch (error) {
+    console.error("[/api/tts/hebrew-local] error", {
+      requestId,
+      message: error && error.message,
+      status: error && error.status,
+      stack: error && error.stack
+    });
+    return res.status(error && error.status ? error.status : 500).json({
+      error: (error && error.message) || "hebrew_local_tts_failed"
+    });
+  }
+});
+
 app.post("/api/tts", async (req, res) => {
   const requestId = uuidv4();
   const startedAt = Date.now();
@@ -2303,6 +2706,7 @@ app.get("/api/diag", async (_req, res) => {
     SEGMENTER_VERSION, NIKUD_VERSION, TRANSLIT_PROFILE_VERSIONS, TRANSLATOR_VERSIONS,
   } = require("./db/premium/versions");
   const pythonClient = require("./db/premium/pythonClient");
+  const hebrewLocalClient = require("./db/premium/hebrewTtsClient");
 
   // ── 1. Sidecar health (non-blocking, short timeout) ──────────────────────
   let sidecar = { ok: false, status: 0, models: null };
@@ -2316,6 +2720,14 @@ app.get("/api/diag", async (_req, res) => {
       //                   translator: { state, ... } }
       if (m.ok && m.body) sidecar.models = m.body;
     }
+  } catch (_) {}
+
+  let hebrew_tts_sidecar = { ok: false, status: 0, body: null };
+  try {
+    const r = await hebrewLocalClient.healthz();
+    hebrew_tts_sidecar.ok = !!r.ok;
+    hebrew_tts_sidecar.status = r.status || 0;
+    if (r.ok && r.body) hebrew_tts_sidecar.body = r.body;
   } catch (_) {}
 
   // ── 2. Premium providers ─────────────────────────────────────────────────
@@ -2377,7 +2789,7 @@ app.get("/api/diag", async (_req, res) => {
     translators: TRANSLATOR_VERSIONS,
   };
 
-  res.json({ ok: true, sidecar, providers, db_stats, versions, ts: new Date().toISOString() });
+  res.json({ ok: true, sidecar, hebrew_tts_sidecar, providers, db_stats, versions, ts: new Date().toISOString() });
 });
 
 // --------------------------------------------------------

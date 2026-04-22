@@ -67,6 +67,11 @@ web_wasm unavailable
 
 ## Actual browser status
 
+Hebrew local rollout is now split into two paths:
+
+- `hebrew_phonikud_piper` via Python sidecar for noncommercial Hebrew
+- `local_neural_tts_piper` via browser `web_wasm` for staged English
+
 ### Verified working
 
 - `en-default`
@@ -75,12 +80,12 @@ web_wasm unavailable
   - model: `piper-en_US-libritts_r-medium-1`
   - browser smoke: passed
 
-### Not staged yet
+### Not staged in browser `web_wasm`
 
 - `he-default`
-  - product default: online TTS
-  - local path: experimental only via `TTS_HEBREW_LOCAL_EXPERIMENTAL=true`
-  - expected local state: `model_missing`
+  - browser `web_wasm`: not staged
+  - product Hebrew local path now uses sidecar provider `hebrew_phonikud_piper`
+  - browser manifest state remains `model_missing`
 
 - `ru-default`
   - product default: online TTS
@@ -159,7 +164,7 @@ hebrew-preprocess-v1
 
 - текущий browser runtime использует staged English `.data` bundle от `sherpa-onnx`
 - Hebrew voice quality в browser runtime пока `unknown`, не `premium`
-- Hebrew local Phonikud/Piper path exists only as research sidecar PoC and is currently blocked for commercial use by license
+- Hebrew local Phonikud/Piper path is integrated only for noncommercial sidecar usage and remains blocked for commercial use by license
 - Russian browser runtime пока не staged
 - full `npm test` остаётся красным только из-за baseline-проблем вне нового TTS слоя
 

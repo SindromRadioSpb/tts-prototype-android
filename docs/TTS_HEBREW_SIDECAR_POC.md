@@ -1,27 +1,31 @@
-# TTS Hebrew Sidecar PoC
+# TTS Hebrew Sidecar
 
 Дата: 2026-04-22
 
-## Endpoint
+## Endpoints
 
-`POST /tts/hebrew/phonikud-piper`
+- `GET /healthz`
+- `GET /tts/hebrew/phonikud-piper/health`
+- `POST /tts/hebrew/phonikud-piper`
 
-## File
+## Request
 
-[ai-local/hebrew_tts_sidecar.py](/E:/projects/tts-prototype-android/ai-local/hebrew_tts_sidecar.py)
+```json
+{
+  "text": "שלום עולם",
+  "voice": "shaul",
+  "speed": 1.0,
+  "pitch": 0.0,
+  "format": "wav"
+}
+```
 
-## Behavior
+## Response
 
-- feature-flagged by `TTS_HEBREW_LOCAL_EXPERIMENTAL`
-- returns `503` when the experiment is disabled
-- trims and clamps text to `MAX_TEXT_CHARS`
-- synthesizes WAV via `PhonikudPiperPocEngine`
-- returns `audio/wav`
-- exposes diagnostics in `X-TTS-Diagnostics` response header
+- audio: `audio/wav`
+- diagnostics: `X-TTS-Diagnostics`
 
-## Diagnostics Header
-
-`X-TTS-Diagnostics` contains JSON with:
+Diagnostics include:
 
 - `provider`
 - `runtime`
@@ -30,17 +34,50 @@
 - `ttsMs`
 - `totalMs`
 - `textChars`
+- `licenseMode`
 - `licenseStatus`
 - `qualityTier`
+- `speedSupported`
+- `pitchSupported`
+- `modelVersion`
+- `phonikudVersion`
+- `piperModelVersion`
+- `cacheHit`
 
-## Why This Path Exists
+## Health Contract
 
-- it is isolated from the main Node UI/runtime
-- it matches the only realistic near-term Hebrew local TTS path found in this spike
-- it does not alter the product default provider for Hebrew
+`GET /tts/hebrew/phonikud-piper/health` returns:
 
-## Limitations
+- `status`
+- `provider`
+- `licenseMode`
+- `voices`
+- `modelLoaded`
+- `phonikudReady`
+- `piperReady`
 
-- research-only due license
-- no auth, no rate limiting, no packaging story
-- manual listening review still pending
+## Cache
+
+The sidecar caches successful WAV outputs only.
+
+Cache key includes:
+
+```text
+provider + voice + normalizedText + speed + pitch + modelVersion + phonikudVersion + piperModelVersion
+```
+
+Errors are not cached.
+
+## License Gate
+
+The sidecar is enabled only when:
+
+```text
+TTS_HEBREW_LOCAL_EXPERIMENTAL=true
+TTS_HEBREW_LOCAL_LICENSE_MODE=research_only|noncommercial
+```
+
+Blocked modes:
+
+- `commercial`
+- `premium_commercial`

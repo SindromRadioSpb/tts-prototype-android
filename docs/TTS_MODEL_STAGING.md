@@ -4,6 +4,10 @@
 
 ## Что реально staged сейчас
 
+Эта страница относится только к browser `web_wasm` staging для `local_neural_tts_piper`.
+
+Hebrew noncommercial local rollout теперь идёт через sidecar provider `hebrew_phonikud_piper`, а не через browser-staged model bundle.
+
 ### Runtime
 
 ```text
@@ -111,7 +115,8 @@ TTS_MODEL_STAGING_REQUIRED=true
 TTS_ALLOW_SYSTEM_FALLBACK=true
 TTS_CACHE_ENABLED=true
 TTS_CACHE_MAX_MB=250
-TTS_HEBREW_LOCAL_EXPERIMENTAL=false
+TTS_HEBREW_LOCAL_EXPERIMENTAL=true
+TTS_HEBREW_LOCAL_LICENSE_MODE=noncommercial
 ```
 
 ## Known limitations

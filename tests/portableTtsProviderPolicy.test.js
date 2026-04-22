@@ -18,6 +18,36 @@ test("Hebrew local TTS requires explicit experimental flag", () => {
   );
 });
 
+test("Hebrew local TTS is blocked for commercial mode", () => {
+  assert.equal(
+    policy.shouldUseLocalTts("he", {
+      hebrewLocalExperimentalEnabled: true,
+      hebrewLocalLicenseMode: "commercial"
+    }),
+    false
+  );
+});
+
+test("resolveSelectedProvider keeps Hebrew local when noncommercial mode is allowed", () => {
+  assert.equal(
+    policy.resolveSelectedProvider("he-IL", "hebrew_phonikud_piper", {
+      hebrewLocalExperimentalEnabled: true,
+      hebrewLocalLicenseMode: "noncommercial"
+    }),
+    "hebrew_phonikud_piper"
+  );
+});
+
+test("resolveSelectedProvider falls back to online when Hebrew local is blocked", () => {
+  assert.equal(
+    policy.resolveSelectedProvider("he-IL", "hebrew_phonikud_piper", {
+      hebrewLocalExperimentalEnabled: true,
+      hebrewLocalLicenseMode: "commercial"
+    }),
+    "online_tts"
+  );
+});
+
 test("Russian does not use local TTS by default", () => {
   assert.equal(policy.shouldUseLocalTts("ru-RU", {}), false);
 });

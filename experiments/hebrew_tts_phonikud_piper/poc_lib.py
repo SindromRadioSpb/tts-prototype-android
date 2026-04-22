@@ -19,8 +19,11 @@ SMOKE_PHRASES = [
 ]
 
 MAX_TEXT_CHARS = 500
-LICENSE_STATUS = "research_only"
-QUALITY_TIER = "experimental"
+DEFAULT_LICENSE_MODE = "research_only"
+QUALITY_TIER = "acceptable"
+PHONIKUD_VERSION = "phonikud-1.0.int8.onnx"
+PIPER_MODEL_VERSION = "shaul.onnx"
+MODEL_VERSION = "phonikud-shaul-v1"
 
 
 def repo_root() -> Path:
@@ -51,6 +54,32 @@ def sanitize_text(text: str, max_chars: int = MAX_TEXT_CHARS) -> str:
 def safe_output_name(index: int, text: str) -> str:
     digest = hashlib.sha1(text.encode("utf-8")).hexdigest()[:10]
     return f"{index:02d}_{digest}.wav"
+
+
+def build_cache_key(
+    *,
+    provider: str,
+    voice: str,
+    normalized_text: str,
+    speed: float,
+    pitch: float,
+    model_version: str = MODEL_VERSION,
+    phonikud_version: str = PHONIKUD_VERSION,
+    piper_model_version: str = PIPER_MODEL_VERSION,
+) -> str:
+    payload = "|".join(
+        [
+            provider,
+            voice,
+            normalized_text,
+            str(round(float(speed), 3)),
+            str(round(float(pitch), 3)),
+            model_version,
+            phonikud_version,
+            piper_model_version,
+        ]
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
 def write_ascii_config_copy(config_path: Path) -> Path:
@@ -91,8 +120,11 @@ class SynthesisResult:
             "modelPath": self.model_path,
             "configPath": self.config_path,
             "phonikudModelPath": self.phonikud_model_path,
-            "licenseStatus": LICENSE_STATUS,
+            "licenseStatus": DEFAULT_LICENSE_MODE,
             "qualityTier": QUALITY_TIER,
+            "modelVersion": MODEL_VERSION,
+            "phonikudVersion": PHONIKUD_VERSION,
+            "piperModelVersion": PIPER_MODEL_VERSION,
         }
 
 
@@ -184,11 +216,32 @@ class PhonikudPiperPocEngine:
             tts_ms=tts_ms,
             total_ms=total_ms,
             duration_ms=duration_ms,
-            notes="Research-only PoC. Manual listening review pending.",
+            notes="Manual Hebrew quality review passed. Noncommercial product configuration only.",
             model_path=assets["modelPath"],
             config_path=assets["configPath"],
             phonikud_model_path=assets["phonikudModelPath"],
         )
+
+    def get_health_snapshot(self) -> dict[str, Any]:
+        assets = self.ensure_assets()
+        try:
+            self._ensure_models()
+            models_loaded = self._phonikud is not None and self._piper is not None
+        except Exception:
+            models_loaded = False
+        return {
+            "provider": "hebrew_phonikud_piper",
+            "voices": ["shaul"],
+            "modelLoaded": models_loaded,
+            "phonikudReady": models_loaded and self._phonikud is not None,
+            "piperReady": models_loaded and self._piper is not None,
+            "modelVersion": MODEL_VERSION,
+            "phonikudVersion": PHONIKUD_VERSION,
+            "piperModelVersion": PIPER_MODEL_VERSION,
+            "modelPath": assets["modelPath"],
+            "configPath": assets["configPath"],
+            "phonikudModelPath": assets["phonikudModelPath"],
+        }
 
     def run_smoke(self, phrases: list[str] | None = None) -> list[dict[str, Any]]:
         results = []

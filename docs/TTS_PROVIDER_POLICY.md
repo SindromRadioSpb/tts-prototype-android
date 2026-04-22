@@ -2,34 +2,69 @@
 
 Дата: 2026-04-22
 
-## Current Policy
+## Provider List
 
-- Hebrew: online TTS is the default
-- English: local `web_wasm` Piper remains enabled
-- Browser `speechSynthesis`: explicit fallback only
-- Hebrew local Phonikud/Piper: experimental, research-only, disabled by default
-
-## Flags
-
-Browser-side config:
-
-- `TTS_HEBREW_LOCAL_EXPERIMENTAL=false`
-
-## Effective Routing
-
-| Language | Default path | Local experimental path |
+| Provider ID | Label | Scope |
 |---|---|---|
-| `he` | online `/api/tts` | only if `TTS_HEBREW_LOCAL_EXPERIMENTAL=true` |
-| `en` | local `web_wasm` | yes |
-| `ru` | online `/api/tts` | no default local path |
+| `online_tts` | `Online TTS` | default cloud path |
+| `hebrew_phonikud_piper` | `Hebrew Local Piper` | Hebrew local sidecar |
+| `local_neural_tts_piper` | `Local Piper / Web WASM` | browser `web_wasm` path |
+| `system_fallback` | `Browser fallback` | `speechSynthesis` emergency path |
 
-## Rationale
+## Language Routing
 
-1. Hebrew local voice assets are not commercial-safe in the current spike.
-2. Hebrew browser `web_wasm` runtime is not proven.
-3. Product requirement is that Hebrew TTS must keep working for the user.
+| Language | Preferred local option | Fallback |
+|---|---|---|
+| `he` | `hebrew_phonikud_piper` when enabled and license allows | `online_tts -> system_fallback` |
+| `en` | `local_neural_tts_piper` | `online_tts -> system_fallback` |
+| `ru` | none | `online_tts -> system_fallback` |
 
-## UI Impact
+## Hebrew Local Gates
 
-- main Hebrew playback no longer gets intercepted by local portable TTS by default
-- badge/diagnostics explicitly show online default for Hebrew when the local experiment is off
+Browser-side config and server-side routing depend on:
+
+```text
+TTS_HEBREW_LOCAL_EXPERIMENTAL=true
+TTS_HEBREW_LOCAL_LICENSE_MODE=noncommercial
+```
+
+Allowed Hebrew local license modes:
+
+- `research_only`
+- `noncommercial`
+
+Blocked Hebrew local license modes:
+
+- `commercial`
+- `premium_commercial`
+
+## Persistence
+
+The UI persists:
+
+```text
+tts.selectedProvider
+tts.voice.online_tts
+tts.voice.hebrew_phonikud_piper
+tts.voice.local_neural_tts_piper
+tts.speed
+tts.pitch
+```
+
+Legacy flat voice settings are migrated into the new structure without resetting user preferences.
+
+## Diagnostics
+
+Diagnostics now show:
+
+- `selectedProvider`
+- `actualProvider`
+- `fallbackChain`
+- `fallbackReason`
+- Hebrew sidecar `licenseMode`
+- `speedSupported`
+- `pitchSupported`
+
+## Current Rule
+
+Hebrew Local Piper is integrated for noncommercial use in this project configuration.

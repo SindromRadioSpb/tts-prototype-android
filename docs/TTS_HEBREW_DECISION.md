@@ -4,47 +4,60 @@
 
 ## Decision
 
-`DECISION_B_ADD_RESEARCH_ONLY_SIDECAR`
+`DECISION_F_INTEGRATE_NONCOMMERCIAL_HEBREW_SIDECAR`
 
-Одновременно:
+## Why
 
-- keep online default for Hebrew
-- do not start Hebrew `web_wasm` staging now
-- do not ship Hebrew local TTS in premium/commercial product
+- Manual Hebrew TTS quality review passed.
+- The product is noncommercial.
+- Commercial and premium-commercial usage remain blocked until separate licensing is obtained.
 
-## Answers
+## Product Rule
 
-1. Is there working Hebrew local TTS audio?
-   Yes. The PoC generated WAV for 8 Hebrew smoke phrases.
+Hebrew TTS must remain usable for the user at all times.
 
-2. Is quality acceptable?
-   Acceptable only for experimental research at this stage. Manual listening review is still required.
+Implemented provider chain:
 
-3. Is the license acceptable for premium/commercial use?
-   No. The checkpoint/model path used in the PoC is non-commercial.
+```text
+hebrew_phonikud_piper
+  -> online_tts
+  -> system_fallback
+  -> unavailable
+```
 
-4. Can it be integrated into the premium app now?
-   No.
+## What Changed
 
-5. Can it be moved to browser `web_wasm` now?
-   No practical path was proven in this spike.
+- Hebrew Phonikud/Piper is now integrated as a selectable provider in the main TTS settings UI.
+- The selected provider, per-provider voice, speed and pitch are persisted.
+- Hebrew sidecar health and diagnostics are exposed in UI.
+- Online TTS remains available and acts as the first fallback.
+- Browser `speechSynthesis` remains the emergency fallback.
 
-6. Should we continue?
-   Continue only as research:
-   - sidecar experiments
-   - author/license clarification
-   - manual listening review
+## License Rule
 
-7. What is the next patch?
-   Either:
-   - `DECISION_C_CONTACT_AUTHOR_FOR_LICENSE`, or
-   - stop and keep online-only Hebrew
+Allowed:
 
-## Stop Criteria Met
+- `research_only`
+- `noncommercial`
 
-- commercial use is blocked by current licensing
-- browser/mobile transfer path is unproven
+Blocked:
 
-## Product Rule Preserved
+- `commercial`
+- `premium_commercial`
 
-Hebrew default remains online TTS.
+Operational flag:
+
+```text
+TTS_HEBREW_LOCAL_LICENSE_MODE=noncommercial
+```
+
+## Still Not Decided Here
+
+- shipping Hebrew as browser-only `web_wasm`
+- commercial packaging
+- mobile native provider split
+
+See:
+
+- [TTS_HEBREW_WEB_WASM_FEASIBILITY.md](/E:/projects/tts-prototype-android/docs/TTS_HEBREW_WEB_WASM_FEASIBILITY.md)
+- [TTS_HEBREW_NONCOMMERCIAL_PACKAGING.md](/E:/projects/tts-prototype-android/docs/TTS_HEBREW_NONCOMMERCIAL_PACKAGING.md)
