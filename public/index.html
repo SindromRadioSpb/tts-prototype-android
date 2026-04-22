@@ -5313,6 +5313,7 @@ body.v3-ide-mode .v3-ide-right {
 </div>
 
 <script src="/tts/core.js"></script>
+<script src="/tts/providerPolicy.js"></script>
 <script src="/tts/runtime/runtimeStatus.js"></script>
 <script src="/tts/runtime/sherpaOnnxAdapter.js"></script>
 <script src="/tts/backends.js"></script>
@@ -10055,6 +10056,24 @@ updatePlaylistButtonUI();
         return normalizedLang + "-default";
     }
 
+    function v3PortableTtsShouldUseLocal(lang) {
+        if (!window.LocalNeuralTtsProviderPolicy) return true;
+        const config = v3PortableTtsRuntime && v3PortableTtsRuntime.config ? v3PortableTtsRuntime.config : {};
+        return window.LocalNeuralTtsProviderPolicy.shouldUseLocalTts(lang, config);
+    }
+
+    function v3PortableTtsRefreshProviderPolicyUi() {
+        const currentLang = v3PortableTtsMapLang(getLang());
+        if (!v3PortableTtsShouldUseLocal(currentLang)) {
+            v3PortableTtsRenderBadge(currentLang === "he" ? "TTS: Online default for Hebrew" : "TTS: Online default");
+            v3PortableTtsRenderDiagnostics("Local TTS policy: online default for " + currentLang);
+            return;
+        }
+        const snapshot = v3PortableTtsGetStatusSnapshot();
+        v3PortableTtsRenderBadge(v3PortableTtsFormatBadge(snapshot.status, snapshot.config));
+        v3PortableTtsRenderDiagnostics();
+    }
+
     function v3PortableTtsRenderBadge(text) {
         const badge = document.getElementById("localTtsProviderBadge");
         if (!badge) return;
@@ -10228,6 +10247,7 @@ updatePlaylistButtonUI();
                 v3PortableTtsRenderBadge(v3PortableTtsFormatBadge(webBackend.getStatus(), config));
                 v3PortableTtsRenderDiagnostics();
                 v3PortableTtsApplyUiState();
+                v3PortableTtsRefreshProviderPolicyUi();
                 return v3PortableTtsRuntime;
             } catch (error) {
                 console.warn("[portable-tts] init failed:", error && error.message ? error.message : error);
@@ -10332,6 +10352,7 @@ updatePlaylistButtonUI();
         const runtime = await v3PortableTtsEnsureRuntime();
         if (!runtime) return false;
         if (runtime.config.enabled === false) return true;
+        if (!v3PortableTtsShouldUseLocal(getRowTtsLanguage())) return false;
 
         const __isPlaylistAutoplay = !!rowPlaylistAutoplayClick;
         rowPlaylistAutoplayClick = false;
@@ -10691,6 +10712,7 @@ updatePlaylistButtonUI();
         applyTextDirection();
         markResultsStale();
         autoGrow(false);
+        v3PortableTtsRefreshProviderPolicyUi();
     });
 
     applyTextDirection();
@@ -10860,7 +10882,7 @@ updatePlaylistButtonUI();
     }
 
     async function playTTS() {
-        if (typeof v3PortableTtsPlayText === "function") {
+        if (typeof v3PortableTtsPlayText === "function" && v3PortableTtsShouldUseLocal(getLang())) {
             const handled = await v3PortableTtsPlayText();
             if (handled) return;
         }

@@ -164,6 +164,7 @@ app.get("/api/client-config", (_req, res) => {
   const cacheEnabledRaw = String(process.env.TTS_CACHE_ENABLED || "true").trim().toLowerCase();
   const runtimePathRaw = String(process.env.TTS_WEB_WASM_RUNTIME_PATH || "/tts/runtime/sherpa-onnx").trim();
   const cacheMaxMbRaw = Number(process.env.TTS_CACHE_MAX_MB || "250");
+  const hebrewLocalExperimentalRaw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
 
   const enabled = !(ttsEnabledRaw === "false" || ttsEnabledRaw === "0" || ttsEnabledRaw === "off");
   const debugDiagnostics =
@@ -195,6 +196,11 @@ app.get("/api/client-config", (_req, res) => {
     cacheEnabledRaw === "0" ||
     cacheEnabledRaw === "off"
   );
+  const hebrewLocalExperimentalEnabled = !(
+    hebrewLocalExperimentalRaw === "false" ||
+    hebrewLocalExperimentalRaw === "0" ||
+    hebrewLocalExperimentalRaw === "off"
+  );
 
   return res.json({
     ok: true,
@@ -208,6 +214,7 @@ app.get("/api/client-config", (_req, res) => {
       preload,
       modelStagingRequired,
       cacheEnabled,
+      hebrewLocalExperimentalEnabled,
       maxChars: 2000,
       cacheMaxMb: Number.isFinite(cacheMaxMbRaw) && cacheMaxMbRaw > 0 ? cacheMaxMbRaw : 250,
       defaultSpeed: 1.0,

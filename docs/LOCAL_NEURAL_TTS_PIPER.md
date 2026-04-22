@@ -78,10 +78,13 @@ web_wasm unavailable
 ### Not staged yet
 
 - `he-default`
-  - expected state: `model_missing`
+  - product default: online TTS
+  - local path: experimental only via `TTS_HEBREW_LOCAL_EXPERIMENTAL=true`
+  - expected local state: `model_missing`
 
 - `ru-default`
-  - expected state: `model_missing`
+  - product default: online TTS
+  - expected local state: `model_missing`
 
 ## Diagnostics model
 
@@ -144,6 +147,7 @@ hebrew-preprocess-v1
 - `TTS_WEB_WASM_ENABLED=false` даёт `system_fallback`
 - `TTS_ALLOW_SYSTEM_FALLBACK=false` даёт unavailable state без краша
 - mobile-width viewport не ломает main TTS button
+- Hebrew now stays on online TTS by default unless `TTS_HEBREW_LOCAL_EXPERIMENTAL=true`
 
 Не подтверждено в этой итерации:
 
@@ -155,6 +159,7 @@ hebrew-preprocess-v1
 
 - текущий browser runtime использует staged English `.data` bundle от `sherpa-onnx`
 - Hebrew voice quality в browser runtime пока `unknown`, не `premium`
+- Hebrew local Phonikud/Piper path exists only as research sidecar PoC and is currently blocked for commercial use by license
 - Russian browser runtime пока не staged
 - full `npm test` остаётся красным только из-за baseline-проблем вне нового TTS слоя
 
