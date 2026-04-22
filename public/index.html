@@ -4564,6 +4564,9 @@ body.v3-ide-mode .v3-ide-right {
             </div>
 
 	           <button id="btnMainTts" class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
+			<button id="btnTtsKey" class="btn-secondary" style="padding:4px 8px; display:none;" title="Загрузить service account JSON для Online TTS" onclick="ttsKeyOpen()">🔑</button>
+			<input type="file" id="ttsKeyFileInput" accept="application/json,.json" style="display:none" onchange="ttsKeyOnFileChosen(event)">
+			<span id="ttsKeyStatus" class="provenance-badge" style="display:none"></span>
 
 			<div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
 
@@ -9906,6 +9909,21 @@ updatePlaylistButtonUI();
                 if (typeof gcpKeyDelete === "function") gcpKeyDelete();
             });
         }
+        try { if (typeof ttsKeyLoadStatus === "function") ttsKeyLoadStatus(); } catch (_) {}
+        const ttsBtn = document.getElementById("btnTtsKey");
+        if (ttsBtn) {
+            ttsBtn.addEventListener("contextmenu", (ev) => {
+                ev.preventDefault();
+                if (typeof ttsKeyDelete === "function") ttsKeyDelete();
+            });
+        }
+        const ttsBadge = document.getElementById("ttsKeyStatus");
+        if (ttsBadge) {
+            ttsBadge.addEventListener("contextmenu", (ev) => {
+                ev.preventDefault();
+                if (typeof ttsKeyDelete === "function") ttsKeyDelete();
+            });
+        }
     }, 0);
 
     // ----------------------------
@@ -10119,6 +10137,7 @@ updatePlaylistButtonUI();
                 ? ""
                 : "Pitch не поддерживается Hebrew Local Piper";
         }
+        ttsKeyApplyVisibility();
     }
 
     function applyTtsSettingsToUi() {
@@ -17805,6 +17824,95 @@ try {
             schedulePremiumStatusRefresh();
         } catch (e) {
             showError(`Ошибка удаления ключа: ${e.message || e}`);
+        }
+    }
+
+    // ----------------------------
+    // TTS KEY UI (upload service account JSON for Online TTS)
+    // ----------------------------
+    function ttsKeyApplyVisibility() {
+        const btn = document.getElementById("btnTtsKey");
+        const badge = document.getElementById("ttsKeyStatus");
+        const visible = getSelectedTtsProvider() === "online_tts";
+        if (btn) btn.style.display = visible ? "" : "none";
+        if (badge) {
+            const hasStatus = badge.dataset.hasStatus === "1";
+            badge.style.display = visible && hasStatus ? "" : "none";
+        }
+    }
+
+    async function ttsKeyLoadStatus() {
+        const badge = document.getElementById("ttsKeyStatus");
+        if (!badge) return;
+        try {
+            const r = await fetch("/api/tts/key", { method: "GET" });
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            const j = await r.json();
+            if (j.configured) {
+                const src = j.source === "uploaded"
+                    ? "загружен"
+                    : (j.source === "env_json" || j.source === "env_file" ? "из .env" : "настроен");
+                badge.textContent = `🔑 ${src}`;
+                badge.title = `${j.client_email || ""}${j.project_id ? " · project: " + j.project_id : ""} — правый клик по 🔑, чтобы удалить`;
+                badge.dataset.hasStatus = "1";
+            } else {
+                badge.textContent = "";
+                badge.dataset.hasStatus = "0";
+            }
+            ttsKeyApplyVisibility();
+        } catch (_) {
+            badge.textContent = "";
+            badge.dataset.hasStatus = "0";
+            badge.style.display = "none";
+        }
+    }
+
+    function ttsKeyOpen() {
+        const inp = document.getElementById("ttsKeyFileInput");
+        if (inp) { inp.value = ""; inp.click(); }
+    }
+
+    async function ttsKeyOnFileChosen(ev) {
+        const file = ev && ev.target && ev.target.files && ev.target.files[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            let parsed;
+            try { parsed = JSON.parse(text); }
+            catch (_) { showError("Файл не является валидным JSON"); return; }
+            if (parsed && parsed.type !== "service_account") {
+                showError('JSON не похож на service account: поле "type" должно быть "service_account"');
+                return;
+            }
+            const r = await fetch("/api/tts/key", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key: parsed }),
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) {
+                showError(`Не удалось загрузить TTS ключ: ${j.error || r.status}`);
+                return;
+            }
+            if (typeof showToast === "function") {
+                showToast(`TTS ключ загружен (${j.client_email || j.project_id || "ok"})`, "success");
+            }
+            await ttsKeyLoadStatus();
+        } catch (e) {
+            showError(`Ошибка загрузки TTS ключа: ${e.message || e}`);
+        }
+    }
+
+    async function ttsKeyDelete() {
+        if (!confirm("Удалить загруженный TTS ключ? Останется только значение из .env (если задано).")) return;
+        try {
+            const r = await fetch("/api/tts/key", { method: "DELETE" });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) { showError(`Не удалось удалить TTS ключ: ${j.error || r.status}`); return; }
+            if (typeof showToast === "function") showToast("TTS ключ удалён", "info");
+            await ttsKeyLoadStatus();
+        } catch (e) {
+            showError(`Ошибка удаления TTS ключа: ${e.message || e}`);
         }
     }
 

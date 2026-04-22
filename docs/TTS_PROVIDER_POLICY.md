@@ -66,6 +66,14 @@ Diagnostics now show:
 - `speedSupported`
 - `pitchSupported`
 
+## Online TTS Credentials
+
+`Online TTS` now has the same dashboard UX pattern as GCP Translate:
+
+- `🔑` button to upload a service account JSON from the user device
+- `🔑 загружен` / `🔑 из .env` badge near the main TTS controls
+- right-click on the button or badge removes the uploaded key and falls back to `.env` if present
+
 ## Current Rule
 
 `Online TTS` is the default provider for all product languages. `Browser fallback` remains available only as an emergency, significantly lower-quality speech path.

@@ -451,6 +451,70 @@ app.get("/healthz", (req, res) => {
   });
 });
 
+app.get("/api/tts/key", (_req, res) => {
+  try {
+    res.json(getTtsKeyStatusSummary());
+  } catch (e) {
+    res.status(500).json({ error: "Не удалось прочитать статус TTS ключа", details: e.message });
+  }
+});
+
+app.post("/api/tts/key", (req, res) => {
+  try {
+    const key = req.body && req.body.key;
+    if (!key || typeof key !== "object") {
+      return res.status(400).json({ error: "Ожидается {key: {...service_account JSON...}}" });
+    }
+    if (key.type !== "service_account") {
+      return res.status(400).json({ error: 'Поле "type" должно быть "service_account"' });
+    }
+    for (const field of REQUIRED_TTS_KEY_FIELDS) {
+      if (!key[field] || typeof key[field] !== "string") {
+        return res.status(400).json({ error: `Отсутствует или пустое поле: ${field}` });
+      }
+    }
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(TTS_KEY_PATH, JSON.stringify(key, null, 2), { encoding: "utf8" });
+    try { fs.chmodSync(TTS_KEY_PATH, 0o600); } catch (_) {}
+
+    delete process.env.GOOGLE_CLOUD_TTS_KEY;
+    process.env.GOOGLE_APPLICATION_CREDENTIALS = TTS_KEY_PATH;
+    initTtsClient();
+
+    res.json({
+      ok: true,
+      configured: true,
+      source: "uploaded",
+      project_id: key.project_id,
+      client_email: key.client_email,
+    });
+  } catch (e) {
+    console.error("[tts] key upload error:", e);
+    res.status(500).json({ error: "Не удалось сохранить TTS ключ", details: e.message });
+  }
+});
+
+app.delete("/api/tts/key", (_req, res) => {
+  try {
+    if (fs.existsSync(TTS_KEY_PATH)) fs.unlinkSync(TTS_KEY_PATH);
+    if (ORIGINAL_TTS_KEY_ENV) {
+      process.env.GOOGLE_CLOUD_TTS_KEY = ORIGINAL_TTS_KEY_ENV;
+    } else {
+      delete process.env.GOOGLE_CLOUD_TTS_KEY;
+    }
+    if (ORIGINAL_TTS_CREDENTIALS_ENV) {
+      process.env.GOOGLE_APPLICATION_CREDENTIALS = ORIGINAL_TTS_CREDENTIALS_ENV;
+    } else {
+      delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    }
+    initTtsClient();
+    res.json({ ok: true, ...getTtsKeyStatusSummary() });
+  } catch (e) {
+    console.error("[tts] key delete error:", e);
+    res.status(500).json({ error: "Не удалось удалить TTS ключ", details: e.message });
+  }
+});
+
 // Создаём директории при необходимости
 if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir);
 if (!fs.existsSync(audioCacheDir)) fs.mkdirSync(audioCacheDir);
@@ -560,39 +624,93 @@ if (!fs.existsSync(geminiCacheDir)) fs.mkdirSync(geminiCacheDir);
 // --------------------------------------------------------
 
 // 4.1. Google Cloud TTS — креды из GOOGLE_CLOUD_TTS_KEY или GOOGLE_APPLICATION_CREDENTIALS
-let ttsServiceAccount = null;
-const ttsCredentialsPath = String(process.env.GOOGLE_APPLICATION_CREDENTIALS || "").trim();
+const TTS_KEY_PATH = path.join(DATA_DIR, "gcp-tts-key.json");
+const ORIGINAL_TTS_KEY_ENV = process.env.GOOGLE_CLOUD_TTS_KEY || "";
+const ORIGINAL_TTS_CREDENTIALS_ENV = process.env.GOOGLE_APPLICATION_CREDENTIALS || "";
+const REQUIRED_TTS_KEY_FIELDS = ["type", "project_id", "private_key", "client_email"];
 
-if (process.env.GOOGLE_CLOUD_TTS_KEY) {
-  try {
-    ttsServiceAccount = JSON.parse(process.env.GOOGLE_CLOUD_TTS_KEY);
-    console.log("[TTS] GOOGLE_CLOUD_TTS_KEY загружен и успешно разобран как JSON");
-  } catch (e) {
-    console.error("[TTS] Невозможно разобрать GOOGLE_CLOUD_TTS_KEY как JSON:", e);
-    ttsServiceAccount = null;
-  }
-} else if (ttsCredentialsPath) {
-  console.log("[TTS] Используется GOOGLE_APPLICATION_CREDENTIALS:", ttsCredentialsPath);
-} else {
-  console.warn("[TTS] Не заданы GOOGLE_CLOUD_TTS_KEY и GOOGLE_APPLICATION_CREDENTIALS — будет попытка использовать дефолтные креды");
+if (!ORIGINAL_TTS_KEY_ENV && fs.existsSync(TTS_KEY_PATH)) {
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = TTS_KEY_PATH;
+  console.log(`[TTS] using user-uploaded TTS key at ${TTS_KEY_PATH}`);
 }
 
-const ttsClient = ttsServiceAccount
-  ? new textToSpeech.TextToSpeechClient({
-      projectId: ttsServiceAccount.project_id,
-      credentials: {
-        client_email: ttsServiceAccount.client_email,
-        private_key: ttsServiceAccount.private_key,
-      },
-    })
-  : new textToSpeech.TextToSpeechClient();
+let ttsServiceAccount = null;
+let ttsCredentialsPath = "";
+let ttsClient = null;
 
-console.log(
-  "[TTS] Клиент инициализирован, режим кредов:",
-  ttsServiceAccount
-    ? "service_account из GOOGLE_CLOUD_TTS_KEY"
-    : (ttsCredentialsPath ? "GOOGLE_APPLICATION_CREDENTIALS" : "Application Default Credentials")
-);
+function initTtsClient() {
+  ttsServiceAccount = null;
+  ttsCredentialsPath = String(process.env.GOOGLE_APPLICATION_CREDENTIALS || "").trim();
+
+  if (process.env.GOOGLE_CLOUD_TTS_KEY) {
+    try {
+      ttsServiceAccount = JSON.parse(process.env.GOOGLE_CLOUD_TTS_KEY);
+      console.log("[TTS] GOOGLE_CLOUD_TTS_KEY загружен и успешно разобран как JSON");
+    } catch (e) {
+      console.error("[TTS] Невозможно разобрать GOOGLE_CLOUD_TTS_KEY как JSON:", e);
+      ttsServiceAccount = null;
+    }
+  } else if (ttsCredentialsPath) {
+    console.log("[TTS] Используется GOOGLE_APPLICATION_CREDENTIALS:", ttsCredentialsPath);
+  } else {
+    console.warn("[TTS] Не заданы GOOGLE_CLOUD_TTS_KEY и GOOGLE_APPLICATION_CREDENTIALS — будет попытка использовать дефолтные креды");
+  }
+
+  ttsClient = ttsServiceAccount
+    ? new textToSpeech.TextToSpeechClient({
+        projectId: ttsServiceAccount.project_id,
+        credentials: {
+          client_email: ttsServiceAccount.client_email,
+          private_key: ttsServiceAccount.private_key,
+        },
+      })
+    : new textToSpeech.TextToSpeechClient();
+
+  console.log(
+    "[TTS] Клиент инициализирован, режим кредов:",
+    ttsServiceAccount
+      ? "service_account из GOOGLE_CLOUD_TTS_KEY"
+      : (ttsCredentialsPath ? "GOOGLE_APPLICATION_CREDENTIALS" : "Application Default Credentials")
+  );
+}
+
+function getTtsKeyStatusSummary() {
+  const inlineJson = String(process.env.GOOGLE_CLOUD_TTS_KEY || "").trim();
+  const keyFile = String(process.env.GOOGLE_APPLICATION_CREDENTIALS || "").trim();
+  const uploaded = fs.existsSync(TTS_KEY_PATH);
+  let source = null;
+  let project_id = null;
+  let client_email = null;
+
+  try {
+    if (inlineJson) {
+      source = "env_json";
+      const raw = JSON.parse(inlineJson);
+      project_id = raw.project_id || null;
+      client_email = raw.client_email || null;
+    } else if (keyFile) {
+      source = uploaded && path.resolve(keyFile) === path.resolve(TTS_KEY_PATH) ? "uploaded" : "env_file";
+      if (fs.existsSync(keyFile)) {
+        const raw = JSON.parse(fs.readFileSync(keyFile, "utf8"));
+        project_id = raw.project_id || null;
+        client_email = raw.client_email || null;
+      } else {
+        source = null;
+      }
+    }
+  } catch (_) {
+    source = source || "invalid";
+  }
+
+  return {
+    configured: !!source,
+    source,
+    project_id,
+    client_email,
+  };
+}
+
+initTtsClient();
 
 // 4.2. Gemini
 const GEMINI_API_KEY =
