@@ -153,6 +153,69 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json({ limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/api/client-config", (_req, res) => {
+  const ttsEnabledRaw = String(process.env.TTS_ENABLED || "true").trim().toLowerCase();
+  const debugDiagnosticsRaw = String(process.env.TTS_DEBUG_DIAGNOSTICS || "").trim().toLowerCase();
+  const allowSystemFallbackRaw = String(process.env.TTS_ALLOW_SYSTEM_FALLBACK || "true").trim().toLowerCase();
+  const preferredBackendRaw = String(process.env.TTS_PREFERRED_BACKEND || "web_wasm").trim();
+  const webWasmEnabledRaw = String(process.env.TTS_WEB_WASM_ENABLED || "true").trim().toLowerCase();
+  const preloadRaw = String(process.env.TTS_PRELOAD || "false").trim().toLowerCase();
+  const modelStagingRequiredRaw = String(process.env.TTS_MODEL_STAGING_REQUIRED || "true").trim().toLowerCase();
+  const cacheEnabledRaw = String(process.env.TTS_CACHE_ENABLED || "true").trim().toLowerCase();
+  const runtimePathRaw = String(process.env.TTS_WEB_WASM_RUNTIME_PATH || "/tts/runtime/sherpa-onnx").trim();
+  const cacheMaxMbRaw = Number(process.env.TTS_CACHE_MAX_MB || "250");
+
+  const enabled = !(ttsEnabledRaw === "false" || ttsEnabledRaw === "0" || ttsEnabledRaw === "off");
+  const debugDiagnostics =
+    debugDiagnosticsRaw
+      ? !(debugDiagnosticsRaw === "false" || debugDiagnosticsRaw === "0" || debugDiagnosticsRaw === "off")
+      : (process.env.NODE_ENV !== "production");
+  const allowSystemFallback = !(
+    allowSystemFallbackRaw === "false" ||
+    allowSystemFallbackRaw === "0" ||
+    allowSystemFallbackRaw === "off"
+  );
+  const webWasmEnabled = !(
+    webWasmEnabledRaw === "false" ||
+    webWasmEnabledRaw === "0" ||
+    webWasmEnabledRaw === "off"
+  );
+  const preload = !(
+    preloadRaw === "false" ||
+    preloadRaw === "0" ||
+    preloadRaw === "off"
+  );
+  const modelStagingRequired = !(
+    modelStagingRequiredRaw === "false" ||
+    modelStagingRequiredRaw === "0" ||
+    modelStagingRequiredRaw === "off"
+  );
+  const cacheEnabled = !(
+    cacheEnabledRaw === "false" ||
+    cacheEnabledRaw === "0" ||
+    cacheEnabledRaw === "off"
+  );
+
+  return res.json({
+    ok: true,
+    tts: {
+      enabled,
+      provider: "local_neural_tts_piper",
+      preferredBackend: preferredBackendRaw || "web_wasm",
+      webWasmEnabled,
+      webWasmRuntimePath: runtimePathRaw || "/tts/runtime/sherpa-onnx",
+      allowSystemFallback,
+      preload,
+      modelStagingRequired,
+      cacheEnabled,
+      maxChars: 2000,
+      cacheMaxMb: Number.isFinite(cacheMaxMbRaw) && cacheMaxMbRaw > 0 ? cacheMaxMbRaw : 250,
+      defaultSpeed: 1.0,
+      debugDiagnostics
+    }
+  });
+});
+
 // --------------------------------------------------------
 // 2.1 DB_PATH (SQLite) — safe init; process must not crash on DB errors
 // --------------------------------------------------------

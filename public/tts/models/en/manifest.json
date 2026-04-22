@@ -1,0 +1,18 @@
+{
+  "voiceId": "en-default",
+  "lang": "en",
+  "provider": "local_neural_tts_piper",
+  "engine": "piper",
+  "runtime": "sherpa-onnx",
+  "modelPath": "/tts/models/en/model.onnx",
+  "configPath": "/tts/models/en/model.onnx.json",
+  "sampleRate": 22050,
+  "speakerId": 0,
+  "license": "MIT",
+  "source": "rhasspy/piper-voices",
+  "checksumSha256": "",
+  "configChecksumSha256": "",
+  "modelVersion": "piper-en-default-1",
+  "qualityTier": "baseline",
+  "platforms": ["web_wasm", "ios_native", "android_native"]
+}

@@ -11,6 +11,8 @@
     "db:backup:cleanup": "node db/backup-cli.js cleanup",
     "db:restore": "node db/restore-cli.js",
     "db:integrity": "node db/integrity-cli.js",
+    "tts:models:check": "node scripts/check_tts_models.js",
+    "tts:models:checksums": "node scripts/update_tts_model_checksums.js",
     "test:api-smoke": "node scripts/api-smoke.js",
     "test": "node --test",
     "bench:premium": "node tests/premium/bench.js"
