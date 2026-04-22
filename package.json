@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "start:all": "powershell -ExecutionPolicy Bypass -File scripts/start_all.ps1",
     "db:migrate": "node db/migrate-cli.js",
     "db:backup": "node db/backup-cli.js",
     "db:backup:list": "node db/backup-cli.js list",
