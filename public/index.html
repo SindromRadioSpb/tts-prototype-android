@@ -8732,6 +8732,8 @@ let ttsSettingsState = window.TtsSettingsStore
             system_fallback: ""
         }
     };
+let v3PortableTtsRuntimePromise = null;
+let v3PortableTtsRuntime = null;
 let hebrewLocalHealthSnapshot = null;
 let lastAudioMimeType = "audio/mpeg";
 let lastAudioFileExt = "mp3";
@@ -10197,9 +10199,6 @@ updatePlaylistButtonUI();
         }
         applyTtsSettingsToUi();
     })();
-
-    let v3PortableTtsRuntimePromise = null;
-    let v3PortableTtsRuntime = null;
 
     function v3PortableTtsMapLang(lang) {
         const raw = String(lang || "").trim().toLowerCase();
