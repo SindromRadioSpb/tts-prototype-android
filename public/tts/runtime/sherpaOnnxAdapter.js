@@ -15,6 +15,10 @@
   var ModelStates = statusLib.ModelStates;
   var SynthesisStates = statusLib.SynthesisStates;
 
+  function nowMs() {
+    return typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+  }
+
   function joinUrl(basePath, fileName) {
     return String(basePath || "").replace(/\/$/, "") + "/" + String(fileName || "").replace(/^\//, "");
   }
@@ -23,44 +27,68 @@
     return Array.isArray(value) ? value : [];
   }
 
-  function loadScript(url) {
-    if (!root || !root.document) {
-      return Promise.reject(new Error("document is not available"));
-    }
-
-    return new Promise(function (resolve, reject) {
-      var existing = root.document.querySelector('script[data-sherpa-runtime="' + url + '"]');
-      if (existing && existing.dataset.loaded === "true") {
-        resolve();
-        return;
-      }
-      if (existing) {
-        existing.addEventListener("load", function () { resolve(); }, { once: true });
-        existing.addEventListener("error", function () { reject(new Error("Failed to load " + url)); }, { once: true });
-        return;
-      }
-
-      var script = root.document.createElement("script");
-      script.src = url;
-      script.async = true;
-      script.dataset.sherpaRuntime = url;
-      script.onload = function () {
-        script.dataset.loaded = "true";
-        resolve();
-      };
-      script.onerror = function () {
-        reject(new Error("Failed to load " + url));
-      };
-      root.document.head.appendChild(script);
-    });
-  }
-
   function defaultLocator(runtimePath) {
     return {
-      glueScriptUrl: joinUrl(runtimePath, "sherpa-onnx.js"),
-      mainScriptUrl: joinUrl(runtimePath, "sherpa-onnx-wasm-main.js"),
-      wasmUrl: joinUrl(runtimePath, "sherpa-onnx-wasm-main.wasm"),
-      dataUrl: joinUrl(runtimePath, "sherpa-onnx-wasm-main.data")
+      workerScriptUrl: joinUrl(runtimePath, "sherpa-onnx-tts.worker.js"),
+      glueScriptUrl: joinUrl(runtimePath, "sherpa-onnx-tts.js"),
+      mainScriptUrl: joinUrl(runtimePath, "sherpa-onnx-wasm-main-tts.js"),
+      wasmUrl: joinUrl(runtimePath, "sherpa-onnx-wasm-main-tts.wasm"),
+      dataUrl: joinUrl(runtimePath, "sherpa-onnx-wasm-main-tts.data")
+    };
+  }
+
+  function createWorkerSession(worker) {
+    var currentRequest = null;
+
+    function handleMessage(event) {
+      var payload = event && event.data ? event.data : {};
+      if (!currentRequest) return;
+      if (payload.type === "sherpa-onnx-tts-result") {
+        var resolve = currentRequest.resolve;
+        currentRequest = null;
+        resolve({
+          samples: payload.samples,
+          sampleRate: payload.sampleRate
+        });
+        return;
+      }
+      if (payload.type === "error") {
+        var reject = currentRequest.reject;
+        currentRequest = null;
+        reject(new Error(String(payload.message || "Sherpa worker failed")));
+      }
+    }
+
+    worker.addEventListener("message", handleMessage);
+
+    return {
+      generate: function (input) {
+        if (currentRequest) {
+          return Promise.reject(new Error("Sherpa worker is busy"));
+        }
+
+        var text = String(input && input.text ? input.text : "").trim();
+        if (!text) {
+          return Promise.reject(new Error("TTS text is empty"));
+        }
+
+        return new Promise(function (resolve, reject) {
+          currentRequest = { resolve: resolve, reject: reject };
+          worker.postMessage({
+            type: "generate",
+            text: text,
+            sid: Number(input && input.speakerId ? input.speakerId : 0),
+            speed: Number(input && input.speed ? input.speed : 1.0)
+          });
+        });
+      },
+      dispose: function () {
+        if (currentRequest && typeof currentRequest.reject === "function") {
+          currentRequest.reject(new Error("Sherpa worker terminated"));
+          currentRequest = null;
+        }
+        worker.removeEventListener("message", handleMessage);
+      }
     };
   }
 
@@ -70,12 +98,13 @@
     this.fetchImpl =
       options.fetchImpl ||
       (root && typeof root.fetch === "function" ? root.fetch.bind(root) : null);
-    this.scriptLoader = options.scriptLoader || loadScript;
     this.locator = options.locator || defaultLocator;
     this.externalRuntimeFactory = options.externalRuntimeFactory || null;
+    this.WorkerCtor = options.workerCtor || (root && root.Worker ? root.Worker : null);
     this.status = statusLib.createInitialStatus();
     this.status.runtimePath = this.runtimePath;
     this.runtime = null;
+    this.runtimePromise = null;
     this.loadedModelKey = null;
   }
 
@@ -90,7 +119,11 @@
     } catch (_) {}
 
     try {
-      var fallbackResponse = await this.fetchImpl(url, { method: "GET", cache: "no-store" });
+      var fallbackResponse = await this.fetchImpl(url, {
+        method: "GET",
+        cache: "no-store",
+        headers: { Range: "bytes=0-0" }
+      });
       return !!(fallbackResponse && fallbackResponse.ok);
     } catch (_) {
       return false;
@@ -111,7 +144,13 @@
 
   DefaultSherpaOnnxAdapter.prototype.detectRuntime = async function () {
     var urls = this.locator(this.runtimePath);
-    var probeTargets = [urls.glueScriptUrl, urls.mainScriptUrl, urls.wasmUrl];
+    var probeTargets = [
+      urls.workerScriptUrl,
+      urls.glueScriptUrl,
+      urls.mainScriptUrl,
+      urls.wasmUrl,
+      urls.dataUrl
+    ];
     for (var i = 0; i < probeTargets.length; i += 1) {
       var ok = await this._probeFile(probeTargets[i]);
       if (!ok) return false;
@@ -119,18 +158,86 @@
     return true;
   };
 
+  DefaultSherpaOnnxAdapter.prototype._createRuntimeFromWorker = function (urls) {
+    var self = this;
+    if (!this.WorkerCtor) {
+      throw new Error("Worker is not available");
+    }
+
+    return new Promise(function (resolve, reject) {
+      var worker = new self.WorkerCtor(urls.workerScriptUrl);
+      var settled = false;
+
+      function cleanup() {
+        worker.removeEventListener("message", onMessage);
+        worker.removeEventListener("error", onError);
+      }
+
+      function onError(event) {
+        if (settled) return;
+        settled = true;
+        cleanup();
+        worker.terminate();
+        reject(new Error("Failed to load sherpa worker"));
+      }
+
+      function onMessage(event) {
+        var payload = event && event.data ? event.data : {};
+        if (payload.type === "sherpa-onnx-tts-progress") {
+          self.status.runtimeStatus = RuntimeStates.LOADING;
+          return;
+        }
+        if (payload.type === "sherpa-onnx-tts-ready") {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          resolve({
+            worker: worker,
+            session: null,
+            sampleRate: Number(payload.sampleRate || 22050),
+            numSpeakers: Number(payload.numSpeakers || 1),
+            createSession: async function () {
+              if (!this.session) {
+                this.session = createWorkerSession(worker);
+              }
+              return this.session;
+            },
+            dispose: async function () {
+              if (this.session && typeof this.session.dispose === "function") {
+                this.session.dispose();
+              }
+              worker.terminate();
+            }
+          });
+          return;
+        }
+        if (payload.type === "error" && !settled) {
+          settled = true;
+          cleanup();
+          worker.terminate();
+          reject(new Error(String(payload.message || "Sherpa runtime init failed")));
+        }
+      }
+
+      worker.addEventListener("message", onMessage);
+      worker.addEventListener("error", onError);
+    });
+  };
+
   DefaultSherpaOnnxAdapter.prototype.loadRuntime = async function () {
     if (this.runtime) {
       this.status.runtimeStatus = RuntimeStates.READY;
       return this.runtime;
     }
+    if (this.runtimePromise) {
+      return this.runtimePromise;
+    }
 
     this.status.runtimeStatus = RuntimeStates.LOADING;
     this.status.runtimeError = null;
-
-    var urls = this.locator(this.runtimePath);
     this.status.runtimePath = this.runtimePath;
 
+    var urls = this.locator(this.runtimePath);
     var detected = await this.detectRuntime();
     if (!detected) {
       this.status.runtimeStatus = RuntimeStates.MISSING;
@@ -139,38 +246,38 @@
     }
 
     var factory = this._getFactory();
-    if (!factory) {
-      try {
-        await this.scriptLoader(urls.glueScriptUrl);
-      } catch (_) {}
-      try {
-        await this.scriptLoader(urls.mainScriptUrl);
-      } catch (_) {}
-      factory = this._getFactory();
+    this.runtimePromise = (async function () {
+      var runtime;
+      if (factory) {
+        runtime = await factory({
+          runtimePath: this.runtimePath,
+          urls: urls
+        });
+      } else {
+        runtime = await this._createRuntimeFromWorker(urls);
+      }
+
+      if (!runtime || typeof runtime.createSession !== "function") {
+        this.status.runtimeStatus = RuntimeStates.ERROR;
+        this.status.runtimeError = "runtime factory returned invalid runtime";
+        throw new Error("runtime factory returned invalid runtime");
+      }
+
+      this.runtime = runtime;
+      this.status.runtimeStatus = RuntimeStates.READY;
+      return runtime;
+    }.bind(this))();
+
+    try {
+      return await this.runtimePromise;
+    } catch (error) {
+      this.runtimePromise = null;
+      if (this.status.runtimeStatus !== RuntimeStates.ERROR) {
+        this.status.runtimeStatus = RuntimeStates.ERROR;
+        this.status.runtimeError = String(error && error.message ? error.message : error);
+      }
+      throw error;
     }
-
-    if (!factory) {
-      this.status.runtimeStatus = RuntimeStates.MISSING;
-      this.status.runtimeError = "runtime factory is not available";
-      throw new Error("runtime factory is not available");
-    }
-
-    this.runtime = await factory({
-      runtimePath: this.runtimePath,
-      locateFile: function (fileName) {
-        return joinUrl(this.runtimePath, fileName);
-      }.bind(this),
-      urls: urls
-    });
-
-    if (!this.runtime || typeof this.runtime.createSession !== "function") {
-      this.status.runtimeStatus = RuntimeStates.ERROR;
-      this.status.runtimeError = "runtime factory returned invalid runtime";
-      throw new Error("runtime factory returned invalid runtime");
-    }
-
-    this.status.runtimeStatus = RuntimeStates.READY;
-    return this.runtime;
   };
 
   DefaultSherpaOnnxAdapter.prototype.loadModel = async function (manifest) {
@@ -190,9 +297,12 @@
     this.status.modelError = null;
     this.status.modelPath = manifest.modelPath;
     this.status.configPath = manifest.configPath;
+    this.status.tokensPath = manifest.tokensPath || null;
+    this.status.dataDirPath = manifest.dataDirPath || null;
     this.status.checksumStatus = manifest.checksumSha256 ? "present" : "missing";
     this.status.configChecksumStatus = manifest.configChecksumSha256 ? "present" : "missing";
 
+    var startedAt = nowMs();
     await this.loadRuntime();
 
     var modelExists = await this._probeFile(manifest.modelPath);
@@ -209,6 +319,24 @@
       throw new Error("config missing");
     }
 
+    if (manifest.tokensPath) {
+      var tokensExists = await this._probeFile(manifest.tokensPath);
+      if (!tokensExists) {
+        this.status.modelStatus = ModelStates.MISSING;
+        this.status.modelError = "tokens missing";
+        throw new Error("tokens missing");
+      }
+    }
+
+    if (manifest.dataDirIndexPath) {
+      var dataDirIndexExists = await this._probeFile(manifest.dataDirIndexPath);
+      if (!dataDirIndexExists) {
+        this.status.modelStatus = ModelStates.MISSING;
+        this.status.modelError = "data dir missing";
+        throw new Error("data dir missing");
+      }
+    }
+
     this.runtime.session = await this.runtime.createSession({
       manifest: manifest,
       runtimePath: this.runtimePath
@@ -222,6 +350,7 @@
 
     this.loadedModelKey = key;
     this.status.modelStatus = ModelStates.READY;
+    this.status.modelLoadMs = Math.round(nowMs() - startedAt);
     return this.runtime.session;
   };
 
@@ -250,7 +379,11 @@
         sampleRate: Number(output.sampleRate)
       },
       sampleRate: Number(output.sampleRate),
-      durationMs: Math.round((ensureArray(output.channels).length ? output.channels[0].length : output.samples.length) / Number(output.sampleRate) * 1000)
+      durationMs: Math.round(
+        ((ensureArray(output.channels).length ? output.channels[0].length : output.samples.length) /
+          Number(output.sampleRate)) *
+          1000
+      )
     };
   };
 
@@ -259,6 +392,7 @@
       await this.runtime.dispose();
     }
     this.runtime = null;
+    this.runtimePromise = null;
     this.loadedModelKey = null;
     this.status = statusLib.createInitialStatus();
     this.status.runtimePath = this.runtimePath;

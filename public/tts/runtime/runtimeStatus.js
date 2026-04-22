@@ -42,6 +42,9 @@
       runtimePath: null,
       modelPath: null,
       configPath: null,
+      tokensPath: null,
+      dataDirPath: null,
+      modelLoadMs: undefined,
       checksumStatus: "missing",
       configChecksumStatus: "missing"
     };

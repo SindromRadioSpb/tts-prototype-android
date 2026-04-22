@@ -34,6 +34,14 @@ test("repo manifests include config checksum field", () => {
   assert.ok(Array.isArray(manifest.platforms));
 });
 
+test("english manifest can declare optional tokens and data dir paths", () => {
+  const manifestPath = path.join(__dirname, "..", "public", "tts", "models", "en", "manifest.json");
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+
+  assert.ok(Object.prototype.hasOwnProperty.call(manifest, "tokensPath"));
+  assert.ok(Object.prototype.hasOwnProperty.call(manifest, "dataDirPath"));
+});
+
 test("missing manifest checksum remains visible to diagnostics", () => {
   const diagnostics = core.createDiagnostics({
     checksumStatus: "missing",

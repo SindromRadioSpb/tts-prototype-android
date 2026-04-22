@@ -136,3 +136,54 @@ test("system fallback diagnostics contain fallback reason", async () => {
   assert.equal(result.diagnostics.fallbackReason, "web_wasm_runtime_not_ready");
   assert.equal(result.diagnostics.synthesisStatus, "fallback_used");
 });
+
+test("provider falls back after model_missing during web_wasm synthesis", async () => {
+  const provider = new core.PortableTtsProvider({
+    config: {
+      enabled: true,
+      webWasmEnabled: true,
+      allowSystemFallback: true
+    },
+    manifestLoader: {
+      loadForVoiceId: async () => ({
+        voiceId: "he-default",
+        lang: "he",
+        provider: core.PROVIDER_NAME,
+        runtime: "sherpa-onnx",
+        modelVersion: "v1",
+        modelPath: "/tts/models/he/model.onnx",
+        configPath: "/tts/models/he/model.onnx.json",
+        sampleRate: 22050,
+        platforms: ["web_wasm"]
+      })
+    },
+    backends: {
+      web_wasm: {
+        isAvailable: async () => true,
+        supportsRequest: async () => true,
+        synthesize: async () => {
+          throw core.createTtsError("model_missing", "model missing");
+        }
+      },
+      system_fallback: {
+        isAvailable: async () => true,
+        synthesize: async (request) => ({
+          backend: "system_fallback",
+          diagnostics: {
+            fallbackReason: request.fallbackReason,
+            synthesisStatus: "fallback_used"
+          }
+        })
+      }
+    }
+  });
+
+  const result = await provider.synthesize({
+    text: "שלום",
+    lang: "he",
+    voiceId: "he-default"
+  });
+
+  assert.equal(result.backend, "system_fallback");
+  assert.equal(result.diagnostics.fallbackReason, "model_missing");
+});

@@ -6,6 +6,15 @@ const repoRoot = path.resolve(__dirname, "..");
 const publicRoot = path.join(repoRoot, "public");
 const modelsRoot = path.join(publicRoot, "tts", "models");
 
+function parseLangArg(argv) {
+  const index = argv.indexOf("--lang");
+  if (index === -1) return null;
+  return String(argv[index + 1] || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
@@ -24,9 +33,13 @@ function resolvePublicAssetPath(assetPath) {
   return path.join(publicRoot, String(assetPath || "").replace(/^\/+/, "").replace(/\//g, path.sep));
 }
 
+const filterLangs = parseLangArg(process.argv.slice(2));
+const langs = Array.isArray(filterLangs) && filterLangs.length ? new Set(filterLangs) : null;
+
 const manifestFiles = fs
   .readdirSync(modelsRoot, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
+  .filter((entry) => !langs || langs.has(entry.name))
   .map((entry) => path.join(modelsRoot, entry.name, "manifest.json"))
   .filter((filePath) => fs.existsSync(filePath));
 

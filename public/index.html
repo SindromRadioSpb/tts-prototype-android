@@ -10124,6 +10124,8 @@ updatePlaylistButtonUI();
             "Voice: " + String(d.voiceId || resultOrText.voiceId || "unknown"),
             "Model path: " + String(d.modelPath || "n/a"),
             "Config path: " + String(d.configPath || "n/a"),
+            "Tokens path: " + String(d.tokensPath || "n/a"),
+            "Data dir: " + String(d.dataDirPath || "n/a"),
             "Checksum: " + String(d.checksumStatus || "missing"),
             "Config checksum: " + String(d.configChecksumStatus || "missing"),
             "Cache: " + (d.cacheHit ? "hit" : "miss"),
@@ -10310,6 +10312,7 @@ updatePlaylistButtonUI();
             runtime.activeKind = "main";
             v3PortableTtsApplyResult(result, { isMainText: true });
             await runtime.provider.play(result);
+            v3PortableTtsRenderDiagnostics(result);
             runtime.isPlaying = false;
             runtime.activeKind = null;
             return true;
@@ -10392,6 +10395,7 @@ updatePlaylistButtonUI();
             setRowPlayingUI(rowIdx, true);
             v3PortableTtsApplyResult(result, { isMainText: false });
             await runtime.provider.play(result);
+            v3PortableTtsRenderDiagnostics(result);
             runtime.isPlaying = false;
             runtime.activeKind = null;
             clearRowPlayingState(false);

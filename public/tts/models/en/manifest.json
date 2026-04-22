@@ -6,13 +6,20 @@
   "runtime": "sherpa-onnx",
   "modelPath": "/tts/models/en/model.onnx",
   "configPath": "/tts/models/en/model.onnx.json",
+  "tokensPath": "/tts/models/en/tokens.txt",
+  "dataDirPath": "/tts/models/en/espeak-ng-data",
+  "dataDirIndexPath": "/tts/models/en/espeak-ng-data.index.json",
   "sampleRate": 22050,
   "speakerId": 0,
   "license": "MIT",
-  "source": "rhasspy/piper-voices",
-  "checksumSha256": "",
-  "configChecksumSha256": "",
-  "modelVersion": "piper-en-default-1",
+  "source": "k2-fsa/sherpa-onnx tts-models + rhasspy/piper-voices",
+  "checksumSha256": "8cce84cee4060bc3c2194bf95d33253c48dc8ff15e197b3b7a00b334ee0017f4",
+  "configChecksumSha256": "b471dc60d2d8335e819c393d196d6fbf792817f40051257b269878505bc9afb3",
+  "modelVersion": "piper-en_US-libritts_r-medium-1",
   "qualityTier": "baseline",
-  "platforms": ["web_wasm", "ios_native", "android_native"]
+  "platforms": [
+    "web_wasm",
+    "ios_native",
+    "android_native"
+  ]
 }

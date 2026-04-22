@@ -184,6 +184,8 @@
       synthesisStatus: "idle",
       modelPath: undefined,
       configPath: undefined,
+      tokensPath: undefined,
+      dataDirPath: undefined,
       checksumStatus: "missing",
       configChecksumStatus: "missing",
       fallbackReason: null,
@@ -367,6 +369,18 @@
     return manifest;
   };
 
+  function shouldFallbackAfterWebWasmError(error) {
+    var code = String(error && error.code ? error.code : "");
+    return [
+      "model_missing",
+      "config_missing",
+      "tokens_missing",
+      "data_dir_missing",
+      "web_wasm_runtime_not_ready",
+      "runtime_load_failed"
+    ].indexOf(code) >= 0;
+  }
+
   ModelManifestLoader.prototype.loadForLang = async function (lang) {
     var normalizedLang = normalizeToTtsLang(lang);
     if (this.cache.has(normalizedLang)) return this.cache.get(normalizedLang);
@@ -530,19 +544,37 @@
       );
     }
 
-    return selection.backend.synthesize(
-      assignShallow({}, normalizedRequest, {
-        text: processed.normalizedText,
-        manifest: manifest,
-        fallbackReason: selection.fallbackReason || null
-      }),
-      {
-        config: this.config,
-        manifest: manifest,
-        processed: processed,
-        provider: PROVIDER_NAME
+    var backendRequest = assignShallow({}, normalizedRequest, {
+      text: processed.normalizedText,
+      manifest: manifest,
+      fallbackReason: selection.fallbackReason || null
+    });
+    var backendContext = {
+      config: this.config,
+      manifest: manifest,
+      processed: processed,
+      provider: PROVIDER_NAME
+    };
+
+    try {
+      return await selection.backend.synthesize(backendRequest, backendContext);
+    } catch (error) {
+      if (
+        selection.backendId === "web_wasm" &&
+        this.config.allowSystemFallback &&
+        shouldFallbackAfterWebWasmError(error) &&
+        this.backends.system_fallback &&
+        (await this.backends.system_fallback.isAvailable(backendContext))
+      ) {
+        return this.backends.system_fallback.synthesize(
+          assignShallow({}, backendRequest, {
+            fallbackReason: error.code || "web_wasm_runtime_not_ready"
+          }),
+          backendContext
+        );
       }
-    );
+      throw error;
+    }
   };
 
   PortableTtsProvider.prototype.play = async function (result) {
@@ -550,7 +582,15 @@
     if (!backend) {
       throw createTtsError("backend_missing", "Unknown TTS backend: " + result.backend);
     }
-    return backend.play(result, { config: this.config });
+    var startedAt =
+      typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+    var playback = await backend.play(result, { config: this.config });
+    if (result && result.diagnostics) {
+      var finishedAt =
+        typeof performance !== "undefined" && performance.now ? performance.now() : Date.now();
+      result.diagnostics.renderMs = Math.round(finishedAt - startedAt);
+    }
+    return playback;
   };
 
   PortableTtsProvider.prototype.synthesizeAndPlay = async function (request) {

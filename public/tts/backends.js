@@ -429,6 +429,8 @@
             synthesisStatus: SynthesisStates.IDLE,
             modelPath: manifest.modelPath,
             configPath: manifest.configPath,
+            tokensPath: manifest.tokensPath,
+            dataDirPath: manifest.dataDirPath,
             checksumStatus: manifest.checksumSha256 ? "present" : "missing",
             configChecksumStatus: manifest.configChecksumSha256 ? "present" : "missing",
             manifestStatus: "valid"
@@ -465,6 +467,10 @@
         ? "config_missing"
         : /model missing/i.test(message)
           ? "model_missing"
+          : /tokens missing/i.test(message)
+            ? "tokens_missing"
+            : /data dir missing/i.test(message)
+              ? "data_dir_missing"
           : /runtime assets are not staged|runtime factory is not available/i.test(message)
             ? "web_wasm_runtime_not_ready"
             : "synthesis_failed");
@@ -524,6 +530,9 @@
         synthesisStatus: this.getStatus().synthesisStatus || SynthesisStates.IDLE,
         modelPath: manifest.modelPath,
         configPath: manifest.configPath,
+        tokensPath: manifest.tokensPath,
+        dataDirPath: manifest.dataDirPath,
+        modelLoadMs: this.getStatus().modelLoadMs,
         checksumStatus: manifest.checksumSha256 ? "present" : "missing",
         configChecksumStatus: manifest.configChecksumSha256 ? "present" : "missing",
         manifestStatus: "valid"
