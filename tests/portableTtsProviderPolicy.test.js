@@ -7,15 +7,12 @@ test("English uses local TTS by default", () => {
   assert.equal(policy.shouldUseLocalTts("en-US", {}), true);
 });
 
-test("Hebrew stays on online TTS by default", () => {
-  assert.equal(policy.shouldUseLocalTts("he-IL", {}), false);
+test("Hebrew local TTS is enabled by default in noncommercial mode", () => {
+  assert.equal(policy.shouldUseLocalTts("he-IL", {}), true);
 });
 
-test("Hebrew local TTS requires explicit experimental flag", () => {
-  assert.equal(
-    policy.shouldUseLocalTts("he", { hebrewLocalExperimentalEnabled: true }),
-    true
-  );
+test("Hebrew local TTS can be explicitly disabled by flag", () => {
+  assert.equal(policy.shouldUseLocalTts("he", { hebrewLocalExperimentalEnabled: false }), false);
 });
 
 test("Hebrew local TTS is blocked for commercial mode", () => {

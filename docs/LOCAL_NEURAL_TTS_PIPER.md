@@ -84,7 +84,7 @@ Hebrew local rollout is now split into two paths:
 
 - `he-default`
   - browser `web_wasm`: not staged
-  - product Hebrew local path now uses sidecar provider `hebrew_phonikud_piper`
+  - product default Hebrew local path now uses sidecar provider `hebrew_phonikud_piper`
   - browser manifest state remains `model_missing`
 
 - `ru-default`
@@ -152,7 +152,7 @@ hebrew-preprocess-v1
 - `TTS_WEB_WASM_ENABLED=false` даёт `system_fallback`
 - `TTS_ALLOW_SYSTEM_FALLBACK=false` даёт unavailable state без краша
 - mobile-width viewport не ломает main TTS button
-- Hebrew now stays on online TTS by default unless `TTS_HEBREW_LOCAL_EXPERIMENTAL=true`
+- Hebrew Local Piper is enabled by default for noncommercial server-side routing; mobile clients use it through the same Node bridge
 
 Не подтверждено в этой итерации:
 

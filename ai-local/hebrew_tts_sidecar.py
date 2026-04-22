@@ -45,14 +45,14 @@ class HebrewTtsRequest(BaseModel):
 
 
 def _feature_enabled() -> bool:
-    raw = str(os.getenv(FEATURE_FLAG, "false")).strip().lower()
+    raw = str(os.getenv(FEATURE_FLAG, "true")).strip().lower()
     return raw not in {"0", "false", "off", "no"}
 
 
 def _license_mode() -> str:
-    value = str(os.getenv(LICENSE_MODE_ENV, DEFAULT_LICENSE_MODE)).strip().lower()
+    value = str(os.getenv(LICENSE_MODE_ENV, "noncommercial")).strip().lower()
     if not value:
-        return DEFAULT_LICENSE_MODE
+        return "noncommercial"
     if value in ALLOWED_LICENSE_MODES or value in BLOCKED_LICENSE_MODES:
         return value
     return value

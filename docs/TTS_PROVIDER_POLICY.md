@@ -15,13 +15,13 @@
 
 | Language | Preferred local option | Fallback |
 |---|---|---|
-| `he` | `hebrew_phonikud_piper` when enabled and license allows | `online_tts -> system_fallback` |
+| `he` | `hebrew_phonikud_piper` by default in noncommercial mode | `online_tts -> system_fallback` |
 | `en` | `local_neural_tts_piper` | `online_tts -> system_fallback` |
 | `ru` | none | `online_tts -> system_fallback` |
 
 ## Hebrew Local Gates
 
-Browser-side config and server-side routing depend on:
+Default noncommercial routing uses:
 
 ```text
 TTS_HEBREW_LOCAL_EXPERIMENTAL=true

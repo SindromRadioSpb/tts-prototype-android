@@ -48,6 +48,14 @@ The UI provider selector exposes:
 
 The selected provider and per-provider voice are persisted in browser storage.
 
+Mobile clients use the same provider through the Node server bridge:
+
+```text
+mobile browser -> Node server -> Hebrew sidecar on server host
+```
+
+The browser does not need direct access to sidecar `127.0.0.1:8766`.
+
 ## Fallback Rule
 
 If Hebrew sidecar is unavailable or blocked:

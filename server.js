@@ -165,8 +165,8 @@ app.get("/api/client-config", (_req, res) => {
   const cacheEnabledRaw = String(process.env.TTS_CACHE_ENABLED || "true").trim().toLowerCase();
   const runtimePathRaw = String(process.env.TTS_WEB_WASM_RUNTIME_PATH || "/tts/runtime/sherpa-onnx").trim();
   const cacheMaxMbRaw = Number(process.env.TTS_CACHE_MAX_MB || "250");
-  const hebrewLocalExperimentalRaw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
-  const hebrewLocalLicenseMode = String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "research_only").trim().toLowerCase() || "research_only";
+  const hebrewLocalExperimentalRaw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "true").trim().toLowerCase();
+  const hebrewLocalLicenseMode = String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "noncommercial").trim().toLowerCase() || "noncommercial";
 
   const enabled = !(ttsEnabledRaw === "false" || ttsEnabledRaw === "0" || ttsEnabledRaw === "off");
   const debugDiagnostics =
@@ -1045,12 +1045,12 @@ return { audioContent, fromCache, assetKey, relativePath };
 }
 
 function isHebrewLocalExperimentalEnabled() {
-  const raw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
+  const raw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "true").trim().toLowerCase();
   return !(raw === "false" || raw === "0" || raw === "off" || raw === "no");
 }
 
 function getHebrewLocalLicenseMode() {
-  return String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "research_only").trim().toLowerCase() || "research_only";
+  return String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "noncommercial").trim().toLowerCase() || "noncommercial";
 }
 
 function normalizeHebrewLocalText(text) {

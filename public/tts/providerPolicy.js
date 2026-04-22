@@ -15,8 +15,8 @@
   });
 
   var DEFAULT_PROVIDER_POLICY = Object.freeze({
-    hebrewLocalExperimentalEnabled: false,
-    hebrewLocalLicenseMode: "research_only"
+    hebrewLocalExperimentalEnabled: true,
+    hebrewLocalLicenseMode: "noncommercial"
   });
 
   function normalizeLang(lang) {
