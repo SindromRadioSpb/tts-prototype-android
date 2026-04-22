@@ -7,25 +7,26 @@
 | Provider ID | Label | Scope |
 |---|---|---|
 | `online_tts` | `Online TTS` | default cloud path |
-| `hebrew_phonikud_piper` | `Hebrew Local Piper` | Hebrew local sidecar |
-| `local_neural_tts_piper` | `Local Piper / Web WASM` | browser `web_wasm` path |
-| `system_fallback` | `Browser fallback` | `speechSynthesis` emergency path |
+| `hebrew_phonikud_piper` | `Hebrew Local Piper` | disabled product path, kept in code |
+| `local_neural_tts_piper` | `Local Piper / Web WASM` | disabled product path, kept in code |
+| `system_fallback` | `Browser fallback` | low-quality `speechSynthesis` emergency path |
 
 ## Language Routing
 
 | Language | Preferred local option | Fallback |
 |---|---|---|
-| `he` | `hebrew_phonikud_piper` by default in noncommercial mode | `online_tts -> system_fallback` |
-| `en` | `local_neural_tts_piper` | `online_tts -> system_fallback` |
+| `he` | none | `online_tts -> system_fallback` |
+| `en` | none | `online_tts -> system_fallback` |
 | `ru` | none | `online_tts -> system_fallback` |
 
 ## Hebrew Local Gates
 
-Default noncommercial routing uses:
+Product defaults keep local providers disabled:
 
 ```text
-TTS_HEBREW_LOCAL_EXPERIMENTAL=true
-TTS_HEBREW_LOCAL_LICENSE_MODE=noncommercial
+TTS_HEBREW_LOCAL_EXPERIMENTAL=false
+TTS_HEBREW_LOCAL_LICENSE_MODE=research_only
+TTS_WEB_WASM_ENABLED=false
 ```
 
 Allowed Hebrew local license modes:
@@ -67,4 +68,4 @@ Diagnostics now show:
 
 ## Current Rule
 
-Hebrew Local Piper is integrated for noncommercial use in this project configuration.
+`Online TTS` is the default provider for all product languages. `Browser fallback` remains available only as an emergency, significantly lower-quality speech path.

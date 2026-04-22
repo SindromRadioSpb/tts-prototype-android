@@ -4,7 +4,7 @@
 
 ## Goal
 
-Run Hebrew Local Piper in a noncommercial app configuration without removing online fallback.
+Keep the Hebrew Local Piper packaging path documented without exposing it as an active product provider.
 
 ## Dependencies
 
@@ -37,14 +37,14 @@ uvicorn ai-local.hebrew_tts_sidecar:app --host 127.0.0.1 --port 8766
 Invoke-RestMethod http://127.0.0.1:8766/tts/hebrew/phonikud-piper/health
 ```
 
-## UI Enablement
+## UI Status
 
-The UI provider selector exposes:
+The product UI now treats these provider paths as disabled:
 
 - `Online TTS`
-- `Hebrew Local Piper`
-- `Local Piper / Web WASM`
-- `Browser fallback`
+- `Hebrew Local Piper` — disabled, kept for future experiments
+- `Local Piper / Web WASM` — disabled, kept for future experiments
+- `Browser fallback` — available only as a clearly marked low-quality option
 
 The selected provider and per-provider voice are persisted in browser storage.
 
@@ -56,12 +56,12 @@ mobile browser -> Node server -> Hebrew sidecar on server host
 
 The browser does not need direct access to sidecar `127.0.0.1:8766`.
 
-## Fallback Rule
+## Product Rule
 
-If Hebrew sidecar is unavailable or blocked:
+The active product chain is:
 
 ```text
-Hebrew Local Piper -> Online TTS -> Browser fallback
+Online TTS -> Browser fallback
 ```
 
 ## Disable Local Hebrew Provider
@@ -78,8 +78,8 @@ or
 TTS_HEBREW_LOCAL_LICENSE_MODE=commercial
 ```
 
-The UI will show the provider as disabled or blocked and will fall back to online TTS.
+The UI keeps the provider disabled and uses Online TTS as the default product path.
 
 ## License Notice
 
-Hebrew Local Piper is allowed only for noncommercial use in this project configuration.
+Hebrew Local Piper remains allowed only for noncommercial experiments in this project configuration.

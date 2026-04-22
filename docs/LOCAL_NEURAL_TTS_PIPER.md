@@ -65,12 +65,13 @@ web_wasm unavailable
 - `public/tts/models/en/*`
   - staged English Piper assets
 
-## Actual browser status
+## Product status
 
-Hebrew local rollout is now split into two paths:
+Local providers remain in the codebase, but are disabled by current product policy:
 
-- `hebrew_phonikud_piper` via Python sidecar for noncommercial Hebrew
-- `local_neural_tts_piper` via browser `web_wasm` for staged English
+- `hebrew_phonikud_piper` is kept for future experiments, but disabled because current Hebrew voice quality is too robotic for product use
+- `local_neural_tts_piper` is kept for future experiments, but disabled because English local synthesis is not relevant to current learning scenarios
+- `system_fallback` remains available only as a clearly marked low-quality emergency path
 
 ### Verified working
 
@@ -152,7 +153,7 @@ hebrew-preprocess-v1
 - `TTS_WEB_WASM_ENABLED=false` даёт `system_fallback`
 - `TTS_ALLOW_SYSTEM_FALLBACK=false` даёт unavailable state без краша
 - mobile-width viewport не ломает main TTS button
-- Hebrew Local Piper is enabled by default for noncommercial server-side routing; mobile clients use it through the same Node bridge
+- Online TTS remains the default provider on desktop and mobile
 
 Не подтверждено в этой итерации:
 
@@ -164,7 +165,7 @@ hebrew-preprocess-v1
 
 - текущий browser runtime использует staged English `.data` bundle от `sherpa-onnx`
 - Hebrew voice quality в browser runtime пока `unknown`, не `premium`
-- Hebrew local Phonikud/Piper path is integrated only for noncommercial sidecar usage and remains blocked for commercial use by license
+- Hebrew local Phonikud/Piper path remains available only as a disabled code path for future experiments
 - Russian browser runtime пока не staged
 - full `npm test` остаётся красным только из-за baseline-проблем вне нового TTS слоя
 

@@ -4544,9 +4544,9 @@ body.v3-ide-mode .v3-ide-right {
                 <label for="ttsProviderSelect" class="input-label">TTS Provider</label>
                 <select id="ttsProviderSelect">
                     <option value="online_tts">Online TTS</option>
-                    <option value="hebrew_phonikud_piper">Hebrew Local Piper</option>
-                    <option value="local_neural_tts_piper">Local Piper / Web WASM</option>
-                    <option value="system_fallback">Browser fallback</option>
+                    <option value="hebrew_phonikud_piper" disabled>Hebrew Local Piper (disabled: low quality)</option>
+                    <option value="local_neural_tts_piper" disabled>Local Piper / Web WASM (disabled: not used)</option>
+                    <option value="system_fallback">Browser fallback (low quality)</option>
                 </select>
             </div>
 
@@ -8681,9 +8681,9 @@ const TTS_VOICE_STORAGE_KEY = "ttsDashboard_voiceConfig_v1";
 const TTS_PROVIDER_IDS = window.TtsSettingsStore ? window.TtsSettingsStore.PROVIDERS : ["online_tts", "hebrew_phonikud_piper", "local_neural_tts_piper", "system_fallback"];
 const TTS_PROVIDER_DEFS = {
     online_tts: { label: "Online TTS" },
-    hebrew_phonikud_piper: { label: "Hebrew Local Piper" },
-    local_neural_tts_piper: { label: "Local Piper / Web WASM" },
-    system_fallback: { label: "Browser fallback" }
+    hebrew_phonikud_piper: { label: "Hebrew Local Piper (disabled: low quality)" },
+    local_neural_tts_piper: { label: "Local Piper / Web WASM (disabled: not used)" },
+    system_fallback: { label: "Browser fallback (low quality)" }
 };
 const TTS_PROVIDER_VOICE_OPTIONS = {
     online_tts: {
@@ -10065,6 +10065,11 @@ updatePlaylistButtonUI();
 
     function getSelectedTtsProvider() {
         const providerId = ttsProviderSelectEl ? ttsProviderSelectEl.value : ttsSettingsState.selectedProvider;
+        const lang = typeof getLang === "function" ? getLang() : "he";
+        if (window.LocalNeuralTtsProviderPolicy && typeof window.LocalNeuralTtsProviderPolicy.resolveSelectedProvider === "function") {
+            const config = v3PortableTtsRuntime && v3PortableTtsRuntime.config ? v3PortableTtsRuntime.config : {};
+            return window.LocalNeuralTtsProviderPolicy.resolveSelectedProvider(lang, providerId, config);
+        }
         return String(providerId || "online_tts");
     }
 
@@ -10116,7 +10121,14 @@ updatePlaylistButtonUI();
 
     function applyTtsSettingsToUi() {
         const lang = getLang();
-        const providerId = ttsSettingsState.selectedProvider || "online_tts";
+        const providerId = window.LocalNeuralTtsProviderPolicy
+            ? window.LocalNeuralTtsProviderPolicy.resolveSelectedProvider(
+                lang,
+                ttsSettingsState.selectedProvider || "online_tts",
+                v3PortableTtsRuntime && v3PortableTtsRuntime.config ? v3PortableTtsRuntime.config : {}
+            )
+            : (ttsSettingsState.selectedProvider || "online_tts");
+        ttsSettingsState.selectedProvider = providerId;
         if (ttsProviderSelectEl) ttsProviderSelectEl.value = providerId;
         if (rateRangeEl) rateRangeEl.value = String(ttsSettingsState.speed);
         if (pitchRangeEl) pitchRangeEl.value = String(ttsSettingsState.pitch);
@@ -10222,8 +10234,8 @@ updatePlaylistButtonUI();
             return;
         }
         if (selectedProvider === "system_fallback") {
-            v3PortableTtsRenderBadge("TTS: Browser fallback");
-            v3PortableTtsRenderDiagnostics("Selected provider: Browser fallback");
+            v3PortableTtsRenderBadge("TTS: Browser fallback / low quality");
+            v3PortableTtsRenderDiagnostics("Selected provider: Browser fallback · warning=significantly lower quality synthesized speech");
             return;
         }
         if (selectedProvider === "hebrew_phonikud_piper") {
@@ -10245,8 +10257,8 @@ updatePlaylistButtonUI();
         }
 
         if (!v3PortableTtsShouldUseLocal(currentLang)) {
-            v3PortableTtsRenderBadge("TTS: Piper Local / unsupported for current language");
-            v3PortableTtsRenderDiagnostics("Selected provider: Local Piper / Web WASM · unsupported for current language");
+            v3PortableTtsRenderBadge("TTS: Piper Local / disabled by product policy");
+            v3PortableTtsRenderDiagnostics("Selected provider: Local Piper / Web WASM · disabled by product policy");
             return;
         }
         const snapshot = v3PortableTtsGetStatusSnapshot();
@@ -11194,10 +11206,10 @@ updatePlaylistButtonUI();
         const audioContainer = document.getElementById("audioContainer");
         if (audioContainer) {
             audioContainer.innerHTML =
-                '<div class="audio-block"><div class="stat-sub">Playback via browser speechSynthesis fallback.</div></div>';
+                '<div class="audio-block"><div class="stat-sub">Playback via browser speechSynthesis fallback. Quality is significantly lower than Online TTS.</div></div>';
         }
         clearAudioStale();
-        setResultsMeta("audio", "Browser fallback");
+        setResultsMeta("audio", "Browser fallback (low quality)");
         v3PortableTtsRenderDiagnostics(result);
     }
 

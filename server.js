@@ -159,14 +159,14 @@ app.get("/api/client-config", (_req, res) => {
   const debugDiagnosticsRaw = String(process.env.TTS_DEBUG_DIAGNOSTICS || "").trim().toLowerCase();
   const allowSystemFallbackRaw = String(process.env.TTS_ALLOW_SYSTEM_FALLBACK || "true").trim().toLowerCase();
   const preferredBackendRaw = String(process.env.TTS_PREFERRED_BACKEND || "web_wasm").trim();
-  const webWasmEnabledRaw = String(process.env.TTS_WEB_WASM_ENABLED || "true").trim().toLowerCase();
+  const webWasmEnabledRaw = String(process.env.TTS_WEB_WASM_ENABLED || "false").trim().toLowerCase();
   const preloadRaw = String(process.env.TTS_PRELOAD || "false").trim().toLowerCase();
   const modelStagingRequiredRaw = String(process.env.TTS_MODEL_STAGING_REQUIRED || "true").trim().toLowerCase();
   const cacheEnabledRaw = String(process.env.TTS_CACHE_ENABLED || "true").trim().toLowerCase();
   const runtimePathRaw = String(process.env.TTS_WEB_WASM_RUNTIME_PATH || "/tts/runtime/sherpa-onnx").trim();
   const cacheMaxMbRaw = Number(process.env.TTS_CACHE_MAX_MB || "250");
-  const hebrewLocalExperimentalRaw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "true").trim().toLowerCase();
-  const hebrewLocalLicenseMode = String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "noncommercial").trim().toLowerCase() || "noncommercial";
+  const hebrewLocalExperimentalRaw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
+  const hebrewLocalLicenseMode = String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "research_only").trim().toLowerCase() || "research_only";
 
   const enabled = !(ttsEnabledRaw === "false" || ttsEnabledRaw === "0" || ttsEnabledRaw === "off");
   const debugDiagnostics =
@@ -208,7 +208,7 @@ app.get("/api/client-config", (_req, res) => {
     ok: true,
     tts: {
       enabled,
-      provider: "local_neural_tts_piper",
+      provider: "online_tts",
       preferredBackend: preferredBackendRaw || "web_wasm",
       webWasmEnabled,
       webWasmRuntimePath: runtimePathRaw || "/tts/runtime/sherpa-onnx",
@@ -1045,12 +1045,12 @@ return { audioContent, fromCache, assetKey, relativePath };
 }
 
 function isHebrewLocalExperimentalEnabled() {
-  const raw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "true").trim().toLowerCase();
+  const raw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
   return !(raw === "false" || raw === "0" || raw === "off" || raw === "no");
 }
 
 function getHebrewLocalLicenseMode() {
-  return String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "noncommercial").trim().toLowerCase() || "noncommercial";
+  return String(process.env.TTS_HEBREW_LOCAL_LICENSE_MODE || "research_only").trim().toLowerCase() || "research_only";
 }
 
 function normalizeHebrewLocalText(text) {

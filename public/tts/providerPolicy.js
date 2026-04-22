@@ -15,8 +15,10 @@
   });
 
   var DEFAULT_PROVIDER_POLICY = Object.freeze({
-    hebrewLocalExperimentalEnabled: true,
-    hebrewLocalLicenseMode: "noncommercial"
+    hebrewLocalExperimentalEnabled: false,
+    hebrewLocalLicenseMode: "research_only",
+    hebrewLocalProductEnabled: false,
+    webWasmProductEnabled: false
   });
 
   function normalizeLang(lang) {
@@ -38,11 +40,6 @@
   }
 
   function shouldUseLocalTts(lang, config) {
-    var normalizedLang = normalizeLang(lang);
-    var policy = getEffectivePolicy(config);
-
-    if (normalizedLang === "en") return true;
-    if (normalizedLang === "he") return isHebrewLocalAllowed(policy);
     return false;
   }
 
@@ -52,18 +49,17 @@
 
     if (normalizedProvider === PROVIDERS.ONLINE || normalizedProvider === PROVIDERS.SYSTEM) return true;
     if (normalizedProvider === PROVIDERS.HEBREW_LOCAL) {
-      return normalizedLang === "he" && isHebrewLocalAllowed(config);
+      return normalizedLang === "he" && getEffectivePolicy(config).hebrewLocalProductEnabled === true && isHebrewLocalAllowed(config);
     }
     if (normalizedProvider === PROVIDERS.WEB_WASM) {
-      return normalizedLang === "en";
+      return normalizedLang === "en" && getEffectivePolicy(config).webWasmProductEnabled === true;
     }
     return false;
   }
 
   function getDefaultProviderForLang(lang, config) {
-    var normalizedLang = normalizeLang(lang);
-    if (normalizedLang === "en") return PROVIDERS.WEB_WASM;
-    if (normalizedLang === "he" && isHebrewLocalAllowed(config)) return PROVIDERS.HEBREW_LOCAL;
+    void lang;
+    void config;
     return PROVIDERS.ONLINE;
   }
 

@@ -3,12 +3,12 @@ const assert = require("node:assert/strict");
 
 const policy = require("../public/tts/providerPolicy.js");
 
-test("English uses local TTS by default", () => {
-  assert.equal(policy.shouldUseLocalTts("en-US", {}), true);
+test("English does not use local TTS by default", () => {
+  assert.equal(policy.shouldUseLocalTts("en-US", {}), false);
 });
 
-test("Hebrew local TTS is enabled by default in noncommercial mode", () => {
-  assert.equal(policy.shouldUseLocalTts("he-IL", {}), true);
+test("Hebrew local TTS is disabled by default", () => {
+  assert.equal(policy.shouldUseLocalTts("he-IL", {}), false);
 });
 
 test("Hebrew local TTS can be explicitly disabled by flag", () => {
@@ -25,22 +25,19 @@ test("Hebrew local TTS is blocked for commercial mode", () => {
   );
 });
 
-test("resolveSelectedProvider keeps Hebrew local when noncommercial mode is allowed", () => {
+test("resolveSelectedProvider normalizes Hebrew local to online by product policy", () => {
   assert.equal(
     policy.resolveSelectedProvider("he-IL", "hebrew_phonikud_piper", {
       hebrewLocalExperimentalEnabled: true,
       hebrewLocalLicenseMode: "noncommercial"
     }),
-    "hebrew_phonikud_piper"
+    "online_tts"
   );
 });
 
-test("resolveSelectedProvider falls back to online when Hebrew local is blocked", () => {
+test("resolveSelectedProvider normalizes web_wasm to online by product policy", () => {
   assert.equal(
-    policy.resolveSelectedProvider("he-IL", "hebrew_phonikud_piper", {
-      hebrewLocalExperimentalEnabled: true,
-      hebrewLocalLicenseMode: "commercial"
-    }),
+    policy.resolveSelectedProvider("en-US", "local_neural_tts_piper", {}),
     "online_tts"
   );
 });
