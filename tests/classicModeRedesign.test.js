@@ -34,11 +34,23 @@ test("classic mode keeps table fine-tuning in a secondary advanced area", () => 
   assert.match(html, /id="tableEditAddBtn"/);
 });
 
-test("classic mode provides mobile row detail sheet and static mode toggle", () => {
+test("classic mode provides trust-focused result workspace and static mode toggle", () => {
+  assert.match(html, /id="classicResultTrust"/);
+  assert.match(html, /id="classicResultSummary"/);
+  assert.match(html, /id="classicResultWorkspace"/);
+  assert.match(html, /class="[^"]*classic-export-actions[^"]*"/);
+  assert.match(html, /class="classic-export-actions is-hidden"|classList\.toggle\("is-hidden"/);
   assert.match(html, /id="classicRowSheet"/);
   assert.match(html, /id="classicRowSheetPlay"/);
   assert.match(html, /id="classicRowSheetNote"/);
   assert.match(html, /\.v3-mode-toggle\s*\{[\s\S]*position:\s*static;/);
+});
+
+test("classic mode removes floating edit FAB and uses deeper mobile disclosure", () => {
+  assert.doesNotMatch(html, /id="tableEditFab"/);
+  assert.doesNotMatch(html, /#tableEditFab/);
+  assert.match(html, /classic-result-workspace-summary/);
+  assert.match(html, /@media \(max-width: 768px\)[\s\S]*classic-result-workspace-summary[\s\S]*display:\s*flex/);
 });
 
 test("classic mode user-facing copy no longer refers to AI translate label", () => {
