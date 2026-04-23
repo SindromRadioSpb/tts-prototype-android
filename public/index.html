@@ -32,11 +32,347 @@
 
     body {
         font-family: 'Segoe UI', Tahoma, sans-serif;
-        max-width: 900px;
+        max-width: 1360px;
         margin: 0 auto;
         padding: 20px;
         background-color: #f4f6f9;
         color: #333;
+    }
+
+    .classic-status-strip,
+    .classic-main-card {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .classic-main-card {
+        padding: 28px;
+    }
+
+    .classic-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    .classic-shell-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+    }
+
+    .classic-shell-copy {
+        min-width: 0;
+        flex: 1 1 420px;
+    }
+
+    .classic-eyebrow {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 6px;
+    }
+
+    .classic-screen-title {
+        margin: 0;
+        text-align: left;
+        font-size: clamp(28px, 3vw, 38px);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        color: #0f172a;
+    }
+
+    .classic-screen-subtitle {
+        margin: 10px 0 0;
+        max-width: 760px;
+        font-size: 14px;
+        line-height: 1.55;
+        color: #64748b;
+    }
+
+    .classic-utility-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex: 1 1 360px;
+        min-width: 0;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(248,250,252,0.98));
+        box-shadow: 0 14px 32px rgba(15, 23, 42, 0.07);
+    }
+
+    .classic-utility-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-width: 0;
+    }
+
+    .classic-utility-nav .btn-secondary,
+    .classic-utility-bar .v3-mode-toggle {
+        min-height: 44px;
+    }
+
+    .classic-workspace-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.02fr) minmax(380px, 0.98fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .classic-workflow-column,
+    .classic-result-column {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .classic-card {
+        position: relative;
+        border: 1px solid #e2e8f0;
+        border-radius: 22px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.94));
+        box-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+        padding: 20px;
+        overflow: clip;
+    }
+
+    .classic-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at top right, rgba(59, 130, 246, 0.08), transparent 36%),
+          linear-gradient(180deg, rgba(255,255,255,0.35), transparent 38%);
+        pointer-events: none;
+    }
+
+    .classic-card > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .classic-card-head,
+    .classic-result-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+
+    .classic-card-title {
+        font-size: 17px;
+        line-height: 1.2;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .classic-card-subtitle {
+        margin-top: 5px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #64748b;
+    }
+
+    .classic-composer-tools {
+        display: inline-flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .classic-state-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .classic-state-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid #dbe4ee;
+        background: #f8fafc;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .classic-state-chip.is-info {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+    }
+
+    .classic-state-chip.is-success {
+        background: #ecfdf5;
+        border-color: #a7f3d0;
+        color: #047857;
+    }
+
+    .classic-state-chip.is-warning {
+        background: #fffbeb;
+        border-color: #fde68a;
+        color: #b45309;
+    }
+
+    .classic-state-chip.is-error {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
+    .classic-primary-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 14px;
+        margin-bottom: 14px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(59, 130, 246, 0.16);
+        background: linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(250, 252, 255, 0.98));
+    }
+
+    .classic-primary-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .classic-primary-actions .btn-success,
+    .classic-primary-actions .btn-primary {
+        min-height: 48px;
+        padding: 12px 18px;
+    }
+
+    .classic-primary-hint {
+        flex: 1 1 240px;
+        min-width: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #475569;
+    }
+
+    .classic-disclosure {
+        padding-top: 0;
+    }
+
+    .classic-disclosure-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        list-style: none;
+        cursor: pointer;
+        padding: 18px 0 16px;
+    }
+
+    .classic-disclosure-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .classic-disclosure-summary::after {
+        content: "⌄";
+        flex: 0 0 auto;
+        font-size: 18px;
+        font-weight: 700;
+        color: #64748b;
+        transition: transform 0.18s ease;
+    }
+
+    .classic-disclosure[open] .classic-disclosure-summary::after {
+        transform: rotate(180deg);
+    }
+
+    .classic-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding-bottom: 4px;
+    }
+
+    .classic-fields-grid {
+        display: grid;
+        gap: 14px;
+    }
+
+    .classic-fields-grid-two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .classic-help-block {
+        margin-top: 0 !important;
+        font-size: 12px !important;
+        line-height: 1.5;
+    }
+
+    .classic-inline-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .classic-result-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .classic-export-note {
+        display: none;
+        margin-bottom: 12px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid #dbe4ee;
+        background: #f8fafc;
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+
+    .classic-export-note.visible {
+        display: block;
+    }
+
+    .classic-export-actions {
+        margin-left: 0;
+        margin-bottom: 12px;
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .classic-result-card #audioContainer:empty {
+        display: none;
+    }
+
+    .classic-result-card #audioContainer {
+        margin-bottom: 10px;
+    }
+
+    .classic-result-card #errorMsg {
+        margin-bottom: 12px;
     }
 
     /* ПАНЕЛЬ СТАТИСТИКИ */
@@ -52,6 +388,14 @@
         gap: 20px;
     }
 
+    .classic-status-strip {
+        padding: 16px 18px;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.98));
+        box-shadow: 0 24px 48px rgba(15, 23, 42, 0.06);
+    }
+
     .stats-box {
         display: flex;
         gap: 30px;
@@ -61,6 +405,34 @@
     .stat-item {
         text-align: left;
         min-width: 160px;
+    }
+
+    .classic-status-strip .stats-box {
+        gap: 18px;
+        align-items: stretch;
+    }
+
+    .classic-status-strip .stat-item {
+        min-width: 180px;
+        flex: 1 1 220px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid #edf2f7;
+        background: rgba(255,255,255,0.72);
+    }
+
+    .classic-status-strip .stat-value {
+        font-size: clamp(24px, 3vw, 36px);
+        line-height: 1;
+    }
+
+    .classic-status-strip .stat-label {
+        margin-top: 8px;
+    }
+
+    .classic-status-strip .stat-sub {
+        font-size: 12px;
+        line-height: 1.45;
     }
 
     .stat-value {
@@ -188,6 +560,16 @@
             0 2px 4px rgba(0, 0, 0, 0.06);
     }
 
+    .classic-composer-card textarea {
+        min-height: 180px;
+        height: auto;
+        max-height: 360px;
+        margin-bottom: 0;
+        font-size: 18px;
+        border-color: #cbd5e1;
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08), 0 10px 22px rgba(15, 23, 42, 0.05);
+    }
+
     /* Режим для иврита (textarea) */
     textarea.rtl-text {
         direction: rtl;
@@ -260,6 +642,11 @@
         letter-spacing: 0.3px;
     }
 
+    .classic-fields-grid .field-group,
+    .classic-result-card .field-group {
+        min-width: 0;
+    }
+
     button, select {
         padding: 12px 20px;
         font-size: 15px;
@@ -273,6 +660,20 @@
         border: 1px solid #d0d4d8;
         background: #ffffff;
         min-width: 190px;
+    }
+
+    .classic-fields-grid select,
+    .classic-fields-grid input[type="range"],
+    .classic-composer-tools button,
+    .classic-primary-actions button,
+    .classic-result-actions button {
+        width: 100%;
+    }
+
+    .classic-composer-tools button,
+    .classic-result-actions button,
+    .classic-primary-actions button {
+        width: auto;
     }
 
     .btn-primary {
@@ -506,10 +907,10 @@ td.col-action-cell {
     .table-settings {
         margin-top: 10px;
         margin-bottom: 10px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        background: #f8f9fa;
-        border: 1px solid #e6eaee;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #f8fafc, #f8fafc);
+        border: 1px solid #e2e8f0;
     }
 
     .table-settings-row {
@@ -520,13 +921,24 @@ td.col-action-cell {
         justify-content: space-between;
     }
 
+    .table-settings-row-main {
+        align-items: flex-start;
+    }
+
     .table-settings-title {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 700;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        color: #343a40;
+        color: #0f172a;
         flex: 1 1 auto;
+    }
+
+    .table-settings-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
     }
 
     .table-presets {
@@ -560,6 +972,17 @@ td.col-action-cell {
     }
 
     .table-settings-cols { justify-content: flex-start; }
+
+    .table-settings-advanced {
+        display: none;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    #tableSettings.is-advanced-open .table-settings-advanced {
+        display: block;
+    }
 
     .table-chk {
         display: inline-flex;
@@ -797,13 +1220,37 @@ th, td { border-color: rgba(0,0,0,0.55); }
     #resultsMeta {
         display: none;
         margin-top: 4px;
-        margin-bottom: 10px;
+        margin-bottom: 14px;
         font-size: 12px;
         color: #6c757d;
     }
 
-    .results-meta-line { margin-bottom: 2px; }
-    .results-meta-label { font-weight: 600; margin-right: 4px; color: #495057; }
+    .results-meta-line {
+        margin-bottom: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+    .results-meta-label {
+        font-weight: 700;
+        margin-right: 0;
+        color: #334155;
+        min-width: 70px;
+    }
+    .results-meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        max-width: 100%;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid #dbe4ee;
+        background: #f8fafc;
+        color: #334155;
+        line-height: 1.35;
+        overflow-wrap: anywhere;
+    }
 
     /* Provider selector (Phase 1.9) */
     .provider-select {
@@ -819,6 +1266,18 @@ th, td { border-color: rgba(0,0,0,0.55); }
     }
     .provider-select:disabled { background: #e9ecef; cursor: not-allowed; }
     .provider-select option:disabled { color: #adb5bd; }
+
+    .classic-fields-grid .provider-select,
+    .classic-fields-grid select,
+    .classic-fields-grid input[type="range"] {
+        min-width: 0;
+        margin-left: 0;
+    }
+
+    .classic-fields-grid .provider-select {
+        height: auto;
+        padding: 12px 14px;
+    }
 
     /* Provenance badge — appended after the table source line */
     .provenance-badge {
@@ -935,7 +1394,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
     }
 
     @media (max-width: 600px) {
-        .dashboard-header { flex-direction: column; align-items: flex-start; }
+        .dashboard-header { flex-direction: column; align-items: stretch; }
         .btn-console { width: 100%; text-align: center; }
         .stats-box { width: 100%; }
         .stat-item { width: 100%; }
@@ -963,7 +1422,91 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .hotkeys-hint { text-align: left; }
         /* Mobile: reduce padding to reclaim space for the table */
         body { padding: 12px; }
-        .main-card { padding: 14px 12px; }
+        .main-card { padding: 16px 14px; }
+        .classic-main-card { padding: 18px 14px; }
+        .classic-shell-head { gap: 14px; }
+        .classic-utility-bar { padding: 8px; }
+        .classic-utility-nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+        .classic-utility-nav .btn-secondary { flex: 0 0 auto; width: auto; }
+        .classic-utility-bar .v3-mode-toggle { width: 100%; justify-content: center; }
+        .classic-state-row { gap: 6px; }
+        .classic-state-chip { white-space: normal; }
+        .classic-primary-bar { padding: 12px; }
+        .classic-primary-actions { width: 100%; flex-direction: column; }
+        .classic-primary-actions .btn-success,
+        .classic-primary-actions .btn-primary { width: 100%; }
+        .classic-primary-hint { flex-basis: 100%; }
+        .classic-fields-grid-two { grid-template-columns: 1fr; }
+        .classic-inline-meta { align-items: stretch; }
+        .classic-inline-meta .provenance-badge,
+        .classic-inline-meta .btn-secondary { width: 100%; justify-content: center; }
+        .classic-result-actions { width: 100%; }
+        .classic-result-actions .btn-secondary { width: 100%; }
+        .classic-export-actions { flex-direction: column; }
+        .classic-export-actions button { width: 100%; }
+    }
+
+    @media (max-width: 1100px) {
+        .classic-workspace-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .classic-result-column {
+            order: 2;
+        }
+    }
+
+    @media (max-width: 768px) {
+        body {
+            max-width: none;
+            padding: 10px;
+        }
+
+        .classic-status-strip {
+            padding: 12px 12px 14px;
+            border-radius: 20px;
+        }
+
+        .classic-status-strip .stat-item {
+            flex: 1 1 100%;
+            min-width: 0;
+            padding: 10px 12px;
+        }
+
+        .classic-screen-title {
+            font-size: clamp(24px, 8vw, 34px);
+        }
+
+        .classic-screen-subtitle {
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .classic-card {
+            padding: 16px 14px;
+            border-radius: 18px;
+        }
+
+        .classic-disclosure:not([open]) .classic-card-body {
+            display: none;
+        }
+
+        .table-settings-row-main {
+            gap: 10px;
+        }
+
+        .table-settings-row-main .table-presets {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .table-settings-row-main .table-autonext {
+            width: 100%;
+        }
+
+        #toastContainer {
+            bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+        }
     }
 
     /* ============================
@@ -3878,19 +4421,19 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 
 /* --- Classic Mode Toggle Button --- */
 .v3-mode-toggle {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+  position: static;
+  inset: auto;
   padding: 10px 16px;
   background: linear-gradient(135deg, #1e3a5f 0%, #2a5298 100%);
   color: #fff;
   border: none;
-  border-radius: 20px;
+  border-radius: 16px;
   font-size: 13px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  z-index: 1000;
+  z-index: auto;
   transition: transform 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
 }
 
 .v3-mode-toggle:hover {
@@ -3900,6 +4443,105 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 
 body.v3-ide-mode .v3-mode-toggle {
   background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+}
+
+.classic-row-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  z-index: 210;
+}
+
+.classic-row-sheet {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 220;
+  max-height: min(72vh, 720px);
+  overflow: auto;
+  padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+  border-radius: 24px;
+  background: rgba(255,255,255,0.98);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.25);
+  backdrop-filter: blur(12px);
+}
+
+.classic-row-sheet-handle {
+  width: 56px;
+  height: 5px;
+  margin: 0 auto 12px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.4);
+}
+
+.classic-row-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.classic-row-sheet-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.classic-row-sheet-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.classic-row-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.classic-row-sheet-cell {
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.classic-row-sheet-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.classic-row-sheet-value {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #0f172a;
+  overflow-wrap: anywhere;
+}
+
+.classic-row-sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.classic-row-sheet-actions > button {
+  flex: 1 1 0;
+  min-height: 46px;
+}
+
+@media (min-width: 769px) {
+  .classic-row-sheet,
+  .classic-row-sheet-backdrop {
+    display: none !important;
+  }
 }
 
 /* --- Loading spinner for IDE panels --- */
@@ -4413,12 +5055,7 @@ body.v3-ide-mode .v3-ide-right {
 <!-- IDE Panel Backdrop (for mobile overlay) -->
 <div id="v3IdePanelBackdrop" class="v3-ide-panel-backdrop" onclick="v3IdeCloseOverlays()"></div>
 
-<!-- Mode Toggle Button (always visible) -->
-<button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Switch between IDE and Classic mode">
-  🖥️ IDE Mode
-</button>
-
-    <div class="dashboard-header">
+    <div class="dashboard-header classic-status-strip">
         <div class="stats-box">
             <div class="stat-item">
                 <span
@@ -4505,217 +5142,317 @@ body.v3-ide-mode .v3-ide-right {
         </div>
     </div>
 
-    <div class="main-card">
-        <h2>Текст для озвучки и перевода</h2>
-
-        <!-- Блок горячих клавиш -->
-        <div id="hotkeysPanel" class="hotkeys-panel hotkeys-collapsed">
-            <div class="hotkeys-header">
-                <strong>Горячие клавиши</strong>
-                <span class="hotkeys-hint">
-                    Нажмите <code>Ctrl+/</code>, чтобы скрыть или показать этот блок.
-                </span>
-            </div>
-            <ul class="hotkeys-list">
-                <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
-                <li><code>Ctrl+Shift+Enter</code> — AI Перевод + SAVE</li>
-                <li><code>Ctrl+Shift+S</code> — Сохранить MP3 озвучки текущего текста</li>
-                <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
-                <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
-				<li><code>↑/↓</code> — Навигация по строкам таблицы (после выбора строки)</li>
-                <li><code>Enter</code> — Озвучить выбранную строку (▶)</li>
-            </ul>
-        </div>
-
-        <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
-
-        <div id="textChangedNotice">
-            ⚠ Текст был изменён. Требуется повторная озвучка и AI Перевод.
-        </div>
-
-        <div id="limitBanner"></div>
-
-        <div class="controls">
-            <div class="field-group">
-                <label for="langSelect" class="input-label">Язык исходного текста</label>
-                <select id="langSelect">
-                    <option value="he-IL">🇮🇱 Иврит</option>
-                    <option value="ru-RU">🇷🇺 Русский</option>
-                    <option value="en-US">🇺🇸 Английский</option>
-                </select>
-            </div>
-
-            <div class="field-group">
-                <label for="hebrewFontSelect" class="input-label">Шрифт иврита табличной части</label>
-                <select id="hebrewFontSelect">
-                    <option value="frank" selected>Frank Ruhl Libre (рекомендуется)</option>
-                    <option value="assistant">Assistant</option>
-                    <option value="system">Системный</option>
-                </select>
-            </div>
-
-            <div class="field-group">
-                <label for="ttsProviderSelect" class="input-label">TTS Provider</label>
-                <select id="ttsProviderSelect">
-                    <option value="online_tts">Online TTS</option>
-                    <option value="hebrew_phonikud_piper" disabled>Hebrew Local Piper (disabled: low quality)</option>
-                    <option value="local_neural_tts_piper" disabled>Local Piper / Web WASM (disabled: not used)</option>
-                    <option value="system_fallback">Browser fallback (low quality)</option>
-                </select>
-            </div>
-
-            <div class="field-group">
-                <label for="voiceSelect" class="input-label">Голос TTS</label>
-                <select id="voiceSelect">
-                    <option value="">Авто (по умолчанию)</option>
-                    <option value="he-IL-Standard-A">he-IL-Standard-A (ж, иврит)</option>
-                    <option value="he-IL-Standard-B">he-IL-Standard-B (м, иврит)</option>
-                    <option value="ru-RU-Standard-A">ru-RU-Standard-A (ж, русский)</option>
-                    <option value="ru-RU-Standard-B">ru-RU-Standard-B (м, русский)</option>
-                    <option value="en-US-Standard-C">en-US-Standard-C (ж, англ.)</option>
-                    <option value="en-US-Standard-D">en-US-Standard-D (м, англ.)</option>
-                </select>
-            </div>
-
-	           <button id="btnMainTts" class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
-			<button id="btnTtsKey" class="btn-secondary" style="padding:4px 8px; display:none;" title="Загрузить service account JSON для Online TTS" onclick="ttsKeyOpen()">🔑</button>
-			<input type="file" id="ttsKeyFileInput" accept="application/json,.json" style="display:none" onchange="ttsKeyOnFileChosen(event)">
-			<span id="ttsKeyStatus" class="provenance-badge" style="display:none"></span>
-
-			<div style="width: 1px; height: 24px; background: #dddddd; margin: 0 10px;"></div>
-
-			<button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()">📚 Библиотека</button>
-			
-			<button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()">📈 Дашборд</button>
-			<button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()">🎯 SRS Trainer</button>
-			
-			<button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
-
-			<button id="btnAiTranslate" class="btn-success" onclick="translateTable()">AI Перевод+SAVE</button>
-			<select id="providerSelect" class="provider-select" title="Поставщик перевода">
-			    <option value="google-free">Google Translate</option>
-			    <option value="gcp">GCP Translate (API)</option>
-			    <option value="madlad">MADLAD (local)</option>
-			    <option value="gemini">Gemini (legacy)</option>
-			</select>
-			<select id="translitProfileSelect" class="provider-select" title="Профиль транслитерации иврита">
-			    <option value="sbl" selected>Транслит: SBL Academic</option>
-			    <option value="ru-phonetic">Транслит: Русская фонетика</option>
-			</select>
-			<button id="btnGcpKey" class="btn-secondary" style="padding:4px 8px;" title="Загрузить service account JSON для GCP Translate" onclick="gcpKeyOpen()">🔑</button>
-				<input type="file" id="gcpKeyFileInput" accept="application/json,.json" style="display:none" onchange="gcpKeyOnFileChosen(event)">
-				<span id="gcpKeyStatus" class="provenance-badge" style="display:none"></span>
-				<span id="localTtsProviderBadge" class="provenance-badge">TTS: init…</span>
-				<div id="loader" class="loader"></div>
-
-			<div class="export-actions">
-  <button id="btnAudioPrefetch" class="btn-audio-prefetch disabled"
-          title="Сначала сохраните текст в Library"
-          onclick="v3AudioPrefetchOpenModal()" disabled>Audio</button>
-
-  <button id="btnAnki" class="btn-anki disabled"
-          title="Сначала сохраните текст в Library"
-          onclick="v3AnkiOpenModal()" disabled>Anki</button>
-
-  <button id="btnWord" class="btn-word disabled"
-          title="Сначала сохраните текст в Library"
-          onclick="downloadWord()" disabled>Скачать таблицу</button>
-</div>
-			
-        </div>
-
-        <div class="controls" style="margin-top: 0;">
-	            <div class="field-group">
-	                <label for="rateRange" class="input-label">Скорость речи</label>
-	                <input id="rateRange" type="range" min="0.5" max="2.0" step="0.1" value="1.0">
-	                <span id="rateValue" class="stat-sub">1.00×</span>
-	            </div>
-            <div class="field-group">
-                <label for="pitchRange" class="input-label">Тон (pitch)</label>
-                <input id="pitchRange" type="range" min="-5" max="5" step="0.5" value="0">
-                <span id="pitchValue" class="stat-sub">0.0</span>
-                <div id="ttsPitchSupportNote" class="v3-help" style="font-size:12px;"></div>
-	        </div>
-
-	        <div id="localTtsDiagnostics" class="v3-help" style="display:none; margin-top:8px;"></div>
-        </div>
-
-        <div id="audioContainer" style="margin-bottom: 4px;"></div>
-        <div id="resultsMeta"></div>
-
-        <!-- Настройки таблицы -->
-        <div id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
-            <div class="table-settings-row">
-                <div class="table-settings-title">🧩 Таблица: отображение колонок</div>
-                <div class="table-presets" role="group" aria-label="Пресеты таблицы">
-                    <button type="button" class="btn-mini" data-preset="full" title="Показать все 4 колонки">Полная</button>
-                    <button type="button" class="btn-mini" data-preset="he_ru" title="Иврит + Перевод (без огласовок и транслита)">Иврит+рус</button>
-                    <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)">Фонетика</button>
-                    <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)">Только иврит</button>
+    <div class="main-card classic-main-card">
+        <div class="classic-shell">
+            <div class="classic-shell-head">
+                <div class="classic-shell-copy">
+                    <div class="classic-eyebrow">Classic Mode</div>
+                    <h2 class="classic-screen-title">Текст для озвучки и перевода</h2>
+                    <p class="classic-screen-subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
                 </div>
-				    <div class="table-autonext" title="Плейлист: Shift+Enter запускает непрерывное построчное проигрывание (Auto-next)">
-                    <label class="table-chk">
-                        <input type="checkbox" id="autoNextToggle">
-                        Плейлист (Auto-next)
-                    </label>
-					
-					<button type="button" id="btnPlaylistRun" class="btn-mini-secondary playlist-btn"
-                    title="Плейлист: Старт/Стоп. Можно также Shift+Enter (desktop).">
-                    ▶▶ Старт
+                <div class="classic-utility-bar" role="navigation" aria-label="Навигация и режимы">
+                    <div class="classic-utility-nav">
+                        <button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()">📚 Библиотека</button>
+                        <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()">📈 Дашборд</button>
+                        <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()">🎯 SRS Trainer</button>
+                    </div>
+                    <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса">
+                      🖥️ IDE режим
                     </button>
+                </div>
+            </div>
 
-					
+            <div class="classic-workspace-grid">
+                <div class="classic-workflow-column">
+                    <section class="classic-card classic-composer-card" aria-labelledby="classicComposerTitle">
+                        <div class="classic-card-head">
+                            <div>
+                                <div id="classicComposerTitle" class="classic-card-title">Исходный текст</div>
+                                <div class="classic-card-subtitle">Здесь начинается основной сценарий. Состояние текста и результата должно читаться мгновенно.</div>
+                            </div>
+                            <div class="classic-composer-tools">
+                                <button id="btnInputPaste" class="btn-secondary btn-mini-secondary" type="button" title="Вставить текст из буфера обмена">Вставить</button>
+                                <button id="btnInputClear" class="btn-secondary btn-mini-secondary" type="button" title="Очистить поле и сбросить результаты">Очистить</button>
+                            </div>
+                        </div>
+
+                        <div class="classic-state-row" aria-live="polite">
+                            <span id="classicInputStateChip" class="classic-state-chip">Текст: пусто</span>
+                            <span id="classicResultStateChip" class="classic-state-chip">Результат: отсутствует</span>
+                            <span id="classicSourceStateChip" class="classic-state-chip">Источник: локальный ввод</span>
+                        </div>
+
+                        <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
+
+                        <div id="textChangedNotice">
+                            ⚠ Текст был изменён. Требуется повторная озвучка и пересборка таблицы.
+                        </div>
+
+                        <div id="limitBanner"></div>
+
+                        <div class="classic-primary-bar">
+                            <div class="classic-primary-actions">
+                                <button id="btnAiTranslate" class="btn-success" onclick="translateTable()">Собрать таблицу</button>
+                                <button id="btnMainTts" class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
+                            </div>
+                            <div id="classicPrimaryHint" class="classic-primary-hint">Введите текст и запустите основное действие.</div>
+                        </div>
+
+                        <!-- Блок горячих клавиш -->
+                        <div id="hotkeysPanel" class="hotkeys-panel hotkeys-collapsed">
+                            <div class="hotkeys-header">
+                                <strong>Горячие клавиши</strong>
+                                <span class="hotkeys-hint">
+                                    Нажмите <code>Ctrl+/</code>, чтобы скрыть или показать этот блок.
+                                </span>
+                            </div>
+                            <ul class="hotkeys-list">
+                                <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
+                                <li><code>Ctrl+Shift+Enter</code> — Собрать таблицу + SAVE</li>
+                                <li><code>Ctrl+Shift+S</code> — Сохранить MP3 озвучки текущего текста</li>
+                                <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
+                                <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
+				                <li><code>↑/↓</code> — Навигация по строкам таблицы (после выбора строки)</li>
+                                <li><code>Enter</code> — Озвучить выбранную строку (▶)</li>
+                            </ul>
+                        </div>
+                    </section>
+
+                    <details id="classicTtsCard" class="classic-card classic-disclosure" open>
+                        <summary class="classic-disclosure-summary">
+                            <span class="classic-card-title">Настройки озвучки</span>
+                            <span class="classic-card-subtitle">Язык, голос, темп и ключи провайдера.</span>
+                        </summary>
+                        <div class="classic-card-body">
+                            <div class="classic-fields-grid classic-fields-grid-two">
+                                <div class="field-group">
+                                    <label for="langSelect" class="input-label">Язык исходного текста</label>
+                                    <select id="langSelect">
+                                        <option value="he-IL">🇮🇱 Иврит</option>
+                                        <option value="ru-RU">🇷🇺 Русский</option>
+                                        <option value="en-US">🇺🇸 Английский</option>
+                                    </select>
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="ttsProviderSelect" class="input-label">Провайдер озвучки</label>
+                                    <select id="ttsProviderSelect">
+                                        <option value="online_tts">Online TTS</option>
+                                        <option value="hebrew_phonikud_piper" disabled>Hebrew Local Piper (disabled: low quality)</option>
+                                        <option value="local_neural_tts_piper" disabled>Local Piper / Web WASM (disabled: not used)</option>
+                                        <option value="system_fallback">Browser fallback (low quality)</option>
+                                    </select>
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="voiceSelect" class="input-label">Голос TTS</label>
+                                    <select id="voiceSelect">
+                                        <option value="">Авто (по умолчанию)</option>
+                                        <option value="he-IL-Standard-A">he-IL-Standard-A (ж, иврит)</option>
+                                        <option value="he-IL-Standard-B">he-IL-Standard-B (м, иврит)</option>
+                                        <option value="ru-RU-Standard-A">ru-RU-Standard-A (ж, русский)</option>
+                                        <option value="ru-RU-Standard-B">ru-RU-Standard-B (м, русский)</option>
+                                        <option value="en-US-Standard-C">en-US-Standard-C (ж, англ.)</option>
+                                        <option value="en-US-Standard-D">en-US-Standard-D (м, англ.)</option>
+                                    </select>
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="rateRange" class="input-label">Скорость речи</label>
+                                    <input id="rateRange" type="range" min="0.5" max="2.0" step="0.1" value="1.0">
+                                    <span id="rateValue" class="stat-sub">1.00×</span>
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="pitchRange" class="input-label">Тон (pitch)</label>
+                                    <input id="pitchRange" type="range" min="-5" max="5" step="0.5" value="0">
+                                    <span id="pitchValue" class="stat-sub">0.0</span>
+                                    <div id="ttsPitchSupportNote" class="v3-help" style="font-size:12px;"></div>
+                                </div>
+                            </div>
+
+                            <div class="classic-inline-meta">
+                                <button id="btnTtsKey" class="btn-secondary" style="padding:4px 8px; display:none;" title="Загрузить service account JSON для Online TTS" onclick="ttsKeyOpen()">🔑</button>
+                                <input type="file" id="ttsKeyFileInput" accept="application/json,.json" style="display:none" onchange="ttsKeyOnFileChosen(event)">
+                                <span id="ttsKeyStatus" class="provenance-badge" style="display:none"></span>
+                                <span id="localTtsProviderBadge" class="provenance-badge">TTS: init…</span>
+                                <div id="loader" class="loader"></div>
+                            </div>
+
+                            <div id="localTtsDiagnostics" class="v3-help classic-help-block" style="display:none;"></div>
+                        </div>
+                    </details>
+
+                    <details id="classicTranslationCard" class="classic-card classic-disclosure" open>
+                        <summary class="classic-disclosure-summary">
+                            <span class="classic-card-title">Настройки перевода и таблицы</span>
+                            <span class="classic-card-subtitle">Переводчик, транслит, шрифт таблицы и сохранение результата.</span>
+                        </summary>
+                        <div class="classic-card-body">
+                            <div class="classic-fields-grid classic-fields-grid-two">
+                                <div class="field-group">
+                                    <label for="providerSelect" class="input-label">Провайдер перевода</label>
+                                    <select id="providerSelect" class="provider-select" title="Поставщик перевода">
+			                            <option value="google-free">Google Translate</option>
+			                            <option value="gcp">GCP Translate (API)</option>
+			                            <option value="madlad">MADLAD (local)</option>
+			                            <option value="gemini">Gemini (legacy)</option>
+		                            </select>
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="translitProfileSelect" class="input-label">Профиль транслитерации</label>
+                                    <select id="translitProfileSelect" class="provider-select" title="Профиль транслитерации иврита">
+			                            <option value="sbl" selected>Транслит: SBL Academic</option>
+			                            <option value="ru-phonetic">Транслит: Русская фонетика</option>
+		                            </select>
+                                </div>
+
+                                <div class="field-group">
+                                    <label for="hebrewFontSelect" class="input-label">Шрифт иврита табличной части</label>
+                                    <select id="hebrewFontSelect">
+                                        <option value="frank" selected>Frank Ruhl Libre (рекомендуется)</option>
+                                        <option value="assistant">Assistant</option>
+                                        <option value="system">Системный</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="classic-inline-meta">
+                                <button id="btnGcpKey" class="btn-secondary" style="padding:4px 8px;" title="Загрузить service account JSON для GCP Translate" onclick="gcpKeyOpen()">🔑</button>
+				                <input type="file" id="gcpKeyFileInput" accept="application/json,.json" style="display:none" onchange="gcpKeyOnFileChosen(event)">
+				                <span id="gcpKeyStatus" class="provenance-badge" style="display:none"></span>
+                            </div>
+                        </div>
+                    </details>
                 </div>
 
-            </div>
+                <div class="classic-result-column">
+                    <section class="classic-card classic-result-card" aria-labelledby="classicResultTitle">
+                        <div class="classic-result-head">
+                            <div>
+                                <div id="classicResultTitle" class="classic-card-title">Результат</div>
+                                <div class="classic-card-subtitle">Статус, происхождение, экспорт и управление таблицей собраны в одной поверхности.</div>
+                            </div>
+                            <div class="classic-result-actions">
+                                <button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
+                            </div>
+                        </div>
 
-            <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
-                <label class="table-chk"><input type="checkbox" data-col="action"> Действие</label>
-                <label class="table-chk"><input type="checkbox" data-col="he"> Иврит</label>
-                <label class="table-chk"><input type="checkbox" data-col="niqqud"> Огласовки</label>
-                <label class="table-chk"><input type="checkbox" data-col="translit"> Транслит</label>
-                <label class="table-chk"><input type="checkbox" data-col="ru"> Перевод</label>
-            </div>
+                        <div id="classicExportHint" class="classic-export-note"></div>
 
-            <div class="table-settings-row table-settings-sub">
-                <button type="button" id="btnTableReset" class="btn-mini-secondary" title="Сбросить видимость и базовые ширины к значениям по умолчанию">Сбросить настройки</button>
-                <span class="table-settings-note">Настройки таблицы сохраняются на этом устройстве.</span>
+                        <div class="export-actions classic-export-actions">
+                            <button id="btnAudioPrefetch" class="btn-audio-prefetch disabled"
+                                    title="Сначала сохраните текст в Library"
+                                    onclick="v3AudioPrefetchOpenModal()" disabled>Аудио</button>
+
+                            <button id="btnAnki" class="btn-anki disabled"
+                                    title="Сначала сохраните текст в Library"
+                                    onclick="v3AnkiOpenModal()" disabled>Anki</button>
+
+                            <button id="btnWord" class="btn-word disabled"
+                                    title="Сначала сохраните текст в Library"
+                                    onclick="downloadWord()" disabled>Скачать таблицу</button>
+                        </div>
+
+                        <div id="audioContainer" style="margin-bottom: 4px;"></div>
+
+                        <div id="v3ActiveTextHeader" class="v3-active-header" style="display:none;">
+                          <div class="v3-active-header-row">
+                            <div id="v3ActiveTextTitle" class="v3-active-title">—</div>
+                            <div class="v3-active-badges">
+                              <span id="v3ActiveTextStatus" class="v3-pill v3-pill-saved">Сохранён</span>
+                            </div>
+                          </div>
+                          <div id="v3ActiveTextSub" class="v3-active-sub"></div>
+                          <div id="v3ActiveTextSource" class="v3-active-source" style="display:none;"></div>
+                        </div>
+
+                        <div id="resultsMeta"></div>
+                        <div id="errorMsg" class="error"></div>
+
+                        <!-- Настройки таблицы -->
+                        <div id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
+                            <div class="table-settings-row table-settings-row-main">
+                                <div class="table-settings-title">🧩 Таблица: отображение и сценарии</div>
+                                <div class="table-presets" role="group" aria-label="Пресеты таблицы">
+                                    <button type="button" class="btn-mini" data-preset="full" title="Показать все 4 колонки">Полная</button>
+                                    <button type="button" class="btn-mini" data-preset="he_ru" title="Иврит + Перевод (без огласовок и транслита)">Иврит+рус</button>
+                                    <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)">Фонетика</button>
+                                    <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)">Только иврит</button>
+                                </div>
+                                <div class="table-settings-actions">
+                                    <button type="button" id="btnTableCustomizeToggle" class="btn-mini-secondary" aria-expanded="false" title="Открыть тонкую настройку колонок">Настроить колонки</button>
+                                </div>
+				                <div class="table-autonext" title="Плейлист: Shift+Enter запускает непрерывное построчное проигрывание (Auto-next)">
+                                    <label class="table-chk">
+                                        <input type="checkbox" id="autoNextToggle">
+                                        Плейлист (Auto-next)
+                                    </label>
+					
+					                <button type="button" id="btnPlaylistRun" class="btn-mini-secondary playlist-btn"
+                                    title="Плейлист: Старт/Стоп. Можно также Shift+Enter (desktop).">
+                                    ▶▶ Старт
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="table-settings-advanced" aria-label="Тонкая настройка таблицы">
+                                <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
+                                    <label class="table-chk"><input type="checkbox" data-col="action"> Действие</label>
+                                    <label class="table-chk"><input type="checkbox" data-col="he"> Иврит</label>
+                                    <label class="table-chk"><input type="checkbox" data-col="niqqud"> Огласовки</label>
+                                    <label class="table-chk"><input type="checkbox" data-col="translit"> Транслит</label>
+                                    <label class="table-chk"><input type="checkbox" data-col="ru"> Перевод</label>
+                                </div>
+
+                                <div class="table-settings-row table-settings-sub">
+                                    <button type="button" id="btnTableReset" class="btn-mini-secondary" title="Сбросить видимость и базовые ширины к значениям по умолчанию">Сбросить настройки</button>
+                                    <span class="table-settings-note">Настройки таблицы сохраняются на этом устройстве.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PRO: Resizable split (vertical) -->
+                        <div id="tableHeightResizer" class="table-resizer-y" role="separator"
+                             aria-orientation="horizontal" aria-label="Изменить высоту таблицы"
+                             title="Потяните вверх/вниз для изменения высоты таблицы. Двойной клик — сброс.">
+                          <span class="table-resizer-grip" aria-hidden="true"></span>
+                        </div>
+
+                        <div id="tableEditToolbar" role="toolbar" aria-label="Редактирование таблицы">
+                          <button id="tableEditToggleBtn" class="tbl-edit-toggle-btn" type="button" title="Включить режим редактирования таблицы">✎ Редактировать</button>
+                          <span id="tableEditStatus" class="tbl-edit-status"></span>
+                          <button id="tableEditAddBtn" class="tbl-edit-add-btn" type="button" title="Добавить пустую строку в конец">+ Строка</button>
+                          <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям">↺ Сбросить всё</button>
+                        </div>
+                        <button id="tableEditFab" type="button" title="Режим редактирования">✎</button>
+                        <div id="tableContainer"></div>
+                    </section>
+                </div>
             </div>
         </div>
-
-        <div id="errorMsg" class="error"></div>
-
-<!-- PRO: Resizable split (vertical) -->
-<div id="tableHeightResizer" class="table-resizer-y" role="separator"
-     aria-orientation="horizontal" aria-label="Изменить высоту таблицы"
-     title="Потяните вверх/вниз для изменения высоты таблицы. Двойной клик — сброс.">
-  <span class="table-resizer-grip" aria-hidden="true"></span>
-</div>
-
-<div id="v3ActiveTextHeader" class="v3-active-header" style="display:none;">
-  <div class="v3-active-header-row">
-    <div id="v3ActiveTextTitle" class="v3-active-title">—</div>
-    <div class="v3-active-badges">
-      <span id="v3ActiveTextStatus" class="v3-pill v3-pill-saved">Сохранён</span>
     </div>
-  </div>
-  <div id="v3ActiveTextSub" class="v3-active-sub"></div>
-  <div id="v3ActiveTextSource" class="v3-active-source" style="display:none;"></div>
-</div>
-
-<div id="tableEditToolbar" role="toolbar" aria-label="Редактирование таблицы">
-  <button id="tableEditToggleBtn" class="tbl-edit-toggle-btn" type="button" title="Включить режим редактирования таблицы">✎ Редактировать</button>
-  <span id="tableEditStatus" class="tbl-edit-status"></span>
-  <button id="tableEditAddBtn" class="tbl-edit-add-btn" type="button" title="Добавить пустую строку в конец">+ Строка</button>
-  <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям">↺ Сбросить всё</button>
-</div>
-<button id="tableEditFab" type="button" title="Режим редактирования">✎</button>
-<div id="tableContainer"></div>
-
-</div>
 
     <!-- Контейнер для тостов -->
     <div id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="classicRowSheetBackdrop" class="classic-row-sheet-backdrop" hidden></div>
+    <div id="classicRowSheet" class="classic-row-sheet" role="dialog" aria-modal="true" aria-label="Детали строки" hidden>
+        <div class="classic-row-sheet-handle" aria-hidden="true"></div>
+        <div class="classic-row-sheet-head">
+            <div>
+                <div class="classic-row-sheet-title">Строка таблицы</div>
+                <div id="classicRowSheetMeta" class="classic-row-sheet-meta"></div>
+            </div>
+            <button id="classicRowSheetClose" class="btn-secondary btn-mini-secondary" type="button">Закрыть</button>
+        </div>
+        <div id="classicRowSheetBody" class="classic-row-sheet-body"></div>
+        <div class="classic-row-sheet-actions">
+            <button id="classicRowSheetPlay" class="btn-primary" type="button">▶ Озвучить строку</button>
+            <button id="classicRowSheetNote" class="btn-secondary" type="button">📝 Заметка</button>
+        </div>
+    </div>
 
     <!-- V3: Library Modal (P0) -->
 <div id="v3LibraryModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Библиотека текстов">
@@ -5593,7 +6330,7 @@ function v3IdeApplyMode(enabled) {
     body.classList.add("v3-ide-mode");
     if (header) header.style.display = "flex";
     if (workspace) workspace.style.display = "flex";
-    if (toggleBtn) toggleBtn.textContent = "📋 Classic Mode";
+    if (toggleBtn) toggleBtn.textContent = "📋 Classic режим";
 	
 	// Sync CSS offset so overlay panels/backdrop start BELOW the real header height
 	v3IdeSyncHeaderOffsetVar();
@@ -5635,7 +6372,7 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
     body.classList.remove("v3-ide-mode");
     if (header) header.style.display = "none";
     if (workspace) workspace.style.display = "none";
-    if (toggleBtn) toggleBtn.textContent = "🖥️ IDE Mode";
+    if (toggleBtn) toggleBtn.textContent = "🖥️ IDE режим";
   }
 }
 
@@ -7202,7 +7939,25 @@ function v3NotesRefreshAllButtons() {
 	
 	const btnWordEl = document.getElementById("btnWord");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
+    const btnMainTtsEl = document.getElementById("btnMainTts");
+    const btnInputPasteEl = document.getElementById("btnInputPaste");
+    const btnInputClearEl = document.getElementById("btnInputClear");
     const hotkeysPanelEl = document.getElementById("hotkeysPanel");
+    const classicInputStateChipEl = document.getElementById("classicInputStateChip");
+    const classicResultStateChipEl = document.getElementById("classicResultStateChip");
+    const classicSourceStateChipEl = document.getElementById("classicSourceStateChip");
+    const classicPrimaryHintEl = document.getElementById("classicPrimaryHint");
+    const classicExportHintEl = document.getElementById("classicExportHint");
+    const btnTableCustomizeToggleEl = document.getElementById("btnTableCustomizeToggle");
+    const classicTtsCardEl = document.getElementById("classicTtsCard");
+    const classicTranslationCardEl = document.getElementById("classicTranslationCard");
+    const classicRowSheetEl = document.getElementById("classicRowSheet");
+    const classicRowSheetBackdropEl = document.getElementById("classicRowSheetBackdrop");
+    const classicRowSheetBodyEl = document.getElementById("classicRowSheetBody");
+    const classicRowSheetMetaEl = document.getElementById("classicRowSheetMeta");
+    const classicRowSheetCloseEl = document.getElementById("classicRowSheetClose");
+    const classicRowSheetPlayEl = document.getElementById("classicRowSheetPlay");
+    const classicRowSheetNoteEl = document.getElementById("classicRowSheetNote");
 	
 	const autoNextToggleEl = document.getElementById("autoNextToggle");
 
@@ -9965,6 +10720,7 @@ updatePlaylistButtonUI();
             label.className = "results-meta-label";
             label.textContent = "Озвучка:";
             const text = document.createElement("span");
+            text.className = "results-meta-chip";
             text.textContent = resultsMetaState.audioSource;
             line.appendChild(label);
             line.appendChild(text);
@@ -9978,6 +10734,7 @@ updatePlaylistButtonUI();
             label.className = "results-meta-label";
             label.textContent = "Таблица:";
             const text = document.createElement("span");
+            text.className = "results-meta-chip";
             text.textContent = resultsMetaState.tableSource;
             line.appendChild(label);
             line.appendChild(text);
@@ -10000,6 +10757,149 @@ updatePlaylistButtonUI();
         renderResultsMeta();
     }
 
+    function classicIsMobileViewport() {
+        try {
+            return !!window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+        } catch (_) {
+            return window.innerWidth <= 768;
+        }
+    }
+
+    function classicSetChip(el, text, tone) {
+        if (!el) return;
+        el.textContent = text || "";
+        el.className = "classic-state-chip" + (tone ? " is-" + tone : "");
+    }
+
+    function classicSyncDisclosureState() {
+        const isMobile = classicIsMobileViewport();
+        [classicTtsCardEl, classicTranslationCardEl].forEach(function(card) {
+            if (!card) return;
+            if (isMobile) {
+                if (!card.dataset.mobileCollapsed) {
+                    card.open = false;
+                    card.dataset.mobileCollapsed = "1";
+                }
+            } else {
+                card.open = true;
+                delete card.dataset.mobileCollapsed;
+            }
+        });
+    }
+
+    function classicSetTableAdvancedOpen(forceOpen) {
+        const root = document.getElementById("tableSettings");
+        if (!root || !btnTableCustomizeToggleEl) return;
+        const shouldOpen = typeof forceOpen === "boolean"
+            ? forceOpen
+            : !root.classList.contains("is-advanced-open");
+        root.classList.toggle("is-advanced-open", shouldOpen);
+        btnTableCustomizeToggleEl.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+        btnTableCustomizeToggleEl.textContent = shouldOpen ? "Скрыть колонки" : "Настроить колонки";
+    }
+
+    function classicGetHasTable() {
+        return Array.isArray(currentTableData) && currentTableData.length > 0;
+    }
+
+    function classicGetHasAudio() {
+        const audioEl = document.getElementById("audioContainer");
+        return !!(audioEl && audioEl.innerHTML && audioEl.innerHTML.trim());
+    }
+
+    function classicSyncStateUi() {
+        const text = typeof getText === "function" ? String(getText() || "").trim() : String(inputTextEl && inputTextEl.value || "").trim();
+        const hasTable = classicGetHasTable();
+        const hasAudio = classicGetHasAudio();
+        const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
+        const sourceMeta = String(resultsMetaState.tableSource || "").toLowerCase();
+
+        let inputText = "Текст: пусто";
+        let inputTone = "info";
+        if (text) {
+            if (tableIsStale || audioIsStale) {
+                inputText = "Текст: требует обновления";
+                inputTone = "warning";
+            } else {
+                inputText = "Текст: готов";
+                inputTone = "success";
+            }
+        }
+        classicSetChip(classicInputStateChipEl, inputText, inputTone);
+
+        let resultText = "Результат: отсутствует";
+        let resultTone = "info";
+        if (hasTable) {
+            if (tableIsStale) {
+                resultText = "Результат: устарел";
+                resultTone = "warning";
+            } else if (sourceMeta.indexOf("восстанов") >= 0 || sourceMeta.indexOf("cache") >= 0 || sourceMeta.indexOf("кэш") >= 0) {
+                resultText = "Результат: восстановлен";
+                resultTone = "info";
+            } else if (st.mode === "library" || st.mode === "saved") {
+                resultText = "Результат: сохранён";
+                resultTone = "success";
+            } else {
+                resultText = "Результат: черновик";
+                resultTone = "info";
+            }
+        }
+        classicSetChip(classicResultStateChipEl, resultText, resultTone);
+
+        let sourceText = "Источник: локальный ввод";
+        let sourceTone = "info";
+        if (st.mode === "library" || st.mode === "saved") {
+            sourceText = "Источник: Library";
+            sourceTone = "success";
+        } else if (sourceMeta.indexOf("кэш") >= 0 || sourceMeta.indexOf("cache") >= 0) {
+            sourceText = "Источник: локальный кэш";
+            sourceTone = "info";
+        }
+        classicSetChip(classicSourceStateChipEl, sourceText, sourceTone);
+
+        if (btnAiTranslateEl) {
+            if (!text) btnAiTranslateEl.textContent = "Собрать таблицу";
+            else if (tableIsStale) btnAiTranslateEl.textContent = "Пересобрать таблицу";
+            else if (hasTable) btnAiTranslateEl.textContent = "Обновить таблицу";
+            else btnAiTranslateEl.textContent = "Собрать таблицу";
+        }
+
+        if (btnMainTtsEl) {
+            if (!text) btnMainTtsEl.textContent = "🔊 Озвучить";
+            else if (audioIsStale) btnMainTtsEl.textContent = "🔊 Переозвучить";
+            else if (hasAudio) btnMainTtsEl.textContent = "🔊 Озвучить снова";
+            else btnMainTtsEl.textContent = "🔊 Озвучить";
+        }
+
+        if (classicPrimaryHintEl) {
+            if (!text) {
+                classicPrimaryHintEl.textContent = "Введите исходный текст, затем запустите сборку таблицы или озвучку.";
+            } else if (tableIsStale) {
+                classicPrimaryHintEl.textContent = "Исходный текст изменён. Основное действие сейчас — пересобрать актуальную таблицу.";
+            } else if (!hasTable) {
+                classicPrimaryHintEl.textContent = "Сначала соберите таблицу. После этого станут доступны работа по строкам и сохранение.";
+            } else {
+                classicPrimaryHintEl.textContent = "Таблица готова. Можно сохранить результат, открыть экспорт и работать по строкам.";
+            }
+        }
+
+        if (classicExportHintEl) {
+            const allDisabled = !!(btnWordEl && btnWordEl.disabled) &&
+                !!(btnAnkiEl && btnAnkiEl.disabled) &&
+                !!(btnAudioPrefetchEl && btnAudioPrefetchEl.disabled);
+            let exportHint = "";
+            if (!hasTable) {
+                exportHint = "Экспорт появится после сборки таблицы и сохранения результата в Library.";
+            } else if (tableIsStale) {
+                exportHint = "Таблица устарела. Сначала пересоберите её, затем открывайте сохранение и экспорт.";
+            } else if (allDisabled) {
+                exportHint = "Чтобы открыть аудио, Anki и DOCX, сначала сохраните актуальную таблицу в Library.";
+            }
+            classicExportHintEl.textContent = exportHint;
+            classicExportHintEl.classList.toggle("visible", !!exportHint);
+        }
+    }
+
     // ----------------------------
     // RESTORE TEXT
     // ----------------------------
@@ -10012,6 +10912,7 @@ updatePlaylistButtonUI();
         } catch (e) {
             console.error("LocalStorage restore error", e);
         }
+        try { classicSyncStateUi(); } catch (_) {}
     })();
 
     // ----------------------------
@@ -10023,9 +10924,53 @@ updatePlaylistButtonUI();
         markResultsStale();
       try { v3SessionMarkDraft(); } catch (_) {};
       updateTtsCostInfo();
+      try { classicSyncStateUi(); } catch (_) {}
     });
 
     autoGrow(false);
+    try { classicSyncDisclosureState(); } catch (_) {}
+    try { classicSyncStateUi(); } catch (_) {}
+    try { classicSetTableAdvancedOpen(false); } catch (_) {}
+
+    if (btnInputClearEl) {
+        btnInputClearEl.addEventListener("click", function () {
+            try { clearTextWithConfirm(); } catch (_) {}
+        });
+    }
+
+    if (btnInputPasteEl) {
+        btnInputPasteEl.addEventListener("click", async function () {
+            try {
+                if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
+                    showToast("Буфер обмена недоступен в этом браузере");
+                    return;
+                }
+                const clip = await navigator.clipboard.readText();
+                if (!clip) {
+                    showToast("Буфер обмена пуст");
+                    return;
+                }
+                inputTextEl.value = clip;
+                inputTextEl.dispatchEvent(new Event("input", { bubbles: true }));
+                showToast("Текст вставлен", "success");
+            } catch (_) {
+                showToast("Не удалось прочитать буфер обмена", "error");
+            }
+        });
+    }
+
+    if (btnTableCustomizeToggleEl) {
+        btnTableCustomizeToggleEl.addEventListener("click", function () {
+            classicSetTableAdvancedOpen();
+        });
+    }
+
+    window.addEventListener("resize", function () {
+        try { classicSyncDisclosureState(); } catch (_) {}
+        try {
+            if (!classicIsMobileViewport()) classicCloseRowSheet();
+        } catch (_) {}
+    });
 
     function autoGrow(shouldScroll) {
         if (!inputTextEl) return;
@@ -10736,6 +11681,7 @@ updatePlaylistButtonUI();
 		    // Sync Save UI + header with stale state (critical to prevent duplicate / stale saves)
 		try { v3UiSyncSaveButtons(); } catch (_) {}
 		try { v3UiUpdateActiveHeader(); } catch (_) {}
+        try { classicSyncStateUi(); } catch (_) {}
     }
 
     function addStaleNote(container) {
@@ -10754,6 +11700,7 @@ updatePlaylistButtonUI();
         if (!audioIsStale && !tableIsStale) {
             textChangedNoticeEl.classList.remove("notice-visible");
         }
+        try { classicSyncStateUi(); } catch (_) {}
     }
 
     function clearTableStale() {
@@ -10771,6 +11718,7 @@ updatePlaylistButtonUI();
 		
 		 try { v3UiSyncSaveButtons(); } catch (_) {}
 		 try { v3UiUpdateActiveHeader(); } catch (_) {}
+         try { classicSyncStateUi(); } catch (_) {}
     }
 
     function clearTextWithConfirm() {
@@ -10818,6 +11766,7 @@ updatePlaylistButtonUI();
 
         clearResultsMeta();
         updateTtsCostInfo();
+        try { classicSyncStateUi(); } catch (_) {}
     }
 
     // ----------------------------
@@ -13077,6 +14026,7 @@ function v3UiUpdateActiveHeader() {
   // Если таблицы нет и состояния нет — скрываем.
   if (!hasTable && !st.mode) {
     box.style.display = "none";
+    try { classicSyncStateUi(); } catch (_) {}
     return;
   }
 
@@ -13101,11 +14051,11 @@ function v3UiUpdateActiveHeader() {
     const staleNow = !!(typeof tableIsStale !== "undefined" && tableIsStale);
     if (staleNow) {
       sub = "Текст изменён — таблица устарела и не соответствует текущему тексту.\n" +
-        "Нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.\n" +
+        "Нажмите «Собрать таблицу», чтобы пересобрать актуальную таблицу.\n" +
         "Сохранение таблицы рекомендуется после обновления.";
     } else {
       sub = "Таблица сформирована";
-      if (_providerLabel) sub += " · Provider: " + _providerLabel;
+      if (_providerLabel) sub += " · Провайдер: " + _providerLabel;
       if (_nikudLabel) sub += " · Огласовки: " + _nikudLabel;
     }
     statusEl.classList.remove("v3-pill-saved");
@@ -13116,7 +14066,7 @@ function v3UiUpdateActiveHeader() {
     const origin = st.origin || "library";
     sub = (origin === "dashboard") ? "Открыт из Dashboard" : "Открыт из Library";
     if (st.openMode === "resume") sub += " • режим: продолжить";
-    if (_providerLabel) sub += " · Provider: " + _providerLabel;
+    if (_providerLabel) sub += " · Провайдер: " + _providerLabel;
     if (_nikudLabel) sub += " · Огласовки: " + _nikudLabel;
     sub += " · Аудио: Огласовки → Иврит";
     statusEl.classList.remove("v3-pill-draft");
@@ -13151,6 +14101,7 @@ function v3UiUpdateActiveHeader() {
   }
 
   box.style.display = "";
+  try { classicSyncStateUi(); } catch (_) {}
 }
 
 function v3UiSyncSaveButtons() {
@@ -13173,9 +14124,9 @@ function v3UiSyncSaveButtons() {
     // Label + tooltip
     btnSaveToLibrary.textContent = hasUpdate ? "💾 Обновить" : "💾 Сохранить";
     if (stale) {
-      btnSaveToLibrary.title = "Сначала «AI Перевод»: таблица устарела и не соответствует текущему тексту.";
+      btnSaveToLibrary.title = "Сначала «Собрать таблицу»: таблица устарела и не соответствует текущему тексту.";
     } else if (!hasTable) {
-      btnSaveToLibrary.title = "Сначала сформируйте таблицу (нажмите «AI Перевод»).";
+      btnSaveToLibrary.title = "Сначала сформируйте таблицу (нажмите «Собрать таблицу»).";
     } else {
       btnSaveToLibrary.title = hasBase
         ? "Обновить исходную карточку (в модалке есть также «Сохранить как новый»)"
@@ -13247,17 +14198,18 @@ function v3UiSyncSaveButtons() {
 
       if (saveBtn) {
         saveBtn.disabled = disabled;
-        if (stale) saveBtn.title = "Сначала «AI Перевод»: таблица устарела.";
+        if (stale) saveBtn.title = "Сначала «Собрать таблицу»: таблица устарела.";
         else saveBtn.title = "";
       }
       if (asNewBtn) {
         asNewBtn.disabled = disabled;
-        if (stale) asNewBtn.title = "Сначала «AI Перевод»: таблица устарела.";
+        if (stale) asNewBtn.title = "Сначала «Собрать таблицу»: таблица устарела.";
         else asNewBtn.title = "";
       }
 
       if (typeof v3SaveMetaSyncMode === "function") v3SaveMetaSyncMode();
     } catch (_) {}
+    try { classicSyncStateUi(); } catch (_) {}
   } catch (_) {
     // non-fatal
   }
@@ -14454,11 +15406,11 @@ async function v3LibrarySaveCurrent() {
   try {
       // Guard: нельзя сохранять устаревшую таблицу
     if (tableIsStale) {
-      showToast("Сначала нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.", "error");
+      showToast("Сначала нажмите «Собрать таблицу», чтобы пересобрать актуальную таблицу.", "error");
       return;
     }
     if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-      showToast("Нет таблицы для сохранения (сначала «AI Перевод»).", "error");
+      showToast("Нет таблицы для сохранения (сначала «Собрать таблицу»).", "error");
       return;
     }
     v3SaveMetaOpen();
@@ -14476,7 +15428,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       return null;
     }
     if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-      showToast("Нет таблицы для сохранения (сначала AI перевод/таблица)", "error");
+      showToast("Нет таблицы для сохранения (сначала соберите таблицу)", "error");
       return null;
     }
 
@@ -14580,7 +15532,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       return null;
     }
     if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-      showToast("Нет таблицы для сохранения (сначала AI перевод/таблица)", "error");
+    showToast("Нет таблицы для сохранения (сначала соберите таблицу)", "error");
       return null;
     }
     if (!textId) {
@@ -16518,13 +17470,13 @@ function v3SaveMetaOpen() {
     return;
   }
   if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-    showToast("Нет таблицы для сохранения (сначала AI перевод/таблица)", "error");
+    showToast("Нет таблицы для сохранения (сначала соберите таблицу)", "error");
     return;
   }
 
   // Guard: нельзя сохранять устаревшую таблицу (иначе будут дубликаты/неактуальные карточки)
 if (typeof tableIsStale !== "undefined" && tableIsStale) {
-  showToast("Текст изменён — таблица устарела. Нажмите «AI Перевод», чтобы пересобрать актуальную таблицу.", "error");
+  showToast("Текст изменён — таблица устарела. Нажмите «Собрать таблицу», чтобы пересобрать актуальную таблицу.", "error");
   try { v3UiSyncSaveButtons(); } catch (_) {}
   return;
 }
@@ -16646,7 +17598,7 @@ async function v3SaveMetaSaveAsNew() {
 
   try {
     if (typeof tableIsStale !== "undefined" && tableIsStale) {
-      showToast("Сначала AI Перевод: таблица устарела.", "error");
+      showToast("Сначала соберите таблицу: текущая версия устарела.", "error");
       return;
     }
 
@@ -18072,6 +19024,7 @@ try {
     // RENDER TABLE (with colgroup + grips)
     // ----------------------------
     function renderTable(rows) {
+        try { classicCloseRowSheet(); } catch (_) {}
         if (!Array.isArray(rows) || rows.length === 0) {
     document.getElementById("tableContainer").innerHTML = "";
 	
@@ -18091,6 +19044,7 @@ try {
     currentTableHasRuTranslit = false;
     try { syncTranslitSelectEnabled(); } catch (_) {}
     try { tableEditModeExit(true); tableEditToolbarUpdate(false); } catch (_) {}
+    try { classicSyncStateUi(); } catch (_) {}
 
     return;
 }
@@ -18301,7 +19255,94 @@ try {
     tableEditApplyEditedMarkers();
     if (_hasLibRows) { try { tableEditAttachDoubleTap(); } catch (_e) {} }
 } catch (_) {}
+try { classicSyncStateUi(); } catch (_) {}
     }
+
+    function classicCloseRowSheet() {
+        if (classicRowSheetEl) classicRowSheetEl.hidden = true;
+        if (classicRowSheetBackdropEl) classicRowSheetBackdropEl.hidden = true;
+        if (classicRowSheetBodyEl) classicRowSheetBodyEl.innerHTML = "";
+        if (classicRowSheetPlayEl) classicRowSheetPlayEl.dataset.rowIdx = "";
+        if (classicRowSheetNoteEl) classicRowSheetNoteEl.dataset.rowIdx = "";
+    }
+
+    function classicOpenRowSheet(rowIdx) {
+        if (!classicIsMobileViewport()) return;
+        if (!Array.isArray(currentTableData)) return;
+        const idx = Number(rowIdx);
+        if (!Number.isFinite(idx) || idx < 0 || idx >= currentTableData.length) return;
+        const row = currentTableData[idx] || {};
+        if (!classicRowSheetEl || !classicRowSheetBodyEl) return;
+
+        const parts = [];
+        const pushCell = function(label, value, rtl) {
+            const text = String(value || "").trim();
+            if (!text) return;
+            parts.push(
+                '<div class="classic-row-sheet-cell">' +
+                    '<span class="classic-row-sheet-label">' + escapeHtml(label) + '</span>' +
+                    '<div class="classic-row-sheet-value"' + (rtl ? ' dir="rtl"' : ' dir="auto"') + '>' + escapeHtml(text) + '</div>' +
+                '</div>'
+            );
+        };
+
+        pushCell("Иврит", row.he, true);
+        pushCell("Огласовки", row.he_niqqud, true);
+        pushCell("Транслит", row.translit_ru || row.translit, false);
+        pushCell("Перевод", row.ru, false);
+
+        classicRowSheetBodyEl.innerHTML = parts.join("");
+        if (classicRowSheetMetaEl) classicRowSheetMetaEl.textContent = "Строка " + (idx + 1);
+        if (classicRowSheetPlayEl) classicRowSheetPlayEl.dataset.rowIdx = String(idx);
+        if (classicRowSheetNoteEl) {
+            classicRowSheetNoteEl.dataset.rowIdx = String(idx);
+            classicRowSheetNoteEl.hidden = !(row && row._v3_sentenceId);
+        }
+
+        if (classicRowSheetBackdropEl) classicRowSheetBackdropEl.hidden = false;
+        classicRowSheetEl.hidden = false;
+    }
+
+    if (classicRowSheetBackdropEl) {
+        classicRowSheetBackdropEl.addEventListener("click", classicCloseRowSheet);
+    }
+    if (classicRowSheetCloseEl) {
+        classicRowSheetCloseEl.addEventListener("click", classicCloseRowSheet);
+    }
+    if (classicRowSheetPlayEl) {
+        classicRowSheetPlayEl.addEventListener("click", function() {
+            const idx = String(classicRowSheetPlayEl.dataset.rowIdx || "");
+            const btn = document.querySelector('.row-tts-btn[data-row-idx="' + idx + '"]');
+            if (btn) btn.click();
+        });
+    }
+    if (classicRowSheetNoteEl) {
+        classicRowSheetNoteEl.addEventListener("click", function() {
+            const idx = String(classicRowSheetNoteEl.dataset.rowIdx || "");
+            const btn = document.querySelector('.row-note-btn[data-row-idx="' + idx + '"]');
+            if (btn) btn.click();
+        });
+    }
+    document.addEventListener("keydown", function(ev) {
+        if (!classicRowSheetEl || classicRowSheetEl.hidden) return;
+        if (ev.key !== "Escape") return;
+        classicCloseRowSheet();
+    });
+    document.addEventListener("click", function(ev) {
+        try {
+            if (!classicIsMobileViewport()) return;
+            if (classicRowSheetEl && !classicRowSheetEl.hidden) return;
+            const target = ev && ev.target;
+            if (!target || !target.closest) return;
+            if (target.closest(".row-tts-btn, .row-note-btn, .row-edit-btn, a, button, input, select, textarea")) return;
+            const td = target.closest('#proTable tbody td[data-col]');
+            if (!td || td.getAttribute("data-col") === "action") return;
+            const tr = td.closest("tr[data-row-idx]");
+            const table = document.getElementById("proTable");
+            if (!tr || (table && table.classList.contains("tbl-edit-mode"))) return;
+            classicOpenRowSheet(tr.getAttribute("data-row-idx"));
+        } catch (_) {}
+    }, true);
 
     // ----------------------------
 // TABLE EDIT MODE
