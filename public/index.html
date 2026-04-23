@@ -2459,6 +2459,43 @@ th, td { border-color: rgba(0,0,0,0.55); }
   user-select: text !important;
 }
 
+/* Mobile FAB: contextual shortcut into edit mode */
+#tableEditFab {
+  display: none;
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right, 0px));
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 195;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1976d2, #1565c0);
+  color: #ffffff;
+  font-size: 21px;
+  font-weight: 800;
+  box-shadow: 0 16px 28px rgba(21, 101, 192, 0.28);
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.18s ease, opacity 0.18s ease, background 0.18s ease;
+}
+#tableEditFab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 32px rgba(21, 101, 192, 0.32);
+}
+#tableEditFab:active {
+  transform: scale(0.96);
+}
+#tableEditFab.active {
+  background: linear-gradient(180deg, #1565c0, #0d47a1);
+}
+@media (pointer: coarse) and (max-width: 768px) {
+  #tableEditFab.fab-visible {
+    display: inline-flex;
+  }
+}
+
 /* Double-click/tap hint cursor on cells when NOT in edit mode */
 #proTable:not(.tbl-edit-mode) tbody td[data-col="he"],
 #proTable:not(.tbl-edit-mode) tbody td[data-col="niqqud"],
@@ -5615,6 +5652,7 @@ body.v3-ide-mode .v3-ide-right {
                           <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям">↺ Сбросить всё</button>
                         </div>
                         <div id="tableContainer"></div>
+                        <button id="tableEditFab" type="button" title="Режим редактирования таблицы" aria-label="Режим редактирования таблицы" hidden>✎</button>
                             </div>
                         </details>
                     </section>
@@ -19526,6 +19564,7 @@ try { classicSyncStateUi(); } catch (_) {}
         if (classicRowSheetBodyEl) classicRowSheetBodyEl.innerHTML = "";
         if (classicRowSheetPlayEl) classicRowSheetPlayEl.dataset.rowIdx = "";
         if (classicRowSheetNoteEl) classicRowSheetNoteEl.dataset.rowIdx = "";
+        try { tableEditFabUpdate(); } catch (_) {}
     }
 
     function classicOpenRowSheet(rowIdx) {
@@ -19563,6 +19602,7 @@ try { classicSyncStateUi(); } catch (_) {}
 
         if (classicRowSheetBackdropEl) classicRowSheetBackdropEl.hidden = false;
         classicRowSheetEl.hidden = false;
+        try { tableEditFabUpdate(); } catch (_) {}
     }
 
     if (classicRowSheetBackdropEl) {
@@ -19589,6 +19629,9 @@ try { classicSyncStateUi(); } catch (_) {}
         if (!classicRowSheetEl || classicRowSheetEl.hidden) return;
         if (ev.key !== "Escape") return;
         classicCloseRowSheet();
+    });
+    window.addEventListener("resize", function() {
+        try { tableEditFabUpdate(); } catch (_) {}
     });
     document.addEventListener("click", function(ev) {
         try {
@@ -19620,10 +19663,29 @@ function tableEditToolbarUpdate(show) {
     if (!tb) return;
     if (!show) {
         tb.classList.remove("visible");
+        tableEditFabUpdate();
         return;
     }
     tb.classList.add("visible");
     tableEditUpdateStatus();
+    tableEditFabUpdate();
+}
+
+function tableEditFabUpdate() {
+    const fab = document.getElementById("tableEditFab");
+    const toolbar = document.getElementById("tableEditToolbar");
+    if (!fab) return;
+    const isMobile = classicIsMobileViewport();
+    const toolbarVisible = !!(toolbar && toolbar.classList.contains("visible"));
+    const rowSheetOpen = !!(classicRowSheetEl && !classicRowSheetEl.hidden);
+    const shouldShow = isMobile && toolbarVisible && !rowSheetOpen;
+
+    fab.classList.toggle("fab-visible", shouldShow);
+    fab.classList.toggle("active", tableEditActive);
+    fab.hidden = !shouldShow;
+    fab.textContent = tableEditActive ? "✓" : "✎";
+    fab.title = tableEditActive ? "Завершить редактирование таблицы" : "Режим редактирования таблицы";
+    fab.setAttribute("aria-label", fab.title);
 }
 
 function tableEditUpdateStatus() {
@@ -19687,6 +19749,7 @@ function tableEditModeEnter() {
         window.visualViewport.addEventListener("scroll", _tableEditToolbarPin);
         _tableEditToolbarPin();
     }
+    tableEditFabUpdate();
 }
 
 function tableEditModeExit(silent) {
@@ -19711,6 +19774,7 @@ function tableEditModeExit(silent) {
         });
     }
     tableEditUpdateStatus();
+    tableEditFabUpdate();
 }
 
 function tableEditApplyEditedMarkers() {
@@ -20279,6 +20343,8 @@ function tableEditAttachDoubleTap() {
     document.addEventListener("click", function(e) {
         const toggleBtn = e.target.closest("#tableEditToggleBtn");
         if (toggleBtn) { _onToggleBtn(); return; }
+        const fab = e.target.closest("#tableEditFab");
+        if (fab) { _onToggleBtn(); tableEditFabUpdate(); return; }
         const addBtn = e.target.closest("#tableEditAddBtn");
         if (addBtn) { _onAddBtn(); return; }
         const resetAllBtn = e.target.closest("#tableEditResetAllBtn");

@@ -46,9 +46,11 @@ test("classic mode provides trust-focused result workspace and static mode toggl
   assert.match(html, /\.v3-mode-toggle\s*\{[\s\S]*position:\s*static;/);
 });
 
-test("classic mode removes floating edit FAB and uses deeper mobile disclosure", () => {
-  assert.doesNotMatch(html, /id="tableEditFab"/);
-  assert.doesNotMatch(html, /#tableEditFab/);
+test("classic mode keeps a contextual mobile edit FAB and deeper mobile disclosure", () => {
+  assert.match(html, /id="tableEditFab"/);
+  assert.match(html, /function tableEditFabUpdate\(\)/);
+  assert.match(html, /shouldShow = isMobile && toolbarVisible && !rowSheetOpen/);
+  assert.match(html, /@media \(pointer: coarse\) and \(max-width: 768px\)[\s\S]*#tableEditFab\.fab-visible/);
   assert.match(html, /classic-result-workspace-summary/);
   assert.match(html, /@media \(max-width: 768px\)[\s\S]*classic-result-workspace-summary[\s\S]*display:\s*flex/);
 });
