@@ -1535,10 +1535,14 @@ th, td { border-color: rgba(0,0,0,0.55); }
   border: 1px solid #dee2e6;
   border-radius: 8px;
   margin-bottom: 6px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   position: sticky;
   top: 0;
   z-index: 120;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
 }
 /* On mobile, fix toolbar at top of viewport so iOS keyboard doesn't push it off-screen */
 @media (max-width: 768px) {
@@ -1553,6 +1557,10 @@ th, td { border-color: rgba(0,0,0,0.55); }
     border-top: none;
     margin-bottom: 0;
     z-index: 200;
+  }
+  #tableEditToolbar {
+    flex-wrap: wrap;
+    overflow-x: visible;
   }
   /* Push table down so fixed toolbar doesn't overlap it */
   body.edit-mode-active #tableContainer {
@@ -1578,8 +1586,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
 .tbl-edit-status {
   font-size: 0.80rem;
   color: #6c757d;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .tbl-edit-status.has-changes { color: #e65100; font-weight: 600; }
 
@@ -1593,6 +1604,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
   font-weight: 600;
   cursor: pointer;
   display: none;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 .tbl-edit-reset-all-btn.visible { display: inline-block; }
 .tbl-edit-reset-all-btn:hover { background: #ffe0b2; }
@@ -1606,6 +1619,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
+  flex: 0 0 auto;
   white-space: nowrap;
 }
 .tbl-edit-add-btn:hover { background: #b3e5fc; }
