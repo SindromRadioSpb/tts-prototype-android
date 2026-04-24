@@ -22,6 +22,7 @@ test("classic mode exposes first-screen input, status chips and primary actions"
   assert.match(html, /id="classicInputStateChip"/);
   assert.match(html, /id="classicResultStateChip"/);
   assert.match(html, /id="classicSourceStateChip"/);
+  assert.match(html, /id="classicStatusStrip"/);
   assert.match(html, /id="inputText"/);
   assert.match(html, /id="btnAiTranslate"[\s\S]*Собрать таблицу/);
   assert.match(html, /id="btnMainTts"[\s\S]*Озвучить/);
@@ -46,11 +47,23 @@ test("classic mode provides trust-focused result workspace and static mode toggl
   assert.match(html, /\.v3-mode-toggle\s*\{[\s\S]*position:\s*static;/);
 });
 
+test("classic mode applies mobile-only compact layout contracts", () => {
+  assert.match(html, /class="classic-status-strip-summary">Лимиты и квоты<\/summary>/);
+  assert.match(html, /function classicSyncServiceStripState\(\)/);
+  assert.match(html, /classicStatusStripEl\.open = false/);
+  assert.match(html, /classic-composer-tools[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/);
+  assert.match(html, /classic-primary-actions[\s\S]*flex-wrap:\s*nowrap/);
+  assert.match(html, /classic-export-actions #btnAudioPrefetch,\s*[\s\S]*#btnAnki \{ display:\s*none !important;/);
+  assert.match(html, /table-presets[\s\S]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+});
+
 test("classic mode keeps a contextual mobile edit FAB and deeper mobile disclosure", () => {
   assert.match(html, /id="tableEditFab"/);
   assert.match(html, /function tableEditFabUpdate\(\)/);
   assert.match(html, /shouldShow = isMobile && toolbarVisible && !rowSheetOpen/);
   assert.match(html, /@media \(pointer: coarse\) and \(max-width: 768px\)[\s\S]*#tableEditFab\.fab-visible/);
+  assert.match(html, /right:\s*calc\(18px \+ env\(safe-area-inset-right, 0px\)\)/);
+  assert.match(html, /bottom:\s*calc\(24px \+ env\(safe-area-inset-bottom, 0px\)\)/);
   assert.match(html, /classic-result-workspace-summary/);
   assert.match(html, /@media \(max-width: 768px\)[\s\S]*classic-result-workspace-summary[\s\S]*display:\s*flex/);
 });

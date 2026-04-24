@@ -39,10 +39,47 @@
         color: #333;
     }
 
+    .classic-status-strip-wrap,
     .classic-status-strip,
     .classic-main-card {
         width: 100%;
         box-sizing: border-box;
+    }
+
+    .classic-status-strip-wrap {
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
+        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.045);
+        overflow: hidden;
+    }
+
+    .classic-status-strip-summary {
+        display: none;
+        list-style: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 14px;
+        cursor: pointer;
+        color: #0f172a;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .classic-status-strip-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .classic-status-strip-summary::after {
+        content: "⌄";
+        font-size: 18px;
+        color: #64748b;
+        transition: transform 0.18s ease;
+    }
+
+    .classic-status-strip-wrap[open] .classic-status-strip-summary::after {
+        transform: rotate(180deg);
     }
 
     .classic-main-card {
@@ -521,10 +558,10 @@
 
     .classic-status-strip {
         padding: 12px 14px;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
-        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.045);
+        border: none;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
     }
 
     .stats-box {
@@ -1565,6 +1602,8 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .hotkeys-hint { text-align: left; }
         /* Mobile: reduce padding to reclaim space for the table */
         body { padding: 12px; }
+        .classic-status-strip-wrap { border-radius: 18px; }
+        .classic-status-strip-summary { display: flex; }
         .main-card { padding: 14px 12px; }
         .classic-main-card { padding: 14px 12px 16px; }
         .classic-shell-head { gap: 14px; }
@@ -1572,13 +1611,37 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .classic-utility-nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
         .classic-utility-nav .btn-secondary { flex: 0 0 auto; width: auto; }
         .classic-utility-bar .v3-mode-toggle { width: 100%; justify-content: center; }
+        .classic-composer-tools {
+            width: 100%;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 8px;
+        }
+        .classic-composer-tools .btn-secondary {
+            width: 100%;
+            min-width: 0;
+            min-height: 44px;
+            padding: 10px 8px;
+        }
         .classic-state-row { gap: 6px; }
         .classic-state-chip,
         .classic-trust-chip { white-space: normal; }
         .classic-primary-bar { padding: 12px; }
-        .classic-primary-actions { width: 100%; flex-direction: column; }
+        .classic-primary-actions {
+            width: 100%;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            gap: 8px;
+        }
         .classic-primary-actions .btn-success,
-        .classic-primary-actions .btn-primary { width: 100%; }
+        .classic-primary-actions .btn-primary {
+            flex: 1 1 0;
+            min-width: 0;
+            width: auto;
+            padding: 12px 10px;
+            font-size: 14px;
+            line-height: 1.2;
+        }
         .classic-primary-hint { flex-basis: 100%; }
         .classic-fields-grid-two { grid-template-columns: 1fr; }
         .classic-inline-meta { align-items: stretch; }
@@ -1586,8 +1649,17 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .classic-inline-meta .btn-secondary { width: 100%; justify-content: center; }
         .classic-result-actions { width: 100%; }
         .classic-result-actions .btn-secondary { width: 100%; }
-        .classic-export-actions { flex-direction: column; }
-        .classic-export-actions button { width: 100%; }
+        .classic-export-actions {
+            flex-direction: row;
+            align-items: stretch;
+            gap: 0;
+        }
+        .classic-export-actions #btnAudioPrefetch,
+        .classic-export-actions #btnAnki { display: none !important; }
+        .classic-export-actions #btnWord {
+            width: 100%;
+            min-width: 0;
+        }
     }
 
     @media (max-width: 1100px) {
@@ -1607,14 +1679,22 @@ th, td { border-color: rgba(0,0,0,0.55); }
         }
 
         .classic-status-strip {
-            padding: 10px 10px 12px;
-            border-radius: 18px;
+            padding: 8px 10px 10px;
+            border-radius: 0;
         }
 
         .classic-status-strip .stat-item {
             flex: 1 1 100%;
             min-width: 0;
             padding: 9px 10px;
+        }
+
+        .classic-status-strip-wrap:not([open]) .classic-status-strip {
+            display: none;
+        }
+
+        .classic-status-strip-wrap[open] .classic-status-strip {
+            display: block;
         }
 
         .classic-screen-title {
@@ -1670,17 +1750,34 @@ th, td { border-color: rgba(0,0,0,0.55); }
         }
 
         .table-settings-row-main {
-            gap: 10px;
+            gap: 8px;
         }
 
         .table-settings-row-main .table-presets {
             width: 100%;
-            justify-content: flex-start;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .table-settings-row-main .table-presets .btn-mini {
+            width: 100%;
+            min-width: 0;
+            padding: 10px 4px;
+            font-size: 11px;
+            line-height: 1.15;
+            border-radius: 14px;
+            letter-spacing: -0.01em;
         }
 
         .table-settings-row-main .table-settings-actions {
             width: 100%;
             justify-content: flex-start;
+        }
+
+        .table-settings-row-main .table-settings-actions .btn-mini-secondary {
+            min-height: 42px;
+            padding: 10px 12px;
         }
 
         #toastContainer {
@@ -2463,11 +2560,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
 #tableEditFab {
   display: none;
   position: fixed;
-  right: max(14px, env(safe-area-inset-right, 0px));
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  right: calc(18px + env(safe-area-inset-right, 0px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   z-index: 195;
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   align-items: center;
   justify-content: center;
   border: none;
@@ -5263,6 +5360,8 @@ body.v3-ide-mode .v3-ide-right {
 <!-- IDE Panel Backdrop (for mobile overlay) -->
 <div id="v3IdePanelBackdrop" class="v3-ide-panel-backdrop" onclick="v3IdeCloseOverlays()"></div>
 
+    <details id="classicStatusStrip" class="classic-status-strip-wrap" open>
+        <summary class="classic-status-strip-summary">Лимиты и квоты</summary>
     <div class="dashboard-header classic-status-strip">
         <div class="stats-box">
             <div class="stat-item">
@@ -5349,6 +5448,7 @@ body.v3-ide-mode .v3-ide-right {
             </a>
         </div>
     </div>
+    </details>
 
     <div class="main-card classic-main-card">
         <div class="classic-shell">
@@ -8167,6 +8267,7 @@ function v3NotesRefreshAllButtons() {
 	const btnWordEl = document.getElementById("btnWord");
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
     const btnMainTtsEl = document.getElementById("btnMainTts");
+    const classicStatusStripEl = document.getElementById("classicStatusStrip");
     const classicPrimaryBarEl = document.getElementById("classicPrimaryBar");
     const btnInputPasteEl = document.getElementById("btnInputPaste");
     const btnInputClearEl = document.getElementById("btnInputClear");
@@ -11028,6 +11129,20 @@ updatePlaylistButtonUI();
         });
     }
 
+    function classicSyncServiceStripState() {
+        if (!classicStatusStripEl) return;
+        const isMobile = classicIsMobileViewport();
+        if (isMobile) {
+            if (!classicStatusStripEl.dataset.mobilePrepared) {
+                classicStatusStripEl.open = false;
+                classicStatusStripEl.dataset.mobilePrepared = "1";
+            }
+            return;
+        }
+        classicStatusStripEl.open = true;
+        delete classicStatusStripEl.dataset.mobilePrepared;
+    }
+
     function classicSetTableAdvancedOpen(forceOpen) {
         const root = document.getElementById("tableSettings");
         if (!root || !btnTableCustomizeToggleEl) return;
@@ -11229,6 +11344,7 @@ updatePlaylistButtonUI();
 
     autoGrow(false);
     try { classicSyncDisclosureState(); } catch (_) {}
+    try { classicSyncServiceStripState(); } catch (_) {}
     try { classicSyncStateUi(); } catch (_) {}
     try { classicSetTableAdvancedOpen(false); } catch (_) {}
 
@@ -11267,6 +11383,7 @@ updatePlaylistButtonUI();
 
     window.addEventListener("resize", function () {
         try { classicSyncDisclosureState(); } catch (_) {}
+        try { classicSyncServiceStripState(); } catch (_) {}
         try {
             if (!classicIsMobileViewport()) classicCloseRowSheet();
         } catch (_) {}
