@@ -23,6 +23,8 @@ test("classic mode exposes first-screen input, status chips and primary actions"
   assert.match(html, /id="classicResultStateChip"/);
   assert.match(html, /id="classicSourceStateChip"/);
   assert.match(html, /id="classicStatusStrip"/);
+  assert.match(html, /id="classicComposerPanel"/);
+  assert.match(html, /id="classicResultPanel"/);
   assert.match(html, /id="inputText"/);
   assert.match(html, /id="btnAiTranslate"[\s\S]*Собрать таблицу/);
   assert.match(html, /id="btnMainTts"[\s\S]*Озвучить/);
@@ -50,7 +52,11 @@ test("classic mode provides trust-focused result workspace and static mode toggl
 test("classic mode applies mobile-only compact layout contracts", () => {
   assert.match(html, /class="classic-status-strip-summary">Лимиты и квоты<\/summary>/);
   assert.match(html, /function classicSyncServiceStripState\(\)/);
+  assert.match(html, /function classicSyncMainPanels\(options\)/);
   assert.match(html, /classicStatusStripEl\.open = false/);
+  assert.match(html, /classic-mobile-panel-summary/);
+  assert.match(html, /classicComposerPanelMeta/);
+  assert.match(html, /classicResultPanelMeta/);
   assert.match(html, /classic-composer-tools[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\)/);
   assert.match(html, /classic-primary-actions[\s\S]*flex-wrap:\s*nowrap/);
   assert.match(html, /classic-export-actions #btnAudioPrefetch,\s*[\s\S]*#btnAnki \{ display:\s*none !important;/);
@@ -66,6 +72,8 @@ test("classic mode keeps a contextual mobile edit FAB and deeper mobile disclosu
   assert.match(html, /bottom:\s*calc\(24px \+ env\(safe-area-inset-bottom, 0px\)\)/);
   assert.match(html, /classic-result-workspace-summary/);
   assert.match(html, /@media \(max-width: 768px\)[\s\S]*classic-result-workspace-summary[\s\S]*display:\s*flex/);
+  assert.match(html, /classicSyncMainPanels\(\{ force: true \}\)/);
+  assert.match(html, /classicRememberMobileDisclosureChoice\(classicComposerPanelEl\)/);
 });
 
 test("classic mode user-facing copy no longer refers to AI translate label", () => {

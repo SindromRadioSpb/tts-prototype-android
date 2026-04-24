@@ -322,6 +322,61 @@
         color: #475569;
     }
 
+    .classic-mobile-panel {
+        width: 100%;
+    }
+
+    .classic-mobile-panel-summary {
+        display: none;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        list-style: none;
+        cursor: pointer;
+        color: #0f172a;
+    }
+
+    .classic-mobile-panel-summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .classic-mobile-panel-summary::after {
+        content: "⌄";
+        flex: 0 0 auto;
+        font-size: 18px;
+        font-weight: 700;
+        color: #64748b;
+        transition: transform 0.18s ease;
+    }
+
+    .classic-mobile-panel[open] .classic-mobile-panel-summary::after {
+        transform: rotate(180deg);
+    }
+
+    .classic-mobile-panel-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+    }
+
+    .classic-mobile-panel-title {
+        font-size: 15px;
+        line-height: 1.2;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .classic-mobile-panel-meta {
+        font-size: 12px;
+        line-height: 1.35;
+        color: #64748b;
+    }
+
+    .classic-mobile-panel-body {
+        min-width: 0;
+    }
+
     .classic-disclosure {
         padding-top: 0;
     }
@@ -1626,6 +1681,25 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .classic-state-row { gap: 6px; }
         .classic-state-chip,
         .classic-trust-chip { white-space: normal; }
+        .classic-mobile-panel {
+            padding: 14px 12px 16px;
+            border-radius: 18px;
+        }
+        .classic-mobile-panel-summary {
+            display: flex;
+            padding: 0;
+        }
+        .classic-mobile-panel[open] .classic-mobile-panel-summary {
+            margin-bottom: 10px;
+        }
+        .classic-mobile-panel[open] .classic-card-head > div:first-child,
+        .classic-mobile-panel[open] .classic-result-head > div:first-child {
+            display: none;
+        }
+        .classic-mobile-panel[open] .classic-card-head,
+        .classic-mobile-panel[open] .classic-result-head {
+            margin-bottom: 10px;
+        }
         .classic-primary-bar { padding: 12px; }
         .classic-primary-actions {
             width: 100%;
@@ -1746,7 +1820,10 @@ th, td { border-color: rgba(0,0,0,0.55); }
         }
 
         .classic-result-workspace-hint {
-            display: none;
+            display: block;
+            font-size: 11px;
+            text-align: left;
+            max-width: 180px;
         }
 
         .table-settings-row-main {
@@ -5472,7 +5549,14 @@ body.v3-ide-mode .v3-ide-right {
 
             <div class="classic-workspace-grid">
                 <div class="classic-workflow-column">
-                    <section class="classic-card classic-composer-card" aria-labelledby="classicComposerTitle">
+                    <details id="classicComposerPanel" class="classic-card classic-mobile-panel" open>
+                        <summary class="classic-mobile-panel-summary">
+                            <span class="classic-mobile-panel-copy">
+                                <span class="classic-mobile-panel-title">Исходный текст</span>
+                                <span id="classicComposerPanelMeta" class="classic-mobile-panel-meta">Пусто</span>
+                            </span>
+                        </summary>
+                    <section class="classic-mobile-panel-body classic-composer-card" aria-labelledby="classicComposerTitle">
                         <div class="classic-card-head">
                             <div>
                                 <div id="classicComposerTitle" class="classic-card-title">Исходный текст</div>
@@ -5525,6 +5609,7 @@ body.v3-ide-mode .v3-ide-right {
                             </ul>
                         </div>
                     </section>
+                    </details>
 
                     <details id="classicTtsCard" class="classic-card classic-disclosure" open>
                         <summary class="classic-disclosure-summary">
@@ -5636,7 +5721,14 @@ body.v3-ide-mode .v3-ide-right {
                 </div>
 
                 <div class="classic-result-column">
-                    <section class="classic-card classic-result-card" aria-labelledby="classicResultTitle">
+                    <details id="classicResultPanel" class="classic-card classic-mobile-panel" open>
+                        <summary class="classic-mobile-panel-summary">
+                            <span class="classic-mobile-panel-copy">
+                                <span class="classic-mobile-panel-title">Результат</span>
+                                <span id="classicResultPanelMeta" class="classic-mobile-panel-meta">Пока нет таблицы</span>
+                            </span>
+                        </summary>
+                    <section class="classic-mobile-panel-body classic-result-card" aria-labelledby="classicResultTitle">
                         <div class="classic-result-head">
                             <div>
                                 <div id="classicResultTitle" class="classic-card-title">Результат</div>
@@ -5756,6 +5848,7 @@ body.v3-ide-mode .v3-ide-right {
                             </div>
                         </details>
                     </section>
+                    </details>
                 </div>
             </div>
         </div>
@@ -8268,6 +8361,8 @@ function v3NotesRefreshAllButtons() {
     const btnAiTranslateEl = document.getElementById("btnAiTranslate");
     const btnMainTtsEl = document.getElementById("btnMainTts");
     const classicStatusStripEl = document.getElementById("classicStatusStrip");
+    const classicComposerPanelEl = document.getElementById("classicComposerPanel");
+    const classicResultPanelEl = document.getElementById("classicResultPanel");
     const classicPrimaryBarEl = document.getElementById("classicPrimaryBar");
     const btnInputPasteEl = document.getElementById("btnInputPaste");
     const btnInputClearEl = document.getElementById("btnInputClear");
@@ -8275,6 +8370,8 @@ function v3NotesRefreshAllButtons() {
     const classicInputStateChipEl = document.getElementById("classicInputStateChip");
     const classicResultStateChipEl = document.getElementById("classicResultStateChip");
     const classicSourceStateChipEl = document.getElementById("classicSourceStateChip");
+    const classicComposerPanelMetaEl = document.getElementById("classicComposerPanelMeta");
+    const classicResultPanelMetaEl = document.getElementById("classicResultPanelMeta");
     const classicPrimaryHintEl = document.getElementById("classicPrimaryHint");
     const classicResultFreshChipEl = document.getElementById("classicResultFreshChip");
     const classicResultSaveChipEl = document.getElementById("classicResultSaveChip");
@@ -8309,6 +8406,7 @@ function v3NotesRefreshAllButtons() {
 
     const toastContainerEl = document.getElementById("toastContainer");
     const resultsMetaEl = document.getElementById("resultsMeta");
+    const classicProgrammaticDisclosures = new WeakSet();
 
     
 
@@ -11113,9 +11211,42 @@ updatePlaylistButtonUI();
         el.className = "classic-trust-chip" + (tone ? " is-" + tone : "");
     }
 
+    function classicFormatCount(value, one, few, many) {
+        const n = Math.abs(Number(value) || 0);
+        const mod10 = n % 10;
+        const mod100 = n % 100;
+        if (mod10 === 1 && mod100 !== 11) return n + " " + one;
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return n + " " + few;
+        return n + " " + many;
+    }
+
+    function classicRememberMobileDisclosureChoice(panel) {
+        if (!panel || panel.dataset.choiceBound === "1") return;
+        panel.dataset.choiceBound = "1";
+        panel.addEventListener("toggle", function () {
+            if (!classicIsMobileViewport()) return;
+            if (classicProgrammaticDisclosures.has(panel)) return;
+            panel.dataset.mobileUserChoice = panel.open ? "open" : "closed";
+        });
+    }
+
+    function classicSetDisclosureOpen(panel, shouldOpen, options) {
+        if (!panel) return;
+        const nextOpen = !!shouldOpen;
+        if (options && options.resetChoice) {
+            delete panel.dataset.mobileUserChoice;
+        }
+        if (panel.open === nextOpen) return;
+        classicProgrammaticDisclosures.add(panel);
+        panel.open = nextOpen;
+        window.setTimeout(function () {
+            try { classicProgrammaticDisclosures.delete(panel); } catch (_) {}
+        }, 0);
+    }
+
     function classicSyncDisclosureState() {
         const isMobile = classicIsMobileViewport();
-        [classicTtsCardEl, classicTranslationCardEl, classicResultWorkspaceEl].forEach(function(card) {
+        [classicTtsCardEl, classicTranslationCardEl].forEach(function(card) {
             if (!card) return;
             if (isMobile) {
                 if (!card.dataset.mobileCollapsed) {
@@ -11143,6 +11274,43 @@ updatePlaylistButtonUI();
         delete classicStatusStripEl.dataset.mobilePrepared;
     }
 
+    function classicSyncMainPanels(options) {
+        classicRememberMobileDisclosureChoice(classicComposerPanelEl);
+        classicRememberMobileDisclosureChoice(classicResultPanelEl);
+        classicRememberMobileDisclosureChoice(classicResultWorkspaceEl);
+
+        const isMobile = classicIsMobileViewport();
+        const force = !!(options && options.force);
+        const text = typeof getText === "function"
+            ? String(getText() || "").trim()
+            : String(inputTextEl && inputTextEl.value || "").trim();
+        const hasTable = classicGetHasTable();
+        const resultCurrent = hasTable && !tableIsStale;
+
+        if (!isMobile) {
+            classicSetDisclosureOpen(classicComposerPanelEl, true);
+            classicSetDisclosureOpen(classicResultPanelEl, true);
+            classicSetDisclosureOpen(classicResultWorkspaceEl, true);
+            return;
+        }
+
+        const desiredComposerOpen = !hasTable || tableIsStale || !text;
+        const desiredResultOpen = resultCurrent;
+        const desiredWorkspaceOpen = resultCurrent;
+
+        const composerChoice = force ? null : classicComposerPanelEl && classicComposerPanelEl.dataset.mobileUserChoice;
+        const resultChoice = force ? null : classicResultPanelEl && classicResultPanelEl.dataset.mobileUserChoice;
+        const workspaceChoice = force ? null : classicResultWorkspaceEl && classicResultWorkspaceEl.dataset.mobileUserChoice;
+
+        const composerOpen = composerChoice ? composerChoice === "open" : desiredComposerOpen;
+        const resultOpen = resultChoice ? resultChoice === "open" : desiredResultOpen;
+        const workspaceOpen = workspaceChoice ? workspaceChoice === "open" : desiredWorkspaceOpen;
+
+        classicSetDisclosureOpen(classicComposerPanelEl, composerOpen, { resetChoice: force });
+        classicSetDisclosureOpen(classicResultPanelEl, resultOpen, { resetChoice: force });
+        classicSetDisclosureOpen(classicResultWorkspaceEl, workspaceOpen, { resetChoice: force });
+    }
+
     function classicSetTableAdvancedOpen(forceOpen) {
         const root = document.getElementById("tableSettings");
         if (!root || !btnTableCustomizeToggleEl) return;
@@ -11167,6 +11335,8 @@ updatePlaylistButtonUI();
         const text = typeof getText === "function" ? String(getText() || "").trim() : String(inputTextEl && inputTextEl.value || "").trim();
         const hasTable = classicGetHasTable();
         const hasAudio = classicGetHasAudio();
+        const rowCount = hasTable ? currentTableData.length : 0;
+        const textCount = text.length;
         const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
         const sourceMeta = String(resultsMetaState.tableSource || "").toLowerCase();
         const isSaved = st.mode === "library" || st.mode === "saved";
@@ -11174,9 +11344,15 @@ updatePlaylistButtonUI();
             !!(btnAnkiEl && btnAnkiEl.disabled) &&
             !!(btnAudioPrefetchEl && btnAudioPrefetchEl.disabled);
         const exportReady = hasTable && !tableIsStale && !allDisabled;
-        const workspaceHint = hasTable
-            ? (exportReady ? "Экспорт и работа по строкам готовы" : "Строки, сценарии и сохранение")
-            : "Сценарии таблицы появятся после сборки";
+        const workspaceHint = !hasTable
+            ? "Сначала соберите таблицу"
+            : tableIsStale
+                ? (classicFormatCount(rowCount, "строка", "строки", "строк") + " • требуется пересборка")
+                : exportReady
+                    ? (classicFormatCount(rowCount, "строка", "строки", "строк") + " • экспорт готов")
+                    : isSaved
+                        ? (classicFormatCount(rowCount, "строка", "строки", "строк") + " • Library")
+                        : (classicFormatCount(rowCount, "строка", "строки", "строк") + " • черновик");
 
         let inputText = "Текст: пусто";
         let inputTone = "info";
@@ -11190,6 +11366,18 @@ updatePlaylistButtonUI();
             }
         }
         classicSetChip(classicInputStateChipEl, inputText, inputTone);
+
+        if (classicComposerPanelMetaEl) {
+            if (!text) {
+                classicComposerPanelMetaEl.textContent = "Пусто";
+            } else if (tableIsStale || audioIsStale) {
+                classicComposerPanelMetaEl.textContent = classicFormatCount(textCount, "символ", "символа", "символов") + " • требует обновления";
+            } else if (hasTable) {
+                classicComposerPanelMetaEl.textContent = classicFormatCount(textCount, "символ", "символа", "символов") + " • готов";
+            } else {
+                classicComposerPanelMetaEl.textContent = classicFormatCount(textCount, "символ", "символа", "символов");
+            }
+        }
 
         let resultText = "Результат: отсутствует";
         let resultTone = "info";
@@ -11209,6 +11397,18 @@ updatePlaylistButtonUI();
             }
         }
         classicSetChip(classicResultStateChipEl, resultText, resultTone);
+
+        if (classicResultPanelMetaEl) {
+            if (!hasTable) {
+                classicResultPanelMetaEl.textContent = "Пока нет таблицы";
+            } else if (tableIsStale) {
+                classicResultPanelMetaEl.textContent = classicFormatCount(rowCount, "строка", "строки", "строк") + " • устарела";
+            } else if (isSaved) {
+                classicResultPanelMetaEl.textContent = classicFormatCount(rowCount, "строка", "строки", "строк") + " • сохранено";
+            } else {
+                classicResultPanelMetaEl.textContent = classicFormatCount(rowCount, "строка", "строки", "строк") + " • актуально";
+            }
+        }
 
         let sourceText = "Источник: локальный ввод";
         let sourceTone = "info";
@@ -11313,6 +11513,8 @@ updatePlaylistButtonUI();
             classicExportHintEl.textContent = exportHint;
             classicExportHintEl.classList.toggle("visible", !!exportHint);
         }
+
+        try { classicSyncMainPanels(); } catch (_) {}
     }
 
     // ----------------------------
@@ -11384,6 +11586,7 @@ updatePlaylistButtonUI();
     window.addEventListener("resize", function () {
         try { classicSyncDisclosureState(); } catch (_) {}
         try { classicSyncServiceStripState(); } catch (_) {}
+        try { classicSyncMainPanels(); } catch (_) {}
         try {
             if (!classicIsMobileViewport()) classicCloseRowSheet();
         } catch (_) {}
@@ -11445,6 +11648,7 @@ updatePlaylistButtonUI();
 
             tableIsStale = false;
             setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
+            try { classicSyncMainPanels({ force: true }); } catch (_) {}
         } catch (e) {
             console.error("Table cache restore error", e);
         }
@@ -12184,6 +12388,7 @@ updatePlaylistButtonUI();
         clearResultsMeta();
         updateTtsCostInfo();
         try { classicSyncStateUi(); } catch (_) {}
+        try { classicSyncMainPanels({ force: true }); } catch (_) {}
     }
 
     // ----------------------------
@@ -12405,6 +12610,7 @@ updatePlaylistButtonUI();
             tableIsStale = false;
             clearResultsMeta("audio");
             setResultsMeta("table", "восстановлена из Library (без запроса к Gemini)");
+            try { classicSyncMainPanels({ force: true }); } catch (_) {}
 
             try {
                 const cache = {
@@ -15726,6 +15932,7 @@ if (resumeRowIdx !== null) {
     v3LibraryClose();
     try { v3UiSyncSaveButtons(); } catch (_) {}
     try { v3UiUpdateActiveHeader(); } catch (_) {}
+    try { classicSyncMainPanels({ force: true }); } catch (_) {}
   } catch (e) {
     console.warn("v3LibraryOpenText failed", e);
     showToast("Не удалось открыть текст (см. консоль).", "error");
@@ -18852,6 +19059,7 @@ try { v3DashCloseViewMenu(); } catch (_) {}
                     setResultsMeta("table", "перевод восстановлен из локального кэша браузера (без запроса к Gemini)");
 
                     loadStats();
+                    try { classicSyncMainPanels({ force: true }); } catch (_) {}
                     return;
                 }
             }
@@ -18980,6 +19188,9 @@ try {
             if (!usePremium) clearGeminiLock();
             // After a v2 success the GCP quota counter advanced — refresh.
             if (usePremium) schedulePremiumStatusRefresh();
+            if (currentTableData.length > 0) {
+                try { classicSyncMainPanels({ force: true }); } catch (_) {}
+            }
         } catch (e) {
             if (usePremium) {
                 handlePremiumError(e, provider);
