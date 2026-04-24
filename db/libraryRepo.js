@@ -156,6 +156,22 @@ function withTagsDto(row) {
   return { ...row, tags, tags_json };
 }
 
+let _textsColumnSetCache = null;
+
+async function getTextsColumnSet(db) {
+  if (_textsColumnSetCache) return _textsColumnSetCache;
+  const rows = await dbAll(db, "PRAGMA table_info(texts);", []);
+  _textsColumnSetCache = new Set((rows || []).map((row) => String(row && row.name ? row.name : "")));
+  return _textsColumnSetCache;
+}
+
+function textColExpr(columnSet, qualifier, name, fallbackSql) {
+  const ref = qualifier ? `${qualifier}.${name}` : name;
+  return columnSet && columnSet.has(name)
+    ? `${ref} AS ${name}`
+    : `${fallbackSql} AS ${name}`;
+}
+
 async function createTextWithSentences({
   id,
   textKey,
@@ -523,6 +539,7 @@ await dbRun(db, `UPDATE sentences SET order_index = order_index + ? WHERE text_i
 async function listTexts({ limit = 15, includeArchived = false, q = null, level = null, tags = null } = {}) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const textCols = await getTextsColumnSet(db);
 
   const lim = Math.max(1, Math.min(200, Number(limit) || 15));
 
@@ -569,8 +586,8 @@ async function listTexts({ limit = 15, includeArchived = false, q = null, level 
     const pat = "%" + qRaw.toLowerCase() + "%";
     whereParts.push(`(
       LOWER(COALESCE(title,'')) LIKE ?
-      OR LOWER(COALESCE(source,'')) LIKE ?
-      OR LOWER(COALESCE(topic,'')) LIKE ?
+      OR LOWER(COALESCE(${textCols.has("source") ? "source" : "''"},'')) LIKE ?
+      OR LOWER(COALESCE(${textCols.has("topic") ? "topic" : "''"},'')) LIKE ?
       OR LOWER(COALESCE(level,'')) LIKE ?
       OR LOWER(COALESCE(tags_json,'')) LIKE ?
     )`);
@@ -586,7 +603,10 @@ async function listTexts({ limit = 15, includeArchived = false, q = null, level 
     `
     SELECT
       id, text_key, title, level, tags_json,
-      source, topic, is_pinned, pin_order,
+      ${textColExpr(textCols, "", "source", "NULL")},
+      ${textColExpr(textCols, "", "topic", "NULL")},
+      ${textColExpr(textCols, "", "is_pinned", "0")},
+      ${textColExpr(textCols, "", "pin_order", "NULL")},
       is_archived, created_at, updated_at, last_opened_at
     FROM texts
     WHERE ${whereSql}
@@ -602,6 +622,7 @@ async function listTexts({ limit = 15, includeArchived = false, q = null, level 
 async function getTextById(textId) {
   const db = getDb();
   if (!db) throw new Error("DB_NOT_AVAILABLE");
+  const textCols = await getTextsColumnSet(db);
 
     const row = await dbGet(
     db,
@@ -631,7 +652,10 @@ async function getTextById(textId) {
         LIMIT 1
       ), '') AS audio_tts_profile_json,
 
-      source, topic, is_pinned, pin_order,
+      ${textColExpr(textCols, "texts", "source", "NULL")},
+      ${textColExpr(textCols, "texts", "topic", "NULL")},
+      ${textColExpr(textCols, "texts", "is_pinned", "0")},
+      ${textColExpr(textCols, "texts", "pin_order", "NULL")},
 
       is_archived, created_at, updated_at, last_opened_at
     FROM texts
