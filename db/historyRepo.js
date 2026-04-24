@@ -7,6 +7,7 @@ const { getDb, _exec } = require("./sqlite");
 // init-once guard (и защита от параллельных вызовов)
 let _schemaReady = false;
 let _schemaInitPromise = null;
+let _textsColumnSetCache = null;
 
 function nowIso() {
   return new Date().toISOString();
@@ -42,6 +43,20 @@ function dbRun(db, sql, params = []) {
       resolve({ changes: this.changes, lastID: this.lastID });
     });
   });
+}
+
+async function getTextsColumnSet(db) {
+  if (_textsColumnSetCache) return _textsColumnSetCache;
+  const rows = await dbAll(db, "PRAGMA table_info(texts);", []);
+  _textsColumnSetCache = new Set((rows || []).map((row) => String(row && row.name ? row.name : "")));
+  return _textsColumnSetCache;
+}
+
+function textColExpr(columnSet, qualifier, name, fallbackSql) {
+  const ref = qualifier ? `${qualifier}.${name}` : name;
+  return columnSet && columnSet.has(name)
+    ? `${ref} AS ${name}`
+    : `${fallbackSql} AS ${name}`;
 }
 
 /**
@@ -246,6 +261,7 @@ async function recordRowTtsEvent({ id, eventType, textId, sentenceId, assetKey }
 async function listRecentTexts({ limit = 20, includeArchived = true } = {}) {
   await ensureHistorySchema();
   const db = getDb();
+  const textCols = await getTextsColumnSet(db);
 
   const lim = Math.max(1, Math.min(200, Number(limit) || 20));
 
@@ -260,7 +276,7 @@ async function listRecentTexts({ limit = 20, includeArchived = true } = {}) {
        rt.last_asset_key,
        t.title,
        t.is_archived,
-       t.is_pinned,
+       ${textColExpr(textCols, "t", "is_pinned", "0")},
        t.last_opened_at
      FROM recent_texts rt
      JOIN texts t ON t.id = rt.text_id
@@ -324,6 +340,7 @@ async function listRecentRowsByText({ textId, limit = 25 } = {}) {
 async function listRecentActivity({ limit = 80, includeArchived = true, textId = null, level = null } = {}) {
   await ensureHistorySchema();
   const db = getDb();
+  const textCols = await getTextsColumnSet(db);
 
   const lim = Math.max(1, Math.min(200, Number(limit) || 80));
 
@@ -363,11 +380,11 @@ async function listRecentActivity({ limit = 80, includeArchived = true, textId =
         t.title,
         t.level,
         t.tags_json,
-        t.source,
-        t.topic,
+        ${textColExpr(textCols, "t", "source", "NULL")},
+        ${textColExpr(textCols, "t", "topic", "NULL")},
         t.is_archived,
-        t.is_pinned,
-        t.pin_order,
+        ${textColExpr(textCols, "t", "is_pinned", "0")},
+        ${textColExpr(textCols, "t", "pin_order", "NULL")},
 
         s.order_index,
         s.he_plain,
@@ -405,11 +422,11 @@ async function listRecentActivity({ limit = 80, includeArchived = true, textId =
         t.title,
         t.level,
         t.tags_json,
-        t.source,
-        t.topic,
+        ${textColExpr(textCols, "t", "source", "NULL")},
+        ${textColExpr(textCols, "t", "topic", "NULL")},
         t.is_archived,
-        t.is_pinned,
-        t.pin_order,
+        ${textColExpr(textCols, "t", "is_pinned", "0")},
+        ${textColExpr(textCols, "t", "pin_order", "NULL")},
 
         s.order_index,
         s.he_plain,

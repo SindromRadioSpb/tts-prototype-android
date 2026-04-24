@@ -2850,7 +2850,8 @@ app.get("/api/diag", async (_req, res) => {
 
   // ── 2. Premium providers ─────────────────────────────────────────────────
   let providers = { gcp: { configured: false, quota: null }, madlad: { configured: true } };
-  if (PREMIUM_V2_ENABLED) {
+  const premiumV2Enabled = typeof PREMIUM_V2_ENABLED !== "undefined" ? !!PREMIUM_V2_ENABLED : false;
+  if (premiumV2Enabled) {
     try {
       const premiumGcp   = require("./db/premium/providers/gcp");
       const premiumQuota = require("./db/premium/quota");
