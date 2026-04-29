@@ -1137,10 +1137,41 @@ td.col-action-cell {
     .table-settings {
         margin-top: 10px;
         margin-bottom: 10px;
-        padding: 14px 16px;
         border-radius: 18px;
         background: linear-gradient(180deg, #f8fafc, #f8fafc);
         border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .table-settings-summary {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 12px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #0f172a;
+        margin-bottom: 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .table-settings-summary::-webkit-details-marker { display: none; }
+    .table-settings-summary::after {
+        content: "⌄";
+        flex-shrink: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #64748b;
+        transition: transform 0.18s ease;
+    }
+    #tableSettings[open] .table-settings-summary::after { transform: rotate(180deg); }
+
+    .table-settings-inner {
+        padding: 0 16px 14px;
     }
 
     .table-settings-row {
@@ -1721,8 +1752,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .classic-inline-meta { align-items: stretch; }
         .classic-inline-meta .provenance-badge,
         .classic-inline-meta .btn-secondary { width: 100%; justify-content: center; }
-        .classic-result-actions { width: 100%; }
-        .classic-result-actions .btn-secondary { width: 100%; }
+        .classic-result-actions { width: 100%; flex-direction: column; gap: 8px; }
+        .classic-result-actions .btn-secondary,
+        .classic-result-actions .btn-word { width: 100%; }
+        /* Bug 2.1 fix: uniform width for all panel cards in the workflow column */
+        .classic-disclosure { width: 100%; padding-bottom: 16px; }
         .classic-export-actions {
             flex-direction: row;
             align-items: stretch;
@@ -1730,10 +1764,6 @@ th, td { border-color: rgba(0,0,0,0.55); }
         }
         .classic-export-actions #btnAudioPrefetch,
         .classic-export-actions #btnAnki { display: none !important; }
-        .classic-export-actions #btnWord {
-            width: 100%;
-            min-width: 0;
-        }
     }
 
     @media (max-width: 1100px) {
@@ -5508,7 +5538,7 @@ body.v3-ide-mode .v3-ide-right {
 <!-- IDE Panel Backdrop (for mobile overlay) -->
 <div id="v3IdePanelBackdrop" class="v3-ide-panel-backdrop" onclick="v3IdeCloseOverlays()"></div>
 
-    <details id="classicStatusStrip" class="classic-status-strip-wrap" open>
+    <details id="classicStatusStrip" class="classic-status-strip-wrap">
         <summary class="classic-status-strip-summary">Лимиты и квоты</summary>
     <div class="dashboard-header classic-status-strip">
         <div class="stats-box">
@@ -5584,8 +5614,8 @@ body.v3-ide-mode .v3-ide-right {
             </div>
         </div>
 
-        <div style="text-align: right; flex-shrink: 0;">
-            <div style="font-size: 12px; color: #888888; margin-bottom: 5px;">Для просмотра общего лимита:</div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; flex-shrink: 0;">
+            <div style="font-size: 12px; color: #888888;">Для просмотра общего лимита:</div>
             <a
                 href="https://console.cloud.google.com/billing"
                 target="_blank"
@@ -5792,6 +5822,7 @@ body.v3-ide-mode .v3-ide-right {
                 </div>
 
                 <div class="classic-result-column">
+                    <!-- Результат: статус, происхождение, сохранение и скачивание -->
                     <details id="classicResultPanel" class="classic-card classic-mobile-panel" open>
                         <summary class="classic-mobile-panel-summary">
                             <span class="classic-mobile-panel-copy">
@@ -5803,10 +5834,13 @@ body.v3-ide-mode .v3-ide-right {
                         <div class="classic-result-head">
                             <div>
                                 <div id="classicResultTitle" class="classic-card-title">Результат</div>
-                                <div class="classic-card-subtitle">Статус, происхождение, экспорт и управление таблицей собраны в одной поверхности.</div>
+                                <div class="classic-card-subtitle">Статус и происхождение результата.</div>
                             </div>
                             <div class="classic-result-actions">
                                 <button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
+                                <button id="btnWord" class="btn-word disabled"
+                                        title="Сначала сохраните текст в Library"
+                                        onclick="downloadWord()" disabled>Скачать таблицу</button>
                             </div>
                         </div>
 
@@ -5817,13 +5851,18 @@ body.v3-ide-mode .v3-ide-right {
                         </div>
 
                         <div id="classicResultSummary" class="classic-result-summary">Сначала соберите таблицу. После этого появятся provenance, экспорт и работа по строкам.</div>
+                    </section>
+                    </details>
 
-                        <details id="classicResultWorkspace" class="classic-result-workspace" open>
-                            <summary class="classic-result-workspace-summary">
-                                <span class="classic-result-workspace-title">Таблица и действия</span>
-                                <span id="classicResultWorkspaceHint" class="classic-result-workspace-hint">Экспорт и работа по строкам</span>
-                            </summary>
-                            <div class="classic-result-workspace-body">
+                    <!-- Таблица и действия: вынесена как отдельный блок -->
+                    <details id="classicResultWorkspace" class="classic-card classic-mobile-panel" open>
+                        <summary class="classic-mobile-panel-summary">
+                            <span class="classic-mobile-panel-copy">
+                                <span class="classic-mobile-panel-title">Таблица и действия</span>
+                                <span id="classicResultWorkspaceHint" class="classic-mobile-panel-meta">Экспорт и работа по строкам</span>
+                            </span>
+                        </summary>
+                    <div class="classic-mobile-panel-body">
                         <div id="classicExportHint" class="classic-export-note"></div>
 
                         <div class="export-actions classic-export-actions">
@@ -5834,10 +5873,6 @@ body.v3-ide-mode .v3-ide-right {
                             <button id="btnAnki" class="btn-anki disabled"
                                     title="Сначала сохраните текст в Library"
                                     onclick="v3AnkiOpenModal()" disabled>Anki</button>
-
-                            <button id="btnWord" class="btn-word disabled"
-                                    title="Сначала сохраните текст в Library"
-                                    onclick="downloadWord()" disabled>Скачать таблицу</button>
                         </div>
 
                         <div id="audioContainer" style="margin-bottom: 4px;"></div>
@@ -5856,10 +5891,11 @@ body.v3-ide-mode .v3-ide-right {
                         <div id="resultsMeta"></div>
                         <div id="errorMsg" class="error"></div>
 
-                        <!-- Настройки таблицы -->
-                        <div id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
+                        <!-- 🧩 Таблица: отображение и сценарии (коллапсируемый блок) -->
+                        <details id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
+                            <summary class="table-settings-summary">🧩 Таблица: отображение и сценарии</summary>
+                            <div class="table-settings-inner">
                             <div class="table-settings-row table-settings-row-main">
-                                <div class="table-settings-title">🧩 Таблица: отображение и сценарии</div>
                                 <div class="table-presets" role="group" aria-label="Пресеты таблицы">
                                     <button type="button" class="btn-mini" data-preset="full" title="Показать все 4 колонки">Полная</button>
                                     <button type="button" class="btn-mini" data-preset="he_ru" title="Иврит + Перевод (без огласовок и транслита)">Иврит+рус</button>
@@ -5899,7 +5935,8 @@ body.v3-ide-mode .v3-ide-right {
                                     <span class="table-settings-note">Настройки таблицы сохраняются на этом устройстве.</span>
                                 </div>
                             </div>
-                        </div>
+                            </div>
+                        </details>
 
                         <!-- PRO: Resizable split (vertical) -->
                         <div id="tableHeightResizer" class="table-resizer-y" role="separator"
@@ -5918,9 +5955,7 @@ body.v3-ide-mode .v3-ide-right {
                         <button id="tableEditFab" type="button" title="Режим редактирования таблицы" aria-label="Режим редактирования таблицы" hidden>✎</button>
                         <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden>↔ Альбом</button>
                         <div id="classicOrientationHint" class="hidden" aria-live="polite"></div>
-                            </div>
-                        </details>
-                    </section>
+                    </div>
                     </details>
                 </div>
             </div>
@@ -11347,13 +11382,24 @@ updatePlaylistButtonUI();
         });
     }
 
+    var _classicStatusStripListenerBound = false;
     function classicSyncServiceStripState() {
         if (!classicStatusStripEl) return;
         const isMobile = classicIsMobileViewport();
         if (isMobile) {
             if (!classicStatusStripEl.dataset.mobilePrepared) {
-                classicStatusStripEl.open = false;
+                // Restore from localStorage; default closed
+                var saved;
+                try { saved = localStorage.getItem("classic_status_strip_open"); } catch (_) {}
+                classicStatusStripEl.open = saved === "1";
                 classicStatusStripEl.dataset.mobilePrepared = "1";
+            }
+            if (!_classicStatusStripListenerBound) {
+                _classicStatusStripListenerBound = true;
+                classicStatusStripEl.addEventListener("toggle", function() {
+                    if (!classicIsMobileViewport()) return;
+                    try { localStorage.setItem("classic_status_strip_open", classicStatusStripEl.open ? "1" : "0"); } catch (_) {}
+                });
             }
             return;
         }
@@ -11378,6 +11424,9 @@ updatePlaylistButtonUI();
             classicSetDisclosureOpen(classicComposerPanelEl, true);
             classicSetDisclosureOpen(classicResultPanelEl, true);
             classicSetDisclosureOpen(classicResultWorkspaceEl, true);
+            // Ensure tableSettings is open on desktop
+            var tsEl = document.getElementById("tableSettings");
+            if (tsEl && !tsEl.open) tsEl.open = true;
             return;
         }
 
@@ -11397,6 +11446,40 @@ updatePlaylistButtonUI();
         classicSetDisclosureOpen(classicResultPanelEl, resultOpen, { resetChoice: force });
         classicSetDisclosureOpen(classicResultWorkspaceEl, workspaceOpen, { resetChoice: force });
     }
+
+    // Expose for v3LibraryOpenText to reset panels to library-defaults on mobile
+    window.classicOnLibraryOpen = function() {
+        if (!classicIsMobileViewport()) return;
+        // Force-close input / settings panels
+        [classicComposerPanelEl, classicTtsCardEl, classicTranslationCardEl].forEach(function(el) {
+            if (!el) return;
+            delete el.dataset.mobileUserChoice;
+            delete el.dataset.mobileCollapsed;
+            classicSetDisclosureOpen(el, false, { resetChoice: true });
+        });
+        // Force-close "Результат" panel
+        classicSetDisclosureOpen(classicResultPanelEl, false, { resetChoice: true });
+        // Force-open "Таблица и действия" panel
+        classicSetDisclosureOpen(classicResultWorkspaceEl, true, { resetChoice: true });
+        // Force-close tableSettings and clear its localStorage preference
+        var tsEl = document.getElementById("tableSettings");
+        if (tsEl && tsEl.open) {
+            tsEl.open = false;
+            try { localStorage.removeItem("classic_table_settings_open"); } catch (_) {}
+        }
+    };
+
+    // Init tableSettings <details> localStorage
+    (function() {
+        var tsEl = document.getElementById("tableSettings");
+        if (!tsEl) return;
+        var saved;
+        try { saved = localStorage.getItem("classic_table_settings_open"); } catch (_) {}
+        tsEl.open = saved === "1";
+        tsEl.addEventListener("toggle", function() {
+            try { localStorage.setItem("classic_table_settings_open", tsEl.open ? "1" : "0"); } catch (_) {}
+        });
+    })();
 
     function classicSetTableAdvancedOpen(forceOpen) {
         const root = document.getElementById("tableSettings");
@@ -15937,6 +16020,7 @@ const [meta, sents] = await Promise.all([
         });
       }
     } catch (_) {}
+    try { if (typeof window.classicOnLibraryOpen === "function") window.classicOnLibraryOpen(); } catch (_) {}
 
     // touch opened (non-blocking)
     fetch("/api/library/texts/" + encodeURIComponent(textId) + "/opened", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
