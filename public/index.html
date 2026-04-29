@@ -2669,6 +2669,12 @@ th, td { border-color: rgba(0,0,0,0.55); }
     display: inline-flex;
   }
 }
+/* Same FAB on landscape phones (viewport flips: width > 768px, height ≤ 560px) */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 560px) {
+  #tableEditFab.fab-visible {
+    display: inline-flex;
+  }
+}
 
 /* Double-click/tap hint cursor on cells when NOT in edit mode */
 #proTable:not(.tbl-edit-mode) tbody td[data-col="he"],
@@ -11202,9 +11208,11 @@ updatePlaylistButtonUI();
 
     function classicIsMobileViewport() {
         try {
-            return !!window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+            if (!window.matchMedia) return window.innerWidth <= 768;
+            return window.matchMedia("(max-width: 768px)").matches ||
+                   window.matchMedia("(pointer: coarse) and (orientation: landscape) and (max-height: 560px)").matches;
         } catch (_) {
-            return window.innerWidth <= 768;
+            return window.innerWidth <= 768 || window.innerHeight <= 560;
         }
     }
 
@@ -20053,6 +20061,9 @@ try { classicSyncStateUi(); } catch (_) {}
     });
     window.addEventListener("resize", function() {
         try { tableEditFabUpdate(); } catch (_) {}
+    });
+    window.addEventListener("orientationchange", function() {
+        setTimeout(function() { try { tableEditFabUpdate(); } catch (_) {} }, 100);
     });
     document.addEventListener("click", function(ev) {
         try {
