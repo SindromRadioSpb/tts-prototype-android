@@ -20224,14 +20224,32 @@ function orientationFabUpdate() {
 async function orientationFabClick() {
     const isLandscape = window.innerWidth > window.innerHeight;
     const target = isLandscape ? "portrait" : "landscape";
-    if (screen.orientation && typeof screen.orientation.lock === "function") {
-        try {
-            await screen.orientation.lock(target);
-            orientationFabUpdate();
-            return;
-        } catch (_) { /* fall through to hint */ }
+    if (!(screen.orientation && typeof screen.orientation.lock === "function")) {
+        classicOrientationHint(target);
+        return;
     }
-    classicOrientationHint(target);
+    // Try direct lock first (PWA / some Android builds allow it without fullscreen)
+    try {
+        await screen.orientation.lock(target);
+        orientationFabUpdate();
+        return;
+    } catch (e1) {
+        // Chrome requires fullscreen before orientation lock
+        if (e1.name !== "SecurityError" && e1.name !== "NotAllowedError") {
+            classicOrientationHint(target);
+            return;
+        }
+    }
+    // Enter fullscreen (requires user-gesture — we're inside a click handler)
+    try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen({ navigationUI: "hide" });
+        }
+        await screen.orientation.lock(target);
+        orientationFabUpdate();
+    } catch (_) {
+        classicOrientationHint(target);
+    }
 }
 
 function classicOrientationHint(target) {
