@@ -237,9 +237,9 @@ async function createTextWithSentences({
     const insertSentenceSql = `
       INSERT INTO sentences (
         id, text_id, order_index,
-        he_plain, he_niqqud, translit, ru,
+        he_plain, he_niqqud, translit, ru, translit_ru,
         row_hash, meta_json, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
 
     for (let i = 0; i < rows.length; i++) {
@@ -253,6 +253,7 @@ async function createTextWithSentences({
         r.he_niqqud || "",
         r.translit || "",
         r.ru || "",
+        r.translit_ru || "",
         r.row_hash || null,
         r.meta_json || null,
         now,

@@ -9,6 +9,8 @@ const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
 const { execFile } = require("child_process");
 const http = require("http");
+const archiver = require("archiver");
+const AdmZip = require("adm-zip");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const {
@@ -7191,6 +7193,339 @@ app.post("/api/library/import", async (req, res) => {
   }
 });
 
+// ── Bundle export: ZIP containing library.json (unified format) + audio MP3s ──
+app.get("/api/library/export/bundle", async (req, res) => {
+  try {
+    if (!requireDbOr503(res)) return;
+
+    const includeArchived = String(req.query.includeArchived || "1") === "1";
+    const limit = Number(req.query.limit || "100000");
+
+    const rows = await listTexts({ limit, includeArchived });
+
+    const exportedTexts = [];
+    const audioKeySet = new Set();
+
+    for (const r of rows) {
+      const textId = String(r.id);
+      const [text, sentences] = await Promise.all([
+        getTextById(textId),
+        getSentencesByTextId(textId),
+      ]);
+      if (!text) continue;
+
+      const exportRows = (Array.isArray(sentences) ? sentences : []).map((s) => {
+        const ak = s.audio_asset_key && s.audio_asset_key.length === 64 ? s.audio_asset_key : null;
+        if (ak) audioKeySet.add(ak);
+        return {
+          row_id: s.id,
+          order_index: s.order_index,
+          hebrew_plain: s.he_plain || "",
+          hebrew_niqqud: s.he_niqqud || "",
+          translit: s.translit || "",
+          translit_ru: s.translit_ru || "",
+          russian: s.ru || "",
+          edit_meta: s.edit_meta_json ? v3SafeJsonParse(s.edit_meta_json, null) : null,
+          audio_asset_key: ak,
+        };
+      });
+
+      const textAk = text.audio_asset_key && text.audio_asset_key.length === 64 ? text.audio_asset_key : null;
+      if (textAk) audioKeySet.add(textAk);
+
+      exportedTexts.push({
+        text_id: text.id,
+        text_key: text.text_key,
+        title: text.title,
+        level: text.level || null,
+        tags: v3SafeJsonParse(text.tags_json, []),
+        source_label: text.source || null,
+        topic: text.topic || null,
+        source_text: text.source_text,
+        source_meta: text.source_meta_json ? v3SafeJsonParse(text.source_meta_json, null) : null,
+        table_model_meta: text.table_model_meta_json ? v3SafeJsonParse(text.table_model_meta_json, null) : null,
+        rows: exportRows,
+        text_audio_asset_key: textAk,
+        created_at: text.created_at,
+        updated_at: text.updated_at,
+        is_archived: text.is_archived === 1 || text.is_archived === true,
+      });
+    }
+
+    // Resolve audio metadata and check file existence
+    const exportAudioAssets = [];
+    const missingAudio = [];
+
+    for (const ak of audioKeySet) {
+      const filePath = path.join(AUDIO_CACHE_DIR, `${ak}.mp3`);
+      if (!fs.existsSync(filePath)) {
+        missingAudio.push({ asset_key: ak, reason: "file_missing_in_cache" });
+        continue;
+      }
+      let meta = null;
+      try { meta = await getAudioAssetByKey(ak); } catch (_) {}
+      const ttsProfile = meta && meta.tts_profile_json ? v3SafeJsonParse(meta.tts_profile_json, null) : null;
+      exportAudioAssets.push({
+        asset_key: ak,
+        relative_export_path: `audio/${ak}.mp3`,
+        mime_type: (meta && meta.mime) || "audio/mpeg",
+        provider_id: (ttsProfile && ttsProfile.providerId) || "unknown",
+        voice_name: (ttsProfile && ttsProfile.voiceName) || null,
+        language: (ttsProfile && ttsProfile.language) || "he",
+        duration_ms: (meta && meta.duration_ms) || null,
+        size_bytes: (meta && meta.size_bytes) || null,
+        content_hash: ak,
+        provenance: ttsProfile ? { ttsProfile } : null,
+      });
+    }
+
+    const rowCount = exportedTexts.reduce((s, t) => s + t.rows.length, 0);
+    const createdAt = new Date().toISOString();
+    const tsTag = createdAt.slice(0, 19).replace(/[-T:]/g, (c) => (c === "T" ? "-" : c)).replace(/:/g, "");
+    const safeTs = createdAt.slice(0, 10).replace(/-/g, "") + "-" + createdAt.slice(11, 19).replace(/:/g, "");
+    const filename = `library-bundle-${safeTs}.zip`;
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+
+    const archive = archiver("zip", { zlib: { level: 6 } });
+    archive.on("error", (err) => console.error("[export/bundle] archiver error:", err));
+    archive.pipe(res);
+
+    archive.append(JSON.stringify({
+      export_schema_version: 1,
+      app_id: "linguist-pro-web",
+      created_at: createdAt,
+      partial_backup: missingAudio.length > 0,
+      text_count: exportedTexts.length,
+      row_count: rowCount,
+      audio_count: exportAudioAssets.length,
+      missing_audio_count: missingAudio.length,
+      library_json_path: "library/library.json",
+      missing_audio_path: "metadata/missing_audio.json",
+    }, null, 2), { name: "manifest.json" });
+
+    archive.append(JSON.stringify({
+      schema_version: 1,
+      texts: exportedTexts,
+      audio_assets: exportAudioAssets,
+    }, null, 2), { name: "library/library.json" });
+
+    for (const ak of audioKeySet) {
+      const filePath = path.join(AUDIO_CACHE_DIR, `${ak}.mp3`);
+      if (fs.existsSync(filePath)) {
+        archive.file(filePath, { name: `audio/${ak}.mp3` });
+      }
+    }
+
+    archive.append(JSON.stringify({ missing_audio: missingAudio }, null, 2), {
+      name: "metadata/missing_audio.json",
+    });
+
+    archive.finalize();
+  } catch (e) {
+    console.error("GET /api/library/export/bundle error:", e);
+    if (!res.headersSent) res.status(500).json({ error: "INTERNAL_ERROR" });
+  }
+});
+
+// ── Bundle import: ZIP containing library/library.json (unified format) + audio MP3s ──
+app.post(
+  "/api/library/import/bundle",
+  express.raw({ type: "application/zip", limit: "500mb" }),
+  async (req, res) => {
+    try {
+      if (!requireDbOr503(res)) return;
+
+      const body = req.body;
+      if (!Buffer.isBuffer(body) || body.length === 0) {
+        return res.status(400).json({ error: "VALIDATION", field: "body", message: "Expected ZIP file body" });
+      }
+
+      let zip;
+      try {
+        zip = new AdmZip(body);
+      } catch (_) {
+        return res.status(400).json({ error: "VALIDATION", field: "body", message: "Invalid ZIP file" });
+      }
+
+      const libEntry = zip.getEntry("library/library.json");
+      if (!libEntry) {
+        return res.status(400).json({ error: "VALIDATION", message: "library/library.json not found in ZIP" });
+      }
+
+      let libraryJson;
+      try {
+        libraryJson = JSON.parse(libEntry.getData().toString("utf8"));
+      } catch (_) {
+        return res.status(400).json({ error: "VALIDATION", message: "Invalid JSON in library/library.json" });
+      }
+
+      const mode = String(req.query.mode || "skip");
+      const texts = Array.isArray(libraryJson.texts) ? libraryJson.texts : [];
+      if (texts.length === 0) {
+        return res.status(400).json({ error: "VALIDATION", message: "No texts found in ZIP" });
+      }
+
+      // Build audio metadata map from library.json
+      const audioAssetsMeta = new Map();
+      if (Array.isArray(libraryJson.audio_assets)) {
+        for (const aa of libraryJson.audio_assets) {
+          if (aa && aa.asset_key) audioAssetsMeta.set(String(aa.asset_key), aa);
+        }
+      }
+
+      // Extract audio files to AUDIO_CACHE_DIR
+      let importedAudio = 0;
+      let skippedAudio = 0;
+      for (const entry of zip.getEntries()) {
+        const name = entry.entryName;
+        if (entry.isDirectory || !name.startsWith("audio/") || !name.endsWith(".mp3")) continue;
+        const ak = path.basename(name, ".mp3");
+        if (!/^[0-9a-f]{64}$/.test(ak)) continue;
+
+        const dest = path.join(AUDIO_CACHE_DIR, `${ak}.mp3`);
+        if (fs.existsSync(dest)) { skippedAudio++; continue; }
+
+        try {
+          const data = entry.getData();
+          if (!data || data.length === 0) { skippedAudio++; continue; }
+          fs.writeFileSync(dest + ".tmp", data);
+          fs.renameSync(dest + ".tmp", dest);
+
+          const meta = audioAssetsMeta.get(ak);
+          const ttsProf = meta ? {
+            providerId: meta.provider_id || "unknown",
+            language: meta.language || "he",
+            voiceName: meta.voice_name || null,
+          } : null;
+          await upsertAudioAsset({
+            id: uuidv4(),
+            assetKey: ak,
+            assetType: "row",
+            relativePath: getAudioRelativePath(ak),
+            mime: (meta && meta.mime_type) || "audio/mpeg",
+            durationMs: (meta && meta.duration_ms) || null,
+            sizeBytes: data.length,
+            ttsProfileJson: ttsProf ? JSON.stringify(ttsProf) : null,
+          });
+          importedAudio++;
+        } catch (e) {
+          console.warn(`[import/bundle] audio extract failed ${ak}:`, e && e.message);
+          skippedAudio++;
+        }
+      }
+
+      // Pre-import backup
+      if (texts.length > 10) {
+        try {
+          const br = createBackup(DB_PATH, { label: "pre-import-bundle" });
+          if (br.ok) { console.log("[import/bundle] backup:", br.backupPath); cleanupBackups(DEFAULT_MAX_BACKUPS); }
+        } catch (_) {}
+      }
+
+      let importedCount = 0, skippedCount = 0, errorCount = 0, linkedAudio = 0;
+      const errors = [];
+      const pendingLinks = []; // { newTextId, orderIndex, audioAssetKey }
+
+      for (const item of texts) {
+        try {
+          // Unified format fields: source_text, title, level, tags, source_label, topic,
+          // source_meta, table_model_meta, text_key, rows (row_id, order_index,
+          // hebrew_plain, hebrew_niqqud, translit, translit_ru, russian, audio_asset_key),
+          // text_audio_asset_key, is_archived
+          const sourceText = String(item.source_text || "").trim();
+          if (!sourceText) { errorCount++; errors.push({ error: "NO_SOURCE_TEXT", title: item.title }); continue; }
+
+          const title = (item.title && String(item.title).trim()) ? String(item.title).trim() : guessTitle(sourceText);
+          const level = item.level ? String(item.level).trim() || null : null;
+          const source = item.source_label || null;
+          const topic = item.topic || null;
+          const tagsJson = JSON.stringify(v3NormalizeTags(Array.isArray(item.tags) ? item.tags : []));
+          const sourceMetaJson = item.source_meta != null ? JSON.stringify(item.source_meta) : null;
+          const tableModelMetaObj = item.table_model_meta || null;
+          let tableModelMetaJson = tableModelMetaObj ? JSON.stringify(tableModelMetaObj) : null;
+
+          let textKey = String(item.text_key || "").trim();
+          if (!textKey) textKey = computeTextKey({ sourceText, ttsProfile: null, tableModelMeta: tableModelMetaObj });
+
+          if (mode === "asNew") {
+            const salt = uuidv4();
+            const meta2 = tableModelMetaObj ? { ...tableModelMetaObj, importSalt: salt } : { importSalt: salt };
+            textKey = computeTextKey({ sourceText, ttsProfile: null, tableModelMeta: meta2 });
+            tableModelMetaJson = JSON.stringify(meta2);
+          }
+
+          const rowsIn = Array.isArray(item.rows) ? item.rows : [];
+          if (rowsIn.length === 0) { errorCount++; errors.push({ error: "NO_SENTENCES", title }); continue; }
+
+          const rows = rowsIn.map((r, idx) => ({
+            id: uuidv4(),
+            he_plain: String(r.hebrew_plain || ""),
+            he_niqqud: String(r.hebrew_niqqud || ""),
+            translit: String(r.translit || ""),
+            ru: String(r.russian || ""),
+            translit_ru: String(r.translit_ru || ""),
+            row_hash: crypto.createHash("sha256").update(
+              JSON.stringify({ hePlain: String(r.hebrew_plain || ""), heNiq: String(r.hebrew_niqqud || ""), translit: String(r.translit || ""), ru: String(r.russian || "") }), "utf8"
+            ).digest("hex"),
+            meta_json: null,
+            order_index: Number.isInteger(r.order_index) ? r.order_index : idx,
+            _audio_asset_key: (r.audio_asset_key && /^[0-9a-f]{64}$/.test(r.audio_asset_key)) ? r.audio_asset_key : null,
+          }));
+
+          const newTextId = uuidv4();
+          await createTextWithSentences({
+            id: newTextId, textKey, title, level, tagsJson, sourceText,
+            sourceMetaJson, ttsProfileJson: null, tableModelMetaJson,
+            source, topic, isPinned: 0, pinOrder: null,
+            rows: rows.map(({ _audio_asset_key, ...r }) => r),
+          });
+          importedCount++;
+
+          if (item.is_archived === true) { try { await archiveTextById(newTextId); } catch (_) {} }
+
+          for (const r of rows) {
+            if (r._audio_asset_key) pendingLinks.push({ newTextId, orderIndex: r.order_index, audioAssetKey: r._audio_asset_key, isText: false });
+          }
+          const textAk = item.text_audio_asset_key;
+          if (textAk && /^[0-9a-f]{64}$/.test(textAk)) pendingLinks.push({ newTextId, orderIndex: null, audioAssetKey: textAk, isText: true });
+        } catch (e) {
+          const msg = String(e && e.message ? e.message : e);
+          const lc = msg.toLowerCase();
+          if (msg.includes("ux_texts_text_key") || (lc.includes("text_key") && (lc.includes("unique") || lc.includes("duplicate")))) {
+            skippedCount++;
+          } else {
+            errorCount++;
+            errors.push({ error: msg });
+          }
+        }
+      }
+
+      // Link audio to imported sentences
+      for (const link of pendingLinks) {
+        try {
+          const asset = await getAudioAssetByKey(link.audioAssetKey);
+          if (!asset) continue;
+          if (link.isText) {
+            await linkTextAudio(link.newTextId, asset.id, 1);
+          } else {
+            const sents = await getSentencesByTextId(link.newTextId);
+            const sent = sents.find((s) => s.order_index === link.orderIndex);
+            if (sent) { await linkSentenceAudio(sent.id, asset.id, 1); linkedAudio++; }
+          }
+        } catch (e) {
+          console.warn("[import/bundle] link failed:", e && e.message);
+        }
+      }
+
+      res.json({ ok: true, mode, importedCount, skippedCount, errorCount, importedAudio, skippedAudio, linkedAudio, errors: errors.slice(0, 50) });
+    } catch (e) {
+      console.error("POST /api/library/import/bundle error:", e);
+      res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+  }
+);
 
 // Global error handler — ensures all unhandled Express errors return JSON, never HTML.
 // eslint-disable-next-line no-unused-vars

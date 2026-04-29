@@ -5882,8 +5882,10 @@ body.v3-ide-mode .v3-ide-right {
     <div class="v3-modal-header">
   <div class="v3-modal-title">Библиотека (v3)</div>
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-    <button class="btn-secondary" onclick="v3LibraryExport()">Экспорт Библиотеки</button>
-    <button class="btn-secondary" onclick="v3LibraryImport()">Импорт Библиотеки</button>
+    <button class="btn-secondary" onclick="v3LibraryExport()">Экспорт JSON</button>
+    <button class="btn-secondary" onclick="v3LibraryImport()">Импорт JSON</button>
+    <button class="btn-secondary" onclick="v3LibraryExportBundle()">Экспорт ZIP (с аудио)</button>
+    <button class="btn-secondary" onclick="v3LibraryImportBundle()">Импорт ZIP (с аудио)</button>
     <button class="btn-secondary" onclick="v3LibraryRefresh()">Обновить</button>
     <button class="btn-secondary" onclick="v3LibraryClose()">Закрыть</button>
 
@@ -5893,6 +5895,13 @@ body.v3-ide-mode .v3-ide-right {
       accept="application/json"
       style="display:none"
       onchange="v3LibraryOnImportSelected(event)"
+    />
+    <input
+      id="v3LibraryBundleImportInput"
+      type="file"
+      accept=".zip,application/zip"
+      style="display:none"
+      onchange="v3LibraryOnBundleImportSelected(event)"
     />
   </div>
 </div>
@@ -16359,6 +16368,90 @@ window.v3LibrarySaveCurrent = v3LibrarySaveCurrent;
 window.v3LibraryExport = v3LibraryExport;
 window.v3LibraryImport = v3LibraryImport;
 window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
+
+// ── Bundle export/import (ZIP with audio) ────────────────────────────────────
+
+async function v3LibraryExportBundle() {
+  try {
+    showToast("Подготовка ZIP с аудио…");
+    const resp = await fetch("/api/library/export/bundle?includeArchived=1");
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || resp.statusText);
+    }
+    const blob = await resp.blob();
+    const cd = resp.headers.get("Content-Disposition") || "";
+    const m = cd.match(/filename="([^"]+)"/);
+    const filename = m ? m[1] : v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
+
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    showToast("ZIP с аудио скачан", "success");
+  } catch (e) {
+    console.warn("v3LibraryExportBundle failed", e);
+    showToast("Ошибка экспорта ZIP (см. консоль).", "error");
+  }
+}
+
+function v3LibraryImportBundle() {
+  try {
+    const input = document.getElementById("v3LibraryBundleImportInput");
+    if (!input) { showToast("Импорт ZIP недоступен.", "error"); return; }
+    input.value = "";
+    input.click();
+  } catch (e) {
+    console.warn("v3LibraryImportBundle click failed", e);
+    showToast("Не удалось открыть выбор ZIP (см. консоль).", "error");
+  }
+}
+
+async function v3LibraryOnBundleImportSelected(ev) {
+  try {
+    const file = ev && ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
+    if (!file) return;
+
+    const ok = window.confirm("Импортировать ZIP с аудио?\nДубликаты будут пропущены.");
+    if (!ok) return;
+
+    showToast("Импорт ZIP с аудио…");
+
+    const resp = await fetch("/api/library/import/bundle?mode=skip", {
+      method: "POST",
+      headers: { "Content-Type": "application/zip" },
+      body: file,
+    });
+
+    let data;
+    try { data = await resp.json(); } catch (_) { throw new Error(resp.statusText); }
+
+    if (!resp.ok || !data.ok) {
+      showToast("Ошибка импорта ZIP: " + (data.message || data.error || resp.statusText), "error");
+      return;
+    }
+
+    const msg =
+      "ZIP: добавлено " + Number(data.importedCount || 0) +
+      ", аудио: " + Number(data.importedAudio || 0) +
+      " (связано: " + Number(data.linkedAudio || 0) + ")" +
+      ", пропущено: " + Number(data.skippedCount || 0) +
+      (data.errorCount ? ", ошибок: " + Number(data.errorCount) : "");
+    showToast(msg, "success");
+    v3LibraryRefresh();
+  } catch (e) {
+    console.warn("v3LibraryOnBundleImportSelected failed", e);
+    showToast("Не удалось импортировать ZIP (см. консоль).", "error");
+  }
+}
+
+window.v3LibraryExportBundle = v3LibraryExportBundle;
+window.v3LibraryImportBundle = v3LibraryImportBundle;
+window.v3LibraryOnBundleImportSelected = v3LibraryOnBundleImportSelected;
 
 /* --------------------------------------------------------
    V3 Dashboard UI (P0)
