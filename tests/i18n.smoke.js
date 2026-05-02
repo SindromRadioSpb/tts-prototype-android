@@ -1,0 +1,285 @@
+/**
+ * i18n smoke tests — run in Node.js (no browser required).
+ *
+ * Loads locale files via JSDOM-free shim, exercises core i18n module behaviour:
+ *   1. All three locale files load without syntax errors
+ *   2. All keys present in ru.js exist in en.js and he.js (symmetry check)
+ *   3. t() resolves keys and falls back to ru for missing keys
+ *   4. t() interpolates {param} placeholders
+ *   5. t() returns the key string (not undefined) for completely unknown keys
+ *   6. appSetLocale() rejects unknown locales and falls back to "ru"
+ *   7. appSetLocale() persists selection (localStorage mock)
+ *   8. RTL: appSetLocale("he") sets dir="rtl", others set dir="ltr"
+ */
+
+const assert = require("assert");
+const path = require("path");
+const fs = require("fs");
+
+// ── Minimal browser globals shim ─────────────────────────────────────────────
+
+let _lsStore = {};
+const localStorageMock = {
+  getItem: (k) => (_lsStore[k] !== undefined ? _lsStore[k] : null),
+  setItem: (k, v) => { _lsStore[k] = String(v); },
+  removeItem: (k) => { delete _lsStore[k]; },
+};
+
+const _docEl = { lang: "", dir: "", _attrs: {} };
+const documentMock = {
+  documentElement: _docEl,
+  getElementById: () => null,
+  querySelectorAll: () => [],
+  addEventListener: () => {},
+  readyState: "complete",
+  dispatchEvent: () => {},
+};
+
+global.window = global;
+global.localStorage = localStorageMock;
+global.document = documentMock;
+global.console = console;
+global.CustomEvent = function (type, opts) { this.type = type; this.detail = opts && opts.detail; };
+
+// ── Load locale files ─────────────────────────────────────────────────────────
+
+const localeDir = path.join(__dirname, "../public/i18n/locales");
+
+function loadLocale(name) {
+  const code = fs.readFileSync(path.join(localeDir, `${name}.js`), "utf8");
+  // eslint-disable-next-line no-new-func
+  new Function("window", code)(global.window);
+}
+
+loadLocale("ru");
+loadLocale("en");
+loadLocale("he");
+
+// ── Load i18n core ────────────────────────────────────────────────────────────
+
+const i18nCode = fs.readFileSync(path.join(__dirname, "../public/i18n/index.js"), "utf8");
+// eslint-disable-next-line no-new-func
+new Function("window", "document", "localStorage", i18nCode)(global.window, global.document, global.localStorage);
+
+const { t, appSetLocale, appGetLocale, applyI18n } = global.window;
+
+// ── Test helpers ──────────────────────────────────────────────────────────────
+
+let passed = 0;
+let failed = 0;
+
+function test(label, fn) {
+  try {
+    fn();
+    console.log(`  ✓ ${label}`);
+    passed++;
+  } catch (e) {
+    console.error(`  ✗ ${label}`);
+    console.error(`    ${e.message}`);
+    failed++;
+  }
+}
+
+function flatKeys(obj, prefix) {
+  prefix = prefix || "";
+  let keys = [];
+  for (const k of Object.keys(obj)) {
+    const full = prefix ? `${prefix}.${k}` : k;
+    if (obj[k] && typeof obj[k] === "object") {
+      keys = keys.concat(flatKeys(obj[k], full));
+    } else {
+      keys.push(full);
+    }
+  }
+  return keys;
+}
+
+// ── Suite 1: Locale file symmetry ────────────────────────────────────────────
+
+console.log("\n[Suite 1] Locale file symmetry");
+
+const ruKeys  = flatKeys(global.window.I18N_LOCALES.ru);
+const enKeys  = flatKeys(global.window.I18N_LOCALES.en);
+const heKeys  = flatKeys(global.window.I18N_LOCALES.he);
+
+test("ru.js loads and has keys", () => assert.ok(ruKeys.length > 0, "ru.js is empty"));
+test("en.js loads and has keys", () => assert.ok(enKeys.length > 0, "en.js is empty"));
+test("he.js loads and has keys", () => assert.ok(heKeys.length > 0, "he.js is empty"));
+
+test("en.js has all keys from ru.js", () => {
+  const enSet = new Set(enKeys);
+  const missing = ruKeys.filter(k => !enSet.has(k));
+  assert.strictEqual(missing.length, 0, `Missing in en.js: ${missing.join(", ")}`);
+});
+
+test("he.js has all keys from ru.js", () => {
+  const heSet = new Set(heKeys);
+  const missing = ruKeys.filter(k => !heSet.has(k));
+  assert.strictEqual(missing.length, 0, `Missing in he.js: ${missing.join(", ")}`);
+});
+
+// ── Suite 2: t() resolution ───────────────────────────────────────────────────
+
+console.log("\n[Suite 2] t() key resolution");
+
+test("default locale is ru", () => assert.strictEqual(appGetLocale(), "ru"));
+
+test("t() resolves a simple key in ru", () => {
+  const val = t("status.ready");
+  assert.strictEqual(val, "Готово");
+});
+
+test("t() resolves a nested key in ru", () => {
+  const val = t("classic.speak");
+  assert.ok(val.includes("Озвучить") || val.includes("🔊"), `Got: ${val}`);
+});
+
+test("t() falls back to ru for key missing in current locale", () => {
+  // temporarily corrupt en locale for one key
+  const orig = global.window.I18N_LOCALES.en.status.ready;
+  delete global.window.I18N_LOCALES.en.status.ready;
+  appSetLocale("en");
+  const val = t("status.ready");
+  // restore
+  global.window.I18N_LOCALES.en.status.ready = orig;
+  appSetLocale("ru");
+  assert.strictEqual(val, "Готово", `Expected ru fallback, got: ${val}`);
+});
+
+test("t() returns key string for unknown key", () => {
+  const key = "nonexistent.deep.key";
+  const val = t(key);
+  assert.strictEqual(val, key);
+});
+
+// ── Suite 3: Parameter interpolation ─────────────────────────────────────────
+
+console.log("\n[Suite 3] Interpolation");
+
+test("t() interpolates {param} in en", () => {
+  appSetLocale("en");
+  const val = t("toast.ankiAvailable", { ver: "6" });
+  assert.ok(val.includes("6"), `Expected version in output, got: ${val}`);
+  appSetLocale("ru");
+});
+
+test("t() interpolates multiple params", () => {
+  appSetLocale("en");
+  const val = t("toast.ankiExported", { notes: 3, cards: 3 });
+  assert.ok(val.includes("3"), `Expected count in output, got: ${val}`);
+  appSetLocale("ru");
+});
+
+test("t() leaves unfilled {placeholders} as-is", () => {
+  appSetLocale("en");
+  const val = t("toast.ankiAvailable", {});
+  assert.ok(val.includes("{ver}"), `Expected unfilled placeholder, got: ${val}`);
+  appSetLocale("ru");
+});
+
+// ── Suite 4: appSetLocale() ───────────────────────────────────────────────────
+
+console.log("\n[Suite 4] appSetLocale()");
+
+test("appSetLocale('en') switches locale", () => {
+  appSetLocale("en");
+  assert.strictEqual(appGetLocale(), "en");
+  assert.strictEqual(t("status.ready"), "Ready");
+  appSetLocale("ru");
+});
+
+test("appSetLocale('he') switches locale", () => {
+  appSetLocale("he");
+  assert.strictEqual(appGetLocale(), "he");
+  assert.ok(t("status.ready").length > 0);
+  appSetLocale("ru");
+});
+
+test("appSetLocale() persists to localStorage", () => {
+  appSetLocale("en");
+  assert.strictEqual(localStorageMock.getItem("app.locale"), "en");
+  appSetLocale("ru");
+});
+
+test("appSetLocale() rejects unknown locale, falls back to ru", () => {
+  appSetLocale("xx");
+  assert.strictEqual(appGetLocale(), "ru");
+});
+
+// ── Suite 5: RTL / dir attribute ─────────────────────────────────────────────
+
+console.log("\n[Suite 5] RTL / dir attribute");
+
+test("appSetLocale('he') sets dir=rtl on documentElement", () => {
+  appSetLocale("he");
+  assert.strictEqual(_docEl.dir, "rtl");
+  appSetLocale("ru");
+});
+
+test("appSetLocale('ru') sets dir=ltr on documentElement", () => {
+  appSetLocale("ru");
+  assert.strictEqual(_docEl.dir, "ltr");
+});
+
+test("appSetLocale('en') sets dir=ltr on documentElement", () => {
+  appSetLocale("en");
+  assert.strictEqual(_docEl.dir, "ltr");
+  appSetLocale("ru");
+});
+
+test("appSetLocale('he') sets lang=he on documentElement", () => {
+  appSetLocale("he");
+  assert.strictEqual(_docEl.lang, "he");
+  appSetLocale("ru");
+});
+
+// ── Suite 6: Toast / confirm key completeness ─────────────────────────────────
+
+console.log("\n[Suite 6] Critical toast key presence");
+
+const criticalKeys = [
+  "toast.ankiAvailable",
+  "toast.ankiUnavailable",
+  "toast.ankiPreviewFailed",
+  "toast.ankiExported",
+  "toast.ankiExportFailed",
+  "toast.openLibraryFirst",
+  "toast.audioBatchUnavailable",
+  "toast.selectRowFirst",
+  "toast.copied",
+  "toast.copyFailed",
+  "toast.ankiModalUnavailable",
+  "toast.noTextSelected",
+  "toast.generatingDocx",
+  "toast.docxDownloaded",
+  "toast.docxFailed",
+  "toast.srsUnavailable",
+  "toast.srsAdded",
+  "toast.srsFailed",
+  "toast.srsReviewUnavailable",
+  "toast.srsReviewSaved",
+  "toast.srsReviewFailed",
+  "toast.srsSessionFailed",
+  "toast.srsModeChangeFailed",
+  "toast.srsAudioUnavailable",
+  "toast.srsTypeAnswerFirst",
+  "toast.srsAnswerCheckFailed",
+  "confirm.clearText",
+  "confirm.resetAllEdits",
+];
+
+for (const key of criticalKeys) {
+  test(`key "${key}" resolves in all locales`, () => {
+    for (const locale of ["ru", "en", "he"]) {
+      appSetLocale(locale);
+      const val = t(key);
+      assert.notStrictEqual(val, key, `Missing in ${locale}: ${key}`);
+    }
+    appSetLocale("ru");
+  });
+}
+
+// ── Summary ───────────────────────────────────────────────────────────────────
+
+console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
+if (failed > 0) process.exit(1);

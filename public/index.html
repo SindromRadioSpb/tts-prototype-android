@@ -5237,6 +5237,246 @@ body.v3-ide-mode .v3-ide-right {
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
+/* ============================================================
+   LANGUAGE SELECTOR
+   ============================================================ */
+.lang-select-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(255,255,255,0.9) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E") no-repeat right 8px center;
+  background-size: 10px 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 5px 28px 5px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-width: 90px;
+  white-space: nowrap;
+}
+
+.lang-select:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+}
+
+.lang-select:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 1px;
+  border-color: #3b82f6;
+}
+
+/* IDE header lang select variant */
+.v3-ide-header .lang-select-wrap {
+  margin: 0 4px;
+}
+
+.v3-ide-header .lang-select {
+  background-color: rgba(255,255,255,0.12);
+  border-color: rgba(255,255,255,0.25);
+  color: inherit;
+  font-size: 12px;
+  padding: 4px 24px 4px 8px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E");
+}
+
+/* Mobile: hide classic lang-select if too narrow, IDE lang select always visible */
+@media (max-width: 480px) {
+  .classic-lang-wrap { display: none; }
+  .classic-lang-wrap-mobile { display: flex !important; }
+}
+
+.classic-lang-wrap-mobile {
+  display: none;
+  margin-top: 4px;
+  justify-content: flex-end;
+}
+
+/* ============================================================
+   RTL SUPPORT (Hebrew interface direction)
+   ============================================================ */
+
+/* --- Flex direction mirrors for RTL UI --- */
+[dir="rtl"] .classic-utility-bar {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-utility-nav {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-shell-head {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-composer-tools {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-result-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-primary-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-inline-meta {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-card-head {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .classic-result-head {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .table-settings-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-ide-header-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-modal-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-modal-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-nav-left,
+[dir="rtl"] .v3-nav-right {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .export-actions {
+  flex-direction: row-reverse;
+}
+
+/* --- Text alignment --- */
+[dir="rtl"] .classic-screen-title,
+[dir="rtl"] .classic-screen-subtitle,
+[dir="rtl"] .classic-card-title,
+[dir="rtl"] .classic-card-subtitle,
+[dir="rtl"] .classic-eyebrow,
+[dir="rtl"] .input-label {
+  text-align: end;
+}
+
+[dir="rtl"] .hotkeys-list {
+  text-align: end;
+  direction: rtl;
+}
+
+[dir="rtl"] .hotkeys-header {
+  text-align: end;
+}
+
+/* --- Library modal RTL --- */
+[dir="rtl"] .v3-lib-toolbar {
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+}
+
+[dir="rtl"] .v3-filter-row {
+  flex-direction: row-reverse;
+}
+
+/* --- IDE panels RTL --- */
+[dir="rtl"] .v3-ide-tabs {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-ide-center-title-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-ide-center-actions {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-ide-center-title-tools {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .v3-ide-col-settings {
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+}
+
+/* --- CRITICAL: Hebrew/Niqqud data columns always RTL regardless of page dir --- */
+td.rtl-he,
+td.rtl-he-niqqud,
+th[data-col="he"],
+td[data-col="he"],
+th[data-col="niqqud"],
+td[data-col="niqqud"] {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* Transliteration and translation always LTR */
+th[data-col="translit"],
+td[data-col="translit"],
+th[data-col="ru"],
+td[data-col="ru"] {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+/* Textarea stays LTR/user-controlled */
+[dir="rtl"] #inputText {
+  /* Hebrew input: preserve rtl-text class behavior */
+  text-align: right;
+  direction: rtl;
+}
+
+/* --- Language selector: flip chevron and padding for RTL --- */
+[dir="rtl"] .lang-select {
+  background-position: left 8px center;
+  padding-left: 28px;
+  padding-right: 10px;
+}
+
+/* --- IDE header logo: reverse icon+text order for RTL --- */
+[dir="rtl"] .v3-ide-header-logo {
+  flex-direction: row-reverse;
+}
+
+/* --- Save-meta modal and other forms: text-align in RTL --- */
+[dir="rtl"] .v3-meta-form label,
+[dir="rtl"] .v3-modal-body label {
+  text-align: end;
+}
+
+/* --- Chip/status bar: reverse order in RTL --- */
+[dir="rtl"] .classic-chips-row {
+  flex-direction: row-reverse;
+}
+
+/* --- Mobile RTL adjustments --- */
+@media (max-width: 768px) {
+  [dir="rtl"] .classic-utility-nav {
+    justify-content: flex-end;
+  }
+  [dir="rtl"] .classic-composer-tools {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
 </style>
 
 </head>
@@ -5246,22 +5486,29 @@ body.v3-ide-mode .v3-ide-right {
 <header id="v3IdeHeader" class="v3-ide-header" style="display:none;">
   <div class="v3-ide-header-logo">
     <span class="v3-ide-logo-icon">📚</span>
-    <span>Hebrew Learning IDE</span>
+    <span data-i18n="ide.logoTitle">Hebrew Learning IDE</span>
   </div>
   <div class="v3-ide-header-actions">
-    <button id="v3IdeLeftToggle" class="btn-ide" onclick="v3IdeToggleLeft()" title="Toggle Library Panel (Ctrl+1)">
+    <button id="v3IdeLeftToggle" class="btn-ide" onclick="v3IdeToggleLeft()" data-i18n="ide.library" data-i18n-title="ide.toggleLibraryTitle" title="Toggle Library Panel (Ctrl+1)">
       📖 Library
     </button>
-    <button id="v3IdeRightToggle" class="btn-ide" onclick="v3IdeToggleRight()" title="Toggle Inspector Panel (Ctrl+2)">
+    <button id="v3IdeRightToggle" class="btn-ide" onclick="v3IdeToggleRight()" data-i18n="ide.inspector" data-i18n-title="ide.toggleInspectorTitle" title="Toggle Inspector Panel (Ctrl+2)">
       📝 Inspector
     </button>
-    <button id="v3IdeDashBtn" class="btn-ide" onclick="v3DashboardOpen()" title="Open Dashboard">
+    <button id="v3IdeDashBtn" class="btn-ide" onclick="v3DashboardOpen()" data-i18n="ide.dashboard" data-i18n-title="ide.openDashboardTitle" title="Open Dashboard">
       📊 Dashboard
     </button>
-    <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" title="Open SRS Trainer">
+    <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" data-i18n="ide.train" data-i18n-title="ide.openTrainerTitle" title="Open SRS Trainer">
       🎯 Train
     </button>
-    <button id="v3IdeExitBtn" class="btn-ide" onclick="v3IdeModeToggle()" title="Switch to Classic Mode">
+    <div class="lang-select-wrap">
+      <select id="appLangSelectIde" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+        <option value="he">עברית</option>
+      </select>
+    </div>
+    <button id="v3IdeExitBtn" class="btn-ide" onclick="v3IdeModeToggle()" data-i18n="ide.classic" data-i18n-title="ide.switchToClassicTitle" title="Switch to Classic Mode">
       ↩ Classic
     </button>
   </div>
@@ -5273,13 +5520,13 @@ body.v3-ide-mode .v3-ide-right {
   <aside id="v3IdeLeft" class="v3-ide-left">
     <div class="v3-ide-tabs">
       <button class="v3-ide-tab v3-ide-tab-active" data-tab="search" onclick="v3IdeLeftTabSwitch('search')">
-        <span class="v3-ide-tab-icon">🔍</span>Search
+        <span class="v3-ide-tab-icon">🔍</span><span data-i18n="ide.tabSearch">Search</span>
       </button>
       <button class="v3-ide-tab" data-tab="library" onclick="v3IdeLeftTabSwitch('library')">
-        <span class="v3-ide-tab-icon">📚</span>Library
+        <span class="v3-ide-tab-icon">📚</span><span data-i18n="ide.tabLibrary">Library</span>
       </button>
       <button class="v3-ide-tab" data-tab="history" onclick="v3IdeLeftTabSwitch('history')">
-        <span class="v3-ide-tab-icon">📜</span>History
+        <span class="v3-ide-tab-icon">📜</span><span data-i18n="ide.tabHistory">History</span>
       </button>
     </div>
 
@@ -5291,15 +5538,16 @@ body.v3-ide-mode .v3-ide-right {
             id="v3IdeSearchInput"
             type="text"
             class="v3-ide-search-input"
+            data-i18n-placeholder="ide.searchPlaceholder"
             placeholder="Search texts, rows, notes..."
             oninput="v3IdeSearchDebounced()"
           />
           <div class="v3-ide-search-scope">
             <select id="v3IdeSearchScope" onchange="v3IdeSearchScopeChange()">
-              <option value="both">All (texts + rows + notes)</option>
-              <option value="texts">Texts only</option>
-              <option value="rows">Rows only</option>
-              <option value="notes">Notes only</option>
+              <option value="both" data-i18n="ide.searchScopeAll">Все (тексты + строки + заметки)</option>
+              <option value="texts" data-i18n="ide.searchScopeTexts">Только тексты</option>
+              <option value="rows" data-i18n="ide.searchScopeRows">Только строки</option>
+              <option value="notes" data-i18n="ide.searchScopeNotes">Только заметки</option>
             </select>
           </div>
         </div>
@@ -5307,7 +5555,7 @@ body.v3-ide-mode .v3-ide-right {
       <div id="v3IdeSearchResults" class="v3-ide-results">
         <div class="v3-ide-empty">
           <div class="v3-ide-empty-icon">🔍</div>
-          <div class="v3-ide-empty-text">Enter a search query to find texts, rows, or notes</div>
+          <div class="v3-ide-empty-text" data-i18n="ide.emptySearch">Введите запрос для поиска текстов, строк или заметок</div>
         </div>
       </div>
     </div>
@@ -5320,12 +5568,13 @@ body.v3-ide-mode .v3-ide-right {
             id="v3IdeLibraryFilter"
             type="text"
             class="v3-ide-search-input"
-            placeholder="Filter library..."
+            data-i18n-placeholder="ide.filterPlaceholder"
+            placeholder="Фильтр библиотеки..."
             oninput="v3IdeLibraryFilterDebounced()"
           />
           <div class="v3-ide-search-scope">
             <select id="v3IdeLibraryLevel" onchange="v3IdeLibraryLevelChange()">
-              <option value="">All levels</option>
+              <option value="" data-i18n="ide.levelAll">Все уровни</option>
               <option value="alef">Alef</option>
               <option value="alef+">Alef+</option>
               <option value="bet">Bet</option>
@@ -5333,9 +5582,9 @@ body.v3-ide-mode .v3-ide-right {
               <option value="dalet">Dalet</option>
             </select>
             <select id="v3IdeLibrarySort" onchange="v3IdeLibrarySortChange()">
-              <option value="opened_desc">Recent</option>
-              <option value="title_asc">A-Z</option>
-              <option value="level_asc">Level</option>
+              <option value="opened_desc" data-i18n="ide.sortRecent">Недавние</option>
+              <option value="title_asc" data-i18n="ide.sortAZ">A-Z</option>
+              <option value="level_asc" data-i18n="ide.sortLevel">По уровню</option>
             </select>
           </div>
         </div>
@@ -5348,12 +5597,12 @@ body.v3-ide-mode .v3-ide-right {
     <!-- History Tab Content -->
     <div id="v3IdeLeftHistory" class="v3-ide-panel-content" style="display:none;">
       <div class="v3-ide-panel-header">
-        <div class="v3-ide-panel-title">Recent Activity</div>
+        <div class="v3-ide-panel-title" data-i18n="ide.recentActivityTitle">Последняя активность</div>
       </div>
       <div id="v3IdeHistoryList">
         <div class="v3-ide-empty">
           <div class="v3-ide-empty-icon">📜</div>
-          <div class="v3-ide-empty-text">No recent activity yet</div>
+          <div class="v3-ide-empty-text" data-i18n="ide.noActivity">Нет последней активности</div>
         </div>
       </div>
     </div>
@@ -5363,7 +5612,7 @@ body.v3-ide-mode .v3-ide-right {
   <main id="v3IdeCenter" class="v3-ide-center">
     <div id="v3IdeCenterHeader" class="v3-ide-center-header" style="display:none;">
       <div class="v3-ide-center-title-row">
-  <h2 id="v3IdeCenterTitle" class="v3-ide-center-title">No text selected</h2>
+  <h2 id="v3IdeCenterTitle" class="v3-ide-center-title" data-i18n="ide.noTextSelected">Текст не выбран</h2>
 
   <div class="v3-ide-center-title-tools">
     <button
@@ -5371,6 +5620,7 @@ body.v3-ide-mode .v3-ide-right {
       type="button"
       class="v3-title-copy"
       style="display:none;"
+      data-i18n-title="ide.copyLinkTitle"
       title="Копировать ссылку на текст"
       onclick="v3IdeCopyActiveTextDeeplink(event)"
     >🔗</button>
@@ -5379,8 +5629,10 @@ body.v3-ide-mode .v3-ide-right {
       id="v3IdeCenterPlayAllMini"
       type="button"
       class="v3-title-copy"
-      title="Play all rows"
-      aria-label="Play all rows"
+      data-i18n-title="ide.playAllTitle"
+      data-i18n-aria-label="ide.playAllAria"
+      title="Воспроизвести все строки"
+      aria-label="Воспроизвести все строки"
       onclick="v3IdePlayAll()"
     >▶</button>
   </div>
@@ -5394,35 +5646,37 @@ body.v3-ide-mode .v3-ide-right {
     type="button"
     class="btn-secondary v3-ide-columns-btn"
     onclick="v3IdeOpenColumnsPanel()"
-    title="Columns"
-  >Columns ▦</button>
+    data-i18n-title="ide.columnsTitle"
+    data-i18n="ide.columnsBtn"
+    title="Колонки"
+  >Колонки ▦</button>
 </div>
 
       <div class="v3-ide-center-actions">
-        <button class="btn-secondary" onclick="v3IdePlayAll()" title="Play all rows">▶ Play All</button>
-        <button class="btn-secondary" onclick="v3IdeOpenInClassic()" title="Open in classic view">Open Classic</button>
+        <button class="btn-secondary" onclick="v3IdePlayAll()" data-i18n-title="ide.playAllTitle" data-i18n="ide.playAllBtn" title="Воспроизвести все строки">▶ Воспроизвести всё</button>
+        <button class="btn-secondary" onclick="v3IdeOpenInClassic()" data-i18n="ide.openClassicBtn" title="Open in classic view">Открыть Classic</button>
       </div>
       <!-- Column Visibility Toggles -->
 	  <div id="v3IdeColSettingsMount">
       <div id="v3IdeColSettings" class="v3-ide-col-settings">
-        <label><input type="checkbox" id="v3IdeColAction" onchange="v3IdeToggleColumn('action')" checked> Actions</label>
-        <label><input type="checkbox" id="v3IdeColHebrew" onchange="v3IdeToggleColumn('hebrew')" checked> Hebrew</label>
-        <label><input type="checkbox" id="v3IdeColNiqqud" onchange="v3IdeToggleColumn('niqqud')" checked> Niqqud</label>
-        <label><input type="checkbox" id="v3IdeColTranslit" onchange="v3IdeToggleColumn('translit')" checked> Translit</label>
-        <label><input type="checkbox" id="v3IdeColTranslation" onchange="v3IdeToggleColumn('translation')" checked> Translation</label>
-        <button type="button" class="v3-ide-col-reset" onclick="v3IdeResetColumns()">Reset</button>
-        <span class="v3-ide-col-note">Table settings saved on this device.</span>
+        <label><input type="checkbox" id="v3IdeColAction" onchange="v3IdeToggleColumn('action')" checked> <span data-i18n="ide.colAction">Действия</span></label>
+        <label><input type="checkbox" id="v3IdeColHebrew" onchange="v3IdeToggleColumn('hebrew')" checked> <span data-i18n="ide.colHebrew">Иврит</span></label>
+        <label><input type="checkbox" id="v3IdeColNiqqud" onchange="v3IdeToggleColumn('niqqud')" checked> <span data-i18n="ide.colNiqqud">Огласовки</span></label>
+        <label><input type="checkbox" id="v3IdeColTranslit" onchange="v3IdeToggleColumn('translit')" checked> <span data-i18n="ide.colTranslit">Транслит</span></label>
+        <label><input type="checkbox" id="v3IdeColTranslation" onchange="v3IdeToggleColumn('translation')" checked> <span data-i18n="ide.colTranslation">Перевод</span></label>
+        <button type="button" class="v3-ide-col-reset" onclick="v3IdeResetColumns()" data-i18n="ide.colReset">Сбросить</button>
+        <span class="v3-ide-col-note" data-i18n="ide.colSavedNote">Настройки таблицы сохранены на устройстве.</span>
       </div>
 	  </div>
     </div>
     <div id="v3IdeCenterContent" class="v3-ide-center-content">
       <div class="v3-ide-empty">
         <div class="v3-ide-empty-icon">📖</div>
-        <div class="v3-ide-empty-text">Select a text from the Library or search results</div>
+        <div class="v3-ide-empty-text" data-i18n="ide.emptyCenter">Выберите текст из библиотеки или результатов поиска</div>
       </div>
     </div>
   </main>
-  
+
   <div
   id="v3IdeColsSheetBackdrop"
   class="v3-sheet-backdrop"
@@ -5434,17 +5688,20 @@ body.v3-ide-mode .v3-ide-right {
     class="v3-bottom-sheet"
     role="dialog"
     aria-modal="true"
-    aria-label="Columns"
+    data-i18n-aria-label="ide.colsSheetAria"
+    aria-label="Колонки"
     onclick="event.stopPropagation()"
   >
     <div class="v3-bottom-sheet-header">
-      <div class="v3-bottom-sheet-title">Columns</div>
+      <div class="v3-bottom-sheet-title" data-i18n="ide.colsSheetTitle">Колонки</div>
       <button
         type="button"
         class="v3-bottom-sheet-close"
         onclick="v3IdeCloseColumnsPanel()"
-        aria-label="Close"
-        title="Close"
+        data-i18n-aria-label="ide.closeAria"
+        data-i18n-title="ide.closeTitle"
+        aria-label="Закрыть"
+        title="Закрыть"
       >✕</button>
     </div>
 
@@ -5632,17 +5889,24 @@ body.v3-ide-mode .v3-ide-right {
         <div class="classic-shell">
             <div class="classic-shell-head">
                 <div class="classic-shell-copy">
-                    <div class="classic-eyebrow">Classic Mode</div>
-                    <h2 class="classic-screen-title">Текст для озвучки и перевода</h2>
-                    <p class="classic-screen-subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
+                    <div class="classic-eyebrow" data-i18n="classic.eyebrow">Classic Mode</div>
+                    <h2 class="classic-screen-title" data-i18n="classic.title">Текст для озвучки и перевода</h2>
+                    <p class="classic-screen-subtitle" data-i18n="classic.subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
                 </div>
-                <div class="classic-utility-bar" role="navigation" aria-label="Навигация и режимы">
+                <div class="classic-utility-bar" role="navigation" data-i18n-aria-label="classic.navLabel" aria-label="Навигация и режимы">
                     <div class="classic-utility-nav">
-                        <button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()">📚 Библиотека</button>
-                        <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()">📈 Дашборд</button>
-                        <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()">🎯 SRS Trainer</button>
+                        <button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()" data-i18n="classic.library">📚 Библиотека</button>
+                        <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()" data-i18n="classic.dashboard">📈 Дашборд</button>
+                        <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
                     </div>
-                    <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса">
+                    <div class="lang-select-wrap classic-lang-wrap" title="">
+                      <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
+                        <option value="ru">Русский</option>
+                        <option value="en">English</option>
+                        <option value="he">עברית</option>
+                      </select>
+                    </div>
+                    <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса" data-i18n="classic.ideMode">
                       🖥️ IDE режим
                     </button>
                 </div>
@@ -5653,19 +5917,19 @@ body.v3-ide-mode .v3-ide-right {
                     <details id="classicComposerPanel" class="classic-card classic-mobile-panel" open>
                         <summary class="classic-mobile-panel-summary">
                             <span class="classic-mobile-panel-copy">
-                                <span class="classic-mobile-panel-title">Исходный текст</span>
+                                <span class="classic-mobile-panel-title" data-i18n="classic.composerPanelTitle">Исходный текст</span>
                                 <span id="classicComposerPanelMeta" class="classic-mobile-panel-meta">Пусто</span>
                             </span>
                         </summary>
                     <section class="classic-mobile-panel-body classic-composer-card" aria-labelledby="classicComposerTitle">
                         <div class="classic-card-head">
                             <div>
-                                <div id="classicComposerTitle" class="classic-card-title">Исходный текст</div>
-                                <div class="classic-card-subtitle">Здесь начинается основной сценарий. Состояние текста и результата должно читаться мгновенно.</div>
+                                <div id="classicComposerTitle" class="classic-card-title" data-i18n="classic.composerTitle">Исходный текст</div>
+                                <div class="classic-card-subtitle" data-i18n="classic.composerSubtitle">Здесь начинается основной сценарий. Состояние текста и результата должно читаться мгновенно.</div>
                             </div>
                             <div class="classic-composer-tools">
-                                <button id="btnInputPaste" class="btn-secondary btn-mini-secondary" type="button" title="Вставить текст из буфера обмена">Вставить</button>
-                                <button id="btnInputClear" class="btn-secondary btn-mini-secondary" type="button" title="Очистить поле и сбросить результаты">Очистить</button>
+                                <button id="btnInputPaste" class="btn-secondary btn-mini-secondary" type="button" data-i18n="classic.paste" data-i18n-title="classic.pasteTitle" title="Вставить текст из буфера обмена">Вставить</button>
+                                <button id="btnInputClear" class="btn-secondary btn-mini-secondary" type="button" data-i18n="classic.clear" data-i18n-title="classic.clearTitle" title="Очистить поле и сбросить результаты">Очистить</button>
                             </div>
                         </div>
 
@@ -5675,9 +5939,9 @@ body.v3-ide-mode .v3-ide-right {
                             <span id="classicSourceStateChip" class="classic-state-chip">Источник: локальный ввод</span>
                         </div>
 
-                        <textarea id="inputText" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
+                        <textarea id="inputText" data-i18n-placeholder="classic.inputPlaceholder" placeholder="Введите текст здесь... (Иврит, Английский, Русский)">שלום, זהו אבטיפוס פשוט של המערכת</textarea>
 
-                        <div id="textChangedNotice">
+                        <div id="textChangedNotice" data-i18n="classic.textChangedNotice">
                             ⚠ Текст был изменён. Требуется повторная озвучка и пересборка таблицы.
                         </div>
 
@@ -5685,28 +5949,28 @@ body.v3-ide-mode .v3-ide-right {
 
                         <div id="classicPrimaryBar" class="classic-primary-bar" data-priority="table">
                             <div class="classic-primary-actions">
-                                <button id="btnAiTranslate" class="btn-success" onclick="translateTable()">Собрать таблицу</button>
-                                <button id="btnMainTts" class="btn-primary" onclick="playTTS()">🔊 Озвучить</button>
+                                <button id="btnAiTranslate" class="btn-success" onclick="translateTable()" data-i18n="classic.buildTable">Собрать таблицу</button>
+                                <button id="btnMainTts" class="btn-primary" onclick="playTTS()" data-i18n="classic.speak">🔊 Озвучить</button>
                             </div>
-                            <div id="classicPrimaryHint" class="classic-primary-hint">Введите текст и запустите основное действие.</div>
+                            <div id="classicPrimaryHint" class="classic-primary-hint" data-i18n="classic.primaryHint">Введите текст и запустите основное действие.</div>
                         </div>
 
                         <!-- Блок горячих клавиш -->
                         <div id="hotkeysPanel" class="hotkeys-panel hotkeys-collapsed">
                             <div class="hotkeys-header">
-                                <strong>Горячие клавиши</strong>
-                                <span class="hotkeys-hint">
-                                    Нажмите <code>Ctrl+/</code>, чтобы скрыть или показать этот блок.
+                                <strong data-i18n="classic.hotkeys">Горячие клавиши</strong>
+                                <span class="hotkeys-hint" data-i18n="classic.hotkeysHint">
+                                    Нажмите Ctrl+/, чтобы скрыть или показать этот блок.
                                 </span>
                             </div>
                             <ul class="hotkeys-list">
-                                <li><code>Ctrl+Enter</code> — Озвучить (TTS)</li>
-                                <li><code>Ctrl+Shift+Enter</code> — Собрать таблицу + SAVE</li>
-                                <li><code>Ctrl+Shift+S</code> — Сохранить MP3 озвучки текущего текста</li>
-                                <li><code>Ctrl+Shift+Backspace</code> — Очистить текстовое поле и сбросить результаты</li>
-                                <li><code>Ctrl+/</code> — Показать/скрыть этот блок</li>
-				                <li><code>↑/↓</code> — Навигация по строкам таблицы (после выбора строки)</li>
-                                <li><code>Enter</code> — Озвучить выбранную строку (▶)</li>
+                                <li><code>Ctrl+Enter</code> — <span data-i18n="classic.hotkey_tts">Озвучить (TTS)</span></li>
+                                <li><code>Ctrl+Shift+Enter</code> — <span data-i18n="classic.hotkey_buildSave">Собрать таблицу + SAVE</span></li>
+                                <li><code>Ctrl+Shift+S</code> — <span data-i18n="classic.hotkey_saveMp3">Сохранить MP3 озвучки текущего текста</span></li>
+                                <li><code>Ctrl+Shift+Backspace</code> — <span data-i18n="classic.hotkey_clearAll">Очистить текстовое поле и сбросить результаты</span></li>
+                                <li><code>Ctrl+/</code> — <span data-i18n="classic.hotkey_toggle">Показать/скрыть этот блок</span></li>
+				                <li><code>↑/↓</code> — <span data-i18n="classic.hotkey_navRows">Навигация по строкам таблицы (после выбора строки)</span></li>
+                                <li><code>Enter</code> — <span data-i18n="classic.hotkey_playRow">Озвучить выбранную строку (▶)</span></li>
                             </ul>
                         </div>
                     </section>
@@ -5714,13 +5978,13 @@ body.v3-ide-mode .v3-ide-right {
 
                     <details id="classicTtsCard" class="classic-card classic-disclosure" open>
                         <summary class="classic-disclosure-summary">
-                            <span class="classic-card-title">Настройки озвучки</span>
-                            <span class="classic-card-subtitle">Язык, голос, темп и ключи провайдера.</span>
+                            <span class="classic-card-title" data-i18n="classic.ttsTitle">Настройки озвучки</span>
+                            <span class="classic-card-subtitle" data-i18n="classic.ttsSubtitle">Язык, голос, темп и ключи провайдера.</span>
                         </summary>
                         <div class="classic-card-body">
                             <div class="classic-fields-grid classic-fields-grid-two">
                                 <div class="field-group">
-                                    <label for="langSelect" class="input-label">Язык исходного текста</label>
+                                    <label for="langSelect" class="input-label" data-i18n="classic.ttsLangLabel">Язык исходного текста</label>
                                     <select id="langSelect">
                                         <option value="he-IL">🇮🇱 Иврит</option>
                                         <option value="ru-RU">🇷🇺 Русский</option>
@@ -5729,7 +5993,7 @@ body.v3-ide-mode .v3-ide-right {
                                 </div>
 
                                 <div class="field-group">
-                                    <label for="ttsProviderSelect" class="input-label">Провайдер озвучки</label>
+                                    <label for="ttsProviderSelect" class="input-label" data-i18n="classic.ttsProvider">Провайдер озвучки</label>
                                     <select id="ttsProviderSelect">
                                         <option value="online_tts">Online TTS</option>
                                         <option value="hebrew_phonikud_piper" disabled>Hebrew Local Piper (disabled: low quality)</option>
@@ -5739,7 +6003,7 @@ body.v3-ide-mode .v3-ide-right {
                                 </div>
 
                                 <div class="field-group">
-                                    <label for="voiceSelect" class="input-label">Голос TTS</label>
+                                    <label for="voiceSelect" class="input-label" data-i18n="classic.ttsVoice">Голос TTS</label>
                                     <select id="voiceSelect">
                                         <option value="">Авто (по умолчанию)</option>
                                         <option value="he-IL-Standard-A">he-IL-Standard-A (ж, иврит)</option>
@@ -5752,13 +6016,13 @@ body.v3-ide-mode .v3-ide-right {
                                 </div>
 
                                 <div class="field-group">
-                                    <label for="rateRange" class="input-label">Скорость речи</label>
+                                    <label for="rateRange" class="input-label" data-i18n="classic.ttsSpeed">Скорость речи</label>
                                     <input id="rateRange" type="range" min="0.5" max="2.0" step="0.1" value="1.0">
                                     <span id="rateValue" class="stat-sub">1.00×</span>
                                 </div>
 
                                 <div class="field-group">
-                                    <label for="pitchRange" class="input-label">Тон (pitch)</label>
+                                    <label for="pitchRange" class="input-label" data-i18n="classic.ttsPitch">Тон (pitch)</label>
                                     <input id="pitchRange" type="range" min="-5" max="5" step="0.5" value="0">
                                     <span id="pitchValue" class="stat-sub">0.0</span>
                                     <div id="ttsPitchSupportNote" class="v3-help" style="font-size:12px;"></div>
@@ -5779,13 +6043,13 @@ body.v3-ide-mode .v3-ide-right {
 
                     <details id="classicTranslationCard" class="classic-card classic-disclosure" open>
                         <summary class="classic-disclosure-summary">
-                            <span class="classic-card-title">Настройки перевода и таблицы</span>
-                            <span class="classic-card-subtitle">Переводчик, транслит, шрифт таблицы и сохранение результата.</span>
+                            <span class="classic-card-title" data-i18n="classic.translationTitle">Настройки перевода и таблицы</span>
+                            <span class="classic-card-subtitle" data-i18n="classic.translationSubtitle">Переводчик, транслит, шрифт таблицы и сохранение результата.</span>
                         </summary>
                         <div class="classic-card-body">
                             <div class="classic-fields-grid classic-fields-grid-two">
                                 <div class="field-group">
-                                    <label for="providerSelect" class="input-label">Провайдер перевода</label>
+                                    <label for="providerSelect" class="input-label" data-i18n="classic.translationProvider">Провайдер перевода</label>
                                     <select id="providerSelect" class="provider-select" title="Поставщик перевода">
 			                            <option value="google-free">Google Translate</option>
 			                            <option value="gcp">GCP Translate (API)</option>
@@ -5795,7 +6059,7 @@ body.v3-ide-mode .v3-ide-right {
                                 </div>
 
                                 <div class="field-group">
-                                    <label for="translitProfileSelect" class="input-label">Профиль транслитерации</label>
+                                    <label for="translitProfileSelect" class="input-label" data-i18n="classic.translitProfile">Профиль транслитерации</label>
                                     <select id="translitProfileSelect" class="provider-select" title="Профиль транслитерации иврита">
 			                            <option value="sbl" selected>Транслит: SBL Academic</option>
 			                            <option value="ru-phonetic">Транслит: Русская фонетика</option>
@@ -5803,7 +6067,7 @@ body.v3-ide-mode .v3-ide-right {
                                 </div>
 
                                 <div class="field-group">
-                                    <label for="hebrewFontSelect" class="input-label">Шрифт иврита табличной части</label>
+                                    <label for="hebrewFontSelect" class="input-label" data-i18n="classic.hebrewFont">Шрифт иврита табличной части</label>
                                     <select id="hebrewFontSelect">
                                         <option value="frank" selected>Frank Ruhl Libre (рекомендуется)</option>
                                         <option value="assistant">Assistant</option>
@@ -5826,21 +6090,21 @@ body.v3-ide-mode .v3-ide-right {
                     <details id="classicResultPanel" class="classic-card classic-mobile-panel" open>
                         <summary class="classic-mobile-panel-summary">
                             <span class="classic-mobile-panel-copy">
-                                <span class="classic-mobile-panel-title">Результат</span>
-                                <span id="classicResultPanelMeta" class="classic-mobile-panel-meta">Пока нет таблицы</span>
+                                <span class="classic-mobile-panel-title" data-i18n="classic.resultPanelTitle">Результат</span>
+                                <span id="classicResultPanelMeta" class="classic-mobile-panel-meta" data-i18n="classic.noTable">Пока нет таблицы</span>
                             </span>
                         </summary>
                     <section class="classic-mobile-panel-body classic-result-card" aria-labelledby="classicResultTitle">
                         <div class="classic-result-head">
                             <div>
-                                <div id="classicResultTitle" class="classic-card-title">Результат</div>
-                                <div class="classic-card-subtitle">Статус и происхождение результата.</div>
+                                <div id="classicResultTitle" class="classic-card-title" data-i18n="classic.resultTitle">Результат</div>
+                                <div class="classic-card-subtitle" data-i18n="classic.resultSubtitle">Статус и происхождение результата.</div>
                             </div>
                             <div class="classic-result-actions">
-                                <button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()">💾 Сохранить</button>
+                                <button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()" data-i18n="classic.save">💾 Сохранить</button>
                                 <button id="btnWord" class="btn-word disabled"
                                         title="Сначала сохраните текст в Library"
-                                        onclick="downloadWord()" disabled>Скачать таблицу</button>
+                                        onclick="downloadWord()" disabled data-i18n="classic.downloadTable">Скачать таблицу</button>
                             </div>
                         </div>
 
@@ -5850,7 +6114,7 @@ body.v3-ide-mode .v3-ide-right {
                             <span id="classicResultExportChip" class="classic-trust-chip">Экспорт: —</span>
                         </div>
 
-                        <div id="classicResultSummary" class="classic-result-summary">Сначала соберите таблицу. После этого появятся provenance, экспорт и работа по строкам.</div>
+                        <div id="classicResultSummary" class="classic-result-summary" data-i18n="classic.buildFirst">Сначала соберите таблицу. После этого появятся provenance, экспорт и работа по строкам.</div>
                     </section>
                     </details>
 
@@ -5858,8 +6122,8 @@ body.v3-ide-mode .v3-ide-right {
                     <details id="classicResultWorkspace" class="classic-card classic-mobile-panel" open>
                         <summary class="classic-mobile-panel-summary">
                             <span class="classic-mobile-panel-copy">
-                                <span class="classic-mobile-panel-title">Таблица и действия</span>
-                                <span id="classicResultWorkspaceHint" class="classic-mobile-panel-meta">Экспорт и работа по строкам</span>
+                                <span class="classic-mobile-panel-title" data-i18n="classic.tableWorkspaceTitle">Таблица и действия</span>
+                                <span id="classicResultWorkspaceHint" class="classic-mobile-panel-meta" data-i18n="classic.tableWorkspaceHint">Экспорт и работа по строкам</span>
                             </span>
                         </summary>
                     <div class="classic-mobile-panel-body">
@@ -5868,11 +6132,11 @@ body.v3-ide-mode .v3-ide-right {
                         <div class="export-actions classic-export-actions">
                             <button id="btnAudioPrefetch" class="btn-audio-prefetch disabled"
                                     title="Сначала сохраните текст в Library"
-                                    onclick="v3AudioPrefetchOpenModal()" disabled>Аудио</button>
+                                    onclick="v3AudioPrefetchOpenModal()" disabled data-i18n="classic.audio">Аудио</button>
 
                             <button id="btnAnki" class="btn-anki disabled"
                                     title="Сначала сохраните текст в Library"
-                                    onclick="v3AnkiOpenModal()" disabled>Anki</button>
+                                    onclick="v3AnkiOpenModal()" disabled data-i18n="classic.anki">Anki</button>
                         </div>
 
                         <div id="audioContainer" style="margin-bottom: 4px;"></div>
@@ -5893,17 +6157,17 @@ body.v3-ide-mode .v3-ide-right {
 
                         <!-- 🧩 Таблица: отображение и сценарии (коллапсируемый блок) -->
                         <details id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
-                            <summary class="table-settings-summary">🧩 Таблица: отображение и сценарии</summary>
+                            <summary class="table-settings-summary" data-i18n="classic.tableSettingsLabel">🧩 Таблица: отображение и сценарии</summary>
                             <div class="table-settings-inner">
                             <div class="table-settings-row table-settings-row-main">
                                 <div class="table-presets" role="group" aria-label="Пресеты таблицы">
-                                    <button type="button" class="btn-mini" data-preset="full" title="Показать все 4 колонки">Полная</button>
-                                    <button type="button" class="btn-mini" data-preset="he_ru" title="Иврит + Перевод (без огласовок и транслита)">Иврит+рус</button>
-                                    <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)">Фонетика</button>
-                                    <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)">Только иврит</button>
+                                    <button type="button" class="btn-mini" data-preset="full" title="Показать все 4 колонки" data-i18n="classic.tableFull">Полная</button>
+                                    <button type="button" class="btn-mini" data-preset="he_ru" title="Иврит + Перевод (без огласовок и транслита)" data-i18n="classic.tableHeRu">Иврит+рус</button>
+                                    <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)" data-i18n="classic.tablePhonetics">Фонетика</button>
+                                    <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)" data-i18n="classic.tableHeOnly">Только иврит</button>
                                 </div>
                                 <div class="table-settings-actions">
-                                    <button type="button" id="btnTableCustomizeToggle" class="btn-mini-secondary" aria-expanded="false" title="Открыть сценарии и тонкую настройку колонок">Сценарии и колонки</button>
+                                    <button type="button" id="btnTableCustomizeToggle" class="btn-mini-secondary" aria-expanded="false" title="Открыть сценарии и тонкую настройку колонок" data-i18n="classic.tableScenariosAndCols">Сценарии и колонки</button>
                                 </div>
                             </div>
 
@@ -5912,27 +6176,28 @@ body.v3-ide-mode .v3-ide-right {
                                     <div class="table-autonext" title="Плейлист: Shift+Enter запускает непрерывное построчное проигрывание (Auto-next)">
                                         <label class="table-chk">
                                             <input type="checkbox" id="autoNextToggle">
-                                            Плейлист (Auto-next)
+                                            <span data-i18n="classic.tablePlaylistLabel">Плейлист (Auto-next)</span>
                                         </label>
 
                                         <button type="button" id="btnPlaylistRun" class="btn-mini-secondary playlist-btn"
-                                        title="Плейлист: Старт/Стоп. Можно также Shift+Enter (desktop).">
+                                        title="Плейлист: Старт/Стоп. Можно также Shift+Enter (desktop)."
+                                        data-i18n="classic.tablePlaylistStart">
                                         ▶▶ Старт
                                         </button>
                                     </div>
                                 </div>
 
                                 <div class="table-settings-row table-settings-cols" aria-label="Колонки таблицы">
-                                    <label class="table-chk"><input type="checkbox" data-col="action"> Действие</label>
-                                    <label class="table-chk"><input type="checkbox" data-col="he"> Иврит</label>
-                                    <label class="table-chk"><input type="checkbox" data-col="niqqud"> Огласовки</label>
-                                    <label class="table-chk"><input type="checkbox" data-col="translit"> Транслит</label>
-                                    <label class="table-chk"><input type="checkbox" data-col="ru"> Перевод</label>
+                                    <label class="table-chk"><input type="checkbox" data-col="action"> <span data-i18n="classic.tableColAction">Действие</span></label>
+                                    <label class="table-chk"><input type="checkbox" data-col="he"> <span data-i18n="classic.tableColHebrew">Иврит</span></label>
+                                    <label class="table-chk"><input type="checkbox" data-col="niqqud"> <span data-i18n="classic.tableColNiqqud">Огласовки</span></label>
+                                    <label class="table-chk"><input type="checkbox" data-col="translit"> <span data-i18n="classic.tableColTranslit">Транслит</span></label>
+                                    <label class="table-chk"><input type="checkbox" data-col="ru"> <span data-i18n="classic.tableColRu">Перевод</span></label>
                                 </div>
 
                                 <div class="table-settings-row table-settings-sub">
-                                    <button type="button" id="btnTableReset" class="btn-mini-secondary" title="Сбросить видимость и базовые ширины к значениям по умолчанию">Сбросить настройки</button>
-                                    <span class="table-settings-note">Настройки таблицы сохраняются на этом устройстве.</span>
+                                    <button type="button" id="btnTableReset" class="btn-mini-secondary" title="Сбросить видимость и базовые ширины к значениям по умолчанию" data-i18n="classic.tableResetSettings">Сбросить настройки</button>
+                                    <span class="table-settings-note" data-i18n="classic.tableSettingsSaved">Настройки таблицы сохраняются на этом устройстве.</span>
                                 </div>
                             </div>
                             </div>
@@ -5946,14 +6211,14 @@ body.v3-ide-mode .v3-ide-right {
                         </div>
 
                         <div id="tableEditToolbar" role="toolbar" aria-label="Редактирование таблицы">
-                          <button id="tableEditToggleBtn" class="tbl-edit-toggle-btn" type="button" title="Включить режим редактирования таблицы">✎ Редактировать</button>
+                          <button id="tableEditToggleBtn" class="tbl-edit-toggle-btn" type="button" title="Включить режим редактирования таблицы" data-i18n="classic.editModeBtn">✎ Редактировать</button>
                           <span id="tableEditStatus" class="tbl-edit-status"></span>
-                          <button id="tableEditAddBtn" class="tbl-edit-add-btn" type="button" title="Добавить пустую строку в конец">+ Строка</button>
-                          <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям">↺ Сбросить всё</button>
+                          <button id="tableEditAddBtn" class="tbl-edit-add-btn" type="button" title="Добавить пустую строку в конец" data-i18n="classic.editAddRow">+ Строка</button>
+                          <button id="tableEditResetAllBtn" class="tbl-edit-reset-all-btn" type="button" title="Сбросить все ручные правки к оригинальным значениям" data-i18n="classic.editResetAll">↺ Сбросить всё</button>
                         </div>
                         <div id="tableContainer"></div>
                         <button id="tableEditFab" type="button" title="Режим редактирования таблицы" aria-label="Режим редактирования таблицы" hidden>✎</button>
-                        <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden>↔ Альбом</button>
+                        <button id="classicOrientationFab" type="button" title="Переключить ориентацию" aria-label="Переключить ориентацию" hidden data-i18n="classic.editOrientationLandscape">↔ Альбом</button>
                         <div id="classicOrientationHint" class="hidden" aria-live="polite"></div>
                     </div>
                     </details>
@@ -5988,14 +6253,14 @@ body.v3-ide-mode .v3-ide-right {
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-  <div class="v3-modal-title">Библиотека (v3)</div>
+  <div class="v3-modal-title" data-i18n="library.title">Библиотека (v3)</div>
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-    <button class="btn-secondary" onclick="v3LibraryExport()">Экспорт JSON</button>
-    <button class="btn-secondary" onclick="v3LibraryImport()">Импорт JSON</button>
-    <button class="btn-secondary" onclick="v3LibraryExportBundle()">Экспорт ZIP (с аудио)</button>
-    <button class="btn-secondary" onclick="v3LibraryImportBundle()">Импорт ZIP (с аудио)</button>
-    <button class="btn-secondary" onclick="v3LibraryRefresh()">Обновить</button>
-    <button class="btn-secondary" onclick="v3LibraryClose()">Закрыть</button>
+    <button class="btn-secondary" onclick="v3LibraryExport()" data-i18n="library.exportJson">Экспорт JSON</button>
+    <button class="btn-secondary" onclick="v3LibraryImport()" data-i18n="library.importJson">Импорт JSON</button>
+    <button class="btn-secondary" onclick="v3LibraryExportBundle()" data-i18n="library.exportZip">Экспорт ZIP (с аудио)</button>
+    <button class="btn-secondary" onclick="v3LibraryImportBundle()" data-i18n="library.importZip">Импорт ZIP (с аудио)</button>
+    <button class="btn-secondary" onclick="v3LibraryRefresh()" data-i18n="library.refresh">Обновить</button>
+    <button class="btn-secondary" onclick="v3LibraryClose()" data-i18n="library.close">Закрыть</button>
 
     <input
       id="v3LibraryImportInput"
@@ -6019,6 +6284,7 @@ body.v3-ide-mode .v3-ide-right {
   <input
     id="v3LibrarySearch"
     type="text"
+    data-i18n-placeholder="library.searchPlaceholder"
     placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)"
     oninput="v3LibraryOnSearchInput()"
   />
@@ -6028,7 +6294,7 @@ body.v3-ide-mode .v3-ide-right {
     onchange="v3LibraryOnLevelChange()"
     title="Фильтр по уровню (alef, bet, gimel...)"
   >
-    <option value="">Все уровни</option>
+    <option value="" data-i18n="library.levelAll">Все уровни</option>
   </select>
 
   <select
@@ -6036,8 +6302,8 @@ body.v3-ide-mode .v3-ide-right {
     onchange="v3OnTagMatchModeChange(this.value)"
     title="Теги: ALL — показывать тексты, где есть ВСЕ выбранные теги. ANY — показывать тексты, где есть хотя бы один тег."
   >
-    <option value="all">Теги: ALL</option>
-    <option value="any">Теги: ANY</option>
+    <option value="all" data-i18n="library.tagsAll">Теги: ALL</option>
+    <option value="any" data-i18n="library.tagsAny">Теги: ANY</option>
   </select>
 
    <select
@@ -6045,31 +6311,31 @@ body.v3-ide-mode .v3-ide-right {
     onchange="v3OnSearchScopeChange(this.value, 'lib')"
     title="Поиск: Тексты — карточки текстов (метаданные); Both — тексты + заметки + строки; Только строки — поиск внутри строк (he/translit/ru); Только заметки — поиск в заметках (Premium)"
   >
-    <option value="texts">Поиск: Тексты</option>
-    <option value="both">Поиск: Тексты + заметки + строки</option>
-    <option value="rows">Поиск: Только строки</option>
-    <option value="notes">Поиск: Только заметки</option>
+    <option value="texts" data-i18n="library.searchTexts">Поиск: Тексты</option>
+    <option value="both" data-i18n="library.searchBoth">Поиск: Тексты + заметки + строки</option>
+    <option value="rows" data-i18n="library.searchRows">Поиск: Только строки</option>
+    <option value="notes" data-i18n="library.searchNotes">Поиск: Только заметки</option>
   </select>
-  
+
   <select
     id="v3LibrarySort"
     onchange="v3LibraryOnSortChange()"
     title="Сортировка списка в библиотеке"
   >
-    <option value="opened_desc">Сорт: Последние открытые</option>
-    <option value="updated_desc">Сорт: Последние изменённые</option>
-    <option value="title_asc">Сорт: Название A→Я</option>
-    <option value="level_asc">Сорт: Уровень A→Я</option>
-    <option value="topic_asc">Сорт: Тема A→Я</option>
+    <option value="opened_desc" data-i18n="library.sortLastOpened">Сорт: Последние открытые</option>
+    <option value="updated_desc" data-i18n="library.sortLastChanged">Сорт: Последние изменённые</option>
+    <option value="title_asc" data-i18n="library.sortTitleAsc">Сорт: Название A→Я</option>
+    <option value="level_asc" data-i18n="library.sortLevelAsc">Сорт: Уровень A→Я</option>
+    <option value="topic_asc" data-i18n="library.sortTopicAsc">Сорт: Тема A→Я</option>
   </select>
 
-  <button class="btn-success" onclick="v3LibrarySaveCurrent()">Сохранить текущую таблицу</button>
+  <button class="btn-success" onclick="v3LibrarySaveCurrent()" data-i18n="library.saveCurrentTable">Сохранить текущую таблицу</button>
 </div>
 
 <div class="v3-filter-row">
   <div id="v3LibraryActiveChips" class="v3-filter-chips"></div>
   <div id="v3LibraryFacets" class="v3-facets"></div>
-  <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button">Сбросить</button>
+  <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button" data-i18n="library.resetFilters">Сбросить</button>
 </div>
 	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
@@ -6085,10 +6351,10 @@ body.v3-ide-mode .v3-ide-right {
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">Дашборд (v3)</div>
+      <div class="v3-modal-title" data-i18n="dashboard.title">Дашборд обучения</div>
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <button class="btn-secondary" onclick="v3DashboardRefresh()">Обновить</button>
-        <button class="btn-secondary" onclick="v3DashboardClose()">Закрыть</button>
+        <button class="btn-secondary" onclick="v3DashboardRefresh()" data-i18n="dashboard.refresh">Обновить</button>
+        <button class="btn-secondary" onclick="v3DashboardClose()" data-i18n="dashboard.close">Закрыть</button>
       </div>
     </div>
 
@@ -6097,37 +6363,38 @@ body.v3-ide-mode .v3-ide-right {
         <input
           id="v3DashSearch"
           type="text"
+          data-i18n-placeholder="library.searchPlaceholder"
           placeholder="Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)"
           oninput="v3DashboardOnFilterChange()"
         />
-		
+
 		<select
   id="v3TagMatchModeDash"
   onchange="v3OnTagMatchModeChange(this.value)"
   title="Теги: ALL — показывать тексты, где есть ВСЕ выбранные теги. ANY — показывать тексты, где есть хотя бы один тег."
 >
-  <option value="all">Теги: ALL</option>
-  <option value="any">Теги: ANY</option>
+  <option value="all" data-i18n="library.tagsAll">Теги: ALL</option>
+  <option value="any" data-i18n="library.tagsAny">Теги: ANY</option>
 </select>
 
         <select id="v3DashLevel" onchange="v3DashboardOnFilterChange()">
-          <option value="">Все уровни</option>
+          <option value="" data-i18n="library.levelAll">Все уровни</option>
           <option value="alef">alef</option>
           <option value="alef+">alef+</option>
           <option value="bet">bet</option>
           <option value="gimel">gimel</option>
           <option value="dalet">dalet</option>
         </select>
-		
+
 		<select
 			id="v3SearchScopeDash"
 			onchange="v3OnSearchScopeChange(this.value, 'dash')"
 			title="Поиск: Тексты — карточки текстов (метаданные); Both — тексты + заметки + строки; Только строки — поиск внутри строк (he/translit/ru); Только заметки — поиск в заметках (Premium)"
 		>
-			<option value="texts">Поиск: Тексты</option>
-			<option value="both">Поиск: Тексты + заметки + строки</option>
-			<option value="rows">Поиск: Только строки</option>
-			<option value="notes">Поиск: Только заметки</option>
+			<option value="texts" data-i18n="library.searchTexts">Поиск: Тексты</option>
+			<option value="both" data-i18n="library.searchBoth">Поиск: Тексты + заметки + строки</option>
+			<option value="rows" data-i18n="library.searchRows">Поиск: Только строки</option>
+			<option value="notes" data-i18n="library.searchNotes">Поиск: Только заметки</option>
 		</select>
 		
 		<select
@@ -6140,40 +6407,40 @@ body.v3-ide-mode .v3-ide-right {
 		</select>
 
 		<div class="v3-dash-view">
-  <button id="v3DashViewBtn" class="btn-secondary v3-dash-view-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+  <button id="v3DashViewBtn" class="btn-secondary v3-dash-view-btn" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n="dashboard.viewBtn">
     ⚙️ Вид
   </button>
 
-  <div id="v3DashViewMenu" class="v3-dash-popover hidden" role="menu" aria-label="Вид">
-    <div class="v3-dash-popover-title">Вид</div>
+  <div id="v3DashViewMenu" class="v3-dash-popover hidden" role="menu" data-i18n-aria-label="dashboard.viewMenuTitle" aria-label="Вид">
+    <div class="v3-dash-popover-title" data-i18n="dashboard.viewMenuTitle">Вид</div>
 
     <label class="v3-dash-poprow">
       <input id="v3DashViewPinned" type="checkbox" />
-      Закреплённые
+      <span data-i18n="dashboard.viewPinned">Закреплённые</span>
     </label>
 
     <label class="v3-dash-poprow">
       <input id="v3DashViewRecent" type="checkbox" />
-      Недавние
+      <span data-i18n="dashboard.viewRecent">Недавние</span>
     </label>
 
     <label class="v3-dash-poprow">
       <input id="v3DashViewActivity" type="checkbox" />
-      Активность
+      <span data-i18n="dashboard.viewActivity">Активность</span>
     </label>
 
     <label class="v3-dash-poprow">
       <input id="v3DashViewRows" type="checkbox" />
-      Недавние строки
+      <span data-i18n="dashboard.viewRows">Недавние строки</span>
     </label>
 
     <div class="v3-dash-popdivider"></div>
 
-    <div class="v3-dash-popover-title">Пресеты</div>
+    <div class="v3-dash-popover-title" data-i18n="dashboard.viewPresetsTitle">Пресеты</div>
 
-    <button id="v3DashViewPresetDefault" class="btn-secondary v3-dash-popbtn" type="button">По умолчанию</button>
-    <button id="v3DashViewPresetReading" class="btn-secondary v3-dash-popbtn" type="button">Фокус: чтение</button>
-    <button id="v3DashViewPresetAnalytics" class="btn-secondary v3-dash-popbtn" type="button">Фокус: аналитика</button>
+    <button id="v3DashViewPresetDefault" class="btn-secondary v3-dash-popbtn" type="button" data-i18n="dashboard.viewPresetDefault">По умолчанию</button>
+    <button id="v3DashViewPresetReading" class="btn-secondary v3-dash-popbtn" type="button" data-i18n="dashboard.viewPresetReading">Фокус: чтение</button>
+    <button id="v3DashViewPresetAnalytics" class="btn-secondary v3-dash-popbtn" type="button" data-i18n="dashboard.viewPresetAnalytics">Фокус: аналитика</button>
   </div>
 </div>
 
@@ -6182,10 +6449,10 @@ body.v3-ide-mode .v3-ide-right {
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">SRS Trainer</div>
+      <div class="v3-modal-title" data-i18n="srs.title">SRS Тренажёр</div>
       <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <button class="btn-secondary" onclick="v3SrsTrainerRefresh()">Обновить</button>
-        <button class="btn-secondary" onclick="v3SrsTrainerClose()">Закрыть</button>
+        <button class="btn-secondary" onclick="v3SrsTrainerRefresh()" data-i18n="srs.refresh">Обновить</button>
+        <button class="btn-secondary" onclick="v3SrsTrainerClose()" data-i18n="srs.close">Закрыть</button>
       </div>
     </div>
 
@@ -6193,7 +6460,7 @@ body.v3-ide-mode .v3-ide-right {
       <div id="v3SrsTrainerContent">
         <div class="v3-ide-empty">
           <div class="v3-ide-empty-icon">🎯</div>
-          <div class="v3-ide-empty-text">SRS trainer is loading…</div>
+          <div class="v3-ide-empty-text" data-i18n="srs.loading">SRS Тренажёр загружается…</div>
         </div>
       </div>
     </div>
@@ -6202,9 +6469,9 @@ body.v3-ide-mode .v3-ide-right {
 		
         <label style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;">
           <input id="v3DashIncludeArchived" type="checkbox" onchange="v3DashboardRefresh()" />
-          Показывать архивные
+          <span data-i18n="dashboard.showArchived">Показывать архивные</span>
         </label>
-		
+
 		<label
 			title="Если включено: кнопка «Продолжить» откроет текст, перейдёт к последней строке и автоматически запустит её воспроизведение. По умолчанию выключено."
 			style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;"
@@ -6213,9 +6480,10 @@ body.v3-ide-mode .v3-ide-right {
 				id="v3DashAutoPlayContinue"
 				type="checkbox"
 				onchange="v3DashboardOnAutoPlayChange()"
+				data-i18n-aria-label="dashboard.autoplayContinue"
 				aria-label="Автовоспр. при «Продолжить»"
 			/>
-			Автовоспр. при «Продолжить»
+			<span data-i18n="dashboard.autoplayContinue">Автовоспр. при «Продолжить»</span>
 			</label>
 
 		      </div>
@@ -6223,7 +6491,7 @@ body.v3-ide-mode .v3-ide-right {
 	  <div class="v3-filter-row">
   <div id="v3DashActiveChips" class="v3-filter-chips"></div>
   <div id="v3DashFacets" class="v3-facets"></div>
-  <button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()">Сбросить</button>
+  <button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()" data-i18n="dashboard.resetFilters">Сбросить</button>
 	</div>
 
 
@@ -6240,8 +6508,8 @@ body.v3-ide-mode .v3-ide-right {
     <div class="v3-dash-sections">
       <div id="v3DashSecPinned" class="v3-dash-section" data-sec="pinned">
   <div class="v3-dash-sec-head">
-    <h3>📌 Закреплённые</h3>
-    <button class="v3-dash-sec-toggle" type="button" data-sec="pinned" aria-label="Свернуть/развернуть: Закреплённые" title="Свернуть/развернуть">▾</button>
+    <h3 data-i18n="dashboard.secPinned">📌 Закреплённые</h3>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="pinned" aria-label="Свернуть/развернуть: Закреплённые" data-i18n-title="dashboard.toggleTitle" title="Свернуть/развернуть">▾</button>
   </div>
   <div class="v3-dash-sec-body">
     <div id="v3DashPinnedList"></div>
@@ -6250,8 +6518,8 @@ body.v3-ide-mode .v3-ide-right {
 
       <div id="v3DashSecRecent" class="v3-dash-section" data-sec="recent">
   <div class="v3-dash-sec-head">
-    <h3>🕘 Недавние</h3>
-    <button class="v3-dash-sec-toggle" type="button" data-sec="recent" aria-label="Свернуть/развернуть: Недавние" title="Свернуть/развернуть">▾</button>
+    <h3 data-i18n="dashboard.secRecent">🕘 Недавние</h3>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="recent" aria-label="Свернуть/развернуть: Недавние" data-i18n-title="dashboard.toggleTitle" title="Свернуть/развернуть">▾</button>
   </div>
   <div class="v3-dash-sec-body">
     <div id="v3DashRecentList"></div>
@@ -6265,21 +6533,21 @@ body.v3-ide-mode .v3-ide-right {
     <div id="v3DashSecActivity" class="v3-dash-section" data-sec="activity">
   <div class="v3-dash-sec-head">
     <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; flex:1;">
-      <h3 style="margin:0;">🧾 Активность</h3>
+      <h3 style="margin:0;" data-i18n="dashboard.secActivity">🧾 Активность</h3>
       <select
         id="v3DashActText"
         onchange="v3DashboardOnActivityTextChange()"
         title="Фильтр активности по тексту"
       >
-        <option value="">Все тексты</option>
+        <option value="" data-i18n="dashboard.allTexts">Все тексты</option>
       </select>
     </div>
 
-    <button class="v3-dash-sec-toggle" type="button" data-sec="activity" aria-label="Свернуть/развернуть: Активность" title="Свернуть/развернуть">▾</button>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="activity" aria-label="Свернуть/развернуть: Активность" data-i18n-title="dashboard.toggleTitle" title="Свернуть/развернуть">▾</button>
   </div>
 
   <div class="v3-dash-sec-body">
-    <div id="v3DashActivityHeader" class="v3-dash-rows-header v3-lib-muted">
+    <div id="v3DashActivityHeader" class="v3-dash-rows-header v3-lib-muted" data-i18n="dashboard.activityHint">
       Последние строки по всем текстам (уникальные textId+sentenceId).
     </div>
 
@@ -6289,12 +6557,12 @@ body.v3-ide-mode .v3-ide-right {
 
     <div id="v3DashSecRows" class="v3-dash-section" data-sec="rows">
   <div class="v3-dash-sec-head">
-    <h3>🎯 Недавние строки (внутри текста)</h3>
-    <button class="v3-dash-sec-toggle" type="button" data-sec="rows" aria-label="Свернуть/развернуть: Недавние строки" title="Свернуть/развернуть">▾</button>
+    <h3 data-i18n="dashboard.secRows">🎯 Недавние строки (внутри текста)</h3>
+    <button class="v3-dash-sec-toggle" type="button" data-sec="rows" aria-label="Свернуть/развернуть: Недавние строки" data-i18n-title="dashboard.toggleTitle" title="Свернуть/развернуть">▾</button>
   </div>
 
   <div class="v3-dash-sec-body">
-    <div id="v3DashRowsHeader" class="v3-dash-rows-header v3-lib-muted">
+    <div id="v3DashRowsHeader" class="v3-dash-rows-header v3-lib-muted" data-i18n="dashboard.rowsHint">
       Выберите текст слева — покажем последние строки.
     </div>
     <div id="v3DashRowsList"></div>
@@ -6307,13 +6575,13 @@ body.v3-ide-mode .v3-ide-right {
 <!-- 6.8 Diagnostic panel — full-width, collapsed by default -->
 <div id="v3DashSecDiag" class="v3-dash-section v3-dash-collapsed" data-sec="diag" style="margin-top:14px;">
   <div class="v3-dash-sec-head">
-    <h3>🔧 Диагностика системы</h3>
+    <h3 data-i18n="dashboard.secDiag">🔧 Диагностика системы</h3>
     <button class="v3-dash-sec-toggle" type="button" data-sec="diag"
-      aria-label="Свернуть/развернуть: Диагностика системы" title="Свернуть/развернуть">▾</button>
+      aria-label="Свернуть/развернуть: Диагностика системы" data-i18n-title="dashboard.toggleTitle" title="Свернуть/развернуть">▾</button>
   </div>
   <div class="v3-dash-sec-body">
     <div id="v3DiagContent">
-      <div class="v3-diag-loading">Нажмите ▾ для загрузки диагностики</div>
+      <div class="v3-diag-loading" data-i18n="dashboard.diagHint">Нажмите ▾ для загрузки диагностики</div>
     </div>
   </div>
 </div>
@@ -6392,57 +6660,56 @@ body.v3-ide-mode .v3-ide-right {
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">Сохранить в библиотеку</div>
-      <button class="btn-secondary" onclick="v3SaveMetaClose()">Закрыть</button>
+      <div class="v3-modal-title" data-i18n="saveMeta.title">Сохранить в библиотеку</div>
+      <button class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.close">Закрыть</button>
     </div>
 
     <div class="v3-modal-body">
       <div id="v3SaveMetaStatus" class="v3-help"></div>
 
       <div class="v3-form-row">
-        <label for="v3SaveMetaTitle">Title*</label>
-        <input id="v3SaveMetaTitle" type="text" maxlength="160" placeholder="Например: Песня / статья / урок" />
+        <label for="v3SaveMetaTitle" data-i18n="saveMeta.labelTitle">Название*</label>
+        <input id="v3SaveMetaTitle" type="text" maxlength="160" data-i18n-placeholder="saveMeta.placeholderTitle" placeholder="Например: Песня / статья / урок" />
       </div>
 
       <div class="v3-form-row">
-        <label for="v3SaveMetaLevel">Level</label>
+        <label for="v3SaveMetaLevel" data-i18n="saveMeta.labelLevel">Уровень</label>
         <select id="v3SaveMetaLevel">
           <option value="">—</option>
         </select>
       </div>
 
       <div class="v3-form-row">
-        <label for="v3SaveMetaTags">Tags</label>
-        <input id="v3SaveMetaTags" type="text" placeholder="song, idf, lyrics" />
+        <label for="v3SaveMetaTags" data-i18n="saveMeta.labelTags">Теги</label>
+        <input id="v3SaveMetaTags" type="text" data-i18n-placeholder="saveMeta.placeholderTags" placeholder="song, idf, lyrics" />
       </div>
 
       <div class="v3-form-row">
-        <label for="v3SaveMetaSource">Source</label>
-        <input id="v3SaveMetaSource" type="text" placeholder="youtube / news / book ..." />
+        <label for="v3SaveMetaSource" data-i18n="saveMeta.labelSource">Источник</label>
+        <input id="v3SaveMetaSource" type="text" data-i18n-placeholder="saveMeta.placeholderSource" placeholder="youtube / новости / книга ..." />
       </div>
 
       <div class="v3-form-row">
-        <label for="v3SaveMetaTopic">Тема</label>
-        <input id="v3SaveMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
+        <label for="v3SaveMetaTopic" data-i18n="saveMeta.labelTopic">Тема</label>
+        <input id="v3SaveMetaTopic" type="text" data-i18n-placeholder="saveMeta.placeholderTopic" placeholder="lyrics / politics / family ..." />
       </div>
 
       <div class="v3-modal-actions">
-  <button class="btn-secondary" onclick="v3SaveMetaClose()">Cancel</button>
+  <button class="btn-secondary" onclick="v3SaveMetaClose()" data-i18n="saveMeta.cancel">Отмена</button>
 
   <button id="v3SaveMetaSaveAsNewBtn"
           class="btn-secondary"
           onclick="v3SaveMetaSaveAsNew()"
+          data-i18n="saveMeta.saveAsNew"
           style="display:none;">
     Сохранить как новый
   </button>
 
-  <button id="v3SaveMetaSaveBtn" class="btn-primary" onclick="v3SaveMetaSave()">Save</button>
+  <button id="v3SaveMetaSaveBtn" class="btn-primary" onclick="v3SaveMetaSave()" data-i18n="saveMeta.save">Сохранить</button>
 </div>
 
-
-      <div class="v3-help">
-        Title обязателен. Если оставить пустым — подставим автоматически (первая непустая строка исходного текста).
-        Tags вводите через запятую.
+      <div class="v3-help" data-i18n="saveMeta.help">
+        Название обязательно. Если оставить пустым — подставим автоматически (первая непустая строка исходного текста). Теги вводите через запятую.
       </div>
     </div>
   </div>
@@ -6456,43 +6723,43 @@ body.v3-ide-mode .v3-ide-right {
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">Экспорт в Anki (AnkiConnect)</div>
-      <button class="btn-secondary" onclick="v3AnkiCloseModal()">Закрыть</button>
+      <div class="v3-modal-title" data-i18n="anki.title">Экспорт в Anki (AnkiConnect)</div>
+      <button class="btn-secondary" onclick="v3AnkiCloseModal()" data-i18n="anki.close">Закрыть</button>
     </div>
 
     <div class="v3-modal-body">
       <div id="v3AnkiStatus" class="v3-help"></div>
 
       <div class="v3-form-row">
-        <label for="v3AnkiDeck">Deck</label>
+        <label for="v3AnkiDeck" data-i18n="anki.labelDeck">Колода</label>
         <input id="v3AnkiDeck" type="text" maxlength="120" placeholder="LinguistPro::A1" />
       </div>
 
       <div class="v3-form-row">
-        <label for="v3AnkiFrontMode">Front Hebrew</label>
+        <label for="v3AnkiFrontMode" data-i18n="anki.labelFrontMode">Иврит на лицевой</label>
         <select id="v3AnkiFrontMode">
-          <option value="plain">Hebrew (без никуда)</option>
-          <option value="niqqud">HebrewNiqqud (с никуда)</option>
+          <option value="plain" data-i18n="anki.frontPlain">Иврит (без огласовок)</option>
+          <option value="niqqud" data-i18n="anki.frontNiqqud">Иврит+Никуд (с огласовками)</option>
         </select>
       </div>
 
       <div class="v3-form-row">
-        <label>Опции</label>
+        <label data-i18n="anki.labelOptions">Опции</label>
         <div class="v3-checkboxes">
-          <label><input type="checkbox" id="v3AnkiIncludeHint" checked /> Подсказка (тема/уровень)</label>
-          <label><input type="checkbox" id="v3AnkiIncludeNoteHtml" /> NoteHtml (safe markdown)</label>
-          <label><input type="checkbox" id="v3AnkiMoveToDeck" checked /> Переместить существующие карточки в выбранный deck</label>
+          <label><input type="checkbox" id="v3AnkiIncludeHint" checked /> <span data-i18n="anki.optionHint">Подсказка (тема/уровень)</span></label>
+          <label><input type="checkbox" id="v3AnkiIncludeNoteHtml" /> <span data-i18n="anki.optionNoteHtml">NoteHtml (safe markdown)</span></label>
+          <label><input type="checkbox" id="v3AnkiMoveToDeck" checked /> <span data-i18n="anki.optionMoveToDeck">Переместить существующие карточки в выбранный deck</span></label>
         </div>
       </div>
 
       <div class="v3-modal-footer">
-  <button id="v3AnkiCheckBtn" class="btn-secondary" onclick="v3AnkiHealth()">Проверить AnkiConnect</button>
-  <button id="v3AnkiCopyBtn" class="btn-secondary" onclick="v3AnkiCopyDiagnostics()" disabled>Скопировать диагностику</button>
-  <button id="v3AnkiPushBtn" class="btn-primary" onclick="v3AnkiPushNow()">Экспортировать</button>
+  <button id="v3AnkiCheckBtn" class="btn-secondary" onclick="v3AnkiHealth()" data-i18n="anki.checkBtn">Проверить AnkiConnect</button>
+  <button id="v3AnkiCopyBtn" class="btn-secondary" onclick="v3AnkiCopyDiagnostics()" disabled data-i18n="anki.copyDiagBtn">Скопировать диагностику</button>
+  <button id="v3AnkiPushBtn" class="btn-primary" onclick="v3AnkiPushNow()" data-i18n="anki.pushBtn">Экспортировать</button>
 </div>
 
-      <div class="v3-modal-hint">
-        Требуется запущенный Anki Desktop и установленный AnkiConnect. Dashboard должен быть запущен локально (127.0.0.1:3000).
+      <div class="v3-modal-hint" data-i18n="anki.helpText">
+        Требуется запущенный Anki Desktop с установленным AnkiConnect. Dashboard должен быть запущен локально (127.0.0.1:3000).
       </div>
     </div>
   </div>
@@ -6508,30 +6775,30 @@ body.v3-ide-mode .v3-ide-right {
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
       <div>
-        <div class="v3-modal-title">Audio Prefetch</div>
-        <div class="v3-modal-subtitle">Создать озвучку для всех строк таблицы и сохранить локально (audio-cache).</div>
+        <div class="v3-modal-title" data-i18n="audioPrefetch.title">Пакетная подготовка аудио</div>
+        <div class="v3-modal-subtitle" data-i18n="audioPrefetch.subtitle">Создать озвучку для всех строк таблицы и сохранить локально (audio-cache).</div>
       </div>
-      <button class="v3-modal-close" onclick="v3AudioPrefetchCloseModal()">✕</button>
+      <button class="v3-modal-close" onclick="v3AudioPrefetchCloseModal()" data-i18n-aria-label="audioPrefetch.close" aria-label="Закрыть">✕</button>
     </div>
 
     <div class="v3-modal-body">
       <div id="v3AudioPrefetchStatus" class="v3-help"></div>
 
       <div class="v3-form-row">
-        <label>Only missing</label>
+        <label data-i18n="audioPrefetch.onlyMissingLabel">Только недостающее</label>
         <div style="flex:1; display:flex; gap:10px; align-items:center;">
           <input id="v3AudioPrefetchOnlyMissing" type="checkbox" checked />
-          <div class="v3-help" style="margin:0;">Создаёт только отсутствующее аудио или аудио с другим TTS-профилем (regenerate on profile change).</div>
+          <div class="v3-help" style="margin:0;" data-i18n="audioPrefetch.onlyMissingHint">Создаёт только отсутствующее аудио или аудио с другим TTS-профилем (regenerate on profile change).</div>
         </div>
       </div>
 
       <div class="v3-form-row">
-        <label>Concurrency</label>
+        <label data-i18n="audioPrefetch.concurrencyLabel">Параллельность</label>
         <input id="v3AudioPrefetchConcurrency" type="number" min="1" max="6" step="1" value="3" />
       </div>
 
       <div class="v3-form-row">
-        <label>Max len</label>
+        <label data-i18n="audioPrefetch.maxLenLabel">Макс. длина</label>
         <input id="v3AudioPrefetchMaxLen" type="number" min="50" max="800" step="10" value="280" />
       </div>
 
@@ -6545,7 +6812,7 @@ body.v3-ide-mode .v3-ide-right {
         <div id="v3AudioPrefetchStats" class="v3-prefetch-stats"></div>
       </div>
 
-      <div class="v3-help" style="margin-top:10px;">
+      <div class="v3-help" style="margin-top:10px;" data-i18n="audioPrefetch.exportHint">
         После завершения префетча вы сможете экспортировать в Anki — карточки получат одну озвучку на строку (Sound).
       </div>
 
@@ -6553,9 +6820,9 @@ body.v3-ide-mode .v3-ide-right {
     </div>
 
     <div class="v3-modal-footer">
-      <button id="v3AudioPrefetchStartBtn" class="btn-save" onclick="v3AudioPrefetchStartFromUi()">Создать аудио</button>
-      <button id="v3AudioPrefetchCancelBtn" class="btn-cancel" onclick="v3AudioPrefetchCancelFromUi()" disabled>Cancel</button>
-      <button id="v3AudioPrefetchCopyBtn" class="btn-cancel" onclick="v3AudioPrefetchCopyDiagnostics()">Copy diagnostics</button>
+      <button id="v3AudioPrefetchStartBtn" class="btn-save" onclick="v3AudioPrefetchStartFromUi()" data-i18n="audioPrefetch.startBtn">Создать аудио</button>
+      <button id="v3AudioPrefetchCancelBtn" class="btn-cancel" onclick="v3AudioPrefetchCancelFromUi()" disabled data-i18n="audioPrefetch.cancelBtn">Отмена</button>
+      <button id="v3AudioPrefetchCopyBtn" class="btn-cancel" onclick="v3AudioPrefetchCopyDiagnostics()" data-i18n="audioPrefetch.copyDiagBtn">Скопировать диагностику</button>
     </div>
   </div>
 </div>
@@ -6614,6 +6881,12 @@ body.v3-ide-mode .v3-ide-right {
   </div>
 </div>
 
+<!-- i18n: locales + core module (must load before main script) -->
+<script src="/i18n/locales/ru.js"></script>
+<script src="/i18n/locales/en.js"></script>
+<script src="/i18n/locales/he.js"></script>
+<script src="/i18n/index.js"></script>
+
 <script src="/tts/core.js"></script>
 <script src="/tts/providerPolicy.js"></script>
 <script src="/tts/settings.js"></script>
@@ -6621,6 +6894,9 @@ body.v3-ide-mode .v3-ide-right {
 <script src="/tts/runtime/sherpaOnnxAdapter.js"></script>
 <script src="/tts/backends.js"></script>
 <script>
+    // i18n safety shim: if i18n module failed to load, t() returns the key unchanged
+    if (typeof t !== 'function') { window.t = function(k) { return k; }; }
+
     // ----------------------------
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
@@ -8081,15 +8357,15 @@ async function v3IdeAddToSrs(sentenceId) {
   try {
     const sid = String(sentenceId || "").trim();
     if (!sid) {
-      if (typeof showToast === "function") showToast("Sentence is not available for SRS");
+      if (typeof showToast === "function") showToast(t("toast.srsUnavailable"));
       return;
     }
     await v3PostJson("/api/srs/cards", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid) });
-    if (typeof showToast === "function") showToast("Added to SRS");
+    if (typeof showToast === "function") showToast(t("toast.srsAdded"));
     v3IdeRefreshInspector();
   } catch (e) {
     console.error("Add to SRS failed:", e);
-    if (typeof showToast === "function") showToast("Failed to add to SRS");
+    if (typeof showToast === "function") showToast(t("toast.srsFailed"));
   }
 }
 
@@ -8097,15 +8373,15 @@ async function v3IdeSrsReview(sentenceId, rating) {
   try {
     const sid = String(sentenceId || "").trim();
     if (!sid) {
-      if (typeof showToast === "function") showToast("Sentence is not available for review");
+      if (typeof showToast === "function") showToast(t("toast.srsReviewUnavailable"));
       return;
     }
     await v3PostJson("/api/srs/review", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid), rating: Number(rating) });
-    if (typeof showToast === "function") showToast("SRS review saved");
+    if (typeof showToast === "function") showToast(t("toast.srsReviewSaved"));
     v3IdeRefreshInspector();
   } catch (e) {
     console.error("SRS review failed:", e);
-    if (typeof showToast === "function") showToast("Failed to save SRS review");
+    if (typeof showToast === "function") showToast(t("toast.srsReviewFailed"));
   }
 }
 
@@ -8131,19 +8407,19 @@ async function v3SrsAnkiCheckConnect(verbose) {
     if (r.ok && j && j.ok) {
       const ver = j.ankiConnect && j.ankiConnect.version ? String(j.ankiConnect.version) : "—";
       if (verbose) {
-        if (typeof showToast === "function") showToast(`AnkiConnect available (version ${ver})`, "success");
+        if (typeof showToast === "function") showToast(t("toast.ankiAvailable", {ver: ver}), "success");
       }
       return { ok: true, version: ver };
     }
     const details = v3AnkiFormatDetails(j, r);
     if (verbose) {
-      window.alert(`AnkiConnect is not available.\n\n${details}`);
+      window.alert(t("toast.ankiUnavailable", {details: details}));
     }
     return { ok: false, details };
   } catch (e) {
     const details = String((e && e.message) || e || "");
     if (verbose) {
-      window.alert(`AnkiConnect is not available.\n\n${details}`);
+      window.alert(t("toast.ankiUnavailable", {details: details}));
     }
     return { ok: false, details };
   }
@@ -8165,7 +8441,7 @@ async function v3IdeSrsAnkiPreview(cardId) {
     ].join("\n"));
   } catch (e) {
     console.error("SRS Anki preview failed:", e);
-    window.alert(`Failed to load Anki preview.\n\n${v3SrsAnkiFormatThrownError(e)}`);
+    window.alert(t("toast.ankiPreviewFailed", {error: v3SrsAnkiFormatThrownError(e)}));
   }
 }
 
@@ -8173,17 +8449,17 @@ async function v3IdeSrsExportAnki(cardId) {
   try {
     const health = await v3SrsAnkiCheckConnect(false);
     if (!health.ok) {
-      window.alert(`AnkiConnect is not available.\n\n${health.details || ""}`);
+      window.alert(t("toast.ankiUnavailable", {details: health.details || ""}));
       return;
     }
     const res = await v3PostJson("/api/srs/export/anki", { cardId: String(cardId || "").trim() });
     const foundNotes = res && res.verify ? Number(res.verify.foundNotes || 0) : 0;
     const foundCards = res && res.verify ? Number(res.verify.foundCards || 0) : 0;
-    if (typeof showToast === "function") showToast(`SRS card exported to Anki (${foundNotes} note, ${foundCards} card)`, "success");
+    if (typeof showToast === "function") showToast(t("toast.ankiExported", {notes: foundNotes, cards: foundCards}), "success");
     v3IdeRefreshInspector();
   } catch (e) {
     console.error("SRS Anki export failed:", e);
-    window.alert(`Failed to export SRS card to Anki.\n\n${v3SrsAnkiFormatThrownError(e)}`);
+    window.alert(t("toast.ankiExportFailed", {error: v3SrsAnkiFormatThrownError(e)}));
   }
 }
 
@@ -8231,21 +8507,21 @@ function v3IdeRenderAudioInspector(row, rowIdx) {
 function v3IdeExportCreateAudio() {
   const textId = v3IdeState.activeTextId;
   if (!textId) {
-    if (typeof showToast === "function") showToast("Open a Library text first", "warning");
+    if (typeof showToast === "function") showToast(t("toast.openLibraryFirst"), "warning");
     return;
   }
   if (typeof v3AudioPrefetchOpenModal === "function") {
     v3AudioPrefetchOpenModal();
     return;
   }
-  if (typeof showToast === "function") showToast("Audio batch modal is not available", "error");
+  if (typeof showToast === "function") showToast(t("toast.audioBatchUnavailable"), "error");
 }
 
 function v3IdeExportCopy() {
   const rowIdx = v3IdeState.selectedRowIdx;
   if (rowIdx === null || !currentTableData || !currentTableData[rowIdx]) {
-    if (typeof showToast === "function") showToast("Select a row first");
-    else alert("Select a row first");
+    if (typeof showToast === "function") showToast(t("toast.selectRowFirst"));
+    else alert(t("toast.selectRowFirst"));
     return;
   }
 
@@ -8260,18 +8536,18 @@ function v3IdeExportCopy() {
   const text = parts.join("\n");
 
   navigator.clipboard.writeText(text).then(() => {
-    if (typeof showToast === "function") showToast("Copied to clipboard!");
-    else alert("Copied!");
+    if (typeof showToast === "function") showToast(t("toast.copied"));
+    else alert(t("toast.copied"));
   }).catch(err => {
     console.error("Copy failed:", err);
-    if (typeof showToast === "function") showToast("Copy failed");
+    if (typeof showToast === "function") showToast(t("toast.copyFailed"));
   });
 }
 
 function v3IdeExportTextAnki() {
   const textId = v3IdeState.activeTextId;
   if (!textId) {
-    if (typeof showToast === "function") showToast("Open a Library text first", "warning");
+    if (typeof showToast === "function") showToast(t("toast.openLibraryFirst"), "warning");
     return;
   }
 
@@ -8280,18 +8556,18 @@ function v3IdeExportTextAnki() {
     return;
   }
 
-  if (typeof showToast === "function") showToast("Anki export modal is not available", "error");
+  if (typeof showToast === "function") showToast(t("toast.ankiModalUnavailable"), "error");
 }
 
 async function v3IdeExportDocx() {
   const textId = v3IdeState.activeTextId;
   if (!textId) {
-    if (typeof showToast === "function") showToast("No text selected");
+    if (typeof showToast === "function") showToast(t("toast.noTextSelected"));
     return;
   }
 
   try {
-    if (typeof showToast === "function") showToast("Generating DOCX...");
+    if (typeof showToast === "function") showToast(t("toast.generatingDocx"));
 
     // Trigger download via API
     const url = `/api/library/texts/${encodeURIComponent(textId)}/export/docx`;
@@ -8303,10 +8579,10 @@ async function v3IdeExportDocx() {
     a.click();
     document.body.removeChild(a);
 
-    if (typeof showToast === "function") showToast("DOCX download started");
+    if (typeof showToast === "function") showToast(t("toast.docxDownloaded"));
   } catch (err) {
     console.error("DOCX export failed:", err);
-    if (typeof showToast === "function") showToast("DOCX export failed");
+    if (typeof showToast === "function") showToast(t("toast.docxFailed"));
   }
 }
 
@@ -12516,7 +12792,7 @@ updatePlaylistButtonUI();
         if (!inputTextEl) return;
         if (!inputTextEl.value || !inputTextEl.value.trim()) return;
 
-        const ok = window.confirm("Очистить текущий текст?\nПеревод, озвучка и локальный кэш таблицы будут сброшены.");
+        const ok = window.confirm(t("confirm.clearText"));
         if (!ok) return;
 
         inputTextEl.value = "";
@@ -17233,7 +17509,7 @@ async function v3SrsTrainerStart() {
     v3SrsTrainerRenderSession();
   } catch (e) {
     console.error("SRS trainer start failed:", e);
-    if (typeof showToast === "function") showToast("Failed to start SRS session");
+    if (typeof showToast === "function") showToast(t("toast.srsSessionFailed"));
   }
 }
 
@@ -17255,7 +17531,7 @@ function v3SrsTrainerSetMode(mode) {
     .then(() => v3SrsTrainerRenderSession())
     .catch((e) => {
       console.error("SRS trainer mode switch failed:", e);
-      if (typeof showToast === "function") showToast("Failed to switch trainer mode");
+      if (typeof showToast === "function") showToast(t("toast.srsModeChangeFailed"));
     });
 }
 
@@ -17272,7 +17548,7 @@ function v3SrsTrainerPlayAudio() {
   const trainer = v3SrsTrainerState.trainer || {};
   const assetKey = String(trainer.audioAssetKey || v3SrsTrainerState.current && v3SrsTrainerState.current.sentence && v3SrsTrainerState.current.sentence.audioAssetKey || "").trim();
   if (!assetKey) {
-    if (typeof showToast === "function") showToast("Audio is not available for this card");
+    if (typeof showToast === "function") showToast(t("toast.srsAudioUnavailable"));
     return;
   }
   try {
@@ -17293,7 +17569,7 @@ async function v3SrsTrainerCheckAnswer() {
     const input = v3SrsTrainerEl("v3SrsTrainerAnswerInput");
     const answer = String(input && input.value || "").trim();
     if (!answer) {
-      if (typeof showToast === "function") showToast("Type the answer first");
+      if (typeof showToast === "function") showToast(t("toast.srsTypeAnswerFirst"));
       return;
     }
     const startedAt = Number(v3SrsTrainerState.cardStartedAt || Date.now());
@@ -17310,7 +17586,7 @@ async function v3SrsTrainerCheckAnswer() {
     v3SrsTrainerRenderSession();
   } catch (e) {
     console.error("SRS trainer attempt failed:", e);
-    if (typeof showToast === "function") showToast("Failed to check trainer answer");
+    if (typeof showToast === "function") showToast(t("toast.srsAnswerCheckFailed"));
   }
 }
 
@@ -17330,7 +17606,7 @@ async function v3SrsTrainerReview(rating) {
     v3SrsTrainerRenderSession();
   } catch (e) {
     console.error("SRS trainer review failed:", e);
-    if (typeof showToast === "function") showToast("Failed to save trainer review");
+    if (typeof showToast === "function") showToast(t("toast.srsReviewFailed"));
   }
 }
 
@@ -17352,16 +17628,16 @@ async function v3SrsTrainerExportAnki() {
     if (!cardId) return;
     const health = await v3SrsAnkiCheckConnect(false);
     if (!health.ok) {
-      window.alert(`AnkiConnect is not available.\n\n${health.details || ""}`);
+      window.alert(t("toast.ankiUnavailable", {details: health.details || ""}));
       return;
     }
     const res = await v3PostJson("/api/srs/export/anki", { cardId });
     const foundNotes = res && res.verify ? Number(res.verify.foundNotes || 0) : 0;
     const foundCards = res && res.verify ? Number(res.verify.foundCards || 0) : 0;
-    if (typeof showToast === "function") showToast(`Current SRS card exported to Anki (${foundNotes} note, ${foundCards} card)`, "success");
+    if (typeof showToast === "function") showToast(t("toast.ankiExported", {notes: foundNotes, cards: foundCards}), "success");
   } catch (e) {
     console.error("SRS trainer Anki export failed:", e);
-    window.alert(`Failed to export current SRS card to Anki.\n\n${v3SrsAnkiFormatThrownError(e)}`);
+    window.alert(t("toast.ankiExportFailed", {error: v3SrsAnkiFormatThrownError(e)}));
   }
 }
 
@@ -24034,14 +24310,14 @@ try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchRe
 <!-- Wave D (Premium PRO): Sticky nav bar for matches (A3.2) -->
 <div id="v3NavSticky" class="v3-nav-sticky hidden" role="region" aria-label="Навигация по совпадениям">
   <div class="v3-nav-left">
-    <button id="v3NavBackBtn" class="btn-secondary btn-mini" disabled title="Вернуться к списку совпадений">← Back to matches</button>
+    <button id="v3NavBackBtn" class="btn-secondary btn-mini" disabled data-i18n-title="nav.backToMatches" data-i18n="nav.backToMatches" title="Назад к совпадениям">← Назад к совпадениям</button>
     <span id="v3NavPos" class="v3-nav-pos"></span>
   </div>
   <div class="v3-nav-right">
     <button id="v3NavCopyLinkBtn" class="btn-secondary btn-mini" title="Копировать ссылку (Ctrl+Shift+L)">🔗</button>
-    <button id="v3NavPrevBtn" class="btn-secondary btn-mini">Prev</button>
-    <button id="v3NavNextBtn" class="btn-secondary btn-mini">Next</button>
-    <button id="v3NavCloseBtn" class="btn-secondary btn-mini">Close</button>
+    <button id="v3NavPrevBtn" class="btn-secondary btn-mini" data-i18n="nav.prev">Пред.</button>
+    <button id="v3NavNextBtn" class="btn-secondary btn-mini" data-i18n="nav.next">След.</button>
+    <button id="v3NavCloseBtn" class="btn-secondary btn-mini" data-i18n="nav.close">Закрыть</button>
   </div>
 </div>
 
