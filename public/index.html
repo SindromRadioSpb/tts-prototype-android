@@ -16024,19 +16024,19 @@ function v3LibraryRenderList(texts) {
   const frag = document.createDocumentFragment();
 
   for (let i = 0; i < texts.length; i++) {
-    const t = texts[i];
-    const id = String(t.id || "");
-    const title = String(t.title || "Без названия");
-    const level = t.level ? String(t.level) : "";
-    const isArchived = !!(t.is_archived || t.isArchived);
+    const txt = texts[i];
+    const id = String(txt.id || "");
+    const title = String(txt.title || "Без названия");
+    const level = txt.level ? String(txt.level) : "";
+    const isArchived = !!(txt.is_archived || txt.isArchived);
 	
-	const topic = t.topic ? String(t.topic) : "";
+	const topic = txt.topic ? String(txt.topic) : "";
 	const topicHtml = topic ? (" <span class='v3-lib-topic-chip'>" + v3EscapeHtml(topic) + "</span>") : "";
 
-    const tagsArr = v3ParseTags(t.tags_json || t.tagsJson || t.tags || null);
+    const tagsArr = v3ParseTags(txt.tags_json || txt.tagsJson || txt.tags || null);
     const tagsHtml = tagsArr.slice(0, 6).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(x) + "</span>").join("");
 	
-	const sourceRaw = String(t.source || "").trim();
+	const sourceRaw = String(txt.source || "").trim();
 const src = v3HumanizeSource(sourceRaw);
 
 // не полагаемся только на src.isUrl — определяем URL сами
@@ -16069,10 +16069,10 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
   ? v3DeeplinkBuildLink(v3DeeplinkBuildTarget("text", id, {}))
   : "";
 
-    const lastOpened = t.last_opened_at || t.lastOpenedAt || null;
-    const createdAt = t.created_at || t.createdAt || null;
+    const lastOpened = txt.last_opened_at || txt.lastOpenedAt || null;
+    const createdAt = txt.created_at || txt.createdAt || null;
 
-    const lastRowIdx = (t.last_row_idx ?? t.lastRowIdx ?? (t.progress && t.progress.lastRowIdx) ?? null);
+    const lastRowIdx = (txt.last_row_idx ?? txt.lastRowIdx ?? (txt.progress && txt.progress.lastRowIdx) ?? null);
     const progressText = (lastRowIdx === null || lastRowIdx === undefined)
       ? "—"
       : (Number.isFinite(Number(lastRowIdx)) ? String(Number(lastRowIdx) + 1) : String(lastRowIdx));
