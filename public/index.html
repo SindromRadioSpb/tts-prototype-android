@@ -7226,6 +7226,9 @@ v3IdeUpdateBackdrop();
 v3IdeLeftTabSwitch(v3IdeState.leftTab);
 v3IdeRightTabSwitch(v3IdeState.rightTab);
 
+    // Load IDE-specific column widths BEFORE rendering table
+    try { if (typeof loadIdeWidths === "function") loadIdeWidths(); } catch(e) {}
+
     // Load library data
     v3IdeRefreshLibrary();
 
@@ -7233,9 +7236,6 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
     if (v3IdeState.activeTextId) {
       v3IdeOpenTextInCenter(v3IdeState.activeTextId);
     }
-
-    // Load IDE-specific column widths
-    try { if (typeof loadIdeWidths === "function") loadIdeWidths(); } catch(e) {}
   } else {
     body.classList.remove("v3-ide-mode");
     if (header) header.style.display = "none";
@@ -8019,20 +8019,53 @@ function v3IdeRenderTable(rows, textId) {
   // Column visibility
   const showAction = !!cols.action;
 
-  // Build table HTML — Actions first (if visible), then content columns, no # column
-  let html = `
-    <table id="proTable" class="proTable" data-text-id="${textId}">
-      <thead>
-        <tr>
-          ${showAction ? '<th class="col-action-cell">▶📝</th>' : ''}
-          ${showHe ? '<th>Hebrew</th>' : ''}
-          ${showNiq ? '<th>Niqqud</th>' : ''}
-          ${showTr ? '<th>Translit</th>' : ''}
-          ${showRu ? '<th>Translation</th>' : ''}
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  // Sync Classic tableVisibleColumns for resize width computation
+  if (typeof tableVisibleColumns !== "undefined") {
+    tableVisibleColumns.action = showAction;
+    tableVisibleColumns.he = showHe;
+    tableVisibleColumns.niqqud = showNiq;
+    tableVisibleColumns.translit = showTr;
+    tableVisibleColumns.ru = showRu;
+  }
+
+  // Build ordered active column list using Classic key names
+  const ideColList = [
+    { k: "action",   show: showAction, label: "\u25b6\u{1f4dd}", hCls: "col-action-cell" },
+    { k: "he",       show: showHe,     label: typeof t==="function" ? t("table.colHebrew")      : "HEBREW",      hCls: "" },
+    { k: "niqqud",   show: showNiq,    label: typeof t==="function" ? t("table.colNiqqud")      : "NIQQUD",      hCls: "" },
+    { k: "translit", show: showTr,     label: typeof t==="function" ? t("table.colTranslitLat") : "TRANSLIT",    hCls: "" },
+    { k: "ru",       show: showRu,     label: typeof t==="function" ? t("table.colTranslation") : "TRANSLATION", hCls: "" }
+  ].filter(c => c.show);
+  const ideActiveKeys = ideColList.map(c => c.k);
+
+  // Compute proportional widths from tableBaseWidths
+  const ideColWidths = {};
+  const _ideTco = ["action","he","niqqud","translit","ru"];
+  let _ideWSum = 0;
+  _ideTco.forEach(function(k, i) {
+    if (ideActiveKeys.indexOf(k) >= 0) {
+      const w = (typeof tableBaseWidths !== "undefined" && Number.isFinite(+tableBaseWidths[i]) && +tableBaseWidths[i] > 0)
+        ? +tableBaseWidths[i] : 20;
+      ideColWidths[k] = w;
+      _ideWSum += w;
+    }
+  });
+  if (_ideWSum > 0) { ideActiveKeys.forEach(k => { ideColWidths[k] = ideColWidths[k] / _ideWSum * 100; }); }
+
+  // Build table HTML with colgroup + resize grips
+  let html = '<table id="proTable" class="proTable"'
+    + ' data-text-id="' + v3EscapeHtml(String(textId)) + '"'
+    + ' data-cols="' + ideActiveKeys.join(',') + '">' 
+    + '<colgroup>';
+  ideActiveKeys.forEach(k => {
+    html += '<col data-col="' + k + '" style="width:' + (ideColWidths[k]||20).toFixed(4) + '%;">'; 
+  });
+  html += '</colgroup><thead><tr>';
+  ideColList.forEach(c => {
+    const grip = '<div class="col-resizer" data-resize="1" title="\u041f\u043e\u0442\u044f\u043d\u0438\u0442\u0435 \u0434\u043b\u044f \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0448\u0438\u0440\u0438\u043d\u044b."></div>';
+    html += '<th data-col="' + c.k + '"' + (c.hCls ? ' class="' + c.hCls + '"' : '') + '>' + c.label + grip + '</th>';
+  });
+  html += '</tr></thead><tbody>';
 
   rows.forEach((row, idx) => {
     const he = v3EscapeHtml(row.he || row.he_plain || row.hebrew || "");
@@ -8070,6 +8103,10 @@ function v3IdeRenderTable(rows, textId) {
   `;
 
   content.innerHTML = html;
+
+  // Bind column resize handlers and apply stored widths
+  try { if (typeof attachResizeHandlers === "function") attachResizeHandlers(); } catch(e) {}
+  try { if (typeof applyColgroupWidthsToDom === "function") applyColgroupWidthsToDom(); } catch(e) {}
 
   // PATCH-17.6: Refresh audio cache indicators after table render
   try {
