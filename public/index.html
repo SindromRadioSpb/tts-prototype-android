@@ -3924,6 +3924,40 @@ body.v3-ide-mode {
   border-color: rgba(255,255,255,0.5);
 }
 
+/* IDE header: portrait mobile — two-row grid layout */
+@media (max-width: 600px) {
+  .v3-ide-header {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(56px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 8px 6px;
+    gap: 5px;
+    align-items: stretch;
+  }
+  .v3-ide-header-logo { display: none; }
+  .v3-ide-header-actions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+  .v3-ide-header .lang-select-wrap {
+    grid-column: 1 / 3;
+    display: flex;
+    align-items: center;
+    margin: 0;
+  }
+  #v3IdeExitBtn { grid-column: 3 / 5; }
+  .v3-ide-header .btn-ide {
+    font-size: 11px;
+    padding: 6px 4px;
+    min-height: 44px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .v3-ide-header .lang-select { width: 100%; min-height: 44px; }
+}
+
 /* --- IDE Panels --- */
 .v3-ide-left,
 .v3-ide-right {
@@ -7114,6 +7148,16 @@ function v3IdeResetColumns() {
   v3IdeSaveColumnSettings();
   v3IdeApplyColumnCheckboxes();
 
+  // Reset IDE column widths to defaults and clear persisted IDE widths
+  try {
+    localStorage.removeItem("ide.table.widths.v1");
+    if (typeof tableBaseWidths !== "undefined") {
+      tableBaseWidths = [15, 20, 20, 21, 24];
+      if (typeof normalizeVisibleBaseWidthsTo100 === "function") normalizeVisibleBaseWidthsTo100();
+      if (typeof applyColgroupWidthsToDom === "function") applyColgroupWidthsToDom();
+    }
+  } catch(e) {}
+
   // Re-render table if there's an active text
   if (v3IdeState.activeTextId && currentTableData && currentTableData.length > 0) {
     v3IdeRenderTable(currentTableData, v3IdeState.activeTextId);
@@ -7189,11 +7233,20 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
     if (v3IdeState.activeTextId) {
       v3IdeOpenTextInCenter(v3IdeState.activeTextId);
     }
+
+    // Load IDE-specific column widths
+    try { if (typeof loadIdeWidths === "function") loadIdeWidths(); } catch(e) {}
   } else {
     body.classList.remove("v3-ide-mode");
     if (header) header.style.display = "none";
     if (workspace) workspace.style.display = "none";
     if (toggleBtn) toggleBtn.textContent = "🖥️ IDE режим";
+
+    // Restore Classic column widths
+    try {
+      if (typeof loadTableSettings === "function") loadTableSettings();
+      if (typeof applyColgroupWidthsToDom === "function") applyColgroupWidthsToDom();
+    } catch(e) {}
   }
 }
 
@@ -10929,6 +10982,7 @@ loadRowAudioCacheFromStorage();
     // НАСТРОЙКИ ТАБЛИЦЫ: ВИДИМОСТЬ КОЛОНОК + АВТОШИРИНЫ (PRO)
     // ----------------------------
     const TABLE_SETTINGS_KEY = "ttsDashboard_table_settings_v1";
+    const V3_IDE_WIDTHS_KEY = "ide.table.widths.v1";
 	
 	    // ----------------------------
     // P1.2 (Playlist): Auto-next toggle (persistent)
@@ -11013,7 +11067,8 @@ loadRowAudioCacheFromStorage();
         leftKey: null,
         rightKey: null,
         startLeft: 0,
-        startRight: 0};
+        startRight: 0,
+        invertDelta: false};
 
     function loadTableSettings() {
         try {
@@ -11071,10 +11126,27 @@ loadRowAudioCacheFromStorage();
                 preset: tablePreset,
                 savedAt: new Date().toISOString()
             };
-            localStorage.setItem(TABLE_SETTINGS_KEY, JSON.stringify(payload));
+            const saveKey = document.body.classList.contains("v3-ide-mode") ? V3_IDE_WIDTHS_KEY : TABLE_SETTINGS_KEY;
+            localStorage.setItem(saveKey, JSON.stringify(payload));
         } catch (e) {
             console.error("Table settings save error", e);
         }
+    }
+
+    function loadIdeWidths() {
+        try {
+            const raw = localStorage.getItem(V3_IDE_WIDTHS_KEY);
+            if (!raw) return;
+            const parsed = JSON.parse(raw);
+            if (!parsed || !Array.isArray(parsed.baseWidths) || parsed.baseWidths.length !== 5) return;
+            const bw = parsed.baseWidths.map(function(n) {
+                const num = Number(n);
+                return Number.isFinite(num) && num > 0 ? num : null;
+            });
+            if (bw.some(function(x) { return x === null; })) return;
+            tableBaseWidths = bw.slice();
+            try { applyColgroupWidthsToDom(); } catch(e2) {}
+        } catch(e) {}
     }
 
     function countVisibleColumns() {
@@ -20266,8 +20338,9 @@ try {
             const cls = meta.headerClass ? (' class="' + meta.headerClass + '"') : "";
             const isLast = (idx === cols.length - 1);
 
-            // грип только если есть сосед справа
-            const gripClass = isLast ? "col-resizer hidden" : "col-resizer";
+            // In IDE mode show grip on last column too (pairs with left neighbor)
+            const inIdeMode = document.body.classList.contains("v3-ide-mode");
+            const gripClass = (isLast && !inIdeMode) ? "col-resizer hidden" : "col-resizer";
 
             html += '<th data-col="' + k + '"' + cls + '>' +
                 escapeHtml(meta.title) +
@@ -21534,26 +21607,34 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
         const leftIndex = cols.indexOf(leftKey);
         if (leftIndex < 0) return;
 
-        // по умолчанию сосед справа
+        // по умолчанию сосед справа; для последней колонки в IDE — пара с левым соседом
         const rightKey = (leftIndex + 1 < cols.length) ? cols[leftIndex + 1] : null;
-        if (!rightKey) return;
+        const inIde = document.body.classList.contains("v3-ide-mode");
+        if (!rightKey && (!inIde || leftIndex < 1)) return;
 
         const tableRect = table.getBoundingClientRect();
         const wPx = tableRect.width;
         if (!wPx || wPx < 20) return;
 
-        // стартовые base widths (именно базовые, не эффективные)
-        const leftBase = getBaseWidthForKey(leftKey);
-        const rightBase = getBaseWidthForKey(rightKey);
+        // стартовые base widths; для последней колонки в IDE инвертируем пару
+        let pLeft = leftKey, pRight = rightKey, invertDelta = false;
+        if (!rightKey && inIde) {
+            pLeft = cols[leftIndex - 1];
+            pRight = leftKey;
+            invertDelta = true;
+        }
+        const leftBase = getBaseWidthForKey(pLeft);
+        const rightBase = getBaseWidthForKey(pRight);
 
         resizeState.active = true;
         resizeState.pointerId = e.pointerId;
         resizeState.startX = e.clientX;
         resizeState.tableWidthPx = wPx;
-        resizeState.leftKey = leftKey;
-        resizeState.rightKey = rightKey;
+        resizeState.leftKey = pLeft;
+        resizeState.rightKey = pRight;
         resizeState.startLeft = leftBase;
         resizeState.startRight = rightBase;
+        resizeState.invertDelta = invertDelta;
         document.body.classList.add("resizing-cols");
 
         try { grip.setPointerCapture(e.pointerId); } catch (_) {}
@@ -21573,7 +21654,8 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
         const dx = e.clientX - resizeState.startX;
         const deltaPercent = (dx / resizeState.tableWidthPx) * 100;
 
-        applyLinkedResize(resizeState.leftKey, resizeState.rightKey, resizeState.startLeft, resizeState.startRight, deltaPercent);
+        const delta = resizeState.invertDelta ? -deltaPercent : deltaPercent;
+        applyLinkedResize(resizeState.leftKey, resizeState.rightKey, resizeState.startLeft, resizeState.startRight, delta);
 
         // применяем к DOM без полной перерисовки
         applyColgroupWidthsToDom();
