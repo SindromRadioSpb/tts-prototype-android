@@ -1707,7 +1707,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .classic-main-card { padding: 14px 12px 16px; }
         .classic-shell-head { gap: 14px; }
         .classic-utility-bar { padding: 7px 8px; }
-        .classic-utility-nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
+        .classic-utility-nav { flex: 1 1 0; min-width: 0; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
         .classic-utility-nav .btn-secondary { flex: 0 0 auto; width: auto; }
         .classic-composer-tools {
             width: 100%;
@@ -5300,17 +5300,6 @@ body.v3-ide-mode .v3-ide-right {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E");
 }
 
-/* Mobile: hide classic lang-select if too narrow, IDE lang select always visible */
-@media (max-width: 480px) {
-  .classic-lang-wrap { display: none; }
-  .classic-lang-wrap-mobile { display: flex !important; }
-}
-
-.classic-lang-wrap-mobile {
-  display: none;
-  margin-top: 4px;
-  justify-content: flex-end;
-}
 
 /* ============================================================
    RTL SUPPORT (Hebrew interface direction)
