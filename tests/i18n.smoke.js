@@ -279,6 +279,169 @@ for (const key of criticalKeys) {
   });
 }
 
+// ── Suite 7: Premium completion key coverage ──────────────────────────────────
+
+console.log("\n[Suite 7] Premium completion key coverage");
+
+const premiumKeys = [
+  // Stats panel
+  "classic.statusSummary",
+  "classic.statTtsLabel",
+  "classic.statTtsSub",
+  "classic.statTtsCostInfo",
+  "classic.statTtsQuotaInfo",
+  "classic.statAiLabel",
+  "classic.statAiSub",
+  "classic.statConsoleLabel",
+  "classic.statConsoleBtn",
+  "classic.statResetIn",
+  "classic.statResetSoon",
+  "classic.statResetUnknown",
+  // Buttons
+  "classic.rebuildTable",
+  "classic.updateTable",
+  "classic.reSpeak",
+  "classic.speakAgain",
+  // Primary hints
+  "classic.primaryHintEmpty",
+  "classic.primaryHintStale",
+  "classic.primaryHintNoTable",
+  "classic.primaryHintReady",
+  // Source chip
+  "classic.sourceLocal",
+  "classic.sourceLibrary",
+  "classic.sourceCache",
+  // Trust chips — freshness
+  "classic.chipFreshnessNone",
+  "classic.chipFreshnessStale",
+  "classic.chipFreshnessRestored",
+  "classic.chipFreshnessCurrent",
+  // Trust chips — library
+  "classic.chipLibraryNone",
+  "classic.chipLibrarySaved",
+  "classic.chipLibraryNeedSave",
+  // Trust chips — export
+  "classic.chipExportUnavailable",
+  "classic.chipExportAfterRebuild",
+  "classic.chipExportReady",
+  "classic.chipExportAfterSave",
+  // Result summaries
+  "classic.resultSummaryNoTable",
+  "classic.resultSummaryStale",
+  "classic.resultSummaryExportReady",
+  "classic.resultSummarySaved",
+  "classic.resultSummaryUnsaved",
+  // Audio + header
+  "classic.downloadAudio",
+  "classic.statusDraft",
+  "classic.statusSaved",
+  "classic.noTitle",
+  "classic.tableBuilt",
+  "classic.tableStaleSub",
+  "classic.providerLabel",
+  "classic.niqqudLabel",
+  "classic.openedFromDashboard",
+  "classic.openedFromLibrary",
+  "classic.modeResume",
+  "classic.audioNiqqudToHebrew",
+  "classic.sourceLabel",
+  // Table column headers
+  "table.colTranslitLat",
+  "table.colTranslitRu",
+  "table.colTranslitSbl",
+  // Library card
+  "library.level",
+  "library.progressRow",
+  "library.source",
+  "library.lastOpened",
+  "library.created",
+  "library.open",
+  "library.resume",
+  "library.edit",
+  "library.archive",
+  "library.delete",
+  // Dashboard
+  "dashboard.pin",
+  "dashboard.unpin",
+  "dashboard.badgeSeen",
+  "dashboard.badgeLast",
+  "dashboard.badgeArchived",
+  "dashboard.levelChip",
+  "dashboard.shownOf",
+  "dashboard.allTextsScope",
+  "dashboard.loadingRows",
+  "dashboard.noActivity",
+  "dashboard.source",
+  "dashboard.continue",
+  "dashboard.open",
+  "dashboard.edit",
+  // Diagnostics
+  "diag.online",
+  "diag.unavailable",
+  "diag.ready",
+  "diag.unloadedIdle",
+  "diag.configured",
+  "diag.notConfigured",
+  "diag.lastRequest",
+  "diag.quotaChars",
+  "diag.used",
+  "diag.quota",
+  "diag.nearLimit",
+  "diag.periodFrom",
+  "diag.textsActive",
+  "diag.sentences",
+  "diag.cacheCard",
+  "diag.libCard",
+  "diag.versionsCard",
+  "diag.updated",
+  // Time formatting
+  "time.hourMin",
+  "time.minSec",
+  "time.sec",
+  "time.min",
+];
+
+for (const key of premiumKeys) {
+  test(`premium key "${key}" resolves in all locales`, () => {
+    for (const locale of ["ru", "en", "he"]) {
+      appSetLocale(locale);
+      const val = t(key);
+      assert.notStrictEqual(val, key, `Missing in ${locale}: ${key}`);
+    }
+    appSetLocale("ru");
+  });
+}
+
+// interpolation smoke for new templates
+test("classic.statTtsQuotaInfo interpolates {used} and {percent}", () => {
+  appSetLocale("ru");
+  const val = t("classic.statTtsQuotaInfo", { used: "1,234,567", percent: 31 });
+  assert.ok(!val.includes("{used}") && !val.includes("{percent}"), `Unfilled placeholders: ${val}`);
+});
+
+test("classic.statResetIn interpolates {duration}", () => {
+  appSetLocale("en");
+  const val = t("classic.statResetIn", { duration: "2h 5m" });
+  assert.ok(!val.includes("{duration}"), `Unfilled: ${val}`);
+  appSetLocale("ru");
+});
+
+test("time.hourMin interpolates {h} and {m}", () => {
+  for (const locale of ["ru", "en", "he"]) {
+    appSetLocale(locale);
+    const val = t("time.hourMin", { h: 3, m: 15 });
+    assert.ok(!val.includes("{h}") && !val.includes("{m}"), `Unfilled in ${locale}: ${val}`);
+  }
+  appSetLocale("ru");
+});
+
+test("dashboard.shownOf interpolates {shown}, {total}, {scope}", () => {
+  appSetLocale("en");
+  const val = t("dashboard.shownOf", { shown: 10, total: 42, scope: "All texts" });
+  assert.ok(!val.includes("{shown}") && !val.includes("{total}") && !val.includes("{scope}"), `Unfilled: ${val}`);
+  appSetLocale("ru");
+});
+
 // ── Summary ───────────────────────────────────────────────────────────────────
 
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
