@@ -105,13 +105,27 @@
         flex: 1 1 420px;
     }
 
+    .classic-header-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 6px;
+    }
+
+    .classic-header-top .v3-mode-toggle {
+        padding: 5px 14px;
+        font-size: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
     .classic-eyebrow {
         font-size: 12px;
         font-weight: 800;
         letter-spacing: 0.16em;
         text-transform: uppercase;
         color: #64748b;
-        margin-bottom: 6px;
     }
 
     .classic-screen-title {
@@ -152,8 +166,7 @@
         min-width: 0;
     }
 
-    .classic-utility-nav .btn-secondary,
-    .classic-utility-bar .v3-mode-toggle {
+    .classic-utility-nav .btn-secondary {
         min-height: 44px;
     }
 
@@ -1696,7 +1709,6 @@ th, td { border-color: rgba(0,0,0,0.55); }
         .classic-utility-bar { padding: 7px 8px; }
         .classic-utility-nav { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
         .classic-utility-nav .btn-secondary { flex: 0 0 auto; width: auto; }
-        .classic-utility-bar .v3-mode-toggle { width: 100%; justify-content: center; }
         .classic-composer-tools {
             width: 100%;
             display: grid;
@@ -5305,6 +5317,10 @@ body.v3-ide-mode .v3-ide-right {
    ============================================================ */
 
 /* --- Flex direction mirrors for RTL UI --- */
+[dir="rtl"] .classic-header-top {
+  flex-direction: row-reverse;
+}
+
 [dir="rtl"] .classic-utility-bar {
   flex-direction: row-reverse;
 }
@@ -5894,7 +5910,10 @@ td[data-col="ru"] {
         <div class="classic-shell">
             <div class="classic-shell-head">
                 <div class="classic-shell-copy">
-                    <div class="classic-eyebrow" data-i18n="classic.eyebrow">Classic Mode</div>
+                    <div class="classic-header-top">
+                        <div class="classic-eyebrow" data-i18n="classic.eyebrow">Classic Mode</div>
+                        <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса" data-i18n="classic.ideMode">🖥️ IDE режим</button>
+                    </div>
                     <h2 class="classic-screen-title" data-i18n="classic.title">Текст для озвучки и перевода</h2>
                     <p class="classic-screen-subtitle" data-i18n="classic.subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
                 </div>
@@ -5911,9 +5930,6 @@ td[data-col="ru"] {
                         <option value="he">עברית</option>
                       </select>
                     </div>
-                    <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса" data-i18n="classic.ideMode">
-                      🖥️ IDE режим
-                    </button>
                 </div>
             </div>
 
