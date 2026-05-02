@@ -5796,7 +5796,7 @@ td[data-col="ru"] {
 <div id="v3IdePanelBackdrop" class="v3-ide-panel-backdrop" onclick="v3IdeCloseOverlays()"></div>
 
     <details id="classicStatusStrip" class="classic-status-strip-wrap">
-        <summary class="classic-status-strip-summary">Лимиты и квоты</summary>
+        <summary class="classic-status-strip-summary" data-i18n="classic.statusSummary">Лимиты и квоты</summary>
     <div class="dashboard-header classic-status-strip">
         <div class="stats-box">
             <div class="stat-item">
@@ -5808,10 +5808,12 @@ td[data-col="ru"] {
                 <span
                     class="stat-label"
                     title="Считаются только запросы, отправленные из этого дашборда."
+                    data-i18n="classic.statTtsLabel"
                 >TTS Символы</span>
                 <div
                     class="stat-sub"
                     title="История использования TTS именно этим приложением."
+                    data-i18n="classic.statTtsSub"
                 >Через это приложение</div>
                 <div
                     id="ttsCostInfo"
@@ -5842,10 +5844,12 @@ td[data-col="ru"] {
                 <span
                     class="stat-label"
                     title="Учёт запросов к модели Gemini для генерации учебных таблиц."
+                    data-i18n="classic.statAiLabel"
                 >Запросы AI</span>
                 <div
                     class="stat-sub"
                     title="Считаются только переводы, запрошенные из этого дашборда."
+                    data-i18n="classic.statAiSub"
                 >Переводы таблиц (через это приложение)</div>
                 <div
                     id="geminiModelInfo"
@@ -5872,12 +5876,13 @@ td[data-col="ru"] {
         </div>
 
         <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; flex-shrink: 0;">
-            <div style="font-size: 12px; color: #888888;">Для просмотра общего лимита:</div>
+            <div style="font-size: 12px; color: #888888;" data-i18n="classic.statConsoleLabel">Для просмотра общего лимита:</div>
             <a
                 href="https://console.cloud.google.com/billing"
                 target="_blank"
                 class="btn-console"
                 title="Откроется раздел биллинга Google Cloud для детального просмотра лимитов и расходов."
+                data-i18n="classic.statConsoleBtn"
             >
                 📊 Открыть Google Cloud Console
             </a>
@@ -11856,30 +11861,30 @@ updatePlaylistButtonUI();
             }
         }
 
-        let sourceText = "Источник: локальный ввод";
+        let sourceText = t("classic.sourceLocal");
         let sourceTone = "info";
         if (isSaved) {
-            sourceText = "Источник: Library";
+            sourceText = t("classic.sourceLibrary");
             sourceTone = "success";
         } else if (sourceMeta.indexOf("кэш") >= 0 || sourceMeta.indexOf("cache") >= 0) {
-            sourceText = "Источник: локальный кэш";
+            sourceText = t("classic.sourceCache");
             sourceTone = "info";
         }
         classicSetChip(classicSourceStateChipEl, sourceText, sourceTone);
 
         let primaryPriority = "table";
         if (btnAiTranslateEl) {
-            if (!text) btnAiTranslateEl.textContent = "Собрать таблицу";
-            else if (tableIsStale) btnAiTranslateEl.textContent = "Пересобрать таблицу";
-            else if (hasTable) btnAiTranslateEl.textContent = "Обновить таблицу";
-            else btnAiTranslateEl.textContent = "Собрать таблицу";
+            if (!text) btnAiTranslateEl.textContent = t("classic.buildTable");
+            else if (tableIsStale) btnAiTranslateEl.textContent = t("classic.rebuildTable");
+            else if (hasTable) btnAiTranslateEl.textContent = t("classic.updateTable");
+            else btnAiTranslateEl.textContent = t("classic.buildTable");
         }
 
         if (btnMainTtsEl) {
-            if (!text) btnMainTtsEl.textContent = "🔊 Озвучить";
-            else if (audioIsStale) btnMainTtsEl.textContent = "🔊 Переозвучить";
-            else if (hasAudio) btnMainTtsEl.textContent = "🔊 Озвучить снова";
-            else btnMainTtsEl.textContent = "🔊 Озвучить";
+            if (!text) btnMainTtsEl.textContent = t("classic.speak");
+            else if (audioIsStale) btnMainTtsEl.textContent = t("classic.reSpeak");
+            else if (hasAudio) btnMainTtsEl.textContent = t("classic.speakAgain");
+            else btnMainTtsEl.textContent = t("classic.speak");
         }
 
         if (text && hasTable && !tableIsStale && !hasAudio) {
@@ -11892,50 +11897,50 @@ updatePlaylistButtonUI();
 
         if (classicPrimaryHintEl) {
             if (!text) {
-                classicPrimaryHintEl.textContent = "Введите исходный текст, затем запустите сборку таблицы или озвучку.";
+                classicPrimaryHintEl.textContent = t("classic.primaryHintEmpty");
             } else if (tableIsStale) {
-                classicPrimaryHintEl.textContent = "Исходный текст изменён. Основное действие сейчас — пересобрать актуальную таблицу.";
+                classicPrimaryHintEl.textContent = t("classic.primaryHintStale");
             } else if (!hasTable) {
-                classicPrimaryHintEl.textContent = "Сначала соберите таблицу. После этого станут доступны работа по строкам и сохранение.";
+                classicPrimaryHintEl.textContent = t("classic.primaryHintNoTable");
             } else {
-                classicPrimaryHintEl.textContent = "Таблица готова. Можно сохранить результат, открыть экспорт и работать по строкам.";
+                classicPrimaryHintEl.textContent = t("classic.primaryHintReady");
             }
         }
 
         if (classicResultFreshChipEl) {
-            if (!hasTable) classicSetTrustChip(classicResultFreshChipEl, "Актуальность: нет результата", "info");
-            else if (tableIsStale) classicSetTrustChip(classicResultFreshChipEl, "Актуальность: устарела", "warning");
+            if (!hasTable) classicSetTrustChip(classicResultFreshChipEl, t("classic.chipFreshnessNone"), "info");
+            else if (tableIsStale) classicSetTrustChip(classicResultFreshChipEl, t("classic.chipFreshnessStale"), "warning");
             else if (sourceMeta.indexOf("восстанов") >= 0 || sourceMeta.indexOf("cache") >= 0 || sourceMeta.indexOf("кэш") >= 0) {
-                classicSetTrustChip(classicResultFreshChipEl, "Актуальность: восстановлена", "info");
+                classicSetTrustChip(classicResultFreshChipEl, t("classic.chipFreshnessRestored"), "info");
             } else {
-                classicSetTrustChip(classicResultFreshChipEl, "Актуальность: текущая", "success");
+                classicSetTrustChip(classicResultFreshChipEl, t("classic.chipFreshnessCurrent"), "success");
             }
         }
 
         if (classicResultSaveChipEl) {
-            if (!hasTable) classicSetTrustChip(classicResultSaveChipEl, "Library: ещё не создано", "info");
-            else if (isSaved) classicSetTrustChip(classicResultSaveChipEl, "Library: сохранено", "success");
-            else classicSetTrustChip(classicResultSaveChipEl, "Library: нужно сохранить", "warning");
+            if (!hasTable) classicSetTrustChip(classicResultSaveChipEl, t("classic.chipLibraryNone"), "info");
+            else if (isSaved) classicSetTrustChip(classicResultSaveChipEl, t("classic.chipLibrarySaved"), "success");
+            else classicSetTrustChip(classicResultSaveChipEl, t("classic.chipLibraryNeedSave"), "warning");
         }
 
         if (classicResultExportChipEl) {
-            if (!hasTable) classicSetTrustChip(classicResultExportChipEl, "Экспорт: недоступен", "info");
-            else if (tableIsStale) classicSetTrustChip(classicResultExportChipEl, "Экспорт: после пересборки", "warning");
-            else if (exportReady) classicSetTrustChip(classicResultExportChipEl, "Экспорт: готов", "success");
-            else classicSetTrustChip(classicResultExportChipEl, "Экспорт: после сохранения", "info");
+            if (!hasTable) classicSetTrustChip(classicResultExportChipEl, t("classic.chipExportUnavailable"), "info");
+            else if (tableIsStale) classicSetTrustChip(classicResultExportChipEl, t("classic.chipExportAfterRebuild"), "warning");
+            else if (exportReady) classicSetTrustChip(classicResultExportChipEl, t("classic.chipExportReady"), "success");
+            else classicSetTrustChip(classicResultExportChipEl, t("classic.chipExportAfterSave"), "info");
         }
 
         if (classicResultSummaryEl) {
             if (!hasTable) {
-                classicResultSummaryEl.textContent = "Сначала соберите таблицу. После этого здесь появятся происхождение результата, экспорт и работа по строкам.";
+                classicResultSummaryEl.textContent = t("classic.resultSummaryNoTable");
             } else if (tableIsStale) {
-                classicResultSummaryEl.textContent = "Результат есть, но он уже не соответствует текущему тексту. Главный следующий шаг — пересобрать таблицу.";
+                classicResultSummaryEl.textContent = t("classic.resultSummaryStale");
             } else if (exportReady) {
-                classicResultSummaryEl.textContent = "Результат актуален и сохранён. Можно переходить к экспорту, аудио и работе по строкам.";
+                classicResultSummaryEl.textContent = t("classic.resultSummaryExportReady");
             } else if (isSaved) {
-                classicResultSummaryEl.textContent = "Результат актуален и связан с Library. Экспорт станет доступен в сохранённом рабочем контексте.";
+                classicResultSummaryEl.textContent = t("classic.resultSummarySaved");
             } else {
-                classicResultSummaryEl.textContent = "Результат актуален, но для экспорта его нужно сохранить в Library.";
+                classicResultSummaryEl.textContent = t("classic.resultSummaryUnsaved");
             }
         }
 
@@ -12935,12 +12940,12 @@ updatePlaylistButtonUI();
             const diffMs = geminiNextResetAt.getTime() - now.getTime();
             if (diffMs > 0) {
                 const sec = Math.floor(diffMs / 1000);
-                resetInfoEl.textContent = "Сброс квоты через: " + formatDuration(sec);
+                resetInfoEl.textContent = t("classic.statResetIn", { duration: formatDuration(sec) });
             } else {
-                resetInfoEl.textContent = "Сброс квоты: скоро";
+                resetInfoEl.textContent = t("classic.statResetSoon");
             }
         } else {
-            resetInfoEl.textContent = "Сброс квоты через: —";
+            resetInfoEl.textContent = t("classic.statResetUnknown");
         }
     }
 
@@ -12950,9 +12955,9 @@ updatePlaylistButtonUI();
         const m = Math.floor((totalSec % 3600) / 60);
         const s = totalSec % 60;
 
-        if (h > 0) return h + " ч " + m + " мин";
-        if (m > 0) return m + " мин " + s + " сек";
-        return s + " сек";
+        if (h > 0) return t("time.hourMin", { h: h, m: m });
+        if (m > 0) return t("time.minSec", { m: m, s: s });
+        return t("time.sec", { s: s });
     }
 
     setInterval(function () {
@@ -13173,7 +13178,7 @@ updatePlaylistButtonUI();
             '<div class="audio-block">' +
             '  <audio controls src="' + v3EscapeHtml(String(audioUrl || "")) + '"></audio>' +
             '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-            '    ⬇ Скачать audio' +
+            '    ' + t("classic.downloadAudio") +
             '  </button>' +
             '</div>';
         const audioEl = audioContainer.querySelector("audio");
@@ -13430,7 +13435,7 @@ updatePlaylistButtonUI();
             '<div class="audio-block">' +
             '  <audio controls src="' + lastAudioUrl + '"></audio>' +
             '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
-            '    ⬇ Скачать audio' +
+            '    ' + t("classic.downloadAudio") +
             '  </button>' +
             '</div>';
         const audioEl = audioContainer.querySelector("audio");
@@ -15115,29 +15120,27 @@ function v3UiUpdateActiveHeader() {
     : null;
 
   if (mode === "draft") {
-    statusText = "Черновик";
+    statusText = t("classic.statusDraft");
     if (!title) title = v3GuessDraftTitleFromTextarea();
     const staleNow = !!(typeof tableIsStale !== "undefined" && tableIsStale);
     if (staleNow) {
-      sub = "Текст изменён — таблица устарела и не соответствует текущему тексту.\n" +
-        "Нажмите «Собрать таблицу», чтобы пересобрать актуальную таблицу.\n" +
-        "Сохранение таблицы рекомендуется после обновления.";
+      sub = t("classic.tableStaleSub");
     } else {
-      sub = "Таблица сформирована";
-      if (_providerLabel) sub += " · Провайдер: " + _providerLabel;
-      if (_nikudLabel) sub += " · Огласовки: " + _nikudLabel;
+      sub = t("classic.tableBuilt");
+      if (_providerLabel) sub += " · " + t("classic.providerLabel") + " " + _providerLabel;
+      if (_nikudLabel) sub += " · " + t("classic.niqqudLabel") + " " + _nikudLabel;
     }
     statusEl.classList.remove("v3-pill-saved");
     statusEl.classList.add("v3-pill-draft");
   } else {
-    statusText = "Сохранён";
-    if (!title) title = "(без названия)";
+    statusText = t("classic.statusSaved");
+    if (!title) title = t("classic.noTitle");
     const origin = st.origin || "library";
-    sub = (origin === "dashboard") ? "Открыт из Dashboard" : "Открыт из Library";
-    if (st.openMode === "resume") sub += " • режим: продолжить";
-    if (_providerLabel) sub += " · Провайдер: " + _providerLabel;
-    if (_nikudLabel) sub += " · Огласовки: " + _nikudLabel;
-    sub += " · Аудио: Огласовки → Иврит";
+    sub = (origin === "dashboard") ? t("classic.openedFromDashboard") : t("classic.openedFromLibrary");
+    if (st.openMode === "resume") sub += " " + t("classic.modeResume");
+    if (_providerLabel) sub += " · " + t("classic.providerLabel") + " " + _providerLabel;
+    if (_nikudLabel) sub += " · " + t("classic.niqqudLabel") + " " + _nikudLabel;
+    sub += " " + t("classic.audioNiqqudToHebrew");
     statusEl.classList.remove("v3-pill-draft");
     statusEl.classList.add("v3-pill-saved");
   }
@@ -15157,10 +15160,10 @@ function v3UiUpdateActiveHeader() {
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         a.textContent = sourceVal;
-        sourceEl.textContent = "Источник: ";
+        sourceEl.textContent = t("classic.sourceLabel") + " ";
         sourceEl.appendChild(a);
       } else {
-        sourceEl.textContent = "Источник: " + sourceVal;
+        sourceEl.textContent = t("classic.sourceLabel") + " " + sourceVal;
       }
       sourceEl.style.display = "";
     } else {
@@ -16083,20 +16086,20 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
         <div>
           <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button></div>
           <div class="v3-lib-card-meta">
-             ${level ? ("Уровень: <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
-				Прогресс: строка № <b>${v3EscapeHtml(progressText)}</b><br/>
-				Источник: ${sourceHtml}<br/>
-				Последнее открытие: ${v3EscapeHtml(v3FmtDate(lastOpened))} · Создан: ${v3EscapeHtml(v3FmtDate(createdAt))}
+             ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
+				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
+				${t("library.source")}: ${sourceHtml}<br/>
+				${t("library.lastOpened")}: ${v3EscapeHtml(v3FmtDate(lastOpened))} · ${t("library.created")}: ${v3EscapeHtml(v3FmtDate(createdAt))}
            </div>
           <div style="margin-top:6px;">${tagsHtml}</div>
         </div>
 
         <div class="v3-lib-card-actions">
-          <button class="btn-primary" data-act="open">Открыть</button>
-          <button class="btn-success" data-act="resume">Продолжить</button>
-		  <button class="btn-secondary" data-act="edit">Изменить</button>
-		  <button class="btn-secondary" data-act="archive">В архив</button>
-          <button class="btn-secondary v3-lib-danger" data-act="delete">Удалить</button>
+          <button class="btn-primary" data-act="open">${t("library.open")}</button>
+          <button class="btn-success" data-act="resume">${t("library.resume")}</button>
+		  <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
+		  <button class="btn-secondary" data-act="archive">${t("library.archive")}</button>
+          <button class="btn-secondary v3-lib-danger" data-act="delete">${t("library.delete")}</button>
         </div>
       </div>
     `;
@@ -17148,20 +17151,20 @@ function v3DashboardRenderActivityPanel(q, level) {
 
   const shown = rows.slice(0, 50);
 
-  let scopeLabel = "Все тексты";
+  let scopeLabel = t("dashboard.allTextsScope");
   if (textFilter) {
     const fromLib = (v3DashLibTexts || []).find(x => x && String(x.id) === String(textFilter)) || null;
     const fromRecent = v3DashRecentByTextId.get(String(textFilter)) || null;
-    const t = fromLib || fromRecent;
-    if (t && t.title) scopeLabel = String(t.title);
+    const foundText = fromLib || fromRecent;
+    if (foundText && foundText.title) scopeLabel = String(foundText.title);
     else scopeLabel = String(textFilter);
   }
 
-  headerEl.textContent = `Показано: ${shown.length} (из ${rows.length}) · Источник: ${scopeLabel}`;
+  headerEl.textContent = t("dashboard.shownOf", { shown: shown.length, total: rows.length, scope: scopeLabel });
 
   listEl.innerHTML = shown.length
     ? shown.map(v3DashRenderActivityRow).join("")
-    : '<div class="v3-dash-empty">Активности пока нет. Проиграйте строку текста, загруженного из Библиотеки (Row-TTS).</div>';
+    : '<div class="v3-dash-empty">' + t("dashboard.noActivity") + '</div>';
 }
 
 let v3SrsTrainerState = {
@@ -17682,7 +17685,7 @@ function v3DiagRender(d) {
     const sidecarOk = !!sc.ok;
     let sidecarRows = '<div class="v3-diag-row">' +
         '<span class="v3-diag-label">' + v3DiagDot(sidecarOk) + 'Python sidecar</span>' +
-        '<span class="v3-diag-val">' + (sidecarOk ? "онлайн" : "недоступен") + '</span></div>';
+        '<span class="v3-diag-val">' + (sidecarOk ? t("diag.online") : t("diag.unavailable")) + '</span></div>';
 
     if (sidecarOk && sc.models) {
         const ms = sc.models;
@@ -17696,20 +17699,20 @@ function v3DiagRender(d) {
 
         sidecarRows += '<div class="v3-diag-row">' +
             '<span class="v3-diag-label">' + v3DiagDot(nakdanReady) + 'Nakdan (niqqud)</span>' +
-            '<span class="v3-diag-val">' + (nakdanReady ? "готов" : (nakdan.state || "—")) + '</span></div>';
+            '<span class="v3-diag-val">' + (nakdanReady ? t("diag.ready") : (nakdan.state || "—")) + '</span></div>';
         sidecarRows += '<div class="v3-diag-row">' +
             '<span class="v3-diag-label">' + v3DiagDot(translatorReady, translatorUnloaded) + 'MADLAD-400</span>' +
-            '<span class="v3-diag-val">' + (translatorReady ? "готов" : translatorUnloaded ? "выгружен (idle)" : (translator.state || "—")) + '</span></div>';
+            '<span class="v3-diag-val">' + (translatorReady ? t("diag.ready") : translatorUnloaded ? t("diag.unloadedIdle") : (translator.state || "—")) + '</span></div>';
         if (translator.last_used_at) {
             const lastUsed = translator.last_used_at.replace('T', ' ').slice(0, 16) + ' UTC';
             sidecarRows += '<div class="v3-diag-row">' +
-                '<span class="v3-diag-label" style="padding-left:10px;">Последний запрос</span>' +
+                '<span class="v3-diag-label" style="padding-left:10px;">' + t("diag.lastRequest") + '</span>' +
                 '<span class="v3-diag-val" style="font-size:11px;">' + lastUsed + '</span></div>';
         }
         if (typeof translator.idle_timeout_sec === "number") {
             sidecarRows += '<div class="v3-diag-row">' +
                 '<span class="v3-diag-label" style="padding-left:10px;">Idle timeout</span>' +
-                '<span class="v3-diag-val">' + (translator.idle_timeout_sec / 60 | 0) + ' мин</span></div>';
+                '<span class="v3-diag-val">' + (translator.idle_timeout_sec / 60 | 0) + ' ' + t("time.min") + '</span></div>';
         }
     }
 
@@ -17717,27 +17720,27 @@ function v3DiagRender(d) {
     const gcpOk = !!gcp.configured;
     let gcpRows = '<div class="v3-diag-row">' +
         '<span class="v3-diag-label">' + v3DiagDot(gcpOk) + 'GCP Translate</span>' +
-        '<span class="v3-diag-val">' + (gcpOk ? "настроен" : "не настроен") + '</span></div>';
+        '<span class="v3-diag-val">' + (gcpOk ? t("diag.configured") : t("diag.notConfigured")) + '</span></div>';
 
     if (gcpOk && q.freeTierLimit) {
         const usedRatio = q.used_ratio || 0;
         const pct = Math.round(usedRatio * 100);
         const barCls = pct >= 90 ? "crit" : pct >= 70 ? "warn" : "";
         gcpRows += '<div class="v3-diag-row">' +
-            '<span class="v3-diag-label">Квота (символы)</span>' +
+            '<span class="v3-diag-label">' + t("diag.quotaChars") + '</span>' +
             '<div class="v3-diag-bar-wrap"><div class="v3-diag-bar-fill ' + barCls + '" style="width:' + pct + '%"></div></div>' +
             '<span class="v3-diag-val">' + pct + '%</span></div>';
         gcpRows += '<div class="v3-diag-row">' +
-            '<span class="v3-diag-label">Использовано</span>' +
+            '<span class="v3-diag-label">' + t("diag.used") + '</span>' +
             '<span class="v3-diag-val">' + v3DiagFmt(q.chars) + ' / ' + v3DiagFmt(q.freeTierLimit) + '</span></div>';
         if (q.near_limit) {
             gcpRows += '<div class="v3-diag-row">' +
-                '<span class="v3-diag-label">' + v3DiagDot(false, true) + 'Квота</span>' +
-                '<span class="v3-diag-val" style="color:#ff9800;">Почти исчерпана</span></div>';
+                '<span class="v3-diag-label">' + v3DiagDot(false, true) + t("diag.quota") + '</span>' +
+                '<span class="v3-diag-val" style="color:#ff9800;">' + t("diag.nearLimit") + '</span></div>';
         }
         if (q.monthStart) {
             gcpRows += '<div class="v3-diag-row">' +
-                '<span class="v3-diag-label">Период с</span>' +
+                '<span class="v3-diag-label">' + t("diag.periodFrom") + '</span>' +
                 '<span class="v3-diag-val">' + q.monthStart.slice(0, 10) + '</span></div>';
         }
     }
@@ -17754,10 +17757,10 @@ function v3DiagRender(d) {
         '<span class="v3-diag-val">' + v3DiagFmt(db.overrides) + '</span></div>';
 
     let libRows = '<div class="v3-diag-row">' +
-        '<span class="v3-diag-label">Текстов (активных)</span>' +
+        '<span class="v3-diag-label">' + t("diag.textsActive") + '</span>' +
         '<span class="v3-diag-val">' + v3DiagFmt(db.texts_active) + ' / ' + v3DiagFmt(db.texts) + '</span></div>' +
         '<div class="v3-diag-row">' +
-        '<span class="v3-diag-label">Предложений</span>' +
+        '<span class="v3-diag-label">' + t("diag.sentences") + '</span>' +
         '<span class="v3-diag-val">' + v3DiagFmt(db.sentences) + '</span></div>';
 
     const byProv = db.by_provider || {};
@@ -17792,13 +17795,13 @@ function v3DiagRender(d) {
     return '<div class="v3-diag-grid">' +
         '<div class="v3-diag-card"><div class="v3-diag-card-title">Sidecar (AI local)</div>' + sidecarRows + '</div>' +
         '<div class="v3-diag-card"><div class="v3-diag-card-title">GCP Translate</div>' + gcpRows + '</div>' +
-        '<div class="v3-diag-card"><div class="v3-diag-card-title">Кэш (pipeline)</div>' + cacheRows + '</div>' +
-        '<div class="v3-diag-card"><div class="v3-diag-card-title">Библиотека</div>' + libRows + '</div>' +
+        '<div class="v3-diag-card"><div class="v3-diag-card-title">' + t("diag.cacheCard") + '</div>' + cacheRows + '</div>' +
+        '<div class="v3-diag-card"><div class="v3-diag-card-title">' + t("diag.libCard") + '</div>' + libRows + '</div>' +
         '</div>' +
         '<div class="v3-diag-grid" style="margin-top:10px;">' +
-        '<div class="v3-diag-card" style="grid-column:1/-1"><div class="v3-diag-card-title">Версии компонентов</div>' + verRows + '</div>' +
+        '<div class="v3-diag-card" style="grid-column:1/-1"><div class="v3-diag-card-title">' + t("diag.versionsCard") + '</div>' + verRows + '</div>' +
         '</div>' +
-        '<div class="v3-diag-loading" style="margin-top:8px;text-align:right;">Обновлено' + ts + '</div>';
+        '<div class="v3-diag-loading" style="margin-top:8px;text-align:right;">' + t("diag.updated") + ts + '</div>';
 }
 
 function v3DashboardOpen() {
@@ -18038,10 +18041,10 @@ function v3DashBadges(t, recent) {
 
   // Всегда оставляем “активность”
   const seen = recent ? (recent.seen_count ?? recent.seenCount ?? 0) : 0;
-  if (seen) badges.push(`прослушано: ${seen}`);
+  if (seen) badges.push(t("dashboard.badgeSeen") + ": " + seen);
 
   const lastSeenAt = recent ? (recent.last_seen_at ?? recent.lastSeenAt ?? null) : null;
-  if (lastSeenAt) badges.push(`последний раз: ${v3FmtDate(lastSeenAt)}`);
+  if (lastSeenAt) badges.push(t("dashboard.badgeLast") + ": " + v3FmtDate(lastSeenAt));
 
   return badges;
 }
@@ -18051,10 +18054,10 @@ function v3DashboardRenderActiveChips() {
   const chips = v3BuildActiveChipsFromQuery(qRaw);
 
   const level = String(v3LibEl("v3DashLevel")?.value || "").trim();
-  if (level) chips.unshift({ kind: "level", value: level, label: "Уровень: " + level });
+  if (level) chips.unshift({ kind: "level", value: level, label: t("dashboard.levelChip") + ": " + level });
 
   const incArch = !!v3LibEl("v3DashIncludeArchived")?.checked;
-  if (incArch) chips.unshift({ kind: "archived", value: "1", label: "Архив: включён" });
+  if (incArch) chips.unshift({ kind: "archived", value: "1", label: t("dashboard.badgeArchived") });
 
   v3RenderActiveChips(v3LibEl("v3DashActiveChips"), chips);
 }
@@ -18168,7 +18171,7 @@ if (src) {
     : `<span class="v3-source-label">${v3EscapeHtml(src.label)}</span>`;
 
   metaParts.push(
-    `Источник: <span class="v3-source" title="${v3EscapeHtml(src.full)}">${labelHtml}` +
+    t("dashboard.source") + `: <span class="v3-source" title="${v3EscapeHtml(src.full)}">${labelHtml}` +
     ` <button type="button" class="v3-src-copy" data-copy="${v3EscapeHtml(src.full)}" title="Копировать полный источник">⧉</button>` +
     `</span>`
   );
@@ -18184,7 +18187,7 @@ const metaLine = metaParts.length
     ? `<div class="v3-dash-badges">${badges.map(b => `<span class="v3-dash-badge">${v3EscapeHtml(b)}</span>`).join("")}</div>`
     : "";
 
-  const pinLabel = pinFlag ? "Открепить" : "Закрепить";
+  const pinLabel = pinFlag ? t("dashboard.unpin") : t("dashboard.pin");
 
   return `
     <div class="v3-dash-item">
@@ -18198,9 +18201,9 @@ const metaLine = metaParts.length
 		${tagsHtml}
       </div>
       <div class="v3-dash-actions">
-        <button class="btn-success" onclick="v3DashboardContinue('${id}')">Продолжить</button>
-        <button class="btn-secondary" onclick="v3DashboardOpenText('${id}')">Открыть</button>
-		<button class="btn-secondary" onclick="v3TextMetaOpen('${id}')">Изменить</button>
+        <button class="btn-success" onclick="v3DashboardContinue('${id}')">${t("dashboard.continue")}</button>
+        <button class="btn-secondary" onclick="v3DashboardOpenText('${id}')">${t("dashboard.open")}</button>
+		<button class="btn-secondary" onclick="v3TextMetaOpen('${id}')">${t("dashboard.edit")}</button>
         <button class="btn-secondary" onclick="v3DashboardTogglePin('${id}')">${pinLabel}</button>
       </div>
     </div>
@@ -18212,8 +18215,8 @@ async function v3DashboardSelectText(textId) {
 
   const headerEl = v3DashEl("v3DashRowsHeader");
   const rowsEl = v3DashEl("v3DashRowsList");
-  if (headerEl) headerEl.textContent = "Загрузка…";
-  if (rowsEl) rowsEl.innerHTML = '<div class="v3-dash-empty">Загрузка…</div>';
+  if (headerEl) headerEl.textContent = t("dashboard.loadingRows");
+  if (rowsEl) rowsEl.innerHTML = '<div class="v3-dash-empty">' + t("dashboard.loadingRows") + '</div>';
 
   // сначала попробуем cache
   if (v3DashRowsCache.has(v3DashActiveTextId)) {
@@ -20231,14 +20234,14 @@ try {
             ? getSelectedTranslitProfile()
             : "sbl";
         const _tTitle = !_hasRuTranslit
-            ? "Транслит (Латиница)"
-            : (_tProfile === "ru-phonetic" ? "Транслит (рус.)" : "Транслит (SBL)");
+            ? t("table.colTranslitLat")
+            : (_tProfile === "ru-phonetic" ? t("table.colTranslitRu") : t("table.colTranslitSbl"));
         const colMeta = {
             action: { title: "▶📝", headerClass: "", cellClass: "col-action-cell" },
-            he: { title: "Иврит", headerClass: "rtl", cellClass: "rtl rtl-he" },
-            niqqud: { title: "Огласовки", headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
+            he: { title: t("table.colHebrew"), headerClass: "rtl", cellClass: "rtl rtl-he" },
+            niqqud: { title: t("table.colNiqqud"), headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
             translit: { title: _tTitle, headerClass: "", cellClass: "" },
-            ru: { title: "Перевод", headerClass: "", cellClass: "" }
+            ru: { title: t("table.colTranslation"), headerClass: "", cellClass: "" }
         };
 
         let html = '' +
@@ -22838,7 +22841,7 @@ async function v3AnkiPushNow() {
         const FREE_LIMIT = 4_000_000;
 
         if (infoEl) {
-            infoEl.textContent = "Standard voices • до 4M символов/мес бесплатно, далее ≈4 $ за 1M";
+            infoEl.textContent = t("classic.statTtsCostInfo");
         }
 
         if (!quotaInfoEl || !quotaFillEl) return;
@@ -22851,12 +22854,10 @@ async function v3AnkiPushNow() {
         const ratio = Math.max(0, Math.min(1, totalChars / FREE_LIMIT));
         const percent = Math.round(ratio * 100);
 
-        quotaInfoEl.textContent =
-            "Использовано: " +
-            totalChars.toLocaleString("ru-RU") +
-            " / 4 000 000 символов (" +
-            percent +
-            "% бесплатного лимита)";
+        quotaInfoEl.textContent = t("classic.statTtsQuotaInfo", {
+            used: totalChars.toLocaleString(),
+            percent: percent,
+        });
 
         quotaFillEl.style.width = percent + "%";
     }
@@ -24303,6 +24304,20 @@ try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchRe
   } catch (e) {
     // non-fatal
   }
+});
+
+// ──────────────────────────────────────────────
+// i18n:changed — re-render dynamic JS content
+// ──────────────────────────────────────────────
+document.addEventListener("i18n:changed", function () {
+  try { classicSyncMainPanels(); } catch (_) {}
+  try { v3UiUpdateActiveHeader(); } catch (_) {}
+  try { updateTtsCostInfo(); } catch (_) {}
+  if (typeof currentTableData !== "undefined" && Array.isArray(currentTableData) && currentTableData.length > 0) {
+    try { renderTable(currentTableData); } catch (_) {}
+  }
+  try { if (typeof v3LibraryApplyFilter === "function") v3LibraryApplyFilter(); } catch (_) {}
+  try { if (typeof v3DashboardRender === "function") v3DashboardRender(); } catch (_) {}
 });
 
 </script>
