@@ -18027,7 +18027,7 @@ function v3DashMatchesText(t, qRaw, level) {
   return v3DashMatches(t, qRaw, level);
 }
 
-function v3DashBadges(t, recent) {
+function v3DashBadges(item, recent) {
   const badges = [];
 
   const mode = (typeof v3DashboardGetMode === "function") ? v3DashboardGetMode() : "learning";
@@ -18035,8 +18035,8 @@ function v3DashBadges(t, recent) {
 
   // В compact скрываем “метаданные учебного объекта”
     if (!isCompact) {
-    if (t.level)  badges.push(`уровень: ${t.level}`);
-    if (t.topic)  badges.push(`тема: ${t.topic}`);
+    if (item.level)  badges.push(`уровень: ${item.level}`);
+    if (item.topic)  badges.push(`тема: ${item.topic}`);
      }
 
   // Всегда оставляем “активность”
@@ -18114,14 +18114,14 @@ function v3DashboardRender() {
   v3RenderTagFacets(v3LibEl("v3DashFacets"), v3DashboardGetTextsForFacets(), 18);
 }
 
-function v3DashRenderItem(t) {
-  const id = t.id || t.text_id;
+function v3DashRenderItem(item) {
+  const id = item.id || item.text_id;
   const recent = v3DashRecentByTextId.get(id) || null;
 
-  const title = v3EscapeHtml(t.title || "(без названия)");
-  const pinFlag = Number(t.is_pinned) === 1;
+  const title = v3EscapeHtml(item.title || "(без названия)");
+  const pinFlag = Number(item.is_pinned) === 1;
   
-  const topic = t.topic ? String(t.topic) : "";
+  const topic = item.topic ? String(item.topic) : "";
 const topicHtml = topic
   ? (` <span class="v3-dash-topic-chip" data-topic="${v3EscapeHtml(topic)}" title="Фильтр по теме: ${v3EscapeHtml(topic)}">${v3EscapeHtml(topic)}</span>`)
   : "";
@@ -18133,7 +18133,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 
   const fromLib = v3DashLibTexts.find(x => x && String(x.id || x.text_id || "") === String(id)) || null;
   const tagsArr = v3ParseTags(
-    t.tags_json || t.tagsJson || t.tags ||
+    item.tags_json || item.tagsJson || item.tags ||
     (fromLib ? (fromLib.tags_json || fromLib.tagsJson || fromLib.tags) : null) ||
     null
   );
@@ -18148,7 +18148,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 // Source (humanize + copy)
 try {
   const sourceRaw = String(
-    t.source ||
+    item.source ||
     (fromLib ? (fromLib.source || "") : "") ||
     ""
   ).trim();
@@ -18182,7 +18182,7 @@ const metaLine = metaParts.length
   ? (`<div class="v3-dash-meta">${metaParts.join(" · ")}</div>`)
   : "";
 
-  const badges = v3DashBadges(t, recent);
+  const badges = v3DashBadges(item, recent);
   const badgeHtml = badges.length
     ? `<div class="v3-dash-badges">${badges.map(b => `<span class="v3-dash-badge">${v3EscapeHtml(b)}</span>`).join("")}</div>`
     : "";
