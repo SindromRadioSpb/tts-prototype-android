@@ -442,6 +442,85 @@ test("dashboard.shownOf interpolates {shown}, {total}, {scope}", () => {
   appSetLocale("ru");
 });
 
+// ── Suite 8: PATCH-17 key coverage ───────────────────────────────────────────
+
+console.log("\n[Suite 8] PATCH-17 key coverage");
+
+const patch17Keys = [
+  // Classic state chips
+  "classic.chipTextStale", "classic.chipTextReady",
+  "classic.chipResultStale", "classic.chipResultRestored",
+  "classic.chipResultSaved", "classic.chipResultDraft",
+  // AI today
+  "classic.statAiTodayEmpty", "classic.statAiToday", "classic.statAiTodayLow",
+  // Status labels
+  "classic.ttsStatusLabel", "classic.tableStatusLabel",
+  // Key badges
+  "classic.keyUploaded", "classic.keyFromEnv", "classic.keySet",
+  // Library
+  "library.loaded",
+  // Text metadata modal
+  "textMeta.title", "textMeta.close", "textMeta.labelTopic", "textMeta.tagsHint",
+  // Dashboard
+  "dashboard.summaryLine", "dashboard.stats7days", "dashboard.statsAll",
+  "dashboard.metricsNA", "dashboard.noPinned", "dashboard.noRecent",
+  "dashboard.goToRow", "dashboard.playRow", "dashboard.rowMeta",
+  "dashboard.levelLabel", "dashboard.topicLabel",
+];
+
+for (const key of patch17Keys) {
+  test(`patch17 key "${key}" resolves in all locales`, () => {
+    for (const locale of ["ru", "en", "he"]) {
+      appSetLocale(locale);
+      const val = t(key);
+      assert.notStrictEqual(val, key, `Missing in ${locale}: ${key}`);
+    }
+    appSetLocale("ru");
+  });
+}
+
+// interpolation tests for new templates
+test("classic.statAiToday interpolates {used} and {limit}", () => {
+  for (const locale of ["ru", "en", "he"]) {
+    appSetLocale(locale);
+    const val = t("classic.statAiToday", { used: 42, limit: 50 });
+    assert.ok(!val.includes("{used}") && !val.includes("{limit}"), `Unfilled in ${locale}: ${val}`);
+  }
+  appSetLocale("ru");
+});
+
+test("library.loaded interpolates {count} and {date}", () => {
+  for (const locale of ["ru", "en", "he"]) {
+    appSetLocale(locale);
+    const val = t("library.loaded", { count: 78, date: "02.05.2026" });
+    assert.ok(!val.includes("{count}") && !val.includes("{date}"), `Unfilled in ${locale}: ${val}`);
+  }
+  appSetLocale("ru");
+});
+
+test("dashboard.summaryLine interpolates {pinned}, {recent}, {activity}", () => {
+  appSetLocale("en");
+  const val = t("dashboard.summaryLine", { pinned: 0, recent: 5, activity: 42 });
+  assert.ok(!val.includes("{pinned}") && !val.includes("{recent}") && !val.includes("{activity}"), `Unfilled: ${val}`);
+  appSetLocale("ru");
+});
+
+test("dashboard.stats7days interpolates all params", () => {
+  appSetLocale("en");
+  const val = t("dashboard.stats7days", { plays: 27, unique_rows: 15, unique_texts: 3, time: "1m 30s" });
+  assert.ok(!val.includes("{plays}") && !val.includes("{unique_rows}") && !val.includes("{unique_texts}") && !val.includes("{time}"), `Unfilled: ${val}`);
+  appSetLocale("ru");
+});
+
+test("dashboard.rowMeta interpolates {count} and {date}", () => {
+  for (const locale of ["ru", "en", "he"]) {
+    appSetLocale(locale);
+    const val = t("dashboard.rowMeta", { count: 16, date: "02.05.2026" });
+    assert.ok(!val.includes("{count}") && !val.includes("{date}"), `Unfilled in ${locale}: ${val}`);
+  }
+  appSetLocale("ru");
+});
+
 // ── Summary ───────────────────────────────────────────────────────────────────
 
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);

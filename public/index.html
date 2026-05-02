@@ -6603,8 +6603,8 @@ td[data-col="ru"] {
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">Метаданные текста</div>
-      <button class="btn-secondary" onclick="v3TextMetaClose()">Закрыть</button>
+      <div class="v3-modal-title" data-i18n="textMeta.title">Метаданные текста</div>
+      <button class="btn-secondary" onclick="v3TextMetaClose()" data-i18n="textMeta.close">Закрыть</button>
     </div>
 
     <div class="v3-modal-body">
@@ -6641,7 +6641,7 @@ td[data-col="ru"] {
       </div>
 
       <div class="v3-form-row">
-        <label for="v3TextMetaTopic">Тема</label>
+        <label for="v3TextMetaTopic" data-i18n="textMeta.labelTopic">Тема</label>
         <input id="v3TextMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
       </div>
 
@@ -6650,9 +6650,7 @@ td[data-col="ru"] {
         <button id="v3TextMetaSaveBtn" class="btn-primary" onclick="v3TextMetaSave()">Save</button>
       </div>
 
-      <div class="v3-help">
-        Tags вводите через запятую. Пустое поле = очистка значения.
-      </div>
+      <div class="v3-help" data-i18n="textMeta.tagsHint">Tags вводите через запятую. Пустое поле = очистка значения.</div>
     </div>
   </div>
 </div>
@@ -11553,7 +11551,7 @@ updatePlaylistButtonUI();
             line.className = "results-meta-line";
             const label = document.createElement("span");
             label.className = "results-meta-label";
-            label.textContent = "Озвучка:";
+            label.textContent = t("classic.ttsStatusLabel");
             const text = document.createElement("span");
             text.className = "results-meta-chip";
             text.textContent = resultsMetaState.audioSource;
@@ -11567,7 +11565,7 @@ updatePlaylistButtonUI();
             line.className = "results-meta-line";
             const label = document.createElement("span");
             label.className = "results-meta-label";
-            label.textContent = "Таблица:";
+            label.textContent = t("classic.tableStatusLabel");
             const text = document.createElement("span");
             text.className = "results-meta-chip";
             text.textContent = resultsMetaState.tableSource;
@@ -11805,14 +11803,14 @@ updatePlaylistButtonUI();
                         ? (classicFormatCount(rowCount, "строка", "строки", "строк") + " • Library")
                         : (classicFormatCount(rowCount, "строка", "строки", "строк") + " • черновик");
 
-        let inputText = "Текст: пусто";
+        let inputText = t("classic.chipInputEmpty");
         let inputTone = "info";
         if (text) {
             if (tableIsStale || audioIsStale) {
-                inputText = "Текст: требует обновления";
+                inputText = t("classic.chipTextStale");
                 inputTone = "warning";
             } else {
-                inputText = "Текст: готов";
+                inputText = t("classic.chipTextReady");
                 inputTone = "success";
             }
         }
@@ -11830,20 +11828,20 @@ updatePlaylistButtonUI();
             }
         }
 
-        let resultText = "Результат: отсутствует";
+        let resultText = t("classic.chipResultEmpty");
         let resultTone = "info";
         if (hasTable) {
             if (tableIsStale) {
-                resultText = "Результат: устарел";
+                resultText = t("classic.chipResultStale");
                 resultTone = "warning";
             } else if (sourceMeta.indexOf("восстанов") >= 0 || sourceMeta.indexOf("cache") >= 0 || sourceMeta.indexOf("кэш") >= 0) {
-                resultText = "Результат: восстановлен";
+                resultText = t("classic.chipResultRestored");
                 resultTone = "info";
             } else if (st.mode === "library" || st.mode === "saved") {
-                resultText = "Результат: сохранён";
+                resultText = t("classic.chipResultSaved");
                 resultTone = "success";
             } else {
-                resultText = "Результат: черновик";
+                resultText = t("classic.chipResultDraft");
                 resultTone = "info";
             }
         }
@@ -12905,14 +12903,14 @@ updatePlaylistButtonUI();
         let ratio = 0;
 
         if (!limit) {
-            todayInfoEl.textContent = "Сегодня: — / —";
+            todayInfoEl.textContent = t("classic.statAiTodayEmpty");
             todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
             if (quotaFillEl) {
                 quotaFillEl.style.width = "0%";
                 quotaFillEl.classList.remove("warning", "exceeded");
             }
         } else {
-            todayInfoEl.textContent = "Сегодня: " + used + " / " + limit;
+            todayInfoEl.textContent = t("classic.statAiToday", { used: used, limit: limit });
             ratio = used / limit;
 
             todayInfoEl.classList.remove("limit-ok", "limit-warning", "limit-exceeded");
@@ -12921,7 +12919,7 @@ updatePlaylistButtonUI();
                 todayInfoEl.classList.add("limit-exceeded");
             } else if (ratio >= 0.8) {
                 todayInfoEl.classList.add("limit-warning");
-                todayInfoEl.textContent += " · Осталось мало дневных запросов";
+                todayInfoEl.textContent += " · " + t("classic.statAiTodayLow");
             } else {
                 todayInfoEl.classList.add("limit-ok");
             }
@@ -15540,7 +15538,7 @@ async function v3LibraryRefresh() {
 
 	v3LibraryApplyFilter();
 
-    if (statusEl) statusEl.textContent = "Загружено: " + v3LibraryTexts.length + " · " + v3FmtDate(v3LibraryLastLoadedAt);
+    if (statusEl) statusEl.textContent = t("library.loaded", { count: v3LibraryTexts.length, date: v3FmtDate(v3LibraryLastLoadedAt) });
   } catch (e) {
     console.warn("v3LibraryRefresh failed", e);
     if (statusEl) statusEl.textContent = "Ошибка загрузки библиотеки (не критично).";
@@ -17013,7 +17011,7 @@ function v3DashboardRenderMetrics() {
   if (!metricsEl) return;
 
   if (!v3DashAnalytics || !v3DashAnalytics.ok) {
-    metricsEl.textContent = "Метрики: —";
+    metricsEl.textContent = t("dashboard.metricsNA");
     return;
   }
 
@@ -17021,10 +17019,10 @@ function v3DashboardRenderMetrics() {
   const a = v3DashAnalytics.all || {};
 
   const line1 =
-    `За 7 дней: Воспроизведено строк ${Number(p.plays || 0)} · из них - уникальных ${Number(p.unique_rows || 0)} · уникальных текстов ${Number(p.unique_texts || 0)} · время прослушивания ${v3FmtMs(p.time_ms)}`;
+    t("dashboard.stats7days", { plays: Number(p.plays || 0), unique_rows: Number(p.unique_rows || 0), unique_texts: Number(p.unique_texts || 0), time: v3FmtMs(p.time_ms) });
 
   const line2 =
-    `Всего: Воспроизведено строк ${Number(a.plays || 0)} · из них - уникальных ${Number(a.unique_rows || 0)} · уникальных текстов ${Number(a.unique_texts || 0)} · время прослушивания ${v3FmtMs(a.time_ms)}`;
+    t("dashboard.statsAll", { plays: Number(a.plays || 0), unique_rows: Number(a.unique_rows || 0), unique_texts: Number(a.unique_texts || 0), time: v3FmtMs(a.time_ms) });
 
   metricsEl.innerHTML = `<div>${v3EscapeHtml(line1)}</div><div>${v3EscapeHtml(line2)}</div>`;
 }
@@ -17078,7 +17076,7 @@ function v3DashboardUpdateActivityTextOptions() {
   });
 
   const options = [
-    `<option value="">Все тексты</option>`,
+    `<option value="">${v3EscapeHtml(t("dashboard.allTexts"))}</option>`,
     ...arr.map(t => {
       const pin = (Number(t.is_pinned) === 1) ? "📌 " : "";
       const title = t.title ? String(t.title) : "(без названия)";
@@ -17123,11 +17121,11 @@ function v3DashRenderActivityRow(r) {
         <div class="v3-dash-row-he">${he || "(пусто)"}</div>
         ${tr ? `<div class="v3-dash-row-tr">${tr}</div>` : ""}
         ${ru ? `<div class="v3-dash-row-ru">${ru}</div>` : ""}
-        <div class="v3-dash-row-meta">прослушано: ${seenCount} · последний раз: ${lastSeenAt}</div>
+        <div class="v3-dash-row-meta">${t("dashboard.rowMeta", { count: seenCount, date: lastSeenAt })}</div>
       </div>
       <div class="v3-dash-row-actions">
-        <button class="btn-secondary" onclick="v3DashboardGoRow('${textId}','${sentId}')">Перейти</button>
-        <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${textId}','${sentId}','${v3EscapeHtml(assetKey)}')">Прослушать</button>
+        <button class="btn-secondary" onclick="v3DashboardGoRow('${textId}','${sentId}')">${t("dashboard.goToRow")}</button>
+        <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${textId}','${sentId}','${v3EscapeHtml(assetKey)}')">${t("dashboard.playRow")}</button>
       </div>
     </div>
   `;
@@ -17948,7 +17946,7 @@ async function v3DashboardRefresh() {
 
     if (statusEl) {
       statusEl.textContent =
-        `Закреплено: ${pinnedCount} · Недавние: ${v3DashRecent.length} · Активность: ${v3DashActivity.length}` +
+        t("dashboard.summaryLine", { pinned: pinnedCount, recent: v3DashRecent.length, activity: v3DashActivity.length }) +
         (warnings.length ? ` · (частично: ${warnings.join(", ")})` : "");
     }
 
@@ -18035,8 +18033,8 @@ function v3DashBadges(item, recent) {
 
   // В compact скрываем “метаданные учебного объекта”
     if (!isCompact) {
-    if (item.level)  badges.push(`уровень: ${item.level}`);
-    if (item.topic)  badges.push(`тема: ${item.topic}`);
+    if (item.level)  badges.push(t("dashboard.levelLabel") + ": " + item.level);
+    if (item.topic)  badges.push(t("dashboard.topicLabel") + ": " + item.topic);
      }
 
   // Всегда оставляем “активность”
@@ -18095,7 +18093,7 @@ function v3DashboardRender() {
 
   pinnedEl.innerHTML = pinned.length
     ? pinned.map(t => v3DashRenderItem(t)).join("")
-    : '<div class="v3-dash-empty">Пока нет закреплённых текстов.</div>';
+    : '<div class="v3-dash-empty">' + t("dashboard.noPinned") + '</div>';
 
   const recent = v3DashRecent
     .filter(r => r && (r.id || r.text_id))
@@ -18103,7 +18101,7 @@ function v3DashboardRender() {
 
   recentEl.innerHTML = recent.length
     ? recent.map(r => v3DashRenderItem(r)).join("")
-    : '<div class="v3-dash-empty">История пока пуста. Проиграйте строку в Library.</div>';
+    : '<div class="v3-dash-empty">' + t("dashboard.noRecent") + '</div>';
 
   // Global recent activity feed (rows across all texts)
   v3DashboardRenderActivityPanel(q, level);
@@ -18288,7 +18286,7 @@ function v3DashboardRenderRowsPanel() {
   const seen = recent && (recent.seen_count ?? recent.seenCount) ? (recent.seen_count ?? recent.seenCount) : 0;
 
   if (headerEl) {
-    headerEl.textContent = `${title} · прослушано: ${seen} · последний раз: ${lastSeen}`;
+    headerEl.textContent = title + " · " + t("dashboard.rowMeta", { count: seen, date: lastSeen });
   }
 
   if (!rowsEl) return;
@@ -18315,11 +18313,11 @@ function v3DashboardRenderRowsPanel() {
           <div class="v3-dash-row-he">${he || "(пусто)"}</div>
           ${tr ? `<div class="v3-dash-row-tr">${tr}</div>` : ""}
           ${ru ? `<div class="v3-dash-row-ru">${ru}</div>` : ""}
-          <div class="v3-dash-row-meta">прослушано: ${seenCount} · последний раз: ${lastSeenAt}</div>
+          <div class="v3-dash-row-meta">${t("dashboard.rowMeta", { count: seenCount, date: lastSeenAt })}</div>
         </div>
         <div class="v3-dash-row-actions">
-          <button class="btn-secondary" onclick="v3DashboardGoRow('${v3DashActiveTextId}','${sentId}')">Перейти</button>
-          <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${v3DashActiveTextId}','${sentId}','${v3EscapeHtml(assetKey)}')">Прослушать</button>
+          <button class="btn-secondary" onclick="v3DashboardGoRow('${v3DashActiveTextId}','${sentId}')">${t("dashboard.goToRow")}</button>
+          <button class="btn-secondary" ${playDisabled} onclick="v3DashboardPlayRow('${v3DashActiveTextId}','${sentId}','${v3EscapeHtml(assetKey)}')">${t("dashboard.playRow")}</button>
         </div>
       </div>
     `;
@@ -18536,9 +18534,9 @@ function v3FillLevelSelect(selectId, opts) {
 }
 
 function v3InitLevelEnumUi() {
-v3FillLevelSelect("v3LibraryLevel", { includeEmpty: true, emptyLabel: "Все уровни" });
+v3FillLevelSelect("v3LibraryLevel", { includeEmpty: true, emptyLabel: t("library.levelAll") });
   // “Все уровни” для фильтра, “—” для мета-форм
-  v3FillLevelSelect("v3DashLevel", { includeEmpty: true, emptyLabel: "Все уровни" });
+  v3FillLevelSelect("v3DashLevel", { includeEmpty: true, emptyLabel: t("library.levelAll") });
   v3FillLevelSelect("v3TextMetaLevel", { includeEmpty: true, emptyLabel: "—" });
   v3FillLevelSelect("v3SaveMetaLevel", { includeEmpty: true, emptyLabel: "—" });
 }
@@ -19893,7 +19891,7 @@ try {
             if (!r.ok) throw new Error("HTTP " + r.status);
             const j = await r.json();
             if (j.configured) {
-                const src = j.source === "uploaded" ? "загружен" : "из .env";
+                const src = j.source === "uploaded" ? t("classic.keyUploaded") : t("classic.keyFromEnv");
                 badge.textContent = `🔑 ${src}`;
                 badge.title = `${j.client_email || ""}${j.project_id ? " · project: " + j.project_id : ""} — правый клик по 🔑, чтобы удалить`;
                 badge.style.display = "";
@@ -19980,8 +19978,8 @@ try {
             const j = await r.json();
             if (j.configured) {
                 const src = j.source === "uploaded"
-                    ? "загружен"
-                    : (j.source === "env_json" || j.source === "env_file" ? "из .env" : "настроен");
+                    ? t("classic.keyUploaded")
+                    : (j.source === "env_json" || j.source === "env_file" ? t("classic.keyFromEnv") : t("classic.keySet"));
                 badge.textContent = `🔑 ${src}`;
                 badge.title = `${j.client_email || ""}${j.project_id ? " · project: " + j.project_id : ""} — правый клик по 🔑, чтобы удалить`;
                 badge.dataset.hasStatus = "1";
@@ -24318,6 +24316,8 @@ document.addEventListener("i18n:changed", function () {
   }
   try { if (typeof v3LibraryApplyFilter === "function") v3LibraryApplyFilter(); } catch (_) {}
   try { if (typeof v3DashboardRender === "function") v3DashboardRender(); } catch (_) {}
+  try { if (typeof v3InitLevelEnumUi === "function") v3InitLevelEnumUi(); } catch (_) {}
+  try { if (typeof v3DashboardRenderMetrics === "function") v3DashboardRenderMetrics(); } catch (_) {}
 });
 
 </script>
