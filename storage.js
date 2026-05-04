@@ -1,4 +1,4 @@
-// storage.js — единый источник путей для персистентных данных (Railway Volume)
+// storage.js — single source of truth for Local Workspace paths.
 
 const fs = require("fs");
 const path = require("path");

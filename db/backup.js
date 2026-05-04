@@ -10,7 +10,7 @@
 const fs = require("fs");
 const path = require("path");
 
-// IMPORTANT: default dirs must point to persistent storage (Railway Volume)
+// IMPORTANT: default dirs must point to the Local Workspace.
 const { DB_PATH, BACKUPS_DIR } = require("../storage");
 
 const DEFAULT_BACKUPS_DIR = BACKUPS_DIR; // was: path.join(__dirname, "..", "data", "backups")

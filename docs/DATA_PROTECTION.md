@@ -1,6 +1,6 @@
 # Data Protection System (DATA-PROTECT-01)
 
-This document describes the backup, recovery, and integrity checking mechanisms for the SQLite database.
+This document describes the backup, recovery, and integrity checking mechanisms for the Local Workspace SQLite database.
 
 ## Overview
 
@@ -10,13 +10,14 @@ The data protection system provides:
 2. **WAL Mode** - Better crash recovery and concurrent access
 3. **Integrity Checks** - Startup verification of database health
 4. **CLI Tools** - Manual backup, restore, and integrity operations
+5. **Bundle Export/Import** - User-facing transfer path for library, notes, audio files, and metadata
 
 ## Automatic Backups
 
 ### Pre-Migration Backups
 
 Every time `npm run db:migrate` runs, a backup is automatically created:
-- Location: `data/backups/app.<timestamp>.pre-migrate.db`
+- Location: `DATA_DIR/backups/app.<timestamp>.pre-migrate.db`
 - Includes WAL/SHM files if present
 - Old backups auto-cleaned (keeps last 10)
 
@@ -27,8 +28,8 @@ NO_BACKUP=1 npm run db:migrate
 
 ### Pre-Import Backups
 
-When importing >10 texts via `/api/library/import`, a backup is created:
-- Location: `data/backups/app.<timestamp>.pre-import.db`
+When importing >10 texts via `/api/library/import` or large bundle import, a backup is created:
+- Location: `DATA_DIR/backups/app.<timestamp>.pre-import*.db`
 - Non-blocking: import continues even if backup fails
 
 ## WAL Mode
@@ -39,8 +40,8 @@ SQLite is configured with Write-Ahead Logging (WAL) mode, which provides:
 - Faster writes
 
 WAL creates additional files alongside the database:
-- `data/app.db-wal` - Write-ahead log
-- `data/app.db-shm` - Shared memory file
+- `DATA_DIR/app.db-wal` - Write-ahead log
+- `DATA_DIR/app.db-shm` - Shared memory file
 
 **Important:** These files are part of the database. Do not delete them while the server is running.
 
@@ -148,12 +149,14 @@ This checks:
 
 | File | Purpose |
 |------|---------|
-| `data/app.db` | Main database file |
-| `data/app.db-wal` | WAL file (auto-created) |
-| `data/app.db-shm` | Shared memory file (auto-created) |
-| `data/backups/*.db` | Backup files |
-| `data/backups/*.db-wal` | Backup WAL files |
-| `data/backups/*.db-shm` | Backup SHM files |
+| `DATA_DIR/app.db` | Main database file |
+| `DATA_DIR/app.db-wal` | WAL file (auto-created) |
+| `DATA_DIR/app.db-shm` | Shared memory file (auto-created) |
+| `DATA_DIR/audio-cache/*.mp3` | Local TTS audio payloads |
+| `DATA_DIR/*.json` | Local settings, usage counters, quotas, and uploaded service keys |
+| `DATA_DIR/backups/*.db` | Backup files |
+| `DATA_DIR/backups/*.db-wal` | Backup WAL files |
+| `DATA_DIR/backups/*.db-shm` | Backup SHM files |
 
 ## Best Practices
 

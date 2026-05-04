@@ -21,13 +21,14 @@ This document describes all environment variables and configuration options for 
 | `PORT` | `3000` | HTTP server port |
 | `NODE_ENV` | — | Environment mode (`development`, `production`) |
 
-### Database (SQLite)
+### Local Workspace / Database (SQLite)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DB_PATH` | `data/app.db` | Path to SQLite database file |
+| `DATA_DIR` | `data` | Local Workspace root for library DB, audio cache, backups, runtime JSON, and uploaded keys |
+| `DB_PATH` | `DATA_DIR/app.db` | Path to SQLite database file |
 | `MIGRATIONS_DIR` | `migrations` | Path to SQL migration files |
-| `BACKUPS_DIR` | `data/backups` | Path to database backups |
+| `BACKUPS_DIR` | `DATA_DIR/backups` | Path to database backups |
 | `NO_BACKUP` | `0` | Set to `1` to skip auto-backup before migrations |
 
 ### Google Cloud TTS
@@ -71,11 +72,17 @@ This document describes all environment variables and configuration options for 
 tts-prototype-android/
 ├── .env                 # Your local config (gitignored)
 ├── .env.example         # Template with defaults
-├── data/
-│   ├── app.db           # SQLite database (gitignored)
-│   └── backups/         # Auto-backups (gitignored)
-├── audio-cache/         # TTS audio cache (gitignored)
-├── gemini-cache/        # AI response cache (gitignored)
+├── data/                # Local Workspace root (gitignored)
+│   ├── app.db           # SQLite database
+│   ├── app.db-wal       # SQLite WAL file
+│   ├── app.db-shm       # SQLite shared-memory file
+│   ├── audio-cache/     # TTS audio cache
+│   ├── gemini-cache/    # AI response cache
+│   ├── backups/         # Auto-backups
+│   ├── usage.json       # Local usage counters
+│   ├── premium-quota.json
+│   ├── gcp-tts-key.json
+│   └── gcp-translate-key.json
 └── migrations/          # SQL migration files
 ```
 
@@ -85,6 +92,7 @@ tts-prototype-android/
 2. **Service account JSON** should be stored securely, not in the repo
 3. **API keys** should be rotated periodically
 4. **Backups** may contain sensitive user data — handle appropriately
+5. **Local Workspace** files are user data and should be transferred through ZIP bundle export/import, not committed
 
 ## Troubleshooting
 

@@ -7,12 +7,14 @@
 ## Как пользоваться
 1) Перед началом работы по Premium-фичам откройте `ROADMAP_PREMIUM.md`.
 2) Перед изменениями в конкретной подсистеме откройте соответствующий `CONTRACTS_*.md`.
-3) Любые изменения БД сверяйте с `DB_SCHEMA.md`.
-4) Перед завершением патча выполняйте проверки по `SMOKE-CHECK.md`.
+3) Любые изменения локального хранения сверяйте с `STORAGE_CONTRACT.md`.
+4) Любые изменения БД сверяйте с `DB_SCHEMA.md`.
+5) Перед завершением патча выполняйте проверки по `SMOKE-CHECK.md`.
 
 ## Карта документов
 - `ROADMAP_PREMIUM.md` — эпики Premium и зависимости (что делать раньше/позже).
 - `CONFIG.md` — окружение, переменные, локальные артефакты и безопасная настройка.
+- `STORAGE_CONTRACT.md` — Local Workspace contract: SQLite, аудио, JSON-настройки, ключи и bundle export/import.
 - `CONTRACTS_NAVIGATION.md` — deep links, back-to-results, jump-to-sentence, стабильные ссылки.
 - `CONTRACTS_SEARCH.md` — качественный rows search: нормализация иврита, авто-детект языка, snippet+highlight.
 - `CONTRACTS_SRS.md` — SRS engine: карточки, очередь "Сегодня", события review.
