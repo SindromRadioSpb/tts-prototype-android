@@ -45,6 +45,16 @@ Thumbs.db
 
 # Случайные файлы типа "h origin v0.2.0-week2"
 h origin v0.2.0-week2
+how -1 --name-only
+tts-translator-dashboard@*
+$db
+curl
+git
+node
+npm
+body.json
+payload_meta_test.json
+export.json
 nul
 
 # Debug/temp scripts
@@ -52,6 +62,9 @@ public/check_script.js
 
 # Claude Code runtime
 .claude/scheduled_tasks.lock
+
+# Local agent/tool workspaces
+.kilo/
 
 # SQLite (Library/Progress)
 data/
