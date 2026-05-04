@@ -50,10 +50,10 @@ test("classic mode provides trust-focused result workspace and static mode toggl
 });
 
 test("classic mode applies mobile-only compact layout contracts", () => {
-  assert.match(html, /class="classic-status-strip-summary">Лимиты и квоты<\/summary>/);
+  assert.match(html, /class="classic-status-strip-summary"[^>]*>Лимиты и квоты<\/summary>/);
   assert.match(html, /function classicSyncServiceStripState\(\)/);
   assert.match(html, /function classicSyncMainPanels\(options\)/);
-  assert.match(html, /classicStatusStripEl\.open = false/);
+  assert.match(html, /classicStatusStripEl\.open = saved === "1"/);
   assert.match(html, /classic-mobile-panel-summary/);
   assert.match(html, /classicComposerPanelMeta/);
   assert.match(html, /classicResultPanelMeta/);
