@@ -24436,7 +24436,18 @@ document.addEventListener("i18n:changed", function () {
   try { v3UiUpdateActiveHeader(); } catch (_) {}
   try { updateTtsCostInfo(); } catch (_) {}
   if (typeof currentTableData !== "undefined" && Array.isArray(currentTableData) && currentTableData.length > 0) {
-    try { renderTable(currentTableData); } catch (_) {}
+    try {
+      const inIdeMode = document.body && document.body.classList && document.body.classList.contains("v3-ide-mode");
+      const ideTextId = typeof v3IdeState !== "undefined" && v3IdeState ? v3IdeState.activeTextId : null;
+      if (inIdeMode && ideTextId && typeof v3IdeRenderTable === "function") {
+        v3IdeRenderTable(currentTableData, ideTextId);
+        if (v3IdeState.selectedRowIdx !== null && v3IdeState.selectedRowIdx !== undefined && typeof v3IdeSelectRow === "function") {
+          v3IdeSelectRow(v3IdeState.selectedRowIdx);
+        }
+      } else {
+        renderTable(currentTableData);
+      }
+    } catch (_) {}
   }
   try { if (typeof v3LibraryApplyFilter === "function") v3LibraryApplyFilter(); } catch (_) {}
   try { if (typeof v3DashboardRender === "function") v3DashboardRender(); } catch (_) {}
