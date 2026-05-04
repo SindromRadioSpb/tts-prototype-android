@@ -85,6 +85,12 @@ const {
 } = require("./db/eventsRepo");
 
 const {
+  buildExportRowsWithNotes,
+  countBundleNotes,
+  isValidBundleAudioEntryName,
+} = require("./db/libraryBundle");
+
+const {
   listTemplates,
   getSentenceCardSnapshot,
   getCardSnapshotById,
@@ -7208,27 +7214,14 @@ app.get("/api/library/export/bundle", async (req, res) => {
 
     for (const r of rows) {
       const textId = String(r.id);
-      const [text, sentences] = await Promise.all([
+      const [text, sentences, notes] = await Promise.all([
         getTextById(textId),
         getSentencesByTextId(textId),
+        listNotesByTextId(textId).catch(() => []),
       ]);
       if (!text) continue;
 
-      const exportRows = (Array.isArray(sentences) ? sentences : []).map((s) => {
-        const ak = s.audio_asset_key && s.audio_asset_key.length === 64 ? s.audio_asset_key : null;
-        if (ak) audioKeySet.add(ak);
-        return {
-          row_id: s.id,
-          order_index: s.order_index,
-          hebrew_plain: s.he_plain || "",
-          hebrew_niqqud: s.he_niqqud || "",
-          translit: s.translit || "",
-          translit_ru: s.translit_ru || "",
-          russian: s.ru || "",
-          edit_meta: s.edit_meta_json ? v3SafeJsonParse(s.edit_meta_json, null) : null,
-          audio_asset_key: ak,
-        };
-      });
+      const exportRows = buildExportRowsWithNotes(sentences, notes, audioKeySet);
 
       const textAk = text.audio_asset_key && text.audio_asset_key.length === 64 ? text.audio_asset_key : null;
       if (textAk) audioKeySet.add(textAk);
@@ -7280,6 +7273,7 @@ app.get("/api/library/export/bundle", async (req, res) => {
     }
 
     const rowCount = exportedTexts.reduce((s, t) => s + t.rows.length, 0);
+    const noteCount = countBundleNotes(exportedTexts);
     const createdAt = new Date().toISOString();
     const tsTag = createdAt.slice(0, 19).replace(/[-T:]/g, (c) => (c === "T" ? "-" : c)).replace(/:/g, "");
     const safeTs = createdAt.slice(0, 10).replace(/-/g, "") + "-" + createdAt.slice(11, 19).replace(/:/g, "");
@@ -7293,12 +7287,13 @@ app.get("/api/library/export/bundle", async (req, res) => {
     archive.pipe(res);
 
     archive.append(JSON.stringify({
-      export_schema_version: 1,
+      export_schema_version: 2,
       app_id: "linguist-pro-web",
       created_at: createdAt,
       partial_backup: missingAudio.length > 0,
       text_count: exportedTexts.length,
       row_count: rowCount,
+      note_count: noteCount,
       audio_count: exportAudioAssets.length,
       missing_audio_count: missingAudio.length,
       library_json_path: "library/library.json",
@@ -7306,7 +7301,7 @@ app.get("/api/library/export/bundle", async (req, res) => {
     }, null, 2), { name: "manifest.json" });
 
     archive.append(JSON.stringify({
-      schema_version: 1,
+      schema_version: 2,
       texts: exportedTexts,
       audio_assets: exportAudioAssets,
     }, null, 2), { name: "library/library.json" });
@@ -7375,23 +7370,32 @@ app.post(
         }
       }
 
+      // Pre-import backup before mutating DB or extracting audio files.
+      if (texts.length > 10) {
+        try {
+          const br = createBackup(DB_PATH, { label: "pre-import-bundle" });
+          if (br.ok) { console.log("[import/bundle] backup:", br.backupPath); cleanupBackups(DEFAULT_MAX_BACKUPS); }
+        } catch (_) {}
+      }
+
       // Extract audio files to AUDIO_CACHE_DIR
       let importedAudio = 0;
       let skippedAudio = 0;
       for (const entry of zip.getEntries()) {
         const name = entry.entryName;
-        if (entry.isDirectory || !name.startsWith("audio/") || !name.endsWith(".mp3")) continue;
+        if (entry.isDirectory || !isValidBundleAudioEntryName(name)) continue;
         const ak = path.basename(name, ".mp3");
-        if (!/^[0-9a-f]{64}$/.test(ak)) continue;
+        if (!/^[0-9a-f]{64}$/i.test(ak)) continue;
 
         const dest = path.join(AUDIO_CACHE_DIR, `${ak}.mp3`);
         if (fs.existsSync(dest)) { skippedAudio++; continue; }
 
+        const tmpDest = `${dest}.${process.pid}.tmp`;
         try {
           const data = entry.getData();
           if (!data || data.length === 0) { skippedAudio++; continue; }
-          fs.writeFileSync(dest + ".tmp", data);
-          fs.renameSync(dest + ".tmp", dest);
+          fs.writeFileSync(tmpDest, data);
+          fs.renameSync(tmpDest, dest);
 
           const meta = audioAssetsMeta.get(ak);
           const ttsProf = meta ? {
@@ -7411,22 +7415,16 @@ app.post(
           });
           importedAudio++;
         } catch (e) {
+          try { if (fs.existsSync(tmpDest)) fs.unlinkSync(tmpDest); } catch (_) {}
           console.warn(`[import/bundle] audio extract failed ${ak}:`, e && e.message);
           skippedAudio++;
         }
       }
 
-      // Pre-import backup
-      if (texts.length > 10) {
-        try {
-          const br = createBackup(DB_PATH, { label: "pre-import-bundle" });
-          if (br.ok) { console.log("[import/bundle] backup:", br.backupPath); cleanupBackups(DEFAULT_MAX_BACKUPS); }
-        } catch (_) {}
-      }
-
-      let importedCount = 0, skippedCount = 0, errorCount = 0, linkedAudio = 0;
+      let importedCount = 0, skippedCount = 0, errorCount = 0, linkedAudio = 0, importedNotes = 0, skippedNotes = 0;
       const errors = [];
       const pendingLinks = []; // { newTextId, orderIndex, audioAssetKey }
+      const pendingNotes = []; // { newTextId, orderIndex, note }
 
       for (const item of texts) {
         try {
@@ -7472,6 +7470,7 @@ app.post(
             meta_json: null,
             order_index: Number.isInteger(r.order_index) ? r.order_index : idx,
             _audio_asset_key: (r.audio_asset_key && /^[0-9a-f]{64}$/.test(r.audio_asset_key)) ? r.audio_asset_key : null,
+            _note: String(r.note || "").trim(),
           }));
 
           const newTextId = uuidv4();
@@ -7479,7 +7478,7 @@ app.post(
             id: newTextId, textKey, title, level, tagsJson, sourceText,
             sourceMetaJson, ttsProfileJson: null, tableModelMetaJson,
             source, topic, isPinned: 0, pinOrder: null,
-            rows: rows.map(({ _audio_asset_key, ...r }) => r),
+            rows: rows.map(({ _audio_asset_key, _note, ...r }) => r),
           });
           importedCount++;
 
@@ -7487,6 +7486,7 @@ app.post(
 
           for (const r of rows) {
             if (r._audio_asset_key) pendingLinks.push({ newTextId, orderIndex: r.order_index, audioAssetKey: r._audio_asset_key, isText: false });
+            if (r._note) pendingNotes.push({ newTextId, orderIndex: r.order_index, note: r._note });
           }
           const textAk = item.text_audio_asset_key;
           if (textAk && /^[0-9a-f]{64}$/.test(textAk)) pendingLinks.push({ newTextId, orderIndex: null, audioAssetKey: textAk, isText: true });
@@ -7499,6 +7499,20 @@ app.post(
             errorCount++;
             errors.push({ error: msg });
           }
+        }
+      }
+
+      // Restore sentence notes after imported sentences receive new local IDs.
+      for (const note of pendingNotes) {
+        try {
+          const sents = await getSentencesByTextId(note.newTextId);
+          const sent = sents.find((s) => s.order_index === note.orderIndex);
+          if (!sent) { skippedNotes++; continue; }
+          await upsertNote({ textId: note.newTextId, sentenceId: sent.id, note: note.note });
+          importedNotes++;
+        } catch (e) {
+          skippedNotes++;
+          console.warn("[import/bundle] note restore failed:", e && e.message);
         }
       }
 
@@ -7519,7 +7533,7 @@ app.post(
         }
       }
 
-      res.json({ ok: true, mode, importedCount, skippedCount, errorCount, importedAudio, skippedAudio, linkedAudio, errors: errors.slice(0, 50) });
+      res.json({ ok: true, mode, importedCount, skippedCount, errorCount, importedAudio, skippedAudio, linkedAudio, importedNotes, skippedNotes, errors: errors.slice(0, 50) });
     } catch (e) {
       console.error("POST /api/library/import/bundle error:", e);
       res.status(500).json({ error: "INTERNAL_ERROR" });
