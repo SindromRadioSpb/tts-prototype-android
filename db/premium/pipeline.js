@@ -28,6 +28,7 @@ const {
 const { segment } = require("./segmenter");
 const { transliterateWithProfile } = require("./translit");
 const niqqudGateway = require("./niqqudGateway");
+const pythonClient = require("./pythonClient");
 const gcpProvider        = require("./providers/gcp");
 const googleFreeProvider = require("./providers/googleFree");
 const quota = require("./quota");
