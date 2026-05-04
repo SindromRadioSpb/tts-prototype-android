@@ -9,12 +9,15 @@ test("classic mode separates utility navigation from workflow actions", () => {
   assert.match(html, /class="classic-utility-bar"[\s\S]*id="btnLibrary"/);
   assert.match(html, /class="classic-utility-bar"[\s\S]*id="btnDashboard"/);
   assert.match(html, /class="classic-utility-bar"[\s\S]*id="btnSrsTrainer"/);
-  assert.match(html, /class="classic-utility-bar"[\s\S]*id="v3ModeToggle"/);
+  assert.match(html, /class="classic-header-top"[\s\S]*id="v3ModeToggle"/);
 
   const utilityPos = html.indexOf('class="classic-utility-bar"');
+  const togglePos = html.indexOf('id="v3ModeToggle"');
   const primaryPos = html.indexOf('class="classic-primary-bar"');
   assert.notEqual(utilityPos, -1);
+  assert.notEqual(togglePos, -1);
   assert.notEqual(primaryPos, -1);
+  assert.ok(togglePos < utilityPos, "mode toggle must render beside Classic Mode, before utility navigation");
   assert.ok(utilityPos < primaryPos, "utility navigation must render before workflow actions");
 });
 

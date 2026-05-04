@@ -5935,6 +5935,7 @@ td[data-col="ru"] {
                 <div class="classic-shell-copy">
                     <div class="classic-header-top">
                         <div class="classic-eyebrow" data-i18n="classic.eyebrow">Classic Mode</div>
+                        <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса" data-i18n="classic.ideMode">🖥️ IDE режим</button>
                     </div>
                     <h2 class="classic-screen-title" data-i18n="classic.title">Текст для озвучки и перевода</h2>
                     <p class="classic-screen-subtitle" data-i18n="classic.subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
@@ -5944,7 +5945,6 @@ td[data-col="ru"] {
                         <button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()" data-i18n="classic.library">📚 Библиотека</button>
                         <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()" data-i18n="classic.dashboard">📈 Дашборд</button>
                         <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
-                        <button id="v3ModeToggle" class="v3-mode-toggle" onclick="v3IdeModeToggle()" title="Переключить режим интерфейса" data-i18n="classic.ideMode">🖥️ IDE режим</button>
                     </div>
                     <div class="lang-select-wrap classic-lang-wrap" title="">
                       <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
