@@ -9092,21 +9092,57 @@ async function v3IdeExportDocx() {
   try {
     if (typeof showToast === "function") showToast(t("toast.generatingDocx"));
 
-    // Trigger download via API
-    const url = `/api/library/texts/${encodeURIComponent(textId)}/export/docx`;
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "";
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    if (LOCAL_MODE) {
+      // OPFS-saved text isn't visible to the server. Build the payload here
+      // and POST it to the stateless /api/export/docx endpoint.
+      const blob = await v3DownloadDocxLocal(textId);
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = "";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } else {
+      // Trigger download via API
+      const url = `/api/library/texts/${encodeURIComponent(textId)}/export/docx`;
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
 
     if (typeof showToast === "function") showToast(t("toast.docxDownloaded"));
   } catch (err) {
     console.error("DOCX export failed:", err);
     if (typeof showToast === "function") showToast(t("toast.docxFailed"));
   }
+}
+
+// Stateless DOCX builder for LOCAL_MODE: read text/sentences/notes from OPFS
+// and POST as JSON; the server returns the rendered .docx blob.
+async function v3DownloadDocxLocal(textId) {
+  const ldb = await ensureLocalDB();
+  const text = await ldb.getTextById(textId);
+  if (!text) throw new Error("Text not found in local DB");
+  const sentences = await ldb.getSentences(textId);
+  const notes = await ldb.listNotes(textId);
+  const r = await fetch("/api/export/docx", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, sentences, notes }),
+  });
+  if (!r.ok) {
+    let msg = "HTTP " + r.status;
+    try { const j = await r.json(); if (j && j.details) msg += ": " + j.details; } catch (_) {}
+    throw new Error("DOCX export failed: " + msg);
+  }
+  return await r.blob();
 }
 
 // ============================================
@@ -22713,9 +22749,29 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
                 return;
             }
 
-            const url = "/api/library/texts/" + encodeURIComponent(String(exportId)) + "/export/docx";
-
-            const res = await fetch(url, { method: "GET" });
+            // LOCAL_MODE: server has no copy of OPFS-saved text → use stateless POST.
+            let res;
+            if (LOCAL_MODE) {
+              try {
+                const ldb = await ensureLocalDB();
+                const text = await ldb.getTextById(String(exportId));
+                if (!text) { showToast("Текст не найден"); return; }
+                const sentences = await ldb.getSentences(String(exportId));
+                const notes = await ldb.listNotes(String(exportId));
+                res = await fetch("/api/export/docx", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ text, sentences, notes }),
+                });
+              } catch (e) {
+                console.error("DOCX export (local) failed:", e);
+                showToast("Ошибка генерации DOCX: " + (e && e.message ? e.message : "см. console"));
+                return;
+              }
+            } else {
+              const url = "/api/library/texts/" + encodeURIComponent(String(exportId)) + "/export/docx";
+              res = await fetch(url, { method: "GET" });
+            }
 
             if (!res.ok) {
                 // try parse JSON error

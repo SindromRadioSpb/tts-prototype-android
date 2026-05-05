@@ -5596,6 +5596,161 @@ tableRows.push(
   }
 });
 
+// POST /api/export/docx — stateless DOCX builder
+// Body: { text: { title, level, topic, source, tags_json, table_model_meta_json },
+//         sentences: [{ he_plain, he_niqqud, translit, ru, audio_asset_key }],
+//         notes: [{ sentence_id, note }]  // optional, merged by sentence_id
+//       }
+// LOCAL_MODE clients call this with a payload built from OPFS, since the
+// GET /api/library/texts/:id/export/docx variant requires server DB lookups.
+app.post("/api/export/docx", async (req, res) => {
+  try {
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const t = (body.text && typeof body.text === "object") ? body.text : {};
+    const sentences = Array.isArray(body.sentences) ? body.sentences : [];
+    const notesArr  = Array.isArray(body.notes) ? body.notes : [];
+    const notesBySid = {};
+    for (const n of notesArr) {
+      if (n && n.sentence_id) notesBySid[String(n.sentence_id)] = String(n.note || "");
+    }
+
+    const baseUrl = getBaseUrl(req);
+    const exportedAtIso = new Date().toISOString();
+
+    let tagsStr = "";
+    if (t.tags_json) {
+      const parsed = safeJsonParse(String(t.tags_json), null);
+      if (Array.isArray(parsed)) tagsStr = parsed.filter(Boolean).join(", ");
+      else tagsStr = String(t.tags_json || "");
+    }
+
+    const title = String(t.title || "");
+    const level = String(t.level || "");
+    const topic = String(t.topic || "");
+    const source = String(t.source || "");
+
+    let meta = null;
+    try {
+      meta = t.table_model_meta_json ? JSON.parse(String(t.table_model_meta_json)) : null;
+    } catch (_) { meta = null; }
+    const metaProvider = meta && meta.provider ? String(meta.provider) : "";
+    const metaModel    = meta && meta.model    ? String(meta.model)    : "";
+    const metaGenAt    = meta && meta.generatedAt ? String(meta.generatedAt) : "";
+    const providerLabelMap = {
+      gcp: "GCP Cloud Translation v3",
+      madlad: "MADLAD-400 (local)",
+      gemini: "Google Gemini",
+    };
+    const providerHuman = metaProvider
+      ? (providerLabelMap[metaProvider] || metaProvider)
+      : "—";
+    const providerLine = metaProvider
+      ? `Provider: ${providerHuman}${metaModel ? ` · ${metaModel}` : ""}${metaGenAt ? ` · generated ${metaGenAt}` : ""}`
+      : "Provider: неизвестен (старый перевод без метаданных)";
+
+    function cell(text, align = AlignmentType.LEFT, bold = false) {
+      return new TableCell({
+        children: [
+          new Paragraph({
+            alignment: align,
+            children: [new TextRun({ text: String(text ?? ""), bold })],
+          }),
+        ],
+      });
+    }
+    function linkCell(url) {
+      const u = String(url || "");
+      if (!u) return cell("", AlignmentType.LEFT, false);
+      if (typeof ExternalHyperlink === "function") {
+        return new TableCell({
+          children: [
+            new Paragraph({
+              children: [
+                new ExternalHyperlink({
+                  link: u,
+                  children: [new TextRun({ text: u, style: "Hyperlink" })],
+                }),
+              ],
+            }),
+          ],
+        });
+      }
+      return cell(u, AlignmentType.LEFT, false);
+    }
+
+    const header = new TableRow({
+      children: [
+        cell("#", AlignmentType.CENTER, true),
+        cell("Hebrew", AlignmentType.CENTER, true),
+        cell("Hebrew (niqqud)", AlignmentType.CENTER, true),
+        cell("Translit", AlignmentType.CENTER, true),
+        cell("Russian", AlignmentType.CENTER, true),
+        cell("Notes", AlignmentType.CENTER, true),
+        cell("Audio URL", AlignmentType.CENTER, true),
+      ],
+    });
+    const tableRows = [header];
+
+    for (let i = 0; i < sentences.length; i++) {
+      const r = sentences[i] || {};
+      const idx = i + 1;
+      const sid = r.id || r.sentence_id || "";
+      const noteText = sid && notesBySid[String(sid)] ? notesBySid[String(sid)] : String(r.note || "");
+      const assetKey = String(r.audio_asset_key || r.audioAssetKey || "");
+      const audioUrl = assetKey
+        ? ((baseUrl ? `${baseUrl}` : "") + `/api/audio/${encodeURIComponent(assetKey)}`)
+        : "";
+
+      tableRows.push(
+        new TableRow({
+          children: [
+            cell(String(idx), AlignmentType.CENTER, false),
+            cell(String(r.he_plain || "")),
+            cell(String(r.he_niqqud || "")),
+            cell(String(r.translit || "")),
+            cell(String(r.ru || "")),
+            cell(noteText),
+            linkCell(audioUrl),
+          ],
+        })
+      );
+    }
+
+    const doc = new Document({
+      sections: [
+        {
+          children: [
+            new Paragraph({ children: [new TextRun({ text: `Title: ${title || "Untitled"}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `ExportedAt: ${exportedAtIso}` })] }),
+            new Paragraph({ children: [new TextRun({ text: providerLine, bold: true })] }),
+            new Paragraph({ children: [new TextRun({ text: `Level: ${level}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Topic: ${topic}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Source: ${source}` })] }),
+            new Paragraph({ children: [new TextRun({ text: `Tags: ${tagsStr}` })] }),
+            new Paragraph({ text: "" }),
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: tableRows,
+            }),
+          ],
+        },
+      ],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    const yyyyMmDd = exportedAtIso.slice(0, 10);
+    const baseName = makeSafeFilenameBase(title, "text");
+    const filename = `${baseName}_${yyyyMmDd}.docx`;
+
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    setAttachment(res, filename);
+    return res.status(200).send(buffer);
+  } catch (e) {
+    console.error("POST /api/export/docx error:", e);
+    return res.status(500).json({ error: "INTERNAL_ERROR", details: e && e.message ? e.message : String(e) });
+  }
+});
+
 // --------------------------------------------------------
 // Export Anki CSV (W10-EXPORT-ANKI-01)
 // --------------------------------------------------------
