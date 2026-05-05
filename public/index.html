@@ -8628,6 +8628,51 @@ function v3SrsAnkiFormatThrownError(e) {
   return String(e || "UNKNOWN_ERROR");
 }
 
+// Tolerant text comparison helpers for SRS LOCAL_MODE grading.
+// Normalises diacritics + punctuation + leading articles so trivial differences
+// don't fail a learner who got the meaning right.
+function v3FuzzyNormalize(str) {
+  let s = String(str || "");
+  if (!s) return "";
+  try { s = s.normalize("NFC"); } catch (_) {}
+  s = s.toLowerCase();
+  // Strip Hebrew niqqud + combining marks (U+05B0..U+05C7 + U+0300..U+036F).
+  s = s.replace(/[֑-ׇ̀-ͯ]/g, "");
+  // Drop punctuation (broad set incl. Hebrew maqaf, Russian quotes, em-dash).
+  s = s.replace(/[\.,!\?\:;\"'`«»“”‚‹›\(\)\[\]\{\}\-—–־_/\\]/g, " ");
+  // Collapse whitespace.
+  s = s.replace(/\s+/g, " ").trim();
+  // Strip leading articles (English, Hebrew prefix ה־).
+  s = s.replace(/^(?:a |an |the )/i, "");
+  s = s.replace(/^ה(?=\S)/, "");
+  return s;
+}
+
+// Levenshtein bounded check: returns true if edit-distance(a, b) <= budget.
+// Bails out early if budget exceeded — O(min(|a|, budget) * |b|) worst case.
+function v3LevenshteinAtMost(a, b, budget) {
+  if (Math.abs(a.length - b.length) > budget) return false;
+  if (a === b) return true;
+  if (!a) return b.length <= budget;
+  if (!b) return a.length <= budget;
+  const m = a.length, n = b.length;
+  let prev = new Array(n + 1);
+  for (let j = 0; j <= n; j++) prev[j] = j;
+  for (let i = 1; i <= m; i++) {
+    const curr = new Array(n + 1);
+    curr[0] = i;
+    let rowMin = curr[0];
+    for (let j = 1; j <= n; j++) {
+      const cost = a.charCodeAt(i - 1) === b.charCodeAt(j - 1) ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+      if (curr[j] < rowMin) rowMin = curr[j];
+    }
+    if (rowMin > budget) return false;
+    prev = curr;
+  }
+  return prev[n] <= budget;
+}
+
 // Talks to AnkiConnect directly from the browser. Used when LOCAL_MODE is on
 // (Railway-hosted server cannot reach the user's local 127.0.0.1:8765, only
 // the user's own browser can). Returns the parsed `result` field of the
@@ -8649,11 +8694,83 @@ async function v3AnkiConnectDirect(action, params) {
   return j && j.result;
 }
 
+// Idempotent ensure of the LinguistPro custom model. If absent, creates it
+// via AnkiConnect's createModel action with explicit field names + a single
+// front/back card template that surfaces all the language-learning context.
+const V3_ANKI_MODEL_NAME = 'LinguistPro SRS Card v1';
+const V3_ANKI_MODEL_FIELDS = ['Hebrew', 'Niqqud', 'Translit', 'Russian', 'Note', 'Audio'];
+async function v3AnkiEnsureLinguistProModel() {
+  let allModels = [];
+  try { allModels = await v3AnkiConnectDirect('modelNames'); } catch (_) {}
+  if (Array.isArray(allModels) && allModels.indexOf(V3_ANKI_MODEL_NAME) !== -1) {
+    return V3_ANKI_MODEL_NAME;
+  }
+  const css =
+    '.card { font-family: \"Helvetica\", Arial, sans-serif; font-size: 22px; color: #1f2937; background-color: #f9fafb; text-align: center; padding: 16px; }\n' +
+    '.he { font-size: 28px; direction: rtl; font-family: \"Times New Roman\", \"David\", serif; }\n' +
+    '.niqqud { font-size: 26px; direction: rtl; color: #374151; }\n' +
+    '.translit { font-style: italic; color: #6b7280; margin-top: 8px; }\n' +
+    '.russian { font-size: 24px; color: #111827; margin-top: 12px; }\n' +
+    '.note { background: #fef3c7; border-left: 3px solid #f59e0b; padding: 8px 12px; text-align: left; margin-top: 16px; font-size: 16px; }\n' +
+    'hr { border: none; border-top: 1px solid #d1d5db; margin: 14px 0; }';
+  const front =
+    '<div class=\"he\">{{Hebrew}}</div>\n' +
+    '{{#Niqqud}}<div class=\"niqqud\">{{Niqqud}}</div>{{/Niqqud}}\n' +
+    '{{#Audio}}<div>{{Audio}}</div>{{/Audio}}';
+  const back =
+    '{{FrontSide}}\n<hr>\n' +
+    '{{#Translit}}<div class=\"translit\">{{Translit}}</div>{{/Translit}}\n' +
+    '<div class=\"russian\">{{Russian}}</div>\n' +
+    '{{#Note}}<div class=\"note\"><b>Note:</b> {{Note}}</div>{{/Note}}';
+  await v3AnkiConnectDirect('createModel', {
+    modelName: V3_ANKI_MODEL_NAME,
+    inOrderFields: V3_ANKI_MODEL_FIELDS,
+    css,
+    isCloze: false,
+    cardTemplates: [{
+      Name: 'Card 1',
+      Front: front,
+      Back: back,
+    }],
+  });
+  return V3_ANKI_MODEL_NAME;
+}
+
+// Pull a row's MP3 from /api/audio/:assetKey, store it in Anki's media folder
+// under audio_<assetKey>.mp3 via storeMediaFile. Returns the filename to
+// reference via [sound:...] in the Audio field, or "" if unavailable.
+async function v3AnkiAttachAudio(assetKey) {
+  const ak = String(assetKey || "").trim();
+  if (!ak) return "";
+  const filename = 'lp_' + ak + '.mp3';
+  try {
+    // storeMediaFile accepts `url` and grabs the file server-side. Anki
+    // will download from /api/audio/<key> via the user's local network
+    // (this works because Anki Desktop runs locally and Railway is HTTPS-
+    // reachable from there).
+    const audioUrl = location.origin + '/api/audio/' + encodeURIComponent(ak);
+    await v3AnkiConnectDirect('storeMediaFile', {
+      filename,
+      url: audioUrl,
+      deleteExisting: false,
+    });
+    return filename;
+  } catch (e) {
+    console.debug('[anki] storeMediaFile failed for', ak, ':', e && e.message);
+    return "";
+  }
+}
+
 // Browser-side Anki push for LOCAL_MODE.
-// Reads text/sentences/notes from OPFS, picks a sensible "Basic"-like model
-// from the user's actual Anki (handles localized field names like
-// "Лицевая сторона"/"Тыльная сторона" in Russian Anki), creates the deck
-// (idempotent), and sends a batched `addNotes` call.
+// Strategy:
+//   1. Ensure custom LinguistPro SRS Card v1 model exists (createModel
+//      idempotent — only creates if not present in user's Anki).
+//   2. Build notes with explicit fields per the model.
+//   3. For sentences with audio, attach via storeMediaFile + [sound:...]
+//      in the Audio field.
+//   4. canAddNotes preflight; for duplicates → findNotes + notesInfo +
+//      changeDeck flow (preserves user's review history).
+// Falls back to "Basic"-like model if createModel fails (e.g. permissions).
 async function v3AnkiPushLocalMode(textId, opts) {
   const ldb = await ensureLocalDB();
   const text = await ldb.getTextById(textId);
@@ -8668,22 +8785,37 @@ async function v3AnkiPushLocalMode(textId, opts) {
   const finalDeck = deckName || 'LinguistPro::SRS';
   await v3AnkiConnectDirect('createDeck', { deck: finalDeck });
 
-  // Resolve a real model + its actual field names. Anki's "Basic" model in
-  // localized installations uses translated field names (e.g. "Лицевая
-  // сторона"/"Тыльная сторона" in Russian), so hardcoded "Front"/"Back" leaves
-  // every field empty → "cannot create note because it is empty".
-  const allModels = await v3AnkiConnectDirect('modelNames');
-  if (!allModels || !allModels.length) {
-    throw new Error('В Anki нет моделей. Откройте Anki хотя бы один раз для инициализации.');
+  // Pick model. Try the custom LinguistPro one first; on any error fall back
+  // to a Basic-like model (and to its localized field names).
+  let modelName = '';
+  let fieldNames = null;
+  let useCustomModel = false;
+  try {
+    modelName = await v3AnkiEnsureLinguistProModel();
+    fieldNames = await v3AnkiConnectDirect('modelFieldNames', { modelName });
+    if (Array.isArray(fieldNames) && fieldNames.length >= 2 && fieldNames[0] === 'Hebrew') {
+      useCustomModel = true;
+    } else {
+      modelName = '';
+    }
+  } catch (e) {
+    console.warn('[anki] custom model init failed, falling back to Basic:', e && e.message);
+    modelName = '';
   }
-  const lowerModels = allModels.map((m) => String(m).toLowerCase());
-  let modelName = allModels.find((_, i) => lowerModels[i] === 'basic')
-    || allModels.find((_, i) => lowerModels[i].startsWith('basic'))
-    || allModels.find((_, i) => /базов/i.test(allModels[i]))
-    || allModels[0];
-  const fieldNames = await v3AnkiConnectDirect('modelFieldNames', { modelName });
-  if (!Array.isArray(fieldNames) || !fieldNames.length) {
-    throw new Error('Не удалось получить поля модели "' + modelName + '"');
+  if (!modelName) {
+    const allModels = await v3AnkiConnectDirect('modelNames');
+    if (!allModels || !allModels.length) {
+      throw new Error('В Anki нет моделей. Откройте Anki хотя бы один раз для инициализации.');
+    }
+    const lowerModels = allModels.map((m) => String(m).toLowerCase());
+    modelName = allModels.find((_, i) => lowerModels[i] === 'basic')
+      || allModels.find((_, i) => lowerModels[i].startsWith('basic'))
+      || allModels.find((_, i) => /базов/i.test(allModels[i]))
+      || allModels[0];
+    fieldNames = await v3AnkiConnectDirect('modelFieldNames', { modelName });
+    if (!Array.isArray(fieldNames) || !fieldNames.length) {
+      throw new Error('Не удалось получить поля модели "' + modelName + '"');
+    }
   }
   const frontField = fieldNames[0];
   const backField  = fieldNames[1] || fieldNames[0];
@@ -8714,20 +8846,44 @@ async function v3AnkiPushLocalMode(textId, opts) {
     throw new Error('Все строки текста пустые — нечего экспортировать.');
   }
 
+  // Pre-attach audio (sequentially to keep AnkiConnect happy). Sentences
+  // without audio_asset_key still export — just without sound.
+  const audioFilenameBySid = {};
+  for (const s of validSentences) {
+    const ak = String(s.audio_asset_key || '').trim();
+    if (!ak) continue;
+    const fname = await v3AnkiAttachAudio(ak);
+    if (fname) audioFilenameBySid[s.id] = fname;
+  }
+
   const ankiNotes = validSentences.map((s) => {
     const heFront = frontMode === 'niqqud'
       ? (s.he_niqqud || s.he_plain || '')
       : (s.he_plain || '');
-    let back = escapeHtml(s.ru || '');
-    if (s.translit) back += `<br><i>${escapeHtml(s.translit)}</i>`;
-    if (s.translit_ru) back += `<br><span style="color:#64748b;">${escapeHtml(s.translit_ru)}</span>`;
-    if (includeHint && noteBySid[s.id]) {
-      back += `<hr><b>Note:</b> ${escapeHtml(noteBySid[s.id])}`;
-    }
+    const audioFile = audioFilenameBySid[s.id] || '';
+    const audioRef = audioFile ? '[sound:' + audioFile + ']' : '';
+
     const fields = {};
-    // Front gets Hebrew (or RU as fallback for rows that have only RU).
-    fields[frontField] = escapeHtml(heFront) || escapeHtml(s.ru || '') || '&nbsp;';
-    fields[backField]  = back || '&nbsp;';
+    if (useCustomModel) {
+      // LinguistPro SRS Card v1 — explicit fields with full context.
+      fields.Hebrew    = escapeHtml(s.he_plain || '');
+      fields.Niqqud    = escapeHtml(s.he_niqqud || '');
+      fields.Translit  = escapeHtml(s.translit || s.translit_ru || '');
+      fields.Russian   = escapeHtml(s.ru || '');
+      fields.Note      = (includeHint && noteBySid[s.id]) ? escapeHtml(noteBySid[s.id]) : '';
+      fields.Audio     = audioRef;
+    } else {
+      // Basic-model fallback: pack the same content into Front/Back HTML.
+      let back = escapeHtml(s.ru || '');
+      if (s.translit) back += '<br><i>' + escapeHtml(s.translit) + '</i>';
+      if (s.translit_ru) back += '<br><span style="color:#64748b;">' + escapeHtml(s.translit_ru) + '</span>';
+      if (includeHint && noteBySid[s.id]) {
+        back += '<hr><b>Note:</b> ' + escapeHtml(noteBySid[s.id]);
+      }
+      if (audioRef) back += '<br>' + audioRef;
+      fields[frontField] = (escapeHtml(heFront) + (audioRef ? '<br>' + audioRef : '')) || escapeHtml(s.ru || '') || '&nbsp;';
+      fields[backField]  = back || '&nbsp;';
+    }
     return {
       deckName: finalDeck,
       modelName,
@@ -8871,7 +9027,7 @@ async function v3AnkiPushLocalMode(textId, opts) {
   return {
     created,
     updated: 0,
-    audioQueued: 0,
+    audioQueued: Object.keys(audioFilenameBySid).length,
     duplicates: preDuplicates + runtimeDuplicates,
     skipped: skippedEmpty.length,
     failedOther,
@@ -18541,12 +18697,29 @@ async function v3SrsTrainerCheckAnswer() {
     const latencyMs = Math.max(0, Date.now() - startedAt);
     let res;
     if (LOCAL_MODE) {
-      // Local mode: simple correctness heuristic — exact match against expected answer.
+      // Local-mode answer grading: tolerant comparison.
+      // Normalisation strategy (applied to both expected and got):
+      //   1. lowercase
+      //   2. NFC-normalise + strip Hebrew niqqud (U+0591..U+05C7) and
+      //      combining marks
+      //   3. drop punctuation (Latin, Cyrillic, Hebrew quotes/maqaf)
+      //   4. collapse internal whitespace
+      //   5. drop leading articles: "a/the" (en), "ה־"/"ה" (he)
+      // If exact-after-normalise → correct. Otherwise allow a tiny edit
+      // distance budget for typos (Levenshtein <= max(1, floor(len/8))).
       const s = v3SrsTrainerState.current && v3SrsTrainerState.current.sentence;
-      const expected = String((s && (s.ru || s.hePlain)) || "").trim().toLowerCase();
-      const got = String(answer || "").trim().toLowerCase();
-      const correct = !!expected && got === expected;
-      res = { ok: true, correct, expected, latencyMs };
+      const expectedRaw = String((s && (s.ru || s.hePlain)) || "");
+      const norm = v3FuzzyNormalize(expectedRaw);
+      const got  = v3FuzzyNormalize(String(answer || ""));
+      let correct = false;
+      if (norm) {
+        if (got === norm) correct = true;
+        else {
+          const budget = Math.max(1, Math.floor(norm.length / 8));
+          correct = v3LevenshteinAtMost(got, norm, budget);
+        }
+      }
+      res = { ok: true, correct, expected: norm, latencyMs };
     } else {
       res = await v3PostJson("/api/srs/attempts/check", {
         cardId: String(v3SrsTrainerState.current.card.id || ""),
@@ -23971,13 +24144,13 @@ async function v3AnkiPushNow() {
         const s = await v3AnkiPushLocalMode(exportId, payload);
         const parts = [];
         parts.push(`создано ${s.created}`);
+        if (s.audioQueued) parts.push(`с аудио ${s.audioQueued}`);
         if (s.movedToDeck) parts.push(`перенесено в этот deck ${s.movedToDeck} card(s)`);
         if (s.duplicates) parts.push(`дубликатов Note ${s.duplicates}`);
         if (s.dupNotFound) parts.push(`не найдено в Anki ${s.dupNotFound}`);
         if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
         if (s.failedOther) parts.push(`прочих ошибок ${s.failedOther}`);
-        const msg = `Готово (deck "${s.deckName}", модель "${s.modelName}"): ${parts.join(", ")}.` +
-          ` Аудио экспорт пока не реализован в локальном режиме.`;
+        const msg = `Готово (deck "${s.deckName}", модель "${s.modelName}"): ${parts.join(", ")}.`;
         v3AnkiSetStatus(msg, false);
         if (typeof showToast === "function") showToast("Экспорт в Anki выполнен", "success");
       } catch (e) {
