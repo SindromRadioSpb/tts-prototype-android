@@ -13894,14 +13894,19 @@ async function v3PostProgress(textId, rowIdx, seq, opts) {
   v3ProgressInflight[textId] = { controller, seq };
 
   try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal,
-      // keepalive useful for pagehide; we do NOT rely on it for normal flow
-      keepalive: keepalive
-    });
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      await ldb.setProgress(textId, { last_row_idx: payload.lastRowIdx, last_step_id: payload.lastStepId });
+    } else {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+        // keepalive useful for pagehide; we do NOT rely on it for normal flow
+        keepalive: keepalive
+      });
+    }
   } catch (e) {
     // Abort is normal in this strategy
     if (e && (e.name === "AbortError" || String(e).includes("AbortError"))) return;
@@ -13939,6 +13944,9 @@ function v3SendLatestNow(textId, opts) {
 }
 
 function v3SendProgressBeacon(textId, rowIdx, seq) {
+  // In LOCAL_MODE the server has no progress storage; sendBeacon path is bypassed
+  // and the keepalive fetch fallback writes directly to OPFS via v3PostProgress.
+  if (LOCAL_MODE) return false;
   try {
     if (!navigator || typeof navigator.sendBeacon !== "function") return false;
     const url = "/api/progress/" + encodeURIComponent(String(textId));
@@ -14638,8 +14646,14 @@ async function v3NotesSearchNow(scope, opts) {
   }
 
   try {
-    const res = await v3GetJson(`/api/notes/search?${p.toString()}`);
-    const results = (res && res.ok && Array.isArray(res.results)) ? res.results : [];
+    let results;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      results = await ldb.searchNotes(qRaw, 50);
+    } else {
+      const res = await v3GetJson(`/api/notes/search?${p.toString()}`);
+      results = (res && res.ok && Array.isArray(res.results)) ? res.results : [];
+    }
 	try { v3SearchSessionUpdateResults("notes", scope, qRaw, results, { notesOnly: notesOnly }); } catch (_) {}
     v3NotesRender(scope, qRaw, results, notesOnly);
   } catch (e) {
@@ -14901,9 +14915,15 @@ async function v3RowsSearchNow(scope, opts) {
     p.set("limit", String(limit));
     p.set("offset", String(offset));
 
-    const url = "/api/sentences/search?" + p.toString();
-    const res = await v3GetJson(url);
-    const results = (res && Array.isArray(res.results)) ? res.results : [];
+    let results;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      results = await ldb.searchSentences(qRaw, limit);
+    } else {
+      const url = "/api/sentences/search?" + p.toString();
+      const res = await v3GetJson(url);
+      results = (res && Array.isArray(res.results)) ? res.results : [];
+    }
 	try { v3SearchSessionUpdateResults("rows", scope, qRaw, results, { rowsOnly: !!st.rowsOnly }); } catch (_) {}
     v3RowsRender(scope, qRaw, results, !!st.rowsOnly);
   } catch (e) {
@@ -15736,8 +15756,14 @@ async function v3LibraryRefresh() {
   if (listEl) listEl.innerHTML = "";
 
   try {
-    const data = await v3GetJson("/api/library/texts?limit=200");
-    const raw = (data && data.texts) ? data.texts : [];
+    let raw;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      raw = await ldb.listTexts({ limit: 200 });
+    } else {
+      const data = await v3GetJson("/api/library/texts?limit=200");
+      raw = (data && data.texts) ? data.texts : [];
+    }
     v3LibraryTexts = raw.map(v3NormalizeTextDto);
 	v3LibraryLastLoadedAt = new Date().toISOString();
 
@@ -16453,20 +16479,29 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
   try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 
   try {
-  // meta + sentences (blocking)
-// notes preload is non-blocking (W10-NOTES-PREMIUM-03)
-const notesPromise = v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/notes")
-  .catch((e) => {
-    console.warn("notes preload failed (non-critical)", e);
-    return { ok: false, notes: [] };
-  });
-
-const [meta, sents] = await Promise.all([
-  v3GetJson("/api/library/texts/" + encodeURIComponent(textId)),
-  v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences")
-]);
-
-    const text = meta && meta.text ? meta.text : null;
+  // meta + sentences (blocking) — local-db when LOCAL_MODE, else API
+  let notesPromise, text, sentences;
+  if (LOCAL_MODE) {
+    const ldb = await ensureLocalDB();
+    notesPromise = ldb.listNotes(textId).then(notes => ({ ok: true, notes })).catch(e => {
+      console.warn("notes preload failed (non-critical)", e);
+      return { ok: false, notes: [] };
+    });
+    text = await ldb.getTextById(textId);
+    sentences = await ldb.getSentences(textId);
+  } else {
+    notesPromise = v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/notes")
+      .catch((e) => {
+        console.warn("notes preload failed (non-critical)", e);
+        return { ok: false, notes: [] };
+      });
+    const [meta, sents] = await Promise.all([
+      v3GetJson("/api/library/texts/" + encodeURIComponent(textId)),
+      v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/sentences")
+    ]);
+    text = meta && meta.text ? meta.text : null;
+    sentences = (sents && Array.isArray(sents.sentences)) ? sents.sentences : [];
+  }
 
     // Persist "last opened saved text" for restore-on-reload.
     // Do this AFTER meta fetch so we can store the title.
@@ -16484,8 +16519,6 @@ const [meta, sents] = await Promise.all([
 
     } catch (_) {}
 
-
-    const sentences = sents && (sents.sentences || sents.rows || []) ? (sents.sentences || sents.rows || []) : [];
 
     // set active context for progress auto-save
     try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(textId); } catch (_) {}
@@ -16579,8 +16612,14 @@ if (resumeRowIdx !== null) {
 } else if (resume) {
   // resume logic: fetch progress then set selected row (fallback)
   try {
-    const p = await v3GetJson("/api/progress/" + encodeURIComponent(textId));
-    const prog = p && p.progress ? p.progress : null;
+    let prog;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      prog = await ldb.getProgress(textId);
+    } else {
+      const p = await v3GetJson("/api/progress/" + encodeURIComponent(textId));
+      prog = p && p.progress ? p.progress : null;
+    }
     const idx = prog && (prog.last_row_idx ?? prog.lastRowIdx);
     if (idx !== null && idx !== undefined && Number.isFinite(Number(idx))) {
       v3ApplyResumeSelection(renderToken, Number(idx));
@@ -16622,7 +16661,12 @@ async function v3LibraryDeleteText(textId) {
   if (!ok) return;
 
   try {
-    await v3Delete("/api/library/texts/" + encodeURIComponent(textId));
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      await ldb.deleteText(textId);
+    } else {
+      await v3Delete("/api/library/texts/" + encodeURIComponent(textId));
+    }
     showToast("Текст удалён", "success");
     v3LibraryRefresh();
   } catch (e) {
@@ -17308,6 +17352,12 @@ async function v3DashboardRefreshAnalytics() {
   const levelQ = level ? `&level=${encodeURIComponent(level)}` : "";
 
   try {
+    if (LOCAL_MODE) {
+      // Local analytics not yet implemented; show graceful empty state.
+      v3DashAnalytics = null;
+      if (metricsEl) metricsEl.textContent = t("dashboard.metricsNA");
+      return;
+    }
     const res = await v3GetJson(`/api/history/analytics?days=7&includeArchived=${includeArchived}${levelQ}`);
     v3DashAnalytics = (res && res.ok) ? res : null;
     v3DashboardRenderMetrics();
@@ -18187,40 +18237,58 @@ async function v3DashboardRefresh() {
   if (actHeaderEl) actHeaderEl.textContent = "Загрузка…";
 
   try {
-    // 1) Library texts — критично
-    const libRes = await v3GetJson(`/api/library/texts?limit=200&includeArchived=${includeArchived}`);
+    let libRes, recentRes, actRes;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      // 1) Library texts (include archived if requested)
+      const archivedOnly = includeArchived ? await ldb.listTexts({ limit: 200, archived: true }) : [];
+      const active = await ldb.listTexts({ limit: 200, archived: false });
+      libRes = { ok: true, texts: includeArchived ? [...active, ...archivedOnly] : active };
 
-    // 2) Recent texts — не критично (с fallback)
-    let recentRes = null;
-    try {
-      recentRes = await v3GetJson(`/api/history/recent-texts?limit=80&includeArchived=${includeArchived}`);
-    } catch (e) {
-      console.warn("[v3DashboardRefresh] recent-texts failed; trying fallback", e);
+      // 2) Recent: derive from texts ordered by last_opened_at
+      const recentSorted = [...(libRes.texts || [])]
+        .filter(t => t.last_opened_at)
+        .sort((a, b) => String(b.last_opened_at).localeCompare(String(a.last_opened_at)))
+        .slice(0, 80);
+      recentRes = { ok: true, texts: recentSorted };
+
+      // 3) Activity from events
+      const acts = await ldb.recentActivity(120);
+      actRes = { ok: true, rows: acts };
+    } else {
+      // 1) Library texts — критично
+      libRes = await v3GetJson(`/api/library/texts?limit=200&includeArchived=${includeArchived}`);
+
+      // 2) Recent texts — не критично (с fallback)
       try {
-        const p = new URLSearchParams();
-        p.set("days", "7");
-        p.set("includeArchived", String(includeArchived));
-        recentRes = await v3GetJson(`/api/dashboard/recent?${p.toString()}`);
-      } catch (e2) {
-        console.warn("[v3DashboardRefresh] recent fallback failed; continue with empty recent", e2);
-        recentRes = { ok: false, texts: [], items: [] };
+        recentRes = await v3GetJson(`/api/history/recent-texts?limit=80&includeArchived=${includeArchived}`);
+      } catch (e) {
+        console.warn("[v3DashboardRefresh] recent-texts failed; trying fallback", e);
+        try {
+          const p = new URLSearchParams();
+          p.set("days", "7");
+          p.set("includeArchived", String(includeArchived));
+          recentRes = await v3GetJson(`/api/dashboard/recent?${p.toString()}`);
+        } catch (e2) {
+          console.warn("[v3DashboardRefresh] recent fallback failed; continue with empty recent", e2);
+          recentRes = { ok: false, texts: [], items: [] };
+        }
       }
-    }
 
-    // 3) Activity — не критично (с fallback)
-    let actRes = null;
-    try {
-      actRes = await v3GetJson(`/api/history/recent-activity?limit=120&includeArchived=${includeArchived}`);
-    } catch (e) {
-      console.warn("[v3DashboardRefresh] recent-activity failed; trying fallback", e);
+      // 3) Activity — не критично (с fallback)
       try {
-        const p = new URLSearchParams();
-        p.set("limit", "120");
-        p.set("includeArchived", String(includeArchived));
-        actRes = await v3GetJson(`/api/history/activity?${p.toString()}`);
-      } catch (e2) {
-        console.warn("[v3DashboardRefresh] activity fallback failed; continue with empty activity", e2);
-        actRes = { ok: false, rows: [] };
+        actRes = await v3GetJson(`/api/history/recent-activity?limit=120&includeArchived=${includeArchived}`);
+      } catch (e) {
+        console.warn("[v3DashboardRefresh] recent-activity failed; trying fallback", e);
+        try {
+          const p = new URLSearchParams();
+          p.set("limit", "120");
+          p.set("includeArchived", String(includeArchived));
+          actRes = await v3GetJson(`/api/history/activity?${p.toString()}`);
+        } catch (e2) {
+          console.warn("[v3DashboardRefresh] activity fallback failed; continue with empty activity", e2);
+          actRes = { ok: false, rows: [] };
+        }
       }
     }
 
@@ -18537,11 +18605,28 @@ async function v3DashboardSelectText(textId) {
 
   try {
     const limit = 30;
-    const url = `/api/history/texts/${encodeURIComponent(v3DashActiveTextId)}/recent-rows?limit=${limit}`;
-    const res = await fetch(url);
-    const j = await res.json().catch(() => null);
-
-    const rows = (res.ok && j && j.ok && Array.isArray(j.rows)) ? j.rows : [];
+    let rows;
+    if (LOCAL_MODE) {
+      // Derive recent rows from events for this text
+      const ldb = await ensureLocalDB();
+      const acts = await ldb.recentActivity(500);
+      const seenSentences = new Set();
+      const filtered = [];
+      for (const a of acts) {
+        if (String(a.text_id || "") !== String(v3DashActiveTextId)) continue;
+        if (!a.sentence_id) continue;
+        if (seenSentences.has(a.sentence_id)) continue;
+        seenSentences.add(a.sentence_id);
+        filtered.push({ sentence_id: a.sentence_id, text_id: a.text_id, played_at: a.ts, event_type: a.event_type });
+        if (filtered.length >= limit) break;
+      }
+      rows = filtered;
+    } else {
+      const url = `/api/history/texts/${encodeURIComponent(v3DashActiveTextId)}/recent-rows?limit=${limit}`;
+      const res = await fetch(url);
+      const j = await res.json().catch(() => null);
+      rows = (res.ok && j && j.ok && Array.isArray(j.rows)) ? j.rows : [];
+    }
     v3DashActiveRows = rows;
     v3DashRowsCache.set(v3DashActiveTextId, rows);
 
@@ -19290,17 +19375,29 @@ async function v3TextMetaSave() {
 
     v3TextMetaSetStatus("Сохранение...", false);
 
-    const j = await v3PatchJson(`/api/library/texts/${encodeURIComponent(id)}/meta`, payload);
+    let updated;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      await ldb.updateTextMeta(id, {
+        title: payload.title,
+        level: payload.level,
+        tags_json: JSON.stringify(payload.tags || []),
+        source: payload.source,
+        topic: payload.topic,
+      });
+      updated = await ldb.getTextById(id);
+    } else {
+      const j = await v3PatchJson(`/api/library/texts/${encodeURIComponent(id)}/meta`, payload);
 
-    if (!j || !j.ok) {
-      v3TextMetaSetStatus("Не удалось сохранить (см. console).", true);
-      console.error("[v3TextMetaSave] bad response:", j);
-      if (btn) btn.disabled = false;
-      return;
+      if (!j || !j.ok) {
+        v3TextMetaSetStatus("Не удалось сохранить (см. console).", true);
+        console.error("[v3TextMetaSave] bad response:", j);
+        if (btn) btn.disabled = false;
+        return;
+      }
+      // server может вернуть result или text — поддержим оба
+      updated = j.result || j.text || null;
     }
-
-    // server может вернуть result или text — поддержим оба
-    const updated = j.result || j.text || null;
     if (updated) v3ApplyMetaUpdateToCaches(id, updated);
 
     // форсируем перерисовку списков (без новых listeners в аудио)
