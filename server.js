@@ -160,7 +160,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json({ limit: "10mb" }));
-app.use(express.static(path.join(__dirname, "public")));
+
+// COOP/COEP headers required for SharedArrayBuffer (used by wa-sqlite AccessHandlePoolVFS)
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  next();
+});
+
+app.use(express.static(path.join(__dirname, "public"), {
+  setHeaders(res) {
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+  },
+}));
 
 app.get("/api/client-config", (_req, res) => {
   const ttsEnabledRaw = String(process.env.TTS_ENABLED || "true").trim().toLowerCase();

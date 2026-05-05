@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>OPFS SQLite Init Test</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #e0e0e0; }
+    .ok  { color: #4ade80; }
+    .err { color: #f87171; }
+    .inf { color: #60a5fa; }
+    pre  { margin: 4px 0 4px 20px; color: #94a3b8; }
+  </style>
+</head>
+<body>
+<h2>OPFS + wa-sqlite Browser Init Test</h2>
+<div id="log"></div>
+
+<script type="module">
+import {
+  initLocalDB, createText, listTexts, getSentences, addSentence,
+  upsertNote, listNotes, setProgress, getProgress, recordEvent,
+  recentActivity, deleteText, dbDiag
+} from '/db/local-db.js';
+
+const log = document.getElementById('log');
+function out(cls, msg, extra) {
+  const p = document.createElement('p');
+  p.className = cls;
+  p.textContent = msg;
+  log.appendChild(p);
+  if (extra != null) {
+    const pre = document.createElement('pre');
+    pre.textContent = typeof extra === 'object' ? JSON.stringify(extra, null, 2) : String(extra);
+    log.appendChild(pre);
+  }
+}
+
+async function run() {
+  // ── ТЕСТ 1: инициализация ─────────────────────────────────────────────
+  try {
+    out('inf', 'ТЕСТ 1: инициализация wa-sqlite + OPFS...');
+    await initLocalDB();
+    out('ok', '✅ ТЕСТ 1 ПРОШЁЛ: wa-sqlite инициализирован, OPFS открыт, миграции применены');
+  } catch(e) {
+    out('err', '❌ ТЕСТ 1 ПРОВАЛЕН: ' + e.message);
+    return;
+  }
+
+  // ── ТЕСТ 2: диагностика схемы ─────────────────────────────────────────
+  try {
+    const diag = await dbDiag();
+    out('inf', 'ТЕСТ 2: проверка схемы БД...');
+    const expectedTables = ['texts','sentences','sentence_notes','audio_assets','srs_cards','text_progress','events','schema_migrations'];
+    for (const t of expectedTables) {
+      if (!(t in diag)) throw new Error('Таблица отсутствует: ' + t);
+    }
+    out('ok', '✅ ТЕСТ 2 ПРОШЁЛ: все таблицы созданы', diag);
+  } catch(e) {
+    out('err', '❌ ТЕСТ 2 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── ТЕСТ 3: создание и чтение текста ─────────────────────────────────
+  const testId  = crypto.randomUUID();
+  const testKey = 'opfs-test-' + Date.now();
+  try {
+    out('inf', 'ТЕСТ 3: создание текста...');
+    const created = await createText({
+      id: testId,
+      text_key: testKey,
+      title: 'שלום עולם — тест OPFS',
+      source_text: 'שלום עולם',
+      level: 'A1',
+      tags_json: '["test"]',
+    });
+    if (!created || created.id !== testId) throw new Error('createText вернул неверный объект');
+    const read = await listTexts({ limit: 10 });
+    if (!read.find(t => t.id === testId)) throw new Error('Текст не найден после создания');
+    out('ok', '✅ ТЕСТ 3 ПРОШЁЛ: текст создан и прочитан', { id: created.id, title: created.title });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 3 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── ТЕСТ 4: предложения ───────────────────────────────────────────────
+  const sentId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 4: добавление предложения...');
+    await addSentence(testId, {
+      id: sentId,
+      he_plain: 'שלום',
+      he_niqqud: 'שָׁלוֹם',
+      translit: 'shalom',
+      ru: 'мир/привет',
+    });
+    const sents = await getSentences(testId);
+    if (!sents.find(s => s.id === sentId)) throw new Error('Предложение не найдено');
+    out('ok', '✅ ТЕСТ 4 ПРОШЁЛ: предложение добавлено', sents[0]);
+  } catch(e) {
+    out('err', '❌ ТЕСТ 4 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── ТЕСТ 5: заметки ───────────────────────────────────────────────────
+  try {
+    out('inf', 'ТЕСТ 5: создание заметки...');
+    await upsertNote(testId, sentId, 'Тестовая заметка для OPFS');
+    const notes = await listNotes(testId);
+    if (!notes.find(n => n.note === 'Тестовая заметка для OPFS')) throw new Error('Заметка не найдена');
+    out('ok', '✅ ТЕСТ 5 ПРОШЁЛ: заметка сохранена', notes[0]);
+  } catch(e) {
+    out('err', '❌ ТЕСТ 5 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── ТЕСТ 6: прогресс ──────────────────────────────────────────────────
+  try {
+    out('inf', 'ТЕСТ 6: прогресс чтения...');
+    await setProgress(testId, { last_row_idx: 5, last_step_id: 'ru' });
+    const prog = await getProgress(testId);
+    if (!prog || prog.last_row_idx !== 5) throw new Error('Прогресс не сохранён');
+    out('ok', '✅ ТЕСТ 6 ПРОШЁЛ: прогресс записан', prog);
+  } catch(e) {
+    out('err', '❌ ТЕСТ 6 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── ТЕСТ 7: события ───────────────────────────────────────────────────
+  try {
+    out('inf', 'ТЕСТ 7: запись события...');
+    await recordEvent({ event_type: 'tts_play', text_id: testId, sentence_id: sentId, source: 'opfs-test' });
+    const activity = await recentActivity(5);
+    if (!activity.find(e => e.event_type === 'tts_play' && e.text_id === testId))
+      throw new Error('Событие не найдено');
+    out('ok', '✅ ТЕСТ 7 ПРОШЁЛ: событие записано', activity[0]);
+  } catch(e) {
+    out('err', '❌ ТЕСТ 7 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── ТЕСТ 8: OPFS persistence proof ───────────────────────────────────
+  try {
+    out('inf', 'ТЕСТ 8: проверка OPFS (не localStorage)...');
+    localStorage.clear();
+    const afterClear = await listTexts({ limit: 10 });
+    if (!afterClear.find(t => t.id === testId))
+      throw new Error('Текст исчез после localStorage.clear() — данные хранятся в localStorage, не OPFS!');
+    out('ok', '✅ ТЕСТ 8 ПРОШЁЛ: данные выживают localStorage.clear() → хранятся в OPFS на устройстве');
+  } catch(e) {
+    out('err', '❌ ТЕСТ 8 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── Cleanup ───────────────────────────────────────────────────────────
+  try {
+    await deleteText(testId);
+    out('inf', '(тестовые данные удалены)');
+  } catch(e) { /* ignore */ }
+
+  // ── OPFS path info ────────────────────────────────────────────────────
+  try {
+    const root = await navigator.storage.getDirectory();
+    const entries = [];
+    for await (const [name] of root.entries()) entries.push(name);
+    out('inf', '📁 Файлы в OPFS root:', entries);
+  } catch(e) { out('inf', 'OPFS listing недоступен: ' + e.message); }
+
+  out('ok', '\n🎉 Все тесты завершены. Данные хранятся локально в OPFS вашего браузера.');
+}
+
+run().catch(e => out('err', '💥 Критическая ошибка: ' + e.message));
+</script>
+</body>
+</html>

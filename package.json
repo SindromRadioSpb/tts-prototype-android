@@ -31,8 +31,10 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
     "hebrew-transliteration": "^2.9.1",
+    "jszip": "^3.10.1",
     "sqlite3": "^5.1.7",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "wa-sqlite": "^1.0.0"
   },
   "engines": {
     "node": ">=18"
