@@ -6315,6 +6315,7 @@ td[data-col="ru"] {
     <button class="btn-secondary" onclick="v3LibraryImport()" data-i18n="library.importJson">Импорт JSON</button>
     <button class="btn-secondary" onclick="v3LibraryExportBundle()" data-i18n="library.exportZip">Экспорт ZIP (с аудио)</button>
     <button class="btn-secondary" onclick="v3LibraryImportBundle()" data-i18n="library.importZip">Импорт ZIP (с аудио)</button>
+    <button id="v3LibraryImportFromCloudBtn" class="btn-secondary" onclick="v3LibraryImportFromCloud()" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
     <button class="btn-secondary" onclick="v3LibraryRefresh()" data-i18n="library.refresh">Обновить</button>
     <button class="btn-secondary" onclick="v3LibraryClose()" data-i18n="library.close">Закрыть</button>
 
@@ -16309,6 +16310,7 @@ async function v3LibraryRefresh() {
     }
     v3LibraryTexts = raw.map(v3NormalizeTextDto);
 	v3LibraryLastLoadedAt = new Date().toISOString();
+	try { v3LibraryUpdateCloudImportVisibility(); } catch (_) {}
 
 	// reset memo so fresh data re-renders even if query is the same
 	v3LibraryLastRenderKey = null;
@@ -17688,8 +17690,61 @@ window.v3LibraryRefresh = v3LibraryRefresh;
 window.v3LibraryApplyFilter = v3LibraryApplyFilter;
 window.v3LibrarySaveCurrent = v3LibrarySaveCurrent;
 
+// One-time migration: pull all texts from the user's Railway server library
+// into OPFS. Useful for users who built up their library before LOCAL_MODE
+// existed and want to keep using the same data on-device.
+async function v3LibraryImportFromCloud() {
+  try {
+    if (!LOCAL_MODE) {
+      showToast("Эта операция доступна только в режиме ?localMode=1", "error");
+      return;
+    }
+    const ok = window.confirm(
+      "Импортировать вашу библиотеку с Railway-сервера в OPFS?\n\n" +
+      "Эта операция:\n" +
+      "  • выгрузит все НЕархивированные тексты с сервера через GET /api/library/export?includeArchived=1\n" +
+      "  • применит их к OPFS через стандартный importBundle (mode=skip — дубликаты пропускаются)\n" +
+      "  • МПЗ и asset_key-линки сохраняются (аудио продолжит играть из Railway-кеша)\n\n" +
+      "Безопасно запускать повторно: дубликаты не дублируются."
+    );
+    if (!ok) return;
+
+    showToast("Запрос данных с сервера…");
+    const payload = await v3GetJson("/api/library/export?includeArchived=1");
+    if (!payload || !Array.isArray(payload.texts)) {
+      showToast("Сервер вернул пустой ответ — нечего импортировать", "warning");
+      return;
+    }
+    const ldb = await ensureLocalDB();
+    const r = await ldb.importBundle(payload, { mode: "skip" });
+    const msg =
+      `Импорт из облака: добавлено ${r.imported}, пропущено как дубликаты ${r.skipped}` +
+      (r.errors && r.errors.length ? `, ошибок ${r.errors.length}` : "");
+    showToast(msg, "success");
+    v3LibraryRefresh();
+  } catch (e) {
+    console.warn("v3LibraryImportFromCloud failed", e);
+    showToast("Ошибка импорта с сервера: " + (e && e.message ? e.message : "см. console"), "error");
+  }
+}
+
+// Show the cloud-import button only when LOCAL_MODE and the OPFS library
+// looks empty — once the user has data locally, the button stops being
+// useful and clutters the toolbar.
+async function v3LibraryUpdateCloudImportVisibility() {
+  const btn = document.getElementById("v3LibraryImportFromCloudBtn");
+  if (!btn) return;
+  if (!LOCAL_MODE) { btn.style.display = "none"; return; }
+  try {
+    const ldb = await ensureLocalDB();
+    const texts = await ldb.listTexts({ limit: 1 });
+    btn.style.display = (texts && texts.length > 0) ? "none" : "";
+  } catch (_) { btn.style.display = ""; }
+}
+
 window.v3LibraryExport = v3LibraryExport;
 window.v3LibraryImport = v3LibraryImport;
+window.v3LibraryImportFromCloud = v3LibraryImportFromCloud;
 window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
 
 // ── Bundle export/import (ZIP with audio) ────────────────────────────────────
