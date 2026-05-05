@@ -5518,6 +5518,7 @@ td[data-col="ru"] {
 
 </style>
 
+<script src="/db/jszip.min.js"></script>
 <script type="module">
   import * as _ldb from '/db/local-db.js';
   window.__localDB = _ldb;
@@ -17297,11 +17298,59 @@ async function v3LibraryExportBundle() {
   try {
     let blob, filename;
     if (LOCAL_MODE) {
-      showToast("Экспорт библиотеки (JSON)…");
+      // Browser-side ZIP: read OPFS bundle JSON, fetch audio for any sentences
+      // that have an asset_key, package as ZIP via JSZip.
+      if (typeof JSZip === "undefined") {
+        throw new Error("JSZip не загружен — проверьте, что /db/jszip.min.js доступен");
+      }
+      showToast("Подготовка ZIP с аудио из OPFS…");
       const ldb = await ensureLocalDB();
       const payload = await ldb.exportBundle({ includeArchived: true });
-      blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-      filename = v3LibraryMakeExportFilename("library-bundle");
+
+      // Collect unique asset_keys across all texts.
+      const allKeys = new Set();
+      for (const t of (payload.texts || [])) {
+        for (const s of (t.sentences || [])) {
+          const k = String(s.audio_asset_key || "").trim();
+          if (k) allKeys.add(k);
+        }
+      }
+
+      const zip = new JSZip();
+      zip.file("manifest.json", JSON.stringify(payload.manifest || { schema_version: 2 }, null, 2));
+      zip.file("library.json", JSON.stringify(payload, null, 2));
+
+      // Fetch audio in parallel (capped to avoid hammering); errors per asset
+      // are non-fatal — we ship the ZIP without that one and record it in manifest.
+      const missing = [];
+      const audioFolder = zip.folder("audio-cache");
+      const keys = Array.from(allKeys);
+      const CONCURRENCY = 6;
+      let cursor = 0;
+      async function worker() {
+        while (cursor < keys.length) {
+          const i = cursor++;
+          const key = keys[i];
+          try {
+            const r = await fetch("/api/audio/" + encodeURIComponent(key));
+            if (!r.ok) { missing.push(key); continue; }
+            const ab = await r.arrayBuffer();
+            audioFolder.file(key + ".mp3", ab);
+          } catch (_) { missing.push(key); }
+        }
+      }
+      const workers = [];
+      for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
+      await Promise.all(workers);
+
+      if (missing.length) {
+        zip.file("missing_audio.json", JSON.stringify({ missing, count: missing.length }, null, 2));
+      }
+
+      blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
+      filename = v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
+      const audioMsg = (keys.length - missing.length) + "/" + keys.length + " аудио файлов";
+      showToast("ZIP готов: " + (payload.texts || []).length + " текстов, " + audioMsg, "success");
     } else {
       showToast("Подготовка ZIP с аудио…");
       const resp = await fetch("/api/library/export/bundle?includeArchived=1");
@@ -17313,6 +17362,7 @@ async function v3LibraryExportBundle() {
       const cd = resp.headers.get("Content-Disposition") || "";
       const m = cd.match(/filename="([^"]+)"/);
       filename = m ? m[1] : v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
+      showToast("ZIP с аудио скачан", "success");
     }
 
     const a = document.createElement("a");
@@ -17323,10 +17373,9 @@ async function v3LibraryExportBundle() {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
-    showToast(LOCAL_MODE ? "JSON экспорт скачан" : "ZIP с аудио скачан", "success");
   } catch (e) {
     console.warn("v3LibraryExportBundle failed", e);
-    showToast("Ошибка экспорта (см. консоль).", "error");
+    showToast("Ошибка экспорта: " + ((e && e.message) || "см. консоль"), "error");
   }
 }
 
@@ -17354,16 +17403,30 @@ async function v3LibraryOnBundleImportSelected(ev) {
 
     let data;
     if (LOCAL_MODE) {
-      // In local mode, accept JSON files (no server audio bundle support locally)
-      let parsed;
-      try {
-        const txt = await file.text();
-        parsed = JSON.parse(txt);
-      } catch (_) {
-        showToast("Файл не является корректным JSON", "error");
-        return;
-      }
       const ldb = await ensureLocalDB();
+      let parsed;
+      const looksLikeZip = file && (
+        /\.zip$/i.test(file.name || "") ||
+        (file.type && /zip|x-zip|octet-stream/i.test(file.type))
+      );
+
+      if (looksLikeZip) {
+        if (typeof JSZip === "undefined") {
+          showToast("JSZip не загружен", "error"); return;
+        }
+        const zip = await JSZip.loadAsync(file);
+        const libFile = zip.file("library.json");
+        if (!libFile) { showToast("В ZIP нет library.json", "error"); return; }
+        parsed = JSON.parse(await libFile.async("string"));
+      } else {
+        try {
+          const txt = await file.text();
+          parsed = JSON.parse(txt);
+        } catch (_) {
+          showToast("Файл не является ни ZIP, ни корректным JSON", "error");
+          return;
+        }
+      }
       const r = await ldb.importBundle(parsed, { mode: "skip" });
       data = { ok: true, importedCount: r.imported, importedAudio: 0, linkedAudio: 0, skippedCount: r.skipped, errorCount: (r.errors || []).length };
     } else {
@@ -23070,7 +23133,32 @@ function v3RowTtsTrackPlay(row, assetKey) {
   try {
     if (!row || !row._v3_textId || !row._v3_sentenceId) return;
     if (LOCAL_MODE) {
-      ensureLocalDB().then(ldb => ldb.recordEvent({ event_type: "row_tts", text_id: String(row._v3_textId), sentence_id: String(row._v3_sentenceId), source: assetKey || null })).catch(() => {});
+      ensureLocalDB().then(async (ldb) => {
+        await ldb.recordEvent({
+          event_type: "row_tts",
+          text_id: String(row._v3_textId),
+          sentence_id: String(row._v3_sentenceId),
+          source: assetKey || null,
+        });
+        // Phase 5 prep: persist asset_key ↔ sentence_audio link in OPFS so ZIP-bundle
+        // export can later fetch+pack audio by asset_key.
+        const ak = String(assetKey || "").trim();
+        if (ak) {
+          const audioId = (typeof crypto !== "undefined" && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : ('aa-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+          const profile = String(row._v3_audioTtsProfileJson || "");
+          const asset = await ldb.upsertAudioAsset({
+            id: audioId, asset_key: ak, asset_type: 'row',
+            relative_path: 'audio-cache/' + ak + '.mp3',
+            mime: 'audio/mpeg',
+            tts_profile_json: profile || null,
+          });
+          if (asset && asset.id) {
+            await ldb.linkSentenceAudio(String(row._v3_sentenceId), asset.id, 1);
+          }
+        }
+      }).catch((e) => { console.debug('[opfs] track-play link failed:', e && e.message); });
     } else {
       fetch("/api/history/event", {
         method: "POST",

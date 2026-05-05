@@ -609,12 +609,14 @@ export async function exportBundle({ includeArchived = false } = {}) {
   for (const text of exportList) {
     const sentences = await getSentences(text.id);
     const notes     = await listNotes(text.id);
+    const audioMap  = await getDefaultAudioMap(text.id);  // sentenceId → asset_key
     const noteMap   = {};
     for (const n of notes) noteMap[n.sentence_id] = n.note;
 
     const rows = sentences.map(s => ({
       ...s,
       note: noteMap[s.id] ?? '',
+      audio_asset_key: audioMap[s.id] ?? '',
     }));
     noteCount += notes.filter(n => n.note && n.note.trim()).length;
     bundle.push({ ...text, sentences: rows });
@@ -650,6 +652,21 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         await addSentence(newTextId, { ...s, id: newSentenceId });
         if (s.note && s.note.trim()) {
           await upsertNote(newTextId, newSentenceId, s.note);
+        }
+        // Re-establish audio asset link (the actual MP3 blobs are not transported
+        // here — they live on the server's audio-cache identified by asset_key).
+        const ak = String(s.audio_asset_key || '').trim();
+        if (ak) {
+          const asset = await upsertAudioAsset({
+            id: crypto.randomUUID(),
+            asset_key: ak,
+            asset_type: 'row',
+            relative_path: 'audio-cache/' + ak + '.mp3',
+            mime: 'audio/mpeg',
+          });
+          if (asset && asset.id) {
+            await linkSentenceAudio(newSentenceId, asset.id, 1);
+          }
         }
       }
       result.imported++;
