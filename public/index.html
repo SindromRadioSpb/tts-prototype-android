@@ -8631,12 +8631,21 @@ function v3SrsAnkiFormatThrownError(e) {
 // Talks to AnkiConnect directly from the browser. Used when LOCAL_MODE is on
 // (Railway-hosted server cannot reach the user's local 127.0.0.1:8765, only
 // the user's own browser can). Returns the parsed `result` field of the
-// JSON-RPC response, or throws with the AnkiConnect error string.
+// JSON-RPC response. Some forks (incl. AnkiConnect Plus) return per-note
+// errors as an array — in that case we throw an Error whose `.perNote`
+// carries the array so callers can interpret duplicates etc. without
+// surfacing them as a global failure.
 async function v3AnkiConnectDirect(action, params) {
   const body = JSON.stringify({ action, version: 6, params: params || {} });
   const r = await fetch("http://127.0.0.1:8765", { method: "POST", body });
   const j = await r.json();
-  if (j && j.error) throw new Error(String(j.error));
+  if (j && j.error) {
+    const isArray = Array.isArray(j.error);
+    const e = new Error(isArray ? j.error.join("; ") : String(j.error));
+    if (isArray) e.perNote = j.error;
+    e.result = j.result;
+    throw e;
+  }
   return j && j.result;
 }
 
@@ -8728,26 +8737,66 @@ async function v3AnkiPushLocalMode(textId, opts) {
     };
   });
 
-  // addNotes returns an array of note IDs; null entries mean the note was
-  // rejected. canAddNotes lets us pre-flight which entries Anki considers
-  // duplicates so the toast can distinguish duplicates from real failures.
+  // canAddNotes pre-flight lets us split duplicates from real failures (and
+  // skip the addNotes call entirely if every note is a duplicate, which
+  // would otherwise make some AnkiConnect forks return a per-note error
+  // array and look like a global failure).
   let canAdd = [];
-  try {
-    canAdd = await v3AnkiConnectDirect('canAddNotes', { notes: ankiNotes });
-  } catch (_) {}
-  const result = await v3AnkiConnectDirect('addNotes', { notes: ankiNotes });
-  const arr = Array.isArray(result) ? result : [];
-  const created = arr.filter((x) => x != null).length;
-  let duplicates = 0;
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] == null && Array.isArray(canAdd) && canAdd[i] === false) duplicates++;
+  try { canAdd = await v3AnkiConnectDirect('canAddNotes', { notes: ankiNotes }); } catch (_) {}
+
+  const sendable = [];
+  const sendableIdx = [];
+  let preDuplicates = 0;
+  for (let i = 0; i < ankiNotes.length; i++) {
+    if (Array.isArray(canAdd) && canAdd[i] === false) {
+      preDuplicates++;
+    } else {
+      sendable.push(ankiNotes[i]);
+      sendableIdx.push(i);
+    }
   }
-  const failedOther = arr.length - created - duplicates;
+
+  let arr = [];
+  let perNoteErrors = null;
+  if (sendable.length > 0) {
+    try {
+      const result = await v3AnkiConnectDirect('addNotes', { notes: sendable });
+      arr = Array.isArray(result) ? result : [];
+    } catch (e) {
+      // Per-note error arrays (some forks return them in `error`) shouldn't
+      // surface as global failure — read them back so we can count properly.
+      if (e && Array.isArray(e.perNote)) {
+        perNoteErrors = e.perNote;
+        arr = Array.isArray(e.result) ? e.result : [];
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  const created = arr.filter((x) => x != null).length;
+  let runtimeDuplicates = 0;
+  let failedOther = 0;
+  if (perNoteErrors) {
+    for (let i = 0; i < perNoteErrors.length; i++) {
+      const msg = String(perNoteErrors[i] || "").toLowerCase();
+      if (!msg) continue;
+      if (msg.includes("duplicate")) runtimeDuplicates++;
+      else if (msg.includes("empty")) skippedEmpty.push("(runtime-empty)");
+      else failedOther++;
+    }
+  } else {
+    // No per-note error array — null entries still imply duplicate-ish failure.
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] == null) runtimeDuplicates++;
+    }
+  }
+
   return {
     created,
     updated: 0,
     audioQueued: 0,
-    duplicates,
+    duplicates: preDuplicates + runtimeDuplicates,
     skipped: skippedEmpty.length,
     failedOther,
     deckName: finalDeck,
@@ -23181,32 +23230,76 @@ async function v3AudioPrefetchRefreshAudioFromServer() {
   const textId = v3AudioPrefetchGetTextId();
   if (!v3AudioPrefetchIsUuid(textId)) return false;
 
-  const url = "/api/library/texts/" + encodeURIComponent(String(textId)) + "/sentences";
-  const res = await fetch(url, { method: "GET" });
-  if (!res.ok) return false;
-
-  const j = await res.json();
-  const arr = j && j.sentences ? j.sentences : [];
-  if (!Array.isArray(arr) || !Array.isArray(currentTableData)) return false;
-
   const map = new Map();
-  for (const r of arr) {
-    const sid = r && r.id ? String(r.id) : "";
-    if (!sid) continue;
-    map.set(sid, {
-      key: (r.audio_asset_key || r.audioAssetKey || "") ? String(r.audio_asset_key || r.audioAssetKey) : "",
-      prof: (r.audio_tts_profile_json || r.audioTtsProfileJson || "") ? String(r.audio_tts_profile_json || r.audioTtsProfileJson) : "",
-    });
+  let usedJobResults = false;
+
+  // LOCAL_MODE: server has no copy of the OPFS-saved text, but the prefetch
+  // job's per-row results (sentenceId → assetKey) carry exactly what we need.
+  if (LOCAL_MODE) {
+    try {
+      const last = v3AudioPrefetchLastStatus;
+      const job  = last && last.job ? last.job : null;
+      const results = job && Array.isArray(job.results) ? job.results : [];
+      const profJson = job && job.ttsProfileJson ? String(job.ttsProfileJson) : "";
+      if (results.length) {
+        for (const r of results) {
+          const sid = r && r.sentenceId ? String(r.sentenceId) : "";
+          const ak  = r && r.assetKey ? String(r.assetKey) : "";
+          if (sid && ak) map.set(sid, { key: ak, prof: profJson });
+        }
+        usedJobResults = true;
+      }
+    } catch (_) {}
   }
 
+  // Non-local fallback (and supplemental): query the server-side library copy
+  // for audio_asset_key per sentence.
+  if (!usedJobResults) {
+    const url = "/api/library/texts/" + encodeURIComponent(String(textId)) + "/sentences";
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) return false;
+    const j = await res.json();
+    const arr = j && j.sentences ? j.sentences : [];
+    if (!Array.isArray(arr)) return false;
+    for (const r of arr) {
+      const sid = r && r.id ? String(r.id) : "";
+      if (!sid) continue;
+      map.set(sid, {
+        key: (r.audio_asset_key || r.audioAssetKey || "") ? String(r.audio_asset_key || r.audioAssetKey) : "",
+        prof: (r.audio_tts_profile_json || r.audioTtsProfileJson || "") ? String(r.audio_tts_profile_json || r.audioTtsProfileJson) : "",
+      });
+    }
+  }
+
+  if (!Array.isArray(currentTableData)) return false;
+
+  // Mirror updates into the in-memory rows; if LOCAL_MODE, also persist the
+  // asset_key ↔ sentence link in OPFS so reload / cross-session restoration
+  // picks up the cached audio.
   for (let i = 0; i < currentTableData.length; i++) {
     const row = currentTableData[i];
     const sid = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
     if (!sid) continue;
     const v = map.get(sid);
     if (!v) continue;
-    row._v3_audioAssetKey = v.key;
-    row._v3_audioTtsProfileJson = v.prof;
+    if (v.key) row._v3_audioAssetKey = v.key;
+    if (v.prof) row._v3_audioTtsProfileJson = v.prof;
+  }
+
+  if (LOCAL_MODE && map.size) {
+    try {
+      const ldb = await ensureLocalDB();
+      for (const [sid, v] of map.entries()) {
+        if (!v.key) continue;
+        const asset = await ldb.upsertAudioAsset({
+          id: crypto.randomUUID(), asset_key: v.key, asset_type: 'row',
+          relative_path: 'audio-cache/' + v.key + '.mp3',
+          mime: 'audio/mpeg',
+          tts_profile_json: v.prof || null,
+        });
+        if (asset && asset.id) await ldb.linkSentenceAudio(sid, asset.id, 1);
+      }
+    } catch (e) { console.debug('[opfs] batch link audio failed:', e && e.message); }
   }
 
   try { v3AudioPrefetchRefreshMarkers(); } catch (_) {}
@@ -23250,11 +23343,27 @@ function v3AudioPrefetchUpdateMarkerForRow(rowIdx) {
 
   const haveKey = row._v3_audioAssetKey ? String(row._v3_audioAssetKey) : "";
   const storedProfile = v3AudioPrefetchSafeParseJson(row._v3_audioTtsProfileJson || "");
-  const match = !!(haveKey && storedProfile && v3AudioPrefetchProfilesEqual(storedProfile, P));
+
+  // Calculate match. If either side has incomplete metadata (e.g. voice list
+  // hadn't loaded when TTS happened, so voiceName ended up empty in storage),
+  // treat the cached audio as acceptable — better to show green than to flag
+  // a "mismatch" we can't actually verify.
+  let match = false;
+  if (haveKey) {
+    const A = v3AudioPrefetchNormalizeProfileForCompare(storedProfile);
+    const B = v3AudioPrefetchNormalizeProfileForCompare(P);
+    if (!A || !B) {
+      match = true;
+    } else {
+      match = v3AudioPrefetchProfilesEqual(storedProfile, P);
+    }
+  }
 
   if (match) {
     el.className = "row-audio-ind state-ok";
-    el.title = "Аудио готово • " + v3AudioPrefetchProfilePretty(storedProfile);
+    el.title = storedProfile
+      ? "Аудио готово • " + v3AudioPrefetchProfilePretty(storedProfile)
+      : "Аудио готово (профиль не задан)";
     return;
   }
 

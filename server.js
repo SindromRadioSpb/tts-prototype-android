@@ -1947,6 +1947,11 @@ function v3AudioPrefetchJobPublic(job) {
     ttsProfile: job.ttsProfile || null,
     ttsProfileJson: job.ttsProfileJson || null,
 
+    // Per-row asset_key map: sentenceId → assetKey. LOCAL_MODE clients use
+    // this to update their OPFS audio_assets links + UI cache markers without
+    // having to re-query the server (which doesn't have the OPFS-saved text).
+    results: Array.isArray(job.results) ? job.results.slice() : [],
+
     concurrency: job.concurrency || null,
     retry: job.retry || null,
 
@@ -2101,6 +2106,16 @@ async function v3AudioPrefetchRun(job) {
                 job.unlinked = (job.unlinked || 0) + 1;
               } else if (job.onlyMissing) {
                 defaultMap.set(sentenceId, { assetKey: ensured.assetKey, ttsProfileJson: job.ttsProfileJson });
+              }
+
+              // Track per-row outcome for client-side marker updates / OPFS links.
+              if (sentenceId) {
+                if (!Array.isArray(job.results)) job.results = [];
+                job.results.push({
+                  sentenceId,
+                  assetKey: ensured.assetKey,
+                  fromCache: !!ensured.fromCache,
+                });
               }
             }
 
@@ -2261,6 +2276,10 @@ app.post("/api/audio/prefetch/start", async (req, res) => {
 
       errorsSample: [],
       fatalError: null,
+
+      // Per-row outcomes for clients (LOCAL_MODE relies on this to update
+      // OPFS links + marker UI without a follow-up library round-trip).
+      results: [],
     };
 
     v3AudioPrefetchJobs.set(jobId, job);
