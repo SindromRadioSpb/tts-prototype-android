@@ -8644,6 +8644,10 @@ async function v3SrsAnkiCheckConnect(verbose) {
 
 async function v3IdeSrsAnkiPreview(cardId) {
   try {
+    if (LOCAL_MODE) {
+      window.alert("Anki export preview is not available in local mode (server-only feature).");
+      return;
+    }
     const res = await v3GetJson(`/api/srs/export/anki/preview?cardId=${encodeURIComponent(String(cardId || "").trim())}`);
     const p = res && res.preview ? res.preview : {};
     const st = res && res.status ? res.status : {};
@@ -8664,6 +8668,10 @@ async function v3IdeSrsAnkiPreview(cardId) {
 
 async function v3IdeSrsExportAnki(cardId) {
   try {
+    if (LOCAL_MODE) {
+      window.alert("Anki export is not available in local mode (server-only feature).");
+      return;
+    }
     const health = await v3SrsAnkiCheckConnect(false);
     if (!health.ok) {
       window.alert(t("toast.ankiUnavailable", {details: health.details || ""}));
@@ -17657,6 +17665,21 @@ async function v3SrsTrainerHydrateCurrent() {
 
   if (v3SrsTrainerState.mode === "reveal") return;
 
+  if (LOCAL_MODE) {
+    // Trainer-view payload (audio prompt etc.) is server-derived; in local mode
+    // we surface the raw card text and let reveal mode handle the rest.
+    const c = current && current.card;
+    if (c) {
+      v3SrsTrainerState.trainer = {
+        promptText: String(c.he_plain || ""),
+        promptLang: "he",
+        audioAssetKey: "",
+        expectedAnswer: String(c.ru || ""),
+      };
+    }
+    return;
+  }
+
   const res = await v3GetJson(`/api/srs/cards/${encodeURIComponent(cardId)}/trainer-view?mode=${encodeURIComponent(v3SrsTrainerState.mode)}`);
   v3SrsTrainerState.trainer = res && res.trainer ? res.trainer : null;
 }
@@ -17909,12 +17932,24 @@ function v3SrsTrainerClose() {
 async function v3SrsTrainerStart() {
   try {
     const source = document.body.classList.contains("v3-ide-mode") ? "ide" : "classic";
-    const res = await v3PostJson("/api/srs/sessions", {
-      source,
-      limit: 50,
-      mode: v3SrsTrainerState.mode || "reveal",
-      templateCode: v3SrsTrainerState.templateCode || "he_to_ru",
-    });
+    let res;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const sess = await ldb.srs.createSession({ mode: v3SrsTrainerState.mode || "reveal", source });
+      const next = await ldb.srs.getSessionNext(sess.id);
+      res = {
+        session: { id: sess.id, status: 'active', cards_total: sess.cards_total, current_index: 0 },
+        current: next ? { card: next.card } : null,
+        progress: { index: 0, total: sess.cards_total },
+      };
+    } else {
+      res = await v3PostJson("/api/srs/sessions", {
+        source,
+        limit: 50,
+        mode: v3SrsTrainerState.mode || "reveal",
+        templateCode: v3SrsTrainerState.templateCode || "he_to_ru",
+      });
+    }
     v3SrsTrainerState.sessionId = res.session && res.session.id || null;
     v3SrsTrainerState.current = res.current || null;
     v3SrsTrainerState.revealed = false;
@@ -17989,13 +18024,23 @@ async function v3SrsTrainerCheckAnswer() {
     }
     const startedAt = Number(v3SrsTrainerState.cardStartedAt || Date.now());
     const latencyMs = Math.max(0, Date.now() - startedAt);
-    const res = await v3PostJson("/api/srs/attempts/check", {
-      cardId: String(v3SrsTrainerState.current.card.id || ""),
-      sessionId: v3SrsTrainerState.sessionId,
-      attemptType: v3SrsTrainerState.mode,
-      answer,
-      latencyMs,
-    });
+    let res;
+    if (LOCAL_MODE) {
+      // Local mode: simple correctness heuristic — exact match against expected answer.
+      const card = v3SrsTrainerState.current.card;
+      const expected = String(card.ru || card.he_plain || "").trim().toLowerCase();
+      const got = String(answer || "").trim().toLowerCase();
+      const correct = !!expected && got === expected;
+      res = { ok: true, correct, expected, latencyMs };
+    } else {
+      res = await v3PostJson("/api/srs/attempts/check", {
+        cardId: String(v3SrsTrainerState.current.card.id || ""),
+        sessionId: v3SrsTrainerState.sessionId,
+        attemptType: v3SrsTrainerState.mode,
+        answer,
+        latencyMs,
+      });
+    }
     v3SrsTrainerState.lastAttempt = res || null;
     v3SrsTrainerState.revealed = true;
     v3SrsTrainerRenderSession();
@@ -18009,10 +18054,24 @@ async function v3SrsTrainerReview(rating) {
   try {
     if (!v3SrsTrainerState.sessionId) return;
     const startedAt = Number(v3SrsTrainerState.cardStartedAt || Date.now());
-    const res = await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/review`, {
-      rating: Number(rating),
-      reviewTimeMs: Math.max(0, Date.now() - startedAt),
-    });
+    let res;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const cardId = v3SrsTrainerState.current && v3SrsTrainerState.current.card && v3SrsTrainerState.current.card.id;
+      if (cardId) await ldb.srs.reviewSessionNext(v3SrsTrainerState.sessionId, cardId, Number(rating));
+      const next = await ldb.srs.getSessionNext(v3SrsTrainerState.sessionId);
+      const sess = await ldb.srs.getSession(v3SrsTrainerState.sessionId);
+      res = {
+        next: next ? { card: next.card } : null,
+        progress: { index: sess.current_index, total: sess.cards_total },
+        session: sess,
+      };
+    } else {
+      res = await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/review`, {
+        rating: Number(rating),
+        reviewTimeMs: Math.max(0, Date.now() - startedAt),
+      });
+    }
     v3SrsTrainerState.current = res.next || null;
     v3SrsTrainerState.revealed = false;
     v3SrsTrainerState.progress = res.progress || null;
@@ -18028,7 +18087,12 @@ async function v3SrsTrainerReview(rating) {
 async function v3SrsTrainerFinish() {
   try {
     if (v3SrsTrainerState.sessionId) {
-      await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/finish`, {});
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        await ldb.srs.finishSession(v3SrsTrainerState.sessionId);
+      } else {
+        await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/finish`, {});
+      }
     }
   } catch (e) {
     console.error("SRS trainer finish failed:", e);
@@ -18041,6 +18105,10 @@ async function v3SrsTrainerExportAnki() {
     const current = v3SrsTrainerState.current;
     const cardId = current && current.card && current.card.id ? String(current.card.id) : "";
     if (!cardId) return;
+    if (LOCAL_MODE) {
+      window.alert("Anki export is not available in local mode (server-only feature).");
+      return;
+    }
     const health = await v3SrsAnkiCheckConnect(false);
     if (!health.ok) {
       window.alert(t("toast.ankiUnavailable", {details: health.details || ""}));
