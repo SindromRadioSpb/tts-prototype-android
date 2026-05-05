@@ -8404,8 +8404,13 @@ function v3SrsAnkiStatusText(status) {
 
 async function v3IdeEnsureSrsTemplates() {
   if (Array.isArray(v3SrsTemplateOptions) && v3SrsTemplateOptions.length) return v3SrsTemplateOptions;
-  const res = await v3GetJson("/api/srs/templates");
-  v3SrsTemplateOptions = Array.isArray(res && res.templates) ? res.templates : [];
+  if (LOCAL_MODE) {
+    const ldb = await ensureLocalDB();
+    v3SrsTemplateOptions = await ldb.srs.listTemplates();
+  } else {
+    const res = await v3GetJson("/api/srs/templates");
+    v3SrsTemplateOptions = Array.isArray(res && res.templates) ? res.templates : [];
+  }
   return v3SrsTemplateOptions;
 }
 
@@ -8493,9 +8498,23 @@ async function v3IdeLoadSrsInspector(row, rowIdx, sentenceId, reqSeq) {
   try {
     const templates = await v3IdeEnsureSrsTemplates();
     const templateCode = v3IdeGetSelectedSrsTemplate(sentenceId);
-    const snapshot = await v3GetJson(`/api/srs/cards?sentenceId=${encodeURIComponent(sentenceId)}&templateCode=${encodeURIComponent(templateCode)}`);
+    let snapshot;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const tplRows = await ldb.srs.listTemplates();
+      const tpl = tplRows.find(t => t.code === templateCode);
+      if (tpl) {
+        const cards = await ldb.srs.listCards({ limit: 5000 });
+        const card = cards.find(c => c.source_sentence_id === sentenceId && c.template_id === tpl.id) || null;
+        snapshot = { card };
+      } else {
+        snapshot = { card: null };
+      }
+    } else {
+      snapshot = await v3GetJson(`/api/srs/cards?sentenceId=${encodeURIComponent(sentenceId)}&templateCode=${encodeURIComponent(templateCode)}`);
+    }
     let exportStatus = null;
-    if (snapshot && snapshot.card && snapshot.card.id) {
+    if (snapshot && snapshot.card && snapshot.card.id && !LOCAL_MODE) {
       try {
         exportStatus = await v3GetJson(`/api/srs/export/status?cardId=${encodeURIComponent(snapshot.card.id)}`);
       } catch (_) {}
@@ -8532,7 +8551,21 @@ async function v3IdeAddToSrs(sentenceId) {
       if (typeof showToast === "function") showToast(t("toast.srsUnavailable"));
       return;
     }
-    await v3PostJson("/api/srs/cards", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid) });
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const tplRows = await ldb.srs.listTemplates();
+      const tplCode = v3IdeGetSelectedSrsTemplate(sid);
+      const tpl = tplRows.find(t => t.code === tplCode);
+      if (tpl) {
+        await ldb.srs.createCard({
+          id: crypto.randomUUID(),
+          entity_type: 'sentence', entity_id: sid,
+          template_id: tpl.id, source_sentence_id: sid,
+        });
+      }
+    } else {
+      await v3PostJson("/api/srs/cards", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid) });
+    }
     if (typeof showToast === "function") showToast(t("toast.srsAdded"));
     v3IdeRefreshInspector();
   } catch (e) {
@@ -8548,7 +8581,19 @@ async function v3IdeSrsReview(sentenceId, rating) {
       if (typeof showToast === "function") showToast(t("toast.srsReviewUnavailable"));
       return;
     }
-    await v3PostJson("/api/srs/review", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid), rating: Number(rating) });
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const tplRows = await ldb.srs.listTemplates();
+      const tplCode = v3IdeGetSelectedSrsTemplate(sid);
+      const tpl = tplRows.find(t => t.code === tplCode);
+      if (tpl) {
+        const cards = await ldb.srs.listCards({ limit: 5000 });
+        const card = cards.find(c => c.source_sentence_id === sid && c.template_id === tpl.id);
+        if (card) await ldb.srs.reviewCard(card.id, Number(rating));
+      }
+    } else {
+      await v3PostJson("/api/srs/review", { sentenceId: sid, templateCode: v3IdeGetSelectedSrsTemplate(sid), rating: Number(rating) });
+    }
     if (typeof showToast === "function") showToast(t("toast.srsReviewSaved"));
     v3IdeRefreshInspector();
   } catch (e) {
@@ -17823,8 +17868,15 @@ async function v3SrsTrainerRefresh() {
       lastAttempt: null,
       cardStartedAt: null,
     };
-    const res = await v3GetJson(`/api/srs/today/summary?templateCode=${encodeURIComponent(v3SrsTrainerState.templateCode)}`);
-    v3SrsTrainerState.summary = res.summary || null;
+    let summary;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      summary = await ldb.srs.todaySummary();
+    } else {
+      const res = await v3GetJson(`/api/srs/today/summary?templateCode=${encodeURIComponent(v3SrsTrainerState.templateCode)}`);
+      summary = res.summary || null;
+    }
+    v3SrsTrainerState.summary = summary;
     v3SrsTrainerRenderHome();
   } catch (e) {
     if (el) {
