@@ -5518,6 +5518,14 @@ td[data-col="ru"] {
 
 </style>
 
+<script type="module">
+  import * as _ldb from '/db/local-db.js';
+  window.__localDB = _ldb;
+  window.__localDBInitPromise = _ldb.initLocalDB().catch(e => {
+    console.warn('[OPFS] init failed:', e.message);
+  });
+</script>
+
 </head>
 <body>
 
@@ -6939,6 +6947,15 @@ td[data-col="ru"] {
     // i18n safety shim: if i18n module failed to load, t() returns the key unchanged
     if (typeof t !== 'function') { window.t = function(k) { return k; }; }
 
+    // ── LOCAL MODE (OPFS storage on device) ───────────────────────────────────
+    const _lmParam = new URLSearchParams(location.search).get('localMode');
+    const LOCAL_MODE = _lmParam !== null ? _lmParam !== '0' : localStorage.getItem('localMode') === '1';
+
+    async function ensureLocalDB() {
+      if (window.__localDBInitPromise) await window.__localDBInitPromise;
+      return window.__localDB;
+    }
+
     // ----------------------------
     // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
     // ----------------------------
@@ -7506,45 +7523,64 @@ async function v3IdeSearchExecute() {
 
     // Search texts
     if (scope === "both" || scope === "texts") {
-      const textsRes = await fetch(`/api/library/texts?q=${encodeURIComponent(query)}&limit=20`);
-      if (textsRes.ok) {
-        const textsData = await textsRes.json();
-        if (textsData.texts && textsData.texts.length > 0) {
-          html += '<div class="v3-ide-inspector-label">Texts</div>';
-          textsData.texts.forEach(t => {
-            html += v3IdeRenderTextResult(t, query);
-          });
+      let searchTexts = [];
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        searchTexts = await ldb.listTexts({ query, limit: 20 });
+      } else {
+        const textsRes = await fetch(`/api/library/texts?q=${encodeURIComponent(query)}&limit=20`);
+        if (textsRes.ok) {
+          const textsData = await textsRes.json();
+          searchTexts = textsData.texts || [];
         }
+      }
+      if (searchTexts.length > 0) {
+        html += '<div class="v3-ide-inspector-label">Texts</div>';
+        searchTexts.forEach(t => {
+          html += v3IdeRenderTextResult(t, query);
+        });
       }
     }
 
     // Search rows
     if (scope === "both" || scope === "rows") {
-      const rowsRes = await fetch(`/api/sentences/search?q=${encodeURIComponent(query)}&limit=20`);
-      if (rowsRes.ok) {
-        const rowsData = await rowsRes.json();
-        const rowsResults = rowsData.results || rowsData.hits || [];
-        if (rowsResults.length > 0) {
-          html += '<div class="v3-ide-inspector-label" style="margin-top:16px;">Rows</div>';
-          rowsResults.forEach((hit, idx) => {
-            html += v3IdeRenderRowResult(hit, idx, query);
-          });
+      let rowsResults = [];
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        rowsResults = await ldb.searchSentences(query, 20);
+      } else {
+        const rowsRes = await fetch(`/api/sentences/search?q=${encodeURIComponent(query)}&limit=20`);
+        if (rowsRes.ok) {
+          const rowsData = await rowsRes.json();
+          rowsResults = rowsData.results || rowsData.hits || [];
         }
+      }
+      if (rowsResults.length > 0) {
+        html += '<div class="v3-ide-inspector-label" style="margin-top:16px;">Rows</div>';
+        rowsResults.forEach((hit, idx) => {
+          html += v3IdeRenderRowResult(hit, idx, query);
+        });
       }
     }
 
     // Search notes
     if (scope === "both" || scope === "notes") {
-      const notesRes = await fetch(`/api/notes/search?q=${encodeURIComponent(query)}&limit=20`);
-      if (notesRes.ok) {
-        const notesData = await notesRes.json();
-        const notesResults = notesData.results || notesData.hits || [];
-        if (notesResults.length > 0) {
-          html += '<div class="v3-ide-inspector-label" style="margin-top:16px;">Notes</div>';
-          notesResults.forEach((hit, idx) => {
-            html += v3IdeRenderNoteResult(hit, idx, query);
-          });
+      let notesResults = [];
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        notesResults = await ldb.searchNotes(query, 20);
+      } else {
+        const notesRes = await fetch(`/api/notes/search?q=${encodeURIComponent(query)}&limit=20`);
+        if (notesRes.ok) {
+          const notesData = await notesRes.json();
+          notesResults = notesData.results || notesData.hits || [];
         }
+      }
+      if (notesResults.length > 0) {
+        html += '<div class="v3-ide-inspector-label" style="margin-top:16px;">Notes</div>';
+        notesResults.forEach((hit, idx) => {
+          html += v3IdeRenderNoteResult(hit, idx, query);
+        });
       }
     }
 
@@ -7675,10 +7711,17 @@ async function v3IdeRefreshLibrary() {
   listEl.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
 
   try {
-    const res = await fetch("/api/library/texts?limit=500");
-    if (!res.ok) throw new Error("Failed to load library");
-    const data = await res.json();
-    v3IdeLibraryCache = data.texts || [];
+    let texts;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      texts = await ldb.listTexts({ limit: 500 });
+    } else {
+      const res = await fetch("/api/library/texts?limit=500");
+      if (!res.ok) throw new Error("Failed to load library");
+      const data = await res.json();
+      texts = data.texts || [];
+    }
+    v3IdeLibraryCache = texts;
     v3IdeLibraryCacheTime = now;
     v3IdeRenderLibraryList();
   } catch (err) {
@@ -7762,10 +7805,16 @@ async function v3IdeRefreshHistory() {
   listEl.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
 
   try {
-    const res = await fetch("/api/history/recent-activity?limit=30");
-    if (!res.ok) throw new Error("Failed to load history");
-    const data = await res.json();
-    const items = data.rows || [];
+    let items;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      items = await ldb.recentActivity(30);
+    } else {
+      const res = await fetch("/api/history/recent-activity?limit=30");
+      if (!res.ok) throw new Error("Failed to load history");
+      const data = await res.json();
+      items = data.rows || [];
+    }
 
     if (items.length === 0) {
       listEl.innerHTML = `
@@ -7883,12 +7932,17 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex)
 
   try {
   // Load text metadata
-  const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}`);
-  if (!res.ok) throw new Error("Failed to load text");
-  const textData = await res.json();
-
-  // Server may return { ok: true, text: {...} } or a flat text object
-  const t = (textData && textData.text) ? textData.text : textData;
+  let t;
+  if (LOCAL_MODE) {
+    const ldb = await ensureLocalDB();
+    t = await ldb.getTextById(textId);
+    if (!t) throw new Error("Text not found");
+  } else {
+    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}`);
+    if (!res.ok) throw new Error("Failed to load text");
+    const textData = await res.json();
+    t = (textData && textData.text) ? textData.text : textData;
+  }
 
   // Update header
   if (header) {
@@ -7908,11 +7962,16 @@ async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex)
   }
 
     // Load sentences (rows)
-const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/sentences`);
-if (!rowsRes.ok) throw new Error("Failed to load sentences");
-
-const rowsData = await rowsRes.json();
-const rows = rowsData.sentences || rowsData.rows || [];
+let rows;
+if (LOCAL_MODE) {
+  const ldb = await ensureLocalDB();
+  rows = await ldb.getSentences(textId);
+} else {
+  const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/sentences`);
+  if (!rowsRes.ok) throw new Error("Failed to load sentences");
+  const rowsData = await rowsRes.json();
+  rows = rowsData.sentences || rowsData.rows || [];
+}
 
 // After rows loaded: update header rows count with actual loaded rows
 if (header) {
@@ -7949,11 +8008,17 @@ if (header) {
 
     // Load notes for this text
     try {
-      const notesRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/notes`);
-      if (notesRes.ok) {
-        const notesData = await notesRes.json();
-        if (typeof v3NotesIngest === "function") {
-          v3NotesIngest(textId, notesData.notes || []);
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        const notes = await ldb.listNotes(textId);
+        if (typeof v3NotesIngest === "function") v3NotesIngest(textId, notes);
+      } else {
+        const notesRes = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/notes`);
+        if (notesRes.ok) {
+          const notesData = await notesRes.json();
+          if (typeof v3NotesIngest === "function") {
+            v3NotesIngest(textId, notesData.notes || []);
+          }
         }
       }
     } catch (e) { /* notes optional */ }
@@ -10098,8 +10163,15 @@ async function v3DeeplinkResolveTarget(target) {
         // PATCH-03: Call backend API to resolve sentenceId -> textId
         console.log("[NAV-DEEPLINK] Resolving sentence via /api/nav/resolve...");
         try {
-          const resolveRes = await fetch(`/api/nav/resolve?type=sentence&id=${encodeURIComponent(id)}`);
-          const resolveData = await resolveRes.json();
+          let resolveData;
+          if (LOCAL_MODE) {
+            const ldb = await ensureLocalDB();
+            const row = await ldb.resolveSentence(id);
+            resolveData = row ? { ok: true, textId: row.text_id } : { ok: false, error: "NOT_FOUND" };
+          } else {
+            const resolveRes = await fetch(`/api/nav/resolve?type=sentence&id=${encodeURIComponent(id)}`);
+            resolveData = await resolveRes.json();
+          }
           if (resolveData && resolveData.ok && resolveData.textId) {
             resolvedTextId = resolveData.textId;
             console.log("[NAV-DEEPLINK] Resolved textId:", resolvedTextId);
@@ -10176,8 +10248,15 @@ async function v3DeeplinkResolveTarget(target) {
         // PATCH-03: Call backend API to resolve noteId -> textId + sentenceId
         console.log("[NAV-DEEPLINK] Resolving note via /api/nav/resolve...");
         try {
-          const resolveRes = await fetch(`/api/nav/resolve?type=note&id=${encodeURIComponent(id)}`);
-          const resolveData = await resolveRes.json();
+          let resolveData;
+          if (LOCAL_MODE) {
+            const ldb = await ensureLocalDB();
+            const row = await ldb.resolveNote(id);
+            resolveData = row ? { ok: true, textId: row.text_id, sentenceId: row.sentence_id } : { ok: false, error: "NOT_FOUND" };
+          } else {
+            const resolveRes = await fetch(`/api/nav/resolve?type=note&id=${encodeURIComponent(id)}`);
+            resolveData = await resolveRes.json();
+          }
           if (resolveData && resolveData.ok && resolveData.textId) {
             noteTextId = resolveData.textId;
             if (!noteSentenceId && resolveData.sentenceId) {
@@ -13161,10 +13240,16 @@ updatePlaylistButtonUI();
             if (String(meta.textId || "") !== String(textId)) return false;
             if (String(meta.sourceText || "").trim() !== String(currentText || "").trim()) return false;
 
-            const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(String(textId))}/sentences`);
-            if (!rowsRes.ok) throw new Error("Failed to restore saved rows");
-            const rowsData = await rowsRes.json();
-            const rows = Array.isArray(rowsData.sentences || rowsData.rows) ? (rowsData.sentences || rowsData.rows) : [];
+            let rows;
+            if (LOCAL_MODE) {
+              const ldb = await ensureLocalDB();
+              rows = await ldb.getSentences(String(textId));
+            } else {
+              const rowsRes = await fetch(`/api/library/texts/${encodeURIComponent(String(textId))}/sentences`);
+              if (!rowsRes.ok) throw new Error("Failed to restore saved rows");
+              const rowsData = await rowsRes.json();
+              rows = Array.isArray(rowsData.sentences || rowsData.rows) ? (rowsData.sentences || rowsData.rows) : [];
+            }
             if (!rows.length) return false;
 
             currentTableData = rows.map((r) => v3MapSentenceApiRowToUiRow(r, textId));
