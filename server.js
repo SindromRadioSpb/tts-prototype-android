@@ -1885,6 +1885,10 @@ function v3BackoffDelayMs(attempt, baseDelayMs, maxDelayMs) {
 
 function v3AudioPrefetchIsAllowed(req) {
   if (process.env.ALLOW_REMOTE_AUDIO_PREFETCH === "1") return true;
+  // Browser running with ?localMode=1 sends X-Local-Mode: 1 — that user manages
+  // their own data in OPFS and drives prefetch from a single browser session,
+  // so allowing it here is comparable to clicking Play 100 times in a row.
+  if (req && req.headers && String(req.headers["x-local-mode"] || "") === "1") return true;
   // reuse existing local-only check
   if (typeof ankiIsLocalHttpRequest === "function") return ankiIsLocalHttpRequest(req);
   return false;

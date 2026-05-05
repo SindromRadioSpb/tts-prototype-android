@@ -8640,10 +8640,11 @@ async function v3AnkiConnectDirect(action, params) {
   return j && j.result;
 }
 
-// Browser-side Anki push for LOCAL_MODE. Reads text/sentences/notes from OPFS,
-// creates the deck (idempotent), then sends one batched `addNotes` call.
-// Uses Anki's built-in "Basic" model to avoid model-creation roundtrips
-// (the LinguistPro custom model needs server-side helpers).
+// Browser-side Anki push for LOCAL_MODE.
+// Reads text/sentences/notes from OPFS, picks a sensible "Basic"-like model
+// from the user's actual Anki (handles localized field names like
+// "Лицевая сторона"/"Тыльная сторона" in Russian Anki), creates the deck
+// (idempotent), and sends a batched `addNotes` call.
 async function v3AnkiPushLocalMode(textId, opts) {
   const ldb = await ensureLocalDB();
   const text = await ldb.getTextById(textId);
@@ -8658,6 +8659,26 @@ async function v3AnkiPushLocalMode(textId, opts) {
   const finalDeck = deckName || 'LinguistPro::SRS';
   await v3AnkiConnectDirect('createDeck', { deck: finalDeck });
 
+  // Resolve a real model + its actual field names. Anki's "Basic" model in
+  // localized installations uses translated field names (e.g. "Лицевая
+  // сторона"/"Тыльная сторона" in Russian), so hardcoded "Front"/"Back" leaves
+  // every field empty → "cannot create note because it is empty".
+  const allModels = await v3AnkiConnectDirect('modelNames');
+  if (!allModels || !allModels.length) {
+    throw new Error('В Anki нет моделей. Откройте Anki хотя бы один раз для инициализации.');
+  }
+  const lowerModels = allModels.map((m) => String(m).toLowerCase());
+  let modelName = allModels.find((_, i) => lowerModels[i] === 'basic')
+    || allModels.find((_, i) => lowerModels[i].startsWith('basic'))
+    || allModels.find((_, i) => /базов/i.test(allModels[i]))
+    || allModels[0];
+  const fieldNames = await v3AnkiConnectDirect('modelFieldNames', { modelName });
+  if (!Array.isArray(fieldNames) || !fieldNames.length) {
+    throw new Error('Не удалось получить поля модели "' + modelName + '"');
+  }
+  const frontField = fieldNames[0];
+  const backField  = fieldNames[1] || fieldNames[0];
+
   const frontMode = (opts && opts.frontMode) || 'plain';
   const includeHint = !!(opts && opts.includeHint);
 
@@ -8667,7 +8688,24 @@ async function v3AnkiPushLocalMode(textId, opts) {
   const titleTag = String(text.title || 'untitled')
     .toLowerCase().replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '').slice(0, 40);
 
-  const ankiNotes = sentences.map((s) => {
+  // Skip empty/whitespace-only sentences. Track them so the toast is honest.
+  const skippedEmpty = [];
+  const validSentences = sentences.filter((s) => {
+    const heFront = frontMode === 'niqqud'
+      ? (s.he_niqqud || s.he_plain || '')
+      : (s.he_plain || '');
+    const back = (s.ru || '') + (s.translit || '') + (s.translit_ru || '');
+    if (!String(heFront).trim() && !String(back).trim()) {
+      skippedEmpty.push(s.id);
+      return false;
+    }
+    return true;
+  });
+  if (!validSentences.length) {
+    throw new Error('Все строки текста пустые — нечего экспортировать.');
+  }
+
+  const ankiNotes = validSentences.map((s) => {
     const heFront = frontMode === 'niqqud'
       ? (s.he_niqqud || s.he_plain || '')
       : (s.he_plain || '');
@@ -8677,22 +8715,44 @@ async function v3AnkiPushLocalMode(textId, opts) {
     if (includeHint && noteBySid[s.id]) {
       back += `<hr><b>Note:</b> ${escapeHtml(noteBySid[s.id])}`;
     }
+    const fields = {};
+    // Front gets Hebrew (or RU as fallback for rows that have only RU).
+    fields[frontField] = escapeHtml(heFront) || escapeHtml(s.ru || '') || '&nbsp;';
+    fields[backField]  = back || '&nbsp;';
     return {
       deckName: finalDeck,
-      modelName: 'Basic',
-      fields: { Front: escapeHtml(heFront), Back: back || '&nbsp;' },
+      modelName,
+      fields,
       options: { allowDuplicate: false, duplicateScope: 'deck' },
       tags: ['linguistpro', titleTag || 'untitled'],
     };
   });
 
   // addNotes returns an array of note IDs; null entries mean the note was
-  // rejected (most often duplicate).
+  // rejected. canAddNotes lets us pre-flight which entries Anki considers
+  // duplicates so the toast can distinguish duplicates from real failures.
+  let canAdd = [];
+  try {
+    canAdd = await v3AnkiConnectDirect('canAddNotes', { notes: ankiNotes });
+  } catch (_) {}
   const result = await v3AnkiConnectDirect('addNotes', { notes: ankiNotes });
   const arr = Array.isArray(result) ? result : [];
   const created = arr.filter((x) => x != null).length;
-  const skipped = arr.length - created;
-  return { created, updated: 0, audioQueued: 0, skipped, deckName: finalDeck };
+  let duplicates = 0;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] == null && Array.isArray(canAdd) && canAdd[i] === false) duplicates++;
+  }
+  const failedOther = arr.length - created - duplicates;
+  return {
+    created,
+    updated: 0,
+    audioQueued: 0,
+    duplicates,
+    skipped: skippedEmpty.length,
+    failedOther,
+    deckName: finalDeck,
+    modelName,
+  };
 }
 
 async function v3SrsAnkiCheckConnect(verbose) {
@@ -8757,13 +8817,30 @@ async function v3IdeSrsAnkiPreview(cardId) {
 async function v3IdeSrsExportAnki(cardId) {
   try {
     if (LOCAL_MODE) {
-      window.alert(
-        "Прямой экспорт в Anki из ?localMode=1 пока не реализован.\n\n" +
-        "Health-check (Tools → Anki → «Проверить AnkiConnect») уже работает " +
-        "напрямую из браузера, если в AnkiConnect добавлен origin «" + location.origin + "» " +
-        "(Anki → Tools → Add-ons → AnkiConnect → Config → webCorsOriginList).\n\n" +
-        "Полный экспорт карточек — пока через локальный запуск сервера или будет добавлен в следующем релизе."
-      );
+      try {
+        const ldb = await ensureLocalDB();
+        const cards = await ldb.srs.listCards({ limit: 5000 });
+        const card = cards.find((c) => String(c.id) === String(cardId));
+        const sentenceId = card && card.source_sentence_id ? String(card.source_sentence_id) : "";
+        if (!sentenceId) throw new Error("Карточка не найдена или не привязана к предложению.");
+        const sentRow = await ldb.resolveSentence(sentenceId);
+        const tid = sentRow && sentRow.text_id ? String(sentRow.text_id) : "";
+        if (!tid) throw new Error("Не удалось определить text для карточки.");
+        const s = await v3AnkiPushLocalMode(tid, { deckName: 'LinguistPro::SRS', frontMode: 'plain', includeHint: false });
+        const parts = [`создано ${s.created}`];
+        if (s.duplicates) parts.push(`дубликатов ${s.duplicates}`);
+        if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
+        if (typeof showToast === "function") {
+          showToast(`Anki (${s.modelName}): ${parts.join(", ")}`, "success");
+        }
+        v3IdeRefreshInspector();
+      } catch (e) {
+        let msg = String((e && e.message) || e);
+        if (/failed to fetch|networkerror|cors/i.test(msg)) {
+          msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect.`;
+        }
+        window.alert("Ошибка экспорта в Anki: " + msg);
+      }
       return;
     }
     const health = await v3SrsAnkiCheckConnect(false);
@@ -16845,10 +16922,14 @@ async function v3ClassicEnrichSavedRows(textId) {
     if (!textId) return;
 
     // 1. Fetch saved sentences (ordered by order_index)
-    let sentences;
+    let sentences, audioMap = {};
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
       sentences = await ldb.getSentences(String(textId));
+      // sentences table doesn't carry audio_asset_key directly — it lives in
+      // audio_assets joined via sentence_audio. Pull the default asset map so
+      // the audio-cache color indicator can light up green for cached rows.
+      try { audioMap = await ldb.getDefaultAudioMap(String(textId)); } catch (_) {}
     } else {
       const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/sentences");
       sentences = (res && Array.isArray(res.sentences)) ? res.sentences : [];
@@ -16862,7 +16943,7 @@ async function v3ClassicEnrichSavedRows(textId) {
         if (!row) return;
         row._v3_textId          = String(textId);
         row._v3_sentenceId      = String(s.id || "");
-        row._v3_audioAssetKey   = String(s.audio_asset_key || "");
+        row._v3_audioAssetKey   = String(s.audio_asset_key || (audioMap && audioMap[s.id]) || "");
         row._v3_audioTtsProfileJson = String(s.audio_tts_profile_json || "");
       });
     }
@@ -17826,13 +17907,19 @@ async function v3SrsTrainerHydrateCurrent() {
   if (LOCAL_MODE) {
     // Trainer-view payload (audio prompt etc.) is server-derived; in local mode
     // we surface the raw card text and let reveal mode handle the rest.
-    const c = current && current.card;
-    if (c) {
+    // After v3SrsTrainerMapLocalCard, sentence text lives on current.sentence
+    // (camelCase), not on current.card directly.
+    const s = current && current.sentence;
+    if (s) {
       v3SrsTrainerState.trainer = {
-        promptText: String(c.he_plain || ""),
+        mode: v3SrsTrainerState.mode || "reveal",
+        promptText: String(s.heNiqqud || s.hePlain || ""),
         promptLang: "he",
-        audioAssetKey: "",
-        expectedAnswer: String(c.ru || ""),
+        answerText: String(s.ru || ""),
+        answerLang: "ru",
+        supportText: String(s.translit || ""),
+        audioAssetKey: String(s.audioAssetKey || ""),
+        expectedAnswer: String(s.ru || ""),
       };
     }
     return;
@@ -18052,7 +18139,18 @@ async function v3SrsTrainerRefresh() {
     let summary;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
-      summary = await ldb.srs.todaySummary();
+      const raw = await ldb.srs.todaySummary();
+      // local-db returns { total, new_count, learning_count, review_count };
+      // the trainer UI expects { dueCount, byState: { new, learning, relearning, review } }.
+      summary = {
+        dueCount: Number(raw.total || 0),
+        byState: {
+          new: Number(raw.new_count || 0),
+          learning: Number(raw.learning_count || 0),
+          relearning: 0,
+          review: Number(raw.review_count || 0),
+        },
+      };
     } else {
       const res = await v3GetJson(`/api/srs/today/summary?templateCode=${encodeURIComponent(v3SrsTrainerState.templateCode)}`);
       summary = res.summary || null;
@@ -18087,6 +18185,41 @@ function v3SrsTrainerClose() {
   modal.classList.add("hidden");
 }
 
+// Reshape a local-db SRS card row (snake_case, joined sentence fields) into
+// the { card: {…, template: {…}}, sentence: {…camelCase} } shape that the
+// trainer UI expects from the server. Returns null for null input.
+function v3SrsTrainerMapLocalCard(rawCard) {
+  if (!rawCard) return null;
+  return {
+    card: {
+      id: rawCard.id,
+      state: rawCard.state,
+      due_date: rawCard.due_date,
+      interval_days: rawCard.interval_days,
+      ease_factor: rawCard.ease_factor,
+      lapses: rawCard.lapses,
+      reps: rawCard.reps,
+      template: {
+        code: rawCard.template_code,
+        label: rawCard.template_label || rawCard.template_code,
+        front_schema_json: rawCard.front_schema_json,
+        back_schema_json: rawCard.back_schema_json,
+        answer_mode: rawCard.answer_mode || 'reveal',
+      },
+    },
+    sentence: {
+      id: rawCard.source_sentence_id,
+      hePlain: rawCard.he_plain || '',
+      heNiqqud: rawCard.he_niqqud || '',
+      translit: rawCard.translit || '',
+      translitRu: rawCard.translit_ru || '',
+      ru: rawCard.ru || '',
+      textTitle: rawCard.text_title || '',
+      audioAssetKey: '',
+    },
+  };
+}
+
 async function v3SrsTrainerStart() {
   try {
     const source = document.body.classList.contains("v3-ide-mode") ? "ide" : "classic";
@@ -18095,10 +18228,11 @@ async function v3SrsTrainerStart() {
       const ldb = await ensureLocalDB();
       const sess = await ldb.srs.createSession({ mode: v3SrsTrainerState.mode || "reveal", source });
       const next = await ldb.srs.getSessionNext(sess.id);
+      const mapped = next ? v3SrsTrainerMapLocalCard(next.card) : null;
       res = {
-        session: { id: sess.id, status: 'active', cards_total: sess.cards_total, current_index: 0 },
-        current: next ? { card: next.card } : null,
-        progress: { index: 0, total: sess.cards_total },
+        session: { id: sess.id, status: 'active', cardsTotal: sess.cards_total, current_index: 0, reviewsDone: 0 },
+        current: mapped,
+        progress: { completed: 0, total: sess.cards_total, remaining: sess.cards_total },
       };
     } else {
       res = await v3PostJson("/api/srs/sessions", {
@@ -18185,8 +18319,8 @@ async function v3SrsTrainerCheckAnswer() {
     let res;
     if (LOCAL_MODE) {
       // Local mode: simple correctness heuristic — exact match against expected answer.
-      const card = v3SrsTrainerState.current.card;
-      const expected = String(card.ru || card.he_plain || "").trim().toLowerCase();
+      const s = v3SrsTrainerState.current && v3SrsTrainerState.current.sentence;
+      const expected = String((s && (s.ru || s.hePlain)) || "").trim().toLowerCase();
       const got = String(answer || "").trim().toLowerCase();
       const correct = !!expected && got === expected;
       res = { ok: true, correct, expected, latencyMs };
@@ -18219,10 +18353,13 @@ async function v3SrsTrainerReview(rating) {
       if (cardId) await ldb.srs.reviewSessionNext(v3SrsTrainerState.sessionId, cardId, Number(rating));
       const next = await ldb.srs.getSessionNext(v3SrsTrainerState.sessionId);
       const sess = await ldb.srs.getSession(v3SrsTrainerState.sessionId);
+      const mapped = next ? v3SrsTrainerMapLocalCard(next.card) : null;
+      const completed = Number(sess && sess.current_index || 0);
+      const total = Number(sess && sess.cards_total || 0);
       res = {
-        next: next ? { card: next.card } : null,
-        progress: { index: sess.current_index, total: sess.cards_total },
-        session: sess,
+        next: mapped,
+        progress: { completed, total, remaining: Math.max(0, total - completed) },
+        session: { id: sess && sess.id, status: sess && sess.status, cardsTotal: total, reviewsDone: Number(sess && sess.reviews_done || 0) },
       };
     } else {
       res = await v3PostJson(`/api/srs/sessions/${encodeURIComponent(v3SrsTrainerState.sessionId)}/review`, {
@@ -18264,13 +18401,30 @@ async function v3SrsTrainerExportAnki() {
     const cardId = current && current.card && current.card.id ? String(current.card.id) : "";
     if (!cardId) return;
     if (LOCAL_MODE) {
-      window.alert(
-        "Прямой экспорт в Anki из ?localMode=1 пока не реализован.\n\n" +
-        "Health-check (Tools → Anki → «Проверить AnkiConnect») уже работает " +
-        "напрямую из браузера, если в AnkiConnect добавлен origin «" + location.origin + "» " +
-        "(Anki → Tools → Add-ons → AnkiConnect → Config → webCorsOriginList).\n\n" +
-        "Полный экспорт карточек — пока через локальный запуск сервера или будет добавлен в следующем релизе."
-      );
+      // Single-card export: derive textId from the card's source_sentence_id,
+      // call v3AnkiPushLocalMode (which handles the whole text), then report.
+      try {
+        const ldb = await ensureLocalDB();
+        const card = current.card;
+        const sentenceId = String(card.source_sentence_id || "");
+        if (!sentenceId) throw new Error("Эта карточка не привязана к предложению.");
+        const sentRow = await ldb.resolveSentence(sentenceId);
+        const tid = sentRow && sentRow.text_id ? String(sentRow.text_id) : "";
+        if (!tid) throw new Error("Не удалось определить text для карточки.");
+        const s = await v3AnkiPushLocalMode(tid, { deckName: 'LinguistPro::SRS', frontMode: 'plain', includeHint: false });
+        const parts = [`создано ${s.created}`];
+        if (s.duplicates) parts.push(`дубликатов ${s.duplicates}`);
+        if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
+        if (typeof showToast === "function") {
+          showToast(`Anki (${s.modelName}): ${parts.join(", ")}`, "success");
+        }
+      } catch (e) {
+        let msg = String((e && e.message) || e);
+        if (/failed to fetch|networkerror|cors/i.test(msg)) {
+          msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect.`;
+        }
+        window.alert("Ошибка экспорта в Anki: " + msg);
+      }
       return;
     }
     const health = await v3SrsAnkiCheckConnect(false);
@@ -22721,6 +22875,10 @@ async function v3AudioPrefetchHttpJson(method, url, bodyObj) {
     init.headers["Content-Type"] = "application/json; charset=utf-8";
     init.body = JSON.stringify(bodyObj || {});
   }
+  // Pass LOCAL_MODE marker so the server allows browser-driven batch prefetch
+  // even when running on a public host (Railway). Server treats it as a soft
+  // opt-in like ALLOW_REMOTE_AUDIO_PREFETCH=1, but only for the current request.
+  if (LOCAL_MODE) init.headers["X-Local-Mode"] = "1";
   const res = await fetch(url, init);
 
   let j = null;
@@ -23508,8 +23666,13 @@ async function v3AnkiPushNow() {
       // Browser → AnkiConnect direct (Railway has no copy of the OPFS text).
       try {
         const s = await v3AnkiPushLocalMode(exportId, payload);
-        const msg = `Готово (deck "${s.deckName}"): создано ${s.created}, пропущено как дубликаты ${s.skipped}.` +
-          ` Модель: Basic. Аудио экспорт пока не реализован в локальном режиме.`;
+        const parts = [];
+        parts.push(`создано ${s.created}`);
+        if (s.duplicates) parts.push(`дубликатов ${s.duplicates}`);
+        if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
+        if (s.failedOther) parts.push(`прочих ошибок ${s.failedOther}`);
+        const msg = `Готово (deck "${s.deckName}", модель "${s.modelName}"): ${parts.join(", ")}.` +
+          ` Аудио экспорт пока не реализован в локальном режиме.`;
         v3AnkiSetStatus(msg, false);
         if (typeof showToast === "function") showToast("Экспорт в Anki выполнен", "success");
       } catch (e) {
