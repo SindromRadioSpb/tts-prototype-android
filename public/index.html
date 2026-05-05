@@ -8629,13 +8629,69 @@ function v3SrsAnkiFormatThrownError(e) {
 
 // Talks to AnkiConnect directly from the browser. Used when LOCAL_MODE is on
 // (Railway-hosted server cannot reach the user's local 127.0.0.1:8765, only
-// the user's own browser can). Returns { ok, version, details }.
+// the user's own browser can). Returns the parsed `result` field of the
+// JSON-RPC response, or throws with the AnkiConnect error string.
 async function v3AnkiConnectDirect(action, params) {
   const body = JSON.stringify({ action, version: 6, params: params || {} });
   const r = await fetch("http://127.0.0.1:8765", { method: "POST", body });
   const j = await r.json();
   if (j && j.error) throw new Error(String(j.error));
   return j && j.result;
+}
+
+// Browser-side Anki push for LOCAL_MODE. Reads text/sentences/notes from OPFS,
+// creates the deck (idempotent), then sends one batched `addNotes` call.
+// Uses Anki's built-in "Basic" model to avoid model-creation roundtrips
+// (the LinguistPro custom model needs server-side helpers).
+async function v3AnkiPushLocalMode(textId, opts) {
+  const ldb = await ensureLocalDB();
+  const text = await ldb.getTextById(textId);
+  if (!text) throw new Error('Text not found in local DB: ' + textId);
+  const sentences = await ldb.getSentences(textId);
+  if (!sentences.length) throw new Error('Text has no sentences to export');
+  const noteRows = await ldb.listNotes(textId);
+  const noteBySid = {};
+  for (const n of noteRows) noteBySid[n.sentence_id] = n.note;
+
+  const deckName = (opts && opts.deckName) ? String(opts.deckName).trim() : '';
+  const finalDeck = deckName || 'LinguistPro::SRS';
+  await v3AnkiConnectDirect('createDeck', { deck: finalDeck });
+
+  const frontMode = (opts && opts.frontMode) || 'plain';
+  const includeHint = !!(opts && opts.includeHint);
+
+  const escapeHtml = (s) => String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const titleTag = String(text.title || 'untitled')
+    .toLowerCase().replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+
+  const ankiNotes = sentences.map((s) => {
+    const heFront = frontMode === 'niqqud'
+      ? (s.he_niqqud || s.he_plain || '')
+      : (s.he_plain || '');
+    let back = escapeHtml(s.ru || '');
+    if (s.translit) back += `<br><i>${escapeHtml(s.translit)}</i>`;
+    if (s.translit_ru) back += `<br><span style="color:#64748b;">${escapeHtml(s.translit_ru)}</span>`;
+    if (includeHint && noteBySid[s.id]) {
+      back += `<hr><b>Note:</b> ${escapeHtml(noteBySid[s.id])}`;
+    }
+    return {
+      deckName: finalDeck,
+      modelName: 'Basic',
+      fields: { Front: escapeHtml(heFront), Back: back || '&nbsp;' },
+      options: { allowDuplicate: false, duplicateScope: 'deck' },
+      tags: ['linguistpro', titleTag || 'untitled'],
+    };
+  });
+
+  // addNotes returns an array of note IDs; null entries mean the note was
+  // rejected (most often duplicate).
+  const result = await v3AnkiConnectDirect('addNotes', { notes: ankiNotes });
+  const arr = Array.isArray(result) ? result : [];
+  const created = arr.filter((x) => x != null).length;
+  const skipped = arr.length - created;
+  return { created, updated: 0, audioQueued: 0, skipped, deckName: finalDeck };
 }
 
 async function v3SrsAnkiCheckConnect(verbose) {
@@ -23359,6 +23415,26 @@ async function v3AnkiPushNow() {
 
   try {
     v3AnkiSetStatus("Экспортирую в Anki… (создаю/обновляю карточки)", false);
+
+    if (LOCAL_MODE) {
+      // Browser → AnkiConnect direct (Railway has no copy of the OPFS text).
+      try {
+        const s = await v3AnkiPushLocalMode(exportId, payload);
+        const msg = `Готово (deck "${s.deckName}"): создано ${s.created}, пропущено как дубликаты ${s.skipped}.` +
+          ` Модель: Basic. Аудио экспорт пока не реализован в локальном режиме.`;
+        v3AnkiSetStatus(msg, false);
+        if (typeof showToast === "function") showToast("Экспорт в Anki выполнен", "success");
+      } catch (e) {
+        let msg = String((e && e.message) || e);
+        if (/failed to fetch|networkerror|cors/i.test(msg)) {
+          msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect ` +
+                 `(Anki → Tools → Add-ons → AnkiConnect → Config) и перезапустите Anki.`;
+        }
+        v3AnkiSetStatus(`Ошибка экспорта: ${msg}`, true);
+        if (typeof showToast === "function") showToast("Ошибка экспорта в Anki", "error");
+      }
+      return;
+    }
 
     const r = await fetch(`/api/library/texts/${encodeURIComponent(exportId)}/push/anki`, {
       method: "POST",
