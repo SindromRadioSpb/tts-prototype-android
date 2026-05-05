@@ -19,7 +19,8 @@
 import {
   initLocalDB, createText, listTexts, getSentences, addSentence,
   upsertNote, listNotes, setProgress, getProgress, recordEvent,
-  recentActivity, deleteText, dbDiag, reorderSentences
+  recentActivity, deleteText, dbDiag, reorderSentences,
+  upsertAudioAsset, linkSentenceAudio, getDefaultAudioMap
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -204,11 +205,74 @@ async function run() {
     out('err', '❌ ТЕСТ 10 ПРОВАЛЕН: ' + e.message);
   }
 
+  // ── ТЕСТ 11: audio_asset_key выживает reload (Bug 1+2 регрессия) ──
+  // Проверяет, что после `upsertAudioAsset` + `linkSentenceAudio` поле
+  // `audio_asset_key` приходит обратно из `getSentences` И из
+  // `getDefaultAudioMap` — это то, что нужно классическому table-marker'у,
+  // чтобы зеленить кружочек после reload или повторной загрузки текста.
+  const audioTextId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 11: audio asset link survives «reload» (getSentences JOIN + getDefaultAudioMap)...');
+    await createText({
+      id: audioTextId,
+      text_key: 'audio-survive-' + Date.now(),
+      title: 'Audio link survival regression',
+      source_text: 'שלום\nתודה',
+      tags_json: '[]',
+    });
+    const s1 = crypto.randomUUID();
+    const s2 = crypto.randomUUID();
+    await addSentence(audioTextId, { id: s1, he_plain: 'שלום', ru: 'привет' });
+    await addSentence(audioTextId, { id: s2, he_plain: 'תודה', ru: 'спасибо' });
+
+    // Имитируем то, что делает v3RowTtsTrackPlay при play в LOCAL_MODE
+    const fakeProfile = JSON.stringify({ language: 'he-IL', voiceName: 'iw-IL-Wavenet-A', speakingRate: 1, pitch: 0 });
+    const a1 = await upsertAudioAsset({
+      id: crypto.randomUUID(),
+      asset_key: 'fakeAssetKey1_' + Date.now(),
+      asset_type: 'row',
+      relative_path: 'audio-cache/fakeAssetKey1.mp3',
+      mime: 'audio/mpeg',
+      tts_profile_json: fakeProfile,
+    });
+    const a2 = await upsertAudioAsset({
+      id: crypto.randomUUID(),
+      asset_key: 'fakeAssetKey2_' + Date.now(),
+      asset_type: 'row',
+      relative_path: 'audio-cache/fakeAssetKey2.mp3',
+      mime: 'audio/mpeg',
+      tts_profile_json: fakeProfile,
+    });
+    await linkSentenceAudio(s1, a1.id, 1);
+    await linkSentenceAudio(s2, a2.id, 1);
+
+    // А теперь — артефакт: getSentences (после моего LEFT JOIN) должен
+    // отдавать audio_asset_key прямо в строке, без отдельного getDefaultAudioMap.
+    const reloaded = await getSentences(audioTextId);
+    if (reloaded.length !== 2) throw new Error('Ожидалось 2 предложения, получено ' + reloaded.length);
+    for (const s of reloaded) {
+      if (!s.audio_asset_key) throw new Error('audio_asset_key не пришёл из getSentences для ' + s.he_plain);
+      if (!s.audio_tts_profile_json) throw new Error('audio_tts_profile_json не пришёл для ' + s.he_plain);
+    }
+    // Проверка getDefaultAudioMap (его использует v3ClassicEnrichSavedRows fallback)
+    const map = await getDefaultAudioMap(audioTextId);
+    if (!map[s1] || !map[s2]) throw new Error('getDefaultAudioMap пропустил один из sentence_id');
+
+    out('ok', '✅ ТЕСТ 11 ПРОШЁЛ: audio link survives reload', {
+      sentenceCount: reloaded.length,
+      audioKeysFromGetSentences: reloaded.map(s => `${s.he_plain}: ${s.audio_asset_key}`),
+      audioKeysFromGetDefaultAudioMap: Object.entries(map),
+    });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 11 ПРОВАЛЕН: ' + e.message);
+  }
+
   // ── Cleanup ───────────────────────────────────────────────────────────
   try {
     await deleteText(testId);
     await deleteText(saveAsNewId);
     await deleteText(reorderTextId);
+    await deleteText(audioTextId);
     out('inf', '(тестовые данные удалены)');
   } catch(e) { /* ignore */ }
 

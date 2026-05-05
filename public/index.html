@@ -8737,22 +8737,40 @@ async function v3AnkiPushLocalMode(textId, opts) {
     };
   });
 
-  // canAddNotes pre-flight lets us split duplicates from real failures (and
-  // skip the addNotes call entirely if every note is a duplicate, which
-  // would otherwise make some AnkiConnect forks return a per-note error
-  // array and look like a global failure).
+  // Anki's Note model dedupes at *collection* level (the Note's first field
+  // hash is unique across the whole collection). So even when the user picks
+  // a brand-new deck, "addNotes" still reports duplicates if those Notes were
+  // ever created before. Strategy:
+  //   1) Pre-flight with canAddNotes + duplicateScope: 'deck' to learn which
+  //      notes Anki would refuse.
+  //   2) Add the new ones via addNotes.
+  //   3) For duplicates, locate the existing Notes by first-field text + tag,
+  //      gather their Cards, and changeDeck them to the target deck — so the
+  //      "Export" semantic is honoured: cards end up in the named deck.
   let canAdd = [];
-  try { canAdd = await v3AnkiConnectDirect('canAddNotes', { notes: ankiNotes }); } catch (_) {}
+  try {
+    canAdd = await v3AnkiConnectDirect('canAddNotes', {
+      notes: ankiNotes.map((n) => ({ ...n, options: { ...(n.options || {}), duplicateScope: 'deck', duplicateScopeOptions: { deckName: finalDeck, checkChildren: false, checkAllModels: false } } })),
+    });
+  } catch (_) {}
 
   const sendable = [];
-  const sendableIdx = [];
+  const dupQueries = []; // { idx, frontText } for moving existing cards later
   let preDuplicates = 0;
   for (let i = 0; i < ankiNotes.length; i++) {
     if (Array.isArray(canAdd) && canAdd[i] === false) {
       preDuplicates++;
+      const frontVal = ankiNotes[i].fields[frontField];
+      dupQueries.push({ idx: i, frontText: String(frontVal || '') });
     } else {
-      sendable.push(ankiNotes[i]);
-      sendableIdx.push(i);
+      sendable.push({
+        ...ankiNotes[i],
+        options: {
+          ...(ankiNotes[i].options || {}),
+          duplicateScope: 'deck',
+          duplicateScopeOptions: { deckName: finalDeck, checkChildren: false, checkAllModels: false },
+        },
+      });
     }
   }
 
@@ -8763,8 +8781,6 @@ async function v3AnkiPushLocalMode(textId, opts) {
       const result = await v3AnkiConnectDirect('addNotes', { notes: sendable });
       arr = Array.isArray(result) ? result : [];
     } catch (e) {
-      // Per-note error arrays (some forks return them in `error`) shouldn't
-      // surface as global failure — read them back so we can count properly.
       if (e && Array.isArray(e.perNote)) {
         perNoteErrors = e.perNote;
         arr = Array.isArray(e.result) ? e.result : [];
@@ -8786,9 +8802,69 @@ async function v3AnkiPushLocalMode(textId, opts) {
       else failedOther++;
     }
   } else {
-    // No per-note error array — null entries still imply duplicate-ish failure.
     for (let i = 0; i < arr.length; i++) {
       if (arr[i] == null) runtimeDuplicates++;
+    }
+  }
+
+  // For collection-level duplicates: find their Notes, grab their Cards, and
+  // move those cards into the requested deck. This makes "Экспортировать в
+  // deck X" idempotent and predictable even if the Notes already existed in
+  // some other deck.
+  let movedToDeck = 0;
+  let dupNotFound = 0;
+  if (dupQueries.length > 0) {
+    try {
+      const allNoteIds = [];
+      for (const dq of dupQueries) {
+        // Build a safe Anki search: <fieldName>:"text". Anki's lexer accepts
+        // a quoted phrase even with spaces, but a literal " inside must be
+        // doubled (per Anki search docs). Backslashes are also doubled to
+        // be safe.
+        const safeText = String(dq.frontText).replace(/\\/g, '\\\\').replace(/"/g, '""');
+        const fieldQuery = String(frontField).replace(/"/g, '');
+        const query = fieldQuery + ':"' + safeText + '"';
+        let noteIds = [];
+        try {
+          noteIds = await v3AnkiConnectDirect('findNotes', { query });
+        } catch (_) {}
+        if (!Array.isArray(noteIds) || !noteIds.length) {
+          dupNotFound++;
+          continue;
+        }
+        for (const nid of noteIds) allNoteIds.push(nid);
+      }
+      if (allNoteIds.length) {
+        // notesInfo returns each note's `cards: [cardId, ...]` — much simpler
+        // than crafting an OR-chain of nid: queries for findCards.
+        let infos = [];
+        try {
+          infos = await v3AnkiConnectDirect('notesInfo', { notes: allNoteIds });
+        } catch (e) {
+          console.warn('[anki] notesInfo failed:', e && e.message);
+        }
+        const allCardIds = [];
+        for (const ni of (Array.isArray(infos) ? infos : [])) {
+          if (ni && Array.isArray(ni.cards)) {
+            for (const c of ni.cards) allCardIds.push(c);
+          }
+        }
+        if (allCardIds.length) {
+          try {
+            await v3AnkiConnectDirect('changeDeck', { cards: allCardIds, deck: finalDeck });
+            movedToDeck = allCardIds.length;
+          } catch (e) {
+            console.warn('[anki] changeDeck failed:', e && e.message);
+          }
+        }
+        // Always tag the existing notes so they're discoverable as
+        // LinguistPro exports, even if changeDeck failed or wasn't needed.
+        try {
+          await v3AnkiConnectDirect('addTags', { notes: allNoteIds, tags: 'linguistpro ' + (titleTag || 'untitled') });
+        } catch (_) {}
+      }
+    } catch (e) {
+      console.warn('[anki] duplicate-resolution failed:', e && e.message);
     }
   }
 
@@ -8799,6 +8875,8 @@ async function v3AnkiPushLocalMode(textId, opts) {
     duplicates: preDuplicates + runtimeDuplicates,
     skipped: skippedEmpty.length,
     failedOther,
+    movedToDeck,
+    dupNotFound,
     deckName: finalDeck,
     modelName,
   };
@@ -23777,7 +23855,9 @@ async function v3AnkiPushNow() {
         const s = await v3AnkiPushLocalMode(exportId, payload);
         const parts = [];
         parts.push(`создано ${s.created}`);
-        if (s.duplicates) parts.push(`дубликатов ${s.duplicates}`);
+        if (s.movedToDeck) parts.push(`перенесено в этот deck ${s.movedToDeck} card(s)`);
+        if (s.duplicates) parts.push(`дубликатов Note ${s.duplicates}`);
+        if (s.dupNotFound) parts.push(`не найдено в Anki ${s.dupNotFound}`);
         if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
         if (s.failedOther) parts.push(`прочих ошибок ${s.failedOther}`);
         const msg = `Готово (deck "${s.deckName}", модель "${s.modelName}"): ${parts.join(", ")}.` +

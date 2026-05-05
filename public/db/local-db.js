@@ -163,7 +163,20 @@ export async function touchOpened(id) {
 // ── sentences ──────────────────────────────────────────────────────────────
 
 export async function getSentences(textId) {
-  return q('SELECT * FROM sentences WHERE text_id = ? ORDER BY order_index', [textId]);
+  // Join the default audio asset (if any) so callers see audio_asset_key /
+  // audio_tts_profile_json side-by-side with sentence text — matches the
+  // shape that the server-side /api/library/texts/:id/sentences returns.
+  return q(
+    `SELECT s.*,
+            aa.asset_key  AS audio_asset_key,
+            aa.tts_profile_json AS audio_tts_profile_json
+       FROM sentences s
+  LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
+  LEFT JOIN audio_assets   aa ON aa.id = sa.audio_id
+      WHERE s.text_id = ?
+   ORDER BY s.order_index`,
+    [textId]
+  );
 }
 
 export async function addSentence(textId, data) {
