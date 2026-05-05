@@ -1,12 +1,12 @@
 # OPFS + SQLite WASM Migration Plan
 
-## Implementation Status (2026-05-05)
+## Implementation Status (2026-05-06)
 
 **Feature flag `?localMode=1`** (или `localStorage.localMode = '1'`) — при включении весь stateful-доступ идёт в OPFS, минуя Railway.
 
 | Фаза | Статус | Что сделано | Что осталось |
 |------|--------|-------------|--------------|
-| 0 — Инфраструктура | ✅ Done | `public/db/`: wa-sqlite (mjs+wasm), AccessHandlePoolVFS, sqlite-api, migrations (19 шт.), db-worker, local-db API shim, jszip. Тестовая страница `/db/db-init-test.html` — 9 проверок (init, схема, CRUD текста/предложения/заметки/прогресса/события, OPFS persistence, полный save-as-new flow). COOP/COEP заголовки в server.js. | — |
+| 0 — Инфраструктура | ✅ Done | `public/db/`: wa-sqlite (mjs+wasm), AccessHandlePoolVFS, sqlite-api, migrations (19 шт.), db-worker, local-db API shim, jszip. Тестовая страница `/db/db-init-test.html` — 11 проверок (init, схема, CRUD текста/предложения/заметки/прогресса/события, OPFS persistence, save-as-new flow, reorder UNIQUE-конфликта, audio-asset link survival). COOP/COEP заголовки в server.js. | — |
 | 1 — Чтение библиотеки | ✅ Done | listTexts, recentActivity, getTextById, getSentences, listNotes, search (texts/rows/notes), nav resolve (sentence+note), restore-saved-table. Все READ-fetch'и в `index.html` помечены LOCAL_MODE-веткой (~24 точки). | — |
 | 2 — Запись | ✅ Done* | Notes upsert/delete (IDE inline + modal), createText, updateText, deleteText, archiveText, touchOpened, sentence CRUD (edit/reset/delete/add/move/dnd/bulk), pin/unpin, history events fire-and-forget, JSON export/import, bundle export/import (JSON-only локально). *Hotfix 2026-05-05: createText/addSentence теперь имеют defensive null-coercion для `title`/`source_text` (NOT NULL columns) — иначе "Сохранить как новый" падал с constraint-error. | DOCX export через сервер недоступен локально. |
 | 3 — Прогресс/поиск/аналитика | ✅ Done | progress GET+POST (с sendBeacon-bypass в LOCAL_MODE), v3LibraryRefresh + v3LibraryOpenText (text+sentences+notes parallel), dashboard refresh (lib + recent + activity все локально), recent-rows derived из events, text meta save, search via local-db. | Полная аналитика `/api/history/analytics` пока показывает пустое состояние — нужно реализовать локальные агрегаты по `events`. |
@@ -47,11 +47,30 @@
 - Цветовой индикатор аудио-кэша не зеленел после Save-as-New в LOCAL_MODE. Причина — `getSentences()` в OPFS не возвращает `audio_asset_key` (живёт в JOIN'ах `audio_assets` ↔ `sentence_audio`). Fix: `v3ClassicEnrichSavedRows` в LOCAL_MODE дополнительно подтягивает `getDefaultAudioMap(textId)` и сливает asset_key'и в `currentTableData[i]._v3_audioAssetKey`.
 - «Создать аудио» в batch-prefetch падал HTTP 403 на Railway. Причина — `v3AudioPrefetchIsAllowed()` пускал только локальные IP или `ALLOW_REMOTE_AUDIO_PREFETCH=1`. Fix: сервер теперь принимает заголовок `X-Local-Mode: 1` как soft-разрешение (равноценно клику Play в цикле — данные пользователя), браузер шлёт его автоматически в LOCAL_MODE через `v3AudioPrefetchHttpJson`. Пользователю не нужно менять переменные окружения.
 
-**Известные ограничения LOCAL_MODE:**
-- DOCX export (`/api/library/texts/:id/export/docx`) — серверный (читает из server SQLite); не работает в локальном режиме. Чтобы починить, нужен либо клиентский DOCX-генератор, либо stateless POST-эндпоинт, принимающий весь payload.
-- Anki export (`AnkiConnect` / `.apkg` генерация) deferred.
-- Сложная аналитика (`/api/history/analytics`) показывает пустое состояние.
-- `sendBeacon` при `pagehide` не используется — keepalive fetch fallback пишет напрямую в OPFS.
+**Известные ограничения LOCAL_MODE (по фазам):**
+
+*Фаза 2 (запись):*
+- DOCX-экспорт (`/api/library/texts/:id/export/docx`) — серверный (читает из server SQLite); не работает в LOCAL_MODE. Нужен либо клиентский DOCX-генератор, либо stateless POST-эндпоинт, принимающий весь payload в теле.
+
+*Фаза 3 (аналитика):*
+- Полная аналитика (`/api/history/analytics`) показывает пустое состояние. Нужны локальные агрегаты по таблице `events` (по дням / уровням / тегам).
+
+*Фаза 4 (SRS):*
+- Используется встроенная модель Anki **Basic** вместо кастомной `LinguistPro SRS Card v1` (нужен `createModel` с CSS/HTML шаблонами и явными полями: Hebrew / Niqqud / Translit / RU / Note / Audio).
+- `.apkg`-генерация (offline-экспорт без AnkiConnect) deferred.
+- Аудио-экспорт в Anki Notes (через `storeMediaFile` + `[sound:asset.mp3]`) deferred.
+- SRS attempts/check использует exact-match heuristic — нет учёта диакритики, артиклей, регистра.
+
+*Фаза 5 (ZIP-bundle):*
+- Re-upload аудио из импортируемого ZIP обратно в Railway audio-cache не реализован. Если Railway-кэш потерял MP3 (cross-device, redeployment) — ключ попадает в `missing_audio.json`, пользователь должен переTTS-нить.
+
+*Фаза 6 (cleanup):*
+- `localMode` остаётся opt-in (`?localMode=1`) до полноценного dogfooding.
+- Серверные library-routes (`/api/library/*`, `/api/srs/*`, `/api/progress/*`) пока работают параллельно; не удалены и не превращены в опциональный sync для legacy-пользователей.
+- Нет автоматической миграции server-data → OPFS для пользователей, у которых уже есть тексты в Railway DB.
+
+*Прочее:*
+- `sendBeacon` при `pagehide` не используется — keepalive-fetch fallback пишет напрямую в OPFS.
 
 **Как проверить:**
 1. Открыть `<host>/db/db-init-test.html` — должны пройти 9 тестов (включая полный save-as-new flow).
