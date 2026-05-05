@@ -1,5 +1,31 @@
 # OPFS + SQLite WASM Migration Plan
 
+## Implementation Status (2026-05-05)
+
+**Feature flag `?localMode=1`** (или `localStorage.localMode = '1'`) — при включении весь stateful-доступ идёт в OPFS, минуя Railway.
+
+| Фаза | Статус | Что сделано |
+|------|--------|-------------|
+| 0 — Инфраструктура | ✅ Done | `public/db/`: wa-sqlite (mjs+wasm), AccessHandlePoolVFS, sqlite-api, migrations (19 шт.), db-worker, local-db API shim, jszip; тестовая страница `/db/db-init-test.html` (8 проверок); COOP/COEP заголовки в server.js. |
+| 1 — Чтение библиотеки | ✅ Done | listTexts, recentActivity, getTextById, getSentences, listNotes, search (texts/rows/notes), nav resolve (sentence+note), restore-saved-table. |
+| 2 — Запись | ✅ Done | Notes upsert/delete (2 потока), createText, updateText, deleteText, archiveText, touchOpened, sentence CRUD (edit/reset/delete/add/move/dnd/bulk), pin/unpin, history events fire-and-forget, JSON export/import, bundle export/import (JSON-only локально). |
+| 3 — Прогресс/поиск/аналитика | ✅ Done | progress GET+POST (с sendBeacon-bypass), v3LibraryRefresh + v3LibraryOpenText, dashboard refresh (lib + recent + activity локально), recent-rows derived из events, text meta save, search via local-db, аналитика — graceful empty (deferred). |
+| 4 — SRS | 🟡 Partial | templates, today/summary, createCard, reviewCard, sessions create/review/finish, trainer-view (synth), attempts/check (exact-match heuristic). Anki-export → graceful "not available locally" alert. |
+| 5 — ZIP-bundle с аудио | 🟡 Partial | JSON export/import работает в локальном режиме; ZIP с аудио файлами требует JSZip обёртки в local-db (deferred). |
+| 6 — Default-on + cleanup | ⏳ Pending | localMode остаётся opt-in (?localMode=1) до прохождения dogfooding. |
+
+**Известные ограничения LOCAL_MODE:**
+- DOCX export (`/api/library/texts/:id/export/docx`) пока требует серверной библиотеки и не работает локально.
+- Anki export (через AnkiConnect/`apkg`-генерация) deferred.
+- Сложная аналитика (`/api/history/analytics`) показывает пустое состояние.
+- Push-нотификации/sendBeacon при `pagehide` не используются — keepalive fetch fallback пишет напрямую в OPFS.
+
+**Как проверить:**
+1. Открыть `<host>/db/db-init-test.html` — должны пройти 8 тестов.
+2. Открыть основное приложение с `?localMode=1` — Library/Dashboard должны работать против OPFS (создать текст → reload без `?localMode=1` → текста нет в Railway-библиотеке; вернуться на `?localMode=1` → текст на месте).
+
+---
+
 ## Контекст и цель
 
 **Проблема:** При работе через браузер (`https://tts-prototype-android-production1.up.railway.app/`) все данные библиотеки (тексты, предложения, заметки, прогресс, SRS) хранятся в SQLite-базе на сервере Railway, а не на устройстве пользователя. Это подтверждено тестами-артефактами в `tests/storage_location_audit.test.js`.
