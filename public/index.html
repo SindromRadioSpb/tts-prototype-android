@@ -8326,26 +8326,35 @@ async function v3IdeSaveNote(sentenceId) {
   if (!textId || !sentenceId) return;
 
   try {
-    // Use PUT for upsert (empty note = delete on server side)
-    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/notes/${encodeURIComponent(sentenceId)}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ note })
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.deleted || !note) {
-        // Note was deleted
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      if (!note) {
+        await ldb.deleteNote(textId, sentenceId);
         delete v3NotesBySentenceId[sentenceId];
       } else {
-        // Note was saved
+        await ldb.upsertNote(textId, sentenceId, note);
         v3NotesBySentenceId[sentenceId] = { note, updatedAt: Date.now() };
       }
-
-      // Refresh table to update note indicators
       v3IdeRenderTable(currentTableData, textId);
       v3IdeSelectRow(v3IdeState.selectedRowIdx);
+    } else {
+      // Use PUT for upsert (empty note = delete on server side)
+      const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/notes/${encodeURIComponent(sentenceId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.deleted || !note) {
+          delete v3NotesBySentenceId[sentenceId];
+        } else {
+          v3NotesBySentenceId[sentenceId] = { note, updatedAt: Date.now() };
+        }
+        v3IdeRenderTable(currentTableData, textId);
+        v3IdeSelectRow(v3IdeState.selectedRowIdx);
+      }
     }
   } catch (e) {
     console.error("Failed to save note:", e);
@@ -16499,8 +16508,12 @@ const [meta, sents] = await Promise.all([
     try { if (typeof window.classicOnLibraryOpen === "function") window.classicOnLibraryOpen(); } catch (_) {}
 
     // touch opened (non-blocking)
-    fetch("/api/library/texts/" + encodeURIComponent(textId) + "/opened", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
-      .catch(() => {});
+    if (LOCAL_MODE) {
+      ensureLocalDB().then(ldb => ldb.touchOpened(textId)).catch(() => {});
+    } else {
+      fetch("/api/library/texts/" + encodeURIComponent(textId) + "/opened", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+        .catch(() => {});
+    }
 
     // show source text in textarea (optional, but useful)
     try {
@@ -16590,7 +16603,12 @@ if (resumeRowIdx !== null) {
 
 async function v3LibraryArchiveText(textId) {
   try {
-    await v3PostJson("/api/library/texts/" + encodeURIComponent(textId) + "/archive", {});
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      await ldb.archiveText(textId);
+    } else {
+      await v3PostJson("/api/library/texts/" + encodeURIComponent(textId) + "/archive", {});
+    }
     showToast("Текст архивирован", "success");
     v3LibraryRefresh();
   } catch (e) {
@@ -16636,8 +16654,14 @@ async function v3ClassicEnrichSavedRows(textId) {
     if (!textId) return;
 
     // 1. Fetch saved sentences (ordered by order_index)
-    const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/sentences");
-    const sentences = (res && Array.isArray(res.sentences)) ? res.sentences : [];
+    let sentences;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      sentences = await ldb.getSentences(String(textId));
+    } else {
+      const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/sentences");
+      sentences = (res && Array.isArray(res.sentences)) ? res.sentences : [];
+    }
     if (!sentences.length) return;
 
     // 2. Enrich currentTableData rows by position (sentences are order_index-sorted)
@@ -16654,9 +16678,15 @@ async function v3ClassicEnrichSavedRows(textId) {
 
     // 3. Fetch notes for this text and ingest into in-memory store
     try {
-      const notesRes = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/notes");
-      if (typeof v3NotesIngest === "function") {
-        v3NotesIngest(String(textId), (notesRes && notesRes.notes) ? notesRes.notes : []);
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        const notes = await ldb.listNotes(String(textId));
+        if (typeof v3NotesIngest === "function") v3NotesIngest(String(textId), notes);
+      } else {
+        const notesRes = await v3GetJson("/api/library/texts/" + encodeURIComponent(String(textId)) + "/notes");
+        if (typeof v3NotesIngest === "function") {
+          v3NotesIngest(String(textId), (notesRes && notesRes.notes) ? notesRes.notes : []);
+        }
       }
     } catch (_) {}
 
@@ -16726,8 +16756,32 @@ async function v3LibrarySaveCurrentCore(meta) {
       topic: topic || null
     };
 
-    const created = await v3PostJson("/api/library/texts", payload);
-    const text = created && created.text ? created.text : null;
+    let text;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const newTextId = crypto.randomUUID();
+      const textKey = 'text-' + Date.now();
+      await ldb.createText({
+        id: newTextId, text_key: textKey,
+        title: title || null, source_text: sourceText,
+        level: level || null, tags_json: JSON.stringify(tags || []),
+        source: source || null, topic: topic || null,
+        tts_profile_json: JSON.stringify(payload.ttsProfile || null),
+        source_meta_json: JSON.stringify(payload.tableModelMeta || null),
+      });
+      for (const row of currentTableData) {
+        await ldb.addSentence(newTextId, {
+          id: crypto.randomUUID(),
+          he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
+          translit: row.translit || '', translit_ru: row.translit_ru || '',
+          ru: row.ru || '', edit_meta_json: row.edit_meta_json || null,
+        });
+      }
+      text = await ldb.getTextById(newTextId);
+    } else {
+      const created = await v3PostJson("/api/library/texts", payload);
+      text = created && created.text ? created.text : null;
+    }
 
     // set active context for progress auto-save
     if (text && text.id) {
@@ -16833,8 +16887,32 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       topic: topic || null
     };
 
-    const updated = await v3PutJson("/api/library/texts/" + encodeURIComponent(String(textId)), payload);
-    const text = updated && updated.text ? updated.text : null;
+    let text;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      await ldb.updateText(textId, {
+        title: title || null, level: level || null,
+        tags_json: JSON.stringify(tags || []),
+        source: source || null, topic: topic || null,
+        tts_profile_json: JSON.stringify(payload.ttsProfile || null),
+        table_model_meta_json: JSON.stringify(payload.tableModelMeta || null),
+      });
+      // Replace all sentences: delete existing, add new ones from currentTableData
+      const existing = await ldb.getSentences(textId);
+      for (const s of existing) await ldb.deleteSentence(textId, s.id);
+      for (const row of currentTableData) {
+        await ldb.addSentence(textId, {
+          id: crypto.randomUUID(),
+          he_plain: row.he || '', he_niqqud: row.he_niqqud || '',
+          translit: row.translit || '', translit_ru: row.translit_ru || '',
+          ru: row.ru || '', edit_meta_json: row.edit_meta_json || null,
+        });
+      }
+      text = await ldb.getTextById(textId);
+    } else {
+      const updated = await v3PutJson("/api/library/texts/" + encodeURIComponent(String(textId)), payload);
+      text = updated && updated.text ? updated.text : null;
+    }
 
     if (text && text.id) {
       try { if (window.v3SetActiveTextId) window.v3SetActiveTextId(String(text.id)); } catch (_) {}
@@ -16916,8 +16994,13 @@ function v3LibraryMakeExportFilename(prefix) {
 async function v3LibraryExport() {
   try {
     showToast("Экспорт библиотеки…");
-    // Экспортируем всё (включая архив)
-    const payload = await v3GetJson("/api/library/export?includeArchived=1");
+    let payload;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      payload = await ldb.exportBundle({ includeArchived: true });
+    } else {
+      payload = await v3GetJson("/api/library/export?includeArchived=1");
+    }
 
     const jsonText = JSON.stringify(payload, null, 2);
     const blob = new Blob([jsonText], { type: "application/json" });
@@ -16974,10 +17057,17 @@ async function v3LibraryOnImportSelected(ev) {
 
     showToast("Импорт библиотеки…");
 
-    const resp = await v3PostJson("/api/library/import", {
-      mode: "skip",
-      payload: parsed
-    });
+    let resp;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const r = await ldb.importBundle(parsed, { mode: "skip" });
+      resp = { ok: true, importedCount: r.imported, skippedCount: r.skipped, errorCount: (r.errors || []).length };
+    } else {
+      resp = await v3PostJson("/api/library/import", {
+        mode: "skip",
+        payload: parsed
+      });
+    }
 
     if (resp && resp.ok) {
       const msg =
@@ -17013,16 +17103,25 @@ window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
 
 async function v3LibraryExportBundle() {
   try {
-    showToast("Подготовка ZIP с аудио…");
-    const resp = await fetch("/api/library/export/bundle?includeArchived=1");
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.error || resp.statusText);
+    let blob, filename;
+    if (LOCAL_MODE) {
+      showToast("Экспорт библиотеки (JSON)…");
+      const ldb = await ensureLocalDB();
+      const payload = await ldb.exportBundle({ includeArchived: true });
+      blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      filename = v3LibraryMakeExportFilename("library-bundle");
+    } else {
+      showToast("Подготовка ZIP с аудио…");
+      const resp = await fetch("/api/library/export/bundle?includeArchived=1");
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || resp.statusText);
+      }
+      blob = await resp.blob();
+      const cd = resp.headers.get("Content-Disposition") || "";
+      const m = cd.match(/filename="([^"]+)"/);
+      filename = m ? m[1] : v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
     }
-    const blob = await resp.blob();
-    const cd = resp.headers.get("Content-Disposition") || "";
-    const m = cd.match(/filename="([^"]+)"/);
-    const filename = m ? m[1] : v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
 
     const a = document.createElement("a");
     const url = URL.createObjectURL(blob);
@@ -17032,10 +17131,10 @@ async function v3LibraryExportBundle() {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
-    showToast("ZIP с аудио скачан", "success");
+    showToast(LOCAL_MODE ? "JSON экспорт скачан" : "ZIP с аудио скачан", "success");
   } catch (e) {
     console.warn("v3LibraryExportBundle failed", e);
-    showToast("Ошибка экспорта ZIP (см. консоль).", "error");
+    showToast("Ошибка экспорта (см. консоль).", "error");
   }
 }
 
@@ -17059,26 +17158,40 @@ async function v3LibraryOnBundleImportSelected(ev) {
     const ok = window.confirm("Импортировать ZIP с аудио?\nДубликаты будут пропущены.");
     if (!ok) return;
 
-    showToast("Импорт ZIP с аудио…");
-
-    const resp = await fetch("/api/library/import/bundle?mode=skip", {
-      method: "POST",
-      headers: { "Content-Type": "application/zip" },
-      body: file,
-    });
+    showToast("Импорт…");
 
     let data;
-    try { data = await resp.json(); } catch (_) { throw new Error(resp.statusText); }
+    if (LOCAL_MODE) {
+      // In local mode, accept JSON files (no server audio bundle support locally)
+      let parsed;
+      try {
+        const txt = await file.text();
+        parsed = JSON.parse(txt);
+      } catch (_) {
+        showToast("Файл не является корректным JSON", "error");
+        return;
+      }
+      const ldb = await ensureLocalDB();
+      const r = await ldb.importBundle(parsed, { mode: "skip" });
+      data = { ok: true, importedCount: r.imported, importedAudio: 0, linkedAudio: 0, skippedCount: r.skipped, errorCount: (r.errors || []).length };
+    } else {
+      const resp = await fetch("/api/library/import/bundle?mode=skip", {
+        method: "POST",
+        headers: { "Content-Type": "application/zip" },
+        body: file,
+      });
 
-    if (!resp.ok || !data.ok) {
-      showToast("Ошибка импорта ZIP: " + (data.message || data.error || resp.statusText), "error");
-      return;
+      try { data = await resp.json(); } catch (_) { throw new Error(resp.statusText); }
+
+      if (!resp.ok || !data.ok) {
+        showToast("Ошибка импорта ZIP: " + (data.message || data.error || resp.statusText), "error");
+        return;
+      }
     }
 
     const msg =
-      "ZIP: добавлено " + Number(data.importedCount || 0) +
-      ", аудио: " + Number(data.importedAudio || 0) +
-      " (связано: " + Number(data.linkedAudio || 0) + ")" +
+      "Импорт: добавлено " + Number(data.importedCount || 0) +
+      (LOCAL_MODE ? "" : (", аудио: " + Number(data.importedAudio || 0) + " (связано: " + Number(data.linkedAudio || 0) + ")")) +
       ", пропущено: " + Number(data.skippedCount || 0) +
       (data.errorCount ? ", ошибок: " + Number(data.errorCount) : "");
     showToast(msg, "success");
@@ -18558,16 +18671,15 @@ async function v3DashboardPlayRow(textId, sentenceId, assetKey) {
 
     // History event (fire-and-forget)
     try {
-      fetch("/api/history/event", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          textId: String(textId),
-          sentenceId: String(sentenceId),
-          assetKey: ak,
-          eventType: "ROW_TTS"
-        })
-      }).catch(() => {});
+      if (LOCAL_MODE) {
+        ensureLocalDB().then(ldb => ldb.recordEvent({ event_type: "ROW_TTS", text_id: String(textId), sentence_id: String(sentenceId), source: ak || null })).catch(() => {});
+      } else {
+        fetch("/api/history/event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ textId: String(textId), sentenceId: String(sentenceId), assetKey: ak, eventType: "ROW_TTS" })
+        }).catch(() => {});
+      }
     } catch (_) {}
 
     await audio.play();
@@ -18667,19 +18779,26 @@ async function v3DashboardTogglePin(textId) {
   }
 
   try {
-    const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/meta`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const fields = {};
+      if ('isPinned' in payload) fields.is_pinned = payload.isPinned;
+      if ('pinOrder' in payload) fields.pin_order = payload.pinOrder;
+      await ldb.updateTextMeta(textId, fields);
+    } else {
+      const res = await fetch(`/api/library/texts/${encodeURIComponent(textId)}/meta`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
 
-    const j = await res.json().catch(() => null);
-    if (!res.ok || !j || !j.ok) {
-      console.error("[v3DashboardTogglePin] bad response:", res.status, j);
-      alert("Не удалось обновить pin/meta (см. console).");
-      return;
+      const j = await res.json().catch(() => null);
+      if (!res.ok || !j || !j.ok) {
+        console.error("[v3DashboardTogglePin] bad response:", res.status, j);
+        alert("Не удалось обновить pin/meta (см. console).");
+        return;
+      }
     }
-
     await v3DashboardRefresh();
   } catch (e) {
     console.error("[v3DashboardTogglePin] error:", e);
@@ -21090,13 +21209,22 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
         delete payload.translit;
     }
 
-    fetch("/api/library/texts/" + tid + "/sentences/" + sid, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fields: payload }),
-    })
-    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
-    .then(function(data) {
+    var sentencePromise = LOCAL_MODE
+        ? ensureLocalDB().then(function(ldb) {
+            return ldb.updateSentence(tid, sid, payload).then(function() {
+                var s = { he_plain: payload.he_plain ?? row.he, he_niqqud: payload.he_niqqud ?? row.he_niqqud,
+                           translit: payload.translit ?? row.translit, translit_ru: payload.translit_ru ?? row.translit_ru,
+                           ru: payload.ru ?? row.ru, edit_meta_json: row.edit_meta_json };
+                return { sentence: s };
+            });
+        })
+        : fetch("/api/library/texts/" + tid + "/sentences/" + sid, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fields: payload }),
+        }).then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); });
+
+    sentencePromise.then(function(data) {
         // Update in-memory row (API returns he_plain; frontend uses row.he)
         if (data.sentence) {
             Object.assign(row, {
@@ -21109,23 +21237,20 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
             });
         }
         // Editing the Hebrew source invalidates the cached audio — clear in memory too
-        // so the next ▶ press generates new audio instead of replaying the old recording.
         if ("he_plain" in payload || "he_niqqud" in payload) {
             row._v3_audioAssetKey = "";
             row._v3_audioTtsProfileJson = "";
             try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}
         }
-        // Update cell display
         let displayVal = newVal;
         if (td) td.innerHTML = escapeHtml(displayVal);
-        // Re-apply edited markers
         tableEditApplyEditedMarkers();
         tableEditUpdateStatus();
     })
     .catch(function(err) {
         console.error("[edit] save cell failed:", err);
         if (td) {
-            td.innerHTML = escapeHtml(newVal); // keep user's value visible
+            td.innerHTML = escapeHtml(newVal);
             td.style.outline = "2px solid #e53935";
             setTimeout(function() { if (td) td.style.outline = ""; }, 2000);
         }
@@ -21138,9 +21263,19 @@ function tableEditResetRow(rowIdx) {
     if (!row || !row._v3_sentenceId || !row._v3_textId) return;
     const sid = row._v3_sentenceId;
     const tid = row._v3_textId;
-    fetch("/api/library/texts/" + tid + "/sentences/" + sid + "/reset", { method: "POST" })
-    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
-    .then(function(data) {
+    var resetPromise = LOCAL_MODE
+        ? ensureLocalDB().then(function(ldb) {
+            return ldb.resetSentence(tid, sid).then(function() {
+                return ldb.getSentences(tid).then(function(sents) {
+                    var s = sents.find(function(x) { return x.id === sid; });
+                    return s ? { sentence: { he: s.he_plain, he_niqqud: s.he_niqqud, translit: s.translit, translit_ru: s.translit_ru, ru: s.ru } } : {};
+                });
+            });
+        })
+        : fetch("/api/library/texts/" + tid + "/sentences/" + sid + "/reset", { method: "POST" })
+            .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); });
+
+    resetPromise.then(function(data) {
         if (data.sentence) {
             Object.assign(row, {
                 he: data.sentence.he, he_niqqud: data.sentence.he_niqqud,
@@ -21161,9 +21296,12 @@ function tableEditDeleteRow(rowIdx) {
     if (!confirm("Удалить строку? Это действие необратимо.")) return;
     const sid = row._v3_sentenceId;
     const tid = row._v3_textId;
-    fetch("/api/library/texts/" + tid + "/sentences/" + sid, { method: "DELETE" })
-    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
-    .then(function() {
+    var deletePromise = LOCAL_MODE
+        ? ensureLocalDB().then(function(ldb) { return ldb.deleteSentence(tid, sid); })
+        : fetch("/api/library/texts/" + tid + "/sentences/" + sid, { method: "DELETE" })
+            .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); });
+
+    deletePromise.then(function() {
         currentTableData.splice(rowIdx, 1);
         renderTable(currentTableData);
     })
@@ -21190,15 +21328,24 @@ function tableEditMoveRow(rowIdx, direction) {
         return { id: r._v3_sentenceId, order_index: i };
     }).filter(function(x) { return x.id; });
 
-    fetch("/api/library/texts/" + tid + "/sentences/reorder", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: orderPayload }),
-    })
-    .catch(function(err) {
-        console.error("[edit] reorder failed:", err);
-        try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
-    });
+    if (LOCAL_MODE) {
+        ensureLocalDB().then(function(ldb) {
+            return ldb.reorderSentences(tid, orderPayload.map(function(x) { return x.id; }));
+        }).catch(function(err) {
+            console.error("[edit] reorder failed:", err);
+            try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+        });
+    } else {
+        fetch("/api/library/texts/" + tid + "/sentences/reorder", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ order: orderPayload }),
+        })
+        .catch(function(err) {
+            console.error("[edit] reorder failed:", err);
+            try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+        });
+    }
 }
 
 function tableEditAddRow() {
@@ -21223,13 +21370,28 @@ function tableEditAddRow() {
     const postBody = { he: "", ru: "", he_niqqud: "", translit: "", translit_ru: "" };
     if (insertAfterSid) postBody.afterSentenceId = insertAfterSid;
 
-    fetch("/api/library/texts/" + tid + "/sentences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postBody),
-    })
-    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); })
-    .then(function(data) {
+    var addPromise = LOCAL_MODE
+        ? ensureLocalDB().then(function(ldb) {
+            var newId = crypto.randomUUID();
+            return ldb.addSentence(tid, { id: newId, he_plain: "", he_niqqud: "", translit: "", translit_ru: "", ru: "" }).then(function() {
+                // Persist correct order if inserting in middle
+                if (insertAfterIdx !== null) {
+                    var allIds = rows.map(function(r) { return r._v3_sentenceId; }).filter(Boolean);
+                    allIds.splice(insertAfterIdx + 1, 0, newId);
+                    return ldb.reorderSentences(tid, allIds).then(function() {
+                        return { sentence: { id: newId, he_plain: "", he_niqqud: "", translit: "", translit_ru: "", ru: "", order_index: insertAfterIdx + 1, edit_meta_json: null } };
+                    });
+                }
+                return { sentence: { id: newId, he_plain: "", he_niqqud: "", translit: "", translit_ru: "", ru: "", order_index: rows.length, edit_meta_json: null } };
+            });
+        })
+        : fetch("/api/library/texts/" + tid + "/sentences", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(postBody),
+        }).then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw new Error(e.error || r.status); }); });
+
+    addPromise.then(function(data) {
         if (data.sentence) {
             const newRow = {
                 he: data.sentence.he_plain || data.sentence.he || "",
@@ -21242,14 +21404,12 @@ function tableEditAddRow() {
                 _v3_orderIndex: data.sentence.order_index ?? null,
                 edit_meta_json: data.sentence.edit_meta_json || null,
             };
-            // Insert in the right position (after insertAfterIdx) or append.
             if (insertAfterIdx !== null) {
                 rows.splice(insertAfterIdx + 1, 0, newRow);
             } else {
                 rows.push(newRow);
             }
             renderTable(rows);
-            // Scroll to and highlight the new row
             const newRowIdx = insertAfterIdx !== null ? insertAfterIdx + 1 : rows.length - 1;
             setTimeout(function() {
                 const tbl = document.getElementById("proTable");
@@ -21257,7 +21417,6 @@ function tableEditAddRow() {
                 const newTr = tbl.querySelector('tr[data-row-idx="' + newRowIdx + '"]');
                 if (newTr) {
                     newTr.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                    // Open the Hebrew cell editor for immediate typing
                     const heTd = newTr.querySelector('td[data-col="he"]') || newTr.querySelector('td[data-col="ru"]');
                     if (heTd && tableEditActive) tableEditOpenCellEditor(heTd, heTd.getAttribute("data-col"), newRowIdx);
                 }
@@ -21292,31 +21451,42 @@ function tableEditResetAll() {
     // Delete added rows
     toDelete.forEach(function(row) {
         chain = chain.then(function() {
-            return fetch("/api/library/texts/" + row._v3_textId + "/sentences/" + row._v3_sentenceId, { method: "DELETE" })
-                .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw e; }); })
-                .then(function() {
-                    const idx = currentTableData.indexOf(row);
-                    if (idx !== -1) currentTableData.splice(idx, 1);
-                });
+            var p = LOCAL_MODE
+                ? ensureLocalDB().then(function(ldb) { return ldb.deleteSentence(row._v3_textId, row._v3_sentenceId); })
+                : fetch("/api/library/texts/" + row._v3_textId + "/sentences/" + row._v3_sentenceId, { method: "DELETE" })
+                    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw e; }); });
+            return p.then(function() {
+                const idx = currentTableData.indexOf(row);
+                if (idx !== -1) currentTableData.splice(idx, 1);
+            });
         });
     });
     // Reset edited rows
     toReset.forEach(function(row) {
         chain = chain.then(function() {
-            return fetch("/api/library/texts/" + row._v3_textId + "/sentences/" + row._v3_sentenceId + "/reset", { method: "POST" })
-                .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw e; }); })
-                .then(function(data) {
-                    if (data.sentence) {
-                        Object.assign(row, {
-                            he: data.sentence.he_plain ?? data.sentence.he ?? row.he,
-                            he_niqqud: data.sentence.he_niqqud,
-                            translit: data.sentence.translit,
-                            translit_ru: data.sentence.translit_ru,
-                            ru: data.sentence.ru,
-                            edit_meta_json: null,
+            var p = LOCAL_MODE
+                ? ensureLocalDB().then(function(ldb) {
+                    return ldb.resetSentence(row._v3_textId, row._v3_sentenceId).then(function() {
+                        return ldb.getSentences(row._v3_textId).then(function(sents) {
+                            var s = sents.find(function(x) { return x.id === row._v3_sentenceId; });
+                            return s ? { sentence: { he: s.he_plain, he_niqqud: s.he_niqqud, translit: s.translit, translit_ru: s.translit_ru, ru: s.ru } } : {};
                         });
-                    }
-                });
+                    });
+                })
+                : fetch("/api/library/texts/" + row._v3_textId + "/sentences/" + row._v3_sentenceId + "/reset", { method: "POST" })
+                    .then(function(r) { return r.ok ? r.json() : r.json().then(function(e) { throw e; }); });
+            return p.then(function(data) {
+                if (data.sentence) {
+                    Object.assign(row, {
+                        he: data.sentence.he_plain ?? data.sentence.he ?? row.he,
+                        he_niqqud: data.sentence.he_niqqud,
+                        translit: data.sentence.translit,
+                        translit_ru: data.sentence.translit_ru,
+                        ru: data.sentence.ru,
+                        edit_meta_json: null,
+                    });
+                }
+            });
         });
     });
     chain.then(function() {
@@ -21404,17 +21574,25 @@ function tableEditDndEnable() {
         // Persist new order
         const tid = srcRow && srcRow._v3_textId;
         if (tid) {
-            const orderPayload = rows.map(function(r, i) {
-                return { id: r._v3_sentenceId, order_index: i };
-            }).filter(function(x) { return x.sentence_id; });
-            fetch("/api/library/texts/" + tid + "/sentences/reorder", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ order: orderPayload }),
-            }).catch(function(err) {
-                console.error("[dnd] reorder failed:", err);
-                try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
-            });
+            const orderedIds = rows.map(function(r) { return r._v3_sentenceId; }).filter(Boolean);
+            if (LOCAL_MODE) {
+                ensureLocalDB().then(function(ldb) {
+                    return ldb.reorderSentences(tid, orderedIds);
+                }).catch(function(err) {
+                    console.error("[dnd] reorder failed:", err);
+                    try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+                });
+            } else {
+                const orderPayload = orderedIds.map(function(id, i) { return { id, order_index: i }; });
+                fetch("/api/library/texts/" + tid + "/sentences/reorder", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ order: orderPayload }),
+                }).catch(function(err) {
+                    console.error("[dnd] reorder failed:", err);
+                    try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+                });
+            }
         }
     });
 }
@@ -22573,16 +22751,15 @@ function v3RowTtsMatchesCurrentProfile(row) {
 function v3RowTtsTrackPlay(row, assetKey) {
   try {
     if (!row || !row._v3_textId || !row._v3_sentenceId) return;
-    fetch("/api/history/event", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        textId: String(row._v3_textId),
-        sentenceId: String(row._v3_sentenceId),
-        eventType: "row_tts",
-        assetKey: assetKey || null
-      })
-    }).catch(() => {});
+    if (LOCAL_MODE) {
+      ensureLocalDB().then(ldb => ldb.recordEvent({ event_type: "row_tts", text_id: String(row._v3_textId), sentence_id: String(row._v3_sentenceId), source: assetKey || null })).catch(() => {});
+    } else {
+      fetch("/api/history/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ textId: String(row._v3_textId), sentenceId: String(row._v3_sentenceId), eventType: "row_tts", assetKey: assetKey || null })
+      }).catch(() => {});
+    }
   } catch (_) {}
 }
 
@@ -24182,8 +24359,14 @@ async function v3NotesEnsureFetchedForText(textId) {
 
   v3NotesJumpFetchInflight[tid] = (async () => {
     try {
-      const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(tid) + "/notes");
-      const notes = (res && res.ok && Array.isArray(res.notes)) ? res.notes : [];
+      let notes;
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        notes = await ldb.listNotes(tid);
+      } else {
+        const res = await v3GetJson("/api/library/texts/" + encodeURIComponent(tid) + "/notes");
+        notes = (res && res.ok && Array.isArray(res.notes)) ? res.notes : [];
+      }
       v3NotesIngest(tid, notes);
       v3NotesRefreshAllButtons();
       v3NotesJumpFetchStampMs[tid] = Date.now();
@@ -24361,10 +24544,15 @@ async function v3NotesSave() {
 
     // пусто => delete semantics (согласно API)
     if (!note) {
-      await v3Delete(url).catch(async () => {
-        // если DELETE не прошел (например 404/500) — попробуем PUT(empty) как fallback
-        await v3PutJson(url, { note: "" });
-      });
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        await ldb.deleteNote(textId, sentenceId);
+      } else {
+        await v3Delete(url).catch(async () => {
+          // если DELETE не прошел (например 404/500) — попробуем PUT(empty) как fallback
+          await v3PutJson(url, { note: "" });
+        });
+      }
 
       v3NotesSetLocal(sentenceId, "", null);
       if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
@@ -24384,8 +24572,15 @@ async function v3NotesSave() {
       return;
     }
 
-    const resp = await v3PutJson(url, { note });
-    const dto = resp && resp.note ? resp.note : null;
+    let dto;
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const row = await ldb.upsertNote(textId, sentenceId, note);
+      dto = row ? { updatedAt: row.updated_at, updated_at: row.updated_at } : null;
+    } else {
+      const resp = await v3PutJson(url, { note });
+      dto = resp && resp.note ? resp.note : null;
+    }
     updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
 
     // fallback для UX-01 (на случай неконсистентного ответа сервера)
