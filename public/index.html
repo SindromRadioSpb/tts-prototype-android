@@ -17867,9 +17867,10 @@ async function v3DashboardRefreshAnalytics() {
 
   try {
     if (LOCAL_MODE) {
-      // Local analytics not yet implemented; show graceful empty state.
-      v3DashAnalytics = null;
-      if (metricsEl) metricsEl.textContent = t("dashboard.metricsNA");
+      const ldb = await ensureLocalDB();
+      const res = await ldb.getAnalytics({ days: 7, includeArchived: !!includeArchived });
+      v3DashAnalytics = res || null;
+      v3DashboardRenderMetrics();
       return;
     }
     const res = await v3GetJson(`/api/history/analytics?days=7&includeArchived=${includeArchived}${levelQ}`);

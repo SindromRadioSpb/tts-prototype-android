@@ -20,7 +20,8 @@ import {
   initLocalDB, createText, listTexts, getSentences, addSentence,
   upsertNote, listNotes, setProgress, getProgress, recordEvent,
   recentActivity, deleteText, dbDiag, reorderSentences,
-  upsertAudioAsset, linkSentenceAudio, getDefaultAudioMap
+  upsertAudioAsset, linkSentenceAudio, getDefaultAudioMap,
+  getAnalytics
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -267,12 +268,46 @@ async function run() {
     out('err', '❌ ТЕСТ 11 ПРОВАЛЕН: ' + e.message);
   }
 
+  // ── ТЕСТ 12: getAnalytics — агрегаты по events (Phase 3) ──────────────
+  // Покрывает: { ok, period, all } shape; plays/unique_rows/unique_texts.
+  // Создаём событие, проверяем счётчики.
+  const analyticsTextId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 12: getAnalytics — агрегаты по events...');
+    await createText({
+      id: analyticsTextId,
+      text_key: 'analytics-' + Date.now(),
+      title: 'Analytics aggregation test',
+      source_text: 'שלום',
+      tags_json: '[]',
+    });
+    const analyticsSid = crypto.randomUUID();
+    await addSentence(analyticsTextId, { id: analyticsSid, he_plain: 'שלום', ru: 'привет' });
+    // Запишем три ROW_TTS события для одного предложения.
+    await recordEvent({ event_type: 'ROW_TTS', text_id: analyticsTextId, sentence_id: analyticsSid, source: 'test1' });
+    await recordEvent({ event_type: 'row_tts', text_id: analyticsTextId, sentence_id: analyticsSid, source: 'test2' });
+    await recordEvent({ event_type: 'row_tts', text_id: analyticsTextId, sentence_id: analyticsSid, source: 'test3' });
+    const a = await getAnalytics({ days: 7, includeArchived: false });
+    if (!a || !a.ok) throw new Error('getAnalytics не вернул { ok: true }');
+    if (!a.period || !a.all) throw new Error('Нет period/all в ответе');
+    if (Number(a.period.plays) < 3) throw new Error('period.plays < 3 (' + a.period.plays + ')');
+    if (Number(a.period.unique_rows) < 1) throw new Error('period.unique_rows < 1');
+    if (Number(a.period.unique_texts) < 1) throw new Error('period.unique_texts < 1');
+    out('ok', '✅ ТЕСТ 12 ПРОШЁЛ: агрегаты корректны', {
+      period: a.period,
+      all: { plays: a.all.plays, unique_rows: a.all.unique_rows, unique_texts: a.all.unique_texts }
+    });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 12 ПРОВАЛЕН: ' + e.message);
+  }
+
   // ── Cleanup ───────────────────────────────────────────────────────────
   try {
     await deleteText(testId);
     await deleteText(saveAsNewId);
     await deleteText(reorderTextId);
     await deleteText(audioTextId);
+    await deleteText(analyticsTextId);
     out('inf', '(тестовые данные удалены)');
   } catch(e) { /* ignore */ }
 

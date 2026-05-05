@@ -369,6 +369,50 @@ export async function recentActivity(limit = 30) {
   );
 }
 
+// Aggregate analytics over the events table — same shape as the server's
+// /api/history/analytics endpoint, so v3DashboardRenderMetrics can render
+// without conditional code.
+//   { ok, period: { plays, unique_rows, unique_texts, time_ms },
+//          all:    { plays, unique_rows, unique_texts, time_ms } }
+// "plays" counts ROW_TTS / row_tts events. time_ms is approximate (we don't
+// store playback duration, so we assume an average of 4s per play; this is
+// an upper bound on idle-time accuracy until we add explicit duration tracking).
+export async function getAnalytics({ days = 7, includeArchived = false } = {}) {
+  const sinceMs = Date.now() - Math.max(1, days) * 86400000;
+  const sinceIso = new Date(sinceMs).toISOString();
+  const archCondition = includeArchived
+    ? ''
+    : ' AND (t.is_archived IS NULL OR t.is_archived = 0)';
+  const baseFrom =
+    `FROM events e
+     LEFT JOIN texts t ON e.text_id = t.id
+     WHERE LOWER(e.event_type) IN ('row_tts','tts_play','play')` + archCondition;
+
+  // Aggregate one window at a time. Single passes are fine for typical
+  // event counts (< 100k rows per user).
+  async function agg(extraWhere, params) {
+    const rows = await q(
+      `SELECT
+         COUNT(*)                                AS plays,
+         COUNT(DISTINCT e.sentence_id)           AS unique_rows,
+         COUNT(DISTINCT e.text_id)               AS unique_texts
+       ${baseFrom}${extraWhere}`,
+      params
+    );
+    const r = rows[0] || {};
+    const plays = Number(r.plays || 0);
+    return {
+      plays,
+      unique_rows: Number(r.unique_rows || 0),
+      unique_texts: Number(r.unique_texts || 0),
+      time_ms: plays * 4000, // 4s/play estimate; tightens to real values once duration is tracked
+    };
+  }
+  const period = await agg(' AND e.ts >= ?', [sinceIso]);
+  const all    = await agg('', []);
+  return { ok: true, period, all };
+}
+
 // ── audio assets ───────────────────────────────────────────────────────────
 
 export async function upsertAudioAsset({ id, asset_key, asset_type, relative_path, mime, duration_ms, size_bytes, tts_profile_json }) {
