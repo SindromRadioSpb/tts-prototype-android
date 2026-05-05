@@ -8627,24 +8627,45 @@ function v3SrsAnkiFormatThrownError(e) {
   return String(e || "UNKNOWN_ERROR");
 }
 
+// Talks to AnkiConnect directly from the browser. Used when LOCAL_MODE is on
+// (Railway-hosted server cannot reach the user's local 127.0.0.1:8765, only
+// the user's own browser can). Returns { ok, version, details }.
+async function v3AnkiConnectDirect(action, params) {
+  const body = JSON.stringify({ action, version: 6, params: params || {} });
+  const r = await fetch("http://127.0.0.1:8765", { method: "POST", body });
+  const j = await r.json();
+  if (j && j.error) throw new Error(String(j.error));
+  return j && j.result;
+}
+
 async function v3SrsAnkiCheckConnect(verbose) {
   try {
-    const r = await fetch("/api/anki/health", { method: "GET" });
-    const j = await r.json().catch(() => ({}));
-    if (r.ok && j && j.ok) {
-      const ver = j.ankiConnect && j.ankiConnect.version ? String(j.ankiConnect.version) : "—";
-      if (verbose) {
-        if (typeof showToast === "function") showToast(t("toast.ankiAvailable", {ver: ver}), "success");
+    let ver;
+    if (LOCAL_MODE) {
+      // Direct browser → AnkiConnect call. Requires the Railway origin to be in
+      // AnkiConnect's webCorsOriginList (e.g. add the Railway URL via Anki →
+      // Tools → Add-ons → AnkiConnect → Config). Without that the browser
+      // blocks the request with a CORS error.
+      ver = String(await v3AnkiConnectDirect("version"));
+    } else {
+      const r = await fetch("/api/anki/health", { method: "GET" });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j || !j.ok) {
+        const details = v3AnkiFormatDetails(j, r);
+        if (verbose) window.alert(t("toast.ankiUnavailable", {details: details}));
+        return { ok: false, details };
       }
-      return { ok: true, version: ver };
+      ver = j.ankiConnect && j.ankiConnect.version ? String(j.ankiConnect.version) : "—";
     }
-    const details = v3AnkiFormatDetails(j, r);
-    if (verbose) {
-      window.alert(t("toast.ankiUnavailable", {details: details}));
+    if (verbose && typeof showToast === "function") {
+      showToast(t("toast.ankiAvailable", {ver: ver}), "success");
     }
-    return { ok: false, details };
+    return { ok: true, version: ver };
   } catch (e) {
-    const details = String((e && e.message) || e || "");
+    let details = String((e && e.message) || e || "");
+    if (LOCAL_MODE && /failed to fetch|networkerror|cors/i.test(details)) {
+      details += " — добавьте «" + location.origin + "» в webCorsOriginList AnkiConnect (Anki → Tools → Add-ons → AnkiConnect → Config) и перезапустите Anki.";
+    }
     if (verbose) {
       window.alert(t("toast.ankiUnavailable", {details: details}));
     }
@@ -8679,7 +8700,13 @@ async function v3IdeSrsAnkiPreview(cardId) {
 async function v3IdeSrsExportAnki(cardId) {
   try {
     if (LOCAL_MODE) {
-      window.alert("Anki export is not available in local mode (server-only feature).");
+      window.alert(
+        "Прямой экспорт в Anki из ?localMode=1 пока не реализован.\n\n" +
+        "Health-check (Tools → Anki → «Проверить AnkiConnect») уже работает " +
+        "напрямую из браузера, если в AnkiConnect добавлен origin «" + location.origin + "» " +
+        "(Anki → Tools → Add-ons → AnkiConnect → Config → webCorsOriginList).\n\n" +
+        "Полный экспорт карточек — пока через локальный запуск сервера или будет добавлен в следующем релизе."
+      );
       return;
     }
     const health = await v3SrsAnkiCheckConnect(false);
@@ -18118,7 +18145,13 @@ async function v3SrsTrainerExportAnki() {
     const cardId = current && current.card && current.card.id ? String(current.card.id) : "";
     if (!cardId) return;
     if (LOCAL_MODE) {
-      window.alert("Anki export is not available in local mode (server-only feature).");
+      window.alert(
+        "Прямой экспорт в Anki из ?localMode=1 пока не реализован.\n\n" +
+        "Health-check (Tools → Anki → «Проверить AnkiConnect») уже работает " +
+        "напрямую из браузера, если в AnkiConnect добавлен origin «" + location.origin + "» " +
+        "(Anki → Tools → Add-ons → AnkiConnect → Config → webCorsOriginList).\n\n" +
+        "Полный экспорт карточек — пока через локальный запуск сервера или будет добавлен в следующем релизе."
+      );
       return;
     }
     const health = await v3SrsAnkiCheckConnect(false);
@@ -23258,6 +23291,22 @@ async function v3AnkiHealth() {
 
   try {
     v3AnkiSetStatus("Проверяю AnkiConnect…", false);
+
+    if (LOCAL_MODE) {
+      // Direct browser-side call (Railway server can't reach the user's localhost).
+      try {
+        const ver = String(await v3AnkiConnectDirect("version"));
+        v3AnkiSetStatus(`AnkiConnect доступен (version: ${ver}).`, false);
+      } catch (e) {
+        let msg = String((e && e.message) || e);
+        if (/failed to fetch|networkerror|cors/i.test(msg)) {
+          msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect ` +
+                 `(Anki → Tools → Add-ons → AnkiConnect → Config) и перезапустите Anki.`;
+        }
+        v3AnkiSetStatus(`AnkiConnect недоступен: ${msg}`, true);
+      }
+      return;
+    }
 
     const r = await fetch("/api/anki/health", { method: "GET" });
     const j = await r.json().catch(() => ({}));

@@ -213,11 +213,24 @@ export async function resetSentence(textId, sentenceId) {
 }
 
 export async function reorderSentences(textId, orderedIds) {
+  // sentences has UNIQUE(text_id, order_index) — naive sequential updates
+  // cause UNIQUE conflicts mid-loop (e.g. row A→2 collides with row B already at 2).
+  // Two-pass solution: first push every row of this text into a non-conflicting
+  // negative range, then assign final positions. Both passes run in one transaction.
   await x('BEGIN;');
   try {
+    // Pass 1: park all current rows at -(order_index + 1) → guaranteed negative & unique
+    // (assuming current order_indexes are >= 0, which our schema enforces in practice).
+    await r(
+      'UPDATE sentences SET order_index = -(order_index + 1) WHERE text_id = ?',
+      [textId]
+    );
+    // Pass 2: assign final positions 0..N-1.
     for (let i = 0; i < orderedIds.length; i++) {
-      await r('UPDATE sentences SET order_index = ? WHERE id = ? AND text_id = ?',
-        [i, orderedIds[i], textId]);
+      await r(
+        'UPDATE sentences SET order_index = ? WHERE id = ? AND text_id = ?',
+        [i, orderedIds[i], textId]
+      );
     }
     await x('COMMIT;');
   } catch (e) {

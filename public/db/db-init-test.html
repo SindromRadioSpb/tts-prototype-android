@@ -19,7 +19,7 @@
 import {
   initLocalDB, createText, listTexts, getSentences, addSentence,
   upsertNote, listNotes, setProgress, getProgress, recordEvent,
-  recentActivity, deleteText, dbDiag
+  recentActivity, deleteText, dbDiag, reorderSentences
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -175,10 +175,40 @@ async function run() {
     out('err', '❌ ТЕСТ 9 ПРОВАЛЕН: ' + e.message);
   }
 
+  // ── ТЕСТ 10: reorder — провокация UNIQUE-конфликта по (text_id, order_index) ──
+  // Регрессия для бага 3.2/3.3: reorderSentences наивно делал последовательные
+  // UPDATE order_index, что нарушало UNIQUE-индекс на промежуточных шагах.
+  const reorderTextId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 10: reorder с UNIQUE(text_id, order_index)...');
+    await createText({
+      id: reorderTextId, text_key: 'reorder-' + Date.now(),
+      title: 'Reorder regression test', source_text: 'A\nB\nC\nD',
+      tags_json: '[]',
+    });
+    const sids = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
+    for (let i = 0; i < 4; i++) {
+      await addSentence(reorderTextId, { id: sids[i], he_plain: ['A','B','C','D'][i], ru: ['а','б','в','г'][i] });
+    }
+    // Перестановка: вставляем "C" между "A" и "B"
+    const newOrder = [sids[0], sids[2], sids[1], sids[3]];
+    await reorderSentences(reorderTextId, newOrder);
+    const after = await getSentences(reorderTextId);
+    const heByOrder = after.map(s => s.he_plain).join(',');
+    if (heByOrder !== 'A,C,B,D') throw new Error('Ожидалось A,C,B,D, получено ' + heByOrder);
+    // Проверяем все order_index — должны быть 0,1,2,3 без отрицательных «осколков»
+    const indexes = after.map(s => s.order_index).join(',');
+    if (indexes !== '0,1,2,3') throw new Error('Ожидалось 0,1,2,3, получено ' + indexes);
+    out('ok', '✅ ТЕСТ 10 ПРОШЁЛ: reorder без UNIQUE-конфликта', { order: heByOrder, indexes });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 10 ПРОВАЛЕН: ' + e.message);
+  }
+
   // ── Cleanup ───────────────────────────────────────────────────────────
   try {
     await deleteText(testId);
     await deleteText(saveAsNewId);
+    await deleteText(reorderTextId);
     out('inf', '(тестовые данные удалены)');
   } catch(e) { /* ignore */ }
 
