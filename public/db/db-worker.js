@@ -92,11 +92,20 @@ async function initDB() {
   await vfs.isReady;
   sqlite3.vfs_register(vfs, true /* makeDefault */);
 
-  db = await sqlite3.open_v2(
-    'app.db',
-    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-    'opfs-ahp'
-  );
+  // VFS.name is 'AccessHandlePool' (see AccessHandlePoolVFS#get name).
+  // Pass it explicitly to avoid relying on default-VFS resolution differences.
+  try {
+    db = await sqlite3.open_v2(
+      'app.db',
+      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+      vfs.name
+    );
+  } catch (e) {
+    // Surface a useful diagnostic instead of bare "sqlite3_open_v2".
+    const code = (e && e.code) || (e && e.errcode) || 'unknown';
+    const msg  = (e && e.message) || String(e);
+    throw new Error(`sqlite3_open_v2 failed (vfs="${vfs.name}", code=${code}): ${msg}`);
+  }
 
   await execMulti('PRAGMA foreign_keys = ON;');
   await runMigrations();
