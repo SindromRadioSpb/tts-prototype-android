@@ -5521,8 +5521,11 @@ td[data-col="ru"] {
 <script type="module">
   import * as _ldb from '/db/local-db.js';
   window.__localDB = _ldb;
+  window.__localDBInitError = null;
   window.__localDBInitPromise = _ldb.initLocalDB().catch(e => {
-    console.warn('[OPFS] init failed:', e.message);
+    window.__localDBInitError = e;
+    console.error('[OPFS] init failed:', e && e.message ? e.message : e);
+    // do not re-throw — allow the page to load; callers will see the error via ensureLocalDB().
   });
 </script>
 
@@ -6953,6 +6956,13 @@ td[data-col="ru"] {
 
     async function ensureLocalDB() {
       if (window.__localDBInitPromise) await window.__localDBInitPromise;
+      if (window.__localDBInitError) {
+        const e = window.__localDBInitError;
+        throw new Error('OPFS init failed: ' + (e && e.message ? e.message : String(e)));
+      }
+      if (!window.__localDB || !window.__localDB.isReady || !window.__localDB.isReady()) {
+        throw new Error('Local DB is not ready (worker not initialized).');
+      }
       return window.__localDB;
     }
 
@@ -16943,7 +16953,8 @@ async function v3LibrarySaveCurrentCore(meta) {
       return null;
     }
     console.warn("v3LibrarySaveCurrentCore failed", e);
-    showToast("Не удалось сохранить (см. консоль).", "error");
+    const detail = (e && e.message) ? String(e.message).slice(0, 160) : "";
+    showToast("Не удалось сохранить" + (detail ? ": " + detail : "") + " (см. консоль).", "error");
     return null;
   }
 }
@@ -17066,7 +17077,8 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       return null;
     }
     console.warn("v3LibraryUpdateCurrentCore failed", e);
-    showToast("Не удалось обновить (см. консоль).", "error");
+    const detail = (e && e.message) ? String(e.message).slice(0, 160) : "";
+    showToast("Не удалось обновить" + (detail ? ": " + detail : "") + " (см. консоль).", "error");
     return null;
   }
 }

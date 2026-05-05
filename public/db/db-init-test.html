@@ -144,9 +144,41 @@ async function run() {
     out('err', '❌ ТЕСТ 8 ПРОВАЛЕН: ' + e.message);
   }
 
+  // ── ТЕСТ 9: полный flow "Сохранить как новый" (create + N sentences) ──
+  const saveAsNewId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 9: полный flow Save-as-New (createText + addSentence x3)...');
+    await createText({
+      id: saveAsNewId,
+      text_key: 'save-as-new-' + Date.now(),
+      title: 'Save-as-New flow test',
+      source_text: 'שלום\nכלב\nחתול',
+      level: null,
+      tags_json: '[]',
+      tts_profile_json: 'null',
+      source_meta_json: 'null',
+    });
+    await addSentence(saveAsNewId, { id: crypto.randomUUID(),
+      he_plain: 'שלום', he_niqqud: '', translit: 'shalom', translit_ru: 'шалом', ru: 'привет',
+      edit_meta_json: null });
+    await addSentence(saveAsNewId, { id: crypto.randomUUID(),
+      he_plain: 'כלב',  he_niqqud: '', translit: 'kelev',  translit_ru: 'келев',  ru: 'собака',
+      edit_meta_json: null });
+    await addSentence(saveAsNewId, { id: crypto.randomUUID(),
+      he_plain: 'חתול', he_niqqud: '', translit: 'khatul', translit_ru: 'хатуль', ru: 'кошка',
+      edit_meta_json: null });
+    const savedSents = await getSentences(saveAsNewId);
+    if (savedSents.length !== 3) throw new Error('Ожидалось 3 предложения, получено ' + savedSents.length);
+    out('ok', '✅ ТЕСТ 9 ПРОШЁЛ: text + 3 sentences созданы и читаются',
+        savedSents.map(s => `${s.order_index}: ${s.he_plain} → ${s.ru}`));
+  } catch(e) {
+    out('err', '❌ ТЕСТ 9 ПРОВАЛЕН: ' + e.message);
+  }
+
   // ── Cleanup ───────────────────────────────────────────────────────────
   try {
     await deleteText(testId);
+    await deleteText(saveAsNewId);
     out('inf', '(тестовые данные удалены)');
   } catch(e) { /* ignore */ }
 

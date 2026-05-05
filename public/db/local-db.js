@@ -39,14 +39,24 @@
 // ── worker bridge ──────────────────────────────────────────────────────────
 
 let _worker = null;
+let _initialized = false;
 let _seq    = 0;
 const _pending = new Map();
 
 function _call(type, sql, params) {
   return new Promise((resolve, reject) => {
+    if (!_worker) {
+      reject(new Error('local-db: worker not started (call initLocalDB() first)'));
+      return;
+    }
     const id = ++_seq;
     _pending.set(id, { resolve, reject });
-    _worker.postMessage({ id, type, sql, params });
+    try {
+      _worker.postMessage({ id, type, sql, params });
+    } catch (e) {
+      _pending.delete(id);
+      reject(e);
+    }
   });
 }
 
@@ -56,24 +66,27 @@ const r = (sql, p) => _call('run',   sql, p);
 const x = (sql)    => _call('exec',  sql);
 
 export async function initLocalDB() {
-  if (_worker) return; // idempotent
-  _worker = new Worker('/db/db-worker.js', { type: 'module' });
-  _worker.onmessage = ({ data }) => {
-    const h = _pending.get(data.id);
-    if (!h) return;
-    _pending.delete(data.id);
-    if (data.ok) h.resolve(data.rows ?? data.changes ?? data);
-    else h.reject(new Error(data.error || 'Worker error'));
-  };
-  _worker.onerror = (e) => {
-    for (const h of _pending.values()) h.reject(new Error('Worker crashed: ' + e.message));
-    _pending.clear();
-  };
+  if (_initialized) return; // idempotent on success
+  if (!_worker) {
+    _worker = new Worker('/db/db-worker.js', { type: 'module' });
+    _worker.onmessage = ({ data }) => {
+      const h = _pending.get(data.id);
+      if (!h) return;
+      _pending.delete(data.id);
+      if (data.ok) h.resolve(data.rows ?? data.changes ?? data);
+      else h.reject(new Error(data.error || 'Worker error'));
+    };
+    _worker.onerror = (e) => {
+      for (const h of _pending.values()) h.reject(new Error('Worker crashed: ' + (e && e.message ? e.message : 'unknown')));
+      _pending.clear();
+    };
+  }
   await _call('init');
+  _initialized = true;
 }
 
 export function isReady() {
-  return !!_worker;
+  return _initialized;
 }
 
 // ── texts ──────────────────────────────────────────────────────────────────
@@ -102,12 +115,17 @@ export async function getTextById(id) {
 
 export async function createText(data) {
   const { id, text_key, title, source_text, level, tags_json, source, topic, tts_profile_json, source_meta_json } = data;
+  if (!id) throw new Error('createText: id is required');
+  if (!text_key) throw new Error('createText: text_key is required');
+  // texts.title and texts.source_text are NOT NULL in the schema; coerce nulls to ''.
+  const safeTitle = title == null ? '' : String(title);
+  const safeSource = source_text == null ? '' : String(source_text);
   const now = new Date().toISOString();
   await r(
     `INSERT INTO texts (id, text_key, title, source_text, level, tags_json, source, topic,
        tts_profile_json, source_meta_json, created_at, updated_at)
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [id, text_key, title, source_text,
+    [id, text_key, safeTitle, safeSource,
      level ?? null, tags_json ?? '[]', source ?? null, topic ?? null,
      tts_profile_json ?? null, source_meta_json ?? null, now, now]
   );
@@ -149,7 +167,15 @@ export async function getSentences(textId) {
 }
 
 export async function addSentence(textId, data) {
+  if (!textId) throw new Error('addSentence: textId is required');
+  if (!data || !data.id) throw new Error('addSentence: data.id is required');
   const { id, he_plain, he_niqqud, translit, translit_ru, ru, meta_json, edit_meta_json } = data;
+  const toStr = (v) => (v == null ? '' : String(v));
+  const toJson = (v) => {
+    if (v == null) return null;
+    if (typeof v === 'string') return v;
+    try { return JSON.stringify(v); } catch (_) { return null; }
+  };
   const maxRow = await q(
     'SELECT COALESCE(MAX(order_index), -1) AS m FROM sentences WHERE text_id = ?', [textId]);
   const order = (maxRow[0]?.m ?? -1) + 1;
@@ -159,8 +185,9 @@ export async function addSentence(textId, data) {
        ru, meta_json, edit_meta_json, created_at)
      VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
     [id, textId, order,
-     he_plain ?? '', he_niqqud ?? '', translit ?? '', translit_ru ?? null,
-     ru ?? '', meta_json ?? null, edit_meta_json ?? null, now]
+     toStr(he_plain), toStr(he_niqqud), toStr(translit),
+     translit_ru == null ? null : String(translit_ru),
+     toStr(ru), toJson(meta_json), toJson(edit_meta_json), now]
   );
 }
 
