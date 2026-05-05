@@ -17588,13 +17588,23 @@ async function v3LibraryExportBundle() {
       await Promise.all(workers);
 
       if (missing.length) {
-        zip.file("missing_audio.json", JSON.stringify({ missing, count: missing.length }, null, 2));
+        zip.file("missing_audio.json", JSON.stringify({
+          missing,
+          count: missing.length,
+          help:
+            "Эти ассеты ссылаются предложениями, но Railway audio-cache их не отдал " +
+            "(скорее всего сервер был передеплоен и кэш потерялся). Чтобы восстановить, " +
+            "переTTS-ните соответствующие строки.",
+        }, null, 2));
       }
 
       blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } });
       filename = v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
       const audioMsg = (keys.length - missing.length) + "/" + keys.length + " аудио файлов";
-      showToast("ZIP готов: " + (payload.texts || []).length + " текстов, " + audioMsg, "success");
+      const missingNote = missing.length
+        ? ` ⚠ ${missing.length} аудио не найдены в кеше (см. missing_audio.json)`
+        : "";
+      showToast("ZIP готов: " + (payload.texts || []).length + " текстов, " + audioMsg + missingNote, missing.length ? "warning" : "success");
     } else {
       showToast("Подготовка ZIP с аудио…");
       const resp = await fetch("/api/library/export/bundle?includeArchived=1");
@@ -17654,6 +17664,8 @@ async function v3LibraryOnBundleImportSelected(ev) {
         (file.type && /zip|x-zip|octet-stream/i.test(file.type))
       );
 
+      let importedAudio = 0;
+      let audioErrors = 0;
       if (looksLikeZip) {
         if (typeof JSZip === "undefined") {
           showToast("JSZip не загружен", "error"); return;
@@ -17662,6 +17674,46 @@ async function v3LibraryOnBundleImportSelected(ev) {
         const libFile = zip.file("library.json");
         if (!libFile) { showToast("В ZIP нет library.json", "error"); return; }
         parsed = JSON.parse(await libFile.async("string"));
+
+        // Re-upload audio-cache/*.mp3 to Railway so cross-device imports keep
+        // their audio. Each MP3 is keyed by the same SHA-256 the server uses,
+        // so the upload endpoint stores them at audio-cache/<key>.mp3 — and
+        // all subsequent `/api/audio/<key>` requests serve the user's audio.
+        const audioFolder = zip.folder("audio-cache");
+        if (audioFolder) {
+          const mp3Entries = [];
+          audioFolder.forEach((relPath, entry) => {
+            if (!entry.dir && /\.mp3$/i.test(relPath)) mp3Entries.push({ relPath, entry });
+          });
+          if (mp3Entries.length) {
+            showToast(`Загрузка ${mp3Entries.length} аудио-файлов на сервер…`, "info");
+            // Sequential to avoid hammering Railway; each upload < 100KB → 1MB.
+            for (const { relPath, entry } of mp3Entries) {
+              const m = relPath.match(/([a-f0-9]{64})\.mp3$/i);
+              if (!m) continue;
+              const assetKey = m[1].toLowerCase();
+              try {
+                const ab = await entry.async("arraybuffer");
+                const u8 = new Uint8Array(ab);
+                // Convert to base64 in chunks (avoid stack overflow on large arrays).
+                let bin = "";
+                const CHUNK = 0x8000;
+                for (let i = 0; i < u8.length; i += CHUNK) {
+                  bin += String.fromCharCode.apply(null, u8.subarray(i, i + CHUNK));
+                }
+                const b64 = btoa(bin);
+                const r = await fetch("/api/audio/cache/upload", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", ...(LOCAL_MODE ? { "X-Local-Mode": "1" } : {}) },
+                  body: JSON.stringify({ assetKey, mp3Base64: b64 }),
+                });
+                const j = await r.json().catch(() => ({}));
+                if (r.ok && j && j.ok) importedAudio++;
+                else audioErrors++;
+              } catch (_) { audioErrors++; }
+            }
+          }
+        }
       } else {
         try {
           const txt = await file.text();
@@ -17672,7 +17724,14 @@ async function v3LibraryOnBundleImportSelected(ev) {
         }
       }
       const r = await ldb.importBundle(parsed, { mode: "skip" });
-      data = { ok: true, importedCount: r.imported, importedAudio: 0, linkedAudio: 0, skippedCount: r.skipped, errorCount: (r.errors || []).length };
+      data = {
+        ok: true,
+        importedCount: r.imported,
+        importedAudio,
+        linkedAudio: 0,
+        skippedCount: r.skipped,
+        errorCount: (r.errors || []).length + audioErrors,
+      };
     } else {
       const resp = await fetch("/api/library/import/bundle?mode=skip", {
         method: "POST",

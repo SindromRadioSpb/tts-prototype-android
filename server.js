@@ -2338,6 +2338,53 @@ app.post("/api/audio/prefetch/cancel", async (req, res) => {
   }
 });
 
+// POST /api/audio/cache/upload — repopulate Railway audio-cache with an MP3
+// shipped inside a user's ZIP-bundle (Phase 5 cross-device flow).
+// Body: { assetKey: "<sha256>", mp3Base64: "<base64>" }
+// The asset_key MUST be a 64-char lowercase hex SHA-256, identical to what
+// the server itself produces in computeAssetKey — that's the contract that
+// keeps cross-device URL stability. We DO NOT verify the MP3's actual hash
+// against the asset_key (cross-device users may have a different audio
+// engine version), but we do validate the key shape.
+app.post("/api/audio/cache/upload", async (req, res) => {
+  try {
+    if (!v3AudioPrefetchIsAllowed(req)) {
+      return res.status(403).json({ ok: false, error: "LOCAL_ONLY" });
+    }
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const assetKey = String(body.assetKey || "").trim().toLowerCase();
+    if (!/^[a-f0-9]{64}$/.test(assetKey)) {
+      return res.status(400).json({ ok: false, error: "BAD_ASSET_KEY" });
+    }
+    const mp3B64 = String(body.mp3Base64 || "");
+    if (!mp3B64) return res.status(400).json({ ok: false, error: "NO_MP3" });
+    let buf;
+    try { buf = Buffer.from(mp3B64, "base64"); } catch (_) {
+      return res.status(400).json({ ok: false, error: "BAD_BASE64" });
+    }
+    if (!buf || !buf.length) return res.status(400).json({ ok: false, error: "EMPTY_MP3" });
+    if (buf.length > 20 * 1024 * 1024) {
+      // 20 MB cap per file is generous for TTS row clips.
+      return res.status(413).json({ ok: false, error: "MP3_TOO_LARGE" });
+    }
+    const relPath = getAudioRelativePath(assetKey).replace(/\\/g, "/");
+    const absPath = path.resolve(DATA_DIR, relPath);
+    const dir = path.dirname(absPath);
+    try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+    const wr = writeMp3IfNotExists(absPath, buf);
+    return res.json({
+      ok: true,
+      assetKey,
+      written: !!wr.written,
+      alreadyExisted: !wr.written && !wr.error,
+      error: wr.error || null,
+    });
+  } catch (e) {
+    console.error("POST /api/audio/cache/upload error:", e);
+    return res.status(500).json({ ok: false, error: "UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
+  }
+});
+
 // --------------------------------------------------------
 // 8. API: СОХРАНЕНИЕ АУДИО НА ДИСК
 // --------------------------------------------------------
