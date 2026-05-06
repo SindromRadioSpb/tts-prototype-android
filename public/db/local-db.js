@@ -693,13 +693,25 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
   const texts  = bundleObj.texts ?? bundleObj;
   const result = { imported: 0, skipped: 0, errors: [] };
 
-  for (const textData of texts) {
+  for (const item of texts) {
+    // Normalize shape. Server's GET /api/library/export wraps each text:
+    //   { text: { id, text_key, title, ... }, sentences: [...], progress: ... }
+    // OPFS-built bundles (this file's exportBundle, plus older imports) are flat:
+    //   { id, text_key, title, ..., sentences: [...] }
+    // Detect by presence of `item.text`.
+    const textData = (item && item.text && typeof item.text === 'object')
+      ? { ...item.text, sentences: Array.isArray(item.sentences) ? item.sentences : (item.text.sentences || []) }
+      : item;
+
     try {
-      const existing = await q('SELECT id FROM texts WHERE text_key = ?', [textData.text_key]);
+      // Generate a fresh text_key when the source didn't provide one (defensive).
+      const text_key = String(textData.text_key || textData.textKey || '').trim()
+        || ('imported-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+      const existing = await q('SELECT id FROM texts WHERE text_key = ?', [text_key]);
       if (existing.length > 0 && mode === 'skip') { result.skipped++; continue; }
 
       const newTextId = crypto.randomUUID();
-      await createText({ ...textData, id: newTextId });
+      await createText({ ...textData, text_key, id: newTextId });
 
       const sentences = textData.sentences ?? textData.rows ?? [];
       for (const s of sentences) {
@@ -710,7 +722,7 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         }
         // Re-establish audio asset link (the actual MP3 blobs are not transported
         // here — they live on the server's audio-cache identified by asset_key).
-        const ak = String(s.audio_asset_key || '').trim();
+        const ak = String(s.audio_asset_key || s.audioAssetKey || '').trim();
         if (ak) {
           const asset = await upsertAudioAsset({
             id: crypto.randomUUID(),
@@ -726,7 +738,7 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
       }
       result.imported++;
     } catch (e) {
-      result.errors.push({ title: textData.title, error: e.message });
+      result.errors.push({ title: textData.title, error: e && e.message ? e.message : String(e) });
     }
   }
   return result;
