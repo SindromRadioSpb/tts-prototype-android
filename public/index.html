@@ -16275,6 +16275,10 @@ try { v3SyncTagMatchModeUi(); } catch (_) {}
 
   // render chips immediately (even if refresh fails)
   try { v3LibraryRenderActiveChips(); } catch (_) {}
+  // Show/hide cloud-import button immediately based on LOCAL_MODE — don't
+  // wait for v3LibraryRefresh, otherwise the button stays hidden until the
+  // texts list loads (or never if listTexts throws).
+  try { v3LibraryUpdateCloudImportVisibility(); } catch (_) {}
 
   v3LibraryRefresh();
   v3LibraryBindTagClicksOnce();
@@ -17728,18 +17732,15 @@ async function v3LibraryImportFromCloud() {
   }
 }
 
-// Show the cloud-import button only when LOCAL_MODE and the OPFS library
-// looks empty — once the user has data locally, the button stops being
-// useful and clutters the toolbar.
+// Show the cloud-import button whenever LOCAL_MODE is on. The button is
+// idempotent (mode='skip' preserves OPFS texts that already exist by
+// text_key) and useful even when the OPFS library has data — the user
+// might want to bring in additional texts from the server, or restore
+// after partial wipe.
 async function v3LibraryUpdateCloudImportVisibility() {
   const btn = document.getElementById("v3LibraryImportFromCloudBtn");
   if (!btn) return;
-  if (!LOCAL_MODE) { btn.style.display = "none"; return; }
-  try {
-    const ldb = await ensureLocalDB();
-    const texts = await ldb.listTexts({ limit: 1 });
-    btn.style.display = (texts && texts.length > 0) ? "none" : "";
-  } catch (_) { btn.style.display = ""; }
+  btn.style.display = LOCAL_MODE ? "" : "none";
 }
 
 window.v3LibraryExport = v3LibraryExport;

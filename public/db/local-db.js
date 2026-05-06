@@ -651,15 +651,13 @@ function computeSM2(card, rating) {
 // ── export / import (ZIP bundle) ───────────────────────────────────────────
 
 export async function exportBundle({ includeArchived = false } = {}) {
-  const texts    = await listTexts({ archived: includeArchived, limit: 10000 });
-  const allTexts = includeArchived
-    ? texts
-    : [...texts, ...(await listTexts({ archived: true, limit: 10000 }))].filter(
-        (t, i, a) => a.findIndex(x => x.id === t.id) === i
-      );
-
-  // Only exported texts (non-archived by default)
-  const exportList = includeArchived ? allTexts : texts;
+  // listTexts({ archived: false }) returns ONLY non-archived; archived: true returns ONLY archived.
+  // Bug pre-fix: when includeArchived=true the function only fetched archived rows and returned
+  // an empty bundle for users with only active texts. Fix: always include active, plus archived
+  // when the caller asks for it.
+  const active   = await listTexts({ archived: false, limit: 10000 });
+  const archived = includeArchived ? await listTexts({ archived: true, limit: 10000 }) : [];
+  const exportList = [...active, ...archived];
   const bundle = [];
   let noteCount = 0;
 

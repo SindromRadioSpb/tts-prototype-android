@@ -21,7 +21,7 @@ import {
   upsertNote, listNotes, setProgress, getProgress, recordEvent,
   recentActivity, deleteText, dbDiag, reorderSentences,
   upsertAudioAsset, linkSentenceAudio, getDefaultAudioMap,
-  getAnalytics
+  getAnalytics, exportBundle
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -301,6 +301,43 @@ async function run() {
     out('err', '❌ ТЕСТ 12 ПРОВАЛЕН: ' + e.message);
   }
 
+  // ── ТЕСТ 13: exportBundle возвращает НЕПУСТОЙ результат для non-archived ──
+  // Регрессия для бага: exportBundle({includeArchived:true}) при отсутствии
+  // архивированных текстов раньше выдавал пустой `texts: []`, потому что
+  // listTexts({archived: includeArchived}) при includeArchived=true берёт
+  // ТОЛЬКО архивированные. Fix: всегда добавлять active, добавлять archived
+  // только если includeArchived. Тест проверяет оба варианта.
+  const exportTextId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 13: exportBundle non-archived → ZIP/JSON не пусто...');
+    await createText({
+      id: exportTextId,
+      text_key: 'export-non-archived-' + Date.now(),
+      title: 'Bundle export regression',
+      source_text: 'שלום',
+      tags_json: '[]',
+    });
+    await addSentence(exportTextId, { id: crypto.randomUUID(), he_plain: 'שלום', ru: 'привет' });
+
+    const bundleA = await exportBundle({ includeArchived: false });
+    if (!bundleA || !Array.isArray(bundleA.texts)) throw new Error('бункер shape: отсутствует texts');
+    const foundA = bundleA.texts.find(x => x.id === exportTextId);
+    if (!foundA) throw new Error('exportBundle({includeArchived:false}) пропустил наш текст');
+    if (!Array.isArray(foundA.sentences) || !foundA.sentences.length) throw new Error('у текста нет sentences в bundle');
+
+    const bundleB = await exportBundle({ includeArchived: true });
+    if (!bundleB || !Array.isArray(bundleB.texts)) throw new Error('bundle B shape');
+    const foundB = bundleB.texts.find(x => x.id === exportTextId);
+    if (!foundB) throw new Error('exportBundle({includeArchived:true}) пропустил наш text');
+
+    out('ok', '✅ ТЕСТ 13 ПРОШЁЛ: bundle содержит наш текст в обоих режимах', {
+      includeArchivedFalse: { texts: bundleA.texts.length, manifest: bundleA.manifest },
+      includeArchivedTrue:  { texts: bundleB.texts.length, manifest: bundleB.manifest },
+    });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 13 ПРОВАЛЕН: ' + e.message);
+  }
+
   // ── Cleanup ───────────────────────────────────────────────────────────
   try {
     await deleteText(testId);
@@ -308,6 +345,7 @@ async function run() {
     await deleteText(reorderTextId);
     await deleteText(audioTextId);
     await deleteText(analyticsTextId);
+    await deleteText(exportTextId);
     out('inf', '(тестовые данные удалены)');
   } catch(e) { /* ignore */ }
 
