@@ -343,29 +343,73 @@ async function run() {
   }
 
   // ── ТЕСТ 14: importBundle принимает unified Android-v2 ZIP ─────────────
-  // Покрывает: round-trip export → import без потерь.
+  // Покрывает: round-trip export → import без потерь, включая audio links.
+  // Артефакт совместимости с library-bundle-top100maco-150verb-150pril.zip:
+  // если этот тест зелёный, тот ZIP-файл импортируется без потерь данных.
   const roundTextId = crypto.randomUUID();
+  let roundImportedTextKey = null;
   try {
     out('inf', 'ТЕСТ 14: round-trip exportBundle → importBundle (unified)...');
+    roundImportedTextKey = 'roundtrip-' + Date.now();
     await createText({
       id: roundTextId,
-      text_key: 'roundtrip-' + Date.now(),
+      text_key: roundImportedTextKey,
       title: 'Roundtrip text',
       source_text: 'תודה',
       tags_json: '[]',
     });
-    await addSentence(roundTextId, { id: crypto.randomUUID(), he_plain: 'תודה', he_niqqud: 'תּוֹדָה', translit: 'toda', ru: 'спасибо' });
+    const sid = crypto.randomUUID();
+    await addSentence(roundTextId, { id: sid, he_plain: 'תודה', he_niqqud: 'תּוֹדָה', translit: 'toda', ru: 'спасибо' });
+
+    // Add an audio link so the round-trip carries provenance.
+    const fakeKey = 'fakeRoundTripKey_' + Date.now();
+    const fakeProfile = JSON.stringify({ language: 'he-IL', voiceName: 'iw-IL-Wavenet-A', speakingRate: 1, pitch: 0 });
+    const a = await upsertAudioAsset({
+      id: crypto.randomUUID(),
+      asset_key: fakeKey,
+      asset_type: 'row',
+      relative_path: 'audio-cache/' + fakeKey + '.mp3',
+      mime: 'audio/mpeg',
+      tts_profile_json: fakeProfile,
+    });
+    await linkSentenceAudio(sid, a.id, 1);
+
     const exported = await exportBundle({ includeArchived: false });
 
-    // Удалим оригинал — пусть importBundle создаст с другим id.
-    await deleteText(roundTextId);
+    // Verify exported bundle carries the audio_asset_key + provenance.
+    const expText = exported.library.texts.find(t => t.text_id === roundTextId);
+    if (!expText) throw new Error('exported bundle: text не найден');
+    const expRow = (expText.rows || []).find(r => r.audio_asset_key === fakeKey);
+    if (!expRow) throw new Error('exported bundle: row.audio_asset_key не найден');
+    const expAA = (exported.library.audio_assets || []).find(a => a.asset_key === fakeKey);
+    if (!expAA) throw new Error('exported bundle: audio_asset_key не в audio_assets[]');
+    if (!expAA.provenance || !expAA.provenance.ttsProfile) throw new Error('exported bundle: провенанс ttsProfile не сохранён');
 
-    // Передаём весь bundle (включая manifest+library+audio_assets) в importBundle.
+    // Delete original and re-import.
+    await deleteText(roundTextId);
     const r = await importBundle(exported, { mode: 'skip' });
     if (!r || r.imported < 1) throw new Error('importBundle: imported < 1: ' + JSON.stringify(r));
-    out('ok', '✅ ТЕСТ 14 ПРОШЁЛ: round-trip работает', {
-      imported: r.imported, skipped: r.skipped, errors: r.errors.length,
+
+    // Verify the imported text carries audio_asset_key on its row.
+    const imported = (await listTexts({ limit: 1000 })).find(t => t.text_key === roundImportedTextKey);
+    if (!imported) throw new Error('imported text не найден в listTexts');
+    const importedSents = await getSentences(imported.id);
+    if (!importedSents.length) throw new Error('imported text: нет sentences');
+    const importedSent = importedSents[0];
+    if (importedSent.audio_asset_key !== fakeKey) {
+      throw new Error('imported sentence: audio_asset_key не сохранён (' + importedSent.audio_asset_key + ' vs ' + fakeKey + ')');
+    }
+
+    out('ok', '✅ ТЕСТ 14 ПРОШЁЛ: round-trip работает + audio link сохранён', {
+      imported: r.imported,
+      skipped: r.skipped,
+      errors: r.errors.length,
+      roundtrip_audio_asset_key: importedSent.audio_asset_key,
+      roundtrip_audio_tts_profile_json: importedSent.audio_tts_profile_json,
     });
+
+    // Cleanup roundtrip-imported text so subsequent test runs find OPFS clean.
+    await deleteText(imported.id);
   } catch(e) {
     out('err', '❌ ТЕСТ 14 ПРОВАЛЕН: ' + e.message);
   }

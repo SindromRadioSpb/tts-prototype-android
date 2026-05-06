@@ -17906,8 +17906,8 @@ async function v3LibraryOnBundleImportSelected(ev) {
         (file.type && /zip|x-zip|octet-stream/i.test(file.type))
       );
 
-      let importedAudio = 0;
-      let audioErrors = 0;
+      let mp3Entries = [];     // collected up-front, uploaded after importBundle
+      let layout = "unified";
       if (looksLikeZip) {
         if (typeof JSZip === "undefined") {
           showToast("JSZip не загружен", "error"); return;
@@ -17920,7 +17920,6 @@ async function v3LibraryOnBundleImportSelected(ev) {
         //   library.json (root) + audio-cache/<key>.mp3
         let libFile = zip.file("library/library.json");
         let audioFolderName = "audio";
-        let layout = "unified";
         if (!libFile) {
           libFile = zip.file("library.json");
           audioFolderName = "audio-cache";
@@ -17929,42 +17928,14 @@ async function v3LibraryOnBundleImportSelected(ev) {
         if (!libFile) { showToast("В ZIP нет library.json (ни library/library.json)", "error"); return; }
         parsed = JSON.parse(await libFile.async("string"));
 
-        // Re-upload bundled MP3s to Railway audio-cache so playback works
-        // immediately after import (cross-device flow).
+        // Pull MP3 entries from the ZIP; we'll upload them AFTER importBundle
+        // so the user sees their library populated immediately (uploads then
+        // run in the background with progress reporting).
         const audioFolder = zip.folder(audioFolderName);
         if (audioFolder) {
-          const mp3Entries = [];
           audioFolder.forEach((relPath, entry) => {
             if (!entry.dir && /\.mp3$/i.test(relPath)) mp3Entries.push({ relPath, entry });
           });
-          if (mp3Entries.length) {
-            showToast(`Загрузка ${mp3Entries.length} аудио-файлов на сервер (формат: ${layout})…`, "info");
-            for (const { relPath, entry } of mp3Entries) {
-              // Accept both flat `audio/<sha>.mp3` and nested
-              // `audio/rows/<text_id>/<row_id>/<sha>.mp3` paths from Android.
-              const m = relPath.match(/([a-f0-9]{64})\.mp3$/i);
-              if (!m) continue;
-              const assetKey = m[1].toLowerCase();
-              try {
-                const ab = await entry.async("arraybuffer");
-                const u8 = new Uint8Array(ab);
-                let bin = "";
-                const CHUNK = 0x8000;
-                for (let i = 0; i < u8.length; i += CHUNK) {
-                  bin += String.fromCharCode.apply(null, u8.subarray(i, i + CHUNK));
-                }
-                const b64 = btoa(bin);
-                const r = await fetch("/api/audio/cache/upload", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json", ...(LOCAL_MODE ? { "X-Local-Mode": "1" } : {}) },
-                  body: JSON.stringify({ assetKey, mp3Base64: b64 }),
-                });
-                const j = await r.json().catch(() => ({}));
-                if (r.ok && j && j.ok) importedAudio++;
-                else audioErrors++;
-              } catch (_) { audioErrors++; }
-            }
-          }
         }
       } else {
         try {
@@ -17975,7 +17946,74 @@ async function v3LibraryOnBundleImportSelected(ev) {
           return;
         }
       }
+
+      // PHASE 1 — import library data into OPFS NOW. Marker links land here.
+      showToast("Импорт текстов в OPFS…", "info");
       const r = await ldb.importBundle(parsed, { mode: "skip" });
+      v3LibraryRefresh();  // surface texts in Library modal immediately
+
+      // PHASE 2 — upload MP3 blobs to Railway audio-cache. Backgrounded with
+      // concurrency=4 + progress. The user can already browse texts and see
+      // green markers because the OPFS link was made by importBundle.
+      let importedAudio = 0;
+      let audioErrors = 0;
+      if (mp3Entries.length) {
+        showToast(`Импорт текстов готов (${r.imported}). Загрузка аудио ${mp3Entries.length}/Railway…`, "info");
+
+        const total = mp3Entries.length;
+        let cursor = 0;
+        let done = 0;
+        let lastReport = 0;
+        const CONCURRENCY = 4;
+
+        async function uploadOne(entry, relPath) {
+          const m = relPath.match(/([a-f0-9]{64})\.mp3$/i);
+          if (!m) return false;
+          const assetKey = m[1].toLowerCase();
+          try {
+            const ab = await entry.async("arraybuffer");
+            const u8 = new Uint8Array(ab);
+            let bin = "";
+            const CHUNK = 0x8000;
+            for (let i = 0; i < u8.length; i += CHUNK) {
+              bin += String.fromCharCode.apply(null, u8.subarray(i, i + CHUNK));
+            }
+            const b64 = btoa(bin);
+            const resp = await fetch("/api/audio/cache/upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", ...(LOCAL_MODE ? { "X-Local-Mode": "1" } : {}) },
+              body: JSON.stringify({ assetKey, mp3Base64: b64 }),
+            });
+            const j = await resp.json().catch(() => ({}));
+            return !!(resp.ok && j && j.ok);
+          } catch (_) { return false; }
+        }
+
+        async function worker() {
+          while (cursor < total) {
+            const i = cursor++;
+            const e = mp3Entries[i];
+            const ok = await uploadOne(e.entry, e.relPath);
+            done++;
+            if (ok) importedAudio++; else audioErrors++;
+            // Update toast every ~50 files (or on completion).
+            if (done - lastReport >= 50 || done === total) {
+              lastReport = done;
+              try {
+                showToast(`Аудио ${done}/${total} загружено (ошибок ${audioErrors})…`, "info");
+              } catch (_) {}
+            }
+          }
+        }
+
+        const workers = [];
+        for (let w = 0; w < Math.min(CONCURRENCY, total); w++) workers.push(worker());
+        await Promise.all(workers);
+
+        // Refresh markers on any currently-open table after uploads land.
+        try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}
+      }
+
       data = {
         ok: true,
         importedCount: r.imported,
@@ -17983,6 +18021,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
         linkedAudio: 0,
         skippedCount: r.skipped,
         errorCount: (r.errors || []).length + audioErrors,
+        layoutDetected: layout,
       };
     } else {
       const resp = await fetch("/api/library/import/bundle?mode=skip", {
