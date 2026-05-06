@@ -17593,15 +17593,19 @@ function v3LibraryMakeExportFilename(prefix) {
 async function v3LibraryExport() {
   try {
     showToast("Экспорт библиотеки…");
-    let payload;
+    let jsonOut;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
-      payload = await ldb.exportBundle({ includeArchived: true });
+      const bundle = await ldb.exportBundle({ includeArchived: true });
+      // Write the same shape as `library/library.json` inside the ZIP, so
+      // Android v2 P029 importer can also consume the JSON if dropped in
+      // place of the ZIP. Keys: schema_version, texts, audio_assets.
+      jsonOut = bundle.library;
     } else {
-      payload = await v3GetJson("/api/library/export?includeArchived=1");
+      jsonOut = await v3GetJson("/api/library/export?includeArchived=1");
     }
 
-    const jsonText = JSON.stringify(payload, null, 2);
+    const jsonText = JSON.stringify(jsonOut, null, 2);
     const blob = new Blob([jsonText], { type: "application/json" });
 
     const a = document.createElement("a");
@@ -17763,8 +17767,13 @@ async function v3LibraryExportBundle() {
   try {
     let blob, filename;
     if (LOCAL_MODE) {
-      // Browser-side ZIP: read OPFS bundle JSON, fetch audio for any sentences
-      // that have an asset_key, package as ZIP via JSZip.
+      // Browser-side ZIP in the **unified Android v2 / web v3** layout
+      // (see docs/ANDROID_V2_LIBRARY_EXPORT_SPEC.md). Same ZIP works for
+      // both web import and Android v2 SAF import.
+      //   manifest.json
+      //   library/library.json
+      //   audio/<asset_key>.mp3
+      //   metadata/missing_audio.json (when partial_backup)
       if (typeof JSZip === "undefined") {
         throw new Error("JSZip не загружен — проверьте, что /db/jszip.min.js доступен");
       }
@@ -17774,21 +17783,18 @@ async function v3LibraryExportBundle() {
 
       // Collect unique asset_keys across all texts.
       const allKeys = new Set();
-      for (const t of (payload.texts || [])) {
-        for (const s of (t.sentences || [])) {
-          const k = String(s.audio_asset_key || "").trim();
+      for (const t of (payload.library.texts || [])) {
+        for (const r of (t.rows || [])) {
+          const k = String(r.audio_asset_key || "").trim();
           if (k) allKeys.add(k);
         }
       }
 
       const zip = new JSZip();
-      zip.file("manifest.json", JSON.stringify(payload.manifest || { schema_version: 2 }, null, 2));
-      zip.file("library.json", JSON.stringify(payload, null, 2));
-
-      // Fetch audio in parallel (capped to avoid hammering); errors per asset
-      // are non-fatal — we ship the ZIP without that one and record it in manifest.
+      const audioFolder = zip.folder("audio");
       const missing = [];
-      const audioFolder = zip.folder("audio-cache");
+
+      // Fetch audio in parallel (capped). Per-asset errors are non-fatal.
       const keys = Array.from(allKeys);
       const CONCURRENCY = 6;
       let cursor = 0;
@@ -17798,19 +17804,34 @@ async function v3LibraryExportBundle() {
           const key = keys[i];
           try {
             const r = await fetch("/api/audio/" + encodeURIComponent(key));
-            if (!r.ok) { missing.push(key); continue; }
+            if (!r.ok) {
+              missing.push({ owner_type: 'row', asset_key: key, reason: 'file_missing_in_cache' });
+              continue;
+            }
             const ab = await r.arrayBuffer();
             audioFolder.file(key + ".mp3", ab);
-          } catch (_) { missing.push(key); }
+            // Update audio_assets metadata with file size for the ZIP manifest.
+            const aa = (payload.library.audio_assets || []).find((x) => x.asset_key === key);
+            if (aa) aa.size_bytes = ab.byteLength;
+          } catch (_) {
+            missing.push({ owner_type: 'row', asset_key: key, reason: 'fetch_error' });
+          }
         }
       }
       const workers = [];
       for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
       await Promise.all(workers);
 
+      // Update manifest with actual numbers.
+      payload.manifest.audio_count = keys.length - missing.length;
+      payload.manifest.missing_audio_count = missing.length;
+      payload.manifest.partial_backup = missing.length > 0;
+
+      zip.file("manifest.json", JSON.stringify(payload.manifest, null, 2));
+      zip.file("library/library.json", JSON.stringify(payload.library, null, 2));
       if (missing.length) {
-        zip.file("missing_audio.json", JSON.stringify({
-          missing,
+        zip.file("metadata/missing_audio.json", JSON.stringify({
+          missing_audio: missing,
           count: missing.length,
           help:
             "Эти ассеты ссылаются предложениями, но Railway audio-cache их не отдал " +
@@ -17823,9 +17844,9 @@ async function v3LibraryExportBundle() {
       filename = v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
       const audioMsg = (keys.length - missing.length) + "/" + keys.length + " аудио файлов";
       const missingNote = missing.length
-        ? ` ⚠ ${missing.length} аудио не найдены в кеше (см. missing_audio.json)`
+        ? ` ⚠ ${missing.length} аудио не найдены в кеше (см. metadata/missing_audio.json)`
         : "";
-      showToast("ZIP готов: " + (payload.texts || []).length + " текстов, " + audioMsg + missingNote, missing.length ? "warning" : "success");
+      showToast("ZIP готов: " + (payload.library.texts || []).length + " текстов, " + audioMsg + missingNote, missing.length ? "warning" : "success");
     } else {
       showToast("Подготовка ZIP с аудио…");
       const resp = await fetch("/api/library/export/bundle?includeArchived=1");
@@ -17892,31 +17913,41 @@ async function v3LibraryOnBundleImportSelected(ev) {
           showToast("JSZip не загружен", "error"); return;
         }
         const zip = await JSZip.loadAsync(file);
-        const libFile = zip.file("library.json");
-        if (!libFile) { showToast("В ZIP нет library.json", "error"); return; }
+
+        // Detect bundle layout. Unified format (Android v2 + web v3 spec):
+        //   library/library.json + audio/<key>.mp3
+        // Legacy web format (older OPFS exports):
+        //   library.json (root) + audio-cache/<key>.mp3
+        let libFile = zip.file("library/library.json");
+        let audioFolderName = "audio";
+        let layout = "unified";
+        if (!libFile) {
+          libFile = zip.file("library.json");
+          audioFolderName = "audio-cache";
+          layout = "legacy-web";
+        }
+        if (!libFile) { showToast("В ZIP нет library.json (ни library/library.json)", "error"); return; }
         parsed = JSON.parse(await libFile.async("string"));
 
-        // Re-upload audio-cache/*.mp3 to Railway so cross-device imports keep
-        // their audio. Each MP3 is keyed by the same SHA-256 the server uses,
-        // so the upload endpoint stores them at audio-cache/<key>.mp3 — and
-        // all subsequent `/api/audio/<key>` requests serve the user's audio.
-        const audioFolder = zip.folder("audio-cache");
+        // Re-upload bundled MP3s to Railway audio-cache so playback works
+        // immediately after import (cross-device flow).
+        const audioFolder = zip.folder(audioFolderName);
         if (audioFolder) {
           const mp3Entries = [];
           audioFolder.forEach((relPath, entry) => {
             if (!entry.dir && /\.mp3$/i.test(relPath)) mp3Entries.push({ relPath, entry });
           });
           if (mp3Entries.length) {
-            showToast(`Загрузка ${mp3Entries.length} аудио-файлов на сервер…`, "info");
-            // Sequential to avoid hammering Railway; each upload < 100KB → 1MB.
+            showToast(`Загрузка ${mp3Entries.length} аудио-файлов на сервер (формат: ${layout})…`, "info");
             for (const { relPath, entry } of mp3Entries) {
+              // Accept both flat `audio/<sha>.mp3` and nested
+              // `audio/rows/<text_id>/<row_id>/<sha>.mp3` paths from Android.
               const m = relPath.match(/([a-f0-9]{64})\.mp3$/i);
               if (!m) continue;
               const assetKey = m[1].toLowerCase();
               try {
                 const ab = await entry.async("arraybuffer");
                 const u8 = new Uint8Array(ab);
-                // Convert to base64 in chunks (avoid stack overflow on large arrays).
                 let bin = "";
                 const CHUNK = 0x8000;
                 for (let i = 0; i < u8.length; i += CHUNK) {

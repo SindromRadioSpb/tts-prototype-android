@@ -650,58 +650,173 @@ function computeSM2(card, rating) {
 
 // ── export / import (ZIP bundle) ───────────────────────────────────────────
 
+// Emits the unified format documented in
+// docs/ANDROID_V2_LIBRARY_EXPORT_SPEC.md so a single ZIP works for both web
+// and android-v2 imports.
+//
+// Returns { manifest, library, audioAssetsMap }:
+//   manifest    — the manifest.json content (pre-MP3-fetch counts; caller
+//                 may overwrite audio_count / missing_audio_count).
+//   library     — { schema_version: 1, texts, audio_assets } content for
+//                 library/library.json
+//   audioAssetsMap — Map<assetKey, audioAssetMeta> the caller can iterate to
+//                 fetch MP3 blobs.
 export async function exportBundle({ includeArchived = false } = {}) {
-  // listTexts({ archived: false }) returns ONLY non-archived; archived: true returns ONLY archived.
-  // Bug pre-fix: when includeArchived=true the function only fetched archived rows and returned
-  // an empty bundle for users with only active texts. Fix: always include active, plus archived
-  // when the caller asks for it.
   const active   = await listTexts({ archived: false, limit: 10000 });
   const archived = includeArchived ? await listTexts({ archived: true, limit: 10000 }) : [];
   const exportList = [...active, ...archived];
-  const bundle = [];
-  let noteCount = 0;
+  const texts = [];
+  const audioAssetsMap = new Map();
+  let rowCount = 0;
+
+  const safeJsonParse = (s) => {
+    if (s == null || s === '') return null;
+    if (typeof s !== 'string') return s;
+    try { return JSON.parse(s); } catch (_) { return null; }
+  };
 
   for (const text of exportList) {
-    const sentences = await getSentences(text.id);
+    const sentences = await getSentences(text.id);  // already JOIN'ed audio_asset_key + audio_tts_profile_json
     const notes     = await listNotes(text.id);
-    const audioMap  = await getDefaultAudioMap(text.id);  // sentenceId → asset_key
     const noteMap   = {};
     for (const n of notes) noteMap[n.sentence_id] = n.note;
 
-    const rows = sentences.map(s => ({
-      ...s,
-      note: noteMap[s.id] ?? '',
-      audio_asset_key: audioMap[s.id] ?? '',
-    }));
-    noteCount += notes.filter(n => n.note && n.note.trim()).length;
-    bundle.push({ ...text, sentences: rows });
+    const rows = sentences.map((s) => {
+      const ak = s.audio_asset_key || null;
+      // Track audio asset metadata (one entry per unique asset_key).
+      if (ak && !audioAssetsMap.has(ak)) {
+        const ttsProfile = safeJsonParse(s.audio_tts_profile_json);
+        audioAssetsMap.set(ak, {
+          asset_key: ak,
+          relative_export_path: 'audio/' + ak + '.mp3',
+          mime_type: 'audio/mpeg',
+          provider_id: 'unknown',
+          voice_name: ttsProfile && ttsProfile.voiceName ? ttsProfile.voiceName : null,
+          language: ttsProfile && ttsProfile.language ? ttsProfile.language : null,
+          duration_ms: null,
+          size_bytes: null,
+          provenance: ttsProfile ? { ttsProfile } : null,
+        });
+      }
+      rowCount++;
+      return {
+        row_id: s.id,
+        order_index: s.order_index ?? 0,
+        hebrew_plain: s.he_plain || '',
+        hebrew_niqqud: s.he_niqqud || '',
+        translit: s.translit || '',
+        translit_ru: s.translit_ru || '',
+        russian: s.ru || '',
+        edit_meta: safeJsonParse(s.edit_meta_json),
+        audio_asset_key: ak,
+        // Notes attached to row (Android v2 spec doesn't have a top-level
+        // notes array — they live inline on the row).
+        note: (noteMap[s.id] && String(noteMap[s.id]).trim()) ? String(noteMap[s.id]) : null,
+      };
+    });
+
+    texts.push({
+      text_id: text.id,
+      text_key: text.text_key,
+      title: text.title,
+      level: text.level || null,
+      tags: safeJsonParse(text.tags_json) || [],
+      source_label: text.source || null,
+      topic: text.topic || null,
+      source_text: text.source_text || '',
+      source_meta: safeJsonParse(text.source_meta_json),
+      table_model_meta: safeJsonParse(text.table_model_meta_json),
+      rows,
+      text_audio_asset_key: null,
+      created_at: text.created_at || null,
+      updated_at: text.updated_at || null,
+      is_archived: !!text.is_archived,
+    });
   }
 
+  const audioAssets = Array.from(audioAssetsMap.values());
   const manifest = {
-    schema_version: 2,
-    exported_at: new Date().toISOString(),
-    texts_count: bundle.length,
-    note_count: noteCount,
-    source: 'local-opfs',
-    partial_backup: false,
+    export_schema_version: 1,
+    app_id: 'linguist-pro-web',
+    created_at: new Date().toISOString(),
+    partial_backup: false,        // overwritten by caller after MP3 fetch
+    text_count: texts.length,
+    row_count: rowCount,
+    audio_count: audioAssets.length,
+    missing_audio_count: 0,       // overwritten by caller
+    contains_secrets: false,
+    library_json_path: 'library/library.json',
+    missing_audio_path: 'metadata/missing_audio.json',
   };
-
-  return { manifest, texts: bundle };
+  const library = { schema_version: 1, texts, audio_assets: audioAssets };
+  // Backwards-compat: also expose `texts` at the top of the returned object so
+  // callers that iterate `bundle.texts` directly (importBundle round-trip,
+  // older tests) keep working without changes.
+  return { manifest, library, texts, audio_assets: audioAssets };
 }
 
 export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
-  const texts  = bundleObj.texts ?? bundleObj;
+  // Accept three bundle shapes:
+  //   A) UNIFIED (Android v2 spec, current web export):
+  //      { manifest, library: { texts: [{text_id, rows: [{hebrew_plain, ...}], ...}], audio_assets: [...] } }
+  //      OR { schema_version: 1, texts: [...], audio_assets: [...] }
+  //   B) LEGACY SERVER (/api/library/export wraps each text):
+  //      { exportType, exportVersion, texts: [{text: {...}, sentences: [{he_plain, ...}], progress}] }
+  //   C) LEGACY WEB FLAT (older OPFS exports):
+  //      { manifest, texts: [{id, text_key, title, sentences: [{he_plain, ...}]}] }
+  //
+  // Detection priority: A wins if `library.texts` or top-level `texts[0].rows`
+  // exists; B wins if `texts[0].text` is an object; otherwise C.
+  const lib = (bundleObj && bundleObj.library && typeof bundleObj.library === 'object') ? bundleObj.library : bundleObj;
+  const texts = (lib && Array.isArray(lib.texts)) ? lib.texts : (Array.isArray(bundleObj) ? bundleObj : []);
+
+  // Pre-index audio_assets by asset_key for provenance recovery.
+  const audioAssetsByKey = new Map();
+  const aaList = (lib && Array.isArray(lib.audio_assets)) ? lib.audio_assets : [];
+  for (const aa of aaList) {
+    if (aa && aa.asset_key) audioAssetsByKey.set(String(aa.asset_key), aa);
+  }
+
   const result = { imported: 0, skipped: 0, errors: [] };
 
   for (const item of texts) {
-    // Normalize shape. Server's GET /api/library/export wraps each text:
-    //   { text: { id, text_key, title, ... }, sentences: [...], progress: ... }
-    // OPFS-built bundles (this file's exportBundle, plus older imports) are flat:
-    //   { id, text_key, title, ..., sentences: [...] }
-    // Detect by presence of `item.text`.
-    const textData = (item && item.text && typeof item.text === 'object')
-      ? { ...item.text, sentences: Array.isArray(item.sentences) ? item.sentences : (item.text.sentences || []) }
-      : item;
+    let textData;
+    if (item && item.text && typeof item.text === 'object') {
+      // Shape B: server-nested.
+      textData = { ...item.text, sentences: Array.isArray(item.sentences) ? item.sentences : (item.text.sentences || []) };
+    } else if (item && (item.text_id || Array.isArray(item.rows))) {
+      // Shape A: unified Android v2 / web v3.
+      const tags = item.tags;
+      textData = {
+        id: item.text_id,
+        text_key: item.text_key,
+        title: item.title,
+        level: item.level,
+        tags_json: Array.isArray(tags) ? JSON.stringify(tags) : (typeof tags === 'string' ? tags : '[]'),
+        source: item.source_label || item.source || null,
+        topic: item.topic || null,
+        source_text: item.source_text || '',
+        source_meta_json: item.source_meta ? JSON.stringify(item.source_meta) : null,
+        table_model_meta_json: item.table_model_meta ? JSON.stringify(item.table_model_meta) : null,
+        is_archived: item.is_archived ? 1 : 0,
+        created_at: item.created_at || null,
+        updated_at: item.updated_at || null,
+        sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => ({
+          he_plain: r.hebrew_plain || r.he_plain || '',
+          he_niqqud: r.hebrew_niqqud || r.he_niqqud || '',
+          translit: r.translit || '',
+          translit_ru: r.translit_ru || '',
+          ru: r.russian || r.ru || '',
+          edit_meta_json: r.edit_meta ? JSON.stringify(r.edit_meta) : (r.edit_meta_json || null),
+          audio_asset_key: r.audio_asset_key || r.audioAssetKey || null,
+          note: r.note || null,
+          order_index: r.order_index ?? null,
+        })),
+      };
+    } else {
+      // Shape C: legacy flat — pass through.
+      textData = item;
+    }
 
     try {
       // Generate a fresh text_key when the source didn't provide one (defensive).
@@ -720,16 +835,33 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         if (s.note && s.note.trim()) {
           await upsertNote(newTextId, newSentenceId, s.note);
         }
-        // Re-establish audio asset link (the actual MP3 blobs are not transported
-        // here — they live on the server's audio-cache identified by asset_key).
+        // Re-establish audio asset link. If the unified bundle ships an
+        // audio_assets[] entry with provenance.ttsProfile, we capture it so
+        // the marker can show the imported voice rather than empty profile.
         const ak = String(s.audio_asset_key || s.audioAssetKey || '').trim();
         if (ak) {
+          const aaMeta = audioAssetsByKey.get(ak) || null;
+          let ttsProfileJson = null;
+          if (aaMeta) {
+            const prov = aaMeta.provenance && aaMeta.provenance.ttsProfile;
+            if (prov && typeof prov === 'object') {
+              ttsProfileJson = JSON.stringify(prov);
+            } else if (aaMeta.voice_name || aaMeta.language) {
+              ttsProfileJson = JSON.stringify({
+                language: aaMeta.language || 'he-IL',
+                voiceName: aaMeta.voice_name || '',
+              });
+            }
+          }
           const asset = await upsertAudioAsset({
             id: crypto.randomUUID(),
             asset_key: ak,
             asset_type: 'row',
-            relative_path: 'audio-cache/' + ak + '.mp3',
-            mime: 'audio/mpeg',
+            relative_path: (aaMeta && aaMeta.relative_export_path) || ('audio-cache/' + ak + '.mp3'),
+            mime: (aaMeta && aaMeta.mime_type) || 'audio/mpeg',
+            duration_ms: (aaMeta && aaMeta.duration_ms) || null,
+            size_bytes: (aaMeta && aaMeta.size_bytes) || null,
+            tts_profile_json: ttsProfileJson,
           });
           if (asset && asset.id) {
             await linkSentenceAudio(newSentenceId, asset.id, 1);

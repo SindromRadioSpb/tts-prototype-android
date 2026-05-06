@@ -21,7 +21,7 @@ import {
   upsertNote, listNotes, setProgress, getProgress, recordEvent,
   recentActivity, deleteText, dbDiag, reorderSentences,
   upsertAudioAsset, linkSentenceAudio, getDefaultAudioMap,
-  getAnalytics, exportBundle
+  getAnalytics, exportBundle, importBundle
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -301,15 +301,13 @@ async function run() {
     out('err', '❌ ТЕСТ 12 ПРОВАЛЕН: ' + e.message);
   }
 
-  // ── ТЕСТ 13: exportBundle возвращает НЕПУСТОЙ результат для non-archived ──
-  // Регрессия для бага: exportBundle({includeArchived:true}) при отсутствии
-  // архивированных текстов раньше выдавал пустой `texts: []`, потому что
-  // listTexts({archived: includeArchived}) при includeArchived=true берёт
-  // ТОЛЬКО архивированные. Fix: всегда добавлять active, добавлять archived
-  // только если includeArchived. Тест проверяет оба варианта.
+  // ── ТЕСТ 13: exportBundle emits unified Android-v2 format ─────────────
+  // Покрывает: непустой результат для non-archived (регрессия) + поля
+  // unified формата (text_id/rows/hebrew_plain) + manifest.app_id +
+  // library_json_path + audio_assets массив.
   const exportTextId = crypto.randomUUID();
   try {
-    out('inf', 'ТЕСТ 13: exportBundle non-archived → ZIP/JSON не пусто...');
+    out('inf', 'ТЕСТ 13: exportBundle unified format (Android-v2 совместимый)...');
     await createText({
       id: exportTextId,
       text_key: 'export-non-archived-' + Date.now(),
@@ -319,23 +317,57 @@ async function run() {
     });
     await addSentence(exportTextId, { id: crypto.randomUUID(), he_plain: 'שלום', ru: 'привет' });
 
-    const bundleA = await exportBundle({ includeArchived: false });
-    if (!bundleA || !Array.isArray(bundleA.texts)) throw new Error('бункер shape: отсутствует texts');
-    const foundA = bundleA.texts.find(x => x.id === exportTextId);
-    if (!foundA) throw new Error('exportBundle({includeArchived:false}) пропустил наш текст');
-    if (!Array.isArray(foundA.sentences) || !foundA.sentences.length) throw new Error('у текста нет sentences в bundle');
+    const bundle = await exportBundle({ includeArchived: false });
+    if (!bundle || !bundle.manifest) throw new Error('bundle.manifest отсутствует');
+    if (bundle.manifest.app_id !== 'linguist-pro-web') throw new Error('manifest.app_id не "linguist-pro-web"');
+    if (bundle.manifest.export_schema_version !== 1) throw new Error('manifest.export_schema_version != 1');
+    if (bundle.manifest.library_json_path !== 'library/library.json') throw new Error('manifest.library_json_path неверный');
+    if (!bundle.library || !Array.isArray(bundle.library.texts)) throw new Error('bundle.library.texts отсутствует');
+    if (!Array.isArray(bundle.library.audio_assets)) throw new Error('bundle.library.audio_assets отсутствует');
+    const found = bundle.library.texts.find(x => x.text_id === exportTextId);
+    if (!found) throw new Error('text не найден в library.texts (по text_id)');
+    if (!Array.isArray(found.rows) || !found.rows.length) throw new Error('у текста нет rows');
+    const r0 = found.rows[0];
+    if (!r0.row_id) throw new Error('row.row_id отсутствует');
+    if (r0.hebrew_plain !== 'שלום') throw new Error('row.hebrew_plain неверно: ' + r0.hebrew_plain);
+    if (r0.russian !== 'привет') throw new Error('row.russian неверно: ' + r0.russian);
 
-    const bundleB = await exportBundle({ includeArchived: true });
-    if (!bundleB || !Array.isArray(bundleB.texts)) throw new Error('bundle B shape');
-    const foundB = bundleB.texts.find(x => x.id === exportTextId);
-    if (!foundB) throw new Error('exportBundle({includeArchived:true}) пропустил наш text');
-
-    out('ok', '✅ ТЕСТ 13 ПРОШЁЛ: bundle содержит наш текст в обоих режимах', {
-      includeArchivedFalse: { texts: bundleA.texts.length, manifest: bundleA.manifest },
-      includeArchivedTrue:  { texts: bundleB.texts.length, manifest: bundleB.manifest },
+    out('ok', '✅ ТЕСТ 13 ПРОШЁЛ: bundle в unified Android-v2 формате', {
+      manifest: bundle.manifest,
+      first_text: { text_id: found.text_id, title: found.title, rows_count: found.rows.length },
+      first_row: { row_id: r0.row_id, hebrew_plain: r0.hebrew_plain, russian: r0.russian },
+      audio_assets_count: bundle.library.audio_assets.length,
     });
   } catch(e) {
     out('err', '❌ ТЕСТ 13 ПРОВАЛЕН: ' + e.message);
+  }
+
+  // ── ТЕСТ 14: importBundle принимает unified Android-v2 ZIP ─────────────
+  // Покрывает: round-trip export → import без потерь.
+  const roundTextId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 14: round-trip exportBundle → importBundle (unified)...');
+    await createText({
+      id: roundTextId,
+      text_key: 'roundtrip-' + Date.now(),
+      title: 'Roundtrip text',
+      source_text: 'תודה',
+      tags_json: '[]',
+    });
+    await addSentence(roundTextId, { id: crypto.randomUUID(), he_plain: 'תודה', he_niqqud: 'תּוֹדָה', translit: 'toda', ru: 'спасибо' });
+    const exported = await exportBundle({ includeArchived: false });
+
+    // Удалим оригинал — пусть importBundle создаст с другим id.
+    await deleteText(roundTextId);
+
+    // Передаём весь bundle (включая manifest+library+audio_assets) в importBundle.
+    const r = await importBundle(exported, { mode: 'skip' });
+    if (!r || r.imported < 1) throw new Error('importBundle: imported < 1: ' + JSON.stringify(r));
+    out('ok', '✅ ТЕСТ 14 ПРОШЁЛ: round-trip работает', {
+      imported: r.imported, skipped: r.skipped, errors: r.errors.length,
+    });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 14 ПРОВАЛЕН: ' + e.message);
   }
 
   // ── Cleanup ───────────────────────────────────────────────────────────
