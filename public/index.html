@@ -8018,6 +8018,10 @@ if (header) {
       }
     } catch (_) {}
 
+    // Premium UX (IDE mode): mirror card's TTS profile to session UI so
+    // cached audio plays without re-synth. See v3LibraryAutoApplyCardProfile.
+    try { await v3LibraryAutoApplyCardProfile(t, rows); } catch (_) {}
+
     // Load notes for this text
     try {
       if (LOCAL_MODE) {
@@ -17104,6 +17108,12 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
       }
     } catch (_) {}
 
+    // Premium UX: derive the card's TTS profile (text.tts_profile_json OR
+    // majority audio_assets provenance) and mirror it in the session UI so
+    // playback uses the cached audio without re-synthesis. See P035 spec
+    // and the "card-level TTS profile auto-apply" UX improvement.
+    try { await v3LibraryAutoApplyCardProfile(text, sentences); } catch (_) {}
+
     // map sentences -> UI rows
         const rows = sentences
       .slice()
@@ -23861,32 +23871,22 @@ function v3AudioPrefetchUpdateMarkerForRow(rowIdx) {
   const haveKey = row._v3_audioAssetKey ? String(row._v3_audioAssetKey) : "";
   const storedProfile = v3AudioPrefetchSafeParseJson(row._v3_audioTtsProfileJson || "");
 
-  // Calculate match. If either side has incomplete metadata (e.g. voice list
-  // hadn't loaded when TTS happened, so voiceName ended up empty in storage),
-  // treat the cached audio as acceptable — better to show green than to flag
-  // a "mismatch" we can't actually verify.
-  let match = false;
+  // Premium UX: any row with cached audio gets state-ok (green). Playback
+  // prefers cached audio over re-synth, so a "mismatch" warning would only
+  // confuse the user — the cache is always usable. The tooltip still
+  // discloses the cached profile so the user can verify provenance.
   if (haveKey) {
-    const A = v3AudioPrefetchNormalizeProfileForCompare(storedProfile);
-    const B = v3AudioPrefetchNormalizeProfileForCompare(P);
-    if (!A || !B) {
-      match = true;
-    } else {
-      match = v3AudioPrefetchProfilesEqual(storedProfile, P);
-    }
-  }
-
-  if (match) {
     el.className = "row-audio-ind state-ok";
-    el.title = storedProfile
-      ? "Аудио готово • " + v3AudioPrefetchProfilePretty(storedProfile)
-      : "Аудио готово (профиль не задан)";
-    return;
-  }
-
-  if (haveKey) {
-    el.className = "row-audio-ind state-mismatch";
-    el.title = "Аудио есть, но для другого TTS-профиля • сейчас: " + v3AudioPrefetchProfilePretty(P);
+    if (storedProfile) {
+      const A = v3AudioPrefetchNormalizeProfileForCompare(storedProfile);
+      const B = v3AudioPrefetchNormalizeProfileForCompare(P);
+      const sameProfile = !!(A && B && v3AudioPrefetchProfilesEqual(storedProfile, P));
+      el.title = sameProfile
+        ? "Аудио готово • " + v3AudioPrefetchProfilePretty(storedProfile)
+        : "Аудио готово (другой профиль) • кэш: " + v3AudioPrefetchProfilePretty(storedProfile) + " • сессия: " + v3AudioPrefetchProfilePretty(P);
+    } else {
+      el.title = "Аудио готово (профиль не задан)";
+    }
     return;
   }
 
@@ -23901,16 +23901,103 @@ function v3AudioPrefetchRefreshMarkers() {
   }
 }
 
-function v3RowTtsMatchesCurrentProfile(row) {
-  try {
-    const haveKey = row && row._v3_audioAssetKey ? String(row._v3_audioAssetKey).trim() : "";
-    if (!haveKey) return false;
-    const storedProfile = v3AudioPrefetchSafeParseJson(row && row._v3_audioTtsProfileJson ? row._v3_audioTtsProfileJson : "");
-    const currentProfile = v3AudioPrefetchGetCurrentProfileForCompare();
-    return !!(storedProfile && v3AudioPrefetchProfilesEqual(storedProfile, currentProfile));
-  } catch (_) {
-    return false;
+// Derive the "card profile" — the TTS settings most representative of this
+// card's existing audio. Strategy:
+//   1. text.tts_profile_json if present (the profile saved with the text).
+//   2. Otherwise, majority profile across the card's audio_tts_profile_json
+//      across rows (handles imported bundles that don't carry text-level
+//      profile but do carry audio_assets[].provenance.ttsProfile).
+//   3. null when no audio at all.
+function v3DeriveCardTtsProfile(text, sentences) {
+  // Strategy 1: text-level explicit profile.
+  if (text) {
+    const raw = text.tts_profile_json || text.ttsProfileJson;
+    if (raw) {
+      try {
+        const p = JSON.parse(String(raw));
+        if (p && (p.voiceName || p.voiceId)) return p;
+      } catch (_) {}
+    }
   }
+  // Strategy 2: majority profile across rows.
+  if (Array.isArray(sentences) && sentences.length) {
+    const counts = new Map();
+    for (const s of sentences) {
+      const j = s && (s.audio_tts_profile_json || s.audioTtsProfileJson);
+      if (!j) continue;
+      counts.set(String(j), (counts.get(String(j)) || 0) + 1);
+    }
+    if (counts.size) {
+      let bestJson = null, bestN = -1;
+      for (const [j, n] of counts) {
+        if (n > bestN) { bestJson = j; bestN = n; }
+      }
+      try {
+        const p = JSON.parse(bestJson);
+        if (p && (p.voiceName || p.voiceId)) return p;
+      } catch (_) {}
+    }
+  }
+  return null;
+}
+
+// Apply a TTS profile to the session UI selectors. Honoured by future TTS
+// requests (and used for marker-comparison when the user later opens a card).
+// Fires `change`/`input` events so any settings-listeners pick up the values.
+function v3ApplyTtsProfileToSession(profile) {
+  if (!profile || typeof profile !== "object") return false;
+  let changed = false;
+  const setIfDifferent = (id, value, eventName) => {
+    const el = document.getElementById(id);
+    if (!el || value == null || value === "") return;
+    const next = String(value);
+    if (el.value !== next) {
+      el.value = next;
+      try { el.dispatchEvent(new Event(eventName, { bubbles: true })); } catch (_) {}
+      changed = true;
+    }
+  };
+  setIfDifferent("voiceSelect", profile.voiceName || profile.voiceId, "change");
+  if (Number.isFinite(profile.speakingRate)) {
+    setIfDifferent("rateRange", profile.speakingRate, "input");
+  }
+  if (Number.isFinite(profile.pitch)) {
+    setIfDifferent("pitchRange", profile.pitch, "input");
+  }
+  return changed;
+}
+
+// Premium UX: when a Library card opens, mirror its TTS profile in the
+// session UI so the user's settings track the card. Cached audio plays
+// without re-TTS, marker is green, no quota waste.
+async function v3LibraryAutoApplyCardProfile(text, sentences) {
+  try {
+    const profile = v3DeriveCardTtsProfile(text, sentences);
+    if (!profile) return null;
+    const changed = v3ApplyTtsProfileToSession(profile);
+    if (changed) {
+      const voice = profile.voiceName || profile.voiceId || "—";
+      const rate = Number.isFinite(profile.speakingRate) ? profile.speakingRate : "—";
+      const pitch = Number.isFinite(profile.pitch) ? profile.pitch : "—";
+      try { showToast(`Применён профиль карточки: ${voice} · rate ${rate} · pitch ${pitch}`, "info"); } catch (_) {}
+    }
+    return profile;
+  } catch (e) {
+    console.debug("[card-profile] auto-apply failed:", e && e.message);
+    return null;
+  }
+}
+
+function v3RowTtsMatchesCurrentProfile(row) {
+  // Premium UX (matches Android v2 P035 spec): row playback prefers the
+  // cached audio whenever it exists, regardless of whether the saved profile
+  // matches the current session's TTS settings. This stops the user from
+  // burning quota by re-synthesizing audio that already exists when reopening
+  // a card whose voice/rate/pitch differ from session defaults.
+  // New TTS only fires when assetKey is missing (or 404 from cache lookup).
+  try {
+    return !!(row && row._v3_audioAssetKey && String(row._v3_audioAssetKey).trim());
+  } catch (_) { return false; }
 }
 
 function v3RowTtsTrackPlay(row, assetKey) {
