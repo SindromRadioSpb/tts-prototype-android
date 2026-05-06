@@ -16328,8 +16328,48 @@ async function v3LibraryRefresh() {
     if (statusEl) statusEl.textContent = t("library.loaded", { count: v3LibraryTexts.length, date: v3FmtDate(v3LibraryLastLoadedAt) });
   } catch (e) {
     console.warn("v3LibraryRefresh failed", e);
-    if (statusEl) statusEl.textContent = "Ошибка загрузки библиотеки (не критично).";
-    if (listEl) listEl.innerHTML = "<div class='v3-lib-card v3-lib-danger'>Не удалось загрузить список. Проверьте DB/сервер. UI не сломан.</div>";
+    const detail = (e && e.message) ? String(e.message) : String(e);
+    const isOpfs = /opfs|sqlite3|access[- ]?handle|module worker|filesystemsync/i.test(detail);
+    const isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent || "");
+    let helpHtml = "";
+    // One-click fallback URL — drop the localMode query param, keep everything
+    // else so the user lands on the same page in server mode.
+    let serverHref = "";
+    try {
+      const u = new URL(location.href);
+      u.searchParams.delete("localMode");
+      serverHref = u.toString();
+    } catch (_) { serverHref = location.pathname || "/"; }
+    const fallbackBtn = LOCAL_MODE
+      ? "<div style='margin-top:8px;'>" +
+        "<a href='" + v3EscapeHtml(serverHref) + "' style='display:inline-block; padding:6px 12px; background:#3b82f6; color:#fff; border-radius:6px; text-decoration:none; font-size:13px;'>" +
+        "Открыть без ?localMode=1 (через сервер)</a></div>"
+      : "";
+    if (LOCAL_MODE && isOpfs && isIos) {
+      helpHtml =
+        "<div style='margin-top:8px; padding:8px; background:#fef3c7; border-left:3px solid #f59e0b; font-size:13px;'>" +
+        "⚠ <b>iOS-устройство:</b> локальное хранилище OPFS+SQLite WASM требует <b>iOS 17+</b> " +
+        "(нужен <code>FileSystemSyncAccessHandle</code>). На более ранних версиях iOS режим " +
+        "<code>?localMode=1</code> не поддерживается. Решения: обновить iOS до 17+, " +
+        "или нажать кнопку ниже." +
+        fallbackBtn +
+        "</div>";
+    } else if (LOCAL_MODE && isOpfs) {
+      helpHtml =
+        "<div style='margin-top:8px; padding:8px; background:#fef3c7; border-left:3px solid #f59e0b; font-size:13px;'>" +
+        "⚠ Браузер не поддерживает локальное хранилище OPFS+SQLite WASM (нужен <code>FileSystemSyncAccessHandle</code>). " +
+        "Обновите браузер или нажмите кнопку ниже." +
+        fallbackBtn +
+        "</div>";
+    } else if (LOCAL_MODE) {
+      helpHtml = fallbackBtn;
+    }
+    if (statusEl) statusEl.textContent = "Ошибка загрузки библиотеки: " + detail.slice(0, 160);
+    if (listEl) listEl.innerHTML =
+      "<div class='v3-lib-card v3-lib-danger'>Не удалось загрузить список.<br>" +
+      "<small style='opacity:0.85;'>Detail: " + v3EscapeHtml(detail).slice(0, 400) + "</small>" +
+      helpHtml +
+      "</div>";
   }
 }
 

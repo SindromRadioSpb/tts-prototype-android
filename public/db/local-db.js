@@ -65,8 +65,42 @@ const q = (sql, p) => _call('query', sql, p);
 const r = (sql, p) => _call('run',   sql, p);
 const x = (sql)    => _call('exec',  sql);
 
+// Feature-detect FileSystemSyncAccessHandle (required by AccessHandlePoolVFS).
+// iOS Safari < 17 doesn't have this — gives a clean error message instead of
+// the obscure 'sqlite3_open_v2' that surfaces from inside the WASM Worker.
+async function _checkOpfsSupport() {
+  if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.getDirectory) {
+    throw new Error('OPFS not supported: navigator.storage.getDirectory unavailable. Update your browser (Chrome 102+, Safari 15.2+, iOS 17+).');
+  }
+  let dir;
+  try { dir = await navigator.storage.getDirectory(); }
+  catch (e) { throw new Error('OPFS root unavailable: ' + (e && e.message ? e.message : String(e))); }
+
+  // FileSystemSyncAccessHandle is the synchronous variant required by
+  // wa-sqlite's AccessHandlePoolVFS. Probing requires a temp file handle.
+  let probe;
+  try {
+    probe = await dir.getFileHandle('__opfs_probe__', { create: true });
+  } catch (e) {
+    throw new Error('OPFS getFileHandle failed: ' + (e && e.message ? e.message : String(e)));
+  }
+  if (typeof probe.createSyncAccessHandle !== 'function') {
+    const isIos = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/i.test(navigator.userAgent || '');
+    const platformHint = isIos
+      ? ' iOS 17+ is required (FileSystemSyncAccessHandle landed in WebKit 17.0).'
+      : ' Update your browser (Chrome 108+, Safari 17+).';
+    throw new Error('OPFS sync handles not supported in this browser.' + platformHint);
+  }
+  // We must verify the API actually works inside a Dedicated Worker. The
+  // probe here only proves the constructor exists in the main thread, but
+  // the same browser version that exposes it on Window also exposes it in
+  // workers. Open + close to be safe (clean up the probe file).
+  try { await dir.removeEntry('__opfs_probe__'); } catch (_) {}
+}
+
 export async function initLocalDB() {
   if (_initialized) return; // idempotent on success
+  await _checkOpfsSupport();  // throws with a friendly message if unsupported
   if (!_worker) {
     _worker = new Worker('/db/db-worker.js', { type: 'module' });
     _worker.onmessage = ({ data }) => {
