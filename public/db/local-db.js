@@ -876,6 +876,112 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
   return result;
 }
 
+// Reconcile audio links for texts that already exist in OPFS. Useful when
+// a user re-imports a bundle that was first imported under an older code
+// path (which left the texts intact but failed to populate sentence_audio).
+//
+// Input: same `bundleObj` shape as importBundle (unified or legacy).
+// Strategy:
+//   For each text in the bundle:
+//     • Find OPFS text by text_key (skip if not found — it'll be a fresh import target).
+//     • Match incoming rows to OPFS sentences by ORDER_INDEX (stable ordering
+//       in both bundles); fall back to (he_plain, ru) if order_index missing.
+//     • For each matched sentence: if the bundle row carries audio_asset_key,
+//       upsertAudioAsset + linkSentenceAudio (idempotent — won't duplicate).
+//
+// Returns: { textsScanned, textsMatched, textsNotFound, linksCreated, linksAlready }.
+export async function reconcileAudioLinks(bundleObj) {
+  const lib = (bundleObj && bundleObj.library && typeof bundleObj.library === 'object') ? bundleObj.library : bundleObj;
+  const texts = (lib && Array.isArray(lib.texts)) ? lib.texts : (Array.isArray(bundleObj) ? bundleObj : []);
+  const audioAssetsByKey = new Map();
+  const aaList = (lib && Array.isArray(lib.audio_assets)) ? lib.audio_assets : [];
+  for (const aa of aaList) {
+    if (aa && aa.asset_key) audioAssetsByKey.set(String(aa.asset_key), aa);
+  }
+
+  const summary = { textsScanned: 0, textsMatched: 0, textsNotFound: 0, linksCreated: 0, linksAlready: 0, errors: [] };
+
+  for (const item of texts) {
+    summary.textsScanned++;
+    let textKey, rowsIn;
+    if (item && item.text && typeof item.text === 'object') {
+      textKey = item.text.text_key;
+      rowsIn = Array.isArray(item.sentences) ? item.sentences : [];
+    } else if (item && (item.text_id || Array.isArray(item.rows))) {
+      textKey = item.text_key;
+      rowsIn = (Array.isArray(item.rows) ? item.rows : []).map((r) => ({
+        order_index: r.order_index ?? null,
+        he_plain: r.hebrew_plain || r.he_plain || '',
+        ru: r.russian || r.ru || '',
+        audio_asset_key: r.audio_asset_key || r.audioAssetKey || null,
+      }));
+    } else {
+      textKey = item.text_key;
+      rowsIn = Array.isArray(item.sentences) ? item.sentences : (Array.isArray(item.rows) ? item.rows : []);
+    }
+    if (!textKey) continue;
+
+    const tRows = await q('SELECT id FROM texts WHERE text_key = ?', [textKey]);
+    if (!tRows.length) { summary.textsNotFound++; continue; }
+    summary.textsMatched++;
+    const opfsTextId = tRows[0].id;
+
+    const opfsSents = await q(
+      'SELECT id, order_index, he_plain, ru FROM sentences WHERE text_id = ? ORDER BY order_index', [opfsTextId]);
+
+    // Build matchers: by (text_id, order_index) primarily; (text_id, he_plain) fallback.
+    const byOrder = new Map();
+    const byHePlain = new Map();
+    for (const s of opfsSents) {
+      byOrder.set(Number(s.order_index), s.id);
+      if (s.he_plain) byHePlain.set(s.he_plain, s.id);
+    }
+
+    for (const ri of rowsIn) {
+      const ak = ri.audio_asset_key ? String(ri.audio_asset_key).trim() : '';
+      if (!ak) continue;
+      let opfsSentenceId = null;
+      if (ri.order_index != null) opfsSentenceId = byOrder.get(Number(ri.order_index));
+      if (!opfsSentenceId && ri.he_plain) opfsSentenceId = byHePlain.get(String(ri.he_plain));
+      if (!opfsSentenceId) continue;
+
+      try {
+        const aaMeta = audioAssetsByKey.get(ak) || null;
+        let ttsProfileJson = null;
+        if (aaMeta && aaMeta.provenance && aaMeta.provenance.ttsProfile) {
+          ttsProfileJson = JSON.stringify(aaMeta.provenance.ttsProfile);
+        } else if (aaMeta && (aaMeta.voice_name || aaMeta.language)) {
+          ttsProfileJson = JSON.stringify({ language: aaMeta.language || 'he-IL', voiceName: aaMeta.voice_name || '' });
+        }
+        const asset = await upsertAudioAsset({
+          id: crypto.randomUUID(),
+          asset_key: ak,
+          asset_type: 'row',
+          relative_path: (aaMeta && aaMeta.relative_export_path) || ('audio-cache/' + ak + '.mp3'),
+          mime: (aaMeta && aaMeta.mime_type) || 'audio/mpeg',
+          duration_ms: (aaMeta && aaMeta.duration_ms) || null,
+          size_bytes: (aaMeta && aaMeta.size_bytes) || null,
+          tts_profile_json: ttsProfileJson,
+        });
+        if (asset && asset.id) {
+          // Check if link already exists.
+          const existingLink = await q(
+            'SELECT 1 AS x FROM sentence_audio WHERE sentence_id = ? AND audio_id = ?',
+            [opfsSentenceId, asset.id]);
+          if (existingLink.length) summary.linksAlready++;
+          else {
+            await linkSentenceAudio(opfsSentenceId, asset.id, 1);
+            summary.linksCreated++;
+          }
+        }
+      } catch (e) {
+        summary.errors.push({ asset_key: ak, error: e && e.message ? e.message : String(e) });
+      }
+    }
+  }
+  return summary;
+}
+
 // ── diagnostics ────────────────────────────────────────────────────────────
 
 // Detailed audio-link diagnostic. Returns the same shape we'd want in a

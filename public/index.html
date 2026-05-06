@@ -17950,6 +17950,17 @@ async function v3LibraryOnBundleImportSelected(ev) {
       // PHASE 1 — import library data into OPFS NOW. Marker links land here.
       showToast("Импорт текстов в OPFS…", "info");
       const r = await ldb.importBundle(parsed, { mode: "skip" });
+      // PHASE 1b — reconcile audio links for any text that was already in
+      // OPFS (skipped by mode='skip'). This re-creates missing
+      // sentence_audio links so green markers appear when the bundle was
+      // re-imported after a prior failed/partial import.
+      let reconcile = null;
+      try {
+        reconcile = await ldb.reconcileAudioLinks(parsed);
+        if (reconcile && (reconcile.linksCreated || reconcile.textsMatched)) {
+          console.log("[import] audio reconcile:", reconcile);
+        }
+      } catch (e) { console.warn("[import] reconcileAudioLinks failed:", e && e.message); }
       v3LibraryRefresh();  // surface texts in Library modal immediately
 
       // PHASE 2 — upload MP3 blobs to Railway audio-cache. Backgrounded with
@@ -18018,10 +18029,11 @@ async function v3LibraryOnBundleImportSelected(ev) {
         ok: true,
         importedCount: r.imported,
         importedAudio,
-        linkedAudio: 0,
+        linkedAudio: reconcile ? reconcile.linksCreated : 0,
         skippedCount: r.skipped,
         errorCount: (r.errors || []).length + audioErrors,
         layoutDetected: layout,
+        reconcile: reconcile,
       };
     } else {
       const resp = await fetch("/api/library/import/bundle?mode=skip", {
@@ -18040,11 +18052,14 @@ async function v3LibraryOnBundleImportSelected(ev) {
 
     const msg =
       "Импорт: добавлено " + Number(data.importedCount || 0) +
-      (LOCAL_MODE ? "" : (", аудио: " + Number(data.importedAudio || 0) + " (связано: " + Number(data.linkedAudio || 0) + ")")) +
+      ", аудио: " + Number(data.importedAudio || 0) +
+      " (связано: " + Number(data.linkedAudio || 0) + ")" +
       ", пропущено: " + Number(data.skippedCount || 0) +
       (data.errorCount ? ", ошибок: " + Number(data.errorCount) : "");
     showToast(msg, "success");
     v3LibraryRefresh();
+    // Markers on any open table get re-rendered with the freshly linked audio.
+    try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}
   } catch (e) {
     console.warn("v3LibraryOnBundleImportSelected failed", e);
     showToast("Не удалось импортировать ZIP (см. консоль).", "error");
