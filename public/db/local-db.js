@@ -878,6 +878,62 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
 
 // ── diagnostics ────────────────────────────────────────────────────────────
 
+// Detailed audio-link diagnostic. Returns the same shape we'd want in a
+// support ticket: per-text counts of rows with audio link + sample of the
+// JOIN'ed getSentences output for the first matching text. Use from browser
+// DevTools: `await __localDB.audioLinkDiag('Position 6')`.
+export async function audioLinkDiag(titleSubstring = '') {
+  const titleLike = titleSubstring ? `%${titleSubstring}%` : '%';
+  const texts = await q(
+    `SELECT id, title FROM texts WHERE title LIKE ? ORDER BY title LIMIT 5`,
+    [titleLike]
+  );
+  const out = {
+    matched_texts: texts.length,
+    titles: texts.map((t) => t.title),
+    counts: { texts_total: 0, sentences_total: 0, sentence_audio_total: 0, audio_assets_total: 0 },
+    per_text: [],
+    sample_rows_after_join: [],
+  };
+  // Global counts for context.
+  const all = await q(`SELECT
+    (SELECT COUNT(*) FROM texts) AS texts_total,
+    (SELECT COUNT(*) FROM sentences) AS sentences_total,
+    (SELECT COUNT(*) FROM sentence_audio) AS sentence_audio_total,
+    (SELECT COUNT(*) FROM audio_assets) AS audio_assets_total`);
+  Object.assign(out.counts, all[0] || {});
+
+  for (const t of texts) {
+    const sCount = await q('SELECT COUNT(*) AS n FROM sentences WHERE text_id = ?', [t.id]);
+    const linkedCount = await q(
+      `SELECT COUNT(*) AS n FROM sentences s
+       JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
+       JOIN audio_assets aa ON aa.id = sa.audio_id
+       WHERE s.text_id = ?`,
+      [t.id]
+    );
+    out.per_text.push({
+      id: t.id,
+      title: t.title,
+      sentences: Number(sCount[0]?.n || 0),
+      sentences_with_audio_link: Number(linkedCount[0]?.n || 0),
+    });
+  }
+
+  // Sample what getSentences would return for the first matched text.
+  if (texts.length) {
+    out.sample_rows_after_join = await getSentences(texts[0].id);
+    out.sample_rows_after_join = out.sample_rows_after_join.slice(0, 3).map((r) => ({
+      id: r.id,
+      he_plain: r.he_plain,
+      ru: r.ru,
+      audio_asset_key: r.audio_asset_key || null,
+      audio_tts_profile_json_present: !!r.audio_tts_profile_json,
+    }));
+  }
+  return out;
+}
+
 export async function dbDiag() {
   const tables = ['texts', 'sentences', 'sentence_notes', 'audio_assets',
                   'srs_cards', 'text_progress', 'events', 'schema_migrations'];
