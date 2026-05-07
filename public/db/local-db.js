@@ -762,6 +762,12 @@ export async function exportBundle({ includeArchived = false } = {}) {
     try { return JSON.parse(s); } catch (_) { return null; }
   };
 
+  // Default fallback timestamp for fields the schema requires as NOT NULL
+  // strings on the import side (Android v2's kotlinx.serialization treats
+  // String as non-nullable by default — null breaks parsing of the whole
+  // library.json with errorCount=1).
+  const _exportTs = new Date().toISOString();
+
   for (const text of exportList) {
     const sentences = await getSentences(text.id);  // already JOIN'ed audio_asset_key + audio_tts_profile_json
     const notes     = await listNotes(text.id);
@@ -778,10 +784,18 @@ export async function exportBundle({ includeArchived = false } = {}) {
           relative_export_path: 'audio/' + ak + '.mp3',
           mime_type: 'audio/mpeg',
           provider_id: 'unknown',
+          // voice_name is nullable in the spec — null is fine.
           voice_name: ttsProfile && ttsProfile.voiceName ? ttsProfile.voiceName : null,
-          language: ttsProfile && ttsProfile.language ? ttsProfile.language : null,
+          // language is REQUIRED non-nullable in Android v2 ExportAudioAsset
+          // (kotlinx.serialization rejects null). Default to 'he-IL' since
+          // this app is Hebrew-focused; real value used when ttsProfile present.
+          language: (ttsProfile && ttsProfile.language) ? ttsProfile.language : 'he-IL',
           duration_ms: null,
           size_bytes: null,
+          // content_hash is nullable; emit explicitly so the JSON has the
+          // key (cleaner than relying on JSON.stringify dropping undefined,
+          // which some strict parsers count as "missing required").
+          content_hash: null,
           provenance: ttsProfile ? { ttsProfile } : null,
         });
       }
@@ -802,12 +816,23 @@ export async function exportBundle({ includeArchived = false } = {}) {
       };
     });
 
+    // Defensive serialisation for fields that Android v2's strict-typed
+    // kotlinx.serialization data class rejects when they're the wrong shape
+    // or null:
+    //   • tags must be List<String> — coerce to array, drop non-strings.
+    //   • created_at / updated_at must be non-null Strings — fall back to
+    //     export timestamp when OPFS row somehow lacks them.
+    const tagsParsed = safeJsonParse(text.tags_json);
+    const tagsList = Array.isArray(tagsParsed)
+      ? tagsParsed.map((x) => (typeof x === 'string' ? x : String(x))).filter(Boolean)
+      : [];
+
     texts.push({
       text_id: text.id,
       text_key: text.text_key,
-      title: text.title,
+      title: text.title || '',
       level: text.level || null,
-      tags: safeJsonParse(text.tags_json) || [],
+      tags: tagsList,
       source_label: text.source || null,
       topic: text.topic || null,
       source_text: text.source_text || '',
@@ -815,8 +840,8 @@ export async function exportBundle({ includeArchived = false } = {}) {
       table_model_meta: safeJsonParse(text.table_model_meta_json),
       rows,
       text_audio_asset_key: null,
-      created_at: text.created_at || null,
-      updated_at: text.updated_at || null,
+      created_at: text.created_at || _exportTs,
+      updated_at: text.updated_at || _exportTs,
       is_archived: !!text.is_archived,
     });
   }
