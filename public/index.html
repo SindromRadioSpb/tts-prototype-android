@@ -19186,6 +19186,8 @@ async function v3LibraryOnBundleImportSelected(ev) {
           const m = relPath.match(/([a-f0-9]{64})\.mp3$/i);
           if (!m) return false;
           const assetKey = m[1].toLowerCase();
+          // Pre-encode the body once — keep it across retry attempts.
+          let body = null;
           try {
             const ab = await entry.async("arraybuffer");
             const u8 = new Uint8Array(ab);
@@ -19195,14 +19197,41 @@ async function v3LibraryOnBundleImportSelected(ev) {
               bin += String.fromCharCode.apply(null, u8.subarray(i, i + CHUNK));
             }
             const b64 = btoa(bin);
-            const resp = await fetch("/api/audio/cache/upload", {
-              method: "POST",
-              headers: { "Content-Type": "application/json", ...(LOCAL_MODE ? { "X-Local-Mode": "1" } : {}) },
-              body: JSON.stringify({ assetKey, mp3Base64: b64 }),
-            });
-            const j = await resp.json().catch(() => ({}));
-            return !!(resp.ok && j && j.ok);
+            body = JSON.stringify({ assetKey, mp3Base64: b64 });
           } catch (_) { return false; }
+
+          // Retry on 429 with Retry-After backoff. Bulk ZIP imports legitimately
+          // burst hundreds of uploads per minute; the server's per-IP rate
+          // limiter sometimes flags the tail of a large bundle. Three rounds
+          // is enough for the limiter window (60s) to reopen.
+          const MAX_ATTEMPTS = 3;
+          for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            try {
+              const resp = await fetch("/api/audio/cache/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", ...(LOCAL_MODE ? { "X-Local-Mode": "1" } : {}) },
+                body,
+              });
+              if (resp.status === 429 && attempt < MAX_ATTEMPTS) {
+                const retryAfterRaw = resp.headers.get("Retry-After") || "";
+                const retryAfter = Math.max(1, Math.min(60, Number(retryAfterRaw) || 0));
+                // Server gave a hint: respect it. Otherwise exponential
+                // backoff: 2s, 4s, 8s with ±20% jitter.
+                const baseMs = retryAfter > 0
+                  ? retryAfter * 1000
+                  : (Math.pow(2, attempt) * 1000);
+                const jitter = baseMs * (0.8 + Math.random() * 0.4);
+                await new Promise((r) => setTimeout(r, jitter));
+                continue;
+              }
+              const j = await resp.json().catch(() => ({}));
+              return !!(resp.ok && j && j.ok);
+            } catch (_) {
+              if (attempt === MAX_ATTEMPTS) return false;
+              await new Promise((r) => setTimeout(r, Math.pow(2, attempt) * 1000));
+            }
+          }
+          return false;
         }
 
         async function worker() {

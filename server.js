@@ -201,7 +201,13 @@ function makeRateLimiter({ windowMs = 60_000, max = 60, name = "limit" } = {}) {
 }
 const rlTransliterate = makeRateLimiter({ windowMs: 60_000, max: 60,  name: "transliterate" });
 const rlExportDocx    = makeRateLimiter({ windowMs: 60_000, max: 30,  name: "export-docx" });
-const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 200, name: "audio-cache-upload" });
+// audio-cache-upload sees legitimate bulk traffic from ZIP-bundle imports
+// (typical bundle: 2000–3000 MP3s, client concurrency=4). The first cut at
+// 200/min was too tight — full imports got 429-storm'd after the first
+// minute. 2000/min is generous enough that a single import completes in
+// roughly its own minute even under contention, but still bounds total
+// writes per attacker per minute.
+const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 2000, name: "audio-cache-upload" });
 
 // ── Phase 6: stateful library/SRS/progress/history routes are gone ────────
 // After the localMode default-on flip (2026-05-08), every stateful API
