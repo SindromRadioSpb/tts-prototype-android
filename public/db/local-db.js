@@ -748,10 +748,23 @@ function computeSM2(card, rating) {
 //                 library/library.json
 //   audioAssetsMap — Map<assetKey, audioAssetMeta> the caller can iterate to
 //                 fetch MP3 blobs.
-export async function exportBundle({ includeArchived = false } = {}) {
-  const active   = await listTexts({ archived: false, limit: 10000 });
-  const archived = includeArchived ? await listTexts({ archived: true, limit: 10000 }) : [];
-  const exportList = [...active, ...archived];
+export async function exportBundle({ includeArchived = false, textIds = null } = {}) {
+  let exportList;
+  if (Array.isArray(textIds) && textIds.length) {
+    // Targeted export — used by B3 undo-delete to snapshot a specific text
+    // before destructive ops. Pulls each by id directly so we don't rely
+    // on listTexts ordering.
+    const collected = [];
+    for (const id of textIds) {
+      const t = await getTextById(id);
+      if (t) collected.push(t);
+    }
+    exportList = collected;
+  } else {
+    const active   = await listTexts({ archived: false, limit: 10000 });
+    const archived = includeArchived ? await listTexts({ archived: true, limit: 10000 }) : [];
+    exportList = [...active, ...archived];
+  }
   const texts = [];
   const audioAssetsMap = new Map();
   let rowCount = 0;

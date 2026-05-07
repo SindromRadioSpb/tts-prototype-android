@@ -17447,13 +17447,29 @@ async function v3LibraryDeleteText(textId) {
   if (!ok) return;
 
   try {
+    let snapshot = null;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
+      // B3: snapshot for undo before destructive op (only LOCAL_MODE — server
+      // mode has no premium undo path here).
+      try {
+        const bundle = await ldb.exportBundle({ includeArchived: true, textIds: [String(textId)] });
+        snapshot = bundle && bundle.library ? bundle : null;
+      } catch (e) { console.warn("[delete] snapshot failed; undo unavailable", e); }
       await ldb.deleteText(textId);
     } else {
       await v3Delete("/api/library/texts/" + encodeURIComponent(textId));
     }
-    showToast("Текст удалён", "success");
+    if (snapshot) {
+      v3UndoToast("Текст удалён", async () => {
+        const ldb = await ensureLocalDB();
+        await ldb.importBundle(snapshot, { mode: "skip" });
+        v3LibraryRefresh();
+        showToast("Восстановлено", "success");
+      });
+    } else {
+      showToast("Текст удалён", "success");
+    }
     v3LibraryRefresh();
   } catch (e) {
     console.warn("delete failed", e);
@@ -18439,6 +18455,64 @@ document.addEventListener("DOMContentLoaded", () => {
 window.v3StorageEstimate = v3StorageEstimate;
 window.v3StorageRefreshUI = v3StorageRefreshUI;
 
+// ── B3: Undo toast (in-memory, 7s window) ──────────────────────────────────
+// Lightweight alternative to a full trash bin: caller passes a `restore`
+// function which is invoked if the user clicks "Отменить" inside the TTL.
+// Only one undo toast at a time (a new one supersedes any pending one,
+// dropping the previous restore — same semantics as Gmail's undo-send).
+let v3UndoToastTimer = null;
+let v3UndoToastEl = null;
+
+function v3UndoToast(message, restoreFn, ttlMs) {
+  if (typeof restoreFn !== "function") {
+    if (typeof showToast === "function") showToast(message, "success");
+    return;
+  }
+  const ttl = Math.max(2000, Math.min(15000, Number(ttlMs) || 7000));
+
+  // Clear any pending toast (its restore is now lost — caller can't undo
+  // two batches at once).
+  if (v3UndoToastTimer) { clearTimeout(v3UndoToastTimer); v3UndoToastTimer = null; }
+  if (v3UndoToastEl && v3UndoToastEl.parentNode) v3UndoToastEl.parentNode.removeChild(v3UndoToastEl);
+  v3UndoToastEl = null;
+
+  const el = document.createElement("div");
+  el.id = "v3UndoToast";
+  el.style.cssText =
+    "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);" +
+    "background:#1f2937;color:#fff;border-radius:8px;padding:10px 12px 10px 16px;" +
+    "font-size:14px;font-family:system-ui,-apple-system,sans-serif;" +
+    "box-shadow:0 6px 20px rgba(0,0,0,0.25);z-index:99997;display:flex;align-items:center;gap:12px;" +
+    "max-width:90vw;";
+  const span = document.createElement("span");
+  span.textContent = message;
+  const btn = document.createElement("button");
+  btn.textContent = "Отменить";
+  btn.style.cssText = "padding:6px 12px;background:#fbbf24;color:#1f2937;border:0;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;";
+  el.appendChild(span);
+  el.appendChild(btn);
+  document.body.appendChild(el);
+  v3UndoToastEl = el;
+
+  const cleanup = () => {
+    if (v3UndoToastTimer) { clearTimeout(v3UndoToastTimer); v3UndoToastTimer = null; }
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    if (v3UndoToastEl === el) v3UndoToastEl = null;
+  };
+
+  btn.onclick = async () => {
+    cleanup();
+    try { await restoreFn(); }
+    catch (e) {
+      console.warn("[undo] restore failed", e);
+      if (typeof showToast === "function") showToast("Не удалось восстановить (см. console)", "error");
+    }
+  };
+
+  v3UndoToastTimer = setTimeout(cleanup, ttl);
+}
+window.v3UndoToast = v3UndoToast;
+
 // ── Premium confirmation modal ─────────────────────────────────────────────
 // Replaces window.confirm() for destructive actions. Promise<boolean>.
 // Options:
@@ -18564,6 +18638,17 @@ async function v3LibraryBulkDelete() {
   });
   if (!ok) return;
 
+  // B3: snapshot all selected texts up front so we can offer Undo. Cap at
+  // 50 texts to keep the snapshot bundle small (~MBs of JSON).
+  let snapshot = null;
+  if (LOCAL_MODE && ids.length <= 50) {
+    try {
+      const ldb = await ensureLocalDB();
+      const bundle = await ldb.exportBundle({ includeArchived: true, textIds: ids });
+      snapshot = bundle && bundle.library ? bundle : null;
+    } catch (e) { console.warn("[bulk-delete] snapshot failed; undo unavailable", e); }
+  }
+
   let done = 0, failed = 0;
   for (const id of ids) {
     try {
@@ -18577,7 +18662,16 @@ async function v3LibraryBulkDelete() {
     } catch (e) { failed++; console.warn("[bulk-delete]", id, e && e.message); }
   }
   v3LibraryBulkClear();
-  showToast("Удалено: " + done + (failed ? " · ошибок: " + failed : ""), failed ? "warning" : "success");
+  if (snapshot && done > 0) {
+    v3UndoToast("Удалено: " + done + (failed ? " · ошибок: " + failed : ""), async () => {
+      const ldb = await ensureLocalDB();
+      await ldb.importBundle(snapshot, { mode: "skip" });
+      v3LibraryRefresh();
+      showToast("Восстановлено: " + done, "success");
+    });
+  } else {
+    showToast("Удалено: " + done + (failed ? " · ошибок: " + failed : ""), failed ? "warning" : "success");
+  }
   v3LibraryRefresh();
 }
 
