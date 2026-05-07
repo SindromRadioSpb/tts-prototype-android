@@ -168,6 +168,41 @@ app.use((req, res, next) => {
   next();
 });
 
+// ── B4: Per-IP rate limiting for stateless endpoints ───────────────────────
+// Sliding-window in-memory token bucket. Cheap (O(1) amortised) and zero
+// dependencies — sufficient given Railway is single-instance. Mount on the
+// LOCAL_MODE-friendly stateless endpoints so a misbehaving (or compromised)
+// client can't run up our LLM/CPU bill.
+function makeRateLimiter({ windowMs = 60_000, max = 60, name = "limit" } = {}) {
+  const buckets = new Map();
+  return (req, res, next) => {
+    const ip = req.ip || (req.headers["x-forwarded-for"] || "").toString().split(",")[0].trim() ||
+               (req.connection && req.connection.remoteAddress) || "unknown";
+    const now = Date.now();
+    const arr = buckets.get(ip) || [];
+    const fresh = [];
+    for (const t of arr) if (now - t < windowMs) fresh.push(t);
+    if (fresh.length >= max) {
+      res.set("Retry-After", String(Math.ceil(windowMs / 1000)));
+      return res.status(429).json({ ok: false, error: "TOO_MANY_REQUESTS", limit: max, windowMs, name });
+    }
+    fresh.push(now);
+    buckets.set(ip, fresh);
+    // Drop empty buckets periodically — bounds memory under unique-IP attack.
+    if (buckets.size > 5000) {
+      for (const [k, v] of buckets) {
+        const keep = v.filter((t) => now - t < windowMs);
+        if (keep.length === 0) buckets.delete(k);
+        else if (keep.length !== v.length) buckets.set(k, keep);
+      }
+    }
+    next();
+  };
+}
+const rlTransliterate = makeRateLimiter({ windowMs: 60_000, max: 60,  name: "transliterate" });
+const rlExportDocx    = makeRateLimiter({ windowMs: 60_000, max: 30,  name: "export-docx" });
+const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 200, name: "audio-cache-upload" });
+
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
@@ -2353,7 +2388,7 @@ app.post("/api/audio/prefetch/cancel", async (req, res) => {
 // schema is part of the deployed code, no quota involved. LOCAL_MODE clients
 // use this to lazy-fill missing transliterations after import or for older
 // rows that pre-date the profile-aware pipeline.
-app.post("/api/transliterate", async (req, res) => {
+app.post("/api/transliterate", rlTransliterate, async (req, res) => {
   try {
     const { transliterateWithProfile } = require("./db/premium/translit");
     const body = (req.body && typeof req.body === "object") ? req.body : {};
@@ -2388,7 +2423,7 @@ app.post("/api/transliterate", async (req, res) => {
 
 // against the asset_key (cross-device users may have a different audio
 // engine version), but we do validate the key shape.
-app.post("/api/audio/cache/upload", async (req, res) => {
+app.post("/api/audio/cache/upload", rlAudioUpload, async (req, res) => {
   try {
     if (!v3AudioPrefetchIsAllowed(req)) {
       return res.status(403).json({ ok: false, error: "LOCAL_ONLY" });
@@ -5692,7 +5727,7 @@ tableRows.push(
 //       }
 // LOCAL_MODE clients call this with a payload built from OPFS, since the
 // GET /api/library/texts/:id/export/docx variant requires server DB lookups.
-app.post("/api/export/docx", async (req, res) => {
+app.post("/api/export/docx", rlExportDocx, async (req, res) => {
   try {
     const body = (req.body && typeof req.body === "object") ? req.body : {};
     const t = (body.text && typeof body.text === "object") ? body.text : {};
