@@ -17994,6 +17994,165 @@ async function v3LibraryUpdateCloudImportVisibility() {
   if (wipe) wipe.style.display = LOCAL_MODE ? "" : "none";
 }
 
+// ── Phase 6 first-open migration prompt ────────────────────────────────────
+// When localMode default flips to ON (Phase 6), users with a server library
+// need a graceful upgrade path: explain the change, migrate their data once,
+// remember the choice. Until the default-flip ships, this prompt is gated
+// behind ?phase6Prompt=1 (one-shot) or localStorage.phase6PromptOptIn='1'
+// (sticky), so we can dogfood it without affecting other users.
+const V3_PHASE6_DECISION_KEY = "phase6FirstOpenSeen";
+const V3_PHASE6_OPT_IN_KEY = "phase6PromptOptIn";
+
+function v3Phase6PromptShouldShow() {
+  if (localStorage.getItem(V3_PHASE6_DECISION_KEY)) return false;
+  // Don't re-prompt users who already opted in/out of localMode explicitly.
+  if (localStorage.getItem("localMode") !== null) return false;
+  // Dogfood gate (until Phase 6 default-flip lands).
+  const queryOpt = new URLSearchParams(location.search).get("phase6Prompt");
+  const sticky = localStorage.getItem(V3_PHASE6_OPT_IN_KEY) === "1";
+  if (queryOpt !== "1" && !sticky) return false;
+  // Basic OPFS support — db-worker.js does deeper VFS detection later.
+  if (typeof navigator === "undefined" || !navigator.storage || typeof navigator.storage.getDirectory !== "function") return false;
+  return true;
+}
+
+async function v3Phase6ServerLibraryCount() {
+  // Cheap probe to decide whether migration copy is meaningful. Returns
+  // null on probe failure (network down, endpoint missing) so we don't
+  // block the prompt — user may still want to opt in for new data.
+  try {
+    const r = await fetch("/api/library/texts?limit=1");
+    if (!r.ok) return null;
+    const data = await r.json();
+    const items = (data && data.texts) || [];
+    return Array.isArray(items) ? items.length : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function v3Phase6BuildModal() {
+  if (document.getElementById("v3Phase6Modal")) return;
+  const root = document.createElement("div");
+  root.id = "v3Phase6Modal";
+  root.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:99999;padding:16px;";
+  root.innerHTML =
+    '<div style="background:#fff;border-radius:12px;max-width:480px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.3);font-family:system-ui,-apple-system,sans-serif;color:#111;max-height:90vh;overflow:auto;">' +
+      '<h2 style="margin:0 0 12px;font-size:20px;font-weight:600;">📦 Библиотека переезжает на устройство</h2>' +
+      '<p style="margin:0 0 12px;line-height:1.5;font-size:14.5px;">С этого момента ваша библиотека хранится в приватном хранилище браузера на этом устройстве — не на сервере.</p>' +
+      '<ul style="margin:0 0 16px;padding-left:20px;line-height:1.6;font-size:14px;color:#374151;">' +
+        '<li>Тексты и заметки не покидают устройство.</li>' +
+        '<li>Работает оффлайн (после первой загрузки).</li>' +
+        '<li>Резервная копия — экспорт ZIP; восстановление — импорт ZIP.</li>' +
+      '</ul>' +
+      '<p id="v3Phase6MigrateNote" style="margin:0 0 16px;line-height:1.5;font-size:14px;color:#6b7280;">Если продолжить — мы один раз скопируем существующую библиотеку с сервера на это устройство. Оригиналы останутся на сервере, пока вы их не удалите.</p>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;">' +
+        '<button id="v3Phase6Accept" style="padding:12px 16px;background:#2563eb;color:#fff;border:0;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">Перенести и продолжить</button>' +
+        '<button id="v3Phase6Decline" style="padding:12px 16px;background:#fff;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:15px;cursor:pointer;">Остаться на сервере</button>' +
+        '<button id="v3Phase6Defer" style="padding:8px 16px;background:transparent;color:#6b7280;border:0;font-size:13.5px;cursor:pointer;text-decoration:underline;">Решу позже</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(root);
+}
+
+// Run server→OPFS migration without re-prompting. Identical pipeline to
+// v3LibraryImportFromCloud but skips its window.confirm() since the user
+// already accepted in the parent modal.
+async function v3Phase6MigrateSilently() {
+  const payload = await v3GetJson("/api/library/export?includeArchived=1");
+  if (!payload || !Array.isArray(payload.texts)) {
+    return { imported: 0, skipped: 0, errorCount: 0, empty: true };
+  }
+  const ldb = await ensureLocalDB();
+  const r = await ldb.importBundle(payload, { mode: "skip" });
+  return {
+    imported: r.imported || 0,
+    skipped: r.skipped || 0,
+    errorCount: (r.errors && r.errors.length) || 0,
+    empty: false,
+  };
+}
+
+async function v3Phase6ShowPrompt() {
+  v3Phase6BuildModal();
+  const root = document.getElementById("v3Phase6Modal");
+  if (!root) return "error";
+
+  const count = await v3Phase6ServerLibraryCount();
+  const note = document.getElementById("v3Phase6MigrateNote");
+  if (note) {
+    if (count === 0) {
+      note.textContent = "На сервере нет ваших текстов — переносить нечего, библиотека просто начнёт работать на устройстве.";
+    } else if (count === null) {
+      note.textContent = "Если продолжить — мы попробуем один раз скопировать существующую библиотеку с сервера. Оригиналы останутся на сервере.";
+    }
+  }
+
+  return new Promise((resolve) => {
+    const accept = document.getElementById("v3Phase6Accept");
+    const decline = document.getElementById("v3Phase6Decline");
+    const defer = document.getElementById("v3Phase6Defer");
+    const cleanup = () => {
+      root.style.display = "none";
+      accept.onclick = null; decline.onclick = null; defer.onclick = null;
+    };
+    accept.onclick = async () => {
+      try {
+        accept.disabled = true; accept.textContent = "⏳ Перенос…";
+        let stats = { imported: 0, skipped: 0, errorCount: 0, empty: true };
+        if (count !== 0) {
+          stats = await v3Phase6MigrateSilently();
+          if (stats.errorCount > 0) {
+            console.warn("[phase6] migration completed with errors:", stats);
+          }
+        }
+        localStorage.setItem("localMode", "1");
+        localStorage.setItem(V3_PHASE6_DECISION_KEY, "accepted");
+        localStorage.setItem("phase6MigrationStats", JSON.stringify({ ...stats, ts: Date.now() }));
+        cleanup();
+        resolve("accepted");
+        // Hard reload so LOCAL_MODE flips on next bootstrap.
+        location.reload();
+      } catch (e) {
+        accept.disabled = false; accept.textContent = "Перенести и продолжить";
+        console.error("[phase6] migration failed", e);
+        const msg = "Ошибка переноса: " + (e && e.message ? e.message : String(e)) + "\n\nПопробуйте ещё раз или выберите другой вариант.";
+        try { alert(msg); } catch (_) {}
+      }
+    };
+    decline.onclick = () => {
+      localStorage.setItem("localMode", "0");
+      localStorage.setItem(V3_PHASE6_DECISION_KEY, "declined");
+      cleanup();
+      resolve("declined");
+    };
+    defer.onclick = () => {
+      // Don't persist decision — re-prompt next session.
+      cleanup();
+      resolve("deferred");
+    };
+    root.style.display = "flex";
+  });
+}
+
+async function v3Phase6MaybeShow() {
+  if (!v3Phase6PromptShouldShow()) return;
+  try { await v3Phase6ShowPrompt(); } catch (e) { console.warn("[phase6] prompt failed", e); }
+}
+
+// Bootstrap: run after DOM ready with a short delay so OPFS init has a
+// chance to evaluate VFS support (otherwise we can't reliably tell whether
+// the user can actually opt in).
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => { v3Phase6MaybeShow(); }, 600);
+});
+
+// Dogfood/QA helper: clear the decision so the prompt re-shows.
+window.v3Phase6ResetDecision = function() {
+  localStorage.removeItem(V3_PHASE6_DECISION_KEY);
+  console.log("[phase6] decision cleared. Reload with ?phase6Prompt=1 to re-test.");
+};
+
 // ── Premium confirmation modal ─────────────────────────────────────────────
 // Replaces window.confirm() for destructive actions. Promise<boolean>.
 // Options:
