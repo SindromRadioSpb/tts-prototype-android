@@ -2344,6 +2344,48 @@ app.post("/api/audio/prefetch/cancel", async (req, res) => {
 // The asset_key MUST be a 64-char lowercase hex SHA-256, identical to what
 // the server itself produces in computeAssetKey — that's the contract that
 // keeps cross-device URL stability. We DO NOT verify the MP3's actual hash
+// POST /api/transliterate — stateless wrapper around transliterateWithProfile.
+// Body: { items: [{ id, he_niqqud }], profile: 'sbl'|'ru-phonetic'|'both' }
+// Returns: { items: [{ id, translit?, translit_ru? }] } where the keys present
+// match the requested profile ('both' returns both).
+//
+// No DB, no auth. The function is purely deterministic CPU work — translit
+// schema is part of the deployed code, no quota involved. LOCAL_MODE clients
+// use this to lazy-fill missing transliterations after import or for older
+// rows that pre-date the profile-aware pipeline.
+app.post("/api/transliterate", async (req, res) => {
+  try {
+    const { transliterateWithProfile } = require("./db/premium/translit");
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const profile = String(body.profile || "both").trim().toLowerCase();
+    if (!["sbl", "ru-phonetic", "both"].includes(profile)) {
+      return res.status(400).json({ ok: false, error: "BAD_PROFILE", got: profile });
+    }
+    const items = Array.isArray(body.items) ? body.items : [];
+    if (items.length > 5000) {
+      return res.status(413).json({ ok: false, error: "TOO_MANY_ITEMS", limit: 5000 });
+    }
+    const out = items.map((it) => {
+      const id = it && it.id != null ? String(it.id) : null;
+      const he = it && (it.he_niqqud || it.heNiqqud) ? String(it.he_niqqud || it.heNiqqud) : "";
+      const r = { id };
+      if (!he) {
+        // No niqqud → empty results (deterministic, idempotent).
+        if (profile === "sbl"  || profile === "both") r.translit    = "";
+        if (profile === "ru-phonetic" || profile === "both") r.translit_ru = "";
+        return r;
+      }
+      if (profile === "sbl"  || profile === "both") r.translit    = transliterateWithProfile(he, "sbl")         || "";
+      if (profile === "ru-phonetic" || profile === "both") r.translit_ru = transliterateWithProfile(he, "ru-phonetic") || "";
+      return r;
+    });
+    return res.json({ ok: true, items: out, profile, count: out.length });
+  } catch (e) {
+    console.error("POST /api/transliterate error:", e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR", details: e && e.message ? e.message : String(e) });
+  }
+});
+
 // against the asset_key (cross-device users may have a different audio
 // engine version), but we do validate the key shape.
 app.post("/api/audio/cache/upload", async (req, res) => {

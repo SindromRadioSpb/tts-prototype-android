@@ -8074,6 +8074,10 @@ if (header) {
     // cached audio plays without re-synth. See v3LibraryAutoApplyCardProfile.
     try { await v3LibraryAutoApplyCardProfile(t, rows); } catch (_) {}
 
+    // Premium UX (IDE mode): lazy-fill missing translit / translit_ru in
+    // OPFS. Symmetric to v3LibraryOpenText. Idempotent.
+    try { await v3LazyFillTranslit(textId, rows); } catch (_) {}
+
     // Load notes for this text
     try {
       if (LOCAL_MODE) {
@@ -17333,6 +17337,10 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
     // and the "card-level TTS profile auto-apply" UX improvement.
     try { await v3LibraryAutoApplyCardProfile(text, sentences); } catch (_) {}
 
+    // Premium UX: lazy-fill missing translit / translit_ru in OPFS (LOCAL_MODE
+    // only). Symmetric to server-mode getExportRowsByTextId. Idempotent.
+    try { await v3LazyFillTranslit(textId, sentences); } catch (_) {}
+
     // map sentences -> UI rows
         const rows = sentences
       .slice()
@@ -24496,6 +24504,90 @@ function v3ApplyTtsProfileToSession(profile) {
 // Premium UX: when a Library card opens, mirror its TTS profile in the
 // session UI so the user's settings track the card. Cached audio plays
 // without re-TTS, marker is green, no quota waste.
+// Lazy-fill missing translit / translit_ru in OPFS for an opened card.
+// Triggered after getSentences in LOCAL_MODE — symmetric to what server-mode
+// gets for free via getExportRowsByTextId.
+//
+// Strategy:
+//   1. Find rows whose he_niqqud is non-empty but at least one of translit /
+//      translit_ru is empty.
+//   2. Single batch POST to /api/transliterate with profile='both'.
+//   3. For each item, write {translit, translit_ru} back to the OPFS sentence.
+//   4. Mutate the in-memory `sentences` array so the caller's mapping picks up
+//      the fresh values (no second round-trip needed).
+//   5. Idempotent — next open of the same card has no missing fields, so the
+//      filter at step 1 returns 0 and the function is a no-op.
+//
+// Toast progress is best-effort (only when ≥ 10 rows need work, to avoid
+// chatter on small cards).
+async function v3LazyFillTranslit(textId, sentences) {
+  if (!LOCAL_MODE) return 0;
+  if (!Array.isArray(sentences) || !sentences.length) return 0;
+  const need = sentences.filter((s) => {
+    if (!s || !s.he_niqqud) return false;
+    const hasSbl = s.translit && String(s.translit).trim().length > 0;
+    const hasRu  = s.translit_ru && String(s.translit_ru).trim().length > 0;
+    return !hasSbl || !hasRu;
+  });
+  if (!need.length) return 0;
+
+  if (need.length >= 10 && typeof showToast === "function") {
+    try { showToast(`Дополняем транслитерацию: 0/${need.length}…`, "info"); } catch (_) {}
+  }
+
+  let r;
+  try {
+    const resp = await fetch("/api/transliterate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(LOCAL_MODE ? { "X-Local-Mode": "1" } : {}) },
+      body: JSON.stringify({
+        items: need.map((s) => ({ id: s.id, he_niqqud: s.he_niqqud })),
+        profile: "both",
+      }),
+    });
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    r = await resp.json();
+  } catch (e) {
+    console.warn("[lazy-fill-translit] /api/transliterate failed:", e && e.message);
+    return 0;
+  }
+
+  if (!r || !Array.isArray(r.items)) return 0;
+  const ldb = await ensureLocalDB();
+  const byId = new Map();
+  for (const it of r.items) if (it && it.id) byId.set(String(it.id), it);
+
+  let written = 0;
+  let lastReport = 0;
+  for (let i = 0; i < need.length; i++) {
+    const s = need[i];
+    const upd = byId.get(String(s.id));
+    if (!upd) continue;
+    const fields = {};
+    // Only fill MISSING fields. Don't overwrite user-edited values.
+    if ((!s.translit || !String(s.translit).trim()) && upd.translit) fields.translit = upd.translit;
+    if ((!s.translit_ru || !String(s.translit_ru).trim()) && upd.translit_ru) fields.translit_ru = upd.translit_ru;
+    if (!Object.keys(fields).length) continue;
+    try {
+      await ldb.updateSentence(textId, s.id, fields);
+      // Mutate in-memory so the caller's mapper sees the new values without
+      // a fresh getSentences call.
+      Object.assign(s, fields);
+      written++;
+    } catch (e) {
+      console.debug("[lazy-fill-translit] updateSentence failed for", s.id, ":", e && e.message);
+    }
+    if (need.length >= 10 && (written - lastReport) >= 25 && typeof showToast === "function") {
+      lastReport = written;
+      try { showToast(`Дополняем транслитерацию: ${written}/${need.length}…`, "info"); } catch (_) {}
+    }
+  }
+  if (need.length >= 10 && typeof showToast === "function") {
+    try { showToast(`Транслитерация дополнена: ${written}/${need.length} строк(и)`, "success"); } catch (_) {}
+  }
+  return written;
+}
+
 async function v3LibraryAutoApplyCardProfile(text, sentences) {
   try {
     const profile = v3DeriveCardTtsProfile(text, sentences);
