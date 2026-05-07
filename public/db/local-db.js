@@ -43,7 +43,7 @@ let _initialized = false;
 let _seq    = 0;
 const _pending = new Map();
 
-function _call(type, sql, params) {
+function _call(type, sql, params, opts) {
   return new Promise((resolve, reject) => {
     if (!_worker) {
       reject(new Error('local-db: worker not started (call initLocalDB() first)'));
@@ -52,7 +52,7 @@ function _call(type, sql, params) {
     const id = ++_seq;
     _pending.set(id, { resolve, reject });
     try {
-      _worker.postMessage({ id, type, sql, params });
+      _worker.postMessage({ id, type, sql, params, ...(opts || {}) });
     } catch (e) {
       _pending.delete(id);
       reject(e);
@@ -60,63 +60,77 @@ function _call(type, sql, params) {
   });
 }
 
+// Sticky VFS preference: once a VFS has successfully opened the DB, remember
+// it. On reload, that VFS is tried FIRST so existing data isn't orphaned
+// when the browser later gains capability for a faster VFS (e.g. iOS user
+// upgrades from 16 → 17 — their IDB data stays where it is unless they
+// explicitly migrate).
+const _VFS_PREF_KEY = 'opfsVfsPreference_v1';
+
 // Shorthand helpers used throughout this module
 const q = (sql, p) => _call('query', sql, p);
 const r = (sql, p) => _call('run',   sql, p);
 const x = (sql)    => _call('exec',  sql);
 
-// Feature-detect FileSystemSyncAccessHandle (required by AccessHandlePoolVFS).
-// iOS Safari < 17 doesn't have this — gives a clean error message instead of
-// the obscure 'sqlite3_open_v2' that surfaces from inside the WASM Worker.
-async function _checkOpfsSupport() {
-  if (typeof navigator === 'undefined' || !navigator.storage || !navigator.storage.getDirectory) {
-    throw new Error('OPFS not supported: navigator.storage.getDirectory unavailable. Update your browser (Chrome 102+, Safari 15.2+, iOS 17+).');
-  }
-  let dir;
-  try { dir = await navigator.storage.getDirectory(); }
-  catch (e) { throw new Error('OPFS root unavailable: ' + (e && e.message ? e.message : String(e))); }
+// Tracks which VFS the worker actually picked. Reported back in the init
+// response so callers can show provenance ('storage: OPFS sync' vs
+// 'storage: IndexedDB'). NOT used for control-flow.
+let _vfs = null;
+let _vfsKind = null;
+export function getVfsInfo() {
+  return { name: _vfs, kind: _vfsKind };
+}
 
-  // FileSystemSyncAccessHandle is the synchronous variant required by
-  // wa-sqlite's AccessHandlePoolVFS. Probing requires a temp file handle.
-  let probe;
-  try {
-    probe = await dir.getFileHandle('__opfs_probe__', { create: true });
-  } catch (e) {
-    throw new Error('OPFS getFileHandle failed: ' + (e && e.message ? e.message : String(e)));
+// Pre-init feature gate. Cheap shape-check only — actual VFS capability
+// detection happens inside the worker's fallback chain
+// (AccessHandlePoolVFS → IDBBatchAtomicVFS). The probe used to be on the
+// main thread which produced false negatives because
+// FileSystemSyncAccessHandle is only exposed in workers per spec.
+async function _preflightSupport() {
+  if (typeof Worker !== 'function') {
+    throw new Error('Local DB requires Web Workers (this browser does not support them).');
   }
-  if (typeof probe.createSyncAccessHandle !== 'function') {
-    const isIos = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/i.test(navigator.userAgent || '');
-    const platformHint = isIos
-      ? ' iOS 17+ is required (FileSystemSyncAccessHandle landed in WebKit 17.0).'
-      : ' Update your browser (Chrome 108+, Safari 17+).';
-    throw new Error('OPFS sync handles not supported in this browser.' + platformHint);
+  // IndexedDB is the universal fallback floor — if absent, no VFS works.
+  if (typeof indexedDB === 'undefined') {
+    throw new Error('Local DB requires IndexedDB (this browser does not support it).');
   }
-  // We must verify the API actually works inside a Dedicated Worker. The
-  // probe here only proves the constructor exists in the main thread, but
-  // the same browser version that exposes it on Window also exposes it in
-  // workers. Open + close to be safe (clean up the probe file).
-  try { await dir.removeEntry('__opfs_probe__'); } catch (_) {}
 }
 
 export async function initLocalDB() {
   if (_initialized) return; // idempotent on success
-  await _checkOpfsSupport();  // throws with a friendly message if unsupported
+  await _preflightSupport();
   if (!_worker) {
     _worker = new Worker('/db/db-worker.js', { type: 'module' });
     _worker.onmessage = ({ data }) => {
       const h = _pending.get(data.id);
       if (!h) return;
       _pending.delete(data.id);
-      if (data.ok) h.resolve(data.rows ?? data.changes ?? data);
-      else h.reject(new Error(data.error || 'Worker error'));
+      if (data.ok) {
+        if (data.vfs) _vfs = data.vfs;
+        if (data.vfsKind) _vfsKind = data.vfsKind;
+        h.resolve(data.rows ?? data.changes ?? data);
+      } else {
+        h.reject(new Error(data.error || 'Worker error'));
+      }
     };
     _worker.onerror = (e) => {
       for (const h of _pending.values()) h.reject(new Error('Worker crashed: ' + (e && e.message ? e.message : 'unknown')));
       _pending.clear();
     };
   }
-  await _call('init');
+  let preferVfs = null;
+  try {
+    if (typeof localStorage !== 'undefined') preferVfs = localStorage.getItem(_VFS_PREF_KEY);
+  } catch (_) {}
+  await _call('init', null, null, preferVfs ? { preferVfs } : null);
   _initialized = true;
+  // Remember the VFS that actually worked, so a later browser upgrade
+  // doesn't silently switch storage backends and orphan the user's data.
+  try {
+    if (typeof localStorage !== 'undefined' && _vfs) {
+      localStorage.setItem(_VFS_PREF_KEY, _vfs);
+    }
+  } catch (_) {}
 }
 
 export function isReady() {

@@ -16329,40 +16329,41 @@ async function v3LibraryRefresh() {
   } catch (e) {
     console.warn("v3LibraryRefresh failed", e);
     const detail = (e && e.message) ? String(e.message) : String(e);
-    const isOpfs = /opfs|sqlite3|access[- ]?handle|module worker|filesystemsync/i.test(detail);
-    const isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent || "");
     let helpHtml = "";
     // One-click fallback URL — drop the localMode query param, keep everything
-    // else so the user lands on the same page in server mode.
+    // else so the user lands on the same page in server mode. Only shown
+    // when actually in LOCAL_MODE.
     let serverHref = "";
     try {
       const u = new URL(location.href);
       u.searchParams.delete("localMode");
       serverHref = u.toString();
     } catch (_) { serverHref = location.pathname || "/"; }
-    const fallbackBtn = LOCAL_MODE
-      ? "<div style='margin-top:8px;'>" +
-        "<a href='" + v3EscapeHtml(serverHref) + "' style='display:inline-block; padding:6px 12px; background:#3b82f6; color:#fff; border-radius:6px; text-decoration:none; font-size:13px;'>" +
-        "Открыть без ?localMode=1 (через сервер)</a></div>"
-      : "";
-    if (LOCAL_MODE && isOpfs && isIos) {
-      helpHtml =
-        "<div style='margin-top:8px; padding:8px; background:#fef3c7; border-left:3px solid #f59e0b; font-size:13px;'>" +
-        "⚠ <b>iOS-устройство:</b> локальное хранилище OPFS+SQLite WASM требует <b>iOS 17+</b> " +
-        "(нужен <code>FileSystemSyncAccessHandle</code>). На более ранних версиях iOS режим " +
-        "<code>?localMode=1</code> не поддерживается. Решения: обновить iOS до 17+, " +
-        "или нажать кнопку ниже." +
-        fallbackBtn +
-        "</div>";
-    } else if (LOCAL_MODE && isOpfs) {
-      helpHtml =
-        "<div style='margin-top:8px; padding:8px; background:#fef3c7; border-left:3px solid #f59e0b; font-size:13px;'>" +
-        "⚠ Браузер не поддерживает локальное хранилище OPFS+SQLite WASM (нужен <code>FileSystemSyncAccessHandle</code>). " +
-        "Обновите браузер или нажмите кнопку ниже." +
-        fallbackBtn +
-        "</div>";
-    } else if (LOCAL_MODE) {
-      helpHtml = fallbackBtn;
+    if (LOCAL_MODE) {
+      const noWorkers = /requires Web Workers/i.test(detail);
+      const noIdb     = /requires IndexedDB/i.test(detail);
+      const allFailed = /All VFS init attempts failed/i.test(detail);
+      let advice = "";
+      if (noWorkers) {
+        advice = "Этот браузер не поддерживает Web Workers — обязательное требование. Откройте в современном Chrome / Safari / Firefox.";
+      } else if (noIdb) {
+        advice = "Этот браузер не поддерживает IndexedDB (приватный режим Firefox?). Используйте обычный режим браузера.";
+      } else if (allFailed) {
+        advice = "Не удалось инициализировать ни OPFS, ни IndexedDB-хранилище. Возможные причины: жёсткие квоты на storage; iOS Lockdown Mode; cookies/storage заблокированы. Попробуйте кнопку ниже — серверный режим работает без локального хранилища.";
+      }
+      const fallbackBtn =
+        "<div style='margin-top:10px;'>" +
+        "<a href='" + v3EscapeHtml(serverHref) + "' style='display:inline-block; padding:8px 14px; background:#3b82f6; color:#fff; border-radius:6px; text-decoration:none; font-size:13px; font-weight:600;'>" +
+        "Открыть через сервер (без ?localMode=1)</a></div>";
+      if (advice) {
+        helpHtml =
+          "<div style='margin-top:8px; padding:10px; background:#fef3c7; border-left:3px solid #f59e0b; font-size:13px;'>" +
+          "⚠ " + v3EscapeHtml(advice) +
+          fallbackBtn +
+          "</div>";
+      } else {
+        helpHtml = fallbackBtn;
+      }
     }
     if (statusEl) statusEl.textContent = "Ошибка загрузки библиотеки: " + detail.slice(0, 160);
     if (listEl) listEl.innerHTML =

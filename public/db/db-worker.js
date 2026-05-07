@@ -1,25 +1,36 @@
 // db-worker.js — Dedicated Web Worker.
-// Единственный владелец OPFS SQLite-соединения.
-// Все операции с БД проходят через postMessage → ответ postMessage.
+// Owns the SQLite connection. All ops go through postMessage.
 //
-// Протокол сообщений:
-//   Запрос:  { id: number, type: 'init'|'query'|'run'|'exec', sql?: string, params?: any[] }
-//   Ответ:   { id: number, ok: true, rows?: object[], changes?: number }
-//          | { id: number, ok: false, error: string }
+// VFS fallback chain (premium UX: works on every modern browser):
+//   1. AccessHandlePoolVFS — sync access handles, fastest. Requires
+//      FileSystemSyncAccessHandle in workers (Chrome 102+ desktop,
+//      Safari/iOS 17+, Edge 102+). Uses the SYNC wa-sqlite build.
+//   2. IDBBatchAtomicVFS — IndexedDB-based, async. Works on every browser
+//      that supports IndexedDB (i.e. effectively all of them, including
+//      iOS Safari 15+, Android Chrome 80+, older desktop). Uses the
+//      ASYNC (Asyncify) wa-sqlite build.
+//
+// Selection happens at init: try #1 inside a try/catch; on any failure
+// (NotSupportedError / TypeError on createSyncAccessHandle / capacity
+// errors / etc.) fall back to #2. The choice is reported back to the
+// main thread in the init response.
+//
+// Protocol:
+//   Request:  { id, type: 'init'|'query'|'run'|'exec', sql?, params? }
+//   Response: { id, ok: true,  rows?, changes?, vfs? }
+//           | { id, ok: false, error: string }
 
-import SQLiteModule from './wa-sqlite.mjs';
 import { Factory, SQLITE_OPEN_READWRITE, SQLITE_OPEN_CREATE } from './sqlite-api.js';
-import { AccessHandlePoolVFS } from './AccessHandlePoolVFS.js';
 import { MIGRATIONS } from './migrations.js';
 
 let sqlite3 = null;
 let db = null;
-let tag = null; // createTag helper
+let vfsName = null;   // 'AccessHandlePool' or 'IDBBatchAtomic'
+let vfsKind = null;   // 'sync' or 'async' (for diagnostic surface)
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
 async function execMulti(sql) {
-  // wa-sqlite exec() stops at first statement; iterate all statements manually
   for await (const stmt of sqlite3.statements(db, sql)) {
     await sqlite3.step(stmt);
     await sqlite3.finalize(stmt);
@@ -49,7 +60,7 @@ async function runSingle(sql, params = []) {
     await sqlite3.step(stmt);
     changes = sqlite3.changes(db);
     await sqlite3.finalize(stmt);
-    break; // run handles single statement
+    break;
   }
   return changes;
 }
@@ -57,7 +68,6 @@ async function runSingle(sql, params = []) {
 // ── migration runner ───────────────────────────────────────────────────────
 
 async function runMigrations() {
-  // Create tracker table first (idempotent)
   await execMulti(`CREATE TABLE IF NOT EXISTS schema_migrations (
     version INTEGER PRIMARY KEY,
     applied_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -82,29 +92,78 @@ async function runMigrations() {
   }
 }
 
-// ── init ───────────────────────────────────────────────────────────────────
+// ── init: VFS fallback chain ───────────────────────────────────────────────
 
-async function initDB() {
+// Try AccessHandlePoolVFS (sync). Returns { sqlite3, db, vfsName } on success;
+// throws on any failure so the caller can move to the next VFS.
+async function initWithAccessHandlePool() {
+  // Sync wa-sqlite build + sync VFS.
+  const SQLiteModule = (await import('./wa-sqlite.mjs')).default;
+  const { AccessHandlePoolVFS } = await import('./AccessHandlePoolVFS.js');
+
   const module = await SQLiteModule();
-  sqlite3 = Factory(module);
+  const sqlite = Factory(module);
 
   const vfs = new AccessHandlePoolVFS('/tts-opfs');
   await vfs.isReady;
-  sqlite3.vfs_register(vfs, true /* makeDefault */);
+  sqlite.vfs_register(vfs, true);
 
-  // VFS.name is 'AccessHandlePool' (see AccessHandlePoolVFS#get name).
-  // Pass it explicitly to avoid relying on default-VFS resolution differences.
-  try {
-    db = await sqlite3.open_v2(
-      'app.db',
-      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-      vfs.name
-    );
-  } catch (e) {
-    // Surface a useful diagnostic instead of bare "sqlite3_open_v2".
-    const code = (e && e.code) || (e && e.errcode) || 'unknown';
-    const msg  = (e && e.message) || String(e);
-    throw new Error(`sqlite3_open_v2 failed (vfs="${vfs.name}", code=${code}): ${msg}`);
+  const opened = await sqlite.open_v2(
+    'app.db',
+    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+    vfs.name
+  );
+  return { sqlite, db: opened, vfsName: vfs.name, vfsKind: 'sync' };
+}
+
+// Try IDBBatchAtomicVFS (async). Works wherever IndexedDB is available.
+async function initWithIDB() {
+  // Async wa-sqlite build + async VFS.
+  const SQLiteModule = (await import('./wa-sqlite-async.mjs')).default;
+  const { IDBBatchAtomicVFS } = await import('./IDBBatchAtomicVFS.js');
+
+  const module = await SQLiteModule();
+  const sqlite = Factory(module);
+
+  const vfs = new IDBBatchAtomicVFS('tts-opfs-idb', { durability: 'relaxed' });
+  await vfs.isReady;
+  sqlite.vfs_register(vfs, true);
+
+  const opened = await sqlite.open_v2(
+    'app.db',
+    SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+    vfs.name
+  );
+  return { sqlite, db: opened, vfsName: vfs.name, vfsKind: 'async' };
+}
+
+async function initDB(preferVfs) {
+  const errors = [];
+
+  // Build the order of VFS attempts. preferVfs (from main thread's
+  // localStorage) puts the user's last-successful VFS first so existing
+  // data isn't orphaned when browser capabilities change between sessions.
+  const order = ['AccessHandlePool', 'IDBBatchAtomic'];
+  if (preferVfs && order.indexOf(preferVfs) >= 0) {
+    order.sort((a, b) => (a === preferVfs ? -1 : (b === preferVfs ? 1 : 0)));
+  }
+
+  for (const choice of order) {
+    if (db) break;
+    try {
+      const r = (choice === 'AccessHandlePool')
+        ? await initWithAccessHandlePool()
+        : await initWithIDB();
+      sqlite3 = r.sqlite; db = r.db; vfsName = r.vfsName; vfsKind = r.vfsKind;
+    } catch (e) {
+      errors.push({ vfs: choice, error: String(e && e.message ? e.message : e) });
+      console.warn(`[db-worker] ${choice} VFS init failed:`, e && e.message);
+    }
+  }
+
+  if (!db) {
+    const summary = errors.map(x => `${x.vfs}: ${x.error}`).join(' | ');
+    throw new Error('All VFS init attempts failed. ' + summary);
   }
 
   await execMulti('PRAGMA foreign_keys = ON;');
@@ -114,11 +173,11 @@ async function initDB() {
 // ── message handler ────────────────────────────────────────────────────────
 
 self.onmessage = async ({ data }) => {
-  const { id, type, sql, params } = data;
+  const { id, type, sql, params, preferVfs } = data;
   try {
     if (type === 'init') {
-      await initDB();
-      self.postMessage({ id, ok: true });
+      await initDB(preferVfs || null);
+      self.postMessage({ id, ok: true, vfs: vfsName, vfsKind });
 
     } else if (type === 'query') {
       const rows = await queryRows(sql, params || []);
