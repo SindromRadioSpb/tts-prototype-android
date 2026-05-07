@@ -1,6 +1,6 @@
 # OPFS + SQLite WASM Migration Plan
 
-## Implementation Status (2026-05-06)
+## Implementation Status (2026-05-07)
 
 **Feature flag `?localMode=1`** (или `localStorage.localMode = '1'`) — при включении весь stateful-доступ идёт в OPFS, минуя Railway.
 
@@ -12,7 +12,7 @@
 | 3 — Прогресс/поиск/аналитика | ✅ Done | progress GET+POST (с sendBeacon-bypass в LOCAL_MODE), v3LibraryRefresh + v3LibraryOpenText, dashboard refresh (lib + recent + activity), recent-rows derived из events, text meta save, search via local-db. **Локальная аналитика**: `getAnalytics({days, includeArchived})` агрегирует `plays/unique_rows/unique_texts/time_ms` по таблице `events` для period (7 дней) и all-time, мапится в shape `v3DashAnalytics`. Покрыто Test 12. | — |
 | 4 — SRS | ✅ Done | templates, today/summary, createCard, reviewCard, sessions create/review/finish, trainer-view, attempts/check. **Anki премиум**: кастомная модель **`LinguistPro SRS Card v1`** (createModel idempotent, поля Hebrew/Niqqud/Translit/Russian/Note/Audio + CSS); audio attachments через `storeMediaFile` + `[sound:lp_<key>.mp3]`; `findNotes` + `notesInfo` + `changeDeck` для duplicate-resolution. **Fuzzy grading**: `v3FuzzyNormalize` (NFC, niqqud strip, punctuation, articles) + `v3LevenshteinAtMost` (budget = floor(len/8) или 1) — типичные опечатки и диакритика прощаются. | `.apkg`-генерация (offline без AnkiConnect) — отдельный TODO. |
 | 5 — ZIP-bundle с аудио | ✅ Done | Export: ZIP в **unified Android-v2 формате** (`docs/ANDROID_V2_LIBRARY_EXPORT_SPEC.md`) — `manifest.json` (app_id=linguist-pro-web, export_schema_version=1) + `library/library.json` (поля `text_id`/`rows`/`hebrew_plain`/`audio_assets[]` с `provenance.ttsProfile`) + `audio/<asset_key>.mp3` + `metadata/missing_audio.json`. Import принимает оба layout'а (unified `library/library.json` + `audio/`, legacy web `library.json` + `audio-cache/`). Round-trip через `library-bundle-top100maco-150verb-150pril.zip` работает. Re-uploads MP3 в Railway audio-cache через `POST /api/audio/cache/upload`. `v3RowTtsTrackPlay` пишет audio_assets+sentence_audio в OPFS при каждом проигрывании. JSON export пишет `library.json`-shape (`schema_version`+`texts`+`audio_assets`) — структурно совпадает с library.json внутри ZIP. | — |
-| 6 — Default-on + cleanup | ⏳ Pending | Документация актуализирована. **One-time migration helper**: кнопка «Импорт из облака» в Library toolbar (видна только в LOCAL_MODE при пустой OPFS-библиотеке) — выгружает данные с Railway через `/api/library/export` и применяет через `importBundle` (idempotent, mode=skip). | Включить `localMode` по умолчанию (требует dogfooding); удалить серверные library/SRS-routes (или перевести в опциональный sync); обновить публичные docs / changelog / onboarding. Финал DoD: e2e-проверка ZIP cross-device на двух устройствах. |
+| 6 — Default-on + cleanup | ⏳ Pending | Документация актуализирована. **One-time migration helper**: кнопка «Импорт из облака» в Library toolbar (всегда видна в LOCAL_MODE) — выгружает данные с Railway через `/api/library/export` и применяет через `importBundle` (idempotent, mode=skip). **Card-level TTS profile auto-apply** при открытии карточки + cache-first playback (см. строку «UX»). **Mobile-ready VFS chain** (см. строку 0). | Включить `localMode` по умолчанию (нужно подтверждённое dogfooding-окно на mobile + desktop); удалить серверные library/SRS-routes (или перевести в опциональный sync); обновить публичные docs / changelog / onboarding. Финал DoD: e2e cross-device round-trip ZIP подтвердить вручную (web → Android v2 и обратно). |
 
 **Bug-fixes (2026-05-05):**
 - `v3LibrarySaveCurrentCore` падал с "Не удалось сохранить" при «Сохранить как новый» в LOCAL_MODE: причина — INSERT в `texts` с NULL в `title` (NOT NULL column). Исправлено в `local-db.js#createText` (coerce null → ''). `addSentence` тоже получил defensive coercion для всех string-полей и JSON-стрингификацию для `meta_json`/`edit_meta_json`.
@@ -23,6 +23,14 @@
 - AnkiConnect health-check (`v3SrsAnkiCheckConnect`, `v3AnkiHealth`) при `LOCAL_MODE` теперь идёт напрямую из браузера к `http://127.0.0.1:8765`, минуя Railway-сервер. Если AnkiConnect блокирует CORS — показывается подсказка добавить `location.origin` в `webCorsOriginList`.
 - `v3AnkiPushNow` («Экспортировать» в Anki-модалке) падал с `Ошибка экспорта: TEXT_NOT_FOUND (HTTP 404)` в LOCAL_MODE: текст лежит в OPFS, а POST шёл на `/api/library/texts/:id/push/anki`. Исправлено: новый `v3AnkiPushLocalMode(textId, opts)` читает text+sentences+notes из OPFS, idempotent создаёт deck, формирует ноты моделью **Basic** и шлёт `addNotes` через `v3AnkiConnectDirect`. Аудио-экспорт в Anki пока deferred.
 - `v3LibraryExportBundle` в LOCAL_MODE теперь делает настоящий ZIP-with-audio: подтягивает каждый `audio_asset_key` из Railway audio-cache (concurrency=6, неудачи пишутся в `missing_audio.json`), пакует через JSZip. Импорт умеет распаковать ZIP (`library.json` внутри) или принять plain-JSON. `v3RowTtsTrackPlay` дополнительно линкует `audio_assets` ↔ `sentence_audio` в OPFS, чтобы будущие экспорты содержали аудио без серверного round-trip.
+
+**Bug-fixes & UX (2026-05-07):**
+- **Mobile premium**: на iPhone iOS 26.2.1 и Android Chrome модуль OPFS отказывал из-за неверной main-thread feature-detection (`createSyncAccessHandle` per spec экспонируется только в Workers, не на main thread). Заменено на полноценный **VFS fallback chain в db-worker.js**: пробуется `AccessHandlePoolVFS` (sync wa-sqlite, OPFS sync handles), на любую ошибку — fallback на `IDBBatchAtomicVFS` (async Asyncify wa-sqlite, IndexedDB+WebLocks). Sticky preference в `localStorage.opfsVfsPreference_v1` защищает от орфанинга данных при upgrade-е браузера (iOS 16-with-IDB user upgrades to iOS 17 — продолжает использовать IDB, не открывает пустую OPFS-БД).
+- Pre-flight checks (main-thread, без false-negatives): `Worker` + `indexedDB` доступны → friendly errors («requires Web Workers» / «requires IndexedDB») если нет.
+- **Card-level TTS profile auto-apply** (премиум UX, экономит TTS-квоту): при открытии карточки из библиотеки `v3DeriveCardTtsProfile()` извлекает её профиль из `text.tts_profile_json` либо majority `audio_assets[].provenance.ttsProfile`; `v3ApplyTtsProfileToSession()` зеркалит в session UI (`voiceSelect`/`rateRange`/`pitchRange`); toast «Применён профиль карточки: …». `v3RowTtsMatchesCurrentProfile` упрощён — кэшированное аудио играет всегда когда есть `assetKey`, никогда не triggers re-TTS из-за profile mismatch. Маркеры зелёные when haveKey; tooltip раскрывает provenance differences для transparency.
+- **Server↔OPFS migration**: кнопка «Импорт из облака» теперь всегда видна в LOCAL_MODE (раньше пряталась если OPFS-библиотека не пустая). `importBundle` детектит nested server shape `{text, sentences}` И unified Android-v2 shape `{text_id, rows}` И legacy flat shape — все три normalize-ятся внутри.
+- **Reconcile audio links**: новый `local-db.js#reconcileAudioLinks(bundle)` запускается после `importBundle` unconditionally — для текстов уже в OPFS (mode='skip' их пропустил) match'ит rows by `order_index` (fallback `he_plain`) и создаёт недостающие `sentence_audio` линки. Закрывает баг «после повторного импорта маркеры серые».
+- **Diagnostic helper**: `window.__localDB.audioLinkDiag('Position 6')` возвращает per-text counts + sample of `getSentences` output for direct debugging without DevTools.
 
 **Bug-fixes (2026-05-06, batch 3):**
 - Audio cache markers: после reload и повторной загрузки текста из библиотеки кружочки строк не зеленели даже когда `audio_assets`/`sentence_audio` уже хранили линки. Причина — `local-db.js#getSentences` возвращал только колонки таблицы `sentences`, без JOIN на `audio_assets`/`sentence_audio`, поэтому `s.audio_asset_key` всегда был `undefined`, и UI-mapping выставлял `_v3_audioAssetKey = ""`. Fix: `getSentences` теперь делает `LEFT JOIN sentence_audio ON … is_default=1 LEFT JOIN audio_assets`, и в каждой строке возвращает `audio_asset_key` + `audio_tts_profile_json` — то же, что отдаёт серверный `/api/library/texts/:id/sentences`. Артефакт: `db-init-test.html#TEST 11` создаёт текст с двумя предложениями, линкует mock-аудио через `upsertAudioAsset`+`linkSentenceAudio`, перечитывает и проверяет, что обе функции (`getSentences` и `getDefaultAudioMap`) возвращают `audio_asset_key` для каждого предложения.
@@ -47,30 +55,32 @@
 - Цветовой индикатор аудио-кэша не зеленел после Save-as-New в LOCAL_MODE. Причина — `getSentences()` в OPFS не возвращает `audio_asset_key` (живёт в JOIN'ах `audio_assets` ↔ `sentence_audio`). Fix: `v3ClassicEnrichSavedRows` в LOCAL_MODE дополнительно подтягивает `getDefaultAudioMap(textId)` и сливает asset_key'и в `currentTableData[i]._v3_audioAssetKey`.
 - «Создать аудио» в batch-prefetch падал HTTP 403 на Railway. Причина — `v3AudioPrefetchIsAllowed()` пускал только локальные IP или `ALLOW_REMOTE_AUDIO_PREFETCH=1`. Fix: сервер теперь принимает заголовок `X-Local-Mode: 1` как soft-разрешение (равноценно клику Play в цикле — данные пользователя), браузер шлёт его автоматически в LOCAL_MODE через `v3AudioPrefetchHttpJson`. Пользователю не нужно менять переменные окружения.
 
-**Известные ограничения LOCAL_MODE (по фазам):**
+**Известные ограничения LOCAL_MODE (по фазам, на 2026-05-07):**
 
-*Фазы 2-5: всё, что было в плане, реализовано.* Открытые пункты:
+*Фазы 0-5: реализовано полностью, мобильная совместимость закрыта VFS fallback chain.*
 
-*Фаза 4 (Anki — нерешено):*
-- `.apkg`-генерация (offline-экспорт без AnkiConnect) — отдельный TODO; пока экспорт идёт через AnkiConnect, что требует запущенного Anki Desktop.
-- При первом экспорте в новый Anki-профиль `storeMediaFile` грузит MP3 по `location.origin/api/audio/<key>` — это работает, только если Railway audio-cache всё ещё хранит ассет. Если ассет потерян, [sound:…] ссылается на отсутствующий media-файл (Anki молча играет тишину).
+*Фаза 4 — открытые низкоприоритетные TODO (не блокируют Phase 6):*
+- `.apkg`-генерация (offline-экспорт без AnkiConnect) — пока экспорт идёт через AnkiConnect, что требует запущенного Anki Desktop. Альтернатива есть для пользователей без Anki Desktop, но не критично.
+- При первом экспорте в новый Anki-профиль `storeMediaFile` грузит MP3 по `location.origin/api/audio/<key>` — работает только если Railway audio-cache всё ещё хранит ассет. Если ассет потерян, `[sound:…]` ссылается на отсутствующий media-файл (Anki молча играет тишину).
 
-*Фаза 6 (cleanup — частично):*
-- `localMode` остаётся opt-in (`?localMode=1`) до полноценного dogfooding и e2e cross-device-проверки.
-- Серверные library-routes (`/api/library/*`, `/api/srs/*`, `/api/progress/*`) пока работают параллельно — не удалены, не переведены в опциональный sync. Решение оставлено на пост-dogfooding-этап.
+*Фаза 6 — открытые блокеры (для default-on switch):*
+- `localMode` остаётся opt-in (`?localMode=1`) до подтверждённого dogfooding на: 1) PC Chrome, 2) iPhone iOS 17+, 3) Android Chrome (последние 2 теперь работают через VFS fallback chain).
+- Серверные library-routes (`/api/library/*`, `/api/srs/*`, `/api/progress/*`) работают параллельно — не удалены, не переведены в опциональный sync. Решение оставлено на пост-dogfooding-этап.
+- E2E cross-device round-trip ZIP подтвердить вручную (web → Android v2 → web).
 
-*Прочее:*
-- `sendBeacon` при `pagehide` не используется — keepalive-fetch fallback пишет напрямую в OPFS.
-- `time_ms` в локальной аналитике — оценка `plays * 4000` (мы не пишем длительность playback'а в `events`); для точных значений нужно расширить event payload duration_ms.
+*Низкоприоритетные quality улучшения (не блокеры):*
+- `sendBeacon` при `pagehide` bypass'ится в LOCAL_MODE — keepalive-fetch fallback пишет напрямую в OPFS (для default-on можно оставить как есть).
+- `time_ms` в локальной аналитике — оценка `plays * 4000` (длительность playback'а не пишется в `events`); для точных значений расширить event payload duration_ms.
 
 **Как проверить:**
-1. Открыть `<host>/db/db-init-test.html` — должны пройти 9 тестов (включая полный save-as-new flow).
-2. Открыть основное приложение с `?localMode=1`:
+1. Открыть `<host>/db/db-init-test.html` — должны пройти **14 тестов**, включая Test 11 (audio link survival), Test 12 (analytics), Test 13 (export unified format), Test 14 (round-trip).
+2. Открыть основное приложение с `?localMode=1` на ПК:
    - Сформировать таблицу из иврит-текста.
-   - Нажать «Сохранить» → «Сохранить как новый» → должен появиться toast «Сохранено в библиотеку» (или «Сохранено как новый текст»).
-   - Перезагрузить страницу с `?localMode=1` — карточка должна остаться в Library.
-   - Перезагрузить БЕЗ `?localMode=1` — карточки в Railway-Library НЕ должно быть (доказательство, что данные на устройстве).
-   - Вернуться на `?localMode=1` — карточка снова видна.
+   - Нажать «Сохранить» → «Сохранить как новый» → toast «Сохранено в библиотеку».
+   - Перезагрузить страницу с `?localMode=1` — карточка остаётся.
+   - Перезагрузить БЕЗ `?localMode=1` — карточки в Railway-Library НЕТ (данные на устройстве).
+3. На iPhone iOS 17+ / Android Chrome: открыть `?localMode=1` → автоматически подбирается AccessHandlePool или IDB → Library работает. В DevTools console: `window.__localDB.getVfsInfo()` показывает выбранный VFS.
+4. Cross-device ZIP round-trip: «Экспорт ZIP» с устройства A → перенести файл → «Импорт ZIP» на устройстве B → данные + аудио должны прийти.
 
 ---
 
