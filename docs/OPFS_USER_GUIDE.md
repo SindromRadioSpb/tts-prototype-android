@@ -119,4 +119,25 @@ TTS-синтез (текст → MP3, MP3 кэшируется), translit-сер
 
 ---
 
+## D2: Server endpoints — header trust audit
+
+В LOCAL_MODE сервер обрабатывает три stateless POST-вызова. Каждый из
+них использует разный механизм доверия:
+
+| Endpoint                      | CSRF guard                | Content-Type guard | Per-IP rate limit |
+|-------------------------------|---------------------------|---------------------|---------------------|
+| `POST /api/transliterate`     | `requireSameOriginJson`   | application/json    | 60/min            |
+| `POST /api/export/docx`       | `requireSameOriginJson`   | application/json    | 30/min            |
+| `POST /api/audio/cache/upload`| `v3AudioPrefetchIsAllowed` (env / X-Local-Mode header / local-IP) | — (multipart) | 200/min |
+
+`requireSameOriginJson` отклоняет запросы:
+- с `Content-Type` не `application/json` → 415;
+- с `Origin` не совпадающим с `host` → 403 (CSRF-mitigation для браузера);
+- если `Origin` отсутствует, проверяется `Referer` (server-to-server клиенты типа Android v2 без обоих заголовков допускаются — они не подвержены CSRF).
+
+Кроме CSRF-защищённых endpoint'ов, **никаких других пользовательских
+данных на сервер не отправляется** в LOCAL_MODE. Сервер не хранит
+тексты, заметки, прогресс. Stateless эндпоинты — purely-deterministic
+вычисления (transliterate) или преобразования формата (DOCX).
+
 См. также `docs/OPFS_MIGRATION_PLAN.md` — техническое описание реализации.

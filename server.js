@@ -203,6 +203,44 @@ const rlTransliterate = makeRateLimiter({ windowMs: 60_000, max: 60,  name: "tra
 const rlExportDocx    = makeRateLimiter({ windowMs: 60_000, max: 30,  name: "export-docx" });
 const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 200, name: "audio-cache-upload" });
 
+// ── D2: Header trust audit — same-origin + content-type guards ─────────────
+// Mounted on stateless POST endpoints below. Two checks:
+//   1. Same-origin: Origin/Referer header must match our own host. Browsers
+//      always send these on cross-origin POSTs so a simple match defeats
+//      basic CSRF / a malicious site posting from the user's browser.
+//      Server-to-server callers (curl, Android v2, etc.) typically omit
+//      Origin — we accept that, since they're not subject to CSRF.
+//   2. Content-Type: must start with application/json (bodyParser.json
+//      already requires this de facto, but rejecting early gives a clearer
+//      error than a parsed-empty body).
+//
+// We deliberately don't add a CSRF token — there are no per-user sessions
+// to scope it to. The Origin/Referer check is the right tool for this app.
+function requireSameOriginJson(req, res, next) {
+  const ct = String(req.headers["content-type"] || "").toLowerCase();
+  if (!ct.startsWith("application/json")) {
+    return res.status(415).json({ ok: false, error: "UNSUPPORTED_MEDIA_TYPE", expected: "application/json" });
+  }
+  const origin = String(req.headers["origin"] || "").trim();
+  const referer = String(req.headers["referer"] || "").trim();
+  // Accept absent Origin (server-to-server, native clients) but reject
+  // mismatched Origin (cross-site form post / fetch with credentials).
+  if (origin) {
+    const host = String(req.headers["host"] || "").trim();
+    const proto = (req.protocol || (req.secure ? "https" : "http"));
+    const expected = proto + "://" + host;
+    if (origin !== expected && !origin.endsWith("://" + host)) {
+      return res.status(403).json({ ok: false, error: "BAD_ORIGIN", origin });
+    }
+  } else if (referer) {
+    const host = String(req.headers["host"] || "").trim();
+    if (host && !referer.includes("://" + host + "/") && !referer.includes("://" + host + "?")) {
+      return res.status(403).json({ ok: false, error: "BAD_REFERER", referer });
+    }
+  }
+  next();
+}
+
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
@@ -2398,7 +2436,7 @@ app.post("/api/audio/prefetch/cancel", async (req, res) => {
 // schema is part of the deployed code, no quota involved. LOCAL_MODE clients
 // use this to lazy-fill missing transliterations after import or for older
 // rows that pre-date the profile-aware pipeline.
-app.post("/api/transliterate", rlTransliterate, async (req, res) => {
+app.post("/api/transliterate", requireSameOriginJson, rlTransliterate, async (req, res) => {
   try {
     const { transliterateWithProfile } = require("./db/premium/translit");
     const body = (req.body && typeof req.body === "object") ? req.body : {};
@@ -5737,7 +5775,7 @@ tableRows.push(
 //       }
 // LOCAL_MODE clients call this with a payload built from OPFS, since the
 // GET /api/library/texts/:id/export/docx variant requires server DB lookups.
-app.post("/api/export/docx", rlExportDocx, async (req, res) => {
+app.post("/api/export/docx", requireSameOriginJson, rlExportDocx, async (req, res) => {
   try {
     const body = (req.body && typeof req.body === "object") ? req.body : {};
     const t = (body.text && typeof body.text === "object") ? body.text : {};
