@@ -22089,12 +22089,40 @@ try {
         // Detect by checking if any row has a non-empty translit_ru value.
         const _hasRuTranslit = rows.some(function(r) { return r && r.translit_ru; });
         currentTableHasRuTranslit = _hasRuTranslit;
-        const _tProfile = _hasRuTranslit && getSelectedTranslitProfile
+        // Profile selection — premium UX:
+        //   • If table has translit_ru data, honour the dropdown choice
+        //     (sbl ↔ ru-phonetic switch is fully effective).
+        //   • If no translit_ru data, force sbl (was: same — kept for safety).
+        //     But the header now reflects the dropdown choice so users
+        //     understand what they selected, AND we surface a one-time
+        //     toast hint if the user picked ru-phonetic on a card that
+        //     hasn't been re-translated with that profile.
+        const _selectedProfile = (typeof getSelectedTranslitProfile === "function")
             ? getSelectedTranslitProfile()
             : "sbl";
-        const _tTitle = !_hasRuTranslit
-            ? t("table.colTranslitLat")
-            : (_tProfile === "ru-phonetic" ? t("table.colTranslitRu") : t("table.colTranslitSbl"));
+        const _tProfile = _hasRuTranslit && _selectedProfile === "ru-phonetic" ? "ru-phonetic" : "sbl";
+        // Header reflects the dropdown choice when data is available, OR a
+        // friendlier label than generic "Latin" when only sbl-style data exists.
+        const _tTitle = _hasRuTranslit
+            ? (_tProfile === "ru-phonetic" ? t("table.colTranslitRu") : t("table.colTranslitSbl"))
+            : (_selectedProfile === "ru-phonetic"
+                ? t("table.colTranslitRu") + " (нет данных)"
+                : t("table.colTranslitSbl"));
+        // One-time hint when user picks ru-phonetic on an sbl-only table.
+        try {
+          if (_selectedProfile === "ru-phonetic" && !_hasRuTranslit
+              && !window.__v3_translitProfileHintShown) {
+            window.__v3_translitProfileHintShown = true;
+            if (typeof showToast === "function") {
+              showToast(
+                "Этот текст не содержит «Русская фонетика». " +
+                "Перегенерируйте таблицу с этим профилем чтобы получить её, " +
+                "или вернитесь на «SBL Academic», чтобы видеть существующую транслитерацию.",
+                "info"
+              );
+            }
+          }
+        } catch (_) {}
         const colMeta = {
             action: { title: "▶📝", headerClass: "", cellClass: "col-action-cell" },
             he: { title: t("table.colHebrew"), headerClass: "rtl", cellClass: "rtl rtl-he" },
@@ -22747,16 +22775,25 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
     const payload = {};
     payload[field] = newVal;
 
-    // Handle translit column: could be translit or translit_ru depending on current profile
-    // We save to the correct field based on current profile selection
+    // Handle translit column: could be translit or translit_ru depending on current profile.
+    // Bug pre-fix (2026-05-07): the previous code did
+    //   payload[field] = newVal;           // → { translit: newVal }
+    //   p2[apiField] = newVal;             // p2 = { translit: newVal } when profile=sbl
+    //   Object.assign(payload, p2);
+    //   delete payload.translit;           // ← WIPES the value for the sbl path!
+    // Result: sbl-profile edits sent an empty payload, so OPFS/server stayed
+    // unchanged and the cell reverted on reload. Fix: only delete the
+    // primary key when actually switching to translit_ru.
     let apiField = field;
     if (col === "translit") {
         const profile = (typeof getSelectedTranslitProfile === "function") ? getSelectedTranslitProfile() : "sbl";
         apiField = (profile === "ru-phonetic") ? "translit_ru" : "translit";
-        const p2 = {};
-        p2[apiField] = newVal;
-        Object.assign(payload, p2);
-        delete payload.translit;
+        if (apiField !== "translit") {
+            // ru-phonetic path: save into translit_ru, drop the duplicate translit.
+            payload[apiField] = newVal;
+            delete payload.translit;
+        }
+        // sbl path: payload is already { translit: newVal }, leave it alone.
     }
 
     var sentencePromise = LOCAL_MODE
