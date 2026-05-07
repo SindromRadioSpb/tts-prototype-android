@@ -5550,9 +5550,23 @@ td[data-col="ru"] {
   import * as _ldb from '/db/local-db.js';
   window.__localDB = _ldb;
   window.__localDBInitError = null;
-  window.__localDBInitPromise = _ldb.initLocalDB().catch(e => {
+  // B5: telemetry — capture init success/failure + chosen VFS so we have
+  // bench data before flipping localMode default-on. Stored in a small
+  // localStorage ring buffer; surfaced via window.v3OpfsTelemetry.list().
+  const _opfsInitT0 = Date.now();
+  window.__localDBInitPromise = _ldb.initLocalDB().then(() => {
+    const ms = Date.now() - _opfsInitT0;
+    let info = null; try { info = _ldb.getVfsInfo(); } catch (_) {}
+    try { (window.v3OpfsTelemetryPush || function(){})({
+      kind: 'init.success', durationMs: ms, vfs: info && info.name, vfsKind: info && info.kind,
+    }); } catch (_) {}
+  }).catch(e => {
     window.__localDBInitError = e;
     console.error('[OPFS] init failed:', e && e.message ? e.message : e);
+    try { (window.v3OpfsTelemetryPush || function(){})({
+      kind: 'init.failure', durationMs: Date.now() - _opfsInitT0,
+      error: e && e.message ? e.message : String(e),
+    }); } catch (_) {}
     // do not re-throw — allow the page to load; callers will see the error via ensureLocalDB().
   });
 </script>
@@ -18101,12 +18115,24 @@ function v3Phase6BuildModal() {
 // v3LibraryImportFromCloud but skips its window.confirm() since the user
 // already accepted in the parent modal.
 async function v3Phase6MigrateSilently() {
+  const _migrT0 = Date.now();
   const payload = await v3GetJson("/api/library/export?includeArchived=1");
   if (!payload || !Array.isArray(payload.texts)) {
+    try { v3OpfsTelemetryPush({ kind: "migration.success", durationMs: Date.now() - _migrT0, empty: true }); } catch (_) {}
     return { imported: 0, skipped: 0, errorCount: 0, importedIds: [], empty: true };
   }
   const ldb = await ensureLocalDB();
-  const r = await ldb.importBundle(payload, { mode: "skip" });
+  let r;
+  try {
+    r = await ldb.importBundle(payload, { mode: "skip" });
+  } catch (e) {
+    try { v3OpfsTelemetryPush({ kind: "migration.failure", durationMs: Date.now() - _migrT0, error: e && e.message ? e.message : String(e) }); } catch (_) {}
+    throw e;
+  }
+  try { v3OpfsTelemetryPush({
+    kind: "migration.success", durationMs: Date.now() - _migrT0,
+    imported: r.imported, skipped: r.skipped, errors: (r.errors || []).length,
+  }); } catch (_) {}
   // B2: stash last-migration state so the user can undo if they realise
   // they didn't want this. Capped to 1000 ids to keep localStorage small.
   try {
@@ -18454,6 +18480,50 @@ document.addEventListener("DOMContentLoaded", () => {
 // Diagnostic.
 window.v3StorageEstimate = v3StorageEstimate;
 window.v3StorageRefreshUI = v3StorageRefreshUI;
+
+// ── B5: OPFS telemetry ring buffer ─────────────────────────────────────────
+// Captures init/import/migration outcomes so we have bench data before
+// flipping localMode default-on. Stays client-side (no analytics endpoint
+// dependency) — read out via window.v3OpfsTelemetry.list() during dogfood.
+const V3_OPFS_TELEMETRY_KEY = "opfsTelemetryRing_v1";
+const V3_OPFS_TELEMETRY_MAX = 50;
+
+function v3OpfsTelemetryPush(entry) {
+  try {
+    if (!entry || typeof entry !== "object") return;
+    const ring = JSON.parse(localStorage.getItem(V3_OPFS_TELEMETRY_KEY) || "[]");
+    const arr = Array.isArray(ring) ? ring : [];
+    arr.push({ ts: new Date().toISOString(), ...entry });
+    while (arr.length > V3_OPFS_TELEMETRY_MAX) arr.shift();
+    localStorage.setItem(V3_OPFS_TELEMETRY_KEY, JSON.stringify(arr));
+  } catch (_) {}
+}
+// Expose to the boot module (which runs as a separate <script type="module">
+// and can't see plain script-scope helpers without window.* hand-off).
+window.v3OpfsTelemetryPush = v3OpfsTelemetryPush;
+
+window.v3OpfsTelemetry = {
+  list: function() {
+    try { return JSON.parse(localStorage.getItem(V3_OPFS_TELEMETRY_KEY) || "[]") || []; }
+    catch (_) { return []; }
+  },
+  clear: function() { localStorage.removeItem(V3_OPFS_TELEMETRY_KEY); },
+  summary: function() {
+    const list = (window.v3OpfsTelemetry && window.v3OpfsTelemetry.list()) || [];
+    const tally = { initSuccess: 0, initFailure: 0, vfsByName: {}, importSuccess: 0, importFailure: 0, migrationSuccess: 0, migrationFailure: 0 };
+    for (const e of list) {
+      if (e.kind === "init.success") {
+        tally.initSuccess++;
+        if (e.vfs) tally.vfsByName[e.vfs] = (tally.vfsByName[e.vfs] || 0) + 1;
+      } else if (e.kind === "init.failure") tally.initFailure++;
+      else if (e.kind === "import.zip.success") tally.importSuccess++;
+      else if (e.kind === "import.zip.failure") tally.importFailure++;
+      else if (e.kind === "migration.success") tally.migrationSuccess++;
+      else if (e.kind === "migration.failure") tally.migrationFailure++;
+    }
+    return tally;
+  },
+};
 
 // ── B3: Undo toast (in-memory, 7s window) ──────────────────────────────────
 // Lightweight alternative to a full trash bin: caller passes a `restore`
@@ -18958,7 +19028,22 @@ async function v3LibraryOnBundleImportSelected(ev) {
 
       // PHASE 1 — import library data into OPFS NOW. Marker links land here.
       showToast("Импорт текстов в OPFS…", "info");
-      const r = await ldb.importBundle(parsed, { mode: "skip" });
+      const _zipImportT0 = Date.now();
+      let r;
+      try {
+        r = await ldb.importBundle(parsed, { mode: "skip" });
+        try { v3OpfsTelemetryPush({
+          kind: "import.zip.success", durationMs: Date.now() - _zipImportT0,
+          imported: r.imported, skipped: r.skipped, errors: (r.errors || []).length,
+          layout, audioCount: mp3Entries.length,
+        }); } catch (_) {}
+      } catch (e) {
+        try { v3OpfsTelemetryPush({
+          kind: "import.zip.failure", durationMs: Date.now() - _zipImportT0,
+          layout, audioCount: mp3Entries.length, error: e && e.message ? e.message : String(e),
+        }); } catch (_) {}
+        throw e;
+      }
       // PHASE 1b — reconcile audio links for any text that was already in
       // OPFS (skipped by mode='skip'). This re-creates missing
       // sentence_audio links so green markers appear when the bundle was
