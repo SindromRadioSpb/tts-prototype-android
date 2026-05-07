@@ -8721,9 +8721,21 @@ async function v3AnkiConnectDirect(action, params) {
   const r = await fetch("http://127.0.0.1:8765", { method: "POST", body });
   const j = await r.json();
   if (j && j.error) {
-    const isArray = Array.isArray(j.error);
-    const e = new Error(isArray ? j.error.join("; ") : String(j.error));
-    if (isArray) e.perNote = j.error;
+    let errVal = j.error;
+    // AnkiConnect Plus and some forks stringify the per-note error array
+    // as a Python-style list: "['cannot create...', 'cannot create...']".
+    // Recognise + parse it back so callers see a real Array (and therefore
+    // get e.perNote populated).
+    if (typeof errVal === 'string' && /^\s*\[\s*[\"']/.test(errVal)) {
+      try {
+        const jsonish = errVal.replace(/'/g, '"');
+        const asArr = JSON.parse(jsonish);
+        if (Array.isArray(asArr)) errVal = asArr;
+      } catch (_) {}
+    }
+    const isArray = Array.isArray(errVal);
+    const e = new Error(isArray ? errVal.join("; ") : String(errVal));
+    if (isArray) e.perNote = errVal;
     e.result = j.result;
     throw e;
   }
@@ -8989,13 +9001,36 @@ async function v3AnkiPushLocalMode(textId, opts) {
     for (let i = 0; i < perNoteErrors.length; i++) {
       const msg = String(perNoteErrors[i] || "").toLowerCase();
       if (!msg) continue;
-      if (msg.includes("duplicate")) runtimeDuplicates++;
-      else if (msg.includes("empty")) skippedEmpty.push("(runtime-empty)");
-      else failedOther++;
+      if (msg.includes("duplicate")) {
+        runtimeDuplicates++;
+        // The note that addNotes refused — feed it into the duplicate-
+        // resolution queue so the changeDeck flow below covers it. This
+        // closes the gap when canAddNotes preflight didn't flag it (some
+        // AnkiConnect forks have inconsistent scope between preflight and
+        // actual addNotes).
+        const refusedNote = sendable[i];
+        if (refusedNote) {
+          const frontVal = refusedNote.fields[frontField];
+          dupQueries.push({ idx: i, frontText: String(frontVal || "") });
+        }
+      } else if (msg.includes("empty")) {
+        skippedEmpty.push("(runtime-empty)");
+      } else {
+        failedOther++;
+      }
     }
   } else {
     for (let i = 0; i < arr.length; i++) {
-      if (arr[i] == null) runtimeDuplicates++;
+      if (arr[i] == null) {
+        runtimeDuplicates++;
+        // Same as above — null result means a duplicate that needs the
+        // changeDeck flow to actually land in the requested deck.
+        const refusedNote = sendable[i];
+        if (refusedNote) {
+          const frontVal = refusedNote.fields[frontField];
+          dupQueries.push({ idx: i, frontText: String(frontVal || "") });
+        }
+      }
     }
   }
 
@@ -9550,6 +9585,16 @@ function v3NotesRefreshAllButtons() {
     const rateValueEl = document.getElementById("rateValue");
     const pitchValueEl = document.getElementById("pitchValue");
     const ttsPitchSupportNoteEl = document.getElementById("ttsPitchSupportNote");
+
+    // Premium UX: when the user edits voice/rate/pitch mid-session, the
+    // audio-cache markers reflect the new mismatch state immediately
+    // (yellow tooltip explains a click on Play will re-synth).
+    const _refreshMarkersOnSettingsChange = () => {
+      try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}
+    };
+    if (voiceSelectEl) voiceSelectEl.addEventListener("change", _refreshMarkersOnSettingsChange);
+    if (rateRangeEl)  rateRangeEl.addEventListener("input",   _refreshMarkersOnSettingsChange);
+    if (pitchRangeEl) pitchRangeEl.addEventListener("input",  _refreshMarkersOnSettingsChange);
 
     const toastContainerEl = document.getElementById("toastContainer");
     const resultsMetaEl = document.getElementById("resultsMeta");
@@ -22407,8 +22452,15 @@ function tableEditModeEnter() {
     const tbl = document.getElementById("proTable");
     if (!tbl) return;
     tbl.classList.add("tbl-edit-mode");
-    // Hide niqqud in edit mode if no niqqud data (Gemini compat)
-    if (!currentTableHasRuTranslit) tbl.classList.add("tbl-edit-hide-niqqud");
+    // Hide the niqqud column in edit mode only when the table actually has
+    // no niqqud data anywhere (e.g. very old Gemini Legacy outputs). When at
+    // least one row has he_niqqud, keep the column visible so the user can
+    // edit it. Previously this checked `currentTableHasRuTranslit`, which
+    // is unrelated and incorrectly hid niqqud for any table without
+    // Russian-phonetic translit (most imported bundles).
+    const hasAnyNiqqud = Array.isArray(currentTableData)
+      && currentTableData.some(r => r && (r.he_niqqud || r.heNiqqud));
+    if (!hasAnyNiqqud) tbl.classList.add("tbl-edit-hide-niqqud");
     tableEditUpdateStatus();
     tableEditAttachCellClick();
     tableEditDndEnable();
@@ -22626,10 +22678,27 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
 
     var sentencePromise = LOCAL_MODE
         ? ensureLocalDB().then(function(ldb) {
-            return ldb.updateSentence(tid, sid, payload).then(function() {
-                var s = { he_plain: payload.he_plain ?? row.he, he_niqqud: payload.he_niqqud ?? row.he_niqqud,
-                           translit: payload.translit ?? row.translit, translit_ru: payload.translit_ru ?? row.translit_ru,
-                           ru: payload.ru ?? row.ru, edit_meta_json: row.edit_meta_json };
+            // Build edit_meta_json: merge with existing so previously-edited
+            // fields stay marked even when we're updating a different field.
+            // Format mirrors the server: { edited: { he_plain: true, ... }, added: bool }.
+            let existingMeta = null;
+            try { existingMeta = row.edit_meta_json ? (typeof row.edit_meta_json === 'string' ? JSON.parse(row.edit_meta_json) : row.edit_meta_json) : null; } catch (_) {}
+            const editedMeta = (existingMeta && existingMeta.edited && typeof existingMeta.edited === 'object')
+              ? { ...existingMeta.edited }
+              : {};
+            for (const k of Object.keys(payload)) editedMeta[k] = true;
+            const newMeta = { ...(existingMeta || {}), edited: editedMeta };
+            const newMetaJson = JSON.stringify(newMeta);
+            const fullPayload = { ...payload, edit_meta_json: newMetaJson };
+            return ldb.updateSentence(tid, sid, fullPayload).then(function() {
+                var s = {
+                    he_plain: payload.he_plain ?? row.he,
+                    he_niqqud: payload.he_niqqud ?? row.he_niqqud,
+                    translit: payload.translit ?? row.translit,
+                    translit_ru: payload.translit_ru ?? row.translit_ru,
+                    ru: payload.ru ?? row.ru,
+                    edit_meta_json: newMetaJson,
+                };
                 return { sentence: s };
             });
         })
@@ -24195,20 +24264,33 @@ function v3AudioPrefetchUpdateMarkerForRow(rowIdx) {
   const haveKey = row._v3_audioAssetKey ? String(row._v3_audioAssetKey) : "";
   const storedProfile = v3AudioPrefetchSafeParseJson(row._v3_audioTtsProfileJson || "");
 
-  // Premium UX: any row with cached audio gets state-ok (green). Playback
-  // prefers cached audio over re-synth, so a "mismatch" warning would only
-  // confuse the user — the cache is always usable. The tooltip still
-  // discloses the cached profile so the user can verify provenance.
+  // Premium UX (matches v3RowTtsMatchesCurrentProfile decision tree):
+  //   • haveKey + profile matches session  → state-ok (green) — cache plays.
+  //   • haveKey + profile metadata missing → state-ok (green) — assume usable.
+  //   • haveKey + profile DIFFERS from session → state-mismatch (yellow):
+  //       cache won't play; click Play will re-synth with current settings.
+  //       Tooltip explains both profiles so the user understands what will
+  //       happen and can revert session settings if they want the cache.
   if (haveKey) {
-    el.className = "row-audio-ind state-ok";
     if (storedProfile) {
       const A = v3AudioPrefetchNormalizeProfileForCompare(storedProfile);
       const B = v3AudioPrefetchNormalizeProfileForCompare(P);
-      const sameProfile = !!(A && B && v3AudioPrefetchProfilesEqual(storedProfile, P));
-      el.title = sameProfile
-        ? "Аудио готово • " + v3AudioPrefetchProfilePretty(storedProfile)
-        : "Аудио готово (другой профиль) • кэш: " + v3AudioPrefetchProfilePretty(storedProfile) + " • сессия: " + v3AudioPrefetchProfilePretty(P);
+      // If either side has incomplete metadata, treat as match (green) —
+      // playback fallback also treats this as usable.
+      const sameProfile = (!A || !B) || v3AudioPrefetchProfilesEqual(storedProfile, P);
+      if (sameProfile) {
+        el.className = "row-audio-ind state-ok";
+        el.title = "Аудио готово • " + v3AudioPrefetchProfilePretty(storedProfile);
+      } else {
+        el.className = "row-audio-ind state-mismatch";
+        el.title =
+          "Аудио в кэше для другого профиля.\n" +
+          "Кэш: "  + v3AudioPrefetchProfilePretty(storedProfile) + "\n" +
+          "Сейчас: " + v3AudioPrefetchProfilePretty(P) + "\n" +
+          "Нажмите ▶ — будет создана новая озвучка с текущими настройками.";
+      }
     } else {
+      el.className = "row-audio-ind state-ok";
       el.title = "Аудио готово (профиль не задан)";
     }
     return;
@@ -24313,15 +24395,45 @@ async function v3LibraryAutoApplyCardProfile(text, sentences) {
 }
 
 function v3RowTtsMatchesCurrentProfile(row) {
-  // Premium UX (matches Android v2 P035 spec): row playback prefers the
-  // cached audio whenever it exists, regardless of whether the saved profile
-  // matches the current session's TTS settings. This stops the user from
-  // burning quota by re-synthesizing audio that already exists when reopening
-  // a card whose voice/rate/pitch differ from session defaults.
-  // New TTS only fires when assetKey is missing (or 404 from cache lookup).
+  // Premium UX:
+  //   • Card open auto-applies the card's saved TTS profile to the session
+  //     (v3LibraryAutoApplyCardProfile) so on reopen the cached audio matches
+  //     by default — no re-synth, no quota waste.
+  //   • If the user EXPLICITLY changes voice/rate/pitch mid-session, this
+  //     function returns false → click Play triggers a fresh TTS call with
+  //     the new settings (server computes a new asset_key from the changed
+  //     profile, so it's a clean cache miss).
+  //   • After the new TTS lands, v3LibraryRememberCardProfileForActiveText
+  //     persists the new profile as the card's profile, so next open of
+  //     the same card auto-applies the user's new preference.
   try {
-    return !!(row && row._v3_audioAssetKey && String(row._v3_audioAssetKey).trim());
+    const haveKey = row && row._v3_audioAssetKey ? String(row._v3_audioAssetKey).trim() : "";
+    if (!haveKey) return false;
+    const stored = v3AudioPrefetchSafeParseJson(row && row._v3_audioTtsProfileJson ? row._v3_audioTtsProfileJson : "");
+    const current = v3AudioPrefetchGetCurrentProfileForCompare();
+    // If either side has incomplete metadata (voiceName/language empty),
+    // play the cache — better than re-synth on a cache that's just unlabelled.
+    const A = v3AudioPrefetchNormalizeProfileForCompare(stored);
+    const B = v3AudioPrefetchNormalizeProfileForCompare(current);
+    if (!A || !B) return true;
+    return v3AudioPrefetchProfilesEqual(stored, current);
   } catch (_) { return false; }
+}
+
+// After a successful TTS in LOCAL_MODE, persist the current session profile
+// onto the card (text.tts_profile_json). On the next open, the card's
+// auto-apply uses the new profile and the cached audio matches → no re-synth.
+async function v3LibraryRememberCardProfileForActiveText() {
+  if (!LOCAL_MODE) return;
+  try {
+    const meta = (typeof v3ActiveLibraryTextMeta !== 'undefined') ? v3ActiveLibraryTextMeta : null;
+    const textId = meta && meta.textId ? String(meta.textId) : "";
+    if (!textId) return;
+    const profile = v3AudioPrefetchGetCurrentProfileForCompare();
+    if (!profile || !profile.voiceName) return;
+    const ldb = await ensureLocalDB();
+    await ldb.updateText(textId, { tts_profile_json: JSON.stringify(profile) });
+  } catch (e) { console.debug("[card-profile] remember failed:", e && e.message); }
 }
 
 function v3RowTtsTrackPlay(row, assetKey) {
@@ -25341,7 +25453,14 @@ try {
     v3AudioPrefetchUpdateMarkerForRow(rowIdx);
   }
 } catch (_) {}
-  
+
+  // Premium UX: when the user's session profile differs from the card's
+  // saved profile and they just generated fresh TTS — that's a clear signal
+  // that the new settings are intentional. Save them as the card's new
+  // default so the next time the card opens, auto-apply uses these values
+  // and the cache matches.
+  try { v3LibraryRememberCardProfileForActiveText(); } catch (_) {}
+
   v3RowTtsTrackPlay(row, assetKey);
   
   setRowPlayingUI(rowIdx, true);

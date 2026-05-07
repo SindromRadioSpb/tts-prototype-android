@@ -417,10 +417,41 @@ export async function recordEvent(payload) {
 }
 
 export async function recentActivity(limit = 30) {
+  // Dashboard activity feed expects per-row enrichment:
+  //   title, level, he_plain, he_niqqud, translit, ru, last_asset_key,
+  //   last_seen_at, seen_count.
+  // Without these, items render as "(без названия) (пусто) прослушано: 0".
+  // We aggregate per (text_id, sentence_id) so a sentence played 5 times
+  // shows up once with seen_count = 5 and the latest last_seen_at + asset.
   return q(
-    `SELECT e.*, t.title AS text_title FROM events e
-     LEFT JOIN texts t ON e.text_id = t.id
-     ORDER BY e.ts DESC LIMIT ?`,
+    `SELECT
+       MAX(e.ts)                                                             AS last_seen_at,
+       MAX(e.ts)                                                             AS ts,
+       e.text_id                                                             AS text_id,
+       e.sentence_id                                                         AS sentence_id,
+       COALESCE(t.title, '')                                                 AS title,
+       COALESCE(t.title, '')                                                 AS text_title,
+       COALESCE(t.level, '')                                                 AS level,
+       COALESCE(s.he_plain, '')                                              AS he_plain,
+       COALESCE(s.he_niqqud, '')                                             AS he_niqqud,
+       COALESCE(s.translit, '')                                              AS translit,
+       COALESCE(s.translit_ru, '')                                           AS translit_ru,
+       COALESCE(s.ru, '')                                                    AS ru,
+       (
+         SELECT e2.source FROM events e2
+         WHERE e2.text_id = e.text_id AND e2.sentence_id = e.sentence_id
+           AND e2.source IS NOT NULL AND e2.source != ''
+         ORDER BY e2.ts DESC LIMIT 1
+       )                                                                     AS last_asset_key,
+       COUNT(*)                                                              AS seen_count,
+       MAX(e.event_type)                                                     AS event_type
+     FROM events e
+     LEFT JOIN texts t      ON e.text_id = t.id
+     LEFT JOIN sentences s  ON e.sentence_id = s.id
+     WHERE e.text_id IS NOT NULL
+     GROUP BY e.text_id, e.sentence_id
+     ORDER BY last_seen_at DESC
+     LIMIT ?`,
     [limit]
   );
 }
