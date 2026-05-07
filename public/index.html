@@ -18153,6 +18153,130 @@ window.v3Phase6ResetDecision = function() {
   console.log("[phase6] decision cleared. Reload with ?phase6Prompt=1 to re-test.");
 };
 
+// ── A4: Concurrent tabs guard ──────────────────────────────────────────────
+// OPFS DB is single-writer. AccessHandlePoolVFS makes the file handle
+// exclusive — a second tab fails to init. IDBBatchAtomicVFS serialises
+// writes via WebLocks but produces stale reads across tabs (tab A creates
+// text, tab B doesn't see it until reload). Both are real UX hazards.
+//
+// This guard:
+//   1. Detects peer tabs via BroadcastChannel `linguistpro-opfs-tabs-v1`.
+//   2. Shows a non-dismissable but minimisable banner explaining the risk.
+//   3. Cleans up its own claim on pagehide so the count stays accurate.
+//
+// We don't outright disable writes in non-primary tabs — wa-sqlite's own
+// locks handle correctness. The banner is purely UX so users don't lose
+// work to stale reads.
+const V3_TABCOORD_CHANNEL = "linguistpro-opfs-tabs-v1";
+const v3TabCoord = {
+  channel: null,
+  tabId: null,
+  peers: new Set(),
+  bannerEl: null,
+};
+
+function v3TabCoordShouldRun() {
+  // Only when LOCAL_MODE is active (server mode is shared by definition).
+  if (!LOCAL_MODE) return false;
+  if (typeof BroadcastChannel === "undefined") return false;
+  return true;
+}
+
+function v3TabCoordGenId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  return "t-" + Date.now() + "-" + Math.random().toString(36).slice(2, 10);
+}
+
+function v3TabCoordBuildBanner() {
+  if (v3TabCoord.bannerEl) return;
+  const el = document.createElement("div");
+  el.id = "v3TabCoordBanner";
+  el.style.cssText =
+    "position:fixed;bottom:16px;left:50%;transform:translateX(-50%);" +
+    "background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:8px;" +
+    "padding:10px 14px;font-size:13px;font-family:system-ui,-apple-system,sans-serif;" +
+    "box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:99998;display:none;" +
+    "max-width:90vw;cursor:pointer;";
+  el.title = "Кликните, чтобы свернуть/развернуть";
+  el.onclick = () => {
+    if (el.dataset.collapsed === "1") {
+      el.dataset.collapsed = "0";
+      el.textContent = el.dataset.full || el.textContent;
+    } else {
+      el.dataset.collapsed = "1";
+      el.dataset.full = el.textContent;
+      el.textContent = "⚠️ N вкладок";
+    }
+  };
+  document.body.appendChild(el);
+  v3TabCoord.bannerEl = el;
+}
+
+function v3TabCoordRefreshBanner() {
+  v3TabCoordBuildBanner();
+  const el = v3TabCoord.bannerEl;
+  if (!el) return;
+  const n = v3TabCoord.peers.size;
+  if (n === 0) {
+    el.style.display = "none";
+    return;
+  }
+  const total = n + 1;
+  const msg =
+    "⚠️ Библиотека открыта в " + total + " вкладках. Это может вызвать рассинхронизацию данных. " +
+    "Закройте лишние вкладки.";
+  if (el.dataset.collapsed === "1") {
+    el.dataset.full = msg;
+    el.textContent = "⚠️ " + total + " вкладок";
+  } else {
+    el.textContent = msg;
+  }
+  el.style.display = "block";
+}
+
+function v3TabCoordHandleMessage(ev) {
+  const m = ev.data || {};
+  if (!m || !m.type || !m.tabId) return;
+  if (m.tabId === v3TabCoord.tabId) return;  // ignore self
+  if (m.type === "announce") {
+    v3TabCoord.peers.add(m.tabId);
+    // Reply so the new tab learns about us.
+    try { v3TabCoord.channel.postMessage({ type: "present", tabId: v3TabCoord.tabId, ts: Date.now() }); } catch (_) {}
+  } else if (m.type === "present") {
+    v3TabCoord.peers.add(m.tabId);
+  } else if (m.type === "leave") {
+    v3TabCoord.peers.delete(m.tabId);
+  }
+  v3TabCoordRefreshBanner();
+}
+
+function v3TabCoordInit() {
+  if (!v3TabCoordShouldRun()) return;
+  try {
+    v3TabCoord.channel = new BroadcastChannel(V3_TABCOORD_CHANNEL);
+    v3TabCoord.tabId = v3TabCoordGenId();
+    v3TabCoord.channel.onmessage = v3TabCoordHandleMessage;
+    v3TabCoord.channel.postMessage({ type: "announce", tabId: v3TabCoord.tabId, ts: Date.now() });
+    // Clean up on tab close so peer count stays accurate.
+    window.addEventListener("pagehide", () => {
+      try { v3TabCoord.channel.postMessage({ type: "leave", tabId: v3TabCoord.tabId, ts: Date.now() }); } catch (_) {}
+      try { v3TabCoord.channel.close(); } catch (_) {}
+    });
+  } catch (e) {
+    console.warn("[tab-coord] init failed", e);
+  }
+}
+
+// Diagnostic helper for dogfood.
+window.v3TabCoordPeers = function() {
+  return { tabId: v3TabCoord.tabId, peers: Array.from(v3TabCoord.peers) };
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Slight delay to let LOCAL_MODE check settle.
+  setTimeout(v3TabCoordInit, 200);
+});
+
 // ── Premium confirmation modal ─────────────────────────────────────────────
 // Replaces window.confirm() for destructive actions. Promise<boolean>.
 // Options:
