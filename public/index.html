@@ -3220,6 +3220,12 @@ th, td { border-color: rgba(0,0,0,0.55); }
   border-radius: 14px;
   padding: 12px 12px;
   background: #fff;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.v3-lib-card-selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
 }
 
 .v3-lib-card-top {
@@ -6316,6 +6322,7 @@ td[data-col="ru"] {
     <button class="btn-secondary" onclick="v3LibraryExportBundle()" data-i18n="library.exportZip">Экспорт ZIP (с аудио)</button>
     <button class="btn-secondary" onclick="v3LibraryImportBundle()" data-i18n="library.importZip">Импорт ZIP (с аудио)</button>
     <button id="v3LibraryImportFromCloudBtn" class="btn-secondary" onclick="v3LibraryImportFromCloud()" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
+    <button id="v3LibraryWipeAllBtn" class="btn-secondary" onclick="v3LibraryWipeAllConfirm()" style="display:none; color:#b91c1c; border-color:#fecaca; background:#fef2f2;" title="Удалить ВСЁ из локальной библиотеки. Полный сброс OPFS. Действие необратимо.">⚠ Сбросить локальную библиотеку</button>
     <button class="btn-secondary" onclick="v3LibraryRefresh()" data-i18n="library.refresh">Обновить</button>
     <button class="btn-secondary" onclick="v3LibraryClose()" data-i18n="library.close">Закрыть</button>
 
@@ -6398,7 +6405,31 @@ td[data-col="ru"] {
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
 	  <div id="v3LibraryNotesMatches" class="v3-notes-matches" style="display:none;"></div>
 	  <div id="v3LibraryRowsMatches" class="v3-notes-matches" style="display:none;"></div>
+	  <div id="v3LibraryBulkBar" style="display:none; position:sticky; top:0; z-index:10; padding:10px 14px; background:#1e3a8a; color:#fff; border-radius:8px; margin-bottom:10px; gap:8px; flex-wrap:wrap; align-items:center; box-shadow:0 2px 8px rgba(30,58,138,0.3);">
+	    <span id="v3LibraryBulkCount" style="font-weight:600; font-size:14px;">0 выбрано</span>
+	    <span style="flex:1;"></span>
+	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkSelectAll()">Выбрать все на экране</button>
+	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkClear()">Снять выбор</button>
+	    <button class="btn-secondary" style="background:rgba(255,255,255,0.15); color:#fff; border-color:rgba(255,255,255,0.3); min-height:36px;" onclick="v3LibraryBulkArchive()">📦 Архивировать</button>
+	    <button class="btn-secondary" style="background:#dc2626; color:#fff; border-color:#dc2626; min-height:36px; font-weight:600;" onclick="v3LibraryBulkDelete()">🗑 Удалить выбранные</button>
+	  </div>
       <div id="v3LibraryList" class="v3-lib-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Premium confirmation modal — replaces window.confirm() for destructive actions. -->
+<div id="v3ConfirmModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; padding:16px;" role="dialog" aria-modal="true">
+  <div style="background:#fff; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.3); max-width:480px; width:100%; padding:20px;">
+    <div id="v3ConfirmTitle" style="font-size:18px; font-weight:700; color:#1f2937; margin-bottom:8px;">Подтверждение</div>
+    <div id="v3ConfirmBody" style="font-size:14px; color:#374151; line-height:1.55; margin-bottom:14px; white-space:pre-wrap;"></div>
+    <div id="v3ConfirmTypeWrapper" style="display:none; margin-bottom:14px;">
+      <div style="font-size:13px; color:#6b7280; margin-bottom:6px;">Чтобы подтвердить, введите: <code id="v3ConfirmTypeWord" style="font-weight:700; color:#dc2626;"></code></div>
+      <input id="v3ConfirmTypeInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" style="width:100%; padding:10px 12px; border:1px solid #d1d5db; border-radius:6px; font-size:14px; font-family:monospace;" />
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
+      <button id="v3ConfirmCancel" type="button" style="min-height:42px; padding:0 16px; border:1px solid #d1d5db; border-radius:6px; background:#fff; color:#374151; font-weight:500; cursor:pointer;">Отмена</button>
+      <button id="v3ConfirmOk" type="button" style="min-height:42px; padding:0 18px; border:0; border-radius:6px; background:#dc2626; color:#fff; font-weight:600; cursor:pointer;">Подтвердить</button>
     </div>
   </div>
 </div>
@@ -16319,6 +16350,11 @@ async function v3LibraryRefresh() {
     v3LibraryTexts = raw.map(v3NormalizeTextDto);
 	v3LibraryLastLoadedAt = new Date().toISOString();
 	try { v3LibraryUpdateCloudImportVisibility(); } catch (_) {}
+	// Selections refer to text ids — refresh the bulk-bar visibility (selected
+	// items may have been deleted/archived). We DON'T clear the set here so
+	// the user's selection across filter changes is preserved; ids that no
+	// longer exist will simply silent-noop on bulk ops.
+	try { v3LibraryUpdateBulkBar(); } catch (_) {}
 
 	// reset memo so fresh data re-renders even if query is the same
 	v3LibraryLastRenderKey = null;
@@ -16905,11 +16941,18 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 
     const card = document.createElement("div");
     card.className = "v3-lib-card" + (isArchived ? " v3-lib-muted" : "");
+    card.dataset.textId = id;
+
+    const isSelected = v3LibSelected.has(String(id));
+    if (isSelected) card.classList.add("v3-lib-card-selected");
 
     // Avoid heavy string concatenations in loops where possible
     card.innerHTML = `
       <div class="v3-lib-card-top">
-        <div>
+        <label class="v3-lib-card-check" style="display:flex; align-items:flex-start; padding:6px 10px 6px 0; cursor:pointer;" onclick="event.stopPropagation();">
+          <input type="checkbox" data-act="select" ${isSelected ? "checked" : ""} style="width:20px; height:20px; cursor:pointer;" />
+        </label>
+        <div style="flex:1;">
           <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button></div>
           <div class="v3-lib-card-meta">
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
@@ -16942,6 +16985,13 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 	if (btnEdit) btnEdit.addEventListener("click", () => v3TextMetaOpen(id));
     if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
+
+    // Multi-select checkbox handler.
+    const cb = card.querySelector('input[data-act="select"]');
+    if (cb) cb.addEventListener("change", (e) => {
+      e.stopPropagation();
+      v3LibraryToggleSelection(id, !!cb.checked, card);
+    });
 	
 	if (btnEdit) btnEdit.addEventListener("click", (e) => {
   e.preventDefault();
@@ -17803,8 +17853,241 @@ async function v3LibraryImportFromCloud() {
 // after partial wipe.
 async function v3LibraryUpdateCloudImportVisibility() {
   const btn = document.getElementById("v3LibraryImportFromCloudBtn");
-  if (!btn) return;
-  btn.style.display = LOCAL_MODE ? "" : "none";
+  if (btn) btn.style.display = LOCAL_MODE ? "" : "none";
+  const wipe = document.getElementById("v3LibraryWipeAllBtn");
+  if (wipe) wipe.style.display = LOCAL_MODE ? "" : "none";
+}
+
+// ── Premium confirmation modal ─────────────────────────────────────────────
+// Replaces window.confirm() for destructive actions. Promise<boolean>.
+// Options:
+//   { title, body, okText, cancelText, danger, requireType }
+// `requireType` is a word the user must type verbatim to enable Confirm.
+// Used for the highest-risk actions (wipe-all). Mobile-friendly (44px+).
+function v3ConfirmModal(opts) {
+  return new Promise((resolve) => {
+    const o = opts || {};
+    const root = document.getElementById("v3ConfirmModal");
+    const titleEl = document.getElementById("v3ConfirmTitle");
+    const bodyEl = document.getElementById("v3ConfirmBody");
+    const okEl = document.getElementById("v3ConfirmOk");
+    const cancelEl = document.getElementById("v3ConfirmCancel");
+    const typeWrap = document.getElementById("v3ConfirmTypeWrapper");
+    const typeWord = document.getElementById("v3ConfirmTypeWord");
+    const typeInput = document.getElementById("v3ConfirmTypeInput");
+    if (!root) return resolve(window.confirm(o.body || "Подтвердите действие"));
+
+    titleEl.textContent = o.title || "Подтверждение";
+    bodyEl.textContent  = o.body  || "";
+    okEl.textContent    = o.okText    || (o.danger ? "Удалить" : "Подтвердить");
+    cancelEl.textContent = o.cancelText || "Отмена";
+    okEl.style.background  = o.danger ? "#dc2626" : "#3b82f6";
+
+    if (o.requireType) {
+      typeWrap.style.display = "block";
+      typeWord.textContent = o.requireType;
+      typeInput.value = "";
+      okEl.disabled = true;
+      okEl.style.opacity = "0.5";
+      okEl.style.cursor = "not-allowed";
+      typeInput.oninput = () => {
+        const ok = String(typeInput.value).trim() === String(o.requireType);
+        okEl.disabled = !ok;
+        okEl.style.opacity = ok ? "1" : "0.5";
+        okEl.style.cursor  = ok ? "pointer" : "not-allowed";
+      };
+    } else {
+      typeWrap.style.display = "none";
+      okEl.disabled = false;
+      okEl.style.opacity = "1";
+      okEl.style.cursor = "pointer";
+    }
+
+    const cleanup = () => {
+      root.style.display = "none";
+      okEl.onclick = null; cancelEl.onclick = null; typeInput.oninput = null;
+      window.removeEventListener("keydown", onKey);
+    };
+    const finish = (v) => { cleanup(); resolve(!!v); };
+    const onKey = (e) => {
+      if (e.key === "Escape") finish(false);
+      else if (e.key === "Enter" && !okEl.disabled) finish(true);
+    };
+    okEl.onclick     = () => finish(true);
+    cancelEl.onclick = () => finish(false);
+    window.addEventListener("keydown", onKey);
+
+    root.style.display = "flex";
+    setTimeout(() => { try { (o.requireType ? typeInput : cancelEl).focus(); } catch (_) {} }, 0);
+  });
+}
+
+// ── Multi-select state + bulk operations ───────────────────────────────────
+const v3LibSelected = new Set();
+
+function v3LibraryToggleSelection(textId, on, cardEl) {
+  const id = String(textId);
+  if (on) v3LibSelected.add(id);
+  else v3LibSelected.delete(id);
+  if (cardEl) {
+    if (on) cardEl.classList.add("v3-lib-card-selected");
+    else cardEl.classList.remove("v3-lib-card-selected");
+  }
+  v3LibraryUpdateBulkBar();
+}
+
+function v3LibraryUpdateBulkBar() {
+  const bar = document.getElementById("v3LibraryBulkBar");
+  const cnt = document.getElementById("v3LibraryBulkCount");
+  if (!bar) return;
+  const n = v3LibSelected.size;
+  bar.style.display = n > 0 ? "flex" : "none";
+  if (cnt) cnt.textContent = n + " выбрано";
+}
+
+function v3LibraryBulkSelectAll() {
+  const list = document.getElementById("v3LibraryList");
+  if (!list) return;
+  list.querySelectorAll("[data-text-id]").forEach((card) => {
+    const id = String(card.dataset.textId || "");
+    if (!id) return;
+    v3LibSelected.add(id);
+    card.classList.add("v3-lib-card-selected");
+    const cb = card.querySelector('input[data-act="select"]');
+    if (cb) cb.checked = true;
+  });
+  v3LibraryUpdateBulkBar();
+}
+
+function v3LibraryBulkClear() {
+  v3LibSelected.clear();
+  document.querySelectorAll(".v3-lib-card-selected").forEach((el) => {
+    el.classList.remove("v3-lib-card-selected");
+    const cb = el.querySelector('input[data-act="select"]');
+    if (cb) cb.checked = false;
+  });
+  v3LibraryUpdateBulkBar();
+}
+
+async function v3LibraryBulkDelete() {
+  const ids = Array.from(v3LibSelected);
+  if (!ids.length) return;
+  const ok = await v3ConfirmModal({
+    title: "Удалить " + ids.length + " текст(ов)?",
+    body:
+      "Будут удалены " + ids.length + " выбранных текста(ов) со всеми их " +
+      "предложениями, заметками, прогрессом и связями с аудио. " +
+      "\n\nДействие необратимо. Чтобы вернуть данные — придётся импортировать заново из ZIP/JSON или из облака.",
+    okText: "🗑 Удалить " + ids.length,
+    danger: true,
+  });
+  if (!ok) return;
+
+  let done = 0, failed = 0;
+  for (const id of ids) {
+    try {
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        await ldb.deleteText(id);
+      } else {
+        await v3Delete("/api/library/texts/" + encodeURIComponent(id));
+      }
+      done++;
+    } catch (e) { failed++; console.warn("[bulk-delete]", id, e && e.message); }
+  }
+  v3LibraryBulkClear();
+  showToast("Удалено: " + done + (failed ? " · ошибок: " + failed : ""), failed ? "warning" : "success");
+  v3LibraryRefresh();
+}
+
+async function v3LibraryBulkArchive() {
+  const ids = Array.from(v3LibSelected);
+  if (!ids.length) return;
+  const ok = await v3ConfirmModal({
+    title: "Архивировать " + ids.length + " текст(ов)?",
+    body:
+      "Карточки будут перемещены в архив (скрыты в основном списке, но доступны через фильтр «Включая архив»). " +
+      "Данные не удаляются — операция обратима.",
+    okText: "📦 Архивировать " + ids.length,
+    danger: false,
+  });
+  if (!ok) return;
+
+  let done = 0, failed = 0;
+  for (const id of ids) {
+    try {
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        await ldb.archiveText(id);
+      } else {
+        await v3PostJson("/api/library/texts/" + encodeURIComponent(id) + "/archive", {});
+      }
+      done++;
+    } catch (e) { failed++; console.warn("[bulk-archive]", id, e && e.message); }
+  }
+  v3LibraryBulkClear();
+  showToast("Архивировано: " + done + (failed ? " · ошибок: " + failed : ""), failed ? "warning" : "success");
+  v3LibraryRefresh();
+}
+
+// ── Wipe entire local library (LOCAL_MODE only) ────────────────────────────
+async function v3LibraryWipeAllConfirm() {
+  if (!LOCAL_MODE) {
+    showToast("Эта операция доступна только в режиме ?localMode=1", "error");
+    return;
+  }
+  // Two-step. First a pre-check to inform of the scale.
+  let count = 0;
+  try {
+    const ldb = await ensureLocalDB();
+    const all = await ldb.listTexts({ archived: false, limit: 100000 });
+    const arc = await ldb.listTexts({ archived: true,  limit: 100000 });
+    count = (all || []).length + (arc || []).length;
+  } catch (_) {}
+
+  const ok = await v3ConfirmModal({
+    title: "⚠ Полный сброс локальной библиотеки",
+    body:
+      "Будет УДАЛЕНО ВСЁ из локального хранилища OPFS:\n" +
+      "  • " + count + " текст(ов) со всеми предложениями\n" +
+      "  • Все заметки, прогресс, события, SRS-карточки\n" +
+      "  • Все ссылки на аудио (сами MP3 в Railway-кэше остаются)\n\n" +
+      "Действие НЕОБРАТИМО. Перед сбросом рекомендуется сделать «Экспорт ZIP (с аудио)».",
+    okText: "Сбросить ВСЁ",
+    danger: true,
+    requireType: "СБРОСИТЬ",
+  });
+  if (!ok) return;
+
+  try {
+    const ldb = await ensureLocalDB();
+    showToast("Сброс локальной библиотеки…", "info");
+    // CASCADE FK: deleting texts deletes sentences, sentence_audio, etc.
+    // Also explicitly drop events, srs_cards, srs_review_events, srs_session_runs,
+    // srs_attempts, srs_card_exports, audio_assets that don't cascade from texts.
+    const all = await ldb.listTexts({ archived: false, limit: 100000 });
+    const arc = await ldb.listTexts({ archived: true,  limit: 100000 });
+    const ids = [...(all || []), ...(arc || [])].map(t => t.id);
+    for (const id of ids) {
+      try { await ldb.deleteText(id); } catch (e) { console.warn("[wipe] deleteText", id, e && e.message); }
+    }
+    // Tear down standalone tables that don't have FK to texts.
+    await ldb.execRaw("DELETE FROM events;").catch(() => {});
+    await ldb.execRaw("DELETE FROM srs_attempts;").catch(() => {});
+    await ldb.execRaw("DELETE FROM srs_review_events;").catch(() => {});
+    await ldb.execRaw("DELETE FROM srs_session_runs;").catch(() => {});
+    await ldb.execRaw("DELETE FROM srs_card_exports;").catch(() => {});
+    await ldb.execRaw("DELETE FROM srs_cards;").catch(() => {});
+    await ldb.execRaw("DELETE FROM audio_assets;").catch(() => {});
+    await ldb.execRaw("DELETE FROM sentence_audio;").catch(() => {});
+    await ldb.execRaw("DELETE FROM text_audio;").catch(() => {});
+    showToast("Сброшено: " + ids.length + " текстов и связанные данные", "success");
+  } catch (e) {
+    console.error("[wipe] failed:", e);
+    showToast("Ошибка сброса: " + (e && e.message ? e.message : "см. console"), "error");
+  }
+  v3LibraryBulkClear();
+  v3LibraryRefresh();
 }
 
 window.v3LibraryExport = v3LibraryExport;

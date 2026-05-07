@@ -72,6 +72,14 @@ const q = (sql, p) => _call('query', sql, p);
 const r = (sql, p) => _call('run',   sql, p);
 const x = (sql)    => _call('exec',  sql);
 
+// Raw exec for app-level operations that don't fit a CRUD shape (e.g.
+// wipe-all that DELETEs from multiple non-FK-cascading tables).
+// Only intended for internal/admin use — regular app code should stay on
+// the typed helpers above.
+export async function execRaw(sql) {
+  return _call('exec', sql);
+}
+
 // Tracks which VFS the worker actually picked. Reported back in the init
 // response so callers can show provenance ('storage: OPFS sync' vs
 // 'storage: IndexedDB'). NOT used for control-flow.
