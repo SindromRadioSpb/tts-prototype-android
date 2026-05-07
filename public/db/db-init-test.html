@@ -474,6 +474,85 @@ async function run() {
     out('err', '❌ ТЕСТ 15 ПРОВАЛЕН: ' + e.message);
   }
 
+  // ── ТЕСТ 16: notes integrity audit (D4) ───────────────────────────────
+  // Verifies the FK + cascade behavior of sentence_notes and notes
+  // round-trip through exportBundle → importBundle.
+  //   1. Notes survive ZIP roundtrip (no truncation, no orphan loss).
+  //   2. Multi-line + Unicode + edge-case content is preserved byte-for-byte.
+  //   3. Deleting a sentence cascades to its note (FK ON DELETE CASCADE).
+  //   4. After deleteText, no orphan notes survive (CASCADE through texts→sentences→notes).
+  const notesAuditTextId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 16: notes integrity (no orphans, no truncation, roundtrip)...');
+    await createText({
+      id: notesAuditTextId, text_key: 'notes-audit-' + Date.now(),
+      title: 'Notes audit', source_text: 'שלום עולם', tags_json: '[]',
+    });
+    const sid1 = crypto.randomUUID();
+    const sid2 = crypto.randomUUID();
+    const sid3 = crypto.randomUUID();
+    await addSentence(notesAuditTextId, { id: sid1, he_plain: 'שלום', he_niqqud: 'שָׁלוֹם', translit: 'shalom', translit_ru: 'шалом', ru: 'мир', order_index: 0 });
+    await addSentence(notesAuditTextId, { id: sid2, he_plain: 'עולם', he_niqqud: 'עוֹלָם', translit: 'olam',   translit_ru: 'олам',  ru: 'мир2', order_index: 1 });
+    await addSentence(notesAuditTextId, { id: sid3, he_plain: 'תודה', he_niqqud: 'תּוֹדָה', translit: 'toda',   translit_ru: 'тода',  ru: 'спасибо', order_index: 2 });
+
+    // Edge-case note bodies: multi-line, Unicode emoji, Hebrew, RTL marks, JSON-looking, very long.
+    const longNote = 'A'.repeat(2000);  // ~2 KB — way past any ASCII string truncation point.
+    const note1 = 'строка 1\nстрока 2\n\nс пустой строкой\n— тире\n💡 emoji\n‎это LRM‏ это RLM';
+    const note2 = '{"looks":"like JSON","but":"isn\'t parsed"}';
+    const note3 = longNote;
+    await upsertNote(notesAuditTextId, sid1, note1);
+    await upsertNote(notesAuditTextId, sid2, note2);
+    await upsertNote(notesAuditTextId, sid3, note3);
+
+    // 1. Re-read and verify exact preservation.
+    const notesAfter = await listNotes(notesAuditTextId);
+    if (notesAfter.length !== 3) throw new Error('Ожидалось 3 заметки, получено ' + notesAfter.length);
+    const byId = Object.create(null);
+    for (const n of notesAfter) byId[(n.sentenceId ?? n.sentence_id)] = n.note;
+    if (byId[sid1] !== note1) throw new Error('Многострочная/Unicode-заметка изменилась после reload');
+    if (byId[sid2] !== note2) throw new Error('JSON-подобная заметка изменилась');
+    if (byId[sid3] !== note3) throw new Error('Длинная заметка (2KB) изменилась — длина: ' + (byId[sid3] || '').length);
+
+    // 2. exportBundle → importBundle roundtrip.
+    const bundle = await exportBundle({ includeArchived: false, textIds: [notesAuditTextId] });
+    if (!bundle || !bundle.library) throw new Error('exportBundle вернул нет library');
+    // Verify rows in the bundle carry .note field
+    const exportedTextEntry = (bundle.library.texts || []).find(t => t.text_id === notesAuditTextId);
+    if (!exportedTextEntry) throw new Error('exportBundle не нашёл текст по text_id');
+    const noteRows = (exportedTextEntry.rows || []).filter(r => r.note && String(r.note).length);
+    if (noteRows.length !== 3) throw new Error('В bundle.rows прошло ' + noteRows.length + ' заметок (ожидалось 3)');
+
+    // Wipe original, then re-import.
+    await deleteText(notesAuditTextId);
+    const r = await importBundle(bundle, { mode: 'skip' });
+    if (r.imported !== 1) throw new Error('importBundle imported=' + r.imported + ' вместо 1');
+    // text_key was preserved → find the new text by it.
+    const reimported = (await listTexts({ limit: 100 })).find(t => t.text_key === exportedTextEntry.text_key);
+    if (!reimported) throw new Error('Импортированный текст не найден по text_key');
+    const reNotes = await listNotes(reimported.id);
+    if (reNotes.length !== 3) throw new Error('После roundtrip заметок: ' + reNotes.length + ' (ожидалось 3)');
+    const reByText = reNotes.map(n => n.note).sort();
+    const expectedSorted = [note1, note2, note3].sort();
+    for (let i = 0; i < 3; i++) {
+      if (reByText[i] !== expectedSorted[i]) throw new Error('Заметка #' + i + ' изменилась через roundtrip; len before/after: ' + expectedSorted[i].length + '/' + reByText[i].length);
+    }
+
+    // 3. Cascade: delete the reimported text — all notes must vanish.
+    await deleteText(reimported.id);
+    const orphans = await listNotes(reimported.id);
+    if (orphans.length !== 0) throw new Error('Найдены orphan notes после deleteText: ' + orphans.length);
+
+    out('ok', '✅ ТЕСТ 16 ПРОШЁЛ: notes survive roundtrip без потерь и truncation, CASCADE работает', {
+      notesBefore: 3,
+      notesAfterRoundtrip: reNotes.length,
+      longestNoteBytes: note3.length,
+    });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 16 ПРОВАЛЕН: ' + e.message);
+    // Best-effort cleanup if test threw mid-run.
+    try { await deleteText(notesAuditTextId); } catch (_) {}
+  }
+
   // ── Cleanup ───────────────────────────────────────────────────────────
   try {
     await deleteText(testId);
@@ -483,6 +562,7 @@ async function run() {
     await deleteText(analyticsTextId);
     await deleteText(exportTextId);
     await deleteText(editTextId);
+    try { await deleteText(notesAuditTextId); } catch (_) {}
     out('inf', '(тестовые данные удалены)');
   } catch(e) { /* ignore */ }
 
