@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
