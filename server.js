@@ -203,6 +203,28 @@ const rlTransliterate = makeRateLimiter({ windowMs: 60_000, max: 60,  name: "tra
 const rlExportDocx    = makeRateLimiter({ windowMs: 60_000, max: 30,  name: "export-docx" });
 const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 200, name: "audio-cache-upload" });
 
+// ── Phase 6: stateful library/SRS/progress/history routes are gone ────────
+// After the localMode default-on flip (2026-05-08), every stateful API
+// that touched the server's SQLite DB is permanently gone. Library data,
+// SRS cards, progress, history, search — all run client-side from OPFS.
+// We keep:
+//   • Stateless services (TTS, transliterate, audio cache, DOCX builder).
+//   • GET /api/library/export(/bundle) — last-mile data recovery for any
+//     straggler whose client-side migration didn't run.
+// Everything else returns 410 Gone with a friendly pointer to the user
+// guide. We chose middleware over physical handler deletion to keep the
+// diff small, the helper functions intact (some are imported by stateless
+// paths), and the rollback trivial.
+function gone410(req, res) {
+  res.set("Cache-Control", "no-store");
+  return res.status(410).json({
+    ok: false,
+    error: "GONE_PHASE6",
+    message: "Эта функция больше не доступна на сервере. Библиотека работает в локальном режиме браузера. См. /docs/OPFS_USER_GUIDE.md",
+    docs: "/docs/OPFS_USER_GUIDE.md",
+  });
+}
+
 // ── D2: Header trust audit — same-origin + content-type guards ─────────────
 // Mounted on stateless POST endpoints below. Two checks:
 //   1. Same-origin: Origin/Referer header must match our own host. Browsers
@@ -213,7 +235,6 @@ const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 200, name: "aud
 //   2. Content-Type: must start with application/json (bodyParser.json
 //      already requires this de facto, but rejecting early gives a clearer
 //      error than a parsed-empty body).
-//
 // We deliberately don't add a CSRF token — there are no per-user sessions
 // to scope it to. The Origin/Referer check is the right tool for this app.
 function requireSameOriginJson(req, res, next) {
@@ -3973,7 +3994,7 @@ async function buildSrsAnkiPreview(req, {
 // --------------------------------------------------------
 // Progress (V3-PROG-01)
 // --------------------------------------------------------
-app.get("/api/progress/:textId", async (req, res) => {
+app.get("/api/progress/:textId", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -3989,7 +4010,7 @@ app.get("/api/progress/:textId", async (req, res) => {
   }
 });
 
-app.post("/api/progress/:textId", async (req, res) => {
+app.post("/api/progress/:textId", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -4040,7 +4061,7 @@ if (cnt <= 0) {
 
 
 // List texts
-app.get("/api/library/texts", async (req, res) => {
+app.get("/api/library/texts", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -4059,7 +4080,7 @@ app.get("/api/library/texts", async (req, res) => {
 });
 
 //Create text (атомарно)
-app.post("/api/library/texts", async (req, res) => {
+app.post("/api/library/texts", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -4185,7 +4206,7 @@ if (!isPinned) pinOrder = null;
 });
 
 // PUT /api/library/texts/:id — update existing text (Saved-update)
-app.put("/api/library/texts/:id", express.json({ limit: "2mb" }), async (req, res) => {
+app.put("/api/library/texts/:id", gone410, express.json({ limit: "2mb" }), async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -4331,7 +4352,7 @@ const textKey = (existing && existing.text_key != null && String(existing.text_k
 });
 
 // Get text meta
-app.get("/api/library/texts/:id", async (req, res) => {
+app.get("/api/library/texts/:id", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -4346,7 +4367,7 @@ app.get("/api/library/texts/:id", async (req, res) => {
 });
 
 // Get sentences
-app.get("/api/library/texts/:id/sentences", async (req, res) => {
+app.get("/api/library/texts/:id/sentences", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -4394,7 +4415,7 @@ const {
 } = require("./db/libraryRepo");
 
 // PATCH /api/library/texts/:id/sentences/reorder  ← MUST be before /:sid route
-app.patch("/api/library/texts/:id/sentences/reorder", express.json({ limit: "64kb" }), async (req, res) => {
+app.patch("/api/library/texts/:id/sentences/reorder", gone410, express.json({ limit: "64kb" }), async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
     const { order } = req.body || {};
@@ -4409,7 +4430,7 @@ app.patch("/api/library/texts/:id/sentences/reorder", express.json({ limit: "64k
 });
 
 // PATCH /api/library/texts/:id/sentences/:sid — edit cell fields
-app.patch("/api/library/texts/:id/sentences/:sid", express.json({ limit: "32kb" }), async (req, res) => {
+app.patch("/api/library/texts/:id/sentences/:sid", gone410, express.json({ limit: "32kb" }), async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
     const { fields } = req.body || {};
@@ -4427,7 +4448,7 @@ app.patch("/api/library/texts/:id/sentences/:sid", express.json({ limit: "32kb" 
 });
 
 // POST /api/library/texts/:id/sentences/:sid/reset — restore original pipeline values
-app.post("/api/library/texts/:id/sentences/:sid/reset", express.json({ limit: "8kb" }), async (req, res) => {
+app.post("/api/library/texts/:id/sentences/:sid/reset", gone410, express.json({ limit: "8kb" }), async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
     const fields = (req.body && Array.isArray(req.body.fields)) ? req.body.fields : [];
@@ -4441,7 +4462,7 @@ app.post("/api/library/texts/:id/sentences/:sid/reset", express.json({ limit: "8
 });
 
 // DELETE /api/library/texts/:id/sentences/:sid
-app.delete("/api/library/texts/:id/sentences/:sid", async (req, res) => {
+app.delete("/api/library/texts/:id/sentences/:sid", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
     const result = await deleteSentence(req.params.id, req.params.sid);
@@ -4455,7 +4476,7 @@ app.delete("/api/library/texts/:id/sentences/:sid", async (req, res) => {
 });
 
 // POST /api/library/texts/:id/sentences — add new sentence
-app.post("/api/library/texts/:id/sentences", express.json({ limit: "32kb" }), async (req, res) => {
+app.post("/api/library/texts/:id/sentences", gone410, express.json({ limit: "32kb" }), async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
     const body = req.body || {};
@@ -4680,7 +4701,7 @@ function v3ParseNotesSearchQuery(qRaw) {
 }
 
 // GET all notes for text
-app.get("/api/library/texts/:id/notes", async (req, res) => {
+app.get("/api/library/texts/:id/notes", gone410, async (req, res) => {
   try {
 	  if (!requireDbOr503(res)) return;
     const textId = String(req.params.id || "");
@@ -4700,7 +4721,7 @@ app.get("/api/library/texts/:id/notes", async (req, res) => {
 });
 
 // PUT upsert note for sentence (sentence must belong to text)
-app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
+app.put("/api/library/texts/:id/notes/:sentenceId", gone410, async (req, res) => {
   try {
 	  if (!requireDbOr503(res)) return;
     const textId = String(req.params.id || "");
@@ -4773,7 +4794,7 @@ app.put("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
 });
 
 // DELETE note for sentence (sentence must belong to text)
-app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
+app.delete("/api/library/texts/:id/notes/:sentenceId", gone410, async (req, res) => {
   try {
 	  if (!requireDbOr503(res)) return;
     const textId = String(req.params.id || "");
@@ -4817,7 +4838,7 @@ app.delete("/api/library/texts/:id/notes/:sentenceId", async (req, res) => {
 // Wave D (D2): Notes search API
 // GET /api/notes/search
 // --------------------------------------------------------
-app.get("/api/notes/search", async (req, res) => {
+app.get("/api/notes/search", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -4997,7 +5018,7 @@ app.get("/api/notes/search", async (req, res) => {
 // --------------------------------------------------------
 // Wave D (Premium PRO): Rows search (E1.2) — API
 // --------------------------------------------------------
-app.get("/api/sentences/search", async (req, res) => {
+app.get("/api/sentences/search", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5096,7 +5117,7 @@ app.get("/api/sentences/search", async (req, res) => {
 // GET /api/nav/resolve?type=<type>&id=<id>
 // Resolves navigation target to entity context (textId, sentenceId, etc.)
 // --------------------------------------------------------
-app.get("/api/nav/resolve", async (req, res) => {
+app.get("/api/nav/resolve", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5168,7 +5189,7 @@ app.get("/api/nav/resolve", async (req, res) => {
 // --------------------------------------------------------
 // PATCH-03: SRS v1 API
 // --------------------------------------------------------
-app.get("/api/srs/templates", async (req, res) => {
+app.get("/api/srs/templates", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
     const includeInactive = String(req.query.includeInactive || "") === "1";
@@ -5180,7 +5201,7 @@ app.get("/api/srs/templates", async (req, res) => {
   }
 });
 
-app.get("/api/srs/cards", async (req, res) => {
+app.get("/api/srs/cards", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5208,7 +5229,7 @@ app.get("/api/srs/cards", async (req, res) => {
   }
 });
 
-app.post("/api/srs/cards", async (req, res) => {
+app.post("/api/srs/cards", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5233,7 +5254,7 @@ app.post("/api/srs/cards", async (req, res) => {
   }
 });
 
-app.post("/api/srs/cards/generate", async (req, res) => {
+app.post("/api/srs/cards/generate", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5261,7 +5282,7 @@ app.post("/api/srs/cards/generate", async (req, res) => {
   }
 });
 
-app.post("/api/srs/review", async (req, res) => {
+app.post("/api/srs/review", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5315,7 +5336,7 @@ app.post("/api/srs/review", async (req, res) => {
   }
 });
 
-app.get("/api/srs/cards/:id/trainer-view", async (req, res) => {
+app.get("/api/srs/cards/:id/trainer-view", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5339,7 +5360,7 @@ app.get("/api/srs/cards/:id/trainer-view", async (req, res) => {
   }
 });
 
-app.post("/api/srs/attempts/check", async (req, res) => {
+app.post("/api/srs/attempts/check", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5395,7 +5416,7 @@ app.post("/api/srs/attempts/check", async (req, res) => {
   }
 });
 
-app.get("/api/srs/today", async (req, res) => {
+app.get("/api/srs/today", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5409,7 +5430,7 @@ app.get("/api/srs/today", async (req, res) => {
   }
 });
 
-app.get("/api/srs/today/summary", async (req, res) => {
+app.get("/api/srs/today/summary", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5423,7 +5444,7 @@ app.get("/api/srs/today/summary", async (req, res) => {
   }
 });
 
-app.post("/api/srs/sessions", async (req, res) => {
+app.post("/api/srs/sessions", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5459,7 +5480,7 @@ app.post("/api/srs/sessions", async (req, res) => {
   }
 });
 
-app.get("/api/srs/sessions/:id", async (req, res) => {
+app.get("/api/srs/sessions/:id", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5476,7 +5497,7 @@ app.get("/api/srs/sessions/:id", async (req, res) => {
   }
 });
 
-app.get("/api/srs/sessions/:id/next", async (req, res) => {
+app.get("/api/srs/sessions/:id/next", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5500,7 +5521,7 @@ app.get("/api/srs/sessions/:id/next", async (req, res) => {
   }
 });
 
-app.post("/api/srs/sessions/:id/review", async (req, res) => {
+app.post("/api/srs/sessions/:id/review", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5571,7 +5592,7 @@ app.post("/api/srs/sessions/:id/review", async (req, res) => {
   }
 });
 
-app.post("/api/srs/sessions/:id/finish", async (req, res) => {
+app.post("/api/srs/sessions/:id/finish", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5605,7 +5626,7 @@ app.post("/api/srs/sessions/:id/finish", async (req, res) => {
 // --------------------------------------------------------
 // Export DOCX from Library text (W10-EXPORT-DOCX-01)
 // --------------------------------------------------------
-app.get("/api/library/texts/:id/export/docx", async (req, res) => {
+app.get("/api/library/texts/:id/export/docx", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -5926,7 +5947,7 @@ app.post("/api/export/docx", requireSameOriginJson, rlExportDocx, async (req, re
 // --------------------------------------------------------
 // Export Anki CSV (W10-EXPORT-ANKI-01)
 // --------------------------------------------------------
-app.get("/api/library/texts/:id/export/anki", async (req, res) => {
+app.get("/api/library/texts/:id/export/anki", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -6060,7 +6081,7 @@ app.get("/api/anki/debug", async (req, res) => {
   }
 });
 
-app.get("/api/srs/export/status", async (req, res) => {
+app.get("/api/srs/export/status", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -6086,7 +6107,7 @@ app.get("/api/srs/export/status", async (req, res) => {
   }
 });
 
-app.get("/api/srs/export/anki/preview", async (req, res) => {
+app.get("/api/srs/export/anki/preview", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -6112,7 +6133,7 @@ app.get("/api/srs/export/anki/preview", async (req, res) => {
   }
 });
 
-app.post("/api/srs/export/anki", async (req, res) => {
+app.post("/api/srs/export/anki", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -6268,7 +6289,7 @@ app.post("/api/srs/export/anki", async (req, res) => {
   }
 });
 
-app.post("/api/library/texts/:id/push/anki", async (req, res) => {
+app.post("/api/library/texts/:id/push/anki", gone410, async (req, res) => {
   if (!requireDbOr503(res)) return;
 
   const textId = String(req.params.id || "").trim();
@@ -6812,7 +6833,7 @@ audioStoreFailed,
 });
 
 // Mark opened (last_opened_at)
-app.post("/api/library/texts/:id/opened", async (req, res) => {
+app.post("/api/library/texts/:id/opened", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -6925,7 +6946,7 @@ function v3NormalizeTags(raw) {
 }
 
 // PATCH /api/library/texts/:id/meta
-app.patch("/api/library/texts/:id/meta", express.json({ limit: "64kb" }), async (req, res) => {
+app.patch("/api/library/texts/:id/meta", gone410, express.json({ limit: "64kb" }), async (req, res) => {
   const db = requireDbOr503(res);
   if (!db) return;
 
@@ -7020,7 +7041,7 @@ return res.json({ ok: true, result: r });
 // POST /api/history/event
 // body: { textId, sentenceId, assetKey?, audioLang?, voiceName? }
 // также поддерживает legacy-ключи: text_id, sentence_id, asset_key, audio_lang, voice_name
-app.post("/api/history/event", express.json({ limit: "64kb" }), async (req, res) => {
+app.post("/api/history/event", gone410, express.json({ limit: "64kb" }), async (req, res) => {
   const db = requireDbOr503(res);
   if (!db) return;
 
@@ -7070,7 +7091,7 @@ app.post("/api/history/event", express.json({ limit: "64kb" }), async (req, res)
 });
 
 // GET /api/history/recent-texts?limit=20&includeArchived=0|1
-	app.get("/api/history/recent-texts", async (req, res) => {
+	app.get("/api/history/recent-texts", gone410, async (req, res) => {
   const db = requireDbOr503(res);
   if (!db) return;
 
@@ -7117,7 +7138,7 @@ app.post("/api/history/event", express.json({ limit: "64kb" }), async (req, res)
 });
 
 // GET /api/history/recent-activity?limit=80&includeArchived=0|1&textId=...&level=...
-app.get("/api/history/recent-activity", async (req, res) => {
+app.get("/api/history/recent-activity", gone410, async (req, res) => {
   const db = requireDbOr503(res);
   if (!db) return;
 
@@ -7142,7 +7163,7 @@ app.get("/api/history/recent-activity", async (req, res) => {
 });
 
 // GET /api/history/analytics?days=7&includeArchived=0|1&level=...
-app.get("/api/history/analytics", async (req, res) => {
+app.get("/api/history/analytics", gone410, async (req, res) => {
   const db = requireDbOr503(res);
   if (!db) return;
 
@@ -7172,7 +7193,7 @@ app.get("/api/history/analytics", async (req, res) => {
 });
 
 // GET /api/history/texts/:textId/recent-rows
-app.get("/api/history/texts/:textId/recent-rows", async (req, res) => {
+app.get("/api/history/texts/:textId/recent-rows", gone410, async (req, res) => {
   const db = requireDbOr503(res);
   if (!db) return;
 
@@ -7225,7 +7246,7 @@ app.get("/api/history/texts/:textId/recent-rows", async (req, res) => {
 
 
 // Archive / Delete
-app.post("/api/library/texts/:id/archive", async (req, res) => {
+app.post("/api/library/texts/:id/archive", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -7240,7 +7261,7 @@ app.post("/api/library/texts/:id/archive", async (req, res) => {
   }
 });
 
-app.delete("/api/library/texts/:id", async (req, res) => {
+app.delete("/api/library/texts/:id", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 
@@ -7316,7 +7337,7 @@ app.get("/api/library/export", async (req, res) => {
 });
 
 // Import library JSON (safe by default: skip duplicates)
-app.post("/api/library/import", async (req, res) => {
+app.post("/api/library/import", gone410, async (req, res) => {
   try {
     if (!requireDbOr503(res)) return;
 

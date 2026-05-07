@@ -7064,9 +7064,14 @@ td[data-col="ru"] {
         }
       }
     } catch (_) {}
+    // Phase 6 (2026-05-08): localMode is now the DEFAULT. Server-side
+    // library/SRS/progress/history routes return 410 Gone. The only ways
+    // to be in server-mode now are: (a) D5 kill switch active, or
+    // (b) explicit opt-out via localStorage.localMode='0' (mostly useless
+    // post-cleanup since server is gone, but kept for backwards-compat).
     const LOCAL_MODE = _killLocalModeCached
       ? false
-      : (_lmParam !== null ? _lmParam !== '0' : localStorage.getItem('localMode') === '1');
+      : (_lmParam !== null ? _lmParam !== '0' : localStorage.getItem('localMode') !== '0');
     // Background refresh of the flag so the next reload picks up changes.
     (function refreshClientFlags() {
       try {
@@ -18143,12 +18148,13 @@ function v3Phase6PromptShouldShow() {
   if (localStorage.getItem(V3_PHASE6_DECISION_KEY)) return false;
   // Don't re-prompt users who already opted in/out of localMode explicitly.
   if (localStorage.getItem("localMode") !== null) return false;
-  // Dogfood gate (until Phase 6 default-flip lands).
-  const queryOpt = new URLSearchParams(location.search).get("phase6Prompt");
-  const sticky = localStorage.getItem(V3_PHASE6_OPT_IN_KEY) === "1";
-  if (queryOpt !== "1" && !sticky) return false;
   // Basic OPFS support — db-worker.js does deeper VFS detection later.
   if (typeof navigator === "undefined" || !navigator.storage || typeof navigator.storage.getDirectory !== "function") return false;
+  // Phase 6 (2026-05-08) default-on landed — gate removed; the prompt
+  // fires for any first-time visitor on a supported browser to give them
+  // a chance to copy any old server-side data before it goes away. The
+  // sticky/?phase6Prompt=1 dogfood gates are intentionally still
+  // honoured below as a no-op (presence doesn't disable the prompt).
   return true;
 }
 
@@ -18172,19 +18178,23 @@ function v3Phase6BuildModal() {
   const root = document.createElement("div");
   root.id = "v3Phase6Modal";
   root.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:99999;padding:16px;";
+  // Phase 6 (2026-05-08) post-flip copy: server-side library is gone, so
+  // "Stay on server" no longer makes sense as a destination. The choice
+  // is now: copy any old server-side data over now, or skip (start fresh
+  // on this device).
   root.innerHTML =
     '<div style="background:#fff;border-radius:12px;max-width:480px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,0.3);font-family:system-ui,-apple-system,sans-serif;color:#111;max-height:90vh;overflow:auto;">' +
-      '<h2 style="margin:0 0 12px;font-size:20px;font-weight:600;">📦 Библиотека переезжает на устройство</h2>' +
-      '<p style="margin:0 0 12px;line-height:1.5;font-size:14.5px;">С этого момента ваша библиотека хранится в приватном хранилище браузера на этом устройстве — не на сервере.</p>' +
+      '<h2 style="margin:0 0 12px;font-size:20px;font-weight:600;">📦 Библиотека работает на устройстве</h2>' +
+      '<p style="margin:0 0 12px;line-height:1.5;font-size:14.5px;">Теперь все ваши тексты, заметки и SRS-карточки хранятся в приватном хранилище этого браузера, не на сервере.</p>' +
       '<ul style="margin:0 0 16px;padding-left:20px;line-height:1.6;font-size:14px;color:#374151;">' +
-        '<li>Тексты и заметки не покидают устройство.</li>' +
+        '<li>Данные не покидают устройство.</li>' +
         '<li>Работает оффлайн (после первой загрузки).</li>' +
-        '<li>Резервная копия — экспорт ZIP; восстановление — импорт ZIP.</li>' +
+        '<li>Резерв и перенос между устройствами — через ZIP-экспорт/импорт.</li>' +
       '</ul>' +
-      '<p id="v3Phase6MigrateNote" style="margin:0 0 16px;line-height:1.5;font-size:14px;color:#6b7280;">Если продолжить — мы один раз скопируем существующую библиотеку с сервера на это устройство. Оригиналы останутся на сервере, пока вы их не удалите.</p>' +
+      '<p id="v3Phase6MigrateNote" style="margin:0 0 16px;line-height:1.5;font-size:14px;color:#6b7280;">Если у вас была библиотека на старом сервере — мы можем перенести её копию сюда сейчас. Если нет — просто начните работу.</p>' +
       '<div style="display:flex;flex-direction:column;gap:8px;">' +
-        '<button id="v3Phase6Accept" style="padding:12px 16px;background:#2563eb;color:#fff;border:0;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">Перенести и продолжить</button>' +
-        '<button id="v3Phase6Decline" style="padding:12px 16px;background:#fff;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:15px;cursor:pointer;">Остаться на сервере</button>' +
+        '<button id="v3Phase6Accept" style="padding:12px 16px;background:#2563eb;color:#fff;border:0;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;">Перенести данные с сервера</button>' +
+        '<button id="v3Phase6Decline" style="padding:12px 16px;background:#fff;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:15px;cursor:pointer;">Начать с чистого листа</button>' +
         '<button id="v3Phase6Defer" style="padding:8px 16px;background:transparent;color:#6b7280;border:0;font-size:13.5px;cursor:pointer;text-decoration:underline;">Решу позже</button>' +
       '</div>' +
     '</div>';
@@ -18304,7 +18314,10 @@ async function v3Phase6ShowPrompt() {
       }
     };
     decline.onclick = () => {
-      localStorage.setItem("localMode", "0");
+      // Phase 6 (2026-05-08): "Начать с чистого листа" — stay in localMode
+      // (default), just don't run migration. Server-mode is no longer a
+      // destination since stateful endpoints are 410 Gone.
+      localStorage.setItem("localMode", "1");
       localStorage.setItem(V3_PHASE6_DECISION_KEY, "declined");
       cleanup();
       resolve("declined");
