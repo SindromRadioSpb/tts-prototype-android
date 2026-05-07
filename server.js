@@ -259,6 +259,13 @@ app.get("/api/client-config", (_req, res) => {
     hebrewLocalExperimentalRaw === "off"
   );
 
+  // D5: kill switch — set KILL_LOCAL_MODE=1 in Railway to force every
+  // client back to server mode at next page load (within the cache TTL).
+  // No app deploy needed; the client polls /api/client-config at boot
+  // and obeys this flag before any LOCAL_MODE-dependent code runs.
+  const killLocalModeRaw = String(process.env.KILL_LOCAL_MODE || "0").trim().toLowerCase();
+  const killLocalMode = killLocalModeRaw === "1" || killLocalModeRaw === "true" || killLocalModeRaw === "on";
+
   return res.json({
     ok: true,
     tts: {
@@ -277,6 +284,9 @@ app.get("/api/client-config", (_req, res) => {
       cacheMaxMb: Number.isFinite(cacheMaxMbRaw) && cacheMaxMbRaw > 0 ? cacheMaxMbRaw : 250,
       defaultSpeed: 1.0,
       debugDiagnostics
+    },
+    flags: {
+      killLocalMode,
     }
   });
 });
