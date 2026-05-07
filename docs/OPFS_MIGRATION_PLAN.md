@@ -16,7 +16,7 @@
 
 **Pre-Phase-6 consolidated plan (2026-05-07)** — 4 категории:
 - **A. Hard blockers (без них default-on опасен):** A1 first-open prompt ✅, A2 mobile dogfood ✅ (iPhone+Android), A3 cross-device ZIP ✅, A4 concurrent tabs guard ✅ (BroadcastChannel `linguistpro-opfs-tabs-v1` + non-blocking minimisable banner).
-- **B. Strong recommendations (премиум полировка):** B1 quota monitoring, B2 migration failure rollback, B3 trash bin + undo, B4 rate-limiting на stateless endpoints, B5 pre-Phase-6 telemetry.
+- **B. Strong recommendations (премиум полировка):** B1 quota monitoring ✅ (`navigator.storage.estimate()` + dashboard widget + 80%/95% thresholds в save-path), B2 migration failure rollback, B3 trash bin + undo, B4 rate-limiting на stateless endpoints, B5 pre-Phase-6 telemetry.
 - **C. Nice-to-haves (после Phase 6):** FTS5, cloud sync, A/B framework, .apkg offline, RTL polish, hotkeys, markdown notes.
 - **D. Слепые пятна:** D1 OPFS data-location docs, D2 header trust audit, D3 PRAGMA integrity_check on startup, D4 notes audit, D5 kill switch (remote feature flag).
 

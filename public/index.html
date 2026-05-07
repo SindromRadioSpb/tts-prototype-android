@@ -17568,6 +17568,17 @@ async function v3LibrarySaveCurrentCore(meta) {
       showToast("Нет таблицы для сохранения (сначала соберите таблицу)", "error");
       return null;
     }
+    // B1: check OPFS quota in LOCAL_MODE — toast warning once per crossed
+    // band; refuse save if quota completely full.
+    if (LOCAL_MODE) {
+      try {
+        const chk = await v3StorageCheckThresholds({ blockOnFull: true });
+        if (chk && chk.ok === false && chk.reason === "quota-full") {
+          showToast("Хранилище браузера переполнено (" + Math.round(chk.percent) + "%). Освободите место.", "error");
+          return null;
+        }
+      } catch (_) {}
+    }
 
     const m = (meta && typeof meta === "object") ? meta : {};
     const title = String(m.title || "").trim();
@@ -18276,6 +18287,107 @@ document.addEventListener("DOMContentLoaded", () => {
   // Slight delay to let LOCAL_MODE check settle.
   setTimeout(v3TabCoordInit, 200);
 });
+
+// ── B1: Storage quota monitoring ───────────────────────────────────────────
+// OPFS shares the browser's per-origin quota (typically a few % of free
+// disk on desktop, or a few hundred MB on mobile). When the quota fills
+// up, writes start failing silently — premium UX must surface usage and
+// warn before that happens.
+//
+// API:
+//   v3StorageEstimate() → {usage, quota, percent, supported}
+//   v3StorageCheckThresholds() → fires toast warnings at 80%/95%
+//   v3StorageRefreshUI() → updates dashboard widget
+const V3_STORAGE_WARN_PCT = 80;
+const V3_STORAGE_BLOCK_PCT = 95;
+let v3StorageLastWarnPct = 0;
+
+async function v3StorageEstimate() {
+  try {
+    if (typeof navigator === "undefined" || !navigator.storage || typeof navigator.storage.estimate !== "function") {
+      return { supported: false };
+    }
+    const e = await navigator.storage.estimate();
+    const usage = Number(e.usage) || 0;
+    const quota = Number(e.quota) || 0;
+    const percent = quota > 0 ? (usage / quota) * 100 : 0;
+    return { supported: true, usage, quota, percent };
+  } catch (e) {
+    return { supported: false, error: String(e) };
+  }
+}
+
+function v3StorageFormatBytes(b) {
+  if (!b || b < 1024) return (b || 0) + " B";
+  const u = ["KB", "MB", "GB", "TB"];
+  let i = -1;
+  let n = b;
+  do { n /= 1024; i++; } while (n >= 1024 && i < u.length - 1);
+  return n.toFixed(n < 10 ? 2 : 1) + " " + u[i];
+}
+
+async function v3StorageRefreshUI() {
+  if (!LOCAL_MODE) return;
+  const el = document.getElementById("v3DashStorage");
+  if (!el) return;
+  const est = await v3StorageEstimate();
+  if (!est.supported) {
+    el.style.display = "none";
+    return;
+  }
+  const pct = Math.round(est.percent * 10) / 10;
+  let color = "#374151"; let bg = "#f3f4f6"; let border = "#e5e7eb";
+  if (pct >= V3_STORAGE_BLOCK_PCT) { color = "#7f1d1d"; bg = "#fee2e2"; border = "#fca5a5"; }
+  else if (pct >= V3_STORAGE_WARN_PCT) { color = "#92400e"; bg = "#fef3c7"; border = "#fcd34d"; }
+  el.style.cssText = "display:inline-block;padding:6px 10px;background:" + bg + ";color:" + color + ";border:1px solid " + border + ";border-radius:6px;font-size:13px;margin-top:6px;";
+  el.title = "OPFS квота браузера. Резерв через Library → Export ZIP.";
+  el.textContent = "💾 " + v3StorageFormatBytes(est.usage) + " / " + v3StorageFormatBytes(est.quota) + " (" + pct + "%)";
+}
+
+async function v3StorageCheckThresholds(opts) {
+  if (!LOCAL_MODE) return { ok: true };
+  const est = await v3StorageEstimate();
+  if (!est.supported) return { ok: true };
+  const pct = est.percent;
+  if (pct >= V3_STORAGE_BLOCK_PCT && (opts && opts.blockOnFull)) {
+    return { ok: false, reason: "quota-full", percent: pct, est };
+  }
+  // Warn once per crossed threshold band, rate-limited.
+  const band = pct >= V3_STORAGE_BLOCK_PCT ? V3_STORAGE_BLOCK_PCT
+              : pct >= V3_STORAGE_WARN_PCT ? V3_STORAGE_WARN_PCT
+              : 0;
+  if (band > 0 && band > v3StorageLastWarnPct) {
+    v3StorageLastWarnPct = band;
+    try {
+      const verb = band >= V3_STORAGE_BLOCK_PCT ? "Хранилище заполнено" : "Хранилище почти заполнено";
+      const tail = " (" + Math.round(pct) + "%). Освободите место или сделайте резерв через Library → Export ZIP.";
+      if (typeof showToast === "function") showToast(verb + tail, band >= V3_STORAGE_BLOCK_PCT ? "error" : "warning");
+    } catch (_) {}
+  }
+  return { ok: true, percent: pct, est };
+}
+
+// Insert dashboard widget DOM lazily on first refresh.
+function v3StorageEnsureDashWidget() {
+  if (document.getElementById("v3DashStorage")) return;
+  const metrics = document.getElementById("v3DashMetrics");
+  if (!metrics || !metrics.parentNode) return;
+  const el = document.createElement("div");
+  el.id = "v3DashStorage";
+  el.style.display = "none";
+  metrics.parentNode.insertBefore(el, metrics.nextSibling);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    v3StorageEnsureDashWidget();
+    v3StorageRefreshUI();
+  }, 800);
+});
+
+// Diagnostic.
+window.v3StorageEstimate = v3StorageEstimate;
+window.v3StorageRefreshUI = v3StorageRefreshUI;
 
 // ── Premium confirmation modal ─────────────────────────────────────────────
 // Replaces window.confirm() for destructive actions. Promise<boolean>.
@@ -20073,6 +20185,8 @@ async function v3DashboardRefresh() {
     if (typeof v3DashboardRefreshAnalytics === "function") {
       try { v3DashboardRefreshAnalytics(); } catch (_) {}
     }
+    // B1: refresh storage widget — non-blocking, ignore errors.
+    try { v3StorageEnsureDashWidget(); v3StorageRefreshUI(); } catch (_) {}
   } catch (e) {
     console.error("[v3DashboardRefresh] error:", e);
     if (statusEl) statusEl.textContent = "Ошибка загрузки (см. console).";
