@@ -17974,6 +17974,21 @@ async function v3LibraryImportFromCloud() {
     const ldb = await ensureLocalDB();
     const r = await ldb.importBundle(payload, { mode: "skip" });
     const errorCount = (r.errors && r.errors.length) ? r.errors.length : 0;
+    // B2: same undo-record path as Phase 6 migration so cloud-import is
+    // also reversible from window.v3Phase6UndoLastMigration().
+    try {
+      const ids = Array.isArray(r.importedIds) ? r.importedIds.slice(0, 1000) : [];
+      if (ids.length > 0) {
+        localStorage.setItem("phase6LastMigration", JSON.stringify({
+          ts: new Date().toISOString(),
+          source: "cloud-import-manual",
+          importedIds: ids,
+          imported: r.imported || 0,
+          skipped: r.skipped || 0,
+          errorCount,
+        }));
+      }
+    } catch (_) {}
     const msg =
       `Импорт из облака: добавлено ${r.imported}, пропущено как дубликаты ${r.skipped}` +
       (errorCount ? `, ошибок ${errorCount}` : "");
@@ -18072,17 +18087,52 @@ function v3Phase6BuildModal() {
 async function v3Phase6MigrateSilently() {
   const payload = await v3GetJson("/api/library/export?includeArchived=1");
   if (!payload || !Array.isArray(payload.texts)) {
-    return { imported: 0, skipped: 0, errorCount: 0, empty: true };
+    return { imported: 0, skipped: 0, errorCount: 0, importedIds: [], empty: true };
   }
   const ldb = await ensureLocalDB();
   const r = await ldb.importBundle(payload, { mode: "skip" });
+  // B2: stash last-migration state so the user can undo if they realise
+  // they didn't want this. Capped to 1000 ids to keep localStorage small.
+  try {
+    const ids = Array.isArray(r.importedIds) ? r.importedIds.slice(0, 1000) : [];
+    localStorage.setItem("phase6LastMigration", JSON.stringify({
+      ts: new Date().toISOString(),
+      importedIds: ids,
+      imported: r.imported || 0,
+      skipped: r.skipped || 0,
+      errorCount: (r.errors && r.errors.length) || 0,
+    }));
+  } catch (_) {}
   return {
     imported: r.imported || 0,
     skipped: r.skipped || 0,
     errorCount: (r.errors && r.errors.length) || 0,
+    importedIds: r.importedIds || [],
     empty: false,
   };
 }
+
+// B2: Public undo helper. Reads the stashed migration record and deletes
+// every text it imported, then clears the record. Idempotent.
+window.v3Phase6UndoLastMigration = async function() {
+  try {
+    const raw = localStorage.getItem("phase6LastMigration");
+    if (!raw) { console.log("[phase6] no recorded migration to undo"); return null; }
+    const rec = JSON.parse(raw);
+    if (!rec || !Array.isArray(rec.importedIds) || rec.importedIds.length === 0) {
+      localStorage.removeItem("phase6LastMigration");
+      return { deleted: 0 };
+    }
+    const ldb = await ensureLocalDB();
+    const r = await ldb.rollbackImportedTexts(rec.importedIds);
+    localStorage.removeItem("phase6LastMigration");
+    console.log("[phase6] undo complete:", r);
+    return r;
+  } catch (e) {
+    console.error("[phase6] undo failed", e);
+    throw e;
+  }
+};
 
 async function v3Phase6ShowPrompt() {
   v3Phase6BuildModal();

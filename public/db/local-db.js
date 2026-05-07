@@ -889,7 +889,7 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
     if (aa && aa.asset_key) audioAssetsByKey.set(String(aa.asset_key), aa);
   }
 
-  const result = { imported: 0, skipped: 0, errors: [] };
+  const result = { imported: 0, skipped: 0, errors: [], importedIds: [] };
 
   for (const item of texts) {
     let textData;
@@ -930,6 +930,10 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
       textData = item;
     }
 
+    // Track whether this text's row was successfully INSERTed so we can
+    // roll back partial state if any subsequent sentence/note/audio insert
+    // throws. ON DELETE CASCADE in the schema cleans up child rows.
+    let newTextId = null;
     try {
       // Generate a fresh text_key when the source didn't provide one (defensive).
       const text_key = String(textData.text_key || textData.textKey || '').trim()
@@ -937,7 +941,7 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
       const existing = await q('SELECT id FROM texts WHERE text_key = ?', [text_key]);
       if (existing.length > 0 && mode === 'skip') { result.skipped++; continue; }
 
-      const newTextId = crypto.randomUUID();
+      newTextId = crypto.randomUUID();
       await createText({ ...textData, text_key, id: newTextId });
 
       const sentences = textData.sentences ?? textData.rows ?? [];
@@ -981,11 +985,29 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         }
       }
       result.imported++;
+      result.importedIds.push(newTextId);
     } catch (e) {
       result.errors.push({ title: textData.title, error: e && e.message ? e.message : String(e) });
+      // B2: per-text atomicity — if createText succeeded but a child insert
+      // failed, remove the partial parent row (CASCADE drops orphans).
+      if (newTextId) {
+        try { await deleteText(newTextId); } catch (_) {}
+      }
     }
   }
   return result;
+}
+
+// B2: Roll back a list of text IDs imported in a previous migration. Used
+// by the Phase 6 first-open prompt's "Undo last migration" UI when the
+// user wants to revert to last-known-good state.
+export async function rollbackImportedTexts(textIds) {
+  const ids = Array.isArray(textIds) ? textIds.filter(Boolean) : [];
+  let deleted = 0;
+  for (const id of ids) {
+    try { await deleteText(id); deleted++; } catch (_) {}
+  }
+  return { requested: ids.length, deleted };
 }
 
 // Reconcile audio links for texts that already exist in OPFS. Useful when
