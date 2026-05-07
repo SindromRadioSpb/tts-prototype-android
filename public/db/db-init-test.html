@@ -414,6 +414,66 @@ async function run() {
     out('err', '❌ ТЕСТ 14 ПРОВАЛЕН: ' + e.message);
   }
 
+  // ── ТЕСТ 15: edit translit + reload — value persists ─────────────────
+  // Регрессия для бага 1.2: пользователь редактирует Translit-ячейку,
+  // делает reload, видит старое значение. Этот тест прогоняет тот же путь
+  // что использует tableEditSaveCell в LOCAL_MODE: updateSentence с
+  // { translit: NEW, edit_meta_json: {...edited:{translit:true}...} },
+  // потом перечитывает getSentences и проверяет что translit обновился.
+  const editTextId = crypto.randomUUID();
+  try {
+    out('inf', 'ТЕСТ 15: edit translit + reload — translit persists...');
+    await createText({
+      id: editTextId, text_key: 'edit-translit-' + Date.now(),
+      title: 'Edit translit regression', source_text: 'שלום',
+      tags_json: '[]',
+    });
+    const sid = crypto.randomUUID();
+    await addSentence(editTextId, {
+      id: sid, he_plain: 'שלום', he_niqqud: 'שָׁלוֹם',
+      translit: 'shalom (OLD)', translit_ru: 'шалом (OLD)',
+      ru: 'мир',
+    });
+
+    // Mimic tableEditSaveCell LOCAL_MODE branch: build edit_meta_json + update.
+    const newMeta = JSON.stringify({ edited: { translit: true } });
+    const fullPayload = { translit: 'shalom (NEW)', edit_meta_json: newMeta };
+    await (await import('/db/local-db.js')).updateSentence(editTextId, sid, fullPayload);
+
+    // Simulate reload: re-read via getSentences
+    const reloaded = await getSentences(editTextId);
+    if (!reloaded.length) throw new Error('getSentences вернул пустой массив');
+    const r = reloaded[0];
+    if (r.translit !== 'shalom (NEW)') {
+      throw new Error('translit не обновился: ожидалось "shalom (NEW)", получено "' + r.translit + '"');
+    }
+    let parsedMeta = null;
+    try { parsedMeta = r.edit_meta_json ? JSON.parse(r.edit_meta_json) : null; } catch (_) {}
+    if (!parsedMeta || !parsedMeta.edited || !parsedMeta.edited.translit) {
+      throw new Error('edit_meta_json.edited.translit не записан: ' + r.edit_meta_json);
+    }
+
+    // Now also test translit_ru update (ru-phonetic profile path)
+    const fullPayload2 = { translit_ru: 'шалом (NEW)', edit_meta_json: JSON.stringify({ edited: { translit: true, translit_ru: true } }) };
+    await (await import('/db/local-db.js')).updateSentence(editTextId, sid, fullPayload2);
+    const reloaded2 = await getSentences(editTextId);
+    const r2 = reloaded2[0];
+    if (r2.translit_ru !== 'шалом (NEW)') {
+      throw new Error('translit_ru не обновился: ожидалось "шалом (NEW)", получено "' + r2.translit_ru + '"');
+    }
+    if (r2.translit !== 'shalom (NEW)') {
+      throw new Error('translit потерян после translit_ru update: ' + r2.translit);
+    }
+
+    out('ok', '✅ ТЕСТ 15 ПРОШЁЛ: translit + translit_ru сохраняются после reload', {
+      translit: r2.translit,
+      translit_ru: r2.translit_ru,
+      edit_meta: r2.edit_meta_json,
+    });
+  } catch(e) {
+    out('err', '❌ ТЕСТ 15 ПРОВАЛЕН: ' + e.message);
+  }
+
   // ── Cleanup ───────────────────────────────────────────────────────────
   try {
     await deleteText(testId);
@@ -422,6 +482,7 @@ async function run() {
     await deleteText(audioTextId);
     await deleteText(analyticsTextId);
     await deleteText(exportTextId);
+    await deleteText(editTextId);
     out('inf', '(тестовые данные удалены)');
   } catch(e) { /* ignore */ }
 

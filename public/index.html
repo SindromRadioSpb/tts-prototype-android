@@ -2578,10 +2578,31 @@ th, td { border-color: rgba(0,0,0,0.55); }
   outline: 1px dashed #ffc107;
 }
 
-/* Edited cell indicator */
+/* Edited cell indicator — premium UX:
+ *   • orange stripe on the left edge of the edited TD (existing visual cue),
+ *   • orange ✎ badge in the top-right corner of the edited TD (clear, highly
+ *     visible on both desktop and mobile — easier to spot than the stripe
+ *     alone, especially on small screens).
+ *   • orange stripe on the row's first column to mark the entire row. */
 #proTable tbody td.cell-edited {
   border-left: 3px solid #ff9800;
   padding-left: 7px;
+  position: relative;
+}
+#proTable tbody td.cell-edited::after {
+  content: "✎";
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ff9800;
+  background: rgba(255, 248, 225, 0.95);
+  border-radius: 4px;
+  padding: 0 4px;
+  line-height: 14px;
+  pointer-events: none;
+  z-index: 2;
 }
 #proTable tbody tr.row-edited td:first-child {
   box-shadow: inset 3px 0 0 #ff9800;
@@ -9038,25 +9059,49 @@ async function v3AnkiPushLocalMode(textId, opts) {
   // move those cards into the requested deck. This makes "Экспортировать в
   // deck X" idempotent and predictable even if the Notes already existed in
   // some other deck.
+  //
+  // Search strategy (premium — handles cross-model duplicates):
+  //   1. Try `<frontField>:"<text>"` — finds prior LinguistPro exports in
+  //      the same model (Hebrew field).
+  //   2. Fall back to `"<text>"` — bare quoted text matches ANY field of ANY
+  //      model. Catches duplicates created by older exports that used the
+  //      Basic model (Front field) — those won't match step 1.
+  //   3. If still nothing found despite canAddNotes flagging duplicate,
+  //      retry the addNotes call for that specific note with
+  //      allowDuplicate: true. This forces creation as a fresh note in the
+  //      requested deck/model — preferred over silent failure when Anki's
+  //      hash-based dedup over-flags.
   let movedToDeck = 0;
   let dupNotFound = 0;
+  let dupRecreated = 0;       // notes we forced via allowDuplicate retry
+  const retryAsFresh = [];    // notes whose dups couldn't be located → retry
   if (dupQueries.length > 0) {
     try {
       const allNoteIds = [];
       for (const dq of dupQueries) {
-        // Build a safe Anki search: <fieldName>:"text". Anki's lexer accepts
-        // a quoted phrase even with spaces, but a literal " inside must be
-        // doubled (per Anki search docs). Backslashes are also doubled to
-        // be safe.
+        // Anki search: a literal " inside the quoted phrase must be doubled
+        // (per Anki search docs). Backslashes also get escaped to be safe.
         const safeText = String(dq.frontText).replace(/\\/g, '\\\\').replace(/"/g, '""');
         const fieldQuery = String(frontField).replace(/"/g, '');
-        const query = fieldQuery + ':"' + safeText + '"';
+        // Strategy 1: scoped to current model's first field.
         let noteIds = [];
         try {
-          noteIds = await v3AnkiConnectDirect('findNotes', { query });
+          noteIds = await v3AnkiConnectDirect('findNotes', { query: fieldQuery + ':"' + safeText + '"' });
         } catch (_) {}
+        // Strategy 2: bare quoted text — any field, any model.
         if (!Array.isArray(noteIds) || !noteIds.length) {
+          try {
+            noteIds = await v3AnkiConnectDirect('findNotes', { query: '"' + safeText + '"' });
+          } catch (_) {}
+        }
+        if (!Array.isArray(noteIds) || !noteIds.length) {
+          // Strategy 3: nothing found — schedule for forced re-add as a fresh note.
           dupNotFound++;
+          // Find the original note in `sendable` matching this dq.idx and
+          // remember it for the retry pass.
+          if (typeof dq.idx === 'number' && sendable[dq.idx]) {
+            retryAsFresh.push(sendable[dq.idx]);
+          }
           continue;
         }
         for (const nid of noteIds) allNoteIds.push(nid);
@@ -9095,15 +9140,53 @@ async function v3AnkiPushLocalMode(textId, opts) {
     }
   }
 
+  // Retry pass for notes that AnkiConnect flagged as duplicates but no
+  // findNotes query could locate. Force-create them as fresh notes with
+  // allowDuplicate=true (the user explicitly wants them in this deck/model).
+  if (retryAsFresh.length > 0) {
+    const fresh = retryAsFresh.map((n) => ({
+      ...n,
+      options: { ...(n.options || {}), allowDuplicate: true },
+    }));
+    let arr2 = [];
+    try {
+      const result2 = await v3AnkiConnectDirect('addNotes', { notes: fresh });
+      arr2 = Array.isArray(result2) ? result2 : [];
+    } catch (e) {
+      // If even allowDuplicate retry fails (per-note errors), pull whatever
+      // succeeded out of e.result and surface the rest as failedOther.
+      if (e && Array.isArray(e.perNote)) {
+        arr2 = Array.isArray(e.result) ? e.result : [];
+        for (let i = 0; i < e.perNote.length; i++) {
+          const msg = String(e.perNote[i] || '').toLowerCase();
+          if (msg && !msg.includes('duplicate')) failedOther++;
+        }
+      } else {
+        console.warn('[anki] retry-as-fresh failed:', e && e.message);
+      }
+    }
+    dupRecreated = arr2.filter((x) => x != null).length;
+    // Subtract recreated from dupNotFound — those are no longer "lost".
+    dupNotFound = Math.max(0, dupNotFound - dupRecreated);
+  }
+
+  // Audio attachments only made it into newly-created notes (created +
+  // dupRecreated). Existing notes whose deck was changed already had their
+  // own audio (from prior exports). Reflect that in the toast count.
+  const audioOnNewNotes = Object.keys(audioFilenameBySid).length > 0
+    ? Math.min(Object.keys(audioFilenameBySid).length, created + dupRecreated)
+    : 0;
+
   return {
-    created,
+    created: created + dupRecreated,
     updated: 0,
-    audioQueued: Object.keys(audioFilenameBySid).length,
+    audioQueued: audioOnNewNotes,
     duplicates: preDuplicates + runtimeDuplicates,
     skipped: skippedEmpty.length,
     failedOther,
     movedToDeck,
     dupNotFound,
+    dupRecreated,
     deckName: finalDeck,
     modelName,
   };
@@ -24817,6 +24900,7 @@ async function v3AnkiPushNow() {
         const s = await v3AnkiPushLocalMode(exportId, payload);
         const parts = [];
         parts.push(`создано ${s.created}`);
+        if (s.dupRecreated) parts.push(`из них пересоздано (allowDuplicate) ${s.dupRecreated}`);
         if (s.audioQueued) parts.push(`с аудио ${s.audioQueued}`);
         if (s.movedToDeck) parts.push(`перенесено в этот deck ${s.movedToDeck} card(s)`);
         if (s.duplicates) parts.push(`дубликатов Note ${s.duplicates}`);
