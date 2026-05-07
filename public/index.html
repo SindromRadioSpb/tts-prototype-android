@@ -5560,6 +5560,34 @@ td[data-col="ru"] {
     try { (window.v3OpfsTelemetryPush || function(){})({
       kind: 'init.success', durationMs: ms, vfs: info && info.name, vfsKind: info && info.kind,
     }); } catch (_) {}
+    // D3: idle-time integrity_check — once per session. Heavy queries
+    // (full-table scan) shouldn't block first-paint, so defer.
+    const _runICheck = async () => {
+      try {
+        const t0 = Date.now();
+        const r = await _ldb.integrityCheck();
+        try { (window.v3OpfsTelemetryPush || function(){})({
+          kind: r.ok ? 'integrity.ok' : 'integrity.fail',
+          durationMs: Date.now() - t0,
+          issues: (r.issues || []).slice(0, 5),
+        }); } catch (_) {}
+        if (!r.ok) {
+          console.error('[OPFS] integrity_check FAILED:', r.issues);
+          try {
+            if (typeof showToast === 'function') {
+              showToast('⚠ База OPFS повреждена. Сделайте резерв через Library → Export ZIP и сообщите разработчику.', 'error');
+            }
+          } catch (_) {}
+        } else {
+          console.log('[OPFS] integrity_check OK (' + (Date.now() - t0) + 'ms)');
+        }
+      } catch (e) { console.warn('[OPFS] integrity_check threw', e); }
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(_runICheck, { timeout: 5000 });
+    } else {
+      setTimeout(_runICheck, 2000);
+    }
   }).catch(e => {
     window.__localDBInitError = e;
     console.error('[OPFS] init failed:', e && e.message ? e.message : e);

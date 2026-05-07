@@ -80,6 +80,31 @@ export async function execRaw(sql) {
   return _call('exec', sql);
 }
 
+// D3: PRAGMA integrity_check — runs SQLite's built-in self-check across
+// the whole DB file. Returns "ok" string list when healthy, or a list of
+// human-readable issue descriptions when corrupt. Cheap on small DBs (a
+// few hundred MB OPFS), but we avoid running it on every page load — the
+// init wrapper in index.html schedules it once per session via
+// requestIdleCallback so first-paint isn't delayed.
+//
+// Returns: { ok: boolean, issues: string[], rawRows: any[] }.
+export async function integrityCheck() {
+  try {
+    const rows = await q('PRAGMA integrity_check');
+    // wa-sqlite returns rows as objects keyed by column name. The
+    // PRAGMA's first column is named 'integrity_check'.
+    const list = (rows || []).map((row) => {
+      if (!row || typeof row !== 'object') return String(row);
+      const k = Object.keys(row)[0];
+      return k ? String(row[k]) : JSON.stringify(row);
+    });
+    const ok = list.length === 1 && list[0].toLowerCase() === 'ok';
+    return { ok, issues: ok ? [] : list, rawRows: rows };
+  } catch (e) {
+    return { ok: false, issues: ['integrity_check failed: ' + (e && e.message ? e.message : String(e))], rawRows: [] };
+  }
+}
+
 // Tracks which VFS the worker actually picked. Reported back in the init
 // response so callers can show provenance ('storage: OPFS sync' vs
 // 'storage: IndexedDB'). NOT used for control-flow.
