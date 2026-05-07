@@ -17536,6 +17536,12 @@ async function v3LibraryDeleteText(textId) {
     } else {
       await v3Delete("/api/library/texts/" + encodeURIComponent(textId));
     }
+    // Premium UX: after delete, clear any session pointer to this text
+    // so a future "Save → Update" doesn't FK-fail on a stale id when the
+    // user re-collects the same source text (Gemini cache will restore
+    // the table without re-firing the LLM).
+    try { v3SessionForgetTextIfStale(textId); } catch (_) {}
+
     if (snapshot) {
       v3UndoToast("Текст удалён", async () => {
         const ldb = await ensureLocalDB();
@@ -17828,6 +17834,18 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
     let text;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
+      // Premium UX: if the target text was deleted (e.g. user bulk-deleted
+      // it earlier in the same session) but session still references it,
+      // gracefully fall back to "Сохранить как новый" instead of FK-failing
+      // on the sentence loop. This is defense-in-depth — the delete paths
+      // also clear session pointers via v3SessionForgetTextIfStale, but
+      // we double-check here against any race or older code path.
+      const stillExists = await ldb.getTextById(textId);
+      if (!stillExists) {
+        try { v3SessionForgetTextIfStale(textId); } catch (_) {}
+        showToast("Карточка не найдена — создаю новую", "warning");
+        return await v3LibrarySaveCurrentCore(meta);
+      }
       await ldb.updateText(textId, {
         title: title || null, level: level || null,
         tags_json: JSON.stringify(tags || []),
@@ -18312,10 +18330,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => { v3Phase6MaybeShow(); }, 600);
 });
 
-// Dogfood/QA helper: clear the decision so the prompt re-shows.
+// Dogfood/QA helper: clear ALL gate keys so the prompt re-shows on next
+// reload with ?phase6Prompt=1. Without clearing localMode here, the prompt
+// still bails on the second guard (existing localMode preference). Also
+// drops phase6LastMigration so the undo state doesn't leak across rounds.
 window.v3Phase6ResetDecision = function() {
   localStorage.removeItem(V3_PHASE6_DECISION_KEY);
-  console.log("[phase6] decision cleared. Reload with ?phase6Prompt=1 to re-test.");
+  localStorage.removeItem("localMode");
+  localStorage.removeItem("phase6LastMigration");
+  console.log("[phase6] cleared keys: " + V3_PHASE6_DECISION_KEY + ", localMode, phase6LastMigration. Reload with ?phase6Prompt=1 (or just reload — sticky opt-in stays).");
 };
 
 // ── A4: Concurrent tabs guard ──────────────────────────────────────────────
@@ -18794,6 +18817,9 @@ async function v3LibraryBulkDelete() {
     } catch (e) { failed++; console.warn("[bulk-delete]", id, e && e.message); }
   }
   v3LibraryBulkClear();
+  // Premium UX: drop session pointers to any deleted ids so subsequent
+  // saves don't FK-fail on stale references.
+  try { v3SessionForgetTextsIfStale(ids); } catch (_) {}
   if (snapshot && done > 0) {
     v3UndoToast("Удалено: " + done + (failed ? " · ошибок: " + failed : ""), async () => {
       const ldb = await ensureLocalDB();
@@ -18889,6 +18915,16 @@ async function v3LibraryWipeAllConfirm() {
     await ldb.execRaw("DELETE FROM sentence_audio;").catch(() => {});
     await ldb.execRaw("DELETE FROM text_audio;").catch(() => {});
     showToast("Сброшено: " + ids.length + " текстов и связанные данные", "success");
+    // Wipe-all by definition makes any session pointer stale; reset the
+    // session so subsequent saves create fresh cards.
+    try { v3SessionForgetTextsIfStale(ids); } catch (_) {}
+    try {
+      // Belt and suspenders: even if the session pointed at a non-listed id
+      // (shouldn't happen post-wipe, but defensive), force-clear here.
+      v3SessionSet({ mode: "draft", textId: null, baseTextId: null, resumeSentenceId: null, title: null, openMode: null });
+      if (window.v3SetActiveLibraryTextMeta) window.v3SetActiveLibraryTextMeta(null);
+      if (window.v3ClearActiveTextId) window.v3ClearActiveTextId();
+    } catch (_) {}
   } catch (e) {
     console.error("[wipe] failed:", e);
     showToast("Ошибка сброса: " + (e && e.message ? e.message : "см. console"), "error");
@@ -21133,15 +21169,25 @@ function v3SaveMetaEl(id) { return document.getElementById(id); }
 
 function v3SaveMetaSyncMode() {
   const st = v3SessionGet() || {};
-  const hasBase = !!st.baseTextId;
   const updateId = v3SessionGetUpdateTextId();
   const hasUpdate = !!updateId;
 
   const btnSave = v3SaveMetaEl("v3SaveMetaSaveBtn");
   const btnAsNew = v3SaveMetaEl("v3SaveMetaSaveAsNewBtn");
 
-  if (btnSave) btnSave.textContent = hasUpdate ? "Обновить" : "Сохранить";
-  if (btnAsNew) btnAsNew.style.display = hasBase ? "" : "none";
+  if (btnSave) {
+    btnSave.textContent = hasUpdate ? "Обновить" : "Сохранить";
+    // When there's no update target, the primary "Save" button IS the
+    // create flow — hide the secondary "Save as new" to avoid two buttons
+    // doing the same thing.
+    btnSave.style.display = "";
+  }
+  // "Сохранить как новый" is always available whenever an update target
+  // exists, so the user can fork a saved card into a second copy without
+  // overwriting the original. (Premium UX: keep one as canonical, edit
+  // the fork.) When there's no update target, the primary Save button
+  // already creates a new card — no need to duplicate.
+  if (btnAsNew) btnAsNew.style.display = hasUpdate ? "" : "none";
 
   const stale = !!(typeof tableIsStale !== "undefined" && tableIsStale);
   const canSave = !stale && Array.isArray(currentTableData) && currentTableData.length > 0;
@@ -21149,6 +21195,37 @@ function v3SaveMetaSyncMode() {
   if (btnSave) btnSave.disabled = !canSave;
   if (btnAsNew) btnAsNew.disabled = !canSave;
 }
+
+// Premium UX: drop session pointers to a no-longer-existing text. Called
+// after every destructive op (single delete, bulk delete, wipe-all). Keeps
+// "Save → Update" from FK-failing on a stale id when the user re-collects
+// the same source text and the local Gemini cache restores the table.
+function v3SessionForgetTextIfStale(deletedTextId) {
+  const id = String(deletedTextId || "").trim();
+  if (!id) return;
+  try {
+    const st = v3SessionGet() || {};
+    const cur = String(st.textId || "");
+    const base = String(st.baseTextId || "");
+    if (cur === id || base === id) {
+      v3SessionSet({
+        mode: "draft",
+        textId: null,
+        baseTextId: null,
+        resumeSentenceId: null,
+        title: null,
+        openMode: null,
+      });
+      try { if (window.v3SetActiveLibraryTextMeta) window.v3SetActiveLibraryTextMeta(null); } catch (_) {}
+      try { if (window.v3ClearActiveTextId) window.v3ClearActiveTextId(); } catch (_) {}
+    }
+  } catch (_) {}
+}
+function v3SessionForgetTextsIfStale(deletedIds) {
+  const arr = Array.isArray(deletedIds) ? deletedIds : [deletedIds];
+  for (const id of arr) v3SessionForgetTextIfStale(id);
+}
+window.v3SessionForgetTextIfStale = v3SessionForgetTextIfStale;
 
 function v3SaveMetaSetStatus(msg, isError) {
   const el = v3SaveMetaEl("v3SaveMetaStatus");
