@@ -274,6 +274,11 @@ app.use(express.static(path.join(__dirname, "public"), {
   },
 }));
 
+// Serve design mockups (HTML/CSS prototypes) so we can review them on
+// real devices before wiring into the app. Mounted at /mockups/* so the
+// path is self-explanatory and easy to remove when no longer needed.
+app.use("/mockups", express.static(path.join(__dirname, "mockups")));
+
 app.get("/api/client-config", (_req, res) => {
   const ttsEnabledRaw = String(process.env.TTS_ENABLED || "true").trim().toLowerCase();
   const debugDiagnosticsRaw = String(process.env.TTS_DEBUG_DIAGNOSTICS || "").trim().toLowerCase();
