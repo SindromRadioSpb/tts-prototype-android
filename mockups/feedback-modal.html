@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Feedback Modal — Premium Mockup</title>
+<style>
+  /* ── Reset & base ─────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-page: #0f172a;
+    --bg-modal: #ffffff;
+    --bg-card: #f8fafc;
+    --bg-card-hover: #f1f5f9;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-soft: #e2e8f0;
+    --border-medium: #cbd5e1;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --whatsapp: #25D366;
+    --whatsapp-dark: #128C7E;
+    --whatsapp-soft: #d4f4dd;
+    --success: #16a34a;
+    --warning: #d97706;
+    --danger: #dc2626;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.25);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+  }
+  body.dark {
+    --bg-modal: #1e293b;
+    --bg-card: #0f172a;
+    --bg-card-hover: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+    --border-soft: #334155;
+    --border-medium: #475569;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "SF Pro Display", system-ui, sans-serif;
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 50%, #312e81 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: var(--text-primary);
+  }
+
+  /* ── Top control bar ──────────────────────────────────────── */
+  .controls {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 100;
+  }
+  .controls button {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: background 0.15s;
+  }
+  .controls button:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── Modal shell ──────────────────────────────────────────── */
+  .modal {
+    background: var(--bg-modal);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--text-primary);
+  }
+  @keyframes modalEnter {
+    from { opacity: 0; transform: scale(0.96) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .modal-title { font-size: 20px; font-weight: 600; line-height: 1.3; }
+  .modal-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+  .modal-close {
+    background: transparent;
+    border: 0;
+    font-size: 22px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--bg-card); color: var(--text-primary); }
+
+  .modal-body { padding: 16px 24px 24px; }
+
+  /* ── Self-service block ───────────────────────────────────── */
+  .self-service {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border-soft);
+  }
+  .self-service-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .self-service-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .self-service-list a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    transition: color 0.15s;
+  }
+  .self-service-list a:hover { color: var(--accent-hover); text-decoration: underline; }
+
+  /* ── WhatsApp WOW card ────────────────────────────────────── */
+  .wa-card {
+    background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 18px;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.25);
+    position: relative;
+    overflow: hidden;
+    animation: waCardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  }
+  @keyframes waCardIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .wa-card::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .wa-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .wa-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .wa-title { font-size: 17px; font-weight: 600; }
+  .wa-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    margin-top: 2px;
+    opacity: 0.95;
+  }
+
+  /* Pulse dot — "online / responsive" */
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+    70%  { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  }
+
+  .wa-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  @media (max-width: 480px) {
+    .wa-grid { grid-template-columns: 1fr; }
+  }
+
+  .wa-qr {
+    background: #fff;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    width: 110px;
+    height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    animation: qrFade 0.5s ease-out 0.3s both;
+  }
+  @keyframes qrFade {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .wa-qr svg { width: 88px; height: 88px; }
+  .wa-qr-label {
+    font-size: 10px;
+    color: #555;
+    margin-top: 2px;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .wa-cta {
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #fff;
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.15s, transform 0.1s;
+    text-align: center;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    backdrop-filter: blur(10px);
+  }
+  .wa-cta:hover { background: rgba(255,255,255,0.28); }
+  .wa-cta:active { transform: scale(0.98); }
+  .wa-cta-arrow { font-size: 22px; line-height: 1; }
+  .wa-cta-hint { font-size: 11px; font-weight: 400; opacity: 0.85; }
+
+  .wa-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    opacity: 0.95;
+    margin-bottom: 12px;
+  }
+  .wa-tip { display: flex; align-items: flex-start; gap: 6px; }
+
+  .wa-templates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.18);
+  }
+  .wa-template-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .wa-template-btn {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: 0;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .wa-template-btn:hover { background: rgba(255,255,255,0.28); }
+
+  /* ── Categories ───────────────────────────────────────────── */
+  .section-divider {
+    text-align: center;
+    margin: 18px 0 14px;
+    position: relative;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 60px);
+    height: 1px;
+    background: var(--border-soft);
+  }
+  .section-divider::before { left: 0; }
+  .section-divider::after { right: 0; }
+
+  .categories {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  @media (max-width: 480px) { .categories { grid-template-columns: 1fr; } }
+
+  .cat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: left;
+    color: inherit;
+    font-family: inherit;
+  }
+  .cat-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-medium);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  .cat-icon { font-size: 22px; }
+  .cat-title { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .cat-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.3; }
+  .cat-card.danger { background: #fef2f2; border-color: #fecaca; }
+  body.dark .cat-card.danger { background: #2a0e0e; border-color: #5a1818; }
+
+  /* ── Command center ──────────────────────────────────────── */
+  .command-center {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .cc-title {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+  .cc-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .cc-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    text-align: left;
+  }
+  .cc-btn:hover { background: var(--bg-card-hover); border-color: var(--border-medium); }
+  .cc-icon { font-size: 16px; }
+
+  /* ── Channels footer ─────────────────────────────────────── */
+  .channels {
+    margin-top: 18px;
+    padding: 14px 0 4px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 12px;
+  }
+  .channels details { color: var(--text-secondary); }
+  .channels summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-secondary);
+    user-select: none;
+    padding: 4px 0;
+  }
+  .channels-list {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .channel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .channel-row:last-child { border-bottom: 0; }
+  .channel-row a { color: var(--accent); text-decoration: none; font-size: 12.5px; }
+  .channel-row a:hover { text-decoration: underline; }
+  .channel-name { display: flex; align-items: center; gap: 8px; color: var(--text-secondary); }
+
+  /* ── Status badge ────────────────────────────────────────── */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ecfdf5;
+    color: #166534;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 500;
+    border: 1px solid #bbf7d0;
+  }
+  body.dark .status-badge { background: #052e16; color: #86efac; border-color: #14532d; }
+
+  /* ── Trust footer ────────────────────────────────────────── */
+  .trust-footer {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .trust-icon { font-size: 13px; flex-shrink: 0; }
+
+  /* ── Scrollbar polish ────────────────────────────────────── */
+  .modal::-webkit-scrollbar { width: 8px; }
+  .modal::-webkit-scrollbar-track { background: transparent; }
+  .modal::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button onclick="document.body.classList.toggle('dark')">🌗 Тема</button>
+</div>
+
+<div class="modal" role="dialog" aria-labelledby="modalTitle">
+  <header class="modal-header">
+    <div>
+      <div class="modal-title" id="modalTitle">📬 Связаться с разработчиком</div>
+      <div class="modal-subtitle">
+        <span class="status-badge">🟢 Сервис работает</span>
+      </div>
+    </div>
+    <button class="modal-close" aria-label="Закрыть">×</button>
+  </header>
+
+  <div class="modal-body">
+
+    <!-- Self-service block -->
+    <div class="self-service">
+      <div class="self-service-title">Сначала проверьте</div>
+      <ul class="self-service-list">
+        <li><a href="#">📚 Где живут мои данные? (User Guide)</a></li>
+        <li><a href="#">❓ FAQ — три самых частых вопроса</a></li>
+        <li><a href="#">🔍 Известные проблемы (Changelog)</a></li>
+      </ul>
+    </div>
+
+    <!-- WhatsApp WOW card -->
+    <section class="wa-card">
+      <div class="wa-header">
+        <div class="wa-icon">💬</div>
+        <div>
+          <div class="wa-title">WhatsApp</div>
+          <div class="wa-subtitle">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span>Обычно отвечаю в течение 4 часов</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="wa-grid">
+        <div class="wa-qr" aria-label="QR-код для WhatsApp">
+          <!-- Placeholder QR — настоящий генерится qrcode-generator при реализации -->
+          <svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="QR placeholder">
+            <rect width="88" height="88" fill="#fff"/>
+            <!-- Pseudo-QR pattern -->
+            <g fill="#000">
+              <rect x="6" y="6" width="20" height="20"/>
+              <rect x="10" y="10" width="12" height="12" fill="#fff"/>
+              <rect x="14" y="14" width="4" height="4"/>
+              <rect x="62" y="6" width="20" height="20"/>
+              <rect x="66" y="10" width="12" height="12" fill="#fff"/>
+              <rect x="70" y="14" width="4" height="4"/>
+              <rect x="6" y="62" width="20" height="20"/>
+              <rect x="10" y="66" width="12" height="12" fill="#fff"/>
+              <rect x="14" y="70" width="4" height="4"/>
+              <!-- Random "data" cells -->
+              <rect x="32" y="6" width="4" height="4"/>
+              <rect x="40" y="6" width="4" height="4"/>
+              <rect x="48" y="6" width="4" height="4"/>
+              <rect x="32" y="14" width="4" height="4"/>
+              <rect x="36" y="18" width="4" height="4"/>
+              <rect x="48" y="14" width="4" height="4"/>
+              <rect x="32" y="22" width="4" height="4"/>
+              <rect x="44" y="22" width="4" height="4"/>
+              <rect x="56" y="22" width="4" height="4"/>
+              <rect x="6" y="36" width="4" height="4"/>
+              <rect x="14" y="36" width="4" height="4"/>
+              <rect x="22" y="36" width="4" height="4"/>
+              <rect x="32" y="32" width="4" height="4"/>
+              <rect x="40" y="36" width="4" height="4"/>
+              <rect x="48" y="32" width="4" height="4"/>
+              <rect x="56" y="36" width="4" height="4"/>
+              <rect x="64" y="32" width="4" height="4"/>
+              <rect x="72" y="36" width="4" height="4"/>
+              <rect x="80" y="32" width="4" height="4"/>
+              <rect x="6" y="44" width="4" height="4"/>
+              <rect x="18" y="48" width="4" height="4"/>
+              <rect x="26" y="44" width="4" height="4"/>
+              <rect x="34" y="44" width="4" height="4"/>
+              <rect x="44" y="48" width="4" height="4"/>
+              <rect x="52" y="44" width="4" height="4"/>
+              <rect x="60" y="48" width="4" height="4"/>
+              <rect x="68" y="44" width="4" height="4"/>
+              <rect x="76" y="48" width="4" height="4"/>
+              <rect x="32" y="56" width="4" height="4"/>
+              <rect x="40" y="60" width="4" height="4"/>
+              <rect x="48" y="56" width="4" height="4"/>
+              <rect x="56" y="60" width="4" height="4"/>
+              <rect x="64" y="56" width="4" height="4"/>
+              <rect x="72" y="60" width="4" height="4"/>
+              <rect x="80" y="56" width="4" height="4"/>
+              <rect x="32" y="64" width="4" height="4"/>
+              <rect x="36" y="72" width="4" height="4"/>
+              <rect x="48" y="68" width="4" height="4"/>
+              <rect x="56" y="72" width="4" height="4"/>
+              <rect x="68" y="68" width="4" height="4"/>
+              <rect x="76" y="72" width="4" height="4"/>
+              <rect x="84" y="68" width="4" height="4"/>
+              <rect x="44" y="80" width="4" height="4"/>
+              <rect x="56" y="80" width="4" height="4"/>
+              <rect x="68" y="80" width="4" height="4"/>
+              <rect x="80" y="80" width="4" height="4"/>
+            </g>
+          </svg>
+          <div class="wa-qr-label">Сканируйте<br>с телефона</div>
+        </div>
+        <button class="wa-cta" type="button">
+          <span class="wa-cta-arrow">→</span>
+          <span>Открыть на этом устройстве</span>
+          <span class="wa-cta-hint">в WhatsApp Web или приложении</span>
+        </button>
+      </div>
+
+      <div class="wa-tips">
+        <div class="wa-tip">
+          <span>🎙️</span>
+          <span>Можно отправить голосовое — это быстрее текста.</span>
+        </div>
+        <div class="wa-tip">
+          <span>🔒</span>
+          <span>Переписка end-to-end шифрована стандартом WhatsApp.</span>
+        </div>
+      </div>
+
+      <div class="wa-templates">
+        <span class="wa-template-label">Быстрые шаблоны</span>
+        <button class="wa-template-btn" type="button">🐛 Баг</button>
+        <button class="wa-template-btn" type="button">💡 Идея</button>
+        <button class="wa-template-btn" type="button">❓ Вопрос</button>
+      </div>
+    </section>
+
+    <div class="section-divider">или выберите категорию</div>
+
+    <!-- Categories grid -->
+    <div class="categories">
+      <button class="cat-card" type="button">
+        <div class="cat-icon">🐛</div>
+        <div class="cat-title">Что-то не работает</div>
+        <div class="cat-desc">Ошибка, баг, неожиданное поведение</div>
+      </button>
+      <button class="cat-card" type="button">
+        <div class="cat-icon">💡</div>
+        <div class="cat-title">Идея / предложение</div>
+        <div class="cat-desc">Что добавить или улучшить</div>
+      </button>
+      <button class="cat-card" type="button">
+        <div class="cat-icon">❓</div>
+        <div class="cat-title">Не понимаю как</div>
+        <div class="cat-desc">Вопрос по использованию</div>
+      </button>
+      <button class="cat-card danger" type="button">
+        <div class="cat-icon">🛡️</div>
+        <div class="cat-title">Приватность / данные</div>
+        <div class="cat-desc">Удалить, скачать, проверить</div>
+      </button>
+      <button class="cat-card" type="button" style="grid-column: 1 / -1;">
+        <div class="cat-icon">🙏</div>
+        <div class="cat-title">Благодарность / отзыв</div>
+        <div class="cat-desc">Что нравится, что хочется сохранить</div>
+      </button>
+    </div>
+
+    <!-- Command center -->
+    <section class="command-center">
+      <div class="cc-title">Быстрые действия</div>
+      <div class="cc-grid">
+        <button class="cc-btn" type="button">
+          <span class="cc-icon">📦</span>
+          <span>Скачать ZIP-бэкап</span>
+        </button>
+        <button class="cc-btn" type="button">
+          <span class="cc-icon">🩺</span>
+          <span>Проверить целостность БД</span>
+        </button>
+        <button class="cc-btn" type="button">
+          <span class="cc-icon">📊</span>
+          <span>Показать telemetry</span>
+        </button>
+        <button class="cc-btn" type="button">
+          <span class="cc-icon">💾</span>
+          <span>Сколько занято места</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Other channels (collapsed) -->
+    <section class="channels">
+      <details>
+        <summary>Все каналы связи</summary>
+        <div class="channels-list">
+          <div class="channel-row">
+            <span class="channel-name">💬 WhatsApp</span>
+            <a href="#">wa.me/&lt;phone&gt;</a>
+          </div>
+          <div class="channel-row">
+            <span class="channel-name">📧 Email</span>
+            <a href="mailto:sindromradiospb@gmail.com">sindromradiospb@gmail.com</a>
+          </div>
+          <div class="channel-row">
+            <span class="channel-name">🐙 GitHub</span>
+            <a href="https://github.com/SindromRadioSpb/tts-prototype-android/issues">issues</a>
+          </div>
+          <div class="channel-row">
+            <span class="channel-name">📚 Docs</span>
+            <a href="#">OPFS_USER_GUIDE.md</a>
+          </div>
+          <div class="channel-row">
+            <span class="channel-name">🔔 Changelog</span>
+            <a href="#">CHANGELOG.md</a>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Trust footer -->
+    <div class="trust-footer">
+      <span class="trust-icon">🔒</span>
+      <span>Никакие данные с устройства не отправляются автоматически. Когда вы выберете канал — вы лично контролируете отправку.</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Минимальная интерактивность для демо. В продакшене всё сделает feedback модуль.
+  document.querySelectorAll('.cat-card, .wa-cta, .wa-template-btn, .cc-btn').forEach(b => {
+    b.addEventListener('click', (e) => {
+      const label = e.currentTarget.querySelector('.cat-title, .wa-cta-arrow, .cc-icon')?.parentElement?.textContent?.trim() ?? e.currentTarget.textContent.trim();
+      console.log('[mockup] action:', label);
+    });
+  });
+</script>
+
+</body>
+</html>
