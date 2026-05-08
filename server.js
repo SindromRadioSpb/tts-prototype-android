@@ -336,6 +336,15 @@ app.get("/api/client-config", (_req, res) => {
   const killLocalModeRaw = String(process.env.KILL_LOCAL_MODE || "0").trim().toLowerCase();
   const killLocalMode = killLocalModeRaw === "1" || killLocalModeRaw === "true" || killLocalModeRaw === "on";
 
+  // Feedback config — phone number for WhatsApp deep-link / QR, plus
+  // typical response time used in the WOW card. Both are environment-
+  // driven so contact info changes don't require an app deploy.
+  // Phone format: digits only, no '+', no dashes/spaces (wa.me convention).
+  const developerWhatsappPhoneRaw = String(process.env.DEVELOPER_WHATSAPP_PHONE || "972535536175").replace(/[^0-9]/g, "");
+  const developerEmail = String(process.env.DEVELOPER_EMAIL || "sindromradiospb@gmail.com").trim();
+  const developerGithub = String(process.env.DEVELOPER_GITHUB_REPO || "SindromRadioSpb/tts-prototype-android").trim();
+  const responseTimeHours = Number(process.env.DEVELOPER_RESPONSE_TIME_HOURS || "4");
+
   return res.json({
     ok: true,
     tts: {
@@ -357,7 +366,13 @@ app.get("/api/client-config", (_req, res) => {
     },
     flags: {
       killLocalMode,
-    }
+    },
+    feedback: {
+      whatsappPhone: developerWhatsappPhoneRaw,
+      email: developerEmail,
+      githubRepo: developerGithub,
+      responseTimeHours: Number.isFinite(responseTimeHours) && responseTimeHours > 0 ? responseTimeHours : 4,
+    },
   });
 });
 

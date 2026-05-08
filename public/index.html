@@ -5543,6 +5543,87 @@ td[data-col="ru"] {
   }
 }
 
+/* ── Feedback modal — premium UX (FEEDBACK_PREMIUM_CONCEPT.md) ─────── */
+@keyframes v3FbEnter {
+  from { opacity: 0; transform: scale(0.96) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes v3FbWaCardIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes v3FbQrFade {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes v3FbPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+  70%  { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+.v3-fb-pulse-dot {
+  width: 8px; height: 8px; background: #4ade80; border-radius: 50%;
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+  animation: v3FbPulse 2s infinite;
+  flex-shrink: 0;
+}
+.v3-fb-cat-card {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+  padding: 14px; cursor: pointer; transition: all 0.15s;
+  display: flex; flex-direction: column; gap: 4px; text-align: left;
+  font-family: inherit; color: inherit; width: 100%;
+}
+.v3-fb-cat-card:hover {
+  background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.v3-fb-cat-card.danger { background: #fef2f2; border-color: #fecaca; }
+.v3-fb-cc-btn {
+  background: #f8fafc; border: 1px solid #e2e8f0; color: #0f172a;
+  padding: 10px 12px; border-radius: 8px; font-size: 12.5px;
+  cursor: pointer; transition: all 0.15s; display: flex;
+  align-items: center; gap: 8px; font-family: inherit; text-align: left;
+}
+.v3-fb-cc-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
+.v3-fb-cta-btn {
+  background: #2563eb; color: #fff; border: 0;
+  padding: 12px 20px; border-radius: 8px;
+  font-size: 14.5px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s; font-family: inherit;
+}
+.v3-fb-cta-btn:hover { background: #1d4ed8; }
+.v3-fb-cta-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+.v3-fb-secondary-btn {
+  background: #fff; color: #475569; border: 1px solid #cbd5e1;
+  padding: 10px 16px; border-radius: 8px; font-size: 13.5px;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+}
+.v3-fb-secondary-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+.v3-fb-input, .v3-fb-textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
+  font-size: 14px; font-family: inherit; color: #0f172a; background: #fff;
+  resize: vertical; box-sizing: border-box;
+}
+.v3-fb-input:focus, .v3-fb-textarea:focus {
+  outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+.v3-fb-label {
+  display: block; font-size: 13px; font-weight: 500; color: #475569;
+  margin-bottom: 6px;
+}
+.v3-fb-diag-section {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+  padding: 10px 12px; margin-bottom: 6px; font-size: 12.5px; line-height: 1.5;
+}
+.v3-fb-diag-section pre {
+  margin: 4px 0 0; font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11.5px; color: #475569; white-space: pre-wrap; word-break: break-word;
+}
+@media (max-width: 480px) {
+  #v3FeedbackPanel { border-radius: 12px; }
+  .v3-fb-wa-grid { grid-template-columns: 1fr !important; }
+}
+
 </style>
 
 <script src="/db/jszip.min.js"></script>
@@ -5620,6 +5701,9 @@ td[data-col="ru"] {
     </button>
     <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" data-i18n="ide.train" data-i18n-title="ide.openTrainerTitle" title="Open SRS Trainer">
       🎯 Train
+    </button>
+    <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
+      📬
     </button>
     <div class="lang-select-wrap">
       <select id="appLangSelectIde" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
@@ -6026,6 +6110,7 @@ td[data-col="ru"] {
                         <button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()" data-i18n="classic.library">📚 Библиотека</button>
                         <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()" data-i18n="classic.dashboard">📈 Дашборд</button>
                         <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
+                        <button id="btnFeedback" class="btn-secondary" onclick="v3FeedbackOpen()" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
                     </div>
                     <div class="lang-select-wrap classic-lang-wrap" title="">
                       <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
@@ -6493,6 +6578,25 @@ td[data-col="ru"] {
     <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap;">
       <button id="v3ConfirmCancel" type="button" style="min-height:42px; padding:0 16px; border:1px solid #d1d5db; border-radius:6px; background:#fff; color:#374151; font-weight:500; cursor:pointer;">Отмена</button>
       <button id="v3ConfirmOk" type="button" style="min-height:42px; padding:0 18px; border:0; border-radius:6px; background:#dc2626; color:#fff; font-weight:600; cursor:pointer;">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Feedback modal — premium concept (FEEDBACK_PREMIUM_CONCEPT.md) ─────── -->
+<div id="v3FeedbackModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,23,42,0.6); align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto;" role="dialog" aria-modal="true" aria-labelledby="v3FbTitle">
+  <div id="v3FeedbackPanel" style="background:#fff; border-radius:16px; max-width:520px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); animation:v3FbEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin:auto;">
+    <header style="padding:20px 24px 12px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+      <div>
+        <div id="v3FbTitle" style="font-size:20px; font-weight:600; color:#0f172a;">📬 Связаться с разработчиком</div>
+        <div id="v3FbSubtitle" style="font-size:13px; margin-top:4px;">
+          <span id="v3FbStatusBadge" style="display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; color:#166534; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:500; border:1px solid #bbf7d0;">🟢 Сервис работает</span>
+        </div>
+      </div>
+      <button onclick="v3FeedbackClose()" style="background:transparent; border:0; font-size:22px; color:#94a3b8; cursor:pointer; padding:4px 8px; border-radius:8px;" aria-label="Закрыть">×</button>
+    </header>
+
+    <div id="v3FbBody" style="padding:16px 24px 24px;">
+      <!-- Content rendered by v3FeedbackRender* functions -->
     </div>
   </div>
 </div>
@@ -18680,6 +18784,620 @@ function v3UndoToast(message, restoreFn, ttlMs) {
   v3UndoToastTimer = setTimeout(cleanup, ttl);
 }
 window.v3UndoToast = v3UndoToast;
+
+// ── Feedback modal (FEEDBACK_PREMIUM_CONCEPT.md) ───────────────────────────
+// WhatsApp-first contact-developer flow with QR for desktop, pre-filled
+// templates per category, diagnostics preview, persistent draft, and
+// command-center actions (ZIP backup, integrity check, telemetry, storage).
+const V3_FB_DRAFT_KEY = "feedbackDraft_v1";
+const V3_FB_QR_SCRIPT = "/db/qrcode.js";
+let v3FbConfig = null;       // { whatsappPhone, email, githubRepo, responseTimeHours }
+let v3FbQrLoaded = false;
+let v3FbView = "triage";     // 'triage' | 'category:<name>' | 'ack'
+let v3FbCurrentCategory = null;
+let v3FbDraftTimer = null;
+let v3FbDiagOptOut = new Set();  // ids of diagnostic sections opted out
+
+async function v3FbLoadConfig() {
+  if (v3FbConfig) return v3FbConfig;
+  try {
+    const r = await fetch("/api/client-config", { cache: "no-store" });
+    const j = await r.json();
+    v3FbConfig = (j && j.feedback) ? j.feedback : { whatsappPhone: "972535536175", email: "sindromradiospb@gmail.com", githubRepo: "SindromRadioSpb/tts-prototype-android", responseTimeHours: 4 };
+  } catch (_) {
+    v3FbConfig = { whatsappPhone: "972535536175", email: "sindromradiospb@gmail.com", githubRepo: "SindromRadioSpb/tts-prototype-android", responseTimeHours: 4 };
+  }
+  return v3FbConfig;
+}
+
+function v3FbLoadQr() {
+  if (v3FbQrLoaded || (typeof window.qrcode === "function")) { v3FbQrLoaded = true; return Promise.resolve(); }
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = V3_FB_QR_SCRIPT;
+    s.async = true;
+    s.onload = () => { v3FbQrLoaded = true; resolve(); };
+    s.onerror = () => reject(new Error("qrcode.js load failed"));
+    document.head.appendChild(s);
+  });
+}
+
+function v3FbBuildQrSvg(text, size) {
+  if (typeof window.qrcode !== "function") return "";
+  try {
+    // typeNumber=0 (auto), errorCorrection='M' (medium — good for printed QRs)
+    const qr = window.qrcode(0, "M");
+    qr.addData(text);
+    qr.make();
+    const cellSize = Math.max(2, Math.floor(size / qr.getModuleCount()));
+    return qr.createSvgTag({ cellSize, margin: cellSize, scalable: true });
+  } catch (e) {
+    console.warn("[fb] qr build failed", e);
+    return "";
+  }
+}
+
+function v3FbBuildDiagnostics() {
+  // Assemble what we'd attach to a bug report. Each section is a string
+  // ready to be embedded in plain text. Sensitive content is excluded.
+  const sections = {};
+  // App
+  sections.app = "linguistpro 3.0.0";
+  // Browser & OS (heuristic from UA — premium products do better via
+  // Client Hints, but UA is sufficient for support context).
+  try {
+    const ua = navigator.userAgent || "";
+    const w = window.innerWidth, h = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    sections.browser = ua + "\nViewport: " + w + "×" + h + " · DPR " + dpr;
+  } catch (_) {}
+  // Storage / VFS
+  try {
+    let vfsInfo = null;
+    if (window.__localDB && typeof window.__localDB.getVfsInfo === "function") {
+      vfsInfo = window.__localDB.getVfsInfo();
+    }
+    let storageStr = "VFS: " + (vfsInfo && vfsInfo.name ? vfsInfo.name : "(unknown)");
+    if (vfsInfo && vfsInfo.kind) storageStr += " (" + vfsInfo.kind + ")";
+    sections.storage = storageStr;
+  } catch (_) {}
+  // OPFS quota
+  // Note: navigator.storage.estimate() is async — we render placeholder
+  // and fill in async via v3FbFillAsyncDiag.
+  sections.quota = "(вычисляется...)";
+  // Telemetry summary
+  try {
+    if (window.v3OpfsTelemetry && typeof window.v3OpfsTelemetry.summary === "function") {
+      const t = window.v3OpfsTelemetry.summary();
+      sections.telemetry = JSON.stringify(t, null, 2);
+    }
+  } catch (_) {}
+  // Recent telemetry events (last 5)
+  try {
+    if (window.v3OpfsTelemetry && typeof window.v3OpfsTelemetry.list === "function") {
+      const list = window.v3OpfsTelemetry.list().slice(-5);
+      sections.recentEvents = list.map((e) => JSON.stringify(e)).join("\n");
+    }
+  } catch (_) {}
+  // localStorage flags (only ours, not third-party)
+  try {
+    const keys = ["localMode", "phase6FirstOpenSeen", "opfsVfsPreference_v1", "clientFlags_v1"];
+    const flags = {};
+    for (const k of keys) {
+      const v = localStorage.getItem(k);
+      if (v !== null) flags[k] = v.length > 200 ? v.slice(0, 200) + "..." : v;
+    }
+    sections.flags = JSON.stringify(flags, null, 2);
+  } catch (_) {}
+  return sections;
+}
+
+async function v3FbFillAsyncDiag(sections) {
+  try {
+    if (typeof window.v3StorageEstimate === "function") {
+      const est = await window.v3StorageEstimate();
+      if (est && est.supported) {
+        const fmt = (b) => {
+          if (!b) return "0 B";
+          const u = ["B","KB","MB","GB","TB"];
+          let i = 0, n = b;
+          while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+          return n.toFixed(n < 10 && i > 0 ? 2 : 1) + " " + u[i];
+        };
+        sections.quota = fmt(est.usage) + " / " + fmt(est.quota) + " (" + (Math.round(est.percent * 10) / 10) + "%)";
+      }
+    }
+  } catch (_) {}
+  return sections;
+}
+
+function v3FbFormatDiagnostics(sections) {
+  const lines = ["--- Diagnostics ---"];
+  const labels = {
+    app: "App", browser: "Browser & OS", storage: "Storage",
+    quota: "OPFS Quota", telemetry: "Telemetry summary",
+    recentEvents: "Recent events (last 5)", flags: "Local flags",
+  };
+  for (const k of Object.keys(sections)) {
+    if (v3FbDiagOptOut.has(k)) continue;
+    if (!sections[k]) continue;
+    lines.push("");
+    lines.push("### " + (labels[k] || k));
+    lines.push(sections[k]);
+  }
+  return lines.join("\n");
+}
+
+// ── Drafts ────────────────────────────────────────────────────────────
+function v3FbSaveDraft() {
+  try {
+    const fields = ["v3FbTitle_input", "v3FbBody_input", "v3FbExpected_input", "v3FbSteps_input"];
+    const data = { category: v3FbCurrentCategory, fields: {}, ts: Date.now() };
+    for (const id of fields) {
+      const el = document.getElementById(id);
+      if (el) data.fields[id] = el.value;
+    }
+    if (Object.keys(data.fields).length > 0 && v3FbCurrentCategory) {
+      localStorage.setItem(V3_FB_DRAFT_KEY, JSON.stringify(data));
+    }
+  } catch (_) {}
+}
+function v3FbLoadDraft() {
+  try {
+    const raw = localStorage.getItem(V3_FB_DRAFT_KEY);
+    if (!raw) return null;
+    const j = JSON.parse(raw);
+    // Drop drafts older than 7 days.
+    if (j && j.ts && (Date.now() - j.ts) > 7 * 86400 * 1000) {
+      localStorage.removeItem(V3_FB_DRAFT_KEY);
+      return null;
+    }
+    return j;
+  } catch (_) { return null; }
+}
+function v3FbClearDraft() { try { localStorage.removeItem(V3_FB_DRAFT_KEY); } catch (_) {} }
+
+// ── Templates per category ─────────────────────────────────────────────
+function v3FbTemplate(category, fields, diagText) {
+  const t = (fields && fields.title) ? fields.title.trim() : "";
+  const b = (fields && fields.body) ? fields.body.trim() : "";
+  const e = (fields && fields.expected) ? fields.expected.trim() : "";
+  const s = (fields && fields.steps) ? fields.steps.trim() : "";
+  let header;
+  if (category === "bug") header = "🐛 Баг в LinguistPro";
+  else if (category === "idea") header = "💡 Идея для LinguistPro";
+  else if (category === "question") header = "❓ Вопрос по LinguistPro";
+  else if (category === "privacy") header = "🛡 Вопрос про данные / приватность";
+  else if (category === "thanks") header = "🙏 Отзыв о LinguistPro";
+  else header = "📬 Связь по LinguistPro";
+
+  const parts = [header];
+  if (t) parts.push("Заголовок: " + t);
+  if (b) parts.push("\n" + b);
+  if (e) parts.push("\nОжидание: " + e);
+  if (s) parts.push("\nШаги:\n" + s);
+  if (diagText) parts.push("\n" + diagText);
+  return parts.join("\n");
+}
+
+// ── Open & render ──────────────────────────────────────────────────────
+async function v3FeedbackOpen(initialCategory) {
+  const modal = document.getElementById("v3FeedbackModal");
+  if (!modal) return;
+  v3FbView = initialCategory ? ("category:" + initialCategory) : "triage";
+  v3FbCurrentCategory = initialCategory || null;
+  v3FbDiagOptOut = new Set();
+
+  await v3FbLoadConfig();
+  // Lazy-load QR (needed even on triage view since WhatsApp card has it).
+  v3FbLoadQr().catch(() => {});
+
+  modal.style.display = "flex";
+  v3FbRender();
+  document.addEventListener("keydown", v3FbKeyHandler);
+}
+function v3FeedbackClose() {
+  const modal = document.getElementById("v3FeedbackModal");
+  if (modal) modal.style.display = "none";
+  document.removeEventListener("keydown", v3FbKeyHandler);
+  if (v3FbDraftTimer) { clearInterval(v3FbDraftTimer); v3FbDraftTimer = null; }
+  v3FbView = "triage"; v3FbCurrentCategory = null;
+}
+function v3FbKeyHandler(e) {
+  if (e.key === "Escape") {
+    if (v3FbView !== "triage" && v3FbView !== "ack") {
+      v3FbView = "triage"; v3FbCurrentCategory = null; v3FbRender();
+    } else { v3FeedbackClose(); }
+  }
+}
+window.v3FeedbackOpen = v3FeedbackOpen;
+window.v3FeedbackClose = v3FeedbackClose;
+
+function v3FbRender() {
+  const body = document.getElementById("v3FbBody");
+  if (!body) return;
+  if (v3FbView === "triage") body.innerHTML = v3FbRenderTriage();
+  else if (v3FbView === "ack") body.innerHTML = v3FbRenderAck();
+  else if (v3FbView.startsWith("category:")) body.innerHTML = v3FbRenderCategory(v3FbCurrentCategory);
+
+  // Post-render: build QR, attach handlers, restore draft if applicable.
+  setTimeout(() => v3FbPostRender(), 0);
+}
+
+function v3FbPostRender() {
+  // Build the WhatsApp QR if we're on triage and lib is loaded.
+  if (v3FbView === "triage") {
+    const qrSlot = document.getElementById("v3FbWaQr");
+    if (qrSlot && qrSlot.dataset.built !== "1") {
+      const tryBuild = () => {
+        const txt = "https://wa.me/" + v3FbConfig.whatsappPhone;
+        const svg = v3FbBuildQrSvg(txt, 110);
+        if (svg) { qrSlot.innerHTML = svg + '<div style="font-size:10px; color:#555; margin-top:2px; text-align:center; font-weight:500;">Сканируйте<br>с телефона</div>'; qrSlot.dataset.built = "1"; }
+      };
+      if (typeof window.qrcode === "function") tryBuild();
+      else v3FbLoadQr().then(tryBuild).catch(() => { qrSlot.innerHTML = '<div style="padding:12px; font-size:11px; color:#888;">QR недоступен — используйте кнопку справа</div>'; });
+    }
+  }
+
+  // If on a form view, start draft autosave.
+  if (v3FbView.startsWith("category:")) {
+    const draft = v3FbLoadDraft();
+    if (draft && draft.category === v3FbCurrentCategory && draft.fields) {
+      for (const id of Object.keys(draft.fields)) {
+        const el = document.getElementById(id);
+        if (el && !el.value) el.value = draft.fields[id];
+      }
+    }
+    if (v3FbDraftTimer) clearInterval(v3FbDraftTimer);
+    v3FbDraftTimer = setInterval(v3FbSaveDraft, 2000);
+  }
+
+  // Status badge: refresh from /api/diag (best-effort).
+  v3FbRefreshStatusBadge();
+}
+
+async function v3FbRefreshStatusBadge() {
+  const el = document.getElementById("v3FbStatusBadge");
+  if (!el) return;
+  try {
+    const r = await fetch("/api/diag", { cache: "no-store" });
+    if (r.ok) { el.textContent = "🟢 Сервис работает"; el.style.background = "#ecfdf5"; el.style.color = "#166534"; el.style.borderColor = "#bbf7d0"; }
+    else { el.textContent = "🟡 Сервис с предупреждениями"; el.style.background = "#fefce8"; el.style.color = "#854d0e"; el.style.borderColor = "#fde047"; }
+  } catch (_) {
+    el.textContent = "🔴 Нет связи с сервером"; el.style.background = "#fef2f2"; el.style.color = "#991b1b"; el.style.borderColor = "#fecaca";
+  }
+}
+
+function v3FbRenderTriage() {
+  const phone = v3FbConfig.whatsappPhone;
+  const hours = v3FbConfig.responseTimeHours;
+  const waUrl = "https://wa.me/" + phone;
+  return `
+    <div style="background:#f8fafc; border-radius:12px; padding:14px 16px; margin-bottom:16px; border:1px solid #e2e8f0;">
+      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:8px;">Сначала проверьте</div>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:6px; margin:0; padding:0;">
+        <li><a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">📚 Где живут мои данные? (User Guide)</a></li>
+        <li><a href="#" onclick="alert('FAQ — в концепте, в первой версии вынесем top-3 вопроса.');return false;" style="color:#2563eb; text-decoration:none; font-size:13.5px;">❓ FAQ — три самых частых вопроса</a></li>
+        <li><a href="/CHANGELOG.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">🔍 Известные проблемы (Changelog)</a></li>
+      </ul>
+    </div>
+
+    <section style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border-radius:12px; padding:20px; margin-bottom:18px; color:#fff; box-shadow:0 8px 24px rgba(37,211,102,0.25); position:relative; overflow:hidden; animation:v3FbWaCardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+        <div style="width:36px; height:36px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px;">💬</div>
+        <div>
+          <div style="font-size:17px; font-weight:600;">WhatsApp</div>
+          <div style="display:flex; align-items:center; gap:6px; font-size:13px; margin-top:2px; opacity:0.95;">
+            <span class="v3-fb-pulse-dot" aria-hidden="true"></span>
+            <span>Обычно отвечаю в течение ${hours} часов</span>
+          </div>
+        </div>
+      </div>
+      <div class="v3-fb-wa-grid" style="display:grid; grid-template-columns:auto 1fr; gap:14px; margin-bottom:14px;">
+        <div id="v3FbWaQr" style="background:#fff; padding:8px; border-radius:8px; width:110px; height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; animation:v3FbQrFade 0.5s ease-out 0.3s both;">
+          <div style="font-size:11px; color:#888;">QR…</div>
+        </div>
+        <button onclick="v3FbOpenWhatsApp('triage')" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); color:#fff; border-radius:8px; padding:16px; cursor:pointer; font-size:14px; font-weight:600; text-align:center; line-height:1.4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; backdrop-filter:blur(10px);">
+          <span style="font-size:22px;">→</span>
+          <span>Открыть на этом устройстве</span>
+          <span style="font-size:11px; font-weight:400; opacity:0.85;">в WhatsApp Web или приложении</span>
+        </button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; line-height:1.4; opacity:0.95; margin-bottom:12px;">
+        <div style="display:flex; gap:6px;"><span>🎙️</span><span>Можно отправить голосовое — это быстрее текста.</span></div>
+        <div style="display:flex; gap:6px;"><span>🔒</span><span>Переписка end-to-end шифрована стандартом WhatsApp.</span></div>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.18);">
+        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; opacity:0.7; width:100%; margin-bottom:4px;">Быстрые шаблоны</span>
+        <button onclick="v3FbOpenWhatsApp('bug')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">🐛 Баг</button>
+        <button onclick="v3FbOpenWhatsApp('idea')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">💡 Идея</button>
+        <button onclick="v3FbOpenWhatsApp('question')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">❓ Вопрос</button>
+      </div>
+    </section>
+
+    <div style="text-align:center; margin:18px 0 14px; position:relative; color:#94a3b8; font-size:12px;">или выберите категорию</div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('bug')">
+        <div style="font-size:22px;">🐛</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">Что-то не работает</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">Ошибка, баг, неожиданное поведение</div>
+      </button>
+      <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('idea')">
+        <div style="font-size:22px;">💡</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">Идея / предложение</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">Что добавить или улучшить</div>
+      </button>
+      <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('question')">
+        <div style="font-size:22px;">❓</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">Не понимаю как</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">Вопрос по использованию</div>
+      </button>
+      <button class="v3-fb-cat-card danger" type="button" onclick="v3FbGoCategory('privacy')">
+        <div style="font-size:22px;">🛡️</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">Приватность / данные</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">Удалить, скачать, проверить</div>
+      </button>
+      <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('thanks')" style="grid-column: 1 / -1;">
+        <div style="font-size:22px;">🙏</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">Благодарность / отзыв</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">Что нравится, что хочется сохранить</div>
+      </button>
+    </div>
+
+    <section style="margin-top:18px; padding-top:18px; border-top:1px solid #e2e8f0;">
+      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:10px;">Быстрые действия</div>
+      <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdBackup()"><span>📦</span><span>Скачать ZIP-бэкап</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdIntegrity()"><span>🩺</span><span>Проверить целостность БД</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdTelemetry()"><span>📊</span><span>Показать telemetry</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdStorage()"><span>💾</span><span>Сколько занято места</span></button>
+      </div>
+    </section>
+
+    <section style="margin-top:18px; padding:14px 0 4px; border-top:1px solid #e2e8f0; font-size:12px;">
+      <details>
+        <summary style="cursor:pointer; font-weight:500; color:#475569; user-select:none; padding:4px 0;">Все каналы связи</summary>
+        <div style="margin-top:10px; display:grid; grid-template-columns:1fr; gap:6px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e2e8f0;">
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">💬 WhatsApp</span>
+            <a href="${waUrl}" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:12.5px;">+${phone}</a>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e2e8f0;">
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">📧 Email</span>
+            <a href="mailto:${v3FbConfig.email}" style="color:#2563eb; text-decoration:none; font-size:12.5px;">${v3FbConfig.email}</a>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e2e8f0;">
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">🐙 GitHub</span>
+            <a href="https://github.com/${v3FbConfig.githubRepo}/issues" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:12.5px;">issues</a>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">📚 Docs</span>
+            <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:12.5px;">OPFS_USER_GUIDE.md</a>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <div style="margin-top:14px; padding-top:12px; border-top:1px solid #e2e8f0; font-size:11.5px; color:#94a3b8; line-height:1.5; display:flex; align-items:center; gap:8px;">
+      <span style="font-size:13px;">🔒</span>
+      <span>Никакие данные с устройства не отправляются автоматически. Когда вы выберете канал — вы лично контролируете отправку.</span>
+    </div>
+  `;
+}
+
+function v3FbRenderCategory(category) {
+  const labels = {
+    bug: { title: "🐛 Что-то не работает", titleHint: "Краткое описание", desc: "Что произошло", showSteps: true, showExpected: true, defaultDiag: true },
+    idea: { title: "💡 Идея / предложение", titleHint: "Идея кратко", desc: "Подробнее", showSteps: false, showExpected: false, defaultDiag: false },
+    question: { title: "❓ Вопрос по использованию", titleHint: "Кратко", desc: "Что не получается", showSteps: false, showExpected: false, defaultDiag: false },
+    privacy: { title: "🛡️ Приватность / данные", titleHint: "Что беспокоит", desc: "Опишите подробнее", showSteps: false, showExpected: false, defaultDiag: false, showPanic: true },
+    thanks: { title: "🙏 Благодарность / отзыв", titleHint: "Кратко", desc: "Поделитесь впечатлениями", showSteps: false, showExpected: false, defaultDiag: false },
+  };
+  const cfg = labels[category] || labels.bug;
+  const diagSections = v3FbBuildDiagnostics();
+  // Trigger async fill of quota; will re-render on completion (cheap).
+  v3FbFillAsyncDiag(diagSections).then(() => {
+    if (v3FbCurrentCategory === category) {
+      const diagPre = document.getElementById("v3FbDiagPreviewPre");
+      if (diagPre) diagPre.textContent = v3FbFormatDiagnostics(diagSections);
+    }
+  });
+
+  return `
+    <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#475569; cursor:pointer; padding:0 0 12px; font-size:13px; font-family:inherit;">← Назад</button>
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#0f172a;">${cfg.title}</h3>
+
+    ${cfg.showPanic ? `
+      <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; margin-bottom:14px;">
+        <div style="font-weight:600; font-size:13.5px; color:#991b1b; margin-bottom:6px;">Срочные действия:</div>
+        <button class="v3-fb-secondary-btn" style="margin:4px 4px 4px 0;" onclick="v3FbCmdBackup()">📦 Скачать ZIP-бэкап</button>
+        <button class="v3-fb-secondary-btn" style="margin:4px 0;" onclick="if(confirm('Удалить всю локальную библиотеку? Это необратимо.')) v3LibraryWipeAllConfirm();">⚠ Удалить мои данные</button>
+      </div>
+    ` : ''}
+
+    <div style="margin-bottom:12px;">
+      <label class="v3-fb-label" for="v3FbTitle_input">${cfg.titleHint}</label>
+      <input id="v3FbTitle_input" type="text" class="v3-fb-input" maxlength="200" oninput="v3FbSaveDraft()" />
+    </div>
+    <div style="margin-bottom:12px;">
+      <label class="v3-fb-label" for="v3FbBody_input">${cfg.desc}</label>
+      <textarea id="v3FbBody_input" class="v3-fb-textarea" rows="5" oninput="v3FbSaveDraft()" placeholder="${category === 'thanks' ? 'Можно отправить голосовое в WhatsApp — будет быстрее.' : 'Опишите подробно…'}"></textarea>
+    </div>
+    ${cfg.showExpected ? `
+    <div style="margin-bottom:12px;">
+      <label class="v3-fb-label" for="v3FbExpected_input">Что вы ожидали увидеть (опц.)</label>
+      <textarea id="v3FbExpected_input" class="v3-fb-textarea" rows="2" oninput="v3FbSaveDraft()"></textarea>
+    </div>
+    ` : ''}
+    ${cfg.showSteps ? `
+    <div style="margin-bottom:12px;">
+      <label class="v3-fb-label" for="v3FbSteps_input">Шаги воспроизведения (опц.)</label>
+      <textarea id="v3FbSteps_input" class="v3-fb-textarea" rows="3" oninput="v3FbSaveDraft()" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea>
+    </div>
+    ` : ''}
+
+    <div style="margin:16px 0; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13.5px; font-weight:500; color:#0f172a;">
+        <input id="v3FbDiagToggle" type="checkbox" ${cfg.defaultDiag ? 'checked' : ''} onchange="document.getElementById('v3FbDiagPreview').style.display = this.checked ? 'block' : 'none';" />
+        Прикрепить диагностику (что отправится — видно ниже)
+      </label>
+      <div id="v3FbDiagPreview" style="display:${cfg.defaultDiag ? 'block' : 'none'}; margin-top:10px;">
+        <div class="v3-fb-diag-section">
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:6px;">Превью</div>
+          <pre id="v3FbDiagPreviewPre">${v3FbEscape(v3FbFormatDiagnostics(diagSections))}</pre>
+        </div>
+        <div style="margin-top:6px; font-size:11px; color:#94a3b8;">Содержимого ваших текстов / заметок нет в диагностике — только counts/metadata.</div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:18px;">
+      <button class="v3-fb-cta-btn" style="background:#25D366;" onclick="v3FbSubmit('whatsapp')">💬 WhatsApp</button>
+      <button class="v3-fb-secondary-btn" onclick="v3FbSubmit('email')">📧 Email</button>
+      <button class="v3-fb-secondary-btn" onclick="v3FbSubmit('copy')">📋 Скопировать</button>
+      ${category === 'bug' ? `<button class="v3-fb-secondary-btn" onclick="v3FbSubmit('github')">🐙 GitHub Issue</button>` : ''}
+    </div>
+  `;
+}
+
+function v3FbRenderAck() {
+  const hours = v3FbConfig.responseTimeHours;
+  return `
+    <div style="text-align:center; padding:24px 12px;">
+      <div style="font-size:48px; margin-bottom:12px;">✓</div>
+      <h3 style="margin:0 0 12px; font-size:20px; font-weight:600; color:#0f172a;">Спасибо!</h3>
+      <p style="font-size:14.5px; line-height:1.5; color:#475569; margin:0 0 16px;">Читаю каждое сообщение лично — отвечу в течение ${hours} часов в будни.</p>
+      <p style="font-size:13.5px; line-height:1.5; color:#94a3b8; margin:0 0 24px;">Если срочно — напишите в WhatsApp, там я вижу уведомления быстрее.</p>
+      <div style="text-align:left; background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0;">
+        <div style="font-size:13px; font-weight:600; color:#0f172a; margin-bottom:8px;">🎯 Что вы можете сделать сейчас:</div>
+        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; font-size:13px; color:#475569;">
+          <li>• Продолжить работу — приложение работает оффлайн.</li>
+          <li>• <a href="#" onclick="v3FbCmdBackup();return false;" style="color:#2563eb;">Сделать ZIP-бэкап</a> на случай если проблема разовьётся.</li>
+        </ul>
+      </div>
+      <button class="v3-fb-cta-btn" style="margin-top:18px;" onclick="v3FeedbackClose()">Закрыть</button>
+    </div>
+  `;
+}
+
+function v3FbEscape(s) {
+  return String(s || "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+function v3FbGoCategory(category) {
+  v3FbCurrentCategory = category;
+  v3FbView = "category:" + category;
+  v3FbRender();
+}
+function v3FbGoTriage() {
+  if (v3FbDraftTimer) { clearInterval(v3FbDraftTimer); v3FbDraftTimer = null; }
+  v3FbCurrentCategory = null;
+  v3FbView = "triage";
+  v3FbRender();
+}
+window.v3FbGoCategory = v3FbGoCategory;
+window.v3FbGoTriage = v3FbGoTriage;
+window.v3FbSaveDraft = v3FbSaveDraft;
+
+// ── Send dispatchers ───────────────────────────────────────────────────
+function v3FbCollectFields() {
+  return {
+    title: (document.getElementById("v3FbTitle_input") || {}).value || "",
+    body:  (document.getElementById("v3FbBody_input")  || {}).value || "",
+    expected: (document.getElementById("v3FbExpected_input") || {}).value || "",
+    steps: (document.getElementById("v3FbSteps_input") || {}).value || "",
+  };
+}
+async function v3FbSubmit(channel) {
+  const cat = v3FbCurrentCategory || "bug";
+  const fields = v3FbCollectFields();
+  const wantDiag = !!(document.getElementById("v3FbDiagToggle") || {}).checked;
+  let diagText = "";
+  if (wantDiag) {
+    const sections = v3FbBuildDiagnostics();
+    await v3FbFillAsyncDiag(sections);
+    diagText = v3FbFormatDiagnostics(sections);
+  }
+  const message = v3FbTemplate(cat, fields, diagText);
+
+  if (channel === "whatsapp") {
+    const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(message);
+    window.open(url, "_blank", "noopener");
+  } else if (channel === "email") {
+    const subject = "[LinguistPro v3.0.0] " + (fields.title || cat);
+    const url = "mailto:" + v3FbConfig.email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(message);
+    window.location.href = url;
+  } else if (channel === "copy") {
+    try {
+      await navigator.clipboard.writeText(message);
+      showToast("Скопировано в буфер. Вставьте в email / WhatsApp / GitHub.", "success");
+    } catch (_) {
+      // Fallback: temporary textarea
+      const ta = document.createElement("textarea"); ta.value = message; document.body.appendChild(ta); ta.select();
+      try { document.execCommand("copy"); } catch (__) {}
+      ta.remove();
+      showToast("Скопировано (legacy fallback).", "info");
+    }
+  } else if (channel === "github") {
+    const subject = (fields.title || cat).slice(0, 80);
+    const url = "https://github.com/" + v3FbConfig.githubRepo + "/issues/new?title=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(message);
+    window.open(url, "_blank", "noopener");
+  }
+
+  // Show ack screen.
+  v3FbClearDraft();
+  v3FbView = "ack";
+  v3FbRender();
+}
+window.v3FbSubmit = v3FbSubmit;
+
+function v3FbOpenWhatsApp(category) {
+  // Used by triage WOW card and quick-template buttons. No fields filled
+  // — just a clean header so the user types the rest in WhatsApp.
+  const message = v3FbTemplate(category || "triage", {}, "");
+  const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(message);
+  window.open(url, "_blank", "noopener");
+}
+window.v3FbOpenWhatsApp = v3FbOpenWhatsApp;
+
+// ── Command center actions ─────────────────────────────────────────────
+async function v3FbCmdBackup() {
+  v3FeedbackClose();
+  if (typeof window.v3LibraryExportBundle === "function") {
+    showToast("Готовлю ZIP-бэкап…", "info");
+    try { await window.v3LibraryExportBundle(); }
+    catch (e) { console.warn("[fb] backup failed", e); showToast("Ошибка бэкапа (см. console)", "error"); }
+  } else { showToast("Backup-команда недоступна", "error"); }
+}
+async function v3FbCmdIntegrity() {
+  if (!window.__localDB || typeof window.__localDB.integrityCheck !== "function") {
+    showToast("Integrity-check недоступен (нет OPFS init)", "error"); return;
+  }
+  showToast("Проверяю целостность БД…", "info");
+  try {
+    const r = await window.__localDB.integrityCheck();
+    if (r.ok) showToast("✓ Целостность БД: OK", "success");
+    else showToast("⚠ Найдены проблемы: " + (r.issues || []).slice(0, 2).join("; ") + " (см. console)", "error");
+  } catch (e) { console.warn("[fb] integrity failed", e); showToast("Integrity-check упал (см. console)", "error"); }
+}
+function v3FbCmdTelemetry() {
+  const sum = (window.v3OpfsTelemetry && typeof window.v3OpfsTelemetry.summary === "function") ? window.v3OpfsTelemetry.summary() : null;
+  if (!sum) { showToast("Telemetry недоступна", "error"); return; }
+  console.log("[fb] telemetry summary:", sum);
+  console.log("[fb] telemetry list:", window.v3OpfsTelemetry.list());
+  showToast("Telemetry в console (DevTools)", "info");
+}
+async function v3FbCmdStorage() {
+  if (typeof window.v3StorageEstimate !== "function") { showToast("Storage-estimate недоступен", "error"); return; }
+  const est = await window.v3StorageEstimate();
+  if (!est.supported) { showToast("Браузер не отдаёт estimate", "warning"); return; }
+  const fmt = (b) => { if (!b) return "0 B"; const u = ["B","KB","MB","GB","TB"]; let i = 0; while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; } return b.toFixed(b < 10 && i > 0 ? 2 : 1) + " " + u[i]; };
+  showToast("Storage: " + fmt(est.usage) + " / " + fmt(est.quota) + " (" + (Math.round(est.percent * 10) / 10) + "%)", "info");
+}
+window.v3FbCmdBackup = v3FbCmdBackup;
+window.v3FbCmdIntegrity = v3FbCmdIntegrity;
+window.v3FbCmdTelemetry = v3FbCmdTelemetry;
+window.v3FbCmdStorage = v3FbCmdStorage;
 
 // ── Premium confirmation modal ─────────────────────────────────────────────
 // Replaces window.confirm() for destructive actions. Promise<boolean>.
