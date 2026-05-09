@@ -11556,11 +11556,17 @@ function v3DeeplinkShowCorrupt(errorCode) {
   // Use toast + open Dashboard as safe fallback
   if (typeof showToast === "function") showToast(msg, "error");
 
-  // Show confirmation dialog with CTA
-  setTimeout(() => {
-    if (confirm(msg + "\n\nОткрыть Dashboard?")) {
-      try { if (typeof v3DashboardOpen === "function") v3DashboardOpen(); } catch (_) {}
-    }
+  // Direction 6: native confirm → v3ConfirmModal (premium UX).
+  setTimeout(async () => {
+    try {
+      const ok = await v3ConfirmModal({
+        title: msg,
+        body: "Открыть Dashboard?",
+        okText: "Открыть",
+        cancelText: "Отмена",
+      });
+      if (ok && typeof v3DashboardOpen === "function") v3DashboardOpen();
+    } catch (_) {}
   }, 100);
 }
 
@@ -11576,10 +11582,17 @@ function v3DeeplinkShowNotFound(target) {
 
   if (typeof showToast === "function") showToast(msg, "error");
 
-  setTimeout(() => {
-    if (confirm(msg + "\n\nОткрыть Dashboard?")) {
-      try { if (typeof v3DashboardOpen === "function") v3DashboardOpen(); } catch (_) {}
-    }
+  // Direction 6: native confirm → v3ConfirmModal.
+  setTimeout(async () => {
+    try {
+      const ok = await v3ConfirmModal({
+        title: msg,
+        body: "Открыть Dashboard?",
+        okText: "Открыть",
+        cancelText: "Отмена",
+      });
+      if (ok && typeof v3DashboardOpen === "function") v3DashboardOpen();
+    } catch (_) {}
   }, 100);
 }
 
@@ -18804,14 +18817,14 @@ async function v3LibraryImportFromCloud() {
       showToast("Эта операция доступна только в режиме ?localMode=1", "error");
       return;
     }
-    const ok = window.confirm(
-      "Импортировать вашу библиотеку с Railway-сервера в OPFS?\n\n" +
-      "Эта операция:\n" +
-      "  • выгрузит все НЕархивированные тексты с сервера через GET /api/library/export?includeArchived=1\n" +
-      "  • применит их к OPFS через стандартный importBundle (mode=skip — дубликаты пропускаются)\n" +
-      "  • МПЗ и asset_key-линки сохраняются (аудио продолжит играть из Railway-кеша)\n\n" +
-      "Безопасно запускать повторно: дубликаты не дублируются."
-    );
+    // Direction 6: native confirm → v3ConfirmModal.
+    const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+    const ok = await v3ConfirmModal({
+      title: _t("confirms.cloudImportTitle"),
+      body:  _t("confirms.cloudImportBody"),
+      okText: _t("confirms.cloudImportOk"),
+      cancelText: _t("confirms.cancelBtn"),
+    });
     if (!ok) return;
 
     showToast("Запрос данных с сервера…");
@@ -20055,7 +20068,7 @@ function v3FbRenderCategory(category) {
       <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; margin-bottom:14px;">
         <div style="font-weight:600; font-size:13.5px; color:#991b1b; margin-bottom:6px;">${T("feedback.privacyUrgent")}</div>
         <button class="v3-fb-secondary-btn" style="margin:4px 4px 4px 0;" onclick="v3FbCmdBackup()">${T("feedback.privacyBackup")}</button>
-        <button class="v3-fb-secondary-btn" style="margin:4px 0;" onclick="if(confirm('Удалить всю локальную библиотеку? Это необратимо.')) v3LibraryWipeAllConfirm();">${T("feedback.privacyWipe")}</button>
+        <button class="v3-fb-secondary-btn" style="margin:4px 0;" onclick="v3FbWipeAllRequest()">${T("feedback.privacyWipe")}</button>
       </div>
     ` : ''}
 
@@ -20349,6 +20362,24 @@ async function v3FbCopyDiagnostics() {
 }
 window.v3FbCopyDiagnostics = v3FbCopyDiagnostics;
 
+// Direction 6: premium wipe-all from privacy form (replaces inline confirm).
+async function v3FbWipeAllRequest() {
+  // The full wipe-all has its own type-confirm modal with strict UX
+  // (v3LibraryWipeAllConfirm). This wrapper guards the entry from the
+  // privacy panel with a quick premium confirm before delegating.
+  const ok = await v3ConfirmModal({
+    title: v3FbT("confirms.wipeAllInlineTitle"),
+    body:  v3FbT("confirms.wipeAllInlineBody"),
+    okText: v3FbT("confirms.wipeAllInlineOk"),
+    cancelText: v3FbT("confirms.cancelBtn"),
+    danger: true,
+  });
+  if (ok && typeof window.v3LibraryWipeAllConfirm === "function") {
+    window.v3LibraryWipeAllConfirm();
+  }
+}
+window.v3FbWipeAllRequest = v3FbWipeAllRequest;
+
 // Tier 2.1: history view rendering + actions.
 function v3FbRenderHistory() {
   const T = v3FbT;
@@ -20401,12 +20432,18 @@ function v3FbRenderHistory() {
 function v3FbGoHistory() {
   v3FbView = "history"; v3FbCurrentCategory = null; v3FbRender();
 }
-function v3FbHistoryClearAndRender() {
-  if (!confirm(v3FbT("feedback.historyClear") + "?")) return;
+async function v3FbHistoryClearAndRender() {
+  // Direction 6: native confirm → v3ConfirmModal.
+  const ok = await v3ConfirmModal({
+    title: v3FbT("feedback.historyClear"),
+    body:  v3FbT("feedback.historyEmpty"),
+    okText: v3FbT("feedback.historyClear"),
+    cancelText: v3FbT("confirms.cancelBtn"),
+    danger: true,
+  });
+  if (!ok) return;
   v3FbHistoryClear();
   v3FbRender();
-  // Show result AFTER re-render so the message lands in the freshly-
-  // created cc-result slot inside the empty-state view.
   setTimeout(() => v3FbCcShowResult(v3FbEscape(v3FbT("feedback.historyCleared")), "info"), 0);
 }
 async function v3FbHistoryResend(idx) {
@@ -23245,11 +23282,14 @@ async function v3SaveMetaSave() {
     let text = null;
 
     if (updateId && hasBase) {
-      const ok = confirm(
-        "Это обновит исходную карточку в библиотеке.\n" +
-        "Если хотите новую карточку — нажмите «Сохранить как новый».\n\n" +
-        "Продолжить обновление?"
-      );
+      // Direction 6: native confirm → v3ConfirmModal (premium UX).
+      const _smt = (typeof window.t === "function") ? window.t : function(k){return k;};
+      const ok = await v3ConfirmModal({
+        title: _smt("confirms.saveMetaUpdateTitle"),
+        body:  _smt("confirms.saveMetaUpdateBody"),
+        okText: _smt("confirms.saveMetaUpdateOk"),
+        cancelText: _smt("confirms.cancelBtn"),
+      });
       if (!ok) return;
       text = await v3LibraryUpdateCurrentCore(updateId, meta);
     } else if (updateId && !hasBase) {
@@ -24478,7 +24518,15 @@ try {
     }
 
     async function gcpKeyDelete() {
-        if (!confirm("Удалить загруженный GCP ключ? Останется только значение из .env (если задано).")) return;
+        const _gT = (typeof window.t === "function") ? window.t : function(k){return k;};
+        const ok = await v3ConfirmModal({
+          title: _gT("confirms.deleteGcpKeyTitle"),
+          body:  _gT("confirms.deleteGcpKeyBody"),
+          okText: _gT("confirms.deleteGcpKeyOk"),
+          cancelText: _gT("confirms.cancelBtn"),
+          danger: true,
+        });
+        if (!ok) return;
         try {
             const r = await fetch("/api/premium/gcp-key", { method: "DELETE" });
             const j = await r.json().catch(() => ({}));
@@ -24568,7 +24616,15 @@ try {
     }
 
     async function ttsKeyDelete() {
-        if (!confirm("Удалить загруженный TTS ключ? Останется только значение из .env (если задано).")) return;
+        const _tT = (typeof window.t === "function") ? window.t : function(k){return k;};
+        const ok = await v3ConfirmModal({
+          title: _tT("confirms.deleteTtsKeyTitle"),
+          body:  _tT("confirms.deleteTtsKeyBody"),
+          okText: _tT("confirms.deleteTtsKeyOk"),
+          cancelText: _tT("confirms.cancelBtn"),
+          danger: true,
+        });
+        if (!ok) return;
         try {
             const r = await fetch("/api/tts/key", { method: "DELETE" });
             const j = await r.json().catch(() => ({}));
@@ -25716,7 +25772,7 @@ function tableEditAddRow() {
     });
 }
 
-function tableEditResetAll() {
+async function tableEditResetAll() {
     const rows = currentTableData;
     if (!rows) return;
     // Partition: manually-added rows must be deleted; edited rows must be reset.
@@ -25733,7 +25789,16 @@ function tableEditResetAll() {
     });
     if (!toDelete.length && !toReset.length) return;
     const total = toDelete.length + toReset.length;
-    if (!confirm("Сбросить все ручные правки (" + total + " строк)?\nДобавленные вручную строки (" + toDelete.length + ") будут удалены.")) return;
+    // Direction 6: native confirm → v3ConfirmModal (premium UX, locale-aware).
+    const _reT = (typeof window.t === "function") ? window.t : function(k){return k;};
+    const okReset = await v3ConfirmModal({
+      title: _reT("confirms.resetEditsTitle"),
+      body:  _reT("confirms.resetEditsBody", { total: total, added: toDelete.length }),
+      okText: _reT("confirms.resetEditsOk"),
+      cancelText: _reT("confirms.cancelBtn"),
+      danger: true,
+    });
+    if (!okReset) return;
 
     var chain = Promise.resolve();
     // Delete added rows
@@ -29043,7 +29108,15 @@ async function v3NotesOpenForJump(textId, sentenceId, rowIdx, scope, needles) {
     if (v3NotesIsOpen && v3NotesIsOpen()) {
       const curSid = String(v3NotesModalSentenceId || "");
       if (v3NotesModalIsDirty && curSid && curSid !== sid) {
-        const ok = window.confirm("Есть несохранённые изменения в заметке.\nПерейти к другой строке и потерять изменения?");
+        // Direction 6: native confirm → v3ConfirmModal.
+        const _nT = (typeof window.t === "function") ? window.t : function(k){return k;};
+        const ok = await v3ConfirmModal({
+          title: _nT("confirms.notesGotoUnsavedTitle"),
+          body:  _nT("confirms.notesGotoUnsavedBody"),
+          okText: _nT("confirms.notesGotoUnsavedOk"),
+          cancelText: _nT("confirms.cancelBtn"),
+          danger: true,
+        });
         if (!ok) return;
         try { v3NotesForceClose(); } catch (_) {}
       }
@@ -29139,13 +29212,29 @@ function v3NotesForceClose() {
 async function v3NotesClose() {
   try {
     if (v3NotesModalIsDirty) {
-      const wantSave = window.confirm("Есть несохранённые изменения.\nСохранить перед закрытием?");
+      // Direction 6: native confirm chain → v3ConfirmModal sequence.
+      // First — offer to save. If user accepts, save+close. If declines,
+      // ask once more whether to discard, so accidental close doesn't
+      // lose work silently.
+      const _ncT = (typeof window.t === "function") ? window.t : function(k){return k;};
+      const wantSave = await v3ConfirmModal({
+        title: _ncT("confirms.notesCloseUnsavedTitle"),
+        body:  _ncT("confirms.notesCloseUnsavedBody"),
+        okText: _ncT("confirms.notesCloseSave"),
+        cancelText: _ncT("confirms.notesCloseDiscard"),
+      });
       if (wantSave) {
         await v3NotesSave();
         v3NotesForceClose();
         return;
       }
-      const discard = window.confirm("Закрыть без сохранения?\n(Отмена — вернуться к редактированию)");
+      const discard = await v3ConfirmModal({
+        title: _ncT("confirms.notesDiscardConfirmTitle"),
+        body:  _ncT("confirms.notesDiscardConfirmBody"),
+        okText: _ncT("confirms.notesDiscardConfirmOk"),
+        cancelText: _ncT("confirms.cancelBtn"),
+        danger: true,
+      });
       if (!discard) return;
       v3NotesForceClose();
       return;

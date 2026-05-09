@@ -616,7 +616,7 @@ Sprint 3: Performance + Trust
 - [ ] **Direction 3** — Full i18n coverage — *not started*. Heavy refactor (audit hardcoded строк).
 - [ ] **Direction 4** — Onboarding & discovery — *not started*.
 - [ ] **Direction 5** — SRS + Library smart-sort — *not started*.
-- [~] **Direction 6** — Error gentleness app-wide — *high-priority done* (~25 of ~38 callsites). Destructive confirms (delete-text, delete-row, JSON+ZIP import, clear-text) → v3ConfirmModal; Anki error alerts → showToast. Edge cases остаются: 11561, 11580 (dashboard prompts), 18807 (cloud-import legacy), 23248 (save-meta), 24481/24571 (admin keys), 25727 (reset edits), 29037/29133/29139 (notes-modal save/discard), 20058 (inline onclick wipe).
+- [x] **Direction 6** — Error gentleness app-wide — *complete*. Все active-path alert/confirm callsites переведены на v3ConfirmModal/showToast. Остались только 3 fallback-path вызова (внутри самого v3ConfirmModal-ultimate-fallback, в feedback Phase6 alert try-catch, в WA-confirm fallback) — они срабатывают только если premium-modal недоступен. Все локали ru/en/he покрыты.
 - [ ] **Direction 7** — Performance / PWA — *not started*. Heavy refactor (code splitting, SW, manifest).
 - [x] **Direction 8** — Trust signals + content polish — *complete*. Footer на всех экранах, About modal, `docs/PRIVACY.md`, version из package.json через `/api/client-config`.
 
