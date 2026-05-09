@@ -25228,12 +25228,24 @@ try {
     tableEditApplyEditedMarkers();
     if (_hasLibRows) { try { tableEditAttachDoubleTap(); } catch (_e) {} }
     // Bug fix (2026-05-09): renderTable rebuilds the <table> via innerHTML,
-    // which throws away the event listeners attached by tableEditModeEnter
-    // (DnD, cell-click). Without re-attaching, after the first row move or
-    // add the user can't move/edit again until they re-toggle edit mode.
-    // The attach helpers are idempotent via internal flags; new tbl element
-    // has no flags, so it re-attaches correctly.
+    // which throws away both:
+    //   (1) event listeners attached by tableEditModeEnter (DnD, cell-click,
+    //       mobile reorder), AND
+    //   (2) the `tbl-edit-mode` CSS class which drives `cursor:grab`,
+    //       `display:inline-flex` for ▲▼ controls, and the edit-mode
+    //       border/highlight styles.
+    // Without re-applying both, after the first row move or add the user
+    // sees a "regular" table — listeners theoretically work but the cue
+    // (cursor, ▲▼ visibility) is gone.
     if (tableEditActive) {
+        const _editTbl = document.getElementById("proTable");
+        if (_editTbl) {
+            _editTbl.classList.add("tbl-edit-mode");
+            // Hide niqqud column when no row has it (mirror tableEditModeEnter).
+            const _hasAnyNiqqud = Array.isArray(currentTableData)
+                && currentTableData.some(function(r) { return r && (r.he_niqqud || r.heNiqqud); });
+            if (!_hasAnyNiqqud) _editTbl.classList.add("tbl-edit-hide-niqqud");
+        }
         try { tableEditAttachCellClick(); } catch (_) {}
         try { tableEditDndEnable(); } catch (_) {}
         try { tableEditAttachMobileReorder(); } catch (_) {}
