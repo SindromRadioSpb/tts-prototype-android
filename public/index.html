@@ -5674,46 +5674,93 @@ td[data-col="ru"] {
 }
 .v3-fb-email-option:hover { background: #f1f5f9; border-color: #94a3b8; }
 
-/* Dark theme — modal-scoped (full app theming is C-series 7.1) */
+/* Dark theme — modal-scoped, premium slate palette (slate-900/800/700).
+   `!important` is required because the modal panel and inner sections
+   carry inline styles that would otherwise win on specificity. We pick
+   slate-900 (#0f172a) for the panel — same as the app's body bg — and
+   slightly lighter slate-800 (#1e293b) for inner cards, giving a
+   layered macOS-dark-mode feel. */
 #v3FeedbackPanel.feedback-dark {
-  background: #1e293b; color: #f1f5f9;
+  background: #0f172a !important; color: #f1f5f9 !important;
 }
-.feedback-dark header { border-bottom-color: #334155 !important; }
+.feedback-dark header,
+#v3FeedbackPanel.feedback-dark header {
+  background: #0f172a !important; border-bottom: 1px solid #1e293b !important;
+}
 .feedback-dark #v3FbTitle { color: #f1f5f9 !important; }
+.feedback-dark #v3FbBody { background: #0f172a !important; color: #cbd5e1 !important; }
+/* Self-service block + section dividers */
+.feedback-dark #v3FbBody > div[style*="background:#f8fafc"],
+.feedback-dark #v3FbBody section[style*="border-top:1px solid #e2e8f0"] > div,
+.feedback-dark #v3FbBody div[style*="border-top:1px solid #e2e8f0"] {
+  background: #1e293b !important; border-color: #334155 !important; color: #cbd5e1 !important;
+}
+.feedback-dark #v3FbBody hr,
+.feedback-dark #v3FbBody section,
+.feedback-dark #v3FbBody div[style*="border-bottom:1px solid #e2e8f0"] {
+  border-color: #334155 !important;
+}
+/* Category cards */
 .feedback-dark .v3-fb-cat-card {
-  background: #0f172a; border-color: #334155; color: #f1f5f9;
+  background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important;
 }
-.feedback-dark .v3-fb-cat-card:hover { background: #1e293b; border-color: #475569; }
-.feedback-dark .v3-fb-cat-card.danger { background: #2a0e0e; border-color: #5a1818; }
-.feedback-dark .v3-fb-cat-card div[style*="color:#475569"] { color: #cbd5e1 !important; }
+.feedback-dark .v3-fb-cat-card:hover { background: #334155 !important; border-color: #475569 !important; }
+.feedback-dark .v3-fb-cat-card.danger { background: #2a0e0e !important; border-color: #5a1818 !important; }
+.feedback-dark .v3-fb-cat-card div[style*="color:#475569"] { color: #94a3b8 !important; }
+/* Command-center buttons */
 .feedback-dark .v3-fb-cc-btn {
-  background: #0f172a; border-color: #334155; color: #f1f5f9;
+  background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important;
 }
-.feedback-dark .v3-fb-cc-btn:hover { background: #1e293b; border-color: #475569; }
+.feedback-dark .v3-fb-cc-btn:hover { background: #334155 !important; border-color: #475569 !important; }
+/* Form inputs */
 .feedback-dark .v3-fb-input, .feedback-dark .v3-fb-textarea {
-  background: #0f172a; border-color: #475569; color: #f1f5f9;
+  background: #1e293b !important; border-color: #475569 !important; color: #f1f5f9 !important;
 }
 .feedback-dark .v3-fb-input:focus, .feedback-dark .v3-fb-textarea:focus {
-  border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.2);
+  border-color: #60a5fa !important; box-shadow: 0 0 0 3px rgba(96,165,250,0.2) !important;
 }
-.feedback-dark .v3-fb-label { color: #cbd5e1; }
+.feedback-dark .v3-fb-label { color: #cbd5e1 !important; }
 .feedback-dark .v3-fb-secondary-btn {
-  background: #0f172a; color: #cbd5e1; border-color: #475569;
+  background: #1e293b !important; color: #cbd5e1 !important; border-color: #475569 !important;
 }
-.feedback-dark .v3-fb-secondary-btn:hover { background: #1e293b; border-color: #64748b; }
+.feedback-dark .v3-fb-secondary-btn:hover { background: #334155 !important; border-color: #64748b !important; }
 .feedback-dark .v3-fb-diag-section {
-  background: #0f172a; border-color: #334155;
+  background: #1e293b !important; border-color: #334155 !important;
 }
-.feedback-dark .v3-fb-diag-section pre { color: #cbd5e1; }
-.feedback-dark .v3-fb-theme-btn { border-color: #334155; color: #cbd5e1; }
-.feedback-dark .v3-fb-theme-btn:hover { background: #334155; color: #f1f5f9; }
-.feedback-dark .v3-fb-email-chooser { background: #0f172a; border-color: #334155; }
-.feedback-dark .v3-fb-email-option { background: #1e293b; border-color: #475569; color: #f1f5f9; }
-.feedback-dark .v3-fb-email-option:hover { background: #334155; }
-.feedback-dark .v3-fb-cc-result { background: #1e3a8a; border-color: #3b82f6; color: #dbeafe; }
-.feedback-dark .v3-fb-cc-result.success { background: #052e16; border-color: #22c55e; color: #bbf7d0; }
-.feedback-dark .v3-fb-cc-result.error { background: #2a0e0e; border-color: #dc2626; color: #fecaca; }
-.feedback-dark .v3-fb-cc-result.warning { background: #422006; border-color: #d97706; color: #fde68a; }
+.feedback-dark .v3-fb-diag-section pre { color: #cbd5e1 !important; }
+.feedback-dark .v3-fb-theme-btn { border-color: #334155 !important; color: #cbd5e1 !important; }
+.feedback-dark .v3-fb-theme-btn:hover { background: #334155 !important; color: #f1f5f9 !important; }
+.feedback-dark .v3-fb-email-chooser { background: #1e293b !important; border-color: #334155 !important; }
+.feedback-dark .v3-fb-email-option { background: #0f172a !important; border-color: #475569 !important; color: #f1f5f9 !important; }
+.feedback-dark .v3-fb-email-option:hover { background: #334155 !important; }
+/* Inline cc-result panels */
+.feedback-dark .v3-fb-cc-result { background: #1e3a8a !important; border-color: #3b82f6 !important; color: #dbeafe !important; }
+.feedback-dark .v3-fb-cc-result.success { background: #052e16 !important; border-color: #22c55e !important; color: #bbf7d0 !important; }
+.feedback-dark .v3-fb-cc-result.error { background: #2a0e0e !important; border-color: #dc2626 !important; color: #fecaca !important; }
+.feedback-dark .v3-fb-cc-result.warning { background: #422006 !important; border-color: #d97706 !important; color: #fde68a !important; }
+/* Privacy panic block — keep red signaling but darken */
+.feedback-dark #v3FbBody div[style*="background:#fef2f2"] {
+  background: #2a0e0e !important; border-color: #5a1818 !important;
+}
+.feedback-dark #v3FbBody div[style*="background:#fef2f2"] div[style*="color:#991b1b"] { color: #fca5a5 !important; }
+/* Diagnostic toggle wrapper — labels and detail sections */
+.feedback-dark #v3FbBody div[style*="background:#f8fafc"][style*="border:1px solid #e2e8f0"] {
+  background: #1e293b !important; border-color: #334155 !important;
+}
+.feedback-dark #v3FbBody div[style*="background:#f8fafc"][style*="border:1px solid #e2e8f0"] label,
+.feedback-dark #v3FbBody div[style*="background:#f8fafc"][style*="border:1px solid #e2e8f0"] label[style*="color:#0f172a"] {
+  color: #f1f5f9 !important;
+}
+/* Self-service link colors stay blue but slightly lighter */
+.feedback-dark #v3FbBody a[style*="color:#2563eb"] { color: #60a5fa !important; }
+/* Generic muted-grey text inside body */
+.feedback-dark #v3FbBody [style*="color:#94a3b8"] { color: #94a3b8 !important; }
+.feedback-dark #v3FbBody [style*="color:#475569"],
+.feedback-dark #v3FbBody [style*="color:#0f172a"] { color: #cbd5e1 !important; }
+/* Ack screen heading */
+.feedback-dark #v3FbBody h3[style*="color:#0f172a"] { color: #f1f5f9 !important; }
+/* Status badge — keep green/yellow/red but with dark-mode contrast */
+.feedback-dark #v3FbStatusBadge { filter: brightness(1.1); }
 
 </style>
 
@@ -19281,10 +19328,10 @@ function v3FbRenderTriage() {
     <section style="margin-top:18px; padding-top:18px; border-top:1px solid #e2e8f0;">
       <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:10px;">${T("feedback.ccTitle")}</div>
       <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdBackup()"><span>📦</span><span>${T("feedback.ccBackup")}</span></button>
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdIntegrity()"><span>🩺</span><span>${T("feedback.ccIntegrity")}</span></button>
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdTelemetry()"><span>📊</span><span>${T("feedback.ccTelemetry")}</span></button>
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdStorage()"><span>💾</span><span>${T("feedback.ccStorage")}</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdBackup()">${T("feedback.ccBackup")}</button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdIntegrity()">${T("feedback.ccIntegrity")}</button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdTelemetry()">${T("feedback.ccTelemetry")}</button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdStorage()">${T("feedback.ccStorage")}</button>
       </div>
       <div id="v3FbCcResult"></div>
     </section>
@@ -19463,10 +19510,21 @@ async function v3FbSubmit(channel) {
     const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(message);
     window.open(url, "_blank", "noopener");
   } else if (channel === "email") {
-    // Premium UX: instead of a single mailto: that may land on a blank
-    // page on desktop (no default mail handler), show a chooser with
-    // Gmail / Outlook / Yandex web compose URLs alongside default mailto.
     const subject = "[LinguistPro v3.0.0] " + (fields.title || cat);
+    // Smart routing: on mobile, mailto: opens the OS's email picker which
+    // typically launches Gmail / mail app directly with a pre-filled
+    // compose — that's the natural premium flow there. On desktop the
+    // default mailto handler may be unconfigured (blank tab), so we
+    // show the explicit chooser with Gmail / Outlook / Yandex web compose.
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+    if (isMobile) {
+      const url = "mailto:" + v3FbConfig.email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(message);
+      window.location.href = url;
+      v3FbClearDraft();
+      v3FbView = "ack";
+      v3FbRender();
+      return;
+    }
     v3FbShowEmailChooser(subject, message);
     return;  // ack screen shown by v3FbPickEmail after pick.
   } else if (channel === "copy") {
