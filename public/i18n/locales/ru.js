@@ -573,5 +573,40 @@ window.I18N_LOCALES.ru = {
     autoFillBugIntro: "Я только что увидел ошибку:",
     // Tier 1.5 Real timestamp in ack
     ackTimestamp: "Отправлено: {sentAt}. Ожидайте ответа до: {expectedBy}.",
+    // Tier 2.1 History
+    historyBtn: "🗂 Мои предыдущие обращения",
+    historyTitle: "Мои предыдущие обращения",
+    historyEmpty: "Пока нет отправленных сообщений.",
+    historyEntryDate: "Отправлено {date}",
+    historyEntryChannel: "канал: {channel}",
+    historyResend: "↗ Переотправить",
+    historyCopy: "📋 Скопировать",
+    historyClose: "← Назад",
+    historyClear: "Очистить историю",
+    historyCleared: "История очищена",
+    // Tier 2.2 Char counter
+    charCount: "{n} / {max}",
+    // Tier 2.3 Loading skeletons
+    qrLoading: "QR…",
+    configLoading: "Загрузка…",
+    // Tier 2.5 Copy diag
+    diagCopyBtn: "📋 Скопировать диагностику",
+    diagCopied: "Диагностика скопирована",
+    // Tier 2.6 Roadmap link
+    ideaRoadmapHint: "💡 Перед отправкой — может ваша идея уже учтена в",
+    ideaRoadmapLink: "open roadmap (GitHub Issues)",
+    // Tier 2.7 Markdown preview
+    mdEdit: "✍ Edit",
+    mdPreview: "👁 Preview",
+    mdHint: "Поддерживается markdown: **жирный**, *курсив*, `код`, ==выделение==, списки, > цитата, [текст](http://…)",
+    // Tier 2.9 WhatsApp confirmation (desktop)
+    waConfirmTitle: "Открыть WhatsApp?",
+    waConfirmBody: "Откроется WhatsApp Web в новой вкладке с готовым сообщением. Отправьте — или отредактируйте перед отправкой.",
+    waConfirmOpen: "Открыть",
+    waConfirmCancel: "Отмена",
+    // Tier 2.10 Tip-jar stub
+    tipJarTitle: "Поддержать разработчика",
+    tipJarBody: "Скоро здесь появится возможность пожертвования (Boosty / Patreon / Buy Me a Coffee). А пока — спасибо за использование приложения! 🙏",
+    tipJarComingSoon: "Скоро будет доступно",
   },
 };

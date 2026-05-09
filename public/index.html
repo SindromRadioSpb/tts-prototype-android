@@ -5810,6 +5810,174 @@ td[data-col="ru"] {
   }
 }
 
+/* ── Tier 2.1: history list ─────────────────────────────────── */
+.v3-fb-history-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.v3-fb-history-item {
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+  padding: 12px; font-size: 12.5px; line-height: 1.4;
+}
+.v3-fb-history-meta { color: #94a3b8; font-size: 11px; margin-bottom: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
+.v3-fb-history-snippet {
+  color: #475569; max-height: 60px; overflow: hidden; position: relative;
+  white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11.5px;
+}
+.v3-fb-history-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.v3-fb-history-action {
+  background: #fff; border: 1px solid #cbd5e1; color: #0f172a;
+  padding: 4px 10px; border-radius: 4px; font-size: 11.5px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.v3-fb-history-action:hover { background: #f1f5f9; border-color: #94a3b8; }
+.v3-fb-history-empty { color: #94a3b8; font-size: 13px; text-align: center; padding: 24px 12px; }
+.feedback-dark .v3-fb-history-item { background: #1e293b !important; border-color: #334155 !important; }
+.feedback-dark .v3-fb-history-snippet { color: #cbd5e1 !important; }
+.feedback-dark .v3-fb-history-action { background: #0f172a !important; border-color: #475569 !important; color: #f1f5f9 !important; }
+.feedback-dark .v3-fb-history-action:hover { background: #334155 !important; }
+.feedback-dark .v3-fb-history-empty { color: #64748b !important; }
+
+/* ── Tier 2.2: char counter ─────────────────────────────────── */
+.v3-fb-char-counter {
+  font-size: 11px; color: #94a3b8; text-align: right; margin-top: -4px;
+  margin-bottom: 8px; transition: color 0.15s;
+}
+.v3-fb-char-counter.warn { color: #d97706; }
+.v3-fb-char-counter.over { color: #dc2626; font-weight: 600; }
+.feedback-dark .v3-fb-char-counter { color: #64748b !important; }
+
+/* ── Tier 2.3: loading skeletons ────────────────────────────── */
+@keyframes v3FbSkeletonShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.v3-fb-skeleton {
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: v3FbSkeletonShimmer 1.4s linear infinite;
+  border-radius: 4px;
+}
+.feedback-dark .v3-fb-skeleton {
+  background: linear-gradient(90deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+  background-size: 200% 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-fb-skeleton { animation: none; }
+}
+
+/* ── Tier 2.6: roadmap hint banner in idea form ─────────────── */
+.v3-fb-roadmap-hint {
+  background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+  padding: 10px 12px; margin-bottom: 14px; font-size: 12.5px; color: #1e3a8a;
+  line-height: 1.4;
+}
+.v3-fb-roadmap-hint a { color: #2563eb; font-weight: 500; }
+.feedback-dark .v3-fb-roadmap-hint {
+  background: #1e3a8a !important; border-color: #3b82f6 !important; color: #dbeafe !important;
+}
+.feedback-dark .v3-fb-roadmap-hint a { color: #93c5fd !important; }
+
+/* ── Tier 2.7: markdown preview toggle on bug-form ──────────── */
+.v3-fb-md-toolbar {
+  display: flex; gap: 4px; margin-bottom: 6px;
+}
+.v3-fb-md-toolbar-btn {
+  background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569;
+  padding: 4px 10px; border-radius: 4px; font-size: 11.5px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.v3-fb-md-toolbar-btn.active {
+  background: #2563eb; color: #fff; border-color: #2563eb;
+}
+.v3-fb-md-toolbar-btn:hover:not(.active) { background: #e2e8f0; }
+.v3-fb-md-preview {
+  border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px;
+  font-size: 13.5px; line-height: 1.5; min-height: 110px;
+  background: #f8fafc; color: #0f172a; overflow: auto;
+  display: none;
+}
+.v3-fb-md-preview p { margin: 0 0 6px; }
+.v3-fb-md-preview p:last-child { margin-bottom: 0; }
+.v3-fb-md-preview ul, .v3-fb-md-preview ol { margin: 0 0 6px; padding-left: 20px; }
+.v3-fb-md-preview blockquote {
+  border-left: 3px solid #cbd5e1; padding: 4px 10px; margin: 0 0 6px;
+  color: #64748b; background: #fff;
+}
+.v3-fb-md-preview code {
+  background: #fff; padding: 1px 6px; border-radius: 3px;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 12.5px; border: 1px solid #e2e8f0;
+}
+.v3-fb-md-preview pre {
+  background: #fff; padding: 8px 12px; border-radius: 6px;
+  border: 1px solid #e2e8f0; overflow-x: auto;
+}
+.v3-fb-md-preview pre code { border: 0; padding: 0; background: transparent; }
+.v3-fb-md-preview mark { background: #fef9c3; padding: 0 2px; border-radius: 2px; }
+.v3-fb-md-preview a { color: #2563eb; }
+.feedback-dark .v3-fb-md-toolbar-btn { background: #334155 !important; border-color: #475569 !important; color: #cbd5e1 !important; }
+.feedback-dark .v3-fb-md-toolbar-btn:hover:not(.active) { background: #475569 !important; }
+.feedback-dark .v3-fb-md-toolbar-btn.active { background: #2563eb !important; color: #fff !important; border-color: #2563eb !important; }
+.feedback-dark .v3-fb-md-preview {
+  background: #0f172a !important; color: #f1f5f9 !important; border-color: #475569 !important;
+}
+.feedback-dark .v3-fb-md-preview blockquote { background: #1e293b !important; border-left-color: #475569 !important; color: #94a3b8 !important; }
+.feedback-dark .v3-fb-md-preview code { background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important; }
+.feedback-dark .v3-fb-md-preview pre { background: #1e293b !important; border-color: #334155 !important; }
+.v3-fb-md-hint { font-size: 11px; color: #94a3b8; margin-top: 4px; line-height: 1.4; }
+.feedback-dark .v3-fb-md-hint { color: #64748b !important; }
+
+/* ── Tier 2.8: mobile drawer-style ──────────────────────────── */
+@media (max-width: 600px) {
+  #v3FeedbackModal { padding: 0 !important; align-items: flex-end !important; }
+  #v3FeedbackPanel {
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 92vh !important;
+    margin: 0 !important;
+    width: 100% !important;
+    animation: v3FbDrawerEnter 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  /* Sticky header on mobile so close button + status remain visible. */
+  #v3FeedbackPanel > header {
+    position: sticky !important; top: 0 !important; background: #fff !important;
+    z-index: 2 !important; padding-top: 16px !important;
+  }
+  .feedback-dark #v3FeedbackPanel > header { background: #0f172a !important; }
+  /* Drag-handle hint at the top of the drawer */
+  #v3FeedbackPanel > header::before {
+    content: ""; position: absolute; top: 6px; left: 50%;
+    transform: translateX(-50%); width: 36px; height: 4px;
+    background: #cbd5e1; border-radius: 2px;
+  }
+  .feedback-dark #v3FeedbackPanel > header::before { background: #475569; }
+}
+@keyframes v3FbDrawerEnter {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  @media (max-width: 600px) {
+    #v3FeedbackPanel { animation: none !important; }
+  }
+}
+
+/* ── Tier 2.10: tip-jar stub block ──────────────────────────── */
+.v3-fb-tipjar {
+  background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);
+  border: 1px solid #fcd34d; border-radius: 10px;
+  padding: 14px 16px; margin-top: 14px; font-size: 13.5px; line-height: 1.5;
+  color: #78350f;
+}
+.v3-fb-tipjar-title { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.v3-fb-tipjar-badge {
+  background: rgba(120, 53, 15, 0.15); color: #78350f; padding: 2px 8px;
+  border-radius: 999px; font-size: 11px; font-weight: 600; margin-left: 8px;
+}
+.feedback-dark .v3-fb-tipjar {
+  background: linear-gradient(135deg, #422006 0%, #1c1917 100%) !important;
+  border-color: #d97706 !important; color: #fde68a !important;
+}
+.feedback-dark .v3-fb-tipjar-badge { background: rgba(252, 211, 77, 0.2) !important; color: #fde68a !important; }
+
 /* ── Tier 1.2: error/success toast variants + report button ──── */
 .toast.toast-error   { background: #991b1b; }
 .toast.toast-success { background: #166534; }
@@ -19065,6 +19233,32 @@ function v3FbT(key, params) {
   return key;
 }
 
+// ── Tier 2.1: feedback submission history (local-only) ─────────────────
+const V3_FB_HISTORY_KEY = "feedbackHistory_v1";
+const V3_FB_HISTORY_MAX = 20;
+function v3FbHistoryRead() {
+  try {
+    const raw = localStorage.getItem(V3_FB_HISTORY_KEY);
+    if (!raw) return [];
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr : [];
+  } catch (_) { return []; }
+}
+function v3FbHistoryAppend(entry) {
+  try {
+    const arr = v3FbHistoryRead();
+    arr.unshift(entry);  // newest first
+    while (arr.length > V3_FB_HISTORY_MAX) arr.pop();
+    localStorage.setItem(V3_FB_HISTORY_KEY, JSON.stringify(arr));
+  } catch (_) {}
+}
+function v3FbHistoryClear() {
+  try { localStorage.removeItem(V3_FB_HISTORY_KEY); } catch (_) {}
+}
+
+// ── Tier 2.4: periodic status badge refresh (30s while modal open) ─────
+let v3FbStatusTimer = null;
+
 async function v3FbLoadConfig() {
   if (v3FbConfig) return v3FbConfig;
   try {
@@ -19298,6 +19492,7 @@ function v3FeedbackClose() {
   if (modal) modal.style.display = "none";
   document.removeEventListener("keydown", v3FbKeyHandler);
   if (v3FbDraftTimer) { clearInterval(v3FbDraftTimer); v3FbDraftTimer = null; }
+  if (v3FbStatusTimer) { clearInterval(v3FbStatusTimer); v3FbStatusTimer = null; }
   v3FbView = "triage"; v3FbCurrentCategory = null;
 }
 function v3FbKeyHandler(e) {
@@ -19343,6 +19538,7 @@ function v3FbRender() {
   if (!body) return;
   if (v3FbView === "triage") body.innerHTML = v3FbRenderTriage();
   else if (v3FbView === "ack") body.innerHTML = v3FbRenderAck();
+  else if (v3FbView === "history") body.innerHTML = v3FbRenderHistory();
   else if (v3FbView.startsWith("category:")) body.innerHTML = v3FbRenderCategory(v3FbCurrentCategory);
 
   // Post-render: build QR, attach handlers, restore draft if applicable.
@@ -19406,6 +19602,73 @@ function v3FbPostRender() {
 
   // Status badge: refresh from /api/diag (best-effort).
   v3FbRefreshStatusBadge();
+  // Tier 2.4: periodic refresh every 30s while modal is open.
+  if (v3FbStatusTimer) clearInterval(v3FbStatusTimer);
+  v3FbStatusTimer = setInterval(() => {
+    const m = document.getElementById("v3FeedbackModal");
+    if (m && m.style.display !== "none") v3FbRefreshStatusBadge();
+    else if (v3FbStatusTimer) { clearInterval(v3FbStatusTimer); v3FbStatusTimer = null; }
+  }, 30_000);
+
+  // Tier 2.7: bind markdown preview toggle if present (bug form).
+  v3FbBindMdPreview();
+  // Tier 2.2: bind char counters on form inputs.
+  v3FbBindCharCounters();
+}
+
+// ── Tier 2.2: char counter binding ─────────────────────────────────────
+function v3FbBindCharCounters() {
+  const map = [
+    { input: "v3FbTitle_input", counter: "v3FbTitle_counter", max: 200 },
+    { input: "v3FbBody_input",  counter: "v3FbBody_counter",  max: 2000 },
+    { input: "v3FbExpected_input", counter: "v3FbExpected_counter", max: 1000 },
+    { input: "v3FbSteps_input",    counter: "v3FbSteps_counter",    max: 1000 },
+  ];
+  const update = (it) => {
+    const inp = document.getElementById(it.input);
+    const cnt = document.getElementById(it.counter);
+    if (!inp || !cnt) return;
+    const n = (inp.value || "").length;
+    cnt.textContent = v3FbT("feedback.charCount", { n: n, max: it.max });
+    cnt.classList.remove("warn", "over");
+    if (n > it.max) cnt.classList.add("over");
+    else if (n > it.max * 0.85) cnt.classList.add("warn");
+  };
+  for (const it of map) {
+    const inp = document.getElementById(it.input);
+    if (!inp) continue;
+    update(it);
+    inp.addEventListener("input", () => update(it));
+  }
+}
+
+// ── Tier 2.7: markdown preview toggle (bug form only) ──────────────────
+let v3FbMdMode = "edit";  // 'edit' | 'preview'
+function v3FbBindMdPreview() {
+  const tEdit = document.getElementById("v3FbMdEdit");
+  const tPrev = document.getElementById("v3FbMdPreview");
+  const ta = document.getElementById("v3FbBody_input");
+  const pv = document.getElementById("v3FbMdPreviewBox");
+  if (!tEdit || !tPrev || !ta || !pv) return;
+  v3FbMdMode = "edit";
+  const renderTo = (mode) => {
+    v3FbMdMode = mode;
+    if (mode === "preview") {
+      try {
+        const html = (typeof window.v3NotesMdToSafeHtml === "function") ? window.v3NotesMdToSafeHtml(ta.value || "") : v3FbEscape(ta.value || "");
+        pv.innerHTML = html;
+      } catch (_) { pv.innerHTML = v3FbEscape(ta.value || ""); }
+      pv.style.display = "block"; ta.style.display = "none";
+      tEdit.classList.remove("active"); tPrev.classList.add("active");
+    } else {
+      pv.style.display = "none"; ta.style.display = "block";
+      tPrev.classList.remove("active"); tEdit.classList.add("active");
+      try { ta.focus(); } catch (_) {}
+    }
+  };
+  tEdit.onclick = () => renderTo("edit");
+  tPrev.onclick = () => renderTo("preview");
+  tEdit.classList.add("active");
 }
 
 async function v3FbRefreshStatusBadge() {
@@ -19526,6 +19789,7 @@ function v3FbRenderTriage() {
     </section>
 
     <section style="margin-top:18px; padding:14px 0 4px; border-top:1px solid #e2e8f0; font-size:12px;">
+      <button onclick="v3FbGoHistory()" style="background:transparent; border:0; color:#2563eb; cursor:pointer; padding:4px 0; font-size:13px; font-family:inherit; margin-bottom:6px;">${T("feedback.historyBtn")}</button>
       <details>
         <summary style="cursor:pointer; font-weight:500; color:#475569; user-select:none; padding:4px 0;">${T("feedback.channelsTitle")}</summary>
         <div style="margin-top:10px; display:grid; grid-template-columns:1fr; gap:6px;">
@@ -19591,25 +19855,48 @@ function v3FbRenderCategory(category) {
       </div>
     ` : ''}
 
-    <div style="margin-bottom:12px;">
+    ${category === 'idea' ? `
+      <div class="v3-fb-roadmap-hint">
+        ${T("feedback.ideaRoadmapHint")} <a href="https://github.com/${v3FbConfig.githubRepo}/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement" target="_blank" rel="noopener">${T("feedback.ideaRoadmapLink")}</a>.
+      </div>
+    ` : ''}
+
+    <div style="margin-bottom:4px;">
       <label class="v3-fb-label" for="v3FbTitle_input">${cfg.titleHint}</label>
       <input id="v3FbTitle_input" type="text" class="v3-fb-input" maxlength="200" oninput="v3FbSaveDraft()" />
+      <div id="v3FbTitle_counter" class="v3-fb-char-counter"></div>
     </div>
-    <div style="margin-bottom:12px;">
+    <div style="margin-bottom:4px;">
       <label class="v3-fb-label" for="v3FbBody_input">${cfg.desc}</label>
+      ${category === 'bug' ? `
+      <div class="v3-fb-md-toolbar">
+        <button type="button" id="v3FbMdEdit" class="v3-fb-md-toolbar-btn">${T("feedback.mdEdit")}</button>
+        <button type="button" id="v3FbMdPreview" class="v3-fb-md-toolbar-btn">${T("feedback.mdPreview")}</button>
+      </div>
+      ` : ''}
       <textarea id="v3FbBody_input" class="v3-fb-textarea" rows="5" oninput="v3FbSaveDraft()" placeholder="${cfg.placeholder}"></textarea>
+      ${category === 'bug' ? `<div id="v3FbMdPreviewBox" class="v3-fb-md-preview"></div><div class="v3-fb-md-hint">${T("feedback.mdHint")}</div>` : ''}
+      <div id="v3FbBody_counter" class="v3-fb-char-counter"></div>
     </div>
     ${cfg.showExpected ? `
-    <div style="margin-bottom:12px;">
+    <div style="margin-bottom:4px;">
       <label class="v3-fb-label" for="v3FbExpected_input">${T("feedback.formExpected")}</label>
       <textarea id="v3FbExpected_input" class="v3-fb-textarea" rows="2" oninput="v3FbSaveDraft()"></textarea>
+      <div id="v3FbExpected_counter" class="v3-fb-char-counter"></div>
     </div>
     ` : ''}
     ${cfg.showSteps ? `
-    <div style="margin-bottom:12px;">
+    <div style="margin-bottom:4px;">
       <label class="v3-fb-label" for="v3FbSteps_input">${T("feedback.formSteps")}</label>
       <textarea id="v3FbSteps_input" class="v3-fb-textarea" rows="3" oninput="v3FbSaveDraft()" placeholder="${stepsPh}"></textarea>
+      <div id="v3FbSteps_counter" class="v3-fb-char-counter"></div>
     </div>
+    ` : ''}
+    ${category === 'thanks' ? `
+      <div class="v3-fb-tipjar">
+        <div class="v3-fb-tipjar-title">🙏 ${T("feedback.tipJarTitle")}<span class="v3-fb-tipjar-badge">${T("feedback.tipJarComingSoon")}</span></div>
+        <div>${T("feedback.tipJarBody")}</div>
+      </div>
     ` : ''}
 
     <div style="margin:16px 0; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
@@ -19619,7 +19906,10 @@ function v3FbRenderCategory(category) {
       </label>
       <div id="v3FbDiagPreview" style="display:${cfg.defaultDiag ? 'block' : 'none'}; margin-top:10px;">
         <div class="v3-fb-diag-section">
-          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:6px;">${T("feedback.diagPreview")}</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8;">${T("feedback.diagPreview")}</div>
+            <button type="button" class="v3-fb-history-action" onclick="v3FbCopyDiagnostics()">${T("feedback.diagCopyBtn")}</button>
+          </div>
           <pre id="v3FbDiagPreviewPre">${v3FbEscape(v3FbFormatDiagnostics(diagSections))}</pre>
         </div>
         <div style="margin-top:6px; font-size:11px; color:#94a3b8;">${T("feedback.diagNote")}</div>
@@ -19711,10 +20001,20 @@ async function v3FbSubmit(channel) {
   // Tier 1.5: stamp the moment user actually sent the message so the ack
   // screen can display real timestamps + a computed SLA window.
   v3FbLastSentAt = new Date();
+  // Tier 2.1: record submission to local history.
+  try {
+    v3FbHistoryAppend({
+      ts: v3FbLastSentAt.getTime(),
+      category: cat,
+      channel: channel,
+      message: message,
+      title: fields.title || "",
+    });
+  } catch (_) {}
 
   if (channel === "whatsapp") {
-    const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(message);
-    window.open(url, "_blank", "noopener");
+    // Tier 2.9: confirmation step on desktop only.
+    v3FbOpenWhatsAppWithConfirm(message);
   } else if (channel === "email") {
     const subject = "[LinguistPro v3.0.0] " + (fields.title || cat);
     // Smart routing: on mobile, mailto: opens the OS's email picker which
@@ -19826,6 +20126,124 @@ window.v3FbCmdBackup = v3FbCmdBackup;
 window.v3FbCmdIntegrity = v3FbCmdIntegrity;
 window.v3FbCmdTelemetry = v3FbCmdTelemetry;
 window.v3FbCmdStorage = v3FbCmdStorage;
+
+// Tier 2.5: copy only the diagnostics block to clipboard.
+async function v3FbCopyDiagnostics() {
+  const sections = v3FbBuildDiagnostics();
+  await v3FbFillAsyncDiag(sections);
+  const txt = v3FbFormatDiagnostics(sections);
+  try {
+    await navigator.clipboard.writeText(txt);
+    v3FbCcShowResult(v3FbEscape(v3FbT("feedback.diagCopied")), "success");
+  } catch (_) {
+    const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); } catch (__) {}
+    ta.remove();
+    v3FbCcShowResult(v3FbEscape(v3FbT("feedback.diagCopied")), "success");
+  }
+}
+window.v3FbCopyDiagnostics = v3FbCopyDiagnostics;
+
+// Tier 2.1: history view rendering + actions.
+function v3FbRenderHistory() {
+  const T = v3FbT;
+  const items = v3FbHistoryRead();
+  if (!items.length) {
+    return `
+      <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#475569; cursor:pointer; padding:0 0 12px; font-size:13px; font-family:inherit;">${T("feedback.back")}</button>
+      <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#0f172a;">${T("feedback.historyTitle")}</h3>
+      <div class="v3-fb-history-empty">${T("feedback.historyEmpty")}</div>
+    `;
+  }
+  const lang = (typeof window.appGetLocale === "function") ? window.appGetLocale() : "ru";
+  const localeMap = { ru: "ru-RU", en: "en-US", he: "he-IL" };
+  const fmtLocale = localeMap[lang] || "ru-RU";
+  const rows = items.map((it, idx) => {
+    const dt = new Date(it.ts || Date.now());
+    const dateStr = dt.toLocaleString(fmtLocale, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    const channelLabels = { whatsapp: "💬 WhatsApp", email: "📧 Email", copy: "📋 Copy", github: "🐙 GitHub" };
+    const channel = channelLabels[it.channel] || it.channel || "?";
+    const cat = it.category || "?";
+    const snippet = v3FbEscape(String(it.message || "").slice(0, 240));
+    return `
+      <div class="v3-fb-history-item">
+        <div class="v3-fb-history-meta">
+          <span>${T("feedback.historyEntryDate", { date: dateStr })}</span>
+          <span>·</span>
+          <span>${cat}</span>
+          <span>·</span>
+          <span>${T("feedback.historyEntryChannel", { channel: channel })}</span>
+        </div>
+        <div class="v3-fb-history-snippet">${snippet}</div>
+        <div class="v3-fb-history-actions">
+          <button class="v3-fb-history-action" onclick="v3FbHistoryResend(${idx})">${T("feedback.historyResend")}</button>
+          <button class="v3-fb-history-action" onclick="v3FbHistoryCopy(${idx})">${T("feedback.historyCopy")}</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+  return `
+    <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#475569; cursor:pointer; padding:0 0 12px; font-size:13px; font-family:inherit;">${T("feedback.back")}</button>
+    <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#0f172a;">${T("feedback.historyTitle")}</h3>
+    <div class="v3-fb-history-list">${rows}</div>
+    <div style="margin-top:12px; text-align:right;">
+      <button class="v3-fb-secondary-btn" style="font-size:12px; padding:6px 12px;" onclick="v3FbHistoryClearAndRender()">${T("feedback.historyClear")}</button>
+    </div>
+  `;
+}
+function v3FbGoHistory() {
+  v3FbView = "history"; v3FbCurrentCategory = null; v3FbRender();
+}
+function v3FbHistoryClearAndRender() {
+  if (!confirm(v3FbT("feedback.historyClear") + "?")) return;
+  v3FbHistoryClear();
+  v3FbCcShowResult(v3FbEscape(v3FbT("feedback.historyCleared")), "info");
+  v3FbRender();
+}
+async function v3FbHistoryResend(idx) {
+  const items = v3FbHistoryRead();
+  const it = items[idx];
+  if (!it) return;
+  const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(it.message || "");
+  window.open(url, "_blank", "noopener");
+}
+async function v3FbHistoryCopy(idx) {
+  const items = v3FbHistoryRead();
+  const it = items[idx];
+  if (!it) return;
+  try {
+    await navigator.clipboard.writeText(it.message || "");
+    v3FbCcShowResult(v3FbEscape(v3FbT("feedback.toastCopied")), "success");
+  } catch (_) {}
+}
+window.v3FbGoHistory = v3FbGoHistory;
+window.v3FbHistoryClearAndRender = v3FbHistoryClearAndRender;
+window.v3FbHistoryResend = v3FbHistoryResend;
+window.v3FbHistoryCopy = v3FbHistoryCopy;
+
+// Tier 2.9: WhatsApp open confirmation on desktop. On mobile, the
+// wa.me link launches the app directly which is the expected flow.
+function v3FbOpenWhatsAppWithConfirm(message) {
+  const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(message);
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "");
+  if (isMobile) {
+    window.open(url, "_blank", "noopener");
+    return;
+  }
+  // Reuse existing v3ConfirmModal for visual consistency.
+  if (typeof window.v3ConfirmModal === "function") {
+    window.v3ConfirmModal({
+      title: v3FbT("feedback.waConfirmTitle"),
+      body: v3FbT("feedback.waConfirmBody"),
+      okText: v3FbT("feedback.waConfirmOpen"),
+      cancelText: v3FbT("feedback.waConfirmCancel"),
+    }).then((ok) => { if (ok) window.open(url, "_blank", "noopener"); });
+  } else {
+    if (confirm(v3FbT("feedback.waConfirmTitle") + "\n\n" + v3FbT("feedback.waConfirmBody"))) {
+      window.open(url, "_blank", "noopener");
+    }
+  }
+}
 
 // ── Email chooser (issue 3 — mailto on desktop opens blank page) ────────
 // Premium UX: instead of a single mailto: that may open an unconfigured

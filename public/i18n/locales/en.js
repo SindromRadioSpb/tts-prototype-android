@@ -573,5 +573,40 @@ window.I18N_LOCALES.en = {
     autoFillBugIntro: "I just saw this error:",
     // Tier 1.5 Real timestamp in ack
     ackTimestamp: "Sent: {sentAt}. Expect a reply by: {expectedBy}.",
+    // Tier 2.1 History
+    historyBtn: "🗂 My past messages",
+    historyTitle: "My past messages",
+    historyEmpty: "No sent messages yet.",
+    historyEntryDate: "Sent {date}",
+    historyEntryChannel: "channel: {channel}",
+    historyResend: "↗ Re-send",
+    historyCopy: "📋 Copy",
+    historyClose: "← Back",
+    historyClear: "Clear history",
+    historyCleared: "History cleared",
+    // Tier 2.2 Char counter
+    charCount: "{n} / {max}",
+    // Tier 2.3 Loading skeletons
+    qrLoading: "QR…",
+    configLoading: "Loading…",
+    // Tier 2.5 Copy diag
+    diagCopyBtn: "📋 Copy diagnostics",
+    diagCopied: "Diagnostics copied",
+    // Tier 2.6 Roadmap link
+    ideaRoadmapHint: "💡 Before sending — your idea might already be in",
+    ideaRoadmapLink: "the open roadmap (GitHub Issues)",
+    // Tier 2.7 Markdown preview
+    mdEdit: "✍ Edit",
+    mdPreview: "👁 Preview",
+    mdHint: "Markdown supported: **bold**, *italic*, `code`, ==highlight==, lists, > quote, [text](http://…)",
+    // Tier 2.9 WhatsApp confirmation (desktop)
+    waConfirmTitle: "Open WhatsApp?",
+    waConfirmBody: "WhatsApp Web will open in a new tab with the message pre-filled. Send it — or edit before sending.",
+    waConfirmOpen: "Open",
+    waConfirmCancel: "Cancel",
+    // Tier 2.10 Tip-jar stub
+    tipJarTitle: "Support the developer",
+    tipJarBody: "A donation option (Boosty / Patreon / Buy Me a Coffee) will be available soon. Meanwhile — thanks for using the app! 🙏",
+    tipJarComingSoon: "Coming soon",
   },
 };

@@ -573,5 +573,40 @@ window.I18N_LOCALES.he = {
     autoFillBugIntro: "ראיתי כעת שגיאה:",
     // Tier 1.5 Real timestamp in ack
     ackTimestamp: "נשלח: {sentAt}. תשובה צפויה עד: {expectedBy}.",
+    // Tier 2.1 History
+    historyBtn: "🗂 הודעות קודמות",
+    historyTitle: "הודעות קודמות",
+    historyEmpty: "אין הודעות שנשלחו עדיין.",
+    historyEntryDate: "נשלח {date}",
+    historyEntryChannel: "ערוץ: {channel}",
+    historyResend: "↗ שלח שוב",
+    historyCopy: "📋 העתק",
+    historyClose: "→ חזרה",
+    historyClear: "נקה היסטוריה",
+    historyCleared: "ההיסטוריה נוקתה",
+    // Tier 2.2 Char counter
+    charCount: "{n} / {max}",
+    // Tier 2.3 Loading skeletons
+    qrLoading: "QR…",
+    configLoading: "טוען…",
+    // Tier 2.5 Copy diag
+    diagCopyBtn: "📋 העתק diagnostics",
+    diagCopied: "ה-diagnostics הועתקו",
+    // Tier 2.6 Roadmap link
+    ideaRoadmapHint: "💡 לפני שליחה — אולי הרעיון שלכם כבר ב",
+    ideaRoadmapLink: "open roadmap (GitHub Issues)",
+    // Tier 2.7 Markdown preview
+    mdEdit: "✍ עריכה",
+    mdPreview: "👁 תצוגה מקדימה",
+    mdHint: "נתמך markdown: **מודגש**, *נטוי*, `קוד`, ==הדגשה==, רשימות, > ציטוט, [טקסט](http://…)",
+    // Tier 2.9 WhatsApp confirmation (desktop)
+    waConfirmTitle: "לפתוח WhatsApp?",
+    waConfirmBody: "WhatsApp Web ייפתח בכרטיסייה חדשה עם הודעה מוכנה. שלחו — או ערכו לפני השליחה.",
+    waConfirmOpen: "פתח",
+    waConfirmCancel: "ביטול",
+    // Tier 2.10 Tip-jar stub
+    tipJarTitle: "תמיכה במפתח",
+    tipJarBody: "אפשרות תרומה (Boosty / Patreon / Buy Me a Coffee) תהיה זמינה בקרוב. בינתיים — תודה על השימוש באפליקציה! 🙏",
+    tipJarComingSoon: "בקרוב",
   },
 };
