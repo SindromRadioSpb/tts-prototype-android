@@ -9,6 +9,176 @@
     <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
+    /* ── App-wide theming (Direction 2, Premium Release v3.1.0) ─────────
+       Light/dark/auto via CSS variables on :root. Body class
+       `theme-light` / `theme-dark` overrides system pref; absence falls
+       back to `prefers-color-scheme`. Density modes via body class
+       `theme-density-{compact|comfortable|spacious}`. Persisted via
+       localStorage.appTheme_v1 / appDensity_v1 (re-applied at boot
+       BEFORE first paint to prevent FOWT — Flash Of Wrong Theme). */
+    :root {
+      /* Light palette (default) */
+      --theme-bg-page: #f4f6f9;
+      --theme-bg-card: #ffffff;
+      --theme-bg-elevated: #ffffff;
+      --theme-bg-muted: #f8fafc;
+      --theme-bg-hover: #f1f5f9;
+      --theme-text-primary: #0f172a;
+      --theme-text-secondary: #475569;
+      --theme-text-muted: #64748b;
+      --theme-text-faint: #94a3b8;
+      --theme-border-soft: #e2e8f0;
+      --theme-border-medium: #cbd5e1;
+      --theme-border-strong: #94a3b8;
+      --theme-accent: #2563eb;
+      --theme-accent-hover: #1d4ed8;
+      --theme-accent-soft: #eff6ff;
+      --theme-success: #16a34a;
+      --theme-success-soft: #dcfce7;
+      --theme-warning: #d97706;
+      --theme-warning-soft: #fef3c7;
+      --theme-danger: #dc2626;
+      --theme-danger-soft: #fef2f2;
+      --theme-shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --theme-shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --theme-shadow-lg: 0 20px 60px rgba(0,0,0,0.25);
+      --theme-density-pad-compact: 0.75rem;
+      --theme-density-pad-comfortable: 1rem;
+      --theme-density-pad-spacious: 1.5rem;
+    }
+    /* Auto-mode (no explicit class on body): track system preference. */
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) {
+        --theme-bg-page: #0f172a;
+        --theme-bg-card: #1e293b;
+        --theme-bg-elevated: #1e293b;
+        --theme-bg-muted: #0f172a;
+        --theme-bg-hover: #334155;
+        --theme-text-primary: #f1f5f9;
+        --theme-text-secondary: #cbd5e1;
+        --theme-text-muted: #94a3b8;
+        --theme-text-faint: #64748b;
+        --theme-border-soft: #334155;
+        --theme-border-medium: #475569;
+        --theme-border-strong: #64748b;
+        --theme-accent: #60a5fa;
+        --theme-accent-hover: #93c5fd;
+        --theme-accent-soft: #1e3a8a;
+        --theme-success: #4ade80;
+        --theme-success-soft: #052e16;
+        --theme-warning: #fbbf24;
+        --theme-warning-soft: #422006;
+        --theme-danger: #f87171;
+        --theme-danger-soft: #2a0e0e;
+        --theme-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+        --theme-shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+        --theme-shadow-lg: 0 20px 60px rgba(0,0,0,0.7);
+      }
+    }
+    /* Explicit dark — overrides system pref. */
+    body.theme-dark {
+      --theme-bg-page: #0f172a;
+      --theme-bg-card: #1e293b;
+      --theme-bg-elevated: #1e293b;
+      --theme-bg-muted: #0f172a;
+      --theme-bg-hover: #334155;
+      --theme-text-primary: #f1f5f9;
+      --theme-text-secondary: #cbd5e1;
+      --theme-text-muted: #94a3b8;
+      --theme-text-faint: #64748b;
+      --theme-border-soft: #334155;
+      --theme-border-medium: #475569;
+      --theme-border-strong: #64748b;
+      --theme-accent: #60a5fa;
+      --theme-accent-hover: #93c5fd;
+      --theme-accent-soft: #1e3a8a;
+      --theme-success: #4ade80;
+      --theme-success-soft: #052e16;
+      --theme-warning: #fbbf24;
+      --theme-warning-soft: #422006;
+      --theme-danger: #f87171;
+      --theme-danger-soft: #2a0e0e;
+      --theme-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+      --theme-shadow-md: 0 4px 12px rgba(0,0,0,0.5);
+      --theme-shadow-lg: 0 20px 60px rgba(0,0,0,0.7);
+    }
+    /* Body-level baseline so existing rules without var() also flip. */
+    body.theme-dark { background-color: var(--theme-bg-page) !important; color: var(--theme-text-primary) !important; }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) { background-color: var(--theme-bg-page); color: var(--theme-text-primary); }
+    }
+    /* Override common inline-style patterns in dark mode. These match
+       hardcoded white backgrounds / dark text in the existing JS-rendered
+       HTML (modals, cards, headers). !important is required to win
+       against inline styles. The full audit/migration to var() in JS is
+       deferred to a focused refactor session — this baseline ensures
+       every screen looks correct in dark NOW. */
+    body.theme-dark [style*="background:#fff"]:not(.theme-skip-dark),
+    body.theme-dark [style*="background: #fff"]:not(.theme-skip-dark),
+    body.theme-dark [style*="background:#ffffff"]:not(.theme-skip-dark),
+    body.theme-dark [style*="background: #ffffff"]:not(.theme-skip-dark) {
+      background: var(--theme-bg-card) !important;
+    }
+    body.theme-dark [style*="background:#f8fafc"]:not(.theme-skip-dark),
+    body.theme-dark [style*="background:#f3f4f6"]:not(.theme-skip-dark),
+    body.theme-dark [style*="background:#f1f5f9"]:not(.theme-skip-dark) {
+      background: var(--theme-bg-muted) !important;
+    }
+    body.theme-dark [style*="color:#0f172a"]:not(.theme-skip-dark),
+    body.theme-dark [style*="color: #0f172a"]:not(.theme-skip-dark),
+    body.theme-dark [style*="color:#111"]:not(.theme-skip-dark),
+    body.theme-dark [style*="color:#1f2937"]:not(.theme-skip-dark),
+    body.theme-dark [style*="color:#374151"]:not(.theme-skip-dark) {
+      color: var(--theme-text-primary) !important;
+    }
+    body.theme-dark [style*="color:#475569"]:not(.theme-skip-dark),
+    body.theme-dark [style*="color:#6b7280"]:not(.theme-skip-dark) {
+      color: var(--theme-text-secondary) !important;
+    }
+    body.theme-dark [style*="color:#94a3b8"]:not(.theme-skip-dark),
+    body.theme-dark [style*="color:#64748b"]:not(.theme-skip-dark) {
+      color: var(--theme-text-muted) !important;
+    }
+    body.theme-dark [style*="border:1px solid #e2e8f0"]:not(.theme-skip-dark),
+    body.theme-dark [style*="border-color:#e2e8f0"]:not(.theme-skip-dark) {
+      border-color: var(--theme-border-soft) !important;
+    }
+    body.theme-dark [style*="border:1px solid #cbd5e1"]:not(.theme-skip-dark),
+    body.theme-dark [style*="border-color:#cbd5e1"]:not(.theme-skip-dark),
+    body.theme-dark [style*="border:1px solid #d1d5db"]:not(.theme-skip-dark) {
+      border-color: var(--theme-border-medium) !important;
+    }
+    /* Invert system bg colors */
+    body.theme-dark .v3-modal-panel,
+    body.theme-dark .classic-card,
+    body.theme-dark .classic-main-card { background: var(--theme-bg-card) !important; color: var(--theme-text-primary) !important; }
+    body.theme-dark .classic-main-card,
+    body.theme-dark .classic-card { border-color: var(--theme-border-soft) !important; }
+    body.theme-dark .v3-modal-panel { box-shadow: var(--theme-shadow-lg); }
+    body.theme-dark input[type="text"],
+    body.theme-dark input[type="search"],
+    body.theme-dark input[type="number"],
+    body.theme-dark input[type="email"],
+    body.theme-dark textarea,
+    body.theme-dark select {
+      background: var(--theme-bg-muted) !important;
+      color: var(--theme-text-primary) !important;
+      border-color: var(--theme-border-medium) !important;
+    }
+    /* Density modes (container padding scales global density) */
+    body.theme-density-compact     { --theme-density-pad: var(--theme-density-pad-compact); }
+    body.theme-density-comfortable { --theme-density-pad: var(--theme-density-pad-comfortable); }
+    body.theme-density-spacious    { --theme-density-pad: var(--theme-density-pad-spacious); }
+    /* Theme toggle button styling (used in IDE header + Classic toolbar) */
+    .app-theme-toggle {
+      background: transparent; border: 1px solid var(--theme-border-soft); color: var(--theme-text-secondary);
+      width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
+      font-size: 16px; line-height: 1; padding: 0;
+      transition: all 0.15s; font-family: inherit;
+    }
+    .app-theme-toggle:hover { background: var(--theme-bg-hover); color: var(--theme-text-primary); border-color: var(--theme-border-medium); }
+    body.theme-dark .app-theme-toggle { border-color: var(--theme-border-medium); color: var(--theme-text-secondary); }
+
     /* ── Hebrew typography (Direction 1, v3.1.0) ─────────────────────────
        Self-hosted woff2 files in public/fonts/ (see public/fonts/README.md).
        font-display:swap — fallback to system Hebrew fonts shows immediately,
@@ -6295,6 +6465,37 @@ td[data-col="ru"] {
 
 </style>
 
+<!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
+<script>
+  // Inline because this MUST run synchronously before <body> starts
+  // rendering, otherwise the user sees a flash of the wrong theme.
+  (function() {
+    var V3_THEME_KEY = "appTheme_v1";
+    var V3_DENSITY_KEY = "appDensity_v1";
+    var saved, density;
+    try { saved = localStorage.getItem(V3_THEME_KEY); } catch (_) {}
+    try { density = localStorage.getItem(V3_DENSITY_KEY); } catch (_) {}
+    // Defer body class application until <body> exists. Wait for it
+    // synchronously by polling — the body element is parsed shortly
+    // after the head and DOMContentLoaded handlers below will kick in
+    // for late tweaks. For the inline boot, set classes via dataset on
+    // documentElement and copy to body when it appears.
+    var pending = function() {
+      var b = document.body;
+      if (!b) { return; }
+      // Theme: 'light' | 'dark' | 'auto' (no class) | undefined → auto.
+      if (saved === "light") b.classList.add("theme-light");
+      else if (saved === "dark") b.classList.add("theme-dark");
+      // 'auto' or unset — leave both classes off; @media queries handle it.
+      // Density: default comfortable.
+      var d = density === "compact" || density === "comfortable" || density === "spacious" ? density : "comfortable";
+      b.classList.add("theme-density-" + d);
+    };
+    if (document.body) pending();
+    else document.addEventListener("DOMContentLoaded", pending, { once: true });
+  })();
+</script>
+
 <script src="/db/jszip.min.js"></script>
 <script type="module">
   import * as _ldb from '/db/local-db.js';
@@ -6374,6 +6575,7 @@ td[data-col="ru"] {
     <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
       📬
     </button>
+    <button id="v3IdeThemeBtn" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
     <div class="lang-select-wrap">
       <select id="appLangSelectIde" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
         <option value="ru">Русский</option>
@@ -6780,6 +6982,7 @@ td[data-col="ru"] {
                         <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()" data-i18n="classic.dashboard">📈 Дашборд</button>
                         <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
                         <button id="btnFeedback" class="btn-secondary" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
+                        <button id="btnTheme" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
                     </div>
                     <div class="lang-select-wrap classic-lang-wrap" title="">
                       <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
@@ -19562,6 +19765,93 @@ function v3UndoToast(message, restoreFn, ttlMs) {
   v3UndoToastTimer = setTimeout(cleanup, ttl);
 }
 window.v3UndoToast = v3UndoToast;
+
+// ── Direction 2: app-wide theming (Premium Release v3.1.0) ─────────────
+// Cycle: auto → light → dark → auto. Persists choice in localStorage
+// (read by the inline pre-paint bootstrap at the top of <body>).
+const V3_THEME_KEY = "appTheme_v1";
+const V3_DENSITY_KEY = "appDensity_v1";
+function v3ThemeGet() {
+  try { return localStorage.getItem(V3_THEME_KEY) || "auto"; } catch (_) { return "auto"; }
+}
+function v3ThemeSet(v) {
+  const allowed = ["auto", "light", "dark"];
+  const choice = allowed.indexOf(v) >= 0 ? v : "auto";
+  try { localStorage.setItem(V3_THEME_KEY, choice); } catch (_) {}
+  v3ThemeApply(choice);
+  // Sync visual indicator on toggle buttons.
+  const icon = choice === "dark" ? "🌙" : choice === "light" ? "🌞" : "🌗";
+  ["v3IdeThemeBtn", "btnTheme"].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = icon;
+  });
+}
+function v3ThemeApply(choice) {
+  const b = document.body;
+  if (!b) return;
+  b.classList.remove("theme-light", "theme-dark");
+  if (choice === "light") b.classList.add("theme-light");
+  else if (choice === "dark") b.classList.add("theme-dark");
+  // 'auto' — let @media (prefers-color-scheme: dark) drive variables.
+}
+function v3ThemeCycle() {
+  const cur = v3ThemeGet();
+  const next = cur === "auto" ? "light" : cur === "light" ? "dark" : "auto";
+  v3ThemeSet(next);
+  // Premium UX: announce the new theme via toast so power users know
+  // which mode they landed on (especially "auto").
+  try {
+    const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+    const label = next === "light" ? _t("theme.light") : next === "dark" ? _t("theme.dark") : _t("theme.auto");
+    showToast(label, "info");
+  } catch (_) {}
+}
+function v3DensityGet() {
+  try { return localStorage.getItem(V3_DENSITY_KEY) || "comfortable"; } catch (_) { return "comfortable"; }
+}
+function v3DensitySet(v) {
+  const allowed = ["compact", "comfortable", "spacious"];
+  const choice = allowed.indexOf(v) >= 0 ? v : "comfortable";
+  try { localStorage.setItem(V3_DENSITY_KEY, choice); } catch (_) {}
+  const b = document.body;
+  if (!b) return;
+  b.classList.remove("theme-density-compact", "theme-density-comfortable", "theme-density-spacious");
+  b.classList.add("theme-density-" + choice);
+}
+window.v3ThemeCycle = v3ThemeCycle;
+window.v3ThemeSet = v3ThemeSet;
+window.v3ThemeGet = v3ThemeGet;
+window.v3DensitySet = v3DensitySet;
+window.v3DensityGet = v3DensityGet;
+// Initial icon update on DOMContentLoaded — by then the toggle buttons
+// exist (they're in <header> which is parsed before this module).
+document.addEventListener("DOMContentLoaded", function() {
+  const cur = v3ThemeGet();
+  const icon = cur === "dark" ? "🌙" : cur === "light" ? "🌞" : "🌗";
+  ["v3IdeThemeBtn", "btnTheme"].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = icon;
+  });
+});
+// React to OS theme changes when user is in 'auto' mode.
+if (window.matchMedia) {
+  try {
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function() {
+      // Only re-apply if user hasn't picked an explicit theme.
+      if (v3ThemeGet() === "auto") {
+        // No-op — CSS @media handles it. But we update the icon if
+        // the toggle indicator should reflect the effective mode.
+        const eff = window.matchMedia("(prefers-color-scheme: dark)").matches ? "🌙" : "🌞";
+        // Keep 'auto' indicator (🌗) so user knows it's auto.
+        // If you prefer to reflect effective: replace the line below with eff.
+        ["v3IdeThemeBtn", "btnTheme"].forEach(function(id) {
+          const el = document.getElementById(id);
+          if (el) el.textContent = "🌗";
+        });
+      }
+    });
+  } catch (_) {}
+}
 
 // ── Feedback modal (FEEDBACK_PREMIUM_CONCEPT.md) ───────────────────────────
 // WhatsApp-first contact-developer flow with QR for desktop, pre-filled

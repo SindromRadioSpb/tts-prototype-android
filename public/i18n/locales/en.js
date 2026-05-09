@@ -664,6 +664,16 @@ window.I18N_LOCALES.en = {
   dashboardExtra: {
     heatmapTitle: "Last 30 days activity",
   },
+  theme: {
+    light: "🌞 Light",
+    dark: "🌙 Dark",
+    auto: "🌗 Auto (system)",
+    toggleTitle: "Toggle interface theme",
+    densityLabel: "Density",
+    densityCompact: "Compact",
+    densityComfortable: "Comfortable",
+    densitySpacious: "Spacious",
+  },
   onboarding: {
     title: "Welcome to LinguistPro",
     tagline: "Hebrew-learning IDE with an offline-first architecture",

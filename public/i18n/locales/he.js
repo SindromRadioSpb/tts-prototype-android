@@ -664,6 +664,16 @@ window.I18N_LOCALES.he = {
   dashboardExtra: {
     heatmapTitle: "פעילות 30 ימים אחרונים",
   },
+  theme: {
+    light: "🌞 בהיר",
+    dark: "🌙 כהה",
+    auto: "🌗 אוטומטי (לפי מערכת)",
+    toggleTitle: "החלף ערכת צבעים",
+    densityLabel: "צפיפות",
+    densityCompact: "צפוף",
+    densityComfortable: "נוח",
+    densitySpacious: "רווח",
+  },
   onboarding: {
     title: "ברוכים הבאים ל-LinguistPro",
     tagline: "סביבת למידת עברית עם ארכיטקטורת offline-first",

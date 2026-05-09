@@ -664,6 +664,16 @@ window.I18N_LOCALES.ru = {
   dashboardExtra: {
     heatmapTitle: "Активность за 30 дней",
   },
+  theme: {
+    light: "🌞 Светлая",
+    dark: "🌙 Тёмная",
+    auto: "🌗 Авто (по системе)",
+    toggleTitle: "Переключить тему интерфейса",
+    densityLabel: "Плотность",
+    densityCompact: "Компактная",
+    densityComfortable: "Комфортная",
+    densitySpacious: "Просторная",
+  },
   onboarding: {
     title: "Добро пожаловать в LinguistPro",
     tagline: "IDE для изучения иврита с offline-first архитектурой",
