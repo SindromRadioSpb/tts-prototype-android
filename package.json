@@ -18,7 +18,8 @@
     "test:tts-browser-smoke": "node scripts/tts_browser_smoke.js",
     "test:api-smoke": "node scripts/api-smoke.js",
     "test": "node --test",
-    "bench:premium": "node tests/premium/bench.js"
+    "bench:premium": "node tests/premium/bench.js",
+    "pwa:icons": "node scripts/generate-pwa-icons.js"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",

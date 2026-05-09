@@ -5,8 +5,26 @@
     <title>TTS & Translator Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Шрифты для иврита -->
-    <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Шрифты для иврита: self-hosted woff2 в public/fonts/ (см. @font-face
+         блок ниже). Direction 1 v3.1.0 закрыл миграцию с CDN. Здесь
+         оставлен <link rel="preload"> для критического веса primary
+         Hebrew font'а, чтобы FOUT минимизировался на cold start. -->
+    <link rel="preload" href="/fonts/frank-ruhl-libre-400.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
+         specifics for home-screen install (icon, splash, status bar). -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-180.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LinguistPro">
+    <meta name="application-name" content="LinguistPro">
+    <meta name="description" content="LinguistPro — premium Hebrew↔Russian learning workspace with offline-first OPFS storage, SRS trainer, and TTS audio.">
 
     <style>
     /* ── App-wide theming (Direction 2, Premium Release v3.1.0) ─────────

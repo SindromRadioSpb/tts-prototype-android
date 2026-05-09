@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LinguistPro">
+  <title>LinguistPro</title>
+  <!-- Maskable-safe: full bleed background, content within central 80%. -->
+  <rect width="512" height="512" rx="96" ry="96" fill="#0f172a"/>
+  <!-- Subtle accent bar at the bottom (premium signal). -->
+  <rect x="0" y="472" width="512" height="40" fill="#2563eb"/>
+  <!-- "LP" monogram, geometric, no font dependency.
+       L: vertical bar + foot. P: vertical bar + bowl. -->
+  <g fill="#f8fafc">
+    <!-- L: x=128..200 (bar), foot 128..240 -->
+    <rect x="128" y="128" width="56" height="200"/>
+    <rect x="128" y="272" width="120" height="56"/>
+    <!-- P: x=288..344 (bar), bowl 288..400, bowl interior cut-out -->
+    <rect x="288" y="128" width="56" height="200"/>
+    <path d="M 288 128 H 376 a 56 56 0 0 1 0 112 H 288 V 184 H 376 a 0 0 0 0 0 0 -0 H 288 Z"/>
+    <!-- Bowl: outer arc (radius 56) + inner cut-out -->
+    <path d="M 344 128 h 32 a 56 56 0 0 1 0 112 h -32 v -32 h 32 a 24 24 0 0 0 0 -48 h -32 z"/>
+  </g>
+</svg>

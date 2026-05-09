@@ -268,9 +268,39 @@ function requireSameOriginJson(req, res, next) {
   next();
 }
 
+// Static assets with PWA-aware Cache-Control. Three tiers:
+//   1. Long-immutable (1 year) for content-stable assets — fonts, raster
+//      icons. Vendored and don't change across normal deploys.
+//   2. Short revalidate (1 day) for code modules that may change between
+//      deploys but where staleness for a few hours is acceptable. The
+//      Service Worker (Phase C) also caches these and revalidates in the
+//      background.
+//   3. no-cache for entry points (index.html, manifest.json, sw.js) so the
+//      Service Worker controls its own update lifecycle and the browser
+//      always re-validates the shell.
 app.use(express.static(path.join(__dirname, "public"), {
-  setHeaders(res) {
+  setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    const lower = filePath.toLowerCase();
+    if (
+      lower.endsWith(".woff2") ||
+      lower.endsWith(".woff") ||
+      /[\\/]icons[\\/].+\.(png|svg|ico)$/.test(lower) ||
+      lower.endsWith("favicon.ico")
+    ) {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    } else if (
+      /[\\/](db|i18n|tts)[\\/].+\.js$/.test(lower)
+    ) {
+      res.setHeader("Cache-Control", "public, max-age=86400, must-revalidate");
+    } else if (
+      lower.endsWith("index.html") ||
+      lower.endsWith("manifest.json") ||
+      lower.endsWith("sw.js")
+    ) {
+      // Shell + SW: always revalidate. SW will handle its own caching.
+      res.setHeader("Cache-Control", "no-cache");
+    }
   },
 }));
 
