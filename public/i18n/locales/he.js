@@ -547,7 +547,7 @@ window.I18N_LOCALES.he = {
     ackContinue: "• להמשיך לעבוד — האפליקציה עובדת אופליין.",
     ackBackup: "ליצור גיבוי ZIP",
     ackBackupSuffix: " למקרה שהבעיה תתפתח.",
-    ackClose: "סגור",
+    ackClose: "→ חזרה לראשי",
     ccPanelIntegrityChecking: "בודק תקינות מסד הנתונים…",
     ccPanelIntegrityOk: "✓ תקינות מסד הנתונים: תקין",
     ccPanelIntegrityFail: "⚠ נמצאו בעיות:",

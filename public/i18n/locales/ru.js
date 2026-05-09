@@ -547,7 +547,7 @@ window.I18N_LOCALES.ru = {
     ackContinue: "• Продолжить работу — приложение работает оффлайн.",
     ackBackup: "Сделать ZIP-бэкап",
     ackBackupSuffix: " на случай если проблема разовьётся.",
-    ackClose: "Закрыть",
+    ackClose: "← Вернуться на главную",
     ccPanelIntegrityChecking: "Проверяю целостность БД…",
     ccPanelIntegrityOk: "✓ Целостность БД: OK",
     ccPanelIntegrityFail: "⚠ Найдены проблемы:",

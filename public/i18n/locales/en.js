@@ -547,7 +547,7 @@ window.I18N_LOCALES.en = {
     ackContinue: "• Keep working — the app works offline.",
     ackBackup: "Make a ZIP backup",
     ackBackupSuffix: " in case the issue grows.",
-    ackClose: "Close",
+    ackClose: "← Back to main",
     ccPanelIntegrityChecking: "Checking DB integrity…",
     ccPanelIntegrityOk: "✓ DB integrity: OK",
     ccPanelIntegrityFail: "⚠ Issues found:",
