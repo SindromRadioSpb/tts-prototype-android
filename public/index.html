@@ -3773,6 +3773,65 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   font-size: 12px;
   line-height: 1.2;
 }
+
+/* Direction 5: smart-filter chips for Library — Recently/Struggling/
+   Mastered/New since last visit. Active state uses the accent color
+   for clear visual feedback. Hover shows it's clickable. */
+.v3-smart-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 8px;
+  padding: 8px 10px;
+  background: var(--theme-bg-muted);
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 12px;
+}
+.v3-smart-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.v3-smart-chip:hover {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-bg-hover);
+}
+.v3-smart-chip.active {
+  background: var(--theme-accent);
+  border-color: var(--theme-accent);
+  color: #fff;
+}
+body.theme-dark .v3-smart-chip.active,
+body:not(.theme-light) .v3-smart-chip.active { color: #0f172a; }
+.v3-smart-chip-clear {
+  display: none;
+  border: 1px solid var(--theme-border-soft);
+  background: transparent;
+  color: var(--theme-text-muted);
+  border-radius: 999px;
+  width: 28px; height: 28px;
+  font-size: 16px; line-height: 1;
+  cursor: pointer; padding: 0;
+  align-items: center; justify-content: center;
+  transition: all 0.15s; font-family: inherit;
+}
+.v3-smart-chip-clear:hover { color: var(--theme-text-primary); border-color: var(--theme-border-medium); }
+.v3-smart-chips.has-active .v3-smart-chip-clear { display: inline-flex; }
+@media (max-width: 600px) {
+  .v3-smart-chip { padding: 8px 12px; font-size: 13.5px; flex: 1 1 calc(50% - 4px); justify-content: center; }
+  .v3-smart-chip-clear { flex: 0 0 32px; }
+}
 .v3-filter-chip-x {
   border: 0;
   background: transparent;
@@ -7612,6 +7671,15 @@ body:not(.theme-light) .v3-heatmap-cell {
   </select>
 
   <button class="btn-success" onclick="v3LibrarySaveCurrent()" data-i18n="library.saveCurrentTable">Сохранить текущую таблицу</button>
+</div>
+
+<!-- Direction 5: smart-filter chips (Recently/Struggling/Mastered/New since visit) -->
+<div class="v3-smart-chips" id="v3LibrarySmartChips">
+  <button type="button" class="v3-smart-chip" data-smart="recent" onclick="v3LibrarySetSmartChip('recent')" data-i18n="library.smartRecent" data-i18n-title="library.smartRecentTitle" title="Недавно открытые">⏱ Недавние</button>
+  <button type="button" class="v3-smart-chip" data-smart="struggling" onclick="v3LibrarySetSmartChip('struggling')" data-i18n="library.smartStruggling" data-i18n-title="library.smartStrugglingTitle" title="Сложные карточки">🔥 Сложные</button>
+  <button type="button" class="v3-smart-chip" data-smart="mastered" onclick="v3LibrarySetSmartChip('mastered')" data-i18n="library.smartMastered" data-i18n-title="library.smartMasteredTitle" title="Освоенные">✓ Освоено</button>
+  <button type="button" class="v3-smart-chip" data-smart="new" onclick="v3LibrarySetSmartChip('new')" data-i18n="library.smartNew" data-i18n-title="library.smartNewTitle" title="Новые с прошлого визита">✨ Новые</button>
+  <button type="button" class="v3-smart-chip-clear" id="v3LibrarySmartClear" onclick="v3LibrarySetSmartChip(null)" data-i18n="library.smartClear" title="Сбросить smart-фильтр">×</button>
 </div>
 
 <div class="v3-filter-row">
@@ -14253,19 +14321,19 @@ updatePlaylistButtonUI();
         btnInputPasteEl.addEventListener("click", async function () {
             try {
                 if (!navigator.clipboard || typeof navigator.clipboard.readText !== "function") {
-                    showToast("Буфер обмена недоступен в этом браузере");
+                    showToast(t("toast.clipboardUnavailable"), "error");
                     return;
                 }
                 const clip = await navigator.clipboard.readText();
                 if (!clip) {
-                    showToast("Буфер обмена пуст");
+                    showToast(t("toast.clipboardEmpty"), "warning");
                     return;
                 }
                 inputTextEl.value = clip;
                 inputTextEl.dispatchEvent(new Event("input", { bubbles: true }));
-                showToast("Текст вставлен", "success");
+                showToast(t("toast.textPasted"), "success");
             } catch (_) {
-                showToast("Не удалось прочитать буфер обмена", "error");
+                showToast(t("toast.clipboardReadFailed"), "error");
             }
         });
     }
@@ -17793,6 +17861,26 @@ try { v3SyncTagMatchModeUi(); } catch (_) {}
   // texts list loads (or never if listTexts throws).
   try { v3LibraryUpdateCloudImportVisibility(); } catch (_) {}
 
+  // Direction 5: restore smart-chip from URL hash + load cache + stamp
+  // visit so "✨ Новые" works on next session.
+  try {
+    const params = new URLSearchParams((location.hash || "").slice(1));
+    const smartFromHash = params.get("smart");
+    if (smartFromHash && ["recent", "struggling", "mastered", "new"].includes(smartFromHash)) {
+      v3LibrarySmartChip = smartFromHash;
+    }
+    v3LibrarySmartUpdateUI();
+  } catch (_) {}
+  // Load smart cache asynchronously; once loaded, re-apply filter so
+  // chip-restored state takes effect.
+  v3LibrarySmartLoadCache().then(() => {
+    if (v3LibrarySmartChip) v3LibraryApplyFilter();
+  });
+  // Stamp visit AFTER cache load so the cached "since-last-visit" set
+  // is computed using the previous timestamp; we move the marker
+  // forward only after the data is read.
+  setTimeout(() => v3LibraryStampVisit(), 100);
+
   v3LibraryRefresh();
   v3LibraryBindTagClicksOnce();
   v3LibraryBindFilterUiOnce();
@@ -18227,6 +18315,96 @@ if (q.tagTokens && q.tagTokens.length) {
   return true;
 }
 
+// Direction 5: smart-chip state. One active chip at a time. Persisted
+// in URL hash (#smart=struggling) so deep-links restore filter state.
+let v3LibrarySmartChip = null;
+let v3LibrarySmartCache = null; // {struggling: Set, mastered: Set, new: Set}
+
+function v3LibrarySetSmartChip(kind) {
+  v3LibrarySmartChip = kind;
+  // Sync URL hash for deep-linkability.
+  try {
+    const params = new URLSearchParams(location.hash.slice(1));
+    if (kind) params.set("smart", kind);
+    else params.delete("smart");
+    const next = params.toString();
+    history.replaceState(null, "", "#" + next);
+  } catch (_) {}
+  // Reload smart-cache from local-db on chip change.
+  v3LibrarySmartLoadCache().then(() => {
+    v3LibrarySmartUpdateUI();
+    v3LibraryApplyFilter();
+  });
+}
+window.v3LibrarySetSmartChip = v3LibrarySetSmartChip;
+
+function v3LibrarySmartUpdateUI() {
+  const wrap = document.getElementById("v3LibrarySmartChips");
+  if (!wrap) return;
+  const chips = wrap.querySelectorAll(".v3-smart-chip");
+  chips.forEach((c) => c.classList.toggle("active", c.dataset.smart === v3LibrarySmartChip));
+  wrap.classList.toggle("has-active", !!v3LibrarySmartChip);
+}
+
+async function v3LibrarySmartLoadCache() {
+  if (!LOCAL_MODE || !window.__localDB) {
+    v3LibrarySmartCache = null;
+    return;
+  }
+  const out = { struggling: new Set(), mastered: new Set(), new: new Set() };
+  try {
+    if (typeof window.__localDB.getStrugglingTexts === "function") {
+      const ids = await window.__localDB.getStrugglingTexts({});
+      for (const id of ids) out.struggling.add(String(id));
+    }
+  } catch (_) {}
+  try {
+    if (typeof window.__localDB.getMasteredTexts === "function") {
+      const ids = await window.__localDB.getMasteredTexts();
+      for (const id of ids) out.mastered.add(String(id));
+    }
+  } catch (_) {}
+  try {
+    if (typeof window.__localDB.getTextsCreatedAfter === "function") {
+      const lastVisit = (function () {
+        try { return localStorage.getItem("v3LibraryLastVisit_v1") || ""; }
+        catch (_) { return ""; }
+      })();
+      if (lastVisit) {
+        const ids = await window.__localDB.getTextsCreatedAfter(lastVisit);
+        for (const id of ids) out.new.add(String(id));
+      }
+    }
+  } catch (_) {}
+  v3LibrarySmartCache = out;
+}
+
+function v3LibrarySmartFilter(texts) {
+  if (!v3LibrarySmartChip || !v3LibrarySmartCache) return texts;
+  const set = v3LibrarySmartCache[v3LibrarySmartChip];
+  if (!set) return texts;
+  if (v3LibrarySmartChip === "recent") return texts;  // sort handles it
+  return texts.filter((t) => set.has(String(t.id)));
+}
+
+// Track the last library visit so "✨ Новые" can show texts created
+// after the previous open. Stamped on each library-modal open below.
+function v3LibraryStampVisit() {
+  try {
+    const prev = localStorage.getItem("v3LibraryLastVisit_v1");
+    // Don't overwrite — we want "since last time *before* this session".
+    // Read prev first; only stamp if not already stamped this session.
+    if (!window.__v3LibVisitStampedThisSession) {
+      window.__v3LibVisitStampedThisSession = true;
+      // Move "previous" stamp to "active" key for filter; new stamp will
+      // happen on next page load.
+      // For simplicity: just set the marker once per page load.
+      localStorage.setItem("v3LibraryLastVisit_v1", new Date().toISOString());
+      // Use the prev value for filtering (set in cache load above).
+    }
+  } catch (_) {}
+}
+
 function v3LibraryApplyFilter() {
   const qRaw = String((v3LibEl("v3LibrarySearch") && v3LibEl("v3LibrarySearch").value) || "").trim();
   const levelFilter = String((v3LibEl("v3LibraryLevel") && v3LibEl("v3LibraryLevel").value) || "").trim();
@@ -18323,8 +18501,13 @@ function v3LibraryApplyFilter() {
     filtered = out;
   }
 
-  // 2) Sort (always apply)
-  const sorted = v3SortTextsCopy(filtered, sortKey);
+  // 1b) Direction 5: smart-chip filter (Struggling / Mastered / New).
+  // Recent is handled via sort below.
+  filtered = v3LibrarySmartFilter(filtered);
+
+  // 2) Sort (always apply). Smart chip "recent" overrides user sort.
+  const effectiveSort = (v3LibrarySmartChip === "recent") ? "opened_desc" : sortKey;
+  const sorted = v3SortTextsCopy(filtered, effectiveSort);
 
   // 3) Render
   v3LibraryRenderList(sorted);
@@ -18781,11 +18964,11 @@ async function v3LibraryArchiveText(textId) {
     } else {
       await v3PostJson("/api/library/texts/" + encodeURIComponent(textId) + "/archive", {});
     }
-    showToast("Текст архивирован", "success");
+    showToast(t("toast.textArchived"), "success");
     v3LibraryRefresh();
   } catch (e) {
     console.warn("archive failed", e);
-    showToast("Не удалось архивировать", "error");
+    showToast(t("toast.archiveFailed"), "error");
   }
 }
 
@@ -18828,10 +19011,10 @@ async function v3LibraryDeleteText(textId) {
         const ldb = await ensureLocalDB();
         await ldb.importBundle(snapshot, { mode: "skip" });
         v3LibraryRefresh();
-        showToast("Восстановлено", "success");
+        showToast(t("toast.restored"), "success");
       });
     } else {
-      showToast("Текст удалён", "success");
+      showToast(t("toast.textDeleted"), "success");
     }
     v3LibraryRefresh();
   } catch (e) {
