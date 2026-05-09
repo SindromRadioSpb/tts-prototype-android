@@ -3765,8 +3765,9 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 12px;
@@ -3778,10 +3779,10 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   cursor: pointer;
   font-size: 14px;
   line-height: 1;
-  color: #6b7280;
+  color: var(--theme-text-muted);
   padding: 0 2px;
 }
-.v3-filter-chip-x:hover { color: #111827; }
+.v3-filter-chip-x:hover { color: var(--theme-text-primary); }
 .v3-filter-reset { white-space: nowrap; }
 
 /* Tag facets */
@@ -6451,11 +6452,39 @@ td[data-col="ru"] {
   cursor: pointer; transition: transform 0.1s, outline 0.1s;
 }
 .v3-heatmap-cell:hover { transform: scale(1.4); outline: 1px solid #2563eb; outline-offset: 1px; }
+/* Heatmap colour bands — original GitHub palette for light theme. */
 .v3-heatmap-cell.band-0 { background: #ebedf0; }
 .v3-heatmap-cell.band-1 { background: #c6e48b; }
 .v3-heatmap-cell.band-2 { background: #7bc96f; }
 .v3-heatmap-cell.band-3 { background: #239a3b; }
 .v3-heatmap-cell.band-4 { background: #196127; }
+/* Empty cells need a visible outline so the calendar grid stays
+   readable. On light bg #ebedf0 already has enough contrast against
+   white card; on dark bg the same colour blends with slate-800.
+   Add a subtle outline always-on; bump it on dark + on touch devices
+   where high-DPI tends to wash the cells out. */
+.v3-heatmap-cell { outline: 1px solid rgba(0,0,0,0.08); outline-offset: -1px; }
+body.theme-dark .v3-heatmap-cell.band-0,
+body:not(.theme-light) .v3-heatmap-cell.band-0 {
+  background: #1f2937;
+  outline-color: rgba(255,255,255,0.18);
+}
+body.theme-dark .v3-heatmap-cell,
+body:not(.theme-light) .v3-heatmap-cell {
+  outline-color: rgba(255,255,255,0.12);
+}
+@media (max-width: 600px), (pointer: coarse) {
+  /* Mobile: bump outline contrast since high-DPI scaling fades the
+     1px outline against dark bg. */
+  body.theme-dark .v3-heatmap-cell,
+  body:not(.theme-light) .v3-heatmap-cell {
+    outline-color: rgba(255,255,255,0.20);
+  }
+  body.theme-dark .v3-heatmap-cell.band-0,
+  body:not(.theme-light) .v3-heatmap-cell.band-0 {
+    outline-color: rgba(255,255,255,0.28);
+  }
+}
 .v3-heatmap-legend {
   display: flex; align-items: center; gap: 4px; font-size: 11px; color: #64748b;
   justify-content: flex-end;
