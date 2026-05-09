@@ -5623,6 +5623,97 @@ td[data-col="ru"] {
   #v3FeedbackPanel { border-radius: 12px; }
   .v3-fb-wa-grid { grid-template-columns: 1fr !important; }
 }
+/* Theme toggle button in modal header */
+.v3-fb-theme-btn {
+  background: transparent; border: 1px solid #e2e8f0; color: #64748b;
+  padding: 4px 10px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.v3-fb-theme-btn:hover { background: #f1f5f9; color: #0f172a; }
+/* Inline result panel for command-center actions */
+.v3-fb-cc-result {
+  margin-top: 10px; padding: 10px 12px; background: #eff6ff; border: 1px solid #bfdbfe;
+  border-radius: 8px; font-size: 13px; line-height: 1.5; color: #1e3a8a;
+  position: relative; animation: v3FbWaCardIn 0.2s ease-out;
+}
+.v3-fb-cc-result.success { background: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+.v3-fb-cc-result.warning { background: #fefce8; border-color: #fde047; color: #854d0e; }
+.v3-fb-cc-result.error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+.v3-fb-cc-result pre {
+  margin: 6px 0 0; font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11.5px; white-space: pre-wrap; word-break: break-word; max-height: 200px;
+  overflow-y: auto; padding: 6px 8px; background: rgba(255,255,255,0.5); border-radius: 4px;
+}
+.v3-fb-cc-result-close {
+  position: absolute; top: 6px; right: 8px; background: transparent; border: 0;
+  font-size: 14px; color: inherit; opacity: 0.6; cursor: pointer; padding: 2px 6px;
+}
+.v3-fb-cc-result-close:hover { opacity: 1; }
+
+/* Email chooser inline panel */
+.v3-fb-email-chooser {
+  margin-top: 14px; padding: 14px; background: #f8fafc;
+  border: 1px solid #e2e8f0; border-radius: 8px;
+  animation: v3FbWaCardIn 0.25s ease-out;
+}
+.v3-fb-email-chooser-title {
+  font-size: 13px; font-weight: 600; color: #0f172a; margin-bottom: 4px;
+}
+.v3-fb-email-chooser-hint {
+  font-size: 11.5px; color: #64748b; margin-bottom: 10px;
+}
+.v3-fb-email-chooser-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+@media (max-width: 380px) { .v3-fb-email-chooser-grid { grid-template-columns: 1fr; } }
+.v3-fb-email-option {
+  background: #fff; border: 1px solid #cbd5e1; border-radius: 6px;
+  padding: 10px 12px; cursor: pointer; font-size: 13px; color: #0f172a;
+  font-family: inherit; transition: all 0.15s; text-align: left;
+  display: flex; align-items: center; gap: 8px;
+}
+.v3-fb-email-option:hover { background: #f1f5f9; border-color: #94a3b8; }
+
+/* Dark theme — modal-scoped (full app theming is C-series 7.1) */
+#v3FeedbackPanel.feedback-dark {
+  background: #1e293b; color: #f1f5f9;
+}
+.feedback-dark header { border-bottom-color: #334155 !important; }
+.feedback-dark #v3FbTitle { color: #f1f5f9 !important; }
+.feedback-dark .v3-fb-cat-card {
+  background: #0f172a; border-color: #334155; color: #f1f5f9;
+}
+.feedback-dark .v3-fb-cat-card:hover { background: #1e293b; border-color: #475569; }
+.feedback-dark .v3-fb-cat-card.danger { background: #2a0e0e; border-color: #5a1818; }
+.feedback-dark .v3-fb-cat-card div[style*="color:#475569"] { color: #cbd5e1 !important; }
+.feedback-dark .v3-fb-cc-btn {
+  background: #0f172a; border-color: #334155; color: #f1f5f9;
+}
+.feedback-dark .v3-fb-cc-btn:hover { background: #1e293b; border-color: #475569; }
+.feedback-dark .v3-fb-input, .feedback-dark .v3-fb-textarea {
+  background: #0f172a; border-color: #475569; color: #f1f5f9;
+}
+.feedback-dark .v3-fb-input:focus, .feedback-dark .v3-fb-textarea:focus {
+  border-color: #60a5fa; box-shadow: 0 0 0 3px rgba(96,165,250,0.2);
+}
+.feedback-dark .v3-fb-label { color: #cbd5e1; }
+.feedback-dark .v3-fb-secondary-btn {
+  background: #0f172a; color: #cbd5e1; border-color: #475569;
+}
+.feedback-dark .v3-fb-secondary-btn:hover { background: #1e293b; border-color: #64748b; }
+.feedback-dark .v3-fb-diag-section {
+  background: #0f172a; border-color: #334155;
+}
+.feedback-dark .v3-fb-diag-section pre { color: #cbd5e1; }
+.feedback-dark .v3-fb-theme-btn { border-color: #334155; color: #cbd5e1; }
+.feedback-dark .v3-fb-theme-btn:hover { background: #334155; color: #f1f5f9; }
+.feedback-dark .v3-fb-email-chooser { background: #0f172a; border-color: #334155; }
+.feedback-dark .v3-fb-email-option { background: #1e293b; border-color: #475569; color: #f1f5f9; }
+.feedback-dark .v3-fb-email-option:hover { background: #334155; }
+.feedback-dark .v3-fb-cc-result { background: #1e3a8a; border-color: #3b82f6; color: #dbeafe; }
+.feedback-dark .v3-fb-cc-result.success { background: #052e16; border-color: #22c55e; color: #bbf7d0; }
+.feedback-dark .v3-fb-cc-result.error { background: #2a0e0e; border-color: #dc2626; color: #fecaca; }
+.feedback-dark .v3-fb-cc-result.warning { background: #422006; border-color: #d97706; color: #fde68a; }
 
 </style>
 
@@ -5702,7 +5793,7 @@ td[data-col="ru"] {
     <button id="v3IdeSrsTrainerBtn" class="btn-ide" onclick="v3SrsTrainerOpen()" data-i18n="ide.train" data-i18n-title="ide.openTrainerTitle" title="Open SRS Trainer">
       🎯 Train
     </button>
-    <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
+    <button id="v3IdeFeedbackBtn" class="btn-ide" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">
       📬
     </button>
     <div class="lang-select-wrap">
@@ -6110,7 +6201,7 @@ td[data-col="ru"] {
                         <button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()" data-i18n="classic.library">📚 Библиотека</button>
                         <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()" data-i18n="classic.dashboard">📈 Дашборд</button>
                         <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
-                        <button id="btnFeedback" class="btn-secondary" onclick="v3FeedbackOpen()" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
+                        <button id="btnFeedback" class="btn-secondary" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
                     </div>
                     <div class="lang-select-wrap classic-lang-wrap" title="">
                       <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
@@ -6586,13 +6677,16 @@ td[data-col="ru"] {
 <div id="v3FeedbackModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,23,42,0.6); align-items:flex-start; justify-content:center; padding:20px; overflow-y:auto;" role="dialog" aria-modal="true" aria-labelledby="v3FbTitle">
   <div id="v3FeedbackPanel" style="background:#fff; border-radius:16px; max-width:520px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); animation:v3FbEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin:auto;">
     <header style="padding:20px 24px 12px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
-      <div>
+      <div style="flex:1; min-width:0;">
         <div id="v3FbTitle" style="font-size:20px; font-weight:600; color:#0f172a;">📬 Связаться с разработчиком</div>
         <div id="v3FbSubtitle" style="font-size:13px; margin-top:4px;">
           <span id="v3FbStatusBadge" style="display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; color:#166534; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:500; border:1px solid #bbf7d0;">🟢 Сервис работает</span>
         </div>
       </div>
-      <button onclick="v3FeedbackClose()" style="background:transparent; border:0; font-size:22px; color:#94a3b8; cursor:pointer; padding:4px 8px; border-radius:8px;" aria-label="Закрыть">×</button>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button id="v3FbThemeBtn" type="button" class="v3-fb-theme-btn" onclick="v3FbToggleTheme()" aria-label="Переключить тему">🌙</button>
+        <button onclick="v3FeedbackClose()" style="background:transparent; border:0; font-size:22px; color:#94a3b8; cursor:pointer; padding:4px 8px; border-radius:8px;" aria-label="Закрыть">×</button>
+      </div>
     </header>
 
     <div id="v3FbBody" style="padding:16px 24px 24px;">
@@ -18790,6 +18884,7 @@ window.v3UndoToast = v3UndoToast;
 // templates per category, diagnostics preview, persistent draft, and
 // command-center actions (ZIP backup, integrity check, telemetry, storage).
 const V3_FB_DRAFT_KEY = "feedbackDraft_v1";
+const V3_FB_THEME_KEY = "feedbackTheme_v1";
 const V3_FB_QR_SCRIPT = "/db/qrcode.js";
 let v3FbConfig = null;       // { whatsappPhone, email, githubRepo, responseTimeHours }
 let v3FbQrLoaded = false;
@@ -18797,6 +18892,13 @@ let v3FbView = "triage";     // 'triage' | 'category:<name>' | 'ack'
 let v3FbCurrentCategory = null;
 let v3FbDraftTimer = null;
 let v3FbDiagOptOut = new Set();  // ids of diagnostic sections opted out
+
+// Safe i18n helper — falls back to the key when the i18n module is not
+// loaded yet (e.g. during early init). Mirrors window.t signature.
+function v3FbT(key, params) {
+  if (typeof window.t === "function") return window.t(key, params);
+  return key;
+}
 
 async function v3FbLoadConfig() {
   if (v3FbConfig) return v3FbConfig;
@@ -18989,6 +19091,12 @@ async function v3FeedbackOpen(initialCategory) {
   v3FbDiagOptOut = new Set();
 
   await v3FbLoadConfig();
+  // Apply saved theme preference.
+  v3FbApplySavedTheme();
+  // Apply title to header (i18n).
+  const titleEl = document.getElementById("v3FbTitle");
+  if (titleEl) titleEl.textContent = v3FbT("feedback.title");
+
   // Lazy-load QR (needed even on triage view since WhatsApp card has it).
   v3FbLoadQr().catch(() => {});
 
@@ -18996,6 +19104,30 @@ async function v3FeedbackOpen(initialCategory) {
   v3FbRender();
   document.addEventListener("keydown", v3FbKeyHandler);
 }
+
+function v3FbApplySavedTheme() {
+  try {
+    const saved = localStorage.getItem(V3_FB_THEME_KEY);
+    const panel = document.getElementById("v3FeedbackPanel");
+    const btn = document.getElementById("v3FbThemeBtn");
+    if (panel) {
+      if (saved === "dark") panel.classList.add("feedback-dark");
+      else panel.classList.remove("feedback-dark");
+    }
+    if (btn) btn.textContent = saved === "dark" ? "🌞" : "🌙";
+  } catch (_) {}
+}
+function v3FbToggleTheme() {
+  try {
+    const panel = document.getElementById("v3FeedbackPanel");
+    const btn = document.getElementById("v3FbThemeBtn");
+    if (!panel) return;
+    const isDark = panel.classList.toggle("feedback-dark");
+    localStorage.setItem(V3_FB_THEME_KEY, isDark ? "dark" : "light");
+    if (btn) btn.textContent = isDark ? "🌞" : "🌙";
+  } catch (_) {}
+}
+window.v3FbToggleTheme = v3FbToggleTheme;
 function v3FeedbackClose() {
   const modal = document.getElementById("v3FeedbackModal");
   if (modal) modal.style.display = "none";
@@ -19032,7 +19164,7 @@ function v3FbPostRender() {
       const tryBuild = () => {
         const txt = "https://wa.me/" + v3FbConfig.whatsappPhone;
         const svg = v3FbBuildQrSvg(txt, 110);
-        if (svg) { qrSlot.innerHTML = svg + '<div style="font-size:10px; color:#555; margin-top:2px; text-align:center; font-weight:500;">Сканируйте<br>с телефона</div>'; qrSlot.dataset.built = "1"; }
+        if (svg) { qrSlot.innerHTML = svg + '<div style="font-size:10px; color:#555; margin-top:2px; text-align:center; font-weight:500;">' + v3FbT("feedback.waQrLabel") + '</div>'; qrSlot.dataset.built = "1"; }
       };
       if (typeof window.qrcode === "function") tryBuild();
       else v3FbLoadQr().then(tryBuild).catch(() => { qrSlot.innerHTML = '<div style="padding:12px; font-size:11px; color:#888;">QR недоступен — используйте кнопку справа</div>'; });
@@ -19061,10 +19193,10 @@ async function v3FbRefreshStatusBadge() {
   if (!el) return;
   try {
     const r = await fetch("/api/diag", { cache: "no-store" });
-    if (r.ok) { el.textContent = "🟢 Сервис работает"; el.style.background = "#ecfdf5"; el.style.color = "#166534"; el.style.borderColor = "#bbf7d0"; }
-    else { el.textContent = "🟡 Сервис с предупреждениями"; el.style.background = "#fefce8"; el.style.color = "#854d0e"; el.style.borderColor = "#fde047"; }
+    if (r.ok) { el.textContent = v3FbT("feedback.statusOk"); el.style.background = "#ecfdf5"; el.style.color = "#166534"; el.style.borderColor = "#bbf7d0"; }
+    else { el.textContent = v3FbT("feedback.statusWarn"); el.style.background = "#fefce8"; el.style.color = "#854d0e"; el.style.borderColor = "#fde047"; }
   } catch (_) {
-    el.textContent = "🔴 Нет связи с сервером"; el.style.background = "#fef2f2"; el.style.color = "#991b1b"; el.style.borderColor = "#fecaca";
+    el.textContent = v3FbT("feedback.statusErr"); el.style.background = "#fef2f2"; el.style.color = "#991b1b"; el.style.borderColor = "#fecaca";
   }
 }
 
@@ -19072,13 +19204,14 @@ function v3FbRenderTriage() {
   const phone = v3FbConfig.whatsappPhone;
   const hours = v3FbConfig.responseTimeHours;
   const waUrl = "https://wa.me/" + phone;
+  const T = v3FbT;
   return `
     <div style="background:#f8fafc; border-radius:12px; padding:14px 16px; margin-bottom:16px; border:1px solid #e2e8f0;">
-      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:8px;">Сначала проверьте</div>
+      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:8px;">${T("feedback.selfTitle")}</div>
       <ul style="list-style:none; display:flex; flex-direction:column; gap:6px; margin:0; padding:0;">
-        <li><a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">📚 Где живут мои данные? (User Guide)</a></li>
-        <li><a href="#" onclick="alert('FAQ — в концепте, в первой версии вынесем top-3 вопроса.');return false;" style="color:#2563eb; text-decoration:none; font-size:13.5px;">❓ FAQ — три самых частых вопроса</a></li>
-        <li><a href="/CHANGELOG.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">🔍 Известные проблемы (Changelog)</a></li>
+        <li><a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">${T("feedback.selfUserGuide")}</a></li>
+        <li><a href="#" onclick="alert('FAQ — TBD');return false;" style="color:#2563eb; text-decoration:none; font-size:13.5px;">${T("feedback.selfFaq")}</a></li>
+        <li><a href="/CHANGELOG.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">${T("feedback.selfChangelog")}</a></li>
       </ul>
     </div>
 
@@ -19086,10 +19219,10 @@ function v3FbRenderTriage() {
       <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
         <div style="width:36px; height:36px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px;">💬</div>
         <div>
-          <div style="font-size:17px; font-weight:600;">WhatsApp</div>
+          <div style="font-size:17px; font-weight:600;">${T("feedback.waTitle")}</div>
           <div style="display:flex; align-items:center; gap:6px; font-size:13px; margin-top:2px; opacity:0.95;">
             <span class="v3-fb-pulse-dot" aria-hidden="true"></span>
-            <span>Обычно отвечаю в течение ${hours} часов</span>
+            <span>${T("feedback.waResponseTime", { hours: hours })}</span>
           </div>
         </div>
       </div>
@@ -19099,80 +19232,81 @@ function v3FbRenderTriage() {
         </div>
         <button onclick="v3FbOpenWhatsApp('triage')" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); color:#fff; border-radius:8px; padding:16px; cursor:pointer; font-size:14px; font-weight:600; text-align:center; line-height:1.4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; backdrop-filter:blur(10px);">
           <span style="font-size:22px;">→</span>
-          <span>Открыть на этом устройстве</span>
-          <span style="font-size:11px; font-weight:400; opacity:0.85;">в WhatsApp Web или приложении</span>
+          <span>${T("feedback.waOpenHere")}</span>
+          <span style="font-size:11px; font-weight:400; opacity:0.85;">${T("feedback.waOpenHint")}</span>
         </button>
       </div>
       <div style="display:flex; flex-direction:column; gap:6px; font-size:12.5px; line-height:1.4; opacity:0.95; margin-bottom:12px;">
-        <div style="display:flex; gap:6px;"><span>🎙️</span><span>Можно отправить голосовое — это быстрее текста.</span></div>
-        <div style="display:flex; gap:6px;"><span>🔒</span><span>Переписка end-to-end шифрована стандартом WhatsApp.</span></div>
+        <div style="display:flex; gap:6px;"><span>🎙️</span><span>${T("feedback.waTipVoice")}</span></div>
+        <div style="display:flex; gap:6px;"><span>🔒</span><span>${T("feedback.waTipPrivacy")}</span></div>
       </div>
       <div style="display:flex; flex-wrap:wrap; gap:6px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.18);">
-        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; opacity:0.7; width:100%; margin-bottom:4px;">Быстрые шаблоны</span>
-        <button onclick="v3FbOpenWhatsApp('bug')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">🐛 Баг</button>
-        <button onclick="v3FbOpenWhatsApp('idea')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">💡 Идея</button>
-        <button onclick="v3FbOpenWhatsApp('question')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">❓ Вопрос</button>
+        <span style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; opacity:0.7; width:100%; margin-bottom:4px;">${T("feedback.waTemplatesLabel")}</span>
+        <button onclick="v3FbOpenWhatsApp('bug')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">${T("feedback.waTplBug")}</button>
+        <button onclick="v3FbOpenWhatsApp('idea')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">${T("feedback.waTplIdea")}</button>
+        <button onclick="v3FbOpenWhatsApp('question')" style="background:rgba(255,255,255,0.15); color:#fff; border:0; padding:6px 12px; border-radius:999px; font-size:12.5px; cursor:pointer;">${T("feedback.waTplQuestion")}</button>
       </div>
     </section>
 
-    <div style="text-align:center; margin:18px 0 14px; position:relative; color:#94a3b8; font-size:12px;">или выберите категорию</div>
+    <div style="text-align:center; margin:18px 0 14px; position:relative; color:#94a3b8; font-size:12px;">${T("feedback.divider")}</div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('bug')">
         <div style="font-size:22px;">🐛</div>
-        <div style="font-size:14px; font-weight:600; line-height:1.3;">Что-то не работает</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">Ошибка, баг, неожиданное поведение</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catBugTitle")}</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catBugDesc")}</div>
       </button>
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('idea')">
         <div style="font-size:22px;">💡</div>
-        <div style="font-size:14px; font-weight:600; line-height:1.3;">Идея / предложение</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">Что добавить или улучшить</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catIdeaTitle")}</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catIdeaDesc")}</div>
       </button>
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('question')">
         <div style="font-size:22px;">❓</div>
-        <div style="font-size:14px; font-weight:600; line-height:1.3;">Не понимаю как</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">Вопрос по использованию</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catQuestionTitle")}</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catQuestionDesc")}</div>
       </button>
       <button class="v3-fb-cat-card danger" type="button" onclick="v3FbGoCategory('privacy')">
         <div style="font-size:22px;">🛡️</div>
-        <div style="font-size:14px; font-weight:600; line-height:1.3;">Приватность / данные</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">Удалить, скачать, проверить</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catPrivacyTitle")}</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catPrivacyDesc")}</div>
       </button>
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('thanks')" style="grid-column: 1 / -1;">
         <div style="font-size:22px;">🙏</div>
-        <div style="font-size:14px; font-weight:600; line-height:1.3;">Благодарность / отзыв</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">Что нравится, что хочется сохранить</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catThanksTitle")}</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catThanksDesc")}</div>
       </button>
     </div>
 
     <section style="margin-top:18px; padding-top:18px; border-top:1px solid #e2e8f0;">
-      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:10px;">Быстрые действия</div>
+      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:10px;">${T("feedback.ccTitle")}</div>
       <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px;">
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdBackup()"><span>📦</span><span>Скачать ZIP-бэкап</span></button>
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdIntegrity()"><span>🩺</span><span>Проверить целостность БД</span></button>
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdTelemetry()"><span>📊</span><span>Показать telemetry</span></button>
-        <button class="v3-fb-cc-btn" onclick="v3FbCmdStorage()"><span>💾</span><span>Сколько занято места</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdBackup()"><span>📦</span><span>${T("feedback.ccBackup")}</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdIntegrity()"><span>🩺</span><span>${T("feedback.ccIntegrity")}</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdTelemetry()"><span>📊</span><span>${T("feedback.ccTelemetry")}</span></button>
+        <button class="v3-fb-cc-btn" onclick="v3FbCmdStorage()"><span>💾</span><span>${T("feedback.ccStorage")}</span></button>
       </div>
+      <div id="v3FbCcResult"></div>
     </section>
 
     <section style="margin-top:18px; padding:14px 0 4px; border-top:1px solid #e2e8f0; font-size:12px;">
       <details>
-        <summary style="cursor:pointer; font-weight:500; color:#475569; user-select:none; padding:4px 0;">Все каналы связи</summary>
+        <summary style="cursor:pointer; font-weight:500; color:#475569; user-select:none; padding:4px 0;">${T("feedback.channelsTitle")}</summary>
         <div style="margin-top:10px; display:grid; grid-template-columns:1fr; gap:6px;">
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e2e8f0;">
-            <span style="display:flex; align-items:center; gap:8px; color:#475569;">💬 WhatsApp</span>
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">${T("feedback.channelsWa")}</span>
             <a href="${waUrl}" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:12.5px;">+${phone}</a>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e2e8f0;">
-            <span style="display:flex; align-items:center; gap:8px; color:#475569;">📧 Email</span>
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">${T("feedback.channelsEmail")}</span>
             <a href="mailto:${v3FbConfig.email}" style="color:#2563eb; text-decoration:none; font-size:12.5px;">${v3FbConfig.email}</a>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e2e8f0;">
-            <span style="display:flex; align-items:center; gap:8px; color:#475569;">🐙 GitHub</span>
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">${T("feedback.channelsGithub")}</span>
             <a href="https://github.com/${v3FbConfig.githubRepo}/issues" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:12.5px;">issues</a>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0;">
-            <span style="display:flex; align-items:center; gap:8px; color:#475569;">📚 Docs</span>
+            <span style="display:flex; align-items:center; gap:8px; color:#475569;">${T("feedback.channelsDocs")}</span>
             <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:12.5px;">OPFS_USER_GUIDE.md</a>
           </div>
         </div>
@@ -19181,18 +19315,19 @@ function v3FbRenderTriage() {
 
     <div style="margin-top:14px; padding-top:12px; border-top:1px solid #e2e8f0; font-size:11.5px; color:#94a3b8; line-height:1.5; display:flex; align-items:center; gap:8px;">
       <span style="font-size:13px;">🔒</span>
-      <span>Никакие данные с устройства не отправляются автоматически. Когда вы выберете канал — вы лично контролируете отправку.</span>
+      <span>${T("feedback.trust")}</span>
     </div>
   `;
 }
 
 function v3FbRenderCategory(category) {
+  const T = v3FbT;
   const labels = {
-    bug: { title: "🐛 Что-то не работает", titleHint: "Краткое описание", desc: "Что произошло", showSteps: true, showExpected: true, defaultDiag: true },
-    idea: { title: "💡 Идея / предложение", titleHint: "Идея кратко", desc: "Подробнее", showSteps: false, showExpected: false, defaultDiag: false },
-    question: { title: "❓ Вопрос по использованию", titleHint: "Кратко", desc: "Что не получается", showSteps: false, showExpected: false, defaultDiag: false },
-    privacy: { title: "🛡️ Приватность / данные", titleHint: "Что беспокоит", desc: "Опишите подробнее", showSteps: false, showExpected: false, defaultDiag: false, showPanic: true },
-    thanks: { title: "🙏 Благодарность / отзыв", titleHint: "Кратко", desc: "Поделитесь впечатлениями", showSteps: false, showExpected: false, defaultDiag: false },
+    bug:      { title: T("feedback.formBugTitle"),      titleHint: T("feedback.formTitleHintBug"),      desc: T("feedback.formDescBug"),      showSteps: true,  showExpected: true,  defaultDiag: true,  placeholder: T("feedback.formDescPlaceholderDefault") },
+    idea:     { title: T("feedback.formIdeaTitle"),     titleHint: T("feedback.formTitleHintIdea"),     desc: T("feedback.formDescIdea"),     showSteps: false, showExpected: false, defaultDiag: false, placeholder: T("feedback.formDescPlaceholderDefault") },
+    question: { title: T("feedback.formQuestionTitle"), titleHint: T("feedback.formTitleHintQuestion"), desc: T("feedback.formDescQuestion"), showSteps: false, showExpected: false, defaultDiag: false, placeholder: T("feedback.formDescPlaceholderDefault") },
+    privacy:  { title: T("feedback.formPrivacyTitle"),  titleHint: T("feedback.formTitleHintPrivacy"),  desc: T("feedback.formDescPrivacy"),  showSteps: false, showExpected: false, defaultDiag: false, placeholder: T("feedback.formDescPlaceholderDefault"), showPanic: true },
+    thanks:   { title: T("feedback.formThanksTitle"),   titleHint: T("feedback.formTitleHintThanks"),   desc: T("feedback.formDescThanks"),   showSteps: false, showExpected: false, defaultDiag: false, placeholder: T("feedback.formDescPlaceholderThanks") },
   };
   const cfg = labels[category] || labels.bug;
   const diagSections = v3FbBuildDiagnostics();
@@ -19203,16 +19338,18 @@ function v3FbRenderCategory(category) {
       if (diagPre) diagPre.textContent = v3FbFormatDiagnostics(diagSections);
     }
   });
+  // Escape steps placeholder for inline injection
+  const stepsPh = T("feedback.formStepsPlaceholder").replace(/\n/g, "&#10;");
 
   return `
-    <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#475569; cursor:pointer; padding:0 0 12px; font-size:13px; font-family:inherit;">← Назад</button>
+    <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#475569; cursor:pointer; padding:0 0 12px; font-size:13px; font-family:inherit;">${T("feedback.back")}</button>
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#0f172a;">${cfg.title}</h3>
 
     ${cfg.showPanic ? `
       <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; margin-bottom:14px;">
-        <div style="font-weight:600; font-size:13.5px; color:#991b1b; margin-bottom:6px;">Срочные действия:</div>
-        <button class="v3-fb-secondary-btn" style="margin:4px 4px 4px 0;" onclick="v3FbCmdBackup()">📦 Скачать ZIP-бэкап</button>
-        <button class="v3-fb-secondary-btn" style="margin:4px 0;" onclick="if(confirm('Удалить всю локальную библиотеку? Это необратимо.')) v3LibraryWipeAllConfirm();">⚠ Удалить мои данные</button>
+        <div style="font-weight:600; font-size:13.5px; color:#991b1b; margin-bottom:6px;">${T("feedback.privacyUrgent")}</div>
+        <button class="v3-fb-secondary-btn" style="margin:4px 4px 4px 0;" onclick="v3FbCmdBackup()">${T("feedback.privacyBackup")}</button>
+        <button class="v3-fb-secondary-btn" style="margin:4px 0;" onclick="if(confirm('Удалить всю локальную библиотеку? Это необратимо.')) v3LibraryWipeAllConfirm();">${T("feedback.privacyWipe")}</button>
       </div>
     ` : ''}
 
@@ -19222,60 +19359,62 @@ function v3FbRenderCategory(category) {
     </div>
     <div style="margin-bottom:12px;">
       <label class="v3-fb-label" for="v3FbBody_input">${cfg.desc}</label>
-      <textarea id="v3FbBody_input" class="v3-fb-textarea" rows="5" oninput="v3FbSaveDraft()" placeholder="${category === 'thanks' ? 'Можно отправить голосовое в WhatsApp — будет быстрее.' : 'Опишите подробно…'}"></textarea>
+      <textarea id="v3FbBody_input" class="v3-fb-textarea" rows="5" oninput="v3FbSaveDraft()" placeholder="${cfg.placeholder}"></textarea>
     </div>
     ${cfg.showExpected ? `
     <div style="margin-bottom:12px;">
-      <label class="v3-fb-label" for="v3FbExpected_input">Что вы ожидали увидеть (опц.)</label>
+      <label class="v3-fb-label" for="v3FbExpected_input">${T("feedback.formExpected")}</label>
       <textarea id="v3FbExpected_input" class="v3-fb-textarea" rows="2" oninput="v3FbSaveDraft()"></textarea>
     </div>
     ` : ''}
     ${cfg.showSteps ? `
     <div style="margin-bottom:12px;">
-      <label class="v3-fb-label" for="v3FbSteps_input">Шаги воспроизведения (опц.)</label>
-      <textarea id="v3FbSteps_input" class="v3-fb-textarea" rows="3" oninput="v3FbSaveDraft()" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea>
+      <label class="v3-fb-label" for="v3FbSteps_input">${T("feedback.formSteps")}</label>
+      <textarea id="v3FbSteps_input" class="v3-fb-textarea" rows="3" oninput="v3FbSaveDraft()" placeholder="${stepsPh}"></textarea>
     </div>
     ` : ''}
 
     <div style="margin:16px 0; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
       <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13.5px; font-weight:500; color:#0f172a;">
         <input id="v3FbDiagToggle" type="checkbox" ${cfg.defaultDiag ? 'checked' : ''} onchange="document.getElementById('v3FbDiagPreview').style.display = this.checked ? 'block' : 'none';" />
-        Прикрепить диагностику (что отправится — видно ниже)
+        ${T("feedback.diagToggle")}
       </label>
       <div id="v3FbDiagPreview" style="display:${cfg.defaultDiag ? 'block' : 'none'}; margin-top:10px;">
         <div class="v3-fb-diag-section">
-          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:6px;">Превью</div>
+          <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:6px;">${T("feedback.diagPreview")}</div>
           <pre id="v3FbDiagPreviewPre">${v3FbEscape(v3FbFormatDiagnostics(diagSections))}</pre>
         </div>
-        <div style="margin-top:6px; font-size:11px; color:#94a3b8;">Содержимого ваших текстов / заметок нет в диагностике — только counts/metadata.</div>
+        <div style="margin-top:6px; font-size:11px; color:#94a3b8;">${T("feedback.diagNote")}</div>
       </div>
     </div>
 
     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:18px;">
-      <button class="v3-fb-cta-btn" style="background:#25D366;" onclick="v3FbSubmit('whatsapp')">💬 WhatsApp</button>
-      <button class="v3-fb-secondary-btn" onclick="v3FbSubmit('email')">📧 Email</button>
-      <button class="v3-fb-secondary-btn" onclick="v3FbSubmit('copy')">📋 Скопировать</button>
-      ${category === 'bug' ? `<button class="v3-fb-secondary-btn" onclick="v3FbSubmit('github')">🐙 GitHub Issue</button>` : ''}
+      <button class="v3-fb-cta-btn" style="background:#25D366;" onclick="v3FbSubmit('whatsapp')">${T("feedback.sendWa")}</button>
+      <button class="v3-fb-secondary-btn" onclick="v3FbSubmit('email')">${T("feedback.sendEmail")}</button>
+      <button class="v3-fb-secondary-btn" onclick="v3FbSubmit('copy')">${T("feedback.sendCopy")}</button>
+      ${category === 'bug' ? `<button class="v3-fb-secondary-btn" onclick="v3FbSubmit('github')">${T("feedback.sendGithub")}</button>` : ''}
     </div>
+    <div id="v3FbEmailChooser"></div>
   `;
 }
 
 function v3FbRenderAck() {
+  const T = v3FbT;
   const hours = v3FbConfig.responseTimeHours;
   return `
     <div style="text-align:center; padding:24px 12px;">
       <div style="font-size:48px; margin-bottom:12px;">✓</div>
-      <h3 style="margin:0 0 12px; font-size:20px; font-weight:600; color:#0f172a;">Спасибо!</h3>
-      <p style="font-size:14.5px; line-height:1.5; color:#475569; margin:0 0 16px;">Читаю каждое сообщение лично — отвечу в течение ${hours} часов в будни.</p>
-      <p style="font-size:13.5px; line-height:1.5; color:#94a3b8; margin:0 0 24px;">Если срочно — напишите в WhatsApp, там я вижу уведомления быстрее.</p>
+      <h3 style="margin:0 0 12px; font-size:20px; font-weight:600; color:#0f172a;">${T("feedback.ackTitle")}</h3>
+      <p style="font-size:14.5px; line-height:1.5; color:#475569; margin:0 0 16px;">${T("feedback.ackBody", { hours: hours })}</p>
+      <p style="font-size:13.5px; line-height:1.5; color:#94a3b8; margin:0 0 24px;">${T("feedback.ackUrgent")}</p>
       <div style="text-align:left; background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0;">
-        <div style="font-size:13px; font-weight:600; color:#0f172a; margin-bottom:8px;">🎯 Что вы можете сделать сейчас:</div>
+        <div style="font-size:13px; font-weight:600; color:#0f172a; margin-bottom:8px;">${T("feedback.ackWhatNext")}</div>
         <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px; font-size:13px; color:#475569;">
-          <li>• Продолжить работу — приложение работает оффлайн.</li>
-          <li>• <a href="#" onclick="v3FbCmdBackup();return false;" style="color:#2563eb;">Сделать ZIP-бэкап</a> на случай если проблема разовьётся.</li>
+          <li>${T("feedback.ackContinue")}</li>
+          <li>• <a href="#" onclick="v3FbCmdBackup();return false;" style="color:#2563eb;">${T("feedback.ackBackup")}</a>${T("feedback.ackBackupSuffix")}</li>
         </ul>
       </div>
-      <button class="v3-fb-cta-btn" style="margin-top:18px;" onclick="v3FeedbackClose()">Закрыть</button>
+      <button class="v3-fb-cta-btn" style="margin-top:18px;" onclick="v3FeedbackClose()">${T("feedback.ackClose")}</button>
     </div>
   `;
 }
@@ -19324,20 +19463,27 @@ async function v3FbSubmit(channel) {
     const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(message);
     window.open(url, "_blank", "noopener");
   } else if (channel === "email") {
+    // Premium UX: instead of a single mailto: that may land on a blank
+    // page on desktop (no default mail handler), show a chooser with
+    // Gmail / Outlook / Yandex web compose URLs alongside default mailto.
     const subject = "[LinguistPro v3.0.0] " + (fields.title || cat);
-    const url = "mailto:" + v3FbConfig.email + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(message);
-    window.location.href = url;
+    v3FbShowEmailChooser(subject, message);
+    return;  // ack screen shown by v3FbPickEmail after pick.
   } else if (channel === "copy") {
     try {
       await navigator.clipboard.writeText(message);
-      showToast("Скопировано в буфер. Вставьте в email / WhatsApp / GitHub.", "success");
+      v3FbCcShowResult(v3FbEscape(v3FbT("feedback.toastCopied")), "success");
     } catch (_) {
       // Fallback: temporary textarea
       const ta = document.createElement("textarea"); ta.value = message; document.body.appendChild(ta); ta.select();
       try { document.execCommand("copy"); } catch (__) {}
       ta.remove();
-      showToast("Скопировано (legacy fallback).", "info");
+      v3FbCcShowResult(v3FbEscape(v3FbT("feedback.toastCopied")), "success");
     }
+    // Stay on form so user can copy again if needed; clear draft + show ack after a beat.
+    v3FbClearDraft();
+    setTimeout(() => { v3FbView = "ack"; v3FbRender(); }, 1500);
+    return;
   } else if (channel === "github") {
     const subject = (fields.title || cat).slice(0, 80);
     const url = "https://github.com/" + v3FbConfig.githubRepo + "/issues/new?title=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(message);
@@ -19361,43 +19507,130 @@ function v3FbOpenWhatsApp(category) {
 window.v3FbOpenWhatsApp = v3FbOpenWhatsApp;
 
 // ── Command center actions ─────────────────────────────────────────────
+// Show result inline in the modal instead of via showToast — toasts are
+// rendered behind the modal backdrop so the user can't see them, and on
+// mobile the toast may be entirely off-screen.
+function v3FbCcShowResult(html, kind) {
+  const slot = document.getElementById("v3FbCcResult");
+  if (!slot) {
+    // Fallback for cases where slot doesn't exist (e.g. on category view).
+    if (typeof showToast === "function") showToast(String(html).replace(/<[^>]+>/g, ""), kind || "info");
+    return;
+  }
+  const cls = ["info","success","warning","error"].indexOf(kind) >= 0 ? kind : "info";
+  slot.innerHTML = '<div class="v3-fb-cc-result ' + cls + '">' +
+    '<button class="v3-fb-cc-result-close" onclick="document.getElementById(\'v3FbCcResult\').innerHTML=\'\';" aria-label="Close">' + v3FbT("feedback.ccPanelClose") + '</button>' +
+    html + '</div>';
+}
+
 async function v3FbCmdBackup() {
+  // Backup is a long flow that itself uses toasts + may open native save
+  // dialogs — close the modal so the toasts become visible.
   v3FeedbackClose();
   if (typeof window.v3LibraryExportBundle === "function") {
-    showToast("Готовлю ZIP-бэкап…", "info");
+    if (typeof showToast === "function") showToast(v3FbT("feedback.ccPanelBackupStarting"), "info");
     try { await window.v3LibraryExportBundle(); }
-    catch (e) { console.warn("[fb] backup failed", e); showToast("Ошибка бэкапа (см. console)", "error"); }
-  } else { showToast("Backup-команда недоступна", "error"); }
+    catch (e) { console.warn("[fb] backup failed", e); if (typeof showToast === "function") showToast(String(e && e.message || e).slice(0, 160), "error"); }
+  }
 }
 async function v3FbCmdIntegrity() {
   if (!window.__localDB || typeof window.__localDB.integrityCheck !== "function") {
-    showToast("Integrity-check недоступен (нет OPFS init)", "error"); return;
+    v3FbCcShowResult("Integrity-check недоступен (нет OPFS init)", "error"); return;
   }
-  showToast("Проверяю целостность БД…", "info");
+  v3FbCcShowResult(v3FbT("feedback.ccPanelIntegrityChecking"), "info");
   try {
     const r = await window.__localDB.integrityCheck();
-    if (r.ok) showToast("✓ Целостность БД: OK", "success");
-    else showToast("⚠ Найдены проблемы: " + (r.issues || []).slice(0, 2).join("; ") + " (см. console)", "error");
-  } catch (e) { console.warn("[fb] integrity failed", e); showToast("Integrity-check упал (см. console)", "error"); }
+    if (r.ok) v3FbCcShowResult(v3FbT("feedback.ccPanelIntegrityOk"), "success");
+    else v3FbCcShowResult(v3FbT("feedback.ccPanelIntegrityFail") + " " + v3FbEscape((r.issues || []).slice(0, 2).join("; ")), "error");
+  } catch (e) { console.warn("[fb] integrity failed", e); v3FbCcShowResult(v3FbEscape(String(e && e.message || e)), "error"); }
 }
 function v3FbCmdTelemetry() {
   const sum = (window.v3OpfsTelemetry && typeof window.v3OpfsTelemetry.summary === "function") ? window.v3OpfsTelemetry.summary() : null;
-  if (!sum) { showToast("Telemetry недоступна", "error"); return; }
-  console.log("[fb] telemetry summary:", sum);
-  console.log("[fb] telemetry list:", window.v3OpfsTelemetry.list());
-  showToast("Telemetry в console (DevTools)", "info");
+  if (!sum) { v3FbCcShowResult("Telemetry недоступна", "error"); return; }
+  const html = '<strong>' + v3FbEscape(v3FbT("feedback.ccPanelTelemetryHeader")) + '</strong><pre>' + v3FbEscape(JSON.stringify(sum, null, 2)) + '</pre>';
+  v3FbCcShowResult(html, "info");
 }
 async function v3FbCmdStorage() {
-  if (typeof window.v3StorageEstimate !== "function") { showToast("Storage-estimate недоступен", "error"); return; }
+  if (typeof window.v3StorageEstimate !== "function") { v3FbCcShowResult("Storage-estimate недоступен", "error"); return; }
   const est = await window.v3StorageEstimate();
-  if (!est.supported) { showToast("Браузер не отдаёт estimate", "warning"); return; }
+  if (!est.supported) { v3FbCcShowResult("Браузер не отдаёт estimate", "warning"); return; }
   const fmt = (b) => { if (!b) return "0 B"; const u = ["B","KB","MB","GB","TB"]; let i = 0; while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; } return b.toFixed(b < 10 && i > 0 ? 2 : 1) + " " + u[i]; };
-  showToast("Storage: " + fmt(est.usage) + " / " + fmt(est.quota) + " (" + (Math.round(est.percent * 10) / 10) + "%)", "info");
+  const html = '<strong>' + v3FbEscape(v3FbT("feedback.ccPanelStorageHeader")) + '</strong> ' + v3FbEscape(fmt(est.usage) + " / " + fmt(est.quota) + " (" + (Math.round(est.percent * 10) / 10) + "%)");
+  v3FbCcShowResult(html, "info");
 }
 window.v3FbCmdBackup = v3FbCmdBackup;
 window.v3FbCmdIntegrity = v3FbCmdIntegrity;
 window.v3FbCmdTelemetry = v3FbCmdTelemetry;
 window.v3FbCmdStorage = v3FbCmdStorage;
+
+// ── Email chooser (issue 3 — mailto on desktop opens blank page) ────────
+// Premium UX: instead of a single mailto: that may open an unconfigured
+// handler, offer Gmail / Outlook / Yandex web compose URLs alongside the
+// default mailto. Each option opens a pre-filled compose window, so the
+// user always lands on an actionable screen.
+function v3FbBuildEmailUrls(subject, body) {
+  const enc = encodeURIComponent;
+  const to = v3FbConfig.email;
+  return {
+    gmail: "https://mail.google.com/mail/?view=cm&fs=1&to=" + enc(to) + "&su=" + enc(subject) + "&body=" + enc(body),
+    outlook: "https://outlook.live.com/mail/0/deeplink/compose?to=" + enc(to) + "&subject=" + enc(subject) + "&body=" + enc(body),
+    yandex: "https://mail.yandex.ru/compose?to=" + enc(to) + "&subject=" + enc(subject) + "&body=" + enc(body),
+    mailto: "mailto:" + to + "?subject=" + enc(subject) + "&body=" + enc(body),
+  };
+}
+
+function v3FbShowEmailChooser(subject, body) {
+  const urls = v3FbBuildEmailUrls(subject, body);
+  const slot = document.getElementById("v3FbEmailChooser");
+  if (!slot) {
+    // No slot (unexpected) — fall back to mailto immediately.
+    window.location.href = urls.mailto;
+    return;
+  }
+  const T = v3FbT;
+  // Stash payload in a closure-accessible place via dataset for click handlers.
+  window.__v3FbEmailUrls = urls;
+  slot.innerHTML =
+    '<div class="v3-fb-email-chooser">' +
+      '<div class="v3-fb-email-chooser-title">' + v3FbEscape(T("feedback.emailChooseTitle")) + '</div>' +
+      '<div class="v3-fb-email-chooser-hint">' + v3FbEscape(T("feedback.emailChooseHint")) + '</div>' +
+      '<div class="v3-fb-email-chooser-grid">' +
+        '<button class="v3-fb-email-option" onclick="v3FbPickEmail(\'gmail\')"><span>📧</span><span>' + v3FbEscape(T("feedback.emailGmail")) + '</span></button>' +
+        '<button class="v3-fb-email-option" onclick="v3FbPickEmail(\'outlook\')"><span>📧</span><span>' + v3FbEscape(T("feedback.emailOutlook")) + '</span></button>' +
+        '<button class="v3-fb-email-option" onclick="v3FbPickEmail(\'yandex\')"><span>📧</span><span>' + v3FbEscape(T("feedback.emailYandex")) + '</span></button>' +
+        '<button class="v3-fb-email-option" onclick="v3FbPickEmail(\'mailto\')"><span>✉️</span><span>' + v3FbEscape(T("feedback.emailMailto")) + '</span></button>' +
+      '</div>' +
+      '<div style="margin-top:10px; text-align:right;"><button class="v3-fb-secondary-btn" style="font-size:12px; padding:6px 12px;" onclick="document.getElementById(\'v3FbEmailChooser\').innerHTML=\'\';">' + v3FbEscape(T("feedback.emailCancel")) + '</button></div>' +
+    '</div>';
+  // Smooth scroll the chooser into view on small screens.
+  try { slot.scrollIntoView({ behavior: "smooth", block: "nearest" }); } catch (_) {}
+}
+function v3FbPickEmail(provider) {
+  const urls = window.__v3FbEmailUrls || {};
+  const url = urls[provider];
+  if (!url) return;
+  if (provider === "mailto") window.location.href = url;
+  else window.open(url, "_blank", "noopener");
+  // Clear chooser, then move to ack screen.
+  const slot = document.getElementById("v3FbEmailChooser");
+  if (slot) slot.innerHTML = "";
+  v3FbClearDraft();
+  v3FbView = "ack";
+  v3FbRender();
+}
+window.v3FbShowEmailChooser = v3FbShowEmailChooser;
+window.v3FbPickEmail = v3FbPickEmail;
+
+// Listen for locale changes — re-render modal if it's open so the new
+// language applies immediately without closing/reopening.
+document.addEventListener("i18n:changed", () => {
+  const modal = document.getElementById("v3FeedbackModal");
+  if (modal && modal.style.display !== "none") {
+    const titleEl = document.getElementById("v3FbTitle");
+    if (titleEl) titleEl.textContent = v3FbT("feedback.title");
+    v3FbRender();
+  }
+});
 
 // ── Premium confirmation modal ─────────────────────────────────────────────
 // Replaces window.confirm() for destructive actions. Promise<boolean>.
