@@ -6845,7 +6845,8 @@ body:not(.theme-light) .v3-heatmap-cell {
   })();
 </script>
 
-<script src="/db/jszip.min.js"></script>
+<!-- JSZip is loaded lazily via v3LoadJSZip() on first ZIP export/import.
+     See v3LoadJSZip in the main script block below (Phase B). -->
 <script type="module">
   import * as _ldb from '/db/local-db.js';
   window.__localDB = _ldb;
@@ -20419,6 +20420,32 @@ function v3FbLoadQr() {
   });
 }
 
+// ── JSZip lazy loader (Direction 7 Phase B) ─────────────────────────────
+// JSZip is ~95 KB minified; only used by Library ZIP export/import. Lazy
+// loading saves the parse + execute cost on cold start for users who
+// never invoke export/import. Mirror of v3FbLoadQr — idempotent, caches
+// the load promise so concurrent calls share one network request.
+let v3JSZipLoadPromise = null;
+function v3LoadJSZip() {
+  if (typeof window.JSZip !== "undefined") return Promise.resolve(window.JSZip);
+  if (v3JSZipLoadPromise) return v3JSZipLoadPromise;
+  v3JSZipLoadPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "/db/jszip.min.js";
+    s.async = true;
+    s.onload = () => {
+      if (typeof window.JSZip !== "undefined") resolve(window.JSZip);
+      else reject(new Error("jszip.min.js loaded but window.JSZip is undefined"));
+    };
+    s.onerror = () => {
+      v3JSZipLoadPromise = null;  // allow retry
+      reject(new Error("jszip.min.js load failed"));
+    };
+    document.head.appendChild(s);
+  });
+  return v3JSZipLoadPromise;
+}
+
 function v3FbBuildQrSvg(text, size) {
   if (typeof window.qrcode !== "function") return "";
   try {
@@ -21771,9 +21798,10 @@ async function v3LibraryExportBundle() {
       //   library/library.json
       //   audio/<asset_key>.mp3
       //   metadata/missing_audio.json (when partial_backup)
-      if (typeof JSZip === "undefined") {
-        throw new Error("JSZip не загружен — проверьте, что /db/jszip.min.js доступен");
-      }
+      // Lazy-load JSZip (Phase B). The script tag is injected on demand
+      // and the result cached, so subsequent export/import calls don't
+      // re-fetch.
+      const JSZip = await v3LoadJSZip();
       showToast(t("toast.zipPrepFromOpfs"));
       const ldb = await ensureLocalDB();
       const payload = await ldb.exportBundle({ includeArchived: true });
@@ -21915,9 +21943,12 @@ async function v3LibraryOnBundleImportSelected(ev) {
       let mp3Entries = [];     // collected up-front, uploaded after importBundle
       let layout = "unified";
       if (looksLikeZip) {
-        if (typeof JSZip === "undefined") {
-          showToast(t("toast.jszipNotLoaded"), "error"); return;
-        }
+        // Lazy-load JSZip (Phase B). Fails toast if the script can't be
+        // fetched (offline + first export ever — rare; SW Phase C will
+        // precache it).
+        let JSZip;
+        try { JSZip = await v3LoadJSZip(); }
+        catch (e) { showToast(t("toast.jszipNotLoaded"), "error"); return; }
         const zip = await JSZip.loadAsync(file);
 
         // Detect bundle layout. Unified format (Android v2 + web v3 spec):
