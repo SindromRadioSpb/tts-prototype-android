@@ -3693,6 +3693,11 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 8px;
+  flex-wrap: wrap;  /* mobile: actions wrap below content instead of overflow */
+}
+@media (max-width: 720px) {
+  .v3-lib-card-actions { flex-basis: 100%; justify-content: stretch; }
+  .v3-lib-card-actions button { flex: 1 1 auto; min-width: 0; }
 }
 
 .v3-lib-card-title {
@@ -3802,9 +3807,14 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 
 /* Source (humanize + copy) */
 .v3-source { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; }
-.v3-source-label { display: inline-block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.v3-source-label {
+  display: inline-block; max-width: 260px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--theme-accent);  /* theme-aware link colour */
+}
+a.v3-source-label:hover { color: var(--theme-accent-hover); }
 .v3-src-copy { flex: 0 0 auto; }
-.v3-src-copy:hover { background: #f9fafb; }
+.v3-src-copy:hover { background: var(--theme-bg-hover); }
 
 /* Title deeplink copy button */
 .v3-title-copy {
@@ -4791,7 +4801,8 @@ body.v3-no-scroll {
   right: 0;
   bottom: 0;
 
-  background: #fff;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
   border-radius: 16px 16px 0 0;
   padding: 12px 16px 16px;
 
@@ -4812,13 +4823,13 @@ body.v3-no-scroll {
   justify-content: space-between;
   padding-bottom: 10px;
   margin-bottom: 12px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--theme-border-soft);
 }
 
 .v3-bottom-sheet-title {
   font-weight: 600;
   font-size: 14px;
-  color: #111827;
+  color: var(--theme-text-primary);
 }
 
 .v3-bottom-sheet-close {
@@ -4829,7 +4840,9 @@ body.v3-no-scroll {
   line-height: 1;
   padding: 6px;
   border-radius: 10px;
+  color: var(--theme-text-secondary);
 }
+.v3-bottom-sheet-close:hover { background: var(--theme-bg-hover); }
 
 .v3-bottom-sheet-body {
   padding-bottom: 4px;
@@ -4857,18 +4870,18 @@ body.v3-no-scroll {
   height: 18px;
 }
 
-/* Reset becomes a compact icon button inside sheet */
+/* Reset becomes a compact icon button inside sheet — theme-aware. */
 .v3-bottom-sheet .v3-ide-col-settings .v3-ide-col-reset {
   margin-left: 0;
   margin-top: 6px;
   align-self: flex-end;
   text-decoration: none;
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--theme-border-soft);
   border-radius: 10px;
   padding: 6px 10px;
-  background: #fff;
-  color: #334155;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-secondary);
 
   font-size: 0; /* hide text */
 }
@@ -4914,7 +4927,7 @@ body.v3-no-scroll {
 }
 .v3-ide-col-settings .v3-ide-col-note {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--theme-text-faint);
   width: 100%;
   margin-top: 2px;
 }
