@@ -611,7 +611,7 @@ Sprint 3: Performance + Trust
 
 **Session 1 (2026-05-09):**
 
-- [~] **Direction 1** — Hebrew typography & RTL — *CSS infrastructure complete*: @font-face declarations для Frank Ruhl Libre / Noto Sans Hebrew / Assistant с font-display:swap + unicode-range; premium rendering rules (font-feature-settings, line-height, bidi-isolate); multi-tier system fallback; visual regression page `/typo-test.html`. **Pending:** drop woff2 files into `public/fonts/` (см. `public/fonts/README.md`).
+- [x] **Direction 1** — Hebrew typography & RTL — *complete*. CSS-инфраструктура (@font-face + premium rendering + multi-tier fallback) shipped. Self-hosted woff2 (3 шрифта × 3 веса = 9 файлов, ~167 KB total) положены в `public/fonts/` (commit session 2). Visual regression page `/typo-test.html`.
 - [ ] **Direction 2** — App-wide theming — *not started*. Heavy refactor (CSS variables + inline-style audit). Recommended next.
 - [ ] **Direction 3** — Full i18n coverage — *not started*. Heavy refactor (audit hardcoded строк).
 - [ ] **Direction 4** — Onboarding & discovery — *not started*.

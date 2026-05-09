@@ -28,6 +28,9 @@ usage.json
 *.wav
 *.ogg
 
+# Hebrew font sources — only woff2 are committed; zip archives stay out
+public/fonts/*.zip
+
 # OS / IDE
 .DS_Store
 Thumbs.db
