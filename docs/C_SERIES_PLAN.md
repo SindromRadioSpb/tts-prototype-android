@@ -1,5 +1,7 @@
 # Рекомендованный порядок реализации C-серии и требования уровня premium-продукта
 
+> **Backlog post-v3.1.0:** **Premium table-edit mechanics** — заменить ▲▼-кнопки и HTML5 DnD на нативную touch-friendly long-press-drag (touch + mouse, единая механика); добавить keyboard-shortcuts для перемещения (Alt+↑/↓), inline-numbered drag-handle, animated reorder transitions. Текущее состояние (commit c5ecf6d, 2026-05-09): после bug-fix сессии 2 — desktop multi-move работает, mobile cell-editing работает, mobile reorder через ▲▼ кнопки (временно).
+
 ## 1. Общая оценка текущего backlog
 
 В backlog остались задачи C-серии, которые относятся к категории `nice-to-have`, то есть не являются критическими блокерами релиза, но существенно влияют на ощущение качества, удобства и «дороговизны» продукта.
