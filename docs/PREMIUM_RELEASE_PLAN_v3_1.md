@@ -614,7 +614,7 @@ Sprint 3: Performance + Trust
 - [x] **Direction 1** — Hebrew typography & RTL — *complete*. CSS-инфраструктура (@font-face + premium rendering + multi-tier fallback) shipped. Self-hosted woff2 (3 шрифта × 3 веса = 9 файлов, ~167 KB total) положены в `public/fonts/` (commit session 2). Visual regression page `/typo-test.html`.
 - [ ] **Direction 2** — App-wide theming — *not started*. Heavy refactor (CSS variables + inline-style audit). Recommended next.
 - [ ] **Direction 3** — Full i18n coverage — *not started*. Heavy refactor (audit hardcoded строк).
-- [ ] **Direction 4** — Onboarding & discovery — *not started*.
+- [x] **Direction 4** — Onboarding & discovery — *complete*. First-time welcome modal с двумя CTA («Попробовать на демо» / «Начать с моего текста»), inline 5-предложение Hebrew demo с автоматической установкой языка he-IL, persistent decision via `localStorage.onboardingSeen_v1`, кнопка «Сбросить onboarding» в About modal для повторного показа. 3 локали (ru/en/he).
 - [ ] **Direction 5** — SRS + Library smart-sort — *not started*.
 - [x] **Direction 6** — Error gentleness app-wide — *complete*. Все active-path alert/confirm callsites переведены на v3ConfirmModal/showToast. Остались только 3 fallback-path вызова (внутри самого v3ConfirmModal-ultimate-fallback, в feedback Phase6 alert try-catch, в WA-confirm fallback) — они срабатывают только если premium-modal недоступен. Все локали ru/en/he покрыты.
 - [ ] **Direction 7** — Performance / PWA — *not started*. Heavy refactor (code splitting, SW, manifest).

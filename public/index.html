@@ -6065,6 +6065,75 @@ td[data-col="ru"] {
 }
 .feedback-dark .v3-fb-tipjar-badge { background: rgba(252, 211, 77, 0.2) !important; color: #fde68a !important; }
 
+/* ── Direction 4: onboarding modal (Premium Release v3.1.0) ─────────── */
+#v3OnboardingModal {
+  display: none; position: fixed; inset: 0; z-index: 99998;
+  background: rgba(15,23,42,0.6); align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto;
+}
+#v3OnboardingModal[data-open="1"] { display: flex; }
+#v3OnboardingPanel {
+  background: #fff; border-radius: 16px; max-width: 540px; width: 100%;
+  max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  animation: v3FbEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#v3OnboardingPanel header {
+  padding: 24px 24px 12px; text-align: center;
+}
+#v3OnbTitle {
+  font-size: 26px; font-weight: 700; color: #0f172a;
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+#v3OnbTagline { font-size: 14px; color: #64748b; margin-top: 6px; }
+#v3OnbBody { padding: 4px 28px 24px; }
+.v3-onb-intro {
+  font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 18px;
+  background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+  padding: 14px 16px;
+}
+.v3-onb-features-title {
+  font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 10px;
+}
+.v3-onb-features {
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
+}
+.v3-onb-feature {
+  font-size: 13.5px; color: #0f172a; line-height: 1.5;
+  padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+.v3-onb-actions {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 12px;
+}
+.v3-onb-cta-primary {
+  background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  color: #fff; border: 0; padding: 14px 16px; border-radius: 10px;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 4px 12px rgba(37,99,235,0.25);
+  font-family: inherit;
+}
+.v3-onb-cta-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.35); }
+.v3-onb-cta-secondary {
+  background: #fff; color: #475569; border: 1px solid #cbd5e1;
+  padding: 12px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;
+  font-family: inherit; transition: all 0.15s;
+}
+.v3-onb-cta-secondary:hover { background: #f8fafc; border-color: #94a3b8; }
+.v3-onb-dismiss {
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 14px; font-size: 12.5px; color: #94a3b8;
+  cursor: pointer; user-select: none;
+}
+.v3-onb-dismiss input { margin-right: 6px; }
+@media (max-width: 600px) {
+  #v3OnboardingPanel { border-radius: 16px 16px 0 0; max-height: 92vh; margin-top: auto; }
+  #v3OnboardingModal { padding: 0; align-items: flex-end; }
+}
+
 /* ── Direction 8: trust footer + about modal (Premium Release v3.1.0) ── */
 .app-footer {
   margin: 32px auto 0; padding: 16px 20px 20px;
@@ -29492,6 +29561,34 @@ document.addEventListener("i18n:changed", function () {
   </div>
 </div>
 
+<!-- ── Onboarding modal (Direction 4 — Premium Release v3.1.0) ───────── -->
+<div id="v3OnboardingModal" role="dialog" aria-modal="true" aria-labelledby="v3OnbTitle" onclick="if(event.target===this)v3OnboardingDismiss(false)">
+  <div id="v3OnboardingPanel">
+    <header>
+      <div id="v3OnbTitle" data-i18n="onboarding.title">Добро пожаловать в LinguistPro</div>
+      <div id="v3OnbTagline" data-i18n="onboarding.tagline">IDE для изучения иврита с offline-first архитектурой</div>
+    </header>
+    <div id="v3OnbBody">
+      <div class="v3-onb-intro" data-i18n="onboarding.intro">Ваши тексты, заметки, прогресс и SRS-карточки хранятся локально на этом устройстве.</div>
+      <div class="v3-onb-features-title" data-i18n="onboarding.whatsHere">Что вы можете сделать:</div>
+      <div class="v3-onb-features">
+        <div class="v3-onb-feature" data-i18n="onboarding.feature1">📝 Вставить текст на иврите → собрать таблицу.</div>
+        <div class="v3-onb-feature" data-i18n="onboarding.feature2">🔊 Озвучить любое предложение через TTS.</div>
+        <div class="v3-onb-feature" data-i18n="onboarding.feature3">📚 Сохранять тексты в локальную библиотеку.</div>
+        <div class="v3-onb-feature" data-i18n="onboarding.feature4">🎯 Тренироваться через SRS Trainer.</div>
+      </div>
+      <div class="v3-onb-actions">
+        <button class="v3-onb-cta-primary" onclick="v3OnboardingTryDemo()" data-i18n="onboarding.tryDemo">🚀 Попробовать на демо-тексте</button>
+        <button class="v3-onb-cta-secondary" onclick="v3OnboardingDismiss(true)" data-i18n="onboarding.startFresh">Начать с моего текста</button>
+      </div>
+      <label class="v3-onb-dismiss">
+        <input type="checkbox" id="v3OnbDontShow" checked />
+        <span data-i18n="onboarding.dontShowAgain">Больше не показывать</span>
+      </label>
+    </div>
+  </div>
+</div>
+
 <!-- ── App footer (Direction 8 — Trust signals) ───────────────────────── -->
 <footer class="app-footer" id="appFooter">
   <div class="app-footer-left">
@@ -29545,7 +29642,8 @@ document.addEventListener("i18n:changed", function () {
         <div data-i18n="about.creditsTranslate">Перевод: Gemini API (внешний сервис)</div>
       </div>
 
-      <div style="margin-top:18px; text-align:right;">
+      <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
+        <a href="#" onclick="v3AboutClose();v3OnboardingReset();return false;" style="font-size:12.5px; color:#2563eb; text-decoration:none;" data-i18n="onboarding.resetOnboarding">Сбросить onboarding (показать снова)</a>
         <button class="btn-secondary" onclick="v3AboutClose()" data-i18n="about.closeBtn">Закрыть</button>
       </div>
     </div>
@@ -29587,6 +29685,105 @@ document.addEventListener("i18n:changed", function () {
     if (e.key === "Escape") {
       const m = document.getElementById("v3AboutModal");
       if (m && m.getAttribute("data-open") === "1") v3AboutClose();
+    }
+  });
+
+  // ── Direction 4: Onboarding ─────────────────────────────────────────
+  // First-time visitor sees a welcome modal with two CTAs:
+  //   • Try the demo text — loads sample Hebrew sentence pre-built
+  //   • Start with my own text — closes, focuses the composer
+  // Decision is persisted in localStorage so it never re-shows unless
+  // the user explicitly resets via the Dashboard / About modal hooks.
+  const V3_ONB_KEY = "onboardingSeen_v1";
+  // Demo text — short, classic Hebrew greeting + few common phrases.
+  // Stored inline so onboarding works fully offline.
+  const V3_ONB_DEMO_TEXT = [
+    "שלום עולם.",
+    "מה שלומך היום?",
+    "תודה רבה על העזרה.",
+    "הבית שלי קרוב לחוף הים.",
+    "אני אוהב ללמוד עברית עם המורה הזה.",
+  ].join(" ");
+
+  function v3OnboardingShouldShow() {
+    try {
+      if (localStorage.getItem(V3_ONB_KEY)) return false;
+      // Don't pop onboarding on the typo-test page or other side-pages.
+      if (location.pathname && location.pathname !== "/" && location.pathname !== "/index.html") return false;
+      return true;
+    } catch (_) { return false; }
+  }
+  function v3OnboardingShow() {
+    const m = document.getElementById("v3OnboardingModal");
+    if (!m) return;
+    m.setAttribute("data-open", "1");
+  }
+  function v3OnboardingDismiss(rememberDecision) {
+    const m = document.getElementById("v3OnboardingModal");
+    if (m) m.removeAttribute("data-open");
+    try {
+      const dontShow = document.getElementById("v3OnbDontShow");
+      const remember = rememberDecision === undefined ? (dontShow ? !!dontShow.checked : true) : !!rememberDecision;
+      if (remember) localStorage.setItem(V3_ONB_KEY, JSON.stringify({ ts: Date.now(), action: "dismissed" }));
+    } catch (_) {}
+    // Focus the composer so the user can immediately type/paste.
+    try {
+      const inp = document.getElementById("inputText");
+      if (inp) inp.focus();
+    } catch (_) {}
+  }
+  function v3OnboardingTryDemo() {
+    try {
+      const inp = document.getElementById("inputText");
+      if (inp) {
+        inp.value = V3_ONB_DEMO_TEXT;
+        // Trigger any autosave + classic-mode UI sync.
+        try { inp.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+        try { if (typeof scheduleSaveText === "function") scheduleSaveText(); } catch (_) {}
+        try { if (typeof autoGrow === "function") autoGrow(false); } catch (_) {}
+        // Set Hebrew language so RTL applies + voice is right.
+        try {
+          const langSel = document.getElementById("langSelect");
+          if (langSel) {
+            langSel.value = "he-IL";
+            langSel.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        } catch (_) {}
+      }
+      try {
+        if (typeof showToast === "function") {
+          const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+          showToast(_t("onboarding.demoLoaded"), "success");
+        }
+      } catch (_) {}
+    } catch (_) {}
+    v3OnboardingDismiss(true);
+  }
+  // Public: lets users re-trigger onboarding from About modal.
+  function v3OnboardingReset() {
+    try { localStorage.removeItem(V3_ONB_KEY); } catch (_) {}
+    v3OnboardingShow();
+  }
+  window.v3OnboardingShow = v3OnboardingShow;
+  window.v3OnboardingDismiss = v3OnboardingDismiss;
+  window.v3OnboardingTryDemo = v3OnboardingTryDemo;
+  window.v3OnboardingReset = v3OnboardingReset;
+
+  // Trigger first-time onboarding after DOM is ready and i18n applied.
+  function v3OnbBoot() {
+    if (!v3OnboardingShouldShow()) return;
+    setTimeout(() => v3OnboardingShow(), 600);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", v3OnbBoot);
+  } else {
+    v3OnbBoot();
+  }
+  // Esc dismisses onboarding (without remembering — defensive).
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const m = document.getElementById("v3OnboardingModal");
+      if (m && m.getAttribute("data-open") === "1") v3OnboardingDismiss(false);
     }
   });
 </script>
