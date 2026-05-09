@@ -9934,7 +9934,7 @@ async function v3SrsAnkiCheckConnect(verbose) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok || !j || !j.ok) {
         const details = v3AnkiFormatDetails(j, r);
-        if (verbose) window.alert(t("toast.ankiUnavailable", {details: details}));
+        if (verbose) showToast(t("toast.ankiUnavailable", {details: details}), "error");
         return { ok: false, details };
       }
       ver = j.ankiConnect && j.ankiConnect.version ? String(j.ankiConnect.version) : "—";
@@ -9949,7 +9949,7 @@ async function v3SrsAnkiCheckConnect(verbose) {
       details += " — добавьте «" + location.origin + "» в webCorsOriginList AnkiConnect (Anki → Tools → Add-ons → AnkiConnect → Config) и перезапустите Anki.";
     }
     if (verbose) {
-      window.alert(t("toast.ankiUnavailable", {details: details}));
+      showToast(t("toast.ankiUnavailable", {details: details}), "error");
     }
     return { ok: false, details };
   }
@@ -9958,13 +9958,15 @@ async function v3SrsAnkiCheckConnect(verbose) {
 async function v3IdeSrsAnkiPreview(cardId) {
   try {
     if (LOCAL_MODE) {
-      window.alert("Anki export preview is not available in local mode (server-only feature).");
+      showToast("Anki export preview недоступен в LOCAL_MODE (server-only feature).", "warning");
       return;
     }
     const res = await v3GetJson(`/api/srs/export/anki/preview?cardId=${encodeURIComponent(String(cardId || "").trim())}`);
     const p = res && res.preview ? res.preview : {};
     const st = res && res.status ? res.status : {};
-    window.alert([
+    // Direction 6: alert with multi-line preview → console.log + toast
+    // pointing at console. Multi-line text doesn't render well in toast.
+    const previewLines = [
       `Deck: ${res.deckName || "LinguistPro::SRS"}`,
       `Model: ${res.modelName || "LinguistPro SRS Card v1"}`,
       `Direction: ${p.templateLabel || p.templateCode || "SRS"}`,
@@ -9972,10 +9974,12 @@ async function v3IdeSrsAnkiPreview(cardId) {
       `Prompt: ${String(p.promptText || "").slice(0, 120) || "—"}`,
       `Answer: ${String(p.answerText || "").slice(0, 120) || "—"}`,
       `Audio: ${p.hasAudio ? "yes" : "no"} | Note: ${p.hasNote ? "yes" : "no"}`,
-    ].join("\n"));
+    ];
+    console.log("[anki-preview]\n" + previewLines.join("\n"));
+    showToast(`Anki preview: ${res.deckName || "deck"} · ${st.isExported ? "exported" : "new"} (full в console)`, "info");
   } catch (e) {
     console.error("SRS Anki preview failed:", e);
-    window.alert(t("toast.ankiPreviewFailed", {error: v3SrsAnkiFormatThrownError(e)}));
+    showToast(t("toast.ankiPreviewFailed", {error: v3SrsAnkiFormatThrownError(e)}), "error");
   }
 }
 
@@ -10004,13 +10008,13 @@ async function v3IdeSrsExportAnki(cardId) {
         if (/failed to fetch|networkerror|cors/i.test(msg)) {
           msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect.`;
         }
-        window.alert("Ошибка экспорта в Anki: " + msg);
+        showToast("Ошибка экспорта в Anki: " + msg, "error");
       }
       return;
     }
     const health = await v3SrsAnkiCheckConnect(false);
     if (!health.ok) {
-      window.alert(t("toast.ankiUnavailable", {details: health.details || ""}));
+      showToast(t("toast.ankiUnavailable", {details: health.details || ""}), "error");
       return;
     }
     const res = await v3PostJson("/api/srs/export/anki", { cardId: String(cardId || "").trim() });
@@ -10020,7 +10024,7 @@ async function v3IdeSrsExportAnki(cardId) {
     v3IdeRefreshInspector();
   } catch (e) {
     console.error("SRS Anki export failed:", e);
-    window.alert(t("toast.ankiExportFailed", {error: v3SrsAnkiFormatThrownError(e)}));
+    showToast(t("toast.ankiExportFailed", {error: v3SrsAnkiFormatThrownError(e)}), "error");
   }
 }
 
@@ -10082,7 +10086,7 @@ function v3IdeExportCopy() {
   const rowIdx = v3IdeState.selectedRowIdx;
   if (rowIdx === null || !currentTableData || !currentTableData[rowIdx]) {
     if (typeof showToast === "function") showToast(t("toast.selectRowFirst"));
-    else alert(t("toast.selectRowFirst"));
+    else showToast(t("toast.selectRowFirst"), "warning");
     return;
   }
 
@@ -10098,7 +10102,7 @@ function v3IdeExportCopy() {
 
   navigator.clipboard.writeText(text).then(() => {
     if (typeof showToast === "function") showToast(t("toast.copied"));
-    else alert(t("toast.copied"));
+    else showToast(t("toast.copied"), "success");
   }).catch(err => {
     console.error("Copy failed:", err);
     if (typeof showToast === "function") showToast(t("toast.copyFailed"));
@@ -14483,11 +14487,18 @@ updatePlaylistButtonUI();
          try { classicSyncStateUi(); } catch (_) {}
     }
 
-    function clearTextWithConfirm() {
+    async function clearTextWithConfirm() {
         if (!inputTextEl) return;
         if (!inputTextEl.value || !inputTextEl.value.trim()) return;
 
-        const ok = window.confirm(t("confirm.clearText"));
+        // Direction 6: native confirm → v3ConfirmModal (premium UX).
+        const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+        const ok = await v3ConfirmModal({
+          title: _t("confirms.clearTextTitle"),
+          body:  _t("confirms.clearTextBody"),
+          okText: _t("confirms.clearTextOk"),
+          cancelText: _t("confirms.cancelBtn"),
+        });
         if (!ok) return;
 
         inputTextEl.value = "";
@@ -17922,11 +17933,12 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
       v3TextMetaOpen(id);
     } else {
       console.error("[Library/Edit] v3TextMetaOpen is not defined");
-      alert("Meta Edit недоступен: v3TextMetaOpen не найден (см. console).");
+      // Direction 6: alert → premium toast.
+      showToast("Meta Edit недоступен: v3TextMetaOpen не найден (см. console).", "error");
     }
   } catch (err) {
     console.error("[Library/Edit] failed:", err);
-    alert("Не удалось открыть Meta Edit (см. console).");
+    showToast("Не удалось открыть Meta Edit (см. console).", "error");
   }
 });
 
@@ -18230,7 +18242,17 @@ async function v3LibraryArchiveText(textId) {
 }
 
 async function v3LibraryDeleteText(textId) {
-  const ok = confirm("Удалить текст НАВСЕГДА? Это удалит и строки (CASCADE).");
+  // Direction 6: replace native confirm with v3ConfirmModal — premium
+  // styling, dismissable, locale-aware. The B3 undo-toast still gives
+  // 7-second escape hatch after the delete.
+  const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+  const ok = await v3ConfirmModal({
+    title: _t("confirms.deleteTextTitle"),
+    body:  _t("confirms.deleteTextBody"),
+    okText: _t("confirms.deleteTextOk"),
+    cancelText: _t("confirms.cancelBtn"),
+    danger: true,
+  });
   if (!ok) return;
 
   try {
@@ -18723,8 +18745,14 @@ async function v3LibraryOnImportSelected(ev) {
       return;
     }
 
-    // безопасный режим по умолчанию: не перетирать, дубликаты — пропустить
-    const ok = window.confirm("Импортировать библиотеку из файла?\nДубликаты будут пропущены.");
+    // Direction 6: native confirm → v3ConfirmModal.
+    const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+    const ok = await v3ConfirmModal({
+      title: _t("confirms.importJsonTitle"),
+      body:  _t("confirms.importJsonBody"),
+      okText: _t("confirms.importJsonOk"),
+      cancelText: _t("confirms.cancelBtn"),
+    });
     if (!ok) return;
 
     showToast("Импорт библиотеки…");
@@ -20905,8 +20933,17 @@ async function v3LibraryOnBundleImportSelected(ev) {
     const file = ev && ev.target && ev.target.files && ev.target.files[0] ? ev.target.files[0] : null;
     if (!file) return;
 
-    const ok = window.confirm("Импортировать ZIP с аудио?\nДубликаты будут пропущены.");
-    if (!ok) return;
+    // Direction 6: native confirm → v3ConfirmModal.
+    {
+      const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+      const okZ = await v3ConfirmModal({
+        title: _t("confirms.importZipTitle"),
+        body:  _t("confirms.importZipBody"),
+        okText: _t("confirms.importZipOk"),
+        cancelText: _t("confirms.cancelBtn"),
+      });
+      if (!okZ) return;
+    }
 
     showToast("Импорт…");
 
@@ -22026,13 +22063,13 @@ async function v3SrsTrainerExportAnki() {
         if (/failed to fetch|networkerror|cors/i.test(msg)) {
           msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect.`;
         }
-        window.alert("Ошибка экспорта в Anki: " + msg);
+        showToast("Ошибка экспорта в Anki: " + msg, "error");
       }
       return;
     }
     const health = await v3SrsAnkiCheckConnect(false);
     if (!health.ok) {
-      window.alert(t("toast.ankiUnavailable", {details: health.details || ""}));
+      showToast(t("toast.ankiUnavailable", {details: health.details || ""}), "error");
       return;
     }
     const res = await v3PostJson("/api/srs/export/anki", { cardId });
@@ -22041,7 +22078,7 @@ async function v3SrsTrainerExportAnki() {
     if (typeof showToast === "function") showToast(t("toast.ankiExported", {notes: foundNotes, cards: foundCards}), "success");
   } catch (e) {
     console.error("SRS trainer Anki export failed:", e);
-    window.alert(t("toast.ankiExportFailed", {error: v3SrsAnkiFormatThrownError(e)}));
+    showToast(t("toast.ankiExportFailed", {error: v3SrsAnkiFormatThrownError(e)}), "error");
   }
 }
 
@@ -22923,14 +22960,14 @@ async function v3DashboardTogglePin(textId) {
       const j = await res.json().catch(() => null);
       if (!res.ok || !j || !j.ok) {
         console.error("[v3DashboardTogglePin] bad response:", res.status, j);
-        alert("Не удалось обновить pin/meta (см. console).");
+        showToast("Не удалось обновить pin/meta (см. console).", "error");
         return;
       }
     }
     await v3DashboardRefresh();
   } catch (e) {
     console.error("[v3DashboardTogglePin] error:", e);
-    alert("Не удалось обновить pin/meta (см. console).");
+    showToast("Не удалось обновить pin/meta (см. console).", "error");
   }
 }
 
@@ -25532,10 +25569,19 @@ function tableEditResetRow(rowIdx) {
     });
 }
 
-function tableEditDeleteRow(rowIdx) {
+async function tableEditDeleteRow(rowIdx) {
     const row = currentTableData && currentTableData[rowIdx];
     if (!row || !row._v3_sentenceId || !row._v3_textId) return;
-    if (!confirm("Удалить строку? Это действие необратимо.")) return;
+    // Direction 6: native confirm → v3ConfirmModal (premium UX, locale-aware).
+    const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+    const ok = await v3ConfirmModal({
+      title: _t("confirms.deleteRowTitle"),
+      body:  _t("confirms.deleteRowBody"),
+      okText: _t("confirms.deleteRowOk"),
+      cancelText: _t("confirms.cancelBtn"),
+      danger: true,
+    });
+    if (!ok) return;
     const sid = row._v3_sentenceId;
     const tid = row._v3_textId;
     var deletePromise = LOCAL_MODE

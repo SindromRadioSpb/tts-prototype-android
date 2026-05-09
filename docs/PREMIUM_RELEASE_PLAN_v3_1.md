@@ -614,7 +614,7 @@ Sprint 3: Performance + Trust
 - [ ] **Direction 3** — Full i18n coverage
 - [ ] **Direction 4** — Onboarding & discovery
 - [ ] **Direction 5** — SRS + Library smart-sort
-- [ ] **Direction 6** — Error gentleness app-wide
+- [~] **Direction 6** — Error gentleness app-wide (high-priority destructive confirms + Anki alerts converted; ~10 edge-case callsites remain)
 - [ ] **Direction 7** — Performance / PWA
 - [x] **Direction 8** — Trust signals + content polish (footer + About modal + Privacy doc)
 
