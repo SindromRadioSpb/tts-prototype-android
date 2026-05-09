@@ -19727,7 +19727,7 @@ function v3FbRenderTriage() {
       </div>
       <div class="v3-fb-wa-grid" style="display:grid; grid-template-columns:auto 1fr; gap:14px; margin-bottom:14px;">
         <div id="v3FbWaQr" style="background:#fff; padding:8px; border-radius:8px; width:110px; height:110px; display:flex; flex-direction:column; align-items:center; justify-content:center; animation:v3FbQrFade 0.5s ease-out 0.3s both;">
-          <div style="font-size:11px; color:#888;">QR…</div>
+          <div class="v3-fb-skeleton" style="width:88px; height:88px; border-radius:4px;" aria-label="${T("feedback.qrLoading")}"></div>
         </div>
         <button onclick="v3FbOpenWhatsApp('triage')" style="background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.3); color:#fff; border-radius:8px; padding:16px; cursor:pointer; font-size:14px; font-weight:600; text-align:center; line-height:1.4; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; backdrop-filter:blur(10px);">
           <span style="font-size:22px;">→</span>
@@ -19922,6 +19922,7 @@ function v3FbRenderCategory(category) {
       <button class="v3-fb-secondary-btn" onclick="v3FbSubmit('copy')">${T("feedback.sendCopy")}</button>
       ${category === 'bug' ? `<button class="v3-fb-secondary-btn" onclick="v3FbSubmit('github')">${T("feedback.sendGithub")}</button>` : ''}
     </div>
+    <div id="v3FbCcResult"></div>
     <div id="v3FbEmailChooser"></div>
   `;
 }
@@ -20153,6 +20154,7 @@ function v3FbRenderHistory() {
       <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#475569; cursor:pointer; padding:0 0 12px; font-size:13px; font-family:inherit;">${T("feedback.back")}</button>
       <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#0f172a;">${T("feedback.historyTitle")}</h3>
       <div class="v3-fb-history-empty">${T("feedback.historyEmpty")}</div>
+      <div id="v3FbCcResult"></div>
     `;
   }
   const lang = (typeof window.appGetLocale === "function") ? window.appGetLocale() : "ru";
@@ -20189,6 +20191,7 @@ function v3FbRenderHistory() {
     <div style="margin-top:12px; text-align:right;">
       <button class="v3-fb-secondary-btn" style="font-size:12px; padding:6px 12px;" onclick="v3FbHistoryClearAndRender()">${T("feedback.historyClear")}</button>
     </div>
+    <div id="v3FbCcResult"></div>
   `;
 }
 function v3FbGoHistory() {
@@ -20197,8 +20200,10 @@ function v3FbGoHistory() {
 function v3FbHistoryClearAndRender() {
   if (!confirm(v3FbT("feedback.historyClear") + "?")) return;
   v3FbHistoryClear();
-  v3FbCcShowResult(v3FbEscape(v3FbT("feedback.historyCleared")), "info");
   v3FbRender();
+  // Show result AFTER re-render so the message lands in the freshly-
+  // created cc-result slot inside the empty-state view.
+  setTimeout(() => v3FbCcShowResult(v3FbEscape(v3FbT("feedback.historyCleared")), "info"), 0);
 }
 async function v3FbHistoryResend(idx) {
   const items = v3FbHistoryRead();
@@ -20230,14 +20235,23 @@ function v3FbOpenWhatsAppWithConfirm(message) {
     window.open(url, "_blank", "noopener");
     return;
   }
-  // Reuse existing v3ConfirmModal for visual consistency.
+  // Reuse existing v3ConfirmModal for visual consistency. v3ConfirmModal
+  // and the feedback modal share z-index:99999, so we temporarily lift
+  // the confirm above the feedback modal during this call and restore
+  // afterwards. Without this, the confirm would render behind feedback.
   if (typeof window.v3ConfirmModal === "function") {
+    const cm = document.getElementById("v3ConfirmModal");
+    const prevZ = cm ? cm.style.zIndex : "";
+    if (cm) cm.style.zIndex = "100001";
     window.v3ConfirmModal({
       title: v3FbT("feedback.waConfirmTitle"),
       body: v3FbT("feedback.waConfirmBody"),
       okText: v3FbT("feedback.waConfirmOpen"),
       cancelText: v3FbT("feedback.waConfirmCancel"),
-    }).then((ok) => { if (ok) window.open(url, "_blank", "noopener"); });
+    }).then((ok) => {
+      if (cm) cm.style.zIndex = prevZ;
+      if (ok) window.open(url, "_blank", "noopener");
+    });
   } else {
     if (confirm(v3FbT("feedback.waConfirmTitle") + "\n\n" + v3FbT("feedback.waConfirmBody"))) {
       window.open(url, "_blank", "noopener");
