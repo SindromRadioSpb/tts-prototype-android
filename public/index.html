@@ -45,7 +45,43 @@
       --theme-density-pad-compact: 0.75rem;
       --theme-density-pad-comfortable: 1rem;
       --theme-density-pad-spacious: 1.5rem;
+      /* Table-specific tokens (light defaults). Reused by row-highlight
+         and editor styles. Designed so dark variants below cleanly invert
+         without touching every CSS rule that uses them. */
+      --table-bg-outer: #ffffff;
+      --table-bg-row: #ffffff;
+      --table-bg-row-zebra: rgba(0,0,0,0.012);
+      --table-bg-header: #f6f7f8;
+      --table-border: rgba(0,0,0,0.26);
+      --table-border-header: rgba(0,0,0,0.22);
+      --table-text: #0f172a;
+      --table-text-niqqud: rgba(0,0,0,0.92);
+      --table-text-translit: #1f2937;
+      --table-text-ru: #0f172a;
+      /* Row-highlight overlays — alpha-based so they layer over any bg.
+         Light theme: warm green/yellow/orange used since v0.x (kept). */
+      --row-hl-hover:    rgba(46, 125, 50, 0.22);
+      --row-hl-focus:    rgba(46, 125, 50, 0.22);
+      --row-hl-active:   rgba(255, 230, 0, 0.35);
+      --row-hl-selected: rgba(255, 230, 0, 0.35);
+      --row-hl-playing:  rgba(255, 230, 0, 0.35);
+      --row-rail-selected: rgba(255, 180, 0, 0.85);
+      --row-rail-playing:  rgba(52, 152, 219, 0.75);
+      --row-rail-error:    rgba(231, 76, 60, 0.80);
+      /* Header-of-active-card strip ("Position 1. ... — Сохранён") */
+      --active-hdr-bg: rgba(255, 255, 255, 0.94);
+      --active-hdr-border: #dbe4ee;
+      --active-hdr-text: #0f172a;
+      --active-hdr-sub-text: #475569;
+      --active-hdr-source-text: #334155;
+      --active-hdr-source-link: #1565c0;
+      --pill-bg: rgba(248, 250, 252, 0.95);
+      --pill-border: rgba(15, 23, 42, 0.1);
+      --pill-text: #0f172a;
     }
+    /* Dark palette — shared between auto (via @media) and manual override.
+       Defined once via a CSS custom-property block below, applied by both
+       :root.theme-dark { ... } and the @media auto rule. */
     /* Auto-mode (no explicit class on body): track system preference. */
     @media (prefers-color-scheme: dark) {
       body:not(.theme-light) {
@@ -73,9 +109,45 @@
         --theme-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
         --theme-shadow-md: 0 4px 12px rgba(0,0,0,0.5);
         --theme-shadow-lg: 0 20px 60px rgba(0,0,0,0.7);
+        /* Table tokens — dark variants. Background uses slate-800 so
+           the table card still pops slightly above the slate-900 page
+           bg (depth hierarchy). Niqqud and other text become bright
+           slate-100; alpha overlays stay alpha so row-highlight tokens
+           layer naturally without colour clashes. */
+        --table-bg-outer: #1e293b;
+        --table-bg-row: #1e293b;
+        --table-bg-row-zebra: rgba(255,255,255,0.025);
+        --table-bg-header: #0f172a;
+        --table-border: rgba(255,255,255,0.10);
+        --table-border-header: rgba(255,255,255,0.14);
+        --table-text: #f1f5f9;
+        --table-text-niqqud: rgba(255,255,255,0.94);
+        --table-text-translit: #cbd5e1;
+        --table-text-ru: #f1f5f9;
+        /* Row-highlight tokens — dark variants. Alpha bumped because
+           the dark background absorbs more of the highlight; without
+           the bump, "playing" or "selected" rows look invisible. */
+        --row-hl-hover:    rgba(74, 222, 128, 0.18);
+        --row-hl-focus:    rgba(74, 222, 128, 0.18);
+        --row-hl-active:   rgba(252, 211, 77, 0.28);
+        --row-hl-selected: rgba(252, 211, 77, 0.28);
+        --row-hl-playing:  rgba(252, 211, 77, 0.28);
+        --row-rail-selected: rgba(252, 191, 73, 0.95);
+        --row-rail-playing:  rgba(96, 165, 250, 0.85);
+        --row-rail-error:    rgba(248, 113, 113, 0.90);
+        /* Active-text-header strip in dark mode */
+        --active-hdr-bg: rgba(30, 41, 59, 0.96);
+        --active-hdr-border: #334155;
+        --active-hdr-text: #f1f5f9;
+        --active-hdr-sub-text: #cbd5e1;
+        --active-hdr-source-text: #94a3b8;
+        --active-hdr-source-link: #93c5fd;
+        --pill-bg: rgba(15, 23, 42, 0.85);
+        --pill-border: rgba(241, 245, 249, 0.15);
+        --pill-text: #f1f5f9;
       }
     }
-    /* Explicit dark — overrides system pref. */
+    /* Explicit dark — overrides system pref. Same vars as the @media block. */
     body.theme-dark {
       --theme-bg-page: #0f172a;
       --theme-bg-card: #1e293b;
@@ -101,6 +173,33 @@
       --theme-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
       --theme-shadow-md: 0 4px 12px rgba(0,0,0,0.5);
       --theme-shadow-lg: 0 20px 60px rgba(0,0,0,0.7);
+      --table-bg-outer: #1e293b;
+      --table-bg-row: #1e293b;
+      --table-bg-row-zebra: rgba(255,255,255,0.025);
+      --table-bg-header: #0f172a;
+      --table-border: rgba(255,255,255,0.10);
+      --table-border-header: rgba(255,255,255,0.14);
+      --table-text: #f1f5f9;
+      --table-text-niqqud: rgba(255,255,255,0.94);
+      --table-text-translit: #cbd5e1;
+      --table-text-ru: #f1f5f9;
+      --row-hl-hover:    rgba(74, 222, 128, 0.18);
+      --row-hl-focus:    rgba(74, 222, 128, 0.18);
+      --row-hl-active:   rgba(252, 211, 77, 0.28);
+      --row-hl-selected: rgba(252, 211, 77, 0.28);
+      --row-hl-playing:  rgba(252, 211, 77, 0.28);
+      --row-rail-selected: rgba(252, 191, 73, 0.95);
+      --row-rail-playing:  rgba(96, 165, 250, 0.85);
+      --row-rail-error:    rgba(248, 113, 113, 0.90);
+      --active-hdr-bg: rgba(30, 41, 59, 0.96);
+      --active-hdr-border: #334155;
+      --active-hdr-text: #f1f5f9;
+      --active-hdr-sub-text: #cbd5e1;
+      --active-hdr-source-text: #94a3b8;
+      --active-hdr-source-link: #93c5fd;
+      --pill-bg: rgba(15, 23, 42, 0.85);
+      --pill-border: rgba(241, 245, 249, 0.15);
+      --pill-text: #f1f5f9;
     }
     /* Body-level baseline so existing rules without var() also flip. */
     body.theme-dark { background-color: var(--theme-bg-page) !important; color: var(--theme-text-primary) !important; }
@@ -263,27 +362,12 @@
     }
 
     :root {
-    /* Текущий шрифт для иврита (управляется селектором).
-       Многоуровневый fallback: self-hosted woff2 → system Hebrew →
-       universal fallback. Каждый уровень обеспечивает читаемость. */
+    /* Hebrew font stack — multi-tier with system fallbacks (Direction 1).
+       Row-highlight + theme tokens moved to the theme block above
+       (single source of truth, dark variants follow same names). */
     --hebrew-font: 'Frank Ruhl Libre', 'David CLM', 'Frank Ruehl CLM',
                    'Noto Sans Hebrew', 'SF Hebrew', 'Arial Hebrew',
                    'Segoe UI', Tahoma, sans-serif;
-   
-	/* Row highlight tokens (P0 single source of truth) */
- /* interaction family (warm) */
-  --row-hl-hover:    rgba(46, 125, 50, 0.22); /* hover (мышь) */
-  --row-hl-focus:    rgba(46, 125, 50, 0.22); /* focus-within (клавиатура/фокус внутри строки) */
-  --row-hl-active:   rgba(255, 230, 0, 0.35); /* active (нажатие/touch) */
-  --row-hl-selected: rgba(255, 230, 0, 0.35); /* последняя выбранная/последняя проигранная */
-
-  /* playing (distinct) */
-  --row-hl-playing:  rgba(255, 230, 0, 0.35); /* сейчас проигрывается */
-  
-   /* Micro-IDE rails (P1, non-background) */
-  --row-rail-selected: rgba(255, 180, 0, 0.85);
-  --row-rail-playing:  rgba(52, 152, 219, 0.75);
-  --row-rail-error:    rgba(231, 76, 60, 0.80);
 }
 
 
@@ -292,8 +376,8 @@
         max-width: 1360px;
         margin: 0 auto;
         padding: 20px;
-        background-color: #f4f6f9;
-        color: #333;
+        background-color: var(--theme-bg-page);
+        color: var(--theme-text-primary);
     }
 
     .classic-status-strip-wrap,
@@ -304,10 +388,10 @@
     }
 
     .classic-status-strip-wrap {
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--theme-border-soft);
         border-radius: 20px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,252,0.96));
-        box-shadow: 0 16px 34px rgba(15, 23, 42, 0.045);
+        background: var(--theme-bg-card);
+        box-shadow: var(--theme-shadow-md);
         overflow: hidden;
     }
 
@@ -319,7 +403,7 @@
         gap: 10px;
         padding: 12px 14px;
         cursor: pointer;
-        color: #0f172a;
+        color: var(--theme-text-primary);
         font-size: 13px;
         font-weight: 800;
     }
@@ -331,7 +415,7 @@
     .classic-status-strip-summary::after {
         content: "⌄";
         font-size: 18px;
-        color: #64748b;
+        color: var(--theme-text-muted);
         transition: transform 0.18s ease;
     }
 
@@ -382,7 +466,7 @@
         font-weight: 800;
         letter-spacing: 0.16em;
         text-transform: uppercase;
-        color: #64748b;
+        color: var(--theme-text-muted);
     }
 
     .classic-screen-title {
@@ -391,7 +475,7 @@
         font-size: clamp(28px, 3vw, 38px);
         line-height: 1.05;
         letter-spacing: -0.03em;
-        color: #0f172a;
+        color: var(--theme-text-primary);
     }
 
     .classic-screen-subtitle {
@@ -399,7 +483,7 @@
         max-width: 760px;
         font-size: 14px;
         line-height: 1.55;
-        color: #64748b;
+        color: var(--theme-text-muted);
     }
 
     .classic-utility-bar {
@@ -410,10 +494,10 @@
         flex: 1 1 360px;
         min-width: 0;
         padding: 8px 10px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--theme-border-soft);
         border-radius: 16px;
-        background: rgba(255,255,255,0.86);
-        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+        background: var(--theme-bg-card);
+        box-shadow: var(--theme-shadow-sm);
     }
 
     .classic-utility-nav {
@@ -444,10 +528,10 @@
 
     .classic-card {
         position: relative;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--theme-border-soft);
         border-radius: 20px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,251,253,0.96));
-        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.055);
+        background: var(--theme-bg-card);
+        box-shadow: var(--theme-shadow-md);
         padding: 18px;
         overflow: clip;
     }
@@ -481,14 +565,14 @@
         font-size: 17px;
         line-height: 1.2;
         font-weight: 800;
-        color: #0f172a;
+        color: var(--theme-text-primary);
     }
 
     .classic-card-subtitle {
         margin-top: 5px;
         font-size: 13px;
         line-height: 1.5;
-        color: #64748b;
+        color: var(--theme-text-muted);
     }
 
     .classic-composer-tools {
@@ -1043,7 +1127,7 @@
         width: 100%;
         height: 140px;
         padding: 22px 18px;
-        border: 1px solid #b5b5b5;
+        border: 1px solid var(--theme-border-medium);
         border-radius: 12px;
         font-size: 16px;
         line-height: 1.6;
@@ -1054,7 +1138,8 @@
         max-height: 280px;
         direction: ltr;
         text-align: left;
-        background-color: #ffffff;
+        background-color: var(--theme-bg-card);
+        color: var(--theme-text-primary);
         box-shadow:
             inset 0 1px 3px rgba(0, 0, 0, 0.12),
             0 2px 4px rgba(0, 0, 0, 0.06);
@@ -1066,8 +1151,8 @@
         max-height: 360px;
         margin-bottom: 0;
         font-size: 18px;
-        border-color: #cbd5e1;
-        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08), 0 10px 22px rgba(15, 23, 42, 0.05);
+        border-color: var(--theme-border-medium);
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.08), var(--theme-shadow-sm);
     }
 
     /* Режим для иврита (textarea) */
@@ -1696,9 +1781,10 @@ th, td { border-color: rgba(0,0,0,0.55); }
   margin-top: 8px;
   margin-bottom: 10px;
   padding: 12px 14px;
-  border: 1px solid #dbe4ee;
+  border: 1px solid var(--active-hdr-border);
   border-radius: 16px;
-  background: rgba(255,255,255,0.94);
+  background: var(--active-hdr-bg);
+  color: var(--active-hdr-text);
 }
 
 .v3-active-header-row {
@@ -1715,23 +1801,24 @@ th, td { border-color: rgba(0,0,0,0.55); }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--active-hdr-text);
 }
 
 .v3-active-sub {
   margin-top: 8px;
   font-size: 12px;
   line-height: 1.5;
-  color: #475569;
+  color: var(--active-hdr-sub-text);
   opacity: 1;
 }
 
 .v3-active-source {
   margin-top: 6px;
   font-size: 12px;
-  color: #334155;
+  color: var(--active-hdr-source-text);
 }
 .v3-active-source a {
-  color: #1565c0;
+  color: var(--active-hdr-source-link);
   text-decoration: underline;
   word-break: break-all;
 }
@@ -1742,8 +1829,9 @@ th, td { border-color: rgba(0,0,0,0.55); }
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  background: rgba(248, 250, 252, 0.95);
+  border: 1px solid var(--pill-border);
+  background: var(--pill-bg);
+  color: var(--pill-text);
   white-space: nowrap;
 }
 
@@ -1751,14 +1839,16 @@ th, td { border-color: rgba(0,0,0,0.55); }
   border-style: dashed;
   background: rgba(255,255,255,.35);
 }
+body.theme-dark .v3-pill-draft,
+body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 
-    /* Метаданные результатов */
+    /* Метаданные результатов — theme-aware. */
     #resultsMeta {
         display: none;
         margin-top: 4px;
         margin-bottom: 14px;
         font-size: 12px;
-        color: #6c757d;
+        color: var(--theme-text-muted);
     }
 
     .results-meta-line {
@@ -1771,7 +1861,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
     .results-meta-label {
         font-weight: 700;
         margin-right: 0;
-        color: #334155;
+        color: var(--theme-text-secondary);
         min-width: 70px;
     }
     .results-meta-chip {
@@ -2533,11 +2623,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
   vertical-align: top;
 }
 
-/* 3) Niqqud: максимум “воздуха” без автоскейла/прыжков */
+/* 3) Niqqud: максимум "воздуха" без автоскейла/прыжков. Theme-aware text. */
 #proTable tbody td.rtl-he-niqqud {
-  line-height: 2.18;          /* больше “воздуха” для огласовок */
+  line-height: 2.18;          /* больше "воздуха" для огласовок */
   letter-spacing: 0.12px;     /* меньше визуальной дрожи */
-  color: rgba(0,0,0,0.92);    /* мягче, но не “серое” */
+  color: var(--table-text-niqqud);  /* мягче, но не "серое"; flips for dark */
 }
 
 /* 4) Иврит без никуда: чуть стабильнее ритм, чтобы строка выглядела единообразно */
@@ -2550,10 +2640,10 @@ th, td { border-color: rgba(0,0,0,0.55); }
   line-height: 1.52;          /* чуть комфортнее при многострочных строках */
 }
 
-/* 6) Сетка: тоньше и “дороже”, но без потери читабельности */
-#proTable th, 
+/* 6) Сетка: тоньше и "дороже", но без потери читабельности. Theme-aware. */
+#proTable th,
 #proTable td {
-  border-color: rgba(0,0,0,0.42); /* было ~0.55/0.75 — визуально тяжеловато */
+  border-color: var(--table-border);
 }
 
 
@@ -2566,28 +2656,30 @@ th, td { border-color: rgba(0,0,0,0.55); }
    Цель: тоньше сетка, ровнее ритм, “hairline” под sticky header
    ========================================================= */
 
-/* A) Сетка: превращаем “черные линии” в premium hairline */
+/* A) Сетка: превращаем "черные линии" в premium hairline. Theme-aware. */
 #proTable {
-  border: 1px solid rgba(0,0,0,0.26) !important; /* внешний контур легче */
-  background: #fff;
+  border: 1px solid var(--table-border) !important;  /* внешний контур легче */
+  background: var(--table-bg-outer);
+  color: var(--table-text);
 }
 
 #proTable th,
 #proTable td {
   border-width: 1px !important;
   border-style: solid !important;
-  border-color: rgba(0,0,0,0.26) !important;     /* ключ: облегчить сетку */
+  border-color: var(--table-border) !important;     /* ключ: облегчить сетку */
 }
 
-/* B) Sticky header: делаем нижнюю линию “дорогой” и стабильной */
+/* B) Sticky header: hairline бордер, theme-aware bg + text. */
 #proTable thead th {
-  background: #f6f7f8 !important;
-  border-color: rgba(0,0,0,0.22) !important;
+  background: var(--table-bg-header) !important;
+  border-color: var(--table-border-header) !important;
+  color: var(--theme-text-primary);
 }
 
 #proTable thead th::before {
-  /* твой текущий “подчеркивающий” слой оставляем, но делаем hairline */
-  background: rgba(0,0,0,0.24) !important;
+  /* "подчеркивающий" слой — hairline; в dark mode чуть светлее. */
+  background: var(--table-border-header) !important;
   height: 1px !important;
   opacity: 1 !important;
 }
@@ -2607,9 +2699,11 @@ th, td { border-color: rgba(0,0,0,0.55); }
   line-height: 1.48 !important; /* транслит/перевод: мягче и компактнее */
 }
 
-/* D) Лёгкая дифференциация строк без “зебры” (не конфликтует с focus-mode) */
+/* D) Лёгкая дифференциация строк без "зебры" (не конфликтует с focus-mode).
+   Theme-aware: --table-bg-row flips for dark, zebra alpha works for both. */
 #proTable tbody tr {
-  background: #ffffff;
+  background: var(--table-bg-row);
+  color: var(--table-text);
 }
 #proTable tbody td {
   background: transparent;
@@ -2617,8 +2711,14 @@ th, td { border-color: rgba(0,0,0,0.55); }
 
 
 #proTable tbody tr:nth-child(even) td {
-  background: rgba(0,0,0,0.012); /* почти незаметно, но “дорого” */
+  background: var(--table-bg-row-zebra); /* почти незаметно, но "дорого" */
 }
+
+/* Per-column text colour (helps readability when columns mix scripts) */
+#proTable tbody td[data-col="he"],
+#proTable tbody td[data-col="niqqud"] { color: var(--table-text-niqqud); }
+#proTable tbody td[data-col="translit"] { color: var(--table-text-translit); }
+#proTable tbody td[data-col="ru"] { color: var(--table-text-ru); }
 
 /* F) Не трогаем состояния: row-playing / row-error / focus-mode — они должны победить */
 
@@ -2877,20 +2977,21 @@ th, td { border-color: rgba(0,0,0,0.55); }
   width: 100%;
   min-height: 52px;
   resize: vertical;
-  border: 1px solid #42a5f5;
+  border: 1px solid var(--theme-accent);
   border-radius: 5px;
   padding: 5px 7px;
   font-size: inherit;
   font-family: inherit;
   line-height: 1.5;
-  background: #fff;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
   box-sizing: border-box;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(66,165,245,0.2);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.20);
 }
 .cell-editor-textarea:focus {
-  border-color: #1e88e5;
-  box-shadow: 0 0 0 2px rgba(30,136,229,0.25);
+  border-color: var(--theme-accent-hover);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.30);
 }
 /* Override global textarea{direction:ltr} for RTL cell editors (Hebrew/niqqud columns) */
 .cell-editor-textarea[dir="rtl"] {
