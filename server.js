@@ -345,8 +345,17 @@ app.get("/api/client-config", (_req, res) => {
   const developerGithub = String(process.env.DEVELOPER_GITHUB_REPO || "SindromRadioSpb/tts-prototype-android").trim();
   const responseTimeHours = Number(process.env.DEVELOPER_RESPONSE_TIME_HOURS || "4");
 
+  // App version from package.json — surfaced to the client About modal
+  // and footer so the displayed version always matches what's deployed.
+  let appVersion = "3.0.0";
+  try {
+    const pkg = require("./package.json");
+    if (pkg && pkg.version) appVersion = String(pkg.version);
+  } catch (_) {}
+
   return res.json({
     ok: true,
+    version: appVersion,
     tts: {
       enabled,
       provider: "online_tts",

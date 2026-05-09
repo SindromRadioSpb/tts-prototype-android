@@ -6065,6 +6065,86 @@ td[data-col="ru"] {
 }
 .feedback-dark .v3-fb-tipjar-badge { background: rgba(252, 211, 77, 0.2) !important; color: #fde68a !important; }
 
+/* ── Direction 8: trust footer + about modal (Premium Release v3.1.0) ── */
+.app-footer {
+  margin: 32px auto 0; padding: 16px 20px 20px;
+  max-width: 1360px; border-top: 1px solid #e2e8f0;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 12px; font-size: 12px; color: #64748b; line-height: 1.5;
+  background: transparent;
+}
+.app-footer-left {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+}
+.app-footer-right {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+}
+.app-footer .privacy-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #ecfdf5; color: #166534; padding: 4px 10px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 500; border: 1px solid #bbf7d0;
+  text-decoration: none;
+}
+.app-footer .privacy-badge:hover { background: #d1fae5; }
+.app-footer a {
+  color: #475569; text-decoration: none; transition: color 0.15s;
+}
+.app-footer a:hover { color: #0f172a; text-decoration: underline; }
+.app-footer-version {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 11px; color: #94a3b8; cursor: pointer; user-select: none;
+}
+.app-footer-version:hover { color: #475569; }
+.app-footer-credit {
+  font-size: 11.5px; color: #94a3b8;
+}
+@media (max-width: 600px) {
+  .app-footer { flex-direction: column; align-items: flex-start; padding: 14px 16px; }
+}
+
+/* About modal */
+#v3AboutModal {
+  display: none; position: fixed; inset: 0; z-index: 99999;
+  background: rgba(15,23,42,0.6); align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto;
+}
+#v3AboutModal[data-open="1"] { display: flex; }
+#v3AboutPanel {
+  background: #fff; border-radius: 16px; max-width: 520px; width: 100%;
+  max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: v3FbEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#v3AboutPanel header {
+  padding: 20px 24px 12px; border-bottom: 1px solid #e2e8f0;
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+#v3AboutTitle { font-size: 20px; font-weight: 600; color: #0f172a; }
+#v3AboutTagline { font-size: 13px; color: #64748b; margin-top: 4px; }
+#v3AboutBody { padding: 16px 24px 24px; font-size: 13.5px; color: #0f172a; line-height: 1.6; }
+.v3-about-row {
+  display: grid; grid-template-columns: 130px 1fr; gap: 8px 12px;
+  padding: 6px 0; border-bottom: 1px solid #f1f5f9;
+}
+.v3-about-row:last-child { border-bottom: 0; }
+.v3-about-label { color: #64748b; font-size: 12.5px; font-weight: 500; }
+.v3-about-value { color: #0f172a; }
+.v3-about-section-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; color: #94a3b8; margin: 16px 0 6px;
+}
+.v3-about-deps {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 12px; color: #475569; line-height: 1.7;
+}
+.v3-about-credits {
+  font-size: 12.5px; color: #475569; line-height: 1.6;
+}
+#v3AboutClose {
+  background: transparent; border: 0; font-size: 22px; color: #94a3b8;
+  cursor: pointer; padding: 4px 8px; border-radius: 8px;
+}
+#v3AboutClose:hover { background: #f1f5f9; color: #0f172a; }
+
 /* ── Tier 1.2: error/success toast variants + report button ──── */
 .toast.toast-error   { background: #991b1b; }
 .toast.toast-success { background: #166534; }
@@ -29276,6 +29356,105 @@ document.addEventListener("i18n:changed", function () {
     <button id="v3NavCloseBtn" class="btn-secondary btn-mini" data-i18n="nav.close">Закрыть</button>
   </div>
 </div>
+
+<!-- ── App footer (Direction 8 — Trust signals) ───────────────────────── -->
+<footer class="app-footer" id="appFooter">
+  <div class="app-footer-left">
+    <a class="privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">🔒 Данные на этом устройстве</a>
+    <span class="app-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Sindrom Radio</span></span>
+  </div>
+  <div class="app-footer-right">
+    <a href="#" onclick="v3AboutOpen();return false;" data-i18n="footer.aboutLink">О приложении</a>
+    <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
+    <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
+    <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
+    <span class="app-footer-version" id="appFooterVersion" onclick="v3AboutOpen()" title="Open About">v3.0.0</span>
+  </div>
+</footer>
+
+<!-- ── About modal (Direction 8 — Trust signals) ──────────────────────── -->
+<div id="v3AboutModal" role="dialog" aria-modal="true" aria-labelledby="v3AboutTitle" onclick="if(event.target===this)v3AboutClose()">
+  <div id="v3AboutPanel">
+    <header>
+      <div>
+        <div id="v3AboutTitle" data-i18n="about.title">О LinguistPro</div>
+        <div id="v3AboutTagline" data-i18n="about.tagline">Hebrew-learning IDE с offline-first архитектурой</div>
+      </div>
+      <button id="v3AboutClose" onclick="v3AboutClose()" aria-label="Close">×</button>
+    </header>
+    <div id="v3AboutBody">
+      <div class="v3-about-row">
+        <div class="v3-about-label" data-i18n="about.versionLabel">Версия</div>
+        <div class="v3-about-value" id="v3AboutVersion">3.0.0</div>
+      </div>
+      <div class="v3-about-row">
+        <div class="v3-about-label" data-i18n="about.licenseLabel">Лицензия</div>
+        <div class="v3-about-value" data-i18n="about.licenseValue">MIT (исходный код), TTS-аудио — кэш Railway</div>
+      </div>
+      <div class="v3-about-row">
+        <div class="v3-about-label" data-i18n="about.repoLabel">Репозиторий</div>
+        <div class="v3-about-value"><a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener">github.com/SindromRadioSpb/tts-prototype-android</a></div>
+      </div>
+      <div class="v3-about-row">
+        <div class="v3-about-label" data-i18n="about.storageLabel">Хранение данных</div>
+        <div class="v3-about-value" data-i18n="about.storageValue">Локально на вашем устройстве (OPFS) — нет серверного хранилища с v3.0.0</div>
+      </div>
+
+      <div class="v3-about-section-title" data-i18n="about.deps">Ключевые зависимости</div>
+      <div class="v3-about-deps" data-i18n="about.depsList">wa-sqlite (MIT) · jszip (MIT) · qrcode-generator (MIT) · Express (MIT)</div>
+
+      <div class="v3-about-section-title">Credits</div>
+      <div class="v3-about-credits">
+        <div data-i18n="about.creditsHebrew">Hebrew-транслитерация: hebrew-transliteration (MIT)</div>
+        <div data-i18n="about.creditsTts">TTS: Google Cloud Text-to-Speech (внешний сервис)</div>
+        <div data-i18n="about.creditsTranslate">Перевод: Gemini API (внешний сервис)</div>
+      </div>
+
+      <div style="margin-top:18px; text-align:right;">
+        <button class="btn-secondary" onclick="v3AboutClose()" data-i18n="about.closeBtn">Закрыть</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Direction 8: About modal logic ────────────────────────────────────
+  function v3AboutOpen() {
+    const m = document.getElementById("v3AboutModal");
+    if (m) {
+      m.setAttribute("data-open", "1");
+      // Wire up version display from package.json (fetched once).
+      try {
+        if (!window.__v3AppVersion) {
+          fetch("/api/client-config", { cache: "no-store" })
+            .then((r) => r.ok ? r.json() : null)
+            .then((j) => {
+              // Fallback: use the static version we know is current.
+              const v = (j && j.version) || "3.0.0";
+              window.__v3AppVersion = v;
+              const el = document.getElementById("v3AboutVersion");
+              if (el) el.textContent = v;
+              const fv = document.getElementById("appFooterVersion");
+              if (fv) fv.textContent = "v" + v;
+            }).catch(() => {});
+        }
+      } catch (_) {}
+    }
+  }
+  function v3AboutClose() {
+    const m = document.getElementById("v3AboutModal");
+    if (m) m.removeAttribute("data-open");
+  }
+  window.v3AboutOpen = v3AboutOpen;
+  window.v3AboutClose = v3AboutClose;
+  // Esc closes the about modal.
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const m = document.getElementById("v3AboutModal");
+      if (m && m.getAttribute("data-open") === "1") v3AboutClose();
+    }
+  });
+</script>
 
 </body>
 </html>

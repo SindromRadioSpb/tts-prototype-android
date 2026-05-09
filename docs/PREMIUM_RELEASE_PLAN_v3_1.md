@@ -616,7 +616,7 @@ Sprint 3: Performance + Trust
 - [ ] **Direction 5** — SRS + Library smart-sort
 - [ ] **Direction 6** — Error gentleness app-wide
 - [ ] **Direction 7** — Performance / PWA
-- [ ] **Direction 8** — Trust signals + content polish
+- [x] **Direction 8** — Trust signals + content polish (footer + About modal + Privacy doc)
 
 ---
 
