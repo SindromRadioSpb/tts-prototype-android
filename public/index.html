@@ -264,6 +264,58 @@
       color: var(--theme-text-primary) !important;
       border-color: var(--theme-border-medium) !important;
     }
+    /* Comprehensive dark-mode overrides for hardcoded CSS-rule colors that
+       can't be easily converted to var() in this session (deeply nested
+       legacy selectors, JS-rendered chips, library card hierarchies).
+       Applied with !important since they fight specific class rules.
+       Light mode is unaffected — these rules ONLY fire when theme-dark
+       is on or @media auto matches. */
+    body.theme-dark .v3-dash-item {
+      background: rgba(255,255,255,0.02);
+      border-color: rgba(255,255,255,0.06);
+      color: var(--theme-text-primary);
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .v3-dash-item {
+        background: rgba(255,255,255,0.02);
+        border-color: rgba(255,255,255,0.06);
+        color: var(--theme-text-primary);
+      }
+    }
+    body.theme-dark .v3-dash-section,
+    body.theme-dark .v3-dash-row-item {
+      background: rgba(255,255,255,0.01) !important;
+      border-color: rgba(255,255,255,0.08) !important;
+      color: var(--theme-text-primary) !important;
+    }
+    body.theme-dark .v3-dash-sec-head,
+    body.theme-dark .v3-dash-section h3,
+    body.theme-dark .v3-dash-title,
+    body.theme-dark .v3-dash-row-he,
+    body.theme-dark .v3-dash-row-tr,
+    body.theme-dark .v3-dash-row-ru,
+    body.theme-dark .v3-dash-meta,
+    body.theme-dark .v3-dash-row-meta { color: var(--theme-text-primary) !important; }
+    body.theme-dark .v3-dash-empty { color: var(--theme-text-muted) !important; }
+    /* Generic links inside dark modals — ensure visibility. JS-rendered
+       <a> tags often have no class, so we target by container scope.
+       NO !important — class-specific styles (WhatsApp button text,
+       button-shaped links etc.) keep their colour. */
+    body.theme-dark .v3-modal-panel a:not([class]),
+    body.theme-dark .v3-dash-item a:not([class]),
+    body.theme-dark .v3-lib-card a:not([class]),
+    body.theme-dark .v3-active-source a {
+      color: var(--theme-accent-hover);
+    }
+    /* Library "topic" yellow chip + dash badge stay as-is — their light-
+       yellow bg + dark-brown text is high-contrast in both themes. */
+    /* Hashtag tags ("#tag") and "тема:" pills — adapt to dark theme. */
+    body.theme-dark .v3-lib-chip {
+      background: var(--theme-bg-hover) !important;
+      border-color: var(--theme-border-soft) !important;
+      color: var(--theme-text-primary) !important;
+    }
+
     /* Density modes (container padding scales global density) */
     body.theme-density-compact     { --theme-density-pad: var(--theme-density-pad-compact); }
     body.theme-density-comfortable { --theme-density-pad: var(--theme-density-pad-comfortable); }
@@ -687,7 +739,7 @@
         gap: 12px;
         list-style: none;
         cursor: pointer;
-        color: #0f172a;
+        color: var(--theme-text-primary);
     }
 
     .classic-mobile-panel-summary::-webkit-details-marker {
@@ -699,7 +751,7 @@
         flex: 0 0 auto;
         font-size: 18px;
         font-weight: 700;
-        color: #64748b;
+        color: var(--theme-text-muted);
         transition: transform 0.18s ease;
     }
 
@@ -718,13 +770,13 @@
         font-size: 15px;
         line-height: 1.2;
         font-weight: 800;
-        color: #0f172a;
+        color: var(--theme-text-primary);
     }
 
     .classic-mobile-panel-meta {
         font-size: 12px;
         line-height: 1.35;
-        color: #64748b;
+        color: var(--theme-text-muted);
     }
 
     .classic-mobile-panel-body {
@@ -754,7 +806,7 @@
         flex: 0 0 auto;
         font-size: 18px;
         font-weight: 700;
-        color: #64748b;
+        color: var(--theme-text-muted);
         transition: transform 0.18s ease;
     }
 
@@ -1696,7 +1748,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
     position: sticky;
     top: 0;
     z-index: 3;          /* выше ячеек tbody */
-    background: #f5f6f7; /* важно: чтобы не было "прозрачного" наложения */
+    background: var(--table-bg-header); /* theme-aware sticky bg */
 }
 
 #proTable thead th::before {
@@ -1704,7 +1756,7 @@ th, td { border-color: rgba(0,0,0,0.55); }
     position: absolute;
     left: 0; right: 0; bottom: -1px;
     height: 1px;
-    background: rgba(0,0,0,0.35);
+    background: var(--table-border-header);
 }
 
 
@@ -2738,11 +2790,11 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   border-bottom-color: rgba(0,0,0,0.26) !important;
 }
 
-/* 2) Заголовки: меньше веса, больше “воздуха смысла” */
+/* 2) Заголовки: меньше веса, больше "воздуха смысла". Theme-aware. */
 #proTable thead th {
   font-weight: 600 !important;      /* было визуально ближе к 700 */
   letter-spacing: 0.2px;
-  color: rgba(0,0,0,0.88);
+  color: var(--theme-text-primary) !important;
   padding-top: 9px;
   padding-bottom: 9px;
 }
@@ -3213,16 +3265,16 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
    V3 Library Modal (P0)
 -------------------------------------------------------- */
 .btn-secondary {
-  background: #e9ecef;
-  color: #212529;
-  border: 1px solid #d0d7de;
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-medium);
   border-radius: 8px;
   padding: 10px 14px;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.05s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
-.btn-secondary:hover { background: #f1f3f5; }
+.btn-secondary:hover { background: var(--theme-bg-muted); }
 .btn-secondary:active { transform: translateY(1px); }
 
 .v3-modal.hidden { display: none; }
@@ -3243,10 +3295,11 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   width: min(980px, calc(100vw - 32px));
   height: min(720px, calc(100vh - 32px));
   margin: 16px auto;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border-soft);
   border-radius: 14px;
-  box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+  box-shadow: var(--theme-shadow-lg);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3258,14 +3311,14 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  border-bottom: 1px solid #eef1f5;
-  background: linear-gradient(to bottom, #fafbfc, #f6f8fa);
+  border-bottom: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-muted);
 }
 
 .v3-modal-title {
   font-size: 16px;
   font-weight: 800;
-  color: #111827;
+  color: var(--theme-text-primary);
 }
 
 .v3-modal-body {
@@ -3621,16 +3674,17 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 }
 
 .v3-lib-card {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--theme-border-soft);
   border-radius: 14px;
   padding: 12px 12px;
-  background: #fff;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 .v3-lib-card-selected {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+  border-color: var(--theme-accent);
+  background: var(--theme-accent-soft);
+  box-shadow: 0 0 0 2px rgba(96,165,250,0.25);
 }
 
 .v3-lib-card-top {
@@ -3643,13 +3697,13 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 
 .v3-lib-card-title {
   font-weight: 900;
-  color: #111827;
+  color: var(--theme-text-primary);
   font-size: 14px;
   line-height: 1.25;
 }
 
 .v3-lib-card-meta {
-  color: #6b7280;
+  color: var(--theme-text-muted);
   font-size: 12px;
   margin-top: 4px;
 }
@@ -3663,9 +3717,9 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 
 .v3-lib-chip {
   display: inline-block;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  background: var(--theme-bg-hover);
+  border: 1px solid var(--theme-border-soft);
+  color: var(--theme-text-primary);
   border-radius: 999px;
   padding: 3px 8px;
   font-size: 12px;
