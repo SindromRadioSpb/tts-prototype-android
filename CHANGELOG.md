@@ -5,6 +5,110 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/),
 версионирование — [SemVer](https://semver.org/).
 
+## [3.1.0] — 2026-05-10
+
+**Premium polish release.** Восемь directions из [Premium Release Plan v3.1.0](docs/PREMIUM_RELEASE_PLAN_v3_1.md) — все `[x]`. Релиз о цельном premium-качестве: типография, темы, локализация, onboarding, smart-sort, error gentleness, PWA, trust signals. Никаких новых тяжёлых фич — каждый экран ощущается так же продуманно, как feedback-модалка.
+
+Совместимость: ZIP-bundle формат не менялся (unified Android v2 spec из v3.0.0). OPFS-схема расширена миграцией 020 (`manual_smart_tag` column) — backwards-compatible, авто-применяется при upgrade.
+
+### Added
+
+#### Direction 1 — Hebrew typography & RTL
+- Self-hosted woff2 шрифты в `public/fonts/`: Frank Ruhl Libre / Assistant / Noto Sans Hebrew (3 веса × 3 шрифта = 9 файлов, ~167 KB total). `font-display: swap`, premium fallback chain.
+- Premium Hebrew rendering: `font-feature-settings: kern + calt + liga`, `text-rendering: optimizeLegibility`, line-height-1.65 для никуда.
+- Bidi-isolation в mixed-content строках (иврит + русский + английский).
+- Visual regression page `/typo-test.html` со всеми сложными комбинациями огласовок.
+
+#### Direction 2 — App-wide theming (light / dark / auto)
+- CSS-variable foundation на `:root` — 12 светлых + 12 тёмных переменных, shadow-trio, density tokens.
+- Три режима: `light` / `dark` / `auto` (по системной prefers-color-scheme), persistent в `localStorage.appTheme_v1`.
+- **Pre-paint inline boot** в `<head>` — блокирует FOWT (Flash Of Wrong Theme) перед первым кадром.
+- Toggle `🌗` в IDE header + Classic toolbar (cycle auto → light → dark).
+- Density modes (compact / comfortable / spacious) через `body.theme-density-*` + `localStorage.appDensity_v1`.
+- Live-react на изменения OS-темы через `matchMedia`.
+- Inline-style overrides для legacy hardcoded цветов (`#fff`, `#0f172a`, `#475569`) через theme-aware selectors.
+
+#### Direction 3 — Full i18n coverage
+- **3 локали**: русский, английский, **עברית** (с автоматическим RTL `dir`).
+- **Phase 1**: smart-chip strings + 8 high-traffic toasts мигрированы.
+- **Phase 2**: остальные ~120 hardcoded `showToast("…")` callsites мигрированы на `t("toast.*")` с поддержкой параметров (`{error}`, `{count}`, `{done}/{total}` etc.). Составные сообщения переписаны как композиция `t() + (cond ? t() : "")`.
+- **Verification**: финальный `grep` по hardcoded toast-литералам в `public/index.html` = 0.
+- Динамически отрендеренный контент реагирует на `i18n:changed` event без перезагрузки.
+
+#### Direction 4 — Onboarding & discovery
+- First-time welcome modal с двумя CTA: «Попробовать на демо» / «Начать с моего текста».
+- Inline 5-предложение Hebrew demo с автоматической установкой языка `he-IL`.
+- Persistent decision via `localStorage.onboardingSeen_v1`.
+- Кнопка «Сбросить onboarding» в About modal для повторного показа.
+
+#### Direction 5 — SRS + Library smart-sort
+- **Activity heatmap** в Dashboard (GitHub-style 7×~30 grid за 30 дней, цвет → интенсивность).
+- **Library smart-filter UI**: 4 чипа `⏱ Недавние / 🔥 Сложные / ✓ Освоено / ✨ Новые с прошлого визита`. Persistent в URL hash (`#smart=struggling`), one-click ✕ clear, mobile-responsive (2-up grid на ≤600px), full theme-aware.
+- **Manual smart-tag override** (миграция 020): пользователь может вручную пометить карточку как «🔥 Сложно» / «✓ Освоено» через Text Meta Edit, переопределяя SRS-derived auto classification. Inline badge на library card.
+- Last-visit timestamp tracking в `localStorage.v3LibraryLastVisit_v1` для «Новые с прошлого визита».
+- Foundation helpers в `local-db.js`: `getActivityHeatmap`, `getStrugglingTexts`, `getMasteredTexts`, `getTextsCreatedAfter`, `setManualSmartTag`, `getManualSmartTag`.
+
+#### Direction 6 — Error gentleness app-wide
+- Все active-path `alert(...)` / `window.confirm(...)` callsites переведены на `v3ConfirmModal` / `showToast`.
+- Остались только 3 fallback-path вызова (внутри самого `v3ConfirmModal`-ultimate-fallback, в feedback Phase6 alert try-catch, в WA-confirm fallback).
+- В `public/index.html` нет ни одного destructive blocking-диалога в active code path.
+
+#### Direction 7 — Performance / PWA
+- **manifest.json** с `id`, `scope`, `start_url`, standalone display, тремя app shortcuts (Library / SRS / Dashboard), theme/background colors.
+- **Icon set**: vector SVG + 192/512/512-maskable/180/32 PNG. LP monogram на slate-900 с blue accent bar (premium signal). Генерируется pure-Node скриптом `scripts/generate-pwa-icons.js` без external deps (built-in `zlib` для IDAT). Re-runnable через `npm run pwa:icons`.
+- **PWA meta tags**: `theme-color` (light/dark via media query), `apple-touch-icon`, `apple-mobile-web-app-capable` + `status-bar-style`, `application-name`.
+- **Tiered Cache-Control** на статику: fonts/icons immutable (1y), JS modules must-revalidate (1d), shell entry points (`index.html`, `manifest.json`, `sw.js`) no-cache.
+- **JSZip lazy-load** (~95 KB сэкономлено на cold start). `v3LoadJSZip()` идемпотентный helper по образцу `v3FbLoadQr()` (qrcode.js уже был lazy).
+- **Service Worker** (`public/sw.js`) с тремя стратегиями:
+  - **Precache** (install): app shell + i18n + DB layer + TTS layer + fonts + icons. Полный offline cold start после первой загрузки.
+  - **Stale-while-revalidate** (runtime): остальная same-origin статика (lazy modules, /typo-test.html, /mockups/*).
+  - **Network-first** с timeout 2.5s + cache fallback: `/api/client-config`.
+  - **Network-only**: все остальные `/api/*` (translate, tts, audio, transliterate, export-docx, feedback) — кеширование исказило бы корректность (квоты, состояние, upload).
+- **Premium update UX**: новый SW устанавливается в `waiting`, не выполняет `skipWaiting()` автоматически. Приложение показывает toast «Доступно обновление» с кнопками «Обновить» / «Позже» — пользователь контролирует момент применения.
+- **Cache invalidation** на activate, versioned cache names (`linguistpro-precache-v3.1.0-pwa-1`), `clients.claim()`.
+- **Module preload hints**: `<link rel="modulepreload">` для `sqlite-api.js` / `local-db.js` / `i18n/index.js` — параллельная загрузка с HTML parsing.
+- **Removed**: vestigial `fonts.googleapis.com` `<link>` из `<head>` (Direction 1 self-hosted woff2 сделал его dead code).
+
+#### Direction 8 — Trust signals + content polish
+- Footer на всех экранах: «🔒 Данные на этом устройстве» badge → `docs/OPFS_USER_GUIDE.md`, version + commit, GitHub link, Privacy link.
+- About modal с full credits, license, dependencies, onboarding-reset кнопкой.
+- `docs/PRIVACY.md`.
+- Version из `package.json` через `/api/client-config`.
+
+### Changed
+
+- README — теперь premium WOW-first-impression top-level entry point.
+- `docs/PREMIUM_RELEASE_PLAN_v3_1.md` — live-status переключён на complete для всех 8 directions.
+- Server static-asset middleware — теперь tiered Cache-Control вместо одного дефолта.
+- `package.json` version bumped 3.0.0 → 3.1.0.
+
+### Fixed
+
+- **Theming regressions** (Direction 2 follow-ups): premium color-system rework для table / headers / cards / panel cards / modal headers / mobile bottom-sheet / mobile card overflow / source-link colour / filter chip / heatmap cell outline.
+- **IDE checkbox dark-mode**: column-settings panel («Настройки таблицы сохранены на устройстве») использовал hardcoded `#f8fafc` background, в dark theme labels становились white-on-white. Switched to `var(--theme-bg-muted / border-soft / text-primary / accent[-hover])`.
+- **Library bundle export**: notes preserved в `exportBundle` (раньше CASCADE-related path терял notes для архивированных текстов).
+- **Premium pipeline**: madlad fallback restoration + SBL gemination edge case.
+- **Classic mode toggle**: contract restoration (placement + visibility).
+- **IDE table headers**: refresh on locale change (i18n event listener).
+- **Table editing** (post-Direction-1 follow-up): consecutive moves + mobile reorder/cell-editing; `tbl-edit-mode` class restoration after `renderTable`.
+
+### Documentation
+
+- New: [`docs/PWA.md`](docs/PWA.md) — install, offline, update lifecycle, troubleshooting, cache versioning, icon regeneration, deferred items.
+- New: top-level [`README.md`](README.md) — WOW-first-impression entry point with what / why / how / architecture / roadmap.
+- Updated: [`docs/PREMIUM_RELEASE_PLAN_v3_1.md`](docs/PREMIUM_RELEASE_PLAN_v3_1.md) — live-status finalized.
+- Updated: this entry.
+
+### Deferred → v3.2
+
+- **Functional code-split** (Dashboard / SRS / IDE → отдельные dynamic-import ES-модули). Требует extraction inline `<script>` блоков из 30k-line `public/index.html` в ES-модули с явными imports/exports вместо `window.*` глобалов. Out of scope для v3.1.0 ради стабильности; v3.1.0 шипает PWA как **продукт** (install, offline, fast), а не как архитектурный refactor монолита.
+- **Sherpa adapter lazy-load** (~13.7 KB) — небольшая экономия, но в чувствительной TTS startup-sequence.
+- **Premium table-edit mechanics** — отложено per `docs/` backlog.
+
+### Tooling
+
+- New npm script: `npm run pwa:icons` → запускает `scripts/generate-pwa-icons.js`.
+
 ## [3.0.0] — 2026-05-08
 
 Большой релиз: полный переход на offline-first архитектуру (OPFS + wa-sqlite),
