@@ -609,14 +609,16 @@ Sprint 3: Performance + Trust
 
 > Обновляется по мере реализации. Каждое направление — `[ ]` planned → `[~]` in-progress → `[x]` done.
 
-- [~] **Direction 1** — Hebrew typography & RTL (CSS infrastructure shipped, woff2 self-host pending — see `public/fonts/README.md`)
-- [ ] **Direction 2** — App-wide theming
-- [ ] **Direction 3** — Full i18n coverage
-- [ ] **Direction 4** — Onboarding & discovery
-- [ ] **Direction 5** — SRS + Library smart-sort
-- [~] **Direction 6** — Error gentleness app-wide (high-priority destructive confirms + Anki alerts converted; ~10 edge-case callsites remain)
-- [ ] **Direction 7** — Performance / PWA
-- [x] **Direction 8** — Trust signals + content polish (footer + About modal + Privacy doc)
+**Session 1 (2026-05-09):**
+
+- [~] **Direction 1** — Hebrew typography & RTL — *CSS infrastructure complete*: @font-face declarations для Frank Ruhl Libre / Noto Sans Hebrew / Assistant с font-display:swap + unicode-range; premium rendering rules (font-feature-settings, line-height, bidi-isolate); multi-tier system fallback; visual regression page `/typo-test.html`. **Pending:** drop woff2 files into `public/fonts/` (см. `public/fonts/README.md`).
+- [ ] **Direction 2** — App-wide theming — *not started*. Heavy refactor (CSS variables + inline-style audit). Recommended next.
+- [ ] **Direction 3** — Full i18n coverage — *not started*. Heavy refactor (audit hardcoded строк).
+- [ ] **Direction 4** — Onboarding & discovery — *not started*.
+- [ ] **Direction 5** — SRS + Library smart-sort — *not started*.
+- [~] **Direction 6** — Error gentleness app-wide — *high-priority done* (~25 of ~38 callsites). Destructive confirms (delete-text, delete-row, JSON+ZIP import, clear-text) → v3ConfirmModal; Anki error alerts → showToast. Edge cases остаются: 11561, 11580 (dashboard prompts), 18807 (cloud-import legacy), 23248 (save-meta), 24481/24571 (admin keys), 25727 (reset edits), 29037/29133/29139 (notes-modal save/discard), 20058 (inline onclick wipe).
+- [ ] **Direction 7** — Performance / PWA — *not started*. Heavy refactor (code splitting, SW, manifest).
+- [x] **Direction 8** — Trust signals + content polish — *complete*. Footer на всех экранах, About modal, `docs/PRIVACY.md`, version из package.json через `/api/client-config`.
 
 ---
 
