@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hebrew Typography Test — LinguistPro v3.1.0</title>
+<style>
+  /* Mirror the @font-face declarations from the main app — keeping
+     this page self-contained for visual regression checks. */
+  @font-face {
+    font-family: "Frank Ruhl Libre";
+    src: url("/fonts/frank-ruhl-libre-400.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+    unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+  }
+  @font-face {
+    font-family: "Noto Sans Hebrew";
+    src: url("/fonts/noto-sans-hebrew-400.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+    unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+  }
+  @font-face {
+    font-family: "Assistant";
+    src: url("/fonts/assistant-400.woff2") format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+    unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: #f8fafc;
+    color: #0f172a;
+    padding: 24px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  body.dark { background: #0f172a; color: #f1f5f9; }
+  h1 { font-size: 24px; margin-bottom: 8px; }
+  .subtitle { color: #64748b; margin-bottom: 24px; font-size: 14px; }
+  .controls {
+    margin-bottom: 24px; padding: 12px;
+    background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  body.dark .controls { background: #1e293b; border-color: #334155; }
+  .controls button, .controls select {
+    padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 4px;
+    background: #fff; cursor: pointer; font: inherit;
+  }
+  body.dark .controls button, body.dark .controls select {
+    background: #0f172a; border-color: #475569; color: #f1f5f9;
+  }
+  section {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 16px 20px; margin-bottom: 16px;
+  }
+  body.dark section { background: #1e293b; border-color: #334155; }
+  .section-title {
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em; color: #64748b; margin-bottom: 12px;
+  }
+  .case {
+    padding: 12px 0; border-top: 1px dashed #e2e8f0;
+  }
+  .case:first-child { border-top: 0; padding-top: 0; }
+  .case-label {
+    font-size: 12px; color: #64748b; margin-bottom: 4px; font-family: ui-monospace, Consolas, monospace;
+  }
+  .hebrew-display {
+    font-family: var(--current-font, "Frank Ruhl Libre", "David CLM", "Noto Sans Hebrew", "Arial Hebrew", "Segoe UI", sans-serif);
+    font-feature-settings: "kern" 1, "calt" 1, "liga" 1;
+    -webkit-font-feature-settings: "kern" 1, "calt" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.65;
+    direction: rtl;
+    text-align: right;
+    font-size: 24px;
+  }
+  .small-test { font-size: 14px; }
+  .big-test { font-size: 36px; }
+  .bidi-row {
+    direction: ltr; text-align: left; font-size: 18px; line-height: 1.6;
+  }
+  .bidi-row .he { unicode-bidi: isolate; }
+  .table-test {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 8px;
+    background: #fafafa;
+  }
+  body.dark .table-test { background: #0f172a; border-color: #334155; }
+  .table-cell {
+    font-size: 16px;
+  }
+  .table-cell.he {
+    font-family: var(--current-font, "Frank Ruhl Libre", sans-serif);
+    direction: rtl; text-align: right;
+    font-feature-settings: "kern" 1, "calt" 1;
+    line-height: 1.65;
+  }
+  .check-list {
+    margin: 12px 0 0 16px; font-size: 13px; color: #475569; line-height: 1.7;
+  }
+  body.dark .check-list { color: #cbd5e1; }
+</style>
+</head>
+<body>
+
+<h1>🔤 Hebrew Typography Test</h1>
+<p class="subtitle">Direction 1 в PREMIUM_RELEASE_PLAN_v3_1.md — визуальная проверка edge-cases. Если шрифты в <code>public/fonts/</code> не положены, отображается system-fallback (тоже неплохой, но без авторских settings).</p>
+
+<div class="controls">
+  <label>Шрифт:
+    <select id="fontSel">
+      <option value="frank" selected>Frank Ruhl Libre</option>
+      <option value="noto">Noto Sans Hebrew</option>
+      <option value="assistant">Assistant</option>
+      <option value="david">David CLM (системный)</option>
+      <option value="arial">Arial Hebrew (системный)</option>
+      <option value="segoe">Segoe UI (Windows fallback)</option>
+    </select>
+  </label>
+  <button id="themeBtn">🌗 Тема</button>
+  <span style="color:#64748b; font-size:12px; align-self:center;">Меняйте шрифт и тему — каждый case должен оставаться читаемым.</span>
+</div>
+
+<section>
+  <div class="section-title">1. Базовый текст без огласовок</div>
+  <div class="case">
+    <div class="case-label">just letters, no niqqud</div>
+    <div class="hebrew-display">שלום עולם, מה שלומך היום?</div>
+  </div>
+  <div class="case">
+    <div class="case-label">small (14px) — UI labels</div>
+    <div class="hebrew-display small-test">שלום עולם</div>
+  </div>
+  <div class="case">
+    <div class="case-label">big (36px) — headings</div>
+    <div class="hebrew-display big-test">שלום עולם</div>
+  </div>
+</section>
+
+<section>
+  <div class="section-title">2. Огласовки (никуд) — самое чувствительное</div>
+  <div class="case">
+    <div class="case-label">шева простой</div>
+    <div class="hebrew-display">בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ</div>
+  </div>
+  <div class="case">
+    <div class="case-label">дагеш + патах</div>
+    <div class="hebrew-display">תַּפּוּחַ פָּתַח דֶּגֶש בָּא</div>
+  </div>
+  <div class="case">
+    <div class="case-label">шурук + холам</div>
+    <div class="hebrew-display">שׁוּרוּק וְחוֹלָם זוֹרֵם בַּלָּשׁוֹן</div>
+  </div>
+  <div class="case">
+    <div class="case-label">камац + цере + сегол</div>
+    <div class="hebrew-display">קָמַץ צֵירֵה סֶגוֹל בַּשּׁוֹרָה</div>
+  </div>
+  <div class="case">
+    <div class="case-label">шева составной (хатаф)</div>
+    <div class="hebrew-display">חֲטַף פַּתָּח חֳלָם הָאֱלֹהִים אֲנִי</div>
+  </div>
+  <div class="case">
+    <div class="case-label">верхние и нижние знаки на одной букве</div>
+    <div class="hebrew-display">שָׁ שִׁ שֻׁ שֻּׁ צִּ קְּ</div>
+  </div>
+  <div class="case">
+    <div class="case-label">метег + патах + хатаф (стек до 3 знаков)</div>
+    <div class="hebrew-display">וַיֹּ֫אמֶר אֱלֹהִים</div>
+  </div>
+</section>
+
+<section>
+  <div class="section-title">3. Bidi — смешение Hebrew + Russian + English</div>
+  <div class="case">
+    <div class="case-label">без bidi-isolate (может ломаться)</div>
+    <div class="bidi-row">User said "שלום עולם" and continued читать the lesson.</div>
+  </div>
+  <div class="case">
+    <div class="case-label">с bidi-isolate (correct)</div>
+    <div class="bidi-row">User said "<span class="he hebrew-display" style="display:inline; font-size:inherit;">שלום עולם</span>" and continued читать the lesson.</div>
+  </div>
+  <div class="case">
+    <div class="case-label">арабские цифры рядом с Hebrew</div>
+    <div class="hebrew-display">היום 9 במאי 2026, השעה 14:30</div>
+  </div>
+  <div class="case">
+    <div class="case-label">Hebrew + латиница + знаки препинания</div>
+    <div class="hebrew-display">שלום (hello) — это означает "мир" / "shalom"</div>
+  </div>
+</section>
+
+<section>
+  <div class="section-title">4. Имитация табличной строки приложения</div>
+  <div class="table-test">
+    <div class="table-cell he">שָׁלוֹם</div>
+    <div class="table-cell">шалом</div>
+    <div class="table-cell">shalom</div>
+    <div class="table-cell">мир/привет</div>
+  </div>
+  <div class="table-test">
+    <div class="table-cell he">בְּרֵאשִׁית בָּרָא אֱלֹהִים</div>
+    <div class="table-cell">бэрэшит бара элохим</div>
+    <div class="table-cell">b'reshit bara elohim</div>
+    <div class="table-cell">в начале сотворил Бог</div>
+  </div>
+  <div class="table-test">
+    <div class="table-cell he">תַּפּוּחַ אָדֹם נוֹפֵל מֵהָעֵץ</div>
+    <div class="table-cell">тапуах адом нофэль мэhаэц</div>
+    <div class="table-cell">tapu'ach adom nofel me-ha-etz</div>
+    <div class="table-cell">красное яблоко падает с дерева</div>
+  </div>
+</section>
+
+<section>
+  <div class="section-title">5. Контрольный список</div>
+  <ul class="check-list">
+    <li>✓ Огласовки прижаты к буквам, не «прыгают».</li>
+    <li>✓ Двойные знаки (дагеш + гласная) рендерятся стопкой.</li>
+    <li>✓ Маленький размер (14px) остаётся читаемым.</li>
+    <li>✓ В смешанной строке (Hebrew + Russian) каждый язык в правильном направлении.</li>
+    <li>✓ Цифры рядом с Hebrew не реверсируются.</li>
+    <li>✓ Знаки препинания не «прыгают» между языками.</li>
+    <li>✓ Line-height достаточный — огласовки не наезжают на строку выше/ниже.</li>
+    <li>✓ В тёмной теме контраст текста / фона ≥ 4.5:1.</li>
+  </ul>
+</section>
+
+<script>
+  // Font + theme switcher.
+  const sel = document.getElementById("fontSel");
+  function applyFont() {
+    const v = sel.value;
+    let stack;
+    switch (v) {
+      case "frank": stack = "'Frank Ruhl Libre', 'David CLM', 'Frank Ruehl CLM', 'Noto Sans Hebrew', 'SF Hebrew', 'Arial Hebrew', 'Segoe UI', sans-serif"; break;
+      case "noto": stack = "'Noto Sans Hebrew', 'SF Hebrew', 'Arial Hebrew', 'Segoe UI', sans-serif"; break;
+      case "assistant": stack = "'Assistant', 'SF Hebrew', 'Arial Hebrew', 'Segoe UI', sans-serif"; break;
+      case "david": stack = "'David CLM', 'David', 'Arial Hebrew', 'Segoe UI', sans-serif"; break;
+      case "arial": stack = "'Arial Hebrew', 'Segoe UI', sans-serif"; break;
+      case "segoe": stack = "'Segoe UI', Tahoma, sans-serif"; break;
+    }
+    document.documentElement.style.setProperty("--current-font", stack);
+  }
+  sel.addEventListener("change", applyFont); applyFont();
+  document.getElementById("themeBtn").addEventListener("click", () => document.body.classList.toggle("dark"));
+</script>
+
+</body>
+</html>

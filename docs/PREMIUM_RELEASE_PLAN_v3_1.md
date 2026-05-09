@@ -609,7 +609,7 @@ Sprint 3: Performance + Trust
 
 > Обновляется по мере реализации. Каждое направление — `[ ]` planned → `[~]` in-progress → `[x]` done.
 
-- [ ] **Direction 1** — Hebrew typography & RTL
+- [~] **Direction 1** — Hebrew typography & RTL (CSS infrastructure shipped, woff2 self-host pending — see `public/fonts/README.md`)
 - [ ] **Direction 2** — App-wide theming
 - [ ] **Direction 3** — Full i18n coverage
 - [ ] **Direction 4** — Onboarding & discovery

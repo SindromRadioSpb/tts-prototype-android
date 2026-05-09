@@ -9,9 +9,96 @@
     <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=Assistant:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
+    /* ── Hebrew typography (Direction 1, v3.1.0) ─────────────────────────
+       Self-hosted woff2 files in public/fonts/ (see public/fonts/README.md).
+       font-display:swap — fallback to system Hebrew fonts shows immediately,
+       premium font swaps in when loaded. */
+    @font-face {
+      font-family: "Frank Ruhl Libre";
+      src: url("/fonts/frank-ruhl-libre-400.woff2") format("woff2");
+      font-weight: 400; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Frank Ruhl Libre";
+      src: url("/fonts/frank-ruhl-libre-500.woff2") format("woff2");
+      font-weight: 500; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Frank Ruhl Libre";
+      src: url("/fonts/frank-ruhl-libre-700.woff2") format("woff2");
+      font-weight: 700; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Noto Sans Hebrew";
+      src: url("/fonts/noto-sans-hebrew-400.woff2") format("woff2");
+      font-weight: 400; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Noto Sans Hebrew";
+      src: url("/fonts/noto-sans-hebrew-500.woff2") format("woff2");
+      font-weight: 500; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Noto Sans Hebrew";
+      src: url("/fonts/noto-sans-hebrew-700.woff2") format("woff2");
+      font-weight: 700; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Assistant";
+      src: url("/fonts/assistant-400.woff2") format("woff2");
+      font-weight: 400; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Assistant";
+      src: url("/fonts/assistant-500.woff2") format("woff2");
+      font-weight: 500; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+    @font-face {
+      font-family: "Assistant";
+      src: url("/fonts/assistant-700.woff2") format("woff2");
+      font-weight: 700; font-style: normal; font-display: swap;
+      unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F;
+    }
+
+    /* Premium Hebrew text rendering — applied via .hebrew-text class
+       and to elements with lang="he" / dir="rtl". Includes:
+       - font-feature-settings: kern + calt for proper niqqud anchoring
+       - text-rendering: optimizeLegibility for hinting
+       - line-height: 1.65 (niqqud needs vertical space)
+       - direction: rtl (when applicable) */
+    [lang="he"], [dir="rtl"], .hebrew-text {
+      font-feature-settings: "kern" 1, "calt" 1, "liga" 1;
+      -webkit-font-feature-settings: "kern" 1, "calt" 1, "liga" 1;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .hebrew-text, [lang="he"] {
+      line-height: 1.65;
+    }
+
+    /* Bidi-isolation for mixed-content cells (Hebrew + Russian + English
+       in the same row). Without isolate, browser bidi algorithm can
+       reverse adjacent words unexpectedly. */
+    .bidi-isolate {
+      unicode-bidi: isolate;
+    }
+
     :root {
-    /* Текущий шрифт для иврита (управляется селектором) */
-    --hebrew-font: 'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif;
+    /* Текущий шрифт для иврита (управляется селектором).
+       Многоуровневый fallback: self-hosted woff2 → system Hebrew →
+       universal fallback. Каждый уровень обеспечивает читаемость. */
+    --hebrew-font: 'Frank Ruhl Libre', 'David CLM', 'Frank Ruehl CLM',
+                   'Noto Sans Hebrew', 'SF Hebrew', 'Arial Hebrew',
+                   'Segoe UI', Tahoma, sans-serif;
    
 	/* Row highlight tokens (P0 single source of truth) */
  /* interaction family (warm) */
@@ -6647,9 +6734,10 @@ td[data-col="ru"] {
                                 <div class="field-group">
                                     <label for="hebrewFontSelect" class="input-label" data-i18n="classic.hebrewFont">Шрифт иврита табличной части</label>
                                     <select id="hebrewFontSelect">
-                                        <option value="frank" selected>Frank Ruhl Libre (рекомендуется)</option>
-                                        <option value="assistant">Assistant</option>
-                                        <option value="system">Системный</option>
+                                        <option value="frank" selected>Frank Ruhl Libre (классический сериф)</option>
+                                        <option value="noto">Noto Sans Hebrew (универсальный)</option>
+                                        <option value="assistant">Assistant (modern UI)</option>
+                                        <option value="system">Системный (без загрузки)</option>
                                     </select>
                                 </div>
                             </div>
@@ -14522,16 +14610,24 @@ updatePlaylistButtonUI();
         const value = hebrewFontSelectEl.value;
         let fontStack;
 
+        // Premium Hebrew font-stacks with proper system fallbacks. Each
+        // stack starts with the requested font, then falls through to
+        // OS-native Hebrew faces (great quality on modern devices), and
+        // ends with universal sans-serif so text always renders.
+        const SYSTEM_HEBREW_FALLBACK = "'David CLM', 'Frank Ruehl CLM', 'Noto Sans Hebrew', 'SF Hebrew', 'Arial Hebrew', 'Segoe UI', Tahoma, sans-serif";
         switch (value) {
             case "assistant":
-                fontStack = "'Assistant', 'Segoe UI', Tahoma, sans-serif";
+                fontStack = "'Assistant', " + SYSTEM_HEBREW_FALLBACK;
+                break;
+            case "noto":
+                fontStack = "'Noto Sans Hebrew', " + SYSTEM_HEBREW_FALLBACK;
                 break;
             case "system":
-                fontStack = "'Segoe UI', Tahoma, sans-serif";
+                fontStack = SYSTEM_HEBREW_FALLBACK;
                 break;
             case "frank":
             default:
-                fontStack = "'Frank Ruhl Libre', 'Segoe UI', Tahoma, sans-serif";
+                fontStack = "'Frank Ruhl Libre', " + SYSTEM_HEBREW_FALLBACK;
                 break;
         }
 
