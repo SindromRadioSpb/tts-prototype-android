@@ -9361,15 +9361,15 @@ function v3IdeCopyActiveTextDeeplink(ev) {
 
     const tid = String(v3IdeState?.activeTextId || "").trim();
     if (!tid) {
-      showToast("Нет активного текста для ссылки", "error");
+      showToast(t("toast.noActiveText"), "error");
       return;
     }
 
     v3DeeplinkCopyLink("text", tid, {});
-    showToast("Ссылка на текст скопирована", "success");
+    showToast(t("toast.linkCopied"), "success");
   } catch (e) {
     console.warn("[IDE] copy deeplink failed:", e);
-    showToast("Не удалось скопировать ссылку", "error");
+    showToast(t("toast.linkCopyFailed"), "error");
   }
 }
 
@@ -10647,7 +10647,7 @@ async function v3SrsAnkiCheckConnect(verbose) {
 async function v3IdeSrsAnkiPreview(cardId) {
   try {
     if (LOCAL_MODE) {
-      showToast("Anki export preview недоступен в LOCAL_MODE (server-only feature).", "warning");
+      showToast(t("toast.ankiPreviewLocalMode"), "warning");
       return;
     }
     const res = await v3GetJson(`/api/srs/export/anki/preview?cardId=${encodeURIComponent(String(cardId || "").trim())}`);
@@ -10665,7 +10665,7 @@ async function v3IdeSrsAnkiPreview(cardId) {
       `Audio: ${p.hasAudio ? "yes" : "no"} | Note: ${p.hasNote ? "yes" : "no"}`,
     ];
     console.log("[anki-preview]\n" + previewLines.join("\n"));
-    showToast(`Anki preview: ${res.deckName || "deck"} · ${st.isExported ? "exported" : "new"} (full в console)`, "info");
+    showToast(t("toast.ankiPreviewSummary", { deck: res.deckName || "deck", state: st.isExported ? "exported" : "new" }), "info");
   } catch (e) {
     console.error("SRS Anki preview failed:", e);
     showToast(t("toast.ankiPreviewFailed", {error: v3SrsAnkiFormatThrownError(e)}), "error");
@@ -10689,7 +10689,7 @@ async function v3IdeSrsExportAnki(cardId) {
         if (s.duplicates) parts.push(`дубликатов ${s.duplicates}`);
         if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
         if (typeof showToast === "function") {
-          showToast(`Anki (${s.modelName}): ${parts.join(", ")}`, "success");
+          showToast(t("toast.ankiModelDetail", { model: s.modelName, parts: parts.join(", ") }), "success");
         }
         v3IdeRefreshInspector();
       } catch (e) {
@@ -10697,7 +10697,7 @@ async function v3IdeSrsExportAnki(cardId) {
         if (/failed to fetch|networkerror|cors/i.test(msg)) {
           msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect.`;
         }
-        showToast("Ошибка экспорта в Anki: " + msg, "error");
+        showToast(t("toast.ankiExportFailedShort", { error: msg }), "error");
       }
       return;
     }
@@ -12064,7 +12064,7 @@ async function v3DeeplinkCopyLink(type, id, opts) {
     const link = v3DeeplinkBuildLink(target);
 
     if (!link) {
-      if (typeof showToast === "function") showToast("Не удалось создать ссылку", "error");
+      if (typeof showToast === "function") showToast(t("toast.linkCreateFailed"), "error");
       return false;
     }
 
@@ -12083,12 +12083,12 @@ async function v3DeeplinkCopyLink(type, id, opts) {
       document.body.removeChild(ta);
     }
 
-    if (typeof showToast === "function") showToast("Ссылка скопирована", "info");
+    if (typeof showToast === "function") showToast(t("toast.linkCopiedShort"), "info");
     console.log("[NAV-DEEPLINK] Link copied:", link);
     return true;
   } catch (e) {
     console.error("[NAV-DEEPLINK] Copy failed:", e);
-    if (typeof showToast === "function") showToast("Ошибка копирования", "error");
+    if (typeof showToast === "function") showToast(t("toast.copyError"), "error");
     return false;
   }
 }
@@ -12153,7 +12153,7 @@ function v3DeeplinkGetCurrentContext() {
 async function v3DeeplinkCopyCurrentContext() {
   const ctx = v3DeeplinkGetCurrentContext();
   if (!ctx) {
-    if (typeof showToast === "function") showToast("Нечего копировать", "warning");
+    if (typeof showToast === "function") showToast(t("toast.nothingToCopy"), "warning");
     return false;
   }
   return v3DeeplinkCopyLink(ctx.type, ctx.id, ctx.opts);
@@ -12999,7 +12999,7 @@ function ensureRowAudioPlayer() {
     const nextIdx = baseIdx + 1;
     if (nextIdx >= rowCount) {
         rowPlaylistRunActive = false; // конец таблицы
-        showToast("Плейлист: конец таблицы");
+        showToast(t("toast.playlistEnd"));
         updatePlaylistButtonUI();
         return;
     }
@@ -13030,7 +13030,7 @@ function ensureRowAudioPlayer() {
     clearRowPlayingState(true); // сбросить selected
 	rowPlaylistRunActive = false;
 	updatePlaylistButtonUI();
-    showToast("Не удалось воспроизвести аудио строки");
+    showToast(t("toast.rowAudioPlayFailed"));
 });
 
     return rowAudioPlayer;
@@ -13510,13 +13510,13 @@ if (btnPlaylistRunEl) {
     btnPlaylistRunEl.addEventListener("click", function () {
         const table = document.getElementById("proTable");
         if (!table) {
-            showToast("Сначала сделайте AI-перевод, чтобы появилась таблица");
+            showToast(t("toast.aiTranslationFirst"));
             return;
         }
 
         const rows = table.querySelectorAll("tbody tr[data-row-idx]");
         if (!rows || rows.length < 1) {
-            showToast("Нет строк для проигрывания");
+            showToast(t("toast.noRowsToPlay"));
             return;
         }
 
@@ -13525,7 +13525,7 @@ if (btnPlaylistRunEl) {
             autoNextEnabled = true;
             if (autoNextToggleEl) autoNextToggleEl.checked = true;
             saveAutoNextSetting(true);
-            showToast("Плейлист включён (Auto-next)");
+            showToast(t("toast.playlistEnabled"));
         }
 
         // Toggle start/stop
@@ -13554,7 +13554,7 @@ if (btnPlaylistRunEl) {
 
         const btn = table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]');
         if (!btn) {
-            showToast("Не найдена кнопка озвучки для выбранной строки");
+            showToast(t("toast.rowPlayButtonNotFound"));
             return;
         }
 
@@ -13596,7 +13596,7 @@ updatePlaylistButtonUI();
             if (countVisibleColumns() < 1) {
                 tableVisibleColumns[key] = prevValue;
                 inp.checked = prevValue;
-                showToast("Нельзя скрыть все колонки. Минимум одна должна оставаться видимой.");
+                showToast(t("toast.cannotHideAllColumns"));
                 return;
             }
 
@@ -13632,7 +13632,7 @@ updatePlaylistButtonUI();
     clearTableHeightSetting();
     applyTableHeightNow();
 				
-                showToast("Настройки таблицы сброшены");
+                showToast(t("toast.tableSettingsReset"));
             });
         }
 
@@ -15011,7 +15011,7 @@ updatePlaylistButtonUI();
         }
 
         if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) {
-            showToast("Строка не найдена");
+            showToast(t("toast.rowNotFound"));
             return true;
         }
 
@@ -15033,7 +15033,7 @@ updatePlaylistButtonUI();
         const row = currentTableData[rowIdx];
         const text = getRowTtsTextForRow(row);
         if (!text) {
-            showToast("Нет текста для озвучки в этой строке");
+            showToast(t("toast.noRowText"));
             return true;
         }
 
@@ -15080,7 +15080,7 @@ updatePlaylistButtonUI();
             const snapshot = v3PortableTtsGetStatusSnapshot();
             v3PortableTtsRenderBadge(v3PortableTtsFormatBadge(snapshot.status, snapshot.config));
             v3PortableTtsRenderDiagnostics("TTS error: " + msg + " · fallbackReason=" + String(error && error.code ? error.code : "unknown"));
-            showToast("Ошибка Row TTS: " + msg);
+            showToast(t("toast.rowTtsError", { error: msg }));
             return true;
         } finally {
             const table = typeof v3GetActiveProTable === "function" ? v3GetActiveProTable() : document.getElementById("proTable");
@@ -15631,7 +15631,7 @@ updatePlaylistButtonUI();
                 true,
                 { mimeType: "audio/mpeg", fileExt: "mp3", playbackRate: cfg && cfg.rate ? cfg.rate : 1.0 }
             );
-            showToast("Озвучка восстановлена из Library", "success");
+            showToast(t("toast.audioRestoredFromLibrary"), "success");
             loadStats();
             return true;
         } catch (e) {
@@ -15753,7 +15753,7 @@ updatePlaylistButtonUI();
                         }
                     );
                     if (cache.diagnostics) v3PortableTtsRenderDiagnostics({ diagnostics: cache.diagnostics });
-                    showToast("Озвучка восстановлена из локального кэша");
+                    showToast(t("toast.audioRestoredFromCache"));
                     loadStats();
                     return;
                 }
@@ -15944,7 +15944,7 @@ updatePlaylistButtonUI();
         a.click();
         a.remove();
 
-        showToast("Аудиофайл сохранён");
+        showToast(t("toast.audioFileSaved"));
     }
 
     // ----------------------------
@@ -17207,7 +17207,7 @@ async function v3NotesJumpStub(textId, sentenceId, orderIndex) {
   const sid = String(sentenceId || "").trim();
 
   if (!tid || !sid) {
-    try { showToast("Невозможно перейти: пустой textId/sentenceId.", "error"); } catch (_) {}
+    try { showToast(t("toast.navMissingIds"), "error"); } catch (_) {}
     return;
   }
 
@@ -17296,7 +17296,7 @@ async function v3NotesJumpStub(textId, sentenceId, orderIndex) {
     }
   } catch (e) {
     console.warn("v3NotesJumpStub failed", e);
-    try { showToast("Не удалось перейти к строке (см. консоль).", "error"); } catch (_) {}
+    try { showToast(t("toast.navRowFailed"), "error"); } catch (_) {}
   }
 }
 
@@ -17468,7 +17468,7 @@ function v3LibraryBindTagClicksOnce() {
     ev.preventDefault();
     ev.stopPropagation();
     v3CopyTextToClipboard(payload);
-    showToast("Источник скопирован", "success");
+    showToast(t("toast.sourceCopied"), "success");
 	}
 	return;
 	}
@@ -17481,7 +17481,7 @@ function v3LibraryBindTagClicksOnce() {
           ev.preventDefault();
           ev.stopPropagation();
           v3DeeplinkCopyLink("text", tid, {});
-          showToast("Ссылка на текст скопирована", "success");
+          showToast(t("toast.linkCopied"), "success");
         }
         return;
       }
@@ -18761,11 +18761,11 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     } else {
       console.error("[Library/Edit] v3TextMetaOpen is not defined");
       // Direction 6: alert → premium toast.
-      showToast("Meta Edit недоступен: v3TextMetaOpen не найден (см. console).", "error");
+      showToast(t("toast.metaEditUnavailable"), "error");
     }
   } catch (err) {
     console.error("[Library/Edit] failed:", err);
-    showToast("Не удалось открыть Meta Edit (см. console).", "error");
+    showToast(t("toast.metaEditOpenFailed"), "error");
   }
 });
 
@@ -19048,7 +19048,7 @@ if (resumeRowIdx !== null) {
     try { classicSyncMainPanels({ force: true }); } catch (_) {}
   } catch (e) {
     console.warn("v3LibraryOpenText failed", e);
-    showToast("Не удалось открыть текст (см. консоль).", "error");
+    showToast(t("toast.textOpenFailed"), "error");
   }
 }
 
@@ -19115,7 +19115,7 @@ async function v3LibraryDeleteText(textId) {
     v3LibraryRefresh();
   } catch (e) {
     console.warn("delete failed", e);
-    showToast("Не удалось удалить", "error");
+    showToast(t("toast.deleteFailed"), "error");
   }
 }
 
@@ -19201,17 +19201,17 @@ async function v3LibrarySaveCurrent() {
   try {
       // Guard: нельзя сохранять устаревшую таблицу
     if (tableIsStale) {
-      showToast("Сначала нажмите «Собрать таблицу», чтобы пересобрать актуальную таблицу.", "error");
+      showToast(t("toast.buildTableFirst"), "error");
       return;
     }
     if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-      showToast("Нет таблицы для сохранения (сначала «Собрать таблицу»).", "error");
+      showToast(t("toast.noTableToSave"), "error");
       return;
     }
     v3SaveMetaOpen();
   } catch (e) {
     console.warn("v3LibrarySaveCurrent (open modal) failed", e);
-    showToast("Не удалось открыть форму сохранения (см. консоль).", "error");
+    showToast(t("toast.saveFormOpenFailed"), "error");
   }
 }
 
@@ -19219,11 +19219,11 @@ async function v3LibrarySaveCurrentCore(meta) {
   try {
     const sourceText = String(getText() || "").trim();
     if (!sourceText) {
-      showToast("Нет исходного текста для сохранения", "error");
+      showToast(t("toast.noSourceTextToSave"), "error");
       return null;
     }
     if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-      showToast("Нет таблицы для сохранения (сначала соберите таблицу)", "error");
+      showToast(t("toast.noTableToSaveShort"), "error");
       return null;
     }
     // B1: check OPFS quota in LOCAL_MODE — toast warning once per crossed
@@ -19232,7 +19232,7 @@ async function v3LibrarySaveCurrentCore(meta) {
       try {
         const chk = await v3StorageCheckThresholds({ blockOnFull: true });
         if (chk && chk.ok === false && chk.reason === "quota-full") {
-          showToast("Хранилище браузера переполнено (" + Math.round(chk.percent) + "%). Освободите место.", "error");
+          showToast(t("toast.storageFull", { percent: Math.round(chk.percent) }), "error");
           return null;
         }
       } catch (_) {}
@@ -19321,7 +19321,7 @@ async function v3LibrarySaveCurrentCore(meta) {
 
     } catch (_) {}
 
-    showToast("Сохранено в библиотеку", "success");
+    showToast(t("toast.savedToLibrary"), "success");
 
     // Enrich rows with sentenceIds/audioKeys and re-render so note buttons,
     // audio indicators and Audio/Anki work immediately without re-opening.
@@ -19345,12 +19345,12 @@ async function v3LibrarySaveCurrentCore(meta) {
   } catch (e) {
     // 409 duplicate
     if (e && e.httpStatus === 409) {
-      showToast("Этот текст уже есть в библиотеке (duplicate key)", "error");
+      showToast(t("toast.duplicateInLibrary"), "error");
       return null;
     }
     console.warn("v3LibrarySaveCurrentCore failed", e);
     const detail = (e && e.message) ? String(e.message).slice(0, 160) : "";
-    showToast("Не удалось сохранить" + (detail ? ": " + detail : "") + " (см. консоль).", "error");
+    showToast(detail ? t("toast.saveFailedWithDetail", { detail }) : t("toast.saveFailed"), "error");
     return null;
   }
 }
@@ -19359,15 +19359,15 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
   try {
     const sourceText = String(getText() || "").trim();
     if (!sourceText) {
-      showToast("Нет исходного текста для сохранения", "error");
+      showToast(t("toast.noSourceTextToSave"), "error");
       return null;
     }
     if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-    showToast("Нет таблицы для сохранения (сначала соберите таблицу)", "error");
+    showToast(t("toast.noTableToSaveShort"), "error");
       return null;
     }
     if (!textId) {
-      showToast("Нет ID для обновления (откройте текст из Library/Dashboard)", "error");
+      showToast(t("toast.noIdToUpdate"), "error");
       return null;
     }
 
@@ -19403,7 +19403,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       const stillExists = await ldb.getTextById(textId);
       if (!stillExists) {
         try { v3SessionForgetTextIfStale(textId); } catch (_) {}
-        showToast("Карточка не найдена — создаю новую", "warning");
+        showToast(t("toast.cardNotFoundCreatingNew"), "warning");
         return await v3LibrarySaveCurrentCore(meta);
       }
       await ldb.updateText(textId, {
@@ -19456,7 +19456,7 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       } catch (_) {}
     }
 
-    showToast("Обновлено", "success");
+    showToast(t("toast.updated"), "success");
 
     // Enrich rows with sentenceIds/audioKeys and re-render so note buttons,
     // audio indicators and Audio/Anki work immediately without re-opening.
@@ -19477,16 +19477,16 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
     return text;
   } catch (e) {
     if (e && e.httpStatus === 409) {
-      showToast("Такой текст уже есть в библиотеке (duplicate key)", "error");
+      showToast(t("toast.duplicateInLibraryAlt"), "error");
       return null;
     }
     if (e && e.httpStatus === 404) {
-      showToast("Текст для обновления не найден (404).", "error");
+      showToast(t("toast.textForUpdateNotFound"), "error");
       return null;
     }
     console.warn("v3LibraryUpdateCurrentCore failed", e);
     const detail = (e && e.message) ? String(e.message).slice(0, 160) : "";
-    showToast("Не удалось обновить" + (detail ? ": " + detail : "") + " (см. консоль).", "error");
+    showToast(detail ? t("toast.updateFailedWithDetail", { detail }) : t("toast.updateFailed"), "error");
     return null;
   }
 }
@@ -19510,7 +19510,7 @@ function v3LibraryMakeExportFilename(prefix) {
 
 async function v3LibraryExport() {
   try {
-    showToast("Экспорт библиотеки…");
+    showToast(t("toast.libraryExportInProgress"));
     let jsonOut;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
@@ -19535,10 +19535,10 @@ async function v3LibraryExport() {
     a.remove();
 
     setTimeout(() => URL.revokeObjectURL(url), 1500);
-    showToast("Экспорт готов (файл скачан)", "success");
+    showToast(t("toast.exportReady"), "success");
   } catch (e) {
     console.warn("v3LibraryExport failed", e);
-    showToast("Не удалось экспортировать (см. консоль).", "error");
+    showToast(t("toast.exportFailed"), "error");
   }
 }
 
@@ -19546,14 +19546,14 @@ function v3LibraryImport() {
   try {
     const input = v3LibEl("v3LibraryImportInput");
     if (!input) {
-      showToast("Импорт недоступен: input не найден", "error");
+      showToast(t("toast.importUnavailable"), "error");
       return;
     }
     input.value = "";
     input.click();
   } catch (e) {
     console.warn("v3LibraryImport click failed", e);
-    showToast("Не удалось открыть выбор файла (см. консоль).", "error");
+    showToast(t("toast.filePickerFailed"), "error");
   }
 }
 
@@ -19568,7 +19568,7 @@ async function v3LibraryOnImportSelected(ev) {
     try {
       parsed = JSON.parse(raw);
     } catch (_) {
-      showToast("Файл не является корректным JSON", "error");
+      showToast(t("toast.fileNotJson"), "error");
       return;
     }
 
@@ -19582,7 +19582,7 @@ async function v3LibraryOnImportSelected(ev) {
     });
     if (!ok) return;
 
-    showToast("Импорт библиотеки…");
+    showToast(t("toast.libraryImportInProgress"));
 
     let resp;
     if (LOCAL_MODE) {
@@ -19606,12 +19606,12 @@ async function v3LibraryOnImportSelected(ev) {
       showToast(msg, "success");
       v3LibraryRefresh();
     } else {
-      showToast("Импорт завершился неожиданно (см. консоль).", "error");
+      showToast(t("toast.importEndedUnexpectedly"), "error");
       console.warn("Import response:", resp);
     }
   } catch (e) {
     console.warn("v3LibraryOnImportSelected failed", e);
-    showToast("Не удалось импортировать (см. консоль).", "error");
+    showToast(t("toast.importFailed"), "error");
   }
 }
 
@@ -19628,7 +19628,7 @@ window.v3LibrarySaveCurrent = v3LibrarySaveCurrent;
 async function v3LibraryImportFromCloud() {
   try {
     if (!LOCAL_MODE) {
-      showToast("Эта операция доступна только в режиме ?localMode=1", "error");
+      showToast(t("toast.localModeOnly"), "error");
       return;
     }
     // Direction 6: native confirm → v3ConfirmModal.
@@ -19641,10 +19641,10 @@ async function v3LibraryImportFromCloud() {
     });
     if (!ok) return;
 
-    showToast("Запрос данных с сервера…");
+    showToast(t("toast.serverRequest"));
     const payload = await v3GetJson("/api/library/export?includeArchived=1");
     if (!payload || !Array.isArray(payload.texts)) {
-      showToast("Сервер вернул пустой ответ — нечего импортировать", "warning");
+      showToast(t("toast.serverEmptyResponse"), "warning");
       return;
     }
     const ldb = await ensureLocalDB();
@@ -19680,7 +19680,7 @@ async function v3LibraryImportFromCloud() {
     v3LibraryRefresh();
   } catch (e) {
     console.warn("v3LibraryImportFromCloud failed", e);
-    showToast("Ошибка импорта с сервера: " + (e && e.message ? e.message : "см. console"), "error");
+    showToast(t("toast.serverImportError", { error: (e && e.message) ? e.message : "см. console" }), "error");
   }
 }
 
@@ -20234,7 +20234,7 @@ function v3UndoToast(message, restoreFn, ttlMs) {
     try { await restoreFn(); }
     catch (e) {
       console.warn("[undo] restore failed", e);
-      if (typeof showToast === "function") showToast("Не удалось восстановить (см. console)", "error");
+      if (typeof showToast === "function") showToast(t("toast.restoreFailed"), "error");
     }
   };
 
@@ -21627,10 +21627,10 @@ async function v3LibraryBulkDelete() {
       const ldb = await ensureLocalDB();
       await ldb.importBundle(snapshot, { mode: "skip" });
       v3LibraryRefresh();
-      showToast("Восстановлено: " + done, "success");
+      showToast(t("toast.restoredCount", { count: done }), "success");
     });
   } else {
-    showToast("Удалено: " + done + (failed ? " · ошибок: " + failed : ""), failed ? "warning" : "success");
+    showToast(t("toast.deletedCount", { count: done }) + (failed ? t("toast.failedSuffix", { failed }) : ""), failed ? "warning" : "success");
   }
   v3LibraryRefresh();
 }
@@ -21661,14 +21661,14 @@ async function v3LibraryBulkArchive() {
     } catch (e) { failed++; console.warn("[bulk-archive]", id, e && e.message); }
   }
   v3LibraryBulkClear();
-  showToast("Архивировано: " + done + (failed ? " · ошибок: " + failed : ""), failed ? "warning" : "success");
+  showToast(t("toast.archivedCount", { count: done }) + (failed ? t("toast.failedSuffix", { failed }) : ""), failed ? "warning" : "success");
   v3LibraryRefresh();
 }
 
 // ── Wipe entire local library (LOCAL_MODE only) ────────────────────────────
 async function v3LibraryWipeAllConfirm() {
   if (!LOCAL_MODE) {
-    showToast("Эта операция доступна только в режиме ?localMode=1", "error");
+    showToast(t("toast.localModeOnly"), "error");
     return;
   }
   // Two-step. First a pre-check to inform of the scale.
@@ -21696,7 +21696,7 @@ async function v3LibraryWipeAllConfirm() {
 
   try {
     const ldb = await ensureLocalDB();
-    showToast("Сброс локальной библиотеки…", "info");
+    showToast(t("toast.resetLocalLibrary"), "info");
     // CASCADE FK: deleting texts deletes sentences, sentence_audio, etc.
     // Also explicitly drop events, srs_cards, srs_review_events, srs_session_runs,
     // srs_attempts, srs_card_exports, audio_assets that don't cascade from texts.
@@ -21716,7 +21716,7 @@ async function v3LibraryWipeAllConfirm() {
     await ldb.execRaw("DELETE FROM audio_assets;").catch(() => {});
     await ldb.execRaw("DELETE FROM sentence_audio;").catch(() => {});
     await ldb.execRaw("DELETE FROM text_audio;").catch(() => {});
-    showToast("Сброшено: " + ids.length + " текстов и связанные данные", "success");
+    showToast(t("toast.resetCount", { count: ids.length }), "success");
     // Wipe-all by definition makes any session pointer stale; reset the
     // session so subsequent saves create fresh cards.
     try { v3SessionForgetTextsIfStale(ids); } catch (_) {}
@@ -21729,7 +21729,7 @@ async function v3LibraryWipeAllConfirm() {
     } catch (_) {}
   } catch (e) {
     console.error("[wipe] failed:", e);
-    showToast("Ошибка сброса: " + (e && e.message ? e.message : "см. console"), "error");
+    showToast(t("toast.resetError", { error: (e && e.message) ? e.message : "см. console" }), "error");
   }
   v3LibraryBulkClear();
   v3LibraryRefresh();
@@ -21756,7 +21756,7 @@ async function v3LibraryExportBundle() {
       if (typeof JSZip === "undefined") {
         throw new Error("JSZip не загружен — проверьте, что /db/jszip.min.js доступен");
       }
-      showToast("Подготовка ZIP с аудио из OPFS…");
+      showToast(t("toast.zipPrepFromOpfs"));
       const ldb = await ensureLocalDB();
       const payload = await ldb.exportBundle({ includeArchived: true });
 
@@ -21825,9 +21825,9 @@ async function v3LibraryExportBundle() {
       const missingNote = missing.length
         ? ` ⚠ ${missing.length} аудио не найдены в кеше (см. metadata/missing_audio.json)`
         : "";
-      showToast("ZIP готов: " + (payload.library.texts || []).length + " текстов, " + audioMsg + missingNote, missing.length ? "warning" : "success");
+      showToast(t("toast.zipReady", { count: (payload.library.texts || []).length, audio: audioMsg, missing: missingNote }), missing.length ? "warning" : "success");
     } else {
-      showToast("Подготовка ZIP с аудио…");
+      showToast(t("toast.zipPrepWithAudio"));
       const resp = await fetch("/api/library/export/bundle?includeArchived=1");
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({}));
@@ -21837,7 +21837,7 @@ async function v3LibraryExportBundle() {
       const cd = resp.headers.get("Content-Disposition") || "";
       const m = cd.match(/filename="([^"]+)"/);
       filename = m ? m[1] : v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
-      showToast("ZIP с аудио скачан", "success");
+      showToast(t("toast.zipWithAudioDownloaded"), "success");
     }
 
     const a = document.createElement("a");
@@ -21850,19 +21850,19 @@ async function v3LibraryExportBundle() {
     setTimeout(() => URL.revokeObjectURL(url), 1500);
   } catch (e) {
     console.warn("v3LibraryExportBundle failed", e);
-    showToast("Ошибка экспорта: " + ((e && e.message) || "см. консоль"), "error");
+    showToast(t("toast.exportError", { error: (e && e.message) || "см. консоль" }), "error");
   }
 }
 
 function v3LibraryImportBundle() {
   try {
     const input = document.getElementById("v3LibraryBundleImportInput");
-    if (!input) { showToast("Импорт ZIP недоступен.", "error"); return; }
+    if (!input) { showToast(t("toast.zipImportUnavailable"), "error"); return; }
     input.value = "";
     input.click();
   } catch (e) {
     console.warn("v3LibraryImportBundle click failed", e);
-    showToast("Не удалось открыть выбор ZIP (см. консоль).", "error");
+    showToast(t("toast.zipFilePickerFailed"), "error");
   }
 }
 
@@ -21883,7 +21883,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
       if (!okZ) return;
     }
 
-    showToast("Импорт…");
+    showToast(t("toast.importing"));
 
     let data;
     if (LOCAL_MODE) {
@@ -21898,7 +21898,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
       let layout = "unified";
       if (looksLikeZip) {
         if (typeof JSZip === "undefined") {
-          showToast("JSZip не загружен", "error"); return;
+          showToast(t("toast.jszipNotLoaded"), "error"); return;
         }
         const zip = await JSZip.loadAsync(file);
 
@@ -21913,7 +21913,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
           audioFolderName = "audio-cache";
           layout = "legacy-web";
         }
-        if (!libFile) { showToast("В ZIP нет library.json (ни library/library.json)", "error"); return; }
+        if (!libFile) { showToast(t("toast.zipMissingLibrary"), "error"); return; }
         parsed = JSON.parse(await libFile.async("string"));
 
         // Pull MP3 entries from the ZIP; we'll upload them AFTER importBundle
@@ -21930,13 +21930,13 @@ async function v3LibraryOnBundleImportSelected(ev) {
           const txt = await file.text();
           parsed = JSON.parse(txt);
         } catch (_) {
-          showToast("Файл не является ни ZIP, ни корректным JSON", "error");
+          showToast(t("toast.fileNotZipOrJson"), "error");
           return;
         }
       }
 
       // PHASE 1 — import library data into OPFS NOW. Marker links land here.
-      showToast("Импорт текстов в OPFS…", "info");
+      showToast(t("toast.importTextsToOpfs"), "info");
       const _zipImportT0 = Date.now();
       let r;
       try {
@@ -21972,7 +21972,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
       let importedAudio = 0;
       let audioErrors = 0;
       if (mp3Entries.length) {
-        showToast(`Импорт текстов готов (${r.imported}). Загрузка аудио ${mp3Entries.length}/Railway…`, "info");
+        showToast(t("toast.importTextsDoneAudioStart", { imported: r.imported, audioCount: mp3Entries.length }), "info");
 
         const total = mp3Entries.length;
         let cursor = 0;
@@ -22043,7 +22043,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
             if (done - lastReport >= 50 || done === total) {
               lastReport = done;
               try {
-                showToast(`Аудио ${done}/${total} загружено (ошибок ${audioErrors})…`, "info");
+                showToast(t("toast.audioImportProgress", { done, total, errors: audioErrors }), "info");
               } catch (_) {}
             }
           }
@@ -22077,7 +22077,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
       try { data = await resp.json(); } catch (_) { throw new Error(resp.statusText); }
 
       if (!resp.ok || !data.ok) {
-        showToast("Ошибка импорта ZIP: " + (data.message || data.error || resp.statusText), "error");
+        showToast(t("toast.zipImportError", { error: data.message || data.error || resp.statusText }), "error");
         return;
       }
     }
@@ -22094,7 +22094,7 @@ async function v3LibraryOnBundleImportSelected(ev) {
     try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}
   } catch (e) {
     console.warn("v3LibraryOnBundleImportSelected failed", e);
-    showToast("Не удалось импортировать ZIP (см. консоль).", "error");
+    showToast(t("toast.zipImportFailed"), "error");
   }
 }
 
@@ -23049,14 +23049,14 @@ async function v3SrsTrainerExportAnki() {
         if (s.duplicates) parts.push(`дубликатов ${s.duplicates}`);
         if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
         if (typeof showToast === "function") {
-          showToast(`Anki (${s.modelName}): ${parts.join(", ")}`, "success");
+          showToast(t("toast.ankiModelDetail", { model: s.modelName, parts: parts.join(", ") }), "success");
         }
       } catch (e) {
         let msg = String((e && e.message) || e);
         if (/failed to fetch|networkerror|cors/i.test(msg)) {
           msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect.`;
         }
-        showToast("Ошибка экспорта в Anki: " + msg, "error");
+        showToast(t("toast.ankiExportFailedShort", { error: msg }), "error");
       }
       return;
     }
@@ -23802,7 +23802,7 @@ async function v3DashboardGoRow(textId, sentenceId) {
 async function v3DashboardPlayRow(textId, sentenceId, assetKey) {
   const ak = String(assetKey || "").trim();
   if (!ak) {
-    showToast("Нет аудио для этой строки (assetKey пуст).");
+    showToast(t("toast.noRowAudio"));
     return;
   }
 
@@ -23843,7 +23843,7 @@ async function v3DashboardPlayRow(textId, sentenceId, assetKey) {
     await audio.play();
   } catch (e) {
     console.error("[v3DashboardPlayRow] error:", e);
-    showToast("Не удалось воспроизвести строку (см. console).");
+    showToast(t("toast.rowPlayFailed"));
   }
 }
 
@@ -23953,14 +23953,14 @@ async function v3DashboardTogglePin(textId) {
       const j = await res.json().catch(() => null);
       if (!res.ok || !j || !j.ok) {
         console.error("[v3DashboardTogglePin] bad response:", res.status, j);
-        showToast("Не удалось обновить pin/meta (см. console).", "error");
+        showToast(t("toast.pinMetaUpdateFailed"), "error");
         return;
       }
     }
     await v3DashboardRefresh();
   } catch (e) {
     console.error("[v3DashboardTogglePin] error:", e);
-    showToast("Не удалось обновить pin/meta (см. console).", "error");
+    showToast(t("toast.pinMetaUpdateFailed"), "error");
   }
 }
 
@@ -24141,17 +24141,17 @@ function v3SaveMetaShow(open) {
 function v3SaveMetaOpen() {
   const sourceText = String(getText() || "").trim();
   if (!sourceText) {
-    showToast("Нет исходного текста для сохранения", "error");
+    showToast(t("toast.noSourceTextToSave"), "error");
     return;
   }
   if (!Array.isArray(currentTableData) || currentTableData.length < 1) {
-    showToast("Нет таблицы для сохранения (сначала соберите таблицу)", "error");
+    showToast(t("toast.noTableToSaveShort"), "error");
     return;
   }
 
   // Guard: нельзя сохранять устаревшую таблицу (иначе будут дубликаты/неактуальные карточки)
 if (typeof tableIsStale !== "undefined" && tableIsStale) {
-  showToast("Текст изменён — таблица устарела. Нажмите «Собрать таблицу», чтобы пересобрать актуальную таблицу.", "error");
+  showToast(t("toast.tableChanged"), "error");
   try { v3UiSyncSaveButtons(); } catch (_) {}
   return;
 }
@@ -24276,7 +24276,7 @@ async function v3SaveMetaSaveAsNew() {
 
   try {
     if (typeof tableIsStale !== "undefined" && tableIsStale) {
-      showToast("Сначала соберите таблицу: текущая версия устарела.", "error");
+      showToast(t("toast.buildTableStaleVersion"), "error");
       return;
     }
 
@@ -24302,7 +24302,7 @@ async function v3SaveMetaSaveAsNew() {
         });
       } catch (_) {}
 
-      showToast("Сохранено как новый текст", "success");
+      showToast(t("toast.savedAsNew"), "success");
       v3SaveMetaClose();
       try { v3UiUpdateActiveHeader(); } catch (_) {}
       try { v3UiSyncSaveButtons(); } catch (_) {}
@@ -24647,7 +24647,7 @@ function v3DashboardBindTagClicksOnce() {
           ev.preventDefault();
           ev.stopPropagation();
           v3CopyTextToClipboard(payload);
-          showToast("Источник скопирован", "success");
+          showToast(t("toast.sourceCopied"), "success");
         }
         return;
       }
@@ -24660,7 +24660,7 @@ function v3DashboardBindTagClicksOnce() {
           ev.preventDefault();
           ev.stopPropagation();
           v3DeeplinkCopyLink("text", tid, {});
-          showToast("Ссылка на текст скопирована", "success");
+          showToast(t("toast.linkCopied"), "success");
         }
         return;
       }
@@ -25272,7 +25272,7 @@ try {
 // Warn user when niqqud degraded (columns Огласовки/Транслит will be empty)
 try {
   if (usePremium && v3LastGeminiMeta && v3LastGeminiMeta.nikudDegraded) {
-    showToast("Огласовки/транслит недоступны: сервис никуда не отвечает", "warning");
+    showToast(t("toast.niqqudUnavailable"), "warning");
   }
 } catch (_) {}
 
@@ -25522,7 +25522,7 @@ try {
                 return;
             }
             if (typeof showToast === "function") {
-                showToast(`GCP ключ загружен (${j.client_email || j.project_id || "ok"})`, "success");
+                showToast(t("toast.gcpKeyLoaded", { info: j.client_email || j.project_id || "ok" }), "success");
             }
             await gcpKeyLoadStatus();
             schedulePremiumStatusRefresh();
@@ -25545,7 +25545,7 @@ try {
             const r = await fetch("/api/premium/gcp-key", { method: "DELETE" });
             const j = await r.json().catch(() => ({}));
             if (!r.ok) { showError(`Не удалось удалить ключ: ${j.error || r.status}`); return; }
-            if (typeof showToast === "function") showToast("GCP ключ удалён", "info");
+            if (typeof showToast === "function") showToast(t("toast.gcpKeyRemoved"), "info");
             await gcpKeyLoadStatus();
             schedulePremiumStatusRefresh();
         } catch (e) {
@@ -25621,7 +25621,7 @@ try {
                 return;
             }
             if (typeof showToast === "function") {
-                showToast(`TTS ключ загружен (${j.client_email || j.project_id || "ok"})`, "success");
+                showToast(t("toast.ttsKeyLoaded", { info: j.client_email || j.project_id || "ok" }), "success");
             }
             await ttsKeyLoadStatus();
         } catch (e) {
@@ -25643,7 +25643,7 @@ try {
             const r = await fetch("/api/tts/key", { method: "DELETE" });
             const j = await r.json().catch(() => ({}));
             if (!r.ok) { showError(`Не удалось удалить TTS ключ: ${j.error || r.status}`); return; }
-            if (typeof showToast === "function") showToast("TTS ключ удалён", "info");
+            if (typeof showToast === "function") showToast(t("toast.ttsKeyRemoved"), "info");
             await ttsKeyLoadStatus();
         } catch (e) {
             showError(`Ошибка удаления TTS ключа: ${e.message || e}`);
@@ -26629,7 +26629,7 @@ function tableEditSaveCell(rowIdx, col, newVal, td) {
             td.style.outline = "2px solid #e53935";
             setTimeout(function() { if (td) td.style.outline = ""; }, 2000);
         }
-        try { showToast("Ошибка сохранения: " + err.message, "error"); } catch (_) {}
+        try { showToast(t("toast.saveError", { error: err.message }), "error"); } catch (_) {}
     });
 }
 
@@ -26661,7 +26661,7 @@ function tableEditResetRow(rowIdx) {
         renderTable(currentTableData);
     })
     .catch(function(err) {
-        try { showToast("Ошибка сброса: " + err.message, "error"); } catch (_) {}
+        try { showToast(t("toast.resetError", { error: err.message }), "error"); } catch (_) {}
     });
 }
 
@@ -26690,7 +26690,7 @@ async function tableEditDeleteRow(rowIdx) {
         renderTable(currentTableData);
     })
     .catch(function(err) {
-        try { showToast("Ошибка удаления: " + err.message, "error"); } catch (_) {}
+        try { showToast(t("toast.deleteError", { error: err.message }), "error"); } catch (_) {}
     });
 }
 
@@ -26717,7 +26717,7 @@ function tableEditMoveRow(rowIdx, direction) {
             return ldb.reorderSentences(tid, orderPayload.map(function(x) { return x.id; }));
         }).catch(function(err) {
             console.error("[edit] reorder failed:", err);
-            try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+            try { showToast(t("toast.orderSaveError", { error: err.message }), "error"); } catch (_) {}
         });
     } else {
         fetch("/api/library/texts/" + tid + "/sentences/reorder", {
@@ -26727,7 +26727,7 @@ function tableEditMoveRow(rowIdx, direction) {
         })
         .catch(function(err) {
             console.error("[edit] reorder failed:", err);
-            try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+            try { showToast(t("toast.orderSaveError", { error: err.message }), "error"); } catch (_) {}
         });
     }
 }
@@ -26808,7 +26808,7 @@ function tableEditAddRow() {
         }
     })
     .catch(function(err) {
-        try { showToast("Ошибка добавления строки: " + err.message, "error"); } catch (_) {}
+        try { showToast(t("toast.rowAddError", { error: err.message }), "error"); } catch (_) {}
     });
 }
 
@@ -26886,7 +26886,7 @@ async function tableEditResetAll() {
         renderTable(currentTableData);
     }).catch(function(err) {
         renderTable(currentTableData);
-        try { showToast("Ошибка сброса: " + err.message, "error"); } catch (_) {}
+        try { showToast(t("toast.resetError", { error: err.message }), "error"); } catch (_) {}
     });
 }
 
@@ -26973,7 +26973,7 @@ function tableEditDndEnable() {
                     return ldb.reorderSentences(tid, orderedIds);
                 }).catch(function(err) {
                     console.error("[dnd] reorder failed:", err);
-                    try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+                    try { showToast(t("toast.orderSaveError", { error: err.message }), "error"); } catch (_) {}
                 });
             } else {
                 const orderPayload = orderedIds.map(function(id, i) { return { id, order_index: i }; });
@@ -26983,7 +26983,7 @@ function tableEditDndEnable() {
                     body: JSON.stringify({ order: orderPayload }),
                 }).catch(function(err) {
                     console.error("[dnd] reorder failed:", err);
-                    try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+                    try { showToast(t("toast.orderSaveError", { error: err.message }), "error"); } catch (_) {}
                 });
             }
         }
@@ -27057,7 +27057,7 @@ function tableEditMoveRowByOne(fromIdx, dir) {
         ensureLocalDB().then(function(ldb) { return ldb.reorderSentences(tid, orderedIds); })
             .catch(function(err) {
                 console.error("[mobile-reorder]", err);
-                try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+                try { showToast(t("toast.orderSaveError", { error: err.message }), "error"); } catch (_) {}
             });
     } else {
         const orderPayload = orderedIds.map(function(id, i) { return { id: id, order_index: i }; });
@@ -27067,7 +27067,7 @@ function tableEditMoveRowByOne(fromIdx, dir) {
             body: JSON.stringify({ order: orderPayload }),
         }).catch(function(err) {
             console.error("[mobile-reorder]", err);
-            try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+            try { showToast(t("toast.orderSaveError", { error: err.message }), "error"); } catch (_) {}
         });
     }
 }
@@ -27270,7 +27270,7 @@ function initTableHeightResizer() {
     resizer.addEventListener("dblclick", function () {
         clearTableHeightSetting();
         applyTableHeightNow();
-        showToast("Высота таблицы сброшена (Auto)");
+        showToast(t("toast.tableHeightReset"));
     });
 
     // первичное применение
@@ -27313,7 +27313,7 @@ function onTableResizerUp(e) {
 
     if (tableUserHeightPx && Number.isFinite(tableUserHeightPx)) {
         saveTableHeightSetting(tableUserHeightPx);
-        showToast("Высота таблицы сохранена");
+        showToast(t("toast.tableHeightSaved"));
     }
 
     e.preventDefault();
@@ -27522,7 +27522,7 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
               /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
 
             if (!isUuid) {
-                showToast("Сначала сохраните текст в Library");
+                showToast(t("toast.saveToLibraryFirst"));
                 return;
             }
 
@@ -27532,7 +27532,7 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
               try {
                 const ldb = await ensureLocalDB();
                 const text = await ldb.getTextById(String(exportId));
-                if (!text) { showToast("Текст не найден"); return; }
+                if (!text) { showToast(t("toast.textNotFound")); return; }
                 const sentences = await ldb.getSentences(String(exportId));
                 const notes = await ldb.listNotes(String(exportId));
                 res = await fetch("/api/export/docx", {
@@ -27542,7 +27542,7 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
                 });
               } catch (e) {
                 console.error("DOCX export (local) failed:", e);
-                showToast("Ошибка генерации DOCX: " + (e && e.message ? e.message : "см. console"));
+                showToast(t("toast.docxGenerateError", { error: (e && e.message) ? e.message : "см. console" }));
                 return;
               }
             } else {
@@ -27562,11 +27562,11 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
                 } catch (_) {}
 
                 if (res.status === 404 || errCode === "TEXT_NOT_FOUND") {
-                    showToast("Текст не найден");
+                    showToast(t("toast.textNotFound"));
                 } else if (res.status === 503 || errCode === "DB_NOT_AVAILABLE") {
-                    showToast("База недоступна");
+                    showToast(t("toast.dbUnavailable"));
                 } else {
-                    showToast("Ошибка экспорта");
+                    showToast(t("toast.exportErrorSimple"));
                 }
                 return;
             }
@@ -27596,10 +27596,10 @@ window.addEventListener("resize", scheduleAdaptiveTableHeight);
             a.remove();
             window.URL.revokeObjectURL(dlUrl);
 
-            showToast("DOCX скачан");
+            showToast(t("toast.docxDownloadedShort"));
         } catch (e) {
             console.warn("downloadWord (library export) failed", e);
-            showToast("Ошибка экспорта");
+            showToast(t("toast.exportErrorSimple"));
         }
     }
 
@@ -27751,7 +27751,7 @@ function v3AudioPrefetchOpenModal() {
 
   const textId = v3AudioPrefetchGetTextId();
   if (!v3AudioPrefetchIsUuid(textId)) {
-    showToast("Сначала сохраните текст в Library", "error");
+    showToast(t("toast.saveToLibraryFirst"), "error");
     return;
   }
 
@@ -27891,7 +27891,7 @@ async function v3AudioPrefetchStartFromUi() {
       noCtx: build.skippedNoCtx,
     });
     v3AudioPrefetchSetStatus("Нечего генерировать: аудио уже готово (или строки пропущены по правилам).", false);
-    showToast("Аудио уже готово — можно экспортировать в Anki", "info");
+    showToast(t("toast.audioReadyForAnki"), "info");
     try { v3AudioPrefetchRefreshMarkers(); } catch (_) {}
     return;
   }
@@ -27938,7 +27938,7 @@ async function v3AudioPrefetchStartFromUi() {
     };
     try { localStorage.setItem(V3_AUDIO_PREFETCH_JOB_KEY, JSON.stringify(jobTrack)); } catch (_) {}
 
-    showToast("Audio prefetch запущен", "info");
+    showToast(t("toast.audioPrefetchStarted"), "info");
     v3AudioPrefetchStartPolling(jobId);
   } catch (e) {
     v3AudioPrefetchLastError = e;
@@ -28016,7 +28016,7 @@ v3AudioPrefetchSetStatsKv({
         v3AudioPrefetchStopPolling();
         try { localStorage.removeItem(V3_AUDIO_PREFETCH_JOB_KEY); } catch (_) {}
         try { await v3AudioPrefetchRefreshAudioFromServer(); } catch (_) {}
-        showToast("Озвучка сохранена локально — можно экспортировать в Anki", "info");
+        showToast(t("toast.audioSavedLocallyForAnki"), "info");
         return;
       }
 
@@ -28026,7 +28026,7 @@ v3AudioPrefetchSetStatsKv({
         v3AudioPrefetchStopPolling();
         try { localStorage.removeItem(V3_AUDIO_PREFETCH_JOB_KEY); } catch (_) {}
         try { await v3AudioPrefetchRefreshAudioFromServer(); } catch (_) {}
-        showToast("Audio prefetch отменён", "info");
+        showToast(t("toast.audioPrefetchCanceled"), "info");
         return;
       }
 
@@ -28036,7 +28036,7 @@ v3AudioPrefetchSetStatsKv({
         v3AudioPrefetchStopPolling();
         try { localStorage.removeItem(V3_AUDIO_PREFETCH_JOB_KEY); } catch (_) {}
         try { await v3AudioPrefetchRefreshAudioFromServer(); } catch (_) {}
-        showToast("Audio prefetch: ошибка (см. диагностику)", "error");
+        showToast(t("toast.audioPrefetchError"), "error");
         return;
       }
 
@@ -28130,7 +28130,7 @@ async function v3AudioPrefetchCancelFromUi() {
 
   try {
     await v3AudioPrefetchHttpJson("POST", "/api/audio/prefetch/cancel", { jobId });
-    showToast("Отмена отправлена", "info");
+    showToast(t("toast.cancelSent"), "info");
   } catch (e) {
     v3AudioPrefetchSetStatus("Ошибка отмены: " + (e && e.message ? e.message : "неизвестная"), true);
     v3AudioPrefetchSetDiag({ error: e && e.message ? e.message : String(e), raw: e && e.raw ? e.raw : null });
@@ -28395,7 +28395,7 @@ async function v3LazyFillTranslit(textId, sentences) {
   if (!need.length) return 0;
 
   if (need.length >= 10 && typeof showToast === "function") {
-    try { showToast(`Дополняем транслитерацию: 0/${need.length}…`, "info"); } catch (_) {}
+    try { showToast(t("toast.translitFillStart", { total: need.length }), "info"); } catch (_) {}
   }
 
   let r;
@@ -28442,11 +28442,11 @@ async function v3LazyFillTranslit(textId, sentences) {
     }
     if (need.length >= 10 && (written - lastReport) >= 25 && typeof showToast === "function") {
       lastReport = written;
-      try { showToast(`Дополняем транслитерацию: ${written}/${need.length}…`, "info"); } catch (_) {}
+      try { showToast(t("toast.translitFillProgress", { done: written, total: need.length }), "info"); } catch (_) {}
     }
   }
   if (need.length >= 10 && typeof showToast === "function") {
-    try { showToast(`Транслитерация дополнена: ${written}/${need.length} строк(и)`, "success"); } catch (_) {}
+    try { showToast(t("toast.translitFillDone", { done: written, total: need.length }), "success"); } catch (_) {}
   }
   return written;
 }
@@ -28460,7 +28460,7 @@ async function v3LibraryAutoApplyCardProfile(text, sentences) {
       const voice = profile.voiceName || profile.voiceId || "—";
       const rate = Number.isFinite(profile.speakingRate) ? profile.speakingRate : "—";
       const pitch = Number.isFinite(profile.pitch) ? profile.pitch : "—";
-      try { showToast(`Применён профиль карточки: ${voice} · rate ${rate} · pitch ${pitch}`, "info"); } catch (_) {}
+      try { showToast(t("toast.cardProfileApplied", { voice, rate, pitch }), "info"); } catch (_) {}
     }
     return profile;
   } catch (e) {
@@ -28566,7 +28566,7 @@ async function v3AudioPrefetchCopyDiagnostics() {
 
   try {
     await navigator.clipboard.writeText(s);
-    showToast("Диагностика скопирована", "info");
+    showToast(t("toast.diagnosticsCopied"), "info");
   } catch (e) {
     try {
       const ta = document.createElement("textarea");
@@ -28575,7 +28575,7 @@ async function v3AudioPrefetchCopyDiagnostics() {
       ta.select();
       document.execCommand("copy");
       ta.remove();
-      showToast("Диагностика скопирована", "info");
+      showToast(t("toast.diagnosticsCopied"), "info");
     } catch (_) {
       v3AudioPrefetchSetStatus("Не удалось скопировать (см. v3AudioPrefetchDiag).", true);
       v3AudioPrefetchSetDiag(diag);
@@ -28591,7 +28591,7 @@ try {
       const now = Date.now();
       if (now - lastTs < 1200) return;
       lastTs = now;
-      showToast("Audio: batch-озвучка всех строк (локально). Затем можно экспортировать в Anki.", "info");
+      showToast(t("toast.audioBatchHint"), "info");
     });
   }
 } catch (_) {}
@@ -28652,7 +28652,7 @@ async function v3AnkiCopyDiagnostics() {
   try {
     if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
       await navigator.clipboard.writeText(text);
-      if (typeof showToast === "function") showToast("Диагностика скопирована");
+      if (typeof showToast === "function") showToast(t("toast.diagnosticsCopied"));
       return;
     }
   } catch (_) {
@@ -28672,10 +28672,10 @@ async function v3AnkiCopyDiagnostics() {
     ta.select();
     document.execCommand("copy");
     ta.remove();
-    if (typeof showToast === "function") showToast("Диагностика скопирована");
+    if (typeof showToast === "function") showToast(t("toast.diagnosticsCopied"));
   } catch (e) {
     console.warn("v3AnkiCopyDiagnostics failed:", e);
-    if (typeof showToast === "function") showToast("Не удалось скопировать диагностику");
+    if (typeof showToast === "function") showToast(t("toast.diagnosticsCopyFailed"));
   }
 }
 
@@ -28726,7 +28726,7 @@ function v3AnkiOpenModal() {
       /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
 
     if (!isUuid) {
-        if (typeof showToast === "function") showToast("Сначала сохраните текст в Library", "warning");
+        if (typeof showToast === "function") showToast(t("toast.saveToLibraryFirst"), "warning");
         return;
     }
 
@@ -28858,7 +28858,7 @@ async function v3AnkiPushNow() {
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
 
   if (!isUuid) {
-    if (typeof showToast === "function") showToast("Сначала сохраните текст в Library", "warning");
+    if (typeof showToast === "function") showToast(t("toast.saveToLibraryFirst"), "warning");
     return;
   }
 
@@ -28901,7 +28901,7 @@ async function v3AnkiPushNow() {
         if (s.failedOther) parts.push(`прочих ошибок ${s.failedOther}`);
         const msg = `Готово (deck "${s.deckName}", модель "${s.modelName}"): ${parts.join(", ")}.`;
         v3AnkiSetStatus(msg, false);
-        if (typeof showToast === "function") showToast("Экспорт в Anki выполнен", "success");
+        if (typeof showToast === "function") showToast(t("toast.ankiExportDone"), "success");
       } catch (e) {
         let msg = String((e && e.message) || e);
         if (/failed to fetch|networkerror|cors/i.test(msg)) {
@@ -28909,7 +28909,7 @@ async function v3AnkiPushNow() {
                  `(Anki → Tools → Add-ons → AnkiConnect → Config) и перезапустите Anki.`;
         }
         v3AnkiSetStatus(`Ошибка экспорта: ${msg}`, true);
-        if (typeof showToast === "function") showToast("Ошибка экспорта в Anki", "error");
+        if (typeof showToast === "function") showToast(t("toast.ankiExportFailedSimple"), "error");
       }
       return;
     }
@@ -28925,17 +28925,17 @@ async function v3AnkiPushNow() {
     if (!r.ok || !j || !j.ok) {
       const details = v3AnkiFormatDetails(j, r);
       v3AnkiSetStatus(`Ошибка экспорта: ${details}`, true);
-      if (typeof showToast === "function") showToast("Ошибка экспорта в Anki", "error");
+      if (typeof showToast === "function") showToast(t("toast.ankiExportFailedSimple"), "error");
       return;
     }
 
     const s = j.stats || {};
     const msg = `Готово: создано ${s.created || 0}, обновлено ${s.updated || 0}, аудио поставлено в очередь ${s.audioQueued || 0}.`;
     v3AnkiSetStatus(msg, false);
-    if (typeof showToast === "function") showToast("Экспорт в Anki выполнен", "success");
+    if (typeof showToast === "function") showToast(t("toast.ankiExportDone"), "success");
   } catch (e) {
     v3AnkiSetStatus(`Ошибка экспорта: ${String((e && e.message) || e)}`, true);
-    if (typeof showToast === "function") showToast("Ошибка экспорта в Anki", "error");
+    if (typeof showToast === "function") showToast(t("toast.ankiExportFailedSimple"), "error");
   } finally {
     if (pushBtn) pushBtn.disabled = false;
     if (checkBtn) checkBtn.disabled = false;
@@ -29353,7 +29353,7 @@ function initRowUxDelegatesOnce() {
         }
 
         if (!Array.isArray(currentTableData) || !currentTableData[rowIdx]) {
-            showToast("Строка не найдена");
+            showToast(t("toast.rowNotFound"));
             return;
         }
 
@@ -29376,7 +29376,7 @@ function initRowUxDelegatesOnce() {
 		const text = getRowTtsTextForRow(row);
 
         if (!text) {
-            showToast("Нет текста для озвучки в этой строке");
+            showToast(t("toast.noRowText"));
             return;
         }
 
@@ -29573,7 +29573,7 @@ try {
 
             const msg = (err && err.message) ? err.message : "неизвестная";
             setRowErrorState(rowIdx, "Ошибка: " + msg);
-            showToast("Ошибка Row TTS: " + msg);
+            showToast(t("toast.rowTtsError", { error: msg }));
         } finally {
             const table = document.getElementById("proTable");
             const btnNow = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(rowIdx) + '"]') : null;
@@ -29606,14 +29606,14 @@ try {
             const sentenceId = row && row._v3_sentenceId ? String(row._v3_sentenceId) : "";
 
             if (!textId || !sentenceId) {
-                showToast("Notes доступны только для текстов из Library (нужны sentence_id).", "error");
+                showToast(t("toast.notesLibraryOnly"), "error");
                 return;
             }
 
             v3NotesOpen(textId, sentenceId, rowIdx);
          } catch (err) {
         console.warn("row-note click handler failed", err);
-        showToast("Не удалось открыть заметку (см. консоль).", "error");
+        showToast(t("toast.noteOpenFailed"), "error");
 			}
 	}, { capture: true });
 
@@ -30426,12 +30426,12 @@ async function v3NotesSave() {
 
       v3NotesSafeSetStatus(st, "Заметка удалена.", false);
       if (delBtn) delBtn.style.display = "none";
-      showToast("Заметка удалена", "success");
+      showToast(t("toast.noteDeleted"), "success");
       return;
     }
 
     if (note.length > 16000) {
-      showToast("Заметка слишком длинная (макс. 16000).", "error");
+      showToast(t("toast.noteTooLong"), "error");
       return;
     }
 
@@ -30461,10 +30461,10 @@ async function v3NotesSave() {
     v3NotesSafeSetStatus(st, savedAt ? `Сохранено в ${savedAt}` : "Сохранено.", false);
 
     if (delBtn) delBtn.style.display = "";
-    showToast("Заметка сохранена", "success");
+    showToast(t("toast.noteSaved"), "success");
   } catch (e) {
     console.warn("v3NotesSave failed", e);
-    showToast("Не удалось сохранить заметку", "error");
+    showToast(t("toast.noteSaveFailed"), "error");
   }
 }
 
@@ -30500,10 +30500,10 @@ async function v3NotesDelete() {
     const st = v3NotesEl("v3NotesStatus");
     v3NotesSafeSetStatus(st, "Заметка удалена.", false);
 
-    showToast("Заметка удалена", "success");
+    showToast(t("toast.noteDeleted"), "success");
   } catch (e) {
     console.warn("v3NotesDelete failed", e);
-    showToast("Не удалось удалить заметку", "error");
+    showToast(t("toast.noteDeleteFailed"), "error");
   }
 }
 
@@ -30542,9 +30542,9 @@ try { if (typeof v3AudioPrefetchResumeIfNeeded === "function") v3AudioPrefetchRe
         if (typeof navigator !== "undefined" && navigator && navigator.onLine === false) {
           const ok = v3LibraryTryRestoreFromCache(st);
           if (ok) {
-            showToast("Офлайн: таблица восстановлена из кэша. Заметки не загружены.", "info");
+            showToast(t("toast.offlineTableRestored"), "info");
           } else {
-            showToast("Офлайн: кэш для восстановления не найден (откройте текст онлайн хотя бы один раз).", "error");
+            showToast(t("toast.offlineCacheMissing"), "error");
           }
           return;
         }
