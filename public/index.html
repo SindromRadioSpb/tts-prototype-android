@@ -2906,6 +2906,32 @@ th, td { border-color: rgba(0,0,0,0.55); }
 #proTable.tbl-edit-mode tbody tr.row-drag-over-bot td { border-bottom: 2px solid #42a5f5 !important; }
 #proTable.tbl-edit-mode tbody tr.row-dragging { opacity: 0.4; }
 
+/* Mobile reorder controls (▲▼ buttons in first cell, edit-mode only).
+   Hidden on desktop where DnD works; shown on touch / narrow screens.
+   This is a temporary fallback until premium long-press-drag ships
+   post-v3.1.0. */
+.tbl-reorder-mobile-ctrls { display: none; }
+@media (max-width: 768px), (pointer: coarse) {
+  #proTable.tbl-edit-mode .tbl-reorder-mobile-ctrls {
+    display: inline-flex; flex-direction: column; gap: 2px;
+    margin-right: 6px; vertical-align: middle;
+  }
+  .tbl-reorder-up, .tbl-reorder-down {
+    width: 26px; height: 22px; padding: 0; line-height: 1;
+    font-size: 11px; border: 1px solid #cbd5e1; border-radius: 4px;
+    background: #f1f5f9; color: #475569; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .tbl-reorder-up:hover, .tbl-reorder-down:hover,
+  .tbl-reorder-up:active, .tbl-reorder-down:active {
+    background: #2563eb; color: #fff; border-color: #2563eb;
+  }
+  /* Hide on hover-capable desktops even if narrow (e.g. resized window) */
+  @media (hover: hover) and (pointer: fine) {
+    #proTable.tbl-edit-mode .tbl-reorder-mobile-ctrls { display: none; }
+  }
+}
+
 /* Mobile bottom sheet for edit confirm */
 @media (pointer: coarse) {
   .cell-editor-textarea { min-height: 72px; font-size: 1rem; }
@@ -25201,6 +25227,17 @@ try {
     tableEditToolbarUpdate(_hasLibRows);
     tableEditApplyEditedMarkers();
     if (_hasLibRows) { try { tableEditAttachDoubleTap(); } catch (_e) {} }
+    // Bug fix (2026-05-09): renderTable rebuilds the <table> via innerHTML,
+    // which throws away the event listeners attached by tableEditModeEnter
+    // (DnD, cell-click). Without re-attaching, after the first row move or
+    // add the user can't move/edit again until they re-toggle edit mode.
+    // The attach helpers are idempotent via internal flags; new tbl element
+    // has no flags, so it re-attaches correctly.
+    if (tableEditActive) {
+        try { tableEditAttachCellClick(); } catch (_) {}
+        try { tableEditDndEnable(); } catch (_) {}
+        try { tableEditAttachMobileReorder(); } catch (_) {}
+    }
 } catch (_) {}
 try { classicSyncStateUi(); } catch (_) {}
     }
@@ -25471,6 +25508,7 @@ function tableEditModeEnter() {
     tableEditAttachCellClick();
     tableEditDndEnable();
     tableEditAttachDoubleTap();
+    tableEditAttachMobileReorder();
     if (window.visualViewport) {
         window.visualViewport.addEventListener("resize", _tableEditToolbarPin);
         window.visualViewport.addEventListener("scroll", _tableEditToolbarPin);
@@ -25499,6 +25537,8 @@ function tableEditModeExit(silent) {
             const td = wrap.closest("td");
             if (td) td.innerHTML = escapeHtml(wrap.dataset.origText || "");
         });
+        // Drop mobile reorder ▲▼ controls so they don't linger in DOM.
+        tbl.querySelectorAll(".tbl-reorder-mobile-ctrls").forEach(function(el) { el.remove(); });
     }
     tableEditUpdateStatus();
     tableEditFabUpdate();
@@ -26112,6 +26152,88 @@ function tableEditDndEnable() {
             }
         }
     });
+}
+
+// Bug fix (2026-05-09): HTML5 drag-and-drop doesn't work on touch devices —
+// `dragstart`/`dragover`/`drop` aren't dispatched on iOS Safari and most
+// mobile browsers. Without an alternative, mobile users couldn't reorder
+// rows in edit mode at all.
+//
+// Temporary premium-quality workaround until the post-v3.1.0 "premium
+// edit mechanics" sprint replaces this with a proper long-press-drag:
+// inject inline ↑↓ buttons into each row's first cell while in edit
+// mode. One click = move by one position. Persists order via the same
+// reorderSentences pipeline.
+//
+// Buttons are mobile-only (CSS-gated by max-width:768px) so desktop
+// keeps the cleaner DnD UX. Pure idempotent via DOM-presence check.
+function tableEditAttachMobileReorder() {
+    const tbl = document.getElementById("proTable");
+    if (!tbl) return;
+    const rows = tbl.querySelectorAll('tbody tr[data-row-idx][data-draggable="1"]');
+    rows.forEach(function(tr) {
+        if (tr.querySelector(".tbl-reorder-mobile-ctrls")) return;  // already injected
+        const idx = parseInt(tr.getAttribute("data-row-idx"), 10);
+        const firstTd = tr.querySelector("td");
+        if (!firstTd) return;
+        const wrap = document.createElement("span");
+        wrap.className = "tbl-reorder-mobile-ctrls";
+        wrap.innerHTML =
+            '<button type="button" class="tbl-reorder-up" aria-label="Move row up" title="Переместить выше" data-idx="' + idx + '">▲</button>' +
+            '<button type="button" class="tbl-reorder-down" aria-label="Move row down" title="Переместить ниже" data-idx="' + idx + '">▼</button>';
+        // Insert at the start of the first cell so it stays visible
+        // independent of column order.
+        firstTd.insertBefore(wrap, firstTd.firstChild);
+    });
+
+    // Single delegated handler on the table — idempotent via marker.
+    if (tbl._mobileReorderAttached) return;
+    tbl._mobileReorderAttached = true;
+    tbl.addEventListener("click", function(e) {
+        if (!tableEditActive) return;
+        const upBtn = e.target.closest(".tbl-reorder-up");
+        const downBtn = e.target.closest(".tbl-reorder-down");
+        if (!upBtn && !downBtn) return;
+        e.stopPropagation();
+        e.preventDefault();
+        const tr = (upBtn || downBtn).closest("tr[data-row-idx]");
+        if (!tr) return;
+        const fromIdx = parseInt(tr.getAttribute("data-row-idx"), 10);
+        if (!Number.isFinite(fromIdx)) return;
+        const dir = upBtn ? -1 : 1;
+        tableEditMoveRowByOne(fromIdx, dir);
+    });
+}
+
+function tableEditMoveRowByOne(fromIdx, dir) {
+    if (!Array.isArray(currentTableData) || currentTableData.length < 2) return;
+    const toIdx = fromIdx + dir;
+    if (toIdx < 0 || toIdx >= currentTableData.length) return;  // edge
+    const rows = currentTableData;
+    const moved = rows.splice(fromIdx, 1)[0];
+    rows.splice(toIdx, 0, moved);
+    renderTable(rows);
+
+    const tid = moved && moved._v3_textId;
+    if (!tid) return;
+    const orderedIds = rows.map(function(r) { return r._v3_sentenceId; }).filter(Boolean);
+    if (LOCAL_MODE) {
+        ensureLocalDB().then(function(ldb) { return ldb.reorderSentences(tid, orderedIds); })
+            .catch(function(err) {
+                console.error("[mobile-reorder]", err);
+                try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+            });
+    } else {
+        const orderPayload = orderedIds.map(function(id, i) { return { id: id, order_index: i }; });
+        fetch("/api/library/texts/" + tid + "/sentences/reorder", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ order: orderPayload }),
+        }).catch(function(err) {
+            console.error("[mobile-reorder]", err);
+            try { showToast("Ошибка сохранения порядка: " + err.message, "error"); } catch (_) {}
+        });
+    }
 }
 
 // Double-click (desktop) / double-tap (mobile) to enter edit mode + open editor
