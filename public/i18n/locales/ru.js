@@ -661,6 +661,9 @@ window.I18N_LOCALES.ru = {
     wipeAllInlineBody: "Это необратимо. Все тексты, заметки, прогресс будут удалены.",
     wipeAllInlineOk: "Удалить всё",
   },
+  dashboardExtra: {
+    heatmapTitle: "Активность за 30 дней",
+  },
   onboarding: {
     title: "Добро пожаловать в LinguistPro",
     tagline: "IDE для изучения иврита с offline-first архитектурой",

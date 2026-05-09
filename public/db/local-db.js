@@ -525,6 +525,97 @@ export async function getAnalytics({ days = 7, includeArchived = false } = {}) {
   return { ok: true, period, all };
 }
 
+// ── Direction 5: Activity heatmap (Premium Release v3.1.0) ────────────
+// GitHub-contributions-style heatmap of daily play activity over the
+// last N days. Returns an array of { date: 'YYYY-MM-DD', count } in
+// chronological order (oldest first). Days with zero events are still
+// included so the calendar grid stays continuous.
+export async function getActivityHeatmap({ days = 30 } = {}) {
+  const safeDays = Math.max(1, Math.min(365, Number(days) || 30));
+  const sinceMs = Date.now() - safeDays * 86400000;
+  const sinceIso = new Date(sinceMs).toISOString();
+
+  // Group events by date string (YYYY-MM-DD). SQLite supports
+  // substr(ts, 1, 10) since `ts` is stored as ISO8601.
+  const rows = await q(
+    `SELECT substr(ts, 1, 10) AS day, COUNT(*) AS count
+       FROM events
+      WHERE LOWER(event_type) IN ('row_tts','tts_play','play')
+        AND ts >= ?
+      GROUP BY day
+      ORDER BY day ASC`,
+    [sinceIso]
+  );
+  const map = new Map();
+  for (const r of rows) map.set(String(r.day), Number(r.count) || 0);
+
+  // Materialize a continuous date grid so empty days show in the heatmap.
+  const out = [];
+  const now = new Date();
+  for (let i = safeDays - 1; i >= 0; i--) {
+    const d = new Date(now.getTime() - i * 86400000);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const key = `${yyyy}-${mm}-${dd}`;
+    out.push({ date: key, count: map.get(key) || 0 });
+  }
+  return out;
+}
+
+// ── Direction 5: Smart-sort helpers (Library filter chips) ────────────
+// Foundation queries for the new Library filters. Each returns a list
+// of text_id strings that match the criterion. Library UI wires these
+// into chips ("Recently opened" already exists; these are new).
+
+// "Struggling" — texts where ≥ 30% of SRS reviews resulted in 'again'
+// (the worst grade). Threshold stays generous so we surface texts that
+// genuinely need more practice without flooding the filter.
+export async function getStrugglingTexts({ minReviews = 5, errorThreshold = 0.3 } = {}) {
+  const rows = await q(
+    `SELECT s.text_id AS text_id,
+            COUNT(*) AS reviews,
+            SUM(CASE WHEN re.rating = 'again' THEN 1 ELSE 0 END) AS errors
+       FROM srs_review_events re
+       JOIN srs_cards c ON re.card_id = c.id
+       JOIN sentences s ON c.source_sentence_id = s.id
+      GROUP BY s.text_id
+     HAVING reviews >= ?
+        AND CAST(errors AS REAL) / reviews >= ?`,
+    [minReviews, errorThreshold]
+  );
+  return rows.map((r) => String(r.text_id));
+}
+
+// "Mastered" — texts where every linked SRS card has reached the
+// "review" stage (no longer in 'new' or 'learning'). Inversion of
+// the Anki "learning" set.
+export async function getMasteredTexts() {
+  const rows = await q(
+    `SELECT s.text_id AS text_id,
+            COUNT(c.id) AS total,
+            SUM(CASE WHEN c.state = 'review' THEN 1 ELSE 0 END) AS mastered
+       FROM srs_cards c
+       JOIN sentences s ON c.source_sentence_id = s.id
+      GROUP BY s.text_id
+     HAVING total > 0 AND total = mastered`
+  );
+  return rows.map((r) => String(r.text_id));
+}
+
+// "New since last visit" — texts created since localStorage marker.
+// Caller passes the marker; helper just filters texts.
+export async function getTextsCreatedAfter(sinceIso) {
+  if (!sinceIso) return [];
+  const rows = await q(
+    `SELECT id FROM texts
+      WHERE created_at >= ?
+      ORDER BY created_at DESC`,
+    [String(sinceIso)]
+  );
+  return rows.map((r) => String(r.id));
+}
+
 // ── audio assets ───────────────────────────────────────────────────────────
 
 export async function upsertAudioAsset({ id, asset_key, asset_type, relative_path, mime, duration_ms, size_bytes, tts_profile_json }) {

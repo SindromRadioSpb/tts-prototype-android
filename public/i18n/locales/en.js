@@ -661,6 +661,9 @@ window.I18N_LOCALES.en = {
     wipeAllInlineBody: "This is irreversible. All texts, notes, and progress will be removed.",
     wipeAllInlineOk: "Delete everything",
   },
+  dashboardExtra: {
+    heatmapTitle: "Last 30 days activity",
+  },
   onboarding: {
     title: "Welcome to LinguistPro",
     tagline: "Hebrew-learning IDE with an offline-first architecture",

@@ -661,6 +661,9 @@ window.I18N_LOCALES.he = {
     wipeAllInlineBody: "פעולה זו אינה הפיכה. כל הטקסטים, ההערות וההתקדמות יוסרו.",
     wipeAllInlineOk: "מחק הכל",
   },
+  dashboardExtra: {
+    heatmapTitle: "פעילות 30 ימים אחרונים",
+  },
   onboarding: {
     title: "ברוכים הבאים ל-LinguistPro",
     tagline: "סביבת למידת עברית עם ארכיטקטורת offline-first",
