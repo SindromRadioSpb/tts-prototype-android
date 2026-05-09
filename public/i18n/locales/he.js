@@ -7,6 +7,10 @@ window.I18N_LOCALES.he = {
     langRu: "Русский",
     langEn: "English",
     langHe: "עברית",
+    updateAvailable: "זמין עדכון לאפליקציה",
+    updateNow: "עדכן",
+    updateLater: "אחר כך",
+    offlineReady: "האפליקציה מוכנה לעבודה לא מקוונת",
   },
   classic: {
     eyebrow: "מצב קלאסי",

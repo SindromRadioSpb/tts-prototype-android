@@ -7,6 +7,10 @@ window.I18N_LOCALES.ru = {
     langRu: "Русский",
     langEn: "English",
     langHe: "עברית",
+    updateAvailable: "Доступно обновление приложения",
+    updateNow: "Обновить",
+    updateLater: "Позже",
+    offlineReady: "Приложение готово к офлайн-работе",
   },
   classic: {
     eyebrow: "Classic Mode",

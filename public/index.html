@@ -30890,5 +30890,107 @@ document.addEventListener("i18n:changed", function () {
   });
 </script>
 
+<!-- ── Service Worker registration (Direction 7 Phase C) ───────────────
+     Registered after `load` so SW install doesn't compete with critical
+     resource fetches. We wait for an `updatefound` to surface a premium
+     "Обновить" toast — the user controls when to apply the update
+     (skipWaiting + reload). This is the classic premium PWA pattern. -->
+<script>
+  (function () {
+    if (!("serviceWorker" in navigator)) return;
+
+    let updateToastEl = null;
+    function dismissUpdateToast() {
+      if (updateToastEl && updateToastEl.parentNode) {
+        updateToastEl.parentNode.removeChild(updateToastEl);
+      }
+      updateToastEl = null;
+    }
+
+    // Surface a premium update toast with two buttons (Обновить / Позже).
+    // Mirrors the v3UndoToast visual language so the user recognises it
+    // as an action-toast.
+    function showUpdateToast(waitingWorker) {
+      dismissUpdateToast();
+      const tt = (k, fb) => (typeof window.t === "function" ? window.t(k) : fb);
+      const el = document.createElement("div");
+      el.id = "v3PwaUpdateToast";
+      el.style.cssText =
+        "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);" +
+        "background:#1f2937;color:#fff;border-radius:8px;padding:10px 12px 10px 16px;" +
+        "font-size:14px;font-family:system-ui,-apple-system,sans-serif;" +
+        "box-shadow:0 6px 20px rgba(0,0,0,0.25);z-index:99998;display:flex;" +
+        "align-items:center;gap:10px;max-width:90vw;";
+      const span = document.createElement("span");
+      span.textContent = tt("app.updateAvailable", "App update available");
+
+      const updateBtn = document.createElement("button");
+      updateBtn.textContent = tt("app.updateNow", "Update");
+      updateBtn.style.cssText =
+        "padding:6px 12px;background:#2563eb;color:#fff;border:0;border-radius:4px;" +
+        "font-weight:600;cursor:pointer;font-size:13px;";
+      updateBtn.addEventListener("click", () => {
+        if (waitingWorker) waitingWorker.postMessage({ type: "SKIP_WAITING" });
+        // Reload triggers on `controllerchange` (handler below); fallback
+        // here in case the event is missed.
+        setTimeout(() => location.reload(), 600);
+        dismissUpdateToast();
+      });
+
+      const laterBtn = document.createElement("button");
+      laterBtn.textContent = tt("app.updateLater", "Later");
+      laterBtn.style.cssText =
+        "padding:6px 10px;background:transparent;color:#9ca3af;border:0;border-radius:4px;" +
+        "cursor:pointer;font-size:13px;";
+      laterBtn.addEventListener("click", dismissUpdateToast);
+
+      el.appendChild(span);
+      el.appendChild(updateBtn);
+      el.appendChild(laterBtn);
+      document.body.appendChild(el);
+      updateToastEl = el;
+    }
+
+    function watchForUpdate(reg) {
+      if (!reg) return;
+      // If a waiting worker already exists (e.g. user dismissed last
+      // session's toast), surface it now.
+      if (reg.waiting && navigator.serviceWorker.controller) {
+        showUpdateToast(reg.waiting);
+      }
+      reg.addEventListener("updatefound", () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener("statechange", () => {
+          if (
+            newWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
+            // A new SW is waiting AND a controller is in place — this is
+            // an update, not a first-install. Notify the user.
+            showUpdateToast(newWorker);
+          }
+        });
+      });
+    }
+
+    // Reload once the new SW takes control (after skipWaiting). Guard
+    // against double-reload using a session flag.
+    let reloadingForUpdate = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloadingForUpdate) return;
+      reloadingForUpdate = true;
+      location.reload();
+    });
+
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .then(watchForUpdate)
+        .catch((err) => console.warn("[sw] registration failed:", err));
+    });
+  })();
+</script>
+
 </body>
 </html>

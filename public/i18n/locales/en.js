@@ -7,6 +7,10 @@ window.I18N_LOCALES.en = {
     langRu: "Русский",
     langEn: "English",
     langHe: "עברית",
+    updateAvailable: "App update available",
+    updateNow: "Update",
+    updateLater: "Later",
+    offlineReady: "App ready to work offline",
   },
   classic: {
     eyebrow: "Classic Mode",
