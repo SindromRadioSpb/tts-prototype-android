@@ -11,6 +11,14 @@
          Hebrew font'а, чтобы FOUT минимизировался на cold start. -->
     <link rel="preload" href="/fonts/frank-ruhl-libre-400.woff2" as="font" type="font/woff2" crossorigin>
 
+    <!-- Module preload: hint the browser to fetch our critical ES modules
+         in parallel with HTML parsing. Saves a network round-trip on
+         cold start before the browser discovers the <script type="module">
+         tags below. (Direction 7 Phase D.) -->
+    <link rel="modulepreload" href="/db/sqlite-api.js">
+    <link rel="modulepreload" href="/db/local-db.js">
+    <link rel="modulepreload" href="/i18n/index.js">
+
     <!-- PWA: manifest + theme color (light/dark via media). Apple iOS
          specifics for home-screen install (icon, splash, status bar). -->
     <link rel="manifest" href="/manifest.json">
