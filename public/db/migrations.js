@@ -446,4 +446,12 @@ export const MIGRATIONS = [
   UPDATE sentences SET translit = REPLACE(translit,'|','') WHERE translit LIKE '%|%';
   UPDATE sentences SET translit_ru = REPLACE(translit_ru,'|','') WHERE translit_ru LIKE '%|%';
   UPDATE translation_doc_cache SET result_json = REPLACE(result_json,'|','') WHERE result_json LIKE '%|%';`,
+
+  // 020_manual_smart_tag — premium UX (Direction 5 enhancement)
+  // User can manually override the auto-derived "struggling"/"mastered"
+  // smart-filter classification. Values: NULL = auto-only,
+  // 'struggling' / 'mastered' = explicit override.
+  // Mutually exclusive — single column, not two booleans.
+  `ALTER TABLE texts ADD COLUMN manual_smart_tag TEXT;
+  CREATE INDEX IF NOT EXISTS ix_texts_manual_smart_tag ON texts(manual_smart_tag) WHERE manual_smart_tag IS NOT NULL;`,
 ];

@@ -255,6 +255,10 @@ window.I18N_LOCALES.en = {
     smartNew: "✨ New",
     smartNewTitle: "New texts since your last library visit",
     smartClear: "Clear smart filter",
+    smartBadgeStruggling: "Struggling",
+    smartBadgeStrugglingTitle: "Manually flagged as struggling (Meta Edit)",
+    smartBadgeMastered: "Mastered",
+    smartBadgeMasteredTitle: "Manually flagged as mastered (Meta Edit)",
   },
   saveMeta: {
     title: "Save to Library",
@@ -347,6 +351,11 @@ window.I18N_LOCALES.en = {
     close: "Close",
     labelTopic: "Topic",
     tagsHint: "Enter tags separated by commas. Empty field = clear value.",
+    smartTagLabel: "Smart filter (override)",
+    smartTagHelp: "By default the filter is derived from SRS data. You can manually tag this card.",
+    smartTagAuto: "⚙ Auto (from SRS)",
+    smartTagStruggling: "🔥 Struggling",
+    smartTagMastered: "✓ Mastered",
   },
   srs: {
     title: "SRS Trainer",

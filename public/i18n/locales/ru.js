@@ -255,6 +255,10 @@ window.I18N_LOCALES.ru = {
     smartNew: "✨ Новые",
     smartNewTitle: "Новые тексты с прошлого визита Library",
     smartClear: "Сбросить smart-фильтр",
+    smartBadgeStruggling: "Сложно",
+    smartBadgeStrugglingTitle: "Помечено вручную как сложное (Meta Edit)",
+    smartBadgeMastered: "Освоено",
+    smartBadgeMasteredTitle: "Помечено вручную как освоенное (Meta Edit)",
   },
   saveMeta: {
     title: "Сохранить в библиотеку",
@@ -347,6 +351,11 @@ window.I18N_LOCALES.ru = {
     close: "Закрыть",
     labelTopic: "Тема",
     tagsHint: "Tags вводите через запятую. Пустое поле = очистка значения.",
+    smartTagLabel: "Smart-фильтр (переопределить)",
+    smartTagHelp: "По умолчанию фильтр определяется по SRS-данным. Можно вручную пометить эту карточку.",
+    smartTagAuto: "⚙ Авто (по SRS)",
+    smartTagStruggling: "🔥 Сложно",
+    smartTagMastered: "✓ Освоено",
   },
   srs: {
     title: "SRS Тренажёр",

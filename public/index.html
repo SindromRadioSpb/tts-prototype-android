@@ -3774,6 +3774,78 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   line-height: 1.2;
 }
 
+/* Direction 5 premium UX: manual smart-tag override section in
+   Text Meta Edit modal. Three radio-style chips (Auto / Struggling /
+   Mastered) — click to set, click active to return to Auto. */
+.v3-meta-smart-tag {
+  margin: 14px 0 6px;
+  padding: 12px 14px;
+  background: var(--theme-bg-muted);
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 10px;
+}
+.v3-meta-smart-tag-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--theme-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.v3-meta-smart-tag-help {
+  font-size: 11.5px;
+  color: var(--theme-text-muted);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.v3-meta-smart-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.v3-meta-smart-tag-btn {
+  flex: 1 1 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  text-align: center;
+}
+.v3-meta-smart-tag-btn:hover { border-color: var(--theme-border-medium); background: var(--theme-bg-hover); }
+.v3-meta-smart-tag-btn.active {
+  background: var(--theme-accent);
+  border-color: var(--theme-accent);
+  color: #fff;
+}
+body.theme-dark .v3-meta-smart-tag-btn.active,
+body:not(.theme-light) .v3-meta-smart-tag-btn.active { color: #0f172a; }
+
+/* Library card badge — small visual indicator if a text is manually
+   tagged. Sits inline next to the title. */
+.v3-lib-smart-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 6px;
+  padding: 1px 7px;
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--theme-warning-soft);
+  color: var(--theme-warning);
+  border: 1px solid var(--theme-warning);
+}
+.v3-lib-smart-badge.mastered {
+  background: var(--theme-success-soft);
+  color: var(--theme-success);
+  border-color: var(--theme-success);
+}
+
 /* Direction 5: smart-filter chips for Library — Recently/Struggling/
    Mastered/New since last visit. Active state uses the accent color
    for clear visual feedback. Hover shows it's clickable. */
@@ -8035,6 +8107,17 @@ body:not(.theme-light) .v3-heatmap-cell {
       <div class="v3-form-row">
         <label for="v3TextMetaTopic" data-i18n="textMeta.labelTopic">Тема</label>
         <input id="v3TextMetaTopic" type="text" placeholder="lyrics / politics / family ..." />
+      </div>
+
+      <!-- Direction 5: manual smart-tag override (Premium UX). -->
+      <div class="v3-meta-smart-tag" id="v3TextMetaSmartTagWrap">
+        <div class="v3-meta-smart-tag-label" data-i18n="textMeta.smartTagLabel">Smart-фильтр (переопределить)</div>
+        <div class="v3-meta-smart-tag-help" data-i18n="textMeta.smartTagHelp">По умолчанию фильтр определяется по SRS-данным. Можно вручную пометить эту карточку.</div>
+        <div class="v3-meta-smart-tag-row" role="radiogroup" aria-label="Smart tag override">
+          <button type="button" class="v3-meta-smart-tag-btn" data-tag="auto" onclick="v3TextMetaSetSmartTag(null)" data-i18n="textMeta.smartTagAuto">⚙ Авто (по SRS)</button>
+          <button type="button" class="v3-meta-smart-tag-btn" data-tag="struggling" onclick="v3TextMetaSetSmartTag('struggling')" data-i18n="textMeta.smartTagStruggling">🔥 Сложно</button>
+          <button type="button" class="v3-meta-smart-tag-btn" data-tag="mastered" onclick="v3TextMetaSetSmartTag('mastered')" data-i18n="textMeta.smartTagMastered">✓ Освоено</button>
+        </div>
       </div>
 
       <div class="v3-modal-actions">
@@ -18608,13 +18691,23 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     if (isSelected) card.classList.add("v3-lib-card-selected");
 
     // Avoid heavy string concatenations in loops where possible
+    // Direction 5: manual smart-tag badge — visible if user has manually
+    // overridden the auto classification. Click → opens Meta Edit so user
+    // can change/clear it.
+    const _smartTag = String(txt.manual_smart_tag || "").trim();
+    const _smartBadgeHtml = _smartTag === "struggling"
+      ? `<span class="v3-lib-smart-badge" title="${v3EscapeHtml(t("library.smartBadgeStrugglingTitle") || "Помечено вручную как сложное")}" onclick="event.stopPropagation(); v3TextMetaOpen('${v3EscapeHtml(id)}');">🔥 ${v3EscapeHtml(t("library.smartBadgeStruggling") || "Сложно")}</span>`
+      : _smartTag === "mastered"
+      ? `<span class="v3-lib-smart-badge mastered" title="${v3EscapeHtml(t("library.smartBadgeMasteredTitle") || "Помечено вручную как освоенное")}" onclick="event.stopPropagation(); v3TextMetaOpen('${v3EscapeHtml(id)}');">✓ ${v3EscapeHtml(t("library.smartBadgeMastered") || "Освоено")}</span>`
+      : "";
+
     card.innerHTML = `
       <div class="v3-lib-card-top">
         <label class="v3-lib-card-check" style="display:flex; align-items:flex-start; padding:6px 10px 6px 0; cursor:pointer;" onclick="event.stopPropagation();">
           <input type="checkbox" data-act="select" ${isSelected ? "checked" : ""} style="width:20px; height:20px; cursor:pointer;" />
         </label>
         <div style="flex:1;">
-          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button></div>
+          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_smartBadgeHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button></div>
           <div class="v3-lib-card-meta">
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
@@ -24333,7 +24426,33 @@ function v3ApplyMetaUpdateToCaches(textId, updated) {
   } catch (_) {}
 }
 
-function v3TextMetaOpen(textId) {
+// Direction 5 enhancement: in-modal state for the manual smart-tag radio.
+// Decoupled from text record so user can preview before save.
+let v3TextMetaPendingSmartTag = null;
+
+// Inner "render" — applies pending value to UI without toggling.
+function v3TextMetaRenderSmartTag() {
+  const wrap = document.getElementById("v3TextMetaSmartTagWrap");
+  if (!wrap) return;
+  wrap.querySelectorAll(".v3-meta-smart-tag-btn").forEach((b) => {
+    const btnTag = b.getAttribute("data-tag");
+    const isActive = (btnTag === "auto" && !v3TextMetaPendingSmartTag) || btnTag === v3TextMetaPendingSmartTag;
+    b.classList.toggle("active", isActive);
+  });
+}
+// Public click-handler. Toggle: clicking the same active tag returns to auto.
+function v3TextMetaSetSmartTag(tag) {
+  const safe = (tag === 'struggling' || tag === 'mastered') ? tag : null;
+  if (safe && v3TextMetaPendingSmartTag === safe) {
+    v3TextMetaPendingSmartTag = null;
+  } else {
+    v3TextMetaPendingSmartTag = safe;
+  }
+  v3TextMetaRenderSmartTag();
+}
+window.v3TextMetaSetSmartTag = v3TextMetaSetSmartTag;
+
+async function v3TextMetaOpen(textId) {
   const id = String(textId || "");
   v3TextMetaEditingId = id;
 
@@ -24350,6 +24469,24 @@ function v3TextMetaOpen(textId) {
   v3MetaEl("v3TextMetaTags").value = tagsCsv;
   v3MetaEl("v3TextMetaSource").value = source;
   v3MetaEl("v3TextMetaTopic").value = topic;
+
+  // Direction 5: load current manual smart-tag (LOCAL_MODE only; server-mode
+  // treats it as 'auto' since the column doesn't exist server-side).
+  v3TextMetaPendingSmartTag = null;
+  if (LOCAL_MODE) {
+    try {
+      const ldb = await ensureLocalDB();
+      if (typeof ldb.getManualSmartTag === "function") {
+        v3TextMetaPendingSmartTag = await ldb.getManualSmartTag(id);
+      }
+    } catch (_) {}
+  }
+  // Re-sync UI to pending value (also handles "auto" highlight if null).
+  // Use the render-only path; the public setter has toggle behaviour.
+  v3TextMetaRenderSmartTag();
+  // Hide smart-tag wrap entirely on server-mode (column doesn't exist).
+  const wrap = document.getElementById("v3TextMetaSmartTagWrap");
+  if (wrap) wrap.style.display = LOCAL_MODE ? "" : "none";
 
   v3TextMetaSetStatus("", false);
   v3TextMetaShow(true);
@@ -24406,6 +24543,12 @@ async function v3TextMetaSave() {
         source: payload.source,
         topic: payload.topic,
       });
+      // Direction 5: persist manual smart-tag override.
+      try {
+        if (typeof ldb.setManualSmartTag === "function") {
+          await ldb.setManualSmartTag(id, v3TextMetaPendingSmartTag);
+        }
+      } catch (e) { console.warn("[smart-tag] save failed", e); }
       updated = await ldb.getTextById(id);
     } else {
       const j = await v3PatchJson(`/api/library/texts/${encodeURIComponent(id)}/meta`, payload);
@@ -24423,6 +24566,14 @@ async function v3TextMetaSave() {
 
     // форсируем перерисовку списков (без новых listeners в аудио)
     try { v3LibraryLastRenderKey = null; } catch (_) {}
+
+    // Direction 5: refresh smart-chip cache so the new override (struggling /
+    // mastered) is reflected in chip filtering immediately, then re-render.
+    try {
+      if (typeof v3LibrarySmartLoadCache === "function") {
+        await v3LibrarySmartLoadCache();
+      }
+    } catch (_) {}
 
     try {
       const libModal = document.getElementById("v3LibraryModal");

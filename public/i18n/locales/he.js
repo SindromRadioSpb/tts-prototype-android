@@ -255,6 +255,10 @@ window.I18N_LOCALES.he = {
     smartNew: "✨ חדשים",
     smartNewTitle: "טקסטים חדשים מאז הביקור הקודם בספרייה",
     smartClear: "ביטול מסנן smart",
+    smartBadgeStruggling: "קשה",
+    smartBadgeStrugglingTitle: "סומן ידנית כקשה (Meta Edit)",
+    smartBadgeMastered: "נשלט",
+    smartBadgeMasteredTitle: "סומן ידנית כנשלט (Meta Edit)",
   },
   saveMeta: {
     title: "שמור לספרייה",
@@ -347,6 +351,11 @@ window.I18N_LOCALES.he = {
     close: "סגור",
     labelTopic: "נושא",
     tagsHint: "הזן תגיות מופרדות בפסיקים. שדה ריק = ניקוי הערך.",
+    smartTagLabel: "Smart-מסנן (עקיפה)",
+    smartTagHelp: "כברירת מחדל המסנן נקבע לפי נתוני SRS. אפשר לסמן ידנית את הכרטיס הזה.",
+    smartTagAuto: "⚙ אוטומטי (לפי SRS)",
+    smartTagStruggling: "🔥 קשה",
+    smartTagMastered: "✓ נשלט",
   },
   srs: {
     title: "אימון SRS",

@@ -571,8 +571,13 @@ export async function getActivityHeatmap({ days = 30 } = {}) {
 // "Struggling" — texts where ≥ 30% of SRS reviews resulted in 'again'
 // (the worst grade). Threshold stays generous so we surface texts that
 // genuinely need more practice without flooding the filter.
+//
+// PREMIUM ENHANCEMENT (migration 020): result merged with manually-
+// tagged texts so users can override the SRS-derived classification.
+// Manual-tagged-as-mastered EXCLUDES from struggling even if SRS data
+// would have included it — explicit user intent wins.
 export async function getStrugglingTexts({ minReviews = 5, errorThreshold = 0.3 } = {}) {
-  const rows = await q(
+  const auto = await q(
     `SELECT s.text_id AS text_id,
             COUNT(*) AS reviews,
             SUM(CASE WHEN re.rating = 'again' THEN 1 ELSE 0 END) AS errors
@@ -584,14 +589,23 @@ export async function getStrugglingTexts({ minReviews = 5, errorThreshold = 0.3 
         AND CAST(errors AS REAL) / reviews >= ?`,
     [minReviews, errorThreshold]
   );
-  return rows.map((r) => String(r.text_id));
+  const manualStruggling = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'struggling'`);
+  const manualMastered   = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'mastered'`);
+  const out = new Set();
+  for (const r of auto) out.add(String(r.text_id));
+  for (const r of manualStruggling) out.add(String(r.id));
+  // Explicit "mastered" override removes from struggling.
+  for (const r of manualMastered) out.delete(String(r.id));
+  return Array.from(out);
 }
 
 // "Mastered" — texts where every linked SRS card has reached the
 // "review" stage (no longer in 'new' or 'learning'). Inversion of
 // the Anki "learning" set.
+//
+// PREMIUM ENHANCEMENT (migration 020): merged with manual override.
 export async function getMasteredTexts() {
-  const rows = await q(
+  const auto = await q(
     `SELECT s.text_id AS text_id,
             COUNT(c.id) AS total,
             SUM(CASE WHEN c.state = 'review' THEN 1 ELSE 0 END) AS mastered
@@ -600,7 +614,31 @@ export async function getMasteredTexts() {
       GROUP BY s.text_id
      HAVING total > 0 AND total = mastered`
   );
-  return rows.map((r) => String(r.text_id));
+  const manualMastered = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'mastered'`);
+  const manualStruggling = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'struggling'`);
+  const out = new Set();
+  for (const r of auto) out.add(String(r.text_id));
+  for (const r of manualMastered) out.add(String(r.id));
+  // Explicit "struggling" override removes from mastered.
+  for (const r of manualStruggling) out.delete(String(r.id));
+  return Array.from(out);
+}
+
+// PREMIUM Direction 5 enhancement: manual smart-tag setter/getter.
+// Tag values: null (auto), 'struggling', 'mastered'. Anything else
+// is normalised to null.
+export async function setManualSmartTag(textId, tag) {
+  const safe = (tag === 'struggling' || tag === 'mastered') ? tag : null;
+  const now = new Date().toISOString();
+  await r(
+    `UPDATE texts SET manual_smart_tag = ?, updated_at = ? WHERE id = ?`,
+    [safe, now, String(textId)]
+  );
+  return { ok: true, tag: safe };
+}
+export async function getManualSmartTag(textId) {
+  const rows = await q(`SELECT manual_smart_tag FROM texts WHERE id = ? LIMIT 1`, [String(textId)]);
+  return rows.length ? (rows[0].manual_smart_tag || null) : null;
 }
 
 // "New since last visit" — texts created since localStorage marker.
