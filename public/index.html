@@ -5762,6 +5762,68 @@ td[data-col="ru"] {
 /* Status badge — keep green/yellow/red but with dark-mode contrast */
 .feedback-dark #v3FbStatusBadge { filter: brightness(1.1); }
 
+/* ── Tier 1.1: FAQ accordion in self-service block ─────────────── */
+.v3-fb-faq-item {
+  border-top: 1px solid #e2e8f0;
+  padding: 0;
+}
+.v3-fb-faq-item:first-child { border-top: 0; }
+.v3-fb-faq-summary {
+  cursor: pointer; font-size: 13px; font-weight: 500; color: #0f172a;
+  padding: 8px 0; user-select: none; line-height: 1.4; outline: none;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.v3-fb-faq-summary::-webkit-details-marker { display: none; }
+.v3-fb-faq-summary::before {
+  content: "▸"; flex-shrink: 0; font-size: 10px; color: #94a3b8;
+  transition: transform 0.15s; line-height: 1.4; padding-top: 2px;
+}
+.v3-fb-faq-item[open] .v3-fb-faq-summary::before { transform: rotate(90deg); }
+.v3-fb-faq-summary:focus-visible { color: #2563eb; }
+.v3-fb-faq-answer {
+  font-size: 12.5px; color: #475569; padding: 0 0 10px 16px; line-height: 1.5;
+}
+.feedback-dark .v3-fb-faq-item { border-top-color: #334155 !important; }
+.feedback-dark .v3-fb-faq-summary { color: #f1f5f9 !important; }
+.feedback-dark .v3-fb-faq-answer { color: #cbd5e1 !important; }
+
+/* ── Tier 1.2/1.3: Auto-fill notice strip ───────────────────────── */
+.v3-fb-autofill-notice {
+  background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px;
+  padding: 8px 10px; margin-bottom: 12px; font-size: 12px; color: #1e3a8a;
+  display: flex; align-items: center; gap: 6px; line-height: 1.4;
+}
+.feedback-dark .v3-fb-autofill-notice {
+  background: #1e3a8a !important; border-color: #3b82f6 !important; color: #dbeafe !important;
+}
+
+/* ── Tier 1.6: respect prefers-reduced-motion ───────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  #v3FeedbackPanel,
+  .v3-fb-pulse-dot,
+  .v3-fb-cc-result,
+  .v3-fb-email-chooser,
+  #v3FbWaQr,
+  section[style*="animation:v3FbWaCardIn"] {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Tier 1.2: error/success toast variants + report button ──── */
+.toast.toast-error   { background: #991b1b; }
+.toast.toast-success { background: #166534; }
+.toast.toast-warning { background: #854d0e; }
+.toast.toast-info    { background: #1e3a8a; }
+.toast-report-btn {
+  margin-left: 10px; background: rgba(255,255,255,0.18); color: #fff;
+  border: 1px solid rgba(255,255,255,0.3); padding: 4px 10px;
+  border-radius: 4px; font-size: 12px; cursor: pointer; font-family: inherit;
+  transition: background 0.15s;
+}
+.toast-report-btn:hover { background: rgba(255,255,255,0.3); }
+.toast { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+
 </style>
 
 <script src="/db/jszip.min.js"></script>
@@ -12590,7 +12652,33 @@ updatePlaylistButtonUI();
     // ----------------------------
     // ТОСТ
     // ----------------------------
-    function showToast(message) {
+    // Tier 1.2/1.3: ring buffer of last error contexts so the bug-form can
+    // auto-fill from a recent error. Limited to 5 entries; entries older
+    // than 60s are excluded from auto-fill (still kept until rotated out).
+    window.__v3LastErrors = window.__v3LastErrors || [];
+    function v3PushErrorContext(message) {
+        try {
+            const arr = window.__v3LastErrors;
+            arr.push({ message: String(message || "").slice(0, 500), ts: Date.now() });
+            while (arr.length > 5) arr.shift();
+        } catch (_) {}
+    }
+    window.v3GetRecentErrorContext = function () {
+        // Returns the most recent error within 60s, or null.
+        const arr = window.__v3LastErrors || [];
+        if (!arr.length) return null;
+        const last = arr[arr.length - 1];
+        if (!last || !last.ts) return null;
+        if (Date.now() - last.ts > 60_000) return null;
+        return last;
+    };
+
+    // Toast accepts (message, kind, options).
+    //   kind: "info" (default) | "success" | "warning" | "error"
+    //   options.actionable: boolean — for error toasts, append a 📬 Report
+    //     button that opens feedback with pre-filled error context.
+    //     Defaults to true when kind === "error".
+    function showToast(message, kind, options) {
         if (!toastContainerEl) return;
 
         if (toastTimeoutId) {
@@ -12599,9 +12687,36 @@ updatePlaylistButtonUI();
         }
         toastContainerEl.innerHTML = "";
 
+        const safeKind = ["info","success","warning","error"].indexOf(kind) >= 0 ? kind : "info";
+        const opts = options || {};
+        const actionable = opts.actionable !== undefined ? !!opts.actionable : (safeKind === "error");
+
         const toastEl = document.createElement("div");
-        toastEl.className = "toast";
-        toastEl.textContent = message;
+        toastEl.className = "toast toast-" + safeKind;
+
+        // Use a span for the message so we can append a button next to it.
+        const msgEl = document.createElement("span");
+        msgEl.textContent = message;
+        toastEl.appendChild(msgEl);
+
+        // For error toasts, capture context for the bug-form auto-fill and
+        // optionally render a "📬 Report" escape-hatch.
+        if (safeKind === "error") {
+            try { v3PushErrorContext(message); } catch (_) {}
+        }
+        if (actionable && safeKind === "error" && typeof window.v3FeedbackOpen === "function") {
+            const reportBtn = document.createElement("button");
+            reportBtn.className = "toast-report-btn";
+            reportBtn.type = "button";
+            const T = (typeof window.t === "function") ? window.t : function (k) { return k; };
+            reportBtn.textContent = T("feedback.toastReportBtn");
+            reportBtn.title = T("feedback.toastReportTitle");
+            reportBtn.addEventListener("click", function (e) {
+                e.stopPropagation();  // don't dismiss the toast on button click
+                try { window.v3FeedbackOpen("bug"); } catch (_) {}
+            });
+            toastEl.appendChild(reportBtn);
+        }
 
         toastEl.addEventListener("click", function () {
             toastEl.classList.remove("toast-show");
@@ -12618,6 +12733,8 @@ updatePlaylistButtonUI();
             toastEl.classList.add("toast-show");
         });
 
+        // Errors stay longer so user has time to click the report button.
+        const ttl = (safeKind === "error" || safeKind === "warning") ? 5000 : 2500;
         toastTimeoutId = setTimeout(function () {
             toastEl.classList.remove("toast-show");
             setTimeout(function () {
@@ -12625,7 +12742,7 @@ updatePlaylistButtonUI();
                     toastContainerEl.removeChild(toastEl);
                 }
             }, 250);
-        }, 2500);
+        }, ttl);
     }
 
     // Инициализация UI таблицы
@@ -18939,6 +19056,7 @@ let v3FbView = "triage";     // 'triage' | 'category:<name>' | 'ack'
 let v3FbCurrentCategory = null;
 let v3FbDraftTimer = null;
 let v3FbDiagOptOut = new Set();  // ids of diagnostic sections opted out
+let v3FbLastSentAt = null;       // Date stamp for Tier 1.5 ack timestamp
 
 // Safe i18n helper — falls back to the key when the i18n module is not
 // loaded yet (e.g. during early init). Mirrors window.t signature.
@@ -19187,6 +19305,34 @@ function v3FbKeyHandler(e) {
     if (v3FbView !== "triage" && v3FbView !== "ack") {
       v3FbView = "triage"; v3FbCurrentCategory = null; v3FbRender();
     } else { v3FeedbackClose(); }
+    return;
+  }
+  // Tier 1.4: Ctrl/Cmd+Enter sends via WhatsApp (primary) when in a form.
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter" && v3FbView.startsWith("category:")) {
+    const titleEl = document.getElementById("v3FbTitle_input");
+    const bodyEl = document.getElementById("v3FbBody_input");
+    const hasContent = (titleEl && titleEl.value.trim()) || (bodyEl && bodyEl.value.trim());
+    if (hasContent) {
+      e.preventDefault();
+      try { v3FbSubmit("whatsapp"); } catch (_) {}
+    }
+    return;
+  }
+  // Tier 1.4: focus trap — Tab cycles within the modal panel only.
+  if (e.key === "Tab") {
+    const panel = document.getElementById("v3FeedbackPanel");
+    if (!panel) return;
+    const focusables = panel.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
   }
 }
 window.v3FeedbackOpen = v3FeedbackOpen;
@@ -19218,8 +19364,29 @@ function v3FbPostRender() {
     }
   }
 
-  // If on a form view, start draft autosave.
+  // If on a form view, start draft autosave + Tier 1.3 auto-fill last error.
   if (v3FbView.startsWith("category:")) {
+    // Tier 1.3: bug-form auto-fill from recent error context (last 60s).
+    if (v3FbCurrentCategory === "bug") {
+      const errCtx = (typeof window.v3GetRecentErrorContext === "function") ? window.v3GetRecentErrorContext() : null;
+      if (errCtx && errCtx.message) {
+        const titleEl = document.getElementById("v3FbTitle_input");
+        const bodyEl = document.getElementById("v3FbBody_input");
+        if (titleEl && !titleEl.value) {
+          titleEl.value = errCtx.message.slice(0, 100);
+        }
+        if (bodyEl && !bodyEl.value) {
+          bodyEl.value = v3FbT("feedback.autoFillBugIntro") + "\n\n" + errCtx.message;
+        }
+        // Render notice strip above the form so the user knows it was auto-filled.
+        const noticeSlot = document.getElementById("v3FbAutofillNotice");
+        if (noticeSlot && !noticeSlot.dataset.shown) {
+          noticeSlot.innerHTML = '<div class="v3-fb-autofill-notice"><span>💡</span><span>' + v3FbEscape(v3FbT("feedback.autoFillNotice")) + '</span></div>';
+          noticeSlot.dataset.shown = "1";
+        }
+      }
+    }
+    // Existing draft restore.
     const draft = v3FbLoadDraft();
     if (draft && draft.category === v3FbCurrentCategory && draft.fields) {
       for (const id of Object.keys(draft.fields)) {
@@ -19229,6 +19396,12 @@ function v3FbPostRender() {
     }
     if (v3FbDraftTimer) clearInterval(v3FbDraftTimer);
     v3FbDraftTimer = setInterval(v3FbSaveDraft, 2000);
+
+    // Tier 1.4: auto-focus first input + Ctrl/Cmd+Enter to send.
+    setTimeout(() => {
+      const firstInput = document.getElementById("v3FbTitle_input");
+      try { if (firstInput) firstInput.focus(); } catch (_) {}
+    }, 50);
   }
 
   // Status badge: refresh from /api/diag (best-effort).
@@ -19255,11 +19428,27 @@ function v3FbRenderTriage() {
   return `
     <div style="background:#f8fafc; border-radius:12px; padding:14px 16px; margin-bottom:16px; border:1px solid #e2e8f0;">
       <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; color:#94a3b8; margin-bottom:8px;">${T("feedback.selfTitle")}</div>
-      <ul style="list-style:none; display:flex; flex-direction:column; gap:6px; margin:0; padding:0;">
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:4px; margin:0; padding:0;">
         <li><a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">${T("feedback.selfUserGuide")}</a></li>
-        <li><a href="#" onclick="alert('FAQ — TBD');return false;" style="color:#2563eb; text-decoration:none; font-size:13.5px;">${T("feedback.selfFaq")}</a></li>
         <li><a href="/CHANGELOG.md" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:none; font-size:13.5px;">${T("feedback.selfChangelog")}</a></li>
       </ul>
+      <details style="margin-top:10px; padding-top:10px; border-top:1px solid #e2e8f0;">
+        <summary style="cursor:pointer; user-select:none; font-size:13.5px; font-weight:500; color:#2563eb; padding:2px 0;">${T("feedback.faqTitle")}</summary>
+        <div style="margin-top:6px;">
+          <details class="v3-fb-faq-item">
+            <summary class="v3-fb-faq-summary">${T("feedback.faqQ1")}</summary>
+            <div class="v3-fb-faq-answer">${T("feedback.faqA1")}</div>
+          </details>
+          <details class="v3-fb-faq-item">
+            <summary class="v3-fb-faq-summary">${T("feedback.faqQ2")}</summary>
+            <div class="v3-fb-faq-answer">${T("feedback.faqA2")}</div>
+          </details>
+          <details class="v3-fb-faq-item">
+            <summary class="v3-fb-faq-summary">${T("feedback.faqQ3")}</summary>
+            <div class="v3-fb-faq-answer">${T("feedback.faqA3")}</div>
+          </details>
+        </div>
+      </details>
     </div>
 
     <section style="background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); border-radius:12px; padding:20px; margin-bottom:18px; color:#fff; box-shadow:0 8px 24px rgba(37,211,102,0.25); position:relative; overflow:hidden; animation:v3FbWaCardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;">
@@ -19392,6 +19581,8 @@ function v3FbRenderCategory(category) {
     <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#475569; cursor:pointer; padding:0 0 12px; font-size:13px; font-family:inherit;">${T("feedback.back")}</button>
     <h3 style="margin:0 0 12px; font-size:18px; font-weight:600; color:#0f172a;">${cfg.title}</h3>
 
+    <div id="v3FbAutofillNotice"></div>
+
     ${cfg.showPanic ? `
       <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; margin-bottom:14px;">
         <div style="font-weight:600; font-size:13.5px; color:#991b1b; margin-bottom:6px;">${T("feedback.privacyUrgent")}</div>
@@ -19448,11 +19639,22 @@ function v3FbRenderCategory(category) {
 function v3FbRenderAck() {
   const T = v3FbT;
   const hours = v3FbConfig.responseTimeHours;
+  // Tier 1.5: real timestamp + computed expected-by. Format times in the
+  // user's current locale so a he-IL user sees Hebrew weekdays etc.
+  const sentDate = v3FbLastSentAt instanceof Date ? v3FbLastSentAt : new Date();
+  const expectedBy = new Date(sentDate.getTime() + hours * 3600 * 1000);
+  const lang = (typeof window.appGetLocale === "function") ? window.appGetLocale() : "ru";
+  const localeMap = { ru: "ru-RU", en: "en-US", he: "he-IL" };
+  const fmtLocale = localeMap[lang] || "ru-RU";
+  const fmtOpts = { hour: "2-digit", minute: "2-digit", weekday: "short", day: "2-digit", month: "short" };
+  const sentStr = sentDate.toLocaleString(fmtLocale, fmtOpts);
+  const expectedStr = expectedBy.toLocaleString(fmtLocale, fmtOpts);
   return `
     <div style="text-align:center; padding:24px 12px;">
       <div style="font-size:48px; margin-bottom:12px;">✓</div>
       <h3 style="margin:0 0 12px; font-size:20px; font-weight:600; color:#0f172a;">${T("feedback.ackTitle")}</h3>
-      <p style="font-size:14.5px; line-height:1.5; color:#475569; margin:0 0 16px;">${T("feedback.ackBody", { hours: hours })}</p>
+      <p style="font-size:14.5px; line-height:1.5; color:#475569; margin:0 0 12px;">${T("feedback.ackBody", { hours: hours })}</p>
+      <p style="font-size:12.5px; line-height:1.5; color:#475569; margin:0 0 16px; padding:8px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; display:inline-block;">${T("feedback.ackTimestamp", { sentAt: sentStr, expectedBy: expectedStr })}</p>
       <p style="font-size:13.5px; line-height:1.5; color:#94a3b8; margin:0 0 24px;">${T("feedback.ackUrgent")}</p>
       <div style="text-align:left; background:#f8fafc; border-radius:8px; padding:14px 16px; border:1px solid #e2e8f0;">
         <div style="font-size:13px; font-weight:600; color:#0f172a; margin-bottom:8px;">${T("feedback.ackWhatNext")}</div>
@@ -19505,6 +19707,10 @@ async function v3FbSubmit(channel) {
     diagText = v3FbFormatDiagnostics(sections);
   }
   const message = v3FbTemplate(cat, fields, diagText);
+
+  // Tier 1.5: stamp the moment user actually sent the message so the ack
+  // screen can display real timestamps + a computed SLA window.
+  v3FbLastSentAt = new Date();
 
   if (channel === "whatsapp") {
     const url = "https://wa.me/" + v3FbConfig.whatsappPhone + "?text=" + encodeURIComponent(message);

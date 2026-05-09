@@ -557,5 +557,21 @@ window.I18N_LOCALES.he = {
     ccPanelClose: "✕",
     toastCopied: "הועתק. הדביקו ב-email / WhatsApp / GitHub.",
     btnTitle: "צור קשר עם המפתח",
+    // Tier 1.1 FAQ
+    faqTitle: "שאלות נפוצות",
+    faqQ1: "איפה הנתונים שלי?",
+    faqA1: "באחסון פרטי של הדפדפן במכשיר זה (OPFS). השרת לא רואה ולא שומר. פרטים נוספים — במדריך המשתמש.",
+    faqQ2: "איך עושים גיבוי?",
+    faqA2: "בספרייה לחצו 'ייצוא ZIP (עם אודיו)' — תורד ארכיון עם כל הטקסטים, ההערות, ההתקדמות והאודיו. שחזור במכשיר אחר — 'ייבוא ZIP' מאותה פאנל.",
+    faqQ3: "מה משמעות הנקודות הצבעוניות ליד המשפטים?",
+    faqA3: "ירוק = אודיו במטמון, מתנגן ללא בזבוז מכסת TTS. אפור = האודיו עדיין לא נוצר — בלחיצה על Play תיבזבז מכסת TTS. צהוב = התאמה חלקית של פרופיל (המטמון מתנגן, אך הגדרות הקול שונות).",
+    // Tier 1.2 Escape-hatch on error toasts
+    toastReportBtn: "📬 דווח",
+    toastReportTitle: "דווח על שגיאה זו למפתח",
+    // Tier 1.3 Auto-fill last error
+    autoFillNotice: "מולא אוטומטית מהשגיאה האחרונה — ערכו לפי הצורך.",
+    autoFillBugIntro: "ראיתי כעת שגיאה:",
+    // Tier 1.5 Real timestamp in ack
+    ackTimestamp: "נשלח: {sentAt}. תשובה צפויה עד: {expectedBy}.",
   },
 };

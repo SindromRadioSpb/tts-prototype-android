@@ -557,5 +557,21 @@ window.I18N_LOCALES.en = {
     ccPanelClose: "✕",
     toastCopied: "Copied to clipboard. Paste into email / WhatsApp / GitHub.",
     btnTitle: "Contact developer",
+    // Tier 1.1 FAQ
+    faqTitle: "Frequently asked",
+    faqQ1: "Where does my data live?",
+    faqA1: "In your browser's private storage on this device (OPFS). The server can't see or store it. See the User Guide for details.",
+    faqQ2: "How do I back up?",
+    faqA2: "In Library click \"Export ZIP (with audio)\" — downloads an archive with all texts, notes, progress, and audio. Restore on another device via \"Import ZIP\" in the same panel.",
+    faqQ3: "What do the colored dots next to sentences mean?",
+    faqA3: "Green = audio in cache, plays without spending TTS quota. Gray = audio not generated yet — playing will spend TTS quota. Yellow = partial profile match (cache plays, but voice settings differ).",
+    // Tier 1.2 Escape-hatch on error toasts
+    toastReportBtn: "📬 Report",
+    toastReportTitle: "Report this error to the developer",
+    // Tier 1.3 Auto-fill last error
+    autoFillNotice: "Pre-filled from the last error — edit if needed.",
+    autoFillBugIntro: "I just saw this error:",
+    // Tier 1.5 Real timestamp in ack
+    ackTimestamp: "Sent: {sentAt}. Expect a reply by: {expectedBy}.",
   },
 };
