@@ -11441,10 +11441,10 @@ let v3NotesModalIsDirty = false;
 let v3NotesModalHotkeysHandler = null;
 
 // UX-03: unsaved guard baseline
-let v3NotesModalOriginalValue = "";
-
-// UX-02: hotkeys handler (bind/unbind while modal open)
-let v3NotesHotkeyHandler = null;
+// Phase 9.1.C hardening (M5): v3NotesModalOriginalValue and
+// v3NotesHotkeyHandler state vars + their associated legacy code paths
+// were removed. v3NotesModalOriginalText (Phase 9.1.C) and
+// v3NotesModalHotkeysHandler are the canonical replacements.
 
 // W10-NOTES-UX-MD-01: preview state (markdown preview in notes modal)
 let v3NotesPreviewVisible = false;
@@ -30947,61 +30947,13 @@ function v3NotesIsOpen() {
   return !!(modal && !modal.classList.contains("hidden"));
 }
 
-// actual close (no guard)
-function v3NotesForceClose() {
-  const modal = v3NotesEl("v3NotesModal");
-  if (modal) modal.classList.add("hidden");
-
-  // UX-02: unbind hotkeys
-  try {
-    if (v3NotesHotkeyHandler) {
-      document.removeEventListener("keydown", v3NotesHotkeyHandler, true);
-      v3NotesHotkeyHandler = null;
-    }
-  } catch (_) {}
-
-  v3NotesModalTextId = null;
-  v3NotesModalSentenceId = null;
-  v3NotesModalRowIdx = null;
-  v3NotesModalOriginalValue = "";
-}
-
-// UX-02: hotkeys (Esc / Ctrl+Enter) active only while modal open + focus in panel
-function v3NotesBindHotkeysOnce() {
-  try {
-    if (v3NotesHotkeyHandler) return;
-
-    v3NotesHotkeyHandler = (ev) => {
-      try {
-        if (!v3NotesIsOpen()) return;
-
-        const modal = v3NotesEl("v3NotesModal");
-        const panel = modal ? modal.querySelector(".v3-modal-panel") : null;
-        const ae = document.activeElement;
-        const focusInside = !!(panel && ae && panel.contains(ae));
-
-        // Esc closes (with guard)
-        if (ev.key === "Escape") {
-          ev.preventDefault();
-          ev.stopPropagation();
-          v3NotesClose(); // guard-aware
-          return;
-        }
-
-        // Ctrl+Enter saves (only if focus is inside modal)
-        if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
-          if (!focusInside) return;
-          ev.preventDefault();
-          ev.stopPropagation();
-          v3NotesSave();
-          return;
-        }
-      } catch (_) {}
-    };
-
-    document.addEventListener("keydown", v3NotesHotkeyHandler, true);
-  } catch (_) {}
-}
+// Phase 9.1.C hardening (M5): legacy v3NotesForceClose + v3NotesBindHotkeysOnce
+// from the pre-9.1.C modal lived here. They were overridden / never called
+// after the 9.1.C rewrite installed v3NotesModalHotkeysHandler-based replacements
+// at the top of v3NotesOpen + the new v3NotesForceClose below the polymorphic
+// helpers. Removing the dead code eliminates risk of accidental re-wiring and
+// cuts ~55 lines + the orphan v3NotesHotkeyHandler / v3NotesModalOriginalValue
+// state variables.
 
 // ──────────────────────────────────────────────────────────────────────────
 // Phase 9.1.C — Notes modal: target picker / type switcher / history sidebar
@@ -31303,7 +31255,16 @@ async function v3NotesNoteAutocomplete() {
     if (!q) { hints.style.display = "none"; hints.innerHTML = ""; return; }
     const ldb = await ensureLocalDB();
     if (typeof ldb.searchAllNotes !== "function") return;
-    const rows = await ldb.searchAllNotes(q, 10);
+    const rawRows = await ldb.searchAllNotes(q, 10);
+    // Phase 9.1.C hardening (M4): filter out the currently-edited note
+    // to prevent the user creating a self-loop link (target_kind=note,
+    // target_id = own note id). Without this, the resulting note_links
+    // row passes the CHECK but the backlinks panel later shows a
+    // confusing "this note links to itself" entry.
+    const _selfId = String(v3NotesModalNoteId || "");
+    const rows = _selfId
+      ? (rawRows || []).filter((r) => String(r.id || "") !== _selfId)
+      : (rawRows || []);
     if (!rows || !rows.length) { hints.style.display = "none"; hints.innerHTML = ""; return; }
     hints.innerHTML = rows.map((r) => {
       const id = String(r.id || "");
@@ -31585,6 +31546,21 @@ async function v3NotesHistoryRestore(noteId, version) {
 // V3_NOTES_AUTOSAVE_DELAY_MS after the last keystroke. Skips when the
 // note isn't dirty or when we'd hit the legacy upsertNote path with an
 // empty body (which would be a delete).
+// Phase 9.1.C hardening (M3): note mutations need to invalidate the
+// Library smart-chip cache so chip badges + filter Sets stay accurate.
+// Cheap to recompute (single COUNT query per chip); only fires when the
+// Library modal is actually visible, so background note edits don't
+// thrash. Best-effort — failure is swallowed.
+function v3NotesInvalidateLibrarySmartCache() {
+  try {
+    const libModal = document.getElementById("v3LibraryModal");
+    if (!libModal || libModal.classList.contains("hidden")) return;
+    if (typeof v3LibrarySmartLoadCache === "function") {
+      v3LibrarySmartLoadCache().catch(() => {});
+    }
+  } catch (_) {}
+}
+
 function v3NotesScheduleAutoSave() {
   if (v3NotesAutoSaveTimer) {
     try { clearTimeout(v3NotesAutoSaveTimer); } catch (_) {}
@@ -32075,7 +32051,9 @@ function v3NotesUpdateButtonRow(rowIdx, sentenceId) {
     if (has) btn.classList.add("row-note-active");
     else btn.classList.remove("row-note-active");
 
-    btn.title = has ? "Заметка (есть)" : "Добавить заметку";
+    btn.title = has
+      ? v3NotesT("notes.rowBtnTitleHas", "Заметка (есть)")
+      : v3NotesT("notes.rowBtnTitleAdd", "Добавить заметку");
   } catch (_) {}
 }
 
@@ -32139,9 +32117,11 @@ async function v3NotesSave(isAutoSave) {
         v3NotesModalOriginalText = "";
         v3NotesModalIsDirty = false;
 
-        v3NotesSafeSetStatus(st, "Заметка удалена.", false);
+        v3NotesSafeSetStatus(st, v3NotesT("notes.statusDeleted", "Заметка удалена."), false);
         if (delBtn) delBtn.style.display = "none";
         if (!isAutoSave) showToast(t("toast.noteDeleted"), "success");
+        // Phase 9.1.C hardening (M3): refresh Library smart-chip cache.
+        v3NotesInvalidateLibrarySmartCache();
         return;
       }
 
@@ -32211,12 +32191,16 @@ async function v3NotesSave(isAutoSave) {
 
       // F6: вместо "Сохранено." показываем "Сохранено в ..."
       const savedAt = v3NotesFmtSavedAt(updatedAt);
-      v3NotesSafeSetStatus(st, savedAt ? `Сохранено в ${savedAt}` : "Сохранено.", false);
+      const _statusSavedAt = v3NotesT("notes.statusSavedAt", "Сохранено в {time}").replace("{time}", savedAt || "");
+      const _statusSaved   = v3NotesT("notes.statusSaved", "Сохранено.");
+      v3NotesSafeSetStatus(st, savedAt ? _statusSavedAt : _statusSaved, false);
 
       if (delBtn) delBtn.style.display = "";
       if (!isAutoSave) showToast(t("toast.noteSaved"), "success");
       // Refresh history sidebar if open
       if (v3NotesHistoryOpen) await v3NotesHistoryRefresh();
+      // Phase 9.1.C hardening (M3): refresh Library smart-chip cache.
+      v3NotesInvalidateLibrarySmartCache();
       return;
     }
 
@@ -32327,11 +32311,15 @@ async function v3NotesSave(isAutoSave) {
     v3NotesModalOriginalText = note;
     v3NotesModalIsDirty = false;
     const savedAt = v3NotesFmtSavedAt(updatedAt);
-    v3NotesSafeSetStatus(st, savedAt ? `Сохранено в ${savedAt}` : "Сохранено.", false);
+    const _statusSavedAtPoly = v3NotesT("notes.statusSavedAt", "Сохранено в {time}").replace("{time}", savedAt || "");
+    const _statusSavedPoly   = v3NotesT("notes.statusSaved", "Сохранено.");
+    v3NotesSafeSetStatus(st, savedAt ? _statusSavedAtPoly : _statusSavedPoly, false);
     if (delBtn) delBtn.style.display = note ? "" : "none";
 
     if (!isAutoSave) showToast(t("toast.noteSaved") || v3NotesT("toast.noteSaved", "Заметка сохранена."), "success");
     if (v3NotesHistoryOpen) await v3NotesHistoryRefresh();
+    // Phase 9.1.C hardening (M3): refresh Library smart-chip cache.
+    v3NotesInvalidateLibrarySmartCache();
   } catch (e) {
     console.warn("v3NotesSave failed", e);
     showToast(t("toast.noteSaveFailed"), "error");
@@ -32343,6 +32331,29 @@ async function v3NotesDelete() {
     const textId = String(v3NotesModalTextId || "");
     const sentenceId = String(v3NotesModalSentenceId || "");
     const rowIdx = v3NotesModalRowIdx;
+
+    // Phase 9.1.C hardening (M1): destructive action — confirm before
+    // deletion. Direction 6 baseline requires v3ConfirmModal for all
+    // destructive flows; the original v3.1 sentence-note delete was
+    // unguarded only because deletion was reversible via the in-memory
+    // undo-toast pattern. Polymorphic notes (history/links) make undo
+    // less trivial; explicit confirmation is the right premium UX.
+    const _nT = (typeof window.t === "function") ? window.t : function(k){return k;};
+    const _nfb = (key, fallback) => {
+      try {
+        const v = _nT(key);
+        if (typeof v === "string" && v !== key) return v;
+      } catch (_) {}
+      return fallback;
+    };
+    const _confirmed = await v3ConfirmModal({
+      title:      _nfb("confirms.notesDeleteTitle", "Удалить заметку?"),
+      body:       _nfb("confirms.notesDeleteBody", "Заметка будет удалена. Историю версий восстановить будет нельзя."),
+      okText:     _nfb("confirms.notesDeleteOk", "Удалить"),
+      cancelText: _nfb("confirms.cancelBtn", "Отмена"),
+      danger: true,
+    });
+    if (!_confirmed) return;
 
     // Phase 9.1.C — polymorphic delete path. If we have a noteId, prefer
     // deleteNoteById; otherwise fall back to the legacy sentence-bound delete.
@@ -32368,8 +32379,10 @@ async function v3NotesDelete() {
       const delBtn = v3NotesEl("v3NotesDeleteBtn");
       if (delBtn) delBtn.style.display = "none";
       const st = v3NotesEl("v3NotesStatus");
-      v3NotesSafeSetStatus(st, "Заметка удалена.", false);
+      v3NotesSafeSetStatus(st, v3NotesT("notes.statusDeleted", "Заметка удалена."), false);
       showToast(t("toast.noteDeleted"), "success");
+      // Phase 9.1.C hardening (M3): refresh Library smart-chip cache.
+      v3NotesInvalidateLibrarySmartCache();
       return;
     }
 
@@ -32402,9 +32415,11 @@ async function v3NotesDelete() {
     if (delBtn) delBtn.style.display = "none";
 
     const st = v3NotesEl("v3NotesStatus");
-    v3NotesSafeSetStatus(st, "Заметка удалена.", false);
+    v3NotesSafeSetStatus(st, v3NotesT("notes.statusDeleted", "Заметка удалена."), false);
 
     showToast(t("toast.noteDeleted"), "success");
+    // Phase 9.1.C hardening (M3): refresh Library smart-chip cache.
+    v3NotesInvalidateLibrarySmartCache();
   } catch (e) {
     console.warn("v3NotesDelete failed", e);
     showToast(t("toast.noteDeleteFailed"), "error");

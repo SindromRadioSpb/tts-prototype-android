@@ -684,18 +684,40 @@ export async function searchAllNotes(queryStr, limit = 50) {
 // ── Versioning (M5) ──────────────────────────────────────────────────────
 
 async function _appendNoteVersion(noteId, oldBody, newBody) {
-  // Atomic version assignment — current max + 1.
-  const maxRow = await q(
-    'SELECT COALESCE(MAX(version), 0) AS m FROM note_versions WHERE note_id = ?',
-    [noteId]
-  );
-  const nextVer = Number((maxRow[0] && maxRow[0].m) || 0) + 1;
-  await r(
-    `INSERT INTO note_versions (note_id, version, body_json, edited_at)
-     VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
-    [noteId, nextVer, oldBody]
-  );
-  return nextVer;
+  // Phase 9.1.C hardening (H1): version assignment is SELECT MAX → INSERT
+  // which is race-prone if two updateNote() calls overlap (e.g. fast
+  // autosave + explicit Save). The PRIMARY KEY (note_id, version) on
+  // note_versions will reject the second INSERT with a UNIQUE constraint
+  // violation. Retry-on-conflict pattern: catch the violation, re-query
+  // MAX, retry with the new bump. Cap retries to defeat infinite loops
+  // on persistent failure modes (e.g. DB locked).
+  const MAX_RETRIES = 5;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const maxRow = await q(
+      'SELECT COALESCE(MAX(version), 0) AS m FROM note_versions WHERE note_id = ?',
+      [noteId]
+    );
+    const nextVer = Number((maxRow[0] && maxRow[0].m) || 0) + 1;
+    try {
+      await r(
+        `INSERT INTO note_versions (note_id, version, body_json, edited_at)
+         VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+        [noteId, nextVer, oldBody]
+      );
+      return nextVer;
+    } catch (e) {
+      // Detect UNIQUE / PRIMARY KEY violation. wa-sqlite surfaces these
+      // as "UNIQUE constraint failed: note_versions.note_id, ..." or
+      // SQLITE_CONSTRAINT_PRIMARYKEY. Both contain the substring
+      // "constraint". Anything else — re-throw immediately.
+      const msg = (e && e.message ? String(e.message) : String(e)).toLowerCase();
+      const isConstraint = msg.indexOf('constraint') !== -1 || msg.indexOf('unique') !== -1;
+      if (!isConstraint || attempt === MAX_RETRIES - 1) throw e;
+      // else loop — re-query MAX and retry with the bumped version.
+    }
+  }
+  // Defensive — should be unreachable.
+  throw new Error('_appendNoteVersion: exhausted retries for note ' + noteId);
 }
 
 // Compute and stamp a human-friendly diff summary on the version row that

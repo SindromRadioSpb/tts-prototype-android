@@ -520,6 +520,40 @@ async function run() {
     if (await getNoteById(freeNoteId)) throw new Error('row still findable after delete');
   })();
 
+  // ── Phase 9.1.C hardening — Stage 2 verification ───────────────
+
+  // H1 fix verification: concurrent updateNote calls must both succeed
+  // (retry-on-UNIQUE-constraint path). Without the fix, one of the two
+  // INSERTs into note_versions hit the (note_id, version) PRIMARY KEY
+  // and threw. With the fix, the loser re-queries MAX and bumps version.
+  await t('H1: concurrent updateNote calls do not throw (race retry)', async () => {
+    const baseNote = await createNote({
+      target_kind: 'free', note_type: 'free',
+      title: 'H1 race test',
+      body: 'baseline body',
+    });
+    const baseId = baseNote.id;
+    if (!baseId) throw new Error('setup: createNote returned no id');
+    const startCount = (await listNoteVersions(baseId)).length;
+
+    // Fire two updateNote() in parallel — same note, different bodies.
+    const [r1, r2] = await Promise.all([
+      updateNote(baseId, { body: 'race body A — first update' }),
+      updateNote(baseId, { body: 'race body B — second update' }),
+    ]);
+    if (!r1 || !r2) throw new Error('one concurrent updateNote returned null');
+
+    const after = await listNoteVersions(baseId);
+    if (after.length <= startCount) throw new Error('expected ≥1 new version row; got ' + (after.length - startCount));
+    // Critical invariant: no duplicate version numbers — retry-on-conflict
+    // must bump the loser.
+    const versionsSet = new Set(after.map(v => v.version));
+    if (versionsSet.size !== after.length) {
+      throw new Error('duplicate version numbers detected — retry-on-conflict failed');
+    }
+    await deleteNoteById(baseId);
+  })();
+
   // Cleanup
   await t('cleanup: deleteText cascades phase 9.1.B test data', async () => {
     await deleteText(phB_textId);
