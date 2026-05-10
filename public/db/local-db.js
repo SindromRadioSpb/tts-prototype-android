@@ -1834,6 +1834,18 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
   }
 
   const audioAssets = Array.from(audioAssetsMap.values());
+
+  // ── Phase 9.1.D: advanced notes payload (web-only) ─────────────────────
+  // notes_v2 + note_versions + note_links + roots — everything that can't
+  // live inline on `row.note` (which is the Android-v2-compatible
+  // surface). This bundle.json layer is web-only — Android v2 ignores
+  // unknown ZIP entries, so adding library/notes_advanced.json is safe
+  // and preserves library.json schema_version=1 (no Android update
+  // needed). Web → web roundtrip preserves everything; web → Android
+  // → web degrades to only sentence-bound free notes (those that ride
+  // inline on row.note). Documented in PREMIUM_NOTES_PLAN_v3_2.md § 5.
+  const notesAdvanced = await _buildAdvancedNotesPayload(exportList.map((t) => t.id));
+
   const manifest = {
     export_schema_version: 1,
     app_id: 'linguist-pro-web',
@@ -1846,12 +1858,106 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
     contains_secrets: false,
     library_json_path: 'library/library.json',
     missing_audio_path: 'metadata/missing_audio.json',
+    // Phase 9.1.D: presence advertised so importers can plan ahead.
+    notes_advanced_path: 'library/notes_advanced.json',
+    notes_advanced_present: !!(notesAdvanced &&
+      ((notesAdvanced.notes || []).length ||
+       (notesAdvanced.versions || []).length ||
+       (notesAdvanced.links || []).length ||
+       (notesAdvanced.roots || []).length)),
   };
   const library = { schema_version: 1, texts, audio_assets: audioAssets };
   // Backwards-compat: also expose `texts` at the top of the returned object so
   // callers that iterate `bundle.texts` directly (importBundle round-trip,
-  // older tests) keep working without changes.
-  return { manifest, library, texts, audio_assets: audioAssets };
+  // older tests) keep working without changes. Phase 9.1.D adds
+  // `notes_advanced` at the top level too — the ZIP packager will write it
+  // to library/notes_advanced.json.
+  return { manifest, library, texts, audio_assets: audioAssets, notes_advanced: notesAdvanced };
+}
+
+// Phase 9.1.D: gather notes_v2 + note_versions + note_links + roots into a
+// portable payload. Scoped to a set of text_ids when given; otherwise
+// includes all rows. Output shape is intentionally similar to the existing
+// library.json patterns — JSON-serializable, no FK rewiring needed at this
+// stage (caller decides whether to remap during import).
+//
+// `textIds` is the list of OPFS text ids in this export. We use it for the
+// final filter on text-bound notes — but we INTENTIONALLY include
+// text-independent notes (root / binyan / free) regardless, since they're
+// per-user, not per-text.
+async function _buildAdvancedNotesPayload(textIds) {
+  const TEXT_BOUND_KINDS = new Set(['sentence', 'word', 'text']);
+  const _filterByText = (rows, key) => {
+    if (!Array.isArray(textIds) || !textIds.length) return rows;
+    const allowed = new Set(textIds.map(String));
+    return rows.filter((r) => {
+      const tk = String(r.target_kind || r[key === 'note' ? 'target_kind' : '_irrelevant'] || '');
+      // For notes_v2 rows: include text-bound notes only when their text_id
+      // is in the export set; include text-independent notes always.
+      if (key === 'note') {
+        if (TEXT_BOUND_KINDS.has(tk)) {
+          return allowed.has(String(r.text_id || ''));
+        }
+        return true; // root/binyan/note/free — always included
+      }
+      return true;
+    });
+  };
+
+  // 1) notes_v2 — all polymorphic note rows. The library.json inline
+  //    `row.note` field carries sentence-bound free notes for Android-v2
+  //    compat; on web-to-web roundtrip the inline path runs first
+  //    (importBundle main loop calls upsertNote per row.note), then this
+  //    advanced-notes path runs and would re-create the same sentence-
+  //    bound free note. To avoid duplicates, importer detects existing
+  //    sentence-bound free notes by (text_id, sentence_id) and merges
+  //    versions/links onto them instead of inserting a new row.
+  const allNotes = await q('SELECT * FROM notes_v2 ORDER BY created_at ASC');
+  const notes = _filterByText(allNotes, 'note');
+
+  // 2) note_versions — every snapshot we have. FIFO retention already
+  //    capped at 50 per note at write time.
+  const noteIds = notes.map((n) => n.id);
+  const versions = noteIds.length
+    ? (await q(
+        `SELECT note_id, version, body_json, diff_summary, edited_at
+           FROM note_versions
+          WHERE note_id IN (${noteIds.map(() => '?').join(',')})
+          ORDER BY note_id, version ASC`,
+        noteIds
+      ))
+    : [];
+
+  // 3) note_links — only outgoing edges from the included notes. Broken
+  //    inbound links from notes NOT in the export are silently dropped
+  //    (they wouldn't resolve on the receiver side either).
+  const links = noteIds.length
+    ? (await q(
+        `SELECT from_note_id, to_kind, to_id, link_alias, created_at
+           FROM note_links
+          WHERE from_note_id IN (${noteIds.map(() => '?').join(',')})`,
+        noteIds
+      ))
+    : [];
+
+  // 4) roots — include ONLY user-customized rows (those with my_note_id
+  //    pointing to a note in the export). Seed roots are not portable
+  //    user data and are re-seeded from public/data/HEBREW_COMMON_
+  //    ROOTS_SEED.json on import via seedRoots() at runtime.
+  const noteIdSet = new Set(noteIds);
+  const allRoots = await q('SELECT root_3letter, gloss, my_note_id FROM roots');
+  const roots = allRoots.filter((r) => r.my_note_id && noteIdSet.has(r.my_note_id));
+
+  return {
+    schema_version: 1,
+    exported_at: new Date().toISOString(),
+    app_id: 'linguist-pro-web',
+    format: 'linguistpro-notes-advanced-v1',
+    notes,
+    versions,
+    links,
+    roots,
+  };
 }
 
 export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
@@ -1877,6 +1983,19 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
   }
 
   const result = { imported: 0, skipped: 0, errors: [], importedIds: [] };
+
+  // Phase 9.1.D: build oldId → newId remaps as we go so the advanced
+  // notes payload (notes_advanced.json) can rewire its FKs after the
+  // main loop completes. Maps populate even when a text is skipped via
+  // mode='skip' — in that case we look up the EXISTING text/sentence
+  // id by text_key + order_index and register that as the "new" id so
+  // advanced notes referencing skipped texts still resolve.
+  const oldToNewTextId = new Map();
+  const oldToNewSentenceId = new Map();
+  // Also track which sentence-bound free notes were inserted via the
+  // inline upsertNote path — so advanced-notes import can MERGE rather
+  // than duplicate.
+  const inlineFreeNoteIdByTargetKey = new Map(); // key: newTextId + ':' + newSentenceId
 
   for (const item of texts) {
     let textData;
@@ -1926,17 +2045,36 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
       const text_key = String(textData.text_key || textData.textKey || '').trim()
         || ('imported-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
       const existing = await q('SELECT id FROM texts WHERE text_key = ?', [text_key]);
-      if (existing.length > 0 && mode === 'skip') { result.skipped++; continue; }
+      if (existing.length > 0 && mode === 'skip') {
+        // Phase 9.1.D: even on skip, remember the existing text id so
+        // notes_advanced can attach to it. Note: sentence-level remap is
+        // only available for newly-inserted texts (we'd need an order_index
+        // scan of the existing sentences here to map skipped texts too,
+        // which is more expensive than the v3.2 baseline warrants — for
+        // skip mode, sentence-targeted advanced notes for that text are
+        // dropped). Documented in 9_1_D_BUNDLE_COMPAT_REPORT.md.
+        const _oldTid = String(textData.id || '');
+        if (_oldTid) oldToNewTextId.set(_oldTid, String(existing[0].id));
+        result.skipped++;
+        continue;
+      }
 
       newTextId = crypto.randomUUID();
+      const _oldTid = String(textData.id || '');
+      if (_oldTid) oldToNewTextId.set(_oldTid, newTextId);
       await createText({ ...textData, text_key, id: newTextId });
 
       const sentences = textData.sentences ?? textData.rows ?? [];
       for (const s of sentences) {
         const newSentenceId = crypto.randomUUID();
+        const _oldSid = String(s.row_id || s.id || '');
+        if (_oldSid) oldToNewSentenceId.set(_oldSid, newSentenceId);
         await addSentence(newTextId, { ...s, id: newSentenceId });
         if (s.note && s.note.trim()) {
-          await upsertNote(newTextId, newSentenceId, s.note);
+          const _inlineRow = await upsertNote(newTextId, newSentenceId, s.note);
+          if (_inlineRow && _inlineRow.id) {
+            inlineFreeNoteIdByTargetKey.set(newTextId + ':' + newSentenceId, String(_inlineRow.id));
+          }
         }
         // Re-establish audio asset link. If the unified bundle ships an
         // audio_assets[] entry with provenance.ttsProfile, we capture it so
@@ -1982,7 +2120,269 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
       }
     }
   }
+
+  // ── Phase 9.1.D: advanced notes payload (web-only) ─────────────────────
+  // After the main library.json import loop has populated text + sentence
+  // id remaps, apply the notes_advanced.json payload (when present) with
+  // FK rewiring. See _applyAdvancedNotesPayload for collision handling.
+  const advanced = (bundleObj && bundleObj.notes_advanced) || null;
+  if (advanced && typeof advanced === 'object') {
+    try {
+      const advResult = await _applyAdvancedNotesPayload(advanced, {
+        oldToNewTextId,
+        oldToNewSentenceId,
+        inlineFreeNoteIdByTargetKey,
+      });
+      result.notes_advanced = advResult;
+    } catch (e) {
+      result.errors.push({ stage: 'notes_advanced', error: e && e.message ? e.message : String(e) });
+    }
+  }
+
   return result;
+}
+
+// Phase 9.1.D: Apply notes_advanced.json payload to OPFS with FK rewiring.
+// Handles three classes of remap:
+//   1. Note ids — every imported note gets a fresh UUID; old → new map is
+//      built as we iterate so versions + links can resolve.
+//   2. target_id for kind ∈ {sentence, text, note} — looked up via the
+//      respective remap. For kind ∈ {root, binyan, free, word}, target_id
+//      is opaque user data (root_3letter / binyan name / free=null) and
+//      is preserved verbatim.
+//   3. text_id (the denormalized FK for partition) — looked up via
+//      oldToNewTextId. If the text wasn't imported (mode='skip' on a
+//      collision), text-bound notes for it are silently dropped.
+//
+// Special case: sentence-bound free notes are also created inline via
+// upsertNote() in the main loop (riding on `row.note`). To avoid duplicate
+// rows, we MERGE the advanced-notes entry into the inline row (same id),
+// rather than create a fresh one. Versions + links are then attached to
+// that pre-existing inline note id.
+//
+// Returns { notes: { inserted, merged, dropped }, versions: { inserted, dropped },
+//           links: { inserted, dropped }, roots: { inserted } }.
+async function _applyAdvancedNotesPayload(payload, ctx) {
+  const out = {
+    notes:    { inserted: 0, merged: 0, dropped: 0 },
+    versions: { inserted: 0, dropped: 0 },
+    links:    { inserted: 0, dropped: 0 },
+    roots:    { inserted: 0 },
+  };
+  const oldToNewTextId = (ctx && ctx.oldToNewTextId) || new Map();
+  const oldToNewSentenceId = (ctx && ctx.oldToNewSentenceId) || new Map();
+  const inlineFreeNoteIdByTargetKey = (ctx && ctx.inlineFreeNoteIdByTargetKey) || new Map();
+
+  const _remap = (map, oldId) => {
+    const k = oldId == null ? '' : String(oldId);
+    if (!k) return null;
+    return map.has(k) ? map.get(k) : null;
+  };
+
+  const oldToNewNoteId = new Map();
+
+  // Pass 1 — notes_v2. Build the note id remap.
+  const notes = Array.isArray(payload.notes) ? payload.notes : [];
+  for (const n of notes) {
+    if (!n || typeof n !== 'object') { out.notes.dropped++; continue; }
+    const oldId = String(n.id || '');
+    if (!oldId) { out.notes.dropped++; continue; }
+    const tk = String(n.target_kind || 'sentence');
+    if (!_TARGET_KINDS.has(tk)) { out.notes.dropped++; continue; }
+    const nt = String(n.note_type || 'free');
+    if (!_NOTE_TYPES.has(nt)) { out.notes.dropped++; continue; }
+
+    // Remap text_id
+    const oldTextId = n.text_id ? String(n.text_id) : null;
+    let newTextId = null;
+    if (oldTextId) {
+      newTextId = _remap(oldToNewTextId, oldTextId);
+      if (!newTextId) { out.notes.dropped++; continue; } // text wasn't imported
+    }
+
+    // Remap target_id by target_kind
+    let newTargetId = null;
+    if (tk === 'sentence') {
+      newTargetId = _remap(oldToNewSentenceId, n.target_id);
+      if (!newTargetId) { out.notes.dropped++; continue; }
+    } else if (tk === 'text') {
+      newTargetId = _remap(oldToNewTextId, n.target_id);
+      if (!newTargetId) { out.notes.dropped++; continue; }
+    } else if (tk === 'note') {
+      // Forward reference to another note in this same payload — resolved
+      // in pass 1b below (after all note ids are known).
+      newTargetId = '__pending_note_remap__:' + String(n.target_id || '');
+    } else {
+      // root / binyan / word / free: target_id is opaque user data.
+      newTargetId = n.target_id != null ? String(n.target_id) : null;
+    }
+
+    // Sentence-bound free note duplicate-merge: re-use the inline-path id.
+    let newNoteId = null;
+    let didMerge = false;
+    if (tk === 'sentence' && nt === 'free' && newTextId && newTargetId) {
+      const inlineKey = newTextId + ':' + newTargetId;
+      if (inlineFreeNoteIdByTargetKey.has(inlineKey)) {
+        newNoteId = inlineFreeNoteIdByTargetKey.get(inlineKey);
+        didMerge = true;
+      }
+    }
+    if (!newNoteId) {
+      newNoteId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : ('n-imp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+    }
+    oldToNewNoteId.set(oldId, newNoteId);
+
+    if (didMerge) {
+      // Body already inserted via inline upsertNote — leave it alone, but
+      // update the row's note_type / audio_anchor_ms etc. if the bundle
+      // carries richer metadata. body_json stays inline-set value.
+      try {
+        const fields = [];
+        const values = [];
+        if (n.title != null) { fields.push('title = ?');                    values.push(String(n.title || '')); }
+        if (n.audio_anchor_ms != null) { fields.push('audio_anchor_ms = ?'); values.push(Number(n.audio_anchor_ms) || null); }
+        if (n.audio_asset_key != null) { fields.push('audio_asset_key = ?'); values.push(String(n.audio_asset_key)); }
+        if (n.srs_card_id != null)     { fields.push('srs_card_id = ?');     values.push(String(n.srs_card_id)); }
+        if (fields.length > 0) {
+          values.push(newNoteId);
+          await r(`UPDATE notes_v2 SET ${fields.join(', ')} WHERE id = ?`, values);
+        }
+      } catch (_) {}
+      out.notes.merged++;
+    } else {
+      // Fresh insert.
+      const bodyJson = (typeof n.body_json === 'string') ? n.body_json : JSON.stringify({});
+      // body_json validation guard — schema CHECK will reject invalid; we
+      // pre-validate here to drop gracefully rather than throw.
+      try { JSON.parse(bodyJson); } catch (_) { out.notes.dropped++; continue; }
+      // The 'note' target_kind needs deferred resolution; insert with NULL
+      // and patch in pass 1b.
+      const insertTargetId = (tk === 'note') ? null : newTargetId;
+      try {
+        await r(
+          `INSERT INTO notes_v2
+             (id, target_kind, target_id, text_id, note_type, title, body_json,
+              audio_anchor_ms, audio_asset_key, srs_card_id,
+              created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            newNoteId, tk, insertTargetId, newTextId, nt,
+            String(n.title || ''), bodyJson,
+            Number.isFinite(n.audio_anchor_ms) ? Math.max(0, Math.round(n.audio_anchor_ms)) : null,
+            n.audio_asset_key != null ? String(n.audio_asset_key) : null,
+            n.srs_card_id     != null ? String(n.srs_card_id)     : null,
+            n.created_at || new Date().toISOString(),
+            n.updated_at || new Date().toISOString(),
+          ]
+        );
+        // For target_kind='note', mark for deferred resolution.
+        if (tk === 'note') {
+          n.__pending_target_id = String(n.target_id || '');
+        }
+        out.notes.inserted++;
+      } catch (e) {
+        out.notes.dropped++;
+      }
+    }
+  }
+
+  // Pass 1b — deferred target_id resolution for target_kind='note'.
+  for (const n of notes) {
+    if (String(n.target_kind || '') !== 'note') continue;
+    if (!n.__pending_target_id) continue;
+    const oldId = String(n.id || '');
+    const newFromId = oldToNewNoteId.get(oldId);
+    const newTargetNoteId = oldToNewNoteId.get(n.__pending_target_id);
+    if (!newFromId) continue;
+    if (newTargetNoteId) {
+      try {
+        await r('UPDATE notes_v2 SET target_id = ? WHERE id = ?', [newTargetNoteId, newFromId]);
+      } catch (_) {}
+    } else {
+      // Target wasn't in the payload (or failed to insert) — leave target_id
+      // NULL; backlinks panel will tolerate this as a broken-link.
+    }
+  }
+
+  // Pass 2 — note_versions. note_id remap; (note_id, version) unique so
+  // accept whatever versions came in (could be < 50 per note).
+  const versions = Array.isArray(payload.versions) ? payload.versions : [];
+  for (const v of versions) {
+    if (!v || typeof v !== 'object') { out.versions.dropped++; continue; }
+    const newNoteId = oldToNewNoteId.get(String(v.note_id || ''));
+    if (!newNoteId) { out.versions.dropped++; continue; }
+    const bodyJson = (typeof v.body_json === 'string') ? v.body_json : JSON.stringify({});
+    try { JSON.parse(bodyJson); } catch (_) { out.versions.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR IGNORE INTO note_versions
+           (note_id, version, body_json, diff_summary, edited_at)
+         VALUES (?, ?, ?, ?, ?)`,
+        [
+          newNoteId,
+          Math.max(1, Number(v.version) || 1),
+          bodyJson,
+          v.diff_summary ?? null,
+          v.edited_at || new Date().toISOString(),
+        ]
+      );
+      out.versions.inserted++;
+    } catch (_) {
+      out.versions.dropped++;
+    }
+  }
+
+  // Pass 3 — note_links. from_note_id remap + to_id remap when to_kind
+  // points to a note/text/sentence we control.
+  const links = Array.isArray(payload.links) ? payload.links : [];
+  for (const l of links) {
+    if (!l || typeof l !== 'object') { out.links.dropped++; continue; }
+    const newFromId = oldToNewNoteId.get(String(l.from_note_id || ''));
+    if (!newFromId) { out.links.dropped++; continue; }
+    const toKind = String(l.to_kind || '');
+    let newToId = null;
+    if (toKind === 'note') {
+      newToId = oldToNewNoteId.get(String(l.to_id || '')) || null;
+    } else if (toKind === 'sentence') {
+      newToId = _remap(oldToNewSentenceId, l.to_id);
+    } else if (toKind === 'text') {
+      newToId = _remap(oldToNewTextId, l.to_id);
+    } else {
+      // root / binyan / word — opaque user data
+      newToId = l.to_id != null ? String(l.to_id) : null;
+    }
+    if (!newToId) { out.links.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR IGNORE INTO note_links
+           (from_note_id, to_kind, to_id, link_alias, created_at)
+         VALUES (?, ?, ?, ?, ?)`,
+        [newFromId, toKind, newToId, l.link_alias ?? null, l.created_at || new Date().toISOString()]
+      );
+      out.links.inserted++;
+    } catch (_) {
+      out.links.dropped++;
+    }
+  }
+
+  // Pass 4 — roots. Always INSERT OR IGNORE; user-customized rows merge
+  // with the seed dictionary. my_note_id remaps via oldToNewNoteId.
+  const roots = Array.isArray(payload.roots) ? payload.roots : [];
+  for (const root of roots) {
+    if (!root || !root.root_3letter) continue;
+    const newMyNoteId = root.my_note_id ? oldToNewNoteId.get(String(root.my_note_id)) : null;
+    try {
+      await r(
+        `INSERT OR IGNORE INTO roots (root_3letter, gloss, my_note_id) VALUES (?, ?, ?)`,
+        [String(root.root_3letter), root.gloss ?? null, newMyNoteId ?? null]
+      );
+      out.roots.inserted++;
+    } catch (_) { /* skip */ }
+  }
+
+  return out;
 }
 
 // B2: Roll back a list of text IDs imported in a previous migration. Used

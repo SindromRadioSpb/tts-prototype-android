@@ -32,6 +32,8 @@ import {
   seedRoots, searchRootsAutocomplete,
   getNotesSmartCollectionsSummary, getTextIdsForNotesSmartChip,
   resolveNote,
+  // Phase 9.1.D bundle roundtrip
+  exportBundle, importBundle,
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -552,6 +554,128 @@ async function run() {
       throw new Error('duplicate version numbers detected — retry-on-conflict failed');
     }
     await deleteNoteById(baseId);
+  })();
+
+  // ── Phase 9.1.D bundle roundtrip ─────────────────────────────────
+
+  // Verify that exportBundle includes notes_advanced AND that
+  // importBundle (re-importing the same bundle) restores the advanced
+  // notes via the FK remap path. Sentence-bound free notes are also
+  // checked for the no-duplicate merge behaviour.
+  await t('9.1.D: exportBundle surfaces notes_advanced payload', async () => {
+    // Seed a text + sentence + 1 polymorphic note (root target) + 1
+    // sentence-bound free note + 1 link.
+    const tid = crypto.randomUUID();
+    const tx = await createText({
+      id: tid, text_key: '9-1-d-roundtrip-' + Date.now(),
+      title: '9.1.D roundtrip', source_text: 'דברדבר',
+    });
+    const sid = crypto.randomUUID();
+    await addSentence(tx.id, { id: sid, order_index: 0, he_plain: 'דבר', ru: 'слово' });
+
+    // Sentence-bound free note via legacy upsertNote (rides on row.note)
+    await upsertNote(tx.id, sid, 'Inline body для родного теста.');
+
+    // Polymorphic root-targeted note
+    const rootNote = await createNote({
+      target_kind: 'root', target_id: 'דבר', note_type: 'word_study',
+      title: 'roundtrip root note',
+      body: { word: 'דבר', root: 'דבר', meaning: 'word, thing' },
+    });
+
+    // Link from root note to a hypothetical other root
+    await setNoteLinks(rootNote.id, [
+      { to_kind: 'binyan', to_id: "pi'el", link_alias: 'see binyan' },
+    ]);
+
+    // Trigger 1 versioning round on the root note so versions populate
+    await updateNote(rootNote.id, {
+      body: { word: 'דבר', root: 'דבר', meaning: 'word, thing, matter' },
+    });
+
+    const bundle = await exportBundle({ textIds: [tx.id] });
+    if (!bundle || !bundle.notes_advanced) throw new Error('notes_advanced missing from export');
+    const adv = bundle.notes_advanced;
+    if (adv.format !== 'linguistpro-notes-advanced-v1') throw new Error('format header missing');
+    if (!Array.isArray(adv.notes) || adv.notes.length < 2) throw new Error('expected ≥2 notes (root + inline)');
+    if (!Array.isArray(adv.versions)) throw new Error('versions array missing');
+    if (!Array.isArray(adv.links) || adv.links.length < 1) throw new Error('expected ≥1 link');
+    if (!bundle.manifest.notes_advanced_present) throw new Error('manifest flag not set');
+
+    // Cleanup
+    await deleteText(tx.id);
+  })();
+
+  await t('9.1.D: importBundle restores advanced notes with FK remap', async () => {
+    // Export → cleanup → import → verify
+    const tid = crypto.randomUUID();
+    const tx = await createText({
+      id: tid, text_key: '9-1-d-restore-' + Date.now(),
+      title: '9.1.D restore', source_text: 'אבא',
+    });
+    const sid = crypto.randomUUID();
+    await addSentence(tx.id, { id: sid, order_index: 0, he_plain: 'אבא', ru: 'отец' });
+    await upsertNote(tx.id, sid, 'Inline father note.');
+    const rootNote = await createNote({
+      target_kind: 'root', target_id: 'אבב', note_type: 'word_study',
+      title: 'restore root', body: { meaning: 'father-related' },
+    });
+
+    const bundle = await exportBundle({ textIds: [tx.id] });
+    if (!bundle.notes_advanced) throw new Error('export missing notes_advanced');
+
+    // Delete the original text + the polymorphic root note so import has
+    // a clean slate.
+    await deleteText(tx.id);
+    await deleteNoteById(rootNote.id);
+
+    // Now re-import. With a different text_key collision should not fire;
+    // verify advanced notes restored.
+    bundle.texts[0].text_key = bundle.texts[0].text_key + '-reimport';
+    const importResult = await importBundle(bundle, { mode: 'skip' });
+    if (!importResult.notes_advanced) throw new Error('importResult missing notes_advanced summary');
+    const adv = importResult.notes_advanced;
+    if (adv.notes.inserted + adv.notes.merged < 2) {
+      throw new Error('expected ≥2 notes inserted/merged; got inserted=' + adv.notes.inserted + ' merged=' + adv.notes.merged);
+    }
+
+    // Verify the root note re-appears via listNotesByTarget
+    const restoredRoots = await listNotesByTarget('root', 'אבב');
+    if (!restoredRoots.length) throw new Error('root-targeted note not restored');
+    if (restoredRoots[0].id === rootNote.id) {
+      throw new Error('expected NEW UUID for restored note, got the original id (FK remap failed)');
+    }
+
+    // Cleanup
+    const newTextId = importResult.importedIds[0];
+    if (newTextId) await deleteText(newTextId);
+    if (restoredRoots[0] && restoredRoots[0].id) await deleteNoteById(restoredRoots[0].id);
+  })();
+
+  await t('9.1.D: import without notes_advanced still works (legacy bundle)', async () => {
+    const tid = crypto.randomUUID();
+    const tx = await createText({
+      id: tid, text_key: '9-1-d-legacy-' + Date.now(),
+      title: '9.1.D legacy', source_text: 'בית',
+    });
+    const sid = crypto.randomUUID();
+    await addSentence(tx.id, { id: sid, order_index: 0, he_plain: 'בית', ru: 'дом' });
+    await upsertNote(tx.id, sid, 'Inline house note.');
+
+    const bundle = await exportBundle({ textIds: [tx.id] });
+    // Simulate legacy bundle: strip notes_advanced.
+    delete bundle.notes_advanced;
+    delete bundle.manifest.notes_advanced_present;
+
+    await deleteText(tx.id);
+
+    bundle.texts[0].text_key = bundle.texts[0].text_key + '-legacy-reimport';
+    const importResult = await importBundle(bundle, { mode: 'skip' });
+    if (importResult.imported !== 1) throw new Error('expected 1 text imported');
+    if (importResult.notes_advanced) throw new Error('notes_advanced summary present but should not be');
+
+    // Cleanup
+    if (importResult.importedIds[0]) await deleteText(importResult.importedIds[0]);
   })();
 
   // Cleanup

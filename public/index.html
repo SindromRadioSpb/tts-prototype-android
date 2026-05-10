@@ -22718,6 +22718,13 @@ async function v3LibraryExportBundle() {
 
       zip.file("manifest.json", JSON.stringify(payload.manifest, null, 2));
       zip.file("library/library.json", JSON.stringify(payload.library, null, 2));
+      // Phase 9.1.D: advanced notes payload (web-only, Android v2 ignores
+      // unknown ZIP entries). Only writes when there's actually something
+      // to ride (manifest.notes_advanced_present is set accordingly by
+      // exportBundle).
+      if (payload.notes_advanced && payload.manifest.notes_advanced_present) {
+        zip.file("library/notes_advanced.json", JSON.stringify(payload.notes_advanced, null, 2));
+      }
       if (missing.length) {
         zip.file("metadata/missing_audio.json", JSON.stringify({
           missing_audio: missing,
@@ -22828,6 +22835,23 @@ async function v3LibraryOnBundleImportSelected(ev) {
         }
         if (!libFile) { showToast(t("toast.zipMissingLibrary"), "error"); return; }
         parsed = JSON.parse(await libFile.async("string"));
+
+        // Phase 9.1.D: optional library/notes_advanced.json (web-only).
+        // If present, attach to the parsed bundle so importBundle's
+        // notes_advanced apply path fires after the main loop. Missing
+        // file is normal (Android v2 / legacy exports / old web exports).
+        try {
+          const advFile = zip.file("library/notes_advanced.json");
+          if (advFile) {
+            const advText = await advFile.async("string");
+            const advParsed = JSON.parse(advText);
+            if (advParsed && typeof advParsed === "object") {
+              parsed.notes_advanced = advParsed;
+            }
+          }
+        } catch (e) {
+          console.warn("[import] notes_advanced.json present but unreadable:", e && e.message);
+        }
 
         // Pull MP3 entries from the ZIP; we'll upload them AFTER importBundle
         // so the user sees their library populated immediately (uploads then
