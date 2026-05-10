@@ -11,6 +11,10 @@
 
 ### Shipped (so far)
 
+- **Direction 9 Phase 9.1.A + 9.1.B** — polymorphic notes schema + API *(2026-05-10, commits `8da394e` + `3a45833`)*. **Foundation половина закрыта**, UI revamp + bundle compat + i18n остаются.
+  - **9.1.A:** migrations 021–025 — `notes_v2` polymorphic table (target_kind ∈ 7 values, note_type ∈ 5 values, audio_anchor_ms, audio_asset_key, srs_card_id, 64k body_json cap, json_valid CHECK); `note_versions` (FIFO retention 50 enforced at app layer); `note_links` (bidirectional + backlinks); `roots` reference table (Phase 9.4 will seed ~100 entries); `sentence_notes` → `notes_v2` data migration with read-only VIEW shim для backwards-compat. New diagnostic helpers `dbQuery` / `dbRun`. 18/18 Playwright tests pass; events-emission regression clean 23/23.
+  - **9.1.B:** notes API rewritten on top of new schema. **Backwards-compat preserved** — `upsertNote / listNotes / deleteNote / searchNotes / resolveNote` continue to work without modification. New polymorphic helpers: `createNote / updateNote / deleteNoteById / listNotesByTarget / listAllNotesForText / getNoteById / searchAllNotes / listNoteVersions / restoreNoteVersion / setNoteLinks / listOutgoingLinks / listBacklinks / seedRoots / searchRootsAutocomplete / getNotesSmartCollectionsSummary / getTextIdsForNotesSmartChip`. updateNote auto-snapshots versions + diff_summary + 50-FIFO retention. restoreNoteVersion is itself versioned. **38/38** Playwright tests pass; events-test 23/23; main app smoke 0 JS errors.
+
 - **Direction 9 Phase 9.0** — Hebrew root extractor research *(two-phase, 2026-05-10)*:
   - **v1** *(commit `39230f8`)* — initial recommendation Plan B+C (manual + autocomplete + seed dictionary). Cause: AGPL libraries (HebMorph, hspell) vetoed when commercial-friendly licensing was assumed.
   - **v2 / re-research** *(commit `6f5c1ad`)* — user clarified app is non-commercial open-source → **AGPL unlocked**. New recommendation **Option A: HebMorph sidecar** for native root extraction (250K word forms, 10+ years production maturity via Elasticsearch Hebrew plugin). Plan B+C retained as graceful offline/OOV fallback — three-tier layered architecture.

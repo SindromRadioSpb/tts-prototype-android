@@ -182,9 +182,14 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
 - [x] **Direction 11A** — Analytics Foundation *(commits 7ed309f → 3f6b959, 2026-05-10)*
   - [x] Phase 11.0 — Event emission gap closure (12 event types wired; CONTRACTS drift closed; 23/23 Playwright tests pass)
   - [x] Phase 11.1 — Time-spent v2 (heartbeat-based session tracking + idle-aware aggregation; getActiveMsReal / getActiveMinutesByDay / getSessionMetrics exports)
-- [~] **Direction 9** — Premium Notes Redesign *(in progress)*
-  - [x] Phase 9.0 — Hebrew root extractor research *(commit `39230f8`, 2026-05-10)*
-  - [ ] Phase 9.1 — Foundation (polymorphic schema + versioning + smart-collections)
+- [~] **Direction 9** — Premium Notes Redesign *(in progress — Phase 9.1 ~50% done)*
+  - [x] Phase 9.0 — Hebrew root extractor research *(commits `39230f8` v1 + `6f5c1ad` v2 re-research, 2026-05-10)*
+  - [~] Phase 9.1 — Foundation (split into 5 sub-phases A/B/C/D/E)
+    - [x] 9.1.A — Schema migrations 021–025 *(commit `8da394e`, 18/18 tests)*
+    - [x] 9.1.B — local-db.js polymorphic API *(commit `3a45833`, 38/38 tests)*
+    - [ ] 9.1.C — Notes modal UI revamp *(handed off to separate worktree-isolated session — invasive UI work)*
+    - [ ] 9.1.D — Bundle compat (notes_advanced.json)
+    - [ ] 9.1.E — i18n keys + final audit
   - [ ] Phase 9.2 — Audio anchoring (M2)
   - [ ] Phase 9.3 — Linking + Templates + SRS micro-cards
   - [ ] Phase 9.4 — Morphology *(revised 5.5–7 days после Phase 9.0 v2 re-research; **Option A — HebMorph sidecar** для auto-extraction + Plan B + C as graceful offline/OOV fallback; new endpoint family `/api/morphology/v1/analyze`; AGPL-compatible due to non-commercial framing)*
