@@ -4542,8 +4542,24 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   color: #fff;
   border-color: var(--theme-accent);
 }
+/* In dark mode the accent palette is bright (#60a5fa). White text on bright
+   blue fails AA contrast; switch to the dark page background colour for
+   ≥ 4.5:1. Use the theme variable (resolved per-theme) rather than a
+   hardcoded hex so future palette tweaks propagate cleanly. */
 body.theme-dark .v3-notes-seg-btn.active,
-body:not(.theme-light) .v3-notes-seg-btn.active { color: #0f172a; }
+body:not(.theme-light) .v3-notes-seg-btn.active { color: var(--theme-bg-page, #0f172a); }
+/* Keyboard a11y — visible focus ring distinct from hover state. */
+.v3-notes-seg-btn:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+  border-color: var(--theme-accent);
+}
+.v3-notes-seg-btn.active:focus-visible {
+  /* When the focused button is also active, keep the ring readable on the
+     filled accent background by switching to outline + offset. */
+  outline: 2px solid var(--theme-text-primary);
+  outline-offset: 2px;
+}
 @media (prefers-reduced-motion: reduce) {
   .v3-notes-seg-btn { transition: none; }
 }
@@ -4772,10 +4788,26 @@ body:not(.theme-light) .v3-notes-template-banner {
 .v3-notes-history-diff-added {
   background: rgba(34, 197, 94, 0.18);
   color: var(--theme-text-primary);
+  border-left: 3px solid rgba(34, 197, 94, 0.55);
 }
 .v3-notes-history-diff-removed {
   background: rgba(239, 68, 68, 0.18);
   color: var(--theme-text-primary);
+  border-left: 3px solid rgba(239, 68, 68, 0.55);
+}
+/* Dark-mode contrast bump — the soft alpha tints get washed on slate-900. */
+body.theme-dark .v3-notes-history-diff-added,
+body:not(.theme-light) .v3-notes-history-diff-added { background: rgba(34, 197, 94, 0.28); }
+body.theme-dark .v3-notes-history-diff-removed,
+body:not(.theme-light) .v3-notes-history-diff-removed { background: rgba(239, 68, 68, 0.28); }
+.v3-notes-history-item:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+.v3-notes-history-close:focus-visible,
+.v3-notes-history-item-actions button:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
 }
 .v3-notes-history-diff-kept { opacity: 0.7; }
 .v3-notes-history-diff-empty {
@@ -8679,14 +8711,14 @@ body:not(.theme-light) .v3-heatmap-cell {
   </div>
 </div>
 
-<div id="v3NotesModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Заметка к строке">
+<div id="v3NotesModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3NotesModalTitle">
   <div class="v3-modal-backdrop" onclick="v3NotesClose()" aria-hidden="true"></div>
 
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
-      <div class="v3-modal-title">Заметка к строке (Ctrl+Enter - сохранить заметку)</div>
+      <div class="v3-modal-title" id="v3NotesModalTitle"><span id="v3NotesModalTitleLabel" data-i18n="notes.modalTitle.sentence">Заметка к строке</span> <span class="v3-notes-title-hint" data-i18n="notes.modalTitleHint">(Ctrl+Enter — сохранить)</span></div>
       <div style="display:flex; gap:8px; align-items:center;">
-        <button id="v3NotesHistoryToggleBtn" type="button" class="btn-secondary" onclick="v3NotesHistoryToggle()" title="История версий (M5)" aria-expanded="false">🕒 <span data-i18n="notes.history">History</span></button>
+        <button id="v3NotesHistoryToggleBtn" type="button" class="btn-secondary" onclick="v3NotesHistoryToggle()" data-i18n-title="notes.historyToggleTitle" title="История версий (M5)" aria-expanded="false">🕒 <span data-i18n="notes.history">История</span></button>
         <button class="btn-secondary" onclick="v3NotesClose()" data-i18n="notes.closeBtn">Закрыть</button>
       </div>
     </div>
@@ -8732,22 +8764,22 @@ body:not(.theme-light) .v3-heatmap-cell {
       </div>
 
       <div class="v3-form-row" style="align-items:flex-start;">
-  <label for="v3NotesText" style="padding-top:10px;">Note</label>
+  <label for="v3NotesText" style="padding-top:10px;" data-i18n="notes.bodyLabel">Заметка</label>
 
   <div id="v3NotesMdWrap" class="v3-notes-md">
     <!-- Optional title (used by non-free templates; hidden by default for free notes) -->
     <input type="text" id="v3NotesTitleInput" class="v3-notes-title-input" placeholder="" maxlength="200" style="display:none;" />
 
-    <div class="v3-notes-md-toolbar" aria-label="Markdown toolbar">
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('bold')" title="Bold (**text**)">B</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('italic')" title="Italic (*text*)"><span style="font-style:italic;">I</span></button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('code')" title="Inline code (`code`)">{ }</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('highlight')" title="Highlight (==text==)">HL</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('ul')" title="Bulleted list (- item)">• List</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('quote')" title="Quote (&gt; text)">&gt; Quote</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('link')" title="Link ([text](https://...))">Link</button>
+    <div class="v3-notes-md-toolbar" data-i18n-aria-label="notes.toolbarAriaLabel" aria-label="Markdown панель форматирования">
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('bold')" data-i18n-title="notes.mdBoldTitle" title="Жирный (**текст**)" aria-label="Жирный">B</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('italic')" data-i18n-title="notes.mdItalicTitle" title="Курсив (*текст*)" aria-label="Курсив"><span style="font-style:italic;">I</span></button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('code')" data-i18n-title="notes.mdCodeTitle" title="Inline-код (`код`)" aria-label="Код">{ }</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('highlight')" data-i18n-title="notes.mdHighlightTitle" title="Выделение (==текст==)" aria-label="Выделение">HL</button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('ul')" data-i18n-title="notes.mdListTitle" title="Список (- пункт)" aria-label="Список">• <span data-i18n="notes.mdListBtn">Список</span></button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('quote')" data-i18n-title="notes.mdQuoteTitle" title="Цитата (&gt; текст)" aria-label="Цитата">&gt; <span data-i18n="notes.mdQuoteBtn">Цитата</span></button>
+      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('link')" data-i18n-title="notes.mdLinkTitle" title="Ссылка ([текст](https://...))" aria-label="Ссылка"><span data-i18n="notes.mdLinkBtn">Ссылка</span></button>
 
-      <button id="v3NotesPreviewToggleBtn" type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdTogglePreview()" title="Toggle Preview">Preview</button>
+      <button id="v3NotesPreviewToggleBtn" type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdTogglePreview()" data-i18n-title="notes.mdPreviewTitle" title="Переключить предпросмотр" aria-label="Предпросмотр"><span data-i18n="notes.mdPreviewBtn">Preview</span></button>
     </div>
 
     <div class="v3-notes-md-split">
@@ -8761,10 +8793,10 @@ body:not(.theme-light) .v3-heatmap-cell {
       <div id="v3NotesPreview" class="v3-notes-md-preview hidden" aria-label="Markdown preview"></div>
 
       <!-- Phase 9.1.C Stage D: history sidebar -->
-      <aside id="v3NotesHistorySidebar" class="v3-notes-history-sidebar hidden" aria-label="Note version history">
+      <aside id="v3NotesHistorySidebar" class="v3-notes-history-sidebar hidden" data-i18n-aria-label="notes.historyAriaLabel" aria-label="История версий заметки">
         <div class="v3-notes-history-header">
           <span data-i18n="notes.historyTitle">История</span>
-          <button type="button" class="btn-secondary v3-notes-history-close" onclick="v3NotesHistoryClose()" title="Закрыть историю" aria-label="Закрыть историю">×</button>
+          <button type="button" class="btn-secondary v3-notes-history-close" onclick="v3NotesHistoryClose()" data-i18n-title="notes.historyCloseTitle" title="Закрыть историю" data-i18n-aria-label="notes.historyCloseTitle" aria-label="Закрыть историю">×</button>
         </div>
         <div id="v3NotesHistoryList" class="v3-notes-history-list">
           <div class="v3-notes-history-empty" data-i18n="notes.historyEmpty">Нет версий — сохраните хотя бы один раз.</div>
@@ -8772,19 +8804,19 @@ body:not(.theme-light) .v3-heatmap-cell {
       </aside>
     </div>
 
-    <div class="v3-help" style="margin-top:8px;">
+    <div class="v3-help" style="margin-top:8px;" data-i18n-html="notes.mdLegend">
       Markdown: <b>**жирный**</b>, <i>*курсив*</i>, <code>`код`</code>, <mark>==выделение==</mark>, <b>-</b> список, <b>&gt;</b> цитата, <b>[текст](https://...)</b>
     </div>
   </div>
 </div>
 
       <div class="v3-modal-actions" style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
-        <button id="v3NotesDeleteBtn" class="btn-secondary" onclick="v3NotesDelete()">Удалить</button>
-        <button id="v3NotesSaveBtn" class="btn-primary" onclick="v3NotesSave()">Сохранить</button>
+        <button id="v3NotesDeleteBtn" class="btn-secondary" onclick="v3NotesDelete()" data-i18n="notes.deleteBtn">Удалить</button>
+        <button id="v3NotesSaveBtn" class="btn-primary" onclick="v3NotesSave()" data-i18n="notes.saveBtn">Сохранить</button>
       </div>
 
-      <div class="v3-help">
-        Пустая заметка не хранится: используйте “Удалить” либо очистите и “Сохранить” (UI преобразует в delete).
+      <div class="v3-help" data-i18n="notes.emptyNoteHelp">
+        Пустая заметка не хранится: используйте «Удалить» либо очистите и «Сохранить» (UI преобразует в delete).
       </div>
     </div>
   </div>
@@ -31102,8 +31134,35 @@ function v3NotesSetTargetKind(kind) {
 
   v3NotesUpdateSegUI();
   v3NotesUpdateDataset();
+  v3NotesUpdateModalTitle();
 }
 window.v3NotesSetTargetKind = v3NotesSetTargetKind;
+
+// Premium polish (post-9.1.C): keep the modal title in sync with the
+// current target_kind so the user always sees an accurate context label
+// (e.g. "Заметка к корню" for target_kind='root', not the stale
+// hardcoded "Заметка к строке"). data-i18n keys land in Phase 9.1.E;
+// for now we use the v3NotesT() stub helper with RU defaults.
+const V3_NOTES_TITLE_DEFAULTS = {
+  sentence: "Заметка к строке",
+  word:     "Заметка к слову",
+  root:     "Заметка к корню",
+  binyan:   "Заметка к биньяну",
+  text:     "Заметка к тексту",
+  note:     "Связанная заметка",
+  free:     "Свободная заметка",
+};
+
+function v3NotesUpdateModalTitle() {
+  try {
+    const labelEl = document.getElementById("v3NotesModalTitleLabel");
+    if (!labelEl) return;
+    const kind = String(v3NotesModalTargetKind || "sentence");
+    const fallback = V3_NOTES_TITLE_DEFAULTS[kind] || V3_NOTES_TITLE_DEFAULTS.sentence;
+    labelEl.textContent = v3NotesT("notes.modalTitle." + kind, fallback);
+  } catch (_) {}
+}
+window.v3NotesUpdateModalTitle = v3NotesUpdateModalTitle;
 
 // Per-type preview text shown in the banner so users know what's coming.
 const V3_NOTES_TYPE_HINTS = {
@@ -31277,6 +31336,10 @@ function v3NotesUpdateCharCounter() {
 }
 
 // Format relative time (UI helper for history sidebar). Falls back to ISO.
+// Premium polish: the rest of the modal UI is RU; English "sec ago" / "min
+// ago" labels jarred with that. Use v3NotesT() stubs with RU defaults so
+// Phase 9.1.E can promote them to per-locale strings without touching this
+// function.
 function v3NotesFmtRelative(iso) {
   try {
     if (!iso) return "";
@@ -31284,13 +31347,13 @@ function v3NotesFmtRelative(iso) {
     if (!Number.isFinite(t0)) return String(iso);
     const dt = Math.max(0, Date.now() - t0);
     const s = Math.floor(dt / 1000);
-    if (s < 60)      return s + " sec ago";
+    if (s < 60)      return s + " " + v3NotesT("notes.relSecAgo", "сек. назад");
     const m = Math.floor(s / 60);
-    if (m < 60)      return m + " min ago";
+    if (m < 60)      return m + " " + v3NotesT("notes.relMinAgo", "мин. назад");
     const h = Math.floor(m / 60);
-    if (h < 24)      return h + " h ago";
+    if (h < 24)      return h + " " + v3NotesT("notes.relHourAgo", "ч. назад");
     const d = Math.floor(h / 24);
-    if (d < 30)      return d + " d ago";
+    if (d < 30)      return d + " " + v3NotesT("notes.relDayAgo", "д. назад");
     return new Date(iso).toLocaleDateString();
   } catch (_) { return String(iso || ""); }
 }
