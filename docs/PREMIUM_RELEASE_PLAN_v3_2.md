@@ -27,11 +27,11 @@ v3.2 = **mega-release** объединяющий 4 directions в одну cohesi
 
 | # | Direction | Что | Plan doc | Effort |
 |---|-----------|-----|----------|-------:|
-| **9** | Premium Notes Redesign | Polymorphic + audio-anchored + templated + versioned + linked + SRS-micro-card notes | [`PREMIUM_NOTES_PLAN_v3_2.md`](PREMIUM_NOTES_PLAN_v3_2.md) | 13–17 дней |
+| **9** | Premium Notes Redesign | Polymorphic + audio-anchored + templated + versioned + linked + SRS-micro-card notes + **morphology auto-extraction via HebMorph sidecar** (re-research 2026-05-10 unlocked AGPL with non-commercial framing) | [`PREMIUM_NOTES_PLAN_v3_2.md`](PREMIUM_NOTES_PLAN_v3_2.md) | 16–20 дней |
 | **10** | Text-card System | Three-mode artifact lifecycle: Mode A bulk builder + Mode B peer-share (lightweight JSON via content-addressed audio cache) + Mode C curator request | [`TEXT_CARD_PLAN_v3_2.md`](TEXT_CARD_PLAN_v3_2.md) | 7–8.5 дней |
 | **11A** | Analytics Foundation (mini-direction, ships independently) | Phase 11.0 event emission gap closure (12 event types) + Phase 11.1 time-spent v2 (heartbeat-based real activity tracking) | [`ULPAN_RESEARCH_PLAN_v3_2.md`](ULPAN_RESEARCH_PLAN_v3_2.md) §6 | 5–7 дней |
 | **11B** | Research Mode | Opt-in privacy-preserving research infrastructure: anonymous student_id + cohort code + daily aggregate uploads + `/api/research/v1/*` endpoint family + teacher dashboard `/teacher.html` + IRB-style consent. Enables ulpan diploma project. | [`ULPAN_RESEARCH_PLAN_v3_2.md`](ULPAN_RESEARCH_PLAN_v3_2.md) §7 | 11–14 дней |
-| | | | **Total** | **36–46.5 дней** (~7–9 рабочих недель) |
+| | | | **Total** | **39–49.5 дней** (~8–10 рабочих недель) |
 
 Companion docs:
 - [`RESEARCH_METRICS_SCHEMA.md`](RESEARCH_METRICS_SCHEMA.md) — formal v1 schema для research-mode payloads.
@@ -187,7 +187,7 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
   - [ ] Phase 9.1 — Foundation (polymorphic schema + versioning + smart-collections)
   - [ ] Phase 9.2 — Audio anchoring (M2)
   - [ ] Phase 9.3 — Linking + Templates + SRS micro-cards
-  - [ ] Phase 9.4 — Morphology *(revised 2.5–3.5 days после Phase 9.0; Plan B + C — manual root/binyan input + seeded ~100-root dictionary; auto-extraction deferred → v3.3)*
+  - [ ] Phase 9.4 — Morphology *(revised 5.5–7 days после Phase 9.0 v2 re-research; **Option A — HebMorph sidecar** для auto-extraction + Plan B + C as graceful offline/OOV fallback; new endpoint family `/api/morphology/v1/analyze`; AGPL-compatible due to non-commercial framing)*
 - [ ] **Direction 10** — Text-card System
   - [ ] Phase 10.0 — UX wireframes + privacy section draft
   - [ ] Phase 10.1 — Mode A — Bulk builder
@@ -222,6 +222,9 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
 - **Optional encryption / OS keychain** (long-term backlog).
 - **Premium table-edit mechanics** (long-press DnD).
 - **Hebrew `web_wasm` shipping** (license-blocked, separate research).
+- **DictaBERT in-browser via transformers.js** (new highest-priority v3.3 morphology epic — replaces HebMorph sidecar with fully-offline premium Hebrew morphology; ~2–3 weeks, untested combination needs proof-of-concept first; CC BY 4.0).
+- **HebMorph sidecar hardening** — sophisticated rate-limit tiers + morphology cache layer (keyed by word hash) + telemetry counters (small v3.2.x patch items, не v3.3 epic).
+- **YAP→WASM Hebrew morphology** — demoted from "v3.3 candidate" to "nice-to-have v3.3+". HebMorph sidecar в v3.2 already solves runtime auto-extraction; WASM only matters if explicit offline-first user pressure emerges.
 
 ---
 

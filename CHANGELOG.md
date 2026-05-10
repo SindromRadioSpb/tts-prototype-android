@@ -11,7 +11,11 @@
 
 ### Shipped (so far)
 
-- **Direction 9 Phase 9.0** — Hebrew root extractor research *(2026-05-10, commit `39230f8`)*. Outcome documented в `docs/research/HEBREW_ROOT_EXTRACTOR_RESEARCH.md`: JS Hebrew NLP landscape пуст, AGPL libs vetoed, GCP NL API не поддерживает иврит. **Decision:** Phase 9.4 ships Plan B (manual root + binyan input with autocomplete) + Plan C (seeded ~100-root dictionary from public-domain Klein etymological data). Auto-extraction deferred to v3.3 as separate "YAP→WASM Hebrew morphology" epic. R1 risk retired; Phase 9.4 effort revised 3–4d → 2.5–3.5d, **risk High → Low**.
+- **Direction 9 Phase 9.0** — Hebrew root extractor research *(two-phase, 2026-05-10)*:
+  - **v1** *(commit `39230f8`)* — initial recommendation Plan B+C (manual + autocomplete + seed dictionary). Cause: AGPL libraries (HebMorph, hspell) vetoed when commercial-friendly licensing was assumed.
+  - **v2 / re-research** *(commit `6f5c1ad`)* — user clarified app is non-commercial open-source → **AGPL unlocked**. New recommendation **Option A: HebMorph sidecar** for native root extraction (250K word forms, 10+ years production maturity via Elasticsearch Hebrew plugin). Plan B+C retained as graceful offline/OOV fallback — three-tier layered architecture.
+  - **Net for v3.2:** Phase 9.4 ships premium-tier auto-extraction. Effort revised 2.5–3.5d → **5.5–7d** (+3d). New endpoint `POST /api/morphology/v1/analyze` (stateless, same baseline as `/api/transliterate`). Risk Low → Medium (operational sidecar uptime; mitigated by graceful client-side fallback).
+  - **v3.3 follow-up:** DictaBERT in-browser via transformers.js becomes new highest-priority morphology epic — fully-offline premium upgrade.
 
 - **Direction 11A — Analytics Foundation** *(2026-05-10, commits `7ed309f` → `3f6b959`)*. Closes the long-standing CONTRACTS_ANALYTICS drift (Tier 0 audit gap) и переводит time-spent на heartbeat-based real measurements, useful to all users (not only research mode).
   - **Phase 11.0:** 12 event types wired into `events` table — `text_open`, `text_close`, `play_audio`, `save_note`, `note_edit`, `srs_review`, `srs_session_started`, `srs_session_finished`, `search_query`, `smart_tag_override`, `translit_toggle`, plus legacy `row_tts` preserved for backwards-compat. New `v3Emit()` helper + privacy-strict invariants enforced (no raw text / note bodies / search query strings ever leak — see `docs/CONTRACTS_ANALYTICS.md § 0`).
