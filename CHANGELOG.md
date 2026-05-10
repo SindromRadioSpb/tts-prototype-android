@@ -9,6 +9,13 @@
 
 **Mega-release scope** (~7–9 рабочих недель). Approved 2026-05-10. Master plan: [`docs/PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md).
 
+### Shipped (so far)
+
+- **Direction 11A — Analytics Foundation** *(2026-05-10, commits `7ed309f` → `3f6b959`)*. Closes the long-standing CONTRACTS_ANALYTICS drift (Tier 0 audit gap) и переводит time-spent на heartbeat-based real measurements, useful to all users (not only research mode).
+  - **Phase 11.0:** 12 event types wired into `events` table — `text_open`, `text_close`, `play_audio`, `save_note`, `note_edit`, `srs_review`, `srs_session_started`, `srs_session_finished`, `search_query`, `smart_tag_override`, `translit_toggle`, plus legacy `row_tts` preserved for backwards-compat. New `v3Emit()` helper + privacy-strict invariants enforced (no raw text / note bodies / search query strings ever leak — see `docs/CONTRACTS_ANALYTICS.md § 0`).
+  - **Phase 11.1:** heartbeat-based session tracking with idle gating (5 min) + visibility gating + max-session cap (60 min). Three new aggregation API exports in `local-db.js`: `getActiveMsReal()`, `getActiveMinutesByDay()`, `getSessionMetrics()`. `getAnalytics()` shape evolved with new `active_ms_real` field alongside legacy `time_ms` (backwards-compat preserved). 23/23 browser-driven Playwright tests pass.
+  - **Test page:** `public/db/events-emission-test.html` — runs all 12 emit + Phase 11.1 aggregation tests in browser; can be visited any time at `/db/events-emission-test.html`.
+
 ### Planned
 - **Direction 9 — Premium Notes Redesign** (~13–17 days): polymorphic note targets (sentence / word / root / binyan / text / note / free), 4 templates (word_study / grammar_rule / translation_discrepancy / pronunciation_note), audio-anchored notes, bidirectional links + backlinks, versioning + diff (50 versions retention), note → SRS micro-card, Hebrew root extractor research. Schema migrations 021–025. Bundle compat preserved (sentence-bound free notes inline; advanced notes in new `library/notes_advanced.json` web-only). See [`docs/PREMIUM_NOTES_PLAN_v3_2.md`](docs/PREMIUM_NOTES_PLAN_v3_2.md).
 - **Direction 10 — Text-card System** (~7–8.5 days): three-mode lifecycle (Mode A bulk builder / Mode B peer-share via lightweight JSON exploiting content-addressed audio cache / Mode C curator request with Standard-vs-Curated split). v3.2 без новых server endpoints. See [`docs/TEXT_CARD_PLAN_v3_2.md`](docs/TEXT_CARD_PLAN_v3_2.md).

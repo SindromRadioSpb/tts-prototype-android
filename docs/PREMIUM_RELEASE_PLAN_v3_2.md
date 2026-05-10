@@ -179,9 +179,9 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
 
 > Обновляется по мере реализации. Каждое направление — `[ ]` planned → `[~]` in-progress → `[x]` done.
 
-- [ ] **Direction 11A** — Analytics Foundation
-  - [ ] Phase 11.0 — Event emission gap closure
-  - [ ] Phase 11.1 — Time-spent v2
+- [x] **Direction 11A** — Analytics Foundation *(commits 7ed309f → 3f6b959, 2026-05-10)*
+  - [x] Phase 11.0 — Event emission gap closure (12 event types wired; CONTRACTS drift closed; 23/23 Playwright tests pass)
+  - [x] Phase 11.1 — Time-spent v2 (heartbeat-based session tracking + idle-aware aggregation; getActiveMsReal / getActiveMinutesByDay / getSessionMetrics exports)
 - [ ] **Direction 9** — Premium Notes Redesign
   - [ ] Phase 9.0 — Hebrew root extractor research
   - [ ] Phase 9.1 — Foundation (polymorphic schema + versioning + smart-collections)

@@ -644,8 +644,8 @@ Configuration:
 > Обновляется по мере реализации. Каждая Phase — `[ ]` planned → `[~]` in-progress → `[x]` done.
 
 ### Direction 11A (mini-direction)
-- [ ] **Phase 11.0** — Event emission gap closure
-- [ ] **Phase 11.1** — Time-spent v2
+- [x] **Phase 11.0** — Event emission gap closure *(commit 7ed309f, 2026-05-10)*
+- [x] **Phase 11.1** — Time-spent v2 *(commits 44619f5 + 3f6b959, 2026-05-10)*
 
 ### Direction 11B (research mode)
 - [ ] **Phase 11.2** — Research mode opt-in + consent
