@@ -3926,6 +3926,30 @@ body:not(.theme-light) .v3-smart-chip.active { color: #0f172a; }
 }
 .v3-smart-chip-clear:hover { color: var(--theme-text-primary); border-color: var(--theme-border-medium); }
 .v3-smart-chips.has-active .v3-smart-chip-clear { display: inline-flex; }
+/* Phase 9.1.C Stage E — notes smart-chip badge (count next to emoji). */
+.v3-smart-chip-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--theme-accent);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+body.theme-dark .v3-smart-chip-badge,
+body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
+.v3-smart-chip.v3-smart-chip-empty {
+  opacity: 0.55;
+}
+.v3-smart-chip.v3-smart-chip-empty .v3-smart-chip-badge {
+  background: var(--theme-border-medium);
+}
 @media (max-width: 600px) {
   .v3-smart-chip { padding: 8px 12px; font-size: 13.5px; flex: 1 1 calc(50% - 4px); justify-content: center; }
   .v3-smart-chip-clear { flex: 0 0 32px; }
@@ -8091,11 +8115,16 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- Direction 5: smart-filter chips (Recently/Struggling/Mastered/New since visit) -->
+<!-- Phase 9.1.C Stage E: 4 new notes-driven chips after the originals. -->
 <div class="v3-smart-chips" id="v3LibrarySmartChips">
   <button type="button" class="v3-smart-chip" data-smart="recent" onclick="v3LibrarySetSmartChip('recent')" data-i18n="library.smartRecent" data-i18n-title="library.smartRecentTitle" title="Недавно открытые">⏱ Недавние</button>
   <button type="button" class="v3-smart-chip" data-smart="struggling" onclick="v3LibrarySetSmartChip('struggling')" data-i18n="library.smartStruggling" data-i18n-title="library.smartStrugglingTitle" title="Сложные карточки">🔥 Сложные</button>
   <button type="button" class="v3-smart-chip" data-smart="mastered" onclick="v3LibrarySetSmartChip('mastered')" data-i18n="library.smartMastered" data-i18n-title="library.smartMasteredTitle" title="Освоенные">✓ Освоено</button>
   <button type="button" class="v3-smart-chip" data-smart="new" onclick="v3LibrarySetSmartChip('new')" data-i18n="library.smartNew" data-i18n-title="library.smartNewTitle" title="Новые с прошлого визита">✨ Новые</button>
+  <button type="button" class="v3-smart-chip" data-smart="with-note"  onclick="v3LibrarySetSmartChip('with-note')"  data-i18n-title="library.smartWithNoteTitle"   title="Тексты с любой заметкой"><span data-i18n="library.smartWithNote">📝 С заметкой</span> <span class="v3-smart-chip-badge" data-smart-count="with-note"></span></button>
+  <button type="button" class="v3-smart-chip" data-smart="audio-noted" onclick="v3LibrarySetSmartChip('audio-noted')" data-i18n-title="library.smartAudioNotedTitle" title="Тексты с аудио-якорными заметками"><span data-i18n="library.smartAudioNoted">📍 Audio-noted</span> <span class="v3-smart-chip-badge" data-smart-count="audio-noted"></span></button>
+  <button type="button" class="v3-smart-chip" data-smart="srs-noted"   onclick="v3LibrarySetSmartChip('srs-noted')"   data-i18n-title="library.smartSrsNotedTitle"   title="Тексты с SRS-привязанными заметками"><span data-i18n="library.smartSrsNoted">🎯 SRS-noted</span> <span class="v3-smart-chip-badge" data-smart-count="srs-noted"></span></button>
+  <button type="button" class="v3-smart-chip" data-smart="templated"   onclick="v3LibrarySetSmartChip('templated')"   data-i18n-title="library.smartTemplatedTitle"   title="Тексты со структурированными заметками"><span data-i18n="library.smartTemplated">⭐ Templated</span> <span class="v3-smart-chip-badge" data-smart-count="templated"></span></button>
   <button type="button" class="v3-smart-chip-clear" id="v3LibrarySmartClear" onclick="v3LibrarySetSmartChip(null)" data-i18n="library.smartClear" title="Сбросить smart-фильтр">×</button>
 </div>
 
@@ -19192,9 +19221,19 @@ function v3LibrarySmartUpdateUI() {
 async function v3LibrarySmartLoadCache() {
   if (!LOCAL_MODE || !window.__localDB) {
     v3LibrarySmartCache = null;
+    v3LibrarySmartRefreshChipBadges({});
     return;
   }
-  const out = { struggling: new Set(), mastered: new Set(), new: new Set() };
+  // Phase 9.1.C Stage E: include the 4 notes-driven sets.
+  const out = {
+    struggling: new Set(),
+    mastered: new Set(),
+    new: new Set(),
+    "with-note": new Set(),
+    "audio-noted": new Set(),
+    "srs-noted": new Set(),
+    "templated": new Set(),
+  };
   try {
     if (typeof window.__localDB.getStrugglingTexts === "function") {
       const ids = await window.__localDB.getStrugglingTexts({});
@@ -19219,7 +19258,54 @@ async function v3LibrarySmartLoadCache() {
       }
     }
   } catch (_) {}
+  // Phase 9.1.C Stage E — notes-driven smart chips. Each shape pulls
+  // text_ids via getTextIdsForNotesSmartChip(kind).
+  try {
+    if (typeof window.__localDB.getTextIdsForNotesSmartChip === "function") {
+      for (const kind of ["with-note", "audio-noted", "srs-noted", "templated"]) {
+        try {
+          const ids = await window.__localDB.getTextIdsForNotesSmartChip(kind);
+          for (const id of (Array.isArray(ids) ? ids : [])) out[kind].add(String(id));
+        } catch (_) {}
+      }
+    }
+  } catch (_) {}
   v3LibrarySmartCache = out;
+  // Update badge counts on chips.
+  let summary = {};
+  try {
+    if (typeof window.__localDB.getNotesSmartCollectionsSummary === "function") {
+      summary = await window.__localDB.getNotesSmartCollectionsSummary();
+    }
+  } catch (_) {}
+  v3LibrarySmartRefreshChipBadges(summary);
+}
+
+// Phase 9.1.C Stage E — refresh the count badge on each notes smart-chip
+// from getNotesSmartCollectionsSummary(). For chips with count 0, add the
+// empty-state class so the chip greys out while staying clickable.
+function v3LibrarySmartRefreshChipBadges(summary) {
+  try {
+    const badges = document.querySelectorAll(".v3-smart-chip-badge[data-smart-count]");
+    if (!badges || !badges.length) return;
+    const s = summary || {};
+    const counts = {
+      // 'with-note' approximates "any text-bound note" — sum of textual
+      // free + templated (plus audio/srs which are a subset of those).
+      // Cheap approach: use number of distinct text_ids in the cache set.
+      "with-note":   (v3LibrarySmartCache && v3LibrarySmartCache["with-note"])   ? v3LibrarySmartCache["with-note"].size   : 0,
+      "audio-noted": (v3LibrarySmartCache && v3LibrarySmartCache["audio-noted"]) ? v3LibrarySmartCache["audio-noted"].size : Number(s.audioNoted || 0),
+      "srs-noted":   (v3LibrarySmartCache && v3LibrarySmartCache["srs-noted"])   ? v3LibrarySmartCache["srs-noted"].size   : Number(s.srsNoted   || 0),
+      "templated":   (v3LibrarySmartCache && v3LibrarySmartCache["templated"])   ? v3LibrarySmartCache["templated"].size   : Number(s.templated  || 0),
+    };
+    badges.forEach((b) => {
+      const kind = b.getAttribute("data-smart-count");
+      const n = Number(counts[kind] || 0);
+      b.textContent = n > 0 ? String(n) : "";
+      const chip = b.closest(".v3-smart-chip");
+      if (chip) chip.classList.toggle("v3-smart-chip-empty", n === 0);
+    });
+  } catch (_) {}
 }
 
 function v3LibrarySmartFilter(texts) {
