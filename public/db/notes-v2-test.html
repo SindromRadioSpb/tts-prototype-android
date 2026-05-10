@@ -24,6 +24,14 @@ import {
   upsertNote, listNotes, deleteNote, searchNotes,
   createText, addSentence, deleteText,
   dbQuery, dbRun,
+  // Phase 9.1.B polymorphic API
+  createNote, updateNote, deleteNoteById, getNoteById,
+  listNotesByTarget, listAllNotesForText, searchAllNotes,
+  listNoteVersions, restoreNoteVersion,
+  setNoteLinks, listOutgoingLinks, listBacklinks,
+  seedRoots, searchRootsAutocomplete,
+  getNotesSmartCollectionsSummary, getTextIdsForNotesSmartChip,
+  resolveNote,
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -298,6 +306,223 @@ async function run() {
     await ldb.deleteText(testTextId);
     const after = await ldb.q(`SELECT COUNT(*) AS c FROM notes_v2 WHERE text_id = ?`, [testTextId]);
     if (Number(after[0].c) !== 0) throw new Error('cascade did not fire');
+  })();
+
+  // ── Phase 9.1.B — polymorphic API ────────────────────────────────
+
+  // Setup another text + sentence for fresh polymorphic tests (the
+  // earlier setup text was deleted by the cascade test above).
+  let phB_textId, phB_sentenceId;
+  await t('phase 9.1.B setup: createText + addSentence', async () => {
+    const tid = crypto.randomUUID();
+    const tx = await ldb.createText({
+      id: tid, text_key: 'phB-test-' + Date.now(),
+      title: 'Phase 9.1.B Test Text', source_text: 'בדיקה ב',
+    });
+    phB_textId = tx.id;
+    const sid = crypto.randomUUID();
+    await ldb.addSentence(phB_textId, { id: sid, order_index: 0, he_plain: 'בדיקה ב', ru: 'тест Б' });
+    phB_sentenceId = sid;
+  })();
+
+  // upsertNote (legacy contract) now writes through the new schema
+  let upsertedNoteId;
+  await t('upsertNote (legacy backwards-compat) now writes to notes_v2', async () => {
+    const row = await upsertNote(phB_textId, phB_sentenceId, 'Initial note body');
+    if (!row) throw new Error('upsertNote returned null');
+    if (row.note !== 'Initial note body') throw new Error('note text mismatch');
+    upsertedNoteId = row.id;
+    // Verify in notes_v2 directly
+    const direct = await dbQuery(`SELECT * FROM notes_v2 WHERE id = ?`, [row.id]);
+    if (!direct.length) throw new Error('row not in notes_v2');
+    if (direct[0].target_kind !== 'sentence') throw new Error('target_kind not sentence');
+    if (direct[0].note_type !== 'free') throw new Error('note_type not free');
+  })();
+
+  // upsert again with same (textId, sentenceId) → should UPDATE not INSERT
+  await t('upsertNote on existing key updates in place (no duplicate row)', async () => {
+    const r1 = await upsertNote(phB_textId, phB_sentenceId, 'Updated body v2');
+    const r2 = await upsertNote(phB_textId, phB_sentenceId, 'Updated body v3');
+    if (r1.id !== r2.id) throw new Error('id changed across upserts (duplicates created)');
+    if (r2.note !== 'Updated body v3') throw new Error('latest body not reflected');
+    const all = await dbQuery(
+      `SELECT COUNT(*) AS c FROM notes_v2 WHERE text_id = ? AND target_kind = 'sentence' AND target_id = ?`,
+      [phB_textId, phB_sentenceId]
+    );
+    if (Number(all[0].c) !== 1) throw new Error('expected 1 row, got ' + all[0].c);
+  })();
+
+  // listNotes via legacy VIEW returns the upserted note
+  await t('listNotes (legacy) returns the sentence-bound free note', async () => {
+    const ns = await listNotes(phB_textId);
+    if (!ns.length) throw new Error('no notes returned');
+    if (ns[0].note !== 'Updated body v3') throw new Error('latest body missing in VIEW');
+  })();
+
+  // searchNotes (legacy) searches body via LIKE
+  await t('searchNotes (legacy) finds the upserted note via LIKE', async () => {
+    const hits = await searchNotes('Updated body');
+    if (!hits.length) throw new Error('search returned nothing');
+    const h = hits.find(x => x.id === upsertedNoteId);
+    if (!h) throw new Error('expected note not in results');
+  })();
+
+  // ── Polymorphic createNote / updateNote / deleteNoteById ─────────
+
+  // Create a 'free' (journal) note — no target binding
+  let freeNoteId;
+  await t('createNote: target_kind=free, no target_id', async () => {
+    const row = await createNote({
+      target_kind: 'free', note_type: 'free',
+      title: 'Test free journal', body: 'Just thinking aloud',
+    });
+    if (!row || !row.id) throw new Error('createNote returned no row');
+    freeNoteId = row.id;
+    if (row.target_kind !== 'free') throw new Error('target_kind wrong');
+    if (row.text_id != null) throw new Error('expected null text_id for free note');
+  })();
+
+  // Create a 'word_study' templated note targeting a root
+  let rootNoteId;
+  await t('createNote: target_kind=root, note_type=word_study (templated body object)', async () => {
+    const row = await createNote({
+      target_kind: 'root', target_id: 'שלם', note_type: 'word_study',
+      title: 'Root שלם — peace',
+      body: {
+        word: 'שלום', niqqud_variant: 'שָׁלוֹם', root: 'שלם',
+        meaning: 'peace, completeness', mnemonic: '',
+      },
+    });
+    rootNoteId = row.id;
+    if (row.note_type !== 'word_study') throw new Error('note_type wrong');
+    const parsed = JSON.parse(row.body_json);
+    if (parsed.root !== 'שלם') throw new Error('body_json.root not preserved');
+  })();
+
+  // updateNote — change body, expect note_versions snapshot of OLD body
+  await t('updateNote creates a note_versions snapshot of the previous body', async () => {
+    await updateNote(freeNoteId, { body: 'Edited journal entry — first revision' });
+    const versions = await listNoteVersions(freeNoteId);
+    if (versions.length !== 1) throw new Error('expected 1 version after first edit, got ' + versions.length);
+    const parsed = JSON.parse(versions[0].body_json);
+    if (parsed.markdown !== 'Just thinking aloud') throw new Error('versioned old body wrong');
+    if (!versions[0].diff_summary) throw new Error('diff_summary missing');
+  })();
+
+  // updateNote multiple times → version count grows
+  await t('updateNote: version count tracks edits (FIFO retention 50 not exceeded yet)', async () => {
+    for (let i = 2; i <= 5; i++) {
+      await updateNote(freeNoteId, { body: `Edited journal entry — revision ${i}` });
+    }
+    const versions = await listNoteVersions(freeNoteId);
+    if (versions.length !== 5) throw new Error('expected 5 versions, got ' + versions.length);
+  })();
+
+  // restoreNoteVersion — revert body, snapshot current first
+  await t('restoreNoteVersion reverts body and creates a new version', async () => {
+    const beforeCount = (await listNoteVersions(freeNoteId)).length;
+    const restored = await restoreNoteVersion(freeNoteId, 1); // restore to v1 (= original "Just thinking aloud")
+    if (!restored) throw new Error('restore returned null');
+    const parsed = JSON.parse(restored.body_json);
+    if (parsed.markdown !== 'Just thinking aloud') throw new Error('restore did not revert body');
+    const afterCount = (await listNoteVersions(freeNoteId)).length;
+    if (afterCount !== beforeCount + 1) throw new Error('expected new version after restore');
+  })();
+
+  // FIFO retention 50 — synthesize 50+ edits and verify trim
+  await t('FIFO retention keeps last 50 versions per note', async () => {
+    // Currently freeNoteId has 6 versions. Push to 51, expect trim to 50.
+    for (let i = 0; i < 50; i++) {
+      await updateNote(freeNoteId, { body: 'retention-test-' + i + '-' + Math.random() });
+    }
+    const versions = await listNoteVersions(freeNoteId);
+    if (versions.length !== 50) throw new Error('expected exactly 50 versions, got ' + versions.length);
+    // Highest version should be ≥ 51 (we created at least that many edits)
+    const maxVer = Math.max(...versions.map(v => Number(v.version)));
+    if (maxVer < 50) throw new Error('expected max version ≥ 50');
+  })();
+
+  // ── Polymorphic links + backlinks ─────────────────────────────────
+
+  await t('setNoteLinks + listOutgoingLinks + listBacklinks roundtrip', async () => {
+    await setNoteLinks(freeNoteId, [
+      { to_kind: 'note', to_id: rootNoteId, link_alias: 'see also: root שלם' },
+      { to_kind: 'root', to_id: 'שלם' },
+    ]);
+    const out_ = await listOutgoingLinks(freeNoteId);
+    if (out_.length !== 2) throw new Error('expected 2 outgoing links, got ' + out_.length);
+
+    const back = await listBacklinks('note', rootNoteId);
+    if (!back.length) throw new Error('backlink not found from rootNoteId target');
+    if (back[0].from_note_id !== freeNoteId) throw new Error('wrong backlink source');
+  })();
+
+  await t('setNoteLinks is idempotent — replacing the list', async () => {
+    await setNoteLinks(freeNoteId, [{ to_kind: 'binyan', to_id: "pi'el" }]);
+    const out_ = await listOutgoingLinks(freeNoteId);
+    if (out_.length !== 1) throw new Error('expected 1 link after replace');
+    if (out_[0].to_kind !== 'binyan') throw new Error('replace did not apply');
+  })();
+
+  // ── Roots autocomplete ────────────────────────────────────────────
+
+  await t('seedRoots + searchRootsAutocomplete', async () => {
+    await seedRoots([
+      { root_3letter: 'שלם', gloss: 'peace, completeness' },
+      { root_3letter: 'דבר', gloss: 'word, speech' },
+      { root_3letter: 'אהב', gloss: 'love' },
+    ]);
+    const results = await searchRootsAutocomplete('ש');
+    if (!results.length) throw new Error('autocomplete returned nothing');
+    const found = results.find(r => r.root_3letter === 'שלם');
+    if (!found) throw new Error('seeded root not found in autocomplete');
+  })();
+
+  // ── Smart-collections summary ─────────────────────────────────────
+
+  await t('getNotesSmartCollectionsSummary returns counts', async () => {
+    const sum = await getNotesSmartCollectionsSummary();
+    if (typeof sum.total !== 'number') throw new Error('total not number');
+    if (sum.total < 1) throw new Error('expected total ≥ 1 from prior tests');
+  })();
+
+  await t('getTextIdsForNotesSmartChip("with-note") includes phB_textId', async () => {
+    const ids = await getTextIdsForNotesSmartChip('with-note');
+    if (!Array.isArray(ids)) throw new Error('expected array');
+    if (!ids.includes(phB_textId)) throw new Error('phB_textId not in with-note results');
+  })();
+
+  // ── resolveNote backwards-compat shape ────────────────────────────
+
+  await t('resolveNote returns legacy shape for sentence-bound free note', async () => {
+    const r = await resolveNote(upsertedNoteId);
+    if (!r) throw new Error('not found');
+    if (r.sentence_id !== phB_sentenceId) throw new Error('sentence_id missing');
+    if (typeof r.note !== 'string') throw new Error('legacy `note` field missing');
+    if (typeof r.text_title !== 'string') throw new Error('text_title missing');
+  })();
+
+  await t('resolveNote returns polymorphic shape for free-target note', async () => {
+    const r = await resolveNote(freeNoteId);
+    if (!r) throw new Error('not found');
+    if (r.target_kind !== 'free') throw new Error('target_kind not preserved');
+  })();
+
+  // ── deleteNoteById ────────────────────────────────────────────────
+
+  await t('deleteNoteById removes the row and cascades versions/links', async () => {
+    const beforeVer = (await listNoteVersions(freeNoteId)).length;
+    if (beforeVer === 0) throw new Error('test setup: expected versions before delete');
+    const res = await deleteNoteById(freeNoteId);
+    if (res.deleted !== 1) throw new Error('expected deleted=1');
+    const afterVer = (await listNoteVersions(freeNoteId)).length;
+    if (afterVer !== 0) throw new Error('cascade did not fire on note_versions');
+    if (await getNoteById(freeNoteId)) throw new Error('row still findable after delete');
+  })();
+
+  // Cleanup
+  await t('cleanup: deleteText cascades phase 9.1.B test data', async () => {
+    await deleteText(phB_textId);
   })();
 
   // Summary

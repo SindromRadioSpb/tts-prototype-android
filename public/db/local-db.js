@@ -359,39 +359,572 @@ export async function searchSentences(queryStr, limit = 20) {
 }
 
 // ── notes ──────────────────────────────────────────────────────────────────
+//
+// Direction 9 Phase 9.1.B: notes API rewritten to operate against the
+// new polymorphic notes_v2 table (migrations 021–025). Backwards-compat
+// signatures preserved — `upsertNote(textId, sentenceId, note)`,
+// `listNotes(textId)`, `deleteNote(textId, sentenceId)`, `searchNotes(q)`
+// continue to work as before for callers that haven't been updated to
+// the polymorphic API. Sentence-bound free notes are the most common
+// case (and the only kind that survives ZIP-bundle export to Android v2),
+// so the legacy contract is the default flow.
+//
+// New callers (Phase 9.1.C UI revamp, Phase 9.2 audio anchoring, etc.)
+// should prefer the polymorphic helpers below: createNote / updateNote /
+// listNotesByTarget / etc.
 
+const _NOTE_TYPES = new Set([
+  'free', 'word_study', 'grammar_rule', 'translation_discrepancy', 'pronunciation_note'
+]);
+const _TARGET_KINDS = new Set([
+  'sentence', 'word', 'root', 'binyan', 'text', 'note', 'free'
+]);
+
+function _validateNoteType(t) {
+  if (!_NOTE_TYPES.has(t)) throw new Error('invalid note_type: ' + t);
+}
+function _validateTargetKind(k) {
+  if (!_TARGET_KINDS.has(k)) throw new Error('invalid target_kind: ' + k);
+}
+
+// Body builder — given a note_type + raw content (string for free notes,
+// object for templated notes), return the JSON-encoded body_json that
+// satisfies the migration 021 CHECK constraint.
+function _buildBodyJson(noteType, content) {
+  if (noteType === 'free') {
+    // Legacy + default. Content is plaintext markdown.
+    return JSON.stringify({ markdown: typeof content === 'string' ? content : String(content ?? '') });
+  }
+  // Templated notes (word_study, grammar_rule, etc.) — content must be
+  // a typed object matching the template schema. Validation lives in
+  // the UI / template layer; here we just JSON-encode.
+  if (typeof content === 'string') {
+    // Caller passed pre-encoded JSON — accept verbatim if it parses.
+    try {
+      JSON.parse(content);
+      return content;
+    } catch (_) {
+      throw new Error('templated note content must be a JSON-encoded object');
+    }
+  }
+  if (typeof content !== 'object' || content === null) {
+    throw new Error('templated note content must be an object');
+  }
+  return JSON.stringify(content);
+}
+
+// ── Backwards-compat API (sentence-bound free notes) ─────────────────────
+
+// Returns the legacy shape via the sentence_notes VIEW so any caller that
+// expects {id, text_id, sentence_id, note, created_at, updated_at}
+// continues to work. Polymorphic-aware callers should use
+// listNotesByTarget / listAllNotesForText below.
 export async function listNotes(textId) {
   return q('SELECT * FROM sentence_notes WHERE text_id = ? ORDER BY updated_at DESC', [textId]);
 }
 
+// Upsert a sentence-bound free note. Same legacy semantics: one note per
+// (text_id, sentence_id) pair; passing a new body replaces the old.
+// Returns the row in the legacy {id, text_id, sentence_id, note, ...} shape.
 export async function upsertNote(textId, sentenceId, note) {
-  const id  = crypto.randomUUID();
   const now = new Date().toISOString();
-  await r(
-    `INSERT INTO sentence_notes (id, text_id, sentence_id, note, created_at, updated_at)
-     VALUES (?,?,?,?,?,?)
-     ON CONFLICT(text_id, sentence_id) DO UPDATE SET note = excluded.note, updated_at = excluded.updated_at`,
-    [id, textId, sentenceId, note, now, now]
+  // Find existing sentence-bound free note for this (text_id, sentence_id).
+  const existing = await q(
+    `SELECT id FROM notes_v2
+      WHERE text_id = ? AND target_kind = 'sentence'
+        AND target_id = ? AND note_type = 'free'`,
+    [textId, sentenceId]
   );
+
+  if (existing.length > 0) {
+    // UPDATE — preserves note id + created_at; refreshes body + updated_at.
+    const existingId = existing[0].id;
+    await r(
+      `UPDATE notes_v2
+          SET body_json = ?, updated_at = ?
+        WHERE id = ?`,
+      [_buildBodyJson('free', note), now, existingId]
+    );
+  } else {
+    // INSERT — new sentence-bound free note.
+    const id = crypto.randomUUID();
+    await r(
+      `INSERT INTO notes_v2 (id, target_kind, target_id, text_id, note_type,
+                              title, body_json, created_at, updated_at)
+       VALUES (?, 'sentence', ?, ?, 'free', '', ?, ?, ?)`,
+      [id, sentenceId, textId, _buildBodyJson('free', note), now, now]
+    );
+  }
+
+  // Read back via the VIEW so the caller gets the legacy shape.
   const rows = await q(
-    'SELECT * FROM sentence_notes WHERE text_id = ? AND sentence_id = ?', [textId, sentenceId]);
+    `SELECT * FROM sentence_notes WHERE text_id = ? AND sentence_id = ?`,
+    [textId, sentenceId]
+  );
   return rows[0] ?? null;
 }
 
 export async function deleteNote(textId, sentenceId) {
-  await r('DELETE FROM sentence_notes WHERE text_id = ? AND sentence_id = ?', [textId, sentenceId]);
+  // Delete the sentence-bound free note specifically — leave any other
+  // polymorphic notes about this sentence (e.g. pronunciation_note) intact.
+  await r(
+    `DELETE FROM notes_v2
+      WHERE text_id = ? AND target_kind = 'sentence'
+        AND target_id = ? AND note_type = 'free'`,
+    [textId, sentenceId]
+  );
 }
 
+// Backwards-compat: searches sentence-bound free notes (the legacy domain).
+// New polymorphic search lives in searchAllNotes() below.
 export async function searchNotes(queryStr, limit = 20) {
   if (!queryStr || !queryStr.trim()) return [];
   const like = `%${queryStr.trim()}%`;
   return q(
-    `SELECT n.*, t.title AS text_title, s.he_plain, s.ru FROM sentence_notes n
-     JOIN texts t ON n.text_id = t.id
-     JOIN sentences s ON n.sentence_id = s.id
-     WHERE n.note LIKE ? ORDER BY n.updated_at DESC LIMIT ?`,
+    `SELECT n.*, t.title AS text_title, s.he_plain, s.ru
+       FROM sentence_notes n
+       JOIN texts t      ON n.text_id = t.id
+       JOIN sentences s  ON n.sentence_id = s.id
+      WHERE n.note LIKE ?
+      ORDER BY n.updated_at DESC
+      LIMIT ?`,
     [like, limit]
   );
+}
+
+// ── Polymorphic notes API (Phase 9.1.B) ──────────────────────────────────
+
+// Insert a new note with arbitrary target_kind + note_type + body.
+// Returns the inserted row from notes_v2.
+//
+// Caller passes:
+//   { target_kind, target_id?, text_id?, note_type, title?, body,
+//     audio_anchor_ms?, audio_asset_key? }
+// where `body` is a string (free) or object (templated) — see _buildBodyJson.
+//
+// `target_id` semantics by kind:
+//   sentence → sentence row id
+//   word     → "<sentence_id>:<word_offset>" (or just sentence_id with
+//              word offset in body_json — application convention)
+//   root     → 3-letter Hebrew root string ('שלם')
+//   binyan   → one of the 7 patterns
+//   text     → text id (mirrors text_id)
+//   note     → another note's id
+//   free     → null
+export async function createNote(opts) {
+  const o = opts || {};
+  _validateTargetKind(o.target_kind);
+  _validateNoteType(o.note_type || 'free');
+
+  const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : 'n-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  const now = new Date().toISOString();
+  const targetKind = o.target_kind;
+  const noteType   = o.note_type || 'free';
+  const targetId   = (targetKind === 'free') ? null : (o.target_id ?? null);
+  // text_id: explicit when given, else derive from sentence target if FK
+  // makes sense, else null (root/binyan/free are not bound to a text).
+  let textId = o.text_id ?? null;
+  if (!textId && targetKind === 'sentence' && targetId) {
+    const ref = await q('SELECT text_id FROM sentences WHERE id = ?', [targetId]);
+    textId = (ref[0] && ref[0].text_id) || null;
+  }
+  if (!textId && targetKind === 'text' && targetId) {
+    textId = targetId;
+  }
+
+  const bodyJson = _buildBodyJson(noteType, o.body ?? '');
+  const title    = String(o.title || '');
+
+  await r(
+    `INSERT INTO notes_v2
+       (id, target_kind, target_id, text_id, note_type, title, body_json,
+        audio_anchor_ms, audio_asset_key, srs_card_id,
+        created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id, targetKind, targetId, textId, noteType, title, bodyJson,
+      Number.isFinite(o.audio_anchor_ms) ? Math.max(0, Math.round(o.audio_anchor_ms)) : null,
+      o.audio_asset_key ?? null,
+      o.srs_card_id ?? null,
+      now, now,
+    ]
+  );
+
+  const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  return rows[0] ?? null;
+}
+
+// Update an existing polymorphic note. Only mutates the fields explicitly
+// provided in `patch`; others are preserved. Body changes also create a
+// note_versions row (versioning M5) before the update so history is kept.
+//
+// Retention: keep the most recent 50 versions per note (D6, FIFO).
+export async function updateNote(id, patch) {
+  if (!id) throw new Error('updateNote: id is required');
+  const p = patch || {};
+  const existing = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  const cur = existing[0];
+  if (!cur) throw new Error('updateNote: note not found ' + id);
+
+  // If body is being changed, snapshot the previous body_json into
+  // note_versions before the update fires. Skip if body is unchanged or
+  // not provided.
+  let nextBodyJson = cur.body_json;
+  if (Object.prototype.hasOwnProperty.call(p, 'body')) {
+    const proposed = _buildBodyJson(p.note_type || cur.note_type, p.body);
+    if (proposed !== cur.body_json) {
+      const nextVer = await _appendNoteVersion(id, cur.body_json, proposed);
+      nextBodyJson = proposed;
+      // FIFO retention — keep last 50.
+      await _trimNoteVersions(id, 50);
+      // Diff summary for history sidebar.
+      await _stampVersionDiffSummary(id, nextVer, cur.body_json, proposed);
+    }
+  }
+
+  // Build dynamic UPDATE — only the fields the caller provided.
+  const fields = [];
+  const values = [];
+  function set(col, val) { fields.push(col + ' = ?'); values.push(val); }
+  if (Object.prototype.hasOwnProperty.call(p, 'title'))           set('title', String(p.title || ''));
+  if (Object.prototype.hasOwnProperty.call(p, 'note_type')) {
+    _validateNoteType(p.note_type);
+    set('note_type', p.note_type);
+  }
+  if (Object.prototype.hasOwnProperty.call(p, 'target_kind')) {
+    _validateTargetKind(p.target_kind);
+    set('target_kind', p.target_kind);
+  }
+  if (Object.prototype.hasOwnProperty.call(p, 'target_id'))       set('target_id', p.target_id ?? null);
+  if (Object.prototype.hasOwnProperty.call(p, 'text_id'))         set('text_id', p.text_id ?? null);
+  if (Object.prototype.hasOwnProperty.call(p, 'audio_anchor_ms')) set('audio_anchor_ms',
+    Number.isFinite(p.audio_anchor_ms) ? Math.max(0, Math.round(p.audio_anchor_ms)) : null);
+  if (Object.prototype.hasOwnProperty.call(p, 'audio_asset_key')) set('audio_asset_key', p.audio_asset_key ?? null);
+  if (Object.prototype.hasOwnProperty.call(p, 'srs_card_id'))     set('srs_card_id', p.srs_card_id ?? null);
+  // body_json change always lands last so the trigger sees a real update.
+  if (nextBodyJson !== cur.body_json) set('body_json', nextBodyJson);
+  // Always bump updated_at — the trigger handles it but explicit avoids
+  // depending on trigger semantics for callers that want a known value.
+  set('updated_at', new Date().toISOString());
+  values.push(id);
+
+  if (fields.length === 1) {
+    // Only updated_at would change — caller asked for nothing meaningful.
+    return cur;
+  }
+  await r(
+    `UPDATE notes_v2 SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  );
+  const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  return rows[0] ?? null;
+}
+
+// Delete a polymorphic note by id. Cascades to note_versions + note_links
+// via FK. Returns { ok: true, deleted: 1 } or { ok: true, deleted: 0 }.
+export async function deleteNoteById(id) {
+  if (!id) return { ok: true, deleted: 0 };
+  const before = await q('SELECT 1 FROM notes_v2 WHERE id = ?', [id]);
+  if (!before.length) return { ok: true, deleted: 0 };
+  await r('DELETE FROM notes_v2 WHERE id = ?', [id]);
+  return { ok: true, deleted: 1 };
+}
+
+// List notes by target (e.g. all notes whose target is a specific root).
+export async function listNotesByTarget(targetKind, targetId) {
+  _validateTargetKind(targetKind);
+  if (targetKind === 'free') {
+    return q(
+      `SELECT * FROM notes_v2 WHERE target_kind = 'free' ORDER BY updated_at DESC`,
+      []
+    );
+  }
+  return q(
+    `SELECT * FROM notes_v2 WHERE target_kind = ? AND target_id = ? ORDER BY updated_at DESC`,
+    [targetKind, targetId]
+  );
+}
+
+// All notes attached to (or related via text_id to) a specific text — for
+// the Notes panel inside an open text. Includes polymorphic notes whose
+// target is another part of the text (word, sentence, text-level, etc.).
+export async function listAllNotesForText(textId) {
+  return q(
+    `SELECT * FROM notes_v2 WHERE text_id = ? ORDER BY updated_at DESC`,
+    [textId]
+  );
+}
+
+// Get a single polymorphic note by id (returns null if not found).
+export async function getNoteById(id) {
+  const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  return rows[0] ?? null;
+}
+
+// Polymorphic search — searches body_json text via LIKE on the JSON-
+// encoded form (good enough for v3.2; FTS5 upgrade is C-series backlog).
+// Returns rows enriched with text title where applicable.
+export async function searchAllNotes(queryStr, limit = 50) {
+  if (!queryStr || !queryStr.trim()) return [];
+  const like = `%${queryStr.trim()}%`;
+  return q(
+    `SELECT n.*, t.title AS text_title
+       FROM notes_v2 n
+       LEFT JOIN texts t ON n.text_id = t.id
+      WHERE (n.body_json LIKE ? OR n.title LIKE ?)
+        AND (t.is_archived IS NULL OR t.is_archived = 0)
+      ORDER BY n.updated_at DESC
+      LIMIT ?`,
+    [like, like, limit]
+  );
+}
+
+// ── Versioning (M5) ──────────────────────────────────────────────────────
+
+async function _appendNoteVersion(noteId, oldBody, newBody) {
+  // Atomic version assignment — current max + 1.
+  const maxRow = await q(
+    'SELECT COALESCE(MAX(version), 0) AS m FROM note_versions WHERE note_id = ?',
+    [noteId]
+  );
+  const nextVer = Number((maxRow[0] && maxRow[0].m) || 0) + 1;
+  await r(
+    `INSERT INTO note_versions (note_id, version, body_json, edited_at)
+     VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+    [noteId, nextVer, oldBody]
+  );
+  return nextVer;
+}
+
+// Compute and stamp a human-friendly diff summary on the version row that
+// was just inserted (for history sidebar). +N -M chars.
+async function _stampVersionDiffSummary(noteId, version, oldBody, newBody) {
+  try {
+    const oldText = _extractMarkdown(oldBody);
+    const newText = _extractMarkdown(newBody);
+    const added   = Math.max(0, newText.length - oldText.length);
+    const removed = Math.max(0, oldText.length - newText.length);
+    const summary = `+${added} / -${removed}`;
+    await r(
+      `UPDATE note_versions SET diff_summary = ? WHERE note_id = ? AND version = ?`,
+      [summary, noteId, version]
+    );
+  } catch (_) { /* best-effort */ }
+}
+
+function _extractMarkdown(bodyJson) {
+  try {
+    const parsed = JSON.parse(bodyJson || '{}');
+    if (typeof parsed.markdown === 'string') return parsed.markdown;
+    // Templated notes — just stringify everything; rough but works for delta.
+    return JSON.stringify(parsed);
+  } catch (_) { return ''; }
+}
+
+// FIFO retention — keep most recent `keep` versions per note. Older
+// versions are deleted. D6 default keep=50.
+async function _trimNoteVersions(noteId, keep) {
+  const total = await q(
+    'SELECT COUNT(*) AS c FROM note_versions WHERE note_id = ?',
+    [noteId]
+  );
+  const count = Number((total[0] && total[0].c) || 0);
+  if (count <= keep) return;
+  // Delete oldest excess. SQLite doesn't support LIMIT in DELETE without
+  // compile-time flag, so use a sub-select.
+  await r(
+    `DELETE FROM note_versions
+       WHERE note_id = ?
+         AND version IN (
+           SELECT version FROM note_versions
+            WHERE note_id = ?
+            ORDER BY version ASC
+            LIMIT ?
+         )`,
+    [noteId, noteId, count - keep]
+  );
+}
+
+export async function listNoteVersions(noteId) {
+  return q(
+    `SELECT note_id, version, body_json, diff_summary, edited_at
+       FROM note_versions
+      WHERE note_id = ?
+      ORDER BY version DESC`,
+    [noteId]
+  );
+}
+
+// Restore a note to a previous version. Creates a new version (the current
+// state) before reverting, so restore is itself an undoable operation.
+export async function restoreNoteVersion(noteId, version) {
+  const verRows = await q(
+    'SELECT body_json FROM note_versions WHERE note_id = ? AND version = ?',
+    [noteId, version]
+  );
+  if (!verRows.length) throw new Error('restoreNoteVersion: version not found');
+  const targetBody = verRows[0].body_json;
+  const cur = await q('SELECT body_json FROM notes_v2 WHERE id = ?', [noteId]);
+  if (!cur.length) throw new Error('restoreNoteVersion: note not found');
+  // Snapshot current state before restoring (so user can undo the restore).
+  const nextVer = await _appendNoteVersion(noteId, cur[0].body_json, targetBody);
+  await _stampVersionDiffSummary(noteId, nextVer, cur[0].body_json, targetBody);
+  await _trimNoteVersions(noteId, 50);
+  // Apply restore.
+  await r(
+    `UPDATE notes_v2 SET body_json = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`,
+    [targetBody, noteId]
+  );
+  const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [noteId]);
+  return rows[0] ?? null;
+}
+
+// ── Links (M4) ───────────────────────────────────────────────────────────
+
+// Replace all outgoing links from a note with the given list. Idempotent.
+// links: Array<{to_kind, to_id, link_alias?}>
+export async function setNoteLinks(noteId, links) {
+  if (!noteId) throw new Error('setNoteLinks: noteId is required');
+  await r('DELETE FROM note_links WHERE from_note_id = ?', [noteId]);
+  for (const l of (Array.isArray(links) ? links : [])) {
+    if (!l || !l.to_kind || !l.to_id) continue;
+    try {
+      await r(
+        `INSERT OR IGNORE INTO note_links (from_note_id, to_kind, to_id, link_alias)
+         VALUES (?, ?, ?, ?)`,
+        [noteId, l.to_kind, String(l.to_id), l.link_alias ?? null]
+      );
+    } catch (_) { /* CHECK fail or other issue — skip this link */ }
+  }
+}
+
+export async function listOutgoingLinks(noteId) {
+  return q(
+    `SELECT from_note_id, to_kind, to_id, link_alias, created_at
+       FROM note_links WHERE from_note_id = ?`,
+    [noteId]
+  );
+}
+
+// "What links to this thing?" — used for the backlinks panel in the
+// Notes editor + for "where is this root referenced?" cross-text discovery.
+export async function listBacklinks(toKind, toId) {
+  _validateTargetKind(toKind);
+  return q(
+    `SELECT l.from_note_id, l.to_kind, l.to_id, l.link_alias,
+            n.title AS note_title, n.text_id AS note_text_id,
+            n.note_type AS note_type, n.updated_at AS note_updated_at
+       FROM note_links l
+       JOIN notes_v2 n ON n.id = l.from_note_id
+      WHERE l.to_kind = ? AND l.to_id = ?
+      ORDER BY n.updated_at DESC`,
+    [toKind, String(toId)]
+  );
+}
+
+// ── Roots reference table ────────────────────────────────────────────────
+
+// Idempotent seed — inserts roots from the provided array if they're not
+// already present. Phase 9.4 will load HEBREW_COMMON_ROOTS_SEED.json and
+// call this. For now, exists so app can pre-populate at any time.
+export async function seedRoots(entries) {
+  for (const e of (Array.isArray(entries) ? entries : [])) {
+    if (!e || !e.root_3letter) continue;
+    try {
+      await r(
+        `INSERT OR IGNORE INTO roots (root_3letter, gloss) VALUES (?, ?)`,
+        [String(e.root_3letter), e.gloss ?? null]
+      );
+    } catch (_) { /* skip malformed */ }
+  }
+}
+
+// Autocomplete for word_study template root field. UNIONs:
+//   • seeded roots (no my_note_id needed)
+//   • user-noted roots (those with my_note_id set OR appearing as
+//     target_kind='root' / target_id in notes_v2)
+// Returns up to `limit` matches sorted alphabetically.
+export async function searchRootsAutocomplete(prefix, limit = 12) {
+  const trimmed = String(prefix || '').trim();
+  if (!trimmed) {
+    // Empty prefix → return top N user-noted roots first, then most-common
+    // seeded roots.
+    return q(
+      `SELECT root_3letter, gloss, my_note_id IS NOT NULL AS is_user
+         FROM roots
+        ORDER BY (my_note_id IS NOT NULL) DESC, root_3letter ASC
+        LIMIT ?`,
+      [limit]
+    );
+  }
+  const like = trimmed + '%';
+  return q(
+    `SELECT root_3letter, gloss, my_note_id IS NOT NULL AS is_user
+       FROM roots
+      WHERE root_3letter LIKE ?
+      ORDER BY (my_note_id IS NOT NULL) DESC, root_3letter ASC
+      LIMIT ?`,
+    [like, limit]
+  );
+}
+
+// ── Cross-text smart-collections (M7) ────────────────────────────────────
+
+// Aggregate counts of notes per smart-collection for a given filter set.
+// Returns counts so smart-chips can show numbers/badges:
+//   { withNote, audioNoted, srsNoted, byBinyan, byRoot, templated }
+export async function getNotesSmartCollectionsSummary() {
+  const rows = await q(
+    `SELECT
+       SUM(CASE WHEN target_kind='sentence' AND note_type='free'                            THEN 1 ELSE 0 END) AS sentenceFree,
+       SUM(CASE WHEN audio_anchor_ms IS NOT NULL                                            THEN 1 ELSE 0 END) AS audioNoted,
+       SUM(CASE WHEN srs_card_id IS NOT NULL                                                 THEN 1 ELSE 0 END) AS srsNoted,
+       SUM(CASE WHEN note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note') THEN 1 ELSE 0 END) AS templated,
+       SUM(CASE WHEN target_kind='root'                                                      THEN 1 ELSE 0 END) AS rootTargeted,
+       SUM(CASE WHEN target_kind='binyan'                                                    THEN 1 ELSE 0 END) AS binyanTargeted,
+       COUNT(*) AS total
+       FROM notes_v2`
+  );
+  const r0 = rows[0] || {};
+  return {
+    sentenceFree: Number(r0.sentenceFree || 0),
+    audioNoted:   Number(r0.audioNoted   || 0),
+    srsNoted:     Number(r0.srsNoted     || 0),
+    templated:    Number(r0.templated    || 0),
+    rootTargeted: Number(r0.rootTargeted || 0),
+    binyanTargeted: Number(r0.binyanTargeted || 0),
+    total:        Number(r0.total        || 0),
+  };
+}
+
+// For each smart-chip, return the matching list of texts for Library
+// filter dropdown (ids only, sorted by last_opened_at). Application
+// code zips with the list of texts to render filtered Library.
+export async function getTextIdsForNotesSmartChip(kind) {
+  switch (kind) {
+    case 'with-note':
+      return (await q(
+        `SELECT DISTINCT text_id FROM notes_v2 WHERE text_id IS NOT NULL`
+      )).map(r => r.text_id);
+    case 'audio-noted':
+      return (await q(
+        `SELECT DISTINCT text_id FROM notes_v2 WHERE audio_anchor_ms IS NOT NULL AND text_id IS NOT NULL`
+      )).map(r => r.text_id);
+    case 'srs-noted':
+      return (await q(
+        `SELECT DISTINCT text_id FROM notes_v2 WHERE srs_card_id IS NOT NULL AND text_id IS NOT NULL`
+      )).map(r => r.text_id);
+    case 'templated':
+      return (await q(
+        `SELECT DISTINCT text_id FROM notes_v2
+           WHERE note_type IN ('word_study','grammar_rule','translation_discrepancy','pronunciation_note')
+             AND text_id IS NOT NULL`
+      )).map(r => r.text_id);
+    default:
+      return [];
+  }
 }
 
 // ── progress ───────────────────────────────────────────────────────────────
@@ -424,11 +957,44 @@ export async function resolveSentence(id) {
 }
 
 export async function resolveNote(id) {
-  const rows = await q(
-    `SELECT n.*, t.title AS text_title, s.he_plain FROM sentence_notes n
-     JOIN texts t ON n.text_id = t.id
-     JOIN sentences s ON n.sentence_id = s.id WHERE n.id = ?`, [id]);
-  return rows[0] ?? null;
+  // Direction 9 Phase 9.1.B: resolve polymorphic notes_v2 row.
+  // Returns the legacy sentence-shaped row for sentence-bound free notes
+  // (callers like deep-link handlers expect that shape); for polymorphic
+  // notes that don't have a single sentence, returns the raw notes_v2 row
+  // with text_title and a synthesized he_plain when the target is a sentence.
+  const noteRows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  const note = noteRows[0];
+  if (!note) return null;
+
+  // Default — start with the polymorphic row enriched with the text title.
+  let textTitle = '';
+  if (note.text_id) {
+    const t = await q('SELECT title FROM texts WHERE id = ?', [note.text_id]);
+    textTitle = (t[0] && t[0].title) || '';
+  }
+
+  // Sentence-bound free notes (legacy default) — also return he_plain +
+  // sentence_id + the legacy `note` plaintext alias so existing callers
+  // (e.g. nav-stack deep-link handler in index.html line 12754) get the
+  // shape they expect.
+  if (note.target_kind === 'sentence' && note.target_id) {
+    const sRows = await q('SELECT he_plain FROM sentences WHERE id = ?', [note.target_id]);
+    const hePlain = (sRows[0] && sRows[0].he_plain) || '';
+    let plainText = '';
+    try {
+      const parsed = JSON.parse(note.body_json || '{}');
+      plainText = (typeof parsed.markdown === 'string') ? parsed.markdown : '';
+    } catch (_) {}
+    return {
+      ...note,
+      text_title: textTitle,
+      sentence_id: note.target_id,
+      he_plain: hePlain,
+      note: plainText,
+    };
+  }
+
+  return { ...note, text_title: textTitle, sentence_id: null, he_plain: '' };
 }
 
 // ── events / history ───────────────────────────────────────────────────────
@@ -1574,12 +2140,24 @@ export async function audioLinkDiag(titleSubstring = '') {
 }
 
 export async function dbDiag() {
-  const tables = ['texts', 'sentences', 'sentence_notes', 'audio_assets',
-                  'srs_cards', 'text_progress', 'events', 'schema_migrations'];
+  // sentence_notes is now a VIEW over notes_v2 (Phase 9.1.A migration 025)
+  // — counting via the VIEW gives the legacy "sentence-bound free notes"
+  // total. notes_v2 is the underlying table for all polymorphic notes
+  // including audio-anchored, templated, and link targets.
+  const tables = ['texts', 'sentences', 'sentence_notes', 'notes_v2',
+                  'note_versions', 'note_links', 'roots',
+                  'audio_assets', 'srs_cards', 'text_progress',
+                  'events', 'schema_migrations'];
   const counts = {};
   for (const t of tables) {
-    const rows = await q(`SELECT COUNT(*) AS n FROM ${t}`);
-    counts[t]  = rows[0]?.n ?? 0;
+    try {
+      const rows = await q(`SELECT COUNT(*) AS n FROM ${t}`);
+      counts[t]  = rows[0]?.n ?? 0;
+    } catch (e) {
+      // Table may not exist on older snapshots that haven't run all
+      // migrations yet (defense-in-depth for diagnostic mode).
+      counts[t] = `error: ${e && e.message ? e.message : e}`;
+    }
   }
   return counts;
 }
