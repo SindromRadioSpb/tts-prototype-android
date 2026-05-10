@@ -120,3 +120,29 @@ Stage E will add 4 chips (`with-note / audio-noted / srs-noted / templated`) sou
 ---
 
 **Conclusion.** Foundation is clean: Phase 9.1.B's polymorphic API + back-compat shims cover every existing flow; the modal needs additive UI (target picker, type switcher, history sidebar) without breaking the row-button or IDE-inspector paths. Implementation can proceed in Stages B → E with confidence.
+
+---
+
+## 9. Implementation status (2026-05-10)
+
+All five stages shipped on this branch. Commit map:
+
+| Stage | Commit | Title |
+|-------|--------|-------|
+| A | `949a932` | Notes UI audit (this document) |
+| B | `e756509` | target picker + dataset wiring + 65k cap |
+| C | `afa29db` | note_type switcher polish (template banners + per-type placeholders) |
+| D | `9d0c504` | history sidebar diff view (per-line +/- markers, RTL-aware) |
+| E | `fb9fcd4` | notes smart-chips for Library (4 new chips with count badges) |
+
+Tests (Playwright headless against the static dev server):
+- `events-emission-test.html` — **23 / 0** (baseline preserved)
+- `notes-v2-test.html` — **38 / 0** (baseline preserved)
+- Modal end-to-end smoke — create polymorphic note → 3 saves → history sidebar shows v1/v2 with diff summaries `+5 / -0` and `+0 / -7`, diff view renders added/removed line classes correctly.
+- Smart-chips smoke — seed 5 notes covering all 4 categories → cache state `{withNote:1, audioNoted:1, srsNoted:1, templated:1}`, badges render counts on each chip, hash syncs to `#smart=with-note`, clear chip resets hash.
+
+Risks 1–8 (§7) all mitigated or accepted-as-noted (risk 2 — IDE inspector inline editor — explicitly preserved as legacy fast-path).
+
+Phase 9.1.D (bundle export) and Phase 9.1.E (i18n keys) inherit the new modal cleanly:
+- `notesModal.dataset.{noteId,textId,sentenceId,targetKind,targetId}` populated on open / cleared on close — deep-link share artifact will read the same slot.
+- All new strings use `data-i18n` keys with placeholder fallbacks via `v3NotesT(key, fallback)`. Library smart-chip labels moved into inner `<span data-i18n="…">` so `applyI18n` doesn't nuke the count badges.
