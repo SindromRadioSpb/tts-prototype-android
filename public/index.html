@@ -30982,6 +30982,61 @@ function v3NotesSetTargetKind(kind) {
 }
 window.v3NotesSetTargetKind = v3NotesSetTargetKind;
 
+// Per-type preview text shown in the banner so users know what's coming.
+const V3_NOTES_TYPE_HINTS = {
+  word_study: {
+    title:   "🔤 Word study (карточка слова)",
+    fields:  "Лемма · Корень · Биньян · Значение · Примеры · SRS",
+    fallback: "⏳ Структурированная карточка слова появится в Phase 9.3. Поля: лемма, корень, биньян, значение, примеры, SRS-привязка. Сейчас сохраняется как пустая заготовка с текстом.",
+  },
+  grammar_rule: {
+    title:   "📐 Grammar rule",
+    fields:  "Правило · Тип · Шаблон · Примеры · Контр-примеры",
+    fallback: "⏳ Структурированное правило грамматики появится в Phase 9.3. Поля: правило, тип, шаблон, примеры, контр-примеры. Сейчас сохраняется как пустая заготовка с текстом.",
+  },
+  translation_discrepancy: {
+    title:   "↔ Translation discrepancy",
+    fields:  "Исходник · Переводы · Тип · Комментарий",
+    fallback: "⏳ Структурированная запись о расхождении в переводе появится в Phase 9.3. Поля: исходник, переводы, тип, комментарий. Сейчас сохраняется как пустая заготовка с текстом.",
+  },
+  pronunciation_note: {
+    title:   "🔊 Pronunciation note",
+    fields:  "Слово · IPA · Ловушка · Аудио (Phase 9.2)",
+    fallback: "⏳ Структурированная фонетическая заметка появится в Phase 9.3. Поля: слово, IPA, ловушка, аудио-якорь (Phase 9.2). Сейчас сохраняется как пустая заготовка с текстом.",
+  },
+};
+
+const V3_NOTES_TYPE_PLACEHOLDERS = {
+  free:                    "Напишите заметку к этой строке (сохранится по sentence_id)",
+  word_study:              "Любые свободные заметки про это слово (структурированные поля — в Phase 9.3)",
+  grammar_rule:            "Свободное описание правила (структурированные поля — в Phase 9.3)",
+  translation_discrepancy: "Свободное описание расхождения (структурированные поля — в Phase 9.3)",
+  pronunciation_note:      "Свободные заметки о произношении (структурированные поля — в Phase 9.3)",
+};
+
+function v3NotesUpdateTemplateBanner() {
+  const banner = document.getElementById("v3NotesTemplateBanner");
+  if (!banner) return;
+  if (v3NotesModalNoteType === "free") {
+    banner.style.display = "none";
+    banner.innerHTML = "";
+    return;
+  }
+  const meta = V3_NOTES_TYPE_HINTS[v3NotesModalNoteType] || null;
+  banner.style.display = "";
+  if (meta) {
+    const t1 = v3NotesT("notes.template." + v3NotesModalNoteType + ".title",  meta.title);
+    const t2 = v3NotesT("notes.template." + v3NotesModalNoteType + ".fields", meta.fields);
+    const t3 = v3NotesT("notes.template." + v3NotesModalNoteType + ".body",   meta.fallback);
+    banner.innerHTML =
+      `<div style="font-weight:700; margin-bottom:4px;">${v3EscapeHtml(t1)}</div>` +
+      `<div style="font-size:12px; opacity:0.75; margin-bottom:6px;">${v3EscapeHtml(t2)}</div>` +
+      `<div>${v3EscapeHtml(t3)}</div>`;
+  } else {
+    banner.innerHTML = v3EscapeHtml(v3NotesT("notes.templateBanner", "⏳ Структурированная форма появится в Phase 9.3 — сейчас сохраняется как пустая заготовка."));
+  }
+}
+
 function v3NotesSetNoteType(type) {
   const allowed = ["free","word_study","grammar_rule","translation_discrepancy","pronunciation_note"];
   if (allowed.indexOf(type) < 0) return;
@@ -30995,8 +31050,7 @@ function v3NotesSetNoteType(type) {
   v3NotesModalNoteType = type;
 
   // Banner + textarea placeholder swap
-  const banner = document.getElementById("v3NotesTemplateBanner");
-  if (banner) banner.style.display = (type === "free") ? "none" : "";
+  v3NotesUpdateTemplateBanner();
 
   const titleInput = document.getElementById("v3NotesTitleInput");
   if (titleInput) {
@@ -31012,6 +31066,12 @@ function v3NotesSetNoteType(type) {
     if (typeof stashed === "string") {
       v3NotesSafeSetTextareaValue(ta, stashed);
     }
+    // Swap placeholder so users know what kind of free-form text to put
+    // while templates are still on the way (Phase 9.3).
+    try {
+      const ph = V3_NOTES_TYPE_PLACEHOLDERS[type] || V3_NOTES_TYPE_PLACEHOLDERS.free;
+      ta.placeholder = v3NotesT("notes.placeholder." + type, ph);
+    } catch (_) {}
     // Trigger char-counter / dirty re-eval
     try { ta.dispatchEvent(new Event("input")); } catch (_) {}
   }
@@ -31393,13 +31453,20 @@ try { v3NotesMdResetUi(); } catch (_) {}
     v3NotesModalUserChangedKind = false;
   } catch (_) {}
   try {
-    const banner = document.getElementById("v3NotesTemplateBanner");
-    if (banner) banner.style.display = (v3NotesModalNoteType === "free") ? "none" : "";
+    v3NotesUpdateTemplateBanner();
     const titleInput = document.getElementById("v3NotesTitleInput");
     if (titleInput) {
       titleInput.style.display = (v3NotesModalNoteType === "free") ? "none" : "";
       titleInput.value = "";
     }
+    // Apply the per-type placeholder so it's correct on first open too.
+    try {
+      const ta2 = v3NotesEl("v3NotesText");
+      if (ta2) {
+        const ph = V3_NOTES_TYPE_PLACEHOLDERS[v3NotesModalNoteType] || V3_NOTES_TYPE_PLACEHOLDERS.free;
+        ta2.placeholder = v3NotesT("notes.placeholder." + v3NotesModalNoteType, ph);
+      }
+    } catch (_) {}
   } catch (_) {}
   try { v3NotesUpdateCharCounter(); } catch (_) {}
   try {
