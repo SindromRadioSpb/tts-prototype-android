@@ -4722,6 +4722,43 @@ body:not(.theme-light) .v3-notes-template-banner {
   font-size: 12.5px;
   color: var(--theme-text-primary);
 }
+.v3-notes-history-diff-rows {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.v3-notes-history-diff-line {
+  display: flex;
+  gap: 6px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.v3-notes-history-diff-marker {
+  flex: 0 0 12px;
+  text-align: center;
+  font-weight: 700;
+  opacity: 0.75;
+}
+.v3-notes-history-diff-text { flex: 1; min-width: 0; }
+.v3-notes-history-diff-added {
+  background: rgba(34, 197, 94, 0.18);
+  color: var(--theme-text-primary);
+}
+.v3-notes-history-diff-removed {
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--theme-text-primary);
+}
+.v3-notes-history-diff-kept { opacity: 0.7; }
+.v3-notes-history-diff-empty {
+  font-size: 12px;
+  color: var(--theme-text-muted);
+  font-style: italic;
+}
 @media (max-width: 780px) {
   .v3-notes-history-sidebar {
     position: fixed;
@@ -31289,6 +31326,39 @@ function v3NotesGuessDir(s) {
   } catch (_) { return "ltr"; }
 }
 
+// Compute a per-line diff for the sidebar. We don't ship a full LCS
+// implementation here; instead we tag each line as "added" / "removed" /
+// "kept" by intersecting the two sets. Good enough for short notes and
+// keeps the bundle lean. RTL inference is per-line via the heuristic.
+function v3NotesComputeLineDiff(prev, cur) {
+  const prevLines = String(prev || "").split(/\r?\n/);
+  const curLines  = String(cur  || "").split(/\r?\n/);
+  const prevSet   = new Set(prevLines);
+  const curSet    = new Set(curLines);
+  const prevTagged = prevLines.map((l) => ({
+    text: l,
+    tag:  curSet.has(l) ? "kept" : "removed",
+    dir:  v3NotesGuessDir(l),
+  }));
+  const curTagged  = curLines.map((l) => ({
+    text: l,
+    tag:  prevSet.has(l) ? "kept" : "added",
+    dir:  v3NotesGuessDir(l),
+  }));
+  return { prevTagged, curTagged };
+}
+
+function v3NotesRenderDiffLines(tagged, side) {
+  if (!tagged.length) return '<div class="v3-notes-history-diff-empty">—</div>';
+  return tagged.map((row) => {
+    const cls = "v3-notes-history-diff-line v3-notes-history-diff-" + row.tag;
+    const prefix = side === "left"
+      ? (row.tag === "removed" ? "-" : " ")
+      : (row.tag === "added"   ? "+" : " ");
+    return `<div class="${cls}" dir="${row.dir}"><span class="v3-notes-history-diff-marker">${prefix}</span><span class="v3-notes-history-diff-text">${v3EscapeHtml(row.text)}</span></div>`;
+  }).join("");
+}
+
 async function v3NotesHistoryViewDiff(noteId, version, versions) {
   const list = document.getElementById("v3NotesHistoryList");
   if (!list) return;
@@ -31310,18 +31380,17 @@ async function v3NotesHistoryViewDiff(noteId, version, versions) {
     pane.className = "v3-notes-history-diff-pane";
     list.parentNode.appendChild(pane);
   }
-  const curTxt = v3NotesExtractBodyText(cur.body_json);
+  const curTxt  = v3NotesExtractBodyText(cur.body_json);
   const prevTxt = prev ? v3NotesExtractBodyText(prev.body_json) : "";
-  const dirCur = v3NotesGuessDir(curTxt);
-  const dirPrev = v3NotesGuessDir(prevTxt);
+  const { prevTagged, curTagged } = v3NotesComputeLineDiff(prevTxt, curTxt);
   pane.innerHTML = `
     <div class="v3-notes-history-diff-block">
       <div class="v3-notes-history-diff-label">${v3EscapeHtml(v3NotesT("notes.historyPrev", "Раньше"))} (${prev ? 'v' + prev.version : '—'})</div>
-      <pre dir="${dirPrev}">${v3EscapeHtml(prevTxt)}</pre>
+      <div class="v3-notes-history-diff-rows">${v3NotesRenderDiffLines(prevTagged, "left")}</div>
     </div>
     <div class="v3-notes-history-diff-block">
       <div class="v3-notes-history-diff-label">${v3EscapeHtml(v3NotesT("notes.historyThis", "Эта версия"))} (v${cur.version})</div>
-      <pre dir="${dirCur}">${v3EscapeHtml(curTxt)}</pre>
+      <div class="v3-notes-history-diff-rows">${v3NotesRenderDiffLines(curTagged, "right")}</div>
     </div>
   `;
 }
