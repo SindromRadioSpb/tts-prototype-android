@@ -1,8 +1,8 @@
 # i18n Premium Completion — Execution Plan
 
-**Date:** 2026-05-02  
-**Status:** IN PROGRESS — PATCH-08 complete, PATCH-09+ pending  
-**Scope:** PATCH-09 through PATCH-16
+**Date:** 2026-05-02 (initial), reconciled 2026-05-10 (post-Tier-0 audit).
+**Status:** ✅ **COMPLETE** — Direction 3 phase 1 + phase 2 shipped в v3.1.0 (Сессия 5, 2026-05-09 — commit `b194be4`). PATCH-09 (mobile-header behaviour) absorbed в Direction 1/2 work без отдельного PATCH commit (alternative class names used; the specific `classic-lang-wrap-mobile` selector is не используется в final implementation).
+**Scope (исторический):** PATCH-09 through PATCH-16
 
 ---
 

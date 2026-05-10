@@ -42,7 +42,7 @@ Handler:
 - `v3NavOnHitJump(type, index, textId, sentenceId, orderIndex, originScope)`
   - фиксирует origin/activeIndex/scrollRestore
   - вызывает `v3NotesJumpStub(...)`
-  - показывает sticky bar после jump (deferred)
+  - показывает sticky bar после jump
   Evidence: index.html:contentReference[oaicite:20]{index=20}
 
 ### 2.2. Sticky bar buttons
@@ -108,7 +108,7 @@ Evidence: index.html:contentReference[oaicite:26]{index=26}
 3) Пользователь кликает hit → `v3NavOnHitJump(...)`:
    - `origin` + `activeType/activeIndex` + `scrollRestore` сохраняются
    - выполняется `v3NotesJumpStub(textId, sentenceId, orderIndex)`
-   - sticky bar показывается по завершении (deferred)
+   - sticky bar показывается по завершении
 Evidence: index.html:contentReference[oaicite:27]{index=27}
 
 ### 4.2. Prev/Next (без пересборки поиска)

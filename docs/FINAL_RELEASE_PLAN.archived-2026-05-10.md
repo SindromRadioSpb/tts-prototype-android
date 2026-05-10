@@ -1,9 +1,23 @@
-# Final Release Plan
+# Final Release Plan — ARCHIVED 2026-05-10
+
+> ⚠ **THIS DOCUMENT IS ARCHIVED.** Superseded by:
+> - **v3.0.0 release** (2026-05-08) — offline-first architecture flip; все server stateful endpoints turned `410 Gone`. Большинство PATCH-R0..R6 items в этом doc ссылаются на server-side endpoints, которых больше не существует.
+> - **v3.1.0 release** (2026-05-10) — premium polish (8 directions complete).
+> - **v3.2.0 plan** (in progress) — см. `docs/PREMIUM_RELEASE_PLAN_v3_2.md`.
+>
+> **Residual outstanding items carried forward в v3.2 backlog:**
+> - **PATCH-R2 Playwright viewport regression suite** — карьеризован в Tier 3 (Architecture) backlog. Будет нужен **до** Direction 7's deferred functional code-split (когда оно ship'ится в v3.2+ или later).
+> - **PATCH-R3 SRS Today integration + time-spent v2** — закрывается Direction 11A v3.2 (`docs/ULPAN_RESEARCH_PLAN_v3_2.md` Phase 11.0–11.1).
+> - **PATCH-R5 security audit** (parameterized SQL, npm audit, error-leak) — separate quality task, low priority post-Phase-6 (минимизированная server surface).
+>
+> **Definition of Done items NOT carried forward:** many DoD items в этом doc предполагают server-side library + auth platform (`src/platform`), который в v3.0.0 был decommissioned.
+>
+> Документ оставлен для исторической справки и evidence в audit trail. **Не используется как active plan.**
 
 **Project:** tts-prototype-android  
 **Actual target:** web application for desktop and mobile browsers  
 **Date:** 2026-05-05  
-**Status:** release candidate work is not ready to start until PATCH-R0 is closed.
+**Status:** ARCHIVED 2026-05-10 — superseded by v3.0.0 + v3.1.0 + v3.2 plan.
 
 ## Repo Audit Report
 

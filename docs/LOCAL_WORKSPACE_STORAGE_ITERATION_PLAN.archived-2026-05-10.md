@@ -1,6 +1,23 @@
-# Local Workspace Storage Iteration Plan
+# Local Workspace Storage Iteration Plan — ARCHIVED 2026-05-10
 
-## Goal
+> ⚠ **THIS DOCUMENT IS ARCHIVED.** Superseded by `docs/OPFS_MIGRATION_PLAN.md` (closed 2026-05-08, v3.0.0 ship).
+>
+> **What was superseded:**
+> - Original goal targeted **server-side `DATA_DIR/app.db` + `DATA_DIR/audio-cache/`** local-first storage. v3.0.0 inverted to **browser-side OPFS + wa-sqlite**, eliminating server-side user data entirely.
+> - All 6 DoD items from the bottom of this doc are subsumed by OPFS migration:
+>   - "Локальная библиотека работает без Railway" → ✅ via OPFS Phase 6.
+>   - "ZIP export/import переносит тексты, предложения, заметки, аудио и метаданные" → ✅ via Phase 5 + bundle-notes-fix commit `2245924`.
+>   - "npm run db:integrity" → still applies for dev path; no action needed.
+>   - "node --test для regression tests" → covered by existing test suite.
+>   - "Docs обновлены: storage contract, export/import contract, recovery" → ✅ via `docs/STORAGE_CONTRACT.md` + `docs/OPFS_USER_GUIDE.md`.
+>   - "Нет новых секретов в git" → ongoing policy, не deliverable.
+>
+> **One residual item** carried forward в long-term backlog:
+> - **Optional encryption / OS keychain layer** — explicitly mentioned в этом doc как "later layer". Currently OPFS protects from cross-origin, не от device-level. Может стать релевантным если ulpan research mode (Direction 11) добавит opt-in upload aggregates где encryption-at-rest имеет смысл.
+>
+> Документ оставлен для исторической справки. **Не используется как active plan.**
+
+## Goal (исторический)
 
 Implement a premium local-first storage model based on a user-owned Local Workspace:
 

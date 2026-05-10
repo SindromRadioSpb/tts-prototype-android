@@ -54,13 +54,19 @@
 - прогнозируемая очередь "today"
 - события review должны попадать в events (для аналитики)
 
-Статус репозитория на 2026-03-22:
-- Реализован sentence-level SRS v1: `/api/srs/cards`, `/api/srs/review`, `/api/srs/today`.
-- IDE inspector больше не содержит `coming soon` заглушки: Add/Review flow рабочий.
-- Есть минимальный API smoke happy path для SRS create/review/today.
-- PATCH-04 foundation уже начат: есть отдельный trainer entry point, `today summary` и session API.
-- PATCH-05 core уже поднят: есть `srs_card_templates`, template-driven card model, `GET /api/srs/templates`, `POST /api/srs/cards/generate`, session queue на `cardId`.
-- Ещё не закрыты dashboard Today integration, suspend/delete semantics, audio/cloze-specific templates и склейка review events с единым analytics contract.
+Статус репозитория на 2026-05-10:
+- ✅ Реализован sentence-level SRS v1: `/api/srs/cards`, `/api/srs/review`, `/api/srs/today` (post-Phase-6 → 410 Gone, заменены на OPFS-side `local-db.js` API).
+- ✅ IDE inspector больше не содержит `coming soon` заглушки: Add/Review flow рабочий.
+- ✅ PATCH-04 foundation: trainer entry point + `today summary` + session API.
+- ✅ PATCH-05 core: `srs_card_templates` table + template-driven card model + session queue на `cardId`.
+- ✅ Suspend semantics: `WHERE state != 'suspended'` filter в `local-db.js:763`.
+- ✅ Activity heatmap в Dashboard (Direction 5 v3.1.0).
+- ⚠ **Ещё не закрыты** (→ Direction 11A v3.2):
+  - Audio/cloze-specific templates (table есть, seeded только `card_kind='sentence'`).
+  - Dashboard Today integration (есть `todaySummary()` query в `local-db.js:754`, но не surfaced в Dashboard primary view).
+  - Delete semantics (отличается от archive/suspend — нет explicit delete-card path).
+  - Review events ↔ unified analytics contract — формальная alignment.
+- 🆕 **Расширение в v3.2 (Direction 9 M6):** `card_kind='note'` для note → SRS micro-card (см. `docs/PREMIUM_NOTES_PLAN_v3_2.md`).
 
 ---
 
@@ -75,11 +81,16 @@
 - правила расчёта time-spent (gap thresholds)
 - агрегации (on-demand или периодические)
 
-Статус репозитория на 2026-03-23:
-- В коде уже используется `history_events` + `recent_rows` + `recent_texts` и endpoints `/api/history/*`.
-- PATCH-07 baseline реализован: добавлена таблица `events`, event repo и server-side logging для `search_query`, `save_note`, `play_audio`, `srs_review`, `trainer_attempt`, `srs_session_started`, `srs_session_finished`.
-- `/api/history/analytics` теперь возвращает hybrid payload: legacy summary + `eventCounts` из `events`.
-- Не закрыты time-spent v2 (`session_start/session_heartbeat/session_end`) и cohort aggregates по `events`.
+Статус репозитория на 2026-05-10:
+- ✅ `events` table создан, OPFS-side (post-Phase-6).
+- ⚠ **Contract drift discovered (Tier 0 audit 2026-05-10):** `CONTRACTS_ANALYTICS` документирует 7 event types как реализованные, но grep подтверждает: **client-side только `row_tts`** реально emit'ится. Server-side `history_events` (legacy) — отдельная история, возвращает 410 Gone после Phase 6.
+- ⚠ **Не закрыто** (→ Direction 11A v3.2):
+  - Phase 11.0 — close emission gap (12 event types: `text_open`, `text_close`, `play_audio`, `save_note`, `note_edit`, `srs_review`, `srs_session_*`, `search_query`, `card_added_to_srs`, `smart_tag_override`, `translit_toggle`).
+  - Phase 11.1 — time-spent v2 (`session_start/heartbeat/end` + idle + visibility + interaction tracking).
+  - `time_ms = plays * 4000` estimated → real heartbeat-derived.
+- ⚠ **Не закрыто** (→ Direction 11B v3.2):
+  - Cohort aggregates over `events` (per-cohort rollups in opt-in research mode).
+  - См. `docs/ULPAN_RESEARCH_PLAN_v3_2.md`.
 
 ---
 
@@ -94,9 +105,11 @@
 - стабильный note_id и связь с source target (row/sentence)
 - единый контракт "open note from target"
 
-Статус репозитория на 2026-03-22:
-- Базовые sentence notes CRUD уже реализованы.
-- Templates/version history ещё не реализованы.
+Статус репозитория на 2026-05-10:
+- ✅ Базовые sentence notes CRUD реализованы (LIKE-based search; Markdown subset с XSS-safe render).
+- ✅ Manual smart-tag override (Direction 5 v3.1.0) — отдельный механизм поверх notes.
+- ⚠ Templates / version history / backlinks / audio-anchored / polymorphic targets — **deferred → Direction 9 v3.2 (Premium Notes Redesign)**.
+- 🆕 **v3.2 scope (Direction 9):** полный premium redesign — polymorphic targets (sentence / word / root / binyan / text / note / free) + 4 templates (word_study / grammar_rule / translation_discrepancy / pronunciation_note) + audio-anchored notes + bidirectional links + version history (50 versions retention) + note → SRS micro-card. См. `docs/PREMIUM_NOTES_PLAN_v3_2.md`.
 
 ---
 
@@ -110,9 +123,14 @@
 - KPI: скорость доступа к "Today", число действий, время до первого review
 - стабильные API/контракты слоёв
 
-Статус репозитория на 2026-03-22:
-- Есть Dashboard/history/IDE shell.
-- Нет завершённой связки SRS Today + analytics contract + Premium KPI.
+Статус репозитория на 2026-05-10:
+- ✅ Dashboard / history / IDE shell.
+- ✅ Activity heatmap (Direction 5 v3.1.0).
+- ⚠ **Не закрыто** (→ Direction 11A v3.2):
+  - Real time-spent (Phase 11.1) — heatmap accuracy upgrade.
+- ⚠ **Не закрыто** (→ P3 SRS Today integration, частично через Direction 11A):
+  - SRS Today section в Dashboard primary view.
+- 🆕 **Новый research-grade dashboard `/teacher.html`** в Direction 11B v3.2 — for cohort-level analytics, не для single-user Dashboard.
 
 ---
 

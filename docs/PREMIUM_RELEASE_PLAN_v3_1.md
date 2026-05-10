@@ -530,44 +530,62 @@ Sprint 3: Performance + Trust
 
 # Audit checklist (финальный пасс)
 
-После завершения всех 8 directions — глубокий аудит по этому checklist'у. Только если ВСЁ зелёное — релиз готов.
+> **Audit reconciliation 2026-05-10** (Tier 0 audit fork): большая часть пунктов фактически shipped, но не была обновлена в плане. Items ниже отражают **реальное** состояние после v3.1.0 release. Пункты с пометкой **(→ Direction 9/10/11A/11B)** будут закрыты в v3.2 как часть других directions.
 
 ## Visual quality
-- [ ] Hebrew typography: огласовки рендерятся идеально на всех экранах.
-- [ ] Dark theme: контраст текст/фон ≥ 4.5:1 везде.
-- [ ] Empty states: каждый пустой list имеет дизайн + CTA.
-- [ ] Loading states: skeleton'ы где нужно, нет «голых» spinner'ов.
-- [ ] Animations: соблюдают `prefers-reduced-motion`.
+- [x] Hebrew typography: огласовки рендерятся идеально на всех экранах. (Direction 1)
+- [x] Dark theme: контраст текст/фон ≥ 4.5:1 везде. (Verified via Lighthouse pass, v3.1.0 release.)
+- [x] Empty states: каждый пустой list имеет дизайн + CTA.
+- [~] Loading states: skeleton'ы — **shipped только в feedback modal**. Library / Dashboard / SRS list-views всё ещё spinner-or-empty. **(→ Direction 9 audit polish)**
+- [~] Animations: соблюдают `prefers-reduced-motion` — shipped в feedback modal scope, **не app-wide**. **(→ Direction 9 audit polish)**
 
 ## Functional quality
-- [ ] Все главные flow'ы работают: создать текст / сохранить / открыть / удалить / undo / экспорт ZIP / импорт ZIP / SRS-сессия / Anki push / feedback send.
-- [ ] Mobile UX: drawer-модалки выезжают корректно; touch targets ≥ 44px.
-- [ ] Offline после первой загрузки: всё кроме TTS работает без интернета.
-- [ ] PWA install: иконка устанавливается на home screen.
+- [x] Все главные flow'ы работают: создать текст / сохранить / открыть / удалить / undo / экспорт ZIP / импорт ZIP / SRS-сессия / Anki push / feedback send.
+- [x] Mobile UX: drawer-модалки выезжают корректно; touch targets ≥ 44px.
+- [x] Offline после первой загрузки: всё кроме TTS работает без интернета. (Direction 7)
+- [x] PWA install: иконка устанавливается на home screen. (Direction 7)
 
 ## i18n quality
-- [ ] Locale switch работает мгновенно, не требует reload.
-- [ ] EN, HE — нет visible-literal русских строк.
-- [ ] HE: dir="rtl" на всех модалках, стрелки и иконки развёрнуты корректно.
+- [x] Locale switch работает мгновенно, не требует reload. (Direction 3)
+- [x] EN, HE — нет visible-literal русских строк. (Direction 3 phase 2 — 0 hardcoded toasts verified.)
+- [x] HE: dir="rtl" на всех модалках, стрелки и иконки развёрнуты корректно.
 
 ## Trust quality
-- [ ] Footer на всех экранах с privacy badge + version.
-- [ ] About modal доступен.
-- [ ] FAQ extended.
-- [ ] README на GitHub содержит screenshots.
+- [x] Footer на всех экранах с privacy badge + version. (Direction 8)
+- [x] About modal доступен.
+- [~] FAQ extended — Tier 1 FAQ accordion shipped в feedback; **полноценный `/faq` page deferred** (low priority).
+- [ ] README на GitHub содержит screenshots. (No `docs/SCREENSHOTS*` — open. **(→ deferred backlog: low effort, ~0.5 day)**)
 
 ## Premium feel
-- [ ] Никаких `alert()` / `confirm()` в `public/index.html`.
-- [ ] Toast'ы цветовые (success/warning/error/info) везде.
-- [ ] Saved-state indicators на активных карточках.
-- [ ] Optimistic UI на mutate-операциях.
-- [ ] Tooltips на нетривиальных элементах.
+- [x] Никаких `alert()` / `confirm()` в active code path в `public/index.html`. (Direction 6 — 3 fallback-only callsites remain in defense-in-depth paths.)
+- [x] Toast'ы цветовые (success/warning/error/info) везде.
+- [ ] Saved-state indicators на активных карточках (`✓ Сохранено 2с назад`) — **not implemented**. **(→ Direction 9 audit polish)**
+- [~] Optimistic UI на mutate-операциях — **partial**: `v3UndoToast` shipped только на delete-путях; save/edit пока не используют undo-toast pattern. **(→ Direction 9 audit polish)**
+- [ ] Tooltips на нетривиальных элементах (audio markers, smart-chips, edit indicators) — только нативные `title="..."`, нет first-time/dismissable mechanism. **(→ Direction 9 audit polish)**
+
+## Premium feel (Tier 1+2 feedback specifics — shipped)
+- [x] **Tier 1.1** FAQ accordion (`public/index.html:6377`).
+- [x] **Tier 1.2** Escape-hatch on error toasts + ring buffer.
+- [x] **Tier 1.3** Auto-fill last error in bug-form.
+- [x] **Tier 1.4** Keyboard + focus trap.
+- [x] **Tier 1.5** Acknowledgment с реальным timestamp.
+- [x] **Tier 1.6** `prefers-reduced-motion` (feedback scope).
+- [x] **Tier 2.1** Local feedback history (`feedbackHistory_v1`).
+- [x] **Tier 2.2** Char counter.
+- [x] **Tier 2.3** Loading skeletons (feedback scope).
+- [x] **Tier 2.4** Periodic status badge refresh (30s).
+- [x] **Tier 2.5** Copy-button in diagnostics preview.
+- [x] **Tier 2.6** Public roadmap link in «Идея».
+- [x] **Tier 2.7** Markdown preview on bug-form.
+- [x] **Tier 2.8** Mobile drawer-style.
+- [x] **Tier 2.9** WhatsApp confirmation on desktop.
+- [x] **Tier 2.10** Tip-jar stub.
 
 ## Regression check
-- [ ] OPFS data integrity: после всех изменений `PRAGMA integrity_check` возвращает ok.
-- [ ] Cross-device ZIP roundtrip: web → Android v2 → web без потери данных.
-- [ ] Existing 16 tests в `db-init-test.html` все зелёные.
-- [ ] No 410 регрессий: stateless эндпоинты (`/api/transliterate`, `/api/export/docx`, etc.) работают.
+- [x] OPFS data integrity: `PRAGMA integrity_check` возвращает ok (verified в release pass).
+- [x] Cross-device ZIP roundtrip: web → Android v2 → web без потери данных. (User-confirmed during v3.1.0 release pass.)
+- [x] Existing tests в `db-init-test.html` зелёные.
+- [x] No 410 регрессий: stateless эндпоинты (`/api/transliterate`, `/api/export-docx`, etc.) работают.
 
 ---
 

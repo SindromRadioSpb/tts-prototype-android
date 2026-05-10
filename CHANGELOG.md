@@ -5,6 +5,35 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/),
 версионирование — [SemVer](https://semver.org/).
 
+## [Unreleased] — v3.2.0 in progress
+
+**Mega-release scope** (~7–9 рабочих недель). Approved 2026-05-10. Master plan: [`docs/PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md).
+
+### Planned
+- **Direction 9 — Premium Notes Redesign** (~13–17 days): polymorphic note targets (sentence / word / root / binyan / text / note / free), 4 templates (word_study / grammar_rule / translation_discrepancy / pronunciation_note), audio-anchored notes, bidirectional links + backlinks, versioning + diff (50 versions retention), note → SRS micro-card, Hebrew root extractor research. Schema migrations 021–025. Bundle compat preserved (sentence-bound free notes inline; advanced notes in new `library/notes_advanced.json` web-only). See [`docs/PREMIUM_NOTES_PLAN_v3_2.md`](docs/PREMIUM_NOTES_PLAN_v3_2.md).
+- **Direction 10 — Text-card System** (~7–8.5 days): three-mode lifecycle (Mode A bulk builder / Mode B peer-share via lightweight JSON exploiting content-addressed audio cache / Mode C curator request with Standard-vs-Curated split). v3.2 без новых server endpoints. See [`docs/TEXT_CARD_PLAN_v3_2.md`](docs/TEXT_CARD_PLAN_v3_2.md).
+- **Direction 11A — Analytics Foundation** (~5–7 days, ships independently): closes CONTRACTS_ANALYTICS gap (12 event types), heartbeat-based time-spent v2, improves Activity Heatmap accuracy for all users.
+- **Direction 11B — Research Mode** (~11–14 days): opt-in privacy-preserving research infrastructure for ulpan diploma project. Anonymous student_id + cohort code + daily aggregate uploads + new endpoint family `/api/research/v1/*` (architectural exception: aggregates only, no PII) + teacher dashboard `/teacher.html` + IRB-style consent. See [`docs/ULPAN_RESEARCH_PLAN_v3_2.md`](docs/ULPAN_RESEARCH_PLAN_v3_2.md), [`docs/RESEARCH_METRICS_SCHEMA.md`](docs/RESEARCH_METRICS_SCHEMA.md), [`docs/RESEARCH_ETHICS_CONSENT_TEMPLATE.md`](docs/RESEARCH_ETHICS_CONSENT_TEMPLATE.md).
+
+### Deferred → v3.3
+- Functional code-split монолита `public/index.html`.
+- Sherpa adapter lazy-load.
+- Knowledge-graph view для notes (Direction 9 M8).
+- Server-side TTL share-cache + short public URLs (Direction 10 v3.3 epic).
+- End-to-end encryption на text-card share.
+- Calibrated in-app diagnostic quiz.
+- Multi-cohort comparative dashboard.
+- Premium table-edit mechanics (long-press DnD).
+
+### Documentation prep (2026-05-10)
+- New plan docs: `PREMIUM_RELEASE_PLAN_v3_2.md`, `PREMIUM_NOTES_PLAN_v3_2.md`, `TEXT_CARD_PLAN_v3_2.md`, `ULPAN_RESEARCH_PLAN_v3_2.md`, `RESEARCH_METRICS_SCHEMA.md`, `RESEARCH_ETHICS_CONSENT_TEMPLATE.md`.
+- Tier 0 audit reconciliation: `PREMIUM_RELEASE_PLAN_v3_1.md` audit checklist updated to reflect actual shipped state (16 feedback Tier 1+2 items + WCAG + sticky bar + suspend semantics flipped to `[x]`); honest gaps preserved as `[ ]` или `[~]` with cross-references to v3.2 directions.
+- Plans archived (superseded): `FINAL_RELEASE_PLAN.md` → `FINAL_RELEASE_PLAN.archived-2026-05-10.md`; `LOCAL_WORKSPACE_STORAGE_ITERATION_PLAN.md` → `LOCAL_WORKSPACE_STORAGE_ITERATION_PLAN.archived-2026-05-10.md`.
+- I18N_PREMIUM_COMPLETION_PLAN re-stated as COMPLETE.
+- NAV_CODEMAP `(deferred)` markers removed (sticky bar давно работает).
+- ROADMAP_PREMIUM P3/P4/P5/P6 statuses updated to reflect v3.1 partial closures + v3.2 cross-references.
+- Top-level README Roadmap section expanded с v3.2 scope.
+
 ## [3.1.0] — 2026-05-10
 
 **Premium polish release.** Восемь directions из [Premium Release Plan v3.1.0](docs/PREMIUM_RELEASE_PLAN_v3_1.md) — все `[x]`. Релиз о цельном premium-качестве: типография, темы, локализация, onboarding, smart-sort, error gentleness, PWA, trust signals. Никаких новых тяжёлых фич — каждый экран ощущается так же продуманно, как feedback-модалка.
