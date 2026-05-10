@@ -8654,6 +8654,15 @@ function v3IdeToggleColumn(key) {
   v3IdeVisibleColumns[key] = !v3IdeVisibleColumns[key];
   v3IdeSaveColumnSettings();
 
+  // Phase 11.0: emit translit_toggle when the translit column is toggled.
+  // Used in research-mode metric "translit_toggles_count" — proxy for
+  // reading independence (less reliance on translit over time).
+  if (key === "translit") {
+    v3Emit("translit_toggle", {
+      payload_json: { visible: !!v3IdeVisibleColumns[key] },
+    });
+  }
+
   // Re-render table if there's an active text
   if (v3IdeState.activeTextId && currentTableData && currentTableData.length > 0) {
     v3IdeRenderTable(currentTableData, v3IdeState.activeTextId);
@@ -9021,6 +9030,11 @@ async function v3IdeSearchExecute() {
 
   results.innerHTML = '<div class="v3-ide-loading"><div class="v3-ide-spinner"></div></div>';
 
+  // Phase 11.0: capture aggregate result count for event emission below.
+  // Privacy: query string itself is NEVER recorded — only its length
+  // and the count of matches.
+  let _searchTotalResults = 0;
+
   try {
     const scope = v3IdeState.searchScope;
     let html = "";
@@ -9044,6 +9058,7 @@ async function v3IdeSearchExecute() {
           html += v3IdeRenderTextResult(t, query);
         });
       }
+      _searchTotalResults += searchTexts.length;
     }
 
     // Search rows
@@ -9065,6 +9080,7 @@ async function v3IdeSearchExecute() {
           html += v3IdeRenderRowResult(hit, idx, query);
         });
       }
+      _searchTotalResults += rowsResults.length;
     }
 
     // Search notes
@@ -9086,6 +9102,7 @@ async function v3IdeSearchExecute() {
           html += v3IdeRenderNoteResult(hit, idx, query);
         });
       }
+      _searchTotalResults += notesResults.length;
     }
 
     if (!html) {
@@ -9098,6 +9115,16 @@ async function v3IdeSearchExecute() {
     }
 
     results.innerHTML = html;
+
+    // Phase 11.0: emit search_query (privacy-strict — query string never
+    // recorded; only length + result count).
+    v3Emit("search_query", {
+      payload_json: {
+        query_length: query.length,
+        result_count: _searchTotalResults,
+        scope: v3IdeState.searchScope || "both",
+      },
+    });
   } catch (err) {
     results.innerHTML = `
       <div class="v3-ide-empty">
@@ -11228,6 +11255,120 @@ function v3LibraryTryRestoreFromCache(st) {
     return false;
   }
 }
+
+// ── Analytics event emission (Direction 11A Phase 11.0) ──────────────────
+// Best-effort emit into the local OPFS events table. Never blocks the
+// calling flow — events are observability, not core UX. CONTRACTS_ANALYTICS
+// § 0 lists the canonical event types; any new emit point should also be
+// reflected there.
+//
+// Callers pass: { event_type, text_id?, sentence_id?, note_id?, card_id?,
+//                 source?, payload_json?, session_id? }.
+//
+// Uses ensureLocalDB so emits during init (e.g. session-restore text_open
+// fired before DB ready) await initialization. If init fails or LOCAL_MODE
+// is off, emit is silently dropped — no events on server-mode by design.
+async function v3Emit(eventType, payload) {
+  try {
+    if (!eventType || typeof eventType !== "string") return;
+    if (typeof LOCAL_MODE !== "undefined" && !LOCAL_MODE) return;
+    const ldb = await ensureLocalDB();
+    if (!ldb || typeof ldb.recordEvent !== "function") return;
+    await ldb.recordEvent({ event_type: eventType, ...(payload || {}) });
+  } catch (e) {
+    // Silent — events must never break flow. Log only at debug level.
+    if (typeof console !== "undefined" && console.debug) {
+      console.debug("[v3Emit] failed:", eventType, e && e.message);
+    }
+  }
+}
+
+// Session-style tracking state for text_open/text_close pairing and
+// row replay counts. All in-memory only — restarts on reload.
+const v3OpenTextState = { textId: null, openedAt: null, source: null };
+const v3RowPlayCounts = new Map();          // sentenceId → cumulative replay count for current text
+let   v3CurrentSrsSessionId = null;          // populated when SRS Trainer opens
+let   v3CurrentSrsSessionStartedAt = null;
+let   v3CurrentSrsSessionReviewCount = 0;    // incremented on each srs_review emit while session active
+
+// Mark a text as opened. Emits text_close for any previously-open text
+// (with computed duration_ms), then emits text_open for the new one.
+// `source` is the entry point: 'library' / 'search' / 'smart-chip' /
+// 'share-import' / 'dashboard' / 'session-restore' / etc.
+async function v3EmitTextOpenWithClose(textId, source) {
+  if (!textId) return;
+  try {
+    const prev = v3OpenTextState.textId;
+    if (prev && prev !== String(textId)) {
+      const dur = v3OpenTextState.openedAt
+        ? Math.max(0, Date.now() - v3OpenTextState.openedAt)
+        : 0;
+      v3Emit("text_close", {
+        text_id: prev,
+        payload_json: { duration_ms: dur },
+      });
+    }
+    v3OpenTextState.textId = String(textId);
+    v3OpenTextState.openedAt = Date.now();
+    v3OpenTextState.source = source || null;
+    v3RowPlayCounts.clear();   // reset per-text replay counters
+    v3Emit("text_open", {
+      text_id: String(textId),
+      source: source || null,
+    });
+  } catch (_) {}
+}
+
+// Closes the currently-open text on app shutdown / hidden lifecycle.
+// Phase 11.1 will hook this into Page Visibility API.
+function v3EmitTextCloseCurrent() {
+  try {
+    if (!v3OpenTextState.textId) return;
+    const dur = v3OpenTextState.openedAt
+      ? Math.max(0, Date.now() - v3OpenTextState.openedAt)
+      : 0;
+    v3Emit("text_close", {
+      text_id: v3OpenTextState.textId,
+      payload_json: { duration_ms: dur },
+    });
+    v3OpenTextState.textId = null;
+    v3OpenTextState.openedAt = null;
+    v3OpenTextState.source = null;
+  } catch (_) {}
+}
+
+// Emit play_audio with duration_ms + replay_count.
+// Caller passes duration_ms once it knows actual playback length (audio
+// element's `ended` event); we call from row TTS player.
+function v3EmitPlayAudio(textId, sentenceId, durationMs, source) {
+  try {
+    const sid = String(sentenceId || "");
+    const replayBefore = v3RowPlayCounts.get(sid) || 0;
+    const replayCount = replayBefore + 1;
+    v3RowPlayCounts.set(sid, replayCount);
+    v3Emit("play_audio", {
+      text_id: String(textId || ""),
+      sentence_id: sid,
+      source: source || null,
+      payload_json: {
+        duration_ms: Number.isFinite(durationMs) ? Math.round(durationMs) : null,
+        replay_count: replayCount,
+      },
+    });
+  } catch (_) {}
+}
+
+window.v3Emit = v3Emit;
+window.v3EmitTextOpenWithClose = v3EmitTextOpenWithClose;
+window.v3EmitTextCloseCurrent = v3EmitTextCloseCurrent;
+window.v3EmitPlayAudio = v3EmitPlayAudio;
+
+// Fire text_close on hide / unload as a best-effort safety net. Phase
+// 11.1 will replace this with proper visibility-aware session tracking.
+window.addEventListener("pagehide", v3EmitTextCloseCurrent, { passive: true });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") v3EmitTextCloseCurrent();
+}, { passive: true });
 
 function v3SessionGet() {
   try {
@@ -18907,6 +19048,14 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
   // flush any pending progress before switching table
   try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
 
+  // Phase 11.0: emit text_open (with text_close for previously-open text).
+  // `source` reflects how user landed here: 'library' (default), 'search',
+  // 'smart-chip', 'session-restore', etc. Caller can pass `opts.origin`.
+  const _emitSource = (opts && opts.origin) ? String(opts.origin)
+                    : (opts && opts.source) ? String(opts.source)
+                    : "library";
+  v3EmitTextOpenWithClose(textId, _emitSource);
+
   try {
   // meta + sentences (blocking) — local-db when LOCAL_MODE, else API
   let notesPromise, text, sentences;
@@ -22849,6 +22998,23 @@ async function v3SrsTrainerOpen() {
     document.body.appendChild(modal);
   }
   modal.classList.remove("hidden");
+
+  // Phase 11.0: emit srs_session_started. session_id is generated
+  // client-side and pinned for the duration of the modal — paired with
+  // srs_session_finished on close so duration_ms + cards_reviewed delta
+  // can be computed via the v3CurrentSrsSessionReviewCount counter that
+  // is incremented at each srs_review emit point (see v3EmitSrsReview).
+  try {
+    v3CurrentSrsSessionId = (typeof crypto !== "undefined" && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `sess-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    v3CurrentSrsSessionStartedAt = Date.now();
+    v3CurrentSrsSessionReviewCount = 0;
+    v3Emit("srs_session_started", {
+      session_id: v3CurrentSrsSessionId,
+    });
+  } catch (_) {}
+
   await v3SrsTrainerRefresh();
 }
 
@@ -22856,6 +23022,25 @@ function v3SrsTrainerClose() {
   const modal = v3SrsTrainerEl("v3SrsTrainerModal");
   if (!modal) return;
   modal.classList.add("hidden");
+
+  // Phase 11.0: emit srs_session_finished with duration + cards reviewed
+  // (counter incremented at each srs_review emit during session).
+  try {
+    if (v3CurrentSrsSessionId) {
+      const sid = v3CurrentSrsSessionId;
+      const dur = v3CurrentSrsSessionStartedAt
+        ? Math.max(0, Date.now() - v3CurrentSrsSessionStartedAt)
+        : 0;
+      const reviewed = v3CurrentSrsSessionReviewCount || 0;
+      v3Emit("srs_session_finished", {
+        session_id: sid,
+        payload_json: { duration_ms: dur, cards_reviewed: reviewed },
+      });
+      v3CurrentSrsSessionId = null;
+      v3CurrentSrsSessionStartedAt = null;
+      v3CurrentSrsSessionReviewCount = 0;
+    }
+  } catch (_) {}
 }
 
 // Reshape a local-db SRS card row (snake_case, joined sentence fields) into
@@ -23884,7 +24069,10 @@ async function v3DashboardPlayRow(textId, sentenceId, assetKey) {
     // играем напрямую по assetKey
     audio.src = "/api/audio/" + encodeURIComponent(ak);
 
-    // History event (fire-and-forget)
+    // History event (fire-and-forget) — emits both legacy ROW_TTS (for
+    // backwards-compat with getAnalytics aggregation) AND new play_audio
+    // (Phase 11.0) with rich payload: duration_ms (set on `ended`),
+    // replay_count (sentence-level cumulative).
     try {
       if (LOCAL_MODE) {
         ensureLocalDB().then(ldb => ldb.recordEvent({ event_type: "ROW_TTS", text_id: String(textId), sentence_id: String(sentenceId), source: ak || null })).catch(() => {});
@@ -23895,6 +24083,25 @@ async function v3DashboardPlayRow(textId, sentenceId, assetKey) {
           body: JSON.stringify({ textId: String(textId), sentenceId: String(sentenceId), assetKey: ak, eventType: "ROW_TTS" })
         }).catch(() => {});
       }
+      // Phase 11.0: rich play_audio event. duration_ms captured on `ended`.
+      const _playStartTs = Date.now();
+      const _onEnded = () => {
+        const dur = Math.max(0, Date.now() - _playStartTs);
+        v3EmitPlayAudio(String(textId), String(sentenceId), dur, ak || null);
+        audio.removeEventListener("ended", _onEnded);
+        audio.removeEventListener("pause", _onPause);
+      };
+      const _onPause = () => {
+        // user paused before end — still record what they listened to
+        if (audio.currentTime > 0 && !audio.ended) {
+          const dur = Math.max(0, Date.now() - _playStartTs);
+          v3EmitPlayAudio(String(textId), String(sentenceId), dur, ak || null);
+          audio.removeEventListener("ended", _onEnded);
+          audio.removeEventListener("pause", _onPause);
+        }
+      };
+      audio.addEventListener("ended", _onEnded, { once: false });
+      audio.addEventListener("pause", _onPause, { once: false });
     } catch (_) {}
 
     await audio.play();
@@ -24607,6 +24814,12 @@ async function v3TextMetaSave() {
       try {
         if (typeof ldb.setManualSmartTag === "function") {
           await ldb.setManualSmartTag(id, v3TextMetaPendingSmartTag);
+          // Phase 11.0: emit smart_tag_override event with the new tag.
+          // null = "auto" (override cleared); 'struggling' / 'mastered' = explicit.
+          v3Emit("smart_tag_override", {
+            text_id: String(id),
+            payload_json: { tag: v3TextMetaPendingSmartTag || "auto" },
+          });
         }
       } catch (e) { console.warn("[smart-tag] save failed", e); }
       updated = await ldb.getTextById(id);
@@ -28571,6 +28784,44 @@ async function v3LibraryRememberCardProfileForActiveText() {
 function v3RowTtsTrackPlay(row, assetKey) {
   try {
     if (!row || !row._v3_textId || !row._v3_sentenceId) return;
+
+    // Phase 11.0: emit rich play_audio event alongside legacy row_tts.
+    // duration_ms captured via audio element ended/pause listeners (set
+    // up below). replay_count tracked per-sentence in v3RowPlayCounts.
+    try {
+      const audioPlayer = (typeof ensureRowAudioPlayer === "function")
+        ? ensureRowAudioPlayer()
+        : null;
+      if (audioPlayer) {
+        const _startTs = Date.now();
+        const _emitOnce = () => {
+          const dur = Math.max(0, Date.now() - _startTs);
+          v3EmitPlayAudio(
+            String(row._v3_textId),
+            String(row._v3_sentenceId),
+            dur,
+            assetKey || null
+          );
+          audioPlayer.removeEventListener("ended", _onEnded);
+          audioPlayer.removeEventListener("pause", _onPause);
+        };
+        const _onEnded = () => _emitOnce();
+        const _onPause = () => {
+          if (audioPlayer.currentTime > 0 && !audioPlayer.ended) _emitOnce();
+        };
+        audioPlayer.addEventListener("ended", _onEnded);
+        audioPlayer.addEventListener("pause", _onPause);
+      } else {
+        // Fallback: fire play_audio with null duration if no player.
+        v3EmitPlayAudio(
+          String(row._v3_textId),
+          String(row._v3_sentenceId),
+          null,
+          assetKey || null
+        );
+      }
+    } catch (_) {}
+
     if (LOCAL_MODE) {
       ensureLocalDB().then(async (ldb) => {
         await ldb.recordEvent({
@@ -30492,6 +30743,13 @@ async function v3NotesSave() {
       return;
     }
 
+    // Phase 11.0: capture previous note body length BEFORE the upsert so
+    // we can emit note_edit with delta (chars_added / chars_removed).
+    // For a fresh note (no prior body), we emit save_note instead.
+    const _prevNoteBody = String(v3NotesModalOriginalText || "");
+    const _prevLen = _prevNoteBody.length;
+    const _newLen = note.length;
+
     let dto;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
@@ -30502,6 +30760,31 @@ async function v3NotesSave() {
       dto = resp && resp.note ? resp.note : null;
     }
     updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
+
+    // Phase 11.0: emit save_note (first save) or note_edit (existing note).
+    // Privacy: never emit body content — only counts + length.
+    try {
+      if (_prevLen === 0 && _newLen > 0) {
+        v3Emit("save_note", {
+          text_id: textId,
+          sentence_id: sentenceId,
+          payload_json: {
+            note_kind: "free",
+            body_length: _newLen,
+          },
+        });
+      } else if (_prevLen > 0) {
+        v3Emit("note_edit", {
+          text_id: textId,
+          sentence_id: sentenceId,
+          payload_json: {
+            chars_added: Math.max(0, _newLen - _prevLen),
+            chars_removed: Math.max(0, _prevLen - _newLen),
+            body_length: _newLen,
+          },
+        });
+      }
+    } catch (_) {}
 
     // fallback для UX-01 (на случай неконсистентного ответа сервера)
     if (!updatedAt) updatedAt = new Date().toISOString();

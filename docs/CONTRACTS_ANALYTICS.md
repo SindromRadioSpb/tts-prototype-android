@@ -1,31 +1,47 @@
 # CONTRACTS — Analytics PRO
 
-## 0) Current Repo Status (2026-03-23)
-Текущее состояние репозитория теперь является hybrid-моделью: runtime dashboard по-прежнему опирается на `history_events`, а новый forward-compatible event layer живёт в таблице `events`.
+## 0) Current Repo Status (2026-05-10, post Direction 11A Phase 11.0)
 
-Что уже реализовано:
-- `history_events`, `recent_rows`, `recent_texts`
-- таблица `events`
-- endpoints `/api/history/event`, `/api/history/recent-texts`, `/api/history/recent-activity`, `/api/history/analytics`
-- агрегаты по plays/unique_rows/unique_texts/time_ms поверх `history_events`
-- event logging в `events` для:
-  - `search_query`
-  - `save_note`
-  - `play_audio`
-  - `srs_review`
-  - `trainer_attempt`
-  - `srs_session_started`
-  - `srs_session_finished`
-- `srs_review_events` как детальный SRS review log, отдельный от analytics event layer
+**Phase 6 architectural flip (v3.0.0) move'нул контракт fundamentally:** server-side stateful endpoints (`/api/history/event`, `/api/history/recent-*`, `/api/history/analytics`) теперь возвращают `410 Gone`. Все analytics — **client-side OPFS-resident**.
 
-Что ещё не реализовано в полном контрактном виде:
-- `session_start/session_heartbeat/session_end` как time-spent v2 модель
-- cohort-метрики v1 по level/topic/tags
-- полный перенос dashboard-агрегаций с `history_events` на `events`
+### Текущее источник правды
+- **Local events table** (OPFS, через `local-db.js`) — single source of truth для all client-side analytics.
+- `recordEvent()` API (см. `local-db.js:423`) — единая точка ingestion'а.
+- `getAnalytics()`, `getActivityHeatmap()`, `recentActivity()` — read paths поверх `events`.
 
-Текущий source of truth:
-- dashboard period/all summary: `history_events`
-- cross-feature event ingestion: `events`
+### Phase 11.0 closure (2026-05-10)
+
+Прежние редакции этого doc'а documented 7 event types as "уже реализовано", но **только `row_tts` реально emit'ился**. Phase 11.0 закрыл этот gap. Теперь актуально emit'ятся:
+
+| Event type | Emit point | Payload (anonymized) |
+|------------|------------|----------------------|
+| `text_open` | `v3LibraryOpenText` (и transitively на любом open path) | `text_id`, `source` ('library' / 'search' / 'smart-chip' / 'session-restore' / 'share-import') |
+| `text_close` | На переключении на другой text + `pagehide` + `visibilitychange:hidden` | `text_id`, `payload_json.duration_ms` |
+| `play_audio` | `v3RowTtsTrackPlay` + dashboard playRow (рядом с legacy `row_tts`) | `text_id`, `sentence_id`, `source` (asset_key), `payload_json.duration_ms`, `payload_json.replay_count` |
+| `row_tts` | Legacy emit (kept для backwards-compat с `getAnalytics`) | `text_id`, `sentence_id`, `source` (asset_key) |
+| `save_note` | `v3NotesSave` (когда _prevLen=0 && _newLen>0 — first save) | `text_id`, `sentence_id`, `payload_json.note_kind` ('free' for v3.2 baseline; templates → Direction 9), `payload_json.body_length` |
+| `note_edit` | `v3NotesSave` (когда _prevLen > 0 — existing note edited) | `text_id`, `sentence_id`, `payload_json.chars_added`, `payload_json.chars_removed`, `payload_json.body_length` |
+| `srs_review` | `local-db.js srs.reviewCard()` (single point) | `card_id`, `text_id` (via sentence FK), `sentence_id`, `session_id` (if SRS Trainer active), `payload_json.{grade, interval_before_days, interval_after_days, state_before, state_after, ease_before, ease_after}` |
+| `srs_session_started` | `v3SrsTrainerOpen` | `session_id` |
+| `srs_session_finished` | `v3SrsTrainerClose` | `session_id`, `payload_json.{duration_ms, cards_reviewed}` |
+| `search_query` | `v3IdeSearchExecute` | `payload_json.{query_length, result_count, scope}` — **query string itself NEVER recorded** |
+| `smart_tag_override` | `v3TextMetaSave` (после `setManualSmartTag`) | `text_id`, `payload_json.tag` ('struggling' / 'mastered' / 'auto') |
+| `translit_toggle` | `v3IdeToggleColumn` (when key === 'translit') | `payload_json.visible` (boolean) |
+
+### Не реализовано (deferred → Direction 11A Phase 11.1)
+- `session_start` / `session_heartbeat` / `session_end` — heartbeat-based time-spent v2 модель.
+- `getAnalytics().time_ms` всё ещё estimated (`plays * 4000`); real values — после Phase 11.1.
+
+### Не реализовано (→ Direction 11B research mode)
+- Cohort aggregates по level/topic/tags на уровне server-side `/api/research/v1/*` endpoint family. Опт-ин upload daily aggregates.
+
+### Не реализовано (→ Direction 9 M6)
+- `card_added_to_srs` event — пока добавление карточек в SRS происходит косвенно через template generation; explicit "add this note as SRS card" flow появится с notes redesign.
+
+### Privacy invariants (enforced — Phase 11.0)
+- В `events.payload_json` **никогда не пишется**: raw Hebrew text, note body, search query string, audio bytes, user identifying info.
+- Записывается **только**: counts, lengths, durations, internal IDs (text_id / sentence_id / card_id / note_id — local-only, не уходят на сервер в обычной работе).
+- Server-side telemetry — **отсутствует** (out of scope post-Phase-6). Research-mode aggregates (Direction 11B) — separate opt-in flow.
 
 ## 1) Цель
 Analytics PRO измеряет учебную активность:

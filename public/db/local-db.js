@@ -767,7 +767,15 @@ export const srs = {
   },
 
   async reviewCard(cardId, rating) {
-    const rows = await q('SELECT * FROM srs_cards WHERE id = ?', [cardId]);
+    // Include text_id via sentence FK so we can attribute the srs_review
+    // event to a specific text without a follow-up query (Phase 11.0).
+    const rows = await q(
+      `SELECT c.*, s.text_id AS sentence_text_id
+       FROM srs_cards c
+       LEFT JOIN sentences s ON c.source_sentence_id = s.id
+       WHERE c.id = ?`,
+      [cardId]
+    );
     const card = rows[0];
     if (!card) throw new Error('Card not found: ' + cardId);
 
@@ -794,6 +802,37 @@ export const srs = {
       [eventId, cardId, rating, card.interval_days, newInterval,
        card.ease_factor, newEase, now]
     );
+
+    // Phase 11.0: emit srs_review into the unified events table for
+    // analytics + research-mode aggregation. Best-effort — never blocks
+    // the review flow. UI side increments v3CurrentSrsSessionReviewCount
+    // when an SRS Trainer session is active so srs_session_finished can
+    // compute cards_reviewed delta accurately.
+    try {
+      await recordEvent({
+        event_type: 'srs_review',
+        card_id: cardId,
+        text_id: card.sentence_text_id || null,
+        sentence_id: card.source_sentence_id || null,
+        session_id: (typeof window !== 'undefined' && window.v3CurrentSrsSessionId) || null,
+        payload_json: {
+          grade: rating,                        // 1=again, 2=hard, 3=good, 4=easy
+          interval_before_days: card.interval_days,
+          interval_after_days: newInterval,
+          state_before: card.state,
+          state_after: newState,
+          ease_before: card.ease_factor,
+          ease_after: newEase,
+        },
+      });
+      // If a trainer session is active, bump the in-memory counter so
+      // srs_session_finished reports the correct cards_reviewed delta.
+      if (typeof window !== 'undefined' && window.v3CurrentSrsSessionId) {
+        if (typeof window.v3CurrentSrsSessionReviewCount === 'number') {
+          window.v3CurrentSrsSessionReviewCount = (window.v3CurrentSrsSessionReviewCount || 0) + 1;
+        }
+      }
+    } catch (_) { /* best-effort */ }
 
     return { state: newState, interval_days: newInterval, ease_factor: newEase, due_date: due };
   },
