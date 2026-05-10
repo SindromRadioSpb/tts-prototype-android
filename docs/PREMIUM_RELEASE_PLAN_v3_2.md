@@ -182,12 +182,12 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
 - [x] **Direction 11A** — Analytics Foundation *(commits 7ed309f → 3f6b959, 2026-05-10)*
   - [x] Phase 11.0 — Event emission gap closure (12 event types wired; CONTRACTS drift closed; 23/23 Playwright tests pass)
   - [x] Phase 11.1 — Time-spent v2 (heartbeat-based session tracking + idle-aware aggregation; getActiveMsReal / getActiveMinutesByDay / getSessionMetrics exports)
-- [ ] **Direction 9** — Premium Notes Redesign
-  - [ ] Phase 9.0 — Hebrew root extractor research
+- [~] **Direction 9** — Premium Notes Redesign *(in progress)*
+  - [x] Phase 9.0 — Hebrew root extractor research *(commit `39230f8`, 2026-05-10)*
   - [ ] Phase 9.1 — Foundation (polymorphic schema + versioning + smart-collections)
   - [ ] Phase 9.2 — Audio anchoring (M2)
   - [ ] Phase 9.3 — Linking + Templates + SRS micro-cards
-  - [ ] Phase 9.4 — Morphology
+  - [ ] Phase 9.4 — Morphology *(revised 2.5–3.5 days после Phase 9.0; Plan B + C — manual root/binyan input + seeded ~100-root dictionary; auto-extraction deferred → v3.3)*
 - [ ] **Direction 10** — Text-card System
   - [ ] Phase 10.0 — UX wireframes + privacy section draft
   - [ ] Phase 10.1 — Mode A — Bulk builder

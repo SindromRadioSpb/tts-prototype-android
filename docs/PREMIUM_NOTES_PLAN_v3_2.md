@@ -283,28 +283,45 @@ Cross-text discovery: «I noted 'pi'el confusion' — show me **all texts** with
 
 ---
 
-### M10. Root-aware extraction (HARD — research-blocked)
+### M10. Root-aware extraction — RESOLVED via Phase 9.0 research
 
-**Что:** при создании word_study заметки — система пытается auto-extract корень и binyan. Hebrew root extractor — нетривиальная задача.
+**Phase 9.0 outcome (2026-05-10, commit `39230f8`):** см. `docs/research/HEBREW_ROOT_EXTRACTOR_RESEARCH.md` — full findings.
 
-**Phase 9.0 research scope** (0.5 дня, до старта 9.1):
-- Search npm packages: `hebrew-morphology`, `hebrew-root`, `hebrew-tools`, etc.
-- Evaluate `hebrew-transliteration` (already used) — **does NOT do root extraction**, confirmed.
-- Evaluate possibility WASM-compile из C-libraries: `hspell`, `mila-corpus`. Effort estimate.
-- Evaluate cloud fallback: stateless `/api/morphology/root?word=...` endpoint, calling external service (Google Cloud Natural Language? academic Hebrew NLP?). License review.
-- Evaluate **graceful degradation**: если ничего не находим — manual input в template + autocomplete suggestions от user's own root-target notes.
+**Decision: ship Plan B + Plan C в v3.2 Phase 9.4. Defer auto-extraction в v3.3 as separate "YAP→WASM Hebrew morphology" epic.**
 
-**Decision tree после research'а** (до старта 9.1):
-- **Found JS-only library** → integrate, ship M10 fully auto.
-- **Only WASM-compile path** → defer M10 в v3.3 (compile + integration слишком долго для одного направления).
-- **Only cloud fallback** → ship M10 **с opt-in**, user должен дать consent на отправку слова в cloud-морфологию (offline-first violation иначе).
-- **Nothing** → ship word_study template без root auto-extract; root field — manual input.
+**Reasoning** (from research):
+- **JS landscape is empty** — `hebrew-transliteration` (already in deps) only does transliteration; **no JS package** ever shipped Hebrew root/binyan extraction. Not a search-gap — structural state of the field в 2026.
+- **WASM blocked by license OR scope** — HebMorph + hspell are AGPL (viral, vetoed). YAP (Go, Apache-2.0) is license-clean BUT 2–4 weeks effort + ~50–100 MB lexicon distribution problem. Not v3.2 fit.
+- **Cloud blocked by language gap** — Google Cloud Natural Language API **не поддерживает иврит** для morphology (verified против current docs: zh/en/fr/de/it/ja/ko/pt/ru/es). Babel Street + Lexicala — opaque/expensive. DICTA — академический non-profit, no documented public morphology API.
 
-**Premium-beat (если получится):** Hebrew morphology-aware заметки — **никто** этого не делает в edu-software. Если defer — теряем эту grade, но remaining 9 механик уже категория-defining.
+**Net result:** R1 (root extractor not feasible) — **retired** (we know definitively), replaced with minor R (seed dictionary accuracy/completeness). Phase 9.4 effort revised **3–4 days → 2.5–3.5 days** (−0.5 day saved).
 
-**Acceptance (if shipped fully auto):**
-- [ ] Word in row → notes editor → root field pre-populated correctly for ≥ 90% of common verbs.
-- [ ] Если pre-populate fails — graceful manual entry с autocomplete от existing root-target notes.
+**Plan B (manual entry + autocomplete):**
+- **`word_study.root` field** — text input, max 3-4 Hebrew letters (`[֐-׿]{2,4}`).
+- Live autocomplete:
+  - User's previously-noted roots (via `SELECT DISTINCT root_3letter FROM roots WHERE my_note_id IS NOT NULL`).
+  - Seeded ~100-root dictionary (Plan C below).
+- **`word_study.binyan` field** — `<select>` dropdown с 7 Modern Hebrew patterns: `pa'al` / `nif'al` / `pi'el` / `pu'al` / `hif'il` / `huf'al` / `hitpa'el`. Plus "other / unsure" для irregulars.
+
+**Plan C (seeded roots dictionary):**
+- New deliverable: `public/data/HEBREW_COMMON_ROOTS_SEED.json` — ~100 entries.
+- Schema per entry: `{ root: "שלם", gloss_ru: "целостность, мир", gloss_en: "completeness, peace", common_words: ["שלום", "שלמות", "השלים"] }`.
+- Source: standard Hebrew-grammar reference (Klein's etymological dictionary entries в public-domain).
+- Loaded at first DB init via migration 024 (already specified в § 4 schema). User-added roots merge с seed seamlessly через `UNION` query в autocomplete.
+
+**Premium positioning:** Hebrew students who use word_study templates often **already know the root** — they want to organize, not look up. Autocomplete + seeded dictionary plays the assist role perfectly. Auto-extraction was nice-to-have, not critical.
+
+**Acceptance criteria (revised — Plan B + C edition):**
+- [ ] `roots` table populated с ≥ 100 seed entries on first init.
+- [ ] Word-study template `root` input имеет live autocomplete (seed + user roots).
+- [ ] Word-study template `binyan` dropdown с 7 patterns + "other".
+- [ ] M9 niqqud-variant pinning functional via `word_study.niqqud_variant` field (unchanged from original M9 spec).
+- [ ] No regression в M3 word-study template UX.
+
+**v3.3 follow-up paths (planned, not blocking):**
+- **YAP→WASM Hebrew morphology** epic (2–4 weeks) — compile YAP via TinyGo, solve lexicon distribution via SW precache toggle.
+- **Opt-in cloud sidecar** on Railway (~1 week) — `POST /api/morphology/v1/analyze` с consent flow (similar to research-mode opt-in). Privacy-positive but ongoing hosting cost.
+- Either path: backwards-compat preserved (manual input always wins; auto-fill only suggests).
 
 ---
 
@@ -590,16 +607,19 @@ Deliverables:
 - `public/db/local-db.js` — `parseAndStoreLinks`, `getBacklinks`, `flagNoteForSrs`.
 - `public/i18n/locales/*` — template field labels, autocomplete strings.
 
-### Phase 9.4 — Morphology (3–4 дня)
+### Phase 9.4 — Morphology (2.5–3.5 дня — **revised after Phase 9.0 research**)
 
-Scope (зависит от Phase 9.0 outcome):
+Scope (per Phase 9.0 decision: Plan B + Plan C):
 - M1 root/binyan targets: target picker для `root` и `binyan`.
 - M9 Niqqud-variant pinning в word_study template.
-- M10 Root extractor integration (full-auto / opt-in cloud / manual-only — per Phase 9.0 decision).
+- M10 **Manual root + binyan input** с autocomplete от user roots + seeded dictionary (NOT auto-extraction — see § 3 M10).
 
 Deliverables:
-- `public/db/local-db.js` — `roots` table API, `findNotesByRoot`, `findNotesByBinyan`.
-- (если full-auto) `public/lib/hebrew-morphology.js` — vendored extractor library OR `server.js` `/api/morphology/*` endpoint.
+- `public/data/HEBREW_COMMON_ROOTS_SEED.json` — ~100 entries (Klein's etymological dictionary public-domain extracts). **+0.5 day** new sub-task.
+- `public/db/local-db.js` — `roots` table API: `findNotesByRoot`, `findNotesByBinyan`, `seedCommonRoots()` (idempotent, runs on first init), `searchRootsAutocomplete(query)` для UI live-autocomplete.
+- `public/index.html` — word_study template form: root text-input с autocomplete dropdown (seed + user roots), binyan select с 7 + "other".
+
+**v3.3 follow-up:** auto-extraction via YAP→WASM (license-clean Apache-2.0 Go) OR opt-in cloud sidecar — **not blocking v3.2 Phase 9.4.**
 
 ### Phase 9.5 — Knowledge graph (deferred → v3.3)
 
@@ -611,12 +631,12 @@ NOT in v3.2.0. Foundation (`note_links`) shipped в 9.1 для готовнос�
 
 | Phase | Effort | Risk |
 |-------|-------:|------|
-| 9.0 Research | 0.5 дня | Low |
+| 9.0 Research | ✅ done (commit `39230f8`) | n/a |
 | 9.1 Foundation | 5–6 дней | Low |
 | 9.2 Audio anchoring | 2–3 дня | Medium (audio API integration) |
 | 9.3 Linking + templates + SRS | 3–4 дня | Medium |
-| 9.4 Morphology | 3–4 дня | High (research-blocked) |
-| **Total v3.2.0 Direction 9** | **~13–17 дней (≈ 3 рабочих недели)** | |
+| 9.4 Morphology | **2.5–3.5 дня** *(was 3–4d; −0.5d after Phase 9.0)* | **Low** *(was High; R1 retired)* |
+| **Total v3.2.0 Direction 9** | **~13–16.5 дней** *(saved ~0.5d)* | |
 
 ---
 
@@ -686,7 +706,8 @@ NOT in v3.2.0. Foundation (`note_links`) shipped в 9.1 для готовнос�
 
 | ID | Risk | Severity | Mitigation |
 |----|------|----------|------------|
-| R1 | M10 Root extractor not feasible → degraded experience | High | Phase 9.0 research **до** 9.1 commit; graceful manual-input fallback. |
+| ~~R1~~ | ~~M10 Root extractor not feasible → degraded experience~~ | ~~High~~ | **RETIRED 2026-05-10 (Phase 9.0).** Research confirmed extractor isn't feasible в v3.2 (no JS lib, AGPL blocks WASM, GCP doesn't support Hebrew). Plan B + C shipped instead — premium-honest manual + autocomplete + seeded dictionary. See `docs/research/HEBREW_ROOT_EXTRACTOR_RESEARCH.md`. |
+| R1' | Seeded ~100-root dictionary не покрывает long-tail roots → incomplete autocomplete | Low | User-added roots merge с seed (`UNION` query); over time user's library grows beyond seed; explicit "Add this root" UX in word_study template helps onboarding. |
 | R2 | Migration 025 slow on huge libraries (>10k notes) | Medium | TRANSACTION-wrapped INSERT; benchmark на test corpus. |
 | R3 | Schema 021–025 introduces FK что-то ломает (cascade) | Medium | Per-table cascade tests; preserve existing CASCADE semantics from `sentence_notes`. |
 | R4 | Versioning retention at scale → OPFS quota pressure | Low | Document expected disk usage; opt-in retention bumping. |
@@ -723,7 +744,7 @@ NOT in v3.2.0. Foundation (`note_links`) shipped в 9.1 для готовнос�
 
 > Обновляется по мере реализации. Каждая Phase — `[ ]` planned → `[~]` in-progress → `[x]` done.
 
-- [ ] **Phase 9.0** — Hebrew root extractor research
+- [x] **Phase 9.0** — Hebrew root extractor research *(commit `39230f8`, 2026-05-10)* — outcome: ship Plan B + C in v3.2; defer auto-extraction → v3.3.
 - [ ] **Phase 9.1** — Foundation (polymorphic schema + versioning + smart-collections)
 - [ ] **Phase 9.2** — Audio anchoring (M2)
 - [ ] **Phase 9.3** — Linking + Templates + SRS micro-cards (M3 + M4 + M6)

@@ -11,6 +11,8 @@
 
 ### Shipped (so far)
 
+- **Direction 9 Phase 9.0** — Hebrew root extractor research *(2026-05-10, commit `39230f8`)*. Outcome documented в `docs/research/HEBREW_ROOT_EXTRACTOR_RESEARCH.md`: JS Hebrew NLP landscape пуст, AGPL libs vetoed, GCP NL API не поддерживает иврит. **Decision:** Phase 9.4 ships Plan B (manual root + binyan input with autocomplete) + Plan C (seeded ~100-root dictionary from public-domain Klein etymological data). Auto-extraction deferred to v3.3 as separate "YAP→WASM Hebrew morphology" epic. R1 risk retired; Phase 9.4 effort revised 3–4d → 2.5–3.5d, **risk High → Low**.
+
 - **Direction 11A — Analytics Foundation** *(2026-05-10, commits `7ed309f` → `3f6b959`)*. Closes the long-standing CONTRACTS_ANALYTICS drift (Tier 0 audit gap) и переводит time-spent на heartbeat-based real measurements, useful to all users (not only research mode).
   - **Phase 11.0:** 12 event types wired into `events` table — `text_open`, `text_close`, `play_audio`, `save_note`, `note_edit`, `srs_review`, `srs_session_started`, `srs_session_finished`, `search_query`, `smart_tag_override`, `translit_toggle`, plus legacy `row_tts` preserved for backwards-compat. New `v3Emit()` helper + privacy-strict invariants enforced (no raw text / note bodies / search query strings ever leak — see `docs/CONTRACTS_ANALYTICS.md § 0`).
   - **Phase 11.1:** heartbeat-based session tracking with idle gating (5 min) + visibility gating + max-session cap (60 min). Three new aggregation API exports in `local-db.js`: `getActiveMsReal()`, `getActiveMinutesByDay()`, `getSessionMetrics()`. `getAnalytics()` shape evolved with new `active_ms_real` field alongside legacy `time_ms` (backwards-compat preserved). 23/23 browser-driven Playwright tests pass.
