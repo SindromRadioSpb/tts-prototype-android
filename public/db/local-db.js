@@ -80,6 +80,19 @@ export async function execRaw(sql) {
   return _call('exec', sql);
 }
 
+// Direction 9 Phase 9.1.A: parameterized query/run escape hatches —
+// exported for browser-side test pages and admin diagnostics. Mirror of
+// the internal q()/r() helpers. Regular application code should stay on
+// the typed helpers (createText, listTexts, etc.); these are for
+// schema introspection (PRAGMA, sqlite_master) and ad-hoc diagnostic
+// queries.
+export async function dbQuery(sql, params) {
+  return q(sql, params);
+}
+export async function dbRun(sql, params) {
+  return r(sql, params);
+}
+
 // D3: PRAGMA integrity_check — runs SQLite's built-in self-check across
 // the whole DB file. Returns "ok" string list when healthy, or a list of
 // human-readable issue descriptions when corrupt. Cheap on small DBs (a

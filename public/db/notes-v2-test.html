@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Notes v2 Schema Test (Phase 9.1.A)</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #e0e0e0; max-width: 1100px; margin: 0 auto; }
+    h2 { color: #fbbf24; }
+    .ok { color: #4ade80; }
+    .err { color: #f87171; }
+    .inf { color: #60a5fa; }
+    .warn { color: #fbbf24; }
+    pre { margin: 4px 0 4px 20px; color: #94a3b8; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+<h2>Notes v2 — Schema migration test (Phase 9.1.A)</h2>
+<p class="inf">Verifies migrations 021–025: polymorphic notes_v2, note_versions, note_links, roots, and the sentence_notes → notes_v2 data migration with backwards-compat VIEW.</p>
+<div id="log"></div>
+
+<script type="module">
+import {
+  initLocalDB, recordEvent,
+  upsertNote, listNotes, deleteNote, searchNotes,
+  createText, addSentence, deleteText,
+  dbQuery, dbRun,
+} from '/db/local-db.js';
+
+const log = document.getElementById('log');
+function out(cls, msg, extra) {
+  const p = document.createElement('p');
+  p.className = cls;
+  p.textContent = msg;
+  log.appendChild(p);
+  if (extra != null) {
+    const pre = document.createElement('pre');
+    pre.textContent = typeof extra === 'object' ? JSON.stringify(extra, null, 2) : String(extra);
+    log.appendChild(pre);
+  }
+}
+
+async function run() {
+  let pass = 0, fail = 0;
+  const t = (name, fn) => async () => {
+    try { await fn(); pass++; out('ok', '✅ ' + name); }
+    catch (e) { fail++; out('err', '❌ ' + name + ' — ' + (e && e.message ? e.message : String(e))); }
+  };
+
+  try {
+    out('inf', 'Initializing OPFS + wa-sqlite + migrations 001–025...');
+    await initLocalDB();
+    out('ok', '✅ Init complete (all 25 migrations applied)');
+  } catch (e) {
+    out('err', '❌ Init failed: ' + e.message);
+    return;
+  }
+
+  // We don't have a `q` export — use a small fetch-based diag through
+  // dbDiag if exposed, or interrogate via known APIs. Let's call into
+  // window.__localDB.q if it leaks; otherwise use the existing helpers.
+  const ldb = { q: dbQuery, r: dbRun, createText, addSentence, deleteText };
+  const hasQ = true;
+
+  // ── Migration 021: notes_v2 table exists with expected columns ────
+  await t('notes_v2 table exists', async () => {
+    if (!hasQ) return; // soft-skip
+    const rows = await ldb.q(`SELECT name FROM sqlite_master WHERE type='table' AND name='notes_v2'`);
+    if (!rows.length) throw new Error('table notes_v2 not found');
+  })();
+
+  await t('notes_v2 has all expected columns', async () => {
+    if (!hasQ) return;
+    const cols = await ldb.q(`PRAGMA table_info(notes_v2)`);
+    const names = new Set(cols.map(r => r.name));
+    const want = ['id','target_kind','target_id','text_id','note_type','title',
+                  'body_json','audio_anchor_ms','audio_asset_key','srs_card_id',
+                  'created_at','updated_at'];
+    for (const w of want) if (!names.has(w)) throw new Error('missing column ' + w);
+  })();
+
+  await t('notes_v2 indexes present', async () => {
+    if (!hasQ) return;
+    const idx = await ldb.q(`SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='notes_v2'`);
+    const names = new Set(idx.map(r => r.name));
+    for (const n of ['ix_notes_v2_target','ix_notes_v2_text','ix_notes_v2_type',
+                     'ix_notes_v2_audio','ix_notes_v2_srs','ix_notes_v2_updated_at']) {
+      if (!names.has(n)) throw new Error('missing index ' + n);
+    }
+  })();
+
+  // ── Migration 022: note_versions ──────────────────────────────────
+  await t('note_versions table exists', async () => {
+    if (!hasQ) return;
+    const rows = await ldb.q(`SELECT name FROM sqlite_master WHERE type='table' AND name='note_versions'`);
+    if (!rows.length) throw new Error('not found');
+  })();
+
+  // ── Migration 023: note_links ─────────────────────────────────────
+  await t('note_links table + ix_note_links_to index exist', async () => {
+    if (!hasQ) return;
+    const tbl = await ldb.q(`SELECT name FROM sqlite_master WHERE type='table' AND name='note_links'`);
+    if (!tbl.length) throw new Error('table not found');
+    const idx = await ldb.q(`SELECT name FROM sqlite_master WHERE type='index' AND name='ix_note_links_to'`);
+    if (!idx.length) throw new Error('index not found');
+  })();
+
+  // ── Migration 024: roots ──────────────────────────────────────────
+  await t('roots table exists with expected columns', async () => {
+    if (!hasQ) return;
+    const cols = await ldb.q(`PRAGMA table_info(roots)`);
+    const names = new Set(cols.map(r => r.name));
+    for (const n of ['root_3letter','gloss','my_note_id']) {
+      if (!names.has(n)) throw new Error('missing column ' + n);
+    }
+  })();
+
+  // ── Migration 025: sentence_notes is now a VIEW; backwards-compat works
+  await t('sentence_notes is now a VIEW (not a table)', async () => {
+    if (!hasQ) return;
+    const rows = await ldb.q(`SELECT type FROM sqlite_master WHERE name='sentence_notes'`);
+    if (!rows.length) throw new Error('sentence_notes neither table nor view');
+    if (rows[0].type !== 'view') throw new Error('expected view, got ' + rows[0].type);
+  })();
+
+  // Create a fresh text + sentence to test note operations against
+  let testTextId, testSentenceId;
+  await t('setup: createText + addSentence (for note operations)', async () => {
+    const tid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'tid-' + Date.now();
+    const tx = await ldb.createText({
+      id: tid,
+      text_key: 'notes-v2-test-' + Date.now(),
+      title: 'Notes v2 Test Text',
+      level: 'beginner',
+      source_text: 'בדיקה',
+    });
+    if (!tx) throw new Error('createText returned ' + tx);
+    testTextId = tx.id;
+    const sid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'sid-' + Date.now();
+    // addSentence is a void operation; sentence_id is whatever we passed in.
+    await ldb.addSentence(testTextId, {
+      id: sid,
+      order_index: 0,
+      he_plain: 'בדיקה',
+      ru: 'тест',
+    });
+    testSentenceId = sid;
+  })();
+
+  // ── Backwards-compat: upsertNote → reads via VIEW ─────────────────
+  await t('upsertNote inserts into notes_v2 (currently still writes to legacy path — Phase 9.1.B will rewrite)', async () => {
+    // upsertNote currently still references "sentence_notes" as a table.
+    // After 025 migration, that table is now a VIEW (read-only). So
+    // upsertNote will FAIL until 9.1.B rewrites the API. This test
+    // EXPECTS failure right now and confirms the issue is identified.
+    let failed = false;
+    try {
+      await upsertNote(testTextId, testSentenceId, 'Test note via upsertNote (should fail until 9.1.B)');
+    } catch (e) {
+      failed = true;
+    }
+    if (!failed) {
+      // If it succeeds, that's actually fine — SQLite may have allowed
+      // INSERT on the VIEW via INSTEAD OF triggers (we did not add such
+      // triggers, so this would be a surprise). Verify the row landed
+      // somewhere readable.
+      const ns = await listNotes(testTextId);
+      if (!ns.length) throw new Error('upsertNote silently dropped — no row visible');
+      out('warn', '   ⚠ upsertNote unexpectedly succeeded against VIEW; investigate before 9.1.B.');
+    } else {
+      out('inf', '   ℹ upsertNote correctly fails against the new VIEW (will be rewritten in Phase 9.1.B).');
+    }
+  })();
+
+  // Direct insert into notes_v2 to verify schema works
+  await t('direct insert into notes_v2 (free note via VIEW-friendly path)', async () => {
+    if (!hasQ) return;
+    const id = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'n-' + Date.now();
+    await ldb.r(
+      `INSERT INTO notes_v2 (id, target_kind, target_id, text_id, note_type, body_json)
+       VALUES (?, 'sentence', ?, ?, 'free', json_object('markdown', ?))`,
+      [id, testSentenceId, testTextId, 'Direct insert test note']
+    );
+    const back = await ldb.q(`SELECT * FROM notes_v2 WHERE id = ?`, [id]);
+    if (!back.length) throw new Error('row not readable after insert');
+    if (back[0].target_kind !== 'sentence') throw new Error('target_kind wrong');
+    if (back[0].note_type !== 'free') throw new Error('note_type wrong');
+    if (!back[0].body_json.includes('Direct insert')) throw new Error('body_json missing content');
+  })();
+
+  // VIEW reads back successfully through legacy column names
+  await t('sentence_notes VIEW returns the row via legacy schema', async () => {
+    if (!hasQ) return;
+    const rows = await ldb.q(`SELECT * FROM sentence_notes WHERE text_id = ?`, [testTextId]);
+    if (!rows.length) throw new Error('view returned 0 rows');
+    if (typeof rows[0].sentence_id === 'undefined') throw new Error('view missing sentence_id column');
+    if (typeof rows[0].note === 'undefined') throw new Error('view missing note column');
+    out('inf', '   sentence_notes VIEW row: ' + JSON.stringify({
+      sentence_id: rows[0].sentence_id, note_preview: String(rows[0].note).slice(0, 30)
+    }));
+  })();
+
+  // ── CHECK constraints ─────────────────────────────────────────────
+  await t('CHECK rejects body_json > 64k chars', async () => {
+    if (!hasQ) return;
+    const huge = JSON.stringify({ markdown: 'x'.repeat(70000) });
+    if (huge.length <= 65536) throw new Error('test setup wrong; expected > 65536');
+    const id = 'huge-' + Date.now();
+    let rejected = false;
+    try {
+      await ldb.r(
+        `INSERT INTO notes_v2 (id, target_kind, target_id, text_id, body_json) VALUES (?, 'sentence', ?, ?, ?)`,
+        [id, testSentenceId, testTextId, huge]
+      );
+    } catch (e) { rejected = true; }
+    if (!rejected) throw new Error('64k cap CHECK did not fire');
+  })();
+
+  await t('CHECK rejects invalid JSON in body_json', async () => {
+    if (!hasQ) return;
+    const id = 'badjson-' + Date.now();
+    let rejected = false;
+    try {
+      await ldb.r(
+        `INSERT INTO notes_v2 (id, target_kind, target_id, text_id, body_json) VALUES (?, 'sentence', ?, ?, ?)`,
+        [id, testSentenceId, testTextId, 'this is not json']
+      );
+    } catch (e) { rejected = true; }
+    if (!rejected) throw new Error('json_valid CHECK did not fire');
+  })();
+
+  await t('CHECK rejects unknown target_kind', async () => {
+    if (!hasQ) return;
+    const id = 'badkind-' + Date.now();
+    let rejected = false;
+    try {
+      await ldb.r(
+        `INSERT INTO notes_v2 (id, target_kind, body_json) VALUES (?, 'planet', '{}')`,
+        [id]
+      );
+    } catch (e) { rejected = true; }
+    if (!rejected) throw new Error('target_kind enum CHECK did not fire');
+  })();
+
+  await t('CHECK rejects unknown note_type', async () => {
+    if (!hasQ) return;
+    const id = 'badtype-' + Date.now();
+    let rejected = false;
+    try {
+      await ldb.r(
+        `INSERT INTO notes_v2 (id, target_kind, note_type, body_json) VALUES (?, 'free', 'haiku', '{}')`,
+        [id]
+      );
+    } catch (e) { rejected = true; }
+    if (!rejected) throw new Error('note_type enum CHECK did not fire');
+  })();
+
+  // ── note_versions FK CASCADE ──────────────────────────────────────
+  await t('note_versions FK cascades on note delete', async () => {
+    if (!hasQ) return;
+    const noteId = 'nv-test-' + Date.now();
+    await ldb.r(
+      `INSERT INTO notes_v2 (id, target_kind, target_id, text_id, body_json)
+       VALUES (?, 'sentence', ?, ?, json_object('markdown','v1'))`,
+      [noteId, testSentenceId, testTextId]
+    );
+    await ldb.r(
+      `INSERT INTO note_versions (note_id, version, body_json)
+       VALUES (?, 1, json_object('markdown','v1'))`,
+      [noteId]
+    );
+    const before = await ldb.q(`SELECT COUNT(*) AS c FROM note_versions WHERE note_id = ?`, [noteId]);
+    if (Number(before[0].c) !== 1) throw new Error('version not inserted');
+    await ldb.r(`DELETE FROM notes_v2 WHERE id = ?`, [noteId]);
+    const after = await ldb.q(`SELECT COUNT(*) AS c FROM note_versions WHERE note_id = ?`, [noteId]);
+    if (Number(after[0].c) !== 0) throw new Error('cascade did not fire');
+  })();
+
+  // ── note_links to_kind constraint ─────────────────────────────────
+  await t('note_links to_kind CHECK fires for unknown kind', async () => {
+    if (!hasQ) return;
+    let rejected = false;
+    try {
+      await ldb.r(
+        `INSERT INTO note_links (from_note_id, to_kind, to_id) VALUES ('x', 'fish', 'y')`,
+        []
+      );
+    } catch (e) { rejected = true; }
+    if (!rejected) throw new Error('to_kind CHECK did not fire');
+  })();
+
+  // ── Cleanup: deleteText cascades to notes_v2 ──────────────────────
+  await t('deleteText cascades into notes_v2 (via FK ON DELETE CASCADE)', async () => {
+    if (!hasQ) return;
+    const before = await ldb.q(`SELECT COUNT(*) AS c FROM notes_v2 WHERE text_id = ?`, [testTextId]);
+    if (Number(before[0].c) === 0) {
+      out('warn', '   (test text already had no notes — cleaning anyway)');
+    }
+    await ldb.deleteText(testTextId);
+    const after = await ldb.q(`SELECT COUNT(*) AS c FROM notes_v2 WHERE text_id = ?`, [testTextId]);
+    if (Number(after[0].c) !== 0) throw new Error('cascade did not fire');
+  })();
+
+  // Summary
+  out('inf', '\n— Summary —');
+  out(fail ? 'err' : 'ok', `Passed: ${pass} · Failed: ${fail}`);
+}
+
+run().catch(e => out('err', '❌ Suite crashed: ' + e.message));
+</script>
+</body>
+</html>

@@ -454,4 +454,128 @@ export const MIGRATIONS = [
   // Mutually exclusive — single column, not two booleans.
   `ALTER TABLE texts ADD COLUMN manual_smart_tag TEXT;
   CREATE INDEX IF NOT EXISTS ix_texts_manual_smart_tag ON texts(manual_smart_tag) WHERE manual_smart_tag IS NOT NULL;`,
+
+  // ── Direction 9 Premium Notes Redesign — migrations 021–025 ───────────
+  // Phase 9.1 Foundation. Replaces sentence-pinned single-note model with
+  // polymorphic targets + 5 note types + audio anchoring + bidirectional
+  // links + version history + SRS micro-cards. See
+  // docs/PREMIUM_NOTES_PLAN_v3_2.md for full design.
+
+  // 021_notes_v2 — polymorphic notes table.
+  // target_kind: 'sentence' (legacy + default for row notes), 'word'
+  //   (specific word in a row), 'root' (3-letter Hebrew root, surfaces
+  //   across texts), 'binyan' (verb pattern), 'text' (whole text),
+  //   'note' (note-on-note, for backlink-style linking), 'free'
+  //   (journal entry, no target).
+  // note_type: 'free' (markdown only — default + sentence_notes legacy),
+  //   'word_study', 'grammar_rule', 'translation_discrepancy',
+  //   'pronunciation_note' (sealed schemas, see plan-doc M3).
+  // body_json: typed payload per note_type. For 'free' it's {markdown}.
+  // 64k cap (D5) — CHECK enforces; json_valid catches malformed JSON.
+  `CREATE TABLE IF NOT EXISTS notes_v2 (
+    id              TEXT PRIMARY KEY,
+    target_kind     TEXT NOT NULL DEFAULT 'sentence' CHECK (target_kind IN
+                      ('sentence','word','root','binyan','text','note','free')),
+    target_id       TEXT,
+    text_id         TEXT,
+    note_type       TEXT NOT NULL DEFAULT 'free' CHECK (note_type IN
+                      ('free','word_study','grammar_rule',
+                       'translation_discrepancy','pronunciation_note')),
+    title           TEXT NOT NULL DEFAULT '',
+    body_json       TEXT NOT NULL DEFAULT '{}',
+    audio_anchor_ms INTEGER,
+    audio_asset_key TEXT,
+    srs_card_id     TEXT,
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    CHECK (LENGTH(body_json) <= 65536),
+    CHECK (json_valid(body_json)),
+    FOREIGN KEY (text_id) REFERENCES texts(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS ix_notes_v2_target ON notes_v2(target_kind, target_id);
+  CREATE INDEX IF NOT EXISTS ix_notes_v2_text ON notes_v2(text_id);
+  CREATE INDEX IF NOT EXISTS ix_notes_v2_type ON notes_v2(note_type);
+  CREATE INDEX IF NOT EXISTS ix_notes_v2_audio ON notes_v2(audio_anchor_ms)
+    WHERE audio_anchor_ms IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS ix_notes_v2_srs ON notes_v2(srs_card_id)
+    WHERE srs_card_id IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS ix_notes_v2_updated_at ON notes_v2(updated_at);
+  CREATE TRIGGER IF NOT EXISTS trg_notes_v2_iso_updated_at
+  AFTER UPDATE ON notes_v2
+  WHEN NEW.updated_at IS NULL OR NEW.updated_at = OLD.updated_at
+  BEGIN
+    UPDATE notes_v2
+       SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+     WHERE id = NEW.id;
+  END;`,
+
+  // 022_note_versions — M5 versioning. Snapshot per significant edit
+  // (debounced ~30s in UI; or manual Save). FIFO retention 50 versions
+  // per note (D6) — enforced by application code at write time, not in
+  // schema.
+  `CREATE TABLE IF NOT EXISTS note_versions (
+    note_id        TEXT NOT NULL,
+    version        INTEGER NOT NULL,
+    body_json      TEXT NOT NULL,
+    diff_summary   TEXT,
+    edited_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    PRIMARY KEY (note_id, version),
+    FOREIGN KEY (note_id) REFERENCES notes_v2(id) ON DELETE CASCADE,
+    CHECK (LENGTH(body_json) <= 65536),
+    CHECK (json_valid(body_json))
+  );
+  CREATE INDEX IF NOT EXISTS ix_note_versions_edited
+    ON note_versions(note_id, edited_at);`,
+
+  // 023_note_links — M4 bidirectional links + backlinks. Every [[…]]
+  // reference parsed at save time becomes a row here. ON DELETE CASCADE
+  // from the source note; broken links (deleted target) tolerated by UI.
+  `CREATE TABLE IF NOT EXISTS note_links (
+    from_note_id   TEXT NOT NULL,
+    to_kind        TEXT NOT NULL CHECK (to_kind IN
+                      ('note','word','root','binyan','text','sentence')),
+    to_id          TEXT NOT NULL,
+    link_alias     TEXT,
+    created_at     TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    PRIMARY KEY (from_note_id, to_kind, to_id),
+    FOREIGN KEY (from_note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS ix_note_links_to ON note_links(to_kind, to_id);`,
+
+  // 024_roots — Hebrew root reference table. Schema only; ~100 seed
+  // entries (Plan C, see HEBREW_ROOT_EXTRACTOR_RESEARCH.md § 7) loaded
+  // by application code in Phase 9.4 from public/data/HEBREW_COMMON_
+  // ROOTS_SEED.json. User-added roots merge with seed via UNION query.
+  // my_note_id: optional FK to a 'root'-target user note about this root.
+  `CREATE TABLE IF NOT EXISTS roots (
+    root_3letter   TEXT PRIMARY KEY,
+    gloss          TEXT,
+    my_note_id     TEXT,
+    FOREIGN KEY (my_note_id) REFERENCES notes_v2(id) ON DELETE SET NULL
+  );`,
+
+  // 025_migrate_sentence_notes — copy legacy sentence_notes rows into
+  // notes_v2 (target_kind='sentence', note_type='free', body_json wraps
+  // the plaintext in {"markdown": "..."}), then drop the old table and
+  // create a backwards-compat read-only VIEW with the same name + columns
+  // so any straggling SELECT-only code (e.g. exportBundle) continues to
+  // work without modification. Mutating callers (upsertNote / deleteNote)
+  // are rewritten in Phase 9.1.B to operate on notes_v2 directly.
+  `INSERT INTO notes_v2 (id, target_kind, target_id, text_id, note_type,
+                         title, body_json, created_at, updated_at)
+   SELECT id, 'sentence', sentence_id, text_id, 'free', '',
+          json_object('markdown', note),
+          COALESCE(created_at, strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+          COALESCE(updated_at, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+     FROM sentence_notes;
+   DROP TABLE sentence_notes;
+   CREATE VIEW sentence_notes AS
+     SELECT id,
+            text_id,
+            target_id AS sentence_id,
+            COALESCE(json_extract(body_json, '$.markdown'), '') AS note,
+            created_at,
+            updated_at
+       FROM notes_v2
+      WHERE target_kind = 'sentence' AND note_type = 'free';`,
 ];
