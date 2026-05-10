@@ -4459,6 +4459,284 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   .v3-notes-md-split { flex-direction: column; }
 }
 
+/* -----------------------------------------
+   Phase 9.1.C — Notes modal revamp (Stages B/C/D)
+   Target picker / type switcher / history sidebar
+----------------------------------------- */
+.v3-notes-meta-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-muted);
+}
+.v3-notes-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.v3-notes-meta-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--theme-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  min-width: 56px;
+}
+.v3-notes-seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px;
+  background: var(--theme-bg-card);
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 10px;
+}
+.v3-notes-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--theme-text-primary);
+  border-radius: 7px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.v3-notes-seg-btn:hover {
+  background: var(--theme-bg-hover);
+}
+.v3-notes-seg-btn.active {
+  background: var(--theme-accent);
+  color: #fff;
+  border-color: var(--theme-accent);
+}
+body.theme-dark .v3-notes-seg-btn.active,
+body:not(.theme-light) .v3-notes-seg-btn.active { color: #0f172a; }
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-seg-btn { transition: none; }
+}
+.v3-notes-target-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 8px;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  font-family: inherit;
+  font-size: 13px;
+}
+.v3-notes-target-hints {
+  width: 100%;
+  margin-top: 4px;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 8px;
+  background: var(--theme-bg-card);
+}
+.v3-notes-target-hints .v3-notes-target-hint {
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--theme-text-primary);
+}
+.v3-notes-target-hints .v3-notes-target-hint:hover,
+.v3-notes-target-hints .v3-notes-target-hint.active {
+  background: var(--theme-bg-hover);
+}
+.v3-notes-template-banner {
+  margin: 0 0 10px 0;
+  padding: 8px 12px;
+  border-left: 4px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.10);
+  color: var(--theme-text-primary);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+body.theme-dark .v3-notes-template-banner,
+body:not(.theme-light) .v3-notes-template-banner {
+  background: rgba(245, 158, 11, 0.18);
+}
+.v3-notes-title-input {
+  display: block;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 8px;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  font-family: inherit;
+  font-size: 14px;
+}
+.v3-notes-md-editor-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.v3-notes-md-editor-col #v3NotesText {
+  width: 100%;
+}
+.v3-notes-char-counter {
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--theme-text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.v3-notes-char-counter.warn { color: #d97706; }
+.v3-notes-char-counter.over { color: #dc2626; font-weight: 600; }
+
+/* History sidebar (Stage D) */
+.v3-notes-history-sidebar {
+  width: 280px;
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 10px;
+  background: var(--theme-bg-card);
+  overflow: hidden;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+.v3-notes-history-sidebar.hidden { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-history-sidebar { transition: none; }
+}
+.v3-notes-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-muted);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--theme-text-primary);
+}
+.v3-notes-history-close {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  font-size: 16px; line-height: 1;
+  padding: 0; cursor: pointer;
+}
+.v3-notes-history-list {
+  flex: 1;
+  overflow: auto;
+  padding: 6px;
+}
+.v3-notes-history-empty {
+  padding: 12px;
+  font-size: 12.5px;
+  color: var(--theme-text-muted);
+  text-align: center;
+}
+.v3-notes-history-item {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 8px;
+  background: var(--theme-bg-card);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.v3-notes-history-item:hover {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-bg-hover);
+}
+.v3-notes-history-item.active {
+  border-color: var(--theme-accent);
+}
+.v3-notes-history-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+.v3-notes-history-item-meta {
+  font-size: 11.5px;
+  color: var(--theme-text-muted);
+  margin-top: 2px;
+}
+.v3-notes-history-item-diff {
+  font-size: 11.5px;
+  margin-top: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--theme-text-muted);
+}
+.v3-notes-history-item-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.v3-notes-history-item-actions button {
+  padding: 4px 8px;
+  font-size: 11.5px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.v3-notes-history-diff-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--theme-border-soft);
+  font-size: 12px;
+  max-height: 240px;
+  overflow: auto;
+}
+.v3-notes-history-diff-block {
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: var(--theme-bg-muted);
+}
+.v3-notes-history-diff-block .v3-notes-history-diff-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--theme-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.v3-notes-history-diff-block pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--theme-text-primary);
+}
+@media (max-width: 780px) {
+  .v3-notes-history-sidebar {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    flex: none;
+    z-index: 50;
+    border-radius: 0;
+  }
+}
+@media (max-width: 600px) {
+  .v3-notes-seg-btn { padding: 6px 9px; font-size: 12px; }
+  .v3-notes-meta-label { min-width: 44px; font-size: 11px; }
+}
+
 /* ============================================
    V3 IDE WORKSPACE LAYOUT (Week 12+)
    Feature-flagged via body.v3-ide-mode
@@ -8341,16 +8619,59 @@ body:not(.theme-light) .v3-heatmap-cell {
   <div class="v3-modal-panel">
     <div class="v3-modal-header">
       <div class="v3-modal-title">Заметка к строке (Ctrl+Enter - сохранить заметку)</div>
-      <button class="btn-secondary" onclick="v3NotesClose()">Закрыть</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button id="v3NotesHistoryToggleBtn" type="button" class="btn-secondary" onclick="v3NotesHistoryToggle()" title="История версий (M5)" aria-expanded="false">🕒 <span data-i18n="notes.history">History</span></button>
+        <button class="btn-secondary" onclick="v3NotesClose()" data-i18n="notes.closeBtn">Закрыть</button>
+      </div>
+    </div>
+
+    <!-- Phase 9.1.C Stage B/C: target_kind + note_type segmented controls -->
+    <div class="v3-notes-meta-bar" id="v3NotesMetaBar">
+      <div class="v3-notes-meta-row" id="v3NotesTargetRow" role="group" aria-label="Target kind">
+        <span class="v3-notes-meta-label" data-i18n="notes.targetLabel">Цель:</span>
+        <div class="v3-notes-seg" id="v3NotesTargetSeg">
+          <button type="button" class="v3-notes-seg-btn" data-target-kind="sentence" onclick="v3NotesSetTargetKind('sentence')" title="Sentence">📍 <span data-i18n="notes.targetSentence">Строка</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-target-kind="word"     onclick="v3NotesSetTargetKind('word')"     title="Word">🔤 <span data-i18n="notes.targetWord">Слово</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-target-kind="root"     onclick="v3NotesSetTargetKind('root')"     title="Root">🌳 <span data-i18n="notes.targetRoot">Корень</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-target-kind="binyan"   onclick="v3NotesSetTargetKind('binyan')"   title="Binyan">🧬 <span data-i18n="notes.targetBinyan">Биньян</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-target-kind="text"     onclick="v3NotesSetTargetKind('text')"     title="Text">📄 <span data-i18n="notes.targetText">Текст</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-target-kind="note"     onclick="v3NotesSetTargetKind('note')"     title="Link to other note">🔗 <span data-i18n="notes.targetNote">Заметка</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-target-kind="free"     onclick="v3NotesSetTargetKind('free')"     title="Free / journal">✍ <span data-i18n="notes.targetFree">Свободная</span></button>
+        </div>
+      </div>
+      <div class="v3-notes-meta-row" id="v3NotesTypeRow" role="group" aria-label="Note type">
+        <span class="v3-notes-meta-label" data-i18n="notes.typeLabel">Тип:</span>
+        <div class="v3-notes-seg" id="v3NotesTypeSeg">
+          <button type="button" class="v3-notes-seg-btn" data-note-type="free"                    onclick="v3NotesSetNoteType('free')"                    title="Free markdown">✍ <span data-i18n="notes.typeFree">Свободная</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-note-type="word_study"              onclick="v3NotesSetNoteType('word_study')"              title="Word study (Phase 9.3)">🔤 <span data-i18n="notes.typeWordStudy">Слово</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-note-type="grammar_rule"            onclick="v3NotesSetNoteType('grammar_rule')"            title="Grammar rule (Phase 9.3)">📐 <span data-i18n="notes.typeGrammar">Грамматика</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-note-type="translation_discrepancy" onclick="v3NotesSetNoteType('translation_discrepancy')" title="Translation discrepancy (Phase 9.3)">↔ <span data-i18n="notes.typeTranslation">Перевод</span></button>
+          <button type="button" class="v3-notes-seg-btn" data-note-type="pronunciation_note"      onclick="v3NotesSetNoteType('pronunciation_note')"      title="Pronunciation note (Phase 9.3)">🔊 <span data-i18n="notes.typePronunciation">Произношение</span></button>
+        </div>
+      </div>
+      <!-- Optional target-id picker (root autocomplete / note search). Shown when needed. -->
+      <div class="v3-notes-meta-row" id="v3NotesTargetIdRow" style="display:none;">
+        <span class="v3-notes-meta-label" id="v3NotesTargetIdLabel" data-i18n="notes.targetIdLabel">ID:</span>
+        <input type="text" id="v3NotesTargetIdInput" class="v3-notes-target-input" autocomplete="off" />
+        <div id="v3NotesTargetIdHints" class="v3-notes-target-hints" style="display:none;"></div>
+      </div>
     </div>
 
     <div class="v3-modal-body">
       <div id="v3NotesStatus" class="v3-help"></div>
 
+      <!-- Phase 9.3 banner shown when note_type ≠ free -->
+      <div id="v3NotesTemplateBanner" class="v3-notes-template-banner" style="display:none;">
+        <span data-i18n="notes.templateBanner">⏳ Структурированная форма появится в Phase 9.3 — сейчас сохраняется как пустая заготовка.</span>
+      </div>
+
       <div class="v3-form-row" style="align-items:flex-start;">
   <label for="v3NotesText" style="padding-top:10px;">Note</label>
 
   <div id="v3NotesMdWrap" class="v3-notes-md">
+    <!-- Optional title (used by non-free templates; hidden by default for free notes) -->
+    <input type="text" id="v3NotesTitleInput" class="v3-notes-title-input" placeholder="" maxlength="200" style="display:none;" />
+
     <div class="v3-notes-md-toolbar" aria-label="Markdown toolbar">
       <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('bold')" title="Bold (**text**)">B</button>
       <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('italic')" title="Italic (*text*)"><span style="font-style:italic;">I</span></button>
@@ -8364,11 +8685,25 @@ body:not(.theme-light) .v3-heatmap-cell {
     </div>
 
     <div class="v3-notes-md-split">
-      <textarea id="v3NotesText"
-                maxlength="16000"
-                placeholder="Напишите заметку к этой строке (сохранится по sentence_id)"></textarea>
+      <div class="v3-notes-md-editor-col">
+        <textarea id="v3NotesText"
+                  maxlength="65536"
+                  placeholder="Напишите заметку к этой строке (сохранится по sentence_id)"></textarea>
+        <div id="v3NotesCharCounter" class="v3-notes-char-counter" aria-live="polite">0 / 65536</div>
+      </div>
 
       <div id="v3NotesPreview" class="v3-notes-md-preview hidden" aria-label="Markdown preview"></div>
+
+      <!-- Phase 9.1.C Stage D: history sidebar -->
+      <aside id="v3NotesHistorySidebar" class="v3-notes-history-sidebar hidden" aria-label="Note version history">
+        <div class="v3-notes-history-header">
+          <span data-i18n="notes.historyTitle">История</span>
+          <button type="button" class="btn-secondary v3-notes-history-close" onclick="v3NotesHistoryClose()" title="Закрыть историю" aria-label="Закрыть историю">×</button>
+        </div>
+        <div id="v3NotesHistoryList" class="v3-notes-history-list">
+          <div class="v3-notes-history-empty" data-i18n="notes.historyEmpty">Нет версий — сохраните хотя бы один раз.</div>
+        </div>
+      </aside>
     </div>
 
     <div class="v3-help" style="margin-top:8px;">
@@ -11016,6 +11351,34 @@ let v3NotesHotkeyHandler = null;
 // W10-NOTES-UX-MD-01: preview state (markdown preview in notes modal)
 let v3NotesPreviewVisible = false;
 
+// Phase 9.1.C — polymorphic modal state.
+//   v3NotesModalNoteId:          UUID of the notes_v2 row when editing an
+//                                existing polymorphic note (or null for new).
+//   v3NotesModalTargetKind:      'sentence' | 'word' | 'root' | 'binyan' |
+//                                'text' | 'note' | 'free'.
+//   v3NotesModalTargetId:        FK to whatever target_kind refers to (or null for free).
+//   v3NotesModalNoteType:        'free' | 'word_study' | 'grammar_rule' |
+//                                'translation_discrepancy' | 'pronunciation_note'.
+//   v3NotesModalEntryKind:       'row' | 'jump' | 'free' | 'deeplink' — origin.
+//   v3NotesModalUserChangedKind: true once user manually picks a different
+//                                target_kind via the segmented control. Used by
+//                                save routing to know whether to keep the
+//                                legacy upsertNote path.
+//   v3NotesBodyStashByType:      stash markdown body keyed by note_type so
+//                                swapping templated→free doesn't lose work.
+//   v3NotesAutoSaveTimer:        debounced 30 s auto-save handle (Stage D).
+let v3NotesModalNoteId = null;
+let v3NotesModalTargetKind = "sentence";
+let v3NotesModalTargetId = null;
+let v3NotesModalNoteType = "free";
+let v3NotesModalEntryKind = "row";
+let v3NotesModalUserChangedKind = false;
+let v3NotesBodyStashByType = Object.create(null);
+let v3NotesAutoSaveTimer = null;
+let v3NotesHistoryOpen = false;
+const V3_NOTES_AUTOSAVE_DELAY_MS = 30000;
+const V3_NOTES_MAX_BODY = 65536;
+
 function v3NotesReset() {
   v3NotesActiveTextId = null;
   v3NotesBySentenceId = Object.create(null);
@@ -11025,6 +11388,13 @@ function v3NotesReset() {
   v3NotesModalOriginalText = "";
   v3NotesModalIsDirty = false;
   v3NotesModalHotkeysHandler = null;
+  v3NotesModalNoteId = null;
+  v3NotesModalTargetKind = "sentence";
+  v3NotesModalTargetId = null;
+  v3NotesModalNoteType = "free";
+  v3NotesModalEntryKind = "row";
+  v3NotesModalUserChangedKind = false;
+  v3NotesBodyStashByType = Object.create(null);
 }
 
 function v3NotesIngest(textId, notesArr) {
@@ -30478,10 +30848,515 @@ function v3NotesBindHotkeysOnce() {
   } catch (_) {}
 }
 
-function v3NotesOpen(textId, sentenceId, rowIdx) {
+// ──────────────────────────────────────────────────────────────────────────
+// Phase 9.1.C — Notes modal: target picker / type switcher / history sidebar
+// ──────────────────────────────────────────────────────────────────────────
+
+// Localised label with safe fallback. t() returns the key unchanged when
+// missing; we treat key === returned value as "missing" and emit the
+// fallback. Phase 9.1.E will ship the real ru/en/he keys.
+function v3NotesT(key, fallback) {
+  try {
+    const v = (typeof t === "function") ? t(key) : key;
+    if (typeof v === "string" && v !== key) return v;
+    return fallback;
+  } catch (_) { return fallback; }
+}
+
+function v3NotesGetSegBtns(segId) {
+  const seg = document.getElementById(segId);
+  return seg ? Array.from(seg.querySelectorAll(".v3-notes-seg-btn")) : [];
+}
+
+function v3NotesUpdateSegUI() {
+  v3NotesGetSegBtns("v3NotesTargetSeg").forEach((b) => {
+    b.classList.toggle("active", b.dataset.targetKind === v3NotesModalTargetKind);
+    try { b.setAttribute("aria-pressed", b.dataset.targetKind === v3NotesModalTargetKind ? "true" : "false"); } catch (_) {}
+  });
+  v3NotesGetSegBtns("v3NotesTypeSeg").forEach((b) => {
+    b.classList.toggle("active", b.dataset.noteType === v3NotesModalNoteType);
+    try { b.setAttribute("aria-pressed", b.dataset.noteType === v3NotesModalNoteType ? "true" : "false"); } catch (_) {}
+  });
+}
+
+function v3NotesShowTargetIdRow(show, labelText, placeholder) {
+  const row = document.getElementById("v3NotesTargetIdRow");
+  const input = document.getElementById("v3NotesTargetIdInput");
+  const label = document.getElementById("v3NotesTargetIdLabel");
+  const hints = document.getElementById("v3NotesTargetIdHints");
+  if (!row || !input) return;
+  if (show) {
+    row.style.display = "";
+    if (label && labelText) label.textContent = labelText;
+    if (placeholder) input.placeholder = placeholder;
+  } else {
+    row.style.display = "none";
+    input.value = "";
+    if (hints) { hints.style.display = "none"; hints.innerHTML = ""; }
+  }
+}
+
+function v3NotesUpdateDataset() {
+  const modal = v3NotesEl("v3NotesModal");
+  if (!modal) return;
+  try {
+    if (v3NotesModalNoteId)     modal.dataset.noteId     = String(v3NotesModalNoteId);
+    else                        delete modal.dataset.noteId;
+    if (v3NotesModalTextId)     modal.dataset.textId     = String(v3NotesModalTextId);
+    else                        delete modal.dataset.textId;
+    if (v3NotesModalSentenceId) modal.dataset.sentenceId = String(v3NotesModalSentenceId);
+    else                        delete modal.dataset.sentenceId;
+    modal.dataset.targetKind = String(v3NotesModalTargetKind || "");
+    if (v3NotesModalTargetId)   modal.dataset.targetId   = String(v3NotesModalTargetId);
+    else                        delete modal.dataset.targetId;
+  } catch (_) {}
+}
+
+function v3NotesClearDataset() {
+  const modal = v3NotesEl("v3NotesModal");
+  if (!modal) return;
+  try {
+    delete modal.dataset.noteId;
+    delete modal.dataset.textId;
+    delete modal.dataset.sentenceId;
+    delete modal.dataset.targetKind;
+    delete modal.dataset.targetId;
+  } catch (_) {}
+}
+
+// Called from the target_kind segmented control. Updates state + secondary
+// inputs and re-renders dependent UI. Re-emits the textarea oninput so the
+// dirty flag is re-evaluated.
+function v3NotesSetTargetKind(kind) {
+  const allowed = ["sentence","word","root","binyan","text","note","free"];
+  if (allowed.indexOf(kind) < 0) return;
+  if (v3NotesModalTargetKind !== kind) v3NotesModalUserChangedKind = true;
+  v3NotesModalTargetKind = kind;
+
+  // text_id binding follows: sentence/word/text remain bound to active
+  // text; root/binyan/note/free are text-independent.
+  if (kind === "root" || kind === "binyan" || kind === "free" || kind === "note") {
+    // Don't drop v3NotesModalTextId itself — we still need it for context
+    // when saving — but the new note will not be FK'd to that text.
+    v3NotesModalTargetId = null;
+  } else if (kind === "sentence") {
+    // restore default sentence target
+    v3NotesModalTargetId = v3NotesModalSentenceId || null;
+  } else if (kind === "text") {
+    v3NotesModalTargetId = v3NotesModalTextId || null;
+  } else if (kind === "word") {
+    // word target_id is a word lemma string — keep prior value if user typed one
+  }
+
+  // Secondary input visibility
+  if (kind === "root") {
+    v3NotesShowTargetIdRow(true,
+      v3NotesT("notes.targetRootLabel", "Корень:"),
+      v3NotesT("notes.targetRootPlaceholder", "ק.ר.א — введите 3-буквенный корень"));
+    const input = document.getElementById("v3NotesTargetIdInput");
+    if (input) input.oninput = v3NotesRootAutocomplete;
+  } else if (kind === "binyan") {
+    v3NotesShowTargetIdRow(true,
+      v3NotesT("notes.targetBinyanLabel", "Биньян:"),
+      v3NotesT("notes.targetBinyanPlaceholder", "paal / piel / hifil / hitpael / nifal / pual / hufal"));
+    const input = document.getElementById("v3NotesTargetIdInput");
+    if (input) input.oninput = null;
+  } else if (kind === "word") {
+    v3NotesShowTargetIdRow(true,
+      v3NotesT("notes.targetWordLabel", "Слово:"),
+      v3NotesT("notes.targetWordPlaceholder", "Лемма (huqaf-niqqud не требуется)"));
+    const input = document.getElementById("v3NotesTargetIdInput");
+    if (input) input.oninput = null;
+  } else if (kind === "note") {
+    v3NotesShowTargetIdRow(true,
+      v3NotesT("notes.targetNoteLabel", "Заметка:"),
+      v3NotesT("notes.targetNotePlaceholder", "Поиск по существующим заметкам…"));
+    const input = document.getElementById("v3NotesTargetIdInput");
+    if (input) input.oninput = v3NotesNoteAutocomplete;
+  } else {
+    v3NotesShowTargetIdRow(false, "", "");
+  }
+
+  v3NotesUpdateSegUI();
+  v3NotesUpdateDataset();
+}
+window.v3NotesSetTargetKind = v3NotesSetTargetKind;
+
+function v3NotesSetNoteType(type) {
+  const allowed = ["free","word_study","grammar_rule","translation_discrepancy","pronunciation_note"];
+  if (allowed.indexOf(type) < 0) return;
+  const prev = v3NotesModalNoteType;
+  if (prev === type) return;
+
+  // Stash current body under previous type so we can restore later.
+  const ta = v3NotesEl("v3NotesText");
+  if (ta) v3NotesBodyStashByType[prev] = String(ta.value || "");
+
+  v3NotesModalNoteType = type;
+
+  // Banner + textarea placeholder swap
+  const banner = document.getElementById("v3NotesTemplateBanner");
+  if (banner) banner.style.display = (type === "free") ? "none" : "";
+
+  const titleInput = document.getElementById("v3NotesTitleInput");
+  if (titleInput) {
+    titleInput.style.display = (type === "free") ? "none" : "";
+    if (type !== "free" && !titleInput.placeholder) {
+      titleInput.placeholder = v3NotesT("notes.titlePlaceholder", "Заголовок заметки (опционально)");
+    }
+  }
+
+  // Restore stashed text for the new type (or fall back to current text).
+  if (ta) {
+    const stashed = v3NotesBodyStashByType[type];
+    if (typeof stashed === "string") {
+      v3NotesSafeSetTextareaValue(ta, stashed);
+    }
+    // Trigger char-counter / dirty re-eval
+    try { ta.dispatchEvent(new Event("input")); } catch (_) {}
+  }
+
+  v3NotesUpdateSegUI();
+}
+window.v3NotesSetNoteType = v3NotesSetNoteType;
+
+// Root prefix autocomplete (target_kind='root').
+async function v3NotesRootAutocomplete() {
+  if (!LOCAL_MODE) return;
+  try {
+    const input = document.getElementById("v3NotesTargetIdInput");
+    const hints = document.getElementById("v3NotesTargetIdHints");
+    if (!input || !hints) return;
+    const prefix = String(input.value || "").trim();
+    if (!prefix) { hints.style.display = "none"; hints.innerHTML = ""; return; }
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.searchRootsAutocomplete !== "function") return;
+    const rows = await ldb.searchRootsAutocomplete(prefix, 10);
+    if (!rows || !rows.length) { hints.style.display = "none"; hints.innerHTML = ""; return; }
+    hints.innerHTML = rows.map((r) => {
+      const root = String(r.root_3letter || "");
+      const gloss = String(r.gloss || "");
+      return `<div class="v3-notes-target-hint" data-pick="${v3EscapeHtml(root)}"><b dir="rtl">${v3EscapeHtml(root)}</b>${gloss ? ' — <span>' + v3EscapeHtml(gloss) + '</span>' : ''}</div>`;
+    }).join("");
+    hints.style.display = "";
+    hints.querySelectorAll(".v3-notes-target-hint").forEach((el) => {
+      el.onclick = () => {
+        const pick = el.getAttribute("data-pick") || "";
+        input.value = pick;
+        v3NotesModalTargetId = pick;
+        hints.style.display = "none";
+        v3NotesUpdateDataset();
+      };
+    });
+  } catch (_) {}
+}
+
+async function v3NotesNoteAutocomplete() {
+  if (!LOCAL_MODE) return;
+  try {
+    const input = document.getElementById("v3NotesTargetIdInput");
+    const hints = document.getElementById("v3NotesTargetIdHints");
+    if (!input || !hints) return;
+    const q = String(input.value || "").trim();
+    if (!q) { hints.style.display = "none"; hints.innerHTML = ""; return; }
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.searchAllNotes !== "function") return;
+    const rows = await ldb.searchAllNotes(q, 10);
+    if (!rows || !rows.length) { hints.style.display = "none"; hints.innerHTML = ""; return; }
+    hints.innerHTML = rows.map((r) => {
+      const id = String(r.id || "");
+      const title = String(r.title || "").trim() || (r.text_title || "(без заголовка)");
+      const meta = String(r.target_kind || "") + (r.note_type ? " · " + r.note_type : "");
+      return `<div class="v3-notes-target-hint" data-pick="${v3EscapeHtml(id)}"><b>${v3EscapeHtml(title.slice(0, 80))}</b><div style="font-size:11px;color:var(--theme-text-muted);">${v3EscapeHtml(meta)}</div></div>`;
+    }).join("");
+    hints.style.display = "";
+    hints.querySelectorAll(".v3-notes-target-hint").forEach((el) => {
+      el.onclick = () => {
+        const pick = el.getAttribute("data-pick") || "";
+        input.value = pick;
+        v3NotesModalTargetId = pick;
+        hints.style.display = "none";
+        v3NotesUpdateDataset();
+      };
+    });
+  } catch (_) {}
+}
+
+// Update char-counter for the modal textarea.
+function v3NotesUpdateCharCounter() {
+  const ta = v3NotesEl("v3NotesText");
+  const cc = document.getElementById("v3NotesCharCounter");
+  if (!ta || !cc) return;
+  const len = String(ta.value || "").length;
+  cc.textContent = len + " / " + V3_NOTES_MAX_BODY;
+  cc.classList.toggle("warn", len > V3_NOTES_MAX_BODY * 0.9 && len <= V3_NOTES_MAX_BODY);
+  cc.classList.toggle("over", len > V3_NOTES_MAX_BODY);
+}
+
+// Format relative time (UI helper for history sidebar). Falls back to ISO.
+function v3NotesFmtRelative(iso) {
+  try {
+    if (!iso) return "";
+    const t0 = new Date(iso).getTime();
+    if (!Number.isFinite(t0)) return String(iso);
+    const dt = Math.max(0, Date.now() - t0);
+    const s = Math.floor(dt / 1000);
+    if (s < 60)      return s + " sec ago";
+    const m = Math.floor(s / 60);
+    if (m < 60)      return m + " min ago";
+    const h = Math.floor(m / 60);
+    if (h < 24)      return h + " h ago";
+    const d = Math.floor(h / 24);
+    if (d < 30)      return d + " d ago";
+    return new Date(iso).toLocaleDateString();
+  } catch (_) { return String(iso || ""); }
+}
+
+// Toggle the history sidebar visibility, refreshing the list when opening.
+async function v3NotesHistoryToggle() {
+  v3NotesHistoryOpen = !v3NotesHistoryOpen;
+  const sidebar = document.getElementById("v3NotesHistorySidebar");
+  const btn = document.getElementById("v3NotesHistoryToggleBtn");
+  if (sidebar) sidebar.classList.toggle("hidden", !v3NotesHistoryOpen);
+  if (btn) {
+    try { btn.setAttribute("aria-expanded", v3NotesHistoryOpen ? "true" : "false"); } catch (_) {}
+    btn.classList.toggle("active", v3NotesHistoryOpen);
+  }
+  if (v3NotesHistoryOpen) await v3NotesHistoryRefresh();
+}
+window.v3NotesHistoryToggle = v3NotesHistoryToggle;
+
+function v3NotesHistoryClose() {
+  v3NotesHistoryOpen = false;
+  const sidebar = document.getElementById("v3NotesHistorySidebar");
+  const btn = document.getElementById("v3NotesHistoryToggleBtn");
+  if (sidebar) sidebar.classList.add("hidden");
+  if (btn) {
+    try { btn.setAttribute("aria-expanded", "false"); } catch (_) {}
+    btn.classList.remove("active");
+  }
+}
+window.v3NotesHistoryClose = v3NotesHistoryClose;
+
+// Render the version list (newest first) into the sidebar.
+async function v3NotesHistoryRefresh() {
+  const list = document.getElementById("v3NotesHistoryList");
+  if (!list) return;
+  const noteId = String(v3NotesModalNoteId || "");
+  if (!noteId) {
+    list.innerHTML = `<div class="v3-notes-history-empty">${v3EscapeHtml(v3NotesT("notes.historyNeedsSave", "Сохраните заметку, чтобы увидеть историю версий."))}</div>`;
+    return;
+  }
+  try {
+    if (!LOCAL_MODE) {
+      list.innerHTML = `<div class="v3-notes-history-empty">${v3EscapeHtml(v3NotesT("notes.historyLocalOnly", "История доступна только в локальном режиме."))}</div>`;
+      return;
+    }
+    const ldb = await ensureLocalDB();
+    const versions = await ldb.listNoteVersions(noteId);
+    if (!versions || !versions.length) {
+      list.innerHTML = `<div class="v3-notes-history-empty">${v3EscapeHtml(v3NotesT("notes.historyEmpty", "Нет версий — сохраните хотя бы один раз."))}</div>`;
+      return;
+    }
+    const items = versions.map((v) => {
+      const rel = v3NotesFmtRelative(v.edited_at);
+      const diff = String(v.diff_summary || "");
+      return `
+        <div class="v3-notes-history-item" data-version="${v.version}">
+          <div class="v3-notes-history-item-header">
+            <span>v${v.version}</span>
+          </div>
+          <div class="v3-notes-history-item-meta">${v3EscapeHtml(rel)}</div>
+          <div class="v3-notes-history-item-diff">${v3EscapeHtml(diff || '+0 / -0')}</div>
+          <div class="v3-notes-history-item-actions">
+            <button type="button" class="btn-secondary" data-action="view" data-version="${v.version}">${v3EscapeHtml(v3NotesT("notes.historyView", "Просмотр"))}</button>
+            <button type="button" class="btn-secondary" data-action="restore" data-version="${v.version}">${v3EscapeHtml(v3NotesT("notes.historyRestore", "Восстановить"))}</button>
+          </div>
+        </div>`;
+    }).join("");
+    list.innerHTML = items;
+
+    list.querySelectorAll('button[data-action="view"]').forEach((b) => {
+      b.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const ver = Number(b.getAttribute("data-version"));
+        v3NotesHistoryViewDiff(noteId, ver, versions);
+      };
+    });
+    list.querySelectorAll('button[data-action="restore"]').forEach((b) => {
+      b.onclick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const ver = Number(b.getAttribute("data-version"));
+        await v3NotesHistoryRestore(noteId, ver);
+      };
+    });
+  } catch (err) {
+    console.warn("v3NotesHistoryRefresh failed", err);
+    list.innerHTML = `<div class="v3-notes-history-empty">${v3EscapeHtml(v3NotesT("notes.historyError", "Ошибка загрузки истории."))}</div>`;
+  }
+}
+
+function v3NotesExtractBodyText(bodyJson) {
+  // Mirror of _extractMarkdown in local-db.js — body_json is a JSON string
+  // for templates, or a free-form string in the legacy/free case. Parse the
+  // common shapes; fall back to raw string.
+  try {
+    if (typeof bodyJson !== "string") return String(bodyJson || "");
+    const trimmed = bodyJson.trim();
+    if (!trimmed) return "";
+    if (trimmed[0] === "{" || trimmed[0] === "[") {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object") {
+          if (typeof parsed.markdown === "string") return parsed.markdown;
+          if (typeof parsed.body === "string") return parsed.body;
+          if (typeof parsed.text === "string") return parsed.text;
+        }
+      } catch (_) { /* fall through */ }
+    }
+    return bodyJson;
+  } catch (_) { return ""; }
+}
+
+function v3NotesGuessDir(s) {
+  // Simple bidi heuristic — first Hebrew char → rtl, else ltr.
+  try {
+    if (!s) return "ltr";
+    if (/[֐-׿‏יִ-ﭏ]/.test(String(s))) return "rtl";
+    return "ltr";
+  } catch (_) { return "ltr"; }
+}
+
+async function v3NotesHistoryViewDiff(noteId, version, versions) {
+  const list = document.getElementById("v3NotesHistoryList");
+  if (!list) return;
+  // Mark active
+  list.querySelectorAll(".v3-notes-history-item").forEach((el) => {
+    el.classList.toggle("active", Number(el.getAttribute("data-version")) === version);
+  });
+  // Find previous version for left side
+  const sorted = versions.slice().sort((a, b) => a.version - b.version);
+  const idx = sorted.findIndex((v) => v.version === version);
+  const cur = sorted[idx];
+  const prev = idx > 0 ? sorted[idx - 1] : null;
+  if (!cur) return;
+  // Render diff pane below the list (lazy create)
+  let pane = document.getElementById("v3NotesHistoryDiffPane");
+  if (!pane) {
+    pane = document.createElement("div");
+    pane.id = "v3NotesHistoryDiffPane";
+    pane.className = "v3-notes-history-diff-pane";
+    list.parentNode.appendChild(pane);
+  }
+  const curTxt = v3NotesExtractBodyText(cur.body_json);
+  const prevTxt = prev ? v3NotesExtractBodyText(prev.body_json) : "";
+  const dirCur = v3NotesGuessDir(curTxt);
+  const dirPrev = v3NotesGuessDir(prevTxt);
+  pane.innerHTML = `
+    <div class="v3-notes-history-diff-block">
+      <div class="v3-notes-history-diff-label">${v3EscapeHtml(v3NotesT("notes.historyPrev", "Раньше"))} (${prev ? 'v' + prev.version : '—'})</div>
+      <pre dir="${dirPrev}">${v3EscapeHtml(prevTxt)}</pre>
+    </div>
+    <div class="v3-notes-history-diff-block">
+      <div class="v3-notes-history-diff-label">${v3EscapeHtml(v3NotesT("notes.historyThis", "Эта версия"))} (v${cur.version})</div>
+      <pre dir="${dirCur}">${v3EscapeHtml(curTxt)}</pre>
+    </div>
+  `;
+}
+
+async function v3NotesHistoryRestore(noteId, version) {
+  if (!noteId || !Number.isFinite(version)) return;
+  try {
+    const _nT = (typeof window.t === "function") ? window.t : function(k){return k;};
+    const ok = await v3ConfirmModal({
+      title: v3NotesT("confirms.notesHistoryRestoreTitle", "Восстановить версию?"),
+      body:  v3NotesT("confirms.notesHistoryRestoreBody", "Текущее содержимое будет сохранено как новая версия перед восстановлением."),
+      okText: v3NotesT("confirms.notesHistoryRestoreOk", "Восстановить"),
+      cancelText: _nT("confirms.cancelBtn"),
+    });
+    if (!ok) return;
+    const ldb = await ensureLocalDB();
+    const restored = await ldb.restoreNoteVersion(noteId, version);
+    if (!restored) {
+      showToast(v3NotesT("toast.notesHistoryRestoreFailed", "Не удалось восстановить версию."), "error");
+      return;
+    }
+    // Reload body into the textarea
+    const ta = v3NotesEl("v3NotesText");
+    const newBody = v3NotesExtractBodyText(restored.body_json);
+    if (ta) {
+      v3NotesSafeSetTextareaValue(ta, newBody);
+      v3NotesModalOriginalText = newBody;
+      v3NotesModalIsDirty = false;
+      v3NotesUpdateCharCounter();
+    }
+    // Refresh sidebar and status
+    await v3NotesHistoryRefresh();
+    const st = v3NotesEl("v3NotesStatus");
+    if (st) v3NotesSafeSetStatus(st, v3NotesT("notes.historyRestoredStatus", "Версия восстановлена. Сохраните, чтобы зафиксировать."), false);
+    showToast(v3NotesT("toast.notesHistoryRestored", "Версия восстановлена."), "success");
+  } catch (err) {
+    console.warn("v3NotesHistoryRestore failed", err);
+    showToast(v3NotesT("toast.notesHistoryRestoreFailed", "Не удалось восстановить версию."), "error");
+  }
+}
+
+// Debounced auto-save (Stage D). Triggered on textarea input; fires
+// V3_NOTES_AUTOSAVE_DELAY_MS after the last keystroke. Skips when the
+// note isn't dirty or when we'd hit the legacy upsertNote path with an
+// empty body (which would be a delete).
+function v3NotesScheduleAutoSave() {
+  if (v3NotesAutoSaveTimer) {
+    try { clearTimeout(v3NotesAutoSaveTimer); } catch (_) {}
+    v3NotesAutoSaveTimer = null;
+  }
+  v3NotesAutoSaveTimer = setTimeout(() => {
+    v3NotesAutoSaveTimer = null;
+    try {
+      if (!v3NotesModalIsDirty) return;
+      const ta = v3NotesEl("v3NotesText");
+      if (!ta) return;
+      // Only auto-save when there's actually content; empty bodies are
+      // delete operations and should require an explicit user gesture.
+      if (!String(ta.value || "").trim()) return;
+      v3NotesSave(/*isAutoSave=*/true).catch(() => {});
+    } catch (_) {}
+  }, V3_NOTES_AUTOSAVE_DELAY_MS);
+}
+
+function v3NotesCancelAutoSave() {
+  if (v3NotesAutoSaveTimer) {
+    try { clearTimeout(v3NotesAutoSaveTimer); } catch (_) {}
+    v3NotesAutoSaveTimer = null;
+  }
+}
+
+function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
   v3NotesModalTextId = String(textId || "");
   v3NotesModalSentenceId = String(sentenceId || "");
   v3NotesModalRowIdx = Number.isFinite(Number(rowIdx)) ? Number(rowIdx) : null;
+
+  // Phase 9.1.C — polymorphic state defaults based on entry context.
+  const o = opts || {};
+  v3NotesModalEntryKind = o.entryKind || (v3NotesModalSentenceId ? "row" : "free");
+  v3NotesModalUserChangedKind = false;
+  v3NotesBodyStashByType = Object.create(null);
+  v3NotesModalNoteId = o.noteId || null;
+  // Default target_kind: sentence for row/jump/deeplink, free otherwise.
+  if (o.targetKind) {
+    v3NotesModalTargetKind = o.targetKind;
+  } else if (v3NotesModalSentenceId) {
+    v3NotesModalTargetKind = "sentence";
+  } else {
+    v3NotesModalTargetKind = "free";
+  }
+  v3NotesModalTargetId = o.targetId
+    || (v3NotesModalTargetKind === "sentence" ? (v3NotesModalSentenceId || null)
+        : v3NotesModalTargetKind === "text" ? (v3NotesModalTextId || null)
+        : null);
+  v3NotesModalNoteType = o.noteType || "free";
 
   const modal = v3NotesEl("v3NotesModal");
   const ta = v3NotesEl("v3NotesText");
@@ -30505,9 +31380,42 @@ function v3NotesOpen(textId, sentenceId, rowIdx) {
   const savedAt = v3NotesFmtSavedAt(existingUpdatedAt);
   if (savedAt) v3NotesSafeSetStatus(st, `Сохранено в ${savedAt}`, false);
   else v3NotesSafeSetStatus(st, "", false);
-  
+
   // W10-NOTES-UX-MD-01: reset preview UI on open
 try { v3NotesMdResetUi(); } catch (_) {}
+
+  // Phase 9.1.C — sync segmented controls + dataset + char counter + history.
+  try { v3NotesUpdateSegUI(); } catch (_) {}
+  try { v3NotesUpdateDataset(); } catch (_) {}
+  try {
+    // Show secondary target_id input if needed for chosen kind.
+    v3NotesSetTargetKind(v3NotesModalTargetKind);
+    v3NotesModalUserChangedKind = false;
+  } catch (_) {}
+  try {
+    const banner = document.getElementById("v3NotesTemplateBanner");
+    if (banner) banner.style.display = (v3NotesModalNoteType === "free") ? "none" : "";
+    const titleInput = document.getElementById("v3NotesTitleInput");
+    if (titleInput) {
+      titleInput.style.display = (v3NotesModalNoteType === "free") ? "none" : "";
+      titleInput.value = "";
+    }
+  } catch (_) {}
+  try { v3NotesUpdateCharCounter(); } catch (_) {}
+  try {
+    // Reset history sidebar on open.
+    v3NotesHistoryOpen = false;
+    const sidebar = document.getElementById("v3NotesHistorySidebar");
+    if (sidebar) sidebar.classList.add("hidden");
+    const histBtn = document.getElementById("v3NotesHistoryToggleBtn");
+    if (histBtn) {
+      histBtn.setAttribute("aria-expanded", "false");
+      histBtn.classList.remove("active");
+    }
+    const diffPane = document.getElementById("v3NotesHistoryDiffPane");
+    if (diffPane && diffPane.parentNode) diffPane.parentNode.removeChild(diffPane);
+  } catch (_) {}
+  try { v3NotesCancelAutoSave(); } catch (_) {}
 
   if (modal) modal.classList.remove("hidden");
 
@@ -30522,6 +31430,8 @@ try { v3NotesMdResetUi(); } catch (_) {}
   try {
     if (v3NotesPreviewVisible) v3NotesMdRenderPreview();
   } catch (_) {}
+  try { v3NotesUpdateCharCounter(); } catch (_) {}
+  try { v3NotesScheduleAutoSave(); } catch (_) {}
 };
     }
   } catch (_) {}
@@ -30814,11 +31724,23 @@ function v3NotesForceClose() {
   } catch (_) {}
   v3NotesModalHotkeysHandler = null;
 
+  // Phase 9.1.C — clear dataset + cancel autosave + reset polymorphic state.
+  try { v3NotesCancelAutoSave(); } catch (_) {}
+  try { v3NotesClearDataset(); } catch (_) {}
+  try { v3NotesHistoryClose(); } catch (_) {}
+
   v3NotesModalTextId = null;
   v3NotesModalSentenceId = null;
   v3NotesModalRowIdx = null;
   v3NotesModalOriginalText = "";
   v3NotesModalIsDirty = false;
+  v3NotesModalNoteId = null;
+  v3NotesModalTargetKind = "sentence";
+  v3NotesModalTargetId = null;
+  v3NotesModalNoteType = "free";
+  v3NotesModalEntryKind = "row";
+  v3NotesModalUserChangedKind = false;
+  v3NotesBodyStashByType = Object.create(null);
 }
 
 async function v3NotesClose() {
@@ -30872,7 +31794,7 @@ function v3NotesUpdateButtonRow(rowIdx, sentenceId) {
   } catch (_) {}
 }
 
-async function v3NotesSave() {
+async function v3NotesSave(isAutoSave) {
   try {
     const textId = String(v3NotesModalTextId || "");
     const sentenceId = String(v3NotesModalSentenceId || "");
@@ -30882,108 +31804,249 @@ async function v3NotesSave() {
     const st = v3NotesEl("v3NotesStatus");
     const delBtn = v3NotesEl("v3NotesDeleteBtn");
 
-    if (!textId || !sentenceId) return;
-
     const raw = ta ? String(ta.value || "") : "";
     const note = raw.trim();
 
-    const url =
-      "/api/library/texts/" +
-      encodeURIComponent(textId) +
-      "/notes/" +
-      encodeURIComponent(sentenceId);
+    // Phase 9.1.C — Save routing decision.
+    //
+    // Legacy path (upsertNote) is used iff ALL of these hold:
+    //   • we have a text_id AND sentence_id (row-bound context)
+    //   • target_kind === 'sentence' (still the default 90% case)
+    //   • note_type === 'free' (legacy markdown)
+    //   • user did not change target_kind away (so we know this is a real
+    //     sentence-bound free note, not a polymorphic one that happens to
+    //     have the same metadata).
+    //   • we don't have a polymorphic note id already (editing a v2 row).
+    //
+    // Otherwise we go through the polymorphic createNote / updateNote API.
+    const useLegacy =
+      !!textId && !!sentenceId &&
+      v3NotesModalTargetKind === "sentence" &&
+      v3NotesModalNoteType === "free" &&
+      !v3NotesModalUserChangedKind &&
+      !v3NotesModalNoteId;
 
-    let updatedAt = null;
+    if (useLegacy) {
+      const url =
+        "/api/library/texts/" +
+        encodeURIComponent(textId) +
+        "/notes/" +
+        encodeURIComponent(sentenceId);
 
-    // пусто => delete semantics (согласно API)
-    if (!note) {
-      if (LOCAL_MODE) {
-        const ldb = await ensureLocalDB();
-        await ldb.deleteNote(textId, sentenceId);
-      } else {
-        await v3Delete(url).catch(async () => {
-          // если DELETE не прошел (например 404/500) — попробуем PUT(empty) как fallback
-          await v3PutJson(url, { note: "" });
-        });
+      let updatedAt = null;
+
+      // пусто => delete semantics (согласно API)
+      if (!note) {
+        if (LOCAL_MODE) {
+          const ldb = await ensureLocalDB();
+          await ldb.deleteNote(textId, sentenceId);
+        } else {
+          await v3Delete(url).catch(async () => {
+            // если DELETE не прошел (например 404/500) — попробуем PUT(empty) как fallback
+            await v3PutJson(url, { note: "" });
+          });
+        }
+
+        v3NotesSetLocal(sentenceId, "", null);
+        if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
+
+        // F6: после удаления сбросить dirty/original
+        v3NotesModalOriginalText = "";
+        v3NotesModalIsDirty = false;
+
+        v3NotesSafeSetStatus(st, "Заметка удалена.", false);
+        if (delBtn) delBtn.style.display = "none";
+        if (!isAutoSave) showToast(t("toast.noteDeleted"), "success");
+        return;
       }
 
-      v3NotesSetLocal(sentenceId, "", null);
+      if (note.length > V3_NOTES_MAX_BODY) {
+        showToast(t("toast.noteTooLong"), "error");
+        return;
+      }
+
+      // Phase 11.0: capture previous note body length BEFORE the upsert so
+      // we can emit note_edit with delta (chars_added / chars_removed).
+      // For a fresh note (no prior body), we emit save_note instead.
+      const _prevNoteBody = String(v3NotesModalOriginalText || "");
+      const _prevLen = _prevNoteBody.length;
+      const _newLen = note.length;
+
+      let dto;
+      if (LOCAL_MODE) {
+        const ldb = await ensureLocalDB();
+        const row = await ldb.upsertNote(textId, sentenceId, note);
+        dto = row ? { updatedAt: row.updated_at, updated_at: row.updated_at, id: row.id } : null;
+      } else {
+        const resp = await v3PutJson(url, { note });
+        dto = resp && resp.note ? resp.note : null;
+      }
+      updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
+      // Capture the v2 note id when available — enables history sidebar for
+      // legacy saves too.
+      if (dto && dto.id) {
+        v3NotesModalNoteId = String(dto.id);
+        v3NotesUpdateDataset();
+      }
+
+      // Phase 11.0: emit save_note (first save) or note_edit (existing note).
+      // Privacy: never emit body content — only counts + length.
+      try {
+        if (_prevLen === 0 && _newLen > 0) {
+          v3Emit("save_note", {
+            text_id: textId,
+            sentence_id: sentenceId,
+            payload_json: {
+              note_kind: "free",
+              body_length: _newLen,
+            },
+          });
+        } else if (_prevLen > 0) {
+          v3Emit("note_edit", {
+            text_id: textId,
+            sentence_id: sentenceId,
+            payload_json: {
+              chars_added: Math.max(0, _newLen - _prevLen),
+              chars_removed: Math.max(0, _prevLen - _newLen),
+              body_length: _newLen,
+            },
+          });
+        }
+      } catch (_) {}
+
+      // fallback для UX-01 (на случай неконсистентного ответа сервера)
+      if (!updatedAt) updatedAt = new Date().toISOString();
+
+      v3NotesSetLocal(sentenceId, note, updatedAt);
       if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
-      // F6: после удаления сбросить dirty/original
-      v3NotesModalOriginalText = "";
+      // F6: после успешного save сбросить dirty + обновить baseline
+      v3NotesModalOriginalText = note;
       v3NotesModalIsDirty = false;
 
-      v3NotesSafeSetStatus(st, "Заметка удалена.", false);
-      if (delBtn) delBtn.style.display = "none";
-      showToast(t("toast.noteDeleted"), "success");
+      // F6: вместо "Сохранено." показываем "Сохранено в ..."
+      const savedAt = v3NotesFmtSavedAt(updatedAt);
+      v3NotesSafeSetStatus(st, savedAt ? `Сохранено в ${savedAt}` : "Сохранено.", false);
+
+      if (delBtn) delBtn.style.display = "";
+      if (!isAutoSave) showToast(t("toast.noteSaved"), "success");
+      // Refresh history sidebar if open
+      if (v3NotesHistoryOpen) await v3NotesHistoryRefresh();
       return;
     }
 
-    if (note.length > 16000) {
+    // ── Polymorphic path (Phase 9.1.B API) ──────────────────────────────
+    if (!LOCAL_MODE) {
+      // Polymorphic API is currently OPFS-only; server endpoints are 410 Gone.
+      // For the legacy server-mode fallback we can only use upsertNote, but
+      // we'd only land here for non-sentence/non-free saves which the
+      // server doesn't support. Surface a graceful error.
+      showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error");
+      return;
+    }
+
+    if (note.length > V3_NOTES_MAX_BODY) {
       showToast(t("toast.noteTooLong"), "error");
       return;
     }
 
-    // Phase 11.0: capture previous note body length BEFORE the upsert so
-    // we can emit note_edit with delta (chars_added / chars_removed).
-    // For a fresh note (no prior body), we emit save_note instead.
-    const _prevNoteBody = String(v3NotesModalOriginalText || "");
-    const _prevLen = _prevNoteBody.length;
-    const _newLen = note.length;
-
-    let dto;
-    if (LOCAL_MODE) {
-      const ldb = await ensureLocalDB();
-      const row = await ldb.upsertNote(textId, sentenceId, note);
-      dto = row ? { updatedAt: row.updated_at, updated_at: row.updated_at } : null;
-    } else {
-      const resp = await v3PutJson(url, { note });
-      dto = resp && resp.note ? resp.note : null;
+    // For polymorphic free notes with no body, only allow explicit delete
+    // (via Delete button) — auto-save & explicit save just no-op silently.
+    if (!note && v3NotesModalNoteType === "free") {
+      if (!isAutoSave) showToast(v3NotesT("toast.notesEmptyBody", "Пустая заметка — нажмите «Удалить» для удаления."), "warning");
+      return;
     }
-    updatedAt = dto ? (dto.updatedAt ?? dto.updated_at ?? null) : null;
 
-    // Phase 11.0: emit save_note (first save) or note_edit (existing note).
-    // Privacy: never emit body content — only counts + length.
+    const ldb = await ensureLocalDB();
+
+    // Validate target_id presence for non-free kinds that require one.
+    const tkindNeedsId = (v3NotesModalTargetKind !== "free");
+    let targetIdToUse = v3NotesModalTargetId;
+    if (v3NotesModalTargetKind === "root" || v3NotesModalTargetKind === "binyan" ||
+        v3NotesModalTargetKind === "word" || v3NotesModalTargetKind === "note") {
+      const input = document.getElementById("v3NotesTargetIdInput");
+      const v = String((input && input.value) || "").trim();
+      if (v) targetIdToUse = v;
+    }
+    if (tkindNeedsId && !targetIdToUse) {
+      showToast(v3NotesT("toast.notesTargetMissing", "Укажите цель заметки."), "error");
+      return;
+    }
+
+    const titleEl = document.getElementById("v3NotesTitleInput");
+    const title = String((titleEl && titleEl.value) || "");
+
+    let savedRow;
+    if (v3NotesModalNoteId) {
+      // Update existing polymorphic note. body always sent so versions snapshot.
+      savedRow = await ldb.updateNote(v3NotesModalNoteId, {
+        body: note,
+        title: title,
+        note_type: v3NotesModalNoteType,
+        target_kind: v3NotesModalTargetKind,
+        target_id: targetIdToUse ?? null,
+      });
+    } else {
+      savedRow = await ldb.createNote({
+        target_kind: v3NotesModalTargetKind,
+        target_id: targetIdToUse ?? null,
+        text_id: (v3NotesModalTargetKind === "sentence" || v3NotesModalTargetKind === "word" || v3NotesModalTargetKind === "text")
+          ? (textId || null) : null,
+        note_type: v3NotesModalNoteType,
+        title: title,
+        body: note,
+      });
+      if (savedRow && savedRow.id) {
+        v3NotesModalNoteId = String(savedRow.id);
+        v3NotesUpdateDataset();
+      }
+    }
+
+    const updatedAt = savedRow ? (savedRow.updated_at || new Date().toISOString()) : new Date().toISOString();
+
+    // Phase 11.0 events. Emit save_note / note_edit with note_kind=note_type.
     try {
+      const _prev = String(v3NotesModalOriginalText || "");
+      const _prevLen = _prev.length;
+      const _newLen = note.length;
+      const payload = {
+        note_kind: v3NotesModalNoteType,
+        target_kind: v3NotesModalTargetKind,
+        body_length: _newLen,
+      };
       if (_prevLen === 0 && _newLen > 0) {
         v3Emit("save_note", {
-          text_id: textId,
-          sentence_id: sentenceId,
-          payload_json: {
-            note_kind: "free",
-            body_length: _newLen,
-          },
+          text_id: textId || null,
+          sentence_id: (v3NotesModalTargetKind === "sentence") ? (sentenceId || null) : null,
+          payload_json: payload,
         });
       } else if (_prevLen > 0) {
         v3Emit("note_edit", {
-          text_id: textId,
-          sentence_id: sentenceId,
-          payload_json: {
+          text_id: textId || null,
+          sentence_id: (v3NotesModalTargetKind === "sentence") ? (sentenceId || null) : null,
+          payload_json: Object.assign({}, payload, {
             chars_added: Math.max(0, _newLen - _prevLen),
             chars_removed: Math.max(0, _prevLen - _newLen),
-            body_length: _newLen,
-          },
+          }),
         });
       }
     } catch (_) {}
 
-    // fallback для UX-01 (на случай неконсистентного ответа сервера)
-    if (!updatedAt) updatedAt = new Date().toISOString();
+    // For sentence-bound free polymorphic notes, also keep the legacy
+    // in-memory cache in sync so the row badge updates.
+    if (v3NotesModalTargetKind === "sentence" && v3NotesModalNoteType === "free" && sentenceId) {
+      v3NotesSetLocal(sentenceId, note, updatedAt);
+      if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
+    }
 
-    v3NotesSetLocal(sentenceId, note, updatedAt);
-    if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
-
-    // F6: после успешного save сбросить dirty + обновить baseline
     v3NotesModalOriginalText = note;
     v3NotesModalIsDirty = false;
-
-    // F6: вместо "Сохранено." показываем "Сохранено в ..."
     const savedAt = v3NotesFmtSavedAt(updatedAt);
     v3NotesSafeSetStatus(st, savedAt ? `Сохранено в ${savedAt}` : "Сохранено.", false);
+    if (delBtn) delBtn.style.display = note ? "" : "none";
 
-    if (delBtn) delBtn.style.display = "";
-    showToast(t("toast.noteSaved"), "success");
+    if (!isAutoSave) showToast(t("toast.noteSaved") || v3NotesT("toast.noteSaved", "Заметка сохранена."), "success");
+    if (v3NotesHistoryOpen) await v3NotesHistoryRefresh();
   } catch (e) {
     console.warn("v3NotesSave failed", e);
     showToast(t("toast.noteSaveFailed"), "error");
@@ -30996,6 +32059,35 @@ async function v3NotesDelete() {
     const sentenceId = String(v3NotesModalSentenceId || "");
     const rowIdx = v3NotesModalRowIdx;
 
+    // Phase 9.1.C — polymorphic delete path. If we have a noteId, prefer
+    // deleteNoteById; otherwise fall back to the legacy sentence-bound delete.
+    const isPolymorphic = !!v3NotesModalNoteId && (
+      v3NotesModalTargetKind !== "sentence" ||
+      v3NotesModalNoteType !== "free" ||
+      v3NotesModalUserChangedKind
+    );
+
+    if (isPolymorphic) {
+      if (!LOCAL_MODE) {
+        showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error");
+        return;
+      }
+      const ldb = await ensureLocalDB();
+      await ldb.deleteNoteById(v3NotesModalNoteId);
+      const ta = v3NotesEl("v3NotesText");
+      if (ta) ta.value = "";
+      v3NotesModalOriginalText = "";
+      v3NotesModalIsDirty = false;
+      v3NotesModalNoteId = null;
+      v3NotesUpdateDataset();
+      const delBtn = v3NotesEl("v3NotesDeleteBtn");
+      if (delBtn) delBtn.style.display = "none";
+      const st = v3NotesEl("v3NotesStatus");
+      v3NotesSafeSetStatus(st, "Заметка удалена.", false);
+      showToast(t("toast.noteDeleted"), "success");
+      return;
+    }
+
     if (!textId || !sentenceId) return;
 
     const url =
@@ -31004,7 +32096,12 @@ async function v3NotesDelete() {
       "/notes/" +
       encodeURIComponent(sentenceId);
 
-    await v3Delete(url);
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      await ldb.deleteNote(textId, sentenceId);
+    } else {
+      await v3Delete(url);
+    }
 
     v3NotesSetLocal(sentenceId, "", null);
     if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
