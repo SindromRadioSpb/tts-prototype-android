@@ -484,11 +484,13 @@ export async function recentActivity(limit = 30) {
 // Aggregate analytics over the events table — same shape as the server's
 // /api/history/analytics endpoint, so v3DashboardRenderMetrics can render
 // without conditional code.
-//   { ok, period: { plays, unique_rows, unique_texts, time_ms },
-//          all:    { plays, unique_rows, unique_texts, time_ms } }
-// "plays" counts ROW_TTS / row_tts events. time_ms is approximate (we don't
-// store playback duration, so we assume an average of 4s per play; this is
-// an upper bound on idle-time accuracy until we add explicit duration tracking).
+//   { ok, period: { plays, unique_rows, unique_texts, time_ms, active_ms_real },
+//          all:    { plays, unique_rows, unique_texts, time_ms, active_ms_real } }
+//
+// Phase 11.1: `active_ms_real` is heartbeat-derived (real time spent
+// active + visible, idle-pruned). `time_ms` legacy field stays as a
+// plays × 4000 estimate for backwards-compat with v3.1 dashboards;
+// callers should prefer active_ms_real когда оно > 0.
 export async function getAnalytics({ days = 7, includeArchived = false } = {}) {
   const sinceMs = Date.now() - Math.max(1, days) * 86400000;
   const sinceIso = new Date(sinceMs).toISOString();
@@ -517,12 +519,190 @@ export async function getAnalytics({ days = 7, includeArchived = false } = {}) {
       plays,
       unique_rows: Number(r.unique_rows || 0),
       unique_texts: Number(r.unique_texts || 0),
-      time_ms: plays * 4000, // 4s/play estimate; tightens to real values once duration is tracked
+      time_ms: plays * 4000, // legacy estimate; preserved for backwards-compat
     };
   }
   const period = await agg(' AND e.ts >= ?', [sinceIso]);
   const all    = await agg('', []);
+
+  // Phase 11.1: enrich both windows with heartbeat-derived active time.
+  try {
+    period.active_ms_real = await getActiveMsReal({ sinceIso });
+    all.active_ms_real    = await getActiveMsReal({});
+  } catch (_) {
+    period.active_ms_real = 0;
+    all.active_ms_real    = 0;
+  }
+
   return { ok: true, period, all };
+}
+
+// Phase 11.1: heartbeat-derived "real" active milliseconds.
+//
+// Aggregation rule (v1):
+//   For each session:
+//     • If session_end exists with payload_json.duration_ms → use it
+//       (this captures the precise duration; min(duration_ms, MAX_SESSION_MS)).
+//     • Else (orphan session — closed via crash/forced-quit/no end):
+//       count session_heartbeat × 30s + 30s baseline for session_start.
+//
+// Implementation: we approximate by counting all heartbeats × 30000 plus
+// session_start × 30000 (initial bit before first heartbeat fires) — this
+// is a slight underestimate (misses last 0-30s of unfinished sessions)
+// but never overestimates, which is the correct bias for time-spent
+// metrics. For sessions that did emit session_end, we replace with their
+// payload_json.duration_ms via a second pass.
+//
+// To keep SQL readable in vanilla SQLite (no JSON window functions), we
+// run two queries and combine in JS.
+export async function getActiveMsReal({ sinceIso = null } = {}) {
+  const HEARTBEAT_MS = 30 * 1000;
+  const sinceClause = sinceIso ? ' AND ts >= ?' : '';
+  const params = sinceIso ? [sinceIso] : [];
+
+  // Count heartbeats + starts → baseline approximation
+  const baselineRows = await q(
+    `SELECT
+       SUM(CASE WHEN event_type = 'session_heartbeat' THEN 1 ELSE 0 END) AS hb,
+       SUM(CASE WHEN event_type = 'session_start'     THEN 1 ELSE 0 END) AS st
+     FROM events
+     WHERE event_type IN ('session_heartbeat', 'session_start')${sinceClause}`,
+    params
+  );
+  const hbCount = Number((baselineRows[0] || {}).hb || 0);
+  const stCount = Number((baselineRows[0] || {}).st || 0);
+  let approxMs = (hbCount + stCount) * HEARTBEAT_MS;
+
+  // Replace approximation with precise duration_ms for sessions that
+  // emitted session_end. Strategy: for each session_end event, the precise
+  // duration_ms supersedes (heartbeats × 30s + start × 30s) for that session.
+  // So delta = duration_ms - (hb_in_session + 1) × 30000.
+  // We compute via JOIN of session_end with heartbeat counts per session_id.
+  const endsRows = await q(
+    `SELECT
+       e_end.session_id                              AS session_id,
+       e_end.payload_json                            AS payload_json,
+       (SELECT COUNT(*) FROM events e_hb
+         WHERE e_hb.event_type = 'session_heartbeat'
+           AND e_hb.session_id = e_end.session_id)   AS hb_in_session
+     FROM events e_end
+     WHERE e_end.event_type = 'session_end'${sinceClause.replace(/ts/g, 'e_end.ts')}`,
+    params
+  );
+
+  let delta = 0;
+  for (const row of endsRows) {
+    let dur = 0;
+    try {
+      const obj = JSON.parse(row.payload_json || '{}');
+      dur = Math.max(0, Math.min(60 * 60 * 1000, Number(obj.duration_ms) || 0));
+    } catch (_) {}
+    const approxForThisSession = (Number(row.hb_in_session) + 1) * HEARTBEAT_MS;
+    delta += (dur - approxForThisSession);
+  }
+
+  return Math.max(0, approxMs + delta);
+}
+
+// Phase 11.1: per-day active minutes (for future heatmap variant + research
+// mode time-of-day distribution). Returns array sorted oldest→newest with
+// zero-fill for days без активности.
+export async function getActiveMinutesByDay({ days = 30 } = {}) {
+  const safeDays = Math.max(1, Math.min(365, Number(days) || 30));
+  const sinceMs = Date.now() - safeDays * 86400000;
+  const sinceIso = new Date(sinceMs).toISOString();
+  const HEARTBEAT_MS = 30 * 1000;
+
+  // Group heartbeats + starts by date; we'll layer session_end precision
+  // similar to getActiveMsReal but per-day.
+  const baseline = await q(
+    `SELECT substr(ts, 1, 10) AS day,
+            SUM(CASE WHEN event_type = 'session_heartbeat' THEN 1 ELSE 0 END) AS hb,
+            SUM(CASE WHEN event_type = 'session_start'     THEN 1 ELSE 0 END) AS st
+     FROM events
+     WHERE event_type IN ('session_heartbeat', 'session_start')
+       AND ts >= ?
+     GROUP BY substr(ts, 1, 10)`,
+    [sinceIso]
+  );
+  const dayMap = new Map();
+  for (const row of baseline) {
+    const ms = (Number(row.hb || 0) + Number(row.st || 0)) * HEARTBEAT_MS;
+    dayMap.set(String(row.day), { ms, day: String(row.day) });
+  }
+
+  // Apply session_end precision deltas, attributed to the day session_end
+  // fired (since heartbeats spread before that day if session crossed midnight,
+  // we accept this small inaccuracy — sessions rarely cross midnight in practice).
+  const ends = await q(
+    `SELECT substr(e_end.ts, 1, 10) AS day,
+            e_end.payload_json AS payload_json,
+            (SELECT COUNT(*) FROM events e_hb
+              WHERE e_hb.event_type = 'session_heartbeat'
+                AND e_hb.session_id = e_end.session_id) AS hb_in_session
+     FROM events e_end
+     WHERE e_end.event_type = 'session_end'
+       AND e_end.ts >= ?`,
+    [sinceIso]
+  );
+  for (const row of ends) {
+    let dur = 0;
+    try {
+      const obj = JSON.parse(row.payload_json || '{}');
+      dur = Math.max(0, Math.min(60 * 60 * 1000, Number(obj.duration_ms) || 0));
+    } catch (_) {}
+    const approxForThisSession = (Number(row.hb_in_session) + 1) * HEARTBEAT_MS;
+    const deltaMs = dur - approxForThisSession;
+    const day = String(row.day);
+    const existing = dayMap.get(day) || { ms: 0, day };
+    existing.ms = Math.max(0, existing.ms + deltaMs);
+    dayMap.set(day, existing);
+  }
+
+  // Zero-fill all days in the window for continuous calendar grids.
+  const out = [];
+  const today = new Date();
+  for (let i = safeDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const entry = dayMap.get(key);
+    out.push({
+      date: key,
+      active_minutes: Math.round(((entry && entry.ms) || 0) / 60000),
+      active_ms: (entry && entry.ms) || 0,
+    });
+  }
+  return out;
+}
+
+// Phase 11.1: session-level metrics (for research-mode aggregation in 11B
+// and as future Dashboard surface). Returns counts + totals, no per-session
+// list.
+export async function getSessionMetrics({ days = 7 } = {}) {
+  const sinceMs = Date.now() - Math.max(1, days) * 86400000;
+  const sinceIso = new Date(sinceMs).toISOString();
+
+  const rows = await q(
+    `SELECT
+       SUM(CASE WHEN event_type = 'session_start'     THEN 1 ELSE 0 END) AS sessions,
+       SUM(CASE WHEN event_type = 'session_heartbeat' THEN 1 ELSE 0 END) AS heartbeats,
+       SUM(CASE WHEN event_type = 'session_end'       THEN 1 ELSE 0 END) AS ends,
+       COUNT(DISTINCT substr(ts, 1, 10))                                  AS active_days
+     FROM events
+     WHERE event_type IN ('session_start', 'session_heartbeat', 'session_end')
+       AND ts >= ?`,
+    [sinceIso]
+  );
+  const r = rows[0] || {};
+  return {
+    sessions_count: Number(r.sessions || 0),
+    heartbeats_count: Number(r.heartbeats || 0),
+    sessions_completed: Number(r.ends || 0),
+    sessions_orphaned: Math.max(0, Number(r.sessions || 0) - Number(r.ends || 0)),
+    active_days_count: Number(r.active_days || 0),
+    active_ms_real: await getActiveMsReal({ sinceIso }),
+  };
 }
 
 // ── Direction 5: Activity heatmap (Premium Release v3.1.0) ────────────

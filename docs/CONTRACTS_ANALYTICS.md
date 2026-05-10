@@ -28,9 +28,49 @@
 | `smart_tag_override` | `v3TextMetaSave` (после `setManualSmartTag`) | `text_id`, `payload_json.tag` ('struggling' / 'mastered' / 'auto') |
 | `translit_toggle` | `v3IdeToggleColumn` (when key === 'translit') | `payload_json.visible` (boolean) |
 
-### Не реализовано (deferred → Direction 11A Phase 11.1)
-- `session_start` / `session_heartbeat` / `session_end` — heartbeat-based time-spent v2 модель.
-- `getAnalytics().time_ms` всё ещё estimated (`plays * 4000`); real values — после Phase 11.1.
+### Phase 11.1 closure (2026-05-10)
+
+Heartbeat-based time-spent v2 — реализована. Three new event types:
+
+| Event type | Emit point | Payload |
+|------------|------------|---------|
+| `session_start` | First user interaction or page-load when visible (after `DOMContentLoaded`) | `session_id`, `payload_json.{app_version, platform}` (`web/desktop` / `web/mobile-ios` / `web/mobile-android` / `web/pwa`) |
+| `session_heartbeat` | Every 30s while: visible + interaction within last 60s + duration < 60min | `session_id` |
+| `session_end` | `visibilitychange:hidden` / idle timeout (5 min без interaction) / max-session reached (60 min) / `pagehide` / `beforeunload` | `session_id`, `payload_json.{duration_ms, reason}` (reason ∈ `idle` / `max-length` / `visibility-hidden` / `pagehide` / `beforeunload` / `explicit`) |
+
+Constants (from `public/index.html`):
+- `V3_SESSION_HEARTBEAT_MS = 30 × 1000`
+- `V3_SESSION_IDLE_MS = 5 × 60 × 1000`
+- `V3_SESSION_MAX_MS = 60 × 60 × 1000`
+
+Activity signals (mark session active, throttled to 1 Hz):
+- `keydown` / `click` / `pointerdown` / `scroll` / `touchstart`
+
+### Aggregation API (`local-db.js` exports)
+
+| Function | Returns | Use case |
+|----------|---------|----------|
+| `getActiveMsReal({ sinceIso? })` | `number` ms | Real active time over window. Backbone of all other helpers. |
+| `getActiveMinutesByDay({ days = 30 })` | `Array<{date, active_minutes, active_ms}>` | Per-day timeseries (zero-filled). For future heatmap variant + research-mode time-of-day distribution. |
+| `getSessionMetrics({ days = 7 })` | `{ sessions_count, heartbeats_count, sessions_completed, sessions_orphaned, active_days_count, active_ms_real }` | Session-level summary. Research-mode aggregation upload (Direction 11B). |
+
+### `getAnalytics()` shape evolution
+
+Backwards-compatible. Both fields coexist:
+- `time_ms` — legacy plays × 4000 estimate (preserved for v3.1 dashboards).
+- `active_ms_real` — heartbeat-derived precise measurement (Phase 11.1).
+
+Callers should prefer `active_ms_real` когда `> 0`.
+
+### Aggregation rule (Phase 11.1 v1)
+
+For each session:
+- If `session_end.payload_json.duration_ms` exists → use it (precise).
+- Else (orphan session — closed via crash/forced-quit) → `(heartbeats × 30s) + 30s start baseline` (slight underestimate; never overestimates).
+
+Implementation: two-pass aggregation (baseline approximation + per-session precision deltas) — see `getActiveMsReal` in `local-db.js`. Single-query approach not feasible without JSON window functions in vanilla SQLite.
+
+### Не реализовано (→ Direction 11B research mode)
 
 ### Не реализовано (→ Direction 11B research mode)
 - Cohort aggregates по level/topic/tags на уровне server-side `/api/research/v1/*` endpoint family. Опт-ин upload daily aggregates.

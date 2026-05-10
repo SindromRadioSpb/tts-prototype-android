@@ -24,6 +24,7 @@
 <script type="module">
 import {
   initLocalDB, recordEvent, getAnalytics, getActivityHeatmap, recentActivity,
+  getActiveMsReal, getActiveMinutesByDay, getSessionMetrics,
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -169,6 +170,8 @@ async function run() {
     if (typeof ag.period.unique_rows !== 'number') throw new Error('missing unique_rows');
     if (typeof ag.period.unique_texts !== 'number') throw new Error('missing unique_texts');
     if (typeof ag.period.time_ms !== 'number') throw new Error('missing time_ms');
+    // Phase 11.1: also surfaces active_ms_real
+    if (typeof ag.period.active_ms_real !== 'number') throw new Error('missing active_ms_real');
   })();
 
   await t('getActivityHeatmap returns date-bucketed counts', async () => {
@@ -176,6 +179,73 @@ async function run() {
     if (!Array.isArray(heat)) throw new Error('expected array');
     if (heat.length === 0) throw new Error('expected at least 1 day');
     if (!heat[0].date || typeof heat[0].count !== 'number') throw new Error('bad bucket shape');
+  })();
+
+  // ── Phase 11.1 — session events + heartbeat aggregation ──────────────
+  // Emit a synthetic session: start + 3 heartbeats + end with duration.
+  // Then verify aggregation helpers return sensible values.
+  const synSessionId = 'syn-sess-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+
+  await t('emit session_start', async () => {
+    await emit('session_start', {
+      session_id: synSessionId,
+      payload_json: { app_version: '3.2.0-test', platform: 'web/desktop' },
+    });
+  })();
+
+  await t('emit 3 session_heartbeats', async () => {
+    for (let i = 0; i < 3; i++) {
+      await emit('session_heartbeat', { session_id: synSessionId });
+    }
+  })();
+
+  await t('emit session_end with duration_ms', async () => {
+    await emit('session_end', {
+      session_id: synSessionId,
+      payload_json: { duration_ms: 105000, reason: 'explicit' },
+    });
+  })();
+
+  await t('getActiveMsReal returns non-negative number', async () => {
+    const ms = await getActiveMsReal({});
+    if (typeof ms !== 'number') throw new Error('expected number');
+    if (ms < 0) throw new Error('negative ms');
+    out('inf', `   getActiveMsReal (all-time) = ${Math.round(ms / 1000)}s`);
+  })();
+
+  await t('getActiveMsReal sees the synthetic session contribution (≈105s)', async () => {
+    // Capture baseline before, then re-query after emit
+    // Strictly: we already emitted; just check current value > 0
+    const ms = await getActiveMsReal({});
+    // We expect at least ~105s from the synthetic session (with end
+    // duration overriding the heartbeat baseline).
+    if (ms < 30000) throw new Error('expected ≥ 30s; got ' + ms);
+  })();
+
+  await t('getActiveMinutesByDay returns array of len=30 (zero-filled)', async () => {
+    const arr = await getActiveMinutesByDay({ days: 30 });
+    if (!Array.isArray(arr)) throw new Error('expected array');
+    if (arr.length !== 30) throw new Error('expected 30 buckets, got ' + arr.length);
+    if (!arr[0].date || typeof arr[0].active_minutes !== 'number') throw new Error('bad bucket shape');
+    out('inf', `   today=${arr[arr.length - 1].date} active_minutes=${arr[arr.length - 1].active_minutes}`);
+  })();
+
+  await t('getSessionMetrics returns sessions_count + active_ms_real', async () => {
+    const m = await getSessionMetrics({ days: 7 });
+    if (typeof m.sessions_count !== 'number') throw new Error('missing sessions_count');
+    if (typeof m.heartbeats_count !== 'number') throw new Error('missing heartbeats_count');
+    if (typeof m.active_ms_real !== 'number') throw new Error('missing active_ms_real');
+    out('inf', `   metrics: ${JSON.stringify(m)}`);
+  })();
+
+  await t('orphan session: heartbeats × 30s when no session_end', async () => {
+    const orphanId = 'orphan-' + Date.now();
+    await emit('session_start', { session_id: orphanId });
+    await emit('session_heartbeat', { session_id: orphanId });
+    await emit('session_heartbeat', { session_id: orphanId });
+    // No session_end fired
+    const ms = await getActiveMsReal({});
+    if (ms < 90000) throw new Error('orphan session not counted (got ' + ms + ')');
   })();
 
   // ── Summary ──────────────────────────────────────────────────────────

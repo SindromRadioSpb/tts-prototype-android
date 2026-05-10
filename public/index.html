@@ -11363,8 +11363,178 @@ window.v3EmitTextOpenWithClose = v3EmitTextOpenWithClose;
 window.v3EmitTextCloseCurrent = v3EmitTextCloseCurrent;
 window.v3EmitPlayAudio = v3EmitPlayAudio;
 
-// Fire text_close on hide / unload as a best-effort safety net. Phase
-// 11.1 will replace this with proper visibility-aware session tracking.
+// ── Session tracking — heartbeat-based time-spent v2 (Phase 11.1) ────────
+// Goals:
+//   • Real "minutes spent" measurements (not plays × 4000 estimate).
+//   • Idle-aware — pauses counting after 5 min без user interaction.
+//   • Visibility-aware — backgrounded tab doesn't accumulate time.
+//   • Bounded — single session capped at 60 min, then re-bootstrapped on
+//     next interaction (safety net against runaway counters).
+//   • Best-effort — heartbeat firing fails silently; never blocks UX.
+//
+// Session events emitted into `events` table:
+//   session_start    — first interaction or page load (visible)
+//   session_heartbeat — every 30s while active + visible + non-idle
+//   session_end      — visibilitychange:hidden, idle timeout exceeded,
+//                       max-session-length reached, или pagehide
+//
+// Aggregation (Phase 11.3 / Direction 11B):
+//   active_minutes_real = (heartbeats_count × 30s) + (session_end.duration_ms
+//                         when present, else heartbeats × 30s for orphan sessions)
+const V3_SESSION_HEARTBEAT_MS = 30 * 1000;       // 30s — Phase 11.1 contract
+const V3_SESSION_IDLE_MS      = 5  * 60 * 1000;  // 5 min — pauses session
+const V3_SESSION_MAX_MS       = 60 * 60 * 1000;  // 60 min — hard cap per session
+
+let v3SessionId = null;
+let v3SessionStartedAt = null;       // ms timestamp at session_start
+let v3SessionLastActivityAt = null;  // ms timestamp of last interaction
+let v3SessionHeartbeatTimer = null;  // setInterval handle
+let v3SessionDidBootListener = false;
+
+function v3SessionDetectPlatform() {
+  try {
+    const ua = (navigator && navigator.userAgent) || "";
+    const isStandalone =
+      (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      (navigator.standalone === true);
+    if (isStandalone) return "web/pwa";
+    if (/iPad|iPhone|iPod/i.test(ua)) return "web/mobile-ios";
+    if (/Android/i.test(ua)) return "web/mobile-android";
+    return "web/desktop";
+  } catch (_) { return "web/desktop"; }
+}
+
+function v3SessionStart() {
+  if (v3SessionId) return; // already active
+  try {
+    v3SessionId = (typeof crypto !== "undefined" && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `sess-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    v3SessionStartedAt = Date.now();
+    v3SessionLastActivityAt = Date.now();
+    v3Emit("session_start", {
+      session_id: v3SessionId,
+      payload_json: {
+        // Read lazily so we pick up the current build's version once
+        // /api/client-config has resolved (set by About modal init / client
+        // boot). Null on very first session if config arrives later — that
+        // session is still attributed via timestamp + cohort code, just
+        // missing precise version.
+        app_version: (typeof window !== "undefined" && window.__v3AppVersion) || null,
+        platform: v3SessionDetectPlatform(),
+      },
+    });
+    if (v3SessionHeartbeatTimer) clearInterval(v3SessionHeartbeatTimer);
+    v3SessionHeartbeatTimer = setInterval(v3SessionHeartbeat, V3_SESSION_HEARTBEAT_MS);
+  } catch (_) {}
+}
+
+function v3SessionHeartbeat() {
+  if (!v3SessionId) return;
+  try {
+    const now = Date.now();
+    // Idle gate — no interaction for V3_SESSION_IDLE_MS → close.
+    if (now - v3SessionLastActivityAt > V3_SESSION_IDLE_MS) {
+      v3SessionEnd("idle");
+      return;
+    }
+    // Visibility gate — hidden tab does not accumulate.
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      return; // skip this beat; do not end (visibilitychange handler does that)
+    }
+    // Max-length gate — cap session at V3_SESSION_MAX_MS.
+    if (now - v3SessionStartedAt > V3_SESSION_MAX_MS) {
+      v3SessionEnd("max-length");
+      return;
+    }
+    v3Emit("session_heartbeat", { session_id: v3SessionId });
+  } catch (_) {}
+}
+
+function v3SessionEnd(reason) {
+  if (!v3SessionId) return;
+  try {
+    const dur = v3SessionStartedAt ? Math.max(0, Date.now() - v3SessionStartedAt) : 0;
+    v3Emit("session_end", {
+      session_id: v3SessionId,
+      payload_json: { duration_ms: dur, reason: reason || "explicit" },
+    });
+  } catch (_) {}
+  if (v3SessionHeartbeatTimer) {
+    clearInterval(v3SessionHeartbeatTimer);
+    v3SessionHeartbeatTimer = null;
+  }
+  v3SessionId = null;
+  v3SessionStartedAt = null;
+  v3SessionLastActivityAt = null;
+}
+
+function v3SessionMarkActivity() {
+  // First interaction bootstraps a session (handles cold-start case where
+  // user is reading static content but has not yet triggered any
+  // interaction event by load time).
+  if (!v3SessionId) {
+    if (typeof document !== "undefined" && document.visibilityState === "visible") {
+      v3SessionStart();
+    }
+    return;
+  }
+  v3SessionLastActivityAt = Date.now();
+}
+
+function v3SessionBootListeners() {
+  if (v3SessionDidBootListener) return;
+  v3SessionDidBootListener = true;
+
+  // Start session if page is visible at boot.
+  if (typeof document !== "undefined" && document.visibilityState === "visible") {
+    v3SessionStart();
+  }
+
+  // Activity signals — passive, throttled to avoid event spam.
+  let _lastMark = 0;
+  const _markThrottled = () => {
+    const now = Date.now();
+    if (now - _lastMark < 1000) return; // 1Hz max
+    _lastMark = now;
+    v3SessionMarkActivity();
+  };
+  ["keydown", "click", "pointerdown", "scroll", "touchstart"].forEach((ev) => {
+    document.addEventListener(ev, _markThrottled, { passive: true });
+  });
+
+  // Visibility lifecycle: hidden → end session; visible → resume on next interaction.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      v3SessionEnd("visibility-hidden");
+    } else if (document.visibilityState === "visible") {
+      v3SessionMarkActivity();
+    }
+  }, { passive: true });
+
+  // Tab close / navigation away — final session_end as a safety net.
+  window.addEventListener("pagehide", () => v3SessionEnd("pagehide"), { passive: true });
+  window.addEventListener("beforeunload", () => v3SessionEnd("beforeunload"), { passive: true });
+}
+
+// Bootstrap on DOM ready (don't wait for full load — we want session tracking
+// active as early as possible after the page is interactable).
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", v3SessionBootListeners, { once: true });
+  } else {
+    v3SessionBootListeners();
+  }
+}
+
+window.v3SessionStart = v3SessionStart;
+window.v3SessionEnd = v3SessionEnd;
+window.v3SessionMarkActivity = v3SessionMarkActivity;
+
+// Fire text_close on hide / unload as a best-effort safety net. Sits
+// alongside session tracking — text-level close is independent of
+// session-level (a user can stay active in the same session while
+// switching texts).
 window.addEventListener("pagehide", v3EmitTextCloseCurrent, { passive: true });
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") v3EmitTextCloseCurrent();
