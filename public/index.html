@@ -11454,7 +11454,19 @@ function v3SessionHeartbeat() {
 function v3SessionEnd(reason) {
   if (!v3SessionId) return;
   try {
-    const dur = v3SessionStartedAt ? Math.max(0, Date.now() - v3SessionStartedAt) : 0;
+    let dur;
+    if (reason === "idle" && v3SessionLastActivityAt && v3SessionStartedAt) {
+      // Idle reason: count only up to last interaction. The 5-min idle
+      // waiting window itself is NOT active time, so we exclude it from
+      // duration_ms — otherwise every idle-closed session would over-
+      // attribute by V3_SESSION_IDLE_MS.
+      dur = Math.max(0, v3SessionLastActivityAt - v3SessionStartedAt);
+    } else {
+      // All other reasons (visibility-hidden, max-length, pagehide,
+      // beforeunload, explicit): user was active up to "now"; full
+      // duration is correct.
+      dur = v3SessionStartedAt ? Math.max(0, Date.now() - v3SessionStartedAt) : 0;
+    }
     v3Emit("session_end", {
       session_id: v3SessionId,
       payload_json: { duration_ms: dur, reason: reason || "explicit" },
