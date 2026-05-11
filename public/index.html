@@ -4708,6 +4708,206 @@ body.theme-dark .v3-notes-template-banner,
 body:not(.theme-light) .v3-notes-template-banner {
   background: rgba(245, 158, 11, 0.18);
 }
+/* Phase 9.3 — structured template forms (word_study / grammar_rule /
+   translation_discrepancy / pronunciation_note). Each form is a vertical
+   stack of labeled rows; field controls inherit theme variables so dark
+   mode + RTL Just Work. */
+.v3-notes-template-form {
+  margin: 0 0 12px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  background: var(--theme-bg-muted, #f8fafc);
+  border-radius: 10px;
+}
+.v3-notes-tpl-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.v3-notes-tpl-row:last-child { margin-bottom: 0; }
+.v3-notes-tpl-row-double {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.v3-notes-tpl-half {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.v3-notes-tpl-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-text-secondary, #475569);
+  letter-spacing: 0.02em;
+}
+.v3-notes-tpl-required::after {
+  content: " *";
+  color: var(--theme-text-faint, #94a3b8);
+  font-weight: 700;
+}
+.v3-notes-tpl-input,
+.v3-notes-tpl-textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 8px;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  resize: vertical;
+}
+.v3-notes-tpl-input:focus-visible,
+.v3-notes-tpl-textarea:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 1px;
+  border-color: var(--theme-accent);
+}
+.v3-notes-tpl-textarea { min-height: 60px; }
+.v3-notes-tpl-help {
+  margin-top: 4px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--theme-border-medium, #cbd5e1);
+  background: var(--theme-bg-card, #fff);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--theme-text-secondary, #475569);
+  line-height: 1.4;
+}
+@media (max-width: 600px) {
+  .v3-notes-tpl-row-double { grid-template-columns: 1fr; }
+}
+/* Phase 9.3.B — Bidirectional links panel */
+.v3-notes-links-panel {
+  margin: 12px 0 0 0;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 10px;
+  background: var(--theme-bg-muted, #f8fafc);
+  overflow: hidden;
+}
+.v3-notes-links-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text-primary, #0f172a);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+.v3-notes-links-toggle:hover { background: var(--theme-bg-hover, #f1f5f9); }
+.v3-notes-links-toggle:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: -2px;
+}
+.v3-notes-links-toggle-icon {
+  display: inline-block;
+  font-size: 11px;
+  width: 14px;
+  transition: transform 0.15s;
+}
+.v3-notes-links-panel.v3-notes-links-open .v3-notes-links-toggle-icon { transform: rotate(90deg); }
+.v3-notes-links-badge {
+  margin-left: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 11px;
+  background: var(--theme-accent);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.v3-notes-links-badge:empty { display: none; }
+body.theme-dark .v3-notes-links-badge,
+body:not(.theme-light) .v3-notes-links-badge { color: var(--theme-bg-page); }
+.v3-notes-links-body {
+  padding: 0 14px 14px 14px;
+  border-top: 1px solid var(--theme-border-soft, #e6e9ef);
+}
+.v3-notes-links-section {
+  margin-top: 12px;
+}
+.v3-notes-links-heading {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--theme-text-muted, #64748b);
+  margin-bottom: 6px;
+}
+.v3-notes-links-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 28px;
+}
+.v3-notes-links-empty {
+  font-size: 12px;
+  color: var(--theme-text-faint, #94a3b8);
+  font-style: italic;
+}
+.v3-notes-link-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  border-radius: 14px;
+  font-size: 12.5px;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.v3-notes-link-chip.is-clickable { cursor: pointer; }
+.v3-notes-link-chip.is-clickable:hover { background: var(--theme-bg-hover); border-color: var(--theme-border-medium); }
+.v3-notes-link-chip-kind {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--theme-text-muted);
+  font-weight: 700;
+}
+.v3-notes-link-chip-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  margin-left: 2px;
+}
+.v3-notes-link-chip-remove:hover { background: var(--theme-bg-hover); color: var(--theme-text-primary); }
+.v3-notes-links-add-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+@media (max-width: 600px) {
+  .v3-notes-links-add-row > * { flex: 1 1 auto; }
+}
 .v3-notes-title-input {
   display: block;
   width: 100%;
@@ -8890,9 +9090,130 @@ body:not(.theme-light) .v3-heatmap-cell {
     <div class="v3-modal-body">
       <div id="v3NotesStatus" class="v3-help"></div>
 
-      <!-- Phase 9.3 banner shown when note_type ≠ free -->
-      <div id="v3NotesTemplateBanner" class="v3-notes-template-banner" style="display:none;">
-        <span data-i18n="notes.templateBanner">⏳ Структурированная форма появится в Phase 9.3 — сейчас сохраняется как пустая заготовка.</span>
+      <!-- Phase 9.3 — structured template forms for non-free note_type kinds.
+           Visible only when v3NotesModalNoteType ∈ {word_study, grammar_rule,
+           translation_discrepancy, pronunciation_note}; hidden for 'free' which
+           keeps the markdown body editor below. Each sub-form serializes to
+           body_json as { kind: "<note_type>", ...fields }. -->
+      <div id="v3NotesTemplateForm" class="v3-notes-template-form" style="display:none;">
+
+        <!-- word_study -->
+        <div class="v3-notes-tpl" data-tpl="word_study" style="display:none;">
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.word_study.word">Слово (иврит)</label>
+            <input type="text" id="v3NotesTplWordStudyWord" class="v3-notes-tpl-input" dir="rtl" maxlength="80" data-i18n-placeholder="notes.tpl.word_study.wordPh" placeholder="שלום" />
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.niqqud">С огласовкой</label>
+            <input type="text" id="v3NotesTplWordStudyNiqqud" class="v3-notes-tpl-input" dir="rtl" maxlength="100" data-i18n-placeholder="notes.tpl.word_study.niqqudPh" placeholder="שָׁלוֹם" />
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.root">Корень</label>
+            <input type="text" id="v3NotesTplWordStudyRoot" class="v3-notes-tpl-input" dir="rtl" maxlength="10" data-i18n-placeholder="notes.tpl.word_study.rootPh" placeholder="שלם" />
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.word_study.meaning">Перевод</label>
+            <input type="text" id="v3NotesTplWordStudyMeaning" class="v3-notes-tpl-input" maxlength="200" data-i18n-placeholder="notes.tpl.word_study.meaningPh" placeholder="мир, благополучие" />
+          </div>
+          <div class="v3-notes-tpl-row v3-notes-tpl-row-double">
+            <div class="v3-notes-tpl-half">
+              <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.pos">Часть речи</label>
+              <select id="v3NotesTplWordStudyPos" class="v3-notes-tpl-input">
+                <option value="" data-i18n="notes.tpl.word_study.posUnset">—</option>
+                <option value="noun" data-i18n="notes.tpl.word_study.posNoun">Существительное</option>
+                <option value="verb" data-i18n="notes.tpl.word_study.posVerb">Глагол</option>
+                <option value="adjective" data-i18n="notes.tpl.word_study.posAdj">Прилагательное</option>
+                <option value="adverb" data-i18n="notes.tpl.word_study.posAdv">Наречие</option>
+                <option value="preposition" data-i18n="notes.tpl.word_study.posPrep">Предлог</option>
+                <option value="pronoun" data-i18n="notes.tpl.word_study.posPron">Местоимение</option>
+                <option value="interjection" data-i18n="notes.tpl.word_study.posInterj">Междометие</option>
+                <option value="other" data-i18n="notes.tpl.word_study.posOther">Другое</option>
+              </select>
+            </div>
+            <div class="v3-notes-tpl-half">
+              <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.binyan">Биньян</label>
+              <select id="v3NotesTplWordStudyBinyan" class="v3-notes-tpl-input">
+                <option value="" data-i18n="notes.tpl.word_study.binyanUnset">—</option>
+                <option value="paal">paal (פעל)</option>
+                <option value="piel">pi'el (פיעל)</option>
+                <option value="hifil">hif'il (הפעיל)</option>
+                <option value="hitpael">hitpa'el (התפעל)</option>
+                <option value="nifal">nif'al (נפעל)</option>
+                <option value="pual">pu'al (פועל)</option>
+                <option value="hufal">huf'al (הופעל)</option>
+              </select>
+            </div>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.mnemonic">Мнемоника</label>
+            <textarea id="v3NotesTplWordStudyMnemonic" class="v3-notes-tpl-textarea" maxlength="800" rows="2" data-i18n-placeholder="notes.tpl.word_study.mnemonicPh" placeholder="Запоминалка…"></textarea>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.example">Пример</label>
+            <textarea id="v3NotesTplWordStudyExample" class="v3-notes-tpl-textarea" maxlength="800" rows="2" data-i18n-placeholder="notes.tpl.word_study.examplePh" placeholder="שלום עליכם!"></textarea>
+          </div>
+        </div>
+
+        <!-- grammar_rule -->
+        <div class="v3-notes-tpl" data-tpl="grammar_rule" style="display:none;">
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.grammar_rule.title">Название правила</label>
+            <input type="text" id="v3NotesTplGrammarTitle" class="v3-notes-tpl-input" maxlength="200" data-i18n-placeholder="notes.tpl.grammar_rule.titlePh" placeholder="Смихут для мн.ч. м.р." />
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.grammar_rule.body">Формулировка</label>
+            <textarea id="v3NotesTplGrammarBody" class="v3-notes-tpl-textarea" maxlength="4000" rows="4" data-i18n-placeholder="notes.tpl.grammar_rule.bodyPh" placeholder="Правило, как оно работает…"></textarea>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.grammar_rule.examples">Примеры (по одному в строке)</label>
+            <textarea id="v3NotesTplGrammarExamples" class="v3-notes-tpl-textarea" maxlength="2000" rows="3" data-i18n-placeholder="notes.tpl.grammar_rule.examplesPh" placeholder="בית הספר&#10;ילדי הגן"></textarea>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.grammar_rule.counter">Контрпримеры</label>
+            <textarea id="v3NotesTplGrammarCounter" class="v3-notes-tpl-textarea" maxlength="2000" rows="2" data-i18n-placeholder="notes.tpl.grammar_rule.counterPh" placeholder="Так не говорят…"></textarea>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.grammar_rule.tags">Теги (через запятую)</label>
+            <input type="text" id="v3NotesTplGrammarTags" class="v3-notes-tpl-input" maxlength="200" data-i18n-placeholder="notes.tpl.grammar_rule.tagsPh" placeholder="смихут, мн.ч., м.р." />
+          </div>
+        </div>
+
+        <!-- translation_discrepancy -->
+        <div class="v3-notes-tpl" data-tpl="translation_discrepancy" style="display:none;">
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.translation_discrepancy.source">Оригинал (иврит)</label>
+            <textarea id="v3NotesTplTransSource" class="v3-notes-tpl-textarea" dir="rtl" maxlength="800" rows="2" data-i18n-placeholder="notes.tpl.translation_discrepancy.sourcePh" placeholder="…"></textarea>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.translation_discrepancy.seen">Перевод, который смутил</label>
+            <textarea id="v3NotesTplTransSeen" class="v3-notes-tpl-textarea" maxlength="800" rows="2" data-i18n-placeholder="notes.tpl.translation_discrepancy.seenPh" placeholder="Как было переведено…"></textarea>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.translation_discrepancy.suggested">Ваш вариант</label>
+            <textarea id="v3NotesTplTransSuggested" class="v3-notes-tpl-textarea" maxlength="800" rows="2" data-i18n-placeholder="notes.tpl.translation_discrepancy.suggestedPh" placeholder="Как бы вы перевели…"></textarea>
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.translation_discrepancy.reasoning">Что упущено</label>
+            <textarea id="v3NotesTplTransReasoning" class="v3-notes-tpl-textarea" maxlength="2000" rows="3" data-i18n-placeholder="notes.tpl.translation_discrepancy.reasoningPh" placeholder="Какой нюанс/оттенок потерян…"></textarea>
+          </div>
+        </div>
+
+        <!-- pronunciation_note -->
+        <div class="v3-notes-tpl" data-tpl="pronunciation_note" style="display:none;">
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.pronunciation_note.word">Слово</label>
+            <input type="text" id="v3NotesTplPronWord" class="v3-notes-tpl-input" dir="rtl" maxlength="80" data-i18n-placeholder="notes.tpl.pronunciation_note.wordPh" placeholder="שלום" />
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.pronunciation_note.ipa">IPA</label>
+            <input type="text" id="v3NotesTplPronIpa" class="v3-notes-tpl-input" maxlength="100" data-i18n-placeholder="notes.tpl.pronunciation_note.ipaPh" placeholder="ʃaˈlom" />
+          </div>
+          <div class="v3-notes-tpl-row">
+            <label class="v3-notes-tpl-label" data-i18n="notes.tpl.pronunciation_note.mistakes">Частые ошибки</label>
+            <textarea id="v3NotesTplPronMistakes" class="v3-notes-tpl-textarea" maxlength="2000" rows="3" data-i18n-placeholder="notes.tpl.pronunciation_note.mistakesPh" placeholder="Что говорят неправильно…"></textarea>
+          </div>
+          <div class="v3-notes-tpl-help v3-help" data-i18n="notes.tpl.pronunciation_note.anchorHint">Совет: используйте «📍 Привязать к аудио» в шапке, чтобы запомнить конкретный момент произнесения.</div>
+        </div>
       </div>
 
       <div class="v3-form-row" style="align-items:flex-start;">
@@ -8942,8 +9263,56 @@ body:not(.theme-light) .v3-heatmap-cell {
   </div>
 </div>
 
+      <!-- Phase 9.3.B — bidirectional links panel. Collapsible to keep the
+           modal compact when not in use; expanded shows outgoing + backlinks.
+           Visible only after the note has been saved (needs a noteId). -->
+      <div id="v3NotesLinksPanel" class="v3-notes-links-panel" style="display:none;">
+        <button type="button" id="v3NotesLinksToggleBtn"
+                class="v3-notes-links-toggle"
+                onclick="v3NotesLinksToggle()"
+                aria-expanded="false"
+                aria-controls="v3NotesLinksBody">
+          <span class="v3-notes-links-toggle-icon">▸</span>
+          <span data-i18n="notes.linksTitle">🔗 Связи</span>
+          <span id="v3NotesLinksBadge" class="v3-notes-links-badge"></span>
+        </button>
+        <div id="v3NotesLinksBody" class="v3-notes-links-body" style="display:none;">
+          <div class="v3-notes-links-section">
+            <div class="v3-notes-links-heading" data-i18n="notes.linksOutgoing">Исходящие</div>
+            <div id="v3NotesLinksOutgoingList" class="v3-notes-links-list"></div>
+            <div class="v3-notes-links-add-row">
+              <select id="v3NotesLinksAddKind" class="v3-notes-tpl-input" style="max-width:140px;">
+                <option value="note" data-i18n="notes.linkKindNote">Заметка</option>
+                <option value="root" data-i18n="notes.linkKindRoot">Корень</option>
+                <option value="binyan" data-i18n="notes.linkKindBinyan">Биньян</option>
+                <option value="word" data-i18n="notes.linkKindWord">Слово</option>
+                <option value="sentence" data-i18n="notes.linkKindSentence">Строка</option>
+              </select>
+              <input type="text" id="v3NotesLinksAddTarget" class="v3-notes-tpl-input"
+                     style="flex:1;" data-i18n-placeholder="notes.linkAddTargetPh"
+                     placeholder="ID цели или поиск (заметка)" />
+              <input type="text" id="v3NotesLinksAddAlias" class="v3-notes-tpl-input"
+                     style="max-width:160px;" data-i18n-placeholder="notes.linkAddAliasPh"
+                     placeholder="Подпись (опционально)" />
+              <button type="button" class="btn-secondary" onclick="v3NotesLinksAdd()"
+                      data-i18n="notes.linkAddBtn">+ Добавить</button>
+            </div>
+            <div id="v3NotesLinksAutocomplete" class="v3-notes-target-hints" style="display:none;"></div>
+          </div>
+          <div class="v3-notes-links-section">
+            <div class="v3-notes-links-heading" data-i18n="notes.linksBacklinks">Входящие (backlinks)</div>
+            <div id="v3NotesLinksBacklinksList" class="v3-notes-links-list"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="v3-modal-actions" style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
         <button id="v3NotesDeleteBtn" class="btn-secondary" onclick="v3NotesDelete()" data-i18n="notes.deleteBtn">Удалить</button>
+        <!-- Phase 9.3.C — Note → SRS conversion. Shown only for templated note types
+             (free notes have no natural front/back mapping). Becomes "✓ В SRS" once
+             the note has a card; clicking it then navigates to the SRS trainer. -->
+        <button id="v3NotesToSrsBtn" class="btn-secondary" onclick="v3NotesConvertToSrs()"
+                data-i18n="notes.toSrsBtn" style="display:none;">🎴 Сделать карточкой</button>
         <button id="v3NotesSaveBtn" class="btn-primary" onclick="v3NotesSave()" data-i18n="notes.saveBtn">Сохранить</button>
       </div>
 
@@ -31728,27 +32097,148 @@ const V3_NOTES_TYPE_PLACEHOLDERS = {
   pronunciation_note:      "Свободные заметки о произношении (структурированные поля — в Phase 9.3)",
 };
 
-function v3NotesUpdateTemplateBanner() {
+// Phase 9.3 — structured template forms replace the "⏳ coming soon" banner.
+// v3NotesTemplateRender shows the form for the active note_type, hides others,
+// and toggles markdown body visibility (markdown only for note_type='free').
+
+// Field maps per template kind — element ids + body_json key + isRequired.
+const V3_NOTES_TPL_FIELDS = {
+  word_study: [
+    { id: "v3NotesTplWordStudyWord",     key: "word",             required: true,  type: "text"     },
+    { id: "v3NotesTplWordStudyNiqqud",   key: "niqqud_variant",   required: false, type: "text"     },
+    { id: "v3NotesTplWordStudyRoot",     key: "root",             required: false, type: "text"     },
+    { id: "v3NotesTplWordStudyMeaning",  key: "meaning",          required: true,  type: "text"     },
+    { id: "v3NotesTplWordStudyPos",      key: "part_of_speech",   required: false, type: "select"   },
+    { id: "v3NotesTplWordStudyBinyan",   key: "binyan",           required: false, type: "select"   },
+    { id: "v3NotesTplWordStudyMnemonic", key: "mnemonic",         required: false, type: "textarea" },
+    { id: "v3NotesTplWordStudyExample",  key: "example_sentence", required: false, type: "textarea" },
+  ],
+  grammar_rule: [
+    { id: "v3NotesTplGrammarTitle",      key: "rule_title",       required: true,  type: "text"     },
+    { id: "v3NotesTplGrammarBody",       key: "rule_body",        required: true,  type: "textarea" },
+    { id: "v3NotesTplGrammarExamples",   key: "examples",         required: false, type: "lines"    },
+    { id: "v3NotesTplGrammarCounter",    key: "counterexamples",  required: false, type: "lines"    },
+    { id: "v3NotesTplGrammarTags",       key: "tags",             required: false, type: "csv"      },
+  ],
+  translation_discrepancy: [
+    { id: "v3NotesTplTransSource",       key: "source_text",            required: true,  type: "textarea" },
+    { id: "v3NotesTplTransSeen",         key: "translation_seen",       required: true,  type: "textarea" },
+    { id: "v3NotesTplTransSuggested",    key: "translation_suggested",  required: false, type: "textarea" },
+    { id: "v3NotesTplTransReasoning",    key: "reasoning",              required: true,  type: "textarea" },
+  ],
+  pronunciation_note: [
+    { id: "v3NotesTplPronWord",     key: "word",            required: true,  type: "text"     },
+    { id: "v3NotesTplPronIpa",      key: "ipa",             required: false, type: "text"     },
+    { id: "v3NotesTplPronMistakes", key: "common_mistakes", required: false, type: "textarea" },
+  ],
+};
+
+function v3NotesTemplateRender() {
+  const form = document.getElementById("v3NotesTemplateForm");
+  const mdWrap = document.getElementById("v3NotesMdWrap");
   const banner = document.getElementById("v3NotesTemplateBanner");
-  if (!banner) return;
-  if (v3NotesModalNoteType === "free") {
-    banner.style.display = "none";
-    banner.innerHTML = "";
+  const t = String(v3NotesModalNoteType || "free");
+
+  // Old "⏳ Phase 9.3" banner is retired by 9.3.A — keep hidden defensively.
+  if (banner) { banner.style.display = "none"; banner.innerHTML = ""; }
+
+  if (t === "free") {
+    if (form) form.style.display = "none";
+    if (mdWrap) mdWrap.style.display = "";
     return;
   }
-  const meta = V3_NOTES_TYPE_HINTS[v3NotesModalNoteType] || null;
-  banner.style.display = "";
-  if (meta) {
-    const t1 = v3NotesT("notes.template." + v3NotesModalNoteType + ".title",  meta.title);
-    const t2 = v3NotesT("notes.template." + v3NotesModalNoteType + ".fields", meta.fields);
-    const t3 = v3NotesT("notes.template." + v3NotesModalNoteType + ".body",   meta.fallback);
-    banner.innerHTML =
-      `<div style="font-weight:700; margin-bottom:4px;">${v3EscapeHtml(t1)}</div>` +
-      `<div style="font-size:12px; opacity:0.75; margin-bottom:6px;">${v3EscapeHtml(t2)}</div>` +
-      `<div>${v3EscapeHtml(t3)}</div>`;
-  } else {
-    banner.innerHTML = v3EscapeHtml(v3NotesT("notes.templateBanner", "⏳ Структурированная форма появится в Phase 9.3 — сейчас сохраняется как пустая заготовка."));
+
+  // Show form, hide markdown body.
+  if (form) form.style.display = "";
+  if (mdWrap) mdWrap.style.display = "none";
+
+  // Show only the matching sub-form.
+  if (form) {
+    form.querySelectorAll(".v3-notes-tpl").forEach((el) => {
+      el.style.display = (el.getAttribute("data-tpl") === t) ? "" : "none";
+    });
   }
+}
+window.v3NotesTemplateRender = v3NotesTemplateRender;
+
+// Collect current template form's field values into the body object that
+// createNote/updateNote will serialize to body_json. For 'free' returns the
+// markdown body string from the textarea (existing behavior).
+function v3NotesTemplateCollect() {
+  const t = String(v3NotesModalNoteType || "free");
+  if (t === "free") {
+    const ta = v3NotesEl("v3NotesText");
+    return ta ? String(ta.value || "") : "";
+  }
+  const fields = V3_NOTES_TPL_FIELDS[t] || [];
+  const out = { kind: t };
+  for (const f of fields) {
+    const el = document.getElementById(f.id);
+    if (!el) continue;
+    const raw = String(el.value || "").trim();
+    if (!raw) continue;
+    if (f.type === "lines") {
+      out[f.key] = raw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    } else if (f.type === "csv") {
+      out[f.key] = raw.split(/,/).map((s) => s.trim()).filter(Boolean);
+    } else {
+      out[f.key] = raw;
+    }
+  }
+  return out;
+}
+window.v3NotesTemplateCollect = v3NotesTemplateCollect;
+
+// Populate template fields from an existing body_json (string or object).
+// Used on modal open + on note_type switch when a stashed body exists.
+function v3NotesTemplateHydrate(body) {
+  const t = String(v3NotesModalNoteType || "free");
+  if (t === "free") return;
+  let obj = body;
+  if (typeof obj === "string") {
+    try { obj = JSON.parse(obj); } catch (_) { obj = {}; }
+  }
+  if (!obj || typeof obj !== "object") obj = {};
+  const fields = V3_NOTES_TPL_FIELDS[t] || [];
+  for (const f of fields) {
+    const el = document.getElementById(f.id);
+    if (!el) continue;
+    const val = obj[f.key];
+    if (val == null) { el.value = ""; continue; }
+    if (Array.isArray(val)) {
+      el.value = val.join(f.type === "csv" ? ", " : "\n");
+    } else {
+      el.value = String(val);
+    }
+  }
+}
+window.v3NotesTemplateHydrate = v3NotesTemplateHydrate;
+
+// Returns the array of missing-but-required field labels for the current
+// template, or [] if all required fields are filled.
+function v3NotesTemplateMissingRequired() {
+  const t = String(v3NotesModalNoteType || "free");
+  if (t === "free") return [];
+  const fields = V3_NOTES_TPL_FIELDS[t] || [];
+  const missing = [];
+  for (const f of fields) {
+    if (!f.required) continue;
+    const el = document.getElementById(f.id);
+    if (!el || !String(el.value || "").trim()) {
+      // Look up the field's label text for the toast message.
+      const lbl = el && el.parentNode ? el.parentNode.querySelector(".v3-notes-tpl-label") : null;
+      missing.push(lbl ? String(lbl.textContent || "").replace(/\s*\*$/, "").trim() : f.key);
+    }
+  }
+  return missing;
+}
+window.v3NotesTemplateMissingRequired = v3NotesTemplateMissingRequired;
+
+// Backwards-compat shim — older call sites still reference the legacy
+// "update banner" helper. Re-route to the new render. Removed once all
+// call sites are migrated (Phase 9.3.D).
+function v3NotesUpdateTemplateBanner() {
+  v3NotesTemplateRender();
 }
 
 function v3NotesSetNoteType(type) {
@@ -31757,14 +32247,21 @@ function v3NotesSetNoteType(type) {
   const prev = v3NotesModalNoteType;
   if (prev === type) return;
 
-  // Stash current body under previous type so we can restore later.
+  // Phase 9.3 — stash the *previous* body (string for free, object for
+  // templates) keyed by its note_type so the user can flip back and forth
+  // without losing in-progress data.
   const ta = v3NotesEl("v3NotesText");
-  if (ta) v3NotesBodyStashByType[prev] = String(ta.value || "");
+  if (prev === "free") {
+    if (ta) v3NotesBodyStashByType[prev] = String(ta.value || "");
+  } else {
+    // Capture current template form values.
+    v3NotesBodyStashByType[prev] = v3NotesTemplateCollect();
+  }
 
   v3NotesModalNoteType = type;
 
-  // Banner + textarea placeholder swap
-  v3NotesUpdateTemplateBanner();
+  // Swap visible form (template or markdown body).
+  v3NotesTemplateRender();
 
   const titleInput = document.getElementById("v3NotesTitleInput");
   if (titleInput) {
@@ -31774,23 +32271,32 @@ function v3NotesSetNoteType(type) {
     }
   }
 
-  // Restore stashed text for the new type (or fall back to current text).
-  if (ta) {
-    const stashed = v3NotesBodyStashByType[type];
-    if (typeof stashed === "string") {
-      v3NotesSafeSetTextareaValue(ta, stashed);
+  if (type === "free") {
+    if (ta) {
+      const stashed = v3NotesBodyStashByType[type];
+      if (typeof stashed === "string") {
+        v3NotesSafeSetTextareaValue(ta, stashed);
+      }
+      try {
+        const ph = V3_NOTES_TYPE_PLACEHOLDERS[type] || V3_NOTES_TYPE_PLACEHOLDERS.free;
+        ta.placeholder = v3NotesT("notes.placeholder." + type, ph);
+      } catch (_) {}
+      try { ta.dispatchEvent(new Event("input")); } catch (_) {}
     }
-    // Swap placeholder so users know what kind of free-form text to put
-    // while templates are still on the way (Phase 9.3).
-    try {
-      const ph = V3_NOTES_TYPE_PLACEHOLDERS[type] || V3_NOTES_TYPE_PLACEHOLDERS.free;
-      ta.placeholder = v3NotesT("notes.placeholder." + type, ph);
-    } catch (_) {}
-    // Trigger char-counter / dirty re-eval
-    try { ta.dispatchEvent(new Event("input")); } catch (_) {}
+  } else {
+    // Hydrate template form from stash (object or earlier-saved body_json).
+    const stashed = v3NotesBodyStashByType[type];
+    if (stashed != null) {
+      v3NotesTemplateHydrate(stashed);
+    } else {
+      // Clear all fields when first entering this type.
+      v3NotesTemplateHydrate({});
+    }
   }
 
   v3NotesUpdateSegUI();
+  // Phase 9.3.C — SRS button visibility tracks note_type.
+  try { v3NotesToSrsUpdateUI(); } catch (_) {}
 }
 window.v3NotesSetNoteType = v3NotesSetNoteType;
 
@@ -31937,6 +32443,292 @@ async function v3NotesRestoreNoteIdIfMissing() {
   }
 }
 window.v3NotesRestoreNoteIdIfMissing = v3NotesRestoreNoteIdIfMissing;
+
+// ── Phase 9.3.C — Note → SRS micro-card conversion ────────────────────────
+
+// Current srs_card_id for the open note (null when unconverted). Updated by
+// v3NotesLoadFullNoteIntoModal + v3NotesConvertToSrs.
+let v3NotesModalSrsCardId = null;
+
+// Render the "🎴" button state. Hidden for 'free' and when there's no
+// noteId yet; "Сделать карточкой" before conversion; "✓ В SRS" after.
+function v3NotesToSrsUpdateUI() {
+  const btn = document.getElementById("v3NotesToSrsBtn");
+  if (!btn) return;
+  const t = String(v3NotesModalNoteType || "free");
+  if (t === "free" || !v3NotesModalNoteId) {
+    btn.style.display = "none";
+    return;
+  }
+  btn.style.display = "";
+  const hasCard = !!v3NotesModalSrsCardId;
+  btn.textContent = hasCard
+    ? v3NotesT("notes.toSrsBtnDone", "🎴 ✓ В SRS")
+    : v3NotesT("notes.toSrsBtn", "🎴 Сделать карточкой");
+  btn.classList.toggle("btn-primary", false);
+  btn.title = hasCard
+    ? v3NotesT("notes.toSrsBtnDoneTitle", "Карточка уже создана — клик откроет тренажёр.")
+    : v3NotesT("notes.toSrsBtnTitle", "Создать SRS-карточку из этой заметки");
+}
+window.v3NotesToSrsUpdateUI = v3NotesToSrsUpdateUI;
+
+async function v3NotesConvertToSrs() {
+  try {
+    if (!LOCAL_MODE) { showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error"); return; }
+    if (!v3NotesModalNoteId) {
+      showToast(v3NotesT("toast.notesSrsSaveFirst", "Сначала сохраните заметку, чтобы создать карточку."), "warning");
+      return;
+    }
+    if (v3NotesModalNoteType === "free") {
+      showToast(v3NotesT("toast.notesSrsFreeNotAllowed", "Свободные заметки нельзя конвертировать в карточку."), "warning");
+      return;
+    }
+    // Already converted → just route to the trainer.
+    if (v3NotesModalSrsCardId) {
+      try { window.location.hash = "#srs"; } catch (_) {}
+      try { v3NotesClose(); } catch (_) {}
+      return;
+    }
+
+    // Confirm before persisting.
+    const ok = await v3ConfirmModal({
+      title: v3NotesT("confirms.notesToSrsTitle", "Создать SRS-карточку?"),
+      body:  v3NotesT("confirms.notesToSrsBody", "Из этой заметки будет создана карточка для интервального повторения. Содержимое полей сформирует front/back карточки."),
+      okText:     v3NotesT("confirms.notesToSrsOk", "Создать"),
+      cancelText: v3NotesT("confirms.notesToSrsCancel", "Отмена"),
+    });
+    if (!ok) return;
+
+    const ldb = await ensureLocalDB();
+    if (!ldb.srs || typeof ldb.srs.createCardFromNote !== "function") {
+      throw new Error("srs.createCardFromNote not available");
+    }
+    const card = await ldb.srs.createCardFromNote(v3NotesModalNoteId);
+    if (!card || !card.id) throw new Error("createCardFromNote returned empty");
+
+    v3NotesModalSrsCardId = String(card.id);
+    v3NotesToSrsUpdateUI();
+    try { v3NotesInvalidateLibrarySmartCache(); } catch (_) {}
+    showToast(v3NotesT("toast.notesSrsCreated", "Карточка создана."), "success");
+  } catch (e) {
+    console.warn("v3NotesConvertToSrs failed", e);
+    showToast(v3NotesT("toast.notesSrsFailed", "Не удалось создать карточку."), "error");
+  }
+}
+window.v3NotesConvertToSrs = v3NotesConvertToSrs;
+
+// ── Phase 9.3.B — bidirectional links + backlinks panel ────────────────────
+
+function v3NotesLinksToggle() {
+  const panel = document.getElementById("v3NotesLinksPanel");
+  const body = document.getElementById("v3NotesLinksBody");
+  const btn = document.getElementById("v3NotesLinksToggleBtn");
+  if (!panel || !body || !btn) return;
+  const open = body.style.display === "none";
+  body.style.display = open ? "" : "none";
+  panel.classList.toggle("v3-notes-links-open", open);
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
+  if (open) v3NotesLinksRefresh();
+}
+window.v3NotesLinksToggle = v3NotesLinksToggle;
+
+function v3NotesLinkChipHtml(link, opts) {
+  const isBacklink = !!(opts && opts.backlink);
+  const kind = String(link.to_kind || link.from_kind || "note");
+  const id = String(link.to_id || link.from_note_id || "");
+  const alias = String(link.link_alias || "").trim();
+  const labelText = alias || (kind === "note" ? id.slice(0, 12) + "…" : id);
+  const dataKind = v3EscapeHtml(kind);
+  const dataId = v3EscapeHtml(id);
+  const removeBtn = isBacklink ? "" :
+    `<button type="button" class="v3-notes-link-chip-remove"
+             onclick="v3NotesLinksRemove(event,'${dataKind}','${dataId}')"
+             aria-label="${v3EscapeHtml(v3NotesT("notes.linkRemoveAria","Удалить связь"))}">✕</button>`;
+  const cls = isBacklink ? "v3-notes-link-chip is-clickable" : "v3-notes-link-chip";
+  const clickAttr = isBacklink
+    ? `onclick="v3NotesLinksOpenBacklink('${dataId}')"`
+    : "";
+  return `<span class="${cls}" ${clickAttr} title="${v3EscapeHtml(kind + ': ' + id)}">
+    <span class="v3-notes-link-chip-kind">${v3EscapeHtml(kind)}</span>
+    <span class="v3-notes-link-chip-label">${v3EscapeHtml(labelText)}</span>
+    ${removeBtn}
+  </span>`;
+}
+
+async function v3NotesLinksRefresh() {
+  if (!LOCAL_MODE) return;
+  const panel = document.getElementById("v3NotesLinksPanel");
+  if (!panel) return;
+  // Panel only meaningful for a saved note (need noteId).
+  if (!v3NotesModalNoteId) {
+    panel.style.display = "none";
+    return;
+  }
+  panel.style.display = "";
+
+  const outList = document.getElementById("v3NotesLinksOutgoingList");
+  const backList = document.getElementById("v3NotesLinksBacklinksList");
+  const badge = document.getElementById("v3NotesLinksBadge");
+  const emptyTxt = v3NotesT("notes.linksEmpty", "—");
+
+  try {
+    const ldb = await ensureLocalDB();
+    const [out, back] = await Promise.all([
+      typeof ldb.listOutgoingLinks === "function" ? ldb.listOutgoingLinks(v3NotesModalNoteId) : Promise.resolve([]),
+      typeof ldb.listBacklinks === "function" ? ldb.listBacklinks("note", v3NotesModalNoteId) : Promise.resolve([]),
+    ]);
+
+    if (outList) {
+      if (!out.length) outList.innerHTML = `<span class="v3-notes-links-empty">${v3EscapeHtml(emptyTxt)}</span>`;
+      else outList.innerHTML = out.map((l) => v3NotesLinkChipHtml(l, { backlink: false })).join(" ");
+    }
+    if (backList) {
+      if (!back.length) backList.innerHTML = `<span class="v3-notes-links-empty">${v3EscapeHtml(emptyTxt)}</span>`;
+      else backList.innerHTML = back.map((l) => v3NotesLinkChipHtml(l, { backlink: true })).join(" ");
+    }
+    if (badge) {
+      const n = (out.length || 0) + (back.length || 0);
+      badge.textContent = n > 0 ? String(n) : "";
+    }
+  } catch (e) {
+    console.warn("[notes] v3NotesLinksRefresh failed:", e && e.message ? e.message : e);
+  }
+}
+window.v3NotesLinksRefresh = v3NotesLinksRefresh;
+
+async function v3NotesLinksAdd() {
+  if (!LOCAL_MODE) { showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error"); return; }
+  if (!v3NotesModalNoteId) {
+    showToast(v3NotesT("toast.notesLinkSaveFirst", "Сначала сохраните заметку, чтобы добавлять связи."), "warning");
+    return;
+  }
+  const kindEl = document.getElementById("v3NotesLinksAddKind");
+  const targetEl = document.getElementById("v3NotesLinksAddTarget");
+  const aliasEl = document.getElementById("v3NotesLinksAddAlias");
+  const kind = String((kindEl && kindEl.value) || "").trim();
+  const targetId = String((targetEl && targetEl.value) || "").trim();
+  const alias = String((aliasEl && aliasEl.value) || "").trim();
+
+  if (!kind || !targetId) {
+    showToast(v3NotesT("toast.notesLinkInvalid", "Укажите вид и цель связи."), "warning");
+    return;
+  }
+  if (kind === "note" && targetId === String(v3NotesModalNoteId)) {
+    showToast(v3NotesT("toast.notesLinkSelfLoop", "Нельзя связать заметку с самой собой."), "warning");
+    return;
+  }
+
+  try {
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.addNoteLink !== "function") throw new Error("addNoteLink not available");
+    await ldb.addNoteLink(v3NotesModalNoteId, {
+      to_kind: kind,
+      to_id: targetId,
+      link_alias: alias || null,
+    });
+    if (targetEl) targetEl.value = "";
+    if (aliasEl) aliasEl.value = "";
+    showToast(v3NotesT("toast.notesLinkAdded", "Связь добавлена."), "success");
+    await v3NotesLinksRefresh();
+  } catch (e) {
+    console.warn("v3NotesLinksAdd failed", e);
+    showToast(v3NotesT("toast.notesLinkAddFailed", "Не удалось добавить связь."), "error");
+  }
+}
+window.v3NotesLinksAdd = v3NotesLinksAdd;
+
+async function v3NotesLinksRemove(ev, toKind, toId) {
+  try { if (ev) { ev.preventDefault(); ev.stopPropagation(); } } catch (_) {}
+  if (!LOCAL_MODE || !v3NotesModalNoteId) return;
+  try {
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.removeNoteLink !== "function") throw new Error("removeNoteLink not available");
+    await ldb.removeNoteLink(v3NotesModalNoteId, toKind, toId);
+    await v3NotesLinksRefresh();
+  } catch (e) {
+    console.warn("v3NotesLinksRemove failed", e);
+    showToast(v3NotesT("toast.notesLinkRemoveFailed", "Не удалось удалить связь."), "error");
+  }
+}
+window.v3NotesLinksRemove = v3NotesLinksRemove;
+
+// Click a backlink chip → close the current modal cleanly and re-open
+// with the source note. Reuses v3NotesOpen with opts.noteId.
+function v3NotesLinksOpenBacklink(fromNoteId) {
+  if (!fromNoteId) return;
+  try {
+    // Force close (skip dirty confirm — user explicitly chose to navigate).
+    v3NotesForceClose();
+    // Open modal as a deep-link note view; sentence context unknown so the
+    // modal opens in "polymorphic-only" mode.
+    v3NotesOpen("", "", null, { noteId: fromNoteId });
+  } catch (e) { console.warn("v3NotesLinksOpenBacklink failed", e); }
+}
+window.v3NotesLinksOpenBacklink = v3NotesLinksOpenBacklink;
+
+// Phase 9.3 — hydrate the full modal state from an existing notes_v2 row.
+// Called on modal open when v3NotesModalNoteId is known (set in opts or
+// back-filled by v3NotesRestoreNoteIdIfMissing). Populates note_type +
+// title + body (template form or markdown textarea) + audio_anchor_ms.
+async function v3NotesLoadFullNoteIntoModal() {
+  if (!LOCAL_MODE) return;
+  if (!v3NotesModalNoteId) return;
+  try {
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.getNoteById !== "function") return;
+    const row = await ldb.getNoteById(v3NotesModalNoteId);
+    if (!row) return;
+
+    // Update modal state to mirror the persisted row.
+    const newType = String(row.note_type || "free");
+    if (newType !== v3NotesModalNoteType) {
+      // Use the public setter so stash/render machinery runs correctly.
+      v3NotesSetNoteType(newType);
+    }
+
+    // Title (visible for non-free types).
+    const titleInput = document.getElementById("v3NotesTitleInput");
+    if (titleInput) {
+      titleInput.value = String(row.title || "");
+    }
+
+    // Body — markdown for free, structured for templated.
+    if (newType === "free") {
+      const ta = v3NotesEl("v3NotesText");
+      if (ta) {
+        try {
+          const parsed = row.body_json ? JSON.parse(row.body_json) : {};
+          const md = (parsed && typeof parsed === "object" && typeof parsed.markdown === "string")
+            ? parsed.markdown
+            : String(row.body_json || "");
+          v3NotesSafeSetTextareaValue(ta, md);
+          v3NotesModalOriginalText = md;
+        } catch (_) {}
+      }
+    } else {
+      // Hydrate the template form from parsed body_json.
+      try {
+        const parsed = row.body_json ? JSON.parse(row.body_json) : {};
+        v3NotesTemplateHydrate(parsed);
+        // Track baseline for dirty-check via a stable serialization.
+        v3NotesModalOriginalText = JSON.stringify(parsed || {});
+      } catch (_) {}
+    }
+
+    // Audio anchor — kept in sync with the chip.
+    const anchorRaw = row.audio_anchor_ms;
+    v3NotesModalAudioAnchorMs = (anchorRaw == null) ? null
+      : (Number.isFinite(Number(anchorRaw)) ? Number(anchorRaw) : null);
+    try { v3NotesAnchorUpdateUI(); } catch (_) {}
+
+    // Phase 9.3.C — SRS card back-pointer.
+    v3NotesModalSrsCardId = row.srs_card_id ? String(row.srs_card_id) : null;
+    try { v3NotesToSrsUpdateUI(); } catch (_) {}
+  } catch (e) {
+    console.warn("[notes] v3NotesLoadFullNoteIntoModal failed:", e && e.message ? e.message : e);
+  }
+}
+window.v3NotesLoadFullNoteIntoModal = v3NotesLoadFullNoteIntoModal;
 
 // Phase 9.2 — pull the latest audio_anchor_ms from the open note row and
 // refresh the chip. Used when noteId was passed via opts (polymorphic open)
@@ -32340,9 +33132,25 @@ try { v3NotesMdResetUi(); } catch (_) {}
   try { v3NotesRestoreNoteIdIfMissing(); /* fire-and-forget */ } catch (_) {}
   // Phase 9.2 — when noteId was passed via opts (polymorphic deeplink), also
   // load its anchor explicitly since the restore path bails on non-sentence kinds.
+  // Phase 9.3 — same trigger also hydrates the full note state (note_type +
+  // title + structured body) so a deep-linked templated note opens with all
+  // its fields filled.
   try {
-    if (v3NotesModalNoteId) v3NotesAnchorLoadForCurrentNote(); /* fire-and-forget */
+    if (v3NotesModalNoteId) {
+      v3NotesAnchorLoadForCurrentNote();    /* fire-and-forget */
+      v3NotesLoadFullNoteIntoModal();       /* fire-and-forget */
+      v3NotesLinksRefresh();                /* fire-and-forget */
+    } else {
+      // No noteId yet — links panel hidden until first save.
+      const _lp = document.getElementById("v3NotesLinksPanel");
+      if (_lp) _lp.style.display = "none";
+    }
   } catch (_) {}
+
+  // Phase 9.3 — initial render of the template form based on the entry
+  // note_type (so a fresh "Create grammar_rule" opens with the right form
+  // visible, not a stale markdown body).
+  try { v3NotesTemplateRender(); } catch (_) {}
 
   if (modal) modal.classList.remove("hidden");
 
@@ -32686,6 +33494,7 @@ function v3NotesForceClose() {
   v3NotesModalUserChangedKind = false;
   v3NotesBodyStashByType = Object.create(null);
   v3NotesModalAudioAnchorMs = null;
+  v3NotesModalSrsCardId = null;
 }
 
 async function v3NotesClose() {
@@ -32898,6 +33707,8 @@ async function v3NotesSave(isAutoSave) {
       if (!isAutoSave) showToast(t("toast.noteSaved"), "success");
       // Refresh history sidebar if open
       if (v3NotesHistoryOpen) await v3NotesHistoryRefresh();
+      // Phase 9.3.B — links panel becomes available once we have a noteId.
+      try { v3NotesLinksRefresh(); } catch (_) {}
       // Phase 9.1.C hardening (M3): refresh Library smart-chip cache.
       v3NotesInvalidateLibrarySmartCache();
       return;
@@ -32925,6 +33736,27 @@ async function v3NotesSave(isAutoSave) {
       return;
     }
 
+    // Phase 9.3 — for templated note types, collect the structured body
+    // object from the form fields and validate required-field presence.
+    let bodyForSave;
+    if (v3NotesModalNoteType === "free") {
+      bodyForSave = note; // markdown string
+    } else {
+      const missing = v3NotesTemplateMissingRequired();
+      if (missing.length) {
+        if (!isAutoSave) {
+          const label = missing.join(", ");
+          showToast(
+            v3NotesT("toast.notesTemplateMissing", "Заполните обязательные поля: {fields}")
+              .replace("{fields}", label),
+            "warning"
+          );
+        }
+        return; // don't persist a half-filled templated note
+      }
+      bodyForSave = v3NotesTemplateCollect(); // structured object
+    }
+
     const ldb = await ensureLocalDB();
 
     // Validate target_id presence for non-free kinds that require one.
@@ -32948,7 +33780,7 @@ async function v3NotesSave(isAutoSave) {
     if (v3NotesModalNoteId) {
       // Update existing polymorphic note. body always sent so versions snapshot.
       savedRow = await ldb.updateNote(v3NotesModalNoteId, {
-        body: note,
+        body: bodyForSave,
         title: title,
         note_type: v3NotesModalNoteType,
         target_kind: v3NotesModalTargetKind,
@@ -32962,7 +33794,7 @@ async function v3NotesSave(isAutoSave) {
           ? (textId || null) : null,
         note_type: v3NotesModalNoteType,
         title: title,
-        body: note,
+        body: bodyForSave,
       });
       if (savedRow && savedRow.id) {
         v3NotesModalNoteId = String(savedRow.id);
@@ -33017,6 +33849,10 @@ async function v3NotesSave(isAutoSave) {
 
     if (!isAutoSave) showToast(t("toast.noteSaved") || v3NotesT("toast.noteSaved", "Заметка сохранена."), "success");
     if (v3NotesHistoryOpen) await v3NotesHistoryRefresh();
+    // Phase 9.3.B — links panel becomes available once we have a noteId.
+    try { v3NotesLinksRefresh(); } catch (_) {}
+    // Phase 9.3.C — surface the "🎴 Сделать карточкой" button now noteId is set.
+    try { v3NotesToSrsUpdateUI(); } catch (_) {}
     // Phase 9.1.C hardening (M3): refresh Library smart-chip cache.
     v3NotesInvalidateLibrarySmartCache();
   } catch (e) {

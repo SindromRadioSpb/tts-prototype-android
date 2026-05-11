@@ -578,4 +578,19 @@ export const MIGRATIONS = [
             updated_at
        FROM notes_v2
       WHERE target_kind = 'sentence' AND note_type = 'free';`,
+
+  // 026_note_card_templates — seed 4 SRS card_templates whose card_kind='note'.
+  // Note → SRS conversion (Phase 9.3.C) picks the matching template by code,
+  // creates an srs_cards row with entity_type='note' + entity_id=note.id, and
+  // links the note back via notes_v2.srs_card_id. front/back schemas are
+  // intentionally minimal — the trainer derives prompt/answer from the note's
+  // body_json fields. INSERT OR IGNORE keeps migration idempotent (re-running
+  // is a no-op).
+  `INSERT OR IGNORE INTO srs_card_templates
+    (id, code, label, card_kind, prompt_lang, answer_lang, front_schema_json, back_schema_json, answer_mode, is_active, sort_order)
+  VALUES
+    ('tpl_note_word_study',              'note_word_study',              'Note: Word',          'note', 'he', 'ru', '{"prompt":"word"}',         '{"answer":"meaning","extra":["niqqud_variant","mnemonic"]}', 'reveal', 1, 100),
+    ('tpl_note_grammar_rule',            'note_grammar_rule',            'Note: Grammar rule',  'note', 'he', 'ru', '{"prompt":"rule_title"}',   '{"answer":"rule_body","extra":["examples"]}',                'reveal', 1, 110),
+    ('tpl_note_translation_discrepancy', 'note_translation_discrepancy', 'Note: Translation',   'note', 'he', 'ru', '{"prompt":"source_text"}',  '{"answer":"translation_suggested","extra":["reasoning"]}',   'reveal', 1, 120),
+    ('tpl_note_pronunciation_note',      'note_pronunciation_note',      'Note: Pronunciation', 'note', 'he', 'he', '{"prompt":"word"}',         '{"answer":"ipa","extra":["common_mistakes"]}',               'reveal', 1, 130);`,
 ];

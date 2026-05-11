@@ -34,6 +34,8 @@ import {
   resolveNote,
   // Phase 9.1.D bundle roundtrip
   exportBundle, importBundle,
+  // Phase 9.3.C SRS namespace
+  srs,
 } from '/db/local-db.js';
 
 const log = document.getElementById('log');
@@ -798,6 +800,228 @@ async function run() {
     if (!textIds.includes(tx.id)) throw new Error('audio-noted chip did not include the text');
     await deleteNoteById(n.id);
     await deleteText(tx.id);
+  })();
+
+  // ── Phase 9.3.A — templated notes (M3) ─────────────────────────────
+  // Schema CHECK accepts the 5 note_types; createNote accepts body as a
+  // typed object for non-free kinds. These tests verify each of the 4
+  // template kinds round-trips through createNote → updateNote → reread.
+
+  await t('9.3.A: word_study create + reread preserves all fields', async () => {
+    const row = await createNote({
+      target_kind: 'root', target_id: 'שלם',
+      note_type: 'word_study',
+      title: 'word_study test',
+      body: {
+        kind: 'word_study',
+        word: 'שלום',
+        niqqud_variant: 'שָׁלוֹם',
+        root: 'שלם',
+        meaning: 'peace, well-being',
+        part_of_speech: 'noun',
+        mnemonic: 'shalom = peace',
+        example_sentence: 'שלום עליכם',
+      },
+    });
+    if (!row || !row.id) throw new Error('createNote returned no row');
+    const reread = await getNoteById(row.id);
+    const parsed = JSON.parse(reread.body_json);
+    if (parsed.kind !== 'word_study') throw new Error('kind not preserved');
+    if (parsed.word !== 'שלום') throw new Error('word not preserved');
+    if (parsed.meaning !== 'peace, well-being') throw new Error('meaning not preserved');
+    if (parsed.part_of_speech !== 'noun') throw new Error('part_of_speech not preserved');
+    if (parsed.example_sentence !== 'שלום עליכם') throw new Error('example not preserved');
+    await deleteNoteById(row.id);
+  })();
+
+  await t('9.3.A: grammar_rule with arrays (examples/tags) roundtrips', async () => {
+    const row = await createNote({
+      target_kind: 'free',
+      note_type: 'grammar_rule',
+      title: 'grammar test',
+      body: {
+        kind: 'grammar_rule',
+        rule_title: 'Smikhut on plural masc',
+        rule_body: 'first noun loses ים ending',
+        examples: ['בית הספר', 'ילדי הגן'],
+        counterexamples: ['ילדים הגן (wrong)'],
+        tags: ['smikhut', 'plural'],
+      },
+    });
+    const reread = await getNoteById(row.id);
+    const parsed = JSON.parse(reread.body_json);
+    if (!Array.isArray(parsed.examples) || parsed.examples.length !== 2) throw new Error('examples not preserved as array');
+    if (parsed.examples[0] !== 'בית הספר') throw new Error('example[0] wrong');
+    if (!Array.isArray(parsed.tags) || parsed.tags.length !== 2) throw new Error('tags not preserved');
+    await deleteNoteById(row.id);
+  })();
+
+  await t('9.3.A: translation_discrepancy roundtrips', async () => {
+    const row = await createNote({
+      target_kind: 'sentence', target_id: phB_sentenceId, text_id: phB_textId,
+      note_type: 'translation_discrepancy',
+      title: 'translation test',
+      body: {
+        kind: 'translation_discrepancy',
+        source_text: 'שלום עליכם',
+        translation_seen: 'Привет!',
+        translation_suggested: 'Мир вам!',
+        reasoning: 'Привет упускает религиозный регистр',
+      },
+    });
+    const reread = await getNoteById(row.id);
+    const parsed = JSON.parse(reread.body_json);
+    if (parsed.translation_seen !== 'Привет!') throw new Error('translation_seen not preserved');
+    if (parsed.translation_suggested !== 'Мир вам!') throw new Error('suggested not preserved');
+    await deleteNoteById(row.id);
+  })();
+
+  await t('9.3.A: pronunciation_note + audio_anchor_ms work together', async () => {
+    const row = await createNote({
+      target_kind: 'word', target_id: 'shalom',
+      note_type: 'pronunciation_note',
+      title: 'pron test',
+      audio_anchor_ms: 1800,
+      body: {
+        kind: 'pronunciation_note',
+        word: 'שלום',
+        ipa: 'ʃaˈlom',
+        common_mistakes: 'Russian speakers often soften the ש',
+      },
+    });
+    const reread = await getNoteById(row.id);
+    const parsed = JSON.parse(reread.body_json);
+    if (parsed.ipa !== 'ʃaˈlom') throw new Error('ipa not preserved');
+    if (Number(reread.audio_anchor_ms) !== 1800) throw new Error('audio_anchor_ms not preserved alongside template body');
+    await deleteNoteById(row.id);
+  })();
+
+  await t('9.3.A: updateNote on templated body replaces, not merges', async () => {
+    const row = await createNote({
+      target_kind: 'free', note_type: 'word_study',
+      body: { kind: 'word_study', word: 'דבר', meaning: 'word' },
+    });
+    // Update with new body — caller is expected to send the FULL object.
+    await updateNote(row.id, {
+      body: { kind: 'word_study', word: 'דבר', meaning: 'thing, word', mnemonic: 'davar = word/thing' },
+    });
+    const reread = await getNoteById(row.id);
+    const parsed = JSON.parse(reread.body_json);
+    if (parsed.meaning !== 'thing, word') throw new Error('updated meaning not present');
+    if (parsed.mnemonic !== 'davar = word/thing') throw new Error('updated mnemonic not present');
+    // Versions should have been snapshotted (createNote v1 + updateNote v2).
+    const versions = await listNoteVersions(row.id);
+    if (versions.length !== 2) throw new Error('expected 2 versions, got ' + versions.length);
+    await deleteNoteById(row.id);
+  })();
+
+  // ── Phase 9.3.B — atomic link helpers (M4) ──────────────────────
+  await t('9.3.B: addNoteLink + removeNoteLink atomically mutate outgoing edges', async () => {
+    // Import the new atomic helpers dynamically since the file's static
+    // import list doesn't include them.
+    const mod = await import('./local-db.js');
+    const addNoteLink = mod.addNoteLink;
+    const removeNoteLink = mod.removeNoteLink;
+    if (typeof addNoteLink !== 'function' || typeof removeNoteLink !== 'function') {
+      throw new Error('addNoteLink/removeNoteLink not exported');
+    }
+
+    const noteA = await createNote({ target_kind: 'free', note_type: 'free', body: 'A' });
+    const noteB = await createNote({ target_kind: 'free', note_type: 'free', body: 'B' });
+
+    // Add 2 outgoing edges from A.
+    await addNoteLink(noteA.id, { to_kind: 'note', to_id: noteB.id, link_alias: 'see also' });
+    await addNoteLink(noteA.id, { to_kind: 'root', to_id: 'דבר' });
+
+    let out = await listOutgoingLinks(noteA.id);
+    if (out.length !== 2) throw new Error('expected 2 outgoing links, got ' + out.length);
+
+    // Idempotent — re-adding the same edge is a no-op.
+    await addNoteLink(noteA.id, { to_kind: 'root', to_id: 'דבר' });
+    out = await listOutgoingLinks(noteA.id);
+    if (out.length !== 2) throw new Error('re-add should be idempotent; got ' + out.length);
+
+    // Backlink visibility from B's perspective.
+    const back = await listBacklinks('note', noteB.id);
+    if (!back.length) throw new Error('backlink from A→B not surfaced');
+    if (back[0].from_note_id !== noteA.id) throw new Error('wrong backlink source');
+
+    // Remove the 'root' edge — note-edge unaffected.
+    await removeNoteLink(noteA.id, 'root', 'דבר');
+    out = await listOutgoingLinks(noteA.id);
+    if (out.length !== 1) throw new Error('expected 1 link after remove, got ' + out.length);
+    if (out[0].to_kind !== 'note') throw new Error('wrong link survived removal');
+
+    // Cleanup
+    await deleteNoteById(noteA.id);
+    await deleteNoteById(noteB.id);
+  })();
+
+  // ── Phase 9.3.C — Note → SRS conversion (M6) ──────────────────────
+  await t('9.3.C: migration 026 seeded 4 note-card templates', async () => {
+    const rows = await dbQuery(
+      "SELECT code FROM srs_card_templates WHERE card_kind = 'note' ORDER BY code"
+    );
+    const codes = rows.map((r) => r.code).sort();
+    const expected = [
+      'note_grammar_rule',
+      'note_pronunciation_note',
+      'note_translation_discrepancy',
+      'note_word_study',
+    ];
+    for (const c of expected) {
+      if (!codes.includes(c)) throw new Error('missing template: ' + c);
+    }
+  })();
+
+  await t('9.3.C: srs.createCardFromNote creates card and sets srs_card_id', async () => {
+    const note = await createNote({
+      target_kind: 'root', target_id: 'שלם',
+      note_type: 'word_study',
+      title: 'srs roundtrip',
+      body: { kind: 'word_study', word: 'שלום', meaning: 'peace' },
+    });
+    if (note.srs_card_id) throw new Error('expected srs_card_id null on fresh note');
+
+    const card = await srs.createCardFromNote(note.id);
+    if (!card || !card.id) throw new Error('createCardFromNote returned empty');
+    if (card.entity_type !== 'note') throw new Error('expected entity_type=note');
+    if (card.entity_id !== note.id) throw new Error('entity_id should match note id');
+    if (card.source_note_id !== note.id) throw new Error('source_note_id should match note id');
+    if (card.template_id !== 'tpl_note_word_study') throw new Error('wrong template_id: ' + card.template_id);
+
+    const reread = await getNoteById(note.id);
+    if (reread.srs_card_id !== card.id) throw new Error('note.srs_card_id should point at new card');
+
+    // Idempotent — re-converting returns the same card.
+    const again = await srs.createCardFromNote(note.id);
+    if (again.id !== card.id) throw new Error('second createCardFromNote should return same card');
+
+    // Cleanup — deleting the note SET NULLs the srs_cards back-pointer
+    // (source_note_id is nullable; entity FK isn't a real FK).
+    await deleteNoteById(note.id);
+  })();
+
+  await t('9.3.C: free notes refuse SRS conversion', async () => {
+    const note = await createNote({
+      target_kind: 'free', note_type: 'free', body: 'plain markdown',
+    });
+    let rejected = false;
+    try { await srs.createCardFromNote(note.id); }
+    catch (_) { rejected = true; }
+    if (!rejected) throw new Error('createCardFromNote on free note should throw');
+    await deleteNoteById(note.id);
+  })();
+
+  await t('9.3.A: invalid JSON string for templated body rejected', async () => {
+    let rejected = false;
+    try {
+      await createNote({
+        target_kind: 'free', note_type: 'word_study',
+        body: 'this is not valid JSON',
+      });
+    } catch (e) { rejected = true; }
+    if (!rejected) throw new Error('createNote should reject non-JSON string for templated body');
   })();
 
   // Cleanup

@@ -858,6 +858,30 @@ export async function setNoteLinks(noteId, links) {
   }
 }
 
+// Phase 9.3.B — atomic single-edge helpers for the modal Links panel.
+// Avoids the wasteful "fetch all + filter + setNoteLinks" pattern. INSERT
+// OR IGNORE keeps the operation idempotent (re-adding the same edge is
+// a no-op, not an error).
+export async function addNoteLink(noteId, { to_kind, to_id, link_alias } = {}) {
+  if (!noteId) throw new Error('addNoteLink: noteId is required');
+  if (!to_kind || to_id == null || to_id === '') {
+    throw new Error('addNoteLink: to_kind + to_id required');
+  }
+  await r(
+    `INSERT OR IGNORE INTO note_links (from_note_id, to_kind, to_id, link_alias)
+     VALUES (?, ?, ?, ?)`,
+    [noteId, String(to_kind), String(to_id), (link_alias != null ? String(link_alias) : null)]
+  );
+}
+
+export async function removeNoteLink(noteId, toKind, toId) {
+  if (!noteId) throw new Error('removeNoteLink: noteId is required');
+  await r(
+    `DELETE FROM note_links WHERE from_note_id = ? AND to_kind = ? AND to_id = ?`,
+    [noteId, String(toKind), String(toId)]
+  );
+}
+
 export async function listOutgoingLinks(noteId) {
   return q(
     `SELECT from_note_id, to_kind, to_id, link_alias, created_at
@@ -1547,6 +1571,47 @@ export const srs = {
         source_sentence_id: sentenceId,
       });
     }
+  },
+
+  // Phase 9.3.C — create an SRS card from a templated note. Picks the
+  // matching note-card template by code (`note_<note_type>` per migration
+  // 026), inserts srs_cards with entity_type='note', sets the back-pointer
+  // on notes_v2.srs_card_id, and returns the new card row. If the note
+  // already has srs_card_id pointing at an existing card, return that card
+  // unchanged (re-conversion is a no-op in v3.2 — multi-card-per-note is a
+  // v3.3 epic). For 'free' notes, throws — free notes don't have a natural
+  // front/back mapping.
+  async createCardFromNote(noteId) {
+    if (!noteId) throw new Error('createCardFromNote: noteId required');
+    const noteRows = await q('SELECT * FROM notes_v2 WHERE id = ?', [noteId]);
+    const note = noteRows[0];
+    if (!note) throw new Error('createCardFromNote: note not found');
+    const nt = String(note.note_type || 'free');
+    if (nt === 'free') {
+      throw new Error('createCardFromNote: free notes cannot be converted (no template)');
+    }
+    // Already converted — return existing card.
+    if (note.srs_card_id) {
+      const existing = await q('SELECT * FROM srs_cards WHERE id = ?', [note.srs_card_id]);
+      if (existing.length) return existing[0];
+    }
+    const tplCode = 'note_' + nt;
+    const tplRows = await q('SELECT id FROM srs_card_templates WHERE code = ? LIMIT 1', [tplCode]);
+    if (!tplRows.length) throw new Error('createCardFromNote: template not found for code=' + tplCode);
+    const cardId = crypto.randomUUID();
+    const now = new Date().toISOString();
+    await r(
+      `INSERT INTO srs_cards (id, entity_type, entity_id, template_id, source_note_id, created_at, updated_at)
+       VALUES (?, 'note', ?, ?, ?, ?, ?)`,
+      [cardId, noteId, tplRows[0].id, noteId, now, now]
+    );
+    // Link back from note.
+    await r(
+      `UPDATE notes_v2 SET srs_card_id = ?, updated_at = ? WHERE id = ?`,
+      [cardId, now, noteId]
+    );
+    const cardRows = await q('SELECT * FROM srs_cards WHERE id = ?', [cardId]);
+    return cardRows[0] ?? null;
   },
 
   async listTodayCards() {
