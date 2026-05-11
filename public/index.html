@@ -4410,13 +4410,14 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   flex: 1;
   min-height: 240px;
   resize: vertical;
-  border: 1px solid #e6e9ef;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
   border-radius: 10px;
   outline: none;
   padding: 10px;
   font-family: inherit;
   font-size: 14px;
-  background: #fff;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
 }
 
 /* --------------------------------------------------------
@@ -4430,27 +4431,30 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 .v3-notes-sentence-ctx {
   margin: 10px 0 0 0;
   padding: 8px 10px;
-  border: 1px dashed #e6e9ef;
+  border: 1px dashed var(--theme-border-soft, #e6e9ef);
   border-radius: 10px;
-  background: #fff;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
   line-height: 1.35;
 }
 
 .v3-notes-md-preview {
   flex: 1;
   min-height: 240px;
-  border: 1px solid #e6e9ef;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
   border-radius: 10px;
   padding: 10px;
   overflow: auto;
-  background: #fff;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
 }
 
 .v3-notes-md-preview code {
   padding: 1px 6px;
   border-radius: 8px;
-  border: 1px solid #eef1f6;
-  background: #f8fafc;
+  border: 1px solid var(--theme-border-soft, #eef1f6);
+  background: var(--theme-bg-muted, #f8fafc);
+  color: var(--theme-text-primary, #0f172a);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 12px;
 }
@@ -4458,16 +4462,18 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 .v3-notes-md-preview pre {
   padding: 10px;
   border-radius: 10px;
-  border: 1px solid #eef1f6;
-  background: #f8fafc;
+  border: 1px solid var(--theme-border-soft, #eef1f6);
+  background: var(--theme-bg-muted, #f8fafc);
+  color: var(--theme-text-primary, #0f172a);
   overflow: auto;
 }
 
 .v3-notes-md-preview blockquote {
   margin: 8px 0;
   padding: 8px 10px;
-  border-left: 4px solid #d0d7de;
-  background: #fafafa;
+  border-left: 4px solid var(--theme-border-medium, #d0d7de);
+  background: var(--theme-bg-muted, #fafafa);
+  color: var(--theme-text-secondary, #475569);
   border-radius: 8px;
 }
 
@@ -30511,20 +30517,36 @@ if (cachedB64) {
 if (hasV3Ctx && v3RowTtsMatchesCurrentProfile(row)) {
   const assetKey = String(row._v3_audioAssetKey || "").trim();
   if (assetKey) {
-    const audio = ensureRowAudioPlayer();
-    if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
-    rowAudioUrl = null;
-    audio.src = "/api/audio/" + encodeURIComponent(assetKey);
+    // Pre-flight HEAD check: imported bundles can produce DB rows whose
+    // linked audio_asset_key references a hash that never reached the
+    // server's audio-cache (rate-limit, partial import, cache cleanup).
+    // Without this, <audio> fires MEDIA_ERR_SRC_NOT_SUPPORTED and we
+    // surface "Failed to load because no supported source was found" to
+    // the user — looks broken even though we can regenerate cheaply.
+    let cacheOk = false;
     try {
-      if (typeof v3AudioPrefetchUpdateMarkerForRow === "function") {
-        v3AudioPrefetchUpdateMarkerForRow(rowIdx);
-      }
-    } catch (_) {}
-    v3RowTtsTrackPlay(row, assetKey);
-    setRowPlayingUI(rowIdx, true);
-    await audio.play();
-    loadStats();
-    return;
+      const headResp = await fetch("/api/audio/" + encodeURIComponent(assetKey), { method: 'HEAD' });
+      cacheOk = !!(headResp && headResp.ok);
+    } catch (_) { cacheOk = false; }
+
+    if (cacheOk) {
+      const audio = ensureRowAudioPlayer();
+      if (rowAudioUrl) { try { URL.revokeObjectURL(rowAudioUrl); } catch (_) {} }
+      rowAudioUrl = null;
+      audio.src = "/api/audio/" + encodeURIComponent(assetKey);
+      try {
+        if (typeof v3AudioPrefetchUpdateMarkerForRow === "function") {
+          v3AudioPrefetchUpdateMarkerForRow(rowIdx);
+        }
+      } catch (_) {}
+      v3RowTtsTrackPlay(row, assetKey);
+      setRowPlayingUI(rowIdx, true);
+      await audio.play();
+      loadStats();
+      return;
+    }
+    // Cache miss — fall through to fresh /api/tts generation below.
+    console.debug("[row-tts] cache miss for", assetKey, "— regenerating");
   }
 }
 
@@ -31343,6 +31365,33 @@ function v3NotesFmtRelative(iso) {
   } catch (_) { return String(iso || ""); }
 }
 
+// Reopen-after-close fix: v3NotesOpen is sync and only honors opts.noteId.
+// For sentence-bound free notes, the cached `v3NotesGet()` returns body but
+// not the v2 row id — so the second time the user opens the same row, the
+// history sidebar can't find the note. Run an async lookup against notes_v2
+// and back-fill v3NotesModalNoteId when we recognize an existing row.
+async function v3NotesRestoreNoteIdIfMissing() {
+  if (v3NotesModalNoteId) return;
+  if (!LOCAL_MODE) return;
+  if (v3NotesModalTargetKind !== "sentence") return;
+  if (!v3NotesModalTextId || !v3NotesModalSentenceId) return;
+  try {
+    const ldb = await ensureLocalDB();
+    const rows = await ldb.q(
+      `SELECT id FROM notes_v2
+        WHERE text_id = ? AND target_kind = 'sentence'
+          AND target_id = ? AND note_type = 'free'
+        LIMIT 1`,
+      [v3NotesModalTextId, v3NotesModalSentenceId]
+    );
+    if (rows && rows.length && rows[0].id) {
+      v3NotesModalNoteId = String(rows[0].id);
+      try { v3NotesUpdateDataset(); } catch (_) {}
+    }
+  } catch (_) { /* non-fatal */ }
+}
+window.v3NotesRestoreNoteIdIfMissing = v3NotesRestoreNoteIdIfMissing;
+
 // Toggle the history sidebar visibility, refreshing the list when opening.
 async function v3NotesHistoryToggle() {
   v3NotesHistoryOpen = !v3NotesHistoryOpen;
@@ -31373,6 +31422,11 @@ window.v3NotesHistoryClose = v3NotesHistoryClose;
 async function v3NotesHistoryRefresh() {
   const list = document.getElementById("v3NotesHistoryList");
   if (!list) return;
+  // Back-fill noteId for sentence-bound legacy reopens before we declare
+  // "no history" — the row may exist; we just don't have its id in memory yet.
+  if (!v3NotesModalNoteId) {
+    await v3NotesRestoreNoteIdIfMissing();
+  }
   const noteId = String(v3NotesModalNoteId || "");
   if (!noteId) {
     list.innerHTML = `<div class="v3-notes-history-empty">${v3EscapeHtml(v3NotesT("notes.historyNeedsSave", "Сохраните заметку, чтобы увидеть историю версий."))}</div>`;
@@ -31701,6 +31755,11 @@ try { v3NotesMdResetUi(); } catch (_) {}
     if (diffPane && diffPane.parentNode) diffPane.parentNode.removeChild(diffPane);
   } catch (_) {}
   try { v3NotesCancelAutoSave(); } catch (_) {}
+
+  // Reopen fix: when entering an existing sentence-bound free note, the
+  // legacy cache only knows body — restore the v2 noteId so versioning,
+  // history sidebar, and polymorphic updates all work from the first save.
+  try { v3NotesRestoreNoteIdIfMissing(); /* fire-and-forget */ } catch (_) {}
 
   if (modal) modal.classList.remove("hidden");
 

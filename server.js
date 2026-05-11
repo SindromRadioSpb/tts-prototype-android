@@ -2583,12 +2583,21 @@ app.post("/api/audio/cache/upload", rlAudioUpload, async (req, res) => {
     const dir = path.dirname(absPath);
     try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
     const wr = writeMp3IfNotExists(absPath, buf);
+    // Surface real failures so the ZIP-import upload loop can retry/count
+    // errors honestly instead of swallowing them with ok:true.
+    if (wr.error) {
+      return res.status(500).json({
+        ok: false,
+        assetKey,
+        error: "WRITE_FAILED",
+        details: wr.error,
+      });
+    }
     return res.json({
       ok: true,
       assetKey,
       written: !!wr.written,
-      alreadyExisted: !wr.written && !wr.error,
-      error: wr.error || null,
+      alreadyExisted: !wr.written,
     });
   } catch (e) {
     console.error("POST /api/audio/cache/upload error:", e);

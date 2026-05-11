@@ -401,14 +401,28 @@ async function run() {
     if (parsed.root !== 'שלם') throw new Error('body_json.root not preserved');
   })();
 
-  // updateNote — change body, expect note_versions snapshot of OLD body
-  await t('updateNote creates a note_versions snapshot of the previous body', async () => {
+  // Snapshot semantics: createNote seeds v1 = body at creation so the
+  // history sidebar shows a meaningful entry on the very first save.
+  await t('createNote seeds v1 = body at creation (snapshot semantics)', async () => {
+    const versions = await listNoteVersions(freeNoteId);
+    if (versions.length !== 1) throw new Error('expected 1 version (v1) right after createNote, got ' + versions.length);
+    if (versions[0].version !== 1) throw new Error('expected v1, got v' + versions[0].version);
+    const parsed = JSON.parse(versions[0].body_json);
+    if (parsed.markdown !== 'Just thinking aloud') throw new Error('v1 body does not match createNote body');
+  })();
+
+  // Snapshot semantics: v_N = body AFTER N-th save. createNote produced v1.
+  // updateNote then appends v2 with the NEW body.
+  await t('updateNote appends a snapshot of the new body (v_N = post-save)', async () => {
     await updateNote(freeNoteId, { body: 'Edited journal entry — first revision' });
     const versions = await listNoteVersions(freeNoteId);
-    if (versions.length !== 1) throw new Error('expected 1 version after first edit, got ' + versions.length);
-    const parsed = JSON.parse(versions[0].body_json);
-    if (parsed.markdown !== 'Just thinking aloud') throw new Error('versioned old body wrong');
-    if (!versions[0].diff_summary) throw new Error('diff_summary missing');
+    if (versions.length !== 2) throw new Error('expected 2 versions (v1 createNote + v2 updateNote), got ' + versions.length);
+    // listNoteVersions returns newest first → versions[0] = v2 = new body.
+    const parsedNew = JSON.parse(versions[0].body_json);
+    if (parsedNew.markdown !== 'Edited journal entry — first revision') throw new Error('v2 should hold the new body');
+    const parsedOrig = JSON.parse(versions[1].body_json);
+    if (parsedOrig.markdown !== 'Just thinking aloud') throw new Error('v1 should hold the original body');
+    if (!versions[0].diff_summary) throw new Error('diff_summary missing on v2');
   })();
 
   // updateNote multiple times → version count grows
@@ -417,7 +431,8 @@ async function run() {
       await updateNote(freeNoteId, { body: `Edited journal entry — revision ${i}` });
     }
     const versions = await listNoteVersions(freeNoteId);
-    if (versions.length !== 5) throw new Error('expected 5 versions, got ' + versions.length);
+    // 2 from previous test + 4 new = 6 total.
+    if (versions.length !== 6) throw new Error('expected 6 versions, got ' + versions.length);
   })();
 
   // restoreNoteVersion — revert body, snapshot current first

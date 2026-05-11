@@ -428,9 +428,10 @@ export async function listNotes(textId) {
 // Returns the row in the legacy {id, text_id, sentence_id, note, ...} shape.
 export async function upsertNote(textId, sentenceId, note) {
   const now = new Date().toISOString();
+  const proposed = _buildBodyJson('free', note);
   // Find existing sentence-bound free note for this (text_id, sentence_id).
   const existing = await q(
-    `SELECT id FROM notes_v2
+    `SELECT id, body_json FROM notes_v2
       WHERE text_id = ? AND target_kind = 'sentence'
         AND target_id = ? AND note_type = 'free'`,
     [textId, sentenceId]
@@ -439,12 +440,22 @@ export async function upsertNote(textId, sentenceId, note) {
   if (existing.length > 0) {
     // UPDATE — preserves note id + created_at; refreshes body + updated_at.
     const existingId = existing[0].id;
+    const prevBody = existing[0].body_json;
+    const changed = proposed !== prevBody;
     await r(
       `UPDATE notes_v2
           SET body_json = ?, updated_at = ?
         WHERE id = ?`,
-      [_buildBodyJson('free', note), now, existingId]
+      [proposed, now, existingId]
     );
+    if (changed) {
+      // Snapshot new body as v_{MAX+1} — same semantics as updateNote().
+      try {
+        const nextVer = await _appendNoteVersion(existingId, proposed);
+        await _trimNoteVersions(existingId, 50);
+        await _stampVersionDiffSummary(existingId, nextVer, prevBody, proposed);
+      } catch (_) { /* non-fatal */ }
+    }
   } else {
     // INSERT — new sentence-bound free note.
     const id = crypto.randomUUID();
@@ -452,8 +463,13 @@ export async function upsertNote(textId, sentenceId, note) {
       `INSERT INTO notes_v2 (id, target_kind, target_id, text_id, note_type,
                               title, body_json, created_at, updated_at)
        VALUES (?, 'sentence', ?, ?, 'free', '', ?, ?, ?)`,
-      [id, sentenceId, textId, _buildBodyJson('free', note), now, now]
+      [id, sentenceId, textId, proposed, now, now]
     );
+    // Seed v1 = body at first save.
+    try {
+      await _appendNoteVersion(id, proposed);
+      await _stampVersionDiffSummary(id, 1, '', proposed);
+    } catch (_) { /* non-fatal */ }
   }
 
   // Read back via the VIEW so the caller gets the legacy shape.
@@ -552,6 +568,14 @@ export async function createNote(opts) {
     ]
   );
 
+  // Seed v1 = body at creation so the history sidebar shows a meaningful
+  // entry on the very first save (matches user mental model: vN = body
+  // after N-th save).
+  try {
+    await _appendNoteVersion(id, bodyJson);
+    await _stampVersionDiffSummary(id, 1, '', bodyJson);
+  } catch (_) { /* non-fatal — history will pick up on next save */ }
+
   const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
   return rows[0] ?? null;
 }
@@ -575,11 +599,10 @@ export async function updateNote(id, patch) {
   if (Object.prototype.hasOwnProperty.call(p, 'body')) {
     const proposed = _buildBodyJson(p.note_type || cur.note_type, p.body);
     if (proposed !== cur.body_json) {
-      const nextVer = await _appendNoteVersion(id, cur.body_json, proposed);
+      // Snapshot the NEW body — v_N = body after N-th save.
+      const nextVer = await _appendNoteVersion(id, proposed);
       nextBodyJson = proposed;
-      // FIFO retention — keep last 50.
       await _trimNoteVersions(id, 50);
-      // Diff summary for history sidebar.
       await _stampVersionDiffSummary(id, nextVer, cur.body_json, proposed);
     }
   }
@@ -683,14 +706,13 @@ export async function searchAllNotes(queryStr, limit = 50) {
 
 // ── Versioning (M5) ──────────────────────────────────────────────────────
 
-async function _appendNoteVersion(noteId, oldBody, newBody) {
-  // Phase 9.1.C hardening (H1): version assignment is SELECT MAX → INSERT
-  // which is race-prone if two updateNote() calls overlap (e.g. fast
-  // autosave + explicit Save). The PRIMARY KEY (note_id, version) on
-  // note_versions will reject the second INSERT with a UNIQUE constraint
-  // violation. Retry-on-conflict pattern: catch the violation, re-query
-  // MAX, retry with the new bump. Cap retries to defeat infinite loops
-  // on persistent failure modes (e.g. DB locked).
+// Snapshot semantics (post-9.1.E hardening): v_N stores the body AFTER the
+// N-th save. createNote produces v1; each updateNote/upsertNote body change
+// produces v_{MAX+1}; restoreNoteVersion produces a new version with the
+// restored body. v_MAX always equals the current notes_v2.body_json.
+async function _appendNoteVersion(noteId, snapshotBody) {
+  // H1 hardening: SELECT MAX → INSERT is race-prone under concurrent saves.
+  // (note_id, version) PRIMARY KEY rejects the loser; we retry-on-conflict.
   const MAX_RETRIES = 5;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     const maxRow = await q(
@@ -702,21 +724,15 @@ async function _appendNoteVersion(noteId, oldBody, newBody) {
       await r(
         `INSERT INTO note_versions (note_id, version, body_json, edited_at)
          VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
-        [noteId, nextVer, oldBody]
+        [noteId, nextVer, snapshotBody]
       );
       return nextVer;
     } catch (e) {
-      // Detect UNIQUE / PRIMARY KEY violation. wa-sqlite surfaces these
-      // as "UNIQUE constraint failed: note_versions.note_id, ..." or
-      // SQLITE_CONSTRAINT_PRIMARYKEY. Both contain the substring
-      // "constraint". Anything else — re-throw immediately.
       const msg = (e && e.message ? String(e.message) : String(e)).toLowerCase();
       const isConstraint = msg.indexOf('constraint') !== -1 || msg.indexOf('unique') !== -1;
       if (!isConstraint || attempt === MAX_RETRIES - 1) throw e;
-      // else loop — re-query MAX and retry with the bumped version.
     }
   }
-  // Defensive — should be unreachable.
   throw new Error('_appendNoteVersion: exhausted retries for note ' + noteId);
 }
 
@@ -790,15 +806,20 @@ export async function restoreNoteVersion(noteId, version) {
   const targetBody = verRows[0].body_json;
   const cur = await q('SELECT body_json FROM notes_v2 WHERE id = ?', [noteId]);
   if (!cur.length) throw new Error('restoreNoteVersion: note not found');
-  // Snapshot current state before restoring (so user can undo the restore).
-  const nextVer = await _appendNoteVersion(noteId, cur[0].body_json, targetBody);
-  await _stampVersionDiffSummary(noteId, nextVer, cur[0].body_json, targetBody);
-  await _trimNoteVersions(noteId, 50);
+  const prevBody = cur[0].body_json;
   // Apply restore.
   await r(
     `UPDATE notes_v2 SET body_json = ?, updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`,
     [targetBody, noteId]
   );
+  // Snapshot restored body as new version (v_N = body after N-th save).
+  // Skip if body actually didn't change (restoring to current state is a
+  // no-op for history).
+  if (targetBody !== prevBody) {
+    const nextVer = await _appendNoteVersion(noteId, targetBody);
+    await _stampVersionDiffSummary(noteId, nextVer, prevBody, targetBody);
+    await _trimNoteVersions(noteId, 50);
+  }
   const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [noteId]);
   return rows[0] ?? null;
 }

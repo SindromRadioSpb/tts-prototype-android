@@ -16,7 +16,70 @@ Phase 9.1 (Foundation) of Direction 9 — Premium Notes Redesign — is **comple
 | 9.1.B | local-db.js polymorphic API | ✅ shipped (in main, commit `3a45833`) |
 | 9.1.C | Notes modal UI revamp + premium hardening | ✅ shipped on branch (final hardening commit `a2d6efa`) |
 | 9.1.D | Bundle compat — `library/notes_advanced.json` | ✅ shipped on branch (commit `d439683`) |
-| 9.1.E | i18n finalization + final regression + this report | ✅ this commit |
+| 9.1.E | i18n finalization + final regression | ✅ commit `783e0e8` + duplicate-namespace fix `57d13c1` |
+| 9.1.F | Post-smoke hardening (3 bug fixes) | ✅ this commit |
+
+---
+
+## 9.1.F post-smoke hardening (this commit)
+
+During user manual smoke-check on 2026-05-11, three bugs were caught that the automated regression had missed because they were UX/integration-level. Fixed inline before merging to main.
+
+### Bug 1 — History versioning UX broken at multiple points
+
+**Symptoms reported by user**:
+- Open Notes modal → click "🕒 История" → empty panel.
+- Type + Save 1st time → still empty.
+- Edit + Save 2nd time → `v1` appears, but viewing it shows the FIRST edit content (not the second).
+- Edit + Save 3rd time → `v2` appears with the SECOND edit content.
+- Close modal, reopen → history empty again.
+- Edit + Save 4th time → `v1`+`v2` reappear but the latest edit is invisible in the panel.
+
+**Root causes**:
+1. Pre-update snapshot semantics. `_appendNoteVersion` stored the body **before** the new save, so vN was always one edit behind current. Current state had no version row of its own — confusing mental model.
+2. Legacy `upsertNote` (sentence-bound free notes — the 1st-save path) never created versions at all.
+3. `v3NotesModalNoteId` was reset to `null` on every modal open; the legacy cache only stored body, not the v2 row id. So on reopen the History sidebar didn't know which note to query.
+
+**Fixes**:
+- `_appendNoteVersion(noteId, snapshotBody)` — single-body signature; stores the snapshot directly.
+- `createNote` now seeds `v1 = body` at creation.
+- `updateNote` now snapshots the NEW body as `v(MAX+1)` (was: old body).
+- `upsertNote` (legacy free notes) now also snapshots the new body if it changed, and seeds `v1` on first insert.
+- `restoreNoteVersion` snapshots the restored body as a new version (skipping no-op restores).
+- New `v3NotesRestoreNoteIdIfMissing()` async helper queries `notes_v2` by `(text_id, sentence_id, target_kind='sentence', note_type='free')` and back-fills `v3NotesModalNoteId`. Called from `v3NotesOpen` (fire-and-forget) AND from `v3NotesHistoryRefresh` (awaited) so the next History toggle always sees existing versions.
+
+**Result**: `v_N` = body after the N-th save. `v_MAX` always equals the current `notes_v2.body_json`. History is populated immediately on first save, persists across reopens, refreshes after every subsequent save.
+
+**Tests**: New case `createNote seeds v1 = body at creation (snapshot semantics)`. Updated cases to match new counts (createNote adds v1, so versions.length=2 after 1 updateNote, =6 after 5 updateNotes). H1 race + FIFO retention + restore tests still pass. **43/43**.
+
+### Bug 2 — Notes Preview block white text on white background in dark mode
+
+**Symptoms**: In "Заметка к строке" modal, the Markdown Preview pane was unreadable (white text on white bg) in dark mode. Textarea + history were fine.
+
+**Root cause**: `.v3-notes-md-preview` declared `background: #fff` (hardcoded) with no explicit `color`. Under `@media (prefers-color-scheme: dark)`, inherited text color became light → low contrast.
+
+**Fix**: Replaced hardcoded `#fff` with `var(--theme-bg-card)` and added `color: var(--theme-text-primary)`. Same treatment applied to `#v3NotesText` textarea and `.v3-notes-sentence-ctx` (also had hardcoded `#fff`). Code / pre / blockquote rules within the preview now use `--theme-bg-muted` + `--theme-text-primary` / `--theme-text-secondary`.
+
+### Bug 3 — Row TTS "Failed to load because no supported source was found" after ZIP import
+
+**Symptoms**: User imported a known-good audio-bundled ZIP, opened a text, clicked Row TTS on any row → toast `"Ошибка Row TTS: Failed to load because no supported source was found."`. Could not play any audio.
+
+**Root cause**: ZIP import is two-phase — (1) DB rows for `audio_assets` + `sentence_audio` get created via `importBundle`, (2) the MP3 blobs are uploaded to the local server's `audio-cache/` via `POST /api/audio/cache/upload` (asynchronously, in a 4-worker pool). Any individual upload failure (rate-limit retry exhaustion, server-side write error, network glitch) was silently swallowed: the server endpoint returned `ok:true` even when `writeMp3IfNotExists` reported a write error. Then Row TTS's cache-hit branch set `<audio>.src = /api/audio/<key>`, the server returned 404 with JSON body, and the audio element rejected `play()` with `MEDIA_ERR_SRC_NOT_SUPPORTED`.
+
+**Fix**:
+- **Client**: Row TTS's cached-asset branch now does a `fetch(url, {method:'HEAD'})` pre-flight before setting `audio.src`. On a non-OK response, it falls through to the fresh `/api/tts` generation path. The user hears their row, the bug becomes invisible.
+- **Server**: `POST /api/audio/cache/upload` now returns `503 + ok:false` when `writeMp3IfNotExists` reports an error. The import upload loop already retries on non-ok responses (3 attempts with exponential backoff), so legitimate write failures now actually retry instead of being marked as success.
+
+**Net effect**: cache-miss after import is no longer a user-visible failure — it's a transparent regen. Underlying upload failures are visible in logs and retried.
+
+---
+
+## Final regression after 9.1.F
+
+- `events-emission-test.html`: **23/0** ✓
+- `notes-v2-test.html`: **43/0** ✓ (+1 case for createNote v1 seeding)
+- `/index.html` cold load: 0 new JS errors
+- i18n: 13/13 critical RU keys ✓, 4/4 EN ✓, 3/3 HE ✓
 
 ---
 
