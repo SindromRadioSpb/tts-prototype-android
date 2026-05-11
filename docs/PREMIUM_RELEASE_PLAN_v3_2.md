@@ -182,15 +182,16 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
 - [x] **Direction 11A** — Analytics Foundation *(commits 7ed309f → 3f6b959, 2026-05-10)*
   - [x] Phase 11.0 — Event emission gap closure (12 event types wired; CONTRACTS drift closed; 23/23 Playwright tests pass)
   - [x] Phase 11.1 — Time-spent v2 (heartbeat-based session tracking + idle-aware aggregation; getActiveMsReal / getActiveMinutesByDay / getSessionMetrics exports)
-- [~] **Direction 9** — Premium Notes Redesign *(in progress — Phase 9.1 ~50% done)*
+- [~] **Direction 9** — Premium Notes Redesign *(Phase 9.1 complete + deployed to Railway prod 2026-05-11; Phase 9.2 next)*
   - [x] Phase 9.0 — Hebrew root extractor research *(commits `39230f8` v1 + `6f5c1ad` v2 re-research, 2026-05-10)*
-  - [x] Phase 9.1 — Foundation (5 sub-phases A/B/C/D/E) — **complete on branch `worktree-agent-ad33453576637a27d`; ready to merge**. See `docs/research/9_1_FOUNDATION_FINAL_REPORT.md`.
+  - [x] Phase 9.1 — Foundation (6 sub-phases A/B/C/D/E/F) — **merged to main `a6a570c..da1d186` and deployed to Railway 2026-05-11**. See `docs/research/9_1_FOUNDATION_FINAL_REPORT.md`.
     - [x] 9.1.A — Schema migrations 021–025 *(commit `8da394e`, in main)*
     - [x] 9.1.B — local-db.js polymorphic API *(commit `3a45833`, in main)*
-    - [x] 9.1.C — Notes modal UI revamp + premium hardening *(branch-only, `949a932..a2d6efa`)*. 5-stage agent impl + premium polish + 8-issue hardening pass (1 High + 5 Medium + 2 Low). 39/39 tests.
-    - [x] 9.1.D — Bundle compat (`notes_advanced.json` in ZIP) *(branch-only, commit `d439683`)*. 42/42 tests.
-    - [x] 9.1.E — i18n keys ru/en/he + final audit *(branch-only, this commit)*. ~90 keys. 42/42 + 23/23.
-  - [ ] Phase 9.2 — Audio anchoring (M2)
+    - [x] 9.1.C — Notes modal UI revamp + premium hardening *(`949a932..a2d6efa`)*. 5-stage agent impl + premium polish + 8-issue hardening pass (1 High + 5 Medium + 2 Low). 39/39 tests.
+    - [x] 9.1.D — Bundle compat (`notes_advanced.json` in ZIP) *(commit `d439683`)*. 42/42 tests.
+    - [x] 9.1.E — i18n keys ru/en/he + final audit *(commits `783e0e8` + `57d13c1`)*. ~90 keys. 42/42 + 23/23 + 13/13 i18n probe.
+    - [x] 9.1.F — Post-smoke hardening *(commit `da1d186`)*. Versioning semantics (vN = body after Nth save) + reopen noteId restore + dark-mode Preview block + Row TTS HEAD pre-flight fallback + server upload write-error surfacing. **43/43** + remote smoke on Railway prod confirmed 43/43.
+  - [x] Phase 9.2 — Audio anchoring (M2) *(branch `phase-9-2-audio-anchoring`, 2026-05-11)*. Premium chip with live current-time + click-to-anchor + ✕ clear + Alt+A hotkey + ▶︎ replay-from-anchor; row badge 📍 overlay; bundle roundtrip preserves anchors. Closed pre-existing Shape A import bug (sentence id was lost during `rows → sentences` reshape, silently dropping sentence-targeted advanced notes). **47/47** notes-v2 + **23/23** events + 0 new JS errors.
   - [ ] Phase 9.3 — Linking + Templates + SRS micro-cards
   - [ ] Phase 9.4 — Morphology *(revised 5.5–7 days после Phase 9.0 v2 re-research; **Option A — HebMorph sidecar** для auto-extraction + Plan B + C as graceful offline/OOV fallback; new endpoint family `/api/morphology/v1/analyze`; AGPL-compatible due to non-commercial framing)*
 - [ ] **Direction 10** — Text-card System

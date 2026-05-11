@@ -693,6 +693,113 @@ async function run() {
     if (importResult.importedIds[0]) await deleteText(importResult.importedIds[0]);
   })();
 
+  // ── Phase 9.2 — Audio anchoring ──────────────────────────────────
+  // The data layer has supported audio_anchor_ms since Phase 9.1.A; these
+  // tests guard the round-trip from createNote → updateNote(null) →
+  // updateNote(ms) → bundle export → bundle import, ensuring the UI layer
+  // can trust persistence and FK rewiring.
+
+  await t('9.2: createNote with audio_anchor_ms persists', async () => {
+    const row = await createNote({
+      target_kind: 'free', note_type: 'free',
+      title: '9.2 anchor create',
+      body: 'just-anchored body',
+      audio_anchor_ms: 4500,
+    });
+    if (!row || !row.id) throw new Error('createNote returned no row');
+    const reread = await getNoteById(row.id);
+    if (!reread) throw new Error('note not found after create');
+    if (Number(reread.audio_anchor_ms) !== 4500) {
+      throw new Error('expected audio_anchor_ms=4500, got ' + reread.audio_anchor_ms);
+    }
+    await deleteNoteById(row.id);
+  })();
+
+  await t('9.2: updateNote can set, clear, and re-set audio_anchor_ms', async () => {
+    const row = await createNote({
+      target_kind: 'free', note_type: 'free',
+      title: '9.2 anchor mutate',
+      body: 'mutable anchor',
+    });
+    if (!row || !row.id) throw new Error('setup createNote failed');
+    // start: anchor null
+    let read = await getNoteById(row.id);
+    if (read.audio_anchor_ms != null) throw new Error('expected initial anchor null');
+    // set
+    await updateNote(row.id, { audio_anchor_ms: 12345 });
+    read = await getNoteById(row.id);
+    if (Number(read.audio_anchor_ms) !== 12345) throw new Error('set: expected 12345, got ' + read.audio_anchor_ms);
+    // clear
+    await updateNote(row.id, { audio_anchor_ms: null });
+    read = await getNoteById(row.id);
+    if (read.audio_anchor_ms != null) throw new Error('clear: expected null, got ' + read.audio_anchor_ms);
+    // re-set
+    await updateNote(row.id, { audio_anchor_ms: 999 });
+    read = await getNoteById(row.id);
+    if (Number(read.audio_anchor_ms) !== 999) throw new Error('re-set: expected 999, got ' + read.audio_anchor_ms);
+    await deleteNoteById(row.id);
+  })();
+
+  await t('9.2: bundle export/import roundtrip preserves audio_anchor_ms', async () => {
+    const tid = crypto.randomUUID();
+    const tx = await createText({
+      id: tid, text_key: '9-2-anchor-' + Date.now(),
+      title: '9.2 anchor roundtrip', source_text: 'דלת',
+    });
+    const sid = crypto.randomUUID();
+    await addSentence(tx.id, { id: sid, order_index: 0, he_plain: 'דלת', ru: 'дверь' });
+
+    // Sentence-bound free note with an anchor (created via createNote so we
+    // can set the anchor in the same call; legacy upsertNote ignores anchor).
+    const anchoredNote = await createNote({
+      target_kind: 'sentence', target_id: sid, text_id: tx.id,
+      note_type: 'free',
+      title: '',
+      body: 'note body with audio anchor',
+      audio_anchor_ms: 7300,
+    });
+    if (!anchoredNote.id) throw new Error('setup: createNote returned no id');
+
+    const bundle = await exportBundle({ textIds: [tx.id] });
+    if (!bundle.notes_advanced) throw new Error('export missing notes_advanced');
+    const exportedNote = bundle.notes_advanced.notes.find(n => Number(n.audio_anchor_ms) === 7300);
+    if (!exportedNote) throw new Error('anchored note absent from notes_advanced export');
+
+    await deleteText(tx.id);
+
+    bundle.texts[0].text_key = bundle.texts[0].text_key + '-anchor-reimport';
+    const imp = await importBundle(bundle, { mode: 'skip' });
+    if (!imp.notes_advanced) throw new Error('import missing notes_advanced summary');
+
+    // Find the restored note by anchor value (id has been remapped).
+    const newTextId = imp.importedIds[0];
+    const restored = await listAllNotesForText(newTextId);
+    const restoredAnchored = restored.find(n => Number(n.audio_anchor_ms) === 7300);
+    if (!restoredAnchored) throw new Error('restored note with anchor 7300 not found in target text');
+
+    // Cleanup
+    await deleteText(newTextId);
+  })();
+
+  await t('9.2: smart-chip audio-noted lists texts with anchored notes', async () => {
+    const tid = crypto.randomUUID();
+    const tx = await createText({
+      id: tid, text_key: '9-2-chip-' + Date.now(),
+      title: '9.2 audio-noted chip', source_text: 'אור',
+    });
+    const sid = crypto.randomUUID();
+    await addSentence(tx.id, { id: sid, order_index: 0, he_plain: 'אור', ru: 'свет' });
+    const n = await createNote({
+      target_kind: 'sentence', target_id: sid, text_id: tx.id,
+      note_type: 'free',
+      title: '', body: 'lit', audio_anchor_ms: 500,
+    });
+    const textIds = await getTextIdsForNotesSmartChip('audio-noted');
+    if (!textIds.includes(tx.id)) throw new Error('audio-noted chip did not include the text');
+    await deleteNoteById(n.id);
+    await deleteText(tx.id);
+  })();
+
   // Cleanup
   await t('cleanup: deleteText cascades phase 9.1.B test data', async () => {
     await deleteText(phB_textId);

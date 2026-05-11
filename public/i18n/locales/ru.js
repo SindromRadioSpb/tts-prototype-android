@@ -412,6 +412,14 @@ window.I18N_LOCALES.ru = {
     // Row button tooltips
     rowBtnTitleHas: "Заметка (есть)",
     rowBtnTitleAdd: "Добавить заметку",
+    rowBtnTitleAnchored: "Заметка с привязкой к {time}",
+    // Phase 9.2 — Audio anchoring
+    anchorLabel: "🎧 Аудио:",
+    anchorSetBtn: "Привязать к аудио",
+    anchorSetBtnAt: "Привязать к {time}",
+    anchorSetTitle: "Сохранить привязку к текущему моменту аудио (Alt+A)",
+    anchorPlayTitle: "Играть с момента привязки",
+    anchorClearTitle: "Снять привязку",
     // Markdown toolbar
     toolbarAriaLabel: "Markdown панель форматирования",
     mdBoldTitle: "Жирный (**текст**)",
@@ -687,6 +695,13 @@ window.I18N_LOCALES.ru = {
     notesTargetMissing: "Укажите цель заметки.",
     notesHistoryRestored: "Версия восстановлена.",
     notesHistoryRestoreFailed: "Не удалось восстановить версию.",
+    // Phase 9.2 — audio anchoring
+    notesAnchorPlayFirst: "Сначала проиграйте аудио строки.",
+    notesAnchorSaved: "Привязано к {time}",
+    notesAnchorCleared: "Привязка снята.",
+    notesAnchorFailed: "Не удалось сохранить привязку.",
+    notesAnchorNoRow: "Нет контекста строки для проигрывания.",
+    notesAnchorPlayFailed: "Не удалось воспроизвести с привязки.",
     offlineTableRestored: "Офлайн: таблица восстановлена из кэша. Заметки не загружены.",
     offlineCacheMissing: "Офлайн: кэш для восстановления не найден (откройте текст онлайн хотя бы один раз).",
   },

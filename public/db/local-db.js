@@ -420,7 +420,22 @@ function _buildBodyJson(noteType, content) {
 // continues to work. Polymorphic-aware callers should use
 // listNotesByTarget / listAllNotesForText below.
 export async function listNotes(textId) {
-  return q('SELECT * FROM sentence_notes WHERE text_id = ? ORDER BY updated_at DESC', [textId]);
+  // Direct query against notes_v2 (not the legacy sentence_notes VIEW) so
+  // Phase 9.2 audio_anchor_ms reaches the caller. Same legacy column shape
+  // otherwise (id / text_id / sentence_id / note / created_at / updated_at).
+  return q(
+    `SELECT id,
+            text_id,
+            target_id AS sentence_id,
+            COALESCE(json_extract(body_json, '$.markdown'), '') AS note,
+            audio_anchor_ms,
+            created_at,
+            updated_at
+       FROM notes_v2
+      WHERE text_id = ? AND target_kind = 'sentence' AND note_type = 'free'
+      ORDER BY updated_at DESC`,
+    [textId]
+  );
 }
 
 // Upsert a sentence-bound free note. Same legacy semantics: one note per
@@ -2041,6 +2056,12 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         created_at: item.created_at || null,
         updated_at: item.updated_at || null,
         sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => ({
+          // Phase 9.2 — preserve the export-side sentence id (`row_id` per
+          // Android v2 spec) so the main importBundle loop can register
+          // oldSid → newSid in oldToNewSentenceId. Without this, sentence-
+          // targeted polymorphic notes from notes_advanced.json fail to
+          // remap and get silently dropped during import.
+          row_id: r.row_id || r.id || null,
           he_plain: r.hebrew_plain || r.he_plain || '',
           he_niqqud: r.hebrew_niqqud || r.he_niqqud || '',
           translit: r.translit || '',

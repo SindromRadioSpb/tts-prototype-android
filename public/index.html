@@ -2477,6 +2477,25 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.18);
 }
 
+/* Phase 9.2 — anchor indicator overlay on the notes badge. Tiny 📍 sits
+   bottom-right of the button when the row's free-note has audio_anchor_ms. */
+.row-note-btn.row-note-anchored {
+  position: relative;
+}
+.row-note-btn.row-note-anchored::after {
+  content: "📍";
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  font-size: 10px;
+  line-height: 1;
+  background: var(--theme-bg-card, #fff);
+  border-radius: 50%;
+  padding: 1px;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
 /* Visibility: как у Row-TTS */
 #proTable tbody tr .row-note-btn {
   opacity: 0;
@@ -4579,6 +4598,82 @@ body:not(.theme-light) .v3-notes-seg-btn.active { color: var(--theme-bg-page, #0
   color: var(--theme-text-primary);
   font-family: inherit;
   font-size: 13px;
+}
+/* Phase 9.2 — audio anchor chip. Tabular nums + LTR direction on time so the
+   "0:04.5" digit cluster keeps Western order even in HE-RTL modal context. */
+.v3-notes-anchor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit;
+}
+.v3-notes-anchor-chip:hover {
+  background: var(--theme-bg-hover);
+  border-color: var(--theme-border-medium);
+}
+.v3-notes-anchor-chip:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+.v3-notes-anchor-chip:disabled,
+.v3-notes-anchor-chip[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--theme-bg-muted);
+}
+.v3-notes-anchor-chip.v3-notes-anchor-anchored {
+  background: var(--theme-accent);
+  color: #fff;
+  border-color: var(--theme-accent);
+}
+body.theme-dark .v3-notes-anchor-chip.v3-notes-anchor-anchored,
+body:not(.theme-light) .v3-notes-anchor-chip.v3-notes-anchor-anchored {
+  color: var(--theme-bg-page, #0f172a);
+}
+.v3-notes-anchor-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.v3-notes-anchor-play {
+  font-size: 10px;
+  line-height: 1;
+}
+.v3-notes-anchor-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-muted);
+  border-radius: 50%;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.v3-notes-anchor-clear:hover {
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+  border-color: var(--theme-border-medium);
+}
+.v3-notes-anchor-clear:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-anchor-chip,
+  .v3-notes-anchor-clear { transition: none; }
 }
 .v3-notes-target-hints {
   width: 100%;
@@ -8759,6 +8854,30 @@ body:not(.theme-light) .v3-heatmap-cell {
         <input type="text" id="v3NotesTargetIdInput" class="v3-notes-target-input" autocomplete="off" />
         <div id="v3NotesTargetIdHints" class="v3-notes-target-hints" style="display:none;"></div>
       </div>
+
+      <!-- Phase 9.2 — Audio anchoring. Shown only for sentence/word target kinds with a row context. -->
+      <div class="v3-notes-meta-row v3-notes-anchor-row" id="v3NotesAnchorRow" style="display:none;">
+        <span class="v3-notes-meta-label" data-i18n="notes.anchorLabel">🎧 Аудио:</span>
+        <button type="button" id="v3NotesAnchorSetBtn" class="v3-notes-anchor-chip v3-notes-anchor-set"
+                onclick="v3NotesAnchorSet()"
+                data-i18n-title="notes.anchorSetTitle" title="Привязать заметку к текущему моменту аудио (Alt+A)">
+          <span class="v3-notes-anchor-icon">📍</span>
+          <span class="v3-notes-anchor-text" data-i18n="notes.anchorSetBtn">Привязать к аудио</span>
+        </button>
+        <button type="button" id="v3NotesAnchorPlayBtn" class="v3-notes-anchor-chip v3-notes-anchor-anchored"
+                onclick="v3NotesAnchorPlay()"
+                data-i18n-title="notes.anchorPlayTitle" title="Играть с момента привязки"
+                style="display:none;">
+          <span class="v3-notes-anchor-icon">📍</span>
+          <span class="v3-notes-anchor-time" id="v3NotesAnchorTime" dir="ltr">0:00</span>
+          <span class="v3-notes-anchor-play">▶︎</span>
+        </button>
+        <button type="button" id="v3NotesAnchorClearBtn" class="v3-notes-anchor-clear"
+                onclick="v3NotesAnchorClear()"
+                data-i18n-title="notes.anchorClearTitle" title="Снять привязку"
+                aria-label="Снять привязку"
+                style="display:none;">✕</button>
+      </div>
     </div>
 
     <div class="v3-modal-body">
@@ -11480,6 +11599,13 @@ let v3NotesModalUserChangedKind = false;
 let v3NotesBodyStashByType = Object.create(null);
 let v3NotesAutoSaveTimer = null;
 let v3NotesHistoryOpen = false;
+// Phase 9.2 — audio anchor state. Mirrors notes_v2.audio_anchor_ms for the
+// currently-open note. null = unanchored. Updated through v3NotesAnchorSet /
+// v3NotesAnchorClear; reset on modal open.
+let v3NotesModalAudioAnchorMs = null;
+// Listener handle for rowAudioPlayer 'timeupdate' so the SET button shows a
+// live ticking "Pin to 0:01.3" while audio plays. Cleared on modal close.
+let v3NotesAnchorLiveTimeListener = null;
 const V3_NOTES_AUTOSAVE_DELAY_MS = 30000;
 const V3_NOTES_MAX_BODY = 65536;
 
@@ -11510,10 +11636,18 @@ function v3NotesIngest(textId, notesArr) {
     const sid = String(n && (n.sentenceId ?? n.sentence_id) ? (n.sentenceId ?? n.sentence_id) : "").trim();
     if (!sid) continue;
     const note = String(n && (n.note ?? "")).trim();
-    if (!note) continue;
+    // Phase 9.2 — also cache audio_anchor_ms so the row badge can show 📍
+    // without an extra DB hit per row render. Anchor-only notes (empty body
+    // but non-null anchor) are kept too — the row still has a note row in
+    // notes_v2, so the badge must surface it.
+    const anchorRaw = n && (n.audio_anchor_ms ?? n.audioAnchorMs);
+    const anchorMs = Number.isFinite(Number(anchorRaw)) ? Number(anchorRaw) : null;
+    const hasContent = !!(note || (anchorMs && anchorMs > 0));
+    if (!hasContent) continue;
     v3NotesBySentenceId[sid] = {
       note,
-      updatedAt: n.updatedAt ?? n.updated_at ?? null
+      updatedAt: n.updatedAt ?? n.updated_at ?? null,
+      audio_anchor_ms: anchorMs,
     };
   }
 }
@@ -11521,7 +11655,12 @@ function v3NotesIngest(textId, notesArr) {
 function v3NotesHas(sentenceId) {
   const sid = String(sentenceId || "");
   const x = v3NotesBySentenceId && v3NotesBySentenceId[sid];
-  return !!(x && String(x.note || "").trim());
+  if (!x) return false;
+  // Phase 9.2 — anchor-only notes (empty body + non-null anchor) still count
+  // as "the row has a note", so the badge shows.
+  const hasBody = !!String(x.note || "").trim();
+  const hasAnchor = !!(Number.isFinite(Number(x.audio_anchor_ms)) && Number(x.audio_anchor_ms) > 0);
+  return hasBody || hasAnchor;
 }
 
 function v3NotesGet(sentenceId) {
@@ -11536,17 +11675,26 @@ function v3NotesGetUpdatedAt(sentenceId) {
   return x ? (x.updatedAt ?? null) : null;
 }
 
-function v3NotesSetLocal(sentenceId, note, updatedAt) {
+function v3NotesSetLocal(sentenceId, note, updatedAt, anchorMs) {
   const sid = String(sentenceId || "");
   const n = String(note || "").trim();
   if (!sid) return;
 
-  if (!n) {
+  // Resolve next anchor: preserve previous when caller didn't pass one.
+  const prev = v3NotesBySentenceId && v3NotesBySentenceId[sid];
+  const nextAnchor = (anchorMs === undefined)
+    ? (prev ? prev.audio_anchor_ms : null)
+    : (Number.isFinite(Number(anchorMs)) ? Number(anchorMs) : null);
+  const hasAnchor = !!(nextAnchor && nextAnchor > 0);
+
+  // Drop cache entry only if NEITHER body nor anchor remains — anchor-only
+  // notes must keep their badge until both go away.
+  if (!n && !hasAnchor) {
     if (v3NotesBySentenceId) delete v3NotesBySentenceId[sid];
     return;
   }
 
-  v3NotesBySentenceId[sid] = { note: n, updatedAt: updatedAt ?? null };
+  v3NotesBySentenceId[sid] = { note: n, updatedAt: updatedAt ?? null, audio_anchor_ms: nextAnchor };
 }
 
 // W10-NOTES-PREMIUM-03: refresh all note buttons after async preload
@@ -30988,6 +31136,303 @@ function v3NotesGetUpdatedAt(sentenceId) {
   }
 }
 
+// ── Phase 9.2 — Audio anchoring ─────────────────────────────────────────────
+
+// Format ms as "m:ss.t" (one decimal). 4500 → "0:04.5", 65300 → "1:05.3".
+function v3NotesFmtMs(ms) {
+  if (!Number.isFinite(ms) || ms < 0) return "0:00";
+  const totalSec = ms / 1000;
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec - m * 60;
+  const sInt = Math.floor(s);
+  const sDec = Math.floor((s - sInt) * 10);
+  const ss = String(sInt).padStart(2, "0");
+  return `${m}:${ss}.${sDec}`;
+}
+
+// Read the Row TTS singleton player without instantiating a new one — used to
+// peek currentTime / duration for anchor capture. Returns null if no player.
+function v3NotesAnchorGetRowAudio() {
+  try {
+    if (typeof rowAudioPlayer !== "undefined" && rowAudioPlayer) return rowAudioPlayer;
+  } catch (_) {}
+  return null;
+}
+
+// True iff Row TTS's current playhead belongs to the modal's row context.
+// Singleton player is shared across rows; we trust rowPlayingRowIdx (set by
+// the play handler) but also accept a "recently played, now paused" state on
+// the same row idx for set-anchor convenience.
+function v3NotesAnchorAudioBelongsToModalRow() {
+  try {
+    const idx = v3NotesModalRowIdx;
+    if (!Number.isFinite(Number(idx))) return false;
+    const aud = v3NotesAnchorGetRowAudio();
+    if (!aud) return false;
+    if (typeof rowPlayingRowIdx !== "undefined" && Number(rowPlayingRowIdx) === Number(idx)) return true;
+    // Paused-after-play case: rowPlayingRowIdx cleared but src still loaded
+    // and currentTime > 0 → user likely just listened and wants to anchor.
+    if (aud.src && Number(aud.currentTime) > 0) return true;
+    return false;
+  } catch (_) { return false; }
+}
+
+// Decide whether the anchor row should appear in the modal at all. Only for
+// sentence/word targets WITH a row context. Free/root/binyan/text/note have
+// no time axis to anchor against.
+function v3NotesAnchorRowApplicable() {
+  if (!v3NotesModalSentenceId) return false;
+  return v3NotesModalTargetKind === "sentence" || v3NotesModalTargetKind === "word";
+}
+
+// Show/hide the entire anchor row + render chips per current state.
+function v3NotesAnchorUpdateUI() {
+  try {
+    const row = document.getElementById("v3NotesAnchorRow");
+    if (!row) return;
+    if (!v3NotesAnchorRowApplicable()) {
+      row.style.display = "none";
+      v3NotesAnchorStopLiveTime();
+      return;
+    }
+    row.style.display = "";
+
+    const setBtn = document.getElementById("v3NotesAnchorSetBtn");
+    const playBtn = document.getElementById("v3NotesAnchorPlayBtn");
+    const clearBtn = document.getElementById("v3NotesAnchorClearBtn");
+    const timeEl = document.getElementById("v3NotesAnchorTime");
+    const anchored = Number.isFinite(v3NotesModalAudioAnchorMs) && v3NotesModalAudioAnchorMs > 0;
+
+    if (anchored) {
+      if (setBtn) setBtn.style.display = "none";
+      if (playBtn) {
+        playBtn.style.display = "";
+        if (timeEl) timeEl.textContent = v3NotesFmtMs(v3NotesModalAudioAnchorMs);
+      }
+      if (clearBtn) clearBtn.style.display = "";
+      v3NotesAnchorStopLiveTime();
+    } else {
+      if (setBtn) setBtn.style.display = "";
+      if (playBtn) playBtn.style.display = "none";
+      if (clearBtn) clearBtn.style.display = "none";
+      // Disable the SET button when audio for this row isn't loaded.
+      const ready = v3NotesAnchorAudioBelongsToModalRow();
+      if (setBtn) {
+        setBtn.disabled = !ready;
+        const txt = setBtn.querySelector(".v3-notes-anchor-text");
+        if (ready) {
+          // Show live current-time on the button label when audio is playing.
+          v3NotesAnchorStartLiveTime();
+          const aud = v3NotesAnchorGetRowAudio();
+          const curMs = aud ? Math.round((aud.currentTime || 0) * 1000) : 0;
+          if (txt) txt.textContent = v3NotesT("notes.anchorSetBtnAt", "Привязать к {time}").replace("{time}", v3NotesFmtMs(curMs));
+        } else {
+          v3NotesAnchorStopLiveTime();
+          if (txt) txt.textContent = v3NotesT("notes.anchorSetBtn", "Привязать к аудио");
+        }
+      }
+    }
+  } catch (e) { console.warn("v3NotesAnchorUpdateUI failed", e); }
+}
+window.v3NotesAnchorUpdateUI = v3NotesAnchorUpdateUI;
+
+function v3NotesAnchorStartLiveTime() {
+  try {
+    if (v3NotesAnchorLiveTimeListener) return; // already attached
+    const aud = v3NotesAnchorGetRowAudio();
+    if (!aud) return;
+    v3NotesAnchorLiveTimeListener = function () {
+      // Only update if the row still matches AND we're still unanchored.
+      if (!v3NotesIsOpen()) return;
+      if (Number.isFinite(v3NotesModalAudioAnchorMs) && v3NotesModalAudioAnchorMs > 0) return;
+      if (!v3NotesAnchorAudioBelongsToModalRow()) return;
+      const setBtn = document.getElementById("v3NotesAnchorSetBtn");
+      if (!setBtn) return;
+      const txt = setBtn.querySelector(".v3-notes-anchor-text");
+      if (!txt) return;
+      const curMs = Math.round((aud.currentTime || 0) * 1000);
+      txt.textContent = v3NotesT("notes.anchorSetBtnAt", "Привязать к {time}").replace("{time}", v3NotesFmtMs(curMs));
+    };
+    aud.addEventListener("timeupdate", v3NotesAnchorLiveTimeListener);
+  } catch (e) { /* non-fatal */ }
+}
+
+function v3NotesAnchorStopLiveTime() {
+  try {
+    const aud = v3NotesAnchorGetRowAudio();
+    if (aud && v3NotesAnchorLiveTimeListener) {
+      aud.removeEventListener("timeupdate", v3NotesAnchorLiveTimeListener);
+    }
+  } catch (_) {}
+  v3NotesAnchorLiveTimeListener = null;
+}
+
+// Capture rowAudioPlayer.currentTime, round to ms, persist on the note.
+// If the note doesn't yet exist (fresh sentence-bound row), create it with
+// empty body first so the anchor has somewhere to live.
+async function v3NotesAnchorSet() {
+  try {
+    if (!LOCAL_MODE) {
+      showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error");
+      return;
+    }
+    if (!v3NotesAnchorAudioBelongsToModalRow()) {
+      showToast(v3NotesT("toast.notesAnchorPlayFirst", "Сначала проиграйте аудио строки."), "warning");
+      return;
+    }
+    const aud = v3NotesAnchorGetRowAudio();
+    if (!aud) return;
+    const ms = Math.max(0, Math.round((aud.currentTime || 0) * 1000));
+
+    const ldb = await ensureLocalDB();
+
+    // Need a noteId. Three cases:
+    //   1) v3NotesModalNoteId already set → updateNote.
+    //   2) Reopened sentence-bound row whose v2 id we haven't back-filled yet
+    //      → restore from notes_v2 first.
+    //   3) Brand-new note (no body yet) → create with empty body, then set anchor.
+    if (!v3NotesModalNoteId) {
+      try { await v3NotesRestoreNoteIdIfMissing(); } catch (_) {}
+    }
+    if (!v3NotesModalNoteId) {
+      const ta = v3NotesEl("v3NotesText");
+      const body = ta ? String(ta.value || "") : "";
+      const created = await ldb.createNote({
+        target_kind: v3NotesModalTargetKind || "sentence",
+        target_id: v3NotesModalSentenceId || null,
+        text_id: v3NotesModalTextId || null,
+        note_type: v3NotesModalNoteType || "free",
+        title: "",
+        body,
+        audio_anchor_ms: ms,
+      });
+      if (created && created.id) {
+        v3NotesModalNoteId = String(created.id);
+        try { v3NotesUpdateDataset(); } catch (_) {}
+      }
+    } else {
+      await ldb.updateNote(v3NotesModalNoteId, { audio_anchor_ms: ms });
+    }
+
+    v3NotesModalAudioAnchorMs = ms;
+    v3NotesAnchorUpdateUI();
+
+    // Sync the in-memory cache so v3NotesUpdateButtonRow can surface 📍.
+    if (v3NotesModalTargetKind === "sentence" && v3NotesModalSentenceId) {
+      const ta2 = v3NotesEl("v3NotesText");
+      const curBody = ta2 ? String(ta2.value || "") : "";
+      v3NotesSetLocal(v3NotesModalSentenceId, curBody, new Date().toISOString(), ms);
+    }
+    // Update row badge to surface the 📍 indicator immediately.
+    if (Number.isFinite(v3NotesModalRowIdx) && v3NotesModalSentenceId) {
+      try { v3NotesUpdateButtonRow(v3NotesModalRowIdx, v3NotesModalSentenceId); } catch (_) {}
+    }
+    try { v3NotesInvalidateLibrarySmartCache(); } catch (_) {}
+
+    const _toast = v3NotesT("toast.notesAnchorSaved", "Привязано к {time}").replace("{time}", v3NotesFmtMs(ms));
+    showToast(_toast, "success");
+  } catch (e) {
+    console.warn("v3NotesAnchorSet failed", e);
+    showToast(v3NotesT("toast.notesAnchorFailed", "Не удалось сохранить привязку."), "error");
+  }
+}
+window.v3NotesAnchorSet = v3NotesAnchorSet;
+
+async function v3NotesAnchorClear() {
+  try {
+    if (!v3NotesModalNoteId) {
+      // Nothing persisted yet; just reset UI.
+      v3NotesModalAudioAnchorMs = null;
+      v3NotesAnchorUpdateUI();
+      return;
+    }
+    const ldb = await ensureLocalDB();
+    await ldb.updateNote(v3NotesModalNoteId, { audio_anchor_ms: null });
+    v3NotesModalAudioAnchorMs = null;
+    v3NotesAnchorUpdateUI();
+    // Sync cache: clear anchor, but keep body-driven cache entry alive if any.
+    if (v3NotesModalTargetKind === "sentence" && v3NotesModalSentenceId) {
+      const ta3 = v3NotesEl("v3NotesText");
+      const curBody = ta3 ? String(ta3.value || "") : "";
+      v3NotesSetLocal(v3NotesModalSentenceId, curBody, new Date().toISOString(), null);
+    }
+    if (Number.isFinite(v3NotesModalRowIdx) && v3NotesModalSentenceId) {
+      try { v3NotesUpdateButtonRow(v3NotesModalRowIdx, v3NotesModalSentenceId); } catch (_) {}
+    }
+    try { v3NotesInvalidateLibrarySmartCache(); } catch (_) {}
+    showToast(v3NotesT("toast.notesAnchorCleared", "Привязка снята."), "info");
+  } catch (e) {
+    console.warn("v3NotesAnchorClear failed", e);
+    showToast(v3NotesT("toast.notesAnchorFailed", "Не удалось снять привязку."), "error");
+  }
+}
+window.v3NotesAnchorClear = v3NotesAnchorClear;
+
+// Seek the row's audio to the anchor and play. Routes through the same Row
+// TTS infrastructure (cache HEAD pre-flight from 9.1.F) so a missing cache
+// after import is transparently regenerated, then seeked.
+async function v3NotesAnchorPlay() {
+  try {
+    if (!Number.isFinite(v3NotesModalAudioAnchorMs) || v3NotesModalAudioAnchorMs <= 0) return;
+    const idx = v3NotesModalRowIdx;
+    if (!Number.isFinite(Number(idx))) {
+      showToast(v3NotesT("toast.notesAnchorNoRow", "Нет контекста строки для проигрывания."), "warning");
+      return;
+    }
+    const aud = v3NotesAnchorGetRowAudio();
+    const targetSec = v3NotesModalAudioAnchorMs / 1000;
+
+    // Helper: clamp to duration once it's known, then seek + play.
+    function seekAndPlay() {
+      try {
+        const dur = aud && Number.isFinite(aud.duration) ? aud.duration : Infinity;
+        const safe = Math.min(targetSec, Math.max(0, dur - 0.1));
+        aud.currentTime = safe;
+        const p = aud.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      } catch (_) {}
+    }
+
+    // Case 1: audio for this row already loaded → just seek + play.
+    if (aud && aud.src && v3NotesAnchorAudioBelongsToModalRow()) {
+      if (aud.readyState >= 1 /* HAVE_METADATA */) {
+        seekAndPlay();
+        return;
+      }
+      const once = function () {
+        aud.removeEventListener("loadedmetadata", once);
+        seekAndPlay();
+      };
+      aud.addEventListener("loadedmetadata", once);
+      return;
+    }
+
+    // Case 2: audio not loaded for this row → fire the Row TTS play handler
+    // (it handles cache/HEAD/regen), then seek once metadata lands.
+    const table = document.getElementById("proTable");
+    const btn = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]') : null;
+    if (btn) {
+      const seekAfterLoad = function () {
+        const a = v3NotesAnchorGetRowAudio();
+        if (!a) return;
+        const onMeta = function () {
+          a.removeEventListener("loadedmetadata", onMeta);
+          seekAndPlay();
+        };
+        a.addEventListener("loadedmetadata", onMeta);
+      };
+      seekAfterLoad();
+      btn.click();
+    } else {
+      showToast(v3NotesT("toast.notesAnchorNoRow", "Не нашёл кнопку аудио для этой строки."), "warning");
+    }
+  } catch (e) {
+    console.warn("v3NotesAnchorPlay failed", e);
+    showToast(v3NotesT("toast.notesAnchorPlayFailed", "Не удалось воспроизвести с привязки."), "error");
+  }
+}
+window.v3NotesAnchorPlay = v3NotesAnchorPlay;
+
 function v3NotesIsOpen() {
   const modal = v3NotesEl("v3NotesModal");
   return !!(modal && !modal.classList.contains("hidden"));
@@ -31133,6 +31578,8 @@ function v3NotesSetTargetKind(kind) {
   v3NotesUpdateSegUI();
   v3NotesUpdateDataset();
   v3NotesUpdateModalTitle();
+  // Phase 9.2 — anchor row visibility depends on target_kind.
+  try { v3NotesAnchorUpdateUI(); } catch (_) {}
 }
 window.v3NotesSetTargetKind = v3NotesSetTargetKind;
 
@@ -31378,7 +31825,7 @@ async function v3NotesRestoreNoteIdIfMissing() {
   try {
     const ldb = await ensureLocalDB();
     const rows = await ldb.q(
-      `SELECT id FROM notes_v2
+      `SELECT id, audio_anchor_ms FROM notes_v2
         WHERE text_id = ? AND target_kind = 'sentence'
           AND target_id = ? AND note_type = 'free'
         LIMIT 1`,
@@ -31386,11 +31833,36 @@ async function v3NotesRestoreNoteIdIfMissing() {
     );
     if (rows && rows.length && rows[0].id) {
       v3NotesModalNoteId = String(rows[0].id);
+      // Phase 9.2 — surface persisted anchor immediately on reopen.
+      const anchor = rows[0].audio_anchor_ms;
+      v3NotesModalAudioAnchorMs = Number.isFinite(Number(anchor)) ? Number(anchor) : null;
       try { v3NotesUpdateDataset(); } catch (_) {}
+      try { v3NotesAnchorUpdateUI(); } catch (_) {}
     }
   } catch (_) { /* non-fatal */ }
 }
 window.v3NotesRestoreNoteIdIfMissing = v3NotesRestoreNoteIdIfMissing;
+
+// Phase 9.2 — pull the latest audio_anchor_ms from the open note row and
+// refresh the chip. Used when noteId was passed via opts (polymorphic open)
+// or after Save bumped it.
+async function v3NotesAnchorLoadForCurrentNote() {
+  if (!LOCAL_MODE) return;
+  if (!v3NotesModalNoteId) return;
+  try {
+    const ldb = await ensureLocalDB();
+    const rows = await ldb.q(
+      `SELECT audio_anchor_ms FROM notes_v2 WHERE id = ? LIMIT 1`,
+      [v3NotesModalNoteId]
+    );
+    if (rows && rows.length) {
+      const anchor = rows[0].audio_anchor_ms;
+      v3NotesModalAudioAnchorMs = Number.isFinite(Number(anchor)) ? Number(anchor) : null;
+      v3NotesAnchorUpdateUI();
+    }
+  } catch (_) {}
+}
+window.v3NotesAnchorLoadForCurrentNote = v3NotesAnchorLoadForCurrentNote;
 
 // Toggle the history sidebar visibility, refreshing the list when opening.
 async function v3NotesHistoryToggle() {
@@ -31756,10 +32228,21 @@ try { v3NotesMdResetUi(); } catch (_) {}
   } catch (_) {}
   try { v3NotesCancelAutoSave(); } catch (_) {}
 
+  // Phase 9.2 — reset anchor state and render fresh on every open.
+  v3NotesModalAudioAnchorMs = null;
+  try { v3NotesAnchorStopLiveTime(); } catch (_) {}
+  try { v3NotesAnchorUpdateUI(); } catch (_) {}
+
   // Reopen fix: when entering an existing sentence-bound free note, the
   // legacy cache only knows body — restore the v2 noteId so versioning,
   // history sidebar, and polymorphic updates all work from the first save.
+  // (Phase 9.2: this also back-fills audio_anchor_ms into modal state.)
   try { v3NotesRestoreNoteIdIfMissing(); /* fire-and-forget */ } catch (_) {}
+  // Phase 9.2 — when noteId was passed via opts (polymorphic deeplink), also
+  // load its anchor explicitly since the restore path bails on non-sentence kinds.
+  try {
+    if (v3NotesModalNoteId) v3NotesAnchorLoadForCurrentNote(); /* fire-and-forget */
+  } catch (_) {}
 
   if (modal) modal.classList.remove("hidden");
 
@@ -31802,6 +32285,18 @@ try { v3NotesMdResetUi(); } catch (_) {}
           ev.preventDefault();
           ev.stopPropagation();
           v3NotesSave();
+          return;
+        }
+        // Phase 9.2 — Alt+A toggles the audio anchor when applicable.
+        if (ev.altKey && (ev.key === "a" || ev.key === "A" || ev.code === "KeyA")) {
+          if (!v3NotesAnchorRowApplicable()) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          if (Number.isFinite(v3NotesModalAudioAnchorMs) && v3NotesModalAudioAnchorMs > 0) {
+            v3NotesAnchorClear();
+          } else {
+            v3NotesAnchorSet();
+          }
           return;
         }
       } catch (_) {}
@@ -32072,6 +32567,9 @@ function v3NotesForceClose() {
   try { v3NotesCancelAutoSave(); } catch (_) {}
   try { v3NotesClearDataset(); } catch (_) {}
   try { v3NotesHistoryClose(); } catch (_) {}
+  // Phase 9.2 — detach the rowAudio timeupdate listener so we don't leak it
+  // between sessions.
+  try { v3NotesAnchorStopLiveTime(); } catch (_) {}
 
   v3NotesModalTextId = null;
   v3NotesModalSentenceId = null;
@@ -32085,6 +32583,7 @@ function v3NotesForceClose() {
   v3NotesModalEntryKind = "row";
   v3NotesModalUserChangedKind = false;
   v3NotesBodyStashByType = Object.create(null);
+  v3NotesModalAudioAnchorMs = null;
 }
 
 async function v3NotesClose() {
@@ -32134,9 +32633,24 @@ function v3NotesUpdateButtonRow(rowIdx, sentenceId) {
     if (has) btn.classList.add("row-note-active");
     else btn.classList.remove("row-note-active");
 
-    btn.title = has
-      ? v3NotesT("notes.rowBtnTitleHas", "Заметка (есть)")
-      : v3NotesT("notes.rowBtnTitleAdd", "Добавить заметку");
+    // Phase 9.2 — surface 📍 indicator when the sentence's free note has an
+    // audio anchor. Sourced from v3NotesBySentenceId cache (populated by
+    // ingest + Save flows) so the badge updates without an extra DB hit.
+    const cached = v3NotesBySentenceId && v3NotesBySentenceId[String(sentenceId || "")];
+    const anchorMs = cached && Number.isFinite(Number(cached.audio_anchor_ms))
+      ? Number(cached.audio_anchor_ms) : null;
+    const isAnchored = !!(anchorMs && anchorMs > 0);
+    if (isAnchored) btn.classList.add("row-note-anchored");
+    else btn.classList.remove("row-note-anchored");
+
+    if (isAnchored) {
+      btn.title = v3NotesT("notes.rowBtnTitleAnchored", "Заметка с привязкой к {time}")
+        .replace("{time}", v3NotesFmtMs(anchorMs));
+    } else {
+      btn.title = has
+        ? v3NotesT("notes.rowBtnTitleHas", "Заметка (есть)")
+        : v3NotesT("notes.rowBtnTitleAdd", "Добавить заметку");
+    }
   } catch (_) {}
 }
 
