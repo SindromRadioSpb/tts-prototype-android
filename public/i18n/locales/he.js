@@ -482,9 +482,6 @@ window.I18N_LOCALES.he = {
     cancelBtn: "ביטול",
     copyDiagBtn: "העתק אבחון",
   },
-  notes: {
-    close: "סגור",
-  },
   nav: {
     backToMatches: "← חזור לתוצאות",
     prev: "הקודם",
@@ -688,23 +685,6 @@ window.I18N_LOCALES.he = {
   confirm: {
     clearText: "לנקות את הטקסט הנוכחי?\nתרגום, שמע ומטמון הטבלה המקומי יאופסו.",
     resetAllEdits: "לאפס את כל העריכות לערכים המקוריים?",
-  },
-  confirms: {
-    cancelBtn: "ביטול",
-    // Phase 9.1.E — notes destructive-action confirmations
-    notesDeleteTitle: "למחוק את ההערה?",
-    notesDeleteBody:  "ההערה תימחק. את היסטוריית הגרסאות לא ניתן יהיה לשחזר.",
-    notesDeleteOk:    "מחק",
-    notesCloseUnsavedTitle: "לשמור את ההערה לפני הסגירה?",
-    notesCloseUnsavedBody:  "יש לך שינויים שלא נשמרו.",
-    notesCloseSave:    "שמור",
-    notesCloseDiscard: "אל תשמור",
-    notesDiscardConfirmTitle: "לבטל את השינויים?",
-    notesDiscardConfirmBody:  "כל השינויים שלא נשמרו יאבדו.",
-    notesDiscardConfirmOk:    "בטל שינויים",
-    notesHistoryRestoreTitle: "לשחזר גרסה?",
-    notesHistoryRestoreBody:  "התוכן הנוכחי יישמר כגרסה חדשה לפני השחזור.",
-    notesHistoryRestoreOk:    "שחזר",
   },
   errors: {
     generic: "אירעה שגיאה",
@@ -940,6 +920,13 @@ window.I18N_LOCALES.he = {
     wipeAllInlineTitle: "למחוק את כל הספרייה המקומית?",
     wipeAllInlineBody: "פעולה זו אינה הפיכה. כל הטקסטים, ההערות וההתקדמות יוסרו.",
     wipeAllInlineOk: "מחק הכל",
+    // Phase 9.1.E (Direction 9 notes destructive-action confirmations)
+    notesDeleteTitle: "למחוק את ההערה?",
+    notesDeleteBody:  "ההערה תימחק. את היסטוריית הגרסאות לא ניתן יהיה לשחזר.",
+    notesDeleteOk:    "מחק",
+    notesHistoryRestoreTitle: "לשחזר גרסה?",
+    notesHistoryRestoreBody:  "התוכן הנוכחי יישמר כגרסה חדשה לפני השחזור.",
+    notesHistoryRestoreOk:    "שחזר",
   },
   dashboardExtra: {
     heatmapTitle: "פעילות 30 ימים אחרונים",

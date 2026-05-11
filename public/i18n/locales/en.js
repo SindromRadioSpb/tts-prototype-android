@@ -479,9 +479,6 @@ window.I18N_LOCALES.en = {
     cancelBtn: "Cancel",
     copyDiagBtn: "Copy diagnostics",
   },
-  notes: {
-    close: "Close",
-  },
   nav: {
     backToMatches: "← Back to matches",
     prev: "Prev",
@@ -685,23 +682,6 @@ window.I18N_LOCALES.en = {
   confirm: {
     clearText: "Clear current text?\nTranslation, audio, and local table cache will be reset.",
     resetAllEdits: "Reset all edits to original values?",
-  },
-  confirms: {
-    cancelBtn: "Cancel",
-    // Phase 9.1.E — notes destructive-action confirmations
-    notesDeleteTitle: "Delete note?",
-    notesDeleteBody:  "The note will be deleted. Version history cannot be recovered.",
-    notesDeleteOk:    "Delete",
-    notesCloseUnsavedTitle: "Save note before closing?",
-    notesCloseUnsavedBody:  "You have unsaved changes.",
-    notesCloseSave:    "Save",
-    notesCloseDiscard: "Don't save",
-    notesDiscardConfirmTitle: "Really discard changes?",
-    notesDiscardConfirmBody:  "All unsaved changes will be lost.",
-    notesDiscardConfirmOk:    "Discard changes",
-    notesHistoryRestoreTitle: "Restore version?",
-    notesHistoryRestoreBody:  "Current content will be saved as a new version before restore.",
-    notesHistoryRestoreOk:    "Restore",
   },
   errors: {
     generic: "An error occurred",
@@ -937,6 +917,13 @@ window.I18N_LOCALES.en = {
     wipeAllInlineTitle: "Delete entire local library?",
     wipeAllInlineBody: "This is irreversible. All texts, notes, and progress will be removed.",
     wipeAllInlineOk: "Delete everything",
+    // Phase 9.1.E (Direction 9 notes destructive-action confirmations)
+    notesDeleteTitle: "Delete note?",
+    notesDeleteBody:  "The note will be deleted. Version history cannot be recovered.",
+    notesDeleteOk:    "Delete",
+    notesHistoryRestoreTitle: "Restore version?",
+    notesHistoryRestoreBody:  "Current content will be saved as a new version before restore.",
+    notesHistoryRestoreOk:    "Restore",
   },
   dashboardExtra: {
     heatmapTitle: "Last 30 days activity",

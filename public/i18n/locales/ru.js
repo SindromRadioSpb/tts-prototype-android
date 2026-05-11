@@ -490,9 +490,6 @@ window.I18N_LOCALES.ru = {
     cancelBtn: "Отмена",
     copyDiagBtn: "Скопировать диагностику",
   },
-  notes: {
-    close: "Закрыть",
-  },
   nav: {
     backToMatches: "← Назад к совпадениям",
     prev: "Пред.",
@@ -696,23 +693,6 @@ window.I18N_LOCALES.ru = {
   confirm: {
     clearText: "Очистить текущий текст?\nПеревод, озвучка и локальный кэш таблицы будут сброшены.",
     resetAllEdits: "Сбросить все ручные правки к оригинальным значениям?",
-  },
-  confirms: {
-    cancelBtn: "Отмена",
-    // Phase 9.1.E — notes destructive-action confirmations
-    notesDeleteTitle: "Удалить заметку?",
-    notesDeleteBody:  "Заметка будет удалена. Историю версий восстановить будет нельзя.",
-    notesDeleteOk:    "Удалить",
-    notesCloseUnsavedTitle: "Сохранить заметку перед закрытием?",
-    notesCloseUnsavedBody:  "У вас есть несохранённые изменения.",
-    notesCloseSave:    "Сохранить",
-    notesCloseDiscard: "Не сохранять",
-    notesDiscardConfirmTitle: "Точно отменить изменения?",
-    notesDiscardConfirmBody:  "Все несохранённые изменения будут потеряны.",
-    notesDiscardConfirmOk:    "Отменить изменения",
-    notesHistoryRestoreTitle: "Восстановить версию?",
-    notesHistoryRestoreBody:  "Текущее содержимое будет сохранено как новая версия перед восстановлением.",
-    notesHistoryRestoreOk:    "Восстановить",
   },
   errors: {
     generic: "Произошла ошибка",
@@ -948,6 +928,13 @@ window.I18N_LOCALES.ru = {
     wipeAllInlineTitle: "Удалить ВСЮ локальную библиотеку?",
     wipeAllInlineBody: "Это необратимо. Все тексты, заметки, прогресс будут удалены.",
     wipeAllInlineOk: "Удалить всё",
+    // Phase 9.1.E (Direction 9 notes destructive-action confirmations)
+    notesDeleteTitle: "Удалить заметку?",
+    notesDeleteBody:  "Заметка будет удалена. Историю версий восстановить будет нельзя.",
+    notesDeleteOk:    "Удалить",
+    notesHistoryRestoreTitle: "Восстановить версию?",
+    notesHistoryRestoreBody:  "Текущее содержимое будет сохранено как новая версия перед восстановлением.",
+    notesHistoryRestoreOk:    "Восстановить",
   },
   dashboardExtra: {
     heatmapTitle: "Активность за 30 дней",
