@@ -86,3 +86,6 @@ repo_tree.txt
 .mcp.json
 Архив/.claude/worktrees/
 .claude/settings.local.json
+
+# Phase 9.3.5+ scratch debugging probes
+/test-prod-mt*.js
