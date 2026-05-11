@@ -184,12 +184,12 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
   - [x] Phase 11.1 — Time-spent v2 (heartbeat-based session tracking + idle-aware aggregation; getActiveMsReal / getActiveMinutesByDay / getSessionMetrics exports)
 - [~] **Direction 9** — Premium Notes Redesign *(in progress — Phase 9.1 ~50% done)*
   - [x] Phase 9.0 — Hebrew root extractor research *(commits `39230f8` v1 + `6f5c1ad` v2 re-research, 2026-05-10)*
-  - [~] Phase 9.1 — Foundation (split into 5 sub-phases A/B/C/D/E) — **live on branch `worktree-agent-ad33453576637a27d`; merge to main waits for C+D+E completion**
-    - [x] 9.1.A — Schema migrations 021–025 *(commit `8da394e`, 18/18 tests, in main)*
-    - [x] 9.1.B — local-db.js polymorphic API *(commit `3a45833`, 38/38 tests, in main)*
-    - [~] 9.1.C — Notes modal UI revamp + **premium hardening pass in progress** *(branch-only)* — initial impl `949a932..e1af2d2`, interactive polish `d785aac`+`a2fa06b`, hardening pass started 2026-05-11. See `docs/research/9_1_C_PREMIUM_HARDENING_PLAN.md`.
-    - [ ] 9.1.D — Bundle compat (notes_advanced.json) — pending; blocks on 9.1.C hardening.
-    - [ ] 9.1.E — i18n keys + final audit — pending; blocks on 9.1.D.
+  - [x] Phase 9.1 — Foundation (5 sub-phases A/B/C/D/E) — **complete on branch `worktree-agent-ad33453576637a27d`; ready to merge**. See `docs/research/9_1_FOUNDATION_FINAL_REPORT.md`.
+    - [x] 9.1.A — Schema migrations 021–025 *(commit `8da394e`, in main)*
+    - [x] 9.1.B — local-db.js polymorphic API *(commit `3a45833`, in main)*
+    - [x] 9.1.C — Notes modal UI revamp + premium hardening *(branch-only, `949a932..a2d6efa`)*. 5-stage agent impl + premium polish + 8-issue hardening pass (1 High + 5 Medium + 2 Low). 39/39 tests.
+    - [x] 9.1.D — Bundle compat (`notes_advanced.json` in ZIP) *(branch-only, commit `d439683`)*. 42/42 tests.
+    - [x] 9.1.E — i18n keys ru/en/he + final audit *(branch-only, this commit)*. ~90 keys. 42/42 + 23/23.
   - [ ] Phase 9.2 — Audio anchoring (M2)
   - [ ] Phase 9.3 — Linking + Templates + SRS micro-cards
   - [ ] Phase 9.4 — Morphology *(revised 5.5–7 days после Phase 9.0 v2 re-research; **Option A — HebMorph sidecar** для auto-extraction + Plan B + C as graceful offline/OOV fallback; new endpoint family `/api/morphology/v1/analyze`; AGPL-compatible due to non-commercial framing)*
