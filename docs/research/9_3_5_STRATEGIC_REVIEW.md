@@ -267,3 +267,47 @@ Alternative — skip 9.3.5: launch 9.4 now. We get morphology faster, but:
 5. **Tokens — choose now or in 9.4?** If in 9.4, document the postponement explicitly.
 
 Once you decide, I'll write the detailed plan doc for 9.3.5 and start B.
+
+---
+
+## 9. User decision — APPROVED 2026-05-11
+
+**Status:** ✅ Phase 9.3.5 approved in full. No cuts. Implementation order **B → D → A → C → E → F**.
+
+### Why this order (user rationale)
+- **B first** — multi-note row-index panel is the most visible UX-win and the central premium learning layer.
+- **D second** — SRS broken promise is more dangerous to trust than matrix guidance. Close it before guidance.
+- **A third** — after multi-note panel is in place, guide the user toward sensible target × type combinations.
+- **C fourth** — research signals added after UX flows are finalized (so event semantics match the final user behaviors).
+- **E fifth** — light MVP "Where used" hub; not the deferred force-directed graph.
+- **F sixth** — Phase 9.4 prereq; defines `target_id = '<sentence_id>:<word_offset>'` for word notes; bare-lemma treated as "any occurrence" for backwards-compat.
+
+### Approved scope decisions
+- **Phase 9.4 delayed by 5–7 working days** to fit 9.3.5. Within v3.2 master-plan budget (39–49.5 days).
+- **Nothing cut**. F (token disambiguation) confirmed as 9.3.5 scope, not deferred to 9.4 itself.
+- **E** ships as light MVP "Где встречается" — not force-directed graph (that stays deferred to v3.3 M8).
+- **Privacy bar**: every new event payload contains only metadata (note_id, note_kind, target_kind, counters/status). No body, no raw Hebrew text, no search strings, no audio bytes.
+- **Token format**: `<sentence_id>:<word_offset>`. Legacy bare-lemma target_ids treated as "any occurrence".
+
+### Workflow rules (user emphasized)
+1. Each workstream is its own commit + push + ff-merge to main + push origin/main + Railway redeploy verify.
+2. After each workstream: tests must pass before moving on (no regression accumulation).
+3. Docs updated alongside code (no contract drift).
+4. No Phase 9.4 HebMorph work mixed in.
+5. No full graph view in 9.3.5 (M8 stays in v3.3).
+6. No multi-device sync (v3.3+ epic).
+7. All events privacy-safe.
+
+### Documentation tasks bundled with this decision
+- This file: record the approval (this section).
+- `docs/PREMIUM_NOTES_PLAN_v3_2.md`: insert Phase 9.3.5 between 9.3 and 9.4 in live-status.
+- `docs/PREMIUM_RELEASE_PLAN_v3_2.md`: update Direction 9 effort + live-status.
+- `docs/CONTRACTS_ANALYTICS.md`: register the 7 new event types (added incrementally with each workstream's commit).
+- `CHANGELOG.md`: add Phase 9.3.5 entry after closure.
+
+### Blind spots fixed at planning time
+- **Template evolution**: as part of the foundation hygiene, add `"v": 1` schema-version field to `body_json` going forward (new notes only; old notes treated as v=0 = unversioned). Action item bundled into Workstream A's template-form changes.
+- **Bundle compat on target_id format change** (Workstream F): import path must transparent-upgrade legacy bare-lemma OR refuse + warn. Tests for both paths.
+
+### Next action
+Begin Workstream B (multi-note row-index panel). Branch: `phase-9-3-5-foundation-reinforcement`.

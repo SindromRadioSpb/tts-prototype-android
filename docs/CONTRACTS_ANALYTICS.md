@@ -78,6 +78,24 @@ Implementation: two-pass aggregation (baseline approximation + per-session preci
 ### Не реализовано (→ Direction 9 M6)
 - `card_added_to_srs` event — пока добавление карточек в SRS происходит косвенно через template generation; explicit "add this note as SRS card" flow появится с notes redesign.
 
+### Planned (→ Direction 9 Phase 9.3.5.C — 2026-05-11)
+
+Strategic retrospective (`docs/research/9_3_5_STRATEGIC_REVIEW.md`) identified that the current event coverage undercounts *deep-learner* behavior — exactly the cohort the ulpan thesis is most interested in. Phase 9.3.5 Workstream C registers 7 new event types. All are **privacy-safe**: `payload_json` carries metadata only (counters, status flags, internal note/text/sentence ids that never leave the device), never `body_json`, raw Hebrew, audio bytes, or search strings.
+
+| Event type            | Fires when                                              | Payload fields (whitelist)                                            | Research signal                              |
+|-----------------------|---------------------------------------------------------|-----------------------------------------------------------------------|----------------------------------------------|
+| `note_anchor_set`     | User pins audio anchor on a sentence note               | `note_id`, `note_kind`, `target_kind`, `anchor_ms_bucket` (10 s)     | Pronunciation-focused learning               |
+| `note_anchor_clear`   | User removes audio anchor                               | `note_id`, `note_kind`, `target_kind`                                 | Audio-anchor curation behaviour              |
+| `note_link_added`     | Outgoing link added (note ↔ note / root / binyan / …)  | `note_id`, `note_kind`, `to_kind` (kind only, not id)                | Knowledge-graph construction depth           |
+| `note_link_removed`   | Outgoing link removed                                   | `note_id`, `note_kind`, `to_kind`                                     | Graph curation                               |
+| `note_srs_convert`    | Note → SRS card conversion                              | `note_id`, `note_kind`, `card_kind` (= `note`)                        | Note-to-practice transition                  |
+| `note_open`           | Note opened without subsequent edit/save                | `note_id`, `note_kind`, `target_kind`, `duration_ms_bucket` (10 s)   | Recall/reading behaviour                     |
+| `template_field_filled` | A required-or-optional template field gets a value    | `note_id`, `note_kind`, `field_key` (e.g. `mnemonic`), `filled_count`| Depth of structured-template engagement      |
+
+Notes on bucket fields: `anchor_ms_bucket` and `duration_ms_bucket` round to 10-second bins so the events stream conveys *roughly-when* and *roughly-how-long* without exposing precise timing that could fingerprint a specific user behavior in cohort data.
+
+Bound by privacy test in 9.3.5.C: asserted no payload contains the substrings `markdown`, `body`, `text` (as key names beyond template metadata) or any Hebrew character ranges. Event ingest is rejected (logged + dropped) if those leak.
+
 ### Privacy invariants (enforced — Phase 11.0)
 - В `events.payload_json` **никогда не пишется**: raw Hebrew text, note body, search query string, audio bytes, user identifying info.
 - Записывается **только**: counts, lengths, durations, internal IDs (text_id / sentence_id / card_id / note_id — local-only, не уходят на сервер в обычной работе).
