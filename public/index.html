@@ -5095,6 +5095,86 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   .v3-notes-row-index-card,
   .v3-notes-row-index-card-delete { transition: none; }
 }
+
+/* ─── Phase 9.3.5.B onboarding ─────────────────────────────────────────
+   Premium-quality help affordance: dismissible info card inside the row-
+   index panel and a "❓" icon button in both modal headers that opens a
+   summary popover. localStorage keys gate the one-time card; the popover
+   is always available. */
+.v3-notes-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 14px;
+  border-radius: 8px;
+}
+.v3-notes-help-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--theme-border-soft);
+  background: rgba(37, 99, 235, 0.06);
+  border-left: 4px solid var(--theme-accent, #2563eb);
+  border-radius: 8px;
+  color: var(--theme-text-primary);
+}
+body.theme-dark .v3-notes-help-card,
+body:not(.theme-light) .v3-notes-help-card { background: rgba(96, 165, 250, 0.10); }
+.v3-notes-help-card-body { flex: 1; min-width: 0; }
+.v3-notes-help-card-title {
+  font-size: 12.5px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--theme-text-primary);
+}
+.v3-notes-help-card-text {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--theme-text-secondary);
+}
+.v3-notes-help-card-text b { color: var(--theme-text-primary); }
+.v3-notes-help-card-dismiss {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-muted);
+  border-radius: 6px;
+  font-size: 11.5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.v3-notes-help-card-dismiss:hover {
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+}
+.v3-notes-help-popover {
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: left;
+}
+.v3-notes-help-popover h4 {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+  color: var(--theme-text-primary);
+}
+.v3-notes-help-popover ul {
+  margin: 0 0 8px 0;
+  padding-left: 22px;
+}
+.v3-notes-help-popover li { margin-bottom: 3px; }
+.v3-notes-help-popover code {
+  background: var(--theme-bg-muted);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+}
 .v3-notes-title-input {
   display: block;
   width: 100%;
@@ -9213,9 +9293,28 @@ body:not(.theme-light) .v3-heatmap-cell {
         <span data-i18n="notes.rowIndex.title">📝 Заметки к строке</span>
         <span class="v3-notes-row-index-count" id="v3NotesRowIndexCount"></span>
       </div>
-      <button class="btn-secondary" onclick="v3NotesRowIndexClose()" data-i18n="notes.closeBtn">Закрыть</button>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button id="v3NotesRowIndexHelpBtn" type="button" class="btn-secondary v3-notes-help-icon"
+                onclick="v3NotesHelpShow()"
+                data-i18n-title="notes.help.openTitle" title="Как работают премиум-заметки"
+                data-i18n-aria-label="notes.help.openAria" aria-label="Помощь по заметкам">❓</button>
+        <button class="btn-secondary" onclick="v3NotesRowIndexClose()" data-i18n="notes.closeBtn">Закрыть</button>
+      </div>
     </div>
     <div class="v3-modal-body">
+      <!-- Phase 9.3.5.B onboarding — dismissible help card, shown until the
+           user has dismissed it once (localStorage `notesRowIndexHelpSeen_v1`). -->
+      <div id="v3NotesRowIndexHelpCard" class="v3-notes-help-card" style="display:none;" role="note">
+        <div class="v3-notes-help-card-body">
+          <div class="v3-notes-help-card-title" data-i18n="notes.help.cardTitle">ℹ️ Что это за панель?</div>
+          <div class="v3-notes-help-card-text" data-i18n-html="notes.help.cardBody">
+            К одной строке можно сделать <b>несколько заметок разных типов</b>: свободный комментарий, словарную карточку, грамматическое правило, разбор перевода или произношение. Каждая заметка хранится отдельно и может быть превращена в SRS-карточку для повторения. Нажмите кнопку ниже, чтобы добавить заметку нужного типа.
+          </div>
+        </div>
+        <button type="button" class="v3-notes-help-card-dismiss" onclick="v3NotesHelpDismissRowIndex()"
+                data-i18n="notes.help.dismissBtn" title="Понятно, скрыть">Понятно ✕</button>
+      </div>
+
       <div id="v3NotesRowIndexList" class="v3-notes-row-index-list" aria-live="polite">
         <!-- cards rendered by v3NotesRowIndexRender -->
       </div>
@@ -9245,6 +9344,10 @@ body:not(.theme-light) .v3-heatmap-cell {
     <div class="v3-modal-header">
       <div class="v3-modal-title" id="v3NotesModalTitle"><span id="v3NotesModalTitleLabel" data-i18n="notes.modalTitle.sentence">Заметка к строке</span> <span class="v3-notes-title-hint" data-i18n="notes.modalTitleHint">(Ctrl+Enter — сохранить)</span></div>
       <div style="display:flex; gap:8px; align-items:center;">
+        <button id="v3NotesEditHelpBtn" type="button" class="btn-secondary v3-notes-help-icon"
+                onclick="v3NotesHelpShow()"
+                data-i18n-title="notes.help.openTitle" title="Как работают премиум-заметки"
+                data-i18n-aria-label="notes.help.openAria" aria-label="Помощь по заметкам">❓</button>
         <button id="v3NotesHistoryToggleBtn" type="button" class="btn-secondary" onclick="v3NotesHistoryToggle()" data-i18n-title="notes.historyToggleTitle" title="История версий (M5)" aria-expanded="false">🕒 <span data-i18n="notes.history">История</span></button>
         <button class="btn-secondary" onclick="v3NotesClose()" data-i18n="notes.closeBtn">Закрыть</button>
       </div>
@@ -23161,9 +23264,22 @@ function v3ConfirmModal(opts) {
     if (!root) return resolve(window.confirm(o.body || "Подтвердите действие"));
 
     titleEl.textContent = o.title || "Подтверждение";
-    bodyEl.textContent  = o.body  || "";
+    // Phase 9.3.5 onboarding — allow trusted HTML body for the help popover.
+    // Caller MUST opt in via { isHtml: true } and is responsible for the
+    // content being authored (we never pass user-controlled strings here).
+    if (o.isHtml) {
+      bodyEl.innerHTML = String(o.body || "");
+    } else {
+      bodyEl.textContent = o.body || "";
+    }
     okEl.textContent    = o.okText    || (o.danger ? "Удалить" : "Подтвердить");
-    cancelEl.textContent = o.cancelText || "Отмена";
+    // Empty cancelText → info-only mode (single OK button, no Cancel).
+    if (o.cancelText === "") {
+      cancelEl.style.display = "none";
+    } else {
+      cancelEl.style.display = "";
+      cancelEl.textContent = o.cancelText || "Отмена";
+    }
     okEl.style.background  = o.danger ? "#dc2626" : "#3b82f6";
 
     if (o.requireType) {
@@ -33316,10 +33432,11 @@ async function v3NotesRowEntryDispatch(textId, sentenceId, rowIdx) {
     showToast(t("toast.notesLibraryOnly"), "error");
     return;
   }
+  // Defensive: any previously-open notes-related modal is closed first so
+  // dispatch never stacks panels on top of one another.
+  try { v3NotesRowIndexClose(); } catch (_) {}
+
   if (!LOCAL_MODE) {
-    // Server-mode fallback: just open the edit modal directly. Polymorphic
-    // notes aren't available without OPFS — only the legacy sentence-bound
-    // free note can be saved server-side.
     v3NotesOpen(textId, sentenceId, rowIdx);
     return;
   }
@@ -33353,9 +33470,77 @@ function v3NotesRowIndexOpen(textId, sentenceId, rowIdx, rows) {
   v3NotesRowIndexContext = { textId: String(textId), sentenceId: String(sentenceId), rowIdx };
   if (count) count.textContent = "(" + (Array.isArray(rows) ? rows.length : 0) + ")";
   v3NotesRowIndexRender(rows || []);
+  // Onboarding — show one-time help card unless user dismissed it.
+  try {
+    const card = document.getElementById("v3NotesRowIndexHelpCard");
+    if (card) card.style.display = v3NotesHelpShouldShowRowIndex() ? "" : "none";
+  } catch (_) {}
   modal.classList.remove("hidden");
 }
 window.v3NotesRowIndexOpen = v3NotesRowIndexOpen;
+
+// Onboarding state — localStorage-gated, one-time help card in the row-index
+// panel. The "❓" popover is always available; this just controls whether the
+// "Что это за панель?" card auto-appears on first opens.
+const V3_NOTES_HELP_DISMISS_KEY = "notesRowIndexHelpSeen_v1";
+function v3NotesHelpShouldShowRowIndex() {
+  try {
+    return localStorage.getItem(V3_NOTES_HELP_DISMISS_KEY) !== "1";
+  } catch (_) { return false; }
+}
+function v3NotesHelpDismissRowIndex() {
+  try { localStorage.setItem(V3_NOTES_HELP_DISMISS_KEY, "1"); } catch (_) {}
+  const card = document.getElementById("v3NotesRowIndexHelpCard");
+  if (card) card.style.display = "none";
+}
+window.v3NotesHelpDismissRowIndex = v3NotesHelpDismissRowIndex;
+
+// Help popover — opens a v3ConfirmModal in "info-only" mode summarizing
+// premium notes capabilities. Available from both row-index and edit modal
+// headers via the "❓" icon. Localized.
+function v3NotesHelpShow() {
+  const t1 = v3NotesT("notes.help.popoverTitle", "Premium Notes — как пользоваться");
+  const body = v3NotesT("notes.help.popoverBody", "");
+  const ok = v3NotesT("notes.help.popoverClose", "Понятно");
+  // Fallback body content if i18n key resolves to itself (defensive).
+  const html = body && body !== "notes.help.popoverBody"
+    ? body
+    : `<div class="v3-notes-help-popover">
+        <h4>📝 Цели заметок</h4>
+        <p>К одной строке можно сделать <b>несколько заметок разных типов</b>. Каждая хранится отдельно и появляется в панели «Заметки к строке».</p>
+        <h4>🏷️ Типы заметок</h4>
+        <ul>
+          <li><b>✍ Свободная</b> — комментарий или мысль о строке.</li>
+          <li><b>🔤 Слово</b> — словарная карточка: слово, корень, перевод, мнемоника.</li>
+          <li><b>📐 Грамматика</b> — правило, замеченное в этой строке.</li>
+          <li><b>↔ Перевод</b> — разбор расхождения в переводе.</li>
+          <li><b>🔊 Произношение</b> — IPA, частые ошибки, привязка к моменту аудио.</li>
+        </ul>
+        <h4>🎧 Audio anchor</h4>
+        <p>Любую sentence-заметку можно привязать к моменту аудио — клик по «📍 Привязать к аудио» во время воспроизведения. Потом «▶︎» в чипе играет с этого места.</p>
+        <h4>🎴 SRS-карточки</h4>
+        <p>Заметку с шаблоном можно превратить в карточку для повторения кнопкой «🎴 Сделать карточкой».</p>
+        <h4>🔗 Связи</h4>
+        <p>В развёрнутой панели «🔗 Связи» можно связать заметку с корнем, биньяном, другой заметкой — выстраивая личный граф знаний.</p>
+        <h4>🕒 История</h4>
+        <p>Каждое сохранение создаёт версию; до 50 версий на заметку. Можно вернуться к любой.</p>
+      </div>`;
+  if (typeof v3ConfirmModal === "function") {
+    // v3ConfirmModal supports `body` as HTML string + a single OK button.
+    v3ConfirmModal({
+      title: t1,
+      body: html,
+      okText: ok,
+      cancelText: "",
+      danger: false,
+      isHtml: true,
+    }).catch(() => {});
+  } else {
+    // Last-resort fallback.
+    try { alert(t1); } catch (_) {}
+  }
+}
+window.v3NotesHelpShow = v3NotesHelpShow;
 
 function v3NotesRowIndexClose() {
   const modal = document.getElementById("v3NotesRowIndexModal");

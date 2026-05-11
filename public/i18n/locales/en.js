@@ -450,6 +450,15 @@ window.I18N_LOCALES.en = {
       addTranslationTitle: "Translation discrepancy on this row",
       addPronunciationTitle: "Pronunciation note for this row",
     },
+    help: {
+      openTitle: "How premium notes work",
+      openAria: "Notes help",
+      cardTitle: "ℹ️ What is this panel?",
+      cardBody: "You can attach <b>several notes of different kinds</b> to a single row — a free comment, a vocab card, a grammar rule, a translation breakdown, or a pronunciation note. Each is stored separately and can be turned into an SRS card for spaced repetition. Click a button below to add a note of the kind you need.",
+      dismissBtn: "Got it ✕",
+      popoverTitle: "Premium Notes — quick guide",
+      popoverClose: "Got it",
+    },
     // Phase 9.3.C — Note → SRS
     toSrsBtn: "🎴 Make a card",
     toSrsBtnDone: "🎴 ✓ In SRS",

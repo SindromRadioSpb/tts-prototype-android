@@ -453,6 +453,15 @@ window.I18N_LOCALES.he = {
       addTranslationTitle: "פער תרגום בשורה",
       addPronunciationTitle: "הערת הגייה לשורה",
     },
+    help: {
+      openTitle: "איך עובדות הערות פרימיום",
+      openAria: "עזרה להערות",
+      cardTitle: "ℹ️ מה הפאנל הזה?",
+      cardBody: "אפשר לצרף <b>מספר הערות מסוגים שונים</b> לאותה השורה — תגובה חופשית, כרטיס אוצר מילים, כלל דקדוק, פירוט תרגום או הערת הגייה. כל אחת נשמרת בנפרד וניתן להמיר אותה לכרטיס SRS לחזרה מרווחת. לחץ על כפתור למטה כדי להוסיף הערה מהסוג הרצוי.",
+      dismissBtn: "הבנתי ✕",
+      popoverTitle: "Premium Notes — מדריך מהיר",
+      popoverClose: "הבנתי",
+    },
     // Phase 9.3.C — Note → SRS
     toSrsBtn: "🎴 צור כרטיס",
     toSrsBtnDone: "🎴 ✓ ב-SRS",
