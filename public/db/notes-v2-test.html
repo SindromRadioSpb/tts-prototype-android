@@ -957,6 +957,51 @@ async function run() {
     await deleteNoteById(noteB.id);
   })();
 
+  // ── Phase 9.3.5.B — Multi-note row-index ────────────────────────
+  await t('9.3.5.B: listNotesForRow returns sentence-target AND scoped word-target notes', async () => {
+    const mod = await import('./local-db.js');
+    const listNotesForRow = mod.listNotesForRow;
+    if (typeof listNotesForRow !== 'function') throw new Error('listNotesForRow not exported');
+
+    const tid = crypto.randomUUID();
+    const sid1 = crypto.randomUUID();
+    const sid2 = crypto.randomUUID();
+    await createText({ id: tid, text_key: '9-3-5-b-' + Date.now(), title: 'row index', source_text: 'שלום ילדים' });
+    await addSentence(tid, { id: sid1, order_index: 0, he_plain: 'שלום ילדים', ru: 'привет дети' });
+    await addSentence(tid, { id: sid2, order_index: 1, he_plain: 'מה שלומך', ru: 'как дела' });
+
+    // Multiple notes on sid1:
+    const n1 = await createNote({ target_kind: 'sentence', target_id: sid1, text_id: tid, note_type: 'free', body: 'first' });
+    const n2 = await createNote({ target_kind: 'sentence', target_id: sid1, text_id: tid, note_type: 'grammar_rule', title: 'g',
+      body: { kind: 'grammar_rule', rule_title: 'Imperative', rule_body: 'verb forms' } });
+    // Word note SCOPED to sid1 (Phase 9.3.5.F format).
+    const n3 = await createNote({ target_kind: 'word', target_id: sid1 + ':0', text_id: tid, note_type: 'word_study',
+      body: { kind: 'word_study', word: 'שלום', meaning: 'peace' } });
+    // Note on a DIFFERENT sentence — must not leak in.
+    const n4 = await createNote({ target_kind: 'sentence', target_id: sid2, text_id: tid, note_type: 'free', body: 'other row' });
+
+    const rows = await listNotesForRow(tid, sid1);
+    const ids = rows.map((r) => r.id).sort();
+    if (ids.length !== 3) throw new Error('expected 3 notes for sid1, got ' + ids.length + ': ' + ids.join(','));
+    if (ids.includes(n4.id)) throw new Error('note from sid2 leaked into sid1 results');
+    if (!ids.includes(n1.id) || !ids.includes(n2.id) || !ids.includes(n3.id)) {
+      throw new Error('missing some of n1/n2/n3 in row result');
+    }
+
+    // Sanity: querying sid2 returns only n4.
+    const rows2 = await listNotesForRow(tid, sid2);
+    if (rows2.length !== 1 || rows2[0].id !== n4.id) throw new Error('sid2 results wrong');
+
+    await deleteText(tid);
+  })();
+
+  await t('9.3.5.B: listNotesForRow returns empty array for unknown row', async () => {
+    const mod = await import('./local-db.js');
+    const rows = await mod.listNotesForRow('no-such-text', 'no-such-sentence');
+    if (!Array.isArray(rows)) throw new Error('expected array');
+    if (rows.length !== 0) throw new Error('expected empty array');
+  })();
+
   // ── Phase 9.3.C — Note → SRS conversion (M6) ──────────────────────
   await t('9.3.C: migration 026 seeded 4 note-card templates', async () => {
     const rows = await dbQuery(

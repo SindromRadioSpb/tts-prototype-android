@@ -440,6 +440,22 @@ window.I18N_LOCALES.ru = {
     linkAddAliasPh: "Подпись (опционально)",
     linkAddBtn: "+ Добавить",
     linkRemoveAria: "Удалить связь",
+    // Phase 9.3.5.B — Multi-note row-index panel
+    rowBtnTitleMulti: "{n} заметок к этой строке",
+    rowIndex: {
+      title: "📝 Заметки к строке",
+      emptyText: "Пока нет заметок к этой строке — добавьте первую ниже.",
+      untitled: "(без заголовка)",
+      anchorTitle: "С привязкой к аудио",
+      srsTitle: "В SRS",
+      deleteAria: "Удалить заметку",
+      addLabel: "+ Новая заметка:",
+      addFreeTitle: "Свободная заметка к этой строке",
+      addWordTitle: "Карточка слова из этой строки",
+      addGrammarTitle: "Грамматическое правило, замеченное в этой строке",
+      addTranslationTitle: "Расхождение в переводе этой строки",
+      addPronunciationTitle: "Заметка о произношении в этой строке",
+    },
     // Phase 9.3.C — Note → SRS
     toSrsBtn: "🎴 Сделать карточкой",
     toSrsBtnDone: "🎴 ✓ В SRS",

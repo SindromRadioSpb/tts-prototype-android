@@ -437,6 +437,22 @@ window.I18N_LOCALES.he = {
     linkAddAliasPh: "כינוי (אופציונלי)",
     linkAddBtn: "+ הוסף",
     linkRemoveAria: "הסר קישור",
+    // Phase 9.3.5.B — Multi-note row-index panel
+    rowBtnTitleMulti: "{n} הערות לשורה זו",
+    rowIndex: {
+      title: "📝 הערות לשורה",
+      emptyText: "אין עדיין הערות לשורה הזו — הוסף את הראשונה למטה.",
+      untitled: "(ללא כותרת)",
+      anchorTitle: "מוצמד לשמע",
+      srsTitle: "ב-SRS",
+      deleteAria: "מחק הערה",
+      addLabel: "+ הערה חדשה:",
+      addFreeTitle: "הערה חופשית לשורה זו",
+      addWordTitle: "כרטיס מילה מהשורה",
+      addGrammarTitle: "כלל דקדוק שנצפה בשורה",
+      addTranslationTitle: "פער תרגום בשורה",
+      addPronunciationTitle: "הערת הגייה לשורה",
+    },
     // Phase 9.3.C — Note → SRS
     toSrsBtn: "🎴 צור כרטיס",
     toSrsBtnDone: "🎴 ✓ ב-SRS",

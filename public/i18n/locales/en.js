@@ -434,6 +434,22 @@ window.I18N_LOCALES.en = {
     linkAddAliasPh: "Alias (optional)",
     linkAddBtn: "+ Add",
     linkRemoveAria: "Remove link",
+    // Phase 9.3.5.B — Multi-note row-index panel
+    rowBtnTitleMulti: "{n} notes on this row",
+    rowIndex: {
+      title: "📝 Notes on this row",
+      emptyText: "No notes yet on this row — add the first below.",
+      untitled: "(untitled)",
+      anchorTitle: "Pinned to audio",
+      srsTitle: "In SRS",
+      deleteAria: "Delete note",
+      addLabel: "+ New note:",
+      addFreeTitle: "Free comment on this row",
+      addWordTitle: "Vocabulary card from this row",
+      addGrammarTitle: "Grammar rule observed in this row",
+      addTranslationTitle: "Translation discrepancy on this row",
+      addPronunciationTitle: "Pronunciation note for this row",
+    },
     // Phase 9.3.C — Note → SRS
     toSrsBtn: "🎴 Make a card",
     toSrsBtnDone: "🎴 ✓ In SRS",

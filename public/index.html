@@ -2496,6 +2496,28 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
 }
 
+/* Phase 9.3.5.B — multi-note count badge on the row notes button. Shown
+   only when the row has >1 notes; appended as a small superscript-style
+   number after the existing 📝 icon. */
+.row-note-btn .row-note-btn-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 3px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--theme-accent, #2563eb);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+body.theme-dark .row-note-btn .row-note-btn-count,
+body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg-page); }
+
 /* Visibility: как у Row-TTS */
 #proTable tbody tr .row-note-btn {
   opacity: 0;
@@ -4907,6 +4929,171 @@ body:not(.theme-light) .v3-notes-links-badge { color: var(--theme-bg-page); }
 }
 @media (max-width: 600px) {
   .v3-notes-links-add-row > * { flex: 1 1 auto; }
+}
+
+/* ─── Phase 9.3.5.B — Multi-note row-index panel ──────────────────────────
+   Premium "layered learning" view: row click → list of all notes attached
+   to that row, with "+ New note" quick-pick. Click a card to open the edit
+   modal for that note. */
+.v3-notes-row-index-panel {
+  max-width: 720px;
+  width: 92vw;
+}
+.v3-notes-row-index-count {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 9px;
+  margin-left: 8px;
+  border-radius: 12px;
+  background: var(--theme-accent);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+body.theme-dark .v3-notes-row-index-count,
+body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); }
+.v3-notes-row-index-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 60px;
+  margin-bottom: 14px;
+}
+.v3-notes-row-index-list:empty::before {
+  content: attr(data-empty-text);
+  display: block;
+  text-align: center;
+  font-size: 13px;
+  color: var(--theme-text-muted);
+  padding: 16px 0;
+  font-style: italic;
+}
+.v3-notes-row-index-card {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 10px;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.v3-notes-row-index-card:hover {
+  background: var(--theme-bg-hover, #f1f5f9);
+  border-color: var(--theme-border-medium);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.v3-notes-row-index-card:focus-within {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: -1px;
+}
+.v3-notes-row-index-card-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 18px;
+  line-height: 1;
+  padding-top: 2px;
+  min-width: 28px;
+}
+.v3-notes-row-index-card-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.v3-notes-row-index-card-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.v3-notes-row-index-card-meta {
+  font-size: 11.5px;
+  color: var(--theme-text-muted);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.v3-notes-row-index-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--theme-text-muted);
+}
+.v3-notes-row-index-card-badge {
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--theme-bg-muted, #f8fafc);
+  border: 1px solid var(--theme-border-soft);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.v3-notes-row-index-card-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  align-self: center;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-muted);
+  border-radius: 50%;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.v3-notes-row-index-card-delete:hover {
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+  border-color: var(--theme-border-medium);
+}
+.v3-notes-row-index-add {
+  padding-top: 12px;
+  border-top: 1px solid var(--theme-border-soft);
+}
+.v3-notes-row-index-add-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--theme-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.v3-notes-row-index-add-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.v3-notes-row-index-add-buttons button {
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+@media (max-width: 600px) {
+  .v3-notes-row-index-panel {
+    width: 100vw;
+    max-width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+  .v3-notes-row-index-add-buttons button { flex: 1 1 calc(50% - 4px); min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-row-index-card,
+  .v3-notes-row-index-card-delete { transition: none; }
 }
 .v3-notes-title-input {
   display: block;
@@ -9008,6 +9195,45 @@ body:not(.theme-light) .v3-heatmap-cell {
       <button id="v3AudioPrefetchStartBtn" class="btn-save" onclick="v3AudioPrefetchStartFromUi()" data-i18n="audioPrefetch.startBtn">Создать аудио</button>
       <button id="v3AudioPrefetchCancelBtn" class="btn-cancel" onclick="v3AudioPrefetchCancelFromUi()" disabled data-i18n="audioPrefetch.cancelBtn">Отмена</button>
       <button id="v3AudioPrefetchCopyBtn" class="btn-cancel" onclick="v3AudioPrefetchCopyDiagnostics()" data-i18n="audioPrefetch.copyDiagBtn">Скопировать диагностику</button>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 9.3.5.B — Multi-note row-index panel. Surfaces ALL notes attached
+     to (or about) a single sentence row, with "+ New note" quick-pick. Row
+     click flows through v3NotesRowEntryDispatch: if the row already has
+     notes, the index panel opens; otherwise the edit modal (`v3NotesModal`
+     below) opens directly. Click any card here → close index → open edit
+     modal with that note id. -->
+<div id="v3NotesRowIndexModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3NotesRowIndexTitle">
+  <div class="v3-modal-backdrop" onclick="v3NotesRowIndexClose()" aria-hidden="true"></div>
+  <div class="v3-modal-panel v3-notes-row-index-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title" id="v3NotesRowIndexTitle">
+        <span data-i18n="notes.rowIndex.title">📝 Заметки к строке</span>
+        <span class="v3-notes-row-index-count" id="v3NotesRowIndexCount"></span>
+      </div>
+      <button class="btn-secondary" onclick="v3NotesRowIndexClose()" data-i18n="notes.closeBtn">Закрыть</button>
+    </div>
+    <div class="v3-modal-body">
+      <div id="v3NotesRowIndexList" class="v3-notes-row-index-list" aria-live="polite">
+        <!-- cards rendered by v3NotesRowIndexRender -->
+      </div>
+      <div class="v3-notes-row-index-add">
+        <div class="v3-notes-row-index-add-label" data-i18n="notes.rowIndex.addLabel">+ Новая заметка:</div>
+        <div class="v3-notes-row-index-add-buttons">
+          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','free')"
+                  data-i18n-title="notes.rowIndex.addFreeTitle" title="Свободная заметка к этой строке">✍ <span data-i18n="notes.typeFree">Свободная</span></button>
+          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('word','word_study')"
+                  data-i18n-title="notes.rowIndex.addWordTitle" title="Карточка слова из этой строки">🔤 <span data-i18n="notes.typeWordStudy">Слово</span></button>
+          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','grammar_rule')"
+                  data-i18n-title="notes.rowIndex.addGrammarTitle" title="Грамматическое правило, замеченное в этой строке">📐 <span data-i18n="notes.typeGrammar">Грамматика</span></button>
+          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','translation_discrepancy')"
+                  data-i18n-title="notes.rowIndex.addTranslationTitle" title="Расхождение в переводе этой строки">↔ <span data-i18n="notes.typeTranslation">Перевод</span></button>
+          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','pronunciation_note')"
+                  data-i18n-title="notes.rowIndex.addPronunciationTitle" title="Заметка о произношении в этой строке">🔊 <span data-i18n="notes.typePronunciation">Произношение</span></button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -13782,7 +14008,13 @@ async function v3DeeplinkResolveTarget(target) {
             ? v3NotesFindRowIdxBySentenceId(noteSentenceId)
             : null;
           if (rowIdx !== null) {
-            v3NotesOpen(noteTextId, noteSentenceId, rowIdx);
+            // Phase 9.3.5.B — route through dispatch so multi-note rows
+            // get the index panel; single-note rows fall through to edit.
+            if (typeof v3NotesRowEntryDispatch === "function") {
+              v3NotesRowEntryDispatch(noteTextId, noteSentenceId, rowIdx);
+            } else {
+              v3NotesOpen(noteTextId, noteSentenceId, rowIdx);
+            }
           }
         }
 
@@ -31195,7 +31427,13 @@ try {
                 return;
             }
 
-            v3NotesOpen(textId, sentenceId, rowIdx);
+            // Phase 9.3.5.B — dispatch decides between row-index panel (≥1
+            // existing notes) and direct edit modal (0 notes).
+            if (typeof v3NotesRowEntryDispatch === "function") {
+              v3NotesRowEntryDispatch(textId, sentenceId, rowIdx);
+            } else {
+              v3NotesOpen(textId, sentenceId, rowIdx);
+            }
          } catch (err) {
         console.warn("row-note click handler failed", err);
         showToast(t("toast.noteOpenFailed"), "error");
@@ -32999,6 +33237,13 @@ function v3NotesInvalidateLibrarySmartCache() {
       v3LibrarySmartLoadCache().catch(() => {});
     }
   } catch (_) {}
+  // Phase 9.3.5.B — row-index cache is invalidated for the currently-open
+  // sentence on every note save/delete. Cheap; next row click rehydrates.
+  try {
+    if (typeof v3NotesRowCacheInvalidate === "function" && v3NotesModalSentenceId) {
+      v3NotesRowCacheInvalidate(v3NotesModalSentenceId);
+    }
+  } catch (_) {}
 }
 
 function v3NotesScheduleAutoSave() {
@@ -33026,6 +33271,248 @@ function v3NotesCancelAutoSave() {
     v3NotesAutoSaveTimer = null;
   }
 }
+
+// ── Phase 9.3.5.B — Multi-note row-index panel ────────────────────────────
+
+// Lazy cache of all notes per sentenceId for the row-index panel. Populated
+// on first row-click for a row; invalidated by Save / Delete on any note
+// whose sentence_id matches. Keyed by sentence id; value is an array of
+// note-summary objects (subset of notes_v2 columns).
+const v3NotesRowCache = Object.create(null);
+
+function v3NotesRowCacheInvalidate(sentenceId) {
+  if (!sentenceId) return;
+  try { delete v3NotesRowCache[String(sentenceId)]; } catch (_) {}
+}
+window.v3NotesRowCacheInvalidate = v3NotesRowCacheInvalidate;
+
+async function v3NotesRowCacheRefresh(textId, sentenceId) {
+  if (!LOCAL_MODE || !textId || !sentenceId) return [];
+  try {
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.listNotesForRow !== "function") return [];
+    const rows = await ldb.listNotesForRow(textId, sentenceId);
+    v3NotesRowCache[String(sentenceId)] = Array.isArray(rows) ? rows : [];
+    return v3NotesRowCache[String(sentenceId)];
+  } catch (e) {
+    console.warn("[notes] v3NotesRowCacheRefresh failed:", e && e.message ? e.message : e);
+    return [];
+  }
+}
+window.v3NotesRowCacheRefresh = v3NotesRowCacheRefresh;
+
+// Public count helper used by v3NotesUpdateButtonRow to render "📝 3" badge.
+function v3NotesRowCount(sentenceId) {
+  const arr = v3NotesRowCache[String(sentenceId || "")];
+  return Array.isArray(arr) ? arr.length : 0;
+}
+window.v3NotesRowCount = v3NotesRowCount;
+
+// Row-click entry point. Decides between INDEX panel (≥1 existing notes)
+// and direct EDIT modal (0 notes). Always queries the DB so the cache is
+// authoritative — cheap (single indexed SELECT, runs in worker).
+async function v3NotesRowEntryDispatch(textId, sentenceId, rowIdx) {
+  if (!textId || !sentenceId) {
+    showToast(t("toast.notesLibraryOnly"), "error");
+    return;
+  }
+  if (!LOCAL_MODE) {
+    // Server-mode fallback: just open the edit modal directly. Polymorphic
+    // notes aren't available without OPFS — only the legacy sentence-bound
+    // free note can be saved server-side.
+    v3NotesOpen(textId, sentenceId, rowIdx);
+    return;
+  }
+  try {
+    const rows = await v3NotesRowCacheRefresh(textId, sentenceId);
+    // Update the badge count immediately based on fresh data.
+    try { v3NotesUpdateButtonRow(rowIdx, sentenceId); } catch (_) {}
+    if (!rows.length) {
+      // No existing notes → open edit modal directly with a fresh
+      // sentence-target free note (preserves the casual one-note workflow).
+      v3NotesOpen(textId, sentenceId, rowIdx);
+      return;
+    }
+    v3NotesRowIndexOpen(textId, sentenceId, rowIdx, rows);
+  } catch (e) {
+    console.warn("v3NotesRowEntryDispatch failed", e);
+    v3NotesOpen(textId, sentenceId, rowIdx); // last-resort fallback
+  }
+}
+window.v3NotesRowEntryDispatch = v3NotesRowEntryDispatch;
+
+// Stash row context so the index panel can re-open after edit-modal close.
+let v3NotesRowIndexContext = null;
+
+function v3NotesRowIndexOpen(textId, sentenceId, rowIdx, rows) {
+  const modal = document.getElementById("v3NotesRowIndexModal");
+  const count = document.getElementById("v3NotesRowIndexCount");
+  const list = document.getElementById("v3NotesRowIndexList");
+  if (!modal || !list) return;
+
+  v3NotesRowIndexContext = { textId: String(textId), sentenceId: String(sentenceId), rowIdx };
+  if (count) count.textContent = "(" + (Array.isArray(rows) ? rows.length : 0) + ")";
+  v3NotesRowIndexRender(rows || []);
+  modal.classList.remove("hidden");
+}
+window.v3NotesRowIndexOpen = v3NotesRowIndexOpen;
+
+function v3NotesRowIndexClose() {
+  const modal = document.getElementById("v3NotesRowIndexModal");
+  if (modal) modal.classList.add("hidden");
+  v3NotesRowIndexContext = null;
+}
+window.v3NotesRowIndexClose = v3NotesRowIndexClose;
+
+// Icon shorthand by target_kind / note_type.
+const V3_NOTES_TARGET_ICONS = {
+  sentence: "📍", word: "🔤", root: "🌳", binyan: "🧬",
+  text: "📄", note: "🔗", free: "✍",
+};
+const V3_NOTES_TYPE_ICONS = {
+  free: "✍", word_study: "🔤", grammar_rule: "📐",
+  translation_discrepancy: "↔", pronunciation_note: "🔊",
+};
+
+function v3NotesRowIndexBodyExcerpt(row) {
+  try {
+    const bj = row.body_json;
+    if (!bj) return "";
+    let parsed;
+    try { parsed = JSON.parse(String(bj)); } catch (_) { return String(bj).slice(0, 80); }
+    if (parsed && typeof parsed === "object") {
+      if (typeof parsed.markdown === "string") return parsed.markdown.slice(0, 80);
+      // Pick first non-empty string field for templated notes.
+      for (const k of ["rule_title", "word", "source_text", "title"]) {
+        if (typeof parsed[k] === "string" && parsed[k]) return parsed[k].slice(0, 80);
+      }
+      return JSON.stringify(parsed).slice(0, 80);
+    }
+  } catch (_) {}
+  return "";
+}
+
+function v3NotesRowIndexRender(rows) {
+  const list = document.getElementById("v3NotesRowIndexList");
+  if (!list) return;
+  const emptyTxt = v3NotesT("notes.rowIndex.emptyText", "Пока нет заметок к этой строке — добавьте первую ниже.");
+  list.setAttribute("data-empty-text", emptyTxt);
+
+  if (!rows || !rows.length) { list.innerHTML = ""; return; }
+
+  const html = rows.map((row) => {
+    const id = v3EscapeHtml(String(row.id || ""));
+    const tk = String(row.target_kind || "sentence");
+    const nt = String(row.note_type || "free");
+    const targetIcon = V3_NOTES_TARGET_ICONS[tk] || "❔";
+    const typeIcon = V3_NOTES_TYPE_ICONS[nt] || "✍";
+    const title = String(row.title || "").trim();
+    const excerpt = v3NotesRowIndexBodyExcerpt(row);
+    const displayTitle = title || excerpt || v3NotesT("notes.rowIndex.untitled", "(без заголовка)");
+    const updatedRel = v3NotesFmtRelative ? v3NotesFmtRelative(row.updated_at) : "";
+    const anchored = Number.isFinite(Number(row.audio_anchor_ms)) && Number(row.audio_anchor_ms) > 0;
+    const hasSrs = !!row.srs_card_id;
+
+    const anchorBadge = anchored
+      ? `<span class="v3-notes-row-index-card-badge" title="${v3EscapeHtml(v3NotesT("notes.rowIndex.anchorTitle", "С привязкой к аудио"))}">📍 ${v3EscapeHtml(v3NotesFmtMs(Number(row.audio_anchor_ms)))}</span>`
+      : "";
+    const srsBadge = hasSrs
+      ? `<span class="v3-notes-row-index-card-badge" title="${v3EscapeHtml(v3NotesT("notes.rowIndex.srsTitle", "В SRS"))}">🎴</span>`
+      : "";
+
+    const typeLabelKey = "notes.type" + (nt === "free" ? "Free"
+      : nt === "word_study" ? "WordStudy"
+      : nt === "grammar_rule" ? "Grammar"
+      : nt === "translation_discrepancy" ? "Translation"
+      : "Pronunciation");
+    const typeLabel = v3NotesT(typeLabelKey, nt);
+
+    return `<div class="v3-notes-row-index-card" data-note-id="${id}" tabindex="0"
+                 onclick="v3NotesRowIndexOpenNote('${id}')"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();v3NotesRowIndexOpenNote('${id}');}">
+      <div class="v3-notes-row-index-card-icons" aria-hidden="true">
+        <span>${targetIcon}</span>
+        <span>${typeIcon}</span>
+      </div>
+      <div class="v3-notes-row-index-card-body">
+        <div class="v3-notes-row-index-card-title">${v3EscapeHtml(displayTitle)}</div>
+        <div class="v3-notes-row-index-card-meta">
+          <span>${v3EscapeHtml(typeLabel)}</span>
+          ${updatedRel ? '<span>· ' + v3EscapeHtml(updatedRel) + '</span>' : ''}
+        </div>
+      </div>
+      <div class="v3-notes-row-index-card-badges">${anchorBadge}${srsBadge}</div>
+      <button type="button" class="v3-notes-row-index-card-delete"
+              onclick="event.stopPropagation(); v3NotesRowIndexDelete('${id}')"
+              aria-label="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}"
+              title="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}">✕</button>
+    </div>`;
+  }).join("");
+  list.innerHTML = html;
+}
+window.v3NotesRowIndexRender = v3NotesRowIndexRender;
+
+// Click a card → close index, open edit modal with that note id loaded.
+function v3NotesRowIndexOpenNote(noteId) {
+  if (!noteId) return;
+  const ctx = v3NotesRowIndexContext;
+  v3NotesRowIndexClose();
+  if (!ctx) {
+    // Direct deep-link from elsewhere — open edit without row context.
+    v3NotesOpen("", "", null, { noteId });
+    return;
+  }
+  v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, { noteId });
+}
+window.v3NotesRowIndexOpenNote = v3NotesRowIndexOpenNote;
+
+// "+ New note" quick-pick → close index, open edit modal pre-configured.
+function v3NotesRowIndexAddNew(targetKind, noteType) {
+  const ctx = v3NotesRowIndexContext;
+  v3NotesRowIndexClose();
+  if (!ctx) return;
+  v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, {
+    targetKind: targetKind || "sentence",
+    noteType: noteType || "free",
+  });
+}
+window.v3NotesRowIndexAddNew = v3NotesRowIndexAddNew;
+
+// Per-card delete → confirm → remove → invalidate cache → re-render.
+async function v3NotesRowIndexDelete(noteId) {
+  if (!noteId || !LOCAL_MODE) return;
+  const ctx = v3NotesRowIndexContext;
+  if (!ctx) return;
+  const _t = (typeof window.t === "function") ? window.t : function(k){return k;};
+  const ok = await v3ConfirmModal({
+    title: _t("confirms.notesDeleteTitle"),
+    body:  _t("confirms.notesDeleteBody"),
+    okText: _t("confirms.notesDeleteOk"),
+    danger: true,
+  });
+  if (!ok) return;
+  try {
+    const ldb = await ensureLocalDB();
+    await ldb.deleteNoteById(noteId);
+    v3NotesRowCacheInvalidate(ctx.sentenceId);
+    const rows = await v3NotesRowCacheRefresh(ctx.textId, ctx.sentenceId);
+    // Refresh badge + re-render panel; if zero notes left, close panel.
+    try { v3NotesUpdateButtonRow(ctx.rowIdx, ctx.sentenceId); } catch (_) {}
+    if (!rows.length) {
+      v3NotesRowIndexClose();
+    } else {
+      const count = document.getElementById("v3NotesRowIndexCount");
+      if (count) count.textContent = "(" + rows.length + ")";
+      v3NotesRowIndexRender(rows);
+    }
+    try { v3NotesInvalidateLibrarySmartCache(); } catch (_) {}
+    showToast(t("toast.noteDeleted"), "success");
+  } catch (e) {
+    console.warn("v3NotesRowIndexDelete failed", e);
+    showToast(t("toast.noteDeleteFailed"), "error");
+  }
+}
+window.v3NotesRowIndexDelete = v3NotesRowIndexDelete;
 
 function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
   v3NotesModalTextId = String(textId || "");
@@ -33554,9 +34041,28 @@ function v3NotesUpdateButtonRow(rowIdx, sentenceId) {
     if (isAnchored) btn.classList.add("row-note-anchored");
     else btn.classList.remove("row-note-anchored");
 
+    // Phase 9.3.5.B — multi-note count badge. Sourced from the row-index
+    // cache populated by v3NotesRowCacheRefresh on row click; falls back
+    // to legacy "has at least one" semantics when the cache hasn't been
+    // primed yet. Renders "📝 N" suffix on the row button label when N > 1.
+    const rowCount = (typeof v3NotesRowCount === "function") ? v3NotesRowCount(sentenceId) : 0;
+    let countLabel = btn.querySelector(".row-note-btn-count");
+    if (rowCount > 1) {
+      if (!countLabel) {
+        countLabel = document.createElement("span");
+        countLabel.className = "row-note-btn-count";
+        btn.appendChild(countLabel);
+      }
+      countLabel.textContent = String(rowCount);
+    } else if (countLabel) {
+      try { countLabel.remove(); } catch (_) { countLabel.textContent = ""; }
+    }
+
     if (isAnchored) {
       btn.title = v3NotesT("notes.rowBtnTitleAnchored", "Заметка с привязкой к {time}")
         .replace("{time}", v3NotesFmtMs(anchorMs));
+    } else if (rowCount > 1) {
+      btn.title = v3NotesT("notes.rowBtnTitleMulti", "{n} заметок к этой строке").replace("{n}", String(rowCount));
     } else {
       btn.title = has
         ? v3NotesT("notes.rowBtnTitleHas", "Заметка (есть)")

@@ -695,6 +695,26 @@ export async function listAllNotesForText(textId) {
   );
 }
 
+// Phase 9.3.5.B — all notes belonging to a single row's learning context.
+// Returns sentence-target notes (target_kind='sentence' AND target_id=sid)
+// PLUS word-target notes whose target_id is scoped to this sentence
+// (post-Phase 9.3.5.F format `'<sentence_id>:<word_offset>'` or legacy
+// bare-lemma — see Workstream F for the resolution policy).
+// Sorted newest-first; intended for the row-index panel UI.
+export async function listNotesForRow(textId, sentenceId) {
+  if (!textId || !sentenceId) return [];
+  return q(
+    `SELECT * FROM notes_v2
+       WHERE text_id = ?
+         AND (
+           (target_kind = 'sentence' AND target_id = ?)
+           OR (target_kind = 'word' AND target_id LIKE ? || ':%')
+         )
+       ORDER BY updated_at DESC`,
+    [String(textId), String(sentenceId), String(sentenceId)]
+  );
+}
+
 // Get a single polymorphic note by id (returns null if not found).
 export async function getNoteById(id) {
   const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
