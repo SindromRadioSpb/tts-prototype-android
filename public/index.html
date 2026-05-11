@@ -8858,6 +8858,13 @@ body:not(.theme-light) .v3-heatmap-cell {
       <!-- Phase 9.2 — Audio anchoring. Shown only for sentence/word target kinds with a row context. -->
       <div class="v3-notes-meta-row v3-notes-anchor-row" id="v3NotesAnchorRow" style="display:none;">
         <span class="v3-notes-meta-label" data-i18n="notes.anchorLabel">🎧 Аудио:</span>
+        <!-- Play/pause toggle for the row's TTS audio without leaving the modal. -->
+        <button type="button" id="v3NotesRowPlayBtn" class="v3-notes-anchor-chip"
+                onclick="v3NotesRowPlayToggle()"
+                data-i18n-title="notes.rowPlayTitle" title="Проиграть аудио строки (modal-internal)">
+          <span class="v3-notes-anchor-icon" id="v3NotesRowPlayIcon">▶︎</span>
+          <span class="v3-notes-anchor-text" id="v3NotesRowPlayText" data-i18n="notes.rowPlayBtn">Играть</span>
+        </button>
         <button type="button" id="v3NotesAnchorSetBtn" class="v3-notes-anchor-chip v3-notes-anchor-set"
                 onclick="v3NotesAnchorSet()"
                 data-i18n-title="notes.anchorSetTitle" title="Привязать заметку к текущему моменту аудио (Alt+A)">
@@ -31371,6 +31378,86 @@ window.v3NotesAnchorClear = v3NotesAnchorClear;
 // Seek the row's audio to the anchor and play. Routes through the same Row
 // TTS infrastructure (cache HEAD pre-flight from 9.1.F) so a missing cache
 // after import is transparently regenerated, then seeked.
+// Play/pause the row's TTS audio from inside the modal — no need to close
+// the panel and aim for the small row button. When audio for THIS row is
+// playing, pause it; otherwise click the row's TTS button (which handles
+// cache HEAD pre-flight + fresh-regen-on-miss from 9.1.F).
+async function v3NotesRowPlayToggle() {
+  try {
+    const idx = v3NotesModalRowIdx;
+    if (!Number.isFinite(Number(idx))) {
+      showToast(v3NotesT("toast.notesAnchorNoRow", "Нет контекста строки для проигрывания."), "warning");
+      return;
+    }
+    const aud = v3NotesAnchorGetRowAudio();
+    // If audio for this row is currently playing → pause it.
+    if (aud && !aud.paused && typeof rowPlayingRowIdx !== "undefined" && Number(rowPlayingRowIdx) === Number(idx)) {
+      try { aud.pause(); } catch (_) {}
+      v3NotesRowPlayUpdateUI();
+      return;
+    }
+    // Otherwise trigger Row TTS via the existing row button (reuses
+    // cache/HEAD/regen logic, including the 9.1.F fallback path).
+    const table = document.getElementById("proTable");
+    const btn = table ? table.querySelector('button.row-tts-btn[data-row-idx="' + String(idx) + '"]') : null;
+    if (btn) {
+      btn.click();
+    } else {
+      showToast(v3NotesT("toast.notesAnchorNoRow", "Не нашёл кнопку аудио для этой строки."), "warning");
+    }
+  } catch (e) {
+    console.warn("v3NotesRowPlayToggle failed", e);
+  }
+}
+window.v3NotesRowPlayToggle = v3NotesRowPlayToggle;
+
+// Sync the play/pause button label with audio state for this row. Hooked
+// into the rowAudio timeupdate/play/pause/ended events while modal is open.
+function v3NotesRowPlayUpdateUI() {
+  try {
+    const btn = document.getElementById("v3NotesRowPlayBtn");
+    if (!btn) return;
+    const icon = document.getElementById("v3NotesRowPlayIcon");
+    const txt  = document.getElementById("v3NotesRowPlayText");
+    const idx = v3NotesModalRowIdx;
+    const aud = v3NotesAnchorGetRowAudio();
+    const isOurs = (typeof rowPlayingRowIdx !== "undefined" && Number(rowPlayingRowIdx) === Number(idx));
+    const isPlaying = !!(aud && isOurs && !aud.paused);
+    if (isPlaying) {
+      if (icon) icon.textContent = "⏸";
+      if (txt) txt.textContent = v3NotesT("notes.rowPauseBtn", "Пауза");
+      btn.title = v3NotesT("notes.rowPauseTitle", "Пауза");
+    } else {
+      if (icon) icon.textContent = "▶︎";
+      if (txt) txt.textContent = v3NotesT("notes.rowPlayBtn", "Играть");
+      btn.title = v3NotesT("notes.rowPlayTitle", "Проиграть аудио строки");
+    }
+  } catch (_) {}
+}
+window.v3NotesRowPlayUpdateUI = v3NotesRowPlayUpdateUI;
+
+let v3NotesRowPlayListenersAttached = false;
+function v3NotesRowPlayAttachListeners() {
+  if (v3NotesRowPlayListenersAttached) return;
+  const aud = v3NotesAnchorGetRowAudio();
+  if (!aud) return;
+  aud.addEventListener("play", v3NotesRowPlayUpdateUI);
+  aud.addEventListener("pause", v3NotesRowPlayUpdateUI);
+  aud.addEventListener("ended", v3NotesRowPlayUpdateUI);
+  v3NotesRowPlayListenersAttached = true;
+}
+function v3NotesRowPlayDetachListeners() {
+  const aud = v3NotesAnchorGetRowAudio();
+  if (aud && v3NotesRowPlayListenersAttached) {
+    try {
+      aud.removeEventListener("play", v3NotesRowPlayUpdateUI);
+      aud.removeEventListener("pause", v3NotesRowPlayUpdateUI);
+      aud.removeEventListener("ended", v3NotesRowPlayUpdateUI);
+    } catch (_) {}
+  }
+  v3NotesRowPlayListenersAttached = false;
+}
+
 async function v3NotesAnchorPlay() {
   try {
     if (!Number.isFinite(v3NotesModalAudioAnchorMs) || v3NotesModalAudioAnchorMs <= 0) return;
@@ -31824,7 +31911,7 @@ async function v3NotesRestoreNoteIdIfMissing() {
   if (!v3NotesModalTextId || !v3NotesModalSentenceId) return;
   try {
     const ldb = await ensureLocalDB();
-    const rows = await ldb.q(
+    const rows = await ldb.dbQuery(
       `SELECT id, audio_anchor_ms FROM notes_v2
         WHERE text_id = ? AND target_kind = 'sentence'
           AND target_id = ? AND note_type = 'free'
@@ -31834,12 +31921,20 @@ async function v3NotesRestoreNoteIdIfMissing() {
     if (rows && rows.length && rows[0].id) {
       v3NotesModalNoteId = String(rows[0].id);
       // Phase 9.2 — surface persisted anchor immediately on reopen.
-      const anchor = rows[0].audio_anchor_ms;
-      v3NotesModalAudioAnchorMs = Number.isFinite(Number(anchor)) ? Number(anchor) : null;
+      // SQL NULL surfaces as JS null; Number(null) === 0, so guard against
+      // the "ghost zero" that would still report anchored=false anyway.
+      const anchorRaw = rows[0].audio_anchor_ms;
+      v3NotesModalAudioAnchorMs = (anchorRaw == null) ? null
+        : (Number.isFinite(Number(anchorRaw)) ? Number(anchorRaw) : null);
       try { v3NotesUpdateDataset(); } catch (_) {}
       try { v3NotesAnchorUpdateUI(); } catch (_) {}
     }
-  } catch (_) { /* non-fatal */ }
+  } catch (e) {
+    // Phase 9.2.A hardening — never silently swallow restore failures; surface
+    // them in console so future API drift (e.g. helper rename) doesn't break
+    // the modal silently like ldb.q → ldb.dbQuery did pre-9.2.A.
+    console.warn("[notes] v3NotesRestoreNoteIdIfMissing failed:", e && e.message ? e.message : e);
+  }
 }
 window.v3NotesRestoreNoteIdIfMissing = v3NotesRestoreNoteIdIfMissing;
 
@@ -31851,16 +31946,19 @@ async function v3NotesAnchorLoadForCurrentNote() {
   if (!v3NotesModalNoteId) return;
   try {
     const ldb = await ensureLocalDB();
-    const rows = await ldb.q(
+    const rows = await ldb.dbQuery(
       `SELECT audio_anchor_ms FROM notes_v2 WHERE id = ? LIMIT 1`,
       [v3NotesModalNoteId]
     );
     if (rows && rows.length) {
-      const anchor = rows[0].audio_anchor_ms;
-      v3NotesModalAudioAnchorMs = Number.isFinite(Number(anchor)) ? Number(anchor) : null;
+      const anchorRaw = rows[0].audio_anchor_ms;
+      v3NotesModalAudioAnchorMs = (anchorRaw == null) ? null
+        : (Number.isFinite(Number(anchorRaw)) ? Number(anchorRaw) : null);
       v3NotesAnchorUpdateUI();
     }
-  } catch (_) {}
+  } catch (e) {
+    console.warn("[notes] v3NotesAnchorLoadForCurrentNote failed:", e && e.message ? e.message : e);
+  }
 }
 window.v3NotesAnchorLoadForCurrentNote = v3NotesAnchorLoadForCurrentNote;
 
@@ -32232,6 +32330,8 @@ try { v3NotesMdResetUi(); } catch (_) {}
   v3NotesModalAudioAnchorMs = null;
   try { v3NotesAnchorStopLiveTime(); } catch (_) {}
   try { v3NotesAnchorUpdateUI(); } catch (_) {}
+  try { v3NotesRowPlayAttachListeners(); } catch (_) {}
+  try { v3NotesRowPlayUpdateUI(); } catch (_) {}
 
   // Reopen fix: when entering an existing sentence-bound free note, the
   // legacy cache only knows body — restore the v2 noteId so versioning,
@@ -32568,8 +32668,10 @@ function v3NotesForceClose() {
   try { v3NotesClearDataset(); } catch (_) {}
   try { v3NotesHistoryClose(); } catch (_) {}
   // Phase 9.2 — detach the rowAudio timeupdate listener so we don't leak it
-  // between sessions.
+  // between sessions. Also detach play/pause/ended listeners for the
+  // in-modal play button.
   try { v3NotesAnchorStopLiveTime(); } catch (_) {}
+  try { v3NotesRowPlayDetachListeners(); } catch (_) {}
 
   v3NotesModalTextId = null;
   v3NotesModalSentenceId = null;

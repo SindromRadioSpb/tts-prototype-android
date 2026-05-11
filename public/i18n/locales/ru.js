@@ -420,6 +420,10 @@ window.I18N_LOCALES.ru = {
     anchorSetTitle: "Сохранить привязку к текущему моменту аудио (Alt+A)",
     anchorPlayTitle: "Играть с момента привязки",
     anchorClearTitle: "Снять привязку",
+    rowPlayBtn: "Играть",
+    rowPlayTitle: "Проиграть аудио строки",
+    rowPauseBtn: "Пауза",
+    rowPauseTitle: "Поставить на паузу",
     // Markdown toolbar
     toolbarAriaLabel: "Markdown панель форматирования",
     mdBoldTitle: "Жирный (**текст**)",
