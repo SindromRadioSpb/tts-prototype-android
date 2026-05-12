@@ -219,6 +219,8 @@ window.I18N_LOCALES.ru = {
   library: {
     title: "Библиотека (v3)",
     bulkBuilder: "📦 Новая text-card",
+    cardRequest: "📥 Заявка на text-card",
+    cardRequestTitle: "Заявка на text-card — Standard ветка откроет bulk-builder; Curated отправит на ручную обработку",
     share: "🔗 Поделиться",
     shareTitle: "Поделиться text-card через файл — отправить ученикам / коллеге одним щелчком",
     exportJson: "Экспорт JSON",

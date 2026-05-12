@@ -219,6 +219,8 @@ window.I18N_LOCALES.he = {
   library: {
     title: "ספרייה (v3)",
     bulkBuilder: "📦 כרטיסיית טקסט חדשה",
+    cardRequest: "📥 בקשת text-card",
+    cardRequestTitle: "בקשת text-card — Standard פותח את ה-bulk-builder; Curated שולח לסקירה אנושית",
     share: "🔗 שתף",
     shareTitle: "שתפו כרטיסיית טקסט דרך קובץ — שליחה לתלמידים או חבר בלחיצה אחת",
     exportJson: "ייצוא JSON",

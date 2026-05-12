@@ -219,6 +219,8 @@ window.I18N_LOCALES.en = {
   library: {
     title: "Library (v3)",
     bulkBuilder: "📦 New text-card",
+    cardRequest: "📥 Text-card request",
+    cardRequestTitle: "Text-card request — Standard branch opens the bulk-builder; Curated submits for human review",
     share: "🔗 Share",
     shareTitle: "Share text-card via file — send to students or a friend in one tap",
     exportJson: "Export JSON",
