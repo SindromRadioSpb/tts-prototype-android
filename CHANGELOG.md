@@ -11,6 +11,20 @@
 
 ### Shipped (Direction 11B in progress)
 
+- **Phase 11.5 — Teacher dashboard `/teacher.html` + fake cohort seed** *(2026-05-13, S3 of Direction 11B)*. Researcher-facing static page that reads cohort aggregates from the Phase 11.4 GET endpoint, renders charts + per-student table + outcome correlations, and exports CSV in the schema documented in `docs/ULPAN_RESEARCH_PLAN_v3_2.md` §8.
+  - **`public/teacher.html` + `public/js/teacher.js`** — standalone vanilla-JS page (no shared layout, dark theme, ~600 LOC JS). Login form (cohort code + Bearer token) auto-resumes via `localStorage.teacherDashCohort_v1` + `teacherDashToken_v1`. Six sections: summary tiles, engagement timeline (SVG line chart), audio playback chart, SRS + notes-created chart, per-student table (k-gated, click-to-sort), Pearson correlations table (computed in-browser, no R/Python dependency), engagement-vs-exam scatter with least-squares trendline. Three CSV exports: `cohort_<code>_aggregates.csv` (per-student), `cohort_<code>_timeseries.csv` (per-student per-day OR cohort-wide fallback when k not met), `cohort_<code>_derived.csv` (composite engagement_score + quality_score + efficiency_ratio + growth_delta + engagement_consistency per Plan §8).
+  - **k-anonymity gate enforced client-side as well** — when `cohort_size < threshold`, the per-student table shows an empty state and a `⚠ k-anonymity not met (N < k=5)` badge. Cohort-wide daily aggregates remain visible (they don't reveal individuals). Correlations + scatter also hidden until k met.
+  - **`research/storage.js` `aggregateCohort()` extended** — adds `daily_aggregates` (cohort-wide per-day totals across {active_minutes_real, audio_play_ms_total, sessions_count, cards_reviewed, notes_created, students_active}, always returned) and `per_student_daily` (per-student per-day breakdown, hidden when cohort < k). New `readOutcomesCsv(cohortCode)` parses `<cohort>/outcomes.csv` (header row required) and joins outcomes into `students[].outcome` (manual placement for v3.2-rc; CSV upload via teacher dashboard is Phase 11.6).
+  - **`scripts/research/seed_research_fake_cohort.js`** — deterministic admin tool generating 12 fake students × 14 days across 3 engagement groups (high/medium/low) + 1 mid-cohort withdrawal + per-day metric noise ±15% + synthetic exam scores correlated with engagement (Pearson r ≈ 0.92 observed in smoke). Writes JSONL per upload date + `outcomes.csv` + `deletions.log` audit. Seeded PRNG (xmur3+sfc32) makes outputs reproducible given a known `--code`. CLI flags: `--code`, `--token`, `--start-date`, `--days`, `--students`.
+  - **Smoke runner** — `node scripts/research/teacher-smoke.js` (Playwright). Pipeline: mktemp RESEARCH_DATA_DIR → run seed → capture token → spawn server → launch Chromium → login → assert (header populated, cohort_size=12, k-anonymity badge, table has 12 rows, all charts render, Pearson r > 0.4 for active_minutes×post_test, export buttons present). 12 assertions all green.
+
+  Combined Direction 11B smoke (run before any Phase 11.x commit):
+  ```
+  node scripts/research/smoke.js          # 15/15 server-side
+  node scripts/research/browser-smoke.js  # 16/16 client opt-in flow
+  node scripts/research/teacher-smoke.js  # 12/12 teacher dashboard
+  ```
+
 - **Phase 11.2 + 11.3 — Client opt-in UX + aggregation pipeline** *(2026-05-13, S2 of Direction 11B)*. Stacks on top of the Phase 11.4 server endpoints to give users the full client-side surface for opt-in research participation. Default OFF; activation requires explicit consent click.
   - **`public/js/research.js`** — IIFE module exposing `window.LinguistProResearch`. State machine in localStorage (`researchEnabled_v1` / `researchStudentId_v1` / `researchCohortCode_v1` / `researchConsentVersion_v1` / `researchUploadLog_v1` / `researchUploadQueue_v1` / `researchLastUploadDate_v1` / `researchNextRetryAt_v1`). Public API: `init()` / `getState()` / `acceptConsent()` / `joinCohort()` / `withdraw()` / `runDailyAggregator()` / `getRecentUploads()` / `getCurrentConsentVersion()` / `needsReconsent()`. Anonymous `student_id` via `crypto.randomUUID()` with fallback. Platform detection by display-mode + UA (no fingerprinting beyond the four allowed values).
   - **Aggregator** — pulls from existing `events` table (Phase 11.0 schema) via `window.__localDB.dbQuery` and `getActiveMsReal`. Builds RESEARCH_METRICS_SCHEMA-conformant payload covering Layer 1 (sessions / active minutes / time-of-day histogram), Layer 2 (texts/sentences/audio_ms/cards/notes/search counts), Layer 3 (cards correct/again/error_rate), Layer 4 (translit_toggles / audio_replay_distribution buckets 1/2/3/4plus). Window: `[lastUploadDate+1, yesterday]` — never uploads "today" (incomplete day). First-ever upload window starts at the earliest event date in the local DB.
@@ -34,7 +48,7 @@
 
 ### Planned (remaining for v3.2.0 final)
 
-- **Direction 11B follow-on phases (S3–S4):** teacher dashboard `/teacher.html` + fake-cohort seed (11.5, ~3d), outcome capture + ethics docs + research-mode smoke (11.6 + 11.7 + 11.8, ~2–3d). See `memory/project_v3_2_progress.md`. (S2 client work shipped in this RC.)
+- **Direction 11B follow-on phases (S4):** outcome capture (self-report + teacher CSV upload endpoint, 11.6, ~1–2d), ethics docs polish (11.7, ~1d), research-mode smoke audit (11.8, ~1d). See `memory/project_v3_2_progress.md`. (S3 teacher dashboard shipped in this RC.)
 
 ---
 

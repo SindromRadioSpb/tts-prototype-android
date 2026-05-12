@@ -208,14 +208,73 @@ function findCohortsForStudent(studentId) {
   return cohorts;
 }
 
-// Aggregate all uploads in a cohort into per-student summaries.
-// Returns { cohort_meta, cohort_size, k_anonymity_met, students: [{student_id, ...summary}], days_observed }.
+// Aggregate all uploads in a cohort into per-student summaries + per-day
+// time series. Returns:
+//   {
+//     cohort_meta,
+//     cohort_size,
+//     k_anonymity_met,
+//     days_observed,
+//     daily_aggregates,        // cohort-wide totals per day (no per-student
+//                              // breakdown — always returned)
+//     students,                // per-student totals + outcomes joined
+//                              // (hidden when cohort < k)
+//     per_student_daily,       // per-student per-day metrics
+//                              // (hidden when cohort < k)
+//   }
 // k_anonymity_met = (distinct student_id count >= cohort_meta.k_anonymity_threshold).
 function aggregateCohort(cohortCode) {
   const meta = readCohortMeta(cohortCode);
   const dir = cohortDir(cohortCode);
   const perStudent = new Map();
+  const perStudentDaily = new Map();   // sid -> Map<date, daily-totals>
+  const cohortDaily = new Map();       // date -> cohort-wide daily-totals
   const days = new Set();
+
+  function blankTotals() {
+    return {
+      active_minutes_real: 0,
+      audio_play_ms_total: 0,
+      sessions_count: 0,
+      cards_reviewed: 0,
+      cards_correct: 0,
+      cards_again: 0,
+      cards_added_to_srs: 0,
+      notes_created: 0,
+      notes_edited: 0,
+      search_queries_count: 0,
+      smart_tag_overrides_count: 0,
+      texts_opened_distinct_max: 0,
+      sentences_read_distinct_max: 0,
+      translit_toggles_count: 0,
+    };
+  }
+  function blankDaily(date) {
+    return {
+      date,
+      active_minutes_real: 0,
+      audio_play_ms_total: 0,
+      sessions_count: 0,
+      cards_reviewed: 0,
+      notes_created: 0,
+      students_active: 0,
+    };
+  }
+  function addInto(target, m) {
+    target.active_minutes_real += Number(m.active_minutes_real) || 0;
+    target.audio_play_ms_total += Number(m.audio_play_ms_total) || 0;
+    target.sessions_count += Number(m.sessions_count) || 0;
+    target.cards_reviewed += Number(m.cards_reviewed) || 0;
+    if ("cards_correct" in target) target.cards_correct += Number(m.cards_correct) || 0;
+    if ("cards_again" in target) target.cards_again += Number(m.cards_again) || 0;
+    if ("cards_added_to_srs" in target) target.cards_added_to_srs += Number(m.cards_added_to_srs) || 0;
+    target.notes_created += Number(m.notes_created) || 0;
+    if ("notes_edited" in target) target.notes_edited += Number(m.notes_edited) || 0;
+    if ("search_queries_count" in target) target.search_queries_count += Number(m.search_queries_count) || 0;
+    if ("smart_tag_overrides_count" in target) target.smart_tag_overrides_count += Number(m.smart_tag_overrides_count) || 0;
+    if ("translit_toggles_count" in target) target.translit_toggles_count += Number(m.translit_toggles_count) || 0;
+  }
+
   if (fs.existsSync(dir)) {
     const jsonlFiles = fs.readdirSync(dir).filter((f) => f.endsWith(".jsonl"));
     for (const jf of jsonlFiles) {
@@ -226,58 +285,83 @@ function aggregateCohort(cohortCode) {
         try { row = JSON.parse(line); } catch { continue; }
         days.add(row.upload_ts);
         const sid = row.student_id;
+        const dateKey = row.upload_ts;
+        const m = row.metrics || {};
+
+        // Per-student totals.
         if (!perStudent.has(sid)) {
           perStudent.set(sid, {
             student_id: sid,
             uploads_count: 0,
             first_upload_ts: row.upload_ts,
             last_upload_ts: row.upload_ts,
-            totals: {
-              active_minutes_real: 0,
-              audio_play_ms_total: 0,
-              sessions_count: 0,
-              cards_reviewed: 0,
-              cards_correct: 0,
-              cards_again: 0,
-              cards_added_to_srs: 0,
-              notes_created: 0,
-              notes_edited: 0,
-              search_queries_count: 0,
-              smart_tag_overrides_count: 0,
-              texts_opened_distinct_max: 0,
-              sentences_read_distinct_max: 0,
-              translit_toggles_count: 0,
-            },
+            totals: blankTotals(),
           });
         }
         const acc = perStudent.get(sid);
         acc.uploads_count += 1;
         if (row.upload_ts < acc.first_upload_ts) acc.first_upload_ts = row.upload_ts;
         if (row.upload_ts > acc.last_upload_ts) acc.last_upload_ts = row.upload_ts;
-        const m = row.metrics || {};
-        const t = acc.totals;
-        t.active_minutes_real += Number(m.active_minutes_real) || 0;
-        t.audio_play_ms_total += Number(m.audio_play_ms_total) || 0;
-        t.sessions_count += Number(m.sessions_count) || 0;
-        t.cards_reviewed += Number(m.cards_reviewed) || 0;
-        t.cards_correct += Number(m.cards_correct) || 0;
-        t.cards_again += Number(m.cards_again) || 0;
-        t.cards_added_to_srs += Number(m.cards_added_to_srs) || 0;
-        t.notes_created += Number(m.notes_created) || 0;
-        t.notes_edited += Number(m.notes_edited) || 0;
-        t.search_queries_count += Number(m.search_queries_count) || 0;
-        t.smart_tag_overrides_count += Number(m.smart_tag_overrides_count) || 0;
-        t.translit_toggles_count += Number(m.translit_toggles_count) || 0;
-        if (Number(m.texts_opened_distinct) > t.texts_opened_distinct_max)
-          t.texts_opened_distinct_max = Number(m.texts_opened_distinct);
-        if (Number(m.sentences_read_distinct) > t.sentences_read_distinct_max)
-          t.sentences_read_distinct_max = Number(m.sentences_read_distinct);
+        addInto(acc.totals, m);
+        if (Number(m.texts_opened_distinct) > acc.totals.texts_opened_distinct_max)
+          acc.totals.texts_opened_distinct_max = Number(m.texts_opened_distinct);
+        if (Number(m.sentences_read_distinct) > acc.totals.sentences_read_distinct_max)
+          acc.totals.sentences_read_distinct_max = Number(m.sentences_read_distinct);
+
+        // Per-student daily (one row per upload day; uploads typically
+        // cover [since_ts, upload_ts] — we attribute to upload_ts).
+        if (!perStudentDaily.has(sid)) perStudentDaily.set(sid, new Map());
+        const studDays = perStudentDaily.get(sid);
+        if (!studDays.has(dateKey)) studDays.set(dateKey, blankDaily(dateKey));
+        addInto(studDays.get(dateKey), m);
+
+        // Cohort-wide daily (sum across students).
+        if (!cohortDaily.has(dateKey)) cohortDaily.set(dateKey, blankDaily(dateKey));
+        addInto(cohortDaily.get(dateKey), m);
       }
     }
   }
+
+  // Count students_active per day.
+  for (const [date, total] of cohortDaily) {
+    let active = 0;
+    for (const [, studDays] of perStudentDaily) if (studDays.has(date)) active++;
+    total.students_active = active;
+  }
+
+  // Outcomes from outcomes.csv (manual placement for v3.2-rc; Phase 11.6
+  // adds CSV upload + self-report POST).
+  const outcomes = readOutcomesCsv(cohortCode);
+  for (const row of outcomes) {
+    const acc = perStudent.get(row.student_id);
+    if (acc) {
+      acc.outcome = {
+        pre_test_score:  row.pre_test_score,
+        post_test_score: row.post_test_score,
+        exam_date:       row.exam_date,
+        uploaded_by:     row.uploaded_by,
+      };
+    }
+  }
+
   const students = Array.from(perStudent.values());
   const cohortSize = students.length;
   const kThreshold = meta.k_anonymity_threshold || 5;
+  const kMet = cohortSize >= kThreshold;
+
+  // daily_aggregates is always returned (cohort-wide totals; no individual
+  // student data exposed). Sort by date ascending for chart rendering.
+  const dailyAggregates = Array.from(cohortDaily.values())
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+
+  // per_student_daily is hidden when cohort < k.
+  const perStudentDailyOut = kMet
+    ? Array.from(perStudentDaily.entries()).map(([sid, mp]) => ({
+        student_id: sid,
+        days: Array.from(mp.values()).sort((a, b) => (a.date < b.date ? -1 : 1)),
+      }))
+    : [];
+
   return {
     cohort_meta: {
       code: meta.code,
@@ -289,10 +373,52 @@ function aggregateCohort(cohortCode) {
       consent_version_minimum: meta.consent_version_minimum,
     },
     cohort_size: cohortSize,
-    k_anonymity_met: cohortSize >= kThreshold,
+    k_anonymity_met: kMet,
     days_observed: days.size,
-    students: cohortSize >= kThreshold ? students : [],
+    daily_aggregates: dailyAggregates,
+    students: kMet ? students : [],
+    per_student_daily: perStudentDailyOut,
   };
+}
+
+// Read outcomes.csv if present in cohort dir. Returns array of
+// { student_id, pre_test_score, post_test_score, exam_date, uploaded_by }.
+// Header row is REQUIRED. Numeric fields parsed; empty cells = null.
+function readOutcomesCsv(cohortCode) {
+  const p = path.join(cohortDir(cohortCode), "outcomes.csv");
+  if (!fs.existsSync(p)) return [];
+  const text = fs.readFileSync(p, "utf8");
+  const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+  if (lines.length < 2) return [];
+  const header = lines[0].split(",").map((s) => s.trim());
+  const idxOf = (name) => header.indexOf(name);
+  const iSid = idxOf("student_id");
+  const iPre = idxOf("pre_test_score");
+  const iPost = idxOf("post_test_score");
+  const iDate = idxOf("exam_date");
+  const iBy = idxOf("uploaded_by");
+  if (iSid < 0) return [];
+  const out = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cells = lines[i].split(",").map((s) => s.trim());
+    const sid = cells[iSid];
+    if (!sid) continue;
+    const num = (j) => {
+      if (j < 0) return null;
+      const v = cells[j];
+      if (v == null || v === "") return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    out.push({
+      student_id: sid,
+      pre_test_score: num(iPre),
+      post_test_score: num(iPost),
+      exam_date: iDate >= 0 ? (cells[iDate] || null) : null,
+      uploaded_by: iBy >= 0 ? (cells[iBy] || null) : null,
+    });
+  }
+  return out;
 }
 
 module.exports = {
@@ -309,4 +435,5 @@ module.exports = {
   deleteStudentFromCohort,
   findCohortsForStudent,
   aggregateCohort,
+  readOutcomesCsv,
 };

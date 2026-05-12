@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LinguistPro — Teacher Dashboard (Direction 11.5)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 0; margin: 0; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+    header { padding: 16px 24px; background: #1e293b; border-bottom: 1px solid #334155; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    header h1 { margin: 0; font-size: 18px; font-weight: 600; color: #fbbf24; }
+    header .meta { font-size: 12px; color: #94a3b8; font-family: monospace; }
+    main { max-width: 1280px; margin: 0 auto; padding: 24px; }
+
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+    .card h2 { margin: 0 0 14px 0; font-size: 14px; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.05em; }
+    .card p.hint { font-size: 12px; color: #94a3b8; margin: 4px 0 12px 0; }
+
+    .login-form { max-width: 480px; margin: 80px auto; padding: 32px; background: #1e293b; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .login-form h2 { margin: 0 0 16px 0; font-size: 18px; color: #fbbf24; }
+    .login-form label { display: block; font-size: 12px; margin-top: 12px; color: #94a3b8; }
+    .login-form input { width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid #475569; border-radius: 6px; color: #e2e8f0; font-family: monospace; font-size: 13px; margin-top: 4px; }
+    .login-form button { width: 100%; padding: 10px; margin-top: 18px; background: #3b82f6; color: white; border: 0; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .login-form button:hover { background: #2563eb; }
+    .login-form .err { color: #f87171; font-size: 12px; margin-top: 10px; min-height: 16px; }
+    .login-form .hint { font-size: 11px; color: #64748b; margin-top: 16px; line-height: 1.5; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+    .summary-tile { padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; }
+    .summary-tile .label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .summary-tile .value { font-size: 22px; font-weight: 600; color: #f1f5f9; margin-top: 4px; font-family: monospace; }
+    .summary-tile .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    table th { text-align: left; padding: 8px; background: #0f172a; color: #fbbf24; border-bottom: 2px solid #334155; font-weight: 600; cursor: pointer; user-select: none; }
+    table th:hover { background: #131e34; }
+    table td { padding: 8px; border-bottom: 1px solid #334155; font-family: monospace; }
+    table td.num { text-align: right; }
+    table tr:hover td { background: #0f172a; }
+
+    svg.chart { display: block; width: 100%; max-width: 100%; }
+    .chart-axis text { fill: #64748b; font-size: 10px; font-family: monospace; }
+    .chart-grid line { stroke: #334155; stroke-dasharray: 2,2; }
+    .chart-line { fill: none; stroke: #3b82f6; stroke-width: 2; }
+    .chart-area { fill: #3b82f6; opacity: 0.15; }
+    .chart-bar { fill: #fbbf24; }
+    .chart-bar.bar-2 { fill: #34d399; }
+    .chart-bar.bar-3 { fill: #f87171; }
+    .chart-bar.bar-4 { fill: #c084fc; }
+    .chart-dot { fill: #3b82f6; stroke: #1e293b; stroke-width: 1; }
+    .chart-trendline { stroke: #fbbf24; stroke-width: 1.5; stroke-dasharray: 6,3; opacity: 0.8; }
+
+    .k-warn { display: inline-block; padding: 4px 8px; background: #7c2d12; color: #fed7aa; border-radius: 4px; font-size: 11px; margin-left: 8px; }
+    .k-met { display: inline-block; padding: 4px 8px; background: #14532d; color: #bbf7d0; border-radius: 4px; font-size: 11px; margin-left: 8px; }
+
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions button { padding: 6px 12px; background: #334155; color: #e2e8f0; border: 1px solid #475569; border-radius: 4px; cursor: pointer; font-size: 12px; }
+    .actions button:hover { background: #475569; }
+    .actions button.btn-logout { background: transparent; color: #f87171; }
+
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 800px) { .stats-row { grid-template-columns: 1fr; } }
+
+    .corr-table td.num { font-family: monospace; }
+    .corr-positive { color: #34d399; }
+    .corr-negative { color: #f87171; }
+    .corr-neutral  { color: #94a3b8; }
+
+    .empty-state { padding: 40px; text-align: center; color: #64748b; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-form">
+    <h2>📊 Teacher Dashboard</h2>
+    <p style="font-size:12px;color:#94a3b8;margin:0 0 16px 0;">
+      LinguistPro Direction 11.5 — opt-in research mode dashboard.
+      Введите cohort code и researcher token, выданный при создании когорты
+      (<code>scripts/research/create_cohort.js</code>).
+    </p>
+    <label for="cohortInput">Cohort code</label>
+    <input type="text" id="cohortInput" maxlength="16" placeholder="ULPAN-A-W2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
+    <label for="tokenInput">Researcher token (Bearer)</label>
+    <input type="password" id="tokenInput" placeholder="paste token" autocomplete="off">
+    <button id="loginBtn">Войти →</button>
+    <div class="err" id="loginErr"></div>
+    <div class="hint">
+      Cohort code и token хранятся в <code>localStorage</code> этой страницы.
+      Один-клик logout в шапке после входа стирает их.<br>
+      <b>Privacy:</b> dashboard читает aggregates через <code>GET /api/research/v1/cohort/:code/aggregates</code>.
+      Per-student breakdown скрыт когда <code>cohort_size &lt; k</code> (по-умолчанию k=5).
+    </div>
+  </div>
+</div>
+
+<header id="dashHeader" style="display:none;">
+  <div>
+    <h1>📊 Teacher Dashboard</h1>
+    <div class="meta" id="cohortMeta">—</div>
+  </div>
+  <div class="actions">
+    <button id="refreshBtn">🔄 Refresh</button>
+    <button id="exportAggregatesBtn">⬇ Aggregates CSV</button>
+    <button id="exportTimeseriesBtn">⬇ Timeseries CSV</button>
+    <button id="exportDerivedBtn">⬇ Derived CSV</button>
+    <button id="logoutBtn" class="btn-logout">⎋ Logout</button>
+  </div>
+</header>
+
+<main id="dashMain" style="display:none;">
+  <div class="card">
+    <h2>Cohort overview</h2>
+    <div class="summary-grid" id="summaryGrid"></div>
+  </div>
+
+  <div class="card">
+    <h2>Engagement timeline (cohort-wide, per day)</h2>
+    <p class="hint">Active minutes (sum across all students) — heartbeat-derived. Cohort-wide aggregate; visible regardless of k-anonymity status.</p>
+    <div id="engagementChart"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="card">
+      <h2>Audio playback (per day)</h2>
+      <div id="audioChart"></div>
+    </div>
+    <div class="card">
+      <h2>SRS reviews + notes created (per day)</h2>
+      <div id="srsNotesChart"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Per-student breakdown <span id="kBadge"></span></h2>
+    <p class="hint" id="kHint"></p>
+    <div id="studentTable"></div>
+  </div>
+
+  <div class="card">
+    <h2>Outcome correlations (Pearson r)</h2>
+    <p class="hint">Computed on per-student totals × outcome scores from <code>outcomes.csv</code>. r ∈ [-1, 1]; |r| > 0.5 = strong; the more |r|, the more the metric moves with the exam grade.</p>
+    <div id="correlationsTable"></div>
+  </div>
+
+  <div class="card">
+    <h2>Engagement vs exam score (scatter)</h2>
+    <p class="hint">Scatter: x = total active minutes, y = post-test score. Trend line = least-squares linear regression.</p>
+    <div id="scatterChart"></div>
+  </div>
+</main>
+
+<script src="/js/teacher.js"></script>
+</body>
+</html>

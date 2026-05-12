@@ -95,8 +95,13 @@ Storage layout: `<RESEARCH_DATA_DIR>/<cohort>/{cohort_meta.json,
 `<DATA_DIR>/research`.
 
 Admin tool: `node scripts/research/create_cohort.js --code <CODE>` provisions
-a cohort and prints the plaintext researcher token once. Smoke acceptance:
-`node scripts/research/smoke.js` (15 cases, covers §14).
+a cohort and prints the plaintext researcher token once.
+
+Smoke acceptance — two runners, both autonomous (no UI clicks needed):
+- `node scripts/research/smoke.js` — 15-case server-side suite (covers §14).
+- `node scripts/research/browser-smoke.js` — 16-case client-side via headless
+  Chromium (Playwright). Requires one-time `npx playwright install chromium`.
+  Spawns its own server on a free port + temp RESEARCH_DATA_DIR.
 
 ### Не реализовано (→ Direction 11B follow-on phases)
 - Client-side opt-in consent UX + cohort join + transparency dashboard (Phase 11.2).
