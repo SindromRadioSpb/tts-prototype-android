@@ -1185,17 +1185,46 @@ async function run() {
     if (versionsAfter.length !== versionsBefore.length) throw new Error('no-op should not create a version row');
   })();
 
-  // R3 Convert: srs_card_id stays linked (warn is UI-only).
-  await t('R4 R3: convertNoteType keeps srs_card_id link intact', async () => {
+  // R2.2 revision: convertNoteType drops the linked SRS card. Earlier
+  // R3 spec kept it linked + showed warn-only banner, but in dogfood the
+  // card rendered as "No prompt available" because template_id no longer
+  // matched the new body shape. Cleaner UX: drop on convert, user can
+  // rebuild a fresh card via "🎴 Сделать карточкой" if relevant.
+  await t('R4 R2.2: convertNoteType drops the linked SRS card', async () => {
     const note = await createNote({ target_kind: 'sentence', target_id: r4_sid, text_id: r4_tid,
       note_type: 'word_study', body: { kind: 'word_study', word: 'k', meaning: 'm' } });
     const card = await srs.createCardFromNote(note.id);
     const before = await getNoteById(note.id);
     if (before.srs_card_id !== card.id) throw new Error('precondition failed: card not linked');
     const converted = await convertNoteType(note.id, 'grammar_rule');
-    if (converted.srs_card_id !== card.id) {
-      throw new Error('srs_card_id was dropped on convert (R3 spec violation)');
+    if (converted.srs_card_id) {
+      throw new Error('srs_card_id should be NULL after convert (R2.2 — card dropped)');
     }
+    if (converted._droppedCardId !== card.id) {
+      throw new Error('expected _droppedCardId === ' + card.id + ', got ' + converted._droppedCardId);
+    }
+    // Card row itself should be gone.
+    const cardRows = await dbQuery('SELECT id FROM srs_cards WHERE id = ?', [card.id]);
+    if (cardRows.length !== 0) throw new Error('srs_cards row was not deleted');
+    await deleteNoteById(note.id);
+  })();
+
+  // R2.2 — cleanupOrphanedNoteCards sweep for pre-R2.2 broken cards.
+  await t('R4 R2.2: srs.cleanupOrphanedNoteCards drops template-mismatched cards', async () => {
+    // Manually craft an orphan: create note, create card, then change
+    // note_type out from under it (bypassing convertNoteType which would
+    // drop the card itself).
+    const note = await createNote({ target_kind: 'sentence', target_id: r4_sid, text_id: r4_tid,
+      note_type: 'word_study', body: { kind: 'word_study', word: 'a', meaning: 'b' } });
+    const card = await srs.createCardFromNote(note.id);
+    await dbRun(`UPDATE notes_v2 SET note_type = 'grammar_rule', body_json = '{"kind":"grammar_rule"}' WHERE id = ?`, [note.id]);
+
+    const result = await srs.cleanupOrphanedNoteCards();
+    if (!result || result.dropped < 1) throw new Error('cleanup should have dropped ≥1 orphan, got ' + JSON.stringify(result));
+    const cardRows = await dbQuery('SELECT id FROM srs_cards WHERE id = ?', [card.id]);
+    if (cardRows.length !== 0) throw new Error('orphan card was not removed by cleanup');
+    const noteAfter = await getNoteById(note.id);
+    if (noteAfter.srs_card_id) throw new Error('back-pointer not cleared');
     await deleteNoteById(note.id);
   })();
 

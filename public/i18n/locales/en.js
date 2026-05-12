@@ -457,7 +457,7 @@ window.I18N_LOCALES.en = {
       confirmTitle: "Convert note?",
       confirmBody: "Convert {from} → {to}? The current body will be archived in history as v_N. The new form will open blank.",
       confirmOk: "Convert",
-      warnSrs: "The SRS card was built on the old type. Re-create it manually via «🎴 Make it a card» if it still applies.",
+      warnSrs: "The linked SRS card will be removed — it was built on the old type and no longer matches. After conversion, create a new one via «🎴 Make it a card».",
     },
     // Phase 9.3.5.B — Multi-note row-index panel
     rowBtnTitleMulti: "{n} notes on this row",

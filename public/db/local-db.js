@@ -687,12 +687,27 @@ export async function convertNoteType(id, newType) {
     ? JSON.stringify({ kind: 'free', markdown: '' })
     : JSON.stringify({ kind: newType });
 
+  // R2.2 — drop the linked SRS card if present. Earlier R3 behavior kept
+  // the card linked and showed a warn banner, but in practice the card
+  // rendered as "Prompt: No prompt available" because its template_id
+  // (e.g. tpl_note_word_study) no longer matched the note's body shape.
+  // Cleaner UX: the warn banner now promises removal, and the user can
+  // re-create a fresh card matching the new type via "🎴 Сделать карточкой".
+  let droppedCardId = null;
+  if (cur.srs_card_id) {
+    droppedCardId = String(cur.srs_card_id);
+    try { await r('DELETE FROM srs_reviews WHERE card_id = ?', [droppedCardId]); } catch (_) {}
+    try { await r('DELETE FROM srs_cards WHERE id = ?', [droppedCardId]); } catch (_) {}
+  }
+
   await r(
-    `UPDATE notes_v2 SET note_type = ?, body_json = ?, updated_at = ? WHERE id = ?`,
+    `UPDATE notes_v2 SET note_type = ?, body_json = ?, srs_card_id = NULL, updated_at = ? WHERE id = ?`,
     [newType, blank, new Date().toISOString(), id]
   );
   const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
-  return rows[0] ?? null;
+  const updated = rows[0] ?? null;
+  if (updated) updated._droppedCardId = droppedCardId;
+  return updated;
 }
 
 // Delete a polymorphic note by id. Cascades to note_versions + note_links
@@ -1694,6 +1709,37 @@ export const srs = {
     );
     const cardRows = await q('SELECT * FROM srs_cards WHERE id = ?', [cardId]);
     return cardRows[0] ?? null;
+  },
+
+  // R2.2 — sweep srs_cards whose template_id no longer matches the linked
+  // note's current note_type. Such cards exist in databases where a note
+  // was type-converted before the R2.2 convertNoteType behavior drop-on-
+  // convert landed; they render as "Prompt: No prompt available" in the
+  // trainer because the new body shape doesn't fill the template schema.
+  // Idempotent; safe to call on every trainer open.
+  async cleanupOrphanedNoteCards() {
+    try {
+      const orphaned = await q(
+        `SELECT c.id AS card_id, n.id AS note_id, c.template_id, n.note_type
+           FROM srs_cards c
+           JOIN notes_v2 n ON n.id = c.source_note_id
+           JOIN srs_card_templates t ON t.id = c.template_id
+          WHERE c.entity_type = 'note'
+            AND t.code != ('note_' || n.note_type)`,
+        []
+      );
+      let dropped = 0;
+      for (const row of orphaned) {
+        try { await r('DELETE FROM srs_reviews WHERE card_id = ?', [row.card_id]); } catch (_) {}
+        try { await r('DELETE FROM srs_cards WHERE id = ?', [row.card_id]); } catch (_) {}
+        try { await r('UPDATE notes_v2 SET srs_card_id = NULL WHERE id = ? AND srs_card_id = ?', [row.note_id, row.card_id]); } catch (_) {}
+        dropped++;
+      }
+      return { dropped };
+    } catch (e) {
+      console.warn('cleanupOrphanedNoteCards failed:', e && e.message ? e.message : e);
+      return { dropped: 0, error: String(e && e.message ? e.message : e) };
+    }
   },
 
   async listTodayCards() {

@@ -2071,7 +2071,10 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         left: 50%;
         bottom: 20px;
         transform: translateX(-50%);
-        z-index: 9999;
+        /* Above modals (z-index: 9999) AND floating bubbles / convert menu
+           (z-index: 100000). Otherwise success toasts on SRS-create and
+           "Заметка сохранена" hide behind the open notes modal. */
+        z-index: 100001;
         pointer-events: none;
     }
 
@@ -5683,7 +5686,10 @@ body:not(.theme-light) .v3-notes-token-picker-hint { background: rgba(96, 165, 2
   padding: 6px 10px;
   border-top: 1px solid var(--theme-border-soft);
   font-size: 12px;
-  max-height: 240px;
+  /* R2.2 — was 240px; users couldn't see enough lines when previewing a
+     v_N version (especially after a convert that archived a multi-line
+     free body). Use viewport-relative bound so it scales with screen. */
+  max-height: min(60vh, 520px);
   overflow: auto;
 }
 .v3-notes-history-diff-block {
@@ -12823,16 +12829,27 @@ function v3NotesSetLocal(sentenceId, note, updatedAt, anchorMs) {
   v3NotesBySentenceId[sid] = { note: n, updatedAt: updatedAt ?? null, audio_anchor_ms: nextAnchor };
 }
 
-// W10-NOTES-PREMIUM-03: refresh all note buttons after async preload
+// W10-NOTES-PREMIUM-03: refresh all note buttons after async preload.
+// R2.2 — delegate per-row rendering to v3NotesUpdateButtonRow so the
+// count badge (📝 N) appears at first paint after cold load, and the
+// always-visible state covers polymorphic notes (not just legacy free).
 function v3NotesRefreshAllButtons() {
   try {
     const btns = document.querySelectorAll('button.row-note-btn[data-sentence-id]');
     for (const btn of btns) {
       const sid = String(btn.getAttribute("data-sentence-id") || "");
-      const has = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
-      if (has) btn.classList.add("row-note-active");
-      else btn.classList.remove("row-note-active");
-      btn.title = has ? "Заметка (есть)" : "Добавить заметку";
+      const idxRaw = btn.getAttribute("data-row-idx");
+      const idx = idxRaw == null ? null : Number(idxRaw);
+      if (Number.isFinite(idx)) {
+        try { v3NotesUpdateButtonRow(idx, sid); } catch (_) {}
+      } else {
+        const has = (typeof v3NotesHas === "function") ? v3NotesHas(sid) : false;
+        const cnt = (typeof v3NotesRowCount === "function") ? v3NotesRowCount(sid) : 0;
+        const active = has || cnt > 0;
+        if (active) btn.classList.add("row-note-active");
+        else btn.classList.remove("row-note-active");
+        btn.title = active ? "Заметка (есть)" : "Добавить заметку";
+      }
     }
   } catch (_) {}
 }
@@ -25035,6 +25052,19 @@ async function v3SrsTrainerOpen() {
   }
   modal.classList.remove("hidden");
 
+  // R2.2 — sweep orphaned note-cards (template_id no longer matches the
+  // linked note's note_type, e.g. after a pre-R2.2 convert). Such cards
+  // rendered as "No prompt available" because the body shape doesn't fit
+  // the template schema. Idempotent; cheap (single JOIN query).
+  try {
+    if (LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      if (ldb.srs && typeof ldb.srs.cleanupOrphanedNoteCards === "function") {
+        await ldb.srs.cleanupOrphanedNoteCards();
+      }
+    }
+  } catch (_) {}
+
   // Phase 11.0: emit srs_session_started. session_id is generated
   // client-side and pinned for the duration of the modal — paired with
   // srs_session_finished on close so duration_ms + cards_reviewed delta
@@ -33153,10 +33183,16 @@ async function v3NotesConvertToSrs() {
       showToast(v3NotesT("toast.notesSrsFreeNotAllowed", "Свободные заметки нельзя конвертировать в карточку."), "warning");
       return;
     }
-    // Already converted → just route to the trainer.
+    // Already converted → close the notes modal, then open the SRS Trainer.
+    // R2.2 — hash-based routing wasn't wired, so users tapping "🎴 ✓ В SRS"
+    // got no navigation. Call v3SrsTrainerOpen directly.
     if (v3NotesModalSrsCardId) {
-      try { window.location.hash = "#srs"; } catch (_) {}
-      try { v3NotesClose(); } catch (_) {}
+      try { v3NotesForceClose(); } catch (_) {}
+      try {
+        if (typeof window.v3SrsTrainerOpen === "function") {
+          await window.v3SrsTrainerOpen();
+        }
+      } catch (e) { console.warn("v3SrsTrainerOpen from notes failed", e); }
       return;
     }
 
@@ -34100,6 +34136,10 @@ function v3NotesIntentLaunch(intentKey) {
     showToast(v3NotesT("toast.notesIntentNoRow", "Откройте строку, чтобы создать заметку."), "warning");
     return;
   }
+  // R2.2 — preserve return context BEFORE close clears it, so the edit
+  // modal can re-open the row-index on Close. The token-picker path
+  // (word.* intents) handles its own return after the picker resolves.
+  if (ctx) v3NotesModalReturnContext = { textId: ctx.textId, sentenceId: ctx.sentenceId, rowIdx: ctx.rowIdx };
   v3NotesRowIndexClose();
   if (intent.needsToken && ctx) {
     v3NotesTokenPickerOpen(intent, ctx);
@@ -34159,16 +34199,25 @@ async function v3NotesTokenPickerOpen(intent, ctx) {
 }
 window.v3NotesTokenPickerOpen = v3NotesTokenPickerOpen;
 
-function v3NotesTokenPickerClose() {
+function v3NotesTokenPickerClose(isPick) {
   const modal = document.getElementById("v3NotesTokenPickerModal");
   if (modal) modal.classList.add("hidden");
   v3NotesTokenPickerCtx = null;
+  // R2.2 — cancelling the picker (backdrop / Закрыть button) returns the
+  // user to the row-index panel they came from. Picking a word does NOT
+  // reopen the panel because v3NotesTokenPickerPick will open the edit
+  // modal next, and that modal owns the return-to-row-index navigation.
+  if (!isPick && v3NotesModalReturnContext) {
+    const ret = v3NotesModalReturnContext;
+    v3NotesModalReturnContext = null;
+    try { v3NotesRowEntryDispatch(ret.textId, ret.sentenceId, ret.rowIdx); } catch (_) {}
+  }
 }
 window.v3NotesTokenPickerClose = v3NotesTokenPickerClose;
 
 function v3NotesTokenPickerPick(offset, lemma) {
   const slot = v3NotesTokenPickerCtx;
-  v3NotesTokenPickerClose();
+  v3NotesTokenPickerClose(true);
   if (!slot || !slot.ctx) return;
   const ctx = slot.ctx;
   const intent = slot.intent;
@@ -34330,7 +34379,7 @@ async function v3NotesConvertExecute(toType) {
   if (v3NotesModalSrsCardId) {
     bodyHtml += '<div class="v3-notes-convert-warn">⚠ ' + esc(
       v3NotesT("notes.convert.warnSrs",
-        "Карточка SRS была построена на старом типе. Пересоберите вручную через «🎴 Сделать карточкой» при необходимости."
+        "Связанная карточка SRS будет удалена — она была построена на старом типе и больше не соответствует. После преобразования можно создать новую через «🎴 Сделать карточкой»."
       )
     ) + '</div>';
   }
@@ -34350,7 +34399,8 @@ async function v3NotesConvertExecute(toType) {
       showToast(v3NotesT("toast.notesConvertUnavailable", "API преобразования недоступно."), "error");
       return;
     }
-    await ldb.convertNoteType(noteId, toType);
+    const updated = await ldb.convertNoteType(noteId, toType);
+    const droppedCardId = updated && updated._droppedCardId ? String(updated._droppedCardId) : null;
 
     // Metadata-only event — never carry body content or Hebrew/IPA.
     try {
@@ -34362,9 +34412,15 @@ async function v3NotesConvertExecute(toType) {
           from_type: fromType,
           to_type: toType,
           srs_card_linked: !!v3NotesModalSrsCardId,
+          srs_card_dropped: !!droppedCardId,
         },
       });
     } catch (_) {}
+
+    // R2.2 — the API dropped the linked SRS card. Clear modal state so the
+    // 🎴 button reverts to "Сделать карточкой" and the user can rebuild a
+    // matching card for the new type if they want.
+    v3NotesModalSrsCardId = null;
 
     // Re-render in-modal state: new type's form, empty body, history
     // sidebar already shows the snapshot. Anchor + target stay fixed.
@@ -34378,6 +34434,7 @@ async function v3NotesConvertExecute(toType) {
     try { v3NotesUpdateDataset(); } catch (_) {}
     try { if (typeof v3NotesTemplateRender === "function") v3NotesTemplateRender(); } catch (_) {}
     try { if (typeof v3NotesTemplateHydrate === "function") v3NotesTemplateHydrate({}); } catch (_) {}
+    try { if (typeof v3NotesToSrsUpdateUI === "function") v3NotesToSrsUpdateUI(); } catch (_) {}
     try { if (v3NotesHistoryOpen && typeof v3NotesHistoryRefresh === "function") await v3NotesHistoryRefresh(); } catch (_) {}
 
     // Refresh row-button count cache (count stays equal — convert doesn't
@@ -34490,12 +34547,11 @@ async function v3NotesRowEntryDispatch(textId, sentenceId, rowIdx) {
     const rows = await v3NotesRowCacheRefresh(textId, sentenceId);
     // Update the badge count immediately based on fresh data.
     try { v3NotesUpdateButtonRow(rowIdx, sentenceId); } catch (_) {}
-    if (!rows.length) {
-      // No existing notes → open edit modal directly with a fresh
-      // sentence-target free note (preserves the casual one-note workflow).
-      v3NotesOpen(textId, sentenceId, rowIdx);
-      return;
-    }
+    // R2.2 — always open the row-index panel first, even for empty rows.
+    // Earlier behavior short-circuited to the edit modal when rows.length
+    // was 0, which surprised users who wanted to choose a note TYPE before
+    // landing on a blank Free editor. The empty-state of the panel already
+    // shows the 5 "+ Новая заметка" intent buttons.
     v3NotesRowIndexOpen(textId, sentenceId, rowIdx, rows);
   } catch (e) {
     console.warn("v3NotesRowEntryDispatch failed", e);
@@ -34506,6 +34562,14 @@ window.v3NotesRowEntryDispatch = v3NotesRowEntryDispatch;
 
 // Stash row context so the index panel can re-open after edit-modal close.
 let v3NotesRowIndexContext = null;
+
+// R2.2 — when an edit modal is launched FROM the row-index panel, stash
+// the row context here. On modal close we re-open the row-index so the
+// user lands back in the "📝 Заметки к строке" list, not on the main text
+// screen. Cleared in v3NotesForceClose so independent (non-row-index)
+// modal opens don't accidentally trigger a row-index resurrection.
+let v3NotesModalReturnContext = null;
+window.v3NotesModalReturnContext = null;
 
 function v3NotesRowIndexOpen(textId, sentenceId, rowIdx, rows) {
   const modal = document.getElementById("v3NotesRowIndexModal");
@@ -34697,6 +34761,9 @@ window.v3NotesRowIndexRender = v3NotesRowIndexRender;
 function v3NotesRowIndexOpenNote(noteId) {
   if (!noteId) return;
   const ctx = v3NotesRowIndexContext;
+  // R2.2 — same return-context stash as intent launch so Close brings
+  // the user back to the row-index list, not the main screen.
+  if (ctx) v3NotesModalReturnContext = { textId: ctx.textId, sentenceId: ctx.sentenceId, rowIdx: ctx.rowIdx };
   v3NotesRowIndexClose();
   if (!ctx) {
     // Direct deep-link from elsewhere — open edit without row context.
@@ -34757,6 +34824,12 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
   const o = opts || {};
   v3NotesModalEntryKind = o.entryKind || (v3NotesModalSentenceId ? "row" : "free");
   v3NotesModalNoteId = o.noteId || null;
+  // R2.2 — when launched from an intent quick-pick, we want a FRESH editor:
+  // no pre-fill from legacy cache, no auto-restore of an existing free note
+  // by sentence-id. Without this guard the user clicks "+ ✍ Свободная" and
+  // gets the previously-saved free note's body, with the editor wired up
+  // to overwrite it on save — multi-free notes become impossible.
+  const freshIntent = !!o.intentKey && !o.noteId;
   if (o.targetKind) {
     v3NotesModalTargetKind = o.targetKind;
   } else if (v3NotesModalSentenceId) {
@@ -34776,10 +34849,13 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
   const st = v3NotesEl("v3NotesStatus");
   const delBtn = v3NotesEl("v3NotesDeleteBtn");
 
-  const existing = (typeof v3NotesGet === "function") ? v3NotesGet(v3NotesModalSentenceId) : "";
-  const existingUpdatedAt = (typeof v3NotesGetUpdatedAt === "function")
-    ? v3NotesGetUpdatedAt(v3NotesModalSentenceId)
-    : null;
+  // R2.2 — only hydrate the textarea from the legacy by-sentence cache when
+  // we are NOT in a fresh-intent flow (i.e. this is a re-open of the same
+  // sentence's free note, or a deep-link).
+  const existing = (!freshIntent && typeof v3NotesGet === "function")
+    ? v3NotesGet(v3NotesModalSentenceId) : "";
+  const existingUpdatedAt = (!freshIntent && typeof v3NotesGetUpdatedAt === "function")
+    ? v3NotesGetUpdatedAt(v3NotesModalSentenceId) : null;
 
   v3NotesSafeSetTextareaValue(ta, existing || "");
 
@@ -34853,7 +34929,11 @@ try { v3NotesMdResetUi(); } catch (_) {}
   // legacy cache only knows body — restore the v2 noteId so versioning,
   // history sidebar, and polymorphic updates all work from the first save.
   // (Phase 9.2: this also back-fills audio_anchor_ms into modal state.)
-  try { v3NotesRestoreNoteIdIfMissing(); /* fire-and-forget */ } catch (_) {}
+  // R2.2 — skip restoration in fresh-intent flows so multiple free notes
+  // can be created on the same row (each save creates a new note_v2 row).
+  if (!freshIntent) {
+    try { v3NotesRestoreNoteIdIfMissing(); /* fire-and-forget */ } catch (_) {}
+  }
   // Phase 9.2 — when noteId was passed via opts (polymorphic deeplink), also
   // load its anchor explicitly since the restore path bails on non-sentence kinds.
   // Phase 9.3 — same trigger also hydrates the full note state (note_type +
@@ -35182,6 +35262,11 @@ async function v3NotesOpenForJump(textId, sentenceId, rowIdx, scope, needles) {
 window.v3NotesOpenForJump = v3NotesOpenForJump;
 
 function v3NotesForceClose() {
+  // R2.2 — capture the return context BEFORE we clear state, so the
+  // row-index panel can re-open if the modal was launched from there.
+  const returnCtx = v3NotesModalReturnContext;
+  v3NotesModalReturnContext = null;
+
   const modal = v3NotesEl("v3NotesModal");
   if (modal) modal.classList.add("hidden");
 
@@ -35218,6 +35303,15 @@ function v3NotesForceClose() {
   v3NotesModalWordLemma = "";
   v3NotesModalAudioAnchorMs = null;
   v3NotesModalSrsCardId = null;
+
+  // R2.2 — if we came from the row-index panel, re-open it with the
+  // latest row contents. Fire-and-forget — v3NotesRowEntryDispatch
+  // handles its own errors.
+  if (returnCtx && returnCtx.textId && returnCtx.sentenceId) {
+    try {
+      v3NotesRowEntryDispatch(returnCtx.textId, returnCtx.sentenceId, returnCtx.rowIdx);
+    } catch (_) {}
+  }
 }
 
 async function v3NotesClose() {
@@ -35263,7 +35357,14 @@ function v3NotesUpdateButtonRow(rowIdx, sentenceId) {
     const btn = document.querySelector('button.row-note-btn[data-row-idx="' + String(rowIdx) + '"]');
     if (!btn) return;
 
-    const has = (typeof v3NotesHas === "function") ? v3NotesHas(sentenceId) : false;
+    const hasLegacyFree = (typeof v3NotesHas === "function") ? v3NotesHas(sentenceId) : false;
+    const rowCountEarly = (typeof v3NotesRowCount === "function") ? v3NotesRowCount(sentenceId) : 0;
+    // R2.2 — keep the always-visible "row has notes" CSS state when ANY
+    // polymorphic note is bound to this sentence, not just a legacy free
+    // note. Otherwise word_study / grammar_rule / etc. notes leave the
+    // button in opacity:0 default (visible only on hover), and the count
+    // badge disappears with the row hover.
+    const has = hasLegacyFree || rowCountEarly > 0;
     if (has) btn.classList.add("row-note-active");
     else btn.classList.remove("row-note-active");
 
@@ -35320,26 +35421,17 @@ async function v3NotesSave(isAutoSave) {
     const raw = ta ? String(ta.value || "") : "";
     const note = raw.trim();
 
-    // Phase 9.1.C — Save routing decision.
+    // Phase 9.3.5 R2.2 — legacy upsertNote save path retired. Originally
+    // routed fresh sentence-bound free saves through one-per-row upsert,
+    // which made multiple free notes on the same row impossible (the
+    // second save overwrote the first). Now every in-modal save goes
+    // through the polymorphic createNote / updateNote API, so each fresh
+    // intent-launched "+ ✍ Свободная" produces a NEW notes_v2 row.
     //
-    // Legacy path (upsertNote) is used iff ALL of these hold:
-    //   • we have a text_id AND sentence_id (row-bound context)
-    //   • target_kind === 'sentence' (still the default 90% case)
-    //   • note_type === 'free' (legacy markdown)
-    //   • user did not change target_kind away (so we know this is a real
-    //     sentence-bound free note, not a polymorphic one that happens to
-    //     have the same metadata).
-    //   • we don't have a polymorphic note id already (editing a v2 row).
-    //
-    // Otherwise we go through the polymorphic createNote / updateNote API.
-    // Phase 9.3.5 R1 — UserChangedKind predicate removed (no in-modal type
-    // switching). Legacy path triggers when this is a fresh sentence-bound
-    // free note via row entry with no v2 noteId yet.
-    const useLegacy =
-      !!textId && !!sentenceId &&
-      v3NotesModalTargetKind === "sentence" &&
-      v3NotesModalNoteType === "free" &&
-      !v3NotesModalNoteId;
+    // The legacy block below is preserved as dormant code for the brief
+    // window where data callers (bundle import / export) might still
+    // exercise that surface. It is unreachable from the UI.
+    const useLegacy = false;
 
     if (useLegacy) {
       const url =
