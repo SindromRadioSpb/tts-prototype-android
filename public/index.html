@@ -5084,6 +5084,150 @@ body:not(.theme-light) .v3-notes-template-banner {
   border-top: 1px solid var(--theme-border-soft, rgba(0,0,0,0.08));
 }
 .v3-morph-status-actions button { font-size: 12px; padding: 6px 10px; }
+
+/* Direction 10 Mode A — Text-card builder modal */
+.v3-tcb-panel {
+  max-width: 920px;
+  width: min(96vw, 920px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.v3-tcb-intro {
+  font-size: 13px;
+  color: var(--theme-text-secondary, #475569);
+  margin-bottom: 14px;
+  line-height: 1.55;
+}
+.v3-tcb-text-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.v3-tcb-text-row {
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 10px;
+  padding: 12px;
+  background: var(--theme-bg-card, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.14s, box-shadow 0.14s;
+}
+.v3-tcb-text-row.v3-tcb-row-active { border-color: rgba(59,130,246,0.45); box-shadow: 0 0 0 2px rgba(59,130,246,0.10); }
+.v3-tcb-text-row.v3-tcb-row-done   { border-color: rgba(34,197,94,0.5);  background: rgba(34,197,94,0.05); }
+.v3-tcb-text-row.v3-tcb-row-error  { border-color: rgba(220,38,38,0.5);  background: rgba(220,38,38,0.04); }
+.v3-tcb-row-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+.v3-tcb-row-num {
+  font-weight: 700;
+  color: var(--theme-text-secondary, #64748b);
+  font-size: 13px;
+}
+.v3-tcb-row-status {
+  font-size: 12px;
+  color: var(--theme-text-secondary, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.v3-tcb-row-status .v3-tcb-spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(0,0,0,0.15);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: v3-tcb-spin 0.8s linear infinite;
+}
+@keyframes v3-tcb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .v3-tcb-row-status .v3-tcb-spinner { animation: none; } }
+.v3-tcb-row-remove {
+  background: transparent;
+  border: 0;
+  color: var(--theme-text-faint, #94a3b8);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 6px;
+}
+.v3-tcb-row-remove:hover { color: #b91c1c; }
+.v3-tcb-row-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 10px;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 8px;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.55;
+  direction: rtl;
+  text-align: right;
+  resize: vertical;
+  box-sizing: border-box;
+}
+.v3-tcb-row-meta {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 8px;
+}
+@media (max-width: 640px) { .v3-tcb-row-meta { grid-template-columns: 1fr; } }
+.v3-tcb-row-meta input, .v3-tcb-row-meta select {
+  padding: 6px 10px;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 6px;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
+  font-family: inherit;
+  font-size: 12.5px;
+  box-sizing: border-box;
+  width: 100%;
+}
+.v3-tcb-add-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.v3-tcb-hint {
+  font-size: 11.5px;
+  color: var(--theme-text-faint, #94a3b8);
+}
+.v3-tcb-preflight {
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--theme-bg-muted, #f8fafc);
+  margin-bottom: 14px;
+}
+.v3-tcb-preflight-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--theme-text-secondary, #64748b);
+  margin-bottom: 6px;
+}
+.v3-tcb-preflight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px 18px;
+  font-size: 13px;
+}
+.v3-tcb-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid var(--theme-border-soft, #e6e9ef);
+}
+.v3-tcb-status { font-size: 12.5px; color: var(--theme-text-secondary, #64748b); }
+.v3-tcb-status.v3-tcb-status-error { color: #b91c1c; }
+.v3-tcb-status.v3-tcb-status-ok    { color: #15803d; }
 .v3-notes-tpl-row-double {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -9193,6 +9337,7 @@ body:not(.theme-light) .v3-heatmap-cell {
     <div class="v3-modal-header">
   <div class="v3-modal-title" data-i18n="library.title">Библиотека (v3)</div>
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <button class="btn-primary" onclick="v3TextCardBuilderOpen()" data-i18n="library.bulkBuilder" title="Создать text-card pack из нескольких текстов сразу (Direction 10 Mode A)">📦 Новая text-card</button>
     <button class="btn-secondary" onclick="v3LibraryExport()" data-i18n="library.exportJson">Экспорт JSON</button>
     <button class="btn-secondary" onclick="v3LibraryImport()" data-i18n="library.importJson">Импорт JSON</button>
     <button class="btn-secondary" onclick="v3LibraryExportBundle()" data-i18n="library.exportZip">Экспорт ZIP (с аудио)</button>
@@ -9342,6 +9487,49 @@ body:not(.theme-light) .v3-heatmap-cell {
 
     <div id="v3FbBody" style="padding:16px 24px 24px;">
       <!-- Content rendered by v3FeedbackRender* functions -->
+    </div>
+  </div>
+</div>
+
+<!-- Direction 10 Mode A — Bulk text-card builder modal -->
+<div id="v3TextCardBuilderModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Text-card builder">
+  <div class="v3-modal-backdrop" onclick="v3TextCardBuilderClose()" aria-hidden="true"></div>
+  <div class="v3-modal-panel v3-tcb-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title" data-i18n="tcb.title">📦 Text-card builder</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn-secondary" onclick="v3TextCardBuilderClose()" data-i18n="tcb.close">Закрыть</button>
+      </div>
+    </div>
+    <div class="v3-modal-body">
+      <div class="v3-tcb-intro" data-i18n="tcb.intro">
+        Соберите пакет до 10 ивритских текстов в одном проходе. Каждый получит перевод, транслит, никуд, аудио. Можно сохранить в библиотеку и/или скачать ZIP.
+      </div>
+
+      <div id="v3TcbTextList" class="v3-tcb-text-list" role="list">
+        <!-- Per-text rows rendered by v3TextCardBuilderRender -->
+      </div>
+
+      <div class="v3-tcb-add-row">
+        <button id="v3TcbAddBtn" class="btn-secondary" onclick="v3TextCardBuilderAddText()" data-i18n="tcb.addAnother">+ Добавить ещё текст</button>
+        <span id="v3TcbAddHint" class="v3-tcb-hint" data-i18n="tcb.addHint">До 10 текстов в одном batch</span>
+      </div>
+
+      <div id="v3TcbPreflightPanel" class="v3-tcb-preflight" style="display:none;">
+        <div class="v3-tcb-preflight-title" data-i18n="tcb.preflightTitle">Оценка перед сборкой</div>
+        <div class="v3-tcb-preflight-grid">
+          <div><span data-i18n="tcb.preflightTexts">Текстов:</span> <b id="v3TcbPfTexts">—</b></div>
+          <div><span data-i18n="tcb.preflightRows">Строк ≈:</span> <b id="v3TcbPfRows">—</b></div>
+          <div><span data-i18n="tcb.preflightChars">TTS символов ≈:</span> <b id="v3TcbPfChars">—</b></div>
+          <div><span data-i18n="tcb.preflightTime">Время ≈:</span> <b id="v3TcbPfTime">—</b></div>
+        </div>
+      </div>
+
+      <div id="v3TcbActions" class="v3-tcb-actions">
+        <button id="v3TcbBuildBtn" class="btn-primary" onclick="v3TextCardBuilderBuildAll()" disabled data-i18n="tcb.buildBtn">▶ Собрать карточки</button>
+        <button id="v3TcbDownloadZipBtn" class="btn-secondary" onclick="v3TextCardBuilderDownloadZip()" style="display:none;" data-i18n="tcb.downloadZipBtn">📥 Скачать ZIP всех текстов</button>
+        <span id="v3TcbStatus" class="v3-tcb-status" aria-live="polite"></span>
+      </div>
     </div>
   </div>
 </div>
@@ -33480,6 +33668,393 @@ async function v3MorphologyStatusClear() {
   }
 }
 window.v3MorphologyStatusClear = v3MorphologyStatusClear;
+
+// ─────────────────────────────────────────────────────────────────────────
+// Direction 10 Mode A — Bulk text-card builder
+// Plan: docs/TEXT_CARD_PLAN_v3_2.md §3
+// ─────────────────────────────────────────────────────────────────────────
+//
+// State model: array of "jobs", each describing one Hebrew text being
+// processed (or queued / done). The modal renders a row per job; the
+// orchestrator iterates the jobs sequentially via the existing
+// /api/translate-table-v2 endpoint and saves each result to the local
+// library via a thin wrapper around the same OPFS path as
+// v3LibrarySaveCurrentCore.
+//
+// MVP scope: translate + niqqud + translit + save-to-library + ZIP
+// download of the built texts. Audio prefetch is LAZY (rows get audio on
+// first play via existing row-TTS pipeline). Pre-fetch on save would be
+// a nice-to-have for v3.2.x — defer if we want.
+
+const V3_TCB_MAX_TEXTS = 10;
+
+const v3TcbState = {
+  jobs: [],            // [{id, sourceText, title, level, source, status, error, savedTextId}]
+  buildInProgress: false,
+  allDone: false,
+};
+
+function v3TcbNewJob() {
+  return {
+    id: 'tcb-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+    sourceText: '',
+    title: '',
+    level: '',
+    source: '',
+    status: 'idle', // idle | queued | translating | saving | done | error
+    error: null,
+    savedTextId: null,
+    rowCount: 0,
+  };
+}
+
+function v3TextCardBuilderOpen() {
+  const modal = document.getElementById('v3TextCardBuilderModal');
+  if (!modal) return;
+  if (v3TcbState.jobs.length === 0) {
+    v3TcbState.jobs.push(v3TcbNewJob());
+  }
+  v3TcbState.allDone = false;
+  v3TcbRender();
+  modal.classList.remove('hidden');
+}
+window.v3TextCardBuilderOpen = v3TextCardBuilderOpen;
+
+function v3TextCardBuilderClose() {
+  if (v3TcbState.buildInProgress) {
+    if (!confirm('Сборка в процессе. Точно закрыть? Прогресс по уже сохранённым текстам сохранится.')) return;
+  }
+  const modal = document.getElementById('v3TextCardBuilderModal');
+  if (modal) modal.classList.add('hidden');
+}
+window.v3TextCardBuilderClose = v3TextCardBuilderClose;
+
+function v3TextCardBuilderAddText() {
+  if (v3TcbState.jobs.length >= V3_TCB_MAX_TEXTS) {
+    showToast(v3NotesT('toast.tcbMaxReached', 'Достигнут лимит {n} текстов в одном batch').replace('{n}', String(V3_TCB_MAX_TEXTS)), 'warning');
+    return;
+  }
+  v3TcbState.jobs.push(v3TcbNewJob());
+  v3TcbRender();
+}
+window.v3TextCardBuilderAddText = v3TextCardBuilderAddText;
+
+function v3TcbRemoveJob(jobId) {
+  if (v3TcbState.buildInProgress) return;
+  const i = v3TcbState.jobs.findIndex(j => j.id === jobId);
+  if (i < 0) return;
+  v3TcbState.jobs.splice(i, 1);
+  if (v3TcbState.jobs.length === 0) v3TcbState.jobs.push(v3TcbNewJob());
+  v3TcbRender();
+}
+window.v3TcbRemoveJob = v3TcbRemoveJob;
+
+function v3TcbOnFieldChange(jobId, field, value) {
+  const job = v3TcbState.jobs.find(j => j.id === jobId);
+  if (!job) return;
+  job[field] = value;
+  v3TcbUpdatePreflight();
+}
+window.v3TcbOnFieldChange = v3TcbOnFieldChange;
+
+function v3TcbStatusLabel(status) {
+  const map = {
+    idle:        v3NotesT('tcb.statusIdle',        '—'),
+    queued:      v3NotesT('tcb.statusQueued',      '⏳ В очереди'),
+    translating: v3NotesT('tcb.statusTranslating', '🔄 Перевод + транслит…'),
+    saving:      v3NotesT('tcb.statusSaving',      '💾 Сохранение…'),
+    done:        v3NotesT('tcb.statusDone',        '✅ Готово'),
+    error:       v3NotesT('tcb.statusError',       '⚠ Ошибка'),
+  };
+  return map[status] || status;
+}
+
+function v3TcbRender() {
+  const list = document.getElementById('v3TcbTextList');
+  if (!list) return;
+  const esc = (s) => v3EscapeHtml(String(s || ''));
+  const html = v3TcbState.jobs.map((job, idx) => {
+    const num = idx + 1;
+    const rowClass = job.status === 'done' ? 'v3-tcb-row-done'
+      : job.status === 'error' ? 'v3-tcb-row-error'
+      : (job.status !== 'idle' && job.status !== 'queued') ? 'v3-tcb-row-active'
+      : '';
+    const statusInner = (job.status === 'translating' || job.status === 'saving')
+      ? '<span class="v3-tcb-spinner"></span>' + esc(v3TcbStatusLabel(job.status))
+      : esc(v3TcbStatusLabel(job.status) + (job.error ? ': ' + job.error : ''));
+    const canRemove = !v3TcbState.buildInProgress && v3TcbState.jobs.length > 1;
+    const fieldsDisabled = v3TcbState.buildInProgress || job.status === 'done';
+    return `<div class="v3-tcb-text-row ${rowClass}" data-job-id="${esc(job.id)}" role="listitem">
+      <div class="v3-tcb-row-header">
+        <span class="v3-tcb-row-num">${esc(v3NotesT('tcb.rowLabel', 'Текст'))} #${num}</span>
+        <span class="v3-tcb-row-status">${statusInner}</span>
+        ${canRemove ? `<button type="button" class="v3-tcb-row-remove" onclick="v3TcbRemoveJob('${esc(job.id)}')" title="${esc(v3NotesT('tcb.removeRow', 'Удалить'))}">✕</button>` : ''}
+      </div>
+      <textarea class="v3-tcb-row-textarea" dir="rtl" placeholder="${esc(v3NotesT('tcb.placeholderHebrew', 'Введите ивритский текст…'))}" ${fieldsDisabled ? 'disabled' : ''}
+                oninput="v3TcbOnFieldChange('${esc(job.id)}', 'sourceText', this.value)">${esc(job.sourceText)}</textarea>
+      <div class="v3-tcb-row-meta">
+        <input type="text" placeholder="${esc(v3NotesT('tcb.placeholderTitle', 'Заголовок (необязательно)'))}" value="${esc(job.title)}" ${fieldsDisabled ? 'disabled' : ''}
+               oninput="v3TcbOnFieldChange('${esc(job.id)}', 'title', this.value)" />
+        <select ${fieldsDisabled ? 'disabled' : ''} onchange="v3TcbOnFieldChange('${esc(job.id)}', 'level', this.value)">
+          <option value="" ${job.level === '' ? 'selected' : ''}>${esc(v3NotesT('tcb.levelAny', 'Уровень'))}</option>
+          <option value="beginner"     ${job.level === 'beginner' ? 'selected' : ''}>${esc(v3NotesT('tcb.levelBeginner', 'Начальный'))}</option>
+          <option value="intermediate" ${job.level === 'intermediate' ? 'selected' : ''}>${esc(v3NotesT('tcb.levelIntermediate', 'Средний'))}</option>
+          <option value="advanced"     ${job.level === 'advanced' ? 'selected' : ''}>${esc(v3NotesT('tcb.levelAdvanced', 'Продвинутый'))}</option>
+        </select>
+        <input type="text" placeholder="${esc(v3NotesT('tcb.placeholderSource', 'Источник (URL/ulpan week 5)'))}" value="${esc(job.source)}" ${fieldsDisabled ? 'disabled' : ''}
+               oninput="v3TcbOnFieldChange('${esc(job.id)}', 'source', this.value)" />
+      </div>
+    </div>`;
+  }).join('');
+  list.innerHTML = html;
+
+  // Update add button state
+  const addBtn = document.getElementById('v3TcbAddBtn');
+  if (addBtn) addBtn.disabled = v3TcbState.buildInProgress || v3TcbState.jobs.length >= V3_TCB_MAX_TEXTS;
+
+  v3TcbUpdatePreflight();
+  v3TcbUpdateActions();
+}
+
+function v3TcbUpdatePreflight() {
+  const panel = document.getElementById('v3TcbPreflightPanel');
+  if (!panel) return;
+  const validJobs = v3TcbState.jobs.filter(j => String(j.sourceText || '').trim().length > 0);
+  if (!validJobs.length) {
+    panel.style.display = 'none';
+    return;
+  }
+  // Heuristics: ~30 rows per ~1500 chars; ~50 chars per row average.
+  let estRows = 0, estChars = 0;
+  for (const j of validJobs) {
+    const len = String(j.sourceText).trim().length;
+    const rows = Math.max(1, Math.round(len / 50));
+    estRows += rows;
+    estChars += len;
+  }
+  // Time estimate: ~3-5s per row for translate+niqqud+translit on premium pipeline.
+  const estSec = Math.round(estRows * 4);
+  const fmt = (s) => s < 60 ? s + ' сек' : Math.round(s / 60) + ' мин';
+  document.getElementById('v3TcbPfTexts').textContent = String(validJobs.length);
+  document.getElementById('v3TcbPfRows').textContent  = String(estRows);
+  document.getElementById('v3TcbPfChars').textContent = String(estChars);
+  document.getElementById('v3TcbPfTime').textContent  = fmt(estSec);
+  panel.style.display = '';
+}
+
+function v3TcbUpdateActions() {
+  const buildBtn = document.getElementById('v3TcbBuildBtn');
+  const zipBtn   = document.getElementById('v3TcbDownloadZipBtn');
+  const validJobs = v3TcbState.jobs.filter(j => String(j.sourceText || '').trim().length > 0);
+  if (buildBtn) {
+    buildBtn.disabled = v3TcbState.buildInProgress || validJobs.length === 0;
+    if (v3TcbState.allDone) {
+      buildBtn.textContent = v3NotesT('tcb.buildAgainBtn', '↻ Собрать ещё');
+    } else if (v3TcbState.buildInProgress) {
+      buildBtn.textContent = v3NotesT('tcb.buildingBtn', '⏳ Сборка…');
+    } else {
+      buildBtn.textContent = v3NotesT('tcb.buildBtn', '▶ Собрать карточки') + (validJobs.length ? ' (' + validJobs.length + ')' : '');
+    }
+  }
+  if (zipBtn) {
+    const completedIds = v3TcbState.jobs.filter(j => j.status === 'done' && j.savedTextId).map(j => j.savedTextId);
+    zipBtn.style.display = completedIds.length ? '' : 'none';
+  }
+}
+
+async function v3TcbSaveOneToLibrary(sourceText, rows, meta) {
+  if (!LOCAL_MODE) throw new Error('library save requires LOCAL_MODE');
+  const ldb = await ensureLocalDB();
+  const newTextId = crypto.randomUUID();
+  const textKey = 'text-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+  await ldb.createText({
+    id: newTextId, text_key: textKey,
+    title: meta.title || null, source_text: sourceText,
+    level: meta.level || null,
+    tags_json: JSON.stringify(meta.tags || []),
+    source: meta.source || null, topic: meta.topic || null,
+    tts_profile_json: JSON.stringify(meta.ttsProfile || null),
+    source_meta_json: JSON.stringify(meta.tableModelMeta || null),
+  });
+  for (const row of rows) {
+    await ldb.addSentence(newTextId, {
+      id: crypto.randomUUID(),
+      he_plain: row.he || row.hebrew_plain || '',
+      he_niqqud: row.he_niqqud || row.hebrew_niqqud || '',
+      translit: row.translit || '',
+      translit_ru: row.translit_ru || '',
+      ru: row.ru || row.russian || '',
+      edit_meta_json: row.edit_meta_json || null,
+    });
+  }
+  return newTextId;
+}
+
+async function v3TcbProcessJob(job) {
+  job.status = 'translating';
+  job.error = null;
+  v3TcbRender();
+  try {
+    // Use the same translate endpoint as the main app
+    const provider = (typeof getSelectedProvider === 'function') ? getSelectedProvider() : 'gemini';
+    const usePremium = provider === 'gcp' || provider === 'madlad' || provider === 'google-free';
+    const endpoint = usePremium ? '/api/translate-table-v2' : '/api/translate-table';
+    const translitEl = document.getElementById('translitProfileSelect');
+    const translitProfile = translitEl ? (translitEl.value || 'sbl') : 'sbl';
+    const payload = usePremium
+      ? { text: job.sourceText, provider, target_lang: 'ru', translit_profile: translitProfile }
+      : { text: job.sourceText };
+    const res = await apiCall(endpoint, payload);
+    const rows = Array.isArray(res && res.rows) ? res.rows : [];
+    if (!rows.length) throw new Error('Empty rows from translate API');
+    job.rowCount = rows.length;
+
+    job.status = 'saving';
+    v3TcbRender();
+    const meta = {
+      title: job.title || '',
+      level: job.level || '',
+      source: job.source || '',
+      ttsProfile: (typeof v3BuildTtsProfileForSave === 'function') ? v3BuildTtsProfileForSave() : null,
+      tableModelMeta: (typeof v3LastGeminiMeta === 'object' && v3LastGeminiMeta) ? v3LastGeminiMeta : {
+        promptId: usePremium ? 'he-ru-table-v2' : 'he-ru-table-v1',
+        model: provider,
+        cacheKey: (res && res.cacheKey) || null,
+        fromCache: (res && res.fromCache === true),
+        provider,
+        generatedAt: new Date().toISOString(),
+      },
+    };
+    const savedId = await v3TcbSaveOneToLibrary(job.sourceText, rows, meta);
+    job.savedTextId = savedId;
+    job.status = 'done';
+    v3TcbRender();
+  } catch (e) {
+    job.status = 'error';
+    job.error = String(e && e.message ? e.message : e).slice(0, 120);
+    v3TcbRender();
+  }
+}
+
+async function v3TextCardBuilderBuildAll() {
+  if (v3TcbState.buildInProgress) return;
+  const validJobs = v3TcbState.jobs.filter(j =>
+    String(j.sourceText || '').trim().length > 0 && j.status !== 'done'
+  );
+  if (!validJobs.length) {
+    if (v3TcbState.allDone) {
+      // Restart — reset all jobs.
+      v3TcbState.jobs = [v3TcbNewJob()];
+      v3TcbState.allDone = false;
+      v3TcbRender();
+    }
+    return;
+  }
+  v3TcbState.buildInProgress = true;
+  v3TcbState.allDone = false;
+  for (const job of validJobs) { job.status = 'queued'; }
+  v3TcbRender();
+
+  // Sequential — keeps memory + API load predictable. 10 texts → ~minutes.
+  for (const job of validJobs) {
+    await v3TcbProcessJob(job);
+  }
+
+  v3TcbState.buildInProgress = false;
+  const okCount = v3TcbState.jobs.filter(j => j.status === 'done').length;
+  v3TcbState.allDone = okCount > 0 && v3TcbState.jobs.every(j => j.status === 'done' || j.status === 'error' || String(j.sourceText || '').trim().length === 0);
+  const statusEl = document.getElementById('v3TcbStatus');
+  if (statusEl) {
+    const errCount = v3TcbState.jobs.filter(j => j.status === 'error').length;
+    if (errCount === 0) {
+      statusEl.textContent = v3NotesT('tcb.allDone', 'Готово: {n} текстов сохранено в библиотеку').replace('{n}', String(okCount));
+      statusEl.className = 'v3-tcb-status v3-tcb-status-ok';
+    } else {
+      statusEl.textContent = v3NotesT('tcb.someErrors', '{ok} ОК, {err} с ошибкой').replace('{ok}', String(okCount)).replace('{err}', String(errCount));
+      statusEl.className = 'v3-tcb-status v3-tcb-status-error';
+    }
+  }
+  v3TcbRender();
+  try { if (typeof v3LibraryRefresh === 'function') await v3LibraryRefresh(); } catch (_) {}
+  try { if (typeof v3NotesInvalidateLibrarySmartCache === 'function') v3NotesInvalidateLibrarySmartCache(); } catch (_) {}
+}
+window.v3TextCardBuilderBuildAll = v3TextCardBuilderBuildAll;
+
+async function v3TextCardBuilderDownloadZip() {
+  const completedIds = v3TcbState.jobs.filter(j => j.status === 'done' && j.savedTextId).map(j => j.savedTextId);
+  if (!completedIds.length) return;
+  if (!LOCAL_MODE) {
+    showToast(v3NotesT('toast.tcbZipLocalOnly', 'ZIP-экспорт доступен только в локальном режиме.'), 'error');
+    return;
+  }
+  try {
+    const JSZip = await v3LoadJSZip();
+    showToast(v3NotesT('toast.tcbZipBuilding', 'Готовим ZIP…'), 'info');
+    const ldb = await ensureLocalDB();
+    const bundle = await ldb.exportBundle({ includeArchived: true, textIds: completedIds });
+
+    const allKeys = new Set();
+    for (const t of (bundle.library.texts || [])) {
+      for (const r of (t.rows || [])) {
+        const k = String(r.audio_asset_key || '').trim();
+        if (k) allKeys.add(k);
+      }
+    }
+    const zip = new JSZip();
+    const audioFolder = zip.folder('audio');
+    const missing = [];
+    const keys = Array.from(allKeys);
+    const CONCURRENCY = 6;
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < keys.length) {
+        const i = cursor++;
+        const key = keys[i];
+        try {
+          const r = await fetch('/api/audio/' + encodeURIComponent(key));
+          if (!r.ok) { missing.push({ asset_key: key, reason: 'not_in_cache' }); continue; }
+          const ab = await r.arrayBuffer();
+          audioFolder.file(key + '.mp3', ab);
+          const aa = (bundle.library.audio_assets || []).find(x => x.asset_key === key);
+          if (aa) aa.size_bytes = ab.byteLength;
+        } catch (_) { missing.push({ asset_key: key, reason: 'fetch_error' }); }
+      }
+    };
+    const workers = [];
+    for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
+    await Promise.all(workers);
+
+    zip.file('library/library.json', JSON.stringify(bundle.library, null, 2));
+    zip.file('manifest.json', JSON.stringify({
+      format: 'linguistpro-bundle',
+      schema_version: 1,
+      generated_at: new Date().toISOString(),
+      generator: 'text-card-builder',
+      text_count: completedIds.length,
+      audio_count: keys.length - missing.length,
+      missing_audio: missing.length,
+    }, null, 2));
+    if (missing.length) {
+      zip.file('metadata/missing_audio.json', JSON.stringify(missing, null, 2));
+    }
+
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const filename = 'text-card-bundle-' + new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-') + '.zip';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    showToast(v3NotesT('toast.tcbZipReady', 'ZIP скачан ({n} текстов, {a} аудио{m})').replace('{n}', String(completedIds.length)).replace('{a}', String(keys.length - missing.length)).replace('{m}', missing.length ? ', ' + missing.length + ' missing' : ''), 'success');
+  } catch (e) {
+    console.warn('[tcb] zip export failed', e);
+    showToast(v3NotesT('toast.tcbZipFailed', 'Не удалось сделать ZIP.'), 'error');
+  }
+}
+window.v3TextCardBuilderDownloadZip = v3TextCardBuilderDownloadZip;
 
 // Phase 9.4.B — Root autocomplete for the word_study template field.
 // Tier 2 source: seed dict (loaded by `_loadRootsSeed` on app boot) +
