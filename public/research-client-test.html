@@ -86,8 +86,9 @@ function installMockLdb() {
         }
         return true;
       };
-      // Sessions + active days
-      if (/SUM.*session_start.*COUNT.*DISTINCT substr/i.test(s)) {
+      // Sessions + active days. SQL spans newlines so we test fragments
+      // independently rather than as one cross-line regex.
+      if (/session_start.*THEN 1/i.test(s) && /COUNT\(DISTINCT substr\(ts, 1, 10\)\)/i.test(s)) {
         const events = _syntheticEvents.filter(inWindow).filter((e) =>
           ['session_start', 'session_heartbeat', 'session_end'].includes(e.event_type));
         const sessions = events.filter((e) => e.event_type === 'session_start').length;
