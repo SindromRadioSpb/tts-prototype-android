@@ -528,6 +528,56 @@
     downloadCsv(`cohort_${a.cohort_meta.code}_derived.csv`, lines);
   }
 
+  // ── outcomes CSV upload ────────────────────────────────────────────────
+  // Opens a hidden <input type="file"> to pick a CSV, reads it locally,
+  // POSTs to /api/research/v1/cohort/:code/outcomes (Bearer-auth), then
+  // refreshes the dashboard so the joined outcomes show up immediately.
+  function uploadOutcomesCsv() {
+    const cohort = localStorage.getItem(LS.cohort);
+    const token  = localStorage.getItem(LS.token);
+    if (!cohort || !token) { logout(); return; }
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.csv,text/csv,text/plain';
+    inp.onchange = async () => {
+      const file = inp.files && inp.files[0];
+      if (!file) return;
+      if (file.size > 256 * 1024) {
+        alert('CSV больше 256 KB — слишком много. Поделите файл или сократите.');
+        return;
+      }
+      const text = await file.text();
+      // Quick client-side sanity check: header present, has student_id col.
+      const firstLine = (text.split(/\r?\n/)[0] || '').toLowerCase();
+      if (!firstLine.includes('student_id')) {
+        alert("CSV header должен содержать колонку 'student_id'. Ожидаемые колонки:\nstudent_id,pre_test_score,post_test_score,exam_date,uploaded_by");
+        return;
+      }
+      let resp;
+      try {
+        resp = await fetch(`/api/research/v1/cohort/${encodeURIComponent(cohort)}/outcomes`, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'text/csv' },
+          body: text,
+        });
+      } catch (e) {
+        alert('Network error: ' + e.message);
+        return;
+      }
+      let body = null;
+      try { body = await resp.json(); } catch (_) {}
+      if (resp.ok) {
+        alert(`✓ Outcomes uploaded.\ninserted=${body && body.inserted}, updated=${body && body.updated}, total=${body && body.total}`);
+        await refresh();
+      } else {
+        const err = (body && body.error) || ('HTTP_' + resp.status);
+        const detail = body && (body.message || body.line) ? `\n${body.message || ''}${body.line ? ' (line ' + body.line + ')' : ''}` : '';
+        alert(`Upload failed: ${err}${detail}`);
+      }
+    };
+    inp.click();
+  }
+
   // ── boot ───────────────────────────────────────────────────────────────
   function boot() {
     $('loginBtn').addEventListener('click', tryLogin);
@@ -535,6 +585,7 @@
     $('tokenInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
     $('refreshBtn').addEventListener('click', refresh);
     $('logoutBtn').addEventListener('click', logout);
+    $('uploadOutcomesBtn').addEventListener('click', uploadOutcomesCsv);
     $('exportAggregatesBtn').addEventListener('click', exportAggregatesCsv);
     $('exportTimeseriesBtn').addEventListener('click', exportTimeseriesCsv);
     $('exportDerivedBtn').addEventListener('click', exportDerivedCsv);

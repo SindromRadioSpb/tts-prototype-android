@@ -9,7 +9,23 @@
 
 **Mega-release scope** (~7–9 рабочих недель). Approved 2026-05-10. Master plan: [`docs/PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md).
 
-### Shipped (Direction 11B in progress)
+### Shipped (Direction 11B complete)
+
+- **Phase 11.6 + 11.7 + 11.8 — Outcome capture + docs + smoke audit** *(2026-05-13, S4 of Direction 11B — closes Direction 11B and completes v3.2.0)*. Final session for the mega-release. Outcome data now flows both directions (self-report by student + authoritative CSV by teacher), researcher onboarding guide written, and a combined smoke runner ties all four suites together for a single precommit gate.
+  - **Phase 11.6.1 — Student self-report.** `LinguistProResearch.submitOutcome({post_test_score, confidence_self_report})` POSTs a minimal payload (just `metrics.outcome`) tagged `outcome_capture_method: "self-report"` to the existing Phase 11.4 endpoint. Validates locally: `post_test_score` must be a finite non-negative number; `confidence_self_report` must be int 1..5 (both nullable, but at least one required). New "🎓 Сдать экзамен" button in the research-mode main panel; modal with numeric input + 5-option Likert select. ~14 new i18n keys per locale.
+  - **Phase 11.6.2 — Teacher CSV upload.** New endpoint **`POST /api/research/v1/cohort/:code/outcomes`** with Bearer-auth (researcher token) + `Content-Type: text/csv` (256 KB cap, parsed via `express.text` middleware on this route only). CSV header row required (`student_id` column mandatory); rows merged with existing `outcomes.csv` (incoming wins on conflict, full file rewritten atomically, audit-logged to `deletions.log`). Returns `{ok, inserted, updated, total}`. New `storage.parseOutcomesCsvText()` (throws `CsvParseError` with `.lineNumber`) and `storage.writeOutcomesCsv()`. Teacher dashboard gains a **📤 Upload outcomes CSV** button in the header — hidden file picker → local size check → POST with auto-refresh.
+  - **Aggregator merges both outcome paths.** `aggregateCohort()` now scans payloads for `metrics.outcome` (self-report harvest, latest `upload_ts` wins per student) → attaches as `students[].outcome.uploaded_by: "self-report"`. Teacher CSV from `outcomes.csv` overrides on conflict (teacher is authoritative; documented in `RESEARCHER_GUIDE.md` §4). Malformed CSV at rest is logged + skipped rather than failing the whole GET.
+  - **Phase 11.7 — `docs/RESEARCHER_GUIDE.md`** (new, ~280 lines). Researcher quickstart covering privacy invariants, cohort provisioning, code distribution to students with brief template, two outcome capture paths, teacher dashboard walkthrough, k-anonymity gate, three CSV export schemas, R/Python/SPSS analysis snippets, withdrawal flow, pre-deployment operational checklist, scope deferrals to v3.3+, support contacts.
+  - **Phase 11.8 — Smoke audit + combined runner.** `scripts/research/smoke.js` extended with 8 outcome-endpoint cases (401/403/400 EMPTY_BODY/400 BAD_CSV/400 NO_ROWS/404/200 insert/200 merge) → **23/23 PASS** (was 15). Browser smoke extended with 5 `submitOutcome` cases (rejection when disabled, valid payload shape via captured fetch body, BAD_SCORE on negative, BAD_CONFIDENCE on out-of-range, score-only + confidence-only paths) → **21/21 PASS** (was 16). Teacher smoke extended with 2 cases (Upload outcomes CSV button presence, outcomes joined into student table via direct cell query) → **14/14 PASS** (was 12). New `scripts/research/all-smoke.js` chains all four runners and reports per-suite pass/fail + total runtime; `--skip-screenshots` flag for fast CI loops.
+
+  **Direction 11B aggregate smoke: 58 cases + 9 PNG captures, ~8s total.**
+
+  ```bash
+  node scripts/research/all-smoke.js                    # all 4 suites
+  node scripts/research/all-smoke.js --skip-screenshots # just the 3 functional (4s)
+  ```
+
+  This closes Direction 11B (research mode) and completes v3.2.0 mega-release scope (Direction 9 + 10 + 11A + 11B).
 
 - **Phase 11.5 — Teacher dashboard `/teacher.html` + fake cohort seed** *(2026-05-13, S3 of Direction 11B)*. Researcher-facing static page that reads cohort aggregates from the Phase 11.4 GET endpoint, renders charts + per-student table + outcome correlations, and exports CSV in the schema documented in `docs/ULPAN_RESEARCH_PLAN_v3_2.md` §8.
   - **`public/teacher.html` + `public/js/teacher.js`** — standalone vanilla-JS page (no shared layout, dark theme, ~600 LOC JS). Login form (cohort code + Bearer token) auto-resumes via `localStorage.teacherDashCohort_v1` + `teacherDashToken_v1`. Six sections: summary tiles, engagement timeline (SVG line chart), audio playback chart, SRS + notes-created chart, per-student table (k-gated, click-to-sort), Pearson correlations table (computed in-browser, no R/Python dependency), engagement-vs-exam scatter with least-squares trendline. Three CSV exports: `cohort_<code>_aggregates.csv` (per-student), `cohort_<code>_timeseries.csv` (per-student per-day OR cohort-wide fallback when k not met), `cohort_<code>_derived.csv` (composite engagement_score + quality_score + efficiency_ratio + growth_delta + engagement_consistency per Plan §8).
@@ -46,9 +62,10 @@
   - **No-PII logging contract.** Server log lines for research routes carry only `student_id`/`cohort_code`/`upload_ts`/byte count/status — never payload bodies or any raw text.
   - **Acceptance:** `scripts/research/smoke.js` — 15-case acceptance suite covering §14 (minimal+full valid, dedupe, missing/wrong format, unknown top-key, forbidden field deep, oversize payload, cohort 404, rate-limit 429, GET 401/403/200, k=5 gate, withdrawal end-to-end, bad UUID 400). **15/15 pass.**
 
-### Planned (remaining for v3.2.0 final)
+### v3.2.0 final scope: complete
 
-- **Direction 11B follow-on phases (S4):** outcome capture (self-report + teacher CSV upload endpoint, 11.6, ~1–2d), ethics docs polish (11.7, ~1d), research-mode smoke audit (11.8, ~1d). See `memory/project_v3_2_progress.md`. (S3 teacher dashboard shipped in this RC.)
+All four sub-phases of Direction 11B shipped (S1 → S4). Mega-release scope
+(D5) = Direction 9 + 10 + 11A + 11B all complete. Awaiting v3.2.0 tag.
 
 ---
 

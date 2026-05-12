@@ -612,6 +612,68 @@
     return { ok: false, status: result.status, error: result.error, queued: true };
   }
 
+  // Phase 11.6 §11.6.1 — student self-report exam score. ONE-OFF POST
+  // /api/research/v1/metrics with metrics.outcome populated; the regular
+  // daily aggregator continues independently. Server merges into outcomes
+  // (CSV upload from teacher overrides, since teacher is authoritative).
+  async function submitOutcome({ post_test_score, confidence_self_report } = {}) {
+    const state = getState();
+    if (!state.enabled || !state.studentId || !state.cohortCode) {
+      return { ok: false, error: "NOT_ENABLED" };
+    }
+    if (needsReconsent()) {
+      return { ok: false, error: "RECONSENT_NEEDED" };
+    }
+    const post = post_test_score != null ? Number(post_test_score) : null;
+    if (post != null && (!Number.isFinite(post) || post < 0)) {
+      return { ok: false, error: "BAD_SCORE", message: "post_test_score must be a non-negative number or null" };
+    }
+    const conf = confidence_self_report != null ? Math.round(Number(confidence_self_report)) : null;
+    if (conf != null && (!Number.isInteger(conf) || conf < 1 || conf > 5)) {
+      return { ok: false, error: "BAD_CONFIDENCE", message: "confidence_self_report must be int 1..5 or null" };
+    }
+    const today = todayIsoDay();
+    const payload = {
+      format: SCHEMA_FORMAT,
+      student_id: ensureStudentId(),
+      cohort_code: state.cohortCode,
+      upload_ts: today,
+      since_ts: today,
+      consent_version: state.consentVersion || CONSENT_VERSION,
+      context: { app_version: readAppVersionFromPackage(), platform: detectPlatform() },
+      metrics: {
+        outcome: {
+          ...(post != null ? { post_test_score: post } : {}),
+          ...(conf != null ? { confidence_self_report: conf } : {}),
+          outcome_capture_method: "self-report",
+        },
+      },
+    };
+    const result = await _uploadOnce(payload);
+    if (result.ok) {
+      appendLog({
+        upload_ts: today,
+        since_ts: today,
+        sent_at: new Date().toISOString(),
+        dedupe: !!result.dedupe,
+        stored: !!result.stored,
+        bytes: JSON.stringify(payload).length,
+        outcome_submission: true,
+        metric_summary: { outcome_post_test_score: post, outcome_confidence: conf },
+      });
+      return { ok: true, dedupe: result.dedupe };
+    }
+    appendLog({
+      upload_ts: today,
+      since_ts: today,
+      sent_at: new Date().toISOString(),
+      error: result.error,
+      field: result.field,
+      outcome_submission: true,
+    });
+    return { ok: false, status: result.status, error: result.error, message: result.message, field: result.field };
+  }
+
   // Pump the queue: try queued metric uploads + delete retries. Called on
   // each aggregator tick.
   async function _drainQueue() {
@@ -709,6 +771,7 @@
     getRecentUploads,
     getCurrentConsentVersion,
     runDailyAggregator,
+    submitOutcome,
     // internals exposed for testing only — UI should not call these
     _aggregateForRange,
     _uploadOnce,

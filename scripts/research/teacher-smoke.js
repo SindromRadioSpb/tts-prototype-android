@@ -156,6 +156,33 @@ async function runTests(page) {
   // 12. logout button present.
   const hasLogout = exportBtns.some((t) => /Logout/.test(t));
   record("12. Logout button present", hasLogout);
+
+  // 13. Upload outcomes CSV button present (Phase 11.6).
+  const hasUpload = exportBtns.some((t) => /Upload outcomes/.test(t));
+  record("13. Upload outcomes CSV button present", hasUpload);
+
+  // 14. Outcomes from outcomes.csv joined into students[].outcome — pull
+  // the last two columns (pre/post score) of every body row and assert
+  // at least one row has a numeric value in either.
+  const outcomeCells = await page.$$eval('#studentTable tbody tr', (rows) =>
+    rows.map((tr) => {
+      const tds = tr.querySelectorAll('td');
+      const len = tds.length;
+      if (len < 2) return { pre: '', post: '' };
+      return {
+        pre:  (tds[len - 2].textContent || '').trim(),
+        post: (tds[len - 1].textContent || '').trim(),
+      };
+    })
+  );
+  const numericRows = outcomeCells.filter((c) =>
+    /^\d/.test(c.pre) || /^\d/.test(c.post)
+  );
+  record(
+    "14. Outcomes joined into per-student table",
+    numericRows.length >= 5,
+    `numeric rows=${numericRows.length}/12 (expected ≥ 5; one student is withdrawn so ≤ 11)`
+  );
 }
 
 async function main() {

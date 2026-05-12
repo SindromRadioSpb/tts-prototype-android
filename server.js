@@ -8088,6 +8088,56 @@ app.get("/api/research/v1/cohort/:code/aggregates", async (req, res) => {
   }
 });
 
+// Phase 11.6 — teacher CSV upload of outcomes. Bearer-auth (researcher
+// token); CSV body parsed via express.text middleware on this route only.
+app.post(
+  "/api/research/v1/cohort/:code/outcomes",
+  express.text({ type: ["text/csv", "text/plain"], limit: "256kb" }),
+  async (req, res) => {
+    try {
+      const code = String(req.params.code || "");
+      if (!/^[A-Z0-9-]{4,16}$/.test(code)) {
+        return res.status(400).json({ ok: false, error: "BAD_COHORT_CODE" });
+      }
+      if (!researchStorage.cohortExists(code)) {
+        return res.status(404).json({ ok: false, error: "COHORT_NOT_FOUND" });
+      }
+      const authHeader = String(req.headers.authorization || "");
+      const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+      if (!bearer) return res.status(401).json({ ok: false, error: "MISSING_BEARER_TOKEN" });
+      if (!researchStorage.verifyResearcherToken(code, bearer)) {
+        logResearch(req, { status: 403, error: "BAD_TOKEN", cohort: code });
+        return res.status(403).json({ ok: false, error: "BAD_RESEARCHER_TOKEN" });
+      }
+      const csvText = typeof req.body === "string" ? req.body : "";
+      if (!csvText.trim()) {
+        return res.status(400).json({ ok: false, error: "EMPTY_BODY", message: "Send CSV body with header row 'student_id,...'" });
+      }
+      let rows;
+      try {
+        rows = researchStorage.parseOutcomesCsvText(csvText);
+      } catch (e) {
+        if (e && e.code === "BAD_CSV") {
+          logResearch(req, { status: 400, error: "BAD_CSV", line: e.lineNumber, cohort: code });
+          return res.status(400).json({ ok: false, error: "BAD_CSV", line: e.lineNumber, message: e.message });
+        }
+        throw e;
+      }
+      if (!rows.length) {
+        return res.status(400).json({ ok: false, error: "NO_ROWS", message: "CSV had a header but no data rows" });
+      }
+      const result = researchStorage.writeOutcomesCsv(code, rows);
+      logResearch(req, {
+        status: 200, cohort: code, inserted: result.inserted, updated: result.updated, total: result.total,
+      });
+      return res.status(200).json({ ok: true, ...result });
+    } catch (e) {
+      console.error("[research] POST /cohort/:code/outcomes error:", e && e.message ? e.message : e);
+      return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+    }
+  }
+);
+
 app.delete("/api/research/v1/student/:student_id", async (req, res) => {
   try {
     const sid = String(req.params.student_id || "");

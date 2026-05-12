@@ -230,6 +230,9 @@ function aggregateCohort(cohortCode) {
   const perStudentDaily = new Map();   // sid -> Map<date, daily-totals>
   const cohortDaily = new Map();       // date -> cohort-wide daily-totals
   const days = new Set();
+  // Self-report outcomes harvested from payload.metrics.outcome — latest
+  // upload_ts wins per student. CSV file overrides these (teacher-authoritative).
+  const selfReports = new Map(); // sid -> { upload_ts, outcome }
 
   function blankTotals() {
     return {
@@ -318,6 +321,14 @@ function aggregateCohort(cohortCode) {
         // Cohort-wide daily (sum across students).
         if (!cohortDaily.has(dateKey)) cohortDaily.set(dateKey, blankDaily(dateKey));
         addInto(cohortDaily.get(dateKey), m);
+
+        // Self-report outcome harvest (Phase 11.6 §11.6.1).
+        if (m.outcome && (m.outcome.post_test_score != null || m.outcome.confidence_self_report != null)) {
+          const existing = selfReports.get(sid);
+          if (!existing || row.upload_ts >= existing.upload_ts) {
+            selfReports.set(sid, { upload_ts: row.upload_ts, outcome: m.outcome });
+          }
+        }
       }
     }
   }
@@ -329,9 +340,26 @@ function aggregateCohort(cohortCode) {
     total.students_active = active;
   }
 
-  // Outcomes from outcomes.csv (manual placement for v3.2-rc; Phase 11.6
-  // adds CSV upload + self-report POST).
-  const outcomes = readOutcomesCsv(cohortCode);
+  // Outcome merge: self-report (from payload.metrics.outcome) first, then
+  // outcomes.csv overrides (teacher-authoritative).
+  for (const [sid, sr] of selfReports) {
+    const acc = perStudent.get(sid);
+    if (acc) {
+      acc.outcome = {
+        pre_test_score:  sr.outcome.pre_test_score != null ? Number(sr.outcome.pre_test_score) : null,
+        post_test_score: sr.outcome.post_test_score != null ? Number(sr.outcome.post_test_score) : null,
+        confidence_self_report: sr.outcome.confidence_self_report != null ? Number(sr.outcome.confidence_self_report) : null,
+        exam_date: sr.upload_ts,
+        uploaded_by: "self-report",
+      };
+    }
+  }
+  let outcomes = [];
+  try { outcomes = readOutcomesCsv(cohortCode); } catch (e) {
+    // Malformed CSV at rest is a deployment problem — log and continue
+    // with self-report-only outcomes rather than failing the whole GET.
+    console.warn("[research] readOutcomesCsv failed for", cohortCode, e.message);
+  }
   for (const row of outcomes) {
     const acc = perStudent.get(row.student_id);
     if (acc) {
@@ -388,8 +416,24 @@ function readOutcomesCsv(cohortCode) {
   const p = path.join(cohortDir(cohortCode), "outcomes.csv");
   if (!fs.existsSync(p)) return [];
   const text = fs.readFileSync(p, "utf8");
+  return parseOutcomesCsvText(text);
+}
+
+// Parse outcomes CSV text → array of { student_id, pre_test_score,
+// post_test_score, exam_date, uploaded_by }. Throws CsvParseError with
+// .lineNumber on header issues. Skips fully blank lines silently.
+class CsvParseError extends Error {
+  constructor(message, lineNumber) {
+    super(message);
+    this.code = "BAD_CSV";
+    this.lineNumber = lineNumber;
+  }
+}
+function parseOutcomesCsvText(text) {
   const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length < 2) return [];
+  if (lines.length < 1) {
+    throw new CsvParseError("CSV is empty", 0);
+  }
   const header = lines[0].split(",").map((s) => s.trim());
   const idxOf = (name) => header.indexOf(name);
   const iSid = idxOf("student_id");
@@ -397,7 +441,9 @@ function readOutcomesCsv(cohortCode) {
   const iPost = idxOf("post_test_score");
   const iDate = idxOf("exam_date");
   const iBy = idxOf("uploaded_by");
-  if (iSid < 0) return [];
+  if (iSid < 0) {
+    throw new CsvParseError("CSV header must include 'student_id'", 1);
+  }
   const out = [];
   for (let i = 1; i < lines.length; i++) {
     const cells = lines[i].split(",").map((s) => s.trim());
@@ -421,6 +467,50 @@ function readOutcomesCsv(cohortCode) {
   return out;
 }
 
+// Persist a list of outcome rows to <cohort>/outcomes.csv. Merges with
+// existing rows by student_id (incoming wins on conflict). Returns
+// { inserted, updated, total }. Audit-log line appended to deletions.log.
+function writeOutcomesCsv(cohortCode, incomingRows) {
+  if (!cohortExists(cohortCode)) {
+    const err = new Error(`COHORT_NOT_FOUND: ${cohortCode}`);
+    err.code = "COHORT_NOT_FOUND";
+    throw err;
+  }
+  ensureDirSync(cohortDir(cohortCode));
+  const existing = readOutcomesCsv(cohortCode);
+  const byId = new Map(existing.map((r) => [r.student_id, r]));
+  let inserted = 0, updated = 0;
+  for (const row of incomingRows) {
+    if (!row || !row.student_id) continue;
+    if (byId.has(row.student_id)) updated++;
+    else inserted++;
+    byId.set(row.student_id, {
+      student_id: row.student_id,
+      pre_test_score:  row.pre_test_score  != null ? Number(row.pre_test_score)  : null,
+      post_test_score: row.post_test_score != null ? Number(row.post_test_score) : null,
+      exam_date: row.exam_date || null,
+      uploaded_by: row.uploaded_by || null,
+    });
+  }
+  const merged = Array.from(byId.values());
+  const lines = ["student_id,pre_test_score,post_test_score,exam_date,uploaded_by"];
+  for (const r of merged) {
+    lines.push([
+      r.student_id,
+      r.pre_test_score  != null ? r.pre_test_score  : "",
+      r.post_test_score != null ? r.post_test_score : "",
+      r.exam_date || "",
+      r.uploaded_by || "",
+    ].join(","));
+  }
+  fs.writeFileSync(path.join(cohortDir(cohortCode), "outcomes.csv"), lines.join("\n") + "\n", "utf8");
+  // Audit (so the cohort log captures who-touched-what without exposing
+  // the actual scores in plaintext to the regular event stream).
+  const audit = `${new Date().toISOString()} outcomes_upload inserted=${inserted} updated=${updated} total=${merged.length}\n`;
+  fs.appendFileSync(deletionsLogPath(cohortCode), audit, "utf8");
+  return { inserted, updated, total: merged.length };
+}
+
 module.exports = {
   SCHEMA_VERSION,
   cohortDir,
@@ -436,4 +526,7 @@ module.exports = {
   findCohortsForStudent,
   aggregateCohort,
   readOutcomesCsv,
+  parseOutcomesCsvText,
+  writeOutcomesCsv,
+  CsvParseError,
 };

@@ -460,6 +460,61 @@ async function run() {
     assert(r.needsReconsent() === true, 'expected reconsent for stored 0.9 vs current 1.0');
   });
 
+  head('11. Outcome self-report (Phase 11.6)');
+
+  installMockFetch((url, init) => {
+    if (init && init.method === 'POST' && url.endsWith('/api/research/v1/metrics')) {
+      return { status: 200, body: { ok: true, stored: true, dedupe: false } };
+    }
+    return { status: 404, body: { ok: false } };
+  });
+  try {
+    await test('submitOutcome refuses when disabled', async () => {
+      const res = await r.submitOutcome({ post_test_score: 85 });
+      eq(res.ok, false);
+      eq(res.error, 'NOT_ENABLED');
+    });
+
+    await test('submitOutcome with valid score → ok + payload contains metrics.outcome', async () => {
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      _fetchCalls = [];
+      const res = await r.submitOutcome({ post_test_score: 87, confidence_self_report: 4 });
+      eq(res.ok, true, 'expected ok=true; got ' + JSON.stringify(res));
+      const post = _fetchCalls.find((c) => c.url.endsWith('/api/research/v1/metrics'));
+      assert(post, 'POST captured');
+      const body = JSON.parse(post.body);
+      eq(body.metrics.outcome.post_test_score, 87);
+      eq(body.metrics.outcome.confidence_self_report, 4);
+      eq(body.metrics.outcome.outcome_capture_method, 'self-report');
+      // Payload should have minimal metrics, no daily counters.
+      assert(!('sessions_count' in body.metrics), 'no extra metric keys');
+    });
+
+    await test('submitOutcome rejects bad score (negative)', async () => {
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const res = await r.submitOutcome({ post_test_score: -5 });
+      eq(res.ok, false);
+      eq(res.error, 'BAD_SCORE');
+    });
+
+    await test('submitOutcome rejects bad confidence (out of 1-5)', async () => {
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const res = await r.submitOutcome({ confidence_self_report: 9 });
+      eq(res.ok, false);
+      eq(res.error, 'BAD_CONFIDENCE');
+    });
+
+    await test('submitOutcome accepts score-only or confidence-only', async () => {
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const r1 = await r.submitOutcome({ post_test_score: 75 });
+      eq(r1.ok, true, 'score-only must work');
+      const r2 = await r.submitOutcome({ confidence_self_report: 3 });
+      eq(r2.ok, true, 'confidence-only must work');
+    });
+  } finally {
+    restoreFetch();
+  }
+
   head('Summary');
   const div = document.createElement('div');
   div.className = 'summary';

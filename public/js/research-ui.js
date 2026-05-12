@@ -110,6 +110,7 @@
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openJoinCohort()">' + escapeHtml(T('research.btn.changeCohort', '🔁 Сменить когорту')) + '</button>';
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openTransparency()">' + escapeHtml(T('research.btn.transparency', '👁 Что собрано')) + '</button>';
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.uploadNow()">' + escapeHtml(T('research.btn.uploadNow', '⬆ Отправить сейчас')) + '</button>';
+        body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openOutcome()">' + escapeHtml(T('research.btn.outcome', '🎓 Сдать экзамен')) + '</button>';
       }
       body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openWithdraw()" style="margin-left:auto;color:#c0392b;">' + escapeHtml(T('research.btn.withdraw', '🗑 Отозвать согласие')) + '</button>';
     }
@@ -343,6 +344,67 @@
     }).catch(() => {});
   }
 
+  // ── outcome self-report (Phase 11.6 §11.6.1) ───────────────────────────
+  function openOutcome() {
+    const r = ensureApi(); if (!r) return;
+    const body = '<div class="v3-research-outcome">' +
+      '<p style="margin:0 0 12px 0;font-size:12.5px;line-height:1.5;">' +
+      escapeHtml(T('research.outcome.intro', 'Введите итоговый балл по результатам ulpan-курса. Это поможет исследованию связать вашу учебную активность с результатом обучения. Заполнение опционально, можно пропустить.')) +
+      '</p>' +
+      '<label style="display:block;font-size:12px;margin-top:8px;">' +
+      escapeHtml(T('research.outcome.scoreLabel', 'Итоговый балл (0-100)')) +
+      '<input type="number" id="v3ResearchOutcomeScore" min="0" max="100" step="0.5" ' +
+      'style="display:block;width:120px;padding:6px 10px;margin-top:4px;font-family:monospace;font-size:14px;border:1px solid var(--theme-border,#ccc);border-radius:6px;" ' +
+      'placeholder="85">' +
+      '</label>' +
+      '<label style="display:block;font-size:12px;margin-top:14px;">' +
+      escapeHtml(T('research.outcome.confidenceLabel', 'Уверенность в результате (1-5, опционально)')) +
+      '<select id="v3ResearchOutcomeConfidence" style="display:block;margin-top:4px;padding:6px 10px;font-size:13px;border:1px solid var(--theme-border,#ccc);border-radius:6px;">' +
+      '<option value="">— не указано —</option>' +
+      '<option value="1">1 — низкая</option>' +
+      '<option value="2">2</option>' +
+      '<option value="3">3 — средняя</option>' +
+      '<option value="4">4</option>' +
+      '<option value="5">5 — высокая</option>' +
+      '</select>' +
+      '</label>' +
+      '<p style="margin:14px 0 0 0;font-size:11.5px;color:var(--theme-text-secondary,#666);">' +
+      escapeHtml(T('research.outcome.note', 'Балл будет отправлен в составе обычного research-payload\'а с пометкой outcome_capture_method: self-report. Преподаватель может отдельно загрузить authoritative версию через teacher dashboard — она перезапишет ваш self-report.')) +
+      '</p></div>';
+
+    v3ConfirmModal({
+      title: T('research.outcome.title', '🎓 Сдать экзамен'),
+      body,
+      isHtml: true,
+      okText: T('research.outcome.btnSubmit', 'Отправить балл'),
+      cancelText: T('research.btn.cancel', 'Отмена'),
+    }).then(async (ok) => {
+      if (!ok) return;
+      const scoreEl = document.getElementById('v3ResearchOutcomeScore');
+      const confEl = document.getElementById('v3ResearchOutcomeConfidence');
+      const score = scoreEl && scoreEl.value !== '' ? Number(scoreEl.value) : null;
+      const conf = confEl && confEl.value !== '' ? Number(confEl.value) : null;
+      if (score == null && conf == null) {
+        toast(T('research.toast.outcomeEmpty', 'Заполните хотя бы одно поле'), 'warn');
+        return;
+      }
+      toast(T('research.toast.outcomeSending', 'Отправляю балл…'), 'info');
+      try {
+        const res = await r.submitOutcome({ post_test_score: score, confidence_self_report: conf });
+        if (res.ok) {
+          toast(T('research.toast.outcomeOk', '✓ Балл сохранён. Спасибо!'), 'success');
+        } else if (res.error === 'BAD_SCORE' || res.error === 'BAD_CONFIDENCE') {
+          toast(T('research.toast.outcomeBad', '⚠ Неверное значение: ') + (res.message || res.error), 'error');
+        } else {
+          toast(T('research.toast.outcomeFailed', '⚠ Ошибка: ') + (res.error || res.status || '?'), 'error');
+        }
+      } catch (e) {
+        toast(T('research.toast.outcomeFailed', '⚠ Ошибка: ') + String((e && e.message) || e), 'error');
+      }
+      setTimeout(open, 100);
+    }).catch(() => {});
+  }
+
   // ── manual upload trigger (debug aid) ──────────────────────────────────
   async function uploadNow() {
     const r = ensureApi(); if (!r) return;
@@ -380,6 +442,6 @@
 
   // ── expose ─────────────────────────────────────────────────────────────
   if (typeof window !== 'undefined') {
-    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, uploadNow };
+    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, openOutcome, uploadNow };
   }
 })();

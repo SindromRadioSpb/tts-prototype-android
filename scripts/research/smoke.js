@@ -123,6 +123,14 @@ async function deleteStudent(sid, cohortCode) {
   return fetch(`${BASE_URL}/api/research/v1/student/${sid}${qs}`, { method: "DELETE" });
 }
 
+async function postOutcomes(code, csvText, token) {
+  const headers = { "Content-Type": "text/csv" };
+  if (token != null) headers["Authorization"] = `Bearer ${token}`;
+  return fetch(`${BASE_URL}/api/research/v1/cohort/${code}/outcomes`, {
+    method: "POST", headers, body: csvText,
+  });
+}
+
 function basePayload({ studentId, uploadTs = "2026-05-13", sinceTs = "2026-05-12", consent = "1.0" }) {
   return {
     format: "linguistpro-research-v1",
@@ -273,6 +281,58 @@ async function runCases() {
 
   // === Case 15: bad student_id format → 400 ============================
   await expectStatus("15. DELETE bad student_id → 400", await deleteStudent("not-a-uuid"), 400);
+
+  // === Outcomes endpoint (Phase 11.6) ===================================
+
+  // Case 16: POST /outcomes without token → 401.
+  await expectStatus("16. POST /outcomes no token → 401",
+    await postOutcomes(COHORT_CODE, "student_id\nabc\n", null), 401);
+
+  // Case 17: POST /outcomes wrong token → 403.
+  await expectStatus("17. POST /outcomes wrong token → 403",
+    await postOutcomes(COHORT_CODE, "student_id\nabc\n", "wrong"), 403);
+
+  // Case 18: POST /outcomes empty body → 400 EMPTY_BODY.
+  await expectStatus("18. POST /outcomes empty body → 400",
+    await postOutcomes(COHORT_CODE, "", RESEARCHER_TOKEN), 400);
+
+  // Case 19: POST /outcomes no header → 400 BAD_CSV (no student_id col).
+  await expectStatus("19. POST /outcomes no student_id col → 400 BAD_CSV",
+    await postOutcomes(COHORT_CODE, "name,score\nfoo,80\n", RESEARCHER_TOKEN), 400, (b) => ({
+      ok: b.error === "BAD_CSV", reason: `error=${b.error}`,
+    }));
+
+  // Case 20: POST /outcomes header only (no rows) → 400 NO_ROWS.
+  await expectStatus("20. POST /outcomes header only → 400 NO_ROWS",
+    await postOutcomes(COHORT_CODE, "student_id,post_test_score\n", RESEARCHER_TOKEN), 400, (b) => ({
+      ok: b.error === "NO_ROWS", reason: `error=${b.error}`,
+    }));
+
+  // Case 21: POST /outcomes against non-existent cohort → 404.
+  await expectStatus("21. POST /outcomes nonexistent cohort → 404",
+    await postOutcomes("NO-SUCH-COH", "student_id\nabc\n", RESEARCHER_TOKEN), 404);
+
+  // Case 22: POST /outcomes valid CSV → 200 + insert counts.
+  // Use UUIDs we already uploaded metrics for in earlier cases (sid1 + sidRate +
+  // 5 added in Case 13). We don't track them precisely here — just use 3 fresh
+  // UUIDs to verify the merge works regardless of whether students exist yet.
+  const outcomeSid1 = uuid();
+  const outcomeSid2 = uuid();
+  const csv1 = `student_id,pre_test_score,post_test_score,exam_date,uploaded_by\n${outcomeSid1},65,82,2026-06-15,teacher\n${outcomeSid2},70,88,2026-06-15,teacher\n`;
+  const r22 = await postOutcomes(COHORT_CODE, csv1, RESEARCHER_TOKEN);
+  await expectStatus("22. POST /outcomes valid CSV → 200 inserted=2", r22, 200, (b) => ({
+    ok: b.ok === true && b.inserted === 2 && b.updated === 0 && b.total === 2,
+    reason: `inserted=${b.inserted} updated=${b.updated} total=${b.total}`,
+  }));
+
+  // Case 23: POST /outcomes second time merges (1 update, 1 insert).
+  const outcomeSid3 = uuid();
+  const csv2 = `student_id,pre_test_score,post_test_score,exam_date,uploaded_by\n${outcomeSid1},65,90,2026-06-16,teacher-revised\n${outcomeSid3},58,75,2026-06-15,teacher\n`;
+  const r23 = await postOutcomes(COHORT_CODE, csv2, RESEARCHER_TOKEN);
+  await expectStatus("23. POST /outcomes merge → updated=1 inserted=1 total=3", r23, 200, (b) => ({
+    ok: b.ok === true && b.updated === 1 && b.inserted === 1 && b.total === 3,
+    reason: `updated=${b.updated} inserted=${b.inserted} total=${b.total}`,
+  }));
 }
 
 async function main() {
@@ -285,7 +345,7 @@ async function main() {
   try {
     serverUp = await waitForReady();
     if (!serverUp) throw new Error("server did not become ready in time");
-    console.log("[smoke] server up; running 15 cases...");
+    console.log("[smoke] server up; running 23 cases...");
     await runCases();
   } catch (e) {
     console.error("[smoke] fatal:", e && e.message ? e.message : e);
