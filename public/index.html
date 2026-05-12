@@ -4990,6 +4990,71 @@ body:not(.theme-light) .v3-notes-template-banner {
   margin-bottom: 10px;
 }
 .v3-notes-tpl-row:last-child { margin-bottom: 0; }
+
+/* Phase 9.4.B — root autocomplete dropdown (Tier 2 source: seed + user
+   roots merged via UNION in searchRootsAutocomplete). Anchored to the
+   input via position: absolute on the wrap. */
+.v3-notes-tpl-row-autocomplete { position: relative; }
+.v3-notes-tpl-autocomplete-wrap {
+  position: relative;
+  width: 100%;
+}
+.v3-notes-tpl-autocomplete-list {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  margin-top: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--theme-bg-card, #fff);
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06);
+  z-index: 10001;
+}
+.v3-notes-tpl-autocomplete-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 10px;
+  cursor: pointer;
+  border: 0;
+  border-bottom: 1px solid var(--theme-border-faint, rgba(0,0,0,0.04));
+  font-size: 13.5px;
+  color: var(--theme-text-primary, #0f172a);
+}
+.v3-notes-tpl-autocomplete-item:last-child { border-bottom: 0; }
+.v3-notes-tpl-autocomplete-item:hover,
+.v3-notes-tpl-autocomplete-item.is-active {
+  background: var(--theme-bg-hover, rgba(0,0,0,0.05));
+}
+.v3-notes-tpl-autocomplete-item-root {
+  font-weight: 700;
+  font-size: 15px;
+  direction: rtl;
+  text-align: right;
+}
+.v3-notes-tpl-autocomplete-item-gloss {
+  flex: 1;
+  text-align: end;
+  font-size: 12px;
+  color: var(--theme-text-secondary, #64748b);
+}
+.v3-notes-tpl-autocomplete-item-user-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--theme-accent-soft, rgba(37, 99, 235, 0.12));
+  color: var(--theme-accent, #2563eb);
+}
+.v3-notes-tpl-autocomplete-empty {
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--theme-text-secondary, #64748b);
+  font-style: italic;
+}
 .v3-notes-tpl-row-double {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -9919,9 +9984,12 @@ body:not(.theme-light) .v3-heatmap-cell {
             <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.niqqud">С огласовкой</label>
             <input type="text" id="v3NotesTplWordStudyNiqqud" class="v3-notes-tpl-input" dir="rtl" maxlength="100" data-i18n-placeholder="notes.tpl.word_study.niqqudPh" placeholder="שָׁלוֹם" />
           </div>
-          <div class="v3-notes-tpl-row">
+          <div class="v3-notes-tpl-row v3-notes-tpl-row-autocomplete">
             <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.root">Корень</label>
-            <input type="text" id="v3NotesTplWordStudyRoot" class="v3-notes-tpl-input" dir="rtl" maxlength="10" data-i18n-placeholder="notes.tpl.word_study.rootPh" placeholder="שלם" />
+            <div class="v3-notes-tpl-autocomplete-wrap">
+              <input type="text" id="v3NotesTplWordStudyRoot" class="v3-notes-tpl-input" dir="rtl" maxlength="10" autocomplete="off" data-i18n-placeholder="notes.tpl.word_study.rootPh" placeholder="שלם" />
+              <div id="v3NotesTplWordStudyRootDrop" class="v3-notes-tpl-autocomplete-list" role="listbox" aria-label="Подсказки корней" style="display:none;"></div>
+            </div>
           </div>
           <div class="v3-notes-tpl-row">
             <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.word_study.meaning">Перевод</label>
@@ -9946,13 +10014,14 @@ body:not(.theme-light) .v3-heatmap-cell {
               <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.binyan">Биньян</label>
               <select id="v3NotesTplWordStudyBinyan" class="v3-notes-tpl-input">
                 <option value="" data-i18n="notes.tpl.word_study.binyanUnset">—</option>
-                <option value="paal">paal (פעל)</option>
-                <option value="piel">pi'el (פיעל)</option>
-                <option value="hifil">hif'il (הפעיל)</option>
-                <option value="hitpael">hitpa'el (התפעל)</option>
+                <option value="paal">pa'al (פעל)</option>
                 <option value="nifal">nif'al (נפעל)</option>
+                <option value="piel">pi'el (פיעל)</option>
                 <option value="pual">pu'al (פועל)</option>
+                <option value="hifil">hif'il (הפעיל)</option>
                 <option value="hufal">huf'al (הופעל)</option>
+                <option value="hitpael">hitpa'el (התפעל)</option>
+                <option value="other" data-i18n="notes.tpl.word_study.binyanOther">Другое / не уверен</option>
               </select>
             </div>
           </div>
@@ -33189,8 +33258,143 @@ function v3NotesTemplateRender() {
       el.style.display = (el.getAttribute("data-tpl") === t) ? "" : "none";
     });
   }
+
+  // Phase 9.4.B — initialise root autocomplete when word_study form is
+  // active. Idempotent — handler binds once, subsequent calls no-op.
+  if (t === "word_study") {
+    try { v3NotesTplRootAutocompleteInit(); } catch (_) {}
+  }
 }
 window.v3NotesTemplateRender = v3NotesTemplateRender;
+
+// Phase 9.4.B — Root autocomplete for the word_study template field.
+// Tier 2 source: seed dict (loaded by `_loadRootsSeed` on app boot) +
+// user-added roots merged via UNION in `searchRootsAutocomplete`.
+// Gloss column stores a JSON-encoded {ru,en,words} object; we parse and
+// pick locale-appropriate display string via window.appGetLocale().
+let _v3NotesTplRootAutocompleteBound = false;
+function v3NotesTplRootAutocompleteInit() {
+  if (_v3NotesTplRootAutocompleteBound) return;
+  const input = document.getElementById("v3NotesTplWordStudyRoot");
+  const drop = document.getElementById("v3NotesTplWordStudyRootDrop");
+  if (!input || !drop) return;
+  _v3NotesTplRootAutocompleteBound = true;
+
+  let debounceT = null;
+  let activeIdx = -1;
+
+  const renderGloss = (glossRaw) => {
+    const loc = (typeof window.appGetLocale === "function") ? window.appGetLocale() : "ru";
+    if (!glossRaw) return "";
+    const trimmed = String(glossRaw).trim();
+    if (trimmed.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return String(parsed[loc] || parsed.ru || parsed.en || "");
+      } catch (_) { /* fall through */ }
+    }
+    return trimmed;
+  };
+
+  const renderRows = (rows) => {
+    if (!Array.isArray(rows) || !rows.length) {
+      drop.innerHTML =
+        '<div class="v3-notes-tpl-autocomplete-empty">' +
+        v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootAutocompleteEmpty", "Ничего не найдено — введите вручную")) +
+        '</div>';
+      drop.style.display = "";
+      activeIdx = -1;
+      return;
+    }
+    drop.innerHTML = rows.map((r, idx) => {
+      const root = String(r.root_3letter || "");
+      const gloss = renderGloss(r.gloss);
+      const isUser = !!r.is_user;
+      const badge = isUser
+        ? '<span class="v3-notes-tpl-autocomplete-item-user-badge">' +
+            v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootUserBadge", "ваш")) +
+          '</span>'
+        : '';
+      return (
+        '<div class="v3-notes-tpl-autocomplete-item" role="option" data-pick="' +
+        v3EscapeHtml(root) + '" data-idx="' + idx + '">' +
+        '<span class="v3-notes-tpl-autocomplete-item-root">' + v3EscapeHtml(root) + '</span>' +
+        (gloss ? '<span class="v3-notes-tpl-autocomplete-item-gloss">' + v3EscapeHtml(gloss) + '</span>' : '') +
+        badge +
+        '</div>'
+      );
+    }).join("");
+    drop.style.display = "";
+    activeIdx = -1;
+    drop.querySelectorAll(".v3-notes-tpl-autocomplete-item").forEach((el) => {
+      el.onclick = () => {
+        const pick = el.getAttribute("data-pick") || "";
+        input.value = pick;
+        drop.style.display = "none";
+        drop.innerHTML = "";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        try { input.focus(); } catch (_) {}
+      };
+    });
+  };
+
+  const queryAndRender = async (prefix) => {
+    if (!LOCAL_MODE) { drop.style.display = "none"; return; }
+    try {
+      const ldb = await ensureLocalDB();
+      if (typeof ldb.searchRootsAutocomplete !== "function") return;
+      const rows = await ldb.searchRootsAutocomplete(prefix, 12);
+      renderRows(rows || []);
+    } catch (e) {
+      console.warn("[morph] root autocomplete query failed:", e && e.message);
+      drop.style.display = "none";
+    }
+  };
+
+  input.addEventListener("focus", () => {
+    const prefix = String(input.value || "").trim();
+    if (debounceT) clearTimeout(debounceT);
+    queryAndRender(prefix);
+  });
+
+  input.addEventListener("input", () => {
+    const prefix = String(input.value || "").trim();
+    if (debounceT) clearTimeout(debounceT);
+    debounceT = setTimeout(() => queryAndRender(prefix), 80);
+  });
+
+  input.addEventListener("keydown", (ev) => {
+    if (drop.style.display === "none" || !drop.children.length) return;
+    const items = Array.from(drop.querySelectorAll(".v3-notes-tpl-autocomplete-item"));
+    if (!items.length) return;
+    if (ev.key === "ArrowDown") {
+      ev.preventDefault();
+      activeIdx = Math.min(items.length - 1, activeIdx + 1);
+    } else if (ev.key === "ArrowUp") {
+      ev.preventDefault();
+      activeIdx = Math.max(0, activeIdx - 1);
+    } else if (ev.key === "Enter" && activeIdx >= 0) {
+      ev.preventDefault();
+      items[activeIdx].click();
+      return;
+    } else if (ev.key === "Escape") {
+      drop.style.display = "none";
+      return;
+    } else {
+      return;
+    }
+    items.forEach((el, i) => el.classList.toggle("is-active", i === activeIdx));
+    try { items[activeIdx].scrollIntoView({ block: "nearest" }); } catch (_) {}
+  });
+
+  // Outside-click dismissal.
+  document.addEventListener("click", (ev) => {
+    if (drop.style.display === "none") return;
+    if (input.contains(ev.target) || drop.contains(ev.target)) return;
+    drop.style.display = "none";
+  }, true);
+}
+window.v3NotesTplRootAutocompleteInit = v3NotesTplRootAutocompleteInit;
 
 // Collect current template form's field values into the body object that
 // createNote/updateNote will serialize to body_json. For 'free' returns the
