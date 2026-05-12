@@ -12204,20 +12204,68 @@ async function v3AnkiPushLocalMode(textId, opts) {
     }
   }
 
+  // R2.3 — chunked addNotes + response normalization. Earlier behavior
+  // sent the entire sendable[] as one addNotes call and defaulted arr to
+  // [] if the response wasn't an Array. When AnkiConnect returned a
+  // truncated / non-array response (which it does for large batches with
+  // collection-locked or semi-failed adds), 24-of-32 entries were
+  // silently dropped — the for-loop iterated `arr.length` and never saw
+  // them. Fix:
+  //   1. Chunk sendable into batches of ~20 (small enough that
+  //      AnkiConnect doesn't choke on payload size or partial-failure
+  //      semantics; large enough to amortise the round-trip).
+  //   2. Per chunk, normalise the response: missing entries become nulls,
+  //      missing perNote messages get a synthetic "response truncated"
+  //      marker so they're counted as runtime duplicates and pushed into
+  //      the retry-as-fresh pipeline.
+  //   3. Log a console.warn whenever a chunk arrives short so the
+  //      diagnostic trail is visible in DevTools.
   let arr = [];
   let perNoteErrors = null;
   if (sendable.length > 0) {
-    try {
-      const result = await v3AnkiConnectDirect('addNotes', { notes: sendable });
-      arr = Array.isArray(result) ? result : [];
-    } catch (e) {
-      if (e && Array.isArray(e.perNote)) {
-        perNoteErrors = e.perNote;
-        arr = Array.isArray(e.result) ? e.result : [];
-      } else {
-        throw e;
+    const CHUNK = 20;
+    const aggregatedArr = [];
+    const aggregatedPerNote = [];
+    let anyPerNote = false;
+    for (let start = 0; start < sendable.length; start += CHUNK) {
+      const chunk = sendable.slice(start, start + CHUNK);
+      let chunkArr = [];
+      let chunkPerNote = null;
+      try {
+        const result = await v3AnkiConnectDirect('addNotes', { notes: chunk });
+        chunkArr = Array.isArray(result) ? result : [];
+      } catch (e) {
+        if (e && Array.isArray(e.perNote)) {
+          chunkPerNote = e.perNote;
+          chunkArr = Array.isArray(e.result) ? e.result : [];
+        } else {
+          // Non-perNote error → re-throw after appending nulls for the
+          // chunk so the caller still surfaces an exception.
+          throw e;
+        }
       }
+      // Normalize chunk arr length up to chunk.length so every input has
+      // a corresponding output slot. Missing entries are silent failures
+      // that we'll route through the duplicate-retry pipeline.
+      if (chunkArr.length < chunk.length) {
+        console.warn('[anki] addNotes chunk returned ' + chunkArr.length + ' of ' + chunk.length +
+          ' expected entries (start=' + start + '); padding with nulls and queueing for retry-as-fresh');
+        while (chunkArr.length < chunk.length) chunkArr.push(null);
+      }
+      // Normalize perNote similarly when present.
+      if (chunkPerNote) {
+        anyPerNote = true;
+        while (chunkPerNote.length < chunk.length) chunkPerNote.push('unknown (response truncated)');
+        for (const m of chunkPerNote) aggregatedPerNote.push(m);
+      } else if (anyPerNote) {
+        // Some earlier chunk had perNote; pad current chunk with empty
+        // messages so indices stay aligned to the aggregated arr.
+        for (let k = 0; k < chunk.length; k++) aggregatedPerNote.push('');
+      }
+      for (const item of chunkArr) aggregatedArr.push(item);
     }
+    arr = aggregatedArr;
+    if (anyPerNote) perNoteErrors = aggregatedPerNote;
   }
 
   const created = arr.filter((x) => x != null).length;
@@ -12346,31 +12394,48 @@ async function v3AnkiPushLocalMode(textId, opts) {
   }
 
   // Retry pass for notes that AnkiConnect flagged as duplicates but no
-  // findNotes query could locate. Force-create them as fresh notes with
-  // allowDuplicate=true (the user explicitly wants them in this deck/model).
+  // findNotes query could locate (OR that came through chunked addNotes
+  // as silent nulls per R2.3). Force-create them as fresh notes with
+  // allowDuplicate=true (the user explicitly wants them in this
+  // deck/model). Chunked + response-normalized for the same reasons as
+  // the primary addNotes pass — see comment above.
   if (retryAsFresh.length > 0) {
     const fresh = retryAsFresh.map((n) => ({
       ...n,
       options: { ...(n.options || {}), allowDuplicate: true },
     }));
-    let arr2 = [];
-    try {
-      const result2 = await v3AnkiConnectDirect('addNotes', { notes: fresh });
-      arr2 = Array.isArray(result2) ? result2 : [];
-    } catch (e) {
-      // If even allowDuplicate retry fails (per-note errors), pull whatever
-      // succeeded out of e.result and surface the rest as failedOther.
-      if (e && Array.isArray(e.perNote)) {
-        arr2 = Array.isArray(e.result) ? e.result : [];
-        for (let i = 0; i < e.perNote.length; i++) {
-          const msg = String(e.perNote[i] || '').toLowerCase();
-          if (msg && !msg.includes('duplicate')) failedOther++;
+    const CHUNK = 20;
+    const aggregatedArr2 = [];
+    for (let start = 0; start < fresh.length; start += CHUNK) {
+      const chunk = fresh.slice(start, start + CHUNK);
+      let chunkArr = [];
+      try {
+        const result2 = await v3AnkiConnectDirect('addNotes', { notes: chunk });
+        chunkArr = Array.isArray(result2) ? result2 : [];
+      } catch (e) {
+        if (e && Array.isArray(e.perNote)) {
+          chunkArr = Array.isArray(e.result) ? e.result : [];
+          for (let i = 0; i < e.perNote.length; i++) {
+            const msg = String(e.perNote[i] || '').toLowerCase();
+            if (msg && !msg.includes('duplicate')) failedOther++;
+          }
+        } else {
+          console.warn('[anki] retry-as-fresh chunk failed (start=' + start + '):', e && e.message);
         }
-      } else {
-        console.warn('[anki] retry-as-fresh failed:', e && e.message);
       }
+      if (chunkArr.length < chunk.length) {
+        console.warn('[anki] retry-as-fresh chunk returned ' + chunkArr.length + ' of ' + chunk.length +
+          ' (start=' + start + '); ' + (chunk.length - chunkArr.length) + ' remain unaccounted');
+        // Pad nulls so accounting stays balanced; missing entries surface
+        // as failedOther so the user sees something went wrong.
+        while (chunkArr.length < chunk.length) {
+          chunkArr.push(null);
+          failedOther++;
+        }
+      }
+      for (const item of chunkArr) aggregatedArr2.push(item);
     }
-    dupRecreated = arr2.filter((x) => x != null).length;
+    dupRecreated = aggregatedArr2.filter((x) => x != null).length;
     // Subtract recreated from dupNotFound — those are no longer "lost".
     dupNotFound = Math.max(0, dupNotFound - dupRecreated);
   }
