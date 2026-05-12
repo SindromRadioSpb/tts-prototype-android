@@ -5228,6 +5228,84 @@ body:not(.theme-light) .v3-notes-template-banner {
 .v3-tcb-status { font-size: 12.5px; color: var(--theme-text-secondary, #64748b); }
 .v3-tcb-status.v3-tcb-status-error { color: #b91c1c; }
 .v3-tcb-status.v3-tcb-status-ok    { color: #15803d; }
+
+/* Direction 10 Mode B — Share + Import modals */
+.v3-tcs-panel, .v3-tci-panel {
+  max-width: 640px;
+  width: min(96vw, 640px);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.v3-tcs-preview, .v3-tci-preview {
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--theme-bg-muted, #f8fafc);
+  margin-bottom: 12px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.v3-tcs-preview-title, .v3-tci-preview-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--theme-text-primary, #0f172a);
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+.v3-tcs-preview-meta, .v3-tci-preview-meta {
+  font-size: 12px;
+  color: var(--theme-text-secondary, #64748b);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.v3-tcs-preview-sample, .v3-tci-preview-sample {
+  font-size: 12px;
+  color: var(--theme-text-secondary, #64748b);
+  direction: rtl;
+  text-align: right;
+  border-top: 1px solid var(--theme-border-faint, rgba(0,0,0,0.05));
+  padding-top: 6px;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.v3-tcs-info, .v3-tci-info {
+  font-size: 12px;
+  color: var(--theme-text-secondary, #64748b);
+  background: rgba(59,130,246,0.06);
+  border-inline-start: 3px solid rgba(59,130,246,0.4);
+  padding: 8px 10px;
+  border-radius: 4px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.v3-tcs-actions, .v3-tci-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.v3-tcs-status, .v3-tci-status {
+  font-size: 12.5px;
+  color: var(--theme-text-secondary, #64748b);
+  margin-top: 8px;
+  min-height: 18px;
+}
+.v3-tcs-status.v3-tcs-status-error,
+.v3-tci-status.v3-tci-status-error { color: #b91c1c; }
+.v3-tcs-status.v3-tcs-status-ok,
+.v3-tci-status.v3-tci-status-ok    { color: #15803d; }
+.v3-tci-preload {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--theme-text-secondary, #475569);
+  margin-bottom: 14px;
+  user-select: none;
+}
+.v3-tci-preload input { width: 16px; height: 16px; }
 .v3-notes-tpl-row-double {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -9530,6 +9608,56 @@ body:not(.theme-light) .v3-heatmap-cell {
         <button id="v3TcbDownloadZipBtn" class="btn-secondary" onclick="v3TextCardBuilderDownloadZip()" style="display:none;" data-i18n="tcb.downloadZipBtn">📥 Скачать ZIP всех текстов</button>
         <span id="v3TcbStatus" class="v3-tcb-status" aria-live="polite"></span>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Direction 10 Mode B — Text-card share modal -->
+<div id="v3TextCardShareModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Поделиться text-card">
+  <div class="v3-modal-backdrop" onclick="v3TextCardShareClose()" aria-hidden="true"></div>
+  <div class="v3-modal-panel v3-tcs-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title" data-i18n="tcs.title">🔗 Поделиться text-card</div>
+      <button class="btn-secondary" onclick="v3TextCardShareClose()" data-i18n="tcs.close">Закрыть</button>
+    </div>
+    <div class="v3-modal-body">
+      <div id="v3TcsPreview" class="v3-tcs-preview">
+        <!-- card preview rendered by v3TextCardShareOpen -->
+      </div>
+      <div class="v3-tcs-info" data-i18n="tcs.audioInfo">
+        Lightweight-карточка маленькая (10–50 KB) и быстро отправляется. Аудио восстановится у получателя из общего content-addressed кэша при первом воспроизведении. Если получатель будет offline или подключён к другому серверу — выберите «Скачать ZIP с аудио».
+      </div>
+      <div class="v3-tcs-actions">
+        <button id="v3TcsBtnNative"  class="btn-primary"   onclick="v3TextCardShareNative()"  data-i18n="tcs.btnNative">📤 Поделиться</button>
+        <button id="v3TcsBtnJson"    class="btn-secondary" onclick="v3TextCardShareDownloadJson()" data-i18n="tcs.btnJson">📥 Скачать JSON</button>
+        <button id="v3TcsBtnZip"     class="btn-secondary" onclick="v3TextCardShareDownloadZip()"  data-i18n="tcs.btnZip">📦 Скачать ZIP с аудио</button>
+      </div>
+      <div id="v3TcsStatus" class="v3-tcs-status" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Direction 10 Mode B — Text-card import preview modal -->
+<div id="v3TextCardImportModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Импорт text-card">
+  <div class="v3-modal-backdrop" onclick="v3TextCardImportClose()" aria-hidden="true"></div>
+  <div class="v3-modal-panel v3-tci-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title" data-i18n="tci.title">📥 Импорт text-card</div>
+      <button class="btn-secondary" onclick="v3TextCardImportClose()" data-i18n="tci.close">Закрыть</button>
+    </div>
+    <div class="v3-modal-body">
+      <div id="v3TciPreview" class="v3-tci-preview">
+        <!-- preview rendered by v3TextCardImportShowPreview -->
+      </div>
+      <label class="v3-tci-preload">
+        <input type="checkbox" id="v3TciPreloadAudio" checked />
+        <span data-i18n="tci.preloadAudio">Предзагрузить аудио в кеш (рекомендуется)</span>
+      </label>
+      <div class="v3-tci-actions">
+        <button id="v3TciBtnImport" class="btn-primary"   onclick="v3TextCardImportConfirm()" data-i18n="tci.btnImport">✅ Импортировать</button>
+        <button                     class="btn-secondary" onclick="v3TextCardImportClose()"  data-i18n="tci.btnCancel">Отмена</button>
+      </div>
+      <div id="v3TciStatus" class="v3-tci-status" aria-live="polite"></div>
     </div>
   </div>
 </div>
@@ -21401,6 +21529,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
           <button class="btn-primary" data-act="open">${t("library.open")}</button>
           <button class="btn-success" data-act="resume">${t("library.resume")}</button>
 		  <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
+		  <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
 		  <button class="btn-secondary" data-act="archive">${t("library.archive")}</button>
           <button class="btn-secondary v3-lib-danger" data-act="delete">${t("library.delete")}</button>
         </div>
@@ -21411,12 +21540,14 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     const btnOpen = card.querySelector('button[data-act="open"]');
     const btnResume = card.querySelector('button[data-act="resume"]');
 	const btnEdit = card.querySelector('button[data-act="edit"]');
+	const btnShare = card.querySelector('button[data-act="share"]');
 	const btnArchive = card.querySelector('button[data-act="archive"]');
     const btnDelete = card.querySelector('button[data-act="delete"]');
 
     if (btnOpen) btnOpen.addEventListener("click", () => v3LibraryOpenText(id, { resume: false }));
     if (btnResume) btnResume.addEventListener("click", () => v3LibraryOpenText(id, { resume: true }));
 	if (btnEdit) btnEdit.addEventListener("click", () => v3TextMetaOpen(id));
+	if (btnShare) btnShare.addEventListener("click", () => v3TextCardShareOpen(id));
     if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
 
@@ -22260,6 +22391,13 @@ async function v3LibraryOnImportSelected(ev) {
       parsed = JSON.parse(raw);
     } catch (_) {
       showToast(t("toast.fileNotJson"), "error");
+      return;
+    }
+
+    // Direction 10 Mode B — if the file is a text-card-v1 share, route to
+    // the preview modal instead of the generic library-bundle import.
+    if (typeof window.v3TextCardImportTryDetect === "function" &&
+        window.v3TextCardImportTryDetect(parsed)) {
       return;
     }
 
@@ -34055,6 +34193,420 @@ async function v3TextCardBuilderDownloadZip() {
   }
 }
 window.v3TextCardBuilderDownloadZip = v3TextCardBuilderDownloadZip;
+
+// ─────────────────────────────────────────────────────────────────────────
+// Direction 10 Mode B — Text-card share + import (peer-to-peer via file)
+// Plan: docs/TEXT_CARD_PLAN_v3_2.md §4
+// ─────────────────────────────────────────────────────────────────────────
+//
+// Sender flow: clicks 🔗 on a library card → share modal → picks one of
+//   • 📤 native share-sheet (mobile) — passes a generated `.json` file
+//   • 📥 download lightweight JSON
+//   • 📦 download full ZIP with audio
+//
+// Receiver flow: drops/opens `.json` or `.zip` file → existing Library
+// import handler detects format → if `linguistpro-text-card-v1`, opens
+// preview modal → user confirms → adapter converts to library-bundle
+// shape and feeds existing `importBundle` API. Audio resolution is lazy
+// (existing row-TTS pipeline) OR eager via opt-in checkbox.
+
+const V3_TCS_FORMAT = 'linguistpro-text-card-v1';
+const V3_TCS_APP_TAG = 'linguist-pro-web/3.2.0';
+
+let v3TcsCurrentTextId = null;
+let v3TcsCurrentCard = null;     // exported card payload, cached for share actions
+
+let v3TciPendingPayload = null;  // parsed card awaiting user confirm
+
+function v3TcsSlugify(s) {
+  return String(s || 'card')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^\p{L}\p{N}-]+/gu, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 64) || 'card';
+}
+
+// Build the `text-card-v1` payload from a library text id (OPFS read).
+async function v3TcsBuildCardPayload(textId) {
+  if (!LOCAL_MODE) throw new Error('share requires LOCAL_MODE');
+  const ldb = await ensureLocalDB();
+  const text = await ldb.getTextById(String(textId));
+  if (!text) throw new Error('text not found: ' + textId);
+  const sentences = await ldb.getSentences(String(textId));
+  if (!sentences || !sentences.length) throw new Error('no sentences for text');
+
+  const parseJson = (raw, fallback) => {
+    if (raw == null) return fallback;
+    if (typeof raw === 'object') return raw;
+    try { return JSON.parse(String(raw)); } catch (_) { return fallback; }
+  };
+
+  const ttsProfile = parseJson(text.tts_profile_json, null);
+  const tagsParsed = parseJson(text.tags_json, []);
+
+  const rows = sentences.map((s, i) => ({
+    row_id: String(s.id || ''),
+    order_index: Number.isFinite(s.order_index) ? Number(s.order_index) : i,
+    hebrew_plain:  String(s.he_plain || ''),
+    hebrew_niqqud: String(s.he_niqqud || ''),
+    translit:      String(s.translit || ''),
+    translit_ru:   String(s.translit_ru || ''),
+    russian:       String(s.ru || ''),
+    audio_asset_key: String(s.audio_asset_key || '') || null,
+    edit_meta: null,
+    note: null,
+  }));
+
+  return {
+    format: V3_TCS_FORMAT,
+    exported_at: new Date().toISOString(),
+    exported_by_app: V3_TCS_APP_TAG,
+    card: {
+      title:        text.title || null,
+      level:        text.level || null,
+      tags:         Array.isArray(tagsParsed) ? tagsParsed : [],
+      source_label: text.source || null,
+      topic:        text.topic || null,
+      source_text:  text.source_text || '',
+      rows,
+      tts_profile:  ttsProfile,
+      text_audio_asset_key: text.audio_asset_key || null,
+    },
+  };
+}
+
+async function v3TextCardShareOpen(textId) {
+  const modal = document.getElementById('v3TextCardShareModal');
+  if (!modal) return;
+  const preview = document.getElementById('v3TcsPreview');
+  const status = document.getElementById('v3TcsStatus');
+  if (status) { status.textContent = ''; status.className = 'v3-tcs-status'; }
+  v3TcsCurrentTextId = String(textId || '');
+  v3TcsCurrentCard = null;
+
+  try {
+    const payload = await v3TcsBuildCardPayload(textId);
+    v3TcsCurrentCard = payload;
+    const c = payload.card;
+    const esc = (s) => v3EscapeHtml(String(s || ''));
+    const samples = (c.rows || []).slice(0, 3).map(r => '<div>' + esc(r.hebrew_plain) + '</div>').join('');
+    const audioCount = (c.rows || []).filter(r => r.audio_asset_key).length;
+    const html =
+      '<div class="v3-tcs-preview-title">' + esc(c.title || v3NotesT('tcs.untitled', '(без названия)')) + '</div>' +
+      '<div class="v3-tcs-preview-meta">' +
+        '<span>' + esc(v3NotesT('tcs.rowsLabel', 'Строк')) + ': <b>' + (c.rows || []).length + '</b></span>' +
+        '<span>' + esc(v3NotesT('tcs.audioLabel', 'Аудио')) + ': <b>' + audioCount + '</b></span>' +
+        (c.level ? '<span>' + esc(v3NotesT('tcs.levelLabel', 'Уровень')) + ': ' + esc(c.level) + '</span>' : '') +
+      '</div>' +
+      (samples ? '<div class="v3-tcs-preview-sample">' + samples + '</div>' : '');
+    if (preview) preview.innerHTML = html;
+
+    // Hide native share btn on desktop where navigator.share + files isn't supported.
+    const nativeBtn = document.getElementById('v3TcsBtnNative');
+    const canShareFiles = !!(navigator.share && navigator.canShare);
+    if (nativeBtn) nativeBtn.style.display = canShareFiles ? '' : 'none';
+  } catch (e) {
+    console.warn('[tcs] build payload failed', e);
+    if (preview) preview.innerHTML = '<div style="color:#b91c1c;">' + v3EscapeHtml(String(e.message || e)) + '</div>';
+  }
+
+  modal.classList.remove('hidden');
+}
+window.v3TextCardShareOpen = v3TextCardShareOpen;
+
+function v3TextCardShareClose() {
+  const modal = document.getElementById('v3TextCardShareModal');
+  if (modal) modal.classList.add('hidden');
+  v3TcsCurrentTextId = null;
+  v3TcsCurrentCard = null;
+}
+window.v3TextCardShareClose = v3TextCardShareClose;
+
+function _v3TcsJsonBlob() {
+  if (!v3TcsCurrentCard) return null;
+  const json = JSON.stringify(v3TcsCurrentCard, null, 2);
+  return { blob: new Blob([json], { type: 'application/json' }), filename: 'text-card-' + v3TcsSlugify(v3TcsCurrentCard.card.title) + '.json' };
+}
+
+async function v3TextCardShareNative() {
+  const out = _v3TcsJsonBlob();
+  if (!out) return;
+  try {
+    const file = new File([out.blob], out.filename, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        title: v3TcsCurrentCard.card.title || 'text-card',
+        text: v3NotesT('tcs.shareMsgPrefix', 'Учебная карточка из LinguistPro:') + ' ' + (v3TcsCurrentCard.card.title || ''),
+        files: [file],
+      });
+      const status = document.getElementById('v3TcsStatus');
+      if (status) { status.textContent = v3NotesT('tcs.shareSent', 'Отправлено.'); status.className = 'v3-tcs-status v3-tcs-status-ok'; }
+    } else {
+      // Fallback to download.
+      v3TextCardShareDownloadJson();
+    }
+  } catch (e) {
+    if (e && String(e.name) === 'AbortError') return;
+    console.warn('[tcs] native share failed', e);
+    const status = document.getElementById('v3TcsStatus');
+    if (status) { status.textContent = v3NotesT('tcs.shareFailed', 'Не удалось поделиться'); status.className = 'v3-tcs-status v3-tcs-status-error'; }
+  }
+}
+window.v3TextCardShareNative = v3TextCardShareNative;
+
+function v3TextCardShareDownloadJson() {
+  const out = _v3TcsJsonBlob();
+  if (!out) return;
+  const url = URL.createObjectURL(out.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = out.filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  const status = document.getElementById('v3TcsStatus');
+  if (status) { status.textContent = v3NotesT('tcs.jsonDownloaded', 'JSON скачан.'); status.className = 'v3-tcs-status v3-tcs-status-ok'; }
+}
+window.v3TextCardShareDownloadJson = v3TextCardShareDownloadJson;
+
+async function v3TextCardShareDownloadZip() {
+  if (!v3TcsCurrentTextId) return;
+  if (!LOCAL_MODE) {
+    const status = document.getElementById('v3TcsStatus');
+    if (status) { status.textContent = v3NotesT('toast.tcbZipLocalOnly', 'ZIP-экспорт доступен только в локальном режиме.'); status.className = 'v3-tcs-status v3-tcs-status-error'; }
+    return;
+  }
+  const status = document.getElementById('v3TcsStatus');
+  if (status) { status.textContent = v3NotesT('tcs.zipBuilding', 'Готовим ZIP с аудио…'); status.className = 'v3-tcs-status'; }
+  try {
+    const JSZip = await v3LoadJSZip();
+    const ldb = await ensureLocalDB();
+    const bundle = await ldb.exportBundle({ includeArchived: true, textIds: [v3TcsCurrentTextId] });
+    const allKeys = new Set();
+    for (const t of (bundle.library.texts || [])) {
+      for (const r of (t.rows || [])) {
+        const k = String(r.audio_asset_key || '').trim();
+        if (k) allKeys.add(k);
+      }
+    }
+    const zip = new JSZip();
+    const audioFolder = zip.folder('audio');
+    const missing = [];
+    const keys = Array.from(allKeys);
+    const CONCURRENCY = 6;
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < keys.length) {
+        const i = cursor++;
+        const key = keys[i];
+        try {
+          const r = await fetch('/api/audio/' + encodeURIComponent(key));
+          if (!r.ok) { missing.push({ asset_key: key, reason: 'not_in_cache' }); continue; }
+          const ab = await r.arrayBuffer();
+          audioFolder.file(key + '.mp3', ab);
+          const aa = (bundle.library.audio_assets || []).find(x => x.asset_key === key);
+          if (aa) aa.size_bytes = ab.byteLength;
+        } catch (_) { missing.push({ asset_key: key, reason: 'fetch_error' }); }
+      }
+    };
+    const workers = [];
+    for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
+    await Promise.all(workers);
+    zip.file('library/library.json', JSON.stringify(bundle.library, null, 2));
+    zip.file('manifest.json', JSON.stringify({
+      format: 'linguistpro-bundle',
+      schema_version: 1,
+      generated_at: new Date().toISOString(),
+      generator: 'text-card-share',
+      text_count: 1,
+      audio_count: keys.length - missing.length,
+      missing_audio: missing.length,
+    }, null, 2));
+    if (missing.length) zip.file('metadata/missing_audio.json', JSON.stringify(missing, null, 2));
+
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const slug = v3TcsSlugify(v3TcsCurrentCard ? v3TcsCurrentCard.card.title : 'card');
+    const filename = 'text-card-' + slug + '-with-audio.zip';
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    if (status) {
+      status.textContent = v3NotesT('tcs.zipReady', 'ZIP скачан ({a} аудио{m})')
+        .replace('{a}', String(keys.length - missing.length))
+        .replace('{m}', missing.length ? ', ' + missing.length + ' missing' : '');
+      status.className = 'v3-tcs-status v3-tcs-status-ok';
+    }
+  } catch (e) {
+    console.warn('[tcs] zip download failed', e);
+    if (status) { status.textContent = v3NotesT('toast.tcbZipFailed', 'Не удалось сделать ZIP.'); status.className = 'v3-tcs-status v3-tcs-status-error'; }
+  }
+}
+window.v3TextCardShareDownloadZip = v3TextCardShareDownloadZip;
+
+// ── Receiver-side: import detection + preview + commit ─────────────────
+
+// Adapter — converts a `text-card-v1` payload into the library-bundle
+// shape `importBundle()` expects. Single text + audio_assets stub for
+// every referenced asset_key (importBundle uses these as the receiver's
+// audio_cache index; OPFS fetch fills the actual MP3 bytes lazily later).
+function v3TextCardImportAdapter(payload) {
+  const c = payload.card || {};
+  const rows = Array.isArray(c.rows) ? c.rows : [];
+  const audioKeys = new Set();
+  const bundleRows = rows.map((r, i) => {
+    const k = String(r.audio_asset_key || '').trim();
+    if (k) audioKeys.add(k);
+    return {
+      row_id:        r.row_id || (crypto.randomUUID()),
+      order_index:   Number.isFinite(r.order_index) ? r.order_index : i,
+      he:            r.hebrew_plain || '',
+      he_niqqud:     r.hebrew_niqqud || '',
+      translit:      r.translit || '',
+      translit_ru:   r.translit_ru || '',
+      ru:            r.russian || '',
+      audio_asset_key: k || null,
+      edit_meta_json: null,
+    };
+  });
+  const text = {
+    text_key: 'text-card-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+    title:    c.title || null,
+    level:    c.level || null,
+    tags_json: JSON.stringify(c.tags || []),
+    source:   c.source_label || null,
+    topic:    c.topic || null,
+    source_text: c.source_text || '',
+    tts_profile_json: JSON.stringify(c.tts_profile || null),
+    source_meta_json: JSON.stringify({
+      origin: 'text-card-share',
+      imported_at: new Date().toISOString(),
+      exported_by_app: payload.exported_by_app || null,
+      exported_at: payload.exported_at || null,
+    }),
+    rows: bundleRows,
+    audio_asset_key: c.text_audio_asset_key || null,
+  };
+  const audio_assets = Array.from(audioKeys).map(k => ({ asset_key: k, voice: null, rate: null, pitch: null, language: null, size_bytes: null }));
+  return {
+    library: { texts: [text], audio_assets },
+  };
+}
+
+function v3TextCardImportClose() {
+  const modal = document.getElementById('v3TextCardImportModal');
+  if (modal) modal.classList.add('hidden');
+  v3TciPendingPayload = null;
+}
+window.v3TextCardImportClose = v3TextCardImportClose;
+
+function v3TextCardImportShowPreview(payload) {
+  const modal = document.getElementById('v3TextCardImportModal');
+  const preview = document.getElementById('v3TciPreview');
+  const status = document.getElementById('v3TciStatus');
+  if (!modal || !preview) return;
+  if (status) { status.textContent = ''; status.className = 'v3-tci-status'; }
+  v3TciPendingPayload = payload;
+
+  const c = payload.card || {};
+  const rows = c.rows || [];
+  const audioCount = rows.filter(r => r.audio_asset_key).length;
+  const samples = rows.slice(0, 4).map(r => '<div>' + v3EscapeHtml(r.hebrew_plain) + '</div>').join('');
+  const esc = v3EscapeHtml;
+  const html =
+    '<div class="v3-tci-preview-title">' + esc(c.title || v3NotesT('tcs.untitled', '(без названия)')) + '</div>' +
+    '<div class="v3-tci-preview-meta">' +
+      '<span>' + esc(v3NotesT('tcs.rowsLabel', 'Строк')) + ': <b>' + rows.length + '</b></span>' +
+      '<span>' + esc(v3NotesT('tcs.audioLabel', 'Аудио')) + ': <b>' + audioCount + '</b></span>' +
+      (c.level ? '<span>' + esc(v3NotesT('tcs.levelLabel', 'Уровень')) + ': ' + esc(c.level) + '</span>' : '') +
+      (c.source_label ? '<span>' + esc(v3NotesT('tcs.sourceLabel', 'Источник')) + ': ' + esc(c.source_label) + '</span>' : '') +
+    '</div>' +
+    (samples ? '<div class="v3-tci-preview-sample">' + samples + '</div>' : '');
+  preview.innerHTML = html;
+  modal.classList.remove('hidden');
+}
+window.v3TextCardImportShowPreview = v3TextCardImportShowPreview;
+
+async function v3TextCardImportConfirm() {
+  if (!v3TciPendingPayload || !LOCAL_MODE) { v3TextCardImportClose(); return; }
+  const status = document.getElementById('v3TciStatus');
+  const preloadCb = document.getElementById('v3TciPreloadAudio');
+  const wantPreload = preloadCb ? !!preloadCb.checked : false;
+  if (status) { status.textContent = v3NotesT('tci.importing', 'Импортируем…'); status.className = 'v3-tci-status'; }
+  try {
+    const ldb = await ensureLocalDB();
+    const bundle = v3TextCardImportAdapter(v3TciPendingPayload);
+    const result = await ldb.importBundle(bundle, { mode: 'skip' });
+    // Pre-load audio if user opted in.
+    let preloaded = 0;
+    if (wantPreload) {
+      const audioKeys = [];
+      for (const t of (bundle.library.texts || [])) {
+        for (const r of (t.rows || [])) {
+          if (r.audio_asset_key) audioKeys.push(String(r.audio_asset_key));
+        }
+      }
+      preloaded = await v3TcsPreloadAudioKeys(audioKeys, status);
+    }
+    if (status) {
+      status.textContent = v3NotesT('tci.done', 'Готово: добавлено {n}, пропущено {s}{a}')
+        .replace('{n}', String(result.imported || 0))
+        .replace('{s}', String(result.skipped || 0))
+        .replace('{a}', wantPreload ? ', аудио предзагружено ' + preloaded : '');
+      status.className = 'v3-tci-status v3-tci-status-ok';
+    }
+    try { if (typeof v3LibraryRefresh === 'function') v3LibraryRefresh(); } catch (_) {}
+    try { if (typeof v3NotesInvalidateLibrarySmartCache === 'function') v3NotesInvalidateLibrarySmartCache(); } catch (_) {}
+    setTimeout(v3TextCardImportClose, 1500);
+  } catch (e) {
+    console.warn('[tci] import failed', e);
+    if (status) { status.textContent = v3NotesT('tci.failed', 'Импорт не удался: ') + String(e.message || e).slice(0, 120); status.className = 'v3-tci-status v3-tci-status-error'; }
+  }
+}
+window.v3TextCardImportConfirm = v3TextCardImportConfirm;
+
+// Pre-load audio: fetch each asset_key from /api/audio/<key> and cache via
+// the existing audio-cache upload endpoint. Returns count of successful
+// preloads. Misses fall through to lazy-fetch at play time (existing row-
+// TTS pipeline auto-recovers via fresh synthesis if asset_key is gone).
+async function v3TcsPreloadAudioKeys(keys, statusEl) {
+  if (!Array.isArray(keys) || !keys.length) return 0;
+  let done = 0;
+  const total = keys.length;
+  const CONCURRENCY = 4;
+  let cursor = 0;
+  const updateStatus = () => {
+    if (!statusEl) return;
+    statusEl.textContent = v3NotesT('tci.preloading', 'Предзагрузка аудио {n}/{t}…')
+      .replace('{n}', String(done)).replace('{t}', String(total));
+  };
+  const worker = async () => {
+    while (cursor < keys.length) {
+      const i = cursor++;
+      const key = keys[i];
+      try {
+        const r = await fetch('/api/audio/' + encodeURIComponent(key));
+        if (r.ok) { await r.arrayBuffer(); done++; }
+      } catch (_) {}
+      updateStatus();
+    }
+  };
+  const workers = [];
+  for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
+  await Promise.all(workers);
+  return done;
+}
+
+// Detect text-card-v1 format on file import; route to preview if matched.
+// Returns true if the file was handled (preview opened); false otherwise.
+function v3TextCardImportTryDetect(parsedJson) {
+  if (!parsedJson || typeof parsedJson !== 'object') return false;
+  if (parsedJson.format !== V3_TCS_FORMAT) return false;
+  if (!parsedJson.card || !Array.isArray(parsedJson.card.rows)) return false;
+  v3TextCardImportShowPreview(parsedJson);
+  return true;
+}
+window.v3TextCardImportTryDetect = v3TextCardImportTryDetect;
 
 // Phase 9.4.B — Root autocomplete for the word_study template field.
 // Tier 2 source: seed dict (loaded by `_loadRootsSeed` on app boot) +
