@@ -8616,6 +8616,18 @@ body:not(.theme-light) .v3-heatmap-cell {
     } else {
       setTimeout(_loadRootsSeed, 3000);
     }
+
+    // Direction 11B Phase 11.2 + 11.3 — boot the research client.
+    // Idempotent: init() schedules the daily aggregator and queue drainer.
+    // If research mode is disabled (default), init() runs but the aggregator
+    // no-ops on every tick because getState().enabled === false.
+    try {
+      if (window.LinguistProResearch && typeof window.LinguistProResearch.init === 'function') {
+        window.LinguistProResearch.init();
+      }
+    } catch (e) {
+      console.warn('[research] init failed:', e && e.message);
+    }
   }).catch(e => {
     window.__localDBInitError = e;
     console.error('[OPFS] init failed:', e && e.message ? e.message : e);
@@ -9059,6 +9071,7 @@ body:not(.theme-light) .v3-heatmap-cell {
                         <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()" data-i18n="classic.dashboard">📈 Дашборд</button>
                         <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
                         <button id="btnFeedback" class="btn-secondary" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
+                        <button id="btnResearch" class="btn-secondary" onclick="window.LinguistProResearchUI && window.LinguistProResearchUI.open()" data-i18n-title="research.btnTitle" data-i18n-aria-label="research.btnTitle" title="Research mode (opt-in)" aria-label="Research mode (opt-in)">📊</button>
                         <button id="btnTheme" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
                     </div>
                     <div class="lang-select-wrap classic-lang-wrap" title="">
@@ -10585,6 +10598,10 @@ body:not(.theme-light) .v3-heatmap-cell {
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
 <script src="/js/morph-normalize.js"></script>
 <script src="/js/morph-provider.js"></script>
+
+<!-- Direction 11B Phase 11.2 + 11.3 — opt-in research mode (default OFF). -->
+<script src="/js/research.js"></script>
+<script src="/js/research-ui.js"></script>
 
 <script src="/tts/core.js"></script>
 <script src="/tts/providerPolicy.js"></script>

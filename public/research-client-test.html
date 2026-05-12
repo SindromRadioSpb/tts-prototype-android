@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Research Client Test (Phase 11.2 + 11.3)</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #e0e0e0; max-width: 1100px; margin: 0 auto; }
+    h2 { color: #fbbf24; }
+    h3 { color: #93c5fd; margin-top: 20px; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+    .ok  { color: #4ade80; }
+    .err { color: #f87171; }
+    .inf { color: #60a5fa; }
+    .warn { color: #fbbf24; }
+    pre  { margin: 4px 0 4px 20px; color: #94a3b8; white-space: pre-wrap; font-size: 12px; }
+    .summary { padding: 12px; margin: 16px 0; background: #1e293b; border-radius: 6px; }
+  </style>
+</head>
+<body>
+<h2>Research Client Test — Phase 11.2 + 11.3 (Direction 11B)</h2>
+<p class="inf">
+  Verifies <code>window.LinguistProResearch</code> client surface (state, consent, cohort
+  join, withdrawal, aggregator, uploader queue). Mocks <code>fetch</code> and
+  <code>window.__localDB.dbQuery</code> so tests don't touch real OPFS or the network.
+</p>
+<div id="log"></div>
+
+<!-- Load the module under test (IIFE, attaches to window). -->
+<script src="/js/research.js"></script>
+
+<script>
+const log = document.getElementById('log');
+function out(cls, msg, extra) {
+  const p = document.createElement('p');
+  p.className = cls;
+  p.textContent = msg;
+  log.appendChild(p);
+  if (extra != null) {
+    const pre = document.createElement('pre');
+    pre.textContent = typeof extra === 'object' ? JSON.stringify(extra, null, 2) : String(extra);
+    log.appendChild(pre);
+  }
+}
+function head(s) {
+  const h = document.createElement('h3');
+  h.textContent = s;
+  log.appendChild(h);
+}
+
+// Globals tracked across tests for assertions.
+let _origFetch = window.fetch;
+let _origLdb = window.__localDB;
+let _fetchCalls = [];
+let _fetchHandler = null; // (url, init) -> { status, body }
+
+function installMockFetch(handler) {
+  _fetchHandler = handler;
+  _fetchCalls = [];
+  window.fetch = async function (url, init) {
+    _fetchCalls.push({ url: String(url), method: (init && init.method) || 'GET', body: init && init.body });
+    const r = handler ? handler(String(url), init) : { status: 500, body: { ok: false } };
+    if (r instanceof Promise) return r;
+    return new Response(JSON.stringify(r.body || {}), {
+      status: r.status || 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+}
+function restoreFetch() {
+  window.fetch = _origFetch;
+  _fetchHandler = null;
+  _fetchCalls = [];
+}
+
+// Mock local-db with a synthetic events store. The mock supports the SQL
+// query shapes used by _aggregateForRange — counts, distinct-counts,
+// payload_json reads. We don't run a real SQLite engine; instead the mock
+// matches well-known SQL fragments and returns canned rows.
+let _syntheticEvents = []; // [{event_type, ts, text_id, sentence_id, session_id, payload_json}]
+function installMockLdb() {
+  window.__localDB = {
+    dbQuery: async function (sql, params) {
+      const s = String(sql || '');
+      const inWindow = (e) => {
+        if (params && params.length >= 2) {
+          return e.ts >= params[0] && e.ts <= params[1];
+        }
+        return true;
+      };
+      // Sessions + active days
+      if (/SUM.*session_start.*COUNT.*DISTINCT substr/i.test(s)) {
+        const events = _syntheticEvents.filter(inWindow).filter((e) =>
+          ['session_start', 'session_heartbeat', 'session_end'].includes(e.event_type));
+        const sessions = events.filter((e) => e.event_type === 'session_start').length;
+        const days = new Set(events.map((e) => e.ts.slice(0, 10)));
+        return [{ sessions, active_days: days.size }];
+      }
+      // Hour-of-day histogram
+      if (/substr\(ts, 12, 2\) AS hour/i.test(s)) {
+        const events = _syntheticEvents.filter(inWindow).filter((e) => e.event_type === 'session_start');
+        const m = {};
+        for (const e of events) {
+          const h = e.ts.slice(11, 13);
+          m[h] = (m[h] || 0) + 1;
+        }
+        return Object.entries(m).map(([hour, n]) => ({ hour, n }));
+      }
+      // text_open distinct/total
+      if (/event_type = 'text_open'/.test(s) && /COUNT\(DISTINCT text_id\)/.test(s)) {
+        const events = _syntheticEvents.filter(inWindow).filter((e) => e.event_type === 'text_open');
+        return [{ distinct_: new Set(events.map((e) => e.text_id)).size, total_: events.length }];
+      }
+      // sentences read distinct/total
+      if (/IN \('row_tts', 'play_audio'\)/.test(s) && /COUNT\(DISTINCT sentence_id\)/.test(s)) {
+        const events = _syntheticEvents.filter(inWindow).filter((e) =>
+          ['row_tts', 'play_audio'].includes(e.event_type));
+        return [{ distinct_: new Set(events.map((e) => e.sentence_id)).size, total_: events.length }];
+      }
+      // play_audio payloads
+      if (/event_type = 'play_audio'/.test(s) && /payload_json FROM events/.test(s)) {
+        return _syntheticEvents.filter(inWindow).filter((e) => e.event_type === 'play_audio')
+          .map((e) => ({ payload_json: JSON.stringify(e.payload_json || {}) }));
+      }
+      // srs_review payloads
+      if (/event_type = 'srs_review'/.test(s) && /payload_json FROM events/.test(s)) {
+        return _syntheticEvents.filter(inWindow).filter((e) => e.event_type === 'srs_review')
+          .map((e) => ({ payload_json: JSON.stringify(e.payload_json || {}) }));
+      }
+      // Counts by event_type (card_added_to_srs, save_note, note_edit, search_query, smart_tag_override, translit_toggle)
+      const m = s.match(/event_type = '([\w_]+)'/);
+      if (m && /COUNT\(\*\) AS n/.test(s)) {
+        const t = m[1];
+        const events = _syntheticEvents.filter(inWindow).filter((e) => e.event_type === t);
+        return [{ n: events.length }];
+      }
+      // MIN(date) for first event
+      if (/MIN\(substr\(ts, 1, 10\)\) AS first_day/.test(s)) {
+        if (!_syntheticEvents.length) return [{ first_day: null }];
+        const days = _syntheticEvents.map((e) => e.ts.slice(0, 10)).sort();
+        return [{ first_day: days[0] }];
+      }
+      return [];
+    },
+    getActiveMsReal: async function ({ sinceIso }) {
+      // Fake heartbeat-derived ms (30s per heartbeat).
+      const events = _syntheticEvents.filter((e) =>
+        e.event_type === 'session_heartbeat' && e.ts >= sinceIso);
+      return events.length * 30000;
+    },
+  };
+}
+function restoreLdb() {
+  window.__localDB = _origLdb;
+  _syntheticEvents = [];
+}
+
+// localStorage cleanup helper (only research-* keys to be polite to other state).
+function clearResearchLs() {
+  const keys = Object.values(window.LinguistProResearch._lsKeys);
+  for (const k of keys) localStorage.removeItem(k);
+}
+
+// Test runner.
+async function run() {
+  const r = window.LinguistProResearch;
+  if (!r) {
+    out('err', '❌ window.LinguistProResearch missing — research.js failed to load.');
+    return;
+  }
+  let pass = 0, fail = 0;
+  const test = async (name, fn) => {
+    try {
+      clearResearchLs();
+      await fn();
+      pass++;
+      out('ok', '✅ ' + name);
+    } catch (e) {
+      fail++;
+      out('err', '❌ ' + name + ' — ' + (e && e.message ? e.message : String(e)));
+    }
+  };
+  const assert = (cond, msg) => { if (!cond) throw new Error(msg || 'assertion failed'); };
+  const eq = (a, b, msg) => { if (a !== b) throw new Error((msg || 'eq') + ': got ' + JSON.stringify(a) + ' want ' + JSON.stringify(b)); };
+
+  head('1. State defaults & helpers');
+
+  await test('default state: disabled, no IDs, no consent', async () => {
+    const s = r.getState();
+    eq(s.enabled, false);
+    eq(s.studentId, null);
+    eq(s.cohortCode, null);
+    eq(s.consentVersion, null);
+    eq(s.queueSize, 0);
+  });
+
+  await test('needsReconsent is true when no consent stored', async () => {
+    assert(r.needsReconsent() === true, 'expected needsReconsent=true');
+  });
+
+  await test('getCurrentConsentVersion returns semver string', async () => {
+    const v = r.getCurrentConsentVersion();
+    assert(typeof v === 'string' && /^\d+\.\d+/.test(v), 'expected semver, got ' + v);
+  });
+
+  head('2. Consent acceptance');
+
+  await test('acceptConsent enables + writes localStorage', async () => {
+    const res = r.acceptConsent('1.0');
+    assert(res.ok === true, 'acceptConsent must succeed');
+    const s = r.getState();
+    eq(s.enabled, true);
+    eq(s.consentVersion, '1.0');
+    assert(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-/.test(s.studentId), 'studentId must be UUID-shaped');
+    assert(r.needsReconsent() === false, 'consent met → no reconsent needed');
+  });
+
+  await test('subsequent acceptConsent does not change studentId', async () => {
+    r.acceptConsent('1.0');
+    const sid1 = r.getState().studentId;
+    r.acceptConsent('1.0');
+    const sid2 = r.getState().studentId;
+    eq(sid1, sid2);
+  });
+
+  head('3. Cohort join validation');
+
+  await test('joinCohort rejects bad codes', async () => {
+    r.acceptConsent('1.0');
+    let res = r.joinCohort('abc'); // too short, lowercase
+    assert(!res.ok && res.error === 'BAD_COHORT_CODE', 'bad code must reject');
+    res = r.joinCohort('toolongcohortidentifierxxxxxx');
+    assert(!res.ok, 'too-long must reject');
+    res = r.joinCohort('VALID-2026');
+    assert(res.ok, 'VALID-2026 must accept; got ' + JSON.stringify(res));
+    eq(r.getState().cohortCode, 'VALID-2026');
+  });
+
+  await test('joinCohort uppercases mixed-case input', async () => {
+    r.acceptConsent('1.0');
+    const res = r.joinCohort('ulpan-A-2026');
+    assert(res.ok, 'mixed case allowed (uppercased): ' + JSON.stringify(res));
+    eq(r.getState().cohortCode, 'ULPAN-A-2026');
+  });
+
+  head('4. Aggregator (synthetic events via mock __localDB)');
+
+  installMockLdb();
+  try {
+    await test('aggregator builds schema-conformant payload', async () => {
+      _syntheticEvents = [
+        // 2 sessions on 2026-05-12, 1 on 2026-05-13
+        { event_type: 'session_start', ts: '2026-05-12T10:00:00.000Z' },
+        { event_type: 'session_heartbeat', ts: '2026-05-12T10:00:30.000Z' },
+        { event_type: 'session_heartbeat', ts: '2026-05-12T10:01:00.000Z' },
+        { event_type: 'session_start', ts: '2026-05-12T15:00:00.000Z' },
+        { event_type: 'session_heartbeat', ts: '2026-05-12T15:00:30.000Z' },
+        { event_type: 'session_start', ts: '2026-05-13T08:00:00.000Z' },
+        { event_type: 'text_open', ts: '2026-05-12T10:05:00.000Z', text_id: 't1' },
+        { event_type: 'text_open', ts: '2026-05-12T10:10:00.000Z', text_id: 't1' },
+        { event_type: 'text_open', ts: '2026-05-13T08:30:00.000Z', text_id: 't2' },
+        { event_type: 'play_audio', ts: '2026-05-12T10:11:00.000Z', sentence_id: 's1', payload_json: { duration_ms: 4500, replay_count: 1 } },
+        { event_type: 'play_audio', ts: '2026-05-12T10:12:00.000Z', sentence_id: 's2', payload_json: { duration_ms: 3200, replay_count: 2 } },
+        { event_type: 'play_audio', ts: '2026-05-13T08:31:00.000Z', sentence_id: 's3', payload_json: { duration_ms: 5000, replay_count: 4 } },
+        { event_type: 'srs_review', ts: '2026-05-12T11:00:00.000Z', payload_json: { grade: 'good' } },
+        { event_type: 'srs_review', ts: '2026-05-12T11:01:00.000Z', payload_json: { grade: 'again' } },
+        { event_type: 'card_added_to_srs', ts: '2026-05-12T11:02:00.000Z' },
+        { event_type: 'save_note', ts: '2026-05-12T11:03:00.000Z' },
+        { event_type: 'note_edit', ts: '2026-05-13T08:40:00.000Z' },
+        { event_type: 'search_query', ts: '2026-05-12T12:00:00.000Z' },
+      ];
+      r.acceptConsent('1.0');
+      r.joinCohort('VALID-2026');
+      const payload = await r._aggregateForRange('2026-05-12', '2026-05-13');
+      // Schema invariants
+      eq(payload.format, 'linguistpro-research-v1');
+      assert(/^[0-9a-fA-F-]+$/.test(payload.student_id), 'studentId UUID-shaped');
+      eq(payload.cohort_code, 'VALID-2026');
+      eq(payload.upload_ts, '2026-05-13');
+      eq(payload.since_ts, '2026-05-12');
+      eq(payload.consent_version, '1.0');
+      assert(payload.context && payload.context.app_version, 'context.app_version present');
+      assert(['web/desktop','web/mobile-ios','web/mobile-android','web/pwa'].includes(payload.context.platform), 'platform allowed');
+      const m = payload.metrics;
+      eq(m.sessions_count, 3);
+      eq(m.active_days_count, 2);
+      eq(m.texts_opened_distinct, 2);
+      eq(m.texts_opened_total, 3);
+      eq(m.sentences_read_distinct, 3);
+      eq(m.sentences_read_total, 3);
+      eq(m.audio_play_ms_total, 4500 + 3200 + 5000);
+      eq(m.cards_reviewed, 2);
+      eq(m.cards_correct, 1);
+      eq(m.cards_again, 1);
+      eq(m.srs_error_rate, 0.5);
+      eq(m.cards_added_to_srs, 1);
+      eq(m.notes_created, 1);
+      eq(m.notes_edited, 1);
+      eq(m.search_queries_count, 1);
+      // Replay buckets: 1 played-once, 1 played-twice, 1 played-4plus
+      eq(m.audio_replay_distribution['1'], 1);
+      eq(m.audio_replay_distribution['2'], 1);
+      eq(m.audio_replay_distribution['4plus'], 1);
+      // Time-of-day histogram
+      assert(m.time_of_day_histogram['10'] >= 1, 'hour 10 should have entries');
+    });
+
+    await test('aggregator: no forbidden fields anywhere in payload', async () => {
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const payload = await r._aggregateForRange('2026-05-12', '2026-05-13');
+      const FORBIDDEN = ['text_content','note_body','search_query','audio_bytes','audio_url',
+        'username','email','name','phone','ip','geolocation','latitude','longitude',
+        'user_agent','device_id','device_serial','timestamp'];
+      function recur(obj, path) {
+        if (!obj || typeof obj !== 'object') return;
+        for (const k of Object.keys(obj)) {
+          if (FORBIDDEN.includes(k)) throw new Error('forbidden field ' + path + '.' + k);
+          recur(obj[k], path + '.' + k);
+        }
+      }
+      recur(payload, '$');
+    });
+  } finally {
+    restoreLdb();
+  }
+
+  head('5. Uploader (mock fetch)');
+
+  installMockLdb();
+  installMockFetch((url) => {
+    if (url.endsWith('/api/research/v1/metrics')) {
+      return { status: 200, body: { ok: true, stored: true, dedupe: false, rate_limit_remaining: 9 } };
+    }
+    return { status: 404, body: { ok: false } };
+  });
+  try {
+    await test('successful upload writes to log + lastUploadDate', async () => {
+      _syntheticEvents = [
+        { event_type: 'session_start', ts: '2026-05-12T10:00:00.000Z' },
+      ];
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const res = await r.runDailyAggregator({ uploadDay: '2026-05-12' });
+      assert(res.ok === true, 'expected ok=true; got ' + JSON.stringify(res));
+      eq(res.stored, true);
+      const s = r.getState();
+      eq(s.lastUploadDate, '2026-05-12');
+      const log = r.getRecentUploads();
+      assert(log.length >= 1, 'log entry written');
+      assert(log[0].stored === true);
+    });
+
+    await test('fetch sees Content-Type application/json + correct body', async () => {
+      _syntheticEvents = [{ event_type: 'session_start', ts: '2026-05-12T10:00:00.000Z' }];
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      _fetchCalls = [];
+      await r.runDailyAggregator({ uploadDay: '2026-05-12' });
+      const post = _fetchCalls.find((c) => c.url.endsWith('/api/research/v1/metrics'));
+      assert(post, 'POST /api/research/v1/metrics call captured');
+      eq(post.method, 'POST');
+      const body = JSON.parse(post.body);
+      eq(body.format, 'linguistpro-research-v1');
+      eq(body.upload_ts, '2026-05-12');
+    });
+  } finally {
+    restoreFetch();
+    restoreLdb();
+  }
+
+  head('6. Uploader: 4xx hard-fail (no retry)');
+
+  installMockLdb();
+  installMockFetch(() => ({ status: 400, body: { ok: false, error: 'SCHEMA_VIOLATION', field: '$.metrics.bad' } }));
+  try {
+    await test('400 → log entry + no retry queue', async () => {
+      _syntheticEvents = [{ event_type: 'session_start', ts: '2026-05-12T10:00:00.000Z' }];
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const res = await r.runDailyAggregator({ uploadDay: '2026-05-12' });
+      eq(res.ok, false);
+      eq(res.status, 400);
+      const s = r.getState();
+      eq(s.queueSize, 0);
+      const log = r.getRecentUploads();
+      assert(log[0].error === 'SCHEMA_VIOLATION', 'log carries error');
+    });
+  } finally {
+    restoreFetch();
+    restoreLdb();
+  }
+
+  head('7. Uploader: 5xx → retry queue + exponential backoff');
+
+  installMockLdb();
+  installMockFetch(() => ({ status: 503, body: { ok: false, error: 'INTERNAL_ERROR' } }));
+  try {
+    await test('5xx queues item + sets nextRetryAt', async () => {
+      _syntheticEvents = [{ event_type: 'session_start', ts: '2026-05-12T10:00:00.000Z' }];
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const res = await r.runDailyAggregator({ uploadDay: '2026-05-12' });
+      eq(res.ok, false);
+      eq(res.queued, true);
+      const s = r.getState();
+      eq(s.queueSize, 1);
+      assert(s.nextRetryAt > Date.now(), 'nextRetryAt set in future');
+    });
+  } finally {
+    restoreFetch();
+    restoreLdb();
+  }
+
+  head('8. Withdrawal');
+
+  installMockFetch((url, init) => {
+    if (init && init.method === 'DELETE' && url.includes('/api/research/v1/student/')) {
+      return { status: 200, body: { ok: true, cohorts_touched: 1, records_removed: 3 } };
+    }
+    return { status: 404, body: { ok: false } };
+  });
+  try {
+    await test('withdraw clears local state + calls server DELETE', async () => {
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const sidBefore = r.getState().studentId;
+      assert(sidBefore, 'student id present pre-withdraw');
+      _fetchCalls = [];
+      const res = await r.withdraw();
+      eq(res.ok, true);
+      eq(res.serverOk, true);
+      const s = r.getState();
+      eq(s.enabled, false);
+      eq(s.studentId, null);
+      eq(s.cohortCode, null);
+      const del = _fetchCalls.find((c) => c.method === 'DELETE');
+      assert(del, 'DELETE call made');
+      assert(del.url.includes(sidBefore), 'DELETE url contains student_id');
+    });
+  } finally {
+    restoreFetch();
+  }
+
+  head('9. Withdrawal offline → DELETE queued');
+
+  installMockFetch(() => { throw new Error('NetworkError simulated'); });
+  try {
+    await test('network failure on withdraw → DELETE queued + local state still cleared', async () => {
+      r.acceptConsent('1.0'); r.joinCohort('VALID-2026');
+      const res = await r.withdraw();
+      eq(res.ok, true);
+      eq(res.serverOk, false);
+      eq(res.serverError, 'NETWORK');
+      const s = r.getState();
+      eq(s.enabled, false, 'local state still cleared');
+      eq(s.queueSize, 1, 'DELETE in queue');
+    });
+  } finally {
+    restoreFetch();
+  }
+
+  head('10. Re-consent on version bump');
+
+  await test('consent v0.9 marks reconsent needed against current 1.0', async () => {
+    r.acceptConsent('0.9');
+    assert(r.needsReconsent() === true, 'expected reconsent for stored 0.9 vs current 1.0');
+  });
+
+  head('Summary');
+  const div = document.createElement('div');
+  div.className = 'summary';
+  div.innerHTML = `<b>${pass}</b>/${pass + fail} passed` + (fail ? ` &nbsp; <span class="err">${fail} FAILED</span>` : ` <span class="ok">✓ all green</span>`);
+  log.appendChild(div);
+
+  // Restore globals for politeness.
+  clearResearchLs();
+  restoreFetch();
+  restoreLdb();
+}
+
+run().catch((e) => {
+  out('err', 'Fatal: ' + (e && e.message ? e.message : e));
+  console.error(e);
+});
+</script>
+</body>
+</html>
