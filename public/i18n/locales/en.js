@@ -452,6 +452,12 @@ window.I18N_LOCALES.en = {
     convert: {
       openTitle: "Convert this note to a different type",
       openLabel: "🔄 Convert to…",
+      menuTitle: "Pick the new type",
+      cancel: "Cancel",
+      confirmTitle: "Convert note?",
+      confirmBody: "Convert {from} → {to}? The current body will be archived in history as v_N. The new form will open blank.",
+      confirmOk: "Convert",
+      warnSrs: "The SRS card was built on the old type. Re-create it manually via «🎴 Make it a card» if it still applies.",
     },
     // Phase 9.3.5.B — Multi-note row-index panel
     rowBtnTitleMulti: "{n} notes on this row",
@@ -820,7 +826,9 @@ window.I18N_LOCALES.en = {
     notesTemplateMissing: "Please fill required fields: {fields}",
     // Phase 9.3.5 R1 — intent + convert toasts
     notesIntentNoRow: "Open a row first to add a note.",
-    notesConvertWip: "Type conversion ships in the next release.",
+    notesConverted: "Note converted to the new type.",
+    notesConvertFailed: "Couldn't convert the note.",
+    notesConvertUnavailable: "Convert API is unavailable.",
     // Phase 9.3.B — links toasts
     notesLinkSaveFirst: "Save the note first, then add links.",
     notesLinkInvalid: "Specify link kind and target.",

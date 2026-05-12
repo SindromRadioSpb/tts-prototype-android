@@ -455,6 +455,12 @@ window.I18N_LOCALES.he = {
     convert: {
       openTitle: "המר את ההערה לסוג אחר",
       openLabel: "🔄 המר ל…",
+      menuTitle: "בחר סוג חדש",
+      cancel: "ביטול",
+      confirmTitle: "להמיר את ההערה?",
+      confirmBody: "להמיר {from} → {to}? התוכן הנוכחי יישמר בהיסטוריה כ-v_N. הטופס החדש ייפתח ריק.",
+      confirmOk: "המר",
+      warnSrs: "כרטיסיית ה-SRS נבנתה על הסוג הישן. צרו אותה מחדש ידנית דרך «🎴 ליצור כרטיסיה» אם רלוונטי.",
     },
     // Phase 9.3.5.B — Multi-note row-index panel
     rowBtnTitleMulti: "{n} הערות לשורה זו",
@@ -821,7 +827,9 @@ window.I18N_LOCALES.he = {
     notesTemplateMissing: "מלא שדות חובה: {fields}",
     // Phase 9.3.5 R1 — intent + convert toasts
     notesIntentNoRow: "פתח שורה תחילה כדי להוסיף הערה.",
-    notesConvertWip: "המרת סוג תופיע בגרסה הבאה.",
+    notesConverted: "ההערה הומרה לסוג חדש.",
+    notesConvertFailed: "לא ניתן היה להמיר את ההערה.",
+    notesConvertUnavailable: "API ההמרה אינו זמין.",
     // Phase 9.3.B — links toasts
     notesLinkSaveFirst: "שמור את ההערה קודם, ואז ניתן להוסיף קישורים.",
     notesLinkInvalid: "ציין סוג ויעד לקישור.",

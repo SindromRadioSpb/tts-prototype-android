@@ -4608,6 +4608,75 @@ body:not(.theme-light) .v3-notes-editor mark { background: #ca8a04; color: #fef9
 .v3-notes-edit-bubble-btn i { font-style: italic; font-weight: 600; color: #fff; }
 .v3-notes-edit-bubble-btn span { color: #fff; }
 
+/* Phase 9.3.5 R3 — Convert dropdown menu. Anchored under the 🔄 Convert
+   button in the modal header. Fixed-position so it isn't clipped by the
+   modal body. Light surface (reads in both themes via theme vars). */
+.v3-notes-convert-menu {
+  position: fixed;
+  z-index: 100000;
+  min-width: 220px;
+  max-width: 280px;
+  padding: 6px;
+  background: var(--theme-bg-surface, #ffffff);
+  color: var(--theme-text-primary, #0f172a);
+  border: 1px solid var(--theme-border, rgba(0,0,0,0.12));
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.v3-notes-convert-menu-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--theme-text-secondary, #64748b);
+  padding: 4px 8px 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.v3-notes-convert-item {
+  display: block;
+  width: 100%;
+  text-align: start;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.v3-notes-convert-item:hover { background: var(--theme-bg-hover, rgba(0,0,0,0.06)); }
+.v3-notes-convert-item:focus-visible { outline: 2px solid #3b82f6; outline-offset: 1px; }
+.v3-notes-convert-cancel {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text-secondary, #64748b);
+  font: inherit;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 2px;
+}
+.v3-notes-convert-cancel:hover { background: var(--theme-bg-hover, rgba(0,0,0,0.04)); }
+
+/* Convert confirm: SRS warn banner. */
+.v3-notes-convert-warn {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.32);
+  border-radius: 6px;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .v3-notes-sentence-ctx {
   margin: 10px 0 0 0;
   padding: 8px 10px;
@@ -34174,11 +34243,160 @@ function v3NotesUpdateLockedBadges() {
 }
 window.v3NotesUpdateLockedBadges = v3NotesUpdateLockedBadges;
 
-// Convert flow opener stub — R3 lands the actual submenu + handler.
+// Phase 9.3.5 R3 — Convert flow. Opens a dropdown menu under the
+// Convert button listing the four other note_types. Pick one → confirm
+// dialog (with optional SRS warn banner) → API call → snapshot current
+// body to history, blank the new shape, re-render the form. Emits a
+// `note_type_convert` event with metadata only (no body content).
 function v3NotesConvertOpen() {
-  showToast(v3NotesT("toast.notesConvertWip", "Преобразование типа появится в следующем релизе."), "info");
+  if (!v3NotesModalNoteId) return;
+  const btn = document.getElementById("v3NotesConvertBtn");
+  if (!btn) return;
+
+  // Singleton popover lives on body so it isn't clipped by the modal.
+  let pop = document.getElementById("v3NotesConvertMenu");
+  if (!pop) {
+    pop = document.createElement("div");
+    pop.id = "v3NotesConvertMenu";
+    pop.className = "v3-notes-convert-menu";
+    pop.setAttribute("role", "menu");
+    document.body.appendChild(pop);
+  }
+
+  const cur = String(v3NotesModalNoteType || "free");
+  const allTypes = ["free", "word_study", "grammar_rule", "translation_discrepancy", "pronunciation_note"];
+  const items = allTypes.filter((t) => t !== cur).map((t) => {
+    const meta = V3_NOTES_TYPE_LABELS[t] || {};
+    const icon = meta.icon || "•";
+    const label = v3NotesT(meta.labelKey, meta.fallback || t);
+    return '<button type="button" class="v3-notes-convert-item" role="menuitem" data-to="' +
+      t + '">' + icon + ' ' + label + '</button>';
+  }).join("");
+  const titleHtml = '<div class="v3-notes-convert-menu-title">' +
+    v3NotesT("notes.convert.menuTitle", "Выберите новый тип") + '</div>';
+  const cancelHtml = '<button type="button" class="v3-notes-convert-cancel">' +
+    v3NotesT("notes.convert.cancel", "Отмена") + '</button>';
+  pop.innerHTML = titleHtml + items + cancelHtml;
+
+  const rect = btn.getBoundingClientRect();
+  pop.style.top = (rect.bottom + 6) + "px";
+  // Right-align under the button so it stays on-screen on mobile.
+  const popW = 240;
+  pop.style.left = Math.max(8, Math.min(rect.right - popW, window.innerWidth - popW - 8)) + "px";
+  pop.style.display = "flex";
+
+  const closePop = () => {
+    pop.style.display = "none";
+    document.removeEventListener("click", onAway, true);
+    document.removeEventListener("keydown", onEsc, true);
+  };
+  const onAway = (e) => { if (!pop.contains(e.target) && e.target !== btn) closePop(); };
+  const onEsc = (e) => { if (e.key === "Escape") closePop(); };
+  setTimeout(() => {
+    document.addEventListener("click", onAway, true);
+    document.addEventListener("keydown", onEsc, true);
+  }, 0);
+
+  pop.querySelectorAll(".v3-notes-convert-item").forEach((b) => {
+    b.onclick = () => { const to = String(b.dataset.to || ""); closePop(); v3NotesConvertExecute(to); };
+  });
+  const cancelBtn = pop.querySelector(".v3-notes-convert-cancel");
+  if (cancelBtn) cancelBtn.onclick = closePop;
 }
 window.v3NotesConvertOpen = v3NotesConvertOpen;
+
+async function v3NotesConvertExecute(toType) {
+  const noteId = v3NotesModalNoteId;
+  if (!noteId || !toType) return;
+  if (!LOCAL_MODE) {
+    showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error");
+    return;
+  }
+  const fromType = String(v3NotesModalNoteType || "free");
+  if (fromType === toType) return;
+
+  const fromMeta = V3_NOTES_TYPE_LABELS[fromType] || {};
+  const toMeta = V3_NOTES_TYPE_LABELS[toType] || {};
+  const fromLabel = (fromMeta.icon || "") + " " + v3NotesT(fromMeta.labelKey, fromMeta.fallback || fromType);
+  const toLabel = (toMeta.icon || "") + " " + v3NotesT(toMeta.labelKey, toMeta.fallback || toType);
+
+  const esc = (s) => v3NotesMdEscapeHtml ? v3NotesMdEscapeHtml(String(s)) : String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  let bodyHtml = "<p>" + esc(
+    v3NotesT("notes.convert.confirmBody",
+      "Преобразовать {from} → {to}? Текущее содержимое будет сохранено в истории как v_N. Новая форма откроется пустой."
+    ).replace("{from}", fromLabel).replace("{to}", toLabel)
+  ) + "</p>";
+  if (v3NotesModalSrsCardId) {
+    bodyHtml += '<div class="v3-notes-convert-warn">⚠ ' + esc(
+      v3NotesT("notes.convert.warnSrs",
+        "Карточка SRS была построена на старом типе. Пересоберите вручную через «🎴 Сделать карточкой» при необходимости."
+      )
+    ) + '</div>';
+  }
+
+  const ok = await v3ConfirmModal({
+    title:      v3NotesT("notes.convert.confirmTitle", "Преобразовать заметку?"),
+    body:       bodyHtml,
+    isHtml:     true,
+    okText:     v3NotesT("notes.convert.confirmOk", "Преобразовать"),
+    cancelText: v3NotesT("confirms.cancelBtn", "Отмена"),
+  });
+  if (!ok) return;
+
+  try {
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.convertNoteType !== "function") {
+      showToast(v3NotesT("toast.notesConvertUnavailable", "API преобразования недоступно."), "error");
+      return;
+    }
+    await ldb.convertNoteType(noteId, toType);
+
+    // Metadata-only event — never carry body content or Hebrew/IPA.
+    try {
+      v3Emit("note_type_convert", {
+        text_id: v3NotesModalTextId || null,
+        sentence_id: (v3NotesModalTargetKind === "sentence") ? (v3NotesModalSentenceId || null) : null,
+        payload_json: {
+          note_id: String(noteId),
+          from_type: fromType,
+          to_type: toType,
+          srs_card_linked: !!v3NotesModalSrsCardId,
+        },
+      });
+    } catch (_) {}
+
+    // Re-render in-modal state: new type's form, empty body, history
+    // sidebar already shows the snapshot. Anchor + target stay fixed.
+    v3NotesModalNoteType = toType;
+    v3NotesModalOriginalText = "";
+    v3NotesModalIsDirty = false;
+    const ta = v3NotesEl("v3NotesText");
+    if (ta) ta.value = "";
+    try { if (typeof v3NotesEditorLoadFromMarkdown === "function") v3NotesEditorLoadFromMarkdown(""); } catch (_) {}
+    try { v3NotesUpdateLockedBadges(); } catch (_) {}
+    try { v3NotesUpdateDataset(); } catch (_) {}
+    try { if (typeof v3NotesTemplateRender === "function") v3NotesTemplateRender(); } catch (_) {}
+    try { if (typeof v3NotesTemplateHydrate === "function") v3NotesTemplateHydrate({}); } catch (_) {}
+    try { if (v3NotesHistoryOpen && typeof v3NotesHistoryRefresh === "function") await v3NotesHistoryRefresh(); } catch (_) {}
+
+    // Refresh row-button count cache (count stays equal — convert doesn't
+    // add/remove a note — but the lazy main cache may be stale).
+    const sid = String(v3NotesModalSentenceId || "");
+    const textId = String(v3NotesModalTextId || "");
+    if (sid && textId) {
+      v3NotesRowCacheInvalidate(sid);
+      try { await v3NotesRowCacheRefresh(textId, sid); } catch (_) {}
+      if (Number.isFinite(v3NotesModalRowIdx)) v3NotesUpdateButtonRow(v3NotesModalRowIdx, sid);
+    }
+
+    showToast(v3NotesT("toast.notesConverted", "Заметка преобразована в новый тип."), "success");
+  } catch (e) {
+    console.warn("v3NotesConvertExecute failed", e);
+    showToast(v3NotesT("toast.notesConvertFailed", "Не удалось преобразовать заметку."), "error");
+  }
+}
+window.v3NotesConvertExecute = v3NotesConvertExecute;
 
 // ── Phase 9.3.5.B — Multi-note row-index panel ────────────────────────────
 

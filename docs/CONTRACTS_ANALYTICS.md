@@ -21,6 +21,7 @@
 | `row_tts` | Legacy emit (kept для backwards-compat с `getAnalytics`) | `text_id`, `sentence_id`, `source` (asset_key) |
 | `save_note` | `v3NotesSave` (когда _prevLen=0 && _newLen>0 — first save) | `text_id`, `sentence_id`, `payload_json.note_kind` ('free' for v3.2 baseline; templates → Direction 9), `payload_json.body_length` |
 | `note_edit` | `v3NotesSave` (когда _prevLen > 0 — existing note edited) | `text_id`, `sentence_id`, `payload_json.chars_added`, `payload_json.chars_removed`, `payload_json.body_length` |
+| `note_type_convert` | `v3NotesConvertExecute` (Phase 9.3.5 R3, на успешный convert) | `text_id`, `sentence_id` (только для target_kind=sentence), `payload_json.{note_id, from_type, to_type, srs_card_linked}` — body content NEVER recorded; only the type transition itself |
 | `srs_review` | `local-db.js srs.reviewCard()` (single point) | `card_id`, `text_id` (via sentence FK), `sentence_id`, `session_id` (if SRS Trainer active), `payload_json.{grade, interval_before_days, interval_after_days, state_before, state_after, ease_before, ease_after}` |
 | `srs_session_started` | `v3SrsTrainerOpen` | `session_id` |
 | `srs_session_finished` | `v3SrsTrainerClose` | `session_id`, `payload_json.{duration_ms, cards_reviewed}` |

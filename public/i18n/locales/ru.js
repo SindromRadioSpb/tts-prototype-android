@@ -458,6 +458,12 @@ window.I18N_LOCALES.ru = {
     convert: {
       openTitle: "Преобразовать заметку в другой тип",
       openLabel: "🔄 Преобразовать в…",
+      menuTitle: "Выберите новый тип",
+      cancel: "Отмена",
+      confirmTitle: "Преобразовать заметку?",
+      confirmBody: "Преобразовать {from} → {to}? Текущее содержимое будет сохранено в истории как v_N. Новая форма откроется пустой.",
+      confirmOk: "Преобразовать",
+      warnSrs: "Карточка SRS была построена на старом типе. Пересоберите вручную через «🎴 Сделать карточкой» при необходимости.",
     },
     // Phase 9.3.5.B — Multi-note row-index panel
     rowBtnTitleMulti: "{n} заметок к этой строке",
@@ -832,7 +838,9 @@ window.I18N_LOCALES.ru = {
     notesTemplateMissing: "Заполните обязательные поля: {fields}",
     // Phase 9.3.5 R1 — intent + convert toasts
     notesIntentNoRow: "Откройте строку, чтобы создать заметку.",
-    notesConvertWip: "Преобразование типа появится в следующем релизе.",
+    notesConverted: "Заметка преобразована в новый тип.",
+    notesConvertFailed: "Не удалось преобразовать заметку.",
+    notesConvertUnavailable: "API преобразования недоступно.",
     // Phase 9.3.B — links toasts
     notesLinkSaveFirst: "Сначала сохраните заметку, чтобы добавлять связи.",
     notesLinkInvalid: "Укажите вид и цель связи.",

@@ -660,6 +660,41 @@ export async function updateNote(id, patch) {
   return rows[0] ?? null;
 }
 
+// Phase 9.3.5 R3 — explicit note-type conversion. The UI never silently
+// flips note_type; it always routes through this entry point. We snapshot
+// the current body_json as a new note_versions row so the pre-convert
+// shape is preserved in history, then write a blank body for the new
+// type (free → empty markdown; templated → empty body object). target_*
+// stays the same — convert changes content shape, not anchoring.
+//
+// SRS card linkage (srs_card_id) is intentionally preserved: the card
+// stays back-pointable but the UI surfaces a warn banner so the user
+// can re-create it manually if the new type warrants a different card
+// shape (R3 spec — never destructive auto-action).
+export async function convertNoteType(id, newType) {
+  if (!id) throw new Error('convertNoteType: id is required');
+  _validateNoteType(newType);
+  const existing = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  const cur = existing[0];
+  if (!cur) throw new Error('convertNoteType: note not found ' + id);
+  if (cur.note_type === newType) return cur; // no-op
+
+  const nextVer = await _appendNoteVersion(id, cur.body_json);
+  await _trimNoteVersions(id, 50);
+  try { await _stampVersionDiffSummary(id, nextVer, null, cur.body_json); } catch (_) {}
+
+  const blank = newType === 'free'
+    ? JSON.stringify({ kind: 'free', markdown: '' })
+    : JSON.stringify({ kind: newType });
+
+  await r(
+    `UPDATE notes_v2 SET note_type = ?, body_json = ?, updated_at = ? WHERE id = ?`,
+    [newType, blank, new Date().toISOString(), id]
+  );
+  const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  return rows[0] ?? null;
+}
+
 // Delete a polymorphic note by id. Cascades to note_versions + note_links
 // via FK. Returns { ok: true, deleted: 1 } or { ok: true, deleted: 0 }.
 export async function deleteNoteById(id) {
