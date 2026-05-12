@@ -69,9 +69,18 @@ Educational analytics framework (Bloom-style engagement taxonomy + learning anal
 - `sentences_read_distinct` / `sentences_read_total`
 - `audio_play_ms_total` (real playback duration, не plays × 4000)
 - `words_encountered_total` / `words_unique`
-- `words_mastered` (final-stage SRS cards)
-- `cards_reviewed`
-- `cards_added_to_srs` (proactive learner)
+- ~~`words_mastered` (final-stage SRS cards)~~ — **deferred (см. §3.SRS-scope-note)**
+- ~~`cards_reviewed`~~ — **deferred to v3.4+ Anki Connect sync (см. §3.SRS-scope-note)**
+- `cards_added_to_srs` (proactive learner — card created via `🎴 Сделать карточкой`)
+- `cards_exported_to_anki` (mastery proxy — card moved into the "real" review pipeline)
+
+#### 3.SRS-scope-note — retention metric deferred
+
+> 2026-05-12 scope revision (see `docs/SRS_STRATEGY_v3_2.md`). LinguistPro is the *creation + linkage* layer for SRS cards; Anki is the *recommended review* layer. The in-app Trainer is a stub. Therefore in-app `srs_review` events are NOT a reliable retention signal for the diploma research — most cards land in Anki where we don't see reviews.
+>
+> **Interim retention proxy for v3.2 cohort study:** `cards_exported_to_anki / cards_added_to_srs` per active week. Tracks whether the user actually moves cards into a real review pipeline (a stronger signal than just creating them).
+>
+> **Full retention metric** (review-grade outcomes from Anki) is gated on **v3.4+ Anki Connect sync** — bidirectional sync that lands review results back in `srs_reviews`. Until then, the diploma narrative frames retention validation as future work and leans on engagement + mastery (creation → export ratio) proxies. User-accepted framing 2026-05-12.
 - `notes_created` / `notes_edited`
 - `search_queries_count` (без content!)
 
@@ -204,9 +213,10 @@ Open: any researcher может run a Hebrew learning study. Federated cohort de
 | `play_audio` | Row audio playback start | `text_id`, `sentence_id`, `duration_ms` (real playback time), `replay_count` (>1 if replay) |
 | `save_note` | Note saved | `text_id`, `sentence_id`, `note_kind` (free/word_study/etc), `body_length` (chars, no content) |
 | `note_edit` | Note edited (each save) | `note_id` hash, `chars_added`, `chars_removed` |
-| `srs_review` | Card graded | `card_id` hash, `grade` (again/hard/good/easy), `interval_before_days`, `interval_after_days` |
-| `srs_session_started` | Trainer opened | `session_id` |
-| `srs_session_finished` | Trainer closed | `session_id`, `cards_reviewed`, `duration_ms` |
+| `srs_review` | Card graded **in the in-app stub Trainer** (see `docs/SRS_STRATEGY_v3_2.md`) | `card_id` hash, `grade` (again/hard/good/easy), `interval_before_days`, `interval_after_days` |
+| `srs_session_started` | Stub Trainer opened | `session_id` |
+| `srs_session_finished` | Stub Trainer closed | `session_id`, `cards_reviewed`, `duration_ms` |
+| `srs_card_exported_to_anki` | `btnAnki` export with ≥1 note-card | `payload_json.{cards_total, cards_note_kind, cards_sentence_kind}` |
 | `search_query` | Search submitted | `query_length` (no text!), `result_count` |
 | `card_added_to_srs` | Note flagged for review (Direction 9 M6 integration) | `note_id` hash |
 | `smart_tag_override` | Manual smart-tag set | `text_id`, `tag` (struggling/mastered) |

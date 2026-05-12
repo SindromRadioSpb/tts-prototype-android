@@ -214,26 +214,39 @@
 
 ### M6. Note → SRS micro-card
 
-**Что:** в Notes editor есть чекбокс «🎯 Review this note» — заметка флагается как кандидат в SRS-очередь. При активации:
-- Создаётся `srs_cards` row с `card_kind='note'`, `entity_id = note.id`.
-- В SRS Trainer note-карточки идут наравне с sentence-карточками: front = `note.title` (или first 80 chars body), back = full `note.body_json` rendered.
-- Spacing — same SM-2 algorithm.
-- Hard/Good/Easy buttons + interval prediction — same UI.
+> **2026-05-12 scope revision** — see `docs/SRS_STRATEGY_v3_2.md` for the full decision record. **TL;DR:** LinguistPro is the *creation + linkage* layer; **Anki is the recommended review layer**. The in-app Trainer stays as a functional stub but is no longer the premium path. Reasoning: Anki has 15+ years of FSRS polish, mobile sync, and ecosystem that take 6-10 weeks to even approximate in-app — opportunity cost not justified vs Direction 9.4 / 10 / 11.
 
-**Premium-beat:** заметки **активно возвращаются** к пользователю. Это «journaling that recalls itself».
+**Что (v3.2 actual scope):**
+- `🎴 Сделать карточкой` on any templated note creates an `srs_cards` row (`entity_type='note'`, `template_id='note_<note_type>'`, `source_note_id` back-pointer). Same as 9.3.C — no change.
+- In-app Trainer renders cards and accepts grades (SM-2 for now; FSRS deferred to v3.4 Premium SRS Epic). Functional but not the primary path.
+- Trainer home view gains a prominent `📥 Reviewing in Anki? Export →` CTA.
+- `btnAnki` export expanded to bundle note-cards (`card_kind='note'`) alongside sentence-cards in the `.apkg`.
+- `convertNoteType` (R2.2) drops linked card when template no longer matches.
+- `srs.cleanupOrphanedNoteCards` sweeps pre-R2.2 broken cards on Trainer open.
 
-**Storage:** existing `srs_cards` table получает new `card_kind='note'` row + corresponding seed in `srs_card_templates` (см. P3 ROADMAP_PREMIUM gap — закрывается в этом direction'е).
+**Что deferred to v3.4+ Premium SRS Epic:**
+- FSRS-4.5 algorithm.
+- Premium Trainer UX (deck filters, keyboard nav, suspend/bury, mature-progress indicators).
+- Audio-anchored card playback during review.
+- Anki Connect bidirectional sync — unlocks retention metrics for research-mode.
+
+**Premium-beat (revised):** заметки становятся **карточками-полуфабрикатами** для премиум-инструмента (Anki), а не «journaling that recalls itself». Это честнее и быстрее, чем строить вторую полноценную SRS-систему.
+
+**Storage:** existing `srs_cards` + `srs_card_templates` seeds + `srs_reviews` остаются. Никаких schema-изменений в v3.2.
 
 **UX:**
-- Checkbox + tooltip «Add to SRS — this note will return for review».
-- В Library есть filter «📝 SRS-noted»: notes которые в SRS-очереди.
-- В Dashboard Today section — note-карточки видны в списке текущих обзоров.
+- `🎴 Сделать карточкой` button — already shipped (9.3.C).
+- `📥 Экспорт в Anki` — already shipped (`btnAnki`); R5 expands payload to include note-cards.
+- Onboarding popover SRS section — R5 copy update: *«Карточки создаются здесь, повторение — в Anki через 📥 Экспорт.»*
+- Trainer home view CTA banner — R5 new.
 
 **Acceptance:**
-- [ ] Notes flagged for review появляются в SRS Trainer.
-- [ ] Card front/back rendering для note-карточек handles all 5 note_type'ов корректно.
-- [ ] SM-2 интервалы вычисляются и сохраняются.
-- [ ] При delete заметки → corresponding SRS card удаляется (CASCADE).
+- [x] Cards created via `🎴` land in `srs_cards` with correct linkage (9.3.C done).
+- [ ] Trainer home view shows Anki-export CTA (R5).
+- [ ] Anki export bundles note-cards alongside sentence-cards (R5).
+- [ ] `srs_card_exported_to_anki` event registered in `CONTRACTS_ANALYTICS.md` (R5).
+- [ ] Help popover SRS section copy updated in RU/EN/HE (R5).
+- [x] Convert drops linked card; orphan sweep on Trainer open (R2.2 done).
 
 ---
 
