@@ -9,7 +9,17 @@
 
 **Mega-release scope** (~7–9 рабочих недель). Approved 2026-05-10. Master plan: [`docs/PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md).
 
-### Shipped (so far)
+### Planned (remaining for v3.2.0 final)
+
+- **Direction 11B — Research Mode** (~11–14 days, 6 sub-phases 11.2..11.7): opt-in privacy-preserving research infrastructure для ulpan diploma project. Multi-session implementation split — S1 server endpoints first, then consent UX + aggregation, then teacher dashboard, then outcome + docs. See `docs/ULPAN_RESEARCH_PLAN_v3_2.md` §7 + `memory/project_v3_2_progress.md`.
+
+---
+
+## [3.2.0-rc1] — 2026-05-13
+
+**Release candidate snapshot** of mega-release v3.2.0 in progress. Ships Directions 9 + 10 + 11A complete; Direction 11B (research mode) follows in v3.2.0 final. Tag locks the «shipped scope so far» state before 11B implementation starts.
+
+### Shipped (Directions 9 + 10 + 11A)
 
 - **Direction 9 Phase 9.4 — Hebrew morphology (local-first, offline)** *(2026-05-12, branch `phase-9-4-morphology`)*. Strategic scope-decision (`docs/MORPHOLOGY_REQUIREMENTS_v3_2.md`, 17 load-bearing requirements) overrides the original Phase 9.0 §7 HebMorph-sidecar recommendation: morphology in v3.2 ships as a **fully local, offline-first, in-browser layer** — no Railway cost, no JVM, no installer, sub-millisecond lookups. Same data source as HebMorph (hspell-data-files, AGPL-3.0) pre-computed at build time and shipped as a static asset.
   - **9.4.A** *(commit `daccb19`)* — Roots seed JSON (100 entries with ru/en glosses + common-word arrays) + idle-time loader. Populates the `roots` table (migration 024 schema, no new SQL migration needed). Tier 2 fallback for autocomplete + OOV recovery. Privacy-safe (no events, just telemetry ring buffer).
