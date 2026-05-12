@@ -153,7 +153,14 @@
   async function analyze(word) {
     const w = String(word || '').trim();
     if (!w) return [];
-    // Tier 1 is opt-in via initial ensureReady; if not yet ready, skip.
+    // If Tier 1 is mid-fetch, await its promise so callers don't fall
+    // through to Tier 2 just because the dict hasn't loaded yet. Tier 2
+    // for word→root is a much weaker signal (it's prefix search over
+    // root keys, not actual morphology lookup). Better to wait ~500-
+    // 1000 ms on the first call than to give a wrong/empty fallback.
+    if ((T1.state === 'fetching' || T1.state === 'loading') && T1.fetchPromise) {
+      try { await T1.fetchPromise; } catch (_) { /* falls through */ }
+    }
     if (T1.isReady()) {
       const r1 = await T1.analyze(w);
       if (r1.length) return r1;

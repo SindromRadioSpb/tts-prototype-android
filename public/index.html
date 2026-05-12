@@ -33314,9 +33314,15 @@ window.v3NotesTemplateRender = v3NotesTemplateRender;
 // when the user finishes entering the word. Behaviour:
 //   • On word input blur OR 600ms after the last keystroke
 //   • Look up morphology via MorphProvider.analyze (Tier 1 → Tier 2)
-//   • For the top-ranked analysis: if root field is empty, fill it; same
-//     for binyan. Manual user edits are NEVER overwritten (requirement #9).
-//   • Status hint shown briefly below the word field on lookup.
+//   • For the top-ranked analysis: if the target field is empty OR was
+//     previously auto-filled, fill it with the new value. If the user
+//     manually typed something (userTouched flag), DO NOT overwrite —
+//     manual edits always win per requirement #9.
+//   • State tracking via `data-auto-filled` and `data-user-touched`:
+//       - data-auto-filled="1" → value came from morphology lookup;
+//         next word change is allowed to update it.
+//       - data-user-touched="1" → user typed/changed the value manually;
+//         auto-fill never overwrites until field is cleared.
 let _v3NotesTplMorphologyBound = false;
 function v3NotesTplMorphologyAutoFillInit() {
   if (_v3NotesTplMorphologyBound) return;
@@ -33327,34 +33333,55 @@ function v3NotesTplMorphologyAutoFillInit() {
   _v3NotesTplMorphologyBound = true;
 
   let debounceT = null;
+  let lastQueriedWord = "";
 
-  // Remember user-touched state so we don't auto-overwrite later.
-  if (rootEl && !rootEl.dataset.userTouched) {
-    rootEl.addEventListener("input", () => { rootEl.dataset.userTouched = "1"; });
+  // Track manual user input so we never auto-overwrite it.
+  if (rootEl) {
+    rootEl.addEventListener("input", () => {
+      // Only mark user-touched when the change is NOT from our own auto-fill.
+      if (rootEl.dataset.autoFilling !== "1") {
+        rootEl.dataset.userTouched = "1";
+        rootEl.dataset.autoFilled = "";
+      }
+    });
   }
-  if (binyanEl && !binyanEl.dataset.userTouched) {
-    binyanEl.addEventListener("change", () => { binyanEl.dataset.userTouched = "1"; });
+  if (binyanEl) {
+    binyanEl.addEventListener("change", () => {
+      if (binyanEl.dataset.autoFilling !== "1") {
+        binyanEl.dataset.userTouched = "1";
+        binyanEl.dataset.autoFilled = "";
+      }
+    });
   }
+
+  // Helper: can we (re-)auto-fill this field?
+  const canAutoFill = (el) => {
+    if (!el) return false;
+    if (el.dataset.userTouched === "1") return false; // manual edit wins
+    return !el.value || el.dataset.autoFilled === "1";
+  };
+
+  const setAutoFilled = (el, value) => {
+    if (!el) return;
+    el.dataset.autoFilling = "1";
+    el.value = value;
+    el.dataset.autoFilled = "1";
+    el.dataset.autoFilling = "";
+    el.classList.add("v3-notes-tpl-auto-filled");
+    setTimeout(() => el.classList.remove("v3-notes-tpl-auto-filled"), 1400);
+  };
 
   const runLookup = async () => {
     const word = String(wordEl.value || "").trim();
     if (!word || !window.MorphProvider) return;
+    if (word === lastQueriedWord) return; // dedupe redundant lookups
+    lastQueriedWord = word;
     try {
       const analyses = await window.MorphProvider.analyze(word);
       if (!analyses || !analyses.length) return;
       const top = analyses[0];
-      // Auto-fill root iff empty AND user hasn't typed there.
-      if (rootEl && !rootEl.value && !rootEl.dataset.userTouched && top.r) {
-        rootEl.value = top.r;
-        rootEl.classList.add("v3-notes-tpl-auto-filled");
-        setTimeout(() => rootEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
-      }
-      // Auto-fill binyan iff empty AND user hasn't selected AND analysis has one.
-      if (binyanEl && !binyanEl.value && !binyanEl.dataset.userTouched && top.b) {
-        binyanEl.value = top.b;
-        binyanEl.classList.add("v3-notes-tpl-auto-filled");
-        setTimeout(() => binyanEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
-      }
+      if (top.r && canAutoFill(rootEl)) setAutoFilled(rootEl, top.r);
+      if (top.b && canAutoFill(binyanEl)) setAutoFilled(binyanEl, top.b);
     } catch (e) {
       console.warn("[morph] auto-fill lookup failed:", e && e.message);
     }

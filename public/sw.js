@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.1.0-pwa-1";
+const CACHE_VERSION = "v3.2.0-morph-1";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -163,11 +163,17 @@ async function staleWhileRevalidate(req) {
   const fetchPromise = fetch(req).then((res) => {
     // Only cache successful, basic (same-origin), non-opaque responses.
     if (res && res.ok && res.type === "basic") {
-      // Don't store the runtime version of precached assets — precache
-      // handles those, and runtime caching them would create stale dupes
-      // after a SW update.
+      // CRITICAL: clone EAGERLY before returning res. Otherwise the
+      // page consumes res.body via res.text()/json() and the deferred
+      // precache.match(...).then(...) cascade tries res.clone() AFTER
+      // the body is already consumed → "Response body is already used"
+      // TypeError, which propagates as an unhandled rejection out of
+      // event.respondWith and turns the whole FetchEvent into a
+      // network error. This breaks every uncached same-origin runtime
+      // fetch (heb_morphology.bin, fonts on first hit, etc.).
+      const cacheable = res.clone();
       precache.match(req).then((alreadyPrecached) => {
-        if (!alreadyPrecached) runtime.put(req, res.clone()).catch(() => {});
+        if (!alreadyPrecached) runtime.put(req, cacheable).catch(() => {});
       });
     }
     return res;
