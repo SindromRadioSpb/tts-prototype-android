@@ -301,6 +301,7 @@ window.I18N_LOCALES.he = {
     optionHint: "רמז (נושא/רמה)",
     optionNoteHtml: "NoteHtml (safe markdown)",
     optionMoveToDeck: "העבר כרטיסים קיימים לחפיסה שנבחרה",
+    optionFreshOnly: "אל תגעו בכרטיסים בחפיסות אחרות (Fresh-only)",
     checkBtn: "בדוק AnkiConnect",
     copyDiagBtn: "העתק אבחון",
     pushBtn: "ייצוא",

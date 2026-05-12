@@ -9623,7 +9623,7 @@ body:not(.theme-light) .v3-heatmap-cell {
         <div class="v3-checkboxes">
           <label><input type="checkbox" id="v3AnkiIncludeHint" checked /> <span data-i18n="anki.optionHint">Подсказка (тема/уровень)</span></label>
           <label><input type="checkbox" id="v3AnkiIncludeNoteHtml" /> <span data-i18n="anki.optionNoteHtml">NoteHtml (safe markdown)</span></label>
-          <label><input type="checkbox" id="v3AnkiMoveToDeck" checked /> <span data-i18n="anki.optionMoveToDeck">Переместить существующие карточки в выбранный deck</span></label>
+          <label title="По умолчанию включено. Существующие карточки с тем же ивритом в других колодах останутся на местах — целевая колода получит ровно одну карточку на строку."><input type="checkbox" id="v3AnkiFreshOnly" checked /> <span data-i18n="anki.optionFreshOnly">Не трогать карточки из других колод (Fresh-only)</span></label>
         </div>
       </div>
 
@@ -12341,27 +12341,42 @@ async function v3AnkiPushLocalMode(textId, opts) {
     }
   }
 
-  // For collection-level duplicates: find their Notes, grab their Cards, and
-  // move those cards into the requested deck. This makes "Экспортировать в
-  // deck X" idempotent and predictable even if the Notes already existed in
-  // some other deck.
+  // For collection-level duplicates: two strategies depending on
+  // opts.freshOnly (R2.5 — Fresh-only is the default per user dogfood
+  // 2026-05-12).
   //
-  // Search strategy (premium — handles cross-model duplicates):
-  //   1. Try `<frontField>:"<text>"` — finds prior LinguistPro exports in
-  //      the same model (Hebrew field).
-  //   2. Fall back to `"<text>"` — bare quoted text matches ANY field of ANY
-  //      model. Catches duplicates created by older exports that used the
-  //      Basic model (Front field) — those won't match step 1.
-  //   3. If still nothing found despite canAddNotes flagging duplicate,
-  //      retry the addNotes call for that specific note with
-  //      allowDuplicate: true. This forces creation as a fresh note in the
-  //      requested deck/model — preferred over silent failure when Anki's
-  //      hash-based dedup over-flags.
+  // - **Fresh-only (default):** skip the findNotes/changeDeck
+  //   consolidation entirely. All dup queries go directly to
+  //   retryAsFresh with allowDuplicate=true, producing a fresh Note in
+  //   the target deck for every input row. Existing cards in other
+  //   decks are NOT moved or disturbed. Predictable: N input rows → N
+  //   cards in target deck.
+  //
+  // - **Consolidate (opt-in, freshOnly=false):** find existing Notes in
+  //   the collection for each duplicate and changeDeck their cards into
+  //   the target deck. Idempotent for re-exports but pulls cards out of
+  //   prior decks — used to be the default.
+  //
+  // Search strategy for consolidate path:
+  //   1. Try `<frontField>:"<text>"` — finds prior LinguistPro exports.
+  //   2. Fall back to `"<text>"` — bare quoted text matches any field.
+  //   3. If still nothing found, retry the addNotes with allowDuplicate.
+  const freshOnlyMode = (opts && opts.freshOnly !== false);
   let movedToDeck = 0;
   let dupNotFound = 0;
   let dupRecreated = 0;       // notes we forced via allowDuplicate retry
   const retryAsFresh = [];    // notes whose dups couldn't be located → retry
-  if (dupQueries.length > 0) {
+  if (dupQueries.length > 0 && freshOnlyMode) {
+    // Fresh-only: every dup query becomes a retryAsFresh entry. No
+    // findNotes/notesInfo/changeDeck round-trips. Consequence: prior
+    // decks keep their cards intact; target deck gets one new card per
+    // input row regardless of cross-collection duplicates.
+    for (const dq of dupQueries) {
+      if (typeof dq.idx === 'number' && sendable[dq.idx]) {
+        retryAsFresh.push(sendable[dq.idx]);
+      }
+    }
+  } else if (dupQueries.length > 0) {
     try {
       const allNoteIds = [];
       for (const dq of dupQueries) {
@@ -31319,7 +31334,7 @@ function v3AnkiOpenModal() {
     const frontEl = document.getElementById("v3AnkiFrontMode");
     const hintEl = document.getElementById("v3AnkiIncludeHint");
     const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
-    const moveEl = document.getElementById("v3AnkiMoveToDeck");
+    const freshEl = document.getElementById("v3AnkiFreshOnly");
 
     // Default deck suggestion: LinguistPro::<level>
     const level = (st && st.level) ? String(st.level || "").trim() : "";
@@ -31329,7 +31344,9 @@ function v3AnkiOpenModal() {
     if (frontEl) frontEl.value = String(opts.frontMode || frontEl.value || "plain");
     if (hintEl) hintEl.checked = (opts.includeHint !== false);
     if (htmlEl) htmlEl.checked = !!opts.includeNoteHtml;
-    if (moveEl) moveEl.checked = (opts.moveToDeck !== false);
+    // R2.5 — Fresh-only is the default and recommended path. See
+    // docs/SRS_STRATEGY_v3_2.md + user dogfood 2026-05-12.
+    if (freshEl) freshEl.checked = (opts.freshOnly !== false);
 
     v3AnkiSetStatus("Проверьте AnkiConnect и нажмите «Экспортировать».", false);
     v3AnkiHealth();
@@ -31446,14 +31463,16 @@ async function v3AnkiPushNow() {
   const frontEl = document.getElementById("v3AnkiFrontMode");
   const hintEl = document.getElementById("v3AnkiIncludeHint");
   const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
-  const moveEl = document.getElementById("v3AnkiMoveToDeck");
+  const freshEl = document.getElementById("v3AnkiFreshOnly");
 
   const payload = {
     deckName: deckEl ? String(deckEl.value || "").trim() : "",
     frontMode: frontEl ? String(frontEl.value || "plain") : "plain",
     includeHint: hintEl ? !!hintEl.checked : true,
     includeNoteHtml: htmlEl ? !!htmlEl.checked : false,
-    moveToDeck: moveEl ? !!moveEl.checked : true,
+    // R2.5 — when true (default), duplicates create fresh notes in target
+    // deck without disturbing existing cards in other decks.
+    freshOnly: freshEl ? !!freshEl.checked : true,
   };
 
   v3AnkiWriteOpts(payload);

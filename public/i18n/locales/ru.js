@@ -301,6 +301,7 @@ window.I18N_LOCALES.ru = {
     optionHint: "Подсказка (тема/уровень)",
     optionNoteHtml: "NoteHtml (safe markdown)",
     optionMoveToDeck: "Переместить существующие карточки в выбранный deck",
+    optionFreshOnly: "Не трогать карточки из других колод (Fresh-only)",
     checkBtn: "Проверить AnkiConnect",
     copyDiagBtn: "Скопировать диагностику",
     pushBtn: "Экспортировать",

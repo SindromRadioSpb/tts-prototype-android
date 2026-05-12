@@ -301,6 +301,7 @@ window.I18N_LOCALES.en = {
     optionHint: "Hint (topic/level)",
     optionNoteHtml: "NoteHtml (safe markdown)",
     optionMoveToDeck: "Move existing cards to selected deck",
+    optionFreshOnly: "Don't touch cards in other decks (Fresh-only)",
     checkBtn: "Check AnkiConnect",
     copyDiagBtn: "Copy diagnostics",
     pushBtn: "Export",
