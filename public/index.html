@@ -4570,14 +4570,18 @@ body:not(.theme-light) .v3-notes-editor mark { background: #ca8a04; color: #fef9
 }
 
 /* Floating selection bubble — appears above selected text. Premium pattern
-   (Medium/Notion). Positioned absolutely by v3NotesEditorOnSelectionChange. */
+   (Medium/Notion). Bubble background is ALWAYS dark + icons ALWAYS light,
+   regardless of theme — otherwise in light mode the page-bg-light-gray
+   collided with the light icons and made them invisible (Bug 2026-05-12).
+   Positioned absolutely by v3NotesEditorOnSelectionChange. */
 .v3-notes-edit-bubble {
   position: fixed;
   z-index: 100000;
   display: flex;
   gap: 2px;
   padding: 4px;
-  background: var(--theme-bg-page, #0f172a);
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.10);
   border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0,0,0,0.30), 0 1px 3px rgba(0,0,0,0.1);
   pointer-events: auto;
@@ -4591,16 +4595,18 @@ body:not(.theme-light) .v3-notes-editor mark { background: #ca8a04; color: #fef9
   padding: 0 6px;
   border: 0;
   background: transparent;
-  color: #f1f5f9;
+  color: #f8fafc;
   font-size: 13px;
   cursor: pointer;
   border-radius: 5px;
   font-family: inherit;
   transition: background 0.12s;
 }
-.v3-notes-edit-bubble-btn:hover { background: rgba(255,255,255,0.12); }
-.v3-notes-edit-bubble-btn b { font-weight: 800; }
-.v3-notes-edit-bubble-btn i { font-style: italic; font-weight: 600; }
+.v3-notes-edit-bubble-btn:hover { background: rgba(255,255,255,0.16); color: #fff; }
+.v3-notes-edit-bubble-btn:focus-visible { outline: 2px solid #60a5fa; outline-offset: 1px; }
+.v3-notes-edit-bubble-btn b { font-weight: 800; color: #fff; }
+.v3-notes-edit-bubble-btn i { font-style: italic; font-weight: 600; color: #fff; }
+.v3-notes-edit-bubble-btn span { color: #fff; }
 
 .v3-notes-sentence-ctx {
   margin: 10px 0 0 0;
@@ -11171,6 +11177,9 @@ if (header) {
           }
         }
       }
+      // R2.1 — bulk-prime per-row note counts so "📝 N" badges render on
+      // first paint after page refresh (Bug 2 closure).
+      try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(textId); } catch (_) {}
     } catch (e) { /* notes optional */ }
 
     // Render table in center panel
@@ -21090,10 +21099,13 @@ try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
 	const renderToken = v3RenderTableFromLibrary(rows);
 	
 	// W10-NOTES-PREMIUM-03: async notes ingest AFTER table render (never blocks UX)
-notesPromise.then((notesRes) => {
+notesPromise.then(async (notesRes) => {
   try {
     const notes = (notesRes && notesRes.ok && Array.isArray(notesRes.notes)) ? notesRes.notes : [];
     v3NotesIngest(textId, notes);
+    // R2.1 — bulk-prime per-row counts so "📝 N" badges appear without
+    // requiring per-row click (Bug 2 closure on first-paint + refresh).
+    try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(textId); } catch (_) {}
     v3NotesRefreshAllButtons();
   } catch (e) {
     console.warn("async v3NotesIngest failed (non-critical)", e);
@@ -21271,6 +21283,9 @@ async function v3ClassicEnrichSavedRows(textId) {
           v3NotesIngest(String(textId), (notesRes && notesRes.notes) ? notesRes.notes : []);
         }
       }
+      // R2.1 — bulk-prime per-row counts so "📝 N" badges appear without
+      // requiring per-row click (Bug 2 closure on Classic-mode load).
+      try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(String(textId)); } catch (_) {}
     } catch (_) {}
 
     // 4. Re-render table so note buttons and audio indicators appear
@@ -34173,9 +34188,16 @@ window.v3NotesConvertOpen = v3NotesConvertOpen;
 // note-summary objects (subset of notes_v2 columns).
 const v3NotesRowCache = Object.create(null);
 
+// Phase 9.3.5 R2.1 — fast count-only cache primed on text load so the row-
+// button "📝 N" badge appears immediately after page refresh (without
+// requiring the user to click each row to populate the lazy main cache).
+// Map keyed by sentence_id; value is the integer note count.
+const v3NotesRowCountCache = Object.create(null);
+
 function v3NotesRowCacheInvalidate(sentenceId) {
   if (!sentenceId) return;
   try { delete v3NotesRowCache[String(sentenceId)]; } catch (_) {}
+  try { delete v3NotesRowCountCache[String(sentenceId)]; } catch (_) {}
 }
 window.v3NotesRowCacheInvalidate = v3NotesRowCacheInvalidate;
 
@@ -34185,8 +34207,10 @@ async function v3NotesRowCacheRefresh(textId, sentenceId) {
     const ldb = await ensureLocalDB();
     if (typeof ldb.listNotesForRow !== "function") return [];
     const rows = await ldb.listNotesForRow(textId, sentenceId);
-    v3NotesRowCache[String(sentenceId)] = Array.isArray(rows) ? rows : [];
-    return v3NotesRowCache[String(sentenceId)];
+    const arr = Array.isArray(rows) ? rows : [];
+    v3NotesRowCache[String(sentenceId)] = arr;
+    v3NotesRowCountCache[String(sentenceId)] = arr.length;
+    return arr;
   } catch (e) {
     console.warn("[notes] v3NotesRowCacheRefresh failed:", e && e.message ? e.message : e);
     return [];
@@ -34194,10 +34218,37 @@ async function v3NotesRowCacheRefresh(textId, sentenceId) {
 }
 window.v3NotesRowCacheRefresh = v3NotesRowCacheRefresh;
 
-// Public count helper used by v3NotesUpdateButtonRow to render "📝 3" badge.
+// Phase 9.3.5 R2.1 — bulk-prime the count cache on text load. One SQL query
+// fetches all sentence-id → count pairs; populates count cache so badges
+// render correctly the moment the row buttons appear, without a per-row
+// network round-trip.
+async function v3NotesRowCountsPrime(textId) {
+  if (!LOCAL_MODE || !textId) return;
+  try {
+    const ldb = await ensureLocalDB();
+    if (typeof ldb.getRowNoteCounts !== "function") return;
+    const rows = await ldb.getRowNoteCounts(textId);
+    if (!Array.isArray(rows)) return;
+    for (const r of rows) {
+      const sid = String(r.sentence_id || "");
+      const cnt = Number(r.count || 0);
+      if (sid) v3NotesRowCountCache[sid] = cnt;
+    }
+  } catch (e) {
+    console.warn("[notes] v3NotesRowCountsPrime failed:", e && e.message ? e.message : e);
+  }
+}
+window.v3NotesRowCountsPrime = v3NotesRowCountsPrime;
+
+// Public count helper used by v3NotesUpdateButtonRow to render "📝 N" badge.
+// Prefers fresh main cache (populated on row click) but falls back to the
+// count cache populated on text load. Survives page refresh — was Bug 2.
 function v3NotesRowCount(sentenceId) {
-  const arr = v3NotesRowCache[String(sentenceId || "")];
-  return Array.isArray(arr) ? arr.length : 0;
+  const sid = String(sentenceId || "");
+  const arr = v3NotesRowCache[sid];
+  if (Array.isArray(arr)) return arr.length;
+  const c = v3NotesRowCountCache[sid];
+  return Number.isFinite(Number(c)) ? Number(c) : 0;
 }
 window.v3NotesRowCount = v3NotesRowCount;
 
@@ -35094,6 +35145,10 @@ async function v3NotesSave(isAutoSave) {
         }
 
         v3NotesSetLocal(sentenceId, "", null);
+        // R2.1 — refresh count cache BEFORE redrawing the row button so the
+        // "📝 N" badge stays in sync with persistence (Bug 2 closure).
+        v3NotesRowCacheInvalidate(sentenceId);
+        if (textId && sentenceId) { try { await v3NotesRowCacheRefresh(textId, sentenceId); } catch (_) {} }
         if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
         // F6: после удаления сбросить dirty/original
@@ -35166,6 +35221,10 @@ async function v3NotesSave(isAutoSave) {
       if (!updatedAt) updatedAt = new Date().toISOString();
 
       v3NotesSetLocal(sentenceId, note, updatedAt);
+      // R2.1 — refresh count cache BEFORE redrawing the row button so the
+      // "📝 N" badge reflects the just-persisted note (Bug 2 closure).
+      v3NotesRowCacheInvalidate(sentenceId);
+      if (textId && sentenceId) { try { await v3NotesRowCacheRefresh(textId, sentenceId); } catch (_) {} }
       if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
       // F6: после успешного save сбросить dirty + обновить baseline
@@ -35308,9 +35367,19 @@ async function v3NotesSave(isAutoSave) {
     } catch (_) {}
 
     // For sentence-bound free polymorphic notes, also keep the legacy
-    // in-memory cache in sync so the row badge updates.
+    // in-memory cache in sync so the row anchor/active state updates.
     if (v3NotesModalTargetKind === "sentence" && v3NotesModalNoteType === "free" && sentenceId) {
       v3NotesSetLocal(sentenceId, note, updatedAt);
+    }
+
+    // R2.1 — for any persisted polymorphic note bound to the current row,
+    // refresh the row count cache and update the "📝 N" badge so it
+    // reflects post-save state (Bug 2 closure: covers ALL note_types, not
+    // just sentence/free). Word target_id format is "<sid>:<offset>"; the
+    // parent sid matches the modal sentenceId by construction.
+    if (sentenceId && textId) {
+      v3NotesRowCacheInvalidate(sentenceId);
+      try { await v3NotesRowCacheRefresh(textId, sentenceId); } catch (_) {}
       if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
     }
 
@@ -35380,6 +35449,22 @@ async function v3NotesDelete() {
       }
       const ldb = await ensureLocalDB();
       await ldb.deleteNoteById(v3NotesModalNoteId);
+
+      // R2.1 — for polymorphic deletes bound to a row (sentence or word
+      // target), refresh the row count cache and redraw the badge so it
+      // reflects post-delete state (Bug 2 closure).
+      let _delSid = null;
+      if (v3NotesModalTargetKind === "sentence") _delSid = sentenceId || null;
+      else if (v3NotesModalTargetKind === "word" && v3NotesModalTargetId) {
+        const _sep = String(v3NotesModalTargetId).indexOf(":");
+        _delSid = _sep > 0 ? String(v3NotesModalTargetId).slice(0, _sep) : null;
+      }
+      if (_delSid && textId) {
+        v3NotesRowCacheInvalidate(_delSid);
+        try { await v3NotesRowCacheRefresh(textId, _delSid); } catch (_) {}
+        if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, _delSid);
+      }
+
       const ta = v3NotesEl("v3NotesText");
       if (ta) ta.value = "";
       v3NotesModalOriginalText = "";
@@ -35412,6 +35497,10 @@ async function v3NotesDelete() {
     }
 
     v3NotesSetLocal(sentenceId, "", null);
+    // R2.1 — refresh count cache BEFORE redrawing the row button so the
+    // "📝 N" badge reflects the just-deleted note (Bug 2 closure).
+    v3NotesRowCacheInvalidate(sentenceId);
+    if (textId && sentenceId) { try { await v3NotesRowCacheRefresh(textId, sentenceId); } catch (_) {} }
     if (Number.isFinite(rowIdx)) v3NotesUpdateButtonRow(rowIdx, sentenceId);
 
     const ta = v3NotesEl("v3NotesText");

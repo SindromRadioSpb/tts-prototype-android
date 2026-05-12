@@ -698,9 +698,12 @@ export async function listAllNotesForText(textId) {
 // Phase 9.3.5.B — all notes belonging to a single row's learning context.
 // Returns sentence-target notes (target_kind='sentence' AND target_id=sid)
 // PLUS word-target notes whose target_id is scoped to this sentence
-// (post-Phase 9.3.5.F format `'<sentence_id>:<word_offset>'` or legacy
-// bare-lemma — see Workstream F for the resolution policy).
-// Sorted newest-first; intended for the row-index panel UI.
+// (Phase 9.3.5.F format `'<sentence_id>:<word_offset>'` or legacy bare-lemma).
+// Phase 9.3.5 R2.1 bug-fix — sort by **created_at ASC** instead of
+// updated_at DESC. Why: user expectation is "notes appear in the order I
+// made them"; updated_at DESC pushed the first-created free note to the
+// bottom of the list (Bug 2026-05-12 dogfood report) and made users think
+// it was missing.
 export async function listNotesForRow(textId, sentenceId) {
   if (!textId || !sentenceId) return [];
   return q(
@@ -710,8 +713,32 @@ export async function listNotesForRow(textId, sentenceId) {
            (target_kind = 'sentence' AND target_id = ?)
            OR (target_kind = 'word' AND target_id LIKE ? || ':%')
          )
-       ORDER BY updated_at DESC`,
+       ORDER BY created_at ASC`,
     [String(textId), String(sentenceId), String(sentenceId)]
+  );
+}
+
+// Phase 9.3.5 R2.1 — fast per-text per-row note count, primed on text load
+// so the row-button "📝 N" count badge survives a page refresh. Returns
+// `Array<{ sentence_id, count }>` covering all sentences in the text with
+// at least one row-bound note (sentence-target OR word-target whose target_id
+// starts with that sentence's id).
+export async function getRowNoteCounts(textId) {
+  if (!textId) return [];
+  return q(
+    `SELECT sentence_id, COUNT(*) AS count FROM (
+       SELECT target_id AS sentence_id
+         FROM notes_v2
+        WHERE text_id = ? AND target_kind = 'sentence'
+       UNION ALL
+       SELECT substr(target_id, 1, instr(target_id, ':') - 1) AS sentence_id
+         FROM notes_v2
+        WHERE text_id = ? AND target_kind = 'word'
+          AND instr(target_id, ':') > 0
+     )
+     WHERE sentence_id IS NOT NULL AND sentence_id != ''
+     GROUP BY sentence_id`,
+    [String(textId), String(textId)]
   );
 }
 
