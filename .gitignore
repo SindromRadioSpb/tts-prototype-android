@@ -89,3 +89,9 @@ repo_tree.txt
 
 # Phase 9.3.5+ scratch debugging probes
 /test-prod-mt*.js
+
+# Phase 11.5+ visual regression captures (Smoke-check/teacher-dashboard/<timestamp>/)
+# These are ephemeral artifacts produced by scripts/research/teacher-screenshots.js.
+# Use `git add -f` to commit a baseline snapshot manually if needed.
+Smoke-check/
+.playwright-mcp/
