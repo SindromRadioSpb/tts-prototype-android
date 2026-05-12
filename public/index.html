@@ -12140,7 +12140,14 @@ async function v3AnkiPushLocalMode(textId, opts) {
     const fields = {};
     if (useCustomModel) {
       // LinguistPro SRS Card v1 — explicit fields with full context.
-      fields.Hebrew    = escapeHtml(s.he_plain || '');
+      // R2.3 fix — Hebrew falls back to he_niqqud, then to Russian + a
+      // visible marker, so the card front never renders empty. Anki
+      // refuses to create a Note whose first field renders nothing
+      // ("cards are missing" error), so an empty he_plain on 30-of-32
+      // sentences silently failed the whole export.
+      let hebrewSrc = String(s.he_plain || '').trim() || String(s.he_niqqud || '').trim();
+      if (!hebrewSrc) hebrewSrc = String(s.ru || '').trim() || '(empty)';
+      fields.Hebrew    = escapeHtml(hebrewSrc);
       fields.Niqqud    = escapeHtml(s.he_niqqud || '');
       fields.Translit  = escapeHtml(s.translit || s.translit_ru || '');
       fields.Russian   = escapeHtml(s.ru || '');
@@ -12271,9 +12278,15 @@ async function v3AnkiPushLocalMode(textId, opts) {
   const created = arr.filter((x) => x != null).length;
   let runtimeDuplicates = 0;
   let failedOther = 0;
+  const failedOtherSample = [];
   if (perNoteErrors) {
+    // R2.3 — collect unique error messages for DevTools diagnostics so
+    // we can pinpoint why AnkiConnect refused a note. Aggregated by
+    // lower-cased message; first 5 surface in toast for the user.
+    const errorCounts = Object.create(null);
     for (let i = 0; i < perNoteErrors.length; i++) {
-      const msg = String(perNoteErrors[i] || "").toLowerCase();
+      const msgRaw = String(perNoteErrors[i] || "");
+      const msg = msgRaw.toLowerCase();
       if (!msg) continue;
       if (msg.includes("duplicate")) {
         runtimeDuplicates++;
@@ -12287,10 +12300,21 @@ async function v3AnkiPushLocalMode(textId, opts) {
           const frontVal = refusedNote.fields[frontField];
           dupQueries.push({ idx: i, frontText: String(frontVal || "") });
         }
-      } else if (msg.includes("empty")) {
+      } else if (msg.includes("empty") || msg.includes("cards are missing") || msg.includes("no cards")) {
         skippedEmpty.push("(runtime-empty)");
+        errorCounts[msgRaw] = (errorCounts[msgRaw] || 0) + 1;
       } else {
         failedOther++;
+        errorCounts[msgRaw] = (errorCounts[msgRaw] || 0) + 1;
+      }
+    }
+    // Log unique messages + counts so the user can copy DevTools output.
+    const ec = Object.keys(errorCounts);
+    if (ec.length) {
+      console.warn('[anki] addNotes per-note error breakdown:', JSON.stringify(errorCounts));
+      // First two unique messages → toast sample.
+      for (let k = 0; k < Math.min(2, ec.length); k++) {
+        failedOtherSample.push(ec[k] + ' (×' + errorCounts[ec[k]] + ')');
       }
     }
   } else {
@@ -12454,6 +12478,7 @@ async function v3AnkiPushLocalMode(textId, opts) {
     duplicates: preDuplicates + runtimeDuplicates,
     skipped: skippedEmpty.length,
     failedOther,
+    failedOtherSample,  // R2.3 — top-2 unique AnkiConnect error messages
     movedToDeck,
     dupNotFound,
     dupRecreated,
@@ -31444,7 +31469,12 @@ async function v3AnkiPushNow() {
         if (s.duplicates) parts.push(`дубликатов Note ${s.duplicates}`);
         if (s.dupNotFound) parts.push(`не найдено в Anki ${s.dupNotFound}`);
         if (s.skipped) parts.push(`пустых пропущено ${s.skipped}`);
-        if (s.failedOther) parts.push(`прочих ошибок ${s.failedOther}`);
+        if (s.failedOther) {
+          parts.push(`прочих ошибок ${s.failedOther}`);
+          if (Array.isArray(s.failedOtherSample) && s.failedOtherSample.length) {
+            parts.push(`причины: ${s.failedOtherSample.join("; ")}`);
+          }
+        }
         const msg = `Готово (deck "${s.deckName}", модель "${s.modelName}"): ${parts.join(", ")}.`;
         v3AnkiSetStatus(msg, false);
         if (typeof showToast === "function") showToast(t("toast.ankiExportDone"), "success");
