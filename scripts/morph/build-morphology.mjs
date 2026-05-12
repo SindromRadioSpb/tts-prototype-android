@@ -278,7 +278,21 @@ function loadWordlist() {
       const tokens = txt.match(/[א-ת]{2,}/g) || [];
       for (const t of tokens) out.add(t);
     }
-    if (out.size > 50) return { words: [...out], source: 'hebmorph-test-files (' + allFiles.length + ' files)' };
+    if (out.size > 50) {
+      // R2.E — also feed seed roots + their common_words through hspell.
+      // Without this, "אהב" (a common verb root in the seed) would only get
+      // a stub Tier-2 augmentation entry and no real hspell verb analysis.
+      try {
+        if (fs.existsSync(SEED_PATH)) {
+          const seed = JSON.parse(fs.readFileSync(SEED_PATH, 'utf-8'));
+          for (const e of (seed.entries || [])) {
+            if (e.root_3letter) out.add(e.root_3letter);
+            for (const w of (e.common_words || [])) out.add(w);
+          }
+        }
+      } catch (_) {}
+      return { words: [...out], source: 'hebmorph-test-files (' + allFiles.length + ' files) + seed roots' };
+    }
   }
   // Final fallback: seed roots + their common_words
   if (fs.existsSync(SEED_PATH)) {
