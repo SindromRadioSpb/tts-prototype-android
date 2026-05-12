@@ -19,7 +19,8 @@
     "test:api-smoke": "node scripts/api-smoke.js",
     "test": "node --test",
     "bench:premium": "node tests/premium/bench.js",
-    "pwa:icons": "node scripts/generate-pwa-icons.js"
+    "pwa:icons": "node scripts/generate-pwa-icons.js",
+    "build:morphology": "node scripts/morph/build-morphology.mjs"
   },
   "dependencies": {
     "@google-cloud/text-to-speech": "^5.7.0",
