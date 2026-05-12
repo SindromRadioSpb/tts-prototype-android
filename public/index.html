@@ -12253,21 +12253,21 @@ async function v3AnkiPushLocalMode(textId, opts) {
       }
       // Normalize chunk arr length up to chunk.length so every input has
       // a corresponding output slot. Missing entries are silent failures
-      // that we'll route through the duplicate-retry pipeline.
+      // that we route through the duplicate-retry pipeline.
       if (chunkArr.length < chunk.length) {
         console.warn('[anki] addNotes chunk returned ' + chunkArr.length + ' of ' + chunk.length +
           ' expected entries (start=' + start + '); padding with nulls and queueing for retry-as-fresh');
         while (chunkArr.length < chunk.length) chunkArr.push(null);
       }
-      // Normalize perNote similarly when present.
-      if (chunkPerNote) {
+      // R2.4 — perNote is diagnostic-only and we no longer assume
+      // positional alignment with chunk.length. AnkiConnect Plus and some
+      // forks return perNote with only the failure messages (not aligned
+      // to request indices), so any synthetic padding here would create
+      // phantom failures. We collect whatever AnkiConnect sends and let
+      // the diagnostic loop downstream aggregate by message text.
+      if (chunkPerNote && chunkPerNote.length) {
         anyPerNote = true;
-        while (chunkPerNote.length < chunk.length) chunkPerNote.push('unknown (response truncated)');
         for (const m of chunkPerNote) aggregatedPerNote.push(m);
-      } else if (anyPerNote) {
-        // Some earlier chunk had perNote; pad current chunk with empty
-        // messages so indices stay aligned to the aggregated arr.
-        for (let k = 0; k < chunk.length; k++) aggregatedPerNote.push('');
       }
       for (const item of chunkArr) aggregatedArr.push(item);
     }
@@ -12275,60 +12275,69 @@ async function v3AnkiPushLocalMode(textId, opts) {
     if (anyPerNote) perNoteErrors = aggregatedPerNote;
   }
 
+  // R2.4 — arr is the single source of truth. Every null in arr is a
+  // failure (could be duplicate, content-empty, or some other Anki-side
+  // rejection); we feed ALL of them into the dup-resolution pipeline so
+  // findNotes + retryAsFresh recovers them. perNote messages, when
+  // present, are diagnostic-only — they help classify (empty content
+  // skipped instead of retried) and surface human-readable error counts.
+  //
+  // Why we no longer trust perNote positional alignment: AnkiConnect
+  // Plus and some forks return perNote with ONLY the failure messages,
+  // not positionally aligned with the request. Treating it as 1:1 with
+  // sendable caused R2.3 to misroute failures — the user's 42-row export
+  // showed 12 "unknown (response truncated)" failedOther entries that
+  // were really just silent nulls in arr that the perNote branch never
+  // pushed to dupQueries. The 12 sentences were never retried.
   const created = arr.filter((x) => x != null).length;
   let runtimeDuplicates = 0;
   let failedOther = 0;
   const failedOtherSample = [];
+  const errorCounts = Object.create(null);
+
+  // Collect unique perNote messages for diagnostics (positional
+  // alignment NOT assumed).
   if (perNoteErrors) {
-    // R2.3 — collect unique error messages for DevTools diagnostics so
-    // we can pinpoint why AnkiConnect refused a note. Aggregated by
-    // lower-cased message; first 5 surface in toast for the user.
-    const errorCounts = Object.create(null);
     for (let i = 0; i < perNoteErrors.length; i++) {
       const msgRaw = String(perNoteErrors[i] || "");
-      const msg = msgRaw.toLowerCase();
-      if (!msg) continue;
-      if (msg.includes("duplicate")) {
-        runtimeDuplicates++;
-        // The note that addNotes refused — feed it into the duplicate-
-        // resolution queue so the changeDeck flow below covers it. This
-        // closes the gap when canAddNotes preflight didn't flag it (some
-        // AnkiConnect forks have inconsistent scope between preflight and
-        // actual addNotes).
-        const refusedNote = sendable[i];
-        if (refusedNote) {
-          const frontVal = refusedNote.fields[frontField];
-          dupQueries.push({ idx: i, frontText: String(frontVal || "") });
-        }
-      } else if (msg.includes("empty") || msg.includes("cards are missing") || msg.includes("no cards")) {
-        skippedEmpty.push("(runtime-empty)");
-        errorCounts[msgRaw] = (errorCounts[msgRaw] || 0) + 1;
-      } else {
-        failedOther++;
-        errorCounts[msgRaw] = (errorCounts[msgRaw] || 0) + 1;
-      }
+      if (!msgRaw || msgRaw === 'unknown (response truncated)') continue;
+      errorCounts[msgRaw] = (errorCounts[msgRaw] || 0) + 1;
     }
-    // Log unique messages + counts so the user can copy DevTools output.
-    const ec = Object.keys(errorCounts);
-    if (ec.length) {
-      console.warn('[anki] addNotes per-note error breakdown:', JSON.stringify(errorCounts));
-      // First two unique messages → toast sample.
-      for (let k = 0; k < Math.min(2, ec.length); k++) {
-        failedOtherSample.push(ec[k] + ' (×' + errorCounts[ec[k]] + ')');
-      }
+  }
+
+  // Walk arr — every null becomes a dup-queue entry, classified by the
+  // perNote message at the same index when one is available.
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] != null) continue;
+
+    const msgRaw = (perNoteErrors && perNoteErrors[i]) ? String(perNoteErrors[i]) : '';
+    const msg = msgRaw.toLowerCase();
+
+    // Genuinely empty content → skip without retrying.
+    if (msg.includes('empty') || msg.includes('cards are missing') || msg.includes('no cards')) {
+      skippedEmpty.push('(runtime-empty)');
+      continue;
     }
-  } else {
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i] == null) {
-        runtimeDuplicates++;
-        // Same as above — null result means a duplicate that needs the
-        // changeDeck flow to actually land in the requested deck.
-        const refusedNote = sendable[i];
-        if (refusedNote) {
-          const frontVal = refusedNote.fields[frontField];
-          dupQueries.push({ idx: i, frontText: String(frontVal || "") });
-        }
-      }
+
+    // Everything else (duplicate, unknown, missing-message, etc.) goes
+    // through the recovery pipeline. The findNotes pass either locates
+    // an existing Note (changeDeck moves its cards into target deck) or
+    // retryAsFresh creates the note with allowDuplicate=true.
+    runtimeDuplicates++;
+    const refusedNote = sendable[i];
+    if (refusedNote) {
+      const frontVal = refusedNote.fields[frontField];
+      dupQueries.push({ idx: i, frontText: String(frontVal || "") });
+    }
+  }
+
+  // Surface diagnostic breakdown (DevTools + toast sample) so any
+  // remaining real errors (post-retry) are visible.
+  const ec = Object.keys(errorCounts);
+  if (ec.length) {
+    console.warn('[anki] addNotes per-note error breakdown (diagnostic):', JSON.stringify(errorCounts));
+    for (let k = 0; k < Math.min(2, ec.length); k++) {
+      failedOtherSample.push(ec[k] + ' (×' + errorCounts[ec[k]] + ')');
     }
   }
 
