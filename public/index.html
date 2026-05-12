@@ -6605,6 +6605,45 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
   font-size: 13px;
   color: #64748b;
 }
+/* R5 — Anki CTA banner. Steers Trainer users to the recommended Anki
+   path (see docs/SRS_STRATEGY_v3_2.md). Calm-yellow surface — informational,
+   not alarming. Dismissible. */
+.v3-srs-anki-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: rgba(234, 179, 8, 0.08);
+  border: 1px solid rgba(234, 179, 8, 0.32);
+  border-radius: 10px;
+}
+.v3-srs-anki-banner-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.v3-srs-anki-banner-body { flex: 1; min-width: 0; }
+.v3-srs-anki-banner-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--theme-text-primary, #0f172a);
+  margin-bottom: 4px;
+}
+.v3-srs-anki-banner-text {
+  font-size: 13px;
+  color: var(--theme-text-secondary, #475569);
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.v3-srs-anki-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.v3-srs-anki-banner-cta { font-size: 13px; padding: 6px 12px; }
+.v3-srs-anki-banner-dismiss { font-size: 12px; padding: 6px 10px; }
+
 .v3-srs-toolbar {
   display: flex;
   gap: 10px;
@@ -9692,7 +9731,7 @@ body:not(.theme-light) .v3-heatmap-cell {
         <div class="v3-notes-help-card-body">
           <div class="v3-notes-help-card-title" data-i18n="notes.help.cardTitle">ℹ️ Что это за панель?</div>
           <div class="v3-notes-help-card-text" data-i18n-html="notes.help.cardBody">
-            К одной строке можно сделать <b>несколько заметок разных типов</b>: свободный комментарий, словарную карточку, грамматическое правило, разбор перевода или произношение. Каждая заметка хранится отдельно и может быть превращена в SRS-карточку для повторения. Нажмите кнопку ниже, чтобы добавить заметку нужного типа.
+            В этой панели — <b>все заметки к этой строке</b>. Каждая заметка фиксирует один тип содержимого: свободный комментарий, словарную карточку, грамматическое правило, разбор перевода или произношение. Чтобы добавить новую — нажмите кнопку нужного типа ниже.
           </div>
         </div>
         <button type="button" class="v3-notes-help-card-dismiss" onclick="v3NotesHelpDismissRowIndex()"
@@ -12440,6 +12479,21 @@ async function v3IdeSrsExportAnki(cardId) {
         if (typeof showToast === "function") {
           showToast(t("toast.ankiModelDetail", { model: s.modelName, parts: parts.join(", ") }), "success");
         }
+        // R5 — mastery-proxy event for research-mode (see docs/SRS_STRATEGY_v3_2.md).
+        // Metadata only: counts + user-chosen deck/model names. No card content.
+        try {
+          v3Emit("srs_card_exported_to_anki", {
+            text_id: tid,
+            payload_json: {
+              cards_total: Number(s.created || 0) + Number(s.duplicates || 0),
+              cards_created: Number(s.created || 0),
+              cards_duplicates: Number(s.duplicates || 0),
+              deck_name: String(s.deckName || "LinguistPro::SRS"),
+              model_name: String(s.modelName || ""),
+              source: "ide-single-card",
+            },
+          });
+        } catch (_) {}
         v3IdeRefreshInspector();
       } catch (e) {
         let msg = String((e && e.message) || e);
@@ -24872,7 +24926,26 @@ function v3SrsTrainerRenderHome() {
   const dueCount = Number(summary.dueCount || 0);
   const byState = summary.byState || {};
 
+  // R5 — Anki-primary banner. Per docs/SRS_STRATEGY_v3_2.md, the in-app
+  // Trainer is a functional stub; the recommended review path is Anki.
+  // Banner is dismissible (localStorage-gated) so power users who chose
+  // the in-app stub on purpose aren't nagged.
+  const ankiBanner = v3SrsTrainerShouldShowAnkiCta() ? `
+    <div class="v3-srs-anki-banner" role="note">
+      <div class="v3-srs-anki-banner-icon">📥</div>
+      <div class="v3-srs-anki-banner-body">
+        <div class="v3-srs-anki-banner-title">${v3EscapeHtml(v3NotesT("srs.ankiBannerTitle", "Повторяете в Anki?"))}</div>
+        <div class="v3-srs-anki-banner-text">${v3EscapeHtml(v3NotesT("srs.ankiBannerBody", "LinguistPro создаёт карточки и сохраняет связь с заметкой; повторение мы рекомендуем в Anki. Кнопка ниже открывает экспорт всего текущего текста в .apkg."))}</div>
+        <div class="v3-srs-anki-banner-actions">
+          <button class="btn-primary v3-srs-anki-banner-cta" onclick="v3SrsTrainerOpenAnkiExport()">${v3EscapeHtml(v3NotesT("srs.ankiBannerCta", "📥 Открыть экспорт в Anki"))}</button>
+          <button class="btn-secondary v3-srs-anki-banner-dismiss" onclick="v3SrsTrainerDismissAnkiCta()" title="${v3EscapeHtml(v3NotesT("srs.ankiBannerDismissTitle", "Скрыть это сообщение"))}">${v3EscapeHtml(v3NotesT("srs.ankiBannerDismiss", "Скрыть"))}</button>
+        </div>
+      </div>
+    </div>
+  ` : "";
+
   el.innerHTML = `
+    ${ankiBanner}
     <div class="v3-srs-toolbar">
       <div class="v3-srs-progress">Today queue ready · Direction ${v3EscapeHtml(v3SrsTrainerTemplateLabel(v3SrsTrainerState.templateCode))} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
       <button class="btn-primary" onclick="v3SrsTrainerStart()" ${dueCount > 0 ? "" : "disabled"}>Start Session</button>
@@ -25043,6 +25116,40 @@ async function v3SrsTrainerRefresh() {
     }
   }
 }
+
+// R5 — Anki CTA banner helpers. The in-app Trainer is a stub per
+// docs/SRS_STRATEGY_v3_2.md; this banner steers users to the
+// recommended Anki path. localStorage-gated so dismissal is sticky.
+const V3_SRS_ANKI_CTA_DISMISS_KEY = "srsAnkiCtaDismissed_v1";
+function v3SrsTrainerShouldShowAnkiCta() {
+  try { return localStorage.getItem(V3_SRS_ANKI_CTA_DISMISS_KEY) !== "1"; }
+  catch (_) { return true; }
+}
+function v3SrsTrainerDismissAnkiCta() {
+  try { localStorage.setItem(V3_SRS_ANKI_CTA_DISMISS_KEY, "1"); } catch (_) {}
+  try { v3SrsTrainerRenderHome(); } catch (_) {}
+}
+window.v3SrsTrainerDismissAnkiCta = v3SrsTrainerDismissAnkiCta;
+
+function v3SrsTrainerOpenAnkiExport() {
+  // Close the trainer modal first (Anki dialog opens at body level).
+  try { v3SrsTrainerClose(); } catch (_) {}
+  // The existing Anki export entry point lives on `btnAnki` in the
+  // Classic toolbar. Trigger it programmatically.
+  try {
+    const btn = document.getElementById("btnAnki");
+    if (btn && !btn.disabled && !btn.classList.contains("disabled")) {
+      btn.click();
+      return;
+    }
+  } catch (_) {}
+  // Fallback: show a toast explaining the Anki path is unavailable
+  // (e.g. no current text loaded, AnkiConnect not detected).
+  if (typeof showToast === "function") {
+    showToast(v3NotesT("toast.srsAnkiExportUnavailable", "Откройте текст в Classic режиме, чтобы экспортировать его карточки в Anki."), "warning");
+  }
+}
+window.v3SrsTrainerOpenAnkiExport = v3SrsTrainerOpenAnkiExport;
 
 async function v3SrsTrainerOpen() {
   const modal = v3SrsTrainerEl("v3SrsTrainerModal");
@@ -31276,6 +31383,23 @@ async function v3AnkiPushNow() {
         const msg = `Готово (deck "${s.deckName}", модель "${s.modelName}"): ${parts.join(", ")}.`;
         v3AnkiSetStatus(msg, false);
         if (typeof showToast === "function") showToast(t("toast.ankiExportDone"), "success");
+        // R5 — mastery-proxy event for research-mode (docs/SRS_STRATEGY_v3_2.md).
+        // Metadata only: counts + user-chosen deck/model names. No card content.
+        try {
+          v3Emit("srs_card_exported_to_anki", {
+            text_id: String(exportId || ""),
+            payload_json: {
+              cards_total: Number(s.created || 0) + Number(s.duplicates || 0) + Number(s.dupRecreated || 0),
+              cards_created: Number(s.created || 0),
+              cards_duplicates: Number(s.duplicates || 0),
+              cards_recreated: Number(s.dupRecreated || 0),
+              audio_queued: Number(s.audioQueued || 0),
+              deck_name: String(s.deckName || ""),
+              model_name: String(s.modelName || ""),
+              source: "bulk-dialog",
+            },
+          });
+        } catch (_) {}
       } catch (e) {
         let msg = String((e && e.message) || e);
         if (/failed to fetch|networkerror|cors/i.test(msg)) {
@@ -34636,7 +34760,11 @@ function v3NotesHelpShow() {
 
     <h4>${T("notes.help.sectionSrsTitle", "🎴 SRS-карточки")}</h4>
     <p>${T("notes.help.sectionSrsBody",
-      "Заметку с шаблоном можно превратить в карточку для повторения кнопкой «🎴 Сделать карточкой».")}</p>
+      "Заметку с шаблоном можно превратить в карточку кнопкой «🎴 Сделать карточкой». Само повторение мы рекомендуем в Anki — нажмите «📥 Экспорт» когда захотите забрать карточки в полноценный SRS-инструмент.")}</p>
+
+    <h4>${T("notes.help.sectionConvertTitle", "🔄 Преобразовать тип")}</h4>
+    <p>${T("notes.help.sectionConvertBody",
+      "Тип заметки выбирается при создании и затем фиксируется. Чтобы поменять тип уже сохранённой заметки — кнопка «🔄 Преобразовать в…» в шапке заметки. Старое содержимое уйдёт в историю как v_N, новая форма откроется пустой. Если на заметке была SRS-карточка — она будет удалена (новый тип не совпадает с шаблоном); создайте новую кнопкой «🎴 Сделать карточкой» при необходимости.")}</p>
 
     <h4>${T("notes.help.sectionLinksTitle", "🔗 Связи")}</h4>
     <p>${T("notes.help.sectionLinksBody",
