@@ -5153,27 +5153,60 @@ body:not(.theme-light) .v3-notes-help-card { background: rgba(96, 165, 250, 0.10
   background: var(--theme-bg-hover);
   color: var(--theme-text-primary);
 }
+/* Premium help popover — compact spacing, scroll-friendly, RTL-safe.
+   The popover body sits inside #v3ConfirmBody which is constrained
+   below to max-height + overflow so the OK button stays reachable on
+   any screen size. */
 .v3-notes-help-popover {
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 1.4;
   text-align: left;
 }
 .v3-notes-help-popover h4 {
   font-size: 13.5px;
   font-weight: 700;
-  margin: 0 0 6px 0;
+  margin: 10px 0 4px 0;
   color: var(--theme-text-primary);
 }
-.v3-notes-help-popover ul {
-  margin: 0 0 8px 0;
-  padding-left: 22px;
+.v3-notes-help-popover h4:first-child { margin-top: 0; }
+.v3-notes-help-popover p {
+  margin: 0 0 6px 0;
+  color: var(--theme-text-secondary);
 }
-.v3-notes-help-popover li { margin-bottom: 3px; }
+.v3-notes-help-popover ul {
+  margin: 0 0 6px 0;
+  padding-left: 20px;
+}
+.v3-notes-help-popover li {
+  margin-bottom: 2px;
+  color: var(--theme-text-secondary);
+}
+.v3-notes-help-popover li b { color: var(--theme-text-primary); }
 .v3-notes-help-popover code {
   background: var(--theme-bg-muted);
   border-radius: 4px;
   padding: 1px 5px;
   font-size: 12px;
+}
+/* Phase 9.3.5.B onboarding fix — when v3ConfirmModal renders the help
+   popover (isHtml mode), its body needs a scroll cage so the OK button
+   stays reachable on small viewports. Cap at 70vh; constrains parent.
+   Authored as a body-level constraint because v3ConfirmBody is shared
+   across confirm dialogs of various sizes. Only the .v3-notes-help-
+   popover content needs the cap, so we use a descendant selector. */
+#v3ConfirmBody:has(.v3-notes-help-popover) {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+/* Defensive: older browsers without :has() — fall back to capping
+   the entire confirm panel. */
+@supports not selector(:has(*)) {
+  #v3ConfirmModal .modal-content,
+  #v3ConfirmModal > div {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
 }
 .v3-notes-title-input {
   display: block;
@@ -33500,33 +33533,44 @@ window.v3NotesHelpDismissRowIndex = v3NotesHelpDismissRowIndex;
 // headers via the "❓" icon. Localized.
 function v3NotesHelpShow() {
   const t1 = v3NotesT("notes.help.popoverTitle", "Premium Notes — как пользоваться");
-  const body = v3NotesT("notes.help.popoverBody", "");
   const ok = v3NotesT("notes.help.popoverClose", "Понятно");
-  // Fallback body content if i18n key resolves to itself (defensive).
-  const html = body && body !== "notes.help.popoverBody"
-    ? body
-    : `<div class="v3-notes-help-popover">
-        <h4>📝 Цели заметок</h4>
-        <p>К одной строке можно сделать <b>несколько заметок разных типов</b>. Каждая хранится отдельно и появляется в панели «Заметки к строке».</p>
-        <h4>🏷️ Типы заметок</h4>
-        <ul>
-          <li><b>✍ Свободная</b> — комментарий или мысль о строке.</li>
-          <li><b>🔤 Слово</b> — словарная карточка: слово, корень, перевод, мнемоника.</li>
-          <li><b>📐 Грамматика</b> — правило, замеченное в этой строке.</li>
-          <li><b>↔ Перевод</b> — разбор расхождения в переводе.</li>
-          <li><b>🔊 Произношение</b> — IPA, частые ошибки, привязка к моменту аудио.</li>
-        </ul>
-        <h4>🎧 Audio anchor</h4>
-        <p>Любую sentence-заметку можно привязать к моменту аудио — клик по «📍 Привязать к аудио» во время воспроизведения. Потом «▶︎» в чипе играет с этого места.</p>
-        <h4>🎴 SRS-карточки</h4>
-        <p>Заметку с шаблоном можно превратить в карточку для повторения кнопкой «🎴 Сделать карточкой».</p>
-        <h4>🔗 Связи</h4>
-        <p>В развёрнутой панели «🔗 Связи» можно связать заметку с корнем, биньяном, другой заметкой — выстраивая личный граф знаний.</p>
-        <h4>🕒 История</h4>
-        <p>Каждое сохранение создаёт версию; до 50 версий на заметку. Можно вернуться к любой.</p>
-      </div>`;
+
+  // Build HTML from i18n strings — every label resolves through v3NotesT
+  // so EN/HE locales render in their own language. The HTML structure is
+  // authored here (trusted internal content) and i18n carries only text.
+  const T = (k, fb) => v3EscapeHtml(v3NotesT(k, fb));
+  const html = `<div class="v3-notes-help-popover">
+    <h4>${T("notes.help.sectionPurposeTitle", "📝 Цели заметок")}</h4>
+    <p>${T("notes.help.sectionPurposeBody",
+      "К одной строке можно сделать несколько заметок разных типов. Каждая хранится отдельно и появляется в панели «Заметки к строке».")}</p>
+
+    <h4>${T("notes.help.sectionTypesTitle", "🏷️ Типы заметок")}</h4>
+    <ul>
+      <li><b>${T("notes.help.typeFreeName", "✍ Свободная")}</b> — ${T("notes.help.typeFreeDesc", "комментарий или мысль о строке.")}</li>
+      <li><b>${T("notes.help.typeWordName", "🔤 Слово")}</b> — ${T("notes.help.typeWordDesc", "словарная карточка: слово, корень, перевод, мнемоника.")}</li>
+      <li><b>${T("notes.help.typeGrammarName", "📐 Грамматика")}</b> — ${T("notes.help.typeGrammarDesc", "правило, замеченное в этой строке.")}</li>
+      <li><b>${T("notes.help.typeTranslationName", "↔ Перевод")}</b> — ${T("notes.help.typeTranslationDesc", "разбор расхождения в переводе.")}</li>
+      <li><b>${T("notes.help.typePronunciationName", "🔊 Произношение")}</b> — ${T("notes.help.typePronunciationDesc", "IPA, частые ошибки, привязка к моменту аудио.")}</li>
+    </ul>
+
+    <h4>${T("notes.help.sectionAnchorTitle", "🎧 Audio anchor")}</h4>
+    <p>${T("notes.help.sectionAnchorBody",
+      "Любую sentence-заметку можно привязать к моменту аудио — клик по «📍 Привязать к аудио» во время воспроизведения. Потом «▶︎» в чипе играет с этого места.")}</p>
+
+    <h4>${T("notes.help.sectionSrsTitle", "🎴 SRS-карточки")}</h4>
+    <p>${T("notes.help.sectionSrsBody",
+      "Заметку с шаблоном можно превратить в карточку для повторения кнопкой «🎴 Сделать карточкой».")}</p>
+
+    <h4>${T("notes.help.sectionLinksTitle", "🔗 Связи")}</h4>
+    <p>${T("notes.help.sectionLinksBody",
+      "В панели «🔗 Связи» можно связать заметку с корнем, биньяном, другой заметкой — выстраивая личный граф знаний.")}</p>
+
+    <h4>${T("notes.help.sectionHistoryTitle", "🕒 История")}</h4>
+    <p>${T("notes.help.sectionHistoryBody",
+      "Каждое сохранение создаёт версию; до 50 версий на заметку. Можно вернуться к любой.")}</p>
+  </div>`;
+
   if (typeof v3ConfirmModal === "function") {
-    // v3ConfirmModal supports `body` as HTML string + a single OK button.
     v3ConfirmModal({
       title: t1,
       body: html,
@@ -33536,7 +33580,6 @@ function v3NotesHelpShow() {
       isHtml: true,
     }).catch(() => {});
   } else {
-    // Last-resort fallback.
     try { alert(t1); } catch (_) {}
   }
 }
