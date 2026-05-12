@@ -8259,6 +8259,47 @@ body:not(.theme-light) .v3-heatmap-cell {
     } else {
       setTimeout(_runICheck, 2000);
     }
+
+    // Phase 9.4.A — populate the `roots` table with the seed dictionary
+    // (Tier 2 of the morphology layer per docs/MORPHOLOGY_REQUIREMENTS_v3_2.md).
+    // Idempotent: seedRoots uses INSERT OR IGNORE so user-edited entries
+    // are preserved. Lazy + idle so cold-load isn't slowed. Fetched as a
+    // static asset → Service Worker caches it after first load.
+    const _loadRootsSeed = async () => {
+      try {
+        const resp = await fetch('/morph/HEBREW_COMMON_ROOTS_SEED.json');
+        if (!resp.ok) {
+          console.warn('[morph] roots seed fetch failed:', resp.status);
+          return;
+        }
+        const payload = await resp.json();
+        const entries = Array.isArray(payload && payload.entries) ? payload.entries : [];
+        if (!entries.length) return;
+        // Pack rich gloss as JSON string in the single `gloss` TEXT column.
+        // The autocomplete UI parses it back to render locale-aware labels.
+        const dbEntries = entries.map(e => ({
+          root_3letter: String(e.root_3letter || '').trim(),
+          gloss: JSON.stringify({
+            ru: e.gloss_ru || '',
+            en: e.gloss_en || '',
+            words: Array.isArray(e.common_words) ? e.common_words : [],
+          }),
+        })).filter(e => e.root_3letter);
+        if (typeof _ldb.seedRoots === 'function') {
+          await _ldb.seedRoots(dbEntries);
+        }
+        try { (window.v3OpfsTelemetryPush || function(){})({
+          kind: 'roots.seed.loaded', entries: dbEntries.length, version: payload.version,
+        }); } catch (_) {}
+      } catch (e) {
+        console.warn('[morph] roots seed load failed:', e && e.message ? e.message : e);
+      }
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(_loadRootsSeed, { timeout: 8000 });
+    } else {
+      setTimeout(_loadRootsSeed, 3000);
+    }
   }).catch(e => {
     window.__localDBInitError = e;
     console.error('[OPFS] init failed:', e && e.message ? e.message : e);
