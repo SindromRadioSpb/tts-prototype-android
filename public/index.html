@@ -35244,6 +35244,21 @@ async function v3NotesConvertToSrs() {
     v3NotesModalSrsCardId = String(card.id);
     v3NotesToSrsUpdateUI();
     try { v3NotesInvalidateLibrarySmartCache(); } catch (_) {}
+    // Phase 11.0 — emit card_added_to_srs (closes the last event in the
+    // 12-event Tier 0 audit gap per docs/CONTRACTS_ANALYTICS.md). Privacy
+    // invariant: only note_id + note_type as metadata; no body content.
+    try {
+      v3Emit("card_added_to_srs", {
+        text_id: v3NotesModalTextId || null,
+        sentence_id: (v3NotesModalTargetKind === "sentence") ? (v3NotesModalSentenceId || null) : null,
+        payload_json: {
+          note_id: String(v3NotesModalNoteId || ""),
+          note_type: String(v3NotesModalNoteType || ""),
+          card_id: String(card.id),
+          template_id: String(card.template_id || ""),
+        },
+      });
+    } catch (_) {}
     showToast(v3NotesT("toast.notesSrsCreated", "Карточка создана."), "success");
   } catch (e) {
     console.warn("v3NotesConvertToSrs failed", e);

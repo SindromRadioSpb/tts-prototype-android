@@ -29,6 +29,7 @@
 | `search_query` | `v3IdeSearchExecute` | `payload_json.{query_length, result_count, scope}` — **query string itself NEVER recorded** |
 | `smart_tag_override` | `v3TextMetaSave` (после `setManualSmartTag`) | `text_id`, `payload_json.tag` ('struggling' / 'mastered' / 'auto') |
 | `translit_toggle` | `v3IdeToggleColumn` (when key === 'translit') | `payload_json.visible` (boolean) |
+| `card_added_to_srs` | `v3NotesConvertToSrs` success (Direction 11A Phase 11.0 closure, 2026-05-13) | `text_id`, `sentence_id` (только для sentence-target notes), `payload_json.{note_id, note_type, card_id, template_id}` — metadata only; note body content NEVER recorded. Closes the Phase 11.0 gap; complements `srs_card_exported_to_anki` (creation vs export-to-Anki signals). |
 
 ### Phase 11.1 closure (2026-05-10)
 
@@ -78,7 +79,7 @@ Implementation: two-pass aggregation (baseline approximation + per-session preci
 - Cohort aggregates по level/topic/tags на уровне server-side `/api/research/v1/*` endpoint family. Опт-ин upload daily aggregates.
 
 ### Не реализовано (→ Direction 9 M6)
-- `card_added_to_srs` event — пока добавление карточек в SRS происходит косвенно через template generation; explicit "add this note as SRS card" flow появится с notes redesign.
+- ~~`card_added_to_srs` event — пока добавление карточек в SRS происходит косвенно через template generation; explicit "add this note as SRS card" flow появится с notes redesign.~~ **Closed 2026-05-13 (Phase 11.0)**: emits from `v3NotesConvertToSrs` when user clicks "🎴 Сделать карточкой" on a templated note. Payload covers note→card linkage metadata.
 
 ### Planned (→ Direction 9 Phase 9.3.5.C — 2026-05-11)
 
