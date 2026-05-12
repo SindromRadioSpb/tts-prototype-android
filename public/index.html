@@ -5055,6 +5055,35 @@ body:not(.theme-light) .v3-notes-template-banner {
   color: var(--theme-text-secondary, #64748b);
   font-style: italic;
 }
+
+/* Phase 9.4.D — auto-filled flash. When the morphology subsystem fills in
+   root/binyan, the field gets a brief subtle highlight so the user notices
+   that something was completed for them. Lasts ~1.4s then fades out. */
+.v3-notes-tpl-input.v3-notes-tpl-auto-filled {
+  animation: v3-notes-tpl-flash 1.4s ease-out;
+}
+@keyframes v3-notes-tpl-flash {
+  0%   { background: rgba(34, 197, 94, 0.22); }
+  100% { background: var(--theme-bg-card, #fff); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-tpl-input.v3-notes-tpl-auto-filled { animation: none; }
+}
+
+/* Phase 9.4.D — Morphology status modal body */
+.v3-morph-status-body { font-size: 13px; line-height: 1.55; }
+.v3-morph-status-row { margin-bottom: 6px; }
+.v3-morph-status-row b { color: var(--theme-text-secondary, #475569); margin-inline-end: 6px; }
+.v3-morph-status-error { color: #b91c1c; font-style: italic; }
+.v3-morph-status-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--theme-border-soft, rgba(0,0,0,0.08));
+}
+.v3-morph-status-actions button { font-size: 12px; padding: 6px 10px; }
 .v3-notes-tpl-row-double {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -10235,6 +10264,10 @@ body:not(.theme-light) .v3-heatmap-cell {
 <script src="/i18n/locales/en.js"></script>
 <script src="/i18n/locales/he.js"></script>
 <script src="/i18n/index.js"></script>
+
+<!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
+<script src="/js/morph-normalize.js"></script>
+<script src="/js/morph-provider.js"></script>
 
 <script src="/tts/core.js"></script>
 <script src="/tts/providerPolicy.js"></script>
@@ -33263,9 +33296,163 @@ function v3NotesTemplateRender() {
   // active. Idempotent — handler binds once, subsequent calls no-op.
   if (t === "word_study") {
     try { v3NotesTplRootAutocompleteInit(); } catch (_) {}
+    // Phase 9.4.D — lazy-load the local morphology dictionary the first
+    // time word_study is opened. Fire-and-forget; downstream auto-fill
+    // gracefully degrades to Tier 2 (seed) if Tier 1 is still loading
+    // or failed. Per requirement #7 (lazy-load).
+    try {
+      if (window.MorphProvider && typeof window.MorphProvider.ensureReady === "function") {
+        window.MorphProvider.ensureReady();
+      }
+    } catch (_) {}
+    try { v3NotesTplMorphologyAutoFillInit(); } catch (_) {}
   }
 }
 window.v3NotesTemplateRender = v3NotesTemplateRender;
+
+// Phase 9.4.D — auto-fill `root` and `binyan` in the word-study template
+// when the user finishes entering the word. Behaviour:
+//   • On word input blur OR 600ms after the last keystroke
+//   • Look up morphology via MorphProvider.analyze (Tier 1 → Tier 2)
+//   • For the top-ranked analysis: if root field is empty, fill it; same
+//     for binyan. Manual user edits are NEVER overwritten (requirement #9).
+//   • Status hint shown briefly below the word field on lookup.
+let _v3NotesTplMorphologyBound = false;
+function v3NotesTplMorphologyAutoFillInit() {
+  if (_v3NotesTplMorphologyBound) return;
+  const wordEl = document.getElementById("v3NotesTplWordStudyWord");
+  const rootEl = document.getElementById("v3NotesTplWordStudyRoot");
+  const binyanEl = document.getElementById("v3NotesTplWordStudyBinyan");
+  if (!wordEl) return;
+  _v3NotesTplMorphologyBound = true;
+
+  let debounceT = null;
+
+  // Remember user-touched state so we don't auto-overwrite later.
+  if (rootEl && !rootEl.dataset.userTouched) {
+    rootEl.addEventListener("input", () => { rootEl.dataset.userTouched = "1"; });
+  }
+  if (binyanEl && !binyanEl.dataset.userTouched) {
+    binyanEl.addEventListener("change", () => { binyanEl.dataset.userTouched = "1"; });
+  }
+
+  const runLookup = async () => {
+    const word = String(wordEl.value || "").trim();
+    if (!word || !window.MorphProvider) return;
+    try {
+      const analyses = await window.MorphProvider.analyze(word);
+      if (!analyses || !analyses.length) return;
+      const top = analyses[0];
+      // Auto-fill root iff empty AND user hasn't typed there.
+      if (rootEl && !rootEl.value && !rootEl.dataset.userTouched && top.r) {
+        rootEl.value = top.r;
+        rootEl.classList.add("v3-notes-tpl-auto-filled");
+        setTimeout(() => rootEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
+      }
+      // Auto-fill binyan iff empty AND user hasn't selected AND analysis has one.
+      if (binyanEl && !binyanEl.value && !binyanEl.dataset.userTouched && top.b) {
+        binyanEl.value = top.b;
+        binyanEl.classList.add("v3-notes-tpl-auto-filled");
+        setTimeout(() => binyanEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
+      }
+    } catch (e) {
+      console.warn("[morph] auto-fill lookup failed:", e && e.message);
+    }
+  };
+
+  wordEl.addEventListener("input", () => {
+    if (debounceT) clearTimeout(debounceT);
+    debounceT = setTimeout(runLookup, 600);
+  });
+  wordEl.addEventListener("blur", () => {
+    if (debounceT) clearTimeout(debounceT);
+    runLookup();
+  });
+}
+window.v3NotesTplMorphologyAutoFillInit = v3NotesTplMorphologyAutoFillInit;
+
+// Phase 9.4.D — Morphology Settings panel (requirement #11).
+// Opens via help-popover button OR via direct function call. Shows the
+// lifecycle state of Tier 1 dict + provenance + cache management actions.
+function v3MorphologyStatusShow() {
+  const provider = window.MorphProvider;
+  if (!provider) {
+    showToast(v3NotesT("toast.morphProviderUnavailable", "Морфология недоступна в этой сессии."), "error");
+    return;
+  }
+  const status = provider.getStatus();
+  const t1 = status.tier1;
+  const esc = (s) => v3EscapeHtml(String(s == null ? "" : s));
+  const fmtBytes = (b) => {
+    if (!b) return "—";
+    if (b < 1024) return b + " B";
+    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + " KB";
+    return (b / 1024 / 1024).toFixed(2) + " MB";
+  };
+  const stateLabels = {
+    not_initialized: v3NotesT("morph.state.notDownloaded", "Не загружен"),
+    fetching:        v3NotesT("morph.state.downloading", "Загрузка…"),
+    loading:         v3NotesT("morph.state.parsing", "Подготовка…"),
+    ready:           v3NotesT("morph.state.ready", "✅ Готов к работе offline"),
+    error:           v3NotesT("morph.state.error", "⚠ Ошибка загрузки"),
+  };
+  const stateLabel = stateLabels[t1.state] || t1.state;
+
+  let body = '<div class="v3-morph-status-body">';
+  body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.statusLabel", "Статус")) + ':</b> ' + esc(stateLabel) + '</div>';
+  if (t1.state === "ready") {
+    body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.entries", "Записей в словаре")) + ':</b> ' + esc(t1.entries.toLocaleString()) + '</div>';
+    body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.analyses", "Морфо-анализов")) + ':</b> ' + esc(t1.analyses.toLocaleString()) + '</div>';
+    body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.size", "Размер кеша")) + ':</b> ' + esc(fmtBytes(t1.sizeBytes)) + '</div>';
+    if (t1.meta) {
+      body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.dataProvider", "Источник данных")) + ':</b> ' + esc(t1.meta.data_provider || "—") + '</div>';
+      body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.license", "Лицензия данных")) + ':</b> ' + esc(t1.meta.data_provider_license || "—") + '</div>';
+      body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.built", "Собран")) + ':</b> ' + esc(t1.meta.build_timestamp || "—") + '</div>';
+    }
+  } else if (t1.state === "error") {
+    body += '<div class="v3-morph-status-row v3-morph-status-error">' + esc(t1.error || "(unknown)") + '</div>';
+    body += '<div class="v3-morph-status-row">' + esc(v3NotesT("morph.fallback", "Используется fallback: автодополнение из seed-словаря + ручной ввод.")) + '</div>';
+  } else {
+    body += '<div class="v3-morph-status-row">' + esc(v3NotesT("morph.firstUseHint", "Словарь подгружается при первом обращении к шаблону «🔤 Слово отсюда» (~6 MB, кешируется Service Worker).")) + '</div>';
+  }
+  body += '</div>';
+  body += '<div class="v3-morph-status-actions">';
+  body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusUpdate()">📥 ' + esc(v3NotesT("morph.btnUpdate", "Обновить словарь")) + '</button>';
+  body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusClear()">🗑 ' + esc(v3NotesT("morph.btnClear", "Очистить кеш")) + '</button>';
+  body += '</div>';
+
+  v3ConfirmModal({
+    title:      v3NotesT("morph.title", "🔤 Морфология иврита"),
+    body:       body,
+    isHtml:     true,
+    okText:     v3NotesT("morph.btnClose", "Закрыть"),
+    cancelText: "",
+  }).catch(() => {});
+}
+window.v3MorphologyStatusShow = v3MorphologyStatusShow;
+
+async function v3MorphologyStatusUpdate() {
+  if (!window.MorphProvider) return;
+  showToast(v3NotesT("toast.morphUpdating", "Обновление словаря…"), "info");
+  try {
+    await window.MorphProvider.forceUpdate();
+    showToast(v3NotesT("toast.morphUpdated", "Словарь обновлён."), "success");
+  } catch (e) {
+    showToast(v3NotesT("toast.morphUpdateFailed", "Не удалось обновить словарь."), "error");
+  }
+}
+window.v3MorphologyStatusUpdate = v3MorphologyStatusUpdate;
+
+async function v3MorphologyStatusClear() {
+  if (!window.MorphProvider) return;
+  try {
+    await window.MorphProvider.clearCache();
+    showToast(v3NotesT("toast.morphCacheCleared", "Кеш словаря очищен. Перезагрузка применит при следующем обращении."), "success");
+  } catch (e) {
+    showToast(v3NotesT("toast.morphCacheClearFailed", "Не удалось очистить кеш."), "error");
+  }
+}
+window.v3MorphologyStatusClear = v3MorphologyStatusClear;
 
 // Phase 9.4.B — Root autocomplete for the word_study template field.
 // Tier 2 source: seed dict (loaded by `_loadRootsSeed` on app boot) +
@@ -35141,6 +35328,12 @@ function v3NotesHelpShow() {
     <h4>${T("notes.help.sectionHistoryTitle", "🕒 История")}</h4>
     <p>${T("notes.help.sectionHistoryBody",
       "Каждое сохранение создаёт версию; до 50 версий на заметку. Можно вернуться к любой.")}</p>
+
+    <h4>${T("notes.help.sectionMorphTitle", "🔤 Морфология иврита (offline)")}</h4>
+    <p>${T("notes.help.sectionMorphBody",
+      "В шаблоне «🔤 Слово отсюда» поля «Корень» и «Биньян» автозаполняются из локального словаря (~6 MB, кешируется при первом обращении). Ручной ввод всегда сохраняется поверх автоподсказки. Без сети.")}
+      <button type="button" class="btn-secondary" style="margin-top:6px;font-size:11px;padding:4px 10px;" onclick="v3MorphologyStatusShow()">${T("morph.btnOpenStatus", "Статус словаря…")}</button>
+    </p>
   </div>`;
 
   if (typeof v3ConfirmModal === "function") {
