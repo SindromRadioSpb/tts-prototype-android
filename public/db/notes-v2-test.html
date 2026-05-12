@@ -28,6 +28,8 @@ import {
   createNote, updateNote, deleteNoteById, getNoteById,
   listNotesByTarget, listAllNotesForText, searchAllNotes,
   listNoteVersions, restoreNoteVersion,
+  // Phase 9.3.5 R2.1 + R3
+  listNotesForRow, getRowNoteCounts, convertNoteType,
   setNoteLinks, listOutgoingLinks, listBacklinks,
   seedRoots, searchRootsAutocomplete,
   getNotesSmartCollectionsSummary, getTextIdsForNotesSmartChip,
@@ -1067,6 +1069,149 @@ async function run() {
       });
     } catch (e) { rejected = true; }
     if (!rejected) throw new Error('createNote should reject non-JSON string for templated body');
+  })();
+
+  // ── Phase 9.3.5 R2.1 + R3 + R4 bug-closure tests ──────────────────
+  // These verify the DB-level invariants that close the 2026-05-12
+  // dogfood bugs. UI-level invariants (anchor button reactivity, history
+  // sidebar visibility decoupled from template form) are exercised by the
+  // R6 manual smoke checklist — they have no DB surface to assert against.
+
+  out('inf', '\n— Phase 9.3.5 R2.1/R3/R4 bug-closure suite —');
+
+  // Test fixture: a text with 1 sentence and 5 notes spanning all 5 types.
+  const r4_tid = 'r4-' + Math.random().toString(36).slice(2, 10);
+  const r4_sid = 'r4s-' + Math.random().toString(36).slice(2, 10);
+  let r4_freeNoteId = null;
+  let r4_wordNoteId = null;
+  await t('R4 fixture: text + sentence + 5 notes', async () => {
+    await ldb.createText({ id: r4_tid, text_key: r4_tid, title: 'R4', source_text: 's' });
+    await ldb.addSentence(r4_tid, { id: r4_sid, order_index: 0, he_plain: 's', ru: 'p' });
+    const free = await createNote({ target_kind: 'sentence', target_id: r4_sid, text_id: r4_tid,
+      note_type: 'free', body: { kind: 'free', markdown: 'free body first' } });
+    r4_freeNoteId = free.id;
+    const word = await createNote({ target_kind: 'word', target_id: r4_sid + ':0', text_id: r4_tid,
+      note_type: 'word_study', body: { kind: 'word_study', word: 'shalom', meaning: 'peace' } });
+    r4_wordNoteId = word.id;
+    await createNote({ target_kind: 'sentence', target_id: r4_sid, text_id: r4_tid,
+      note_type: 'grammar_rule', body: { kind: 'grammar_rule', rule_title: 'T', rule_body: 'r' } });
+    await createNote({ target_kind: 'sentence', target_id: r4_sid, text_id: r4_tid,
+      note_type: 'translation_discrepancy', body: { kind: 'translation_discrepancy', source_text: 's', translation_seen: 'a', reasoning: 'b' } });
+    await createNote({ target_kind: 'sentence', target_id: r4_sid, text_id: r4_tid,
+      note_type: 'pronunciation_note', body: { kind: 'pronunciation_note', word: 'shalom' } });
+  })();
+
+  // Bug 3 (2026-05-12 dogfood: free note missing from row-index list).
+  // Closure: listNotesForRow sorts created_at ASC so first-created note
+  // appears at the top, not the bottom.
+  await t('R4 Bug 3: listNotesForRow returns all 5 notes in creation order', async () => {
+    const rows = await listNotesForRow(r4_tid, r4_sid);
+    if (rows.length !== 5) throw new Error('expected 5 row-notes, got ' + rows.length);
+    if (rows[0].note_type !== 'free') throw new Error('first row should be the earliest-created (free), got ' + rows[0].note_type);
+    // Verify monotonic created_at ASC.
+    for (let i = 1; i < rows.length; i++) {
+      if (String(rows[i].created_at) < String(rows[i - 1].created_at)) {
+        throw new Error('rows not sorted ASC at index ' + i);
+      }
+    }
+  })();
+
+  // Bug 2 (2026-05-12 dogfood: row count badge disappears on page refresh
+  // until the user clicks each row). Closure: getRowNoteCounts returns
+  // the count in a single UNION query so the badge can be primed on text
+  // load without per-row round-trips.
+  await t('R4 Bug 2: getRowNoteCounts returns sentence_id → 5 in one query', async () => {
+    const counts = await getRowNoteCounts(r4_tid);
+    if (!Array.isArray(counts)) throw new Error('expected Array');
+    if (counts.length !== 1) throw new Error('expected exactly 1 sentence with notes, got ' + counts.length);
+    if (counts[0].sentence_id !== r4_sid) throw new Error('sentence_id mismatch');
+    if (Number(counts[0].count) !== 5) throw new Error('expected count=5, got ' + counts[0].count);
+  })();
+
+  // Bug 2 follow-up: getRowNoteCounts covers word-target via target_id
+  // prefix (substr split on ':'). Ensures word-only rows still get a badge.
+  await t('R4 Bug 2: getRowNoteCounts covers word-target sids via target_id prefix', async () => {
+    // Create a second sentence with only a word-target note.
+    const r4_sid2 = 'r4s2-' + Math.random().toString(36).slice(2, 10);
+    await ldb.addSentence(r4_tid, { id: r4_sid2, order_index: 1, he_plain: 's2', ru: 'p2' });
+    await createNote({ target_kind: 'word', target_id: r4_sid2 + ':0', text_id: r4_tid,
+      note_type: 'word_study', body: { kind: 'word_study', word: 'X', meaning: 'Y' } });
+    const counts = await getRowNoteCounts(r4_tid);
+    const row = counts.find(c => c.sentence_id === r4_sid2);
+    if (!row) throw new Error('word-only sentence missing from counts');
+    if (Number(row.count) !== 1) throw new Error('expected word-only count=1, got ' + row.count);
+  })();
+
+  // R3 Convert: snapshot semantics. Pre-convert body must be archived as
+  // a new note_versions row before body_json is blanked. (Closes Bug 1.3
+  // at the DB layer — old body never leaks into the new shape on save.)
+  await t('R4 R3: convertNoteType snapshots old body to versions before blanking', async () => {
+    const versionsBefore = await listNoteVersions(r4_freeNoteId);
+    const verCountBefore = versionsBefore.length;
+
+    const converted = await convertNoteType(r4_freeNoteId, 'word_study');
+    if (converted.note_type !== 'word_study') throw new Error('note_type not updated');
+    const parsed = JSON.parse(converted.body_json);
+    if (parsed.kind !== 'word_study') throw new Error('blank body should advertise new kind');
+    if (parsed.markdown) throw new Error('blank body must not retain old markdown field');
+
+    const versionsAfter = await listNoteVersions(r4_freeNoteId);
+    if (versionsAfter.length !== verCountBefore + 1) {
+      throw new Error('expected exactly one new version row, got ' + (versionsAfter.length - verCountBefore));
+    }
+    const latest = versionsAfter[0]; // listNoteVersions sorts version DESC
+    const archived = JSON.parse(latest.body_json);
+    if (archived.markdown !== 'free body first') {
+      throw new Error('archived snapshot should be the pre-convert free body, got ' + JSON.stringify(archived));
+    }
+  })();
+
+  // R3 Convert: target_kind / target_id stay untouched. Convert changes
+  // content shape, not anchoring.
+  await t('R4 R3: convertNoteType preserves target_kind and target_id', async () => {
+    const before = await getNoteById(r4_wordNoteId);
+    const converted = await convertNoteType(r4_wordNoteId, 'grammar_rule');
+    if (converted.target_kind !== before.target_kind) throw new Error('target_kind changed');
+    if (converted.target_id !== before.target_id) throw new Error('target_id changed');
+  })();
+
+  // R3 Convert: same-type is a no-op (returns current row unchanged).
+  await t('R4 R3: convertNoteType to current type is a no-op', async () => {
+    const before = await getNoteById(r4_wordNoteId);
+    const versionsBefore = await listNoteVersions(r4_wordNoteId);
+    const after = await convertNoteType(r4_wordNoteId, before.note_type);
+    const versionsAfter = await listNoteVersions(r4_wordNoteId);
+    if (after.note_type !== before.note_type) throw new Error('type changed on no-op');
+    if (versionsAfter.length !== versionsBefore.length) throw new Error('no-op should not create a version row');
+  })();
+
+  // R3 Convert: srs_card_id stays linked (warn is UI-only).
+  await t('R4 R3: convertNoteType keeps srs_card_id link intact', async () => {
+    const note = await createNote({ target_kind: 'sentence', target_id: r4_sid, text_id: r4_tid,
+      note_type: 'word_study', body: { kind: 'word_study', word: 'k', meaning: 'm' } });
+    const card = await srs.createCardFromNote(note.id);
+    const before = await getNoteById(note.id);
+    if (before.srs_card_id !== card.id) throw new Error('precondition failed: card not linked');
+    const converted = await convertNoteType(note.id, 'grammar_rule');
+    if (converted.srs_card_id !== card.id) {
+      throw new Error('srs_card_id was dropped on convert (R3 spec violation)');
+    }
+    await deleteNoteById(note.id);
+  })();
+
+  // R4 Bug 1.1 + 1.2 — UI-level, no DB surface. We assert the relevant
+  // helpers exist on window when this page is loaded inside the main app
+  // shell (which is not the case here — notes-v2-test.html is standalone).
+  // So we only sanity-check the helpers are exported from local-db.js.
+  await t('R4: convertNoteType / listNotesForRow / getRowNoteCounts are exported', async () => {
+    if (typeof convertNoteType !== 'function') throw new Error('convertNoteType missing');
+    if (typeof listNotesForRow !== 'function') throw new Error('listNotesForRow missing');
+    if (typeof getRowNoteCounts !== 'function') throw new Error('getRowNoteCounts missing');
+  })();
+
+  // Cleanup
+  await t('R4 cleanup: deleteText cascades R2.1/R3/R4 fixture', async () => {
+    await deleteText(r4_tid);
   })();
 
   // Cleanup
