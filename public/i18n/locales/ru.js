@@ -440,6 +440,25 @@ window.I18N_LOCALES.ru = {
     linkAddAliasPh: "Подпись (опционально)",
     linkAddBtn: "+ Добавить",
     linkRemoveAria: "Удалить связь",
+    // Phase 9.3.5 R1 — Intent quick-pick + locked badges + token picker + convert
+    intent: {
+      row: {
+        freeLabel: "Свободная",         freeTitle: "Свободный комментарий к этой строке",
+        wordLabel: "Слово отсюда",      wordTitle: "Словарная карточка для слова из этой строки",
+        grammarLabel: "Грамматика",     grammarTitle: "Грамматическое правило, замеченное в этой строке",
+        translationLabel: "Разбор перевода", translationTitle: "Разбор расхождения в переводе",
+        pronunciationLabel: "Произношение",  pronunciationTitle: "Заметка о произношении",
+      },
+    },
+    tokenPicker: {
+      title: "🔤 Выберите слово из строки",
+      hint: "Тапните слово, для которого хотите создать словарную карточку. После выбора откроется форма с предзаполненной целью.",
+      empty: "Не удалось разделить строку на слова.",
+    },
+    convert: {
+      openTitle: "Преобразовать заметку в другой тип",
+      openLabel: "🔄 Преобразовать в…",
+    },
     // Phase 9.3.5.B — Multi-note row-index panel
     rowBtnTitleMulti: "{n} заметок к этой строке",
     rowIndex: {
@@ -811,6 +830,9 @@ window.I18N_LOCALES.ru = {
     notesAnchorPlayFailed: "Не удалось воспроизвести с привязки.",
     // Phase 9.3 — templated notes
     notesTemplateMissing: "Заполните обязательные поля: {fields}",
+    // Phase 9.3.5 R1 — intent + convert toasts
+    notesIntentNoRow: "Откройте строку, чтобы создать заметку.",
+    notesConvertWip: "Преобразование типа появится в следующем релизе.",
     // Phase 9.3.B — links toasts
     notesLinkSaveFirst: "Сначала сохраните заметку, чтобы добавлять связи.",
     notesLinkInvalid: "Укажите вид и цель связи.",

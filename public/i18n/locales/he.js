@@ -437,6 +437,25 @@ window.I18N_LOCALES.he = {
     linkAddAliasPh: "כינוי (אופציונלי)",
     linkAddBtn: "+ הוסף",
     linkRemoveAria: "הסר קישור",
+    // Phase 9.3.5 R1 — Intent quick-pick + locked badges + token picker + convert
+    intent: {
+      row: {
+        freeLabel: "חופשית",                freeTitle: "תגובה חופשית לשורה זו",
+        wordLabel: "מילה מכאן",            wordTitle: "כרטיס מילון למילה מהשורה",
+        grammarLabel: "דקדוק",              grammarTitle: "כלל דקדוק שנצפה בשורה",
+        translationLabel: "ניתוח תרגום",   translationTitle: "ניתוח פער בתרגום",
+        pronunciationLabel: "הגייה",        pronunciationTitle: "הערת הגייה",
+      },
+    },
+    tokenPicker: {
+      title: "🔤 בחר מילה מהשורה",
+      hint: "לחץ על המילה שעבורה ברצונך ליצור כרטיס אוצר מילים. הטופס ייפתח עם היעד הממולא.",
+      empty: "לא הצלחנו לפצל את השורה למילים.",
+    },
+    convert: {
+      openTitle: "המר את ההערה לסוג אחר",
+      openLabel: "🔄 המר ל…",
+    },
     // Phase 9.3.5.B — Multi-note row-index panel
     rowBtnTitleMulti: "{n} הערות לשורה זו",
     rowIndex: {
@@ -800,6 +819,9 @@ window.I18N_LOCALES.he = {
     notesAnchorPlayFailed: "נגינה מהרגע המוצמד נכשלה.",
     // Phase 9.3 — templated notes
     notesTemplateMissing: "מלא שדות חובה: {fields}",
+    // Phase 9.3.5 R1 — intent + convert toasts
+    notesIntentNoRow: "פתח שורה תחילה כדי להוסיף הערה.",
+    notesConvertWip: "המרת סוג תופיע בגרסה הבאה.",
     // Phase 9.3.B — links toasts
     notesLinkSaveFirst: "שמור את ההערה קודם, ואז ניתן להוסיף קישורים.",
     notesLinkInvalid: "ציין סוג ויעד לקישור.",

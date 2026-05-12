@@ -5188,6 +5188,112 @@ body:not(.theme-light) .v3-notes-help-card { background: rgba(96, 165, 250, 0.10
   padding: 1px 5px;
   font-size: 12px;
 }
+/* ─── Phase 9.3.5 R1 — locked-info badges + intent buttons + token picker ─── */
+
+/* Read-only badges that replace the old target+type segmented controls.
+   Show the user "what kind of note this is" without inviting them to change it.
+   Conversion happens via the explicit "🔄 Преобразовать в…" button below. */
+.v3-notes-locked-info {
+  align-items: center;
+  gap: 6px;
+}
+.v3-notes-locked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 14px;
+  background: var(--theme-bg-card, #fff);
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  color: var(--theme-text-primary, #0f172a);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.v3-notes-locked-badge-type {
+  background: var(--theme-accent, #2563eb);
+  color: #fff;
+  border-color: var(--theme-accent, #2563eb);
+}
+body.theme-dark .v3-notes-locked-badge-type,
+body:not(.theme-light) .v3-notes-locked-badge-type { color: var(--theme-bg-page, #0f172a); }
+.v3-notes-convert-btn {
+  font-size: 12.5px;
+  padding: 6px 12px;
+}
+
+/* Intent-button decoration inside the row-index "+ Новая заметка" panel. */
+.v3-notes-intent-icon {
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1;
+  margin-right: 3px;
+  vertical-align: -2px;
+}
+
+/* Token picker — intermediate step for intent="row.word". Pre-Phase-9.4
+   morphology the tokens are space-split; UI is the same later. */
+.v3-notes-token-picker-panel {
+  max-width: 560px;
+  width: 92vw;
+}
+.v3-notes-token-picker-hint {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--theme-text-secondary, #475569);
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  background: rgba(37, 99, 235, 0.06);
+  border-left: 3px solid var(--theme-accent, #2563eb);
+  border-radius: 6px;
+}
+body.theme-dark .v3-notes-token-picker-hint,
+body:not(.theme-light) .v3-notes-token-picker-hint { background: rgba(96, 165, 250, 0.10); }
+.v3-notes-token-picker-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  direction: rtl; /* Hebrew tokens read right-to-left as a group */
+  unicode-bidi: plaintext;
+  padding: 8px 0;
+}
+.v3-notes-token-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 8px;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary, #0f172a);
+  font-family: inherit;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+  min-height: 40px;
+  unicode-bidi: isolate;
+}
+.v3-notes-token-picker-btn:hover {
+  background: var(--theme-bg-hover, #f1f5f9);
+  border-color: var(--theme-border-medium, #cbd5e1);
+}
+.v3-notes-token-picker-btn:active { transform: scale(0.98); }
+.v3-notes-token-picker-btn:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+.v3-notes-token-picker-empty {
+  font-size: 13px;
+  color: var(--theme-text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+@media (max-width: 600px) {
+  .v3-notes-token-picker-panel { width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-token-picker-btn { transition: none; }
+}
+
 /* Phase 9.3.5.B onboarding fix — when v3ConfirmModal renders the help
    popover (isHtml mode), its body needs a scroll cage so the OK button
    stays reachable on small viewports. Cap at 70vh; constrains parent.
@@ -9354,18 +9460,52 @@ body:not(.theme-light) .v3-heatmap-cell {
       <div class="v3-notes-row-index-add">
         <div class="v3-notes-row-index-add-label" data-i18n="notes.rowIndex.addLabel">+ Новая заметка:</div>
         <div class="v3-notes-row-index-add-buttons">
-          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','free')"
-                  data-i18n-title="notes.rowIndex.addFreeTitle" title="Свободная заметка к этой строке">✍ <span data-i18n="notes.typeFree">Свободная</span></button>
-          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('word','word_study')"
-                  data-i18n-title="notes.rowIndex.addWordTitle" title="Карточка слова из этой строки">🔤 <span data-i18n="notes.typeWordStudy">Слово</span></button>
-          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','grammar_rule')"
-                  data-i18n-title="notes.rowIndex.addGrammarTitle" title="Грамматическое правило, замеченное в этой строке">📐 <span data-i18n="notes.typeGrammar">Грамматика</span></button>
-          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','translation_discrepancy')"
-                  data-i18n-title="notes.rowIndex.addTranslationTitle" title="Расхождение в переводе этой строки">↔ <span data-i18n="notes.typeTranslation">Перевод</span></button>
-          <button type="button" class="btn-secondary" onclick="v3NotesRowIndexAddNew('sentence','pronunciation_note')"
-                  data-i18n-title="notes.rowIndex.addPronunciationTitle" title="Заметка о произношении в этой строке">🔊 <span data-i18n="notes.typePronunciation">Произношение</span></button>
+          <button type="button" class="btn-secondary" onclick="v3NotesIntentLaunch('row.free')"
+                  data-i18n-title="notes.intent.row.freeTitle" title="Свободный комментарий к этой строке">
+            <span class="v3-notes-intent-icon">✍</span> <span data-i18n="notes.intent.row.freeLabel">Свободная</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="v3NotesIntentLaunch('row.word')"
+                  data-i18n-title="notes.intent.row.wordTitle" title="Словарная карточка для слова из этой строки">
+            <span class="v3-notes-intent-icon">🔤</span> <span data-i18n="notes.intent.row.wordLabel">Слово отсюда</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="v3NotesIntentLaunch('row.grammar')"
+                  data-i18n-title="notes.intent.row.grammarTitle" title="Грамматическое правило в этой строке">
+            <span class="v3-notes-intent-icon">📐</span> <span data-i18n="notes.intent.row.grammarLabel">Грамматика</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="v3NotesIntentLaunch('row.translation')"
+                  data-i18n-title="notes.intent.row.translationTitle" title="Разбор расхождения в переводе">
+            <span class="v3-notes-intent-icon">↔</span> <span data-i18n="notes.intent.row.translationLabel">Разбор перевода</span>
+          </button>
+          <button type="button" class="btn-secondary" onclick="v3NotesIntentLaunch('row.pronunciation')"
+                  data-i18n-title="notes.intent.row.pronunciationTitle" title="Заметка о произношении">
+            <span class="v3-notes-intent-icon">🔊</span> <span data-i18n="notes.intent.row.pronunciationLabel">Произношение</span>
+          </button>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase 9.3.5 R1 — token-picker mini-modal. Intermediate step between the
+     row-index quick-pick (intent="row.word") and the edit modal. Lists the
+     row's space-split tokens; user taps one → opens edit modal with
+     target_kind='word' + target_id='<sentence_id>:<word_offset>'. Phase 9.4
+     morphology later replaces space-split with real lemmas — same target_id
+     shape, no UI change. -->
+<div id="v3NotesTokenPickerModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3NotesTokenPickerTitle">
+  <div class="v3-modal-backdrop" onclick="v3NotesTokenPickerClose()" aria-hidden="true"></div>
+  <div class="v3-modal-panel v3-notes-token-picker-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title" id="v3NotesTokenPickerTitle">
+        <span data-i18n="notes.tokenPicker.title">🔤 Выберите слово из строки</span>
+      </div>
+      <button class="btn-secondary" onclick="v3NotesTokenPickerClose()" data-i18n="notes.closeBtn">Закрыть</button>
+    </div>
+    <div class="v3-modal-body">
+      <div class="v3-notes-token-picker-hint" data-i18n="notes.tokenPicker.hint">
+        Тапните слово, для которого хотите создать словарную карточку. После выбора откроется форма с предзаполненной целью.
+      </div>
+      <div id="v3NotesTokenPickerList" class="v3-notes-token-picker-list"></div>
     </div>
   </div>
 </div>
@@ -9386,35 +9526,20 @@ body:not(.theme-light) .v3-heatmap-cell {
       </div>
     </div>
 
-    <!-- Phase 9.1.C Stage B/C: target_kind + note_type segmented controls -->
+    <!-- Phase 9.3.5 R1 redesign — target_kind + note_type are decided at note creation
+         via intent quick-pick. Inside the modal they're shown as read-only locked badges.
+         To change: explicit "🔄 Преобразовать в…" menu (R3) — never silent flip. -->
     <div class="v3-notes-meta-bar" id="v3NotesMetaBar">
-      <div class="v3-notes-meta-row" id="v3NotesTargetRow" role="group" aria-label="Target kind">
-        <span class="v3-notes-meta-label" data-i18n="notes.targetLabel">Цель:</span>
-        <div class="v3-notes-seg" id="v3NotesTargetSeg">
-          <button type="button" class="v3-notes-seg-btn" data-target-kind="sentence" onclick="v3NotesSetTargetKind('sentence')" title="Sentence">📍 <span data-i18n="notes.targetSentence">Строка</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-target-kind="word"     onclick="v3NotesSetTargetKind('word')"     title="Word">🔤 <span data-i18n="notes.targetWord">Слово</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-target-kind="root"     onclick="v3NotesSetTargetKind('root')"     title="Root">🌳 <span data-i18n="notes.targetRoot">Корень</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-target-kind="binyan"   onclick="v3NotesSetTargetKind('binyan')"   title="Binyan">🧬 <span data-i18n="notes.targetBinyan">Биньян</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-target-kind="text"     onclick="v3NotesSetTargetKind('text')"     title="Text">📄 <span data-i18n="notes.targetText">Текст</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-target-kind="note"     onclick="v3NotesSetTargetKind('note')"     title="Link to other note">🔗 <span data-i18n="notes.targetNote">Заметка</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-target-kind="free"     onclick="v3NotesSetTargetKind('free')"     title="Free / journal">✍ <span data-i18n="notes.targetFree">Свободная</span></button>
-        </div>
-      </div>
-      <div class="v3-notes-meta-row" id="v3NotesTypeRow" role="group" aria-label="Note type">
-        <span class="v3-notes-meta-label" data-i18n="notes.typeLabel">Тип:</span>
-        <div class="v3-notes-seg" id="v3NotesTypeSeg">
-          <button type="button" class="v3-notes-seg-btn" data-note-type="free"                    onclick="v3NotesSetNoteType('free')"                    title="Free markdown">✍ <span data-i18n="notes.typeFree">Свободная</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-note-type="word_study"              onclick="v3NotesSetNoteType('word_study')"              title="Word study (Phase 9.3)">🔤 <span data-i18n="notes.typeWordStudy">Слово</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-note-type="grammar_rule"            onclick="v3NotesSetNoteType('grammar_rule')"            title="Grammar rule (Phase 9.3)">📐 <span data-i18n="notes.typeGrammar">Грамматика</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-note-type="translation_discrepancy" onclick="v3NotesSetNoteType('translation_discrepancy')" title="Translation discrepancy (Phase 9.3)">↔ <span data-i18n="notes.typeTranslation">Перевод</span></button>
-          <button type="button" class="v3-notes-seg-btn" data-note-type="pronunciation_note"      onclick="v3NotesSetNoteType('pronunciation_note')"      title="Pronunciation note (Phase 9.3)">🔊 <span data-i18n="notes.typePronunciation">Произношение</span></button>
-        </div>
-      </div>
-      <!-- Optional target-id picker (root autocomplete / note search). Shown when needed. -->
-      <div class="v3-notes-meta-row" id="v3NotesTargetIdRow" style="display:none;">
-        <span class="v3-notes-meta-label" id="v3NotesTargetIdLabel" data-i18n="notes.targetIdLabel">ID:</span>
-        <input type="text" id="v3NotesTargetIdInput" class="v3-notes-target-input" autocomplete="off" />
-        <div id="v3NotesTargetIdHints" class="v3-notes-target-hints" style="display:none;"></div>
+      <div class="v3-notes-meta-row v3-notes-locked-info" id="v3NotesLockedInfo">
+        <span class="v3-notes-locked-badge" id="v3NotesLockedTargetBadge" title="" aria-label=""></span>
+        <span class="v3-notes-locked-badge v3-notes-locked-badge-type" id="v3NotesLockedTypeBadge" title="" aria-label=""></span>
+        <span style="flex:1;"></span>
+        <button type="button" id="v3NotesConvertBtn" class="btn-secondary v3-notes-convert-btn"
+                onclick="v3NotesConvertOpen()"
+                data-i18n-title="notes.convert.openTitle" title="Преобразовать заметку в другой тип"
+                style="display:none;">
+          <span data-i18n="notes.convert.openLabel">🔄 Преобразовать в…</span>
+        </button>
       </div>
 
       <!-- Phase 9.2 — Audio anchoring. Shown only for sentence/word target kinds with a row context. -->
@@ -12312,29 +12437,25 @@ let v3NotesModalHotkeysHandler = null;
 // W10-NOTES-UX-MD-01: preview state (markdown preview in notes modal)
 let v3NotesPreviewVisible = false;
 
-// Phase 9.1.C — polymorphic modal state.
-//   v3NotesModalNoteId:          UUID of the notes_v2 row when editing an
-//                                existing polymorphic note (or null for new).
-//   v3NotesModalTargetKind:      'sentence' | 'word' | 'root' | 'binyan' |
-//                                'text' | 'note' | 'free'.
-//   v3NotesModalTargetId:        FK to whatever target_kind refers to (or null for free).
-//   v3NotesModalNoteType:        'free' | 'word_study' | 'grammar_rule' |
-//                                'translation_discrepancy' | 'pronunciation_note'.
-//   v3NotesModalEntryKind:       'row' | 'jump' | 'free' | 'deeplink' — origin.
-//   v3NotesModalUserChangedKind: true once user manually picks a different
-//                                target_kind via the segmented control. Used by
-//                                save routing to know whether to keep the
-//                                legacy upsertNote path.
-//   v3NotesBodyStashByType:      stash markdown body keyed by note_type so
-//                                swapping templated→free doesn't lose work.
-//   v3NotesAutoSaveTimer:        debounced 30 s auto-save handle (Stage D).
+// Phase 9.3.5 R1 — polymorphic modal state. Target/type are LOCKED at note
+// creation (via intent quick-pick); never switched in the modal. To change
+// → explicit Convert menu (R3) which goes through convertNoteType API.
+//   v3NotesModalNoteId:     UUID of the notes_v2 row when editing existing.
+//   v3NotesModalTargetKind: 'sentence' | 'word' | 'root' | 'binyan' | 'text' | 'note' | 'free'.
+//   v3NotesModalTargetId:   FK to whatever target_kind refers to (null for free).
+//                           For word kind: '<sentence_id>:<word_offset>'.
+//   v3NotesModalNoteType:   'free' | 'word_study' | 'grammar_rule' |
+//                           'translation_discrepancy' | 'pronunciation_note'.
+//   v3NotesModalEntryKind:  'row' | 'jump' | 'free' | 'deeplink'.
+//   v3NotesModalWordLemma:  lemma chosen via token-picker (intent="row.word").
+//   v3NotesAutoSaveTimer:   debounced 30 s auto-save handle (Stage D).
 let v3NotesModalNoteId = null;
 let v3NotesModalTargetKind = "sentence";
 let v3NotesModalTargetId = null;
 let v3NotesModalNoteType = "free";
 let v3NotesModalEntryKind = "row";
-let v3NotesModalUserChangedKind = false;
-let v3NotesBodyStashByType = Object.create(null);
+// Phase 9.3.5 R1 — word-target intent passes a lemma string for pre-fill.
+let v3NotesModalWordLemma = "";
 let v3NotesAutoSaveTimer = null;
 let v3NotesHistoryOpen = false;
 // Phase 9.2 — audio anchor state. Mirrors notes_v2.audio_anchor_ms for the
@@ -12361,8 +12482,7 @@ function v3NotesReset() {
   v3NotesModalTargetId = null;
   v3NotesModalNoteType = "free";
   v3NotesModalEntryKind = "row";
-  v3NotesModalUserChangedKind = false;
-  v3NotesBodyStashByType = Object.create(null);
+  v3NotesModalWordLemma = "";
 }
 
 function v3NotesIngest(textId, notesArr) {
@@ -31955,7 +32075,8 @@ function v3NotesAnchorUpdateUI() {
     if (!row) return;
     if (!v3NotesAnchorRowApplicable()) {
       row.style.display = "none";
-      v3NotesAnchorStopLiveTime();
+      // Don't stop the listeners here — they're attached for the modal's
+      // lifetime; close handler tears them down. The row simply hides.
       return;
     }
     row.style.display = "";
@@ -31973,24 +32094,23 @@ function v3NotesAnchorUpdateUI() {
         if (timeEl) timeEl.textContent = v3NotesFmtMs(v3NotesModalAudioAnchorMs);
       }
       if (clearBtn) clearBtn.style.display = "";
-      v3NotesAnchorStopLiveTime();
     } else {
       if (setBtn) setBtn.style.display = "";
       if (playBtn) playBtn.style.display = "none";
       if (clearBtn) clearBtn.style.display = "none";
-      // Disable the SET button when audio for this row isn't loaded.
+      // Phase 9.3.5 R1 (Bug 1.1) — SET button reactive to playback state.
+      // 'ready' is re-evaluated here on every UI update (called from
+      // play/pause/timeupdate listeners), so when audio for THIS row
+      // starts playing the button transitions disabled → enabled live.
       const ready = v3NotesAnchorAudioBelongsToModalRow();
       if (setBtn) {
         setBtn.disabled = !ready;
         const txt = setBtn.querySelector(".v3-notes-anchor-text");
         if (ready) {
-          // Show live current-time on the button label when audio is playing.
-          v3NotesAnchorStartLiveTime();
           const aud = v3NotesAnchorGetRowAudio();
           const curMs = aud ? Math.round((aud.currentTime || 0) * 1000) : 0;
           if (txt) txt.textContent = v3NotesT("notes.anchorSetBtnAt", "Привязать к {time}").replace("{time}", v3NotesFmtMs(curMs));
         } else {
-          v3NotesAnchorStopLiveTime();
           if (txt) txt.textContent = v3NotesT("notes.anchorSetBtn", "Привязать к аудио");
         }
       }
@@ -31999,35 +32119,77 @@ function v3NotesAnchorUpdateUI() {
 }
 window.v3NotesAnchorUpdateUI = v3NotesAnchorUpdateUI;
 
+// Phase 9.3.5 R1 (Bug 1.1 fix) — reactive anchor row. Attaches THREE
+// listeners on the shared rowAudioPlayer when modal opens:
+//   1. timeupdate  — keep the SET button label ticking with current time.
+//   2. play        — re-evaluate "belongs to modal row" + refresh UI.
+//   3. pause/ended — same.
+// Previously only timeupdate was attached and bailed when "belongs" was
+// false — so if audio started AFTER modal opened, the SET button never
+// re-enabled. Now play/pause/ended fire v3NotesAnchorUpdateUI which
+// re-evaluates everything.
+let v3NotesAnchorPlayListener = null;
+let v3NotesAnchorPauseListener = null;
+
 function v3NotesAnchorStartLiveTime() {
   try {
-    if (v3NotesAnchorLiveTimeListener) return; // already attached
     const aud = v3NotesAnchorGetRowAudio();
     if (!aud) return;
-    v3NotesAnchorLiveTimeListener = function () {
-      // Only update if the row still matches AND we're still unanchored.
-      if (!v3NotesIsOpen()) return;
-      if (Number.isFinite(v3NotesModalAudioAnchorMs) && v3NotesModalAudioAnchorMs > 0) return;
-      if (!v3NotesAnchorAudioBelongsToModalRow()) return;
-      const setBtn = document.getElementById("v3NotesAnchorSetBtn");
-      if (!setBtn) return;
-      const txt = setBtn.querySelector(".v3-notes-anchor-text");
-      if (!txt) return;
-      const curMs = Math.round((aud.currentTime || 0) * 1000);
-      txt.textContent = v3NotesT("notes.anchorSetBtnAt", "Привязать к {time}").replace("{time}", v3NotesFmtMs(curMs));
-    };
-    aud.addEventListener("timeupdate", v3NotesAnchorLiveTimeListener);
-  } catch (e) { /* non-fatal */ }
+
+    // timeupdate listener — only attached once.
+    if (!v3NotesAnchorLiveTimeListener) {
+      v3NotesAnchorLiveTimeListener = function () {
+        if (!v3NotesIsOpen()) return;
+        if (Number.isFinite(v3NotesModalAudioAnchorMs) && v3NotesModalAudioAnchorMs > 0) return;
+        if (!v3NotesAnchorAudioBelongsToModalRow()) return;
+        const setBtn = document.getElementById("v3NotesAnchorSetBtn");
+        if (!setBtn) return;
+        const txt = setBtn.querySelector(".v3-notes-anchor-text");
+        if (!txt) return;
+        const curMs = Math.round((aud.currentTime || 0) * 1000);
+        txt.textContent = v3NotesT("notes.anchorSetBtnAt", "Привязать к {time}").replace("{time}", v3NotesFmtMs(curMs));
+      };
+      aud.addEventListener("timeupdate", v3NotesAnchorLiveTimeListener);
+    }
+
+    // play/pause/ended listeners — refresh UI so the SET button gets
+    // enabled when audio for the modal's row starts playing, even mid-
+    // session. (Closes Bug 1.1 per the 2026-05-12 dogfood.)
+    if (!v3NotesAnchorPlayListener) {
+      v3NotesAnchorPlayListener = function () {
+        if (v3NotesIsOpen()) v3NotesAnchorUpdateUI();
+      };
+      aud.addEventListener("play", v3NotesAnchorPlayListener);
+      aud.addEventListener("playing", v3NotesAnchorPlayListener);
+    }
+    if (!v3NotesAnchorPauseListener) {
+      v3NotesAnchorPauseListener = function () {
+        if (v3NotesIsOpen()) v3NotesAnchorUpdateUI();
+      };
+      aud.addEventListener("pause", v3NotesAnchorPauseListener);
+      aud.addEventListener("ended", v3NotesAnchorPauseListener);
+    }
+  } catch (_) { /* non-fatal */ }
 }
 
 function v3NotesAnchorStopLiveTime() {
   try {
     const aud = v3NotesAnchorGetRowAudio();
-    if (aud && v3NotesAnchorLiveTimeListener) {
-      aud.removeEventListener("timeupdate", v3NotesAnchorLiveTimeListener);
+    if (aud) {
+      if (v3NotesAnchorLiveTimeListener) aud.removeEventListener("timeupdate", v3NotesAnchorLiveTimeListener);
+      if (v3NotesAnchorPlayListener) {
+        aud.removeEventListener("play", v3NotesAnchorPlayListener);
+        aud.removeEventListener("playing", v3NotesAnchorPlayListener);
+      }
+      if (v3NotesAnchorPauseListener) {
+        aud.removeEventListener("pause", v3NotesAnchorPauseListener);
+        aud.removeEventListener("ended", v3NotesAnchorPauseListener);
+      }
     }
   } catch (_) {}
   v3NotesAnchorLiveTimeListener = null;
+  v3NotesAnchorPlayListener = null;
+  v3NotesAnchorPauseListener = null;
 }
 
 // Capture rowAudioPlayer.currentTime, round to ms, persist on the note.
@@ -32304,38 +32466,11 @@ function v3NotesT(key, fallback) {
   } catch (_) { return fallback; }
 }
 
-function v3NotesGetSegBtns(segId) {
-  const seg = document.getElementById(segId);
-  return seg ? Array.from(seg.querySelectorAll(".v3-notes-seg-btn")) : [];
-}
-
-function v3NotesUpdateSegUI() {
-  v3NotesGetSegBtns("v3NotesTargetSeg").forEach((b) => {
-    b.classList.toggle("active", b.dataset.targetKind === v3NotesModalTargetKind);
-    try { b.setAttribute("aria-pressed", b.dataset.targetKind === v3NotesModalTargetKind ? "true" : "false"); } catch (_) {}
-  });
-  v3NotesGetSegBtns("v3NotesTypeSeg").forEach((b) => {
-    b.classList.toggle("active", b.dataset.noteType === v3NotesModalNoteType);
-    try { b.setAttribute("aria-pressed", b.dataset.noteType === v3NotesModalNoteType ? "true" : "false"); } catch (_) {}
-  });
-}
-
-function v3NotesShowTargetIdRow(show, labelText, placeholder) {
-  const row = document.getElementById("v3NotesTargetIdRow");
-  const input = document.getElementById("v3NotesTargetIdInput");
-  const label = document.getElementById("v3NotesTargetIdLabel");
-  const hints = document.getElementById("v3NotesTargetIdHints");
-  if (!row || !input) return;
-  if (show) {
-    row.style.display = "";
-    if (label && labelText) label.textContent = labelText;
-    if (placeholder) input.placeholder = placeholder;
-  } else {
-    row.style.display = "none";
-    input.value = "";
-    if (hints) { hints.style.display = "none"; hints.innerHTML = ""; }
-  }
-}
+// Phase 9.3.5 R1 — v3NotesUpdateSegUI / v3NotesShowTargetIdRow /
+// v3NotesGetSegBtns deleted. The modal no longer has segmented controls
+// or a target-id input row; target+type are locked at creation via the
+// intent quick-pick (see V3_NOTES_INTENTS map above). UI uses
+// v3NotesUpdateLockedBadges() instead.
 
 function v3NotesUpdateDataset() {
   const modal = v3NotesEl("v3NotesModal");
@@ -32365,66 +32500,9 @@ function v3NotesClearDataset() {
   } catch (_) {}
 }
 
-// Called from the target_kind segmented control. Updates state + secondary
-// inputs and re-renders dependent UI. Re-emits the textarea oninput so the
-// dirty flag is re-evaluated.
-function v3NotesSetTargetKind(kind) {
-  const allowed = ["sentence","word","root","binyan","text","note","free"];
-  if (allowed.indexOf(kind) < 0) return;
-  if (v3NotesModalTargetKind !== kind) v3NotesModalUserChangedKind = true;
-  v3NotesModalTargetKind = kind;
-
-  // text_id binding follows: sentence/word/text remain bound to active
-  // text; root/binyan/note/free are text-independent.
-  if (kind === "root" || kind === "binyan" || kind === "free" || kind === "note") {
-    // Don't drop v3NotesModalTextId itself — we still need it for context
-    // when saving — but the new note will not be FK'd to that text.
-    v3NotesModalTargetId = null;
-  } else if (kind === "sentence") {
-    // restore default sentence target
-    v3NotesModalTargetId = v3NotesModalSentenceId || null;
-  } else if (kind === "text") {
-    v3NotesModalTargetId = v3NotesModalTextId || null;
-  } else if (kind === "word") {
-    // word target_id is a word lemma string — keep prior value if user typed one
-  }
-
-  // Secondary input visibility
-  if (kind === "root") {
-    v3NotesShowTargetIdRow(true,
-      v3NotesT("notes.targetRootLabel", "Корень:"),
-      v3NotesT("notes.targetRootPlaceholder", "ק.ר.א — введите 3-буквенный корень"));
-    const input = document.getElementById("v3NotesTargetIdInput");
-    if (input) input.oninput = v3NotesRootAutocomplete;
-  } else if (kind === "binyan") {
-    v3NotesShowTargetIdRow(true,
-      v3NotesT("notes.targetBinyanLabel", "Биньян:"),
-      v3NotesT("notes.targetBinyanPlaceholder", "paal / piel / hifil / hitpael / nifal / pual / hufal"));
-    const input = document.getElementById("v3NotesTargetIdInput");
-    if (input) input.oninput = null;
-  } else if (kind === "word") {
-    v3NotesShowTargetIdRow(true,
-      v3NotesT("notes.targetWordLabel", "Слово:"),
-      v3NotesT("notes.targetWordPlaceholder", "Лемма (huqaf-niqqud не требуется)"));
-    const input = document.getElementById("v3NotesTargetIdInput");
-    if (input) input.oninput = null;
-  } else if (kind === "note") {
-    v3NotesShowTargetIdRow(true,
-      v3NotesT("notes.targetNoteLabel", "Заметка:"),
-      v3NotesT("notes.targetNotePlaceholder", "Поиск по существующим заметкам…"));
-    const input = document.getElementById("v3NotesTargetIdInput");
-    if (input) input.oninput = v3NotesNoteAutocomplete;
-  } else {
-    v3NotesShowTargetIdRow(false, "", "");
-  }
-
-  v3NotesUpdateSegUI();
-  v3NotesUpdateDataset();
-  v3NotesUpdateModalTitle();
-  // Phase 9.2 — anchor row visibility depends on target_kind.
-  try { v3NotesAnchorUpdateUI(); } catch (_) {}
-}
-window.v3NotesSetTargetKind = v3NotesSetTargetKind;
+// Phase 9.3.5 R1 — v3NotesSetTargetKind removed. Target is locked at note
+// creation via intent quick-pick; can only change via the explicit Convert
+// menu (R3). No in-modal target switching path exists anymore.
 
 // Premium polish (post-9.1.C): keep the modal title in sync with the
 // current target_kind so the user always sees an accurate context label
@@ -32621,68 +32699,25 @@ function v3NotesTemplateMissingRequired() {
 }
 window.v3NotesTemplateMissingRequired = v3NotesTemplateMissingRequired;
 
-// Backwards-compat shim — older call sites still reference the legacy
-// "update banner" helper. Re-route to the new render. Removed once all
-// call sites are migrated (Phase 9.3.D).
-function v3NotesUpdateTemplateBanner() {
-  v3NotesTemplateRender();
-}
+// Phase 9.3.5 R1 — v3NotesUpdateTemplateBanner removed (no banner; template
+// form swap happens through v3NotesTemplateRender called directly from
+// v3NotesOpen / v3NotesLoadFullNoteIntoModal). Old shim kept for one call
+// site below — the convert flow (R3) — and immediately routed to the new
+// helper.
+function v3NotesUpdateTemplateBanner() { v3NotesTemplateRender(); }
 
+// Phase 9.3.5 R1 — v3NotesSetNoteType is GONE. Type is locked at creation;
+// to change type the user goes through v3NotesConvertOpen (R3). The helper
+// below is a compatibility shim for the legacy call from
+// v3NotesLoadFullNoteIntoModal — it just assigns state and re-renders,
+// without the stash machinery the old function relied on.
 function v3NotesSetNoteType(type) {
   const allowed = ["free","word_study","grammar_rule","translation_discrepancy","pronunciation_note"];
   if (allowed.indexOf(type) < 0) return;
-  const prev = v3NotesModalNoteType;
-  if (prev === type) return;
-
-  // Phase 9.3 — stash the *previous* body (string for free, object for
-  // templates) keyed by its note_type so the user can flip back and forth
-  // without losing in-progress data.
-  const ta = v3NotesEl("v3NotesText");
-  if (prev === "free") {
-    if (ta) v3NotesBodyStashByType[prev] = String(ta.value || "");
-  } else {
-    // Capture current template form values.
-    v3NotesBodyStashByType[prev] = v3NotesTemplateCollect();
-  }
-
+  if (v3NotesModalNoteType === type) return;
   v3NotesModalNoteType = type;
-
-  // Swap visible form (template or markdown body).
-  v3NotesTemplateRender();
-
-  const titleInput = document.getElementById("v3NotesTitleInput");
-  if (titleInput) {
-    titleInput.style.display = (type === "free") ? "none" : "";
-    if (type !== "free" && !titleInput.placeholder) {
-      titleInput.placeholder = v3NotesT("notes.titlePlaceholder", "Заголовок заметки (опционально)");
-    }
-  }
-
-  if (type === "free") {
-    if (ta) {
-      const stashed = v3NotesBodyStashByType[type];
-      if (typeof stashed === "string") {
-        v3NotesSafeSetTextareaValue(ta, stashed);
-      }
-      try {
-        const ph = V3_NOTES_TYPE_PLACEHOLDERS[type] || V3_NOTES_TYPE_PLACEHOLDERS.free;
-        ta.placeholder = v3NotesT("notes.placeholder." + type, ph);
-      } catch (_) {}
-      try { ta.dispatchEvent(new Event("input")); } catch (_) {}
-    }
-  } else {
-    // Hydrate template form from stash (object or earlier-saved body_json).
-    const stashed = v3NotesBodyStashByType[type];
-    if (stashed != null) {
-      v3NotesTemplateHydrate(stashed);
-    } else {
-      // Clear all fields when first entering this type.
-      v3NotesTemplateHydrate({});
-    }
-  }
-
-  v3NotesUpdateSegUI();
-  // Phase 9.3.C — SRS button visibility tracks note_type.
+  try { v3NotesTemplateRender(); } catch (_) {}
+  try { v3NotesUpdateLockedBadges(); } catch (_) {}
   try { v3NotesToSrsUpdateUI(); } catch (_) {}
 }
 window.v3NotesSetNoteType = v3NotesSetNoteType;
@@ -33421,6 +33456,184 @@ function v3NotesCancelAutoSave() {
   }
 }
 
+// ── Phase 9.3.5 R1 — Intent quick-pick + token picker + locked-info badges ──
+
+// Each intent maps to a fixed (target_kind, note_type) pair. The user never
+// chooses target_kind directly — pressing an intent button is the choice.
+// Phase 9.4 adds more intents (root.* + binyan.* from the morphology panel).
+const V3_NOTES_INTENTS = {
+  "row.free":          { target_kind: "sentence", note_type: "free" },
+  "row.word":          { target_kind: "word",     note_type: "word_study", needsToken: true },
+  "row.grammar":       { target_kind: "sentence", note_type: "grammar_rule" },
+  "row.translation":   { target_kind: "sentence", note_type: "translation_discrepancy" },
+  "row.pronunciation": { target_kind: "sentence", note_type: "pronunciation_note" },
+  // Future Phase 9.4 entry points (defined but no UI yet):
+  // "root.vocab":   { target_kind: "root",   note_type: "word_study" },
+  // "binyan.rule":  { target_kind: "binyan", note_type: "grammar_rule" },
+  // "library.free": { target_kind: "free",   note_type: "free" },
+};
+
+// Launch a quick-pick intent from the row-index panel. Closes the row-index
+// modal, then either (a) opens the token picker if the intent needs a word,
+// or (b) opens the edit modal directly with the intent's (target, type) pair.
+function v3NotesIntentLaunch(intentKey) {
+  const intent = V3_NOTES_INTENTS[intentKey];
+  if (!intent) { console.warn("Unknown intent:", intentKey); return; }
+  const ctx = v3NotesRowIndexContext;
+  // intent.scope === "row.*" requires a row context.
+  if (intentKey.indexOf("row.") === 0 && !ctx) {
+    showToast(v3NotesT("toast.notesIntentNoRow", "Откройте строку, чтобы создать заметку."), "warning");
+    return;
+  }
+  v3NotesRowIndexClose();
+  if (intent.needsToken && ctx) {
+    v3NotesTokenPickerOpen(intent, ctx);
+    return;
+  }
+  if (!ctx) return;
+  v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, {
+    targetKind: intent.target_kind,
+    noteType: intent.note_type,
+    intentKey,
+  });
+}
+window.v3NotesIntentLaunch = v3NotesIntentLaunch;
+
+// Stash for the token-picker step so we can resume after the user picks a word.
+let v3NotesTokenPickerCtx = null;
+
+async function v3NotesTokenPickerOpen(intent, ctx) {
+  v3NotesTokenPickerCtx = { intent, ctx };
+  const modal = document.getElementById("v3NotesTokenPickerModal");
+  const list = document.getElementById("v3NotesTokenPickerList");
+  if (!modal || !list) return;
+
+  // Get the row's Hebrew text from currentTableData (the table the row was
+  // clicked from has the row enriched with _v3_sentenceId etc — but we also
+  // need the actual text. Pull from currentTableData[rowIdx] or fall back to
+  // looking it up in the DB).
+  let sentenceText = "";
+  try {
+    const row = Array.isArray(currentTableData) ? currentTableData[ctx.rowIdx] : null;
+    sentenceText = row ? String(row.hebrew_niqqud || row.hebrew_plain || row.hebrew || row.he_niqqud || row.he_plain || "") : "";
+    if (!sentenceText && LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const rows = await ldb.dbQuery("SELECT he_niqqud, he_plain FROM sentences WHERE id = ?", [ctx.sentenceId]);
+      if (rows && rows[0]) sentenceText = String(rows[0].he_niqqud || rows[0].he_plain || "");
+    }
+  } catch (e) { console.warn("token-picker sentence lookup failed", e); }
+
+  // Pre-Phase-9.4: space-split heuristic. Strip punctuation, keep only
+  // tokens of length ≥ 1.
+  const tokens = sentenceText
+    .split(/[\s ​‎‏]+/)
+    .map(t => t.replace(/^[,.;:!?"'«»()\[\]]+|[,.;:!?"'«»()\[\]]+$/g, "").trim())
+    .filter(t => t.length > 0);
+
+  if (!tokens.length) {
+    list.innerHTML = `<div class="v3-notes-token-picker-empty">${v3EscapeHtml(v3NotesT("notes.tokenPicker.empty", "Не удалось разделить строку на слова."))}</div>`;
+  } else {
+    list.innerHTML = tokens.map((tok, offset) => {
+      const safe = v3EscapeHtml(tok);
+      return `<button type="button" class="v3-notes-token-picker-btn" dir="rtl"
+                onclick="v3NotesTokenPickerPick(${offset}, '${safe.replace(/'/g, "\\'")}')">${safe}</button>`;
+    }).join("");
+  }
+
+  modal.classList.remove("hidden");
+}
+window.v3NotesTokenPickerOpen = v3NotesTokenPickerOpen;
+
+function v3NotesTokenPickerClose() {
+  const modal = document.getElementById("v3NotesTokenPickerModal");
+  if (modal) modal.classList.add("hidden");
+  v3NotesTokenPickerCtx = null;
+}
+window.v3NotesTokenPickerClose = v3NotesTokenPickerClose;
+
+function v3NotesTokenPickerPick(offset, lemma) {
+  const slot = v3NotesTokenPickerCtx;
+  v3NotesTokenPickerClose();
+  if (!slot || !slot.ctx) return;
+  const ctx = slot.ctx;
+  const intent = slot.intent;
+  // target_id format locked in here: '<sentence_id>:<word_offset>' so Phase
+  // 9.4 morphology results can attach without ambiguity. Bare-lemma format
+  // (legacy) remains supported by listNotesForRow as "any occurrence".
+  const targetId = String(ctx.sentenceId) + ":" + Number(offset);
+  v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, {
+    targetKind: intent.target_kind,
+    noteType: intent.note_type,
+    targetId,
+    intentKey: "row.word",
+    wordLemma: String(lemma || ""),
+  });
+}
+window.v3NotesTokenPickerPick = v3NotesTokenPickerPick;
+
+// Locked-info badge renderer. Reads v3NotesModalTargetKind + v3NotesModalNoteType
+// and v3NotesModalTargetId (for word: parse offset from "sid:offset" form) +
+// fills the read-only badges in the modal header. Replaces the old segmented-
+// control UI; no in-modal type/target switching after R1.
+const V3_NOTES_TARGET_LABELS = {
+  sentence: { icon: "📍", labelKey: "notes.targetSentence", fallback: "Строка" },
+  word:     { icon: "🔤", labelKey: "notes.targetWord",     fallback: "Слово" },
+  root:     { icon: "🌳", labelKey: "notes.targetRoot",     fallback: "Корень" },
+  binyan:   { icon: "🧬", labelKey: "notes.targetBinyan",   fallback: "Биньян" },
+  text:     { icon: "📄", labelKey: "notes.targetText",     fallback: "Текст" },
+  note:     { icon: "🔗", labelKey: "notes.targetNote",     fallback: "Заметка" },
+  free:     { icon: "✍", labelKey: "notes.targetFree",     fallback: "Свободная" },
+};
+const V3_NOTES_TYPE_LABELS = {
+  free:                    { icon: "✍", labelKey: "notes.typeFree",          fallback: "Свободная" },
+  word_study:              { icon: "🔤", labelKey: "notes.typeWordStudy",     fallback: "Слово" },
+  grammar_rule:            { icon: "📐", labelKey: "notes.typeGrammar",       fallback: "Грамматика" },
+  translation_discrepancy: { icon: "↔",  labelKey: "notes.typeTranslation",   fallback: "Перевод" },
+  pronunciation_note:      { icon: "🔊", labelKey: "notes.typePronunciation", fallback: "Произношение" },
+};
+
+function v3NotesUpdateLockedBadges() {
+  const tBadge = document.getElementById("v3NotesLockedTargetBadge");
+  const yBadge = document.getElementById("v3NotesLockedTypeBadge");
+  const cBtn   = document.getElementById("v3NotesConvertBtn");
+  if (!tBadge || !yBadge) return;
+
+  const tk = String(v3NotesModalTargetKind || "sentence");
+  const nt = String(v3NotesModalNoteType   || "free");
+  const tMeta = V3_NOTES_TARGET_LABELS[tk] || V3_NOTES_TARGET_LABELS.sentence;
+  const yMeta = V3_NOTES_TYPE_LABELS[nt]   || V3_NOTES_TYPE_LABELS.free;
+
+  // Target badge: include extra context for word notes (the lemma).
+  let tLabel = v3NotesT(tMeta.labelKey, tMeta.fallback);
+  if (tk === "word" && v3NotesModalTargetId) {
+    const parts = String(v3NotesModalTargetId).split(":");
+    const offset = parts.length > 1 ? parts[parts.length - 1] : "";
+    if (offset !== "" && Number.isFinite(Number(offset))) {
+      tLabel += " #" + (Number(offset) + 1);
+    }
+  }
+  tBadge.textContent = tMeta.icon + " " + tLabel;
+  tBadge.title = tLabel;
+  tBadge.setAttribute("aria-label", tLabel);
+
+  const yLabel = v3NotesT(yMeta.labelKey, yMeta.fallback);
+  yBadge.textContent = yMeta.icon + " " + yLabel;
+  yBadge.title = yLabel;
+  yBadge.setAttribute("aria-label", yLabel);
+
+  // Convert button visible only for templated existing notes (R3 wires the menu).
+  if (cBtn) {
+    cBtn.style.display = (v3NotesModalNoteId && nt !== "free") ? "" : (v3NotesModalNoteId ? "" : "none");
+  }
+}
+window.v3NotesUpdateLockedBadges = v3NotesUpdateLockedBadges;
+
+// Convert flow opener stub — R3 lands the actual submenu + handler.
+function v3NotesConvertOpen() {
+  showToast(v3NotesT("toast.notesConvertWip", "Преобразование типа появится в следующем релизе."), "info");
+}
+window.v3NotesConvertOpen = v3NotesConvertOpen;
+
 // ── Phase 9.3.5.B — Multi-note row-index panel ────────────────────────────
 
 // Lazy cache of all notes per sentenceId for the row-index panel. Populated
@@ -33694,17 +33907,8 @@ function v3NotesRowIndexOpenNote(noteId) {
 }
 window.v3NotesRowIndexOpenNote = v3NotesRowIndexOpenNote;
 
-// "+ New note" quick-pick → close index, open edit modal pre-configured.
-function v3NotesRowIndexAddNew(targetKind, noteType) {
-  const ctx = v3NotesRowIndexContext;
-  v3NotesRowIndexClose();
-  if (!ctx) return;
-  v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, {
-    targetKind: targetKind || "sentence",
-    noteType: noteType || "free",
-  });
-}
-window.v3NotesRowIndexAddNew = v3NotesRowIndexAddNew;
+// Phase 9.3.5 R1 — v3NotesRowIndexAddNew removed. Replaced by
+// v3NotesIntentLaunch (intent-based; see V3_NOTES_INTENTS map above).
 
 // Per-card delete → confirm → remove → invalidate cache → re-render.
 async function v3NotesRowIndexDelete(noteId) {
@@ -33747,13 +33951,12 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
   v3NotesModalSentenceId = String(sentenceId || "");
   v3NotesModalRowIdx = Number.isFinite(Number(rowIdx)) ? Number(rowIdx) : null;
 
-  // Phase 9.1.C — polymorphic state defaults based on entry context.
+  // Phase 9.3.5 R1 — locked-at-creation state. Target/type come EITHER from
+  // an intent-quick-pick OR from a deep-linked existing note (opts.noteId).
+  // Never from in-modal user choice (segments deleted).
   const o = opts || {};
   v3NotesModalEntryKind = o.entryKind || (v3NotesModalSentenceId ? "row" : "free");
-  v3NotesModalUserChangedKind = false;
-  v3NotesBodyStashByType = Object.create(null);
   v3NotesModalNoteId = o.noteId || null;
-  // Default target_kind: sentence for row/jump/deeplink, free otherwise.
   if (o.targetKind) {
     v3NotesModalTargetKind = o.targetKind;
   } else if (v3NotesModalSentenceId) {
@@ -33766,6 +33969,7 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
         : v3NotesModalTargetKind === "text" ? (v3NotesModalTextId || null)
         : null);
   v3NotesModalNoteType = o.noteType || "free";
+  v3NotesModalWordLemma = o.wordLemma || "";
 
   const modal = v3NotesEl("v3NotesModal");
   const ta = v3NotesEl("v3NotesText");
@@ -33793,29 +33997,27 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
   // W10-NOTES-UX-MD-01: reset preview UI on open
 try { v3NotesMdResetUi(); } catch (_) {}
 
-  // Phase 9.1.C — sync segmented controls + dataset + char counter + history.
-  try { v3NotesUpdateSegUI(); } catch (_) {}
+  // Phase 9.3.5 R1 — locked badges replace segmented controls.
   try { v3NotesUpdateDataset(); } catch (_) {}
+  try { v3NotesUpdateLockedBadges(); } catch (_) {}
+  try { v3NotesUpdateModalTitle(); } catch (_) {}
+  try { v3NotesTemplateRender(); } catch (_) {}
   try {
-    // Show secondary target_id input if needed for chosen kind.
-    v3NotesSetTargetKind(v3NotesModalTargetKind);
-    v3NotesModalUserChangedKind = false;
-  } catch (_) {}
-  try {
-    v3NotesUpdateTemplateBanner();
     const titleInput = document.getElementById("v3NotesTitleInput");
     if (titleInput) {
       titleInput.style.display = (v3NotesModalNoteType === "free") ? "none" : "";
       titleInput.value = "";
     }
-    // Apply the per-type placeholder so it's correct on first open too.
-    try {
-      const ta2 = v3NotesEl("v3NotesText");
-      if (ta2) {
-        const ph = V3_NOTES_TYPE_PLACEHOLDERS[v3NotesModalNoteType] || V3_NOTES_TYPE_PLACEHOLDERS.free;
-        ta2.placeholder = v3NotesT("notes.placeholder." + v3NotesModalNoteType, ph);
-      }
-    } catch (_) {}
+    const ta2 = v3NotesEl("v3NotesText");
+    if (ta2) {
+      const ph = V3_NOTES_TYPE_PLACEHOLDERS[v3NotesModalNoteType] || V3_NOTES_TYPE_PLACEHOLDERS.free;
+      ta2.placeholder = v3NotesT("notes.placeholder." + v3NotesModalNoteType, ph);
+    }
+    // For word-target with a known lemma, pre-fill the word field in word_study form.
+    if (v3NotesModalTargetKind === "word" && v3NotesModalNoteType === "word_study" && v3NotesModalWordLemma) {
+      const wordEl = document.getElementById("v3NotesTplWordStudyWord");
+      if (wordEl && !wordEl.value) wordEl.value = v3NotesModalWordLemma;
+    }
   } catch (_) {}
   try { v3NotesUpdateCharCounter(); } catch (_) {}
   try {
@@ -33834,8 +34036,12 @@ try { v3NotesMdResetUi(); } catch (_) {}
   try { v3NotesCancelAutoSave(); } catch (_) {}
 
   // Phase 9.2 — reset anchor state and render fresh on every open.
+  // Phase 9.3.5 R1 (Bug 1.1) — listeners attached unconditionally so the
+  // SET button transitions disabled → enabled when audio starts playing
+  // mid-session (re-opened modal on a row that hasn't played yet).
   v3NotesModalAudioAnchorMs = null;
   try { v3NotesAnchorStopLiveTime(); } catch (_) {}
+  try { v3NotesAnchorStartLiveTime(); } catch (_) {}
   try { v3NotesAnchorUpdateUI(); } catch (_) {}
   try { v3NotesRowPlayAttachListeners(); } catch (_) {}
   try { v3NotesRowPlayUpdateUI(); } catch (_) {}
@@ -34206,8 +34412,7 @@ function v3NotesForceClose() {
   v3NotesModalTargetId = null;
   v3NotesModalNoteType = "free";
   v3NotesModalEntryKind = "row";
-  v3NotesModalUserChangedKind = false;
-  v3NotesBodyStashByType = Object.create(null);
+  v3NotesModalWordLemma = "";
   v3NotesModalAudioAnchorMs = null;
   v3NotesModalSrsCardId = null;
 }
@@ -34324,11 +34529,13 @@ async function v3NotesSave(isAutoSave) {
     //   • we don't have a polymorphic note id already (editing a v2 row).
     //
     // Otherwise we go through the polymorphic createNote / updateNote API.
+    // Phase 9.3.5 R1 — UserChangedKind predicate removed (no in-modal type
+    // switching). Legacy path triggers when this is a fresh sentence-bound
+    // free note via row entry with no v2 noteId yet.
     const useLegacy =
       !!textId && !!sentenceId &&
       v3NotesModalTargetKind === "sentence" &&
       v3NotesModalNoteType === "free" &&
-      !v3NotesModalUserChangedKind &&
       !v3NotesModalNoteId;
 
     if (useLegacy) {
@@ -34624,12 +34831,12 @@ async function v3NotesDelete() {
     });
     if (!_confirmed) return;
 
-    // Phase 9.1.C — polymorphic delete path. If we have a noteId, prefer
-    // deleteNoteById; otherwise fall back to the legacy sentence-bound delete.
+    // Phase 9.3.5 R1 — UserChangedKind dropped. Polymorphic delete path runs
+    // for any non-sentence-free note with a noteId; sentence-free notes use
+    // the legacy upsertNote-based delete.
     const isPolymorphic = !!v3NotesModalNoteId && (
       v3NotesModalTargetKind !== "sentence" ||
-      v3NotesModalNoteType !== "free" ||
-      v3NotesModalUserChangedKind
+      v3NotesModalNoteType !== "free"
     );
 
     if (isPolymorphic) {

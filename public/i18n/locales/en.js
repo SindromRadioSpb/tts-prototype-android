@@ -434,6 +434,25 @@ window.I18N_LOCALES.en = {
     linkAddAliasPh: "Alias (optional)",
     linkAddBtn: "+ Add",
     linkRemoveAria: "Remove link",
+    // Phase 9.3.5 R1 — Intent quick-pick + locked badges + token picker + convert
+    intent: {
+      row: {
+        freeLabel: "Free",            freeTitle: "Free comment on this row",
+        wordLabel: "Word from here",  wordTitle: "Vocab card for a word in this row",
+        grammarLabel: "Grammar",      grammarTitle: "Grammar rule observed in this row",
+        translationLabel: "Translation breakdown", translationTitle: "Translation discrepancy analysis",
+        pronunciationLabel: "Pronunciation",       pronunciationTitle: "Pronunciation note",
+      },
+    },
+    tokenPicker: {
+      title: "🔤 Pick a word from the row",
+      hint: "Tap the word you want to make a vocab card for. The form will open with the target pre-filled.",
+      empty: "Couldn't split the row into words.",
+    },
+    convert: {
+      openTitle: "Convert this note to a different type",
+      openLabel: "🔄 Convert to…",
+    },
     // Phase 9.3.5.B — Multi-note row-index panel
     rowBtnTitleMulti: "{n} notes on this row",
     rowIndex: {
@@ -799,6 +818,9 @@ window.I18N_LOCALES.en = {
     notesAnchorPlayFailed: "Couldn't play from the pinned moment.",
     // Phase 9.3 — templated notes
     notesTemplateMissing: "Please fill required fields: {fields}",
+    // Phase 9.3.5 R1 — intent + convert toasts
+    notesIntentNoRow: "Open a row first to add a note.",
+    notesConvertWip: "Type conversion ships in the next release.",
     // Phase 9.3.B — links toasts
     notesLinkSaveFirst: "Save the note first, then add links.",
     notesLinkInvalid: "Specify link kind and target.",
