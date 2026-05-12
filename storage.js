@@ -23,10 +23,12 @@ const USAGE_FILE = process.env.USAGE_FILE || path.join(DATA_DIR, "usage.json");
 const AUDIO_CACHE_DIR = process.env.AUDIO_CACHE_DIR || path.join(DATA_DIR, "audio-cache");
 const GEMINI_CACHE_DIR = process.env.GEMINI_CACHE_DIR || path.join(DATA_DIR, "gemini-cache");
 const BACKUPS_DIR = process.env.BACKUPS_DIR || path.join(DATA_DIR, "backups");
+const RESEARCH_DATA_DIR = process.env.RESEARCH_DATA_DIR || path.join(DATA_DIR, "research");
 
 ensureDirSync(AUDIO_CACHE_DIR);
 ensureDirSync(GEMINI_CACHE_DIR);
 ensureDirSync(BACKUPS_DIR);
+ensureDirSync(RESEARCH_DATA_DIR);
 
 module.exports = {
   DATA_DIR,
@@ -35,5 +37,6 @@ module.exports = {
   AUDIO_CACHE_DIR,
   GEMINI_CACHE_DIR,
   BACKUPS_DIR,
+  RESEARCH_DATA_DIR,
   ensureDirSync,
 };

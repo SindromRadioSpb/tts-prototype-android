@@ -9,9 +9,19 @@
 
 **Mega-release scope** (~7–9 рабочих недель). Approved 2026-05-10. Master plan: [`docs/PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md).
 
+### Shipped (Direction 11B in progress)
+
+- **Phase 11.4 — Server endpoints `/api/research/v1/*`** *(2026-05-13, S1 of Direction 11B)*. Architectural exception to offline-first (D4): the ONE server endpoint family permitted in v3.2, aggregates only, never raw events. Three endpoints + thin file-system storage layer.
+  - **POST `/api/research/v1/metrics`** — strict-validated daily aggregates upload. Schema enforcement per `docs/RESEARCH_METRICS_SCHEMA.md` §13: format guard (`linguistpro-research-v1`), required top-level keys, no-extra-top-level-keys, recursive forbidden-field check (`text_content` / `note_body` / `search_query` / `audio_bytes` / PII / IP / UA / device_id / geo / sub-day `timestamp`), per-metric type+range checks, 64 KB size cap. Cohort existence + `consent_version` >= `cohort_meta.consent_version_minimum`. Idempotent dedupe by `(student_id, since_ts, upload_ts)` — re-uploads return `{stored: false, dedupe: true}`. Same-origin CSRF guard (`requireSameOriginJson`) + per-IP rate limiter (60/min) + per-student daily limit (10/day → 429 RATE_LIMIT).
+  - **GET `/api/research/v1/cohort/:code/aggregates`** — researcher dashboard read. Bearer-token auth (sha256 hashed in `cohort_meta.json`, never plaintext on disk). k-anonymity gate: when `cohort_size < cohort_meta.k_anonymity_threshold` (default 5), `students: []` returned to hide per-student breakdown. Aggregator scans all `<date>.jsonl` lines and produces per-student totals (active minutes, audio ms, cards reviewed/correct/again, notes created/edited, search count, smart-tag overrides, translit toggles, distinct texts/sentences seen).
+  - **DELETE `/api/research/v1/student/:student_id`** — withdrawal flow. UUID-as-auth per D4 (anonymous student_id is itself the credential — no PII to compromise). Optional `?cohort_code=` narrows scope; otherwise sweeps all cohorts. Atomic-ish rewrite (`.jsonl.tmp` → rename) removes all matching lines; audit-logs to `<cohort>/deletions.log` with timestamp + records_removed count.
+  - **Storage layer** (`research/storage.js`): `<RESEARCH_DATA_DIR>/<cohort_code>/{cohort_meta.json, <YYYY-MM-DD>.jsonl, deletions.log}`. `RESEARCH_DATA_DIR` env (default `<DATA_DIR>/research`). `cohort_meta.json` carries `code`, `schema_version: "v1"`, `k_anonymity_threshold`, `retention_until`, `outcome_scale`, `researcher_token_hash` (sha256), `consent_version_minimum`. Schema validator (`research/validate.js`), in-memory rate limiter (`research/rateLimit.js`), admin CLI (`scripts/research/create_cohort.js`) — prints plaintext researcher token ONCE, never stored on disk.
+  - **No-PII logging contract.** Server log lines for research routes carry only `student_id`/`cohort_code`/`upload_ts`/byte count/status — never payload bodies or any raw text.
+  - **Acceptance:** `scripts/research/smoke.js` — 15-case acceptance suite covering §14 (minimal+full valid, dedupe, missing/wrong format, unknown top-key, forbidden field deep, oversize payload, cohort 404, rate-limit 429, GET 401/403/200, k=5 gate, withdrawal end-to-end, bad UUID 400). **15/15 pass.**
+
 ### Planned (remaining for v3.2.0 final)
 
-- **Direction 11B — Research Mode** (~11–14 days, 6 sub-phases 11.2..11.7): opt-in privacy-preserving research infrastructure для ulpan diploma project. Multi-session implementation split — S1 server endpoints first, then consent UX + aggregation, then teacher dashboard, then outcome + docs. See `docs/ULPAN_RESEARCH_PLAN_v3_2.md` §7 + `memory/project_v3_2_progress.md`.
+- **Direction 11B follow-on phases (S2–S4):** consent + opt-in UX + aggregation pipeline (11.2 + 11.3, ~3.5d), teacher dashboard `/teacher.html` + fake-cohort seed (11.5, ~3d), outcome capture + ethics docs + research-mode smoke (11.6 + 11.7 + 11.8, ~2–3d). See `memory/project_v3_2_progress.md`.
 
 ---
 

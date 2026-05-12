@@ -73,10 +73,35 @@ For each session:
 
 Implementation: two-pass aggregation (baseline approximation + per-session precision deltas) — see `getActiveMsReal` in `local-db.js`. Single-query approach not feasible without JSON window functions in vanilla SQLite.
 
-### Не реализовано (→ Direction 11B research mode)
+### Phase 11.4 closure (2026-05-13)
 
-### Не реализовано (→ Direction 11B research mode)
-- Cohort aggregates по level/topic/tags на уровне server-side `/api/research/v1/*` endpoint family. Опт-ин upload daily aggregates.
+Server endpoint family `/api/research/v1/*` shipped — architectural exception
+to the offline-first invariant approved per master-plan D4. Aggregates only,
+never raw events. See `docs/RESEARCH_METRICS_SCHEMA.md` for the wire contract
+and `docs/ULPAN_RESEARCH_PLAN_v3_2.md` §7.4 for the design rationale.
+
+- `POST /api/research/v1/metrics` — strict-validated daily aggregates;
+  recursive forbidden-field check; idempotent dedupe by
+  `(student_id, since_ts, upload_ts)`; rate-limit 10/day/student → 429.
+- `GET /api/research/v1/cohort/:code/aggregates` — Bearer-token auth
+  (sha256 hash stored in `cohort_meta.json`); k-anonymity gate hides
+  per-student breakdown when cohort_size < 5.
+- `DELETE /api/research/v1/student/:student_id` — withdrawal flow.
+  UUID-as-auth (anonymous student_id is itself the credential, per D4).
+  Rewrites jsonl files in place; audit-logs to `deletions.log`.
+
+Storage layout: `<RESEARCH_DATA_DIR>/<cohort>/{cohort_meta.json,
+<YYYY-MM-DD>.jsonl, deletions.log}`. `RESEARCH_DATA_DIR` env defaults to
+`<DATA_DIR>/research`.
+
+Admin tool: `node scripts/research/create_cohort.js --code <CODE>` provisions
+a cohort and prints the plaintext researcher token once. Smoke acceptance:
+`node scripts/research/smoke.js` (15 cases, covers §14).
+
+### Не реализовано (→ Direction 11B follow-on phases)
+- Client-side opt-in consent UX + cohort join + transparency dashboard (Phase 11.2).
+- Daily aggregator + retry queue (Phase 11.3).
+- Teacher dashboard `/teacher.html` + outcome capture (Phase 11.5–11.6).
 
 ### Не реализовано (→ Direction 9 M6)
 - ~~`card_added_to_srs` event — пока добавление карточек в SRS происходит косвенно через template generation; explicit "add this note as SRS card" flow появится с notes redesign.~~ **Closed 2026-05-13 (Phase 11.0)**: emits from `v3NotesConvertToSrs` when user clicks "🎴 Сделать карточкой" on a templated note. Payload covers note→card linkage metadata.

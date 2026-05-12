@@ -7998,6 +7998,126 @@ app.post(
   }
 );
 
+// ── Direction 11.4: research-mode endpoint family ──────────────────────────
+// Privacy-preserving opt-in research data ingestion for ulpan diploma
+// project. See docs/ULPAN_RESEARCH_PLAN_v3_2.md §7.4 + RESEARCH_METRICS_SCHEMA.md.
+//
+// Architectural exception (master plan D4): aggregates only, never raw events.
+// Strict schema validation, recursive forbidden-field check, no-PII logging.
+const researchStorage = require("./research/storage");
+const researchValidate = require("./research/validate");
+const researchRateLimit = require("./research/rateLimit");
+const rlResearchByIp = makeRateLimiter({ windowMs: 60_000, max: 60, name: "research-metrics" });
+const RESEARCH_UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+function logResearch(req, fields) {
+  // No-PII logging contract: only student_id / cohort / bytes / status fields.
+  // Payload bodies and any raw text MUST NEVER reach the log stream.
+  try {
+    const parts = ["[research]", req.method, req.path];
+    for (const k of Object.keys(fields || {})) parts.push(`${k}=${fields[k]}`);
+    console.log(parts.join(" "));
+  } catch {}
+}
+
+app.post("/api/research/v1/metrics", requireSameOriginJson, rlResearchByIp, async (req, res) => {
+  try {
+    let payload;
+    try {
+      payload = researchValidate.validatePayload(req.body, req.body);
+    } catch (e) {
+      if (e && e.code === "SCHEMA_VIOLATION") {
+        logResearch(req, { status: 400, error: "SCHEMA_VIOLATION", field: e.field });
+        return res.status(400).json({ ok: false, error: "SCHEMA_VIOLATION", field: e.field, message: e.message });
+      }
+      throw e;
+    }
+    if (!researchStorage.cohortExists(payload.cohort_code)) {
+      logResearch(req, { status: 404, error: "COHORT_NOT_FOUND", cohort: payload.cohort_code });
+      return res.status(404).json({ ok: false, error: "COHORT_NOT_FOUND" });
+    }
+    const meta = researchStorage.readCohortMeta(payload.cohort_code);
+    if (researchValidate.compareSemver(payload.consent_version, meta.consent_version_minimum) < 0) {
+      logResearch(req, { status: 400, error: "CONSENT_VERSION_BELOW_MIN", cohort: payload.cohort_code, given: payload.consent_version, required: meta.consent_version_minimum });
+      return res.status(400).json({ ok: false, error: "CONSENT_VERSION_BELOW_MIN", required: meta.consent_version_minimum });
+    }
+    const rl = researchRateLimit.checkAndIncrement(payload.cohort_code, payload.student_id);
+    if (!rl.allowed) {
+      logResearch(req, { status: 429, error: "RATE_LIMIT", cohort: payload.cohort_code, student: payload.student_id, count: rl.count });
+      return res.status(429).json({ ok: false, error: "RATE_LIMIT", limit: rl.limit, remaining: 0 });
+    }
+    const result = researchStorage.appendUpload(payload.cohort_code, payload);
+    const bytes = Buffer.byteLength(JSON.stringify(payload), "utf8");
+    logResearch(req, { status: 200, cohort: payload.cohort_code, student: payload.student_id, upload_ts: payload.upload_ts, bytes, dedupe: result.dedupe });
+    return res.status(200).json({
+      ok: true,
+      stored: result.stored,
+      dedupe: result.dedupe,
+      rate_limit_remaining: rl.remaining,
+    });
+  } catch (e) {
+    console.error("[research] POST /metrics error:", e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.get("/api/research/v1/cohort/:code/aggregates", async (req, res) => {
+  try {
+    const code = String(req.params.code || "");
+    if (!/^[A-Z0-9-]{4,16}$/.test(code)) {
+      return res.status(400).json({ ok: false, error: "BAD_COHORT_CODE" });
+    }
+    if (!researchStorage.cohortExists(code)) {
+      return res.status(404).json({ ok: false, error: "COHORT_NOT_FOUND" });
+    }
+    const authHeader = String(req.headers.authorization || "");
+    const bearer = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+    if (!bearer) {
+      return res.status(401).json({ ok: false, error: "MISSING_BEARER_TOKEN" });
+    }
+    if (!researchStorage.verifyResearcherToken(code, bearer)) {
+      logResearch(req, { status: 403, error: "BAD_TOKEN", cohort: code });
+      return res.status(403).json({ ok: false, error: "BAD_RESEARCHER_TOKEN" });
+    }
+    const agg = researchStorage.aggregateCohort(code);
+    logResearch(req, { status: 200, cohort: code, cohort_size: agg.cohort_size, k_met: agg.k_anonymity_met });
+    return res.status(200).json({ ok: true, ...agg });
+  } catch (e) {
+    console.error("[research] GET /cohort/:code/aggregates error:", e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+app.delete("/api/research/v1/student/:student_id", async (req, res) => {
+  try {
+    const sid = String(req.params.student_id || "");
+    if (!RESEARCH_UUID_RE.test(sid)) {
+      return res.status(400).json({ ok: false, error: "BAD_STUDENT_ID" });
+    }
+    // Optional cohort_code query narrows the scope. UUID alone is the auth
+    // token (per master-plan D4 — student_id is anonymous, possession = auth).
+    const explicitCohort = req.query.cohort_code ? String(req.query.cohort_code) : null;
+    let cohorts;
+    if (explicitCohort) {
+      if (!researchStorage.cohortExists(explicitCohort)) {
+        return res.status(404).json({ ok: false, error: "COHORT_NOT_FOUND" });
+      }
+      cohorts = [explicitCohort];
+    } else {
+      cohorts = researchStorage.findCohortsForStudent(sid);
+    }
+    let totalRemoved = 0;
+    for (const c of cohorts) {
+      totalRemoved += researchStorage.deleteStudentFromCohort(c, sid);
+    }
+    logResearch(req, { status: 200, student: sid, cohorts_touched: cohorts.length, removed: totalRemoved });
+    return res.status(200).json({ ok: true, cohorts_touched: cohorts.length, records_removed: totalRemoved });
+  } catch (e) {
+    console.error("[research] DELETE /student/:student_id error:", e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
 // Global error handler — ensures all unhandled Express errors return JSON, never HTML.
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
