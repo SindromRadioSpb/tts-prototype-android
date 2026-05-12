@@ -23512,7 +23512,15 @@ function v3FbRender() {
   if (v3FbView === "triage") body.innerHTML = v3FbRenderTriage();
   else if (v3FbView === "ack") body.innerHTML = v3FbRenderAck();
   else if (v3FbView === "history") body.innerHTML = v3FbRenderHistory();
-  else if (v3FbView.startsWith("category:")) body.innerHTML = v3FbRenderCategory(v3FbCurrentCategory);
+  else if (v3FbView.startsWith("category:")) {
+    // Direction 10 Mode C — text-card request has a dedicated form
+    // (Hebrew textarea + quality radio + Standard→ModeA vs Curated→WhatsApp).
+    if (v3FbCurrentCategory === "cardrequest") {
+      body.innerHTML = v3FbRenderCardRequest();
+    } else {
+      body.innerHTML = v3FbRenderCategory(v3FbCurrentCategory);
+    }
+  }
 
   // Post-render: build QR, attach handlers, restore draft if applicable.
   setTimeout(() => v3FbPostRender(), 0);
@@ -23743,7 +23751,12 @@ function v3FbRenderTriage() {
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catPrivacyTitle")}</div>
         <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catPrivacyDesc")}</div>
       </button>
-      <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('thanks')" style="grid-column: 1 / -1;">
+      <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('cardrequest')">
+        <div style="font-size:22px;">📦</div>
+        <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catCardRequestTitle")}</div>
+        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catCardRequestDesc")}</div>
+      </button>
+      <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('thanks')">
         <div style="font-size:22px;">🙏</div>
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catThanksTitle")}</div>
         <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catThanksDesc")}</div>
@@ -23899,6 +23912,179 @@ function v3FbRenderCategory(category) {
     <div id="v3FbEmailChooser"></div>
   `;
 }
+
+// Direction 10 Mode C — Text-card request form (custom feedback category).
+// Two branches:
+//   • Standard → close feedback + open Mode A builder with pre-filled
+//   • Curated  → WhatsApp deep-link with metadata template
+function v3FbRenderCardRequest() {
+  const T = v3FbT;
+  const esc = v3EscapeHtml;
+  return `
+    <button onclick="v3FbGoTriage()" style="background:transparent; border:0; color:#2563eb; cursor:pointer; padding:6px 0; font-size:13px; font-family:inherit; margin-bottom:8px;">${esc(T("feedback.cardRequestBack", "← Назад"))}</button>
+    <div style="font-size:17px; font-weight:600; margin-bottom:8px;">${esc(T("feedback.cardRequestTitle", "📦 Заявка на text-card"))}</div>
+    <div style="font-size:13px; color:#475569; margin-bottom:14px; line-height:1.5;">
+      ${esc(T("feedback.cardRequestIntro", "Если иврит-текст особенный (стихи, классика, специальная терминология) и нужен human review — используйте «Curated». В 99% случаев auto-pipeline («Standard») сделает всё за минуты."))}
+    </div>
+
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+      <label style="display:block; font-size:12px; font-weight:600; color:#0f172a; margin-bottom:4px;">${esc(T("feedback.cardRequestHebrewLabel", "Иврит-текст"))} *</label>
+      <textarea id="v3FbCrText" dir="rtl" style="width:100%; min-height:140px; padding:8px 10px; border:1px solid #e2e8f0; border-radius:8px; font-family:inherit; font-size:13.5px; line-height:1.55; box-sizing:border-box; text-align:right; resize:vertical;"
+                placeholder="${esc(T("feedback.cardRequestHebrewPh", "Вставьте ивритский текст…"))}"></textarea>
+    </div>
+
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+      <label style="display:block; font-size:12px; font-weight:600; color:#0f172a; margin-bottom:4px;">${esc(T("feedback.cardRequestContextLabel", "Контекст (необязательно)"))}</label>
+      <textarea id="v3FbCrContext" style="width:100%; min-height:60px; padding:8px 10px; border:1px solid #e2e8f0; border-radius:8px; font-family:inherit; font-size:13px; line-height:1.5; box-sizing:border-box; resize:vertical;"
+                placeholder="${esc(T("feedback.cardRequestContextPh", "Откуда текст, зачем нужна обработка, специфические concerns (никуд, идиоматика…)"))}"></textarea>
+    </div>
+
+    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:14px;">
+      <div style="font-size:12px; font-weight:600; color:#0f172a; margin-bottom:8px;">${esc(T("feedback.cardRequestQualityLabel", "Качество"))} *</div>
+      <label style="display:flex; align-items:flex-start; gap:8px; padding:8px 0; cursor:pointer; border-bottom:1px solid #e2e8f0;">
+        <input type="radio" name="v3FbCrQuality" value="standard" checked onchange="v3FbCardRequestOnQualityChange()" style="margin-top:3px;" />
+        <span>
+          <div style="font-size:13.5px; font-weight:600;">${esc(T("feedback.cardRequestQualityStandard", "🚀 Standard (auto-pipeline)"))}</div>
+          <div style="font-size:11.5px; color:#64748b; line-height:1.4;">${esc(T("feedback.cardRequestQualityStandardDesc", "Перенаправит вас в bulk-builder с предзаполненным текстом. Минуты на обработку, без отправки разработчику."))}</div>
+        </span>
+      </label>
+      <label style="display:flex; align-items:flex-start; gap:8px; padding:8px 0; cursor:pointer;">
+        <input type="radio" name="v3FbCrQuality" value="curated" onchange="v3FbCardRequestOnQualityChange()" style="margin-top:3px;" />
+        <span>
+          <div style="font-size:13.5px; font-weight:600;">${esc(T("feedback.cardRequestQualityCurated", "🎯 Curated (human review)"))}</div>
+          <div style="font-size:11.5px; color:#64748b; line-height:1.4;">${esc(T("feedback.cardRequestQualityCuratedDesc", "Отправит заявку разработчику через WhatsApp. Часы–дни. Используется для классики, стихов, специализированной лексики."))}</div>
+        </span>
+      </label>
+    </div>
+
+    <div id="v3FbCrCuratedFields" style="display:none; background:#fef3c7; border:1px solid #fde68a; border-radius:10px; padding:12px; margin-bottom:14px;">
+      <div style="font-size:11.5px; font-weight:600; color:#92400e; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:8px;">${esc(T("feedback.cardRequestCuratedHeader", "Параметры curated-заявки"))}</div>
+      <label style="display:block; font-size:12px; font-weight:600; color:#0f172a; margin-bottom:4px;">${esc(T("feedback.cardRequestVoiceLabel", "Предпочитаемый голос / темп (необязательно)"))}</label>
+      <input id="v3FbCrVoice" type="text" placeholder="${esc(T("feedback.cardRequestVoicePh", "напр. медленный голос для начинающих"))}" style="width:100%; padding:6px 10px; border:1px solid #fde68a; border-radius:6px; font-family:inherit; font-size:12.5px; box-sizing:border-box; margin-bottom:8px;" />
+      <label style="display:block; font-size:12px; font-weight:600; color:#0f172a; margin-bottom:4px;">${esc(T("feedback.cardRequestReturnChannelLabel", "Канал получения готового ZIP"))}</label>
+      <select id="v3FbCrReturnChannel" style="width:100%; padding:6px 10px; border:1px solid #fde68a; border-radius:6px; font-family:inherit; font-size:12.5px; box-sizing:border-box;">
+        <option value="whatsapp">${esc(T("feedback.cardRequestReturnWa", "WhatsApp"))}</option>
+        <option value="email">${esc(T("feedback.cardRequestReturnEmail", "Email"))}</option>
+      </select>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      <button class="v3-fb-cta-btn" id="v3FbCrSubmitBtn" onclick="v3FbCardRequestSubmit()">${esc(T("feedback.cardRequestSubmitStandard", "▶ Перейти в builder"))}</button>
+      <button class="v3-fb-secondary-btn" onclick="v3FbGoTriage()">${esc(T("feedback.cancelBtn", "Отмена"))}</button>
+    </div>
+    <div id="v3FbCrStatus" style="margin-top:10px; font-size:12.5px;"></div>
+  `;
+}
+window.v3FbRenderCardRequest = v3FbRenderCardRequest;
+
+function v3FbCardRequestOnQualityChange() {
+  const q = (document.querySelector('input[name="v3FbCrQuality"]:checked') || {}).value || 'standard';
+  const curated = document.getElementById('v3FbCrCuratedFields');
+  const btn = document.getElementById('v3FbCrSubmitBtn');
+  if (curated) curated.style.display = (q === 'curated') ? '' : 'none';
+  if (btn) {
+    btn.textContent = q === 'curated'
+      ? v3FbT("feedback.cardRequestSubmitCurated", "📨 Отправить заявку в WhatsApp")
+      : v3FbT("feedback.cardRequestSubmitStandard", "▶ Перейти в builder");
+  }
+}
+window.v3FbCardRequestOnQualityChange = v3FbCardRequestOnQualityChange;
+
+// localStorage-based history for text-card requests (mirror of feedbackHistory_v1 pattern).
+const V3_TC_REQUESTS_KEY = 'textCardRequests_v1';
+function v3FbCardRequestSaveHistory(entry) {
+  try {
+    const arr = JSON.parse(localStorage.getItem(V3_TC_REQUESTS_KEY) || '[]');
+    if (Array.isArray(arr)) {
+      arr.unshift(entry);
+      // Keep last 50.
+      while (arr.length > 50) arr.pop();
+      localStorage.setItem(V3_TC_REQUESTS_KEY, JSON.stringify(arr));
+    }
+  } catch (_) {}
+}
+function v3FbCardRequestListHistory() {
+  try {
+    const arr = JSON.parse(localStorage.getItem(V3_TC_REQUESTS_KEY) || '[]');
+    return Array.isArray(arr) ? arr : [];
+  } catch (_) { return []; }
+}
+window.v3FbCardRequestListHistory = v3FbCardRequestListHistory;
+
+function v3FbCardRequestSubmit() {
+  const textEl    = document.getElementById('v3FbCrText');
+  const ctxEl     = document.getElementById('v3FbCrContext');
+  const voiceEl   = document.getElementById('v3FbCrVoice');
+  const chanEl    = document.getElementById('v3FbCrReturnChannel');
+  const statusEl  = document.getElementById('v3FbCrStatus');
+  const text  = String(textEl ? textEl.value : '').trim();
+  const ctx   = String(ctxEl  ? ctxEl.value  : '').trim();
+  const voice = String(voiceEl ? voiceEl.value : '').trim();
+  const chan  = String(chanEl ? chanEl.value : 'whatsapp');
+  const quality = (document.querySelector('input[name="v3FbCrQuality"]:checked') || {}).value || 'standard';
+  if (!text) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:#b91c1c;">' + v3EscapeHtml(v3FbT("feedback.cardRequestEmpty", "Введите иврит-текст")) + '</span>';
+    return;
+  }
+
+  if (quality === 'standard') {
+    // Standard branch (D2): NOT sent to developer. Close feedback, open
+    // Mode A builder with the text pre-filled in the first job. The user
+    // proceeds through the normal self-service flow.
+    v3FbCardRequestSaveHistory({
+      id: 'tcr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+      quality: 'standard',
+      created_at: new Date().toISOString(),
+      title_hint: text.slice(0, 60),
+      source_label: ctx ? ctx.slice(0, 60) : null,
+      status: 'redirected_to_builder',
+    });
+    try { v3FeedbackClose(); } catch (_) {}
+    setTimeout(() => {
+      try {
+        v3TextCardBuilderOpen({
+          sourceText: text,
+          title: '',
+          source: ctx || '',
+          level: '',
+        });
+      } catch (e) { console.warn('[fb-cr] redirect to builder failed', e); }
+    }, 80);
+    return;
+  }
+
+  // Curated branch: WhatsApp deep-link with structured metadata.
+  const tplLines = [
+    '[LinguistPro Card Request]',
+    'Quality: curated',
+    voice ? 'Voice/Pace: ' + voice : null,
+    'Return: ' + (chan === 'email' ? 'Email' : 'WhatsApp'),
+    ctx   ? 'Context: ' + ctx : null,
+    'Text: ' + (text.length > 200 ? text.slice(0, 200) + '… [full text follows]' : text),
+  ].filter(Boolean);
+  const message = tplLines.join('\n') + (text.length > 200 ? '\n\n--- FULL TEXT ---\n' + text : '');
+
+  v3FbCardRequestSaveHistory({
+    id: 'tcr-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+    quality: 'curated',
+    created_at: new Date().toISOString(),
+    title_hint: text.slice(0, 60),
+    source_label: ctx ? ctx.slice(0, 60) : null,
+    voice: voice || null,
+    return_channel: chan,
+    status: 'sent',
+  });
+
+  try {
+    v3FbOpenWhatsAppWithConfirm(message);
+  } catch (e) {
+    console.warn('[fb-cr] whatsapp deep-link failed', e);
+    if (statusEl) statusEl.innerHTML = '<span style="color:#b91c1c;">' + v3EscapeHtml(String(e.message || e)) + '</span>';
+    return;
+  }
+  if (statusEl) statusEl.innerHTML = '<span style="color:#15803d;">' + v3EscapeHtml(v3FbT("feedback.cardRequestCuratedSent", "Заявка отправлена. История доступна в разделе «История».")) + '</span>';
+}
+window.v3FbCardRequestSubmit = v3FbCardRequestSubmit;
 
 function v3FbRenderAck() {
   const T = v3FbT;
@@ -33846,10 +34032,19 @@ function v3TcbNewJob() {
   };
 }
 
-function v3TextCardBuilderOpen() {
+function v3TextCardBuilderOpen(prefill) {
   const modal = document.getElementById('v3TextCardBuilderModal');
   if (!modal) return;
-  if (v3TcbState.jobs.length === 0) {
+  // Direction 10 Mode C — Standard branch can pre-fill the first job with
+  // Hebrew text + meta from the user's cardrequest form.
+  if (prefill && typeof prefill === 'object' && String(prefill.sourceText || '').trim()) {
+    const job = v3TcbNewJob();
+    job.sourceText = String(prefill.sourceText || '');
+    job.title      = String(prefill.title      || '');
+    job.level      = String(prefill.level      || '');
+    job.source     = String(prefill.source     || '');
+    v3TcbState.jobs = [job];
+  } else if (v3TcbState.jobs.length === 0) {
     v3TcbState.jobs.push(v3TcbNewJob());
   }
   v3TcbState.allDone = false;
