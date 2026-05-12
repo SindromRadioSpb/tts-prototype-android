@@ -4421,53 +4421,186 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 .v3-diag-bar-fill.warn { background: #ff9800; }
 .v3-diag-bar-fill.crit { background: #f44336; }
   	  
-	  /* --------------------------------------------------------
-   W10-NOTES-UX-MD-01: Notes Markdown toolbar + safe preview
--------------------------------------------------------- */
+	  /* ──────────────────────────────────────────────────────────────────
+   Phase 9.3.5 R2 — WYSIWYG note editor
+   Compact icon-only toolbar + contenteditable surface + selection bubble.
+   Replaces the old W10-NOTES-UX-MD-01 textarea-with-preview split.
+   The .v3-notes-md-preview class is also kept (used by the feedback form
+   for its own preview pane via v3NotesMdToSafeHtml).
+   ────────────────────────────────────────────────────────────────── */
 .v3-notes-md { flex: 1; min-width: 0; }
 
-.v3-notes-md-toolbar {
+/* Compact toolbar — icons only, ~28 px buttons, no full-width sprawl. */
+.v3-notes-md-toolbar-compact {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 2px;
   align-items: center;
-  margin: 6px 0 10px 0;
-}
-
-.v3-notes-md-btn {
-  padding: 6px 10px;
+  margin: 6px 0 8px 0;
+  padding: 4px;
+  background: var(--theme-bg-muted, #f8fafc);
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
   border-radius: 8px;
-  font-weight: 800;
-  line-height: 1;
+}
+.v3-notes-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text-primary, #0f172a);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background 0.12s;
+}
+.v3-notes-edit-btn:hover { background: var(--theme-bg-hover, #f1f5f9); }
+.v3-notes-edit-btn:active { background: var(--theme-border-soft); }
+.v3-notes-edit-btn:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 1px;
+}
+.v3-notes-edit-btn b { font-weight: 800; }
+.v3-notes-edit-btn i { font-style: italic; font-weight: 600; }
+.v3-notes-edit-btn-sep {
+  display: inline-block;
+  width: 1px;
+  height: 18px;
+  background: var(--theme-border-soft);
+  margin: 0 4px;
 }
 
 .v3-notes-md-split {
-  display: flex;
-  gap: 10px;
-  align-items: stretch;
+  display: block; /* no more split — single column editor */
 }
 
-#v3NotesText {
-  flex: 1;
-  min-height: 240px;
-  resize: vertical;
+/* The WYSIWYG editor itself — contenteditable div. Hebrew RTL works
+   natively via dir="auto" on the element + per-block bidi. */
+.v3-notes-editor {
+  min-height: 200px;
+  max-height: 480px;
+  overflow-y: auto;
   border: 1px solid var(--theme-border-soft, #e6e9ef);
   border-radius: 10px;
   outline: none;
-  padding: 10px;
+  padding: 12px 14px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 14.5px;
+  line-height: 1.55;
   background: var(--theme-bg-card, #fff);
   color: var(--theme-text-primary, #0f172a);
+  caret-color: var(--theme-accent, #2563eb);
+  transition: border-color 0.12s, box-shadow 0.12s;
 }
-
-/* --------------------------------------------------------
-   A2: Jump -> auto-open Notes modal + focus + highlight
-   -------------------------------------------------------- */
-#v3NotesText.v3-notes-focus-flash {
+.v3-notes-editor:focus-visible,
+.v3-notes-editor:focus-within {
+  border-color: var(--theme-accent, #2563eb);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+/* Placeholder shown when editor is empty — premium pattern via :empty + before */
+.v3-notes-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--theme-text-faint, #94a3b8);
+  pointer-events: none;
+  font-style: italic;
+}
+/* A2 jump-focus flash retained */
+.v3-notes-editor.v3-notes-focus-flash {
   border-color: #f59e0b;
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
 }
+/* Inline formats inside the editor — match the preview look so styling is
+   consistent if any code path renders via v3NotesMdToSafeHtml. */
+.v3-notes-editor p { margin: 0 0 8px 0; }
+.v3-notes-editor p:last-child { margin-bottom: 0; }
+.v3-notes-editor strong { font-weight: 700; }
+.v3-notes-editor em { font-style: italic; }
+.v3-notes-editor code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  border: 1px solid var(--theme-border-soft, #eef1f6);
+  background: var(--theme-bg-muted, #f8fafc);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+.v3-notes-editor mark {
+  background: #fef08a;
+  color: #854d0e;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+body.theme-dark .v3-notes-editor mark,
+body:not(.theme-light) .v3-notes-editor mark { background: #ca8a04; color: #fef9c3; }
+.v3-notes-editor h1, .v3-notes-editor h2, .v3-notes-editor h3 {
+  margin: 12px 0 6px 0;
+  font-weight: 700;
+}
+.v3-notes-editor h1 { font-size: 18px; }
+.v3-notes-editor h2 { font-size: 16px; }
+.v3-notes-editor h3 { font-size: 14.5px; }
+.v3-notes-editor ul, .v3-notes-editor ol {
+  margin: 6px 0 8px 18px;
+  padding-left: 14px;
+}
+.v3-notes-editor li { margin: 2px 0; }
+.v3-notes-editor blockquote {
+  margin: 8px 0;
+  padding: 6px 12px;
+  border-left: 3px solid var(--theme-border-medium, #cbd5e1);
+  background: var(--theme-bg-muted, #f8fafc);
+  border-radius: 0 6px 6px 0;
+  color: var(--theme-text-secondary);
+}
+.v3-notes-editor pre {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--theme-bg-muted);
+  border: 1px solid var(--theme-border-soft);
+  overflow-x: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 12.5px;
+}
+.v3-notes-editor a {
+  color: var(--theme-accent, #2563eb);
+  text-decoration: underline;
+}
+
+/* Floating selection bubble — appears above selected text. Premium pattern
+   (Medium/Notion). Positioned absolutely by v3NotesEditorOnSelectionChange. */
+.v3-notes-edit-bubble {
+  position: fixed;
+  z-index: 100000;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--theme-bg-page, #0f172a);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.30), 0 1px 3px rgba(0,0,0,0.1);
+  pointer-events: auto;
+}
+.v3-notes-edit-bubble-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: #f1f5f9;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: inherit;
+  transition: background 0.12s;
+}
+.v3-notes-edit-bubble-btn:hover { background: rgba(255,255,255,0.12); }
+.v3-notes-edit-bubble-btn b { font-weight: 800; }
+.v3-notes-edit-bubble-btn i { font-style: italic; font-weight: 600; }
 
 .v3-notes-sentence-ctx {
   margin: 10px 0 0 0;
@@ -4479,9 +4612,12 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   line-height: 1.35;
 }
 
+/* The .v3-notes-md-preview class is reused by the feedback bug-report form
+   for its own preview pane (via v3NotesMdToSafeHtml). Keep these rules so
+   that form continues to look right. */
 .v3-notes-md-preview {
   flex: 1;
-  min-height: 240px;
+  min-height: 200px;
   border: 1px solid var(--theme-border-soft, #e6e9ef);
   border-radius: 10px;
   padding: 10px;
@@ -4489,17 +4625,15 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   background: var(--theme-bg-card, #fff);
   color: var(--theme-text-primary, #0f172a);
 }
-
 .v3-notes-md-preview code {
   padding: 1px 6px;
   border-radius: 8px;
   border: 1px solid var(--theme-border-soft, #eef1f6);
   background: var(--theme-bg-muted, #f8fafc);
   color: var(--theme-text-primary, #0f172a);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
 }
-
 .v3-notes-md-preview pre {
   padding: 10px;
   border-radius: 10px;
@@ -4508,7 +4642,6 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   color: var(--theme-text-primary, #0f172a);
   overflow: auto;
 }
-
 .v3-notes-md-preview blockquote {
   margin: 8px 0;
   padding: 8px 10px;
@@ -4517,7 +4650,6 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   color: var(--theme-text-secondary, #475569);
   border-radius: 8px;
 }
-
 .v3-notes-md-preview h1 { font-size: 18px; margin: 10px 0 6px 0; }
 .v3-notes-md-preview h2 { font-size: 16px; margin: 10px 0 6px 0; }
 .v3-notes-md-preview h3 { font-size: 14px; margin: 10px 0 6px 0; }
@@ -4526,8 +4658,40 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 .v3-notes-md-preview ol { margin: 8px 0 8px 18px; }
 .v3-notes-md-preview mark { padding: 0 4px; border-radius: 6px; }
 
+/* History sidebar — floating mode (lifted out of v3-notes-md-split) */
+.v3-notes-history-sidebar-floating {
+  position: absolute;
+  top: 60px;
+  right: 12px;
+  width: 320px;
+  max-height: 60vh;
+  z-index: 100;
+  background: var(--theme-bg-card);
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+body.theme-dark .v3-notes-history-sidebar-floating,
+body:not(.theme-light) .v3-notes-history-sidebar-floating {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+}
 @media (max-width: 780px) {
-  .v3-notes-md-split { flex-direction: column; }
+  .v3-notes-history-sidebar-floating {
+    position: fixed;
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 12px 12px 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-edit-btn, .v3-notes-editor, .v3-notes-edit-bubble-btn { transition: none; }
 }
 
 /* -----------------------------------------
@@ -9703,51 +9867,77 @@ body:not(.theme-light) .v3-heatmap-cell {
         </div>
       </div>
 
+      <!-- Phase 9.3.5 R2 — WYSIWYG free-note editor. The hidden <textarea>
+           id="v3NotesText" keeps existing API consumers (.value getters,
+           dirty tracking, char counter) working; the visible contenteditable
+           div is the editing surface. They stay in sync via input/blur
+           handlers: editor → v3NotesHtmlToMd → textarea.value (markdown),
+           and on open: textarea.value → v3NotesMdToSafeHtml → editor.innerHTML.
+           Compact icon-only toolbar (~28 px). Floating selection bubble
+           appears when text is selected. Preview pane + legend removed —
+           formatting is WYSIWYG. -->
       <div class="v3-form-row" style="align-items:flex-start;">
-  <label for="v3NotesText" style="padding-top:10px;" data-i18n="notes.bodyLabel">Заметка</label>
+  <label for="v3NotesEditor" style="padding-top:10px;" data-i18n="notes.bodyLabel">Заметка</label>
 
   <div id="v3NotesMdWrap" class="v3-notes-md">
     <!-- Optional title (used by non-free templates; hidden by default for free notes) -->
     <input type="text" id="v3NotesTitleInput" class="v3-notes-title-input" placeholder="" maxlength="200" style="display:none;" />
 
-    <div class="v3-notes-md-toolbar" data-i18n-aria-label="notes.toolbarAriaLabel" aria-label="Markdown панель форматирования">
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('bold')" data-i18n-title="notes.mdBoldTitle" title="Жирный (**текст**)" aria-label="Жирный">B</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('italic')" data-i18n-title="notes.mdItalicTitle" title="Курсив (*текст*)" aria-label="Курсив"><span style="font-style:italic;">I</span></button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('code')" data-i18n-title="notes.mdCodeTitle" title="Inline-код (`код`)" aria-label="Код">{ }</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('highlight')" data-i18n-title="notes.mdHighlightTitle" title="Выделение (==текст==)" aria-label="Выделение">HL</button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('ul')" data-i18n-title="notes.mdListTitle" title="Список (- пункт)" aria-label="Список">• <span data-i18n="notes.mdListBtn">Список</span></button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('quote')" data-i18n-title="notes.mdQuoteTitle" title="Цитата (&gt; текст)" aria-label="Цитата">&gt; <span data-i18n="notes.mdQuoteBtn">Цитата</span></button>
-      <button type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdCmd('link')" data-i18n-title="notes.mdLinkTitle" title="Ссылка ([текст](https://...))" aria-label="Ссылка"><span data-i18n="notes.mdLinkBtn">Ссылка</span></button>
-
-      <button id="v3NotesPreviewToggleBtn" type="button" class="btn-secondary v3-notes-md-btn" onclick="v3NotesMdTogglePreview()" data-i18n-title="notes.mdPreviewTitle" title="Переключить предпросмотр" aria-label="Предпросмотр"><span data-i18n="notes.mdPreviewBtn">Preview</span></button>
+    <div class="v3-notes-md-toolbar v3-notes-md-toolbar-compact" data-i18n-aria-label="notes.toolbarAriaLabel" aria-label="Панель форматирования">
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('bold')" data-i18n-title="notes.editor.boldTitle" title="Жирный (Ctrl+B)" aria-label="Жирный"><b>B</b></button>
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('italic')" data-i18n-title="notes.editor.italicTitle" title="Курсив (Ctrl+I)" aria-label="Курсив"><i>I</i></button>
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('code')" data-i18n-title="notes.editor.codeTitle" title="Код" aria-label="Код"><span style="font-family:ui-monospace,Consolas,monospace;">&lt;/&gt;</span></button>
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('highlight')" data-i18n-title="notes.editor.highlightTitle" title="Выделение" aria-label="Выделение"><span style="background:#fef08a;color:#854d0e;padding:0 3px;border-radius:3px;font-size:11px;">HL</span></button>
+      <span class="v3-notes-edit-btn-sep" aria-hidden="true"></span>
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('h2')" data-i18n-title="notes.editor.headingTitle" title="Заголовок" aria-label="Заголовок"><span style="font-weight:700;">H</span></button>
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('ul')" data-i18n-title="notes.editor.ulTitle" title="Список" aria-label="Список">•</button>
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('quote')" data-i18n-title="notes.editor.quoteTitle" title="Цитата" aria-label="Цитата">❝</button>
+      <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('link')" data-i18n-title="notes.editor.linkTitle" title="Ссылка" aria-label="Ссылка">🔗</button>
     </div>
 
     <div class="v3-notes-md-split">
       <div class="v3-notes-md-editor-col">
-        <textarea id="v3NotesText"
-                  maxlength="65536"
-                  placeholder="Напишите заметку к этой строке (сохранится по sentence_id)"></textarea>
+        <div id="v3NotesEditor"
+             class="v3-notes-editor"
+             contenteditable="true"
+             dir="auto"
+             spellcheck="true"
+             role="textbox"
+             aria-multiline="true"
+             data-i18n-placeholder="notes.editor.placeholder"
+             data-placeholder="Напишите заметку…"></div>
+        <!-- Hidden textarea — markdown buffer + char counter source. Kept in
+             sync with the editor on every input/blur. Preserves old API. -->
+        <textarea id="v3NotesText" maxlength="65536" aria-hidden="true" tabindex="-1" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;"></textarea>
         <div id="v3NotesCharCounter" class="v3-notes-char-counter" aria-live="polite">0 / 65536</div>
       </div>
-
-      <div id="v3NotesPreview" class="v3-notes-md-preview hidden" aria-label="Markdown preview"></div>
-
-      <!-- Phase 9.1.C Stage D: history sidebar -->
-      <aside id="v3NotesHistorySidebar" class="v3-notes-history-sidebar hidden" data-i18n-aria-label="notes.historyAriaLabel" aria-label="История версий заметки">
-        <div class="v3-notes-history-header">
-          <span data-i18n="notes.historyTitle">История</span>
-          <button type="button" class="btn-secondary v3-notes-history-close" onclick="v3NotesHistoryClose()" data-i18n-title="notes.historyCloseTitle" title="Закрыть историю" data-i18n-aria-label="notes.historyCloseTitle" aria-label="Закрыть историю">×</button>
-        </div>
-        <div id="v3NotesHistoryList" class="v3-notes-history-list">
-          <div class="v3-notes-history-empty" data-i18n="notes.historyEmpty">Нет версий — сохраните хотя бы один раз.</div>
-        </div>
-      </aside>
-    </div>
-
-    <div class="v3-help" style="margin-top:8px;" data-i18n-html="notes.mdLegend">
-      Markdown: <b>**жирный**</b>, <i>*курсив*</i>, <code>`код`</code>, <mark>==выделение==</mark>, <b>-</b> список, <b>&gt;</b> цитата, <b>[текст](https://...)</b>
     </div>
   </div>
+</div>
+
+<!-- Phase 9.3.5 R2 — History sidebar LIFTED OUT of v3-notes-md-split (was
+     hidden together with the markdown editor when template forms were
+     shown — Bug 1.2). Now a sibling of the body; visible regardless of
+     note_type. -->
+<aside id="v3NotesHistorySidebar" class="v3-notes-history-sidebar hidden v3-notes-history-sidebar-floating" data-i18n-aria-label="notes.historyAriaLabel" aria-label="История версий заметки">
+  <div class="v3-notes-history-header">
+    <span data-i18n="notes.historyTitle">История</span>
+    <button type="button" class="btn-secondary v3-notes-history-close" onclick="v3NotesHistoryClose()" data-i18n-title="notes.historyCloseTitle" title="Закрыть историю" data-i18n-aria-label="notes.historyCloseTitle" aria-label="Закрыть историю">×</button>
+  </div>
+  <div id="v3NotesHistoryList" class="v3-notes-history-list">
+    <div class="v3-notes-history-empty" data-i18n="notes.historyEmpty">Нет версий — сохраните хотя бы один раз.</div>
+  </div>
+</aside>
+
+<!-- Phase 9.3.5 R2 — Floating selection bubble. Appears above selection
+     in the WYSIWYG editor when user selects text; offers quick B/I/code/
+     highlight/link without moving cursor to the static toolbar. -->
+<div id="v3NotesEditBubble" class="v3-notes-edit-bubble" style="display:none;" role="toolbar" aria-label="Форматирование выделенного">
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('bold')" title="Жирный"><b>B</b></button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('italic')" title="Курсив"><i>I</i></button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('code')" title="Код"><span style="font-family:ui-monospace;">&lt;/&gt;</span></button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('highlight')" title="Выделение">HL</button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('link')" title="Ссылка">🔗</button>
 </div>
 
       <!-- Phase 9.3.B — bidirectional links panel. Collapsible to keep the
@@ -31737,39 +31927,13 @@ function v3NotesSafeSetStatus(el, message, isError) {
 // - preview рендерим безопасно: raw HTML запрещён (escape + whitelist)
 // --------------------------------------------------------
 
-function v3NotesMdResetUi() {
-  try {
-    v3NotesPreviewVisible = false;
-    const pv = v3NotesEl("v3NotesPreview");
-    const btn = v3NotesEl("v3NotesPreviewToggleBtn");
-    if (pv) {
-      pv.classList.add("hidden");
-      pv.innerHTML = "";
-    }
-    if (btn) btn.textContent = "Preview";
-  } catch (_) {}
-}
-
-function v3NotesMdTogglePreview() {
-  try {
-    v3NotesPreviewVisible = !v3NotesPreviewVisible;
-    const pv = v3NotesEl("v3NotesPreview");
-    const btn = v3NotesEl("v3NotesPreviewToggleBtn");
-    if (pv) pv.classList.toggle("hidden", !v3NotesPreviewVisible);
-    if (btn) btn.textContent = v3NotesPreviewVisible ? "Edit" : "Preview";
-    if (v3NotesPreviewVisible) v3NotesMdRenderPreview();
-  } catch (_) {}
-}
-
-function v3NotesMdRenderPreview() {
-  try {
-    const pv = v3NotesEl("v3NotesPreview");
-    const ta = v3NotesEl("v3NotesText");
-    if (!pv || !ta) return;
-    const md = String(ta.value ?? "");
-    pv.innerHTML = v3NotesMdToSafeHtml(md);
-  } catch (_) {}
-}
+// Phase 9.3.5 R2 — preview pane removed (WYSIWYG editor shows formatted
+// output directly). Stubs kept as no-ops in case any straggler call site
+// references them; will be deleted in R6 cleanup along with the feedback
+// form's now-orphan preview toggle.
+function v3NotesMdResetUi() { /* no preview to reset post-R2 */ }
+function v3NotesMdTogglePreview() { /* preview pane removed in R2 */ }
+function v3NotesMdRenderPreview() { /* no preview pane; WYSIWYG editor renders inline */ }
 
 function v3NotesMdEscapeHtml(s) {
   return String(s ?? "")
@@ -33116,17 +33280,16 @@ async function v3NotesLoadFullNoteIntoModal() {
 
     // Body — markdown for free, structured for templated.
     if (newType === "free") {
-      const ta = v3NotesEl("v3NotesText");
-      if (ta) {
-        try {
-          const parsed = row.body_json ? JSON.parse(row.body_json) : {};
-          const md = (parsed && typeof parsed === "object" && typeof parsed.markdown === "string")
-            ? parsed.markdown
-            : String(row.body_json || "");
-          v3NotesSafeSetTextareaValue(ta, md);
-          v3NotesModalOriginalText = md;
-        } catch (_) {}
-      }
+      try {
+        const parsed = row.body_json ? JSON.parse(row.body_json) : {};
+        const md = (parsed && typeof parsed === "object" && typeof parsed.markdown === "string")
+          ? parsed.markdown
+          : String(row.body_json || "");
+        // Phase 9.3.5 R2 — load via WYSIWYG bridge so both editor +
+        // hidden textarea pick up the markdown body.
+        v3NotesEditorLoadFromMarkdown(md);
+        v3NotesModalOriginalText = md;
+      } catch (_) {}
     } else {
       // Hydrate the template form from parsed body_json.
       try {
@@ -33455,6 +33618,374 @@ function v3NotesCancelAutoSave() {
     v3NotesAutoSaveTimer = null;
   }
 }
+
+// ── Phase 9.3.5 R2 — WYSIWYG free-note editor ──────────────────────────────
+
+// Bridge between the visible contenteditable div #v3NotesEditor and the
+// hidden <textarea> #v3NotesText that the existing dirty-tracking + save
+// pipeline reads from. Editor → markdown → textarea on every input/blur.
+// Hidden textarea remains the markdown source of truth for storage.
+
+function v3NotesEditorEl()  { return document.getElementById("v3NotesEditor"); }
+function v3NotesEditorTa()  { return document.getElementById("v3NotesText"); }
+
+// Convert editor's contenteditable HTML back to the same markdown subset
+// that v3NotesMdToSafeHtml consumes. Roundtrip safe: render → save →
+// render produces visually equivalent output.
+function v3NotesHtmlToMd(html) {
+  try {
+    if (!html) return "";
+    const tpl = document.createElement("div");
+    tpl.innerHTML = String(html);
+    return _v3MdSerializeNode(tpl).replace(/\n{3,}/g, "\n\n").trim();
+  } catch (e) {
+    console.warn("v3NotesHtmlToMd failed:", e && e.message);
+    return "";
+  }
+}
+function _v3MdSerializeNode(node) {
+  let out = "";
+  for (const child of Array.from(node.childNodes)) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      out += child.textContent;
+    } else if (child.nodeType === Node.ELEMENT_NODE) {
+      out += _v3MdSerializeElement(child);
+    }
+  }
+  return out;
+}
+function _v3MdSerializeElement(el) {
+  const tag = el.tagName.toLowerCase();
+  switch (tag) {
+    case "br":         return "\n";
+    case "p":          return _v3MdSerializeNode(el) + "\n\n";
+    case "div":        return _v3MdSerializeNode(el) + "\n";
+    case "strong":
+    case "b":          return "**" + _v3MdSerializeNode(el) + "**";
+    case "em":
+    case "i":          return "*"  + _v3MdSerializeNode(el) + "*";
+    case "code":       return "`"  + el.textContent + "`";
+    case "mark":       return "==" + _v3MdSerializeNode(el) + "==";
+    case "h1":         return "# "   + _v3MdSerializeNode(el) + "\n\n";
+    case "h2":         return "## "  + _v3MdSerializeNode(el) + "\n\n";
+    case "h3":         return "### " + _v3MdSerializeNode(el) + "\n\n";
+    case "blockquote": {
+      const inner = _v3MdSerializeNode(el).trim();
+      return inner.split(/\n/).map((l) => "> " + l).join("\n") + "\n\n";
+    }
+    case "ul": {
+      const items = Array.from(el.children)
+        .filter((c) => c.tagName.toLowerCase() === "li")
+        .map((li) => "- " + _v3MdSerializeNode(li).trim())
+        .join("\n");
+      return items + "\n\n";
+    }
+    case "ol": {
+      const items = Array.from(el.children)
+        .filter((c) => c.tagName.toLowerCase() === "li")
+        .map((li, i) => (i + 1) + ". " + _v3MdSerializeNode(li).trim())
+        .join("\n");
+      return items + "\n\n";
+    }
+    case "li":         return _v3MdSerializeNode(el);
+    case "pre":        return "```\n" + el.textContent + "\n```\n\n";
+    case "a": {
+      const href = el.getAttribute("href") || "";
+      return "[" + _v3MdSerializeNode(el) + "](" + href + ")";
+    }
+    default:           return _v3MdSerializeNode(el);
+  }
+}
+window.v3NotesHtmlToMd = v3NotesHtmlToMd;
+
+// Sync editor → hidden textarea (markdown). Fires textarea's input event
+// so existing dirty-tracking / char-counter / auto-save pipelines keep
+// working. Called on input + blur.
+function v3NotesEditorSyncToTextarea() {
+  const ed = v3NotesEditorEl();
+  const ta = v3NotesEditorTa();
+  if (!ed || !ta) return;
+  const md = v3NotesHtmlToMd(ed.innerHTML);
+  if (ta.value !== md) {
+    ta.value = md;
+    try { ta.dispatchEvent(new Event("input", { bubbles: true })); } catch (_) {}
+  }
+}
+window.v3NotesEditorSyncToTextarea = v3NotesEditorSyncToTextarea;
+
+// Reverse direction — load markdown into editor as rendered HTML. Called
+// when modal opens an existing note (or after a Convert flow).
+function v3NotesEditorLoadFromMarkdown(md) {
+  const ed = v3NotesEditorEl();
+  const ta = v3NotesEditorTa();
+  if (!ed) return;
+  const safeHtml = (typeof v3NotesMdToSafeHtml === "function") ? v3NotesMdToSafeHtml(String(md || "")) : "";
+  ed.innerHTML = safeHtml;
+  if (ta) ta.value = String(md || "");
+}
+window.v3NotesEditorLoadFromMarkdown = v3NotesEditorLoadFromMarkdown;
+
+// Apply a formatting command to the current selection. Uses execCommand
+// for browser-native ops (bold/italic/list/quote/heading); falls back to
+// Selection+Range DOM manipulation for our custom highlight + code + link.
+function v3NotesEditorApplyFormat(kind) {
+  const ed = v3NotesEditorEl();
+  if (!ed) return;
+  // Ensure focus is in the editor (toolbar clicks shouldn't blur it but
+  // mobile sometimes drops focus on the button tap).
+  ed.focus({ preventScroll: true });
+
+  try {
+    switch (kind) {
+      case "bold":
+        document.execCommand("bold", false, null);
+        break;
+      case "italic":
+        document.execCommand("italic", false, null);
+        break;
+      case "h2":
+        document.execCommand("formatBlock", false, "h2");
+        break;
+      case "ul":
+        document.execCommand("insertUnorderedList", false, null);
+        break;
+      case "quote":
+        document.execCommand("formatBlock", false, "blockquote");
+        break;
+      case "code":
+        _v3EditorWrapSelection("code");
+        break;
+      case "highlight":
+        _v3EditorWrapSelection("mark");
+        break;
+      case "link":
+        _v3EditorInsertLink();
+        break;
+    }
+  } catch (e) { console.warn("Editor format failed", kind, e); }
+
+  v3NotesEditorSyncToTextarea();
+  // Refocus + reposition bubble.
+  setTimeout(() => v3NotesEditorOnSelectionChange(), 0);
+}
+window.v3NotesEditorApplyFormat = v3NotesEditorApplyFormat;
+
+// Wrap current selection in a tag. Used for <code> and <mark> where no
+// native execCommand exists.
+function _v3EditorWrapSelection(tagName) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) return; // nothing selected
+  // Detect if selection is already inside the same tag → unwrap.
+  const ancestor = range.commonAncestorContainer;
+  const parent = ancestor.nodeType === 1 ? ancestor : ancestor.parentNode;
+  if (parent && parent.closest && parent.closest(tagName)) {
+    // Unwrap (toggle off)
+    const wrapEl = parent.closest(tagName);
+    if (wrapEl) {
+      const frag = document.createDocumentFragment();
+      while (wrapEl.firstChild) frag.appendChild(wrapEl.firstChild);
+      wrapEl.parentNode.replaceChild(frag, wrapEl);
+    }
+    return;
+  }
+  const wrap = document.createElement(tagName);
+  try {
+    wrap.appendChild(range.extractContents());
+    range.insertNode(wrap);
+    // Move caret after the wrap
+    sel.removeAllRanges();
+    const after = document.createRange();
+    after.setStartAfter(wrap);
+    after.setEndAfter(wrap);
+    sel.addRange(after);
+  } catch (e) { console.warn("wrapSelection failed", e); }
+}
+
+function _v3EditorInsertLink() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  const linkText = range.collapsed
+    ? prompt(v3NotesT("notes.editor.linkPromptText", "Текст ссылки:"), "")
+    : range.toString();
+  if (range.collapsed && !linkText) return;
+  const url = prompt(v3NotesT("notes.editor.linkPromptUrl", "URL:"), "https://");
+  if (!url) return;
+  const safeUrl = (typeof v3NotesMdSafeUrl === "function") ? v3NotesMdSafeUrl(url) : "";
+  if (!safeUrl) {
+    showToast(v3NotesT("toast.notesLinkUrlInvalid", "Поддерживаются только http(s):// ссылки."), "warning");
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = safeUrl;
+  a.textContent = linkText || safeUrl;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  if (range.collapsed) {
+    range.insertNode(a);
+  } else {
+    range.deleteContents();
+    range.insertNode(a);
+  }
+  sel.removeAllRanges();
+  const after = document.createRange();
+  after.setStartAfter(a);
+  after.setEndAfter(a);
+  sel.addRange(after);
+}
+
+// Markdown-shortcut autoformat: detect `**bold**`, `*italic*`, `==hl==`,
+// `` `code` `` after they close, and `# `/`## `/`- `/`> ` at line start.
+// Replace them with the proper DOM elements + restore caret to end of
+// inserted node. Premium feel: invisible to the user — they just type.
+const V3_MD_SHORTCUTS = [
+  { re: /\*\*([^*\n]+)\*\*$/, tag: "strong" },
+  { re: /(?:^|[^*])\*([^*\n]+)\*$/, tag: "em", group: 1 },
+  { re: /==([^=\n]+)==$/, tag: "mark" },
+  { re: /`([^`\n]+)`$/, tag: "code" },
+];
+function v3NotesEditorMarkdownShortcuts(ev) {
+  try {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed) return;
+    const node = range.startContainer;
+    if (node.nodeType !== Node.TEXT_NODE) return;
+    const text = node.textContent || "";
+    const caret = range.startOffset;
+    const upto = text.slice(0, caret);
+
+    // Inline patterns — match at caret position
+    for (const sc of V3_MD_SHORTCUTS) {
+      const m = upto.match(sc.re);
+      if (!m) continue;
+      const inner = sc.group != null ? m[sc.group] : m[1];
+      const start = caret - m[0].length + (sc.group != null && m[0][0] !== "*" ? 1 : 0);
+      const end = caret;
+      const r = document.createRange();
+      r.setStart(node, start);
+      r.setEnd(node, end);
+      r.deleteContents();
+      const wrap = document.createElement(sc.tag);
+      wrap.textContent = inner;
+      r.insertNode(wrap);
+      // Insert a zero-width space after to let caret land outside the inline tag.
+      const trail = document.createTextNode("​");
+      wrap.parentNode.insertBefore(trail, wrap.nextSibling);
+      const newR = document.createRange();
+      newR.setStart(trail, 1);
+      newR.setEnd(trail, 1);
+      sel.removeAllRanges();
+      sel.addRange(newR);
+      return;
+    }
+
+    // Block-level patterns at line start: only fire after Space pressed.
+    if (ev && ev.inputType !== "insertText" && ev.data !== " ") return;
+    if (ev && ev.data !== " ") return;
+    // Determine if caret is at start-of-line + only the marker before it.
+    const lineStart = upto.lastIndexOf("\n") + 1;
+    const lineSoFar = upto.slice(lineStart);
+    let blockTag = null, prefixLen = 0;
+    if (/^#\s$/.test(lineSoFar))   { blockTag = "h1"; prefixLen = 2; }
+    if (/^##\s$/.test(lineSoFar))  { blockTag = "h2"; prefixLen = 3; }
+    if (/^###\s$/.test(lineSoFar)) { blockTag = "h3"; prefixLen = 4; }
+    if (/^-\s$/.test(lineSoFar))   { blockTag = "ul"; prefixLen = 2; }
+    if (/^>\s$/.test(lineSoFar))   { blockTag = "blockquote"; prefixLen = 2; }
+    if (!blockTag) return;
+
+    // Strip the marker characters from the text node + apply the block format.
+    const r = document.createRange();
+    r.setStart(node, caret - prefixLen);
+    r.setEnd(node, caret);
+    r.deleteContents();
+    if (blockTag === "ul") {
+      document.execCommand("insertUnorderedList", false, null);
+    } else {
+      document.execCommand("formatBlock", false, blockTag);
+    }
+  } catch (e) { /* silent — shortcut autoformat is best-effort */ }
+}
+
+// Selection-triggered floating bubble. Positioned above selection rect.
+function v3NotesEditorOnSelectionChange() {
+  try {
+    const bubble = document.getElementById("v3NotesEditBubble");
+    if (!bubble) return;
+    const ed = v3NotesEditorEl();
+    if (!ed) { bubble.style.display = "none"; return; }
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) { bubble.style.display = "none"; return; }
+    const range = sel.getRangeAt(0);
+    if (!ed.contains(range.commonAncestorContainer)) { bubble.style.display = "none"; return; }
+    const rect = range.getBoundingClientRect();
+    if (!rect || (!rect.width && !rect.height)) { bubble.style.display = "none"; return; }
+    bubble.style.display = "flex";
+    // Position above selection; flip below if no space.
+    const bubbleW = bubble.offsetWidth || 220;
+    const bubbleH = bubble.offsetHeight || 36;
+    let left = rect.left + (rect.width / 2) - (bubbleW / 2);
+    let top = rect.top - bubbleH - 8;
+    if (top < 8) top = rect.bottom + 8;
+    if (left < 8) left = 8;
+    if (left + bubbleW > window.innerWidth - 8) left = window.innerWidth - bubbleW - 8;
+    bubble.style.left = left + "px";
+    bubble.style.top = top + "px";
+  } catch (_) {}
+}
+window.v3NotesEditorOnSelectionChange = v3NotesEditorOnSelectionChange;
+
+// Sanitize paste: strip HTML, paste as plain text. Prevents weird styles
+// + script tags from leaking in. Future: allow a whitelist of basic
+// formats from Office/Docs pastes (out of scope for v3.2).
+function v3NotesEditorOnPaste(ev) {
+  try {
+    ev.preventDefault();
+    const text = (ev.clipboardData || window.clipboardData).getData("text/plain");
+    document.execCommand("insertText", false, text);
+    v3NotesEditorSyncToTextarea();
+  } catch (e) { console.warn("editor paste failed", e); }
+}
+window.v3NotesEditorOnPaste = v3NotesEditorOnPaste;
+
+// Hotkeys: Ctrl/Cmd+B/I → bold/italic. Already in the toolbar but power
+// users expect these to work as universal text shortcuts.
+function v3NotesEditorOnKeyDown(ev) {
+  if (!(ev.ctrlKey || ev.metaKey)) return;
+  const k = String(ev.key || "").toLowerCase();
+  if (k === "b") { ev.preventDefault(); v3NotesEditorApplyFormat("bold"); }
+  else if (k === "i") { ev.preventDefault(); v3NotesEditorApplyFormat("italic"); }
+}
+window.v3NotesEditorOnKeyDown = v3NotesEditorOnKeyDown;
+
+// One-time editor init. Idempotent — safe to call on every modal open.
+let v3NotesEditorInitialized = false;
+function v3NotesEditorInit() {
+  if (v3NotesEditorInitialized) return;
+  const ed = v3NotesEditorEl();
+  if (!ed) return;
+  ed.addEventListener("input", function (ev) {
+    v3NotesEditorMarkdownShortcuts(ev);
+    v3NotesEditorSyncToTextarea();
+  });
+  ed.addEventListener("blur", v3NotesEditorSyncToTextarea);
+  ed.addEventListener("paste", v3NotesEditorOnPaste);
+  ed.addEventListener("keydown", v3NotesEditorOnKeyDown);
+  document.addEventListener("selectionchange", v3NotesEditorOnSelectionChange);
+  // Hide bubble when clicking outside selection (e.g. clicking elsewhere).
+  document.addEventListener("mousedown", function (ev) {
+    const bubble = document.getElementById("v3NotesEditBubble");
+    if (bubble && !bubble.contains(ev.target)) {
+      // Will be re-shown by next selectionchange if a selection exists.
+      setTimeout(() => v3NotesEditorOnSelectionChange(), 0);
+    }
+  });
+  v3NotesEditorInitialized = true;
+}
+window.v3NotesEditorInit = v3NotesEditorInit;
 
 // ── Phase 9.3.5 R1 — Intent quick-pick + token picker + locked-info badges ──
 
@@ -33998,6 +34529,9 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
 try { v3NotesMdResetUi(); } catch (_) {}
 
   // Phase 9.3.5 R1 — locked badges replace segmented controls.
+  // Phase 9.3.5 R2 — init WYSIWYG editor (idempotent) + sync from textarea.
+  try { v3NotesEditorInit(); } catch (_) {}
+  try { v3NotesEditorLoadFromMarkdown(existing || ""); } catch (_) {}
   try { v3NotesUpdateDataset(); } catch (_) {}
   try { v3NotesUpdateLockedBadges(); } catch (_) {}
   try { v3NotesUpdateModalTitle(); } catch (_) {}
