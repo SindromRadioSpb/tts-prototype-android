@@ -54,11 +54,44 @@ Researcher token (plaintext — SAVE NOW, NOT STORED ON DISK):
   abc123def456ghi789jkl0
 ```
 
-**SAVE THE TOKEN IMMEDIATELY.** It's a sha256-hashed at rest (`cohort_meta.researcher_token_hash`) — there's no way to recover plaintext from server.
+**SAVE THE TOKEN IMMEDIATELY.** It's sha256-hashed at rest (`cohort_meta.researcher_token_hash`) — there's no way to recover plaintext from server.
 
-If lost, you can:
-1. Provision a new cohort with a new token (preferred for new studies).
-2. Manually edit `<RESEARCH_DATA_DIR>/<cohort>/cohort_meta.json` `researcher_token_hash` field with sha256 of a new plaintext.
+### 2.1.1 Token rotation
+
+Если researcher token compromised (попал в screenshot, leaked через chat,
+etc.), действуйте по одной из двух процедур:
+
+**Procedure A — provision a fresh cohort (preferred для new study).**
+
+```bash
+node scripts/research/create_cohort.js --code ULPAN-A-W2026-V2 --retention-days 730
+```
+
+Старая когорта (`ULPAN-A-W2026`) остаётся read-only с историческими данными;
+студенты переходят на `-V2` через в-app смену cohort code (📊 → "🔁 Сменить
+когорту"). Новый token не пересекается со старым.
+
+**Procedure B — rotate token in place (когорта уже работает; не хотим
+мигрировать студентов).**
+
+```bash
+# 1. Сгенерировать новый plaintext token (32 base64url chars):
+NEW_TOKEN=$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))")
+echo "Save this immediately: $NEW_TOKEN"
+
+# 2. Compute its sha256 hash:
+NEW_HASH=$(node -e "console.log(require('crypto').createHash('sha256').update('$NEW_TOKEN').digest('hex'))")
+
+# 3. Atomically rewrite cohort_meta.json:
+META=data/research/<COHORT_CODE>/cohort_meta.json
+node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('$META','utf8'));m.researcher_token_hash='$NEW_HASH';fs.writeFileSync('$META',JSON.stringify(m,null,2));console.log('rotated')"
+```
+
+Старый token немедленно перестаёт работать. Distribute `$NEW_TOKEN` to the
+authorized researcher(s).
+
+> Convenience CLI (`scripts/research/rotate_token.js`) для Procedure B
+> deferred к v3.3 backlog. Manual procedure выше — workaround.
 
 ### 2.2 RESEARCH_DATA_DIR
 

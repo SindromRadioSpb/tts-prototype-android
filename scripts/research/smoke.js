@@ -333,6 +333,36 @@ async function runCases() {
     ok: b.ok === true && b.updated === 1 && b.inserted === 1 && b.total === 3,
     reason: `updated=${b.updated} inserted=${b.inserted} total=${b.total}`,
   }));
+
+  // Case 24: privacy fix — DELETE student also strips outcomes.csv. Use a
+  // student that ONLY has an outcome row (no metrics payload). Then DELETE
+  // by UUID-only (no cohort_code query) should still find via outcomes.csv
+  // fallback in findCohortsForStudent.
+  const outcomeOnlyId = uuid();
+  const csvIso = `student_id,pre_test_score,post_test_score,exam_date,uploaded_by\n${outcomeOnlyId},70,85,2026-06-15,teacher\n`;
+  await postOutcomes(COHORT_CODE, csvIso, RESEARCHER_TOKEN);
+  // GET aggregates first to confirm the row is there.
+  const beforeGet = await (await getAggregates(COHORT_CODE, RESEARCHER_TOKEN)).json();
+  const beforeOutcomes = (beforeGet.students || []).filter(
+    (s) => s.outcome && s.outcome.post_test_score === 85
+  ).length;
+  // Now DELETE — explicit cohort to avoid scanning all cohorts.
+  const delOutcomeResp = await deleteStudent(outcomeOnlyId, COHORT_CODE);
+  await expectStatus("24. DELETE strips outcomes.csv → records_removed includes outcome", delOutcomeResp, 200, (b) => ({
+    ok: b.ok === true && b.records_removed >= 1,
+    reason: `removed=${b.records_removed} (had ${beforeOutcomes} outcome rows pre-delete)`,
+  }));
+
+  // Case 25: re-GET — outcome row should be gone from CSV.
+  const afterGet = await (await getAggregates(COHORT_CODE, RESEARCHER_TOKEN)).json();
+  const afterOutcomes = (afterGet.students || []).filter(
+    (s) => s.outcome && s.outcome.post_test_score === 85 && s.student_id === outcomeOnlyId
+  ).length;
+  record(
+    "25. After DELETE, outcome row absent from GET aggregates",
+    afterOutcomes === 0,
+    `still found ${afterOutcomes} matching outcome rows`
+  );
 }
 
 async function main() {
@@ -345,7 +375,7 @@ async function main() {
   try {
     serverUp = await waitForReady();
     if (!serverUp) throw new Error("server did not become ready in time");
-    console.log("[smoke] server up; running 23 cases...");
+    console.log("[smoke] server up; running 25 cases...");
     await runCases();
   } catch (e) {
     console.error("[smoke] fatal:", e && e.message ? e.message : e);

@@ -638,14 +638,14 @@ Configuration:
 
 ---
 
-## 14. Open questions
+## 14. Open questions — resolution log
 
-1. **Cohort code distribution mechanism** — teacher хочет distribute via QR code? printed handout? WhatsApp message? Нужен concrete UX. Default plan: teacher copies code from their researcher dashboard, sends via WhatsApp.
-2. **Re-consent on consent version change** — что считать «consent version change»? Material privacy change → required. Cosmetic wording fix → optional. Decision rule needed before deployment.
-3. **HE consent template native review** — у нас нет native Hebrew speaker for legal-grade translation. Options: (a) commission через Mode C curated request (recursive!); (b) partner с ulpan teacher для review; (c) defer HE до v3.3 + start с RU/EN. Default: (b).
-4. **Researcher token rotation** — если researcher token compromised — rotate? Manual re-issue из env var? Document in researcher guide.
-5. **Outcome score normalization** — ulpan exams не all use same scale (0–100 vs 0–10 vs pass/fail). Dashboard should accept arbitrary numeric, document scale на cohort level (`cohort_meta.json: outcome_scale: "0-100"`).
-6. **What if student is on multiple devices?** Same `student_id` across devices? Per-device IDs? Default: per-device (each device generates own UUID; aggregates сравниваются как separate students). User informed in consent. v3.3 may add manual link mechanism.
+1. **Cohort code distribution mechanism** — ✅ **resolved 2026-05-13.** Decision: teacher chooses channel (WhatsApp / printed handout / QR-code / email). Trade-off table documented in `docs/RESEARCHER_GUIDE.md` §3.3. Cohort code is a group identifier (not a secret); leakage doesn't compromise privacy because participation still requires opt-in consent click.
+2. **Re-consent on consent version change** — ⏳ **deferred to ad-hoc.** Decision rule formalized: a `CONSENT_VERSION` bump (`public/js/research.js`) is required when consent template materially changes (additions to "what we collect", retention extension, access scope expansion). Cosmetic wording fixes do NOT bump. The bump itself triggers re-consent prompt automatically via `needsReconsent()` semver compare. No further design work needed; reviewer applies judgement when editing the template.
+3. **HE consent template native review** — ⏸ **deployment blocker remaining.** RU complete + EN translated; HE skeleton machine-grade per `docs/RESEARCH_ETHICS_CONSENT_TEMPLATE.md` §HE. Resolution path: partner with ulpan teacher for native review (Default option b). Tracked in `RESEARCHER_GUIDE.md` §8 pre-deployment checklist as a blocker for actual ulpan deployment, not for v3.2.0 tag (RU/EN sufficient for development + non-Hebrew-speaking pilots).
+4. **Researcher token rotation** — ✅ **resolved 2026-05-13.** Decision: provision a new cohort with a fresh token (preferred), or manually edit `cohort_meta.json` `researcher_token_hash` field with sha256 of new plaintext. Documented in `RESEARCHER_GUIDE.md` §2.1. Convenience CLI (`scripts/research/rotate_token.js`) deferred to v3.3 backlog.
+5. **Outcome score normalization** — ✅ **resolved 2026-05-13.** Implemented via `cohort_meta.outcome_scale` field (default `"0-100"`, configurable at cohort creation via `--outcome-scale` flag). Dashboard accepts arbitrary numeric values; researcher documents the scale in their thesis methodology section.
+6. **Multi-device student_id** — ✅ **resolved 2026-05-13.** Per-device UUIDs by design — each device generates its own `localStorage.researchStudentId_v1`; aggregates appear as separate "students" in the dashboard. Documented in `docs/RESEARCH_ETHICS_CONSENT_TEMPLATE.md` and `RESEARCHER_GUIDE.md` §1. Manual link mechanism deferred to v3.3.
 
 ---
 
@@ -657,17 +657,27 @@ Configuration:
 - [x] **Phase 11.0** — Event emission gap closure *(commit 7ed309f, 2026-05-10)*
 - [x] **Phase 11.1** — Time-spent v2 *(commits 44619f5 + 3f6b959, 2026-05-10)*
 
-### Direction 11B (research mode)
-- [ ] **Phase 11.2** — Research mode opt-in + consent
-- [ ] **Phase 11.3** — Aggregation pipeline
-- [ ] **Phase 11.4** — Server-side ingestion (`/api/research/v1/*`)
-- [ ] **Phase 11.5** — Teacher dashboard `/teacher.html` + fake cohort seed
-- [ ] **Phase 11.6** — Outcome capture (self-report + CSV upload)
-- [ ] **Phase 11.7** — Documentation + ethics
+### Direction 11B (research mode) — closed 2026-05-13
+
+- [x] **Phase 11.4** — Server-side ingestion (`/api/research/v1/*`) *(commit 25b93b6, S1)*
+- [x] **Phase 11.2** — Research mode opt-in + consent *(commit 6a4bb80, S2)*
+- [x] **Phase 11.3** — Aggregation pipeline *(commit 6a4bb80, S2)*
+- [x] **Phase 11.5** — Teacher dashboard `/teacher.html` + fake cohort seed *(commit 77acb15, S3)*
+- [x] **Phase 11.6** — Outcome capture (self-report + CSV upload) *(commit 062027e, S4)*
+- [x] **Phase 11.7** — Documentation + ethics *(commit 062027e, S4 — `RESEARCHER_GUIDE.md` added)*
+
+### Combined smoke (precommit gate)
+
+```
+node scripts/research/all-smoke.js
+# → 4 suites, 60 cases + 9 PNG, ~8s
+```
 
 ### Research readiness checklist
 - See § 9. ALL checkboxes must be `[x]` before real ulpan deployment.
+- Implementation-side checklist items are closed; **deployment blockers
+  remaining**: HE consent native review (Q3) + pilot run with 2-3 users.
 
 ---
 
-**Last updated:** 2026-05-10 (initial commit)
+**Last updated:** 2026-05-13 (Direction 11B complete — v3.2.0 mega-release scope closed)

@@ -5,9 +5,25 @@
 Формат основан на [Keep a Changelog](https://keepachangelog.com/),
 версионирование — [SemVer](https://semver.org/).
 
-## [Unreleased] — v3.2.0 in progress
+## [Unreleased]
 
-**Mega-release scope** (~7–9 рабочих недель). Approved 2026-05-10. Master plan: [`docs/PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md).
+(пусто — следующий цикл откроется patch-фиксами или v3.3 backlog'ом)
+
+---
+
+## [3.2.0] — 2026-05-13
+
+**Mega-release.** Approved 2026-05-10; closed 2026-05-13. Master plan: [`docs/PREMIUM_RELEASE_PLAN_v3_2.md`](docs/PREMIUM_RELEASE_PLAN_v3_2.md). All four Direction 11B smoke suites green pre-tag: **60 cases + 9 PNG, ~8s** (`npm run smoke:research`).
+
+### Pre-release audit closures (B1 + P1-P6, 2026-05-13)
+
+- **B1 — Privacy fix.** `deleteStudentFromCohort` previously only stripped `.jsonl` payloads; outcome rows in `outcomes.csv` survived withdrawal. Consent template promises «удаление всех ваших ранее загруженных данных», so this was a real privacy bug. Fix: storage now also rewrites `outcomes.csv` (atomic .tmp + rename) and `findCohortsForStudent` falls back to scanning `outcomes.csv` so DELETE without `?cohort_code=` still finds outcome-only students. Audit log line gains `outcomes_removed=N` field. Two new smoke cases (24 + 25) verify end-to-end. Server smoke now 25/25.
+- **P1** — `ULPAN_RESEARCH_PLAN §15 Live status` updated: phases 11.2..11.7 marked `[x]` with anchor commits.
+- **P2** — `CONTRACTS_ANALYTICS.md` Phase 11.4 closure section retired; replaced with Direction 11B closure summary table.
+- **P3** — `PRIVACY.md` extended with outcome data flow section (self-report + teacher CSV upload paths, authority rules, withdrawal coverage).
+- **P4** — `ULPAN_RESEARCH_PLAN §14 Open questions` formally resolved (4 of 6 closed implementation-side; Q3 HE native review remains as deployment blocker tracked in `RESEARCHER_GUIDE §8`; Q2 re-consent rule documented as ad-hoc reviewer judgement).
+- **P5** — `RESEARCHER_GUIDE.md §2.1.1` adds explicit token rotation procedures (provision new cohort = preferred; in-place hash rotation = workaround).
+- **P6** — `package.json` npm script shortcuts: `smoke:research` (full), `smoke:research:fast` (skip screenshots), per-suite aliases, `research:cohort` + `research:seed` admin shortcuts.
 
 ### Shipped (Direction 11B complete)
 

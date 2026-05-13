@@ -145,11 +145,15 @@ function countUploadsForStudentOnDate(cohortCode, studentId, dateStr) {
 }
 
 // Scan cohort dir, rewriting all .jsonl files without lines for studentId.
-// Returns count of removed records. Appends to deletions.log.
+// ALSO removes the student from outcomes.csv if present — withdrawal must
+// purge ALL server-side data, including outcome scores, per the consent
+// promise («Запросить удаление всех ваших ранее загруженных данных»).
+// Returns count of removed records (jsonl lines + outcome rows). Audit-
+// logs to deletions.log.
 function deleteStudentFromCohort(cohortCode, studentId) {
   const dir = cohortDir(cohortCode);
   if (!fs.existsSync(dir)) return 0;
-  let removed = 0;
+  let removedJsonl = 0;
   const entries = fs.readdirSync(dir);
   for (const fname of entries) {
     if (!fname.endsWith(".jsonl")) continue;
@@ -161,24 +165,54 @@ function deleteStudentFromCohort(cohortCode, studentId) {
       let row;
       try { row = JSON.parse(line); } catch { kept.push(line); continue; }
       if (row.student_id === studentId) {
-        removed += 1;
+        removedJsonl += 1;
       } else {
         kept.push(line);
       }
     }
-    // Atomic-ish rewrite: write tmp + rename.
     const tmp = full + ".tmp";
     fs.writeFileSync(tmp, kept.length ? kept.join("\n") + "\n" : "", "utf8");
     fs.renameSync(tmp, full);
   }
-  if (removed > 0) {
-    const audit = `${new Date().toISOString()} student_id=${studentId} reason=user_withdrawal records_removed=${removed}\n`;
+
+  // Strip from outcomes.csv (Phase 11.6 path). Rewritten only if at least
+  // one row matched — otherwise the file is left untouched.
+  let removedOutcomes = 0;
+  const outcomesPath = path.join(dir, "outcomes.csv");
+  if (fs.existsSync(outcomesPath)) {
+    let existing = [];
+    try { existing = readOutcomesCsv(cohortCode); } catch (_) { /* malformed → leave untouched */ }
+    const kept = existing.filter((r) => r.student_id !== studentId);
+    removedOutcomes = existing.length - kept.length;
+    if (removedOutcomes > 0) {
+      const lines = ["student_id,pre_test_score,post_test_score,exam_date,uploaded_by"];
+      for (const r of kept) {
+        lines.push([
+          r.student_id,
+          r.pre_test_score  != null ? r.pre_test_score  : "",
+          r.post_test_score != null ? r.post_test_score : "",
+          r.exam_date || "",
+          r.uploaded_by || "",
+        ].join(","));
+      }
+      const tmp = outcomesPath + ".tmp";
+      fs.writeFileSync(tmp, lines.join("\n") + "\n", "utf8");
+      fs.renameSync(tmp, outcomesPath);
+    }
+  }
+
+  const totalRemoved = removedJsonl + removedOutcomes;
+  if (totalRemoved > 0) {
+    const audit = `${new Date().toISOString()} student_id=${studentId} reason=user_withdrawal records_removed=${removedJsonl} outcomes_removed=${removedOutcomes}\n`;
     fs.appendFileSync(deletionsLogPath(cohortCode), audit, "utf8");
   }
-  return removed;
+  return totalRemoved;
 }
 
-// Try to find which cohort a student_id has uploaded to.
+// Try to find which cohort a student_id has uploaded to. Scans both
+// .jsonl payloads AND outcomes.csv so a student that exists ONLY in
+// outcomes (e.g. teacher pre-uploaded scores before student joined, or
+// after a partial-purge edge case) is still findable for DELETE.
 // Returns array of cohort codes (a student could be in multiple cohorts —
 // rare, but the schema does not prevent it).
 function findCohortsForStudent(studentId) {
@@ -191,8 +225,8 @@ function findCohortsForStudent(studentId) {
     try { stat = fs.statSync(cdir); } catch { continue; }
     if (!stat.isDirectory()) continue;
     if (!fs.existsSync(path.join(cdir, "cohort_meta.json"))) continue;
-    const jsonlFiles = fs.readdirSync(cdir).filter((f) => f.endsWith(".jsonl"));
     let hit = false;
+    const jsonlFiles = fs.readdirSync(cdir).filter((f) => f.endsWith(".jsonl"));
     for (const jf of jsonlFiles) {
       const lines = fs.readFileSync(path.join(cdir, jf), "utf8").split(/\r?\n/);
       for (const line of lines) {
@@ -202,6 +236,13 @@ function findCohortsForStudent(studentId) {
         if (row.student_id === studentId) { hit = true; break; }
       }
       if (hit) break;
+    }
+    // outcomes.csv fallback — student might exist only there.
+    if (!hit) {
+      try {
+        const outcomes = readOutcomesCsv(fname);
+        if (outcomes.some((r) => r.student_id === studentId)) hit = true;
+      } catch (_) {}
     }
     if (hit) cohorts.push(fname);
   }

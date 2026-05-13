@@ -103,10 +103,22 @@ Smoke acceptance — two runners, both autonomous (no UI clicks needed):
   Chromium (Playwright). Requires one-time `npx playwright install chromium`.
   Spawns its own server on a free port + temp RESEARCH_DATA_DIR.
 
-### Не реализовано (→ Direction 11B follow-on phases)
-- Client-side opt-in consent UX + cohort join + transparency dashboard (Phase 11.2).
-- Daily aggregator + retry queue (Phase 11.3).
-- Teacher dashboard `/teacher.html` + outcome capture (Phase 11.5–11.6).
+### Direction 11B closure (2026-05-13)
+
+All phases shipped — research mode is feature-complete in v3.2.0.
+
+| Phase | Anchor commit | What |
+|---|---|---|
+| 11.4 | `25b93b6` | Server endpoints (`/api/research/v1/{metrics,cohort/:code/aggregates,student/:uuid,cohort/:code/outcomes}`) + storage layout + retention policy |
+| 11.2 + 11.3 | `6a4bb80` | Client opt-in (5-checkbox consent, cohort join, transparency dashboard, withdrawal) + daily aggregator + retry queue |
+| 11.5 | `77acb15` | Teacher dashboard `/teacher.html` + fake cohort seed (12 students × 14 days) |
+| 11.6 + 11.7 + 11.8 | `062027e` | Outcome capture (self-report flow + teacher CSV upload) + `RESEARCHER_GUIDE.md` + smoke audit |
+
+### Combined precommit smoke (Direction 11B regression gate)
+
+```
+node scripts/research/all-smoke.js     # 60 cases + 9 PNG, ~8s
+```
 
 ### Не реализовано (→ Direction 9 M6)
 - ~~`card_added_to_srs` event — пока добавление карточек в SRS происходит косвенно через template generation; explicit "add this note as SRS card" flow появится с notes redesign.~~ **Closed 2026-05-13 (Phase 11.0)**: emits from `v3NotesConvertToSrs` when user clicks "🎴 Сделать карточкой" on a templated note. Payload covers note→card linkage metadata.
