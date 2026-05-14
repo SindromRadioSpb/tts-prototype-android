@@ -33,6 +33,7 @@ const SUITES = [
   { name: "Cross-text lookup service (v3.3.2 D15)",  script: "scripts/morph/crosstext-smoke.js",            countLabel: "8 cases" },
   { name: "Search fallback regression (v3.3.3)",     script: "scripts/research/search-fallback-regression.js", countLabel: "7 cases" },
   { name: "Quiz item bank validation (v3.3.5 C1)",   script: "scripts/quiz/bank-validate-smoke.js",         countLabel: "8 cases" },
+  { name: "Quiz scoring engine (v3.3.5 C2)",         script: "scripts/quiz/scoring-smoke.js",               countLabel: "6 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
   ]),
