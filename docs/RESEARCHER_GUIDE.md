@@ -334,7 +334,7 @@ node scripts/research/teacher-screenshots.js
 Все должны быть зелёные.
 
 Pre-deployment checklist (checklist в ULPAN_RESEARCH_PLAN §9 расширенный):
-- [ ] Consent template native-reviewed для языка студентов (RU/EN done; **HE требует native review**)
+- [ ] Consent template native-reviewed для языка студентов (RU/EN done; **HE требует native review** — готовый review brief в [`HE_CONSENT_REVIEW_BRIEF.md`](HE_CONSENT_REVIEW_BRIEF.md), отправить ulpan-преподавателю или другому native HE speaker с academic-translation опытом)
 - [ ] Privacy policy (`docs/PRIVACY.md`) актуален
 - [ ] Withdrawal UX manually tested на тестовом cohort
 - [ ] Teacher CSV upload tested

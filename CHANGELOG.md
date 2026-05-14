@@ -7,7 +7,9 @@
 
 ## [Unreleased]
 
-(пусто — следующий цикл откроется после end-of-pilot debrief; см. `docs/PARALLEL_WORK_PLAN_DURING_PILOT.md`)
+### Docs
+
+- **HE consent native review brief authored** (2026-05-14). `docs/HE_CONSENT_REVIEW_BRIEF.md` — production-ready review brief для отправки native HE speaker (предпочтительно ulpan-преподаватель с academic-translation опытом). Section-by-section параллельный RU/EN/HE layout по 14 секциям consent template'а с явными asks: A1-A5 fill-in placeholders (purpose, retention, risks, benefits, contacts) + 2 отсутствующие секции целиком (who-conducts, what-is-asked-of-you) + B-checklist для уже-переведённых секций (грамматика, гендерные формы, терминология, loan-words, тон, культурная уместность, RTL/LTR mixing). 4 return-format options. Cover-message template для WhatsApp/Telegram/email. Cross-linked в `RESEARCHER_GUIDE.md §8` (pre-deployment checklist) + `ULPAN_RESEARCH_PLAN_v3_2.md §14 Q3` (open question status). Закрывает authoring side deployment-blocker Q3; closure теперь bottlenecked external reviewer response time, не нашей работой.
 
 ---
 
