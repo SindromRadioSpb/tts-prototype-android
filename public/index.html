@@ -19501,17 +19501,22 @@ function v3NotesRender(scope, qRaw, results, notesOnly) {
 	let hitIdx = -1;
 	for (const r of results) {
 	hitIdx++;
-    const textId = String(r.textId || "");
-    const sentenceId = String(r.sentenceId || "");
-    const orderIndex = Number(r.orderIndex);
+    // Hotfix v3.3.3 — same snake_case fallback as v3RowsRender below. The
+    // notes search (LOCAL_MODE searchNotes) returns SELECT n.* from
+    // sentence_notes JOIN texts/sentences, which is snake_case. Without
+    // these fallbacks notes-hit cards rendered "Без названия" and the
+    // "Перейти к строке" handler got empty textId/sentenceId.
+    const textId = String(r.textId || r.text_id || "");
+    const sentenceId = String(r.sentenceId || r.sentence_id || "");
+    const orderIndex = Number(r.orderIndex != null ? r.orderIndex : r.order_index);
 
-    const tTitle = String(r.title || "Без названия");
+    const tTitle = String(r.title || r.text_title || "Без названия");
     const level = String(r.level || "");
     const topic = String(r.topic || "");
 
-    const sentenceText = String(r.sentenceText || "");
+    const sentenceText = String(r.sentenceText || r.he_plain || "");
     const note = String(r.note || "");
-    const noteUpdatedAt = String(r.noteUpdatedAt || "");
+    const noteUpdatedAt = String(r.noteUpdatedAt || r.updated_at || "");
 
     const tagsArr = Array.isArray(r.tags) ? r.tags : [];
     const tagsHtml = tagsArr.slice(0, 8).map(x => "<span class='v3-lib-chip'>" + v3EscapeHtml(String(x)) + "</span>").join("");
@@ -19771,17 +19776,23 @@ function v3RowsRender(scope, qRaw, results, rowsOnly) {
 	let hitIdx = -1;
 	for (const r of rs) {
 	hitIdx++;
-    const textId = String(r.textId || "");
-    const sentenceId = String(r.sentenceId || "");
-    const orderIndex = Number(r.orderIndex);
+    // Hotfix v3.3.3 — searchSentences() in LOCAL_MODE returns snake_case
+    // SQLite columns (id, text_id, order_index, he_plain, text_title from
+    // the JOIN). The non-LOCAL_MODE /api/sentences/search may return either
+    // shape historically — accept both. Without these fallbacks the result
+    // cards rendered "Без названия" and the "Перейти к строке" handler got
+    // empty textId/sentenceId → "Невозможно перейти" error.
+    const textId = String(r.textId || r.text_id || "");
+    const sentenceId = String(r.sentenceId || r.id || r.sentence_id || "");
+    const orderIndex = Number(r.orderIndex != null ? r.orderIndex : r.order_index);
 
-    const tTitle = String(r.title || "Без названия");
+    const tTitle = String(r.title || r.text_title || "Без названия");
     const level = String(r.level || "");
     const topic = String(r.topic || "");
 
-    const he = String(r.he || "");
+    const he = String(r.he || r.he_plain || "");
     const heNiq = String(r.he_niqqud || "");
-    const translit = String(r.translit || "");
+    const translit = String(r.translit || r.translit_ru || "");
     const ru = String(r.ru || "");
 
     const tagsArr = Array.isArray(r.tags) ? r.tags : [];

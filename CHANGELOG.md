@@ -7,7 +7,69 @@
 
 ## [Unreleased]
 
-(пусто — следующий патч v3.3.3 откроется после approval)
+(пусто — Direction 13 calibrated quiz переподготовлен под v3.3.4, M8 graph под v3.3.5)
+
+---
+
+## [3.3.3] — 2026-05-14
+
+**Hotfix release.** Закрывает single-issue bug в Library Search,
+обнаруженный user'ом сразу после v3.3.2.
+
+### Fixed — Library → Search results rendered "Без названия" + broken "Перейти к строке"
+
+**Symptom (reported by user):**
+1. Library → 🔍 Search → ввести `עיניי` → "Совпадения в строках (15)".
+2. Все 15 карточек показывали заголовок «Без названия».
+3. Клик на "Перейти к строке" → toast "Невозможно перейти: пустой
+   textId/sentenceId".
+
+**Root cause:**
+`v3RowsRender` (rows search) + the notes-hit render path читали поля
+result-rows в **camelCase** (`r.textId`, `r.sentenceId`, `r.title`,
+`r.orderIndex`, `r.he`, `r.sentenceText`, `r.noteUpdatedAt`), но
+`public/db/local-db.js` `searchSentences()` / `searchNotes()` в
+LOCAL_MODE возвращают **snake_case** SQLite-колонки напрямую (`r.id`,
+`r.text_id`, `r.text_title`, `r.he_plain`, `r.order_index`,
+`r.updated_at`). Имена не совпали → все эти reads давали пустые
+строки или NaN. Карточки fallback'или на "Без названия", а
+`v3NavOnHitJump` получал пустые id-шники.
+
+**Fix:**
+Добавлены snake_case fallback'и на оба render-сайта в `public/index.html`:
+```js
+const textId      = String(r.textId      || r.text_id     || "");
+const sentenceId  = String(r.sentenceId  || r.id          || r.sentence_id || "");
+const orderIndex  = Number(r.orderIndex != null ? r.orderIndex : r.order_index);
+const tTitle      = String(r.title       || r.text_title  || "Без названия");
+const he          = String(r.he          || r.he_plain    || "");
+// (notes-hit path symmetric: r.sentenceText || r.he_plain, r.noteUpdatedAt || r.updated_at)
+```
+
+Это **строго additive** — если API-path (non-LOCAL_MODE) когда-либо
+возвращал camelCase, он продолжает работать; LOCAL_MODE (по умолчанию
+с v3.0) теперь тоже работает.
+
+### Regression guard
+
+Новый `scripts/research/search-fallback-regression.js` — статический
+source-text check, гарантирующий, что 7 нужных fallback'ов остаются в
+`public/index.html`. Без полноценного Playwright-бута на огромный
+index.html: regression — это удаление одной строки, source-check
+надёжнее и быстрее. Wired в `all-smoke.js` → `npm run smoke:research`.
+
+### Cycle replan
+
+Этот hotfix занимает patch-слот v3.3.3 в master plan. Сдвиг:
+- Direction 13 calibrated quiz → **v3.3.4** (was v3.3.3)
+- Direction 14 knowledge-graph view (M8) → **v3.3.5** (was v3.3.4)
+
+Master plan в `docs/PREMIUM_RELEASE_PLAN_v3_3.md` §4 будет обновлён в
+рамках v3.3.4 phase plan authoring (next session).
+
+### Anchor commits
+
+- (this commit) — hotfix + regression guard + version bump + CHANGELOG
 
 ---
 
