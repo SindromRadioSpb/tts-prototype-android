@@ -7,19 +7,21 @@
     "en": "Ulpan diagnostic (v1)",
     "he": "אבחון אולפן (v1)"
   },
-  "calibrated_by": "premium-alt-draft + AI pre-review (2026-05-15)",
+  "calibrated_by": "premium-alt-draft + AI pre-review + project-owner provisional sign-off (2026-05-15)",
   "calibrated_at": "2026-05-15",
   "calibration_method": "expert_judgement_v1",
+  "external_review_status": "ai_pre_review_only",
+  "production_ready": "development_and_dogfood_only",
   "validity_notes": {
     "sample_size": 0,
-    "calibration_source": "AI pre-review of expert-judgement draft",
+    "calibration_source": "AI pre-review of expert-judgement draft + project-owner provisional sign-off 2026-05-15",
     "known_limitations": [
       "Item difficulties are expert-judgement placeholders, not empirically estimated. Real-data IRT recalibration deferred to v3.4+ once >=30 quiz responses accumulate.",
       "Bank targets standard Modern Hebrew used in adult ulpan contexts; does not assess listening, spontaneous speaking, handwriting, free writing.",
       "Q11 tests meta-linguistic binyan knowledge; reviewer should confirm acceptability for the target ulpan population.",
       "Q17 tests smikhut+adjective definiteness; reviewer should confirm it does not exceed B2 for the intended cohort.",
       "Q18-Q20 test advanced register and idiomatic interpretation; reviewer may lower or replace any item that feels more academic than ulpan C1.",
-      "Domain-expert sign-off is required before real-ulpan deployment; AI pre-review does not substitute."
+      "PRE-LAUNCH: Before deploying this instrument to a real ulpan cohort for diploma data collection, get an ulpan-teacher native review of all 20 items (grammar / CEFR level / unambiguity / locale parity / cultural neutrality / difficulty logits). Dispatch package: docs/QUIZ_ITEM_BANK_REVIEW_BRIEF.md + docs/QUIZ_ITEM_BANK_DRAFT.md + docs/QUIZ_ITEM_BANK_REVIEWER_FORM.md. The pre-deployment review is RECOMMENDED, not BLOCKING for development/dogfood; the project owner provisionally signed off the AI-pre-reviewed bank on 2026-05-15 so that v3.3.6+ runtime work can proceed."
     ]
   },
   "scoring": {

@@ -122,8 +122,10 @@ If any of these four conditions changes, the audit must be re-run before deploym
 | 2026-05-15 | AI pre-review pass | Conditional approval (G1–G4 process improvements); item-level annotations |
 | 2026-05-15 | Premium-alt rewrite | Cleaner Hebrew + locale parity + Rasch-ready item formulations |
 | 2026-05-15 | Premium-alt adopted as canonical | `public/quiz/ulpan_diagnostic_v1.json` shipped; build validator green; reference fixture generated |
-| pending | External dispatch to ulpan teacher | Brief at `docs/QUIZ_ITEM_BANK_REVIEW_BRIEF.md` |
-| pending | Domain-expert sign-off | REQUIRED before real-ulpan deployment per phase plan §5 pre-implementation gate |
+| 2026-05-15 | Dispatch package shipped to main | Brief + draft + fillable reviewer form committed at `681f06a`; ready to send to ulpan teacher when convenient |
+| 2026-05-15 | Pre-deployment gate frozen | `docs/V3_3_5_PREDEPLOYMENT_GATE_STATUS.md` created at `e427943`; 13-step resume checklist documented |
+| 2026-05-15 | **Project-owner provisional sign-off** | User accepted AI-pre-reviewed bank as good-enough for development + dogfood + v3.3.6 unblocking. `validity_notes.external_review_status = "ai_pre_review_only"`, `production_ready = "development_and_dogfood_only"`. External ulpan-teacher review **recommended (not blocking)** before real-cohort deployment — see `docs/V3_3_5_PREDEPLOYMENT_GATE_STATUS.md §7 pre-launch checklist`. `instrument_id` unchanged (no item edits); `CONSENT_VERSION` unchanged. |
+| pending | External ulpan-teacher review | Recommended before real-cohort launch. Dispatch package ready: `QUIZ_ITEM_BANK_REVIEW_BRIEF.md` + `QUIZ_ITEM_BANK_DRAFT.md` + `QUIZ_ITEM_BANK_REVIEWER_FORM.md`. Returns at `docs/external/QUIZ_ITEM_BANK_REVIEWER_RESPONSE_<date>.md`. |
 
 ---
 

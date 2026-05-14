@@ -10,21 +10,23 @@
 > [`docs/QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md`](QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md) (AI pre-review — supplementary context, override at will) ·
 > [`docs/ULPAN_RESEARCH_PLAN_v3_2.md`](ULPAN_RESEARCH_PLAN_v3_2.md) §11.6 outcome capture.
 
-## 0. Current state (v3.3.5 shipped 2026-05-15)
+## 0. Current state (v3.3.5 shipped 2026-05-15; gate reframed as soft)
 
-LinguistPro v3.3.5 уже released на main с item bank в canonical form (`public/quiz/ulpan_diagnostic_v1.json`) — это **adoption of an AI-pre-reviewed Premium-alt draft**, см. `QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md` для history. Шипованы:
+LinguistPro v3.3.5 уже released на main с item bank в canonical form (`public/quiz/ulpan_diagnostic_v1.json`) — это **adoption of an AI-pre-reviewed Premium-alt draft + project-owner provisional sign-off**, см. `QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md` + `docs/ULPAN_DIAGNOSTIC_QUIZ_v1.md §5` для history. Шипованы:
 
 - UI quiz modal + i18n RU/EN/HE (`public/js/quiz-ui.js`)
 - Rasch 1PL scoring engine (`public/js/quiz-scoring.js`)
 - Server validator extension (`research/validate.js`)
 - Teacher dashboard quiz/CEFR/SE columns
 - Admin reset CLI (`scripts/research/reset_quiz_for_student.js`)
-- 18 smoke suites / **248 cases ALL GREEN**
+- 19 smoke suites / **283+ cases ALL GREEN** (incl. post-release admin CLI polish)
 - Docs (`docs/ULPAN_DIAGNOSTIC_QUIZ_v1.md` — methodology + audit log)
 
-**Что твой review разблокирует:** *real-cohort deployment*. До твоего sign-off'а instrument can be exercised для разработки и smoke testing, но **не должен использоваться для actual diploma data collection** — это hard gate в plan §5. С твоим approve этот gate закрывается и `ulpan_diagnostic_v1` становится production-ready.
+**Update 2026-05-15 (gate reframing):** The hard pre-implementation gate (originally "no real-cohort deployment until external sign-off") was relaxed by user decision on 2026-05-15 — the project owner accepted the AI-pre-reviewed bank as good-enough for development + dogfood, so downstream runtime feature work (v3.3.6 M8 knowledge-graph) is no longer blocked. **Твой review остаётся РЕКОМЕНДОВАННЫМ перед запуском на реальной ulpan-группе** для диплома, но не блокирует код или планирование. Подробности — `docs/V3_3_5_PREDEPLOYMENT_GATE_STATUS.md §5` + §7.
 
-Если ты найдёшь bugs / mis-calibrations — apply edits, я пересоберу JSON + re-run smoke + bump `instrument_id` only if items change materially.
+**Что твой review разблокирует теперь:** статус instrument's `production_ready` поле повысится с `"development_and_dogfood_only"` → `"full"`. Дополнительно `external_review_status` сменится с `"ai_pre_review_only"` → `"external_complete"`. В calibration audit log запишется sign-off с твоим attribution. Methodologically — это превращает quiz из "AI-validated" в "expert-validated" instrument для diploma claim.
+
+Если ты найдёшь bugs / mis-calibrations — apply edits, я пересоберу JSON + re-run smoke + bump `instrument_id` only if items change materially. Если же items OK as-is — это short-form sign-off (просто подтверждение).
 
 ---
 

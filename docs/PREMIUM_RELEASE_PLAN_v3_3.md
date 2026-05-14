@@ -216,9 +216,11 @@ v3.3.5  (DONE 2026-05-15)  Calibrated quiz (Direction 13)
                             ├─ 248 smoke cases ALL GREEN at release
                             └─ tag v3.3.5 (0b29bc1) + GitHub release published
                            Plan: docs/PHASE_PLAN_v3_3_5_CALIBRATED_QUIZ.md
-                           Status: code shipped; real-cohort deployment GATED on
-                                   external ulpan-teacher item-bank sign-off —
-                                   see docs/V3_3_5_PREDEPLOYMENT_GATE_STATUS.md
+                           Pre-deployment gate CLOSED 2026-05-15 with
+                           project-owner provisional sign-off; external
+                           ulpan-teacher review is now RECOMMENDED (not
+                           BLOCKING) before real-cohort launch. See
+                           docs/V3_3_5_PREDEPLOYMENT_GATE_STATUS.md §5 + §7.
 
   (POST-v3.3.5, 2026-05-15)  Admin CLI maturity polish (not a release)
                             ├─ Help short-circuit + -h alias + --dry-run
@@ -226,10 +228,10 @@ v3.3.5  (DONE 2026-05-15)  Calibrated quiz (Direction 13)
                            Commits c65ce8e + 79ea302 on main; smoke 283 cases
                            ALL GREEN. Tooling-only; no version bump.
 
-v3.3.6  (~6 d, GATED)       Knowledge-graph delight (Direction 14)
-                            Blocked by v3.3.5 pre-deployment gate per user
-                            directive 2026-05-15: no new runtime features
-                            until item-bank external sign-off.
+v3.3.6  (~6 d, UNBLOCKED 2026-05-15)  Knowledge-graph delight (Direction 14)
+                            Previously gated on v3.3.5 external sign-off;
+                            unblocked after user accepted the AI-pre-reviewed
+                            bank as good-enough for development.
 
 v3.4.0  (TBD, separate cycle)
                             ├─ Premium SRS Epic (FSRS + Anki Connect)
@@ -329,9 +331,9 @@ The thesis methodological contribution (privacy-preserving opt-in research mode)
 | v3.3.2 | Direction 12 + 15 | ✅ shipped 2026-05-14 | `a172621` |
 | v3.3.3 | Hotfix — Library Search field-name mismatch (unplanned) | ✅ shipped 2026-05-14 | `7526f6c` |
 | v3.3.4 | Hotfix — cross-text panel z-index + root inflections (unplanned) | ✅ shipped 2026-05-14 | `d1317e0` |
-| v3.3.5 | Direction 13 — Calibrated diagnostic quiz | ✅ shipped 2026-05-15 (real-cohort deployment GATED on external item-bank sign-off — see `V3_3_5_PREDEPLOYMENT_GATE_STATUS.md`) | `0b29bc1` |
-| (post-release polish) | Admin CLI maturity (--help/--dry-run/--json) | ✅ shipped 2026-05-15 (not a versioned release) | `c65ce8e` + `79ea302` |
-| v3.3.6 | Direction 14 — Knowledge-graph delight | ⏳ GATED — waits for v3.3.5 gate closure | — |
+| v3.3.5 | Direction 13 — Calibrated diagnostic quiz | ✅ shipped 2026-05-15; pre-deployment gate closed same day with project-owner provisional sign-off (external ulpan-teacher review now RECOMMENDED pre-cohort-launch, not BLOCKING — see `V3_3_5_PREDEPLOYMENT_GATE_STATUS.md`) | `0b29bc1` |
+| (post-release polish) | Admin CLI maturity (--help/--dry-run/--json) + doc sync | ✅ shipped 2026-05-15 (not a versioned release) | `c65ce8e` + `79ea302` + `6a344ef` |
+| v3.3.6 | Direction 14 — Knowledge-graph delight | ⏳ planned (UNBLOCKED 2026-05-15) | — |
 
 ---
 

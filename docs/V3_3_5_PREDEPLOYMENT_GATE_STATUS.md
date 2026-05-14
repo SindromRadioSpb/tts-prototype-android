@@ -1,9 +1,8 @@
 # v3.3.5 — Pre-Deployment Gate Status
 
-> **Status:** OPEN — awaiting external ulpan-teacher item-bank sign-off.
-> **No time pressure.** Code shipped on main 2026-05-15 (`0b29bc1`, tag `v3.3.5`, GitHub release published). Polish work on unrelated blocks may proceed in parallel.
-> **What this gate blocks:** real-cohort diploma data collection using `ulpan_diagnostic_v1`. Until the reviewer signs off, the instrument can be exercised for development and smoke testing only — NOT for actual research participants.
-> **What this gate does NOT block:** any other v3.3.x polish work, v3.3.6 planning, documentation improvements, performance work, UX refinements on shipped features.
+> **Status:** CLOSED 2026-05-15 — project-owner provisional sign-off accepted (gate-for-development purpose). External ulpan-teacher review **remains RECOMMENDED before real-cohort launch** but no longer BLOCKS code, planning, or v3.3.6 kickoff.
+> **What changed.** Original posture (frozen 2026-05-15, earlier the same day): the gate blocked real-cohort deployment AND new runtime feature work until external sign-off arrived. User decision 2026-05-15 (later same day): the user is the project owner + diploma researcher and accepts the AI-pre-reviewed bank as good-enough for development + dogfood + v3.3.6 unblocking. The pre-cohort-launch reviewer step survives as a soft caveat (see §5 closure record + §7 pre-launch checklist) rather than as a hard code gate.
+> **What is still pinned.** `public/quiz/ulpan_diagnostic_v1.json` `validity_notes.known_limitations` carries an explicit PRE-LAUNCH entry naming the dispatch package + the six reviewer dimensions. `production_ready` field at JSON top-level reads `"development_and_dogfood_only"` until external review records change it. So the soft gate is visible to anyone reading the instrument JSON, not just buried in docs.
 
 This document is the **single source of truth** for closing the gate. Future sessions (or future-me) read this top-to-bottom to resume exactly where we left off when reviewer feedback arrives.
 
@@ -321,20 +320,52 @@ Don't decide unilaterally — escalate to user.
 
 ## 5. Closure record
 
-> *Filled in when the gate closes.*
+- **Date of decision:** 2026-05-15
+- **Closure type:** Project-owner provisional sign-off (NOT external ulpan-teacher review)
+- **Reviewer attribution:** "Project owner provisional approval (sindromradiospb@gmail.com), 2026-05-15. External ulpan-teacher review remains recommended before real-cohort deployment."
+- **Severity classification:** ☐ Cosmetic ☐ Refinement ☐ Material — **N/A** (no item edits applied; this is a posture change, not a content change)
+- **Items modified:** 0 (bank content unchanged; only `validity_notes` + `external_review_status` + `production_ready` fields updated)
+- **Items replaced:** 0
+- **Difficulty logits adjusted:** 0
+- **`instrument_id` after closure:** ✅ `ulpan_diagnostic_v1` (unchanged — no item edits)
+- **`CONSENT_VERSION` after closure:** ✅ `1.0` (unchanged — Example E conditions still hold; no items, scoring scale, or band boundaries changed)
+- **Path to stashed reviewer response:** N/A (no external response received yet)
+- **Closing commit SHA:** *(filled in by the gate-closure commit; see git log around tag `v3.3.5`)*
+- **Smoke matrix at closure:** ✅ 283/283 ALL GREEN (19 suites — includes the post-release admin CLI polish)
+- **Production-ready flag:** ⚠ Set to `"development_and_dogfood_only"` on `ulpan_diagnostic_v1`. Will move to `"full"` (or equivalent) only when an ulpan teacher completes the reviewer form per §7 pre-launch checklist.
 
-- **Date of sign-off:** ___________________
-- **Reviewer attribution (per their preference):** ___________________
-- **Severity classification:** ☐ Cosmetic ☐ Refinement ☐ Material
-- **Items modified:** ___________________
-- **Items replaced:** ___________________
-- **Difficulty logits adjusted:** ___________________
-- **`instrument_id` after closure:** ☐ `ulpan_diagnostic_v1` (unchanged) ☐ `ulpan_diagnostic_v1.1`
-- **`CONSENT_VERSION` after closure:** ☐ `1.0` (unchanged, all Example E conditions hold) ☐ `1.1` (bumped, reason: ___________________)
-- **Path to stashed reviewer response:** `docs/external/QUIZ_ITEM_BANK_REVIEWER_RESPONSE_<date>.md`
-- **Closing commit SHA:** ___________________
-- **Smoke matrix at closure:** ☐ 248/248 ALL GREEN
-- **Production-ready flag:** ☐ Set on `ulpan_diagnostic_v1` ☐ Set on `ulpan_diagnostic_v1.1`
+### Rationale for closing without external review
+
+The user is both the project owner and the diploma researcher who will run the eventual ulpan cohort. They understand the methodological tradeoff: shipping the calibrated quiz under AI pre-review only means item-difficulty placeholders are not yet expert-validated. They've accepted this risk for development + dogfood + downstream v3.3.6 unblocking, on the condition that real-cohort launch is preceded by an external review pass.
+
+This is a legitimate authorization within the project — the original gate doc treated external review as BLOCKING because at gate-freeze time there was no explicit owner decision on the tradeoff. The 2026-05-15 user directive explicitly accepted the tradeoff and reframed the gate as soft.
+
+---
+
+## 6. Resume checklist — DEPRECATED
+
+The 13-step closure flow originally in §3 is no longer the active path; the gate closed without going through it. Kept intact in this document's git history (`git log -- docs/V3_3_5_PREDEPLOYMENT_GATE_STATUS.md`) for reference if a future pre-cohort-launch review actually arrives — at that point the operator can execute §3 steps 3.1–3.13 against the returned form.
+
+If the ulpan teacher returns a filled form later, treat it as a **post-closure refinement** (apply edits per §3 + bump `external_review_status` + update §5 + lift `production_ready` flag). The instrument JSON, server schema, smoke matrix, and downstream consumers (teacher dashboard, admin CLI) are all already in place and will accept any update.
+
+---
+
+## 7. Pre-cohort-launch checklist (replaces the original blocking gate)
+
+Before deploying `ulpan_diagnostic_v1` to a real ulpan cohort for diploma data collection — i.e. real participants completing the quiz with their data flowing into the diploma dataset — do the following in order:
+
+- [ ] **Send dispatch package** (`docs/QUIZ_ITEM_BANK_REVIEW_BRIEF.md` + `docs/QUIZ_ITEM_BANK_DRAFT.md` + `docs/QUIZ_ITEM_BANK_REVIEWER_FORM.md`) to an ulpan teacher with native Hebrew fluency.
+- [ ] **Wait for filled form return** — any of the four formats supported by the brief §4.
+- [ ] **Stash the return** at `docs/external/QUIZ_ITEM_BANK_REVIEWER_RESPONSE_<YYYY-MM-DD>.md`.
+- [ ] **Apply edits** per the triage severity bands in §3.2 (Cosmetic / Refinement / Material).
+- [ ] **Regenerate `public/quiz/ulpan_diagnostic_v1.json`** if items changed; bump `instrument_id` to `v1.1` if severity is Material.
+- [ ] **Re-run** `npm run quiz:validate` + `npm run smoke:research:fast` — must stay ALL GREEN.
+- [ ] **Update `validity_notes`** in the JSON: change `external_review_status` from `"ai_pre_review_only"` to `"external_complete"`; change `production_ready` from `"development_and_dogfood_only"` to `"full"`.
+- [ ] **Re-run consent audit** (`docs/RESEARCH_CONSENT_RULE.md` Example E) — bump `CONSENT_VERSION` only if any of the four conditions fails.
+- [ ] **Record** the post-review sign-off in `docs/ULPAN_DIAGNOSTIC_QUIZ_v1.md §5 Calibration audit log` (separate row from the 2026-05-15 provisional sign-off).
+- [ ] **Then deploy** to the real cohort.
+
+This list is a recommendation, not an enforced gate. The instrument as it stands today (project-owner provisional sign-off, AI-pre-reviewed) can technically run a cohort — the recommendation exists because a methodologically rigorous diploma study needs the external validity check, and we don't want the team forgetting it.
 
 ---
 
