@@ -161,20 +161,24 @@ async function runTests(page) {
   const hasUpload = exportBtns.some((t) => /Upload outcomes/.test(t));
   record("13. Upload outcomes CSV button present", hasUpload);
 
-  // 14. Outcomes from outcomes.csv joined into students[].outcome — pull
-  // the last two columns (pre/post score) of every body row and assert
-  // at least one row has a numeric value in either.
-  const outcomeCells = await page.$$eval('#studentTable tbody tr', (rows) =>
-    rows.map((tr) => {
+  // 14. Outcomes from outcomes.csv joined into students[].outcome —
+  // locate the 'pre' / 'post' columns by header label (v3.3.5 added
+  // quiz/CEFR/SE columns AFTER post, so positional indexing is no
+  // longer safe).
+  const outcomeCells = await page.$$eval('#studentTable', (tables) => {
+    const t = tables[0]; if (!t) return [];
+    const headers = Array.from(t.querySelectorAll('thead th'))
+      .map((th) => th.textContent.trim().replace(/[↑↓]\s*$/, '').trim());
+    const preIdx  = headers.indexOf('pre');
+    const postIdx = headers.indexOf('post');
+    return Array.from(t.querySelectorAll('tbody tr')).map((tr) => {
       const tds = tr.querySelectorAll('td');
-      const len = tds.length;
-      if (len < 2) return { pre: '', post: '' };
       return {
-        pre:  (tds[len - 2].textContent || '').trim(),
-        post: (tds[len - 1].textContent || '').trim(),
+        pre:  preIdx  >= 0 ? (tds[preIdx]  && tds[preIdx].textContent  || '').trim() : '',
+        post: postIdx >= 0 ? (tds[postIdx] && tds[postIdx].textContent || '').trim() : '',
       };
-    })
-  );
+    });
+  });
   const numericRows = outcomeCells.filter((c) =>
     /^\d/.test(c.pre) || /^\d/.test(c.post)
   );
