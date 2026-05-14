@@ -67,6 +67,34 @@
     .corr-neutral  { color: #94a3b8; }
 
     .empty-state { padding: 40px; text-align: center; color: #64748b; font-size: 12px; }
+
+    /* v3.3.2 D12 — chip strip */
+    .cohort-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 16px;
+      background: #1e293b; border: 1px solid #475569;
+      color: #cbd5e1; font-size: 12px; font-family: monospace;
+      cursor: pointer; user-select: none; transition: all 120ms;
+    }
+    .cohort-chip:hover { background: #334155; }
+    .cohort-chip.is-active { background: #1e3a5f; border-color: #fbbf24; color: #f1f5f9; font-weight: 600; }
+    .cohort-chip.is-error  { border-color: #f87171; }
+    .cohort-chip .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #475569;
+    }
+    .cohort-chip.is-ok  .dot { background: #34d399; }
+    .cohort-chip.is-error .dot { background: #f87171; }
+    .cohort-chip .x {
+      cursor: pointer; padding: 0 2px; opacity: 0.6; font-weight: 700;
+    }
+    .cohort-chip .x:hover { opacity: 1; color: #f87171; }
+    .cohort-chip-all { background: #422006; border-color: #fbbf24; color: #fbbf24; }
+    .cohort-chip-all.is-active { background: #92400e; }
+    .cohort-chip-overflow {
+      display: inline-flex; align-items: center; padding: 4px 10px;
+      border-radius: 16px; background: transparent; border: 1px dashed #475569;
+      color: #94a3b8; font-size: 12px; cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -74,38 +102,70 @@
 <div id="loginScreen">
   <div class="login-form">
     <h2>📊 Teacher Dashboard</h2>
-    <p style="font-size:12px;color:#94a3b8;margin:0 0 16px 0;">
-      LinguistPro Direction 11.5 — opt-in research mode dashboard.
-      Введите cohort code и researcher token, выданный при создании когорты
-      (<code>scripts/research/create_cohort.js</code>).
+    <p style="font-size:12px;color:#94a3b8;margin:0 0 12px 0;">
+      LinguistPro multicohort dashboard (v3.3.2). Введите credentials одной
+      когорты или вставьте список нескольких.
     </p>
-    <label for="cohortInput">Cohort code</label>
-    <input type="text" id="cohortInput" maxlength="16" placeholder="ULPAN-A-W2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
-    <label for="tokenInput">Researcher token (Bearer)</label>
-    <input type="password" id="tokenInput" placeholder="paste token" autocomplete="off">
-    <button id="loginBtn">Войти →</button>
+
+    <!-- v3.3.2 D12 — bulk paste textarea. Each line: CODE  TOKEN
+         (whitespace-separated). Comment lines start with #. -->
+    <label for="bulkCohortsInput">Cohorts (bulk paste)</label>
+    <textarea id="bulkCohortsInput" rows="6"
+      placeholder="ULPAN-A-W2026  abc123def...&#10;ULPAN-B-W2026  ghi456jkl...&#10;# comment lines are ignored"
+      style="width:100%;padding:8px 10px;background:#0f172a;border:1px solid #475569;
+             border-radius:6px;color:#e2e8f0;font-family:monospace;font-size:12.5px;
+             margin-top:4px;resize:vertical;line-height:1.5;"
+      autocomplete="off" spellcheck="false"></textarea>
+    <p style="font-size:11px;color:#64748b;margin:6px 0 0 0;">
+      Формат: одна когорта на строку — <code>CODE  TOKEN</code> через пробел
+      или таб. Пустые строки и строки, начинающиеся с <code>#</code>, игнорируются.
+    </p>
+    <button id="bulkLoginBtn" style="margin-top:8px;">Войти →</button>
+
+    <!-- v3.3.2 D12 — preserve the v3.3.1 single-pair form ergonomic under
+         a collapsible. Same #cohortInput/#tokenInput/#loginBtn selectors so
+         existing teacher-smoke.js cases keep working. -->
+    <details open style="margin-top:14px;font-size:12px;color:#94a3b8;">
+      <summary style="cursor:pointer;padding:4px 0;">▾ Одну когорту по полям</summary>
+      <div style="padding-top:10px;border-top:1px solid #334155;margin-top:6px;">
+        <label for="cohortInput">Cohort code</label>
+        <input type="text" id="cohortInput" maxlength="16" placeholder="ULPAN-A-W2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <label for="tokenInput">Researcher token (Bearer)</label>
+        <input type="password" id="tokenInput" placeholder="paste token" autocomplete="off">
+        <button id="loginBtn">Войти →</button>
+      </div>
+    </details>
+
     <div class="err" id="loginErr"></div>
     <div class="hint">
-      Cohort code и token хранятся в <code>localStorage</code> этой страницы.
-      Один-клик logout в шапке после входа стирает их.<br>
-      <b>Privacy:</b> dashboard читает aggregates через <code>GET /api/research/v1/cohort/:code/aggregates</code>.
-      Per-student breakdown скрыт когда <code>cohort_size &lt; k</code> (по-умолчанию k=5).
+      Все credentials хранятся в <code>localStorage</code> этой страницы.
+      Logout в шапке после входа стирает их.<br>
+      <b>Privacy:</b> dashboard читает aggregates через <code>GET /api/research/v1/cohort/:code/aggregates</code>
+      (по N параллельных вызовов в multicohort режиме).
+      Per-student breakdown скрыт когда <code>cohort_size &lt; k</code> (по-умолчанию k=5)
+      <b>и</b> ВСЕГДА скрыт в режиме «All cohorts» compare view.
     </div>
   </div>
 </div>
 
 <header id="dashHeader" style="display:none;">
-  <div>
+  <div style="flex:1;min-width:0;">
     <h1>📊 Teacher Dashboard</h1>
+    <!-- v3.3.2 D12 chip strip: rendered by teacher.js renderChipStrip() -->
+    <div id="cohortChipStrip" data-testid="cohort-chip-strip"
+         style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center;"></div>
     <div class="meta" id="cohortMeta">—</div>
   </div>
   <div class="actions">
     <button id="refreshBtn">🔄 Refresh</button>
+    <button id="addCohortBtn" data-testid="add-cohort-btn">+ Add cohort</button>
     <button id="uploadOutcomesBtn">📤 Upload outcomes CSV</button>
     <button id="exportAggregatesBtn">⬇ Aggregates CSV</button>
     <button id="exportTimeseriesBtn">⬇ Timeseries CSV</button>
     <button id="exportDerivedBtn">⬇ Derived CSV</button>
-    <button id="logoutBtn" class="btn-logout">⎋ Logout</button>
+    <button id="exportCrossCohortBtn" data-testid="export-cross-cohort-btn"
+            style="display:none;">⬇ Cross-cohort CSV</button>
+    <button id="logoutBtn" class="btn-logout">⎋ Logout all</button>
   </div>
 </header>
 

@@ -25,10 +25,12 @@ const SUITES = [
   { name: "Server smoke (Phase 11.4 + 11.6)",   script: "scripts/research/smoke.js",        countLabel: "23 cases" },
   { name: "Client opt-in (Phase 11.2 + 11.3)",  script: "scripts/research/browser-smoke.js", countLabel: "16 cases" },
   { name: "Teacher dashboard (Phase 11.5)",     script: "scripts/research/teacher-smoke.js", countLabel: "12 cases" },
+  { name: "Teacher multicohort (v3.3.2 D12)",   script: "scripts/research/teacher-multicohort-smoke.js", countLabel: "8 cases" },
   { name: "Preview UI (transparency modal)",    script: "scripts/research/preview-ui-smoke.js", countLabel: "12 cases" },
   { name: "Admin CLI: rotate_token (v3.3.1 A2)",     script: "scripts/research/rotate-token-smoke.js",     countLabel: "12 cases" },
   { name: "Admin CLI: link_student_ids (v3.3.1 A3)", script: "scripts/research/link-student-ids-smoke.js", countLabel: "12 cases" },
   { name: "Admin CLI: validate-cli (v3.3.1 A5)",     script: "scripts/research/validate-cli-smoke.js",     countLabel: "15 cases" },
+  { name: "Cross-text lookup service (v3.3.2 D15)",  script: "scripts/morph/crosstext-smoke.js",            countLabel: "8 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
   ]),
