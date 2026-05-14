@@ -91,7 +91,7 @@ function printHelp() {
   console.log(`Usage:
   node scripts/research/link_student_ids.js \\
        --cohort <CODE> --primary <uuid> --secondary <uuid> --reason "<text>" \\
-       [--otp <6 digits>] [--dry-run]
+       [--otp <6 digits>] [--dry-run] [--json]
 
 Options:
   --cohort <STR>     (required) cohort code.
@@ -102,6 +102,9 @@ Options:
                      NOT verified by the CLI (out-of-band verification).
   --dry-run          Scan jsonl + outcomes.csv to count what WOULD relocate,
                      but write nothing. Useful for previewing a merge.
+  --json             Emit a single JSON line on stdout instead of human-
+                     readable output. Schema: {ok, cli, action, dry_run,
+                     args, result, audit_appended, timestamp}.
   --help, -h         Show this help and exit 0.
 
 Notes:
@@ -118,7 +121,16 @@ Exit codes:
 Examples:
   link_student_ids.js --cohort X --primary a... --secondary b... --reason "duplicate signup"
   link_student_ids.js --cohort X --primary a... --secondary b... --reason "..." --dry-run
+  link_student_ids.js --cohort X --primary a... --secondary b... --reason "..." --json
 `);
+}
+
+function emitJson(result) {
+  process.stdout.write(JSON.stringify(result) + "\n");
+}
+function failJson(message, code, extra) {
+  emitJson({ ok: false, cli: "link_student_ids", error: message, ...(extra || {}) });
+  process.exit(code);
 }
 
 function atomicWriteText(target, text) {
@@ -210,8 +222,10 @@ function rewriteOutcomesCsv(cdir, primary, secondary, dryRun = false) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) { printHelp(); process.exit(0); }
+  const json = !!args.json;
   if (!args.cohort || !args.primary || !args.secondary || !args.reason) {
     const missing = ["cohort", "primary", "secondary", "reason"].filter((k) => !args[k]);
+    if (json) failJson(`missing required flag(s): ${missing.map((k) => "--" + k).join(", ")}`, 2, { missing });
     console.error(`error: missing required flag(s): ${missing.map((k) => "--" + k).join(", ")}`);
     printHelp();
     process.exit(2);
@@ -224,14 +238,25 @@ function main() {
   const reason = String(args.reason);
   const otp = args.otp ? String(args.otp).trim() : null;
 
-  if (!UUID_RE.test(primary))   { console.error("error: --primary not UUID-shaped");   process.exit(2); }
-  if (!UUID_RE.test(secondary)) { console.error("error: --secondary not UUID-shaped"); process.exit(2); }
-  if (primary === secondary)    { console.error("error: --primary === --secondary");   process.exit(2); }
+  if (!UUID_RE.test(primary)) {
+    if (json) failJson("--primary not UUID-shaped", 2, { field: "primary", value: primary });
+    console.error("error: --primary not UUID-shaped"); process.exit(2);
+  }
+  if (!UUID_RE.test(secondary)) {
+    if (json) failJson("--secondary not UUID-shaped", 2, { field: "secondary", value: secondary });
+    console.error("error: --secondary not UUID-shaped"); process.exit(2);
+  }
+  if (primary === secondary) {
+    if (json) failJson("--primary === --secondary", 2);
+    console.error("error: --primary === --secondary"); process.exit(2);
+  }
   if (otp !== null && !OTP_RE.test(otp)) {
+    if (json) failJson("--otp must be 6 decimal digits", 2, { field: "otp" });
     console.error("error: --otp must be 6 decimal digits"); process.exit(2);
   }
 
   if (!cohortExists(code)) {
+    if (json) failJson(`cohort "${code}" not found`, 1, { cohort: code, meta_path: cohortMetaPath(code) });
     console.error(`error: cohort "${code}" not found at ${cohortMetaPath(code)}`);
     process.exit(1);
   }
@@ -246,6 +271,10 @@ function main() {
     outcomesSummary.outcomes_dropped_conflict;
 
   if (totalAffected === 0) {
+    if (json) {
+      failJson(`no rows found for secondary student_id=${secondary} in cohort ${code}`, 1,
+               { cohort: code, primary, secondary, dry_run: dryRun, total_affected: 0 });
+    }
     console.error(`warning: no rows found for secondary student_id=${secondary.slice(0,8)}… in cohort ${code}`);
     // not a hard fail — but exit non-zero so calling automation knows
     process.exit(1);
@@ -262,6 +291,32 @@ function main() {
     `files_touched=${jsonlSummary.files_touched} ` +
     `otp=${otp || "—"} reason=${reasonEscaped}\n`;
 
+  const auditLogPath = path.join(cdir, "deletions.log");
+  const result = {
+    ok: true,
+    cli: "link_student_ids",
+    action: "link",
+    dry_run: dryRun,
+    args: { cohort: code, primary, secondary, reason, otp: otp || null },
+    result: {
+      cohort: code,
+      primary,
+      secondary,
+      rows_relocated: jsonlSummary.rows_relocated,
+      files_touched: jsonlSummary.files_touched,
+      outcomes_relocated: outcomesSummary.outcomes_relocated,
+      outcomes_dropped_conflict: outcomesSummary.outcomes_dropped_conflict,
+    },
+    audit_appended: dryRun ? null : auditLogPath,
+    timestamp: ts,
+  };
+
+  if (!dryRun) {
+    fs.appendFileSync(auditLogPath, auditLine, "utf8");
+  }
+
+  if (json) { emitJson(result); process.exit(0); }
+
   if (dryRun) {
     console.log("[DRY RUN] link_student_ids — no files modified.");
     console.log(`[DRY RUN]   cohort:                  ${code}`);
@@ -271,12 +326,10 @@ function main() {
     console.log(`[DRY RUN]   jsonl files would touch:      ${jsonlSummary.files_touched}`);
     console.log(`[DRY RUN]   outcomes would relocate:      ${outcomesSummary.outcomes_relocated}`);
     console.log(`[DRY RUN]   outcomes would drop:          ${outcomesSummary.outcomes_dropped_conflict}`);
-    console.log(`[DRY RUN]   would append to audit log:    ${path.join(cdir, "deletions.log")}`);
+    console.log(`[DRY RUN]   would append to audit log:    ${auditLogPath}`);
     console.log(`[DRY RUN]   audit_line:                   ${auditLine.trimEnd()}`);
     process.exit(0);
   }
-
-  fs.appendFileSync(path.join(cdir, "deletions.log"), auditLine, "utf8");
 
   console.log("Student IDs linked:");
   console.log(`  cohort:                  ${code}`);
@@ -286,7 +339,7 @@ function main() {
   console.log(`  jsonl files touched:     ${jsonlSummary.files_touched}`);
   console.log(`  outcomes relocated:      ${outcomesSummary.outcomes_relocated}`);
   console.log(`  outcomes dropped:        ${outcomesSummary.outcomes_dropped_conflict}`);
-  console.log(`  audit_log:               ${path.join(cdir, "deletions.log")}`);
+  console.log(`  audit_log:               ${auditLogPath}`);
   console.log("");
   console.log("Reverse the merge by running DELETE /api/research/v1/student/<secondary>");
   console.log("only if you specifically want to purge the SECONDARY id's traces — they");

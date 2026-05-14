@@ -69,6 +69,11 @@ Options:
   --dry-run          Compute new token + hash + audit line but do NOT write
                      cohort_meta.json or append to deletions.log. Stdout
                      shows what would happen, prefixed by "[DRY RUN]".
+  --json             Emit a single JSON line on stdout instead of human-
+                     readable output. Schema: {ok, cli, action, dry_run,
+                     args, result, audit_appended, timestamp}. The new
+                     plaintext token appears in result.new_token_plaintext
+                     — consumers must redact when logging.
   --help, -h         Show this help and exit 0.
 
 Exit codes:
@@ -80,7 +85,16 @@ Examples:
   rotate_token.js --cohort ULPAN-A-W2026
   rotate_token.js --cohort ULPAN-A-W2026 --reason "compromised in screenshot"
   rotate_token.js --cohort ULPAN-A-W2026 --dry-run    # preview without writing
+  rotate_token.js --cohort ULPAN-A-W2026 --json       # machine-readable
 `);
+}
+
+function emitJson(result) {
+  process.stdout.write(JSON.stringify(result) + "\n");
+}
+function failJson(message, code, extra) {
+  emitJson({ ok: false, cli: "rotate_token", error: message, ...(extra || {}) });
+  process.exit(code);
 }
 
 function generateToken() {
@@ -102,7 +116,9 @@ function main() {
   // Help short-circuit BEFORE any validation so `--help` always exits 0
   // even when required flags are absent. -h is an alias.
   if (args.help) { printHelp(); process.exit(0); }
+  const json = !!args.json;
   if (!args.cohort) {
+    if (json) failJson("--cohort is required", 2, { field: "cohort" });
     console.error("error: --cohort is required");
     printHelp();
     process.exit(2);
@@ -111,12 +127,14 @@ function main() {
 
   const code = String(args.cohort).trim();
   if (!cohortExists(code)) {
+    if (json) failJson(`cohort "${code}" not found`, 1, { cohort: code, meta_path: cohortMetaPath(code) });
     console.error(`error: cohort "${code}" not found at ${cohortMetaPath(code)}`);
     process.exit(1);
   }
 
   const newPlaintext = args.token ? String(args.token) : generateToken();
   if (newPlaintext.length < 16) {
+    if (json) failJson("--token must be ≥ 16 chars", 2, { field: "token", actual_length: newPlaintext.length });
     console.error(`error: --token must be ≥ 16 chars (got ${newPlaintext.length})`);
     process.exit(2);
   }
@@ -142,31 +160,57 @@ function main() {
     `prev_hash_prefix=${prevHashPrefix || "—"} ` +
     `reason=${args.reason ? JSON.stringify(args.reason) : "—"}\n`;
 
+  const auditLogPath = path.join(cohortDir(code), "deletions.log");
+  const result = {
+    ok: true,
+    cli: "rotate_token",
+    action: "rotate",
+    dry_run: dryRun,
+    args: {
+      cohort: code,
+      reason: args.reason ? String(args.reason) : null,
+      token_provided: !!args.token,
+    },
+    result: {
+      cohort: code,
+      prev_hash_prefix: prevHashPrefix,
+      new_hash_prefix: newHash.slice(0, 12) + "…",
+      new_hash_full: newHash,
+      new_token_plaintext: newPlaintext,
+      rotation_count: meta.token_rotations.length,
+    },
+    audit_appended: dryRun ? null : auditLogPath,
+    timestamp: new Date().toISOString(),
+  };
+
+  if (!dryRun) {
+    atomicWriteJson(metaPath, meta);
+    // Cross-audit log line so deletions.log captures all sensitive
+    // server-side actions (deletions + rotations) in one place.
+    fs.appendFileSync(auditLogPath, auditLine, "utf8");
+  }
+
+  if (json) { emitJson(result); process.exit(0); }
+
   if (dryRun) {
     console.log("[DRY RUN] rotate_token — no files modified.");
     console.log(`[DRY RUN]   cohort:           ${code}`);
     console.log(`[DRY RUN]   would write:      ${metaPath}`);
     console.log(`[DRY RUN]   prev_hash_prefix: ${prevHashPrefix || "—"}`);
     console.log(`[DRY RUN]   new_hash_prefix:  ${newHash.slice(0, 12)}…`);
-    console.log(`[DRY RUN]   would append:     ${path.join(cohortDir(code), "deletions.log")}`);
+    console.log(`[DRY RUN]   would append:     ${auditLogPath}`);
     console.log(`[DRY RUN]   audit_line:       ${auditLine.trimEnd()}`);
     console.log(`[DRY RUN]   new_token (would print to stdout — NOT WRITTEN):`);
     console.log(`[DRY RUN]     ${newPlaintext}`);
     process.exit(0);
   }
 
-  atomicWriteJson(metaPath, meta);
-
-  // Cross-audit log line so deletions.log captures all sensitive
-  // server-side actions (deletions + rotations) in one place.
-  fs.appendFileSync(path.join(cohortDir(code), "deletions.log"), auditLine, "utf8");
-
   console.log("Token rotated:");
   console.log(`  cohort:               ${code}`);
   console.log(`  prev_hash_prefix:     ${prevHashPrefix || "—"}`);
   console.log(`  new_hash_prefix:      ${newHash.slice(0, 12)}…`);
   console.log(`  rotation_count:       ${meta.token_rotations.length}`);
-  console.log(`  audit_log:            ${path.join(cohortDir(code), "deletions.log")}`);
+  console.log(`  audit_log:            ${auditLogPath}`);
   console.log("");
   console.log("New researcher token (plaintext — SAVE NOW, NOT STORED ON DISK):");
   console.log(`  ${newPlaintext}`);

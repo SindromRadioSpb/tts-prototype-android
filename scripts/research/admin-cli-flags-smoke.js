@@ -226,6 +226,126 @@ function main() {
        !resetAuditAfter.exists && !resetAuditBefore.exists,
        `before=${resetAuditBefore.exists} after=${resetAuditAfter.exists}`);
 
+  // ── Case bundle 7: --json output shape across destructive CLIs ───────
+  //
+  // For each CLI: --json --dry-run produces ONE parseable JSON line on
+  // stdout with the standardized shape, ok=true, cli, action, dry_run,
+  // args, result, audit_appended=null (since dry-run), timestamp ISO.
+
+  function parseJsonStdout(stdout) {
+    const lines = String(stdout || "").split(/\r?\n/).filter(Boolean);
+    // First parseable line wins. The CLI is supposed to emit exactly one.
+    for (const line of lines) {
+      try { return JSON.parse(line); } catch (_) {}
+    }
+    return null;
+  }
+
+  // rotate_token --json --dry-run on a freshly provisioned cohort.
+  const cohortRotJson = "DRYJSN-RT";
+  provisionCohortForLink(dataDir, cohortRotJson);
+  const rRotJson = run(CLIS.rotate,
+    ["--cohort", cohortRotJson, "--reason", "smoke", "--dry-run", "--json"],
+    { RESEARCH_DATA_DIR: dataDir });
+  const rotJson = parseJsonStdout(rRotJson.stdout);
+  test("rotate_token --json --dry-run → exit 0 + parseable JSON",
+       rRotJson.status === 0 && rotJson && rotJson.ok === true,
+       `exit=${rRotJson.status} parseable=${!!rotJson}`);
+  test("rotate_token --json → schema {cli, action, dry_run, args, result, audit_appended, timestamp}",
+       rotJson &&
+       rotJson.cli === "rotate_token" &&
+       rotJson.action === "rotate" &&
+       rotJson.dry_run === true &&
+       typeof rotJson.args === "object" &&
+       typeof rotJson.result === "object" &&
+       rotJson.audit_appended === null &&
+       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(rotJson.timestamp || ""),
+       JSON.stringify({ cli: rotJson && rotJson.cli, action: rotJson && rotJson.action }));
+  test("rotate_token --json result has new_token_plaintext + new_hash_full",
+       rotJson && rotJson.result &&
+       typeof rotJson.result.new_token_plaintext === "string" &&
+       rotJson.result.new_token_plaintext.length >= 16 &&
+       typeof rotJson.result.new_hash_full === "string" &&
+       rotJson.result.new_hash_full.length === 64);
+
+  // link_student_ids --json --dry-run.
+  const cohortLinkJson = "DRYJSN-LN";
+  const cdirLinkJson = provisionCohortForLink(dataDir, cohortLinkJson);
+  const linkJsonIds = seedJsonlForLink(cdirLinkJson);
+  const rLinkJson = run(CLIS.link, [
+    "--cohort", cohortLinkJson,
+    "--primary", linkJsonIds.sidA,
+    "--secondary", linkJsonIds.sidB,
+    "--reason", "smoke", "--dry-run", "--json",
+  ], { RESEARCH_DATA_DIR: dataDir });
+  const linkJson = parseJsonStdout(rLinkJson.stdout);
+  test("link_student_ids --json --dry-run → exit 0 + parseable JSON, ok=true",
+       rLinkJson.status === 0 && linkJson && linkJson.ok === true && linkJson.cli === "link_student_ids",
+       `exit=${rLinkJson.status} parseable=${!!linkJson}`);
+  test("link_student_ids --json result counts rows_relocated + files_touched",
+       linkJson && linkJson.result &&
+       Number.isInteger(linkJson.result.rows_relocated) &&
+       Number.isInteger(linkJson.result.files_touched) &&
+       linkJson.result.rows_relocated >= 1,
+       JSON.stringify(linkJson && linkJson.result));
+
+  // reset_quiz --json --dry-run.
+  const cohortResetJson = "DRYJSN-RS";
+  const cdirResetJson = provisionCohortForLink(dataDir, cohortResetJson);
+  const resetJsonIds = seedJsonlForReset(cdirResetJson);
+  const rResetJson = run(CLIS.reset, [
+    "--cohort", cohortResetJson,
+    "--student-id", resetJsonIds.sidA,
+    "--reason", "smoke", "--dry-run", "--json",
+  ], { RESEARCH_DATA_DIR: dataDir });
+  const resetJson = parseJsonStdout(rResetJson.stdout);
+  test("reset_quiz --json --dry-run → exit 0 + parseable JSON, ok=true",
+       rResetJson.status === 0 && resetJson && resetJson.ok === true && resetJson.cli === "reset_quiz_for_student",
+       `exit=${rResetJson.status} parseable=${!!resetJson}`);
+  test("reset_quiz --json result has reset_count + lines_modified + files_touched",
+       resetJson && resetJson.result &&
+       Number.isInteger(resetJson.result.reset_count) &&
+       Number.isInteger(resetJson.result.lines_modified) &&
+       Number.isInteger(resetJson.result.files_touched) &&
+       resetJson.result.reset_count >= 1,
+       JSON.stringify(resetJson && resetJson.result));
+
+  // ── Case bundle 8: --json error paths emit {ok:false} with non-zero exit ──
+  const rRotErr = run(CLIS.rotate, ["--json"], { RESEARCH_DATA_DIR: dataDir });
+  const rotErrJson = parseJsonStdout(rRotErr.stdout);
+  test("rotate_token missing --cohort + --json → exit 2 + ok:false JSON",
+       rRotErr.status === 2 && rotErrJson && rotErrJson.ok === false &&
+       /cohort/.test(rotErrJson.error || ""),
+       `exit=${rRotErr.status} json=${JSON.stringify(rotErrJson)}`);
+
+  const rLinkErr = run(CLIS.link, ["--json"], { RESEARCH_DATA_DIR: dataDir });
+  const linkErrJson = parseJsonStdout(rLinkErr.stdout);
+  test("link_student_ids missing flags + --json → exit 2 + ok:false JSON with missing[]",
+       rLinkErr.status === 2 && linkErrJson && linkErrJson.ok === false &&
+       Array.isArray(linkErrJson.missing) && linkErrJson.missing.length >= 1,
+       `exit=${rLinkErr.status} json=${JSON.stringify(linkErrJson)}`);
+
+  const rResetErr = run(CLIS.reset, ["--json"], { RESEARCH_DATA_DIR: dataDir });
+  const resetErrJson = parseJsonStdout(rResetErr.stdout);
+  test("reset_quiz missing --cohort + --json → exit 2 + ok:false JSON",
+       rResetErr.status === 2 && resetErrJson && resetErrJson.ok === false &&
+       /cohort/i.test(resetErrJson.error || ""),
+       `exit=${rResetErr.status} json=${JSON.stringify(resetErrJson)}`);
+
+  // ── Case bundle 9: --json real write writes audit_appended path ──
+  // rotate_token without --dry-run should report audit_appended set.
+  const cohortRealJson = "REALJSN-RT";
+  provisionCohortForLink(dataDir, cohortRealJson);
+  const rRotReal = run(CLIS.rotate,
+    ["--cohort", cohortRealJson, "--reason", "smoke-real", "--json"],
+    { RESEARCH_DATA_DIR: dataDir });
+  const rotRealJson = parseJsonStdout(rRotReal.stdout);
+  const realAuditExists = rotRealJson && rotRealJson.audit_appended &&
+                           fs.existsSync(rotRealJson.audit_appended);
+  test("rotate_token --json (no --dry-run) → audit_appended path is set AND file exists",
+       rRotReal.status === 0 && rotRealJson && rotRealJson.dry_run === false && realAuditExists,
+       `audit_appended=${rotRealJson && rotRealJson.audit_appended} exists=${realAuditExists}`);
+
   try { fs.rmSync(dataDir, { recursive: true, force: true }); } catch (_) {}
   console.log(`\n[admin-cli-flags-smoke] ${passed}/${passed + failed} passed`);
   process.exit(failed === 0 ? 0 : 1);

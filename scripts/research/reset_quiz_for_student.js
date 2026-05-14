@@ -62,7 +62,7 @@ function parseArgs(argv) {
 function printHelp() {
   console.log(`Usage:
   reset_quiz_for_student.js --cohort <CODE> --student-id <UUID> --reason "<text>"
-    [--audit-log <path>] [--data-dir <path>] [--dry-run]
+    [--audit-log <path>] [--data-dir <path>] [--dry-run] [--json]
 
 Options:
   --cohort <STR>       (required) cohort code matching ^[A-Z0-9-]{4,16}$.
@@ -76,6 +76,9 @@ Options:
   --dry-run            Scan files + count what WOULD be stripped without
                        writing anything (jsonl preserved, audit log NOT
                        appended). Useful for previewing.
+  --json               Emit a single JSON line on stdout instead of human-
+                       readable output. Schema: {ok, cli, action, dry_run,
+                       args, result, audit_appended, timestamp}.
   --help, -h           Show this help and exit 0.
 
 Strips calibrated-quiz outcome fields for one student from the cohort's
@@ -99,7 +102,16 @@ Exit codes:
 Examples:
   reset_quiz_for_student.js --cohort X --student-id <UUID> --reason "Student request: retake"
   reset_quiz_for_student.js --cohort X --student-id <UUID> --reason "..." --dry-run
+  reset_quiz_for_student.js --cohort X --student-id <UUID> --reason "..." --json
 `);
+}
+
+function emitJson(result) {
+  process.stdout.write(JSON.stringify(result) + "\n");
+}
+function failJson(message, code, extra) {
+  emitJson({ ok: false, cli: "reset_quiz_for_student", error: message, ...(extra || {}) });
+  process.exit(code);
 }
 
 function atomicWriteText(target, text) {
@@ -122,28 +134,34 @@ function main() {
   // Help short-circuit BEFORE any validation so --help / -h always exits 0
   // even when required flags are absent.
   if (args.help) { printHelp(); process.exit(0); }
+  const json = !!args.json;
 
   const cohort = args["cohort"];
   const sid = args["student-id"];
   const reason = args["reason"];
   if (!cohort || typeof cohort !== "string" || !COHORT_RE.test(cohort)) {
+    if (json) failJson("Missing or invalid --cohort", 2, { field: "cohort" });
     console.error("Missing or invalid --cohort"); printHelp(); process.exit(2);
   }
   if (!sid || typeof sid !== "string" || !UUID_RE.test(sid)) {
+    if (json) failJson("Missing or invalid --student-id", 2, { field: "student-id" });
     console.error("Missing or invalid --student-id"); printHelp(); process.exit(2);
   }
   if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
+    if (json) failJson("Missing or empty --reason", 2, { field: "reason" });
     console.error("Missing or empty --reason"); printHelp(); process.exit(2);
   }
   const dryRun = !!args["dry-run"];
 
   const dataDir = args["data-dir"] || process.env.RESEARCH_DATA_DIR;
   if (!dataDir) {
+    if (json) failJson("Missing --data-dir and RESEARCH_DATA_DIR not set", 2, { field: "data-dir" });
     console.error("Missing --data-dir and RESEARCH_DATA_DIR not set");
     process.exit(2);
   }
   const cdir = path.join(dataDir, cohort);
   if (!fs.existsSync(cdir)) {
+    if (json) failJson(`Cohort directory not found: ${cdir}`, 1, { cohort, cdir });
     console.error(`Cohort directory not found: ${cdir}`);
     process.exit(1);
   }
@@ -202,6 +220,30 @@ function main() {
     `reason=${JSON.stringify(reason)}`,
   ].join(" ") + "\n";
 
+  const result = {
+    ok: true,
+    cli: "reset_quiz_for_student",
+    action: "reset",
+    dry_run: dryRun,
+    args: { cohort, student_id: sid, reason, audit_log: auditLogPath },
+    result: {
+      cohort,
+      student_id: sid,
+      reset_count: resetCount,
+      lines_modified: linesModified,
+      lines_dropped: linesDropped,
+      files_touched: filesTouched,
+    },
+    audit_appended: dryRun ? null : auditLogPath,
+    timestamp: new Date().toISOString(),
+  };
+
+  if (!dryRun) {
+    fs.appendFileSync(auditLogPath, auditLine, "utf8");
+  }
+
+  if (json) { emitJson(result); process.exit(0); }
+
   if (dryRun) {
     console.log(`[DRY RUN] reset_quiz — no files modified.`);
     console.log(`[DRY RUN]   cohort=${cohort} student=${sid}`);
@@ -210,8 +252,6 @@ function main() {
     console.log(`[DRY RUN]   audit_line: ${auditLine.trimEnd()}`);
     process.exit(0);
   }
-
-  fs.appendFileSync(auditLogPath, auditLine, "utf8");
 
   console.log(`[reset_quiz] cohort=${cohort} student=${sid} reset_count=${resetCount} ` +
               `(modified=${linesModified} dropped=${linesDropped} files=${filesTouched})`);
