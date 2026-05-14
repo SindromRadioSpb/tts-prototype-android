@@ -25,6 +25,7 @@ const SUITES = [
   { name: "Server smoke (Phase 11.4 + 11.6)",   script: "scripts/research/smoke.js",        countLabel: "23 cases" },
   { name: "Client opt-in (Phase 11.2 + 11.3)",  script: "scripts/research/browser-smoke.js", countLabel: "16 cases" },
   { name: "Teacher dashboard (Phase 11.5)",     script: "scripts/research/teacher-smoke.js", countLabel: "12 cases" },
+  { name: "Preview UI (transparency modal)",    script: "scripts/research/preview-ui-smoke.js", countLabel: "12 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
   ]),

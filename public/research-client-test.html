@@ -515,6 +515,120 @@ async function run() {
     restoreFetch();
   }
 
+  head('12. previewToday (pending-upload preview)');
+
+  // previewToday should be a pure read against the events table — no fetch,
+  // no log mutation, no lastUploadDate change. These tests pin those
+  // invariants so future refactors can't silently break privacy/UX clarity.
+
+  await test('previewToday: NOT_ENABLED when consent missing', async () => {
+    const res = await r.previewToday();
+    eq(res.ok, false);
+    eq(res.reason, 'NOT_ENABLED');
+    eq(res.metrics, null);
+    eq(res.payloadBytes, 0);
+    assert(typeof res.uploadDay === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(res.uploadDay), 'uploadDay populated');
+    assert(typeof res.willUploadOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(res.willUploadOn), 'willUploadOn populated');
+  });
+
+  await test('previewToday: NOT_JOINED when consent but no cohort', async () => {
+    r.acceptConsent('1.0');
+    const res = await r.previewToday();
+    eq(res.ok, false);
+    eq(res.reason, 'NOT_JOINED');
+  });
+
+  await test('previewToday: RECONSENT_NEEDED when stored consent < current', async () => {
+    r.acceptConsent('0.9');
+    r.joinCohort('VALID-2026');
+    const res = await r.previewToday();
+    eq(res.ok, false);
+    eq(res.reason, 'RECONSENT_NEEDED');
+  });
+
+  installMockLdb();
+  try {
+    await test('previewToday: returns aggregated metrics + payload bytes for today', async () => {
+      // Use today as the synthetic event window so previewToday picks them up.
+      const today = new Date().toISOString().slice(0, 10);
+      _syntheticEvents = [
+        { event_type: 'session_start', ts: today + 'T10:00:00.000Z' },
+        { event_type: 'session_heartbeat', ts: today + 'T10:00:30.000Z' },
+        { event_type: 'play_audio', ts: today + 'T10:01:00.000Z', sentence_id: 's1', payload_json: { duration_ms: 4500, replay_count: 1 } },
+        { event_type: 'srs_review', ts: today + 'T10:02:00.000Z', payload_json: { grade: 'good' } },
+        { event_type: 'save_note', ts: today + 'T10:03:00.000Z' },
+      ];
+      r.acceptConsent('1.0');
+      r.joinCohort('VALID-2026');
+      const res = await r.previewToday();
+      eq(res.ok, true);
+      eq(res.reason, null);
+      assert(res.metrics && typeof res.metrics === 'object', 'metrics object present');
+      eq(res.metrics.sessions_count, 1);
+      eq(res.metrics.audio_play_ms_total, 4500);
+      eq(res.metrics.cards_reviewed, 1);
+      eq(res.metrics.notes_created, 1);
+      assert(res.payloadBytes > 200, 'payload bytes plausibly sized');
+      eq(res.uploadDay, today);
+      eq(res.sinceDay, today);
+      // willUploadOn = today + 1 day
+      const next = new Date(today + 'T00:00:00Z');
+      next.setUTCDate(next.getUTCDate() + 1);
+      eq(res.willUploadOn, next.toISOString().slice(0, 10));
+    });
+
+    await test('previewToday: NO fetch call (pure read)', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      _syntheticEvents = [{ event_type: 'session_start', ts: today + 'T10:00:00.000Z' }];
+      r.acceptConsent('1.0');
+      r.joinCohort('VALID-2026');
+      installMockFetch(() => ({ status: 500, body: { ok: false } }));
+      try {
+        await r.previewToday();
+        eq(_fetchCalls.length, 0, 'previewToday must never POST');
+      } finally {
+        restoreFetch();
+      }
+    });
+
+    await test('previewToday: does not mutate lastUploadDate / uploadLog / queue', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      _syntheticEvents = [{ event_type: 'session_start', ts: today + 'T10:00:00.000Z' }];
+      r.acceptConsent('1.0');
+      r.joinCohort('VALID-2026');
+      const before = r.getState();
+      const logBefore = r.getRecentUploads();
+      await r.previewToday();
+      const after = r.getState();
+      const logAfter = r.getRecentUploads();
+      eq(after.lastUploadDate, before.lastUploadDate);
+      eq(after.queueSize, before.queueSize);
+      eq(after.nextRetryAt, before.nextRetryAt);
+      eq(logAfter.length, logBefore.length, 'no log entry appended');
+    });
+
+    await test('previewToday: clamps sinceDay when lastUploadDate is today (empty window)', async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      _syntheticEvents = [];
+      r.acceptConsent('1.0');
+      r.joinCohort('VALID-2026');
+      // Simulate that today was already uploaded. After clamp, sinceDay must
+      // still be ≤ uploadDay (today), so the window is just [today, today].
+      // The next day-advance would push sinceDay to tomorrow — preview clamps
+      // it back so user sees a sane single-day window.
+      localStorage.setItem(r._lsKeys.lastUploadDate, today);
+      const res = await r.previewToday();
+      eq(res.ok, true);
+      eq(res.uploadDay, today);
+      // sinceDay would be today+1 after advance, clamped to today
+      eq(res.sinceDay, today, 'sinceDay must clamp to uploadDay when last upload was today');
+      // Empty events → metrics zeros
+      eq(res.metrics.sessions_count, 0);
+    });
+  } finally {
+    restoreLdb();
+  }
+
   head('Summary');
   const div = document.createElement('div');
   div.className = 'summary';

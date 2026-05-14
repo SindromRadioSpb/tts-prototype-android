@@ -252,10 +252,114 @@
   }
 
   // ── transparency ───────────────────────────────────────────────────────
-  function openTransparency() {
+  // Renders a single pending-upload preview row (today's accumulated metrics,
+  // not yet sent). Visually distinct from sent-log entries to prevent the
+  // common misread "looks stored → already on server". Privacy-critical.
+  function renderPreviewSection(preview) {
+    const wrap = (inner) =>
+      '<div data-testid="research-preview-section" style="' +
+        'background:rgba(251,191,36,0.07);' +
+        'border:1px solid rgba(251,191,36,0.45);' +
+        'border-radius:8px;padding:12px 14px;margin:0 0 14px 0;' +
+      '">' +
+      '<div style="font-size:12.5px;font-weight:600;color:#fbbf24;margin-bottom:6px;">' +
+        escapeHtml(T('research.transparency.previewHeader', '📋 Превью следующего upload-а')) +
+      '</div>' +
+      inner +
+      '</div>';
+
+    // Negative branches: render header + reason (no metrics row).
+    if (!preview || !preview.ok) {
+      let reasonMsg;
+      switch (preview && preview.reason) {
+        case 'NOT_ENABLED':       reasonMsg = T('research.transparency.previewNotEnabled', 'Research mode не активен — preview недоступен.'); break;
+        case 'NOT_JOINED':        reasonMsg = T('research.transparency.previewNotJoined', 'Не задан cohort code — preview недоступен.'); break;
+        case 'RECONSENT_NEEDED':  reasonMsg = T('research.transparency.previewReconsentNeeded', 'Требуется повторное согласие — preview недоступен.'); break;
+        case 'AGGREGATE_ERROR':   reasonMsg = T('research.transparency.previewError', 'Не удалось построить preview: ') + ((preview && preview.message) || '?'); break;
+        default:                  reasonMsg = T('research.transparency.previewUnavailable', 'Preview недоступен.');
+      }
+      return wrap(
+        '<p style="margin:6px 0 0 0;font-size:12px;color:var(--theme-text-secondary,#94a3b8);">' +
+          escapeHtml(reasonMsg) +
+        '</p>'
+      );
+    }
+
+    const m = preview.metrics || {};
+    const periodLabel = (preview.sinceDay === preview.uploadDay)
+      ? escapeHtml(preview.uploadDay)
+      : escapeHtml(preview.sinceDay) + ' → ' + escapeHtml(preview.uploadDay);
+
+    let header =
+      '<p style="margin:0 0 8px 0;font-size:12px;line-height:1.5;color:var(--theme-text-secondary,#cbd5e1);">' +
+        escapeHtml(T('research.transparency.previewIntro',
+          'Эти данные ещё не на сервере. Они отправятся автоматически, когда aggregator посчитает день как завершённый.')) +
+      '</p>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;margin-bottom:8px;color:var(--theme-text-secondary,#94a3b8);">' +
+        '<span>' + escapeHtml(T('research.transparency.previewPeriod', 'Период: ')) + '<code style="font-family:monospace;color:#e2e8f0;">' + periodLabel + '</code></span>' +
+        '<span>' + escapeHtml(T('research.transparency.previewWillUpload', 'Будет отправлено: ')) + '<code style="font-family:monospace;color:#e2e8f0;">' + escapeHtml(preview.willUploadOn) + '</code></span>' +
+      '</div>';
+
+    // Determine whether anything was captured. If metrics are all-zero,
+    // surface an explicit "empty" hint INSTEAD of a misleading numeric row.
+    const hasActivity =
+      Number(m.sessions_count || 0) > 0 ||
+      Number(m.active_minutes_real || 0) > 0 ||
+      Number(m.audio_play_ms_total || 0) > 0 ||
+      Number(m.cards_reviewed || 0) > 0 ||
+      Number(m.notes_created || 0) > 0 ||
+      Number(m.texts_opened_total || 0) > 0;
+
+    if (!hasActivity) {
+      return wrap(header +
+        '<p style="margin:8px 0 0 0;font-size:12px;color:var(--theme-text-secondary,#94a3b8);font-style:italic;">' +
+          escapeHtml(T('research.transparency.previewEmpty', 'Сегодня ещё нет зарегистрированных событий.')) +
+        '</p>'
+      );
+    }
+
+    const minutes = Number(m.active_minutes_real || 0);
+    const cards   = Number(m.cards_reviewed || 0);
+    const notes   = Number(m.notes_created || 0);
+    const table =
+      '<table style="width:100%;border-collapse:collapse;font-size:11.5px;">' +
+        '<thead><tr style="border-bottom:1px solid rgba(251,191,36,0.25);">' +
+          '<th style="text-align:left;padding:6px 4px;">' + escapeHtml(T('research.transparency.colDate', 'Дата')) + '</th>' +
+          '<th style="text-align:left;padding:6px 4px;">' + escapeHtml(T('research.transparency.colStatus', 'Статус')) + '</th>' +
+          '<th style="text-align:right;padding:6px 4px;">' + escapeHtml(T('research.transparency.colMinutes', 'Минут')) + '</th>' +
+          '<th style="text-align:right;padding:6px 4px;">' + escapeHtml(T('research.transparency.colCards', 'SRS')) + '</th>' +
+          '<th style="text-align:right;padding:6px 4px;">' + escapeHtml(T('research.transparency.colNotes', 'Заметок')) + '</th>' +
+          '<th style="text-align:right;padding:6px 4px;">' + escapeHtml(T('research.transparency.colBytes', 'Bytes')) + '</th>' +
+        '</tr></thead><tbody>' +
+        '<tr data-testid="research-preview-row">' +
+          '<td style="padding:6px 4px;font-family:monospace;">' + periodLabel + '</td>' +
+          '<td style="padding:6px 4px;"><span style="color:#fbbf24;font-weight:600;">' + escapeHtml(T('research.transparency.previewStatus', '⏳ preview')) + '</span></td>' +
+          '<td style="padding:6px 4px;text-align:right;">' + escapeHtml(String(minutes)) + '</td>' +
+          '<td style="padding:6px 4px;text-align:right;">' + escapeHtml(String(cards)) + '</td>' +
+          '<td style="padding:6px 4px;text-align:right;">' + escapeHtml(String(notes)) + '</td>' +
+          '<td style="padding:6px 4px;text-align:right;">≈' + escapeHtml(fmtBytes(preview.payloadBytes)) + '</td>' +
+        '</tr></tbody>' +
+      '</table>';
+
+    return wrap(header + table);
+  }
+
+  async function openTransparency() {
     const r = ensureApi(); if (!r) return;
+    // Build the preview FIRST so we can splice it into the modal body atop the
+    // sent-log table. previewToday() is a pure read — safe to call here.
+    let preview = null;
+    try { preview = await r.previewToday(); }
+    catch (e) {
+      preview = { ok: false, reason: 'AGGREGATE_ERROR', message: String((e && e.message) || e) };
+    }
+
     const uploads = r.getRecentUploads(30);
     let body = '<div class="v3-research-transparency">';
+    body += renderPreviewSection(preview);
+    body += '<h4 style="margin:0 0 6px 0;font-size:12.5px;color:var(--theme-text-secondary,#cbd5e1);">' +
+      escapeHtml(T('research.transparency.historyHeader', 'Отправленные uploads')) +
+      '</h4>';
     body += '<p style="margin:0 0 10px 0;font-size:12.5px;">' +
       escapeHtml(T('research.transparency.intro', 'Здесь видны все последние uploads (до 30). Каждая запись — это то, что было отправлено за этот день.')) +
       '</p>';

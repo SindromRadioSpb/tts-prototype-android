@@ -27,6 +27,19 @@
 
 **Если ты найдёшь способ нарушить любой из этих инвариантов — это bug, не feature.** Раппорти через `📬 Feedback` модал в приложении или GitHub issue.
 
+#### 1.1 Transparency для студентов: «👁 Что собрано»
+
+В приложении студент в любой момент может открыть модал **«👁 Что собрано»** (📊 Research panel → кнопка «👁 Что собрано»). Внутри модала — **две** независимые секции:
+
+| Секция | Что показывает | Когда обновляется |
+|---|---|---|
+| 📋 Превью следующего upload-а | Live-aggregate сегодняшней активности студента (минуты, SRS, заметки, audio, ≈bytes). Статус — `⏳ preview` (амбер). | Каждый раз при открытии модала: `previewToday()` запрашивает локальный `events` table в реальном времени. |
+| Отправленные uploads | Историю фактически загруженных aggregates (до 30 последних), статусы `✓ stored` / `↻ dedupe` / `⚠ <err>`. | Append-only при успешном upload (daily aggregator + outcome submissions). |
+
+**Privacy-критическое различие.** Preview-секция помечена амбером + статусом `⏳ preview` + явным текстом «ещё не на сервере». Студент видит, что **будет** отправлено завтра, прежде чем оно фактически уедет — это дополнительная transparency-гарантия on top of «server stores only aggregates» инварианта.
+
+`previewToday()` — pure read: никаких side-effects (нет POST, нет записи в upload log, нет изменения `lastUploadDate`). Pinned тестами в `public/research-client-test.html` («previewToday: NO fetch call», «previewToday: does not mutate state»).
+
 ---
 
 ## 2. Setup (one-time, server-side)

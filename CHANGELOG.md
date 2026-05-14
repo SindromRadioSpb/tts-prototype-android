@@ -7,7 +7,14 @@
 
 ## [Unreleased]
 
-(пусто — следующий цикл откроется patch-фиксами или v3.3 backlog'ом)
+### Added — Research transparency: pending-upload preview (2026-05-14)
+
+- **UX gap closed.** В шипнутом v3.2.0 пользователь, открывший «👁 Что собрано» в день своей активности, видел только уже отправленные uploads (≤ yesterday) — сегодняшняя работа отсутствовала, потому что daily aggregator by design никогда не аплоадит «сегодня» (неполный день). Текст empty-state («Uploads появятся после первого полного дня активности») не передавал эту нюансировку. После реализации pending-upload preview-секции студент видит live-аггрегаты сегодняшнего дня прямо в модальном окне «👁 Что собрано», что в свою очередь служит дополнительной transparency-гарантией ("see-before-send").
+- **API.** Новая публичная функция `LinguistProResearch.previewToday()` — pure read поверх `_aggregateForRange(sinceDay, today)`. **Никаких side-effects**: ни POST, ни запись в `researchUploadLog_v1`, ни мутация `lastUploadDate` / `nextRetryAt` / upload queue. Возвращает `{ok, reason, sinceDay, uploadDay, willUploadOn, metrics, payloadBytes}`. Negative branches: `NOT_ENABLED` / `NOT_JOINED` / `RECONSENT_NEEDED` / `AGGREGATE_ERROR`.
+- **UI.** `research-ui.js` `openTransparency()` теперь рендерит **отдельную амбер-bordered секцию** «📋 Превью следующего upload-а» поверх существующего лога. Внутри: период (`since → upload`), `Будет отправлено: <willUploadOn>`, и одностроковая мини-таблица с амбер-бэйджем **`⏳ preview`**. Визуальная различимость от «✓ stored» — privacy-критическое требование («ещё не на сервере» должно читаться однозначно). Empty-case (метрики все нули) → italic «Сегодня ещё нет зарегистрированных событий.»; error-case → красная подпись с message.
+- **i18n.** +13 ключей × 3 локали (ru/en/he) под `research.transparency.preview*` + `historyHeader`.
+- **Тесты.** 7 новых case'ов в `public/research-client-test.html` — pinning of privacy/state invariants (no fetch, no log mutation, no lastUploadDate change, clamp sinceDay ≤ uploadDay, всех 4 negative branches). Новый smoke runner `scripts/research/preview-ui-smoke.js` (Playwright, 12 DOM-assertions) — мокает `v3ConfirmModal` + `__localDB`, открывает реальный модал, проверяет наличие preview-секции, бэйджа `⏳ preview`, period+willUpload-меток, и нумерических ячеек со значениями из synthetic events. Wire'нут в `scripts/research/all-smoke.js`.
+- **Smoke-табло post-change:** Server 25/25, Client opt-in **28/28** (+7), Teacher dashboard 14/14, **Preview UI 12/12 (новый)**, Visual regression 9 PNGs → итого **79 cases + 9 PNGs ALL GREEN**.
 
 ---
 

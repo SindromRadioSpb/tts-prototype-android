@@ -25,6 +25,10 @@
 //   _aggregateForRange(s,u)   — internal: build payload for [since, upload).
 //   _uploadOnce(payload)      — internal: POST + handle status; returns result.
 //   runDailyAggregator()      — manually trigger the daily aggregator (idempotent).
+//   previewToday()            — pure (no upload, no state mutation): returns
+//                                "what the next daily aggregator would send if
+//                                it ran with today as a complete day". Powers
+//                                the transparency UI's pending-upload preview.
 
 (function () {
   'use strict';
@@ -226,6 +230,11 @@
   function yesterdayIsoDay() {
     const d = new Date();
     d.setUTCDate(d.getUTCDate() - 1);
+    return isoDay(d);
+  }
+  function tomorrowIsoDay() {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + 1);
     return isoDay(d);
   }
   function compareSemver(a, b) {
@@ -612,6 +621,73 @@
     return { ok: false, status: result.status, error: result.error, queued: true };
   }
 
+  // Pure preview: build today's pending-upload payload WITHOUT uploading,
+  // WITHOUT mutating any local state (no log entry, no lastUploadDate change,
+  // no queue push, no retry scheduling). Used by the transparency UI to show
+  // the user what their next aggregator run will send.
+  //
+  // Returns:
+  //   { ok: true,  reason: null,           sinceDay, uploadDay, willUploadOn,
+  //                metrics, payloadBytes }
+  //   { ok: false, reason: 'NOT_ENABLED' | 'NOT_JOINED' | 'RECONSENT_NEEDED'
+  //                       | 'AGGREGATE_ERROR', sinceDay, uploadDay, willUploadOn,
+  //                metrics: null, payloadBytes: 0, message? }
+  //
+  // Range semantics mirror runDailyAggregator exactly so preview = "what would
+  // be sent if today's aggregator fired right now and treated today as a
+  // complete day". sinceDay = lastUploadDate + 1 (or earliest event day, or
+  // today). uploadDay = today. Range is clamped so sinceDay never exceeds
+  // uploadDay (i.e. if last upload already covered today, preview window is
+  // empty rather than negative).
+  async function previewToday() {
+    const uploadDay = todayIsoDay();
+    const willUploadOn = tomorrowIsoDay();
+    const state = getState();
+    const baseSkip = (reason) => ({
+      ok: false, reason, sinceDay: uploadDay, uploadDay, willUploadOn,
+      metrics: null, payloadBytes: 0,
+    });
+    if (!state.enabled || !state.studentId) return baseSkip('NOT_ENABLED');
+    if (!state.cohortCode)                  return baseSkip('NOT_JOINED');
+    if (needsReconsent())                    return baseSkip('RECONSENT_NEEDED');
+
+    // Resolve sinceDay using the same rules as runDailyAggregator, clamped
+    // upward to uploadDay (today) so the preview window is always sane.
+    let sinceDay = state.lastUploadDate || null;
+    if (sinceDay) {
+      const d = new Date(sinceDay + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + 1);
+      sinceDay = isoDay(d);
+    } else {
+      try {
+        const earliest = await _q(`SELECT MIN(substr(ts, 1, 10)) AS first_day FROM events`);
+        sinceDay = (earliest[0] && earliest[0].first_day) || uploadDay;
+      } catch (_) {
+        sinceDay = uploadDay;
+      }
+    }
+    if (sinceDay > uploadDay) sinceDay = uploadDay; // clamp: empty window > negative window
+
+    let payload;
+    try {
+      payload = await _aggregateForRange(sinceDay, uploadDay);
+    } catch (e) {
+      return {
+        ok: false, reason: 'AGGREGATE_ERROR',
+        sinceDay, uploadDay, willUploadOn,
+        metrics: null, payloadBytes: 0,
+        message: String((e && e.message) || e),
+      };
+    }
+
+    return {
+      ok: true, reason: null,
+      sinceDay, uploadDay, willUploadOn,
+      metrics: payload.metrics,
+      payloadBytes: JSON.stringify(payload).length,
+    };
+  }
+
   // Phase 11.6 §11.6.1 — student self-report exam score. ONE-OFF POST
   // /api/research/v1/metrics with metrics.outcome populated; the regular
   // daily aggregator continues independently. Server merges into outcomes
@@ -772,6 +848,7 @@
     getCurrentConsentVersion,
     runDailyAggregator,
     submitOutcome,
+    previewToday,
     // internals exposed for testing only — UI should not call these
     _aggregateForRange,
     _uploadOnce,
