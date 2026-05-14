@@ -363,8 +363,13 @@ function aggregateCohort(cohortCode) {
         if (!cohortDaily.has(dateKey)) cohortDaily.set(dateKey, blankDaily(dateKey));
         addInto(cohortDaily.get(dateKey), m);
 
-        // Self-report outcome harvest (Phase 11.6 §11.6.1).
-        if (m.outcome && (m.outcome.post_test_score != null || m.outcome.confidence_self_report != null)) {
+        // Self-report outcome harvest (Phase 11.6 §11.6.1)
+        // — extended to catch calibrated-quiz uploads (v3.3.5 §9).
+        if (m.outcome && (
+              m.outcome.post_test_score != null ||
+              m.outcome.confidence_self_report != null ||
+              m.outcome.quiz_score_normalized != null
+            )) {
           const existing = selfReports.get(sid);
           if (!existing || row.upload_ts >= existing.upload_ts) {
             selfReports.set(sid, { upload_ts: row.upload_ts, outcome: m.outcome });
@@ -386,12 +391,21 @@ function aggregateCohort(cohortCode) {
   for (const [sid, sr] of selfReports) {
     const acc = perStudent.get(sid);
     if (acc) {
+      const isQuiz = sr.outcome.outcome_capture_method === "calibrated-quiz" ||
+                     sr.outcome.quiz_score_normalized != null;
       acc.outcome = {
         pre_test_score:  sr.outcome.pre_test_score != null ? Number(sr.outcome.pre_test_score) : null,
         post_test_score: sr.outcome.post_test_score != null ? Number(sr.outcome.post_test_score) : null,
         confidence_self_report: sr.outcome.confidence_self_report != null ? Number(sr.outcome.confidence_self_report) : null,
+        // v3.3.5 calibrated-quiz fields — passed through unchanged
+        // so teacher dashboard can render quiz score + CEFR + SE.
+        quiz_score_normalized: sr.outcome.quiz_score_normalized != null ? Number(sr.outcome.quiz_score_normalized) : null,
+        quiz_cefr_band: sr.outcome.quiz_cefr_band || null,
+        quiz_se: sr.outcome.quiz_se != null ? Number(sr.outcome.quiz_se) : null,
+        quiz_completed_at: sr.outcome.quiz_completed_at || null,
+        quiz_version: sr.outcome.quiz_version || null,
         exam_date: sr.upload_ts,
-        uploaded_by: "self-report",
+        uploaded_by: isQuiz ? "calibrated-quiz" : "self-report",
       };
     }
   }
@@ -404,7 +418,14 @@ function aggregateCohort(cohortCode) {
   for (const row of outcomes) {
     const acc = perStudent.get(row.student_id);
     if (acc) {
+      // Teacher CSV is authoritative for post_test_score / pre_test_score
+      // (the "score" hierarchy per consent rule). Quiz fields measure a
+      // different thing (instrument-derived diagnostic), so we MERGE
+      // rather than REPLACE to preserve quiz_score_normalized / quiz_se
+      // / quiz_cefr_band when both sources exist.
+      const prior = acc.outcome || {};
       acc.outcome = {
+        ...prior,
         pre_test_score:  row.pre_test_score,
         post_test_score: row.post_test_score,
         exam_date:       row.exam_date,

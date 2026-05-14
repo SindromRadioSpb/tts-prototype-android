@@ -581,6 +581,11 @@
       { key: 'notes_created',    label: 'notes',    cls: 'num', fmt: fmtNum },
       { key: 'pre_test_score',   label: 'pre',      cls: 'num', fmt: fmtNum },
       { key: 'post_test_score',  label: 'post',     cls: 'num', fmt: fmtNum },
+      // v3.3.5 — calibrated diagnostic quiz columns (sparse — only populated
+      // when the student took the in-app diagnostic).
+      { key: 'quiz_score_normalized', label: 'quiz', cls: 'num', fmt: fmtNum },
+      { key: 'quiz_cefr_band',  label: 'CEFR',     cls: 'num', fmt: (v) => v || '—' },
+      { key: 'quiz_se',         label: 'SE',       cls: 'num', fmt: (v) => v != null ? Number(v).toFixed(2) : '—' },
     ];
     const rows = students.map((s) => {
       const t = s.totals || {};
@@ -599,6 +604,9 @@
         notes_created: t.notes_created,
         pre_test_score: o.pre_test_score,
         post_test_score: o.post_test_score,
+        quiz_score_normalized: o.quiz_score_normalized,
+        quiz_cefr_band: o.quiz_cefr_band,
+        quiz_se: o.quiz_se,
       };
     });
     let sortKey = 'active_minutes_real', sortDir = -1;

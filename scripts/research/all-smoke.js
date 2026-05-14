@@ -38,6 +38,7 @@ const SUITES = [
   { name: "Quiz privacy hardening (v3.3.5 C4)",      script: "scripts/quiz/privacy-smoke.js",               countLabel: "5 cases" },
   { name: "Quiz client submit (v3.3.5 C5)",          script: "scripts/quiz/client-submit-smoke.js",         countLabel: "8 cases" },
   { name: "Quiz server validator (v3.3.5 C6)",       script: "scripts/research/quiz-validator-smoke.js",    countLabel: "7 cases" },
+  { name: "Teacher dashboard quiz cols (v3.3.5 C7)", script: "scripts/research/teacher-quiz-smoke.js",      countLabel: "3 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
   ]),

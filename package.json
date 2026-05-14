@@ -35,6 +35,7 @@
     "smoke:quiz:privacy": "node scripts/quiz/privacy-smoke.js",
     "smoke:quiz:client-submit": "node scripts/quiz/client-submit-smoke.js",
     "smoke:quiz:server-validator": "node scripts/research/quiz-validator-smoke.js",
+    "smoke:quiz:teacher": "node scripts/research/teacher-quiz-smoke.js",
     "quiz:validate": "node scripts/quiz/validate-bank.js",
     "quiz:regen-fixture": "node scripts/quiz/generate-mirt-fixture.js",
     "research:cohort": "node scripts/research/create_cohort.js",
