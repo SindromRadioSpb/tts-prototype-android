@@ -111,6 +111,7 @@
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openTransparency()">' + escapeHtml(T('research.btn.transparency', '👁 Что собрано')) + '</button>';
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.uploadNow()">' + escapeHtml(T('research.btn.uploadNow', '⬆ Отправить сейчас')) + '</button>';
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openOutcome()">' + escapeHtml(T('research.btn.outcome', '🎓 Сдать экзамен')) + '</button>';
+        body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openQuiz()">' + escapeHtml(T('research.btn.quiz', '📝 Сдать диагностику')) + '</button>';
       }
       body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openWithdraw()" style="margin-left:auto;color:#c0392b;">' + escapeHtml(T('research.btn.withdraw', '🗑 Отозвать согласие')) + '</button>';
     }
@@ -544,8 +545,21 @@
     setTimeout(open, 100);
   }
 
+  // ── calibrated quiz launcher (delegates to quiz-ui.js) ─────────────────
+  function openQuiz() {
+    if (typeof window === 'undefined' || !window.LinguistProQuiz ||
+        typeof window.LinguistProQuiz.open !== 'function') {
+      toast(T('research.toast.quizMissing', '📝 Quiz-модуль не загружен'), 'error');
+      return;
+    }
+    try { window.LinguistProQuiz.open(); }
+    catch (e) {
+      toast(T('research.toast.quizFailed', '⚠ Ошибка открытия диагностики: ') + String((e && e.message) || e), 'error');
+    }
+  }
+
   // ── expose ─────────────────────────────────────────────────────────────
   if (typeof window !== 'undefined') {
-    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, openOutcome, uploadNow };
+    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, openOutcome, uploadNow, openQuiz };
   }
 })();

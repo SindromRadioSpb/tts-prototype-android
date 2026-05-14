@@ -1491,4 +1491,37 @@ window.I18N_LOCALES.en = {
       noWord: "Enter a word first",
     },
   },
+  quiz: {
+    modalTitle: "📝 Hebrew diagnostic quiz (v1)",
+    progress: "Question",
+    privacyHint: "Your answers stay on this device and are deleted as soon as the score is computed. Only the final score is uploaded (and only if research mode is active).",
+    btn: {
+      back: "← Back",
+      next: "Next →",
+      finish: "Finish ✓",
+      close: "Close",
+    },
+    completed: {
+      title: "✓ Diagnostic already taken",
+      body: "You have already completed this version of the diagnostic. Retaking is not enabled in v3.3.5.",
+      version: "Version",
+      date: "Date",
+    },
+    result: {
+      title: "Diagnostic result",
+      seLabel: "Standard error of measurement (SE)",
+      thetaLabel: "Theta (latent ability)",
+      correctLabel: "Correct answers",
+      privacyNote: "Only the final score was uploaded (if research mode is active). Per-item answers were deleted from this device.",
+    },
+    band: {
+      A1: "A1 — Beginner",
+      A2: "A2 — Elementary",
+      B1: "B1 — Intermediate",
+      B2: "B2 — Upper-Intermediate",
+      C1: "C1 — Advanced",
+    },
+    loadError: "Failed to load question bank: ",
+    scoreError: "Scoring error: ",
+  },
 };
