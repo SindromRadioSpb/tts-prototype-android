@@ -10393,6 +10393,16 @@ body:not(.theme-light) .v3-heatmap-cell {
             <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.example">Пример</label>
             <textarea id="v3NotesTplWordStudyExample" class="v3-notes-tpl-textarea" maxlength="800" rows="2" data-i18n-placeholder="notes.tpl.word_study.examplePh" placeholder="שלום עליכם!"></textarea>
           </div>
+          <div class="v3-notes-tpl-row">
+            <button type="button" id="v3WordStudyCrossTextBtn"
+                    class="btn-mini-secondary"
+                    onclick="window.LinguistProCrossTextUI && window.LinguistProCrossTextUI.openForCurrentWord()"
+                    data-i18n="notes.tpl.word_study.crossText"
+                    data-i18n-title="notes.tpl.word_study.crossTextTitle"
+                    title="Найти, где это слово / его корень встречается в библиотеке">
+              🔎 Где встречается
+            </button>
+          </div>
         </div>
 
         <!-- grammar_rule -->
@@ -10601,6 +10611,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 <script src="/js/morph-provider.js"></script>
 <!-- v3.3 Workstream A1 — opt-in extended morphology dict toggle UI. -->
 <script src="/js/morph-settings-ui.js"></script>
+<!-- v3.3.2 Direction 15 — cross-text "Где встречается" hub. -->
+<script src="/js/crosstext.js"></script>
+<script src="/js/crosstext-ui.js"></script>
 
 <!-- Direction 11B Phase 11.2 + 11.3 — opt-in research mode (default OFF). -->
 <script src="/js/research.js"></script>

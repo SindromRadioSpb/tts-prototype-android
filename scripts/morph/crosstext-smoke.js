@@ -231,6 +231,100 @@ async function main() {
       return out;
     });
 
+    // ── UI-level cases (C2). The UI module is loaded conditionally so the
+    //    C1 service-only run doesn't depend on it. ────────────────────────
+    await page.addScriptTag({ url: `/js/crosstext-ui.js` });
+    await page.waitForFunction(() => !!window.LinguistProCrossTextUI, { timeout: 5000 });
+
+    const uiResults = await page.evaluate(async () => {
+      const out = [];
+      const test = async (name, fn) => {
+        try { await fn(); out.push({ name, ok: true }); }
+        catch (e) { out.push({ name, ok: false, err: String((e && e.message) || e) }); }
+      };
+      const ui = window.LinguistProCrossTextUI;
+
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      // 9. Open panel renders header + result rows.
+      await test('UI: open() renders panel with header + result rows', async () => {
+        await ui.open({ word: 'שלום' }); // שלום
+        // Wait for the async refresh to populate body.
+        await sleep(200);
+        const panel = document.querySelector('[data-testid="v3-crosstext-panel"]');
+        if (!panel) throw new Error('panel not mounted');
+        const results = panel.querySelector('[data-testid="v3-crosstext-results"]');
+        if (!results) throw new Error('results container missing');
+        const rows = panel.querySelectorAll('[data-testid="v3-crosstext-row"]');
+        if (rows.length !== 4) throw new Error('expected 4 rows, got ' + rows.length);
+        // Header reflects word
+        if (!panel.textContent.includes('שלום')) throw new Error('header missing query word'); // שלום
+      });
+
+      // 10. Empty state renders for unmatched word.
+      await test('UI: empty state renders for unmatched word', async () => {
+        ui.close();
+        await sleep(250); // wait for destroy
+        await ui.open({ word: 'טרקטור' }); // טרקטור
+        await sleep(200);
+        const empty = document.querySelector('[data-testid="v3-crosstext-empty"]');
+        if (!empty) throw new Error('empty state not rendered');
+      });
+
+      // 11. Toggle includeRoot triggers re-query (more results).
+      await test('UI: toggling includeRoot re-queries and updates result set', async () => {
+        ui.close();
+        await sleep(250);
+        await ui.open({ word: 'שלום' });
+        await sleep(200);
+        const rowsBefore = document.querySelectorAll('[data-testid="v3-crosstext-row"]').length;
+        const cb = document.querySelector('[data-testid="v3-crosstext-include-root"]');
+        if (!cb) throw new Error('includeRoot checkbox missing');
+        cb.checked = true;
+        cb.dispatchEvent(new Event('change', { bubbles: true }));
+        await sleep(200);
+        const rowsAfter = document.querySelectorAll('[data-testid="v3-crosstext-row"]').length;
+        if (rowsAfter <= rowsBefore) {
+          throw new Error('expected rowsAfter > rowsBefore; before=' + rowsBefore + ' after=' + rowsAfter);
+        }
+      });
+
+      // 12. Click a row → navigate handler invoked with text_id + sentence_id.
+      await test('UI: click row triggers navigation handler', async () => {
+        ui.close();
+        await sleep(250);
+        window.__navHits = [];
+        ui._setNavigateHandler((textId, sentenceId) => {
+          window.__navHits.push({ textId, sentenceId });
+        });
+        await ui.open({ word: 'שלום' });
+        await sleep(200);
+        const firstRow = document.querySelector('[data-testid="v3-crosstext-row"]');
+        if (!firstRow) throw new Error('no row to click');
+        firstRow.click();
+        await sleep(50);
+        if (window.__navHits.length !== 1) throw new Error('expected 1 nav hit, got ' + window.__navHits.length);
+        const hit = window.__navHits[0];
+        if (!hit.textId || !hit.sentenceId) throw new Error('nav missing ids: ' + JSON.stringify(hit));
+      });
+
+      // 13. Esc closes panel.
+      await test('UI: Esc key closes the panel', async () => {
+        await ui.open({ word: 'שלום' });
+        await sleep(200);
+        const panel = document.querySelector('[data-testid="v3-crosstext-panel"]');
+        if (!panel) throw new Error('panel not open');
+        panel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await sleep(250);
+        const after = document.querySelector('[data-testid="v3-crosstext-panel"]');
+        if (after) throw new Error('panel still mounted after Esc');
+      });
+
+      return out;
+    });
+
+    results.push(...uiResults);
+
     let passed = 0, failed = 0;
     for (const r of results) {
       console.log(`  ${r.ok ? '✓' : '✗'} ${r.name}${r.ok ? '' : ' — ' + r.err}`);
