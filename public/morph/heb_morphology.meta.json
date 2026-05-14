@@ -1,15 +1,16 @@
 {
   "format_version": 1,
+  "tier": "basic",
   "provider": "local-hspell-prebuilt",
   "data_provider": "hspell-unknown",
   "data_provider_license": "AGPL-3.0",
   "data_provider_copyright": "Nadav Har'El & Dan Kenigsberg, 2000-2017",
   "entry_count": 34755,
   "analysis_count": 68826,
-  "build_timestamp": "2026-05-12T19:12:26.743Z",
-  "build_commit": "b08f4971107e150adb5540aec0b66182e18c5f7a",
+  "build_timestamp": "2026-05-14T12:01:26.132Z",
+  "build_commit": "21b95b9e7e1f162e40b845230bc92eccbb042619",
   "dictionary_sha256": "14c30ff5f31ef4834ecfb0d662ba0404428daf97abda256bca9fddc1dd0dca63",
   "normalization_version": 1,
   "wordlist_source": "hebmorph-test-files (452 files) + seed roots",
-  "note": "Pre-computed Hebrew morphology lookup index. See docs/MORPHOLOGY_REQUIREMENTS_v3_2.md"
+  "note": "Pre-computed Hebrew morphology lookup index (tier=basic). See docs/MORPHOLOGY_REQUIREMENTS_v3_2.md"
 }

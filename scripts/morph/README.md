@@ -10,11 +10,86 @@ Companion to `docs/MORPHOLOGY_REQUIREMENTS_v3_2.md` (Phase 9.4.C-local).
   forms → multi-analysis entries. Each entry has root / lemma / binyan / pos
   / source / rank / surface (see scope doc §4 / §6 for the schema).
 - `heb_morphology.meta.json` — provenance + integrity record: provider name,
-  hspell version, license, entry count, SHA-256 of the dict, build timestamp.
+  hspell version, license, entry count, SHA-256 of the dict, build timestamp,
+  and (since v3.3 Workstream A1 Phase 1) a `tier` field ∈ {basic, full}.
 
 The runtime layer (`public/js/morph-provider.js`, Phase 9.4.D) lazy-fetches
-`heb_morphology.bin` on first word-study form open, caches via Service Worker,
-and queries it < 1 ms per lookup.
+the appropriate dictionary on first word-study form open, caches via Service
+Worker, and queries it < 1 ms per lookup.
+
+## Two-tier dictionary (v3.3 Workstream A1)
+
+The pipeline supports two output tiers selected by `--tier <basic|full>`:
+
+| Tier | Default? | Output filename | Use case |
+|---|---|---|---|
+| `basic` | ✓ | `heb_morphology.bin` + `.meta.json` | Ships in the PWA bundle for all users. Currently ~34K entries / ~7 MB / ~655 KB gzipped from the HebMorph test-files corpus. |
+| `full` | (opt-in via Settings) | `heb_morphology_full.bin` + `.meta.json` | Lazy-fetched after the user enables «📚 Расширенный словарь». Target ~250K entries / ~30 MB max gzipped (iOS Safari quota constraint). |
+
+Runtime tier selection lives in `localStorage.morphDictTier_v1`; see
+`public/js/morph-provider.js` `setDictTier()` / `getDictTier()` /
+`getStatus().dictTier`. The provider re-fetches when the tier changes,
+discards the in-memory map, and purges both filenames from the SW cache
+so a tier switch can never serve stale data.
+
+`npm run build:morphology` defaults to `--tier basic`. Use
+`npm run build:morphology:full` (or `--tier full` directly) to produce the
+opt-in variant — typically with a comprehensive wordlist provided via the
+`MORPH_WORDLIST` env var.
+
+### Phase 1 — infrastructure (shipped on `feat/morph-full-hspell-dict`)
+
+- ✅ `build-morphology.mjs --tier <basic|full>` — swaps output filenames +
+  records `tier` field in meta.
+- ✅ `morph-provider.js` — tier-aware fetch + `setDictTier()` /
+  `getDictTier()` / `getStatus().dictTier`. SW cache purge covers both
+  tier variants.
+- ✅ `scripts/morph/tier-switch-smoke.js` — 9-case Playwright smoke
+  exercising default tier, fetch URL routing for each tier, persistence to
+  localStorage, invalid-tier rejection, same-tier no-op, dual SW cache
+  purge. Run via `npm run smoke:morph:tier`.
+
+### Phase 2 — what remains for end-of-pilot merge to main
+
+The infrastructure is back-compat: shipping it without an actual full-tier
+dict is a no-op (default tier = basic, all existing users keep current
+behavior; full tier returns 404 on fetch if no full dict file exists).
+Phase 2 adds the user-facing surface + the actual 250K dict:
+
+1. **Settings UI toggle.** Add «📚 Расширенный словарь (бета)» row to
+   Settings panel with: explanatory caption (~30 MB опционально), default-
+   OFF checkbox bound to `MorphProvider.setDictTier()`, status line via
+   `MorphProvider.getStatus()` (current tier + loaded entry count + size).
+2. **Service worker cache strategy.** Register a separate cache bucket
+   (`linguistpro-morph-full-v1`) for the larger bundle so it doesn't
+   evict critical app shell entries under quota pressure. Stale-while-
+   revalidate semantics on `heb_morphology_full.{bin,meta.json}`. Add
+   handler-level guard: refuse to cache if Storage quota usage would
+   exceed 80 % (iOS Safari friendliness).
+3. **Generate the 250K dict.** Requires WSL + native hspell build chain:
+   ```sh
+   wsl -d Ubuntu-24.04
+   sudo apt install -y hspell build-essential perl autoconf
+   git clone https://github.com/SindromRadioSpb/tts-prototype-android.git
+   cd tts-prototype-android
+   # Option A: enumerate hspell's internal dictionary
+   cd .external/hspell && ./configure && make && cd ../..
+   # ... produce a comprehensive wordlist (output piped through inflection)
+   MORPH_WORDLIST=path/to/full_wordlist.txt npm run build:morphology:full
+   ```
+   Acceptance targets: entries ≥ 250 000 · gzipped size ≤ 30 MB · SHA-256
+   captured in meta.json for integrity verification.
+4. **Acceptance smoke extensions.** `npm run smoke:morph:tier` now stubs
+   404 for both tier files. After Phase 2 it should also exercise: the
+   Settings UI toggle (DOM-level), the actual fetch + parse of the real
+   full dict (live integration), a lookup miss-rate comparison test
+   (basic vs full on a fixed test corpus).
+5. **Optional `extract-full-dict.c` utility.** Per the original Workstream
+   A1 plan in `docs/PARALLEL_WORK_PLAN_DURING_PILOT.md` §3 — a small C
+   utility linking against `libhspell` that traverses `dict_radix.c` to
+   produce a comprehensive wordlist directly. Not strictly required if
+   external wordlist sources work, but offers full deterministic coverage
+   of the hspell dictionary. Useful for the integrity audit angle.
 
 ## Requirements
 

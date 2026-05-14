@@ -5,9 +5,17 @@
 //
 // Active tiers in v3.2:
 //   Tier 1 — LocalDictionaryMorphologyProvider (lazy fetch of
-//            /morph/heb_morphology.bin built by scripts/morph/build-morphology.mjs)
+//            /morph/heb_morphology[_full].bin built by build-morphology.mjs)
 //   Tier 2 — SeedAutocompleteMorphologyProvider (always-on; queries the
 //            local `roots` table via ldb.searchRootsAutocomplete)
+//
+// Two-tier dictionary (v3.3 Workstream A1):
+//   - basic (default; ~34K entries; bundle-shipped)
+//   - full  (opt-in; ~250K entries; lazy-fetched on Settings toggle activation)
+// Tier selection is controlled by `localStorage.morphDictTier_v1` ∈ {'basic','full'}.
+// The provider re-fetches the appropriate bin/meta pair when the tier changes
+// via setDictTier(); old in-memory map is discarded so the runtime never
+// silently serves stale data after a toggle flip.
 //
 // Public surface:
 //   window.MorphProvider.ensureReady()       → Promise<void>
@@ -15,6 +23,8 @@
 //   window.MorphProvider.getStatus()         → object
 //   window.MorphProvider.clearCache()        → Promise<void>
 //   window.MorphProvider.forceUpdate()       → Promise<void>
+//   window.MorphProvider.getDictTier()       → 'basic' | 'full'
+//   window.MorphProvider.setDictTier(tier)   → Promise<{ok, tier, reloaded}>
 //
 // Privacy invariant (requirement #17): NO event emission for lookups.
 // Telemetry (opt-in lifecycle counters via window.v3OpfsTelemetryPush) is
@@ -23,10 +33,36 @@
 (function () {
   'use strict';
 
+  // ── Tier selection (basic | full) ──────────────────────────────────────
+  const DICT_TIER_KEY = 'morphDictTier_v1';
+  const VALID_TIERS = ['basic', 'full'];
+
+  function getDictTier() {
+    try {
+      const v = localStorage.getItem(DICT_TIER_KEY);
+      return VALID_TIERS.includes(v) ? v : 'basic';
+    } catch (_) { return 'basic'; }
+  }
+
+  // Resolve filenames based on the *currently selected* tier. The basic tier
+  // intentionally keeps the historical filename `heb_morphology.bin` for
+  // back-compat with prior SW cache entries + the existing morph-build basic
+  // output.
+  function dictPaths(tier) {
+    const t = VALID_TIERS.includes(tier) ? tier : 'basic';
+    const suffix = t === 'full' ? '_full' : '';
+    return {
+      bin:  `/morph/heb_morphology${suffix}.bin`,
+      meta: `/morph/heb_morphology${suffix}.meta.json`,
+      tier: t,
+    };
+  }
+
   // ── Tier 1: Local pre-computed dictionary ──────────────────────────────
   const T1 = {
     id: 'local-hspell-prebuilt',
     state: 'not_initialized', // not_initialized | fetching | loading | ready | error
+    loadedTier: null,         // which tier the in-memory map represents
     entryCount: 0,
     analysisCount: 0,
     sizeBytes: 0,
@@ -46,14 +82,15 @@
     },
 
     async _doFetch() {
+      const paths = dictPaths(getDictTier());
       try {
         const t0 = Date.now();
-        const metaResp = await fetch('/morph/heb_morphology.meta.json', { cache: 'no-cache' });
+        const metaResp = await fetch(paths.meta, { cache: 'no-cache' });
         if (!metaResp.ok) throw new Error('meta fetch failed: ' + metaResp.status);
         this.meta = await metaResp.json();
         this.state = 'loading';
 
-        const binResp = await fetch('/morph/heb_morphology.bin');
+        const binResp = await fetch(paths.bin);
         if (!binResp.ok) throw new Error('bin fetch failed: ' + binResp.status);
         const txt = await binResp.text();
         this.sizeBytes = txt.length;
@@ -72,6 +109,7 @@
         this.map = m;
         this.entryCount = m.size;
         this.analysisCount = analysisCount;
+        this.loadedTier = paths.tier;
         this.state = 'ready';
         this.error = null;
 
@@ -81,6 +119,7 @@
             durationMs: Date.now() - t0,
             entries: this.entryCount,
             sizeBytes: this.sizeBytes,
+            tier: paths.tier,
             version: this.meta && this.meta.format_version,
             provider: this.meta && this.meta.data_provider,
           });
@@ -88,10 +127,10 @@
       } catch (e) {
         this.state = 'error';
         this.error = String(e && e.message ? e.message : e);
-        console.warn('[morph] Tier 1 init failed:', this.error, '— falling through to Tier 2');
+        console.warn(`[morph] Tier 1 init failed (tier=${paths.tier}):`, this.error, '— falling through to Tier 2');
         try {
           (window.v3OpfsTelemetryPush || function(){})({
-            kind: 'morph.dict.error', error: this.error,
+            kind: 'morph.dict.error', tier: paths.tier, error: this.error,
           });
         } catch (_) {}
       } finally {
@@ -112,6 +151,7 @@
       this.map = null;
       this.entryCount = 0;
       this.analysisCount = 0;
+      this.loadedTier = null;
       this.state = 'not_initialized';
       this.meta = null;
       this.error = null;
@@ -171,9 +211,11 @@
 
   function getStatus() {
     return {
+      dictTier: getDictTier(),
       tier1: {
         id: T1.id,
         state: T1.state,
+        loadedTier: T1.loadedTier,
         entries: T1.entryCount,
         analyses: T1.analysisCount,
         sizeBytes: T1.sizeBytes,
@@ -192,16 +234,21 @@
     return T1.ensureReady();
   }
 
-  // Clear the SW cache entry for the dict + reset in-memory state.
-  // Forces a fresh download on next ensureReady().
+  // Clear the SW cache entries for BOTH tier files + reset in-memory state.
+  // Forces a fresh download on next ensureReady(). We delete both basic and
+  // full filenames so a tier-switch followed by clearCache fully purges
+  // whichever variant happened to be cached.
   async function clearCache() {
+    const targets = [
+      '/morph/heb_morphology.bin', '/morph/heb_morphology.meta.json',
+      '/morph/heb_morphology_full.bin', '/morph/heb_morphology_full.meta.json',
+    ];
     try {
       if ('caches' in window) {
         const cacheNames = await caches.keys();
         for (const name of cacheNames) {
           const cache = await caches.open(name);
-          await cache.delete('/morph/heb_morphology.bin').catch(() => {});
-          await cache.delete('/morph/heb_morphology.meta.json').catch(() => {});
+          for (const target of targets) await cache.delete(target).catch(() => {});
         }
       }
     } catch (_) {}
@@ -213,12 +260,35 @@
     return ensureReady();
   }
 
+  // Switch dictionary tier. If the requested tier differs from the currently
+  // loaded one (or from current localStorage state), persist the choice and
+  // reset T1 so the next ensureReady() / analyze() fetches the new files.
+  // Returns { ok, tier, reloaded }. Does NOT eagerly re-fetch — caller can
+  // chain `ensureReady()` if they want the new tier loaded immediately.
+  async function setDictTier(tier) {
+    if (!VALID_TIERS.includes(tier)) {
+      return { ok: false, error: 'INVALID_TIER', tier };
+    }
+    const prev = getDictTier();
+    try { localStorage.setItem(DICT_TIER_KEY, tier); } catch (_) {}
+    const reloaded = (prev !== tier) || (T1.loadedTier && T1.loadedTier !== tier);
+    if (reloaded) {
+      // Drop in-memory map AND purge SW cache for the old tier so a stale
+      // entry can't be served on next fetch. The new tier's files (if any)
+      // will be fetched on the next ensureReady() call.
+      await clearCache();
+    }
+    return { ok: true, tier, reloaded };
+  }
+
   window.MorphProvider = {
     ensureReady,
     analyze,
     getStatus,
     clearCache,
     forceUpdate,
+    getDictTier,
+    setDictTier,
     _T1: T1, // diagnostic; not part of the public contract
     _T2: T2,
   };
