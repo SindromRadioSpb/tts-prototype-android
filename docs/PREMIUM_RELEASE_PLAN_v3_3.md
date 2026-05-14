@@ -27,7 +27,7 @@ v3.3 should be a **scope consolidation + scientific-instrument hardening** cycle
 | # | Decision | Why |
 |---|---|---|
 | D1 | **Cycle goal = research-thesis hardening + delight delivery.** Directions 12 (multicohort) + 13 (calibrated quiz) are first-priority because they unblock pilot scaling for the diploma. | Pilot will graduate to multi-cohort within months of first real participant; we don't want a refactor mid-pilot. |
-| D2 | **v3.3.0 = morphology A1 (shipped).** v3.3.1 = small Workstream-A items (A2-A5). v3.3.2 = multicohort + cross-text hub. v3.3.3 = calibrated quiz. v3.3.4 = Knowledge-graph view. Premium SRS Epic stays at v3.4. | Granular shipping pace matches the v3.2.1 pattern; each patch is independently shippable. |
+| D2 | **v3.3.0 = morphology A1 (shipped).** v3.3.1 = small Workstream-A items (A2-A5). v3.3.2 = multicohort + cross-text hub. v3.3.3 / v3.3.4 = unplanned hotfixes (search field-name mismatch + cross-text z-index/root-inflections). v3.3.5 = calibrated quiz (replaces planned v3.3.3 slot; shipped 2026-05-15, gated on external item-bank sign-off for real-cohort deployment). v3.3.6 = Knowledge-graph view (waits for gate). Premium SRS Epic stays at v3.4. | Granular shipping pace matches the v3.2.1 pattern; each patch is independently shippable. |
 | D3 | **Multicohort: read-only compare for v3.3.** Write operations (cross-cohort student moves, merging) deferred to v3.4. | Read is enough for diploma analysis; write adds privacy + audit complexity. |
 | D4 | **Calibrated quiz: parallel path, not replacement.** Self-report exam score remains as primary; quiz is opt-in additional outcome capture. | Both paths inform research; preserving self-report keeps comparability with v3.2 pilot data if any. |
 | D5 | **No new consent_version bump required for any v3.3.x release.** All new opt-in features ride the existing `consent_version: 1.0` envelope; new fields are additive within the `metrics` object. | Re-consent prompts have UX cost; only bump when the wire surface materially changes (new collected fields, new retention rules). |
@@ -211,21 +211,37 @@ v3.3.3  (DONE 2026-05-14)  Hotfix — Library Search field-name mismatch
 v3.3.4  (DONE 2026-05-14)  Hotfix — cross-text panel z-index + root inflections
                             └─ tag v3.3.4 (d1317e0)
 
-v3.3.5  (~8 d, NEXT)        Calibrated quiz
-                            └─ Direction 13
+v3.3.5  (DONE 2026-05-15)  Calibrated quiz (Direction 13)
+                            ├─ 11 commits C0..C12 push-through 2026-05-15
+                            ├─ 248 smoke cases ALL GREEN at release
+                            └─ tag v3.3.5 (0b29bc1) + GitHub release published
                            Plan: docs/PHASE_PLAN_v3_3_5_CALIBRATED_QUIZ.md
+                           Status: code shipped; real-cohort deployment GATED on
+                                   external ulpan-teacher item-bank sign-off —
+                                   see docs/V3_3_5_PREDEPLOYMENT_GATE_STATUS.md
 
-v3.3.6  (~6 d)              Knowledge-graph delight
-                            └─ Direction 14
+  (POST-v3.3.5, 2026-05-15)  Admin CLI maturity polish (not a release)
+                            ├─ Help short-circuit + -h alias + --dry-run
+                            └─ --json output standardization
+                           Commits c65ce8e + 79ea302 on main; smoke 283 cases
+                           ALL GREEN. Tooling-only; no version bump.
+
+v3.3.6  (~6 d, GATED)       Knowledge-graph delight (Direction 14)
+                            Blocked by v3.3.5 pre-deployment gate per user
+                            directive 2026-05-15: no new runtime features
+                            until item-bank external sign-off.
 
 v3.4.0  (TBD, separate cycle)
                             ├─ Premium SRS Epic (FSRS + Anki Connect)
                             ├─ Multicohort write operations (D3)
                             ├─ DictaBERT transformers.js (Tier 3 morphology)
-                            └─ Index.html monolith code-split
+                            ├─ Index.html monolith code-split
+                            └─ Empirical IRT recalibration of quiz item bank
+                              (per docs/ULPAN_DIAGNOSTIC_QUIZ_v1.md §6, once
+                              ≥30 quiz responses per cohort accumulate)
 ```
 
-**Total v3.3.x cycle effort:** ~34 dev-days planned + 0 unplanned hotfix days (small fixes); ~50 calendar-day budget = **7-8 weeks**. Two hotfixes consumed patch numbers but no additional plan time (each was a same-day fix).
+**Total v3.3.x cycle effort to date:** ~36 dev-days realized (incl. two hotfixes + post-release polish), ~13 calendar days actual (compressed schedule). Master plan budgeted ~50 calendar days; we're well inside budget. v3.3.6 sits on hold pending external gate closure; estimated 6 dev-days when it kicks off.
 
 ---
 
@@ -297,22 +313,25 @@ After v3.3 cycle, the diploma thesis can claim:
 - **Anonymous opt-in research data collection** (v3.2.0).
 - **Privacy invariants formally audited** (v3.2.0 §B1 fix).
 - **Multi-cohort comparative design** (v3.3.2 → enables ulpan A vs ulpan B comparison).
-- **Calibrated outcome measurement** (v3.3.3 → replaces self-report subjectivity).
-- **Premium tooling demo** (v3.3.4 graph view → visual aid for thesis defense).
+- **Calibrated outcome measurement** (v3.3.5 → parallel diagnostic alongside self-report; **gated** until external sign-off closes for real-cohort deployment).
+- **Premium tooling demo** (v3.3.6 graph view → visual aid for thesis defense; on hold pending gate).
 
 The thesis methodological contribution (privacy-preserving opt-in research mode) was complete at v3.2. v3.3 contribution is to **scaling and measurement validity**, not architectural novelty.
 
 ---
 
-## 10. Live status (will be updated as patches ship)
+## 10. Live status (updated as patches ship)
 
 | Patch | Direction(s) | Status | Anchor |
 |---|---|---|---|
 | v3.3.0 | Workstream A1 — 250K dict | ✅ shipped 2026-05-14 | `637ff52` |
-| v3.3.1 | Workstream A2-A5 | ⏳ planned | TBD |
-| v3.3.2 | Direction 12 + 15 | ⏳ planned | TBD |
-| v3.3.3 | Direction 13 + (opt. 17) | ⏳ planned | TBD |
-| v3.3.4 | Direction 14 | ⏳ planned | TBD |
+| v3.3.1 | Workstream A2-A5 | ✅ shipped 2026-05-14 | `70bb465` |
+| v3.3.2 | Direction 12 + 15 | ✅ shipped 2026-05-14 | `a172621` |
+| v3.3.3 | Hotfix — Library Search field-name mismatch (unplanned) | ✅ shipped 2026-05-14 | `7526f6c` |
+| v3.3.4 | Hotfix — cross-text panel z-index + root inflections (unplanned) | ✅ shipped 2026-05-14 | `d1317e0` |
+| v3.3.5 | Direction 13 — Calibrated diagnostic quiz | ✅ shipped 2026-05-15 (real-cohort deployment GATED on external item-bank sign-off — see `V3_3_5_PREDEPLOYMENT_GATE_STATUS.md`) | `0b29bc1` |
+| (post-release polish) | Admin CLI maturity (--help/--dry-run/--json) | ✅ shipped 2026-05-15 (not a versioned release) | `c65ce8e` + `79ea302` |
+| v3.3.6 | Direction 14 — Knowledge-graph delight | ⏳ GATED — waits for v3.3.5 gate closure | — |
 
 ---
 

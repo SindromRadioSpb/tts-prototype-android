@@ -368,7 +368,7 @@ ULPAN-C-W2026  mno789pqr...
 - Max 6 visible inline; `[+N more ▾]` overflow dropdown.
 - `🌐 All cohorts` chip — compare-view (≥ 2 когорт обязательно).
 - Active chip — yellow border, bold.
-- `[+ Add cohort]` button — prompt-driven (полноценный inline form планируется на v3.3.3+).
+- `[+ Add cohort]` button — prompt-driven (полноценный inline form deferred за пределы v3.3.x; на текущий момент не открытое окно работы).
 - `[⎋ Logout all]` — confirms когда ≥ 2 cohorts.
 
 **Compare view (🌐 All cohorts):**
@@ -556,4 +556,4 @@ Pre-deployment checklist (checklist в ULPAN_RESEARCH_PLAN §9 расширен�
 
 ---
 
-**Last updated:** 2026-05-13 (v3.2.0-rc1, Direction 11B Phase 11.7)
+**Last updated:** 2026-05-15 (v3.3.5 — Direction 13 calibrated diagnostic quiz shipped + §4.3 added; pre-deployment gate open for real-cohort use of `ulpan_diagnostic_v1`).
