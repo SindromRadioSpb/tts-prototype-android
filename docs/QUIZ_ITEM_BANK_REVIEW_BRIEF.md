@@ -1,12 +1,30 @@
 # Calibrated Diagnostic Quiz — Item Bank Native Review Brief
 
-> **Version:** 1.0 · **Date:** 2026-05-15 · **Status:** ready to dispatch to reviewer
-> **Goal:** довести `docs/QUIZ_ITEM_BANK_DRAFT.md` до production-quality перед запуском Direction 13 v3.3.5 в LinguistPro research-mode.
+> **Version:** 1.1 · **Date:** 2026-05-15 · **Status:** ready to dispatch to reviewer
+> **Goal:** довести `docs/QUIZ_ITEM_BANK_DRAFT.md` до production-quality для real-cohort deployment Direction 13 в LinguistPro.
 >
 > **Companion docs:**
 > [`docs/PHASE_PLAN_v3_3_5_CALIBRATED_QUIZ.md`](PHASE_PLAN_v3_3_5_CALIBRATED_QUIZ.md) (полный план; §5 описывает этот workflow) ·
 > [`docs/QUIZ_ITEM_BANK_DRAFT.md`](QUIZ_ITEM_BANK_DRAFT.md) (20 items на review) ·
+> [`docs/QUIZ_ITEM_BANK_REVIEWER_FORM.md`](QUIZ_ITEM_BANK_REVIEWER_FORM.md) (fillable form для возврата) ·
+> [`docs/QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md`](QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md) (AI pre-review — supplementary context, override at will) ·
 > [`docs/ULPAN_RESEARCH_PLAN_v3_2.md`](ULPAN_RESEARCH_PLAN_v3_2.md) §11.6 outcome capture.
+
+## 0. Current state (v3.3.5 shipped 2026-05-15)
+
+LinguistPro v3.3.5 уже released на main с item bank в canonical form (`public/quiz/ulpan_diagnostic_v1.json`) — это **adoption of an AI-pre-reviewed Premium-alt draft**, см. `QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md` для history. Шипованы:
+
+- UI quiz modal + i18n RU/EN/HE (`public/js/quiz-ui.js`)
+- Rasch 1PL scoring engine (`public/js/quiz-scoring.js`)
+- Server validator extension (`research/validate.js`)
+- Teacher dashboard quiz/CEFR/SE columns
+- Admin reset CLI (`scripts/research/reset_quiz_for_student.js`)
+- 18 smoke suites / **248 cases ALL GREEN**
+- Docs (`docs/ULPAN_DIAGNOSTIC_QUIZ_v1.md` — methodology + audit log)
+
+**Что твой review разблокирует:** *real-cohort deployment*. До твоего sign-off'а instrument can be exercised для разработки и smoke testing, но **не должен использоваться для actual diploma data collection** — это hard gate в plan §5. С твоим approve этот gate закрывается и `ulpan_diagnostic_v1` становится production-ready.
+
+Если ты найдёшь bugs / mis-calibrations — apply edits, я пересоберу JSON + re-run smoke + bump `instrument_id` only if items change materially.
 
 ---
 
@@ -150,16 +168,19 @@ git checkout -b review/quiz-item-bank
 
 ## 5. Что произойдёт после возврата правок
 
-1. Автор merges правки в `docs/QUIZ_ITEM_BANK_DRAFT.md`.
-2. Запускается `node scripts/quiz/validate-bank.js docs/QUIZ_ITEM_BANK_DRAFT.md` — проверка schema invariants (distribution, ranges, completeness).
-3. Запускается `node scripts/quiz/draft-to-json.js` — emits `public/quiz/ulpan_diagnostic_v1.json`.
-4. Запускается `node scripts/quiz/simulate-scoring.js` — Rasch simulation проверки на final calibrated bank.
-5. Sign-off в `ULPAN_DIAGNOSTIC_QUIZ_v1.md §"Calibration audit log"` записывается:
+1. Автор merges правки в `docs/QUIZ_ITEM_BANK_DRAFT.md` (canonical markdown source).
+2. Если reviewer изменял Hebrew/RU/EN тексты или `difficulty_logit` — re-emit canonical JSON `public/quiz/ulpan_diagnostic_v1.json`.
+3. Запускается `npm run quiz:validate` — schema invariants check (`scripts/quiz/validate-bank.js`).
+4. Запускается `npm run quiz:regen-fixture` — fresh mirt-reference fixture, если difficulty_logits изменились.
+5. Запускается полная smoke matrix — `npm run smoke:research:fast` (18 suites / 248 cases должны остаться ALL GREEN).
+6. Re-run consent audit Example E — проверить что 4 conditions всё ещё hold; если нет — bump `CONSENT_VERSION`.
+7. Sign-off запись в `ULPAN_DIAGNOSTIC_QUIZ_v1.md §5 Calibration audit log`:
    ```
-   | Reviewer sign-off | <date> | <reviewer> | All 20 items reviewed. <number> items modified. Bank locked. |
+   | <date> | Reviewer sign-off | <reviewer name / initials / "anonymous"> reviewed all 20 items. <N> modified, <N> replaced. Bank locked for production. |
    ```
-6. **C1 unblocks** — phase plan §5 BLOCKING gate passes; developer ships quiz UI + scoring + privacy hardening.
-7. Reviewer credit в diploma acknowledgments per preference (§3.3 form filled out).
+8. Если items changed materially → bump `instrument_id` to `ulpan_diagnostic_v1.1` (item-level changes); если только difficulty_logits корректировались → оставить `v1` но zaupdate-ить `validity_notes.calibration_source` и `calibrated_at`.
+9. **`ulpan_diagnostic_v1` (или v1.1) marked production-ready** — phase plan §5 pre-deployment gate ✓ passes; instrument can be used для real-cohort diploma data collection.
+10. Reviewer credit в diploma acknowledgments per preference (§3.3 form filled out).
 
 ---
 
