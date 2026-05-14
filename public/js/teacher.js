@@ -157,8 +157,11 @@
     }
     _upsertCohort(cohort, token);
     _setActiveView(cohort);
+    _cohortAggregates[cohort] = res.body;
+    _cohortFetchErrors[cohort] = null;
     _aggregates = res.body;
     showDash();
+    renderChipStrip();
     render();
   }
 
@@ -669,13 +672,327 @@
     inp.click();
   }
 
+  // ── v3.3.2 D12: multicohort UX ─────────────────────────────────────────
+  // Per-cohort fetch results, populated by _refreshAllCohorts and used by
+  // the chip strip + compare view. Keyed by cohort code.
+  const _cohortAggregates = {};   // code → aggregates payload | null
+  const _cohortFetchErrors = {};  // code → error string | null
+
+  // Parse a bulk-paste textarea into {pairs, errors}. Tolerant to mixed
+  // whitespace, blank lines, and comment lines starting with '#'.
+  function parseBulkPaste(text) {
+    const pairs = [];
+    const errors = [];
+    const lines = String(text || '').split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i];
+      const trimmed = ln.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      // Split on first whitespace run; rest is token.
+      const m = trimmed.match(/^(\S+)\s+(\S.*)$/);
+      if (!m) { errors.push({ line: i + 1, reason: 'BAD_FORMAT', raw: trimmed.slice(0, 40) }); continue; }
+      const code = m[1].toUpperCase();
+      const token = m[2].trim();
+      if (!/^[A-Z0-9-]{4,16}$/.test(code)) { errors.push({ line: i + 1, reason: 'BAD_CODE', raw: code }); continue; }
+      if (!token) { errors.push({ line: i + 1, reason: 'EMPTY_TOKEN', raw: code }); continue; }
+      pairs.push({ code, token });
+    }
+    return { pairs, errors };
+  }
+
+  // Concurrent fetch across all stored cohorts. Stamps last_ok_at on
+  // success; records error per cohort.
+  async function _refreshAllCohorts() {
+    const list = _getCohorts();
+    if (!list.length) return;
+    const promises = list.map((c) =>
+      fetchAggregates(c.code, c.token).then((res) => {
+        if (res.ok) {
+          _cohortAggregates[c.code] = res.body;
+          _cohortFetchErrors[c.code] = null;
+          _upsertCohort(c.code, c.token);
+        } else {
+          _cohortAggregates[c.code] = null;
+          _cohortFetchErrors[c.code] = res.error || ('HTTP_' + res.status);
+        }
+        return { code: c.code, ok: res.ok };
+      })
+    );
+    await Promise.allSettled(promises);
+  }
+
+  // Render the chip strip. Max 6 visible chips + overflow dropdown for the
+  // rest + always-last "🌐 All cohorts" chip.
+  function renderChipStrip() {
+    const strip = $('cohortChipStrip');
+    if (!strip) return;
+    const list = _getCohorts();
+    const active = _getActiveView();
+    const MAX_VISIBLE = 6;
+
+    strip.innerHTML = '';
+    if (!list.length) return;
+
+    const visible = list.slice(0, MAX_VISIBLE);
+    const overflow = list.slice(MAX_VISIBLE);
+
+    visible.forEach((c) => strip.appendChild(_makeChip(c, active)));
+
+    if (overflow.length > 0) {
+      const overflowBtn = document.createElement('button');
+      overflowBtn.type = 'button';
+      overflowBtn.className = 'cohort-chip-overflow';
+      overflowBtn.setAttribute('data-testid', 'cohort-chip-overflow');
+      overflowBtn.textContent = `+${overflow.length} more ▾`;
+      overflowBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        // Simple inline dropdown via prompt-like select. Builds a small
+        // floating panel; click outside closes.
+        _showOverflowDropdown(overflowBtn, overflow);
+      };
+      strip.appendChild(overflowBtn);
+    }
+
+    // "All cohorts" chip — only meaningful when 2+ cohorts stored.
+    if (list.length >= 2) {
+      const allChip = document.createElement('button');
+      allChip.type = 'button';
+      allChip.className = 'cohort-chip cohort-chip-all' + (active === 'ALL' ? ' is-active' : '');
+      allChip.setAttribute('data-testid', 'cohort-chip-all');
+      allChip.innerHTML = '🌐 All cohorts';
+      allChip.onclick = () => switchActiveView('ALL');
+      strip.appendChild(allChip);
+    }
+  }
+
+  function _makeChip(c, activeView) {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'cohort-chip';
+    chip.setAttribute('data-testid', 'cohort-chip');
+    chip.setAttribute('data-cohort-code', c.code);
+    if (c.code === activeView) chip.classList.add('is-active');
+    const err = _cohortFetchErrors[c.code];
+    if (err) chip.classList.add('is-error');
+    else if (_cohortAggregates[c.code]) chip.classList.add('is-ok');
+
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    chip.appendChild(dot);
+
+    const label = document.createElement('span');
+    label.textContent = c.code;
+    chip.appendChild(label);
+
+    const x = document.createElement('span');
+    x.className = 'x';
+    x.textContent = '×';
+    x.title = 'Удалить когорту из списка';
+    x.setAttribute('data-testid', 'cohort-chip-remove');
+    x.onclick = (ev) => {
+      ev.stopPropagation();
+      removeCohort(c.code);
+    };
+    chip.appendChild(x);
+
+    if (err) chip.title = 'Ошибка: ' + err;
+
+    chip.onclick = () => switchActiveView(c.code);
+    return chip;
+  }
+
+  function _showOverflowDropdown(anchor, items) {
+    // Remove existing dropdown if present.
+    const existing = document.getElementById('cohortChipOverflowDropdown');
+    if (existing) { existing.remove(); return; }
+    const drop = document.createElement('div');
+    drop.id = 'cohortChipOverflowDropdown';
+    Object.assign(drop.style, {
+      position: 'absolute', background: '#1e293b', border: '1px solid #475569',
+      borderRadius: '8px', padding: '6px', zIndex: '5000',
+      boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+      display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px',
+    });
+    const rect = anchor.getBoundingClientRect();
+    drop.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
+    drop.style.left = (rect.left + window.scrollX) + 'px';
+
+    items.forEach((c) => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'cohort-chip';
+      row.style.justifyContent = 'flex-start';
+      row.innerHTML = `<span class="dot"></span><span style="flex:1;text-align:left;">${escapeHtml(c.code)}</span>`;
+      row.onclick = () => { drop.remove(); switchActiveView(c.code); };
+      drop.appendChild(row);
+    });
+    document.body.appendChild(drop);
+
+    const offHandler = (e) => {
+      if (!drop.contains(e.target) && e.target !== anchor) {
+        drop.remove();
+        document.removeEventListener('click', offHandler, true);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', offHandler, true), 0);
+  }
+
+  function switchActiveView(target) {
+    _setActiveView(target);
+    if (target === 'ALL') {
+      _aggregates = null; // compare-view rendering ships in C5; for now show single first cohort
+      const list = _getCohorts();
+      if (list.length > 0) _aggregates = _cohortAggregates[list[0].code] || null;
+      renderChipStrip();
+      if (_aggregates) render();
+      return;
+    }
+    _aggregates = _cohortAggregates[target] || null;
+    renderChipStrip();
+    if (_aggregates) render();
+    else {
+      // Try re-fetching the target cohort.
+      const list = _getCohorts();
+      const c = list.find((x) => x.code === target);
+      if (c) {
+        fetchAggregates(c.code, c.token).then((res) => {
+          if (res.ok) {
+            _cohortAggregates[c.code] = res.body;
+            _cohortFetchErrors[c.code] = null;
+            _aggregates = res.body;
+            _upsertCohort(c.code, c.token);
+            renderChipStrip();
+            render();
+          } else {
+            _cohortFetchErrors[c.code] = res.error || ('HTTP_' + res.status);
+            renderChipStrip();
+          }
+        });
+      }
+    }
+  }
+
+  function removeCohort(code) {
+    const list = _getCohorts();
+    const idx = list.findIndex((c) => c.code === code);
+    if (idx < 0) return;
+    list.splice(idx, 1);
+    _setCohorts(list);
+    delete _cohortAggregates[code];
+    delete _cohortFetchErrors[code];
+
+    if (!list.length) {
+      _clearAllCohorts();
+      _aggregates = null;
+      showLogin();
+      return;
+    }
+    // If removed the active cohort, fall back to first remaining.
+    const active = _getActiveView();
+    if (active === code) {
+      switchActiveView(list[0].code);
+    } else {
+      renderChipStrip();
+    }
+  }
+
+  // Bulk-login from the textarea. Validates each line, fans out concurrent
+  // fetchAggregates, persists only successful pairs.
+  async function bulkLogin() {
+    const text = $('bulkCohortsInput').value || '';
+    const { pairs, errors } = parseBulkPaste(text);
+    if (errors.length && !pairs.length) {
+      loginErr(`Все ${errors.length} строк не прошли валидацию. Первая ошибка: line ${errors[0].line} (${errors[0].reason}).`);
+      return;
+    }
+    if (!pairs.length) {
+      loginErr('Пустой ввод — добавь хотя бы одну строку.');
+      return;
+    }
+    loginErr(`Проверяю ${pairs.length} cohort(s)…`);
+
+    // Concurrent validation via existing fetchAggregates.
+    const results = await Promise.allSettled(
+      pairs.map((p) => fetchAggregates(p.code, p.token).then((r) => ({ p, r })))
+    );
+    const ok = []; const failed = [];
+    for (const r of results) {
+      if (r.status !== 'fulfilled') { failed.push({ code: '?', err: 'NETWORK' }); continue; }
+      const { p, r: res } = r.value;
+      if (res.ok) {
+        ok.push({ p, body: res.body });
+      } else {
+        failed.push({ code: p.code, err: res.error || ('HTTP_' + res.status) });
+      }
+    }
+    if (!ok.length) {
+      loginErr(`Ни одна когорта не прошла: ${failed.map((f) => f.code + '(' + f.err + ')').join(', ')}`);
+      return;
+    }
+
+    // Persist successful pairs (preserving order; merging with any existing).
+    const existing = _getCohorts();
+    const byCode = new Map(existing.map((c) => [c.code, c]));
+    for (const { p } of ok) {
+      const prev = byCode.get(p.code);
+      byCode.set(p.code, {
+        code: p.code, token: p.token,
+        added_at: prev ? prev.added_at : new Date().toISOString(),
+        last_ok_at: new Date().toISOString(),
+      });
+    }
+    const merged = Array.from(byCode.values());
+    _setCohorts(merged);
+    for (const { p, body } of ok) _cohortAggregates[p.code] = body;
+    for (const f of failed) _cohortFetchErrors[f.code] = f.err;
+
+    // Active view = first successful cohort.
+    _setActiveView(ok[0].p.code);
+    _aggregates = ok[0].body;
+
+    showDash();
+    renderChipStrip();
+    render();
+
+    if (failed.length) {
+      loginErr(`Загружено ${ok.length} из ${pairs.length}. Не прошли: ${failed.map((f) => f.code).join(', ')}`);
+    }
+  }
+
   // ── boot ───────────────────────────────────────────────────────────────
   function boot() {
     $('loginBtn').addEventListener('click', tryLogin);
+    $('bulkLoginBtn').addEventListener('click', bulkLogin);
     $('cohortInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('tokenInput').focus(); });
     $('tokenInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
-    $('refreshBtn').addEventListener('click', refresh);
-    $('logoutBtn').addEventListener('click', logout);
+    $('refreshBtn').addEventListener('click', () => {
+      // Refresh either the active cohort OR (in ALL view) all cohorts.
+      const active = _getActiveView();
+      if (active === 'ALL') { _refreshAllCohorts().then(() => { renderChipStrip(); if (_aggregates) render(); }); }
+      else refresh();
+    });
+    $('logoutBtn').addEventListener('click', () => {
+      if (_getCohorts().length > 1) {
+        if (!window.confirm('Удалить все ' + _getCohorts().length + ' когорт(ы) из локального хранилища?')) return;
+      }
+      logout();
+    });
+    $('addCohortBtn').addEventListener('click', () => {
+      // Re-show login UI overlay-style so user can add more cohorts.
+      const code = window.prompt('Cohort code (4–16 chars [A-Z0-9-]):');
+      if (!code) return;
+      const token = window.prompt('Researcher token for ' + code + ':');
+      if (!token) return;
+      const codeUp = String(code).trim().toUpperCase();
+      if (!/^[A-Z0-9-]{4,16}$/.test(codeUp)) { alert('Bad cohort code'); return; }
+      fetchAggregates(codeUp, token).then((res) => {
+        if (!res.ok) { alert('Login failed: ' + (res.error || res.status)); return; }
+        _upsertCohort(codeUp, token);
+        _cohortAggregates[codeUp] = res.body;
+        _cohortFetchErrors[codeUp] = null;
+        renderChipStrip();
+      });
+    });
     $('uploadOutcomesBtn').addEventListener('click', uploadOutcomesCsv);
     $('exportAggregatesBtn').addEventListener('click', exportAggregatesCsv);
     $('exportTimeseriesBtn').addEventListener('click', exportTimeseriesCsv);
@@ -684,19 +1001,24 @@
     // v3.3.2 D12 — migrate legacy v1 keys (single-cohort) into the v2 array
     // schema on first boot. Idempotent after one successful migration.
     _migrateLegacy();
-    const active = _activeCohort();
-    if (active) {
-      // Auto-resume previous session.
-      fetchAggregates(active.code, active.token).then((res) => {
-        if (res.ok) {
-          _aggregates = res.body;
-          _upsertCohort(active.code, active.token); // refresh last_ok_at
-          showDash();
-          render();
-        } else {
+    const list = _getCohorts();
+    if (list.length) {
+      // Auto-resume: fan-out all stored cohorts in parallel, then show
+      // the active view's dashboard.
+      _refreshAllCohorts().then(() => {
+        const view = _getActiveView();
+        const targetCode = (view && view !== 'ALL') ? view : list[0].code;
+        if (!_cohortAggregates[targetCode]) {
+          // Active cohort failed → show login with the failure summary.
           showLogin();
-          loginErr(`Saved session no longer valid (${res.status}). Re-enter token.`);
+          loginErr(`Saved session no longer valid: ${_cohortFetchErrors[targetCode] || 'unknown'}. Re-enter token or remove cohort.`);
+          return;
         }
+        _aggregates = _cohortAggregates[targetCode];
+        if (view !== 'ALL') _setActiveView(targetCode);
+        showDash();
+        renderChipStrip();
+        render();
       });
     } else {
       showLogin();

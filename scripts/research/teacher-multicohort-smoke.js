@@ -106,8 +106,8 @@ async function main() {
     console.log("[teacher-multi-smoke] server up");
 
     browser = await playwright.chromium.launch({ headless: true });
-    const ctx = await browser.newContext();
-    const page = await ctx.newPage();
+    let ctx = await browser.newContext();
+    let page = await ctx.newPage();
     const pageErrors = [];
     page.on("pageerror", (e) => pageErrors.push(String(e.message)));
 
@@ -157,6 +157,149 @@ async function main() {
     test("no page errors during migration boot", pageErrors.length === 0,
          "errors: " + pageErrors.join(" | "));
     test("dashboard rendered (cohort meta header visible)", true);
+
+    // ── C4 cases: bulk paste, chip strip, add/remove/switch ───────────
+    // Provision 2 additional cohorts in the same researchDir so we can
+    // exercise the multicohort UX.
+    const COHORT_B = "MULTI-B";
+    const TOKEN_B = "multi-b-token-" + crypto.randomBytes(6).toString("hex");
+    provisionCohort(researchDir, COHORT_B, TOKEN_B);
+    const COHORT_C = "MULTI-C";
+    const TOKEN_C = "multi-c-token-" + crypto.randomBytes(6).toString("hex");
+    provisionCohort(researchDir, COHORT_C, TOKEN_C);
+    const BAD_TOKEN = "invalid-token-aaa";
+
+    // The C3 case used addInitScript to seed legacy v1 keys; that script
+    // runs on EVERY navigation in the same context, so for C4 we open a
+    // fresh context with no init scripts. localStorage is per-origin per-
+    // context, so the new context starts empty.
+    await ctx.close();
+    const ctxC4 = await browser.newContext();
+    const pageC4 = await ctxC4.newPage();
+    pageC4.on("pageerror", (e) => pageErrors.push(String(e.message)));
+    page = pageC4;
+    await page.goto(`${baseUrl}/teacher.html`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#bulkCohortsInput", { state: "visible", timeout: 5000 });
+
+    // Case 1: bulk-paste 3 valid pairs.
+    const bulkText = `${COHORT_A}  ${TOKEN_A}\n${COHORT_B}  ${TOKEN_B}\n# comment line ignored\n${COHORT_C}  ${TOKEN_C}\n`;
+    await page.fill("#bulkCohortsInput", bulkText);
+    await page.click("#bulkLoginBtn");
+    await page.waitForFunction(() => {
+      const cm = document.getElementById("cohortMeta");
+      return cm && /MULTI-/.test(cm.textContent || "");
+    }, { timeout: 10000 });
+
+    const chips = await page.$$('[data-testid="cohort-chip"]');
+    test("bulk paste with 3 valid pairs → 3 chips rendered", chips.length === 3,
+         "got " + chips.length);
+
+    const allChip = await page.$('[data-testid="cohort-chip-all"]');
+    test("'🌐 All cohorts' chip rendered when ≥ 2 cohorts", !!allChip);
+
+    const v2State = await page.evaluate(() => ({
+      arr: JSON.parse(localStorage.getItem('teacherDashCohorts_v2') || '[]'),
+      active: localStorage.getItem('teacherDashActiveView_v2'),
+    }));
+    test("3 entries persisted in v2 array", v2State.arr.length === 3, "got " + v2State.arr.length);
+    test("active view = first successful cohort (MULTI-A)",
+         v2State.active === COHORT_A, "got " + v2State.active);
+
+    // Case 2: bulk paste with 1 bad token (validation step happens via
+    // server fetch — we mix valid + invalid and verify only valid ones land).
+    await page.evaluate(() => localStorage.clear());
+    await page.goto(`${baseUrl}/teacher.html`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#bulkCohortsInput", { state: "visible", timeout: 5000 });
+    const mixedText = `${COHORT_A}  ${TOKEN_A}\n${COHORT_B}  ${BAD_TOKEN}\n`;
+    await page.fill("#bulkCohortsInput", mixedText);
+    await page.click("#bulkLoginBtn");
+    await page.waitForFunction(() => {
+      const cm = document.getElementById("cohortMeta");
+      return cm && /MULTI-A/.test(cm.textContent || "");
+    }, { timeout: 10000 });
+    const afterMixed = await page.evaluate(() => ({
+      arr: JSON.parse(localStorage.getItem('teacherDashCohorts_v2') || '[]'),
+      err: (document.getElementById('loginErr') || {}).textContent || '',
+    }));
+    test("bulk paste with 1 bad token → only valid cohorts persisted",
+         afterMixed.arr.length === 1 && afterMixed.arr[0].code === COHORT_A,
+         "got " + JSON.stringify(afterMixed.arr.map((c) => c.code)));
+    test("error summary mentions failed cohort code",
+         afterMixed.err.includes(COHORT_B), "err: " + afterMixed.err);
+
+    // Case 4: switch active chip A → C.
+    // Re-load with all 3 cohorts.
+    await page.evaluate((s) => {
+      localStorage.setItem('teacherDashCohorts_v2', JSON.stringify(s.cohorts));
+      localStorage.setItem('teacherDashActiveView_v2', s.active);
+    }, {
+      cohorts: [
+        { code: COHORT_A, token: TOKEN_A, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+        { code: COHORT_B, token: TOKEN_B, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+        { code: COHORT_C, token: TOKEN_C, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+      ],
+      active: COHORT_A,
+    });
+    await page.goto(`${baseUrl}/teacher.html`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => {
+      const cm = document.getElementById("cohortMeta");
+      return cm && /MULTI-A/.test(cm.textContent || "");
+    }, { timeout: 10000 });
+
+    // Click the chip for COHORT_C.
+    await page.click(`[data-testid="cohort-chip"][data-cohort-code="${COHORT_C}"]`);
+    await page.waitForFunction((target) => {
+      const cm = document.getElementById("cohortMeta");
+      return cm && (cm.textContent || "").includes(target);
+    }, COHORT_C, { timeout: 10000 });
+    const afterSwitch = await page.evaluate(() => ({
+      active: localStorage.getItem('teacherDashActiveView_v2'),
+      cohortMetaText: (document.getElementById('cohortMeta') || {}).textContent || '',
+    }));
+    test("clicking chip switches active view", afterSwitch.active === COHORT_C,
+         "active=" + afterSwitch.active);
+    test("dashboard re-renders for switched cohort", afterSwitch.cohortMetaText.includes(COHORT_C));
+
+    // Case 6: remove a cohort via × handler.
+    // Wait for the remove × inside the chip for COHORT_B and click it.
+    page.on('dialog', (d) => d.accept()); // auto-accept logout confirm dialog if any
+    const removeBtn = await page.$(`[data-testid="cohort-chip"][data-cohort-code="${COHORT_B}"] [data-testid="cohort-chip-remove"]`);
+    if (removeBtn) {
+      await removeBtn.click();
+      await page.waitForFunction((target) => {
+        return !document.querySelector(`[data-testid="cohort-chip"][data-cohort-code="${target}"]`);
+      }, COHORT_B, { timeout: 5000 });
+    }
+    const afterRemove = await page.evaluate(() => ({
+      arr: JSON.parse(localStorage.getItem('teacherDashCohorts_v2') || '[]'),
+    }));
+    test("removing chip drops cohort from v2 array",
+         !afterRemove.arr.some((c) => c.code === COHORT_B),
+         "still: " + JSON.stringify(afterRemove.arr.map((c) => c.code)));
+    test("remaining cohorts preserved",
+         afterRemove.arr.length === 2 &&
+           afterRemove.arr.some((c) => c.code === COHORT_A) &&
+           afterRemove.arr.some((c) => c.code === COHORT_C));
+
+    // Case 11: failed cohort fetch surfaces error chip state.
+    await page.evaluate((s) => {
+      localStorage.setItem('teacherDashCohorts_v2', JSON.stringify(s.cohorts));
+      localStorage.setItem('teacherDashActiveView_v2', s.active);
+    }, {
+      cohorts: [
+        { code: COHORT_A, token: TOKEN_A, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+        { code: COHORT_B, token: BAD_TOKEN, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+      ],
+      active: COHORT_A,
+    });
+    await page.goto(`${baseUrl}/teacher.html`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector(`[data-testid="cohort-chip"][data-cohort-code="${COHORT_B}"]`, { timeout: 10000 });
+    const errChipClass = await page.evaluate((code) => {
+      const el = document.querySelector(`[data-testid="cohort-chip"][data-cohort-code="${code}"]`);
+      return el ? el.className : null;
+    }, COHORT_B);
+    test("failed-fetch chip has is-error class", errChipClass && errChipClass.includes('is-error'),
+         "className: " + errChipClass);
 
     console.log(`\n[teacher-multi-smoke] ${passed}/${passed + failed} passed`);
     exitCode = (failed === 0 && pageErrors.length === 0) ? 0 : 1;
