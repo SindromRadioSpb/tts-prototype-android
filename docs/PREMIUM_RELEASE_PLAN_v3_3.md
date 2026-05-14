@@ -187,24 +187,35 @@ v3.3 should be a **scope consolidation + scientific-instrument hardening** cycle
 
 ## 4. Recommended sequencing
 
+> **Sequence revised 2026-05-14** after two unplanned hotfix patches consumed the v3.3.3 and v3.3.4 slots. Calibrated Quiz and Knowledge-graph view each shift by two patch numbers.
+
 ```
 v3.3.0  (DONE 2026-05-14)  Morphology A1 — opt-in 250K dict
                             └─ merge 637ff52 · tag v3.3.0
 
-v3.3.1  (~4 d)              Workstream A small tasks
+v3.3.1  (DONE 2026-05-14)  Workstream A small tasks
                             ├─ A2 rotate_token.js
                             ├─ A3 multi-device link
                             ├─ A4 re-consent rule formalization
                             └─ A5 validate.js lint CLI
+                           └─ tag v3.3.1 (70bb465)
 
-v3.3.2  (~11+5 d = 16 d)    Multicohort + Cross-text hub
+v3.3.2  (DONE 2026-05-14)  Multicohort + Cross-text hub
                             ├─ Direction 12 (multicohort dashboard)
                             └─ Direction 15 (Где встречается)
+                           └─ tag v3.3.2 (a172621)
 
-v3.3.3  (~8 d)              Calibrated quiz
+v3.3.3  (DONE 2026-05-14)  Hotfix — Library Search field-name mismatch
+                            └─ tag v3.3.3 (7526f6c)
+
+v3.3.4  (DONE 2026-05-14)  Hotfix — cross-text panel z-index + root inflections
+                            └─ tag v3.3.4 (d1317e0)
+
+v3.3.5  (~8 d, NEXT)        Calibrated quiz
                             └─ Direction 13
+                           Plan: docs/PHASE_PLAN_v3_3_5_CALIBRATED_QUIZ.md
 
-v3.3.4  (~6 d)              Knowledge-graph delight
+v3.3.6  (~6 d)              Knowledge-graph delight
                             └─ Direction 14
 
 v3.4.0  (TBD, separate cycle)
@@ -214,7 +225,7 @@ v3.4.0  (TBD, separate cycle)
                             └─ Index.html monolith code-split
 ```
 
-**Total v3.3.x cycle effort:** ~34 dev-days; with 50 % QA + docs buffer → **~50 calendar days** = **7-8 weeks**.
+**Total v3.3.x cycle effort:** ~34 dev-days planned + 0 unplanned hotfix days (small fixes); ~50 calendar-day budget = **7-8 weeks**. Two hotfixes consumed patch numbers but no additional plan time (each was a same-day fix).
 
 ---
 
