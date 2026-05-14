@@ -94,7 +94,21 @@ const ALLOWED_OUTCOME_KEYS = new Set([
   "pre_test_score",
   "confidence_self_report",
   "outcome_capture_method",
+  // v3.3.5 Direction 13 — Calibrated diagnostic quiz outcome fields.
+  // Privacy invariant: NO item-level keys (Q01..Q20) — only aggregate
+  // measurement output. Per docs/PHASE_PLAN_v3_3_5_CALIBRATED_QUIZ.md §9
+  // and consent audit Example E in docs/RESEARCH_CONSENT_RULE.md (NO
+  // CONSENT_VERSION bump because these fields are derived from the
+  // existing "итоговый балл" coverage).
+  "quiz_score_normalized",
+  "quiz_cefr_band",
+  "quiz_se",
+  "quiz_completed_at",
+  "quiz_version",
 ]);
+
+const QUIZ_CEFR_BANDS = ["A1", "A2", "B1", "B2", "C1"];
+const QUIZ_VERSION_RE = /^[a-z0-9_]+_v\d+$/;
 
 const DATE_ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
@@ -238,8 +252,42 @@ function validateOutcome(out) {
   }
   if ("outcome_capture_method" in out) {
     if (out.outcome_capture_method !== "self-report" &&
-        out.outcome_capture_method !== "teacher-csv") {
-      violation("$.metrics.outcome.outcome_capture_method", `must be self-report or teacher-csv`);
+        out.outcome_capture_method !== "teacher-csv" &&
+        out.outcome_capture_method !== "calibrated-quiz") {
+      violation("$.metrics.outcome.outcome_capture_method",
+                `must be self-report, teacher-csv, or calibrated-quiz`);
+    }
+  }
+  // ── v3.3.5 calibrated-quiz fields ────────────────────────────────────
+  if ("quiz_score_normalized" in out && out.quiz_score_normalized !== null) {
+    const v = out.quiz_score_normalized;
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0 || v > 100) {
+      violation("$.metrics.outcome.quiz_score_normalized",
+                `must be number in [0, 100], got ${JSON.stringify(v)}`);
+    }
+  }
+  if ("quiz_cefr_band" in out && out.quiz_cefr_band !== null) {
+    if (!QUIZ_CEFR_BANDS.includes(out.quiz_cefr_band)) {
+      violation("$.metrics.outcome.quiz_cefr_band",
+                `must be one of ${QUIZ_CEFR_BANDS.join(", ")}`);
+    }
+  }
+  if ("quiz_se" in out && out.quiz_se !== null) {
+    const v = out.quiz_se;
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0) {
+      violation("$.metrics.outcome.quiz_se", `must be non-negative number`);
+    }
+  }
+  if ("quiz_completed_at" in out && out.quiz_completed_at !== null) {
+    if (typeof out.quiz_completed_at !== "string" || !DATE_ISO_DAY_RE.test(out.quiz_completed_at)) {
+      violation("$.metrics.outcome.quiz_completed_at",
+                `must be ISO day YYYY-MM-DD (no sub-day timestamps)`);
+    }
+  }
+  if ("quiz_version" in out && out.quiz_version !== null) {
+    if (typeof out.quiz_version !== "string" || !QUIZ_VERSION_RE.test(out.quiz_version)) {
+      violation("$.metrics.outcome.quiz_version",
+                `must match ^[a-z0-9_]+_v\\d+$`);
     }
   }
 }
