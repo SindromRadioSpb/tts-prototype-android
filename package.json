@@ -36,6 +36,8 @@
     "smoke:quiz:client-submit": "node scripts/quiz/client-submit-smoke.js",
     "smoke:quiz:server-validator": "node scripts/research/quiz-validator-smoke.js",
     "smoke:quiz:teacher": "node scripts/research/teacher-quiz-smoke.js",
+    "smoke:quiz:reset-cli": "node scripts/research/quiz-reset-cli-smoke.js",
+    "research:quiz-reset": "node scripts/research/reset_quiz_for_student.js",
     "quiz:validate": "node scripts/quiz/validate-bank.js",
     "quiz:regen-fixture": "node scripts/quiz/generate-mirt-fixture.js",
     "research:cohort": "node scripts/research/create_cohort.js",
