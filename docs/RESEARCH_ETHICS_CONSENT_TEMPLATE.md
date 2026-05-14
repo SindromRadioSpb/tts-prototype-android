@@ -26,7 +26,7 @@
 
 1. **Использовать приложение LinguistPro** в течение курса как один из инструментов изучения иврита.
 2. **Дать согласие на сбор анонимизированных метрик** вашей учебной активности (см. ниже что именно собирается).
-3. **Опционально:** поделиться вашим итоговым баллом экзамена в конце курса (для корреляционного анализа).
+3. **Опционально:** поделиться вашим итоговым баллом экзамена в конце курса (через self-report ИЛИ через встроенную калибровочную диагностику в приложении) для корреляционного анализа.
 4. **Опционально:** поделиться вашим anonymous student ID с преподавателем — это позволит соотнести метрики с вашим экзаменационным результатом для individual-level анализа.
 
 ### Что мы собираем (только агрегированные показатели, не сырые данные)
@@ -137,7 +137,7 @@ You are invited to participate in a research project investigating the effective
 
 1. Use LinguistPro during your ulpan course as one of your Hebrew learning tools.
 2. Consent to anonymous metric collection of your learning activity (see below for details).
-3. Optionally: share your final exam score at course end (for correlation analysis).
+3. Optionally: share your final exam score at course end (via self-report OR via the built-in calibrated diagnostic quiz in the app) for correlation analysis.
 4. Optionally: share your anonymous student ID with your teacher to enable individual-level correlation analysis.
 
 ### What we collect (aggregated metrics only — never raw data)
