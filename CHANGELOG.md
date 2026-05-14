@@ -7,7 +7,159 @@
 
 ## [Unreleased]
 
-(пусто — следующий цикл откроется после v3.3.2)
+(пусто — следующий патч v3.3.3 откроется после approval)
+
+---
+
+## [3.3.2] — 2026-05-14
+
+**Patch release.** Direction 12 (Multicohort Teacher Dashboard) +
+Direction 15 (Cross-text "Где встречается" hub) from
+[`docs/PREMIUM_RELEASE_PLAN_v3_3.md`](docs/PREMIUM_RELEASE_PLAN_v3_3.md).
+Full phase plan at [`docs/PHASE_PLAN_v3_3_2.md`](docs/PHASE_PLAN_v3_3_2.md).
+
+**No new collected fields. No `CONSENT_VERSION` bump. No new
+`/api/research/v1/*` endpoints. No raw events leaving device.** All four
+hard constraints from the user-locked v3.3.2 plan §12 honored.
+
+### Added — Direction 12: Multicohort Teacher Dashboard (read-only compare)
+
+- **Bulk-paste login.** Teacher dashboard login screen gains a `<textarea>`
+  accepting N cohort credentials in `CODE  TOKEN` format (whitespace-
+  separated, `#` comments, blank lines ignored). Concurrent
+  `fetchAggregates` fan-out via `Promise.allSettled`; only successful
+  pairs are persisted; failed cohorts surface in an error summary with
+  the failing cohort code. Original single-pair form preserved inside a
+  collapsible `<details open>` for the "I just want one cohort" path —
+  existing 14 teacher-smoke selectors stay valid.
+- **Chip strip.** Header gains `#cohortChipStrip` rendering one chip per
+  stored cohort. Chip = pill shape, monospace code, status dot
+  (green=ok, red=error, grey=unknown), inline `×` for one-click removal,
+  click-to-switch active view. Max 6 visible inline; overflow becomes a
+  `[+N more ▾]` dropdown. **`🌐 All cohorts` chip** always rendered when
+  ≥ 2 cohorts are stored.
+- **"All cohorts" compare view.** Side-by-side per-cohort summary tiles
+  with deterministic color-coded left border (cohort_code → 8-color
+  palette hash). Overlaid SVG charts (`svgMultiLineChart`) for
+  engagement timeline / audio playback / SRS reviews — one line per
+  cohort + legend. **Per-student / outcome correlations / scatter
+  sections HIDDEN in compare view regardless of any cohort's k-status**
+  (per `PHASE_PLAN_v3_3_2.md §7` invariant; prevents cross-cohort
+  re-identification). Compare-mode notice card explains the gating.
+- **`cross_cohort_aggregates.csv` export.** Long-format CSV (one row
+  per `cohort × date`); 12 columns: `cohort_code, date, students_active,
+  cohort_size_total, k_anonymity_met, active_minutes_real,
+  audio_play_ms_total, sessions_count, cards_reviewed, notes_created,
+  cohort_meta_consent_version, cohort_meta_retention_until`. **Cohort-
+  wide only — no per-student data.** Sorted by `(cohort_code ASC, date
+  ASC)`. Filename: `cross_cohort_aggregates_<YYYY-MM-DD>.csv`. New
+  `[⬇ Cross-cohort CSV]` button visible only in compare view.
+- **localStorage v2 schema** with auto-migration. New keys:
+  `teacherDashCohorts_v2` (JSON array of `{code, token, added_at,
+  last_ok_at, nickname?}`) + `teacherDashActiveView_v2` (cohort code |
+  `'ALL'`). Legacy v1 keys (`teacherDashCohort_v1` /
+  `teacherDashToken_v1`) auto-migrate on first v3.3.2 boot and are
+  removed afterwards. Internal helpers: `_getCohorts` / `_setCohorts` /
+  `_activeCohort` / `_upsertCohort` / `_clearAllCohorts` /
+  `_migrateLegacy`. Server-side wire contract unchanged.
+- **Other UX.** `[+ Add cohort]` button (prompt-driven inline form for
+  v3.3.2; full bulk-paste inline form is a v3.3.3+ polish item).
+  `[⎋ Logout]` renamed to `[⎋ Logout all]` with confirm dialog when
+  ≥ 2 cohorts stored.
+
+### Added — Direction 15: Cross-text "Где встречается" hub (all-local)
+
+- **`window.CrossText` service** (`public/js/crosstext.js`). New public
+  API: `findOccurrences(word, {includeRoot, limit, excludeTextId})` →
+  `Promise<Occurrence[]>`, plus `invalidate()` and `getStats()`. Lazy-
+  built inverted index `Map<normalized_key, IndexEntry[]>` walking the
+  existing OPFS `sentences` table via `window.__localDB.dbQuery`. Niqqud-
+  insensitive lookup via the single-source-of-truth
+  `MorphNormalize.normalizeHebrew` invariant — final letter mapping +
+  niqqud strip + ZWJ + NFC. Optional `includeRoot=true` resolves the
+  morphology root via `MorphProvider.analyze()` and adds root-keyed
+  occurrences to the result set. LRU memo cache of 200 query-result
+  pairs. Visibility-change + 5 min idle → drop index (memory hygiene).
+- **`window.LinguistProCrossTextUI` panel** (`public/js/crosstext-ui.js`).
+  Side-panel slides in from the right on desktop (200 ms ease-out);
+  full-screen on viewports < 1024 px. Per-text collapsible `<details>`
+  groups (first 3 open by default), per-occurrence row with `<mark>`-
+  wrapped match in the snippet. Click an occurrence → closes the panel,
+  calls `v3LibraryOpenText(textId, {resumeSentenceId, origin:'crosstext'})`
+  to navigate the host app to the matched sentence. Escape key + overlay
+  click close.
+- **Word-study integration.** New `🔎 Где встречается` button at the
+  end of the `<div data-tpl="word_study">` template form. Reads the
+  word + root + binyan inputs; auto-detects `excludeTextId` from
+  `window.v3CurrentTextId` / `window.v3Library.currentTextId`.
+
+### i18n
+
+- +21 keys × 3 locales (ru/en/he) total:
+  - `crossText.{title, rootLabel, binyanLabel, includeRootLabel,
+    loading, empty, emptyCurrentTextHint, error, summary,
+    summaryMatches, summaryTexts, sentenceLabel, clickHint, close,
+    moduleMissing, toast.noWord}` — 16 keys
+  - `notes.tpl.word_study.{crossText, crossTextTitle}` — 2 keys
+  - (multicohort UI uses inline copy; chip strip is self-explanatory
+    monospace cohort codes + emoji)
+
+### Tests
+
+- **`scripts/morph/crosstext-smoke.js`** (new) — 13 cases. 8 service-
+  level + 5 UI-level. Live Playwright run with mocked `__localDB.dbQuery`
+  + `MorphProvider` + real `morph-normalize.js`. `npm run smoke:crosstext`.
+- **`scripts/research/teacher-multicohort-smoke.js`** (new) — 31 cases.
+  Migration (v1 → v2 keys) + bulk paste + chip strip + add/remove/switch
+  + error chip + compare view rendering + CSV export schema +
+  cross-cohort CSV download verification via Playwright's
+  `page.waitForEvent('download')`. `npm run smoke:research:teacher:multi`.
+- **Both wired into `scripts/research/all-smoke.js`.** Existing 14
+  teacher-smoke single-cohort cases stay 14/14 green.
+
+### Smoke matrix at v3.3.2 cut
+
+```
+✓ Server (Phase 11.4 + 11.6):                     25/25
+✓ Client opt-in (Phase 11.2 + 11.3):              28/28
+✓ Teacher dashboard (Phase 11.5):                 14/14   regression check
+✓ Teacher multicohort (D12, NEW):                 31/31
+✓ Preview UI (transparency modal):                12/12
+✓ Admin CLI rotate_token (A2):                    12/12
+✓ Admin CLI link_student_ids (A3):                12/12
+✓ Admin CLI validate-cli (A5):                    15/15
+✓ Cross-text lookup service + UI (D15, NEW):      13/13
+✓ Morph tier-switch + Settings + live:            28/28
+─────────────────────────────────────────────────────
+                                                  190 cases ALL GREEN
+                                                  (was 146 at v3.3.1)
+```
+
+### Docs
+
+- [`docs/PHASE_PLAN_v3_3_2.md`](docs/PHASE_PLAN_v3_3_2.md) — 17-section
+  phase plan authored before C1, approved by user 2026-05-14, executed
+  in 10 bisectable commits C1-C10.
+- [`docs/RESEARCHER_GUIDE.md`](docs/RESEARCHER_GUIDE.md) §5.4 Multicohort
+  mode + §6 Cross-text hub authored; downstream sections renumbered.
+
+### Visual regression captures
+
+Deferred to v3.3.3 backlog (planning §11.2 + §11.4). Not blocking the
+patch — manual visual verification via the `UI_SMOKE_CHECK` protocol
+remains the verification path.
+
+### Anchor commits
+
+- `0fca6d9` C1 — CrossText lookup service
+- `44f592d` C2 — CrossText side-panel UI + word-study integration
+- `d323bd6` C3 — teacher.js localStorage v2 migration
+- `35b1476` C4 — chip strip + bulk paste UX
+- `f1c68c1` C5 — "All cohorts" compare view
+- `6bcc52a` C6 — cross_cohort_aggregates.csv export
+- `1515424` C8 — RESEARCHER_GUIDE updates
+- `31ba4c4` C9 — i18n keys × 3 locales
+- (this commit) C10 — version bump + CHANGELOG
 
 ---
 
