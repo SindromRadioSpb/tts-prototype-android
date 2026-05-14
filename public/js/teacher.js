@@ -823,6 +823,57 @@
     downloadCsv(`cohort_${a.cohort_meta.code}_derived.csv`, lines);
   }
 
+  // v3.3.2 D12 C6 — cross-cohort aggregates CSV export. Long-format
+  // (one row per cohort × date), cohort-wide only (no per-student data).
+  // Per PHASE_PLAN_v3_3_2.md §6 schema. Sorted by (cohort_code ASC, date ASC).
+  function exportCrossCohortCsv() {
+    const cols = [
+      'cohort_code', 'date', 'students_active', 'cohort_size_total',
+      'k_anonymity_met', 'active_minutes_real', 'audio_play_ms_total',
+      'sessions_count', 'cards_reviewed', 'notes_created',
+      'cohort_meta_consent_version', 'cohort_meta_retention_until',
+    ];
+    const rows = [];
+    const cohorts = _getCohorts();
+    for (const c of cohorts) {
+      const agg = _cohortAggregates[c.code];
+      if (!agg || !agg.daily_aggregates) continue; // skip failed / unloaded
+      const meta = agg.cohort_meta || {};
+      for (const d of agg.daily_aggregates) {
+        rows.push({
+          cohort_code: c.code,
+          date: d.date,
+          students_active: d.students_active || 0,
+          cohort_size_total: agg.cohort_size || 0,
+          k_anonymity_met: agg.k_anonymity_met ? 1 : 0,
+          active_minutes_real: d.active_minutes_real || 0,
+          audio_play_ms_total: d.audio_play_ms_total || 0,
+          sessions_count: d.sessions_count || 0,
+          cards_reviewed: d.cards_reviewed || 0,
+          notes_created: d.notes_created || 0,
+          cohort_meta_consent_version: meta.consent_version_minimum || '',
+          cohort_meta_retention_until: meta.retention_until || '',
+        });
+      }
+    }
+    if (!rows.length) {
+      alert('Нет данных для cross-cohort CSV (загруженных когорт нет или daily_aggregates пуст).');
+      return;
+    }
+    // Sort by (cohort_code ASC, date ASC).
+    rows.sort((a, b) => {
+      if (a.cohort_code < b.cohort_code) return -1;
+      if (a.cohort_code > b.cohort_code) return 1;
+      if (a.date < b.date) return -1;
+      if (a.date > b.date) return 1;
+      return 0;
+    });
+    const lines = [cols.join(',')];
+    for (const r of rows) lines.push(cols.map((k) => csvEscape(r[k])).join(','));
+    const today = new Date().toISOString().slice(0, 10);
+    downloadCsv(`cross_cohort_aggregates_${today}.csv`, lines);
+  }
+
   // ── outcomes CSV upload ────────────────────────────────────────────────
   // Opens a hidden <input type="file"> to pick a CSV, reads it locally,
   // POSTs to /api/research/v1/cohort/:code/outcomes (Bearer-auth), then
@@ -1198,6 +1249,7 @@
     $('exportAggregatesBtn').addEventListener('click', exportAggregatesCsv);
     $('exportTimeseriesBtn').addEventListener('click', exportTimeseriesCsv);
     $('exportDerivedBtn').addEventListener('click', exportDerivedCsv);
+    $('exportCrossCohortBtn').addEventListener('click', exportCrossCohortCsv);
 
     // v3.3.2 D12 — migrate legacy v1 keys (single-cohort) into the v2 array
     // schema on first boot. Idempotent after one successful migration.

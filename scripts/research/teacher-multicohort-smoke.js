@@ -389,6 +389,33 @@ async function main() {
     test("k-not-met cohorts surface k-warning badge in compare view",
          knotMetSurface.knm === knotMetSurface.tilesCount, "k-not-met=" + JSON.stringify(knotMetSurface));
 
+    // ── C6: cross_cohort_aggregates.csv export ────────────────────────
+    // Trigger download and capture CSV contents via Playwright's download API.
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 5000 }),
+      page.click('#exportCrossCohortBtn'),
+    ]);
+    const filename = download.suggestedFilename();
+    test("cross-cohort CSV filename matches cross_cohort_aggregates_<date>.csv",
+         /^cross_cohort_aggregates_\d{4}-\d{2}-\d{2}\.csv$/.test(filename),
+         "got: " + filename);
+
+    const csvPath = path.join(researchDir, "cross_cohort_dl.csv");
+    await download.saveAs(csvPath);
+    const csvText = fs.readFileSync(csvPath, "utf8");
+    const csvLines = csvText.split(/\r?\n/).filter((l) => l.length > 0);
+    test("CSV header matches §6 schema (12 columns)",
+         csvLines[0] === "cohort_code,date,students_active,cohort_size_total,k_anonymity_met,active_minutes_real,audio_play_ms_total,sessions_count,cards_reviewed,notes_created,cohort_meta_consent_version,cohort_meta_retention_until",
+         "header: " + csvLines[0]);
+    test("CSV has 3 data rows (one per seeded cohort × date)",
+         csvLines.length - 1 === 3, "rows: " + (csvLines.length - 1));
+    // Verify sort order: cohort_code ASC.
+    const cohortColsInOrder = csvLines.slice(1).map((l) => l.split(',')[0]);
+    const sorted = cohortColsInOrder.slice().sort();
+    test("rows sorted by cohort_code ASC",
+         JSON.stringify(cohortColsInOrder) === JSON.stringify(sorted),
+         "actual: " + JSON.stringify(cohortColsInOrder));
+
     // Switch back to single cohort A — hidden cards must reappear.
     await page.click(`[data-testid="cohort-chip"][data-cohort-code="${COHORT_A}"]`);
     await page.waitForFunction((target) => {
