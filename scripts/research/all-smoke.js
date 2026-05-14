@@ -36,6 +36,7 @@ const SUITES = [
   { name: "Quiz item bank validation (v3.3.5 C1)",   script: "scripts/quiz/bank-validate-smoke.js",         countLabel: "8 cases" },
   { name: "Quiz scoring engine (v3.3.5 C2)",         script: "scripts/quiz/scoring-smoke.js",               countLabel: "6 cases" },
   { name: "Quiz UI modal (v3.3.5 C3)",               script: "scripts/quiz/ui-smoke.js",                    countLabel: "8 cases" },
+  { name: "Quiz UI accessibility (post-v3.3.5)",     script: "scripts/quiz/ui-a11y-smoke.js",               countLabel: "7 cases" },
   { name: "Quiz privacy hardening (v3.3.5 C4)",      script: "scripts/quiz/privacy-smoke.js",               countLabel: "5 cases" },
   { name: "Quiz client submit (v3.3.5 C5)",          script: "scripts/quiz/client-submit-smoke.js",         countLabel: "8 cases" },
   { name: "Quiz server validator (v3.3.5 C6)",       script: "scripts/research/quiz-validator-smoke.js",    countLabel: "7 cases" },

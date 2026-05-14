@@ -1523,5 +1523,9 @@ window.I18N_LOCALES.en = {
     },
     loadError: "Failed to load question bank: ",
     scoreError: "Scoring error: ",
+    aria: {
+      optionLetter: "option",
+      levelLabel: "level",
+    },
   },
 };

@@ -34,6 +34,63 @@
 
   let bankCache = null;
   let lastResult = null;
+  let previouslyFocused = null;
+
+  // Selector matching every element that can be focused via Tab in the
+  // panel. Used by the focus trap to compute wrap-around boundaries.
+  const FOCUSABLE_SELECTOR = [
+    "a[href]",
+    "button:not([disabled])",
+    "input:not([disabled]):not([type='hidden'])",
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])",
+  ].join(",");
+
+  function focusablesIn(root) {
+    if (!root) return [];
+    return Array.from(root.querySelectorAll(FOCUSABLE_SELECTOR))
+      .filter((el) => !el.hasAttribute("disabled") &&
+                      el.offsetParent !== null /* visible */ ||
+                      el === document.activeElement);
+  }
+
+  function installFocusTrap(panel) {
+    panel.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      const items = focusablesIn(panel);
+      if (items.length === 0) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !panel.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (active === last || !panel.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+  }
+
+  function focusFirstFocusable(panel) {
+    const items = focusablesIn(panel);
+    if (items.length > 0) items[0].focus();
+  }
+
+  function focusCheckedOrFirstRadio(panel) {
+    if (!panel) return;
+    const checked = panel.querySelector('[data-quiz-radio]:checked');
+    if (checked) { checked.focus(); return; }
+    const firstRadio = panel.querySelector('[data-quiz-radio]');
+    if (firstRadio) { firstRadio.focus(); return; }
+    // Fallback: first focusable (e.g. close button on completed/error screens).
+    focusFirstFocusable(panel);
+  }
 
   function T(key, fallback) {
     try {
@@ -120,10 +177,30 @@
     if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
     const panel = document.getElementById(PANEL_ID);
     if (panel && panel.parentNode) panel.parentNode.removeChild(panel);
+    // Restore focus to the element that had it when the modal opened —
+    // standard a11y pattern for modal dismissal.
+    try {
+      if (previouslyFocused && document.body.contains(previouslyFocused) &&
+          typeof previouslyFocused.focus === "function") {
+        previouslyFocused.focus();
+      }
+    } catch (_) {}
+    previouslyFocused = null;
   }
 
   function buildShell() {
+    // Capture the element that had focus before we render anything, so we
+    // can restore it on destroyPanel. Skip when we're rebuilding (overlay
+    // already exists) to avoid clobbering the real pre-open focus.
+    // Stash in a local, re-assign AFTER destroyPanel — that helper resets
+    // previouslyFocused = null on the way out, which would otherwise erase
+    // our just-captured reference.
+    const capturedFocus = !document.getElementById(OVERLAY_ID)
+      ? document.activeElement
+      : previouslyFocused;
+
     destroyPanel();
+    previouslyFocused = capturedFocus;
     const overlay = document.createElement("div");
     overlay.id = OVERLAY_ID;
     overlay.setAttribute("data-quiz-overlay", "1");
@@ -153,6 +230,10 @@
     overlay.addEventListener("keydown", (e) => {
       if (e.key === "Escape") { e.preventDefault(); destroyPanel(); }
     });
+    // Focus trap so Tab / Shift+Tab cycle within the modal instead of
+    // escaping to underlying page elements (e.g. the research panel
+    // launcher button that opened the quiz).
+    installFocusTrap(panel);
     // Click on the overlay (outside the panel) does NOT auto-close —
     // mid-quiz dismissal is intentional via the close button only.
     return panel;
@@ -177,7 +258,9 @@
         `<button type="button" class="btn-secondary" data-quiz-close="1">` +
           escapeHtml(T("quiz.btn.close", "Закрыть")) + `</button>` +
       `</div></div>`;
-    panel.querySelector("[data-quiz-close]").addEventListener("click", destroyPanel);
+    const closeBtn = panel.querySelector("[data-quiz-close]");
+    closeBtn.addEventListener("click", destroyPanel);
+    closeBtn.focus();
   }
 
   function renderItem(bank, state, panel) {
@@ -188,21 +271,35 @@
     const isFirst = idx === 0;
     const isLast = idx === total - 1;
     const dir = isHebrewPrompt(item) ? "rtl" : "ltr";
+    // Stable id so each radio can aria-describedby the prompt — screen
+    // readers then announce the question alongside each option as the
+    // user arrow-keys through them.
+    const promptId = "quizPrompt_" + item.id;
 
     let optsHtml = "";
-    for (const opt of item.options) {
+    item.options.forEach((opt, optIdx) => {
       const checked = selected === opt.id ? " checked" : "";
       const optDir = /[֐-׿]/.test(optionText(item, opt) || "") ? "rtl" : "ltr";
+      const optText = optionText(item, opt);
+      // aria-label combines option letter + text + position so SR reads:
+      //   "<text>, option <id>, <n> of 4, radio button, [not] selected"
+      const ariaLabel = `${optText} — ${T("quiz.aria.optionLetter", "вариант")} ${opt.id.toUpperCase()}, ${optIdx + 1} / ${item.options.length}`;
       optsHtml +=
         `<label class="quiz-option" data-quiz-option="${escapeHtml(opt.id)}" ` +
         `style="display:block;padding:8px 12px;margin:6px 0;border:1px solid var(--theme-border,#ccc);` +
         `border-radius:8px;cursor:pointer;${selected === opt.id ? "background:var(--theme-accent-bg,#eef);" : ""}">` +
           `<input type="radio" name="quizItemOpt" value="${escapeHtml(opt.id)}"${checked} ` +
-          `data-quiz-radio="${escapeHtml(opt.id)}" style="margin-right:8px;vertical-align:middle;">` +
+          `data-quiz-radio="${escapeHtml(opt.id)}" ` +
+          `aria-describedby="${promptId}" aria-label="${escapeHtml(ariaLabel)}" ` +
+          `style="margin-right:8px;vertical-align:middle;">` +
           `<span dir="${optDir}" style="${optDir === "rtl" ? "direction:rtl;text-align:right;" : ""}">` +
-            escapeHtml(optionText(item, opt)) + `</span>` +
+            escapeHtml(optText) + `</span>` +
         `</label>`;
-    }
+    });
+
+    // aria-label on progress lets SR read it as "Question 5 of 20, level B1"
+    // even when the visible text uses different punctuation/markup.
+    const progressLabel = `${T("quiz.progress", "Вопрос")} ${idx + 1} / ${total}, ${T("quiz.aria.levelLabel", "уровень")} ${item.cefr_level}`;
 
     panel.innerHTML =
       `<div class="quiz-item-wrap" data-quiz-state="in-progress" data-quiz-item-id="${escapeHtml(item.id)}">` +
@@ -213,15 +310,17 @@
           `<button type="button" data-quiz-close="1" aria-label="${escapeHtml(T("quiz.btn.close", "Закрыть"))}" ` +
             `style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#888;">×</button>` +
         `</div>` +
-        `<div data-quiz-progress="1" style="font-size:12px;color:var(--theme-text-secondary,#666);margin-bottom:14px;">` +
+        `<div data-quiz-progress="1" role="status" aria-live="polite" aria-atomic="true" ` +
+          `aria-label="${escapeHtml(progressLabel)}" ` +
+          `style="font-size:12px;color:var(--theme-text-secondary,#666);margin-bottom:14px;">` +
           escapeHtml(T("quiz.progress", "Вопрос")) + ` <b>${idx + 1}</b> / ${total}` +
           ` · ${escapeHtml(item.cefr_level)}` +
         `</div>` +
-        `<div data-quiz-prompt="1" dir="${dir}" ` +
+        `<div id="${promptId}" data-quiz-prompt="1" dir="${dir}" ` +
           `style="font-size:16px;margin-bottom:14px;${dir === "rtl" ? "text-align:right;" : ""}">` +
           escapeHtml(promptFor(item)) +
         `</div>` +
-        `<div data-quiz-options="1">${optsHtml}</div>` +
+        `<div data-quiz-options="1" role="radiogroup" aria-labelledby="${promptId}">${optsHtml}</div>` +
         `<div style="display:flex;justify-content:space-between;margin-top:18px;gap:8px;">` +
           `<button type="button" class="btn-secondary" data-quiz-back="1"${isFirst ? " disabled" : ""}>` +
             escapeHtml(T("quiz.btn.back", "← Назад")) + `</button>` +
@@ -241,10 +340,16 @@
     // race against the re-render).
     panel.querySelectorAll("[data-quiz-radio]").forEach((radio) => {
       radio.addEventListener("change", () => {
+        const valueToRefocus = radio.value;
         const fresh = loadState() || state;
-        fresh.responses_transient[item.id] = radio.value;
+        fresh.responses_transient[item.id] = valueToRefocus;
         saveState(fresh);
         renderItem(bank, fresh, panel);
+        // Restore focus to the radio the user just selected — re-rendering
+        // the panel innerHTML replaced the DOM node, and without this the
+        // keyboard user would lose their place after each arrow press.
+        const newRadio = panel.querySelector(`[data-quiz-radio="${valueToRefocus}"]`);
+        if (newRadio) newRadio.focus();
       });
     });
     const backBtn = panel.querySelector("[data-quiz-back]");
@@ -254,6 +359,7 @@
         fresh.current_item_index -= 1;
         saveState(fresh);
         renderItem(bank, fresh, panel);
+        focusCheckedOrFirstRadio(panel);
       }
     });
     const nextBtn = panel.querySelector("[data-quiz-next]");
@@ -264,6 +370,7 @@
         fresh.current_item_index += 1;
         saveState(fresh);
         renderItem(bank, fresh, panel);
+        focusCheckedOrFirstRadio(panel);
       } else {
         finalizeAndShowResult(bank, fresh, panel);
       }
@@ -339,8 +446,14 @@
       C1: T("quiz.band.C1", "C1 — высокий уровень (Advanced)"),
     };
     const label = bandLabels[result.cefr_band] || result.cefr_band;
+    // ARIA label combines score + band so screen readers announce the
+    // outcome as a single coherent sentence when aria-live fires.
+    const resultSummary = `${T("quiz.result.title", "Результат диагностики")}: ` +
+                          `${result.raw_score} / 100. ${label}.`;
     panel.innerHTML =
-      `<div data-quiz-state="result" class="quiz-result">` +
+      `<div data-quiz-state="result" class="quiz-result" ` +
+           `role="status" aria-live="polite" aria-atomic="true" ` +
+           `aria-label="${escapeHtml(resultSummary)}">` +
         `<h3 id="quizPanelTitle" style="margin:0 0 12px 0;">` +
           escapeHtml(T("quiz.result.title", "Результат диагностики")) + `</h3>` +
         `<div data-quiz-score="1" style="font-size:36px;font-weight:bold;margin:8px 0 6px 0;color:var(--theme-accent,#0a5);">` +
@@ -366,7 +479,12 @@
             escapeHtml(T("quiz.btn.close", "Закрыть")) + `</button>` +
         `</div>` +
       `</div>`;
-    panel.querySelector("[data-quiz-close]").addEventListener("click", destroyPanel);
+    const closeBtn = panel.querySelector("[data-quiz-close]");
+    closeBtn.addEventListener("click", destroyPanel);
+    // Move focus to the close button so a keyboard user can immediately
+    // dismiss the result. The aria-live region announces the score
+    // independently of where focus lands.
+    closeBtn.focus();
   }
 
   async function open() {
@@ -395,6 +513,11 @@
       saveState(state);
     }
     renderItem(bank, state, panel);
+    // Initial focus lands inside the modal (first focusable — usually the
+    // close button (×) or first radio depending on layout). Without this,
+    // a keyboard-only user would still be on whatever launcher button
+    // opened the quiz, and Tab would have to walk into the modal manually.
+    focusCheckedOrFirstRadio(panel);
   }
 
   function close() { destroyPanel(); }

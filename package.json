@@ -32,6 +32,7 @@
     "smoke:quiz:bank": "node scripts/quiz/bank-validate-smoke.js",
     "smoke:quiz:scoring": "node scripts/quiz/scoring-smoke.js",
     "smoke:quiz:ui": "node scripts/quiz/ui-smoke.js",
+    "smoke:quiz:a11y": "node scripts/quiz/ui-a11y-smoke.js",
     "smoke:quiz:privacy": "node scripts/quiz/privacy-smoke.js",
     "smoke:quiz:client-submit": "node scripts/quiz/client-submit-smoke.js",
     "smoke:quiz:server-validator": "node scripts/research/quiz-validator-smoke.js",

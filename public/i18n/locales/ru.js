@@ -1535,5 +1535,9 @@ window.I18N_LOCALES.ru = {
     },
     loadError: "Не удалось загрузить банк вопросов: ",
     scoreError: "Ошибка расчёта результата: ",
+    aria: {
+      optionLetter: "вариант",
+      levelLabel: "уровень",
+    },
   },
 };

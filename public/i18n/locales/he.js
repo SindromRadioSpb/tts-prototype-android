@@ -1527,5 +1527,9 @@ window.I18N_LOCALES.he = {
     },
     loadError: "נכשלה טעינת מאגר השאלות: ",
     scoreError: "שגיאה בחישוב התוצאה: ",
+    aria: {
+      optionLetter: "אפשרות",
+      levelLabel: "רמה",
+    },
   },
 };
