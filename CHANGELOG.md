@@ -7,7 +7,142 @@
 
 ## [Unreleased]
 
-(пусто — Direction 13 calibrated quiz переподготовлен под v3.3.5, M8 graph под v3.3.6 после v3.3.4 hotfix)
+(пусто — M8 graph под v3.3.6, 250K full-hspell под v3.4)
+
+---
+
+## [3.3.5] — 2026-05-15
+
+**Direction 13 — Calibrated diagnostic quiz.** A third outcome path
+alongside self-report и teacher CSV: a 20-item Rasch-calibrated Hebrew
+diagnostic that produces normalized 0-100 score + CEFR band (A1..C1) +
+measurement SE. Item-level responses NEVER leave the device (HARD
+privacy invariant pinned by 18+ smoke cases).
+
+### Added — quiz instrument
+
+- **`public/quiz/ulpan_diagnostic_v1.json`** — 20-item bank, CEFR
+  distribution 4/4/5/4/3, trilingual prompts (RU/EN/HE), scoring
+  config (Rasch 1PL, linear theta→score, 5 CEFR bands).
+- **`scripts/quiz/validate-bank.js`** — schema validator enforcing
+  20 items, exact distribution, `^Q\d{2}$` ids, `difficulty_logit ∈
+  [-4, 4]`, 4-option uniqueness, monotonic mean difficulty across
+  bands. Exit 3 on violation.
+- **`docs/QUIZ_ITEM_BANK_DRAFT.md`** — canonical markdown source
+  (Premium-alt content adopted after AI pre-review).
+- **`docs/QUIZ_ITEM_BANK_AI_REVIEW_NOTES.md`** — preserved historical
+  reviewer feedback.
+- **`docs/QUIZ_ITEM_BANK_REVIEW_BRIEF.md`** — dispatch brief for ulpan
+  teacher external sign-off (still pending pre-deployment).
+
+### Added — scoring engine
+
+- **`public/js/quiz-scoring.js`** — Rasch 1PL MLE via Newton-Raphson,
+  theta capping at [-3, +3], SE = 1/√info, linear theta→score
+  projection, reverse mapping for analysis. Pure JS, no deps,
+  browser+Node CommonJS compat.
+- **`scripts/quiz/__fixtures__/mirt-reference.json`** — 100 synthetic
+  respondents (Mulberry32 seed 0x517A9F1C), generative Rasch responses,
+  truth theta + ref_theta_ml for cross-validation.
+- **`scripts/quiz/generate-mirt-fixture.js`** — deterministic regenerator
+  (run after item-difficulty changes).
+- **`scripts/quiz/validate-against-mirt.R`** — operator-run external
+  cross-check via `mirt::fscores(method="ML")`. Acceptance: r > 0.99,
+  MAD < 0.05, mean |SE_js - SE_mirt| < 0.05.
+
+### Added — quiz UI
+
+- **`public/js/quiz-ui.js`** — self-contained fixed-overlay modal
+  (z-index 10500). 20-item navigation with ← Back / Next →, mid-quiz
+  resume from `localStorage.quizState_v1`, trilingual prompts +
+  options with RTL auto-detect, finalize → score reveal → close →
+  `quizCompleted_v1` marker (only `{version, completed_at, cohort_code}`,
+  no item-level data).
+- **Research panel launcher** — "📝 Сдать диагностику" button next to
+  "🎓 Сдать экзамен" in research mode panel.
+- **i18n** — ~30 quiz keys × 3 locales (ru / en / he) covering modal
+  title, progress, privacy hint, button labels, completion notice,
+  result labels, all 5 CEFR band labels.
+
+### Added — research wire
+
+- **`LinguistProResearch.submitQuizOutcome(payload)`** — new public
+  API. POSTs to existing `/api/research/v1/metrics` (no new endpoint
+  per hard constraint locked 2026-05-14). Defensive ITEM_LEVEL_LEAK
+  reject + 6 client-side guards (BAD_SCORE / BAD_BAND / BAD_SE /
+  BAD_COMPLETED_AT / BAD_VERSION / BAD_METHOD).
+- **`research/validate.js`** — outcome schema extended with 5 new
+  allowed keys + `outcome_capture_method` enum gains `"calibrated-quiz"`
+  + 5 field-level validators raising `SCHEMA_VIOLATION` on miss.
+- **`research/storage.js`** — `aggregateCohort` outcome harvest extended
+  to detect quiz uploads; teacher CSV MERGES rather than REPLACES so
+  quiz fields remain visible alongside teacher's authoritative
+  `post_test_score`.
+
+### Added — teacher dashboard
+
+- **`public/js/teacher.js`** — 3 new columns in per-student table:
+  `quiz` (quiz_score_normalized), `CEFR` (quiz_cefr_band), `SE`
+  (quiz_se to 2 decimals). Sparse — `—` placeholder when absent.
+
+### Added — admin tooling
+
+- **`scripts/research/reset_quiz_for_student.js`** — admin CLI that
+  strips calibrated-quiz fields for one student in one cohort. Drops
+  quiz-only lines, modifies mixed lines, appends audit log entry
+  (ISO ts + cohort + sid + reset_count + reason). Idempotent.
+
+### Added — privacy invariants
+
+- **Item-level responses (`Q01..Q20`, `responses_transient`) MUST never
+  leave the device.** Pinned by:
+  - `scripts/quiz/privacy-smoke.js` cases 2 + 3 (payload audit)
+  - `scripts/quiz/client-submit-smoke.js` case 4 (POST body scan via
+    fetch interception) + case 8 (ITEM_LEVEL_LEAK reject)
+  - `submitQuizOutcome` defensive regex `^Q\d{2}$` + `responses_transient`
+- **`quiz_completed_at` must be ISO day** (matches `upload_ts`).
+  Pinned client-side (`client-submit-smoke.js` case 7) + server-side
+  (`quiz-validator-smoke.js` case 5).
+- **`quizState_v1` cleared on submit; `quizCompleted_v1` has ONLY
+  `{version, completed_at, cohort_code}` keys.** Pinned by
+  `privacy-smoke.js` cases 1 + 4 + `ui-smoke.js` case 6.
+
+### Consent
+
+**NO `CONSENT_VERSION` bump.** Per `docs/RESEARCH_CONSENT_RULE.md`
+Example E audit: four enforced conditions hold (ISO day, 0-100 scale
+parity, cefr_band as derived presentation, consent template §3.2 #3
+mentions the quiz path). `CONSENT_VERSION` remains at `1.0`.
+
+### Smoke
+
+18 suites total, **248 cases ALL GREEN** — up from v3.3.4's 197:
++8 bank validate, +6 scoring, +8 UI, +5 privacy, +8 client submit,
++7 server validator, +3 teacher dashboard quiz cols, +6 reset CLI.
+
+### Docs
+
+- **NEW** `docs/ULPAN_DIAGNOSTIC_QUIZ_v1.md` — methodology + audit log
+  + privacy invariants table + consent posture + recalibration trigger.
+- **UPDATED** `docs/RESEARCHER_GUIDE.md` §4.3 — third outcome path.
+- **UPDATED** `docs/RESEARCH_METRICS_SCHEMA.md` §8 — wire shape.
+- **UPDATED** `docs/RESEARCH_ETHICS_CONSENT_TEMPLATE.md` §3.2 #3 —
+  cosmetic mention of the calibrated quiz alternative.
+
+### Pre-deployment gate (unchanged)
+
+Domain-expert (ulpan teacher) external sign-off on the item bank is
+still REQUIRED before real-ulpan deployment. AI pre-review served as
+the development-phase substitute. See
+`docs/QUIZ_ITEM_BANK_REVIEW_BRIEF.md` for dispatch template.
+
+### Deferred to v3.4+
+
+- Empirical IRT recalibration (requires ≥ 30 quiz responses per
+  cohort + dashboard correlation signal).
+- `scripts/quiz/recalibrate-from-data.R` — Rasch refit script.
+- `ulpan_diagnostic_v2` bank with empirical difficulty estimates.
+- Polynomial / spline theta→score projection (replacing v1 linear).
 
 ---
 
