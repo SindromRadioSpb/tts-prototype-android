@@ -56,6 +56,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import zlib from 'node:zlib';
 import { spawnSync, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { normalizeHebrew } from './normalize.mjs';
@@ -456,6 +457,19 @@ function build() {
   fs.mkdirSync(path.dirname(OUTPUT_BIN), { recursive: true });
   fs.writeFileSync(OUTPUT_BIN, dictJson);
   fs.writeFileSync(OUTPUT_META, JSON.stringify(meta, null, 2) + '\n');
+
+  // For the full tier the raw .bin runs ~75 MB which is too large to track
+  // in git comfortably. Write a gzipped sibling so we ship the compressed
+  // variant (~5 MB) and the runtime decompresses via DecompressionStream.
+  // The basic tier stays raw .bin only — its 7 MB raw is small enough that
+  // pre-compression isn't worth the runtime decode cost, and HTTP-layer
+  // compression (Railway/CDN) handles it on the wire.
+  if (TIER === 'full') {
+    const gzipped = zlib.gzipSync(Buffer.from(dictJson, 'utf-8'), { level: 9 });
+    const OUTPUT_GZ = OUTPUT_BIN + '.gz';
+    fs.writeFileSync(OUTPUT_GZ, gzipped);
+    console.log(`              dict_gz=${OUTPUT_GZ} (${(gzipped.length / 1024 / 1024).toFixed(2)} MB)`);
+  }
 
   const ms = Date.now() - t0;
   console.log(`[morph-build] done in ${ms}ms`);

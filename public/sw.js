@@ -27,10 +27,19 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.2.0-research-1";
+const CACHE_VERSION = "v3.3.0-morph-tier-1";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
+// Workstream A1 Phase 2 — opt-in extended morphology dict. Held in its
+// own bucket so the ~5 MB gzipped full-tier blob (~75 MB after browser-
+// side decompression) can be evicted independently of the app shell when
+// the device hits storage quota pressure.
+const MORPH_CACHE = `linguistpro-morph-${CACHE_VERSION}`;
+// Quota threshold above which we serve the morph response but skip caching
+// it (iOS Safari friendliness). 80 % matches the "Add to Home Screen"
+// quota recommendation in the Safari Web Content Guide.
+const MORPH_QUOTA_THRESHOLD = 0.80;
 
 // Precache list — relative paths only. Keep this in sync with the modules
 // imported at startup. Lazy modules (jszip.min.js, qrcode.js) are NOT in
@@ -107,7 +116,7 @@ self.addEventListener("install", (event) => {
 // ── activate ─────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE]);
+    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, MORPH_CACHE]);
     const names = await caches.keys();
     await Promise.all(
       names
@@ -147,6 +156,15 @@ self.addEventListener("fetch", (event) => {
   // All other /api/* — network-only. Don't cache responses (would mask
   // quota/state/upload semantics).
   if (url.pathname.startsWith("/api/")) return;
+
+  // /morph/* — dedicated cache bucket so the opt-in full-tier dict
+  // (~5 MB gzipped, ~75 MB decompressed) can be evicted independently of
+  // the app shell when quota pressure hits, and so MorphProvider can
+  // surgically purge it via caches.delete('/morph/...') in clearCache().
+  if (url.pathname.startsWith("/morph/")) {
+    event.respondWith(morphCacheStrategy(req));
+    return;
+  }
 
   // Static + shell — stale-while-revalidate. Precached assets resolve
   // immediately from cache; runtime assets get cached on first hit.
@@ -212,4 +230,42 @@ async function networkFirst(req, cacheName, timeoutMs) {
     if (cached) return cached;
     throw e;
   }
+}
+
+// Cache-first strategy for /morph/*. Background-revalidates so the dict
+// stays fresh when a new tier is deployed. Bound to MORPH_CACHE so callers
+// can purge the entire morph bucket atomically. Skips caching when the
+// device is within MORPH_QUOTA_THRESHOLD of its storage quota — pertinent
+// for iOS Safari where the per-origin quota can be as low as 50-200 MB.
+async function morphCacheStrategy(req) {
+  const cache = await caches.open(MORPH_CACHE);
+  const cached = await cache.match(req);
+  const fetchPromise = fetch(req).then(async (res) => {
+    if (res && res.ok && res.type === "basic") {
+      const ok = await isStorageQuotaSafe();
+      if (ok) {
+        // Eager-clone before returning res, same caveat as
+        // staleWhileRevalidate above.
+        const copy = res.clone();
+        cache.put(req, copy).catch(() => {});
+      }
+    }
+    return res;
+  }).catch((err) => {
+    if (cached) return cached;
+    throw err;
+  });
+  return cached || fetchPromise;
+}
+
+async function isStorageQuotaSafe() {
+  try {
+    if (!self.navigator || !self.navigator.storage || !self.navigator.storage.estimate) {
+      // No quota API — assume safe (e.g. old browser). Fail-open.
+      return true;
+    }
+    const est = await self.navigator.storage.estimate();
+    if (!est || !est.quota || !est.usage) return true;
+    return (est.usage / est.quota) < MORPH_QUOTA_THRESHOLD;
+  } catch (_) { return true; }
 }

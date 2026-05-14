@@ -9072,6 +9072,7 @@ body:not(.theme-light) .v3-heatmap-cell {
                         <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
                         <button id="btnFeedback" class="btn-secondary" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
                         <button id="btnResearch" class="btn-secondary" onclick="window.LinguistProResearchUI && window.LinguistProResearchUI.open()" data-i18n-title="research.btnTitle" data-i18n-aria-label="research.btnTitle" title="Research mode (opt-in)" aria-label="Research mode (opt-in)">📊</button>
+                        <button id="btnMorphSettings" class="btn-secondary" onclick="window.LinguistProMorphSettings && window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология: словарь" aria-label="Морфология: словарь">🔤</button>
                         <button id="btnTheme" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
                     </div>
                     <div class="lang-select-wrap classic-lang-wrap" title="">
@@ -10598,6 +10599,8 @@ body:not(.theme-light) .v3-heatmap-cell {
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
 <script src="/js/morph-normalize.js"></script>
 <script src="/js/morph-provider.js"></script>
+<!-- v3.3 Workstream A1 — opt-in extended morphology dict toggle UI. -->
+<script src="/js/morph-settings-ui.js"></script>
 
 <!-- Direction 11B Phase 11.2 + 11.3 — opt-in research mode (default OFF). -->
 <script src="/js/research.js"></script>

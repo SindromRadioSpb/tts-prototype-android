@@ -178,15 +178,17 @@ async function main() {
         if (r.getDictTier() !== 'full') throw new Error('getDictTier() not full');
       });
 
-      // 4. Full tier requests full filenames.
-      await test('ensureReady() on full tier fetches /morph/heb_morphology_full.meta.json', async () => {
+      // 4. Full tier requests full filenames. Meta first; the .bin.gz fetch
+      //    only happens after meta succeeds — in this smoke meta returns 404,
+      //    so verify URL routing by checking that NO basic URL was attempted.
+      await test('ensureReady() on full tier routes to /morph/heb_morphology_full.meta.json', async () => {
         window.__fetchCalls = [];
         try { await r.ensureReady(); } catch (_) {}
         const urls = window.__fetchCalls.map((c) => c.url);
-        const hitFull  = urls.some((u) => u.endsWith('/morph/heb_morphology_full.meta.json'));
-        const hitBasic = urls.some((u) => u.endsWith('/morph/heb_morphology.meta.json'));
-        if (!hitFull)  throw new Error('expected full meta fetch; saw ' + JSON.stringify(urls));
-        if (hitBasic)  throw new Error('full tier must NOT request basic meta; saw ' + JSON.stringify(urls));
+        const hitFullMeta = urls.some((u) => u.endsWith('/morph/heb_morphology_full.meta.json'));
+        const hitBasic    = urls.some((u) => u.endsWith('/morph/heb_morphology.meta.json'));
+        if (!hitFullMeta) throw new Error('expected full meta fetch; saw ' + JSON.stringify(urls));
+        if (hitBasic)     throw new Error('full tier must NOT request basic meta; saw ' + JSON.stringify(urls));
       });
 
       // 5. Invalid tier rejected.
@@ -215,7 +217,8 @@ async function main() {
         if (res.reloaded) throw new Error('same-tier switch must report reloaded:false; got: ' + JSON.stringify(res));
       });
 
-      // 7. clearCache() targets BOTH tier filenames.
+      // 7. clearCache() targets BOTH tier filenames (incl. .gz for the full
+      //    variant since that's the actual URL served at runtime).
       await test('clearCache() deletes both basic and full filenames from caches', async () => {
         window.__cacheDeletions = [];
         await r.clearCache();
@@ -224,6 +227,7 @@ async function main() {
           '/morph/heb_morphology.bin',
           '/morph/heb_morphology.meta.json',
           '/morph/heb_morphology_full.bin',
+          '/morph/heb_morphology_full.bin.gz',
           '/morph/heb_morphology_full.meta.json',
         ];
         for (const w of want) {

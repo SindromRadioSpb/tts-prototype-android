@@ -47,15 +47,30 @@
   // Resolve filenames based on the *currently selected* tier. The basic tier
   // intentionally keeps the historical filename `heb_morphology.bin` for
   // back-compat with prior SW cache entries + the existing morph-build basic
-  // output.
+  // output. The full tier ships a pre-gzipped `.bin.gz` (~5 MB) instead of
+  // the raw ~75 MB JSON — fetch + decompress via DecompressionStream below.
   function dictPaths(tier) {
     const t = VALID_TIERS.includes(tier) ? tier : 'basic';
     const suffix = t === 'full' ? '_full' : '';
+    const compressed = (t === 'full');
     return {
-      bin:  `/morph/heb_morphology${suffix}.bin`,
+      bin:  `/morph/heb_morphology${suffix}.bin` + (compressed ? '.gz' : ''),
       meta: `/morph/heb_morphology${suffix}.meta.json`,
       tier: t,
+      compressed,
     };
+  }
+
+  // Decompress a gzipped Response via the standard DecompressionStream API.
+  // Available in all modern browsers (Chrome 80+, Firefox 113+, Safari 16.4+).
+  // Throws on older browsers — the runtime surfaces this via T1.state='error'.
+  async function decompressGzipResponse(resp) {
+    if (typeof DecompressionStream === 'undefined') {
+      throw new Error('DecompressionStream API unavailable; cannot load gzipped tier');
+    }
+    const ds = new DecompressionStream('gzip');
+    const stream = resp.body.pipeThrough(ds);
+    return await new Response(stream).text();
   }
 
   // ── Tier 1: Local pre-computed dictionary ──────────────────────────────
@@ -92,7 +107,9 @@
 
         const binResp = await fetch(paths.bin);
         if (!binResp.ok) throw new Error('bin fetch failed: ' + binResp.status);
-        const txt = await binResp.text();
+        const txt = paths.compressed
+          ? await decompressGzipResponse(binResp)
+          : await binResp.text();
         this.sizeBytes = txt.length;
         const parsed = JSON.parse(txt);
         if (!parsed || !parsed.entries) throw new Error('bin format invalid');
@@ -241,7 +258,8 @@
   async function clearCache() {
     const targets = [
       '/morph/heb_morphology.bin', '/morph/heb_morphology.meta.json',
-      '/morph/heb_morphology_full.bin', '/morph/heb_morphology_full.meta.json',
+      '/morph/heb_morphology_full.bin', '/morph/heb_morphology_full.bin.gz',
+      '/morph/heb_morphology_full.meta.json',
     ];
     try {
       if ('caches' in window) {
