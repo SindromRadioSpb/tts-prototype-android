@@ -42,6 +42,7 @@
     "smoke:research:server": "node scripts/research/smoke.js",
     "smoke:research:browser": "node scripts/research/browser-smoke.js",
     "smoke:research:teacher": "node scripts/research/teacher-smoke.js",
+    "smoke:research:teacher:multi": "node scripts/research/teacher-multicohort-smoke.js",
     "smoke:research:screenshots": "node scripts/research/teacher-screenshots.js",
     "smoke:prep": "node scripts/research/prepare_smoke_artifacts.js",
     "smoke:prep:clean": "node scripts/research/prepare_smoke_artifacts.js --cleanup"

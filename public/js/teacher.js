@@ -8,12 +8,98 @@
 (function () {
   'use strict';
 
+  // v3.3.2 D12 — multicohort schema. The v1 keys (single-string cohort +
+  // token) are migrated into the v2 array on first boot; see _migrateLegacy.
   const LS = {
+    cohortsArray: 'teacherDashCohorts_v2',
+    activeView:   'teacherDashActiveView_v2',
+  };
+  const LEGACY_LS = {
     cohort: 'teacherDashCohort_v1',
     token:  'teacherDashToken_v1',
   };
 
-  let _aggregates = null; // last fetched payload
+  let _aggregates = null; // last fetched payload (active-cohort view)
+
+  // ── storage layer (v2 schema) ──────────────────────────────────────────
+  // Cohorts persisted as a JSON array; activeView is a separate string.
+  // See docs/PHASE_PLAN_v3_3_2.md §4 for the contract.
+  function _getCohorts() {
+    try {
+      const raw = localStorage.getItem(LS.cohortsArray);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) { return []; }
+  }
+  function _setCohorts(arr) {
+    try { localStorage.setItem(LS.cohortsArray, JSON.stringify(arr || [])); } catch (_) {}
+  }
+  function _getActiveView() {
+    try { return localStorage.getItem(LS.activeView) || ''; } catch (_) { return ''; }
+  }
+  function _setActiveView(v) {
+    try { localStorage.setItem(LS.activeView, String(v || '')); } catch (_) {}
+  }
+  // Returns {code, token} for the currently-active single-cohort view,
+  // or null if active view is 'ALL' / empty / unknown cohort.
+  function _activeCohort() {
+    const view = _getActiveView();
+    if (!view || view === 'ALL') return null;
+    const list = _getCohorts();
+    const match = list.find((c) => c && c.code === view);
+    if (!match) return null;
+    return { code: match.code, token: match.token };
+  }
+  function _upsertCohort(code, token) {
+    const list = _getCohorts();
+    const idx = list.findIndex((c) => c && c.code === code);
+    if (idx >= 0) {
+      list[idx] = Object.assign({}, list[idx], {
+        token, last_ok_at: new Date().toISOString(),
+      });
+    } else {
+      list.push({
+        code, token,
+        added_at: new Date().toISOString(),
+        last_ok_at: new Date().toISOString(),
+      });
+    }
+    _setCohorts(list);
+  }
+  function _clearAllCohorts() {
+    _setCohorts([]);
+    _setActiveView('');
+  }
+
+  // One-shot migration from v1 → v2 schema on first boot. Returns true
+  // if migration ran (caller may surface a toast). The v1 keys are
+  // deleted unconditionally after migration so the next boot is a no-op.
+  function _migrateLegacy() {
+    try {
+      const existing = localStorage.getItem(LS.cohortsArray);
+      if (existing) return false; // already on v2
+      const c = localStorage.getItem(LEGACY_LS.cohort);
+      const t = localStorage.getItem(LEGACY_LS.token);
+      const hadLegacy = !!(c || t);
+      if (c && t) {
+        _setCohorts([{
+          code: c, token: t,
+          added_at: new Date().toISOString(),
+          last_ok_at: null,
+        }]);
+        _setActiveView(c);
+      }
+      // Remove legacy keys unconditionally — they should never co-exist
+      // with the v2 array, regardless of whether the migration actually
+      // produced an entry (e.g. one key present without the other).
+      if (hadLegacy) {
+        localStorage.removeItem(LEGACY_LS.cohort);
+        localStorage.removeItem(LEGACY_LS.token);
+      }
+      return c && t;
+    } catch (_) { return false; }
+  }
 
   // ── DOM helpers ────────────────────────────────────────────────────────
   const $ = (id) => document.getElementById(id);
@@ -41,8 +127,11 @@
     $('loginScreen').style.display = 'block';
     $('dashHeader').style.display = 'none';
     $('dashMain').style.display = 'none';
-    const c = localStorage.getItem(LS.cohort);
-    if (c) $('cohortInput').value = c;
+    // Prefill cohort field with the most-recently-added cohort code if any
+    // (preserves the v1 ergonomic where re-login after logout pre-populated
+    // the cohort code).
+    const list = _getCohorts();
+    if (list.length > 0) $('cohortInput').value = list[list.length - 1].code;
     $('tokenInput').value = '';
     setTimeout(() => $('cohortInput').focus(), 50);
   }
@@ -66,16 +155,15 @@
       loginErr(`Ошибка ${res.status}: ${res.error || ''}`);
       return;
     }
-    localStorage.setItem(LS.cohort, cohort);
-    localStorage.setItem(LS.token, token);
+    _upsertCohort(cohort, token);
+    _setActiveView(cohort);
     _aggregates = res.body;
     showDash();
     render();
   }
 
   function logout() {
-    localStorage.removeItem(LS.cohort);
-    localStorage.removeItem(LS.token);
+    _clearAllCohorts();
     _aggregates = null;
     showLogin();
   }
@@ -97,12 +185,14 @@
   }
 
   async function refresh() {
-    const cohort = localStorage.getItem(LS.cohort);
-    const token  = localStorage.getItem(LS.token);
-    if (!cohort || !token) { showLogin(); return; }
-    const res = await fetchAggregates(cohort, token);
+    const active = _activeCohort();
+    if (!active) { showLogin(); return; }
+    const res = await fetchAggregates(active.code, active.token);
     if (!res.ok) { logout(); return; }
     _aggregates = res.body;
+    // Stamp last_ok_at for the cohort so the chip strip (C4) can show
+    // freshness indicators.
+    _upsertCohort(active.code, active.token);
     render();
   }
 
@@ -533,9 +623,10 @@
   // POSTs to /api/research/v1/cohort/:code/outcomes (Bearer-auth), then
   // refreshes the dashboard so the joined outcomes show up immediately.
   function uploadOutcomesCsv() {
-    const cohort = localStorage.getItem(LS.cohort);
-    const token  = localStorage.getItem(LS.token);
-    if (!cohort || !token) { logout(); return; }
+    const active = _activeCohort();
+    if (!active) { logout(); return; }
+    const cohort = active.code;
+    const token  = active.token;
     const inp = document.createElement('input');
     inp.type = 'file';
     inp.accept = '.csv,text/csv,text/plain';
@@ -590,13 +681,16 @@
     $('exportTimeseriesBtn').addEventListener('click', exportTimeseriesCsv);
     $('exportDerivedBtn').addEventListener('click', exportDerivedCsv);
 
-    const cohort = localStorage.getItem(LS.cohort);
-    const token  = localStorage.getItem(LS.token);
-    if (cohort && token) {
+    // v3.3.2 D12 — migrate legacy v1 keys (single-cohort) into the v2 array
+    // schema on first boot. Idempotent after one successful migration.
+    _migrateLegacy();
+    const active = _activeCohort();
+    if (active) {
       // Auto-resume previous session.
-      fetchAggregates(cohort, token).then((res) => {
+      fetchAggregates(active.code, active.token).then((res) => {
         if (res.ok) {
           _aggregates = res.body;
+          _upsertCohort(active.code, active.token); // refresh last_ok_at
           showDash();
           render();
         } else {
