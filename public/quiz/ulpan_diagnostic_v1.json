@@ -1,0 +1,382 @@
+{
+  "format": "linguistpro-quiz-v1",
+  "schema_version": 1,
+  "instrument_id": "ulpan_diagnostic_v1",
+  "instrument_label": {
+    "ru": "Ulpan: калибровочная диагностика (v1)",
+    "en": "Ulpan diagnostic (v1)",
+    "he": "אבחון אולפן (v1)"
+  },
+  "calibrated_by": "premium-alt-draft + AI pre-review (2026-05-15)",
+  "calibrated_at": "2026-05-15",
+  "calibration_method": "expert_judgement_v1",
+  "validity_notes": {
+    "sample_size": 0,
+    "calibration_source": "AI pre-review of expert-judgement draft",
+    "known_limitations": [
+      "Item difficulties are expert-judgement placeholders, not empirically estimated. Real-data IRT recalibration deferred to v3.4+ once >=30 quiz responses accumulate.",
+      "Bank targets standard Modern Hebrew used in adult ulpan contexts; does not assess listening, spontaneous speaking, handwriting, free writing.",
+      "Q11 tests meta-linguistic binyan knowledge; reviewer should confirm acceptability for the target ulpan population.",
+      "Q17 tests smikhut+adjective definiteness; reviewer should confirm it does not exceed B2 for the intended cohort.",
+      "Q18-Q20 test advanced register and idiomatic interpretation; reviewer may lower or replace any item that feels more academic than ulpan C1.",
+      "Domain-expert sign-off is required before real-ulpan deployment; AI pre-review does not substitute."
+    ]
+  },
+  "scoring": {
+    "model": "rasch_1pl",
+    "theta_to_score": {
+      "method": "linear",
+      "domain": [-3.0, 3.0],
+      "range": [0, 100]
+    },
+    "cefr_bands": [
+      { "band": "A1", "lower": 0,  "upper": 19 },
+      { "band": "A2", "lower": 20, "upper": 39 },
+      { "band": "B1", "lower": 40, "upper": 59 },
+      { "band": "B2", "lower": 60, "upper": 79 },
+      { "band": "C1", "lower": 80, "upper": 100 }
+    ]
+  },
+  "items": [
+    {
+      "id": "Q01",
+      "cefr_level": "A1",
+      "difficulty_logit": -2.6,
+      "type": "multiple_choice",
+      "tags": ["vocabulary", "greetings", "classroom"],
+      "prompt_he": "בתחילת שיעור, מה מתאים לומר למורה?",
+      "prompt_ru": "В начале урока что уместно сказать преподавателю?",
+      "prompt_en": "At the beginning of a lesson, what is appropriate to say to the teacher?",
+      "options": [
+        { "id": "a", "text_he": "תודה", "text_ru": "спасибо", "text_en": "thank you" },
+        { "id": "b", "text_he": "שלום", "text_ru": "здравствуйте / привет", "text_en": "hello" },
+        { "id": "c", "text_he": "סליחה", "text_ru": "извините", "text_en": "excuse me / sorry" },
+        { "id": "d", "text_he": "לילה טוב", "text_ru": "спокойной ночи", "text_en": "good night" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q02",
+      "cefr_level": "A1",
+      "difficulty_logit": -2.3,
+      "type": "multiple_choice",
+      "tags": ["grammar", "pronouns", "sentence-completion"],
+      "prompt_he": "השלם את המשפט: \"_____ תלמיד.\"",
+      "prompt_ru": "Заполни пропуск: «_____ תלמיד.» (= «Я студент», говорит мужчина)",
+      "prompt_en": "Fill the blank: \"_____ תלמיד.\" (= \"I am a student\", male speaker)",
+      "options": [
+        { "id": "a", "text_he": "אני", "text_ru": "я", "text_en": "I" },
+        { "id": "b", "text_he": "הוא", "text_ru": "он", "text_en": "he" },
+        { "id": "c", "text_he": "את", "text_ru": "ты (ж.р.)", "text_en": "you (f.)" },
+        { "id": "d", "text_he": "הם", "text_ru": "они", "text_en": "they" }
+      ],
+      "correct_option_id": "a"
+    },
+    {
+      "id": "Q03",
+      "cefr_level": "A1",
+      "difficulty_logit": -2.0,
+      "type": "multiple_choice",
+      "tags": ["grammar", "definite-article", "noun-phrase"],
+      "prompt_he": "איך אומרים בעברית \"the book\"?",
+      "prompt_ru": "Как сказать на иврите «the book» — определённая форма слова «книга»?",
+      "prompt_en": "How do you say \"the book\" in Hebrew?",
+      "options": [
+        { "id": "a", "text_he": "ספר", "text_ru": "книга / a book", "text_en": "book / a book" },
+        { "id": "b", "text_he": "הספר", "text_ru": "эта / определённая книга", "text_en": "the book" },
+        { "id": "c", "text_he": "ספרים", "text_ru": "книги", "text_en": "books" },
+        { "id": "d", "text_he": "הספרים שלי", "text_ru": "мои книги", "text_en": "my books" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q04",
+      "cefr_level": "A1",
+      "difficulty_logit": -1.7,
+      "type": "multiple_choice",
+      "tags": ["grammar", "negation", "basic-sentence"],
+      "prompt_he": "השלם את המשפט: \"אני _____ מבין.\"",
+      "prompt_ru": "Заполни пропуск: «אני _____ מבין.» (= «Я не понимаю»)",
+      "prompt_en": "Fill the blank: \"אני _____ מבין.\" (= \"I do not understand\")",
+      "options": [
+        { "id": "a", "text_he": "כן", "text_ru": "да", "text_en": "yes" },
+        { "id": "b", "text_he": "לא", "text_ru": "не / нет", "text_en": "not / no" },
+        { "id": "c", "text_he": "אולי", "text_ru": "может быть", "text_en": "maybe" },
+        { "id": "d", "text_he": "טוב", "text_ru": "хорошо", "text_en": "good" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q05",
+      "cefr_level": "A2",
+      "difficulty_logit": -1.4,
+      "type": "multiple_choice",
+      "tags": ["grammar", "verbs", "past-tense", "first-person"],
+      "prompt_he": "השלם את המשפט: \"אתמול _____ לשוק.\"",
+      "prompt_ru": "Заполни пропуск: «אתמול _____ לשוק.» (= «Вчера я пошёл на рынок»)",
+      "prompt_en": "Fill the blank: \"אתמול _____ לשוק.\" (= \"Yesterday I went to the market\")",
+      "options": [
+        { "id": "a", "text_he": "הולך", "text_ru": "иду (наст.)", "text_en": "go / am going, present" },
+        { "id": "b", "text_he": "אלך", "text_ru": "пойду (буд.)", "text_en": "will go, future" },
+        { "id": "c", "text_he": "הלכתי", "text_ru": "пошёл (прош., 1 л. ед.ч.)", "text_en": "went, past, 1st person singular" },
+        { "id": "d", "text_he": "ללכת", "text_ru": "идти (инф.)", "text_en": "to go, infinitive" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q06",
+      "cefr_level": "A2",
+      "difficulty_logit": -1.1,
+      "type": "multiple_choice",
+      "tags": ["grammar", "possession", "noun-phrase"],
+      "prompt_he": "מה פירוש הביטוי \"הספר שלו\"?",
+      "prompt_ru": "Что означает выражение «הספר שלו»?",
+      "prompt_en": "What does the phrase \"הספר שלו\" mean?",
+      "options": [
+        { "id": "a", "text_he": "הספר שלי", "text_ru": "моя книга", "text_en": "my book" },
+        { "id": "b", "text_he": "הספר שלך", "text_ru": "твоя книга", "text_en": "your book" },
+        { "id": "c", "text_he": "הספר שלו", "text_ru": "его книга", "text_en": "his book" },
+        { "id": "d", "text_he": "הספר שלה", "text_ru": "её книга", "text_en": "her book" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q07",
+      "cefr_level": "A2",
+      "difficulty_logit": -0.9,
+      "type": "multiple_choice",
+      "tags": ["vocabulary", "time", "comprehension"],
+      "prompt_he": "המשפט \"נפגשנו אתמול\" אומר שנפגשנו:",
+      "prompt_ru": "Предложение «נפגשנו אתמול» означает, что мы встретились:",
+      "prompt_en": "The sentence \"נפגשנו אתמול\" means that we met:",
+      "options": [
+        { "id": "a", "text_he": "מחר", "text_ru": "завтра", "text_en": "tomorrow" },
+        { "id": "b", "text_he": "אתמול", "text_ru": "вчера", "text_en": "yesterday" },
+        { "id": "c", "text_he": "עכשיו", "text_ru": "сейчас", "text_en": "now" },
+        { "id": "d", "text_he": "בשבוע הבא", "text_ru": "на следующей неделе", "text_en": "next week" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q08",
+      "cefr_level": "A2",
+      "difficulty_logit": -0.7,
+      "type": "multiple_choice",
+      "tags": ["vocabulary", "everyday", "functional-language"],
+      "prompt_he": "בבית קפה אתה אומר: \"אפשר כוס מים, בבקשה?\" מה ביקשת?",
+      "prompt_ru": "В кафе вы говорите: «אפשר כוס מים, בבקשה?» Что вы попросили?",
+      "prompt_en": "In a café you say: \"אפשר כוס מים, בבקשה?\" What did you ask for?",
+      "options": [
+        { "id": "a", "text_he": "לחם", "text_ru": "хлеб", "text_en": "bread" },
+        { "id": "b", "text_he": "חלב", "text_ru": "молоко", "text_en": "milk" },
+        { "id": "c", "text_he": "מים", "text_ru": "воду", "text_en": "water" },
+        { "id": "d", "text_he": "חשבון", "text_ru": "счёт", "text_en": "the bill" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q09",
+      "cefr_level": "B1",
+      "difficulty_logit": -0.4,
+      "type": "multiple_choice",
+      "tags": ["grammar", "smikhut", "definiteness"],
+      "prompt_he": "איזו צורה מתאימה ל־\"the students of the school\"?",
+      "prompt_ru": "Какая форма соответствует «ученики школы» в определённом смихуте?",
+      "prompt_en": "Which form means \"the students of the school\" in definite construct state?",
+      "options": [
+        { "id": "a", "text_he": "התלמידים מהבית ספר", "text_ru": "ученики из школы", "text_en": "students from the school" },
+        { "id": "b", "text_he": "תלמידי בית ספר", "text_ru": "ученики какой-то школы (неопр.)", "text_en": "students of a school" },
+        { "id": "c", "text_he": "תלמידי בית הספר", "text_ru": "ученики этой / определённой школы", "text_en": "students of the school" },
+        { "id": "d", "text_he": "התלמידים בית הספר", "text_ru": "неграмматично", "text_en": "ungrammatical" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q10",
+      "cefr_level": "B1",
+      "difficulty_logit": -0.1,
+      "type": "multiple_choice",
+      "tags": ["grammar", "prepositions", "pronouns", "verb-government"],
+      "prompt_he": "איך אומרים בעברית תקינה: \"I am waiting for him\"?",
+      "prompt_ru": "Как правильно сказать на иврите: «Я жду его»?",
+      "prompt_en": "How do you correctly say in Hebrew: \"I am waiting for him\"?",
+      "options": [
+        { "id": "a", "text_he": "אני מחכה אותו", "text_ru": "неверно: нужен предлог ל־", "text_en": "incorrect: needs ל־" },
+        { "id": "b", "text_he": "אני מחכה לו", "text_ru": "я жду его", "text_en": "I am waiting for him" },
+        { "id": "c", "text_he": "אני מחכה איתו", "text_ru": "я жду вместе с ним", "text_en": "I am waiting with him" },
+        { "id": "d", "text_he": "אני מחכה ממנו", "text_ru": "я ожидаю чего-то от него", "text_en": "I expect something from him" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q11",
+      "cefr_level": "B1",
+      "difficulty_logit": 0.2,
+      "type": "multiple_choice",
+      "tags": ["grammar", "binyan", "verb-pattern"],
+      "prompt_he": "לאיזה בניין שייך הפועל \"להזמין\"?",
+      "prompt_ru": "К какому биньяну относится глагол «להזמין» (= приглашать / заказывать)?",
+      "prompt_en": "Which binyan does the verb \"להזמין\" (= to invite / to order) belong to?",
+      "options": [
+        { "id": "a", "text_he": "פעל", "text_ru": "пааль (פעל)", "text_en": "paal" },
+        { "id": "b", "text_he": "פיעל", "text_ru": "пиэль (פיעל)", "text_en": "piel" },
+        { "id": "c", "text_he": "הפעיל", "text_ru": "hifil (הפעיל)", "text_en": "hifil" },
+        { "id": "d", "text_he": "התפעל", "text_ru": "hitpael (התפעל)", "text_en": "hitpael" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q12",
+      "cefr_level": "B1",
+      "difficulty_logit": 0.4,
+      "type": "multiple_choice",
+      "tags": ["reading-comprehension", "connectors", "cause"],
+      "prompt_he": "קרא: \"דנה איחרה לשיעור כי האוטובוס לא הגיע בזמן.\" למה דנה איחרה?",
+      "prompt_ru": "Прочитайте: «דנה איחרה לשיעור כי האוטובוס לא הגיע בזמן.» Почему Дана опоздала?",
+      "prompt_en": "Read: \"דנה איחרה לשיעור כי האוטובוס לא הגיע בזמן.\" Why was Dana late?",
+      "options": [
+        { "id": "a", "text_he": "כי היא שכחה את הספר", "text_ru": "потому что забыла книгу", "text_en": "because she forgot the book" },
+        { "id": "b", "text_he": "כי האוטובוס לא הגיע בזמן", "text_ru": "потому что автобус не пришёл вовремя", "text_en": "because the bus did not arrive on time" },
+        { "id": "c", "text_he": "כי השיעור בוטל", "text_ru": "потому что урок отменили", "text_en": "because the lesson was cancelled" },
+        { "id": "d", "text_he": "כי היא לא רצתה ללמוד", "text_ru": "потому что не хотела учиться", "text_en": "because she did not want to study" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q13",
+      "cefr_level": "B1",
+      "difficulty_logit": 0.6,
+      "type": "multiple_choice",
+      "tags": ["grammar", "conditional", "hypothetical"],
+      "prompt_he": "איזו אפשרות מביעה תנאי היפותטי: \"If I had time, I would study\"?",
+      "prompt_ru": "Какой вариант выражает гипотетическое условие: «Если бы у меня было время, я бы учился»?",
+      "prompt_en": "Which option expresses the hypothetical condition: \"If I had time, I would study\"?",
+      "options": [
+        { "id": "a", "text_he": "אם יש לי זמן, אני לומד", "text_ru": "если у меня есть время, я учусь (real)", "text_en": "if I have time, I study (real)" },
+        { "id": "b", "text_he": "אם יהיה לי זמן, אלמד", "text_ru": "если будет время, я буду учиться (future)", "text_en": "if I have time, I will study (future)" },
+        { "id": "c", "text_he": "אם היה לי זמן, הייתי לומד", "text_ru": "если бы у меня было время, я бы учился (hypothetical)", "text_en": "if I had time, I would study (hypothetical)" },
+        { "id": "d", "text_he": "כשיש לי זמן, אני לומד", "text_ru": "когда у меня есть время, я учусь (temporal)", "text_en": "when I have time, I study (temporal)" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q14",
+      "cefr_level": "B2",
+      "difficulty_logit": 0.9,
+      "type": "multiple_choice",
+      "tags": ["grammar", "syntax", "direct-object-marker"],
+      "prompt_he": "בחר את המשפט התקין ביותר בעברית סטנדרטית:",
+      "prompt_ru": "Выберите наиболее корректное предложение на стандартном иврите:",
+      "prompt_en": "Choose the most correct sentence in standard Hebrew:",
+      "options": [
+        { "id": "a", "text_he": "ראיתי הסרט אתמול", "text_ru": "пропущено את перед опред. объектом", "text_en": "missing את before a definite object" },
+        { "id": "b", "text_he": "ראיתי את הסרט אתמול", "text_ru": "я видел фильм вчера", "text_en": "I saw the movie yesterday" },
+        { "id": "c", "text_he": "ראיתי לסרט אתמול", "text_ru": "неверный предлог", "text_en": "wrong preposition" },
+        { "id": "d", "text_he": "את ראיתי הסרט אתמול", "text_ru": "неверный порядок слов", "text_en": "wrong word order for this meaning" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q15",
+      "cefr_level": "B2",
+      "difficulty_logit": 1.2,
+      "type": "multiple_choice",
+      "tags": ["register", "formality", "productive-phrases"],
+      "prompt_he": "איזו צורה היא חלופה רשמית יותר ל־\"אני רוצה\"?",
+      "prompt_ru": "Какая форма является более официальной заменой «אני רוצה» (= я хочу)?",
+      "prompt_en": "Which form is a more formal alternative to \"אני רוצה\" (= I want)?",
+      "options": [
+        { "id": "a", "text_he": "אני אוהב", "text_ru": "я люблю", "text_en": "I love" },
+        { "id": "b", "text_he": "ברצוני", "text_ru": "я хотел(а) бы / желаю — формальный регистр", "text_en": "I would like / it is my wish — formal" },
+        { "id": "c", "text_he": "אני יכול", "text_ru": "я могу", "text_en": "I can" },
+        { "id": "d", "text_he": "בא לי", "text_ru": "мне хочется (разговорно)", "text_en": "I feel like it (colloquial)" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q16",
+      "cefr_level": "B2",
+      "difficulty_logit": 1.4,
+      "type": "multiple_choice",
+      "tags": ["idiom", "figurative-language"],
+      "prompt_he": "מה פירוש הביטוי \"לרדת לפרטים\"?",
+      "prompt_ru": "Что означает выражение «לרדת לפרטים»?",
+      "prompt_en": "What does the expression \"לרדת לפרטים\" mean?",
+      "options": [
+        { "id": "a", "text_he": "לרדת במדרגות", "text_ru": "спускаться по лестнице (буквально)", "text_en": "to go down the stairs (literal)" },
+        { "id": "b", "text_he": "להיכנס לעומק העניין ולבדוק פרטים קטנים", "text_ru": "вникать в детали", "text_en": "to go into detail" },
+        { "id": "c", "text_he": "לרדת במשקל", "text_ru": "худеть", "text_en": "to lose weight" },
+        { "id": "d", "text_he": "להוריד מחיר", "text_ru": "снизить цену", "text_en": "to lower a price" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q17",
+      "cefr_level": "B2",
+      "difficulty_logit": 1.7,
+      "type": "multiple_choice",
+      "tags": ["grammar", "smikhut", "definiteness", "adjective-agreement"],
+      "prompt_he": "איזו צורה היא התקינה ביותר ל־\"the new study program\"?",
+      "prompt_ru": "Какая форма наиболее корректна для «новая учебная программа»?",
+      "prompt_en": "Which form is most correct for \"the new study program\"?",
+      "options": [
+        { "id": "a", "text_he": "התוכנית לימודים החדשה", "text_ru": "нарушена смихутная конструкция", "text_en": "broken construct phrase" },
+        { "id": "b", "text_he": "תוכנית הלימודים חדש", "text_ru": "прилагательное не согласовано", "text_en": "adjective disagreement" },
+        { "id": "c", "text_he": "תוכנית הלימודים החדשה", "text_ru": "новая учебная программа (правильно)", "text_en": "the new study program" },
+        { "id": "d", "text_he": "התוכנית של לימודים חדשה", "text_ru": "неестественно / не стандартно", "text_en": "unnatural / not standard" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q18",
+      "cefr_level": "C1",
+      "difficulty_logit": 2.1,
+      "type": "multiple_choice",
+      "tags": ["register", "formal-language", "discourse-marker"],
+      "prompt_he": "איזו אפשרות היא חלופה רשמית יותר ל־\"בגלל המצב\"?",
+      "prompt_ru": "Какой вариант является более официальной заменой «בגלל המצב» (= из-за ситуации)?",
+      "prompt_en": "Which option is a more formal alternative to \"בגלל המצב\" (= because of the situation)?",
+      "options": [
+        { "id": "a", "text_he": "כזה, בגלל זה", "text_ru": "типа, поэтому (разговорно)", "text_en": "like, because of that (colloquial)" },
+        { "id": "b", "text_he": "כי בא לי", "text_ru": "потому что мне так хочется", "text_en": "because I feel like it" },
+        { "id": "c", "text_he": "נוכח הנסיבות", "text_ru": "ввиду обстоятельств (формально)", "text_en": "in view of the circumstances (formal)" },
+        { "id": "d", "text_he": "סתם ככה", "text_ru": "просто так", "text_en": "just because" }
+      ],
+      "correct_option_id": "c"
+    },
+    {
+      "id": "Q19",
+      "cefr_level": "C1",
+      "difficulty_logit": 2.4,
+      "type": "multiple_choice",
+      "tags": ["vocabulary", "metaphor", "abstract-concepts"],
+      "prompt_he": "במשפט \"אמון הוא אבן יסוד בכל שיתוף פעולה\", מה פירוש \"אבן יסוד\"?",
+      "prompt_ru": "В предложении «אמון הוא אבן יסוד בכל שיתוף פעולה» что означает «אבן יסוד»?",
+      "prompt_en": "In the sentence \"אמון הוא אבן יסוד בכל שיתוף פעולה\", what does \"אבן יסוד\" mean?",
+      "options": [
+        { "id": "a", "text_he": "אבן כבדה", "text_ru": "тяжёлый камень", "text_en": "a heavy stone" },
+        { "id": "b", "text_he": "בסיס מרכזי וחשוב", "text_ru": "основа, краеугольный элемент", "text_en": "a central foundation / cornerstone" },
+        { "id": "c", "text_he": "אבן יקרה", "text_ru": "драгоценный камень", "text_en": "a precious stone" },
+        { "id": "d", "text_he": "מקום בנייה", "text_ru": "строительная площадка", "text_en": "a construction site" }
+      ],
+      "correct_option_id": "b"
+    },
+    {
+      "id": "Q20",
+      "cefr_level": "C1",
+      "difficulty_logit": 2.7,
+      "type": "multiple_choice",
+      "tags": ["idiom", "pragmatics", "advanced-expression"],
+      "prompt_he": "במשפט \"אמרת שתעזור לי מחר, ואני תופס אותך במילה\", מה המשמעות?",
+      "prompt_ru": "В предложении «Ты сказал, что завтра поможешь, и я ловлю тебя на слове» что означает выражение?",
+      "prompt_en": "In the sentence \"You said you would help me tomorrow, and I am holding you to your word\", what does the expression mean?",
+      "options": [
+        { "id": "a", "text_he": "אני מלמד אותך מילה חדשה", "text_ru": "я учу тебя новому слову", "text_en": "I am teaching you a new word" },
+        { "id": "b", "text_he": "אני שוכח מה שאמרת", "text_ru": "я забываю, что ты сказал", "text_en": "I forget what you said" },
+        { "id": "c", "text_he": "אני כועס על המילה שבחרת", "text_ru": "я злюсь на выбранное тобой слово", "text_en": "I am angry about the word you chose" },
+        { "id": "d", "text_he": "אני מזכיר לך התחייבות ומצפה שתעמוד בה", "text_ru": "я напоминаю об обещании и ожидаю выполнения", "text_en": "I remind you of a commitment and expect you to keep it" }
+      ],
+      "correct_option_id": "d"
+    }
+  ]
+}
