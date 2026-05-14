@@ -750,6 +750,118 @@
     return { ok: false, status: result.status, error: result.error, message: result.message, field: result.field };
   }
 
+  // ── v3.3.5 Direction 13 — calibrated-quiz outcome submission ───────────
+  //
+  // Wire shape per docs/PHASE_PLAN_v3_3_5_CALIBRATED_QUIZ.md §9:
+  //
+  //   POST /api/research/v1/metrics
+  //   body.metrics.outcome = {
+  //     quiz_score_normalized:  number 0-100,
+  //     quiz_cefr_band:         "A1" | "A2" | "B1" | "B2" | "C1",
+  //     quiz_se:                number ≥ 0,
+  //     quiz_completed_at:      ISO day (YYYY-MM-DD),
+  //     quiz_version:           "^[a-z0-9_]+_v\d+$",
+  //     outcome_capture_method: "calibrated-quiz",
+  //   }
+  //
+  // Privacy invariant: item-level responses are never accepted. The caller
+  // (quiz-ui.js) has already stripped responses_transient from the payload
+  // by the time it reaches this function; we double-check here and reject
+  // any payload containing item-level keys.
+  const QUIZ_BAND_ENUM = new Set(["A1", "A2", "B1", "B2", "C1"]);
+  const QUIZ_VERSION_RE = /^[a-z0-9_]+_v\d+$/;
+  const ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+  const QUIZ_ITEM_KEY_RE = /^Q\d{2}$/;
+
+  async function submitQuizOutcome(payload = {}) {
+    const state = getState();
+    if (!state.enabled || !state.studentId || !state.cohortCode) {
+      return { ok: false, error: "NOT_ENABLED" };
+    }
+    if (needsReconsent()) {
+      return { ok: false, error: "RECONSENT_NEEDED" };
+    }
+
+    // Defensive: refuse anything that smells like a per-item leak.
+    const keys = Object.keys(payload || {});
+    for (const k of keys) {
+      if (QUIZ_ITEM_KEY_RE.test(k) || k === "responses_transient") {
+        return { ok: false, error: "ITEM_LEVEL_LEAK", field: k,
+                 message: "submitQuizOutcome refuses per-item keys" };
+      }
+    }
+
+    const score = payload.quiz_score_normalized;
+    if (!Number.isFinite(Number(score)) || score < 0 || score > 100) {
+      return { ok: false, error: "BAD_SCORE", message: "quiz_score_normalized must be number in [0,100]" };
+    }
+    const band = payload.quiz_cefr_band;
+    if (!QUIZ_BAND_ENUM.has(band)) {
+      return { ok: false, error: "BAD_BAND", message: "quiz_cefr_band must be one of A1,A2,B1,B2,C1" };
+    }
+    const se = payload.quiz_se;
+    if (!Number.isFinite(Number(se)) || se < 0) {
+      return { ok: false, error: "BAD_SE", message: "quiz_se must be non-negative number" };
+    }
+    const completedAt = payload.quiz_completed_at;
+    if (!ISO_DAY_RE.test(String(completedAt || ""))) {
+      return { ok: false, error: "BAD_COMPLETED_AT", message: "quiz_completed_at must be ISO day YYYY-MM-DD" };
+    }
+    const version = payload.quiz_version;
+    if (!QUIZ_VERSION_RE.test(String(version || ""))) {
+      return { ok: false, error: "BAD_VERSION", message: "quiz_version must match ^[a-z0-9_]+_v\\d+$" };
+    }
+    if (payload.outcome_capture_method && payload.outcome_capture_method !== "calibrated-quiz") {
+      return { ok: false, error: "BAD_METHOD", message: "outcome_capture_method must be 'calibrated-quiz' for this path" };
+    }
+
+    const today = todayIsoDay();
+    const wire = {
+      format: SCHEMA_FORMAT,
+      student_id: ensureStudentId(),
+      cohort_code: state.cohortCode,
+      upload_ts: today,
+      since_ts: today,
+      consent_version: state.consentVersion || CONSENT_VERSION,
+      context: { app_version: readAppVersionFromPackage(), platform: detectPlatform() },
+      metrics: {
+        outcome: {
+          quiz_score_normalized: Number(score),
+          quiz_cefr_band: band,
+          quiz_se: Number(se),
+          quiz_completed_at: completedAt,
+          quiz_version: version,
+          outcome_capture_method: "calibrated-quiz",
+        },
+      },
+    };
+    const result = await _uploadOnce(wire);
+    if (result.ok) {
+      appendLog({
+        upload_ts: today,
+        since_ts: today,
+        sent_at: new Date().toISOString(),
+        dedupe: !!result.dedupe,
+        stored: !!result.stored,
+        bytes: JSON.stringify(wire).length,
+        outcome_submission: true,
+        quiz_submission: true,
+        metric_summary: { quiz_score: Number(score), quiz_band: band },
+      });
+      return { ok: true, dedupe: result.dedupe };
+    }
+    appendLog({
+      upload_ts: today,
+      since_ts: today,
+      sent_at: new Date().toISOString(),
+      error: result.error,
+      field: result.field,
+      outcome_submission: true,
+      quiz_submission: true,
+    });
+    return { ok: false, status: result.status, error: result.error, message: result.message, field: result.field };
+  }
+
   // Pump the queue: try queued metric uploads + delete retries. Called on
   // each aggregator tick.
   async function _drainQueue() {
@@ -848,6 +960,7 @@
     getCurrentConsentVersion,
     runDailyAggregator,
     submitOutcome,
+    submitQuizOutcome,
     previewToday,
     // internals exposed for testing only — UI should not call these
     _aggregateForRange,
