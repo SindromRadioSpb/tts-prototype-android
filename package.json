@@ -27,6 +27,7 @@
     "smoke:morph:tier": "node scripts/morph/tier-switch-smoke.js",
     "smoke:morph:settings": "node scripts/morph/settings-ui-smoke.js",
     "smoke:morph:live": "node scripts/morph/full-dict-live-smoke.js",
+    "smoke:crosstext": "node scripts/morph/crosstext-smoke.js",
     "research:cohort": "node scripts/research/create_cohort.js",
     "research:seed": "node scripts/research/seed_research_fake_cohort.js",
     "research:rotate": "node scripts/research/rotate_token.js",
