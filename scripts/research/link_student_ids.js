@@ -76,13 +76,49 @@ const OTP_RE = /^[0-9]{6}$/;
 function parseArgs(argv) {
   const args = {};
   for (let i = 0; i < argv.length; i++) {
-    if (!argv[i].startsWith("--")) continue;
-    const key = argv[i].slice(2);
+    const tok = argv[i];
+    if (tok === "-h") { args.help = true; continue; }
+    if (!tok.startsWith("--")) continue;
+    const key = tok.slice(2);
     const next = argv[i + 1];
     if (next === undefined || next.startsWith("--")) { args[key] = true; }
     else { args[key] = next; i++; }
   }
   return args;
+}
+
+function printHelp() {
+  console.log(`Usage:
+  node scripts/research/link_student_ids.js \\
+       --cohort <CODE> --primary <uuid> --secondary <uuid> --reason "<text>" \\
+       [--otp <6 digits>] [--dry-run]
+
+Options:
+  --cohort <STR>     (required) cohort code.
+  --primary <UUID>   (required) UUID kept after the link.
+  --secondary <UUID> (required) UUID whose rows relocate to primary.
+  --reason <STR>     (required) audit reason written to deletions.log.
+  --otp <DIGITS>     Optional 6-digit OTP — captured in audit log but
+                     NOT verified by the CLI (out-of-band verification).
+  --dry-run          Scan jsonl + outcomes.csv to count what WOULD relocate,
+                     but write nothing. Useful for previewing a merge.
+  --help, -h         Show this help and exit 0.
+
+Notes:
+  - The operation is one-way: primary stays, secondary's rows are
+    relocated to primary. If both have outcome rows, primary wins.
+  - --dry-run never writes any file (jsonl preserved, outcomes.csv
+    preserved, deletions.log NOT appended).
+
+Exit codes:
+  0  succeeded (or --help / --dry-run)
+  1  IO / cohort / student-not-found / no rows relocated
+  2  argv validation error
+
+Examples:
+  link_student_ids.js --cohort X --primary a... --secondary b... --reason "duplicate signup"
+  link_student_ids.js --cohort X --primary a... --secondary b... --reason "..." --dry-run
+`);
 }
 
 function atomicWriteText(target, text) {
@@ -93,8 +129,9 @@ function atomicWriteText(target, text) {
 
 // Walk every .jsonl file in the cohort dir, rewriting lines that match
 // student_id === secondary to use primary. Returns { rows_relocated,
-// files_touched }.
-function rewriteJsonlFiles(cdir, primary, secondary) {
+// files_touched }. When dryRun=true, scans + counts identically but
+// skips the file rewrite.
+function rewriteJsonlFiles(cdir, primary, secondary, dryRun = false) {
   if (!fs.existsSync(cdir)) return { rows_relocated: 0, files_touched: 0 };
   let rowsRelocated = 0, filesTouched = 0;
   for (const fname of fs.readdirSync(cdir)) {
@@ -118,7 +155,7 @@ function rewriteJsonlFiles(cdir, primary, secondary) {
       }
     }
     if (changed) {
-      atomicWriteText(full, out.join("\n").replace(/\n+$/, "\n"));
+      if (!dryRun) atomicWriteText(full, out.join("\n").replace(/\n+$/, "\n"));
       filesTouched++;
     }
   }
@@ -126,8 +163,9 @@ function rewriteJsonlFiles(cdir, primary, secondary) {
 }
 
 // Rewrite outcomes.csv if present. Returns { outcomes_relocated,
-// outcomes_dropped_conflict }.
-function rewriteOutcomesCsv(cdir, primary, secondary) {
+// outcomes_dropped_conflict }. When dryRun=true, counts identically
+// but skips the file rewrite.
+function rewriteOutcomesCsv(cdir, primary, secondary, dryRun = false) {
   const target = path.join(cdir, "outcomes.csv");
   if (!fs.existsSync(target)) return { outcomes_relocated: 0, outcomes_dropped_conflict: 0 };
   const text = fs.readFileSync(target, "utf8");
@@ -163,7 +201,7 @@ function rewriteOutcomesCsv(cdir, primary, secondary) {
       out.push(line);
     }
   }
-  if (relocated > 0 || dropped > 0) {
+  if ((relocated > 0 || dropped > 0) && !dryRun) {
     atomicWriteText(target, out.join("\n").replace(/\n+$/, "") + "\n");
   }
   return { outcomes_relocated: relocated, outcomes_dropped_conflict: dropped };
@@ -171,29 +209,14 @@ function rewriteOutcomesCsv(cdir, primary, secondary) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2));
-  if (args.help || !args.cohort || !args.primary || !args.secondary || !args.reason) {
-    console.log(`
-Usage:
-  node scripts/research/link_student_ids.js \\
-       --cohort <CODE> --primary <uuid> --secondary <uuid> --reason "<text>" \\
-       [--otp <6 digits>]
-
-Notes:
-  - --primary and --secondary must both be UUID v4 strings.
-  - --reason is REQUIRED (writes to deletions.log audit trail).
-  - --otp is informational — captured in audit log but NOT verified by the
-    CLI (verification happens out-of-band when the researcher confirms
-    the OTP with the student).
-  - The operation is one-way: primary stays, secondary's rows are
-    relocated to primary. If both have outcome rows, primary wins.
-
-Exit:
-  0  succeeded
-  1  IO / cohort / student-not-found
-  2  argv validation
-`);
-    process.exit(args.cohort && args.primary && args.secondary && args.reason ? 0 : 2);
+  if (args.help) { printHelp(); process.exit(0); }
+  if (!args.cohort || !args.primary || !args.secondary || !args.reason) {
+    const missing = ["cohort", "primary", "secondary", "reason"].filter((k) => !args[k]);
+    console.error(`error: missing required flag(s): ${missing.map((k) => "--" + k).join(", ")}`);
+    printHelp();
+    process.exit(2);
   }
+  const dryRun = !!args["dry-run"];
 
   const code = String(args.cohort).trim();
   const primary = String(args.primary).trim();
@@ -214,8 +237,8 @@ Exit:
   }
 
   const cdir = cohortDir(code);
-  const jsonlSummary    = rewriteJsonlFiles(cdir, primary, secondary);
-  const outcomesSummary = rewriteOutcomesCsv(cdir, primary, secondary);
+  const jsonlSummary    = rewriteJsonlFiles(cdir, primary, secondary, dryRun);
+  const outcomesSummary = rewriteOutcomesCsv(cdir, primary, secondary, dryRun);
 
   const totalAffected =
     jsonlSummary.rows_relocated +
@@ -238,6 +261,21 @@ Exit:
     `outcomes_dropped=${outcomesSummary.outcomes_dropped_conflict} ` +
     `files_touched=${jsonlSummary.files_touched} ` +
     `otp=${otp || "—"} reason=${reasonEscaped}\n`;
+
+  if (dryRun) {
+    console.log("[DRY RUN] link_student_ids — no files modified.");
+    console.log(`[DRY RUN]   cohort:                  ${code}`);
+    console.log(`[DRY RUN]   primary (would keep):    ${primary}`);
+    console.log(`[DRY RUN]   secondary (would move):  ${secondary}`);
+    console.log(`[DRY RUN]   jsonl rows would relocate:    ${jsonlSummary.rows_relocated}`);
+    console.log(`[DRY RUN]   jsonl files would touch:      ${jsonlSummary.files_touched}`);
+    console.log(`[DRY RUN]   outcomes would relocate:      ${outcomesSummary.outcomes_relocated}`);
+    console.log(`[DRY RUN]   outcomes would drop:          ${outcomesSummary.outcomes_dropped_conflict}`);
+    console.log(`[DRY RUN]   would append to audit log:    ${path.join(cdir, "deletions.log")}`);
+    console.log(`[DRY RUN]   audit_line:                   ${auditLine.trimEnd()}`);
+    process.exit(0);
+  }
+
   fs.appendFileSync(path.join(cdir, "deletions.log"), auditLine, "utf8");
 
   console.log("Student IDs linked:");

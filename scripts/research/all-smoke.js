@@ -30,6 +30,7 @@ const SUITES = [
   { name: "Admin CLI: rotate_token (v3.3.1 A2)",     script: "scripts/research/rotate-token-smoke.js",     countLabel: "12 cases" },
   { name: "Admin CLI: link_student_ids (v3.3.1 A3)", script: "scripts/research/link-student-ids-smoke.js", countLabel: "12 cases" },
   { name: "Admin CLI: validate-cli (v3.3.1 A5)",     script: "scripts/research/validate-cli-smoke.js",     countLabel: "15 cases" },
+  { name: "Admin CLI flags polish",                  script: "scripts/research/admin-cli-flags-smoke.js",   countLabel: "24 cases" },
   { name: "Cross-text lookup service (v3.3.2 D15)",  script: "scripts/morph/crosstext-smoke.js",            countLabel: "8 cases" },
   { name: "Search fallback regression (v3.3.3)",     script: "scripts/research/search-fallback-regression.js", countLabel: "7 cases" },
   { name: "Quiz item bank validation (v3.3.5 C1)",   script: "scripts/quiz/bank-validate-smoke.js",         countLabel: "8 cases" },

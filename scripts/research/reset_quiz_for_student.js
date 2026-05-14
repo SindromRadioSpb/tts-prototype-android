@@ -48,8 +48,10 @@ const QUIZ_FIELDS = [
 function parseArgs(argv) {
   const args = {};
   for (let i = 0; i < argv.length; i++) {
-    if (!argv[i].startsWith("--")) continue;
-    const key = argv[i].slice(2);
+    const tok = argv[i];
+    if (tok === "-h") { args.help = true; continue; }
+    if (!tok.startsWith("--")) continue;
+    const key = tok.slice(2);
     const next = argv[i + 1];
     if (next === undefined || next.startsWith("--")) { args[key] = true; }
     else { args[key] = next; i++; }
@@ -57,13 +59,47 @@ function parseArgs(argv) {
   return args;
 }
 
-function usage() {
-  console.error(`Usage:
+function printHelp() {
+  console.log(`Usage:
   reset_quiz_for_student.js --cohort <CODE> --student-id <UUID> --reason "<text>"
-    [--audit-log <path>] [--data-dir <path>]
+    [--audit-log <path>] [--data-dir <path>] [--dry-run]
+
+Options:
+  --cohort <STR>       (required) cohort code matching ^[A-Z0-9-]{4,16}$.
+  --student-id <UUID>  (required) UUID v4 of the student whose quiz outcome
+                       fields will be stripped.
+  --reason <STR>       (required) non-empty reason written to the audit log.
+  --audit-log <PATH>   Optional override for the audit log path. Default:
+                       <data-dir>/<cohort>/quiz_reset_audit.log
+  --data-dir <PATH>    Optional override for RESEARCH_DATA_DIR (or set the
+                       env var).
+  --dry-run            Scan files + count what WOULD be stripped without
+                       writing anything (jsonl preserved, audit log NOT
+                       appended). Useful for previewing.
+  --help, -h           Show this help and exit 0.
 
 Strips calibrated-quiz outcome fields for one student from the cohort's
-jsonl payloads + appends an audit log line.`);
+jsonl payloads + appends an audit log line. Idempotent: a re-run after a
+successful reset reports reset_count=0 + records the attempt in the audit
+log without modifying jsonl bytes.
+
+Fields stripped from any matching outcome object:
+  quiz_score_normalized, quiz_cefr_band, quiz_se,
+  quiz_completed_at, quiz_version,
+  outcome_capture_method (only when ==="calibrated-quiz")
+
+If outcome becomes empty after stripping AND metrics has no other keys,
+the enclosing line is DROPPED entirely from the jsonl.
+
+Exit codes:
+  0  completed (including no-op reset and --help / --dry-run)
+  1  IO error / cohort or student not found
+  2  argv validation error
+
+Examples:
+  reset_quiz_for_student.js --cohort X --student-id <UUID> --reason "Student request: retake"
+  reset_quiz_for_student.js --cohort X --student-id <UUID> --reason "..." --dry-run
+`);
 }
 
 function atomicWriteText(target, text) {
@@ -83,18 +119,23 @@ function isOutcomeEmpty(out) {
 
 function main() {
   const args = parseArgs(process.argv.slice(2));
+  // Help short-circuit BEFORE any validation so --help / -h always exits 0
+  // even when required flags are absent.
+  if (args.help) { printHelp(); process.exit(0); }
+
   const cohort = args["cohort"];
   const sid = args["student-id"];
   const reason = args["reason"];
   if (!cohort || typeof cohort !== "string" || !COHORT_RE.test(cohort)) {
-    console.error("Missing or invalid --cohort"); usage(); process.exit(2);
+    console.error("Missing or invalid --cohort"); printHelp(); process.exit(2);
   }
   if (!sid || typeof sid !== "string" || !UUID_RE.test(sid)) {
-    console.error("Missing or invalid --student-id"); usage(); process.exit(2);
+    console.error("Missing or invalid --student-id"); printHelp(); process.exit(2);
   }
   if (!reason || typeof reason !== "string" || reason.trim().length === 0) {
-    console.error("Missing or empty --reason"); usage(); process.exit(2);
+    console.error("Missing or empty --reason"); printHelp(); process.exit(2);
   }
+  const dryRun = !!args["dry-run"];
 
   const dataDir = args["data-dir"] || process.env.RESEARCH_DATA_DIR;
   if (!dataDir) {
@@ -143,7 +184,7 @@ function main() {
       out.push(JSON.stringify(row));
     }
     if (fileChanged) {
-      atomicWriteText(full, out.join("\n").replace(/\n+$/, "\n"));
+      if (!dryRun) atomicWriteText(full, out.join("\n").replace(/\n+$/, "\n"));
       filesTouched++;
     }
   }
@@ -160,6 +201,16 @@ function main() {
     `files_touched=${filesTouched}`,
     `reason=${JSON.stringify(reason)}`,
   ].join(" ") + "\n";
+
+  if (dryRun) {
+    console.log(`[DRY RUN] reset_quiz — no files modified.`);
+    console.log(`[DRY RUN]   cohort=${cohort} student=${sid}`);
+    console.log(`[DRY RUN]   would reset_count=${resetCount} (modified=${linesModified} dropped=${linesDropped} files=${filesTouched})`);
+    console.log(`[DRY RUN]   would append to: ${auditLogPath}`);
+    console.log(`[DRY RUN]   audit_line: ${auditLine.trimEnd()}`);
+    process.exit(0);
+  }
+
   fs.appendFileSync(auditLogPath, auditLine, "utf8");
 
   console.log(`[reset_quiz] cohort=${cohort} student=${sid} reset_count=${resetCount} ` +
