@@ -77,6 +77,21 @@ function provisionCohort(researchDir, code, tokenPlain) {
   }, null, 2));
 }
 
+// Seed a minimal jsonl payload so daily_aggregates is non-empty (used by
+// compare-view assertions that need rendered chart lines / legend).
+function seedMinimalPayload(researchDir, code, date) {
+  const cdir = path.join(researchDir, code);
+  const sid = "00000000-0000-4000-8000-000000000001";
+  const payload = {
+    format: "linguistpro-research-v1", student_id: sid,
+    cohort_code: code, upload_ts: date, since_ts: date,
+    consent_version: "1.0",
+    context: { app_version: "3.3.2", platform: "web/desktop" },
+    metrics: { sessions_count: 1, active_minutes_real: 15, audio_play_ms_total: 60000, cards_reviewed: 5, notes_created: 1 },
+  };
+  fs.appendFileSync(path.join(cdir, `${date}.jsonl`), JSON.stringify(payload) + "\n", "utf8");
+}
+
 async function main() {
   const researchDir = fs.mkdtempSync(path.join(os.tmpdir(), "teacher-multi-smoke-"));
   const baseUrl = `http://127.0.0.1:${PORT}`;
@@ -167,6 +182,11 @@ async function main() {
     const COHORT_C = "MULTI-C";
     const TOKEN_C = "multi-c-token-" + crypto.randomBytes(6).toString("hex");
     provisionCohort(researchDir, COHORT_C, TOKEN_C);
+    // Seed minimal jsonl so daily_aggregates is non-empty for at least one
+    // cohort (compare-view legend / chart-line assertions depend on this).
+    seedMinimalPayload(researchDir, COHORT_A, "2026-05-13");
+    seedMinimalPayload(researchDir, COHORT_B, "2026-05-13");
+    seedMinimalPayload(researchDir, COHORT_C, "2026-05-13");
     const BAD_TOKEN = "invalid-token-aaa";
 
     // The C3 case used addInitScript to seed legacy v1 keys; that script
@@ -300,6 +320,87 @@ async function main() {
     }, COHORT_B);
     test("failed-fetch chip has is-error class", errChipClass && errChipClass.includes('is-error'),
          "className: " + errChipClass);
+
+    // ── C5: 'All cohorts' compare view ────────────────────────────────
+    // Reload with 3 healthy cohorts and switch to ALL view.
+    await page.evaluate((s) => {
+      localStorage.setItem('teacherDashCohorts_v2', JSON.stringify(s.cohorts));
+      localStorage.setItem('teacherDashActiveView_v2', s.active);
+    }, {
+      cohorts: [
+        { code: COHORT_A, token: TOKEN_A, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+        { code: COHORT_B, token: TOKEN_B, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+        { code: COHORT_C, token: TOKEN_C, added_at: '2026-05-14T00:00:00Z', last_ok_at: null },
+      ],
+      active: COHORT_A,
+    });
+    await page.goto(`${baseUrl}/teacher.html`, { waitUntil: "domcontentloaded" });
+    await page.waitForSelector(`[data-testid="cohort-chip-all"]`, { timeout: 10000 });
+    // Click ALL chip.
+    await page.click(`[data-testid="cohort-chip-all"]`);
+    await page.waitForFunction(() => {
+      return document.querySelector('[data-testid="compare-tile"]') !== null;
+    }, { timeout: 10000 });
+
+    const compareTiles = await page.$$('[data-testid="compare-tile"]');
+    test("compare view renders 3 per-cohort tiles",
+         compareTiles.length === 3, "got " + compareTiles.length);
+
+    const compareNotice = await page.$('[data-testid="compare-mode-notice"]');
+    test("compare-mode notice card rendered (per-student hidden)",
+         !!compareNotice);
+
+    const compareLegend = await page.$$('#engagementChart [data-cohort-legend]');
+    test("engagement overlaid chart has legend entries per cohort",
+         compareLegend.length === 3, "got " + compareLegend.length);
+
+    const xcBtn = await page.evaluate(() => {
+      const b = document.getElementById('exportCrossCohortBtn');
+      return b ? { exists: true, display: b.style.display } : { exists: false };
+    });
+    test("'⬇ Cross-cohort CSV' button visible in compare view",
+         xcBtn.exists && xcBtn.display !== 'none', "state: " + JSON.stringify(xcBtn));
+
+    // Verify per-student / correlations / scatter cards hidden.
+    const hiddenCount = await page.evaluate(() => {
+      const cards = document.querySelectorAll('main#dashMain > .card');
+      let hidden = 0;
+      cards.forEach((c) => {
+        const h = c.querySelector('h2');
+        if (!h) return;
+        const txt = (h.textContent || '').toLowerCase();
+        if ((txt.includes('per-student') || txt.includes('outcome correlations') || txt.includes('scatter') || txt.includes('exam score')) &&
+            c.style.display === 'none') hidden++;
+      });
+      return hidden;
+    });
+    test("per-student / correlations / scatter cards hidden in compare view",
+         hiddenCount >= 2, "hidden count=" + hiddenCount);
+
+    // Case 8: cohort with k-not-met still appears in compare tiles (cohort-wide aggregates are k-safe).
+    const knotMetSurface = await page.evaluate(() => {
+      const tiles = document.querySelectorAll('[data-testid="compare-tile"]');
+      // All fixture cohorts have cohort_size=0 (no jsonl seeded), so all
+      // tiles should show the k-not-met badge.
+      let knm = 0;
+      tiles.forEach((t) => { if ((t.textContent || '').includes('k-not-met')) knm++; });
+      return { tilesCount: tiles.length, knm };
+    });
+    test("k-not-met cohorts surface k-warning badge in compare view",
+         knotMetSurface.knm === knotMetSurface.tilesCount, "k-not-met=" + JSON.stringify(knotMetSurface));
+
+    // Switch back to single cohort A — hidden cards must reappear.
+    await page.click(`[data-testid="cohort-chip"][data-cohort-code="${COHORT_A}"]`);
+    await page.waitForFunction((target) => {
+      const cm = document.getElementById("cohortMeta");
+      return cm && (cm.textContent || "").includes(target);
+    }, COHORT_A, { timeout: 10000 });
+    const xcBtnAfterSwitch = await page.evaluate(() => {
+      const b = document.getElementById('exportCrossCohortBtn');
+      return b ? b.style.display : null;
+    });
+    test("'⬇ Cross-cohort CSV' button hidden after switching back to single cohort",
+         xcBtnAfterSwitch === 'none', "state: " + xcBtnAfterSwitch);
 
     console.log(`\n[teacher-multi-smoke] ${passed}/${passed + failed} passed`);
     exitCode = (failed === 0 && pageErrors.length === 0) ? 0 : 1;

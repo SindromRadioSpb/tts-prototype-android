@@ -201,7 +201,14 @@
 
   // ── rendering ──────────────────────────────────────────────────────────
   function render() {
+    // v3.3.2 D12: compare-view dispatch.
+    if (_getActiveView() === 'ALL') {
+      renderCompareView();
+      return;
+    }
     if (!_aggregates) return;
+    // Restore default visibility (in case we came from compare view).
+    _restoreSingleViewLayout();
     renderHeader();
     renderSummary();
     renderEngagementChart();
@@ -210,6 +217,201 @@
     renderStudentTable();
     renderCorrelations();
     renderScatter();
+    // Hide cross-cohort CSV button outside compare view.
+    const xc = $('exportCrossCohortBtn');
+    if (xc) xc.style.display = 'none';
+  }
+
+  // Deterministic color hash for cohort_code → palette.
+  const _COHORT_PALETTE = [
+    '#3b82f6', '#fbbf24', '#34d399', '#f87171',
+    '#c084fc', '#22d3ee', '#fb923c', '#a3e635',
+  ];
+  function _cohortColor(code) {
+    let h = 0;
+    for (let i = 0; i < code.length; i++) h = (h * 31 + code.charCodeAt(i)) >>> 0;
+    return _COHORT_PALETTE[h % _COHORT_PALETTE.length];
+  }
+
+  // Toggle elements that exist only in single-cohort view. Tracks ALL of
+  // the .card sections we hide in compare view so we can restore them.
+  function _restoreSingleViewLayout() {
+    // Show per-student + correlations + scatter cards (they're hidden in
+    // compare view to honour the privacy invariant in plan §7).
+    const cards = document.querySelectorAll('main#dashMain > .card, main#dashMain > .stats-row');
+    cards.forEach((c) => { c.style.display = ''; });
+  }
+
+  function renderCompareView() {
+    // Replace the single-cohort dashboard layout with multi-cohort tiles
+    // + overlaid charts. Per-student / correlations / scatter sections are
+    // hidden entirely (plan §7 — k-anonymity invariant).
+    const list = _getCohorts();
+    const cohorts = list.map((c) => ({
+      code: c.code,
+      agg: _cohortAggregates[c.code],
+      err: _cohortFetchErrors[c.code],
+      color: _cohortColor(c.code),
+    }));
+
+    // Header.
+    $('cohortMeta').textContent =
+      `compare · ${cohorts.length} cohort(s) · ${cohorts.filter((c) => c.agg).length} loaded`;
+
+    // Cohort overview — side-by-side tiles per cohort.
+    $('summaryGrid').innerHTML = cohorts.map((c) => {
+      if (c.err) {
+        return `
+          <div class="summary-tile" data-testid="compare-tile-error" data-cohort-code="${escapeHtml(c.code)}"
+               style="border-left:3px solid #f87171;">
+            <div class="label">${escapeHtml(c.code)}</div>
+            <div class="value" style="color:#f87171;">⚠ error</div>
+            <div class="sub">${escapeHtml(c.err)}</div>
+          </div>
+        `;
+      }
+      const a = c.agg || {};
+      const meta = a.cohort_meta || {};
+      const sz = a.cohort_size || 0;
+      const kThr = meta.k_anonymity_threshold || 5;
+      const totalMin = sumDaily(a, 'active_minutes_real');
+      return `
+        <div class="summary-tile" data-testid="compare-tile" data-cohort-code="${escapeHtml(c.code)}"
+             style="border-left:3px solid ${c.color};">
+          <div class="label">${escapeHtml(c.code)}</div>
+          <div class="value">${escapeHtml(sz)}</div>
+          <div class="sub">
+            days=${escapeHtml(a.days_observed || 0)} · min=${escapeHtml(fmtNum(totalMin))} · ${a.k_anonymity_met
+              ? '<span style="color:#34d399;">✓ k-met</span>'
+              : `<span style="color:#fbbf24;">⚠ k-not-met (${sz} &lt; ${kThr})</span>`}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Engagement timeline — overlaid lines, one per cohort.
+    const series = cohorts.filter((c) => c.agg && c.agg.daily_aggregates && c.agg.daily_aggregates.length)
+      .map((c) => ({
+        label: c.code,
+        color: c.color,
+        data: c.agg.daily_aggregates.map((d) => ({ x: d.date, y: Number(d.active_minutes_real) || 0 })),
+      }));
+    svgMultiLineChart($('engagementChart'), series, { yLabel: 'min' });
+
+    // Audio playback per day — overlaid.
+    const audioSeries = cohorts.filter((c) => c.agg && c.agg.daily_aggregates && c.agg.daily_aggregates.length)
+      .map((c) => ({
+        label: c.code,
+        color: c.color,
+        data: c.agg.daily_aggregates.map((d) => ({ x: d.date, y: Number(d.audio_play_ms_total) || 0 })),
+      }));
+    svgMultiLineChart($('audioChart'), audioSeries, { yLabel: 'ms' });
+
+    // SRS + notes per day — overlaid (SRS only here to keep it readable).
+    const srsSeries = cohorts.filter((c) => c.agg && c.agg.daily_aggregates && c.agg.daily_aggregates.length)
+      .map((c) => ({
+        label: c.code,
+        color: c.color,
+        data: c.agg.daily_aggregates.map((d) => ({ x: d.date, y: Number(d.cards_reviewed) || 0 })),
+      }));
+    svgMultiLineChart($('srsNotesChart'), srsSeries, { yLabel: 'cards' });
+
+    // Hide single-cohort-only cards.
+    const cards = document.querySelectorAll('main#dashMain > .card');
+    cards.forEach((card) => {
+      const h = card.querySelector('h2');
+      if (!h) return;
+      const txt = (h.textContent || '').toLowerCase();
+      // Show: overview, engagement timeline.
+      // Hide: per-student, outcome correlations, scatter.
+      if (txt.includes('per-student') || txt.includes('outcome correlations') ||
+          txt.includes('scatter') || txt.includes('exam score')) {
+        card.style.display = 'none';
+      } else {
+        card.style.display = '';
+      }
+    });
+
+    // Replace per-student / correlations / scatter sections with a single
+    // compare-mode notice card.
+    const noticeId = 'v3CompareNotice';
+    let notice = document.getElementById(noticeId);
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = noticeId;
+      notice.className = 'card';
+      notice.setAttribute('data-testid', 'compare-mode-notice');
+      const main = document.getElementById('dashMain');
+      if (main) main.appendChild(notice);
+    }
+    notice.innerHTML = `
+      <h2>Per-student breakdown</h2>
+      <p class="hint">Недоступен в compare-режиме (plan §7 invariant).
+         Выберите конкретную когорту в chip strip выше, чтобы увидеть
+         per-student / correlations / scatter sections.</p>
+    `;
+
+    // Show cross-cohort CSV button.
+    const xc = $('exportCrossCohortBtn');
+    if (xc) xc.style.display = '';
+  }
+
+  // Multi-series line chart for compare view. `series` = [{label, color, data:[{x,y}]}].
+  function svgMultiLineChart(container, series, opts) {
+    if (!series || !series.length) {
+      container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+      return;
+    }
+    const W = 800, H = 240, PAD_L = 50, PAD_R = 12, PAD_T = 12, PAD_B = 48;
+    // Union of x values across all series.
+    const xSet = new Set();
+    series.forEach((s) => s.data.forEach((d) => xSet.add(d.x)));
+    const xs = Array.from(xSet).sort();
+    const xLen = xs.length;
+    const yMax = Math.max(1, ...series.flatMap((s) => s.data.map((d) => Number(d.y) || 0)));
+    const xCoord = (i) => PAD_L + ((W - PAD_L - PAD_R) * (xLen > 1 ? i / (xLen - 1) : 0.5));
+    const yCoord = (v) => H - PAD_B - ((H - PAD_T - PAD_B) * (v / yMax));
+    const xIdx = new Map(xs.map((x, i) => [x, i]));
+
+    let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+    svg += '<g class="chart-grid">';
+    const yStep = niceStep(yMax / 4);
+    for (let v = 0; v <= yMax + yStep; v += yStep) {
+      svg += `<line x1="${PAD_L}" y1="${yCoord(v)}" x2="${W - PAD_R}" y2="${yCoord(v)}"/>`;
+    }
+    svg += '</g>';
+    // Lines.
+    series.forEach((s) => {
+      const pts = s.data
+        .map((d) => ({ i: xIdx.get(d.x), v: Number(d.y) || 0 }))
+        .filter((p) => p.i != null);
+      if (!pts.length) return;
+      const path = pts.map((p, k) => `${k === 0 ? 'M' : 'L'}${xCoord(p.i)},${yCoord(p.v)}`).join(' ');
+      svg += `<path d="${path}" fill="none" stroke="${escapeHtml(s.color)}" stroke-width="2" data-cohort-line="${escapeHtml(s.label)}"/>`;
+    });
+    svg += '<g class="chart-axis">';
+    for (let v = 0; v <= yMax + yStep; v += yStep) {
+      svg += `<text x="${PAD_L - 6}" y="${yCoord(v) + 3}" text-anchor="end">${escapeHtml(String(v))}</text>`;
+    }
+    const showEveryN = Math.max(1, Math.ceil(xLen / 10));
+    for (let i = 0; i < xLen; i++) {
+      if (i % showEveryN === 0 || i === xLen - 1) {
+        svg += `<text x="${xCoord(i)}" y="${H - PAD_B + 14}" text-anchor="middle">${escapeHtml(String(xs[i]).slice(5))}</text>`;
+      }
+    }
+    svg += `<text x="${PAD_L - 36}" y="${PAD_T + 8}" text-anchor="start">${escapeHtml(opts && opts.yLabel || '')}</text>`;
+    svg += '</g>';
+    // Legend at the bottom.
+    const legendY = H - 6;
+    let legendX = PAD_L;
+    series.forEach((s) => {
+      const w = (String(s.label).length * 7) + 18;
+      svg += `<rect x="${legendX}" y="${legendY - 9}" width="10" height="10" fill="${escapeHtml(s.color)}"/>`;
+      svg += `<text x="${legendX + 14}" y="${legendY}" text-anchor="start" data-cohort-legend="${escapeHtml(s.label)}">${escapeHtml(s.label)}</text>`;
+      legendX += w;
+    });
+    svg += '</svg>';
+    container.innerHTML = svg;
   }
 
   function renderHeader() {
@@ -840,11 +1042,10 @@
   function switchActiveView(target) {
     _setActiveView(target);
     if (target === 'ALL') {
-      _aggregates = null; // compare-view rendering ships in C5; for now show single first cohort
-      const list = _getCohorts();
-      if (list.length > 0) _aggregates = _cohortAggregates[list[0].code] || null;
+      // Compare view doesn't use _aggregates (single-cohort payload).
+      // renderCompareView reads _cohortAggregates per-cohort directly.
       renderChipStrip();
-      if (_aggregates) render();
+      render();
       return;
     }
     _aggregates = _cohortAggregates[target] || null;
