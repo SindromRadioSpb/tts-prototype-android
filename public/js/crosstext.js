@@ -142,15 +142,51 @@
       }
     }
 
+    // v3.3.4 — secondary index: normalized_root → Set<normalized_form>.
+    // Lets `findOccurrences(word, {includeRoot:true})` enumerate ALL
+    // surface-form inflections sharing the queried word's root, not just
+    // the bare root form (which is usually not in any text as a token).
+    // Without this the panel reports "не встречается" even when the user
+    // can see 3 inflected forms of the same root across 3 texts. Costs
+    // one MorphProvider.analyze() per unique forward key (~0.5 ms on the
+    // basic-tier in-memory dict). Tolerant to missing/unavailable
+    // MorphProvider — rootIndex just stays empty and includeRoot
+    // degrades to the bare-root-key behaviour.
+    const rootIndex = new Map();
+    let analysesResolved = 0;
+    if (typeof window !== 'undefined' && window.MorphProvider) {
+      const mp = window.MorphProvider;
+      try {
+        if (typeof mp.ensureReady === 'function') await mp.ensureReady();
+        for (const key of forward.keys()) {
+          let analyses = null;
+          try { analyses = await mp.analyze(key); } catch (_) { continue; }
+          if (!Array.isArray(analyses) || !analyses.length) continue;
+          analysesResolved++;
+          for (const a of analyses) {
+            if (!a || !a.r) continue;
+            const rKey = normalize(a.r);
+            if (!rKey) continue;
+            let set = rootIndex.get(rKey);
+            if (!set) { set = new Set(); rootIndex.set(rKey, set); }
+            set.add(key);
+          }
+        }
+      } catch (_) { /* fall through — rootIndex stays empty */ }
+    }
+
     const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0;
 
     _index = {
       forward,
+      rootIndex,
       built_at: Date.now(),
       build_ms: Math.round(elapsed),
       texts_indexed:    textsSet.size,
       sentences_indexed: rows.length,
       distinct_keys:    distinctKeys,
+      distinct_roots:   rootIndex.size,
+      analyses_resolved: analysesResolved,
     };
     _queryCache.clear();
     _scheduleIdleInvalidate();
@@ -240,14 +276,23 @@
     }
 
     // Gather candidate keys: the surface normalized form, plus the root
-    // (if includeRoot and morph dict resolves one).
+    // and all known inflections (if includeRoot and morph dict resolves
+    // one).
     const candidateKeys = new Set([queryKey]);
     let rootInfo = null;
     if (includeRoot) {
       rootInfo = await _resolveRoot(word);
       if (rootInfo && rootInfo.root) {
         const rKey = normalize(rootInfo.root);
-        if (rKey) candidateKeys.add(rKey);
+        if (rKey) {
+          candidateKeys.add(rKey);
+          // v3.3.4 — expand to all surface forms with this root via the
+          // secondary index built at ensureIndex time.
+          const formsWithRoot = _index && _index.rootIndex && _index.rootIndex.get(rKey);
+          if (formsWithRoot) {
+            for (const form of formsWithRoot) candidateKeys.add(form);
+          }
+        }
       }
     }
 
@@ -343,6 +388,8 @@
       texts_indexed: _index.texts_indexed,
       sentences_indexed: _index.sentences_indexed,
       distinct_keys: _index.distinct_keys,
+      distinct_roots: _index.distinct_roots || 0,
+      analyses_resolved: _index.analyses_resolved || 0,
       last_query_ms: _lastQueryMs,
       query_cache_size: _queryCache.size,
     };

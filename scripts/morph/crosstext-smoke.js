@@ -126,11 +126,19 @@ async function main() {
           return [];
         },
       };
-      // MorphProvider mock — minimal surface for _resolveRoot.
+      // MorphProvider mock — minimal surface for _resolveRoot AND for the
+      // v3.3.4 rootIndex build pass (which iterates forward.keys() and
+      // calls analyze on each normalized key). Returns root='שלם' for any
+      // input that normalizes to one of {שלום, שלומ (normalized), שלם,
+      // שלמ (normalized), ושלום (the form in s2-2 we want to find)}.
       window.MorphProvider = {
+        ensureReady: async function () { /* mock is always ready */ },
         analyze: async function (word) {
-          // For "שלום" return analysis with root "שלם". Anything else: empty.
-          if (typeof word === 'string' && word.trim() === 'שלום') {
+          const w = String(word || '').trim();
+          // Accept both raw + normalized variants so the build-time
+          // iteration over forward keys (normalized) finds the root.
+          if (w === 'שלום' || w === 'שלומ' || w === 'שלם' || w === 'שלמ' ||
+              w === 'ושלום' || w === 'ושלומ') {
             return [{ r: 'שלם', l: 'שלם', b: null, p: 'noun', s: 'mock', k: 0, u: word }];
           }
           return [];
@@ -180,7 +188,7 @@ async function main() {
       });
 
       // 4. includeRoot=true → strict superset
-      await test('includeRoot=true on "שלום" → superset (adds root form)', async () => {
+      await test('includeRoot=true on "שלום" → superset (adds root form + inflections)', async () => {
         const withRoot = await ct.findOccurrences('שלום', { includeRoot: true });
         if (withRoot.length <= 4) throw new Error('expected > 4, got ' + withRoot.length);
         // s4-1 (the "שלם" sentence) should be present.
@@ -190,6 +198,17 @@ async function main() {
         const sample = withRoot.find((o) => o.root);
         if (!sample) throw new Error('expected at least one occurrence to have .root populated');
         if (sample.root !== 'שלם') throw new Error('root wrong: ' + sample.root);
+      });
+
+      // 4b. v3.3.4 — rootIndex secondary index built; root → all forms expansion.
+      await test('rootIndex built with at least 1 root → forms mapping', async () => {
+        const stat = ct.getStats();
+        if (!stat.distinct_roots || stat.distinct_roots < 1) {
+          throw new Error('expected rootIndex to have ≥1 root; got ' + stat.distinct_roots);
+        }
+        if (!stat.analyses_resolved || stat.analyses_resolved < 1) {
+          throw new Error('expected at least 1 forward key to resolve to analyses');
+        }
       });
 
       // 5. Cache hit < 30 ms

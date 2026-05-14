@@ -7,7 +7,89 @@
 
 ## [Unreleased]
 
-(пусто — Direction 13 calibrated quiz переподготовлен под v3.3.4, M8 graph под v3.3.5)
+(пусто — Direction 13 calibrated quiz переподготовлен под v3.3.5, M8 graph под v3.3.6 после v3.3.4 hotfix)
+
+---
+
+## [3.3.4] — 2026-05-14
+
+**Hotfix release.** Двойной fix для cross-text "Где встречается" hub
+(v3.3.2 D15), оба бага найдены user'ом сразу после v3.3.2 ship.
+
+### Fixed — Bug 1: panel hidden behind notes modal
+
+**Symptom:** User открывает word_study заметку из строки → клик
+`🔎 Где встречается` → панель открывается, но **визуально находится
+ЗА** «Заметка к строке» (v3-modal) — interactable области не видны,
+выбрать «Перейти к строке» невозможно.
+
+**Root cause:** Cross-text panel был `zIndex: 9001`, overlay `9000`.
+`.v3-modal` (notes modal) — `z-index: 9999`. Поэтому notes modal
+покрывал cross-text panel.
+
+**Fix:** bump panel `z-index` → `10501` (overlay → `10500`). Стек:
+- toasts (`100001`)
+- nav-sticky (`99999`)
+- notes modal (`9999`)
+- **cross-text overlay/panel (`10501/10500`) ← теперь above notes modal**
+
+### Fixed — Bug 2: includeRoot не находит инфлексии
+
+**Symptom:** User создал 3 заметки `🔤 Слово` в 3 разных текстах, все с
+`Корень = "עינ"`. Открыл одну из заметок (слово `עיני`, root `עינ`),
+включил «Включая другие инфлексии корня», но панель показывает «Слово
+не встречается в других текстах библиотеки» — несмотря на 2 другие
+заметки с тем же корнем в других текстах.
+
+**Root cause:** v3.3.2 cross-text service при `includeRoot=true`
+добавлял к candidate keys только **сам root** (`עינ`) как surface form
+для поиска. Но root как standalone токен редко встречается в
+sentence-плэйнтексте — встречаются ИНФЛЕКСИИ корня (`עיני`,
+`עיניים`, `עיניה` и т.п.). Без secondary index `root → all_forms`
+поиск находил только литеральный root, что в реальных текстах == 0
+совпадений.
+
+**Fix:** новый secondary index `_index.rootIndex` —
+`Map<normalized_root, Set<normalized_form>>`. Строится во время
+`ensureIndex()` через iteration `forward.keys()` + `MorphProvider.analyze(key)`
+для каждой → extract root → store в rootIndex. Cost: ~0.5ms per
+unique forward key × ~5K keys → ~2.5s build extra (one-time per session).
+Tolerant: если MorphProvider не загружен (нет full-tier dict,
+например), rootIndex остаётся пустым и includeRoot degradates до
+бывшего bare-root-key поведения.
+
+`findOccurrences(word, {includeRoot:true})` теперь:
+1. Resolves root from query word (как было).
+2. Adds **root key** to candidate keys (как было).
+3. **Adds all surface forms from `rootIndex.get(root)`** to candidate keys (NEW).
+4. Searches forward index for union of all keys.
+
+В пользовательском сценарии:
+- Build: `rootIndex["עינ"] = {עיני, עיניים, עיניה}`.
+- Query `עיני`: direct = forward.get("עיני"); +root resolution = "עינ"; +rootIndex["עינ"] expand = {עיני, עיניים, עיניה}; union → finds ALL 3 inflected forms across all texts.
+- excludeTextId filters current text → user sees 2 (other 2 notes' parent texts).
+
+`getStats()` exposes new fields `distinct_roots` и `analyses_resolved`
+для diagnostics.
+
+### Smoke
+
+- `scripts/morph/crosstext-smoke.js` extended 13 → 14 cases (added
+  rootIndex assertion).
+- All 10 existing smoke suites stay green: **197 cases ALL GREEN**.
+
+### Cycle replan
+
+Этот hotfix consume patch-slot v3.3.4 в master plan. Сдвиг:
+- Direction 13 calibrated quiz → **v3.3.5** (was v3.3.4)
+- Direction 14 knowledge-graph view (M8) → **v3.3.6** (was v3.3.5)
+
+`docs/PREMIUM_RELEASE_PLAN_v3_3.md §4` будет обновлён при authoring
+v3.3.5 phase plan.
+
+### Anchor commit
+
+- (this commit) — z-index + rootIndex + smoke + version bump
 
 ---
 

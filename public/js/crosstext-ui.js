@@ -65,8 +65,11 @@
     _overlay = document.createElement('div');
     _overlay.setAttribute('data-testid', 'v3-crosstext-overlay');
     Object.assign(_overlay.style, {
+      // Stack ABOVE the v3 notes modal (.v3-modal = z 9999). The panel is
+      // typically invoked FROM a word_study form inside that modal, so it
+      // must visually float on top of its host. Below the 100000 toast tier.
       position: 'fixed', top: '0', left: '0', right: '0', bottom: '0',
-      background: 'rgba(15, 23, 42, 0.55)', zIndex: '9000', opacity: '0',
+      background: 'rgba(15, 23, 42, 0.55)', zIndex: '10500', opacity: '0',
       transition: 'opacity 180ms ease-out', pointerEvents: 'none',
     });
     _overlay.addEventListener('click', close);
@@ -79,7 +82,7 @@
       position: 'fixed', top: '0', right: '0', height: '100vh',
       width: 'min(480px, 100vw)', maxWidth: '100vw',
       background: 'var(--theme-bg, #0f172a)', color: 'var(--theme-text, #e2e8f0)',
-      boxShadow: '-8px 0 24px rgba(0,0,0,0.4)', zIndex: '9001',
+      boxShadow: '-8px 0 24px rgba(0,0,0,0.4)', zIndex: '10501',
       transform: 'translateX(100%)', transition: 'transform 200ms ease-out',
       display: 'flex', flexDirection: 'column', pointerEvents: 'auto',
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
