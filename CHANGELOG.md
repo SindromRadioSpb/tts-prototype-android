@@ -7,7 +7,9 @@
 
 ## [Unreleased]
 
-(пусто — следующий цикл откроется после end-of-pilot v3.3 debrief)
+### Docs
+
+- **v3.3 master plan authored** (2026-05-14). `docs/PREMIUM_RELEASE_PLAN_v3_3.md` — 12-section structured plan for the v3.3 release cycle, mirroring the format of `PREMIUM_RELEASE_PLAN_v3_2.md`. Sequences v3.3.0 (shipped) → v3.3.1 (Workstream A2-A5) → v3.3.2 (multicohort dashboard + cross-text hub) → v3.3.3 (calibrated quiz) → v3.3.4 (knowledge-graph view). Premium SRS Epic + multicohort writes + DictaBERT Tier 3 + monolith code-split deferred to v3.4. D1-D15 decisions table; ~34 dev-days estimated for the cycle. Cross-references all companion docs (`ULPAN_RESEARCH_PLAN`, `PREMIUM_NOTES_PLAN`, `ROADMAP_PREMIUM`, `SRS_STRATEGY`, `PILOT_DEBRIEF`, `PARALLEL_WORK_PLAN`, `HE_CONSENT_REVIEW_BRIEF`). **Awaits user sign-off on D1-D15 before any v3.3.1+ phase kicks off.**
 
 ---
 

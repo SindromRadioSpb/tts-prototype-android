@@ -251,6 +251,7 @@ Phase 4 — Research Mode (Direction 11B) — последний (зависит
 
 ## Cross-references
 
+- **v3.3 successor plan:** [`PREMIUM_RELEASE_PLAN_v3_3.md`](PREMIUM_RELEASE_PLAN_v3_3.md) — sequences the §"Deferred → v3.3" items above into v3.3.1-3.3.4 patches plus the two newly user-requested directions (multicohort dashboard + calibrated quiz).
 - v3.1.0 plan: [`PREMIUM_RELEASE_PLAN_v3_1.md`](PREMIUM_RELEASE_PLAN_v3_1.md) — baseline; audit checklist updated 2026-05-10.
 - ROADMAP_PREMIUM (P3/P4/P5/P6 status updated): [`ROADMAP_PREMIUM.md`](ROADMAP_PREMIUM.md).
 - C-series backlog: [`C_SERIES_PLAN.md`](C_SERIES_PLAN.md).
