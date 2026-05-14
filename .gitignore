@@ -95,3 +95,8 @@ repo_tree.txt
 # Use `git add -f` to commit a baseline snapshot manually if needed.
 Smoke-check/
 .playwright-mcp/
+Smoke-check/test-cohort-credentials.txt
+
+# External source bundles (HebMorph, hspell, etc.) — large 3rd-party trees
+# fetched locally for the morphology pipeline. Not part of repo history.
+.external/

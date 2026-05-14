@@ -1,0 +1,228 @@
+#!/usr/bin/env node
+// scripts/research/prepare_smoke_artifacts.js
+//
+// One-shot prep for manual smoke run. Idempotent.
+//
+//   node scripts/research/prepare_smoke_artifacts.js
+//     → cleans stale test cohorts, creates TEST-PILOT-A/B (empty) +
+//       SEED-K5 (12 fake students × 14 days), writes outcomes-*.csv fixtures
+//       and Smoke-check/test-cohort-credentials.txt.
+//
+//   node scripts/research/prepare_smoke_artifacts.js --cleanup
+//     → removes everything this script created (cohorts + fixtures).
+
+"use strict";
+
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+const { execSync } = require("child_process");
+
+const REPO = path.resolve(__dirname, "..", "..");
+const SMOKE_DIR = path.join(REPO, "Smoke-check");
+
+const { cohortExists, createCohort, cohortDir } = require("../../research/storage");
+
+const COHORTS_TO_CLEAN = [
+  "TEST-PILOT-A", "TEST-PILOT-B", "TEST-PILOT-C",
+  "SEED-K5", "ULPAN-SEED-W2026", "K-TEST-4",
+];
+
+function rmrfCohort(code) {
+  const dir = cohortDir(code);
+  if (fs.existsSync(dir)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+    console.log(`  removed: data/research/${code}/`);
+  }
+}
+
+function provisionCohort(code, retentionDays = 30, k = 5) {
+  if (cohortExists(code)) rmrfCohort(code);
+  const tokenPlain = crypto.randomBytes(24).toString("base64url");
+  const retentionUntil = new Date(Date.now() + retentionDays * 86400000)
+    .toISOString().slice(0, 10);
+  createCohort({
+    code,
+    researcherTokenPlain: tokenPlain,
+    retentionUntil,
+    outcomeScale: "0-100",
+    kAnonymityThreshold: k,
+    consentVersionMinimum: "1.0",
+  });
+  console.log(`  created: ${code}  (retain → ${retentionUntil})`);
+  return tokenPlain;
+}
+
+function seedCohort(code) {
+  if (cohortExists(code)) rmrfCohort(code);
+  const seedScript = path.join(REPO, "scripts", "research", "seed_research_fake_cohort.js");
+  const tokenPlain = crypto.randomBytes(24).toString("base64url");
+  execSync(`node "${seedScript}" --code ${code} --token ${tokenPlain}`, {
+    cwd: REPO,
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "inherit"],
+  });
+  console.log(`  seeded: ${code}  (12 students × 14 days)`);
+  return tokenPlain;
+}
+
+function extractStudentIds(cohortCode) {
+  const dir = cohortDir(cohortCode);
+  const ids = new Set();
+  for (const f of fs.readdirSync(dir)) {
+    if (!f.endsWith(".jsonl")) continue;
+    const txt = fs.readFileSync(path.join(dir, f), "utf8");
+    for (const line of txt.split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      try {
+        const obj = JSON.parse(line);
+        if (obj.student_id) ids.add(obj.student_id);
+      } catch (_) { /* ignore malformed */ }
+    }
+  }
+  return Array.from(ids).sort();
+}
+
+function deterministicRng(seedStr) {
+  let h = 1779033703 ^ seedStr.length;
+  for (let i = 0; i < seedStr.length; i++) {
+    h = Math.imul(h ^ seedStr.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return () => {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return ((h >>> 0) / 4294967296);
+  };
+}
+
+function writeOutcomesCsvGood(studentIds) {
+  const today = new Date().toISOString().slice(0, 10);
+  const lines = ["student_id,pre_test_score,post_test_score,exam_date,uploaded_by"];
+  for (let i = 0; i < studentIds.length; i++) {
+    const r = deterministicRng(studentIds[i]);
+    const pre  = Math.floor(50 + r() * 25);   // 50-74
+    const post = Math.floor(65 + r() * 30);   // 65-94
+    lines.push(`${studentIds[i]},${pre},${post},${today},teacher`);
+  }
+  const p = path.join(SMOKE_DIR, "outcomes-good.csv");
+  fs.writeFileSync(p, lines.join("\n") + "\n");
+  console.log(`  wrote: Smoke-check/outcomes-good.csv  (${lines.length - 1} rows)`);
+  return p;
+}
+
+function writeOutcomesCsvBadNoHeader(studentIds) {
+  const today = new Date().toISOString().slice(0, 10);
+  const lines = [];
+  for (let i = 0; i < 3; i++) {
+    lines.push(`${studentIds[i]},80,90,${today},teacher`);
+  }
+  const p = path.join(SMOKE_DIR, "outcomes-bad-no-header.csv");
+  fs.writeFileSync(p, lines.join("\n") + "\n");
+  console.log(`  wrote: Smoke-check/outcomes-bad-no-header.csv  (3 rows, no header)`);
+  return p;
+}
+
+function writeOutcomesCsvBadEmpty() {
+  // CSV with header but zero data rows.
+  const lines = ["student_id,pre_test_score,post_test_score,exam_date,uploaded_by"];
+  const p = path.join(SMOKE_DIR, "outcomes-bad-empty.csv");
+  fs.writeFileSync(p, lines.join("\n") + "\n");
+  console.log(`  wrote: Smoke-check/outcomes-bad-empty.csv  (header only, zero rows)`);
+  return p;
+}
+
+function writeCredentials({ tokenA, tokenB, tokenSeed, seedStudentIds }) {
+  const p = path.join(SMOKE_DIR, "test-cohort-credentials.txt");
+  const top5 = seedStudentIds.slice(0, 5).map((u, i) => `#   [${i + 1}] ${u}`).join("\n");
+  const content = `# Smoke-check test-cohort credentials
+# Generated by: scripts/research/prepare_smoke_artifacts.js
+# Generated at: ${new Date().toISOString()}
+#
+# DO NOT COMMIT THIS FILE — it's in .gitignore.
+
+# ── Empty cohorts for TC-T-5/T-9 (consent + join + change cohort) ─────────────
+COHORT_CODE_A      = TEST-PILOT-A
+RESEARCHER_TOKEN_A = ${tokenA}
+
+COHORT_CODE_B      = TEST-PILOT-B
+RESEARCHER_TOKEN_B = ${tokenB}
+
+# ── Seeded cohort (12 fake students × 14 days) for TC-T-18/T-19/T-20 ─────────
+# For teacher.html login: enter cohort code SEED-K5 + RESEARCHER_TOKEN_SEED.
+COHORT_CODE_SEED      = SEED-K5
+RESEARCHER_TOKEN_SEED = ${tokenSeed}
+
+# ── CSV fixtures for TC-T-19 / TC-T-20 ────────────────────────────────────────
+#   Smoke-check/outcomes-good.csv          — valid, ${seedStudentIds.length} rows with real UUIDs
+#   Smoke-check/outcomes-bad-no-header.csv — sad path: missing header row
+#   Smoke-check/outcomes-bad-empty.csv     — sad path: header present, zero rows
+
+# ── First 5 UUIDs из SEED-K5 (для справки) ────────────────────────────────────
+${top5}
+
+# ── Cleanup ──────────────────────────────────────────────────────────────────
+#   npm run smoke:prep:clean    (или)    node scripts/research/prepare_smoke_artifacts.js --cleanup
+`;
+  fs.writeFileSync(p, content);
+  console.log(`  wrote: Smoke-check/test-cohort-credentials.txt`);
+}
+
+function cleanupArtifacts() {
+  console.log("=== Cleanup smoke artifacts ===");
+  for (const c of COHORTS_TO_CLEAN) rmrfCohort(c);
+  for (const f of [
+    "outcomes-good.csv",
+    "outcomes-bad-no-header.csv",
+    "outcomes-bad-empty.csv",
+    "test-cohort-credentials.txt",
+  ]) {
+    const p = path.join(SMOKE_DIR, f);
+    if (fs.existsSync(p)) {
+      fs.unlinkSync(p);
+      console.log(`  removed: Smoke-check/${f}`);
+    }
+  }
+  console.log("\nDone. No cohorts or smoke artifacts remain.\n");
+}
+
+function main() {
+  const args = process.argv.slice(2);
+  if (args.includes("--cleanup") || args.includes("--clean")) {
+    cleanupArtifacts();
+    return;
+  }
+
+  console.log("\n=== Step 1: Clean stale cohorts ===");
+  for (const c of COHORTS_TO_CLEAN) rmrfCohort(c);
+
+  console.log("\n=== Step 2: Provision empty test cohorts (TC-T-5/T-9) ===");
+  const tokenA = provisionCohort("TEST-PILOT-A");
+  const tokenB = provisionCohort("TEST-PILOT-B");
+
+  console.log("\n=== Step 3: Seed SEED-K5 with 12 fake students × 14 days (TC-T-18) ===");
+  const tokenSeed = seedCohort("SEED-K5");
+
+  console.log("\n=== Step 4: Extract real student_ids from seeded jsonl ===");
+  const studentIds = extractStudentIds("SEED-K5");
+  console.log(`  found ${studentIds.length} unique student_ids`);
+  if (studentIds.length < 5) {
+    throw new Error(`seed produced only ${studentIds.length} student_ids — expected ≥5 (k_anonymity_threshold)`);
+  }
+
+  console.log("\n=== Step 5: Write CSV fixtures (TC-T-19 / TC-T-20) ===");
+  writeOutcomesCsvGood(studentIds);
+  writeOutcomesCsvBadNoHeader(studentIds);
+  writeOutcomesCsvBadEmpty();
+
+  console.log("\n=== Step 6: Write credentials.txt ===");
+  writeCredentials({ tokenA, tokenB, tokenSeed, seedStudentIds: studentIds });
+
+  console.log("\n✓ All ready. Open Smoke-check/test-cohort-credentials.txt for tokens.\n");
+}
+
+if (require.main === module) {
+  try { main(); }
+  catch (e) { console.error("FATAL:", e && e.stack || e); process.exit(1); }
+}
