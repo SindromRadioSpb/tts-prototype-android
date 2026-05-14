@@ -1,0 +1,16 @@
+{
+  "format_version": 1,
+  "tier": "full",
+  "provider": "local-hspell-prebuilt",
+  "data_provider": "hspell-unknown",
+  "data_provider_license": "AGPL-3.0",
+  "data_provider_copyright": "Nadav Har'El & Dan Kenigsberg, 2000-2017",
+  "entry_count": 493398,
+  "analysis_count": 685632,
+  "build_timestamp": "2026-05-14T12:29:28.693Z",
+  "build_commit": "1c1bd47fdd37cecd9a662df42cb39c56aab5b8d0",
+  "dictionary_sha256": "262e848cf3eb2f65eb44e80421abe748cc32ca203d8a16d5ab4232ce7cc089e9",
+  "normalization_version": 1,
+  "wordlist_source": "env:C:\\Users\\lletp\\AppData\\Local\\Temp\\hspell_stems_full.txt",
+  "note": "Pre-computed Hebrew morphology lookup index (tier=full). See docs/MORPHOLOGY_REQUIREMENTS_v3_2.md"
+}

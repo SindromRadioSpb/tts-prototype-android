@@ -25,13 +25,38 @@
 //     (Tier 1 still works, just narrower; Tier 2 still does the heavy lifting)
 //
 // Usage:
-//   node scripts/morph/build-morphology.mjs                 # default
+//   node scripts/morph/build-morphology.mjs                 # default (basic tier)
+//   node scripts/morph/build-morphology.mjs --tier basic    # ~34K entries, default-loaded
+//   node scripts/morph/build-morphology.mjs --tier full     # ~250K entries, opt-in only
 //   MORPH_WORDLIST=path.txt node scripts/morph/build-morphology.mjs
 //   MORPH_HSPELL_VIA_WSL=1 node scripts/morph/build-morphology.mjs
+//
+// Two-tier strategy (v3.3 Workstream A1):
+//   - basic tier (default) ships as part of the PWA bundle / SW cache for all
+//     users. Built from .external/HebMorph/test-files/ (~6K wordlist → ~34K
+//     keys via hspell -l inflection). Files: heb_morphology.{bin,meta.json}.
+//   - full tier is opt-in via Settings → «📚 Расширенный словарь» (default
+//     OFF). Built from a comprehensive Hebrew wordlist (typically generated
+//     via WSL + native hspell internals or an external corpus dump). Files:
+//     heb_morphology_full.{bin,meta.json}. Lazy-fetched on toggle activation
+//     and stored in a separate SW cache bucket so basic-tier users never
+//     download it. iOS Safari quota constraint: full tier ≤30MB gzipped.
+//
+// To build the full tier you typically pass MORPH_WORDLIST pointing at a
+// large wordlist (200K+ lines) that hspell can inflect. Example sources:
+//   - hspell internal: build hspell from .external/hspell, run `multispell`
+//     against its own corpus, dedupe + sort
+//   - corpus.ivrit.org dump tokenized + deduped
+//   - Hebrew Wikipedia titles + article tokens
+//
+// The output filenames + meta `tier` field are the only difference between
+// the two builds — schema is identical, runtime provider switches on the
+// localStorage key `morphDictTier_v1`.
 
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import zlib from 'node:zlib';
 import { spawnSync, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { normalizeHebrew } from './normalize.mjs';
@@ -40,8 +65,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '../..');
 
-const OUTPUT_BIN  = path.join(ROOT, 'public/morph/heb_morphology.bin');
-const OUTPUT_META = path.join(ROOT, 'public/morph/heb_morphology.meta.json');
+// Tier resolution: --tier <basic|full> on argv, default 'basic'.
+function parseTier() {
+  const args = process.argv.slice(2);
+  const i = args.indexOf('--tier');
+  if (i < 0) return 'basic';
+  const v = String(args[i + 1] || '').toLowerCase();
+  if (v !== 'basic' && v !== 'full') {
+    console.error(`[morph-build] error: --tier must be 'basic' or 'full' (got: '${v}')`);
+    process.exit(2);
+  }
+  return v;
+}
+const TIER = parseTier();
+
+// Output paths swap by tier. Basic = canonical filename (back-compat with
+// existing morph-provider.js and SW cache keys). Full = parallel filename
+// with `_full` suffix so both tiers can coexist on disk + SW cache.
+const TIER_SUFFIX = TIER === 'full' ? '_full' : '';
+const OUTPUT_BIN  = path.join(ROOT, `public/morph/heb_morphology${TIER_SUFFIX}.bin`);
+const OUTPUT_META = path.join(ROOT, `public/morph/heb_morphology${TIER_SUFFIX}.meta.json`);
 const SEED_PATH   = path.join(ROOT, 'public/morph/HEBREW_COMMON_ROOTS_SEED.json');
 
 // ───────────────────────────────────────────────────────────────────────────
@@ -313,7 +356,7 @@ function loadWordlist() {
 
 function build() {
   const t0 = Date.now();
-  console.log('[morph-build] starting pipeline');
+  console.log(`[morph-build] starting pipeline (tier=${TIER})`);
 
   const { words, source } = loadWordlist();
   console.log(`[morph-build] wordlist source=${source}, count=${words.length}`);
@@ -396,6 +439,7 @@ function build() {
 
   const meta = {
     format_version: 1,
+    tier: TIER,
     provider: 'local-hspell-prebuilt',
     data_provider: runner ? 'hspell-' + (runner.version.match(/Hspell\/C\s+(\S+)/)?.[1] || 'unknown') : 'seed-only',
     data_provider_license: 'AGPL-3.0',
@@ -407,12 +451,25 @@ function build() {
     dictionary_sha256: sha256,
     normalization_version: 1,
     wordlist_source: source,
-    note: 'Pre-computed Hebrew morphology lookup index. See docs/MORPHOLOGY_REQUIREMENTS_v3_2.md',
+    note: `Pre-computed Hebrew morphology lookup index (tier=${TIER}). See docs/MORPHOLOGY_REQUIREMENTS_v3_2.md`,
   };
 
   fs.mkdirSync(path.dirname(OUTPUT_BIN), { recursive: true });
   fs.writeFileSync(OUTPUT_BIN, dictJson);
   fs.writeFileSync(OUTPUT_META, JSON.stringify(meta, null, 2) + '\n');
+
+  // For the full tier the raw .bin runs ~75 MB which is too large to track
+  // in git comfortably. Write a gzipped sibling so we ship the compressed
+  // variant (~5 MB) and the runtime decompresses via DecompressionStream.
+  // The basic tier stays raw .bin only — its 7 MB raw is small enough that
+  // pre-compression isn't worth the runtime decode cost, and HTTP-layer
+  // compression (Railway/CDN) handles it on the wire.
+  if (TIER === 'full') {
+    const gzipped = zlib.gzipSync(Buffer.from(dictJson, 'utf-8'), { level: 9 });
+    const OUTPUT_GZ = OUTPUT_BIN + '.gz';
+    fs.writeFileSync(OUTPUT_GZ, gzipped);
+    console.log(`              dict_gz=${OUTPUT_GZ} (${(gzipped.length / 1024 / 1024).toFixed(2)} MB)`);
+  }
 
   const ms = Date.now() - t0;
   console.log(`[morph-build] done in ${ms}ms`);

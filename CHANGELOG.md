@@ -7,9 +7,54 @@
 
 ## [Unreleased]
 
+(пусто — следующий цикл откроется после end-of-pilot v3.3 debrief)
+
+---
+
+## [3.3.0] — 2026-05-14
+
+**Minor release.** Closes the pilot-freeze window opened with v3.2.0 ([`docs/PARALLEL_WORK_PLAN_DURING_PILOT.md`](docs/PARALLEL_WORK_PLAN_DURING_PILOT.md)) and ships Workstream A1 — opt-in extended Hebrew morphology dictionary. Pilot did not run with real users; debrief in [`docs/PILOT_DEBRIEF_v3_2_to_v3_3.md`](docs/PILOT_DEBRIEF_v3_2_to_v3_3.md) documents the integrity audit that authorizes the merge.
+
+### Added — Workstream A1: opt-in 250K hspell dictionary (Phase 1 + Phase 2 shipped together)
+
+- **Two-tier morphology dictionary** with explicit user opt-in for the extended variant. Default behavior is unchanged for v3.2.x users (same filename, byte-identical dict content; `dictionary_sha256` unchanged).
+  - **Basic tier (default).** `public/morph/heb_morphology.bin` — 34 755 entries / 68 826 analyses / ~7 MB raw / ~655 KB gzipped via HTTP. Ships in the app bundle.
+  - **Full tier (opt-in).** `public/morph/heb_morphology_full.bin.gz` — **493 398 entries** / 685 632 analyses / **4.24 MB gzipped** on disk, decompresses to ~72 MB JSON in browser via `DecompressionStream`. Lazy-fetched only after user opts in via Settings. Acceptance targets exceeded: entries are ~197 % of the planned ≥250K, gzipped size is ~14 % of the planned ≤30 MB budget.
+- **Provider API.** `MorphProvider` gains `getDictTier()` / `setDictTier(tier)` / `getStatus().dictTier`. Tier choice persists to `localStorage.morphDictTier_v1` ∈ {'basic', 'full'}. Tier switches purge the in-memory map + both tier filenames from caches.* so a flip can never serve stale data. `setDictTier` returns `{ok, tier, reloaded}` so callers can decide whether to eagerly re-fetch.
+- **Decompression path.** Full-tier `.bin.gz` is fetched as raw bytes and decoded via `DecompressionStream('gzip')` — standards-based, no external deps, available in Chrome 80+, Firefox 113+, Safari 16.4+. Older browsers surface a clear error via the existing `T1.state='error'` path.
+- **Service Worker dedicated bucket.** `linguistpro-morph-${CACHE_VERSION}` isolates the morph dict from the app shell so quota pressure can evict morph data without losing critical shell entries. `cache-first with background revalidate` semantics. New `MORPH_QUOTA_THRESHOLD = 0.80` guard — skips caching when device is within 80 % of its storage quota (iOS Safari friendliness). `CACHE_VERSION` bumped to `v3.3.0-morph-tier-1`.
+- **Settings UI.** New `🔤` toolbar button (right of `📊` research-mode button) opens `LinguistProMorphSettings.open()` — modal with current status block, two-radio tier selector (with explicit caption + warning about download size + iOS Safari quota note), apply button (calls `setDictTier()`), and a "🗑 Clear SW cache + reload" advanced action that wraps `MorphProvider.forceUpdate()`. Distinct visual treatment per tier (amber accent for full, green for basic) so the opt-in nature reads clearly.
+- **i18n.** +35 keys × 3 locales (ru/en/he) under `morph.settings.*` covering panel copy, status messages, tier descriptions, button labels, and 8 toast variants.
+
+### Build pipeline
+
+- **`scripts/morph/build-morphology.mjs` `--tier <basic|full>` flag.** Basic tier keeps the historical filename for back-compat. Full tier writes a parallel `_full` pair plus a sibling `.bin.gz` (level-9 gzip) — the gzipped file is what's served + committed; the 73 MB raw is gitignored.
+- **`scripts/morph/extract-hspell-stems.c`** — small C utility built around hspell's internal `print_tree()` (50 LOC). Enumerates all 469 509 stems from hspell's radix-tree dictionary. Build via WSL: `gcc -O2 -DPREFIX_FILE -o extract-hspell-stems scripts/morph/extract-hspell-stems.c .external/hspell/dict_radix.c -I.external/hspell /usr/lib/x86_64-linux-gnu/libz.so.1`. Source is committed; the compiled binary is gitignored under `.external/build/`.
+- **Wordlist source for full tier:** the 469 509 stems extracted by the utility above, converted from ISO-8859-8 → UTF-8 + sorted/deduped, then fed via `MORPH_WORDLIST=<path> npm run build:morphology:full`. Result is then gzipped to a separate sibling file.
+- **NPM script shortcuts:** `build:morphology:basic`, `build:morphology:full`, `smoke:morph` (all 3 morph smokes chained), plus individual `smoke:morph:tier` / `smoke:morph:settings` / `smoke:morph:live`.
+
+### Tests
+
+- **9-case tier-switching smoke** (`scripts/morph/tier-switch-smoke.js`, Playwright). Mocks `fetch` + `caches`, asserts default tier, URL routing for each tier, persistence, invalid-tier rejection, same-tier no-op, dual SW cache purge, status exposure, basic↔full round-trip.
+- **13-case Settings UI DOM smoke** (`scripts/morph/settings-ui-smoke.js`, Playwright). Mocks `v3ConfirmModal` + `showToast`, asserts modal title, intro copy, status block, radio preselection, Apply persists tier to localStorage, provider state, SW cache purge, toast surfaced, re-open shows new preselection, no JS errors.
+- **6-case live integration smoke** (`scripts/morph/full-dict-live-smoke.js`, Playwright). Loads the actual committed `.bin.gz` artifact over HTTP, decompresses via DecompressionStream, parses 72 MB JSON, runs a sample `שלום` lookup. Soft-skips with exit 0 if the artifact is absent (fresh-checkout scenario). Verifies entry_count ≥ 250 000, matches meta count, decompressed size > 50 MB, lookup returns ≥ 1 analysis. Fetch+decode end-to-end in ~1.5 s on dev machine.
+- **Wire into all-smoke matrix** via `npm run smoke:morph`. **107 cases + 9 PNGs ALL GREEN** (28 morph + 79 research) at merge time.
+
 ### Docs
 
 - **HE consent native review brief authored** (2026-05-14). `docs/HE_CONSENT_REVIEW_BRIEF.md` — production-ready review brief для отправки native HE speaker (предпочтительно ulpan-преподаватель с academic-translation опытом). Section-by-section параллельный RU/EN/HE layout по 14 секциям consent template'а с явными asks: A1-A5 fill-in placeholders (purpose, retention, risks, benefits, contacts) + 2 отсутствующие секции целиком (who-conducts, what-is-asked-of-you) + B-checklist для уже-переведённых секций (грамматика, гендерные формы, терминология, loan-words, тон, культурная уместность, RTL/LTR mixing). 4 return-format options. Cover-message template для WhatsApp/Telegram/email. Cross-linked в `RESEARCHER_GUIDE.md §8` (pre-deployment checklist) + `ULPAN_RESEARCH_PLAN_v3_2.md §14 Q3` (open question status). Закрывает authoring side deployment-blocker Q3; closure теперь bottlenecked external reviewer response time, не нашей работой.
+- **End-of-pilot debrief** at [`docs/PILOT_DEBRIEF_v3_2_to_v3_3.md`](docs/PILOT_DEBRIEF_v3_2_to_v3_3.md) — formal closure of the pilot-freeze window. Section 3 audits every freeze-zone path touched and the (semantics-preserving / opt-in) rationale; section 5 captures the 107-case smoke matrix integrity; section 7 contains the signed decision.
+- **`scripts/morph/README.md` §"Two-tier dictionary"** expanded with a Phase 1 / Phase 2 status table, build commands, and the C-utility extraction recipe.
+
+### Anchor commits
+
+- `1c1bd47` — Phase 1 (infrastructure: build flag + provider tier-switching + tier-switch smoke)
+- (this commit) — Phase 2 (Settings UI + SW cache strategy + `.bin.gz` + live smoke + extract-hspell-stems.c + 250K dict generation + debrief + i18n × 3 locales)
+- (merge commit) — v3.3.0 release
+
+### Operational note: pilot was not run
+
+The 10-day pilot window approved on 2026-05-13 was a contingency-safety mechanism for protecting real participants. No real participants were recruited during the window; the protective constraints (freeze-zone paths untouched, default-OFF semantics, smoke green throughout) were honored anyway. The pilot-style mechanics remain available for a future activation when real participants are scheduled — re-pin Railway to `v3.2.0` or `v3.3.0` per `PARALLEL_WORK_PLAN_DURING_PILOT.md §2.A`.
 
 ---
 

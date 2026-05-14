@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -21,6 +21,12 @@
     "bench:premium": "node tests/premium/bench.js",
     "pwa:icons": "node scripts/generate-pwa-icons.js",
     "build:morphology": "node scripts/morph/build-morphology.mjs",
+    "build:morphology:basic": "node scripts/morph/build-morphology.mjs --tier basic",
+    "build:morphology:full": "node scripts/morph/build-morphology.mjs --tier full",
+    "smoke:morph": "node scripts/morph/tier-switch-smoke.js && node scripts/morph/settings-ui-smoke.js && node scripts/morph/full-dict-live-smoke.js",
+    "smoke:morph:tier": "node scripts/morph/tier-switch-smoke.js",
+    "smoke:morph:settings": "node scripts/morph/settings-ui-smoke.js",
+    "smoke:morph:live": "node scripts/morph/full-dict-live-smoke.js",
     "research:cohort": "node scripts/research/create_cohort.js",
     "research:seed": "node scripts/research/seed_research_fake_cohort.js",
     "smoke:research": "node scripts/research/all-smoke.js",

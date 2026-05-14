@@ -100,3 +100,9 @@ Smoke-check/test-cohort-credentials.txt
 # External source bundles (HebMorph, hspell, etc.) — large 3rd-party trees
 # fetched locally for the morphology pipeline. Not part of repo history.
 .external/
+
+# Full-tier morphology dictionary raw form (~75 MB). The gzipped sibling
+# `heb_morphology_full.bin.gz` (~5 MB) IS tracked — runtime decompresses
+# it via DecompressionStream. Rebuild raw via `npm run build:morphology:full`
+# if you need it for debugging.
+public/morph/heb_morphology_full.bin
