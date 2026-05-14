@@ -7,9 +7,109 @@
 
 ## [Unreleased]
 
+(пусто — следующий цикл откроется после v3.3.2)
+
+---
+
+## [3.3.1] — 2026-05-14
+
+**Patch release.** Workstream A2-A5 from the v3.3 master plan
+([`docs/PREMIUM_RELEASE_PLAN_v3_3.md`](docs/PREMIUM_RELEASE_PLAN_v3_3.md))
+— operational maturity: four admin/lint CLIs for researchers + a
+material-change decision tree for consent edits.
+
+**No new collected fields. No `CONSENT_VERSION` bump.** All four
+deliverables ship as admin tooling and documentation only; no user-facing
+UI, no new wire format, no new `/api/research/v1/*` endpoints. v3.2.x +
+v3.3.0 pilot snapshot users are unaffected.
+
+### Added — A2: `scripts/research/rotate_token.js`
+
+CLI that rotates the researcher token of a live cohort in-place
+(replaces `cohort_meta.researcher_token_hash`). Wraps Procedure B from
+`RESEARCHER_GUIDE.md §2.1.1`. Atomic `.tmp` + rename rewrite. Appends
+to a new `cohort_meta.token_rotations[]` audit array (`rotated_at` +
+`prev_hash_prefix` + optional `reason`) and a `token_rotation` line to
+`deletions.log`. Prints the new plaintext token to stdout once — capture
+it immediately, not stored on disk. Old token stops working on the next
+request. Available via `npm run research:rotate -- --cohort <CODE>
+[--reason <text>]`. 12-case smoke (`npm run smoke:research:cli:rotate`).
+Closes RESEARCHER_GUIDE §2.1.1 "deferred to v3.3 backlog" footnote.
+
+### Added — A3: `scripts/research/link_student_ids.js`
+
+CLI for the researcher-side path of manual multi-device link. When a
+student uses LinguistPro on multiple devices (desktop + PWA), each
+generates an independent anonymous `student_id`; the CLI merges two
+IDs into one by rewriting all `<date>.jsonl` rows and the `outcomes.csv`
+to use the chosen primary ID. Atomic per-file rewrite. If both IDs
+already have outcome rows, primary wins (secondary's outcome is
+dropped, not merged). Audit line written to `deletions.log` capturing
+both IDs, row counts, optional OTP (captured but NOT verified — the
+researcher confirms OTP out-of-band with the student before running
+the CLI), and the operator-provided `--reason`. **The in-app companion
+UX (6-digit OTP displayed on both devices, with student-driven flow) is
+explicitly DEFERRED to a later patch** per the v3.3 master plan §3 and
+the v3.3.1 user constraint. For v3.3.1 only the CLI/protocol/audit-log
+shipped; the in-source-header protocol spec documents the eventual UX
+shape so a later patch can wire it up without changing semantics.
+Available via `npm run research:link -- --cohort <C> --primary <U>
+--secondary <U> --reason <text> [--otp <6 digits>]`. 12-case smoke
+(`npm run smoke:research:cli:link`).
+
+### Added — A4: `docs/RESEARCH_CONSENT_RULE.md`
+
+Formal decision tree for whether an edit to `RESEARCH_ETHICS_CONSENT_TEMPLATE.md`
+requires a `CONSENT_VERSION` bump. Five-question walk (Q1-Q5) classifies
+the change as **major bump** (forces re-consent — substantive change
+to what is collected / how long / who can see it), **minor bump**
+(forces re-consent — withdrawal mechanics, contact details, k-anonymity
+threshold), **patch bump** (audit-only, reserved for future tolerant
+comparator), or **no bump** (cosmetic / wording / translation of
+already-approved section). Includes a 15-row material-change taxonomy
+and four worked examples (material change, cosmetic edit, borderline,
+pure UX i18n). Closes `ULPAN_RESEARCH_PLAN §14 Q2`.
+
+### Added — A5: `scripts/research/validate-cli.js`
+
+Standalone CLI wrapping `research/validate.js` so payloads can be
+schema-checked without a server round-trip. Reads JSON from a file path
+or stdin. `--json` flag emits machine-readable diagnostics (`{ok, code,
+field, message, line}`). `--jsonl` flag validates every non-empty line
+of a JSONL archive and exits 3 if any line fails. Exit codes: `0` valid,
+`3` invalid (`SCHEMA_VIOLATION` or `PARSE_ERROR`), `2` argv/IO error.
+Useful for: ulpan teachers preparing CSV uploads, smoke-checking JSONL
+archives at rest, pre-flighting fixtures from
+`seed_research_fake_cohort.js`. Available via `npm run research:validate
+-- <path>`. 15-case smoke (`npm run smoke:research:cli:validate`).
+
+### Smoke matrix post-v3.3.1
+
+- Server (Phase 11.4 + 11.6): 25/25
+- Client opt-in (Phase 11.2 + 11.3): 28/28
+- Teacher dashboard (Phase 11.5): 14/14
+- Preview UI (transparency modal): 12/12
+- **Admin CLI: rotate_token (A2): 12/12 (new)**
+- **Admin CLI: link_student_ids (A3): 12/12 (new)**
+- **Admin CLI: validate-cli (A5): 15/15 (new)**
+- Morph tier-switch + Settings + live: 28/28
+- Visual regression: 9 PNGs
+
+**Total: 146 cases + 9 PNGs ALL GREEN** at merge time (was 107).
+
 ### Docs
 
-- **v3.3 master plan authored** (2026-05-14). `docs/PREMIUM_RELEASE_PLAN_v3_3.md` — 12-section structured plan for the v3.3 release cycle, mirroring the format of `PREMIUM_RELEASE_PLAN_v3_2.md`. Sequences v3.3.0 (shipped) → v3.3.1 (Workstream A2-A5) → v3.3.2 (multicohort dashboard + cross-text hub) → v3.3.3 (calibrated quiz) → v3.3.4 (knowledge-graph view). Premium SRS Epic + multicohort writes + DictaBERT Tier 3 + monolith code-split deferred to v3.4. D1-D15 decisions table; ~34 dev-days estimated for the cycle. Cross-references all companion docs (`ULPAN_RESEARCH_PLAN`, `PREMIUM_NOTES_PLAN`, `ROADMAP_PREMIUM`, `SRS_STRATEGY`, `PILOT_DEBRIEF`, `PARALLEL_WORK_PLAN`, `HE_CONSENT_REVIEW_BRIEF`). **Awaits user sign-off on D1-D15 before any v3.3.1+ phase kicks off.**
+- `RESEARCHER_GUIDE.md` §2.1.1 expanded with the new CLI usage example;
+  §2.1.2 added (multi-device link CLI); §2.1.3 added (validate lint
+  CLI); §1.1.5 added (cross-link to `RESEARCH_CONSENT_RULE.md`).
+- `package.json` script aliases: `research:rotate`, `research:link`,
+  `research:validate`, `smoke:research:cli` + per-CLI granular shortcuts.
+- `scripts/research/all-smoke.js` wires the 3 new CLI suites.
+
+### Anchor commits
+
+- (this commit) — Workstream A2-A5 + RESEARCHER_GUIDE updates +
+  v3.3.1 release bump.
 
 ---
 

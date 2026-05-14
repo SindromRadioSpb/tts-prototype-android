@@ -27,6 +27,10 @@
 
 **Если ты найдёшь способ нарушить любой из этих инвариантов — это bug, не feature.** Раппорти через `📬 Feedback` модал в приложении или GitHub issue.
 
+### 1.1.5 Editing the consent template
+
+Any edit to `docs/RESEARCH_ETHICS_CONSENT_TEMPLATE.md` is governed by [`RESEARCH_CONSENT_RULE.md`](RESEARCH_CONSENT_RULE.md) (v3.3.1 closure of `ULPAN_RESEARCH_PLAN §14 Q2`). That document spells out the material-vs-cosmetic decision tree, the version-bump scheme (`CONSENT_VERSION` major/minor/patch), and worked examples. Walk the tree before merging any consent-related PR.
+
 #### 1.1 Transparency для студентов: «👁 Что собрано»
 
 В приложении студент в любой момент может открыть модал **«👁 Что собрано»** (📊 Research panel → кнопка «👁 Что собрано»). Внутри модала — **две** независимые секции:
@@ -103,8 +107,73 @@ node -e "const fs=require('fs');const m=JSON.parse(fs.readFileSync('$META','utf8
 Старый token немедленно перестаёт работать. Distribute `$NEW_TOKEN` to the
 authorized researcher(s).
 
-> Convenience CLI (`scripts/research/rotate_token.js`) для Procedure B
-> deferred к v3.3 backlog. Manual procedure выше — workaround.
+**Convenience CLI (shipped in v3.3.1):**
+
+```bash
+node scripts/research/rotate_token.js --cohort ULPAN-A-W2026 \
+                                       --reason "compromised in screenshot"
+```
+
+Wraps Procedure B above end-to-end: generates a fresh 32-byte
+base64url token, computes sha256, atomically rewrites
+`cohort_meta.json` (`.tmp` + rename), appends an entry to
+`cohort_meta.token_rotations[]` (timestamp + `prev_hash_prefix` +
+optional reason) and a `token_rotation` line to `deletions.log`.
+Prints the new plaintext token to stdout ONCE — capture it
+immediately. Old token stops working on the next request (no grace
+period). Pass `--token <plaintext>` to use a pre-chosen token instead
+of the random one. Exit codes: `0` success · `1` cohort not found ·
+`2` argv validation.
+
+### 2.1.2 Manual multi-device link (v3.3.1 CLI)
+
+When a student uses LinguistPro on multiple devices (desktop + PWA
+phone), each device generates its own anonymous `student_id` (UUID v4
+in `localStorage.researchStudentId_v1`). The two IDs are unlinked by
+default, which is correct from a privacy standpoint but loses some
+research signal (the same person appears as two students).
+
+The student can request a manual link via out-of-band communication
+(WhatsApp / Telegram / email to the researcher). The researcher then
+runs:
+
+```bash
+node scripts/research/link_student_ids.js --cohort ULPAN-A-W2026 \
+       --primary <kept-UUID> --secondary <to-be-relocated-UUID> \
+       --reason "user reported dual-device usage" \
+       [--otp <6-digits>]
+```
+
+The CLI walks every `<date>.jsonl` in the cohort directory and
+rewrites all rows where `student_id == secondary` to use `primary`
+(atomic `.tmp` + rename per file). `outcomes.csv` is rewritten the
+same way; if **both** IDs already have outcome rows, the primary's
+wins and the secondary's is dropped (merging outcome scores is too
+error-prone to do automatically). An audit line is appended to
+`deletions.log` capturing IDs, row counts, optional OTP for traceability
+to the student's out-of-band confirmation, and the operator-provided
+`--reason`.
+
+The in-app companion UX (a 6-digit one-time-pass code displayed on
+both devices) is **deferred to a later patch** per `PREMIUM_RELEASE_PLAN_v3_3.md`. For v3.3.1 the protocol is documented in `scripts/research/link_student_ids.js` source header and the researcher accepts OTP verification out-of-band before running the CLI.
+
+### 2.1.3 Schema lint CLI (v3.3.1)
+
+Before uploading a hand-crafted payload (e.g. a teacher preparing
+backfill data, or a debug fixture), validate it against the server-side
+schema without a server round-trip:
+
+```bash
+node scripts/research/validate-cli.js path/to/payload.json
+cat payload.json | node scripts/research/validate-cli.js
+node scripts/research/validate-cli.js path/to/dailylog.jsonl --jsonl --json
+```
+
+Wraps `research/validate.js`. Exit codes: `0` valid · `3` invalid
+(`SCHEMA_VIOLATION` or `PARSE_ERROR`) · `2` argv/IO. The `--json` flag
+emits a machine-readable diagnostic on stdout (`{ ok, code, field,
+message, line }`). The `--jsonl` flag validates every non-empty line of
+a `.jsonl` archive and exits 3 if any line fails.
 
 ### 2.2 RESEARCH_DATA_DIR
 
