@@ -7,14 +7,31 @@
 
 ## [Unreleased]
 
-### Added — Research transparency: pending-upload preview (2026-05-14)
+(пусто — следующий цикл откроется после end-of-pilot debrief; см. `docs/PARALLEL_WORK_PLAN_DURING_PILOT.md`)
 
-- **UX gap closed.** В шипнутом v3.2.0 пользователь, открывший «👁 Что собрано» в день своей активности, видел только уже отправленные uploads (≤ yesterday) — сегодняшняя работа отсутствовала, потому что daily aggregator by design никогда не аплоадит «сегодня» (неполный день). Текст empty-state («Uploads появятся после первого полного дня активности») не передавал эту нюансировку. После реализации pending-upload preview-секции студент видит live-аггрегаты сегодняшнего дня прямо в модальном окне «👁 Что собрано», что в свою очередь служит дополнительной transparency-гарантией ("see-before-send").
+---
+
+## [3.2.1] — 2026-05-14
+
+**Patch release.** Закрывает transparency-UX gap, обнаруженный пользователем во время первого smoke-теста v3.2.0 (TC-T-6 / TC-T-7 в `Smoke-check/SMOKE_CHECK_RESEARCH_MODE_v3_2_0.docx`). Без новых wire-format / consent-version изменений — обратно совместимо с v3.2.0; pilot-snapshot ничего не ломает.
+
+### Added — Research transparency: pending-upload preview
+
+- **UX gap closed.** В v3.2.0 пользователь, открывший «👁 Что собрано» в день своей активности, видел только уже отправленные uploads (≤ yesterday) — сегодняшняя работа отсутствовала, потому что daily aggregator by design никогда не аплоадит «сегодня» (неполный день). Текст empty-state («Uploads появятся после первого полного дня активности») не передавал эту нюансировку. После реализации pending-upload preview-секции студент видит live-аггрегаты сегодняшнего дня прямо в модальном окне «👁 Что собрано», что в свою очередь служит дополнительной transparency-гарантией ("see-before-send").
 - **API.** Новая публичная функция `LinguistProResearch.previewToday()` — pure read поверх `_aggregateForRange(sinceDay, today)`. **Никаких side-effects**: ни POST, ни запись в `researchUploadLog_v1`, ни мутация `lastUploadDate` / `nextRetryAt` / upload queue. Возвращает `{ok, reason, sinceDay, uploadDay, willUploadOn, metrics, payloadBytes}`. Negative branches: `NOT_ENABLED` / `NOT_JOINED` / `RECONSENT_NEEDED` / `AGGREGATE_ERROR`.
 - **UI.** `research-ui.js` `openTransparency()` теперь рендерит **отдельную амбер-bordered секцию** «📋 Превью следующего upload-а» поверх существующего лога. Внутри: период (`since → upload`), `Будет отправлено: <willUploadOn>`, и одностроковая мини-таблица с амбер-бэйджем **`⏳ preview`**. Визуальная различимость от «✓ stored» — privacy-критическое требование («ещё не на сервере» должно читаться однозначно). Empty-case (метрики все нули) → italic «Сегодня ещё нет зарегистрированных событий.»; error-case → красная подпись с message.
 - **i18n.** +13 ключей × 3 локали (ru/en/he) под `research.transparency.preview*` + `historyHeader`.
 - **Тесты.** 7 новых case'ов в `public/research-client-test.html` — pinning of privacy/state invariants (no fetch, no log mutation, no lastUploadDate change, clamp sinceDay ≤ uploadDay, всех 4 negative branches). Новый smoke runner `scripts/research/preview-ui-smoke.js` (Playwright, 12 DOM-assertions) — мокает `v3ConfirmModal` + `__localDB`, открывает реальный модал, проверяет наличие preview-секции, бэйджа `⏳ preview`, period+willUpload-меток, и нумерических ячеек со значениями из synthetic events. Wire'нут в `scripts/research/all-smoke.js`.
 - **Smoke-табло post-change:** Server 25/25, Client opt-in **28/28** (+7), Teacher dashboard 14/14, **Preview UI 12/12 (новый)**, Visual regression 9 PNGs → итого **79 cases + 9 PNGs ALL GREEN**.
+
+### Chore
+
+- **Repo tidy** (`3000de7`). Зафиксированы давно висевшие в working tree pilot-prep артефакты: `docs/PARALLEL_WORK_PLAN_DURING_PILOT.md` (план параллельной работы на pilot-окно), `scripts/research/prepare_smoke_artifacts.js` (idempotent smoke prep CLI), `scripts/research/gen_smoke_check_docx.py` (генератор smoke-check protocol DOCX), `tests/Pre-Phase-6 dogfood протокол.md`. `.gitignore` дополнен `.external/` (25 MB HebMorph + hspell локальных бандлов для morphology pipeline — не часть истории репо). Удалён `scripts/research/demo_daily_artifact.js` — одноразовый диагност от preview-investigation, перекрыт preview-ui-smoke'ом.
+
+### Anchor commits
+
+- `6722607` feat — preview-функционал + тесты + докcы (CHANGELOG, RESEARCHER_GUIDE §1.1)
+- `3000de7` chore — repo tidy
 
 ---
 
