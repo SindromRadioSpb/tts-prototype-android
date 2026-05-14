@@ -170,6 +170,25 @@ Outcome metrics are NOT in the daily upload — they're captured separately:
   ```
 - **Teacher CSV upload:** stored in `research-data/<cohort_code>/outcomes.csv`, joined at dashboard render.
 
+- **Calibrated diagnostic quiz (v3.3.5 Direction 13):** when student completes the in-app 20-item Hebrew diagnostic, app sends a ONE-OFF `POST /api/research/v1/metrics` with `metrics.outcome` populated:
+  ```json
+  {
+    "outcome": {
+      "quiz_score_normalized": <number 0..100>,
+      "quiz_cefr_band":        "A1" | "A2" | "B1" | "B2" | "C1",
+      "quiz_se":               <number ≥ 0>,
+      "quiz_completed_at":     "YYYY-MM-DD",
+      "quiz_version":          "<lowercase_with_underscores>_v<digits>",
+      "outcome_capture_method": "calibrated-quiz"
+    }
+  }
+  ```
+  Hard constraint: per-item responses (`Q01`..`Q20`, `responses_transient`) MUST NOT leave the device. Item bank lives at `public/quiz/<instrument_id>.json`; scoring engine in `public/js/quiz-scoring.js` (Rasch 1PL MLE). `quiz_se` is the measurement-quality metric; `quiz_cefr_band` is a derived presentation, not a separate measurement (per `docs/RESEARCH_CONSENT_RULE.md` Example E — cosmetic addition, no `CONSENT_VERSION` bump).
+
+  Teacher CSV remains authoritative for `post_test_score`; quiz fields are preserved on merge so the dashboard surfaces both alongside.
+
+  Reverse mapping (for analysis): `theta_estimate = (raw_score / 100 * 6.0) - 3.0`. Real-data IRT recalibration deferred to v3.4+ once ≥ 30 quiz responses accumulate.
+
 ## 9. Forbidden fields
 
 The schema validator MUST reject payload if any of these are present (server-side enforcement):
