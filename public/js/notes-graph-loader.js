@@ -34,9 +34,14 @@
   // Pinned manifest — every chunk that may be loaded as part of the
   // graph feature. The privacy smoke uses this exact list as its
   // allow-list (see scripts/notes-graph/privacy-smoke.js case 1).
+  //
+  // d3-graph.min.js is ONE self-contained IIFE bundle (exposes
+  // window.d3graph). The standalone d3-force/d3-zoom dist files are
+  // NOT self-contained — they need the d3 micro-package ecosystem —
+  // so we esbuild exactly the needed subset into a single chunk.
+  // See public/vendor/README.md for provenance + regeneration.
   const GRAPH_CHUNKS = [
-    "/vendor/d3-force.min.js",
-    "/vendor/d3-zoom.min.js",
+    "/vendor/d3-graph.min.js",
     "/js/notes-graph-render.js",
     "/js/notes-graph.js",
   ];

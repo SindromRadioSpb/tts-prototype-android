@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // scripts/notes-graph/lazyload-smoke.js — v3.3.6 Knowledge Graph lazy-load smoke.
 //
-// C0 scope (cases 1–2). C4 expands to 7 cases (launcher → chunk load,
+// C0 scope: cases 1–2. C1 adds cases 3–4 (vendored bundle integrity +
+// d3graph symbol surface). C4 expands further (launcher → chunk load,
 // state machine). C8 adds SW-cache cases. This file grows across the
-// patch sequence; at C0 it pins only the classic-startup contract.
+// patch sequence.
 //
 // Cases at C0:
 //   1. Classic-view DOMContentLoaded is within baseline + 200 ms.
@@ -164,8 +165,43 @@ async function main() {
          c2.notesGraphUndefined &&
          c2.d3Undefined &&
          c2.chunkScriptsAbsent &&
-         Array.isArray(c2.chunkManifest) && c2.chunkManifest.length === 4,
+         Array.isArray(c2.chunkManifest) && c2.chunkManifest.length === 3,
          JSON.stringify(c2));
+
+    // ── Case 3 — vendored d3 bundle integrity (sha256 vs README) ────────
+    const readmePath = path.join(REPO_ROOT, "public/vendor/README.md");
+    const bundlePath = path.join(REPO_ROOT, "public/vendor/d3-graph.min.js");
+    let shaOk = false, shaDetail = "";
+    try {
+      const crypto = require("crypto");
+      const bundleSha = crypto.createHash("sha256")
+        .update(fs.readFileSync(bundlePath)).digest("hex");
+      const readme = fs.readFileSync(readmePath, "utf8");
+      const m = readme.match(/d3-graph\.min\.js\s+sha256:([0-9a-f]{64})/);
+      const declared = m ? m[1] : null;
+      shaOk = !!declared && declared === bundleSha;
+      shaDetail = `served=${bundleSha.slice(0, 16)}… declared=${declared ? declared.slice(0, 16) + "…" : "MISSING"}`;
+    } catch (e) {
+      shaDetail = "error: " + e.message;
+    }
+    test("Case 3: vendored d3-graph.min.js sha256 matches README declaration",
+         shaOk, shaDetail);
+
+    // ── Case 4 — bundle exposes the required d3graph symbols ────────────
+    await page.evaluate(() => window.LinguistProGraph && true);
+    await page.addScriptTag({ url: "/vendor/d3-graph.min.js" });
+    const c4 = await page.evaluate(() => {
+      const g = window.d3graph || {};
+      const fns = ["forceSimulation", "forceManyBody", "forceLink",
+                   "forceCenter", "forceCollide", "forceX", "forceY",
+                   "zoom", "zoomTransform", "select", "selectAll"];
+      const allFns = fns.every((k) => typeof g[k] === "function");
+      const zoomIdent = g.zoomIdentity && typeof g.zoomIdentity === "object" &&
+                        g.zoomIdentity.k === 1;
+      return { allFns, zoomIdent, present: typeof window.d3graph === "object" };
+    });
+    test("Case 4: /vendor/d3-graph.min.js exposes window.d3graph with 11 fns + zoomIdentity",
+         c4.present && c4.allFns && c4.zoomIdent, JSON.stringify(c4));
   } finally {
     await context.close();
     await browser.close();

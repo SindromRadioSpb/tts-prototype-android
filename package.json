@@ -40,6 +40,7 @@
     "smoke:quiz:reset-cli": "node scripts/research/quiz-reset-cli-smoke.js",
     "smoke:graph": "node scripts/notes-graph/lazyload-smoke.js",
     "smoke:graph:lazyload": "node scripts/notes-graph/lazyload-smoke.js",
+    "vendor:build:graph": "node scripts/vendor/build-d3-graph.mjs",
     "research:quiz-reset": "node scripts/research/reset_quiz_for_student.js",
     "quiz:validate": "node scripts/quiz/validate-bank.js",
     "quiz:regen-fixture": "node scripts/quiz/generate-mirt-fixture.js",
@@ -84,6 +85,10 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "d3-force": "3.0.0",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "3.0.0",
+    "esbuild": "^0.21.0",
     "playwright": "^1.52.0"
   }
 }
