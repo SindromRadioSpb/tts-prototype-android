@@ -34,7 +34,7 @@
 
 ### Existing JS modules graph will sit alongside
 
-- `public/js/crosstext.js` (410 LOC) — already builds an in-memory inverted index of all sentences keyed by surface-form + `MorphProvider.analyze()`-derived `rootIndex: Map<rKey, Set<formKey>>`. Exposes `ensureIndex`, `findOccurrences`, `invalidate`, `getStats`. **Graph should reuse `MorphProvider.analyze()` for root resolution — don't duplicate root matching logic.**
+- `public/js/crosstext.js` (410 LOC) — already builds an in-memory inverted index of all **sentences** keyed by surface-form + `MorphProvider.analyze()`-derived `rootIndex: Map<rKey, Set<formKey>>`. Exposes `ensureIndex`, `findOccurrences`, `invalidate`, `getStats`. The internal `_resolveRoot(word)` helper is private; calls `window.MorphProvider.analyze(word)` which returns **`Array<{r, b}>`** (multi-analysis preserved; consumer picks first entry with non-empty `r` — Tier-1 hspell wins by priority order). **Graph reuses the same contracts (`MorphProvider.analyze` + `MorphNormalize.normalizeHebrew` + tokenize helper) — does NOT duplicate root-matching logic.**
 - `public/js/crosstext-ui.js` (366 LOC) — side-panel pattern at z-index 10500/10501.
 - `public/js/morph-provider.js` — `analyze(word)` returns `{root, analyses}` with multi-analysis preserved. Provider abstraction lets the graph stay backend-agnostic.
 - `public/js/morph-normalize.js` — niqqud-insensitive normalization. **Reuse, don't reimplement.**
@@ -52,10 +52,12 @@
 - Service Worker caches everything in `public/sw.js` `MORPH_CACHE` and the default bucket.
 - **v3.3.6 must establish the lazy-load pattern** — see §6.
 
-### Cross-text overlap
+### Cross-text overlap — shared contracts, separate indexes
 
 - Both Cross-text hub (v3.3.2 D15) and Graph (v3.3.6) consume `notes_v2 + note_links + roots + texts + sentences + morph`. The risk is **divergent root-matching logic** — the user-flagged §11 concern.
-- Mitigation: Graph reads via the same `MorphProvider.analyze()` + `morph-normalize` contracts. Where Graph needs the inverted index Cross-text already maintains, expose `crosstext.getIndex()` (new tiny addition) instead of duplicating the index build.
+- **Crosstext indexes SENTENCES.** Graph builds a different index over **notes + links + nodes**. The two inverted indexes have different shapes; cross-text's `rootIndex` is not directly reusable by graph.
+- Mitigation: Graph reads via the same `MorphProvider.analyze()` + `MorphNormalize.normalizeHebrew` contracts and the same tokenizer helper. Each module builds its own ontology-specific index. **Acceptance criterion enforced by smoke** (§13 build-data cases 6+7): for any Hebrew word, both modules must resolve the same `root` + `binyan` value. Diverge → smoke fails.
+- No `crosstext.getIndex()` export is needed (an earlier draft proposed it; superseded after audit).
 
 ### Master plan reference
 
@@ -485,7 +487,7 @@ public/index.html                       +2 lines    — eager script tag for not
 public/js/research-ui.js                ~10 lines   — add "🕸 Knowledge graph" launcher button
 public/sw.js                            ~20 lines   — GRAPH_CACHE bucket + lazy-load asset patterns
 public/i18n/locales/{ru,en,he}.js       ~15 keys × 3 — graph.* i18n keys
-public/js/crosstext.js                  +5 lines    — expose getIndex() so graph can reuse rootIndex
+public/js/crosstext.js                  +0 lines    — UNCHANGED. (Earlier draft proposed getIndex() export; audit showed sentence-index and node-index have different shapes. Graph builds its own index; shared contracts (MorphProvider/MorphNormalize) enforce parity by smoke instead.)
 package.json                            +2 entries  — smoke:graph + smoke:graph:* shortcuts; +d3-force, d3-zoom as devDeps (vendored, not at runtime)
 scripts/research/all-smoke.js           +6 rows     — wire the 6 new suites
 CHANGELOG.md                            entry       — [3.3.6] section
@@ -495,13 +497,13 @@ docs/PREMIUM_RELEASE_PLAN_v3_3.md       §4 + §10    — mark v3.3.6 SHIPPED on
 
 ### Total surface
 
-~1000 LOC of new JS + ~17 KB gz of vendored d3-force + d3-zoom + ~50 LOC of modifications to existing files. Smoke matrix grows by 6 suites + 26 cases (290 → 316).
+~1100 LOC of new JS + ~17 KB gz of vendored d3-force + d3-zoom + ~75 LOC of modifications to existing files. Smoke matrix grows by 7 suites + 40 cases (290 → 330) after blind-spot expansions (3 perf fixtures, cross-text parity, SW cache versioning, 8-case privacy audit). Counted as deliberate; see "Pre-C0 Blind Spots Closed" §F, §D, §H.
 
 ---
 
 ## 13. Smoke Matrix
 
-### 6 new suites
+### 7 new suites (was 6 — added cross-text parity; perf and lazyload cases expanded; privacy expanded)
 
 | Suite | Cases | What it pins |
 |---|---|---|
@@ -512,7 +514,7 @@ docs/PREMIUM_RELEASE_PLAN_v3_3.md       §4 + §10    — mark v3.3.6 SHIPPED on
 | `notes-graph-mobile-fallback-smoke.js` | 3 | (1) at 480×800 viewport, full graph NOT rendered, isolated-cluster list IS rendered; (2) at 1280×720 landscape, full graph rendered; (3) crossing the threshold mid-session falls back without losing focus |
 | `notes-graph-privacy-smoke.js` | 4 | (1) graph session emits zero events to the `events` table; (2) no `fetch()` calls during a graph session except for SW-cached chunk loads; (3) `metrics.outcome` validator continues to reject `graph_*` keys (negative test); (4) consent template + CONSENT_VERSION unchanged |
 
-### Visual regression (3 captures)
+### Visual regression (10 captures — was 8; added empty-state + top-200 toast per blind-spot §G)
 
 Captured by `scripts/notes-graph/visual-regression.js` via Playwright, saved to `Smoke-check/graph-view/<ts>/`:
 
@@ -522,7 +524,7 @@ Captured by `scripts/notes-graph/visual-regression.js` via Playwright, saved to 
 
 ### Total smoke matrix at v3.3.6 close
 
-20 suites + 6 new = **26 suites · 316 cases · ALL GREEN target**.
+20 suites + 7 new = **27 suites · 330 cases · ALL GREEN target.** Breakdown: build-data (7) + perf (6) + lazyload (7) + render-a11y (6) + mobile-fallback (5) + privacy (8) + visual-regression self-test (1) = 40 new cases.
 
 ---
 
@@ -543,7 +545,7 @@ Captures per viewport:
 | `07-screen-reader-list-view.png` | 1440×900 | List-view toggle on, table visible |
 | `08-reduced-motion.png` | 1440×900 | Capture with `Emulation.setEmulatedMedia(prefers-reduced-motion: reduce)` |
 
-8 captures total. Diff against baseline at each v3.3.6.x patch via pixelmatch (same harness teacher-dashboard uses).
+10 captures total. Adds `09-empty-state.png` (empty_no_links at 1440×900) and `10-top-200-reduced-toast.png` (reduced_top200 at 1440×900) per blind-spot §G. Diff against baseline via pixelmatch (same harness teacher-dashboard uses).
 
 ---
 
@@ -609,13 +611,13 @@ C9  test(graph): visual regression captures
 C10 docs(graph): RESEARCHER_GUIDE pointer (graph is not researcher-
     facing but mention exists for completeness) + ULPAN_RESEARCH_PLAN
     pointer + master plan §4 + §10 status flip
-    smoke: ALL GREEN final regression — 26 suites / 316 cases
+    smoke: ALL GREEN final regression — 27 suites / 330 cases
 
 C11 chore(release): v3.3.6 — bump package.json + CHANGELOG entry
     + annotated git tag + GitHub release with notes template
 ```
 
-11 commits, ~6-7 dev-days realistic. Smoke matrix at close: 26 suites / 316 cases ALL GREEN.
+11 commits, ~6-7 dev-days realistic. Smoke matrix at close: **27 suites / 330 cases ALL GREEN.** Pacing: mega-session push-through per user choice 2026-05-15. Status updates between commits; final gate at C11 release commit before any push.
 
 ---
 
@@ -624,8 +626,11 @@ C11 chore(release): v3.3.6 — bump package.json + CHANGELOG entry
 For v3.3.6 to ship:
 
 - [ ] All 17 plan sections in this doc have a corresponding implementation slice in C0-C11.
-- [ ] 26 smoke suites green; 316 cases pass.
-- [ ] 8 visual regression captures committed + pixel-diff vs baseline ≤ 1%.
+- [ ] 27 smoke suites green; 330 cases pass.
+- [ ] 10 visual regression captures committed + pixel-diff vs baseline ≤ 1%.
+- [ ] Manual sanity outcome recorded in C10 commit message — NVDA on Windows: `role="application"` kept or dropped.
+- [ ] Manual sanity outcome recorded in C10 commit message — VoiceOver on macOS: Rotor sees structured list.
+- [ ] Manual sanity outcome recorded in C10 commit message — real mid-range Android device: cluster-card fallback verified.
 - [ ] Classic-view DOMContentLoaded measured pre-v3.3.6 and post-v3.3.6 — regression ≤ 200 ms.
 - [ ] `window.NotesGraph === undefined` BEFORE any user interaction with the Graph button (lazy-load proof).
 - [ ] Mobile fallback verified on a real mid-range Android device (Pixel 5a or similar) — not just emulated viewport.
@@ -651,22 +656,237 @@ For v3.3.6 to ship:
 | d3-force MIT-compat license issue | Low | Low | License files vendored alongside the bundles; provenance in `public/vendor/README.md` |
 | Bundle vendoring drift (someone runs `npm install d3-force` and ships unminified) | Low | Medium | Vendored bundles are CHECKED IN; `package.json` lists d3-force + d3-zoom only as devDependencies and only for re-minifying the bundle; never at runtime |
 | Graph reveals previously-uncomputed surface (e.g. orphan notes) and user wants to "fix from here" → scope creep into edit-from-graph | High | Medium | DoD includes explicit "read-only" sign-off; toolbar has NO edit buttons; right-click menu has NO edit options; commit message C0 hard-codes "no edit-from-graph"; Risk section refers v3.4+ explicitly |
-| Cross-text and Graph duplicate root-matching logic → divergent results | Medium | High | Both modules call `MorphProvider.analyze()` + `morph-normalize`; Graph imports Cross-text's `getIndex()` (new tiny export, see §1) instead of building its own |
+| Cross-text and Graph duplicate root-matching logic → divergent results | Medium | High | Both modules call `MorphProvider.analyze()` + `MorphNormalize.normalizeHebrew` (shared contracts; no duplicated logic). Smoke build-data cases 6+7 pin parity: `_resolveRoot("שלום")` and `_resolveRoot("שָׁלוֹם")` must yield identical `{root, binyan}` between modules. Diverge → smoke fails. |
 | Service Worker GRAPH_CACHE causes stale loads after a graph patch | Low | Medium | Cache version bumps with each Graph release; old version evicted on SW activate; existing `MORPH_CACHE` pattern is the template |
 | Visual regression captures become flaky on CI due to subtle font/anti-aliasing changes | Medium | Low | Pixel-diff tolerance ≤ 1%; captures use a single font (system-ui); CI runs on consistent Chromium build pinned by Playwright |
 | User attempts graph on a real ulpan cohort and graph feature ends up implicitly counting as a "telemetry surface" in IRB review | Low | High | Privacy smoke pins ZERO events; no telemetry; if a researcher later wants graph-navigation data, this is a SEPARATE plan with fresh consent audit (Example F) — NOT folded in |
 
 ---
 
-## Appendix A. Open questions to resolve before C0
+## Pre-C0 Blind Spots Closed
 
-1. **Right-click menu on touch devices.** Long-press is the touch analog. Should we ship long-press for "Isolate cluster" in v1, or defer? Recommendation: defer (touch users have the cluster-card UI which does the same thing).
-2. **Pin/unpin convention.** Drag-and-release pins automatically? Or explicit "pin this node" affordance? Recommendation: drag-pins, double-click unpins. Match Roam / Obsidian convention.
-3. **Zoom default level.** Fit-to-content on open? Or fixed 1.0 scale? Recommendation: fit-to-content with a 10% margin.
-4. **Edge labels.** Show `link_alias` on hover/focus? Recommendation: hover only (visual noise on focus).
-5. **Persistent layout.** Should node positions persist across sessions? Recommendation: NO — re-simulate each open. Persistence adds state surface; lazy-load + perf budget makes re-sim cheap enough.
+> Authored 2026-05-15 after user review of the original plan. Closes ten classes of issues identified between the initial plan draft (a1cac74) and the C0 opening gate. Each subsection is implemented in the patch it cites.
 
-These need a sign-off pass before C0 opens.
+### A. Empty / sparse / error states — 10 documented states
+
+Knowledge Graph must show a meaningful UX for every possible state. No blank modal, no infinite spinner, no uncaught error.
+
+| State | Trigger | UX | Implemented in |
+|---|---|---|---|
+| `loading` | Graph open, fetching data | spinner + "Загружаем карту знаний…" + cancel button | C4 |
+| `loaded` | Data fetched, simulation running | force graph animates | C3 + C4 |
+| `empty_no_notes` | `notes_v2` returns 0 rows | empty-state card with explanatory copy | C4 |
+| `empty_no_links` | Notes exist, 0 explicit + derived links | empty-state card with [[…]] hint copy | C4 |
+| `filtered_all_hidden` | User filters hide every node | filter-reset card with "Сбросить фильтры" button | C4 + C5 |
+| `reduced_top200` | Library has > 200 nodes; top-N applied | toast + "Switch to list view" link | C4 + C5 |
+| `error_data_load` | DB query throws | retry-able error card | C4 |
+| `error_chunk_load` | `/vendor/d3-*.min.js` fails to load | retry + page-refresh suggestion | C4 + C8 |
+| `error_db_unavailable` | `window.__localDB` undefined | same copy family as `error_data_load` | C4 |
+| `fallback_mobile` | `(min-width: 1024px) and (orientation: landscape)` fails | premium cluster-card list (§B below) | C6 |
+
+#### Exact RU/EN/HE copy (canonical i18n entries)
+
+```js
+// public/i18n/locales/ru.js — graph subtree
+graph: {
+  title: "Карта знаний",
+  launcher: "🕸 Карта знаний",
+  btnTitle: "Карта знаний",
+  state: {
+    loading:   "Загружаем карту знаний…",
+    empty: {
+      noNotes: "Пока нет заметок для карты знаний. Добавьте заметки и ссылки [[…]] в библиотеке, чтобы увидеть граф.",
+      noLinks: "Пока нет связей для карты знаний. Добавьте ссылки [[…]] в заметках, чтобы увидеть граф.",
+    },
+    filtered:  { allHidden: "Фильтр скрывает все элементы. Сбросьте фильтры." },
+    error: {
+      dataLoad:  "Карта знаний временно недоступна. Проверьте локальное хранилище и повторите попытку.",
+      chunkLoad: "Не удалось загрузить модуль графа. Проверьте соединение и обновите страницу.",
+    },
+  },
+  toast: { reducedToTopN: "Показаны 200 самых связанных элементов из {n}. Полный список доступен в режиме списка." },
+  // … (toolbar, legend, kbdHelp, fallback — see C4 spec)
+};
+```
+
+EN mirror (state subtree):
+
+```js
+graph: {
+  state: {
+    loading:   "Loading knowledge graph…",
+    empty: {
+      noNotes: "No notes yet for the knowledge graph. Add notes and [[…]] links in your library to build the graph.",
+      noLinks: "No knowledge links yet. Add [[…]] links in notes to build the graph.",
+    },
+    filtered:  { allHidden: "The current filters hide all items. Reset filters to continue." },
+    error: {
+      dataLoad:  "Knowledge Graph is temporarily unavailable. Check local storage and try again.",
+      chunkLoad: "Failed to load the graph module. Check your connection and refresh the page.",
+    },
+  },
+  toast: { reducedToTopN: "Showing the 200 most-connected items out of {n}. The full inventory is available in list view." },
+};
+```
+
+HE mirror (state subtree):
+
+```js
+graph: {
+  state: {
+    loading:   "טוען מפת ידע…",
+    empty: {
+      noNotes: "עדיין אין הערות למפת הידע. הוסף הערות וקישורי [[…]] בספרייה כדי לבנות את המפה.",
+      noLinks: "עדיין אין קישורי ידע. הוסף קישורי [[…]] בהערות כדי לבנות את המפה.",
+    },
+    filtered:  { allHidden: "המסננים הנוכחיים מסתירים את כל הפריטים. אפס מסננים כדי להמשיך." },
+    error: {
+      dataLoad:  "מפת הידע אינה זמינה כרגע. בדוק את האחסון המקומי ונסה שוב.",
+      chunkLoad: "טעינת מודול הגרף נכשלה. בדוק את החיבור ורענן את הדף.",
+    },
+  },
+  toast: { reducedToTopN: "מוצגים 200 הפריטים המקושרים ביותר מתוך {n}. הרשימה המלאה זמינה בתצוגת רשימה." },
+};
+```
+
+### B. Mobile fallback — premium UX, not a degraded state
+
+Mobile fallback (`!(min-width: 1024px) and (orientation: landscape)`) is first-class:
+
+- **Search input** at top of cluster list — filters by node label, root, word, text title, note title (single fuzzy match).
+- **Collapsible cluster cards** stack vertically. Each card:
+  - Header: cluster size badge (`5 узлов · 7 связей`), dominant node kind label (e.g. "Кластер вокруг корня שלם"), top-3 connected labels as chips
+  - Expand → mini force graph inside card (50-node cap, scaled to card width). Same a11y treatment.
+  - Primary action button: "Открыть в библиотеке" — navigates to dominant node's target. Same routes as desktop graph node clicks.
+- **No dead "Open full graph" button.** Replaced with explanatory hint card: `graph.fallback.headline` — "Полный граф доступен на планшете или ПК в альбомной ориентации."
+- **Orientation transition**: above threshold → non-modal toast "Полный граф теперь доступен → [Открыть]". Don't auto-switch.
+- **aria-live search count** via `graph.fallback.clustersFound`.
+
+Implemented in C6.
+
+### C. Accessibility manual sanity (beyond automated smoke)
+
+Automated smoke can't cover screen-reader behavior. Manual sanity required at C10, outcomes recorded in commit message:
+
+- Keyboard-only flow: open → navigate → isolate → reset → close. No mouse.
+- Focus restore audit: each launcher entry → close → focus returns.
+- Escape scope: closes only the topmost graph overlay; cross-text panel below stays.
+- NVDA on Windows: arrow keys in `role="application"` actually work; if not, **drop role and use structured list/table as canonical AT path** in C10 polish.
+- VoiceOver on macOS: Rotor sees the structured list, not the SVG.
+- Help discoverability: `?` keyboard shortcut AND visible `❓` toolbar button both open kbd-help overlay.
+
+### D. Privacy smoke — 8 cases covering all outbound channels
+
+The privacy smoke must monitor and fail on unexpected communication through:
+
+1. `window.fetch` audit via `page.on('request')` — allow-list only `/js/notes-graph.js`, `/js/notes-graph-render.js`, `/js/notes-graph-loader.js`, `/vendor/d3-force.min.js`, `/vendor/d3-zoom.min.js`.
+2. `XMLHttpRequest` audit — pre-navigation monkey-patch; assert zero opens.
+3. `navigator.sendBeacon` audit — monkey-patch; assert zero calls.
+4. Dynamic DOM injection audit — `MutationObserver` on head + body; assert new `<script>` srcs match allow-list, no new `<img>` srcs outside data URIs, no new `<link rel=preload>`.
+5. `events` table write delta — `SELECT COUNT(*) FROM events` before/after; assert delta == 0 (graph emits NO new events; the table already has writes from history flow, so we check delta not absolute count).
+6. Research queue delta — `LinguistProResearch._lsKeys.uploadQueue` length unchanged.
+7. `research/validate.js` file-level diff — no edits by C0–C11.
+8. `CONSENT_VERSION` constant grep — still `'1.0'`.
+
+Implemented in C7.
+
+### E. Cross-text normalization parity — hard acceptance criterion
+
+Graph and Cross-text MUST resolve the same `root` + `binyan` for the same Hebrew word. Smoke cases:
+
+- **Build-data case 6**: for "שלום", graph's root resolution matches `crosstext._resolveRoot("שלום")` output (via test harness exposing the helper).
+- **Build-data case 7**: for niqqud variant "שָׁלוֹם", same parity check (verifies both go through `MorphNormalize.normalizeHebrew` first).
+
+No duplicate normalization logic in `notes-graph.js` — only `window.MorphNormalize.normalizeHebrew` + `window.MorphProvider.analyze`.
+
+Implemented in C2.
+
+### F. Performance fixtures — three graph shapes
+
+Perf smoke runs against three fixture shapes, not one:
+
+| Fixture | Shape | Counts |
+|---|---|---|
+| `dense` | Many cross-links | 50 notes / 5 texts / 15 roots / 220 explicit links |
+| `sparse_islands` | Many disconnected groups | 80 notes / 30 texts / 25 roots / 30 explicit links |
+| `giant_component` | One huge connected blob | 100 notes / 1 text / 8 roots / 250 explicit links |
+
+Each fixture × 2 budget assertions (cold-render time + main-thread block delta) = 6 smoke cases total.
+
+Implemented in C3 + C5.
+
+### G. Visual regression — 10 captures (was 8)
+
+Added two captures over the original plan:
+
+- `09-empty-state.png` — `empty_no_links` state at 1440×900
+- `10-top-200-reduced-toast.png` — `reduced_top200` state with toast visible at 1440×900
+
+Total: **10 captures**, ≤ 1% pixel diff vs baseline. Implemented in C9.
+
+### H. Service Worker stale cache risk — versioned cache, evicted on activate
+
+- `const GRAPH_CACHE_VERSION = "v3.3.6-1";` SEPARATE from main `CACHE_VERSION` so graph asset bumps don't churn the precache.
+- `GRAPH_CACHE = \`linguistpro-graph-${GRAPH_CACHE_VERSION}\``
+- On `activate`: keep set extended with `GRAPH_CACHE`; any other `linguistpro-graph-*` cache evicted.
+- Smoke (in lazyload smoke): first open caches; second open serves from cache; bumping `GRAPH_CACHE_VERSION` in test → old cache evicted.
+- CHANGELOG mentions `GRAPH_CACHE_VERSION` per release.
+
+Implemented in C8.
+
+### I. Legend — always available, action-connected
+
+Toolbar `❓ Легенда` button toggles a fixed-position legend panel. Contents:
+
+```
+Узлы:
+  ●  Заметка        ▲  Корень         ⬢  Биньян
+  ▭  Текст          ●  Слово           ▭  Строка
+
+Связи:
+  ───   сплошная — ссылка [[…]] в заметке      (explicit_link)
+  - -   пунктир — заметка о тексте/строке     (target_anchor)
+  …    точки — корень/биньян из морфологии   (derived_morph)
+```
+
+Tap any legend item → toggles that filter on/off. Persists open across pan/zoom; Esc dismisses.
+
+Implemented in C5.
+
+### J. Error handling — graceful, never blank
+
+Every state has a defined UI: loading state has 10-second timeout → falls to `error_data_load`. Every error state has Retry + Close buttons. Top-level `try/catch` in `LinguistProGraph.open()` → uncaught → `error_data_load` + `console.error`. Smoke asserts no `pageerror` event during any state transition.
+
+Implemented in C4 + C5.
+
+---
+
+## Premium-Grade Decisions (2026-05-15)
+
+After audit + user review, the following premium improvements landed in v3.3.6 scope:
+
+| # | Proposal | In scope | Notes |
+|---|---|---|---|
+| Λ1 | **Dual launcher placement** | ✓ Yes | (a) research-panel button, (b) top-nav `🕸` button at `index.html:9074` (verified safe mount next to `btnResearch 📊`), (c) URL deep-link `#graph` on page load. **Notes-UI launcher is REQUIRED, not optional.** |
+| Λ2 | Shared `_a11y.js` extraction | ✗ No | Quiz a11y primitives (focus trap, focusable selector, previouslyFocused) copied inline into `notes-graph.js` (~40 LOC); refactor when a third consumer emerges. |
+| Λ3 | Color-blind programmatic check | ✗ No | Manual claim only (palette passes Coblis); no automated smoke pin. |
+| Λ4 | SR neighbor preview on focus | ✗ No | Per-node `aria-label` with degree still ships; no live-region neighbor announcement. |
+| Λ5 | **Filter state in sessionStorage** | ✓ Yes | Only persistent surface. Layout positions still re-simulate every open per Appendix A #5. Clear-filters button + legend-hover note explain. |
+| Λ6 | Reduced-motion smoke case | ✗ No | Reduced-motion behavior STILL ships in code (per Appendix A spirit); just not smoke-pinned. |
+
+---
+
+## Appendix A. Open questions — RESOLVED 2026-05-15
+
+> All five questions resolved by user directive on 2026-05-15. Original recommendations stood.
+
+1. **Right-click menu on touch devices.** RESOLVED → Defer long-press in v3.3.6. Touch users use cluster-card UI. Mobile users must still isolate/open clusters through visible card controls (§B above).
+2. **Pin/unpin convention.** RESOLVED → Drag-and-release pins a node. Double-click unpins. Visible "Сбросить вид" / "Reset view" toolbar button unpins all + recenters with fit-to-content 10% margin. Documented in keyboard-help overlay copy.
+3. **Zoom default.** RESOLVED → Fit-to-content with 10% margin on open. Not fixed 1.0 scale. Reset view returns to same.
+4. **Edge labels.** RESOLVED → Do not render edge labels permanently. Show `link_alias` only in hover/focus metadata details panel. Reason: permanent edge labels create visual noise on dense layouts.
+5. **Persistent layout.** RESOLVED → No persistent node positions in v3.3.6. Re-simulate layout on every graph open. No localStorage/IndexedDB/SQLite writes for graph layout. Reason: avoids extra state surface and privacy/reproducibility issues. Filter checkbox selections, however, persist in `sessionStorage` (Λ5 above) — distinct from layout positions.
+
+Decisions are implemented across C3 (renderer + pin/unpin + zoom), C4 (state machine + i18n), and C5 (keyboard nav + filter handling).
 
 ---
 
