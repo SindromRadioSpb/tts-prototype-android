@@ -93,9 +93,19 @@ repo_tree.txt
 # Phase 11.5+ visual regression captures (Smoke-check/teacher-dashboard/<timestamp>/)
 # These are ephemeral artifacts produced by scripts/research/teacher-screenshots.js.
 # Use `git add -f` to commit a baseline snapshot manually if needed.
-Smoke-check/
+# Ignore everything under Smoke-check/ EXCEPT the graph-view baseline.
+# (git cannot re-include a path whose parent dir is excluded, so we
+# ignore the *contents* with /Smoke-check/* and re-include the chain
+# down to the v3.3.6 C9 visual-regression baseline, which must be
+# version-controlled so `npm run smoke:graph:visual` pixel-diffs
+# against it on any machine / CI. Ad-hoc verify temp dirs live in
+# os.tmpdir() and remain ignored.)
+/Smoke-check/*
+!/Smoke-check/graph-view/
+/Smoke-check/graph-view/*
+!/Smoke-check/graph-view/baseline/
 .playwright-mcp/
-Smoke-check/test-cohort-credentials.txt
+/Smoke-check/test-cohort-credentials.txt
 
 # External source bundles (HebMorph, hspell, etc.) — large 3rd-party trees
 # fetched locally for the morphology pipeline. Not part of repo history.

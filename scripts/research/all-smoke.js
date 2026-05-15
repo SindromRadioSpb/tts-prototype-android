@@ -50,6 +50,7 @@ const SUITES = [
   { name: "Graph privacy hardening (v3.3.6 C7)",     script: "scripts/notes-graph/privacy-smoke.js",        countLabel: "8 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
+    { name: "Graph visual regression (v3.3.6 C9)", script: "scripts/notes-graph/visual-regression.js", countLabel: "31 self-test assertions / 10 PNGs" },
   ]),
 ];
 
