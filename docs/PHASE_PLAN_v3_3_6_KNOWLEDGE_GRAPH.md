@@ -909,4 +909,91 @@ If any of these surface as user requests during v3.3.6 implementation: escalate,
 
 ---
 
-**Plan authored 2026-05-15 by Claude Opus 4.7 (1M context) on behalf of the project owner. Implementation does not start until user re-approves this gate.**
+## Implementation Notes — as-built (C0–C4, 2026-05-15)
+
+> Records deviations between the written plan and what was actually
+> implemented, so the document matches reality. Each delta is an
+> improvement or a correction surfaced during implementation; none
+> change the hard constraints.
+
+### N1. d3 vendoring — ONE esbuild IIFE bundle, not two jsdelivr files
+
+Plan §5/§6/§15-C1 assumed `d3-force@3/dist/d3-force.min.js` +
+`d3-zoom@3/dist/d3-zoom.min.js` were self-contained UMD files curl-able
+from jsdelivr. **They are not** — each standalone d3 micro-package
+expects the rest of the d3 ecosystem (d3-quadtree, d3-dispatch,
+d3-timer, d3-selection, d3-drag, d3-interpolate, d3-transition,
+d3-color, d3-ease). As-built: a single self-contained IIFE
+`public/vendor/d3-graph.min.js` (window.d3graph; ~61 KB min /
+~20.8 KB gz) built by esbuild from `vendor-src/d3-graph-entry.js`.
+esbuild + d3-force@3 + d3-zoom@3 + d3-selection@3 are devDependencies
+(build-time only — vendored output is what ships). Regeneration:
+`npm run vendor:build:graph`. sha256 declared in
+`public/vendor/README.md`, drift-pinned by lazyload-smoke case 3.
+
+### N2. GRAPH_CHUNKS manifest = 3 entries, not 4
+
+Consequent to N1: the loader manifest is
+`/vendor/d3-graph.min.js` + `/js/notes-graph-render.js` +
+`/js/notes-graph.js` (3, not 4). This is the privacy-smoke fetch
+allow-list (C7).
+
+### N3. Sentence node labels are positional — zero he_plain
+
+Plan §3 node taxonomy said sentence label = "first 24 chars of
+he_plain". As-built: sentence nodes are labelled positionally
+("Строка · <text title>"), so **zero raw sentence text** crosses into
+the graph layer (stricter privacy than the plan). SQL never selects
+`he_plain`; only `json_extract($.root|$.binyan|$.word)` scalar fields.
+
+### N4. Text nodes materialize on-reference, not eagerly
+
+Plan §2 query 3 fetched all texts as nodes. As-built: a `textTitle`
+lookup map is built from texts, but text **nodes** are created only
+when an edge references them (same rule as root/word/binyan). A
+library text with zero notes/links is not a degree-0 island — the
+graph shows *connected knowledge*, not the full library inventory.
+
+### N5. DB-readiness guard added (not in original plan)
+
+`window.NotesGraph.open()` mirrors the app's own readiness pattern
+(`index.html` ~10686): await `window.__localDBInitPromise`, surface
+`window.__localDBInitError`, verify `window.__localDB.isReady()`
+BEFORE any query. Querying wa-sqlite mid-boot throws an uncatchable
+WASM "memory access out of bounds"; the guard routes to
+`error_db_unavailable` instead. Defense-in-depth for the
+`error_db_unavailable` state.
+
+### N6. Smoke-harness OPFS isolation note
+
+The shared Playwright browser context's wa-sqlite worker holds the
+per-origin OPFS AccessHandlePool (single-writer). Smoke cases that
+open a second page in the same context contend for that handle and
+trap the WASM heap on init — a HARNESS artifact, not a graph bug
+(proven by a clean single-page control). Multi-page graph smoke
+cases use an isolated `browser.newContext()`. This is the established
+fix pattern (cf. teacher-multicohort-smoke).
+
+### N7. As-built smoke counts (C0–C4)
+
+| Suite | Cases (as-built) | Plan estimate |
+|---|---|---|
+| lazyload-smoke | 7 (C0:1–2, C1:3–4, C4:5–7) | 7 |
+| build-data-smoke | 7 | 7 |
+| perf-smoke | 6 (3 fixtures × 2) | 6 |
+
+Pre-graph baseline 290 → after C4: **23 suites / 310 cases ALL GREEN**.
+Remaining graph suites (C5 render-a11y, C6 mobile-fallback, C7 privacy,
+C9 visual-regression self-test) tracked toward the 27-suite/330-case
+target.
+
+### N8. CONSENT/privacy posture unchanged
+
+No `/api/research/v1/*` endpoints, no `metrics.outcome` fields, no
+telemetry, no `events` writes, no research-payload mutation,
+`CONSENT_VERSION` stays `1.0`. C7 pins all of this with the 8-case
+privacy smoke.
+
+---
+
+**Plan authored 2026-05-15 by Claude Opus 4.7 (1M context) on behalf of the project owner. As-built notes appended during C0–C4 implementation; implementation continues C5–C11.**
