@@ -45,6 +45,7 @@ const SUITES = [
   { name: "Graph lazy-load (v3.3.6 C0+C1+C4)",       script: "scripts/notes-graph/lazyload-smoke.js",       countLabel: "7 cases" },
   { name: "Graph data layer (v3.3.6 C2)",            script: "scripts/notes-graph/build-data-smoke.js",     countLabel: "7 cases" },
   { name: "Graph renderer perf (v3.3.6 C3)",         script: "scripts/notes-graph/perf-smoke.js",           countLabel: "6 cases" },
+  { name: "Graph keyboard + a11y (v3.3.6 C5)",       script: "scripts/notes-graph/render-a11y-smoke.js",    countLabel: "6 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
   ]),

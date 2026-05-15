@@ -552,13 +552,22 @@
           `style="flex:1;min-height:480px;position:relative;"></div>` +
           `<div data-graph-listpane="1" hidden style="flex:1;overflow:auto;padding:12px;"></div>` +
         `</div>` +
-        `<div data-graph-summary="1" role="status" aria-live="polite" class="sr-only" ` +
-          `style="position:absolute;left:-9999px;">` +
+        `<div data-graph-summary="1" role="status" aria-live="polite" ` +
+          `style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;">` +
           esc(T("graph.summary", "{notes} заметок", {
             notes: g.stats.by_kind.note, texts: g.stats.by_kind.text,
             roots: g.stats.by_kind.root, words: g.stats.by_kind.word,
             binyanim: g.stats.by_kind.binyan, sentences: g.stats.by_kind.sentence,
             edges: g.stats.edges_total })) +
+        `</div>` +
+        // Canonical AT path: an always-present structured table mirroring
+        // the graph (the SVG itself is aria-hidden). Screen-reader users
+        // navigate this; sighted users see the force graph + optional
+        // visible list toggle. clip-based sr-only (no -9999px which can
+        // cause horizontal scroll / focus jumps).
+        `<div data-graph-at-table="1" aria-label="${esc(T("graph.title", "Карта знаний"))}" ` +
+          `style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;">` +
+          renderListView(g) +
         `</div>`;
       wireCommon(panel);
 
@@ -568,14 +577,30 @@
         tw.innerHTML = reducedToast;
         canvas.parentNode.insertBefore(tw.firstChild, canvas.parentNode.firstChild);
       }
+      const byId = new Map(g.nodes.map((n) => [n.id, n]));
       try {
-        _renderHandle = window.NotesGraphRender.renderGraph(canvas, g, {});
+        _renderHandle = window.NotesGraphRender.renderGraph(canvas, g, {
+          // Read-only navigation (no edit affordance anywhere).
+          onNodeActivate(n) { const real = byId.get(n.id) || n; navigateTo(real); },
+          // H toggles cluster isolate / show-all.
+          onClusterIsolate(n) {
+            if (!_renderHandle) return;
+            if (_renderHandle.isIsolated && _renderHandle.isIsolated()) {
+              _renderHandle.showAll();
+            } else if (_renderHandle.isolateCluster) {
+              _renderHandle.isolateCluster(n.id);
+            }
+          },
+          // R resets view.
+          onReset() { if (_renderHandle && _renderHandle.resetView) _renderHandle.resetView(); },
+        });
       } catch (e) {
         console.error("[graph] render failed:", e);
         renderState(panel, "error_data_load", {});
         return;
       }
       wireNodeNav(panel, g);
+      wireListNav(panel, g); // the always-present AT table is navigable too
 
       panel.querySelector("[data-graph-reset]").addEventListener("click", () => {
         if (_renderHandle && _renderHandle.resetView) _renderHandle.resetView();
