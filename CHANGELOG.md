@@ -7,7 +7,42 @@
 
 ## [Unreleased]
 
-(пусто — M8 graph под v3.3.6, 250K full-hspell под v3.4)
+### v3.3.6 Knowledge Graph View (Direction 14) — in progress (C0–C8 done)
+
+Read-only, lazy-loaded, privacy-preserving knowledge graph over
+notes ↔ texts ↔ sentences ↔ roots ↔ words ↔ binyanim.
+
+- **Lazy-load:** only `notes-graph-loader.js` (~1 KB) is eager;
+  d3 bundle + data layer + renderer load on first
+  `LinguistProGraph.open()`. Classic-view DOMContentLoaded baseline
+  unchanged (smoke-pinned ≤ baseline + 200 ms).
+- **Vendored d3:** single self-contained esbuild IIFE
+  `public/vendor/d3-graph.min.js` (window.d3graph, ~20.8 KB gz;
+  d3-force + d3-zoom + d3-selection). sha256-pinned.
+- **Service Worker:** new versioned `GRAPH_CACHE`
+  (**`GRAPH_CACHE_VERSION = "v3.3.6-1"`**), independent of
+  `CACHE_VERSION`. First open populates it; subsequent opens are
+  offline-instant; a graph-asset change → bump `GRAPH_CACHE_VERSION`
+  → old bucket evicted on SW activate. **Bump this version whenever
+  `d3-graph.min.js` or `notes-graph*.js` change materially.**
+- **Read-only:** data layer refuses any non-SELECT SQL; no
+  edit-from-graph, no node/link creation/deletion.
+- **Privacy:** zero fetch/XHR/sendBeacon/telemetry; no `events`
+  writes; no research-payload mutation; no new endpoints; no
+  `metrics.outcome` fields; `CONSENT_VERSION` stays `1.0`.
+- **Accessibility:** SVG `aria-hidden`; always-present structured
+  table is the canonical AT path; per-node keyboard nav (arrows /
+  Enter / H isolate / R reset); role=status live summary.
+- **Mobile:** below 1024 px landscape → premium searchable
+  collapsible isolated-cluster cards (not a degraded graph).
+- **i18n:** full `graph.*` subtree × ru/en/he.
+
+Smoke: +8 graph suites tracked (lazyload 9 / data 7 / perf 6 /
+a11y 6 / mobile 5 / privacy 8) toward the v3.3.6 close target.
+C9 (visual regression) + C10 (docs + manual NVDA/VoiceOver/Android
+sanity) + C11 (release) remain.
+
+(250K full-hspell remains под v3.4.)
 
 ---
 

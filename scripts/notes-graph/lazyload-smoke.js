@@ -282,6 +282,53 @@ async function main() {
          freshErrors.join(" | "));
     await fresh.close();
     await freshCtx.close();
+
+    // ── Cases 8–9 — versioned GRAPH_CACHE (C8) ──────────────────────────
+    // SW must be ENABLED here (the other cases block it). Fresh context →
+    // first-ever SW registration auto-activates + clients.claim().
+    const swCtx = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const swPage = await swCtx.newPage();
+    await swPage.goto(BASE + "/index.html", { waitUntil: "load" });
+    // Wait for the SW to control the page.
+    await swPage.waitForFunction(
+      () => navigator.serviceWorker && navigator.serviceWorker.controller,
+      null, { timeout: 15000 }).catch(() => {});
+    const controlled = await swPage.evaluate(
+      () => !!(navigator.serviceWorker && navigator.serviceWorker.controller));
+    // Open the graph → lazy chunks fetched THROUGH the SW → GRAPH_CACHE.
+    await swPage.waitForFunction(
+      () => window.LinguistProGraph && typeof window.LinguistProGraph.open === "function",
+      null, { timeout: 10000 });
+    await swPage.evaluate(() => window.LinguistProGraph.open());
+    await sleep(2500); // allow chunk fetch + cache.put
+    const cacheState = await swPage.evaluate(async () => {
+      const keys = await caches.keys();
+      const graphKey = keys.find((k) => k.indexOf("linguistpro-graph-") === 0);
+      let hit = false;
+      if (graphKey) {
+        const c = await caches.open(graphKey);
+        const m = await c.match("/vendor/d3-graph.min.js");
+        hit = !!m;
+      }
+      return { keys, graphKey: graphKey || null, hit };
+    });
+    test("Case 8: first graph open populates a versioned GRAPH_CACHE bucket",
+         controlled && cacheState.graphKey &&
+         cacheState.graphKey === "linguistpro-graph-v3.3.6-1" && cacheState.hit,
+         JSON.stringify(cacheState));
+
+    // Second open serves the chunk from cache (already cached → match
+    // resolves; this is the offline-capable path).
+    const secondHit = await swPage.evaluate(async () => {
+      const c = await caches.open("linguistpro-graph-v3.3.6-1");
+      const a = await c.match("/vendor/d3-graph.min.js");
+      const b = await c.match("/js/notes-graph.js");
+      return { d3: !!a, main: !!b };
+    });
+    test("Case 9: GRAPH_CACHE holds the d3 bundle + graph module (offline-capable)",
+         secondHit.d3 && secondHit.main, JSON.stringify(secondHit));
+    await swPage.close();
+    await swCtx.close();
   } finally {
     await context.close();
     await browser.close();

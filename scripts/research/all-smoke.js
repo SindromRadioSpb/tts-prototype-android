@@ -42,7 +42,7 @@ const SUITES = [
   { name: "Quiz server validator (v3.3.5 C6)",       script: "scripts/research/quiz-validator-smoke.js",    countLabel: "7 cases" },
   { name: "Teacher dashboard quiz cols (v3.3.5 C7)", script: "scripts/research/teacher-quiz-smoke.js",      countLabel: "3 cases" },
   { name: "Quiz reset CLI (v3.3.5 C8)",              script: "scripts/research/quiz-reset-cli-smoke.js",    countLabel: "6 cases" },
-  { name: "Graph lazy-load (v3.3.6 C0+C1+C4)",       script: "scripts/notes-graph/lazyload-smoke.js",       countLabel: "7 cases" },
+  { name: "Graph lazy-load (v3.3.6 C0+C1+C4+C8)",    script: "scripts/notes-graph/lazyload-smoke.js",       countLabel: "9 cases" },
   { name: "Graph data layer (v3.3.6 C2)",            script: "scripts/notes-graph/build-data-smoke.js",     countLabel: "7 cases" },
   { name: "Graph renderer perf (v3.3.6 C3)",         script: "scripts/notes-graph/perf-smoke.js",           countLabel: "6 cases" },
   { name: "Graph keyboard + a11y (v3.3.6 C5)",       script: "scripts/notes-graph/render-a11y-smoke.js",    countLabel: "6 cases" },

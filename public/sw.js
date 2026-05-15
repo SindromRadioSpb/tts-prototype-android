@@ -41,6 +41,18 @@ const MORPH_CACHE = `linguistpro-morph-${CACHE_VERSION}`;
 // quota recommendation in the Safari Web Content Guide.
 const MORPH_QUOTA_THRESHOLD = 0.80;
 
+// v3.3.6 Direction 14 — Knowledge Graph lazy chunks. Held in their own
+// bucket, versioned INDEPENDENTLY of CACHE_VERSION so a graph-asset
+// bump (e.g. a d3 patch / renderer change) evicts only the graph cache
+// and does not churn the whole precache. Bump GRAPH_CACHE_VERSION
+// whenever public/vendor/d3-graph.min.js or public/js/notes-graph*.js
+// change materially (see docs/PHASE_PLAN_v3_3_6_KNOWLEDGE_GRAPH.md
+// "Pre-C0 Blind Spots Closed" §H). The 3 chunks are NOT in
+// PRECACHE_URLS — they load only on first LinguistProGraph.open().
+const GRAPH_CACHE_VERSION = "v3.3.6-1";
+const GRAPH_CACHE = `linguistpro-graph-${GRAPH_CACHE_VERSION}`;
+const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-render)?\.js)$/;
+
 // Precache list — relative paths only. Keep this in sync with the modules
 // imported at startup. Lazy modules (jszip.min.js, qrcode.js) are NOT in
 // this list because they're rarely used; they fall through to runtime
@@ -116,10 +128,13 @@ self.addEventListener("install", (event) => {
 // ── activate ─────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, MORPH_CACHE]);
+    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, MORPH_CACHE, GRAPH_CACHE]);
     const names = await caches.keys();
     await Promise.all(
       names
+        // Evicts stale precache/runtime/config/morph AND any OLD
+        // linguistpro-graph-* bucket whose version no longer matches
+        // GRAPH_CACHE — so a graph-asset bump cleans itself up here.
         .filter((n) => n.startsWith("linguistpro-") && !keep.has(n))
         .map((n) => caches.delete(n))
     );
@@ -166,6 +181,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // v3.3.6 Knowledge Graph lazy chunks — dedicated versioned bucket.
+  // Stale-while-revalidate: first open fetches over the network and
+  // populates GRAPH_CACHE; subsequent opens are served instantly from
+  // cache (offline-capable). Bumping GRAPH_CACHE_VERSION makes activate
+  // evict the old bucket so a graph-asset change is never stale-loaded.
+  if (GRAPH_CHUNK_RE.test(url.pathname)) {
+    event.respondWith(graphCacheStrategy(req));
+    return;
+  }
+
   // Static + shell — stale-while-revalidate. Precached assets resolve
   // immediately from cache; runtime assets get cached on first hit.
   event.respondWith(staleWhileRevalidate(req));
@@ -203,6 +228,27 @@ async function staleWhileRevalidate(req) {
   });
 
   // Return cached immediately if available; otherwise wait for network.
+  return cached || fetchPromise;
+}
+
+// Knowledge Graph chunk strategy — stale-while-revalidate against the
+// versioned GRAPH_CACHE bucket. Cache hit returns instantly while a
+// background fetch refreshes the entry; cache miss waits for network
+// and stores it. Only same-origin GET (guaranteed by the fetch-handler
+// guards above).
+async function graphCacheStrategy(req) {
+  const cache = await caches.open(GRAPH_CACHE);
+  const cached = await cache.match(req);
+  const fetchPromise = fetch(req).then((res) => {
+    if (res && res.ok && res.type === "basic") {
+      const cacheable = res.clone();
+      cache.put(req, cacheable).catch(() => {});
+    }
+    return res;
+  }).catch((err) => {
+    if (cached) return cached;
+    throw err;
+  });
   return cached || fetchPromise;
 }
 
