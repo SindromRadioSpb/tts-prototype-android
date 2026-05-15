@@ -43,6 +43,7 @@ const SUITES = [
   { name: "Teacher dashboard quiz cols (v3.3.5 C7)", script: "scripts/research/teacher-quiz-smoke.js",      countLabel: "3 cases" },
   { name: "Quiz reset CLI (v3.3.5 C8)",              script: "scripts/research/quiz-reset-cli-smoke.js",    countLabel: "6 cases" },
   { name: "Graph lazy-load (v3.3.6 C0+C1)",          script: "scripts/notes-graph/lazyload-smoke.js",       countLabel: "4 cases" },
+  { name: "Graph data layer (v3.3.6 C2)",            script: "scripts/notes-graph/build-data-smoke.js",     countLabel: "7 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
   ]),
