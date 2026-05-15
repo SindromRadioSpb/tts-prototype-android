@@ -296,3 +296,520 @@
     module.exports = dataApi;
   }
 })();
+
+// ─────────────────────────────────────────────────────────────────────────
+// window.NotesGraph — orchestrator + modal + 10-state machine (C4).
+// Keyboard nav + structured list/table a11y = C5. Premium mobile
+// cluster cards = C6. This C4 layer ships every state with real copy
+// (no blank modal, no dead controls) + a functional minimal list view
+// so the "List" toolbar button is never a coming-soon stub.
+// ─────────────────────────────────────────────────────────────────────────
+(function () {
+  "use strict";
+
+  const OVERLAY_ID = "notesGraphOverlay";
+  const PANEL_ID = "notesGraphPanel";
+  const LOAD_TIMEOUT_MS = 10000;
+  const FILTER_SS_KEY = "graphFilters_v1";   // sessionStorage (Λ5)
+
+  // a11y primitives — inline copy of the quiz-ui pattern (Λ2 decision:
+  // no shared module; ~40 LOC duplication accepted).
+  const FOCUSABLE = [
+    "a[href]", "button:not([disabled])",
+    "input:not([disabled]):not([type='hidden'])",
+    "select:not([disabled])", "textarea:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])",
+  ].join(",");
+  let previouslyFocused = null;
+
+  function focusablesIn(root) {
+    if (!root) return [];
+    return Array.from(root.querySelectorAll(FOCUSABLE))
+      .filter((el) => (!el.hasAttribute("disabled") && el.offsetParent !== null) ||
+                      el === document.activeElement);
+  }
+  function installFocusTrap(panel) {
+    panel.addEventListener("keydown", (e) => {
+      if (e.key !== "Tab") return;
+      const items = focusablesIn(panel);
+      if (!items.length) return;
+      const first = items[0], last = items[items.length - 1];
+      const a = document.activeElement;
+      if (e.shiftKey) {
+        if (a === first || !panel.contains(a)) { e.preventDefault(); last.focus(); }
+      } else {
+        if (a === last || !panel.contains(a)) { e.preventDefault(); first.focus(); }
+      }
+    });
+  }
+
+  function T(key, fallback, vars) {
+    let s = fallback;
+    try {
+      if (typeof window !== "undefined" && typeof window.t === "function") {
+        const v = window.t(key);
+        if (typeof v === "string" && v !== key) s = v;
+      }
+    } catch (_) {}
+    if (vars) for (const k in vars) s = s.replace("{" + k + "}", String(vars[k]));
+    return s;
+  }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+  function toast(msg, kind) {
+    try {
+      if (typeof window !== "undefined" && typeof window.showToast === "function") {
+        window.showToast(msg, kind || "info");
+      }
+    } catch (_) {}
+  }
+
+  function isFullGraphAllowed() {
+    try {
+      return window.matchMedia("(min-width: 1024px)").matches &&
+             window.matchMedia("(orientation: landscape)").matches;
+    } catch (_) { return true; }
+  }
+
+  function loadFilters() {
+    try {
+      const raw = sessionStorage.getItem(FILTER_SS_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return { note: true, text: true, sentence: true, root: true, word: true, binyan: true };
+  }
+  function saveFilters(f) {
+    try { sessionStorage.setItem(FILTER_SS_KEY, JSON.stringify(f)); } catch (_) {}
+  }
+
+  let _renderHandle = null;
+  let _loadTimer = null;
+
+  function destroy() {
+    if (_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }
+    if (_renderHandle && typeof _renderHandle.destroy === "function") {
+      try { _renderHandle.destroy(); } catch (_) {}
+      _renderHandle = null;
+    }
+    const ov = document.getElementById(OVERLAY_ID);
+    if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+    try {
+      if (previouslyFocused && document.body.contains(previouslyFocused) &&
+          typeof previouslyFocused.focus === "function") {
+        previouslyFocused.focus();
+      }
+    } catch (_) {}
+    previouslyFocused = null;
+  }
+
+  function buildShell() {
+    if (!document.getElementById(OVERLAY_ID)) {
+      try { previouslyFocused = document.activeElement; } catch (_) {}
+    }
+    destroy();
+    const ov = document.createElement("div");
+    ov.id = OVERLAY_ID;
+    ov.setAttribute("data-graph-overlay", "1");
+    ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10500;display:flex;align-items:stretch;justify-content:center;padding:24px;overflow:auto;";
+    const panel = document.createElement("div");
+    panel.id = PANEL_ID;
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "notesGraphTitle");
+    panel.setAttribute("data-graph-panel", "1");
+    panel.style.cssText = "background:var(--theme-bg,#fff);color:var(--theme-text,#000);border-radius:12px;max-width:1100px;width:100%;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,0.35);overflow:hidden;";
+    ov.appendChild(panel);
+    document.body.appendChild(ov);
+    ov.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { e.preventDefault(); destroy(); }
+    });
+    installFocusTrap(panel);
+    return panel;
+  }
+
+  function header(panel, extraHtml) {
+    return (
+      `<div style="display:flex;align-items:center;justify-content:space-between;` +
+      `padding:14px 18px;border-bottom:1px solid var(--theme-border,#e2e2e2);">` +
+        `<h3 id="notesGraphTitle" style="margin:0;font-size:16px;">` +
+          esc(T("graph.title", "Карта знаний")) + `</h3>` +
+        `<div style="display:flex;gap:6px;align-items:center;">` + (extraHtml || "") +
+          `<button type="button" data-graph-help="1" aria-label="${esc(T("graph.toolbar.help", "Помощь"))}" ` +
+            `style="background:transparent;border:1px solid var(--theme-border,#ccc);border-radius:6px;padding:4px 8px;cursor:pointer;">❓</button>` +
+          `<button type="button" data-graph-close="1" aria-label="${esc(T("graph.toolbar.close", "Закрыть"))}" ` +
+            `style="background:transparent;border:none;font-size:20px;cursor:pointer;color:#888;">×</button>` +
+        `</div>` +
+      `</div>`
+    );
+  }
+
+  function wireCommon(panel) {
+    const closeBtn = panel.querySelector("[data-graph-close]");
+    if (closeBtn) closeBtn.addEventListener("click", destroy);
+    const helpBtn = panel.querySelector("[data-graph-help]");
+    if (helpBtn) helpBtn.addEventListener("click", () => openHelp(panel));
+  }
+
+  function renderState(panel, state, payload) {
+    panel.setAttribute("data-graph-state", state);
+
+    if (state === "loading") {
+      panel.innerHTML = header(panel) +
+        `<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:48px;` +
+        `flex-direction:column;gap:14px;" role="status" aria-live="polite">` +
+          `<div class="graph-spinner" aria-hidden="true" style="width:34px;height:34px;border:3px solid var(--theme-border,#ddd);` +
+          `border-top-color:var(--theme-accent,#0a5);border-radius:50%;animation:graphspin 0.8s linear infinite;"></div>` +
+          `<div>${esc(T("graph.state.loading", "Загружаем карту знаний…"))}</div>` +
+          `<button type="button" class="btn-secondary" data-graph-close="1">${esc(T("graph.toolbar.close", "Закрыть"))}</button>` +
+        `</div>` +
+        `<style>@keyframes graphspin{to{transform:rotate(360deg)}}` +
+        `@media (prefers-reduced-motion: reduce){.graph-spinner{animation:none}}</style>`;
+      wireCommon(panel);
+      return;
+    }
+
+    if (state === "empty_no_notes" || state === "empty_no_links" ||
+        state === "filtered_all_hidden" ||
+        state === "error_data_load" || state === "error_db_unavailable") {
+      const copyKey =
+        state === "empty_no_notes"  ? "graph.state.empty.noNotes" :
+        state === "empty_no_links"  ? "graph.state.empty.noLinks" :
+        state === "filtered_all_hidden" ? "graph.state.filtered.allHidden" :
+                                       "graph.state.error.dataLoad";
+      const copyFallback =
+        state === "empty_no_notes"  ? "Пока нет заметок для карты знаний. Добавьте заметки и ссылки [[…]] в библиотеке, чтобы увидеть граф." :
+        state === "empty_no_links"  ? "Пока нет связей для карты знаний. Добавьте ссылки [[…]] в заметках, чтобы увидеть граф." :
+        state === "filtered_all_hidden" ? "Фильтр скрывает все элементы. Сбросьте фильтры." :
+                                       "Карта знаний временно недоступна. Проверьте локальное хранилище и повторите попытку.";
+      const isError = state.indexOf("error") === 0;
+      const isFilter = state === "filtered_all_hidden";
+      panel.innerHTML = header(panel) +
+        `<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:48px;` +
+        `flex-direction:column;gap:16px;text-align:center;" role="status" aria-live="polite">` +
+          `<div style="font-size:40px;" aria-hidden="true">${isError ? "⚠️" : "🕸"}</div>` +
+          `<p style="margin:0;max-width:420px;line-height:1.5;">${esc(T(copyKey, copyFallback))}</p>` +
+          `<div style="display:flex;gap:8px;">` +
+            (isFilter ? `<button type="button" class="btn-primary" data-graph-clearfilters="1">${esc(T("graph.toolbar.clearFilters", "Сбросить фильтры"))}</button>` : "") +
+            (isError ? `<button type="button" class="btn-primary" data-graph-retry="1">${esc(T("graph.toolbar.retry", "Повторить"))}</button>` : "") +
+            `<button type="button" class="btn-secondary" data-graph-close="1">${esc(T("graph.toolbar.close", "Закрыть"))}</button>` +
+          `</div>` +
+        `</div>`;
+      wireCommon(panel);
+      const retry = panel.querySelector("[data-graph-retry]");
+      if (retry) retry.addEventListener("click", () => { destroy(); open(); });
+      const cf = panel.querySelector("[data-graph-clearfilters]");
+      if (cf) cf.addEventListener("click", () => {
+        saveFilters({ note: true, text: true, sentence: true, root: true, word: true, binyan: true });
+        destroy(); open();
+      });
+      // Initial focus → primary action.
+      const primary = panel.querySelector("[data-graph-retry],[data-graph-clearfilters],[data-graph-close]");
+      if (primary) primary.focus();
+      return;
+    }
+
+    if (state === "fallback_mobile") {
+      // C4 ships the explanatory state with real copy + a basic list.
+      // C6 replaces the body with premium cluster cards.
+      const g = payload.graph;
+      panel.innerHTML = header(panel) +
+        `<div style="flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px;">` +
+          `<div style="background:var(--theme-accent-bg,#eef);border-radius:8px;padding:12px 14px;line-height:1.5;">` +
+            `${esc(T("graph.fallback.headline", "Полный граф доступен на планшете или ПК в альбомной ориентации."))}` +
+          `</div>` +
+          `<p style="margin:0;color:var(--theme-text-secondary,#666);line-height:1.5;">` +
+            `${esc(T("graph.fallback.listHint", "Здесь карта знаний по кластерам."))}` +
+          `</p>` +
+          renderListView(g) +
+        `</div>`;
+      wireCommon(panel);
+      wireListNav(panel, payload.graph);
+      return;
+    }
+
+    if (state === "loaded") {
+      const g = payload.graph;
+      const reducedToast = payload.reduced
+        ? `<div data-graph-reduced-toast="1" role="status" aria-live="polite" ` +
+          `style="background:#fff8e1;border:1px solid #ffe08a;border-radius:6px;padding:8px 10px;font-size:12.5px;margin:0 0 8px 0;">` +
+          esc(T("graph.toast.reducedToTopN",
+            "Показаны 200 самых связанных элементов из {n}. Полный список доступен в режиме списка.",
+            { n: payload.reduced.total })) + `</div>`
+        : "";
+      const toolbar =
+        `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid var(--theme-border,#e2e2e2);">` +
+          `<button type="button" class="btn-secondary" data-graph-reset="1">${esc(T("graph.toolbar.reset", "Сбросить вид"))}</button>` +
+          `<button type="button" class="btn-secondary" data-graph-clearfilters="1">${esc(T("graph.toolbar.clearFilters", "Сбросить фильтры"))}</button>` +
+          `<button type="button" class="btn-secondary" data-graph-toggle-list="1" aria-pressed="false">${esc(T("graph.toolbar.listView", "Список"))}</button>` +
+          `<button type="button" class="btn-secondary" data-graph-legend="1" aria-pressed="false">${esc(T("graph.toolbar.legend", "Легенда"))}</button>` +
+        `</div>`;
+      panel.innerHTML = header(panel) + toolbar +
+        `<div style="flex:1;display:flex;min-height:480px;position:relative;">` +
+          `<div data-graph-canvas="1" role="application" ` +
+          `aria-label="${esc(T("graph.a11yContainer", "Карта знаний", { nodes: g.stats.nodes_total, edges: g.stats.edges_total }))}" ` +
+          `style="flex:1;min-height:480px;position:relative;"></div>` +
+          `<div data-graph-listpane="1" hidden style="flex:1;overflow:auto;padding:12px;"></div>` +
+        `</div>` +
+        `<div data-graph-summary="1" role="status" aria-live="polite" class="sr-only" ` +
+          `style="position:absolute;left:-9999px;">` +
+          esc(T("graph.summary", "{notes} заметок", {
+            notes: g.stats.by_kind.note, texts: g.stats.by_kind.text,
+            roots: g.stats.by_kind.root, words: g.stats.by_kind.word,
+            binyanim: g.stats.by_kind.binyan, sentences: g.stats.by_kind.sentence,
+            edges: g.stats.edges_total })) +
+        `</div>`;
+      wireCommon(panel);
+
+      const canvas = panel.querySelector("[data-graph-canvas]");
+      if (reducedToast) {
+        const tw = document.createElement("div");
+        tw.innerHTML = reducedToast;
+        canvas.parentNode.insertBefore(tw.firstChild, canvas.parentNode.firstChild);
+      }
+      try {
+        _renderHandle = window.NotesGraphRender.renderGraph(canvas, g, {});
+      } catch (e) {
+        console.error("[graph] render failed:", e);
+        renderState(panel, "error_data_load", {});
+        return;
+      }
+      wireNodeNav(panel, g);
+
+      panel.querySelector("[data-graph-reset]").addEventListener("click", () => {
+        if (_renderHandle && _renderHandle.resetView) _renderHandle.resetView();
+      });
+      panel.querySelector("[data-graph-clearfilters]").addEventListener("click", () => {
+        saveFilters({ note: true, text: true, sentence: true, root: true, word: true, binyan: true });
+        destroy(); open();
+      });
+      const listBtn = panel.querySelector("[data-graph-toggle-list]");
+      const listPane = panel.querySelector("[data-graph-listpane]");
+      listBtn.addEventListener("click", () => {
+        const showing = !listPane.hasAttribute("hidden");
+        if (showing) {
+          listPane.setAttribute("hidden", "");
+          canvas.style.display = "";
+          listBtn.setAttribute("aria-pressed", "false");
+        } else {
+          listPane.innerHTML = renderListView(g);
+          listPane.removeAttribute("hidden");
+          canvas.style.display = "none";
+          listBtn.setAttribute("aria-pressed", "true");
+          wireListNav(panel, g);
+        }
+      });
+      panel.querySelector("[data-graph-legend]").addEventListener("click", () => openLegend(panel));
+      // Initial focus → first toolbar control (canvas keyboard nav is C5).
+      const firstBtn = panel.querySelector("[data-graph-reset]");
+      if (firstBtn) firstBtn.focus();
+      return;
+    }
+  }
+
+  // Minimal but FUNCTIONAL list view (not a coming-soon stub). C5
+  // upgrades it with full keyboard semantics + neighbor columns.
+  function renderListView(g) {
+    const byId = new Map(g.nodes.map((n) => [n.id, n]));
+    const neighbors = new Map();
+    for (const e of g.edges) {
+      if (!neighbors.has(e.source)) neighbors.set(e.source, []);
+      if (!neighbors.has(e.target)) neighbors.set(e.target, []);
+      neighbors.get(e.source).push(e.target);
+      neighbors.get(e.target).push(e.source);
+    }
+    const rows = g.nodes.slice()
+      .sort((a, b) => b.degree - a.degree || a.id.localeCompare(b.id))
+      .map((n) => {
+        const nb = (neighbors.get(n.id) || []).slice(0, 3)
+          .map((id) => (byId.get(id) || {}).label || id);
+        return `<tr data-list-node="${esc(n.id)}" tabindex="0" ` +
+          `style="cursor:pointer;border-bottom:1px solid var(--theme-border,#eee);">` +
+          `<td style="padding:6px 8px;">${esc(T("graph.legend.nodes." + n.kind, n.kind))}</td>` +
+          `<td style="padding:6px 8px;">${esc(n.label)}</td>` +
+          `<td style="padding:6px 8px;text-align:right;">${n.degree}</td>` +
+          `<td style="padding:6px 8px;color:var(--theme-text-secondary,#666);">${esc(nb.join(", "))}</td>` +
+          `</tr>`;
+      }).join("");
+    return `<table data-graph-list="1" style="width:100%;border-collapse:collapse;font-size:13px;">` +
+      `<thead><tr style="text-align:left;border-bottom:2px solid var(--theme-border,#ccc);">` +
+      `<th style="padding:6px 8px;">${esc(T("graph.listView.kind", "Тип"))}</th>` +
+      `<th style="padding:6px 8px;">${esc(T("graph.listView.label", "Название"))}</th>` +
+      `<th style="padding:6px 8px;text-align:right;">${esc(T("graph.listView.degree", "Связей"))}</th>` +
+      `<th style="padding:6px 8px;">${esc(T("graph.listView.neighbors", "Соседи"))}</th>` +
+      `</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function navigateTo(node) {
+    // Read-only navigation. No edit affordance anywhere.
+    try {
+      const kind = node.kind, raw = node.rawId;
+      if (kind === "note" && typeof window.v3OpenNoteById === "function") {
+        destroy(); window.v3OpenNoteById(raw); return;
+      }
+      if (kind === "text" && typeof window.v3LibraryOpenText === "function") {
+        destroy(); window.v3LibraryOpenText(raw); return;
+      }
+      if ((kind === "root" || kind === "word") &&
+          window.CrossTextUI && typeof window.CrossTextUI.open === "function") {
+        window.CrossTextUI.open(raw); return; // keep graph open (side panel)
+      }
+      toast(T("graph.title", "Карта знаний") + ": " + (node.label || raw), "info");
+    } catch (e) {
+      console.warn("[graph] navigate failed:", e);
+    }
+  }
+
+  function wireListNav(panel, g) {
+    const byId = new Map(g.nodes.map((n) => [n.id, n]));
+    panel.querySelectorAll("[data-list-node]").forEach((tr) => {
+      const id = tr.getAttribute("data-list-node");
+      const go = () => { const n = byId.get(id); if (n) navigateTo(n); };
+      tr.addEventListener("click", go);
+      tr.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); }
+      });
+    });
+  }
+
+  // C4: click-through on SVG nodes (full keyboard arrow-nav is C5).
+  function wireNodeNav(panel, g) {
+    const byId = new Map(g.nodes.map((n) => [n.id, n]));
+    panel.querySelectorAll("[data-graph-node]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const n = byId.get(el.getAttribute("data-node-id"));
+        if (n) navigateTo(n);
+      });
+    });
+  }
+
+  function openLegend(panel) {
+    const existing = panel.querySelector("[data-graph-legend-pane]");
+    if (existing) { existing.remove(); return; }
+    const pane = document.createElement("div");
+    pane.setAttribute("data-graph-legend-pane", "1");
+    pane.setAttribute("role", "region");
+    pane.setAttribute("aria-label", T("graph.legend.title", "Легенда"));
+    pane.style.cssText = "position:absolute;right:14px;bottom:14px;background:var(--theme-bg,#fff);border:1px solid var(--theme-border,#ccc);border-radius:8px;padding:12px 14px;font-size:12px;line-height:1.6;box-shadow:0 6px 20px rgba(0,0,0,0.2);z-index:5;max-width:280px;";
+    const nk = ["note", "text", "sentence", "root", "word", "binyan"];
+    pane.innerHTML =
+      `<b>${esc(T("graph.legend.title", "Легенда"))}</b>` +
+      `<button type="button" data-legend-close="1" aria-label="${esc(T("graph.toolbar.close", "Закрыть"))}" style="float:right;border:none;background:transparent;cursor:pointer;">×</button>` +
+      `<div style="margin-top:8px;">` +
+      nk.map((k) => `<div>● ${esc(T("graph.legend.nodes." + k, k))}</div>`).join("") +
+      `</div><hr style="margin:8px 0;border:none;border-top:1px solid var(--theme-border,#eee);">` +
+      `<div>${esc(T("graph.legend.edges.solid", "сплошная — ссылка [[…]]"))}</div>` +
+      `<div>${esc(T("graph.legend.edges.dashed", "пунктир — заметка о тексте"))}</div>` +
+      `<div>${esc(T("graph.legend.edges.dotted", "точки — морфология"))}</div>`;
+    panel.appendChild(pane);
+    pane.querySelector("[data-legend-close]").addEventListener("click", () => pane.remove());
+  }
+
+  function openHelp(panel) {
+    const existing = panel.querySelector("[data-graph-help-pane]");
+    if (existing) { existing.remove(); return; }
+    const pane = document.createElement("div");
+    pane.setAttribute("data-graph-help-pane", "1");
+    pane.setAttribute("role", "dialog");
+    pane.setAttribute("aria-label", T("graph.kbdHelp.title", "Клавиатурные сокращения"));
+    pane.style.cssText = "position:absolute;inset:auto;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--theme-bg,#fff);border:1px solid var(--theme-border,#ccc);border-radius:10px;padding:18px 22px;font-size:13px;line-height:1.8;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:6;";
+    pane.innerHTML =
+      `<b>${esc(T("graph.kbdHelp.title", "Клавиатурные сокращения"))}</b>` +
+      `<button type="button" data-help-close="1" aria-label="${esc(T("graph.toolbar.close", "Закрыть"))}" style="float:right;border:none;background:transparent;cursor:pointer;font-size:16px;">×</button>` +
+      `<div style="margin-top:10px;">` +
+      ["arrows", "enter", "h", "r", "esc", "qmark"].map((k) =>
+        `<div>${esc(T("graph.kbdHelp." + k, k))}</div>`).join("") +
+      `</div>`;
+    panel.appendChild(pane);
+    const cb = pane.querySelector("[data-help-close]");
+    cb.addEventListener("click", () => pane.remove());
+    cb.focus();
+  }
+
+  // ── public open() ──────────────────────────────────────────────────────
+  async function open() {
+    const panel = buildShell();
+    renderState(panel, "loading", {});
+
+    let timedOut = false;
+    _loadTimer = setTimeout(() => {
+      timedOut = true;
+      renderState(panel, "error_data_load", {});
+    }, LOAD_TIMEOUT_MS);
+
+    let graph;
+    try {
+      if (typeof window === "undefined" || !window.NotesGraphData) {
+        throw new Error("NotesGraphData not loaded");
+      }
+      // DB-readiness guard — mirror the app's own pattern
+      // (index.html ~line 10686): await the init promise, surface init
+      // error, verify isReady() BEFORE any query. Querying wa-sqlite
+      // mid-boot throws an uncatchable WASM "memory access out of
+      // bounds" — this guard prevents the graph from ever reaching
+      // that code path. Routes to error_db_unavailable instead.
+      try {
+        if (window.__localDBInitPromise &&
+            typeof window.__localDBInitPromise.then === "function") {
+          await window.__localDBInitPromise;
+        }
+      } catch (_) { /* fall through to the readiness checks below */ }
+      const dbBroken =
+        !window.__localDB ||
+        typeof window.__localDB.dbQuery !== "function" ||
+        window.__localDBInitError ||
+        (typeof window.__localDB.isReady === "function" &&
+         !window.__localDB.isReady());
+      if (dbBroken) {
+        if (_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }
+        if (!timedOut) renderState(panel, "error_db_unavailable", {});
+        return;
+      }
+      const filters = loadFilters();
+      graph = await window.NotesGraphData.buildGraph();
+      // Apply persisted filters (Λ5 — sessionStorage; layout still
+      // re-simulates every open per Appendix A #5).
+      const hiddenKinds = Object.keys(filters).filter((k) => filters[k] === false);
+      if (hiddenKinds.length) {
+        const keep = new Set(graph.nodes
+          .filter((n) => filters[n.kind] !== false).map((n) => n.id));
+        graph = {
+          nodes: graph.nodes.filter((n) => keep.has(n.id)),
+          edges: graph.edges.filter((e) => keep.has(e.source) && keep.has(e.target)),
+          stats: graph.stats, reduced: graph.reduced,
+        };
+      }
+    } catch (e) {
+      if (_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }
+      console.error("[graph] data build failed:", e);
+      if (!timedOut) renderState(panel, "error_data_load", {});
+      return;
+    }
+    if (timedOut) return;
+    if (_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }
+
+    if (!graph.nodes.length) {
+      // Distinguish "no notes at all" from "notes but all filtered".
+      const f = loadFilters();
+      const anyHidden = Object.keys(f).some((k) => f[k] === false);
+      renderState(panel, anyHidden ? "filtered_all_hidden" : "empty_no_notes", {});
+      return;
+    }
+    if (!graph.edges.length) {
+      renderState(panel, "empty_no_links", {});
+      return;
+    }
+    if (!isFullGraphAllowed()) {
+      renderState(panel, "fallback_mobile", { graph });
+      return;
+    }
+    renderState(panel, "loaded", { graph, reduced: graph.reduced });
+  }
+
+  const api = { open, close: destroy, _state: () => {
+    const p = document.getElementById(PANEL_ID);
+    return p ? p.getAttribute("data-graph-state") : null;
+  } };
+  if (typeof window !== "undefined") window.NotesGraph = api;
+})();

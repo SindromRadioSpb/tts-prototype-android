@@ -112,6 +112,7 @@
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.uploadNow()">' + escapeHtml(T('research.btn.uploadNow', '⬆ Отправить сейчас')) + '</button>';
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openOutcome()">' + escapeHtml(T('research.btn.outcome', '🎓 Сдать экзамен')) + '</button>';
         body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openQuiz()">' + escapeHtml(T('research.btn.quiz', '📝 Сдать диагностику')) + '</button>';
+        body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openGraph()">' + escapeHtml(T('graph.launcher', '🕸 Карта знаний')) + '</button>';
       }
       body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openWithdraw()" style="margin-left:auto;color:#c0392b;">' + escapeHtml(T('research.btn.withdraw', '🗑 Отозвать согласие')) + '</button>';
     }
@@ -558,8 +559,21 @@
     }
   }
 
+  // ── knowledge graph launcher (delegates to notes-graph-loader.js) ──────
+  function openGraph() {
+    if (typeof window === 'undefined' || !window.LinguistProGraph ||
+        typeof window.LinguistProGraph.open !== 'function') {
+      toast(T('research.toast.graphMissing', '🕸 Graph-модуль не загружен'), 'error');
+      return;
+    }
+    try { window.LinguistProGraph.open(); }
+    catch (e) {
+      toast(T('research.toast.graphFailed', '⚠ Ошибка открытия карты знаний: ') + String((e && e.message) || e), 'error');
+    }
+  }
+
   // ── expose ─────────────────────────────────────────────────────────────
   if (typeof window !== 'undefined') {
-    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, openOutcome, uploadNow, openQuiz };
+    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, openOutcome, uploadNow, openQuiz, openGraph };
   }
 })();

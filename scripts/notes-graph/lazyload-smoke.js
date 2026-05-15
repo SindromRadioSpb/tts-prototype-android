@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 // scripts/notes-graph/lazyload-smoke.js — v3.3.6 Knowledge Graph lazy-load smoke.
 //
-// C0 scope: cases 1–2. C1 adds cases 3–4 (vendored bundle integrity +
-// d3graph symbol surface). C4 expands further (launcher → chunk load,
-// state machine). C8 adds SW-cache cases. This file grows across the
-// patch sequence.
+// C0: cases 1–2. C1: cases 3–4 (bundle integrity + symbols). C4: cases
+// 5–7 (top-nav launcher + lazy chunk load + non-blank settled state +
+// no pageerror). C8 adds SW-cache cases.
 //
 // Cases at C0:
 //   1. Classic-view DOMContentLoaded is within baseline + 200 ms.
@@ -202,6 +201,87 @@ async function main() {
     });
     test("Case 4: /vendor/d3-graph.min.js exposes window.d3graph with 11 fns + zoomIdentity",
          c4.present && c4.allFns && c4.zoomIdent, JSON.stringify(c4));
+
+    // ── Case 5 — top-nav #btnGraph launcher exists + wired ──────────────
+    // ISOLATED context — Cases 1–4 navigated the shared context's page
+    // multiple times; its wa-sqlite worker holds the per-origin OPFS
+    // AccessHandlePool (single-writer). A 2nd page in the SAME context
+    // contends for that handle and traps the WASM heap on init — a
+    // harness artifact, not a graph bug (proven by a clean single-page
+    // control run). A fresh context = isolated OPFS, mirroring a real
+    // user's single browsing context.
+    const freshCtx = await browser.newContext({ serviceWorkers: "block" });
+    const fresh = await freshCtx.newPage();
+    const freshErrors = [];
+    fresh.on("pageerror", (e) => freshErrors.push(String(e.message || e)));
+    await fresh.goto(BASE + "/index.html", { waitUntil: "load" });
+    await fresh.waitForFunction(
+      () => window.LinguistProGraph && typeof window.LinguistProGraph.open === "function",
+      null, { timeout: 10000 });
+    // Mirror REAL usage: a user can only click the graph launcher once
+    // the app is interactive — by then the local DB is long-ready.
+    // (Opening the graph mid-DB-boot is a race no user can trigger; the
+    // in-code DB-readiness guard handles the "DB never readies" case by
+    // routing to error_db_unavailable, verified by a separate control.)
+    await fresh.waitForFunction(async () => {
+      try { if (window.__localDBInitPromise) await window.__localDBInitPromise; }
+      catch (_) {}
+      return window.__localDB && typeof window.__localDB.isReady === "function" &&
+             window.__localDB.isReady();
+    }, null, { timeout: 20000 }).catch(() => { /* tolerate — guard covers it */ });
+    await sleep(300);
+    const c5 = await fresh.evaluate(() => {
+      const btn = document.getElementById("btnGraph");
+      return {
+        present: !!btn,
+        onclick: btn ? (btn.getAttribute("onclick") || "") : "",
+        notesGraphUndefinedPreOpen: typeof window.NotesGraph === "undefined",
+      };
+    });
+    test("Case 5: top-nav #btnGraph exists, wired to LinguistProGraph.open, NotesGraph still lazy",
+         c5.present && /LinguistProGraph/.test(c5.onclick) &&
+         c5.notesGraphUndefinedPreOpen,
+         JSON.stringify(c5));
+
+    // ── Case 6 — launcher → lazy chunk load → modal renders a STATE ─────
+    // The real DB may or may not be ready in a bare index.html load.
+    // Either way the modal must reach a defined, non-blank state — never
+    // a blank panel, never an infinite spinner, never an uncaught error.
+    await fresh.evaluate(() => window.LinguistProGraph.open());
+    await fresh.waitForSelector("[data-graph-panel]", { timeout: 8000 });
+    // Wait until the state machine settles out of "loading" (or the 10s
+    // load-timeout trips → error_data_load). Poll up to 12s.
+    await fresh.waitForFunction(() => {
+      const p = document.querySelector("[data-graph-panel]");
+      return p && p.getAttribute("data-graph-state") &&
+             p.getAttribute("data-graph-state") !== "loading";
+    }, null, { timeout: 13000 });
+    const c6 = await fresh.evaluate(() => {
+      const p = document.querySelector("[data-graph-panel]");
+      const st = p ? p.getAttribute("data-graph-state") : null;
+      const VALID = ["loaded", "empty_no_notes", "empty_no_links",
+                     "filtered_all_hidden", "reduced_top200",
+                     "error_data_load", "error_db_unavailable",
+                     "fallback_mobile"];
+      return {
+        notesGraphDefined: typeof window.NotesGraph === "object",
+        chunkTags: document.querySelectorAll("script[data-graph-chunk]").length,
+        state: st,
+        validState: VALID.indexOf(st) !== -1,
+        panelHasContent: !!(p && p.textContent && p.textContent.trim().length > 0),
+      };
+    });
+    test("Case 6: launcher lazy-loads chunks → NotesGraph defined → non-blank settled state",
+         c6.notesGraphDefined && c6.chunkTags === 3 &&
+         c6.validState && c6.panelHasContent,
+         JSON.stringify(c6));
+
+    // ── Case 7 — no uncaught pageerror across the full open flow ────────
+    test("Case 7: no uncaught pageerror during launcher → load → state render",
+         freshErrors.length === 0,
+         freshErrors.join(" | "));
+    await fresh.close();
+    await freshCtx.close();
   } finally {
     await context.close();
     await browser.close();

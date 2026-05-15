@@ -1491,6 +1491,56 @@ window.I18N_LOCALES.en = {
       noWord: "Enter a word first",
     },
   },
+  graph: {
+    title: "Knowledge graph",
+    launcher: "🕸 Knowledge graph",
+    btnTitle: "Knowledge graph",
+    state: {
+      loading:   "Loading knowledge graph…",
+      empty: {
+        noNotes: "No notes yet for the knowledge graph. Add notes and [[…]] links in your library to build the graph.",
+        noLinks: "No knowledge links yet. Add [[…]] links in notes to build the graph.",
+      },
+      filtered:  { allHidden: "The current filters hide all items. Reset filters to continue." },
+      error: {
+        dataLoad:  "Knowledge Graph is temporarily unavailable. Check local storage and try again.",
+        chunkLoad: "Failed to load the graph module. Check your connection and refresh the page.",
+      },
+    },
+    toast: { reducedToTopN: "Showing the 200 most-connected items out of {n}. The full inventory is available in list view." },
+    fallback: {
+      headline: "The full graph is available on a tablet or desktop in landscape.",
+      listHint: "This is the knowledge map by clusters — each cluster is a group of connected notes, texts and roots.",
+      clustersFound: "{n} clusters match",
+      searchPlaceholder: "Search notes, texts, roots…",
+    },
+    legend: {
+      title: "Legend",
+      nodes: { note: "Note", text: "Text", sentence: "Sentence", root: "Root", word: "Word", binyan: "Binyan" },
+      edges: {
+        solid:  "solid — [[…]] link in a note",
+        dashed: "dashed — note about a text/sentence",
+        dotted: "dotted — root/binyan from morphology",
+      },
+    },
+    toolbar: {
+      reset: "Reset view", clearFilters: "Reset filters",
+      listView: "List", graphView: "Graph", legend: "Legend",
+      help: "Help", close: "Close", retry: "Retry",
+    },
+    kbdHelp: {
+      title: "Keyboard shortcuts",
+      arrows: "↑ ↓ ← → — move to a neighbouring node",
+      enter:  "Enter / Space — open the node",
+      h:      "H — isolate cluster",
+      r:      "R — reset view",
+      esc:    "Esc — close the graph",
+      qmark:  "? — open this dialog",
+    },
+    summary: "{notes} notes, {texts} texts, {roots} roots, {words} words, {binyanim} binyanim, {sentences} sentences; {edges} edges",
+    listView: { kind: "Kind", label: "Label", degree: "Degree", neighbors: "Neighbours" },
+    a11yContainer: "Knowledge graph: {nodes} nodes, {edges} edges. Use arrow keys to navigate, Enter to open.",
+  },
   quiz: {
     modalTitle: "📝 Hebrew diagnostic quiz (v1)",
     progress: "Question",
