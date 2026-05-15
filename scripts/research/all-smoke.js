@@ -47,6 +47,7 @@ const SUITES = [
   { name: "Graph renderer perf (v3.3.6 C3)",         script: "scripts/notes-graph/perf-smoke.js",           countLabel: "6 cases" },
   { name: "Graph keyboard + a11y (v3.3.6 C5)",       script: "scripts/notes-graph/render-a11y-smoke.js",    countLabel: "6 cases" },
   { name: "Graph mobile fallback (v3.3.6 C6)",       script: "scripts/notes-graph/mobile-fallback-smoke.js",countLabel: "5 cases" },
+  { name: "Graph privacy hardening (v3.3.6 C7)",     script: "scripts/notes-graph/privacy-smoke.js",        countLabel: "8 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
   ]),

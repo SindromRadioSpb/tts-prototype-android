@@ -29,12 +29,22 @@
   const EDGE_KINDS = ["explicit_link", "target_anchor", "derived_morph"];
 
   // ── DB shim — identical access path to crosstext.js ────────────────────
+  // READ-ONLY enforcement (C7 privacy hardening): the graph is a
+  // read-only feature. _q refuses any statement that is not a bare
+  // SELECT — a defensive guard so a future edit cannot silently turn
+  // the graph into a write surface. Smoke-pinned.
+  const _READONLY_RE = /^\s*(WITH\b[\s\S]*?\bSELECT|SELECT)\b/i;
+  const _FORBIDDEN_RE = /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|REPLACE|TRUNCATE|PRAGMA|ATTACH|VACUUM)\b/i;
   async function _q(sql, params) {
     const ldb = (typeof window !== "undefined") && window.__localDB;
     if (!ldb || typeof ldb.dbQuery !== "function") {
       throw new Error("notes-graph: local-db not ready (window.__localDB.dbQuery missing)");
     }
-    return ldb.dbQuery(sql, params || []);
+    const s = String(sql || "");
+    if (!_READONLY_RE.test(s) || _FORBIDDEN_RE.test(s)) {
+      throw new Error("notes-graph: refused non-SELECT SQL (read-only invariant)");
+    }
+    return ldb.dbQuery(s, params || []);
   }
 
   // ── Normalization — delegate to the shared contract ────────────────────
