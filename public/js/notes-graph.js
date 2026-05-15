@@ -511,21 +511,40 @@
     }
 
     if (state === "fallback_mobile") {
-      // C4 ships the explanatory state with real copy + a basic list.
-      // C6 replaces the body with premium cluster cards.
+      // C6 — premium mobile: searchable, collapsible cluster cards.
       const g = payload.graph;
+      const clusters = buildClusters(g);
       panel.innerHTML = header(panel) +
-        `<div style="flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px;">` +
-          `<div style="background:var(--theme-accent-bg,#eef);border-radius:8px;padding:12px 14px;line-height:1.5;">` +
+        `<div style="flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;">` +
+          `<div style="background:var(--theme-accent-bg,#eef);border-radius:8px;padding:11px 14px;line-height:1.5;font-size:13px;">` +
             `${esc(T("graph.fallback.headline", "Полный граф доступен на планшете или ПК в альбомной ориентации."))}` +
           `</div>` +
-          `<p style="margin:0;color:var(--theme-text-secondary,#666);line-height:1.5;">` +
+          `<p style="margin:0;color:var(--theme-text-secondary,#666);line-height:1.45;font-size:12.5px;">` +
             `${esc(T("graph.fallback.listHint", "Здесь карта знаний по кластерам."))}` +
           `</p>` +
-          renderListView(g) +
+          `<input type="search" data-graph-cluster-search="1" ` +
+            `placeholder="${esc(T("graph.fallback.searchPlaceholder", "Поиск…"))}" ` +
+            `aria-label="${esc(T("graph.fallback.searchPlaceholder", "Поиск…"))}" ` +
+            `style="width:100%;padding:9px 12px;border:1px solid var(--theme-border,#ccc);border-radius:8px;font-size:14px;box-sizing:border-box;">` +
+          `<div data-graph-cluster-count="1" role="status" aria-live="polite" ` +
+            `style="font-size:12px;color:var(--theme-text-secondary,#666);">` +
+            esc(T("graph.fallback.clustersFound", "Найдено {n} кластеров", { n: clusters.length })) +
+          `</div>` +
+          `<div data-graph-cluster-list="1" style="display:flex;flex-direction:column;gap:10px;"></div>` +
         `</div>`;
       wireCommon(panel);
-      wireListNav(panel, payload.graph);
+      _renderClusterCards(panel, clusters, g, "");
+
+      const searchEl = panel.querySelector("[data-graph-cluster-search]");
+      if (searchEl) {
+        let _deb = null;
+        searchEl.addEventListener("input", () => {
+          if (_deb) clearTimeout(_deb);
+          _deb = setTimeout(() => {
+            _renderClusterCards(panel, clusters, g, searchEl.value || "");
+          }, 160);
+        });
+      }
       return;
     }
 
@@ -635,6 +654,150 @@
 
   // Minimal but FUNCTIONAL list view (not a coming-soon stub). C5
   // upgrades it with full keyboard semantics + neighbor columns.
+  // ── clustering (C6 premium mobile fallback) ───────────────────────────
+  // Connected components over all edge kinds. Each cluster carries its
+  // dominant node (highest degree), dominant kind (modal kind), and the
+  // top-3 connected labels — everything the cluster card surfaces.
+  function buildClusters(g) {
+    const byId = new Map(g.nodes.map((n) => [n.id, n]));
+    const adj = new Map();
+    for (const n of g.nodes) adj.set(n.id, []);
+    for (const e of g.edges) {
+      if (adj.has(e.source)) adj.get(e.source).push(e.target);
+      if (adj.has(e.target)) adj.get(e.target).push(e.source);
+    }
+    const seen = new Set();
+    const clusters = [];
+    // Deterministic order: start BFS from nodes sorted by degree desc.
+    const order = g.nodes.slice()
+      .sort((a, b) => b.degree - a.degree || a.id.localeCompare(b.id));
+    for (const start of order) {
+      if (seen.has(start.id)) continue;
+      const members = [];
+      const q = [start.id]; seen.add(start.id);
+      while (q.length) {
+        const cur = q.shift();
+        members.push(byId.get(cur));
+        for (const nb of (adj.get(cur) || [])) {
+          if (!seen.has(nb)) { seen.add(nb); q.push(nb); }
+        }
+      }
+      let edgeCount = 0;
+      const memberSet = new Set(members.map((m) => m.id));
+      for (const e of g.edges) {
+        if (memberSet.has(e.source) && memberSet.has(e.target)) edgeCount++;
+      }
+      const kindCount = {};
+      for (const m of members) kindCount[m.kind] = (kindCount[m.kind] || 0) + 1;
+      const dominantKind = Object.keys(kindCount)
+        .sort((a, b) => kindCount[b] - kindCount[a] || a.localeCompare(b))[0];
+      const dominantNode = members.slice()
+        .sort((a, b) => b.degree - a.degree || a.id.localeCompare(b.id))[0];
+      const top3 = (adj.get(dominantNode.id) || [])
+        .map((id) => byId.get(id)).filter(Boolean)
+        .sort((a, b) => b.degree - a.degree)
+        .slice(0, 3).map((n) => n.label);
+      clusters.push({
+        id: "cl:" + start.id, members, edgeCount,
+        dominantKind, dominantNode, top3,
+        searchBlob: members.map((m) => (m.label || "") + " " + (m.rawId || ""))
+          .join(" ").toLowerCase(),
+      });
+    }
+    // Largest clusters first.
+    clusters.sort((a, b) => b.members.length - a.members.length);
+    return clusters;
+  }
+
+  function _clusterSubgraph(cluster, g, cap) {
+    const ids = new Set(cluster.members.slice(0, cap).map((m) => m.id));
+    return {
+      nodes: cluster.members.filter((m) => ids.has(m.id))
+        .map((m) => Object.assign({}, m)),
+      edges: g.edges.filter((e) => ids.has(e.source) && ids.has(e.target)),
+      stats: g.stats, reduced: null,
+    };
+  }
+
+  function _renderClusterCards(panel, clusters, g, query) {
+    const list = panel.querySelector("[data-graph-cluster-list]");
+    const countEl = panel.querySelector("[data-graph-cluster-count]");
+    if (!list) return;
+    const q = String(query || "").trim().toLowerCase();
+    const filtered = q ? clusters.filter((c) => c.searchBlob.indexOf(q) !== -1)
+                       : clusters;
+    if (countEl) {
+      countEl.textContent = T("graph.fallback.clustersFound",
+        "Найдено {n} кластеров", { n: filtered.length });
+    }
+    list.innerHTML = filtered.map((c, i) => {
+      const dn = c.dominantNode;
+      const kindLabel = T("graph.legend.nodes." + c.dominantKind, c.dominantKind);
+      const chips = c.top3.map((lbl) =>
+        `<span style="display:inline-block;background:var(--theme-accent-bg,#eef);` +
+        `border-radius:10px;padding:2px 8px;font-size:11px;margin:0 4px 4px 0;">` +
+        esc(String(lbl).slice(0, 22)) + `</span>`).join("");
+      return (
+        `<div data-graph-cluster-card="${esc(c.id)}" ` +
+        `style="border:1px solid var(--theme-border,#ddd);border-radius:10px;overflow:hidden;">` +
+          `<button type="button" data-cluster-toggle="${esc(c.id)}" aria-expanded="false" ` +
+          `style="width:100%;text-align:left;background:transparent;border:none;cursor:pointer;` +
+          `padding:12px 14px;display:flex;flex-direction:column;gap:6px;">` +
+            `<span style="font-weight:600;font-size:13.5px;">` +
+              esc(T("graph.legend.nodes." + c.dominantKind, c.dominantKind)) + ` · ` +
+              esc(String(dn.label).slice(0, 28)) +
+            `</span>` +
+            `<span style="font-size:11.5px;color:var(--theme-text-secondary,#666);">` +
+              `${c.members.length} ${esc(T("graph.listView.degree", "узлов"))} · ` +
+              `${c.edgeCount} ${esc(T("graph.legend.title", "связей"))}` +
+            `</span>` +
+            (chips ? `<span style="margin-top:2px;">${chips}</span>` : "") +
+          `</button>` +
+          `<div data-cluster-body="${esc(c.id)}" hidden style="border-top:1px solid var(--theme-border,#eee);padding:12px;">` +
+            `<div data-cluster-mini="${esc(c.id)}" style="width:100%;height:220px;"></div>` +
+            `<button type="button" data-cluster-open="${esc(c.id)}" class="btn-primary" ` +
+            `style="margin-top:10px;width:100%;">` +
+              esc(T("graph.toolbar.graphView", "Открыть в библиотеке")) +
+            `</button>` +
+          `</div>` +
+        `</div>`
+      );
+    }).join("") || `<div style="color:var(--theme-text-secondary,#666);font-size:13px;">` +
+      esc(T("graph.fallback.clustersFound", "Найдено {n} кластеров", { n: 0 })) + `</div>`;
+
+    const byClId = new Map(filtered.map((c) => [c.id, c]));
+    list.querySelectorAll("[data-cluster-toggle]").forEach((btn) => {
+      const cid = btn.getAttribute("data-cluster-toggle");
+      btn.addEventListener("click", () => {
+        const body = list.querySelector(`[data-cluster-body="${CSS.escape(cid)}"]`);
+        if (!body) return;
+        const willOpen = body.hasAttribute("hidden");
+        if (willOpen) {
+          body.removeAttribute("hidden");
+          btn.setAttribute("aria-expanded", "true");
+          const mini = body.querySelector(`[data-cluster-mini="${CSS.escape(cid)}"]`);
+          const cl = byClId.get(cid);
+          if (mini && cl && window.NotesGraphRender) {
+            try {
+              window.NotesGraphRender.renderGraph(mini,
+                _clusterSubgraph(cl, g, 50), {});
+            } catch (e) { console.warn("[graph] mini render:", e); }
+          }
+        } else {
+          body.setAttribute("hidden", "");
+          btn.setAttribute("aria-expanded", "false");
+        }
+      });
+    });
+    list.querySelectorAll("[data-cluster-open]").forEach((b) => {
+      const cid = b.getAttribute("data-cluster-open");
+      b.addEventListener("click", () => {
+        const cl = byClId.get(cid);
+        if (cl && cl.dominantNode) navigateTo(cl.dominantNode);
+      });
+    });
+  }
+
   function renderListView(g) {
     const byId = new Map(g.nodes.map((n) => [n.id, n]));
     const neighbors = new Map();
