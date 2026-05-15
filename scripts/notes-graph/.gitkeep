@@ -1,0 +1,8 @@
+# Smoke scripts for v3.3.6 Knowledge Graph land in this directory across C0..C9:
+#   build-data-smoke.js     (C2)
+#   perf-smoke.js           (C3)
+#   lazyload-smoke.js       (C0..C8)
+#   render-a11y-smoke.js    (C5)
+#   mobile-fallback-smoke.js (C6)
+#   privacy-smoke.js        (C7)
+#   visual-regression.js    (C9)

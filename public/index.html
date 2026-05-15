@@ -10623,6 +10623,11 @@ body:not(.theme-light) .v3-heatmap-cell {
 <script src="/js/quiz-scoring.js"></script>
 <script src="/js/quiz-ui.js"></script>
 
+<!-- v3.3.6 Direction 14 — Knowledge Graph. ONLY the lazy-load shim is
+     eager. d3 bundles + data layer + renderer load on first open().
+     window.NotesGraph stays undefined until then (lazyload-smoke pins this). -->
+<script src="/js/notes-graph-loader.js"></script>
+
 <script src="/tts/core.js"></script>
 <script src="/tts/providerPolicy.js"></script>
 <script src="/tts/settings.js"></script>
