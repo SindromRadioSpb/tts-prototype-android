@@ -7,7 +7,17 @@
 
 ## [Unreleased]
 
-### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
+(пусто)
+
+---
+
+## [3.4.0] — 2026-05-16
+
+### v3.4 Product cohesion — shipped (docs/PRODUCT_COHESION_PLAN_v3_4.md)
+
+Pilot-readiness gate: docs/PILOT_READINESS_GATE_v3_4.md (all 8 DoD
+items hold; two non-blocking recommendations recorded). Closes every
+Phase-A finding (A-G1…A-G9) + Graph Tier-2 backlog (U5–U8).
 
 - **Phase B — Graph Tier-2 UX (U5 / U6 / U7).** From
   `PHASE_PLAN_v3_3_7_GRAPH_UX §2`, all read-only:
@@ -105,8 +115,8 @@
   layout unchanged. Pinned by `scripts/notes-ui/mobile-notes-smoke.js`
   (5 cases, 414 px + 1280 px control); wired into the fast smoke matrix.
 
-(250K full-hspell под v3.4; v3.3.7 Tier-2 graph UX в backlog,
-см. docs/PHASE_PLAN_v3_3_7_GRAPH_UX.md §2)
+Graph Tier-2 (U5–U8, PHASE_PLAN_v3_3_7_GRAPH_UX §2) is now complete
+and folded into v3.4. (250K full-hspell remains a v3.4+ backlog item.)
 
 ---
 
