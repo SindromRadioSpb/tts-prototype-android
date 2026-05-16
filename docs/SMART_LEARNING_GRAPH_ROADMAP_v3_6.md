@@ -1,7 +1,7 @@
 # Smart Learning Graph — Roadmap v3.6 (planning-only)
 
 > **Status.** APPROVED WITH REFINEMENTS (owner, 2026-05-16) — see
-> §11 "Approved decisions". **Phases 0–5 SHIPPED; Phase 6 next.**
+> §11 "Approved decisions". **Phases 0–6 SHIPPED; Phase 7 next.**
 > Refinements:
 > (a) **export** carries `confirmed` by default; `rejected` only
 > under a *full learning-state* export profile; `pending`/`later`
@@ -30,8 +30,12 @@
 >   EDGE_STYLE/legend + «Подсказки связей» edge-layer chip;
 >   `suggest-graph-smoke` 5/5; visual baselines regenerated &
 >   re-verified 31/31; bundle-data 5/5.
-> - ▶ **Phase 6** next — SRS/quiz candidate records ONLY (no engine
->   change, no card-creation UI in v3.6).
+> - ✅ **Phase 6** — headless `notes-graph-srs-candidates.js`:
+>   confirmed connections → retrieval-practice candidate OBJECTS
+>   only; no srs_* access, no engine change, no UI/consumer in v3.6;
+>   `suggest-srs-candidate-smoke` 5/5.
+> - ▶ **Phase 7** next — A5 learning-state node overlay (read-only;
+>   will regenerate + re-verify visual baselines).
 > All commits pushed to `main`; full `smoke:research:fast` green per
 > phase; invariants (read-only, offline, no telemetry, no consent
 > bump, no graph-canvas authoring) smoke-pinned each phase.

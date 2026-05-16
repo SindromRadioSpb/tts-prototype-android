@@ -437,6 +437,7 @@ window.I18N_LOCALES.he = {
         sameText: "מאותו טקסט",
         related: "קשור",
       },
+      srs: { prompt: "מדוע «{a}» ו-«{b}» קשורים?" },
     },
     history: "היסטוריה",
     historyToggleTitle: "היסטוריית גרסאות (M5)",

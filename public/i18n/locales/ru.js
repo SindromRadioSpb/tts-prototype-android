@@ -438,6 +438,7 @@ window.I18N_LOCALES.ru = {
         sameText: "Из того же текста",
         related: "Связано",
       },
+      srs: { prompt: "Почему связаны «{a}» и «{b}»?" },
     },
     history: "История",
     historyToggleTitle: "История версий (M5)",

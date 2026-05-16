@@ -434,6 +434,7 @@ window.I18N_LOCALES.en = {
         sameText: "From the same text",
         related: "Related",
       },
+      srs: { prompt: "Why are “{a}” and “{b}” connected?" },
     },
     history: "History",
     historyToggleTitle: "Version history (M5)",

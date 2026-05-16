@@ -114,6 +114,24 @@ no telemetry, no consent bump, no graph-canvas authoring.
   baselines **regenerated** (intentional canvas change) and
   re-verified 31/31; `bundle-data-smoke` still 5/5. Full fast matrix
   ALL GREEN.
+- **Phase 6 — SRS/quiz candidate records (data only).** New headless
+  `public/js/notes-graph-srs-candidates.js` —
+  `window.NotesGraphSrsCandidates.fromConfirmed()` turns the
+  learner's **confirmed** connections into deterministic retrieval-
+  practice candidate objects (`{kind:'connection_recall', from, to,
+  reason_code, evidence, prompt, answer, srs_template}`), e.g.
+  «Почему связаны «למדתי» и «תלמיד»?» → «Общий корень למד». **Hard
+  scope held:** candidate OBJECTS ONLY — no SRS engine change, **no
+  `srs_*` access at all** (a defence-in-depth guard refuses any SQL
+  touching `srs_`), no card creation, **no UI / no consumer in
+  v3.6** (not loaded by `index.html` → zero production surface),
+  read-only bare-SELECT, offline, no telemetry. i18n
+  `notes.suggest.srs.prompt` + reuses the reason templates (ru/en/he).
+  Pinned by `scripts/notes-ui/suggest-srs-candidate-smoke.js` (5/5:
+  static purity scan, well-formed deterministic candidate,
+  state='confirmed' filtered at the DB, no srs_*/writes, offline).
+  Combined-run shows only the documented line-296 SW back-to-back
+  lazyload flake (9/9 isolation; headless module → cannot affect it).
 
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 
