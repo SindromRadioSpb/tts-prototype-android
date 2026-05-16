@@ -10651,6 +10651,11 @@ body:not(.theme-light) .v3-heatmap-cell {
      window.NotesGraph stays undefined until then (lazyload-smoke pins this). -->
 <script src="/js/notes-graph-loader.js"></script>
 
+<!-- v3.4 C1 — inline [[ autocomplete in the note editor (A-G1).
+     Self-contained; read-only candidate search; links materialised
+     on save via the host's existing ldb.addNoteLink. -->
+<script src="/js/notes-link-autocomplete.js"></script>
+
 <script src="/tts/core.js"></script>
 <script src="/tts/providerPolicy.js"></script>
 <script src="/tts/settings.js"></script>
@@ -36215,6 +36220,8 @@ function v3NotesEditorInit() {
   ed.addEventListener("paste", v3NotesEditorOnPaste);
   ed.addEventListener("keydown", v3NotesEditorOnKeyDown);
   document.addEventListener("selectionchange", v3NotesEditorOnSelectionChange);
+  // v3.4 C1 — inline [[ link autocomplete (idempotent attach).
+  try { if (window.NotesLinkAutocomplete) window.NotesLinkAutocomplete.attach(ed); } catch (_) {}
   // Hide bubble when clicking outside selection (e.g. clicking elsewhere).
   document.addEventListener("mousedown", function (ev) {
     const bubble = document.getElementById("v3NotesEditBubble");
@@ -37086,6 +37093,10 @@ try { v3NotesMdResetUi(); } catch (_) {}
   // visible, not a stale markdown body).
   try { v3NotesTemplateRender(); } catch (_) {}
 
+  // v3.4 C1 — fresh [[ autocomplete session per editor open (the
+  // session label→target map only applies to links typed this open).
+  try { if (window.NotesLinkAutocomplete) window.NotesLinkAutocomplete.reset(); } catch (_) {}
+
   if (modal) modal.classList.remove("hidden");
 
   // UX-03: dirty tracking
@@ -37775,6 +37786,22 @@ async function v3NotesSave(isAutoSave) {
         v3NotesUpdateDataset();
       }
     }
+
+    // v3.4 C1 — materialise inline [[link]] tokens into real note_links
+    // rows. Idempotent (INSERT OR IGNORE); never deletes. Only tokens
+    // resolved via the picker this session are emitted. Failure to add
+    // one link must never block the note save.
+    try {
+      if (window.NotesLinkAutocomplete && v3NotesModalNoteId) {
+        const _inlineLinks = window.NotesLinkAutocomplete.collect(raw);
+        let _added = 0;
+        for (const _lk of _inlineLinks) {
+          if (_lk.to_kind === "note" && String(_lk.to_id) === String(v3NotesModalNoteId)) continue;
+          try { await ldb.addNoteLink(v3NotesModalNoteId, _lk); _added++; } catch (_) {}
+        }
+        if (_added > 0) { try { v3NotesLinksRefresh(); } catch (_) {} }
+      }
+    } catch (_) {}
 
     const updatedAt = savedRow ? (savedRow.updated_at || new Date().toISOString()) : new Date().toISOString();
 

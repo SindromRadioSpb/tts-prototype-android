@@ -9,6 +9,20 @@
 
 ### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
 
+- **C1 — Inline `[[` autocomplete in the note editor (A-G1).** Typing
+  `[[` in the WYSIWYG editor now opens a picker over notes / texts /
+  roots by label (read-only candidate search); selecting one inserts a
+  visible `[[Label]]` token and remembers its resolved target for the
+  editor session. On save those tokens are materialised into real
+  `note_links` rows via the existing idempotent `addNoteLink`
+  (INSERT OR IGNORE; never deletes; self-loop guarded). Self-contained
+  module `public/js/notes-link-autocomplete.js`; no graph changes
+  (graph stays read-only); the raw-ID Links panel remains the power
+  path for word/sentence/binyan + manual entry. i18n ru/en/he. Pinned
+  by `scripts/notes-ui/link-autocomplete-smoke.js` (6 cases:
+  picker → insert → collect → save-hook round-trip + phantom-token
+  guard); wired into the fast smoke matrix.
+
 - **C6 — Mobile notes pass (A-G7).** The note-editor "Links" add-row
   and template forms now have a `@media (max-width: 640px)` breakpoint:
   the add-row stacks to a full-width column, the kind/target/alias
