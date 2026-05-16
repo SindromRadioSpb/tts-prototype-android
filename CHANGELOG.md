@@ -7,6 +7,35 @@
 
 ## [Unreleased]
 
+### v3.6 — Smart Learning Graph (in progress — docs/SMART_LEARNING_GRAPH_ROADMAP_v3_6.md)
+
+Approved scope: A2 (offline shared-root/lemma candidates) + learner-
+confirmed Confirm panel + A5 activity overlay. No AI, no embeddings,
+no telemetry, no consent bump, no graph-canvas authoring.
+
+- **Phase 0 — fixture & morph-coverage lock.** Froze the user's real
+  bundle (5 notes/1 link/4 texts) + the deterministic note→note A2
+  candidate contract (14 expected; N5 isolated; 0 shared_lemma; the
+  `note→text` link must not suppress `note→note same_text`) in
+  `scripts/notes-graph/__fixtures__/suggest-bundle-fixture.json`.
+  Pure-Node contract test `suggest-fixture-smoke.js` (6/6)
+  independently re-derives and pins it. Measured baseline: **0
+  `MorphProvider` calls** needed for the bundle (the `body_json`
+  signal suffices; morphology is a later optional enrichment).
+- **Phase 1 — A2 candidate generator.** New headless module
+  `public/js/notes-graph-suggest.js` —
+  `window.NotesGraphSuggest.candidatesForNote(noteId,opts)`:
+  read-only (same bare-SELECT guard as the graph), offline, no DOM,
+  no writes, no network; builds its own root/lemma/binyan/text index
+  from `notes_v2` json_extract; excludes self + existing note→note
+  links; rarity-weighted (ubiquitous binyan down-weighted below a
+  rare root); per-token + per-note caps; deterministic ordering.
+  Pinned by `suggest-generator-smoke.js` (6/6) against the **Phase 0
+  frozen contract** (single source of truth) + determinism, rarity,
+  caps, read-only, zero-network. Not yet loaded by `index.html`
+  (no consumer until the Phase 3 Confirm panel) — zero production
+  regression surface. Full fast matrix ALL GREEN.
+
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 
 The Knowledge Graph was fragmented and library-blind for a real
