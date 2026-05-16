@@ -53,7 +53,7 @@ const SUITES = [
   { name: "Graph UX Tier-2 U5/U6/U7 (v3.4 B)",       script: "scripts/notes-graph/graph-tier2-smoke.js",    countLabel: "5 cases" },
   { name: "Graph smart-prototype vs real bundle (v3.5)", script: "scripts/notes-graph/bundle-data-smoke.js", countLabel: "5 cases" },
   { name: "Suggestion fixture contract (v3.6 P0)",    script: "scripts/notes-graph/suggest-fixture-smoke.js", countLabel: "6 cases" },
-  { name: "A2 suggestion generator (v3.6 P1)",        script: "scripts/notes-graph/suggest-generator-smoke.js", countLabel: "6 cases" },
+  { name: "A2 suggestion generator + suppression (v3.6 P1/P2)", script: "scripts/notes-graph/suggest-generator-smoke.js", countLabel: "10 cases" },
   { name: "Mobile notes pass (v3.4 C6)",             script: "scripts/notes-ui/mobile-notes-smoke.js",      countLabel: "5 cases" },
   { name: "Inline [[ link autocomplete (v3.4 C1)",   script: "scripts/notes-ui/link-autocomplete-smoke.js", countLabel: "6 cases" },
   { name: "Onboarding + empty-state teach (v3.4 C3+U8)", script: "scripts/notes-ui/onboarding-empty-smoke.js", countLabel: "5 cases" },

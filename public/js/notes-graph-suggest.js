@@ -40,6 +40,11 @@
   var BASE = { shared_root: 3.0, shared_lemma: 3.0, shared_binyan: 1.0, same_text: 2.0 };
   var DEFAULT_K = 7;
   var DEFAULT_CAP_PER_TOKEN = 8;
+  // Phase 2 — `later` decisions come back after this cooldown so the
+  // learner isn't re-nagged the same session but isn't lost forever.
+  // 24h default; the CALLER supplies `now`+`decisions` (DB+clock are
+  // wired in Phase 4) so this stays a deterministic pure function.
+  var DEFAULT_LATER_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
   // ── read-only DB shim — identical guard to notes-graph.js _q ─────────────
   var _READONLY_RE = /^\s*(WITH\b[\s\S]*?\bSELECT|SELECT)\b/i;
@@ -123,10 +128,49 @@
     return 1 / (1 + Math.log(1 + Math.max(0, groupSize)));
   }
 
+  // ── suppression contract (Phase 2) ───────────────────────────────────────
+  // Pure function of a CALLER-supplied decision set + clock. Phase 4
+  // wires the real note_link_suggestions table + Date.now(); here we
+  // stay deterministic and testable. Key granularity matches the
+  // schema PK (from, to, to_kind, reason_code) so a pair rejected for
+  // one reason can still be suggested for another.
+  function _dkey(d) {
+    return [String(d.from), String(d.to), String(d.to_kind || "note"),
+            String(d.reason_code)].join("|");
+  }
+  function _buildDecisionMap(decisions) {
+    var m = new Map();
+    if (!Array.isArray(decisions)) return m;
+    for (var i = 0; i < decisions.length; i++) {
+      var d = decisions[i];
+      if (!d || !d.from || !d.to || !d.reason_code) continue;
+      m.set(_dkey(d), d);
+    }
+    return m;
+  }
+  // true → this candidate MUST NOT be surfaced as a pending suggestion.
+  function _suppressed(cand, dmap, now, cooldownMs) {
+    var d = dmap.get(_dkey(cand));
+    if (!d) return false;
+    var st = String(d.state || "");
+    if (st === "confirmed") return true;          // already a durable link
+    if (st === "rejected") return true;           // never again
+    if (st === "later") {
+      var t = Date.parse(d.decided_at);
+      if (!isFinite(t)) return true;              // unknown time → keep hidden
+      return (now - t) < cooldownMs;              // still cooling down
+    }
+    return false;                                  // pending / unknown → show
+  }
+
   async function candidatesForNote(noteId, opts) {
     opts = opts || {};
     var K = Number.isFinite(opts.k) ? opts.k : DEFAULT_K;
     var capTok = Number.isFinite(opts.capPerToken) ? opts.capPerToken : DEFAULT_CAP_PER_TOKEN;
+    var cooldownMs = Number.isFinite(opts.laterCooldownMs)
+      ? opts.laterCooldownMs : DEFAULT_LATER_COOLDOWN_MS;
+    var now = Number.isFinite(opts.now) ? opts.now : Date.now();
+    var dmap = _buildDecisionMap(opts.decisions);
     var id = String(noteId == null ? "" : noteId);
     if (!id) return [];
     var idx = await buildIndex();
@@ -160,6 +204,14 @@
         });
       }
     }
+    // Phase 2 suppression: drop confirmed (already durable), rejected
+    // (forever) and still-cooling-down `later` BEFORE top-K so the cap
+    // is applied to what the learner will actually see.
+    if (dmap.size) {
+      out = out.filter(function (c) {
+        return !_suppressed(c, dmap, now, cooldownMs);
+      });
+    }
     // deterministic ranking: score desc, reason priority, to_id asc.
     out.sort(function (x, y) {
       return (y.score - x.score) ||
@@ -172,5 +224,10 @@
   window.NotesGraphSuggest = {
     candidatesForNote: candidatesForNote,
     _index: buildIndex,          // test hook (read-only)
+    DEFAULTS: {                  // explainability / test introspection
+      K: DEFAULT_K,
+      capPerToken: DEFAULT_CAP_PER_TOKEN,
+      laterCooldownMs: DEFAULT_LATER_COOLDOWN_MS,
+    },
   };
 })();

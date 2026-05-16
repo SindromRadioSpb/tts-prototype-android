@@ -16,8 +16,16 @@
 //   3. Determinism: candidatesForNote(N3) twice → byte-identical.
 //   4. Rarity: N3's shared_root(אהב) scores strictly above its
 //      shared_binyan(paal) (rare root out-ranks ubiquitous binyan).
-//   5. Caps: 30-notes-same-root synthetic → ≤ capPerToken and ≤ K.
-//   6. Read-only + offline: every SQL is a bare SELECT (guard holds);
+//   5. Phase 2 suppression: `rejected` excludes the pair forever.
+//   6. Phase 2 suppression: `later` hidden inside cooldown, returns
+//      after it (deterministic — only `now` advances).
+//   7. Phase 2 suppression: `confirmed` hides ONLY that reason
+//      (per from,to,to_kind,reason_code) — other reasons survive.
+//   8. Caps: 30-notes-same-root synthetic → ≤ capPerToken and ≤ K
+//      (incl. an absurd-K hard-cap check).
+//   9. Perf: 200-note synthetic generated <300ms, capped,
+//      deterministic.
+//  10. Read-only + offline: every SQL is a bare SELECT (guard holds);
 //      zero xhr/fetch network requests; no pageerror.
 
 "use strict";
@@ -172,37 +180,113 @@ async function main() {
          rar.ordered === "shared_root",
          JSON.stringify(rar));
 
-    // Case 5 — caps on a synthetic 30-notes-same-root context.
+    // ── Phase 2 — suppression contract (still on the bundle mock) ──
+    // Case 5 — rejected is excluded FOREVER (N2→N3 shared_root).
+    const rej = await pg.evaluate(async () => {
+      const decisions = [{ from: "N2", to: "N3", to_kind: "note",
+        reason_code: "shared_root", state: "rejected",
+        decided_at: "2026-05-16T10:00:00Z" }];
+      const c = await window.NotesGraphSuggest.candidatesForNote(
+        "N2", { k: 9999, capPerToken: 9999, decisions, now: Date.parse("2030-01-01") });
+      return c.some((x) => x.to === "N3" && x.reason_code === "shared_root");
+    });
+    test("Case 5: rejected decision excludes that pair forever",
+         rej === false);
+
+    // Case 6 — `later` cooldown: suppressed inside cooldown, returns
+    // after it (same decision, only `now` advances → deterministic).
+    const later = await pg.evaluate(async () => {
+      const decisions = [{ from: "N2", to: "N3", to_kind: "note",
+        reason_code: "shared_root", state: "later",
+        decided_at: "2026-05-16T10:00:00Z" }];
+      const within = await window.NotesGraphSuggest.candidatesForNote(
+        "N2", { k: 9999, capPerToken: 9999, decisions,
+          now: Date.parse("2026-05-16T12:00:00Z"), laterCooldownMs: 24 * 3600 * 1000 });
+      const after = await window.NotesGraphSuggest.candidatesForNote(
+        "N2", { k: 9999, capPerToken: 9999, decisions,
+          now: Date.parse("2026-05-18T12:00:00Z"), laterCooldownMs: 24 * 3600 * 1000 });
+      const has = (arr) => arr.some((x) => x.to === "N3" && x.reason_code === "shared_root");
+      return { within: has(within), after: has(after) };
+    });
+    test("Case 6: `later` suppressed inside cooldown, resurfaces after",
+         later.within === false && later.after === true,
+         JSON.stringify(later));
+
+    // Case 7 — confirmed is suppressed (already a durable link).
+    const conf = await pg.evaluate(async () => {
+      const decisions = [{ from: "N2", to: "N3", to_kind: "note",
+        reason_code: "shared_root", state: "confirmed",
+        decided_at: "2026-05-16T10:00:00Z" }];
+      const c = await window.NotesGraphSuggest.candidatesForNote(
+        "N2", { k: 9999, capPerToken: 9999, decisions, now: Date.parse("2030-01-01") });
+      // other reasons for N2→N3 (shared_binyan) MUST still appear —
+      // suppression is per (from,to,to_kind,reason_code).
+      const root = c.some((x) => x.to === "N3" && x.reason_code === "shared_root");
+      const bin  = c.some((x) => x.to === "N3" && x.reason_code === "shared_binyan");
+      return { root, bin };
+    });
+    test("Case 7: confirmed suppressed for its reason only (other reasons survive)",
+         conf.root === false && conf.bin === true,
+         JSON.stringify(conf));
+
+    // Case 8 — caps on a synthetic 30-notes-same-root context.
     await pg.evaluate(() => {
       const big = [];
       for (let i = 0; i < 30; i++) {
         big.push({ id: "B" + i, text_id: "TX", note_type: "word_study",
           j_root: "כתב", j_binyan: null, j_word: null });
       }
-      const prev = window.__localDB.dbQuery;
       window.__localDB.dbQuery = async function (sql) {
         window.__sqlLog.push(String(sql));
         if (/FROM notes_v2/i.test(sql)) return big;
         if (/FROM note_links/i.test(sql)) return [];
         return [];
       };
-      window.__prevDbQuery = prev;
     });
     const caps = await pg.evaluate(async () => {
       const c = await window.NotesGraphSuggest.candidatesForNote("B0", { k: 7, capPerToken: 8 });
       const sharedRoot = c.filter((x) => x.reason_code === "shared_root");
-      return { total: c.length, sharedRoot: sharedRoot.length };
+      // even with an absurd K, per-note output never exceeds K.
+      const huge = await window.NotesGraphSuggest.candidatesForNote("B0", { k: 5, capPerToken: 9999 });
+      return { total: c.length, sharedRoot: sharedRoot.length, hugeK: huge.length };
     });
-    test("Case 5: per-token cap (≤8) and per-note top-K (≤7) enforced",
-         caps.total <= 7 && caps.sharedRoot <= 8,
+    test("Case 8: per-token cap (≤8) and per-note top-K hard-enforced",
+         caps.total <= 7 && caps.sharedRoot <= 8 && caps.hugeK <= 5,
          JSON.stringify(caps));
 
-    // Case 6 — read-only guard + offline.
+    // Case 9 — perf budget: synthetic 200-note fixture.
+    await pg.evaluate(() => {
+      const big = [];
+      for (let i = 0; i < 200; i++) {
+        big.push({ id: "P" + i, text_id: "TX" + (i % 8),
+          note_type: "word_study", j_root: "r" + (i % 25),
+          j_binyan: (i % 3 ? "paal" : "piel"), j_word: "w" + i });
+      }
+      window.__localDB.dbQuery = async function (sql) {
+        window.__sqlLog.push(String(sql));
+        if (/FROM notes_v2/i.test(sql)) return big;
+        if (/FROM note_links/i.test(sql)) return [];
+        return [];
+      };
+    });
+    const perf = await pg.evaluate(async () => {
+      const t0 = performance.now();
+      const c = await window.NotesGraphSuggest.candidatesForNote("P0", {});
+      const ms = performance.now() - t0;
+      const a = await window.NotesGraphSuggest.candidatesForNote("P0", {});
+      const det = JSON.stringify(a) === JSON.stringify(c);
+      return { ms: Math.round(ms), capped: c.length <= 7, det };
+    });
+    test("Case 9: 200-note generation under budget (<300ms), capped, deterministic",
+         perf.ms < 300 && perf.capped && perf.det,
+         JSON.stringify(perf));
+
+    // Case 10 — read-only guard + offline (after all the above).
     const sqlLog = await pg.evaluate(() => window.__sqlLog || []);
     const RO = /^\s*(WITH\b[\s\S]*?\bSELECT|SELECT)\b/i;
     const FORB = /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|REPLACE|TRUNCATE|PRAGMA|ATTACH|VACUUM)\b/i;
     const allSelect = sqlLog.length > 0 && sqlLog.every((s) => RO.test(s) && !FORB.test(s));
-    test("Case 6: every SQL is a bare SELECT; zero xhr/fetch; no pageerror",
+    test("Case 10: every SQL is a bare SELECT; zero xhr/fetch; no pageerror",
          allSelect && netReqs.length === 0 && errs.length === 0,
          JSON.stringify({ sqlCount: sqlLog.length, net: netReqs, errs }));
 

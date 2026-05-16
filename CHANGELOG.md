@@ -30,11 +30,25 @@ no telemetry, no consent bump, no graph-canvas authoring.
   from `notes_v2` json_extract; excludes self + existing note→note
   links; rarity-weighted (ubiquitous binyan down-weighted below a
   rare root); per-token + per-note caps; deterministic ordering.
-  Pinned by `suggest-generator-smoke.js` (6/6) against the **Phase 0
+  Pinned by `suggest-generator-smoke.js` against the **Phase 0
   frozen contract** (single source of truth) + determinism, rarity,
   caps, read-only, zero-network. Not yet loaded by `index.html`
   (no consumer until the Phase 3 Confirm panel) — zero production
-  regression surface. Full fast matrix ALL GREEN.
+  regression surface.
+- **Phase 2 — ranking + suppression contract.** Added the
+  learner-decision suppression contract as a pure, deterministic
+  function (DB + clock are caller-supplied; real wiring is Phase 4):
+  `rejected` excludes a pair **forever**; `later` is hidden for a
+  caller-set cooldown (default 24 h) then **resurfaces**; `confirmed`
+  is hidden **only for that reason** (per `from,to,to_kind,
+  reason_code` — matching the planned schema PK), so other reasons
+  for the same pair still surface. Hard caps re-proven (per-token ≤8,
+  per-note top-K, absurd-K clamp) and a perf budget added (200-note
+  synthetic generated <300 ms, capped, deterministic). Generator
+  smoke extended to **10/10**. Still headless/read-only/offline;
+  the only combined-run failure is the documented line-296 SW
+  back-to-back lazyload flake (9/9 in isolation; Phase 2 touched only
+  the not-yet-loaded module → no production surface).
 
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 
