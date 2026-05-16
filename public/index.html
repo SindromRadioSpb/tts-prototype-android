@@ -5488,6 +5488,28 @@ body:not(.theme-light) .v3-notes-links-badge { color: var(--theme-bg-page); }
 @media (max-width: 600px) {
   .v3-notes-links-add-row > * { flex: 1 1 auto; }
 }
+/* C6 (v3.4 cohesion) — mobile notes pass. The add-row children carry
+   inline max-width:140/160px + flex:1 that beat the weak 600px rule
+   above, so on phones the row stays cramped and inputs are ~31px tall
+   (below touch-target size). At ≤640px (covers more phones/small
+   tablets than 600) force a clean full-width stack and 40px touch
+   targets. !important is the canonical, scoped way to override the
+   element-level inline styles in a responsive context — limited to
+   exactly these IDs. Closes audit A-G7. */
+@media (max-width: 640px) {
+  .v3-notes-links-add-row { flex-direction: column; align-items: stretch; }
+  .v3-notes-links-add-row > * { flex: 1 1 100%; width: 100%; }
+  #v3NotesLinksAddKind,
+  #v3NotesLinksAddTarget,
+  #v3NotesLinksAddAlias { max-width: none !important; width: 100% !important; }
+  .v3-notes-links-add-row .v3-notes-tpl-input,
+  .v3-notes-links-add-row select,
+  .v3-notes-links-add-row button { min-height: 40px; }
+  .v3-notes-tpl-row-double { grid-template-columns: 1fr; }
+  .v3-notes-tpl-input,
+  .v3-notes-tpl-textarea { min-height: 40px; }
+  .v3-notes-md-toolbar-compact button { min-width: 36px; min-height: 36px; }
+}
 
 /* ─── Phase 9.3.5.B — Multi-note row-index panel ──────────────────────────
    Premium "layered learning" view: row click → list of all notes attached

@@ -7,7 +7,17 @@
 
 ## [Unreleased]
 
-(пусто — 250K full-hspell под v3.4; v3.3.7 Tier-2 graph UX в backlog,
+### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
+
+- **C6 — Mobile notes pass (A-G7).** The note-editor "Links" add-row
+  and template forms now have a `@media (max-width: 640px)` breakpoint:
+  the add-row stacks to a full-width column, the kind/target/alias
+  inputs lose their inline `max-width` cramp, touch targets are ≥ 40 px,
+  and `.v3-notes-tpl-row-double` collapses to one column. Desktop
+  layout unchanged. Pinned by `scripts/notes-ui/mobile-notes-smoke.js`
+  (5 cases, 414 px + 1280 px control); wired into the fast smoke matrix.
+
+(250K full-hspell под v3.4; v3.3.7 Tier-2 graph UX в backlog,
 см. docs/PHASE_PLAN_v3_3_7_GRAPH_UX.md §2)
 
 ---
