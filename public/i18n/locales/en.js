@@ -1527,6 +1527,13 @@ window.I18N_LOCALES.en = {
       reset: "Reset view", clearFilters: "Reset filters",
       listView: "List", graphView: "Graph", legend: "Legend",
       help: "Help", close: "Close", retry: "Retry",
+      zoomIn: "Zoom in", zoomOut: "Zoom out", fit: "Fit to view",
+    },
+    detail: {
+      empty: "Hover or focus a node to see details.",
+      degree: "Edges", in: "in", out: "out",
+      neighbours: "Neighbours",
+      pinnedHint: "Pinned — double-click to release",
     },
     kbdHelp: {
       title: "Keyboard shortcuts",

@@ -200,10 +200,28 @@
         ring.setAttribute("stroke", "currentColor");
         ring.setAttribute("stroke-width", "3");
         gEl.insertBefore(ring, gEl.firstChild);
+        // U1+U2: keyboard focus → detail panel + 1-hop highlight,
+        // immediate (no debounce — keyboard users expect snappy).
+        _emitDetail(n);
+        _highlightNeighbours(n.id);
       });
       gEl.addEventListener("blur", () => {
         const ring = gEl.querySelector("[data-focus-ring]");
         if (ring) ring.remove();
+        _emitDetail(null);
+        _clearHighlight();
+      });
+      // U1+U2: pointer hover → detail panel + highlight, 200 ms
+      // debounced to avoid thrash on dense graphs.
+      let _hoverT = null;
+      gEl.addEventListener("pointerenter", () => {
+        if (_hoverT) clearTimeout(_hoverT);
+        _hoverT = setTimeout(() => { _emitDetail(n); _highlightNeighbours(n.id); }, 200);
+      });
+      gEl.addEventListener("pointerleave", () => {
+        if (_hoverT) { clearTimeout(_hoverT); _hoverT = null; }
+        // Don't clear if this node is also the keyboard-focused one.
+        if (document.activeElement !== gEl) { _emitDetail(null); _clearHighlight(); }
       });
       nodeG.appendChild(gEl);
       return gEl;
@@ -361,7 +379,7 @@
         if (!drag || drag.node !== nodes[i]) return;
         el.style.cursor = "grab";
         if (drag.moved) {
-          el.setAttribute("data-pinned", "1"); // release pins
+          _setPinned(el, true); // release pins + visible badge (U3)
           sim.alphaTarget(0);
           // Swallow the click the browser fires after a drag.
           el.__graphSuppressClick = true;
@@ -396,7 +414,7 @@
         // unpin, not a navigate.
         if (el.__tapTimer) { clearTimeout(el.__tapTimer); el.__tapTimer = null; }
         nodes[i].fx = null; nodes[i].fy = null;
-        el.removeAttribute("data-pinned");
+        _setPinned(el, false); // unpin + remove badge (U3)
         sim.alpha(0.3).restart();
         scheduleTicks();
       });
@@ -496,6 +514,80 @@
       _isolated = false;
     }
 
+    // ── U1: detail emit ───────────────────────────────────────────────
+    const onNodeDetail = typeof opts.onNodeDetail === "function" ? opts.onNodeDetail : null;
+    const nodeById = new Map(nodes.map((n) => [n.id, n]));
+    function _emitDetail(n) {
+      if (!onNodeDetail) return;
+      if (!n) { onNodeDetail(null); return; }
+      const nbIds = adjacency.get(n.id) || [];
+      const neighbours = nbIds
+        .map((id) => nodeById.get(id)).filter(Boolean)
+        .sort((a, b) => (b.degree || 0) - (a.degree || 0))
+        .slice(0, 5)
+        .map((x) => ({ id: x.id, kind: x.kind, label: x.label }));
+      let inD = 0, outD = 0;
+      for (const e of edges) {
+        const s = typeof e.source === "object" ? e.source.id : e.source;
+        const t = typeof e.target === "object" ? e.target.id : e.target;
+        if (s === n.id) outD++;
+        if (t === n.id) inD++;
+      }
+      const idx = nodes.findIndex((x) => x.id === n.id);
+      onNodeDetail({
+        id: n.id, kind: n.kind, label: n.label, rawId: n.rawId,
+        degree: n.degree || 0, inDegree: inD, outDegree: outD,
+        pinned: idx >= 0 && nodeEls[idx].getAttribute("data-pinned") === "1",
+        meta: n.meta || {}, neighbours,
+      });
+    }
+
+    // ── U2: transient 1-hop neighbour highlight ───────────────────────
+    // Distinct from isolateCluster (whole component, sticky). No-ops
+    // while a cluster isolate is active so the two don't fight.
+    let _hl = false;
+    function _highlightNeighbours(nodeId) {
+      if (_isolated) return;
+      const keep = new Set([nodeId]);
+      for (const nb of (adjacency.get(nodeId) || [])) keep.add(nb);
+      nodes.forEach((n, idx) => {
+        nodeEls[idx].style.opacity = keep.has(n.id) ? "1" : "0.18";
+      });
+      edges.forEach((e, idx) => {
+        const s = typeof e.source === "object" ? e.source.id : e.source;
+        const t = typeof e.target === "object" ? e.target.id : e.target;
+        edgeEls[idx].style.opacity = (s === nodeId || t === nodeId) ? "1" : "0.10";
+      });
+      _hl = true;
+    }
+    function _clearHighlight() {
+      if (!_hl || _isolated) { _hl = false; return; }
+      nodeEls.forEach((el) => { el.style.opacity = "1"; });
+      edgeEls.forEach((el) => { el.style.opacity = "1"; });
+      _hl = false;
+    }
+
+    // ── U3: pinned badge ──────────────────────────────────────────────
+    function _setPinned(el, on) {
+      if (on) {
+        el.setAttribute("data-pinned", "1");
+        if (!el.querySelector("[data-pin-badge]")) {
+          const b = document.createElementNS(ns, "text");
+          b.setAttribute("data-pin-badge", "1");
+          b.setAttribute("x", 11);
+          b.setAttribute("y", -9);
+          b.setAttribute("font-size", "11");
+          b.setAttribute("pointer-events", "none");
+          b.textContent = "📌";
+          el.appendChild(b);
+        }
+      } else {
+        el.removeAttribute("data-pinned");
+        const b = el.querySelector("[data-pin-badge]");
+        if (b) b.remove();
+      }
+    }
+
     // ── chunked tick scheduler (perf §7) ──
     let tickCount = 0;
     let rafId = null;
@@ -547,10 +639,28 @@
       edgeEls,
       simulationDone,
       getTransform: () => Object.assign({}, currentTransform),
+      // U4: programmatic zoom about the canvas centre, clamped to the
+      // same [0.2, 4] extent as wheel zoom; keeps d3-zoom in sync.
+      zoomBy(factor) {
+        const k0 = currentTransform.k;
+        const k1 = Math.max(0.2, Math.min(4, k0 * factor));
+        if (k1 === k0) return;
+        const cx = W / 2, cy = H / 2;
+        // keep the canvas centre fixed while scaling
+        currentTransform = {
+          k: k1,
+          x: cx - (cx - currentTransform.x) * (k1 / k0),
+          y: cy - (cy - currentTransform.y) * (k1 / k0),
+        };
+        applyTransform();
+        _syncZoomTransform();
+      },
+      // U4: explicit "fit to content" (re-arms the one-shot latch).
+      fitView() { _pendingFit = true; fitToContent(); },
       resetView() {
         nodes.forEach((n, i) => {
           n.fx = null; n.fy = null;
-          nodeEls[i].removeAttribute("data-pinned");
+          _setPinned(nodeEls[i], false);
         });
         showAll();
         _pendingFit = true;            // re-fit on this settle only
@@ -562,7 +672,7 @@
       unpinAll() {
         nodes.forEach((n, i) => {
           n.fx = null; n.fy = null;
-          nodeEls[i].removeAttribute("data-pinned");
+          _setPinned(nodeEls[i], false);
         });
       },
       isolateCluster, showAll,

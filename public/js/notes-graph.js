@@ -567,18 +567,32 @@
             "Показаны 200 самых связанных элементов из {n}. Полный список доступен в режиме списка.",
             { n: payload.reduced.total })) + `</div>`
         : "";
+      const zg = "min-width:40px;height:34px;font-size:15px;line-height:1;";
       const toolbar =
-        `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid var(--theme-border,#e2e2e2);">` +
+        `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid var(--theme-border,#e2e2e2);align-items:center;">` +
           `<button type="button" class="btn-secondary" data-graph-reset="1">${esc(T("graph.toolbar.reset", "Сбросить вид"))}</button>` +
           `<button type="button" class="btn-secondary" data-graph-clearfilters="1">${esc(T("graph.toolbar.clearFilters", "Сбросить фильтры"))}</button>` +
           `<button type="button" class="btn-secondary" data-graph-toggle-list="1" aria-pressed="false">${esc(T("graph.toolbar.listView", "Список"))}</button>` +
           `<button type="button" class="btn-secondary" data-graph-legend="1" aria-pressed="false">${esc(T("graph.toolbar.legend", "Легенда"))}</button>` +
+          `<span style="flex:1"></span>` +
+          // U4: visible zoom controls (touch/tablet where wheel is awkward)
+          `<button type="button" class="btn-secondary" data-graph-zoomout="1" style="${zg}" aria-label="${esc(T("graph.toolbar.zoomOut", "Уменьшить"))}" title="${esc(T("graph.toolbar.zoomOut", "Уменьшить"))}">−</button>` +
+          `<button type="button" class="btn-secondary" data-graph-zoomin="1" style="${zg}" aria-label="${esc(T("graph.toolbar.zoomIn", "Увеличить"))}" title="${esc(T("graph.toolbar.zoomIn", "Увеличить"))}">＋</button>` +
+          `<button type="button" class="btn-secondary" data-graph-fit="1" style="${zg}" aria-label="${esc(T("graph.toolbar.fit", "По размеру"))}" title="${esc(T("graph.toolbar.fit", "По размеру"))}">⤢</button>` +
         `</div>`;
       panel.innerHTML = header(panel) + toolbar +
         `<div style="flex:1;display:flex;min-height:480px;position:relative;">` +
           `<div data-graph-canvas="1" role="application" ` +
           `aria-label="${esc(T("graph.a11yContainer", "Карта знаний", { nodes: g.stats.nodes_total, edges: g.stats.edges_total }))}" ` +
           `style="flex:1;min-height:480px;position:relative;"></div>` +
+          // U1: hover/focus detail rail (canonical extra-info surface;
+          // role=status aria-live so SR users hear the focused node).
+          `<aside data-graph-detail="1" role="status" aria-live="polite" ` +
+          `style="width:240px;flex:none;border-left:1px solid var(--theme-border,#e2e2e2);` +
+          `padding:14px;overflow:auto;font-size:12.5px;line-height:1.55;">` +
+            `<div data-graph-detail-empty="1" style="color:var(--theme-text-secondary,#888);">` +
+            esc(T("graph.detail.empty", "Наведите или сфокусируйте узел, чтобы увидеть детали.")) +
+            `</div></aside>` +
           `<div data-graph-listpane="1" hidden style="flex:1;overflow:auto;padding:12px;"></div>` +
         `</div>` +
         `<div data-graph-summary="1" role="status" aria-live="polite" ` +
@@ -622,6 +636,8 @@
           },
           // R resets view.
           onReset() { if (_renderHandle && _renderHandle.resetView) _renderHandle.resetView(); },
+          // U1: hover/focus → fill the detail rail.
+          onNodeDetail(d) { _renderDetail(panel, d); },
         });
       } catch (e) {
         console.error("[graph] render failed:", e);
@@ -640,6 +656,13 @@
         saveFilters({ note: true, text: true, sentence: true, root: true, word: true, binyan: true });
         destroy(); open();
       });
+      // U4: visible zoom controls.
+      const zin = panel.querySelector("[data-graph-zoomin]");
+      const zout = panel.querySelector("[data-graph-zoomout]");
+      const zfit = panel.querySelector("[data-graph-fit]");
+      if (zin)  zin.addEventListener("click",  () => { _renderHandle && _renderHandle.zoomBy && _renderHandle.zoomBy(1.25); });
+      if (zout) zout.addEventListener("click", () => { _renderHandle && _renderHandle.zoomBy && _renderHandle.zoomBy(0.8); });
+      if (zfit) zfit.addEventListener("click", () => { _renderHandle && _renderHandle.fitView && _renderHandle.fitView(); });
       const listBtn = panel.querySelector("[data-graph-toggle-list]");
       const listPane = panel.querySelector("[data-graph-listpane]");
       listBtn.addEventListener("click", () => {
@@ -808,6 +831,40 @@
         if (cl && cl.dominantNode) navigateTo(cl.dominantNode);
       });
     });
+  }
+
+  // U1: detail rail content. d is the renderer's detail object or null.
+  function _renderDetail(panel, d) {
+    const rail = panel.querySelector("[data-graph-detail]");
+    if (!rail) return;
+    if (!d) {
+      rail.innerHTML = `<div data-graph-detail-empty="1" ` +
+        `style="color:var(--theme-text-secondary,#888);">` +
+        esc(T("graph.detail.empty", "Наведите или сфокусируйте узел, чтобы увидеть детали.")) +
+        `</div>`;
+      return;
+    }
+    const kindLabel = T("graph.legend.nodes." + d.kind, d.kind);
+    const nb = (d.neighbours || []).map((x) =>
+      `<li style="margin:2px 0;">${esc(T("graph.legend.nodes." + x.kind, x.kind))}: ` +
+      `${esc(String(x.label).slice(0, 30))}</li>`).join("");
+    const metaRows = Object.keys(d.meta || {})
+      .filter((k) => d.meta[k] != null && d.meta[k] !== "")
+      .slice(0, 6)
+      .map((k) => `<div><b>${esc(k)}:</b> ${esc(String(d.meta[k]).slice(0, 40))}</div>`)
+      .join("");
+    rail.innerHTML =
+      `<div data-graph-detail-node="${esc(d.id)}">` +
+        `<div style="font-weight:700;font-size:13.5px;margin-bottom:2px;">${esc(d.label)}</div>` +
+        `<div style="color:var(--theme-text-secondary,#666);margin-bottom:8px;">${esc(kindLabel)}</div>` +
+        `<div><b>${esc(T("graph.detail.degree", "Связей"))}:</b> ${d.degree} ` +
+          `(${esc(T("graph.detail.in", "вх"))} ${d.inDegree} / ${esc(T("graph.detail.out", "исх"))} ${d.outDegree})</div>` +
+        (d.pinned ? `<div style="color:var(--theme-accent,#0a5);margin-top:4px;">📌 ` +
+          esc(T("graph.detail.pinnedHint", "Закреплён — двойной клик снимает")) + `</div>` : "") +
+        (metaRows ? `<div style="margin-top:8px;">${metaRows}</div>` : "") +
+        (nb ? `<div style="margin-top:8px;"><b>${esc(T("graph.detail.neighbours", "Соседи"))}:</b>` +
+          `<ul style="margin:4px 0 0 0;padding-left:16px;">${nb}</ul></div>` : "") +
+      `</div>`;
   }
 
   function renderListView(g) {

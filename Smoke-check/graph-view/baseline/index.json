@@ -1,76 +1,66 @@
 {
-  "generated_at": "2026-05-15T13:07:46.672Z",
-  "mode": "verify",
+  "generated_at": "2026-05-16T00:39:01.286Z",
+  "mode": "baseline",
   "captures": [
     {
       "file": "01-desktop-full-graph.png",
       "state": "loaded",
-      "bytes": 47934,
-      "pageerror": null,
-      "diff_ratio": 0
+      "bytes": 52406,
+      "pageerror": null
     },
     {
       "file": "02-desktop-isolated-cluster.png",
       "state": "loaded",
-      "bytes": 42656,
-      "pageerror": null,
-      "diff_ratio": 0
+      "bytes": 54753,
+      "pageerror": null
     },
     {
       "file": "03-tablet-landscape.png",
       "state": "loaded",
-      "bytes": 40901,
-      "pageerror": null,
-      "diff_ratio": 0
+      "bytes": 44635,
+      "pageerror": null
     },
     {
       "file": "04-tablet-portrait-fallback.png",
       "state": "fallback_mobile",
       "bytes": 35492,
-      "pageerror": null,
-      "diff_ratio": 0
+      "pageerror": null
     },
     {
       "file": "05-mobile-fallback.png",
       "state": "fallback_mobile",
       "bytes": 32495,
-      "pageerror": null,
-      "diff_ratio": 0
+      "pageerror": null
     },
     {
       "file": "06-keyboard-focus-ring.png",
       "state": "loaded",
-      "bytes": 48611,
-      "pageerror": null,
-      "diff_ratio": 0
+      "bytes": 51105,
+      "pageerror": null
     },
     {
       "file": "07-screen-reader-list-view.png",
       "state": "loaded",
-      "bytes": 62926,
-      "pageerror": null,
-      "diff_ratio": 0
+      "bytes": 66868,
+      "pageerror": null
     },
     {
       "file": "08-reduced-motion.png",
       "state": "loaded",
-      "bytes": 47934,
-      "pageerror": null,
-      "diff_ratio": 0
+      "bytes": 52406,
+      "pageerror": null
     },
     {
       "file": "09-empty-state.png",
       "state": "empty_no_links",
       "bytes": 16390,
-      "pageerror": null,
-      "diff_ratio": 0
+      "pageerror": null
     },
     {
       "file": "10-top-200-reduced-toast.png",
       "state": "loaded",
-      "bytes": 260751,
-      "pageerror": null,
-      "diff_ratio": 0
+      "bytes": 113622,
+      "pageerror": null
     }
   ]
 }

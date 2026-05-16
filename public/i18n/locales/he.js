@@ -1531,6 +1531,13 @@ window.I18N_LOCALES.he = {
       reset: "אפס תצוגה", clearFilters: "אפס מסננים",
       listView: "רשימה", graphView: "גרף", legend: "מקרא",
       help: "עזרה", close: "סגור", retry: "נסה שוב",
+      zoomIn: "הגדל", zoomOut: "הקטן", fit: "התאם לתצוגה",
+    },
+    detail: {
+      empty: "רחף או מקד צומת כדי לראות פרטים.",
+      degree: "קשרים", in: "נכנס", out: "יוצא",
+      neighbours: "שכנים",
+      pinnedHint: "מוצמד — לחיצה כפולה משחררת",
     },
     kbdHelp: {
       title: "קיצורי מקלדת",

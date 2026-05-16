@@ -1539,6 +1539,13 @@ window.I18N_LOCALES.ru = {
       reset: "Сбросить вид", clearFilters: "Сбросить фильтры",
       listView: "Список", graphView: "Граф", legend: "Легенда",
       help: "Помощь", close: "Закрыть", retry: "Повторить",
+      zoomIn: "Увеличить", zoomOut: "Уменьшить", fit: "По размеру",
+    },
+    detail: {
+      empty: "Наведите или сфокусируйте узел, чтобы увидеть детали.",
+      degree: "Связей", in: "вх", out: "исх",
+      neighbours: "Соседи",
+      pinnedHint: "Закреплён — двойной клик снимает",
     },
     kbdHelp: {
       title: "Клавиатурные сокращения",
