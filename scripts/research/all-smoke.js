@@ -58,6 +58,7 @@ const SUITES = [
   { name: "Suggestion durable persistence (v3.6 P4)", script: "scripts/notes-graph/suggest-persist-smoke.js", countLabel: "5 cases" },
   { name: "Suggested graph layers + filter (v3.6 P5)", script: "scripts/notes-graph/suggest-graph-smoke.js", countLabel: "5 cases" },
   { name: "SRS/quiz candidate records (v3.6 P6)", script: "scripts/notes-ui/suggest-srs-candidate-smoke.js", countLabel: "5 cases" },
+  { name: "Learning-state overlay A5 (v3.6 P7)", script: "scripts/notes-graph/activity-overlay-smoke.js", countLabel: "5 cases" },
   { name: "Mobile notes pass (v3.4 C6)",             script: "scripts/notes-ui/mobile-notes-smoke.js",      countLabel: "5 cases" },
   { name: "Inline [[ link autocomplete (v3.4 C1)",   script: "scripts/notes-ui/link-autocomplete-smoke.js", countLabel: "6 cases" },
   { name: "Onboarding + empty-state teach (v3.4 C3+U8)", script: "scripts/notes-ui/onboarding-empty-smoke.js", countLabel: "5 cases" },

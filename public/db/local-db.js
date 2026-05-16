@@ -1079,6 +1079,56 @@ export async function listSuggestionDecisions(noteId) {
   }));
 }
 
+// ── v3.6 Phase 7 (A5) — learning-state overlay (read-only) ───────────────
+// Per-note learning state derived from srs_cards (linked via
+// source_note_id) + srs_attempts accuracy. Read-only aggregate; one
+// query; tolerant of missing tables → {} (overlay simply absent).
+// State salience: weak > stale > learning > new > known (the most
+// attention-worthy state wins when a note has several cards).
+export async function getLearningStateOverlay() {
+  let rows;
+  try {
+    rows = await q(
+      `SELECT c.source_note_id AS note_id,
+              c.state          AS card_state,
+              c.lapses         AS lapses,
+              c.due_date       AS due_date,
+              COUNT(a.id)      AS attempts,
+              SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct
+         FROM srs_cards c
+         LEFT JOIN srs_attempts a ON a.card_id = c.id
+        WHERE c.source_note_id IS NOT NULL
+        GROUP BY c.id`, []);
+  } catch (_) { return {}; }              // srs_* absent → no overlay
+
+  const RANK = { weak: 0, stale: 1, learning: 2, new: 3, known: 4 };
+  const now = Date.now();
+  const OVERDUE_MS = 7 * 24 * 60 * 60 * 1000;
+  const out = {};
+  for (const r0 of (rows || [])) {
+    const id = String(r0.note_id || "");
+    if (!id) continue;
+    const attempts = Number(r0.attempts) || 0;
+    const correct = Number(r0.correct) || 0;
+    const cs = String(r0.card_state || "new").toLowerCase();
+    let state;
+    if (attempts >= 3 && (correct / attempts) < 0.5) {
+      state = "weak";
+    } else if (r0.due_date && Date.parse(r0.due_date) < (now - OVERDUE_MS)) {
+      state = "stale";
+    } else if (attempts === 0 || cs === "new") {
+      state = "new";
+    } else if (cs === "learning" || cs === "relearning") {
+      state = "learning";
+    } else {
+      state = "known";
+    }
+    // keep the most attention-worthy state per note
+    if (out[id] == null || RANK[state] < RANK[out[id]]) out[id] = state;
+  }
+  return out;
+}
+
 // ── Roots reference table ────────────────────────────────────────────────
 
 // Idempotent seed — inserts roots from the provided array if they're not

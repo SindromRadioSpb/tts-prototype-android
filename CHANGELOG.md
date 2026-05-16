@@ -132,6 +132,23 @@ no telemetry, no consent bump, no graph-canvas authoring.
   state='confirmed' filtered at the DB, no srs_*/writes, offline).
   Combined-run shows only the documented line-296 SW back-to-back
   lazyload flake (9/9 isolation; headless module → cannot affect it).
+- **Phase 7 — A5 learning-state overlay.** New read-only
+  `local-db.getLearningStateOverlay()` aggregate (one query;
+  `srs_cards` ⨝ `srs_attempts` via `source_note_id`; tolerant of
+  missing tables → `{}`) → per-note state ∈ weak/stale/learning/new/
+  known (salience weak>stale>learning>new>known). The graph draws a
+  **non-destructive coloured ring** on note nodes (never an edge;
+  Okabe-Ito palette in `LEARN_STYLE`), surfaced in the detail rail +
+  legend, behind a default-on «Прогресс» chip (`filters.learnOverlay`,
+  reuses the generic chip wiring). Read-only throughout (no
+  `note_links` write, no `addNoteLink`, bare-SELECT). Pinned by
+  `scripts/notes-graph/activity-overlay-smoke.js` (5/5: static
+  read-only contract, rings match the map + distinct palette, detail
+  rail shows state, chip-off removes rings with **identical edge
+  count** = zero edges created, read-only). i18n ru/en/he. Graph
+  visual baselines regenerated (intentional canvas change — rings)
+  and re-verified 31/31; `bundle-data-smoke` still 5/5. Full fast
+  matrix ALL GREEN.
 
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 

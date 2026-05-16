@@ -1,23 +1,23 @@
 {
-  "generated_at": "2026-05-16T20:43:23.914Z",
+  "generated_at": "2026-05-16T21:44:13.692Z",
   "mode": "baseline",
   "captures": [
     {
       "file": "01-desktop-full-graph.png",
       "state": "loaded",
-      "bytes": 69665,
+      "bytes": 70864,
       "pageerror": null
     },
     {
       "file": "02-desktop-isolated-cluster.png",
       "state": "loaded",
-      "bytes": 68959,
+      "bytes": 70140,
       "pageerror": null
     },
     {
       "file": "03-tablet-landscape.png",
       "state": "loaded",
-      "bytes": 60104,
+      "bytes": 61210,
       "pageerror": null
     },
     {
@@ -35,31 +35,31 @@
     {
       "file": "06-keyboard-focus-ring.png",
       "state": "loaded",
-      "bytes": 64566,
+      "bytes": 65814,
       "pageerror": null
     },
     {
       "file": "07-screen-reader-list-view.png",
       "state": "loaded",
-      "bytes": 75977,
+      "bytes": 77127,
       "pageerror": null
     },
     {
       "file": "08-reduced-motion.png",
       "state": "loaded",
-      "bytes": 69665,
+      "bytes": 70864,
       "pageerror": null
     },
     {
       "file": "09-sparse-state.png",
       "state": "loaded",
-      "bytes": 45957,
+      "bytes": 47258,
       "pageerror": null
     },
     {
       "file": "10-top-200-reduced-toast.png",
       "state": "loaded",
-      "bytes": 128507,
+      "bytes": 129794,
       "pageerror": null
     }
   ]

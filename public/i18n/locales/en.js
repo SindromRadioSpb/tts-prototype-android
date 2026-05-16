@@ -1575,6 +1575,14 @@ window.I18N_LOCALES.en = {
         sharedRoot:  "fine dash — shared root (suggested)",
         sharedLemma: "dotted dash — shared lemma (suggested)",
       },
+      learnTitle: "Progress (note ring)",
+      learn: {
+        weak:     "weak — needs review",
+        stale:    "overdue",
+        learning: "in progress",
+        new:      "new",
+        known:    "mastered",
+      },
     },
     toolbar: {
       reset: "Reset view", clearFilters: "Reset filters",
@@ -1584,6 +1592,7 @@ window.I18N_LOCALES.en = {
       searchPlaceholder: "Find a node…  (/)", searchCount: "{n} found",
       filterLabel: "Show:",
       suggestedLayer: "Suggested links",
+      activityOverlay: "Progress",
     },
     detail: {
       empty: "Hover or focus a node to see details.",

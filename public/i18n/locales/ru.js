@@ -1587,6 +1587,14 @@ window.I18N_LOCALES.ru = {
         sharedRoot:  "мелкий пунктир — общий корень (подсказка)",
         sharedLemma: "точечный пунктир — общая лемма (подсказка)",
       },
+      learnTitle: "Прогресс (кольцо заметки)",
+      learn: {
+        weak:     "слабо — нужно повторить",
+        stale:    "просрочено",
+        learning: "в процессе",
+        new:      "новое",
+        known:    "усвоено",
+      },
     },
     toolbar: {
       reset: "Сбросить вид", clearFilters: "Сбросить фильтры",
@@ -1596,6 +1604,7 @@ window.I18N_LOCALES.ru = {
       searchPlaceholder: "Поиск узла…  (/)", searchCount: "{n} найдено",
       filterLabel: "Показывать:",
       suggestedLayer: "Подсказки связей",
+      activityOverlay: "Прогресс",
     },
     detail: {
       empty: "Наведите или сфокусируйте узел, чтобы увидеть детали.",

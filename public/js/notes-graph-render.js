@@ -31,6 +31,17 @@
     word:     { color: "#CC79A7", shape: "circle-sm" },
     binyan:   { color: "#D55E00", shape: "hexagon" },
   };
+  // Phase 7 (A5) — learning-state OVERLAY ring colour. Non-destructive:
+  // a thin outer ring around a note node, never replaces its shape.
+  // Colour-blind-safe palette (Okabe-Ito family, distinct from
+  // KIND_STYLE). Salience order weak > stale > learning > new > known.
+  const LEARN_STYLE = {
+    weak:     "#D55E00",   // needs work (warm, high salience)
+    stale:    "#E69F00",   // overdue
+    learning: "#56B4E9",   // in progress
+    new:      "#999999",   // not started
+    known:    "#009E73",   // mastered
+  };
   // 3 edge kinds → distinct stroke style (color-independent).
   const EDGE_STYLE = {
     explicit_link: { dash: "none",  width: 1.6 },
@@ -185,6 +196,20 @@
       gEl.style.cursor = "pointer";
       gEl.style.outline = "none";
       gEl.appendChild(_shapeFor(n.kind, gEl));
+      // Phase 7 (A5) — learning-state overlay ring (note nodes only).
+      // Non-destructive: an extra outer ring; the node shape itself is
+      // untouched. data-learn drives the smoke + detail rail.
+      if (n.kind === "note" && n.learn && LEARN_STYLE[n.learn]) {
+        gEl.setAttribute("data-learn", n.learn);
+        const lr = document.createElementNS(ns, "circle");
+        lr.setAttribute("data-learn-ring", "1");
+        lr.setAttribute("r", 13);
+        lr.setAttribute("fill", "none");
+        lr.setAttribute("stroke", LEARN_STYLE[n.learn]);
+        lr.setAttribute("stroke-width", "2.5");
+        lr.setAttribute("pointer-events", "none");
+        gEl.appendChild(lr);
+      }
       const label = document.createElementNS(ns, "text");
       label.setAttribute("x", 0);
       label.setAttribute("y", 20);
@@ -543,6 +568,7 @@
         id: n.id, kind: n.kind, label: n.label, rawId: n.rawId,
         degree: n.degree || 0, inDegree: inD, outDegree: outD,
         pinned: idx >= 0 && nodeEls[idx].getAttribute("data-pinned") === "1",
+        learn: n.learn || null,           // Phase 7 (A5) — learning state
         meta: n.meta || {}, neighbours,
       });
     }
@@ -714,7 +740,7 @@
     };
   }
 
-  const api = { renderGraph, KIND_STYLE, EDGE_STYLE };
+  const api = { renderGraph, KIND_STYLE, EDGE_STYLE, LEARN_STYLE };
   if (typeof window !== "undefined") window.NotesGraphRender = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })();

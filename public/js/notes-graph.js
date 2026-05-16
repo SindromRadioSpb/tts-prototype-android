@@ -747,6 +747,14 @@
         `style="padding:3px 10px;font-size:12px;border-radius:999px;` +
         `border-style:dashed;${_sgOn ? "" : "opacity:.5;"}">` +
         `${esc(T("graph.toolbar.suggestedLayer", "Подсказки связей"))}</button>`;
+      // Phase 7 (A5) — learning-state overlay toggle chip (default-on).
+      const _loOn = _flt.learnOverlay !== false;
+      const learnChip =
+        `<button type="button" class="btn-secondary" data-graph-filter-chip="learnOverlay" ` +
+        `aria-pressed="${_loOn ? "true" : "false"}" ` +
+        `style="padding:3px 10px;font-size:12px;border-radius:999px;` +
+        `border-style:dotted;${_loOn ? "" : "opacity:.5;"}">` +
+        `${esc(T("graph.toolbar.activityOverlay", "Прогресс"))}</button>`;
       const toolbar2 =
         `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;border-bottom:1px solid var(--theme-border,#e2e2e2);align-items:center;">` +
           `<input type="search" data-graph-node-search="1" ` +
@@ -759,7 +767,7 @@
           `<span style="flex:1"></span>` +
           (chips ? `<span style="font-size:12px;color:var(--theme-text-secondary,#888);margin-inline-end:4px;">` +
             `${esc(T("graph.toolbar.filterLabel", "Показывать:"))}</span>` + chips : "") +
-          suggChip +
+          suggChip + learnChip +
         `</div>`;
       panel.innerHTML = header(panel) + toolbar + toolbar2 +
         `<div style="flex:1;display:flex;min-height:480px;position:relative;">` +
@@ -1145,6 +1153,9 @@
           `(${esc(T("graph.detail.in", "вх"))} ${d.inDegree} / ${esc(T("graph.detail.out", "исх"))} ${d.outDegree})</div>` +
         (d.pinned ? `<div style="color:var(--theme-accent,#0a5);margin-top:4px;">📌 ` +
           esc(T("graph.detail.pinnedHint", "Закреплён — двойной клик снимает")) + `</div>` : "") +
+        (d.learn ? `<div data-detail-learn="${esc(d.learn)}" style="margin-top:6px;">` +
+          `<b>${esc(T("graph.legend.learnTitle", "Прогресс"))}:</b> ` +
+          esc(T("graph.legend.learn." + d.learn, d.learn)) + `</div>` : "") +
         (metaRows ? `<div style="margin-top:8px;">${metaRows}</div>` : "") +
         (nb ? `<div style="margin-top:8px;"><b>${esc(T("graph.detail.neighbours", "Соседи"))}:</b>` +
           `<ul style="margin:4px 0 0 0;padding-left:16px;">${nb}</ul></div>` : "") +
@@ -1236,7 +1247,11 @@
       `<div>${esc(T("graph.legend.edges.dotted", "точки — морфология"))}</div>` +
       `<div>${esc(T("graph.legend.edges.auto", "длинный пунктир — заметка ↔ её текст (авто)"))}</div>` +
       `<div>${esc(T("graph.legend.edges.sharedRoot", "мелкий пунктир — общий корень (подсказка)"))}</div>` +
-      `<div>${esc(T("graph.legend.edges.sharedLemma", "точечный пунктир — общая лемма (подсказка)"))}</div>`;
+      `<div>${esc(T("graph.legend.edges.sharedLemma", "точечный пунктир — общая лемма (подсказка)"))}</div>` +
+      `<hr style="margin:8px 0;border:none;border-top:1px solid var(--theme-border,#eee);">` +
+      `<b>${esc(T("graph.legend.learnTitle", "Прогресс (кольцо заметки)"))}</b>` +
+      ["weak", "stale", "learning", "new", "known"].map((s) =>
+        `<div>● ${esc(T("graph.legend.learn." + s, s))}</div>`).join("");
     panel.appendChild(pane);
     pane.querySelector("[data-legend-close]").addEventListener("click", () => pane.remove());
   }
@@ -1329,6 +1344,25 @@
             keep.has(e.source) && keep.has(e.target) && !edgeHidden(e)),
           stats: graph.stats, reduced: graph.reduced,
         };
+      }
+      // Phase 7 (A5) — learning-state overlay. Read-only aggregate,
+      // ONE query per open, non-destructive (annotates note nodes
+      // with `.learn`; the renderer draws a ring, never an edge).
+      // Chip-toggleable (filters.learnOverlay, default-on).
+      if (filters.learnOverlay !== false &&
+          window.__localDB &&
+          typeof window.__localDB.getLearningStateOverlay === "function") {
+        try {
+          const ov = await window.__localDB.getLearningStateOverlay();
+          if (ov && typeof ov === "object") {
+            for (const n of graph.nodes) {
+              if (n.kind !== "note") continue;
+              const rawId = n.id.indexOf("note:") === 0 ? n.id.slice(5) : n.rawId;
+              const st = ov[rawId];
+              if (st) n.learn = st;
+            }
+          }
+        } catch (_) { /* overlay absent — graph still renders */ }
       }
     } catch (e) {
       if (_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }

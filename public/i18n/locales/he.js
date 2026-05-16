@@ -1579,6 +1579,14 @@ window.I18N_LOCALES.he = {
         sharedRoot:  "קו מקווקו דק — שורש משותף (הצעה)",
         sharedLemma: "קו נקודות — לקסמה משותפת (הצעה)",
       },
+      learnTitle: "התקדמות (טבעת ההערה)",
+      learn: {
+        weak:     "חלש — דורש חזרה",
+        stale:    "פג תוקף",
+        learning: "בתהליך",
+        new:      "חדש",
+        known:    "נשלט",
+      },
     },
     toolbar: {
       reset: "אפס תצוגה", clearFilters: "אפס מסננים",
@@ -1588,6 +1596,7 @@ window.I18N_LOCALES.he = {
       searchPlaceholder: "חיפוש צומת…  (/)", searchCount: "{n} נמצאו",
       filterLabel: "הצג:",
       suggestedLayer: "קישורים מוצעים",
+      activityOverlay: "התקדמות",
     },
     detail: {
       empty: "רחף או מקד צומת כדי לראות פרטים.",
