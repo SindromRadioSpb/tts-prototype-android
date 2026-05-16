@@ -1,7 +1,7 @@
 # Smart Learning Graph — Roadmap v3.6 (planning-only)
 
 > **Status.** APPROVED WITH REFINEMENTS (owner, 2026-05-16) — see
-> §11 "Approved decisions". **Phases 0–4 SHIPPED; Phase 5 next.**
+> §11 "Approved decisions". **Phases 0–5 SHIPPED; Phase 6 next.**
 > Refinements:
 > (a) **export** carries `confirmed` by default; `rejected` only
 > under a *full learning-state* export profile; `pending`/`later`
@@ -25,9 +25,13 @@
 > - ✅ **Phase 4** `3b2049d` — durable `note_link_suggestions`
 >   migration + `local-db` CRUD; confirm → durable `note_links`;
 >   survives reopen; `suggest-persist-smoke` 5/5 + panel 5/5.
-> - ▶ **Phase 5** next — graph layer integration + filters +
->   explainability (first phase that intentionally changes the
->   graph-canvas DOM → will regenerate + re-verify visual baselines).
+> - ✅ **Phase 5** — `auto_shared_root`/`auto_shared_lemma` read-only
+>   suggested graph layers + decision-aware suppression + distinct
+>   EDGE_STYLE/legend + «Подсказки связей» edge-layer chip;
+>   `suggest-graph-smoke` 5/5; visual baselines regenerated &
+>   re-verified 31/31; bundle-data 5/5.
+> - ▶ **Phase 6** next — SRS/quiz candidate records ONLY (no engine
+>   change, no card-creation UI in v3.6).
 > All commits pushed to `main`; full `smoke:research:fast` green per
 > phase; invariants (read-only, offline, no telemetry, no consent
 > bump, no graph-canvas authoring) smoke-pinned each phase.

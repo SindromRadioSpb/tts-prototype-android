@@ -56,6 +56,7 @@ const SUITES = [
   { name: "A2 suggestion generator + suppression (v3.6 P1/P2)", script: "scripts/notes-graph/suggest-generator-smoke.js", countLabel: "10 cases" },
   { name: "Confirm-panel «Подтвердите связи» (v3.6 P3)", script: "scripts/notes-ui/suggest-panel-smoke.js", countLabel: "5 cases" },
   { name: "Suggestion durable persistence (v3.6 P4)", script: "scripts/notes-graph/suggest-persist-smoke.js", countLabel: "5 cases" },
+  { name: "Suggested graph layers + filter (v3.6 P5)", script: "scripts/notes-graph/suggest-graph-smoke.js", countLabel: "5 cases" },
   { name: "Mobile notes pass (v3.4 C6)",             script: "scripts/notes-ui/mobile-notes-smoke.js",      countLabel: "5 cases" },
   { name: "Inline [[ link autocomplete (v3.4 C1)",   script: "scripts/notes-ui/link-autocomplete-smoke.js", countLabel: "6 cases" },
   { name: "Onboarding + empty-state teach (v3.4 C3+U8)", script: "scripts/notes-ui/onboarding-empty-smoke.js", countLabel: "5 cases" },

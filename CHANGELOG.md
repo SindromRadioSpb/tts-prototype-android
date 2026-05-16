@@ -95,6 +95,25 @@ no telemetry, no consent bump, no graph-canvas authoring.
   later-cooldown+offline); `suggest-panel-smoke.js` updated to the
   durable contract (5/5). Full fast matrix ALL GREEN (real-DB
   browser smokes pass → the migration is safe at app boot).
+- **Phase 5 — suggested graph layers + filter + explainability.**
+  The graph now renders the computed, **read-only** "suggested"
+  layer: new edge kinds `auto_shared_root` / `auto_shared_lemma`
+  (notes sharing a root / lemma), capped per token + rarity-skipped
+  (no hairball), `evidence` carried through for explainability.
+  **Decision-aware:** a pair already joined by an explicit/confirmed
+  link is not re-drawn; pairs `rejected` (forever) or deferred
+  (`later`, in cooldown) are suppressed via a read-only
+  `note_link_suggestions` SELECT — the graph honours learner
+  decisions. Distinct `EDGE_STYLE` dashes + legend rows (ru/en/he)
+  make all six edge classes visually distinguishable; a new
+  edge-LAYER chip «Подсказки связей» (reuses the generic chip wiring
+  → `filters.edgeSuggested`, default-on) toggles the layer. Canvas
+  stays strictly read-only (no `note_links` write, no `addNoteLink`,
+  bare-SELECT only — smoke-asserted). Pinned by
+  `scripts/notes-graph/suggest-graph-smoke.js` (5/5). Graph visual
+  baselines **regenerated** (intentional canvas change) and
+  re-verified 31/31; `bundle-data-smoke` still 5/5. Full fast matrix
+  ALL GREEN.
 
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 

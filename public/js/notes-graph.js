@@ -31,7 +31,15 @@
   // so the library structure shows up with ZERO manual linking. This
   // is read-only synthesis from data the app already has — it does
   // NOT create note_links rows or mutate anything.
-  const EDGE_KINDS = ["explicit_link", "target_anchor", "derived_morph", "auto_text"];
+  // v3.6 Phase 5 — `auto_shared_root` / `auto_shared_lemma` are the
+  // computed "suggested" view-only layer: notes that share a root /
+  // lemma. Read-only synthesis (NO note_links written; the graph
+  // stays read-only). Capped + rarity-skipped (no hairball);
+  // explicit/confirmed links supersede; learner-rejected / deferred
+  // pairs are suppressed via note_link_suggestions so the graph
+  // honours decisions.
+  const EDGE_KINDS = ["explicit_link", "target_anchor", "derived_morph",
+                      "auto_text", "auto_shared_root", "auto_shared_lemma"];
 
   // ── DB shim — identical access path to crosstext.js ────────────────────
   // READ-ONLY enforcement (C7 privacy hardening): the graph is a
@@ -233,6 +241,61 @@
     }
 
     // Degree.
+    // ── Phase 5 — computed shared-root / shared-lemma view layers ──
+    // Read-only. Capped per token + rarity-skip so a ubiquitous root
+    // cannot create a hairball. A pair already joined by ANY edge
+    // (explicit/confirmed/anchor/derived) is skipped — those layers
+    // win. Pairs the learner rejected (forever) or deferred (within
+    // cooldown) are suppressed so the graph honours decisions.
+    const SHARED_CAP = 6;          // max emitted edges per token
+    const SHARED_SKIP_OVER = 24;   // a token in > N notes is noise
+    const _supp = new Set();
+    try {
+      const _dr = await _q(
+        `SELECT from_note_id, to_id, reason_code, state, decided_at
+           FROM note_link_suggestions WHERE state IN ('rejected','later')`, []);
+      const _now = Date.now(), _COOL = 24 * 60 * 60 * 1000;
+      for (const d of (_dr || [])) {
+        const k = String(d.from_note_id) + "|" + String(d.to_id) + "|" + String(d.reason_code);
+        if (d.state === "rejected") { _supp.add(k); continue; }
+        const tms = Date.parse(d.decided_at);
+        if (!isFinite(tms) || (_now - tms) < _COOL) _supp.add(k);
+      }
+    } catch (_) { /* table may not exist on old DBs — no suppression */ }
+
+    function _sharedPass(getKey, reason, edgeKind) {
+      const groups = new Map();
+      for (const n of notes) {
+        const key = getKey(n);
+        if (!key) continue;
+        let arr = groups.get(key);
+        if (!arr) { arr = []; groups.set(key, arr); }
+        arr.push(String(n.id));
+      }
+      for (const [token, ids] of groups) {
+        if (ids.length < 2 || ids.length > SHARED_SKIP_OVER) continue;
+        const sorted = ids.slice().sort((a, b) => a.localeCompare(b));
+        let added = 0;
+        for (let i = 0; i < sorted.length && added < SHARED_CAP; i++) {
+          for (let j = i + 1; j < sorted.length && added < SHARED_CAP; j++) {
+            const a = sorted[i], b = sorted[j];
+            const sId = _nid("note", a), tId = _nid("note", b);
+            if (!nodes.has(sId) || !nodes.has(tId)) continue;
+            if (edges.some((e) =>
+              (e.source === sId && e.target === tId) ||
+              (e.source === tId && e.target === sId))) continue;
+            if (_supp.has(a + "|" + b + "|" + reason) ||
+                _supp.has(b + "|" + a + "|" + reason)) continue;
+            edges.push({ source: sId, target: tId, edge_kind: edgeKind,
+                         alias: null, evidence: token });
+            added++;
+          }
+        }
+      }
+    }
+    _sharedPass((n) => _normalize(n.j_root), "shared_root", "auto_shared_root");
+    _sharedPass((n) => _normalize(n.j_word), "shared_lemma", "auto_shared_lemma");
+
     for (const e of edges) {
       const s = nodes.get(e.source), t = nodes.get(e.target);
       if (s) s.degree++;
@@ -306,6 +369,7 @@
       const out = { source: e.source, target: e.target, edge_kind: e.edge_kind };
       if (e.alias) out.alias = e.alias;
       if (e.also_target) out.also_target = true;
+      if (e.evidence) out.evidence = e.evidence;  // Phase 5 — explainability
       return out;
     });
     return {
@@ -672,6 +736,17 @@
           `style="padding:3px 10px;font-size:12px;border-radius:999px;${on ? "" : "opacity:.5;"}">` +
           `${esc(T("graph.legend.nodes." + k, k))}</button>`;
       }).join("");
+      // Phase 5 — edge-LAYER chip: toggles the computed suggested
+      // (shared-root/lemma) layer. Reuses the generic chip wiring
+      // (data-graph-filter-chip) → flips filters.edgeSuggested →
+      // re-open (same mechanism as the node-kind chips). Default on.
+      const _sgOn = _flt.edgeSuggested !== false;
+      const suggChip =
+        `<button type="button" class="btn-secondary" data-graph-filter-chip="edgeSuggested" ` +
+        `aria-pressed="${_sgOn ? "true" : "false"}" ` +
+        `style="padding:3px 10px;font-size:12px;border-radius:999px;` +
+        `border-style:dashed;${_sgOn ? "" : "opacity:.5;"}">` +
+        `${esc(T("graph.toolbar.suggestedLayer", "Подсказки связей"))}</button>`;
       const toolbar2 =
         `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;border-bottom:1px solid var(--theme-border,#e2e2e2);align-items:center;">` +
           `<input type="search" data-graph-node-search="1" ` +
@@ -684,6 +759,7 @@
           `<span style="flex:1"></span>` +
           (chips ? `<span style="font-size:12px;color:var(--theme-text-secondary,#888);margin-inline-end:4px;">` +
             `${esc(T("graph.toolbar.filterLabel", "Показывать:"))}</span>` + chips : "") +
+          suggChip +
         `</div>`;
       panel.innerHTML = header(panel) + toolbar + toolbar2 +
         `<div style="flex:1;display:flex;min-height:480px;position:relative;">` +
@@ -1158,7 +1234,9 @@
       `<div>${esc(T("graph.legend.edges.solid", "сплошная — ссылка [[…]]"))}</div>` +
       `<div>${esc(T("graph.legend.edges.dashed", "пунктир — заметка о тексте"))}</div>` +
       `<div>${esc(T("graph.legend.edges.dotted", "точки — морфология"))}</div>` +
-      `<div>${esc(T("graph.legend.edges.auto", "длинный пунктир — заметка ↔ её текст (авто)"))}</div>`;
+      `<div>${esc(T("graph.legend.edges.auto", "длинный пунктир — заметка ↔ её текст (авто)"))}</div>` +
+      `<div>${esc(T("graph.legend.edges.sharedRoot", "мелкий пунктир — общий корень (подсказка)"))}</div>` +
+      `<div>${esc(T("graph.legend.edges.sharedLemma", "точечный пунктир — общая лемма (подсказка)"))}</div>`;
     panel.appendChild(pane);
     pane.querySelector("[data-legend-close]").addEventListener("click", () => pane.remove());
   }
@@ -1235,13 +1313,20 @@
       graph = await window.NotesGraphData.buildGraph();
       // Apply persisted filters (Λ5 — sessionStorage; layout still
       // re-simulates every open per Appendix A #5).
-      const hiddenKinds = Object.keys(filters).filter((k) => filters[k] === false);
-      if (hiddenKinds.length) {
+      // node-kind hide list (edgeSuggested is an edge-LAYER key, not a
+      // node kind — handled separately below).
+      const NODE_KEYS = ["note", "text", "sentence", "root", "word", "binyan"];
+      const nodeHidden = NODE_KEYS.some((k) => filters[k] === false);
+      const suggOff = filters.edgeSuggested === false;   // Phase 5 layer chip
+      if (nodeHidden || suggOff) {
         const keep = new Set(graph.nodes
           .filter((n) => filters[n.kind] !== false).map((n) => n.id));
+        const edgeHidden = (e) => suggOff &&
+          (e.edge_kind === "auto_shared_root" || e.edge_kind === "auto_shared_lemma");
         graph = {
           nodes: graph.nodes.filter((n) => keep.has(n.id)),
-          edges: graph.edges.filter((e) => keep.has(e.source) && keep.has(e.target)),
+          edges: graph.edges.filter((e) =>
+            keep.has(e.source) && keep.has(e.target) && !edgeHidden(e)),
           stats: graph.stats, reduced: graph.reduced,
         };
       }

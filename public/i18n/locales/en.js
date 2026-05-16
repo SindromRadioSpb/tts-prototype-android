@@ -1571,6 +1571,8 @@ window.I18N_LOCALES.en = {
         dashed: "dashed — note about a text/sentence",
         dotted: "dotted — root/binyan from morphology",
         auto:   "long-dash — note ↔ its text (auto)",
+        sharedRoot:  "fine dash — shared root (suggested)",
+        sharedLemma: "dotted dash — shared lemma (suggested)",
       },
     },
     toolbar: {
@@ -1580,6 +1582,7 @@ window.I18N_LOCALES.en = {
       zoomIn: "Zoom in", zoomOut: "Zoom out", fit: "Fit to view",
       searchPlaceholder: "Find a node…  (/)", searchCount: "{n} found",
       filterLabel: "Show:",
+      suggestedLayer: "Suggested links",
     },
     detail: {
       empty: "Hover or focus a node to see details.",

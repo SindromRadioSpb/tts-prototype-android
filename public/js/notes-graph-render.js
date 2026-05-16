@@ -37,6 +37,10 @@
     target_anchor: { dash: "5,4",   width: 1.2 },
     derived_morph: { dash: "1.5,3", width: 1.2 },
     auto_text:     { dash: "8,3",   width: 1.0 },
+    // Phase 5 — computed "suggested" view-only layers (distinct from
+    // the four above; thinner + tight dashes read as "soft/derived").
+    auto_shared_root:  { dash: "2,3",   width: 0.9 },
+    auto_shared_lemma: { dash: "2,1.5", width: 0.9 },
   };
 
   const TICKS_PER_FRAME = 5;          // chunked scheduler (perf §7)

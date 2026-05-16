@@ -1575,6 +1575,8 @@ window.I18N_LOCALES.he = {
         dashed: "קו מקווקו — הערה על טקסט/שורה",
         dotted: "קו נקודות — שורש/בניין מהמורפולוגיה",
         auto:   "מקפים ארוכים — הערה ↔ הטקסט שלה (אוטומטי)",
+        sharedRoot:  "קו מקווקו דק — שורש משותף (הצעה)",
+        sharedLemma: "קו נקודות — לקסמה משותפת (הצעה)",
       },
     },
     toolbar: {
@@ -1584,6 +1586,7 @@ window.I18N_LOCALES.he = {
       zoomIn: "הגדל", zoomOut: "הקטן", fit: "התאם לתצוגה",
       searchPlaceholder: "חיפוש צומת…  (/)", searchCount: "{n} נמצאו",
       filterLabel: "הצג:",
+      suggestedLayer: "קישורים מוצעים",
     },
     detail: {
       empty: "רחף או מקד צומת כדי לראות פרטים.",
