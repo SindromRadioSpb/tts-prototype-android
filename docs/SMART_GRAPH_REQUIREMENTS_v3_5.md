@@ -189,6 +189,19 @@ style + legend entry + U7 chip:
 
 ---
 
+> **Market + pedagogy update (see
+> `SMART_GRAPH_MARKET_RESEARCH_v3_5.md`).** A scan of Obsidian
+> (unlinked mentions), Smart Connections (local embeddings),
+> Connected Papers/ResearchRabbit (bibliographic-coupling auto-build),
+> RemNote (graph⇄SRS) and the concept-mapping learning-science
+> literature **confirms Option A2 + A5** and adds one sharpening: the
+> 2024 retrieval-practice evidence shows *constructing/confirming*
+> connections drives retention while *passively viewing* a pre-made
+> map does not. So the v3.6 editor suggestion surface should be a
+> **learner-confirmed "Подтвердите связи / Confirm what you know"**
+> panel (one-tap accept/reject = retrieval practice) feeding the
+> SRS/quiz layer — the educational differentiator no PKM tool has.
+
 ## 5. Recommended path (for owner approval)
 
 1. **v3.5 (done):** prototype fixes — usable map with zero manual
