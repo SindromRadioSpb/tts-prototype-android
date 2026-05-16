@@ -7,7 +7,19 @@
 
 ## [Unreleased]
 
-### v3.6 — Smart Learning Graph (in progress — docs/SMART_LEARNING_GRAPH_ROADMAP_v3_6.md)
+(пусто)
+
+---
+
+## [3.6.0] — 2026-05-17
+
+> **Smart Learning Graph.** Pilot-readiness gate:
+> `docs/PILOT_READINESS_GATE_v3_6.md` (all DoD items hold; two
+> non-blocking recommendations recorded). Roadmap:
+> `docs/SMART_LEARNING_GRAPH_ROADMAP_v3_6.md` (Phases 0–8 + UX pass).
+> Includes the earlier v3.5 dogfood prototype fixes.
+
+### v3.6 — Smart Learning Graph (shipped — docs/SMART_LEARNING_GRAPH_ROADMAP_v3_6.md)
 
 Approved scope: A2 (offline shared-root/lemma candidates) + learner-
 confirmed Confirm panel + A5 activity overlay. No AI, no embeddings,

@@ -1,8 +1,8 @@
 # Smart Learning Graph — Roadmap v3.6 (planning-only)
 
 > **Status.** APPROVED WITH REFINEMENTS (owner, 2026-05-16) — see
-> §11 "Approved decisions". **Phases 0–8 SHIPPED; Phase 9 (gate)
-> next.** Refinements:
+> §11 "Approved decisions". **Phases 0–9 SHIPPED — v3.6 pilot-ready
+> (release tag pending explicit owner instruction).** Refinements:
 > (a) **export** carries `confirmed` by default; `rejected` only
 > under a *full learning-state* export profile; `pending`/`later`
 > never exported. (b) **Phase 6** = candidate records only — **no UI
@@ -51,8 +51,11 @@
 >   tooltips + native edge `<title>` help (i18n ru/en/he); locked by
 >   `link-autocomplete-smoke` 7/7 + `suggest-panel-smoke` 6/6;
 >   visuals 31/31 verify (no regen).
-> - ▶ **Phase 9** next — docs, full smoke, baselines, pilot gate +
->   version (release tag only on explicit owner instruction).
+> - ✅ **Phase 9** — pilot-readiness gate
+>   `docs/PILOT_READINESS_GATE_v3_6.md` (all DoD items hold);
+>   `package.json` 3.6.0; CHANGELOG `[3.6.0]`; final
+>   `smoke:research:fast` ALL GREEN; visuals 31/31. Release tag /
+>   GitHub release pending explicit owner instruction.
 > All commits pushed to `main`; full `smoke:research:fast` green per
 > phase; invariants (read-only, offline, no telemetry, no consent
 > bump, no graph-canvas authoring) smoke-pinned each phase.
