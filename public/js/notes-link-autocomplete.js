@@ -112,6 +112,27 @@
     return out;
   }
 
+  // v3.5 Fix 4 — browse-on-`[[`. A newcomer typing `[[` with no query
+  // shouldn't have to guess names. Show the most recent texts (the
+  // most common + highest-value organic link target) so they can pick
+  // by recognition, not recall. listTexts() works without a query
+  // (ordered pinned/recent); notes/roots still need a typed query
+  // (their search APIs are query-only) and resume on the first char.
+  async function browse() {
+    var ldb = db();
+    if (!ldb || typeof ldb.listTexts !== "function") return [];
+    var out = [];
+    try {
+      var texts = await ldb.listTexts({ limit: 8 });
+      (texts || []).forEach(function (x) {
+        out.push({ to_kind: "text", to_id: String(x.id),
+                   label: String(x.title || x.id),
+                   sub: t("notes.linkAuto.kindText", "Текст") });
+      });
+    } catch (_) {}
+    return out;
+  }
+
   // ── Caret / trigger detection ────────────────────────────────────────────
   // We only act on a collapsed caret inside a text node whose content,
   // up to the caret, ends with `[[<query>` (no closing `]]`, no newline,
@@ -248,8 +269,13 @@
     queryStr = d.query;
     openFlag = true;
     if (!queryStr || queryStr.trim().length < 1) {
-      items = [];
-      activeIdx = -1;
+      // v3.5 Fix 4 — browse mode: show recent texts so the user can
+      // pick by recognition instead of guessing a name.
+      var bSeq = ++seq;
+      var brs = await browse();
+      if (bSeq !== seq || !openFlag) return;
+      items = brs;
+      activeIdx = items.length ? 0 : -1;
       render();
       place();
       return;

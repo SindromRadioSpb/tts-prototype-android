@@ -19,8 +19,9 @@
 //     window.MorphProvider.analyze = async () => []
 //   Three fixtures: RICH (~18 notes, 4 clusters incl. word_study with
 //   root/binyan/word — exercises all 6 node + 3 edge kinds), NO_LINKS
-//   (6 free notes, target_kind=free, zero links/derived → empty_no_links),
-//   BIG (260 word_study notes, unique roots → 520 nodes → reduced_top200).
+//   (6 free notes, target_kind=free, text_id=t1 → v3.5 auto_text
+//   backbone → renders loaded + sparse banner, NOT an empty card),
+//   BIG (260 word_study notes, unique roots → 521 nodes → reduced_top200).
 //
 // • Capture triggers (10):
 //   01 desktop-full-graph     RICH @1440×900 landscape → state=loaded
@@ -31,19 +32,18 @@
 //   06 keyboard-focus-ring    RICH @1440×900 → loaded → focus 1st node
 //   07 sr-list-view           RICH @1440×900 → loaded → toggle List pane
 //   08 reduced-motion         RICH @1440×900, context reducedMotion=reduce
-//   09 empty-state            NO_LINKS @1440×900 → state=empty_no_links
+//   09 sparse-state           NO_LINKS @1440×900 → loaded + sparse banner
 //   10 top-200-reduced-toast  BIG @1440×900 → loaded + reduced toast
 //
 // • reduced_top200 simulated: BIG fixture (260 notes, each a unique
 //   j_root) → NotesGraphData.buildGraph caps at 200 by degree and sets
-//   reduced={total:520,shown:200}; open() passes reduced → loaded state
+//   reduced={total:521,shown:200}; open() passes reduced → loaded state
 //   renders [data-graph-reduced-toast].
 //
-// • empty_no_notes vs empty_no_links: empty_no_notes = dbQuery notes_v2
-//   returns []. empty_no_links = notes present but target_kind=free /
-//   note_type=free / no links → 0 edges → state=empty_no_links.
-//   Capture 09 uses empty_no_links (blind-spot §G); the self-test also
-//   asserts empty_no_notes is reachable with an []-notes fixture.
+// • v3.5: notes-with-no-links no longer bail to an empty card —
+//   open() renders `loaded` and demotes the linking teaching to a
+//   dismissible [data-graph-sparse-banner]. empty_no_notes (zero
+//   notes) is still reachable with an []-notes fixture (self-test).
 //
 // • simulationDone awaited: orchestrator keeps the render handle private,
 //   so we wait for data-graph-state="loaded" then poll until node
@@ -237,7 +237,7 @@ const CAPTURES = [
   { file: "06-keyboard-focus-ring.png",     fx: "rich",    vp: { width: 1440, height: 900 }, state: "loaded", focusRing: true },
   { file: "07-screen-reader-list-view.png", fx: "rich",    vp: { width: 1440, height: 900 }, state: "loaded", listView: true },
   { file: "08-reduced-motion.png",          fx: "rich",    vp: { width: 1440, height: 900 }, state: "loaded", reducedMotion: true },
-  { file: "09-empty-state.png",             fx: "nolinks", vp: { width: 1440, height: 900 }, state: "empty_no_links" },
+  { file: "09-sparse-state.png",            fx: "nolinks", vp: { width: 1440, height: 900 }, state: "loaded" },
   { file: "10-top-200-reduced-toast.png",   fx: "big",     vp: { width: 1440, height: 900 }, state: "loaded", expectToast: true },
 ];
 

@@ -1551,6 +1551,7 @@ window.I18N_LOCALES.en = {
         solid:  "solid — [[…]] link in a note",
         dashed: "dashed — note about a text/sentence",
         dotted: "dotted — root/binyan from morphology",
+        auto:   "long-dash — note ↔ its text (auto)",
       },
     },
     toolbar: {

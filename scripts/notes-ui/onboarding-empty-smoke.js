@@ -6,15 +6,15 @@
 //   C3b Notes-tab initial empty-state teaches the loop + has a
 //       one-click "Open Knowledge Graph" affordance wired to
 //       window.LinguistProGraph.open.
-//   U8  the graph empty_no_links state shows the 3-step inline
-//       mini-guide (title + ol>li×3).
+//   U8/v3.5  notes-with-no-links now render (entities visible) with a
+//       dismissible teaching banner — not a blocking empty card.
 //
 // Cases:
 //   1. Onboarding panel: feature5 present + mentions the graph/[[ loop.
 //   2. Notes-tab empty: .v3-ide-notes-teach with 3 steps.
 //   3. Notes-tab empty: Open-Graph button exists, wired, and
 //      window.LinguistProGraph is defined (eager loader shim).
-//   4. U8: graph empty_no_links renders the teach ol with 3 li.
+//   4. U8: notes-with-no-links render (entities visible) + banner.
 //   5. No pageerror across either page.
 
 "use strict";
@@ -157,7 +157,10 @@ async function main() {
 
     await pg.close(); await ctx.close();
 
-    // ── U8: crosstext-test.html + mock-DB (graph empty_no_links) ────────
+    // ── U8 (v3.5): notes-with-no-links now RENDER (entities visible)
+    // with the teaching demoted to a dismissible banner — not the old
+    // blocking empty_no_links card. (MOCK notes have no text_id/links
+    // → zero edges → loaded + sparse banner.)
     const gctx = await browser.newContext({
       serviceWorkers: "block", viewport: { width: 1280, height: 900 },
     });
@@ -169,18 +172,24 @@ async function main() {
     await gp.evaluate(() => window.NotesGraph.open());
     await gp.waitForFunction(() => {
       const p = document.querySelector("[data-graph-panel]");
-      return p && p.getAttribute("data-graph-state") === "empty_no_links";
+      return p && p.getAttribute("data-graph-state") === "loaded";
     }, null, { timeout: 8000 }).catch(() => {});
     const u8 = await gp.evaluate(() => {
       const p = document.querySelector("[data-graph-panel]");
       const state = p ? p.getAttribute("data-graph-state") : "(none)";
-      const ol = p ? p.querySelector("ol") : null;
-      const li = ol ? ol.querySelectorAll("li").length : 0;
-      const html = p ? p.textContent : "";
-      return { state: state, li: li, hasTitle: /наполнить|fill the knowledge|למלא/i.test(html) };
+      const banner = p ? p.querySelector("[data-graph-sparse-banner]") : null;
+      const nodeEls = p ? p.querySelectorAll("[data-node-id]").length : 0;
+      const dismiss = banner ? banner.querySelector("[data-graph-sparse-dismiss]") : null;
+      return {
+        state, nodeEls,
+        hasBanner: !!banner,
+        bannerTeaches: banner ? /наполнить|fill the knowledge|למלא|\[\[/.test(banner.textContent) : false,
+        dismissible: !!dismiss,
+      };
     });
-    test("Case 4: graph empty_no_links shows the 3-step teach guide",
-         u8.state === "empty_no_links" && u8.li === 3 && u8.hasTitle,
+    test("Case 4: notes-with-no-links render (entities visible) + dismissible teach banner",
+         u8.state === "loaded" && u8.nodeEls > 0 && u8.hasBanner &&
+         u8.bannerTeaches && u8.dismissible,
          JSON.stringify(u8));
 
     await gp.close(); await gctx.close();

@@ -26,7 +26,12 @@
 
   const MAX_NODES = 200;          // top-N degree cap (perf budget §7)
   const NODE_KINDS = ["note", "text", "sentence", "root", "word", "binyan"];
-  const EDGE_KINDS = ["explicit_link", "target_anchor", "derived_morph"];
+  // v3.5 — `auto_text` is the data-derived backbone: every note is
+  // attached to the text it was written against (notes_v2.text_id),
+  // so the library structure shows up with ZERO manual linking. This
+  // is read-only synthesis from data the app already has — it does
+  // NOT create note_links rows or mutate anything.
+  const EDGE_KINDS = ["explicit_link", "target_anchor", "derived_morph", "auto_text"];
 
   // ── DB shim — identical access path to crosstext.js ────────────────────
   // READ-ONLY enforcement (C7 privacy hardening): the graph is a
@@ -200,6 +205,31 @@
                  toKind === "word" ? { normalized: tgtRaw } : {});
       _addEdge(lnk.from_note_id, _nid(toKind, tgtRaw), "explicit_link",
                lnk.link_alias || null);
+    }
+
+    // v3.5 Fix 1+2 — auto-attach every note to its SOURCE TEXT
+    // (notes_v2.text_id). This is the data-derived backbone of the
+    // map: with zero manual `[[` linking the user immediately sees
+    // their library (texts that have notes) with each note grouped
+    // under the text it belongs to, plus the existing shared
+    // root/binyan/word clustering. Read-only synthesis — no
+    // note_links written, graph stays read-only. Texts with no notes
+    // are still omitted (knowledge, not raw inventory). Runs AFTER
+    // explicit/anchor edges so we never double-connect a note to a
+    // text it is already (anchor/explicit) linked to.
+    for (const note of notes) {
+      if (!note.text_id) continue;
+      const tId = String(note.text_id);
+      const noteNodeId = _nid("note", note.id);
+      if (!nodes.has(noteNodeId)) continue;
+      const tNodeId = _nid("text", tId);
+      const already = edges.some((e) =>
+        e.source === noteNodeId && e.target === tNodeId);
+      if (already) continue;
+      ensureNode("text", tId, textTitle.get(tId) || "(текст)",
+        { kind_label: "text" });
+      edges.push({ source: noteNodeId, target: tNodeId,
+                   edge_kind: "auto_text", alias: null });
     }
 
     // Degree.
@@ -702,6 +732,26 @@
         tw.innerHTML = reducedToast;
         canvas.parentNode.insertBefore(tw.firstChild, canvas.parentNode.firstChild);
       }
+      // v3.5 Fix 3 — sparse (no `[[` links yet) → dismissible teaching
+      // banner instead of the old blocking empty card. The entities are
+      // already on the canvas; this just nudges toward richer linking.
+      if (payload.sparse) {
+        const bw = document.createElement("div");
+        bw.setAttribute("data-graph-sparse-banner", "1");
+        bw.setAttribute("role", "status");
+        bw.style.cssText =
+          "background:var(--theme-accent-bg,#eef2ff);border:1px solid var(--theme-border,#dde);" +
+          "border-radius:6px;padding:8px 10px;font-size:12.5px;line-height:1.5;" +
+          "margin:0 0 8px 0;display:flex;gap:10px;align-items:flex-start;";
+        bw.innerHTML =
+          `<span style="flex:1;">${esc(T("graph.state.empty.teach.title", "Как наполнить карту знаний"))}: ` +
+          `${esc(T("graph.state.empty.teach.step2", "В заметке введите [[ — выберите заметку, текст или корень."))}</span>` +
+          `<button type="button" data-graph-sparse-dismiss="1" aria-label="${esc(T("graph.toolbar.close", "Закрыть"))}" ` +
+          `style="border:none;background:transparent;cursor:pointer;font-size:15px;line-height:1;">×</button>`;
+        canvas.parentNode.insertBefore(bw, canvas.parentNode.firstChild);
+        const db = bw.querySelector("[data-graph-sparse-dismiss]");
+        if (db) db.addEventListener("click", () => bw.remove());
+      }
       const byId = new Map(g.nodes.map((n) => [n.id, n]));
       try {
         _renderHandle = window.NotesGraphRender.renderGraph(canvas, g, {
@@ -1107,7 +1157,8 @@
       `</div><hr style="margin:8px 0;border:none;border-top:1px solid var(--theme-border,#eee);">` +
       `<div>${esc(T("graph.legend.edges.solid", "сплошная — ссылка [[…]]"))}</div>` +
       `<div>${esc(T("graph.legend.edges.dashed", "пунктир — заметка о тексте"))}</div>` +
-      `<div>${esc(T("graph.legend.edges.dotted", "точки — морфология"))}</div>`;
+      `<div>${esc(T("graph.legend.edges.dotted", "точки — морфология"))}</div>` +
+      `<div>${esc(T("graph.legend.edges.auto", "длинный пунктир — заметка ↔ её текст (авто)"))}</div>`;
     panel.appendChild(pane);
     pane.querySelector("[data-legend-close]").addEventListener("click", () => pane.remove());
   }
@@ -1210,15 +1261,19 @@
       renderState(panel, anyHidden ? "filtered_all_hidden" : "empty_no_notes", {});
       return;
     }
-    if (!graph.edges.length) {
-      renderState(panel, "empty_no_links", {});
-      return;
-    }
+    // v3.5 Fix 3 — if there are NODES, always render them. Previously
+    // a graph with no edges bailed to the blocking "empty_no_links"
+    // card, so a user with notes-but-no-`[[`-links saw nothing. Now
+    // the entities are shown and the linking teaching becomes a
+    // dismissible banner (payload.sparse) instead of replacing the
+    // canvas. The empty_no_links state still exists for callers/tests
+    // but open() no longer routes there when nodes exist.
+    const sparse = !graph.edges.length;
     if (!isFullGraphAllowed()) {
-      renderState(panel, "fallback_mobile", { graph });
+      renderState(panel, "fallback_mobile", { graph, sparse });
       return;
     }
-    renderState(panel, "loaded", { graph, reduced: graph.reduced });
+    renderState(panel, "loaded", { graph, reduced: graph.reduced, sparse });
   }
 
   const api = { open, close: destroy, _state: () => {

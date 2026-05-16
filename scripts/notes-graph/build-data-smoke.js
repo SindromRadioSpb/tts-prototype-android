@@ -240,12 +240,14 @@ async function main() {
          Array.from(dmTargets).some((t) => t.startsWith("word:")),
          JSON.stringify(Array.from(dmTargets)));
 
-    // big mode: 260 word_study notes + 260 unique roots, no links, no
-    // text anchors → 520 nodes, no text nodes (text nodes only
-    // materialize on edge reference).
-    test("Case 5: top-N degree fallback at > MAX_NODES (520 → 200, deterministic)",
+    // big mode: 260 word_study notes (all text_id='t1') + 260 unique
+    // roots + 1 shared source-text node = 521 nodes. v3.5: the
+    // `auto_text` backbone now materialises the source text from
+    // notes_v2.text_id, so the count is 521 (was 520 before notes
+    // were auto-attached to their text). Cap still trims to 200.
+    test("Case 5: top-N degree fallback at > MAX_NODES (521 → 200, deterministic)",
          r.big.reduced &&
-         r.big.reduced.total === 520 &&
+         r.big.reduced.total === 521 &&
          r.big.reduced.shown === 200 &&
          r.big.nodes.length === 200,
          JSON.stringify(r.big.reduced) + " nodes=" + r.big.nodes.length);

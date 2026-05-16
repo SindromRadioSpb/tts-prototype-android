@@ -7,7 +7,37 @@
 
 ## [Unreleased]
 
-(пусто)
+### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
+
+The Knowledge Graph was fragmented and library-blind for a real
+user: `word_study` notes never created a text node, so 3 of 4 texts
+(and 372 rows) were invisible and notes floated as isolated
+root/word stars; with few `[[` links the graph showed a blocking
+empty card. Verified against the user's real bundle
+(`scripts/notes-graph/bundle-data-smoke.js`, 5/5).
+
+- **Fix 1+2 — `auto_text` backbone.** Every note now auto-attaches to
+  its source text (`notes_v2.text_id`); texts that have notes become
+  visible nodes. Zero manual linking required — the library structure
+  is the map's backbone. New `auto_text` edge kind (distinct
+  long-dash style + legend row + i18n ru/en/he). Read-only synthesis
+  — no `note_links` written; graph stays read-only.
+- **Fix 3 — render entities even with no links.** A graph with nodes
+  but no `[[` links no longer bails to the blocking empty card; it
+  renders the entities and demotes the linking teaching to a
+  dismissible `[data-graph-sparse-banner]`. `empty_no_notes` (truly
+  zero notes) still shown.
+- **Fix 4 — browse-on-`[[`.** Typing `[[` with no query now lists
+  recent texts so a newcomer can pick by recognition instead of
+  guessing a name (notes/roots still search-on-type).
+- Graph visual baselines regenerated (new `auto_text` edges; capture
+  09 repurposed `empty-state`→`sparse-state`); 31/31 verify-green.
+  Combined-run lazyload line-296 SW flake unchanged (9/9 isolation).
+- **Deliverable:** `docs/SMART_GRAPH_REQUIREMENTS_v3_5.md` — options
+  for the deeper self-analyzing graph (programmatic tiers incl. the
+  existing cross-text root index, local embeddings, AI-prompt,
+  AI-API, hybrid) with tradeoffs, privacy invariants, and a
+  recommended phased path for owner decision.
 
 ---
 

@@ -36,6 +36,7 @@
     explicit_link: { dash: "none",  width: 1.6 },
     target_anchor: { dash: "5,4",   width: 1.2 },
     derived_morph: { dash: "1.5,3", width: 1.2 },
+    auto_text:     { dash: "8,3",   width: 1.0 },
   };
 
   const TICKS_PER_FRAME = 5;          // chunked scheduler (perf §7)
