@@ -73,7 +73,10 @@
   // ── read-only fetch (mirrors notes-graph _fetchRaw projection) ───────────
   async function _fetchRaw() {
     var notes = await _q(
-      "SELECT id, text_id, note_type," +
+      // `title` + `$.word` are the only human-facing strings; the
+      // freeform body is never selected (privacy parity with the
+      // graph's _fetchRaw). `title` powers the Confirm-panel label.
+      "SELECT id, title, text_id, note_type," +
       " json_extract(body_json, '$.root')   AS j_root," +
       " json_extract(body_json, '$.binyan') AS j_binyan," +
       " json_extract(body_json, '$.word')   AS j_word" +
@@ -197,8 +200,12 @@
         .sort(function (a, b) { return a.localeCompare(b); })
         .slice(0, capTok);
       for (var p = 0; p < peers.length; p++) {
+        var tn = idx.byId.get(peers[p]) || {};
+        var label = String(tn.title || "").trim() ||
+                    _norm(tn.j_word) || String(peers[p]);
         out.push({
           from: id, to: peers[p], to_kind: "note",
+          to_label: label,                  // Phase 3 — Confirm-panel label
           reason_code: reason, evidence: token,
           score: +(BASE[reason] * w).toFixed(6),
         });

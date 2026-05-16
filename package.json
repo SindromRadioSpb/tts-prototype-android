@@ -58,6 +58,7 @@
     "smoke:notes:graphloop": "node scripts/notes-ui/graph-loop-smoke.js",
     "smoke:notes:autosave": "node scripts/notes-ui/autosave-entry-smoke.js",
     "smoke:notes:typeswitch": "node scripts/notes-ui/type-switch-smoke.js",
+    "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "vendor:build:graph": "node scripts/vendor/build-d3-graph.mjs",
     "research:quiz-reset": "node scripts/research/reset_quiz_for_student.js",
     "quiz:validate": "node scripts/quiz/validate-bank.js",

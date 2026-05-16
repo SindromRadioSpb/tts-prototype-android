@@ -49,6 +49,27 @@ no telemetry, no consent bump, no graph-canvas authoring.
   the only combined-run failure is the documented line-296 SW
   back-to-back lazyload flake (9/9 in isolation; Phase 2 touched only
   the not-yet-loaded module → no production surface).
+- **Phase 3 — «Подтвердите связи» Confirm panel.** First production
+  UI: new `public/js/notes-link-suggest-ui.js` renders the read-only
+  A2 candidates inside the saved-note-gated Links panel
+  (`#v3NotesSuggestPanel` in `index.html`); the generator gets its
+  first consumer. **Mandated pedagogical wording** (heading
+  «Подтвердите связи» / "Confirm what you know"; buttons «Я понимаю
+  связь» / «Не связано» / «Позже» — never "Accept/Reject"); i18n
+  ru/en/he; ARIA region + aria-live status; 414 px reflow. Each card
+  shows the target label + an explainability chip ("Общий корень …"
+  / "Из того же текста" / …). **Decisions are in-memory for the page
+  session ONLY** (durability = Phase 4): confirm/reject/later feed
+  the Phase 2 suppression contract so a decided card disappears, but
+  **no `note_links`/`note_link_suggestions` write, no `addNoteLink`,
+  no graph-canvas mutation, no telemetry** (smoke-asserted). Refresh
+  is debounced off the editor links lifecycle — never on graph open
+  (perf invariant). Pinned by
+  `scripts/notes-ui/suggest-panel-smoke.js` (5/5: panel + pedagogical
+  wording, ARIA, reject-removes-card, confirm-writes-nothing-durable
+  + offline, 414 px). Full fast matrix ALL GREEN; graph visual
+  baselines unchanged (31/31 verify — Phase 3 touched only the notes
+  modal, not the canvas).
 
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 

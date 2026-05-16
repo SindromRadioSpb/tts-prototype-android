@@ -10600,6 +10600,32 @@ body:not(.theme-light) .v3-heatmap-cell {
                 data-i18n="notes.openInGraph"
                 data-i18n-title="notes.openInGraphTitle"
                 title="Открыть эту заметку в Карте знаний">🕸 Открыть в Карте знаний</button>
+
+        <!-- v3.6 Phase 3 — "Подтвердите связи" learner-confirmation
+             panel. Saved-note-gated (inside #v3NotesLinksPanel which
+             is display:none until a noteId exists). Filled by
+             notes-link-suggest-ui.js from the read-only A2 generator;
+             decisions are in-memory this phase (durability = Phase 4).
+             Graph stays read-only — authoring happens here. -->
+        <section id="v3NotesSuggestPanel" class="v3-notes-suggest-panel"
+                 role="region" data-i18n-aria-label="notes.suggest.title"
+                 aria-label="Подтвердите связи" style="display:none;margin:6px 0;">
+          <div class="v3-notes-suggest-head"
+               style="display:flex;align-items:baseline;gap:8px;margin:0 0 6px 0;">
+            <span style="font-weight:600;font-size:13px;"
+                  data-i18n="notes.suggest.title">🧠 Подтвердите связи</span>
+            <span id="v3NotesSuggestCount"
+                  style="font-size:12px;color:var(--theme-text-secondary,#6b7280);"></span>
+          </div>
+          <div class="v3-notes-suggest-lead"
+               style="font-size:12px;color:var(--theme-text-secondary,#6b7280);margin:0 0 8px 0;"
+               data-i18n="notes.suggest.lead">Что ты уже узнаёшь? Отметь связи, которые понимаешь.</div>
+          <div id="v3NotesSuggestStatus" role="status" aria-live="polite"
+               style="font-size:12px;color:var(--theme-text-secondary,#6b7280);min-height:1em;"></div>
+          <ul id="v3NotesSuggestList" class="v3-notes-suggest-list"
+              style="list-style:none;padding:0;margin:6px 0 0 0;"></ul>
+        </section>
+
         <div id="v3NotesLinksBody" class="v3-notes-links-body" style="display:none;">
           <div class="v3-notes-links-section">
             <div class="v3-notes-links-heading" data-i18n="notes.linksOutgoing">Исходящие</div>
@@ -10679,6 +10705,14 @@ body:not(.theme-light) .v3-heatmap-cell {
      Self-contained; read-only candidate search; links materialised
      on save via the host's existing ldb.addNoteLink. -->
 <script src="/js/notes-link-autocomplete.js"></script>
+
+<!-- v3.6 Smart Learning Graph — A2 read-only/offline suggestion
+     generator (Phase 1/2) + its first consumer, the "Подтвердите
+     связи" Confirm panel (Phase 3). Decisions are in-memory this
+     phase (durability = Phase 4). Both headless/read-only; the
+     generator never loads on graph open (editor lifecycle only). -->
+<script src="/js/notes-graph-suggest.js"></script>
+<script src="/js/notes-link-suggest-ui.js"></script>
 
 <script src="/tts/core.js"></script>
 <script src="/tts/providerPolicy.js"></script>
@@ -35450,9 +35484,18 @@ async function v3NotesLinksRefresh() {
   // Panel only meaningful for a saved note (need noteId).
   if (!v3NotesModalNoteId) {
     panel.style.display = "none";
+    try { if (window.NotesLinkSuggestUI) window.NotesLinkSuggestUI.reset(); } catch (_) {}
     return;
   }
   panel.style.display = "";
+  // v3.6 Phase 3 — (re)render the "Подтвердите связи" panel for this
+  // saved note. Debounced inside the module; editor lifecycle only —
+  // never invoked on graph open (perf invariant). Fire-and-forget.
+  try {
+    if (window.NotesLinkSuggestUI) {
+      window.NotesLinkSuggestUI.refresh(String(v3NotesModalNoteId));
+    }
+  } catch (_) {}
 
   const outList = document.getElementById("v3NotesLinksOutgoingList");
   const backList = document.getElementById("v3NotesLinksBacklinksList");
