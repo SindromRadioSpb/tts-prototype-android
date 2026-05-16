@@ -354,10 +354,36 @@
     return { session: sessionMap.size, open: openFlag, items: items.length };
   }
 
+  // UX (v3.6 polish): the `[[` trigger is invisible to a first-time
+  // student. trigger() is the one-click discoverable entry — it
+  // focuses the editor and types `[[` for the user, so the existing
+  // input→detect→picker (browse-on-`[[`) flow opens immediately. No
+  // new linking logic; reuses the exact same path as manual typing.
+  function trigger() {
+    var ed = document.getElementById("v3NotesEditor");
+    if (!ed) return;
+    try { ed.focus(); } catch (_) {}
+    var ok = false;
+    try { ok = document.execCommand("insertText", false, "[["); } catch (_) {}
+    if (!ok) {
+      // Fallback: append a text node + caret, then fire input so
+      // detect() runs (same as a real keystroke).
+      try {
+        var tn = document.createTextNode("[[");
+        ed.appendChild(tn);
+        var sel = window.getSelection(), r = document.createRange();
+        r.setStart(tn, 2); r.collapse(true);
+        sel.removeAllRanges(); sel.addRange(r);
+        ed.dispatchEvent(new InputEvent("input", { bubbles: true }));
+      } catch (_) {}
+    }
+  }
+
   window.NotesLinkAutocomplete = {
     attach: attach,
     reset: reset,
     collect: collect,
+    trigger: trigger,
     _state: _state,
   };
 })();

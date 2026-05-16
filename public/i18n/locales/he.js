@@ -1596,7 +1596,17 @@ window.I18N_LOCALES.he = {
       searchPlaceholder: "חיפוש צומת…  (/)", searchCount: "{n} נמצאו",
       filterLabel: "הצג:",
       suggestedLayer: "קישורים מוצעים",
+      suggestedLayerTitle: "קו מקווקו = קשרים אפשריים (שורש/לקסמה משותפים). אשרו אותם בהערה, בלוח «אשרו קשרים».",
       activityOverlay: "התקדמות",
+      activityOverlayTitle: "טבעת צבעונית סביב הערה = כמה אתם שולטים בה (לפי תרגול SRS).",
+    },
+    edgeHelp: {
+      sharedRoot:  "קשר אפשרי: שורש משותף {t}. אשרו אותו בהערה.",
+      sharedLemma: "קשר אפשרי: לקסמה משותפת {t}. אשרו אותה בהערה.",
+      explicit:    "קשר מאושר.",
+      autoText:    "ההערה שייכת לטקסט הזה.",
+      morph:       "קשר מורפולוגי (שורש/בניין/מילה).",
+      anchor:      "הערה על טקסט/שורה.",
     },
     detail: {
       empty: "רחף או מקד צומת כדי לראות פרטים.",

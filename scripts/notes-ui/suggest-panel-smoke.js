@@ -254,6 +254,24 @@ async function main() {
          actionsOffline,
          JSON.stringify({ ...c4, netDelta: netReqs.length - netMark }));
 
+    // v3.6 UX polish — a first-time student with NO candidates must
+    // NOT see an empty "Подтвердите связи" box: the whole panel hides
+    // (no dead/empty surface). Lock it.
+    const c4b = await d.pg.evaluate(async () => {
+      const real = window.NotesGraphSuggest.candidatesForNote;
+      window.NotesGraphSuggest.candidatesForNote = async () => [];
+      window.NotesLinkSuggestUI.refresh("note-7");
+      await new Promise((r) => setTimeout(r, 600));
+      const p = document.getElementById("v3NotesSuggestPanel");
+      const hidden = !p || p.style.display === "none";
+      const cards = p ? p.querySelectorAll(".v3-notes-suggest-card").length : -1;
+      window.NotesGraphSuggest.candidatesForNote = real;   // restore
+      return { hidden, cards };
+    });
+    test("Case 4b: zero candidates → panel hidden (no empty box for newcomers)",
+         c4b.hidden === true && c4b.cards === 0,
+         JSON.stringify(c4b));
+
     await d.pg.close(); await d.ctx.close();
 
     // ── Mobile 414 px reflow ──────────────────────────────────────────

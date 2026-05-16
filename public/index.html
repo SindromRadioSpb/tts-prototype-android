@@ -10534,6 +10534,17 @@ body:not(.theme-light) .v3-heatmap-cell {
       <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('ul')" data-i18n-title="notes.editor.ulTitle" title="Список" aria-label="Список">•</button>
       <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('quote')" data-i18n-title="notes.editor.quoteTitle" title="Цитата" aria-label="Цитата">❝</button>
       <button type="button" class="v3-notes-edit-btn" onclick="v3NotesEditorApplyFormat('link')" data-i18n-title="notes.editor.linkTitle" title="Ссылка" aria-label="Ссылка">🔗</button>
+      <!-- v3.6 UX polish — make the smart `[[` connection discoverable:
+           one click types `[[` for the student and opens the picker
+           (notes / texts / roots). The 🔗 above is a plain web link;
+           THIS is the learning connection. -->
+      <button type="button" class="v3-notes-edit-btn"
+              onclick="window.NotesLinkAutocomplete &amp;&amp; window.NotesLinkAutocomplete.trigger()"
+              data-i18n-title="notes.editor.smartLinkTitle"
+              title="Связать с заметкой / текстом / корнем — введёт [[ и покажет подсказки"
+              data-i18n-aria-label="notes.editor.smartLinkTitle"
+              aria-label="Связать с заметкой, текстом или корнем"
+              style="font-weight:700;letter-spacing:-1px;">[[ ]]</button>
     </div>
 
     <div class="v3-notes-md-split">

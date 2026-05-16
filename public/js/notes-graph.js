@@ -750,17 +750,21 @@
       // (data-graph-filter-chip) → flips filters.edgeSuggested →
       // re-open (same mechanism as the node-kind chips). Default on.
       const _sgOn = _flt.edgeSuggested !== false;
+      const _sgTitle = esc(T("graph.toolbar.suggestedLayerTitle",
+        "Пунктир — возможные связи (общий корень/лемма). Подтвердите их в заметке, в панели «Подтвердите связи»."));
       const suggChip =
         `<button type="button" class="btn-secondary" data-graph-filter-chip="edgeSuggested" ` +
-        `aria-pressed="${_sgOn ? "true" : "false"}" ` +
+        `aria-pressed="${_sgOn ? "true" : "false"}" title="${_sgTitle}" aria-label="${_sgTitle}" ` +
         `style="padding:3px 10px;font-size:12px;border-radius:999px;` +
         `border-style:dashed;${_sgOn ? "" : "opacity:.5;"}">` +
         `${esc(T("graph.toolbar.suggestedLayer", "Подсказки связей"))}</button>`;
       // Phase 7 (A5) — learning-state overlay toggle chip (default-on).
       const _loOn = _flt.learnOverlay !== false;
+      const _loTitle = esc(T("graph.toolbar.activityOverlayTitle",
+        "Цветное кольцо вокруг заметки = насколько вы её усвоили (по тренировкам SRS)."));
       const learnChip =
         `<button type="button" class="btn-secondary" data-graph-filter-chip="learnOverlay" ` +
-        `aria-pressed="${_loOn ? "true" : "false"}" ` +
+        `aria-pressed="${_loOn ? "true" : "false"}" title="${_loTitle}" aria-label="${_loTitle}" ` +
         `style="padding:3px 10px;font-size:12px;border-radius:999px;` +
         `border-style:dotted;${_loOn ? "" : "opacity:.5;"}">` +
         `${esc(T("graph.toolbar.activityOverlay", "Прогресс"))}</button>`;
@@ -863,6 +867,31 @@
           onReset() { if (_renderHandle && _renderHandle.resetView) _renderHandle.resetView(); },
           // U1: hover/focus → fill the detail rail.
           onNodeDetail(d) { _renderDetail(panel, d); },
+          // UX (v3.6 polish): plain-language native <title> on every
+          // edge so a student hovering a line learns what it MEANS
+          // (esp. the faint dashed "suggested" lines). Tooltip only —
+          // zero pixel change, no baseline churn. i18n via T().
+          edgeTitle(edge) {
+            switch (edge.edge_kind) {
+              case "auto_shared_root":
+                return T("graph.edgeHelp.sharedRoot",
+                  "Возможная связь: общий корень {t}. Подтвердите её в заметке.",
+                  { t: edge.evidence || "" });
+              case "auto_shared_lemma":
+                return T("graph.edgeHelp.sharedLemma",
+                  "Возможная связь: общая лемма {t}. Подтвердите её в заметке.",
+                  { t: edge.evidence || "" });
+              case "explicit_link":
+                return T("graph.edgeHelp.explicit", "Подтверждённая связь.");
+              case "auto_text":
+                return T("graph.edgeHelp.autoText", "Заметка относится к этому тексту.");
+              case "derived_morph":
+                return T("graph.edgeHelp.morph", "Связь по морфологии (корень/биньян/слово).");
+              case "target_anchor":
+                return T("graph.edgeHelp.anchor", "Заметка о тексте/строке.");
+              default: return "";
+            }
+          },
         });
       } catch (e) {
         console.error("[graph] render failed:", e);

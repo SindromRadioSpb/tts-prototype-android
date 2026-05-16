@@ -168,6 +168,31 @@ no telemetry, no consent bump, no graph-canvas authoring.
   GREEN (only the documented line-296 SW back-to-back lazyload
   flake; 9/9 in isolation; Phase 8 change is semantically identical).
 
+- **v3.6 UX polish (pre-Phase-9 — student-first low-barrier pass).**
+  Fresh UX audit of Phases 1–8 to make the feature intuitive for a
+  first-time *student*, not an engineer:
+  - **No empty/dead surface.** The «Подтвердите связи» panel now
+    **hides entirely** when a note has zero candidates (a first-timer
+    with one note no longer sees a confusing empty box) — only
+    appears when there is something to actually confirm.
+  - **Smart-link is now discoverable in one click.** The `[[`
+    connection was invisible (had to be typed). New editor-toolbar
+    button **`[[ ]]`** (`NotesLinkAutocomplete.trigger()`) types `[[`
+    for the student and opens the picker — the plain 🔗 stays a web
+    link; this is clearly the *learning* connection.
+  - **Plain-language tooltips.** The graph «Подсказки связей» /
+    «Прогресс» chips gained student-language `title`/`aria`
+    explanations; every graph edge now has a native hover `<title>`
+    in plain language (esp. the faint dashed "possible connection —
+    confirm it in the note") — tooltip only, zero pixel change.
+  i18n ru/en/he. Pinned by new cases: `link-autocomplete-smoke`
+  Case 7 (trigger → `[[` + picker) → 7/7; `suggest-panel-smoke`
+  Case 4b (zero candidates → panel hidden) → 6/6. Graph visual
+  baselines unchanged (31/31 verify — chip text unchanged, `<title>`
+  is non-pixel, new button is in the notes modal). Full fast matrix
+  ALL GREEN. No invariant touched (read-only graph, offline, no
+  telemetry, no consent bump, no graph-canvas authoring).
+
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 
 The Knowledge Graph was fragmented and library-blind for a real

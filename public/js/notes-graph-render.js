@@ -167,6 +167,18 @@
       if (st.dash !== "none") ln.setAttribute("stroke-dasharray", st.dash);
       ln.setAttribute("data-edge-kind", e.edge_kind);
       if (e.also_target) ln.setAttribute("data-also-target", "1");
+      // UX (v3.6 polish): native hover tooltip explaining the edge in
+      // plain language (esp. faint dashed "suggested" lines). Tooltip
+      // only — no geometry/pixel change. i18n string from the host.
+      if (typeof opts.edgeTitle === "function") {
+        let _tt = "";
+        try { _tt = String(opts.edgeTitle(e) || ""); } catch (_) {}
+        if (_tt) {
+          const tEl = document.createElementNS(ns, "title");
+          tEl.textContent = _tt;
+          ln.appendChild(tEl);
+        }
+      }
       edgeG.appendChild(ln);
       return ln;
     });

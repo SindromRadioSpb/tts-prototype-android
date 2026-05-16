@@ -192,18 +192,20 @@
     if (mySeq !== _seq) return;            // superseded by a newer refresh
     if (!Array.isArray(cands)) cands = [];
 
-    panel.style.display = "";
     _lastRendered = cands.length;
     if (!cands.length) {
-      list.innerHTML =
-        '<li class="v3-notes-suggest-empty" style="list-style:none;color:' +
-        'var(--theme-text-secondary,#6b7280);font-size:12.5px;padding:4px 0;">' +
-        esc(t("notes.suggest.empty",
-          "Пока нет предложенных связей для этой заметки.")) + '</li>';
+      // UX (v3.6 polish): a first-time student with one note has NO
+      // candidates — a persistent empty "Подтвердите связи" box is
+      // confusing noise. Hide the whole panel until there is
+      // something to actually confirm (no dead/empty surface).
+      list.innerHTML = "";
       var cnt0 = el("v3NotesSuggestCount");
       if (cnt0) cnt0.textContent = "";
+      setStatus("");
+      panel.style.display = "none";
       return;
     }
+    panel.style.display = "";
     list.innerHTML = cands.map(cardHtml).join("");
     var cnt = el("v3NotesSuggestCount");
     if (cnt) {

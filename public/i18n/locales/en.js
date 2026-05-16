@@ -1592,7 +1592,17 @@ window.I18N_LOCALES.en = {
       searchPlaceholder: "Find a node…  (/)", searchCount: "{n} found",
       filterLabel: "Show:",
       suggestedLayer: "Suggested links",
+      suggestedLayerTitle: "Dashed = possible connections (shared root/lemma). Confirm them in the note, in the “Confirm what you know” panel.",
       activityOverlay: "Progress",
+      activityOverlayTitle: "Coloured ring around a note = how well you know it (from SRS practice).",
+    },
+    edgeHelp: {
+      sharedRoot:  "Possible connection: shared root {t}. Confirm it in the note.",
+      sharedLemma: "Possible connection: shared lemma {t}. Confirm it in the note.",
+      explicit:    "Confirmed connection.",
+      autoText:    "This note belongs to this text.",
+      morph:       "Morphology link (root/binyan/word).",
+      anchor:      "Note about a text/sentence.",
     },
     detail: {
       empty: "Hover or focus a node to see details.",

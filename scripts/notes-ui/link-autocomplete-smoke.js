@@ -202,6 +202,29 @@ async function main() {
          Array.isArray(phantom) && phantom.length === 0 && errs.length === 0,
          JSON.stringify({ phantom, errs }));
 
+    // v3.6 UX polish — trigger() is the DISCOVERABLE one-click entry:
+    // without the student typing anything, it inserts `[[` and opens
+    // the picker (browse). Lock it so the low-barrier path can't
+    // regress.
+    const trig = await pg.evaluate(async () => {
+      const ed = document.getElementById("v3NotesEditor");
+      if (ed) ed.textContent = "";              // clean slate
+      if (typeof window.NotesLinkAutocomplete.trigger !== "function") {
+        return { isFn: false };
+      }
+      window.NotesLinkAutocomplete.trigger();
+      await new Promise((r) => setTimeout(r, 400));
+      const pop = document.getElementById("v3NotesLinkAutocomplete");
+      return {
+        isFn: true,
+        edHas: /\[\[/.test(document.getElementById("v3NotesEditor").textContent || ""),
+        pickerOpen: !!(pop && pop.style.display !== "none"),
+      };
+    });
+    test("Case 7: trigger() types `[[` for the student + opens the picker",
+         trig.isFn && trig.edHas && trig.pickerOpen,
+         JSON.stringify(trig));
+
     await pg.close(); await ctx.close();
   } finally {
     await browser.close();

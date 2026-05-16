@@ -44,6 +44,13 @@
 >   case (200-note buildGraph < 400 ms) → 6/6, `privacy-smoke`
 >   hardened to pin invariants with suggested layer + overlay active
 >   → 9/9; visuals verify 31/31 (no regen).
+> - ✅ **UX polish (pre-Phase-9)** — student-first audit of Phases
+>   1–8: empty Confirm panel hidden (no dead surface), one-click
+>   discoverable `[[ ]]` smart-link toolbar button
+>   (`NotesLinkAutocomplete.trigger()`), plain-language chip
+>   tooltips + native edge `<title>` help (i18n ru/en/he); locked by
+>   `link-autocomplete-smoke` 7/7 + `suggest-panel-smoke` 6/6;
+>   visuals 31/31 verify (no regen).
 > - ▶ **Phase 9** next — docs, full smoke, baselines, pilot gate +
 >   version (release tag only on explicit owner instruction).
 > All commits pushed to `main`; full `smoke:research:fast` green per
