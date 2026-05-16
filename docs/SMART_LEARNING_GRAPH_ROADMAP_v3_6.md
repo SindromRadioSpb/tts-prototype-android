@@ -1,7 +1,8 @@
 # Smart Learning Graph — Roadmap v3.6 (planning-only)
 
 > **Status.** APPROVED WITH REFINEMENTS (owner, 2026-05-16) — see
-> §11 "Approved decisions". Phases 0–1 in execution. Refinements:
+> §11 "Approved decisions". **Phases 0–4 SHIPPED; Phase 5 next.**
+> Refinements:
 > (a) **export** carries `confirmed` by default; `rejected` only
 > under a *full learning-state* export profile; `pending`/`later`
 > never exported. (b) **Phase 6** = candidate records only — **no UI
@@ -9,6 +10,27 @@
 > trivial"). (c) **Confirm panel** uses pedagogical wording
 > («Подтвердите связи» / «Что ты уже узнаёшь?»; buttons «Я понимаю
 > связь» / «Не связано» / «Позже»), never technical "Accept/Reject".
+>
+> **Progress (2026-05-16):**
+> - ✅ **Phase 0** `5da0802` — frozen bundle fixture + morph-coverage
+>   baseline (0 morph calls needed); `suggest-fixture-smoke` 6/6.
+> - ✅ **Phase 1** `f25797b` — `notes-graph-suggest.js` read-only/
+>   offline/deterministic A2 generator; `suggest-generator-smoke`.
+> - ✅ **Phase 2** `b5a45b4` — rarity + caps + pure suppression
+>   contract (rejected-forever / later-cooldown / confirmed-per-
+>   reason) + perf budget; generator smoke 10/10.
+> - ✅ **Phase 3** `1c02afe` — «Подтвердите связи» Confirm panel
+>   (`notes-link-suggest-ui.js`, pedagogical wording, ARIA, 414 px,
+>   i18n ru/en/he); in-memory decisions; `suggest-panel-smoke` 5/5.
+> - ✅ **Phase 4** `3b2049d` — durable `note_link_suggestions`
+>   migration + `local-db` CRUD; confirm → durable `note_links`;
+>   survives reopen; `suggest-persist-smoke` 5/5 + panel 5/5.
+> - ▶ **Phase 5** next — graph layer integration + filters +
+>   explainability (first phase that intentionally changes the
+>   graph-canvas DOM → will regenerate + re-verify visual baselines).
+> All commits pushed to `main`; full `smoke:research:fast` green per
+> phase; invariants (read-only, offline, no telemetry, no consent
+> bump, no graph-canvas authoring) smoke-pinned each phase.
 >
 > Implementation-ready engineering plan, executed phase-by-phase.
 > Companion to `SMART_GRAPH_REQUIREMENTS_v3_5.md` (options) and
