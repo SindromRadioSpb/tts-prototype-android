@@ -628,8 +628,10 @@
         renderState(panel, "error_data_load", {});
         return;
       }
-      wireNodeNav(panel, g);
-      wireListNav(panel, g); // the always-present AT table is navigable too
+      // SVG-node tap→navigate is owned by the renderer (single owner of
+      // tap-vs-drag disambiguation; see notes-graph-render.js endDrag).
+      // The orchestrator only wires the always-present AT table.
+      wireListNav(panel, g);
 
       panel.querySelector("[data-graph-reset]").addEventListener("click", () => {
         if (_renderHandle && _renderHandle.resetView) _renderHandle.resetView();
@@ -872,15 +874,6 @@
   }
 
   // C4: click-through on SVG nodes (full keyboard arrow-nav is C5).
-  function wireNodeNav(panel, g) {
-    const byId = new Map(g.nodes.map((n) => [n.id, n]));
-    panel.querySelectorAll("[data-graph-node]").forEach((el) => {
-      el.addEventListener("click", () => {
-        const n = byId.get(el.getAttribute("data-node-id"));
-        if (n) navigateTo(n);
-      });
-    });
-  }
 
   function openLegend(panel) {
     const existing = panel.querySelector("[data-graph-legend-pane]");

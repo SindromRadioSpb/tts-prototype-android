@@ -349,8 +349,13 @@ async function main() {
       manifest.captures.push(rec);
       await ctx.close();
     }
-    fs.writeFileSync(path.join(BASELINE_DIR, "index.json"),
-      JSON.stringify(manifest, null, 2) + "\n");
+    // Only (re)write the committed manifest when establishing the
+    // baseline. Verify runs must NOT dirty the working tree (the
+    // timestamp/mode would churn index.json on every run).
+    if (mode === "baseline") {
+      fs.writeFileSync(path.join(BASELINE_DIR, "index.json"),
+        JSON.stringify(manifest, null, 2) + "\n");
+    }
   } finally {
     await browser.close();
     await stopServer(srv.child);

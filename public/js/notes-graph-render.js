@@ -234,7 +234,15 @@
       }
     }
 
+    // Auto-fit runs ONCE on the initial settle and on explicit
+    // resetView() — NEVER after a user drag/pin reheats the sim.
+    // Re-fitting on every settle was a major cause of the
+    // "unpredictable" feel: grabbing a node reheated the simulation
+    // and the whole canvas jumped/recentred when it re-settled.
+    let _pendingFit = true;
     function fitToContent() {
+      if (!_pendingFit) return;
+      _pendingFit = false;
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
       for (const n of nodes) {
         if (n.x < minX) minX = n.x; if (n.x > maxX) maxX = n.x;
@@ -251,6 +259,7 @@
       const ty = H / 2 - scale * (minY + bh / 2);
       currentTransform = { k: scale, x: tx, y: ty };
       applyTransform();
+      _syncZoomTransform();
     }
 
     let currentTransform = { k: 1, x: 0, y: 0 };
@@ -259,22 +268,62 @@
         `translate(${currentTransform.x},${currentTransform.y}) scale(${currentTransform.k})`);
     }
 
-    // d3-zoom — pan/drag on empty area, wheel/pinch zoom.
+    // d3-zoom — pan ONLY on empty canvas (a gesture that starts on a
+    // node is reserved for node-drag); wheel/pinch zoom anywhere.
+    // .filter() is the fix for the v3.3.6 "nodes jump unpredictably"
+    // bug: previously a pointerdown on a node ALSO started a d3-zoom
+    // pan, so dragging a node simultaneously panned the canvas.
     let zoomBehavior = null;
+    function _syncZoomTransform() {
+      // Keep d3-zoom's internal transform in lock-step with
+      // currentTransform after a programmatic fit/reset, so the next
+      // wheel/pan continues smoothly instead of snapping back to
+      // identity.
+      if (!zoomBehavior) return;
+      try {
+        const t = d3.zoomIdentity
+          .translate(currentTransform.x, currentTransform.y)
+          .scale(currentTransform.k);
+        d3.select(svg).property("__zoom", t);
+      } catch (_) {}
+    }
     try {
-      zoomBehavior = d3.zoom().scaleExtent([0.2, 4]).on("zoom", (ev) => {
-        const tr = ev.transform;
-        currentTransform = { k: tr.k, x: tr.x, y: tr.y };
-        applyTransform();
-      });
+      zoomBehavior = d3.zoom()
+        .scaleExtent([0.2, 4])
+        .filter((event) => {
+          // Wheel/pinch zoom always allowed. Pan (pointer/touch drag)
+          // only when the gesture did NOT start on a node.
+          if (event.type === "wheel") return !event.ctrlKey;
+          const t = event.target;
+          return !(t && t.closest && t.closest("[data-graph-node]"));
+        })
+        .on("zoom", (ev) => {
+          const tr = ev.transform;
+          currentTransform = { k: tr.k, x: tr.x, y: tr.y };
+          applyTransform();
+        });
       d3.select(svg).call(zoomBehavior);
     } catch (_) { /* zoom optional; static layout still works */ }
 
-    // ── pin / unpin (Appendix A #2) ──
-    // drag-release pins (fx/fy stay set); double-click unpins.
-    let dragNode = null, dragStart = null;
+    // Interaction callbacks (read-only). Declared here so both the
+    // tap-vs-drag handler and the keyboard handler can use them.
+    const onNodeActivate = typeof opts.onNodeActivate === "function" ? opts.onNodeActivate : null;
+    const onClusterIsolate = typeof opts.onClusterIsolate === "function" ? opts.onClusterIsolate : null;
+    const onResetCb = typeof opts.onReset === "function" ? opts.onReset : null;
+
+    // ── node drag / pin / unpin (Appendix A #2) ──
+    // Robust pointer-drag with a tap-vs-drag threshold:
+    //   • move < ~5 px  → it's a TAP → onNodeActivate (navigate)
+    //   • move ≥ ~5 px  → it's a DRAG → fx/fy follow the pointer; on
+    //                      release the node stays PINNED (data-pinned)
+    //   • double-click  → unpin
+    // The threshold means a precise tap never accidentally pins, and a
+    // post-drag click never spuriously navigates (suppressed below).
+    const DRAG_THRESHOLD_SQ = 25; // 5 px
+    let drag = null; // { node, el, sx, sy, moved }
     function clientToGraph(clientX, clientY) {
       const rect = svg.getBoundingClientRect();
+      // client px → viewBox units → invert the zoomLayer transform.
       const sx = (clientX - rect.left) * (W / rect.width);
       const sy = (clientY - rect.top) * (H / rect.height);
       return {
@@ -283,29 +332,69 @@
       };
     }
     nodeEls.forEach((el, i) => {
+      el.style.cursor = "grab";
       el.addEventListener("pointerdown", (ev) => {
-        dragNode = nodes[i];
-        dragStart = clientToGraph(ev.clientX, ev.clientY);
-        sim.alphaTarget(0.1).restart();
-        scheduleTicks();
-        ev.stopPropagation();
+        if (ev.button != null && ev.button > 0) return; // primary only
+        drag = { node: nodes[i], el, sx: ev.clientX, sy: ev.clientY, moved: false };
+        el.style.cursor = "grabbing";
         try { el.setPointerCapture(ev.pointerId); } catch (_) {}
+        ev.preventDefault();
       });
       el.addEventListener("pointermove", (ev) => {
-        if (!dragNode || dragNode !== nodes[i]) return;
-        const p = clientToGraph(ev.clientX, ev.clientY);
-        dragNode.fx = p.x; dragNode.fy = p.y;
-      });
-      el.addEventListener("pointerup", () => {
-        if (dragNode === nodes[i]) {
-          // Release PINS the node (fx/fy retained). Mark visually.
-          el.setAttribute("data-pinned", "1");
-          dragNode = null;
-          sim.alphaTarget(0);
+        if (!drag || drag.node !== nodes[i]) return;
+        const dx = ev.clientX - drag.sx, dy = ev.clientY - drag.sy;
+        if (!drag.moved && (dx * dx + dy * dy) >= DRAG_THRESHOLD_SQ) {
+          drag.moved = true;
+          // Standard d3 drag: reheat while dragging, freeze on release.
+          sim.alphaTarget(0.3).restart();
+          scheduleTicks();
+        }
+        if (drag.moved) {
+          const p = clientToGraph(ev.clientX, ev.clientY);
+          nodes[i].fx = p.x; nodes[i].fy = p.y;
+          // Repaint immediately so the node tracks the finger/cursor
+          // 1:1 even between simulation ticks.
+          paint();
         }
       });
+      const endDrag = () => {
+        if (!drag || drag.node !== nodes[i]) return;
+        el.style.cursor = "grab";
+        if (drag.moved) {
+          el.setAttribute("data-pinned", "1"); // release pins
+          sim.alphaTarget(0);
+          // Swallow the click the browser fires after a drag.
+          el.__graphSuppressClick = true;
+          setTimeout(() => { el.__graphSuppressClick = false; }, 350);
+        } else {
+          // True tap → navigate, but DELAYED so a double-click (unpin)
+          // can cancel it. Without the delay the first click of a
+          // dbl-click navigates + closes the modal before the dbl-click
+          // fires. 250 ms ≈ platform double-click window.
+          if (el.__tapTimer) { clearTimeout(el.__tapTimer); el.__tapTimer = null; }
+          el.__tapTimer = setTimeout(() => {
+            el.__tapTimer = null;
+            if (onNodeActivate) onNodeActivate(nodes[i]);
+          }, 250);
+        }
+        drag = null;
+      };
+      el.addEventListener("pointerup", endDrag);
+      el.addEventListener("pointercancel", endDrag);
+      // Capture-phase guard: if a drag just happened, eat the click
+      // before any bubble-phase handler can see it.
+      el.addEventListener("click", (ev) => {
+        if (el.__graphSuppressClick) {
+          ev.stopImmediatePropagation();
+          ev.preventDefault();
+          el.__graphSuppressClick = false;
+        }
+      }, true);
       el.addEventListener("dblclick", (ev) => {
         ev.preventDefault();
+        // Cancel the pending single-tap navigate — this gesture is an
+        // unpin, not a navigate.
+        if (el.__tapTimer) { clearTimeout(el.__tapTimer); el.__tapTimer = null; }
         nodes[i].fx = null; nodes[i].fy = null;
         el.removeAttribute("data-pinned");
         sim.alpha(0.3).restart();
@@ -317,9 +406,8 @@
     // Arrow = geometric nearest neighbour in that direction.
     // Enter/Space = activate (read-only navigate). H = isolate cluster.
     // R = reset view. Esc/? handled by the modal shell.
-    const onNodeActivate = typeof opts.onNodeActivate === "function" ? opts.onNodeActivate : null;
-    const onClusterIsolate = typeof opts.onClusterIsolate === "function" ? opts.onClusterIsolate : null;
-    const onResetCb = typeof opts.onReset === "function" ? opts.onReset : null;
+    // (onNodeActivate/onClusterIsolate/onResetCb declared above the drag
+    // block so the tap handler can reference them.)
 
     function _nearestInDirection(fromIdx, dir) {
       const a = nodes[fromIdx];
@@ -465,10 +553,11 @@
           nodeEls[i].removeAttribute("data-pinned");
         });
         showAll();
+        _pendingFit = true;            // re-fit on this settle only
         sim.alpha(0.5).restart();
         tickCount = 0;
         scheduleTicks();
-        // fitToContent re-runs at settle.
+        // fitToContent re-runs once at the next settle (then locks).
       },
       unpinAll() {
         nodes.forEach((n, i) => {

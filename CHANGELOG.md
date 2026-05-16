@@ -7,7 +7,7 @@
 
 ## [Unreleased]
 
-### v3.3.6 Knowledge Graph View (Direction 14) — in progress (C0–C8 done)
+### v3.3.6 Knowledge Graph View (Direction 14) — in progress (C0–C9 + interaction hardening done; C10–C11 pending)
 
 Read-only, lazy-loaded, privacy-preserving knowledge graph over
 notes ↔ texts ↔ sentences ↔ roots ↔ words ↔ binyanim.
@@ -37,10 +37,18 @@ notes ↔ texts ↔ sentences ↔ roots ↔ words ↔ binyanim.
   collapsible isolated-cluster cards (not a degraded graph).
 - **i18n:** full `graph.*` subtree × ru/en/he.
 
-Smoke: +8 graph suites tracked (lazyload 9 / data 7 / perf 6 /
-a11y 6 / mobile 5 / privacy 8) toward the v3.3.6 close target.
-C9 (visual regression) + C10 (docs + manual NVDA/VoiceOver/Android
-sanity) + C11 (release) remain.
+- **Interaction hardening (drag bug):** node drag no longer pans the
+  canvas (d3-zoom `.filter()`), the view no longer yanks on every
+  settle (`fitToContent` runs once on initial settle + explicit
+  reset only), and tap/drag/double-click are disambiguated (5 px
+  threshold; tap = delayed navigate, drag = pin, dbl-click = unpin).
+
+Smoke: `smoke:research:fast` 27 suites ALL GREEN. Graph chain
+`smoke:graph` = lazyload 9 / data 7 / perf 6 / a11y 6 / mobile 5 /
+privacy 8 / interaction 7 + visual-regression 31/31 (≤1% pixel
+diff, pixelmatch). C10 (final docs + manual NVDA/VoiceOver/real
+Android sanity — Android now testable via the Railway deploy of
+this push) + C11 (release) remain.
 
 (250K full-hspell remains под v3.4.)
 

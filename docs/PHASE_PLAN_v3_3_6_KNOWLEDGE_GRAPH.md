@@ -994,6 +994,53 @@ telemetry, no `events` writes, no research-payload mutation,
 `CONSENT_VERSION` stays `1.0`. C7 pins all of this with the 8-case
 privacy smoke.
 
+### N9. As-built C5–C9 + interaction hardening (2026-05-16)
+
+- **C5** keyboard nav + a11y: per-node `tabindex=0`/`role=button`/
+  `aria-label`, deterministic focus order (degree desc, id tiebreak),
+  arrow-key geometric-neighbour nav, cluster isolate (BFS, fade not
+  remove), always-present clip-`sr-only` structured table as the
+  canonical AT path (SVG `aria-hidden`).
+- **C6** premium mobile: BFS clusters, searchable collapsible cluster
+  cards, expand → 50-node mini force graph, dominant-kind/label +
+  top-3 chips, no dead controls.
+- **C7** privacy: read-only `_q` guard (rejects any non-SELECT SQL);
+  8-case audit (fetch/XHR/sendBeacon/MutationObserver allow-list +
+  events delta + research-queue delta + validate.js diff +
+  CONSENT_VERSION grep).
+- **C8** SW: `GRAPH_CACHE_VERSION="v3.3.6-1"` bucket, independent of
+  CACHE_VERSION, stale-while-revalidate, evicted on activate; lazy
+  chunks never precached.
+- **C9** visual regression: Option A in-page mock-DB fixture (NO real
+  OPFS, NO staticLayout); 10 baseline captures committed under
+  `Smoke-check/graph-view/baseline/` (.gitignore chain re-included);
+  pixelmatch ≤1% verify; pixelmatch+pngjs added as devDeps.
+- **Interaction hardening (drag-bug fix, 2026-05-16):** the reported
+  "nodes move unpredictably" had three root causes, all fixed:
+  (a) d3-zoom panned the canvas simultaneously with a node drag —
+  fixed with `d3.zoom().filter()` so pan starts only on empty
+  canvas; (b) `fitToContent` re-centred on EVERY simulation settle
+  so a drag-reheat yanked the whole view — now fits ONCE on initial
+  settle + explicit `resetView()` only (`_pendingFit` latch +
+  `_syncZoomTransform` keeps d3-zoom's internal transform in
+  lock-step); (c) tap/drag/double-click were ambiguous — added a
+  5 px drag threshold (sub-threshold = tap → delayed 250 ms
+  navigate; supra-threshold = drag → pin + suppress trailing click;
+  double-click cancels the pending tap and unpins). The renderer is
+  now the single owner of tap-vs-drag (orchestrator `wireNodeNav`
+  removed). Pinned by `scripts/notes-graph/interaction-smoke.js`
+  (7 cases).
+
+### N10. Smoke matrix as-built (2026-05-16)
+
+`smoke:research:fast` (screenshots skipped) = **27 suites ALL GREEN**.
+Graph chain `smoke:graph` = lazyload 9 · data 7 · perf 6 · a11y 6 ·
+mobile 5 · privacy 8 · interaction 7 (= 48 functional) + visual
+31/31 verify. v3.3.6 still pending: C10 (final docs + manual
+NVDA/VoiceOver/real-device sanity) + C11 (release). The real-device
+Android pass is now feasible because the build is being pushed to
+`main` for the Railway deploy (user request 2026-05-16).
+
 ---
 
-**Plan authored 2026-05-15 by Claude Opus 4.7 (1M context) on behalf of the project owner. As-built notes appended during C0–C4 implementation; implementation continues C5–C11.**
+**Plan authored 2026-05-15 by Claude Opus 4.7 (1M context) on behalf of the project owner. As-built notes appended through C9 + interaction hardening; C10 (manual sanity) + C11 (release) pending.**
