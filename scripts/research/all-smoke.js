@@ -54,6 +54,7 @@ const SUITES = [
   { name: "Inline [[ link autocomplete (v3.4 C1)",   script: "scripts/notes-ui/link-autocomplete-smoke.js", countLabel: "6 cases" },
   { name: "Onboarding + empty-state teach (v3.4 C3+U8)", script: "scripts/notes-ui/onboarding-empty-smoke.js", countLabel: "5 cases" },
   { name: "Create→link→graph loop (v3.4 C2)",         script: "scripts/notes-ui/graph-loop-smoke.js",        countLabel: "5 cases" },
+  { name: "Autosave feedback + new-note entry (v3.4 C5+C7)", script: "scripts/notes-ui/autosave-entry-smoke.js", countLabel: "5 cases" },
   ...(skipScreenshots ? [] : [
     { name: "Visual regression captures",       script: "scripts/research/teacher-screenshots.js", countLabel: "9 PNGs" },
     { name: "Graph visual regression (v3.3.6 C9)", script: "scripts/notes-graph/visual-regression.js", countLabel: "31 self-test assertions / 10 PNGs" },

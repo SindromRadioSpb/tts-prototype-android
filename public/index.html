@@ -8927,9 +8927,14 @@ body:not(.theme-light) .v3-heatmap-cell {
               <li data-i18n="ide.notesEmpty.step2">Введите [[ — выберите заметку, текст или корень для связи.</li>
               <li data-i18n="ide.notesEmpty.step3">Связи собираются в Карту знаний.</li>
             </ol>
-            <button type="button" class="btn-secondary" style="margin-top:10px;"
-                    onclick="window.LinguistProGraph && window.LinguistProGraph.open()"
-                    data-i18n="ide.notesEmpty.openGraph">🕸 Открыть Карту знаний</button>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+              <button type="button" class="btn-primary"
+                      onclick="v3NotesOpen('', '', null, { entryKind: 'free', targetKind: 'free', noteType: 'free' })"
+                      data-i18n="ide.notesEmpty.newNote">＋ Новая заметка</button>
+              <button type="button" class="btn-secondary"
+                      onclick="window.LinguistProGraph && window.LinguistProGraph.open()"
+                      data-i18n="ide.notesEmpty.openGraph">🕸 Открыть Карту знаний</button>
+            </div>
           </div>
         </div>
       </div>
@@ -10361,7 +10366,7 @@ body:not(.theme-light) .v3-heatmap-cell {
     </div>
 
     <div class="v3-modal-body">
-      <div id="v3NotesStatus" class="v3-help"></div>
+      <div id="v3NotesStatus" class="v3-help" role="status" aria-live="polite"></div>
 
       <!-- Phase 9.3 — structured template forms for non-free note_type kinds.
            Visible only when v3NotesModalNoteType ∈ {word_study, grammar_rule,
@@ -10568,12 +10573,12 @@ body:not(.theme-light) .v3-heatmap-cell {
 <!-- Phase 9.3.5 R2 — Floating selection bubble. Appears above selection
      in the WYSIWYG editor when user selects text; offers quick B/I/code/
      highlight/link without moving cursor to the static toolbar. -->
-<div id="v3NotesEditBubble" class="v3-notes-edit-bubble" style="display:none;" role="toolbar" aria-label="Форматирование выделенного">
-  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('bold')" title="Жирный"><b>B</b></button>
-  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('italic')" title="Курсив"><i>I</i></button>
-  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('code')" title="Код"><span style="font-family:ui-monospace;">&lt;/&gt;</span></button>
-  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('highlight')" title="Выделение">HL</button>
-  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('link')" title="Ссылка">🔗</button>
+<div id="v3NotesEditBubble" class="v3-notes-edit-bubble" style="display:none;" role="toolbar" data-i18n-aria-label="notes.toolbarAriaLabel" aria-label="Форматирование выделенного">
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('bold')" data-i18n-title="notes.editor.boldTitle" data-i18n-aria-label="notes.editor.boldTitle" title="Жирный" aria-label="Жирный"><b>B</b></button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('italic')" data-i18n-title="notes.editor.italicTitle" data-i18n-aria-label="notes.editor.italicTitle" title="Курсив" aria-label="Курсив"><i>I</i></button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('code')" data-i18n-title="notes.editor.codeTitle" data-i18n-aria-label="notes.editor.codeTitle" title="Код" aria-label="Код"><span style="font-family:ui-monospace;">&lt;/&gt;</span></button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('highlight')" data-i18n-title="notes.editor.highlightTitle" data-i18n-aria-label="notes.editor.highlightTitle" title="Выделение" aria-label="Выделение">HL</button>
+  <button type="button" class="v3-notes-edit-bubble-btn" onclick="v3NotesEditorApplyFormat('link')" data-i18n-title="notes.editor.linkTitle" data-i18n-aria-label="notes.editor.linkTitle" title="Ссылка" aria-label="Ссылка">🔗</button>
 </div>
 
       <!-- Phase 9.3.B — bidirectional links panel. Collapsible to keep the
@@ -33038,6 +33043,39 @@ function v3NotesSafeSetStatus(el, message, isError) {
   } catch (_) {}
 }
 
+// C5 (v3.4, A-G5) — give autosave a voice. The 30s debounced autosave
+// used to be completely silent (and swallowed failures), so a user
+// could lose work without any signal. This renders a subtle inline
+// state in the existing #v3NotesStatus surface (role=status aria-live):
+//   "saving"  → "Сохранение…"
+//   "failed"  → error text + a Retry button (explicit re-save)
+// Success is already handled by v3NotesSave ("Сохранено в HH:MM").
+function v3NotesSetSaveStatus(kind) {
+  try {
+    const el = v3NotesEl("v3NotesStatus");
+    if (!el) return;
+    if (kind === "saving") {
+      el.classList.remove("v3-error");
+      el.textContent = v3NotesT("notes.statusSaving", "Сохранение…");
+    } else if (kind === "failed") {
+      el.classList.add("v3-error");
+      el.textContent = v3NotesT("notes.statusSaveFailed",
+        "Не удалось сохранить автоматически.") + " ";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn-secondary";
+      btn.style.cssText = "margin-inline-start:8px;padding:2px 10px;font-size:12px;";
+      btn.textContent = v3NotesT("notes.statusRetry", "Повторить");
+      btn.addEventListener("click", () => {
+        v3NotesSetSaveStatus("saving");
+        v3NotesSave(false).catch(() => v3NotesSetSaveStatus("failed"));
+      });
+      el.appendChild(btn);
+    }
+  } catch (_) {}
+}
+window.v3NotesSetSaveStatus = v3NotesSetSaveStatus;
+
 // --------------------------------------------------------
 // W10-NOTES-UX-MD-01: Markdown toolbar + SAFE preview
 // - сохраняем note как plain text (markdown)
@@ -35901,7 +35939,10 @@ function v3NotesScheduleAutoSave() {
       // Only auto-save when there's actually content; empty bodies are
       // delete operations and should require an explicit user gesture.
       if (!String(ta.value || "").trim()) return;
-      v3NotesSave(/*isAutoSave=*/true).catch(() => {});
+      // C5 — surface autosave: saving → (success status from save) /
+      // failed → retry. Previously this .catch swallowed failures.
+      v3NotesSetSaveStatus("saving");
+      v3NotesSave(/*isAutoSave=*/true).catch(() => v3NotesSetSaveStatus("failed"));
     } catch (_) {}
   }, V3_NOTES_AUTOSAVE_DELAY_MS);
 }

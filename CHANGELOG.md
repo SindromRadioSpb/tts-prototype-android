@@ -9,6 +9,20 @@
 
 ### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
 
+- **C5 + C7 — Autosave feedback + global new-note entry + i18n
+  tooltips (A-G5 / A-G8 / A-G9).** The previously silent (and
+  failure-swallowing) 30 s debounced autosave now speaks through the
+  `#v3NotesStatus` surface (promoted to `role=status aria-live`):
+  "Saving…" on fire, the existing "Saved HH:MM" on success, and an
+  error line with a **Retry** button on failure. The IDE Notes-tab
+  empty-state gained a global "＋ New note" entry (free note, no row
+  needed). The orphan floating selection-bubble toolbar buttons
+  (hardcoded Russian `title=`) are now `data-i18n-title` +
+  `data-i18n-aria-label` + `aria-label` wired, reusing the existing
+  `notes.editor.*Title` keys. i18n ru/en/he. Pinned by
+  `scripts/notes-ui/autosave-entry-smoke.js` (5 cases); wired into the
+  fast matrix.
+
 - **C2 — Create → link → graph loop affordance + backlink badge
   (A-G2 / A-G6).** The note editor's Links panel now has an "Open in
   Knowledge Graph" button that deep-links the graph spotlighting the
