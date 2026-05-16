@@ -484,7 +484,7 @@ window.I18N_LOCALES.en = {
       menuTitle: "Pick the new type",
       cancel: "Cancel",
       confirmTitle: "Convert note?",
-      confirmBody: "Convert {from} → {to}? The current body will be archived in history as v_N. The new form will open blank.",
+      confirmBody: "Convert {from} → {to}? Your current text is carried into the new type (and archived in history as v_N) — nothing is lost. Save to commit.",
       confirmOk: "Convert",
       warnSrs: "The linked SRS card will be removed — it was built on the old type and no longer matches. After conversion, create a new one via «🎴 Make it a card».",
     },

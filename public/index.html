@@ -36502,9 +36502,12 @@ function v3NotesUpdateLockedBadges() {
   yBadge.title = yLabel;
   yBadge.setAttribute("aria-label", yLabel);
 
-  // Convert button visible only for templated existing notes (R3 wires the menu).
+  // C4 (v3.4, A-G4) — the in-modal type switch is available for any
+  // saved note (needs a noteId for the convert API). Conversion is
+  // non-destructive: the working text is carried into the new type
+  // (see v3NotesConvertExecute) and also snapshotted to history.
   if (cBtn) {
-    cBtn.style.display = (v3NotesModalNoteId && nt !== "free") ? "" : (v3NotesModalNoteId ? "" : "none");
+    cBtn.style.display = v3NotesModalNoteId ? "" : "none";
   }
 }
 window.v3NotesUpdateLockedBadges = v3NotesUpdateLockedBadges;
@@ -36639,14 +36642,20 @@ async function v3NotesConvertExecute(toType) {
     // matching card for the new type if they want.
     v3NotesModalSrsCardId = null;
 
-    // Re-render in-modal state: new type's form, empty body, history
-    // sidebar already shows the snapshot. Anchor + target stay fixed.
+    // C4 (v3.4, A-G4) — NON-DESTRUCTIVE switch. Previously the new
+    // form opened blank ("работа потеряна" from the user's POV: the
+    // old body was only in history). Now we carry the current working
+    // text forward into the new type's body buffer so nothing the user
+    // wrote disappears from view. It's also snapshotted to history by
+    // ldb.convertNoteType. originalText is reset so the carried body is
+    // dirty → an explicit/auto save persists it under the new type.
+    const _carried = (() => { const _t = v3NotesEl("v3NotesText"); return _t ? String(_t.value || "") : ""; })();
     v3NotesModalNoteType = toType;
     v3NotesModalOriginalText = "";
-    v3NotesModalIsDirty = false;
+    v3NotesModalIsDirty = !!_carried.trim();
     const ta = v3NotesEl("v3NotesText");
-    if (ta) ta.value = "";
-    try { if (typeof v3NotesEditorLoadFromMarkdown === "function") v3NotesEditorLoadFromMarkdown(""); } catch (_) {}
+    if (ta) ta.value = _carried;
+    try { if (typeof v3NotesEditorLoadFromMarkdown === "function") v3NotesEditorLoadFromMarkdown(_carried); } catch (_) {}
     try { v3NotesUpdateLockedBadges(); } catch (_) {}
     try { v3NotesUpdateDataset(); } catch (_) {}
     try { if (typeof v3NotesTemplateRender === "function") v3NotesTemplateRender(); } catch (_) {}
@@ -37892,6 +37901,14 @@ async function v3NotesSave(isAutoSave) {
         if (_added > 0) { try { v3NotesLinksRefresh(); } catch (_) {} }
       }
     } catch (_) {}
+
+    // C4 (v3.4, A-G4) — once the note has a noteId the in-modal
+    // type-switch becomes valid; refresh the locked-badge row so the
+    // "🔄 Преобразовать в…" affordance appears right after the first
+    // save (previously it only surfaced via convert/open, so a
+    // freshly-saved note had no reachable switch → wrong-intent =
+    // close/reopen/lose-edits).
+    try { v3NotesUpdateLockedBadges(); } catch (_) {}
 
     const updatedAt = savedRow ? (savedRow.updated_at || new Date().toISOString()) : new Date().toISOString();
 

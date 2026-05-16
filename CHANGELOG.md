@@ -9,6 +9,18 @@
 
 ### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
 
+- **C4 — Non-destructive note-type switch (A-G4).** The in-modal
+  "🔄 Преобразовать в…" affordance now surfaces immediately after a
+  note's first save (a `v3NotesUpdateLockedBadges()` refresh was added
+  to the save path — previously it only appeared via reopen, so a
+  wrong-intent note meant close → reopen → lost edits). Conversion is
+  now non-destructive: the current working text is **carried into the
+  new type's body** (and still snapshotted to history as `v_N`)
+  instead of the new form opening blank; it's marked dirty so a save
+  commits it. Confirm copy reworded across ru/en/he to promise
+  carry-forward. Pinned by `scripts/notes-ui/type-switch-smoke.js`
+  (5 cases); wired into the fast matrix.
+
 - **C5 + C7 — Autosave feedback + global new-note entry + i18n
   tooltips (A-G5 / A-G8 / A-G9).** The previously silent (and
   failure-swallowing) 30 s debounced autosave now speaks through the
