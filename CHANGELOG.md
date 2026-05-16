@@ -9,6 +9,26 @@
 
 ### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
 
+- **Phase B — Graph Tier-2 UX (U5 / U6 / U7).** From
+  `PHASE_PLAN_v3_3_7_GRAPH_UX §2`, all read-only:
+  - **U6** the bare loading spinner is replaced by a graph-shaped
+    skeleton (faint pulsing placeholder nodes/edges + spinner; SVG
+    `aria-hidden`, `role=status` text is the AT signal; honors
+    `prefers-reduced-motion`).
+  - **U7** a per-kind filter-chip row (mirrors the legend, only for
+    kinds present in the graph) that toggles + persists via the
+    existing sessionStorage filter model and re-renders.
+  - **U5** a desktop node-search box with a live match count and
+    `Enter` → jump (reuses the C2 read-only `focusNode` path);
+    `/` focuses the search from anywhere in the graph.
+  i18n ru/en/he. Pinned by
+  `scripts/notes-graph/graph-tier2-smoke.js` (5 cases), wired into the
+  graph chain + fast matrix. Graph visual-regression baselines
+  regenerated (loaded-state DOM gained the Tier-2 toolbar row;
+  31/31 verify-green). (Same transient line-296 SW back-to-back
+  lazyload flake as prior phases — 9/9 in isolation; Cases 6+7
+  exercise the changed renderState and pass every run.)
+
 - **C4 — Non-destructive note-type switch (A-G4).** The in-modal
   "🔄 Преобразовать в…" affordance now surfaces immediately after a
   note's first save (a `v3NotesUpdateLockedBadges()` refresh was added

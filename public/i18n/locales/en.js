@@ -1558,6 +1558,8 @@ window.I18N_LOCALES.en = {
       listView: "List", graphView: "Graph", legend: "Legend",
       help: "Help", close: "Close", retry: "Retry",
       zoomIn: "Zoom in", zoomOut: "Zoom out", fit: "Fit to view",
+      searchPlaceholder: "Find a node…  (/)", searchCount: "{n} found",
+      filterLabel: "Show:",
     },
     detail: {
       empty: "Hover or focus a node to see details.",

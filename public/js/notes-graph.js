@@ -472,16 +472,40 @@
     panel.setAttribute("data-graph-state", state);
 
     if (state === "loading") {
+      // U6 (v3.4) — a graph-shaped skeleton instead of a bare spinner:
+      // faint placeholder nodes + edges shimmer behind the spinner so
+      // the loading state previews the thing being built. SVG is
+      // aria-hidden; the role=status text is the AT signal. Honors
+      // prefers-reduced-motion (no shimmer, no spin).
+      const sk = [
+        [70, 60], [180, 40], [120, 130], [250, 110], [60, 170],
+        [210, 180], [150, 70], [30, 90],
+      ];
+      const skEdges = [[0, 6], [6, 1], [6, 2], [2, 4], [2, 5], [1, 3], [0, 7]];
+      const skNodes = sk.map(([x, y], i) =>
+        `<circle cx="${x}" cy="${y}" r="${i % 3 === 0 ? 13 : 9}" ` +
+        `class="graph-sk-node" style="animation-delay:${(i * 0.12).toFixed(2)}s"/>`).join("");
+      const skLines = skEdges.map(([a, b]) =>
+        `<line x1="${sk[a][0]}" y1="${sk[a][1]}" x2="${sk[b][0]}" y2="${sk[b][1]}" ` +
+        `class="graph-sk-edge"/>`).join("");
       panel.innerHTML = header(panel) +
-        `<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:48px;` +
-        `flex-direction:column;gap:14px;" role="status" aria-live="polite">` +
-          `<div class="graph-spinner" aria-hidden="true" style="width:34px;height:34px;border:3px solid var(--theme-border,#ddd);` +
-          `border-top-color:var(--theme-accent,#0a5);border-radius:50%;animation:graphspin 0.8s linear infinite;"></div>` +
-          `<div>${esc(T("graph.state.loading", "Загружаем карту знаний…"))}</div>` +
+        `<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px;` +
+        `flex-direction:column;gap:18px;" role="status" aria-live="polite">` +
+          `<svg viewBox="0 0 290 220" width="260" height="200" aria-hidden="true" ` +
+          `style="max-width:70%;opacity:.65;">${skLines}${skNodes}</svg>` +
+          `<div style="display:flex;align-items:center;gap:10px;">` +
+            `<div class="graph-spinner" aria-hidden="true" style="width:22px;height:22px;border:3px solid var(--theme-border,#ddd);` +
+            `border-top-color:var(--theme-accent,#0a5);border-radius:50%;animation:graphspin 0.8s linear infinite;"></div>` +
+            `<div>${esc(T("graph.state.loading", "Загружаем карту знаний…"))}</div>` +
+          `</div>` +
           `<button type="button" class="btn-secondary" data-graph-close="1">${esc(T("graph.toolbar.close", "Закрыть"))}</button>` +
         `</div>` +
         `<style>@keyframes graphspin{to{transform:rotate(360deg)}}` +
-        `@media (prefers-reduced-motion: reduce){.graph-spinner{animation:none}}</style>`;
+        `@keyframes graphskpulse{0%,100%{opacity:.25}50%{opacity:.7}}` +
+        `.graph-sk-node{fill:var(--theme-accent,#0a5);animation:graphskpulse 1.4s ease-in-out infinite}` +
+        `.graph-sk-edge{stroke:var(--theme-border,#bbb);stroke-width:2}` +
+        `@media (prefers-reduced-motion: reduce){.graph-spinner{animation:none}` +
+        `.graph-sk-node{animation:none;opacity:.4}}</style>`;
       wireCommon(panel);
       return;
     }
@@ -603,7 +627,35 @@
           `<button type="button" class="btn-secondary" data-graph-zoomin="1" style="${zg}" aria-label="${esc(T("graph.toolbar.zoomIn", "Увеличить"))}" title="${esc(T("graph.toolbar.zoomIn", "Увеличить"))}">＋</button>` +
           `<button type="button" class="btn-secondary" data-graph-fit="1" style="${zg}" aria-label="${esc(T("graph.toolbar.fit", "По размеру"))}" title="${esc(T("graph.toolbar.fit", "По размеру"))}">⤢</button>` +
         `</div>`;
-      panel.innerHTML = header(panel) + toolbar +
+      // U5 + U7 (v3.4) — second toolbar row: node search (with `/`
+      // jump-to) + per-kind filter chips that mirror the legend.
+      // Read-only: search just focuses an existing node (reuses the C2
+      // focusNode path); chips persist via the existing sessionStorage
+      // filter model + re-open (same mechanism as "clear filters").
+      const _flt = loadFilters();
+      const _present = ["note", "text", "sentence", "root", "word", "binyan"]
+        .filter((k) => (g.stats && g.stats.by_kind && g.stats.by_kind[k]) > 0);
+      const chips = _present.map((k) => {
+        const on = _flt[k] !== false;
+        return `<button type="button" class="btn-secondary" data-graph-filter-chip="${k}" ` +
+          `aria-pressed="${on ? "true" : "false"}" ` +
+          `style="padding:3px 10px;font-size:12px;border-radius:999px;${on ? "" : "opacity:.5;"}">` +
+          `${esc(T("graph.legend.nodes." + k, k))}</button>`;
+      }).join("");
+      const toolbar2 =
+        `<div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 14px;border-bottom:1px solid var(--theme-border,#e2e2e2);align-items:center;">` +
+          `<input type="search" data-graph-node-search="1" ` +
+          `placeholder="${esc(T("graph.toolbar.searchPlaceholder", "Поиск узла…  (/)"))}" ` +
+          `aria-label="${esc(T("graph.toolbar.searchPlaceholder", "Поиск узла…"))}" ` +
+          `style="flex:0 1 220px;min-width:140px;padding:6px 10px;border:1px solid var(--theme-border,#ccc);` +
+          `border-radius:6px;font-size:13px;box-sizing:border-box;">` +
+          `<span data-graph-search-count="1" role="status" aria-live="polite" ` +
+          `style="font-size:12px;color:var(--theme-text-secondary,#888);min-width:60px;"></span>` +
+          `<span style="flex:1"></span>` +
+          (chips ? `<span style="font-size:12px;color:var(--theme-text-secondary,#888);margin-inline-end:4px;">` +
+            `${esc(T("graph.toolbar.filterLabel", "Показывать:"))}</span>` + chips : "") +
+        `</div>`;
+      panel.innerHTML = header(panel) + toolbar + toolbar2 +
         `<div style="flex:1;display:flex;min-height:480px;position:relative;">` +
           // role="group" (NOT "application"): the canonical screen-reader
           // path is the always-present structured table below; forcing
@@ -728,6 +780,64 @@
         }
       });
       panel.querySelector("[data-graph-legend]").addEventListener("click", () => openLegend(panel));
+
+      // U7 — filter chips: toggle a kind, persist, re-open (the filter
+      // is applied in open(); same mechanism as "clear filters").
+      panel.querySelectorAll("[data-graph-filter-chip]").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const k = chip.getAttribute("data-graph-filter-chip");
+          const f = loadFilters();
+          f[k] = (f[k] === false); // flip: hidden→shown, shown→hidden
+          saveFilters(f);
+          destroy(); open();
+        });
+      });
+
+      // U5 — node search + `/` jump-to. Pure navigation: matches by
+      // label substring and focuses the node (reuses C2 focusNode →
+      // isolate + focus + detail/SR). No graph mutation.
+      const searchEl = panel.querySelector("[data-graph-node-search]");
+      const countEl = panel.querySelector("[data-graph-search-count]");
+      const _matches = (q) => {
+        const s = String(q || "").trim().toLowerCase();
+        if (!s) return [];
+        return g.nodes.filter((n) =>
+          String(n.label || "").toLowerCase().indexOf(s) !== -1).slice(0, 50);
+      };
+      const _jump = () => {
+        const m = _matches(searchEl && searchEl.value);
+        if (countEl) {
+          countEl.textContent = (searchEl && searchEl.value.trim())
+            ? T("graph.toolbar.searchCount", "{n} найдено", { n: m.length })
+            : "";
+        }
+        if (m.length && _renderHandle && typeof _renderHandle.focusNode === "function") {
+          _renderHandle.focusNode(m[0].id);
+        }
+      };
+      if (searchEl) {
+        searchEl.addEventListener("input", () => {
+          const m = _matches(searchEl.value);
+          if (countEl) {
+            countEl.textContent = searchEl.value.trim()
+              ? T("graph.toolbar.searchCount", "{n} найдено", { n: m.length })
+              : "";
+          }
+        });
+        searchEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") { e.preventDefault(); _jump(); }
+          else if (e.key === "Escape") { searchEl.value = ""; if (countEl) countEl.textContent = ""; searchEl.blur(); }
+        });
+      }
+      // `/` anywhere in the graph (not already typing) focuses search.
+      panel.addEventListener("keydown", (e) => {
+        if (e.key !== "/" || !searchEl) return;
+        const tag = (e.target && e.target.tagName || "").toLowerCase();
+        if (tag === "input" || tag === "textarea") return;
+        e.preventDefault();
+        searchEl.focus();
+      });
+
       // Initial focus → first toolbar control (canvas keyboard nav is C5).
       const firstBtn = panel.querySelector("[data-graph-reset]");
       if (firstBtn) firstBtn.focus();

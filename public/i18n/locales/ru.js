@@ -1570,6 +1570,8 @@ window.I18N_LOCALES.ru = {
       listView: "Список", graphView: "Граф", legend: "Легенда",
       help: "Помощь", close: "Закрыть", retry: "Повторить",
       zoomIn: "Увеличить", zoomOut: "Уменьшить", fit: "По размеру",
+      searchPlaceholder: "Поиск узла…  (/)", searchCount: "{n} найдено",
+      filterLabel: "Показывать:",
     },
     detail: {
       empty: "Наведите или сфокусируйте узел, чтобы увидеть детали.",

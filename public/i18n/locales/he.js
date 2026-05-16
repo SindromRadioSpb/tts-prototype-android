@@ -1562,6 +1562,8 @@ window.I18N_LOCALES.he = {
       listView: "רשימה", graphView: "גרף", legend: "מקרא",
       help: "עזרה", close: "סגור", retry: "נסה שוב",
       zoomIn: "הגדל", zoomOut: "הקטן", fit: "התאם לתצוגה",
+      searchPlaceholder: "חיפוש צומת…  (/)", searchCount: "{n} נמצאו",
+      filterLabel: "הצג:",
     },
     detail: {
       empty: "רחף או מקד צומת כדי לראות פרטים.",
