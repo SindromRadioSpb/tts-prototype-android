@@ -1,0 +1,61 @@
+{
+  "_doc": "v3.6 Phase 0 — frozen A2 suggestion contract, grounded in the user's real bundle (.external/testbundle/, 5 notes / 1 link / 4 texts / 372 rows). Stable short ids mirror scripts/notes-graph/bundle-data-smoke.js. `notes` are exactly what notes-graph _fetchRaw() projects (json_extract of body_json → j_root/j_binyan/j_word; free notes → null). `expected_candidates` is the deterministic note->note candidate set the Phase 1 generator MUST be able to produce, BEFORE per-note top-K trimming, derived strictly by the documented A2 rules. This file is the contract; do not edit expected_candidates without re-deriving from `rules`.",
+  "schema": 1,
+  "rules": {
+    "candidate_unit": "note -> note only (the Confirm-panel surface). Other to_kind suggestions are out of Phase 1 scope.",
+    "reason_codes": {
+      "shared_root": "two notes whose j_root (from body_json $.root) are equal and non-empty",
+      "shared_lemma": "two notes whose normalized j_word are equal and non-empty",
+      "shared_binyan": "two notes whose j_binyan are equal and non-empty (ubiquitous binyan is rarity-down-weighted, NOT excluded)",
+      "same_text": "two notes with equal non-empty text_id"
+    },
+    "exclusions": [
+      "self (from == to)",
+      "an existing note_links row FROM the subject note TO that same note (note->note only; a note->text link does NOT exclude a note->note same_text candidate)",
+      "pending/later/rejected suppression is Phase 2/4 — NOT applied in this fixture"
+    ],
+    "determinism": "stable order: reason priority [shared_root, shared_lemma, shared_binyan, same_text] then to_id asc; same input -> identical output",
+    "rarity": "shared_binyan over a ubiquitous binyan (e.g. paal) MUST be down-weighted vs a rarer shared_root; ordering reflects this but the candidate is still generated"
+  },
+  "notes": [
+    { "id": "N1", "title": "לגור", "target_kind": "word",     "target_id": "ae92ec2a:0", "text_id": "T_VERBS", "note_type": "word_study", "j_root": "לבש", "j_binyan": "paal", "j_word": "לגור",  "updated_at": "2026-05-16T16:09:53Z" },
+    { "id": "N2", "title": "אוהב", "target_kind": "word",     "target_id": "52f6cd53:0", "text_id": "T_POS1",  "note_type": "word_study", "j_root": "אהב", "j_binyan": "paal", "j_word": "אוהב",  "updated_at": "2026-05-16T16:10:00Z" },
+    { "id": "N3", "title": "לאהוב", "target_kind": "word",    "target_id": "6fce83c6:3", "text_id": "T_VERBS", "note_type": "word_study", "j_root": "אהב", "j_binyan": "paal", "j_word": "לאהוב", "updated_at": "2026-05-16T16:11:00Z" },
+    { "id": "N4", "title": "",     "target_kind": "sentence", "target_id": "S_1216",     "text_id": "T_VERBS", "note_type": "free",       "j_root": null,  "j_binyan": null,  "j_word": null,    "updated_at": "2026-05-16T16:13:00Z" },
+    { "id": "N5", "title": "",     "target_kind": "sentence", "target_id": "S_6bd4",     "text_id": "T_POS11", "note_type": "free",       "j_root": null,  "j_binyan": null,  "j_word": null,    "updated_at": "2026-05-16T16:14:00Z" }
+  ],
+  "note_links": [
+    { "from_note_id": "N4", "to_kind": "text", "to_id": "T_VERBS", "link_alias": "150 наиболее употребимых глаголов" }
+  ],
+  "texts": [
+    { "id": "T_VERBS", "title": "150 наиболее употребимых глаголов" },
+    { "id": "T_POS1",  "title": "Position 1. אושר כהן" },
+    { "id": "T_POS11", "title": "Position 11. בן צור" },
+    { "id": "T_ADJ",   "title": "150 наиболее употребимых прилагательных" }
+  ],
+  "expected_candidates": [
+    { "from": "N1", "to": "N2", "to_kind": "note", "reason_code": "shared_binyan", "evidence": "paal" },
+    { "from": "N1", "to": "N3", "to_kind": "note", "reason_code": "shared_binyan", "evidence": "paal" },
+    { "from": "N1", "to": "N3", "to_kind": "note", "reason_code": "same_text",     "evidence": "T_VERBS" },
+    { "from": "N1", "to": "N4", "to_kind": "note", "reason_code": "same_text",     "evidence": "T_VERBS" },
+
+    { "from": "N2", "to": "N3", "to_kind": "note", "reason_code": "shared_root",   "evidence": "אהב" },
+    { "from": "N2", "to": "N1", "to_kind": "note", "reason_code": "shared_binyan", "evidence": "paal" },
+    { "from": "N2", "to": "N3", "to_kind": "note", "reason_code": "shared_binyan", "evidence": "paal" },
+
+    { "from": "N3", "to": "N2", "to_kind": "note", "reason_code": "shared_root",   "evidence": "אהב" },
+    { "from": "N3", "to": "N1", "to_kind": "note", "reason_code": "shared_binyan", "evidence": "paal" },
+    { "from": "N3", "to": "N2", "to_kind": "note", "reason_code": "shared_binyan", "evidence": "paal" },
+    { "from": "N3", "to": "N1", "to_kind": "note", "reason_code": "same_text",     "evidence": "T_VERBS" },
+    { "from": "N3", "to": "N4", "to_kind": "note", "reason_code": "same_text",     "evidence": "T_VERBS" },
+
+    { "from": "N4", "to": "N1", "to_kind": "note", "reason_code": "same_text",     "evidence": "T_VERBS" },
+    { "from": "N4", "to": "N3", "to_kind": "note", "reason_code": "same_text",     "evidence": "T_VERBS" }
+  ],
+  "expected_no_candidates": ["N5"],
+  "morph_coverage_baseline": {
+    "finding": "The bundle's free notes (N4, N5) contribute ZERO root/lemma/binyan signal in v3.6: notes-graph _fetchRaw projects only json_extract(body_json,'$.root|$.binyan|$.word') for privacy, which is NULL for free notes. word_study notes (N1,N2,N3) already carry root/binyan/word in body_json.",
+    "implication": "MorphProvider.analyze() is NOT required for A2 on this (or any word_study-shaped) data — the structured body_json signal is sufficient. MorphProvider remains an OPTIONAL later enrichment for free-text bodies (not v3.6). A2 MUST degrade to 'fewer candidates', never error, when morphology is unavailable.",
+    "morph_calls_required_for_bundle": 0
+  }
+}
