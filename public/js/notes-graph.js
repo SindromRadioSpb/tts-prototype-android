@@ -396,8 +396,14 @@
 
   let _renderHandle = null;
   let _loadTimer = null;
+  // C2 (v3.4) — pending "spotlight this node" request from a deep-link
+  // (note editor → graph). Node id form is `${kind}:${rawId}`. Consumed
+  // once in the loaded branch; cleared on every open and on destroy so
+  // a stale request never applies to a later session.
+  let _focusReq = null;
 
   function destroy() {
+    _focusReq = null;
     if (_loadTimer) { clearTimeout(_loadTimer); _loadTimer = null; }
     if (_renderHandle && typeof _renderHandle.destroy === "function") {
       try { _renderHandle.destroy(); } catch (_) {}
@@ -672,6 +678,24 @@
       // tap-vs-drag disambiguation; see notes-graph-render.js endDrag).
       // The orchestrator only wires the always-present AT table.
       wireListNav(panel, g);
+
+      // C2 (v3.4) — consume a pending deep-link spotlight. Defer until
+      // the first layout settle so the node has coordinates to centre
+      // on. One-shot: cleared whether or not the node still exists
+      // (it may have been filtered out or deleted since the link).
+      if (_focusReq) {
+        const want = _focusReq;
+        _focusReq = null;
+        if (byId.has(want)) {
+          setTimeout(() => {
+            try {
+              if (_renderHandle && typeof _renderHandle.focusNode === "function") {
+                _renderHandle.focusNode(want);
+              }
+            } catch (_) {}
+          }, 350);
+        }
+      }
 
       panel.querySelector("[data-graph-reset]").addEventListener("click", () => {
         if (_renderHandle && _renderHandle.resetView) _renderHandle.resetView();
@@ -1000,8 +1024,16 @@
   }
 
   // ── public open() ──────────────────────────────────────────────────────
-  async function open() {
+  async function open(opts) {
+    opts = opts || {};
     const panel = buildShell();
+    // Set AFTER buildShell(): buildShell() calls destroy(), which
+    // clears _focusReq (stale-request protection). Node id form is
+    // `${kind}:${rawId}` (mirrors the data layer's _nid, which lives
+    // in a different closure — keep this in sync).
+    _focusReq = (opts.focus && opts.focus.id != null && opts.focus.id !== "")
+      ? (opts.focus.kind || "note") + ":" + String(opts.focus.id)
+      : null;
     renderState(panel, "loading", {});
 
     let timedOut = false;

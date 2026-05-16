@@ -51,6 +51,7 @@
     "smoke:notes:mobile": "node scripts/notes-ui/mobile-notes-smoke.js",
     "smoke:notes:linkac": "node scripts/notes-ui/link-autocomplete-smoke.js",
     "smoke:notes:teach": "node scripts/notes-ui/onboarding-empty-smoke.js",
+    "smoke:notes:graphloop": "node scripts/notes-ui/graph-loop-smoke.js",
     "vendor:build:graph": "node scripts/vendor/build-d3-graph.mjs",
     "research:quiz-reset": "node scripts/research/reset_quiz_for_student.js",
     "quiz:validate": "node scripts/quiz/validate-bank.js",

@@ -9,6 +9,22 @@
 
 ### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
 
+- **C2 — Create → link → graph loop affordance + backlink badge
+  (A-G2 / A-G6).** The note editor's Links panel now has an "Open in
+  Knowledge Graph" button that deep-links the graph spotlighting the
+  current note (`LinguistProGraph.open({focus:{kind:'note',id}})` →
+  graph isolates that node's cluster and focuses it; the graph stays
+  read-only). The links count badge gained an outgoing · incoming
+  breakdown in its title/aria so backlinks ("N notes link here") are
+  discoverable without expanding the panel. Graph plumbing:
+  `loader.open(opts)` forwards a `focus` request, consumed once in the
+  loaded state via a new read-only `focusNode(id)` renderer method.
+  i18n ru/en/he. Pinned by `scripts/notes-ui/graph-loop-smoke.js`
+  (5 cases) and wired into the fast matrix. (One transient combined-run
+  failure observed in the heavy real-Service-Worker lazyload section —
+  the documented pre-existing back-to-back harness flake; lazyload is
+  9/9 green in isolation and the loader change is backward-compatible.)
+
 - **C3 + U8 — Onboarding & empty-state teaching (A-G3 / A-G2).** The
   onboarding panel now has a 5th feature line introducing notes +
   `[[…]]` linking + the Knowledge Graph. The IDE Notes-tab empty-state

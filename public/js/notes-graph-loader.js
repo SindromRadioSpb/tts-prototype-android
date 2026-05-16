@@ -183,7 +183,9 @@
   //                                     privacy-smoke allow-list.
 
   const api = {
-    async open() {
+    // opts (optional): { focus: { kind, id } } — C2 (v3.4) deep-link
+    // from the note editor so the graph opens spotlighting that note.
+    async open(opts) {
       try {
         await _loadOnce();
       } catch (e) {
@@ -196,7 +198,7 @@
         return;
       }
       try {
-        window.NotesGraph.open();
+        window.NotesGraph.open(opts);
       } catch (e) {
         console.error("[graph] NotesGraph.open threw:", e);
         _renderChunkLoadError(e);

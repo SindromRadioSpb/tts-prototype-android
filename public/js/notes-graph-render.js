@@ -676,6 +676,18 @@
         });
       },
       isolateCluster, showAll,
+      // C2 (v3.4) — spotlight one node from a deep-link: isolate its
+      // cluster (clears the visual noise) and move keyboard focus onto
+      // it, which fires the existing focus handler → detail rail +
+      // neighbour highlight + SR announcement. Read-only; no edit.
+      focusNode(nodeId) {
+        const idx = nodes.findIndex((n) => n.id === nodeId);
+        if (idx < 0 || !nodeEls[idx]) return false;
+        try { isolateCluster(nodeId); } catch (_) {}
+        try { _pendingFit = true; fitToContent(); } catch (_) {}
+        try { nodeEls[idx].focus(); } catch (_) {}
+        return true;
+      },
       isIsolated: () => _isolated,
       // Land focus on the deterministic first node (Tab-into-graph).
       focusFirst() {

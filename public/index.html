@@ -10589,6 +10589,12 @@ body:not(.theme-light) .v3-heatmap-cell {
           <span data-i18n="notes.linksTitle">🔗 Связи</span>
           <span id="v3NotesLinksBadge" class="v3-notes-links-badge"></span>
         </button>
+        <button type="button" id="v3NotesOpenGraphBtn" class="btn-secondary"
+                style="margin:6px 0; width:100%;"
+                onclick="v3NotesOpenInGraph()"
+                data-i18n="notes.openInGraph"
+                data-i18n-title="notes.openInGraphTitle"
+                title="Открыть эту заметку в Карте знаний">🕸 Открыть в Карте знаний</button>
         <div id="v3NotesLinksBody" class="v3-notes-links-body" style="display:none;">
           <div class="v3-notes-links-section">
             <div class="v3-notes-links-heading" data-i18n="notes.linksOutgoing">Исходящие</div>
@@ -35431,14 +35437,44 @@ async function v3NotesLinksRefresh() {
       else backList.innerHTML = back.map((l) => v3NotesLinkChipHtml(l, { backlink: true })).join(" ");
     }
     if (badge) {
-      const n = (out.length || 0) + (back.length || 0);
+      // C2 (v3.4, A-G6) — make backlinks discoverable WITHOUT expanding
+      // the panel: badge shows the total; title/aria-label break it
+      // down into outgoing · incoming so "N notes link here" is
+      // announced where a user naturally looks.
+      const o = out.length || 0;
+      const b = back.length || 0;
+      const n = o + b;
       badge.textContent = n > 0 ? String(n) : "";
+      if (n > 0) {
+        const brk = v3NotesT("notes.linksBadgeTitle", "{out} исходящих · {back} входящих")
+          .replace("{out}", String(o)).replace("{back}", String(b));
+        badge.setAttribute("title", brk);
+        badge.setAttribute("aria-label", brk);
+      } else {
+        badge.removeAttribute("title");
+        badge.removeAttribute("aria-label");
+      }
     }
   } catch (e) {
     console.warn("[notes] v3NotesLinksRefresh failed:", e && e.message ? e.message : e);
   }
 }
 window.v3NotesLinksRefresh = v3NotesLinksRefresh;
+
+// C2 (v3.4, A-G2) — close the create → link → graph loop from inside
+// the editor. The Links panel (this button's parent) is only shown
+// once the note has a noteId, so the affordance is implicitly
+// saved-only; we still guard defensively.
+function v3NotesOpenInGraph() {
+  if (!v3NotesModalNoteId) {
+    showToast(v3NotesT("toast.notesLinkSaveFirst", "Сначала сохраните заметку, чтобы добавлять связи."), "warning");
+    return;
+  }
+  if (window.LinguistProGraph && typeof window.LinguistProGraph.open === "function") {
+    window.LinguistProGraph.open({ focus: { kind: "note", id: String(v3NotesModalNoteId) } });
+  }
+}
+window.v3NotesOpenInGraph = v3NotesOpenInGraph;
 
 async function v3NotesLinksAdd() {
   if (!LOCAL_MODE) { showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error"); return; }
