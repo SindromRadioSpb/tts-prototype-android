@@ -78,21 +78,68 @@
     if (s) s.textContent = msg || "";
   }
 
-  // In-memory decision (Phase 3). Phase 4 replaces this body with a
-  // durable note_link_suggestions write + (on confirm) addNoteLink.
-  function decide(cand, state) {
-    sessionDecisions.push({
+  function _db() {
+    var d = (typeof window !== "undefined") && window.__localDB;
+    return d && typeof d === "object" ? d : null;
+  }
+
+  // Phase 4 — DURABLE decision. Persists into note_link_suggestions
+  // (via local-db upsertSuggestion); CONFIRM additionally writes a
+  // real note_links row (idempotent addNoteLink) so the connection
+  // becomes a first-class durable link. Degrades to an in-memory
+  // session store if the DB CRUD is unavailable (never throws). No
+  // telemetry, no network, no graph-canvas mutation.
+  async function decide(cand, state) {
+    var d = _db();
+    var rec = {
       from: cand.from, to: cand.to, to_kind: cand.to_kind || "note",
-      reason_code: cand.reason_code, state: state,
+      reason_code: cand.reason_code, evidence: cand.evidence,
+      score: cand.score, state: state,
       decided_at: new Date().toISOString(),
-    });
+    };
+    var persisted = false;
+    if (d && typeof d.upsertSuggestion === "function") {
+      try { await d.upsertSuggestion(rec); persisted = true; } catch (_) {}
+    }
+    if (!persisted) sessionDecisions.push(rec);   // graceful fallback
+
+    if (state === "confirmed" && d && typeof d.addNoteLink === "function") {
+      // durable note_links row — the single link truth. Idempotent.
+      try {
+        await d.addNoteLink(cand.from, {
+          to_kind: cand.to_kind || "note", to_id: cand.to,
+          link_alias: cand.to_label || null,
+        });
+      } catch (_) {}
+    }
+
     var msg =
       state === "confirmed" ? t("notes.suggest.doneConfirmed", "Связь отмечена как понятная.") :
       state === "rejected"  ? t("notes.suggest.doneRejected", "Скрыто — не связано.") :
                               t("notes.suggest.doneLater", "Отложено — вернёмся позже.");
     setStatus(msg);
-    // re-render: the suppression contract now hides this card.
-    render(cand.from);
+    // Re-render: decisions are reloaded (DB) so the suppression
+    // contract now hides this card. On confirm also refresh the
+    // existing links list so the new note_links row shows as an
+    // outgoing link (debounced — safe re-entrancy).
+    if (state === "confirmed" && typeof window.v3NotesLinksRefresh === "function") {
+      try { window.v3NotesLinksRefresh(); } catch (_) {}
+    } else {
+      render(cand.from);
+    }
+  }
+
+  // Decisions feed the generator's suppression contract. Prefer the
+  // durable store; fall back to the in-memory session store.
+  async function loadDecisions(noteId) {
+    var d = _db();
+    if (d && typeof d.listSuggestionDecisions === "function") {
+      try {
+        var rows = await d.listSuggestionDecisions(noteId);
+        if (Array.isArray(rows)) return rows;
+      } catch (_) {}
+    }
+    return sessionDecisions;
   }
 
   function cardHtml(c, i) {
@@ -136,8 +183,10 @@
     var mySeq = ++_seq;
     var cands = [];
     try {
+      var decisions = await loadDecisions(noteId);   // durable (DB) or fallback
+      if (mySeq !== _seq) return;          // superseded during the await
       cands = await gen.candidatesForNote(noteId, {
-        decisions: sessionDecisions, now: Date.now(),
+        decisions: decisions, now: Date.now(),
       });
     } catch (_) { cands = []; }
     if (mySeq !== _seq) return;            // superseded by a newer refresh

@@ -593,4 +593,36 @@ export const MIGRATIONS = [
     ('tpl_note_grammar_rule',            'note_grammar_rule',            'Note: Grammar rule',  'note', 'he', 'ru', '{"prompt":"rule_title"}',   '{"answer":"rule_body","extra":["examples"]}',                'reveal', 1, 110),
     ('tpl_note_translation_discrepancy', 'note_translation_discrepancy', 'Note: Translation',   'note', 'he', 'ru', '{"prompt":"source_text"}',  '{"answer":"translation_suggested","extra":["reasoning"]}',   'reveal', 1, 120),
     ('tpl_note_pronunciation_note',      'note_pronunciation_note',      'Note: Pronunciation', 'note', 'he', 'he', '{"prompt":"word"}',         '{"answer":"ipa","extra":["common_mistakes"]}',               'reveal', 1, 130);`,
+
+  // 049_note_link_suggestions — v3.6 Smart Learning Graph Phase 4.
+  // Durable learner DECISIONS on auto-suggested A2 connections (the
+  // "Подтвердите связи" panel). Separate from note_links on purpose:
+  // note_links stays the single durable link truth (manual [[…]] OR
+  // a confirmed suggestion); this table records the lifecycle so the
+  // generator's suppression contract can hide decided candidates
+  // (rejected → forever; later → cooldown; confirmed → that reason).
+  // PK includes reason_code so a pair decided for one reason can
+  // still be suggested for another. Read/written ONLY by the
+  // suggestion CRUD; never exported by default (export wiring is a
+  // later additive step — see SMART_LEARNING_GRAPH_ROADMAP_v3_6 §5).
+  // Idempotent (IF NOT EXISTS) — safe to re-run.
+  `CREATE TABLE IF NOT EXISTS note_link_suggestions (
+    from_note_id  TEXT NOT NULL,
+    to_kind       TEXT NOT NULL CHECK (to_kind IN
+                    ('note','word','root','binyan','text','sentence')),
+    to_id         TEXT NOT NULL,
+    reason_code   TEXT NOT NULL CHECK (reason_code IN
+                    ('shared_root','shared_lemma','shared_binyan',
+                     'same_text','cooccur')),
+    evidence      TEXT,
+    score         REAL NOT NULL DEFAULT 0,
+    state         TEXT NOT NULL DEFAULT 'pending' CHECK (state IN
+                    ('pending','confirmed','rejected','later')),
+    created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    decided_at    TEXT,
+    PRIMARY KEY (from_note_id, to_kind, to_id, reason_code),
+    FOREIGN KEY (from_note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS ix_nls_from  ON note_link_suggestions(from_note_id);
+  CREATE INDEX IF NOT EXISTS ix_nls_state ON note_link_suggestions(state);`,
 ];

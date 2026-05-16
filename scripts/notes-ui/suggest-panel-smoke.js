@@ -12,11 +12,11 @@
 //      card; heading + buttons use pedagogical i18n (NOT "Accept").
 //   2. ARIA: region+label, status role/aria-live; card has a reason
 //      chip + a real target label.
-//   3. «Не связано» (reject) removes the card + records an in-memory
+//   3. «Не связано» (reject) removes the card + DURABLY persists a
 //      `rejected` decision (suppression hides it); status announces.
-//   4. «Я понимаю связь» (confirm) records an in-memory `confirmed`
-//      decision and writes NOTHING durable (addNoteLink NOT called) —
-//      no graph mutation, no telemetry.
+//   4. «Я понимаю связь» (confirm) persists `confirmed` AND writes a
+//      durable note_links row (addNoteLink once) — Phase 4; still
+//      offline, no graph mutation, no telemetry.
 //   5. 414 px reflow: panel renders, card row has no horizontal
 //      overflow. No pageerror; zero xhr/fetch; generator SQL is
 //      SELECT-only.
@@ -82,9 +82,33 @@ const SETUP = async () => {
   if (window.__localDBInitPromise) { try { await window.__localDBInitPromise; } catch (_) {} }
   window.__sqlLog = [];
   window.__addNoteLinkCalls = [];
+  window.__suggestStore = [];          // faithful note_link_suggestions
   window.__localDBInitError = null;
+  const _skey = (s) => [s.from || s.from_note_id, s.to_kind || "note",
+    s.to != null ? s.to : s.to_id, s.reason_code].join("|");
   window.__localDB = {
     isReady: () => true,
+    upsertSuggestion: async (s) => {
+      const k = _skey(s);
+      const row = {
+        from_note_id: s.from, to_kind: s.to_kind || "note", to_id: s.to,
+        reason_code: s.reason_code, evidence: s.evidence,
+        score: s.score || 0, state: s.state || "pending",
+        decided_at: s.decided_at || new Date().toISOString(),
+      };
+      const i = window.__suggestStore.findIndex((x) => _skey({
+        from: x.from_note_id, to_kind: x.to_kind, to: x.to_id,
+        reason_code: x.reason_code }) === k);
+      if (i >= 0) window.__suggestStore[i] = row;
+      else window.__suggestStore.push(row);
+    },
+    listSuggestionDecisions: async (noteId) =>
+      window.__suggestStore
+        .filter((x) => x.from_note_id === noteId &&
+          ["confirmed", "rejected", "later"].includes(x.state))
+        .map((x) => ({ from: x.from_note_id, to: x.to_id,
+          to_kind: x.to_kind, reason_code: x.reason_code,
+          state: x.state, decided_at: x.decided_at })),
     dbQuery: async (sql) => {
       window.__sqlLog.push(String(sql));
       if (/FROM notes_v2/i.test(sql)) return [
@@ -199,33 +223,34 @@ async function main() {
       const before = document.querySelectorAll(".v3-notes-suggest-card").length;
       const rej = document.querySelector('[data-sg-act="reject"]');
       rej.click();
-      await new Promise((r) => setTimeout(r, 250));
+      await new Promise((r) => setTimeout(r, 600));   // persist + re-render
       const after = document.querySelectorAll(".v3-notes-suggest-card").length;
-      const stt = window.NotesLinkSuggestUI._state();
       const status = document.getElementById("v3NotesSuggestStatus").textContent;
-      return { before, after, decisions: stt.decisions, status };
+      return { before, after,
+        rejectedPersisted: window.__suggestStore.some((x) => x.state === "rejected"),
+        status };
     });
-    test("Case 3: «Не связано» removes the card + records in-memory rejected",
+    test("Case 3: «Не связано» removes the card + DURABLY persists rejected",
          c3.before >= 1 && c3.after < c3.before &&
-         c3.decisions.some((x) => x.state === "rejected") &&
-         c3.status.length > 0,
-         JSON.stringify({ before: c3.before, after: c3.after,
-                          dec: c3.decisions.length }));
+         c3.rejectedPersisted && c3.status.length > 0,
+         JSON.stringify({ before: c3.before, after: c3.after }));
 
     const c4 = await d.pg.evaluate(async () => {
       const conf = document.querySelector('[data-sg-act="confirm"]');
       let clicked = false;
-      if (conf) { conf.click(); clicked = true; await new Promise((r) => setTimeout(r, 250)); }
-      const stt = window.NotesLinkSuggestUI._state();
+      if (conf) { conf.click(); clicked = true; await new Promise((r) => setTimeout(r, 800)); }
       return {
         clicked,
-        confirmedRecorded: stt.decisions.some((x) => x.state === "confirmed"),
+        confirmedPersisted: window.__suggestStore.some((x) => x.state === "confirmed"),
         addNoteLinkCalls: (window.__addNoteLinkCalls || []).length,
+        firstLink: (window.__addNoteLinkCalls || [])[0] || null,
       };
     });
     const actionsOffline = netReqs.length === netMark;
-    test("Case 4: «Я понимаю связь» = in-memory only, NO durable write, offline",
-         c4.clicked && c4.confirmedRecorded && c4.addNoteLinkCalls === 0 &&
+    test("Case 4: «Я понимаю связь» persists confirmed + writes durable note_links, offline",
+         c4.clicked && c4.confirmedPersisted &&
+         c4.addNoteLinkCalls === 1 &&
+         c4.firstLink && c4.firstLink.link && c4.firstLink.link.to_kind === "note" &&
          actionsOffline,
          JSON.stringify({ ...c4, netDelta: netReqs.length - netMark }));
 

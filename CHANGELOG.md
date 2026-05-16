@@ -70,6 +70,31 @@ no telemetry, no consent bump, no graph-canvas authoring.
   + offline, 414 px). Full fast matrix ALL GREEN; graph visual
   baselines unchanged (31/31 verify — Phase 3 touched only the notes
   modal, not the canvas).
+- **Phase 4 — durable accept/reject/later.** Decisions are now
+  persistent. New idempotent migration `note_link_suggestions`
+  (`migrations.js`, append-only — version = `MIGRATIONS.length`;
+  PK `(from_note_id,to_kind,to_id,reason_code)`, FK → `notes_v2`
+  `ON DELETE CASCADE`, `CHECK` enums). New read-only/local
+  `local-db.js` CRUD: `upsertSuggestion`, `setSuggestionState`,
+  `listSuggestions`, `listSuggestionDecisions` (decision shape the
+  generator's suppression contract consumes). The Confirm panel now
+  loads decisions from the DB and on **confirm additionally writes a
+  durable `note_links` row** via the existing idempotent
+  `addNoteLink` (the connection becomes a first-class link) — reject/
+  later persist their state; all degrade to an in-memory session
+  store if the CRUD is unavailable (never throws). Decisions
+  **survive an editor reopen**; rejected is suppressed forever;
+  later resurfaces after the cooldown. Bundle export is **unchanged**
+  — suggestions are not exported (export wiring is a later additive
+  step; current behaviour = nothing exported, the conservative safe
+  default). No telemetry, no network, no consent change, no
+  graph-canvas mutation. Pinned by
+  `scripts/notes-graph/suggest-persist-smoke.js` (5/5: migration
+  idempotent+appended, static no-network/no-telemetry scan of both
+  modules, confirm→durable+survives-reopen, reject-forever,
+  later-cooldown+offline); `suggest-panel-smoke.js` updated to the
+  durable contract (5/5). Full fast matrix ALL GREEN (real-DB
+  browser smokes pass → the migration is safe at app boot).
 
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 

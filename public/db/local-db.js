@@ -1003,6 +1003,82 @@ export async function listBacklinks(toKind, toId) {
   );
 }
 
+// ── v3.6 Smart Learning Graph — note_link_suggestions CRUD (Phase 4) ──────
+// Durable learner decisions on auto-suggested A2 connections. Separate
+// from note_links: confirming ALSO writes a real note_links row (via
+// addNoteLink, idempotent) — this table only records the lifecycle so
+// the generator's suppression contract can hide decided candidates.
+// No telemetry, no network, local only. PK (from,to_kind,to_id,reason).
+
+// Upsert a decision (idempotent on the PK). `state` ∈
+// pending|confirmed|rejected|later. decided_at defaults to now for a
+// terminal state; pending leaves it NULL.
+export async function upsertSuggestion(s = {}) {
+  const from = String(s.from || s.from_note_id || '');
+  const toKind = String(s.to_kind || 'note');
+  const toId = String(s.to != null ? s.to : (s.to_id != null ? s.to_id : ''));
+  const reason = String(s.reason_code || '');
+  if (!from || !toId || !reason) {
+    throw new Error('upsertSuggestion: from + to + reason_code required');
+  }
+  const state = String(s.state || 'pending');
+  const decidedAt = (state === 'pending')
+    ? null
+    : (s.decided_at ? String(s.decided_at) : new Date().toISOString());
+  await r(
+    `INSERT INTO note_link_suggestions
+       (from_note_id, to_kind, to_id, reason_code, evidence, score, state, decided_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(from_note_id, to_kind, to_id, reason_code)
+     DO UPDATE SET evidence = excluded.evidence,
+                   score    = excluded.score,
+                   state    = excluded.state,
+                   decided_at = excluded.decided_at`,
+    [from, toKind, toId, reason,
+     (s.evidence != null ? String(s.evidence) : null),
+     Number.isFinite(s.score) ? s.score : 0,
+     state, decidedAt]
+  );
+}
+
+// Convenience: set just the state of one (already-known) candidate.
+export async function setSuggestionState(from, toKind, toId, reasonCode, state, opts = {}) {
+  return upsertSuggestion({
+    from, to_kind: toKind, to: toId, reason_code: reasonCode,
+    state, evidence: opts.evidence, score: opts.score,
+    decided_at: opts.decided_at,
+  });
+}
+
+// Raw rows for a note (debug / future export).
+export async function listSuggestions(noteId) {
+  if (!noteId) return [];
+  return q(
+    `SELECT from_note_id, to_kind, to_id, reason_code, evidence,
+            score, state, created_at, decided_at
+       FROM note_link_suggestions
+      WHERE from_note_id = ?`,
+    [String(noteId)]
+  );
+}
+
+// Decisions in the exact shape the generator's suppression contract
+// expects ({from,to,to_kind,reason_code,state,decided_at}). Only
+// terminal decisions matter for suppression; pending rows are noise.
+export async function listSuggestionDecisions(noteId) {
+  if (!noteId) return [];
+  const rows = await q(
+    `SELECT from_note_id, to_kind, to_id, reason_code, state, decided_at
+       FROM note_link_suggestions
+      WHERE from_note_id = ? AND state IN ('confirmed','rejected','later')`,
+    [String(noteId)]
+  );
+  return (rows || []).map((d) => ({
+    from: d.from_note_id, to: d.to_id, to_kind: d.to_kind,
+    reason_code: d.reason_code, state: d.state, decided_at: d.decided_at,
+  }));
+}
+
 // ── Roots reference table ────────────────────────────────────────────────
 
 // Idempotent seed — inserts roots from the provided array if they're not

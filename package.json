@@ -52,6 +52,7 @@
     "smoke:graph:bundle": "node scripts/notes-graph/bundle-data-smoke.js",
     "smoke:graph:suggest-fixture": "node scripts/notes-graph/suggest-fixture-smoke.js",
     "smoke:graph:suggest-gen": "node scripts/notes-graph/suggest-generator-smoke.js",
+    "smoke:graph:suggest-persist": "node scripts/notes-graph/suggest-persist-smoke.js",
     "smoke:notes:mobile": "node scripts/notes-ui/mobile-notes-smoke.js",
     "smoke:notes:linkac": "node scripts/notes-ui/link-autocomplete-smoke.js",
     "smoke:notes:teach": "node scripts/notes-ui/onboarding-empty-smoke.js",
