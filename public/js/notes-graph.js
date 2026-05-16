@@ -495,11 +495,28 @@
                                        "Карта знаний временно недоступна. Проверьте локальное хранилище и повторите попытку.";
       const isError = state.indexOf("error") === 0;
       const isFilter = state === "filtered_all_hidden";
+      const isEmpty = state === "empty_no_notes" || state === "empty_no_links";
+      // U8 (v3.4) — turn the empty graph into the teaching surface for
+      // the create → [[link]] → map loop. Copy-only; the graph stays
+      // read-only (no note/link creation from the canvas).
+      const teach = isEmpty
+        ? `<div style="max-width:440px;text-align:left;background:var(--theme-accent-bg,#eef2ff);` +
+          `border-radius:10px;padding:14px 18px;line-height:1.55;font-size:13px;">` +
+            `<div style="font-weight:600;margin-bottom:8px;">` +
+              `${esc(T("graph.state.empty.teach.title", "Как наполнить карту знаний"))}</div>` +
+            `<ol style="margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:5px;">` +
+              `<li>${esc(T("graph.state.empty.teach.step1", "Откройте строку текста и создайте заметку."))}</li>` +
+              `<li>${esc(T("graph.state.empty.teach.step2", "В заметке введите [[ — появится подсказка; выберите заметку, текст или корень."))}</li>` +
+              `<li>${esc(T("graph.state.empty.teach.step3", "Сохраните — связь появится здесь, на карте знаний."))}</li>` +
+            `</ol>` +
+          `</div>`
+        : "";
       panel.innerHTML = header(panel) +
         `<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:48px;` +
         `flex-direction:column;gap:16px;text-align:center;" role="status" aria-live="polite">` +
           `<div style="font-size:40px;" aria-hidden="true">${isError ? "⚠️" : "🕸"}</div>` +
           `<p style="margin:0;max-width:420px;line-height:1.5;">${esc(T(copyKey, copyFallback))}</p>` +
+          teach +
           `<div style="display:flex;gap:8px;">` +
             (isFilter ? `<button type="button" class="btn-primary" data-graph-clearfilters="1">${esc(T("graph.toolbar.clearFilters", "Сбросить фильтры"))}</button>` : "") +
             (isError ? `<button type="button" class="btn-primary" data-graph-retry="1">${esc(T("graph.toolbar.retry", "Повторить"))}</button>` : "") +

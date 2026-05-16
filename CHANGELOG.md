@@ -9,6 +9,18 @@
 
 ### v3.4 Product cohesion (in progress — docs/PRODUCT_COHESION_PLAN_v3_4.md)
 
+- **C3 + U8 — Onboarding & empty-state teaching (A-G3 / A-G2).** The
+  onboarding panel now has a 5th feature line introducing notes +
+  `[[…]]` linking + the Knowledge Graph. The IDE Notes-tab empty-state
+  (previously a hardcoded English one-liner) is now an i18n'd teaching
+  card explaining the create → `[[link]]` → graph loop with a
+  one-click "Open Knowledge Graph" affordance. The graph
+  `empty_no_notes` / `empty_no_links` states gained an inline 3-step
+  mini-guide (copy-only; graph stays read-only). i18n ru/en/he across
+  all three surfaces. Pinned by
+  `scripts/notes-ui/onboarding-empty-smoke.js` (5 cases); wired into
+  the fast smoke matrix.
+
 - **C1 — Inline `[[` autocomplete in the note editor (A-G1).** Typing
   `[[` in the WYSIWYG editor now opens a picker over notes / texts /
   roots by label (read-only candidate search); selecting one inserts a

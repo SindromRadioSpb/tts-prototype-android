@@ -207,6 +207,14 @@ window.I18N_LOCALES.en = {
     colReset: "Reset",
     colSavedNote: "Table settings saved on this device.",
     emptyCenter: "Select a text from the Library or search results",
+    notesEmpty: {
+      lead: "Select a row to view or edit notes",
+      title: "Notes & the Knowledge Graph",
+      step1: "Pick a text row on the left and write a note.",
+      step2: "Type [[ — choose a note, text or root to link.",
+      step3: "Links build up into the Knowledge Graph.",
+      openGraph: "🕸 Open Knowledge Graph",
+    },
     colsSheetTitle: "Columns",
     colsSheetAria: "Columns",
     closeAria: "Close",
@@ -1274,6 +1282,7 @@ window.I18N_LOCALES.en = {
     feature2: "🔊 Play any sentence via TTS — cached so repeated playback doesn't burn your quota.",
     feature3: "📚 Save texts to a local library, export ZIP backups.",
     feature4: "🎯 Practice via the SRS Trainer (spaced repetition) — cards surface on schedule.",
+    feature5: "🕸 Write notes and link them with [[…]] — links build up into a Knowledge Graph.",
     tryDemo: "🚀 Try the demo text",
     startFresh: "Start with my own text",
     dontShowAgain: "Don't show again",
@@ -1508,6 +1517,12 @@ window.I18N_LOCALES.en = {
       empty: {
         noNotes: "No notes yet for the knowledge graph. Add notes and [[…]] links in your library to build the graph.",
         noLinks: "No knowledge links yet. Add [[…]] links in notes to build the graph.",
+        teach: {
+          title: "How to fill the knowledge graph",
+          step1: "Open a text row and create a note.",
+          step2: "In the note, type [[ — a picker appears; choose a note, text or root.",
+          step3: "Save — the link shows up here on the knowledge graph.",
+        },
       },
       filtered:  { allHidden: "The current filters hide all items. Reset filters to continue." },
       error: {

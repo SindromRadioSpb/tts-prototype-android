@@ -8917,7 +8917,20 @@ body:not(.theme-light) .v3-heatmap-cell {
       <div id="v3IdeNotesContent">
         <div class="v3-ide-empty">
           <div class="v3-ide-empty-icon">📝</div>
-          <div class="v3-ide-empty-text">Select a row to view or edit notes</div>
+          <div class="v3-ide-empty-text" data-i18n="ide.notesEmpty.lead">Выберите строку, чтобы просмотреть или изменить заметки</div>
+          <!-- C3 (v3.4) — teach the create → [[link]] → graph loop right
+               where a first-time user lands. -->
+          <div class="v3-ide-notes-teach" style="margin-top:14px;max-width:300px;text-align:left;font-size:12.5px;line-height:1.55;color:var(--theme-text-secondary,#64748b);">
+            <div style="font-weight:600;margin-bottom:6px;color:var(--theme-text,#1e293b);" data-i18n="ide.notesEmpty.title">Заметки и Карта знаний</div>
+            <ol style="margin:0;padding-inline-start:18px;display:flex;flex-direction:column;gap:4px;">
+              <li data-i18n="ide.notesEmpty.step1">Выберите строку текста слева и напишите заметку.</li>
+              <li data-i18n="ide.notesEmpty.step2">Введите [[ — выберите заметку, текст или корень для связи.</li>
+              <li data-i18n="ide.notesEmpty.step3">Связи собираются в Карту знаний.</li>
+            </ol>
+            <button type="button" class="btn-secondary" style="margin-top:10px;"
+                    onclick="window.LinguistProGraph && window.LinguistProGraph.open()"
+                    data-i18n="ide.notesEmpty.openGraph">🕸 Открыть Карту знаний</button>
+          </div>
         </div>
       </div>
     </div>
@@ -38114,6 +38127,7 @@ document.addEventListener("i18n:changed", function () {
         <div class="v3-onb-feature" data-i18n="onboarding.feature2">🔊 Озвучить любое предложение через TTS.</div>
         <div class="v3-onb-feature" data-i18n="onboarding.feature3">📚 Сохранять тексты в локальную библиотеку.</div>
         <div class="v3-onb-feature" data-i18n="onboarding.feature4">🎯 Тренироваться через SRS Trainer.</div>
+        <div class="v3-onb-feature" data-i18n="onboarding.feature5">🕸 Писать заметки и связывать их через [[…]] — связи складываются в Карту знаний.</div>
       </div>
       <div class="v3-onb-actions">
         <button class="v3-onb-cta-primary" onclick="v3OnboardingTryDemo()" data-i18n="onboarding.tryDemo">🚀 Попробовать на демо-тексте</button>
