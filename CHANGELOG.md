@@ -149,6 +149,24 @@ no telemetry, no consent bump, no graph-canvas authoring.
   visual baselines regenerated (intentional canvas change — rings)
   and re-verified 31/31; `bundle-data-smoke` still 5/5. Full fast
   matrix ALL GREEN.
+- **Phase 8 — mobile / performance / privacy hardening.** The Phase 5
+  shared-root/lemma hot loop replaced its O(pairs × |edges|)
+  `edges.some()` scan with a single O(|edges|) precomputed
+  undirected pair-set (U+0001 separator → no concat collisions) →
+  O(1) per pair, no large-graph blow-up; **semantically identical**
+  (graph output unchanged — visual baselines verify 31/31 with no
+  regeneration, `bundle-data` 5/5). `suggest-graph-smoke` extended
+  with a perf budget (Case 5: 200-note shared-root-heavy
+  `buildGraph` < 400 ms, capped, deterministic) → **6/6**.
+  `privacy-smoke` hardened with a getLearningStateOverlay +
+  rejected-suggestion mock so the armed graph session now exercises
+  the Phase 5 suppression SELECT **and** the Phase 7 overlay; new
+  Case 9 pins that the zero-network / zero-events / SELECT-only /
+  read-only-canvas invariants hold **with the suggested layer +
+  overlay active** → **9/9**. Confirm-panel 414 px + mobile-fallback
+  already smoke-pinned (Phase 3 / matrix). Full fast matrix ALL
+  GREEN (only the documented line-296 SW back-to-back lazyload
+  flake; 9/9 in isolation; Phase 8 change is semantically identical).
 
 ### v3.5 — Smart-graph prototype fixes (dogfood feedback 2026-05-16)
 

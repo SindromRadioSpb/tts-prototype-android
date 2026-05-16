@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 // scripts/notes-graph/privacy-smoke.js — v3.3.6 C7 privacy hardening.
 //
-// 8 cases per docs/PHASE_PLAN_v3_3_6_KNOWLEDGE_GRAPH.md §10 + blind-spot §D.
+// 8 cases per docs/PHASE_PLAN_v3_3_6_KNOWLEDGE_GRAPH.md §10 + blind-spot §D;
+// + Case 9 (v3.6 Phase 8): invariants pinned with the suggested layer
+// (Phase 5 suppression SELECT) + the A5 overlay active.
 // Spies are installed via addInitScript BEFORE any graph code runs, then
 // reset immediately before NotesGraph.open() so the assertions cover the
 // FULL graph session (open → render → interact → close) only.
@@ -177,9 +179,17 @@ async function main() {
           if (/FROM note_links/i.test(sql)) return [
             { from_note_id:"n1", to_kind:"note", to_id:"n2", link_alias:null }
           ];
+          // Phase 8 hardening — the graph session also issues the
+          // Phase 5 suppression SELECT; assert it stays read-only.
+          if (/FROM note_link_suggestions/i.test(sql)) return [
+            { from_note_id:"n1", to_id:"n2", reason_code:"shared_root", state:"rejected", decided_at:"2026-05-17T00:00:00Z" }
+          ];
           if (/FROM texts/i.test(sql)) return [{ id:"t1", title:"Text One" }];
           return [];
         },
+        // Phase 7 (A5) overlay path — exercised in the armed session
+        // so the privacy invariants are pinned WITH it active.
+        getLearningStateOverlay: async function () { return { n1: "weak" }; },
       };
       window.MorphNormalize = { normalizeHebrew: function (w){ return String(w||"").trim(); } };
       window.MorphProvider = { ensureReady: async function(){}, analyze: async function(){ return []; } };
@@ -202,6 +212,16 @@ async function main() {
       return p && p.getAttribute("data-graph-state") === "loaded";
     }, null, { timeout: 8000 });
     await sleep(1200);
+    // Phase 8 — capture the v3.6 surfaces WHILE the graph is live
+    // (privacy-smoke closes it during the interaction block below).
+    const v36 = await page.evaluate(() => {
+      const p = document.querySelector("[data-graph-panel]");
+      return {
+        suppressionRead: (window.__spy.sql || []).some((s) =>
+          /FROM note_link_suggestions/i.test(String(s))),
+        overlayRing: !!(p && p.querySelector('[data-graph-node][data-learn]')),
+      };
+    });
     // Interact: toggle list, legend, reset, close.
     await page.evaluate(() => {
       const q = (s) => document.querySelector(s);
@@ -251,6 +271,14 @@ async function main() {
          validateUnchanged);
     test("Case 8: CONSENT_VERSION still '1.0' in public/js/research.js",
          consentOk);
+
+    // Phase 8 — the v3.6 surfaces (Phase 5 suppression SELECT +
+    // Phase 7 overlay) demonstrably executed inside the armed session
+    // (captured live above), so Cases 1–6 cover them, not just the
+    // base graph.
+    test("Case 9: privacy invariants pinned WITH suggested-layer + overlay active",
+         v36.suppressionRead && v36.overlayRing,
+         JSON.stringify(v36));
 
     if (pageErrors.length) {
       failed++;

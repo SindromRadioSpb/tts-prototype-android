@@ -1,8 +1,8 @@
 # Smart Learning Graph — Roadmap v3.6 (planning-only)
 
 > **Status.** APPROVED WITH REFINEMENTS (owner, 2026-05-16) — see
-> §11 "Approved decisions". **Phases 0–7 SHIPPED; Phase 8 next.**
-> Refinements:
+> §11 "Approved decisions". **Phases 0–8 SHIPPED; Phase 9 (gate)
+> next.** Refinements:
 > (a) **export** carries `confirmed` by default; `rejected` only
 > under a *full learning-state* export profile; `pending`/`later`
 > never exported. (b) **Phase 6** = candidate records only — **no UI
@@ -39,7 +39,13 @@
 >   ring on note nodes + «Прогресс» chip + detail/legend;
 >   `activity-overlay-smoke` 5/5; baselines regenerated & re-verified
 >   31/31.
-> - ▶ **Phase 8** next — mobile / performance / privacy hardening.
+> - ✅ **Phase 8** — perf hardening (Phase 5 hot loop → O(1)
+>   pair-set, semantically identical), `suggest-graph-smoke` perf
+>   case (200-note buildGraph < 400 ms) → 6/6, `privacy-smoke`
+>   hardened to pin invariants with suggested layer + overlay active
+>   → 9/9; visuals verify 31/31 (no regen).
+> - ▶ **Phase 9** next — docs, full smoke, baselines, pilot gate +
+>   version (release tag only on explicit owner instruction).
 > All commits pushed to `main`; full `smoke:research:fast` green per
 > phase; invariants (read-only, offline, no telemetry, no consent
 > bump, no graph-canvas authoring) smoke-pinned each phase.

@@ -263,6 +263,15 @@
       }
     } catch (_) { /* table may not exist on old DBs — no suppression */ }
 
+    // Phase 8 perf-hardening: a single O(|edges|) pass builds an
+    // undirected pair-set so the inner check is O(1) instead of an
+    // edges.some() scan per pair (was O(pairs × |edges|) — the
+    // large-graph blowup risk). Shared edges added below also update
+    // the set, so the two passes never double-connect a pair.
+    const _pairKey = (x, y) => (x < y ? x + "" + y : y + "" + x);
+    const _connected = new Set();
+    for (const e of edges) _connected.add(_pairKey(e.source, e.target));
+
     function _sharedPass(getKey, reason, edgeKind) {
       const groups = new Map();
       for (const n of notes) {
@@ -281,13 +290,13 @@
             const a = sorted[i], b = sorted[j];
             const sId = _nid("note", a), tId = _nid("note", b);
             if (!nodes.has(sId) || !nodes.has(tId)) continue;
-            if (edges.some((e) =>
-              (e.source === sId && e.target === tId) ||
-              (e.source === tId && e.target === sId))) continue;
+            const pk = _pairKey(sId, tId);
+            if (_connected.has(pk)) continue;            // O(1)
             if (_supp.has(a + "|" + b + "|" + reason) ||
                 _supp.has(b + "|" + a + "|" + reason)) continue;
             edges.push({ source: sId, target: tId, edge_kind: edgeKind,
                          alias: null, evidence: token });
+            _connected.add(pk);
             added++;
           }
         }

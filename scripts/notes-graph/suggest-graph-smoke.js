@@ -219,12 +219,45 @@ async function main() {
          before.lines > 0 && afterOff >= 0 && afterOff < before.lines,
          JSON.stringify({ before, afterOff, legend }));
 
+    // Case 5 — Phase 8 perf: buildGraph on a 200-note, shared-root-
+    // heavy synthetic stays under budget AND capped (the O(1)
+    // pair-set hardening must not regress; no hairball).
+    const perf = await pg.evaluate(async () => {
+      const big = [];
+      for (let i = 0; i < 200; i++) {
+        big.push({ id: "P" + i, title: "P" + i, target_kind: "text",
+          target_id: "t1", text_id: "t1", note_type: "word_study",
+          j_root: "r" + (i % 10), j_binyan: "paal", j_word: "w" + (i % 10),
+          updated_at: "2026-05-17T00:00:00Z" });
+      }
+      window.__localDB.dbQuery = async function (sql) {
+        window.__sqlLog.push(String(sql));
+        if (/FROM notes_v2/i.test(sql)) return big;
+        if (/FROM note_links/i.test(sql)) return [];
+        if (/FROM note_link_suggestions/i.test(sql)) return [];
+        if (/FROM texts/i.test(sql)) return [{ id: "t1", title: "T1" }];
+        return [];
+      };
+      const t0 = performance.now();
+      const g = await window.NotesGraphData.buildGraph();
+      const ms = performance.now() - t0;
+      const a = await window.NotesGraphData.buildGraph();
+      const det = g.edges.length === a.edges.length;
+      // 10 roots × 20 members, cap 6/token → bounded shared edges.
+      const shared = g.edges.filter((e) =>
+        e.edge_kind === "auto_shared_root" || e.edge_kind === "auto_shared_lemma").length;
+      return { ms: Math.round(ms), shared, det, total: g.edges.length };
+    });
+    test("Case 5: 200-note buildGraph under budget (<400ms), capped, deterministic",
+         perf.ms < 400 && perf.shared > 0 && perf.shared <= 200 && perf.det,
+         JSON.stringify(perf));
+
     const sqlLog = await pg.evaluate(() => window.__sqlLog || []);
     const addCalls = await pg.evaluate(() => (window.__addNoteLinkCalls || []).length);
     const RO = /^\s*(WITH\b[\s\S]*?\bSELECT|SELECT)\b/i;
     const FORB = /\b(INSERT|UPDATE|DELETE|DROP|ALTER|CREATE|REPLACE|TRUNCATE|PRAGMA|ATTACH|VACUUM)\b/i;
     const selectOnly = sqlLog.length > 0 && sqlLog.every((s) => RO.test(s) && !FORB.test(s));
-    test("Case 5: read-only — bare SELECT only, no addNoteLink, no pageerror",
+    test("Case 6: read-only — bare SELECT only, no addNoteLink, no pageerror",
          selectOnly && addCalls === 0 && errs.length === 0,
          JSON.stringify({ sql: sqlLog.length, addCalls, errs }));
 
