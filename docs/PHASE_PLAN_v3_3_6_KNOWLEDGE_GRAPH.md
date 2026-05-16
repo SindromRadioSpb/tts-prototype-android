@@ -1031,16 +1031,56 @@ privacy smoke.
   removed). Pinned by `scripts/notes-graph/interaction-smoke.js`
   (7 cases).
 
+### N11. `role` decision + manual screen-reader posture (2026-05-16)
+
+**`role="application"` → DROPPED; canvas now `role="group"`.** The
+original plan (§9, §C, line ~364) used `role="application"` on the
+graph canvas to pass arrow keys through to the in-graph node
+navigation. Whether that *helps or harms* a real screen reader can
+only be judged by manual listening (NVDA/VoiceOver) — it is not
+automatable. The project owner paused manual NVDA testing
+(uncomfortable) on 2026-05-16. Rather than ship an **unverifiable**
+ARIA pattern that forces focus-mode and can suppress screen-reader
+browse-mode, the safe default was chosen: **`role="group"` +
+`aria-label`**. Rationale:
+
+- The **canonical AT path is the always-present structured table**
+  (`[data-graph-at-table]`, `role=status` summary) — it works with
+  zero dependence on `role="application"` and is automation-pinned
+  (`render-a11y-smoke` case 6).
+- Sighted keyboard users lose nothing: arrow-key node navigation is
+  a real `keydown` handler on each `[data-graph-node]` (tabindex=0),
+  independent of the container role.
+- A screen reader now stays in normal browse-mode over the canvas
+  region and reaches the structured table normally — strictly safer
+  than an unverified focus-mode override.
+
+`render-a11y-smoke` case 1 updated to assert `role="group"`. This
+**resolves the only open C10 ARIA question by decision**, not by a
+pending manual test.
+
+**Manual NVDA / VoiceOver audit is now RECOMMENDED before
+real-deployment, NOT a code blocker** — the same soft-gate pattern
+as the v3.3.5 ulpan item: automated a11y coverage
+(`render-a11y-smoke` 6/6 + `graph-ux-smoke` 5/5) + the
+structured-table canonical path stand in; a future external/manual
+screen-reader pass remains a pre-real-cohort-deployment
+recommendation in the pre-launch checklist, recorded but not
+gating the v3.3.6 tag.
+
 ### N10. Smoke matrix as-built (2026-05-16)
 
-`smoke:research:fast` (screenshots skipped) = **27 suites ALL GREEN**.
-Graph chain `smoke:graph` = lazyload 9 · data 7 · perf 6 · a11y 6 ·
-mobile 5 · privacy 8 · interaction 7 (= 48 functional) + visual
-31/31 verify. v3.3.6 still pending: C10 (final docs + manual
-NVDA/VoiceOver/real-device sanity) + C11 (release). The real-device
-Android pass is now feasible because the build is being pushed to
-`main` for the Railway deploy (user request 2026-05-16).
+`smoke:research:fast` (screenshots skipped) = **28 suites ALL
+GREEN** (incl. `graph-ux` Tier-1). Graph chain `smoke:graph` =
+lazyload 9 · data 7 · perf 6 · a11y 6 · mobile 5 · privacy 8 ·
+interaction 7 · ux 5 (= 53 functional) + visual 31/31 verify.
+After the N11 `role` decision, **C10/C11 are unblocked**: C10 =
+final docs + smoke wiring (no manual-sanity gate — reframed to a
+documented pre-deployment recommendation); C11 = version bump +
+`v3.3.6` tag. Real-device Android remains a user-side check via the
+Railway deploy and is also a pre-deployment recommendation, not a
+tag blocker.
 
 ---
 
-**Plan authored 2026-05-15 by Claude Opus 4.7 (1M context) on behalf of the project owner. As-built notes appended through C9 + interaction hardening; C10 (manual sanity) + C11 (release) pending.**
+**Plan authored 2026-05-15 by Claude Opus 4.7 (1M context) on behalf of the project owner. As-built through C9 + interaction hardening + v3.3.7 Tier-1 UX + N11 role decision; C10/C11 unblocked.**

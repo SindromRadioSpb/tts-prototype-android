@@ -7,7 +7,14 @@
 
 ## [Unreleased]
 
-### v3.3.6 Knowledge Graph View (Direction 14) — in progress (C0–C9 + interaction hardening done; C10–C11 pending)
+(пусто — 250K full-hspell под v3.4; v3.3.7 Tier-2 graph UX в backlog,
+см. docs/PHASE_PLAN_v3_3_7_GRAPH_UX.md §2)
+
+---
+
+## [3.3.6] — 2026-05-16
+
+### Knowledge Graph View (Direction 14) — shipped
 
 Read-only, lazy-loaded, privacy-preserving knowledge graph over
 notes ↔ texts ↔ sentences ↔ roots ↔ words ↔ binyanim.
@@ -42,13 +49,27 @@ notes ↔ texts ↔ sentences ↔ roots ↔ words ↔ binyanim.
   settle (`fitToContent` runs once on initial settle + explicit
   reset only), and tap/drag/double-click are disambiguated (5 px
   threshold; tap = delayed navigate, drag = pin, dbl-click = unpin).
+- **UX uplift (v3.3.7 Tier-1, folded in):** hover/focus detail panel
+  (`role=status` aria-live), 1-hop neighbour highlight, visible
+  pinned 📌 badge, ＋/−/⤢ zoom controls. Tier-2 (desktop node
+  search, loading skeleton, filter chips) deferred — see
+  `docs/PHASE_PLAN_v3_3_7_GRAPH_UX.md`.
+- **Accessibility role decision:** canvas `role="application"` →
+  `role="group"`. Forcing screen-reader focus-mode was
+  unverifiable; the **structured table is the canonical AT path**
+  (automation-pinned) and works without it; sighted keyboard
+  arrow-nav is a real keydown handler independent of the role.
+  Strictly safer default.
+- **Manual screen-reader / real-device posture:** NVDA + VoiceOver +
+  real-Android audits are a **pre-real-deployment RECOMMENDATION,
+  not a release blocker** (same soft-gate pattern as the v3.3.5
+  ulpan item) — automated a11y coverage + the canonical structured
+  table stand in for the v3.3.6 tag.
 
-Smoke: `smoke:research:fast` 27 suites ALL GREEN. Graph chain
-`smoke:graph` = lazyload 9 / data 7 / perf 6 / a11y 6 / mobile 5 /
-privacy 8 / interaction 7 + visual-regression 31/31 (≤1% pixel
-diff, pixelmatch). C10 (final docs + manual NVDA/VoiceOver/real
-Android sanity — Android now testable via the Railway deploy of
-this push) + C11 (release) remain.
+Smoke at release: `smoke:research:fast` = **28 suites ALL GREEN**.
+Graph chain `smoke:graph` = lazyload 9 / data 7 / perf 6 / a11y 6 /
+mobile 5 / privacy 8 / interaction 7 / ux 5 (= 53 functional) +
+visual-regression 31/31 (≤1% pixelmatch; 10 baselines committed).
 
 (250K full-hspell remains под v3.4.)
 

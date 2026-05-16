@@ -2,7 +2,10 @@
 // scripts/notes-graph/render-a11y-smoke.js — v3.3.6 C5 a11y smoke.
 //
 // 6 cases per docs/PHASE_PLAN_v3_3_6_KNOWLEDGE_GRAPH.md §13 + §9:
-//   1. Graph container has role="application" + non-empty aria-label.
+//   1. Graph container has role="group" + non-empty aria-label.
+//      (role="application" was dropped 2026-05-16 — unverifiable
+//      focus-mode forcing; the structured table is the canonical AT
+//      path. See PHASE_PLAN_v3_3_6 §"role decision".)
 //   2. Every SVG node has tabindex="0" + role="button" + aria-label.
 //   3. focusFirst() lands on the deterministic first node (degree desc,
 //      id tiebreak) — Tab-into-graph order is reproducible.
@@ -145,8 +148,8 @@ async function main() {
       return c ? { role: c.getAttribute("role"),
                    label: (c.getAttribute("aria-label") || "") } : null;
     });
-    test("Case 1: graph container role=application + non-empty aria-label",
-         c1 && c1.role === "application" && c1.label.length > 10,
+    test("Case 1: graph container role=group + non-empty aria-label",
+         c1 && c1.role === "group" && c1.label.length > 10,
          JSON.stringify(c1));
 
     const c2 = await page.evaluate(() => {

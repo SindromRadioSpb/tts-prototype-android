@@ -582,7 +582,14 @@
         `</div>`;
       panel.innerHTML = header(panel) + toolbar +
         `<div style="flex:1;display:flex;min-height:480px;position:relative;">` +
-          `<div data-graph-canvas="1" role="application" ` +
+          // role="group" (NOT "application"): the canonical screen-reader
+          // path is the always-present structured table below; forcing
+          // focus-mode via role="application" was unverifiable and a
+          // potential SR regression, so we use the safe default. Sighted
+          // keyboard users still get arrow-key node nav (real keydown
+          // handler, tabindex=0 — independent of the role). Decision
+          // recorded 2026-05-16; see PHASE_PLAN_v3_3_6 §"role decision".
+          `<div data-graph-canvas="1" role="group" ` +
           `aria-label="${esc(T("graph.a11yContainer", "Карта знаний", { nodes: g.stats.nodes_total, edges: g.stats.edges_total }))}" ` +
           `style="flex:1;min-height:480px;position:relative;"></div>` +
           // U1: hover/focus detail rail (canonical extra-info surface;

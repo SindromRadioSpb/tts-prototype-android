@@ -228,10 +228,18 @@ v3.3.5  (DONE 2026-05-15)  Calibrated quiz (Direction 13)
                            Commits c65ce8e + 79ea302 on main; smoke 283 cases
                            ALL GREEN. Tooling-only; no version bump.
 
-v3.3.6  (~6 d, UNBLOCKED 2026-05-15)  Knowledge-graph delight (Direction 14)
-                            Previously gated on v3.3.5 external sign-off;
-                            unblocked after user accepted the AI-pre-reviewed
-                            bank as good-enough for development.
+v3.3.6  (DONE 2026-05-16)  Knowledge-graph delight (Direction 14)
+                            Plan: docs/PHASE_PLAN_v3_3_6_KNOWLEDGE_GRAPH.md.
+                            C0–C9 + interaction hardening (drag/pan/tap
+                            predictability fix) + v3.3.7 Tier-1 UX uplift
+                            (detail panel / neighbour highlight / pinned
+                            badge / zoom controls). 28 suites ALL GREEN +
+                            10 visual baselines (≤1% pixelmatch). Read-only,
+                            lazy-loaded, privacy-pinned, mobile cluster
+                            fallback. role="application" dropped → "group"
+                            (safe default; structured table is canonical AT
+                            path). Manual NVDA/VoiceOver/real-Android =
+                            pre-deployment RECOMMENDATION, not a tag blocker.
 
 v3.4.0  (TBD, separate cycle)
                             ├─ Premium SRS Epic (FSRS + Anki Connect)
@@ -333,7 +341,7 @@ The thesis methodological contribution (privacy-preserving opt-in research mode)
 | v3.3.4 | Hotfix — cross-text panel z-index + root inflections (unplanned) | ✅ shipped 2026-05-14 | `d1317e0` |
 | v3.3.5 | Direction 13 — Calibrated diagnostic quiz | ✅ shipped 2026-05-15; pre-deployment gate closed same day with project-owner provisional sign-off (external ulpan-teacher review now RECOMMENDED pre-cohort-launch, not BLOCKING — see `V3_3_5_PREDEPLOYMENT_GATE_STATUS.md`) | `0b29bc1` |
 | (post-release polish) | Admin CLI maturity (--help/--dry-run/--json) + doc sync | ✅ shipped 2026-05-15 (not a versioned release) | `c65ce8e` + `79ea302` + `6a344ef` |
-| v3.3.6 | Direction 14 — Knowledge-graph delight | ⏳ planned (UNBLOCKED 2026-05-15) | — |
+| v3.3.6 | Direction 14 — Knowledge-graph delight (+ interaction fix + v3.3.7 Tier-1 UX) | ✅ shipped 2026-05-16 (28 suites ALL GREEN; manual SR/real-device = pre-deployment recommendation, not tag blocker) | tag `v3.3.6` |
 
 ---
 
