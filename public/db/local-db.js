@@ -43,8 +43,152 @@ let _initialized = false;
 let _seq    = 0;
 const _pending = new Map();
 
+// ── P0-1: single-owner multi-tab coordination ──────────────────────────────
+// OPFS FileSystemSyncAccessHandle is exclusive per-origin. If two tabs each
+// open the SQLite DB, the second corrupts the shared WASM heap → raw
+// "memory access out of bounds". We elect a single owner tab via the Web
+// Locks API; follower tabs do NOT open the DB and fail every query fast with
+// a typed, recoverable error instead of crashing.
+export class DbUnavailableError extends Error {
+  constructor(code, message) {
+    super(message || code);
+    this.name = 'DbUnavailableError';
+    this.code = code; // DB_OWNED_BY_OTHER_TAB | DB_WORKER_CRASHED | DB_INIT_FAILED
+  }
+}
+
+const _DB_OWNER_LOCK = 'linguistpro-opfs-db-owner-v1';
+let _ownerState = 'unknown';      // 'owner' | 'follower' | 'unknown'
+let _followerMode = false;
+let _workerCrashed = false;
+let _ownershipPromise = null;
+let _releaseOwnerLock = null;     // call to voluntarily yield the owner lock
+let _failoverArmed = false;
+let _ownerHooksInstalled = false;
+
+function _crashRegex(msg) {
+  return /memory access out of bounds|RuntimeError|abort\(|table index is out of bounds|null function or function signature mismatch/i
+    .test(String(msg || ''));
+}
+
+// Pure, side-effect-free classifier — exported so the worker-error wrapping
+// logic is unit-testable in node without a browser/Worker. Returns the
+// DbUnavailableError code for WASM-crash signatures, else null.
+export function classifyWorkerError(msg) {
+  return _crashRegex(msg) ? 'DB_WORKER_CRASHED' : null;
+}
+
+export function getOwnershipState() { return _ownerState; }
+export function isFollower() { return _followerMode; }
+export function getDbError() {
+  if (_workerCrashed) return new DbUnavailableError('DB_WORKER_CRASHED', 'Local database is temporarily unavailable.');
+  if (_followerMode) return new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Database is in use by another tab.');
+  return null;
+}
+
+function _wrapWorkerError(rawMsg) {
+  const msg = String(rawMsg || 'Worker error');
+  if (_crashRegex(msg)) {
+    _workerCrashed = true;
+    try {
+      if (typeof window !== 'undefined' && typeof window.v3OpfsTelemetryPush === 'function') {
+        window.v3OpfsTelemetryPush({ kind: 'db.crash', detail: msg.slice(0, 200) });
+      }
+    } catch (_) {}
+    return new DbUnavailableError('DB_WORKER_CRASHED', 'Local database is temporarily unavailable.');
+  }
+  return new Error(msg);
+}
+
+function _installOwnerReleaseHooks() {
+  if (_ownerHooksInstalled || typeof window === 'undefined') return;
+  _ownerHooksInstalled = true;
+  const rel = () => {
+    try { if (_releaseOwnerLock) { _releaseOwnerLock(); _releaseOwnerLock = null; } } catch (_) {}
+  };
+  window.addEventListener('pagehide', rel);
+  window.addEventListener('beforeunload', rel);
+}
+
+// Follower tabs queue a (non-ifAvailable) lock request. When the current
+// owner closes/crashes (Web Locks auto-releases) or voluntarily yields, this
+// callback fires → this tab becomes the owner. Cold-reload to init cleanly.
+function _armFailover() {
+  if (_failoverArmed || typeof navigator === 'undefined' || !navigator.locks) return;
+  _failoverArmed = true;
+  navigator.locks.request(_DB_OWNER_LOCK, () => {
+    _ownerState = 'owner';
+    _followerMode = false;
+    if (typeof window !== 'undefined') {
+      try { window.dispatchEvent(new CustomEvent('localdb:became-owner')); } catch (_) {}
+      // Cleanest path to a healthy owner: cold reload to fresh-init the DB.
+      try { window.location.reload(); } catch (_) {}
+    }
+    // Hold the lock until reload tears us down.
+    return new Promise(() => {});
+  }).catch(() => {});
+}
+
+export async function acquireDbOwnership() {
+  if (_ownershipPromise) return _ownershipPromise;
+  _ownershipPromise = (async () => {
+    if (typeof navigator === 'undefined' || !navigator.locks || typeof navigator.locks.request !== 'function') {
+      // No Web Locks (old browsers / node test env): preserve legacy
+      // single-owner-assumed behaviour, no regression.
+      _ownerState = 'owner';
+      return;
+    }
+    const becameOwner = await new Promise((resolveOwner) => {
+      let settled = false;
+      const done = (v) => { if (!settled) { settled = true; resolveOwner(v); } };
+      navigator.locks.request(_DB_OWNER_LOCK, { ifAvailable: true }, (lock) => {
+        if (!lock) { done(false); return; }   // someone else owns it
+        done(true);
+        return new Promise((releaseLock) => { _releaseOwnerLock = releaseLock; });
+      }).catch(() => done(false));
+    });
+    if (becameOwner) {
+      _ownerState = 'owner';
+      _installOwnerReleaseHooks();
+    } else {
+      _ownerState = 'follower';
+      _followerMode = true;
+      if (typeof window !== 'undefined') window.__localDBFollower = true;
+      _armFailover();
+    }
+  })();
+  return _ownershipPromise;
+}
+
+// Voluntarily yield ownership so a follower that requested takeover can
+// become owner. Tears down our worker to fully release the OPFS handle.
+export function releaseDbOwnership() {
+  try { if (_releaseOwnerLock) { _releaseOwnerLock(); _releaseOwnerLock = null; } } catch (_) {}
+  try { if (_worker) { _worker.terminate(); _worker = null; } } catch (_) {}
+  _initialized = false;
+  _ownerState = 'follower';
+  _followerMode = true;
+  if (typeof window !== 'undefined') window.__localDBFollower = true;
+}
+
+// Recovery entry point for the "Retry" affordance (P0-2 / P1-6). Re-spawns
+// the worker and re-inits if we own the DB; followers must reload instead.
+export async function recoverLocalDB() {
+  if (_followerMode) {
+    throw new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Database is in use by another tab.');
+  }
+  _workerCrashed = false;
+  _initialized = false;
+  try { if (_worker) { _worker.terminate(); _worker = null; } } catch (_) {}
+  await initLocalDB();
+}
+
 function _call(type, sql, params, opts) {
   return new Promise((resolve, reject) => {
+    if (_followerMode || _workerCrashed) {
+      reject(getDbError() || new DbUnavailableError('DB_INIT_FAILED', 'Local database is unavailable.'));
+      return;
+    }
     if (!_worker) {
       reject(new Error('local-db: worker not started (call initLocalDB() first)'));
       return;
@@ -144,6 +288,12 @@ async function _preflightSupport() {
 
 export async function initLocalDB() {
   if (_initialized) return; // idempotent on success
+  // P0-1: elect a single owner tab. Follower tabs must NOT open the DB.
+  await acquireDbOwnership();
+  if (_followerMode) {
+    if (typeof window !== 'undefined') window.__localDBFollower = true;
+    return; // resolve without a worker — _call() fails fast & recoverably
+  }
   await _preflightSupport();
   if (!_worker) {
     _worker = new Worker('/db/db-worker.js', { type: 'module' });
@@ -156,11 +306,12 @@ export async function initLocalDB() {
         if (data.vfsKind) _vfsKind = data.vfsKind;
         h.resolve(data.rows ?? data.changes ?? data);
       } else {
-        h.reject(new Error(data.error || 'Worker error'));
+        h.reject(_wrapWorkerError(data.error));
       }
     };
     _worker.onerror = (e) => {
-      for (const h of _pending.values()) h.reject(new Error('Worker crashed: ' + (e && e.message ? e.message : 'unknown')));
+      const err = _wrapWorkerError(e && e.message ? e.message : 'Worker crashed: unknown');
+      for (const h of _pending.values()) h.reject(err);
       _pending.clear();
     };
   }
@@ -168,7 +319,12 @@ export async function initLocalDB() {
   try {
     if (typeof localStorage !== 'undefined') preferVfs = localStorage.getItem(_VFS_PREF_KEY);
   } catch (_) {}
-  await _call('init', null, null, preferVfs ? { preferVfs } : null);
+  try {
+    await _call('init', null, null, preferVfs ? { preferVfs } : null);
+  } catch (e) {
+    if (e instanceof DbUnavailableError) throw e;
+    throw new DbUnavailableError('DB_INIT_FAILED', e && e.message ? e.message : String(e));
+  }
   _initialized = true;
   // Remember the VFS that actually worked, so a later browser upgrade
   // doesn't silently switch storage backends and orphan the user's data.

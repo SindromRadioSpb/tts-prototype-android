@@ -1,6 +1,19 @@
 // Locale: English
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.en = {
+  multitab: {
+    title: "LinguistPro is already open in another tab",
+    body: "The local database is used by one tab at a time so your data stays safe. This tab will switch to view-only mode.",
+    useHere: "Use here",
+    reload: "Reload",
+    takingOver: "Switching…",
+  },
+  db: {
+    error: {
+      ownedByTab: "The database is in use by another tab. Close extra tabs or press “Use here” in the notification.",
+      unavailable: "Couldn’t load data: the local database is temporarily unavailable.",
+    },
+  },
   app: {
     title: "TTS & Translator Dashboard",
     langLabel: "Language",
@@ -13,6 +26,11 @@ window.I18N_LOCALES.en = {
     offlineReady: "App ready to work offline",
   },
   classic: {
+    exportHint: {
+      noTable: "Export becomes available after you build the table.",
+      stale: "The table is stale. Rebuild it first, then come back to save and export.",
+      saveToLibrary: "Save the current table to the Library to unlock audio, Anki and DOCX.",
+    },
     eyebrow: "Classic Mode",
     title: "Text for TTS and Translation",
     subtitle: "Workflow: source text → processing → result → export and row-level actions.",
@@ -164,6 +182,10 @@ window.I18N_LOCALES.en = {
     keySet: "configured",
   },
   ide: {
+    tabNotes: "Notes",
+    tabSrs: "SRS",
+    tabAudio: "Audio",
+    tabExport: "Export",
     logoTitle: "Hebrew Learning IDE",
     library: "📖 Library",
     inspector: "📝 Inspector",
@@ -226,6 +248,13 @@ window.I18N_LOCALES.en = {
     exportNote: "IDE export now uses the same live Anki flow as Classic mode.",
   },
   library: {
+    error: {
+      title: "Couldn’t load the list.",
+      status: "Library load error",
+      retry: "Try again",
+      backup: "Download data if it’s still on the server (for legacy accounts)",
+      ownedByTab: "The database is in use by another tab. Close extra tabs or press “Use here” in the notification.",
+    },
     title: "Library (v3)",
     bulkBuilder: "📦 New text-card",
     cardRequest: "📥 Text-card request",
@@ -745,6 +774,26 @@ window.I18N_LOCALES.en = {
     },
   },
   srs: {
+    trainer: {
+      queueReady: "Today queue ready",
+      direction: "Direction",
+      mode: "Mode",
+      start: "Start Session",
+      dueToday: "Due Today",
+      learning: "Learning",
+      review: "Review",
+      new: "New",
+      help1: "Trainer uses the current Today queue. Add cards from IDE and then start a focused review session here.",
+      help2: "Choose card direction and trainer mode before session start. The queue is filtered by the selected template, so opposite-direction cards do not enter the session.",
+      cardDirection: "Card Direction",
+      trainerMode: "Trainer Mode",
+      correct: "Correct answer",
+      differs: "Answer differs from expected",
+      expected: "expected",
+      typeAnswer: "Type your answer",
+      check: "Check",
+      replay: "Replay",
+    },
     title: "SRS Trainer",
     close: "Close",
     refresh: "Refresh",

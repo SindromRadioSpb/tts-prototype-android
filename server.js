@@ -304,6 +304,39 @@ app.use(express.static(path.join(__dirname, "public"), {
   },
 }));
 
+// P0-3: user-facing docs. The footer links to /docs/PRIVACY.md and
+// /docs/OPFS_USER_GUIDE.md, but express.static only serves public/ — those
+// 404'd raw. Serve a STRICT WHITELIST of the two user docs, rendered in a
+// minimal readable HTML shell. The whitelist is a fixed map (no req.params
+// in the filesystem path) so there is no path-traversal and no other
+// internal docs/* file is ever exposed.
+const DOCS_WHITELIST = {
+  "PRIVACY.md": "PRIVACY.md",
+  "OPFS_USER_GUIDE.md": "OPFS_USER_GUIDE.md",
+};
+app.get("/docs/:file", (req, res) => {
+  const safe = DOCS_WHITELIST[req.params.file];
+  if (!safe) return res.status(404).type("text").send("Not found");
+  let md;
+  try {
+    md = require("fs").readFileSync(path.join(__dirname, "docs", safe), "utf8");
+  } catch (_) {
+    return res.status(404).type("text").send("Not found");
+  }
+  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  res.type("html").send(
+    "<!doctype html><html><head><meta charset=utf-8>" +
+    "<meta name=viewport content=\"width=device-width,initial-scale=1\">" +
+    "<title>" + esc(safe) + "</title><style>" +
+    "body{max-width:760px;margin:2rem auto;padding:0 1.1rem;" +
+    "font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;" +
+    "background:#0f172a;color:#e2e8f0}" +
+    "pre{white-space:pre-wrap;word-wrap:break-word;font:inherit;margin:0}" +
+    "a{color:#60a5fa}</style></head><body><pre>" +
+    esc(md) + "</pre></body></html>"
+  );
+});
+
 // Serve design mockups (HTML/CSS prototypes) so we can review them on
 // real devices before wiring into the app. Mounted at /mockups/* so the
 // path is self-explanatory and easy to remove when no longer needed.

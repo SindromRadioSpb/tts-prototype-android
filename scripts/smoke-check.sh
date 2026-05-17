@@ -85,6 +85,29 @@ run_api_smoke() {
   npm run test:api-smoke
 }
 
+run_unit_tests() {
+  info "Running unit tests: npm test (node --test)"
+  npm test
+}
+
+run_i18n_smoke() {
+  [[ -f tests/i18n.smoke.js ]] || { info "i18n smoke not found. Skipping."; return 0; }
+  info "Running i18n smoke (incl. P0-1/P1-1 keys): npm run smoke:i18n"
+  npm run smoke:i18n
+}
+
+run_docs_route_smoke() {
+  [[ -f scripts/docs-route-smoke.js ]] || { info "docs-route smoke not found. Skipping."; return 0; }
+  info "Running docs-route smoke (P0-3): npm run smoke:docs"
+  npm run smoke:docs
+}
+
+run_multitab_smoke() {
+  [[ -f scripts/multitab/owner-follower-smoke.js ]] || { info "multitab smoke not found. Skipping."; return 0; }
+  info "Running multitab smoke (P0-1; skips if no browser): npm run smoke:multitab"
+  npm run smoke:multitab
+}
+
 echo "=== SMOKE-CHECK v2.1 (bash) ==="
 
 ensure_git_repo
@@ -112,6 +135,18 @@ run_db_check
 
 echo "7) API smoke"
 run_api_smoke
+
+echo "8) Unit tests (node --test, incl. P0-1 DbUnavailableError)"
+run_unit_tests
+
+echo "9) i18n smoke (P0-1 / P1-1 key coverage)"
+run_i18n_smoke
+
+echo "10) docs-route smoke (P0-3 privacy/docs)"
+run_docs_route_smoke
+
+echo "11) multitab smoke (P0-1 owner/follower)"
+run_multitab_smoke
 
 echo
 echo "=== SMOKE-CHECK OK ==="

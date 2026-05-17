@@ -1,6 +1,20 @@
 // Locale: Hebrew (RTL)
 window.I18N_LOCALES = window.I18N_LOCALES || {};
 window.I18N_LOCALES.he = {
+  // translate-review: HE drafted by Claude — pending native/ulpan-teacher review.
+  multitab: {
+    title: "LinguistPro כבר פתוח בכרטיסייה אחרת",
+    body: "מסד הנתונים המקומי בשימוש כרטיסייה אחת בלבד בכל פעם — כך הנתונים שלך נשמרים. כרטיסייה זו תעבור למצב צפייה בלבד.",
+    useHere: "השתמש כאן",
+    reload: "רענן",
+    takingOver: "מעביר…",
+  },
+  db: {
+    error: {
+      ownedByTab: "מסד הנתונים בשימוש כרטיסייה אחרת. סגור כרטיסיות מיותרות או לחץ «השתמש כאן» בהתראה.",
+      unavailable: "לא ניתן לטעון נתונים: מסד הנתונים המקומי אינו זמין כרגע.",
+    },
+  },
   app: {
     title: "לוח TTS ותרגום",
     langLabel: "שפה",
@@ -13,6 +27,12 @@ window.I18N_LOCALES.he = {
     offlineReady: "האפליקציה מוכנה לעבודה לא מקוונת",
   },
   classic: {
+    // translate-review: HE drafted by Claude — pending native review.
+    exportHint: {
+      noTable: "הייצוא יופיע לאחר בניית הטבלה.",
+      stale: "הטבלה אינה מעודכנת. בנה אותה מחדש, ואז חזור לשמירה ולייצוא.",
+      saveToLibrary: "שמור את הטבלה הנוכחית בספרייה כדי לפתוח אודיו, Anki ו-DOCX.",
+    },
     eyebrow: "מצב קלאסי",
     title: "טקסט להקראה ותרגום",
     subtitle: "תהליך עבודה: טקסט מקור ← עיבוד ← תוצאה ← ייצוא ועבודה לפי שורות.",
@@ -164,6 +184,11 @@ window.I18N_LOCALES.he = {
     keySet: "מוגדר",
   },
   ide: {
+    // translate-review: HE drafted by Claude — pending native review.
+    tabNotes: "הערות",
+    tabSrs: "SRS",
+    tabAudio: "אודיו",
+    tabExport: "ייצוא",
     logoTitle: "סביבת לימוד עברית",
     library: "📖 ספרייה",
     inspector: "📝 בודק",
@@ -226,6 +251,14 @@ window.I18N_LOCALES.he = {
     exportNote: "ייצוא ב-IDE משתמש באותו זרם Anki כמו מצב קלאסי.",
   },
   library: {
+    // translate-review: HE drafted by Claude — pending native review.
+    error: {
+      title: "לא ניתן לטעון את הרשימה.",
+      status: "שגיאת טעינת ספרייה",
+      retry: "נסה שוב",
+      backup: "הורד נתונים אם הם עדיין בשרת (לחשבונות ישנים)",
+      ownedByTab: "מסד הנתונים בשימוש כרטיסייה אחרת. סגור כרטיסיות מיותרות או לחץ «השתמש כאן» בהתראה.",
+    },
     title: "ספרייה (v3)",
     bulkBuilder: "📦 כרטיסיית טקסט חדשה",
     cardRequest: "📥 בקשת text-card",
@@ -748,6 +781,27 @@ window.I18N_LOCALES.he = {
     },
   },
   srs: {
+    // translate-review: HE drafted by Claude — pending native/ulpan-teacher review.
+    trainer: {
+      queueReady: "התור להיום מוכן",
+      direction: "כיוון",
+      mode: "מצב",
+      start: "התחל מפגש",
+      dueToday: "לחזרה היום",
+      learning: "בלמידה",
+      review: "חזרה",
+      new: "חדשים",
+      help1: "המאמן משתמש בתור «היום» הנוכחי. הוסף כרטיסים מ-IDE ואז התחל כאן מפגש חזרה ממוקד.",
+      help2: "בחר כיוון כרטיסים ומצב מאמן לפני תחילת המפגש. התור מסונן לפי התבנית שנבחרה, כך שכרטיסים בכיוון ההפוך אינם נכנסים למפגש.",
+      cardDirection: "כיוון הכרטיסים",
+      trainerMode: "מצב המאמן",
+      correct: "תשובה נכונה",
+      differs: "התשובה שונה מהצפוי",
+      expected: "צפוי",
+      typeAnswer: "הקלד את תשובתך",
+      check: "בדוק",
+      replay: "השמע שוב",
+    },
     title: "אימון SRS",
     close: "סגור",
     refresh: "רענן",

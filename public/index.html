@@ -1072,8 +1072,9 @@
         flex: 1 1 220px;
         padding: 10px 12px;
         border-radius: 16px;
-        border: 1px solid #edf2f7;
-        background: rgba(255,255,255,0.72);
+        /* P1-3: theme-aware so the card is visible (not white-on-dark) in dark mode */
+        border: 1px solid var(--theme-border-soft, #edf2f7);
+        background: var(--theme-bg-card, rgba(255,255,255,0.72));
     }
 
     .classic-status-strip .stat-value {
@@ -1100,20 +1101,22 @@
     .stat-value {
         font-size: 24px;
         font-weight: bold;
-        color: #2c3e50;
+        /* P1-3: theme-aware, WCAG-AA contrast in light & dark */
+        color: var(--theme-text-primary, #2c3e50);
         display: block;
     }
 
     .stat-label {
         font-size: 12px;
-        color: #7f8c8d;
+        color: var(--theme-text-muted, #7f8c8d);
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
     .stat-sub {
         font-size: 11px;
-        color: #aaaaaa;
+        /* P1-3: was hard-coded #aaaaaa (~2.3:1 on dark bg, WCAG fail) */
+        color: var(--theme-text-muted, #64748b);
         margin-top: 4px;
     }
 
@@ -8564,6 +8567,18 @@ body:not(.theme-light) .v3-heatmap-cell {
   // localStorage ring buffer; surfaced via window.v3OpfsTelemetry.list().
   const _opfsInitT0 = Date.now();
   window.__localDBInitPromise = _ldb.initLocalDB().then(() => {
+    // P0-1: follower tab — DB owned by another tab. Do NOT run integrity /
+    // seed / research (no DB here). Show the premium "active elsewhere"
+    // overlay; defer if the body script hasn't defined it yet.
+    if (typeof _ldb.isFollower === 'function' && _ldb.isFollower()) {
+      window.__localDBFollower = true;
+      try { (window.v3OpfsTelemetryPush || function(){})({ kind: 'init.follower' }); } catch (_) {}
+      try {
+        if (typeof window.v3ShowFollowerOverlay === 'function') window.v3ShowFollowerOverlay();
+        else window.__localDBFollowerPending = true;
+      } catch (_) {}
+      return;
+    }
     const ms = Date.now() - _opfsInitT0;
     let info = null; try { info = _ldb.getVfsInfo(); } catch (_) {}
     try { (window.v3OpfsTelemetryPush || function(){})({
@@ -8898,17 +8913,17 @@ body:not(.theme-light) .v3-heatmap-cell {
   <!-- Right Panel: Inspector (Notes / SRS / Audio / Export) -->
   <aside id="v3IdeRight" class="v3-ide-right">
     <div class="v3-ide-tabs">
-      <button class="v3-ide-tab v3-ide-tab-active" data-tab="notes" onclick="v3IdeRightTabSwitch('notes')">
-        <span class="v3-ide-tab-icon">📝</span>Notes
+      <button class="v3-ide-tab v3-ide-tab-active" data-tab="notes" onclick="v3IdeRightTabSwitch('notes')" data-i18n-title="ide.tabNotes" data-i18n-aria-label="ide.tabNotes" title="Notes" aria-label="Notes">
+        <span class="v3-ide-tab-icon">📝</span><span data-i18n="ide.tabNotes">Notes</span>
       </button>
-      <button class="v3-ide-tab" data-tab="srs" onclick="v3IdeRightTabSwitch('srs')">
-        <span class="v3-ide-tab-icon">🔁</span>SRS
+      <button class="v3-ide-tab" data-tab="srs" onclick="v3IdeRightTabSwitch('srs')" data-i18n-title="ide.tabSrs" data-i18n-aria-label="ide.tabSrs" title="SRS" aria-label="SRS">
+        <span class="v3-ide-tab-icon">🔁</span><span data-i18n="ide.tabSrs">SRS</span>
       </button>
-      <button class="v3-ide-tab" data-tab="audio" onclick="v3IdeRightTabSwitch('audio')">
-        <span class="v3-ide-tab-icon">🔊</span>Audio
+      <button class="v3-ide-tab" data-tab="audio" onclick="v3IdeRightTabSwitch('audio')" data-i18n-title="ide.tabAudio" data-i18n-aria-label="ide.tabAudio" title="Audio" aria-label="Audio">
+        <span class="v3-ide-tab-icon">🔊</span><span data-i18n="ide.tabAudio">Audio</span>
       </button>
-      <button class="v3-ide-tab" data-tab="export" onclick="v3IdeRightTabSwitch('export')">
-        <span class="v3-ide-tab-icon">📤</span>Export
+      <button class="v3-ide-tab" data-tab="export" onclick="v3IdeRightTabSwitch('export')" data-i18n-title="ide.tabExport" data-i18n-aria-label="ide.tabExport" title="Export" aria-label="Export">
+        <span class="v3-ide-tab-icon">📤</span><span data-i18n="ide.tabExport">Export</span>
       </button>
     </div>
 
@@ -10773,6 +10788,20 @@ body:not(.theme-light) .v3-heatmap-cell {
                 try { console.warn('[kill-switch] localMode disabled on next reload — flag is set on the server'); } catch (_) {}
               }
             }
+            // P1-5: single source of truth for the app version. The footer
+            // and About modal previously hard-coded "3.0.0" and only updated
+            // on About-open. Apply the real version (package.json, via
+            // /api/client-config) on cold load so the footer is correct
+            // before the user opens anything.
+            if (j && j.version) {
+              try {
+                window.__v3AppVersion = String(j.version);
+                const fv = document.getElementById('appFooterVersion');
+                if (fv) fv.textContent = 'v' + window.__v3AppVersion;
+                const av = document.getElementById('v3AboutVersion');
+                if (av) av.textContent = window.__v3AppVersion;
+              } catch (_) {}
+            }
           })
           .catch(() => {});
       } catch (_) {}
@@ -10780,8 +10809,16 @@ body:not(.theme-light) .v3-heatmap-cell {
 
     async function ensureLocalDB() {
       if (window.__localDBInitPromise) await window.__localDBInitPromise;
+      // P0-1/P1-6: surface the typed DB error (DB_OWNED_BY_OTHER_TAB /
+      // DB_WORKER_CRASHED) so callers can branch on .code and show the
+      // right recovery UI instead of a generic failure.
+      if (window.__localDB && typeof window.__localDB.getDbError === 'function') {
+        const de = window.__localDB.getDbError();
+        if (de) throw de;
+      }
       if (window.__localDBInitError) {
         const e = window.__localDBInitError;
+        if (e && e.code) throw e;
         throw new Error('OPFS init failed: ' + (e && e.message ? e.message : String(e)));
       }
       if (!window.__localDB || !window.__localDB.isReady || !window.__localDB.isReady()) {
@@ -17239,11 +17276,11 @@ updatePlaylistButtonUI();
         if (classicExportHintEl) {
             let exportHint = "";
             if (!hasTable) {
-                exportHint = "Экспорт появится после сборки таблицы.";
+                exportHint = v3NotesT("classic.exportHint.noTable", "Экспорт появится после сборки таблицы.");
             } else if (tableIsStale) {
-                exportHint = "Таблица устарела. Сначала пересоберите её, затем возвращайтесь к сохранению и экспорту.";
+                exportHint = v3NotesT("classic.exportHint.stale", "Таблица устарела. Сначала пересоберите её, затем возвращайтесь к сохранению и экспорту.");
             } else if (allDisabled) {
-                exportHint = "Сохраните актуальную таблицу в Library, чтобы открыть аудио, Anki и DOCX.";
+                exportHint = v3NotesT("classic.exportHint.saveToLibrary", "Сохраните актуальную таблицу в Library, чтобы открыть аудио, Anki и DOCX.");
             }
             classicExportHintEl.textContent = exportHint;
             classicExportHintEl.classList.toggle("visible", !!exportHint);
@@ -20916,45 +20953,50 @@ async function v3LibraryRefresh() {
   } catch (e) {
     console.warn("v3LibraryRefresh failed", e);
     const detail = (e && e.message) ? String(e.message) : String(e);
+    const code = e && e.code ? String(e.code) : "";
+    // P0-2 / P1-6: no server fallback exists post-Phase-6 (stateful library
+    // endpoints are 410 Gone). Distinguish error classes and offer real
+    // recovery — never a dead-end "open via server" link.
     let helpHtml = "";
-    // One-click fallback URL — drop the localMode query param, keep everything
-    // else so the user lands on the same page in server mode. Only shown
-    // when actually in LOCAL_MODE.
-    let serverHref = "";
-    try {
-      const u = new URL(location.href);
-      u.searchParams.delete("localMode");
-      serverHref = u.toString();
-    } catch (_) { serverHref = location.pathname || "/"; }
+    const btnStyle = "display:inline-block;padding:8px 14px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;border:0;";
+    const retryBtn =
+      "<button type='button' onclick='window.v3RecoverLocalDB&&window.v3RecoverLocalDB()' " +
+      "style='" + btnStyle + "background:var(--theme-accent,#2563eb);color:#fff;'>" +
+      v3EscapeHtml(v3FollowerT("library.error.retry", "Попробовать снова")) + "</button>";
+    const backupBtn =
+      "<a href='/api/library/export/bundle' target='_blank' rel='noopener' " +
+      "style='" + btnStyle + "background:transparent;color:var(--theme-accent,#2563eb);border:1px solid var(--theme-border-soft,#cbd5e1);margin-left:8px;'>" +
+      v3EscapeHtml(v3FollowerT("library.error.backup", "Скачать данные, если они ещё на сервере (для старых аккаунтов)")) + "</a>";
     if (LOCAL_MODE) {
       const noWorkers = /requires Web Workers/i.test(detail);
       const noIdb     = /requires IndexedDB/i.test(detail);
-      const allFailed = /All VFS init attempts failed/i.test(detail);
       let advice = "";
-      if (noWorkers) {
+      if (code === "DB_OWNED_BY_OTHER_TAB") {
+        advice = v3FollowerT("library.error.ownedByTab",
+          "База используется другой вкладкой. Закройте лишние вкладки или нажмите «Использовать здесь» в уведомлении.");
+        helpHtml =
+          "<div style='margin-top:8px;padding:10px;background:var(--theme-bg-muted,#fef3c7);border-left:3px solid #f59e0b;font-size:13px;'>" +
+          "⚠ " + v3EscapeHtml(advice) +
+          "<div style='margin-top:10px;'><button type='button' onclick='location.reload()' style='" + btnStyle +
+          "background:var(--theme-accent,#2563eb);color:#fff;'>" +
+          v3EscapeHtml(v3FollowerT("multitab.reload", "Обновить")) + "</button></div></div>";
+      } else if (noWorkers) {
         advice = "Этот браузер не поддерживает Web Workers — обязательное требование. Откройте в современном Chrome / Safari / Firefox.";
+        helpHtml = "<div style='margin-top:8px;padding:10px;background:var(--theme-bg-muted,#fef3c7);border-left:3px solid #f59e0b;font-size:13px;'>⚠ " + v3EscapeHtml(advice) + "</div>";
       } else if (noIdb) {
         advice = "Этот браузер не поддерживает IndexedDB (приватный режим Firefox?). Используйте обычный режим браузера.";
-      } else if (allFailed) {
-        advice = "Не удалось инициализировать ни OPFS, ни IndexedDB-хранилище. Возможные причины: жёсткие квоты на storage; iOS Lockdown Mode; cookies/storage заблокированы. Попробуйте кнопку ниже — серверный режим работает без локального хранилища.";
-      }
-      const fallbackBtn =
-        "<div style='margin-top:10px;'>" +
-        "<a href='" + v3EscapeHtml(serverHref) + "' style='display:inline-block; padding:8px 14px; background:#3b82f6; color:#fff; border-radius:6px; text-decoration:none; font-size:13px; font-weight:600;'>" +
-        "Открыть через сервер (без ?localMode=1)</a></div>";
-      if (advice) {
-        helpHtml =
-          "<div style='margin-top:8px; padding:10px; background:#fef3c7; border-left:3px solid #f59e0b; font-size:13px;'>" +
-          "⚠ " + v3EscapeHtml(advice) +
-          fallbackBtn +
-          "</div>";
+        helpHtml = "<div style='margin-top:8px;padding:10px;background:var(--theme-bg-muted,#fef3c7);border-left:3px solid #f59e0b;font-size:13px;'>⚠ " + v3EscapeHtml(advice) + "</div>";
       } else {
-        helpHtml = fallbackBtn;
+        // DB_WORKER_CRASHED / DB_INIT_FAILED / unknown — offer Retry + backup.
+        helpHtml =
+          "<div style='margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;'>" +
+          retryBtn + backupBtn + "</div>";
       }
     }
-    if (statusEl) statusEl.textContent = "Ошибка загрузки библиотеки: " + detail.slice(0, 160);
+    if (statusEl) statusEl.textContent = v3FollowerT("library.error.status", "Ошибка загрузки библиотеки") + ": " + detail.slice(0, 160);
     if (listEl) listEl.innerHTML =
-      "<div class='v3-lib-card v3-lib-danger'>Не удалось загрузить список.<br>" +
+      "<div class='v3-lib-card v3-lib-danger'>" +
+      v3EscapeHtml(v3FollowerT("library.error.title", "Не удалось загрузить список.")) + "<br>" +
       "<small style='opacity:0.85;'>Detail: " + v3EscapeHtml(detail).slice(0, 400) + "</small>" +
       helpHtml +
       "</div>";
@@ -22955,6 +22997,9 @@ function v3TabCoordBuildBanner() {
 }
 
 function v3TabCoordRefreshBanner() {
+  // P0-1: follower tabs get the full-screen overlay instead of the advisory
+  // banner — the DB is genuinely unavailable here, not just "risky".
+  if (window.__localDBFollower) { v3ShowFollowerOverlay(); return; }
   v3TabCoordBuildBanner();
   const el = v3TabCoord.bannerEl;
   if (!el) return;
@@ -22976,6 +23021,116 @@ function v3TabCoordRefreshBanner() {
   el.style.display = "block";
 }
 
+// P0-1: localized i18n lookup with safe fallback (works before locale JS
+// fully applied). Mirrors the v3NotesT pattern used elsewhere.
+function v3FollowerT(key, fallback) {
+  try { if (typeof t === "function") { const s = t(key); if (s && s !== key) return s; } } catch (_) {}
+  return fallback;
+}
+
+// Premium "active in another tab" overlay. Theme-aware (uses --theme-*),
+// non-dismissable, with a takeover handshake + reload escape hatch.
+function v3ShowFollowerOverlay() {
+  let ov = document.getElementById("v3FollowerOverlay");
+  if (ov) { ov.style.display = "flex"; return; }
+  ov = document.createElement("div");
+  ov.id = "v3FollowerOverlay";
+  ov.setAttribute("role", "dialog");
+  ov.setAttribute("aria-modal", "true");
+  ov.style.cssText =
+    "position:fixed;inset:0;z-index:100000;display:flex;align-items:center;" +
+    "justify-content:center;padding:24px;" +
+    "background:var(--theme-overlay,rgba(15,23,42,0.62));backdrop-filter:blur(2px);";
+  const card = document.createElement("div");
+  card.style.cssText =
+    "max-width:440px;width:100%;border-radius:14px;padding:24px 22px;" +
+    "background:var(--theme-bg-card,#fff);color:var(--theme-text-primary,#1e293b);" +
+    "border:1px solid var(--theme-border-soft,#e2e8f0);" +
+    "box-shadow:0 20px 48px rgba(0,0,0,0.28);font-family:system-ui,-apple-system,sans-serif;";
+  const title = v3FollowerT("multitab.title", "LinguistPro уже открыт в другой вкладке");
+  const body = v3FollowerT("multitab.body",
+    "Локальная база данных используется одной вкладкой за раз — так ваши данные не повреждаются. Эта вкладка перейдёт в режим только-просмотра.");
+  const useHere = v3FollowerT("multitab.useHere", "Использовать здесь");
+  const reload = v3FollowerT("multitab.reload", "Обновить");
+  card.innerHTML =
+    '<div style="font-size:30px;line-height:1;margin-bottom:10px">🔒</div>' +
+    '<h2 style="margin:0 0 8px;font-size:18px;font-weight:700">' + v3EscapeHtml(title) + '</h2>' +
+    '<p style="margin:0 0 18px;font-size:14px;line-height:1.55;color:var(--theme-text-muted,#64748b)">' +
+    v3EscapeHtml(body) + '</p>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+    '<button id="v3FollowerTakeover" style="flex:1;min-width:140px;padding:10px 14px;border:0;border-radius:9px;' +
+    'background:var(--theme-accent,#2563eb);color:#fff;font-weight:600;font-size:14px;cursor:pointer">' +
+    v3EscapeHtml(useHere) + '</button>' +
+    '<button id="v3FollowerReload" style="flex:1;min-width:120px;padding:10px 14px;' +
+    'border:1px solid var(--theme-border-soft,#cbd5e1);border-radius:9px;' +
+    'background:transparent;color:var(--theme-text-primary,#1e293b);font-weight:600;font-size:14px;cursor:pointer">' +
+    v3EscapeHtml(reload) + '</button></div>';
+  ov.appendChild(card);
+  document.body.appendChild(ov);
+  document.getElementById("v3FollowerReload").onclick = () => { try { location.reload(); } catch (_) {} };
+  document.getElementById("v3FollowerTakeover").onclick = () => {
+    const btn = document.getElementById("v3FollowerTakeover");
+    if (btn) { btn.disabled = true; btn.textContent = v3FollowerT("multitab.takingOver", "Переключаем…"); }
+    try {
+      if (v3TabCoord.channel) {
+        v3TabCoord.channel.postMessage({ type: "request-takeover", tabId: v3TabCoord.tabId, ts: Date.now() });
+      }
+    } catch (_) {}
+    // The owner yields its Web Lock → our queued failover waiter in
+    // local-db.js fires and reloads us. Belt-and-braces: reload after a
+    // timeout in case the owner is unresponsive / already gone.
+    setTimeout(() => { try { location.reload(); } catch (_) {} }, 1500);
+  };
+}
+window.v3ShowFollowerOverlay = v3ShowFollowerOverlay;
+
+// Recovery entry point for Retry affordances (P0-2 / P1-6).
+window.v3RecoverLocalDB = async function v3RecoverLocalDB() {
+  try {
+    if (window.__localDB && typeof window.__localDB.recoverLocalDB === "function") {
+      await window.__localDB.recoverLocalDB();
+      window.__localDBInitError = null;
+      return true;
+    }
+  } catch (e) {
+    if (e && e.code === "DB_OWNED_BY_OTHER_TAB") { try { location.reload(); } catch (_) {} return false; }
+    window.__localDBInitError = e;
+  }
+  try { location.reload(); } catch (_) {}
+  return false;
+};
+
+// P1-6: distinguish a DB error from a genuinely-empty result. Returns the
+// active typed DB error (or null). Consumed by SRS / Dashboard renderers so
+// they show a "couldn't load — cause — Retry" panel instead of misleading
+// zeros/empty.
+function v3DbErrorActive() {
+  try {
+    if (window.__localDBFollower) return { code: "DB_OWNED_BY_OTHER_TAB" };
+    if (window.__localDB && typeof window.__localDB.getDbError === "function") {
+      const e = window.__localDB.getDbError();
+      if (e) return e;
+    }
+    if (window.__localDBInitError) return window.__localDBInitError;
+  } catch (_) {}
+  return null;
+}
+function v3DbErrorPanelHtml() {
+  const e = v3DbErrorActive();
+  if (!e) return "";
+  const owned = e && e.code === "DB_OWNED_BY_OTHER_TAB";
+  const msg = owned
+    ? v3FollowerT("db.error.ownedByTab", "База используется другой вкладкой. Закройте лишние вкладки или нажмите «Использовать здесь» в уведомлении.")
+    : v3FollowerT("db.error.unavailable", "Не удалось загрузить данные: локальная база временно недоступна.");
+  const btnStyle = "display:inline-block;margin-top:10px;padding:8px 14px;border:0;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;background:var(--theme-accent,#2563eb);color:#fff;";
+  const action = owned
+    ? "<button type='button' onclick='location.reload()' style='" + btnStyle + "'>" + v3EscapeHtml(v3FollowerT("multitab.reload", "Обновить")) + "</button>"
+    : "<button type='button' onclick='window.v3RecoverLocalDB&&window.v3RecoverLocalDB()' style='" + btnStyle + "'>" + v3EscapeHtml(v3FollowerT("library.error.retry", "Попробовать снова")) + "</button>";
+  return "<div class='v3-db-error-panel' style='padding:14px 16px;margin:8px 0;border-radius:10px;" +
+    "background:var(--theme-bg-muted,#fef3c7);border-left:3px solid #f59e0b;font-size:14px;" +
+    "color:var(--theme-text-primary,#92400e);'>⚠ " + v3EscapeHtml(msg) + "<div>" + action + "</div></div>";
+}
+
 function v3TabCoordHandleMessage(ev) {
   const m = ev.data || {};
   if (!m || !m.type || !m.tabId) return;
@@ -22988,12 +23143,35 @@ function v3TabCoordHandleMessage(ev) {
     v3TabCoord.peers.add(m.tabId);
   } else if (m.type === "leave") {
     v3TabCoord.peers.delete(m.tabId);
+  } else if (m.type === "request-takeover") {
+    // A follower asked to become owner. If we own the DB, yield it: this
+    // releases our Web Lock so the requester's queued failover waiter fires.
+    try {
+      if (window.__localDB && typeof window.__localDB.isFollower === "function"
+          && !window.__localDB.isFollower()
+          && typeof window.__localDB.releaseDbOwnership === "function") {
+        window.__localDB.releaseDbOwnership();
+        window.__localDBFollower = true;
+        try { v3TabCoord.channel.postMessage({ type: "released", tabId: v3TabCoord.tabId, ts: Date.now() }); } catch (_) {}
+        v3ShowFollowerOverlay();
+      }
+    } catch (_) {}
+  } else if (m.type === "released") {
+    // The previous owner yielded. Our local-db failover waiter will reload
+    // us automatically; this is a redundant safety net.
+    if (window.__localDBFollower) { try { location.reload(); } catch (_) {} }
   }
   v3TabCoordRefreshBanner();
 }
 
 function v3TabCoordInit() {
   if (!v3TabCoordShouldRun()) return;
+  // P0-1: boot module may have determined follower status before this
+  // overlay function existed — honour the deferred flag.
+  if (window.__localDBFollower || window.__localDBFollowerPending) {
+    window.__localDBFollowerPending = false;
+    try { v3ShowFollowerOverlay(); } catch (_) {}
+  }
   try {
     v3TabCoord.channel = new BroadcastChannel(V3_TABCOORD_CHANNEL);
     v3TabCoord.tabId = v3TabCoordGenId();
@@ -25824,15 +26002,15 @@ function v3SrsTrainerRenderAttemptPanel(trainer) {
   const result = v3SrsTrainerState.lastAttempt;
   const feedback = result
     ? `<div class="v3-srs-subtle" style="margin-top:8px; color:${result.isCorrect ? "#166534" : "#b91c1c"};">
-        ${result.isCorrect ? "Correct answer" : "Answer differs from expected"}${result.normalizedExpected ? ` · expected: ${v3EscapeHtml(result.normalizedExpected)}` : ""}
+        ${result.isCorrect ? v3EscapeHtml(v3NotesT("srs.trainer.correct", "Верный ответ")) : v3EscapeHtml(v3NotesT("srs.trainer.differs", "Ответ отличается от ожидаемого"))}${result.normalizedExpected ? ` · ${v3EscapeHtml(v3NotesT("srs.trainer.expected", "ожидалось"))}: ${v3EscapeHtml(result.normalizedExpected)}` : ""}
       </div>`
     : "";
 
   return `
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; align-items:center;">
-      <input id="v3SrsTrainerAnswerInput" class="v3-input" style="flex:1 1 260px;" placeholder="Type your answer" autocomplete="off" />
-      <button class="btn-primary" onclick="v3SrsTrainerCheckAnswer()">Check</button>
-      ${v3SrsTrainerState.mode === "listening" ? `<button class="btn-secondary" onclick="v3SrsTrainerPlayAudio()" ${trainer.audioAssetKey ? "" : "disabled"}>Replay</button>` : ""}
+      <input id="v3SrsTrainerAnswerInput" class="v3-input" style="flex:1 1 260px;" placeholder="${v3EscapeHtml(v3NotesT("srs.trainer.typeAnswer", "Введите ответ"))}" autocomplete="off" />
+      <button class="btn-primary" onclick="v3SrsTrainerCheckAnswer()">${v3EscapeHtml(v3NotesT("srs.trainer.check", "Проверить"))}</button>
+      ${v3SrsTrainerState.mode === "listening" ? `<button class="btn-secondary" onclick="v3SrsTrainerPlayAudio()" ${trainer.audioAssetKey ? "" : "disabled"}>${v3EscapeHtml(v3NotesT("srs.trainer.replay", "Прослушать снова"))}</button>` : ""}
     </div>
     ${feedback}
   `;
@@ -25841,6 +26019,10 @@ function v3SrsTrainerRenderAttemptPanel(trainer) {
 function v3SrsTrainerRenderHome() {
   const el = v3SrsTrainerEl("v3SrsTrainerContent");
   if (!el) return;
+
+  // P1-6: DB unavailable → show error+Retry, not a misleading all-zero summary.
+  const dbErr = v3DbErrorPanelHtml();
+  if (dbErr) { el.innerHTML = dbErr; return; }
 
   const summary = v3SrsTrainerState.summary || { dueCount: 0, byState: {} };
   const dueCount = Number(summary.dueCount || 0);
@@ -25867,37 +26049,37 @@ function v3SrsTrainerRenderHome() {
   el.innerHTML = `
     ${ankiBanner}
     <div class="v3-srs-toolbar">
-      <div class="v3-srs-progress">Today queue ready · Direction ${v3EscapeHtml(v3SrsTrainerTemplateLabel(v3SrsTrainerState.templateCode))} · Mode ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
-      <button class="btn-primary" onclick="v3SrsTrainerStart()" ${dueCount > 0 ? "" : "disabled"}>Start Session</button>
+      <div class="v3-srs-progress">${v3EscapeHtml(v3NotesT("srs.trainer.queueReady", "Очередь на сегодня готова"))} · ${v3EscapeHtml(v3NotesT("srs.trainer.direction", "Направление"))} ${v3EscapeHtml(v3SrsTrainerTemplateLabel(v3SrsTrainerState.templateCode))} · ${v3EscapeHtml(v3NotesT("srs.trainer.mode", "Режим"))} ${v3EscapeHtml(v3SrsTrainerModeLabel(v3SrsTrainerState.mode))}</div>
+      <button class="btn-primary" onclick="v3SrsTrainerStart()" ${dueCount > 0 ? "" : "disabled"}>${v3EscapeHtml(v3NotesT("srs.trainer.start", "Начать сессию"))}</button>
     </div>
     <div class="v3-srs-trainer-summary">
       <div class="v3-srs-stat">
-        <div class="v3-srs-stat-label">Due Today</div>
+        <div class="v3-srs-stat-label">${v3EscapeHtml(v3NotesT("srs.trainer.dueToday", "К повторению сегодня"))}</div>
         <div class="v3-srs-stat-value">${dueCount}</div>
       </div>
       <div class="v3-srs-stat">
-        <div class="v3-srs-stat-label">Learning</div>
+        <div class="v3-srs-stat-label">${v3EscapeHtml(v3NotesT("srs.trainer.learning", "Изучается"))}</div>
         <div class="v3-srs-stat-value">${Number(byState.learning || 0) + Number(byState.relearning || 0)}</div>
       </div>
       <div class="v3-srs-stat">
-        <div class="v3-srs-stat-label">Review</div>
+        <div class="v3-srs-stat-label">${v3EscapeHtml(v3NotesT("srs.trainer.review", "Повторение"))}</div>
         <div class="v3-srs-stat-value">${Number(byState.review || 0)}</div>
       </div>
       <div class="v3-srs-stat">
-        <div class="v3-srs-stat-label">New</div>
+        <div class="v3-srs-stat-label">${v3EscapeHtml(v3NotesT("srs.trainer.new", "Новые"))}</div>
         <div class="v3-srs-stat-value">${Number(byState.new || 0)}</div>
       </div>
     </div>
     <div class="v3-srs-card-panel">
       <div class="v3-srs-subtle">
-        Trainer uses the current Today queue. Add cards from IDE and then start a focused review session here.
+        ${v3EscapeHtml(v3NotesT("srs.trainer.help1", "Тренажёр использует текущую очередь «Сегодня». Добавляйте карточки из IDE, затем запускайте здесь сфокусированную сессию повторения."))}
       </div>
       <div class="v3-srs-subtle">
-        Choose card direction and trainer mode before session start. The queue is filtered by the selected template, so opposite-direction cards do not enter the session.
+        ${v3EscapeHtml(v3NotesT("srs.trainer.help2", "Выберите направление карточек и режим тренажёра перед стартом. Очередь фильтруется по выбранному шаблону, поэтому карточки противоположного направления в сессию не попадают."))}
       </div>
-      <div class="v3-srs-subtle" style="margin-top:10px;">Card Direction</div>
+      <div class="v3-srs-subtle" style="margin-top:10px;">${v3EscapeHtml(v3NotesT("srs.trainer.cardDirection", "Направление карточек"))}</div>
       ${v3SrsTrainerRenderTemplateButtons()}
-      <div class="v3-srs-subtle" style="margin-top:12px;">Trainer Mode</div>
+      <div class="v3-srs-subtle" style="margin-top:12px;">${v3EscapeHtml(v3NotesT("srs.trainer.trainerMode", "Режим тренажёра"))}</div>
       ${v3SrsTrainerRenderModeButtons()}
     </div>
   `;
@@ -26746,11 +26928,22 @@ async function v3DashboardRefresh() {
     try { v3StorageEnsureDashWidget(); v3StorageRefreshUI(); } catch (_) {}
   } catch (e) {
     console.error("[v3DashboardRefresh] error:", e);
-    if (statusEl) statusEl.textContent = "Ошибка загрузки (см. console).";
-    if (pinnedEl) pinnedEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
-    if (recentEl) recentEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
-    if (actHeaderEl) actHeaderEl.textContent = "Не удалось загрузить активность.";
-    if (actEl) actEl.innerHTML = '<div class="v3-dash-empty">Ошибка загрузки активности.</div>';
+    // P1-6: if this is a recoverable DB-unavailable condition, show the
+    // shared error+Retry panel (not a misleading "no data" message).
+    const dbErr = (e && e.code) || v3DbErrorActive() ? v3DbErrorPanelHtml() : "";
+    if (dbErr) {
+      if (statusEl) statusEl.textContent = v3FollowerT("db.error.unavailable", "Не удалось загрузить данные: локальная база временно недоступна.");
+      if (pinnedEl) pinnedEl.innerHTML = dbErr;
+      if (recentEl) recentEl.innerHTML = "";
+      if (actHeaderEl) actHeaderEl.textContent = "";
+      if (actEl) actEl.innerHTML = "";
+    } else {
+      if (statusEl) statusEl.textContent = "Ошибка загрузки (см. console).";
+      if (pinnedEl) pinnedEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
+      if (recentEl) recentEl.innerHTML = '<div class="v3-dash-empty">Не удалось загрузить данные.</div>';
+      if (actHeaderEl) actHeaderEl.textContent = "Не удалось загрузить активность.";
+      if (actEl) actEl.innerHTML = '<div class="v3-dash-empty">Ошибка загрузки активности.</div>';
+    }
   }
 
   // ensure View state (show/hide sections) is applied after refresh renders
@@ -38242,6 +38435,16 @@ document.addEventListener("i18n:changed", function () {
   try { if (typeof v3DashboardRender === "function") v3DashboardRender(); } catch (_) {}
   try { if (typeof v3InitLevelEnumUi === "function") v3InitLevelEnumUi(); } catch (_) {}
   try { if (typeof v3DashboardRenderMetrics === "function") v3DashboardRenderMetrics(); } catch (_) {}
+  // P1-1: SRS Trainer is JS-rendered — re-render its home view if the modal
+  // is open so a language switch updates it live.
+  try {
+    const srsModal = document.getElementById("v3SrsTrainerModal");
+    const inSession = (typeof v3SrsTrainerState !== "undefined") && v3SrsTrainerState && v3SrsTrainerState.session;
+    if (srsModal && !srsModal.classList.contains("hidden")
+        && typeof v3SrsTrainerRenderHome === "function" && !inSession) {
+      v3SrsTrainerRenderHome();
+    }
+  } catch (_) {}
 });
 
 </script>

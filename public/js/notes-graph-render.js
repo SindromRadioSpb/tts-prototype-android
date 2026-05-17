@@ -229,6 +229,9 @@
       label.setAttribute("font-size", "10");
       label.setAttribute("fill", "var(--theme-text,#222)");
       label.setAttribute("pointer-events", "none");
+      // P1-4: declutter — hidden when zoomed out (see _applyLabelVisibility);
+      // always shown for the focused/hovered node.
+      label.setAttribute("data-node-label", "1");
       // Label is pre-sanitized by the data layer (no raw doc text).
       label.textContent = (n.label || n.rawId || "").slice(0, 28);
       gEl.appendChild(label);
@@ -242,6 +245,9 @@
         ring.setAttribute("stroke", "currentColor");
         ring.setAttribute("stroke-width", "3");
         gEl.insertBefore(ring, gEl.firstChild);
+        // P1-4: keep this node's label legible even when zoomed out.
+        gEl.setAttribute("data-label-force", "1");
+        _applyLabelVisibility(currentTransform.k);
         // U1+U2: keyboard focus → detail panel + 1-hop highlight,
         // immediate (no debounce — keyboard users expect snappy).
         _emitDetail(n);
@@ -250,6 +256,8 @@
       gEl.addEventListener("blur", () => {
         const ring = gEl.querySelector("[data-focus-ring]");
         if (ring) ring.remove();
+        gEl.removeAttribute("data-label-force");
+        _applyLabelVisibility(currentTransform.k);
         _emitDetail(null);
         _clearHighlight();
       });
@@ -257,13 +265,19 @@
       // debounced to avoid thrash on dense graphs.
       let _hoverT = null;
       gEl.addEventListener("pointerenter", () => {
+        gEl.setAttribute("data-label-force", "1");
+        _applyLabelVisibility(currentTransform.k);
         if (_hoverT) clearTimeout(_hoverT);
         _hoverT = setTimeout(() => { _emitDetail(n); _highlightNeighbours(n.id); }, 200);
       });
       gEl.addEventListener("pointerleave", () => {
         if (_hoverT) { clearTimeout(_hoverT); _hoverT = null; }
         // Don't clear if this node is also the keyboard-focused one.
-        if (document.activeElement !== gEl) { _emitDetail(null); _clearHighlight(); }
+        if (document.activeElement !== gEl) {
+          gEl.removeAttribute("data-label-force");
+          _applyLabelVisibility(currentTransform.k);
+          _emitDetail(null); _clearHighlight();
+        }
       });
       nodeG.appendChild(gEl);
       return gEl;
@@ -333,6 +347,22 @@
     // .filter() is the fix for the v3.3.6 "nodes jump unpredictably"
     // bug: previously a pointerdown on a node ALSO started a d3-zoom
     // pan, so dragging a node simultaneously panned the canvas.
+    // P1-4: hide node labels when zoomed out so dense graphs don't turn
+    // into an unreadable mush of overlapping text. Labels reappear on
+    // zoom-in, and a focused/hovered node always shows its label
+    // (data-label-force, set by the node event handlers above).
+    const LABEL_ZOOM_HIDE_BELOW = 0.6;
+    function _applyLabelVisibility(k) {
+      let labels;
+      try { labels = svg.querySelectorAll("text[data-node-label]"); } catch (_) { return; }
+      const showAll = !(k < LABEL_ZOOM_HIDE_BELOW);
+      labels.forEach((l) => {
+        const g = l.parentNode;
+        const forced = g && g.getAttribute && g.getAttribute("data-label-force") === "1";
+        l.style.display = (showAll || forced) ? "" : "none";
+      });
+    }
+
     let zoomBehavior = null;
     function _syncZoomTransform() {
       // Keep d3-zoom's internal transform in lock-step with
@@ -361,9 +391,12 @@
           const tr = ev.transform;
           currentTransform = { k: tr.k, x: tr.x, y: tr.y };
           applyTransform();
+          _applyLabelVisibility(tr.k);
         });
       d3.select(svg).call(zoomBehavior);
     } catch (_) { /* zoom optional; static layout still works */ }
+    // Apply initial label visibility for the starting zoom level.
+    try { _applyLabelVisibility(currentTransform.k); } catch (_) {}
 
     // Interaction callbacks (read-only). Declared here so both the
     // tap-vs-drag handler and the keyboard handler can use them.

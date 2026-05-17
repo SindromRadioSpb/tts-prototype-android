@@ -521,6 +521,66 @@ test("dashboard.rowMeta interpolates {count} and {date}", () => {
   appSetLocale("ru");
 });
 
+// ── Suite 9: P0-1 / P1-1 i18n-leak fix coverage ──────────────────────────────
+
+console.log("\n[Suite 9] P0-1 / P1-1 new key coverage");
+
+const p11Keys = [
+  // P1-1a — export hint (was hard-coded RU)
+  "classic.exportHint.noTable",
+  "classic.exportHint.stale",
+  "classic.exportHint.saveToLibrary",
+  // P1-1b — SRS Trainer (was hard-coded EN)
+  "srs.trainer.queueReady",
+  "srs.trainer.direction",
+  "srs.trainer.mode",
+  "srs.trainer.start",
+  "srs.trainer.dueToday",
+  "srs.trainer.learning",
+  "srs.trainer.review",
+  "srs.trainer.new",
+  "srs.trainer.help1",
+  "srs.trainer.help2",
+  "srs.trainer.cardDirection",
+  "srs.trainer.trainerMode",
+  "srs.trainer.correct",
+  "srs.trainer.differs",
+  "srs.trainer.expected",
+  "srs.trainer.typeAnswer",
+  "srs.trainer.check",
+  "srs.trainer.replay",
+  // P1-1c — IDE right-panel tabs (had no data-i18n)
+  "ide.tabNotes",
+  "ide.tabSrs",
+  "ide.tabAudio",
+  "ide.tabExport",
+  // P0-1/P0-2/P1-6 — multi-tab + DB-error recovery strings
+  "multitab.title",
+  "multitab.body",
+  "multitab.useHere",
+  "multitab.reload",
+  "multitab.takingOver",
+  "db.error.ownedByTab",
+  "db.error.unavailable",
+  "library.error.title",
+  "library.error.status",
+  "library.error.retry",
+  "library.error.backup",
+  "library.error.ownedByTab",
+];
+
+for (const key of p11Keys) {
+  test(`P1-1 key "${key}" resolves (not passthrough) in all locales`, () => {
+    for (const locale of ["ru", "en", "he"]) {
+      appSetLocale(locale);
+      const val = t(key);
+      assert.notStrictEqual(val, key, `Missing/passthrough in ${locale}: ${key}`);
+      assert.ok(typeof val === "string" && val.trim().length > 0, `Empty in ${locale}: ${key}`);
+    }
+    appSetLocale("ru");
+  });
+}
+
 // ── Summary ───────────────────────────────────────────────────────────────────
 
 console.log(`\nResults: ${passed} passed, ${failed} failed\n`);
