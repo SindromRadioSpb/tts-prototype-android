@@ -2126,7 +2126,13 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 		#tableContainer button, #tableContainer select,
 		.table-settings-row button, .table-settings-row select,
 		.table-autonext button { width: auto !important; }
-  
+        /* Модальные окна: кнопки не растягиваются на 100% */
+        .v3-modal button.btn-primary,
+        .v3-modal button.btn-secondary,
+        .v3-modal button.btn-console,
+        .v3-modal button.btn-word,
+        .v3-modal button.btn-anki { width: auto; }
+
         .export-actions { margin-left: 0; width: 100%; flex-direction: column; }
         .hotkeys-header { flex-direction: column; align-items: flex-start; }
         .hotkeys-hint { text-align: left; }
@@ -2152,9 +2158,9 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
             min-height: 44px;
             padding: 10px 8px;
         }
-        .classic-state-row { gap: 6px; }
+        .classic-state-row { gap: 6px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
         .classic-state-chip,
-        .classic-trust-chip { white-space: normal; }
+        .classic-trust-chip { white-space: nowrap; flex-shrink: 0; }
         .classic-mobile-panel {
             padding: 14px 12px 16px;
             border-radius: 18px;
@@ -2191,13 +2197,13 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
             line-height: 1.2;
         }
         .classic-primary-hint { flex-basis: 100%; }
-        .classic-fields-grid-two { grid-template-columns: 1fr; }
-        .classic-inline-meta { align-items: stretch; }
+        .classic-fields-grid-two { grid-template-columns: repeat(2, 1fr); }
+        .classic-inline-meta { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; align-items: center; }
         .classic-inline-meta .provenance-badge,
-        .classic-inline-meta .btn-secondary { width: 100%; justify-content: center; }
-        .classic-result-actions { width: 100%; flex-direction: column; gap: 8px; }
+        .classic-inline-meta .btn-secondary { width: auto; flex: 0 0 auto; justify-content: center; font-size: 11px; padding: 6px 8px; white-space: nowrap; }
+        .classic-result-actions { flex-direction: row; flex-wrap: nowrap; gap: 8px; }
         .classic-result-actions .btn-secondary,
-        .classic-result-actions .btn-word { width: 100%; }
+        .classic-result-actions .btn-word { flex: 1 1 auto; min-width: 0; width: auto; padding: 10px 8px; font-size: 13px; }
         /* Bug 2.1 fix: uniform width for all panel cards in the workflow column */
         .classic-disclosure { width: 100%; padding-bottom: 16px; }
         .classic-export-actions {
@@ -2207,6 +2213,65 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         }
         .classic-export-actions #btnAudioPrefetch,
         .classic-export-actions #btnAnki { display: none !important; }
+        /* Audio block: player + download в одну строку */
+        .audio-block { flex-direction: row; align-items: center; gap: 8px; }
+        .audio-download-btn { align-self: auto; font-size: 0; padding: 6px 8px; min-width: 34px; text-align: center; }
+        .audio-download-btn::before { content: '⬇'; font-size: 16px; line-height: 1; }
+        /* Library modal header: title сверху, кнопки grid 3-в-строку */
+        #v3LibraryModal .v3-modal-header { flex-direction: column; align-items: stretch; gap: 6px; }
+        #v3LibraryModal .v3-modal-header > div:not(.v3-modal-title) {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 6px !important;
+            width: 100%;
+            align-items: stretch;
+        }
+        #v3LibraryModal .v3-modal-header > div:not(.v3-modal-title) > button {
+            width: 100% !important;
+            font-size: 11px;
+            padding: 8px 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #v3LibraryWipeAllBtn { grid-column: 1 / -1 !important; }
+        /* Library filter toolbar: grid 2-колонки */
+        .v3-lib-toolbar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px !important; }
+        .v3-lib-toolbar input[type="text"] { grid-column: 1 / -1; }
+        .v3-lib-toolbar select { font-size: 12px; }
+        /* Dashboard modal header: заголовок сверху, кнопки в строку */
+        #v3DashboardModal .v3-modal-header { flex-direction: column; align-items: stretch; gap: 6px; }
+        #v3DashboardModal .v3-modal-header > div:not(.v3-modal-title) { display: flex !important; gap: 8px !important; }
+        #v3DashboardModal .v3-modal-header > div:not(.v3-modal-title) > .btn-secondary { flex: 1; width: auto !important; }
+        /* Dashboard filter toolbar: grid 2-колонки */
+        .v3-dash-toolbar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px !important; }
+        .v3-dash-toolbar input[type="text"] { grid-column: 1 / -1; }
+        .v3-dash-toolbar select { font-size: 12px; }
+        /* Dashboard Activity section overflow fix */
+        .v3-dash-rows-header { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .v3-dash-rows-header select { flex: 1; min-width: 0; }
+        .v3-dash-row-item { flex-direction: column; gap: 6px; }
+        .v3-dash-row-actions { justify-content: flex-start; }
+        /* Bottom sheet: Library + Dashboard модалы снизу экрана */
+        #v3LibraryModal .v3-modal-panel,
+        #v3DashboardModal .v3-modal-panel {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            width: 100%; max-width: 100%;
+            height: auto; max-height: 92vh;
+            margin: 0;
+            border-radius: 20px 20px 0 0;
+            animation: v3MobileSheetIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #v3LibraryModal .v3-modal-panel::before,
+        #v3DashboardModal .v3-modal-panel::before {
+            content: '';
+            display: block;
+            width: 40px; height: 4px;
+            background: var(--theme-border-hard, #cbd5e1);
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
     }
 
     @media (max-width: 1100px) {
@@ -3355,6 +3420,10 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   from { opacity: 0; transform: scale(0.97) translateY(6px); }
   to   { opacity: 1; transform: scale(1)    translateY(0); }
 }
+@keyframes v3MobileSheetIn {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
 
 .v3-modal.hidden { display: none; }
 .v3-modal {
@@ -3808,8 +3877,20 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   flex-wrap: wrap;  /* mobile: actions wrap below content instead of overflow */
 }
 @media (max-width: 720px) {
-  .v3-lib-card-actions { flex-basis: 100%; justify-content: stretch; }
-  .v3-lib-card-actions button { flex: 1 1 auto; min-width: 0; }
+  .v3-lib-card-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    width: 100%;
+  }
+  .v3-lib-card-actions button {
+    font-size: 12px;
+    padding: 8px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .v3-lib-card-actions .v3-lib-danger { grid-column: 1 / -1; }
 }
 
 .v3-lib-card-title {
@@ -8041,7 +8122,10 @@ td[data-col="ru"] {
 #v3FeedbackPanel.feedback-dark header {
   background: #0f172a !important; border-bottom: 1px solid #1e293b !important;
 }
+.v3-fb-title { color: #0f172a; }
+#v3FeedbackPanel.feedback-dark .v3-fb-title,
 .feedback-dark #v3FbTitle { color: #f1f5f9 !important; }
+.v3-fb-cat-desc { color: #475569; font-size: 12px; line-height: 1.3; }
 .feedback-dark #v3FbBody { background: #0f172a !important; color: #cbd5e1 !important; }
 /* Self-service block + section dividers */
 .feedback-dark #v3FbBody > div[style*="background:#f8fafc"],
@@ -8060,7 +8144,8 @@ td[data-col="ru"] {
 }
 .feedback-dark .v3-fb-cat-card:hover { background: #334155 !important; border-color: #475569 !important; }
 .feedback-dark .v3-fb-cat-card.danger { background: #2a0e0e !important; border-color: #5a1818 !important; }
-.feedback-dark .v3-fb-cat-card div[style*="color:#475569"] { color: #94a3b8 !important; }
+.feedback-dark .v3-fb-cat-card div[style*="color:#475569"],
+.feedback-dark .v3-fb-cat-desc { color: #94a3b8 !important; }
 /* Command-center buttons */
 .feedback-dark .v3-fb-cc-btn {
   background: #1e293b !important; border-color: #334155 !important; color: #f1f5f9 !important;
@@ -9662,7 +9747,7 @@ body:not(.theme-light) .v3-heatmap-cell {
   <div id="v3FeedbackPanel" style="background:#fff; border-radius:16px; max-width:520px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.25); animation:v3FbEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1); margin:auto;">
     <header style="padding:20px 24px 12px; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
       <div style="flex:1; min-width:0;">
-        <div id="v3FbTitle" style="font-size:20px; font-weight:600; color:#0f172a;">📬 Связаться с разработчиком</div>
+        <div id="v3FbTitle" class="v3-fb-title" style="font-size:20px; font-weight:600;">📬 Связаться с разработчиком</div>
         <div id="v3FbSubtitle" style="font-size:13px; margin-top:4px;">
           <span id="v3FbStatusBadge" style="display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; color:#166534; padding:4px 10px; border-radius:999px; font-size:11.5px; font-weight:500; border:1px solid #bbf7d0;">🟢 Сервис работает</span>
         </div>
@@ -18558,7 +18643,7 @@ updatePlaylistButtonUI();
         audioContainer.innerHTML =
             '<div class="audio-block">' +
             '  <audio controls src="' + v3EscapeHtml(String(audioUrl || "")) + '"></audio>' +
-            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()" title="' + t("classic.downloadAudio") + '" aria-label="' + t("classic.downloadAudio") + '">' +
             '    ' + t("classic.downloadAudio") +
             '  </button>' +
             '</div>';
@@ -18819,7 +18904,7 @@ updatePlaylistButtonUI();
         audioContainer.innerHTML =
             '<div class="audio-block">' +
             '  <audio controls src="' + lastAudioUrl + '"></audio>' +
-            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()">' +
+            '  <button type="button" class="audio-download-btn" onclick="downloadMp3FromCache()" title="' + t("classic.downloadAudio") + '" aria-label="' + t("classic.downloadAudio") + '">' +
             '    ' + t("classic.downloadAudio") +
             '  </button>' +
             '</div>';
@@ -24174,32 +24259,32 @@ function v3FbRenderTriage() {
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('bug')">
         <div style="font-size:22px;">🐛</div>
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catBugTitle")}</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catBugDesc")}</div>
+        <div class="v3-fb-cat-desc">${T("feedback.catBugDesc")}</div>
       </button>
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('idea')">
         <div style="font-size:22px;">💡</div>
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catIdeaTitle")}</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catIdeaDesc")}</div>
+        <div class="v3-fb-cat-desc">${T("feedback.catIdeaDesc")}</div>
       </button>
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('question')">
         <div style="font-size:22px;">❓</div>
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catQuestionTitle")}</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catQuestionDesc")}</div>
+        <div class="v3-fb-cat-desc">${T("feedback.catQuestionDesc")}</div>
       </button>
       <button class="v3-fb-cat-card danger" type="button" onclick="v3FbGoCategory('privacy')">
         <div style="font-size:22px;">🛡️</div>
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catPrivacyTitle")}</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catPrivacyDesc")}</div>
+        <div class="v3-fb-cat-desc">${T("feedback.catPrivacyDesc")}</div>
       </button>
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('cardrequest')">
         <div style="font-size:22px;">📦</div>
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catCardRequestTitle")}</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catCardRequestDesc")}</div>
+        <div class="v3-fb-cat-desc">${T("feedback.catCardRequestDesc")}</div>
       </button>
       <button class="v3-fb-cat-card" type="button" onclick="v3FbGoCategory('thanks')">
         <div style="font-size:22px;">🙏</div>
         <div style="font-size:14px; font-weight:600; line-height:1.3;">${T("feedback.catThanksTitle")}</div>
-        <div style="font-size:12px; color:#475569; line-height:1.3;">${T("feedback.catThanksDesc")}</div>
+        <div class="v3-fb-cat-desc">${T("feedback.catThanksDesc")}</div>
       </button>
     </div>
 

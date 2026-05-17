@@ -111,6 +111,9 @@ repo_tree.txt
 # fetched locally for the morphology pipeline. Not part of repo history.
 .external/
 
+# Remember plugin runtime data (logs, state, session cache)
+.remember/
+
 # Full-tier morphology dictionary raw form (~75 MB). The gzipped sibling
 # `heb_morphology_full.bin.gz` (~5 MB) IS tracked — runtime decompresses
 # it via DecompressionStream. Rebuild raw via `npm run build:morphology:full`
