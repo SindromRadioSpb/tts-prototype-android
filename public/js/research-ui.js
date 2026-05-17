@@ -121,6 +121,20 @@
     body += '<div style="margin-top:14px;font-size:11.5px;line-height:1.5;color:var(--theme-text-secondary,#666);">';
     body += escapeHtml(T('research.panel.privacyNote', 'Все метрики анонимны и опт-ин. Сырые данные (текст, заметки, поисковые запросы, аудио) никогда не покидают устройство.'));
     body += '</div>';
+
+    // P2-5: collapsible aggregate list so users can see collected fields without opening consent
+    body += '<details style="margin-top:10px;font-size:11.5px;">';
+    body += '<summary style="cursor:pointer;color:var(--theme-accent,#2563eb);font-weight:500;">' +
+      escapeHtml(T('research.panel.showCollectedList', 'Что конкретно собирается →')) + '</summary>';
+    body += '<ul style="margin:6px 0 4px 18px;line-height:1.6;">';
+    body += '<li>' + escapeHtml(T('research.consent.collect1', 'Количество сессий и активные минуты')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.consent.collect2', 'Количество открытых текстов и прочитанных предложений')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.consent.collect3', 'Длительность audio playback (мс)')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.consent.collect4', 'Счётчики: notes / SRS-карточки / search queries (только числа)')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.consent.collect5', 'Распределение активности по часам дня')) + '</li>';
+    body += '</ul>';
+    body += '</details>';
+
     body += '</div>';
 
     v3ConfirmModal({

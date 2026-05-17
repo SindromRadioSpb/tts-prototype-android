@@ -826,6 +826,7 @@ window.I18N_LOCALES.en = {
     prev: "Prev",
     next: "Next",
     close: "Close",
+    copyLink: "Copy link",
   },
   table: {
     colHebrew: "Hebrew",
@@ -1406,6 +1407,7 @@ window.I18N_LOCALES.en = {
       lastUpload: "Last upload",
       queueSize: "Queued",
       privacyNote: "All metrics are anonymous and opt-in. Raw data (text, notes, search queries, audio) never leaves the device.",
+      showCollectedList: "What exactly is collected →",
     },
     btn: {
       close: "Close",

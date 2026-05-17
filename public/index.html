@@ -3350,6 +3350,12 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .btn-secondary:hover { background: var(--theme-bg-muted); }
 .btn-secondary:active { transform: translateY(1px); }
 
+/* P2-1: modal open animation */
+@keyframes v3ModalIn {
+  from { opacity: 0; transform: scale(0.97) translateY(6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
 .v3-modal.hidden { display: none; }
 .v3-modal {
   position: fixed;
@@ -3376,6 +3382,39 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  animation: v3ModalIn 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v3-modal-panel { animation: none; }
+}
+
+/* P2-3: skeleton shimmer + button loading state */
+@keyframes v3SkeletonSlide {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.v3-skeleton-row {
+  height: 32px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  background: linear-gradient(
+    90deg,
+    var(--theme-bg-card, #1e293b) 25%,
+    var(--theme-border-soft, #334155) 50%,
+    var(--theme-bg-card, #1e293b) 75%
+  );
+  background-size: 200% 100%;
+  animation: v3SkeletonSlide 1.2s ease-in-out infinite;
+}
+.v3-skeleton-row:first-child { width: 100%; }
+.v3-skeleton-row:nth-child(even) { opacity: 0.7; }
+@media (prefers-reduced-motion: reduce) {
+  .v3-skeleton-row { animation: none; opacity: 0.35; }
+}
+.v3-btn-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  cursor: wait !important;
 }
 
 .v3-modal-header {
@@ -9259,7 +9298,7 @@ body:not(.theme-light) .v3-heatmap-cell {
                             </div>
 
                             <div class="classic-inline-meta">
-                                <button id="btnTtsKey" class="btn-secondary" style="padding:4px 8px; display:none;" title="Загрузить service account JSON для Online TTS" onclick="ttsKeyOpen()">🔑</button>
+                                <button id="btnTtsKey" class="btn-secondary" style="padding:4px 8px; display:none;" title="Загрузить service account JSON для Online TTS" aria-label="Загрузить service account JSON для Online TTS" onclick="ttsKeyOpen()">🔑</button>
                                 <input type="file" id="ttsKeyFileInput" accept="application/json,.json" style="display:none" onchange="ttsKeyOnFileChosen(event)">
                                 <span id="ttsKeyStatus" class="provenance-badge" style="display:none"></span>
                                 <span id="localTtsProviderBadge" class="provenance-badge">TTS: init…</span>
@@ -9307,7 +9346,7 @@ body:not(.theme-light) .v3-heatmap-cell {
                             </div>
 
                             <div class="classic-inline-meta">
-                                <button id="btnGcpKey" class="btn-secondary" style="padding:4px 8px;" title="Загрузить service account JSON для GCP Translate" onclick="gcpKeyOpen()">🔑</button>
+                                <button id="btnGcpKey" class="btn-secondary" style="padding:4px 8px;" title="Загрузить service account JSON для GCP Translate" aria-label="Загрузить service account JSON для GCP Translate" onclick="gcpKeyOpen()">🔑</button>
 				                <input type="file" id="gcpKeyFileInput" accept="application/json,.json" style="display:none" onchange="gcpKeyOnFileChosen(event)">
 				                <span id="gcpKeyStatus" class="provenance-badge" style="display:none"></span>
                             </div>
@@ -9333,7 +9372,7 @@ body:not(.theme-light) .v3-heatmap-cell {
                             <div class="classic-result-actions">
                                 <button id="btnSaveToLibrary" class="btn-secondary" onclick="v3LibrarySaveCurrent()" data-i18n="classic.save">💾 Сохранить</button>
                                 <button id="btnWord" class="btn-word disabled"
-                                        title="Сначала сохраните текст в Library"
+                                        data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
                                         onclick="downloadWord()" disabled data-i18n="classic.downloadTable">Скачать таблицу</button>
                             </div>
                         </div>
@@ -9361,11 +9400,11 @@ body:not(.theme-light) .v3-heatmap-cell {
 
                         <div class="export-actions classic-export-actions">
                             <button id="btnAudioPrefetch" class="btn-audio-prefetch disabled"
-                                    title="Сначала сохраните текст в Library"
+                                    data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
                                     onclick="v3AudioPrefetchOpenModal()" disabled data-i18n="classic.audio">Аудио</button>
 
                             <button id="btnAnki" class="btn-anki disabled"
-                                    title="Сначала сохраните текст в Library"
+                                    data-i18n-title="classic.saveToLibraryFirst" title="Сначала сохраните текст в Library"
                                     onclick="v3AnkiOpenModal()" disabled data-i18n="classic.anki">Anki</button>
                         </div>
 
@@ -9577,7 +9616,7 @@ body:not(.theme-light) .v3-heatmap-cell {
   <button type="button" class="v3-smart-chip" data-smart="audio-noted" onclick="v3LibrarySetSmartChip('audio-noted')" data-i18n-title="library.smartAudioNotedTitle" title="Тексты с аудио-якорными заметками"><span data-i18n="library.smartAudioNoted">📍 Audio-noted</span> <span class="v3-smart-chip-badge" data-smart-count="audio-noted"></span></button>
   <button type="button" class="v3-smart-chip" data-smart="srs-noted"   onclick="v3LibrarySetSmartChip('srs-noted')"   data-i18n-title="library.smartSrsNotedTitle"   title="Тексты с SRS-привязанными заметками"><span data-i18n="library.smartSrsNoted">🎯 SRS-noted</span> <span class="v3-smart-chip-badge" data-smart-count="srs-noted"></span></button>
   <button type="button" class="v3-smart-chip" data-smart="templated"   onclick="v3LibrarySetSmartChip('templated')"   data-i18n-title="library.smartTemplatedTitle"   title="Тексты со структурированными заметками"><span data-i18n="library.smartTemplated">⭐ Templated</span> <span class="v3-smart-chip-badge" data-smart-count="templated"></span></button>
-  <button type="button" class="v3-smart-chip-clear" id="v3LibrarySmartClear" onclick="v3LibrarySetSmartChip(null)" data-i18n="library.smartClear" title="Сбросить smart-фильтр">×</button>
+  <button type="button" class="v3-smart-chip-clear" id="v3LibrarySmartClear" onclick="v3LibrarySetSmartChip(null)" data-i18n="library.smartClear" data-i18n-aria-label="library.smartClear" title="Сбросить smart-фильтр">×</button>
 </div>
 
 <div class="v3-filter-row">
@@ -18688,7 +18727,9 @@ updatePlaylistButtonUI();
         }
 
         // 2) server
+        const _ttsBtnEl = document.getElementById("btnMainTts");
         try {
+            if (_ttsBtnEl) { _ttsBtnEl.disabled = true; _ttsBtnEl.classList.add("v3-btn-loading"); }
             const updateId = (typeof v3SessionGetUpdateTextId === "function") ? v3SessionGetUpdateTextId() : null;
             const activeSourceText = v3ActiveLibraryTextMeta && v3ActiveLibraryTextMeta.sourceText
                 ? String(v3ActiveLibraryTextMeta.sourceText)
@@ -18753,6 +18794,8 @@ updatePlaylistButtonUI();
             loadStats();
         } catch (e) {
             showError(e.message);
+        } finally {
+            if (_ttsBtnEl) { _ttsBtnEl.disabled = false; _ttsBtnEl.classList.remove("v3-btn-loading"); }
         }
     }
 
@@ -18966,12 +19009,18 @@ updatePlaylistButtonUI();
     function setAiButtonDisabled(disabled) {
         if (!btnAiTranslateEl) return;
         if (disabled) {
-            btnAiTranslateEl.classList.add("disabled");
+            btnAiTranslateEl.classList.add("disabled", "v3-btn-loading");
             btnAiTranslateEl.setAttribute("disabled", "disabled");
         } else {
-            btnAiTranslateEl.classList.remove("disabled");
+            btnAiTranslateEl.classList.remove("disabled", "v3-btn-loading");
             btnAiTranslateEl.removeAttribute("disabled");
         }
+    }
+
+    // P2-3: skeleton placeholder for #tableContainer while Gemini is running
+    function v3TableSkeletonHtml(n) {
+        const rows = Array.from({ length: n || 8 }, () => '<div class="v3-skeleton-row"></div>').join('');
+        return '<div class="v3-skeleton-table" style="padding:4px 0;" aria-busy="true" aria-label="Загрузка…">' + rows + '</div>';
     }
 
 	/* --------------------------------------------------------
@@ -20595,7 +20644,7 @@ function v3UiSyncSaveButtons() {
           typeof exportId === "string" &&
           /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
 
-        const unsavedTip = "Сохраните таблицу в Library (кнопка «Сохранить»), чтобы использовать эту функцию";
+        const unsavedTip = t("classic.saveToLibraryFirst", "Сначала сохраните текст в Library");
 
         if (isUuid) {
           btnWordEl.disabled = false;
@@ -21128,7 +21177,7 @@ function v3RenderActiveChips(containerEl, chips) {
     const label = v3EscapeHtml(c.label);
     return `<span class="v3-filter-chip" data-kind="${kind}" data-value="${value}">
       <span>${label}</span>
-      <button class="v3-filter-chip-x" type="button" title="Убрать">×</button>
+      <button class="v3-filter-chip-x" type="button" title="Убрать" aria-label="Убрать фильтр">×</button>
     </span>`;
   }).join("");
 }
@@ -21708,7 +21757,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
           <input type="checkbox" data-act="select" ${isSelected ? "checked" : ""} style="width:20px; height:20px; cursor:pointer;" />
         </label>
         <div style="flex:1;">
-          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_smartBadgeHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button></div>
+          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_smartBadgeHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button></div>
           <div class="v3-lib-card-meta">
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
@@ -23195,7 +23244,69 @@ window.v3TabCoordPeers = function() {
 document.addEventListener("DOMContentLoaded", () => {
   // Slight delay to let LOCAL_MODE check settle.
   setTimeout(v3TabCoordInit, 200);
+  // P2-4: first-run onboarding — show after tab ownership resolved
+  setTimeout(v3OnboardingMaybeShow, 1200);
 });
+
+// ── P2-4: First-run onboarding ─────────────────────────────────────────────
+const V3_ONBOARDING_SEEN_KEY = "v3OnboardingSeenV1";
+
+// Short Hebrew text about learning languages (appropriate for demo)
+const V3_ONBOARDING_DEMO_TEXT =
+  "שִׁירוּ לַיהוָה שִׁיר חָדָשׁ, כִּי נִפְלָאוֹת עָשָׂה. הוֹשִׁיעָה-לּוֹ יְמִינוֹ, וּזְרוֹעַ קָדְשׁוֹ.";
+
+function v3OnboardingShouldShow() {
+  if (localStorage.getItem(V3_ONBOARDING_SEEN_KEY)) return false;
+  if (sessionStorage.getItem(V3_ONBOARDING_SEEN_KEY)) return false;
+  if (window.__localDBFollower) return false;
+  return true;
+}
+
+function v3OnboardingMaybeShow() {
+  if (!v3OnboardingShouldShow()) return;
+  const modal = document.getElementById("v3OnboardingModal");
+  if (!modal) return;
+  try { if (typeof applyI18n === "function") applyI18n(); } catch (_) {}
+  modal.classList.remove("hidden");
+}
+
+function v3OnboardingDismiss() {
+  const modal = document.getElementById("v3OnboardingModal");
+  if (modal) modal.classList.add("hidden");
+  const cb = document.getElementById("v3OnboardingDontShow");
+  if (cb && cb.checked) {
+    localStorage.setItem(V3_ONBOARDING_SEEN_KEY, "1");
+  } else {
+    // Always mark seen so it doesn't re-show this session; only the checkbox
+    // persists across sessions.
+    sessionStorage.setItem(V3_ONBOARDING_SEEN_KEY, "1");
+  }
+}
+
+function v3OnboardingTryDemo() {
+  const modal = document.getElementById("v3OnboardingModal");
+  if (modal) modal.classList.add("hidden");
+  localStorage.setItem(V3_ONBOARDING_SEEN_KEY, "1");
+  // Load demo text into the main Hebrew input
+  try {
+    const ta = document.getElementById("inputText");
+    if (ta) {
+      ta.value = V3_ONBOARDING_DEMO_TEXT;
+      ta.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    if (typeof showToast === "function") {
+      showToast(t("onboarding.demoLoaded", "Демо-текст загружен — попробуйте «Собрать таблицу»!"), "info");
+    }
+  } catch (_) {}
+}
+
+function v3OnboardingReset() {
+  localStorage.removeItem(V3_ONBOARDING_SEEN_KEY);
+  sessionStorage.removeItem(V3_ONBOARDING_SEEN_KEY);
+  if (typeof showToast === "function") {
+    showToast(t("onboarding.resetOnboarding", "Onboarding сброшен — перезагрузите страницу"), "info");
+  }
+}
 
 // ── B1: Storage quota monitoring ───────────────────────────────────────────
 // OPFS shares the browser's per-origin quota (typically a few % of free
@@ -27173,7 +27284,7 @@ const metaLine = metaParts.length
       <div style="min-width:0;">
         <div class="v3-dash-title-row">
 			${textDeeplink ? `<a class="v3-dash-title" href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${title}</a>` : `<span class="v3-dash-title" onclick="v3DashboardSelectText('${id}')">${title}</span>`}
-				${topicHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст">🔗</button>
+				${topicHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button>
 		</div>
         ${metaLine}
         ${badgeHtml}
@@ -28777,7 +28888,7 @@ rowPlaylistRunActive = false;
 updatePlaylistButtonUI();
 
 clearRowPlayingState(true); // true => также очистит selected
-document.getElementById("tableContainer").innerHTML = "";
+document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
 
         clearResultsMeta("table");
 
@@ -29507,10 +29618,10 @@ try {
             const hasLibData = !!(sid && tid);
             const editActionsHtml = hasLibData
                 ? '<div class="row-edit-actions">' +
-                  '<button type="button" class="row-edit-btn btn-up" data-edit-action="up" data-row-idx="' + rowIdx + '" title="Выше"' + (isFirst ? ' disabled' : '') + '>↑</button>' +
-                  '<button type="button" class="row-edit-btn btn-down" data-edit-action="down" data-row-idx="' + rowIdx + '" title="Ниже"' + (isLast ? ' disabled' : '') + '>↓</button>' +
-                  '<button type="button" class="row-edit-btn btn-reset" data-edit-action="reset" data-row-idx="' + rowIdx + '" title="Сбросить правки строки">↺</button>' +
-                  '<button type="button" class="row-edit-btn btn-del" data-edit-action="del" data-row-idx="' + rowIdx + '" title="Удалить строку">✕</button>' +
+                  '<button type="button" class="row-edit-btn btn-up" data-edit-action="up" data-row-idx="' + rowIdx + '" title="Выше" aria-label="Выше"' + (isFirst ? ' disabled' : '') + '>↑</button>' +
+                  '<button type="button" class="row-edit-btn btn-down" data-edit-action="down" data-row-idx="' + rowIdx + '" title="Ниже" aria-label="Ниже"' + (isLast ? ' disabled' : '') + '>↓</button>' +
+                  '<button type="button" class="row-edit-btn btn-reset" data-edit-action="reset" data-row-idx="' + rowIdx + '" title="Сбросить правки строки" aria-label="Сбросить правки строки">↺</button>' +
+                  '<button type="button" class="row-edit-btn btn-del" data-edit-action="del" data-row-idx="' + rowIdx + '" title="Удалить строку" aria-label="Удалить строку">✕</button>' +
                   '</div>'
                 : '';
             html += '<td data-col="action" class="col-action-cell">' +
@@ -34498,7 +34609,7 @@ function v3TcbRender() {
       <div class="v3-tcb-row-header">
         <span class="v3-tcb-row-num">${esc(v3NotesT('tcb.rowLabel', 'Текст'))} #${num}</span>
         <span class="v3-tcb-row-status">${statusInner}</span>
-        ${canRemove ? `<button type="button" class="v3-tcb-row-remove" onclick="v3TcbRemoveJob('${esc(job.id)}')" title="${esc(v3NotesT('tcb.removeRow', 'Удалить'))}">✕</button>` : ''}
+        ${canRemove ? `<button type="button" class="v3-tcb-row-remove" onclick="v3TcbRemoveJob('${esc(job.id)}')" title="${esc(v3NotesT('tcb.removeRow', 'Удалить'))}" aria-label="${esc(v3NotesT('tcb.removeRow', 'Удалить'))}">✕</button>` : ''}
       </div>
       <textarea class="v3-tcb-row-textarea" dir="rtl" placeholder="${esc(v3NotesT('tcb.placeholderHebrew', 'Введите ивритский текст…'))}" ${fieldsDisabled ? 'disabled' : ''}
                 oninput="v3TcbOnFieldChange('${esc(job.id)}', 'sourceText', this.value)">${esc(job.sourceText)}</textarea>
@@ -38456,7 +38567,7 @@ document.addEventListener("i18n:changed", function () {
     <span id="v3NavPos" class="v3-nav-pos"></span>
   </div>
   <div class="v3-nav-right">
-    <button id="v3NavCopyLinkBtn" class="btn-secondary btn-mini" title="Копировать ссылку (Ctrl+Shift+L)">🔗</button>
+    <button id="v3NavCopyLinkBtn" class="btn-secondary btn-mini" title="Копировать ссылку (Ctrl+Shift+L)" data-i18n-aria-label="nav.copyLink" aria-label="Копировать ссылку">🔗</button>
     <button id="v3NavPrevBtn" class="btn-secondary btn-mini" data-i18n="nav.prev">Пред.</button>
     <button id="v3NavNextBtn" class="btn-secondary btn-mini" data-i18n="nav.next">След.</button>
     <button id="v3NavCloseBtn" class="btn-secondary btn-mini" data-i18n="nav.close">Закрыть</button>
@@ -38506,6 +38617,37 @@ document.addEventListener("i18n:changed", function () {
     <span class="app-footer-version" id="appFooterVersion" onclick="v3AboutOpen()" title="Open About">v3.0.0</span>
   </div>
 </footer>
+
+<!-- ── P2-4: First-run onboarding modal ───────────────────────────────── -->
+<div id="v3OnboardingModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-labelledby="v3OnboardingTitle">
+  <div class="v3-modal-backdrop" onclick="v3OnboardingDismiss()"></div>
+  <div class="v3-modal-panel" style="width:min(560px,calc(100vw - 32px));height:auto;max-height:calc(100vh - 48px);margin:24px auto;">
+    <div class="v3-modal-header">
+      <span class="v3-modal-title" id="v3OnboardingTitle" data-i18n="onboarding.title">Добро пожаловать в LinguistPro</span>
+      <button class="btn-secondary" style="padding:2px 8px;font-size:18px;line-height:1;" onclick="v3OnboardingDismiss()" aria-label="Закрыть">×</button>
+    </div>
+    <div class="v3-modal-body" style="padding:18px 20px;overflow:auto;">
+      <p style="margin:0 0 6px 0;font-size:13px;color:var(--theme-text-secondary,#94a3b8);" data-i18n="onboarding.tagline">IDE для изучения иврита с offline-first архитектурой</p>
+      <p style="margin:0 0 14px 0;font-size:13.5px;line-height:1.55;" data-i18n="onboarding.intro">Ваши тексты и прогресс хранятся локально на этом устройстве.</p>
+      <p style="margin:0 0 8px 0;font-weight:600;font-size:13px;" data-i18n="onboarding.whatsHere">Что вы можете сделать:</p>
+      <ul style="margin:0 0 18px 18px;font-size:13px;line-height:1.7;padding:0;">
+        <li data-i18n="onboarding.feature1">📝 Вставить текст → таблица с переводом, транслитом, огласовками</li>
+        <li data-i18n="onboarding.feature2">🔊 Озвучить через TTS — кэш экономит квоту</li>
+        <li data-i18n="onboarding.feature3">📚 Библиотека текстов + ZIP-бэкап</li>
+        <li data-i18n="onboarding.feature4">🎯 SRS Trainer — интервальные повторения</li>
+        <li data-i18n="onboarding.feature5">🕸 Заметки + [[ссылки]] → Карта знаний</li>
+      </ul>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="v3OnboardingTryDemo()" data-i18n="onboarding.tryDemo">🚀 Попробовать на демо-тексте</button>
+        <button class="btn-secondary" onclick="v3OnboardingDismiss()" data-i18n="onboarding.startFresh">Начать с моего текста</button>
+      </div>
+      <label style="display:block;margin-top:14px;font-size:12px;color:var(--theme-text-muted,#94a3b8);cursor:pointer;">
+        <input type="checkbox" id="v3OnboardingDontShow" style="margin-right:5px;">
+        <span data-i18n="onboarding.dontShowAgain">Больше не показывать</span>
+      </label>
+    </div>
+  </div>
+</div>
 
 <!-- ── About modal (Direction 8 — Trust signals) ──────────────────────── -->
 <div id="v3AboutModal" role="dialog" aria-modal="true" aria-labelledby="v3AboutTitle" onclick="if(event.target===this)v3AboutClose()">

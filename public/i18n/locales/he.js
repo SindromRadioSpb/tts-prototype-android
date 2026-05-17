@@ -833,6 +833,7 @@ window.I18N_LOCALES.he = {
     prev: "הקודם",
     next: "הבא",
     close: "סגור",
+    copyLink: "העתק קישור", // translate-review
   },
   table: {
     colHebrew: "עברית",
@@ -1415,6 +1416,7 @@ window.I18N_LOCALES.he = {
       lastUpload: "העלאה אחרונה",
       queueSize: "בתור",
       privacyNote: "כל הנתונים אנונימיים ו-opt-in. נתונים גולמיים (טקסט, הערות, שאילתות חיפוש, שמע) לעולם לא יוצאים מהמכשיר.",
+      showCollectedList: "מה בדיוק נאסף →", // translate-review
     },
     btn: {
       close: "סגור",

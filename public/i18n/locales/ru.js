@@ -839,6 +839,7 @@ window.I18N_LOCALES.ru = {
     prev: "Пред.",
     next: "След.",
     close: "Закрыть",
+    copyLink: "Копировать ссылку",
   },
   table: {
     colHebrew: "Иврит",
@@ -1419,6 +1420,7 @@ window.I18N_LOCALES.ru = {
       lastUpload: "Последний upload",
       queueSize: "В очереди",
       privacyNote: "Все метрики анонимны и opt-in. Сырые данные (текст, заметки, поисковые запросы, аудио) никогда не покидают устройство.",
+      showCollectedList: "Что конкретно собирается →",
     },
     btn: {
       close: "Закрыть",
