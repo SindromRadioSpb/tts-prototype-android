@@ -566,28 +566,115 @@
 
     .classic-utility-bar {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex: 1 1 360px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        flex: 1 1 300px;
         min-width: 0;
-        padding: 8px 10px;
+        padding: 10px 12px;
         border: 1px solid var(--theme-border-soft);
         border-radius: 16px;
         background: var(--theme-bg-card);
         box-shadow: var(--theme-shadow-sm);
     }
 
-    .classic-utility-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        min-width: 0;
+    /* Row 1 — primary nav cards */
+    .classic-nav-primary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
     }
 
-    .classic-utility-nav .btn-secondary {
-        min-height: 44px;
+    .classic-nav-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 10px 6px;
+        border: 1px solid var(--theme-border-soft);
+        border-radius: 12px;
+        background: var(--theme-bg-input, rgba(0,0,0,0.03));
+        cursor: pointer;
+        min-height: 56px;
+        transition: background 0.15s, transform 0.1s;
+        -webkit-tap-highlight-color: transparent;
     }
+    .classic-nav-card:hover { background: var(--theme-bg-hover, rgba(0,0,0,0.06)); }
+    .classic-nav-card:active { transform: scale(0.95); }
+
+    .classic-nav-icon { font-size: 20px; line-height: 1; }
+    .classic-nav-label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--theme-text, #1a202c);
+        opacity: 0.8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+
+    /* Row 2 — utility strip */
+    .classic-nav-utility {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .classic-nav-utility .lang-select-wrap { flex: 1; min-width: 0; }
+    .classic-nav-utility .lang-select { width: 100%; }
+
+    .classic-nav-tool {
+        background: transparent;
+        border: 1px solid var(--theme-border-soft);
+        border-radius: 10px;
+        padding: 8px 10px;
+        font-size: 16px;
+        cursor: pointer;
+        min-height: 40px;
+        min-width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s;
+        -webkit-tap-highlight-color: transparent;
+        color: var(--theme-text, #1a202c);
+    }
+    .classic-nav-tool:hover { background: var(--theme-bg-hover, rgba(0,0,0,0.06)); }
+
+    /* ⋯ overflow menu */
+    .classic-nav-more-wrap { position: relative; }
+    .classic-nav-more-menu {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        background: var(--theme-bg-card, #fff);
+        border: 1px solid var(--theme-border-soft);
+        border-radius: 12px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.13);
+        padding: 6px;
+        z-index: 300;
+        min-width: 190px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .classic-nav-more-menu button {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        text-align: left;
+        width: 100%;
+        color: var(--theme-text, #1a202c);
+    }
+    .classic-nav-more-menu button:hover { background: var(--theme-bg-hover, rgba(0,0,0,0.05)); }
 
     .classic-workspace-grid {
         display: grid;
@@ -2134,9 +2221,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .main-card { padding: 14px 12px; }
         .classic-main-card { padding: 14px 12px 16px; }
         .classic-shell-head { gap: 14px; }
-        .classic-utility-bar { padding: 7px 8px; }
-        .classic-utility-nav { flex: 1 1 0; min-width: 0; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; }
-        .classic-utility-nav .btn-secondary { flex: 0 0 auto; width: auto; }
+        .classic-utility-bar { padding: 8px 10px; gap: 7px; }
         .classic-composer-tools {
             width: 100%;
             display: grid;
@@ -9383,23 +9468,41 @@ body:not(.theme-light) .v3-heatmap-cell {
                     <p class="classic-screen-subtitle" data-i18n="classic.subtitle">Сценарий: исходный текст → обработка → результат → экспорт и работа по строкам.</p>
                 </div>
                 <div class="classic-utility-bar" role="navigation" data-i18n-aria-label="classic.navLabel" aria-label="Навигация и режимы">
-                    <div class="classic-utility-nav">
-                        <button id="btnLibrary" class="btn-secondary" onclick="v3LibraryOpen()" data-i18n="classic.library">📚 Библиотека</button>
-                        <button id="btnDashboard" class="btn-secondary" onclick="v3DashboardOpen()" data-i18n="classic.dashboard">📈 Дашборд</button>
-                        <button id="btnSrsTrainer" class="btn-secondary" onclick="v3SrsTrainerOpen()" data-i18n="classic.srsTrainer">🎯 SRS Trainer</button>
-                        <button id="btnFeedback" class="btn-secondary" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
-                        <button id="btnResearch" class="btn-secondary" onclick="window.LinguistProResearchUI && window.LinguistProResearchUI.open()" data-i18n-title="research.btnTitle" data-i18n-aria-label="research.btnTitle" title="Research mode (opt-in)" aria-label="Research mode (opt-in)">📊</button>
-                        <button id="btnGraph" class="btn-secondary" onclick="window.LinguistProGraph && window.LinguistProGraph.open()" data-i18n-title="graph.btnTitle" data-i18n-aria-label="graph.btnTitle" title="Карта знаний" aria-label="Карта знаний">🕸</button>
-                        <button id="btnMorphSettings" class="btn-secondary" onclick="window.LinguistProMorphSettings && window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология: словарь" aria-label="Морфология: словарь">🔤</button>
-                        <button id="btnTheme" class="app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему интерфейса" aria-label="Переключить тему интерфейса">🌗</button>
-                    </div>
-                    <div class="lang-select-wrap classic-lang-wrap" title="">
+                  <!-- Row 1: Primary navigation cards -->
+                  <div class="classic-nav-primary">
+                    <button id="btnLibrary" class="classic-nav-card" onclick="v3LibraryOpen()" aria-label="Библиотека">
+                      <span class="classic-nav-icon">📚</span>
+                      <span class="classic-nav-label">Библиотека</span>
+                    </button>
+                    <button id="btnDashboard" class="classic-nav-card" onclick="v3DashboardOpen()" aria-label="Дашборд">
+                      <span class="classic-nav-icon">📈</span>
+                      <span class="classic-nav-label">Дашборд</span>
+                    </button>
+                    <button id="btnSrsTrainer" class="classic-nav-card" onclick="v3SrsTrainerOpen()" aria-label="SRS Trainer">
+                      <span class="classic-nav-icon">🎯</span>
+                      <span class="classic-nav-label">SRS Trainer</span>
+                    </button>
+                  </div>
+                  <!-- Row 2: Utilities + overflow menu -->
+                  <div class="classic-nav-utility">
+                    <div class="lang-select-wrap classic-lang-wrap">
                       <select id="appLangSelect" class="lang-select" onchange="appSetLocale(this.value)" aria-label="Язык интерфейса" title="Язык интерфейса">
                         <option value="ru">Русский</option>
                         <option value="en">English</option>
                         <option value="he">עברית</option>
                       </select>
                     </div>
+                    <button id="btnFeedback" class="classic-nav-tool" onclick="v3FeedbackOpen()" data-i18n-title="feedback.btnTitle" data-i18n-aria-label="feedback.btnTitle" title="Связаться с разработчиком" aria-label="Связаться с разработчиком">📬</button>
+                    <button id="btnTheme" class="classic-nav-tool app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему" aria-label="Переключить тему">🌗</button>
+                    <div class="classic-nav-more-wrap">
+                      <button class="classic-nav-tool" id="btnNavMore" onclick="v3ClassicNavMoreToggle()" aria-haspopup="true" aria-expanded="false" title="Ещё инструменты">⋯</button>
+                      <div class="classic-nav-more-menu" id="classicNavMoreMenu" hidden>
+                        <button id="btnResearch" onclick="window.LinguistProResearchUI&&window.LinguistProResearchUI.open();v3ClassicNavMoreClose()" data-i18n-title="research.btnTitle" title="Research mode">📊 Research</button>
+                        <button id="btnGraph" onclick="window.LinguistProGraph&&window.LinguistProGraph.open();v3ClassicNavMoreClose()" data-i18n-title="graph.btnTitle" title="Карта знаний">🕸 Graph</button>
+                        <button id="btnMorphSettings" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open();v3ClassicNavMoreClose()" data-i18n-title="morph.settings.btnTitle" title="Морфология">🔤 Морфология</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
             </div>
 
@@ -11309,6 +11412,31 @@ function v3IdeResetColumns() {
 }
 
 // --- IDE Mode Toggle ---
+function v3ClassicNavMoreClose() {
+  const menu = document.getElementById("classicNavMoreMenu");
+  const btn = document.getElementById("btnNavMore");
+  if (menu) menu.hidden = true;
+  if (btn) btn.setAttribute("aria-expanded", "false");
+}
+
+function v3ClassicNavMoreToggle() {
+  const menu = document.getElementById("classicNavMoreMenu");
+  const btn = document.getElementById("btnNavMore");
+  if (!menu) return;
+  const willOpen = menu.hidden;
+  menu.hidden = !willOpen;
+  btn.setAttribute("aria-expanded", String(willOpen));
+  if (willOpen) {
+    const close = (e) => {
+      if (!menu.contains(e.target) && e.target !== btn) {
+        v3ClassicNavMoreClose();
+        document.removeEventListener("click", close, true);
+      }
+    };
+    setTimeout(() => document.addEventListener("click", close, true), 0);
+  }
+}
+
 function v3IdeModeToggle() {
   const enabled = v3IdeModeEnabled();
   if (enabled) {
