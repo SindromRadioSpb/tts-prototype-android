@@ -2234,11 +2234,12 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        #v3LibraryWipeAllBtn { grid-column: 1 / -1 !important; }
+        #v3LibraryWipeAllBtn { grid-column: 1 / -1 !important; order: 20; }
         /* Library filter toolbar: grid 2-колонки */
         .v3-lib-toolbar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px !important; }
         .v3-lib-toolbar input[type="text"] { grid-column: 1 / -1; }
         .v3-lib-toolbar select { font-size: 12px; }
+        .v3-lib-toolbar .btn-success { grid-column: 1 / -1; white-space: nowrap; }
         /* Dashboard modal header: заголовок сверху, кнопки в строку */
         #v3DashboardModal .v3-modal-header { flex-direction: column; align-items: stretch; gap: 6px; }
         #v3DashboardModal .v3-modal-header > div:not(.v3-modal-title) { display: flex !important; gap: 8px !important; }
@@ -3879,10 +3880,15 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 @media (max-width: 720px) {
   .v3-lib-card-actions {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 6px;
     width: 100%;
   }
+  .v3-lib-card-actions [data-act="open"],
+  .v3-lib-card-actions [data-act="resume"] { grid-column: span 3; }
+  .v3-lib-card-actions [data-act="edit"],
+  .v3-lib-card-actions [data-act="share"],
+  .v3-lib-card-actions [data-act="archive"] { grid-column: span 2; }
   .v3-lib-card-actions button {
     font-size: 12px;
     padding: 8px 4px;
@@ -9707,7 +9713,7 @@ body:not(.theme-light) .v3-heatmap-cell {
 <div class="v3-filter-row">
   <div id="v3LibraryActiveChips" class="v3-filter-chips"></div>
   <div id="v3LibraryFacets" class="v3-facets"></div>
-  <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button" data-i18n="library.resetFilters">Сбросить</button>
+  <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button" data-i18n="library.resetFilters">↺ Сбросить фильтры</button>
 </div>
 	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
@@ -10002,7 +10008,7 @@ body:not(.theme-light) .v3-heatmap-cell {
 	  <div class="v3-filter-row">
   <div id="v3DashActiveChips" class="v3-filter-chips"></div>
   <div id="v3DashFacets" class="v3-facets"></div>
-  <button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()" data-i18n="dashboard.resetFilters">Сбросить</button>
+  <button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()" data-i18n="dashboard.resetFilters">↺ Сбросить фильтры</button>
 	</div>
 
 
