@@ -8708,6 +8708,14 @@ body:not(.theme-light) .v3-heatmap-cell {
   #v3AboutPanel {
     max-height: calc(100vh - env(safe-area-inset-top, 0px) - 90px);
   }
+  /* Feedback modal: inline margin:auto centers panel vertically — override with !important */
+  #v3FeedbackModal {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
+  }
+  #v3FeedbackPanel {
+    margin: 0 auto !important;
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - 90px) !important;
+  }
 }
 
 /* ── Tier 1.2: error/success toast variants + report button ──── */
