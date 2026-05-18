@@ -4444,6 +4444,15 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   .v3-dash-left, .v3-dash-right { min-width: 0; }
 }
 
+@media (max-width: 600px) {
+  /* Panels must fill full width (align-items:flex-start was making them float-narrow) */
+  .v3-dash-layout { align-items: stretch; }
+  /* flex-basis:520px reserves blank height in column flow — reset to content height */
+  .v3-dash-left, .v3-dash-right { flex: 0 0 auto; width: 100%; min-width: 0; }
+  /* Long Hebrew/transliteration words must wrap within the row */
+  .v3-dash-row-he, .v3-dash-row-tr, .v3-dash-row-ru, .v3-dash-row-meta { overflow-wrap: break-word; }
+}
+
 /* Rows panel */
 .v3-dash-rows-header {
   font-size: 12px;
