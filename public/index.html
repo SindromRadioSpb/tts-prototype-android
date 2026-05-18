@@ -6406,38 +6406,99 @@ body.v3-ide-mode {
   border-color: rgba(255,255,255,0.5);
 }
 
-/* IDE header: portrait mobile — two-row grid layout */
+/* IDE header: portrait mobile — slim single-row utilities, nav moves to bottom tab bar */
 @media (max-width: 600px) {
   .v3-ide-header {
-    flex-direction: column;
-    height: auto;
-    min-height: calc(56px + env(safe-area-inset-top));
-    padding: env(safe-area-inset-top) 8px 6px;
-    gap: 5px;
+    height: calc(44px + env(safe-area-inset-top));
+    min-height: calc(44px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 8px 0;
     align-items: stretch;
   }
   .v3-ide-header-logo { display: none; }
+  /* Hide nav buttons from header — they live in the bottom tab bar */
+  #v3IdeLeftToggle, #v3IdeRightToggle, #v3IdeDashBtn, #v3IdeSrsTrainerBtn { display: none !important; }
   .v3-ide-header-actions {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
   }
   .v3-ide-header .lang-select-wrap {
-    grid-column: 1 / 3;
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     margin: 0;
   }
-  #v3IdeExitBtn { grid-column: 3 / 5; }
-  .v3-ide-header .btn-ide {
-    font-size: 11px;
-    padding: 6px 4px;
-    min-height: 44px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
   .v3-ide-header .lang-select { width: 100%; min-height: 44px; }
+  #v3IdeFeedbackBtn, #v3IdeThemeBtn {
+    padding: 6px 8px;
+    font-size: 16px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+  #v3IdeExitBtn {
+    padding: 6px 10px;
+    font-size: 11px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+
+  /* ── Bottom Tab Bar ── */
+  #v3IdeTabBar {
+    display: none; /* shown only in IDE mode via body.v3-ide-mode */
+  }
+  body.v3-ide-mode #v3IdeTabBar {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: linear-gradient(180deg, #1b3a6b 0%, #172f56 100%);
+    box-shadow: 0 -1px 0 rgba(255,255,255,0.08), 0 -4px 24px rgba(0,0,0,0.3);
+    z-index: 101;
+  }
+  .v3-ide-tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    padding: 6px 4px;
+    position: relative;
+    transition: color 0.18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .v3-ide-tab-item:active { opacity: 0.7; }
+  .v3-ide-tab-item.btn-ide-active { color: #fff; }
+  .v3-ide-tab-item.btn-ide-active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 25%; right: 25%;
+    height: 2px;
+    background: #60a5fa;
+    border-radius: 0 0 2px 2px;
+  }
+  .v3-tbi-icon { font-size: 20px; line-height: 1; }
+  .v3-tbi-label { font-size: 10px; font-weight: 500; letter-spacing: 0.01em; }
+
+  /* Workspace: subtract tab bar height from bottom */
+  body.v3-ide-mode {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+  body.v3-ide-mode .v3-ide-workspace {
+    height: calc(100dvh - var(--v3-ide-header-offset) - 56px - env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Hide tab bar on desktop */
+@media (min-width: 601px) {
+  #v3IdeTabBar { display: none !important; }
 }
 
 /* --- IDE Panels --- */
@@ -8936,6 +8997,26 @@ body:not(.theme-light) .v3-heatmap-cell {
   </div>
 </header>
 
+<!-- V3 IDE Bottom Tab Bar (mobile only) -->
+<nav id="v3IdeTabBar" class="v3-ide-tabbar" role="tablist" aria-label="Навигация IDE">
+  <button class="v3-ide-tab-item" id="v3TabBarLibrary" role="tab" onclick="v3IdeToggleLeft()" data-i18n-aria-label="ide.library" aria-label="Library">
+    <span class="v3-tbi-icon">📖</span>
+    <span class="v3-tbi-label" data-i18n="ide.library">Library</span>
+  </button>
+  <button class="v3-ide-tab-item" id="v3TabBarInspector" role="tab" onclick="v3IdeToggleRight()" data-i18n-aria-label="ide.inspector" aria-label="Inspector">
+    <span class="v3-tbi-icon">📝</span>
+    <span class="v3-tbi-label" data-i18n="ide.inspector">Inspector</span>
+  </button>
+  <button class="v3-ide-tab-item" id="v3TabBarDashboard" role="tab" onclick="v3DashboardOpen()" data-i18n-aria-label="ide.dashboard" aria-label="Dashboard">
+    <span class="v3-tbi-icon">📊</span>
+    <span class="v3-tbi-label" data-i18n="ide.dashboard">Dashboard</span>
+  </button>
+  <button class="v3-ide-tab-item" id="v3TabBarTrain" role="tab" onclick="v3SrsTrainerOpen()" data-i18n-aria-label="ide.train" aria-label="Train">
+    <span class="v3-tbi-icon">🎯</span>
+    <span class="v3-tbi-label" data-i18n="ide.train">Train</span>
+  </button>
+</nav>
+
 <!-- V3 IDE Workspace Container -->
 <div id="v3IdeWorkspace" class="v3-ide-workspace">
   <!-- Left Panel: Search / Library / History -->
@@ -10914,9 +10995,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=38"></script>
-<script src="/i18n/locales/en.js?v=38"></script>
-<script src="/i18n/locales/he.js?v=38"></script>
+<script src="/i18n/locales/ru.js?v=40"></script>
+<script src="/i18n/locales/en.js?v=40"></script>
+<script src="/i18n/locales/he.js?v=40"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -11333,6 +11414,7 @@ const rightPanel = document.getElementById("v3IdeRight");
 if (leftPanel) leftPanel.classList.toggle("v3-ide-panel-open", !!v3IdeState.leftOpen);
 if (rightPanel) rightPanel.classList.toggle("v3-ide-panel-open", !!v3IdeState.rightOpen);
 v3IdeUpdateBackdrop();
+v3IdeTabBarSync();
 
 v3IdeLeftTabSwitch(v3IdeState.leftTab);
 v3IdeRightTabSwitch(v3IdeState.rightTab);
@@ -11436,14 +11518,13 @@ function v3IdeRightTabSwitch(tab) {
 // --- IDE Panel Toggle (for responsive) ---
 function v3IdeToggleLeft() {
   const panel = document.getElementById("v3IdeLeft");
-  const backdrop = document.getElementById("v3IdePanelBackdrop");
   if (!panel) return;
 
   v3IdeState.leftOpen = !v3IdeState.leftOpen;
   panel.classList.toggle("v3-ide-panel-open", v3IdeState.leftOpen);
 
-  // Update backdrop for mobile
   v3IdeUpdateBackdrop();
+  v3IdeTabBarSync();
   v3IdeSaveState();
 }
 
@@ -11455,7 +11536,15 @@ function v3IdeToggleRight() {
   panel.classList.toggle("v3-ide-panel-open", v3IdeState.rightOpen);
 
   v3IdeUpdateBackdrop();
+  v3IdeTabBarSync();
   v3IdeSaveState();
+}
+
+function v3IdeTabBarSync() {
+  const libBtn = document.getElementById("v3TabBarLibrary");
+  const insBtn = document.getElementById("v3TabBarInspector");
+  if (libBtn) libBtn.classList.toggle("btn-ide-active", !!v3IdeState.leftOpen);
+  if (insBtn) insBtn.classList.toggle("btn-ide-active", !!v3IdeState.rightOpen);
 }
 
 function v3IdeUpdateBackdrop() {
