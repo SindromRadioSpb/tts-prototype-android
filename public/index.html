@@ -2259,6 +2259,10 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .v3-dash-item { flex-direction: column; }
         .v3-dash-actions { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
         .v3-dash-actions button { width: auto !important; font-size: 13px; padding: 10px 8px; }
+        /* Dashboard modal: no horizontal scroll (activity select can be wide) */
+        #v3DashboardModal .v3-modal-body { overflow-x: hidden; }
+        /* Activity text-filter select: clamp to ~55% so h3 stays visible */
+        #v3DashActText { max-width: 55%; min-width: 0; }
         /* Bottom sheet: Library + Dashboard модалы снизу экрана */
         #v3LibraryModal .v3-modal-panel,
         #v3DashboardModal .v3-modal-panel {
