@@ -4121,6 +4121,7 @@ body:not(.theme-light) .v3-smart-chip.active { color: #0f172a; }
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
+.v3-smart-chip-badge:empty { display: none; }
 body.theme-dark .v3-smart-chip-badge,
 body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
 .v3-smart-chip.v3-smart-chip-empty {
@@ -4144,6 +4145,7 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
 }
 .v3-filter-chip-x:hover { color: var(--theme-text-primary); }
 .v3-filter-reset { white-space: nowrap; }
+#v3LibraryResetFilters { display: none; }
 
 /* Tag facets */
 .v3-facets {
@@ -4174,8 +4176,18 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
   color: var(--theme-accent);  /* theme-aware link colour */
 }
 a.v3-source-label:hover { color: var(--theme-accent-hover); }
-.v3-src-copy { flex: 0 0 auto; }
-.v3-src-copy:hover { background: var(--theme-bg-hover); }
+.v3-src-copy {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--theme-text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  line-height: 1;
+}
+.v3-src-copy:hover { background: var(--theme-bg-hover); border-color: var(--theme-border-medium); }
 
 /* Title deeplink copy button */
 .v3-title-copy {
@@ -4185,11 +4197,12 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
   font-size: 12px;
   cursor: pointer;
   background: transparent;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--theme-border-soft);
   border-radius: 4px;
   vertical-align: middle;
+  color: var(--theme-text-muted);
 }
-.v3-title-copy:hover { background: #f3f4f6; }
+.v3-title-copy:hover { background: var(--theme-bg-hover); border-color: var(--theme-border-medium); }
 .v3-only-mobile { display: none; }
 
 /* Clickable title link */
@@ -9715,13 +9728,13 @@ body:not(.theme-light) .v3-heatmap-cell {
   <button type="button" class="v3-smart-chip" data-smart="audio-noted" onclick="v3LibrarySetSmartChip('audio-noted')" data-i18n-title="library.smartAudioNotedTitle" title="Тексты с аудио-якорными заметками"><span data-i18n="library.smartAudioNoted">📍 Audio-noted</span> <span class="v3-smart-chip-badge" data-smart-count="audio-noted"></span></button>
   <button type="button" class="v3-smart-chip" data-smart="srs-noted"   onclick="v3LibrarySetSmartChip('srs-noted')"   data-i18n-title="library.smartSrsNotedTitle"   title="Тексты с SRS-привязанными заметками"><span data-i18n="library.smartSrsNoted">🎯 SRS-noted</span> <span class="v3-smart-chip-badge" data-smart-count="srs-noted"></span></button>
   <button type="button" class="v3-smart-chip" data-smart="templated"   onclick="v3LibrarySetSmartChip('templated')"   data-i18n-title="library.smartTemplatedTitle"   title="Тексты со структурированными заметками"><span data-i18n="library.smartTemplated">⭐ Templated</span> <span class="v3-smart-chip-badge" data-smart-count="templated"></span></button>
-  <button type="button" class="v3-smart-chip-clear" id="v3LibrarySmartClear" onclick="v3LibrarySetSmartChip(null)" data-i18n="library.smartClear" data-i18n-aria-label="library.smartClear" title="Сбросить smart-фильтр">×</button>
+  <button type="button" class="v3-smart-chip-clear" id="v3LibrarySmartClear" onclick="v3LibrarySetSmartChip(null)" data-i18n-aria-label="library.smartClear" title="Сбросить smart-фильтр">×</button>
 </div>
 
 <div class="v3-filter-row">
   <div id="v3LibraryActiveChips" class="v3-filter-chips"></div>
   <div id="v3LibraryFacets" class="v3-facets"></div>
-  <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button" data-i18n="library.resetFilters">↺ Сбросить фильтры</button>
+  <button id="v3LibraryResetFilters" class="btn-secondary v3-filter-reset" type="button">↺ Сбросить фильтры</button>
 </div>
 	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
@@ -20438,6 +20451,21 @@ function v3LibraryRenderActiveChips() {
   const qRaw = String(v3LibEl("v3LibrarySearch")?.value || "").trim();
   const chips = v3BuildActiveChipsFromQuery(qRaw);
   v3RenderActiveChips(v3LibEl("v3LibraryActiveChips"), chips);
+  v3LibraryUpdateResetBtn();
+}
+
+function v3LibraryUpdateResetBtn() {
+  const btn = v3LibEl("v3LibraryResetFilters");
+  if (!btn) return;
+  const qRaw = String(v3LibEl("v3LibrarySearch")?.value || "").trim();
+  const chips = v3BuildActiveChipsFromQuery(qRaw);
+  const total = chips.length + (v3LibrarySmartChip ? 1 : 0);
+  if (total > 0) {
+    btn.textContent = t("library.resetFilters", "↺ Сбросить фильтры") + " (" + total + ")";
+    btn.style.display = "inline-block";
+  } else {
+    btn.style.display = "none";
+  }
 }
 
 function v3LibraryResetFilters() {
@@ -20451,8 +20479,19 @@ function v3LibraryResetFilters() {
   v3LibraryLastRenderKey = null;
   v3LibraryLastQuery = "";
 
+  // also reset active smart chip and sync URL hash
+  if (v3LibrarySmartChip) {
+    v3LibrarySmartChip = null;
+    try {
+      const params = new URLSearchParams(location.hash.slice(1));
+      params.delete("smart");
+      history.replaceState(null, "", "#" + (params.toString() || ""));
+    } catch (_) {}
+  }
+
   v3LibraryApplyFilter();
   v3LibraryRenderActiveChips();
+  v3LibrarySmartUpdateUI();
 }
 
 let v3LibraryFilterUiBound = false;
@@ -21519,6 +21558,7 @@ function v3LibrarySmartUpdateUI() {
   const chips = wrap.querySelectorAll(".v3-smart-chip");
   chips.forEach((c) => c.classList.toggle("active", c.dataset.smart === v3LibrarySmartChip));
   wrap.classList.toggle("has-active", !!v3LibrarySmartChip);
+  v3LibraryUpdateResetBtn();
 }
 
 async function v3LibrarySmartLoadCache() {
