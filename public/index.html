@@ -2253,7 +2253,12 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .v3-dash-rows-header { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .v3-dash-rows-header select { flex: 1; min-width: 0; }
         .v3-dash-row-item { flex-direction: column; gap: 6px; }
-        .v3-dash-row-actions { justify-content: flex-start; }
+        .v3-dash-row-actions { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .v3-dash-row-actions button { width: auto !important; }
+        /* Dashboard cards: stack text + buttons vertically */
+        .v3-dash-item { flex-direction: column; }
+        .v3-dash-actions { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+        .v3-dash-actions button { width: auto !important; font-size: 13px; padding: 10px 8px; }
         /* Bottom sheet: Library + Dashboard модалы снизу экрана */
         #v3LibraryModal .v3-modal-panel,
         #v3DashboardModal .v3-modal-panel {
@@ -4143,6 +4148,7 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
 .v3-filter-chip-x:hover { color: var(--theme-text-primary); }
 .v3-filter-reset { white-space: nowrap; }
 #v3LibraryResetFilters { display: none; }
+#v3DashResetFilters { display: none; }
 
 /* Tag facets */
 .v3-facets {
@@ -4466,6 +4472,30 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 .v3-dash-row-actions .btn-secondary:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.v3-dash-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+.v3-dash-metric {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: center;
+}
+.v3-dash-metric-val {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+.v3-dash-metric-lbl {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
 }
 
 /* Dashboard modes */
@@ -9971,6 +10001,13 @@ body:not(.theme-light) .v3-heatmap-cell {
 
     <div class="v3-dash-popdivider"></div>
 
+    <label class="v3-dash-poprow" title="Если включено: кнопка «Продолжить» откроет текст, перейдёт к последней строке и автоматически запустит её воспроизведение. По умолчанию выключено.">
+      <input id="v3DashAutoPlayContinue" type="checkbox" onchange="v3DashboardOnAutoPlayChange()" data-i18n-aria-label="dashboard.autoplayContinue" aria-label="Автовоспр. при «Продолжить»" />
+      <span data-i18n="dashboard.autoplayContinue">Автовоспр. при «Продолжить»</span>
+    </label>
+
+    <div class="v3-dash-popdivider"></div>
+
     <div class="v3-dash-popover-title" data-i18n="dashboard.viewPresetsTitle">Пресеты</div>
 
     <button id="v3DashViewPresetDefault" class="btn-secondary v3-dash-popbtn" type="button" data-i18n="dashboard.viewPresetDefault">По умолчанию</button>
@@ -10007,26 +10044,12 @@ body:not(.theme-light) .v3-heatmap-cell {
           <span data-i18n="dashboard.showArchived">Показывать архивные</span>
         </label>
 
-		<label
-			title="Если включено: кнопка «Продолжить» откроет текст, перейдёт к последней строке и автоматически запустит её воспроизведение. По умолчанию выключено."
-			style="display:flex; gap:6px; align-items:center; font-size:12px; opacity:0.9;"
-		>
-			<input
-				id="v3DashAutoPlayContinue"
-				type="checkbox"
-				onchange="v3DashboardOnAutoPlayChange()"
-				data-i18n-aria-label="dashboard.autoplayContinue"
-				aria-label="Автовоспр. при «Продолжить»"
-			/>
-			<span data-i18n="dashboard.autoplayContinue">Автовоспр. при «Продолжить»</span>
-			</label>
-
 		      </div>
 	  
 	  <div class="v3-filter-row">
   <div id="v3DashActiveChips" class="v3-filter-chips"></div>
   <div id="v3DashFacets" class="v3-facets"></div>
-  <button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()" data-i18n="dashboard.resetFilters">↺ Сбросить фильтры</button>
+  <button id="v3DashResetFilters" class="btn-secondary v3-filter-reset" type="button" onclick="v3DashboardResetFilters()">↺ Сбросить фильтры</button>
 	</div>
 
 
@@ -10848,9 +10871,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js"></script>
-<script src="/i18n/locales/en.js"></script>
-<script src="/i18n/locales/he.js"></script>
+<script src="/i18n/locales/ru.js?v=38"></script>
+<script src="/i18n/locales/en.js?v=38"></script>
+<script src="/i18n/locales/he.js?v=38"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -25945,13 +25968,24 @@ function v3DashboardRenderMetrics() {
   const p = v3DashAnalytics.period || {};
   const a = v3DashAnalytics.all || {};
 
-  const line1 =
-    t("dashboard.stats7days", { plays: Number(p.plays || 0), unique_rows: Number(p.unique_rows || 0), unique_texts: Number(p.unique_texts || 0), time: v3FmtMs(p.time_ms) });
-
-  const line2 =
-    t("dashboard.statsAll", { plays: Number(a.plays || 0), unique_rows: Number(a.unique_rows || 0), unique_texts: Number(a.unique_texts || 0), time: v3FmtMs(a.time_ms) });
-
-  metricsEl.innerHTML = `<div>${v3EscapeHtml(line1)}</div><div>${v3EscapeHtml(line2)}</div>`;
+  metricsEl.innerHTML = `<div class="v3-dash-metrics-grid">
+    <div class="v3-dash-metric">
+      <div class="v3-dash-metric-val">${Number(p.plays || 0)}</div>
+      <div class="v3-dash-metric-lbl">${v3EscapeHtml(t("dashboard.metricPlaysLbl", "Строк / 7д"))}</div>
+    </div>
+    <div class="v3-dash-metric">
+      <div class="v3-dash-metric-val">${Number(p.unique_texts || 0)}</div>
+      <div class="v3-dash-metric-lbl">${v3EscapeHtml(t("dashboard.metricTextsLbl", "Текстов / 7д"))}</div>
+    </div>
+    <div class="v3-dash-metric">
+      <div class="v3-dash-metric-val">${Number(a.plays || 0)}</div>
+      <div class="v3-dash-metric-lbl">${v3EscapeHtml(t("dashboard.metricAllPlaysLbl", "Строк всего"))}</div>
+    </div>
+    <div class="v3-dash-metric">
+      <div class="v3-dash-metric-val">${v3EscapeHtml(v3FmtMs(p.time_ms))}</div>
+      <div class="v3-dash-metric-lbl">${v3EscapeHtml(t("dashboard.metricTimeLbl", "Время / 7д"))}</div>
+    </div>
+  </div>`;
 }
 
 function v3DashGetActivityTextFilter() {
@@ -27285,6 +27319,23 @@ function v3DashboardRenderActiveChips() {
   if (incArch) chips.unshift({ kind: "archived", value: "1", label: t("dashboard.badgeArchived") });
 
   v3RenderActiveChips(v3LibEl("v3DashActiveChips"), chips);
+  v3DashUpdateResetBtn();
+}
+
+function v3DashUpdateResetBtn() {
+  const btn = v3LibEl("v3DashResetFilters");
+  if (!btn) return;
+  const qRaw = String(v3LibEl("v3DashSearch")?.value || "").trim();
+  const chips = v3BuildActiveChipsFromQuery(qRaw);
+  const level = String(v3LibEl("v3DashLevel")?.value || "").trim();
+  const incArch = !!v3LibEl("v3DashIncludeArchived")?.checked;
+  const total = chips.length + (level ? 1 : 0) + (incArch ? 1 : 0);
+  if (total > 0) {
+    btn.textContent = t("dashboard.resetFilters", "↺ Сбросить фильтры") + " (" + total + ")";
+    btn.style.display = "inline-block";
+  } else {
+    btn.style.display = "none";
+  }
 }
 
 function v3DashboardResetFilters() {
