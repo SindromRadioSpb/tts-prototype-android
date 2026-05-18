@@ -2269,7 +2269,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
             position: absolute;
             bottom: 0; left: 0; right: 0;
             width: 100%; max-width: 100%;
-            height: auto; max-height: 92vh;
+            height: auto; max-height: calc(100vh - 110px);
             margin: 0;
             border-radius: 20px 20px 0 0;
             animation: v3MobileSheetIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -8699,6 +8699,16 @@ body:not(.theme-light) .v3-heatmap-cell {
 #v3AboutClose:hover { background: #f1f5f9; color: #0f172a; }
 /* About panel buttons must not stretch to 100% width on mobile */
 #v3AboutPanel button { width: auto; }
+@media (max-width: 600px) {
+  /* Push About panel below iOS address bar (fixed overlay starts at layout-viewport top) */
+  #v3AboutModal {
+    align-items: flex-start;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 60px);
+  }
+  #v3AboutPanel {
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - 90px);
+  }
+}
 
 /* ── Tier 1.2: error/success toast variants + report button ──── */
 .toast.toast-error   { background: #991b1b; }
