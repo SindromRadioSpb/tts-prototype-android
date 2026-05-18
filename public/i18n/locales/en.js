@@ -1390,6 +1390,9 @@ window.I18N_LOCALES.en = {
     creditsHebrew: "Hebrew transliteration: hebrew-transliteration (MIT)",
     creditsTts: "TTS: Google Cloud Text-to-Speech (external service)",
     creditsTranslate: "Translation: Gemini API (external service)",
+    maintenanceSection: "Maintenance",
+    clearCacheDesc: "If something looks wrong — clear cache and reload",
+    clearCacheBtn: "↺ Clear cache",
     closeBtn: "Close",
   },
   research: {

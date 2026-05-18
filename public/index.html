@@ -38756,7 +38756,10 @@ document.addEventListener("i18n:changed", function () {
     <div id="v3AboutBody">
       <div class="v3-about-row">
         <div class="v3-about-label" data-i18n="about.versionLabel">Версия</div>
-        <div class="v3-about-value" id="v3AboutVersion">3.0.0</div>
+        <div class="v3-about-value" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="v3AboutVersion">3.0.0</span>
+          <span id="v3AboutUpdateStatus"></span>
+        </div>
       </div>
       <div class="v3-about-row">
         <div class="v3-about-label" data-i18n="about.licenseLabel">Лицензия</div>
@@ -38781,6 +38784,12 @@ document.addEventListener("i18n:changed", function () {
         <div data-i18n="about.creditsTranslate">Перевод: Gemini API (внешний сервис)</div>
       </div>
 
+      <div class="v3-about-section-title" data-i18n="about.maintenanceSection">Обслуживание</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <span class="v3-about-credits" data-i18n="about.clearCacheDesc">Если что-то отображается неправильно — очистить кэш и перезагрузить</span>
+        <button id="v3AboutClearCacheBtn" class="btn-secondary" style="white-space:nowrap;font-size:12px;flex-shrink:0;" data-i18n="about.clearCacheBtn">↺ Очистить кэш</button>
+      </div>
+
       <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
         <a href="#" onclick="v3AboutClose();v3OnboardingReset();return false;" style="font-size:12.5px; color:#2563eb; text-decoration:none;" data-i18n="onboarding.resetOnboarding">Сбросить onboarding (показать снова)</a>
         <button class="btn-secondary" onclick="v3AboutClose()" data-i18n="about.closeBtn">Закрыть</button>
@@ -38791,26 +38800,59 @@ document.addEventListener("i18n:changed", function () {
 
 <script>
   // ── Direction 8: About modal logic ────────────────────────────────────
+  function v3AboutRefreshUpdateStatus() {
+    const statusEl = document.getElementById("v3AboutUpdateStatus");
+    if (!statusEl) return;
+    const waiting = window.__v3WaitingWorker;
+    if (waiting) {
+      statusEl.innerHTML =
+        '<span style="color:#2563eb;font-size:12px;font-weight:600;">→ Доступно обновление</span>' +
+        ' <button onclick="window.__v3ApplyUpdate()" style="padding:3px 10px;background:#2563eb;color:#fff;border:0;border-radius:4px;font-size:11.5px;font-weight:600;cursor:pointer;">Обновить</button>';
+    } else {
+      statusEl.innerHTML = '<span style="color:#16a34a;font-size:12px;">✓ Актуальная</span>';
+    }
+  }
+
   function v3AboutOpen() {
     const m = document.getElementById("v3AboutModal");
-    if (m) {
-      m.setAttribute("data-open", "1");
-      // Wire up version display from package.json (fetched once).
-      try {
-        if (!window.__v3AppVersion) {
-          fetch("/api/client-config", { cache: "no-store" })
-            .then((r) => r.ok ? r.json() : null)
-            .then((j) => {
-              // Fallback: use the static version we know is current.
-              const v = (j && j.version) || "3.0.0";
-              window.__v3AppVersion = v;
-              const el = document.getElementById("v3AboutVersion");
-              if (el) el.textContent = v;
-              const fv = document.getElementById("appFooterVersion");
-              if (fv) fv.textContent = "v" + v;
-            }).catch(() => {});
-        }
-      } catch (_) {}
+    if (!m) return;
+    m.setAttribute("data-open", "1");
+    // Version display (fetched once per session).
+    try {
+      if (!window.__v3AppVersion) {
+        fetch("/api/client-config", { cache: "no-store" })
+          .then((r) => r.ok ? r.json() : null)
+          .then((j) => {
+            const v = (j && j.version) || "3.0.0";
+            window.__v3AppVersion = v;
+            const el = document.getElementById("v3AboutVersion");
+            if (el) el.textContent = v;
+            const fv = document.getElementById("appFooterVersion");
+            if (fv) fv.textContent = "v" + v;
+          }).catch(() => {});
+      }
+    } catch (_) {}
+    // SW update status badge.
+    v3AboutRefreshUpdateStatus();
+    // Cache-clear button (wired once).
+    const clearBtn = document.getElementById("v3AboutClearCacheBtn");
+    if (clearBtn && !clearBtn.__v3Wired) {
+      clearBtn.__v3Wired = true;
+      clearBtn.addEventListener("click", async () => {
+        clearBtn.disabled = true;
+        clearBtn.textContent = "⏳ Очищаю…";
+        try {
+          if ("serviceWorker" in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map((r) => r.unregister()));
+          }
+          if ("caches" in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map((k) => caches.delete(k)));
+          }
+        } catch (e) { console.warn("[about] cache clear error:", e); }
+        location.reload(true);
+      });
     }
   }
   function v3AboutClose() {
@@ -38944,10 +38986,25 @@ document.addEventListener("i18n:changed", function () {
       updateToastEl = null;
     }
 
+    // Expose waiting worker + apply-update helper globally so the About
+    // dialog can reference them without a closure dependency.
+    function setWaitingWorker(w) {
+      window.__v3WaitingWorker = w || null;
+      if (typeof window.v3AboutRefreshUpdateStatus === "function") {
+        window.v3AboutRefreshUpdateStatus();
+      }
+    }
+
+    window.__v3ApplyUpdate = function () {
+      const w = window.__v3WaitingWorker;
+      if (w) w.postMessage({ type: "SKIP_WAITING" });
+      setTimeout(() => location.reload(), 600);
+      dismissUpdateToast();
+    };
+
     // Surface a premium update toast with two buttons (Обновить / Позже).
-    // Mirrors the v3UndoToast visual language so the user recognises it
-    // as an action-toast.
     function showUpdateToast(waitingWorker) {
+      setWaitingWorker(waitingWorker);
       dismissUpdateToast();
       const tt = (k, fb) => (typeof window.t === "function" ? window.t(k) : fb);
       const el = document.createElement("div");
@@ -38959,23 +39016,17 @@ document.addEventListener("i18n:changed", function () {
         "box-shadow:0 6px 20px rgba(0,0,0,0.25);z-index:99998;display:flex;" +
         "align-items:center;gap:10px;max-width:90vw;";
       const span = document.createElement("span");
-      span.textContent = tt("app.updateAvailable", "App update available");
+      span.textContent = tt("app.updateAvailable", "Доступно обновление");
 
       const updateBtn = document.createElement("button");
-      updateBtn.textContent = tt("app.updateNow", "Update");
+      updateBtn.textContent = tt("app.updateNow", "Обновить");
       updateBtn.style.cssText =
         "padding:6px 12px;background:#2563eb;color:#fff;border:0;border-radius:4px;" +
         "font-weight:600;cursor:pointer;font-size:13px;";
-      updateBtn.addEventListener("click", () => {
-        if (waitingWorker) waitingWorker.postMessage({ type: "SKIP_WAITING" });
-        // Reload triggers on `controllerchange` (handler below); fallback
-        // here in case the event is missed.
-        setTimeout(() => location.reload(), 600);
-        dismissUpdateToast();
-      });
+      updateBtn.addEventListener("click", () => window.__v3ApplyUpdate());
 
       const laterBtn = document.createElement("button");
-      laterBtn.textContent = tt("app.updateLater", "Later");
+      laterBtn.textContent = tt("app.updateLater", "Позже");
       laterBtn.style.cssText =
         "padding:6px 10px;background:transparent;color:#9ca3af;border:0;border-radius:4px;" +
         "cursor:pointer;font-size:13px;";
@@ -38990,8 +39041,7 @@ document.addEventListener("i18n:changed", function () {
 
     function watchForUpdate(reg) {
       if (!reg) return;
-      // If a waiting worker already exists (e.g. user dismissed last
-      // session's toast), surface it now.
+      // Waiting worker already exists (e.g. user dismissed last session's toast).
       if (reg.waiting && navigator.serviceWorker.controller) {
         showUpdateToast(reg.waiting);
       }
@@ -38999,12 +39049,7 @@ document.addEventListener("i18n:changed", function () {
         const newWorker = reg.installing;
         if (!newWorker) return;
         newWorker.addEventListener("statechange", () => {
-          if (
-            newWorker.state === "installed" &&
-            navigator.serviceWorker.controller
-          ) {
-            // A new SW is waiting AND a controller is in place — this is
-            // an update, not a first-install. Notify the user.
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
             showUpdateToast(newWorker);
           }
         });

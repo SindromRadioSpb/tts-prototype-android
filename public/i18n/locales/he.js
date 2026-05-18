@@ -1397,6 +1397,9 @@ window.I18N_LOCALES.he = {
     creditsHebrew: "תעתיק עברית: hebrew-transliteration (MIT)",
     creditsTts: "TTS: Google Cloud Text-to-Speech (שירות חיצוני)",
     creditsTranslate: "תרגום: Gemini API (שירות חיצוני)",
+    maintenanceSection: "תחזוקה",
+    clearCacheDesc: "אם משהו מוצג בצורה שגויה — נקה מטמון וטען מחדש",
+    clearCacheBtn: "↺ נקה מטמון",
     closeBtn: "סגור",
   },
   // ⚠ Hebrew strings below are machine-grade; native review required

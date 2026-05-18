@@ -1403,6 +1403,9 @@ window.I18N_LOCALES.ru = {
     creditsHebrew: "Hebrew-транслитерация: hebrew-transliteration (MIT)",
     creditsTts: "TTS: Google Cloud Text-to-Speech (внешний сервис)",
     creditsTranslate: "Перевод: Gemini API (внешний сервис)",
+    maintenanceSection: "Обслуживание",
+    clearCacheDesc: "Если что-то отображается неправильно — очистить кэш и перезагрузить",
+    clearCacheBtn: "↺ Очистить кэш",
     closeBtn: "Закрыть",
   },
   research: {
