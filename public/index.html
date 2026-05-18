@@ -1671,13 +1671,6 @@ td.col-action-cell {
     .table-settings-cols { justify-content: flex-start; }
 
     .table-settings-advanced {
-        display: none;
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid #e2e8f0;
-    }
-
-    #tableSettings.is-advanced-open .table-settings-advanced {
         display: block;
     }
 
@@ -1693,15 +1686,12 @@ td.col-action-cell {
 	
 	 .table-autonext {
     display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
     font-size: 12px;
     opacity: 0.95;
-}
-
-.table-autonext .playlist-btn {
-    width: 100%;
+    flex-wrap: wrap;
 }
 
 .table-autonext .playlist-btn:disabled {
@@ -1731,7 +1721,6 @@ td.col-action-cell {
 
     @media (max-width: 600px) {
         .table-settings-row { justify-content: flex-start; }
-        .table-presets { justify-content: flex-start; }
     }
 
     /* === TABLE: Premium Readability (CSS only) === */
@@ -2376,36 +2365,6 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
             max-width: 180px;
         }
 
-        .table-settings-row-main {
-            gap: 8px;
-        }
-
-        .table-settings-row-main .table-presets {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 6px;
-        }
-
-        .table-settings-row-main .table-presets .btn-mini {
-            width: 100%;
-            min-width: 0;
-            padding: 10px 4px;
-            font-size: 11px;
-            line-height: 1.15;
-            border-radius: 14px;
-            letter-spacing: -0.01em;
-        }
-
-        .table-settings-row-main .table-settings-actions {
-            width: 100%;
-            justify-content: flex-start;
-        }
-
-        .table-settings-row-main .table-settings-actions .btn-mini-secondary {
-            min-height: 42px;
-            padding: 10px 12px;
-        }
 
         #toastContainer {
             bottom: calc(14px + env(safe-area-inset-bottom, 0px));
@@ -9687,21 +9646,10 @@ body:not(.theme-light) .v3-heatmap-cell {
                         <div id="resultsMeta"></div>
                         <div id="errorMsg" class="error"></div>
 
-                        <!-- 🧩 Таблица: отображение и сценарии (коллапсируемый блок) -->
+                        <!-- 🎛️ Настройки таблицы (коллапсируемый блок) -->
                         <details id="tableSettings" class="table-settings" aria-label="Настройки таблицы">
-                            <summary class="table-settings-summary" data-i18n="classic.tableSettingsLabel">🧩 Таблица: отображение и сценарии</summary>
+                            <summary class="table-settings-summary" data-i18n="classic.tableSettingsLabel">🎛️ Настройки таблицы</summary>
                             <div class="table-settings-inner">
-                            <div class="table-settings-row table-settings-row-main">
-                                <div class="table-presets" role="group" aria-label="Пресеты таблицы">
-                                    <button type="button" class="btn-mini" data-preset="full" title="Показать все 4 колонки" data-i18n="classic.tableFull">Полная</button>
-                                    <button type="button" class="btn-mini" data-preset="he_ru" title="Иврит + Перевод (без огласовок и транслита)" data-i18n="classic.tableHeRu">Иврит+рус</button>
-                                    <button type="button" class="btn-mini" data-preset="phonetics" title="Иврит + огласовки + транслит (без русского перевода)" data-i18n="classic.tablePhonetics">Фонетика</button>
-                                    <button type="button" class="btn-mini" data-preset="he_only" title="Только иврит (тренажёр чтения)" data-i18n="classic.tableHeOnly">Только иврит</button>
-                                </div>
-                                <div class="table-settings-actions">
-                                    <button type="button" id="btnTableCustomizeToggle" class="btn-mini-secondary" aria-expanded="false" title="Открыть сценарии и тонкую настройку колонок" data-i18n="classic.tableScenariosAndCols">Сценарии и колонки</button>
-                                </div>
-                            </div>
 
                             <div class="table-settings-advanced" aria-label="Тонкая настройка таблицы">
                                 <div class="table-settings-row table-settings-sub">
