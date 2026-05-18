@@ -8716,6 +8716,18 @@ body:not(.theme-light) .v3-heatmap-cell {
     margin: 0 auto !important;
     max-height: calc(100vh - env(safe-area-inset-top, 0px) - 90px) !important;
   }
+  /* Confirm modal (used by consent, delete, etc): align-items:center hides title;
+     panel has no max-height so long content (consent) pushes buttons off-screen */
+  #v3ConfirmModal {
+    align-items: flex-start !important;
+    padding-top: calc(env(safe-area-inset-top, 0px) + 60px) !important;
+    overflow-y: auto !important;
+  }
+  #v3ConfirmModal > div {
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - 100px) !important;
+    overflow-y: auto !important;
+    width: 100% !important;
+  }
 }
 
 /* ── Tier 1.2: error/success toast variants + report button ──── */
