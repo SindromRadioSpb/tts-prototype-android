@@ -11362,8 +11362,66 @@ function v3IdeResetColumns() {
 // --- IDE Mode Toggle ---
 function v3IdeModeToggle() {
   const enabled = v3IdeModeEnabled();
-  localStorage.setItem(V3_IDE_MODE_KEY, enabled ? "0" : "1");
-  v3IdeApplyMode(!enabled);
+  if (enabled) {
+    // Classic → IDE direction doesn't need a draft check
+    localStorage.setItem(V3_IDE_MODE_KEY, "0");
+    v3IdeApplyMode(false);
+    return;
+  }
+  // IDE → Classic direction: check for unsaved draft in Classic
+  const st = v3SessionGet();
+  if (st && st.mode === "draft") {
+    v3IdeShowDraftDialog();
+    return;
+  }
+  localStorage.setItem(V3_IDE_MODE_KEY, "1");
+  v3IdeApplyMode(true);
+}
+
+function v3IdeShowDraftDialog() {
+  const el = document.createElement("div");
+  el.id = "v3IdeDraftOverlay";
+  Object.assign(el.style, {
+    position: "fixed", inset: "0", background: "rgba(0,0,0,0.55)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    zIndex: "99999", padding: "20px", boxSizing: "border-box"
+  });
+  el.innerHTML = `
+    <div style="background:#1e293b;color:#e2e8f0;border-radius:16px;padding:24px 20px;
+                max-width:340px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+      <div style="font-size:18px;font-weight:700;margin-bottom:10px">⚠️ Несохранённые данные</div>
+      <div style="font-size:14px;opacity:.8;line-height:1.5;margin-bottom:20px">
+        В Classic режиме есть несохранённая таблица. Что сделать перед переходом в IDE?
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button id="v3IddSave" style="background:#3b82f6;color:#fff;border:none;border-radius:10px;
+                padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;text-align:left">
+          💾 Сохранить — перейду в IDE после сохранения
+        </button>
+        <button id="v3IddSkip" style="background:rgba(255,255,255,.1);color:#e2e8f0;border:1px solid rgba(255,255,255,.15);
+                border-radius:10px;padding:12px 16px;font-size:14px;cursor:pointer;text-align:left">
+          → Перейти в IDE без сохранения
+        </button>
+        <button id="v3IddCancel" style="background:transparent;color:rgba(255,255,255,.45);border:none;
+                border-radius:10px;padding:10px 16px;font-size:13px;cursor:pointer;text-align:center">
+          ✕ Остаться в Classic
+        </button>
+      </div>
+    </div>`;
+  const close = () => el.remove();
+  el.querySelector("#v3IddSave").onclick = () => {
+    close();
+    v3LibrarySaveCurrent();
+  };
+  el.querySelector("#v3IddSkip").onclick = () => {
+    close();
+    localStorage.setItem(V3_IDE_MODE_KEY, "1");
+    v3IdeApplyMode(true);
+  };
+  el.querySelector("#v3IddCancel").onclick = close;
+  el.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  document.body.appendChild(el);
+  setTimeout(() => el.querySelector("#v3IddCancel")?.focus(), 0);
 }
 
 function v3IdeSyncHeaderOffsetVar() {
@@ -11425,9 +11483,14 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
     // Load library data
     v3IdeRefreshLibrary();
 
-    // Restore active text if any
+    // Restore active text: IDE state first; fall back to Classic session (library card)
     if (v3IdeState.activeTextId) {
       v3IdeOpenTextInCenter(v3IdeState.activeTextId);
+    } else {
+      const classicSt = v3SessionGet();
+      if (classicSt && classicSt.mode === "library" && classicSt.textId) {
+        v3IdeOpenTextInCenter(String(classicSt.textId));
+      }
     }
   } else {
     body.classList.remove("v3-ide-mode");
