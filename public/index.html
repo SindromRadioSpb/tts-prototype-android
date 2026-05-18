@@ -8642,6 +8642,8 @@ body:not(.theme-light) .v3-heatmap-cell {
   cursor: pointer; padding: 4px 8px; border-radius: 8px;
 }
 #v3AboutClose:hover { background: #f1f5f9; color: #0f172a; }
+/* About panel buttons must not stretch to 100% width on mobile */
+#v3AboutPanel button { width: auto; }
 
 /* ── Tier 1.2: error/success toast variants + report button ──── */
 .toast.toast-error   { background: #991b1b; }
@@ -38785,9 +38787,9 @@ document.addEventListener("i18n:changed", function () {
       </div>
 
       <div class="v3-about-section-title" data-i18n="about.maintenanceSection">Обслуживание</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-        <span class="v3-about-credits" data-i18n="about.clearCacheDesc">Если что-то отображается неправильно — очистить кэш и перезагрузить</span>
-        <button id="v3AboutClearCacheBtn" class="btn-secondary" style="white-space:nowrap;font-size:12px;flex-shrink:0;" data-i18n="about.clearCacheBtn">↺ Очистить кэш</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <span class="v3-about-credits" data-i18n="about.clearCacheDesc" style="flex:1;">Если что-то отображается неправильно — очистить кэш и перезагрузить</span>
+        <button id="v3AboutClearCacheBtn" class="btn-secondary" style="white-space:nowrap;font-size:12px;padding:6px 14px;flex-shrink:0;" data-i18n="about.clearCacheBtn">↺ Очистить кэш</button>
       </div>
 
       <div style="margin-top:18px; display:flex; justify-content:space-between; align-items:center; gap:12px;">
