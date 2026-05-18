@@ -2104,6 +2104,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
     }
 
     @media (max-width: 600px) {
+        html, body { overflow-x: hidden; }
         .dashboard-header { flex-direction: column; align-items: stretch; }
         .btn-console { width: 100%; text-align: center; }
         .stats-box { width: 100%; }
@@ -2322,6 +2323,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         .classic-card {
             padding: 14px 12px;
             border-radius: 18px;
+            box-sizing: border-box;
         }
 
         .classic-disclosure:not([open]) .classic-card-body {
