@@ -3872,31 +3872,35 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 .v3-lib-card-top {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;  /* mobile: actions wrap below content instead of overflow */
 }
 @media (max-width: 720px) {
   .v3-lib-card-actions {
-    display: grid;
+    display: grid !important;
     grid-template-columns: repeat(6, 1fr);
     gap: 6px;
     width: 100%;
   }
-  .v3-lib-card-actions [data-act="open"],
-  .v3-lib-card-actions [data-act="resume"] { grid-column: span 3; }
+  .v3-lib-card-actions [data-act="resume"],
+  .v3-lib-card-actions [data-act="open"] { grid-column: span 3; }
   .v3-lib-card-actions [data-act="edit"],
   .v3-lib-card-actions [data-act="share"],
   .v3-lib-card-actions [data-act="archive"] { grid-column: span 2; }
   .v3-lib-card-actions button {
     font-size: 12px;
-    padding: 8px 4px;
+    padding: 8px 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .v3-lib-card-actions .v3-lib-danger { grid-column: 1 / -1; }
+  .v3-lib-card-actions .v3-lib-danger {
+    grid-column: 1 / -1;
+    background: transparent !important;
+    border-color: #fca5a5 !important;
+    color: #dc2626 !important;
+    font-size: 11px;
+    padding: 6px 4px;
+  }
 }
 
 .v3-lib-card-title {
@@ -3916,7 +3920,7 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  justify-content: flex-end;
+  margin-top: 10px;
 }
 
 .v3-lib-chip {
@@ -21857,15 +21861,14 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
            </div>
           <div style="margin-top:6px;">${tagsHtml}</div>
         </div>
-
-        <div class="v3-lib-card-actions">
-          <button class="btn-primary" data-act="open">${t("library.open")}</button>
-          <button class="btn-success" data-act="resume">${t("library.resume")}</button>
-		  <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
-		  <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
-		  <button class="btn-secondary" data-act="archive">${t("library.archive")}</button>
-          <button class="btn-secondary v3-lib-danger" data-act="delete">${t("library.delete")}</button>
-        </div>
+      </div>
+      <div class="v3-lib-card-actions">
+        <button class="btn-success" data-act="resume">${t("library.resume")}</button>
+        <button class="btn-primary" data-act="open">${t("library.open")}</button>
+        <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
+        <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
+        <button class="btn-secondary" data-act="archive">${t("library.archive")}</button>
+        <button class="btn-secondary v3-lib-danger" data-act="delete">${t("library.delete")}</button>
       </div>
     `;
 
