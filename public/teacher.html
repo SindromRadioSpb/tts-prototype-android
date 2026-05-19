@@ -138,12 +138,25 @@
 
     <div class="err" id="loginErr"></div>
     <div class="hint">
-      Все credentials хранятся в <code>localStorage</code> этой страницы.
-      Logout в шапке после входа стирает их.<br>
-      <b>Privacy:</b> dashboard читает aggregates через <code>GET /api/research/v1/cohort/:code/aggregates</code>
-      (по N параллельных вызовов в multicohort режиме).
+      <b>Что вы увидите после входа:</b>
+      <ul style="margin:6px 0 10px 18px;padding:0;line-height:1.6;">
+        <li>Агрегаты по когорте: активные минуты, аудио, SRS, заметки (по дням)</li>
+        <li>Корреляции метрик с экзаменом (Pearson r) + scatter-график</li>
+        <li>Разбивку по студентам — <b>только если в когорте ≥ 5 человек</b> (k-anonymity)</li>
+        <li>Экспорт CSV (aggregates / timeseries / derived) для R / SPSS / Python</li>
+      </ul>
+      <b>Что защищено:</b> сырые данные (текст, заметки, поисковые запросы, аудио)
+      на сервер не попадают — dashboard читает только счётчики и длительности через
+      <code>GET /api/research/v1/cohort/:code/aggregates</code>.
       Per-student breakdown скрыт когда <code>cohort_size &lt; k</code> (по-умолчанию k=5)
-      <b>и</b> ВСЕГДА скрыт в режиме «All cohorts» compare view.
+      <b>и</b> ВСЕГДА скрыт в режиме «All cohorts» compare view.<br><br>
+      Researcher token выдаётся при создании когорты (<code>scripts/research/</code>) —
+      не делитесь им со студентами. Все credentials хранятся в
+      <code>localStorage</code> этой страницы; Logout в шапке стирает их.
+      Полная инструкция — <code>docs/RESEARCHER_GUIDE.md</code>.
+      <div style="margin-top:14px;text-align:center;">
+        <a href="/" style="color:#60a5fa;font-size:12px;text-decoration:none;">← Вернуться в приложение</a>
+      </div>
     </div>
   </div>
 </div>
@@ -166,6 +179,7 @@
     <button id="exportCrossCohortBtn" data-testid="export-cross-cohort-btn"
             style="display:none;">⬇ Cross-cohort CSV</button>
     <button id="logoutBtn" class="btn-logout">⎋ Logout all</button>
+    <a href="/" style="display:inline-flex;align-items:center;padding:6px 12px;color:#60a5fa;font-size:12px;text-decoration:none;">← App</a>
   </div>
 </header>
 

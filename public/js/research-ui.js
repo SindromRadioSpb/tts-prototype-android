@@ -135,6 +135,22 @@
     body += '</ul>';
     body += '</details>';
 
+    // A+B: in-app door to the teacher/researcher dashboard + teacher-side
+    // comprehension. Always shown (a cohort curator may not be opted-in as a
+    // student themselves). Opens the standalone /teacher.html page.
+    body += '<div class="v3-research-teacher" style="margin-top:14px;border-top:1px solid var(--theme-border,#ddd);padding-top:12px;">';
+    body += '<div style="font-size:12px;font-weight:600;margin-bottom:8px;">' +
+      escapeHtml(T('research.teacher.sectionTitle', '🎓 Для преподавателя / исследователя')) + '</div>';
+    body += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+    body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openTeacherDashboard()">' +
+      escapeHtml(T('research.teacher.btnOpen', '📊 Teacher dashboard')) + '</button>';
+    body += '<button type="button" class="btn-secondary" onclick="window.LinguistProResearchUI.openTeacherHelp()">' +
+      escapeHtml(T('research.teacher.btnHelp', '❓ Как это работает')) + '</button>';
+    body += '</div>';
+    body += '<div style="margin-top:8px;font-size:11px;color:var(--theme-text-secondary,#666);">' +
+      escapeHtml(T('research.teacher.sectionNote', 'Откроется отдельная страница. Нужен cohort code + researcher token.')) + '</div>';
+    body += '</div>';
+
     body += '</div>';
 
     v3ConfirmModal({
@@ -586,8 +602,43 @@
     }
   }
 
+  // ── teacher / researcher dashboard door (Gap B) ────────────────────────
+  function openTeacherDashboard() {
+    try {
+      window.open('/teacher.html', '_blank', 'noopener');
+    } catch (_) {
+      toast(T('research.toast.teacherOpenFailed', 'Не удалось открыть teacher dashboard'), 'error');
+    }
+  }
+
+  // ── teacher-side comprehension explainer (Gap A) ───────────────────────
+  function openTeacherHelp() {
+    let body = '<div class="v3-research-teacher-help" style="font-size:12.5px;line-height:1.6;">';
+    body += '<p style="margin:0 0 10px 0;">' +
+      escapeHtml(T('research.teacher.helpIntro',
+        'Teacher dashboard — отдельная страница для куратора когорты. Вход по cohort code + researcher token, открывается в новой вкладке.')) + '</p>';
+    body += '<ul style="margin:0 0 10px 18px;">';
+    body += '<li>' + escapeHtml(T('research.teacher.help1', 'Что видно: агрегаты по когорте (активные минуты, аудио, SRS, заметки), корреляции метрик с экзаменом, scatter-график.')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.teacher.help2', 'k-anonymity = 5: индивидуальная разбивка по студентам скрыта, пока в когорте меньше 5 человек.')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.teacher.help3', 'Researcher token выдаётся при создании когорты (scripts/research/) — это ключ доступа на чтение агрегатов. Не делитесь им со студентами.')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.teacher.help4', 'Сырые данные (текст, заметки, поиск, аудио) на сервер не попадают — только счётчики и длительности.')) + '</li>';
+    body += '<li>' + escapeHtml(T('research.teacher.help5', 'Итоговые баллы: студент может ввести self-report, преподаватель — загрузить authoritative CSV (перезапишет self-report).')) + '</li>';
+    body += '</ul>';
+    body += '<p style="margin:0;font-size:11.5px;color:var(--theme-text-secondary,#666);">' +
+      escapeHtml(T('research.teacher.helpDocs', 'Полная инструкция по настройке когорты — docs/RESEARCHER_GUIDE.md')) + '</p>';
+    body += '</div>';
+
+    v3ConfirmModal({
+      title: T('research.teacher.helpTitle', '🎓 Как работает teacher dashboard'),
+      body,
+      isHtml: true,
+      okText: T('research.btn.close', 'Закрыть'),
+      cancelText: '',
+    }).catch(() => {});
+  }
+
   // ── expose ─────────────────────────────────────────────────────────────
   if (typeof window !== 'undefined') {
-    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, openOutcome, uploadNow, openQuiz, openGraph };
+    window.LinguistProResearchUI = { open, openConsent, openJoinCohort, openTransparency, openWithdraw, openOutcome, uploadNow, openQuiz, openGraph, openTeacherDashboard, openTeacherHelp };
   }
 })();
