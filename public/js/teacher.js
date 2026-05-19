@@ -1219,10 +1219,69 @@
     }
   }
 
+  // ── in-UI cohort provisioning (Direction 11) ──────────────────────────
+  function genResearcherToken() {
+    // 32 url-safe chars from CSPRNG — strong, but the teacher can still
+    // overwrite it with something memorable.
+    const bytes = new Uint8Array(24);
+    (window.crypto || window.msCrypto).getRandomValues(bytes);
+    let b64 = btoa(String.fromCharCode.apply(null, Array.from(bytes)));
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function createCohortMsg(text, kind) {
+    const el = $('createCohortMsg');
+    if (!el) return;
+    el.textContent = text || '';
+    el.style.color = kind === 'ok' ? '#34d399' : kind === 'err' ? '#f87171' : '#94a3b8';
+  }
+
+  async function createCohort() {
+    const secret = $('createAdminSecret').value || '';
+    const code = String($('createCohortCode').value || '').trim().toUpperCase();
+    const token = String($('createCohortToken').value || '');
+    if (!secret) { createCohortMsg('Введите admin-секрет.', 'err'); return; }
+    if (!/^[A-Z0-9-]{4,16}$/.test(code)) { createCohortMsg('Cohort code: 4–16 символов [A-Z0-9-].', 'err'); return; }
+    if (token.length < 16 || token.length > 128) { createCohortMsg('Researcher token: 16–128 символов (нажмите 🎲 для генерации).', 'err'); return; }
+    createCohortMsg('Создаю…', 'info');
+    let resp, body = null;
+    try {
+      resp = await fetch('/api/research/v1/admin/cohort', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_token: secret, code, researcher_token: token }),
+      });
+      try { body = await resp.json(); } catch (_) {}
+    } catch (e) {
+      createCohortMsg('Сеть недоступна.', 'err');
+      return;
+    }
+    if (resp.ok && body && body.ok) {
+      createCohortMsg(`✓ Когорта "${code}" создана. Поля входа заполнены — нажмите «Войти». Сохраните код и токен.`, 'ok');
+      // Prefill the single-cohort login form so the teacher logs straight in
+      // (and physically sees the values they must keep).
+      $('cohortInput').value = code;
+      $('tokenInput').value = token;
+      return;
+    }
+    const err = (body && (body.message || body.error)) || ('HTTP ' + (resp ? resp.status : '?'));
+    if (body && body.error === 'ADMIN_DISABLED') {
+      createCohortMsg('Создание когорт отключено: оператор не задал RESEARCH_ADMIN_TOKEN на сервере.', 'err');
+    } else if (body && body.error === 'COHORT_EXISTS') {
+      createCohortMsg(`Когорта "${code}" уже существует — выберите другой код.`, 'err');
+    } else if (body && body.error === 'BAD_ADMIN_TOKEN') {
+      createCohortMsg('Неверный admin-секрет.', 'err');
+    } else {
+      createCohortMsg('Ошибка: ' + err, 'err');
+    }
+  }
+
   // ── boot ───────────────────────────────────────────────────────────────
   function boot() {
     $('loginBtn').addEventListener('click', tryLogin);
     $('bulkLoginBtn').addEventListener('click', bulkLogin);
+    $('genTokenBtn').addEventListener('click', () => { $('createCohortToken').value = genResearcherToken(); });
+    $('createCohortBtn').addEventListener('click', createCohort);
     $('cohortInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('tokenInput').focus(); });
     $('tokenInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
     $('refreshBtn').addEventListener('click', () => {

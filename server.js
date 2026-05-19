@@ -8041,7 +8041,23 @@ const researchStorage = require("./research/storage");
 const researchValidate = require("./research/validate");
 const researchRateLimit = require("./research/rateLimit");
 const rlResearchByIp = makeRateLimiter({ windowMs: 60_000, max: 60, name: "research-metrics" });
+// Cohort creation is a privileged, internet-reachable surface — throttle it
+// hard even when the admin secret is correct (defence-in-depth vs brute force).
+const rlResearchAdmin = makeRateLimiter({ windowMs: 3_600_000, max: 10, name: "research-admin" });
 const RESEARCH_UUID_RE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+// Constant-time secret compare that tolerates differing lengths without
+// leaking which side differs (timingSafeEqual throws on length mismatch).
+function timingSafeStrEqual(a, b) {
+  const ba = Buffer.from(String(a || ""), "utf8");
+  const bb = Buffer.from(String(b || ""), "utf8");
+  if (ba.length !== bb.length) {
+    // Still run a compare to keep timing flat, then fail.
+    crypto.timingSafeEqual(ba, ba);
+    return false;
+  }
+  return crypto.timingSafeEqual(ba, bb);
+}
 
 function logResearch(req, fields) {
   // No-PII logging contract: only student_id / cohort / bytes / status fields.
@@ -8090,6 +8106,73 @@ app.post("/api/research/v1/metrics", requireSameOriginJson, rlResearchByIp, asyn
     });
   } catch (e) {
     console.error("[research] POST /metrics error:", e && e.message ? e.message : e);
+    return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+// Admin-gated cohort provisioning (Direction 11 — UI replacement for the
+// create_cohort.js CLI). DISABLED by default: requires the operator to set
+// RESEARCH_ADMIN_TOKEN in the environment. The teacher pastes that secret
+// once in the teacher.html "Create cohort" form and chooses a memorable
+// cohort code + researcher token (so neither can be "forgotten" — the
+// teacher picked them). Same-origin + rate-limited + constant-time secret.
+app.post("/api/research/v1/admin/cohort", requireSameOriginJson, rlResearchAdmin, async (req, res) => {
+  try {
+    const adminSecret = process.env.RESEARCH_ADMIN_TOKEN || "";
+    if (!adminSecret) {
+      // Safe default: feature is off until the operator opts in. Do not
+      // reveal whether a secret would have worked.
+      logResearch(req, { status: 503, error: "ADMIN_DISABLED" });
+      return res.status(503).json({ ok: false, error: "ADMIN_DISABLED", message: "Cohort creation is disabled. Operator must set RESEARCH_ADMIN_TOKEN." });
+    }
+    const body = req.body || {};
+    if (!timingSafeStrEqual(body.admin_token, adminSecret)) {
+      logResearch(req, { status: 403, error: "BAD_ADMIN_TOKEN" });
+      return res.status(403).json({ ok: false, error: "BAD_ADMIN_TOKEN" });
+    }
+    const code = String(body.code || "").trim().toUpperCase();
+    if (!/^[A-Z0-9-]{4,16}$/.test(code)) {
+      return res.status(400).json({ ok: false, error: "BAD_COHORT_CODE", message: "4–16 chars, [A-Z0-9-] only." });
+    }
+    const tokenPlain = String(body.researcher_token || "");
+    if (tokenPlain.length < 16 || tokenPlain.length > 128) {
+      return res.status(400).json({ ok: false, error: "BAD_RESEARCHER_TOKEN", message: "Researcher token must be 16–128 chars." });
+    }
+    if (researchStorage.cohortExists(code)) {
+      logResearch(req, { status: 409, error: "COHORT_EXISTS", cohort: code });
+      return res.status(409).json({ ok: false, error: "COHORT_EXISTS", message: `Cohort "${code}" already exists.` });
+    }
+    const retentionDays = Number(body.retention_days) > 0 ? Math.floor(Number(body.retention_days)) : 730;
+    const kThresh = Number.isInteger(Number(body.k)) && Number(body.k) >= 2 ? Number(body.k) : 5;
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + retentionDays);
+    const meta = researchStorage.createCohort({
+      code,
+      researcherTokenPlain: tokenPlain,
+      retentionUntil: d.toISOString().slice(0, 10),
+      outcomeScale: typeof body.outcome_scale === "string" && body.outcome_scale ? body.outcome_scale : "0-100",
+      kAnonymityThreshold: kThresh,
+      consentVersionMinimum: typeof body.consent_min === "string" && body.consent_min ? body.consent_min : "1.0",
+    });
+    // Never echo the token (or its hash). Teacher already has the plaintext
+    // they typed; they log in with it next.
+    logResearch(req, { status: 200, cohort: code, k: meta.k_anonymity_threshold });
+    return res.status(200).json({
+      ok: true,
+      cohort: {
+        code: meta.code,
+        created_at: meta.created_at,
+        k_anonymity_threshold: meta.k_anonymity_threshold,
+        retention_until: meta.retention_until,
+        outcome_scale: meta.outcome_scale,
+        consent_version_minimum: meta.consent_version_minimum,
+      },
+    });
+  } catch (e) {
+    if (e && e.code === "COHORT_EXISTS") {
+      return res.status(409).json({ ok: false, error: "COHORT_EXISTS" });
+    }
+    console.error("[research] POST /admin/cohort error:", e && e.message ? e.message : e);
     return res.status(500).json({ ok: false, error: "INTERNAL_ERROR" });
   }
 });

@@ -136,6 +136,32 @@
       </div>
     </details>
 
+    <!-- Direction 11 — in-UI cohort provisioning (replaces create_cohort.js
+         CLI). Admin-gated: POST /api/research/v1/admin/cohort requires the
+         operator's RESEARCH_ADMIN_TOKEN. Teacher picks a memorable code +
+         token here, so neither can be "forgotten". -->
+    <details style="margin-top:14px;font-size:12px;color:#94a3b8;">
+      <summary style="cursor:pointer;padding:4px 0;">＋ Создать новую когорту</summary>
+      <div style="padding-top:10px;border-top:1px solid #334155;margin-top:6px;">
+        <p style="font-size:11px;color:#64748b;margin:0 0 8px 0;line-height:1.5;">
+          Придумайте <b>запоминающиеся</b> код и токен — это то, чем вы будете
+          входить в дашборд. Нужен admin-секрет (его задаёт оператор при
+          деплое в переменной <code>RESEARCH_ADMIN_TOKEN</code>).
+        </p>
+        <label for="createAdminSecret">Admin-секрет</label>
+        <input type="password" id="createAdminSecret" placeholder="RESEARCH_ADMIN_TOKEN" autocomplete="off">
+        <label for="createCohortCode">Cohort code (4–16, A-Z 0-9 -)</label>
+        <input type="text" id="createCohortCode" maxlength="16" placeholder="ULPAN-A-W2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <label for="createCohortToken">Researcher token (16–128 символов)</label>
+        <div style="display:flex;gap:6px;align-items:flex-start;">
+          <input type="text" id="createCohortToken" placeholder="придумайте или сгенерируйте" autocomplete="off" style="flex:1;">
+          <button type="button" id="genTokenBtn" style="width:auto;margin-top:4px;padding:8px 12px;background:#334155;font-weight:500;">🎲</button>
+        </div>
+        <button id="createCohortBtn" style="margin-top:14px;">Создать когорту →</button>
+        <div id="createCohortMsg" style="font-size:12px;margin-top:10px;min-height:16px;line-height:1.5;"></div>
+      </div>
+    </details>
+
     <div class="err" id="loginErr"></div>
     <div class="hint">
       <b>Что вы увидите после входа:</b>
