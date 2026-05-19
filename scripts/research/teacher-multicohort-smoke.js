@@ -362,14 +362,20 @@ async function main() {
          xcBtn.exists && xcBtn.display !== 'none', "state: " + JSON.stringify(xcBtn));
 
     // Verify per-student / correlations / scatter cards hidden.
+    // After i18n bolt-on, h2 textContent is locale-dependent — match by the
+    // stable data-i18n key instead (works in all locales).
     const hiddenCount = await page.evaluate(() => {
+      const SENSITIVE_KEYS = new Set([
+        'teacher.dashboard.perStudentTitle',
+        'teacher.dashboard.correlationsTitle',
+        'teacher.dashboard.scatterTitle',
+      ]);
       const cards = document.querySelectorAll('main#dashMain > .card');
       let hidden = 0;
       cards.forEach((c) => {
-        const h = c.querySelector('h2');
-        if (!h) return;
-        const txt = (h.textContent || '').toLowerCase();
-        if ((txt.includes('per-student') || txt.includes('outcome correlations') || txt.includes('scatter') || txt.includes('exam score')) &&
+        const keyed = c.querySelector('[data-i18n]');
+        if (!keyed) return;
+        if (SENSITIVE_KEYS.has(keyed.getAttribute('data-i18n')) &&
             c.style.display === 'none') hidden++;
       });
       return hidden;

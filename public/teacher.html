@@ -101,38 +101,45 @@
 
 <div id="loginScreen">
   <div class="login-form">
-    <h2>📊 Teacher Dashboard</h2>
-    <p style="font-size:12px;color:#94a3b8;margin:0 0 12px 0;">
-      LinguistPro multicohort dashboard (v3.3.2). Введите credentials одной
+    <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+      <select id="teacherLangSelectLogin" aria-label="Language" style="background:#0f172a;border:1px solid #475569;color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;">
+        <option value="ru">Рус</option>
+        <option value="en">Eng</option>
+        <option value="he">עב</option>
+      </select>
+    </div>
+    <h2 data-i18n="teacher.header.title">📊 Teacher Dashboard</h2>
+    <p data-i18n="teacher.login.intro" style="font-size:12px;color:#94a3b8;margin:0 0 12px 0;">
+      LinguistPro multicohort dashboard. Введите credentials одной
       когорты или вставьте список нескольких.
     </p>
 
     <!-- v3.3.2 D12 — bulk paste textarea. Each line: CODE  TOKEN
          (whitespace-separated). Comment lines start with #. -->
-    <label for="bulkCohortsInput">Cohorts (bulk paste)</label>
+    <label for="bulkCohortsInput" data-i18n="teacher.login.bulkLabel">Cohorts (bulk paste)</label>
     <textarea id="bulkCohortsInput" rows="6"
       placeholder="ULPAN-A-W2026  abc123def...&#10;ULPAN-B-W2026  ghi456jkl...&#10;# comment lines are ignored"
       style="width:100%;padding:8px 10px;background:#0f172a;border:1px solid #475569;
              border-radius:6px;color:#e2e8f0;font-family:monospace;font-size:12.5px;
              margin-top:4px;resize:vertical;line-height:1.5;"
       autocomplete="off" spellcheck="false"></textarea>
-    <p style="font-size:11px;color:#64748b;margin:6px 0 0 0;">
+    <p data-i18n="teacher.login.bulkHint" style="font-size:11px;color:#64748b;margin:6px 0 0 0;">
       Формат: одна когорта на строку — <code>CODE  TOKEN</code> через пробел
       или таб. Пустые строки и строки, начинающиеся с <code>#</code>, игнорируются.
     </p>
-    <button id="bulkLoginBtn" style="margin-top:8px;">Войти →</button>
+    <button id="bulkLoginBtn" data-i18n="teacher.login.btnLogin" style="margin-top:8px;">Войти →</button>
 
     <!-- v3.3.2 D12 — preserve the v3.3.1 single-pair form ergonomic under
          a collapsible. Same #cohortInput/#tokenInput/#loginBtn selectors so
          existing teacher-smoke.js cases keep working. -->
     <details open style="margin-top:14px;font-size:12px;color:#94a3b8;">
-      <summary style="cursor:pointer;padding:4px 0;">▾ Одну когорту по полям</summary>
+      <summary style="cursor:pointer;padding:4px 0;"><span data-i18n="teacher.login.singleSummary">▾ Одну когорту по полям</span></summary>
       <div style="padding-top:10px;border-top:1px solid #334155;margin-top:6px;">
-        <label for="cohortInput">Cohort code</label>
+        <label for="cohortInput" data-i18n="teacher.login.cohortLabel">Cohort code</label>
         <input type="text" id="cohortInput" maxlength="16" placeholder="ULPAN-A-W2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
-        <label for="tokenInput">Researcher token (Bearer)</label>
-        <input type="password" id="tokenInput" placeholder="paste token" autocomplete="off">
-        <button id="loginBtn">Войти →</button>
+        <label for="tokenInput" data-i18n="teacher.login.tokenLabel">Researcher token (Bearer)</label>
+        <input type="password" id="tokenInput" data-i18n-placeholder="teacher.login.tokenPlaceholder" placeholder="paste token" autocomplete="off">
+        <button id="loginBtn" data-i18n="teacher.login.btnLogin">Войти →</button>
       </div>
     </details>
 
@@ -141,47 +148,41 @@
          operator's RESEARCH_ADMIN_TOKEN. Teacher picks a memorable code +
          token here, so neither can be "forgotten". -->
     <details style="margin-top:14px;font-size:12px;color:#94a3b8;">
-      <summary style="cursor:pointer;padding:4px 0;">＋ Создать новую когорту</summary>
+      <summary style="cursor:pointer;padding:4px 0;"><span data-i18n="teacher.login.createSummary">＋ Создать новую когорту</span></summary>
       <div style="padding-top:10px;border-top:1px solid #334155;margin-top:6px;">
-        <p style="font-size:11px;color:#64748b;margin:0 0 8px 0;line-height:1.5;">
-          Придумайте <b>запоминающиеся</b> код и токен — это то, чем вы будете
+        <p data-i18n="teacher.login.createIntro" style="font-size:11px;color:#64748b;margin:0 0 8px 0;line-height:1.5;">
+          Придумайте запоминающиеся код и токен — это то, чем вы будете
           входить в дашборд. Нужен admin-секрет (его задаёт оператор при
-          деплое в переменной <code>RESEARCH_ADMIN_TOKEN</code>).
+          деплое в переменной RESEARCH_ADMIN_TOKEN).
         </p>
-        <label for="createAdminSecret">Admin-секрет</label>
-        <input type="password" id="createAdminSecret" placeholder="RESEARCH_ADMIN_TOKEN" autocomplete="off">
-        <label for="createCohortCode">Cohort code (4–16, A-Z 0-9 -)</label>
-        <input type="text" id="createCohortCode" maxlength="16" placeholder="ULPAN-A-W2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
-        <label for="createCohortToken">Researcher token (16–128 символов)</label>
+        <label for="createAdminSecret" data-i18n="teacher.login.adminLabel">Admin-секрет</label>
+        <input type="password" id="createAdminSecret" data-i18n-placeholder="teacher.login.adminPlaceholder" placeholder="RESEARCH_ADMIN_TOKEN" autocomplete="off">
+        <label for="createCohortCode" data-i18n="teacher.login.createCohortLabel">Cohort code (4–16, A-Z 0-9 -)</label>
+        <input type="text" id="createCohortCode" maxlength="16" data-i18n-placeholder="teacher.login.createCohortPlaceholder" placeholder="ULPAN-A-W2026" autocomplete="off" autocorrect="off" autocapitalize="characters">
+        <label for="createCohortToken" data-i18n="teacher.login.createTokenLabel">Researcher token (16–128 символов)</label>
         <div style="display:flex;gap:6px;align-items:flex-start;">
-          <input type="text" id="createCohortToken" placeholder="придумайте или сгенерируйте" autocomplete="off" style="flex:1;">
+          <input type="text" id="createCohortToken" data-i18n-placeholder="teacher.login.createTokenPlaceholder" placeholder="придумайте или сгенерируйте" autocomplete="off" style="flex:1;">
           <button type="button" id="genTokenBtn" style="width:auto;margin-top:4px;padding:8px 12px;background:#334155;font-weight:500;">🎲</button>
         </div>
-        <button id="createCohortBtn" style="margin-top:14px;">Создать когорту →</button>
+        <button id="createCohortBtn" data-i18n="teacher.login.btnCreate" style="margin-top:14px;">Создать когорту →</button>
         <div id="createCohortMsg" style="font-size:12px;margin-top:10px;min-height:16px;line-height:1.5;"></div>
       </div>
     </details>
 
     <div class="err" id="loginErr"></div>
     <div class="hint">
-      <b>Что вы увидите после входа:</b>
+      <b data-i18n="teacher.login.willSeeHeader">Что вы увидите после входа:</b>
       <ul style="margin:6px 0 10px 18px;padding:0;line-height:1.6;">
-        <li>Агрегаты по когорте: активные минуты, аудио, SRS, заметки (по дням)</li>
-        <li>Корреляции метрик с экзаменом (Pearson r) + scatter-график</li>
-        <li>Разбивку по студентам — <b>только если в когорте ≥ 5 человек</b> (k-anonymity)</li>
-        <li>Экспорт CSV (aggregates / timeseries / derived) для R / SPSS / Python</li>
+        <li data-i18n="teacher.login.willSee1">Агрегаты по когорте: активные минуты, аудио, SRS, заметки (по дням)</li>
+        <li data-i18n="teacher.login.willSee2">Корреляции метрик с экзаменом (Pearson r) + scatter-график</li>
+        <li data-i18n="teacher.login.willSee3">Разбивку по студентам — только если в когорте ≥ 5 человек (k-anonymity)</li>
+        <li data-i18n="teacher.login.willSee4">Экспорт CSV (aggregates / timeseries / derived) для R / SPSS / Python</li>
       </ul>
-      <b>Что защищено:</b> сырые данные (текст, заметки, поисковые запросы, аудио)
-      на сервер не попадают — dashboard читает только счётчики и длительности через
-      <code>GET /api/research/v1/cohort/:code/aggregates</code>.
-      Per-student breakdown скрыт когда <code>cohort_size &lt; k</code> (по-умолчанию k=5)
-      <b>и</b> ВСЕГДА скрыт в режиме «All cohorts» compare view.<br><br>
-      Researcher token выдаётся при создании когорты (<code>scripts/research/</code>) —
-      не делитесь им со студентами. Все credentials хранятся в
-      <code>localStorage</code> этой страницы; Logout в шапке стирает их.
-      Полная инструкция — <code>docs/RESEARCHER_GUIDE.md</code>.
+      <b data-i18n="teacher.login.protectedHeader">Что защищено:</b>
+      <span data-i18n="teacher.login.protectedBody"> сырые данные на сервер не попадают.</span><br><br>
+      <span data-i18n="teacher.login.tokenHandling">Researcher token — не делитесь со студентами.</span>
       <div style="margin-top:14px;text-align:center;">
-        <a href="/" style="color:#60a5fa;font-size:12px;text-decoration:none;">← Вернуться в приложение</a>
+        <a href="/" data-i18n="teacher.login.backToApp" style="color:#60a5fa;font-size:12px;text-decoration:none;">← Вернуться в приложение</a>
       </div>
     </div>
   </div>
@@ -189,68 +190,79 @@
 
 <header id="dashHeader" style="display:none;">
   <div style="flex:1;min-width:0;">
-    <h1>📊 Teacher Dashboard</h1>
+    <h1 data-i18n="teacher.header.title">📊 Teacher Dashboard</h1>
     <!-- v3.3.2 D12 chip strip: rendered by teacher.js renderChipStrip() -->
     <div id="cohortChipStrip" data-testid="cohort-chip-strip"
          style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;align-items:center;"></div>
     <div class="meta" id="cohortMeta">—</div>
   </div>
   <div class="actions">
-    <button id="refreshBtn">🔄 Refresh</button>
-    <button id="addCohortBtn" data-testid="add-cohort-btn">+ Add cohort</button>
-    <button id="uploadOutcomesBtn">📤 Upload outcomes CSV</button>
-    <button id="exportAggregatesBtn">⬇ Aggregates CSV</button>
-    <button id="exportTimeseriesBtn">⬇ Timeseries CSV</button>
-    <button id="exportDerivedBtn">⬇ Derived CSV</button>
-    <button id="exportCrossCohortBtn" data-testid="export-cross-cohort-btn"
+    <select id="teacherLangSelectDash" aria-label="Language" style="background:#0f172a;border:1px solid #475569;color:#e2e8f0;padding:4px 8px;border-radius:6px;font-size:12px;cursor:pointer;">
+      <option value="ru">Рус</option>
+      <option value="en">Eng</option>
+      <option value="he">עב</option>
+    </select>
+    <button id="helpBtn" data-i18n="teacher.header.btnHelp">❓ Справка</button>
+    <button id="refreshBtn" data-i18n="teacher.header.btnRefresh">🔄 Refresh</button>
+    <button id="addCohortBtn" data-i18n="teacher.header.btnAddCohort" data-testid="add-cohort-btn">+ Add cohort</button>
+    <button id="uploadOutcomesBtn" data-i18n="teacher.header.btnUploadOutcomes">📤 Upload outcomes CSV</button>
+    <button id="exportAggregatesBtn" data-i18n="teacher.header.btnExportAggregates">⬇ Aggregates CSV</button>
+    <button id="exportTimeseriesBtn" data-i18n="teacher.header.btnExportTimeseries">⬇ Timeseries CSV</button>
+    <button id="exportDerivedBtn" data-i18n="teacher.header.btnExportDerived">⬇ Derived CSV</button>
+    <button id="exportCrossCohortBtn" data-i18n="teacher.header.btnExportCrossCohort" data-testid="export-cross-cohort-btn"
             style="display:none;">⬇ Cross-cohort CSV</button>
-    <button id="logoutBtn" class="btn-logout">⎋ Logout all</button>
-    <a href="/" style="display:inline-flex;align-items:center;padding:6px 12px;color:#60a5fa;font-size:12px;text-decoration:none;">← App</a>
+    <button id="logoutBtn" class="btn-logout" data-i18n="teacher.header.btnLogout">⎋ Logout all</button>
+    <a href="/" data-i18n="teacher.header.backToApp" style="display:inline-flex;align-items:center;padding:6px 12px;color:#60a5fa;font-size:12px;text-decoration:none;">← App</a>
   </div>
 </header>
 
 <main id="dashMain" style="display:none;">
   <div class="card">
-    <h2>Cohort overview</h2>
+    <h2 data-i18n="teacher.dashboard.cohortOverview">Cohort overview</h2>
     <div class="summary-grid" id="summaryGrid"></div>
   </div>
 
   <div class="card">
-    <h2>Engagement timeline (cohort-wide, per day)</h2>
-    <p class="hint">Active minutes (sum across all students) — heartbeat-derived. Cohort-wide aggregate; visible regardless of k-anonymity status.</p>
+    <h2 data-i18n="teacher.dashboard.engagementTimelineTitle">Engagement timeline (cohort-wide, per day)</h2>
+    <p class="hint" data-i18n="teacher.dashboard.engagementTimelineHint">Active minutes (sum across all students) — heartbeat-derived. Cohort-wide aggregate; visible regardless of k-anonymity status.</p>
     <div id="engagementChart"></div>
   </div>
 
   <div class="stats-row">
     <div class="card">
-      <h2>Audio playback (per day)</h2>
+      <h2 data-i18n="teacher.dashboard.audioTitle">Audio playback (per day)</h2>
       <div id="audioChart"></div>
     </div>
     <div class="card">
-      <h2>SRS reviews + notes created (per day)</h2>
+      <h2 data-i18n="teacher.dashboard.srsNotesTitle">SRS reviews + notes created (per day)</h2>
       <div id="srsNotesChart"></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>Per-student breakdown <span id="kBadge"></span></h2>
+    <h2><span data-i18n="teacher.dashboard.perStudentTitle">Per-student breakdown</span> <span id="kBadge"></span></h2>
     <p class="hint" id="kHint"></p>
     <div id="studentTable"></div>
   </div>
 
   <div class="card">
-    <h2>Outcome correlations (Pearson r)</h2>
-    <p class="hint">Computed on per-student totals × outcome scores from <code>outcomes.csv</code>. r ∈ [-1, 1]; |r| > 0.5 = strong; the more |r|, the more the metric moves with the exam grade.</p>
+    <h2 data-i18n="teacher.dashboard.correlationsTitle">Outcome correlations (Pearson r)</h2>
+    <p class="hint" data-i18n="teacher.dashboard.correlationsHint">Computed on per-student totals × outcome scores from outcomes.csv. r ∈ [-1, 1]; |r| > 0.5 = strong.</p>
     <div id="correlationsTable"></div>
   </div>
 
   <div class="card">
-    <h2>Engagement vs exam score (scatter)</h2>
-    <p class="hint">Scatter: x = total active minutes, y = post-test score. Trend line = least-squares linear regression.</p>
+    <h2 data-i18n="teacher.dashboard.scatterTitle">Engagement vs exam score (scatter)</h2>
+    <p class="hint" data-i18n="teacher.dashboard.scatterHint">Scatter: x = total active minutes, y = post-test score. Trend line = least-squares linear regression.</p>
     <div id="scatterChart"></div>
   </div>
 </main>
 
+<!-- i18n: load locale files first, then the i18n core, before teacher.js -->
+<script src="/i18n/locales/ru.js"></script>
+<script src="/i18n/locales/en.js"></script>
+<script src="/i18n/locales/he.js"></script>
+<script src="/i18n/index.js"></script>
 <script src="/js/teacher.js"></script>
 </body>
 </html>

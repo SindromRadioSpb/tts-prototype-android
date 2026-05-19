@@ -107,6 +107,11 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, (ch) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   }
+  // i18n shim: window.t may not exist if locale scripts failed to load —
+  // fall back to the key so the UI stays readable in dev.
+  function T(key, params) {
+    return (typeof window.t === 'function') ? window.t(key, params) : key;
+  }
   function fmtMs(ms) {
     const n = Number(ms) || 0;
     if (n < 1000) return n + ' ms';
@@ -147,9 +152,9 @@
   async function tryLogin() {
     const cohort = String($('cohortInput').value || '').trim().toUpperCase();
     const token  = String($('tokenInput').value || '').trim();
-    if (!/^[A-Z0-9-]{4,16}$/.test(cohort)) { loginErr('Cohort code должен быть 4–16 chars [A-Z0-9-].'); return; }
-    if (!token) { loginErr('Введите researcher token.'); return; }
-    loginErr('Загружаю…');
+    if (!/^[A-Z0-9-]{4,16}$/.test(cohort)) { loginErr(T('teacher.msg.badCohortCodeFmt')); return; }
+    if (!token) { loginErr(T('teacher.msg.enterToken')); return; }
+    loginErr(T('teacher.msg.loading'));
     const res = await fetchAggregates(cohort, token);
     if (!res.ok) {
       loginErr(`Ошибка ${res.status}: ${res.error || ''}`);
@@ -316,20 +321,19 @@
       }));
     svgMultiLineChart($('srsNotesChart'), srsSeries, { yLabel: 'cards' });
 
-    // Hide single-cohort-only cards.
+    // Hide single-cohort-only cards (per-student / correlations / scatter).
+    // Match by stable data-i18n keys instead of h2 text — text is now
+    // locale-dependent and would break this in RU/HE.
+    const HIDE_KEYS = new Set([
+      'teacher.dashboard.perStudentTitle',
+      'teacher.dashboard.correlationsTitle',
+      'teacher.dashboard.scatterTitle',
+    ]);
     const cards = document.querySelectorAll('main#dashMain > .card');
     cards.forEach((card) => {
-      const h = card.querySelector('h2');
-      if (!h) return;
-      const txt = (h.textContent || '').toLowerCase();
-      // Show: overview, engagement timeline.
-      // Hide: per-student, outcome correlations, scatter.
-      if (txt.includes('per-student') || txt.includes('outcome correlations') ||
-          txt.includes('scatter') || txt.includes('exam score')) {
-        card.style.display = 'none';
-      } else {
-        card.style.display = '';
-      }
+      const keyed = card.querySelector('[data-i18n]');
+      const k = keyed && keyed.getAttribute('data-i18n');
+      card.style.display = (k && HIDE_KEYS.has(k)) ? 'none' : '';
     });
 
     // Replace per-student / correlations / scatter sections with a single
@@ -1215,7 +1219,7 @@
     render();
 
     if (failed.length) {
-      loginErr(`Загружено ${ok.length} из ${pairs.length}. Не прошли: ${failed.map((f) => f.code).join(', ')}`);
+      loginErr(T('teacher.msg.partial', { ok: ok.length, total: pairs.length, failed: failed.map((f) => f.code).join(', ') }));
     }
   }
 
@@ -1240,10 +1244,10 @@
     const secret = $('createAdminSecret').value || '';
     const code = String($('createCohortCode').value || '').trim().toUpperCase();
     const token = String($('createCohortToken').value || '');
-    if (!secret) { createCohortMsg('Введите admin-секрет.', 'err'); return; }
-    if (!/^[A-Z0-9-]{4,16}$/.test(code)) { createCohortMsg('Cohort code: 4–16 символов [A-Z0-9-].', 'err'); return; }
-    if (token.length < 16 || token.length > 128) { createCohortMsg('Researcher token: 16–128 символов (нажмите 🎲 для генерации).', 'err'); return; }
-    createCohortMsg('Создаю…', 'info');
+    if (!secret) { createCohortMsg(T('teacher.msg.createBadAdmin'), 'err'); return; }
+    if (!/^[A-Z0-9-]{4,16}$/.test(code)) { createCohortMsg(T('teacher.msg.createBadCode'), 'err'); return; }
+    if (token.length < 16 || token.length > 128) { createCohortMsg(T('teacher.msg.createBadToken'), 'err'); return; }
+    createCohortMsg(T('teacher.msg.createSending'), 'info');
     let resp, body = null;
     try {
       resp = await fetch('/api/research/v1/admin/cohort', {
@@ -1253,11 +1257,11 @@
       });
       try { body = await resp.json(); } catch (_) {}
     } catch (e) {
-      createCohortMsg('Сеть недоступна.', 'err');
+      createCohortMsg(T('teacher.msg.createNetwork'), 'err');
       return;
     }
     if (resp.ok && body && body.ok) {
-      createCohortMsg(`✓ Когорта "${code}" создана. Поля входа заполнены — нажмите «Войти». Сохраните код и токен.`, 'ok');
+      createCohortMsg(T('teacher.msg.createOk', { code }), 'ok');
       // Prefill the single-cohort login form so the teacher logs straight in
       // (and physically sees the values they must keep).
       $('cohortInput').value = code;
@@ -1266,14 +1270,74 @@
     }
     const err = (body && (body.message || body.error)) || ('HTTP ' + (resp ? resp.status : '?'));
     if (body && body.error === 'ADMIN_DISABLED') {
-      createCohortMsg('Создание когорт отключено: оператор не задал RESEARCH_ADMIN_TOKEN на сервере.', 'err');
+      createCohortMsg(T('teacher.msg.createDisabled'), 'err');
     } else if (body && body.error === 'COHORT_EXISTS') {
-      createCohortMsg(`Когорта "${code}" уже существует — выберите другой код.`, 'err');
+      createCohortMsg(T('teacher.msg.createExists', { code }), 'err');
     } else if (body && body.error === 'BAD_ADMIN_TOKEN') {
-      createCohortMsg('Неверный admin-секрет.', 'err');
+      createCohortMsg(T('teacher.msg.createBadAdminToken'), 'err');
     } else {
-      createCohortMsg('Ошибка: ' + err, 'err');
+      createCohortMsg(T('teacher.msg.createGeneric', { error: err }), 'err');
     }
+  }
+
+  // ── help drawer (Direction 11 — in-dashboard explainer for blocks + buttons)
+  function openHelpDrawer() {
+    const existing = document.getElementById('teacherHelpOverlay');
+    if (existing) { existing.remove(); return; }
+    const overlay = document.createElement('div');
+    overlay.id = 'teacherHelpOverlay';
+    Object.assign(overlay.style, {
+      position: 'fixed', inset: '0', background: 'rgba(0,0,0,0.6)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: '9999', padding: '20px', boxSizing: 'border-box',
+    });
+    function block(hdrKey, bodyKey) {
+      return '<details style="margin:6px 0;border:1px solid #334155;border-radius:6px;padding:8px 12px;background:#0f172a;">' +
+        '<summary style="cursor:pointer;font-weight:600;color:#fbbf24;font-size:12.5px;">' + escapeHtml(T(hdrKey)) + '</summary>' +
+        '<p style="margin:8px 0 0 0;color:#cbd5e1;font-size:12.5px;line-height:1.55;">' + escapeHtml(T(bodyKey)) + '</p>' +
+        '</details>';
+    }
+    let inner =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+        '<h2 style="color:#fbbf24;font-size:16px;margin:0;">' + escapeHtml(T('teacher.help.title')) + '</h2>' +
+        '<button id="teacherHelpClose" aria-label="close" style="background:transparent;color:#94a3b8;border:none;font-size:24px;cursor:pointer;padding:0 6px;line-height:1;">×</button>' +
+      '</div>' +
+      '<p style="color:#94a3b8;font-size:12px;margin:0 0 12px 0;">' + escapeHtml(T('teacher.help.intro')) + '</p>' +
+      '<div style="padding:10px 14px;background:rgba(251,191,36,0.07);border:1px solid rgba(251,191,36,0.35);border-radius:8px;margin-bottom:14px;">' +
+        '<div style="font-weight:600;color:#fbbf24;font-size:12.5px;margin-bottom:4px;">' + escapeHtml(T('teacher.help.noteHeader')) + '</div>' +
+        '<div style="color:#cbd5e1;font-size:12px;">' + escapeHtml(T('teacher.help.noteBody')) + '</div>' +
+      '</div>' +
+      '<h3 style="color:#fbbf24;font-size:12.5px;text-transform:uppercase;letter-spacing:0.05em;margin:14px 0 6px 0;">' + escapeHtml(T('teacher.help.blocksHeader')) + '</h3>' +
+      block('teacher.help.blocks.cohortOverviewHdr', 'teacher.help.blocks.cohortOverviewBody') +
+      block('teacher.help.blocks.engagementTimelineHdr', 'teacher.help.blocks.engagementTimelineBody') +
+      block('teacher.help.blocks.audioHdr', 'teacher.help.blocks.audioBody') +
+      block('teacher.help.blocks.srsNotesHdr', 'teacher.help.blocks.srsNotesBody') +
+      block('teacher.help.blocks.perStudentHdr', 'teacher.help.blocks.perStudentBody') +
+      block('teacher.help.blocks.correlationsHdr', 'teacher.help.blocks.correlationsBody') +
+      block('teacher.help.blocks.scatterHdr', 'teacher.help.blocks.scatterBody') +
+      '<h3 style="color:#fbbf24;font-size:12.5px;text-transform:uppercase;letter-spacing:0.05em;margin:14px 0 6px 0;">' + escapeHtml(T('teacher.help.btnsHeader')) + '</h3>' +
+      block('teacher.help.btns.refreshHdr', 'teacher.help.btns.refreshBody') +
+      block('teacher.help.btns.addCohortHdr', 'teacher.help.btns.addCohortBody') +
+      block('teacher.help.btns.uploadOutcomesHdr', 'teacher.help.btns.uploadOutcomesBody') +
+      block('teacher.help.btns.exportAggregatesHdr', 'teacher.help.btns.exportAggregatesBody') +
+      block('teacher.help.btns.exportTimeseriesHdr', 'teacher.help.btns.exportTimeseriesBody') +
+      block('teacher.help.btns.exportDerivedHdr', 'teacher.help.btns.exportDerivedBody');
+
+    const panel = document.createElement('div');
+    Object.assign(panel.style, {
+      background: '#1e293b', color: '#e2e8f0', borderRadius: '12px',
+      padding: '20px', maxWidth: '720px', width: '100%',
+      maxHeight: '90vh', overflowY: 'auto',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+    });
+    panel.innerHTML = inner;
+    overlay.appendChild(panel);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+    document.getElementById('teacherHelpClose').addEventListener('click', () => overlay.remove());
+    document.addEventListener('keydown', function escClose(e) {
+      if (e.key === 'Escape') { overlay.remove(); document.removeEventListener('keydown', escClose); }
+    });
   }
 
   // ── boot ───────────────────────────────────────────────────────────────
@@ -1282,6 +1346,30 @@
     $('bulkLoginBtn').addEventListener('click', bulkLogin);
     $('genTokenBtn').addEventListener('click', () => { $('createCohortToken').value = genResearcherToken(); });
     $('createCohortBtn').addEventListener('click', createCohort);
+    const helpBtnEl = $('helpBtn');
+    if (helpBtnEl) helpBtnEl.addEventListener('click', openHelpDrawer);
+
+    // ── language selector wiring (Direction 11 — full i18n teacher.html) ──
+    function _currentLocale() {
+      try { return (typeof window.appGetLocale === 'function') ? window.appGetLocale() : (localStorage.getItem('app.locale') || 'ru'); }
+      catch (_) { return 'ru'; }
+    }
+    function _setLocale(code) {
+      if (typeof window.appSetLocale === 'function') window.appSetLocale(code);
+    }
+    ['teacherLangSelectLogin', 'teacherLangSelectDash'].forEach((id) => {
+      const el = $(id);
+      if (!el) return;
+      el.value = _currentLocale();
+      el.addEventListener('change', (e) => _setLocale(e.target.value));
+    });
+    document.addEventListener('i18n:changed', (e) => {
+      const code = (e && e.detail && e.detail.locale) || _currentLocale();
+      ['teacherLangSelectLogin', 'teacherLangSelectDash'].forEach((id) => {
+        const el = $(id);
+        if (el && el.value !== code) el.value = code;
+      });
+    });
     $('cohortInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('tokenInput').focus(); });
     $('tokenInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') tryLogin(); });
     $('refreshBtn').addEventListener('click', () => {
@@ -1291,21 +1379,22 @@
       else refresh();
     });
     $('logoutBtn').addEventListener('click', () => {
-      if (_getCohorts().length > 1) {
-        if (!window.confirm('Удалить все ' + _getCohorts().length + ' когорт(ы) из локального хранилища?')) return;
+      const n = _getCohorts().length;
+      if (n > 1) {
+        if (!window.confirm(T('teacher.confirm.logoutMany', { n }))) return;
       }
       logout();
     });
     $('addCohortBtn').addEventListener('click', () => {
       // Re-show login UI overlay-style so user can add more cohorts.
-      const code = window.prompt('Cohort code (4–16 chars [A-Z0-9-]):');
+      const code = window.prompt(T('teacher.prompt.addCohortCode'));
       if (!code) return;
-      const token = window.prompt('Researcher token for ' + code + ':');
+      const token = window.prompt(T('teacher.prompt.addCohortToken', { code }));
       if (!token) return;
       const codeUp = String(code).trim().toUpperCase();
-      if (!/^[A-Z0-9-]{4,16}$/.test(codeUp)) { alert('Bad cohort code'); return; }
+      if (!/^[A-Z0-9-]{4,16}$/.test(codeUp)) { alert(T('teacher.prompt.badCohortCode')); return; }
       fetchAggregates(codeUp, token).then((res) => {
-        if (!res.ok) { alert('Login failed: ' + (res.error || res.status)); return; }
+        if (!res.ok) { alert(T('teacher.prompt.loginFailed', { reason: res.error || res.status })); return; }
         _upsertCohort(codeUp, token);
         _cohortAggregates[codeUp] = res.body;
         _cohortFetchErrors[codeUp] = null;

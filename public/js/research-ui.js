@@ -611,25 +611,54 @@
     }
   }
 
-  // ── teacher-side comprehension explainer (Gap A) ───────────────────────
+  // ── teacher-side comprehension explainer (Gap A + master-key workflow) ─
   function openTeacherHelp() {
-    let body = '<div class="v3-research-teacher-help" style="font-size:12.5px;line-height:1.6;">';
-    body += '<p style="margin:0 0 10px 0;">' +
-      escapeHtml(T('research.teacher.helpIntro',
-        'Teacher dashboard — отдельная страница для куратора когорты. Вход по cohort code + researcher token, открывается в новой вкладке.')) + '</p>';
-    body += '<ul style="margin:0 0 10px 18px;">';
-    body += '<li>' + escapeHtml(T('research.teacher.help1', 'Что видно: агрегаты по когорте (активные минуты, аудио, SRS, заметки), корреляции метрик с экзаменом, scatter-график.')) + '</li>';
-    body += '<li>' + escapeHtml(T('research.teacher.help2', 'k-anonymity = 5: индивидуальная разбивка по студентам скрыта, пока в когорте меньше 5 человек.')) + '</li>';
-    body += '<li>' + escapeHtml(T('research.teacher.help3', 'Researcher token выдаётся при создании когорты (scripts/research/) — это ключ доступа на чтение агрегатов. Не делитесь им со студентами.')) + '</li>';
-    body += '<li>' + escapeHtml(T('research.teacher.help4', 'Сырые данные (текст, заметки, поиск, аудио) на сервер не попадают — только счётчики и длительности.')) + '</li>';
-    body += '<li>' + escapeHtml(T('research.teacher.help5', 'Итоговые баллы: студент может ввести self-report, преподаватель — загрузить authoritative CSV (перезапишет self-report).')) + '</li>';
-    body += '</ul>';
-    body += '<p style="margin:0;font-size:11.5px;color:var(--theme-text-secondary,#666);">' +
-      escapeHtml(T('research.teacher.helpDocs', 'Полная инструкция по настройке когорты — docs/RESEARCHER_GUIDE.md')) + '</p>';
+    function section(headerKey, headerFb, items) {
+      let h = '<h5 style="margin:14px 0 6px 0;font-size:13px;color:var(--theme-accent,#3b82f6);">' +
+        escapeHtml(T(headerKey, headerFb)) + '</h5>';
+      let ul = '<ul style="margin:0 0 0 18px;padding:0;line-height:1.55;">';
+      for (const [k, fb] of items) {
+        ul += '<li style="margin:5px 0;">' + escapeHtml(T(k, fb)) + '</li>';
+      }
+      ul += '</ul>';
+      return h + ul;
+    }
+
+    let body = '<div class="v3-research-teacher-help" style="font-size:12.5px;line-height:1.55;">';
+    body += '<p style="margin:0 0 4px 0;font-weight:600;color:var(--theme-text-primary,inherit);">' +
+      escapeHtml(T('research.teacher.help.introHeader', 'Что это')) + '</p>';
+    body += '<p style="margin:0 0 6px 0;">' +
+      escapeHtml(T('research.teacher.help.intro',
+        'Teacher dashboard — отдельная страница для куратора когорты. Здесь учитель создаёт когорту, видит агрегаты и выгружает баллы. Вход — по cohort code + researcher token.')) + '</p>';
+
+    body += section('research.teacher.help.rolesHeader', 'Три роли — кто что знает', [
+      ['research.teacher.help.roleOperator',   'Оператор (администратор сервера) — задаёт RESEARCH_ADMIN_TOKEN («мастер-ключ») при деплое. Без него создавать когорты нельзя.'],
+      ['research.teacher.help.roleTeacher',    'Учитель / куратор — получает мастер-ключ от оператора и через форму «＋ Создать новую когорту» придумывает запоминающиеся cohort code и researcher token.'],
+      ['research.teacher.help.roleResearcher', 'Исследователь / ассистент — получает cohort code и researcher token (но НЕ мастер-ключ). Достаточно для просмотра агрегатов.'],
+      ['research.teacher.help.roleStudent',    'Студент — получает только cohort code (общий идентификатор группы). Анонимен, опт-инит research mode в приложении.'],
+    ]);
+
+    body += section('research.teacher.help.workflowHeader', 'Процесс создания когорты', [
+      ['research.teacher.help.step1', '1. Оператор задаёт RESEARCH_ADMIN_TOKEN в окружении (локально .env, на Railway → Variables) и перезапускает сервер.'],
+      ['research.teacher.help.step2', '2. Учитель открывает teacher.html → «＋ Создать новую когорту». Вставляет мастер-ключ. Придумывает cohort code (4–16, A-Z 0-9 -) и researcher token (≥16 символов или 🎲).'],
+      ['research.teacher.help.step3', '3. При успехе поля входа автозаполняются — учитель сразу нажимает «Войти» и попадает в дашборд.'],
+      ['research.teacher.help.step4', '4. Учитель ЗАПИСЫВАЕТ cohort code и researcher token. Восстановления нет.'],
+      ['research.teacher.help.step5', '5. Учитель раздаёт студентам ТОЛЬКО cohort code. Researcher token и мастер-ключ — не для студентов.'],
+    ]);
+
+    body += section('research.teacher.help.securityHeader', 'Безопасность мастер-ключа', [
+      ['research.teacher.help.sec1', 'Мастер-ключ задаёт оператор. Учитель должен его получить; студентам он не нужен.'],
+      ['research.teacher.help.sec2', 'При компрометации оператор меняет ключ и перезапускает сервер — существующие когорты не пострадают.'],
+      ['research.teacher.help.sec3', 'На рабочем сервере мастер-ключ — длинная случайная строка ≥32 символа. Локально — что угодно.'],
+    ]);
+
+    body += '<p style="margin:14px 0 0 0;font-size:11.5px;color:var(--theme-text-secondary,#666);">' +
+      escapeHtml(T('research.teacher.help.docsFooter',
+        'Полная инструкция — docs/RESEARCHER_GUIDE.md. CLI-альтернатива: scripts/research/create_cohort.js.')) + '</p>';
     body += '</div>';
 
     v3ConfirmModal({
-      title: T('research.teacher.helpTitle', '🎓 Как работает teacher dashboard'),
+      title: T('research.teacher.help.title', '🎓 Как работает teacher dashboard'),
       body,
       isHtml: true,
       okText: T('research.btn.close', 'Закрыть'),
