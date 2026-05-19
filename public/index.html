@@ -11414,8 +11414,9 @@ function v3IdeModeToggle() {
     v3IdeShowDraftDialog();
     return;
   }
+  const fromClassicTextId = (st && st.mode === "library" && st.textId) ? String(st.textId) : null;
   localStorage.setItem(V3_IDE_MODE_KEY, "1");
-  v3IdeApplyMode(true);
+  v3IdeApplyMode(true, fromClassicTextId);
 }
 
 function v3IdeShowDraftDialog() {
@@ -11476,7 +11477,7 @@ function v3IdeSyncHeaderOffsetVar() {
   document.documentElement.style.setProperty("--v3-ide-header-offset", `${h}px`);
 }
 
-function v3IdeApplyMode(enabled) {
+function v3IdeApplyMode(enabled, fromClassicTextId) {
   const body = document.body;
   const header = document.getElementById("v3IdeHeader");
   const workspace = document.getElementById("v3IdeWorkspace");
@@ -11497,6 +11498,8 @@ function v3IdeApplyMode(enabled) {
 
     // Apply saved state
 v3IdeLoadState();
+// Classic-to-IDE switch: override stale IDE state with the text the user had open in Classic
+if (fromClassicTextId) v3IdeState.activeTextId = fromClassicTextId;
 
 // Mobile UX: on phones we hide Library/Inspector by default to prioritize content.
 // We do this only once per device; afterward the user's open/close choice persists.
