@@ -4230,6 +4230,53 @@ body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
   .v3-chip-toggle-group { gap: 2px; padding: 3px 4px; }
   .v3-chip-toggle { padding: 6px 10px; font-size: 12.5px; min-height: 34px; }
 }
+
+/* P+4 (v3.7): Floating Action Button for audio download.
+   Appears bottom-right whenever the audio block in #audioContainer is
+   populated (i.e. user just generated audio). Hidden in IDE mode —
+   IDE already has its own bottom tab bar at the same screen edge. */
+.v3-audio-fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--theme-accent, #3b82f6);
+  color: #fff;
+  border: 0;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.7) translateY(8px);
+  pointer-events: none;
+  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
+}
+.v3-audio-fab.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+.v3-audio-fab:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.20);
+  transform: scale(1.05);
+}
+.v3-audio-fab:focus-visible {
+  outline: 3px solid var(--theme-accent, #3b82f6);
+  outline-offset: 3px;
+}
+body.v3-ide-mode .v3-audio-fab { display: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .v3-audio-fab { transition: opacity 0.1s; }
+}
 .v3-filter-chip-x {
   border: 0;
   background: transparent;
@@ -39682,6 +39729,40 @@ document.addEventListener("i18n:changed", function () {
         .then(watchForUpdate)
         .catch((err) => console.warn("[sw] registration failed:", err));
     });
+  })();
+</script>
+
+<!-- P+4: Audio download FAB. JS toggles .is-visible based on the presence
+     of an <audio> inside #audioContainer (i.e. user just generated audio).
+     CSS hides the FAB entirely when body.v3-ide-mode is set (IDE has its
+     own bottom tab bar). Click → existing downloadMp3FromCache() handler. -->
+<button id="v3AudioFab" type="button" class="v3-audio-fab"
+        aria-label="Скачать аудио" title="Скачать аудио"
+        data-i18n-title="classic.downloadAudio" data-i18n-aria-label="classic.downloadAudio"
+        onclick="downloadMp3FromCache()">⬇</button>
+
+<script>
+  (function () {
+    function syncFab() {
+      const fab = document.getElementById("v3AudioFab");
+      const audioContainer = document.getElementById("audioContainer");
+      if (!fab) return;
+      const hasAudio = !!(audioContainer && audioContainer.querySelector("audio"));
+      fab.classList.toggle("is-visible", hasAudio);
+    }
+    function init() {
+      const ac = document.getElementById("audioContainer");
+      if (!ac) return;
+      syncFab();
+      const mo = new MutationObserver(syncFab);
+      mo.observe(ac, { childList: true, subtree: true });
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+    try { window.v3SyncAudioFab = syncFab; } catch (_) {}
   })();
 </script>
 
