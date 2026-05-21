@@ -28333,19 +28333,23 @@ function v3UpdateTtsCardStatus() {
   const voice    = document.getElementById("voiceSelect");
   const rate     = document.getElementById("rateRange");
   const parts = [];
+  // Provider — ALWAYS shown (user needs to see "what's powering this"
+  // without expanding). Was previously hidden on default — revised after
+  // dogfooding showed the live state felt incomplete without it.
   const provTxt = _v3OptText(provider);
-  // Show provider only if non-default to keep the summary compact.
-  if (provider && provider.value && provider.value !== "online_tts" && provTxt) {
+  if (provTxt) {
     parts.push(provTxt.length > 18 ? provTxt.slice(0, 16) + "…" : provTxt);
   }
+  // Voice — always shown.
   const voiceTxt = _v3OptText(voice);
   if (voiceTxt) {
-    parts.push("🔊 " + (voiceTxt.length > 22 ? voiceTxt.slice(0, 20) + "…" : voiceTxt));
+    parts.push(voiceTxt.length > 22 ? voiceTxt.slice(0, 20) + "…" : voiceTxt);
   }
+  // Rate — only if non-default (×1.0 is implicit baseline).
   if (rate && rate.value && Number(rate.value).toFixed(1) !== "1.0") {
     parts.push("×" + Number(rate.value).toFixed(1));
   }
-  v3UpdateCardStatus("classicTtsCard", parts.join(" · "));
+  v3UpdateCardStatus("classicTtsCard", parts.length ? "🔊 " + parts.join(" · ") : "");
 }
 
 function v3UpdateTranslationCardStatus() {
@@ -28353,17 +28357,21 @@ function v3UpdateTranslationCardStatus() {
   const translit = document.getElementById("translitProfileSelect");
   const font     = document.getElementById("hebrewFontSelect");
   const parts = [];
+  // Provider — always shown.
   const provTxt = _v3OptText(provider);
-  if (provTxt) parts.push("🌐 " + provTxt);
-  if (translit && translit.value && translit.value !== "sbl") {
-    const t = _v3OptText(translit);
-    if (t) parts.push(t.length > 22 ? t.slice(0, 20) + "…" : t);
+  if (provTxt) parts.push(provTxt);
+  // Translit profile — ALWAYS shown (was previously skipped on default
+  // sbl; user needs to know which transliteration scheme is active).
+  const translitTxt = _v3OptText(translit);
+  if (translitTxt) {
+    parts.push(translitTxt.length > 22 ? translitTxt.slice(0, 20) + "…" : translitTxt);
   }
+  // Font — only if non-default (Frank Ruhl is the implicit baseline).
   if (font && font.value && font.value !== "frank") {
     const f = _v3OptText(font);
     if (f) parts.push(f.length > 16 ? f.slice(0, 14) + "…" : f);
   }
-  v3UpdateCardStatus("classicTranslationCard", parts.join(" · "));
+  v3UpdateCardStatus("classicTranslationCard", parts.length ? "🌐 " + parts.join(" · ") : "");
 }
 
 function v3InitClassicCardLiveState() {
