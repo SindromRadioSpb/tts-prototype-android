@@ -12542,9 +12542,16 @@ function v3IdePlayRow(idx) {
 }
 
 function v3IdePlayAll() {
-  // Use existing playlist functionality
-  if (typeof togglePlaylist === "function") {
-    togglePlaylist();
+  // Delegate to the canonical playlist start/stop button. Its inline
+  // click handler (see #btnPlaylistRun listener) checks proTable, enables
+  // autoNext if needed, and toggles playback. There is no global
+  // togglePlaylist() — the previous typeof-guarded call here was a no-op
+  // for both the mini header ▶ button and the larger "▶ Воспроизвести всё".
+  const btn = document.getElementById("btnPlaylistRun");
+  if (btn) {
+    btn.click();
+  } else if (typeof showToast === "function") {
+    showToast(t("toast.aiTranslationFirst"));
   }
 }
 
