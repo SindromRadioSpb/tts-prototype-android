@@ -895,6 +895,26 @@
         transform: rotate(180deg);
     }
 
+    /* P+3 (v3.7): live-state preview shown inside summary when collapsed.
+       Injected by v3UpdateCardStatus() as a sibling before the chevron. */
+    .classic-card-live-state {
+        font-size: 12px;
+        color: var(--theme-text-secondary);
+        font-weight: normal;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 50%;
+        flex: 0 1 auto;
+        margin-left: auto;
+    }
+    .classic-disclosure[open] .classic-card-live-state {
+        display: none;
+    }
+    @media (max-width: 600px) {
+        .classic-card-live-state { font-size: 11.5px; max-width: 45%; }
+    }
+
     .classic-card-body {
         display: flex;
         flex-direction: column;
@@ -28257,6 +28277,100 @@ function v3ChipifyAllFilters() {
 }
 try { window.v3ChipifySelect = v3ChipifySelect; } catch (_) {}
 try { window.v3ChipifyAllFilters = v3ChipifyAllFilters; } catch (_) {}
+
+// ─── P+3 (v3.7): Classic card live-state preview ────────────────────────
+// Show current setting summary inside <details> when collapsed so the
+// user doesn't have to expand to recall what's selected. Pure visual —
+// no logic side-effects.
+function v3UpdateCardStatus(cardId, status) {
+  const card = document.getElementById(cardId);
+  if (!card) return;
+  const summary = card.querySelector(".classic-disclosure-summary");
+  if (!summary) return;
+  let liveEl = summary.querySelector(".classic-card-live-state");
+  if (status) {
+    if (!liveEl) {
+      liveEl = document.createElement("span");
+      liveEl.className = "classic-card-live-state";
+      summary.appendChild(liveEl);
+    }
+    liveEl.textContent = status;
+  } else if (liveEl) {
+    liveEl.remove();
+  }
+}
+
+function _v3OptText(selectEl) {
+  if (!selectEl) return "";
+  const opt = selectEl.options ? selectEl.options[selectEl.selectedIndex] : null;
+  return (opt && opt.textContent) ? opt.textContent.trim() : "";
+}
+
+function v3UpdateTtsCardStatus() {
+  const provider = document.getElementById("ttsProviderSelect");
+  const voice    = document.getElementById("voiceSelect");
+  const rate     = document.getElementById("rateRange");
+  const parts = [];
+  const provTxt = _v3OptText(provider);
+  // Show provider only if non-default to keep the summary compact.
+  if (provider && provider.value && provider.value !== "online_tts" && provTxt) {
+    parts.push(provTxt.length > 18 ? provTxt.slice(0, 16) + "…" : provTxt);
+  }
+  const voiceTxt = _v3OptText(voice);
+  if (voiceTxt) {
+    parts.push("🔊 " + (voiceTxt.length > 22 ? voiceTxt.slice(0, 20) + "…" : voiceTxt));
+  }
+  if (rate && rate.value && Number(rate.value).toFixed(1) !== "1.0") {
+    parts.push("×" + Number(rate.value).toFixed(1));
+  }
+  v3UpdateCardStatus("classicTtsCard", parts.join(" · "));
+}
+
+function v3UpdateTranslationCardStatus() {
+  const provider = document.getElementById("providerSelect");
+  const translit = document.getElementById("translitProfileSelect");
+  const font     = document.getElementById("hebrewFontSelect");
+  const parts = [];
+  const provTxt = _v3OptText(provider);
+  if (provTxt) parts.push("🌐 " + provTxt);
+  if (translit && translit.value && translit.value !== "sbl") {
+    const t = _v3OptText(translit);
+    if (t) parts.push(t.length > 22 ? t.slice(0, 20) + "…" : t);
+  }
+  if (font && font.value && font.value !== "frank") {
+    const f = _v3OptText(font);
+    if (f) parts.push(f.length > 16 ? f.slice(0, 14) + "…" : f);
+  }
+  v3UpdateCardStatus("classicTranslationCard", parts.join(" · "));
+}
+
+function v3InitClassicCardLiveState() {
+  const ttsIds = ["ttsProviderSelect", "voiceSelect", "rateRange"];
+  for (const id of ttsIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.addEventListener("change", v3UpdateTtsCardStatus);
+    el.addEventListener("input",  v3UpdateTtsCardStatus);
+  }
+  const trIds = ["providerSelect", "translitProfileSelect", "hebrewFontSelect"];
+  for (const id of trIds) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.addEventListener("change", v3UpdateTranslationCardStatus);
+  }
+  // Initial draw — settings restore from localStorage runs at boot; this
+  // setTimeout lets it settle. Re-run on i18n:changed so the preview text
+  // tracks the active locale.
+  const apply = () => { v3UpdateTtsCardStatus(); v3UpdateTranslationCardStatus(); };
+  setTimeout(apply, 300);
+  document.addEventListener("i18n:changed", apply);
+}
+try { window.v3InitClassicCardLiveState = v3InitClassicCardLiveState; } catch (_) {}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => v3InitClassicCardLiveState());
+} else {
+  v3InitClassicCardLiveState();
+}
 
 function v3InitLevelEnumUi() {
 v3FillLevelSelect("v3LibraryLevel", { includeEmpty: true, emptyLabel: t("library.levelAll") });
