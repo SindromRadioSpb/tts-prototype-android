@@ -4153,6 +4153,63 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
   .v3-smart-chip { padding: 8px 12px; font-size: 13.5px; flex: 1 1 calc(50% - 4px); justify-content: center; }
   .v3-smart-chip-clear { flex: 0 0 32px; }
 }
+
+/* P+2 (v3.7): Filter chip-toggles — visual replacement for inline <select>
+   filters in Library + Dashboard toolbars. The original <select> remains
+   in the DOM (display:none) so all existing onchange / .value handlers
+   keep working unchanged; the chip group mirrors state via the 'change'
+   event on the select. */
+.v3-chip-toggle-group {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  background: var(--theme-bg-muted);
+  border: 1px solid var(--theme-border-soft);
+  border-radius: 999px;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  vertical-align: middle;
+}
+.v3-chip-toggle-group::-webkit-scrollbar { height: 4px; }
+.v3-chip-toggle-group::-webkit-scrollbar-thumb { background: var(--theme-border-medium); border-radius: 2px; }
+.v3-chip-toggle {
+  flex: 0 0 auto;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--theme-text-secondary);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
+  min-height: 28px;
+}
+.v3-chip-toggle:hover {
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+}
+.v3-chip-toggle:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 2px;
+}
+.v3-chip-toggle[aria-pressed="true"] {
+  background: var(--theme-accent);
+  color: #fff;
+  border-color: var(--theme-accent);
+}
+body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
+@media (max-width: 600px) {
+  .v3-chip-toggle-group { gap: 2px; padding: 3px 4px; }
+  .v3-chip-toggle { padding: 6px 10px; font-size: 12.5px; min-height: 34px; }
+}
 .v3-filter-chip-x {
   border: 0;
   background: transparent;
@@ -28102,12 +28159,114 @@ function v3FillLevelSelect(selectId, opts) {
   el.value = allowed.has(cur) ? cur : "";
 }
 
+// ─── P+2 (v3.7): Chip-toggle filter strip for <select> elements ─────────
+// Non-invasive: hides the source <select> via display:none, builds a
+// horizontally-scrollable strip of chip buttons that mirror the options,
+// and keeps the two in sync via the 'change' event. Existing onchange
+// handlers continue to fire unchanged. Re-builds chips when option list
+// changes (e.g. v3FillLevelSelect rewriting innerHTML) via MutationObserver.
+function v3ChipifySelect(selectEl) {
+  if (!selectEl || selectEl.dataset.chipified === "1") return null;
+
+  const group = document.createElement("div");
+  group.className = "v3-chip-toggle-group";
+  group.setAttribute("role", "radiogroup");
+  if (selectEl.title) group.setAttribute("aria-label", selectEl.title);
+
+  function buildChips() {
+    group.innerHTML = "";
+    const currentVal = String(selectEl.value || "");
+    for (const opt of selectEl.options) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "v3-chip-toggle";
+      btn.setAttribute("role", "radio");
+      btn.setAttribute("data-value", opt.value);
+      const isActive = String(opt.value) === currentVal;
+      btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      btn.setAttribute("aria-checked", isActive ? "true" : "false");
+      // Mirror i18n key so applyI18n() rewrites chips on locale change.
+      const i18nKey = opt.getAttribute("data-i18n");
+      if (i18nKey) btn.setAttribute("data-i18n", i18nKey);
+      btn.textContent = opt.textContent;
+      btn.addEventListener("click", () => {
+        if (selectEl.value === opt.value) return;
+        selectEl.value = opt.value;
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      group.appendChild(btn);
+    }
+  }
+
+  function syncChipsFromSelect() {
+    const v = String(selectEl.value || "");
+    group.querySelectorAll(".v3-chip-toggle").forEach((b) => {
+      const match = String(b.getAttribute("data-value")) === v;
+      b.setAttribute("aria-pressed", match ? "true" : "false");
+      b.setAttribute("aria-checked", match ? "true" : "false");
+    });
+  }
+
+  // External code (resetFilters / restore / v3FillLevelSelect) may set
+  // selectEl.value and/or dispatch 'change'. Mirror that to chips.
+  selectEl.addEventListener("change", syncChipsFromSelect);
+
+  // Several call sites set .value programmatically WITHOUT dispatching
+  // 'change' (deeplink restore at ~L15912, library boot restore ~L21375,
+  // dashboard boot restore ~L27363). Wrap the .value property on this
+  // specific element with a setter that triggers a chip resync, while
+  // delegating storage to the native HTMLSelectElement prototype. Side-
+  // effect-free for existing change-listeners — we do NOT dispatch.
+  try {
+    const protoDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
+    if (protoDesc && protoDesc.set && protoDesc.get) {
+      Object.defineProperty(selectEl, "value", {
+        get() { return protoDesc.get.call(this); },
+        set(v) { protoDesc.set.call(this, v); syncChipsFromSelect(); },
+        configurable: true,
+      });
+    }
+  } catch (_) { /* fall through — chips stay sync-on-change only */ }
+
+  // Rebuild chips when options change (e.g. levels filled dynamically,
+  // or i18n re-renders the select). Light filter to skip text-node noise.
+  const mo = new MutationObserver(() => buildChips());
+  mo.observe(selectEl, { childList: true, subtree: false, characterData: true });
+
+  selectEl.parentNode.insertBefore(group, selectEl);
+  selectEl.style.display = "none";
+  selectEl.dataset.chipified = "1";
+
+  buildChips();
+  return { selectEl, group, rebuild: buildChips };
+}
+
+function v3ChipifyAllFilters() {
+  const ids = [
+    "v3LibraryLevel", "v3TagMatchModeLib", "v3SearchScopeLib", "v3LibrarySort",
+    "v3DashLevel",    "v3TagMatchModeDash", "v3SearchScopeDash", "v3DashMode",
+  ];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (el) v3ChipifySelect(el);
+  }
+  // Apply current locale to freshly-rendered chip text.
+  if (typeof window.applyI18n === "function") {
+    try { window.applyI18n(); } catch (_) {}
+  }
+}
+try { window.v3ChipifySelect = v3ChipifySelect; } catch (_) {}
+try { window.v3ChipifyAllFilters = v3ChipifyAllFilters; } catch (_) {}
+
 function v3InitLevelEnumUi() {
 v3FillLevelSelect("v3LibraryLevel", { includeEmpty: true, emptyLabel: t("library.levelAll") });
   // “Все уровни” для фильтра, “—” для мета-форм
   v3FillLevelSelect("v3DashLevel", { includeEmpty: true, emptyLabel: t("library.levelAll") });
   v3FillLevelSelect("v3TextMetaLevel", { includeEmpty: true, emptyLabel: "—" });
   v3FillLevelSelect("v3SaveMetaLevel", { includeEmpty: true, emptyLabel: "—" });
+  // P+2: Convert the 8 toolbar filter <select>s into chip-toggle strips
+  // after their options are populated. Idempotent — re-calls are no-op.
+  try { v3ChipifyAllFilters(); } catch (_) {}
 }
 
 const V3_SAVE_META_DEFAULTS_KEY = "v3_save_meta_defaults_v1";
