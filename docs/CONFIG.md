@@ -66,6 +66,30 @@ This document describes all environment variables and configuration options for 
 | `ANKI_ADDNOTES_CHUNK` | `25` | Batch size for addNotes (5-100) |
 | `ANKI_MULTI_CHUNK` | `50` | Batch size for multi commands (10-200) |
 
+### Research Mode — Admin (cohort provisioning from UI)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RESEARCH_ADMIN_TOKEN` | — (disabled) | Master key that unlocks `POST /api/research/v1/admin/cohort`. When **unset**, the endpoint returns `503 ADMIN_DISABLED` and the in-UI "＋ Создать новую когорту" form on `teacher.html` reports cohort creation as disabled. This is the **secure default**: an open creation endpoint on a public privacy server would be an abuse vector (cohort squatting / disk fill). |
+
+**How it's used end-to-end:**
+
+1. **Operator** (you/server admin) sets `RESEARCH_ADMIN_TOKEN` once at deploy:
+   - **Local dev:** add `RESEARCH_ADMIN_TOKEN=<your-secret>` to `.env` and restart the server. `.env` is loaded only on boot — changes don't hot-reload.
+   - **Railway production:** add the variable in Railway → project → Variables. Railway re-deploys on save.
+2. **Teacher** receives that same secret (out-of-band: messenger, printout, etc.) and pastes it once per browser session into the "Admin-секрет" field of the cohort-creation form on `/teacher.html`. The teacher also chooses a memorable cohort code and researcher token (or 🎲-generates one) — these become the teacher's dashboard login.
+3. **Researcher / assistant** (if any) gets only the cohort code + researcher token from the teacher — never the master key.
+4. **Student** gets only the cohort code (anonymous join). The master key MUST NOT reach students.
+
+**Security expectations:**
+
+- **Production:** the master key should be a long random string (≥ 32 chars). Generate via e.g. `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`.
+- **Local dev:** anything works; the value is for your machine only and `.env` is gitignored.
+- **Rotation:** change the value in `.env` / Railway Variables and restart the server. Existing cohorts are unaffected — they authenticate via their own per-cohort `researcher_token`, not the master key.
+- **Endpoint is also same-origin + rate-limited (10/h)** and the secret is compared in constant time. See `server.js` `POST /api/research/v1/admin/cohort`.
+
+**CLI fallback:** `scripts/research/create_cohort.js` still works as the operator-side fallback (e.g. if the in-UI form is broken or if you prefer a scripted workflow). Both paths share the same `research/storage.createCohort()` and produce identical `cohort_meta.json`.
+
 ## File Structure
 
 ```

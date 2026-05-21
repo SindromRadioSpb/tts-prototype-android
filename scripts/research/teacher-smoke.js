@@ -225,6 +225,12 @@ async function main() {
 
     await page.goto(`${baseUrl}/teacher.html`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector('#cohortInput');
+    // Lock locale to EN so text-based assertions below ("Cohort size",
+    // "k-anonymity met", "Total active minutes") are deterministic
+    // regardless of the operator's default locale. teacher.html is i18n'd.
+    await page.evaluate(() => {
+      if (typeof window.appSetLocale === 'function') window.appSetLocale('en');
+    });
     await page.fill('#cohortInput', code);
     await page.fill('#tokenInput', token);
     await page.click('#loginBtn');

@@ -157,7 +157,7 @@
     loginErr(T('teacher.msg.loading'));
     const res = await fetchAggregates(cohort, token);
     if (!res.ok) {
-      loginErr(`Ошибка ${res.status}: ${res.error || ''}`);
+      loginErr(T('teacher.msg.loginGeneric', { status: res.status, error: res.error || '' }));
       return;
     }
     _upsertCohort(cohort, token);
@@ -363,7 +363,7 @@
   // Multi-series line chart for compare view. `series` = [{label, color, data:[{x,y}]}].
   function svgMultiLineChart(container, series, opts) {
     if (!series || !series.length) {
-      container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+      container.innerHTML = '<div class="empty-state">' + escapeHtml(T('teacher.dyn.emptyState')) + '</div>';
       return;
     }
     const W = 800, H = 240, PAD_L = 50, PAD_R = 12, PAD_T = 12, PAD_B = 48;
@@ -420,19 +420,26 @@
 
   function renderHeader() {
     const meta = _aggregates.cohort_meta || {};
-    $('cohortMeta').textContent =
-      `${meta.code}  ·  k=${meta.k_anonymity_threshold}  ·  schema ${meta.schema_version}  ·  retain → ${meta.retention_until || '—'}`;
+    $('cohortMeta').textContent = T('teacher.dyn.cohortMetaLine', {
+      code: meta.code,
+      k: meta.k_anonymity_threshold,
+      schema: meta.schema_version,
+      retention: meta.retention_until || '—',
+    });
   }
 
   function renderSummary() {
     const a = _aggregates;
+    const k = a.cohort_meta.k_anonymity_threshold;
     const tiles = [
-      { label: 'Cohort size',     value: a.cohort_size,         sub: a.k_anonymity_met ? `k=${a.cohort_meta.k_anonymity_threshold} met` : `< k=${a.cohort_meta.k_anonymity_threshold}` },
-      { label: 'Days observed',   value: a.days_observed,       sub: a.daily_aggregates && a.daily_aggregates.length ? `${a.daily_aggregates[0].date} … ${a.daily_aggregates[a.daily_aggregates.length-1].date}` : '—' },
-      { label: 'Total minutes',   value: fmtNum(sumDaily(a, 'active_minutes_real')), sub: 'sum across cohort' },
-      { label: 'Total audio',     value: fmtMs(sumDaily(a, 'audio_play_ms_total')),  sub: 'cohort total' },
-      { label: 'SRS reviews',     value: fmtNum(sumDaily(a, 'cards_reviewed')),       sub: 'cohort total' },
-      { label: 'Notes created',   value: fmtNum(sumDaily(a, 'notes_created')),        sub: 'cohort total' },
+      { label: T('teacher.dyn.tile.cohortSize'),  value: a.cohort_size,
+        sub: a.k_anonymity_met ? T('teacher.dyn.tile.kMet', { k }) : T('teacher.dyn.tile.kBelow', { k }) },
+      { label: T('teacher.dyn.tile.daysObserved'), value: a.days_observed,
+        sub: a.daily_aggregates && a.daily_aggregates.length ? `${a.daily_aggregates[0].date} … ${a.daily_aggregates[a.daily_aggregates.length-1].date}` : '—' },
+      { label: T('teacher.dyn.tile.totalMinutes'), value: fmtNum(sumDaily(a, 'active_minutes_real')), sub: T('teacher.dyn.tile.subSumAcross') },
+      { label: T('teacher.dyn.tile.totalAudio'),   value: fmtMs(sumDaily(a, 'audio_play_ms_total')),  sub: T('teacher.dyn.tile.subCohortTotal') },
+      { label: T('teacher.dyn.tile.srsReviews'),   value: fmtNum(sumDaily(a, 'cards_reviewed')),       sub: T('teacher.dyn.tile.subCohortTotal') },
+      { label: T('teacher.dyn.tile.notesCreated'), value: fmtNum(sumDaily(a, 'notes_created')),        sub: T('teacher.dyn.tile.subCohortTotal') },
     ];
     $('summaryGrid').innerHTML = tiles.map((t) => `
       <div class="summary-tile">
@@ -451,7 +458,7 @@
   // ── SVG chart helpers ──────────────────────────────────────────────────
   function svgLineChart(container, data, opts) {
     if (!data || !data.length) {
-      container.innerHTML = '<div class="empty-state">Нет данных для отображения</div>';
+      container.innerHTML = '<div class="empty-state">' + escapeHtml(T('teacher.dyn.emptyState')) + '</div>';
       return;
     }
     const W = 800, H = 220, PAD_L = 50, PAD_R = 12, PAD_T = 12, PAD_B = 28;
@@ -486,7 +493,7 @@
 
   function svgScatterChart(container, data, opts) {
     if (!data || !data.length) {
-      container.innerHTML = '<div class="empty-state">Нет данных для scatter (нужны outcomes)</div>';
+      container.innerHTML = '<div class="empty-state">' + escapeHtml(T('teacher.dyn.emptyScatter')) + '</div>';
       return;
     }
     const W = 800, H = 280, PAD_L = 56, PAD_R = 12, PAD_T = 12, PAD_B = 36;
@@ -563,33 +570,34 @@
 
   function renderStudentTable() {
     const a = _aggregates;
+    const k = a.cohort_meta.k_anonymity_threshold;
     if (!a.k_anonymity_met) {
-      $('kBadge').innerHTML = '<span class="k-warn">⚠ k-anonymity not met (' + a.cohort_size + ' &lt; k=' + a.cohort_meta.k_anonymity_threshold + ')</span>';
-      $('kHint').textContent = 'Per-student breakdown скрыт пока в когорте < k=' + a.cohort_meta.k_anonymity_threshold + ' студентов. Cohort-wide агрегаты (выше) видны всегда.';
-      $('studentTable').innerHTML = '<div class="empty-state">Per-student data hidden until cohort_size ≥ ' + a.cohort_meta.k_anonymity_threshold + '.</div>';
+      $('kBadge').innerHTML = '<span class="k-warn">' + escapeHtml(T('teacher.dyn.kBadgeWarn', { size: a.cohort_size, k })) + '</span>';
+      $('kHint').textContent = T('teacher.dyn.kHintWarn', { k });
+      $('studentTable').innerHTML = '<div class="empty-state">' + escapeHtml(T('teacher.dyn.perStudentHidden', { k })) + '</div>';
       return;
     }
-    $('kBadge').innerHTML = '<span class="k-met">✓ k-anonymity met (' + a.cohort_size + ' ≥ ' + a.cohort_meta.k_anonymity_threshold + ')</span>';
-    $('kHint').textContent = 'Сортируйте кликом по заголовку. student_id обрезан до 8 hex-символов для краткости.';
+    $('kBadge').innerHTML = '<span class="k-met">' + escapeHtml(T('teacher.dyn.kBadgeMet', { size: a.cohort_size, k })) + '</span>';
+    $('kHint').textContent = T('teacher.dyn.kHintMet');
 
     const students = a.students || [];
     const cols = [
-      { key: 'student_id_short', label: 'student_id', fmt: (v) => `<code>${escapeHtml(v)}</code>` },
-      { key: 'first_upload_ts', label: 'first', fmt: escapeHtml },
-      { key: 'last_upload_ts',  label: 'last',  fmt: escapeHtml },
-      { key: 'uploads_count',   label: 'uploads', cls: 'num', fmt: fmtNum },
-      { key: 'active_minutes_real', label: 'active min', cls: 'num', fmt: fmtNum },
-      { key: 'audio_play_ms_total', label: 'audio',   cls: 'num', fmt: (v) => fmtMs(v) },
-      { key: 'cards_reviewed',   label: 'SRS',      cls: 'num', fmt: fmtNum },
-      { key: 'srs_error_rate',   label: 'err rate', cls: 'num', fmt: (v) => v != null ? (v * 100).toFixed(0) + '%' : '—' },
-      { key: 'notes_created',    label: 'notes',    cls: 'num', fmt: fmtNum },
-      { key: 'pre_test_score',   label: 'pre',      cls: 'num', fmt: fmtNum },
-      { key: 'post_test_score',  label: 'post',     cls: 'num', fmt: fmtNum },
+      { key: 'student_id_short', label: T('teacher.dyn.col.studentId'), fmt: (v) => `<code>${escapeHtml(v)}</code>` },
+      { key: 'first_upload_ts', label: T('teacher.dyn.col.first'), fmt: escapeHtml },
+      { key: 'last_upload_ts',  label: T('teacher.dyn.col.last'),  fmt: escapeHtml },
+      { key: 'uploads_count',   label: T('teacher.dyn.col.uploads'), cls: 'num', fmt: fmtNum },
+      { key: 'active_minutes_real', label: T('teacher.dyn.col.activeMin'), cls: 'num', fmt: fmtNum },
+      { key: 'audio_play_ms_total', label: T('teacher.dyn.col.audio'),   cls: 'num', fmt: (v) => fmtMs(v) },
+      { key: 'cards_reviewed',   label: T('teacher.dyn.col.srs'),      cls: 'num', fmt: fmtNum },
+      { key: 'srs_error_rate',   label: T('teacher.dyn.col.errRate'), cls: 'num', fmt: (v) => v != null ? (v * 100).toFixed(0) + '%' : '—' },
+      { key: 'notes_created',    label: T('teacher.dyn.col.notes'),    cls: 'num', fmt: fmtNum },
+      { key: 'pre_test_score',   label: T('teacher.dyn.col.pre'),      cls: 'num', fmt: fmtNum },
+      { key: 'post_test_score',  label: T('teacher.dyn.col.post'),     cls: 'num', fmt: fmtNum },
       // v3.3.5 — calibrated diagnostic quiz columns (sparse — only populated
       // when the student took the in-app diagnostic).
-      { key: 'quiz_score_normalized', label: 'quiz', cls: 'num', fmt: fmtNum },
-      { key: 'quiz_cefr_band',  label: 'CEFR',     cls: 'num', fmt: (v) => v || '—' },
-      { key: 'quiz_se',         label: 'SE',       cls: 'num', fmt: (v) => v != null ? Number(v).toFixed(2) : '—' },
+      { key: 'quiz_score_normalized', label: T('teacher.dyn.col.quiz'), cls: 'num', fmt: fmtNum },
+      { key: 'quiz_cefr_band',  label: T('teacher.dyn.col.cefr'),     cls: 'num', fmt: (v) => v || '—' },
+      { key: 'quiz_se',         label: T('teacher.dyn.col.se'),       cls: 'num', fmt: (v) => v != null ? Number(v).toFixed(2) : '—' },
     ];
     const rows = students.map((s) => {
       const t = s.totals || {};
@@ -686,22 +694,22 @@
     const subjects = withOutcomes();
     const container = $('correlationsTable');
     if (!_aggregates.k_anonymity_met) {
-      container.innerHTML = '<div class="empty-state">Корреляции недоступны (k-anonymity not met).</div>';
+      container.innerHTML = '<div class="empty-state">' + escapeHtml(T('teacher.dyn.correlationsHidden')) + '</div>';
       return;
     }
     if (subjects.length < 3) {
-      container.innerHTML = `<div class="empty-state">Нужно ≥ 3 студентов с заполненным <code>post_test_score</code>. Сейчас: ${subjects.length}. Проверь <code>outcomes.csv</code> в cohort dir.</div>`;
+      container.innerHTML = '<div class="empty-state">' + escapeHtml(T('teacher.dyn.correlationsNeedSubjects', { n: subjects.length })) + '</div>';
       return;
     }
     const ys = subjects.map((s) => s.outcome.post_test_score);
     const metricDefs = [
-      { key: 'active_minutes_real', label: 'Total active minutes' },
-      { key: 'audio_play_ms_total', label: 'Total audio (ms)' },
-      { key: 'cards_reviewed',      label: 'Cards reviewed' },
-      { key: 'cards_correct',       label: 'Cards correct' },
-      { key: 'srs_error_rate',      label: 'SRS error rate (computed)' },
-      { key: 'notes_created',       label: 'Notes created' },
-      { key: 'sessions_count',      label: 'Sessions count' },
+      { key: 'active_minutes_real', label: T('teacher.dyn.corrCol.activeMinutes') },
+      { key: 'audio_play_ms_total', label: T('teacher.dyn.corrCol.totalAudio') },
+      { key: 'cards_reviewed',      label: T('teacher.dyn.corrCol.cardsReviewed') },
+      { key: 'cards_correct',       label: T('teacher.dyn.corrCol.cardsCorrect') },
+      { key: 'srs_error_rate',      label: T('teacher.dyn.corrCol.srsErrorRate') },
+      { key: 'notes_created',       label: T('teacher.dyn.corrCol.notesCreated') },
+      { key: 'sessions_count',      label: T('teacher.dyn.corrCol.sessionsCount') },
     ];
     const rows = metricDefs.map((d) => {
       const xs = subjects.map((s) => {
@@ -713,11 +721,15 @@
       });
       return { metric: d.label, r: pearsonR(xs, ys) };
     });
-    let html = '<table class="corr-table"><thead><tr><th>Metric</th><th class="num">Pearson r</th><th>Magnitude</th></tr></thead><tbody>';
+    let html = '<table class="corr-table"><thead><tr><th>' +
+      escapeHtml(T('teacher.dyn.corrCol.metric')) + '</th><th class="num">' +
+      escapeHtml(T('teacher.dyn.corrCol.r')) + '</th><th>' +
+      escapeHtml(T('teacher.dyn.corrCol.strength')) + '</th></tr></thead><tbody>';
     for (const row of rows) {
       const r = row.r;
       const cls = r == null ? 'corr-neutral' : (r > 0 ? 'corr-positive' : 'corr-negative');
-      const tag = r == null ? '—' : (Math.abs(r) >= 0.7 ? 'strong' : Math.abs(r) >= 0.4 ? 'moderate' : Math.abs(r) >= 0.2 ? 'weak' : 'none');
+      const tagKey = r == null ? null : (Math.abs(r) >= 0.7 ? 'strong' : Math.abs(r) >= 0.4 ? 'moderate' : Math.abs(r) >= 0.2 ? 'weak' : 'none');
+      const tag = tagKey ? T('teacher.dyn.corrTag.' + tagKey) : '—';
       html += `<tr><td>${escapeHtml(row.metric)}</td><td class="num ${cls}">${r == null ? '—' : r.toFixed(3)}</td><td class="${cls}">${escapeHtml(tag)}</td></tr>`;
     }
     html += '</tbody></table>';
@@ -757,7 +769,7 @@
     const a = _aggregates;
     const code = a.cohort_meta.code;
     if (!a.k_anonymity_met) {
-      alert('Per-student CSV недоступен (k-anonymity not met).');
+      alert(T('teacher.dyn.alert.perStudentCsvBadK'));
       return;
     }
     const cols = ['student_id', 'enrollment_date', 'withdrawal_date', 'total_active_minutes',
@@ -807,7 +819,7 @@
   }
   function exportDerivedCsv() {
     if (!_aggregates || !_aggregates.k_anonymity_met) {
-      alert('Derived metrics требуют k-anonymity (нужно ≥ k студентов).');
+      alert(T('teacher.dyn.alert.derivedBadK'));
       return;
     }
     const a = _aggregates;
@@ -869,7 +881,7 @@
       }
     }
     if (!rows.length) {
-      alert('Нет данных для cross-cohort CSV (загруженных когорт нет или daily_aggregates пуст).');
+      alert(T('teacher.dyn.alert.crossCohortEmpty'));
       return;
     }
     // Sort by (cohort_code ASC, date ASC).
@@ -902,14 +914,14 @@
       const file = inp.files && inp.files[0];
       if (!file) return;
       if (file.size > 256 * 1024) {
-        alert('CSV больше 256 KB — слишком много. Поделите файл или сократите.');
+        alert(T('teacher.dyn.alert.csvTooBig'));
         return;
       }
       const text = await file.text();
       // Quick client-side sanity check: header present, has student_id col.
       const firstLine = (text.split(/\r?\n/)[0] || '').toLowerCase();
       if (!firstLine.includes('student_id')) {
-        alert("CSV header должен содержать колонку 'student_id'. Ожидаемые колонки:\nstudent_id,pre_test_score,post_test_score,exam_date,uploaded_by");
+        alert(T('teacher.dyn.alert.csvNoStudentId'));
         return;
       }
       let resp;
@@ -920,18 +932,18 @@
           body: text,
         });
       } catch (e) {
-        alert('Network error: ' + e.message);
+        alert(T('teacher.dyn.alert.networkError', { msg: e.message }));
         return;
       }
       let body = null;
       try { body = await resp.json(); } catch (_) {}
       if (resp.ok) {
-        alert(`✓ Outcomes uploaded.\ninserted=${body && body.inserted}, updated=${body && body.updated}, total=${body && body.total}`);
+        alert(T('teacher.dyn.alert.outcomesOk', { inserted: (body && body.inserted) || 0, updated: (body && body.updated) || 0, total: (body && body.total) || 0 }));
         await refresh();
       } else {
         const err = (body && body.error) || ('HTTP_' + resp.status);
         const detail = body && (body.message || body.line) ? `\n${body.message || ''}${body.line ? ' (line ' + body.line + ')' : ''}` : '';
-        alert(`Upload failed: ${err}${detail}`);
+        alert(T('teacher.dyn.alert.uploadFailed', { err, detail }));
       }
     };
     inp.click();
@@ -1052,7 +1064,7 @@
     const x = document.createElement('span');
     x.className = 'x';
     x.textContent = '×';
-    x.title = 'Удалить когорту из списка';
+    x.title = T('teacher.dyn.chip.removeTitle');
     x.setAttribute('data-testid', 'cohort-chip-remove');
     x.onclick = (ev) => {
       ev.stopPropagation();
@@ -1060,7 +1072,7 @@
     };
     chip.appendChild(x);
 
-    if (err) chip.title = 'Ошибка: ' + err;
+    if (err) chip.title = T('teacher.dyn.chip.errorTitle', { err });
 
     chip.onclick = () => switchActiveView(c.code);
     return chip;
@@ -1166,14 +1178,14 @@
     const text = $('bulkCohortsInput').value || '';
     const { pairs, errors } = parseBulkPaste(text);
     if (errors.length && !pairs.length) {
-      loginErr(`Все ${errors.length} строк не прошли валидацию. Первая ошибка: line ${errors[0].line} (${errors[0].reason}).`);
+      loginErr(T('teacher.msg.bulkValidation', { n: errors.length, line: errors[0].line, reason: errors[0].reason }));
       return;
     }
     if (!pairs.length) {
-      loginErr('Пустой ввод — добавь хотя бы одну строку.');
+      loginErr(T('teacher.msg.bulkEmpty'));
       return;
     }
-    loginErr(`Проверяю ${pairs.length} cohort(s)…`);
+    loginErr(T('teacher.msg.bulkChecking', { n: pairs.length }));
 
     // Concurrent validation via existing fetchAggregates.
     const results = await Promise.allSettled(
@@ -1190,7 +1202,7 @@
       }
     }
     if (!ok.length) {
-      loginErr(`Ни одна когорта не прошла: ${failed.map((f) => f.code + '(' + f.err + ')').join(', ')}`);
+      loginErr(T('teacher.msg.bulkAllFailed', { failed: failed.map((f) => f.code + '(' + f.err + ')').join(', ') }));
       return;
     }
 
@@ -1420,7 +1432,7 @@
         if (!_cohortAggregates[targetCode]) {
           // Active cohort failed → show login with the failure summary.
           showLogin();
-          loginErr(`Saved session no longer valid: ${_cohortFetchErrors[targetCode] || 'unknown'}. Re-enter token or remove cohort.`);
+          loginErr(T('teacher.msg.sessionInvalid', { reason: _cohortFetchErrors[targetCode] || 'unknown' }));
           return;
         }
         _aggregates = _cohortAggregates[targetCode];
