@@ -868,11 +868,18 @@
         padding-top: 0;
     }
 
+    /* P+3 v2 (v3.7): summary layout is a 2-row × 2-col grid so the
+       subtitle and the live-state preview can occupy the same cell —
+       when the card is collapsed and there's a non-empty live state,
+       it replaces the subtitle (full width, no truncation). When
+       expanded, the subtitle returns. Chevron spans both rows in the
+       right column. */
     .classic-disclosure-summary {
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr auto;
         align-items: center;
-        justify-content: space-between;
-        gap: 12px;
+        column-gap: 12px;
+        row-gap: 2px;
         list-style: none;
         cursor: pointer;
         padding: 18px 0 16px;
@@ -882,9 +889,22 @@
         display: none;
     }
 
+    .classic-disclosure-summary > .classic-card-title {
+        grid-column: 1;
+        grid-row: 1;
+    }
+    .classic-disclosure-summary > .classic-card-subtitle,
+    .classic-disclosure-summary > .classic-card-live-state {
+        grid-column: 1;
+        grid-row: 2;
+        min-width: 0;
+    }
+
     .classic-disclosure-summary::after {
         content: "⌄";
-        flex: 0 0 auto;
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: center;
         font-size: 18px;
         font-weight: 700;
         color: var(--theme-text-muted);
@@ -895,24 +915,24 @@
         transform: rotate(180deg);
     }
 
-    /* P+3 (v3.7): live-state preview shown inside summary when collapsed.
-       Injected by v3UpdateCardStatus() as a sibling before the chevron. */
+    /* P+3 v2: live-state preview replaces the subtitle when card is
+       collapsed AND state is non-default (has-live-state class set by
+       JS when data-status is non-empty). Full-width, no truncation. */
     .classic-card-live-state {
-        font-size: 12px;
+        font-size: 12.5px;
         color: var(--theme-text-secondary);
         font-weight: normal;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 50%;
-        flex: 0 1 auto;
-        margin-left: auto;
+        line-height: 1.35;
+        word-break: break-word;
     }
-    .classic-disclosure[open] .classic-card-live-state {
+    /* Default: live-state hidden, subtitle visible. */
+    .classic-card-live-state { display: none; }
+    /* Collapsed with non-default state: hide subtitle, show live-state. */
+    .classic-disclosure:not([open]).has-live-state .classic-card-subtitle {
         display: none;
     }
-    @media (max-width: 600px) {
-        .classic-card-live-state { font-size: 11.5px; max-width: 45%; }
+    .classic-disclosure:not([open]).has-live-state .classic-card-live-state {
+        display: block;
     }
 
     .classic-card-body {
@@ -4229,53 +4249,6 @@ body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
 @media (max-width: 600px) {
   .v3-chip-toggle-group { gap: 2px; padding: 3px 4px; }
   .v3-chip-toggle { padding: 6px 10px; font-size: 12.5px; min-height: 34px; }
-}
-
-/* P+4 (v3.7): Floating Action Button for audio download.
-   Appears bottom-right whenever the audio block in #audioContainer is
-   populated (i.e. user just generated audio). Hidden in IDE mode —
-   IDE already has its own bottom tab bar at the same screen edge. */
-.v3-audio-fab {
-  position: fixed;
-  right: 16px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--theme-accent, #3b82f6);
-  color: #fff;
-  border: 0;
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 2px 4px rgba(0, 0, 0, 0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 998;
-  opacity: 0;
-  visibility: hidden;
-  transform: scale(0.7) translateY(8px);
-  pointer-events: none;
-  transition: transform 0.18s ease, opacity 0.18s ease, box-shadow 0.18s ease;
-}
-.v3-audio-fab.is-visible {
-  opacity: 1;
-  visibility: visible;
-  transform: scale(1) translateY(0);
-  pointer-events: auto;
-}
-.v3-audio-fab:hover {
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.30), 0 2px 6px rgba(0, 0, 0, 0.20);
-  transform: scale(1.05);
-}
-.v3-audio-fab:focus-visible {
-  outline: 3px solid var(--theme-accent, #3b82f6);
-  outline-offset: 3px;
-}
-body.v3-ide-mode .v3-audio-fab { display: none !important; }
-@media (prefers-reduced-motion: reduce) {
-  .v3-audio-fab { transition: opacity 0.1s; }
 }
 .v3-filter-chip-x {
   border: 0;
@@ -28342,8 +28315,10 @@ function v3UpdateCardStatus(cardId, status) {
       summary.appendChild(liveEl);
     }
     liveEl.textContent = status;
-  } else if (liveEl) {
-    liveEl.remove();
+    card.classList.add("has-live-state");
+  } else {
+    if (liveEl) liveEl.remove();
+    card.classList.remove("has-live-state");
   }
 }
 
@@ -39729,40 +39704,6 @@ document.addEventListener("i18n:changed", function () {
         .then(watchForUpdate)
         .catch((err) => console.warn("[sw] registration failed:", err));
     });
-  })();
-</script>
-
-<!-- P+4: Audio download FAB. JS toggles .is-visible based on the presence
-     of an <audio> inside #audioContainer (i.e. user just generated audio).
-     CSS hides the FAB entirely when body.v3-ide-mode is set (IDE has its
-     own bottom tab bar). Click → existing downloadMp3FromCache() handler. -->
-<button id="v3AudioFab" type="button" class="v3-audio-fab"
-        aria-label="Скачать аудио" title="Скачать аудио"
-        data-i18n-title="classic.downloadAudio" data-i18n-aria-label="classic.downloadAudio"
-        onclick="downloadMp3FromCache()">⬇</button>
-
-<script>
-  (function () {
-    function syncFab() {
-      const fab = document.getElementById("v3AudioFab");
-      const audioContainer = document.getElementById("audioContainer");
-      if (!fab) return;
-      const hasAudio = !!(audioContainer && audioContainer.querySelector("audio"));
-      fab.classList.toggle("is-visible", hasAudio);
-    }
-    function init() {
-      const ac = document.getElementById("audioContainer");
-      if (!ac) return;
-      syncFab();
-      const mo = new MutationObserver(syncFab);
-      mo.observe(ac, { childList: true, subtree: true });
-    }
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init);
-    } else {
-      init();
-    }
-    try { window.v3SyncAudioFab = syncFab; } catch (_) {}
   })();
 </script>
 
