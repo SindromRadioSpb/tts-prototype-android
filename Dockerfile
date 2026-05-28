@@ -6,11 +6,14 @@ FROM node:20-alpine AS deps
 
 WORKDIR /app
 
+# Build tools required to compile native sqlite3 binding via node-gyp
+RUN apk add --no-cache python3 make g++ gcc
+
 # Copy package manifests first for layer-cache efficiency
 COPY package.json package-lock.json ./
 
-# Install production dependencies only
-RUN npm ci --only=production --ignore-scripts
+# Install production dependencies (scripts needed for sqlite3 native build)
+RUN npm ci --only=production
 
 # -------------------------------------------------------
 # Final image
