@@ -306,52 +306,415 @@ app.use(express.static(path.join(__dirname, "public"), {
 
 // P0-3: user-facing docs. The footer links to /docs/PRIVACY.md and
 // /docs/OPFS_USER_GUIDE.md, but express.static only serves public/ — those
-// 404'd raw. Serve a STRICT WHITELIST of the two user docs, rendered in a
-// minimal readable HTML shell. The whitelist is a fixed map (no req.params
-// in the filesystem path) so there is no path-traversal and no other
-// internal docs/* file is ever exposed.
+// 404'd raw. Serve a STRICT WHITELIST of the two user docs, rendered as
+// styled HTML pages with TOC and language switcher. The whitelist is a fixed
+// map (no req.params in the filesystem path) so there is no path-traversal
+// and no other internal docs/* file is ever exposed.
 const DOCS_WHITELIST = {
-  "PRIVACY.md": "PRIVACY.md",
-  "OPFS_USER_GUIDE.md": "OPFS_USER_GUIDE.md",
-  "BYOK_SETUP.md": "BYOK_SETUP.md",
-  "BYOK_SETUP.en.md": "BYOK_SETUP.en.md",
-  "BYOK_SETUP.he.md": "BYOK_SETUP.he.md",
+  "PRIVACY.md": { file: "PRIVACY.md", lang: "ru", group: "PRIVACY" },
+  "OPFS_USER_GUIDE.md": { file: "OPFS_USER_GUIDE.md", lang: "ru", group: "OPFS" },
+  "BYOK_SETUP.md": { file: "BYOK_SETUP.md", lang: "ru", group: "BYOK_SETUP" },
+  "BYOK_SETUP.en.md": { file: "BYOK_SETUP.en.md", lang: "en", group: "BYOK_SETUP" },
+  "BYOK_SETUP.he.md": { file: "BYOK_SETUP.he.md", lang: "he", group: "BYOK_SETUP" },
 };
+
+// Filenames a group exposes per language — used by the language switcher.
+const DOC_GROUP_LANGS = {
+  BYOK_SETUP: { ru: "BYOK_SETUP.md", en: "BYOK_SETUP.en.md", he: "BYOK_SETUP.he.md" },
+  PRIVACY:    { ru: "PRIVACY.md" },
+  OPFS:       { ru: "OPFS_USER_GUIDE.md" },
+};
+
+const _marked = require("marked");
+const _markedInstance = new _marked.Marked();
+
+function _docSlugify(text) {
+  return String(text)
+    .toLowerCase()
+    .replace(/[^\wЀ-ӿ֐-׿\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .slice(0, 80) || "section";
+}
+
+// Custom renderer: anchor links on h2/h3, callout boxes for "Note/Warning/
+// Tip" blockquotes, external link target=_blank, table wrapper for mobile
+// overflow.
+_markedInstance.use({
+  gfm: true,
+  breaks: false,
+  renderer: {
+    heading({ tokens, depth }) {
+      const text = this.parser.parseInline(tokens);
+      const plain = tokens.map(t => t.raw || t.text || "").join("");
+      const id = _docSlugify(plain);
+      const anchor = depth <= 3 ? `<a class="doc-anchor" href="#${id}" aria-label="Permalink">#</a>` : "";
+      return `<h${depth} id="${id}">${anchor}${text}</h${depth}>\n`;
+    },
+    link({ href, title, tokens }) {
+      const text = this.parser.parseInline(tokens);
+      const isExternal = /^https?:\/\//i.test(href);
+      const attrs = isExternal ? ' target="_blank" rel="noopener"' : "";
+      const t = title ? ` title="${title.replace(/"/g, "&quot;")}"` : "";
+      return `<a href="${href}"${attrs}${t}>${text}</a>`;
+    },
+    table({ header, rows }) {
+      const head = "<thead><tr>" + header.map(c => {
+        const text = this.parser.parseInline(c.tokens);
+        const align = c.align ? ` style="text-align:${c.align}"` : "";
+        return `<th${align}>${text}</th>`;
+      }).join("") + "</tr></thead>";
+      const body = "<tbody>" + rows.map(row =>
+        "<tr>" + row.map(c => {
+          const text = this.parser.parseInline(c.tokens);
+          const align = c.align ? ` style="text-align:${c.align}"` : "";
+          return `<td${align}>${text}</td>`;
+        }).join("") + "</tr>"
+      ).join("") + "</tbody>";
+      return `<div class="doc-table-wrap"><table>${head}${body}</table></div>\n`;
+    },
+    blockquote({ tokens }) {
+      const inner = this.parser.parse(tokens);
+      // Detect "**Note:** …", "**Warning:** …", "**Tip:** …" → callout.
+      const m = inner.match(/^\s*<p><strong>(Note|Warning|Tip|Внимание|Совет|Замечание)[: ]/i);
+      if (m) {
+        const kind = m[1].toLowerCase();
+        const className = /warn|внимание/.test(kind) ? "warn"
+                        : /tip|совет/.test(kind) ? "tip"
+                        : "note";
+        return `<aside class="doc-callout doc-callout-${className}">${inner}</aside>\n`;
+      }
+      return `<blockquote>${inner}</blockquote>\n`;
+    },
+    code({ text, lang }) {
+      const escaped = String(text)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const langClass = lang ? ` class="language-${lang}"` : "";
+      return `<pre class="doc-code"><code${langClass}>${escaped}</code></pre>\n`;
+    },
+  },
+});
+
+// Build a TOC from h2/h3 only (h1 is the page title).
+function _docExtractToc(md) {
+  const lines = md.split(/\r?\n/);
+  const items = [];
+  let inFence = false;
+  for (const line of lines) {
+    if (/^```/.test(line)) { inFence = !inFence; continue; }
+    if (inFence) continue;
+    const m = line.match(/^(#{2,3})\s+(.+?)\s*#*\s*$/);
+    if (!m) continue;
+    const depth = m[1].length;
+    const text = m[2].replace(/`/g, "").trim();
+    items.push({ depth, text, id: _docSlugify(text) });
+  }
+  return items;
+}
+
+function _docHtmlEscape(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function _docRenderPage(md, entry) {
+  const toc = _docExtractToc(md);
+  // Drop the leading H1 from the markdown — we render it ourselves in the
+  // page header so the title sits above the TOC sidebar.
+  const titleMatch = md.match(/^#\s+(.+?)\s*$/m);
+  const pageTitle = titleMatch ? titleMatch[1] : entry.file;
+  const mdBody = md.replace(/^#\s+.+?\s*\n+/m, "");
+  const bodyHtml = _markedInstance.parse(mdBody);
+
+  const groupLangs = DOC_GROUP_LANGS[entry.group] || {};
+  const langSwitcherItems = Object.entries(groupLangs).map(([lang, fn]) => {
+    const label = lang === "ru" ? "RU" : lang === "en" ? "EN" : "HE";
+    const isActive = entry.file === fn;
+    return `<a class="${isActive ? "active" : ""}" href="/docs/${fn}" aria-current="${isActive ? "page" : "false"}">${label}</a>`;
+  }).join("");
+
+  const tocHtml = toc.length
+    ? "<nav class=\"doc-toc\" aria-label=\"Содержание\">" +
+      "<div class=\"doc-toc-title\">" +
+      (entry.lang === "en" ? "Contents" : entry.lang === "he" ? "תוכן" : "Содержание") +
+      "</div><ul>" +
+      toc.map(t => `<li class="doc-toc-h${t.depth}"><a href="#${t.id}">${_docHtmlEscape(t.text)}</a></li>`).join("") +
+      "</ul></nav>"
+    : "";
+
+  const dir = entry.lang === "he" ? "rtl" : "ltr";
+  const htmlLang = entry.lang;
+
+  return `<!doctype html>
+<html dir="${dir}" lang="${htmlLang}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>${_docHtmlEscape(pageTitle)} · LinguistPro</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --panel: #111a2e;
+    --panel-soft: #15213a;
+    --border: #233152;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --heading: #f1f5f9;
+    --accent: #60a5fa;
+    --accent-hover: #93c5fd;
+    --code-bg: #0f172a;
+    --note: #38bdf8;
+    --tip: #4ade80;
+    --warn: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .doc-topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(11, 18, 32, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-topbar-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; gap: 16px;
+    padding: 10px 16px;
+  }
+  .doc-back {
+    color: var(--muted); text-decoration: none;
+    font-size: 14px;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 8px; border-radius: 7px;
+    transition: color 120ms, background 120ms;
+  }
+  .doc-back:hover { color: var(--heading); background: var(--panel-soft); }
+  .doc-lang-switcher {
+    margin-${dir === "rtl" ? "right" : "left"}: auto;
+    display: flex; gap: 4px;
+    background: var(--panel); border: 1px solid var(--border);
+    padding: 3px; border-radius: 8px;
+  }
+  .doc-lang-switcher a {
+    padding: 4px 10px; border-radius: 6px;
+    color: var(--muted); text-decoration: none;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+    transition: color 120ms, background 120ms;
+  }
+  .doc-lang-switcher a:hover { color: var(--heading); }
+  .doc-lang-switcher a.active {
+    background: var(--accent); color: #0b1220;
+  }
+  .doc-layout {
+    max-width: 1100px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 36px;
+    padding: 28px 16px 80px;
+  }
+  .doc-toc {
+    position: sticky; top: 64px; align-self: start;
+    max-height: calc(100vh - 88px); overflow: auto;
+    padding-${dir === "rtl" ? "left" : "right"}: 12px;
+  }
+  .doc-toc-title {
+    font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted);
+    margin-bottom: 10px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-toc ul { list-style: none; padding: 0; margin: 0; }
+  .doc-toc li { margin: 0; padding: 0; }
+  .doc-toc a {
+    display: block; padding: 5px 8px;
+    color: var(--muted); text-decoration: none;
+    font-size: 13.5px; line-height: 1.45;
+    border-${dir === "rtl" ? "right" : "left"}: 2px solid transparent;
+    border-radius: 0 6px 6px 0;
+    transition: color 120ms, background 120ms, border-color 120ms;
+  }
+  .doc-toc a:hover { color: var(--heading); background: var(--panel-soft); }
+  .doc-toc a.active {
+    color: var(--accent); border-${dir === "rtl" ? "right" : "left"}-color: var(--accent);
+    background: var(--panel-soft);
+  }
+  .doc-toc-h3 a { padding-${dir === "rtl" ? "right" : "left"}: 22px; font-size: 13px; }
+  .doc-content { min-width: 0; }
+  .doc-title {
+    font-size: 32px; line-height: 1.2; font-weight: 700;
+    color: var(--heading); margin: 0 0 24px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+  .doc-content h2 {
+    font-size: 24px; line-height: 1.25; font-weight: 600;
+    color: var(--heading); margin: 40px 0 14px;
+    letter-spacing: -0.005em; scroll-margin-top: 80px;
+  }
+  .doc-content h3 {
+    font-size: 18px; line-height: 1.3; font-weight: 600;
+    color: var(--heading); margin: 28px 0 10px;
+    scroll-margin-top: 80px;
+  }
+  .doc-content h2, .doc-content h3 { position: relative; }
+  .doc-anchor {
+    position: absolute;
+    ${dir === "rtl" ? "right: -22px" : "left: -22px"};
+    color: var(--accent); opacity: 0; text-decoration: none;
+    font-weight: 500; transition: opacity 120ms;
+  }
+  .doc-content h2:hover .doc-anchor, .doc-content h3:hover .doc-anchor { opacity: 1; }
+  .doc-content p { margin: 0 0 16px; }
+  .doc-content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 120ms, color 120ms; }
+  .doc-content a:hover { color: var(--accent-hover); border-bottom-color: currentColor; }
+  .doc-content ul, .doc-content ol { margin: 0 0 18px; padding-${dir === "rtl" ? "right" : "left"}: 22px; }
+  .doc-content li { margin-bottom: 6px; }
+  .doc-content li > p { margin-bottom: 6px; }
+  .doc-content strong { color: var(--heading); font-weight: 600; }
+  .doc-content em { color: var(--text); font-style: italic; }
+  .doc-content code {
+    background: var(--code-bg); padding: 2px 6px; border-radius: 4px;
+    font: 0.92em "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    border: 1px solid var(--border); color: #fbbf24;
+  }
+  .doc-code {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    margin: 18px 0; overflow-x: auto;
+    font: 13.5px/1.55 "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  }
+  .doc-code code { background: none; border: none; padding: 0; color: var(--text); font: inherit; }
+  blockquote {
+    margin: 18px 0; padding: 12px 18px;
+    border-${dir === "rtl" ? "right" : "left"}: 3px solid var(--border);
+    color: var(--muted); background: var(--panel-soft);
+    border-radius: 0 8px 8px 0;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+  .doc-callout {
+    margin: 22px 0; padding: 14px 18px;
+    border-radius: 10px; background: var(--panel);
+    border: 1px solid var(--border);
+    border-${dir === "rtl" ? "right" : "left"}-width: 4px;
+    position: relative;
+  }
+  .doc-callout p:last-child { margin-bottom: 0; }
+  .doc-callout-note  { border-${dir === "rtl" ? "right" : "left"}-color: var(--note); }
+  .doc-callout-tip   { border-${dir === "rtl" ? "right" : "left"}-color: var(--tip); }
+  .doc-callout-warn  { border-${dir === "rtl" ? "right" : "left"}-color: var(--warn); }
+  .doc-callout strong { color: var(--heading); }
+  .doc-table-wrap {
+    margin: 18px 0; overflow-x: auto;
+    border: 1px solid var(--border); border-radius: 10px;
+  }
+  .doc-table-wrap table {
+    width: 100%; border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .doc-table-wrap th, .doc-table-wrap td {
+    padding: 10px 14px;
+    text-align: ${dir === "rtl" ? "right" : "left"};
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .doc-table-wrap th {
+    background: var(--panel-soft); color: var(--heading);
+    font-weight: 600; letter-spacing: 0.02em;
+    border-bottom: 2px solid var(--border);
+  }
+  .doc-table-wrap tr:last-child td { border-bottom: none; }
+  .doc-table-wrap tr:nth-child(even) td { background: rgba(21, 33, 58, 0.4); }
+  hr { border: none; height: 1px; background: var(--border); margin: 36px 0; }
+
+  @media (max-width: 900px) {
+    .doc-layout {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 18px 14px 60px;
+    }
+    .doc-toc {
+      position: static; max-height: none;
+      padding: 14px 16px;
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .doc-title { font-size: 24px; }
+    .doc-content h2 { font-size: 20px; margin-top: 28px; }
+    .doc-content h3 { font-size: 17px; margin-top: 20px; }
+    .doc-anchor { display: none; }
+  }
+  @media print {
+    body { background: white; color: black; }
+    .doc-topbar, .doc-toc { display: none; }
+    .doc-content a { color: black; border-bottom: 1px dotted; }
+    .doc-callout, blockquote, .doc-code, .doc-table-wrap { background: #f5f5f5; border: 1px solid #ccc; color: black; }
+  }
+</style>
+</head>
+<body>
+<header class="doc-topbar">
+  <div class="doc-topbar-inner">
+    <a class="doc-back" href="/" aria-label="${entry.lang === "en" ? "Back to app" : entry.lang === "he" ? "חזרה לאפליקציה" : "Назад в приложение"}">
+      <span aria-hidden="true">${dir === "rtl" ? "→" : "←"}</span>
+      <span>${entry.lang === "en" ? "Back to app" : entry.lang === "he" ? "לאפליקציה" : "К приложению"}</span>
+    </a>
+    ${Object.keys(groupLangs).length > 1 ? `<div class="doc-lang-switcher" role="group" aria-label="Language">${langSwitcherItems}</div>` : ""}
+  </div>
+</header>
+<div class="doc-layout">
+  ${tocHtml}
+  <main class="doc-content">
+    <h1 class="doc-title">${_docHtmlEscape(pageTitle)}</h1>
+    <article>${bodyHtml}</article>
+  </main>
+</div>
+<script>
+  // Scroll-spy: highlight the TOC entry matching the section currently in view.
+  (function () {
+    const links = document.querySelectorAll(".doc-toc a");
+    if (!links.length || !("IntersectionObserver" in window)) return;
+    const linkById = new Map();
+    links.forEach(a => { const id = a.getAttribute("href").slice(1); if (id) linkById.set(id, a); });
+    const headings = Array.from(document.querySelectorAll(".doc-content h2[id], .doc-content h3[id]"));
+    let activeId = null;
+    function setActive(id) {
+      if (id === activeId) return;
+      activeId = id;
+      links.forEach(a => a.classList.remove("active"));
+      const a = linkById.get(id);
+      if (a) a.classList.add("active");
+    }
+    const io = new IntersectionObserver((entries) => {
+      // Pick the first heading whose top is near the viewport top.
+      const visible = entries.filter(e => e.isIntersecting).sort((a, b) => a.target.offsetTop - b.target.offsetTop);
+      if (visible.length) setActive(visible[0].target.id);
+    }, { rootMargin: "-72px 0px -70% 0px" });
+    headings.forEach(h => io.observe(h));
+  })();
+</script>
+</body>
+</html>`;
+}
+
 app.get("/docs/:file", (req, res) => {
-  const safe = DOCS_WHITELIST[req.params.file];
-  if (!safe) return res.status(404).type("text").send("Not found");
+  const entry = DOCS_WHITELIST[req.params.file];
+  if (!entry) return res.status(404).type("text").send("Not found");
   let md;
   try {
-    md = require("fs").readFileSync(path.join(__dirname, "docs", safe), "utf8");
+    md = require("fs").readFileSync(path.join(__dirname, "docs", entry.file), "utf8");
   } catch (_) {
     return res.status(404).type("text").send("Not found");
   }
-  const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
-  // Linkify URLs after escaping so the regex matches the escaped text but the
-  // generated <a href=…> still points to the original URL. Only http(s).
-  const escaped = esc(md);
-  // Stop at whitespace, angle brackets, parens and backticks (Markdown code
-  // delimiters) so `https://x.com` doesn't end up with a trailing ` in href.
-  // Trailing punctuation that's usually sentence terminator, not URL, is
-  // stripped before linking.
-  const linkified = escaped.replace(/(https?:\/\/[^\s<>)`]+)/g, (full) => {
-    let url = full;
-    let tail = "";
-    while (/[.,;:!?]$/.test(url)) { tail = url.slice(-1) + tail; url = url.slice(0, -1); }
-    return `<a href="${url}" target="_blank" rel="noopener">${url}</a>${tail}`;
-  });
-  const dir = /\.he\.md$/i.test(safe) ? "rtl" : "ltr";
-  res.type("html").send(
-    "<!doctype html><html dir=" + dir + "><head><meta charset=utf-8>" +
-    "<meta name=viewport content=\"width=device-width,initial-scale=1\">" +
-    "<title>" + esc(safe) + "</title><style>" +
-    "body{max-width:760px;margin:2rem auto;padding:0 1.1rem;" +
-    "font:16px/1.65 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;" +
-    "background:#0f172a;color:#e2e8f0}" +
-    "pre{white-space:pre-wrap;word-wrap:break-word;font:inherit;margin:0}" +
-    "a{color:#60a5fa}</style></head><body><pre>" +
-    linkified + "</pre></body></html>"
-  );
+  try {
+    res.type("html").send(_docRenderPage(md, entry));
+  } catch (e) {
+    console.error("[docs] render failed for", entry.file, e && e.message);
+    res.status(500).type("text").send("Render error");
+  }
 });
 
 // Serve design mockups (HTML/CSS prototypes) so we can review them on
