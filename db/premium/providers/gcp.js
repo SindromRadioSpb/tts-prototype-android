@@ -92,6 +92,69 @@ function _wrapErr(err) {
   return out;
 }
 
+// BYOK: per-request Cloud Translation v2 REST call (supports API-key auth,
+// unlike the v3 SDK above which requires a service account). The v2 endpoint
+// is sufficient for our simple text-batch workflow; if we ever need glossaries
+// or batch jobs we'll have to revisit (those are v3-only).
+async function translateBatchWithApiKey(segments, target, apiKey) {
+  if (!segments.length) return { results: [], model_version: "gcp-translate-v2-nmt", chars: 0 };
+  if (!apiKey || typeof apiKey !== "string") {
+    const err = new Error("GCP Translate API key required (BYOK)");
+    err.provider = "gcp";
+    err.upstream = "translate";
+    err.kind = "config";
+    err.fallbackable = false;
+    throw err;
+  }
+
+  const contents = segments.map((s) => s.he);
+  const chars = contents.reduce((acc, t) => acc + (t ? t.length : 0), 0);
+  const url = `https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(apiKey)}`;
+
+  let resp, bodyText, parsed;
+  try {
+    resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        q: contents,
+        source: "he",
+        target,
+        format: "text",
+      }),
+    });
+    bodyText = await resp.text();
+    try { parsed = JSON.parse(bodyText); } catch (_) { parsed = null; }
+  } catch (e) {
+    throw _wrapErr({ message: e.message, code: e.code || "NETWORK", statusCode: 0 });
+  }
+
+  if (!resp.ok) {
+    const apiErr = parsed && parsed.error ? parsed.error : null;
+    const err = new Error((apiErr && apiErr.message) || `Cloud Translation v2 HTTP ${resp.status}`);
+    err.code = apiErr && apiErr.status;
+    err.statusCode = resp.status;
+    err.details = apiErr;
+    throw _wrapErr(err);
+  }
+
+  const translations = (parsed && parsed.data && parsed.data.translations) || [];
+  if (translations.length !== segments.length) {
+    const e = new Error(
+      `GCP translation count mismatch: got ${translations.length}, want ${segments.length}`
+    );
+    e.kind = "unknown";
+    e.fallbackable = false;
+    throw e;
+  }
+
+  return {
+    results: segments.map((s, i) => ({ index: s.index, ru: translations[i].translatedText })),
+    model_version: translations[0].model || "gcp-translate-v2-nmt",
+    chars,
+  };
+}
+
 // segments: [{ index, he }]
 // Returns: { results: [{ index, ru }], model_version, chars }
 async function translateBatch(segments, target = "ru") {
@@ -135,6 +198,7 @@ async function translateBatch(segments, target = "ru") {
 module.exports = {
   isAvailable,
   translateBatch,
+  translateBatchWithApiKey,
   // for tests
   _reset() { _client = null; _projectId = null; _initError = null; },
 };

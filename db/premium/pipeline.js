@@ -74,8 +74,11 @@ async function _madladTranslate(segmentsForApi, target) {
   return { ...r.body, chars: 0 }; // chars not metered for local model
 }
 
-async function _gcpTranslate(segmentsForApi, target) {
-  const out = await gcpProvider.translateBatch(segmentsForApi, target);
+async function _gcpTranslate(segmentsForApi, target, apiKey) {
+  // BYOK: per-request key via Cloud Translation v2 REST. Server-side service
+  // account path (translateBatch via v3 SDK) is intentionally NOT used here —
+  // see Phase 1 of the BYOK rollout. Without a key the provider throws config.
+  const out = await gcpProvider.translateBatchWithApiKey(segmentsForApi, target, apiKey);
   // Persist usage on success (chars meter the free-tier).
   quota.recordGcpUsage({ chars: out.chars });
   return out;
@@ -88,7 +91,7 @@ async function _googleFreeTranslate(segmentsForApi, target) {
 
 // Dispatcher with optional fallback. Returns:
 //   { results, model_version, chars, actualProvider, fallbackReason? }
-async function fetchTranslations(segmentsForApi, target, requestedProvider) {
+async function fetchTranslations(segmentsForApi, target, requestedProvider, gcpApiKey) {
   if (!segmentsForApi.length) {
     return { results: [], model_version: "", chars: 0, actualProvider: requestedProvider };
   }
@@ -104,8 +107,8 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider) {
   }
 
   if (requestedProvider === "gcp") {
-    if (!gcpProvider.isAvailable()) {
-      const err = new Error("GCP provider not configured (set GCP_TRANSLATE_KEY_FILE)");
+    if (!gcpApiKey) {
+      const err = new Error("GCP Translate API key required (BYOK)");
       err.provider = "gcp";
       err.upstream = "translate";
       err.kind = "config";
@@ -113,7 +116,7 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider) {
       throw err;
     }
     try {
-      const out = await _gcpTranslate(segmentsForApi, target);
+      const out = await _gcpTranslate(segmentsForApi, target, gcpApiKey);
       return { ...out, actualProvider: "gcp" };
     } catch (e) {
       // Quota errors propagate to the caller — no auto-fallback per project policy.
@@ -124,7 +127,7 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider) {
       // Transient: try once more, then fall back to madlad.
       if (e.fallbackable) {
         try {
-          const out = await _gcpTranslate(segmentsForApi, target);
+          const out = await _gcpTranslate(segmentsForApi, target, gcpApiKey);
           return { ...out, actualProvider: "gcp" };
         } catch (e2) {
           if (e2.kind === "quota") {
@@ -145,7 +148,7 @@ async function fetchTranslations(segmentsForApi, target, requestedProvider) {
   return { ...out, actualProvider: "madlad" };
 }
 
-async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null } = {}) {
+async function translateTable({ text, target_lang = "ru", provider = "madlad", text_id = null, note = null, gcpApiKey = null } = {}) {
   if (typeof text !== "string" || !text.trim()) {
     const err = new Error("text is required");
     err.code = "BAD_INPUT";
@@ -260,7 +263,7 @@ async function translateTable({ text, target_lang = "ru", provider = "madlad", t
   // 5) Call sidecar (nikud) and the chosen translation provider in parallel.
   const [nikudResp, transResp] = await Promise.all([
     fetchNiqqud(needNikud.map((s) => s.he)),
-    fetchTranslations(needTrans, target_lang, provider),
+    fetchTranslations(needTrans, target_lang, provider, gcpApiKey),
   ]);
 
   // Merge nikud results back by position (input order preserved by sidecar).

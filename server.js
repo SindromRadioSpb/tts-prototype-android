@@ -3097,18 +3097,26 @@ Rules:
         provider = "madlad",
         text_id = null,
         note = null,
+        gcpTranslateApiKey,
       } = req.body || {};
 
-      // BYOK: provider="gcp" relies on a server-side service-account key
-      // (db/premium/providers/gcp.js) which we have intentionally removed. Per-
-      // request API-key BYOK for Cloud Translation v3 is not yet implemented
-      // here, so we surface a clear 503 rather than silently switching providers.
+      // BYOK validation for provider=gcp. Other providers ignore the key.
+      let gcpApiKey = null;
       if (provider === "gcp") {
-        return res.status(503).json({
-          error: "GCP premium translation is not available in BYOK mode",
-          error_code: "PREMIUM_TRANSLATE_NOT_AVAILABLE",
-          hint: "Use provider=madlad (local sidecar) or google-free, or use the Gemini path with your own AIza key.",
-        });
+        if (!gcpTranslateApiKey || typeof gcpTranslateApiKey !== "string" || !gcpTranslateApiKey.trim()) {
+          return res.status(401).json({
+            error: "GCP Translate API key required (BYOK)",
+            error_code: "GCP_TRANSLATE_KEY_REQUIRED",
+          });
+        }
+        const trimmed = gcpTranslateApiKey.trim();
+        if (!trimmed.startsWith("AIza") || trimmed.length < 20) {
+          return res.status(400).json({
+            error: "Неверный формат GCP Translate API Key. Ключ должен начинаться с 'AIza'.",
+            error_code: "GCP_TRANSLATE_KEY_INVALID",
+          });
+        }
+        gcpApiKey = trimmed;
       }
 
       const out = await premiumPipeline.translateTable({
@@ -3117,6 +3125,7 @@ Rules:
         provider,
         text_id,
         note,
+        gcpApiKey,
       });
 
       res.json(out);

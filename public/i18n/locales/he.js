@@ -205,6 +205,17 @@ window.I18N_LOCALES.he = {
     gcpTtsKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… (Google Cloud Console → APIs & Services → Credentials → Create API Key, להגביל ל-Cloud Text-to-Speech API)",
     gcpTtsKeyStorageNote: "המפתח מאוחסן רק בדפדפן זה ומועבר לשרת בכל בקשת TTS דרך HTTPS. ללא מפתח, TTS המקוון יחזור לקול המובנה של הדפדפן (איכות נמוכה יותר). הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
     gcpTtsKeyAutoFallbackToast: "ה-TTS מתנגן דרך הדפדפן. הוסף מפתח GCP TTS לאיכות פרימיום.",
+    // translate-review: HE drafted by Claude — pending native review.
+    gcpTranslateKeyLabel: "GCP Translate API Key",
+    gcpTranslateKeySubtitle: "המפתח האישי שלך — Google Cloud Console",
+    gcpTranslateKeySave: "שמור",
+    gcpTranslateKeyStoredStatus: "✅ המפתח נשמר:",
+    gcpTranslateKeyEmptyStatus: "⚠ המפתח לא מוגדר — ספק GCP Translate אינו זמין",
+    gcpTranslateKeySavedToast: "🔑 מפתח GCP Translate נשמר",
+    gcpTranslateKeyClearedToast: "מפתח GCP Translate הוסר מהדפדפן",
+    gcpTranslateKeyErrorEmpty: "הזן את מפתח GCP Translate API",
+    gcpTranslateKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… (Google Cloud Console → APIs & Services → Credentials → Create API Key, להגביל ל-Cloud Translation API)",
+    gcpTranslateKeyStorageNote: "המפתח מאוחסן רק בדפדפן זה ומועבר לשרת בכל תרגום דרך HTTPS. הגבל את המפתח רק ל-Cloud Translation API בהגדרות Google Cloud. הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
   },
   ide: {
     // translate-review: HE drafted by Claude — pending native review.

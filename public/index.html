@@ -2214,7 +2214,8 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 		.table-autonext button { width: auto !important; }
 		/* Exception: BYOK key panels host inline Save/Clear pairs that must stay compact */
 		#geminiKeyGroup button,
-		#gcpTtsKeyGroup button { width: auto !important; }
+		#gcpTtsKeyGroup button,
+		#gcpTranslateKeyGroup button { width: auto !important; }
         /* Модальные окна: кнопки не растягиваются на 100% */
         .v3-modal button.btn-primary,
         .v3-modal button.btn-secondary,
@@ -9756,6 +9757,24 @@ body:not(.theme-light) .v3-heatmap-cell {
                                 <button id="btnGcpKey" class="btn-secondary" style="padding:4px 8px;" title="Загрузить service account JSON для GCP Translate" aria-label="Загрузить service account JSON для GCP Translate" onclick="gcpKeyOpen()">🔑</button>
 				                <input type="file" id="gcpKeyFileInput" accept="application/json,.json" style="display:none" onchange="gcpKeyOnFileChosen(event)">
 				                <span id="gcpKeyStatus" class="provenance-badge" style="display:none"></span>
+                            </div>
+
+                            <!-- GCP Cloud Translation per-user API key (shown when provider=gcp) -->
+                            <div id="gcpTranslateKeyGroup" style="display:none; margin-top:10px; padding:10px 12px; background:#f0f8ff; border:1px solid #b3d9ff; border-radius:8px;">
+                                <label class="input-label" style="margin-bottom:6px; display:block;">🔑 <span data-i18n="classic.gcpTranslateKeyLabel">GCP Translate API Key</span> <span style="font-weight:400; color:#6c757d;" data-i18n="classic.gcpTranslateKeySubtitle">(ваш личный ключ — Google Cloud Console)</span></label>
+                                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                    <input type="password" id="gcpTranslateApiKeyInput"
+                                           placeholder="AIzaSy…"
+                                           autocomplete="off" spellcheck="false"
+                                           style="flex:1; min-width:200px; padding:7px 10px; border:1px solid #ced4da; border-radius:6px; font-size:13px; font-family:monospace; background:#fff;">
+                                    <button class="btn-secondary" onclick="gcpTranslateKeySave()" style="padding:5px 12px; white-space:nowrap;" title="Save key in this browser (localStorage)">💾 <span data-i18n="classic.gcpTranslateKeySave">Сохранить</span></button>
+                                    <button class="btn-secondary" onclick="gcpTranslateKeyClear()" style="padding:5px 10px; color:#c62828; border-color:#ffcdd2;" title="Remove saved key from browser">🗑️</button>
+                                </div>
+                                <div id="gcpTranslateKeyStatus" style="margin-top:6px; font-size:12px; color:#6c757d;"></div>
+                                <div style="margin-top:6px; font-size:11px; color:#6c757d; line-height:1.4;">
+                                    <span data-i18n="classic.gcpTranslateKeyStorageNote">Ключ хранится только в этом браузере и передаётся серверу при каждом переводе по HTTPS. Ограничьте ключ только Cloud Translation API в настройках Google Cloud. Введите ключ на каждом устройстве отдельно. Получить ключ:</span>
+                                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:#1565c0;">console.cloud.google.com/apis/credentials</a>
+                                </div>
                             </div>
 
                             <!-- Gemini per-user API key (shown when Gemini Legacy provider selected) -->
@@ -29729,7 +29748,13 @@ document.getElementById("tableContainer").innerHTML = v3TableSkeletonHtml();
         const translitProfileEl = document.getElementById("translitProfileSelect");
         const translit_profile = translitProfileEl ? (translitProfileEl.value || "sbl") : "sbl";
         const payload = usePremium
-            ? { text: getText(), provider, target_lang: "ru", translit_profile }
+            ? {
+                text: getText(),
+                provider,
+                target_lang: "ru",
+                translit_profile,
+                ...(provider === "gcp" ? { gcpTranslateApiKey: gcpTranslateKeyGet() } : {}),
+              }
             : { text: getText(), geminiApiKey: geminiKeyGet() };
 
         try {
@@ -29994,6 +30019,70 @@ try {
     }
 
     // ----------------------------
+    // GCP CLOUD TRANSLATION PER-USER API KEY (BYOK)
+    // Mirrors the GCP TTS pattern but lives in the Translation card and is
+    // shown only when provider=gcp. Server validates and uses Translation v2
+    // REST (the v3 SDK does not support API-key auth).
+    // ----------------------------
+    const GCP_TRANSLATE_KEY_LS_KEY = "v3.gcpTranslateApiKey";
+
+    function gcpTranslateKeyGet() {
+        try { return localStorage.getItem(GCP_TRANSLATE_KEY_LS_KEY) || ""; } catch (_) { return ""; }
+    }
+
+    function gcpTranslateKeyIsConfigured() {
+        const k = gcpTranslateKeyGet();
+        return !!(k && k.startsWith("AIza") && k.length >= 20);
+    }
+
+    function gcpTranslateKeySave() {
+        const inp = document.getElementById("gcpTranslateApiKeyInput");
+        if (!inp) return;
+        const val = inp.value.trim();
+        if (!val) { showError(t("classic.gcpTranslateKeyErrorEmpty")); return; }
+        if (!val.startsWith("AIza") || val.length < 20) {
+            showError(t("classic.gcpTranslateKeyErrorFormat"));
+            return;
+        }
+        try { localStorage.setItem(GCP_TRANSLATE_KEY_LS_KEY, val); } catch (_) {}
+        inp.value = "";
+        gcpTranslateKeyStatusRefresh();
+        if (typeof showToast === "function") showToast(t("classic.gcpTranslateKeySavedToast"));
+    }
+
+    function gcpTranslateKeyClear() {
+        try { localStorage.removeItem(GCP_TRANSLATE_KEY_LS_KEY); } catch (_) {}
+        const inp = document.getElementById("gcpTranslateApiKeyInput");
+        if (inp) inp.value = "";
+        gcpTranslateKeyStatusRefresh();
+        if (typeof showToast === "function") showToast(t("classic.gcpTranslateKeyClearedToast"));
+    }
+
+    function gcpTranslateKeyStatusRefresh() {
+        const el = document.getElementById("gcpTranslateKeyStatus");
+        if (!el) return;
+        const key = gcpTranslateKeyGet();
+        if (key) {
+            const masked = key.slice(0, 8) + "…" + key.slice(-4);
+            el.style.color = "#2e7d32";
+            el.textContent = t("classic.gcpTranslateKeyStoredStatus") + " " + masked;
+        } else {
+            el.style.color = "#b71c1c";
+            el.textContent = t("classic.gcpTranslateKeyEmptyStatus");
+        }
+    }
+
+    function gcpTranslateKeyGroupSync() {
+        try {
+            const group = document.getElementById("gcpTranslateKeyGroup");
+            if (!group) return;
+            const isGcp = (typeof getSelectedProvider === "function") && getSelectedProvider() === "gcp";
+            group.style.display = isGcp ? "" : "none";
+            if (isGcp) { try { gcpTranslateKeyStatusRefresh(); } catch (_) {} }
+        } catch (_) {}
+    }
+
+    // ----------------------------
     // PROVIDER SELECTOR (Phase 1.9)
     // ----------------------------
     function initProviderSelect() {
@@ -30011,9 +30100,11 @@ try {
             try { localStorage.setItem(PROVIDER_LS_KEY, el.value); } catch (_) {}
             syncTranslitSelectEnabled();
             try { geminiKeyGroupSync(); } catch (_) {}
+            try { gcpTranslateKeyGroupSync(); } catch (_) {}
         });
         syncTranslitSelectEnabled();
         try { geminiKeyGroupSync(); } catch (_) {}
+        try { gcpTranslateKeyGroupSync(); } catch (_) {}
     }
 
     function initTranslitProfileSelect() {
@@ -35686,7 +35777,15 @@ async function v3TcbProcessJob(job) {
     const translitEl = document.getElementById('translitProfileSelect');
     const translitProfile = translitEl ? (translitEl.value || 'sbl') : 'sbl';
     const payload = usePremium
-      ? { text: job.sourceText, provider, target_lang: 'ru', translit_profile: translitProfile }
+      ? {
+          text: job.sourceText,
+          provider,
+          target_lang: 'ru',
+          translit_profile: translitProfile,
+          ...(provider === 'gcp' && typeof gcpTranslateKeyGet === 'function'
+              ? { gcpTranslateApiKey: gcpTranslateKeyGet() }
+              : {}),
+        }
       : { text: job.sourceText, geminiApiKey: (typeof geminiKeyGet === 'function' ? geminiKeyGet() : '') };
     const res = await apiCall(endpoint, payload);
     const rows = Array.isArray(res && res.rows) ? res.rows : [];
