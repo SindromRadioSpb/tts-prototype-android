@@ -193,7 +193,6 @@ window.I18N_LOCALES.he = {
     geminiKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… ולהיות באורך הסטנדרטי (Google AI Studio → API Keys)",
     geminiKeyNotConfiguredError: "הגדר את מפתח Gemini API בהגדרות התרגום (קטע «Gemini API Key»)",
     geminiKeyStorageNote: "המפתח מאוחסן רק בדפדפן שלך ומועבר לשרת בכל תרגום דרך HTTPS. הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
-    // translate-review: HE drafted by Claude — pending native review.
     gcpTtsKeyLabel: "GCP TTS API Key",
     gcpTtsKeySubtitle: "המפתח האישי שלך — Google Cloud Console",
     gcpTtsKeySave: "שמור",
@@ -205,7 +204,6 @@ window.I18N_LOCALES.he = {
     gcpTtsKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… (Google Cloud Console → APIs & Services → Credentials → Create API Key, להגביל ל-Cloud Text-to-Speech API)",
     gcpTtsKeyStorageNote: "המפתח מאוחסן רק בדפדפן זה ומועבר לשרת בכל בקשת TTS דרך HTTPS. ללא מפתח, TTS המקוון יחזור לקול המובנה של הדפדפן (איכות נמוכה יותר). הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
     gcpTtsKeyAutoFallbackToast: "ה-TTS מתנגן דרך הדפדפן. הוסף מפתח GCP TTS לאיכות פרימיום.",
-    // translate-review: HE drafted by Claude — pending native review.
     gcpTranslateKeyLabel: "GCP Translate API Key",
     gcpTranslateKeySubtitle: "המפתח האישי שלך — Google Cloud Console",
     gcpTranslateKeySave: "שמור",
@@ -216,6 +214,16 @@ window.I18N_LOCALES.he = {
     gcpTranslateKeyErrorEmpty: "הזן את מפתח GCP Translate API",
     gcpTranslateKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… (Google Cloud Console → APIs & Services → Credentials → Create API Key, להגביל ל-Cloud Translation API)",
     gcpTranslateKeyStorageNote: "המפתח מאוחסן רק בדפדפן זה ומועבר לשרת בכל תרגום דרך HTTPS. הגבל את המפתח רק ל-Cloud Translation API בהגדרות Google Cloud. הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
+    byokSetupGuideLink: "מדריך מלא",
+  },
+  byokOnboarding: {
+    title: "חברו את מפתחות ה-API שלכם",
+    intro: "LinguistPro פועלת ב-BYOK: אתם יוצרים מפתחות Gemini ו-Google Cloud בעצמכם ומזינים אותם בדפדפן הזה. השרת לא משתמש במפתחות משותפים — זה מגן על המכסות ונותן לכם שליטה מלאה.",
+    bullet1: "ללא מפתחות זמינים: TTS דרך הדפדפן, Google Translate חינמי, ספרייה/SRS/הערות.",
+    bullet2: "פונקציות פרימיום (Gemini AI / GCP TTS / GCP Translate) דורשות מפתח AIza… משלכם.",
+    bullet3: "כל מפתח לוקח ~5 דקות ב-Google Console. המכסות החינמיות בדרך כלל מכסות שימוש אישי.",
+    btnLater: "מאוחר יותר",
+    btnGuide: "פתח את המדריך",
   },
   ide: {
     // translate-review: HE drafted by Claude — pending native review.

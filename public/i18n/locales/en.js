@@ -212,6 +212,16 @@ window.I18N_LOCALES.en = {
     gcpTranslateKeyErrorEmpty: "Enter your GCP Translate API Key",
     gcpTranslateKeyErrorFormat: "Key must start with AIza… (Google Cloud Console → APIs & Services → Credentials → Create API Key, restrict to Cloud Translation API)",
     gcpTranslateKeyStorageNote: "Key is stored only in this browser and sent to the server over HTTPS for every translation. Restrict the key to Cloud Translation API only in Google Cloud Console. Enter the key on each device separately. Get a key:",
+    byokSetupGuideLink: "Full guide",
+  },
+  byokOnboarding: {
+    title: "Connect your API keys",
+    intro: "LinguistPro uses BYOK: you create Gemini and Google Cloud keys yourself and enter them in this browser. The server does not use shared keys — this protects quotas and gives you full control.",
+    bullet1: "Without keys you still get: browser TTS, free Google Translate, library/SRS/notes.",
+    bullet2: "Premium features (Gemini AI / GCP TTS / GCP Translate) require your own AIza… key.",
+    bullet3: "Each key takes ~5 minutes in Google Console. Free quotas usually cover individual usage.",
+    btnLater: "Later",
+    btnGuide: "Open the guide",
   },
   ide: {
     tabNotes: "Notes",

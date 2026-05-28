@@ -9712,6 +9712,8 @@ body:not(.theme-light) .v3-heatmap-cell {
                                 <div style="margin-top:6px; font-size:11px; color:#6c757d; line-height:1.4;">
                                     <span data-i18n="classic.gcpTtsKeyStorageNote">Ключ хранится только в этом браузере и передаётся серверу при каждой озвучке по HTTPS. Без ключа онлайн-TTS заменяется на встроенный браузерный (более низкое качество). Введите ключ на каждом устройстве отдельно. Получить ключ:</span>
                                     <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:#1565c0;">console.cloud.google.com/apis/credentials</a>
+                                    &nbsp;·&nbsp;
+                                    <a class="byokSetupGuideLink" href="/docs/BYOK_SETUP.md" target="_blank" rel="noopener" style="color:#1565c0;" data-i18n="classic.byokSetupGuideLink">Полная инструкция</a>
                                 </div>
                             </div>
                         </div>
@@ -9774,6 +9776,8 @@ body:not(.theme-light) .v3-heatmap-cell {
                                 <div style="margin-top:6px; font-size:11px; color:#6c757d; line-height:1.4;">
                                     <span data-i18n="classic.gcpTranslateKeyStorageNote">Ключ хранится только в этом браузере и передаётся серверу при каждом переводе по HTTPS. Ограничьте ключ только Cloud Translation API в настройках Google Cloud. Введите ключ на каждом устройстве отдельно. Получить ключ:</span>
                                     <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:#1565c0;">console.cloud.google.com/apis/credentials</a>
+                                    &nbsp;·&nbsp;
+                                    <a class="byokSetupGuideLink" href="/docs/BYOK_SETUP.md" target="_blank" rel="noopener" style="color:#1565c0;" data-i18n="classic.byokSetupGuideLink">Полная инструкция</a>
                                 </div>
                             </div>
 
@@ -9792,6 +9796,8 @@ body:not(.theme-light) .v3-heatmap-cell {
                                 <div style="margin-top:6px; font-size:11px; color:#6c757d; line-height:1.4;">
                                     <span data-i18n="classic.geminiKeyStorageNote">Ключ хранится только в вашем браузере и передаётся серверу при каждом переводе по HTTPS. Получить ключ:</span>
                                     <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style="color:#1565c0;">aistudio.google.com/app/apikey</a>
+                                    &nbsp;·&nbsp;
+                                    <a class="byokSetupGuideLink" href="/docs/BYOK_SETUP.md" target="_blank" rel="noopener" style="color:#1565c0;" data-i18n="classic.byokSetupGuideLink">Полная инструкция</a>
                                 </div>
                             </div>
                         </div>
@@ -30080,6 +30086,117 @@ try {
             group.style.display = isGcp ? "" : "none";
             if (isGcp) { try { gcpTranslateKeyStatusRefresh(); } catch (_) {} }
         } catch (_) {}
+    }
+
+    // BYOK doc link: switch href to the locale-matching guide whenever the
+    // user changes UI language. The server's /docs whitelist exposes .ru
+    // (default), .en, and .he variants under /docs/BYOK_SETUP*.md.
+    function updateByokSetupGuideLinks() {
+        try {
+            const loc = (typeof appGetLocale === "function") ? appGetLocale() : "ru";
+            const href = loc === "en" ? "/docs/BYOK_SETUP.en.md"
+                       : loc === "he" ? "/docs/BYOK_SETUP.he.md"
+                       : "/docs/BYOK_SETUP.md";
+            document.querySelectorAll(".byokSetupGuideLink").forEach(a => { a.href = href; });
+            const onboardLink = document.getElementById("byokOnboardingGuideLink");
+            if (onboardLink) onboardLink.href = href;
+        } catch (_) {}
+    }
+    document.addEventListener("i18n:changed", updateByokSetupGuideLinks);
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", updateByokSetupGuideLinks);
+    } else {
+        updateByokSetupGuideLinks();
+    }
+
+    // ----------------------------
+    // BYOK ONBOARDING MODAL
+    // Shown once per browser for first-time visitors who haven't entered any
+    // BYOK key (Gemini / GCP TTS / GCP Translate). Explains the BYOK model in
+    // one paragraph and links to /docs/BYOK_SETUP.md. Dismiss flag persists in
+    // localStorage so the modal never re-appears unsolicited.
+    // ----------------------------
+    const BYOK_ONBOARDING_LS_KEY = "v3.byokOnboardingDismissed";
+
+    function byokOnboardingHasAnyKey() {
+        const g = (typeof geminiKeyGet === "function") ? geminiKeyGet() : "";
+        const t = (typeof gcpTtsKeyGet === "function") ? gcpTtsKeyGet() : "";
+        const tr = (typeof gcpTranslateKeyGet === "function") ? gcpTranslateKeyGet() : "";
+        return !!(g || t || tr);
+    }
+
+    function byokOnboardingShouldShow() {
+        try {
+            if (localStorage.getItem(BYOK_ONBOARDING_LS_KEY) === "1") return false;
+        } catch (_) { return false; }
+        return !byokOnboardingHasAnyKey();
+    }
+
+    function byokOnboardingDismiss(remember) {
+        const m = document.getElementById("byokOnboardingModal");
+        if (m) m.style.display = "none";
+        if (remember) {
+            try { localStorage.setItem(BYOK_ONBOARDING_LS_KEY, "1"); } catch (_) {}
+        }
+    }
+
+    function byokOnboardingShow() {
+        // Refuse to layer on top of an already-open modal (e.g. OPFS migration).
+        const otherOpen = Array.from(document.querySelectorAll(".v3-modal, [role='dialog']"))
+            .some(el => el.id !== "byokOnboardingModal" && el.offsetWidth > 0 && el.offsetHeight > 0);
+        if (otherOpen) {
+            setTimeout(byokOnboardingShow, 3000);
+            return;
+        }
+        let m = document.getElementById("byokOnboardingModal");
+        if (!m) {
+            m = document.createElement("div");
+            m.id = "byokOnboardingModal";
+            m.className = "v3-modal";
+            m.style.cssText = "position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;";
+            m.innerHTML =
+                '<div class="v3-modal-backdrop" style="position:absolute;inset:0;background:rgba(0,0,0,0.5);"></div>' +
+                '<div class="v3-modal-panel" style="position:relative;max-width:520px;width:calc(100vw - 32px);max-height:calc(100vh - 64px);overflow:auto;padding:22px;border-radius:14px;">' +
+                  '<h2 style="margin:0 0 10px;font-size:18px;" data-i18n="byokOnboarding.title">Подключите свои API-ключи</h2>' +
+                  '<p style="margin:0 0 12px;line-height:1.5;font-size:14px;" data-i18n="byokOnboarding.intro">LinguistPro работает по модели BYOK: ключи Gemini и Google Cloud вы создаёте сами и вводите в этом браузере. Сервер не использует общие ключи — это защищает квоты и даёт вам полный контроль.</p>' +
+                  '<ul style="margin:0 0 14px;padding-left:20px;line-height:1.55;font-size:13px;">' +
+                    '<li data-i18n="byokOnboarding.bullet1">Без ключей доступны: озвучка через браузер, бесплатный Google Translate, библиотека/SRS/заметки.</li>' +
+                    '<li data-i18n="byokOnboarding.bullet2">Премиум-функции (Gemini AI / GCP TTS / GCP Translate) требуют свой ключ AIza…</li>' +
+                    '<li data-i18n="byokOnboarding.bullet3">Каждый ключ — ~5 минут в Google Console. Бесплатные квоты обычно покрывают индивидуальное использование.</li>' +
+                  '</ul>' +
+                  '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">' +
+                    '<button class="btn-secondary" onclick="byokOnboardingDismiss(true)" style="padding:8px 14px;" data-i18n="byokOnboarding.btnLater">Позже</button>' +
+                    '<a id="byokOnboardingGuideLink" href="/docs/BYOK_SETUP.md" target="_blank" rel="noopener" onclick="byokOnboardingDismiss(true)" class="btn-primary" style="padding:8px 14px;text-decoration:none;display:inline-block;" data-i18n="byokOnboarding.btnGuide">Открыть инструкцию</a>' +
+                  '</div>' +
+                '</div>';
+            document.body.appendChild(m);
+            // Backdrop click → dismiss without remembering (give the user another chance next session).
+            m.querySelector(".v3-modal-backdrop").addEventListener("click", () => byokOnboardingDismiss(false));
+        }
+        // Apply i18n + locale-correct guide link.
+        try { if (typeof applyI18n === "function") applyI18n(); } catch (_) {}
+        try {
+            const loc = (typeof appGetLocale === "function") ? appGetLocale() : "ru";
+            const guideHref = loc === "en" ? "/docs/BYOK_SETUP.en.md"
+                            : loc === "he" ? "/docs/BYOK_SETUP.he.md"
+                            : "/docs/BYOK_SETUP.md";
+            const link = document.getElementById("byokOnboardingGuideLink");
+            if (link) link.href = guideHref;
+        } catch (_) {}
+        m.style.display = "flex";
+    }
+
+    function byokOnboardingInit() {
+        if (!byokOnboardingShouldShow()) return;
+        // Wait a beat so other startup modals (OPFS migration) appear first.
+        setTimeout(() => {
+            if (byokOnboardingShouldShow()) byokOnboardingShow();
+        }, 1500);
+    }
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", byokOnboardingInit);
+    } else {
+        byokOnboardingInit();
     }
 
     // ----------------------------

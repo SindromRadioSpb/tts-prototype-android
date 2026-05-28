@@ -313,6 +313,9 @@ app.use(express.static(path.join(__dirname, "public"), {
 const DOCS_WHITELIST = {
   "PRIVACY.md": "PRIVACY.md",
   "OPFS_USER_GUIDE.md": "OPFS_USER_GUIDE.md",
+  "BYOK_SETUP.md": "BYOK_SETUP.md",
+  "BYOK_SETUP.en.md": "BYOK_SETUP.en.md",
+  "BYOK_SETUP.he.md": "BYOK_SETUP.he.md",
 };
 app.get("/docs/:file", (req, res) => {
   const safe = DOCS_WHITELIST[req.params.file];
@@ -324,8 +327,22 @@ app.get("/docs/:file", (req, res) => {
     return res.status(404).type("text").send("Not found");
   }
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  // Linkify URLs after escaping so the regex matches the escaped text but the
+  // generated <a href=…> still points to the original URL. Only http(s).
+  const escaped = esc(md);
+  // Stop at whitespace, angle brackets, parens and backticks (Markdown code
+  // delimiters) so `https://x.com` doesn't end up with a trailing ` in href.
+  // Trailing punctuation that's usually sentence terminator, not URL, is
+  // stripped before linking.
+  const linkified = escaped.replace(/(https?:\/\/[^\s<>)`]+)/g, (full) => {
+    let url = full;
+    let tail = "";
+    while (/[.,;:!?]$/.test(url)) { tail = url.slice(-1) + tail; url = url.slice(0, -1); }
+    return `<a href="${url}" target="_blank" rel="noopener">${url}</a>${tail}`;
+  });
+  const dir = /\.he\.md$/i.test(safe) ? "rtl" : "ltr";
   res.type("html").send(
-    "<!doctype html><html><head><meta charset=utf-8>" +
+    "<!doctype html><html dir=" + dir + "><head><meta charset=utf-8>" +
     "<meta name=viewport content=\"width=device-width,initial-scale=1\">" +
     "<title>" + esc(safe) + "</title><style>" +
     "body{max-width:760px;margin:2rem auto;padding:0 1.1rem;" +
@@ -333,7 +350,7 @@ app.get("/docs/:file", (req, res) => {
     "background:#0f172a;color:#e2e8f0}" +
     "pre{white-space:pre-wrap;word-wrap:break-word;font:inherit;margin:0}" +
     "a{color:#60a5fa}</style></head><body><pre>" +
-    esc(md) + "</pre></body></html>"
+    linkified + "</pre></body></html>"
   );
 });
 
