@@ -177,7 +177,7 @@ a `.jsonl` archive and exits 3 if any line fails.
 
 ### 2.2 RESEARCH_DATA_DIR
 
-Сервер пишет cohort-данные в `RESEARCH_DATA_DIR` (env var; default `<DATA_DIR>/research`). На Railway это persistent volume — не сбрасывается между deploy'ями.
+Сервер пишет cohort-данные в `RESEARCH_DATA_DIR` (env var; default `<DATA_DIR>/research`). На Hetzner CX23 (Coolify) это Docker volume `glmw0wjd6nm70fntxgjy6fkp-linguistpro-data` — persistent, не сбрасывается между deploy'ями. Ежедневный бэкап в `/opt/backups/linguistpro/` (хранится 14 дней).
 
 Local dev: `data/research/<cohort>/...` относительно репо.
 
@@ -185,7 +185,7 @@ Local dev: `data/research/<cohort>/...` относительно репо.
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://your-deploy/api/research/v1/cohort/ULPAN-A-W2026/aggregates
+  https://linguistpro.kolosei.com/api/research/v1/cohort/ULPAN-A-W2026/aggregates
 ```
 
 Должно вернуть `200` и JSON с `cohort_size: 0` (когорта пустая).
@@ -198,7 +198,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 
 Каждый студент получает:
 1. **Cohort code** (например `ULPAN-A-W2026`) — by WhatsApp / printed handout / email.
-2. **URL приложения** (`https://your-deploy/`) — если вы хотите чтобы они зашли через web; для PWA users — обычно уже установлено.
+2. **URL приложения** (`https://linguistpro.kolosei.com/`) — если вы хотите чтобы они зашли через web; для PWA users — обычно уже установлено.
 3. **Бриф** про research mode (см. §3.2).
 
 **Researcher token** — НЕ давать студентам. Только тебе.
@@ -309,7 +309,7 @@ RESEARCH_DATA_DIR=research-data \
 ## 5. Teacher dashboard
 
 ```
-https://your-deploy/teacher.html
+https://linguistpro.kolosei.com/teacher.html
 ```
 
 Login: cohort code + researcher token. Token cached в localStorage этой страницы — auto-resume на reload. ⎋ Logout стирает.
