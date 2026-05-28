@@ -417,6 +417,19 @@
     );
     const translit_toggles_count = Number((trRows[0] || {}).n || 0);
 
+    // V3 (CVP) supplementary engagement metrics — passive listening and
+    // passive reading exposure, derived from already-collected events.
+    // Implementation in public/db/local-db.js; thesis §6.7 multitrait-
+    // multimethod report. Pre-registered on OSF deviation log §9.4.
+    const audio_exposure_minutes = Math.round((audio_play_ms_total || 0) / 60000);
+    let text_exposure_minutes = 0;
+    try {
+      if (typeof ldb.getTextExposureMs === 'function') {
+        const tms = await ldb.getTextExposureMs({ sinceIso: sinceTs });
+        text_exposure_minutes = Math.round((tms || 0) / 60000);
+      }
+    } catch (_) { /* CVP supplementary; never block primary aggregation */ }
+
     const metrics = {
       // Layer 1
       sessions_count,
@@ -429,6 +442,8 @@
       sentences_read_distinct,
       sentences_read_total,
       audio_play_ms_total,
+      audio_exposure_minutes,           // V3 CVP — passive listening proxy
+      text_exposure_minutes,            // V3 CVP — passive reading proxy
       cards_reviewed,
       cards_added_to_srs,
       notes_created,

@@ -898,6 +898,185 @@
     downloadCsv(`cross_cohort_aggregates_${today}.csv`, lines);
   }
 
+  // V2 (MCREMA) — Multi-Cohort Random-Effects Meta-Analysis summary export.
+  //
+  // Per OSF deviation log §9.3 (declared 2026-05-22, executed K≥3 in future
+  // cohorts). Emits one row per (cohort × hypothesis) with the columns
+  // needed by `metafor::rma()` for random-effects pooled estimation in
+  // `scripts/research/meta_analysis.R`.
+  //
+  // CRITICAL — Deidentification: cohort labels in the output CSV are
+  //   cohort_001, cohort_002, ... — derived by sorted-position over the
+  //   set of cohorts currently loaded in the teacher dashboard. The
+  //   human-readable cohort_code is NEVER written to the meta-analytic
+  //   export. This prevents indirect teacher-identity inference from the
+  //   pooled file. The mapping is non-reversible without access to the
+  //   teacher's local LS.cohorts_v2 ordering.
+  //
+  // Privacy invariants preserved:
+  //   - per-cohort k=5 anonymity gate: cohorts with n_linked < 5 emit a
+  //     suppression-marker row (k_anonymity_met=0) but no statistics
+  //   - per-cohort FORBIDDEN_FIELDS validator already enforced upstream
+  //     by the schema-strict server validator; this export only consumes
+  //     already-validated aggregates
+  //   - no new event types collected
+  //
+  // For each cohort that has loaded aggregates with per-student totals
+  // and growth-delta available, compute:
+  //   - per-hypothesis Pearson r between predictor and growth_delta
+  //   - Fisher z transform: z = atanh(r)
+  //   - Fisher z standard error: SE = 1 / sqrt(n - 3)
+  //   - mean / sd of predictor and outcome
+  //
+  // Output CSV columns:
+  //   cohort_label, hypothesis_id, n_linked,
+  //   mean_engagement, sd_engagement, mean_growth, sd_growth,
+  //   r, fisher_z, fisher_z_se
+  //
+  // Hypothesis specifications follow OSF prereg §2 H1-H4.
+  function _metaPredictorFor(s, hypothesisId) {
+    const t = s.totals || {};
+    switch (hypothesisId) {
+      case 'H1': return Number(t.active_minutes_real) || 0;
+      case 'H2': return Number(t.cards_added_to_srs)  || 0;
+      case 'H3': return Number(t.notes_created)       || 0;
+      case 'H4': {
+        const cr = Number(t.cards_reviewed) || 0;
+        const ca = Number(t.cards_again)    || 0;
+        return cr > 0 ? ca / cr : null; // srs_error_rate; null if no reviews
+      }
+      default: return null;
+    }
+  }
+  function _metaGrowthFor(s) {
+    const o = s.outcome || {};
+    if (o.pre_test_score == null || o.post_test_score == null) return null;
+    return Number(o.post_test_score) - Number(o.pre_test_score);
+  }
+  function _meanSd(values) {
+    const n = values.length;
+    if (n === 0) return { mean: NaN, sd: NaN };
+    const mean = values.reduce((a, b) => a + b, 0) / n;
+    if (n === 1) return { mean, sd: 0 };
+    const variance = values.reduce((a, v) => a + (v - mean) * (v - mean), 0) / (n - 1);
+    return { mean, sd: Math.sqrt(variance) };
+  }
+  function _pearsonR(xs, ys) {
+    const n = xs.length;
+    if (n < 2) return NaN;
+    const mx = xs.reduce((a, b) => a + b, 0) / n;
+    const my = ys.reduce((a, b) => a + b, 0) / n;
+    let num = 0, dx = 0, dy = 0;
+    for (let i = 0; i < n; i++) {
+      const a = xs[i] - mx, b = ys[i] - my;
+      num += a * b;
+      dx += a * a;
+      dy += b * b;
+    }
+    const denom = Math.sqrt(dx * dy);
+    return denom > 0 ? num / denom : NaN;
+  }
+  function _summarizeCohortForHypothesis(agg, hypothesisId) {
+    const students = (agg.students || []);
+    const pairs = [];
+    for (const s of students) {
+      const x = _metaPredictorFor(s, hypothesisId);
+      const y = _metaGrowthFor(s);
+      if (x == null || y == null || !isFinite(x) || !isFinite(y)) continue;
+      pairs.push([x, y]);
+    }
+    const n = pairs.length;
+    if (n < 2) {
+      return {
+        hypothesis_id: hypothesisId,
+        n_linked: n,
+        mean_engagement: '', sd_engagement: '',
+        mean_growth: '', sd_growth: '',
+        r: '', fisher_z: '', fisher_z_se: '',
+      };
+    }
+    const xs = pairs.map((p) => p[0]);
+    const ys = pairs.map((p) => p[1]);
+    const X = _meanSd(xs);
+    const Y = _meanSd(ys);
+    const r = _pearsonR(xs, ys);
+    const z = isFinite(r) ? Math.atanh(Math.max(-0.9999, Math.min(0.9999, r))) : '';
+    const zSe = n > 3 ? (1 / Math.sqrt(n - 3)).toFixed(6) : '';
+    return {
+      hypothesis_id: hypothesisId,
+      n_linked: n,
+      mean_engagement: X.mean.toFixed(4),
+      sd_engagement:   X.sd.toFixed(4),
+      mean_growth:     Y.mean.toFixed(4),
+      sd_growth:       Y.sd.toFixed(4),
+      r:        isFinite(r) ? r.toFixed(4) : '',
+      fisher_z: z === '' ? '' : z.toFixed(4),
+      fisher_z_se: zSe,
+    };
+  }
+  function exportMetaAnalysisCsv() {
+    const cols = [
+      'cohort_label', 'hypothesis_id', 'n_linked',
+      'mean_engagement', 'sd_engagement', 'mean_growth', 'sd_growth',
+      'r', 'fisher_z', 'fisher_z_se', 'k_anonymity_met',
+    ];
+    const cohorts = _getCohorts();
+    // Sort cohorts alphabetically by cohort_code to make the deidentified
+    // label assignment deterministic across re-exports from the same set.
+    const ordered = cohorts.slice().sort((a, b) => {
+      if (a.code < b.code) return -1;
+      if (a.code > b.code) return 1;
+      return 0;
+    });
+    const rows = [];
+    let labelIdx = 0;
+    for (const c of ordered) {
+      labelIdx += 1;
+      const cohortLabel = `cohort_${String(labelIdx).padStart(3, '0')}`;
+      const agg = _cohortAggregates[c.code];
+      if (!agg || !agg.students) {
+        // Skip cohorts that have not loaded aggregates with per-student totals.
+        continue;
+      }
+      // Per-cohort k-anonymity gate.
+      if (!agg.k_anonymity_met) {
+        for (const hid of ['H1', 'H2', 'H3', 'H4']) {
+          rows.push({
+            cohort_label: cohortLabel,
+            hypothesis_id: hid,
+            n_linked: '',
+            mean_engagement: '', sd_engagement: '',
+            mean_growth: '', sd_growth: '',
+            r: '', fisher_z: '', fisher_z_se: '',
+            k_anonymity_met: 0,
+          });
+        }
+        continue;
+      }
+      for (const hid of ['H1', 'H2', 'H3', 'H4']) {
+        const summary = _summarizeCohortForHypothesis(agg, hid);
+        rows.push({
+          cohort_label: cohortLabel,
+          ...summary,
+          k_anonymity_met: 1,
+        });
+      }
+    }
+    if (!rows.length) {
+      alert(T('teacher.dyn.alert.crossCohortEmpty'));
+      return;
+    }
+    const lines = [cols.join(',')];
+    for (const r of rows) lines.push(cols.map((k) => csvEscape(r[k])).join(','));
+    const today = new Date().toISOString().slice(0, 10);
+    downloadCsv(`meta_analysis_summary_${today}.csv`, lines);
+  }
+  // Expose so the dashboard can wire it to a future export button or
+  // call programmatically from the console for ad-hoc analysis.
+  if (typeof window !== 'undefined') {
+    window.exportMetaAnalysisCsv = exportMetaAnalysisCsv;
+  }
+
   // ── outcomes CSV upload ────────────────────────────────────────────────
   // Opens a hidden <input type="file"> to pick a CSV, reads it locally,
   // POSTs to /api/research/v1/cohort/:code/outcomes (Bearer-auth), then

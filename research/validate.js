@@ -65,6 +65,12 @@ const ALLOWED_METRIC_KEYS = new Set([
   "sentences_read_distinct",
   "sentences_read_total",
   "audio_play_ms_total",
+  // V3 (CVP) supplementary engagement metrics — derived from already-
+  // consented events. Schema additions per OSF deviation log §9.4
+  // (audio_exposure_minutes = audio_play_ms_total / 60000 rounded;
+  //  text_exposure_minutes  = sum text_open/text_close duration_ms / 60000).
+  "audio_exposure_minutes",
+  "text_exposure_minutes",
   "words_encountered_total",
   "words_unique_estimate",
   "words_mastered",
@@ -304,7 +310,9 @@ function validateMetrics(metrics) {
     "sessions_count", "active_minutes_real", "active_days_count",
     "texts_opened_distinct", "texts_opened_total",
     "sentences_read_distinct", "sentences_read_total",
-    "audio_play_ms_total", "words_encountered_total", "words_unique_estimate",
+    "audio_play_ms_total",
+    "audio_exposure_minutes", "text_exposure_minutes",  // V3 CVP
+    "words_encountered_total", "words_unique_estimate",
     "words_mastered", "cards_reviewed", "cards_added_to_srs",
     "notes_created", "notes_edited", "search_queries_count",
     "cards_correct", "cards_again",

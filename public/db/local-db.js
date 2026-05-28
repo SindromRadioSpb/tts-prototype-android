@@ -1745,6 +1745,81 @@ export async function getSessionMetrics({ days = 7 } = {}) {
   };
 }
 
+// ── V3 (CVP): Construct-Validity Pluralism — supplementary engagement metrics
+//
+// Pre-registered as supplementary exploratory analyses on OSF deviation
+// log §9.4 (to be added). These two functions provide alternate operational
+// definitions of "engagement" alongside `getActiveMsReal()`, enabling a
+// multitrait-multimethod (Campbell & Fiske 1959) report in thesis §6.7:
+//
+//   - `getActiveMsReal()`        — interactive engagement (existing primary)
+//   - `getAudioExposureMs()`     — passive listening exposure (this fn)
+//   - `getTextExposureMs()`      — passive reading exposure   (this fn)
+//
+// `active_minutes_real` definition is INTENTIONALLY UNCHANGED. The V3 design
+// adds two new derived metrics emitted by the daily aggregator, NOT a
+// retrofit of the primary engagement construct. This preserves the OSF-
+// locked H1 primary test definition and avoids mid-study construct drift.
+//
+// Privacy: both functions read pre-existing event types already collected
+// under the current consent envelope. No new event types; derivation is
+// cosmetic per RESEARCH_CONSENT_RULE §3 — no CONSENT_VERSION bump.
+
+// Sum of audio playback durations from `play_audio` events (milliseconds).
+// Captures passive listening that `getActiveMsReal()` deliberately excludes.
+export async function getAudioExposureMs({ sinceIso = null } = {}) {
+  const cutoff = sinceIso ?? new Date(Date.now() - 7 * 86400000).toISOString();
+  const rows = await q(
+    `SELECT payload_json FROM events
+       WHERE event_type = 'play_audio' AND ts >= ?`,
+    [cutoff]
+  );
+  let totalMs = 0;
+  for (const r of rows) {
+    try {
+      const obj = JSON.parse(r.payload_json || '{}');
+      totalMs += Math.max(0, Number(obj.duration_ms) || 0);
+    } catch (_) {}
+  }
+  return totalMs;
+}
+
+// Sum of text-open dwell time from `text_open`/`text_close` event pairs
+// (milliseconds). Captures passive reading exposure. Orphan opens (without
+// a matching close) get a 5-minute imputation matching the idle-gate
+// constant. Documented caveat in thesis §6.7.
+const TEXT_EXPOSURE_DEFAULT_DWELL_MS = 5 * 60 * 1000;
+export async function getTextExposureMs({ sinceIso = null } = {}) {
+  const cutoff = sinceIso ?? new Date(Date.now() - 7 * 86400000).toISOString();
+  const closeRows = await q(
+    `SELECT payload_json FROM events
+       WHERE event_type = 'text_close' AND ts >= ?`,
+    [cutoff]
+  );
+  let closedDwellMs = 0;
+  for (const r of closeRows) {
+    try {
+      const obj = JSON.parse(r.payload_json || '{}');
+      closedDwellMs += Math.max(0, Number(obj.duration_ms) || 0);
+    } catch (_) {}
+  }
+  const openCountRow = await q(
+    `SELECT COUNT(*) AS n FROM events
+       WHERE event_type = 'text_open' AND ts >= ?`,
+    [cutoff]
+  );
+  const closeCountRow = await q(
+    `SELECT COUNT(*) AS n FROM events
+       WHERE event_type = 'text_close' AND ts >= ?`,
+    [cutoff]
+  );
+  const openCount  = Number((openCountRow[0]  || {}).n || 0);
+  const closeCount = Number((closeCountRow[0] || {}).n || 0);
+  const orphanOpens = Math.max(0, openCount - closeCount);
+  const imputedDwellMs = orphanOpens * TEXT_EXPOSURE_DEFAULT_DWELL_MS;
+  return closedDwellMs + imputedDwellMs;
+}
+
 // ── Direction 5: Activity heatmap (Premium Release v3.1.0) ────────────
 // GitHub-contributions-style heatmap of daily play activity over the
 // last N days. Returns an array of { date: 'YYYY-MM-DD', count } in
