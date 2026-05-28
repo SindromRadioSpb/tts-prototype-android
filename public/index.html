@@ -9739,18 +9739,18 @@ body:not(.theme-light) .v3-heatmap-cell {
 
                             <!-- Gemini per-user API key (shown when Gemini Legacy provider selected) -->
                             <div id="geminiKeyGroup" style="display:none; margin-top:10px; padding:10px 12px; background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px;">
-                                <label class="input-label" style="margin-bottom:6px; display:block;">🔑 Gemini API Key <span style="font-weight:400; color:#6c757d;">(ваш личный ключ — Google AI Studio)</span></label>
+                                <label class="input-label" style="margin-bottom:6px; display:block;">🔑 <span data-i18n="classic.geminiKeyLabel">Gemini API Key</span> <span style="font-weight:400; color:#6c757d;" data-i18n="classic.geminiKeySubtitle">(ваш личный ключ — Google AI Studio)</span></label>
                                 <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
                                     <input type="password" id="geminiApiKeyInput"
                                            placeholder="AIzaSy…"
                                            autocomplete="off" spellcheck="false"
                                            style="flex:1; min-width:200px; padding:7px 10px; border:1px solid #ced4da; border-radius:6px; font-size:13px; font-family:monospace; background:#fff;">
-                                    <button class="btn-secondary" onclick="geminiKeySave()" style="padding:5px 12px; white-space:nowrap;" title="Сохранить ключ в этом браузере (localStorage)">💾 Сохранить</button>
-                                    <button class="btn-secondary" onclick="geminiKeyClear()" style="padding:5px 10px; color:#c62828; border-color:#ffcdd2;" title="Удалить сохранённый ключ из браузера">🗑️</button>
+                                    <button class="btn-secondary" onclick="geminiKeySave()" style="padding:5px 12px; white-space:nowrap;" title="Save key in this browser (localStorage)">💾 <span data-i18n="classic.geminiKeySave">Сохранить</span></button>
+                                    <button class="btn-secondary" onclick="geminiKeyClear()" style="padding:5px 10px; color:#c62828; border-color:#ffcdd2;" title="Remove saved key from browser">🗑️</button>
                                 </div>
                                 <div id="geminiKeyStatus" style="margin-top:6px; font-size:12px; color:#6c757d;"></div>
                                 <div style="margin-top:6px; font-size:11px; color:#6c757d; line-height:1.4;">
-                                    Ключ хранится только в вашем браузере и передаётся серверу при каждом переводе по HTTPS. Получить ключ:
+                                    <span data-i18n="classic.geminiKeyStorageNote">Ключ хранится только в вашем браузере и передаётся серверу при каждом переводе по HTTPS. Получить ключ:</span>
                                     <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style="color:#1565c0;">aistudio.google.com/app/apikey</a>
                                 </div>
                             </div>
@@ -29740,6 +29740,8 @@ try {
                 handlePremiumError(e, provider);
             } else if (e.httpStatus === 429) {
                 handleGeminiLimitError(e);
+            } else if (e.raw && e.raw.error_code === "GEMINI_KEY_NOT_CONFIGURED") {
+                showError(t("classic.geminiKeyNotConfiguredError"));
             } else {
                 showError(e.message || "Ошибка перевода");
             }
@@ -29804,15 +29806,15 @@ try {
         const inp = document.getElementById("geminiApiKeyInput");
         if (!inp) return;
         const val = inp.value.trim();
-        if (!val) { showError("Введите ключ Gemini API"); return; }
+        if (!val) { showError(t("classic.geminiKeyErrorEmpty")); return; }
         if (!val.startsWith("AIza") || val.length < 20) {
-            showError("Ключ должен начинаться с AIza… и иметь стандартную длину (Google AI Studio → API Keys)");
+            showError(t("classic.geminiKeyErrorFormat"));
             return;
         }
         try { localStorage.setItem(GEMINI_KEY_LS_KEY, val); } catch (_) {}
         inp.value = "";  // очищаем поле после сохранения — ключ не должен торчать в UI
         geminiKeyStatusRefresh();
-        showToast && showToast("🔑 Ключ Gemini сохранён");
+        if (typeof showToast === "function") showToast(t("classic.geminiKeySavedToast"));
     }
 
     function geminiKeyClear() {
@@ -29820,7 +29822,7 @@ try {
         const inp = document.getElementById("geminiApiKeyInput");
         if (inp) inp.value = "";
         geminiKeyStatusRefresh();
-        showToast && showToast("Ключ Gemini удалён из браузера");
+        if (typeof showToast === "function") showToast(t("classic.geminiKeyClearedToast"));
     }
 
     function geminiKeyStatusRefresh() {
@@ -29830,10 +29832,10 @@ try {
         if (key) {
             const masked = key.slice(0, 8) + "…" + key.slice(-4);
             el.style.color = "#2e7d32";
-            el.textContent = "✅ Ключ сохранён: " + masked;
+            el.textContent = t("classic.geminiKeyStoredStatus") + " " + masked;
         } else {
             el.style.color = "#b71c1c";
-            el.textContent = "⚠ Ключ не задан — перевод Gemini будет недоступен";
+            el.textContent = t("classic.geminiKeyEmptyStatus");
         }
     }
 

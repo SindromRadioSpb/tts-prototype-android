@@ -2756,7 +2756,8 @@ app.post("/api/translate-table", async (req, res) => {
 
     if (!ai) {
       return res.status(500).json({
-        error: "Gemini API Key не настроен. Укажите ключ в настройках перевода (🔑 Gemini API Key).",
+        error: "Gemini API Key not configured",
+        error_code: "GEMINI_KEY_NOT_CONFIGURED",
       });
     }
 

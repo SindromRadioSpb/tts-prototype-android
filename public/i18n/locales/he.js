@@ -182,6 +182,17 @@ window.I18N_LOCALES.he = {
     keyUploaded: "הועלה",
     keyFromEnv: "מ-.env",
     keySet: "מוגדר",
+    geminiKeyLabel: "Gemini API Key",
+    geminiKeySubtitle: "המפתח האישי שלך — Google AI Studio",
+    geminiKeySave: "שמור",
+    geminiKeyStoredStatus: "✅ המפתח נשמר:",
+    geminiKeyEmptyStatus: "⚠ המפתח לא מוגדר — תרגום Gemini אינו זמין",
+    geminiKeySavedToast: "🔑 מפתח Gemini נשמר",
+    geminiKeyClearedToast: "מפתח Gemini הוסר מהדפדפן",
+    geminiKeyErrorEmpty: "הזן את מפתח Gemini API",
+    geminiKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… ולהיות באורך הסטנדרטי (Google AI Studio → API Keys)",
+    geminiKeyNotConfiguredError: "הגדר את מפתח Gemini API בהגדרות התרגום (קטע «Gemini API Key»)",
+    geminiKeyStorageNote: "המפתח מאוחסן רק בדפדפן שלך ומועבר לשרת בכל תרגום דרך HTTPS. קבל מפתח:",
   },
   ide: {
     // translate-review: HE drafted by Claude — pending native review.
