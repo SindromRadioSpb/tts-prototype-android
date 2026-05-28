@@ -2212,6 +2212,9 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
 		#tableContainer button, #tableContainer select,
 		.table-settings-row button, .table-settings-row select,
 		.table-autonext button { width: auto !important; }
+		/* Exception: BYOK key panels host inline Save/Clear pairs that must stay compact */
+		#geminiKeyGroup button,
+		#gcpTtsKeyGroup button { width: auto !important; }
         /* Модальные окна: кнопки не растягиваются на 100% */
         .v3-modal button.btn-primary,
         .v3-modal button.btn-secondary,
@@ -9692,6 +9695,24 @@ body:not(.theme-light) .v3-heatmap-cell {
                             </div>
 
                             <div id="localTtsDiagnostics" class="v3-help classic-help-block" style="display:none;"></div>
+
+                            <!-- GCP Cloud TTS per-user API key (shown when Online TTS provider selected) -->
+                            <div id="gcpTtsKeyGroup" style="display:none; margin-top:10px; padding:10px 12px; background:#f0f8ff; border:1px solid #b3d9ff; border-radius:8px;">
+                                <label class="input-label" style="margin-bottom:6px; display:block;">🔑 <span data-i18n="classic.gcpTtsKeyLabel">GCP TTS API Key</span> <span style="font-weight:400; color:#6c757d;" data-i18n="classic.gcpTtsKeySubtitle">(ваш личный ключ — Google Cloud Console)</span></label>
+                                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                                    <input type="password" id="gcpTtsApiKeyInput"
+                                           placeholder="AIzaSy…"
+                                           autocomplete="off" spellcheck="false"
+                                           style="flex:1; min-width:200px; padding:7px 10px; border:1px solid #ced4da; border-radius:6px; font-size:13px; font-family:monospace; background:#fff;">
+                                    <button class="btn-secondary" onclick="gcpTtsKeySave()" style="padding:5px 12px; white-space:nowrap;" title="Save key in this browser (localStorage)">💾 <span data-i18n="classic.gcpTtsKeySave">Сохранить</span></button>
+                                    <button class="btn-secondary" onclick="gcpTtsKeyClear()" style="padding:5px 10px; color:#c62828; border-color:#ffcdd2;" title="Remove saved key from browser">🗑️</button>
+                                </div>
+                                <div id="gcpTtsKeyStatus" style="margin-top:6px; font-size:12px; color:#6c757d;"></div>
+                                <div style="margin-top:6px; font-size:11px; color:#6c757d; line-height:1.4;">
+                                    <span data-i18n="classic.gcpTtsKeyStorageNote">Ключ хранится только в этом браузере и передаётся серверу при каждой озвучке по HTTPS. Без ключа онлайн-TTS заменяется на встроенный браузерный (более низкое качество). Введите ключ на каждом устройстве отдельно. Получить ключ:</span>
+                                    <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color:#1565c0;">console.cloud.google.com/apis/credentials</a>
+                                </div>
+                            </div>
                         </div>
                     </details>
 
@@ -18557,6 +18578,7 @@ updatePlaylistButtonUI();
             ttsSettingsState.selectedProvider = ttsProviderSelectEl.value || "online_tts";
             applyTtsSettingsToUi();
             saveTtsVoiceConfig();
+            try { gcpTtsKeyGroupSync(); } catch (_) {}
             if (ttsSettingsState.selectedProvider === "hebrew_phonikud_piper") {
                 refreshHebrewLocalHealth().then(function () {
                     v3PortableTtsRefreshProviderPolicyUi();
@@ -18566,6 +18588,8 @@ updatePlaylistButtonUI();
             v3PortableTtsRefreshProviderPolicyUi();
         });
     }
+    // Initial sync after page setup runs.
+    try { gcpTtsKeyGroupSync(); } catch (_) {}
     if (voiceSelectEl) voiceSelectEl.addEventListener("change", saveTtsVoiceConfig);
     if (rateRangeEl) rateRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
     if (pitchRangeEl) pitchRangeEl.addEventListener("input", function () { updateTtsControlsUI(); saveTtsVoiceConfig(); });
@@ -19125,6 +19149,31 @@ updatePlaylistButtonUI();
         return res;
     }
 
+    // BYOK: show the "add a GCP TTS key" hint exactly once per session.
+    // Repeated playbacks without a key should still work via browser TTS, but
+    // we must not spam the user. Dismissed in DOM only — no persistence.
+    let _gcpTtsKeyHintShown = false;
+    function showGcpTtsKeyHintOnce() {
+        if (_gcpTtsKeyHintShown) return;
+        _gcpTtsKeyHintShown = true;
+        try {
+            const msg = (typeof t === "function" ? t("classic.gcpTtsKeyAutoFallbackToast") : null)
+                || "TTS играет через браузер. Добавьте GCP TTS ключ для премиум-качества.";
+            if (typeof showToast === "function") showToast(msg);
+        } catch (_) {}
+        try {
+            const group = document.getElementById("gcpTtsKeyGroup");
+            if (group) {
+                group.style.display = "";
+                try { gcpTtsKeyStatusRefresh(); } catch (_) {}
+                group.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                group.style.transition = "box-shadow .3s";
+                group.style.boxShadow = "0 0 0 3px rgba(21,101,192,0.25)";
+                setTimeout(function () { group.style.boxShadow = ""; }, 1800);
+            }
+        } catch (_) {}
+    }
+
     async function playBrowserFallbackMainTts(currentText, cfg) {
         const result = await v3SystemSpeechSpeak(currentText, getLang(), cfg, {
             qualityTier: "fallback",
@@ -19183,6 +19232,19 @@ updatePlaylistButtonUI();
             return;
         }
 
+        // BYOK pre-check for online_tts: without a per-user GCP TTS key the
+        // server returns 401 on cache miss. Route to Browser SpeechSynthesis
+        // before the round-trip and surface the "add a key" hint once.
+        if (selectedProvider === "online_tts" && !gcpTtsKeyIsConfigured()) {
+            showGcpTtsKeyHintOnce();
+            try {
+                await playBrowserFallbackMainTts(currentText, cfg);
+            } catch (e) {
+                showError(e && e.message ? e.message : "Browser TTS unavailable");
+            }
+            return;
+        }
+
         // 1) local cache
         try {
             const raw = localStorage.getItem(AUDIO_CACHE_KEY);
@@ -19235,6 +19297,7 @@ updatePlaylistButtonUI();
                 voiceId: cfg.voiceId,
                 speakingRate: cfg.rate,
                 pitch: cfg.pitch,
+                gcpTtsApiKey: gcpTtsKeyGet(),
                 textId: canLinkToLibraryText ? String(updateId) : undefined,
                 assetType: canLinkToLibraryText ? "text" : undefined
             });
@@ -19286,7 +19349,22 @@ updatePlaylistButtonUI();
             showToast(res.fromCache ? "Озвучка восстановлена из серверного кэша" : "Озвучка сгенерирована через Google TTS");
             loadStats();
         } catch (e) {
-            showError(e.message);
+            // Server reported the BYOK key is missing/invalid → fall back to
+            // browser TTS instead of showing a hard error. The pre-check above
+            // catches the common case; this branch handles the rare race where
+            // the key was cleared between pre-check and the request.
+            const msg = e && e.message ? String(e.message) : "";
+            const looksLikeKeyError = /TTS_KEY_REQUIRED|TTS_KEY_INVALID|401/i.test(msg);
+            if (looksLikeKeyError) {
+                showGcpTtsKeyHintOnce();
+                try {
+                    await playBrowserFallbackMainTts(getText().trim(), cfg);
+                } catch (_) {
+                    showError(msg || "TTS unavailable");
+                }
+            } else {
+                showError(msg);
+            }
         } finally {
             if (_ttsBtnEl) { _ttsBtnEl.disabled = false; _ttsBtnEl.classList.remove("v3-btn-loading"); }
         }
@@ -29850,6 +29928,72 @@ try {
     }
 
     // ----------------------------
+    // GCP CLOUD TTS PER-USER API KEY (BYOK)
+    // Mirrors the Gemini key pattern: per-device localStorage, AIza format
+    // validation. Server enforces it (401 TTS_KEY_REQUIRED on miss); when the
+    // key is absent the client routes TTS through Browser SpeechSynthesis
+    // (system_fallback) so the app never silently burns owner quota.
+    // ----------------------------
+    const GCP_TTS_KEY_LS_KEY = "v3.gcpTtsApiKey";
+
+    function gcpTtsKeyGet() {
+        try { return localStorage.getItem(GCP_TTS_KEY_LS_KEY) || ""; } catch (_) { return ""; }
+    }
+
+    function gcpTtsKeyIsConfigured() {
+        const k = gcpTtsKeyGet();
+        return !!(k && k.startsWith("AIza") && k.length >= 20);
+    }
+
+    function gcpTtsKeySave() {
+        const inp = document.getElementById("gcpTtsApiKeyInput");
+        if (!inp) return;
+        const val = inp.value.trim();
+        if (!val) { showError(t("classic.gcpTtsKeyErrorEmpty")); return; }
+        if (!val.startsWith("AIza") || val.length < 20) {
+            showError(t("classic.gcpTtsKeyErrorFormat"));
+            return;
+        }
+        try { localStorage.setItem(GCP_TTS_KEY_LS_KEY, val); } catch (_) {}
+        inp.value = "";
+        gcpTtsKeyStatusRefresh();
+        if (typeof showToast === "function") showToast(t("classic.gcpTtsKeySavedToast"));
+    }
+
+    function gcpTtsKeyClear() {
+        try { localStorage.removeItem(GCP_TTS_KEY_LS_KEY); } catch (_) {}
+        const inp = document.getElementById("gcpTtsApiKeyInput");
+        if (inp) inp.value = "";
+        gcpTtsKeyStatusRefresh();
+        if (typeof showToast === "function") showToast(t("classic.gcpTtsKeyClearedToast"));
+    }
+
+    function gcpTtsKeyStatusRefresh() {
+        const el = document.getElementById("gcpTtsKeyStatus");
+        if (!el) return;
+        const key = gcpTtsKeyGet();
+        if (key) {
+            const masked = key.slice(0, 8) + "…" + key.slice(-4);
+            el.style.color = "#2e7d32";
+            el.textContent = t("classic.gcpTtsKeyStoredStatus") + " " + masked;
+        } else {
+            el.style.color = "#b71c1c";
+            el.textContent = t("classic.gcpTtsKeyEmptyStatus");
+        }
+    }
+
+    function gcpTtsKeyGroupSync() {
+        try {
+            const group = document.getElementById("gcpTtsKeyGroup");
+            if (!group) return;
+            const sel = document.getElementById("ttsProviderSelect");
+            const isOnline = !sel || sel.value === "online_tts" || !sel.value;
+            group.style.display = isOnline ? "" : "none";
+            if (isOnline) { try { gcpTtsKeyStatusRefresh(); } catch (_) {} }
+        } catch (_) {}
+    }
+
+    // ----------------------------
     // PROVIDER SELECTOR (Phase 1.9)
     // ----------------------------
     function initProviderSelect() {
@@ -34057,7 +34201,10 @@ if (hasV3Ctx && v3RowTtsMatchesCurrentProfile(row)) {
   language: lang,
   voiceId: cfg.voiceId,
   speakingRate: cfg.rate,
-  pitch: cfg.pitch
+  pitch: cfg.pitch,
+  // BYOK: server requires a per-user key for fresh synthesis (cache hits still
+  // succeed without one). Sending an empty string is OK for cache lookups.
+  gcpTtsApiKey: (typeof gcpTtsKeyGet === "function") ? gcpTtsKeyGet() : ""
 };
 
 // V3 Library context: только если строка пришла из Library

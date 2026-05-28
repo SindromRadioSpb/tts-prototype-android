@@ -681,7 +681,34 @@ app.get("/api/tts/key", (_req, res) => {
   }
 });
 
+// Admin-gated: BYOK is the default user flow (per-request key in localStorage),
+// so this server-wide upload endpoint must require an operator token. Without
+// RESEARCH_ADMIN_TOKEN configured the endpoint is disabled entirely.
+function requireAdminToken(req, res) {
+  const adminSecret = process.env.RESEARCH_ADMIN_TOKEN || "";
+  if (!adminSecret) {
+    res.status(503).json({ error: "ADMIN_DISABLED", message: "Server-wide key upload is disabled. Set RESEARCH_ADMIN_TOKEN to enable." });
+    return false;
+  }
+  const provided = (req.body && req.body.admin_token) || req.get("X-Admin-Token") || "";
+  const a = Buffer.from(String(provided), "utf8");
+  const b = Buffer.from(adminSecret, "utf8");
+  let ok = false;
+  if (a.length === b.length) {
+    try { ok = crypto.timingSafeEqual(a, b); } catch (_) { ok = false; }
+  } else {
+    // Run a same-length compare to keep timing flat.
+    try { crypto.timingSafeEqual(b, b); } catch (_) {}
+  }
+  if (!ok) {
+    res.status(403).json({ error: "BAD_ADMIN_TOKEN" });
+    return false;
+  }
+  return true;
+}
+
 app.post("/api/tts/key", (req, res) => {
+  if (!requireAdminToken(req, res)) return;
   try {
     const key = req.body && req.body.key;
     if (!key || typeof key !== "object") {
@@ -716,7 +743,8 @@ app.post("/api/tts/key", (req, res) => {
   }
 });
 
-app.delete("/api/tts/key", (_req, res) => {
+app.delete("/api/tts/key", (req, res) => {
+  if (!requireAdminToken(req, res)) return;
   try {
     if (fs.existsSync(TTS_KEY_PATH)) fs.unlinkSync(TTS_KEY_PATH);
     if (ORIGINAL_TTS_KEY_ENV) {
@@ -1099,7 +1127,41 @@ function markGeminiDailyLimitHit() {
 // 6. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ TTS
 // --------------------------------------------------------
 
+// BYOK: per-request Google Cloud TTS via REST API.
+// The @google-cloud/text-to-speech SDK does not support API-key auth (only
+// service-account/OAuth), so we call texttospeech.googleapis.com directly with
+// the user's AIza… key from their browser. The shape of `request` mirrors the
+// SDK's synthesizeSpeech payload ({ input, voice, audioConfig }).
+async function gcpTtsRestSynthesize(apiKey, request) {
+  const url = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(apiKey)}`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+  if (!resp.ok) {
+    let bodyText = "";
+    try { bodyText = await resp.text(); } catch (_) {}
+    let parsed = null;
+    try { parsed = JSON.parse(bodyText); } catch (_) {}
+    const err = new Error(
+      (parsed && parsed.error && parsed.error.message) ||
+      `Google TTS REST error: HTTP ${resp.status}`
+    );
+    err.status = resp.status;
+    err.code = parsed && parsed.error && parsed.error.status;
+    err.upstream = parsed && parsed.error ? { status: parsed.error.status, code: parsed.error.code } : null;
+    throw err;
+  }
+  const data = await resp.json();
+  if (!data || !data.audioContent) {
+    throw new Error("Google TTS REST: empty audioContent");
+  }
+  return Buffer.from(data.audioContent, "base64");
+}
+
 async function synthesizeWithCache(
+  apiKey,
   text,
   languageCode,
   voiceName,
@@ -1115,9 +1177,18 @@ async function synthesizeWithCache(
 
   const cachePath = path.join(audioCacheDir, `${hash}.mp3`);
 
+  // Cache hit: serve without needing the user's API key.
   if (fs.existsSync(cachePath)) {
     const audioContent = fs.readFileSync(cachePath).toString("base64");
     return { audioContent, fromCache: true, cacheId: hash };
+  }
+
+  // Cache miss: a BYOK key is required to call Google TTS.
+  if (!apiKey) {
+    const err = new Error("TTS API key required (BYOK)");
+    err.code = "TTS_KEY_REQUIRED";
+    err.status = 401;
+    throw err;
   }
 
   // Если текст превышает лимит по BYTES, синтезируем чанками и склеиваем MP3.
@@ -1152,12 +1223,12 @@ async function synthesizeWithCache(
         },
       };
 
-      // Важно: response.audioContent — это Buffer.
-      const [resp] = await ttsClient.synthesizeSpeech(requestPart);
-      if (!resp || !resp.audioContent) {
+      // BYOK: per-request REST call (returns mp3 buffer).
+      const chunkBuf = await gcpTtsRestSynthesize(apiKey, requestPart);
+      if (!chunkBuf || !chunkBuf.length) {
         throw new Error("TTS: empty audioContent for chunk #" + (i + 1));
       }
-      buffers.push(Buffer.from(resp.audioContent));
+      buffers.push(chunkBuf);
     }
 
     const merged = Buffer.concat(buffers);
@@ -1185,8 +1256,8 @@ async function synthesizeWithCache(
     },
   };
 
-  const [response] = await ttsClient.synthesizeSpeech(request);
-  const audioContent = response.audioContent.toString("base64");
+  const mp3Buffer = await gcpTtsRestSynthesize(apiKey, request);
+  const audioContent = mp3Buffer.toString("base64");
 
   try {
     fs.writeFileSync(cachePath, Buffer.from(audioContent, "base64"));
@@ -1205,6 +1276,7 @@ async function synthesizeWithCache(
 // --------------------------------------------------------
 
 async function synthesizeMp3Buffer(
+  apiKey,
   text,
   languageCode,
   voiceName,
@@ -1213,6 +1285,13 @@ async function synthesizeMp3Buffer(
 ) {
   const clean = String(text || "").trim();
   if (!clean) return Buffer.alloc(0);
+
+  if (!apiKey) {
+    const err = new Error("TTS API key required (BYOK)");
+    err.code = "TTS_KEY_REQUIRED";
+    err.status = 401;
+    throw err;
+  }
 
   const byteLen = Buffer.byteLength(clean, "utf8");
 
@@ -1245,11 +1324,11 @@ async function synthesizeMp3Buffer(
         },
       };
 
-      const [resp] = await ttsClient.synthesizeSpeech(requestPart);
-      if (!resp || !resp.audioContent) {
+      const chunkBuf = await gcpTtsRestSynthesize(apiKey, requestPart);
+      if (!chunkBuf || !chunkBuf.length) {
         throw new Error("TTS: empty audioContent for chunk #" + (i + 1));
       }
-      buffers.push(Buffer.from(resp.audioContent));
+      buffers.push(chunkBuf);
     }
 
     return Buffer.concat(buffers);
@@ -1268,15 +1347,12 @@ async function synthesizeMp3Buffer(
     },
   };
 
-  const [response] = await ttsClient.synthesizeSpeech(request);
-  if (!response || !response.audioContent) {
-    throw new Error("TTS: empty audioContent");
-  }
-  return Buffer.from(response.audioContent);
+  return await gcpTtsRestSynthesize(apiKey, request);
 }
 
 async function ensureAudioAsset(params) {
   const {
+    apiKey,
     text,
     assetType,
     ttsProfile,
@@ -1321,6 +1397,7 @@ const absPath = path.resolve(DATA_DIR, relativePath);
     mp3Buffer = fs.readFileSync(absPath);
   } else {
     mp3Buffer = await synthesizeMp3Buffer(
+      apiKey,
       cleanText,
       normalizedProfile.language || languageCode,
       normalizedProfile.voiceName || voiceName,
@@ -1740,6 +1817,7 @@ app.post("/api/tts", async (req, res) => {
   voiceId,
   speakingRate,
   pitch,
+  gcpTtsApiKey,
 
   // v3 context (optional) — Step 8.2
   assetType,
@@ -1756,6 +1834,29 @@ app.post("/api/tts", async (req, res) => {
 
     if (!lang || typeof lang !== "string") {
       return res.status(400).json({ error: "Не указан язык для озвучки" });
+    }
+
+    // BYOK validation. The cache layer can serve hits without a key (handled
+    // inside synthesizeWithCache), but a Google synthesis call cannot proceed
+    // without one. Validate format up front so the client gets a clean 401.
+    let byokKey = "";
+    if (gcpTtsApiKey != null) {
+      if (typeof gcpTtsApiKey !== "string") {
+        return res.status(400).json({
+          error: "gcpTtsApiKey must be a string",
+          error_code: "TTS_KEY_INVALID",
+        });
+      }
+      const trimmed = gcpTtsApiKey.trim();
+      if (trimmed) {
+        if (!trimmed.startsWith("AIza") || trimmed.length < 20) {
+          return res.status(400).json({
+            error: "Неверный формат GCP TTS API Key. Ключ должен начинаться с 'AIza'.",
+            error_code: "TTS_KEY_INVALID",
+          });
+        }
+        byokKey = trimmed;
+      }
     }
 
     const cleanText = text.trim();
@@ -1823,12 +1924,11 @@ const hasV3Context = !!(v3SentenceId || v3TextId);
       voiceName: voiceName || "auto",
       speakingRate: rate,
       pitch: pitchVal,
-		hasV3Context,
-		v3SentenceId,
-		v3TextId,
-		v3AssetType,
-      nodeEnv: process.env.NODE_ENV || null,
-hasGoogleCredentials:!!process.env.GOOGLE_APPLICATION_CREDENTIALS || !!process.env.GOOGLE_CLOUD_TTS_KEY,
+      hasV3Context,
+      v3SentenceId,
+      v3TextId,
+      v3AssetType,
+      byokProvided: !!byokKey,
     });
 
     // --------------------------------------------------------
@@ -1840,6 +1940,7 @@ let audioContent, fromCache, cacheId, assetKeyOut, relativePathOut;
 
 if (hasV3Context) {
   const ensured = await ensureAudioAsset({
+    apiKey: byokKey,
     text: cleanText,
     assetType: v3AssetType || (v3SentenceId ? "row" : "text"),
     // если профиль не пришёл — соберём из текущих параметров запроса
@@ -1866,6 +1967,7 @@ if (hasV3Context) {
   cacheId = ensured.assetKey || null;
 } else {
   const legacy = await synthesizeWithCache(
+    byokKey,
     cleanText,
     languageCodeForRequest,
     voiceName || undefined,
@@ -1908,17 +2010,22 @@ if (hasV3Context) {
 });
 
   } catch (error) {
+    // BYOK: a missing key surfaces as a structured 401 the client recognises
+    // and reroutes to Browser SpeechSynthesis (no toast spam).
+    if (error && error.code === "TTS_KEY_REQUIRED") {
+      console.warn("[/api/tts] missing BYOK key", { requestId });
+      return res.status(401).json({
+        error: "GCP TTS API key required",
+        error_code: "TTS_KEY_REQUIRED",
+      });
+    }
+
     console.error("[/api/tts] Ошибка TTS", {
       requestId,
       message: error && error.message,
       name: error && error.name,
       code: error && error.code,
       status: error && error.status,
-      details: error && error.details,
-      stack: error && error.stack,
-      nodeEnv: process.env.NODE_ENV || null,
-      hasGoogleCredentials:!!process.env.GOOGLE_APPLICATION_CREDENTIALS || !!process.env.GOOGLE_CLOUD_TTS_KEY,
-
     });
 
     const safeDetails = {
@@ -1928,7 +2035,7 @@ if (hasV3Context) {
       status: (error && error.status) || null,
     };
 
-    return res.status(500).json({
+    return res.status(error && error.status ? error.status : 500).json({
       error: "Ошибка TTS",
       details: safeDetails,
     });
@@ -2739,27 +2846,22 @@ app.post("/api/translate-table", async (req, res) => {
       return res.status(400).json({ error: "Нет текста" });
     }
 
-    // Per-request key (from user's browser localStorage) takes priority over
-    // the server-level GEMINI_API_KEY env var.  Validate format before use:
-    // Gemini API keys start with "AIza" and are at least 20 characters long.
-    let ai = genAI;
-    if (geminiApiKey && typeof geminiApiKey === "string") {
-      const trimmedKey = geminiApiKey.trim();
-      if (trimmedKey.startsWith("AIza") && trimmedKey.length >= 20) {
-        ai = new GoogleGenerativeAI(trimmedKey);
-      } else {
-        return res.status(400).json({
-          error: "Неверный формат Gemini API Key. Ключ должен начинаться с 'AIza' и иметь корректную длину.",
-        });
-      }
-    }
-
-    if (!ai) {
-      return res.status(500).json({
-        error: "Gemini API Key not configured",
-        error_code: "GEMINI_KEY_NOT_CONFIGURED",
+    // BYOK-only: per-request Gemini key from user's browser localStorage.
+    // No server-side fallback — server-level GEMINI_API_KEY is intentionally NOT used.
+    if (!geminiApiKey || typeof geminiApiKey !== "string" || !geminiApiKey.trim()) {
+      return res.status(401).json({
+        error: "Gemini API Key required (BYOK)",
+        error_code: "GEMINI_KEY_REQUIRED",
       });
     }
+    const trimmedKey = geminiApiKey.trim();
+    if (!trimmedKey.startsWith("AIza") || trimmedKey.length < 20) {
+      return res.status(400).json({
+        error: "Неверный формат Gemini API Key. Ключ должен начинаться с 'AIza' и иметь корректную длину.",
+        error_code: "GEMINI_KEY_INVALID",
+      });
+    }
+    const ai = new GoogleGenerativeAI(trimmedKey);
 
     const cleanText = text.trim();
 
@@ -2878,7 +2980,13 @@ Rules:
       cachedAt: cachePayload.createdAt,
     });
   } catch (error) {
-    console.error("Gemini Error:", error);
+    // Sanitize: log only flat scalars, never the raw error object (it can
+    // include the user's BYOK key in some Gemini SDK paths).
+    console.error("Gemini Error:", {
+      message: error && error.message,
+      status: error && (error.status || error.statusCode),
+      code: error && error.code,
+    });
 
     if (error && (error.status === 429 || error.statusCode === 429)) {
       let retryAfterSec = null;
@@ -2991,6 +3099,18 @@ Rules:
         note = null,
       } = req.body || {};
 
+      // BYOK: provider="gcp" relies on a server-side service-account key
+      // (db/premium/providers/gcp.js) which we have intentionally removed. Per-
+      // request API-key BYOK for Cloud Translation v3 is not yet implemented
+      // here, so we surface a clear 503 rather than silently switching providers.
+      if (provider === "gcp") {
+        return res.status(503).json({
+          error: "GCP premium translation is not available in BYOK mode",
+          error_code: "PREMIUM_TRANSLATE_NOT_AVAILABLE",
+          hint: "Use provider=madlad (local sidecar) or google-free, or use the Gemini path with your own AIza key.",
+        });
+      }
+
       const out = await premiumPipeline.translateTable({
         text,
         target_lang,
@@ -3093,6 +3213,7 @@ Rules:
   });
 
   app.post("/api/premium/gcp-key", (req, res) => {
+    if (!requireAdminToken(req, res)) return;
     try {
       const key = req.body && req.body.key;
       if (!key || typeof key !== "object") {
@@ -3126,7 +3247,8 @@ Rules:
     }
   });
 
-  app.delete("/api/premium/gcp-key", (_req, res) => {
+  app.delete("/api/premium/gcp-key", (req, res) => {
+    if (!requireAdminToken(req, res)) return;
     try {
       if (fs.existsSync(GCP_KEY_PATH)) fs.unlinkSync(GCP_KEY_PATH);
       if (ORIGINAL_GCP_KEY_ENV) {

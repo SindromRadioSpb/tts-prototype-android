@@ -192,7 +192,19 @@ window.I18N_LOCALES.he = {
     geminiKeyErrorEmpty: "הזן את מפתח Gemini API",
     geminiKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… ולהיות באורך הסטנדרטי (Google AI Studio → API Keys)",
     geminiKeyNotConfiguredError: "הגדר את מפתח Gemini API בהגדרות התרגום (קטע «Gemini API Key»)",
-    geminiKeyStorageNote: "המפתח מאוחסן רק בדפדפן שלך ומועבר לשרת בכל תרגום דרך HTTPS. קבל מפתח:",
+    geminiKeyStorageNote: "המפתח מאוחסן רק בדפדפן שלך ומועבר לשרת בכל תרגום דרך HTTPS. הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
+    // translate-review: HE drafted by Claude — pending native review.
+    gcpTtsKeyLabel: "GCP TTS API Key",
+    gcpTtsKeySubtitle: "המפתח האישי שלך — Google Cloud Console",
+    gcpTtsKeySave: "שמור",
+    gcpTtsKeyStoredStatus: "✅ המפתח נשמר:",
+    gcpTtsKeyEmptyStatus: "⚠ המפתח לא מוגדר — שימוש ב-TTS חינמי של הדפדפן (איכות נמוכה יותר)",
+    gcpTtsKeySavedToast: "🔑 מפתח GCP TTS נשמר",
+    gcpTtsKeyClearedToast: "מפתח GCP TTS הוסר מהדפדפן",
+    gcpTtsKeyErrorEmpty: "הזן את מפתח GCP TTS API",
+    gcpTtsKeyErrorFormat: "המפתח חייב להתחיל ב-AIza… (Google Cloud Console → APIs & Services → Credentials → Create API Key, להגביל ל-Cloud Text-to-Speech API)",
+    gcpTtsKeyStorageNote: "המפתח מאוחסן רק בדפדפן זה ומועבר לשרת בכל בקשת TTS דרך HTTPS. ללא מפתח, TTS המקוון יחזור לקול המובנה של הדפדפן (איכות נמוכה יותר). הזן את המפתח בכל מכשיר בנפרד. קבל מפתח:",
+    gcpTtsKeyAutoFallbackToast: "ה-TTS מתנגן דרך הדפדפן. הוסף מפתח GCP TTS לאיכות פרימיום.",
   },
   ide: {
     // translate-review: HE drafted by Claude — pending native review.
