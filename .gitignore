@@ -63,11 +63,19 @@ nul
 # Debug/temp scripts
 public/check_script.js
 
-# Claude Code runtime
-.claude/scheduled_tasks.lock
+# Claude Code runtime directory (settings.local.json, scheduled_tasks.lock,
+# session caches, worktrees). Only CLAUDE.md and settings.json are tracked.
+.claude/
+!.claude/CLAUDE.md
+!.claude/settings.json
 
 # Local agent/tool workspaces
 .kilo/
+
+# Root-level development screenshots (UI review artifacts, not source assets)
+/*.png
+/*.jpg
+/*.jpeg
 
 # SQLite (Library/Progress)
 data/

@@ -8,12 +8,13 @@
 
 **Hebrew ↔ Russian / English** · offline-first · PWA · open source
 
-[![Version](https://img.shields.io/badge/version-3.1.0-2563eb?style=flat-square)](https://github.com/SindromRadioSpb/tts-prototype-android/releases/tag/v3.1.0)
+[![Version](https://img.shields.io/badge/version-3.3.2-2563eb?style=flat-square)](CHANGELOG.md)
 [![PWA](https://img.shields.io/badge/PWA-installable-0f172a?style=flat-square)](docs/PWA.md)
 [![Offline-first](https://img.shields.io/badge/offline-first-d97706?style=flat-square)](docs/OPFS_USER_GUIDE.md)
 [![i18n](https://img.shields.io/badge/i18n-RU%20%C2%B7%20EN%20%C2%B7%20HE-94a3b8?style=flat-square)](public/i18n/locales)
+[![Preregistered](https://img.shields.io/badge/preregistered-OSF%20zdv9j-7c3aed?style=flat-square)](https://osf.io/zdv9j/)
 
-[**Live demo**](https://tts-prototype-android-production1.up.railway.app/) · [**User guide**](docs/OPFS_USER_GUIDE.md) · [**PWA setup**](docs/PWA.md) · [**Privacy**](docs/PRIVACY.md) · [**Changelog**](CHANGELOG.md)
+[**Live**](https://linguistpro.kolosei.com) · [**User guide**](docs/OPFS_USER_GUIDE.md) · [**PWA setup**](docs/PWA.md) · [**Privacy**](docs/PRIVACY.md) · [**Changelog**](CHANGELOG.md)
 
 </div>
 

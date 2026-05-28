@@ -21,6 +21,7 @@
 - **Главный исследователь:** [имя автора диплома, контакт]
 - **Платформа:** LinguistPro (open-source, github.com/SindromRadioSpb/tts-prototype-android)
 - **Учебная группа:** [ulpan group identifier, e.g. «Ulpan A — весна 2026»]
+- **Этическая основа:** настоящее исследование является добровольным, не-клиническим, малорискованным образовательным исследованием. Информированное согласие следует принципам Хельсинкской декларации Всемирной медицинской ассоциации (§22-32 — информированное согласие в исследованиях с участием людей). Этический надзор обеспечивается научным руководителем диплома.
 
 ### Что от вас требуется
 
@@ -78,7 +79,7 @@
 
 - **На сервере хранятся:** ваши daily aggregates за весь период курса.
 - **Срок хранения:** 2 года после завершения курса. После — автоматическое удаление.
-- **Где хранятся:** [Railway production server, расположение и compliance]
+- **Где хранятся:** сервер Hetzner CX23 (Falkenstein, Германия, ЕС), управляемый через Coolify. Обработка данных соответствует требованиям Общего регламента по защите данных Европейского Союза (General Data Protection Regulation, Regulation EU 2016/679) — правовое основание сбора данных: ваше добровольное информированное согласие (GDPR Art. 6(1)(a)). Данные не передаются за пределы ЕС и не обрабатываются третьими странами.
 - **Кто имеет доступ:** только главный исследователь (через researcher token); никаких сторонних организаций или коммерческих партнёров.
 - **Использование:** исключительно в академических целях (диплом + возможные публикации); никакой коммерциализации, никакой передачи третьим лицам, никакой рекламы.
 
@@ -132,6 +133,7 @@ You are invited to participate in a research project investigating the effective
 - **Principal investigator:** [diploma author name, contact]
 - **Platform:** LinguistPro (open-source, github.com/SindromRadioSpb/tts-prototype-android)
 - **Cohort:** [ulpan group identifier]
+- **Ethical framework:** this study is a voluntary, non-clinical, low-risk educational research project. Informed consent follows the principles of the World Medical Association Declaration of Helsinki (§22-32 — informed consent in research involving human subjects). Ethics oversight is exercised by the diploma supervisor.
 
 ### What is asked of you
 
@@ -189,7 +191,7 @@ You are invited to participate in a research project investigating the effective
 
 - **Stored:** your daily aggregates for the duration of the course.
 - **Retention:** 2 years after course end. Automatic deletion after.
-- **Location:** [Railway production server location and compliance]
+- **Location:** Hetzner CX23 server (Falkenstein, Germany, EU), managed via Coolify. Data processing complies with the EU General Data Protection Regulation (Regulation EU 2016/679); the legal basis for collection is your voluntary informed consent (GDPR Art. 6(1)(a)). No data transfer outside the EU; no third-country processors.
 - **Access:** only the principal investigator (via researcher token); no third parties, no commercial partners.
 - **Use:** exclusively academic (diploma + potential publications); no commercialization, no third-party sharing, no advertising.
 
@@ -297,6 +299,7 @@ I confirm that:
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0 | 2026-05-10 | Initial template (RU complete; EN translated; HE skeleton — requires native review). |
+| 1.0 (cosmetic edit) | 2026-05-21 | Filled placeholders in RU + EN «Хранение данных» / «Data retention» with Railway EU region + GDPR Art. 6(1)(a) framing. Added bullet «Этическая основа» / «Ethical framework» to existing «Кто проводит исследование» / «Who conducts the research» section (Helsinki §22-32 + supervisor oversight). **NO `CONSENT_VERSION` bump** per `docs/RESEARCH_CONSENT_RULE.md §2 decision tree`: Q1-Q4 all NO (no new metric / no weakened privacy / no extended retention / no expanded access / no changed withdrawal mechanism); Q5 YES (wording polish + clarification of existing implicit framework). Per Example B taxonomy (cosmetic edit). Audit call recorded in `docs/THESIS_AUDIT_CLOSURE_PLAN_2026_05_21.md §2`. |
 
 When this document changes materially (additions to "what we collect", expansion of access scope, retention extension), participants will receive a **re-consent prompt** in the application before their next data upload.
 
