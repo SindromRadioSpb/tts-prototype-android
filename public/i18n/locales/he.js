@@ -223,7 +223,39 @@ window.I18N_LOCALES.he = {
     bullet2: "פונקציות פרימיום (Gemini AI / GCP TTS / GCP Translate) דורשות מפתח AIza… משלכם.",
     bullet3: "כל מפתח לוקח ~5 דקות ב-Google Console. המכסות החינמיות בדרך כלל מכסות שימוש אישי.",
     btnLater: "מאוחר יותר",
+    btnTour: "🎯 סיור קצר",
     btnGuide: "פתח את המדריך",
+  },
+  tour: {
+    stepLabel: "שלב",
+    btnSkip: "דלג",
+    btnBack: "חזרה",
+    btnNext: "הבא",
+    btnDone: "סיום",
+    translateProvider: {
+      title: "ספק תרגום",
+      body: "בחרו כיצד לתרגם את הטבלה: Google Translate חינמי, MADLAD מקומי, או פרימיום — Gemini / GCP Translate (עם מפתח AIza משלכם)."
+    },
+    ttsProvider: {
+      title: "ספק הקראה (TTS)",
+      body: "Online TTS משתמש בקולות פרימיום של Google Cloud (דורש מפתח GCP TTS). ללא מפתח, האפליקציה חוזרת לקול המובנה של הדפדפן."
+    },
+    textInput: {
+      title: "שדה קלט",
+      body: "הדביקו טקסט עברי כאן. ניתן כמה משפטים — האפליקציה תפצל אותם לסגמנטים ותתרגם שורה אחר שורה."
+    },
+    translateButton: {
+      title: "בניית הטבלה",
+      body: "מפעיל תרגום + ניקוד + תעתיק. התוצאה היא טבלה עם עמודות מקבילות (עברית / ניקוד / תעתיק / רוסית)."
+    },
+    speakButton: {
+      title: "הקראה",
+      body: "מנגן את טקסט המקור באמצעות ספק ה-TTS שנבחר. התוצאה נשמרת במטמון — הקראה חוזרת מיידית ולא צורכת מכסה."
+    },
+    footerHelp: {
+      title: "הפעלת הסיור מחדש ועזרה",
+      body: "תוכלו להפעיל מחדש את הסיור הזה מכאן בכל עת. הוראות BYOK ומפתחות API המלאות זמינות בקישורים סמוכים בכותרת התחתונה."
+    },
   },
   ide: {
     // translate-review: HE drafted by Claude — pending native review.
@@ -1424,6 +1456,7 @@ window.I18N_LOCALES.he = {
     version: "v{version}",
     madeBy: "Made with ❤️ by",
     devName: "Sindrom Radio",
+    tourLink: "🎯 סיור",
     aboutLink: "אודות",
     privacyLink: "פרטיות",
     githubLink: "GitHub",

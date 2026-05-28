@@ -221,7 +221,39 @@ window.I18N_LOCALES.en = {
     bullet2: "Premium features (Gemini AI / GCP TTS / GCP Translate) require your own AIza… key.",
     bullet3: "Each key takes ~5 minutes in Google Console. Free quotas usually cover individual usage.",
     btnLater: "Later",
+    btnTour: "🎯 Quick tour",
     btnGuide: "Open the guide",
+  },
+  tour: {
+    stepLabel: "Step",
+    btnSkip: "Skip",
+    btnBack: "Back",
+    btnNext: "Next",
+    btnDone: "Done",
+    translateProvider: {
+      title: "Translation provider",
+      body: "Pick how to translate the table: free Google Translate, local MADLAD, or premium — Gemini / GCP Translate (with your own AIza key)."
+    },
+    ttsProvider: {
+      title: "TTS provider",
+      body: "Online TTS uses Google Cloud premium voices (requires a GCP TTS key). Without a key, the app falls back to the built-in browser voice."
+    },
+    textInput: {
+      title: "Input field",
+      body: "Paste Hebrew text here. Multiple sentences are fine — the app splits them into segments and translates line by line."
+    },
+    translateButton: {
+      title: "Build the table",
+      body: "Runs translation + niqqud + transliteration. The result is a parallel-column table (Hebrew / niqqud / transliteration / Russian)."
+    },
+    speakButton: {
+      title: "Speak",
+      body: "Plays the source text via the selected TTS provider. The result is cached, so replays are instant and don't consume quota."
+    },
+    footerHelp: {
+      title: "Replay the tour and help",
+      body: "You can restart this tour from here any time. Full BYOK and API-key instructions are linked nearby in the footer."
+    },
   },
   ide: {
     tabNotes: "Notes",
@@ -1417,6 +1449,7 @@ window.I18N_LOCALES.en = {
     version: "v{version}",
     madeBy: "Made with ❤️ by",
     devName: "Sindrom Radio",
+    tourLink: "🎯 Tour",
     aboutLink: "About",
     privacyLink: "Privacy",
     githubLink: "GitHub",

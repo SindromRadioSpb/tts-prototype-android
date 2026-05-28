@@ -3507,6 +3507,98 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   background: rgba(0,0,0,0.45);
 }
 
+/* ── BYOK guided tour: backdrop + spotlight + floating tooltip ──────────── */
+.byok-tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  z-index: 9998;
+  pointer-events: auto;
+  transition: opacity 0.18s ease;
+}
+.byok-tour-spotlight {
+  position: fixed;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.62);
+  z-index: 9999;
+  pointer-events: none;
+  transition: top 0.22s ease, left 0.22s ease, width 0.22s ease, height 0.22s ease;
+}
+.byok-tour-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 2px solid #60a5fa;
+  border-radius: 12px;
+  pointer-events: none;
+}
+.byok-tour-tooltip {
+  position: fixed;
+  z-index: 10000;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 14px 16px;
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+  max-width: 320px;
+  width: calc(100vw - 32px);
+  font-size: 13px;
+  line-height: 1.55;
+  transition: top 0.22s ease, left 0.22s ease;
+}
+.byok-tour-tooltip-step {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.byok-tour-tooltip h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.byok-tour-tooltip-body {
+  margin: 0 0 12px;
+}
+.byok-tour-tooltip-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.byok-tour-tooltip-actions .byok-tour-right {
+  display: flex;
+  gap: 6px;
+}
+.byok-tour-tooltip button {
+  font: inherit;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #0f172a;
+  cursor: pointer;
+}
+.byok-tour-tooltip button.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.byok-tour-tooltip button.link {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  padding: 6px 4px;
+}
+.byok-tour-tooltip button:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .byok-tour-spotlight, .byok-tour-tooltip, .byok-tour-backdrop { transition: none; }
+}
+
 .v3-modal-panel {
   position: relative;
   width: min(980px, calc(100vw - 32px));
@@ -30148,6 +30240,7 @@ try {
                   '</ul>' +
                   '<div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">' +
                     '<button class="btn-secondary" onclick="byokOnboardingDismiss(true)" style="padding:8px 14px;" data-i18n="byokOnboarding.btnLater">Позже</button>' +
+                    '<button class="btn-secondary" onclick="byokTourStart()" style="padding:8px 14px;" data-i18n="byokOnboarding.btnTour">🎯 Краткий тур</button>' +
                     '<a id="byokOnboardingGuideLink" href="/docs/BYOK_SETUP.md" target="_blank" rel="noopener" onclick="byokOnboardingDismiss(true)" class="btn-primary" style="padding:8px 14px;text-decoration:none;display:inline-block;" data-i18n="byokOnboarding.btnGuide">Открыть инструкцию</a>' +
                   '</div>' +
                 '</div>';
@@ -30180,6 +30273,225 @@ try {
     } else {
         byokOnboardingInit();
     }
+
+    // ----------------------------
+    // BYOK GUIDED TOUR
+    // Simple multi-step product tour: dark backdrop + spotlight cut-out over
+    // the target element + floating tooltip with i18n title/body/actions.
+    // No external library. Steps with a `condition` function are skipped when
+    // false. Steps with `expand` open the parent <details> first so the
+    // target is laid out before we measure its bounding box.
+    // ----------------------------
+    const BYOK_TOUR_LS_KEY = "v3.byokTourCompleted";
+
+    // Lazy-evaluated step list. `condition` runs at step time, so it sees
+    // the latest UI state. `before` runs once before the step renders.
+    function byokTourSteps() {
+        return [
+            {
+                key: "translateProvider",
+                selector: "#providerSelect",
+                expand: "#classicTranslationCard",
+            },
+            {
+                key: "ttsProvider",
+                selector: "#ttsProviderSelect",
+                expand: "#classicTtsCard",
+            },
+            {
+                key: "textInput",
+                selector: "#inputText",
+            },
+            {
+                key: "translateButton",
+                selector: "#btnAiTranslate",
+            },
+            {
+                key: "speakButton",
+                selector: "#btnMainTts",
+            },
+            {
+                key: "footerHelp",
+                selector: "#byokTourReplayLink",
+            },
+        ];
+    }
+
+    let _byokTourState = null;
+
+    function _byokTourEnsureDom() {
+        let backdrop = document.getElementById("byokTourBackdrop");
+        let spotlight = document.getElementById("byokTourSpotlight");
+        let tooltip = document.getElementById("byokTourTooltip");
+        if (!backdrop) {
+            backdrop = document.createElement("div");
+            backdrop.id = "byokTourBackdrop";
+            backdrop.className = "byok-tour-backdrop";
+            backdrop.style.display = "none";
+            backdrop.addEventListener("click", byokTourSkip);
+            document.body.appendChild(backdrop);
+        }
+        if (!spotlight) {
+            spotlight = document.createElement("div");
+            spotlight.id = "byokTourSpotlight";
+            spotlight.className = "byok-tour-spotlight";
+            spotlight.style.display = "none";
+            document.body.appendChild(spotlight);
+        }
+        if (!tooltip) {
+            tooltip = document.createElement("div");
+            tooltip.id = "byokTourTooltip";
+            tooltip.className = "byok-tour-tooltip";
+            tooltip.style.display = "none";
+            document.body.appendChild(tooltip);
+        }
+        return { backdrop, spotlight, tooltip };
+    }
+
+    function _byokTourTargetRect(step) {
+        if (step.expand) {
+            try { const det = document.querySelector(step.expand); if (det && !det.open) det.open = true; } catch (_) {}
+        }
+        if (typeof step.before === "function") { try { step.before(); } catch (_) {} }
+        const el = document.querySelector(step.selector);
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 && r.height === 0) return null;
+        // Scroll target into view if needed.
+        const vh = window.innerHeight;
+        if (r.top < 8 || r.bottom > vh - 8) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Return null so caller retries after scroll settles.
+            return "scrolling";
+        }
+        return r;
+    }
+
+    function _byokTourPositionTooltip(tooltip, targetRect) {
+        const margin = 12;
+        const tipW = tooltip.offsetWidth;
+        const tipH = tooltip.offsetHeight;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        let left = Math.max(8, Math.min(vw - tipW - 8, targetRect.left + targetRect.width / 2 - tipW / 2));
+        // Prefer placing the tooltip below the target; fall back to above when there's no room.
+        let top = targetRect.bottom + margin;
+        if (top + tipH > vh - 8) {
+            top = Math.max(8, targetRect.top - tipH - margin);
+        }
+        tooltip.style.left = left + "px";
+        tooltip.style.top = top + "px";
+    }
+
+    function _byokTourRenderStep() {
+        if (!_byokTourState) return;
+        const { backdrop, spotlight, tooltip } = _byokTourEnsureDom();
+        const steps = _byokTourState.steps;
+        const idx = _byokTourState.idx;
+        const step = steps[idx];
+        const rect = _byokTourTargetRect(step);
+        if (rect === "scrolling") {
+            setTimeout(_byokTourRenderStep, 280);
+            return;
+        }
+        if (!rect) {
+            // Target is not in DOM/visible — skip this step automatically.
+            return byokTourNext();
+        }
+        backdrop.style.display = "block";
+        spotlight.style.display = "block";
+        const pad = 6;
+        spotlight.style.left = (rect.left - pad) + "px";
+        spotlight.style.top = (rect.top - pad) + "px";
+        spotlight.style.width = (rect.width + 2 * pad) + "px";
+        spotlight.style.height = (rect.height + 2 * pad) + "px";
+
+        const tKey = "tour." + step.key;
+        const stepLabel = (typeof t === "function" ? t("tour.stepLabel") : "Step") + " " + (idx + 1) + " / " + steps.length;
+        const title = (typeof t === "function") ? t(tKey + ".title") : step.key;
+        const body  = (typeof t === "function") ? t(tKey + ".body")  : "";
+        const isLast = idx === steps.length - 1;
+        const isFirst = idx === 0;
+        tooltip.innerHTML =
+            '<div class="byok-tour-tooltip-step">' + stepLabel + '</div>' +
+            '<h3>' + title + '</h3>' +
+            '<p class="byok-tour-tooltip-body">' + body + '</p>' +
+            '<div class="byok-tour-tooltip-actions">' +
+              '<button class="link" type="button" onclick="byokTourSkip()">' + (typeof t === "function" ? t("tour.btnSkip") : "Skip") + '</button>' +
+              '<div class="byok-tour-right">' +
+                (isFirst ? '' :
+                  '<button type="button" onclick="byokTourPrev()">' + (typeof t === "function" ? t("tour.btnBack") : "Back") + '</button>') +
+                '<button class="primary" type="button" onclick="' + (isLast ? "byokTourFinish()" : "byokTourNext()") + '">' +
+                  (isLast ? (typeof t === "function" ? t("tour.btnDone") : "Done") : (typeof t === "function" ? t("tour.btnNext") : "Next")) +
+                '</button>' +
+              '</div>' +
+            '</div>';
+        tooltip.style.display = "block";
+        // Position after the layout settles so offsetWidth is accurate.
+        requestAnimationFrame(() => _byokTourPositionTooltip(tooltip, rect));
+    }
+
+    function _byokTourHandleResize() {
+        if (!_byokTourState) return;
+        _byokTourRenderStep();
+    }
+
+    function byokTourStart() {
+        // Close any open modal (e.g. the BYOK onboarding) before starting.
+        try { byokOnboardingDismiss(true); } catch (_) {}
+        const steps = byokTourSteps().filter(s => !s.condition || s.condition());
+        if (!steps.length) return;
+        _byokTourState = { steps, idx: 0 };
+        window.addEventListener("resize", _byokTourHandleResize);
+        window.addEventListener("scroll", _byokTourHandleResize, { passive: true });
+        _byokTourRenderStep();
+    }
+
+    function byokTourNext() {
+        if (!_byokTourState) return;
+        if (_byokTourState.idx >= _byokTourState.steps.length - 1) return byokTourFinish();
+        _byokTourState.idx += 1;
+        _byokTourRenderStep();
+    }
+
+    function byokTourPrev() {
+        if (!_byokTourState) return;
+        if (_byokTourState.idx === 0) return;
+        _byokTourState.idx -= 1;
+        _byokTourRenderStep();
+    }
+
+    function _byokTourTeardown() {
+        const backdrop = document.getElementById("byokTourBackdrop");
+        const spotlight = document.getElementById("byokTourSpotlight");
+        const tooltip = document.getElementById("byokTourTooltip");
+        if (backdrop) backdrop.style.display = "none";
+        if (spotlight) spotlight.style.display = "none";
+        if (tooltip) tooltip.style.display = "none";
+        window.removeEventListener("resize", _byokTourHandleResize);
+        window.removeEventListener("scroll", _byokTourHandleResize);
+        _byokTourState = null;
+    }
+
+    function byokTourSkip() {
+        _byokTourTeardown();
+        // Skip doesn't permanently dismiss — the user can replay from the footer
+        // link any time. We still set the completed flag so the onboarding
+        // modal doesn't relaunch the tour automatically next session.
+        try { localStorage.setItem(BYOK_TOUR_LS_KEY, "1"); } catch (_) {}
+    }
+
+    function byokTourFinish() {
+        _byokTourTeardown();
+        try { localStorage.setItem(BYOK_TOUR_LS_KEY, "1"); } catch (_) {}
+    }
+
+    // Expose to the modal/footer onclicks.
+    window.byokTourStart = byokTourStart;
+    window.byokTourSkip = byokTourSkip;
+    window.byokTourFinish = byokTourFinish;
+    window.byokTourNext = byokTourNext;
+    window.byokTourPrev = byokTourPrev;
 
     // ----------------------------
     // PROVIDER SELECTOR (Phase 1.9)
@@ -39771,6 +40083,7 @@ document.addEventListener("i18n:changed", function () {
     <span class="app-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Sindrom Radio</span></span>
   </div>
   <div class="app-footer-right">
+    <a id="byokTourReplayLink" href="#" onclick="byokTourStart();return false;" data-i18n="footer.tourLink">🎯 Тур</a>
     <a href="#" onclick="v3AboutOpen();return false;" data-i18n="footer.aboutLink">О приложении</a>
     <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
