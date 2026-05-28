@@ -2733,14 +2733,31 @@ function buildRowsFromGeminiPayload(parsed) {
 // --------------------------------------------------------
 app.post("/api/translate-table", async (req, res) => {
   try {
-    const { text } = req.body || {};
+    const { text, geminiApiKey } = req.body || {};
 
     if (!text || typeof text !== "string" || !text.trim()) {
       return res.status(400).json({ error: "Нет текста" });
     }
 
-    if (!genAI) {
-      return res.status(500).json({ error: "API Key не найден" });
+    // Per-request key (from user's browser localStorage) takes priority over
+    // the server-level GEMINI_API_KEY env var.  Validate format before use:
+    // Gemini API keys start with "AIza" and are at least 20 characters long.
+    let ai = genAI;
+    if (geminiApiKey && typeof geminiApiKey === "string") {
+      const trimmedKey = geminiApiKey.trim();
+      if (trimmedKey.startsWith("AIza") && trimmedKey.length >= 20) {
+        ai = new GoogleGenerativeAI(trimmedKey);
+      } else {
+        return res.status(400).json({
+          error: "Неверный формат Gemini API Key. Ключ должен начинаться с 'AIza' и иметь корректную длину.",
+        });
+      }
+    }
+
+    if (!ai) {
+      return res.status(500).json({
+        error: "Gemini API Key не настроен. Укажите ключ в настройках перевода (🔑 Gemini API Key).",
+      });
     }
 
     const cleanText = text.trim();
@@ -2766,7 +2783,7 @@ app.post("/api/translate-table", async (req, res) => {
       }
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
 
     const prompt = `
 You are a strict JSON generator.
