@@ -17329,43 +17329,25 @@ updatePlaylistButtonUI();
         const gcpOpt    = el.querySelector('option[value="gcp"]');
         const madladOpt = el.querySelector('option[value="madlad"]');
 
+        // BYOK: GCP Translate runs on per-user API keys (v2 REST), independent
+        // of the server's premium status. We always keep the option enabled
+        // and rely on the gcpTranslateKeyGroup panel to collect the key. The
+        // request itself fails with 401 GCP_TRANSLATE_KEY_REQUIRED if missing.
+        if (gcpOpt) {
+            gcpOpt.disabled = false;
+            gcpOpt.textContent = "GCP Translate (API)";
+            gcpOpt.title = "Cloud Translation v2 — введите свой API key в панели ниже";
+        }
+
         if (!status || !status.providers) {
-            // Premium API unreachable → disable v2 options, force back to gemini if needed.
-            if (gcpOpt) {
-                gcpOpt.disabled = true;
-                gcpOpt.textContent = "GCP Translate (offline)";
-                gcpOpt.title = "Premium API недоступен";
-            }
+            // Premium status API down: only madlad (sidecar-backed) is affected.
+            // GCP stays enabled because it doesn't depend on the sidecar.
             if (madladOpt) {
                 madladOpt.disabled = true;
                 madladOpt.textContent = "MADLAD (offline)";
                 madladOpt.title = "Premium API недоступен";
             }
-            if (el.value !== "gemini") el.value = "gemini";
             return;
-        }
-
-        const gcp = status.providers.gcp || { configured: false };
-        if (gcpOpt) {
-            const q = gcp.quota || {};
-            const used = Number(q.chars || 0);
-            const lim  = Number(q.freeTierLimit || 0);
-            const ratio = lim > 0 ? used / lim : 0;
-            const pct = lim > 0 ? Math.round(ratio * 100) : null;
-
-            if (!gcp.configured) {
-                gcpOpt.disabled = true;
-                gcpOpt.textContent = "GCP Translate (нет ключа)";
-                gcpOpt.title = "GCP_TRANSLATE_KEY_FILE не задан";
-            } else {
-                gcpOpt.disabled = false;
-                const warn = q.near_limit ? " ⚠️" : "";
-                gcpOpt.textContent = "GCP Translate" + warn + (pct !== null ? ` (${pct}%)` : "");
-                gcpOpt.title =
-                    `Использовано ${used.toLocaleString("ru-RU")} / ${lim.toLocaleString("ru-RU")} символов в этом месяце` +
-                    (q.near_limit ? " — близко к бесплатному лимиту" : "");
-            }
-            if (el.value === "gcp" && gcpOpt.disabled) el.value = "gemini";
         }
 
         const madlad = status.providers.madlad || { configured: false };
