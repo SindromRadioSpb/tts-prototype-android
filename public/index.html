@@ -29840,11 +29840,13 @@ try {
     }
 
     function geminiKeyGroupSync() {
-        const group = document.getElementById("geminiKeyGroup");
-        if (!group) return;
-        const isGemini = getSelectedProvider() === "gemini";
-        group.style.display = isGemini ? "" : "none";
-        if (isGemini) geminiKeyStatusRefresh();
+        try {
+            const group = document.getElementById("geminiKeyGroup");
+            if (!group) return;
+            const isGemini = getSelectedProvider() === "gemini";
+            group.style.display = isGemini ? "" : "none";
+            if (isGemini) { try { geminiKeyStatusRefresh(); } catch (_) {} }
+        } catch (_) {}
     }
 
     // ----------------------------
@@ -29864,10 +29866,10 @@ try {
         el.addEventListener("change", () => {
             try { localStorage.setItem(PROVIDER_LS_KEY, el.value); } catch (_) {}
             syncTranslitSelectEnabled();
-            geminiKeyGroupSync();
+            try { geminiKeyGroupSync(); } catch (_) {}
         });
         syncTranslitSelectEnabled();
-        geminiKeyGroupSync();
+        try { geminiKeyGroupSync(); } catch (_) {}
     }
 
     function initTranslitProfileSelect() {
