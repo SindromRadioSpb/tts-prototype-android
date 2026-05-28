@@ -90,6 +90,33 @@ This document describes all environment variables and configuration options for 
 
 **CLI fallback:** `scripts/research/create_cohort.js` still works as the operator-side fallback (e.g. if the in-UI form is broken or if you prefer a scripted workflow). Both paths share the same `research/storage.createCohort()` and produce identical `cohort_meta.json`.
 
+### OSF Integration (preregistration + replication package)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OSF_PERSONAL_TOKEN` | — (optional) | OSF Personal Access Token for programmatic interaction with the Open Science Framework API. Used for future automation: replication-package upload, preregistration metadata refresh, scheduled component updates on the diploma's OSF project. **Not required** for normal app operation — diploma functionality has no runtime dependency on OSF API. |
+
+**Context.** The diploma's analysis plan is registered as a public preregistration on OSF: https://osf.io/zdv9j/ (DOI [10.17605/OSF.IO/ZDV9J](https://doi.org/10.17605/OSF.IO/ZDV9J)). Per `docs/THESIS_AUDIT_CLOSURE_PLAN_2026_05_21.md §1 Tier 1`, the registration locks the 4 primary hypotheses and analysis plan with Bonferroni α=0.0125. The preregistration is independent of the application code; the only operational dependency is that any post-pilot replication package (an `analysis/` directory with R notebook + anonymized export) needs to be linked to the OSF project for reproducibility.
+
+**How to obtain a token:**
+
+1. Log in to OSF and visit https://osf.io/settings/tokens
+2. Click **"Create Token"**, give it a descriptive name (e.g. `linguistpro-thesis-replication`)
+3. Select scopes (typical for this project: `osf.full_read` for metadata fetch, `osf.full_write` if uploading replication artifacts)
+4. Click **Create**. OSF shows the token **once** — copy it immediately.
+5. Add to local `.env` as `OSF_PERSONAL_TOKEN=<your-token>`. **Do NOT commit the populated value** — `.env` is gitignored; `.env.example` shipped as a placeholder template.
+
+**Security expectations:**
+
+- Tokens authenticate as the account that created them. Protect them like passwords.
+- Tokens are revocable at https://osf.io/settings/tokens **without** changing the OSF account password.
+- If a token leaks (chat transcript, screenshot, log file, accidentally committed `.env`, etc.) — **revoke immediately and reissue**. The OSF Settings UI shows last-used timestamp for each token, useful for detecting unauthorized use.
+- For long-running automation (CI pipelines, scheduled jobs) prefer narrowly-scoped tokens with the minimum necessary permissions.
+
+**Current operational use:** none yet. The token slot exists for future replication-package automation (post-pilot, post-thesis). The preregistration itself (`osf.io/zdv9j`) was created via manual submission, not via API.
+
+**Rotation policy:** rotate annually OR immediately after any of (leak / change of role / change of repo trust boundary).
+
 ## File Structure
 
 ```
