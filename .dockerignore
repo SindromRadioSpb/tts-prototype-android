@@ -1,0 +1,60 @@
+# -------------------------------------------------------
+# .dockerignore — files excluded from Docker build context
+# -------------------------------------------------------
+
+# Secrets (never bake into image)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials*.json
+
+# Dependencies installed fresh in image
+node_modules/
+
+# Persistent runtime data (mounted as volume at /app/data)
+data/
+
+# Audio / cache artefacts
+audio/
+audio-cache/
+gemini-cache/
+*.mp3
+*.wav
+*.ogg
+
+# Build artefacts
+dist/
+build/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Claude / tooling workspaces
+.claude/
+.kilo/
+.remember/
+.mcp.json
+.playwright-mcp/
+
+# Tests / smoke
+Smoke-check/
+*.test.js
+*.spec.js
+
+# Docs / misc
+*.md
+*.xlsx
+*.docx
+*.tmp
+*.log
+repo_tree.txt
+Архив/
