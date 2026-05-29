@@ -63,22 +63,36 @@
   }
 
   function applyI18n() {
+    // Resilience: t() returns the key itself when the key is missing (e.g. a
+    // stale service-worker-cached locale that predates a newly-shipped key).
+    // In that case DON'T overwrite the element — keep the hardcoded HTML
+    // fallback text/attribute instead of surfacing a raw key like
+    // "classic.navLibrary" to the user. Real translations never equal their
+    // dotted key, so this guard is safe.
     document.querySelectorAll('[data-i18n]').forEach(function (el) {
       var key = el.getAttribute('data-i18n');
-      el.textContent = t(key);
+      var val = t(key);
+      if (val !== key) el.textContent = val;
     });
     document.querySelectorAll('[data-i18n-html]').forEach(function (el) {
       var key = el.getAttribute('data-i18n-html');
-      el.innerHTML = t(key);
+      var val = t(key);
+      if (val !== key) el.innerHTML = val;
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
-      el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+      var key = el.getAttribute('data-i18n-placeholder');
+      var val = t(key);
+      if (val !== key) el.placeholder = val;
     });
     document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
-      el.title = t(el.getAttribute('data-i18n-title'));
+      var key = el.getAttribute('data-i18n-title');
+      var val = t(key);
+      if (val !== key) el.title = val;
     });
     document.querySelectorAll('[data-i18n-aria-label]').forEach(function (el) {
-      el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria-label')));
+      var key = el.getAttribute('data-i18n-aria-label');
+      var val = t(key);
+      if (val !== key) el.setAttribute('aria-label', val);
     });
   }
 
