@@ -1457,6 +1457,7 @@ window.I18N_LOCALES.he = {
     madeBy: "Made with ❤️ by",
     devName: "Sindrom Radio",
     tourLink: "🎯 סיור",
+    feedbackLink: "💬 דיווח על תקלה",
     aboutLink: "אודות",
     privacyLink: "פרטיות",
     githubLink: "GitHub",

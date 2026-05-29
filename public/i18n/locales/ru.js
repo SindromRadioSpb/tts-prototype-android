@@ -1463,6 +1463,7 @@ window.I18N_LOCALES.ru = {
     madeBy: "Made with ❤️ by",
     devName: "Sindrom Radio",
     tourLink: "🎯 Тур",
+    feedbackLink: "💬 Сообщить о проблеме",
     aboutLink: "О приложении",
     privacyLink: "Приватность",
     githubLink: "GitHub",

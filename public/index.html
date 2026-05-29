@@ -3638,8 +3638,24 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
 }
 .v3-skeleton-row:first-child { width: 100%; }
 .v3-skeleton-row:nth-child(even) { opacity: 0.7; }
+/* Card-shaped variant for list gaps (Library/Dashboard) — mimics a result card */
+.v3-skeleton-card {
+  height: 56px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--theme-bg-card, #1e293b) 25%,
+    var(--theme-border-soft, #334155) 50%,
+    var(--theme-bg-card, #1e293b) 75%
+  );
+  background-size: 200% 100%;
+  animation: v3SkeletonSlide 1.2s ease-in-out infinite;
+}
+.v3-skeleton-card:nth-child(even) { opacity: 0.75; }
 @media (prefers-reduced-motion: reduce) {
   .v3-skeleton-row { animation: none; opacity: 0.35; }
+  .v3-skeleton-card { animation: none; opacity: 0.35; }
 }
 .v3-btn-loading {
   opacity: 0.6;
@@ -21665,11 +21681,20 @@ function v3LibraryClose() {
   try { orientationFabUpdate(); } catch (_) {}
 }
 
+// P1.UX.2: shared skeleton placeholder for list-shaped loading gaps
+// (Library, Dashboard). Mirrors v3TableSkeletonHtml but renders card-shaped
+// rows and marks the region aria-busy so screen readers announce loading.
+function v3SkeletonListHtml(n, variant) {
+  const cls = variant === "row" ? "v3-skeleton-row" : "v3-skeleton-card";
+  const rows = Array.from({ length: n || 5 }, () => '<div class="' + cls + '"></div>').join('');
+  return '<div class="v3-skeleton-list" aria-busy="true" aria-label="Загрузка…">' + rows + '</div>';
+}
+
 async function v3LibraryRefresh() {
   const statusEl = v3LibEl("v3LibraryStatus");
   const listEl = v3LibEl("v3LibraryList");
   if (statusEl) statusEl.textContent = "Загрузка списка…";
-  if (listEl) listEl.innerHTML = "";
+  if (listEl) listEl.innerHTML = v3SkeletonListHtml(6, "card");
 
   try {
     let raw;
@@ -27641,6 +27666,12 @@ async function v3DashboardRefresh() {
 
   if (statusEl) statusEl.textContent = "Загрузка…";
   if (actHeaderEl) actHeaderEl.textContent = "Загрузка…";
+
+  // P1.UX.2: show skeleton cards in the list regions while data loads, so the
+  // dashboard isn't a blank block during the (potentially slow) listTexts call.
+  if (pinnedEl) pinnedEl.innerHTML = v3SkeletonListHtml(2, "card");
+  if (recentEl) recentEl.innerHTML = v3SkeletonListHtml(5, "card");
+  if (actEl) actEl.innerHTML = v3SkeletonListHtml(4, "row");
 
   try {
     let libRes, recentRes, actRes;
@@ -40084,6 +40115,7 @@ document.addEventListener("i18n:changed", function () {
   </div>
   <div class="app-footer-right">
     <a id="byokTourReplayLink" href="#" onclick="byokTourStart();return false;" data-i18n="footer.tourLink">🎯 Тур</a>
+    <a id="footerFeedbackLink" href="#" onclick="v3FeedbackOpen('bug');return false;" data-i18n="footer.feedbackLink">💬 Сообщить о проблеме</a>
     <a href="#" onclick="v3AboutOpen();return false;" data-i18n="footer.aboutLink">О приложении</a>
     <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>

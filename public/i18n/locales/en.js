@@ -1450,6 +1450,7 @@ window.I18N_LOCALES.en = {
     madeBy: "Made with ❤️ by",
     devName: "Sindrom Radio",
     tourLink: "🎯 Tour",
+    feedbackLink: "💬 Report a problem",
     aboutLink: "About",
     privacyLink: "Privacy",
     githubLink: "GitHub",
