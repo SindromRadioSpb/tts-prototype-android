@@ -2246,7 +2246,10 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
             min-height: 44px;
             padding: 10px 8px;
         }
-        .classic-state-row { gap: 6px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 2px; }
+        /* Q3 (UX): wrap the 3 status chips to a 2nd line instead of a hidden
+           horizontal scroll (scrollbar-width:none) that silently truncated the
+           last chip ("Источни…"). Chips keep their own width via white-space. */
+        .classic-state-row { gap: 6px; flex-wrap: wrap; }
         .classic-state-chip,
         .classic-trust-chip { white-space: nowrap; flex-shrink: 0; }
         .classic-mobile-panel {
@@ -7550,8 +7553,14 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
 }
 
 .v3-ide-empty-text {
-  font-size: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #334155;
 }
+.v3-ide-empty-hint { margin: 0 auto; }
+/* Q1: keep the empty-state CTA compact (defeats the global mobile
+   button.btn-primary { width: 100% } rule — ID selector wins). */
+#v3IdeCenterContent .v3-ide-empty .btn-primary { width: auto; display: inline-block; }
 
 /* --- IDE Panel Collapse/Expand --- */
 .v3-ide-panel-toggle {
@@ -9647,17 +9656,17 @@ body:not(.theme-light) .v3-heatmap-cell {
                 <div class="classic-utility-bar" role="navigation" data-i18n-aria-label="classic.navLabel" aria-label="Навигация и режимы">
                   <!-- Row 1: Primary navigation cards -->
                   <div class="classic-nav-primary">
-                    <button id="btnLibrary" class="classic-nav-card" onclick="v3LibraryOpen()" aria-label="Библиотека">
+                    <button id="btnLibrary" class="classic-nav-card" onclick="v3LibraryOpen()" data-i18n-aria-label="classic.navLibrary" aria-label="Библиотека">
                       <span class="classic-nav-icon">📚</span>
-                      <span class="classic-nav-label">Библиотека</span>
+                      <span class="classic-nav-label" data-i18n="classic.navLibrary">Библиотека</span>
                     </button>
-                    <button id="btnDashboard" class="classic-nav-card" onclick="v3DashboardOpen()" aria-label="Дашборд">
+                    <button id="btnDashboard" class="classic-nav-card" onclick="v3DashboardOpen()" data-i18n-aria-label="classic.navDashboard" aria-label="Дашборд">
                       <span class="classic-nav-icon">📈</span>
-                      <span class="classic-nav-label">Дашборд</span>
+                      <span class="classic-nav-label" data-i18n="classic.navDashboard">Дашборд</span>
                     </button>
-                    <button id="btnSrsTrainer" class="classic-nav-card" onclick="v3SrsTrainerOpen()" aria-label="SRS Trainer">
+                    <button id="btnSrsTrainer" class="classic-nav-card" onclick="v3SrsTrainerOpen()" data-i18n-aria-label="classic.navTrainer" aria-label="SRS Trainer">
                       <span class="classic-nav-icon">🎯</span>
-                      <span class="classic-nav-label">SRS Trainer</span>
+                      <span class="classic-nav-label" data-i18n="classic.navTrainer">SRS Trainer</span>
                     </button>
                   </div>
                   <!-- Row 2: Utilities -->
@@ -11803,6 +11812,10 @@ v3IdeRightTabSwitch(v3IdeState.rightTab);
       const classicSt = v3SessionGet();
       if (classicSt && classicSt.mode === "library" && classicSt.textId) {
         v3IdeOpenTextInCenter(String(classicSt.textId));
+      } else {
+        // Q1 (UX): no text to restore — show the friendly empty state instead
+        // of leaving the center blank / surfacing a "Text not found" error.
+        v3IdeRenderCenterEmpty();
       }
     }
   } else {
@@ -12495,6 +12508,29 @@ async function v3IdeOpenNoteFromSearch(textId, sentenceId, orderIndex) {
   v3IdeRightTabSwitch("notes");
 }
 
+// Q1 (UX): friendly empty/error state for the IDE center panel. Replaces the
+// raw "Error: Text not found" the user hit when entering IDE with no (or a
+// stale) text. opts.error → error variant; otherwise the "pick a text" CTA.
+function v3IdeRenderCenterEmpty(opts) {
+  const content = document.getElementById("v3IdeCenterContent");
+  const header = document.getElementById("v3IdeCenterHeader");
+  if (!content) return;
+  if (header) header.style.display = "none";
+  const T = (k, fb) => { try { const v = window.t ? window.t(k) : null; return (v && v !== k) ? v : fb; } catch (_) { return fb; } };
+  const isError = !!(opts && opts.error);
+  const icon = isError ? "⚠️" : "📚";
+  const title = isError ? T("ide.loadErrTitle", "Не удалось открыть текст") : T("ide.emptyTitle", "Текст не открыт");
+  const hint = isError ? v3EscapeHtml(String(opts.error)) : v3EscapeHtml(T("ide.emptyHint", "Выберите текст из библиотеки или вставьте свой, чтобы начать работу."));
+  const btnLabel = v3EscapeHtml(T("ide.emptyOpenLib", "📚 Открыть библиотеку"));
+  content.innerHTML =
+    '<div class="v3-ide-empty">' +
+      '<div class="v3-ide-empty-icon">' + icon + '</div>' +
+      '<div class="v3-ide-empty-text">' + v3EscapeHtml(title) + '</div>' +
+      '<div class="v3-ide-empty-hint" style="margin:6px 0 16px; opacity:0.75; font-size:13px; max-width:320px;">' + hint + '</div>' +
+      '<button type="button" class="btn-primary" onclick="v3LibraryOpen()">' + btnLabel + '</button>' +
+    '</div>';
+}
+
 async function v3IdeOpenTextInCenter(textId, jumpToSentenceId, jumpToOrderIndex) {
   const header = document.getElementById("v3IdeCenterHeader");
   const content = document.getElementById("v3IdeCenterContent");
@@ -12631,12 +12667,16 @@ if (header) {
     v3IdeRenderLibraryList();
 
   } catch (err) {
-    content.innerHTML = `
-      <div class="v3-ide-empty">
-        <div class="v3-ide-empty-icon">⚠️</div>
-        <div class="v3-ide-empty-text">Error: ${v3EscapeHtml(err.message)}</div>
-      </div>
-    `;
+    const msg = String((err && err.message) || err);
+    // A stale/missing text id is not an error to the user — show the
+    // "pick a text" empty state and clear the dangling active id.
+    if (/not found/i.test(msg)) {
+      v3IdeState.activeTextId = null;
+      try { v3IdeSaveState(); } catch (_) {}
+      v3IdeRenderCenterEmpty();
+    } else {
+      v3IdeRenderCenterEmpty({ error: msg });
+    }
   }
 }
 
@@ -26107,6 +26147,16 @@ async function v3LibraryOnBundleImportSelected(ev) {
     }
 
     showToast(t("toast.importing"));
+
+    // Q5 (UX): a large bundle (parse + OPFS writes) can run 30s+. Show a
+    // persistent skeleton + status in the Library list so the import doesn't
+    // look frozen. The post-import v3LibraryRefresh() overwrites both.
+    try {
+      const _statusEl = document.getElementById("v3LibraryStatus");
+      const _listEl = document.getElementById("v3LibraryList");
+      if (_statusEl) _statusEl.textContent = (window.t ? t("library.importing") : "Импорт ZIP…");
+      if (_listEl && typeof v3SkeletonListHtml === "function") _listEl.innerHTML = v3SkeletonListHtml(6, "card");
+    } catch (_) {}
 
     let data;
     if (LOCAL_MODE) {
