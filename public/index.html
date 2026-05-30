@@ -26354,6 +26354,8 @@ async function v3LibraryOnBundleImportSelected(ev) {
         ok: true,
         importedCount: r.imported,
         importedAudio,
+        audioTotal: mp3Entries.length,
+        audioErrors,
         linkedAudio: reconcile ? reconcile.linksCreated : 0,
         skippedCount: r.skipped,
         errorCount: (r.errors || []).length + audioErrors,
@@ -26375,13 +26377,21 @@ async function v3LibraryOnBundleImportSelected(ev) {
       }
     }
 
-    const msg =
-      "Импорт: добавлено " + Number(data.importedCount || 0) +
-      ", аудио: " + Number(data.importedAudio || 0) +
-      " (связано: " + Number(data.linkedAudio || 0) + ")" +
-      ", пропущено: " + Number(data.skippedCount || 0) +
-      (data.errorCount ? ", ошибок: " + Number(data.errorCount) : "");
-    showToast(msg, "success");
+    // S4: localized import summary. Audio that failed to cache after the
+    // retry/backoff rounds is NOT framed as an error — it is re-fetched lazily
+    // when the user next opens the text, so we reassure rather than alarm.
+    const _texts = Number(data.importedCount || 0);
+    const _audio = Number(data.importedAudio || 0);
+    const _audioErrors = Number(data.audioErrors || 0);
+    const _audioTotal = (data.audioTotal != null) ? Number(data.audioTotal) : (_audio + _audioErrors);
+    const _skipped = Number(data.skippedCount || 0);
+    showToast(t("toast.zipImportSummary", {
+      texts: _texts, audio: _audio, audioTotal: _audioTotal,
+      linked: Number(data.linkedAudio || 0), skipped: _skipped,
+    }), "success");
+    if (_audioErrors > 0) {
+      showToast(t("toast.zipImportAudioRetry", { count: _audioErrors }), "info");
+    }
     v3LibraryRefresh();
     // Markers on any open table get re-rendered with the freshly linked audio.
     try { if (typeof v3AudioPrefetchRefreshMarkers === "function") v3AudioPrefetchRefreshMarkers(); } catch (_) {}

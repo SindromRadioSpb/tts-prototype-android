@@ -1072,6 +1072,8 @@ window.I18N_LOCALES.he = {
     importTextsToOpfs: "מייבא טקסטים ל-OPFS…",
     importTextsDoneAudioStart: "ייבוא טקסטים הושלם ({imported}). טוען שמע {audioCount}/Railway…",
     audioImportProgress: "שמע {done}/{total} נטען (שגיאות {errors})…",
+    zipImportSummary: "הייבוא הושלם: +{texts} טקסטים · אודיו {audio}/{audioTotal} במטמון · {skipped} דולגו",
+    zipImportAudioRetry: "{count} קובצי אודיו יושלמו במטמון בפתיחה הבאה של הטקסט",
     zipImportError: "שגיאת ייבוא ZIP: {error}",
     zipImportFailed: "כשל בייבוא ZIP (ראה קונסול).",
     noRowAudio: "אין שמע לשורה זו (assetKey ריק).",

@@ -1065,6 +1065,8 @@ window.I18N_LOCALES.en = {
     importTextsToOpfs: "Importing texts to OPFS…",
     importTextsDoneAudioStart: "Texts imported ({imported}). Loading audio {audioCount}/Railway…",
     audioImportProgress: "Audio {done}/{total} loaded (errors {errors})…",
+    zipImportSummary: "Import done: +{texts} texts · audio {audio}/{audioTotal} cached · {skipped} skipped",
+    zipImportAudioRetry: "{count} audio files will finish caching next time you open the text",
     zipImportError: "ZIP import error: {error}",
     zipImportFailed: "Failed to import ZIP (see console).",
     noRowAudio: "No audio for this row (assetKey is empty).",

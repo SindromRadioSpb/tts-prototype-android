@@ -1078,6 +1078,8 @@ window.I18N_LOCALES.ru = {
     importTextsToOpfs: "Импорт текстов в OPFS…",
     importTextsDoneAudioStart: "Импорт текстов готов ({imported}). Загрузка аудио {audioCount}/Railway…",
     audioImportProgress: "Аудио {done}/{total} загружено (ошибок {errors})…",
+    zipImportSummary: "Импорт завершён: +{texts} текстов · аудио {audio}/{audioTotal} в кэше · пропущено {skipped}",
+    zipImportAudioRetry: "{count} аудиофайлов докэшируются при следующем открытии текста",
     zipImportError: "Ошибка импорта ZIP: {error}",
     zipImportFailed: "Не удалось импортировать ZIP (см. консоль).",
     noRowAudio: "Нет аудио для этой строки (assetKey пуст).",
