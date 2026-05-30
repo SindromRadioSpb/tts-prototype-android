@@ -4396,76 +4396,79 @@ body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
   padding: 8px 16px;
 }
 
-/* Collapsible filter (variant B): collapsed = the active value as one pill that
-   fills the cell + a ▾ toggle; expanded = all options as wrapping chips that
-   span the full toolbar width. Replaces the ragged horizontal-scroll strip so
-   the 4 filters read as even, uniform controls. */
-.v3-chip-collapsible {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;            /* let the grid cell shrink to an even 1fr column */
-  border: none;
-  background: transparent;
-  border-radius: 0;
-  overflow: visible;
+/* Filter dropdown: a neutral button showing the current value + ▾ (styled like
+   the top toolbar buttons); tapping opens an absolutely-positioned option list
+   that overlays content. Only one menu open at a time (v3ChipCloseAllMenus).
+   Options use the SAME font / size / colour as the value display. */
+.v3-chip-dropdown {
+  position: relative;
+  min-width: 0;
 }
-.v3-chip-collapsible:not(.expanded) .v3-chip-toggle:not([aria-pressed="true"]) { display: none; }
-/* Collapsed = ONE neutral dropdown button matching the top toolbar buttons:
-   no blue fill, rounded-rect 8px, 11px/700. The value fills it; ▾ sits right. */
-.v3-chip-collapsible:not(.expanded) {
-  flex-wrap: nowrap;
-  gap: 2px;
+.v3-chip-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
   min-height: 36px;
-  padding: 0 6px 0 12px;
+  padding: 0 8px 0 12px;
   background: var(--theme-bg-hover);
   border: 1px solid var(--theme-border-medium);
   border-radius: 8px;
+  color: var(--theme-text-primary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
   cursor: pointer;
+  text-align: left;
 }
-.v3-chip-collapsible:not(.expanded) .v3-chip-toggle[aria-pressed="true"] {
+.v3-chip-value-label {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 0;
-  padding: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  justify-content: flex-start;
-  background: transparent;
+}
+.v3-chip-value-caret {
+  flex: 0 0 auto;
+  color: var(--theme-text-secondary);
+  font-size: 12px;
+  transition: transform 0.15s;
+}
+.v3-chip-dropdown.open .v3-chip-value-caret { transform: rotate(180deg); }
+.v3-chip-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 100%;
+  max-width: calc(100vw - 32px);
+  max-height: 264px;
+  overflow-y: auto;
+  background: var(--theme-bg-card);
+  border: 1px solid var(--theme-border-medium);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  z-index: 80;
+  padding: 4px;
+}
+.v3-chip-dropdown.open .v3-chip-menu { display: block; }
+.v3-chip-opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
   border: none;
+  background: transparent;
+  border-radius: 6px;
   color: var(--theme-text-primary);
+  font-family: inherit;
   font-size: 11px;
   font-weight: 700;
-}
-.v3-chip-collapsible:not(.expanded) .v3-chip-expand {
-  min-height: 0;
-  width: 16px;
-  border: none;
-  background: transparent;
-  color: var(--theme-text-secondary);
-}
-.v3-chip-collapsible.expanded { grid-column: 1 / -1; }
-.v3-chip-expand {
-  flex: 0 0 auto;
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 38px;
-  width: 32px;
-  border: 1px solid var(--theme-border-soft);
-  background: var(--theme-bg-card);
-  color: var(--theme-text-secondary);
-  border-radius: 8px;
-  font-size: 12px;
+  white-space: nowrap;
   cursor: pointer;
-  font-family: inherit;
-  transition: transform 0.15s, background 0.15s;
 }
-.v3-chip-expand:hover { background: var(--theme-bg-hover); }
-.v3-chip-collapsible.expanded .v3-chip-expand { transform: rotate(180deg); margin-left: 4px; }
+.v3-chip-opt:hover { background: var(--theme-bg-hover); }
+.v3-chip-opt[aria-selected="true"] { background: var(--theme-bg-hover); }
 .v3-filter-chip-x {
   border: 0;
   background: transparent;
@@ -28592,103 +28595,125 @@ function v3FillLevelSelect(selectId, opts) {
 // and keeps the two in sync via the 'change' event. Existing onchange
 // handlers continue to fire unchanged. Re-builds chips when option list
 // changes (e.g. v3FillLevelSelect rewriting innerHTML) via MutationObserver.
+function v3ChipCloseAllMenus(except) {
+  document.querySelectorAll(".v3-chip-dropdown.open").forEach((g) => {
+    if (g !== except && typeof g._closeChipMenu === "function") g._closeChipMenu();
+  });
+}
+try { window.v3ChipCloseAllMenus = v3ChipCloseAllMenus; } catch (_) {}
+
 function v3ChipifySelect(selectEl) {
   if (!selectEl || selectEl.dataset.chipified === "1") return null;
 
   const group = document.createElement("div");
-  group.className = "v3-chip-toggle-group v3-chip-collapsible";
-  group.setAttribute("role", "radiogroup");
+  group.className = "v3-chip-dropdown";
   if (selectEl.title) group.setAttribute("aria-label", selectEl.title);
 
-  function buildChips() {
-    group.innerHTML = "";
-    const currentVal = String(selectEl.value || "");
-    let expandBtn = null;
-    function setExpanded(on) {
-      group.classList.toggle("expanded", on);
-      if (expandBtn) expandBtn.setAttribute("aria-expanded", on ? "true" : "false");
-    }
+  // Button showing the current value + a ▾ caret (styled like a top button).
+  const valueBtn = document.createElement("button");
+  valueBtn.type = "button";
+  valueBtn.className = "v3-chip-value";
+  valueBtn.setAttribute("aria-haspopup", "listbox");
+  valueBtn.setAttribute("aria-expanded", "false");
+  if (selectEl.title) valueBtn.title = selectEl.title;
+  const valueLabel = document.createElement("span");
+  valueLabel.className = "v3-chip-value-label";
+  const caret = document.createElement("span");
+  caret.className = "v3-chip-value-caret";
+  caret.setAttribute("aria-hidden", "true");
+  caret.textContent = "▾";
+  valueBtn.appendChild(valueLabel);
+  valueBtn.appendChild(caret);
+
+  // Absolutely-positioned options menu (real dropdown — overlays, doesn't push).
+  const menu = document.createElement("div");
+  menu.className = "v3-chip-menu";
+  menu.setAttribute("role", "listbox");
+
+  function syncValue() {
+    const opt = selectEl.options[selectEl.selectedIndex];
+    valueLabel.textContent = opt ? opt.textContent : "";
+    const v = String(selectEl.value || "");
+    menu.querySelectorAll(".v3-chip-opt").forEach((o) => {
+      o.setAttribute("aria-selected", String(o.getAttribute("data-value")) === v ? "true" : "false");
+    });
+  }
+
+  function buildMenu() {
+    menu.innerHTML = "";
     for (const opt of selectEl.options) {
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "v3-chip-toggle";
-      btn.setAttribute("role", "radio");
-      btn.setAttribute("data-value", opt.value);
-      const isActive = String(opt.value) === currentVal;
-      btn.setAttribute("aria-pressed", isActive ? "true" : "false");
-      btn.setAttribute("aria-checked", isActive ? "true" : "false");
-      // Mirror i18n key so applyI18n() rewrites chips on locale change.
+      const o = document.createElement("button");
+      o.type = "button";
+      o.className = "v3-chip-opt";
+      o.setAttribute("role", "option");
+      o.setAttribute("data-value", opt.value);
+      // Mirror i18n key so applyI18n() rewrites options on locale change.
       const i18nKey = opt.getAttribute("data-i18n");
-      if (i18nKey) btn.setAttribute("data-i18n", i18nKey);
-      btn.textContent = opt.textContent;
-      btn.addEventListener("click", () => {
-        // Collapsed: only the active chip is visible — any tap opens the list.
-        if (!group.classList.contains("expanded")) { setExpanded(true); return; }
-        // Expanded: pick this option, then collapse back to the single pill.
+      if (i18nKey) o.setAttribute("data-i18n", i18nKey);
+      o.textContent = opt.textContent;
+      o.addEventListener("click", () => {
         if (selectEl.value !== opt.value) {
           selectEl.value = opt.value;
           selectEl.dispatchEvent(new Event("change", { bubbles: true }));
         }
-        setExpanded(false);
+        closeMenu();
       });
-      group.appendChild(btn);
+      menu.appendChild(o);
     }
-    // ▾ affordance: collapsed shows the active value + this toggle; tapping it
-    // (or the active chip) reveals all options. CSS rotates the glyph.
-    expandBtn = document.createElement("button");
-    expandBtn.type = "button";
-    expandBtn.className = "v3-chip-expand";
-    expandBtn.setAttribute("aria-label", selectEl.title || "Показать варианты");
-    expandBtn.setAttribute("aria-expanded", "false");
-    expandBtn.textContent = "▾";
-    expandBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      setExpanded(!group.classList.contains("expanded"));
-    });
-    group.appendChild(expandBtn);
+    syncValue();
   }
 
-  function syncChipsFromSelect() {
-    const v = String(selectEl.value || "");
-    group.querySelectorAll(".v3-chip-toggle").forEach((b) => {
-      const match = String(b.getAttribute("data-value")) === v;
-      b.setAttribute("aria-pressed", match ? "true" : "false");
-      b.setAttribute("aria-checked", match ? "true" : "false");
-    });
+  function onDocClick(e) { if (!group.contains(e.target)) closeMenu(); }
+  function onKey(e) { if (e.key === "Escape") closeMenu(); }
+  function openMenu() {
+    v3ChipCloseAllMenus(group);           // single-active: close any other open
+    group.classList.add("open");
+    valueBtn.setAttribute("aria-expanded", "true");
+    setTimeout(() => {
+      document.addEventListener("click", onDocClick);
+      document.addEventListener("keydown", onKey);
+    }, 0);
   }
+  function closeMenu() {
+    group.classList.remove("open");
+    valueBtn.setAttribute("aria-expanded", "false");
+    document.removeEventListener("click", onDocClick);
+    document.removeEventListener("keydown", onKey);
+  }
+  group._closeChipMenu = closeMenu;
 
-  // External code (resetFilters / restore / v3FillLevelSelect) may set
-  // selectEl.value and/or dispatch 'change'. Mirror that to chips.
-  selectEl.addEventListener("change", syncChipsFromSelect);
+  valueBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (group.classList.contains("open")) closeMenu(); else openMenu();
+  });
 
-  // Several call sites set .value programmatically WITHOUT dispatching
-  // 'change' (deeplink restore at ~L15912, library boot restore ~L21375,
-  // dashboard boot restore ~L27363). Wrap the .value property on this
-  // specific element with a setter that triggers a chip resync, while
-  // delegating storage to the native HTMLSelectElement prototype. Side-
-  // effect-free for existing change-listeners — we do NOT dispatch.
+  // Keep the value label synced when the select changes (UI or programmatic).
+  selectEl.addEventListener("change", syncValue);
+  // Several call sites set .value WITHOUT dispatching 'change' (deeplink /
+  // boot restores). Wrap the setter to mirror those to the value label.
   try {
     const protoDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, "value");
     if (protoDesc && protoDesc.set && protoDesc.get) {
       Object.defineProperty(selectEl, "value", {
         get() { return protoDesc.get.call(this); },
-        set(v) { protoDesc.set.call(this, v); syncChipsFromSelect(); },
+        set(v) { protoDesc.set.call(this, v); syncValue(); },
         configurable: true,
       });
     }
-  } catch (_) { /* fall through — chips stay sync-on-change only */ }
+  } catch (_) { /* fall through — label stays sync-on-change only */ }
 
-  // Rebuild chips when options change (e.g. levels filled dynamically,
-  // or i18n re-renders the select). Light filter to skip text-node noise.
-  const mo = new MutationObserver(() => buildChips());
+  // Rebuild when options/text change (level fill, i18n re-render).
+  const mo = new MutationObserver(() => buildMenu());
   mo.observe(selectEl, { childList: true, subtree: false, characterData: true });
 
+  group.appendChild(valueBtn);
+  group.appendChild(menu);
   selectEl.parentNode.insertBefore(group, selectEl);
   selectEl.style.display = "none";
   selectEl.dataset.chipified = "1";
 
-  buildChips();
-  return { selectEl, group, rebuild: buildChips };
+  buildMenu();
+  return { selectEl, group, rebuild: buildMenu };
 }
 
 function v3ChipifyAllFilters() {
