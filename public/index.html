@@ -22640,7 +22640,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
 				${t("library.source")}: ${sourceHtml}<br/>
-				${t("library.lastOpened")}: ${v3EscapeHtml(v3FmtDate(lastOpened))} · ${t("library.created")}: ${v3EscapeHtml(v3FmtDate(createdAt))}
+				${t("library.lastOpened")}: ${v3EscapeHtml(v3FmtDate(lastOpened))}<br/>${t("library.created")}: ${v3EscapeHtml(v3FmtDate(createdAt))}
            </div>
           <div style="margin-top:6px;">${tagsHtml}</div>
         </div>
