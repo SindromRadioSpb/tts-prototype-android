@@ -4491,7 +4491,15 @@ body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
   padding: 0 2px;
 }
 .v3-filter-chip-x:hover { color: var(--theme-text-primary); }
-.v3-filter-reset { white-space: nowrap; }
+.v3-filter-reset {
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 700;
+  min-height: 31px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
 #v3LibraryResetFilters { display: none; }
 #v3DashResetFilters { display: none; }
 
