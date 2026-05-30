@@ -4348,7 +4348,7 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
   border: 1px solid transparent;
   background: transparent;
   color: var(--theme-text-secondary);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 500;
@@ -4411,15 +4411,40 @@ body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
   border-radius: 0;
   overflow: visible;
 }
-.v3-chip-collapsible:not(.expanded) { flex-wrap: nowrap; }
 .v3-chip-collapsible:not(.expanded) .v3-chip-toggle:not([aria-pressed="true"]) { display: none; }
+/* Collapsed = ONE neutral dropdown button matching the top toolbar buttons:
+   no blue fill, rounded-rect 8px, 11px/700. The value fills it; ▾ sits right. */
+.v3-chip-collapsible:not(.expanded) {
+  flex-wrap: nowrap;
+  gap: 2px;
+  min-height: 36px;
+  padding: 0 6px 0 12px;
+  background: var(--theme-bg-hover);
+  border: 1px solid var(--theme-border-medium);
+  border-radius: 8px;
+  cursor: pointer;
+}
 .v3-chip-collapsible:not(.expanded) .v3-chip-toggle[aria-pressed="true"] {
   flex: 1 1 0;
   min-width: 0;
+  min-height: 0;
+  padding: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   justify-content: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--theme-text-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+.v3-chip-collapsible:not(.expanded) .v3-chip-expand {
+  min-height: 0;
+  width: 16px;
+  border: none;
+  background: transparent;
+  color: var(--theme-text-secondary);
 }
 .v3-chip-collapsible.expanded { grid-column: 1 / -1; }
 .v3-chip-expand {
