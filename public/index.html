@@ -40643,9 +40643,22 @@ document.addEventListener("i18n:changed", function () {
 
     window.__v3ApplyUpdate = function () {
       const w = window.__v3WaitingWorker;
-      if (w) w.postMessage({ type: "SKIP_WAITING" });
-      setTimeout(() => location.reload(), 600);
       dismissUpdateToast();
+      if (w) {
+        // Ask the waiting SW to activate. The 'controllerchange' listener below
+        // reloads as soon as it claims control, so we always reload INTO the new
+        // shell — never the old one. The long fallback only covers a dropped
+        // message; a short timer (was 600ms) reloaded before activation on iOS,
+        // landing back on the old shell, which made the toast reappear and
+        // "Обновить" seem to need many taps.
+        w.postMessage({ type: "SKIP_WAITING" });
+        setTimeout(() => {
+          if (!reloadingForUpdate) { reloadingForUpdate = true; location.reload(); }
+        }, 3500);
+      } else {
+        // Nothing tracked as waiting — just fetch the latest.
+        location.reload();
+      }
     };
 
     // Surface a premium update toast with two buttons (Обновить / Позже).
