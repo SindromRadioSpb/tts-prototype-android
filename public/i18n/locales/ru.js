@@ -349,6 +349,7 @@ window.I18N_LOCALES.ru = {
     importZip: "Импорт ZIP (с аудио)",
     refresh: "Обновить",
     close: "Закрыть",
+    more: "⋯ Ещё",
     searchPlaceholder: "Поиск (PRO): название / тема / ссылка / уровень / теги (#tag)",
     levelAll: "Все уровни",
     tagsAll: "Теги: ALL",

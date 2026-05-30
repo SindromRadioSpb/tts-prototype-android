@@ -4494,6 +4494,20 @@ a.v3-source-label:hover { color: var(--theme-accent-hover); }
 .v3-dash-poprow input { transform: translateY(0.5px); }
 .v3-dash-popdivider { height: 1px; background: rgba(0,0,0,0.08); margin: 8px 0; }
 .v3-dash-popbtn { width: 100%; text-align: left; }
+/* S1: library overflow menu items stay full-width inside .v3-modal (ID beats
+   the .v3-modal button.btn-secondary { width:auto } toolbar exception). */
+#v3LibMoreMenu .v3-dash-popbtn { width: 100%; margin: 2px 0; }
+/* Anchor to the button's right edge and cap width so the popover never spills
+   off-screen (the mobile .v3-dash-popover { left:0; width:100vw } rule assumes
+   a full-width anchor; the library's ⋯ button sits mid-toolbar). ID wins. */
+#v3LibMoreMenu {
+  right: 0;
+  left: auto;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 220px;
+  max-width: calc(100vw - 40px);
+}
 
 /* PRO View menu: hard guarantee that "hidden" hides dashboard sections/popover */
 .v3-dash-section.hidden,
@@ -10081,14 +10095,25 @@ body:not(.theme-light) .v3-heatmap-cell {
   <div class="v3-modal-title" data-i18n="library.title">Библиотека (v3)</div>
   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
     <button class="btn-primary" onclick="v3TextCardBuilderOpen()" data-i18n="library.bulkBuilder" title="Создать text-card pack из нескольких текстов сразу (Direction 10 Mode A)">📦 Новая text-card</button>
-    <button class="btn-secondary" onclick="v3FeedbackOpen('cardrequest')" data-i18n="library.cardRequest" data-i18n-title="library.cardRequestTitle" title="Заявка на text-card — Standard branch перенаправит в bulk-builder; Curated отправит запрос на ручную обработку">📥 Заявка на text-card</button>
-    <button class="btn-secondary" onclick="v3LibraryExport()" data-i18n="library.exportJson">Экспорт JSON</button>
-    <button class="btn-secondary" onclick="v3LibraryImport()" data-i18n="library.importJson">Импорт JSON</button>
-    <button class="btn-secondary" onclick="v3LibraryExportBundle()" data-i18n="library.exportZip">Экспорт ZIP (с аудио)</button>
-    <button class="btn-secondary" onclick="v3LibraryImportBundle()" data-i18n="library.importZip">Импорт ZIP (с аудио)</button>
-    <button id="v3LibraryImportFromCloudBtn" class="btn-secondary" onclick="v3LibraryImportFromCloud()" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
-    <button id="v3LibraryWipeAllBtn" class="btn-secondary" onclick="v3LibraryWipeAllConfirm()" style="display:none; color:#b91c1c; border-color:#fecaca; background:#fef2f2;" title="Удалить ВСЁ из локальной библиотеки. Полный сброс OPFS. Действие необратимо.">⚠ Сбросить локальную библиотеку</button>
     <button class="btn-secondary" onclick="v3LibraryRefresh()" data-i18n="library.refresh">Обновить</button>
+
+    <!-- S1: secondary import/export actions collapsed into an overflow menu so
+         the mobile toolbar isn't a 4-row wall of buttons before the text list. -->
+    <div class="v3-lib-more-wrap" style="position:relative;">
+      <button id="v3LibMoreBtn" class="btn-secondary v3-dash-view-btn" type="button" aria-haspopup="menu" aria-expanded="false" onclick="v3LibraryToggleMore(event)" data-i18n="library.more">⋯ Ещё</button>
+      <div id="v3LibMoreMenu" class="v3-dash-popover hidden" role="menu" data-i18n-aria-label="library.more" aria-label="Ещё">
+        <button class="btn-secondary v3-dash-popbtn" type="button" onclick="v3LibraryCloseMore(); v3FeedbackOpen('cardrequest');" data-i18n="library.cardRequest" data-i18n-title="library.cardRequestTitle" title="Заявка на text-card — Standard branch перенаправит в bulk-builder; Curated отправит запрос на ручную обработку">📥 Заявка на text-card</button>
+        <div class="v3-dash-popdivider"></div>
+        <button class="btn-secondary v3-dash-popbtn" type="button" onclick="v3LibraryCloseMore(); v3LibraryExportBundle();" data-i18n="library.exportZip">Экспорт ZIP (с аудио)</button>
+        <button class="btn-secondary v3-dash-popbtn" type="button" onclick="v3LibraryCloseMore(); v3LibraryImportBundle();" data-i18n="library.importZip">Импорт ZIP (с аудио)</button>
+        <button class="btn-secondary v3-dash-popbtn" type="button" onclick="v3LibraryCloseMore(); v3LibraryExport();" data-i18n="library.exportJson">Экспорт JSON</button>
+        <button class="btn-secondary v3-dash-popbtn" type="button" onclick="v3LibraryCloseMore(); v3LibraryImport();" data-i18n="library.importJson">Импорт JSON</button>
+        <button id="v3LibraryImportFromCloudBtn" class="btn-secondary v3-dash-popbtn" type="button" onclick="v3LibraryCloseMore(); v3LibraryImportFromCloud();" style="display:none;" title="Загрузить вашу библиотеку с Railway-сервера в OPFS — одноразовая операция при переходе на localMode">⬇ Импорт из облака</button>
+        <div class="v3-dash-popdivider"></div>
+        <button id="v3LibraryWipeAllBtn" class="btn-secondary v3-dash-popbtn" type="button" onclick="v3LibraryCloseMore(); v3LibraryWipeAllConfirm();" style="display:none; color:#b91c1c;" title="Удалить ВСЁ из локальной библиотеки. Полный сброс OPFS. Действие необратимо.">⚠ Сбросить локальную библиотеку</button>
+      </div>
+    </div>
+
     <button class="btn-secondary" onclick="v3LibraryClose()" data-i18n="library.close">Закрыть</button>
 
     <input
@@ -21714,12 +21739,51 @@ try { v3SyncTagMatchModeUi(); } catch (_) {}
 
 function v3LibraryClose() {
   try { if (window.v3FlushProgressNow) window.v3FlushProgressNow(); } catch (_) {}
+  try { v3LibraryCloseMore(); } catch (_) {}
 
   const modal = v3LibEl("v3LibraryModal");
   if (!modal) return;
   modal.classList.add("hidden");
   try { orientationFabUpdate(); } catch (_) {}
 }
+
+// S1: Library toolbar overflow ("⋯ Ещё") menu. Reuses the .v3-dash-popover
+// look + outside-click/Escape dismissal pattern from the dashboard view menu.
+function v3LibraryToggleMore(ev) {
+  if (ev) { try { ev.preventDefault(); ev.stopPropagation(); } catch (_) {} }
+  const menu = document.getElementById("v3LibMoreMenu");
+  const btn = document.getElementById("v3LibMoreBtn");
+  if (!menu || !btn) return;
+  if (menu.classList.contains("hidden")) {
+    menu.classList.remove("hidden");
+    btn.setAttribute("aria-expanded", "true");
+    // Escape can bind immediately; defer only the outside-click listener so the
+    // very click that opened the menu doesn't instantly close it.
+    document.addEventListener("keydown", v3LibraryMoreEsc);
+    setTimeout(function () {
+      document.addEventListener("click", v3LibraryMoreOutside);
+    }, 0);
+  } else {
+    v3LibraryCloseMore();
+  }
+}
+function v3LibraryCloseMore() {
+  const menu = document.getElementById("v3LibMoreMenu");
+  const btn = document.getElementById("v3LibMoreBtn");
+  if (menu) menu.classList.add("hidden");
+  if (btn) btn.setAttribute("aria-expanded", "false");
+  document.removeEventListener("click", v3LibraryMoreOutside);
+  document.removeEventListener("keydown", v3LibraryMoreEsc);
+}
+function v3LibraryMoreOutside(ev) {
+  const wrap = document.querySelector(".v3-lib-more-wrap");
+  if (wrap && !wrap.contains(ev.target)) v3LibraryCloseMore();
+}
+function v3LibraryMoreEsc(ev) {
+  if (ev.key === "Escape") v3LibraryCloseMore();
+}
+window.v3LibraryToggleMore = v3LibraryToggleMore;
+window.v3LibraryCloseMore = v3LibraryCloseMore;
 
 // P1.UX.2: shared skeleton placeholder for list-shaped loading gaps
 // (Library, Dashboard). Mirrors v3TableSkeletonHtml but renders card-shaped

@@ -352,6 +352,7 @@ window.I18N_LOCALES.he = {
     importZip: "ייבוא ZIP (עם שמע)",
     refresh: "רענן",
     close: "סגור",
+    more: "⋯ עוד",
     searchPlaceholder: "חיפוש (PRO): כותרת / נושא / קישור / רמה / תגיות (#tag)",
     levelAll: "כל הרמות",
     tagsAll: "תגיות: הכול",

@@ -348,6 +348,7 @@ window.I18N_LOCALES.en = {
     importZip: "Import ZIP (with audio)",
     refresh: "Refresh",
     close: "Close",
+    more: "⋯ More",
     searchPlaceholder: "Search (PRO): title / topic / link / level / tags (#tag)",
     levelAll: "All levels",
     tagsAll: "Tags: ALL",
