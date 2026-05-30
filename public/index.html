@@ -4524,6 +4524,11 @@ body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
   color: var(--theme-accent);  /* theme-aware link colour */
 }
 a.v3-source-label:hover { color: var(--theme-accent-hover); }
+/* Keep "Источник:" and the (truncating) link on one line — the URL only needs
+   to be clickable, so it shrinks with ellipsis to fill the remaining width. */
+.v3-card-src-line { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.v3-card-src-line .v3-source { flex: 1 1 auto; min-width: 0; }
+.v3-card-src-line .v3-source-label { flex: 1 1 auto; min-width: 0; max-width: 100%; }
 .v3-src-copy {
   flex: 0 0 auto;
   background: transparent;
@@ -22639,7 +22644,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
           <div class="v3-lib-card-meta">
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
-				${t("library.source")}: ${sourceHtml}<br/>
+				<span class="v3-card-src-line">${t("library.source")}: ${sourceHtml}</span>
 				${t("library.lastOpened")}: ${v3EscapeHtml(v3FmtDate(lastOpened))}<br/>${t("library.created")}: ${v3EscapeHtml(v3FmtDate(createdAt))}
            </div>
           <div style="margin-top:6px;">${tagsHtml}</div>

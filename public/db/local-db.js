@@ -343,17 +343,24 @@ export function isReady() {
 
 export async function listTexts({ query = '', limit = 500, archived = false } = {}) {
   const arch = archived ? 1 : 0;
+  // LEFT JOIN text_progress so each text carries its last_row_idx (used by the
+  // Library card "Прогресс: строка №"). text_progress.text_id is unique
+  // (ON CONFLICT(text_id) upsert), so the join can't duplicate rows.
   if (query && query.trim()) {
     const like = `%${query.trim()}%`;
     return q(
-      `SELECT * FROM texts WHERE is_archived = ? AND (title LIKE ? OR source_text LIKE ? OR source LIKE ? OR topic LIKE ?)
-       ORDER BY is_pinned DESC, pin_order ASC, last_opened_at DESC NULLS LAST, updated_at DESC LIMIT ?`,
+      `SELECT texts.*, tp.last_row_idx AS last_row_idx
+       FROM texts LEFT JOIN text_progress tp ON tp.text_id = texts.id
+       WHERE texts.is_archived = ? AND (texts.title LIKE ? OR texts.source_text LIKE ? OR texts.source LIKE ? OR texts.topic LIKE ?)
+       ORDER BY texts.is_pinned DESC, texts.pin_order ASC, texts.last_opened_at DESC NULLS LAST, texts.updated_at DESC LIMIT ?`,
       [arch, like, like, like, like, limit]
     );
   }
   return q(
-    `SELECT * FROM texts WHERE is_archived = ?
-     ORDER BY is_pinned DESC, pin_order ASC, last_opened_at DESC NULLS LAST, updated_at DESC LIMIT ?`,
+    `SELECT texts.*, tp.last_row_idx AS last_row_idx
+     FROM texts LEFT JOIN text_progress tp ON tp.text_id = texts.id
+     WHERE texts.is_archived = ?
+     ORDER BY texts.is_pinned DESC, texts.pin_order ASC, texts.last_opened_at DESC NULLS LAST, texts.updated_at DESC LIMIT ?`,
     [arch, limit]
   );
 }
