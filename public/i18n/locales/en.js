@@ -492,6 +492,8 @@ window.I18N_LOCALES.en = {
   textMeta: {
     title: "Text Metadata",
     close: "Close",
+    cancel: "Cancel",
+    save: "Save",
     labelTopic: "Topic",
     tagsHint: "Enter tags separated by commas. Empty field = clear value.",
     smartTagLabel: "Smart filter (override)",

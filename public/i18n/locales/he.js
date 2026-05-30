@@ -496,6 +496,8 @@ window.I18N_LOCALES.he = {
   textMeta: {
     title: "מטא-נתוני טקסט",
     close: "סגור",
+    cancel: "ביטול",
+    save: "שמור",
     labelTopic: "נושא",
     tagsHint: "הזן תגיות מופרדות בפסיקים. שדה ריק = ניקוי הערך.",
     smartTagLabel: "Smart-מסנן (עקיפה)",

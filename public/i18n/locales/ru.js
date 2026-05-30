@@ -493,6 +493,8 @@ window.I18N_LOCALES.ru = {
   textMeta: {
     title: "Метаданные текста",
     close: "Закрыть",
+    cancel: "Отмена",
+    save: "Сохранить",
     labelTopic: "Тема",
     tagsHint: "Tags вводите через запятую. Пустое поле = очистка значения.",
     smartTagLabel: "Smart-фильтр (переопределить)",
