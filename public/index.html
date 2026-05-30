@@ -4062,11 +4062,15 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
     gap: 6px;
     width: 100%;
   }
-  .v3-lib-card-actions [data-act="resume"],
-  .v3-lib-card-actions [data-act="open"] { grid-column: span 3; }
-  .v3-lib-card-actions [data-act="edit"],
-  .v3-lib-card-actions [data-act="share"],
-  .v3-lib-card-actions [data-act="archive"] { grid-column: span 2; }
+  /* 3+3 layout: row 1 = resume / open / delete, row 2 = edit / share / archive.
+     Every button spans 2 of the 6 columns; CSS order slots delete into row 1. */
+  .v3-lib-card-actions [data-act] { grid-column: span 2; }
+  .v3-lib-card-actions [data-act="resume"]  { order: 1; }
+  .v3-lib-card-actions [data-act="open"]    { order: 2; }
+  .v3-lib-card-actions [data-act="delete"]  { order: 3; }
+  .v3-lib-card-actions [data-act="edit"]    { order: 4; }
+  .v3-lib-card-actions [data-act="share"]   { order: 5; }
+  .v3-lib-card-actions [data-act="archive"] { order: 6; }
   .v3-lib-card-actions button {
     font-size: 12px;
     font-weight: 700;
@@ -4079,7 +4083,6 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
     text-overflow: ellipsis;
   }
   .v3-lib-card-actions .v3-lib-danger {
-    grid-column: 1 / -1;
     background: transparent !important;
     border-color: #fca5a5 !important;
     color: #dc2626 !important;
