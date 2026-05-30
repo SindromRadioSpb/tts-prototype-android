@@ -4343,19 +4343,21 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
 .v3-chip-toggle-group::-webkit-scrollbar-thumb { background: var(--theme-border-medium); border-radius: 2px; }
 .v3-chip-toggle {
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
   border: 1px solid transparent;
   background: transparent;
   color: var(--theme-text-secondary);
   border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.2;
   white-space: nowrap;
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
   font-family: inherit;
-  min-height: 28px;
+  min-height: 38px;
 }
 .v3-chip-toggle:hover {
   background: var(--theme-bg-hover);
@@ -4373,7 +4375,25 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
 body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
 @media (max-width: 600px) {
   .v3-chip-toggle-group { gap: 2px; padding: 3px 4px; }
-  .v3-chip-toggle { padding: 6px 10px; font-size: 12.5px; min-height: 34px; }
+  .v3-chip-toggle { padding: 6px 12px; font-size: 13px; min-height: 38px; }
+}
+
+/* User request: unify the library filter band — the filter chip-toggles and
+   the "Сохранить текущую таблицу" button read as one control family.
+   (1) Buttons/selects/inputs default to the UA font (Arial); inherit the app's
+   "Segoe UI" stack across the whole Library modal so nothing reads as Arial.
+   (2) Match the Save button's height + size/weight to the 38px filter chips. */
+#v3LibraryModal button,
+#v3LibraryModal select,
+#v3LibraryModal input,
+#v3LibraryModal textarea {
+  font-family: inherit;
+}
+.v3-lib-toolbar .btn-success {
+  font-size: 13px;
+  font-weight: 500;
+  min-height: 38px;
+  padding: 8px 16px;
 }
 .v3-filter-chip-x {
   border: 0;
