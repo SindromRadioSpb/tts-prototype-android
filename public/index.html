@@ -4067,6 +4067,9 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .v3-lib-card-actions [data-act="archive"] { grid-column: span 2; }
   .v3-lib-card-actions button {
     font-size: 12px;
+    font-weight: 700;
+    min-height: 36px;
+    border-radius: 8px;
     padding: 8px 6px;
     white-space: nowrap;
     overflow: hidden;
@@ -4077,8 +4080,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
     background: transparent !important;
     border-color: #fca5a5 !important;
     color: #dc2626 !important;
-    font-size: 11px;
-    padding: 6px 4px;
+    font-size: 12px;
+    padding: 8px 6px;
   }
 }
 
@@ -4101,6 +4104,9 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   gap: 8px;
   margin-top: 10px;
 }
+/* Typify card action buttons: uniform rounded-rect + bold weight across the
+   semantic colours (resume/open/edit/share/archive/delete keep their hues). */
+.v3-lib-card-actions button { border-radius: 8px; font-weight: 700; }
 
 .v3-lib-chip {
   display: inline-block;
