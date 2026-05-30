@@ -7549,6 +7549,47 @@ body.v3-ide-mode .v3-ide-center-content #proTable {
   flex-direction: column;
   gap: 8px;
 }
+/* SRS Trainer setup — even 2-col grid of uniform choice buttons (direction /
+   mode), typified to the app standard (11px / 700 / 31px / 8px). Active = accent. */
+.v3-srs-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+.v3-srs-choice-btn {
+  min-height: 31px;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  border: 1px solid var(--theme-border-medium);
+  background: var(--theme-bg-hover);
+  color: var(--theme-text-primary);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.v3-srs-choice-btn:hover { border-color: var(--theme-accent); }
+.v3-srs-choice-btn.active {
+  background: var(--theme-accent);
+  border-color: var(--theme-accent);
+  color: #fff;
+}
+body.theme-dark .v3-srs-choice-btn.active,
+body:not(.theme-light) .v3-srs-choice-btn.active { color: #0f172a; }
+/* Typify the header Обновить / Закрыть buttons to match. */
+#v3SrsTrainerModal .v3-modal-header .btn-secondary {
+  font-size: 11px;
+  font-weight: 700;
+  min-height: 31px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  padding: 6px 12px;
+}
 .v3-srs-he {
   font-size: 24px;
   line-height: 1.6;
@@ -26912,10 +26953,28 @@ function v3SrsTrainerEl(id) {
 
 function v3SrsTrainerModeLabel(mode) {
   const normalized = String(mode || "reveal").trim().toLowerCase();
-  if (normalized === "typing") return "Typing";
-  if (normalized === "listening") return "Listening";
-  if (normalized === "cloze") return "Cloze";
-  return "Reveal";
+  const fb = normalized === "typing" ? "Typing"
+    : normalized === "listening" ? "Listening"
+    : normalized === "cloze" ? "Cloze" : "Reveal";
+  return v3NotesT("srs.mode." + normalized, fb);
+}
+
+// Map a template code to its i18n key so the English server labels
+// ("Note: Word", "Hebrew -> Russian", …) localize to ru/en/he.
+function v3SrsDirI18nKey(code) {
+  return ({
+    ru_to_he: "srs.dir.ru_to_he",
+    he_to_ru: "srs.dir.he_to_ru",
+    note_word_study: "srs.dir.note_word",
+    note_grammar_rule: "srs.dir.note_grammar",
+    note_translation_discrepancy: "srs.dir.note_translation",
+    note_pronunciation_note: "srs.dir.note_pronunciation",
+  })[String(code || "")] || null;
+}
+function v3SrsLocalizeDirLabel(code, fallbackLabel) {
+  const key = v3SrsDirI18nKey(code);
+  const fb = fallbackLabel || String(code || "");
+  return key ? v3NotesT(key, fb) : fb;
 }
 
 function v3SrsTrainerTemplateLabel(templateCode) {
@@ -26923,10 +26982,11 @@ function v3SrsTrainerTemplateLabel(templateCode) {
   const item = Array.isArray(v3SrsTemplateOptions)
     ? v3SrsTemplateOptions.find((row) => row && String(row.code || "") === code)
     : null;
-  if (item && item.label) return String(item.label);
-  if (code === "ru_to_he") return "Russian -> Hebrew";
-  if (code === "he_to_ru") return "Hebrew -> Russian";
-  return code || "Unknown template";
+  const fb = (item && item.label) ? String(item.label)
+    : code === "ru_to_he" ? "Russian -> Hebrew"
+    : code === "he_to_ru" ? "Hebrew -> Russian"
+    : (code || "Unknown template");
+  return v3SrsLocalizeDirLabel(code, fb);
 }
 
 function v3SrsTrainerRenderTemplateButtons() {
@@ -26937,12 +26997,12 @@ function v3SrsTrainerRenderTemplateButtons() {
         { code: "ru_to_he", label: "Russian -> Hebrew" },
       ];
   return `
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+    <div class="v3-srs-choice-grid">
       ${rows.map((item) => `
-        <button
-          class="${v3SrsTrainerState.templateCode === item.code ? "btn-primary" : "btn-secondary"}"
+        <button type="button"
+          class="v3-srs-choice-btn${v3SrsTrainerState.templateCode === item.code ? " active" : ""}"
           onclick="v3SrsTrainerSetTemplate('${String(item.code)}')"
-        >${v3EscapeHtml(String(item.label || item.code))}</button>
+        >${v3EscapeHtml(v3SrsLocalizeDirLabel(item.code, String(item.label || item.code)))}</button>
       `).join("")}
     </div>
   `;
@@ -26956,12 +27016,12 @@ function v3SrsTrainerRenderModeButtons() {
     ["cloze", "Cloze"],
   ];
   return `
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+    <div class="v3-srs-choice-grid">
       ${modes.map(([mode, label]) => `
-        <button
-          class="${v3SrsTrainerState.mode === mode ? "btn-primary" : "btn-secondary"}"
+        <button type="button"
+          class="v3-srs-choice-btn${v3SrsTrainerState.mode === mode ? " active" : ""}"
           onclick="v3SrsTrainerSetMode('${mode}')"
-        >${label}</button>
+        >${v3EscapeHtml(v3NotesT("srs.mode." + mode, label))}</button>
       `).join("")}
     </div>
   `;

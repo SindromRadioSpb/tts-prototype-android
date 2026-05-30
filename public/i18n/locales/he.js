@@ -894,6 +894,20 @@ window.I18N_LOCALES.he = {
     close: "סגור",
     refresh: "רענן",
     loading: "טוען אימון SRS…",
+    dir: {
+      ru_to_he: "רוסית → עברית",
+      he_to_ru: "עברית → רוסית",
+      note_word: "הערה: מילה",
+      note_grammar: "הערה: דקדוק",
+      note_translation: "הערה: תרגום",
+      note_pronunciation: "הערה: הגייה",
+    },
+    mode: {
+      reveal: "חשיפה",
+      typing: "הקלדה",
+      listening: "האזנה",
+      cloze: "השלמה",
+    },
     placeholderAnswer: "הקלד את תשובתך",
     templateLabel: "עברית ← רוסית",
     // R5 — Anki CTA banner (see docs/SRS_STRATEGY_v3_2.md).

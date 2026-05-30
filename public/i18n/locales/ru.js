@@ -899,6 +899,20 @@ window.I18N_LOCALES.ru = {
     close: "Закрыть",
     refresh: "Обновить",
     loading: "SRS Тренажёр загружается…",
+    dir: {
+      ru_to_he: "Русский → Иврит",
+      he_to_ru: "Иврит → Русский",
+      note_word: "Заметка: Слово",
+      note_grammar: "Заметка: Грамматика",
+      note_translation: "Заметка: Перевод",
+      note_pronunciation: "Заметка: Произношение",
+    },
+    mode: {
+      reveal: "Показать",
+      typing: "Ввод",
+      listening: "Аудирование",
+      cloze: "Пропуски",
+    },
     placeholderAnswer: "Введите ответ",
     templateLabel: "Иврит → Русский",
     // R5 — Anki CTA banner (see docs/SRS_STRATEGY_v3_2.md). In-app

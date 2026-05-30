@@ -886,6 +886,20 @@ window.I18N_LOCALES.en = {
     close: "Close",
     refresh: "Refresh",
     loading: "SRS Trainer is loading…",
+    dir: {
+      ru_to_he: "Russian → Hebrew",
+      he_to_ru: "Hebrew → Russian",
+      note_word: "Note: Word",
+      note_grammar: "Note: Grammar",
+      note_translation: "Note: Translation",
+      note_pronunciation: "Note: Pronunciation",
+    },
+    mode: {
+      reveal: "Reveal",
+      typing: "Typing",
+      listening: "Listening",
+      cloze: "Cloze",
+    },
     placeholderAnswer: "Type your answer",
     templateLabel: "Hebrew → Russian",
     // R5 — Anki CTA banner (see docs/SRS_STRATEGY_v3_2.md). In-app
