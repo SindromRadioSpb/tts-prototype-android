@@ -4232,9 +4232,11 @@ body:not(.theme-light) .v3-meta-smart-tag-btn.active { color: #0f172a; }
    Mastered/New since last visit. Active state uses the accent color
    for clear visual feedback. Hover shows it's clickable. */
 .v3-smart-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  /* Compact 4×2 keypad grid (was a flex-wrap of large pills). Desktop auto-
+     fills more columns; mobile forces exactly 4 (see @media below). */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 6px;
   margin: 12px 0 8px;
   padding: 8px 10px;
   background: var(--theme-bg-muted);
@@ -4242,17 +4244,20 @@ body:not(.theme-light) .v3-meta-smart-tag-btn.active { color: #0f172a; }
   border-radius: 12px;
 }
 .v3-smart-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 4px;
   border: 1px solid var(--theme-border-soft);
   background: var(--theme-bg-card);
   color: var(--theme-text-primary);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 13px;
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 12px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 1.15;
+  text-align: center;
+  min-width: 0;
   cursor: pointer;
   transition: all 0.15s;
   font-family: inherit;
@@ -4270,6 +4275,9 @@ body.theme-dark .v3-smart-chip.active,
 body:not(.theme-light) .v3-smart-chip.active { color: #0f172a; }
 .v3-smart-chip-clear {
   display: none;
+  /* spans its own grid row, right-aligned, so the 4×2 keypad stays even */
+  grid-column: 1 / -1;
+  justify-self: end;
   border: 1px solid var(--theme-border-soft);
   background: transparent;
   color: var(--theme-text-muted);
@@ -4305,8 +4313,10 @@ body:not(.theme-light) .v3-smart-chip-badge { color: #0f172a; }
   background: var(--theme-border-medium);
 }
 @media (max-width: 600px) {
-  .v3-smart-chip { padding: 8px 12px; font-size: 13.5px; flex: 1 1 calc(50% - 4px); justify-content: center; }
-  .v3-smart-chip-clear { flex: 0 0 32px; }
+  /* Compact 4×2 keypad on mobile (was 2 large pills per row). */
+  .v3-smart-chips { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding: 7px 8px; }
+  .v3-smart-chip { padding: 6px 4px; font-size: 11px; gap: 3px; }
+  .v3-smart-chip-clear { width: 26px; height: 26px; }
 }
 
 /* P+2 (v3.7): Filter chip-toggles — visual replacement for inline <select>
