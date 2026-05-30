@@ -2319,6 +2319,8 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         }
         #v3LibraryModal .v3-modal-header > div:not(.v3-modal-title) > button {
             width: 100% !important;
+            min-height: 34px;
+            box-sizing: border-box;   /* include border so bordered & borderless buttons match */
             font-size: 11px;
             padding: 8px 4px;
             white-space: nowrap;
@@ -4068,7 +4070,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .v3-lib-card-actions button {
     font-size: 12px;
     font-weight: 700;
-    min-height: 36px;
+    min-height: 34px;
+    box-sizing: border-box;   /* match the header buttons exactly (border incl.) */
     border-radius: 8px;
     padding: 8px 6px;
     white-space: nowrap;
