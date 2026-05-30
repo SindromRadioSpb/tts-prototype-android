@@ -2327,7 +2327,7 @@ body:not(.theme-light) .v3-pill-draft { background: rgba(255,255,255,.10); }
         }
         #v3LibraryWipeAllBtn { grid-column: 1 / -1 !important; order: 20; }
         /* Library filter toolbar: grid 2-колонки */
-        .v3-lib-toolbar { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px !important; }
+        .v3-lib-toolbar { display: grid !important; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px !important; }
         .v3-lib-toolbar input[type="text"] { grid-column: 1 / -1; }
         .v3-lib-toolbar select { font-size: 12px; }
         .v3-lib-toolbar .btn-success { grid-column: 1 / -1; white-space: nowrap; }
@@ -4395,6 +4395,52 @@ body:not(.theme-light) .v3-chip-toggle[aria-pressed="true"] { color: #0f172a; }
   min-height: 38px;
   padding: 8px 16px;
 }
+
+/* Collapsible filter (variant B): collapsed = the active value as one pill that
+   fills the cell + a ▾ toggle; expanded = all options as wrapping chips that
+   span the full toolbar width. Replaces the ragged horizontal-scroll strip so
+   the 4 filters read as even, uniform controls. */
+.v3-chip-collapsible {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;            /* let the grid cell shrink to an even 1fr column */
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+.v3-chip-collapsible:not(.expanded) { flex-wrap: nowrap; }
+.v3-chip-collapsible:not(.expanded) .v3-chip-toggle:not([aria-pressed="true"]) { display: none; }
+.v3-chip-collapsible:not(.expanded) .v3-chip-toggle[aria-pressed="true"] {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  justify-content: flex-start;
+}
+.v3-chip-collapsible.expanded { grid-column: 1 / -1; }
+.v3-chip-expand {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  width: 32px;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-secondary);
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 0.15s, background 0.15s;
+}
+.v3-chip-expand:hover { background: var(--theme-bg-hover); }
+.v3-chip-collapsible.expanded .v3-chip-expand { transform: rotate(180deg); margin-left: 4px; }
 .v3-filter-chip-x {
   border: 0;
   background: transparent;
@@ -28525,13 +28571,18 @@ function v3ChipifySelect(selectEl) {
   if (!selectEl || selectEl.dataset.chipified === "1") return null;
 
   const group = document.createElement("div");
-  group.className = "v3-chip-toggle-group";
+  group.className = "v3-chip-toggle-group v3-chip-collapsible";
   group.setAttribute("role", "radiogroup");
   if (selectEl.title) group.setAttribute("aria-label", selectEl.title);
 
   function buildChips() {
     group.innerHTML = "";
     const currentVal = String(selectEl.value || "");
+    let expandBtn = null;
+    function setExpanded(on) {
+      group.classList.toggle("expanded", on);
+      if (expandBtn) expandBtn.setAttribute("aria-expanded", on ? "true" : "false");
+    }
     for (const opt of selectEl.options) {
       const btn = document.createElement("button");
       btn.type = "button";
@@ -28546,12 +28597,30 @@ function v3ChipifySelect(selectEl) {
       if (i18nKey) btn.setAttribute("data-i18n", i18nKey);
       btn.textContent = opt.textContent;
       btn.addEventListener("click", () => {
-        if (selectEl.value === opt.value) return;
-        selectEl.value = opt.value;
-        selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        // Collapsed: only the active chip is visible — any tap opens the list.
+        if (!group.classList.contains("expanded")) { setExpanded(true); return; }
+        // Expanded: pick this option, then collapse back to the single pill.
+        if (selectEl.value !== opt.value) {
+          selectEl.value = opt.value;
+          selectEl.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        setExpanded(false);
       });
       group.appendChild(btn);
     }
+    // ▾ affordance: collapsed shows the active value + this toggle; tapping it
+    // (or the active chip) reveals all options. CSS rotates the glyph.
+    expandBtn = document.createElement("button");
+    expandBtn.type = "button";
+    expandBtn.className = "v3-chip-expand";
+    expandBtn.setAttribute("aria-label", selectEl.title || "Показать варианты");
+    expandBtn.setAttribute("aria-expanded", "false");
+    expandBtn.textContent = "▾";
+    expandBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setExpanded(!group.classList.contains("expanded"));
+    });
+    group.appendChild(expandBtn);
   }
 
   function syncChipsFromSelect() {
