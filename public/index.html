@@ -40512,7 +40512,9 @@ document.addEventListener("i18n:changed", function () {
       const el = document.createElement("div");
       el.id = "v3PwaUpdateToast";
       el.style.cssText =
-        "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);" +
+        // Lift well clear of the iOS Safari bottom toolbar + home indicator so
+        // the toast isn't hidden behind browser chrome (env() = safe-area).
+        "position:fixed;bottom:calc(env(safe-area-inset-bottom, 0px) + 64px);left:50%;transform:translateX(-50%);" +
         "background:#1f2937;color:#fff;border-radius:8px;padding:10px 12px 10px 16px;" +
         "font-size:14px;font-family:system-ui,-apple-system,sans-serif;" +
         "box-shadow:0 6px 20px rgba(0,0,0,0.25);z-index:99998;display:flex;" +
@@ -40570,7 +40572,19 @@ document.addEventListener("i18n:changed", function () {
     window.addEventListener("load", () => {
       navigator.serviceWorker
         .register("/sw.js", { scope: "/" })
-        .then(watchForUpdate)
+        .then((reg) => {
+          watchForUpdate(reg);
+          // Actively poll for a new SW: now, whenever the user returns to the
+          // tab, and every 30 min. Without this the browser only checks on its
+          // own (throttled) schedule, so a fresh deploy could sit unseen for a
+          // long time — the user would keep getting the stale precached shell.
+          const checkUpdate = () => { try { reg.update(); } catch (_) {} };
+          checkUpdate();
+          setInterval(checkUpdate, 30 * 60 * 1000);
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") checkUpdate();
+          });
+        })
         .catch((err) => console.warn("[sw] registration failed:", err));
     });
   })();
