@@ -667,6 +667,20 @@ window.I18N_LOCALES.he = {
         known: "נלמד",
       },
     },
+    // Phase B — Dicta in-context verification (opt-in, consent-gated).
+    morphOnline: {
+      verifyBtn: "🌐 אימות שורש (Dicta)",
+      verifyTitle: "זיהוי השורש לפי הקשר באמצעות מנתח הענן של Dicta",
+      consentTitle: "אימות שורש דרך Dicta (מקוון)",
+      consentBody: "כדי לזהות את השורש לפי ההקשר, המשפט המכיל מילה זו יישלח למנתח המורפולוגי של Dicta בענן (dicta.org.il). זה מסיר רב-משמעות (למשל שאין = ש + אין, ולא השורש נשא). הטקסט אינו נשמר בשרתים שלנו. להפעיל אימות מקוון?",
+      consentOk: "מסכים — לאמת",
+      consentCancel: "ביטול",
+      checking: "בודק עם Dicta…",
+      notFound: "Dicta לא החזירה ניתוח למילה זו.",
+      noSentence: "אין משפט מקור להקשר.",
+      noWord: "הקלידו תחילה מילה.",
+      error: "האימות נכשל (רשת/שירות). נסו שוב מאוחר יותר.",
+    },
     help: {
       openTitle: "איך עובדות הערות פרימיום",
       openAria: "עזרה להערות",

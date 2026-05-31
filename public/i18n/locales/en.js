@@ -660,6 +660,20 @@ window.I18N_LOCALES.en = {
         known: "known",
       },
     },
+    // Phase B — Dicta in-context verification (opt-in, consent-gated).
+    morphOnline: {
+      verifyBtn: "🌐 Verify root (Dicta)",
+      verifyTitle: "Resolve the root in context via the Dicta cloud analyzer",
+      consentTitle: "Verify root via Dicta (online)",
+      consentBody: "To resolve the root IN CONTEXT, the sentence containing this word will be sent to the Dicta cloud morphological analyzer (dicta.org.il). This removes homography (e.g. שאין = ש + אין “there is no”, not the root נשא). The text is not stored on our servers. Enable online verification?",
+      consentOk: "Agree — verify",
+      consentCancel: "Cancel",
+      checking: "Checking with Dicta…",
+      notFound: "Dicta returned no analysis for this word.",
+      noSentence: "No source sentence available for context.",
+      noWord: "Enter a word first.",
+      error: "Verification failed (network/service). Try again later.",
+    },
     help: {
       openTitle: "How premium notes work",
       openAria: "Notes help",

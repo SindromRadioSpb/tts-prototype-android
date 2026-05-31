@@ -5656,6 +5656,21 @@ body:not(.theme-light) .v3-notes-template-banner {
 @media (prefers-reduced-motion: reduce) {
   .v3-notes-tpl-morphhint .v3-mh-spin { animation: none; }
 }
+.v3-notes-tpl-dicta-btn {
+  margin-top: 6px;
+  height: 31px;
+  padding: 0 12px;
+  font: 700 11px "Segoe UI", system-ui, sans-serif;
+  border: 1px solid var(--theme-border-medium, #cbd5e1);
+  border-radius: 8px;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-accent, #2563eb);
+  cursor: pointer;
+  width: auto;
+  transition: background 0.15s, border-color 0.15s;
+}
+.v3-notes-tpl-dicta-btn:hover { background: var(--theme-bg-hover, #f1f5f9); border-color: var(--theme-accent); }
+.v3-notes-tpl-dicta-btn:disabled { opacity: 0.55; cursor: default; }
 
 /* Phase 9.4.D — Morphology status modal body */
 .v3-morph-status-body { font-size: 13px; line-height: 1.55; }
@@ -11378,6 +11393,14 @@ body:not(.theme-light) .v3-heatmap-cell {
                  not-found-with-lemma / not-found. Keeps the user informed instead
                  of a silently-empty field. -->
             <div id="v3NotesTplWordStudyRootHint" class="v3-notes-tpl-morphhint" role="status" aria-live="polite" style="display:none;"></div>
+            <!-- Phase B — user-initiated, consent-gated Dicta verification. The
+                 ONLY path that sends text off-device; resolves the root by
+                 sentence context (fixes שאין → ש+אין, not נשא). -->
+            <button type="button" id="v3NotesTplWordStudyDictaBtn" class="v3-notes-tpl-dicta-btn"
+                    onclick="v3NotesTplDictaVerify()"
+                    data-i18n="notes.morphOnline.verifyBtn"
+                    data-i18n-title="notes.morphOnline.verifyTitle"
+                    title="Определить корень по контексту через облачный анализатор Dicta">🌐 Уточнить корень (Dicta)</button>
           </div>
           <div class="v3-notes-tpl-row">
             <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.word_study.meaning">Перевод</label>
@@ -14644,6 +14667,10 @@ let v3NotesModalNoteType = "free";
 let v3NotesModalEntryKind = "row";
 // Phase 9.3.5 R1 — word-target intent passes a lemma string for pre-fill.
 let v3NotesModalWordLemma = "";
+// Sentence text of the row this note is being created from — captured at open
+// (the token picker already has it) so Dicta in-context verification has the
+// context without a re-query. Settable via v3NotesOpen opts.sentence.
+let v3NotesModalSentenceText = "";
 let v3NotesAutoSaveTimer = null;
 let v3NotesHistoryOpen = false;
 // Phase 9.2 — audio anchor state. Mirrors notes_v2.audio_anchor_ms for the
@@ -38868,6 +38895,9 @@ async function v3NotesTokenPickerOpen(intent, ctx) {
       if (rows && rows[0]) sentenceText = String(rows[0].he_niqqud || rows[0].he_plain || "");
     }
   } catch (e) { console.warn("token-picker sentence lookup failed", e); }
+  // Carry the row's sentence through to the note open so Dicta in-context
+  // verification has the surrounding text without a re-query.
+  if (v3NotesTokenPickerCtx) v3NotesTokenPickerCtx.sentenceText = sentenceText;
 
   // Pre-Phase-9.4: space-split heuristic. Strip punctuation, keep only
   // tokens of length ≥ 1.
@@ -38922,6 +38952,7 @@ function v3NotesTokenPickerPick(offset, lemma) {
     targetId,
     intentKey: "row.word",
     wordLemma: String(lemma || ""),
+    sentence: String(slot.sentenceText || ""),
   });
 }
 window.v3NotesTokenPickerPick = v3NotesTokenPickerPick;
@@ -39507,6 +39538,198 @@ async function v3MorphAnalyzeWithPrefix(word) {
 }
 window.v3MorphAnalyzeWithPrefix = v3MorphAnalyzeWithPrefix;
 
+// ── Phase B — Dicta in-context morphology (opt-in, consent-gated) ─────────
+// The local dict is context-free and cannot disambiguate homography (שאין →
+// wrong נשא). Dicta analyses the WHOLE SENTENCE and returns the contextually
+// correct lemma + prefix segmentation. We map that authoritative lemma through
+// the local dict for root/binyan (reliable for dictionary forms); particles
+// (אין, של …) honestly report "no root". User-initiated only — nothing leaves
+// the device until the user clicks "verify" and accepts the one-time consent.
+const V3_MORPH_ONLINE_CONSENT_KEY = "morphOnlineConsent_v1";
+const V3_MORPH_ONLINE_CONSENT_VERSION = "1.0";
+function v3MorphOnlineConsentOk() {
+  try { return localStorage.getItem(V3_MORPH_ONLINE_CONSENT_KEY) === V3_MORPH_ONLINE_CONSENT_VERSION; }
+  catch (_) { return false; }
+}
+async function v3MorphOnlineEnsureConsent() {
+  if (v3MorphOnlineConsentOk()) return true;
+  let ok = false;
+  try {
+    ok = await v3ConfirmModal({
+      title: v3NotesT("notes.morphOnline.consentTitle", "Проверка корня через Dicta (онлайн)"),
+      body: v3NotesT("notes.morphOnline.consentBody", "Чтобы определить корень ПО КОНТЕКСТУ, предложение с этим словом будет отправлено в облачный морфологический анализатор Dicta (dicta.org.il). Это снимает омонимию (напр. שאין = ש + אין «нет», а не корень נשא). Текст не хранится на наших серверах. Включить онлайн-проверку?"),
+      okText: v3NotesT("notes.morphOnline.consentOk", "Согласен — проверить"),
+      cancelText: v3NotesT("notes.morphOnline.consentCancel", "Отмена"),
+    });
+  } catch (_) { ok = false; }
+  if (ok) { try { localStorage.setItem(V3_MORPH_ONLINE_CONSENT_KEY, V3_MORPH_ONLINE_CONSENT_VERSION); } catch (_) {} }
+  return ok;
+}
+
+const _v3DictaMorphCache = new Map(); // session cache: normalize(sentence) → tokens[]
+async function v3DictaMorphSentence(sentence) {
+  const s = String(sentence || "").trim();
+  if (!s) return [];
+  const norm = (window.MorphNormalize && window.MorphNormalize.normalizeHebrew)
+    ? window.MorphNormalize.normalizeHebrew : (x) => String(x || "");
+  const key = norm(s);
+  if (_v3DictaMorphCache.has(key)) return _v3DictaMorphCache.get(key);
+  const resp = await fetch("/api/morphology", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sentence: s }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  const tokens = (data && Array.isArray(data.tokens)) ? data.tokens : [];
+  _v3DictaMorphCache.set(key, tokens);
+  return tokens;
+}
+
+// Resolve ONE word in its sentence → authoritative morphology, mapping Dicta's
+// context-correct lemma through the local dict. Returns null if Dicta has no
+// matching token. Content POS → root/binyan; everything else → particle.
+const V3_CONTENT_POS = ["noun", "verb", "adjective", "adverb"];
+async function v3DictaMorphResolve(word, sentence) {
+  const norm = (window.MorphNormalize && window.MorphNormalize.normalizeHebrew)
+    ? window.MorphNormalize.normalizeHebrew : (x) => String(x || "");
+  const wKey = norm(word);
+  const tokens = await v3DictaMorphSentence(sentence);
+  const tok = tokens.find((t) => norm(t.word) === wKey) || tokens.find((t) => norm(t.stem) === wKey);
+  if (!tok) return null;
+  const lemma = tok.lemma || tok.stem || "";
+  let root = null, binyan = null, pos = null, particle = false;
+  if (lemma) {
+    try {
+      const an = await window.MorphProvider.analyze(lemma);
+      let top = null;
+      if (an && an.length) {
+        // Disambiguate homographic LEMMAS (e.g. כסף: noun vs the rare verb
+        // כיסף) by preferring the local analysis whose lemma exactly matches
+        // Dicta's context-correct lemma; then a content POS within that pool.
+        const lemKey = norm(lemma);
+        const exact = an.filter((a) => a && a.l && norm(a.l) === lemKey);
+        const pool = exact.length ? exact : an;
+        top = pool.find((a) => V3_CONTENT_POS.includes(String(a.p))) || pool[0];
+      }
+      if (top && V3_CONTENT_POS.includes(String(top.p))) {
+        root = top.r || null; binyan = top.b || null; pos = top.p;
+      } else if (top) {
+        pos = top.p || null; particle = true;   // function word → no root claimed
+      } else {
+        particle = true;
+      }
+    } catch (_) {}
+  }
+  return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root, binyan, pos, particle, confident: tok.confident };
+}
+window.v3DictaMorphResolve = v3DictaMorphResolve;
+
+// Hebrew text of the row the current note belongs to (for Dicta context).
+async function v3NotesGetSentenceText() {
+  // Captured at open (token picker) — most reliable.
+  if (typeof v3NotesModalSentenceText === "string" && v3NotesModalSentenceText.trim()) {
+    return v3NotesModalSentenceText.trim();
+  }
+  const sid = (typeof v3NotesModalSentenceId !== "undefined") ? v3NotesModalSentenceId : null;
+  // DB lookup (own try — a DB error must NOT block the currentTableData fallback).
+  try {
+    if (sid && typeof LOCAL_MODE !== "undefined" && LOCAL_MODE) {
+      const ldb = await ensureLocalDB();
+      const rows = await ldb.dbQuery("SELECT he_niqqud, he_plain FROM sentences WHERE id = ?", [String(sid)]);
+      if (rows && rows[0]) {
+        const txt = String(rows[0].he_plain || rows[0].he_niqqud || "");
+        if (txt) return txt;
+      }
+    }
+  } catch (_) {}
+  // Fallback: the currently-rendered table row.
+  try {
+    const row = Array.isArray(currentTableData)
+      ? currentTableData.find((r) => String(r._v3_sentenceId || r.sentence_id || r.id) === String(sid)) : null;
+    if (row) return String(row.hebrew_plain || row.hebrew_niqqud || row.he_plain || row.he_niqqud || "");
+  } catch (_) {}
+  return "";
+}
+
+const V3_DICTA_POS_TO_OPTION = {
+  noun: "noun", verb: "verb", adjective: "adjective", adverb: "adverb",
+  preposition: "preposition", pronoun: "pronoun", interjection: "interjection",
+};
+
+// Handler for the "🌐 Verify via Dicta" button in the word_study form.
+async function v3NotesTplDictaVerify() {
+  const wordEl = document.getElementById("v3NotesTplWordStudyWord");
+  const rootEl = document.getElementById("v3NotesTplWordStudyRoot");
+  const binyanEl = document.getElementById("v3NotesTplWordStudyBinyan");
+  const posEl = document.getElementById("v3NotesTplWordStudyPos");
+  const hintEl = document.getElementById("v3NotesTplWordStudyRootHint");
+  const btn = document.getElementById("v3NotesTplWordStudyDictaBtn");
+  const word = String(wordEl && wordEl.value || "").trim();
+  if (!word) { showToast(v3NotesT("notes.morphOnline.noWord", "Сначала введите слово."), "warning"); return; }
+
+  const sentence = await v3NotesGetSentenceText();
+  if (!sentence) { showToast(v3NotesT("notes.morphOnline.noSentence", "Нет исходного предложения для контекста."), "warning"); return; }
+
+  const consented = await v3MorphOnlineEnsureConsent();
+  if (!consented) return;
+
+  if (btn) btn.disabled = true;
+  if (hintEl) {
+    hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-searching";
+    hintEl.innerHTML = `<span class="v3-mh-spin">⏳</span> ${v3EscapeHtml(v3NotesT("notes.morphOnline.checking", "Проверяем через Dicta…"))}`;
+    hintEl.style.display = "";
+  }
+  try {
+    const r = await v3DictaMorphResolve(word, sentence);
+    if (!r) {
+      if (hintEl) {
+        hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-lemma";
+        hintEl.textContent = v3NotesT("notes.morphOnline.notFound", "Dicta не вернула разбор для этого слова.");
+      }
+      return;
+    }
+    if (posEl && r.pos && V3_DICTA_POS_TO_OPTION[r.pos]) {
+      posEl.value = V3_DICTA_POS_TO_OPTION[r.pos];
+      posEl.dataset.autoFilled = "1"; posEl.dataset.userTouched = "";
+    }
+    const chip = (s) => `<span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(s || ""))}</span>`;
+    if (r.particle || !r.root) {
+      // Function word → there is NO root. Clear the provisional (wrong) root,
+      // its binyan, and mark POS as "other".
+      if (rootEl) { rootEl.value = ""; rootEl.dataset.autoFilled = ""; rootEl.dataset.userTouched = ""; }
+      if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
+      if (posEl) { posEl.value = "other"; posEl.dataset.autoFilled = "1"; posEl.dataset.userTouched = ""; }
+      if (hintEl) {
+        hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-particle";
+        const seg = r.prefix ? `${chip(r.prefix)} + ${chip(r.lemma || r.stem)}` : chip(r.lemma || r.stem || word);
+        hintEl.innerHTML = `ⓘ ${seg} — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет."))}`;
+      }
+    } else {
+      if (rootEl) {
+        rootEl.value = r.root; rootEl.dataset.autoFilled = "1"; rootEl.dataset.userTouched = "";
+        rootEl.classList.add("v3-notes-tpl-auto-filled");
+        setTimeout(() => rootEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
+      }
+      // Set binyan to Dicta's value, or CLEAR it when there is none (e.g. nouns)
+      // so a stale provisional binyan doesn't linger.
+      if (binyanEl) { binyanEl.value = r.binyan || ""; binyanEl.dataset.autoFilled = "1"; binyanEl.dataset.userTouched = ""; }
+      if (hintEl) {
+        hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-verified";
+        const seg = r.prefix ? ` · ${chip(r.prefix)} + ${chip(r.stem)}` : "";
+        hintEl.innerHTML = `✓ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintVerified", "Корень проверен (Dicta, по контексту)"))}${seg}`;
+      }
+    }
+  } catch (e) {
+    console.warn("[morph-online] failed:", e && e.message);
+    if (hintEl) {
+      hintEl.className = "v3-notes-tpl-morphhint";
+      hintEl.textContent = v3NotesT("notes.morphOnline.error", "Не удалось проверить (сеть/сервис). Попробуйте позже.");
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+window.v3NotesTplDictaVerify = v3NotesTplDictaVerify;
+
 // Build the rich-card HTML for one word_study row. Pure/sync — async bits
 // (state badge, root forms) are placeholders filled by v3NotesRowIndexEnrich.
 function v3WordCardRichHtml(row) {
@@ -39827,6 +40050,7 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
         : null);
   v3NotesModalNoteType = o.noteType || "free";
   v3NotesModalWordLemma = o.wordLemma || "";
+  v3NotesModalSentenceText = o.sentence || "";
 
   const modal = v3NotesEl("v3NotesModal");
   const ta = v3NotesEl("v3NotesText");

@@ -65,6 +65,7 @@
     "smoke:notes:autosave": "node scripts/notes-ui/autosave-entry-smoke.js",
     "smoke:notes:typeswitch": "node scripts/notes-ui/type-switch-smoke.js",
     "smoke:notes:wordcard": "node scripts/notes-ui/word-card-smoke.js",
+    "smoke:morph:gateway": "node scripts/premium/morph-gateway-smoke.js",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "smoke:notes:srs-candidates": "node scripts/notes-ui/suggest-srs-candidate-smoke.js",
     "vendor:build:graph": "node scripts/vendor/build-d3-graph.mjs",

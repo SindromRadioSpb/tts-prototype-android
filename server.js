@@ -3690,6 +3690,28 @@ app.post("/api/niqqud", async (req, res) => {
 });
 
 // --------------------------------------------------------
+// 10d. API: MORPHOLOGY (context-aware, Dicta) — Phase B
+// --------------------------------------------------------
+// Opt-in, consent-gated on the CLIENT (outbound Hebrew text). Stateless +
+// free (Dicta Nakdan addmorph). Returns per-word disambiguated morphology so
+// the client can resolve the CORRECT root/lemma in context (e.g. שאין → ש+אין
+// particle, not נשא). Body: { sentence, genre? }.
+app.post("/api/morphology", async (req, res) => {
+  try {
+    const { sentence, genre = "modern" } = req.body || {};
+    if (!sentence || typeof sentence !== "string" || !sentence.trim()) {
+      return res.status(400).json({ ok: false, tokens: [], provider: "none", degraded: true, reason: "sentence is required" });
+    }
+    const { analyze } = require("./db/premium/morphologyGateway");
+    const result = await analyze(sentence.trim(), { genre });
+    res.json(result);
+  } catch (e) {
+    console.error("[morphology] error:", e);
+    res.status(500).json({ ok: false, tokens: [], provider: "none", degraded: true, reason: e.message || "Internal error" });
+  }
+});
+
+// --------------------------------------------------------
 app.get("/api/diag", async (_req, res) => {
   const { getDb } = require("./db/sqlite");
   const {
