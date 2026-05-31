@@ -36389,7 +36389,10 @@ function v3NotesTplMorphologyAutoFillInit() {
   };
 
   // Expose for the EAGER fill on modal open (Slice 0 — root-is-the-spine).
-  _v3NotesMorphEagerRun = runLookup;
+  // Reset the dedupe first so re-opening the SAME word (after the fields were
+  // blanked on open) always re-analyses and re-fills, instead of being skipped
+  // as a redundant lookup.
+  _v3NotesMorphEagerRun = () => { lastQueriedWord = ""; return runLookup(); };
 
   wordEl.addEventListener("input", () => {
     if (debounceT) clearTimeout(debounceT);
@@ -39653,6 +39656,13 @@ try { v3NotesMdResetUi(); } catch (_) {}
   try { v3NotesUpdateLockedBadges(); } catch (_) {}
   try { v3NotesUpdateModalTitle(); } catch (_) {}
   try { v3NotesTemplateRender(); } catch (_) {}
+  // Fresh new-note open: blank any templated fields carried over from a
+  // previous UNSAVED session. v3NotesOpen is the create path (edits hydrate
+  // their own body via v3NotesLoadFullNoteIntoModal / v3NotesRowIndexOpenNote),
+  // so a blank hydrate here is always correct. Without it the word_study form
+  // kept the previous word — and its now-wrong auto-filled root. (hydrate is a
+  // no-op for free notes.)
+  try { v3NotesTemplateHydrate({}); } catch (_) {}
   try {
     const titleInput = document.getElementById("v3NotesTitleInput");
     if (titleInput) {
