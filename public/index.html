@@ -36114,6 +36114,27 @@ function v3NotesTemplateRender() {
 }
 window.v3NotesTemplateRender = v3NotesTemplateRender;
 
+// Strip niqqud + cantillation + bidi/format marks but KEEP final-letter forms
+// (unlike MorphNormalize.normalizeHebrew, which folds finals for the lookup
+// key). Used for the displayed/stored plain `word` so e.g. מסך stays מסך, not
+// מסכ. The lookup itself still normalizes internally inside MorphProvider.
+function v3StripNiqqudKeepFinals(s) {
+  try {
+    return String(s == null ? "" : s)
+      .normalize("NFC")
+      .replace(/[֑-ׇ]/g, "")                                  // niqqud + cantillation
+      .replace(/[‌-‏‪-‮⁦-⁩﻿]/g, "")  // bidi / format marks
+      .trim();
+  } catch (_) { return String(s == null ? "" : s).trim(); }
+}
+window.v3StripNiqqudKeepFinals = v3StripNiqqudKeepFinals;
+
+// Reference to the word_study morphology lookup, set on first init so the
+// modal-open path can trigger an EAGER fill (root/binyan/pos) without waiting
+// for a keystroke. Stable because the modal DOM (and its captured elements)
+// persists across opens.
+let _v3NotesMorphEagerRun = null;
+
 // Phase 9.4.D — auto-fill `root` and `binyan` in the word-study template
 // when the user finishes entering the word. Behaviour:
 //   • On word input blur OR 600ms after the last keystroke
@@ -36133,8 +36154,19 @@ function v3NotesTplMorphologyAutoFillInit() {
   const wordEl = document.getElementById("v3NotesTplWordStudyWord");
   const rootEl = document.getElementById("v3NotesTplWordStudyRoot");
   const binyanEl = document.getElementById("v3NotesTplWordStudyBinyan");
+  const posEl = document.getElementById("v3NotesTplWordStudyPos");
   if (!wordEl) return;
   _v3NotesTplMorphologyBound = true;
+
+  // hspell pos codes → the <select> option values (which differ for some).
+  const POS_MAP = {
+    noun: "noun", verb: "verb",
+    adj: "adjective", adjective: "adjective",
+    adv: "adverb", adverb: "adverb",
+    prep: "preposition", preposition: "preposition",
+    prn: "pronoun", pronoun: "pronoun",
+    intj: "interjection", interjection: "interjection",
+  };
 
   let debounceT = null;
   let lastQueriedWord = "";
@@ -36154,6 +36186,14 @@ function v3NotesTplMorphologyAutoFillInit() {
       if (binyanEl.dataset.autoFilling !== "1") {
         binyanEl.dataset.userTouched = "1";
         binyanEl.dataset.autoFilled = "";
+      }
+    });
+  }
+  if (posEl) {
+    posEl.addEventListener("change", () => {
+      if (posEl.dataset.autoFilling !== "1") {
+        posEl.dataset.userTouched = "1";
+        posEl.dataset.autoFilled = "";
       }
     });
   }
@@ -36186,10 +36226,18 @@ function v3NotesTplMorphologyAutoFillInit() {
       const top = analyses[0];
       if (top.r && canAutoFill(rootEl)) setAutoFilled(rootEl, top.r);
       if (top.b && canAutoFill(binyanEl)) setAutoFilled(binyanEl, top.b);
+      if (top.p && posEl && canAutoFill(posEl)) {
+        const mappedPos = POS_MAP[String(top.p).toLowerCase()];
+        // Only set when the option actually exists, else the assignment is a no-op.
+        if (mappedPos) setAutoFilled(posEl, mappedPos);
+      }
     } catch (e) {
       console.warn("[morph] auto-fill lookup failed:", e && e.message);
     }
   };
+
+  // Expose for the EAGER fill on modal open (Slice 0 — root-is-the-spine).
+  _v3NotesMorphEagerRun = runLookup;
 
   wordEl.addEventListener("input", () => {
     if (debounceT) clearTimeout(debounceT);
@@ -39299,9 +39347,27 @@ try { v3NotesMdResetUi(); } catch (_) {}
       ta2.placeholder = v3NotesT("notes.placeholder." + v3NotesModalNoteType, ph);
     }
     // For word-target with a known lemma, pre-fill the word field in word_study form.
+    // "Root is the spine" model fix: the headword is the PLAIN consonantal form
+    // (niqqud stripped, finals kept for display); if the source token carried
+    // niqqud, it is pinned into niqqud_variant. Then eager morphology fills
+    // root/binyan/pos with no keystroke.
     if (v3NotesModalTargetKind === "word" && v3NotesModalNoteType === "word_study" && v3NotesModalWordLemma) {
       const wordEl = document.getElementById("v3NotesTplWordStudyWord");
-      if (wordEl && !wordEl.value) wordEl.value = v3NotesModalWordLemma;
+      const niqEl = document.getElementById("v3NotesTplWordStudyNiqqud");
+      const raw = String(v3NotesModalWordLemma);
+      const plain = (typeof v3StripNiqqudKeepFinals === "function") ? v3StripNiqqudKeepFinals(raw) : raw;
+      if (wordEl && !wordEl.value) wordEl.value = plain;
+      // Pin the vocalized form only when the token actually carried niqqud.
+      if (niqEl && !niqEl.value && plain && plain !== raw) niqEl.value = raw;
+      // Eager auto-fill: wait for the dict, then run the (idempotent) lookup.
+      try {
+        const eager = () => { if (typeof _v3NotesMorphEagerRun === "function") _v3NotesMorphEagerRun(); };
+        if (window.MorphProvider && typeof window.MorphProvider.ensureReady === "function") {
+          window.MorphProvider.ensureReady().then(eager).catch(eager);
+        } else {
+          eager();
+        }
+      } catch (_) {}
     }
   } catch (_) {}
   try { v3NotesUpdateCharCounter(); } catch (_) {}
