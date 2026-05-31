@@ -6261,6 +6261,19 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   color: var(--theme-text-muted);
   font-weight: 600;
 }
+.v3-wordcard-rootchip-pending { opacity: 0.55; }
+.v3-wordcard-rootchip-lemma {     /* root unavailable → lemma (base form) */
+  border-style: dashed;           /* dashed = heuristic / not a true root */
+  background: rgba(230, 159, 0, 0.06);
+}
+.v3-wordcard-spine-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.6;
+  margin-inline-start: 4px;
+}
 .v3-wordcard-binyan { font-weight: 600; opacity: 0.85; }
 .v3-wordcard-state {
   font-size: 10.5px;
@@ -39347,6 +39360,31 @@ function v3WordCardPealimUrl(word) {
   return "https://www.pealim.com/ru/search/?from_lang=he&q=" + encodeURIComponent(String(word || ""));
 }
 
+// Phase A — the premium word path needs the FULL dict: the basic tier returns
+// NO analysis for inflected/derived forms (so neither root NOR lemma resolve),
+// while the full tier always yields at least the lemma. Auto-promote to full
+// UNLESS the user explicitly chose basic in Morphology Settings (respect that
+// downgrade). Idempotent; safe to call on every word-note open / card render.
+let _v3FullDictPromotePromise = null;
+async function v3EnsureFullDictForWordPath() {
+  const mp = window.MorphProvider;
+  if (!mp || typeof mp.ensureReady !== "function") return;
+  let explicit = null;
+  try { explicit = localStorage.getItem("morphDictTier_v1"); } catch (_) {}
+  // Explicit 'basic' → honour it; just make sure the dict is loaded.
+  if (explicit === "basic") { try { await mp.ensureReady(); } catch (_) {} return; }
+  if (mp.getDictTier && mp.getDictTier() === "full") { try { await mp.ensureReady(); } catch (_) {} return; }
+  // Promote once; subsequent callers await the same in-flight promotion.
+  if (!_v3FullDictPromotePromise) {
+    _v3FullDictPromotePromise = (async () => {
+      try { if (mp.setDictTier) await mp.setDictTier("full"); } catch (_) {}
+      try { await mp.ensureReady(); } catch (_) {}
+    })();
+  }
+  return _v3FullDictPromotePromise;
+}
+window.v3EnsureFullDictForWordPath = v3EnsureFullDictForWordPath;
+
 // Build the rich-card HTML for one word_study row. Pure/sync — async bits
 // (state badge, root forms) are placeholders filled by v3NotesRowIndexEnrich.
 function v3WordCardRichHtml(row) {
@@ -39373,9 +39411,15 @@ function v3WordCardRichHtml(row) {
     ? `<div class="v3-wordcard-gloss">${v3EscapeHtml(meaning)}</div>` : "";
 
   const posHtml = posLabel ? `<span class="v3-wordcard-pos">${v3EscapeHtml(posLabel)}</span>` : "";
+  // Spine chip. Saved root → solid amber chip (sync). No saved root but a
+  // headword → a pending placeholder that v3NotesRowIndexEnrich resolves via
+  // morphology: a now-resolvable root (self-heal), else the LEMMA (base form,
+  // dashed), else "—". This keeps the spine never-empty and always real.
   const rootHtml = root
     ? `<span class="v3-wordcard-rootchip" dir="rtl" title="${v3EscapeHtml(v3NotesT("notes.card.rootTitle", "Корень"))}">🌳 ${v3EscapeHtml(root)}${binyanLabel ? ` · <span class="v3-wordcard-binyan">${v3EscapeHtml(binyanLabel)}</span>` : ""}</span>`
-    : `<span class="v3-wordcard-rootchip v3-wordcard-rootchip-empty">🌳 —</span>`;
+    : (word
+        ? `<span class="v3-wordcard-rootchip v3-wordcard-rootchip-pending" data-spine-for="${v3EscapeHtml(word)}" dir="rtl">🌳 …</span>`
+        : `<span class="v3-wordcard-rootchip v3-wordcard-rootchip-empty">🌳 —</span>`);
 
   // "Words from this root" accordion — only when we have a headword to expand.
   const accHtml = word ? `
@@ -39410,6 +39454,44 @@ function v3WordCardRichHtml(row) {
 async function v3NotesRowIndexEnrich() {
   const cards = document.querySelectorAll(".v3-wordcard[data-note-id]");
   if (!cards.length) return;
+  // 0) Spine self-heal — resolve pending spine chips (notes saved with no
+  //    root) against the FULL dict: a now-resolvable root → solid amber chip;
+  //    else the LEMMA (base/dictionary form) → dashed chip; else "—". The
+  //    spine is thus never empty and always real data (Phase A).
+  try {
+    const pending = Array.from(document.querySelectorAll(".v3-wordcard-rootchip-pending[data-spine-for]"));
+    if (pending.length && window.MorphProvider && typeof window.MorphProvider.analyze === "function") {
+      try { await v3EnsureFullDictForWordPath(); } catch (_) {}
+      const rootTitle = v3NotesT("notes.card.rootTitle", "Корень");
+      const baseTitle = v3NotesT("notes.card.baseFormTitle", "Базовая форма (корень недоступен локально)");
+      for (const chip of pending) {
+        const w = chip.getAttribute("data-spine-for");
+        try {
+          const an = await window.MorphProvider.analyze(w);
+          const top = (an && an.length) ? an[0] : null;
+          if (top && top.r) {
+            const bl = top.b && V3_WORDCARD_BINYAN_LABEL[top.b] ? V3_WORDCARD_BINYAN_LABEL[top.b] : "";
+            chip.classList.remove("v3-wordcard-rootchip-pending");
+            chip.setAttribute("title", rootTitle);
+            chip.innerHTML = `🌳 ${v3EscapeHtml(top.r)}${bl ? ` · <span class="v3-wordcard-binyan">${v3EscapeHtml(bl)}</span>` : ""}`;
+          } else if (top && top.l && top.l !== w) {
+            chip.classList.remove("v3-wordcard-rootchip-pending");
+            chip.classList.add("v3-wordcard-rootchip-lemma");
+            chip.setAttribute("title", baseTitle);
+            chip.innerHTML = `🌳 ${v3EscapeHtml(top.l)} <span class="v3-wordcard-spine-tag">${v3EscapeHtml(v3NotesT("notes.card.baseForm", "базовая форма"))}</span>`;
+          } else {
+            chip.classList.remove("v3-wordcard-rootchip-pending");
+            chip.classList.add("v3-wordcard-rootchip-empty");
+            chip.innerHTML = "🌳 —";
+          }
+        } catch (_) {
+          chip.classList.remove("v3-wordcard-rootchip-pending");
+          chip.classList.add("v3-wordcard-rootchip-empty");
+          chip.innerHTML = "🌳 —";
+        }
+      }
+    }
+  } catch (_) {}
   // 1) SRS state badges — single overlay query, applied to all cards.
   try {
     const ldb = await ensureLocalDB();
@@ -39687,10 +39769,13 @@ try { v3NotesMdResetUi(); } catch (_) {}
       if (wordEl && !wordEl.value) wordEl.value = plain;
       // Pin the vocalized form only when the token actually carried niqqud.
       if (niqEl && !niqEl.value && plain && plain !== raw) niqEl.value = raw;
-      // Eager auto-fill: wait for the dict, then run the (idempotent) lookup.
+      // Eager auto-fill: ensure the full dict (better root/lemma coverage),
+      // then run the (idempotent) lookup.
       try {
         const eager = () => { if (typeof _v3NotesMorphEagerRun === "function") _v3NotesMorphEagerRun(); };
-        if (window.MorphProvider && typeof window.MorphProvider.ensureReady === "function") {
+        if (typeof v3EnsureFullDictForWordPath === "function") {
+          v3EnsureFullDictForWordPath().then(eager).catch(eager);
+        } else if (window.MorphProvider && typeof window.MorphProvider.ensureReady === "function") {
           window.MorphProvider.ensureReady().then(eager).catch(eager);
         } else {
           eager();

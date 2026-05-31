@@ -172,6 +172,46 @@ async function main() {
          r1.formsLabel.length > 0 && r1.formsLabel !== "notes.card.wordsFromRoot",
          JSON.stringify({ label: r1.formsLabel }));
 
+    // Phase A — spine self-heal: notes saved WITHOUT a root resolve their
+    // spine against the (auto-promoted) full dict — a true root when
+    // available, else the LEMMA (base form), never empty. Loads the full
+    // dict, so a generous wait.
+    const r3 = await pg.evaluate(async () => {
+      try { localStorage.removeItem("morphDictTier_v1"); } catch (_) {}
+      const rows = [
+        { id: "sh-root", target_kind: "word", note_type: "word_study", updated_at: "2026-05-30T10:00:00Z",
+          body_json: JSON.stringify({ word: "תלמד", niqqud_variant: "", root: "", meaning: "будешь учить", part_of_speech: "verb", binyan: "" }) },
+        { id: "sh-lemma", target_kind: "word", note_type: "word_study", updated_at: "2026-05-29T10:00:00Z",
+          body_json: JSON.stringify({ word: "תסתכלי", niqqud_variant: "", root: "", meaning: "посмотришь", part_of_speech: "verb", binyan: "" }) },
+      ];
+      window.v3NotesRowIndexOpen("t", "s", 0, rows);
+      // Wait for full-dict promotion + spine resolve.
+      const deadline = Date.now() + 14000;
+      const list = document.getElementById("v3NotesRowIndexList");
+      while (Date.now() < deadline) {
+        const pend = list.querySelectorAll(".v3-wordcard-rootchip-pending").length;
+        if (pend === 0) break;
+        await new Promise((r) => setTimeout(r, 300));
+      }
+      const chip = (id) => list.querySelector(`.v3-wordcard[data-note-id="${id}"] .v3-wordcard-rootchip`);
+      const cRoot = chip("sh-root"), cLemma = chip("sh-lemma");
+      return {
+        tier: window.MorphProvider.getDictTier(),
+        rootText: cRoot ? cRoot.textContent.trim().replace(/\s+/g, " ") : "",
+        rootIsLemma: cRoot ? cRoot.classList.contains("v3-wordcard-rootchip-lemma") : null,
+        lemmaText: cLemma ? cLemma.textContent.trim().replace(/\s+/g, " ") : "",
+        lemmaIsLemma: cLemma ? cLemma.classList.contains("v3-wordcard-rootchip-lemma") : null,
+        anyPending: list.querySelectorAll(".v3-wordcard-rootchip-pending").length,
+      };
+    });
+    test("Case 8b: word path auto-promotes to the full dict",
+         r3.tier === "full", JSON.stringify({ tier: r3.tier }));
+    test("Case 8c: resolvable form self-heals to a SOLID root chip",
+         r3.rootIsLemma === false && /למד/.test(r3.rootText), JSON.stringify(r3));
+    test("Case 8d: null-root form falls back to a LEMMA (base form) chip, never empty",
+         r3.lemmaIsLemma === true && /הסתכל/.test(r3.lemmaText) && r3.anyPending === 0,
+         JSON.stringify(r3));
+
     // Flag OFF → generic card fallback.
     const r2 = await pg.evaluate(async (rows) => {
       try { localStorage.setItem("wordCardRich_v1", "0"); } catch (_) {}

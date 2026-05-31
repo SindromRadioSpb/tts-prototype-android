@@ -656,6 +656,8 @@ window.I18N_LOCALES.he = {
       edit: "פתח",
       noWord: "(ללא מילה)",
       rootTitle: "שורש",
+      baseForm: "צורת בסיס",
+      baseFormTitle: "צורת בסיס (השורש אינו זמין במילון המקומי)",
       pealimTitle: "נטייה ב-Pealim (מילון חיצוני)",
       state: {
         weak: "חלש",

@@ -649,6 +649,8 @@ window.I18N_LOCALES.en = {
       edit: "Open",
       noWord: "(no word)",
       rootTitle: "Root",
+      baseForm: "base form",
+      baseFormTitle: "Base form (root unavailable in the local dictionary)",
       pealimTitle: "Conjugation on Pealim (external dictionary)",
       state: {
         weak: "weak",

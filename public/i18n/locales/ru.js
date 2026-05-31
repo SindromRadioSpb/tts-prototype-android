@@ -656,6 +656,8 @@ window.I18N_LOCALES.ru = {
       edit: "Открыть",
       noWord: "(без слова)",
       rootTitle: "Корень",
+      baseForm: "базовая форма",
+      baseFormTitle: "Базовая форма (корень недоступен в локальном словаре)",
       pealimTitle: "Спряжение на Pealim (внешний словарь)",
       state: {
         weak: "слабо",
