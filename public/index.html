@@ -39878,9 +39878,13 @@ function v3MorphApplyResultToForm(r, word) {
     }
     if (hintEl && !userTyped) {
       hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-particle";
-      const lbl = (r.kind === "propernoun")
-        ? v3NotesT("notes.tpl.word_study.rootHintProperNoun", "Имя собственное — корня нет.")
-        : v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет.");
+      // POS-specific "no root" label so the hint agrees with «Часть речи»
+      // (preposition → Предлог, pronoun → Местоимение, else служебное слово).
+      let lbl;
+      if (r.kind === "propernoun") lbl = v3NotesT("notes.tpl.word_study.rootHintProperNoun", "Имя собственное — корня нет.");
+      else if (r.pos === "pronoun") lbl = v3NotesT("notes.tpl.word_study.rootHintPronoun", "Местоимение — корня нет.");
+      else if (r.pos === "preposition") lbl = v3NotesT("notes.tpl.word_study.rootHintPreposition", "Предлог — корня нет.");
+      else lbl = v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет.");
       const seg = r.prefix ? `${chip(r.prefix)} + ${chip(r.lemma || r.stem)}` : chip(r.lemma || r.stem || word);
       hintEl.innerHTML = `ⓘ ${seg} — ${v3EscapeHtml(lbl)}`;
       hintEl.style.display = "";

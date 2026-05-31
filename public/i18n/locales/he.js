@@ -749,6 +749,8 @@ window.I18N_LOCALES.he = {
         rootHintVerifiedBase: "צורת בסיס (Dicta, לפי הקשר)",
         rootHintParticle: "מילת תפקוד — אין שורש.",
         rootHintProperNoun: "שם פרטי — אין שורש.",
+        rootHintPronoun: "כינוי גוף — אין שורש.",
+        rootHintPreposition: "מילת יחס — אין שורש.",
         rootHintLemma: "השורש לא נמצא במילון. צורת בסיס:",
         rootHintManual: "הקלידו ידנית",
         rootHintNotFound: "השורש לא נמצא אוטומטית — הקלידו ידנית (יש הצעות)",

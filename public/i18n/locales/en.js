@@ -742,6 +742,8 @@ window.I18N_LOCALES.en = {
         rootHintVerifiedBase: "Base form (Dicta, in context)",
         rootHintParticle: "Function word — no root.",
         rootHintProperNoun: "Proper noun — no root.",
+        rootHintPronoun: "Pronoun — no root.",
+        rootHintPreposition: "Preposition — no root.",
         rootHintLemma: "Root not in the dictionary. Base form:",
         rootHintManual: "enter manually",
         rootHintNotFound: "Root not found automatically — enter it manually (suggestions available)",
