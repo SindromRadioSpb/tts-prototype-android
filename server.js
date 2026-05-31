@@ -3746,6 +3746,62 @@ app.post("/api/morphology/batch", async (req, res) => {
 });
 
 // --------------------------------------------------------
+// 10e. API: INFLECTION (conjugation/declension tables, Pealim) — ②
+// --------------------------------------------------------
+// In-app conjugation (verbs) + declension (nouns/adj) paradigms scraped from
+// Pealim, parsed server-side, shared-cached in /app/data (universal reference
+// data, not user data). Opt-in + consent-gated on the CLIENT (outbound lemma).
+// Body: { lemma, binyan?, pos?, root? } — binyan/root from ①'s decode help
+// disambiguate homographs. A miss returns degraded (client falls back to the
+// Pealim link; never a fabricated paradigm).
+app.post("/api/conjugation", async (req, res) => {
+  try {
+    const { lemma, binyan, pos, root } = req.body || {};
+    if (!lemma || typeof lemma !== "string" || !lemma.trim()) {
+      return res.status(400).json({ ok: false, provider: "none", degraded: true, reason: "lemma is required" });
+    }
+    const { inflect } = require("./db/premium/inflectionGateway");
+    const result = await inflect(lemma.trim(), { binyan, pos, root });
+    res.json(result);
+  } catch (e) {
+    console.error("[conjugation] error:", e);
+    res.status(500).json({ ok: false, provider: "none", degraded: true, reason: e.message || "Internal error" });
+  }
+});
+
+// Batch inflection for a whole text's distinct lemmas (corpus enrichment, ②.5).
+// Body: { items: [{ lemma, binyan?, pos?, root? }] }. Cache-first; uncached
+// lemmas are scraped under the gateway's politeness limiter (low concurrency +
+// delay). Returns one result per item, in order.
+app.post("/api/conjugation/batch", async (req, res) => {
+  try {
+    const { items } = req.body || {};
+    if (!Array.isArray(items) || !items.length) {
+      return res.status(400).json({ ok: false, results: [], reason: "items[] is required" });
+    }
+    if (items.length > 120) {
+      return res.status(413).json({ ok: false, results: [], reason: "too many items (max 120 per request)" });
+    }
+    const { inflect, MODEL_VERSION } = require("./db/premium/inflectionGateway");
+    // The gateway already serialises outbound fetches (≤2 concurrent, spaced);
+    // fire them together and let the limiter pace — cache hits resolve instantly.
+    const results = await Promise.all(items.map(async (it) => {
+      const lemma = String((it && it.lemma) || "").trim();
+      if (!lemma) return { ok: false, degraded: true, reason: "empty" };
+      try {
+        return await inflect(lemma, { binyan: it.binyan, pos: it.pos, root: it.root });
+      } catch (e) {
+        return { ok: false, degraded: true, reason: e && e.message };
+      }
+    }));
+    res.json({ ok: true, results, model_version: MODEL_VERSION });
+  } catch (e) {
+    console.error("[conjugation:batch] error:", e);
+    res.status(500).json({ ok: false, results: [], reason: e.message || "Internal error" });
+  }
+});
+
+// --------------------------------------------------------
 app.get("/api/diag", async (_req, res) => {
   const { getDb } = require("./db/sqlite");
   const {

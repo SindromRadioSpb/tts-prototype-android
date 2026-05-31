@@ -642,4 +642,25 @@ export const MIGRATIONS = [
     updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS ix_sentence_morph_text ON sentence_morph(text_id);`,
+
+  // 051_lemma_inflection — ②. Conjugation (verbs) / declension (nouns/adj)
+  // paradigms scraped from Pealim, cached locally so the word card shows full
+  // tables OFFLINE after enrichment. One row per (lemma, binyan, model_version)
+  // — binyan is '' for nominals (kept NOT NULL so the PK upserts cleanly; a
+  // NULL PK column would defeat ON CONFLICT). paradigm_json is the lossless raw
+  // slot→form map + metadata. Append-only; bumping model_version re-scrapes.
+  `CREATE TABLE IF NOT EXISTS lemma_inflection (
+    lemma         TEXT NOT NULL,
+    binyan        TEXT NOT NULL DEFAULT '',
+    model_version TEXT NOT NULL,
+    pos           TEXT,
+    kind          TEXT,
+    paradigm_json TEXT NOT NULL,
+    source        TEXT,
+    pealim_id     TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    PRIMARY KEY (lemma, binyan, model_version)
+  );
+  CREATE INDEX IF NOT EXISTS ix_lemma_inflection_lemma ON lemma_inflection(lemma);`,
 ];

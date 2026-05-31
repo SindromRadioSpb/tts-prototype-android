@@ -6425,6 +6425,58 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   text-decoration: none;
 }
 .v3-wordcard-pealim:hover { text-decoration: underline; }
+
+/* ② Conjugation/declension table (Pealim), compact RTL, mobile-first. */
+.v3-wordcard-conj .v3-conj-body { margin-top: 6px; }
+.v3-conj-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px;
+}
+.v3-conj-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 7px;
+  background: #0F766E; color: #fff; letter-spacing: 0.02em; white-space: nowrap;
+}
+.v3-conj-gizra { font-size: 11px; color: var(--theme-text-muted); }
+.v3-conj-recheck { font-size: 11.5px; font-weight: 600; color: var(--theme-accent); text-decoration: none; }
+.v3-conj-recheck:hover { text-decoration: underline; }
+.v3-conj-besteffort {
+  font-size: 11px; color: #92400e; background: rgba(230, 159, 0, 0.12);
+  border: 1px dashed #E69F00; border-radius: 7px; padding: 3px 8px; margin-bottom: 6px;
+}
+.v3-conj-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.v3-conj-primary { margin-bottom: 4px; }
+.v3-conj-cell {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 1px;
+  min-width: 62px; padding: 3px 8px; border-radius: 8px; cursor: pointer;
+  background: var(--theme-bg-muted, #f1f5f9); border: 1px solid var(--theme-border-soft);
+  font-family: inherit;
+}
+.v3-conj-cell:hover { background: var(--theme-bg-hover, #e9eef5); }
+.v3-conj-he { font-size: 15px; font-weight: 600; color: var(--theme-text-primary); direction: rtl; }
+.v3-conj-lab {
+  font-size: 9px; font-weight: 700; color: var(--theme-text-muted);
+  text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap;
+}
+.v3-conj-tr { font-size: 9.5px; color: var(--theme-text-muted); font-style: italic; }
+.v3-conj-group { margin-top: 8px; }
+.v3-conj-group-h {
+  font-size: 10px; font-weight: 700; color: var(--theme-text-secondary, #475569);
+  text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px;
+}
+.v3-conj-full { margin-top: 8px; }
+.v3-conj-full > summary {
+  font-size: 11px; font-weight: 700; color: var(--theme-text-muted);
+  cursor: pointer; list-style: none; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.v3-conj-full > summary::-webkit-details-marker { display: none; }
+.v3-conj-full > summary::before { content: "▸ "; opacity: 0.6; }
+.v3-conj-full[open] > summary::before { content: "▾ "; }
+.v3-conj-loadbtn {
+  font: 700 11px "Segoe UI", system-ui, sans-serif; height: 30px; padding: 0 12px;
+  border: 1px solid var(--theme-border-medium); border-radius: 8px;
+  background: var(--theme-bg-card); color: var(--theme-text-primary); cursor: pointer; margin-inline-end: 8px;
+}
+.v3-conj-loadbtn:hover { background: var(--theme-bg-hover); }
+.v3-conj-loading, .v3-conj-empty { font-size: 11.5px; color: var(--theme-text-muted); padding: 2px 0; }
 .v3-wordcard-edit {
   height: 31px;
   padding: 0 14px;
@@ -40044,7 +40096,7 @@ async function v3MorphEnrichText(textId, opts) {
 window.v3MorphEnrichText = v3MorphEnrichText;
 
 // Minimal progress overlay for enrichment.
-function v3MorphProgressShow() {
+function v3MorphProgressShow(titleKey, titleFb) {
   let el = document.getElementById("v3MorphEnrichProgress");
   if (!el) {
     el = document.createElement("div");
@@ -40054,7 +40106,7 @@ function v3MorphProgressShow() {
     document.body.appendChild(el);
   }
   const title = el.querySelector(".v3-mep-title");
-  if (title) title.textContent = v3NotesT("morph.enrich.progressTitle", "✨ Обогащение морфологии (Dicta)");
+  if (title) title.textContent = v3NotesT(titleKey || "morph.enrich.progressTitle", titleFb || "✨ Обогащение морфологии (Dicta)");
   el.style.display = "flex";
 }
 function v3MorphProgressUpdate(p) {
@@ -40084,6 +40136,15 @@ async function v3LibraryEnrichMorph(textId, silent) {
   v3MorphProgressUpdate({ done: cov.enriched, total: cov.total });
   try {
     const res = await v3MorphEnrichText(textId, { onProgress: (p) => v3MorphProgressUpdate({ done: cov.enriched + p.done, total: cov.total }) });
+    // ②.5 — second pass: conjugation/declension paradigms (Pealim), offline-after.
+    // Best-effort: a network error just leaves some lemmas to lazy-fill on demand.
+    if (res.ok && navigator.onLine) {
+      try {
+        v3MorphProgressShow("morph.enrich.inflectTitle", "📚 Спряжения (Pealim)");
+        v3MorphProgressUpdate({ done: 0, total: 1 });
+        await v3MorphEnrichInflections(textId, { onProgress: (p) => v3MorphProgressUpdate({ done: p.done, total: p.total }) });
+      } catch (_) {}
+    }
     v3MorphProgressHide();
     if (res.ok) showToast(v3NotesT("morph.enrich.done", "Готово: обогащено {n} предложений.").replace("{n}", String(res.enriched)), "success");
     else showToast(v3NotesT("morph.enrich.partial", "Прервано (сеть). Обогащено {n}.").replace("{n}", String(res.enriched)), "warning");
@@ -40107,6 +40168,251 @@ async function v3MorphMaybeAutoEnrich(textId) {
   } catch (_) {}
 }
 window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
+
+// ── ② — Pealim conjugation/declension tables (offline-cached) ─────────────
+// Model version mirrors db/premium/providers/pealim.js MODEL_VERSION. Bumping
+// it (here + provider) re-scrapes paradigms.
+const V3_PEALIM_INFL_MODEL = "pealim-infl-v1";
+
+// Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
+// state + possessive blocks. The provider returns a lossless raw slot→form map
+// so this client-side grouping can evolve without re-scraping.
+const V3_CONJ_GROUPS_VERB = [
+  { key: "present",     slots: ["AP-ms", "AP-fs", "AP-mp", "AP-fp"] },
+  { key: "past",        slots: ["PERF-1s", "PERF-2ms", "PERF-2fs", "PERF-3ms", "PERF-3fs", "PERF-1p", "PERF-2mp", "PERF-2fp", "PERF-3mp", "PERF-3fp"] },
+  { key: "future",      slots: ["IMPF-1s", "IMPF-2ms", "IMPF-2fs", "IMPF-3ms", "IMPF-3fs", "IMPF-1p", "IMPF-2mp", "IMPF-2fp", "IMPF-3mp", "IMPF-3fp"] },
+  { key: "imperative",  slots: ["IMP-2ms", "IMP-2fs", "IMP-2mp", "IMP-2fp"] },
+  { key: "infinitive",  slots: ["INF-L"] },
+];
+const V3_CONJ_GROUPS_NOUN = [
+  { key: "absolute",      slots: ["s", "p"] },
+  { key: "construct",     slots: ["sc", "pc"] },
+  { key: "possessive_sg", slots: ["s-P-1s", "s-P-2ms", "s-P-2fs", "s-P-3ms", "s-P-3fs", "s-P-1p", "s-P-2mp", "s-P-2fp", "s-P-3mp", "s-P-3fp"] },
+  { key: "possessive_pl", slots: ["p-P-1s", "p-P-2ms", "p-P-2fs", "p-P-3ms", "p-P-3fs", "p-P-1p", "p-P-2mp", "p-P-2fp", "p-P-3mp", "p-P-3fp"] },
+];
+// Compact citation forms shown before the "full paradigm" toggle.
+const V3_CONJ_PRIMARY_VERB = ["INF-L", "AP-ms", "AP-fs", "PERF-3ms", "IMPF-3ms"];
+const V3_CONJ_PRIMARY_NOUN = ["s", "p", "sc"];
+
+const V3_CONJ_SLOT_FB = {
+  "AP-ms": "м.р, ед", "AP-fs": "ж.р, ед", "AP-mp": "м.р, мн", "AP-fp": "ж.р, мн",
+  "PERF-1s": "я", "PERF-2ms": "ты (м)", "PERF-2fs": "ты (ж)", "PERF-3ms": "он", "PERF-3fs": "она", "PERF-1p": "мы", "PERF-2mp": "вы (м)", "PERF-2fp": "вы (ж)", "PERF-3mp": "они (м)", "PERF-3fp": "они (ж)",
+  "IMPF-1s": "я", "IMPF-2ms": "ты (м)", "IMPF-2fs": "ты (ж)", "IMPF-3ms": "он", "IMPF-3fs": "она", "IMPF-1p": "мы", "IMPF-2mp": "вы (м)", "IMPF-2fp": "вы (ж)", "IMPF-3mp": "они (м)", "IMPF-3fp": "они (ж)",
+  "IMP-2ms": "ты (м)", "IMP-2fs": "ты (ж)", "IMP-2mp": "вы (м)", "IMP-2fp": "вы (ж)",
+  "INF-L": "инфинитив", "s": "ед", "p": "мн", "sc": "ед, сопр.", "pc": "мн, сопр.",
+};
+const V3_CONJ_POSS_FB = { "1s": "мой", "2ms": "твой (м)", "2fs": "твоя (ж)", "3ms": "его", "3fs": "её", "1p": "наш", "2mp": "ваш (м)", "2fp": "ваш (ж)", "3mp": "их (м)", "3fp": "их (ж)" };
+const V3_CONJ_GROUP_FB = { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)" };
+
+function v3ConjSlotLabel(slot) {
+  const pm = String(slot).match(/^[sp]-P-(.+)$/);   // possessive → label by possessor
+  if (pm) return v3NotesT("notes.card.conj.poss." + pm[1], V3_CONJ_POSS_FB[pm[1]] || pm[1]);
+  return v3NotesT("notes.card.conj.slot." + String(slot).replace(/-/g, "_"), V3_CONJ_SLOT_FB[slot] || slot);
+}
+function v3ConjGroupLabel(k) { return v3NotesT("notes.card.conj.group." + k, V3_CONJ_GROUP_FB[k] || k); }
+
+// Tap a form → speak it offline via the browser's Hebrew voice (no Pealim audio
+// hotlinking, no server round-trip). No-op if no he-IL voice is available.
+function v3ConjSpeak(el) {
+  try {
+    const he = el && el.getAttribute("data-he");
+    if (!he || !window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(he);
+    u.lang = "he-IL"; u.rate = 0.9;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  } catch (_) {}
+}
+window.v3ConjSpeak = v3ConjSpeak;
+
+// ②.5 — second enrichment pass: conjugation/declension paradigms for a text's
+// distinct content lemmas (verbs + nouns/adj). Runs after sentence_morph is
+// stored; reuses the same outbound-text consent. Idempotent (skips lemmas
+// already cached for the model), rate-limited server-side. Best-effort: a
+// network error stops politely and keeps whatever was cached.
+async function v3MorphEnrichInflections(textId, opts) {
+  opts = opts || {};
+  const onProgress = typeof opts.onProgress === "function" ? opts.onProgress : () => {};
+  if (!navigator.onLine) return { ok: false, reason: "offline" };
+  const ldb = await ensureLocalDB();
+  if (!ldb || typeof ldb.saveLemmaInflection !== "function") return { ok: false, reason: "no_schema" };
+
+  let stored = {};
+  try { stored = await ldb.getSentenceMorphForText(textId); } catch (_) { stored = {}; }
+  const seen = new Set();
+  const items = [];
+  for (const sid in stored) {
+    const toks = (stored[sid] && stored[sid].tokens) || [];
+    for (const tok of toks) {
+      let res = null;
+      try { res = await v3MorphTokenToResult(tok); } catch (_) {}
+      if (!res || !res.root) continue;
+      if (res.kind !== "verbRoot" && res.kind !== "base") continue;   // skip particles/propernouns
+      const lemma = String(res.root || res.lemma || "").trim();
+      if (!lemma || lemma.length < 2) continue;
+      const binyan = res.binyan || "";
+      const key = lemma + " " + binyan;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      items.push({ lemma, binyan: res.binyan || undefined, pos: res.pos || undefined, root: res.root || undefined });
+    }
+  }
+  let have = new Set();
+  try { have = await ldb.getLemmaInflectionKeys(V3_PEALIM_INFL_MODEL); } catch (_) {}
+  const todo = items.filter((it) => !have.has(it.lemma + " " + (it.binyan || "")));
+  const total = todo.length;
+  if (!total) { onProgress({ done: 0, total: 0, finished: true }); return { ok: true, total: 0, cached: 0 }; }
+
+  let done = 0, cached = 0;
+  const CHUNK = 12;                                   // small (server paces ≤2 concurrent)
+  for (let i = 0; i < todo.length; i += CHUNK) {
+    const slice = todo.slice(i, i + CHUNK);
+    let results = [];
+    try {
+      const resp = await fetch("/api/conjugation/batch", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: slice }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      results = (data && Array.isArray(data.results)) ? data.results : [];
+    } catch (e) {
+      onProgress({ done, total, finished: true, error: e && e.message });
+      return { ok: false, total, cached, error: e && e.message };
+    }
+    for (let j = 0; j < slice.length; j++) {
+      const rr = results[j];
+      if (rr && rr.ok && rr.paradigm) {
+        try {
+          await ldb.saveLemmaInflection(slice[j].lemma, slice[j].binyan || "", rr.paradigm.pos || slice[j].pos || null, rr.paradigm.kind || null, V3_PEALIM_INFL_MODEL, rr.paradigm, rr.paradigm.source || "pealim", rr.paradigm.pealim_id || null);
+          cached++;
+        } catch (_) {}
+      }
+      done++;
+    }
+    onProgress({ done, total, finished: false });
+  }
+  onProgress({ done, total, finished: true });
+  return { ok: true, total, cached };
+}
+window.v3MorphEnrichInflections = v3MorphEnrichInflections;
+
+// ②.6 — render a paradigm envelope → compact RTL table HTML.
+function v3RenderInflectionParadigm(p) {
+  if (!p || !p.cells) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
+  const cells = p.cells;
+  const isVerb = p.kind === "verb";
+  const groups = isVerb ? V3_CONJ_GROUPS_VERB : V3_CONJ_GROUPS_NOUN;
+  const primarySlots = isVerb ? V3_CONJ_PRIMARY_VERB : V3_CONJ_PRIMARY_NOUN;
+  const cell = (slot) => {
+    const c = cells[slot];
+    if (!c || !c.he) return "";
+    const tr = c.translit ? `<span class="v3-conj-tr">${v3EscapeHtml(c.translit)}</span>` : "";
+    return `<button type="button" class="v3-conj-cell" dir="rtl" data-he="${v3EscapeHtml(c.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(v3ConjSlotLabel(slot))}">
+      <span class="v3-conj-he">${v3EscapeHtml(c.he)}</span>
+      <span class="v3-conj-lab">${v3EscapeHtml(v3ConjSlotLabel(slot))}</span>${tr}
+    </button>`;
+  };
+  const primary = primarySlots.map(cell).filter(Boolean).join("");
+  const fullGroups = groups.map((g) => {
+    const inner = g.slots.map(cell).filter(Boolean).join("");
+    if (!inner) return "";
+    return `<div class="v3-conj-group"><div class="v3-conj-group-h">${v3EscapeHtml(v3ConjGroupLabel(g.key))}</div><div class="v3-conj-grid">${inner}</div></div>`;
+  }).filter(Boolean).join("");
+
+  const badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
+  const gizra = p.gizra_note ? `<span class="v3-conj-gizra">${v3EscapeHtml(p.gizra_note)}</span>` : "";
+  const beso = p.disambig === "best-effort" ? `<div class="v3-conj-besteffort">⚠ ${v3EscapeHtml(v3NotesT("notes.card.conj.bestEffort", "Подобрано по совпадению — сверьтесь по ссылке"))}</div>` : "";
+  const recheckUrl = p.pealim_id ? ("https://www.pealim.com/ru/dict/" + encodeURIComponent(p.pealim_id) + "-/") : v3WordCardPealimUrl(p.lemma || "");
+  const recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+
+  return `<div class="v3-conj-wrap">
+    <div class="v3-conj-meta">${badge}${gizra}${recheck}</div>
+    ${beso}
+    <div class="v3-conj-grid v3-conj-primary">${primary}</div>
+    <details class="v3-conj-full"><summary>${v3EscapeHtml(v3NotesT("notes.card.conj.showFull", "Показать всю парадигму"))}</summary>${fullGroups}</details>
+  </div>`;
+}
+
+// Lazy-load a card's conjugation/declension accordion on first open.
+//   OPFS cache hit → instant (offline). Miss + online + consent → fetch+cache.
+//   Miss + offline / no consent → honest message + Pealim link.
+async function v3WordCardLoadInflection(detailsEl) {
+  if (!detailsEl || detailsEl.getAttribute("data-conj-loaded") === "1") return;
+  const body = detailsEl.querySelector(".v3-conj-body");
+  if (!body) return;
+  const lemma = (detailsEl.getAttribute("data-conj-lemma") || detailsEl.getAttribute("data-conj-word") || "").trim();
+  const binyan = detailsEl.getAttribute("data-conj-binyan") || "";
+  const pos = detailsEl.getAttribute("data-conj-pos") || "";
+  const root = detailsEl.getAttribute("data-conj-root") || "";
+  if (!lemma) { detailsEl.setAttribute("data-conj-loaded", "1"); body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`; return; }
+  detailsEl.setAttribute("data-conj-loaded", "1");
+  body.innerHTML = `<div class="v3-conj-loading">${v3EscapeHtml(v3NotesT("notes.card.conj.loading", "Загрузка таблицы…"))}</div>`;
+
+  // 1) OPFS cache (offline)
+  try {
+    const ldb = await ensureLocalDB();
+    if (ldb && typeof ldb.getLemmaInflection === "function") {
+      const cached = await ldb.getLemmaInflection(lemma, binyan || "", V3_PEALIM_INFL_MODEL);
+      if (cached) { body.innerHTML = v3RenderInflectionParadigm(cached); v3ConjSyncSummary(detailsEl, cached); return; }
+    }
+  } catch (_) {}
+
+  // 2) online + consent → fetch + cache
+  const pealimLink = `<a class="v3-conj-recheck" href="${v3EscapeHtml(v3WordCardPealimUrl(lemma))}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+  if (!navigator.onLine) { body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.offline", "Таблица недоступна офлайн — обогатите текст морфологией."))}</div>${pealimLink}`; return; }
+  if (!v3MorphOnlineConsentOk()) {
+    detailsEl.removeAttribute("data-conj-loaded");   // allow retry after consent
+    body.innerHTML = `<button type="button" class="v3-conj-loadbtn" onclick="v3WordCardConjConsentLoad(this)">${v3EscapeHtml(v3NotesT("notes.card.conj.loadOnline", "Загрузить таблицу (онлайн)"))}</button>${pealimLink}`;
+    return;
+  }
+  try {
+    const resp = await fetch("/api/conjugation", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lemma, binyan: binyan || undefined, pos: pos || undefined, root: root || undefined }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (data && data.ok && data.paradigm) {
+      try {
+        const ldb = await ensureLocalDB();
+        await ldb.saveLemmaInflection(lemma, binyan || "", data.paradigm.pos || pos || null, data.paradigm.kind || null, V3_PEALIM_INFL_MODEL, data.paradigm, data.paradigm.source || "pealim", data.paradigm.pealim_id || null);
+      } catch (_) {}
+      body.innerHTML = v3RenderInflectionParadigm(data.paradigm);
+      v3ConjSyncSummary(detailsEl, data.paradigm);
+    } else {
+      body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>${pealimLink}`;
+    }
+  } catch (e) {
+    body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.offline", "Таблица недоступна офлайн — обогатите текст морфологией."))}</div>${pealimLink}`;
+  }
+}
+window.v3WordCardLoadInflection = v3WordCardLoadInflection;
+
+// Adjust the accordion summary to Спряжение/Склонение once kind is known.
+function v3ConjSyncSummary(detailsEl, paradigm) {
+  try {
+    const sum = detailsEl.querySelector(".v3-wordcard-acc-summary");
+    if (!sum || !paradigm) return;
+    const isVerb = paradigm.kind === "verb";
+    sum.textContent = isVerb
+      ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
+      : v3NotesT("notes.card.conj.summaryNoun", "Склонение");
+  } catch (_) {}
+}
+
+// <details ontoggle> entry — load on first expand.
+function v3WordCardConjToggle(detailsEl) { if (detailsEl && detailsEl.open) v3WordCardLoadInflection(detailsEl); }
+window.v3WordCardConjToggle = v3WordCardConjToggle;
+
+// "Load (online)" button → ensure consent, then load.
+async function v3WordCardConjConsentLoad(btn) {
+  try {
+    const ok = await v3MorphOnlineEnsureConsent();
+    if (!ok) return;
+    const details = btn.closest(".v3-wordcard-conj");
+    if (details) await v3WordCardLoadInflection(details);
+  } catch (_) {}
+}
+window.v3WordCardConjConsentLoad = v3WordCardConjConsentLoad;
 
 // Build the rich-card HTML for one word_study row. Pure/sync — async bits
 // (state badge, root forms) are placeholders filled by v3NotesRowIndexEnrich.
@@ -40153,6 +40459,27 @@ function v3WordCardRichHtml(row) {
         </div>
       </details>` : "";
 
+  // ② Conjugation/declension accordion — content words only (verbs/nouns/adj or
+  // unknown POS; particles/pronouns are skipped). Lazy-loads on first expand
+  // (OPFS cache → instant; miss → online+consent → Pealim). data-conj-* carry
+  // the lemma/binyan/pos/root for resolution; the enrich pass refines them from
+  // stored morphology. The summary self-corrects to Спряжение/Склонение on load.
+  const conjEligible = word && (!pos || pos === "verb" || pos === "noun" || pos === "adjective");
+  const conjSummary = pos === "verb"
+    ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
+    : (pos ? v3NotesT("notes.card.conj.summaryNoun", "Склонение") : v3NotesT("notes.card.conj.summaryVerb", "Спряжение"));
+  const conjHtml = conjEligible ? `
+      <details class="v3-wordcard-acc v3-wordcard-conj"
+               data-conj-word="${v3EscapeHtml(word)}"
+               data-conj-lemma="${v3EscapeHtml(root || "")}"
+               data-conj-binyan="${v3EscapeHtml(binyan || "")}"
+               data-conj-pos="${v3EscapeHtml(pos || "")}"
+               data-conj-root="${v3EscapeHtml(root || "")}"
+               ontoggle="v3WordCardConjToggle(this)">
+        <summary class="v3-wordcard-acc-summary">${v3EscapeHtml(conjSummary)}</summary>
+        <div class="v3-conj-body"></div>
+      </details>` : "";
+
   // data-card-word + a feats slot let v3NotesRowIndexEnrich back-fill the POS
   // pill + grammatical-profile chips from stored Dicta morphology when the
   // saved note lacks them (so POS/feats always show on enriched words).
@@ -40165,9 +40492,10 @@ function v3WordCardRichHtml(row) {
     ${glossHtml}
     <div class="v3-wordcard-tags" data-pos-filled="${posLabel ? "1" : ""}">${posHtml}${rootHtml}<span class="v3-wordcard-feats" data-feats-for="${v3EscapeHtml(word)}"></span></div>
     ${accHtml}
+    ${conjHtml}
     <div class="v3-wordcard-actions">
       <a class="v3-wordcard-pealim" href="${v3EscapeHtml(v3WordCardPealimUrl(word))}" target="_blank" rel="noopener"
-         title="${v3EscapeHtml(v3NotesT("notes.card.pealimTitle", "Спряжение на Pealim (внешний словарь)"))}">Pealim ↗</a>
+         title="${v3EscapeHtml(v3NotesT("notes.card.pealimTitle", "Спряжение на Pealim (внешний словарь)"))}">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>
       <button type="button" class="v3-wordcard-edit" onclick="v3NotesRowIndexOpenNote('${idEsc}')">${v3EscapeHtml(v3NotesT("notes.card.edit", "Открыть"))}</button>
       <button type="button" class="v3-wordcard-del" onclick="event.stopPropagation(); v3NotesRowIndexDelete('${idEsc}')"
               aria-label="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}">✕</button>
@@ -40204,6 +40532,18 @@ async function v3NotesRowIndexEnrich() {
         if (featsEl && res.feats && !featsEl.childElementCount) {
           const html = v3MorphFeatsChips(res.feats);
           if (html) featsEl.innerHTML = html;
+        }
+        // ② refine the conjugation accordion's resolution hints from stored
+        //    morphology (a more reliable lemma/binyan/pos than the saved note).
+        const conj = card.querySelector(".v3-wordcard-conj");
+        if (conj && conj.getAttribute("data-conj-loaded") !== "1") {
+          if (res.root) { conj.setAttribute("data-conj-lemma", res.root); conj.setAttribute("data-conj-root", res.root); }
+          if (res.binyan) conj.setAttribute("data-conj-binyan", res.binyan);
+          if (res.pos) conj.setAttribute("data-conj-pos", res.pos);
+          const sum = conj.querySelector(".v3-wordcard-acc-summary");
+          if (sum && res.pos) sum.textContent = (res.pos === "verb")
+            ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
+            : v3NotesT("notes.card.conj.summaryNoun", "Склонение");
         }
       }
     }
@@ -41765,6 +42105,8 @@ document.addEventListener("i18n:changed", function () {
         <div data-i18n="about.creditsHebrew">Hebrew-транслитерация: hebrew-transliteration (MIT)</div>
         <div data-i18n="about.creditsTts">TTS: Google Cloud Text-to-Speech (внешний сервис)</div>
         <div data-i18n="about.creditsTranslate">Перевод: Gemini API (внешний сервис)</div>
+        <div data-i18n="about.creditsMorph">Морфология: Dicta (dicta.org.il, внешний сервис)</div>
+        <div data-i18n="about.creditsConj">Таблицы спряжения: Pealim (pealim.com, внешний сервис)</div>
       </div>
 
       <div class="v3-about-section-title" data-i18n="about.maintenanceSection">Обслуживание</div>

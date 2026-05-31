@@ -24,11 +24,16 @@ const AUDIO_CACHE_DIR = process.env.AUDIO_CACHE_DIR || path.join(DATA_DIR, "audi
 const GEMINI_CACHE_DIR = process.env.GEMINI_CACHE_DIR || path.join(DATA_DIR, "gemini-cache");
 const BACKUPS_DIR = process.env.BACKUPS_DIR || path.join(DATA_DIR, "backups");
 const RESEARCH_DATA_DIR = process.env.RESEARCH_DATA_DIR || path.join(DATA_DIR, "research");
+// Shared server-side cache of inflection paradigms (Pealim). A lemma's paradigm
+// is universal reference data (NOT user data) — caching it here, like the audio
+// cache, means a given lemma is fetched from Pealim once globally (politeness).
+const INFLECTION_CACHE_DIR = process.env.PEALIM_CACHE_DIR || path.join(DATA_DIR, "inflection-cache");
 
 ensureDirSync(AUDIO_CACHE_DIR);
 ensureDirSync(GEMINI_CACHE_DIR);
 ensureDirSync(BACKUPS_DIR);
 ensureDirSync(RESEARCH_DATA_DIR);
+ensureDirSync(INFLECTION_CACHE_DIR);
 
 module.exports = {
   DATA_DIR,
@@ -38,5 +43,6 @@ module.exports = {
   GEMINI_CACHE_DIR,
   BACKUPS_DIR,
   RESEARCH_DATA_DIR,
+  INFLECTION_CACHE_DIR,
   ensureDirSync,
 };

@@ -495,6 +495,55 @@ export async function deleteSentenceMorphForText(textId) {
   await r(`DELETE FROM sentence_morph WHERE text_id = ?`, [String(textId)]);
 }
 
+// ── ② — Pealim conjugation/declension paradigms, cached per lemma ─────────
+// binyan is '' for nominals (PK needs NOT NULL). paradigm is the provider's
+// raw slot→form envelope; JSON-serialized here. model_version invalidates on a
+// provider/parser upgrade.
+export async function saveLemmaInflection(lemma, binyan, pos, kind, modelVersion, paradigm, source, pealimId) {
+  if (!lemma) throw new Error('saveLemmaInflection: lemma required');
+  const json = JSON.stringify(paradigm || {});
+  const now = new Date().toISOString();
+  await r(
+    `INSERT INTO lemma_inflection (lemma, binyan, model_version, pos, kind, paradigm_json, source, pealim_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(lemma, binyan, model_version) DO UPDATE SET
+       pos           = excluded.pos,
+       kind          = excluded.kind,
+       paradigm_json = excluded.paradigm_json,
+       source        = excluded.source,
+       pealim_id     = excluded.pealim_id,
+       updated_at    = excluded.updated_at`,
+    [String(lemma), String(binyan || ''), String(modelVersion || ''), pos || null, kind || null, json, source || null, pealimId || null, now, now]
+  );
+}
+
+// One lemma's paradigm (parsed) for a model, or null. binyan '' for nominals.
+export async function getLemmaInflection(lemma, binyan, modelVersion) {
+  if (!lemma) return null;
+  const rows = await q(
+    `SELECT paradigm_json, pos, kind, source FROM lemma_inflection WHERE lemma = ? AND binyan = ? AND model_version = ?`,
+    [String(lemma), String(binyan || ''), String(modelVersion || '')]
+  );
+  if (!rows || !rows[0]) return null;
+  let paradigm = null;
+  try { paradigm = JSON.parse(rows[0].paradigm_json || 'null'); } catch (_) { paradigm = null; }
+  return paradigm;
+}
+
+// Which of the given (lemma, binyan) keys already have a paradigm for a model.
+// Returns a Set of "lemma binyan" keys — used to skip already-cached lemmas
+// in the batch enrichment pass.
+export async function getLemmaInflectionKeys(modelVersion) {
+  const rows = await q(`SELECT lemma, binyan FROM lemma_inflection WHERE model_version = ?`, [String(modelVersion || '')]);
+  const set = new Set();
+  for (const row of (rows || [])) set.add(String(row.lemma) + ' ' + String(row.binyan || ''));
+  return set;
+}
+
+export async function deleteLemmaInflectionForModel(modelVersion) {
+  await r(`DELETE FROM lemma_inflection WHERE model_version = ?`, [String(modelVersion || '')]);
+}
+
 export async function addSentence(textId, data) {
   if (!textId) throw new Error('addSentence: textId is required');
   if (!data || !data.id) throw new Error('addSentence: data.id is required');
