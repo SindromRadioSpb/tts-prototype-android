@@ -23582,6 +23582,9 @@ async function v3LibrarySaveCurrentCore(meta) {
     // audio indicators and Audio/Anki work immediately without re-opening.
     if (text && text.id) {
       await v3ClassicEnrichSavedRows(String(text.id));
+      // Phase D — background corpus morphology enrichment (no-op unless the
+      // auto-enrich toggle is on AND online AND consent already given).
+      try { if (typeof v3MorphMaybeAutoEnrich === "function") v3MorphMaybeAutoEnrich(String(text.id)); } catch (_) {}
     }
 
     // обновим список, если модалка открыта
@@ -23717,6 +23720,9 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
     // audio indicators and Audio/Anki work immediately without re-opening.
     if (text && text.id) {
       await v3ClassicEnrichSavedRows(String(text.id));
+      // Phase D — background corpus morphology enrichment (no-op unless the
+      // auto-enrich toggle is on AND online AND consent already given).
+      try { if (typeof v3MorphMaybeAutoEnrich === "function") v3MorphMaybeAutoEnrich(String(text.id)); } catch (_) {}
     }
 
     try {
@@ -36597,6 +36603,16 @@ function v3MorphologyStatusShow() {
     body += '<div class="v3-morph-status-row">' + esc(v3NotesT("morph.firstUseHint", "Словарь подгружается при первом обращении к шаблону «🔤 Слово отсюда» (~6 MB, кешируется Service Worker).")) + '</div>';
   }
   body += '</div>';
+  // Phase D — global auto-enrich toggle (Dicta corpus precompute on import).
+  try {
+    const autoOn = (typeof v3MorphAutoEnrichEnabled === "function") && v3MorphAutoEnrichEnabled();
+    body += '<div class="v3-morph-status-row" style="margin-top:12px;border-top:1px solid var(--theme-border-soft,#e6e9ef);padding-top:12px;">'
+      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">'
+      + '<input type="checkbox" ' + (autoOn ? "checked" : "")
+      + ' onchange="v3MorphSetAutoEnrich(this.checked)" style="width:17px;height:17px;cursor:pointer;flex:0 0 auto;" />'
+      + '<span>' + esc(v3NotesT("morph.autoEnrichToggle", "Авто-обогащать новые тексты через Dicta (онлайн)")) + '</span>'
+      + '</label></div>';
+  } catch (_) {}
   body += '<div class="v3-morph-status-actions">';
   body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusUpdate()">📥 ' + esc(v3NotesT("morph.btnUpdate", "Обновить словарь")) + '</button>';
   body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusClear()">🗑 ' + esc(v3NotesT("morph.btnClear", "Очистить кеш")) + '</button>';
@@ -39623,13 +39639,13 @@ const V3_HEB_FUNCTION_WORDS = new Set([
 // the local dict for POS. Binyan is NOT auto-filled — homographic roots span
 // binyanim (סכל → piel סיכל vs hitpael הסתכל) and the lemma lookup can't tell
 // which; the user sets it (or a future Dicta morph-decode supplies it).
-async function v3DictaMorphResolve(word, sentence) {
-  const norm = (window.MorphNormalize && window.MorphNormalize.normalizeHebrew)
-    ? window.MorphNormalize.normalizeHebrew : (x) => String(x || "");
-  const wKey = norm(word);
-  const tokens = await v3DictaMorphSentence(sentence);
-  const tok = tokens.find((t) => norm(t.word) === wKey) || tokens.find((t) => norm(t.stem) === wKey);
-  if (!tok) return null;
+const _v3MorphNorm = () => (window.MorphNormalize && window.MorphNormalize.normalizeHebrew)
+  ? window.MorphNormalize.normalizeHebrew : (x) => String(x || "");
+
+// Map ONE Dicta token → { word, prefix, stem, lemma, root, binyan, pos, kind }.
+// Shared by the live verify and the stored (offline) resolve.
+async function v3MorphTokenToResult(tok) {
+  const norm = _v3MorphNorm();
   const lemma = String(tok.lemma || tok.stem || "").trim();
   const lemmaNorm = norm(lemma);
   // Genuine function word → no root. Check BOTH the raw lemma (final letters
@@ -39638,8 +39654,6 @@ async function v3DictaMorphResolve(word, sentence) {
   if (!lemma || lemma.length < 2 || V3_HEB_FUNCTION_WORDS.has(lemma) || V3_HEB_FUNCTION_WORDS.has(lemmaNorm)) {
     return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "other", kind: "particle", confident: tok.confident };
   }
-  // Content word. Enrich POS from the local dict (preferring an analysis whose
-  // root/lemma matches Dicta's, then a verb reading).
   let pos = null;
   try {
     const an = await window.MorphProvider.analyze(lemma);
@@ -39651,7 +39665,34 @@ async function v3DictaMorphResolve(word, sentence) {
   const kind = (pos === "verb") ? "verbRoot" : "base";
   return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: lemma, binyan: null, pos, kind, confident: tok.confident };
 }
+
+async function v3DictaMorphResolve(word, sentence) {
+  const norm = _v3MorphNorm();
+  const wKey = norm(word);
+  const tokens = await v3DictaMorphSentence(sentence);
+  const tok = tokens.find((t) => norm(t.word) === wKey) || tokens.find((t) => norm(t.stem) === wKey);
+  if (!tok) return null;
+  return v3MorphTokenToResult(tok);
+}
 window.v3DictaMorphResolve = v3DictaMorphResolve;
+
+// OFFLINE resolve from pre-computed (enriched) morphology stored for a sentence
+// — no network, no consent. Returns null if not enriched / word not found.
+async function v3MorphStoredResolve(word, sentenceId) {
+  if (!word || !sentenceId) return null;
+  try {
+    const ldb = await ensureLocalDB();
+    if (!ldb || typeof ldb.getSentenceMorph !== "function") return null;
+    const stored = await ldb.getSentenceMorph(String(sentenceId));
+    if (!stored || !Array.isArray(stored.tokens) || !stored.tokens.length) return null;
+    const norm = _v3MorphNorm();
+    const wKey = norm(word);
+    const tok = stored.tokens.find((t) => norm(t.word) === wKey) || stored.tokens.find((t) => norm(t.stem) === wKey);
+    if (!tok) return null;
+    return v3MorphTokenToResult(tok);
+  } catch (_) { return null; }
+}
+window.v3MorphStoredResolve = v3MorphStoredResolve;
 
 // Hebrew text of the row the current note belongs to (for Dicta context).
 async function v3NotesGetSentenceText() {
@@ -39685,6 +39726,49 @@ const V3_DICTA_POS_TO_OPTION = {
   preposition: "preposition", pronoun: "pronoun", interjection: "interjection",
 };
 
+// Apply an authoritative (Dicta) result to the word_study form — shared by the
+// online verify button and the offline eager fill from stored enrichment.
+// Respects a user-typed root (won't clobber userTouched).
+function v3MorphApplyResultToForm(r, word) {
+  if (!r) return;
+  const rootEl = document.getElementById("v3NotesTplWordStudyRoot");
+  const binyanEl = document.getElementById("v3NotesTplWordStudyBinyan");
+  const posEl = document.getElementById("v3NotesTplWordStudyPos");
+  const hintEl = document.getElementById("v3NotesTplWordStudyRootHint");
+  const userTyped = rootEl && rootEl.dataset.userTouched === "1";
+  const chip = (s) => `<span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(s || ""))}</span>`;
+  if (r.kind === "particle") {
+    if (rootEl && !userTyped) { rootEl.value = ""; rootEl.dataset.autoFilled = ""; }
+    if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
+    if (posEl && posEl.dataset.userTouched !== "1") { posEl.value = "other"; posEl.dataset.autoFilled = "1"; }
+    if (hintEl && !userTyped) {
+      hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-particle";
+      const seg = r.prefix ? `${chip(r.prefix)} + ${chip(r.lemma || r.stem)}` : chip(r.lemma || r.stem || word);
+      hintEl.innerHTML = `ⓘ ${seg} — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет."))}`;
+      hintEl.style.display = "";
+    }
+  } else {
+    if (posEl && r.pos && V3_DICTA_POS_TO_OPTION[r.pos] && posEl.dataset.userTouched !== "1") {
+      posEl.value = V3_DICTA_POS_TO_OPTION[r.pos]; posEl.dataset.autoFilled = "1";
+    }
+    if (rootEl && !userTyped) {
+      rootEl.value = r.root; rootEl.dataset.autoFilled = "1";
+      rootEl.classList.add("v3-notes-tpl-auto-filled");
+      setTimeout(() => rootEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
+    }
+    if (binyanEl && binyanEl.dataset.userTouched !== "1") { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
+    if (hintEl && !userTyped) {
+      hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-verified";
+      const key = r.kind === "verbRoot" ? "notes.tpl.word_study.rootHintVerified" : "notes.tpl.word_study.rootHintVerifiedBase";
+      const fb = r.kind === "verbRoot" ? "Корень проверен (Dicta, по контексту)" : "Базовая форма (Dicta, по контексту)";
+      const seg = r.prefix ? ` · ${chip(r.prefix)} + ${chip(r.stem)}` : "";
+      hintEl.innerHTML = `✓ ${v3EscapeHtml(v3NotesT(key, fb))}${seg}`;
+      hintEl.style.display = "";
+    }
+  }
+}
+window.v3MorphApplyResultToForm = v3MorphApplyResultToForm;
+
 // Handler for the "🌐 Verify via Dicta" button in the word_study form.
 async function v3NotesTplDictaVerify() {
   const wordEl = document.getElementById("v3NotesTplWordStudyWord");
@@ -39717,39 +39801,7 @@ async function v3NotesTplDictaVerify() {
       }
       return;
     }
-    const chip = (s) => `<span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(s || ""))}</span>`;
-    if (r.kind === "particle") {
-      // Function word → NO root. Clear the provisional (wrong) root + binyan,
-      // mark POS as "other".
-      if (rootEl) { rootEl.value = ""; rootEl.dataset.autoFilled = ""; rootEl.dataset.userTouched = ""; }
-      if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
-      if (posEl) { posEl.value = "other"; posEl.dataset.autoFilled = "1"; posEl.dataset.userTouched = ""; }
-      if (hintEl) {
-        hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-particle";
-        const seg = r.prefix ? `${chip(r.prefix)} + ${chip(r.lemma || r.stem)}` : chip(r.lemma || r.stem || word);
-        hintEl.innerHTML = `ⓘ ${seg} — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет."))}`;
-      }
-    } else {
-      // Content word: fill the field with Dicta's authoritative value (the ROOT
-      // for verbs, the dictionary base for nouns/adj). Don't guess binyan.
-      if (posEl && r.pos && V3_DICTA_POS_TO_OPTION[r.pos]) {
-        posEl.value = V3_DICTA_POS_TO_OPTION[r.pos];
-        posEl.dataset.autoFilled = "1"; posEl.dataset.userTouched = "";
-      }
-      if (rootEl) {
-        rootEl.value = r.root; rootEl.dataset.autoFilled = "1"; rootEl.dataset.userTouched = "";
-        rootEl.classList.add("v3-notes-tpl-auto-filled");
-        setTimeout(() => rootEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
-      }
-      if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }   // binyan not guessed
-      if (hintEl) {
-        hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-verified";
-        const key = r.kind === "verbRoot" ? "notes.tpl.word_study.rootHintVerified" : "notes.tpl.word_study.rootHintVerifiedBase";
-        const fb = r.kind === "verbRoot" ? "Корень проверен (Dicta, по контексту)" : "Базовая форма (Dicta, по контексту)";
-        const seg = r.prefix ? ` · ${chip(r.prefix)} + ${chip(r.stem)}` : "";
-        hintEl.innerHTML = `✓ ${v3EscapeHtml(v3NotesT(key, fb))}${seg}`;
-      }
-    }
+    v3MorphApplyResultToForm(r, word);
   } catch (e) {
     console.warn("[morph-online] failed:", e && e.message);
     if (hintEl) {
@@ -40308,10 +40360,19 @@ try { v3NotesMdResetUi(); } catch (_) {}
           hintEl.style.display = "";
         }
       } catch (_) {}
-      // Eager auto-fill: ensure the full dict (better root/lemma coverage),
-      // then run the (idempotent) lookup.
+      // Eager auto-fill: local provisional first (instant), then — if this
+      // text was enriched — upgrade to the stored Dicta result OFFLINE.
       try {
-        const eager = () => { if (typeof _v3NotesMorphEagerRun === "function") _v3NotesMorphEagerRun(); };
+        const sidForMorph = (typeof v3NotesModalSentenceId !== "undefined") ? v3NotesModalSentenceId : null;
+        const eager = async () => {
+          try { if (typeof _v3NotesMorphEagerRun === "function") await _v3NotesMorphEagerRun(); } catch (_) {}
+          try {
+            if (sidForMorph && typeof v3MorphStoredResolve === "function") {
+              const stored = await v3MorphStoredResolve(plain, sidForMorph);
+              if (stored) v3MorphApplyResultToForm(stored, plain);
+            }
+          } catch (_) {}
+        };
         if (typeof v3EnsureFullDictForWordPath === "function") {
           v3EnsureFullDictForWordPath().then(eager).catch(eager);
         } else if (window.MorphProvider && typeof window.MorphProvider.ensureReady === "function") {
