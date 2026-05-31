@@ -137,6 +137,17 @@
 
     body += '</div>';
 
+    // Phase D — corpus morphology auto-enrich toggle (Dicta-at-import).
+    try {
+      const autoOn = (typeof window.v3MorphAutoEnrichEnabled === 'function') && window.v3MorphAutoEnrichEnabled();
+      body += '<label style="display:flex;align-items:center;gap:8px;padding:10px;border:1px solid var(--theme-border,#ddd);border-radius:6px;cursor:pointer;margin-bottom:14px;">' +
+        '<input type="checkbox" id="v3MorphAutoEnrichToggle" ' + (autoOn ? 'checked ' : '') +
+        'style="width:17px;height:17px;flex:0 0 auto;">' +
+        '<span style="font-size:12.5px;line-height:1.4;">' +
+        escapeHtml(T('morph.autoEnrichToggle', 'Авто-обогащать новые тексты через Dicta (онлайн)')) +
+        '</span></label>';
+    } catch (_) {}
+
     // Advanced actions.
     body += '<div class="v3-morph-advanced" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">';
     body += '<button type="button" id="v3MorphClearCacheBtn" class="btn-secondary" style="font-size:12px;padding:6px 10px;">' +
@@ -207,6 +218,10 @@
     // Wire up the "Clear cache" button while modal is open. It bypasses
     // the OK/Cancel flow and operates immediately.
     setTimeout(() => {
+      const enr = document.getElementById('v3MorphAutoEnrichToggle');
+      if (enr) enr.addEventListener('change', () => {
+        try { if (typeof window.v3MorphSetAutoEnrich === 'function') window.v3MorphSetAutoEnrich(enr.checked); } catch (_) {}
+      });
       const btn = document.getElementById('v3MorphClearCacheBtn');
       if (!btn) return;
       btn.addEventListener('click', async () => {
