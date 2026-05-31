@@ -648,6 +648,23 @@ window.I18N_LOCALES.he = {
       addTranslationTitle: "פער תרגום בשורה",
       addPronunciationTitle: "הערת הגייה לשורה",
     },
+    // Slice 1 — root-aware rich word card (read view).
+    card: {
+      wordsFromRoot: "מילים מהשורש הזה",
+      noForms: "אין עדיין צורות נוספות בטקסטים שלך.",
+      loading: "…",
+      edit: "פתח",
+      noWord: "(ללא מילה)",
+      rootTitle: "שורש",
+      pealimTitle: "נטייה ב-Pealim (מילון חיצוני)",
+      state: {
+        weak: "חלש",
+        stale: "לחזרה",
+        learning: "בלמידה",
+        new: "חדש",
+        known: "נלמד",
+      },
+    },
     help: {
       openTitle: "איך עובדות הערות פרימיום",
       openAria: "עזרה להערות",

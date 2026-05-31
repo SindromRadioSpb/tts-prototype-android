@@ -641,6 +641,23 @@ window.I18N_LOCALES.en = {
       addTranslationTitle: "Translation discrepancy on this row",
       addPronunciationTitle: "Pronunciation note for this row",
     },
+    // Slice 1 — root-aware rich word card (read view).
+    card: {
+      wordsFromRoot: "Words from this root",
+      noForms: "No other forms in your texts yet.",
+      loading: "…",
+      edit: "Open",
+      noWord: "(no word)",
+      rootTitle: "Root",
+      pealimTitle: "Conjugation on Pealim (external dictionary)",
+      state: {
+        weak: "weak",
+        stale: "due",
+        learning: "learning",
+        new: "new",
+        known: "known",
+      },
+    },
     help: {
       openTitle: "How premium notes work",
       openAria: "Notes help",

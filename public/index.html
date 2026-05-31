@@ -6196,6 +6196,158 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   color: var(--theme-text-primary);
   border-color: var(--theme-border-medium);
 }
+/* ── Slice 1 — root-aware rich word card (read view) ─────────────────────── */
+.v3-wordcard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--theme-border-soft, #e6e9ef);
+  border-radius: 12px;
+  background: var(--theme-bg-card, #fff);
+  color: var(--theme-text-primary);
+}
+.v3-wordcard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.v3-wordcard-headword {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  word-break: break-word;
+}
+.v3-wordcard-niqqud {
+  font-size: 17.6px;            /* ~0.8× the headword */
+  color: var(--theme-text-muted);
+  line-height: 1.1;
+  margin-top: -2px;
+}
+.v3-wordcard-gloss {
+  font-size: 13.5px;
+  color: var(--theme-text-primary);
+}
+.v3-wordcard-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.v3-wordcard-pos {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--theme-bg-muted, #f1f5f9);
+  color: var(--theme-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.v3-wordcard-rootchip {              /* brand atom — amber */
+  font-size: 13px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 8px;
+  background: rgba(230, 159, 0, 0.12);
+  border: 1px solid #E69F00;
+  color: var(--theme-text-primary);
+}
+.v3-wordcard-rootchip-empty {
+  background: var(--theme-bg-muted, #f1f5f9);
+  border-color: var(--theme-border-soft);
+  color: var(--theme-text-muted);
+  font-weight: 600;
+}
+.v3-wordcard-binyan { font-weight: 600; opacity: 0.85; }
+.v3-wordcard-state {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--state-color, #999);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.v3-wordcard-acc {
+  border-top: 1px dashed var(--theme-border-soft);
+  padding-top: 6px;
+  margin-top: 2px;
+}
+.v3-wordcard-acc-summary {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--theme-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  list-style: none;
+}
+.v3-wordcard-acc-summary::-webkit-details-marker { display: none; }
+.v3-wordcard-acc-summary::before { content: "▾ "; opacity: 0.6; }
+.v3-wordcard-acc:not([open]) .v3-wordcard-acc-summary::before { content: "▸ "; }
+.v3-wordcard-forms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+.v3-wordcard-form {
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: var(--theme-bg-muted, #f1f5f9);
+  border: 1px solid var(--theme-border-soft);
+}
+.v3-wordcard-forms-empty, .v3-wordcard-forms-loading {
+  font-size: 11.5px;
+  color: var(--theme-text-muted);
+}
+.v3-wordcard-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  border-top: 1px solid var(--theme-border-soft);
+  padding-top: 8px;
+}
+.v3-wordcard-pealim {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--theme-accent);
+  text-decoration: none;
+}
+.v3-wordcard-pealim:hover { text-decoration: underline; }
+.v3-wordcard-edit {
+  height: 31px;
+  padding: 0 14px;
+  font: 700 11px "Segoe UI", system-ui, sans-serif;
+  border: 1px solid var(--theme-border-medium);
+  border-radius: 8px;
+  background: var(--theme-bg-card);
+  color: var(--theme-text-primary);
+  cursor: pointer;
+  margin-left: auto;           /* push edit+delete to the trailing edge */
+}
+.v3-wordcard-edit:hover { background: var(--theme-bg-hover); }
+.v3-wordcard-del {
+  width: 31px; height: 31px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--theme-border-soft);
+  background: var(--theme-bg-card);
+  color: var(--theme-text-muted);
+  border-radius: 8px;
+  font-size: 13px; cursor: pointer;
+}
+.v3-wordcard-del:hover { background: var(--theme-bg-hover); color: var(--theme-text-primary); }
+/* guard against the mobile global button{width:100%} trap */
+.v3-wordcard button { width: auto; }
+
 .v3-notes-row-index-add {
   padding-top: 12px;
   border-top: 1px solid var(--theme-border-soft);
@@ -39151,6 +39303,163 @@ function v3NotesRowIndexBodyExcerpt(row) {
   return "";
 }
 
+// ── Slice 1 — root-aware rich word card (read view) ───────────────────────
+// Flag `wordCardRich_v1` (default ON). When enabled, a word_study note in the
+// row-index panel renders as a premium root-aware card instead of the generic
+// title row. The card is offline-complete from local data (body_json +
+// MorphProvider already ran at save time); enrichment (SRS state badge, "words
+// from this root") is layered asynchronously after first paint.
+function v3WordCardRichEnabled() {
+  try {
+    const v = localStorage.getItem("wordCardRich_v1");
+    return v === null ? true : v === "1" || v === "true";
+  } catch (_) { return true; }
+}
+
+// Single status palette — IDENTICAL to the graph's LEARN_STYLE (notes-graph-
+// render.js:38) so a card badge, graph ring and recall bar read as one system.
+const V3_WORDCARD_STATE_STYLE = {
+  weak:     "#D55E00",
+  stale:    "#E69F00",
+  learning: "#56B4E9",
+  new:      "#999999",
+  known:    "#009E73",
+};
+function v3WordCardStateLabel(st) {
+  return v3NotesT("notes.card.state." + st, st);
+}
+
+// part_of_speech value → existing word_study POS i18n key.
+const V3_WORDCARD_POS_KEY = {
+  noun: "posNoun", verb: "posVerb", adjective: "posAdj", adverb: "posAdv",
+  preposition: "posPrep", pronoun: "posPron", interjection: "posInterj", other: "posOther",
+};
+// binyan value → compact transliterated display (mirrors the <select> text).
+const V3_WORDCARD_BINYAN_LABEL = {
+  paal: "pa'al", nifal: "nif'al", piel: "pi'el", pual: "pu'al",
+  hifil: "hif'il", hufal: "huf'al", hitpael: "hitpa'el",
+};
+
+function v3WordCardPealimUrl(word) {
+  return "https://www.pealim.com/ru/search/?from_lang=he&q=" + encodeURIComponent(String(word || ""));
+}
+
+// Build the rich-card HTML for one word_study row. Pure/sync — async bits
+// (state badge, root forms) are placeholders filled by v3NotesRowIndexEnrich.
+function v3WordCardRichHtml(row) {
+  const id = String(row.id || "");
+  const idEsc = v3EscapeHtml(id);
+  let bj = {};
+  try { bj = row.body_json ? JSON.parse(String(row.body_json)) : {}; } catch (_) { bj = {}; }
+
+  const word = String(bj.word || "").trim();
+  const niqqud = String(bj.niqqud_variant || "").trim();
+  const root = String(bj.root || "").trim();
+  const meaning = String(bj.meaning || "").trim();
+  const pos = String(bj.part_of_speech || "").trim();
+  const binyan = String(bj.binyan || "").trim();
+
+  const posLabel = pos && V3_WORDCARD_POS_KEY[pos]
+    ? v3NotesT("notes.tpl.word_study." + V3_WORDCARD_POS_KEY[pos], pos) : "";
+  const binyanLabel = binyan && V3_WORDCARD_BINYAN_LABEL[binyan] ? V3_WORDCARD_BINYAN_LABEL[binyan] : "";
+
+  const headword = word || v3NotesT("notes.card.noWord", "(без слова)");
+  const niqqudHtml = (niqqud && niqqud !== word)
+    ? `<div class="v3-wordcard-niqqud" dir="rtl">${v3EscapeHtml(niqqud)}</div>` : "";
+  const glossHtml = meaning
+    ? `<div class="v3-wordcard-gloss">${v3EscapeHtml(meaning)}</div>` : "";
+
+  const posHtml = posLabel ? `<span class="v3-wordcard-pos">${v3EscapeHtml(posLabel)}</span>` : "";
+  const rootHtml = root
+    ? `<span class="v3-wordcard-rootchip" dir="rtl" title="${v3EscapeHtml(v3NotesT("notes.card.rootTitle", "Корень"))}">🌳 ${v3EscapeHtml(root)}${binyanLabel ? ` · <span class="v3-wordcard-binyan">${v3EscapeHtml(binyanLabel)}</span>` : ""}</span>`
+    : `<span class="v3-wordcard-rootchip v3-wordcard-rootchip-empty">🌳 —</span>`;
+
+  // "Words from this root" accordion — only when we have a headword to expand.
+  const accHtml = word ? `
+      <details class="v3-wordcard-acc" open>
+        <summary class="v3-wordcard-acc-summary">${v3EscapeHtml(v3NotesT("notes.card.wordsFromRoot", "Слова от этого корня"))}</summary>
+        <div class="v3-wordcard-forms" data-forms-for="${v3EscapeHtml(word)}">
+          <span class="v3-wordcard-forms-loading">${v3EscapeHtml(v3NotesT("notes.card.loading", "…"))}</span>
+        </div>
+      </details>` : "";
+
+  return `<div class="v3-wordcard" data-note-id="${idEsc}">
+    <div class="v3-wordcard-head">
+      <div class="v3-wordcard-headword" dir="rtl">${v3EscapeHtml(headword)}</div>
+      <span class="v3-wordcard-state" data-state="" style="display:none;"></span>
+    </div>
+    ${niqqudHtml}
+    ${glossHtml}
+    <div class="v3-wordcard-tags">${posHtml}${rootHtml}</div>
+    ${accHtml}
+    <div class="v3-wordcard-actions">
+      <a class="v3-wordcard-pealim" href="${v3EscapeHtml(v3WordCardPealimUrl(word))}" target="_blank" rel="noopener"
+         title="${v3EscapeHtml(v3NotesT("notes.card.pealimTitle", "Спряжение на Pealim (внешний словарь)"))}">Pealim ↗</a>
+      <button type="button" class="v3-wordcard-edit" onclick="v3NotesRowIndexOpenNote('${idEsc}')">${v3EscapeHtml(v3NotesT("notes.card.edit", "Открыть"))}</button>
+      <button type="button" class="v3-wordcard-del" onclick="event.stopPropagation(); v3NotesRowIndexDelete('${idEsc}')"
+              aria-label="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}">✕</button>
+    </div>
+  </div>`;
+}
+
+// Async post-paint enrichment for rich word cards: SRS state badges (one
+// overlay query) + "words from this root" via the CrossText corpus index.
+async function v3NotesRowIndexEnrich() {
+  const cards = document.querySelectorAll(".v3-wordcard[data-note-id]");
+  if (!cards.length) return;
+  // 1) SRS state badges — single overlay query, applied to all cards.
+  try {
+    const ldb = await ensureLocalDB();
+    if (ldb && typeof ldb.getLearningStateOverlay === "function") {
+      const overlay = await ldb.getLearningStateOverlay();
+      cards.forEach((card) => {
+        const st = overlay[card.getAttribute("data-note-id")];
+        const badge = card.querySelector(".v3-wordcard-state");
+        if (st && badge && V3_WORDCARD_STATE_STYLE[st]) {
+          badge.setAttribute("data-state", st);
+          badge.style.setProperty("--state-color", V3_WORDCARD_STATE_STYLE[st]);
+          badge.textContent = v3WordCardStateLabel(st);
+          badge.style.display = "";
+        }
+      });
+    }
+  } catch (_) {}
+  // 2) "Words from this root" via CrossText (root-expanded corpus forms).
+  try {
+    const conts = Array.from(document.querySelectorAll(".v3-wordcard-forms[data-forms-for]"));
+    const ct = window.CrossText;
+    if (!ct || typeof ct.findOccurrences !== "function") {
+      document.querySelectorAll(".v3-wordcard-acc").forEach((a) => { a.style.display = "none"; });
+      return;
+    }
+    const norm = typeof ct._normalize === "function" ? ct._normalize : (s) => String(s || "");
+    for (const cont of conts) {
+      const word = cont.getAttribute("data-forms-for");
+      try {
+        const occ = await ct.findOccurrences(word, { includeRoot: true, limit: 80 });
+        const selfKey = norm(word);
+        const seen = new Set();
+        const forms = [];
+        for (const o of (occ || [])) {
+          const mf = String(o.matched_form || "").trim();
+          if (!mf) continue;
+          const k = norm(mf);
+          if (!k || k === selfKey || seen.has(k)) continue;
+          seen.add(k);
+          forms.push(mf);
+          if (forms.length >= 12) break;
+        }
+        if (!forms.length) {
+          cont.innerHTML = `<span class="v3-wordcard-forms-empty">${v3EscapeHtml(v3NotesT("notes.card.noForms", "Других форм в ваших текстах пока нет."))}</span>`;
+        } else {
+          cont.innerHTML = forms.map((f) => `<span class="v3-wordcard-form" dir="rtl">${v3EscapeHtml(f)}</span>`).join("");
+        }
+      } catch (_) { cont.innerHTML = ""; }
+    }
+  } catch (_) {}
+}
+window.v3NotesRowIndexEnrich = v3NotesRowIndexEnrich;
+
 function v3NotesRowIndexRender(rows) {
   const list = document.getElementById("v3NotesRowIndexList");
   if (!list) return;
@@ -39159,10 +39468,17 @@ function v3NotesRowIndexRender(rows) {
 
   if (!rows || !rows.length) { list.innerHTML = ""; return; }
 
+  const richWordCards = v3WordCardRichEnabled();
+
   const html = rows.map((row) => {
     const id = v3EscapeHtml(String(row.id || ""));
     const tk = String(row.target_kind || "sentence");
     const nt = String(row.note_type || "free");
+
+    // Slice 1 — render word_study notes as the premium root-aware card.
+    if (richWordCards && nt === "word_study") {
+      return v3WordCardRichHtml(row);
+    }
     const targetIcon = V3_NOTES_TARGET_ICONS[tk] || "❔";
     const typeIcon = V3_NOTES_TYPE_ICONS[nt] || "✍";
     const title = String(row.title || "").trim();
@@ -39208,6 +39524,8 @@ function v3NotesRowIndexRender(rows) {
     </div>`;
   }).join("");
   list.innerHTML = html;
+  // Slice 1 — layer SRS state badges + "words from this root" after paint.
+  try { v3NotesRowIndexEnrich(); } catch (_) {}
 }
 window.v3NotesRowIndexRender = v3NotesRowIndexRender;
 

@@ -1273,9 +1273,12 @@ export async function getLearningStateOverlay() {
     if (!id) continue;
     const attempts = Number(r0.attempts) || 0;
     const correct = Number(r0.correct) || 0;
+    const lapses = Number(r0.lapses) || 0;
     const cs = String(r0.card_state || "new").toLowerCase();
     let state;
-    if (attempts >= 3 && (correct / attempts) < 0.5) {
+    // "weak" = needs work: poor accuracy over enough attempts, OR a card the
+    // user has lapsed (forgotten) ≥2 times regardless of recent accuracy.
+    if ((attempts >= 3 && (correct / attempts) < 0.5) || lapses >= 2) {
       state = "weak";
     } else if (r0.due_date && Date.parse(r0.due_date) < (now - OVERDUE_MS)) {
       state = "stale";

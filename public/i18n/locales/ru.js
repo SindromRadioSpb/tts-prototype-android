@@ -648,6 +648,23 @@ window.I18N_LOCALES.ru = {
       addTranslationTitle: "Расхождение в переводе этой строки",
       addPronunciationTitle: "Заметка о произношении в этой строке",
     },
+    // Slice 1 — root-aware rich word card (read view).
+    card: {
+      wordsFromRoot: "Слова от этого корня",
+      noForms: "Других форм в ваших текстах пока нет.",
+      loading: "…",
+      edit: "Открыть",
+      noWord: "(без слова)",
+      rootTitle: "Корень",
+      pealimTitle: "Спряжение на Pealim (внешний словарь)",
+      state: {
+        weak: "слабо",
+        stale: "пора повторить",
+        learning: "учится",
+        new: "новое",
+        known: "усвоено",
+      },
+    },
     help: {
       openTitle: "Как работают премиум-заметки",
       openAria: "Помощь по заметкам",
