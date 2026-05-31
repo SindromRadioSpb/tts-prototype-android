@@ -741,6 +741,7 @@ window.I18N_LOCALES.en = {
         rootHintVerified: "Root verified (Dicta, in context)",
         rootHintVerifiedBase: "Base form (Dicta, in context)",
         rootHintParticle: "Function word — no root.",
+        rootHintProperNoun: "Proper noun — no root.",
         rootHintLemma: "Root not in the dictionary. Base form:",
         rootHintManual: "enter manually",
         rootHintNotFound: "Root not found automatically — enter it manually (suggestions available)",

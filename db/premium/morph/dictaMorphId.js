@@ -11,14 +11,16 @@
 //
 // IMPORTANT: morphId exceeds Number.MAX_SAFE_INTEGER — decode with BigInt only.
 //
+//   pos    : (id >> 16) & 0x1F  1=adjective 2=adverb 6=noun 7=numeral 8=preposition 9=pronoun 10=propernoun 13=verb
 //   binyan : (id >> 51) & 0x7   1=paal 2=nifal 3=hifil 4=hufal 5=piel 6=pual 7=hitpael  (0 = not a verb)
 //   gender : (id >> 21) & 0x3   1=m 2=f 3=m/f
 //   number : (id >> 24) & 0x7   1=sg 2=pl 3=dual
 //   person : (id >> 27) & 0x7   1/2/3   (0 or 4 = none, e.g. present participle / nouns)
 //   tense  : (id >> 32) & 0xFF  2=past 6=present 8=future   (0 = no tense)
 
-const MORPH_DECODE_VERSION = "dicta-morphid-v1";
+const MORPH_DECODE_VERSION = "dicta-morphid-v2";
 
+const POS = { 1: "adjective", 2: "adverb", 6: "noun", 7: "numeral", 8: "preposition", 9: "pronoun", 10: "propernoun", 13: "verb" };
 const BINYAN = { 1: "paal", 2: "nifal", 3: "hifil", 4: "hufal", 5: "piel", 6: "pual", 7: "hitpael" };
 const GENDER = { 1: "m", 2: "f", 3: "mf" };
 const NUMBER = { 1: "sg", 2: "pl", 3: "dual" };
@@ -33,8 +35,9 @@ function decodeMorphId(idStr) {
   try { v = BigInt(String(idStr == null ? "0" : idStr)); }
   catch (_) { return { binyan: null, feats: { gender: null, number: null, person: null, tense: null }, valid: false, raw: String(idStr || "") }; }
   if (v <= 0n) {
-    return { binyan: null, feats: { gender: null, number: null, person: null, tense: null }, valid: false, raw: String(idStr || "") };
+    return { pos: null, binyan: null, feats: { gender: null, number: null, person: null, tense: null }, valid: false, raw: String(idStr || "") };
   }
+  const pos = POS[Number((v >> 16n) & 0x1Fn)] || null;
   const binyan = BINYAN[Number((v >> 51n) & 0x7n)] || null;
   const personCode = Number((v >> 27n) & 0x7n);
   const tenseByte = Number((v >> 32n) & 0xFFn);
@@ -45,7 +48,7 @@ function decodeMorphId(idStr) {
     person: (binyan && personCode >= 1 && personCode <= 3) ? PERSON[personCode] : null,
     tense:  binyan ? (TENSE[tenseByte] || null) : null,
   };
-  return { binyan, feats, valid: true, raw: String(idStr) };
+  return { pos, binyan, feats, valid: true, raw: String(idStr) };
 }
 
 // Heuristic binyan from the VOCALIZED lemma template (fallback when morphId is

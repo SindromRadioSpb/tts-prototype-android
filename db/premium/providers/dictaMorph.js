@@ -115,6 +115,7 @@ function _parseToken(tk) {
     lemmas: lemmasUniq.slice(0, 5),
     confident: !!(tk && tk.fconfident),
     morphId,
+    posDicta: dec.pos,             // verb|noun|adjective|adverb|preposition|pronoun|propernoun|numeral
     binyan: dec.binyan,            // app <select> value (paal…hitpael), verbs only
     binyanSource: dec.binyan ? "dicta" : null,
     feats: dec.feats,              // { gender, number, person, tense }

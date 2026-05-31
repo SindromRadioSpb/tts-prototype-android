@@ -6314,6 +6314,17 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   gap: 6px;
   margin-top: 2px;
 }
+.v3-wordcard-feats { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.v3-wordcard-feats .v3-mh-feats { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.v3-wordcard-feats .v3-mh-feat {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 7px;
+  background: rgba(86, 180, 233, 0.14);
+  color: var(--theme-text-secondary, #475569);
+  white-space: nowrap;
+}
 .v3-wordcard-pos {
   font-size: 11px;
   font-weight: 700;
@@ -39670,25 +39681,31 @@ async function v3MorphTokenToResult(tok) {
   if (!lemma || lemma.length < 2 || V3_HEB_FUNCTION_WORDS.has(lemma) || V3_HEB_FUNCTION_WORDS.has(lemmaNorm)) {
     return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "other", kind: "particle", confident: tok.confident, feats: tok.feats || null };
   }
-  let pos = null;
-  try {
-    const an = await window.MorphProvider.analyze(lemma);
-    const match = (an || []).filter((a) => a && (norm(a.r) === lemmaNorm || norm(a.l) === lemmaNorm));
-    const pool = match.length ? match : (an || []);
-    const top = pool.find((a) => a.p === "verb") || pool.find((a) => V3_CONTENT_POS.includes(String(a.p))) || pool[0] || null;
-    if (top) pos = top.p || null;
-  } catch (_) {}
-  // Dicta decodes binyan only for verbs; if the morph decode disagrees with a
-  // verb POS, prefer the decoded binyan (authoritative). Never set binyan for
-  // non-verbs.
-  const isVerb = (pos === "verb") || (!!tok.binyan && pos == null);
+  // Dicta's decoded POS is authoritative; fall back to the local dict only when
+  // Dicta gave none. Proper nouns are real words with NO triliteral root.
+  const dictaPos = tok.posDicta || null;
+  if (dictaPos === "propernoun") {
+    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "noun", kind: "propernoun", confident: tok.confident, feats: tok.feats || null };
+  }
+  let pos = (dictaPos && V3_DICTA_DECODED_POS_TO_OPTION[dictaPos]) || null;
+  if (!pos) {
+    try {
+      const an = await window.MorphProvider.analyze(lemma);
+      const match = (an || []).filter((a) => a && (norm(a.r) === lemmaNorm || norm(a.l) === lemmaNorm));
+      const pool = match.length ? match : (an || []);
+      const top = pool.find((a) => a.p === "verb") || pool.find((a) => V3_CONTENT_POS.includes(String(a.p))) || pool[0] || null;
+      if (top) pos = top.p || null;
+    } catch (_) {}
+  }
+  // Binyan only for verbs (Dicta decodes it for verbs only).
+  const isVerb = (pos === "verb") || (!!tok.binyan && !pos);
   const binyan = (isVerb && tok.binyan) ? tok.binyan : null;
-  const kind = (pos === "verb" || (binyan && !pos)) ? "verbRoot" : "base";
+  if (binyan && !pos) pos = "verb";
+  const kind = (pos === "verb") ? "verbRoot" : "base";
   return {
     word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: lemma,
     binyan, binyanSource: binyan ? (tok.binyanSource || "dicta") : null,
-    pos: pos || (binyan ? "verb" : null), kind, confident: tok.confident,
-    feats: tok.feats || null,
+    pos, kind, confident: tok.confident, feats: tok.feats || null,
   };
 }
 
@@ -39753,6 +39770,11 @@ const V3_DICTA_POS_TO_OPTION = {
 };
 // Valid binyan <select> option values (decoded morphId maps directly to these).
 const V3_BINYAN_OPTS = new Set(["paal", "nifal", "hifil", "hufal", "piel", "pual", "hitpael"]);
+// Dicta-decoded POS → word_study POS <select> value.
+const V3_DICTA_DECODED_POS_TO_OPTION = {
+  verb: "verb", noun: "noun", adjective: "adjective", adverb: "adverb",
+  preposition: "preposition", pronoun: "pronoun", propernoun: "noun", numeral: "other",
+};
 
 // Grammatical-profile feature → i18n key (compact chip labels).
 const V3_MORPH_FEAT_KEY = {
@@ -39793,14 +39815,19 @@ function v3MorphApplyResultToForm(r, word) {
   const hintEl = document.getElementById("v3NotesTplWordStudyRootHint");
   const userTyped = rootEl && rootEl.dataset.userTouched === "1";
   const chip = (s) => `<span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(s || ""))}</span>`;
-  if (r.kind === "particle") {
+  if (r.kind === "particle" || r.kind === "propernoun") {
     if (rootEl && !userTyped) { rootEl.value = ""; rootEl.dataset.autoFilled = ""; }
     if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
-    if (posEl && posEl.dataset.userTouched !== "1") { posEl.value = "other"; posEl.dataset.autoFilled = "1"; }
+    if (posEl && posEl.dataset.userTouched !== "1") {
+      posEl.value = (r.kind === "propernoun") ? "noun" : "other"; posEl.dataset.autoFilled = "1";
+    }
     if (hintEl && !userTyped) {
       hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-particle";
+      const lbl = (r.kind === "propernoun")
+        ? v3NotesT("notes.tpl.word_study.rootHintProperNoun", "Имя собственное — корня нет.")
+        : v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет.");
       const seg = r.prefix ? `${chip(r.prefix)} + ${chip(r.lemma || r.stem)}` : chip(r.lemma || r.stem || word);
-      hintEl.innerHTML = `ⓘ ${seg} — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет."))}`;
+      hintEl.innerHTML = `ⓘ ${seg} — ${v3EscapeHtml(lbl)}`;
       hintEl.style.display = "";
     }
   } else {
@@ -40067,14 +40094,17 @@ function v3WordCardRichHtml(row) {
         </div>
       </details>` : "";
 
-  return `<div class="v3-wordcard" data-note-id="${idEsc}">
+  // data-card-word + a feats slot let v3NotesRowIndexEnrich back-fill the POS
+  // pill + grammatical-profile chips from stored Dicta morphology when the
+  // saved note lacks them (so POS/feats always show on enriched words).
+  return `<div class="v3-wordcard" data-note-id="${idEsc}" data-card-word="${v3EscapeHtml(word)}">
     <div class="v3-wordcard-head">
       <div class="v3-wordcard-headword" dir="rtl">${v3EscapeHtml(headword)}</div>
       <span class="v3-wordcard-state" data-state="" style="display:none;"></span>
     </div>
     ${niqqudHtml}
     ${glossHtml}
-    <div class="v3-wordcard-tags">${posHtml}${rootHtml}</div>
+    <div class="v3-wordcard-tags" data-pos-filled="${posLabel ? "1" : ""}">${posHtml}${rootHtml}<span class="v3-wordcard-feats" data-feats-for="${v3EscapeHtml(word)}"></span></div>
     ${accHtml}
     <div class="v3-wordcard-actions">
       <a class="v3-wordcard-pealim" href="${v3EscapeHtml(v3WordCardPealimUrl(word))}" target="_blank" rel="noopener"
@@ -40091,6 +40121,34 @@ function v3WordCardRichHtml(row) {
 async function v3NotesRowIndexEnrich() {
   const cards = document.querySelectorAll(".v3-wordcard[data-note-id]");
   if (!cards.length) return;
+  // 0a) POS pill + grammatical-profile chips back-fill from STORED Dicta
+  //     morphology (when the saved note lacks part_of_speech / feats). Offline.
+  try {
+    const sid = (typeof v3NotesRowIndexContext !== "undefined" && v3NotesRowIndexContext)
+      ? v3NotesRowIndexContext.sentenceId : null;
+    if (sid && typeof v3MorphStoredResolve === "function") {
+      for (const card of document.querySelectorAll(".v3-wordcard[data-card-word]")) {
+        const w = card.getAttribute("data-card-word");
+        if (!w) continue;
+        let res = null;
+        try { res = await v3MorphStoredResolve(w, sid); } catch (_) {}
+        if (!res) continue;
+        const tags = card.querySelector(".v3-wordcard-tags");
+        if (tags && tags.getAttribute("data-pos-filled") !== "1" && res.pos && V3_WORDCARD_POS_KEY[res.pos]) {
+          const pill = document.createElement("span");
+          pill.className = "v3-wordcard-pos";
+          pill.textContent = v3NotesT("notes.tpl.word_study." + V3_WORDCARD_POS_KEY[res.pos], res.pos);
+          tags.insertBefore(pill, tags.firstChild);
+          tags.setAttribute("data-pos-filled", "1");
+        }
+        const featsEl = card.querySelector(".v3-wordcard-feats[data-feats-for]");
+        if (featsEl && res.feats && !featsEl.childElementCount) {
+          const html = v3MorphFeatsChips(res.feats);
+          if (html) featsEl.innerHTML = html;
+        }
+      }
+    }
+  } catch (_) {}
   // 0) Spine self-heal — resolve pending spine chips (notes saved with no
   //    root) against the FULL dict: a now-resolvable root → solid amber chip;
   //    else the LEMMA (base/dictionary form) → dashed chip; else "—". The

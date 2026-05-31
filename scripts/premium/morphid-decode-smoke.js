@@ -38,6 +38,18 @@ for (const [label, id, expBinyan, expFeats] of CASES) {
   }
 }
 
+// POS decode (id >> 16) & 0x1F
+const POS_CASES = [
+  ["verb",        "2251826140086272", "verb"],
+  ["noun",        "1093009408",       "noun"],
+  ["adjective",   "1092681728",       "adjective"],
+  ["preposition", "524288",           "preposition"],
+  ["pronoun",     "422117376",        "pronoun"],
+];
+for (const [label, id, expPos] of POS_CASES) {
+  test(`POS ${label}`, decodeMorphId(id).pos === expPos, JSON.stringify(decodeMorphId(id)));
+}
+
 // Non-verb / invalid handling
 test("zero id → invalid, no binyan", (() => { const d = decodeMorphId("0"); return !d.valid && d.binyan === null; })(), "");
 test("garbage id → invalid (no throw)", (() => { const d = decodeMorphId("not-a-number"); return !d.valid; })(), "");

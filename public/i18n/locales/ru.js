@@ -749,6 +749,7 @@ window.I18N_LOCALES.ru = {
         rootHintVerified: "Корень проверен (Dicta, по контексту)",
         rootHintVerifiedBase: "Базовая форма (Dicta, по контексту)",
         rootHintParticle: "Служебное слово — корня нет.",
+        rootHintProperNoun: "Имя собственное — корня нет.",
         rootHintLemma: "Корень не найден в словаре. Базовая форма:",
         rootHintManual: "введите вручную",
         rootHintNotFound: "Корень не найден автоматически — введите вручную (есть подсказки)",
