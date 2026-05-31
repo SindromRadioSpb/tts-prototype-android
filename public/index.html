@@ -38964,9 +38964,15 @@ async function v3NotesTokenPickerOpen(intent, ctx) {
       }
     }
   } catch (e) { console.warn("token-picker sentence lookup failed", e); }
-  // Carry the row's sentence through to the note open so Dicta in-context
-  // verification has the surrounding text without a re-query.
-  if (v3NotesTokenPickerCtx) v3NotesTokenPickerCtx.sentenceText = sentenceText;
+  // Carry the row's sentence through to the note open. We keep the vocalized
+  // text for display, but Dicta verification must use the PLAIN text — Dicta
+  // tokenizes its input, and a vocalized (ktiv-haser) input would yield tokens
+  // that don't match the ktiv-male headword (אתה vs איתה). Plain is also what
+  // corpus enrichment stores, so live + stored stay consistent.
+  if (v3NotesTokenPickerCtx) {
+    v3NotesTokenPickerCtx.sentenceText = sentenceText;
+    v3NotesTokenPickerCtx.sentencePlain = sentencePlain;
+  }
 
   // Pre-Phase-9.4: space-split heuristic. Strip punctuation, keep only
   // tokens of length ≥ 1.
@@ -39039,7 +39045,8 @@ function v3NotesTokenPickerPick(offset, lemma) {
     intentKey: "row.word",
     wordLemma: plainTok || niqqudTok,   // plain preferred; pre-fill strips if vocalized
     niqqudForm: niqqudTok,              // explicit vocalized form for niqqud_variant
-    sentence: String(slot.sentenceText || ""),
+    // PLAIN sentence for Dicta context (matches the plain headword + enrichment).
+    sentence: String(slot.sentencePlain || slot.sentenceText || ""),
   });
 }
 window.v3NotesTokenPickerPick = v3NotesTokenPickerPick;
@@ -39694,6 +39701,26 @@ const V3_HEB_FUNCTION_WORDS = new Set([
 const _v3MorphNorm = () => (window.MorphNormalize && window.MorphNormalize.normalizeHebrew)
   ? window.MorphNormalize.normalizeHebrew : (x) => String(x || "");
 
+// Loose key: collapse INTERNAL mater-lectionis yod/vav so ktiv-male and
+// ktiv-haser spellings of the same word compare equal (איתה ↔ אתה). Keeps the
+// first + last letter to avoid over-collapsing.
+function _v3MorphLooseKey(w) {
+  let k = _v3MorphNorm()(w);
+  if (k.length > 2) k = k[0] + k.slice(1, -1).replace(/[יו]/g, "") + k[k.length - 1];
+  return k;
+}
+// Find the Dicta token for `word`: exact (word/stem) first, then a SINGLE
+// loose ktiv-tolerant candidate (avoids ambiguity when several would match).
+function v3MorphFindToken(tokens, word) {
+  const norm = _v3MorphNorm();
+  const wKey = norm(word);
+  const tok = tokens.find((t) => norm(t.word) === wKey) || tokens.find((t) => norm(t.stem) === wKey);
+  if (tok) return tok;
+  const lk = _v3MorphLooseKey(word);
+  const cands = tokens.filter((t) => _v3MorphLooseKey(t.word) === lk || _v3MorphLooseKey(t.stem) === lk);
+  return cands.length === 1 ? cands[0] : null;
+}
+
 // Map ONE Dicta token → { word, prefix, stem, lemma, root, binyan, pos, kind }.
 // Shared by the live verify and the stored (offline) resolve.
 async function v3MorphTokenToResult(tok) {
@@ -39738,10 +39765,8 @@ async function v3MorphTokenToResult(tok) {
 }
 
 async function v3DictaMorphResolve(word, sentence) {
-  const norm = _v3MorphNorm();
-  const wKey = norm(word);
   const tokens = await v3DictaMorphSentence(sentence);
-  const tok = tokens.find((t) => norm(t.word) === wKey) || tokens.find((t) => norm(t.stem) === wKey);
+  const tok = v3MorphFindToken(tokens, word);
   if (!tok) return null;
   return v3MorphTokenToResult(tok);
 }
@@ -39756,9 +39781,7 @@ async function v3MorphStoredResolve(word, sentenceId) {
     if (!ldb || typeof ldb.getSentenceMorph !== "function") return null;
     const stored = await ldb.getSentenceMorph(String(sentenceId));
     if (!stored || !Array.isArray(stored.tokens) || !stored.tokens.length) return null;
-    const norm = _v3MorphNorm();
-    const wKey = norm(word);
-    const tok = stored.tokens.find((t) => norm(t.word) === wKey) || stored.tokens.find((t) => norm(t.stem) === wKey);
+    const tok = v3MorphFindToken(stored.tokens, word);
     if (!tok) return null;
     return v3MorphTokenToResult(tok);
   } catch (_) { return null; }
