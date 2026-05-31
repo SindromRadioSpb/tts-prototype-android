@@ -723,6 +723,7 @@ window.I18N_LOCALES.ru = {
         rootUserBadge: "ваш",
         rootHintSearching: "Определяем корень…",
         rootHintAuto: "Корень определён автоматически",
+        rootHintPrefix: "Корень определён автоматически. Приставка:",
         rootHintLemma: "Корень не найден в словаре. Базовая форма:",
         rootHintManual: "введите вручную",
         rootHintNotFound: "Корень не найден автоматически — введите вручную (есть подсказки)",

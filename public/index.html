@@ -36427,6 +36427,10 @@ function v3NotesTplMorphologyAutoFillInit() {
       html = `<span class="v3-mh-spin">⏳</span> ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintSearching", "Определяем корень…"))}`;
     } else if (state === "auto") {
       html = `✓ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintAuto", "Корень определён автоматически"))}`;
+    } else if (state === "prefix") {
+      // payload = { prefix, bare }. Surface the segmentation transparently.
+      const lbl = v3NotesT("notes.tpl.word_study.rootHintPrefix", "Корень определён автоматически. Приставка:");
+      html = `✓ ${v3EscapeHtml(lbl)} <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload && payload.prefix || ""))}</span> + <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload && payload.bare || ""))}</span>`;
     } else if (state === "lemma") {
       const base = v3NotesT("notes.tpl.word_study.rootHintLemma", "Корень не найден в словаре. Базовая форма:");
       html = `ⓘ ${v3EscapeHtml(base)} <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload || ""))}</span> — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintManual", "введите вручную"))}`;
@@ -36445,7 +36449,12 @@ function v3NotesTplMorphologyAutoFillInit() {
     // Only advertise "searching" if we'd actually be allowed to fill the root.
     if (canAutoFill(rootEl)) setRootHint("searching");
     try {
-      const analyses = await window.MorphProvider.analyze(word);
+      // Prefix-aware: resolves ובורחת → ו + בורחת → ברח when the whole word
+      // has no analysis (very common — ו/ה/ב/כ/ל/מ/ש proclitics).
+      const seg = (typeof v3MorphAnalyzeWithPrefix === "function")
+        ? await v3MorphAnalyzeWithPrefix(word)
+        : { analyses: await window.MorphProvider.analyze(word), prefix: "", bare: word };
+      const analyses = seg.analyses;
       const top = (analyses && analyses.length) ? analyses[0] : null;
       if (top && top.b && canAutoFill(binyanEl)) setAutoFilled(binyanEl, top.b);
       if (top && top.p && posEl && canAutoFill(posEl)) {
@@ -36454,8 +36463,10 @@ function v3NotesTplMorphologyAutoFillInit() {
       }
       // Root + its status line.
       if (top && top.r) {
-        if (canAutoFill(rootEl)) { setAutoFilled(rootEl, top.r); setRootHint("auto"); }
-        else setRootHint("hide");
+        if (canAutoFill(rootEl)) {
+          setAutoFilled(rootEl, top.r);
+          setRootHint(seg.prefix ? "prefix" : "auto", { prefix: seg.prefix, bare: seg.bare });
+        } else setRootHint("hide");
       } else if (top && top.l && top.l !== word) {
         // Recognised, but no 3-letter root locally → surface the lemma so the
         // user understands WHY the field is empty and what the base form is.
@@ -39453,6 +39464,40 @@ async function v3EnsureFullDictForWordPath() {
 }
 window.v3EnsureFullDictForWordPath = v3EnsureFullDictForWordPath;
 
+// Phase A.2 — prefix-aware morphology. Hebrew attaches function-word proclitics
+// (ו=and, ה=the, ב=in, כ=as, ל=to, מ=from, ש=that) that the prebuilt dict does
+// NOT index, so e.g. ובורחת fails while בורחת → ברח. Strip-and-validate: only
+// accept a prefix if the REMAINDER resolves to a real root (so ו+בורחת is
+// accepted but the wrong וב+ורחת is rejected). Tried only when the full word
+// yields no root, shortest prefix first (least over-stripping). Returns
+// { analyses, prefix, bare }.
+const V3_HEB_PREFIXES = [
+  "ה", "ו", "ב", "כ", "ל", "מ", "ש",
+  "וה", "וב", "וכ", "ול", "ומ", "וש", "כש", "מש", "שה", "הב", "הכ", "הל",
+  "וכש", "ומש", "וכל", "ולכ",
+];
+async function v3MorphAnalyzeWithPrefix(word) {
+  const w = String(word || "").trim();
+  const mp = window.MorphProvider;
+  if (!w || !mp || typeof mp.analyze !== "function") return { analyses: [], prefix: "", bare: w };
+  const direct = await mp.analyze(w);
+  const hasRoot = Array.isArray(direct) && direct.some((a) => a && a.r);
+  if (hasRoot) return { analyses: direct, prefix: "", bare: w };
+  for (const pre of V3_HEB_PREFIXES) {
+    if (w.length - pre.length < 2) continue;          // remainder must be ≥2 letters
+    if (!w.startsWith(pre)) continue;
+    const bare = w.slice(pre.length);
+    try {
+      const an = await mp.analyze(bare);
+      if (Array.isArray(an) && an.some((a) => a && a.r)) {
+        return { analyses: an, prefix: pre, bare };
+      }
+    } catch (_) {}
+  }
+  return { analyses: direct, prefix: "", bare: w }; // no segmentation → may still carry a lemma
+}
+window.v3MorphAnalyzeWithPrefix = v3MorphAnalyzeWithPrefix;
+
 // Build the rich-card HTML for one word_study row. Pure/sync — async bits
 // (state badge, root forms) are placeholders filled by v3NotesRowIndexEnrich.
 function v3WordCardRichHtml(row) {
@@ -39535,13 +39580,18 @@ async function v3NotesRowIndexEnrich() {
       for (const chip of pending) {
         const w = chip.getAttribute("data-spine-for");
         try {
-          const an = await window.MorphProvider.analyze(w);
+          // Prefix-aware so ובורחת etc. self-heal to their root.
+          const seg = (typeof v3MorphAnalyzeWithPrefix === "function")
+            ? await v3MorphAnalyzeWithPrefix(w)
+            : { analyses: await window.MorphProvider.analyze(w), prefix: "" };
+          const an = seg.analyses;
           const top = (an && an.length) ? an[0] : null;
           if (top && top.r) {
             const bl = top.b && V3_WORDCARD_BINYAN_LABEL[top.b] ? V3_WORDCARD_BINYAN_LABEL[top.b] : "";
+            const pfx = seg.prefix ? `<span class="v3-wordcard-spine-tag" dir="rtl">${v3EscapeHtml(seg.prefix)}+</span>` : "";
             chip.classList.remove("v3-wordcard-rootchip-pending");
             chip.setAttribute("title", rootTitle);
-            chip.innerHTML = `🌳 ${v3EscapeHtml(top.r)}${bl ? ` · <span class="v3-wordcard-binyan">${v3EscapeHtml(bl)}</span>` : ""}`;
+            chip.innerHTML = `🌳 ${v3EscapeHtml(top.r)}${bl ? ` · <span class="v3-wordcard-binyan">${v3EscapeHtml(bl)}</span>` : ""}${pfx}`;
           } else if (top && top.l && top.l !== w) {
             chip.classList.remove("v3-wordcard-rootchip-pending");
             chip.classList.add("v3-wordcard-rootchip-lemma");

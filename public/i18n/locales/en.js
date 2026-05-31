@@ -715,6 +715,7 @@ window.I18N_LOCALES.en = {
         rootUserBadge: "yours",
         rootHintSearching: "Detecting the root…",
         rootHintAuto: "Root detected automatically",
+        rootHintPrefix: "Root detected automatically. Prefix:",
         rootHintLemma: "Root not in the dictionary. Base form:",
         rootHintManual: "enter manually",
         rootHintNotFound: "Root not found automatically — enter it manually (suggestions available)",

@@ -722,6 +722,7 @@ window.I18N_LOCALES.he = {
         rootUserBadge: "שלך",
         rootHintSearching: "מזהים את השורש…",
         rootHintAuto: "השורש זוהה אוטומטית",
+        rootHintPrefix: "השורש זוהה אוטומטית. תחילית:",
         rootHintLemma: "השורש לא נמצא במילון. צורת בסיס:",
         rootHintManual: "הקלידו ידנית",
         rootHintNotFound: "השורש לא נמצא אוטומטית — הקלידו ידנית (יש הצעות)",

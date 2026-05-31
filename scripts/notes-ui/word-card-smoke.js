@@ -183,6 +183,8 @@ async function main() {
           body_json: JSON.stringify({ word: "תלמד", niqqud_variant: "", root: "", meaning: "будешь учить", part_of_speech: "verb", binyan: "" }) },
         { id: "sh-lemma", target_kind: "word", note_type: "word_study", updated_at: "2026-05-29T10:00:00Z",
           body_json: JSON.stringify({ word: "תסתכלי", niqqud_variant: "", root: "", meaning: "посмотришь", part_of_speech: "verb", binyan: "" }) },
+        { id: "sh-prefix", target_kind: "word", note_type: "word_study", updated_at: "2026-05-28T10:00:00Z",
+          body_json: JSON.stringify({ word: "ובורחת", niqqud_variant: "", root: "", meaning: "и убегает", part_of_speech: "verb", binyan: "" }) },
       ];
       window.v3NotesRowIndexOpen("t", "s", 0, rows);
       // Wait for full-dict promotion + spine resolve.
@@ -194,13 +196,15 @@ async function main() {
         await new Promise((r) => setTimeout(r, 300));
       }
       const chip = (id) => list.querySelector(`.v3-wordcard[data-note-id="${id}"] .v3-wordcard-rootchip`);
-      const cRoot = chip("sh-root"), cLemma = chip("sh-lemma");
+      const cRoot = chip("sh-root"), cLemma = chip("sh-lemma"), cPrefix = chip("sh-prefix");
       return {
         tier: window.MorphProvider.getDictTier(),
         rootText: cRoot ? cRoot.textContent.trim().replace(/\s+/g, " ") : "",
         rootIsLemma: cRoot ? cRoot.classList.contains("v3-wordcard-rootchip-lemma") : null,
         lemmaText: cLemma ? cLemma.textContent.trim().replace(/\s+/g, " ") : "",
         lemmaIsLemma: cLemma ? cLemma.classList.contains("v3-wordcard-rootchip-lemma") : null,
+        prefixText: cPrefix ? cPrefix.textContent.trim().replace(/\s+/g, " ") : "",
+        prefixIsLemma: cPrefix ? cPrefix.classList.contains("v3-wordcard-rootchip-lemma") : null,
         anyPending: list.querySelectorAll(".v3-wordcard-rootchip-pending").length,
       };
     });
@@ -211,6 +215,8 @@ async function main() {
     test("Case 8d: null-root form falls back to a LEMMA (base form) chip, never empty",
          r3.lemmaIsLemma === true && /הסתכל/.test(r3.lemmaText) && r3.anyPending === 0,
          JSON.stringify(r3));
+    test("Case 8e: prefixed form (ובורחת) self-heals to its root via prefix segmentation",
+         r3.prefixIsLemma === false && /ברח/.test(r3.prefixText), JSON.stringify(r3));
 
     // Flag OFF → generic card fallback.
     const r2 = await pg.evaluate(async (rows) => {
