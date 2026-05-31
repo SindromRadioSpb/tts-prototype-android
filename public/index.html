@@ -5626,6 +5626,34 @@ body:not(.theme-light) .v3-notes-template-banner {
   .v3-notes-tpl-input.v3-notes-tpl-auto-filled { animation: none; }
 }
 
+/* Phase A — live morphology status under the root field. Honest, low-key
+   feedback so an empty root never reads as "broken". */
+.v3-notes-tpl-morphhint {
+  margin-top: 5px;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--theme-text-muted, #64748b);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.v3-notes-tpl-morphhint-auto { color: #009E73; }                 /* found = success green */
+.v3-notes-tpl-morphhint-lemma { color: var(--theme-text-secondary, #475569); }
+.v3-notes-tpl-morphhint .v3-mh-lemma {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--theme-text-primary);
+}
+.v3-notes-tpl-morphhint .v3-mh-spin {
+  display: inline-block;
+  animation: v3-mh-spin 1.1s steps(8) infinite;
+}
+@keyframes v3-mh-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .v3-notes-tpl-morphhint .v3-mh-spin { animation: none; }
+}
+
 /* Phase 9.4.D — Morphology status modal body */
 .v3-morph-status-body { font-size: 13px; line-height: 1.55; }
 .v3-morph-status-row { margin-bottom: 6px; }
@@ -11343,6 +11371,10 @@ body:not(.theme-light) .v3-heatmap-cell {
               <input type="text" id="v3NotesTplWordStudyRoot" class="v3-notes-tpl-input" dir="rtl" maxlength="10" autocomplete="off" data-i18n-placeholder="notes.tpl.word_study.rootPh" placeholder="שלם" />
               <div id="v3NotesTplWordStudyRootDrop" class="v3-notes-tpl-autocomplete-list" role="listbox" aria-label="Подсказки корней" style="display:none;"></div>
             </div>
+            <!-- Live morphology status for the root field: searching / auto-filled /
+                 not-found-with-lemma / not-found. Keeps the user informed instead
+                 of a silently-empty field. -->
+            <div id="v3NotesTplWordStudyRootHint" class="v3-notes-tpl-morphhint" role="status" aria-live="polite" style="display:none;"></div>
           </div>
           <div class="v3-notes-tpl-row">
             <label class="v3-notes-tpl-label v3-notes-tpl-required" data-i18n="notes.tpl.word_study.meaning">Перевод</label>
@@ -36320,6 +36352,7 @@ function v3NotesTplMorphologyAutoFillInit() {
   const rootEl = document.getElementById("v3NotesTplWordStudyRoot");
   const binyanEl = document.getElementById("v3NotesTplWordStudyBinyan");
   const posEl = document.getElementById("v3NotesTplWordStudyPos");
+  const rootHintEl = document.getElementById("v3NotesTplWordStudyRootHint");
   if (!wordEl) return;
   _v3NotesTplMorphologyBound = true;
 
@@ -36343,6 +36376,8 @@ function v3NotesTplMorphologyAutoFillInit() {
       if (rootEl.dataset.autoFilling !== "1") {
         rootEl.dataset.userTouched = "1";
         rootEl.dataset.autoFilled = "";
+        // User is entering the root by hand → drop the morphology status line.
+        if (rootHintEl) rootHintEl.style.display = "none";
       }
     });
   }
@@ -36380,24 +36415,57 @@ function v3NotesTplMorphologyAutoFillInit() {
     setTimeout(() => el.classList.remove("v3-notes-tpl-auto-filled"), 1400);
   };
 
+  // Live morphology status for the root field. Keeps the user informed
+  // (searching / auto-filled / not-found-with-lemma / not-found) instead of
+  // a silently-empty field. Suppressed when the user typed a root by hand.
+  const setRootHint = (state, payload) => {
+    if (!rootHintEl) return;
+    if (rootEl && rootEl.dataset.userTouched === "1") { rootHintEl.style.display = "none"; return; }
+    rootHintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-" + state;
+    let html = "";
+    if (state === "searching") {
+      html = `<span class="v3-mh-spin">⏳</span> ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintSearching", "Определяем корень…"))}`;
+    } else if (state === "auto") {
+      html = `✓ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintAuto", "Корень определён автоматически"))}`;
+    } else if (state === "lemma") {
+      const base = v3NotesT("notes.tpl.word_study.rootHintLemma", "Корень не найден в словаре. Базовая форма:");
+      html = `ⓘ ${v3EscapeHtml(base)} <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload || ""))}</span> — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintManual", "введите вручную"))}`;
+    } else if (state === "notfound") {
+      html = `ⓘ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintNotFound", "Корень не найден автоматически — введите вручную (есть подсказки)"))}`;
+    } else { rootHintEl.style.display = "none"; return; }
+    rootHintEl.innerHTML = html;
+    rootHintEl.style.display = "";
+  };
+
   const runLookup = async () => {
     const word = String(wordEl.value || "").trim();
-    if (!word || !window.MorphProvider) return;
+    if (!word || !window.MorphProvider) { setRootHint("hide"); return; }
     if (word === lastQueriedWord) return; // dedupe redundant lookups
     lastQueriedWord = word;
+    // Only advertise "searching" if we'd actually be allowed to fill the root.
+    if (canAutoFill(rootEl)) setRootHint("searching");
     try {
       const analyses = await window.MorphProvider.analyze(word);
-      if (!analyses || !analyses.length) return;
-      const top = analyses[0];
-      if (top.r && canAutoFill(rootEl)) setAutoFilled(rootEl, top.r);
-      if (top.b && canAutoFill(binyanEl)) setAutoFilled(binyanEl, top.b);
-      if (top.p && posEl && canAutoFill(posEl)) {
+      const top = (analyses && analyses.length) ? analyses[0] : null;
+      if (top && top.b && canAutoFill(binyanEl)) setAutoFilled(binyanEl, top.b);
+      if (top && top.p && posEl && canAutoFill(posEl)) {
         const mappedPos = POS_MAP[String(top.p).toLowerCase()];
-        // Only set when the option actually exists, else the assignment is a no-op.
         if (mappedPos) setAutoFilled(posEl, mappedPos);
+      }
+      // Root + its status line.
+      if (top && top.r) {
+        if (canAutoFill(rootEl)) { setAutoFilled(rootEl, top.r); setRootHint("auto"); }
+        else setRootHint("hide");
+      } else if (top && top.l && top.l !== word) {
+        // Recognised, but no 3-letter root locally → surface the lemma so the
+        // user understands WHY the field is empty and what the base form is.
+        setRootHint("lemma", top.l);
+      } else {
+        setRootHint("notfound");
       }
     } catch (e) {
       console.warn("[morph] auto-fill lookup failed:", e && e.message);
+      setRootHint("hide");
     }
   };
 
@@ -39769,6 +39837,16 @@ try { v3NotesMdResetUi(); } catch (_) {}
       if (wordEl && !wordEl.value) wordEl.value = plain;
       // Pin the vocalized form only when the token actually carried niqqud.
       if (niqEl && !niqEl.value && plain && plain !== raw) niqEl.value = raw;
+      // Show the "searching" status immediately — the full dict can take a
+      // few seconds to load, and a silent empty root field reads as "broken".
+      try {
+        const hintEl = document.getElementById("v3NotesTplWordStudyRootHint");
+        if (hintEl && wordEl && wordEl.value) {
+          hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-searching";
+          hintEl.innerHTML = `<span class="v3-mh-spin">⏳</span> ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintSearching", "Определяем корень…"))}`;
+          hintEl.style.display = "";
+        }
+      } catch (_) {}
       // Eager auto-fill: ensure the full dict (better root/lemma coverage),
       // then run the (idempotent) lookup.
       try {
