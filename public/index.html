@@ -39588,6 +39588,22 @@ async function v3DictaMorphSentence(sentence) {
 // context-correct lemma through the local dict. Returns null if Dicta has no
 // matching token. Content POS → root/binyan; everything else → particle.
 const V3_CONTENT_POS = ["noun", "verb", "adjective", "adverb"];
+// High-frequency Hebrew function words / particles — these genuinely have NO
+// triliteral root. Used to tell a real particle (אין, של) apart from a content
+// word whose root the local dict simply lacks (a verb like סכל must NOT be
+// labelled "function word").
+const V3_HEB_FUNCTION_WORDS = new Set([
+  "אין", "יש", "את", "של", "זה", "זאת", "זו", "אלה", "אלו", "מה", "מי", "כי",
+  "אם", "אשר", "גם", "רק", "כל", "אך", "אבל", "או", "עם", "אל", "על", "לא",
+  "כן", "הוא", "היא", "הם", "הן", "אני", "אתה", "אתם", "אתן", "אנחנו", "אנו",
+  "כך", "אז", "עוד", "כבר", "מאוד", "פה", "שם", "כאן", "אצל", "בין", "עד",
+]);
+// Dicta's morph value is, in CONTEXT: the ROOT for verbs (סכל, גלגל, ברח) and
+// the dictionary LEMMA for nouns/adjectives (מכונית, עין, גדול). We trust it
+// directly (it is context-disambiguated and authoritative) and only consult
+// the local dict for POS. Binyan is NOT auto-filled — homographic roots span
+// binyanim (סכל → piel סיכל vs hitpael הסתכל) and the lemma lookup can't tell
+// which; the user sets it (or a future Dicta morph-decode supplies it).
 async function v3DictaMorphResolve(word, sentence) {
   const norm = (window.MorphNormalize && window.MorphNormalize.normalizeHebrew)
     ? window.MorphNormalize.normalizeHebrew : (x) => String(x || "");
@@ -39595,31 +39611,26 @@ async function v3DictaMorphResolve(word, sentence) {
   const tokens = await v3DictaMorphSentence(sentence);
   const tok = tokens.find((t) => norm(t.word) === wKey) || tokens.find((t) => norm(t.stem) === wKey);
   if (!tok) return null;
-  const lemma = tok.lemma || tok.stem || "";
-  let root = null, binyan = null, pos = null, particle = false;
-  if (lemma) {
-    try {
-      const an = await window.MorphProvider.analyze(lemma);
-      let top = null;
-      if (an && an.length) {
-        // Disambiguate homographic LEMMAS (e.g. כסף: noun vs the rare verb
-        // כיסף) by preferring the local analysis whose lemma exactly matches
-        // Dicta's context-correct lemma; then a content POS within that pool.
-        const lemKey = norm(lemma);
-        const exact = an.filter((a) => a && a.l && norm(a.l) === lemKey);
-        const pool = exact.length ? exact : an;
-        top = pool.find((a) => V3_CONTENT_POS.includes(String(a.p))) || pool[0];
-      }
-      if (top && V3_CONTENT_POS.includes(String(top.p))) {
-        root = top.r || null; binyan = top.b || null; pos = top.p;
-      } else if (top) {
-        pos = top.p || null; particle = true;   // function word → no root claimed
-      } else {
-        particle = true;
-      }
-    } catch (_) {}
+  const lemma = String(tok.lemma || tok.stem || "").trim();
+  const lemmaNorm = norm(lemma);
+  // Genuine function word → no root. Check BOTH the raw lemma (final letters
+  // intact, as Dicta returns + as the stoplist is written) and the folded form
+  // (normalizeHebrew maps ן→נ etc., so אין → אינ would otherwise miss).
+  if (!lemma || lemma.length < 2 || V3_HEB_FUNCTION_WORDS.has(lemma) || V3_HEB_FUNCTION_WORDS.has(lemmaNorm)) {
+    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "other", kind: "particle", confident: tok.confident };
   }
-  return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root, binyan, pos, particle, confident: tok.confident };
+  // Content word. Enrich POS from the local dict (preferring an analysis whose
+  // root/lemma matches Dicta's, then a verb reading).
+  let pos = null;
+  try {
+    const an = await window.MorphProvider.analyze(lemma);
+    const match = (an || []).filter((a) => a && (norm(a.r) === lemmaNorm || norm(a.l) === lemmaNorm));
+    const pool = match.length ? match : (an || []);
+    const top = pool.find((a) => a.p === "verb") || pool.find((a) => V3_CONTENT_POS.includes(String(a.p))) || pool[0] || null;
+    if (top) pos = top.p || null;
+  } catch (_) {}
+  const kind = (pos === "verb") ? "verbRoot" : "base";
+  return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: lemma, binyan: null, pos, kind, confident: tok.confident };
 }
 window.v3DictaMorphResolve = v3DictaMorphResolve;
 
@@ -39687,14 +39698,10 @@ async function v3NotesTplDictaVerify() {
       }
       return;
     }
-    if (posEl && r.pos && V3_DICTA_POS_TO_OPTION[r.pos]) {
-      posEl.value = V3_DICTA_POS_TO_OPTION[r.pos];
-      posEl.dataset.autoFilled = "1"; posEl.dataset.userTouched = "";
-    }
     const chip = (s) => `<span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(s || ""))}</span>`;
-    if (r.particle || !r.root) {
-      // Function word → there is NO root. Clear the provisional (wrong) root,
-      // its binyan, and mark POS as "other".
+    if (r.kind === "particle") {
+      // Function word → NO root. Clear the provisional (wrong) root + binyan,
+      // mark POS as "other".
       if (rootEl) { rootEl.value = ""; rootEl.dataset.autoFilled = ""; rootEl.dataset.userTouched = ""; }
       if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
       if (posEl) { posEl.value = "other"; posEl.dataset.autoFilled = "1"; posEl.dataset.userTouched = ""; }
@@ -39704,18 +39711,24 @@ async function v3NotesTplDictaVerify() {
         hintEl.innerHTML = `ⓘ ${seg} — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет."))}`;
       }
     } else {
+      // Content word: fill the field with Dicta's authoritative value (the ROOT
+      // for verbs, the dictionary base for nouns/adj). Don't guess binyan.
+      if (posEl && r.pos && V3_DICTA_POS_TO_OPTION[r.pos]) {
+        posEl.value = V3_DICTA_POS_TO_OPTION[r.pos];
+        posEl.dataset.autoFilled = "1"; posEl.dataset.userTouched = "";
+      }
       if (rootEl) {
         rootEl.value = r.root; rootEl.dataset.autoFilled = "1"; rootEl.dataset.userTouched = "";
         rootEl.classList.add("v3-notes-tpl-auto-filled");
         setTimeout(() => rootEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
       }
-      // Set binyan to Dicta's value, or CLEAR it when there is none (e.g. nouns)
-      // so a stale provisional binyan doesn't linger.
-      if (binyanEl) { binyanEl.value = r.binyan || ""; binyanEl.dataset.autoFilled = "1"; binyanEl.dataset.userTouched = ""; }
+      if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }   // binyan not guessed
       if (hintEl) {
         hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-verified";
+        const key = r.kind === "verbRoot" ? "notes.tpl.word_study.rootHintVerified" : "notes.tpl.word_study.rootHintVerifiedBase";
+        const fb = r.kind === "verbRoot" ? "Корень проверен (Dicta, по контексту)" : "Базовая форма (Dicta, по контексту)";
         const seg = r.prefix ? ` · ${chip(r.prefix)} + ${chip(r.stem)}` : "";
-        hintEl.innerHTML = `✓ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintVerified", "Корень проверен (Dicta, по контексту)"))}${seg}`;
+        hintEl.innerHTML = `✓ ${v3EscapeHtml(v3NotesT(key, fb))}${seg}`;
       }
     }
   } catch (e) {

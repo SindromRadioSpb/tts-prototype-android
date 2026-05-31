@@ -738,6 +738,7 @@ window.I18N_LOCALES.he = {
         rootHintAuto: "השורש הוצע באופן ראשוני (מילון מקומי) — נא לאמת",
         rootHintPrefix: "השורש הוצע באופן ראשוני. תחילית:",
         rootHintVerified: "השורש אומת (Dicta, לפי הקשר)",
+        rootHintVerifiedBase: "צורת בסיס (Dicta, לפי הקשר)",
         rootHintParticle: "מילת תפקוד — אין שורש.",
         rootHintLemma: "השורש לא נמצא במילון. צורת בסיס:",
         rootHintManual: "הקלידו ידנית",

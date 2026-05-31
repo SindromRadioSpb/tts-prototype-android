@@ -731,6 +731,7 @@ window.I18N_LOCALES.en = {
         rootHintAuto: "Root suggested provisionally (local dictionary) — please verify",
         rootHintPrefix: "Root suggested provisionally. Prefix:",
         rootHintVerified: "Root verified (Dicta, in context)",
+        rootHintVerifiedBase: "Base form (Dicta, in context)",
         rootHintParticle: "Function word — no root.",
         rootHintLemma: "Root not in the dictionary. Base form:",
         rootHintManual: "enter manually",

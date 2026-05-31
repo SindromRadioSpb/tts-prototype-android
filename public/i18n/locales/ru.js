@@ -739,6 +739,7 @@ window.I18N_LOCALES.ru = {
         rootHintAuto: "Корень подставлен предварительно (локальный словарь) — проверьте",
         rootHintPrefix: "Корень подставлен предварительно. Приставка:",
         rootHintVerified: "Корень проверен (Dicta, по контексту)",
+        rootHintVerifiedBase: "Базовая форма (Dicta, по контексту)",
         rootHintParticle: "Служебное слово — корня нет.",
         rootHintLemma: "Корень не найден в словаре. Базовая форма:",
         rootHintManual: "введите вручную",
