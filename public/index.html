@@ -5638,7 +5638,10 @@ body:not(.theme-light) .v3-notes-template-banner {
   flex-wrap: wrap;
   gap: 4px;
 }
-.v3-notes-tpl-morphhint-auto { color: #009E73; }                 /* found = success green */
+.v3-notes-tpl-morphhint-auto,
+.v3-notes-tpl-morphhint-prefix { color: #B26A00; }               /* provisional = amber */
+.v3-notes-tpl-morphhint-verified { color: #009E73; }            /* verified (Dicta) = green */
+.v3-notes-tpl-morphhint-particle,
 .v3-notes-tpl-morphhint-lemma { color: var(--theme-text-secondary, #475569); }
 .v3-notes-tpl-morphhint .v3-mh-lemma {
   font-weight: 700;
@@ -36426,11 +36429,17 @@ function v3NotesTplMorphologyAutoFillInit() {
     if (state === "searching") {
       html = `<span class="v3-mh-spin">⏳</span> ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintSearching", "Определяем корень…"))}`;
     } else if (state === "auto") {
-      html = `✓ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintAuto", "Корень определён автоматически"))}`;
+      // Local dict can't disambiguate by context → provisional, not asserted.
+      html = `≈ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintAuto", "Корень подставлен предварительно — проверьте"))}`;
     } else if (state === "prefix") {
       // payload = { prefix, bare }. Surface the segmentation transparently.
-      const lbl = v3NotesT("notes.tpl.word_study.rootHintPrefix", "Корень определён автоматически. Приставка:");
-      html = `✓ ${v3EscapeHtml(lbl)} <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload && payload.prefix || ""))}</span> + <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload && payload.bare || ""))}</span>`;
+      const lbl = v3NotesT("notes.tpl.word_study.rootHintPrefix", "Корень подставлен предварительно. Приставка:");
+      html = `≈ ${v3EscapeHtml(lbl)} <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload && payload.prefix || ""))}</span> + <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload && payload.bare || ""))}</span>`;
+    } else if (state === "verified") {
+      // Authoritative, context-disambiguated (Dicta). The only confident ✓.
+      html = `✓ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintVerified", "Корень проверен (Dicta, по контексту)"))}`;
+    } else if (state === "particle") {
+      html = `ⓘ ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintParticle", "Служебное слово — корня нет."))}`;
     } else if (state === "lemma") {
       const base = v3NotesT("notes.tpl.word_study.rootHintLemma", "Корень не найден в словаре. Базовая форма:");
       html = `ⓘ ${v3EscapeHtml(base)} <span class="v3-mh-lemma" dir="rtl">${v3EscapeHtml(String(payload || ""))}</span> — ${v3EscapeHtml(v3NotesT("notes.tpl.word_study.rootHintManual", "введите вручную"))}`;
