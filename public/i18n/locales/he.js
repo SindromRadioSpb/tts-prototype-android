@@ -668,6 +668,12 @@ window.I18N_LOCALES.he = {
         new: "חדש",
         known: "נלמד",
       },
+      feat: {
+        genderM: "ז'", genderF: "נ'", genderMF: "ז/נ",
+        numSg: "יחיד", numPl: "רבים", numDual: "זוגי",
+        tnsPast: "עבר", tnsPresent: "הווה", tnsFuture: "עתיד",
+        pers1: "גוף 1", pers2: "גוף 2", pers3: "גוף 3",
+      },
     },
     // Phase B — Dicta in-context verification (opt-in, consent-gated).
     morphOnline: {

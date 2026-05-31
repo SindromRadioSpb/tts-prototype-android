@@ -18,8 +18,12 @@
 
 const https = require("https");
 
+const { decodeMorphId } = require("../morph/dictaMorphId");
+
 const DICTA_URL     = process.env.DICTA_NAKDAN_URL || "https://nakdan-5-1.loadbalancer.dicta.org.il/api";
-const MODEL_VERSION = "dicta-morph-v1";
+// v2: now also decodes binyan + grammatical features from the morphId. Bumping
+// the version makes stored sentence_morph rows re-enrich and pick up the fields.
+const MODEL_VERSION = "dicta-morph-v2";
 const TIMEOUT_MS    = Number(process.env.DICTA_TIMEOUT_MS || 8000);
 
 // ── HTTP helper (mirrors dictaCloud._post) ────────────────────────────────
@@ -93,6 +97,15 @@ function _parseToken(tk) {
   const seen = new Set();
   const lemmasUniq = [];
   for (const l of lemmas) { if (!seen.has(l)) { seen.add(l); lemmasUniq.push(l); } }
+
+  // Decode the top option's morphId → binyan + grammatical features. A null
+  // binyan means "not a verb" (noun/particle) — NOT "unknown binyan" — so we
+  // do NOT heuristic-guess here (that would mislabel nouns). The client fills
+  // binyan only for verbs; the heuristic is a client-side last resort.
+  const topMorph = morphList[0];
+  const morphId = (Array.isArray(topMorph) && topMorph[0] != null) ? String(topMorph[0]) : "";
+  const dec = decodeMorphId(morphId);
+
   return {
     word,
     niqqud: niqqudRaw.replace(/\|/g, ""),
@@ -101,6 +114,10 @@ function _parseToken(tk) {
     lemma:  lemmasUniq[0] || "",
     lemmas: lemmasUniq.slice(0, 5),
     confident: !!(tk && tk.fconfident),
+    morphId,
+    binyan: dec.binyan,            // app <select> value (paal…hitpael), verbs only
+    binyanSource: dec.binyan ? "dicta" : null,
+    feats: dec.feats,              // { gender, number, person, tense }
   };
 }
 

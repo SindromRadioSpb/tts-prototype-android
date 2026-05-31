@@ -661,6 +661,12 @@ window.I18N_LOCALES.en = {
         new: "new",
         known: "known",
       },
+      feat: {
+        genderM: "masc", genderF: "fem", genderMF: "m/f",
+        numSg: "sg", numPl: "pl", numDual: "dual",
+        tnsPast: "past", tnsPresent: "pres", tnsFuture: "fut",
+        pers1: "1p", pers2: "2p", pers3: "3p",
+      },
     },
     // Phase B — Dicta in-context verification (opt-in, consent-gated).
     morphOnline: {

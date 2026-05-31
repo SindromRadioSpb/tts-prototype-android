@@ -668,6 +668,12 @@ window.I18N_LOCALES.ru = {
         new: "новое",
         known: "усвоено",
       },
+      feat: {
+        genderM: "м.р", genderF: "ж.р", genderMF: "м/ж",
+        numSg: "ед", numPl: "мн", numDual: "дв",
+        tnsPast: "прош", tnsPresent: "наст", tnsFuture: "буд",
+        pers1: "1 л", pers2: "2 л", pers3: "3 л",
+      },
     },
     // Phase B — Dicta in-context verification (opt-in, consent-gated).
     morphOnline: {

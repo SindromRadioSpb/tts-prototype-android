@@ -5648,6 +5648,22 @@ body:not(.theme-light) .v3-notes-template-banner {
   font-size: 13px;
   color: var(--theme-text-primary);
 }
+.v3-notes-tpl-morphhint .v3-mh-feats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-inline-start: 2px;
+  vertical-align: middle;
+}
+.v3-notes-tpl-morphhint .v3-mh-feat {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(86, 180, 233, 0.14);   /* learning-blue tint */
+  color: var(--theme-text-secondary, #475569);
+  white-space: nowrap;
+}
 .v3-notes-tpl-morphhint .v3-mh-spin {
   display: inline-block;
   animation: v3-mh-spin 1.1s steps(8) infinite;
@@ -39652,7 +39668,7 @@ async function v3MorphTokenToResult(tok) {
   // intact, as Dicta returns + as the stoplist is written) and the folded form
   // (normalizeHebrew maps ן→נ etc., so אין → אינ would otherwise miss).
   if (!lemma || lemma.length < 2 || V3_HEB_FUNCTION_WORDS.has(lemma) || V3_HEB_FUNCTION_WORDS.has(lemmaNorm)) {
-    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "other", kind: "particle", confident: tok.confident };
+    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "other", kind: "particle", confident: tok.confident, feats: tok.feats || null };
   }
   let pos = null;
   try {
@@ -39662,8 +39678,18 @@ async function v3MorphTokenToResult(tok) {
     const top = pool.find((a) => a.p === "verb") || pool.find((a) => V3_CONTENT_POS.includes(String(a.p))) || pool[0] || null;
     if (top) pos = top.p || null;
   } catch (_) {}
-  const kind = (pos === "verb") ? "verbRoot" : "base";
-  return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: lemma, binyan: null, pos, kind, confident: tok.confident };
+  // Dicta decodes binyan only for verbs; if the morph decode disagrees with a
+  // verb POS, prefer the decoded binyan (authoritative). Never set binyan for
+  // non-verbs.
+  const isVerb = (pos === "verb") || (!!tok.binyan && pos == null);
+  const binyan = (isVerb && tok.binyan) ? tok.binyan : null;
+  const kind = (pos === "verb" || (binyan && !pos)) ? "verbRoot" : "base";
+  return {
+    word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: lemma,
+    binyan, binyanSource: binyan ? (tok.binyanSource || "dicta") : null,
+    pos: pos || (binyan ? "verb" : null), kind, confident: tok.confident,
+    feats: tok.feats || null,
+  };
 }
 
 async function v3DictaMorphResolve(word, sentence) {
@@ -39725,6 +39751,36 @@ const V3_DICTA_POS_TO_OPTION = {
   noun: "noun", verb: "verb", adjective: "adjective", adverb: "adverb",
   preposition: "preposition", pronoun: "pronoun", interjection: "interjection",
 };
+// Valid binyan <select> option values (decoded morphId maps directly to these).
+const V3_BINYAN_OPTS = new Set(["paal", "nifal", "hifil", "hufal", "piel", "pual", "hitpael"]);
+
+// Grammatical-profile feature → i18n key (compact chip labels).
+const V3_MORPH_FEAT_KEY = {
+  gender: { m: "genderM", f: "genderF", mf: "genderMF" },
+  number: { sg: "numSg", pl: "numPl", dual: "numDual" },
+  tense:  { past: "tnsPast", present: "tnsPresent", future: "tnsFuture" },
+  person: { "1": "pers1", "2": "pers2", "3": "pers3" },
+};
+const V3_MORPH_FEAT_FALLBACK = {
+  genderM: "м.р", genderF: "ж.р", genderMF: "м/ж",
+  numSg: "ед", numPl: "мн", numDual: "дв",
+  tnsPast: "прош", tnsPresent: "наст", tnsFuture: "буд",
+  pers1: "1 л", pers2: "2 л", pers3: "3 л",
+};
+// Build a compact chip-string from decoded feats (order: gender·number·tense·person).
+function v3MorphFeatsChips(feats) {
+  if (!feats) return "";
+  const out = [];
+  for (const dim of ["gender", "number", "tense", "person"]) {
+    const v = feats[dim];
+    if (!v) continue;
+    const key = V3_MORPH_FEAT_KEY[dim] && V3_MORPH_FEAT_KEY[dim][v];
+    if (!key) continue;
+    const label = v3NotesT("notes.card.feat." + key, V3_MORPH_FEAT_FALLBACK[key] || v);
+    out.push(`<span class="v3-mh-feat">${v3EscapeHtml(label)}</span>`);
+  }
+  return out.length ? `<span class="v3-mh-feats">${out.join("")}</span>` : "";
+}
 
 // Apply an authoritative (Dicta) result to the word_study form — shared by the
 // online verify button and the offline eager fill from stored enrichment.
@@ -39756,13 +39812,19 @@ function v3MorphApplyResultToForm(r, word) {
       rootEl.classList.add("v3-notes-tpl-auto-filled");
       setTimeout(() => rootEl.classList.remove("v3-notes-tpl-auto-filled"), 1400);
     }
-    if (binyanEl && binyanEl.dataset.userTouched !== "1") { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
+    // Binyan: fill from Dicta's decoded morphId (verbs only); else clear.
+    if (binyanEl && binyanEl.dataset.userTouched !== "1") {
+      if (r.binyan && V3_BINYAN_OPTS.has(r.binyan)) {
+        binyanEl.value = r.binyan; binyanEl.dataset.autoFilled = "1";
+      } else { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
+    }
     if (hintEl && !userTyped) {
       hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-verified";
       const key = r.kind === "verbRoot" ? "notes.tpl.word_study.rootHintVerified" : "notes.tpl.word_study.rootHintVerifiedBase";
       const fb = r.kind === "verbRoot" ? "Корень проверен (Dicta, по контексту)" : "Базовая форма (Dicta, по контексту)";
       const seg = r.prefix ? ` · ${chip(r.prefix)} + ${chip(r.stem)}` : "";
-      hintEl.innerHTML = `✓ ${v3EscapeHtml(v3NotesT(key, fb))}${seg}`;
+      const feats = v3MorphFeatsChips(r.feats);
+      hintEl.innerHTML = `✓ ${v3EscapeHtml(v3NotesT(key, fb))}${seg}${feats ? " " + feats : ""}`;
       hintEl.style.display = "";
     }
   }
