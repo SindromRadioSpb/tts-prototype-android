@@ -671,7 +671,7 @@ window.I18N_LOCALES.ru = {
       feat: {
         genderM: "м.р", genderF: "ж.р", genderMF: "м/ж",
         numSg: "ед", numPl: "мн", numDual: "дв",
-        tnsPast: "прош", tnsPresent: "наст", tnsFuture: "буд",
+        tnsPast: "прош", tnsPresent: "наст", tnsFuture: "буд", tnsImper: "повел", tnsInf: "инф",
         pers1: "1 л", pers2: "2 л", pers3: "3 л",
       },
     },

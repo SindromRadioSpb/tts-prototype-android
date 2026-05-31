@@ -664,7 +664,7 @@ window.I18N_LOCALES.en = {
       feat: {
         genderM: "masc", genderF: "fem", genderMF: "m/f",
         numSg: "sg", numPl: "pl", numDual: "dual",
-        tnsPast: "past", tnsPresent: "pres", tnsFuture: "fut",
+        tnsPast: "past", tnsPresent: "pres", tnsFuture: "fut", tnsImper: "imv", tnsInf: "inf",
         pers1: "1p", pers2: "2p", pers3: "3p",
       },
     },

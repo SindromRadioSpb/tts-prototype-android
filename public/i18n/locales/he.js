@@ -671,7 +671,7 @@ window.I18N_LOCALES.he = {
       feat: {
         genderM: "ז'", genderF: "נ'", genderMF: "ז/נ",
         numSg: "יחיד", numPl: "רבים", numDual: "זוגי",
-        tnsPast: "עבר", tnsPresent: "הווה", tnsFuture: "עתיד",
+        tnsPast: "עבר", tnsPresent: "הווה", tnsFuture: "עתיד", tnsImper: "ציווי", tnsInf: "מקור",
         pers1: "גוף 1", pers2: "גוף 2", pers3: "גוף 3",
       },
     },

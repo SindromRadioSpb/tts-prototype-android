@@ -39679,7 +39679,10 @@ async function v3MorphTokenToResult(tok) {
   // intact, as Dicta returns + as the stoplist is written) and the folded form
   // (normalizeHebrew maps ן→נ etc., so אין → אינ would otherwise miss).
   if (!lemma || lemma.length < 2 || V3_HEB_FUNCTION_WORDS.has(lemma) || V3_HEB_FUNCTION_WORDS.has(lemmaNorm)) {
-    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "other", kind: "particle", confident: tok.confident, feats: tok.feats || null };
+    // No root — but keep Dicta's SPECIFIC part of speech (pronoun, preposition…)
+    // instead of a generic "Другое" (fixes pronouns showing as "other").
+    const pPos = (tok.posDicta && V3_DICTA_DECODED_POS_TO_OPTION[tok.posDicta]) || "other";
+    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: pPos, kind: "particle", confident: tok.confident, feats: tok.feats || null };
   }
   // Dicta's decoded POS is authoritative; fall back to the local dict only when
   // Dicta gave none. Proper nouns are real words with NO triliteral root.
@@ -39780,13 +39783,13 @@ const V3_DICTA_DECODED_POS_TO_OPTION = {
 const V3_MORPH_FEAT_KEY = {
   gender: { m: "genderM", f: "genderF", mf: "genderMF" },
   number: { sg: "numSg", pl: "numPl", dual: "numDual" },
-  tense:  { past: "tnsPast", present: "tnsPresent", future: "tnsFuture" },
+  tense:  { past: "tnsPast", present: "tnsPresent", future: "tnsFuture", imperative: "tnsImper", infinitive: "tnsInf" },
   person: { "1": "pers1", "2": "pers2", "3": "pers3" },
 };
 const V3_MORPH_FEAT_FALLBACK = {
   genderM: "м.р", genderF: "ж.р", genderMF: "м/ж",
   numSg: "ед", numPl: "мн", numDual: "дв",
-  tnsPast: "прош", tnsPresent: "наст", tnsFuture: "буд",
+  tnsPast: "прош", tnsPresent: "наст", tnsFuture: "буд", tnsImper: "повел", tnsInf: "инф",
   pers1: "1 л", pers2: "2 л", pers3: "3 л",
 };
 // Build a compact chip-string from decoded feats (order: gender·number·tense·person).
@@ -39819,7 +39822,9 @@ function v3MorphApplyResultToForm(r, word) {
     if (rootEl && !userTyped) { rootEl.value = ""; rootEl.dataset.autoFilled = ""; }
     if (binyanEl) { binyanEl.value = ""; binyanEl.dataset.autoFilled = ""; }
     if (posEl && posEl.dataset.userTouched !== "1") {
-      posEl.value = (r.kind === "propernoun") ? "noun" : "other"; posEl.dataset.autoFilled = "1";
+      posEl.value = (r.kind === "propernoun") ? "noun"
+        : (r.pos && V3_DICTA_POS_TO_OPTION[r.pos] ? V3_DICTA_POS_TO_OPTION[r.pos] : "other");
+      posEl.dataset.autoFilled = "1";
     }
     if (hintEl && !userTyped) {
       hintEl.className = "v3-notes-tpl-morphhint v3-notes-tpl-morphhint-particle";

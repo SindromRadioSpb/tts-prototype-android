@@ -16,7 +16,7 @@
 //   gender : (id >> 21) & 0x3   1=m 2=f 3=m/f
 //   number : (id >> 24) & 0x7   1=sg 2=pl 3=dual
 //   person : (id >> 27) & 0x7   1/2/3   (0 or 4 = none, e.g. present participle / nouns)
-//   tense  : (id >> 32) & 0xFF  2=past 6=present 8=future   (0 = no tense)
+//   tense  : (id >> 32) & 0xFF  2=past 6=present 8=future 10=imperative 12=infinitive  (0 = none)
 
 const MORPH_DECODE_VERSION = "dicta-morphid-v2";
 
@@ -25,7 +25,7 @@ const BINYAN = { 1: "paal", 2: "nifal", 3: "hifil", 4: "hufal", 5: "piel", 6: "p
 const GENDER = { 1: "m", 2: "f", 3: "mf" };
 const NUMBER = { 1: "sg", 2: "pl", 3: "dual" };
 const PERSON = { 1: "1", 2: "2", 3: "3" };
-const TENSE  = { 2: "past", 6: "present", 8: "future" };
+const TENSE  = { 2: "past", 6: "present", 8: "future", 10: "imperative", 12: "infinitive" };
 
 // decodeMorphId(idString) → { binyan, feats:{gender,number,person,tense}, valid, raw }
 // Unknown/unmapped sub-fields come back null; `valid` is false only when the

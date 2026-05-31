@@ -50,6 +50,10 @@ for (const [label, id, expPos] of POS_CASES) {
   test(`POS ${label}`, decodeMorphId(id).pos === expPos, JSON.stringify(decodeMorphId(id)));
 }
 
+// Tense: imperative (byte 10) + infinitive (byte 12) — synthetic ids (verb binyan + tense byte).
+test("tense imperative (byte 10)", decodeMorphId(((1n << 51n) | (10n << 32n)).toString()).feats.tense === "imperative", "");
+test("tense infinitive (byte 12)", decodeMorphId(((1n << 51n) | (12n << 32n)).toString()).feats.tense === "infinitive", "");
+
 // Non-verb / invalid handling
 test("zero id → invalid, no binyan", (() => { const d = decodeMorphId("0"); return !d.valid && d.binyan === null; })(), "");
 test("garbage id → invalid (no throw)", (() => { const d = decodeMorphId("not-a-number"); return !d.valid; })(), "");
