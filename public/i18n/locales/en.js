@@ -342,6 +342,8 @@ window.I18N_LOCALES.en = {
     cardRequestTitle: "Text-card request — Standard branch opens the bulk-builder; Curated submits for human review",
     share: "🔗 Share",
     shareTitle: "Share text-card via file — send to students or a friend in one tap",
+    enrich: "✨ Enrich",
+    enrichTitle: "Pre-compute morphology (Dicta) for the whole text and store it locally — then the graph and word cards work offline",
     exportJson: "Export JSON",
     importJson: "Import JSON",
     exportZip: "Export ZIP (with audio)",
@@ -882,6 +884,18 @@ window.I18N_LOCALES.en = {
   // Phase 9.4.D — Hebrew morphology subsystem strings
   morph: {
     title: "🔤 Hebrew morphology",
+    autoEnrichToggle: "Auto-enrich new texts via Dicta (online)",
+    enrich: {
+      consentTitle: "Enrich morphology via Dicta",
+      consentBody: "All sentences of this text ({n}) will be sent to the Dicta cloud analyzer (dicta.org.il) to resolve roots IN CONTEXT. The result is stored LOCALLY — after that the graph and cards work offline. The text is not stored on our servers. Continue?",
+      consentOk: "Agree — enrich",
+      progressTitle: "✨ Enriching morphology (Dicta)",
+      done: "Done: {n} sentences enriched.",
+      partial: "Interrupted (network). {n} enriched.",
+      error: "Enrichment failed: ",
+      noSentences: "No sentences in this text.",
+      alreadyDone: "Text already enriched.",
+    },
     statusLabel: "Status",
     entries: "Dictionary entries",
     analyses: "Morphology analyses",

@@ -346,6 +346,8 @@ window.I18N_LOCALES.he = {
     cardRequestTitle: "בקשת text-card — Standard פותח את ה-bulk-builder; Curated שולח לסקירה אנושית",
     share: "🔗 שתף",
     shareTitle: "שתפו כרטיסיית טקסט דרך קובץ — שליחה לתלמידים או חבר בלחיצה אחת",
+    enrich: "✨ העשרה",
+    enrichTitle: "חישוב מורפולוגיה (Dicta) לכל הטקסט ושמירה מקומית — לאחר מכן הגרף והכרטיסיות עובדים אופליין",
     exportJson: "ייצוא JSON",
     importJson: "ייבוא JSON",
     exportZip: "ייצוא ZIP (עם שמע)",
@@ -889,6 +891,18 @@ window.I18N_LOCALES.he = {
   // Phase 9.4.D — Hebrew morphology subsystem strings
   morph: {
     title: "🔤 מורפולוגיה עברית",
+    autoEnrichToggle: "העשרה אוטומטית של טקסטים חדשים דרך Dicta (מקוון)",
+    enrich: {
+      consentTitle: "העשרת מורפולוגיה דרך Dicta",
+      consentBody: "כל המשפטים בטקסט הזה ({n}) יישלחו למנתח הענן של Dicta (dicta.org.il) לזיהוי שורשים לפי הקשר. התוצאה נשמרת מקומית — לאחר מכן הגרף והכרטיסיות עובדים אופליין. הטקסט אינו נשמר בשרתים שלנו. להמשיך?",
+      consentOk: "מסכים — להעשיר",
+      progressTitle: "✨ העשרת מורפולוגיה (Dicta)",
+      done: "הושלם: הועשרו {n} משפטים.",
+      partial: "הופסק (רשת). הועשרו {n}.",
+      error: "ההעשרה נכשלה: ",
+      noSentences: "אין משפטים בטקסט.",
+      alreadyDone: "הטקסט כבר הועשר.",
+    },
     statusLabel: "סטטוס",
     entries: "ערכים במילון",
     analyses: "ניתוחי מורפולוגיה",

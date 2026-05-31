@@ -343,6 +343,8 @@ window.I18N_LOCALES.ru = {
     cardRequestTitle: "Заявка на text-card — Standard ветка откроет bulk-builder; Curated отправит на ручную обработку",
     share: "🔗 Поделиться",
     shareTitle: "Поделиться text-card через файл — отправить ученикам / коллеге одним щелчком",
+    enrich: "✨ Обогатить",
+    enrichTitle: "Предвычислить морфологию (Dicta) для всего текста и сохранить локально — потом граф и карточки работают офлайн",
     exportJson: "Экспорт JSON",
     importJson: "Импорт JSON",
     exportZip: "Экспорт ZIP (с аудио)",
@@ -895,6 +897,18 @@ window.I18N_LOCALES.ru = {
   // Phase 9.4.D — Hebrew morphology subsystem strings
   morph: {
     title: "🔤 Морфология иврита",
+    autoEnrichToggle: "Авто-обогащать новые тексты через Dicta (онлайн)",
+    enrich: {
+      consentTitle: "Обогащение морфологии через Dicta",
+      consentBody: "Все предложения этого текста ({n}) будут отправлены в облачный анализатор Dicta (dicta.org.il) для определения корней ПО КОНТЕКСТУ. Результат сохраняется ЛОКАЛЬНО — после этого граф и карточки работают офлайн. Текст не хранится на наших серверах. Продолжить?",
+      consentOk: "Согласен — обогатить",
+      progressTitle: "✨ Обогащение морфологии (Dicta)",
+      done: "Готово: обогащено {n} предложений.",
+      partial: "Прервано (сеть). Обогащено {n}.",
+      error: "Не удалось обогатить: ",
+      noSentences: "В тексте нет предложений.",
+      alreadyDone: "Текст уже обогащён.",
+    },
     statusLabel: "Статус",
     entries: "Записей в словаре",
     analyses: "Морфо-анализов",

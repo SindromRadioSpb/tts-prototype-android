@@ -436,6 +436,65 @@ export async function getSentences(textId) {
   );
 }
 
+// ── Phase D — pre-computed context morphology (Dicta) per sentence ────────
+// Upsert one sentence's tokens. tokens is an array of per-word records; it is
+// JSON-serialized here. model_version lets a Dicta upgrade invalidate/re-run.
+export async function saveSentenceMorph(textId, sentenceId, modelVersion, tokens, provider) {
+  if (!textId || !sentenceId) throw new Error('saveSentenceMorph: textId + sentenceId required');
+  const tokensJson = JSON.stringify(Array.isArray(tokens) ? tokens : []);
+  const now = new Date().toISOString();
+  await r(
+    `INSERT INTO sentence_morph (sentence_id, text_id, model_version, tokens_json, provider, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(sentence_id) DO UPDATE SET
+       model_version = excluded.model_version,
+       tokens_json   = excluded.tokens_json,
+       provider      = excluded.provider,
+       updated_at    = excluded.updated_at`,
+    [String(sentenceId), String(textId), String(modelVersion || ''), tokensJson, provider || null, now, now]
+  );
+}
+
+// All stored morphology for a text, keyed by sentence_id (tokens parsed).
+export async function getSentenceMorphForText(textId) {
+  if (!textId) return {};
+  const rows = await q(`SELECT sentence_id, model_version, tokens_json FROM sentence_morph WHERE text_id = ?`, [String(textId)]);
+  const out = {};
+  for (const row of (rows || [])) {
+    let tokens = [];
+    try { tokens = JSON.parse(row.tokens_json || '[]'); } catch (_) { tokens = []; }
+    out[String(row.sentence_id)] = { model_version: row.model_version, tokens };
+  }
+  return out;
+}
+
+// One sentence's stored morphology (parsed tokens) or null.
+export async function getSentenceMorph(sentenceId) {
+  if (!sentenceId) return null;
+  const rows = await q(`SELECT model_version, tokens_json FROM sentence_morph WHERE sentence_id = ?`, [String(sentenceId)]);
+  if (!rows || !rows[0]) return null;
+  let tokens = [];
+  try { tokens = JSON.parse(rows[0].tokens_json || '[]'); } catch (_) { tokens = []; }
+  return { model_version: rows[0].model_version, tokens };
+}
+
+// Coverage: how many of a text's sentences already have morphology for a model.
+export async function getSentenceMorphCoverage(textId, modelVersion) {
+  if (!textId) return { total: 0, enriched: 0 };
+  const totalRows = await q(`SELECT COUNT(*) AS n FROM sentences WHERE text_id = ?`, [String(textId)]);
+  const total = (totalRows && totalRows[0]) ? Number(totalRows[0].n) || 0 : 0;
+  const encRows = modelVersion
+    ? await q(`SELECT COUNT(*) AS n FROM sentence_morph WHERE text_id = ? AND model_version = ?`, [String(textId), String(modelVersion)])
+    : await q(`SELECT COUNT(*) AS n FROM sentence_morph WHERE text_id = ?`, [String(textId)]);
+  const enriched = (encRows && encRows[0]) ? Number(encRows[0].n) || 0 : 0;
+  return { total, enriched };
+}
+
+export async function deleteSentenceMorphForText(textId) {
+  if (!textId) return;
+  await r(`DELETE FROM sentence_morph WHERE text_id = ?`, [String(textId)]);
+}
+
 export async function addSentence(textId, data) {
   if (!textId) throw new Error('addSentence: textId is required');
   if (!data || !data.id) throw new Error('addSentence: data.id is required');

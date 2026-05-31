@@ -3711,6 +3711,40 @@ app.post("/api/morphology", async (req, res) => {
   }
 });
 
+// Batch morphology for a whole text (Phase D corpus enrichment). Body:
+// { sentences: string[], genre? }. Returns one result per input sentence, in
+// order, throttled server-side. Opt-in + consent-gated on the client.
+app.post("/api/morphology/batch", async (req, res) => {
+  try {
+    const { sentences, genre = "modern" } = req.body || {};
+    if (!Array.isArray(sentences) || !sentences.length) {
+      return res.status(400).json({ ok: false, results: [], reason: "sentences[] is required" });
+    }
+    if (sentences.length > 400) {
+      return res.status(413).json({ ok: false, results: [], reason: "too many sentences (max 400 per request)" });
+    }
+    const { analyze, MODEL_VERSION } = require("./db/premium/morphologyGateway");
+    const CONCURRENCY = 4;
+    const results = new Array(sentences.length).fill(null);
+    for (let i = 0; i < sentences.length; i += CONCURRENCY) {
+      const slice = sentences.slice(i, i + CONCURRENCY);
+      await Promise.all(slice.map(async (s, j) => {
+        const idx = i + j;
+        try {
+          const out = await analyze(String(s || ""), { genre });
+          results[idx] = { ok: !!out.ok, tokens: out.tokens || [], degraded: !!out.degraded };
+        } catch (e) {
+          results[idx] = { ok: false, tokens: [], degraded: true, reason: e && e.message };
+        }
+      }));
+    }
+    res.json({ ok: true, results, model_version: MODEL_VERSION });
+  } catch (e) {
+    console.error("[morphology:batch] error:", e);
+    res.status(500).json({ ok: false, results: [], reason: e.message || "Internal error" });
+  }
+});
+
 // --------------------------------------------------------
 app.get("/api/diag", async (_req, res) => {
   const { getDb } = require("./db/sqlite");

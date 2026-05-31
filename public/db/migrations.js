@@ -625,4 +625,21 @@ export const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS ix_nls_from  ON note_link_suggestions(from_note_id);
   CREATE INDEX IF NOT EXISTS ix_nls_state ON note_link_suggestions(state);`,
+
+  // 050_sentence_morph — Phase D. Pre-computed context-aware morphology
+  // (Dicta) for a whole text, stored locally so the graph + word cards +
+  // crosstext read Dicta-quality roots OFFLINE after a one-time enrichment.
+  // One row per sentence; tokens_json holds the per-word records
+  // [{ word, prefix, stem, lemma, lemmas, confident }]. model_version lets a
+  // Dicta upgrade re-enrich. ON DELETE CASCADE keeps it tied to the text.
+  `CREATE TABLE IF NOT EXISTS sentence_morph (
+    sentence_id   TEXT PRIMARY KEY REFERENCES sentences(id) ON DELETE CASCADE,
+    text_id       TEXT NOT NULL REFERENCES texts(id) ON DELETE CASCADE,
+    model_version TEXT NOT NULL,
+    tokens_json   TEXT NOT NULL,
+    provider      TEXT,
+    created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at    TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS ix_sentence_morph_text ON sentence_morph(text_id);`,
 ];
