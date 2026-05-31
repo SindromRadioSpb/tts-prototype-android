@@ -49,6 +49,10 @@ const POS_CASES = [
 for (const [label, id, expPos] of POS_CASES) {
   test(`POS ${label}`, decodeMorphId(id).pos === expPos, JSON.stringify(decodeMorphId(id)));
 }
+// Additional POS codes (synthetic ids: pos = code << 16)
+for (const [code, expPos] of [[3, "conjunction"], [4, "preposition"], [5, "negation"], [15, "interrogative"], [30, "preposition"]]) {
+  test(`POS code ${code} → ${expPos}`, decodeMorphId((BigInt(code) << 16n).toString()).pos === expPos, "");
+}
 
 // Tense: imperative (byte 10) + infinitive (byte 12) — synthetic ids (verb binyan + tense byte).
 test("tense imperative (byte 10)", decodeMorphId(((1n << 51n) | (10n << 32n)).toString()).feats.tense === "imperative", "");

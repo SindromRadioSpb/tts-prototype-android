@@ -11,7 +11,7 @@
 //
 // IMPORTANT: morphId exceeds Number.MAX_SAFE_INTEGER — decode with BigInt only.
 //
-//   pos    : (id >> 16) & 0x1F  1=adjective 2=adverb 6=noun 7=numeral 8=preposition 9=pronoun 10=propernoun 13=verb
+//   pos    : (id >> 16) & 0x1F  1=adj 2=adv 3=conj 4/8/30=prep 5=negation 6=noun 7=numeral 9=pronoun 10=propernoun 13=verb 15=interrogative
 //   binyan : (id >> 51) & 0x7   1=paal 2=nifal 3=hifil 4=hufal 5=piel 6=pual 7=hitpael  (0 = not a verb)
 //   gender : (id >> 21) & 0x3   1=m 2=f 3=m/f
 //   number : (id >> 24) & 0x7   1=sg 2=pl 3=dual
@@ -20,7 +20,11 @@
 
 const MORPH_DECODE_VERSION = "dicta-morphid-v2";
 
-const POS = { 1: "adjective", 2: "adverb", 6: "noun", 7: "numeral", 8: "preposition", 9: "pronoun", 10: "propernoun", 13: "verb" };
+const POS = {
+  1: "adjective", 2: "adverb", 3: "conjunction", 4: "preposition", 5: "negation",
+  6: "noun", 7: "numeral", 8: "preposition", 9: "pronoun", 10: "propernoun",
+  13: "verb", 15: "interrogative", 30: "preposition",
+};
 const BINYAN = { 1: "paal", 2: "nifal", 3: "hifil", 4: "hufal", 5: "piel", 6: "pual", 7: "hitpael" };
 const GENDER = { 1: "m", 2: "f", 3: "mf" };
 const NUMBER = { 1: "sg", 2: "pl", 3: "dual" };

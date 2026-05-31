@@ -14714,6 +14714,9 @@ let v3NotesModalWordLemma = "";
 // (the token picker already has it) so Dicta in-context verification has the
 // context without a re-query. Settable via v3NotesOpen opts.sentence.
 let v3NotesModalSentenceText = "";
+// Explicit vocalized form for niqqud_variant (from the token picker), so the
+// headword can be the plain ktiv-male form while niqqud stays the vocalized one.
+let v3NotesModalNiqqudForm = "";
 let v3NotesAutoSaveTimer = null;
 let v3NotesHistoryOpen = false;
 // Phase 9.2 — audio anchor state. Mirrors notes_v2.audio_anchor_ms for the
@@ -38947,14 +38950,18 @@ async function v3NotesTokenPickerOpen(intent, ctx) {
   // clicked from has the row enriched with _v3_sentenceId etc — but we also
   // need the actual text. Pull from currentTableData[rowIdx] or fall back to
   // looking it up in the DB).
-  let sentenceText = "";
+  let sentenceText = "", sentencePlain = "";
   try {
     const row = Array.isArray(currentTableData) ? currentTableData[ctx.rowIdx] : null;
     sentenceText = row ? String(row.hebrew_niqqud || row.hebrew_plain || row.hebrew || row.he_niqqud || row.he_plain || "") : "";
-    if (!sentenceText && LOCAL_MODE) {
+    sentencePlain = row ? String(row.hebrew_plain || row.he_plain || "") : "";
+    if ((!sentenceText || !sentencePlain) && LOCAL_MODE) {
       const ldb = await ensureLocalDB();
       const rows = await ldb.dbQuery("SELECT he_niqqud, he_plain FROM sentences WHERE id = ?", [ctx.sentenceId]);
-      if (rows && rows[0]) sentenceText = String(rows[0].he_niqqud || rows[0].he_plain || "");
+      if (rows && rows[0]) {
+        if (!sentenceText) sentenceText = String(rows[0].he_niqqud || rows[0].he_plain || "");
+        if (!sentencePlain) sentencePlain = String(rows[0].he_plain || "");
+      }
     }
   } catch (e) { console.warn("token-picker sentence lookup failed", e); }
   // Carry the row's sentence through to the note open so Dicta in-context
@@ -38967,6 +38974,18 @@ async function v3NotesTokenPickerOpen(intent, ctx) {
     .split(/[\s ​‎‏]+/)
     .map(t => t.replace(/^[,.;:!?"'«»()\[\]]+|[,.;:!?"'«»()\[\]]+$/g, "").trim())
     .filter(t => t.length > 0);
+
+  // ktiv male/haser: also tokenize the PLAIN text so the headword is the word
+  // as it appears (איתה), not the vocalized form which drops the yod (אִתָּהּ →
+  // אתה). Same word boundaries → align by offset; trust only when counts match.
+  const plainTokens = String(sentencePlain || "")
+    .split(/[\s​‎‏]+/)
+    .map(t => t.replace(/^[,.;:!?"'«»()\[\]]+|[,.;:!?"'«»()\[\]]+$/g, "").trim())
+    .filter(t => t.length > 0);
+  if (v3NotesTokenPickerCtx) {
+    v3NotesTokenPickerCtx.tokens = tokens;
+    v3NotesTokenPickerCtx.plainTokens = (plainTokens.length === tokens.length) ? plainTokens : null;
+  }
 
   if (!tokens.length) {
     list.innerHTML = `<div class="v3-notes-token-picker-empty">${v3EscapeHtml(v3NotesT("notes.tokenPicker.empty", "Не удалось разделить строку на слова."))}</div>`;
@@ -39008,12 +39027,18 @@ function v3NotesTokenPickerPick(offset, lemma) {
   // 9.4 morphology results can attach without ambiguity. Bare-lemma format
   // (legacy) remains supported by listNotesForRow as "any occurrence".
   const targetId = String(ctx.sentenceId) + ":" + Number(offset);
+  // Headword = the PLAIN-text token (ktiv male, as it appears, e.g. איתה); the
+  // tapped vocalized token (אִתָּהּ) becomes the niqqud_variant. Falls back to
+  // niqqud-stripping when plain tokens don't align.
+  const niqqudTok = (slot.tokens && slot.tokens[offset]) || String(lemma || "");
+  const plainTok = (slot.plainTokens && slot.plainTokens[offset]) || "";
   v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, {
     targetKind: intent.target_kind,
     noteType: intent.note_type,
     targetId,
     intentKey: "row.word",
-    wordLemma: String(lemma || ""),
+    wordLemma: plainTok || niqqudTok,   // plain preferred; pre-fill strips if vocalized
+    niqqudForm: niqqudTok,              // explicit vocalized form for niqqud_variant
     sentence: String(slot.sentenceText || ""),
   });
 }
@@ -39773,10 +39798,12 @@ const V3_DICTA_POS_TO_OPTION = {
 };
 // Valid binyan <select> option values (decoded morphId maps directly to these).
 const V3_BINYAN_OPTS = new Set(["paal", "nifal", "hifil", "hufal", "piel", "pual", "hitpael"]);
-// Dicta-decoded POS → word_study POS <select> value.
+// Dicta-decoded POS → word_study POS <select> value. Categories without a
+// dedicated option (conjunction/negation/interrogative/numeral) fall to "other".
 const V3_DICTA_DECODED_POS_TO_OPTION = {
   verb: "verb", noun: "noun", adjective: "adjective", adverb: "adverb",
-  preposition: "preposition", pronoun: "pronoun", propernoun: "noun", numeral: "other",
+  preposition: "preposition", pronoun: "pronoun", propernoun: "noun",
+  numeral: "other", conjunction: "other", negation: "other", interrogative: "other",
 };
 
 // Grammatical-profile feature → i18n key (compact chip labels).
@@ -40406,6 +40433,7 @@ function v3NotesOpen(textId, sentenceId, rowIdx, opts) {
   v3NotesModalNoteType = o.noteType || "free";
   v3NotesModalWordLemma = o.wordLemma || "";
   v3NotesModalSentenceText = o.sentence || "";
+  v3NotesModalNiqqudForm = o.niqqudForm || "";
 
   const modal = v3NotesEl("v3NotesModal");
   const ta = v3NotesEl("v3NotesText");
@@ -40473,8 +40501,12 @@ try { v3NotesMdResetUi(); } catch (_) {}
       const raw = String(v3NotesModalWordLemma);
       const plain = (typeof v3StripNiqqudKeepFinals === "function") ? v3StripNiqqudKeepFinals(raw) : raw;
       if (wordEl && !wordEl.value) wordEl.value = plain;
-      // Pin the vocalized form only when the token actually carried niqqud.
-      if (niqEl && !niqEl.value && plain && plain !== raw) niqEl.value = raw;
+      // niqqud_variant: prefer the explicit vocalized form from the picker (so
+      // ktiv-male headword + ktiv-haser vocalized coexist); else the raw token
+      // when it itself carried niqqud.
+      const niqForm = (typeof v3NotesModalNiqqudForm === "string" && v3NotesModalNiqqudForm) ? v3NotesModalNiqqudForm : raw;
+      const niqHasPoints = (typeof v3StripNiqqudKeepFinals === "function") ? (v3StripNiqqudKeepFinals(niqForm) !== niqForm) : (niqForm !== plain);
+      if (niqEl && !niqEl.value && niqForm && niqHasPoints) niqEl.value = niqForm;
       // Show the "searching" status immediately — the full dict can take a
       // few seconds to load, and a silent empty root field reads as "broken".
       try {
