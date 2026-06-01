@@ -366,6 +366,27 @@ async function main() {
     test("Case 2d: two-voice verb (active pi'el + passive pu'al, PERF-3p, no dump)",
          r2d.hasActive && r2d.hasPassive && r2d.perf3p && r2d.passiveForm && r2d.noOther, JSON.stringify(r2d));
 
+    // ── Case 2e: personal-pronoun static SET (offline, highlight, no Pealim) ──
+    const r2e = await pg.evaluate(() => {
+      const lk = window.v3LookupPronounParadigm;
+      const lookupOk = !!lk("אני") && !!lk("אֲנִי") && !!lk("הוא") && !lk("כתב") && !lk("");
+      const d = document.createElement("div");
+      d.innerHTML = window.v3RenderInflectionParadigm({ kind: "pronoun", highlight: "אני" });
+      const hl = d.querySelectorAll(".v3-conj-cell-hl");
+      return {
+        lookupOk,
+        cells: d.querySelectorAll(".v3-conj-cell").length,           // 10 personal pronouns
+        highlighted: hl.length,                                       // exactly the opened word
+        hlHe: hl[0] ? (hl[0].querySelector(".v3-conj-he") || {}).textContent : "",
+        title: (d.querySelector(".v3-conj-group-h") || {}).textContent || "",
+        noPealim: !d.querySelector(".v3-conj-recheck"),               // our own data — no source link
+        hasNote: /закрыт/i.test(d.textContent || ""),
+      };
+    });
+    test("Case 2e: personal-pronoun SET (10 cells, opened word highlighted, no Pealim link)",
+         r2e.lookupOk && r2e.cells === 10 && r2e.highlighted === 1 && /אֲנִי/.test(r2e.hlHe) &&
+         /Личные/.test(r2e.title) && r2e.noPealim && r2e.hasNote, JSON.stringify(r2e));
+
     test("Case 6: no pageerror", errs.length === 0, errs.join(" | "));
   } finally {
     await browser.close();

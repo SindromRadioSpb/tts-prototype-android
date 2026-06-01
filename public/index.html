@@ -6451,6 +6451,13 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   font-family: inherit;
 }
 .v3-conj-cell:hover { background: var(--theme-bg-hover, #e9eef5); }
+/* The opened word, highlighted within the static pronoun set. */
+.v3-conj-cell-hl {
+  background: var(--theme-accent-soft, #fef3c7);
+  border-color: var(--theme-accent, #D55E00);
+  box-shadow: inset 0 0 0 1px var(--theme-accent, #D55E00);
+}
+.v3-conj-cell-hl .v3-conj-he { color: var(--theme-accent, #b45309); }
 .v3-conj-he { font-size: 15px; font-weight: 600; color: var(--theme-text-primary); direction: rtl; }
 .v3-conj-lab {
   font-size: 9px; font-weight: 700; color: var(--theme-text-muted);
@@ -11820,9 +11827,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=47"></script>
-<script src="/i18n/locales/en.js?v=47"></script>
-<script src="/i18n/locales/he.js?v=47"></script>
+<script src="/i18n/locales/ru.js?v=48"></script>
+<script src="/i18n/locales/en.js?v=48"></script>
+<script src="/i18n/locales/he.js?v=48"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -40306,6 +40313,40 @@ const V3_CONJ_GROUPS_ADJ = [
 const V3_CONJ_GROUPS_PREP = [
   { key: "prep", slots: ["P-1s", "P-2ms", "P-2fs", "P-3ms", "P-3fs", "P-1p", "P-2mp", "P-2fp", "P-3mp", "P-3fp"] },
 ];
+// Personal pronouns — a closed, finite class (R1). Hebrew personal pronouns are
+// distinct lexemes, NOT an inflection of one lemma, so Pealim has no single
+// "paradigm" page and resolveLemma honestly returns no_confident_match. But the
+// SET is exactly what a learner needs (R2), so we present it as a premium offline
+// reference (vocalized + RU translit) with the opened word highlighted +
+// tap-to-hear. Slots reuse the person labels (notes.card.conj.person.*).
+const V3_PRONOUN_PERSONAL = [
+  { slot: "1s",  he: "אֲנִי",      tr: "ани",     alt: ["אנכי"] },
+  { slot: "2ms", he: "אַתָּה",     tr: "ата" },
+  { slot: "2fs", he: "אַתְּ",       tr: "ат" },
+  { slot: "3ms", he: "הוּא",       tr: "hу" },
+  { slot: "3fs", he: "הִיא",       tr: "hи" },
+  { slot: "1p",  he: "אֲנַחְנוּ",   tr: "анахну",  alt: ["אנו"] },
+  { slot: "2mp", he: "אַתֶּם",     tr: "атэм" },
+  { slot: "2fp", he: "אַתֶּן",     tr: "атэн" },
+  { slot: "3mp", he: "הֵם",       tr: "hэм",     alt: ["המה"] },
+  { slot: "3fp", he: "הֵן",       tr: "hэн",     alt: ["הנה"] },
+];
+function v3PronounStrip(s) { return String(s == null ? "" : s).replace(/[֑-ׇ]/g, "").replace(/[‌-‏]/g, "").trim(); }
+const V3_PRONOUN_INDEX = (function () {
+  const m = new Map();
+  for (const r of V3_PRONOUN_PERSONAL) {
+    m.set(v3PronounStrip(r.he), r.slot);
+    for (const a of (r.alt || [])) m.set(v3PronounStrip(a), r.slot);
+  }
+  return m;
+})();
+// A personal pronoun → a synthetic "paradigm" the renderer shows as the full set.
+function v3LookupPronounParadigm(word) {
+  const key = v3PronounStrip(word);
+  if (!key || !V3_PRONOUN_INDEX.has(key)) return null;
+  return { kind: "pronoun", highlight: key };
+}
+window.v3LookupPronounParadigm = v3LookupPronounParadigm;
 // Only verbs/nouns/adjectives inflect → only they get a conjugation/declension
 // accordion. Function words (adverb/pronoun/preposition/conjunction/interjection/
 // "other") don't — Pealim has no forms table for them. Empty pos = unknown →
@@ -40434,7 +40475,11 @@ window.v3MorphEnrichInflections = v3MorphEnrichInflections;
 
 // ②.6 — render a paradigm envelope → compact RTL table HTML.
 function v3RenderInflectionParadigm(p) {
-  if (!p || !p.cells) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
+  if (!p) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
+  // Personal pronoun → the full closed-class SET (static); has no `cells`, so this
+  // must precede the cells guard below.
+  if (p.kind === "pronoun") return v3RenderPronounSet(p.highlight);
+  if (!p.cells) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
   const _badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
   const _recheckUrl = p.pealim_id ? ("https://www.pealim.com/ru/dict/" + encodeURIComponent(p.pealim_id) + "-/") : v3WordCardPealimUrl(p.lemma || "");
   const _recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(_recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
@@ -40523,7 +40568,31 @@ function v3RenderInflectionParadigm(p) {
   </div>`;
 }
 
+// Render the personal-pronoun SET (static, offline), highlighting the opened
+// word. No Pealim source/link — this is our own authoritative closed-class data.
+function v3RenderPronounSet(highlight) {
+  const lab = (slot) => v3NotesT("notes.card.conj.person." + slot, V3_CONJ_PERSON_FB[slot] || slot);
+  const cell = (r) => {
+    const hl = (v3PronounStrip(r.he) === highlight) ? " v3-conj-cell-hl" : "";
+    return `<button type="button" class="v3-conj-cell${hl}" dir="rtl" data-he="${v3EscapeHtml(r.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(lab(r.slot))}">
+      <span class="v3-conj-he">${v3EscapeHtml(r.he)}</span>
+      <span class="v3-conj-lab">${v3EscapeHtml(lab(r.slot))}</span>
+      ${r.tr ? `<span class="v3-conj-tr">${v3EscapeHtml(r.tr)}</span>` : ""}
+    </button>`;
+  };
+  const grid = V3_PRONOUN_PERSONAL.map(cell).join("");
+  const title = v3NotesT("notes.card.conj.pronoun.personal", "Личные местоимения");
+  const badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.pronounRef", "Справочный набор"))}</span>`;
+  const note = v3NotesT("notes.card.conj.pronounNote", "Местоимения — закрытый класс: формы заданы, а не выводятся.");
+  return `<div class="v3-conj-wrap">
+    <div class="v3-conj-meta">${badge}</div>
+    <div class="v3-conj-group"><div class="v3-conj-group-h">${v3EscapeHtml(title)}</div><div class="v3-conj-grid">${grid}</div></div>
+    <div class="v3-conj-note">${v3EscapeHtml(note)}</div>
+  </div>`;
+}
+
 // Lazy-load a card's conjugation/declension accordion on first open.
+//   Personal pronoun → static SET (offline). Else:
 //   OPFS cache hit → instant (offline). Miss + online + consent → fetch+cache.
 //   Miss + offline / no consent → honest message + Pealim link.
 async function v3WordCardLoadInflection(detailsEl) {
@@ -40534,6 +40603,9 @@ async function v3WordCardLoadInflection(detailsEl) {
   const binyan = detailsEl.getAttribute("data-conj-binyan") || "";
   const pos = detailsEl.getAttribute("data-conj-pos") || "";
   const root = detailsEl.getAttribute("data-conj-root") || "";
+  // Personal pronoun → static SET (offline, no Pealim). Match on the surface word.
+  const pron = v3LookupPronounParadigm(detailsEl.getAttribute("data-conj-word") || lemma);
+  if (pron) { detailsEl.setAttribute("data-conj-loaded", "1"); body.innerHTML = v3RenderInflectionParadigm(pron); v3ConjSyncSummary(detailsEl, pron); return; }
   if (!lemma) { detailsEl.setAttribute("data-conj-loaded", "1"); body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`; return; }
   detailsEl.setAttribute("data-conj-loaded", "1");
   body.innerHTML = `<div class="v3-conj-loading">${v3EscapeHtml(v3NotesT("notes.card.conj.loading", "Загрузка таблицы…"))}</div>`;
@@ -40584,7 +40656,9 @@ function v3ConjSyncSummary(detailsEl, paradigm) {
   try {
     const sum = detailsEl.querySelector(".v3-wordcard-acc-summary");
     if (!sum || !paradigm) return;
-    sum.textContent = (paradigm.kind === "invariant")
+    sum.textContent = (paradigm.kind === "pronoun")
+      ? v3NotesT("notes.card.conj.summaryPronoun", "Местоимения")
+      : (paradigm.kind === "invariant")
       ? v3NotesT("notes.card.conj.summaryInvariant", "Форма слова")
       : (paradigm.kind === "verb")
         ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
@@ -40727,7 +40801,7 @@ function v3WordCardRichHtml(row) {
   // (OPFS cache → instant; miss → online+consent → Pealim). data-conj-* carry
   // the lemma/binyan/pos/root for resolution; the enrich pass refines them from
   // stored morphology. The summary self-corrects to Спряжение/Склонение on load.
-  const conjEligible = word && v3ConjPosInflects(pos);   // verb/noun/adj/preposition (+ empty)
+  const conjEligible = word && (v3ConjPosInflects(pos) || !!v3LookupPronounParadigm(word));   // verb/noun/adj/preposition (+ empty) + personal pronouns (static set)
   const conjSummary = pos === "verb"
     ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
     : (pos ? v3NotesT("notes.card.conj.summaryNoun", "Склонение") : v3NotesT("notes.card.conj.summaryVerb", "Спряжение"));
@@ -40803,7 +40877,12 @@ async function v3NotesRowIndexEnrich() {
           // Gate by POS/kind: proper nouns + particles + function words don't
           // inflect → remove the accordion (the render's pos-only check let it
           // through when the saved note had an empty/"noun" POS).
-          if (!v3NotesTplConjInflects({ pos: res.pos, kind: res.kind })) {
+          if (v3LookupPronounParadigm(w)) {
+            // Personal pronoun → keep the accordion (renders the static SET on
+            // expand); fix the summary up-front so it reads "Местоимения".
+            const sum = conj.querySelector(".v3-wordcard-acc-summary");
+            if (sum) sum.textContent = v3NotesT("notes.card.conj.summaryPronoun", "Местоимения");
+          } else if (!v3NotesTplConjInflects({ pos: res.pos, kind: res.kind })) {
             conj.remove();                                 // function word / proper noun — no table
           } else {
             // Query the LEMMA (declined prepositions live under their lemma: לי→ל).
