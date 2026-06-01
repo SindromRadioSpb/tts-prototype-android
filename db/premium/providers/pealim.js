@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v3"; // v3: model-versioned page cache (v2 reused stale v1-parsed cells)
+const MODEL_VERSION = "pealim-infl-v4"; // v4: POS-dominant homograph disambiguation (שבת noun ≠ לשבות verb)
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -190,16 +190,38 @@ async function searchLemma(heLemma) {
   return parseSearchLinks(html);
 }
 
-// Score a parsed candidate against what ① decoded (binyan/root/pos).
-function scoreCandidate(parsed, want) {
-  if (!parsed) return -1;
+// Coarse POS class of a parsed Pealim entry / of what we want (Dicta-decoded).
+function candClass(parsed) {
+  if (parsed.kind === "verb") return "verb";
+  if (parsed.pos === "adjective") return "adjective";
+  return "noun";                                   // nouns + other nominals
+}
+function wantClass(want) {
+  if (want.pos === "verb") return "verb";
+  if (want.pos === "adjective") return "adjective";
+  if (want.pos === "noun") return "noun";
+  if (want.binyan) return "verb";                  // binyan implies a verb
+  return null;                                     // unknown → no POS constraint
+}
+// Disambiguate Pealim homographs. POS is DOMINANT: Hebrew homographs routinely
+// share a root across parts of speech (e.g. שבת noun "Saturday" vs לשבות verb
+// "to cease" — BOTH root שבת), so matching the root is NOT enough; the wrong
+// POS must lose. Dicta's in-context POS is authoritative, so a POS-class
+// mismatch is effectively disqualifying (large negative — only chosen if no
+// same-class entry exists at all). Exact lemma (the strongest lexical signal:
+// the noun's lemma == the surface word, the verb's lemma is the infinitive),
+// then root, then binyan refine WITHIN the right class.
+function scoreCandidate(parsed, want, lemmaPlain) {
+  if (!parsed) return -1e9;
   let s = 0;
-  const wantVerb = want.pos === "verb" || !!want.binyan;
-  if (wantVerb && parsed.kind === "verb") s += 2; else if (!wantVerb && parsed.kind !== "verb") s += 2;
-  if (want.root && parsed.root && want.root === parsed.root) s += 3;
+  const wc = wantClass(want), cc = candClass(parsed);
+  if (wc) { if (cc === wc) s += 10; else s -= 100; }
+  if (lemmaPlain && parsed.lemma_niqqud && stripNiqqud(parsed.lemma_niqqud) === lemmaPlain) s += 5;
+  if (want.root && parsed.root && want.root === parsed.root) s += 4;
   if (want.binyan && parsed.binyan && want.binyan === parsed.binyan) s += 3;
   return s;
 }
+const CONJ_STRONG_SCORE = 14;                      // POS(10) + exact-lemma(5) / root(4)
 
 // Resolve a lemma to a normalized paradigm via search + disambiguation.
 // opts: { binyan, pos, root } from ①'s decode (all optional). pageGet/pagePut
@@ -210,8 +232,13 @@ async function resolveLemma(heLemma, opts) {
   const candidates = await searchLemma(heLemma);
   if (!candidates.length) return { ok: false, reason: "no_search_results", model_version: MODEL_VERSION };
 
-  const MAX_TRY = 3;
-  let best = null, bestScore = -1, bestId = null;
+  // Scan more candidates (the right entry can be 4th+ — e.g. שבת returns
+  // lashuv, lishbot, bat, THEN shabat); score all, early-exit only on a STRONG
+  // match (right POS + exact lemma/root). Parsed pages are disk-cached, so a
+  // miss pays the fetch once globally.
+  const lemmaPlain = stripNiqqud(heLemma);
+  const MAX_TRY = 8;
+  let best = null, bestScore = -1e9, bestId = null;
   for (const c of candidates.slice(0, MAX_TRY)) {
     let parsed = null;
     try {
@@ -226,15 +253,18 @@ async function resolveLemma(heLemma, opts) {
       continue;
     }
     if (!parsed) continue;
-    const sc = scoreCandidate(parsed, want);
+    const sc = scoreCandidate(parsed, want, lemmaPlain);
     if (sc > bestScore) { best = parsed; bestScore = sc; bestId = c.id; }
-    // strong match (right kind + root + binyan) → stop early (polite)
-    if (sc >= 7) break;
+    if (bestScore >= CONJ_STRONG_SCORE) break;           // strong → stop (polite)
   }
   if (!best) return { ok: false, reason: "no_parsable_entry", model_version: MODEL_VERSION };
 
-  const wantRootMatched = want.root ? (best.root === want.root) : true;
-  const wantBinyanMatched = want.binyan ? (best.binyan === want.binyan) : true;
+  // "match" only when POS class agrees AND a lexical key (exact lemma or root)
+  // agrees — otherwise it's a best-effort pick (warn the user, keep the link).
+  const wc = wantClass(want);
+  const posOk = wc ? (candClass(best) === wc) : true;
+  const lexOk = (!!best.lemma_niqqud && stripNiqqud(best.lemma_niqqud) === lemmaPlain)
+    || (!!want.root && best.root === want.root);
   return {
     ok: true,
     model_version: MODEL_VERSION,
@@ -251,7 +281,7 @@ async function resolveLemma(heLemma, opts) {
       pealim_url: "https://" + PEALIM_HOST + "/ru/dict/" + bestId + "-/",
       model_version: MODEL_VERSION,
       gizra_note: best.gizra_note || null,
-      disambig: (wantRootMatched && wantBinyanMatched) ? "match" : "best-effort",
+      disambig: (posOk && lexOk) ? "match" : "best-effort",
       cells: best.cells,
     },
   };

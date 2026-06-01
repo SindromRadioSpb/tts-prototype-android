@@ -77,6 +77,16 @@ async function testLive() {
     ok("disambig match", r.ok && r.paradigm.disambig === "match", r.ok && r.paradigm.disambig);
     ok("has present", r.ok && !!r.paradigm.cells["AP-ms"]);
   } catch (e) { ok("live no throw", false, e.message); }
+  // POS-dominant homograph disambiguation: שבת as a NOUN must pick shabat
+  // (id 5078), NOT the verb לשבות (id 2139) — both share root שבת. The noun is
+  // the 4th search result, so this also guards the candidate-scan depth.
+  try {
+    const n = await P.resolveLemma("שבת", { pos: "noun", root: "שבת" });
+    ok("שבת noun → noun kind", n.ok && n.paradigm.kind === "noun", n.ok && n.paradigm.kind);
+    ok("שבת noun → id 5078 (shabat, not 2139 lishbot)", n.ok && String(n.paradigm.pealim_id) === "5078", n.ok && n.paradigm.pealim_id);
+    const v = await P.resolveLemma("שבת", { pos: "verb", binyan: "paal", root: "שבת" });
+    ok("שבת verb → verb kind id 2139 (lishbot)", v.ok && v.paradigm.kind === "verb" && String(v.paradigm.pealim_id) === "2139", v.ok && (v.paradigm.kind + ":" + v.paradigm.pealim_id));
+  } catch (e) { ok("homograph live no throw", false, e.message); }
 }
 
 (async () => {
