@@ -118,10 +118,14 @@ function pealimBinyanToApp(raw) {
 function parsePealimPage(html) {
   const b = String(html || "");
   // header: "Спряжение глагола {lemma}" (verb) | "Формы слова {lemma}" (nominal)
-  const hdr = b.match(/<h2 class="page-header">\s*(Спряжение глагола|Формы слова)\s+([\s\S]*?)(?:<span|<\/h2>)/);
+  // | just "{lemma}" (invariant words — adverbs/pronouns have no prefix).
+  const hdr = b.match(/<h2 class="page-header">\s*([\s\S]*?)(?:<span|<\/h2>)/);
   if (!hdr) return null;
-  const kind = /Спряжение/.test(hdr[1]) ? "verb" : "noun";
-  const lemmaNiqqud = clean(hdr[2]);
+  const hdrText = clean(hdr[1]);
+  const verbH = hdrText.match(/^Спряжение глагола\s+(.+)$/);
+  const nounH = hdrText.match(/^Формы слова\s+(.+)$/);
+  const kind = verbH ? "verb" : "noun";
+  const lemmaNiqqud = verbH ? verbH[1] : (nounH ? nounH[1] : hdrText);
 
   // pos descriptor paragraph: "Глагол – ПААЛЬ" | "Существительное – …, мужской род" | "Прилагательное …"
   let pos = kind === "verb" ? "verb" : "noun";
@@ -167,7 +171,21 @@ function parsePealimPage(html) {
       translit_html: trM ? noBang(buildTranslitHtml(trM[1])) : "",
     };
   }
-  if (!Object.keys(cells).length) return null;
+  if (!Object.keys(cells).length) {
+    // No inflection table → invariant word (adverb/pronoun/conjunction/particle).
+    // Still capture a single-form "profile": the vocalized headword + its
+    // transcription (with stress) + the POS, so the client can show a premium
+    // word panel instead of a dead-end. POS from the Russian descriptor line.
+    const posRu = (b.match(/<p>\s*(Наречие|Местоимение|Союз|Частица|Междометие|Предлог|Числительное)/) || [])[1] || "";
+    const POS_RU = { "Наречие": "adverb", "Местоимение": "pronoun", "Союз": "conjunction", "Частица": "other", "Междометие": "interjection", "Предлог": "preposition", "Числительное": "numeral" };
+    const trM = b.match(/<div class="transcription">([\s\S]*?)<\/div>/);   // first transcription = the word itself
+    if (!lemmaNiqqud) return null;
+    return {
+      kind: "invariant", pos: POS_RU[posRu] || pos || "other",
+      lemma_niqqud: lemmaNiqqud, root, binyan: null, gizra_note: null, cells: {},
+      form: { he: lemmaNiqqud, translit: trM ? clean(trM[1]) : "", translit_html: trM ? buildTranslitHtml(trM[1]) : "" },
+    };
+  }
   return { kind, pos, lemma_niqqud: lemmaNiqqud, root, binyan, gizra_note: gizraNote, cells };
 }
 
@@ -288,6 +306,7 @@ async function resolveLemma(heLemma, opts) {
       gizra_note: best.gizra_note || null,
       disambig: (posOk && lexOk) ? "match" : "best-effort",
       cells: best.cells,
+      form: best.form || null,          // single-form "profile" for invariant words
     },
   };
 }

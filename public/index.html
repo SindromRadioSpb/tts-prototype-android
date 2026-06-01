@@ -6479,6 +6479,10 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
 }
 .v3-conj-loadbtn:hover { background: var(--theme-bg-hover); }
 .v3-conj-loading, .v3-conj-empty { font-size: 11.5px; color: var(--theme-text-muted); padding: 2px 0; }
+.v3-conj-note { font-size: 11px; color: var(--theme-text-muted); margin-top: 6px; }
+.v3-conj-invariant { margin-top: 2px; }
+.v3-conj-cell-lg { min-width: 96px; padding: 8px 14px; }
+.v3-conj-cell-lg .v3-conj-he { font-size: 22px; }
 /* Escape the mobile button{width:100%} trap inside any conj container. */
 .v3-wordcard-conj .v3-conj-cell, .v3-wordcard-conj .v3-conj-loadbtn { width: auto !important; }
 .v3-lib-enrich-badge {
@@ -11811,9 +11815,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=44"></script>
-<script src="/i18n/locales/en.js?v=44"></script>
-<script src="/i18n/locales/he.js?v=44"></script>
+<script src="/i18n/locales/ru.js?v=45"></script>
+<script src="/i18n/locales/en.js?v=45"></script>
+<script src="/i18n/locales/he.js?v=45"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -40415,6 +40419,28 @@ window.v3MorphEnrichInflections = v3MorphEnrichInflections;
 // ②.6 — render a paradigm envelope → compact RTL table HTML.
 function v3RenderInflectionParadigm(p) {
   if (!p || !p.cells) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
+  const _badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
+  const _recheckUrl = p.pealim_id ? ("https://www.pealim.com/ru/dict/" + encodeURIComponent(p.pealim_id) + "-/") : v3WordCardPealimUrl(p.lemma || "");
+  const _recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(_recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+  // Invariant words (adverb/pronoun/conjunction/particle) — no paradigm, but a
+  // premium single-form "profile": vocalized form + red-stress translit +
+  // tap-to-hear (same cell aesthetic) + POS + honest note + Pealim link.
+  if (p.kind === "invariant") {
+    const f = p.form || {};
+    const trInner = f.translit_html || (f.translit ? v3EscapeHtml(f.translit) : "");
+    const posKey = V3_WORDCARD_POS_KEY[p.pos];
+    const posLabel = posKey ? v3NotesT("notes.tpl.word_study." + posKey, p.pos) : "";
+    const cellHtml = f.he ? `<button type="button" class="v3-conj-cell v3-conj-cell-lg" dir="rtl" data-he="${v3EscapeHtml(f.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(posLabel || "")}">
+      <span class="v3-conj-he">${v3EscapeHtml(f.he)}</span>
+      ${posLabel ? `<span class="v3-conj-lab">${v3EscapeHtml(posLabel)}</span>` : ""}
+      ${trInner ? `<span class="v3-conj-tr">${trInner}</span>` : ""}
+    </button>` : "";
+    return `<div class="v3-conj-wrap">
+      <div class="v3-conj-meta">${_badge}${_recheck}</div>
+      <div class="v3-conj-grid v3-conj-invariant">${cellHtml}</div>
+      <div class="v3-conj-note">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>
+    </div>`;
+  }
   const cells = p.cells;
   // Group selection by POS: verb → tenses; adjective → gender×number (ms-a…);
   // else nominal (s/p/sc/pc/possessive). Adjective pages have kind="noun", so
@@ -40528,10 +40554,11 @@ function v3ConjSyncSummary(detailsEl, paradigm) {
   try {
     const sum = detailsEl.querySelector(".v3-wordcard-acc-summary");
     if (!sum || !paradigm) return;
-    const isVerb = paradigm.kind === "verb";
-    sum.textContent = isVerb
-      ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
-      : v3NotesT("notes.card.conj.summaryNoun", "Склонение");
+    sum.textContent = (paradigm.kind === "invariant")
+      ? v3NotesT("notes.card.conj.summaryInvariant", "Форма слова")
+      : (paradigm.kind === "verb")
+        ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
+        : v3NotesT("notes.card.conj.summaryNoun", "Склонение");
   } catch (_) {}
 }
 
@@ -40581,12 +40608,9 @@ async function v3NotesTplConjToggle(detailsEl) {
   if (!detailsEl || !detailsEl.open) return;
   const f = await v3NotesTplConjFields();
   const body = detailsEl.querySelector(".v3-conj-body");
-  if (!v3NotesTplConjInflects(f)) {
-    detailsEl.setAttribute("data-conj-loaded", "1");
-    const link = `<a class="v3-conj-recheck" href="${v3EscapeHtml(v3WordCardPealimUrl(f.word))}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
-    if (body) body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>${link}`;
-    return;
-  }
+  // Always load: the provider returns a paradigm (verb/noun/adj/preposition), a
+  // single-form "profile" for invariant words (adverb/pronoun/…), or a miss
+  // (→ honest note + Pealim link). No word is a dead-end.
   const key = f.lemma + "|" + f.binyan + "|" + f.pos;
   if (detailsEl.getAttribute("data-conj-key") !== key) {           // inputs changed → reload
     detailsEl.setAttribute("data-conj-key", key);

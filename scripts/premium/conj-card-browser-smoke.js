@@ -311,12 +311,32 @@ async function main() {
       return {
         gateOk,
         advNotHidden: conj.style.display !== "none",
-        advHasLink: !!(body && body.querySelector(".v3-conj-recheck")),
-        advHasNote: !!(body && /не изменяется/.test(body.textContent || "")),
+        advHasLink: !!(body && body.querySelector(".v3-conj-recheck")),   // Pealim link kept (loadbtn/profile)
       };
     });
-    test("Case 9: POS gate (prep inflects; non-inflecting shows note + Pealim link, not hidden)",
-         r9.gateOk && r9.advNotHidden && r9.advHasLink && r9.advHasNote, JSON.stringify(r9));
+    test("Case 9: POS gate helper + editor non-inflecting not hidden, keeps Pealim link",
+         r9.gateOk && r9.advNotHidden && r9.advHasLink, JSON.stringify(r9));
+
+    // ── Case 2c: invariant "word profile" render (adverb בֶּטַח) ───────────
+    const r2c = await pg.evaluate(() => {
+      const inv = {
+        lemma: "בטח", pos: "adverb", kind: "invariant", source: "pealim", pealim_id: "3600",
+        model_version: "pealim-infl-v5",
+        form: { he: "בֶּטַח", translit: "бетах", translit_html: 'б<b class="v3-conj-stress">е</b>тах' },
+        cells: {},
+      };
+      const d = document.createElement("div");
+      d.innerHTML = window.v3RenderInflectionParadigm(inv);
+      return {
+        cell: !!d.querySelector(".v3-conj-invariant .v3-conj-cell"),
+        he: (d.querySelector(".v3-conj-he") || {}).textContent || "",
+        stress: !!d.querySelector(".v3-conj-tr .v3-conj-stress"),
+        note: /не изменяется/.test(d.textContent || ""),
+        recheck: !!d.querySelector(".v3-conj-recheck"),
+      };
+    });
+    test("Case 2c: invariant profile (form + stress + note + Pealim link)",
+         r2c.cell && /בֶּטַח/.test(r2c.he) && r2c.stress && r2c.note && r2c.recheck, JSON.stringify(r2c));
 
     test("Case 6: no pageerror", errs.length === 0, errs.join(" | "));
   } finally {
