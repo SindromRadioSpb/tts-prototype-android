@@ -6481,6 +6481,12 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
 .v3-conj-loading, .v3-conj-empty { font-size: 11.5px; color: var(--theme-text-muted); padding: 2px 0; }
 /* Escape the mobile button{width:100%} trap inside any conj container. */
 .v3-wordcard-conj .v3-conj-cell, .v3-wordcard-conj .v3-conj-loadbtn { width: auto !important; }
+.v3-lib-enrich-badge {
+  display: none; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 7px;
+  margin-inline-start: 6px; white-space: nowrap; vertical-align: middle;
+}
+.v3-lib-enrich-badge.v3-enrich-done { background: rgba(15, 118, 110, 0.14); color: #0F766E; }
+.v3-lib-enrich-badge.v3-enrich-partial { background: rgba(230, 159, 0, 0.16); color: #92400e; }
 .v3-notes-tpl-conj { margin-top: 2px; }
 .v3-notes-tpl-conj .v3-conj-cell, .v3-notes-tpl-conj .v3-conj-loadbtn { width: auto !important; }
 .v3-wordcard-edit {
@@ -23043,7 +23049,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
           <input type="checkbox" data-act="select" ${isSelected ? "checked" : ""} style="width:20px; height:20px; cursor:pointer;" />
         </label>
         <div style="flex:1; min-width:0;">
-          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_smartBadgeHtml}<button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button></div>
+          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_smartBadgeHtml}<span class="v3-lib-enrich-badge" data-enrich-badge="${v3EscapeHtml(id)}"></span><button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button></div>
           <div class="v3-lib-card-meta">
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
@@ -23058,7 +23064,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
         <button class="btn-primary" data-act="open">${t("library.open")}</button>
         <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
         <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
-        <button class="btn-secondary" data-act="enrich" title="${t("library.enrichTitle")}">${t("library.enrich")}</button>
+        <button class="btn-secondary" data-act="enrich" data-enrich-id="${v3EscapeHtml(id)}" title="${t("library.enrichTitle")}">${t("library.enrich")}</button>
         <button class="btn-secondary" data-act="archive">${t("library.archive")}</button>
         <button class="btn-secondary v3-lib-danger" data-act="delete">${t("library.delete")}</button>
       </div>
@@ -23077,7 +23083,12 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     if (btnResume) btnResume.addEventListener("click", () => v3LibraryOpenText(id, { resume: true }));
 	if (btnEdit) btnEdit.addEventListener("click", () => v3TextMetaOpen(id));
 	if (btnShare) btnShare.addEventListener("click", () => v3TextCardShareOpen(id));
-	if (btnEnrich) btnEnrich.addEventListener("click", () => v3LibraryEnrichMorph(id));
+	if (btnEnrich) btnEnrich.addEventListener("click", async () => {
+		// Force a full re-run ("Обновить") when already complete; else enrich the rest.
+		let force = false;
+		try { const ldb = await ensureLocalDB(); const c = await ldb.getSentenceMorphCoverage(id, V3_DICTA_MORPH_MODEL); force = c.total > 0 && c.enriched >= c.total; } catch (_) {}
+		v3LibraryEnrichMorph(id, { force });
+	});
     if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
 
@@ -23114,7 +23125,36 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
   // single DOM write
   listEl.innerHTML = "";
   listEl.appendChild(frag);
+  try { v3LibraryEnrichBadges(); } catch (_) {}   // fill enrichment badges (one batched query)
 }
+
+// Post-render: fill each card's enrichment badge from ONE batched coverage query,
+// and make the Enrich button a force "Обновить" when the text is fully enriched.
+async function v3LibraryEnrichBadges() {
+  const badges = document.querySelectorAll("[data-enrich-badge]");
+  if (!badges.length) return;
+  let cov = {};
+  try { const ldb = await ensureLocalDB(); cov = await ldb.getSentenceMorphCoverageBatch(V3_DICTA_MORPH_MODEL); } catch (_) { return; }
+  badges.forEach((el) => {
+    const id = el.getAttribute("data-enrich-badge");
+    const c = cov[id] || { total: 0, enriched: 0 };
+    let txt = "", cls = "v3-lib-enrich-badge", title = "";
+    if (c.total === 0) { el.style.display = "none"; }
+    else if (c.enriched >= c.total) { txt = "✨ " + v3NotesT("library.enrichBadgeDone", "обогащён"); cls += " v3-enrich-done"; title = v3NotesT("library.enrichBadgeDoneTitle", "Морфология Dicta загружена — карточки и таблицы работают офлайн"); el.style.display = ""; }
+    else if (c.enriched > 0) { txt = "✨ " + c.enriched + "/" + c.total; cls += " v3-enrich-partial"; title = v3NotesT("library.enrichBadgePartialTitle", "Морфология обогащена частично"); el.style.display = ""; }
+    else { el.style.display = "none"; }
+    el.textContent = txt; el.className = cls; if (title) el.title = title;
+  });
+  // Relabel the Enrich button → "Обновить" when complete (the click handler
+  // re-checks coverage and forces a re-run when complete — see render loop).
+  document.querySelectorAll('button[data-enrich-id]').forEach((btn) => {
+    const id = btn.getAttribute("data-enrich-id");
+    const c = cov[id] || { total: 0, enriched: 0 };
+    const complete = c.total > 0 && c.enriched >= c.total;
+    btn.textContent = complete ? v3NotesT("library.enrichRefresh", "Обновить") : v3NotesT("library.enrich", "Обогатить");
+  });
+}
+window.v3LibraryEnrichBadges = v3LibraryEnrichBadges;
 
 function v3PrepareForNewTableRender() {
   // Week 6 guard pattern: stop playlist/audio, clear state, then render
@@ -40158,20 +40198,31 @@ function v3MorphProgressHide() {
 }
 
 // Per-text "✨ Обогатить (Dicta)" action (library card + import hook).
-async function v3LibraryEnrichMorph(textId, silent) {
+// opts: boolean (legacy `silent`) OR { silent, force }. `force` re-runs the
+// morph pass even when already complete ("Обновить"). The inflection (Pealim)
+// pass ALWAYS runs when online — it's idempotent + model-keyed, so it backfills
+// paradigms for the current pealim model even if the morph corpus is unchanged.
+async function v3LibraryEnrichMorph(textId, opts) {
   if (!textId) return { ok: false };
+  opts = (typeof opts === "boolean") ? { silent: opts } : (opts || {});
+  const { silent, force } = opts;
   const ldb = await ensureLocalDB();
   const cov = await ldb.getSentenceMorphCoverage(textId, V3_DICTA_MORPH_MODEL);
   if (cov.total === 0) { if (!silent) showToast(v3NotesT("morph.enrich.noSentences", "В тексте нет предложений."), "warning"); return { ok: false }; }
-  if (cov.enriched >= cov.total) { if (!silent) showToast(v3NotesT("morph.enrich.alreadyDone", "Текст уже обогащён."), "info"); return { ok: true, total: cov.total, enriched: 0 }; }
-  const consented = await v3MorphEnrichEnsureConsent(cov.total - cov.enriched);
-  if (!consented) return { ok: false, cancelled: true };
+  const morphComplete = cov.enriched >= cov.total;
+  const willMorph = force || !morphComplete;
+  // Outbound text → consent (same key whether morph or inflection-only).
+  if (willMorph) { if (!(await v3MorphEnrichEnsureConsent(force ? cov.total : cov.total - cov.enriched))) return { ok: false, cancelled: true }; }
+  else if (!v3MorphOnlineConsentOk()) { if (!(await v3MorphEnrichEnsureConsent(cov.total))) return { ok: false, cancelled: true }; }
   v3MorphProgressShow();
-  v3MorphProgressUpdate({ done: cov.enriched, total: cov.total });
   try {
-    const res = await v3MorphEnrichText(textId, { onProgress: (p) => v3MorphProgressUpdate({ done: cov.enriched + p.done, total: cov.total }) });
-    // ②.5 — second pass: conjugation/declension paradigms (Pealim), offline-after.
-    // Best-effort: a network error just leaves some lemmas to lazy-fill on demand.
+    let res = { ok: true, enriched: 0, total: cov.total };
+    if (willMorph) {
+      const base = force ? 0 : cov.enriched;
+      v3MorphProgressUpdate({ done: base, total: cov.total });
+      res = await v3MorphEnrichText(textId, { force, onProgress: (p) => v3MorphProgressUpdate({ done: base + p.done, total: cov.total }) });
+    }
+    // Conjugation/declension paradigms (Pealim) — always, best-effort, offline-after.
     if (res.ok && navigator.onLine) {
       try {
         v3MorphProgressShow("morph.enrich.inflectTitle", "📚 Спряжения (Pealim)");
@@ -40180,13 +40231,16 @@ async function v3LibraryEnrichMorph(textId, silent) {
       } catch (_) {}
     }
     v3MorphProgressHide();
-    if (res.ok) showToast(v3NotesT("morph.enrich.done", "Готово: обогащено {n} предложений.").replace("{n}", String(res.enriched)), "success");
-    else showToast(v3NotesT("morph.enrich.partial", "Прервано (сеть). Обогащено {n}.").replace("{n}", String(res.enriched)), "warning");
+    if (!silent) {
+      if (willMorph && res.ok) showToast(v3NotesT("morph.enrich.done", "Готово: обогащено {n} предложений.").replace("{n}", String(res.enriched)), "success");
+      else if (!willMorph) showToast(v3NotesT("morph.enrich.refreshed", "Обновлено."), "success");
+      else showToast(v3NotesT("morph.enrich.partial", "Прервано (сеть). Обогащено {n}.").replace("{n}", String(res.enriched)), "warning");
+    }
     try { if (typeof v3LibrarySearchNow === "function") v3LibrarySearchNow(); } catch (_) {}
     return res;
   } catch (e) {
     v3MorphProgressHide();
-    showToast(v3NotesT("morph.enrich.error", "Не удалось обогатить: ") + (e && e.message ? e.message : ""), "error");
+    if (!silent) showToast(v3NotesT("morph.enrich.error", "Не удалось обогатить: ") + (e && e.message ? e.message : ""), "error");
     return { ok: false, error: e && e.message };
   }
 }
@@ -40485,39 +40539,58 @@ function v3ConjSyncSummary(detailsEl, paradigm) {
 function v3WordCardConjToggle(detailsEl) { if (detailsEl && detailsEl.open) v3WordCardLoadInflection(detailsEl); }
 window.v3WordCardConjToggle = v3WordCardConjToggle;
 
-// Editor variant — read the LIVE word_study form fields each expand (the user
-// may still be editing root/binyan). Re-loads when the resolution key changes.
-function v3NotesTplConjToggle(detailsEl) {
-  if (!detailsEl || !detailsEl.open) return;
+// Resolve the EFFECTIVE conjugation inputs for the editor, preferring the FRESH
+// corpus Dicta analysis (sentence_morph) for this word over the saved note's
+// (possibly stale) POS/root/binyan — so a note saved with POS "verb" whose word
+// the corpus now reads as "adverb" self-heals WITHOUT touching the saved note.
+// Falls back to the form-field values when the word isn't in the corpus.
+async function v3NotesTplConjFields() {
   const val = (id) => { const el = document.getElementById(id); return el ? String(el.value || "").trim() : ""; };
   const word = val("v3NotesTplWordStudyWord");
-  const root = val("v3NotesTplWordStudyRoot");
-  const binyan = val("v3NotesTplWordStudyBinyan");
-  const pos = val("v3NotesTplWordStudyPos");
-  const lemma = root || word;
-  const key = lemma + "|" + binyan + "|" + pos;
+  let pos = val("v3NotesTplWordStudyPos");
+  let root = val("v3NotesTplWordStudyRoot");
+  let binyan = val("v3NotesTplWordStudyBinyan");
+  if (binyan === "other") binyan = "";
+  let kind = null;
+  try {
+    if (word && v3NotesModalSentenceId && typeof v3MorphStoredResolve === "function") {
+      const res = await v3MorphStoredResolve(word, v3NotesModalSentenceId);
+      if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; }
+    }
+  } catch (_) {}
+  return { word, pos, root, binyan, kind, lemma: root || word };
+}
+function v3NotesTplConjInflects(f) {
+  return !(f.kind === "propernoun" || f.kind === "particle") && v3ConjPosInflects(f.pos);
+}
+
+// Editor accordion expand → resolve (fresh Dicta preferred) + load.
+async function v3NotesTplConjToggle(detailsEl) {
+  if (!detailsEl || !detailsEl.open) return;
+  const f = await v3NotesTplConjFields();
+  if (!v3NotesTplConjInflects(f)) { detailsEl.style.display = "none"; return; }
+  const key = f.lemma + "|" + f.binyan + "|" + f.pos;
   if (detailsEl.getAttribute("data-conj-key") !== key) {           // inputs changed → reload
     detailsEl.setAttribute("data-conj-key", key);
     detailsEl.removeAttribute("data-conj-loaded");
     const body = detailsEl.querySelector(".v3-conj-body"); if (body) body.innerHTML = "";
   }
-  detailsEl.setAttribute("data-conj-word", word);
-  detailsEl.setAttribute("data-conj-lemma", lemma);
-  detailsEl.setAttribute("data-conj-binyan", binyan === "other" ? "" : binyan);
-  detailsEl.setAttribute("data-conj-pos", pos);
-  detailsEl.setAttribute("data-conj-root", root);
+  detailsEl.setAttribute("data-conj-word", f.word);
+  detailsEl.setAttribute("data-conj-lemma", f.lemma);
+  detailsEl.setAttribute("data-conj-binyan", f.binyan);
+  detailsEl.setAttribute("data-conj-pos", f.pos);
+  detailsEl.setAttribute("data-conj-root", f.root);
   v3WordCardLoadInflection(detailsEl);
 }
 window.v3NotesTplConjToggle = v3NotesTplConjToggle;
 
-// Show/hide the editor conjugation accordion by the current POS select value —
-// only verbs/nouns/adjectives inflect; function words have no Pealim table.
-// Wired to the POS select's onchange + called on note hydrate.
-function v3NotesTplConjGate() {
+// Show/hide the editor conjugation accordion — only inflecting POS get it.
+// Prefers fresh corpus Dicta over the saved POS (called on hydrate + POS change).
+async function v3NotesTplConjGate() {
   const conj = document.querySelector(".v3-notes-tpl-conj");
   if (!conj) return;
-  const posEl = document.getElementById("v3NotesTplWordStudyPos");
-  conj.style.display = v3ConjPosInflects(posEl ? posEl.value : "") ? "" : "none";
+  const f = await v3NotesTplConjFields();
+  conj.style.display = v3NotesTplConjInflects(f) ? "" : "none";
 }
 window.v3NotesTplConjGate = v3NotesTplConjGate;
 

@@ -495,6 +495,19 @@ export async function deleteSentenceMorphForText(textId) {
   await r(`DELETE FROM sentence_morph WHERE text_id = ?`, [String(textId)]);
 }
 
+// Coverage for ALL texts in ONE round-trip (library badge). Returns
+// { textId: { total, enriched } }. enriched counts rows for the given model.
+export async function getSentenceMorphCoverageBatch(modelVersion) {
+  const out = {};
+  const totals = await q(`SELECT text_id, COUNT(*) AS n FROM sentences GROUP BY text_id`);
+  for (const row of (totals || [])) out[String(row.text_id)] = { total: Number(row.n) || 0, enriched: 0 };
+  const enc = modelVersion
+    ? await q(`SELECT text_id, COUNT(*) AS n FROM sentence_morph WHERE model_version = ? GROUP BY text_id`, [String(modelVersion)])
+    : await q(`SELECT text_id, COUNT(*) AS n FROM sentence_morph GROUP BY text_id`);
+  for (const row of (enc || [])) { const k = String(row.text_id); if (!out[k]) out[k] = { total: 0, enriched: 0 }; out[k].enriched = Number(row.n) || 0; }
+  return out;
+}
+
 // ── ② — Pealim conjugation/declension paradigms, cached per lemma ─────────
 // binyan is '' for nominals (PK needs NOT NULL). paradigm is the provider's
 // raw slot→form envelope; JSON-serialized here. model_version invalidates on a

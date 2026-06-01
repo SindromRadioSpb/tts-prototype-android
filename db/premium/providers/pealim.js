@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v4"; // v4: POS-dominant homograph disambiguation (שבת noun ≠ לשבות verb)
+const MODEL_VERSION = "pealim-infl-v5"; // v5: reject low-confidence picks (no wrong verb for table-less adverbs)
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -258,6 +258,11 @@ async function resolveLemma(heLemma, opts) {
     if (bestScore >= CONJ_STRONG_SCORE) break;           // strong → stop (polite)
   }
   if (!best) return { ok: false, reason: "no_parsable_entry", model_version: MODEL_VERSION };
+  // Reject low-confidence picks: bestScore > 0 means SOME signal agreed (POS
+  // class / exact lemma / root). A score ≤ 0 means the best we found is just an
+  // arbitrary homograph (e.g. for the adverb בֶּטַח, which has no Pealim table,
+  // the only parsable candidates are unrelated verbs) — don't show a wrong word.
+  if (bestScore <= 0) return { ok: false, reason: "no_confident_match", model_version: MODEL_VERSION };
 
   // "match" only when POS class agrees AND a lexical key (exact lemma or root)
   // agrees — otherwise it's a best-effort pick (warn the user, keep the link).

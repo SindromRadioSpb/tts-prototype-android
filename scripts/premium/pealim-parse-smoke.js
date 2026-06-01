@@ -96,6 +96,9 @@ async function testLive() {
     for (const [w, o] of content) { const r = await P.resolveLemma(w, o); ok("  content " + w + " → has table", r.ok && r.paradigm && Object.keys(r.paradigm.cells).length > 0, r.ok ? "ok" : r.reason); }
     const fn = ["מה", "אז"];         // pronoun/adverb, conjunction/adverb — no inflection
     for (const w of fn) { const r = await P.resolveLemma(w, {}); ok("  function " + w + " → no forms table", !r.ok, r.ok ? "unexpected table" : r.reason); }
+    // Low-confidence guard: בטח adverb (בֶּטַח, no Pealim table) must NOT fall back
+    // to the verb homograph בָּטַח — reject when no POS/lemma/root signal agrees.
+    for (const o of [{ pos: "adverb" }, {}]) { const r = await P.resolveLemma("בטח", o); ok("  בטח pos=" + JSON.stringify(o.pos || "") + " → no wrong verb", !r.ok, r.ok ? ("got id " + r.paradigm.pealim_id) : r.reason); }
     // Prepositions DO decline with pronoun suffixes (P-1s…) → have a table.
     for (const w of ["את", "על"]) { const r = await P.resolveLemma(w, { pos: "preposition" }); ok("  preposition " + w + " → declined table (P-*)", r.ok && r.paradigm && !!r.paradigm.cells["P-1s"], r.ok ? "ok" : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
