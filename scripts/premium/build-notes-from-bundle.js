@@ -93,9 +93,18 @@ function checkUnit(u, r) {
     if (!twoVoice) return { status: "FAIL", cls: "wrong-binyan", reason: "got " + p.binyan + " want " + u.binyan + " (id " + p.pealim_id + ")" };
   }
   // structural completeness
-  if (pos === "verb") { const miss = REQUIRED.verb.filter((k) => !(cells[k] && cells[k].he)); if (miss.length && p.kind !== "invariant") return { status: "FAIL", cls: "missing-slots", reason: "verb missing " + miss.join(",") }; }
-  if (pos === "noun") { const ok = (cells.s && cells.s.he) || (cells.p && cells.p.he); if (!ok && p.kind !== "invariant") return { status: "SUSPECT", cls: "noun-thin", reason: "no absolute form" }; }
-  if (pos === "adjective") { const miss = REQUIRED.adjective.filter((k) => !(cells[k] && cells[k].he)); if (miss.length) return { status: "SUSPECT", cls: "adj-thin", reason: "missing " + miss.join(",") }; }
+  if (pos === "verb" && p.kind !== "invariant") { const miss = REQUIRED.verb.filter((k) => !(cells[k] && cells[k].he)); if (miss.length) return { status: "FAIL", cls: "missing-slots", reason: "verb missing " + miss.join(",") }; }
+  // Nominal completeness — validate against what Pealim ACTUALLY returned (Dicta
+  // cross-tags noun↔adjective): a nominal is "thin" only when it has NEITHER a
+  // noun absolute (s/p) NOR adjective gender×number forms (ms-a…). עשיר resolves
+  // to an adjective page (ms-a, no s/p); ענן to a noun page (s/p, no ms-a) — both OK.
+  const rpos = p.pos || pos;
+  if ((rpos === "noun" || rpos === "adjective") && p.kind !== "verb" && p.kind !== "invariant") {
+    const hasNoun = (cells.s && cells.s.he) || (cells.p && cells.p.he);
+    const hasAdj = REQUIRED.adjective.some((k) => cells[k] && cells[k].he);
+    const hasPrep = cells["P-1s"] && cells["P-1s"].he;            // declined preposition (לי/את/על) parses as a noun page with P-* cells
+    if (!hasNoun && !hasAdj && !hasPrep) return { status: "SUSPECT", cls: "nominal-thin", reason: "no nominal forms (id " + p.pealim_id + ")" };
+  }
   // form highlight match (the text's vocalized form should appear in the paradigm)
   let formHit = null;
   if (u.niqqud && p.cells) {
