@@ -182,6 +182,26 @@ async function main() {
          r2.stress && r2.rootLabel && /Pealim/.test(r2.badge) && r2.recheck && r2.heRtl === "rtl",
          JSON.stringify(r2));
 
+    // ── Case 2b: adjective (pos:adjective, kind:noun, slots ms-a…) renders ──
+    // + catch-all: an UNKNOWN slot id still shows (never blank when cells exist).
+    const r2b = await pg.evaluate(() => {
+      const adj = {
+        lemma: "יפה", root: "יפה", pos: "adjective", kind: "noun", source: "pealim",
+        pealim_id: "5168", model_version: "pealim-infl-v4", disambig: "match",
+        cells: {
+          "ms-a": { he: "יָפֶה", translit_html: 'яф<b class="v3-conj-stress">е</b>' },
+          "fs-a": { he: "יָפָה", translit: "яфа" }, "mp-a": { he: "יָפִים", translit: "яфим" },
+          "fp-a": { he: "יָפוֹת", translit: "яфот" },
+          "weird-x": { he: "טֶסְט", translit: "тест" },           // unknown slot → catch-all
+        },
+      };
+      const d = document.createElement("div");
+      d.innerHTML = window.v3RenderInflectionParadigm(adj);
+      return { cells: d.querySelectorAll(".v3-conj-cell").length, groups: d.querySelectorAll(".v3-conj-group").length };
+    });
+    test("Case 2b: adjective renders 4 forms + catch-all for unknown slot (5 cells)",
+         r2b.cells === 5 && r2b.groups >= 2, JSON.stringify(r2b));
+
     // ── Case 3: lazy-load via accordion toggle (stubbed cache hit) ─────────
     const r3 = await pg.evaluate(async () => {
       const conj = document.querySelector('.v3-wordcard[data-note-id="wc-v"] .v3-wordcard-conj');

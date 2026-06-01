@@ -40221,6 +40221,11 @@ const V3_CONJ_GROUPS_NOUN = [
   { key: "possessive_sg", slots: ["s-P-1s", "s-P-2ms", "s-P-2fs", "s-P-3ms", "s-P-3fs", "s-P-1p", "s-P-2mp", "s-P-2fp", "s-P-3mp", "s-P-3fp"] },
   { key: "possessive_pl", slots: ["p-P-1s", "p-P-2ms", "p-P-2fs", "p-P-3ms", "p-P-3fs", "p-P-1p", "p-P-2mp", "p-P-2fp", "p-P-3mp", "p-P-3fp"] },
 ];
+// Adjectives decline by gender×number (Pealim slots ms-a/fs-a/mp-a/fp-a, "-a"
+// = absolute). Selected by pos==="adjective" (their page kind is "noun").
+const V3_CONJ_GROUPS_ADJ = [
+  { key: "adj", slots: ["ms-a", "fs-a", "mp-a", "fp-a"] },
+];
 // Compact citation forms shown before the "full paradigm" toggle.
 const V3_CONJ_PRIMARY_VERB = ["INF-L", "AP-ms", "AP-fs", "PERF-3ms", "IMPF-3ms"];
 const V3_CONJ_PRIMARY_NOUN = ["s", "p", "sc"];
@@ -40231,9 +40236,10 @@ const V3_CONJ_SLOT_FB = {
   "IMPF-1s": "я", "IMPF-2ms": "ты (м)", "IMPF-2fs": "ты (ж)", "IMPF-3ms": "он", "IMPF-3fs": "она", "IMPF-1p": "мы", "IMPF-2mp": "вы (м)", "IMPF-2fp": "вы (ж)", "IMPF-3mp": "они (м)", "IMPF-3fp": "они (ж)",
   "IMP-2ms": "ты (м)", "IMP-2fs": "ты (ж)", "IMP-2mp": "вы (м)", "IMP-2fp": "вы (ж)",
   "INF-L": "инфинитив", "s": "ед", "p": "мн", "sc": "ед, сопр.", "pc": "мн, сопр.",
+  "ms-a": "м.р, ед", "fs-a": "ж.р, ед", "mp-a": "м.р, мн", "fp-a": "ж.р, мн",
 };
 const V3_CONJ_POSS_FB = { "1s": "мой", "2ms": "твой (м)", "2fs": "твоя (ж)", "3ms": "его", "3fs": "её", "1p": "наш", "2mp": "ваш (м)", "2fp": "ваш (ж)", "3mp": "их (м)", "3fp": "их (ж)" };
-const V3_CONJ_GROUP_FB = { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)" };
+const V3_CONJ_GROUP_FB = { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)", adj: "Формы", other: "Другие формы" };
 
 function v3ConjSlotLabel(slot) {
   const pm = String(slot).match(/^[sp]-P-(.+)$/);   // possessive → label by possessor
@@ -40331,9 +40337,12 @@ window.v3MorphEnrichInflections = v3MorphEnrichInflections;
 function v3RenderInflectionParadigm(p) {
   if (!p || !p.cells) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
   const cells = p.cells;
-  const isVerb = p.kind === "verb";
-  const groups = isVerb ? V3_CONJ_GROUPS_VERB : V3_CONJ_GROUPS_NOUN;
-  const primarySlots = isVerb ? V3_CONJ_PRIMARY_VERB : V3_CONJ_PRIMARY_NOUN;
+  // Group selection by POS: verb → tenses; adjective → gender×number (ms-a…);
+  // else nominal (s/p/sc/pc/possessive). Adjective pages have kind="noun", so
+  // we key on pos, not kind.
+  const groups = (p.kind === "verb") ? V3_CONJ_GROUPS_VERB
+    : (p.pos === "adjective") ? V3_CONJ_GROUPS_ADJ
+    : V3_CONJ_GROUPS_NOUN;
   const cell = (slot) => {
     const c = cells[slot];
     if (!c || !c.he) return "";
@@ -40348,11 +40357,18 @@ function v3RenderInflectionParadigm(p) {
   };
   // Full paradigm shown directly (Layout B) — no compact "primary" block, no
   // inner "show full" toggle (user feedback: the partial preview reads as noise).
-  const fullGroups = groups.map((g) => {
-    const inner = g.slots.map(cell).filter(Boolean).join("");
+  const renderGroup = (label, slots) => {
+    const inner = slots.map(cell).filter(Boolean).join("");
     if (!inner) return "";
-    return `<div class="v3-conj-group"><div class="v3-conj-group-h">${v3EscapeHtml(v3ConjGroupLabel(g.key))}</div><div class="v3-conj-grid">${inner}</div></div>`;
-  }).filter(Boolean).join("");
+    return `<div class="v3-conj-group"><div class="v3-conj-group-h">${v3EscapeHtml(label)}</div><div class="v3-conj-grid">${inner}</div></div>`;
+  };
+  let fullGroups = groups.map((g) => renderGroup(v3ConjGroupLabel(g.key), g.slots)).filter(Boolean).join("");
+  // Catch-all: any cells NOT covered by the selected groups still render (so a
+  // POS/slot we didn't map — like a new Pealim form — never yields a blank
+  // table when cells actually exist).
+  const covered = new Set(groups.flatMap((g) => g.slots));
+  const leftover = Object.keys(cells).filter((k) => !covered.has(k) && cells[k] && cells[k].he);
+  if (leftover.length) fullGroups += renderGroup(v3ConjGroupLabel("other"), leftover);
 
   const badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
   const rootStr = p.root ? String(p.root).split("").join(" - ") : "";
