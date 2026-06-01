@@ -686,6 +686,7 @@ window.I18N_LOCALES.ru = {
         noTable: "Таблица не найдена.",
         summaryVerb: "Спряжение",
         summaryNoun: "Склонение",
+        summaryEditor: "Спряжение / Склонение",
         group: { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)" },
         slot: { AP_ms: "м.р, ед", AP_fs: "ж.р, ед", AP_mp: "м.р, мн", AP_fp: "ж.р, мн", PERF_1s: "я", PERF_2ms: "ты (м)", PERF_2fs: "ты (ж)", PERF_3ms: "он", PERF_3fs: "она", PERF_1p: "мы", PERF_2mp: "вы (м)", PERF_2fp: "вы (ж)", PERF_3mp: "они (м)", PERF_3fp: "они (ж)", IMPF_1s: "я", IMPF_2ms: "ты (м)", IMPF_2fs: "ты (ж)", IMPF_3ms: "он", IMPF_3fs: "она", IMPF_1p: "мы", IMPF_2mp: "вы (м)", IMPF_2fp: "вы (ж)", IMPF_3mp: "они (м)", IMPF_3fp: "они (ж)", IMP_2ms: "ты (м)", IMP_2fs: "ты (ж)", IMP_2mp: "вы (м)", IMP_2fp: "вы (ж)", INF_L: "инфинитив", s: "ед", p: "мн", sc: "ед, сопр.", pc: "мн, сопр." },
         poss: { "1s": "мой", "2ms": "твой (м)", "2fs": "твоя (ж)", "3ms": "его", "3fs": "её", "1p": "наш", "2mp": "ваш (м)", "2fp": "ваш (ж)", "3mp": "их (м)", "3fp": "их (ж)" },

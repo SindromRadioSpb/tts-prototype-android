@@ -6477,6 +6477,10 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
 }
 .v3-conj-loadbtn:hover { background: var(--theme-bg-hover); }
 .v3-conj-loading, .v3-conj-empty { font-size: 11.5px; color: var(--theme-text-muted); padding: 2px 0; }
+/* Escape the mobile button{width:100%} trap inside any conj container. */
+.v3-wordcard-conj .v3-conj-cell, .v3-wordcard-conj .v3-conj-loadbtn { width: auto !important; }
+.v3-notes-tpl-conj { margin-top: 2px; }
+.v3-notes-tpl-conj .v3-conj-cell, .v3-notes-tpl-conj .v3-conj-loadbtn { width: auto !important; }
 .v3-wordcard-edit {
   height: 31px;
   padding: 0 14px;
@@ -11530,6 +11534,15 @@ body:not(.theme-light) .v3-heatmap-cell {
                 <option value="other" data-i18n="notes.tpl.word_study.binyanOther">Другое / не уверен</option>
               </select>
             </div>
+          </div>
+          <!-- ② Conjugation/declension table, read-only, in the editor — reflects
+               the current Слово/Корень/Биньян/Часть-речи fields. Same lazy
+               load as the card (OPFS cache → online+consent → Pealim). -->
+          <div class="v3-notes-tpl-row">
+            <details class="v3-wordcard-acc v3-wordcard-conj v3-notes-tpl-conj" ontoggle="v3NotesTplConjToggle(this)">
+              <summary class="v3-wordcard-acc-summary" data-i18n="notes.card.conj.summaryEditor">Спряжение / Склонение</summary>
+              <div class="v3-conj-body"></div>
+            </details>
           </div>
           <div class="v3-notes-tpl-row">
             <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.mnemonic">Мнемоника</label>
@@ -40402,6 +40415,31 @@ function v3ConjSyncSummary(detailsEl, paradigm) {
 // <details ontoggle> entry — load on first expand.
 function v3WordCardConjToggle(detailsEl) { if (detailsEl && detailsEl.open) v3WordCardLoadInflection(detailsEl); }
 window.v3WordCardConjToggle = v3WordCardConjToggle;
+
+// Editor variant — read the LIVE word_study form fields each expand (the user
+// may still be editing root/binyan). Re-loads when the resolution key changes.
+function v3NotesTplConjToggle(detailsEl) {
+  if (!detailsEl || !detailsEl.open) return;
+  const val = (id) => { const el = document.getElementById(id); return el ? String(el.value || "").trim() : ""; };
+  const word = val("v3NotesTplWordStudyWord");
+  const root = val("v3NotesTplWordStudyRoot");
+  const binyan = val("v3NotesTplWordStudyBinyan");
+  const pos = val("v3NotesTplWordStudyPos");
+  const lemma = root || word;
+  const key = lemma + "|" + binyan + "|" + pos;
+  if (detailsEl.getAttribute("data-conj-key") !== key) {           // inputs changed → reload
+    detailsEl.setAttribute("data-conj-key", key);
+    detailsEl.removeAttribute("data-conj-loaded");
+    const body = detailsEl.querySelector(".v3-conj-body"); if (body) body.innerHTML = "";
+  }
+  detailsEl.setAttribute("data-conj-word", word);
+  detailsEl.setAttribute("data-conj-lemma", lemma);
+  detailsEl.setAttribute("data-conj-binyan", binyan === "other" ? "" : binyan);
+  detailsEl.setAttribute("data-conj-pos", pos);
+  detailsEl.setAttribute("data-conj-root", root);
+  v3WordCardLoadInflection(detailsEl);
+}
+window.v3NotesTplConjToggle = v3NotesTplConjToggle;
 
 // "Load (online)" button → ensure consent, then load.
 async function v3WordCardConjConsentLoad(btn) {

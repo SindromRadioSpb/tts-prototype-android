@@ -128,7 +128,7 @@ async function main() {
         isReady: () => true,
         getLearningStateOverlay: async () => ({}),
         listNotesForRow: async () => [],
-        getLemmaInflection: async (lemma) => (lemma === "כתב" ? sample : null),
+        getLemmaInflection: async (lemma) => ((lemma === "כתב" || lemma === "חזר") ? sample : null),
         saveLemmaInflection: async () => {},
       };
     }, SAMPLE);
@@ -214,6 +214,32 @@ async function main() {
       if (card) await card.screenshot({ path: shot });
       console.log("  · screenshot:", shot);
     } catch (_) {}
+
+    // ── Case 7: editor accordion reads live fields + loads ────────────────
+    const r7 = await pg.evaluate(async () => {
+      const conj = document.querySelector(".v3-notes-tpl-conj");
+      if (!conj) return { err: "no editor conj" };
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+      set("v3NotesTplWordStudyWord", "להחזיר");
+      set("v3NotesTplWordStudyRoot", "חזר");
+      set("v3NotesTplWordStudyBinyan", "hifil");
+      set("v3NotesTplWordStudyPos", "verb");
+      conj.open = true;
+      await window.v3NotesTplConjToggle(conj);
+      await new Promise((r) => setTimeout(r, 200));
+      const body = conj.querySelector(".v3-conj-body");
+      const sum = conj.querySelector(".v3-wordcard-acc-summary");
+      return {
+        exists: true,
+        lemmaAttr: conj.getAttribute("data-conj-lemma"),
+        binyanAttr: conj.getAttribute("data-conj-binyan"),
+        filled: body ? body.querySelectorAll(".v3-conj-cell").length : 0,
+        summary: sum ? sum.textContent.trim() : "",
+      };
+    });
+    test("Case 7: editor accordion reads live fields (root חזר/hifil) + loads table",
+         r7.exists && r7.lemmaAttr === "חזר" && r7.binyanAttr === "hifil" && r7.filled >= 6 && /Спряжение/.test(r7.summary),
+         JSON.stringify(r7));
 
     test("Case 6: no pageerror", errs.length === 0, errs.join(" | "));
   } finally {

@@ -679,6 +679,7 @@ window.I18N_LOCALES.en = {
         noTable: "No table found.",
         summaryVerb: "Conjugation",
         summaryNoun: "Declension",
+        summaryEditor: "Conjugation / Declension",
         group: { present: "Present", past: "Past", future: "Future", imperative: "Imperative", infinitive: "Infinitive", absolute: "Absolute state", construct: "Construct (smikhut)", possessive_sg: "Possessive (sg.)", possessive_pl: "Possessive (pl.)" },
         slot: { AP_ms: "m, sg", AP_fs: "f, sg", AP_mp: "m, pl", AP_fp: "f, pl", PERF_1s: "I", PERF_2ms: "you (m)", PERF_2fs: "you (f)", PERF_3ms: "he", PERF_3fs: "she", PERF_1p: "we", PERF_2mp: "you (m.pl)", PERF_2fp: "you (f.pl)", PERF_3mp: "they (m)", PERF_3fp: "they (f)", IMPF_1s: "I", IMPF_2ms: "you (m)", IMPF_2fs: "you (f)", IMPF_3ms: "he", IMPF_3fs: "she", IMPF_1p: "we", IMPF_2mp: "you (m.pl)", IMPF_2fp: "you (f.pl)", IMPF_3mp: "they (m)", IMPF_3fp: "they (f)", IMP_2ms: "you (m)", IMP_2fs: "you (f)", IMP_2mp: "you (m.pl)", IMP_2fp: "you (f.pl)", INF_L: "infinitive", s: "sg", p: "pl", sc: "sg, constr.", pc: "pl, constr." },
         poss: { "1s": "my", "2ms": "your (m)", "2fs": "your (f)", "3ms": "his", "3fs": "her", "1p": "our", "2mp": "your (m.pl)", "2fp": "your (f.pl)", "3mp": "their (m)", "3fp": "their (f)" },

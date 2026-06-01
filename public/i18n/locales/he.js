@@ -686,6 +686,7 @@ window.I18N_LOCALES.he = {
         noTable: "לא נמצאה טבלה.",
         summaryVerb: "נטיית הפועל",
         summaryNoun: "נטיית השם",
+        summaryEditor: "נטייה",
         group: { present: "הווה", past: "עבר", future: "עתיד", imperative: "ציווי", infinitive: "שם הפועל", absolute: "נפרד", construct: "נסמך (סמיכות)", possessive_sg: "כינויי שייכות (יחיד)", possessive_pl: "כינויי שייכות (רבים)" },
         slot: { AP_ms: "ז׳ יח׳", AP_fs: "נ׳ יח׳", AP_mp: "ז׳ רב׳", AP_fp: "נ׳ רב׳", PERF_1s: "אני", PERF_2ms: "אתה", PERF_2fs: "את", PERF_3ms: "הוא", PERF_3fs: "היא", PERF_1p: "אנחנו", PERF_2mp: "אתם", PERF_2fp: "אתן", PERF_3mp: "הם", PERF_3fp: "הן", IMPF_1s: "אני", IMPF_2ms: "אתה", IMPF_2fs: "את", IMPF_3ms: "הוא", IMPF_3fs: "היא", IMPF_1p: "אנחנו", IMPF_2mp: "אתם", IMPF_2fp: "אתן", IMPF_3mp: "הם", IMPF_3fp: "הן", IMP_2ms: "אתה", IMP_2fs: "את", IMP_2mp: "אתם", IMP_2fp: "אתן", INF_L: "שם הפועל", s: "יחיד", p: "רבים", sc: "יח׳ נסמך", pc: "רב׳ נסמך" },
         poss: { "1s": "שלי", "2ms": "שלך (ז)", "2fs": "שלך (נ)", "3ms": "שלו", "3fs": "שלה", "1p": "שלנו", "2mp": "שלכם", "2fp": "שלכן", "3mp": "שלהם", "3fp": "שלהן" },
