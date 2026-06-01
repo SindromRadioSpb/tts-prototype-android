@@ -11510,7 +11510,7 @@ body:not(.theme-light) .v3-heatmap-cell {
           <div class="v3-notes-tpl-row v3-notes-tpl-row-double">
             <div class="v3-notes-tpl-half">
               <label class="v3-notes-tpl-label" data-i18n="notes.tpl.word_study.pos">Часть речи</label>
-              <select id="v3NotesTplWordStudyPos" class="v3-notes-tpl-input">
+              <select id="v3NotesTplWordStudyPos" class="v3-notes-tpl-input" onchange="v3NotesTplConjGate()">
                 <option value="" data-i18n="notes.tpl.word_study.posUnset">—</option>
                 <option value="noun" data-i18n="notes.tpl.word_study.posNoun">Существительное</option>
                 <option value="verb" data-i18n="notes.tpl.word_study.posVerb">Глагол</option>
@@ -37761,6 +37761,9 @@ function v3NotesTemplateHydrate(body) {
     const cs = conj.querySelector(".v3-wordcard-acc-summary");
     if (cs) cs.textContent = v3NotesT("notes.card.conj.summaryEditor", "Спряжение / Склонение");
   }
+  // Show the accordion only for inflecting POS (verb/noun/adj); hide it for
+  // function words (adverb/pronoun/preposition/…) which have no Pealim table.
+  v3NotesTplConjGate();
 }
 window.v3NotesTemplateHydrate = v3NotesTemplateHydrate;
 
@@ -40226,6 +40229,24 @@ const V3_CONJ_GROUPS_NOUN = [
 const V3_CONJ_GROUPS_ADJ = [
   { key: "adj", slots: ["ms-a", "fs-a", "mp-a", "fp-a"] },
 ];
+// Declined prepositions (Pealim slots P-1s…P-3fp = preposition + pronoun suffix,
+// e.g. את→אותי/אותך). Selected by the presence of P-* cells (their page pos is
+// parsed as "noun").
+const V3_CONJ_GROUPS_PREP = [
+  { key: "prep", slots: ["P-1s", "P-2ms", "P-2fs", "P-3ms", "P-3fs", "P-1p", "P-2mp", "P-2fp", "P-3mp", "P-3fp"] },
+];
+// Only verbs/nouns/adjectives inflect → only they get a conjugation/declension
+// accordion. Function words (adverb/pronoun/preposition/conjunction/interjection/
+// "other") don't — Pealim has no forms table for them. Empty pos = unknown →
+// allow a resolve attempt. Proper nouns map to pos "noun" but are gated by KIND
+// at the call sites (they don't decline).
+function v3ConjPosInflects(pos) {
+  const p = String(pos || "");
+  // preposition included: Hebrew prepositions decline with pronoun suffixes
+  // (את→אותי, על→עליי, ל→לי) and Pealim has those tables.
+  return p === "" || p === "verb" || p === "noun" || p === "adjective" || p === "preposition";
+}
+window.v3ConjPosInflects = v3ConjPosInflects;
 // Compact citation forms shown before the "full paradigm" toggle.
 const V3_CONJ_PRIMARY_VERB = ["INF-L", "AP-ms", "AP-fs", "PERF-3ms", "IMPF-3ms"];
 const V3_CONJ_PRIMARY_NOUN = ["s", "p", "sc"];
@@ -40239,11 +40260,15 @@ const V3_CONJ_SLOT_FB = {
   "ms-a": "м.р, ед", "fs-a": "ж.р, ед", "mp-a": "м.р, мн", "fp-a": "ж.р, мн",
 };
 const V3_CONJ_POSS_FB = { "1s": "мой", "2ms": "твой (м)", "2fs": "твоя (ж)", "3ms": "его", "3fs": "её", "1p": "наш", "2mp": "ваш (м)", "2fp": "ваш (ж)", "3mp": "их (м)", "3fp": "их (ж)" };
-const V3_CONJ_GROUP_FB = { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)", adj: "Формы", other: "Другие формы" };
+// Declined-preposition suffixes → label by person/gender (את+1s=אותי="меня").
+const V3_CONJ_PERSON_FB = { "1s": "я", "2ms": "ты (м)", "2fs": "ты (ж)", "3ms": "он", "3fs": "она", "1p": "мы", "2mp": "вы (м)", "2fp": "вы (ж)", "3mp": "они (м)", "3fp": "они (ж)" };
+const V3_CONJ_GROUP_FB = { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)", adj: "Формы", prep: "С местоимениями", other: "Другие формы" };
 
 function v3ConjSlotLabel(slot) {
-  const pm = String(slot).match(/^[sp]-P-(.+)$/);   // possessive → label by possessor
+  const pm = String(slot).match(/^[sp]-P-(.+)$/);   // noun possessive → label by possessor
   if (pm) return v3NotesT("notes.card.conj.poss." + pm[1], V3_CONJ_POSS_FB[pm[1]] || pm[1]);
+  const pr = String(slot).match(/^P-(.+)$/);        // declined preposition → label by person
+  if (pr) return v3NotesT("notes.card.conj.person." + pr[1], V3_CONJ_PERSON_FB[pr[1]] || pr[1]);
   return v3NotesT("notes.card.conj.slot." + String(slot).replace(/-/g, "_"), V3_CONJ_SLOT_FB[slot] || slot);
 }
 function v3ConjGroupLabel(k) { return v3NotesT("notes.card.conj.group." + k, V3_CONJ_GROUP_FB[k] || k); }
@@ -40342,6 +40367,7 @@ function v3RenderInflectionParadigm(p) {
   // we key on pos, not kind.
   const groups = (p.kind === "verb") ? V3_CONJ_GROUPS_VERB
     : (p.pos === "adjective") ? V3_CONJ_GROUPS_ADJ
+    : (cells["P-1s"] || cells["P-3ms"]) ? V3_CONJ_GROUPS_PREP   // declined preposition
     : V3_CONJ_GROUPS_NOUN;
   const cell = (slot) => {
     const c = cells[slot];
@@ -40433,7 +40459,9 @@ async function v3WordCardLoadInflection(detailsEl) {
       body.innerHTML = v3RenderInflectionParadigm(data.paradigm);
       v3ConjSyncSummary(detailsEl, data.paradigm);
     } else {
-      body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>${pealimLink}`;
+      // Resolved, but Pealim has no forms table for this word (function words,
+      // some proper nouns, rare words don't inflect) — be honest, keep the link.
+      body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTablePealim", "Pealim не даёт таблицу форм для этого слова."))}</div>${pealimLink}`;
     }
   } catch (e) {
     body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.offline", "Таблица недоступна офлайн — обогатите текст морфологией."))}</div>${pealimLink}`;
@@ -40481,6 +40509,17 @@ function v3NotesTplConjToggle(detailsEl) {
   v3WordCardLoadInflection(detailsEl);
 }
 window.v3NotesTplConjToggle = v3NotesTplConjToggle;
+
+// Show/hide the editor conjugation accordion by the current POS select value —
+// only verbs/nouns/adjectives inflect; function words have no Pealim table.
+// Wired to the POS select's onchange + called on note hydrate.
+function v3NotesTplConjGate() {
+  const conj = document.querySelector(".v3-notes-tpl-conj");
+  if (!conj) return;
+  const posEl = document.getElementById("v3NotesTplWordStudyPos");
+  conj.style.display = v3ConjPosInflects(posEl ? posEl.value : "") ? "" : "none";
+}
+window.v3NotesTplConjGate = v3NotesTplConjGate;
 
 // "Load (online)" button → ensure consent, then load.
 async function v3WordCardConjConsentLoad(btn) {
@@ -40543,7 +40582,7 @@ function v3WordCardRichHtml(row) {
   // (OPFS cache → instant; miss → online+consent → Pealim). data-conj-* carry
   // the lemma/binyan/pos/root for resolution; the enrich pass refines them from
   // stored morphology. The summary self-corrects to Спряжение/Склонение on load.
-  const conjEligible = word && (!pos || pos === "verb" || pos === "noun" || pos === "adjective");
+  const conjEligible = word && v3ConjPosInflects(pos);   // verb/noun/adj/preposition (+ empty)
   const conjSummary = pos === "verb"
     ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
     : (pos ? v3NotesT("notes.card.conj.summaryNoun", "Склонение") : v3NotesT("notes.card.conj.summaryVerb", "Спряжение"));
@@ -40616,13 +40655,20 @@ async function v3NotesRowIndexEnrich() {
         //    morphology (a more reliable lemma/binyan/pos than the saved note).
         const conj = card.querySelector(".v3-wordcard-conj");
         if (conj && conj.getAttribute("data-conj-loaded") !== "1") {
-          if (res.root) { conj.setAttribute("data-conj-lemma", res.root); conj.setAttribute("data-conj-root", res.root); }
-          if (res.binyan) conj.setAttribute("data-conj-binyan", res.binyan);
-          if (res.pos) conj.setAttribute("data-conj-pos", res.pos);
-          const sum = conj.querySelector(".v3-wordcard-acc-summary");
-          if (sum && res.pos) sum.textContent = (res.pos === "verb")
-            ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
-            : v3NotesT("notes.card.conj.summaryNoun", "Склонение");
+          // Gate by POS/kind: proper nouns + particles + function words don't
+          // inflect → remove the accordion (the render's pos-only check let it
+          // through when the saved note had an empty/"noun" POS).
+          if (res.kind === "propernoun" || res.kind === "particle" || !v3ConjPosInflects(res.pos)) {
+            conj.remove();
+          } else {
+            if (res.root) { conj.setAttribute("data-conj-lemma", res.root); conj.setAttribute("data-conj-root", res.root); }
+            if (res.binyan) conj.setAttribute("data-conj-binyan", res.binyan);
+            if (res.pos) conj.setAttribute("data-conj-pos", res.pos);
+            const sum = conj.querySelector(".v3-wordcard-acc-summary");
+            if (sum && res.pos) sum.textContent = (res.pos === "verb")
+              ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
+              : v3NotesT("notes.card.conj.summaryNoun", "Склонение");
+          }
         }
       }
     }

@@ -87,6 +87,18 @@ async function testLive() {
     const v = await P.resolveLemma("שבת", { pos: "verb", binyan: "paal", root: "שבת" });
     ok("שבת verb → verb kind id 2139 (lishbot)", v.ok && v.paradigm.kind === "verb" && String(v.paradigm.pealim_id) === "2139", v.ok && (v.paradigm.kind + ":" + v.paradigm.pealim_id));
   } catch (e) { ok("homograph live no throw", false, e.message); }
+  // POS audit matrix: content words have a forms table; function words don't
+  // (Pealim has no conj-td cells → resolveLemma ok:false). The client gates the
+  // accordion by POS so these never reach resolveLemma, but we pin the data fact.
+  try {
+    console.log("POS audit matrix (live):");
+    const content = [["כתב", { pos: "verb", binyan: "paal", root: "כתב" }], ["ספר", { pos: "noun", root: "ספר" }], ["יפה", { pos: "adjective", root: "יפה" }]];
+    for (const [w, o] of content) { const r = await P.resolveLemma(w, o); ok("  content " + w + " → has table", r.ok && r.paradigm && Object.keys(r.paradigm.cells).length > 0, r.ok ? "ok" : r.reason); }
+    const fn = ["מה", "אז"];         // pronoun/adverb, conjunction/adverb — no inflection
+    for (const w of fn) { const r = await P.resolveLemma(w, {}); ok("  function " + w + " → no forms table", !r.ok, r.ok ? "unexpected table" : r.reason); }
+    // Prepositions DO decline with pronoun suffixes (P-1s…) → have a table.
+    for (const w of ["את", "על"]) { const r = await P.resolveLemma(w, { pos: "preposition" }); ok("  preposition " + w + " → declined table (P-*)", r.ok && r.paradigm && !!r.paradigm.cells["P-1s"], r.ok ? "ok" : r.reason); }
+  } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 
 (async () => {

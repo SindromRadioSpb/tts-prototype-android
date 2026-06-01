@@ -290,6 +290,19 @@ async function main() {
          r8.open === false && r8.loaded === null && r8.lemmaAttr === null && r8.bodyEmpty && r8.noStale,
          JSON.stringify(r8));
 
+    // ── Case 9: POS gating — helper + editor accordion visibility ─────────
+    const r9 = await pg.evaluate(() => {
+      const inf = window.v3ConjPosInflects;
+      const helperOk = inf("verb") && inf("noun") && inf("adjective") && inf("") && inf("preposition") &&
+        !inf("adverb") && !inf("pronoun") && !inf("conjunction");
+      const conj = document.querySelector(".v3-notes-tpl-conj");
+      const posEl = document.getElementById("v3NotesTplWordStudyPos");
+      const vis = (v) => { posEl.value = v; window.v3NotesTplConjGate(); return conj.style.display; };
+      return { helperOk, adverbHidden: vis("adverb") === "none", pronounHidden: vis("pronoun") === "none", verbShown: vis("verb") !== "none", nounShown: vis("noun") !== "none" };
+    });
+    test("Case 9: POS gating (helper + editor hides function words, shows content)",
+         r9.helperOk && r9.adverbHidden && r9.pronounHidden && r9.verbShown && r9.nounShown, JSON.stringify(r9));
+
     test("Case 6: no pageerror", errs.length === 0, errs.join(" | "));
   } finally {
     await browser.close();
