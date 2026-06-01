@@ -40359,6 +40359,16 @@ function v3ConjPosInflects(pos) {
   return p === "" || p === "verb" || p === "noun" || p === "adjective" || p === "preposition";
 }
 window.v3ConjPosInflects = v3ConjPosInflects;
+// Choose the Pealim QUERY lemma for a word. CONTENT words (verb/noun/adj/prep) →
+// root-first (the Pealim page lives under the root; a declined preposition's
+// table is under its lemma). FUNCTION words (adverb/pronoun/conjunction/…) →
+// Dicta BASE form first: their "root" is a DIFFERENT lexeme (adverb בחוץ has root
+// חוץ, but חוץ is the NOUN; Pealim lists בחוץ as its own adverb entry). Falls back
+// to the Dicta lemma, then the surface word.
+function v3ConjQueryLemma(pos, root, dictaLemma, word) {
+  return v3ConjPosInflects(pos) ? (root || dictaLemma || word) : (dictaLemma || word);
+}
+window.v3ConjQueryLemma = v3ConjQueryLemma;
 // Compact citation forms shown before the "full paradigm" toggle.
 const V3_CONJ_PRIMARY_VERB = ["INF-L", "AP-ms", "AP-fs", "PERF-3ms", "IMPF-3ms"];
 const V3_CONJ_PRIMARY_NOUN = ["s", "p", "sc"];
@@ -40689,10 +40699,11 @@ async function v3NotesTplConjFields() {
       if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; dictaLemma = res.lemma || ""; }
     }
   } catch (_) {}
-  // Query the LEMMA, not the surface form: a declined preposition's table lives
-  // under its lemma (לי → lemma ל, which has the P-1s…P-3fp table); root is null
-  // for particles, so fall back to the Dicta lemma, then the surface word.
-  return { word, pos, root, binyan, kind, lemma: root || dictaLemma || word };
+  // Query the LEMMA, not the surface form (see v3ConjQueryLemma): content words →
+  // root-first; function words → Dicta base form (their root is a different lexeme,
+  // e.g. adverb בחוץ vs noun חוץ).
+  const lemma = v3ConjQueryLemma(pos, root, dictaLemma, word);
+  return { word, pos, root, binyan, kind, lemma };
 }
 // Does this word get an in-app inflection table? Prepositions DO decline
 // (אלי/לך/לו…) even though Dicta marks them kind="particle"; other particles +

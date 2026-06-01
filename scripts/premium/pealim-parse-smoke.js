@@ -120,6 +120,11 @@ async function testLive() {
     // the stem; shallow-first peel must NOT over-strip (המים→מים water, not ים sea).
     { const r = await P.resolveLemma("וכשהמלך", { pos: "noun", root: "מלך" }); ok("  וכשהמלך (4 proclitics) → noun מלך", r.ok && r.paradigm.kind === "noun" && P.stripNiqqud(r.paradigm.lemma) === "מלך", r.ok ? ("lemma=" + r.paradigm.lemma) : r.reason); }
     { const r = await P.resolveLemma("המים", { pos: "noun" }); ok("  המים → מים (NOT over-peeled to ים)", r.ok && P.stripNiqqud(r.paradigm.lemma) === "מים", r.ok ? ("lemma=" + r.paradigm.lemma) : r.reason); }
+    // Function-word base form ≠ root: the adverb בחוץ is its OWN Pealim entry
+    // (bachutz 6551), while its root חוץ is the NOUN. The client must query the
+    // Dicta BASE form for function words, not the root (else wrong word + link).
+    { const r = await P.resolveLemma("בחוץ", { pos: "adverb" }); ok("  בחוץ adverb → invariant bachutz (id 6551), NOT the noun root חוץ", r.ok && r.paradigm.kind === "invariant" && String(r.paradigm.pealim_id) === "6551", r.ok ? ("kind=" + r.paradigm.kind + " id=" + r.paradigm.pealim_id) : r.reason); }
+    { const r = await P.resolveLemma("חוץ", { pos: "adverb" }); ok("  חוץ as adverb → no_confident_match (it's the NOUN; justifies base-form query)", !r.ok && r.reason === "no_confident_match", r.ok ? ("wrongly ok id=" + r.paradigm.pealim_id) : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 

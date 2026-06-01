@@ -1529,5 +1529,13 @@
   "note": "Over-peel guard: ה+מים must resolve to מים (water), NOT the over-stripped ים (sea). Shallow-first proclitic peel.",
   "dimension": "prefix-attached",
   "audit_reclassified": true
+ },
+ {
+  "he": "בחוץ",
+  "pos": "adverb",
+  "expect": "invariant",
+  "note": "Lexicalized adverb (ב+חוץ frozen). Its OWN Pealim entry (bachutz 6551), NOT the root חוץ (=noun). Function-word queries must use the Dicta base form, not the root.",
+  "dimension": "homographs",
+  "audit_reclassified": true
  }
 ]

@@ -317,6 +317,26 @@ async function main() {
     test("Case 9: POS gate helper + editor non-inflecting not hidden, keeps Pealim link",
          r9.gateOk && r9.advNotHidden && r9.advHasLink, JSON.stringify(r9));
 
+    // ── Case 2f: query-lemma selection — function word uses Dicta BASE form ──
+    // הבחוץ → Dicta base בחוץ (adverb), root חוץ (a DIFFERENT lexeme = noun). A
+    // function word must query its base form (its own Pealim adverb entry), while
+    // content words stay root-first.
+    const r2f = await pg.evaluate(() => {
+      const f = window.v3ConjQueryLemma;
+      return {
+        adverb: f("adverb", "חוץ", "בחוץ", "הבחוץ"),      // → בחוץ (base, NOT root חוץ)
+        pronoun: f("pronoun", "", "אני", "אני"),            // → אני
+        verb: f("verb", "כתב", "", "כותב"),                 // → כתב (root-first)
+        noun: f("noun", "ספר", "", "ספר"),                  // → ספר
+        prepNoRoot: f("preposition", "", "ל", "לי"),         // → ל (lemma, declines)
+        advFallback: f("adverb", "חוץ", "", "הבחוץ"),        // no base → surface (documented fallback)
+      };
+    });
+    test("Case 2f: query-lemma — function word uses base form, content word uses root",
+         r2f.adverb === "בחוץ" && r2f.pronoun === "אני" && r2f.verb === "כתב" &&
+         r2f.noun === "ספר" && r2f.prepNoRoot === "ל" && r2f.advFallback === "הבחוץ",
+         JSON.stringify(r2f));
+
     // ── Case 2c: invariant "word profile" render (adverb בֶּטַח) ───────────
     const r2c = await pg.evaluate(() => {
       const inv = {
