@@ -11811,9 +11811,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=43"></script>
-<script src="/i18n/locales/en.js?v=43"></script>
-<script src="/i18n/locales/he.js?v=43"></script>
+<script src="/i18n/locales/ru.js?v=44"></script>
+<script src="/i18n/locales/en.js?v=44"></script>
+<script src="/i18n/locales/he.js?v=44"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -40551,29 +40551,47 @@ async function v3NotesTplConjFields() {
   let root = val("v3NotesTplWordStudyRoot");
   let binyan = val("v3NotesTplWordStudyBinyan");
   if (binyan === "other") binyan = "";
-  let kind = null;
+  let kind = null, dictaLemma = "";
   try {
     if (word && v3NotesModalSentenceId && typeof v3MorphStoredResolve === "function") {
       const res = await v3MorphStoredResolve(word, v3NotesModalSentenceId);
-      if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; }
+      if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; dictaLemma = res.lemma || ""; }
     }
   } catch (_) {}
-  return { word, pos, root, binyan, kind, lemma: root || word };
+  // Query the LEMMA, not the surface form: a declined preposition's table lives
+  // under its lemma (לי → lemma ל, which has the P-1s…P-3fp table); root is null
+  // for particles, so fall back to the Dicta lemma, then the surface word.
+  return { word, pos, root, binyan, kind, lemma: root || dictaLemma || word };
 }
+// Does this word get an in-app inflection table? Prepositions DO decline
+// (אלי/לך/לו…) even though Dicta marks them kind="particle"; other particles +
+// proper nouns + function words (adverb/pronoun/…) don't.
 function v3NotesTplConjInflects(f) {
-  return !(f.kind === "propernoun" || f.kind === "particle") && v3ConjPosInflects(f.pos);
+  if (f.kind === "propernoun") return false;
+  if (f.pos === "preposition") return true;
+  if (f.kind === "particle") return false;
+  return v3ConjPosInflects(f.pos);
 }
+window.v3NotesTplConjInflects = v3NotesTplConjInflects;
 
-// Editor accordion expand → resolve (fresh Dicta preferred) + load.
+// Editor accordion expand → resolve (fresh Dicta preferred) + load. For a word
+// with no in-app table (adverb/pronoun/…) we DON'T hide — we show an honest
+// "не изменяется" note + keep the external "перепроверка (Pealim)" link.
 async function v3NotesTplConjToggle(detailsEl) {
   if (!detailsEl || !detailsEl.open) return;
   const f = await v3NotesTplConjFields();
-  if (!v3NotesTplConjInflects(f)) { detailsEl.style.display = "none"; return; }
+  const body = detailsEl.querySelector(".v3-conj-body");
+  if (!v3NotesTplConjInflects(f)) {
+    detailsEl.setAttribute("data-conj-loaded", "1");
+    const link = `<a class="v3-conj-recheck" href="${v3EscapeHtml(v3WordCardPealimUrl(f.word))}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+    if (body) body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>${link}`;
+    return;
+  }
   const key = f.lemma + "|" + f.binyan + "|" + f.pos;
   if (detailsEl.getAttribute("data-conj-key") !== key) {           // inputs changed → reload
     detailsEl.setAttribute("data-conj-key", key);
     detailsEl.removeAttribute("data-conj-loaded");
-    const body = detailsEl.querySelector(".v3-conj-body"); if (body) body.innerHTML = "";
+    if (body) body.innerHTML = "";
   }
   detailsEl.setAttribute("data-conj-word", f.word);
   detailsEl.setAttribute("data-conj-lemma", f.lemma);
@@ -40584,13 +40602,13 @@ async function v3NotesTplConjToggle(detailsEl) {
 }
 window.v3NotesTplConjToggle = v3NotesTplConjToggle;
 
-// Show/hide the editor conjugation accordion — only inflecting POS get it.
-// Prefers fresh corpus Dicta over the saved POS (called on hydrate + POS change).
-async function v3NotesTplConjGate() {
+// Editor accordion is ALWAYS available (no hiding) — the external Pealim link
+// must stay reachable for every word. Content shown on expand (table vs honest
+// "не изменяется" note) is decided by v3NotesTplConjToggle. Kept as a no-op
+// hook for the POS-select onchange / hydrate wiring.
+function v3NotesTplConjGate() {
   const conj = document.querySelector(".v3-notes-tpl-conj");
-  if (!conj) return;
-  const f = await v3NotesTplConjFields();
-  conj.style.display = v3NotesTplConjInflects(f) ? "" : "none";
+  if (conj) conj.style.display = "";
 }
 window.v3NotesTplConjGate = v3NotesTplConjGate;
 
@@ -40731,10 +40749,12 @@ async function v3NotesRowIndexEnrich() {
           // Gate by POS/kind: proper nouns + particles + function words don't
           // inflect → remove the accordion (the render's pos-only check let it
           // through when the saved note had an empty/"noun" POS).
-          if (res.kind === "propernoun" || res.kind === "particle" || !v3ConjPosInflects(res.pos)) {
-            conj.remove();
+          if (!v3NotesTplConjInflects({ pos: res.pos, kind: res.kind })) {
+            conj.remove();                                 // function word / proper noun — no table
           } else {
-            if (res.root) { conj.setAttribute("data-conj-lemma", res.root); conj.setAttribute("data-conj-root", res.root); }
+            // Query the LEMMA (declined prepositions live under their lemma: לי→ל).
+            const qLemma = res.root || res.lemma || "";
+            if (qLemma) { conj.setAttribute("data-conj-lemma", qLemma); conj.setAttribute("data-conj-root", res.root || ""); }
             if (res.binyan) conj.setAttribute("data-conj-binyan", res.binyan);
             if (res.pos) conj.setAttribute("data-conj-pos", res.pos);
             const sum = conj.querySelector(".v3-wordcard-acc-summary");

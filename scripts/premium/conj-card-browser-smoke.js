@@ -292,16 +292,31 @@ async function main() {
 
     // ── Case 9: POS gating — helper + editor accordion visibility ─────────
     const r9 = await pg.evaluate(async () => {
-      const inf = window.v3ConjPosInflects;
-      const helperOk = inf("verb") && inf("noun") && inf("adjective") && inf("") && inf("preposition") &&
-        !inf("adverb") && !inf("pronoun") && !inf("conjunction");
+      const inf = window.v3NotesTplConjInflects;
+      // Inflects: verb/noun/adj/preposition (prep even as particle). Not:
+      // adverb/pronoun, proper noun, other particles.
+      const gateOk =
+        inf({ pos: "verb", kind: null }) && inf({ pos: "noun", kind: null }) &&
+        inf({ pos: "adjective", kind: null }) && inf({ pos: "preposition", kind: "particle" }) &&
+        !inf({ pos: "adverb", kind: null }) && !inf({ pos: "pronoun", kind: null }) &&
+        !inf({ pos: "noun", kind: "propernoun" }) && !inf({ pos: "conjunction", kind: "particle" });
+      // Non-inflecting word in the editor → NOT hidden; shows note + Pealim link.
       const conj = document.querySelector(".v3-notes-tpl-conj");
-      const posEl = document.getElementById("v3NotesTplWordStudyPos");
-      const vis = async (v) => { posEl.value = v; await window.v3NotesTplConjGate(); return conj.style.display; };
-      return { helperOk, adverbHidden: (await vis("adverb")) === "none", pronounHidden: (await vis("pronoun")) === "none", verbShown: (await vis("verb")) !== "none", nounShown: (await vis("noun")) !== "none" };
+      const set = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+      set("v3NotesTplWordStudyWord", "שוב"); set("v3NotesTplWordStudyPos", "adverb"); set("v3NotesTplWordStudyRoot", ""); set("v3NotesTplWordStudyBinyan", "");
+      conj.open = true; conj.removeAttribute("data-conj-loaded"); conj.removeAttribute("data-conj-key");
+      await window.v3NotesTplConjToggle(conj);
+      await new Promise((r) => setTimeout(r, 150));
+      const body = conj.querySelector(".v3-conj-body");
+      return {
+        gateOk,
+        advNotHidden: conj.style.display !== "none",
+        advHasLink: !!(body && body.querySelector(".v3-conj-recheck")),
+        advHasNote: !!(body && /не изменяется/.test(body.textContent || "")),
+      };
     });
-    test("Case 9: POS gating (helper + editor hides function words, shows content)",
-         r9.helperOk && r9.adverbHidden && r9.pronounHidden && r9.verbShown && r9.nounShown, JSON.stringify(r9));
+    test("Case 9: POS gate (prep inflects; non-inflecting shows note + Pealim link, not hidden)",
+         r9.gateOk && r9.advNotHidden && r9.advHasLink && r9.advHasNote, JSON.stringify(r9));
 
     test("Case 6: no pageerror", errs.length === 0, errs.join(" | "));
   } finally {

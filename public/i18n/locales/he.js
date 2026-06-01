@@ -689,6 +689,7 @@ window.I18N_LOCALES.he = {
         loadOnline: "טען טבלה (מקוון)",
         noTable: "לא נמצאה טבלה.",
         noTablePealim: "ל-Pealim אין טבלת נטייה למילה זו.",
+        notInflected: "מילה זו אינה נוטה.",
         summaryVerb: "נטיית הפועל",
         summaryNoun: "נטיית השם",
         summaryEditor: "נטייה",

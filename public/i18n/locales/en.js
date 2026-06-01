@@ -682,6 +682,7 @@ window.I18N_LOCALES.en = {
         loadOnline: "Load table (online)",
         noTable: "No table found.",
         noTablePealim: "Pealim has no inflection table for this word.",
+        notInflected: "This word doesn't inflect.",
         summaryVerb: "Conjugation",
         summaryNoun: "Declension",
         summaryEditor: "Conjugation / Declension",

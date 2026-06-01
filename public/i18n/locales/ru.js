@@ -689,6 +689,7 @@ window.I18N_LOCALES.ru = {
         loadOnline: "Загрузить таблицу (онлайн)",
         noTable: "Таблица не найдена.",
         noTablePealim: "Pealim не даёт таблицу форм для этого слова.",
+        notInflected: "Это слово не изменяется по формам.",
         summaryVerb: "Спряжение",
         summaryNoun: "Склонение",
         summaryEditor: "Спряжение / Склонение",
