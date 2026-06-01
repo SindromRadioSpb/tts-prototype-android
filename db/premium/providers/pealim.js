@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v6"; // v6: non-inflecting POS never picks a verb + invariant profiles (clears batch-poisoned v5)
+const MODEL_VERSION = "pealim-infl-v7"; // v7: non-inflecting POS (incl "other") never picks a content homograph (אבל союз≠evel сущ.)
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -210,6 +210,7 @@ async function searchLemma(heLemma) {
 
 // Coarse POS class of a parsed Pealim entry / of what we want (Dicta-decoded).
 function candClass(parsed) {
+  if (parsed.kind === "invariant") return "invariant"; // function-word profile (no paradigm)
   if (parsed.kind === "verb") return "verb";
   if (parsed.pos === "adjective") return "adjective";
   return "noun";                                   // nouns + other nominals
@@ -229,7 +230,7 @@ function wantClass(want) {
 // same-class entry exists at all). Exact lemma (the strongest lexical signal:
 // the noun's lemma == the surface word, the verb's lemma is the infinitive),
 // then root, then binyan refine WITHIN the right class.
-const NONINFLECTING_POS = ["adverb", "pronoun", "conjunction", "interjection", "negation", "numeral"];
+const NONINFLECTING_POS = ["adverb", "pronoun", "conjunction", "interjection", "negation", "numeral", "other"];
 function scoreCandidate(parsed, want, lemmaPlain) {
   if (!parsed) return -1e9;
   let s = 0;
@@ -239,7 +240,7 @@ function scoreCandidate(parsed, want, lemmaPlain) {
   // even when the root matches: the adverb בֶּטַח shares root בטח with the verb
   // בָּטַח — the verb has to lose (else batch enrichment, which passes root,
   // mis-picks the verb). The invariant single-form profile wins by exact lemma.
-  if (NONINFLECTING_POS.indexOf(want.pos) >= 0 && cc === "verb") s -= 100;
+  if (NONINFLECTING_POS.indexOf(want.pos) >= 0 && (cc === "verb" || cc === "noun" || cc === "adjective")) s -= 100;
   if (lemmaPlain && parsed.lemma_niqqud && stripNiqqud(parsed.lemma_niqqud) === lemmaPlain) s += 5;
   if (want.root && parsed.root && want.root === parsed.root) s += 4;
   if (want.binyan && parsed.binyan && want.binyan === parsed.binyan) s += 3;
