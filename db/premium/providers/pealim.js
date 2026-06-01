@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v8"; // v8: niqqud form-match (+20) + binyan-gated early-exit disambiguate binyan-homographs (תְּגַלִּי piel ≠ תִּגְלִי paal)
+const MODEL_VERSION = "pealim-infl-v9"; // v9: inflected-surface fallback search finds binyanim Pealim doesn't index under the bare root (hitpael להסתכל via תסתכלי, not סכל)
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -345,29 +345,52 @@ async function resolveLemma(heLemma, opts) {
   const lemmaPlain = stripNiqqud(heLemma);
   const MAX_TRY = 8;
   let best = null, bestScore = -1e9, bestId = null, bestFormHit = false;
-  for (const c of candidates.slice(0, MAX_TRY)) {
-    let parsed = null;
-    try {
-      if (want.pageGet) parsed = await want.pageGet(c.id);
-      if (!parsed) {
-        const html = await _get(c.url);
-        parsed = parsePealimPage(html);
-        if (parsed && want.pagePut) { try { await want.pagePut(c.id, parsed); } catch (_) {} }
+  const seen = new Set();
+  // Scan a candidate list (deduped); returns true on a confident STRONG+aligned
+  // early-exit so the caller can stop fetching.
+  async function scan(list) {
+    for (const c of (list || []).slice(0, MAX_TRY)) {
+      if (seen.has(c.id)) continue;
+      seen.add(c.id);
+      let parsed = null;
+      try {
+        if (want.pageGet) parsed = await want.pageGet(c.id);
+        if (!parsed) {
+          const html = await _get(c.url);
+          parsed = parsePealimPage(html);
+          if (parsed && want.pagePut) { try { await want.pagePut(c.id, parsed); } catch (_) {} }
+        }
+      } catch (e) {
+        if (e && e.status === 429) throw e;                // surface rate-limit
+        continue;
       }
-    } catch (e) {
-      if (e && e.status === 429) throw e;                // surface rate-limit
-      continue;
+      if (!parsed) continue;
+      const sc = scoreCandidate(parsed, want, lemmaPlain);
+      if (sc > bestScore) { best = parsed; bestScore = sc; bestId = c.id; bestFormHit = formMatches(parsed, want); }
+      // Early-exit only when the STRONG pick is also ALIGNED with the disambiguating
+      // signals we still owe: don't stop on a binyan MISMATCH (the right binyan may
+      // be a later same-root candidate — piel תְּגַלִּי after paal תִּגְלִי), nor before a
+      // wanted vocalized form is matched (the +20 form winner can be later in scan).
+      const aligned = !want.binyan || (best && best.binyan === want.binyan);
+      const formOk = !want.form || bestFormHit;
+      if (bestScore >= CONJ_STRONG_SCORE && aligned && formOk) return true;
     }
-    if (!parsed) continue;
-    const sc = scoreCandidate(parsed, want, lemmaPlain);
-    if (sc > bestScore) { best = parsed; bestScore = sc; bestId = c.id; bestFormHit = formMatches(parsed, want); }
-    // Early-exit only when the STRONG pick is also ALIGNED with the disambiguating
-    // signals we still owe: don't stop on a binyan MISMATCH (the right binyan may
-    // be a later same-root candidate — piel תְּגַלִּי after paal תִּגְלִי), nor before a
-    // wanted vocalized form is matched (the +20 form winner can be later in scan).
-    const aligned = !want.binyan || (best && best.binyan === want.binyan);
-    const formOk = !want.form || bestFormHit;
-    if (bestScore >= CONJ_STRONG_SCORE && aligned && formOk) break;
+    return false;
+  }
+  let done = await scan(candidates);
+  // Inflected-SURFACE fallback: Pealim's root search can MISS a binyan — the
+  // hitpael לְהִסְתַּכֵּל is indexed under הסתכל, NOT the bare root סכל that Dicta hands
+  // as the verb lemma, so search(סכל) returns only the piel and the right verb is
+  // never seen. When the text's vocalized form went unmatched, search the
+  // niqqud-stripped SURFACE (תסתכלי) — Pealim resolves inflected forms — and the
+  // +20 form match then picks the correct binyan.
+  if (!done && want.form && !bestFormHit) {
+    const surf = stripNiqqud(want.form);
+    if (surf && surf.length >= 2 && surf !== lemmaPlain) {
+      let more = [];
+      try { more = await searchLemma(surf); } catch (e) { if (e && e.status === 429) throw e; }
+      await scan(more);
+    }
   }
   if (!best) return { ok: false, reason: "no_parsable_entry", model_version: MODEL_VERSION };
   // Reject low-confidence picks: bestScore > 0 means SOME signal agreed (POS

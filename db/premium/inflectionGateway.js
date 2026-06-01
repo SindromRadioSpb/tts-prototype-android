@@ -54,7 +54,13 @@ async function inflect(lemma, opts) {
       pagePut: (id, p) => cache.putPage(id, p, MODEL_VERSION),
     }));
     if (r && r.ok && r.paradigm) {
-      cache.put(key, r.paradigm);
+      // Don't poison the cache with a binyan MISMATCH: a formless request for a
+      // binyan Pealim doesn't index under the bare root (סכל hitpael) resolves to
+      // the only candidate (piel 1351) — caching that under the (lemma,hitpael)
+      // key would shadow the correct form-aware pick (1352). Only persist when the
+      // resolved binyan matches what was asked (or none was asked). Order-independent.
+      const binyanOk = !o.binyan || (r.paradigm.binyan === o.binyan);
+      if (binyanOk) cache.put(key, r.paradigm);
       return { ok: true, paradigm: r.paradigm, provider: "pealim", degraded: false, model_version: MODEL_VERSION, cached: false };
     }
     return { ok: false, degraded: true, provider: "none", reason: (r && r.reason) || "no_result", model_version: MODEL_VERSION };

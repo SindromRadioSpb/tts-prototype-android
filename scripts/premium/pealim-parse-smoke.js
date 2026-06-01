@@ -131,6 +131,10 @@ async function testLive() {
     { const r = await P.resolveLemma("גלה", { pos: "verb", binyan: "piel", root: "גלה" }); ok("  גלה+piel → לְגַלּוֹת (id 331, not paal 333) — binyan-gated early-exit", r.ok && String(r.paradigm.pealim_id) === "331", r.ok ? ("id=" + r.paradigm.pealim_id + " binyan=" + r.paradigm.binyan) : r.reason); }
     { const r = await P.resolveLemma("גלה", { pos: "verb", form: "תְּגַלִּי" }); ok("  גלה+form תְּגַלִּי → piel 331 (niqqud picks verb, no binyan)", r.ok && String(r.paradigm.pealim_id) === "331", r.ok ? ("id=" + r.paradigm.pealim_id) : r.reason); }
     { const r = await P.resolveLemma("גלה", { pos: "verb", form: "תִּגְלִי" }); ok("  גלה+form תִּגְלִי → paal 333 (niqqud picks the other verb)", r.ok && String(r.paradigm.pealim_id) === "333", r.ok ? ("id=" + r.paradigm.pealim_id) : r.reason); }
+    // Inflected-surface fallback: Pealim doesn't index the hitpael לְהִסְתַּכֵּל under
+    // the bare root סכל (search סכל → only the piel 1351). Dicta hands lemma=סכל, so
+    // the right verb is found only by re-searching the niqqud-stripped surface תסתכלי.
+    { const r = await P.resolveLemma("סכל", { pos: "verb", binyan: "hitpael", root: "סכל", form: "תִּסְתַּכְּלִי" }); ok("  סכל+hitpael+form תִּסְתַּכְּלִי → hitpael להסתכל (1352), not piel 1351 — surface fallback", r.ok && String(r.paradigm.pealim_id) === "1352" && r.paradigm.binyan === "hitpael", r.ok ? ("id=" + r.paradigm.pealim_id + " binyan=" + r.paradigm.binyan) : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 

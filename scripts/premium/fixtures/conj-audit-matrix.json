@@ -1548,5 +1548,17 @@
   "note": "Binyan-homograph: root גלה has paal לִגְלוֹת (333) + piel לְגַלּוֹת (331). With binyan=piel must resolve to 331 (binyan-gated early-exit), NOT the paal 333 that precedes it in search order.",
   "dimension": "homographs",
   "audit_reclassified": true
+ },
+ {
+  "he": "סכל",
+  "pos": "verb",
+  "binyan": "hitpael",
+  "root": "סכל",
+  "form": "תִּסְתַּכְּלִי",
+  "id": "1352",
+  "expect": "verb",
+  "note": "Hitpael לְהִסְתַּכֵּל not indexed under bare root סכל (search סכל → only piel 1351). Inflected-surface fallback (search תסתכלי) + form-match must pick 1352 hitpael.",
+  "dimension": "verb-binyanim",
+  "audit_reclassified": true
  }
 ]

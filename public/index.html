@@ -40276,7 +40276,7 @@ window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
 // ── ② — Pealim conjugation/declension tables (offline-cached) ─────────────
 // Model version mirrors db/premium/providers/pealim.js MODEL_VERSION. Bumping
 // it (here + provider) re-scrapes paradigms.
-const V3_PEALIM_INFL_MODEL = "pealim-infl-v8"; // MUST equal pealim.js MODEL_VERSION; v8 adds niqqud form-match + binyan-gated disambiguation (תְּגַלִּי piel ≠ תִּגְלִי paal)
+const V3_PEALIM_INFL_MODEL = "pealim-infl-v9"; // MUST equal pealim.js MODEL_VERSION; v9 adds inflected-surface fallback search (hitpael להסתכל found via תסתכלי, not bare root סכל)
 
 // Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
 // state + possessive blocks. The provider returns a lossless raw slot→form map

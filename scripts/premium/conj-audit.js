@@ -72,7 +72,7 @@ function checkEntry(e, r) {
   const fails = [];
   for (const e of list) {
     let r;
-    try { r = await inflect(String(e.he || ""), { pos: e.pos, binyan: e.binyan, root: e.root }); }
+    try { r = await inflect(String(e.he || ""), { pos: e.pos, binyan: e.binyan, root: e.root, form: e.form }); }
     catch (err) { r = { ok: false, reason: "throw:" + (err && err.message) }; }
     const problem = checkEntry(e, r);
     if (problem) {
