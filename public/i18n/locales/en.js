@@ -691,6 +691,7 @@ window.I18N_LOCALES.en = {
         pronoun: { personal: "Personal pronouns" },
         pronounRef: "Reference set",
         pronounNote: "Pronouns are a closed class — the set is fixed, not derived.",
+        formInText: "the form in your text",
         voiceActive: "Active voice",
         voicePassive: "Passive voice",
         group: { present: "Present", past: "Past", future: "Future", imperative: "Imperative", infinitive: "Infinitive", absolute: "Absolute state", construct: "Construct (smikhut)", possessive_sg: "Possessive (sg.)", possessive_pl: "Possessive (pl.)", adj: "Forms", prep: "With pronouns", other: "Other forms" },

@@ -3756,12 +3756,12 @@ app.post("/api/morphology/batch", async (req, res) => {
 // Pealim link; never a fabricated paradigm).
 app.post("/api/conjugation", async (req, res) => {
   try {
-    const { lemma, binyan, pos, root } = req.body || {};
+    const { lemma, binyan, pos, root, form } = req.body || {};
     if (!lemma || typeof lemma !== "string" || !lemma.trim()) {
       return res.status(400).json({ ok: false, provider: "none", degraded: true, reason: "lemma is required" });
     }
     const { inflect } = require("./db/premium/inflectionGateway");
-    const result = await inflect(lemma.trim(), { binyan, pos, root });
+    const result = await inflect(lemma.trim(), { binyan, pos, root, form });
     res.json(result);
   } catch (e) {
     console.error("[conjugation] error:", e);

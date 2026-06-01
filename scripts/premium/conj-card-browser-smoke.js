@@ -339,6 +339,33 @@ async function main() {
          r2f.noun === "ספר" && r2f.prepNoRoot === "ל" && r2f.advNoStem === "חוץ",
          JSON.stringify(r2f));
 
+    // ── Case 2g: highlight the cell matching the text's vocalized form ────
+    const r2g = await pg.evaluate(() => {
+      const v = {
+        lemma: "גלה", root: "גלה", pos: "verb", kind: "verb", binyan: "piel",
+        source: "pealim", pealim_id: "331", model_version: "pealim-infl-v8",
+        cells: {
+          "AP-ms": { he: "מְגַלֶּה", translit: "мегале" },
+          "IMPF-2fs": { he: "תְּגַלִּי", translit: "тегали" },
+          "IMPF-3ms": { he: "יְגַלֶּה", translit: "йегале" },
+        },
+      };
+      const d = document.createElement("div");
+      d.innerHTML = window.v3RenderInflectionParadigm(v, { highlightForm: "תְּגַלִּי" });
+      const hl = d.querySelectorAll(".v3-conj-cell-hl");
+      const noneD = document.createElement("div");
+      noneD.innerHTML = window.v3RenderInflectionParadigm(v, { highlightForm: "אֵין־כָּזֶה" });
+      return {
+        hits: hl.length,
+        hitHe: hl[0] ? (hl[0].querySelector(".v3-conj-he") || {}).textContent : "",
+        noneHits: noneD.querySelectorAll(".v3-conj-cell-hl").length,    // no match → 0
+        normFn: typeof window.v3NormVowels === "function",
+      };
+    });
+    test("Case 2g: text-form cell highlighted (תְּגַלִּי), none when no match",
+         r2g.normFn && r2g.hits === 1 && /תְּגַלִּי/.test(r2g.hitHe) && r2g.noneHits === 0,
+         JSON.stringify(r2g));
+
     // ── Case 2c: invariant "word profile" render (adverb בֶּטַח) ───────────
     const r2c = await pg.evaluate(() => {
       const inv = {

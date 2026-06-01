@@ -125,6 +125,12 @@ async function testLive() {
     // Dicta BASE form for function words, not the root (else wrong word + link).
     { const r = await P.resolveLemma("בחוץ", { pos: "adverb" }); ok("  בחוץ adverb → invariant bachutz (id 6551), NOT the noun root חוץ", r.ok && r.paradigm.kind === "invariant" && String(r.paradigm.pealim_id) === "6551", r.ok ? ("kind=" + r.paradigm.kind + " id=" + r.paradigm.pealim_id) : r.reason); }
     { const r = await P.resolveLemma("חוץ", { pos: "adverb" }); ok("  חוץ as adverb → no_confident_match (it's the NOUN; justifies base-form query)", !r.ok && r.reason === "no_confident_match", r.ok ? ("wrongly ok id=" + r.paradigm.pealim_id) : r.reason); }
+    // Binyan-homograph disambiguation (root גלה): paal לִגְלוֹת (333, תִּגְלִי) vs piel
+    // לְגַלּוֹת (331, תְּגַלִּי). (a) a binyan hint must win past the early-exit; (b) the
+    // text's vocalized form alone (no binyan) must pick the right verb.
+    { const r = await P.resolveLemma("גלה", { pos: "verb", binyan: "piel", root: "גלה" }); ok("  גלה+piel → לְגַלּוֹת (id 331, not paal 333) — binyan-gated early-exit", r.ok && String(r.paradigm.pealim_id) === "331", r.ok ? ("id=" + r.paradigm.pealim_id + " binyan=" + r.paradigm.binyan) : r.reason); }
+    { const r = await P.resolveLemma("גלה", { pos: "verb", form: "תְּגַלִּי" }); ok("  גלה+form תְּגַלִּי → piel 331 (niqqud picks verb, no binyan)", r.ok && String(r.paradigm.pealim_id) === "331", r.ok ? ("id=" + r.paradigm.pealim_id) : r.reason); }
+    { const r = await P.resolveLemma("גלה", { pos: "verb", form: "תִּגְלִי" }); ok("  גלה+form תִּגְלִי → paal 333 (niqqud picks the other verb)", r.ok && String(r.paradigm.pealim_id) === "333", r.ok ? ("id=" + r.paradigm.pealim_id) : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 

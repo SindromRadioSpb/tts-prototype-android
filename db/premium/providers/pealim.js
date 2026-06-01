@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v7"; // v7: non-inflecting POS (incl "other") never picks a content homograph (אבל союз≠evel сущ.)
+const MODEL_VERSION = "pealim-infl-v8"; // v8: niqqud form-match (+20) + binyan-gated early-exit disambiguate binyan-homographs (תְּגַלִּי piel ≠ תִּגְלִי paal)
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -106,6 +106,27 @@ function normRoot(s) { return stripNiqqud(decodeEntities(stripTags(s))).replace(
 // what matters, not perfect linguistics. Lower weight than a strict match —
 // POS class stays dominant, so this only refines ranking, never overrides it.
 function stripMater(s) { return String(s == null ? "" : s).replace(/(?!^)[וי]/g, ""); }
+
+// Normalize a vocalized Hebrew form for niqqud-SENSITIVE comparison: keep the
+// niqqud points (vowels + dagesh + shin/sin dots), drop only cantillation
+// (te'amim U+0591–05AF), meteg (U+05BD), and bidi/format chars; NFC. Unlike
+// stripNiqqud (which removes everything), this PRESERVES the vowels — so the
+// binyan-homographs תְּגַלִּי (piel) and תִּגְלִי (paal) stay distinct.
+function normVowels(s) {
+  return String(s == null ? "" : s).normalize("NFC")
+    .replace(/[֑-֯]/g, "").replace(/ֽ/g, "").replace(FORMAT_RE, "").trim();
+}
+// Does a candidate paradigm CONTAIN the wanted vocalized form in any cell?
+// The text's own niqqud is the most authoritative homograph disambiguator.
+function formMatches(parsed, want) {
+  if (!want || !want.form || !parsed || !parsed.cells) return false;
+  const wf = normVowels(want.form);
+  if (!wf) return false;
+  return Object.keys(parsed.cells).some((k) => {
+    const c = parsed.cells[k];
+    return c && c.he && normVowels(c.he) === wf;
+  });
+}
 
 // Hebrew proclitics that attach to the front of a word: ו (and), ה (the/inter.),
 // ש (that), כ (as), ל (to), ב (in), מ (from). They stack (וכשה-). Dicta normally
@@ -288,6 +309,11 @@ function scoreCandidate(parsed, want, lemmaPlain) {
   }
   if (want.root && parsed.root && want.root === parsed.root) s += 4;
   if (want.binyan && parsed.binyan && want.binyan === parsed.binyan) s += 3;
+  // Decisive: the text's own vocalized form appears in this paradigm. Binyan-
+  // homographs (root גלה: piel תְּגַלִּי vs paal תִּגְלִי) share POS+root+lemma, so
+  // only the niqqud distinguishes them — the candidate that actually contains the
+  // form the learner is reading is the right verb, regardless of binyan hint.
+  if (formMatches(parsed, want)) s += 20;
   return s;
 }
 const CONJ_STRONG_SCORE = 14;                      // POS(10) + exact-lemma(5) / root(4)
@@ -318,7 +344,7 @@ async function resolveLemma(heLemma, opts) {
   // miss pays the fetch once globally.
   const lemmaPlain = stripNiqqud(heLemma);
   const MAX_TRY = 8;
-  let best = null, bestScore = -1e9, bestId = null;
+  let best = null, bestScore = -1e9, bestId = null, bestFormHit = false;
   for (const c of candidates.slice(0, MAX_TRY)) {
     let parsed = null;
     try {
@@ -334,8 +360,14 @@ async function resolveLemma(heLemma, opts) {
     }
     if (!parsed) continue;
     const sc = scoreCandidate(parsed, want, lemmaPlain);
-    if (sc > bestScore) { best = parsed; bestScore = sc; bestId = c.id; }
-    if (bestScore >= CONJ_STRONG_SCORE) break;           // strong → stop (polite)
+    if (sc > bestScore) { best = parsed; bestScore = sc; bestId = c.id; bestFormHit = formMatches(parsed, want); }
+    // Early-exit only when the STRONG pick is also ALIGNED with the disambiguating
+    // signals we still owe: don't stop on a binyan MISMATCH (the right binyan may
+    // be a later same-root candidate — piel תְּגַלִּי after paal תִּגְלִי), nor before a
+    // wanted vocalized form is matched (the +20 form winner can be later in scan).
+    const aligned = !want.binyan || (best && best.binyan === want.binyan);
+    const formOk = !want.form || bestFormHit;
+    if (bestScore >= CONJ_STRONG_SCORE && aligned && formOk) break;
   }
   if (!best) return { ok: false, reason: "no_parsable_entry", model_version: MODEL_VERSION };
   // Reject low-confidence picks: bestScore > 0 means SOME signal agreed (POS

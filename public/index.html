@@ -11827,9 +11827,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=48"></script>
-<script src="/i18n/locales/en.js?v=48"></script>
-<script src="/i18n/locales/he.js?v=48"></script>
+<script src="/i18n/locales/ru.js?v=49"></script>
+<script src="/i18n/locales/en.js?v=49"></script>
+<script src="/i18n/locales/he.js?v=49"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -39876,13 +39876,13 @@ async function v3MorphTokenToResult(tok) {
     // No root — but keep Dicta's SPECIFIC part of speech (pronoun, preposition…)
     // instead of a generic "Другое" (fixes pronouns showing as "other").
     const pPos = (tok.posDicta && V3_DICTA_DECODED_POS_TO_OPTION[tok.posDicta]) || "other";
-    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: pPos, kind: "particle", confident: tok.confident, feats: tok.feats || null };
+    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: pPos, kind: "particle", confident: tok.confident, feats: tok.feats || null, niqqud: tok.niqqud || null };
   }
   // Dicta's decoded POS is authoritative; fall back to the local dict only when
   // Dicta gave none. Proper nouns are real words with NO triliteral root.
   const dictaPos = tok.posDicta || null;
   if (dictaPos === "propernoun") {
-    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "noun", kind: "propernoun", confident: tok.confident, feats: tok.feats || null };
+    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "noun", kind: "propernoun", confident: tok.confident, feats: tok.feats || null, niqqud: tok.niqqud || null };
   }
   let pos = (dictaPos && V3_DICTA_DECODED_POS_TO_OPTION[dictaPos]) || null;
   if (!pos) {
@@ -39902,7 +39902,7 @@ async function v3MorphTokenToResult(tok) {
   return {
     word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: lemma,
     binyan, binyanSource: binyan ? (tok.binyanSource || "dicta") : null,
-    pos, kind, confident: tok.confident, feats: tok.feats || null,
+    pos, kind, confident: tok.confident, feats: tok.feats || null, niqqud: tok.niqqud || null,
   };
 }
 
@@ -40276,7 +40276,7 @@ window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
 // ── ② — Pealim conjugation/declension tables (offline-cached) ─────────────
 // Model version mirrors db/premium/providers/pealim.js MODEL_VERSION. Bumping
 // it (here + provider) re-scrapes paradigms.
-const V3_PEALIM_INFL_MODEL = "pealim-infl-v7"; // MUST equal pealim.js MODEL_VERSION; v7 fixes function-word→content homograph (אבל)
+const V3_PEALIM_INFL_MODEL = "pealim-infl-v8"; // MUST equal pealim.js MODEL_VERSION; v8 adds niqqud form-match + binyan-gated disambiguation (תְּגַלִּי piel ≠ תִּגְלִי paal)
 
 // Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
 // state + possessive blocks. The provider returns a lossless raw slot→form map
@@ -40484,8 +40484,19 @@ async function v3MorphEnrichInflections(textId, opts) {
 }
 window.v3MorphEnrichInflections = v3MorphEnrichInflections;
 
+// Niqqud-SENSITIVE normalization (client mirror of the provider's normVowels):
+// keep vowel points, drop cantillation/meteg/bidi, NFC. Lets us match the text's
+// vocalized form against a paradigm cell so we can highlight "the form you're reading".
+function v3NormVowels(s) {
+  return String(s == null ? "" : s).normalize("NFC")
+    .replace(/[֑-֯]/g, "").replace(/ֽ/g, "").replace(/[​-‏‪-‮⁦-⁩﻿]/g, "").trim();
+}
+
 // ②.6 — render a paradigm envelope → compact RTL table HTML.
-function v3RenderInflectionParadigm(p) {
+// opts.highlightForm (optional): the text's vocalized form; the matching cell is
+// highlighted (`.v3-conj-cell-hl`) so the learner sees their exact form in context.
+function v3RenderInflectionParadigm(p, opts) {
+  const highlightForm = (opts && opts.highlightForm) ? v3NormVowels(opts.highlightForm) : "";
   if (!p) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
   // Personal pronoun → the full closed-class SET (static); has no `cells`, so this
   // must precede the cells guard below.
@@ -40528,7 +40539,11 @@ function v3RenderInflectionParadigm(p) {
     // fall back to the plain (escaped) translit for legacy v1 cache.
     const trInner = c.translit_html || (c.translit ? v3EscapeHtml(c.translit) : "");
     const tr = trInner ? `<span class="v3-conj-tr">${trInner}</span>` : "";
-    return `<button type="button" class="v3-conj-cell" dir="rtl" data-he="${v3EscapeHtml(c.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(v3ConjSlotLabel(slot))}">
+    // Highlight the cell whose vocalized form == the form in the learner's text.
+    const isHit = highlightForm && v3NormVowels(c.he) === highlightForm;
+    const cls = "v3-conj-cell" + (isHit ? " v3-conj-cell-hl" : "");
+    const title = isHit ? v3NotesT("notes.card.conj.formInText", "форма из вашего текста") : v3ConjSlotLabel(slot);
+    return `<button type="button" class="${cls}" dir="rtl" data-he="${v3EscapeHtml(c.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(title)}">
       <span class="v3-conj-he">${v3EscapeHtml(c.he)}</span>
       <span class="v3-conj-lab">${v3EscapeHtml(v3ConjSlotLabel(slot))}</span>${tr}
     </button>`;
@@ -40614,6 +40629,8 @@ async function v3WordCardLoadInflection(detailsEl) {
   const binyan = detailsEl.getAttribute("data-conj-binyan") || "";
   const pos = detailsEl.getAttribute("data-conj-pos") || "";
   const root = detailsEl.getAttribute("data-conj-root") || "";
+  const form = detailsEl.getAttribute("data-conj-form") || "";   // text's vocalized form → niqqud disambiguation + cell highlight
+  const renderOpts = { highlightForm: form };
   // Personal pronoun → static SET (offline, no Pealim). Match on the surface word.
   const pron = v3LookupPronounParadigm(detailsEl.getAttribute("data-conj-word") || lemma);
   if (pron) { detailsEl.setAttribute("data-conj-loaded", "1"); body.innerHTML = v3RenderInflectionParadigm(pron); v3ConjSyncSummary(detailsEl, pron); return; }
@@ -40626,7 +40643,7 @@ async function v3WordCardLoadInflection(detailsEl) {
     const ldb = await ensureLocalDB();
     if (ldb && typeof ldb.getLemmaInflection === "function") {
       const cached = await ldb.getLemmaInflection(lemma, binyan || "", V3_PEALIM_INFL_MODEL);
-      if (cached) { body.innerHTML = v3RenderInflectionParadigm(cached); v3ConjSyncSummary(detailsEl, cached); return; }
+      if (cached) { body.innerHTML = v3RenderInflectionParadigm(cached, renderOpts); v3ConjSyncSummary(detailsEl, cached); return; }
     }
   } catch (_) {}
 
@@ -40641,7 +40658,7 @@ async function v3WordCardLoadInflection(detailsEl) {
   try {
     const resp = await fetch("/api/conjugation", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lemma, binyan: binyan || undefined, pos: pos || undefined, root: root || undefined }),
+      body: JSON.stringify({ lemma, binyan: binyan || undefined, pos: pos || undefined, root: root || undefined, form: form || undefined }),
     });
     const data = await resp.json().catch(() => ({}));
     if (data && data.ok && data.paradigm) {
@@ -40649,7 +40666,7 @@ async function v3WordCardLoadInflection(detailsEl) {
         const ldb = await ensureLocalDB();
         await ldb.saveLemmaInflection(lemma, binyan || "", data.paradigm.pos || pos || null, data.paradigm.kind || null, V3_PEALIM_INFL_MODEL, data.paradigm, data.paradigm.source || "pealim", data.paradigm.pealim_id || null);
       } catch (_) {}
-      body.innerHTML = v3RenderInflectionParadigm(data.paradigm);
+      body.innerHTML = v3RenderInflectionParadigm(data.paradigm, renderOpts);
       v3ConjSyncSummary(detailsEl, data.paradigm);
     } else {
       // Resolved, but Pealim has no forms table for this word (function words,
@@ -40693,18 +40710,22 @@ async function v3NotesTplConjFields() {
   let root = val("v3NotesTplWordStudyRoot");
   let binyan = val("v3NotesTplWordStudyBinyan");
   if (binyan === "other") binyan = "";
-  let kind = null, dictaLemma = "", dictaStem = "";
+  let kind = null, dictaLemma = "", dictaStem = "", dictaNiqqud = "";
   try {
     if (word && v3NotesModalSentenceId && typeof v3MorphStoredResolve === "function") {
       const res = await v3MorphStoredResolve(word, v3NotesModalSentenceId);
-      if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; dictaLemma = res.lemma || ""; dictaStem = res.stem || ""; }
+      if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; dictaLemma = res.lemma || ""; dictaStem = res.stem || ""; dictaNiqqud = res.niqqud || ""; }
     }
   } catch (_) {}
   // Query the LEMMA, not the surface form (see v3ConjQueryLemma): content words →
   // root-first; function words → the prefix-stripped STEM (the lexicalized base
   // form, e.g. adverb בחוץ), since Dicta's lemma over-reduces it to the noun חוץ.
   const lemma = v3ConjQueryLemma(pos, root, dictaLemma, word, dictaStem);
-  return { word, pos, root, binyan, kind, lemma };
+  // The text's VOCALIZED form (note's niqqud field, else the corpus token's niqqud)
+  // disambiguates binyan-homographs (תְּגַלִּי piel ≠ תִּגְלִי paal) and is highlighted
+  // in the rendered paradigm.
+  const form = val("v3NotesTplWordStudyNiqqud") || dictaNiqqud || "";
+  return { word, pos, root, binyan, kind, lemma, form };
 }
 // Does this word get an in-app inflection table? Prepositions DO decline
 // (אלי/לך/לו…) even though Dicta marks them kind="particle"; other particles +
@@ -40727,7 +40748,7 @@ async function v3NotesTplConjToggle(detailsEl) {
   // Always load: the provider returns a paradigm (verb/noun/adj/preposition), a
   // single-form "profile" for invariant words (adverb/pronoun/…), or a miss
   // (→ honest note + Pealim link). No word is a dead-end.
-  const key = f.lemma + "|" + f.binyan + "|" + f.pos;
+  const key = f.lemma + "|" + f.binyan + "|" + f.pos + "|" + (f.form || "");
   if (detailsEl.getAttribute("data-conj-key") !== key) {           // inputs changed → reload
     detailsEl.setAttribute("data-conj-key", key);
     detailsEl.removeAttribute("data-conj-loaded");
@@ -40738,6 +40759,7 @@ async function v3NotesTplConjToggle(detailsEl) {
   detailsEl.setAttribute("data-conj-binyan", f.binyan);
   detailsEl.setAttribute("data-conj-pos", f.pos);
   detailsEl.setAttribute("data-conj-root", f.root);
+  detailsEl.setAttribute("data-conj-form", f.form || "");
   v3WordCardLoadInflection(detailsEl);
 }
 window.v3NotesTplConjToggle = v3NotesTplConjToggle;
@@ -40824,6 +40846,7 @@ function v3WordCardRichHtml(row) {
                data-conj-binyan="${v3EscapeHtml(binyan || "")}"
                data-conj-pos="${v3EscapeHtml(pos || "")}"
                data-conj-root="${v3EscapeHtml(root || "")}"
+               data-conj-form="${v3EscapeHtml(niqqud || "")}"
                ontoggle="v3WordCardConjToggle(this)">
         <summary class="v3-wordcard-acc-summary">${v3EscapeHtml(conjSummary)}</summary>
         <div class="v3-conj-body"></div>

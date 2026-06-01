@@ -698,6 +698,7 @@ window.I18N_LOCALES.ru = {
         pronoun: { personal: "Личные местоимения" },
         pronounRef: "Справочный набор",
         pronounNote: "Местоимения — закрытый класс: формы заданы, а не выводятся.",
+        formInText: "форма из вашего текста",
         voiceActive: "Действительный залог",
         voicePassive: "Страдательный залог",
         group: { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)", adj: "Формы", prep: "С местоимениями", other: "Другие формы" },

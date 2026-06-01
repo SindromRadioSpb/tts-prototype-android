@@ -1537,5 +1537,16 @@
   "note": "Lexicalized adverb (ב+חוץ frozen). Its OWN Pealim entry (bachutz 6551), NOT the root חוץ (=noun). Function-word queries must use the Dicta base form, not the root.",
   "dimension": "homographs",
   "audit_reclassified": true
+ },
+ {
+  "he": "גלה",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "גלה",
+  "id": "331",
+  "expect": "verb",
+  "note": "Binyan-homograph: root גלה has paal לִגְלוֹת (333) + piel לְגַלּוֹת (331). With binyan=piel must resolve to 331 (binyan-gated early-exit), NOT the paal 333 that precedes it in search order.",
+  "dimension": "homographs",
+  "audit_reclassified": true
  }
 ]
