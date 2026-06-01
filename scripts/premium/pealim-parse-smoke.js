@@ -108,6 +108,11 @@ async function testLive() {
     { const r = await P.resolveLemma("אבל", { pos: "other" }); ok("  אבל pos=other → conjunction aval (4642), not noun evel", r.ok && r.paradigm.kind === "invariant" && String(r.paradigm.pealim_id) === "4642", r.ok ? ("kind=" + r.paradigm.kind + " id=" + r.paradigm.pealim_id) : r.reason); }
     // Prepositions DO decline with pronoun suffixes (P-1s…) → have a table.
     for (const w of ["את", "על"]) { const r = await P.resolveLemma(w, { pos: "preposition" }); ok("  preposition " + w + " → declined table (P-*)", r.ok && r.paradigm && !!r.paradigm.cells["P-1s"], r.ok ? "ok" : r.reason); }
+    // Declined preposition whose Pealim HEADWORD ≠ surface lemma: אחרי declines off
+    // the base אַחַר, so its page lemma is "אחר" ≠ "אחרי" and neither POS class
+    // (wantClass(preposition)=null) nor exact-lemma fires. The structural P-1s
+    // signal must still resolve it (regression guard for the audit fix).
+    { const r = await P.resolveLemma("אחרי", { pos: "preposition" }); ok("  אחרי (headword≠surface) → declined table via P-* signal", r.ok && r.paradigm && !!r.paradigm.cells["P-1s"] && !!r.paradigm.cells["P-3ms"], r.ok ? ("id=" + r.paradigm.pealim_id) : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 

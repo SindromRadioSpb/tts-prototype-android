@@ -241,6 +241,17 @@ function scoreCandidate(parsed, want, lemmaPlain) {
   // בָּטַח — the verb has to lose (else batch enrichment, which passes root,
   // mis-picks the verb). The invariant single-form profile wins by exact lemma.
   if (NONINFLECTING_POS.indexOf(want.pos) >= 0 && (cc === "verb" || cc === "noun" || cc === "adjective")) s -= 100;
+  // Declined-preposition structural signal. Pealim files prepositions as nominal
+  // pages whose HEADWORD can differ from the surface lemma (אחרי declines off the
+  // base אַחַר, so its page lemma is "אחר" ≠ query "אחרי"). For such a query neither
+  // the POS class (wantClass(preposition)=null) nor exact-lemma fires, so the
+  // correct page scores 0 and the >0 confidence guard drops it — the user sees
+  // nothing. The structural fact that the page carries pronoun-suffix declension
+  // cells (P-1s…, which only prepositions/particles have — nouns use s-P-*/p-P-*)
+  // IS the signal a preposition query wants. Score it like a POS match so the
+  // right page clears the bar. לפני already matched by lemma (+5); אחרי matches
+  // only structurally (+8). Gated on want.pos so it never affects other queries.
+  if (want.pos === "preposition" && parsed.cells && parsed.cells["P-1s"]) s += 8;
   if (lemmaPlain && parsed.lemma_niqqud && stripNiqqud(parsed.lemma_niqqud) === lemmaPlain) s += 5;
   if (want.root && parsed.root && want.root === parsed.root) s += 4;
   if (want.binyan && parsed.binyan && want.binyan === parsed.binyan) s += 3;

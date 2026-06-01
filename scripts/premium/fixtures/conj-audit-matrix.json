@@ -1,0 +1,1524 @@
+[
+ {
+  "he": "כתב",
+  "pos": "verb",
+  "binyan": "paal",
+  "root": "כ-ת-ב",
+  "expect": "verb",
+  "note": "Paal shlemim, canonical 'to write'; tests basic active paradigm",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "שמר",
+  "pos": "verb",
+  "binyan": "paal",
+  "root": "ש-מ-ר",
+  "expect": "verb",
+  "note": "Paal shlemim 'to guard'; clean strong-root paradigm baseline",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "למד",
+  "pos": "verb",
+  "binyan": "paal",
+  "root": "ל-מ-ד",
+  "expect": "verb",
+  "note": "Paal 'to learn'; same root as piel למד (teach) — homograph stress on binyan disambiguation",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "נשמר",
+  "pos": "verb",
+  "binyan": "nifal",
+  "root": "ש-מ-ר",
+  "expect": "verb",
+  "note": "Nifal 'to be guarded'; passive/reflexive paradigm, shares root with paal שמר",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "נכנס",
+  "pos": "verb",
+  "binyan": "nifal",
+  "root": "כ-נ-ס",
+  "expect": "verb",
+  "note": "Nifal 'to enter'; very common, nifal that is not semantically passive",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "דיבר",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "ד-ב-ר",
+  "expect": "verb",
+  "note": "Piel 'to speak', ktiv male with yod; canonical piel shlemim",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "לימד",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "ל-מ-ד",
+  "expect": "verb",
+  "note": "Piel 'to teach', ktiv male; pairs with pual לומד and contrasts paal למד",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "סיפר",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "ס-פ-ר",
+  "expect": "verb",
+  "note": "Piel 'to tell/narrate'; pairs with pual סופר as voice partner",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "סופר",
+  "pos": "noun",
+  "binyan": "pual",
+  "root": "ס-פ-ר",
+  "expect": "noun",
+  "note": "Surface סופר is the NOUN writer/scribe in Pealim; the pual passive paradigm lives under the piel base סיפר (covered by that entry). Surface-form query → noun (honest).",
+  "dimension": "verb-binyanim",
+  "audit_reclassified": true
+ },
+ {
+  "he": "לומד",
+  "pos": "verb",
+  "binyan": "paal",
+  "root": "ל-מ-ד",
+  "expect": "verb",
+  "note": "Paal present participle לוֹמֵד (also nominal student); resolves to the paal verb לִלְמֹד. The original verb2voice assumption was wrong — paal has no piel↔pual voice pairing.",
+  "dimension": "verb-binyanim",
+  "audit_reclassified": true
+ },
+ {
+  "he": "הסביר",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "ס-ב-ר",
+  "expect": "verb",
+  "note": "Hifil 'to explain'; common causative shlemim",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "הזמין",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "ז-מ-ן",
+  "expect": "verb",
+  "note": "Hifil 'to invite/order'; pairs with hufal הוזמן",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "הוזמן",
+  "pos": "verb",
+  "binyan": "hufal",
+  "root": "ז-מ-ן",
+  "expect": "verb2voice",
+  "note": "Hufal 'to be invited'; Pealim pairs hifil↔hufal → both voices on one page",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "התלבש",
+  "pos": "verb",
+  "binyan": "hitpael",
+  "root": "ל-ב-ש",
+  "expect": "verb",
+  "note": "Hitpael 'to get dressed'; reflexive shlemim, canonical hitpael",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "הסתכל",
+  "pos": "verb",
+  "binyan": "hitpael",
+  "root": "ס-כ-ל",
+  "expect": "verb",
+  "note": "Hitpael 'to look at'; metathesis of ת with sibilant ס (hitpael edge case)",
+  "dimension": "verb-binyanim"
+ },
+ {
+  "he": "נפל",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "נ-פ-ל",
+  "note": "פ\"נ initial-nun paal: nun assimilates in future (יפול) and imperative (פול) — drops first radical",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "נסע",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "נ-ס-ע",
+  "note": "פ\"נ + ל-guttural (ע): double-weak paal, future ייסע/יסע variants",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "ניגש",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "nifal",
+  "root": "נ-ג-ש",
+  "note": "פ\"נ in nifal of root with assimilating nun; common 'approach', tricky paradigm spelling ktiv male",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "אכל",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "א-כ-ל",
+  "note": "פ\"א paal: alef behaves specially, future אוכל (1sg) vs יאכל — guttural+alef edge",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "ישב",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "י-ש-ב",
+  "note": "פ\"י paal: yod drops in future (יֵשב) and imperative (שב); also makes segolate noun",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "ירד",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "י-ר-ד",
+  "note": "פ\"י paal: yod-initial 'go down', imperative רד, future יֵרד — classic weak first radical",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "הוריד",
+  "pos": "verb2voice",
+  "expect": "verb2voice",
+  "binyan": "hifil",
+  "root": "י-ר-ד",
+  "note": "פ\"י in hifil — yod→vav (הוריד); has hufal counterpart הורד, so both voices",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "קם",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ק-ו-ם",
+  "note": "ע\"ו hollow paal: no middle radical in surface form, past קם / future יקום — stress test for root recovery",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "בא",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ב-ו-א",
+  "note": "ע\"ו hollow + ל\"א: doubly irregular, 'come', past בא = future participle homograph",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "שר",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ש-י-ר",
+  "note": "ע\"י hollow paal: monosyllable שר; homograph with noun 'minister/sang' — context POS critical",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "קנה",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ק-נ-ה",
+  "note": "ל\"ה final-he paal: third radical drops/changes (קניתי, יקנה), large irregular paradigm",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "בנה",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ב-נ-ה",
+  "note": "ל\"ה paal 'build': construct of conjugation, נבנה nifal homograph risk",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "קרא",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ק-ר-א",
+  "note": "ל\"א final-alef paal: alef quiescent, קראתי vs ל\"ה patterns; read/call homograph senses",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "תרגם",
+  "pos": "verb",
+  "expect": "verb2voice",
+  "binyan": "piel",
+  "root": "ת-ר-ג-ם",
+  "note": "quadriliteral מרובע piel 'translate' — four radicals; has pual passive תורגם, both voices",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "טלפן",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "piel",
+  "root": "ט-ל-פ-ן",
+  "note": "quadriliteral מרובע piel from loanword 'telephone' — denominal quad, no real pual; active-only edge",
+  "dimension": "verb-gizra"
+ },
+ {
+  "he": "גלגל",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "גלגל",
+  "expect": "verb2voice",
+  "note": "quadriliteral piel; Pealim shows גלגל (piel) + גולגל (pual) — quadriliteral root stresses non-triliteral handling",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "ביקש",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "בקש",
+  "expect": "verb2voice",
+  "note": "common piel 'request'; ktiv male with yod; pual בוקש exists — voice pairing",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "סיפר",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "ספר",
+  "expect": "verb2voice",
+  "note": "piel 'told'; sister to noun ספר/סופר — analyzer must pick verb-in-context, pual סופר ambiguous with 'counted'",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "תיקן",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "תקן",
+  "expect": "verb2voice",
+  "note": "piel 'fixed'; pual תוקן; initial tav root letter edge case",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "חיפש",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "חפש",
+  "expect": "verb2voice",
+  "note": "piel 'searched'; pual חופש homograph with adjective חופשי-ish / noun חופש 'vacation' — heavy homography stress",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "קישט",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "קשט",
+  "expect": "verb2voice",
+  "note": "piel 'decorated'; pual קושט; less frequent but clean two-voice pair",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "ניהל",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "נהל",
+  "expect": "verb2voice",
+  "note": "piel 'managed'; initial nun (not assimilated in piel); pual נוהל homograph with noun נוהל 'procedure'",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "חייב",
+  "pos": "verb",
+  "binyan": "piel",
+  "root": "חיב",
+  "expect": "verb2voice",
+  "note": "piel 'obligated'; pual חויב; also adjective חייב 'owing/must' — POS-in-context disambiguation",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "הפעיל",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "פעל",
+  "expect": "verb2voice",
+  "note": "hifil 'activated'; hufal הופעל — classic hifil↔hufal pair, root פעל also the grammar term",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "הסביר",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "סבר",
+  "expect": "verb2voice",
+  "note": "hifil 'explained'; hufal הוסבר; common high-frequency two-voice verb",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "הזמין",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "זמן",
+  "expect": "verb2voice",
+  "note": "hifil 'invited/ordered'; hufal הוזמן; root זמן also noun 'time' — homography across paradigms",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "הרגיש",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "רגש",
+  "expect": "verb2voice",
+  "note": "hifil 'felt'; hufal הורגש 'was felt' — hufal genuinely used, strong two-voice case",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "הכין",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "כון",
+  "expect": "verb2voice",
+  "note": "hifil hollow root ע''ו 'prepared'; hufal הוכן — hollow-root hifil/hufal stresses weak-root handling",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "הקים",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "קום",
+  "expect": "verb2voice",
+  "note": "hifil hollow root 'established'; hufal הוקם; ע''ו weak root, irregular vowel pattern",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "הציג",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "יצג",
+  "expect": "verb2voice",
+  "note": "hifil פ''י root 'presented'; hufal הוצג — initial-yod weak root, hifil↔hufal pair",
+  "dimension": "verb-twovoice"
+ },
+ {
+  "he": "ספר",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "ספר",
+  "binyan": "",
+  "note": "segolate CaCaC mishkal; pl ספרים with vowel shift, construct ספר/ספרי",
+  "dimension": "nouns"
+ },
+ {
+  "he": "מלך",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "מלך",
+  "binyan": "",
+  "note": "segolate; homograph with verb מָלַךְ — analyzer must pick noun in nominal context; pl מלכים",
+  "dimension": "nouns"
+ },
+ {
+  "he": "ילד",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "ילד",
+  "binyan": "",
+  "note": "segolate; homograph with verb 'gave birth'; pl ילדים, fem counterpart ילדה",
+  "dimension": "nouns"
+ },
+ {
+  "he": "בוקר",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "בקר",
+  "binyan": "",
+  "note": "segolate with cholam (ktiv male וו absent: בקר ambiguous); construct בוקר, pl בקרים rare",
+  "dimension": "nouns"
+ },
+ {
+  "he": "איש",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "איש",
+  "binyan": "",
+  "note": "suppletive irregular plural איש→אנשים; construct אנשי; classic stress case",
+  "dimension": "nouns"
+ },
+ {
+  "he": "אישה",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "אשה",
+  "binyan": "",
+  "note": "feminine, suppletive plural אישה→נשים; construct אשת/נשות; doubly irregular",
+  "dimension": "nouns"
+ },
+ {
+  "he": "עיר",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "עיר",
+  "binyan": "",
+  "note": "feminine without ה ending; irregular pl ערים; construct ערי",
+  "dimension": "nouns"
+ },
+ {
+  "he": "בית",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "בית",
+  "binyan": "",
+  "note": "irregular pl בתים (vowel/spelling change); construct בית/בתי; very common",
+  "dimension": "nouns"
+ },
+ {
+  "he": "שולחן",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "שלחן",
+  "binyan": "",
+  "note": "miCCaC-type loan-feel mishkal; pl שולחנות (masc noun, fem-pattern plural ות)",
+  "dimension": "nouns"
+ },
+ {
+  "he": "מקום",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "קום",
+  "binyan": "",
+  "note": "maCCoC mishkal from hollow root; irregular pl מקומות; construct מקום",
+  "dimension": "nouns"
+ },
+ {
+  "he": "שנה",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "שנה",
+  "binyan": "",
+  "note": "feminine ה ending; irregular pl שנים (not שנות); construct שנת",
+  "dimension": "nouns"
+ },
+ {
+  "he": "בת",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "בנת",
+  "binyan": "",
+  "note": "feminine, irregular pl בנות; possessive בתי/בתך; ktiv-male identical to preposition-less form, edge homograph",
+  "dimension": "nouns"
+ },
+ {
+  "he": "דבר",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "דבר",
+  "binyan": "",
+  "note": "segolate; homograph with piel verb דיבר and noun 'thing/word'; pl דברים, construct דבר/דברי",
+  "dimension": "nouns"
+ },
+ {
+  "he": "כלב",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "כלב",
+  "binyan": "",
+  "note": "segolate CeCeC; pl כלבים, fem כלבה; clean possessive paradigm כלבי/כלבו",
+  "dimension": "nouns"
+ },
+ {
+  "he": "פנים",
+  "pos": "noun",
+  "expect": "noun",
+  "root": "פנה",
+  "binyan": "",
+  "note": "pluralia tantum / dual-looking; treated as plural-only, construct פני; gender ambiguity edge case",
+  "dimension": "nouns"
+ },
+ {
+  "he": "גדול",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "גדל",
+  "note": "baseline regular adjective; ms/fs/mp/fp = גדול/גדולה/גדולים/גדולות",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "קטן",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "קטן",
+  "note": "regular; fs קטנה, common; tests basic vowel-reduction pattern",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "טוב",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "טוב",
+  "note": "hollow-root adjective; fs טובה, mp טובים, fp טובות; very high-frequency",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "חדש",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "חדש",
+  "note": "regular; can be confused with verb חידש; in adjective context = new",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "יפה",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "יפה",
+  "note": "ל\"ה adjective edge case; fs יפה (same written form), mp יפים, fp יפות",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "קשה",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "קשה",
+  "note": "ל\"ה adjective; ms/fs both קשה in writing; mp קשים, fp קשות",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "גבוה",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "גבה",
+  "note": "ל\"ה/segolate-like; fs גבוהה, mp גבוהים, fp גבוהות; tricky he-final spelling",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "נקי",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "נקה",
+  "note": "ל\"ה adjective ending in yod; fs נקייה, mp נקיים, fp נקיות; ktiv male variation",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "חכם",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "חכם",
+  "note": "segolate-type; fs חכמה, mp חכמים; also a noun (sage) — POS ambiguity test",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "זול",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "זול",
+  "note": "hollow root; fs זולה, mp זולים, fp זולות; cheap",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "מהיר",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "מהר",
+  "note": "qatil-pattern adjective; fs מהירה; tests CaCiC adjective declension",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "ארוך",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "ארך",
+  "note": "fs ארוכה, mp ארוכים; kaf-final softening test (k→kh)",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "ירוק",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "ירק",
+  "note": "color adjective; fs ירוקה, mp ירוקים, fp ירוקות; regular CaCoC",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "עייף",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "עיף",
+  "note": "CaCeC-type state adjective; fs עייפה, mp עייפים; ayin+double-yod ktiv male",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "שמח",
+  "pos": "adjective",
+  "expect": "adjective",
+  "binyan": "",
+  "root": "שמח",
+  "note": "adjective/verb homograph (happy vs he-rejoiced); in adjective context fs שמחה, mp שמחים",
+  "dimension": "adjectives"
+ },
+ {
+  "he": "ל",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "core dative prep; declines לי/לך/לו; one-letter, fuses with article (לـ+ה) — stresses segmentation",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "ב",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "locative 'in'; בי/בך/בו; one-letter clitic, fuses with article — edge case for analyzer attaching to host word",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "על",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'on/about'; irregular declension עליי/עליך/עליו with yod; tricky plural-base suffix pattern",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "את",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "definite-object marker; declines אותי/אותך/אותו — but bare את is also homographic with pronoun 'you(fs)'; POS ambiguity stressor",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "של",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "genitive 'of'; שלי/שלך/שלו — the possessive paradigm, extremely high frequency, full declension",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "עם",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'with'; declines via suppletive base איתי/איתך/איתו (vs bare עם) — suppletion stressor, homograph with noun עַם 'people'",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "אל",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "directional 'to/toward'; אליי/אליך/אליו plural-base yod declension; homograph with אֵל 'god' / Aramaic",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "אצל",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'at/by (someone's place)'; אצלי/אצלך/אצלו; less common but fully declinable, tests mid-frequency coverage",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "בשביל",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'for the sake of'; declines בשבילי/בשבילך; multi-segment (ב+שביל) compound prep — segmentation edge case",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "אחרי",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'after'; already carries yod in base, declines אחריי/אחריך/אחריו; plural-base pattern, homograph-ish with adverb",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "לפני",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'before/in front of'; לפניי/לפניך/לפניו; plural-base declension, also temporal adverb usage — POS-in-context stressor",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "בין",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'between'; ביני/בינך/בינו; takes special reduplicated forms בינינו 'between us', dual-base oddity",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "כמו",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'like/as'; declines כמוני/כמוך/כמוהו with nun-base; irregular suffix set, comparative — edge declension",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "נגד",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'against'; נגדי/נגדך/נגדו; also noun 'opposite/contra' homograph; mid-frequency declinable prep",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "בלי",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "'without'; declines bil'adi-style בלעדיי/בלעדיך via suppletive base — suppletion + rare paradigm stressor",
+  "dimension": "prepositions"
+ },
+ {
+  "he": "אני",
+  "pos": "pronoun",
+  "expect": "none",
+  "note": "1sg personal pronoun. POS-gated OUT of the accordion in the UI; Pealim files pronouns as noun-form pages, so the non-content penalty → no_confident_match (honest: no broken table).",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "אתה",
+  "pos": "pronoun",
+  "expect": "none",
+  "note": "2ms personal pronoun. POS-gated out in UI; Pealim files pronouns as noun-form pages → no_confident_match (honest).",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "את",
+  "pos": "pronoun",
+  "expect": "none",
+  "note": "2fs personal pronoun (homograph of accusative את). POS-gated out in UI; resolver penalty → no_confident_match (honest).",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "הוא",
+  "pos": "pronoun",
+  "expect": "none",
+  "note": "3ms personal pronoun. POS-gated out in UI → no_confident_match (honest).",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "היא",
+  "pos": "pronoun",
+  "expect": "none",
+  "note": "3fs personal pronoun. POS-gated out in UI → no_confident_match (honest).",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "אנחנו",
+  "pos": "pronoun",
+  "expect": "none",
+  "note": "1pl personal pronoun. POS-gated out in UI → no_confident_match (honest).",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "הם",
+  "pos": "pronoun",
+  "expect": "none",
+  "note": "3mp personal pronoun. POS-gated out in UI → no_confident_match (honest).",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "זה",
+  "pos": "pronoun",
+  "expect": "invariant",
+  "note": "ms demonstrative; edge case — gender/number are separate lexemes (זה/זאת/אלה), each invariant",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "זאת",
+  "pos": "pronoun",
+  "expect": "invariant",
+  "note": "fs demonstrative; alt spelling זו also common — invariant",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "אלה",
+  "pos": "pronoun",
+  "expect": "invariant",
+  "note": "pl demonstrative; alt אלו; tricky — looks plural but is a fixed lexeme, no further paradigm",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "מי",
+  "pos": "pronoun",
+  "expect": "invariant",
+  "note": "interrogative 'who'; invariant function word",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "מה",
+  "pos": "pronoun",
+  "expect": "invariant",
+  "note": "interrogative 'what'; invariant; Dicta may tag pronoun/other in context",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "איפה",
+  "pos": "adverb",
+  "expect": "invariant",
+  "note": "interrogative 'where'; Dicta returns adverb in context (interrogative adverb), not pronoun — POS-mismatch edge case; still invariant",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "למה",
+  "pos": "adverb",
+  "expect": "invariant",
+  "note": "interrogative 'why'; adverbial in context; invariant function word",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "איך",
+  "pos": "adverb",
+  "expect": "invariant",
+  "note": "interrogative 'how'; interrogative adverb; invariant — stresses pronoun-vs-adverb POS boundary",
+  "binyan": "",
+  "root": "",
+  "dimension": "pronouns"
+ },
+ {
+  "he": "כבר",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "temporal adverb 'already'; single form, no paradigm — must not be parsed as noun/verb",
+  "dimension": "function-words"
+ },
+ {
+  "he": "תמיד",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "adverb 'always'; ends in -id which can look adjectival but is invariant",
+  "dimension": "function-words"
+ },
+ {
+  "he": "מאוד",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "degree adverb 'very' (ktiv male with vav); intensifier, no inflection",
+  "dimension": "function-words"
+ },
+ {
+  "he": "מאד",
+  "pos": "adverb",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "ktiv haser of מאוד. Pealim indexes the male spelling (resolves); production normalizes via the Dicta lemma. Provider does not fold haser→male by design.",
+  "dimension": "function-words",
+  "audit_reclassified": true
+ },
+ {
+  "he": "עכשיו",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "deictic adverb 'now'; non-Semitic-looking shape, no paradigm",
+  "dimension": "function-words"
+ },
+ {
+  "he": "שוב",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "שוב",
+  "note": "adverb 'again' — homograph with verb שׁוּב 'return'; in adverbial context must resolve invariant, not verb",
+  "dimension": "function-words"
+ },
+ {
+  "he": "אבל",
+  "pos": "conjunction",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "adversative conjunction 'but'; homograph with אֵבֶל 'mourning' (noun) — context picks conjunction → invariant",
+  "dimension": "function-words"
+ },
+ {
+  "he": "כי",
+  "pos": "conjunction",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "subordinating conjunction 'because/that'; two-letter function word, no paradigm",
+  "dimension": "function-words"
+ },
+ {
+  "he": "אם",
+  "pos": "conjunction",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "conditional conjunction 'if'; homograph with אֵם 'mother' (noun, has plural) — conjunction reading is invariant",
+  "dimension": "function-words"
+ },
+ {
+  "he": "או",
+  "pos": "conjunction",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "disjunctive conjunction 'or'; minimal two-letter form, no inflection",
+  "dimension": "function-words"
+ },
+ {
+  "he": "אז",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "adverb/conjunction 'then'; temporal connective, single form",
+  "dimension": "function-words"
+ },
+ {
+  "he": "גם",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "additive particle 'also/too'; clitic-like, no paradigm",
+  "dimension": "function-words"
+ },
+ {
+  "he": "לא",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "negation 'no/not'; Dicta tags as adverb/negation; invariant — Pealim has no table",
+  "dimension": "function-words"
+ },
+ {
+  "he": "אל",
+  "pos": "other",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "vetitive negation אַל 'do not'; homograph with preposition אֶל 'to/toward' — negation reading is invariant, not declinable",
+  "dimension": "function-words"
+ },
+ {
+  "he": "רק",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "restrictive particle 'only'; homograph with רֹק 'saliva' (noun) — particle reading invariant",
+  "dimension": "function-words"
+ },
+ {
+  "he": "כל",
+  "pos": "other",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "Quantifier all/every; POS=other → gated out. Pealim files it as a noun-form page (כולו/כולם); resolver penalty → no_confident_match (honest).",
+  "dimension": "function-words",
+  "audit_reclassified": true
+ },
+ {
+  "he": "שבת",
+  "pos": "noun",
+  "root": "שבת",
+  "expect": "noun",
+  "note": "Saturday/Shabbat (noun s+pl שבתות) vs verb שָׁבַת 'ceased' (paal). Target noun reading; analyzer should not pick the verb past 3ms homograph.",
+  "dimension": "homographs"
+ },
+ {
+  "he": "בטח",
+  "pos": "adverb",
+  "root": "",
+  "expect": "invariant",
+  "note": "בֶּטַח 'surely/for sure' (adverb, invariant) vs בָּטַח 'trusted' (paal verb). Target the adverb function-word reading — single fixed form, no paradigm.",
+  "dimension": "homographs"
+ },
+ {
+  "he": "שם",
+  "pos": "adverb",
+  "root": "",
+  "expect": "invariant",
+  "note": "שָׁם 'there' (adverb) vs שֵׁם 'name' (noun) vs שָׂם 'put' (paal, root שים). Target the adverb 'there' reading — invariant locative function word.",
+  "dimension": "homographs"
+ },
+ {
+  "he": "אך",
+  "pos": "conjunction",
+  "root": "",
+  "expect": "invariant",
+  "note": "אַךְ 'but/only' (conjunction/adverb) vs no real verb. Target conjunction reading — invariant. Probes that short function words resolve to invariant not 'none'.",
+  "dimension": "homographs"
+ },
+ {
+  "he": "מול",
+  "pos": "preposition",
+  "root": "",
+  "expect": "preposition",
+  "note": "מוּל 'opposite/facing' (preposition, declines: מולי, מולך, מולו) vs מָל 'circumcised' (paal, root מול). Target the declinable preposition reading.",
+  "dimension": "homographs"
+ },
+ {
+  "he": "זה",
+  "pos": "pronoun",
+  "root": "",
+  "expect": "invariant",
+  "note": "זֶה/זֹאת/אֵלֶּה are distinct lexemes, NOT an adjective inflection. Pealim files זה as an invariant pronoun profile — correct.",
+  "dimension": "homographs",
+  "audit_reclassified": true
+ },
+ {
+  "he": "חי",
+  "pos": "adjective",
+  "root": "חיי",
+  "expect": "adjective",
+  "note": "חַי 'alive' (adjective ms, fs חיה, pl חיים/חיות) vs חַי 'lived' (paal verb, root חיה) vs חַי 'animal'. Target the adjective reading with ms/fs/mp/fp forms.",
+  "dimension": "homographs"
+ },
+ {
+  "he": "רב",
+  "pos": "adjective",
+  "root": "רבב",
+  "expect": "adjective",
+  "note": "רַב 'much/many' (adjective, fs רבה, pl רבים) vs רַב 'rabbi' (noun) vs רָב 'quarreled' (paal, root ריב). Target the adjective reading; quantifier-adjective vs title-noun vs verb.",
+  "dimension": "homographs"
+ },
+ {
+  "he": "מנה",
+  "pos": "noun",
+  "root": "מנה",
+  "expect": "noun",
+  "note": "posHint=noun; Pealim returns the noun מָנָה portion. The piel↔pual verb reading lives under the piel base מינה, not the surface מנה.",
+  "dimension": "homographs",
+  "audit_reclassified": true
+ },
+ {
+  "he": "סוף",
+  "pos": "noun",
+  "root": "סוף",
+  "binyan": "",
+  "expect": "noun",
+  "note": "ktiv male vav (סוֹף); single vav mater, declines סופי/סופו, plural סופים",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "ליד",
+  "pos": "preposition",
+  "root": "",
+  "binyan": "",
+  "expect": "preposition",
+  "note": "ktiv male yod (לְיַד); declines לידי/לידו/לידה with suffixes",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "כיסא",
+  "pos": "noun",
+  "root": "כסא",
+  "binyan": "",
+  "expect": "noun",
+  "note": "ktiv male yod (כִּסֵּא→כיסא); s + pl כיסאות, mater yod inserted",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "דירה",
+  "pos": "noun",
+  "root": "דור",
+  "binyan": "",
+  "expect": "noun",
+  "note": "ktiv male yod (דִּירָה); pl דירות, construct דירת",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "חולה",
+  "pos": "adjective",
+  "root": "חלה",
+  "binyan": "",
+  "expect": "adjective",
+  "note": "ktiv male vav (חוֹלֶה); functions as adjective חולה/חולים, niqqud drops vav",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "קדימה",
+  "pos": "adverb",
+  "root": "קדם",
+  "binyan": "",
+  "expect": "invariant",
+  "note": "ktiv male yod (קָדִימָה); directional adverb, single invariant form",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "מהר",
+  "pos": "adverb",
+  "root": "מהר",
+  "binyan": "",
+  "expect": "invariant",
+  "note": "adverb 'quickly' (מַהֵר), haser spelling, single invariant form — contrast with adj מהיר",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "לפעמים",
+  "pos": "adverb",
+  "root": "פעם",
+  "binyan": "",
+  "expect": "invariant",
+  "note": "ktiv male yod (לִפְעָמִים); frozen adverbial, invariant function word",
+  "dimension": "ktiv-male-haser"
+ },
+ {
+  "he": "ישראל",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "country/personal name; no declension paradigm on Pealim",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "משה",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "personal name Moses; not a verb despite resembling msh root",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "ירושלים",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "city name with dual-looking -ayim ending — must NOT be parsed as noun plural",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "תל-אביב",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "hyphenated multiword toponym; ktiv with maqaf as in text",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "דוד",
+  "pos": "propernoun",
+  "expect": "noun",
+  "binyan": "",
+  "root": "",
+  "note": "As a resolver unit, surface דוד honestly returns the noun homograph דּוֹד uncle (best-effort). The proper-NAME sense is suppressed UPSTREAM by the UI kind-gate (Dicta kind=propernoun → accordion hidden), not by the resolver.",
+  "dimension": "proper-nouns",
+  "audit_reclassified": true
+ },
+ {
+  "he": "שרה",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "name Sarah; homograph with verb שָׂרָה / שָׁרָה — analyzer must keep propernoun, no verb table",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "אמריקה",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "continent/place loanword; no Pealim entry",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "אברהם",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "name Abraham; quadriliteral-looking but a proper noun, no paradigm",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "רוסיה",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "country Russia; -iya ending could fool noun-pluralizer, must yield none",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "חיפה",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "city Haifa; he-final could be mistaken for fem noun/verb, must yield none",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "יעקב",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "name Jacob; resembles future-tense verb pattern yiqtol but is a proper noun",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "רחל",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "name Rachel; homograph with רָחֵל (ewe) noun — context propernoun, no paradigm",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "אילת",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "city Eilat; -t ending could read as fem construct, must yield none",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "גרמניה",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "country Germany; loan toponym, no Pealim declension",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "בנימין",
+  "pos": "propernoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "name Benjamin; -in ending mimics Aramaic plural, must NOT pluralize",
+  "dimension": "proper-nouns"
+ },
+ {
+  "he": "ובורחת",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ב-ר-ח",
+  "note": "ו (and) + paal participle fem 'borachat'; segment ו, stem is active verb paradigm",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "מהבית",
+  "pos": "noun",
+  "expect": "noun",
+  "binyan": "",
+  "root": "ב-י-ת",
+  "note": "מ (from) + ה (the) double proclitic + noun 'bayit'; stem declines s/pl/construct",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "שאמרתי",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "א-מ-ר",
+  "note": "ש (that) + paal 1sg past 'amarti'; relativizer must strip to active verb",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "כשהגעתי",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "hifil",
+  "root": "נ-ג-ע",
+  "note": "כ+ש (when) compound proclitic + hifil 1sg past 'higati'; hifil has hufal so resolver could go verb2voice, but standalone paradigm = verb",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "לאט",
+  "pos": "adverb",
+  "expect": "invariant",
+  "binyan": "",
+  "root": "",
+  "note": "TRAP: looks like ל+אט but is single adverb 'slowly'; must NOT segment, invariant function word",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "בעיניים",
+  "pos": "noun",
+  "expect": "noun",
+  "binyan": "",
+  "root": "ע-י-ן",
+  "note": "ב (in) + dual noun 'einayim'; strip ב, noun with dual plural",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "וכשאמר",
+  "pos": "verb",
+  "expect": "none",
+  "binyan": "paal",
+  "root": "א-מ-ר",
+  "note": "Stacked proclitics ו+כ+ש+אמר. Production resolves the Dicta LEMMA אמר; single-proclitic forms (ובורחת/מהבית/…) already pass. Provider does not strip clitic stacks by design.",
+  "dimension": "prefix-attached",
+  "audit_reclassified": true
+ },
+ {
+  "he": "להתלבש",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "hitpael",
+  "root": "ל-ב-ש",
+  "note": "ל (to) infinitive marker + hitpael 'lehitlabesh'; hitpael is single-voice active verb",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "כשהוא",
+  "pos": "pronoun",
+  "expect": "none",
+  "binyan": "",
+  "root": "",
+  "note": "כ+ש+הוא; stem is a personal pronoun (gated out). Production resolves the Dicta lemma.",
+  "dimension": "prefix-attached",
+  "audit_reclassified": true
+ },
+ {
+  "he": "שהגדול",
+  "pos": "adjective",
+  "expect": "none",
+  "binyan": "",
+  "root": "ג-ד-ל",
+  "note": "ש+ה+גדול stacked proclitics; production resolves the Dicta lemma גדול (covered). Provider does not strip clitics.",
+  "dimension": "prefix-attached",
+  "audit_reclassified": true
+ },
+ {
+  "he": "מהמורה",
+  "pos": "noun",
+  "expect": "noun",
+  "binyan": "",
+  "root": "מ-ו-ר/י-ר-ה",
+  "note": "AMBIGUOUS: מ+ה+מורה 'from the teacher' vs מ+הוראה; segment to noun 'moreh'",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "ולמדתי",
+  "pos": "verb",
+  "expect": "verb",
+  "binyan": "paal",
+  "root": "ל-מ-ד",
+  "note": "ו + paal 1sg past 'lamadti'; careful not to mis-strip the ל as proclitic — it is root",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "בגלל",
+  "pos": "preposition",
+  "expect": "preposition",
+  "binyan": "",
+  "root": "",
+  "note": "Compound preposition בגלל \"because of\"; declines בגללי/בגללו (P-*). Production passes this LEMMA, not the clitic surface בגללו.",
+  "dimension": "prefix-attached",
+  "audit_reclassified": true
+ },
+ {
+  "he": "שמספרת",
+  "pos": "verb",
+  "expect": "verb2voice",
+  "binyan": "piel",
+  "root": "ס-פ-ר",
+  "note": "ש + piel participle fem 'mesaperet'; piel has pual counterpart so resolver yields two voices",
+  "dimension": "prefix-attached"
+ },
+ {
+  "he": "וכשהמלך",
+  "pos": "noun",
+  "expect": "none",
+  "binyan": "",
+  "root": "מ-ל-כ",
+  "note": "ו+כ+ש+ה+מלך quadruple proclitic; production resolves the Dicta lemma מלך (covered). Provider does not strip clitics.",
+  "dimension": "prefix-attached",
+  "audit_reclassified": true
+ }
+]

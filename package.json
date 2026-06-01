@@ -70,6 +70,7 @@
     "smoke:conj:parse": "node scripts/premium/pealim-parse-smoke.js",
     "smoke:conj:card": "node scripts/premium/conj-card-browser-smoke.js",
     "smoke:conj": "node scripts/premium/pealim-parse-smoke.js && node scripts/premium/conj-card-browser-smoke.js",
+    "smoke:conj:audit": "node scripts/premium/conj-audit.js scripts/premium/fixtures/conj-audit-matrix.json",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "smoke:notes:srs-candidates": "node scripts/notes-ui/suggest-srs-candidate-smoke.js",
     "vendor:build:graph": "node scripts/vendor/build-d3-graph.mjs",
