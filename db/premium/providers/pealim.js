@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v2"; // v2: red-stress translit_html + bidi-entity fix
+const MODEL_VERSION = "pealim-infl-v3"; // v3: model-versioned page cache (v2 reused stale v1-parsed cells)
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 

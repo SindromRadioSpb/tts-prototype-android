@@ -49,7 +49,8 @@ async function inflect(lemma, opts) {
   try {
     const r = await _limited(() => pealim.resolveLemma(text, {
       binyan: o.binyan, pos: o.pos, root: o.root,
-      pageGet: cache.getPage, pagePut: cache.putPage,
+      pageGet: (id) => cache.getPage(id, MODEL_VERSION),         // model-versioned: never reuse stale parsed cells
+      pagePut: (id, p) => cache.putPage(id, p, MODEL_VERSION),
     }));
     if (r && r.ok && r.paradigm) {
       cache.put(key, r.paradigm);

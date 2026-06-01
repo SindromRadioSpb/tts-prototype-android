@@ -32,9 +32,12 @@ function _write(file, obj) {
 function get(key) { return _read(path.join(INFLECTION_CACHE_DIR, key + ".json")); }
 function put(key, obj) { return _write(path.join(INFLECTION_CACHE_DIR, key + ".json"), obj); }
 
-// Page-level cache (parsed dict page by Pealim id) — so candidate fetches during
-// homograph disambiguation are never repeated.
-function getPage(id) { return _read(path.join(PAGES_DIR, String(id) + ".json")); }
-function putPage(id, parsed) { return _write(path.join(PAGES_DIR, String(id) + ".json"), parsed); }
+// Page-level cache (PARSED dict page by Pealim id) — so candidate fetches during
+// homograph disambiguation are never repeated. MUST be keyed by model_version:
+// it stores PARSED cells, so a parser/model upgrade has to re-parse (else a v2
+// scrape reuses v1-parsed cells — bit us: missing red-stress + dirty imperative).
+function _pageFile(id, model) { return path.join(PAGES_DIR, (model ? sha1(model).slice(0, 8) + "_" : "") + String(id) + ".json"); }
+function getPage(id, model) { return _read(_pageFile(id, model)); }
+function putPage(id, parsed, model) { return _write(_pageFile(id, model), parsed); }
 
 module.exports = { keyFor, get, put, getPage, putPage };
