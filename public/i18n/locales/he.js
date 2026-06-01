@@ -347,7 +347,7 @@ window.I18N_LOCALES.he = {
     share: "🔗 שתף",
     shareTitle: "שתפו כרטיסיית טקסט דרך קובץ — שליחה לתלמידים או חבר בלחיצה אחת",
     enrich: "✨ העשרה",
-    enrichRefresh: "✨ רענון",
+    enrichRefresh: "✨ העשרה מחדש",
     enrichBadgeDone: "מועשר",
     enrichBadgeDoneTitle: "מורפולוגיית Dicta נטענה — כרטיסיות וטבלאות עובדות אופליין",
     enrichBadgePartialTitle: "מועשר חלקית — הקישו «העשרה»",

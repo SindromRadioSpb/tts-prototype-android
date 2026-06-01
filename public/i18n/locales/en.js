@@ -343,7 +343,7 @@ window.I18N_LOCALES.en = {
     share: "🔗 Share",
     shareTitle: "Share text-card via file — send to students or a friend in one tap",
     enrich: "✨ Enrich",
-    enrichRefresh: "✨ Refresh",
+    enrichRefresh: "✨ Re-enrich",
     enrichBadgeDone: "enriched",
     enrichBadgeDoneTitle: "Dicta morphology loaded — cards and tables work offline",
     enrichBadgePartialTitle: "Partially enriched — tap Enrich",

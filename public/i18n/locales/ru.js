@@ -344,7 +344,7 @@ window.I18N_LOCALES.ru = {
     share: "🔗 Поделиться",
     shareTitle: "Поделиться text-card через файл — отправить ученикам / коллеге одним щелчком",
     enrich: "✨ Обогатить",
-    enrichRefresh: "✨ Обновить",
+    enrichRefresh: "✨ Обогатить заново",
     enrichBadgeDone: "обогащён",
     enrichBadgeDoneTitle: "Морфология Dicta загружена — карточки и таблицы работают офлайн",
     enrichBadgePartialTitle: "Морфология обогащена частично — нажмите «Обогатить»",
