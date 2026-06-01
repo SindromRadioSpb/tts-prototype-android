@@ -983,10 +983,10 @@
  {
   "he": "מאד",
   "pos": "adverb",
-  "expect": "none",
+  "expect": "invariant",
   "binyan": "",
   "root": "",
-  "note": "ktiv haser of מאוד. Pealim indexes the male spelling (resolves); production normalizes via the Dicta lemma. Provider does not fold haser→male by design.",
+  "note": "ktiv haser of מאוד. Enh: provider mater-insensitive lemma match (+3) resolves it to the invariant profile (form מְאוֹד), no longer dropped.",
   "dimension": "function-words",
   "audit_reclassified": true
  },
@@ -1438,10 +1438,10 @@
  {
   "he": "וכשאמר",
   "pos": "verb",
-  "expect": "none",
+  "expect": "verb",
   "binyan": "paal",
-  "root": "א-מ-ר",
-  "note": "Stacked proclitics ו+כ+ש+אמר. Production resolves the Dicta LEMMA אמר; single-proclitic forms (ובורחת/מהבית/…) already pass. Provider does not strip clitic stacks by design.",
+  "root": "אמר",
+  "note": "Stacked proclitics ו+כ+ש+אמר. Enh: provider peels leading proclitics on a no-results search and re-resolves to the paal verb (lemma לומר).",
   "dimension": "prefix-attached",
   "audit_reclassified": true
  },
@@ -1467,10 +1467,10 @@
  {
   "he": "שהגדול",
   "pos": "adjective",
-  "expect": "none",
+  "expect": "adjective",
   "binyan": "",
-  "root": "ג-ד-ל",
-  "note": "ש+ה+גדול stacked proclitics; production resolves the Dicta lemma גדול (covered). Provider does not strip clitics.",
+  "root": "גדל",
+  "note": "ש+ה+גדול. Enh: proclitic peel → adjective גדול (ms-a…fp-a).",
   "dimension": "prefix-attached",
   "audit_reclassified": true
  },
@@ -1514,10 +1514,19 @@
  {
   "he": "וכשהמלך",
   "pos": "noun",
-  "expect": "none",
+  "expect": "noun",
   "binyan": "",
-  "root": "מ-ל-כ",
-  "note": "ו+כ+ש+ה+מלך quadruple proclitic; production resolves the Dicta lemma מלך (covered). Provider does not strip clitics.",
+  "root": "מלך",
+  "note": "ו+כ+ש+ה+מלך quadruple proclitic. Enh: proclitic peel → noun מלך. Shallow-first peel avoids over-stripping.",
+  "dimension": "prefix-attached",
+  "audit_reclassified": true
+ },
+ {
+  "he": "המים",
+  "pos": "noun",
+  "root": "מים",
+  "expect": "noun",
+  "note": "Over-peel guard: ה+מים must resolve to מים (water), NOT the over-stripped ים (sea). Shallow-first proclitic peel.",
   "dimension": "prefix-attached",
   "audit_reclassified": true
  }

@@ -24,7 +24,7 @@ const { inflect } = require("../../db/premium/inflectionGateway");
 const REQUIRED = {
   verb:       ["AP-ms", "PERF-3ms", "IMPF-3ms", "INF-L"],
   verb2voice: ["AP-ms", "PERF-3ms", "IMPF-3ms", "INF-L", "passive-AP-ms", "passive-PERF-3ms"],
-  noun:       ["s"],                 // + (p OR sc) checked specially
+  noun:       [],                    // checked specially (plurale-tantum tolerant)
   adjective:  ["ms-a", "fs-a", "mp-a", "fp-a"],
   preposition:["P-1s", "P-3ms"],
 };
@@ -48,7 +48,15 @@ function checkEntry(e, r) {
   if (!req) return "unknown expect=" + exp;
   const missing = req.filter((k) => !(cells[k] && cells[k].he));
   if (missing.length) return "missing slots: " + missing.join(",");
-  if (exp === "noun" && !(cells["s"] && (cells["p"] || cells["sc"]))) return "noun without plural/construct";
+  if (exp === "noun") {
+    // A real declension table has an absolute form + a second nominal form.
+    // Tolerate plurale-tantum nouns (מים/שמים/פנים/חיים — only a plural, no
+    // singular "s") by accepting s OR p as the absolute.
+    const abs = (cells["s"] && cells["s"].he) || (cells["p"] && cells["p"].he);
+    const more = ["p", "sc", "pc", "s-P-3ms", "p-P-3ms"].some((k) => cells[k] && cells[k].he);
+    if (!abs) return "noun without an absolute form (s/p)";
+    if (!more) return "noun without plural/construct/possessive";
+  }
   return null;
 }
 

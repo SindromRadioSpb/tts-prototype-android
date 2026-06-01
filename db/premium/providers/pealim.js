@@ -99,6 +99,31 @@ function buildTranslitHtml(raw) {
 // Hebrew root letters only (drops the "כ - ת - ב" spacing/dashes + niqqud).
 function normRoot(s) { return stripNiqqud(decodeEntities(stripTags(s))).replace(/[^א-ת]/g, ""); }
 
+// Mater lectionis (the vowel-letters ו/י) frequently differ between ktiv male
+// and ktiv haser spellings (מאד vs מאוד, ביטחון vs בטחון). For a SECONDARY lemma
+// signal we compare with non-initial ו/י removed (initial ones are usually
+// consonantal). Applied symmetrically to both sides, so internal consistency is
+// what matters, not perfect linguistics. Lower weight than a strict match —
+// POS class stays dominant, so this only refines ranking, never overrides it.
+function stripMater(s) { return String(s == null ? "" : s).replace(/(?!^)[וי]/g, ""); }
+
+// Hebrew proclitics that attach to the front of a word: ו (and), ה (the/inter.),
+// ש (that), כ (as), ל (to), ב (in), מ (from). They stack (וכשה-). Dicta normally
+// hands us the clean lemma, but if a raw surface token slips through and its
+// full-form search finds nothing, we peel leading proclitics and retry. Stems are
+// returned SHALLOW→DEEP so scoring prefers the least-stripped match (המים→מים,
+// never over-peeled to ים); each stem must keep ≥2 letters.
+const PROCLITIC = new Set(["ו", "ה", "ש", "כ", "ל", "ב", "מ"]);
+function proclictStems(q) {
+  const stems = [];
+  let s = String(q || "");
+  for (let depth = 0; depth < 4 && s.length > 2 && PROCLITIC.has(s[0]); depth++) {
+    s = s.slice(1);
+    stems.push(s);
+  }
+  return stems;
+}
+
 // Pealim Russian binyan name → app <select> value.
 function pealimBinyanToApp(raw) {
   let s = String(raw || "").toLowerCase().replace(/ё/g, "е").replace(/[^a-zа-я]/g, "").replace(/[ьъ]/g, "");
@@ -252,7 +277,15 @@ function scoreCandidate(parsed, want, lemmaPlain) {
   // right page clears the bar. לפני already matched by lemma (+5); אחרי matches
   // only structurally (+8). Gated on want.pos so it never affects other queries.
   if (want.pos === "preposition" && parsed.cells && parsed.cells["P-1s"]) s += 8;
-  if (lemmaPlain && parsed.lemma_niqqud && stripNiqqud(parsed.lemma_niqqud) === lemmaPlain) s += 5;
+  // Exact niqqud-stripped lemma (+5) is the strongest lexical signal; if that
+  // fails, a ktiv male/haser variant (mater-insensitive, ≤2 chars apart) is a
+  // weaker but real match (+3) — lets the haser query מאד find the invariant
+  // entry whose headword is the male spelling מאוד.
+  if (lemmaPlain && parsed.lemma_niqqud) {
+    const lp = stripNiqqud(parsed.lemma_niqqud);
+    if (lp === lemmaPlain) s += 5;
+    else if (stripMater(lp) === stripMater(lemmaPlain) && Math.abs(lp.length - lemmaPlain.length) <= 2) s += 3;
+  }
   if (want.root && parsed.root && want.root === parsed.root) s += 4;
   if (want.binyan && parsed.binyan && want.binyan === parsed.binyan) s += 3;
   return s;
@@ -266,6 +299,17 @@ const CONJ_STRONG_SCORE = 14;                      // POS(10) + exact-lemma(5) /
 async function resolveLemma(heLemma, opts) {
   const want = opts || {};
   const candidates = await searchLemma(heLemma);
+  if (!candidates.length) {
+    // Defense-in-depth: the full surface found nothing — it may be a raw token
+    // with un-stripped proclitics (וכשהמלך). Peel them (shallow→deep) and merge
+    // any stems' candidates; scoring (POS/root) then picks the right stem, and
+    // shallow-first ordering keeps us from over-peeling (המים→מים, not ים).
+    for (const stem of proclictStems(stripNiqqud(heLemma))) {
+      let more = [];
+      try { more = await searchLemma(stem); } catch (e) { if (e && e.status === 429) throw e; }
+      for (const c of more) if (!candidates.some((x) => x.id === c.id)) candidates.push(c);
+    }
+  }
   if (!candidates.length) return { ok: false, reason: "no_search_results", model_version: MODEL_VERSION };
 
   // Scan more candidates (the right entry can be 4th+ — e.g. שבת returns

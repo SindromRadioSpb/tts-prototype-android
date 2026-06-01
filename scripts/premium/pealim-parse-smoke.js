@@ -113,6 +113,13 @@ async function testLive() {
     // (wantClass(preposition)=null) nor exact-lemma fires. The structural P-1s
     // signal must still resolve it (regression guard for the audit fix).
     { const r = await P.resolveLemma("אחרי", { pos: "preposition" }); ok("  אחרי (headword≠surface) → declined table via P-* signal", r.ok && r.paradigm && !!r.paradigm.cells["P-1s"] && !!r.paradigm.cells["P-3ms"], r.ok ? ("id=" + r.paradigm.pealim_id) : r.reason); }
+    // Enh: ktiv haser→male tolerant lemma match — the defective spelling מאד must
+    // resolve to the invariant profile whose headword is the male spelling מאוד.
+    { const r = await P.resolveLemma("מאד", { pos: "adverb" }); ok("  מאד (ktiv haser) → invariant profile (matched מאוד)", r.ok && r.paradigm.kind === "invariant" && !!r.paradigm.form, r.ok ? ("kind=" + r.paradigm.kind) : r.reason); }
+    // Enh: proclitic stripping — a raw surface with stacked proclitics resolves to
+    // the stem; shallow-first peel must NOT over-strip (המים→מים water, not ים sea).
+    { const r = await P.resolveLemma("וכשהמלך", { pos: "noun", root: "מלך" }); ok("  וכשהמלך (4 proclitics) → noun מלך", r.ok && r.paradigm.kind === "noun" && P.stripNiqqud(r.paradigm.lemma) === "מלך", r.ok ? ("lemma=" + r.paradigm.lemma) : r.reason); }
+    { const r = await P.resolveLemma("המים", { pos: "noun" }); ok("  המים → מים (NOT over-peeled to ים)", r.ok && P.stripNiqqud(r.paradigm.lemma) === "מים", r.ok ? ("lemma=" + r.paradigm.lemma) : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 
