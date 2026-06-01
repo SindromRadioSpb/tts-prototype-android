@@ -2935,8 +2935,25 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
       // Forward reference to another note in this same payload — resolved
       // in pass 1b below (after all note ids are known).
       newTargetId = '__pending_note_remap__:' + String(n.target_id || '');
+    } else if (tk === 'word') {
+      // Word notes carry a COMPOSITE target_id "<sentenceId>:<wordOffset>" — the
+      // sentence part is an FK that must be rewired like a sentence note's, else
+      // the note imports but listNotesForRow / getRowNoteCounts (which match on the
+      // CURRENT sentence id prefix) never find it → orphaned per-row (no panel
+      // entry, no 📝 count). Remap the sentence component; keep the offset. A
+      // legacy bare-lemma target_id (no ":") is kept verbatim. If the sentence
+      // wasn't imported, drop (can't anchor) — same as the sentence-note branch.
+      const raw = n.target_id != null ? String(n.target_id) : '';
+      const ci = raw.indexOf(':');
+      if (ci > 0) {
+        const newSid = _remap(oldToNewSentenceId, raw.slice(0, ci));
+        if (!newSid) { out.notes.dropped++; continue; }
+        newTargetId = newSid + raw.slice(ci);          // "<newSid>:<offset>"
+      } else {
+        newTargetId = raw || null;
+      }
     } else {
-      // root / binyan / word / free: target_id is opaque user data.
+      // root / binyan / free: target_id is opaque user data.
       newTargetId = n.target_id != null ? String(n.target_id) : null;
     }
 
