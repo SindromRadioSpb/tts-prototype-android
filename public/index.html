@@ -40361,12 +40361,13 @@ function v3ConjPosInflects(pos) {
 window.v3ConjPosInflects = v3ConjPosInflects;
 // Choose the Pealim QUERY lemma for a word. CONTENT words (verb/noun/adj/prep) →
 // root-first (the Pealim page lives under the root; a declined preposition's
-// table is under its lemma). FUNCTION words (adverb/pronoun/conjunction/…) →
-// Dicta BASE form first: their "root" is a DIFFERENT lexeme (adverb בחוץ has root
-// חוץ, but חוץ is the NOUN; Pealim lists בחוץ as its own adverb entry). Falls back
-// to the Dicta lemma, then the surface word.
-function v3ConjQueryLemma(pos, root, dictaLemma, word) {
-  return v3ConjPosInflects(pos) ? (root || dictaLemma || word) : (dictaLemma || word);
+// table is under its lemma). FUNCTION words (adverb/pronoun/conjunction/…) → the
+// lexicalized BASE form = Dicta's prefix-stripped STEM, NOT its lemma: for the
+// adverb הבחוץ Dicta segments ה + בחוץ (stem בחוץ) but its LEMMA over-reduces to
+// חוץ — a DIFFERENT lexeme (the noun "наружная сторона"). Pealim lists בחוץ as its
+// own adverb entry (bachutz), so query the stem. Falls back to lemma, then word.
+function v3ConjQueryLemma(pos, root, dictaLemma, word, stem) {
+  return v3ConjPosInflects(pos) ? (root || dictaLemma || word) : (stem || dictaLemma || word);
 }
 window.v3ConjQueryLemma = v3ConjQueryLemma;
 // Compact citation forms shown before the "full paradigm" toggle.
@@ -40692,17 +40693,17 @@ async function v3NotesTplConjFields() {
   let root = val("v3NotesTplWordStudyRoot");
   let binyan = val("v3NotesTplWordStudyBinyan");
   if (binyan === "other") binyan = "";
-  let kind = null, dictaLemma = "";
+  let kind = null, dictaLemma = "", dictaStem = "";
   try {
     if (word && v3NotesModalSentenceId && typeof v3MorphStoredResolve === "function") {
       const res = await v3MorphStoredResolve(word, v3NotesModalSentenceId);
-      if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; dictaLemma = res.lemma || ""; }
+      if (res) { if (res.pos) pos = res.pos; if (res.root) root = res.root; binyan = res.binyan || ""; kind = res.kind || null; dictaLemma = res.lemma || ""; dictaStem = res.stem || ""; }
     }
   } catch (_) {}
   // Query the LEMMA, not the surface form (see v3ConjQueryLemma): content words →
-  // root-first; function words → Dicta base form (their root is a different lexeme,
-  // e.g. adverb בחוץ vs noun חוץ).
-  const lemma = v3ConjQueryLemma(pos, root, dictaLemma, word);
+  // root-first; function words → the prefix-stripped STEM (the lexicalized base
+  // form, e.g. adverb בחוץ), since Dicta's lemma over-reduces it to the noun חוץ.
+  const lemma = v3ConjQueryLemma(pos, root, dictaLemma, word, dictaStem);
   return { word, pos, root, binyan, kind, lemma };
 }
 // Does this word get an in-app inflection table? Prepositions DO decline

@@ -321,20 +321,22 @@ async function main() {
     // הבחוץ → Dicta base בחוץ (adverb), root חוץ (a DIFFERENT lexeme = noun). A
     // function word must query its base form (its own Pealim adverb entry), while
     // content words stay root-first.
+    // f(pos, root, dictaLemma, word, stem). For הבחוץ Dicta gives lemma=חוץ (noun)
+    // but stem=בחוץ (the lexicalized adverb) — the function-word query must use stem.
     const r2f = await pg.evaluate(() => {
       const f = window.v3ConjQueryLemma;
       return {
-        adverb: f("adverb", "חוץ", "בחוץ", "הבחוץ"),      // → בחוץ (base, NOT root חוץ)
-        pronoun: f("pronoun", "", "אני", "אני"),            // → אני
-        verb: f("verb", "כתב", "", "כותב"),                 // → כתב (root-first)
-        noun: f("noun", "ספר", "", "ספר"),                  // → ספר
-        prepNoRoot: f("preposition", "", "ל", "לי"),         // → ל (lemma, declines)
-        advFallback: f("adverb", "חוץ", "", "הבחוץ"),        // no base → surface (documented fallback)
+        adverb: f("adverb", "חוץ", "חוץ", "הבחוץ", "בחוץ"),   // → בחוץ (stem, NOT lemma/root חוץ)
+        pronoun: f("pronoun", "", "אני", "כשהוא", "הוא"),      // → הוא (stem, prefix stripped)
+        verb: f("verb", "כתב", "", "כותב", "כותב"),            // → כתב (content: root-first)
+        noun: f("noun", "ספר", "", "ספר", "ספר"),              // → ספר
+        prepNoRoot: f("preposition", "", "ל", "לי", "לי"),      // → ל (content/prep: lemma)
+        advNoStem: f("adverb", "חוץ", "חוץ", "הבחוץ", ""),      // no stem → lemma fallback (חוץ)
       };
     });
-    test("Case 2f: query-lemma — function word uses base form, content word uses root",
-         r2f.adverb === "בחוץ" && r2f.pronoun === "אני" && r2f.verb === "כתב" &&
-         r2f.noun === "ספר" && r2f.prepNoRoot === "ל" && r2f.advFallback === "הבחוץ",
+    test("Case 2f: query-lemma — function word uses prefix-stripped STEM, content word uses root",
+         r2f.adverb === "בחוץ" && r2f.pronoun === "הוא" && r2f.verb === "כתב" &&
+         r2f.noun === "ספר" && r2f.prepNoRoot === "ל" && r2f.advNoStem === "חוץ",
          JSON.stringify(r2f));
 
     // ── Case 2c: invariant "word profile" render (adverb בֶּטַח) ───────────
