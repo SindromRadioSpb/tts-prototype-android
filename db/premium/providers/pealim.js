@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v9"; // v9: inflected-surface fallback search finds binyanim Pealim doesn't index under the bare root (hitpael להסתכל via תסתכלי, not סכל)
+const MODEL_VERSION = "pealim-infl-v10"; // v10: noun↔adj kinship (+6); surface-fallback fires on wrong-binyan form-hit (נמצא nifal≠paal); proclitic-stripped form match
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -116,15 +116,27 @@ function normVowels(s) {
   return String(s == null ? "" : s).normalize("NFC")
     .replace(/[֑-֯]/g, "").replace(/ֽ/g, "").replace(FORMAT_RE, "").trim();
 }
+// Strip ONE leading proclitic consonant + its niqqud from a vocalized form, so a
+// prefixed surface (וּבוֹרַחַת = ו+בּוֹרַחַת) can still match the bare paradigm cell.
+function procliticStripForm(s) { return String(s == null ? "" : s).replace(/^[והשכלבמ][֑-ׇ]*/, ""); }
+// Wanted-form variants for cell matching: the form itself + its proclitic-stripped
+// stem (only used when the full form misses, since stripping a real root letter
+// is harmless — it just won't match anything).
+function formVariants(form) {
+  const out = [];
+  const a = normVowels(form); if (a) out.push(a);
+  const b = normVowels(procliticStripForm(form)); if (b && b !== a) out.push(b);
+  return out;
+}
 // Does a candidate paradigm CONTAIN the wanted vocalized form in any cell?
 // The text's own niqqud is the most authoritative homograph disambiguator.
 function formMatches(parsed, want) {
   if (!want || !want.form || !parsed || !parsed.cells) return false;
-  const wf = normVowels(want.form);
-  if (!wf) return false;
+  const variants = formVariants(want.form);
+  if (!variants.length) return false;
   return Object.keys(parsed.cells).some((k) => {
     const c = parsed.cells[k];
-    return c && c.he && normVowels(c.he) === wf;
+    return c && c.he && variants.indexOf(normVowels(c.he)) >= 0;
   });
 }
 
@@ -294,7 +306,15 @@ function scoreCandidate(parsed, want, lemmaPlain) {
   if (!parsed) return -1e9;
   let s = 0;
   const wc = wantClass(want), cc = candClass(parsed);
-  if (wc) { if (cc === wc) s += 10; else s -= 100; }
+  if (wc) {
+    if (cc === wc) s += 10;
+    // Noun ↔ adjective are nominal KIN in Hebrew — many lexemes are both, and
+    // Dicta routinely tags an adjective as "noun" (עשיר, צעיר, מתוק). A hard −100
+    // between them wrongly rejects the right page (עשיר resolves as pos=adjective
+    // but Dicta said noun). Treat the cross-match as a near-match (+6), not a miss.
+    else if ((wc === "noun" && cc === "adjective") || (wc === "adjective" && cc === "noun")) s += 6;
+    else s -= 100;
+  }
   // A non-inflecting want POS (adverb/pronoun/…) must NEVER resolve to a verb,
   // even when the root matches: the adverb בֶּטַח shares root בטח with the verb
   // בָּטַח — the verb has to lose (else batch enrichment, which passes root,
@@ -394,10 +414,13 @@ async function resolveLemma(heLemma, opts) {
   // Inflected-SURFACE fallback: Pealim's root search can MISS a binyan — the
   // hitpael לְהִסְתַּכֵּל is indexed under הסתכל, NOT the bare root סכל that Dicta hands
   // as the verb lemma, so search(סכל) returns only the piel and the right verb is
-  // never seen. When the text's vocalized form went unmatched, search the
-  // niqqud-stripped SURFACE (תסתכלי) — Pealim resolves inflected forms — and the
-  // +20 form match then picks the correct binyan.
-  if (!done && want.form && !bestFormHit) {
+  // never seen. When the text's vocalized form went unmatched IN THE WANTED BINYAN,
+  // search the niqqud-stripped SURFACE (תסתכלי) — Pealim resolves inflected forms —
+  // and the +20 form match then picks the correct binyan. We require the form to
+  // match the WANTED binyan (not just any candidate): נִמְצָא is the paal future-1pl
+  // AND the nifal present; a form hit in the paal must NOT suppress the nifal search.
+  const formHitRightBinyan = bestFormHit && (!want.binyan || (best && best.binyan === want.binyan));
+  if (!done && want.form && !formHitRightBinyan) {
     const surf = stripNiqqud(want.form);
     if (surf && surf.length >= 2 && surf !== lemmaPlain) {
       let more = [];

@@ -40276,7 +40276,7 @@ window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
 // ── ② — Pealim conjugation/declension tables (offline-cached) ─────────────
 // Model version mirrors db/premium/providers/pealim.js MODEL_VERSION. Bumping
 // it (here + provider) re-scrapes paradigms.
-const V3_PEALIM_INFL_MODEL = "pealim-infl-v9"; // MUST equal pealim.js MODEL_VERSION; v9 adds inflected-surface fallback search (hitpael להסתכל found via תסתכלי, not bare root סכל)
+const V3_PEALIM_INFL_MODEL = "pealim-infl-v10"; // MUST equal pealim.js MODEL_VERSION; v10: noun↔adj kinship, wrong-binyan form-fallback (נמצא nifal), proclitic-stripped form match
 
 // Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
 // state + possessive blocks. The provider returns a lossless raw slot→form map
@@ -40491,12 +40491,19 @@ function v3NormVowels(s) {
   return String(s == null ? "" : s).normalize("NFC")
     .replace(/[֑-֯]/g, "").replace(/ֽ/g, "").replace(/[​-‏‪-‮⁦-⁩﻿]/g, "").trim();
 }
+// Highlight-form variants: the form + its proclitic-stripped stem, so a prefixed
+// surface (וּבוֹרַחַת) still highlights the bare paradigm cell (בּוֹרַחַת).
+function v3FormVariants(form) {
+  const a = v3NormVowels(form);
+  const b = v3NormVowels(String(form == null ? "" : form).replace(/^[והשכלבמ][֑-ׇ]*/, ""));
+  return b && b !== a ? [a, b] : (a ? [a] : []);
+}
 
 // ②.6 — render a paradigm envelope → compact RTL table HTML.
 // opts.highlightForm (optional): the text's vocalized form; the matching cell is
 // highlighted (`.v3-conj-cell-hl`) so the learner sees their exact form in context.
 function v3RenderInflectionParadigm(p, opts) {
-  const highlightForm = (opts && opts.highlightForm) ? v3NormVowels(opts.highlightForm) : "";
+  const highlightForms = (opts && opts.highlightForm) ? v3FormVariants(opts.highlightForm) : [];
   if (!p) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
   // Personal pronoun → the full closed-class SET (static); has no `cells`, so this
   // must precede the cells guard below.
@@ -40539,8 +40546,9 @@ function v3RenderInflectionParadigm(p, opts) {
     // fall back to the plain (escaped) translit for legacy v1 cache.
     const trInner = c.translit_html || (c.translit ? v3EscapeHtml(c.translit) : "");
     const tr = trInner ? `<span class="v3-conj-tr">${trInner}</span>` : "";
-    // Highlight the cell whose vocalized form == the form in the learner's text.
-    const isHit = highlightForm && v3NormVowels(c.he) === highlightForm;
+    // Highlight the cell whose vocalized form == the form in the learner's text
+    // (or its proclitic-stripped stem, so prefixed surfaces still highlight).
+    const isHit = highlightForms.length && highlightForms.indexOf(v3NormVowels(c.he)) >= 0;
     const cls = "v3-conj-cell" + (isHit ? " v3-conj-cell-hl" : "");
     const title = isHit ? v3NotesT("notes.card.conj.formInText", "форма из вашего текста") : v3ConjSlotLabel(slot);
     return `<button type="button" class="${cls}" dir="rtl" data-he="${v3EscapeHtml(c.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(title)}">

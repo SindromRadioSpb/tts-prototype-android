@@ -135,6 +135,12 @@ async function testLive() {
     // the bare root סכל (search סכל → only the piel 1351). Dicta hands lemma=סכל, so
     // the right verb is found only by re-searching the niqqud-stripped surface תסתכלי.
     { const r = await P.resolveLemma("סכל", { pos: "verb", binyan: "hitpael", root: "סכל", form: "תִּסְתַּכְּלִי" }); ok("  סכל+hitpael+form תִּסְתַּכְּלִי → hitpael להסתכל (1352), not piel 1351 — surface fallback", r.ok && String(r.paradigm.pealim_id) === "1352" && r.paradigm.binyan === "hitpael", r.ok ? ("id=" + r.paradigm.pealim_id + " binyan=" + r.paradigm.binyan) : r.reason); }
+    // Corpus-sweep fixes (v10): noun↔adjective kinship — Dicta tags עשיר as "noun"
+    // but its Pealim entry is pos=adjective; must resolve, not −100 reject.
+    { const r = await P.resolveLemma("עשיר", { pos: "noun", root: "עשיר", form: "עֲשִׁירִים" }); ok("  עשיר pos=noun → resolves (Pealim adjective, noun↔adj kin)", r.ok && r.paradigm.pos === "adjective", r.ok ? ("id=" + r.paradigm.pealim_id + " pos=" + r.paradigm.pos) : r.reason); }
+    // Surface-fallback fires on a WRONG-binyan form hit: נִמְצָא is paal future-1pl
+    // AND nifal present; want=nifal must reach the nifal (1084), not stop on paal.
+    { const r = await P.resolveLemma("מצא", { pos: "verb", binyan: "nifal", root: "מצא", form: "נִמְצָא" }); ok("  מצא+nifal+form נִמְצָא → nifal 1084 (not paal 1083)", r.ok && String(r.paradigm.pealim_id) === "1084" && r.paradigm.binyan === "nifal", r.ok ? ("id=" + r.paradigm.pealim_id + " binyan=" + r.paradigm.binyan) : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 

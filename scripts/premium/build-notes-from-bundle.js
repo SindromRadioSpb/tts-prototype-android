@@ -67,7 +67,11 @@ const REQUIRED = {
   preposition: ["P-1s", "P-3ms"],
 };
 function normVowels(s) { return String(s == null ? "" : s).normalize("NFC").replace(/[֑-֯]/g, "").replace(/ֽ/g, "").trim(); }
+function formVariants(s) { const a = normVowels(s); const b = normVowels(String(s == null ? "" : s).replace(/^[והשכלבמ][֑-ׇ]*/, "")); return b && b !== a ? [a, b] : (a ? [a] : []); }
 const FUNCTION_POS = new Set(["adverb", "pronoun", "conjunction", "interjection", "negation", "numeral", "other", "particle"]);
+// piel↔pual / hifil↔hufal share ONE Pealim page (two voices). A pual want that
+// resolves to the piel page (with passive-* cells) is CORRECT, not a wrong binyan.
+const VOICE_PARTNER = { pual: "piel", piel: "pual", hufal: "hifil", hifil: "hufal" };
 
 // Classify the resolution of one analysis-unit. Returns {status, cls, reason}.
 function checkUnit(u, r) {
@@ -82,9 +86,11 @@ function checkUnit(u, r) {
   }
   const p = r.paradigm;
   const cells = p.cells || {};
-  // binyan mismatch (wrong verb)
+  // binyan mismatch (wrong verb) — but the two-voice page (piel↔pual/hifil↔hufal)
+  // legitimately serves both voices, so a pual→piel resolution with passive cells is OK.
   if (pos === "verb" && u.binyan && p.binyan && p.binyan !== u.binyan) {
-    return { status: "FAIL", cls: "wrong-binyan", reason: "got " + p.binyan + " want " + u.binyan + " (id " + p.pealim_id + ")" };
+    const twoVoice = VOICE_PARTNER[u.binyan] === p.binyan && Object.keys(cells).some((k) => /^passive-/.test(k));
+    if (!twoVoice) return { status: "FAIL", cls: "wrong-binyan", reason: "got " + p.binyan + " want " + u.binyan + " (id " + p.pealim_id + ")" };
   }
   // structural completeness
   if (pos === "verb") { const miss = REQUIRED.verb.filter((k) => !(cells[k] && cells[k].he)); if (miss.length && p.kind !== "invariant") return { status: "FAIL", cls: "missing-slots", reason: "verb missing " + miss.join(",") }; }
@@ -93,8 +99,8 @@ function checkUnit(u, r) {
   // form highlight match (the text's vocalized form should appear in the paradigm)
   let formHit = null;
   if (u.niqqud && p.cells) {
-    const wf = normVowels(u.niqqud);
-    formHit = Object.keys(p.cells).some((k) => p.cells[k] && p.cells[k].he && normVowels(p.cells[k].he) === wf);
+    const vs = formVariants(u.niqqud);
+    formHit = Object.keys(p.cells).some((k) => p.cells[k] && p.cells[k].he && vs.indexOf(normVowels(p.cells[k].he)) >= 0);
     if (!formHit && (pos === "verb")) return { status: "SUSPECT", cls: "form-unmatched", reason: "form " + u.niqqud + " not in paradigm (id " + p.pealim_id + ")" };
   }
   // meaning presence (for the «Перевод» field)

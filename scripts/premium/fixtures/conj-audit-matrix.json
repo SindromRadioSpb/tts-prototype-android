@@ -1560,5 +1560,27 @@
   "note": "Hitpael לְהִסְתַּכֵּל not indexed under bare root סכל (search סכל → only piel 1351). Inflected-surface fallback (search תסתכלי) + form-match must pick 1352 hitpael.",
   "dimension": "verb-binyanim",
   "audit_reclassified": true
+ },
+ {
+  "he": "עשיר",
+  "pos": "noun",
+  "root": "עשיר",
+  "form": "עֲשִׁירִים",
+  "expect": "adjective",
+  "note": "Dicta tags adjective עשיר as pos=noun; noun↔adjective kinship (+6) must resolve it (id 4884) not −100 reject.",
+  "dimension": "adjectives",
+  "audit_reclassified": true
+ },
+ {
+  "he": "מצא",
+  "pos": "verb",
+  "binyan": "nifal",
+  "root": "מצא",
+  "form": "נִמְצָא",
+  "id": "1084",
+  "expect": "verb",
+  "note": "נִמְצָא is paal future-1pl AND nifal present (homograph by binyan). want=nifal must reach 1084 via surface-fallback even though the paal form-matches first.",
+  "dimension": "verb-binyanim",
+  "audit_reclassified": true
  }
 ]
