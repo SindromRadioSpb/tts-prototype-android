@@ -30,6 +30,10 @@ function testVerb() {
   ok("imperative IMP-2ms present", !!p.cells["IMP-2ms"]);
   ok("infinitive INF-L present", !!p.cells["INF-L"], p.cells["INF-L"] && p.cells["INF-L"].he);
   ok("≥18 cells", Object.keys(p.cells).length >= 18, String(Object.keys(p.cells).length));
+  // v2: stress <b> preserved in translit_html; imperative clean (no &rlm;/!).
+  ok("AP-ms translit_html has stress span", p.cells["AP-ms"] && /<b class="v3-conj-stress">/.test(p.cells["AP-ms"].translit_html), p.cells["AP-ms"] && p.cells["AP-ms"].translit_html);
+  const imp = p.cells["IMP-2ms"] || {};
+  ok("IMP-2ms clean (no &rlm;/&/;/!)", !/[&;!]|rlm/i.test(String(imp.he) + String(imp.translit) + String(imp.translit_html)), JSON.stringify(imp));
 }
 
 function testNoun() {

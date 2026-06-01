@@ -6457,6 +6457,8 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap;
 }
 .v3-conj-tr { font-size: 9.5px; color: var(--theme-text-muted); font-style: italic; }
+.v3-conj-tr .v3-conj-stress { color: #D55E00; font-weight: 700; font-style: normal; } /* stress (from Pealim) */
+.v3-conj-rootlabel { font-size: 11px; color: var(--theme-text-secondary, #475569); font-weight: 600; }
 .v3-conj-group { margin-top: 8px; }
 .v3-conj-group-h {
   font-size: 10px; font-weight: 700; color: var(--theme-text-secondary, #475569);
@@ -37743,6 +37745,22 @@ function v3NotesTemplateHydrate(body) {
       el.value = String(val);
     }
   }
+  // ② Reset the editor's conjugation accordion when a (different) note is
+  //    hydrated — it's a reused singleton, so its lazily-loaded table + state
+  //    would otherwise leak across words (showed the PREVIOUS word's paradigm).
+  //    Invariant: any reused singleton UI that lazy-loads per-entity data MUST
+  //    reset its loaded-state + DOM when the entity changes.
+  const conj = document.querySelector(".v3-notes-tpl-conj");
+  if (conj) {
+    conj.open = false;
+    conj.removeAttribute("data-conj-loaded");
+    conj.removeAttribute("data-conj-key");
+    ["word", "lemma", "binyan", "pos", "root"].forEach((k) => conj.removeAttribute("data-conj-" + k));
+    const cb = conj.querySelector(".v3-conj-body");
+    if (cb) cb.innerHTML = "";
+    const cs = conj.querySelector(".v3-wordcard-acc-summary");
+    if (cs) cs.textContent = v3NotesT("notes.card.conj.summaryEditor", "Спряжение / Склонение");
+  }
 }
 window.v3NotesTemplateHydrate = v3NotesTemplateHydrate;
 
@@ -40185,7 +40203,7 @@ window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
 // ── ② — Pealim conjugation/declension tables (offline-cached) ─────────────
 // Model version mirrors db/premium/providers/pealim.js MODEL_VERSION. Bumping
 // it (here + provider) re-scrapes paradigms.
-const V3_PEALIM_INFL_MODEL = "pealim-infl-v1";
+const V3_PEALIM_INFL_MODEL = "pealim-infl-v2"; // v2: red-stress translit + bidi fix; invalidates v1 OPFS rows
 
 // Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
 // state + possessive blocks. The provider returns a lossless raw slot→form map
@@ -40319,13 +40337,17 @@ function v3RenderInflectionParadigm(p) {
   const cell = (slot) => {
     const c = cells[slot];
     if (!c || !c.he) return "";
-    const tr = c.translit ? `<span class="v3-conj-tr">${v3EscapeHtml(c.translit)}</span>` : "";
+    // translit_html is our own safe HTML (escaped + <b class="v3-conj-stress">);
+    // fall back to the plain (escaped) translit for legacy v1 cache.
+    const trInner = c.translit_html || (c.translit ? v3EscapeHtml(c.translit) : "");
+    const tr = trInner ? `<span class="v3-conj-tr">${trInner}</span>` : "";
     return `<button type="button" class="v3-conj-cell" dir="rtl" data-he="${v3EscapeHtml(c.he)}" onclick="v3ConjSpeak(this)" title="${v3EscapeHtml(v3ConjSlotLabel(slot))}">
       <span class="v3-conj-he">${v3EscapeHtml(c.he)}</span>
       <span class="v3-conj-lab">${v3EscapeHtml(v3ConjSlotLabel(slot))}</span>${tr}
     </button>`;
   };
-  const primary = primarySlots.map(cell).filter(Boolean).join("");
+  // Full paradigm shown directly (Layout B) — no compact "primary" block, no
+  // inner "show full" toggle (user feedback: the partial preview reads as noise).
   const fullGroups = groups.map((g) => {
     const inner = g.slots.map(cell).filter(Boolean).join("");
     if (!inner) return "";
@@ -40333,16 +40355,19 @@ function v3RenderInflectionParadigm(p) {
   }).filter(Boolean).join("");
 
   const badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
-  const gizra = p.gizra_note ? `<span class="v3-conj-gizra">${v3EscapeHtml(p.gizra_note)}</span>` : "";
+  const rootStr = p.root ? String(p.root).split("").join(" - ") : "";
+  const rootHtml = rootStr
+    ? `<span class="v3-conj-rootlabel">${v3EscapeHtml(v3NotesT("notes.card.rootTitle", "Корень"))}: <span dir="rtl">${v3EscapeHtml(rootStr)}</span></span>` : "";
+  const gizra = p.gizra_note ? `<div class="v3-conj-gizra">${v3EscapeHtml(p.gizra_note)}</div>` : "";
   const beso = p.disambig === "best-effort" ? `<div class="v3-conj-besteffort">⚠ ${v3EscapeHtml(v3NotesT("notes.card.conj.bestEffort", "Подобрано по совпадению — сверьтесь по ссылке"))}</div>` : "";
   const recheckUrl = p.pealim_id ? ("https://www.pealim.com/ru/dict/" + encodeURIComponent(p.pealim_id) + "-/") : v3WordCardPealimUrl(p.lemma || "");
   const recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
 
   return `<div class="v3-conj-wrap">
-    <div class="v3-conj-meta">${badge}${gizra}${recheck}</div>
+    <div class="v3-conj-meta">${badge}${rootHtml}${recheck}</div>
+    ${gizra}
     ${beso}
-    <div class="v3-conj-grid v3-conj-primary">${primary}</div>
-    <details class="v3-conj-full"><summary>${v3EscapeHtml(v3NotesT("notes.card.conj.showFull", "Показать всю парадигму"))}</summary>${fullGroups}</details>
+    ${fullGroups}
   </div>`;
 }
 

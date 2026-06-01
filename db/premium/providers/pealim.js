@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v1";
+const MODEL_VERSION = "pealim-infl-v2"; // v2: red-stress translit_html + bidi-entity fix
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -69,11 +69,33 @@ function stripNiqqud(s) { return String(s == null ? "" : s).replace(NIQQUD_RE, "
 function stripTags(s)   { return String(s == null ? "" : s).replace(/<[^>]+>/g, ""); }
 function decodeEntities(s) {
   return String(s == null ? "" : s)
-    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&rlm;/g, "‏").replace(/&lrm;/g, "‎")           // bidi marks (Pealim imperative)
+    .replace(/&zwnj;/g, "‌").replace(/&zwj;/g, "‍")
     .replace(/&quot;/g, '"').replace(/&#039;|&#39;/g, "'").replace(/&nbsp;/g, " ")
-    .replace(/&#(\d+);/g, (_, n) => { try { return String.fromCodePoint(Number(n)); } catch (_) { return ""; } });
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => { try { return String.fromCodePoint(parseInt(h, 16)); } catch (_) { return ""; } })
+    .replace(/&#(\d+);/g, (_, n) => { try { return String.fromCodePoint(Number(n)); } catch (_) { return ""; } })
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&"); // &amp; LAST
 }
-function clean(s) { return decodeEntities(stripTags(s)).replace(/\s+/g, " ").trim(); }
+// Strip tags + decode entities + drop bidi-format chars (keeps niqqud). Used
+// for both Hebrew forms and transliterations.
+function clean(s) { return decodeEntities(stripTags(s)).replace(FORMAT_RE, "").replace(/\s+/g, " ").trim(); }
+
+// Transliteration HTML preserving Pealim's stress <b> (and ONLY <b>) — we
+// generate it ourselves (escape text, re-insert our own <b>), so it is XSS-safe.
+function buildTranslitHtml(raw) {
+  const esc = (t) => decodeEntities(stripTags(t)).replace(FORMAT_RE, "")
+    .replace(/[<>&"]/g, (ch) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;" }[ch]));
+  let out = "", rest = String(raw == null ? "" : raw);
+  const re = /<\s*b\s*>([\s\S]*?)<\s*\/\s*b\s*>/i;
+  let m;
+  while ((m = re.exec(rest))) {
+    out += esc(rest.slice(0, m.index));
+    out += '<b class="v3-conj-stress">' + esc(m[1]) + "</b>";
+    rest = rest.slice(m.index + m[0].length);
+  }
+  out += esc(rest);
+  return out.replace(/\s+/g, " ").trim();
+}
 // Hebrew root letters only (drops the "כ - ת - ב" spacing/dashes + niqqud).
 function normRoot(s) { return stripNiqqud(decodeEntities(stripTags(s))).replace(/[^א-ת]/g, ""); }
 
@@ -135,7 +157,15 @@ function parsePealimPage(html) {
     const he = clean(heM[1]);
     if (!he) continue;
     const trM = cell.match(/<div class="transcription">([\s\S]*?)<\/div>/);
-    cells[idM[1]] = { he, translit: trM ? clean(trM[1]) : "" };
+    // translit = plain (tap-to-speak/aria); translit_html keeps Pealim's stress
+    // <b> as our own red-stress span (XSS-safe — we generate it). Strip Pealim's
+    // trailing "!" on imperatives (redundant — the group header marks the mood).
+    const noBang = (x) => String(x || "").replace(/\s*!+\s*$/, "");
+    cells[idM[1]] = {
+      he: noBang(he),
+      translit: trM ? noBang(clean(trM[1])) : "",
+      translit_html: trM ? noBang(buildTranslitHtml(trM[1])) : "",
+    };
   }
   if (!Object.keys(cells).length) return null;
   return { kind, pos, lemma_niqqud: lemmaNiqqud, root, binyan, gizra_note: gizraNote, cells };
@@ -229,5 +259,5 @@ async function resolveLemma(heLemma, opts) {
 
 module.exports = {
   MODEL_VERSION, resolveLemma, searchLemma, parsePealimPage, parseSearchLinks,
-  pealimBinyanToApp, normRoot, stripNiqqud, _get,
+  pealimBinyanToApp, normRoot, stripNiqqud, buildTranslitHtml, _get,
 };

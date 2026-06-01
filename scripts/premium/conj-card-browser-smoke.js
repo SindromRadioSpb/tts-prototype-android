@@ -74,7 +74,7 @@ const SAMPLE = {
   source: "pealim", pealim_id: "1", model_version: "pealim-infl-v1",
   gizra_note: "У этого корня нет каких-либо особенностей спряжения.", disambig: "match",
   cells: {
-    "AP-ms": { he: "כּוֹתֵב", translit: "котев" }, "AP-fs": { he: "כּוֹתֶבֶת", translit: "котевет" },
+    "AP-ms": { he: "כּוֹתֵב", translit: "котев", translit_html: 'кот<b class="v3-conj-stress">е</b>в' }, "AP-fs": { he: "כּוֹתֶבֶת", translit: "котевет" },
     "AP-mp": { he: "כּוֹתְבִים", translit: "котвим" }, "AP-fp": { he: "כּוֹתְבוֹת", translit: "котвот" },
     "PERF-1s": { he: "כָּתַבְתִּי", translit: "катавти" }, "PERF-3ms": { he: "כָּתַב", translit: "катав" },
     "PERF-3fs": { he: "כָּתְבָה", translit: "катва" }, "IMPF-3ms": { he: "יִכְתֹּב", translit: "йихтов" },
@@ -167,16 +167,19 @@ async function main() {
       document.body.appendChild(d);
       return {
         cells: d.querySelectorAll(".v3-conj-cell").length,
-        primary: d.querySelectorAll(".v3-conj-primary .v3-conj-cell").length,
+        primary: d.querySelectorAll(".v3-conj-primary").length,     // Layout B: must be 0
+        groups: d.querySelectorAll(".v3-conj-group").length,
         badge: (d.querySelector(".v3-conj-badge") || {}).textContent || "",
         recheck: !!d.querySelector(".v3-conj-recheck"),
-        hasFull: !!d.querySelector(".v3-conj-full"),
-        gizra: !!d.querySelector(".v3-conj-gizra"),
+        hasFullToggle: !!d.querySelector(".v3-conj-full"),          // must be gone
+        stress: !!d.querySelector(".v3-conj-tr .v3-conj-stress"),   // red-stress span rendered
+        rootLabel: !!d.querySelector(".v3-conj-rootlabel"),
         heRtl: (() => { const c = d.querySelector(".v3-conj-cell"); return c ? c.getAttribute("dir") : ""; })(),
       };
     }, SAMPLE);
-    test("Case 2: render grid (cells + primary + Pealim badge + recheck + full toggle)",
-         r2.cells >= 6 && r2.primary >= 3 && /Pealim/.test(r2.badge) && r2.recheck && r2.hasFull && r2.heRtl === "rtl",
+    test("Case 2: Layout B render (full groups, no primary/no full-toggle, stress, root, badge)",
+         r2.cells >= 6 && r2.primary === 0 && r2.hasFullToggle === false && r2.groups >= 3 &&
+         r2.stress && r2.rootLabel && /Pealim/.test(r2.badge) && r2.recheck && r2.heRtl === "rtl",
          JSON.stringify(r2));
 
     // ── Case 3: lazy-load via accordion toggle (stubbed cache hit) ─────────
@@ -240,6 +243,32 @@ async function main() {
     test("Case 7: editor accordion reads live fields (root חזר/hifil) + loads table",
          r7.exists && r7.lemmaAttr === "חזר" && r7.binyanAttr === "hifil" && r7.filled >= 6 && /Спряжение/.test(r7.summary),
          JSON.stringify(r7));
+
+    // ── Case 8: staleness fix — hydrating another note resets the accordion ─
+    const r8 = await pg.evaluate(async () => {
+      window.v3NotesSetNoteType("word_study");
+      const conj = document.querySelector(".v3-notes-tpl-conj");
+      if (!conj) return { err: "no editor conj" };
+      // Simulate a loaded verb paradigm left over from the previous word.
+      conj.open = true;
+      conj.setAttribute("data-conj-loaded", "1");
+      conj.setAttribute("data-conj-key", "חזר|hifil|verb");
+      conj.setAttribute("data-conj-lemma", "חזר");
+      const body = conj.querySelector(".v3-conj-body");
+      if (body) body.innerHTML = '<div class="v3-conj-cell">STALE</div>';
+      // Now open a DIFFERENT note (noun פרויקט) — hydrate must reset the accordion.
+      window.v3NotesTemplateHydrate({ word: "פרויקט", root: "פרויקט", part_of_speech: "noun", binyan: "", meaning: "проект" });
+      return {
+        open: conj.open,
+        loaded: conj.getAttribute("data-conj-loaded"),
+        lemmaAttr: conj.getAttribute("data-conj-lemma"),
+        bodyEmpty: (conj.querySelector(".v3-conj-body") || {}).innerHTML === "",
+        noStale: !/STALE/.test((conj.querySelector(".v3-conj-body") || {}).innerHTML || ""),
+      };
+    });
+    test("Case 8: hydrate(other note) resets accordion (no stale paradigm)",
+         r8.open === false && r8.loaded === null && r8.lemmaAttr === null && r8.bodyEmpty && r8.noStale,
+         JSON.stringify(r8));
 
     test("Case 6: no pageerror", errs.length === 0, errs.join(" | "));
   } finally {
