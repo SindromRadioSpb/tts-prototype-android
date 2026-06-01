@@ -6464,6 +6464,11 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   font-size: 10px; font-weight: 700; color: var(--theme-text-secondary, #475569);
   text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px;
 }
+.v3-conj-voice-h {
+  font-size: 12px; font-weight: 800; color: var(--theme-text-primary);
+  margin: 12px 0 4px; padding-bottom: 3px; border-bottom: 1px solid var(--theme-border-soft);
+}
+.v3-conj-voice-h:first-child { margin-top: 2px; }
 .v3-conj-full { margin-top: 8px; }
 .v3-conj-full > summary {
   font-size: 11px; font-weight: 700; color: var(--theme-text-muted);
@@ -11815,9 +11820,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=45"></script>
-<script src="/i18n/locales/en.js?v=45"></script>
-<script src="/i18n/locales/he.js?v=45"></script>
+<script src="/i18n/locales/ru.js?v=47"></script>
+<script src="/i18n/locales/en.js?v=47"></script>
+<script src="/i18n/locales/he.js?v=47"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -40271,11 +40276,19 @@ const V3_PEALIM_INFL_MODEL = "pealim-infl-v6"; // MUST equal pealim.js MODEL_VER
 // so this client-side grouping can evolve without re-scraping.
 const V3_CONJ_GROUPS_VERB = [
   { key: "present",     slots: ["AP-ms", "AP-fs", "AP-mp", "AP-fp"] },
-  { key: "past",        slots: ["PERF-1s", "PERF-2ms", "PERF-2fs", "PERF-3ms", "PERF-3fs", "PERF-1p", "PERF-2mp", "PERF-2fp", "PERF-3mp", "PERF-3fp"] },
-  { key: "future",      slots: ["IMPF-1s", "IMPF-2ms", "IMPF-2fs", "IMPF-3ms", "IMPF-3fs", "IMPF-1p", "IMPF-2mp", "IMPF-2fp", "IMPF-3mp", "IMPF-3fp"] },
+  { key: "past",        slots: ["PERF-1s", "PERF-2ms", "PERF-2fs", "PERF-3ms", "PERF-3fs", "PERF-1p", "PERF-2mp", "PERF-2fp", "PERF-3mp", "PERF-3fp", "PERF-3p"] },
+  { key: "future",      slots: ["IMPF-1s", "IMPF-2ms", "IMPF-2fs", "IMPF-3ms", "IMPF-3fs", "IMPF-1p", "IMPF-2mp", "IMPF-2fp", "IMPF-3mp", "IMPF-3fp", "IMPF-3p"] },
   { key: "imperative",  slots: ["IMP-2ms", "IMP-2fs", "IMP-2mp", "IMP-2fp"] },
   { key: "infinitive",  slots: ["INF-L"] },
 ];
+// Passive voice (Pealim piel→pual, hifil→hufal): same scheme, "passive-" prefix.
+const V3_CONJ_GROUPS_PASSIVE = [
+  { key: "present",     slots: ["passive-AP-ms", "passive-AP-fs", "passive-AP-mp", "passive-AP-fp"] },
+  { key: "past",        slots: ["passive-PERF-1s", "passive-PERF-2ms", "passive-PERF-2fs", "passive-PERF-3ms", "passive-PERF-3fs", "passive-PERF-1p", "passive-PERF-2mp", "passive-PERF-2fp", "passive-PERF-3mp", "passive-PERF-3fp", "passive-PERF-3p"] },
+  { key: "future",      slots: ["passive-IMPF-1s", "passive-IMPF-2ms", "passive-IMPF-2fs", "passive-IMPF-3ms", "passive-IMPF-3fs", "passive-IMPF-1p", "passive-IMPF-2mp", "passive-IMPF-2fp", "passive-IMPF-3mp", "passive-IMPF-3fp", "passive-IMPF-3p"] },
+];
+// Passive binyan that pairs with an active one (Pealim shows both on one page).
+const V3_PASSIVE_BINYAN = { piel: "pual", hifil: "hufal" };
 const V3_CONJ_GROUPS_NOUN = [
   { key: "absolute",      slots: ["s", "p"] },
   { key: "construct",     slots: ["sc", "pc"] },
@@ -40314,6 +40327,7 @@ const V3_CONJ_SLOT_FB = {
   "PERF-1s": "я", "PERF-2ms": "ты (м)", "PERF-2fs": "ты (ж)", "PERF-3ms": "он", "PERF-3fs": "она", "PERF-1p": "мы", "PERF-2mp": "вы (м)", "PERF-2fp": "вы (ж)", "PERF-3mp": "они (м)", "PERF-3fp": "они (ж)",
   "IMPF-1s": "я", "IMPF-2ms": "ты (м)", "IMPF-2fs": "ты (ж)", "IMPF-3ms": "он", "IMPF-3fs": "она", "IMPF-1p": "мы", "IMPF-2mp": "вы (м)", "IMPF-2fp": "вы (ж)", "IMPF-3mp": "они (м)", "IMPF-3fp": "они (ж)",
   "IMP-2ms": "ты (м)", "IMP-2fs": "ты (ж)", "IMP-2mp": "вы (м)", "IMP-2fp": "вы (ж)",
+  "PERF-3p": "они", "IMPF-3p": "они",
   "INF-L": "инфинитив", "s": "ед", "p": "мн", "sc": "ед, сопр.", "pc": "мн, сопр.",
   "ms-a": "м.р, ед", "fs-a": "ж.р, ед", "mp-a": "м.р, мн", "fp-a": "ж.р, мн",
 };
@@ -40323,6 +40337,8 @@ const V3_CONJ_PERSON_FB = { "1s": "я", "2ms": "ты (м)", "2fs": "ты (ж)", 
 const V3_CONJ_GROUP_FB = { present: "Настоящее", past: "Прошедшее", future: "Будущее", imperative: "Повелительное", infinitive: "Инфинитив", absolute: "Абсолютное состояние", construct: "Сопряжённое (смихут)", possessive_sg: "Притяжательные (ед.)", possessive_pl: "Притяжательные (мн.)", adj: "Формы", prep: "С местоимениями", other: "Другие формы" };
 
 function v3ConjSlotLabel(slot) {
+  const pass = String(slot).match(/^passive-(.+)$/i);   // passive voice → label by the inner slot
+  if (pass) return v3ConjSlotLabel(pass[1]);
   const pm = String(slot).match(/^[sp]-P-(.+)$/);   // noun possessive → label by possessor
   if (pm) return v3NotesT("notes.card.conj.poss." + pm[1], V3_CONJ_POSS_FB[pm[1]] || pm[1]);
   const pr = String(slot).match(/^P-(.+)$/);        // declined preposition → label by person
@@ -40468,11 +40484,25 @@ function v3RenderInflectionParadigm(p) {
     if (!inner) return "";
     return `<div class="v3-conj-group"><div class="v3-conj-group-h">${v3EscapeHtml(label)}</div><div class="v3-conj-grid">${inner}</div></div>`;
   };
-  let fullGroups = groups.map((g) => renderGroup(v3ConjGroupLabel(g.key), g.slots)).filter(Boolean).join("");
-  // Catch-all: any cells NOT covered by the selected groups still render (so a
-  // POS/slot we didn't map — like a new Pealim form — never yields a blank
-  // table when cells actually exist).
-  const covered = new Set(groups.flatMap((g) => g.slots));
+  const renderSet = (gs) => gs.map((g) => renderGroup(v3ConjGroupLabel(g.key), g.slots)).filter(Boolean).join("");
+  const voiceH = (txt) => `<div class="v3-conj-voice-h">${v3EscapeHtml(txt)}</div>`;
+  const binLabel = (b) => (b && V3_WORDCARD_BINYAN_LABEL[b]) ? " · " + V3_WORDCARD_BINYAN_LABEL[b] : "";
+  // A verb page can carry BOTH voices (Pealim piel↔pual, hifil↔hufal). Render
+  // them as two labeled sections (Действительный / Страдательный залог) instead
+  // of dumping the passive forms into the catch-all.
+  const hasPassive = (p.kind === "verb") && Object.keys(cells).some((k) => /^passive-/i.test(k));
+  let fullGroups, covered;
+  if (hasPassive) {
+    fullGroups =
+      voiceH(v3NotesT("notes.card.conj.voiceActive", "Действительный залог") + binLabel(p.binyan)) + renderSet(V3_CONJ_GROUPS_VERB) +
+      voiceH(v3NotesT("notes.card.conj.voicePassive", "Страдательный залог") + binLabel(V3_PASSIVE_BINYAN[p.binyan])) + renderSet(V3_CONJ_GROUPS_PASSIVE);
+    covered = new Set([...V3_CONJ_GROUPS_VERB, ...V3_CONJ_GROUPS_PASSIVE].flatMap((g) => g.slots));
+  } else {
+    fullGroups = renderSet(groups);
+    covered = new Set(groups.flatMap((g) => g.slots));
+  }
+  // Catch-all: any cell NOT covered by the selected groups still renders (so an
+  // unmapped Pealim slot never yields a blank table when cells exist).
   const leftover = Object.keys(cells).filter((k) => !covered.has(k) && cells[k] && cells[k].he);
   if (leftover.length) fullGroups += renderGroup(v3ConjGroupLabel("other"), leftover);
 

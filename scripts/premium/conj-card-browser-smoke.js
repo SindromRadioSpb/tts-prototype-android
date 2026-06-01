@@ -338,6 +338,34 @@ async function main() {
     test("Case 2c: invariant profile (form + stress + note + Pealim link)",
          r2c.cell && /בֶּטַח/.test(r2c.he) && r2c.stress && r2c.note && r2c.recheck, JSON.stringify(r2c));
 
+    // ── Case 2d: two-voice verb (piel + pual) — passive structured, not dumped ──
+    const r2d = await pg.evaluate(() => {
+      const v = {
+        lemma: "גלגל", root: "גלגל", pos: "verb", kind: "verb", binyan: "piel",
+        source: "pealim", pealim_id: "329", model_version: "pealim-infl-v6",
+        cells: {
+          "AP-ms": { he: "מְגַלְגֵּל", translit: "мегальгель" },
+          "PERF-3p": { he: "גִּלְגְּלוּ", translit: "гильгелу" },           // merged 3pl past
+          "passive-AP-ms": { he: "מְגֻלְגָּל", translit: "мегульгаль" },
+          "passive-PERF-3ms": { he: "גֻּלְגַּל", translit: "гульгаль" },
+        },
+      };
+      const d = document.createElement("div");
+      d.innerHTML = window.v3RenderInflectionParadigm(v);
+      const voices = [...d.querySelectorAll(".v3-conj-voice-h")].map((e) => e.textContent);
+      const otherGroup = [...d.querySelectorAll(".v3-conj-group-h")].some((e) => /Другие формы/.test(e.textContent));
+      return {
+        voices, cells: d.querySelectorAll(".v3-conj-cell").length,
+        hasActive: voices.some((t) => /Действительный/.test(t) && /pi'el/.test(t)),
+        hasPassive: voices.some((t) => /Страдательный/.test(t) && /pu'al/.test(t)),
+        perf3p: /גִּלְגְּלוּ/.test(d.textContent),
+        passiveForm: /מְגֻלְגָּל/.test(d.textContent),
+        noOther: !otherGroup,
+      };
+    });
+    test("Case 2d: two-voice verb (active pi'el + passive pu'al, PERF-3p, no dump)",
+         r2d.hasActive && r2d.hasPassive && r2d.perf3p && r2d.passiveForm && r2d.noOther, JSON.stringify(r2d));
+
     test("Case 6: no pageerror", errs.length === 0, errs.join(" | "));
   } finally {
     await browser.close();
