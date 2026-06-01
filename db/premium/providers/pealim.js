@@ -173,6 +173,19 @@ function parsePealimPage(html) {
   const kind = verbH ? "verb" : "noun";
   const lemmaNiqqud = verbH ? verbH[1] : (nounH ? nounH[1] : hdrText);
 
+  // Russian gloss (meaning) from the page <title>: "<lemma> – <meaning> –
+  // Таблицы спряжения…". We already fetched this page for the paradigm, so the
+  // curated lemma-level meaning rides along free (fills the note's «Перевод»).
+  let meaning = null;
+  const titleM = b.match(/<title>([\s\S]*?)<\/title>/i);
+  if (titleM) {
+    const parts = clean(titleM[1]).split(/\s+[–—-]\s+/);
+    if (parts.length >= 2) {
+      const mn = parts[1].trim();
+      if (mn && !/^(Таблиц|Спряжен|Формы\s+слова|Склонен)/i.test(mn)) meaning = mn;
+    }
+  }
+
   // pos descriptor paragraph: "Глагол – ПААЛЬ" | "Существительное – …, мужской род" | "Прилагательное …"
   let pos = kind === "verb" ? "verb" : "noun";
   let binyan = null;
@@ -228,11 +241,11 @@ function parsePealimPage(html) {
     if (!lemmaNiqqud) return null;
     return {
       kind: "invariant", pos: POS_RU[posRu] || pos || "other",
-      lemma_niqqud: lemmaNiqqud, root, binyan: null, gizra_note: null, cells: {},
+      lemma_niqqud: lemmaNiqqud, root, binyan: null, gizra_note: null, cells: {}, meaning,
       form: { he: lemmaNiqqud, translit: trM ? clean(trM[1]) : "", translit_html: trM ? buildTranslitHtml(trM[1]) : "" },
     };
   }
-  return { kind, pos, lemma_niqqud: lemmaNiqqud, root, binyan, gizra_note: gizraNote, cells };
+  return { kind, pos, lemma_niqqud: lemmaNiqqud, root, binyan, gizra_note: gizraNote, cells, meaning };
 }
 
 // ── search → candidate dict links ─────────────────────────────────────────
@@ -416,6 +429,7 @@ async function resolveLemma(heLemma, opts) {
       pos: best.pos,
       binyan: best.binyan || (want.binyan || null),
       kind: best.kind,
+      meaning: best.meaning || null,                       // curated RU gloss from the Pealim page title
       source: "pealim",
       pealim_id: bestId,
       pealim_url: "https://" + PEALIM_HOST + "/ru/dict/" + bestId + "-/",

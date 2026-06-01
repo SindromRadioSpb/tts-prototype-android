@@ -1,0 +1,236 @@
+#!/usr/bin/env node
+"use strict";
+
+// build-notes-from-bundle.js — exhaustive ② word-note quality test + bundle
+// enrichment. Reads an OPFS library ZIP, runs Dicta morphology per sentence
+// (context-faithful), resolves each distinct analysis-unit through the SAME
+// Pealim resolver the app uses (+ the page-title meaning gloss), then:
+//   1) emits word_study notes (with «Перевод») into library/notes_advanced.json
+//      and repackages → <out>.zip (importable: notes + Knowledge-Map data),
+//   2) writes a QA defect report (PASS / SUSPECT / FAIL by class).
+//
+//   node scripts/premium/build-notes-from-bundle.js \
+//     --zip C:/Users/lletp/Downloads/test.zip --out .tmp/test-enriched.zip \
+//     [--limit N] [--dedup word|lemma] [--no-zip]
+//
+// Politeness: Pealim via the gateway limiter (≤2 concurrent + gap); Dicta via a
+// small local pool. Dicta + resolve results are cached on disk for resume.
+
+const fs = require("fs");
+const path = require("path");
+const JSZip = require("../../public/db/jszip.min.js");
+const dicta = require("../../db/premium/providers/dictaMorph");
+const { inflect } = require("../../db/premium/inflectionGateway");
+
+const REPO = path.resolve(__dirname, "..", "..");
+const TMP = path.join(REPO, ".tmp");
+
+// ── args ──────────────────────────────────────────────────────────────────
+function arg(name, def) { const i = process.argv.indexOf("--" + name); return i >= 0 ? (process.argv[i + 1] && !process.argv[i + 1].startsWith("--") ? process.argv[i + 1] : true) : def; }
+const ZIP_IN = String(arg("zip", "C:/Users/lletp/Downloads/test.zip"));
+const OUT_ZIP = String(arg("out", path.join(TMP, "test-enriched.zip")));
+const LIMIT = Number(arg("limit", 0)) || 0;          // 0 = all texts
+const DEDUP = String(arg("dedup", "word"));          // word (per-text) | lemma (global)
+const NO_ZIP = !!arg("no-zip", false);
+const DICTA_CONC = Number(process.env.DICTA_CONC || 6);
+
+const log = (...a) => console.log("[bundle]", ...a);
+
+// ── tiny concurrency pool ───────────────────────────────────────────────────
+async function pool(items, n, worker, onTick) {
+  const out = new Array(items.length);
+  let idx = 0, done = 0;
+  async function run() {
+    while (idx < items.length) {
+      const i = idx++;
+      try { out[i] = await worker(items[i], i); } catch (e) { out[i] = { __err: String(e && e.message || e) }; }
+      done++;
+      if (onTick && done % 50 === 0) onTick(done, items.length);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, run));
+  return out;
+}
+
+// ── Dicta token → resolution inputs (mirror of client v3MorphTokenToResult) ──
+const NIQQUD_RE = /[֑-ׇ]/g;
+function stripNiqqud(s) { return String(s == null ? "" : s).replace(NIQQUD_RE, "").trim(); }
+const CONTENT_INFLECTS = new Set(["", "verb", "noun", "adjective", "preposition"]);
+function queryLemma(pos, root, lemma, stem) {
+  return CONTENT_INFLECTS.has(pos) ? (root || lemma || stem) : (stem || lemma);
+}
+
+// ── QA invariants (condensed from conj-audit.js) ────────────────────────────
+const REQUIRED = {
+  verb: ["AP-ms", "PERF-3ms", "IMPF-3ms", "INF-L"],
+  adjective: ["ms-a", "fs-a", "mp-a", "fp-a"],
+  preposition: ["P-1s", "P-3ms"],
+};
+function normVowels(s) { return String(s == null ? "" : s).normalize("NFC").replace(/[֑-֯]/g, "").replace(/ֽ/g, "").trim(); }
+const FUNCTION_POS = new Set(["adverb", "pronoun", "conjunction", "interjection", "negation", "numeral", "other", "particle"]);
+
+// Classify the resolution of one analysis-unit. Returns {status, cls, reason}.
+function checkUnit(u, r) {
+  const pos = u.pos || "";
+  const isFunction = FUNCTION_POS.has(pos);
+  if (!r || !r.ok || !r.paradigm) {
+    const reason = (r && r.reason) || "no_result";
+    if (isFunction) return { status: "PASS", cls: "function-no-table", reason };          // gated/honest
+    if (u.kind === "propernoun") return { status: "PASS", cls: "propernoun-no-table", reason };
+    if (pos === "verb" || pos === "noun" || pos === "adjective") return { status: "FAIL", cls: "content-no-table", reason };
+    return { status: "SUSPECT", cls: "unresolved", reason };
+  }
+  const p = r.paradigm;
+  const cells = p.cells || {};
+  // binyan mismatch (wrong verb)
+  if (pos === "verb" && u.binyan && p.binyan && p.binyan !== u.binyan) {
+    return { status: "FAIL", cls: "wrong-binyan", reason: "got " + p.binyan + " want " + u.binyan + " (id " + p.pealim_id + ")" };
+  }
+  // structural completeness
+  if (pos === "verb") { const miss = REQUIRED.verb.filter((k) => !(cells[k] && cells[k].he)); if (miss.length && p.kind !== "invariant") return { status: "FAIL", cls: "missing-slots", reason: "verb missing " + miss.join(",") }; }
+  if (pos === "noun") { const ok = (cells.s && cells.s.he) || (cells.p && cells.p.he); if (!ok && p.kind !== "invariant") return { status: "SUSPECT", cls: "noun-thin", reason: "no absolute form" }; }
+  if (pos === "adjective") { const miss = REQUIRED.adjective.filter((k) => !(cells[k] && cells[k].he)); if (miss.length) return { status: "SUSPECT", cls: "adj-thin", reason: "missing " + miss.join(",") }; }
+  // form highlight match (the text's vocalized form should appear in the paradigm)
+  let formHit = null;
+  if (u.niqqud && p.cells) {
+    const wf = normVowels(u.niqqud);
+    formHit = Object.keys(p.cells).some((k) => p.cells[k] && p.cells[k].he && normVowels(p.cells[k].he) === wf);
+    if (!formHit && (pos === "verb")) return { status: "SUSPECT", cls: "form-unmatched", reason: "form " + u.niqqud + " not in paradigm (id " + p.pealim_id + ")" };
+  }
+  // meaning presence (for the «Перевод» field)
+  if (!p.meaning && (pos === "verb" || pos === "noun" || pos === "adjective")) return { status: "SUSPECT", cls: "no-meaning", reason: "content word w/o Pealim gloss (id " + p.pealim_id + ")" };
+  return { status: "PASS", cls: p.disambig === "best-effort" ? "best-effort" : "ok", reason: "" };
+}
+
+(async () => {
+  fs.mkdirSync(TMP, { recursive: true });
+  log("reading", ZIP_IN);
+  const zip = await JSZip.loadAsync(fs.readFileSync(ZIP_IN));
+  const libFile = zip.file("library/library.json") || zip.file("library.json");
+  if (!libFile) { console.error("no library.json in zip"); process.exit(2); }
+  const lib = JSON.parse(await libFile.async("string"));
+  let texts = Array.isArray(lib.texts) ? lib.texts : [];
+  if (LIMIT) texts = texts.slice(0, LIMIT);
+  log("texts:", texts.length, "(limit " + LIMIT + ")");
+
+  // ── 1) Dicta pass (context-faithful), cached on disk for resume ──────────
+  const dictaCachePath = path.join(TMP, "bundle-dicta-cache.json");
+  let dcache = {};
+  try { dcache = JSON.parse(fs.readFileSync(dictaCachePath, "utf8")); } catch (_) {}
+  const sentences = [];
+  for (const t of texts) for (const row of (t.rows || [])) {
+    const he = String(row.hebrew_niqqud || row.hebrew_plain || "").trim();
+    if (he) sentences.push({ textId: t.text_id, rowId: row.row_id, he, plainKey: stripNiqqud(he) });
+  }
+  log("sentences:", sentences.length, "→ Dicta (conc " + DICTA_CONC + ")");
+  const need = sentences.filter((s) => !dcache[s.plainKey]);
+  log("dicta cache hits:", sentences.length - need.length, "to fetch:", need.length);
+  let saved = 0;
+  await pool(need, DICTA_CONC, async (s) => {
+    const res = await dicta.analyzeSentence(s.he);
+    dcache[s.plainKey] = (res && res.tokens) ? res.tokens.map((t) => ({ word: t.word, pos: t.posDicta, binyan: t.binyan, lemma: t.lemma, niqqud: t.niqqud, prefix: t.prefix, stem: t.stem, kind: t.kind })) : [];
+    if (++saved % 200 === 0) { fs.writeFileSync(dictaCachePath, JSON.stringify(dcache)); log("  dicta", saved + "/" + need.length); }
+  }, (d, tot) => log("  dicta", d + "/" + tot));
+  fs.writeFileSync(dictaCachePath, JSON.stringify(dcache));
+  log("dicta done");
+
+  // ── 2) collect distinct analysis-units + per-(word,text) first occurrence ─
+  const units = new Map();   // key lemma|binyan|pos → {pos,binyan,root,lemma,stem,niqqud,sampleWord}
+  const noteSeeds = [];      // {textId, rowId, offset, word, niqqud, lemma, root, pos, binyan, kind, unitKey}
+  const seenWordPerText = new Set();
+  const seenLemmaGlobal = new Set();
+  for (const s of sentences) {
+    const toks = dcache[s.plainKey] || [];
+    for (let off = 0; off < toks.length; off++) {
+      const tk = toks[off];
+      const word = stripNiqqud(tk.word || "");
+      if (!word || word.length < 2) continue;
+      const pos = tk.pos || "";
+      const lemma = stripNiqqud(tk.lemma || tk.stem || "");
+      const root = (pos === "verb" || pos === "noun") ? lemma : null;
+      const stem = stripNiqqud(tk.stem || "");
+      const binyan = tk.binyan || "";
+      const ukey = (lemma || word) + "|" + binyan + "|" + pos;
+      if (!units.has(ukey)) units.set(ukey, { pos, binyan, root, lemma, stem, niqqud: tk.niqqud || "", sampleWord: word, kind: tk.kind });
+      // note dedup
+      const dedupKey = DEDUP === "lemma" ? ukey : (s.textId + "|" + word);
+      const seen = DEDUP === "lemma" ? seenLemmaGlobal : seenWordPerText;
+      if (seen.has(dedupKey)) continue;
+      seen.add(dedupKey);
+      noteSeeds.push({ textId: s.textId, rowId: s.rowId, offset: off, word, niqqud: tk.niqqud || "", lemma, root, pos, binyan, kind: tk.kind, unitKey: ukey });
+    }
+  }
+  log("distinct units:", units.size, "| note seeds:", noteSeeds.length, "(dedup " + DEDUP + ")");
+
+  // ── 3) resolve each distinct unit via the gateway (limiter + cache) ──────
+  const unitList = [...units.entries()];
+  const resolved = new Map();
+  let ri = 0;
+  for (const [ukey, u] of unitList) {
+    const q = queryLemma(u.pos, u.root, u.lemma, u.stem);
+    let r = null;
+    try { r = await inflect(q, { pos: u.pos || undefined, binyan: u.binyan || undefined, root: u.root || undefined, form: u.niqqud || undefined }); }
+    catch (e) { r = { ok: false, reason: String(e && e.message || e) }; }
+    resolved.set(ukey, { r, check: checkUnit(u, r), meaning: (r && r.ok && r.paradigm) ? (r.paradigm.meaning || null) : null, pid: (r && r.ok && r.paradigm) ? r.paradigm.pealim_id : null });
+    if (++ri % 50 === 0) log("  resolve", ri + "/" + unitList.length);
+  }
+  log("resolve done");
+
+  // ── 4) build notes_advanced + defect report ──────────────────────────────
+  const notes = [];
+  const stamp = new Date("2026-06-02T00:00:00.000Z").toISOString();
+  for (let i = 0; i < noteSeeds.length; i++) {
+    const ns = noteSeeds[i];
+    const res = resolved.get(ns.unitKey) || {};
+    const meaning = res.meaning || "";
+    const body = { word: ns.word, niqqud_variant: ns.niqqud || "", root: ns.root || "", pos: ns.pos || "", binyan: ns.binyan || "", meaning };
+    notes.push({
+      id: "gen-" + ns.textId + "-" + ns.rowId + "-" + ns.offset,
+      target_kind: "word",
+      target_id: String(ns.rowId) + ":" + ns.offset,
+      text_id: String(ns.textId),
+      note_type: "word_study",
+      title: ns.word,
+      body_json: JSON.stringify(body),
+      audio_anchor_ms: null,
+      audio_asset_key: null,
+      srs_card_id: null,
+      created_at: stamp,
+      updated_at: stamp,
+    });
+  }
+
+  // defect tally
+  const byStatus = {}, byClass = {}, fails = [];
+  for (const [ukey, u] of unitList) {
+    const c = (resolved.get(ukey) || {}).check || { status: "SUSPECT", cls: "unknown", reason: "" };
+    byStatus[c.status] = (byStatus[c.status] || 0) + 1;
+    byClass[c.cls] = (byClass[c.cls] || 0) + 1;
+    if (c.status !== "PASS") fails.push({ unit: ukey, word: u.sampleWord, pos: u.pos, binyan: u.binyan, niqqud: u.niqqud, status: c.status, cls: c.cls, reason: c.reason, pid: (resolved.get(ukey) || {}).pid });
+  }
+  const withMeaning = notes.filter((n) => { try { return !!JSON.parse(n.body_json).meaning; } catch (_) { return false; } }).length;
+  const report = {
+    generated_at: stamp, zip_in: ZIP_IN, texts: texts.length, sentences: sentences.length,
+    distinct_units: units.size, notes: notes.length, notes_with_meaning: withMeaning,
+    meaning_rate: notes.length ? Math.round(100 * withMeaning / notes.length) : 0,
+    by_status: byStatus, by_class: byClass, fails: fails.sort((a, b) => (a.cls < b.cls ? -1 : 1)),
+  };
+  const reportPath = path.join(TMP, "bundle-defects.json");
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+  log("REPORT", JSON.stringify({ by_status: byStatus, distinct_units: units.size, notes: notes.length, meaning_rate: report.meaning_rate + "%" }));
+  log("top classes:", JSON.stringify(Object.entries(byClass).sort((a, b) => b[1] - a[1]).slice(0, 12)));
+  log("report →", reportPath);
+
+  // ── 5) repackage enriched bundle ──────────────────────────────────────────
+  if (!NO_ZIP) {
+    const advanced = { schema_version: 1, exported_at: stamp, app_id: "linguist-pro-web", format: "linguistpro-notes-advanced-v1", notes, versions: [], links: [], roots: [] };
+    zip.file("library/notes_advanced.json", JSON.stringify(advanced));
+    // flip manifest flag
+    try { const mf = zip.file("manifest.json"); if (mf) { const m = JSON.parse(await mf.async("string")); m.notes_advanced_present = true; m.notes_count = notes.length; zip.file("manifest.json", JSON.stringify(m, null, 2)); } } catch (_) {}
+    const buf = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });
+    fs.mkdirSync(path.dirname(OUT_ZIP), { recursive: true });
+    fs.writeFileSync(OUT_ZIP, buf);
+    log("enriched bundle →", OUT_ZIP, "(" + Math.round(buf.length / 1024 / 1024 * 10) / 10 + " MB,", notes.length, "notes)");
+  }
+  log("done.");
+})().catch((e) => { console.error(e); process.exit(1); });
