@@ -94,8 +94,8 @@ async function testLive() {
     console.log("POS audit matrix (live):");
     const content = [["כתב", { pos: "verb", binyan: "paal", root: "כתב" }], ["ספר", { pos: "noun", root: "ספר" }], ["יפה", { pos: "adjective", root: "יפה" }]];
     for (const [w, o] of content) { const r = await P.resolveLemma(w, o); ok("  content " + w + " → has table", r.ok && r.paradigm && Object.keys(r.paradigm.cells).length > 0, r.ok ? "ok" : r.reason); }
-    const fn = ["מה", "אז"];         // pronoun/adverb, conjunction/adverb — no inflection
-    for (const w of fn) { const r = await P.resolveLemma(w, {}); ok("  function " + w + " → no forms table", !r.ok, r.ok ? "unexpected table" : r.reason); }
+    // Function words don't inflect → invariant single-form profile (not a table).
+    for (const w of ["מה", "אז"]) { const r = await P.resolveLemma(w, {}); ok("  function " + w + " → invariant profile", r.ok && r.paradigm.kind === "invariant" && !!r.paradigm.form, r.ok ? ("kind=" + r.paradigm.kind) : r.reason); }
     // בטח adverb (בֶּטַח): no paradigm, but a single-form "invariant" profile —
     // NEVER the verb homograph בָּטַח. (Profile: vocalized form + stress translit.)
     for (const o of [{ pos: "adverb" }, {}]) {

@@ -40264,7 +40264,7 @@ window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
 // ── ② — Pealim conjugation/declension tables (offline-cached) ─────────────
 // Model version mirrors db/premium/providers/pealim.js MODEL_VERSION. Bumping
 // it (here + provider) re-scrapes paradigms.
-const V3_PEALIM_INFL_MODEL = "pealim-infl-v4"; // v4: POS-dominant disambiguation; invalidates mis-picked homograph rows
+const V3_PEALIM_INFL_MODEL = "pealim-infl-v6"; // MUST equal pealim.js MODEL_VERSION; v6 clears batch-poisoned + stale OPFS rows
 
 // Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
 // state + possessive blocks. The provider returns a lossless raw slot→form map
