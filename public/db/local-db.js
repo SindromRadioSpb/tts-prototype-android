@@ -630,15 +630,27 @@ export async function reorderSentences(textId, orderedIds) {
   }
 }
 
+// Niqqud/diacritic-insensitive search normalization: strip Hebrew niqqud +
+// cantillation + bidi/format marks so a VOCALIZED query (שֶׁלְּהַחֲלִים) matches the
+// niqqud-free stored forms (sentences.he_plain, notes_v2 body_json.word). Latin/
+// Cyrillic pass through unchanged (no niqqud to strip).
+function _searchNrm(s) {
+  return String(s == null ? "" : s).normalize("NFC")
+    .replace(/[֑-ׇ]/g, "").replace(/[‌-‏‪-‮⁦-⁩﻿]/g, "").trim();
+}
+
 export async function searchSentences(queryStr, limit = 20) {
-  if (!queryStr || !queryStr.trim()) return [];
-  const like = `%${queryStr.trim()}%`;
+  const norm = _searchNrm(queryStr);
+  if (!norm) return [];
+  const like = `%${norm}%`;
+  // Match against the niqqud-free he_plain (+ ru/translit); the stripped query
+  // makes a vocalized Hebrew search hit too (he_niqqud match is now redundant).
   return q(
     `SELECT s.*, t.title AS text_title FROM sentences s
      JOIN texts t ON s.text_id = t.id
-     WHERE t.is_archived = 0 AND (s.he_plain LIKE ? OR s.he_niqqud LIKE ? OR s.ru LIKE ? OR s.translit LIKE ?)
+     WHERE t.is_archived = 0 AND (s.he_plain LIKE ? OR s.ru LIKE ? OR s.translit LIKE ?)
      ORDER BY t.last_opened_at DESC NULLS LAST LIMIT ?`,
-    [like, like, like, like, limit]
+    [like, like, like, limit]
   );
 }
 
@@ -1092,6 +1104,40 @@ export async function searchAllNotes(queryStr, limit = 50) {
     `SELECT n.*, t.title AS text_title
        FROM notes_v2 n
        LEFT JOIN texts t ON n.text_id = t.id
+      WHERE (n.body_json LIKE ? OR n.title LIKE ?)
+        AND (t.is_archived IS NULL OR t.is_archived = 0)
+      ORDER BY n.updated_at DESC
+      LIMIT ?`,
+    [like, like, limit]
+  );
+}
+
+// notes_v2 search for the library/dashboard «заметки» scope — the polymorphic
+// table the UI actually writes word_study notes to (the legacy searchNotes only
+// sees the old sentence_notes free-text table, so word notes were unfindable).
+// Niqqud-insensitive (body_json.word is stored niqqud-free); JOINs the sentence
+// via the composite target_id "<sentenceId>:<offset>" so hits render with the
+// row + snippet and can jump back. Returns the shape v3NotesRender expects.
+export async function searchWordNotes(queryStr, limit = 50) {
+  const norm = _searchNrm(queryStr);
+  if (!norm) return [];
+  const like = `%${norm}%`;
+  return q(
+    `SELECT n.id, n.text_id, n.target_kind, n.target_id, n.note_type, n.title,
+            n.updated_at, t.title AS text_title,
+            json_extract(n.body_json, '$.word')           AS j_word,
+            json_extract(n.body_json, '$.niqqud_variant') AS j_niqqud,
+            json_extract(n.body_json, '$.meaning')         AS j_meaning,
+            json_extract(n.body_json, '$.markdown')        AS j_markdown,
+            (CASE WHEN instr(n.target_id, ':') > 0
+                  THEN substr(n.target_id, 1, instr(n.target_id, ':') - 1)
+                  ELSE n.target_id END) AS sentence_id,
+            s.he_plain, s.order_index
+       FROM notes_v2 n
+       LEFT JOIN texts t ON n.text_id = t.id
+       LEFT JOIN sentences s ON s.id = (CASE WHEN instr(n.target_id, ':') > 0
+                  THEN substr(n.target_id, 1, instr(n.target_id, ':') - 1)
+                  ELSE n.target_id END)
       WHERE (n.body_json LIKE ? OR n.title LIKE ?)
         AND (t.is_archived IS NULL OR t.is_archived = 0)
       ORDER BY n.updated_at DESC

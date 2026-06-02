@@ -21004,7 +21004,7 @@ function v3NotesRender(scope, qRaw, results, notesOnly) {
         <div class="v3-note-hit-snippet"><b>Заметка:</b> ${v3NotesMark(noteSnippetRaw, needles)}</div>
 
         <div class="v3-note-hit-actions">
-<button class="btn-secondary btn-mini" onclick="v3NavOnHitJump('notes',${hitIdx},'${v3EscapeHtml(textId)}','${v3EscapeHtml(sentenceId)}',${Number.isFinite(orderIndex)?orderIndex:"null"},'${scope}')">Перейти к строке</button>
+<button class="btn-secondary btn-mini" onclick="v3NavOnHitJump('notes',${hitIdx},'${v3EscapeHtml(textId)}','${v3EscapeHtml(sentenceId)}',${Number.isFinite(orderIndex)?orderIndex:"null"},'${scope}')">📝 Перейти к заметке</button>
         </div>
       </div>
     `;
@@ -21111,7 +21111,19 @@ async function v3NotesSearchNow(scope, opts) {
     let results;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
-      results = await ldb.searchNotes(qRaw, 50);
+      // Search the polymorphic notes_v2 (word_study + all kinds) — the legacy
+      // searchNotes only saw the old sentence_notes free-text table, so word
+      // notes were unfindable. Build the displayed «Заметка:» line from the
+      // structured fields (word — meaning) or the free-note markdown.
+      const rows = await (ldb.searchWordNotes ? ldb.searchWordNotes(qRaw, 50) : ldb.searchNotes(qRaw, 50));
+      results = (rows || []).map((r) => {
+        let note = String(r.note || "");
+        if (!note) {
+          if (r.j_word || r.j_meaning) note = [r.j_niqqud || r.j_word || "", r.j_meaning || ""].filter(Boolean).join(" — ");
+          else note = String(r.j_markdown || r.title || "");
+        }
+        return Object.assign({}, r, { note, noteId: r.id });
+      });
     } else {
       const res = await v3GetJson(`/api/notes/search?${p.toString()}`);
       results = (res && res.ok && Array.isArray(res.results)) ? res.results : [];
