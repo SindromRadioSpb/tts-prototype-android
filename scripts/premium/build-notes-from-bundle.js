@@ -134,7 +134,12 @@ function checkUnit(u, r) {
   try { dcache = JSON.parse(fs.readFileSync(dictaCachePath, "utf8")); } catch (_) {}
   const sentences = [];
   for (const t of texts) for (const row of (t.rows || [])) {
-    const he = String(row.hebrew_niqqud || row.hebrew_plain || "").trim();
+    // Dicta's morphology analyzer expects PLAIN (unvocalized) Hebrew — it does
+    // its OWN vocalization + analysis. Feeding pre-vocalized text (the bundle's
+    // source niqqud) biases/breaks it: «הַחֹרֶף» (noun "winter") gets mis-read as
+    // the hufal verb הָחֳרֵף. The app passes plain; we must too. Prefer hebrew_plain,
+    // else niqqud-strip the vocalized form.
+    const he = String(row.hebrew_plain || stripNiqqud(row.hebrew_niqqud) || "").trim();
     if (he) sentences.push({ textId: t.text_id, rowId: row.row_id, he, plainKey: stripNiqqud(he) });
   }
   log("sentences:", sentences.length, "→ Dicta (conc " + DICTA_CONC + ")");
