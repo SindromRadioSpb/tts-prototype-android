@@ -37811,12 +37811,21 @@ function v3NotesTemplateHydrate(body) {
     conj.open = false;
     conj.removeAttribute("data-conj-loaded");
     conj.removeAttribute("data-conj-key");
-    ["word", "lemma", "binyan", "pos", "root"].forEach((k) => conj.removeAttribute("data-conj-" + k));
+    ["word", "lemma", "binyan", "pos", "root", "form"].forEach((k) => conj.removeAttribute("data-conj-" + k));
     const cb = conj.querySelector(".v3-conj-body");
     if (cb) cb.innerHTML = "";
     const cs = conj.querySelector(".v3-wordcard-acc-summary");
     if (cs) cs.textContent = v3NotesT("notes.card.conj.summaryEditor", "Спряжение / Склонение");
   }
+  // Same singleton invariant for the Dicta root-hint status line: its
+  // "✓ Корень проверен · prefix+stem" result is a reused element and would
+  // otherwise leak the PREVIOUS note's word into the next one (bug 2026-06-02).
+  // Clear its content + hide it, and drop the prior note's manual-edit flags so
+  // the new word's morphology auto-fill / hint runs fresh.
+  const rootHint = document.getElementById("v3NotesTplWordStudyRootHint");
+  if (rootHint) { rootHint.innerHTML = ""; rootHint.style.display = "none"; }
+  const rootInput = document.getElementById("v3NotesTplWordStudyRoot");
+  if (rootInput) { delete rootInput.dataset.userTouched; rootInput.dataset.autoFilled = ""; }
   // Show the accordion only for inflecting POS (verb/noun/adj); hide it for
   // function words (adverb/pronoun/preposition/…) which have no Pealim table.
   v3NotesTplConjGate();

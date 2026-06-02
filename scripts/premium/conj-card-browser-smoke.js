@@ -276,7 +276,10 @@ async function main() {
       conj.setAttribute("data-conj-lemma", "חזר");
       const body = conj.querySelector(".v3-conj-body");
       if (body) body.innerHTML = '<div class="v3-conj-cell">STALE</div>';
-      // Now open a DIFFERENT note (noun פרויקט) — hydrate must reset the accordion.
+      // Also simulate a stale Dicta root-hint result left from the previous note.
+      const rh = document.getElementById("v3NotesTplWordStudyRootHint");
+      if (rh) { rh.innerHTML = "✓ Корень проверен · ש+נסעת"; rh.style.display = ""; }
+      // Now open a DIFFERENT note (noun פרויקט) — hydrate must reset accordion + root-hint.
       window.v3NotesTemplateHydrate({ word: "פרויקט", root: "פרויקט", part_of_speech: "noun", binyan: "", meaning: "проект" });
       return {
         open: conj.open,
@@ -284,10 +287,13 @@ async function main() {
         lemmaAttr: conj.getAttribute("data-conj-lemma"),
         bodyEmpty: (conj.querySelector(".v3-conj-body") || {}).innerHTML === "",
         noStale: !/STALE/.test((conj.querySelector(".v3-conj-body") || {}).innerHTML || ""),
+        rootHintCleared: rh ? (rh.innerHTML === "" && rh.style.display === "none") : true,
+        rootHintNoLeak: rh ? !/נסעת/.test(rh.innerHTML || "") : true,
       };
     });
-    test("Case 8: hydrate(other note) resets accordion (no stale paradigm)",
-         r8.open === false && r8.loaded === null && r8.lemmaAttr === null && r8.bodyEmpty && r8.noStale,
+    test("Case 8: hydrate(other note) resets accordion + root-hint (no stale leak)",
+         r8.open === false && r8.loaded === null && r8.lemmaAttr === null && r8.bodyEmpty && r8.noStale &&
+         r8.rootHintCleared && r8.rootHintNoLeak,
          JSON.stringify(r8));
 
     // ── Case 9: POS gating — helper + editor accordion visibility ─────────
