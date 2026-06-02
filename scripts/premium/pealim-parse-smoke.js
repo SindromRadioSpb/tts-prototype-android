@@ -141,6 +141,10 @@ async function testLive() {
     // Surface-fallback fires on a WRONG-binyan form hit: נִמְצָא is paal future-1pl
     // AND nifal present; want=nifal must reach the nifal (1084), not stop on paal.
     { const r = await P.resolveLemma("מצא", { pos: "verb", binyan: "nifal", root: "מצא", form: "נִמְצָא" }); ok("  מצא+nifal+form נִמְצָא → nifal 1084 (not paal 1083)", r.ok && String(r.paradigm.pealim_id) === "1084" && r.paradigm.binyan === "nifal", r.ok ? ("id=" + r.paradigm.pealim_id + " binyan=" + r.paradigm.binyan) : r.reason); }
+    // Proclitic-stacked verb surface (v11): שֶׁלְּהַחֲלִים = ש+ל+הַחֲלִים — search(שלהחלים)
+    // is empty, but the hifil לְהַחְלִים (606) is found by peeling proclitics off the
+    // surface form in the fallback. The bare root חלם search alone misses the hifil.
+    { const r = await P.resolveLemma("חלם", { pos: "verb", binyan: "hifil", root: "חלם", form: "שֶׁלְּהַחֲלִים" }); ok("  חלם+hifil+form שֶׁלְּהַחֲלִים → hifil להחלים (606) via proclitic-peel surface", r.ok && String(r.paradigm.pealim_id) === "606" && r.paradigm.binyan === "hifil", r.ok ? ("id=" + r.paradigm.pealim_id + " binyan=" + r.paradigm.binyan) : r.reason); }
   } catch (e) { ok("pos-matrix live no throw", false, e.message); }
 }
 

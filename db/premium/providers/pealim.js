@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v10"; // v10: noun↔adj kinship (+6); surface-fallback fires on wrong-binyan form-hit (נמצא nifal≠paal); proclitic-stripped form match
+const MODEL_VERSION = "pealim-infl-v11"; // v11: surface fallback also peels proclitics (שלהחלים hifil via להחלים) — recovers proclitic-stacked binyan verbs
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -422,10 +422,17 @@ async function resolveLemma(heLemma, opts) {
   const formHitRightBinyan = bestFormHit && (!want.binyan || (best && best.binyan === want.binyan));
   if (!done && want.form && !formHitRightBinyan) {
     const surf = stripNiqqud(want.form);
-    if (surf && surf.length >= 2 && surf !== lemmaPlain) {
+    // Search the inflected surface AND its proclitic-stripped stems: a verb in
+    // context can carry stacked proclitics (שֶׁלְּהַחֲלִים = ש+ל+הַחֲלִים) — search(שלהחלים)
+    // returns nothing, but the hifil לְהַחְלִים is found via להחלים/החלים. Peel and retry.
+    const queries = [];
+    if (surf && surf.length >= 2 && surf !== lemmaPlain) queries.push(surf);
+    for (const stem of proclictStems(surf)) if (stem !== lemmaPlain && queries.indexOf(stem) < 0) queries.push(stem);
+    for (const qy of queries) {
+      if (done) break;
       let more = [];
-      try { more = await searchLemma(surf); } catch (e) { if (e && e.status === 429) throw e; }
-      await scan(more);
+      try { more = await searchLemma(qy); } catch (e) { if (e && e.status === 429) throw e; }
+      done = await scan(more);
     }
   }
   if (!best) return { ok: false, reason: "no_parsable_entry", model_version: MODEL_VERSION };

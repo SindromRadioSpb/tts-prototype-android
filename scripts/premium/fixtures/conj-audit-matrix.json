@@ -1582,5 +1582,17 @@
   "note": "נִמְצָא is paal future-1pl AND nifal present (homograph by binyan). want=nifal must reach 1084 via surface-fallback even though the paal form-matches first.",
   "dimension": "verb-binyanim",
   "audit_reclassified": true
+ },
+ {
+  "he": "חלם",
+  "pos": "verb",
+  "binyan": "hifil",
+  "root": "חלם",
+  "form": "שֶׁלְּהַחֲלִים",
+  "id": "606",
+  "expect": "verb",
+  "note": "Proclitic-stacked verb surface שֶׁלְּהַחֲלִים (ש+ל+הַחֲלִים): search(שלהחלים)=[], the hifil לְהַחְלִים (606) found only by peeling proclitics off the surface form in the fallback.",
+  "dimension": "prefix-attached",
+  "audit_reclassified": true
  }
 ]
