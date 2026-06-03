@@ -79,6 +79,7 @@
     "smoke:conj": "node scripts/premium/pealim-parse-smoke.js && node scripts/premium/conj-card-browser-smoke.js",
     "smoke:conj:audit": "node scripts/premium/conj-audit.js scripts/premium/fixtures/conj-audit-matrix.json",
     "smoke:conj:dict": "node scripts/premium/inflection-dict-smoke.js",
+    "smoke:conj:pos-hydrate": "node scripts/premium/note-pos-hydrate-check.js",
     "smoke:conj:dict-browser": "node scripts/premium/inflection-dict-browser-check.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",

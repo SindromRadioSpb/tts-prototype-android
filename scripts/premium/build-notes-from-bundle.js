@@ -203,7 +203,9 @@ function checkUnit(u, r) {
     const ns = noteSeeds[i];
     const res = resolved.get(ns.unitKey) || {};
     const meaning = res.meaning || "";
-    const body = { word: ns.word, niqqud_variant: ns.niqqud || "", root: ns.root || "", pos: ns.pos || "", binyan: ns.binyan || "", meaning };
+    // `pos` is the kmap/json_extract key; `part_of_speech` is the note-editor
+    // form key (V3_NOTES_TPL_FIELDS) — emit both so POS hydrates in the editor.
+    const body = { word: ns.word, niqqud_variant: ns.niqqud || "", root: ns.root || "", pos: ns.pos || "", part_of_speech: ns.pos || "", binyan: ns.binyan || "", meaning };
     notes.push({
       id: "gen-" + ns.textId + "-" + ns.rowId + "-" + ns.offset,
       target_kind: "word",

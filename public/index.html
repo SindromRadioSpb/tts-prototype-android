@@ -36481,7 +36481,7 @@ const V3_NOTES_TPL_FIELDS = {
     { id: "v3NotesTplWordStudyNiqqud",   key: "niqqud_variant",   required: false, type: "text"     },
     { id: "v3NotesTplWordStudyRoot",     key: "root",             required: false, type: "text"     },
     { id: "v3NotesTplWordStudyMeaning",  key: "meaning",          required: true,  type: "text"     },
-    { id: "v3NotesTplWordStudyPos",      key: "part_of_speech",   required: false, type: "select"   },
+    { id: "v3NotesTplWordStudyPos",      key: "part_of_speech",   altKey: "pos", required: false, type: "select"   },
     { id: "v3NotesTplWordStudyBinyan",   key: "binyan",           required: false, type: "select"   },
     { id: "v3NotesTplWordStudyMnemonic", key: "mnemonic",         required: false, type: "textarea" },
     { id: "v3NotesTplWordStudyExample",  key: "example_sentence", required: false, type: "textarea" },
@@ -37824,7 +37824,10 @@ function v3NotesTemplateHydrate(body) {
   for (const f of fields) {
     const el = document.getElementById(f.id);
     if (!el) continue;
-    const val = obj[f.key];
+    let val = obj[f.key];
+    // Back-compat: bulk-generated ② notes wrote `pos`; the form key is
+    // `part_of_speech`. altKey bridges so POS hydrates for those notes too.
+    if (val == null && f.altKey != null) val = obj[f.altKey];
     if (val == null) { el.value = ""; continue; }
     if (Array.isArray(val)) {
       el.value = val.join(f.type === "csv" ? ", " : "\n");
