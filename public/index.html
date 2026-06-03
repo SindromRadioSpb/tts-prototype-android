@@ -11859,6 +11859,7 @@ body:not(.theme-light) .v3-heatmap-cell {
 <script src="/js/knowledge-map-view.js"></script>
 <!-- Offline Pealim inflection dictionary loader (lazy dataset under /data/inflection/) -->
 <script src="/js/inflection-dict.js"></script>
+<script src="/js/pealim-function-links.js"></script>
 
 <!-- v3.4 C1 — inline [[ autocomplete in the note editor (A-G1).
      Self-contained; read-only candidate search; links materialised
@@ -40790,11 +40791,23 @@ async function v3WordCardLoadInflection(detailsEl) {
   const pealimLink = `<a class="v3-conj-recheck" href="${v3EscapeHtml(v3WordCardPealimUrl(lemma))}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
   // Non-inflecting function word (adverb/pronoun/conjunction/…) with no compatible
   // offline hit → it has no content table; DON'T chase an online content fetch (which
-  // would only match a homograph). Show the honest "не изменяется" note + a SEARCH
-  // link (lets Pealim disambiguate all senses), instantly. (Personal pronouns + any
-  // invariant hit were already handled above.)
+  // would only match a homograph). Show the honest "не изменяется" note instantly.
+  // For the link, prefer a DIRECT deep-link to the word's own Pealim invariant entry
+  // (from the function-links map) — falls back to a SEARCH link otherwise. (Personal
+  // pronouns + any compatible invariant hit were already handled above.)
   if (!v3ConjPosInflects(pos)) {
-    body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>${pealimLink}`;
+    let fnLink = pealimLink;
+    try {
+      if (window.PealimFunctionLinks) {
+        try { await window.PealimFunctionLinks.ensureReady(); } catch (_) {}   // tiny file; makes the first open direct too
+        const fe = window.PealimFunctionLinks.lookup(detailsEl.getAttribute("data-conj-word") || lemma, pos, { stem, lemma });
+        if (fe && fe.id) {
+          const url = "https://www.pealim.com/ru/dict/" + encodeURIComponent(fe.id) + "-/";
+          fnLink = `<a class="v3-conj-recheck" href="${v3EscapeHtml(url)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+        }
+      }
+    } catch (_) {}
+    body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>${fnLink}`;
     return;
   }
   if (!navigator.onLine) { body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.offline", "Таблица недоступна офлайн — обогатите текст морфологией."))}</div>${pealimLink}`; return; }

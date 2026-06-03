@@ -81,9 +81,22 @@ function glossConflict(a, b) {
   return !B.some((w) => A.has(w));
 }
 
+// function-word → Pealim dict-page map (built by build-function-links.js) — models
+// the client's direct-link enhancement for non-inflecting words.
+function loadFuncLinks() {
+  try { const p = path.join(REPO, "public", "data", "inflection", "pealim-function-links.v1.json"); return (JSON.parse(fs.readFileSync(p, "utf8")).links) || {}; }
+  catch (_) { return {}; }
+}
+function funcLink(map, word, stem, lemma, pos) {
+  for (const k of [sp(word), sp(stem), sp(lemma)]) { const e = k && map[k]; if (e && (!pos || !e.pos || e.pos === pos)) return e; }
+  for (const k of [sp(word), sp(stem), sp(lemma)]) { const e = k && map[k]; if (e) return e; }
+  return null;
+}
+
 (async () => {
   if (!fs.existsSync(ZIP_IN)) { console.error("[pealim-link-audit] no zip:", ZIP_IN); process.exit(2); }
   const { clientLookup, entry_count } = loadDict();
+  const funcMap = loadFuncLinks();
   const zip = await JSZip.loadAsync(fs.readFileSync(ZIP_IN));
   const advFile = zip.file("library/notes_advanced.json") || zip.file("notes_advanced.json");
   const adv = JSON.parse(await advFile.async("string"));
@@ -93,6 +106,8 @@ function glossConflict(a, b) {
   const byPos = {}, classes = {}, perPosClass = {}, examples = {};
   const addEx = (cls, s) => { (examples[cls] = examples[cls] || []); if (examples[cls].length < 10) examples[cls].push(s); };
   let dictId = 0, search = 0;
+  // function-word link outcome (models the client guard + function-links map)
+  let fnTotal = 0, fnDirect = 0, fnSearch = 0; const fnSearchEx = [];
 
   for (const n of notes) {
     let b; try { b = JSON.parse(n.body_json); } catch (_) { continue; }
@@ -133,6 +148,16 @@ function glossConflict(a, b) {
 
     classes[cls] = (classes[cls] || 0) + 1;
     perPosClass[pos] = perPosClass[pos] || {}; perPosClass[pos][cls] = (perPosClass[pos][cls] || 0) + 1;
+
+    // For non-inflecting function words, model the FINAL client outcome: the POS-guard
+    // sends any content homograph to the function-links map → direct link if present,
+    // else honest search. (This is the precision metric for the function-links rebuild.)
+    if (FUNCTION_POS.has(pos) && !isProper) {
+      fnTotal++;
+      const fe = funcLink(funcMap, b.word, stem, lemma, pos);
+      if (fe && fe.id) fnDirect++;
+      else { fnSearch++; if (fnSearchEx.length < 12) fnSearchEx.push(b.word + " [" + pos + "]"); }
+    }
     if (cls !== "OK_dict" && cls !== "SEARCH_fallback")
       addEx(cls, b.word + " [" + pos + (binyan ? "/" + binyan : "") + "] → id " + hit.pealim_id + " pos=" + (hit.pos || "") + " kind=" + (hit.kind || "") + " «" + String(hit.meaning || "").slice(0, 24) + "» (note «" + String(b.meaning || "").slice(0, 24) + "»)");
   }
@@ -164,6 +189,10 @@ function glossConflict(a, b) {
     console.log("─".repeat(66));
     console.log("  cross-POS homograph hits:", hardCount, "— ALL neutralized to honest search by the client POS-guard (v3ConjHitCompatible)");
     console.log("  same-POS gloss-conflict (soft, deferred — needs form-disambig):", classes.H_same_pos_glossconflict || 0);
+    console.log("─".repeat(66));
+    console.log("  function-word link outcome (guard + function-links map):", fnTotal, "total →",
+      fnDirect, "DIRECT dict-link,", fnSearch, "honest search");
+    if (fnSearchEx.length) console.log("  still-search e.g.:", fnSearchEx.join(", "));
     for (const c of Object.keys(classes).filter(isHard).concat(["H_same_pos_glossconflict"])) {
       if (examples[c] && examples[c].length) { console.log("\n  [" + c + "  =" + (classes[c] || 0) + "]"); for (const e of examples[c]) console.log("    " + e); }
     }

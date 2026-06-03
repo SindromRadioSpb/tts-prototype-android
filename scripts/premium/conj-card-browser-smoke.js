@@ -320,14 +320,18 @@ async function main() {
         await new Promise((r) => setTimeout(r, 100));
         if (body && body.querySelector(".v3-conj-recheck")) break;
       }
+      const link = body && body.querySelector(".v3-conj-recheck");
       return {
         gateOk,
         advNotHidden: conj.style.display !== "none",
-        advHasLink: !!(body && body.querySelector(".v3-conj-recheck")),   // Pealim link kept (loadbtn/profile)
+        advHasLink: !!link,                                               // Pealim link kept (loadbtn/profile)
+        advHref: link ? link.getAttribute("href") : "",                  // שוב → direct dict page via function-links map
       };
     });
     test("Case 9: POS gate helper + editor non-inflecting not hidden, keeps Pealim link",
          r9.gateOk && r9.advNotHidden && r9.advHasLink, JSON.stringify(r9));
+    test("Case 9b: non-inflecting שוב → DIRECT Pealim dict page (function-links), not search",
+         /\/ru\/dict\//.test(r9.advHref) && !/\/search\//.test(r9.advHref), JSON.stringify({ advHref: r9.advHref }));
 
     // ── Case 2f: query-lemma selection — function word uses Dicta BASE form ──
     // הבחוץ → Dicta base בחוץ (adverb), root חוץ (a DIFFERENT lexeme = noun). A

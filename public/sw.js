@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.7.6-pealim-link-posguard";
+const CACHE_VERSION = "v3.7.7-func-links";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -73,6 +73,8 @@ const PRECACHE_URLS = [
   "/js/knowledge-map-view.js",
   // Offline Pealim inflection dict loader (dataset itself is lazy, not precached)
   "/js/inflection-dict.js",
+  // Function-word → Pealim dict-page link map loader (map JSON is lazy via /data/inflection/)
+  "/js/pealim-function-links.js",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js",
