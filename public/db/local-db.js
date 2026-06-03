@@ -2659,7 +2659,8 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
       ((notesAdvanced.notes || []).length ||
        (notesAdvanced.versions || []).length ||
        (notesAdvanced.links || []).length ||
-       (notesAdvanced.roots || []).length)),
+       (notesAdvanced.roots || []).length ||
+       (notesAdvanced.sentence_morph || []).length)),
   };
   const library = { schema_version: 1, texts, audio_assets: audioAssets };
   // Backwards-compat: also expose `texts` at the top of the returned object so
@@ -2743,6 +2744,20 @@ async function _buildAdvancedNotesPayload(textIds) {
   const allRoots = await q('SELECT root_3letter, gloss, my_note_id FROM roots');
   const roots = allRoots.filter((r) => r.my_note_id && noteIdSet.has(r.my_note_id));
 
+  // 5) sentence_morph — stored Dicta per-sentence morphology (offline auto-fill
+  //    of POS / root-hint in the word_study editor). Portable reference data;
+  //    re-imported under remapped sentence ids. Keyed by old sentence id (row_id).
+  const sentenceMorph = [];
+  for (const tid of (Array.isArray(textIds) ? textIds : [])) {
+    try {
+      const m = await getSentenceMorphForText(tid);
+      for (const sid in m) {
+        if (!Object.prototype.hasOwnProperty.call(m, sid)) continue;
+        sentenceMorph.push({ sentence_id: String(sid), text_id: String(tid), model_version: m[sid].model_version || '', provider: 'dicta-morph', tokens: m[sid].tokens || [] });
+      }
+    } catch (_) {}
+  }
+
   return {
     schema_version: 1,
     exported_at: new Date().toISOString(),
@@ -2752,6 +2767,7 @@ async function _buildAdvancedNotesPayload(textIds) {
     versions,
     links,
     roots,
+    sentence_morph: sentenceMorph,
   };
 }
 
@@ -3198,6 +3214,20 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
       );
       out.roots.inserted++;
     } catch (_) { /* skip */ }
+  }
+
+  // Pass 5 — sentence_morph (stored Dicta morphology). Remap text_id +
+  // sentence_id like word-note FKs, then saveSentenceMorph so the word_study
+  // editor auto-fills POS / root-hint OFFLINE (no live Dicta call needed).
+  out.sentence_morph = { inserted: 0, dropped: 0 };
+  const sentMorph = Array.isArray(payload.sentence_morph) ? payload.sentence_morph : [];
+  for (const e of sentMorph) {
+    if (!e || typeof e !== 'object') { out.sentence_morph.dropped++; continue; }
+    const newTid = _remap(oldToNewTextId, e.text_id);
+    const newSid = _remap(oldToNewSentenceId, e.sentence_id);
+    if (!newTid || !newSid || !Array.isArray(e.tokens) || !e.tokens.length) { out.sentence_morph.dropped++; continue; }
+    try { await saveSentenceMorph(newTid, newSid, e.model_version || '', e.tokens, e.provider || 'dicta-morph'); out.sentence_morph.inserted++; }
+    catch (_) { out.sentence_morph.dropped++; }
   }
 
   return out;

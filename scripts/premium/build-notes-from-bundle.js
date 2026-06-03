@@ -245,7 +245,23 @@ function checkUnit(u, r) {
 
   // ── 5) repackage enriched bundle ──────────────────────────────────────────
   if (!NO_ZIP) {
-    const advanced = { schema_version: 1, exported_at: stamp, app_id: "linguist-pro-web", format: "linguistpro-notes-advanced-v1", notes, versions: [], links: [], roots: [] };
+    // Per-sentence Dicta morphology → offline auto-fill of POS / root-hint in
+    // the word_study editor (no live "Уточнить корень" needed). Map the cached
+    // tokens to the app's token shape (posDicta is the field v3MorphTokenToResult
+    // reads). Keyed by sentence_id = row_id (remapped on import).
+    const DICTA_MORPH_MODEL = "dicta-morph-v2";
+    const sentenceMorph = [];
+    for (const s of sentences) {
+      const toks = dcache[s.plainKey] || [];
+      if (!toks.length) continue;
+      sentenceMorph.push({
+        sentence_id: String(s.rowId), text_id: String(s.textId),
+        model_version: DICTA_MORPH_MODEL, provider: "dicta-morph",
+        tokens: toks.map((t) => ({ word: t.word, posDicta: t.pos || null, binyan: t.binyan || null, lemma: t.lemma || null, niqqud: t.niqqud || null, prefix: t.prefix || null, stem: t.stem || null, kind: t.kind || null })),
+      });
+    }
+    log("sentence_morph entries:", sentenceMorph.length);
+    const advanced = { schema_version: 1, exported_at: stamp, app_id: "linguist-pro-web", format: "linguistpro-notes-advanced-v1", notes, versions: [], links: [], roots: [], sentence_morph: sentenceMorph };
     zip.file("library/notes_advanced.json", JSON.stringify(advanced));
     // flip manifest flag
     try { const mf = zip.file("manifest.json"); if (mf) { const m = JSON.parse(await mf.async("string")); m.notes_advanced_present = true; m.notes_count = notes.length; zip.file("manifest.json", JSON.stringify(m, null, 2)); } } catch (_) {}
