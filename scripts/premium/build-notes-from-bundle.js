@@ -60,6 +60,56 @@ function queryLemma(pos, root, lemma, stem) {
   return CONTENT_INFLECTS.has(pos) ? (root || lemma || stem) : (stem || lemma);
 }
 
+// ── offline Pealim dict → «Перевод» fallback (B0.1) ─────────────────────────
+// When the LIVE resolve yields no gloss (transient miss / key the live resolver
+// couldn't match but the multi-alias dict can), fill `meaning` from the shipped
+// Pealim dataset. Real Pealim glosses only — never fabricated (R1). Keyed by plain
+// root / lemma / highlighted form; binyan- then pos-preferred to avoid homograph drift.
+function loadOfflineMeaning() {
+  const p = path.join(REPO, "public", "data", "inflection", "pealim-infl-v12.json.gz");
+  const alias = new Map();   // base key (root/lemma/form) → [{ binyan, pos, meaning }]
+  const cell = new Map();    // inflected surface form → [{ binyan, pos, meaning }]
+  try {
+    const d = JSON.parse(require("zlib").gunzipSync(fs.readFileSync(p)).toString("utf8"));
+    const push = (map, kk, par) => {
+      if (!kk) return; if (!map.has(kk)) map.set(kk, []);
+      const list = map.get(kk);
+      if (!list.some((x) => x.binyan === (par.binyan || "") && x.meaning === par.meaning)) list.push({ binyan: par.binyan || "", pos: par.pos || "", meaning: par.meaning });
+    };
+    for (const par of d.paradigms || []) {
+      if (!par || !par.meaning) continue;
+      for (const k of [par.root, par.lemma, par.form]) push(alias, stripNiqqud(k), par);
+      // inflected cells: a participle Dicta cross-tags as a noun (כותב, עובד) is the
+      // AP-ms cell of its verb paradigm — the cell's gloss IS the right «Перевод».
+      if (par.cells) for (const ck of Object.keys(par.cells)) { const c = par.cells[ck]; if (c && c.he) push(cell, stripNiqqud(c.he), par); }
+    }
+  } catch (e) { log("offline-dict meaning load failed:", String(e && e.message || e)); }
+  return { alias, cell };
+}
+function offlineMeaningLookup(maps, u) {
+  if (!maps) return null;
+  // 1) base-form alias (root/lemma) — most authoritative.
+  const aKeys = [stripNiqqud(u.root), stripNiqqud(u.lemma), stripNiqqud(u.stem), stripNiqqud(u.sampleWord), stripNiqqud(u.niqqud)].filter(Boolean);
+  for (const k of aKeys) {
+    const arr = maps.alias.get(k); if (!arr || !arr.length) continue;
+    if (u.binyan) { const m = arr.find((x) => x.binyan === u.binyan); if (m) return m.meaning; }
+    if (u.pos) { const m = arr.find((x) => x.pos === u.pos); if (m) return m.meaning; }
+    return arr[0].meaning;
+  }
+  // 2) inflected-cell reverse lookup — ONLY for content / unclassified words (never
+  // give a function word a verb's gloss) and ONLY when the gloss is UNAMBIGUOUS after
+  // a binyan filter (≥2 distinct meanings → skip, don't guess). R1-honest.
+  if (u.pos && FUNCTION_POS.has(u.pos)) return null;
+  for (const k of [stripNiqqud(u.sampleWord), stripNiqqud(u.niqqud)].filter(Boolean)) {
+    let arr = maps.cell.get(k); if (!arr || !arr.length) continue;
+    if (u.binyan) { const f = arr.filter((x) => x.binyan === u.binyan); if (f.length) arr = f; }
+    const meanings = [...new Set(arr.map((x) => x.meaning))];
+    if (meanings.length === 1) return meanings[0];
+    return null;   // ambiguous → honest empty
+  }
+  return null;
+}
+
 // ── QA invariants (condensed from conj-audit.js) ────────────────────────────
 const REQUIRED = {
   verb: ["AP-ms", "PERF-3ms", "IMPF-3ms", "INF-L"],
@@ -165,11 +215,19 @@ function checkUnit(u, r) {
       const tk = toks[off];
       const word = stripNiqqud(tk.word || "");
       if (!word || word.length < 2) continue;
-      const pos = tk.pos || "";
       const lemma = stripNiqqud(tk.lemma || tk.stem || "");
-      const root = (pos === "verb" || pos === "noun") ? lemma : null;
       const stem = stripNiqqud(tk.stem || "");
       const binyan = tk.binyan || "";
+      let pos = tk.pos || "";
+      // pos inference (B0.2): Dicta sometimes emits a binyan but no POS for inflected/
+      // present-tense verbs (מגהץ piel, מציירות piel). A binyan is a verb-only feature →
+      // treat it as Dicta's own verb signal (not a guess). Require a lemma so the verb
+      // still gets a root (keeps R1-3). No binyan → leave POS empty (honest).
+      if (!pos && binyan && lemma) pos = "verb";
+      // root only for content verb/noun; NEVER for function words / proper nouns
+      // (R1-1 / R1-4 guard — defensive against a mis-tagged pos leaking a lemma as root).
+      const root = (FUNCTION_POS.has(pos) || tk.kind === "propernoun") ? null
+        : ((pos === "verb" || pos === "noun") ? lemma : null);
       const ukey = (lemma || word) + "|" + binyan + "|" + pos;
       if (!units.has(ukey)) units.set(ukey, { pos, binyan, root, lemma, stem, niqqud: tk.niqqud || "", sampleWord: word, kind: tk.kind });
       // note dedup
@@ -183,18 +241,24 @@ function checkUnit(u, r) {
   log("distinct units:", units.size, "| note seeds:", noteSeeds.length, "(dedup " + DEDUP + ")");
 
   // ── 3) resolve each distinct unit via the gateway (limiter + cache) ──────
+  const offlineMeaning = loadOfflineMeaning();
+  log("offline-dict meaning keys: alias", offlineMeaning.alias.size, "cell", offlineMeaning.cell.size);
   const unitList = [...units.entries()];
   const resolved = new Map();
-  let ri = 0;
+  let ri = 0, meaningFallbacks = 0;
   for (const [ukey, u] of unitList) {
     const q = queryLemma(u.pos, u.root, u.lemma, u.stem);
     let r = null;
     try { r = await inflect(q, { pos: u.pos || undefined, binyan: u.binyan || undefined, root: u.root || undefined, form: u.niqqud || undefined }); }
     catch (e) { r = { ok: false, reason: String(e && e.message || e) }; }
-    resolved.set(ukey, { r, check: checkUnit(u, r), meaning: (r && r.ok && r.paradigm) ? (r.paradigm.meaning || null) : null, pid: (r && r.ok && r.paradigm) ? r.paradigm.pealim_id : null });
+    let meaning = (r && r.ok && r.paradigm) ? (r.paradigm.meaning || null) : null;
+    // B0.1: live resolve gave no gloss → fall back to the shipped Pealim dataset
+    // (real glosses, never fabricated). Lifts «Перевод» coverage incl. function words.
+    if (!meaning) { const fb = offlineMeaningLookup(offlineMeaning, u); if (fb) { meaning = fb; meaningFallbacks++; } }
+    resolved.set(ukey, { r, check: checkUnit(u, r), meaning, pid: (r && r.ok && r.paradigm) ? r.paradigm.pealim_id : null });
     if (++ri % 50 === 0) log("  resolve", ri + "/" + unitList.length);
   }
-  log("resolve done");
+  log("resolve done; meaning fallbacks from offline dict:", meaningFallbacks);
 
   // ── 4) build notes_advanced + defect report ──────────────────────────────
   const notes = [];
