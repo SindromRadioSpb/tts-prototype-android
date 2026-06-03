@@ -24,19 +24,17 @@ async function main(){
   const errs=[];
   try{
     const ctx=await browser.newContext({serviceWorkers:"block",viewport:{width:1440,height:900}});
-    await ctx.addInitScript(()=>{ try{localStorage.setItem("knowledgeMapV1","1");}catch(_){} });
     const pg=await ctx.newPage();
     pg.on("pageerror",e=>errs.push(String(e.message||e)));
     await pg.goto(BASE+"/index.html?v=kmapboot",{waitUntil:"domcontentloaded"});
     await sleep(2500); // let boot run
-    const r=await pg.evaluate(()=>({
-      hasData: !!window.KnowledgeMapData,
-      hasView: !!window.KnowledgeMap,
-      flagOn: (function(){try{return typeof v3KnowledgeMapV1Enabled==="function"&&v3KnowledgeMapV1Enabled();}catch(_){return null;}})(),
-      btnVisible: (function(){var b=document.getElementById("btnKnowledgeMap");return !!b && b.style.display!=="none";})(),
-    }));
+    const r=await pg.evaluate(()=>{
+      var b=document.getElementById("btnKnowledgeMap");
+      var visible = !!b && getComputedStyle(b).display!=="none";
+      return { hasData: !!window.KnowledgeMapData, hasView: !!window.KnowledgeMap, btnVisible: visible };
+    });
     test("index.html boots; kmap modules expose globals", r.hasData && r.hasView, JSON.stringify(r));
-    test("flag helper present & on; 🌳 button revealed", r.flagOn===true && r.btnVisible===true, JSON.stringify(r));
+    test("🌳 button visible by default (no flag)", r.btnVisible===true, JSON.stringify(r));
     // fatal pageerrors only (ignore benign resource warnings captured as pageerror is rare)
     test("no fatal pageerror", errs.length===0, errs.join(" | "));
     await pg.screenshot({path:path.join(REPO_ROOT,".tmp","kmap-boot.png")});

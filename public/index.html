@@ -10200,8 +10200,7 @@ body:not(.theme-light) .v3-heatmap-cell {
                     <button id="btnTheme" class="classic-nav-tool app-theme-toggle" onclick="v3ThemeCycle()" data-i18n-title="theme.toggleTitle" data-i18n-aria-label="theme.toggleTitle" title="Переключить тему" aria-label="Переключить тему">🌗</button>
                     <button id="btnResearch" class="classic-nav-tool" onclick="window.LinguistProResearchUI&&window.LinguistProResearchUI.open()" data-i18n-title="research.btnTitle" data-i18n-aria-label="research.btnTitle" title="Research mode" aria-label="Research mode">📊</button>
                     <button id="btnGraph" class="classic-nav-tool" onclick="window.LinguistProGraph&&window.LinguistProGraph.open()" data-i18n-title="graph.btnTitle" data-i18n-aria-label="graph.btnTitle" title="Карта знаний" aria-label="Карта знаний">🕸</button>
-                    <button id="btnKnowledgeMap" class="classic-nav-tool" style="display:none" onclick="window.KnowledgeMap&&window.KnowledgeMap.open()" data-i18n-title="knowledgeMap.btnTitle" data-i18n-aria-label="knowledgeMap.btnTitle" title="Карта корней" aria-label="Карта корней">🌳</button>
-                    <script>try{var _kmv=localStorage.getItem('knowledgeMapV1');if(_kmv==='1'||_kmv==='true'){var _kmb=document.getElementById('btnKnowledgeMap');if(_kmb)_kmb.style.display='';}}catch(_){}</script>
+                    <button id="btnKnowledgeMap" class="classic-nav-tool" onclick="window.KnowledgeMap&&window.KnowledgeMap.open()" data-i18n-title="knowledgeMap.btnTitle" data-i18n-aria-label="knowledgeMap.btnTitle" title="Карта корней" aria-label="Карта корней">🌳</button>
                     <button id="btnMorphSettings" class="classic-nav-tool" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()" data-i18n-title="morph.settings.btnTitle" data-i18n-aria-label="morph.settings.btnTitle" title="Морфология" aria-label="Морфология">🔤</button>
                   </div>
                 </div>
@@ -39713,14 +39712,8 @@ function v3WordCardRichEnabled() {
   } catch (_) { return true; }
 }
 
-// Knowledge Map v3.8 (root-centric). Default OFF — a brand-new view shipped
-// behind a flag for instant rollback; the 🌳 nav button is revealed only when on.
-function v3KnowledgeMapV1Enabled() {
-  try {
-    const v = localStorage.getItem("knowledgeMapV1");
-    return v === "1" || v === "true";
-  } catch (_) { return false; }
-}
+// Knowledge Map v3.8 (root-centric) — always on (no flag); the 🌳 nav button
+// is visible by default on desktop and mobile.
 
 // Single status palette — IDENTICAL to the graph's LEARN_STYLE (notes-graph-
 // render.js:38) so a card badge, graph ring and recall bar read as one system.
