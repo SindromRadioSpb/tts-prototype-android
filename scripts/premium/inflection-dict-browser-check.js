@@ -8,7 +8,8 @@ const { spawn, spawnSync } = require("child_process");
 process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3228;
-const BASE = `http://127.0.0.1:${PORT}`;
+const URL_ARG = process.argv.includes("--url") ? process.argv[process.argv.indexOf("--url") + 1] : null;
+const BASE = URL_ARG || `http://127.0.0.1:${PORT}`;
 let pass = 0, fail = 0;
 const t = (n, c, e) => { if (c) { pass++; console.log("  ✓ " + n); } else { fail++; console.log("  ✗ " + n + (e ? " — " + e : "")); } };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -18,8 +19,9 @@ async function waitForReady(ms = 15000) { const s = Date.now(); while (Date.now(
 
 async function main() {
   const playwright = require("playwright");
-  const srv = startServer();
-  if (!(await waitForReady())) { console.error("server failed"); await stopServer(srv); process.exit(1); }
+  const srv = URL_ARG ? null : startServer();
+  if (!URL_ARG && !(await waitForReady())) { console.error("server failed"); await stopServer(srv); process.exit(1); }
+  if (URL_ARG) console.log("[check] external target:", BASE);
   const browser = await playwright.chromium.launch();
   const errs = [];
   try {
