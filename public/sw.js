@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.5.58-note-search";
+const CACHE_VERSION = "v3.6.0-kmap-phase2";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -61,6 +61,9 @@ const PRECACHE_URLS = [
   "/",
   "/index.html",
   "/manifest.json",
+  // Knowledge Map v3.8 (root-centric, flag knowledgeMapV1)
+  "/js/knowledge-map-data.js",
+  "/js/knowledge-map-view.js",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js",
