@@ -11857,6 +11857,8 @@ body:not(.theme-light) .v3-heatmap-cell {
 <!-- Knowledge Map v3.8 (root-centric), behind flag knowledgeMapV1 -->
 <script src="/js/knowledge-map-data.js"></script>
 <script src="/js/knowledge-map-view.js"></script>
+<!-- Offline Pealim inflection dictionary loader (lazy dataset under /data/inflection/) -->
+<script src="/js/inflection-dict.js"></script>
 
 <!-- v3.4 C1 — inline [[ autocomplete in the note editor (A-G1).
      Self-contained; read-only candidate search; links materialised
@@ -40697,7 +40699,29 @@ async function v3WordCardLoadInflection(detailsEl) {
     }
   } catch (_) {}
 
-  // 2) online + consent → fetch + cache
+  // 2) Shipped OFFLINE Pealim dict (works offline, no consent, no server scrape).
+  //    Stem-aware: try lemma, Dicta stem, and proclitic-stripped variants against
+  //    the dict's multi-alias keys (root+lemma per binyan). Self-warms OPFS so the
+  //    next open is a pure step-1 hit; also kicks a one-time background bulk import.
+  try {
+    if (window.InflectionDict) {
+      try { const _imp = window.InflectionDict.ensureImported(); if (_imp && _imp.then) _imp.catch(() => {}); } catch (_) {}
+      const dictCands = [];
+      const pushC = (k) => { const s = String(k || "").trim(); if (s && dictCands.indexOf(s) < 0) dictCands.push(s); };
+      pushC(lemma); pushC(stem);
+      [lemma, stem].forEach((s) => { let t = String(s || ""); for (let d = 0; d < 4 && t.length > 2 && "והשכלבמ".indexOf(t[0]) >= 0; d++) { t = t.slice(1); pushC(t); } });
+      for (let ci = 0; ci < dictCands.length; ci++) {
+        let hit = await window.InflectionDict.lookup(dictCands[ci], binyan || "");
+        if (!hit && binyan) hit = await window.InflectionDict.lookup(dictCands[ci], "");
+        if (hit) {
+          try { const ldb2 = await ensureLocalDB(); await ldb2.saveLemmaInflection(lemma, binyan || "", hit.pos || pos || null, hit.kind || null, V3_PEALIM_INFL_MODEL, hit, hit.source || "pealim", hit.pealim_id || null); } catch (_) {}
+          body.innerHTML = v3RenderInflectionParadigm(hit, renderOpts); v3ConjSyncSummary(detailsEl, hit); return;
+        }
+      }
+    }
+  } catch (_) {}
+
+  // 3) online + consent → fetch + cache (rare fallback; blocked on prod)
   const pealimLink = `<a class="v3-conj-recheck" href="${v3EscapeHtml(v3WordCardPealimUrl(lemma))}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
   if (!navigator.onLine) { body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.offline", "Таблица недоступна офлайн — обогатите текст морфологией."))}</div>${pealimLink}`; return; }
   if (!v3MorphOnlineConsentOk()) {

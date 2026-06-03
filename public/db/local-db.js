@@ -557,6 +557,38 @@ export async function deleteLemmaInflectionForModel(modelVersion) {
   await r(`DELETE FROM lemma_inflection WHERE model_version = ?`, [String(modelVersion || '')]);
 }
 
+// Bulk-insert many paradigms in chunked transactions — for the offline Pealim
+// dictionary import (Phase 2). rows: [{ lemma, binyan, modelVersion, pos, kind,
+// paradigm, source, pealimId }]. ON CONFLICT upsert (idempotent re-import).
+export async function bulkSaveLemmaInflections(rows, opts) {
+  const list = Array.isArray(rows) ? rows : [];
+  const chunk = (opts && opts.chunk) || 500;
+  const now = new Date().toISOString();
+  let written = 0;
+  for (let i = 0; i < list.length; i += chunk) {
+    const slice = list.slice(i, i + chunk);
+    await x('BEGIN;');
+    try {
+      for (const row of slice) {
+        if (!row || !row.lemma) continue;
+        await r(
+          `INSERT INTO lemma_inflection (lemma, binyan, model_version, pos, kind, paradigm_json, source, pealim_id, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(lemma, binyan, model_version) DO UPDATE SET
+             pos=excluded.pos, kind=excluded.kind, paradigm_json=excluded.paradigm_json,
+             source=excluded.source, pealim_id=excluded.pealim_id, updated_at=excluded.updated_at`,
+          [String(row.lemma), String(row.binyan || ''), String(row.modelVersion || ''), row.pos || null, row.kind || null,
+           JSON.stringify(row.paradigm || {}), row.source || null, row.pealimId || null, now, now]
+        );
+        written++;
+      }
+      await x('COMMIT;');
+    } catch (e) { await x('ROLLBACK;').catch(() => {}); throw e; }
+    if (opts && typeof opts.onProgress === 'function') { try { opts.onProgress(Math.min(i + chunk, list.length), list.length); } catch (_) {} }
+  }
+  return written;
+}
+
 export async function addSentence(textId, data) {
   if (!textId) throw new Error('addSentence: textId is required');
   if (!data || !data.id) throw new Error('addSentence: data.id is required');

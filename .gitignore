@@ -84,6 +84,12 @@ data/*.db-*
 data/backups/
 *.db
 
+# EXCEPTION: ship the offline Pealim inflection dataset (the unanchored `data/`
+# rule above would otherwise ignore public/data/). Re-include the dir + dataset.
+!public/data/
+!public/data/inflection/
+!public/data/inflection/**
+
 # Step 8.x smoke artifacts
 out.mp3
 part.bin

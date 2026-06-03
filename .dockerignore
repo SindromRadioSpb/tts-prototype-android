@@ -15,6 +15,12 @@ node_modules/
 
 # Persistent runtime data (mounted as volume at /app/data)
 data/
+# EXCEPTION: the shipped offline Pealim inflection dataset lives under
+# public/data/ — must be IN the image (served at /data/inflection/). The
+# unanchored data/ rule above would exclude it, so re-include it.
+!public/data/
+!public/data/inflection/
+!public/data/inflection/**
 
 # Test/personal library fixtures (version-controlled in git, but NOT baked
 # into the server image — user libraries live in browser OPFS, not on server)

@@ -1,0 +1,12 @@
+{
+  "format_version": 1,
+  "model_version": "pealim-infl-v12",
+  "source": "pealim",
+  "entry_count": 9279,
+  "key_count": 13439,
+  "collision_count": 4049,
+  "raw_bytes": 28592308,
+  "gz_bytes": 3463862,
+  "build_timestamp": "2026-06-03T11:30:54Z",
+  "note": "Offline Pealim inflection paradigms. Multi-alias index (root+lemma per binyan)."
+}

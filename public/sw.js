@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.6.0-conj-v12-proclitic";
+const CACHE_VERSION = "v3.7.0-offline-infl";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -40,6 +40,12 @@ const MORPH_CACHE = `linguistpro-morph-${CACHE_VERSION}`;
 // it (iOS Safari friendliness). 80 % matches the "Add to Home Screen"
 // quota recommendation in the Safari Web Content Guide.
 const MORPH_QUOTA_THRESHOLD = 0.80;
+
+// Offline Pealim inflection dataset (~4-5 MB gzipped). Own bucket (evictable
+// independently, like MORPH_CACHE). Lazy — NOT in PRECACHE_URLS; fetched on
+// first conjugation table open via window.InflectionDict. Filename is
+// model-versioned (pealim-infl-<model>.json.gz) so a model bump can't stale.
+const INFLECTION_CACHE = `linguistpro-inflection-${CACHE_VERSION}`;
 
 // v3.3.6 Direction 14 — Knowledge Graph lazy chunks. Held in their own
 // bucket, versioned INDEPENDENTLY of CACHE_VERSION so a graph-asset
@@ -65,6 +71,8 @@ const PRECACHE_URLS = [
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
   "/js/knowledge-map-view.js",
+  // Offline Pealim inflection dict loader (dataset itself is lazy, not precached)
+  "/js/inflection-dict.js",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js",
@@ -133,7 +141,7 @@ self.addEventListener("install", (event) => {
 // ── activate ─────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, MORPH_CACHE, GRAPH_CACHE]);
+    const keep = new Set([PRECACHE, RUNTIME, CONFIG_CACHE, MORPH_CACHE, GRAPH_CACHE, INFLECTION_CACHE]);
     const names = await caches.keys();
     await Promise.all(
       names
@@ -183,6 +191,13 @@ self.addEventListener("fetch", (event) => {
   // surgically purge it via caches.delete('/morph/...') in clearCache().
   if (url.pathname.startsWith("/morph/")) {
     event.respondWith(morphCacheStrategy(req));
+    return;
+  }
+
+  // /data/inflection/* — offline Pealim dataset, dedicated evictable bucket,
+  // cache-first with quota guard (same posture as /morph/).
+  if (url.pathname.startsWith("/data/inflection/")) {
+    event.respondWith(inflectionCacheStrategy(req));
     return;
   }
 
@@ -306,6 +321,21 @@ async function morphCacheStrategy(req) {
     if (cached) return cached;
     throw err;
   });
+  return cached || fetchPromise;
+}
+
+// Cache-first for /data/inflection/* — identical posture to morphCacheStrategy,
+// bound to INFLECTION_CACHE so the dataset can be purged atomically.
+async function inflectionCacheStrategy(req) {
+  const cache = await caches.open(INFLECTION_CACHE);
+  const cached = await cache.match(req);
+  const fetchPromise = fetch(req).then(async (res) => {
+    if (res && res.ok && res.type === "basic") {
+      const ok = await isStorageQuotaSafe();
+      if (ok) { const copy = res.clone(); cache.put(req, copy).catch(() => {}); }
+    }
+    return res;
+  }).catch((err) => { if (cached) return cached; throw err; });
   return cached || fetchPromise;
 }
 
