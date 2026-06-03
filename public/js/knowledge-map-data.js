@@ -109,12 +109,13 @@
     return {};
   }
 
-  // Edge label for root -> lemma: binyan for verbs (real morphology), else the
-  // POS as a coarse class. True mishkal patterns arrive with Pealim enrichment
-  // (Phase 5); we never invent one here (R1).
-  function _edgeLabel(binyan, pos) {
-    if (binyan) return binyan;
-    return pos || "";
+  // Edge label for root -> form: ONLY a real binyan (verbs). A labelled edge
+  // therefore always means a real morphological pattern. POS is NOT used as a
+  // label — repeating "noun" on every spoke implied a derivation that doesn't
+  // exist (R1). Mishkal for nominals arrives with Pealim enrichment (Phase 5);
+  // we never invent one here.
+  function _edgeLabel(binyan) {
+    return binyan || "";
   }
 
   // ── build the full root index ────────────────────────────────────────────
@@ -184,9 +185,8 @@
         var ln2 = lemmas.get(memberKeys[m]);
         if (!ln2) continue;
         var binyan2 = ln2.meta.binyans.size ? Array.from(ln2.meta.binyans).sort()[0] : "";
-        var pos2 = ln2.meta.pos.size ? Array.from(ln2.meta.pos).sort()[0] : "";
         edges.push({ source: rn2.id, target: ln2.id, edge_kind: "root_lemma",
-                     label: _edgeLabel(binyan2, pos2) });
+                     label: _edgeLabel(binyan2) });
         emitted++;
       }
     }

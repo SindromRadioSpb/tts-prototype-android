@@ -2046,7 +2046,13 @@ window.I18N_LOCALES.ru = {
     pickRoot: "Выберите корень слева",
     emptyHint: "Нет корневых данных. Импортируйте библиотеку с word-заметками, чтобы построить карту корней.",
     noGloss: "(нет перевода)",
+    filteredEmpty: "Нет лемм под текущими фильтрами",
+    resetFilters: "Сбросить фильтры",
+    inTexts: "в текстах",
+    openText: "Открыть текст",
+    functionWords: "служебных слов (вне карты корней)",
     status: { known: "знаю", learning: "учу", new: "новое" },
+    facets: { layout: "Раскладка", radial: "радиал", tree: "дерево", color: "Цвет", byStatus: "статус", byBinyan: "биньян", byPos: "часть речи", size: "Размер", byFreq: "частотность", uniform: "одинаково", depth: "Глубина", status: "Статус", binyan: "Биньян", pos: "Часть речи", views: "Сохранённые виды…", save: "Сохранить вид", saveShort: "Сохранить", savePrompt: "Название вида:", delete: "Удалить выбранный вид", mainBinyan: "осн. биньян", settings: "Вид" },
   },
   graph: {
     title: "Карта знаний",

@@ -122,11 +122,18 @@ is the *uncompromising help tool* a serious learner needs.
   block ②: `notes_v2.body_json` root/binyan/word/pos/meaning). Group by
   root → clusters; edges `root→word` (label binyan/mishkal),
   `word→source-text/sentence`, `word→paradigm` (existing Layout-B tables).
-- **Graph node = distinct lemma, not note occurrence** (Phase-0 finding §9):
-  a lemma is one node; its **frequency = occurrence count** (drives node size
-  + ranking). This keeps a focus cluster ≤ ~29 nodes (real corpus max) — no
-  collapse needed in the focus core; the old `SHARED_SKIP_OVER=24` cap is
-  **not** inherited.
+- **Graph node = distinct attested SURFACE FORM** (frequency = occurrence
+  count → node size + ranking). ⚠ **R1 correction (Phase-3 review):** block ②
+  stored the surface `word`, not the Dicta lemma/stem, so a cluster currently
+  shows attested *forms* (e.g. בוא → בא/באתי/תבוא + proclitic forms שהשם/בשם),
+  not deduplicated lemmas. This is pedagogically valid (the learner's attested
+  footprint of a root) but the children are **forms, not lemmas**, and for
+  nouns the central node is the lemma, not a triliteral root. **True
+  lemmatization + real nominal roots require re-running ② to persist Dicta
+  lemma/stem — folded into Phase 5 (Pealim enrichment).** Until then the UI must
+  not claim "distinct lemma"; a labelled edge = a real binyan only (POS is never
+  an edge label). Focus clusters stay ≤ ~29 nodes; the old `SHARED_SKIP_OVER=24`
+  cap is **not** inherited.
 - **Frequency** — from the corpus (node size + root ranking).
 - **Status** — from `getLearningStateOverlay()` (srs_cards.state +
   srs_attempts) → known/learning/new per node.
@@ -199,8 +206,12 @@ is the *uncompromising help tool* a serious learner needs.
 
 - **Read-only canvas** — the graph never writes `note_links`; authoring is
   in the editor. The quiz writes only SRS events via the engine (not links).
-- **Privacy projection** `_fetchRaw` unchanged (only root/binyan/word/
-  title); `privacy-smoke` pins it — do not weaken.
+- **Privacy projection** — bulk build reads only root/binyan/word/pos scalars
+  (never the body). The preview card's lazy `_fetchPreview` (on tap only) reads
+  exactly two more scalars — `$.meaning` + `$.niqqud_variant` — and is routed
+  through the view's read-only `_q` guard. This is the **complete** allowed
+  body-field set for the map. Pinned by `scripts/notes-graph/kmap-privacy-smoke.js`
+  (opens the view, taps a node: zero network, SELECT-only, scalars-only).
 - **Offline-first** — any WebGL lib in SW precache; **bump `CACHE_VERSION`**
   on any shipped JS/index/locale change (`feedback_sw_cache_version_bump`).
 - **Consent/telemetry** — zero network/events from the view; the Phase-5
@@ -304,4 +315,5 @@ Exact hooks for wiring the new view behind a flag (instant rollback):
 | 2026-06-03 | Doc created. Phase 0: spec + market-research formalized; data spike run on real 9K corpus (§9 findings); node=distinct-lemma locked. |
 | 2026-06-03 | **Phase 1 DONE.** `public/js/knowledge-map-data.js` (read-only root-centric data layer: build/rootCluster/rankRoots; status overlay 5→3 state; root-less excluded+counted; text never a node). Smoke `scripts/notes-graph/kmap-data-smoke.js` 6/6; wired `smoke:graph:kmap-data` into the `smoke:graph` chain + `smoke:graph:kmap-spike` (manual). |
 | 2026-06-03 | **Flag removed (owner request).** The `knowledgeMapV1` flag + `display:none` gating dropped: the 🌳 button is **always visible** on desktop + mobile (so the owner can test on phone without a console). `v3KnowledgeMapV1Enabled` helper removed; SW `CACHE_VERSION`→`v3.6.0-kmap-phase2b`; boot-check asserts button visible by default. View still self-contained; rollback now = revert the commit. Empty-state hint covers users without root data. |
+| 2026-06-03 | **Phase 3 DONE (facets) + R1–R5 review→rework.** Facets: layout radial/tree, color-by status/binyan/pos, size-by freq/uniform, filters pos/binyan/status, depth 1/2, saved views (localStorage). **5-role review run** (each role independently tested); rework applied: R1 — dropped false POS edge-labels, dominant binyan deduped+named once, honest "surface form (not lemma)" relabel (true lemmatization → Phase 5); R2 — preview onward "Открыть текст" + "+N служебных слов" footer (no dead-end); R3 — `_fetchPreview` routed through read-only guard + new `kmap-privacy-smoke` (4/4, in chain); R4 — mobile depth-2 auto + facets collapsed behind ⚙ + edge-labels suppressed on mobile + status-chip colors + reset-filters + selected-root highlight; R5 — saved views capture root + delete + clearer labels. SW `CACHE_VERSION`→`v3.6.0-kmap-phase3b`. **Deferred (honest):** R1 true Dicta-lemma/noun-root merge (needs ② re-run → Phase 5); R2 full SRS/quiz path (Phase 4). |
 | 2026-06-03 | **Phase 2 DONE (v1 focus view).** `public/js/knowledge-map-view.js` — dependency-free SVG root-radial (root centre, radial lemmas, color=status, size=frequency, binyan/pos edge labels, progressive-disclosure preview with lazy gloss/niqqud) + ranked root list + 380px RTL cluster-list + root-sheet radial. Integrated behind flag `knowledgeMapV1` (helper `v3KnowledgeMapV1Enabled`, `🌳 #btnKnowledgeMap`, module `<script>`s, i18n `knowledgeMap.*` ru/en/he, SW `CACHE_VERSION`→`v3.6.0-kmap-phase2` + precache). **Live browser tested:** desktop + 380px RTL (fixture + REAL 9042-note corpus, build+render 1181 ms, no pageerrors); boot-check 3/3 (`smoke:graph:kmap-boot`); dev tools `smoke:graph:kmap-shot|kmap-real`. Next: Phase 3 facets. |

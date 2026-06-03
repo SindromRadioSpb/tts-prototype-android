@@ -2042,7 +2042,13 @@ window.I18N_LOCALES.he = {
     pickRoot: "בחר שורש מימין",
     emptyHint: "אין נתוני שורשים. ייבא ספרייה עם הערות מילים כדי לבנות את מפת השורשים.",
     noGloss: "(אין תרגום)",
+    filteredEmpty: "אין למות התואמות את הסינון",
+    resetFilters: "אפס סינון",
+    inTexts: "בטקסטים",
+    openText: "פתח טקסט",
+    functionWords: "מילות תפקוד (מחוץ למפת השורשים)",
     status: { known: "ידוע", learning: "בלימוד", new: "חדש" },
+    facets: { layout: "פריסה", radial: "רדיאלי", tree: "עץ", color: "צבע", byStatus: "סטטוס", byBinyan: "בניין", byPos: "חלק דיבר", size: "גודל", byFreq: "תדירות", uniform: "אחיד", depth: "עומק", status: "סטטוס", binyan: "בניין", pos: "חלק דיבר", views: "תצוגות שמורות…", save: "שמור תצוגה", saveShort: "שמור", savePrompt: "שם התצוגה:", delete: "מחק תצוגה נבחרת", mainBinyan: "בניין עיקרי", settings: "תצוגה" },
   },
   graph: {
     title: "מפת ידע",

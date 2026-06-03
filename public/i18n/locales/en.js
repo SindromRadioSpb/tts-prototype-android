@@ -2033,7 +2033,13 @@ window.I18N_LOCALES.en = {
     pickRoot: "Pick a root on the left",
     emptyHint: "No root data yet. Import a library with word notes to build the root map.",
     noGloss: "(no translation)",
+    filteredEmpty: "No lemmas match the current filters",
+    resetFilters: "Reset filters",
+    inTexts: "in texts",
+    openText: "Open text",
+    functionWords: "function words (outside the root map)",
     status: { known: "known", learning: "learning", new: "new" },
+    facets: { layout: "Layout", radial: "radial", tree: "tree", color: "Color", byStatus: "status", byBinyan: "binyan", byPos: "POS", size: "Size", byFreq: "frequency", uniform: "uniform", depth: "Depth", status: "Status", binyan: "Binyan", pos: "POS", views: "Saved views…", save: "Save view", saveShort: "Save", savePrompt: "View name:", delete: "Delete selected view", mainBinyan: "main binyan", settings: "View" },
   },
   graph: {
     title: "Knowledge graph",
