@@ -39,7 +39,10 @@ async function main() {
         texts: [{ text_key: tk, text_id: "T1", title: "SM test", rows: [{ row_id: "S1", hebrew_plain: "את מלכה אבל עדיין", he_plain: "את מלכה אבל עדיין", order_index: 0 }] }],
         notes_advanced: { schema_version: 1, notes: [], versions: [], links: [], roots: [],
           sentence_morph: [{ sentence_id: "S1", text_id: "T1", model_version: "dicta-morph-v2", provider: "dicta-morph",
-            tokens: [{ word: "את", posDicta: "pronoun", binyan: null, lemma: "אני", niqqud: "אַתְּ", prefix: null, stem: "את", kind: null }] }] },
+            tokens: [
+              { word: "את", posDicta: "pronoun", binyan: null, lemma: "אני", niqqud: "אַתְּ", prefix: null, stem: "את", kind: null },
+              { word: "עדיין", posDicta: "adverb", binyan: null, lemma: "עדין", niqqud: "עֲדַיִן", prefix: null, stem: "עדין", kind: null }
+            ] }] },
       };
       const res = await ldb.importBundle(bundle, { mode: "skip" });
       const adv = res && res.notes_advanced;
@@ -48,14 +51,17 @@ async function main() {
       const newSid = Object.keys(smForText).find((k) => k !== "err") || null;
       // resolve like the editor: v3MorphStoredResolve(word, sentenceId)
       let resolved = null;
+      let resolvedAdv = null;
       if (newSid && typeof window.v3MorphStoredResolve === "function") {
         try { resolved = await window.v3MorphStoredResolve("את", newSid); } catch (e) { resolved = { err: String(e) }; }
+        try { resolvedAdv = await window.v3MorphStoredResolve("עדיין", newSid); } catch (e) { resolvedAdv = { err: String(e) }; }
       }
-      return { advSm: adv && adv.sentence_morph, newTid, newSid, smCount: Object.keys(smForText).filter(k => k !== "err").length, resolved };
+      return { advSm: adv && adv.sentence_morph, newTid, newSid, smCount: Object.keys(smForText).filter(k => k !== "err").length, resolved, resolvedAdv };
     });
     t("importBundle applied sentence_morph (inserted 1)", r.advSm && r.advSm.inserted === 1, JSON.stringify(r.advSm));
     t("sentence_morph stored under remapped (new) sentence id", !!r.newSid && r.smCount === 1, JSON.stringify({ newTid: r.newTid, newSid: r.newSid, smCount: r.smCount }));
     t("v3MorphStoredResolve('את') → pronoun, particle (offline auto-fill works)", r.resolved && r.resolved.pos === "pronoun" && r.resolved.kind === "particle", JSON.stringify(r.resolved));
+    t("v3MorphStoredResolve('עדיין') → adverb, root ≠ 'שונות' (spine bug fix)", r.resolvedAdv && r.resolvedAdv.pos === "adverb" && r.resolvedAdv.root !== "שונות", JSON.stringify(r.resolvedAdv));
     t("no pageerror", errs.length === 0, errs.join(" | "));
     await pg.close(); await ctx.close();
   } finally { await browser.close(); await stopServer(srv); }

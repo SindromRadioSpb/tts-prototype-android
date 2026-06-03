@@ -41022,8 +41022,33 @@ async function v3NotesRowIndexEnrich() {
       try { await v3EnsureFullDictForWordPath(); } catch (_) {}
       const rootTitle = v3NotesT("notes.card.rootTitle", "Корень");
       const baseTitle = v3NotesT("notes.card.baseFormTitle", "Базовая форма (корень недоступен локально)");
+      const baseTag = v3NotesT("notes.card.baseForm", "базовая форма");
+      const sidSpine = (typeof v3NotesRowIndexContext !== "undefined" && v3NotesRowIndexContext) ? v3NotesRowIndexContext.sentenceId : null;
       for (const chip of pending) {
         const w = chip.getAttribute("data-spine-for");
+        // Dicta stored morphology is AUTHORITATIVE — prefer it over the local
+        // dict, whose FIRST analysis can be a spurious homograph (עדיין → שונות).
+        // Mirrors the editor hint: verb→root, content base→"базовая форма",
+        // function word (pronoun/adverb/negation/…) → honest "—" (no root).
+        if (sidSpine && typeof v3MorphStoredResolve === "function") {
+          let dres = null; try { dres = await v3MorphStoredResolve(w, sidSpine); } catch (_) {}
+          if (dres) {
+            chip.classList.remove("v3-wordcard-rootchip-pending");
+            if (dres.root && dres.kind === "verbRoot") {
+              const bl = dres.binyan && V3_WORDCARD_BINYAN_LABEL[dres.binyan] ? V3_WORDCARD_BINYAN_LABEL[dres.binyan] : "";
+              chip.setAttribute("title", rootTitle);
+              chip.innerHTML = `🌳 ${v3EscapeHtml(dres.root)}${bl ? ` · <span class="v3-wordcard-binyan">${v3EscapeHtml(bl)}</span>` : ""}`;
+            } else if (dres.root) {
+              chip.classList.add("v3-wordcard-rootchip-lemma");
+              chip.setAttribute("title", baseTitle);
+              chip.innerHTML = `🌳 ${v3EscapeHtml(dres.root)} <span class="v3-wordcard-spine-tag">${v3EscapeHtml(baseTag)}</span>`;
+            } else {
+              chip.classList.add("v3-wordcard-rootchip-empty");
+              chip.innerHTML = "🌳 —";   // function word — корня нет
+            }
+            continue;
+          }
+        }
         try {
           // Prefix-aware so ובורחת etc. self-heal to their root.
           const seg = (typeof v3MorphAnalyzeWithPrefix === "function")
