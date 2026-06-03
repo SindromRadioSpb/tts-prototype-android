@@ -81,6 +81,7 @@
     "smoke:conj:dict": "node scripts/premium/inflection-dict-smoke.js",
     "smoke:conj:pos-hydrate": "node scripts/premium/note-pos-hydrate-check.js",
     "smoke:conj:sentence-morph": "node scripts/premium/sentence-morph-import-check.js",
+    "smoke:conj:deeplink-selfheal": "node scripts/premium/note-deeplink-selfheal-check.js",
     "audit:note-fields": "node scripts/premium/note-fields-audit.js",
     "smoke:conj:dict-browser": "node scripts/premium/inflection-dict-browser-check.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",

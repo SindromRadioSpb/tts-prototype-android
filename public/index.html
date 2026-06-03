@@ -38348,6 +38348,20 @@ async function v3NotesLoadFullNoteIntoModal() {
     const row = await ldb.getNoteById(v3NotesModalNoteId);
     if (!row) return;
 
+    // Recover the sentence/text context from the persisted row when this open
+    // had none (deep-link / backlink: v3NotesOpen("","",null,{noteId}) passes an
+    // empty sentenceId). Word notes carry a composite target_id "<sentenceId>:<offset>"
+    // (sentence part remapped on import to the live id that keys sentence_morph), so
+    // the id is recoverable here. Without it v3MorphStoredResolve(word, sentenceId)
+    // bails and the form/spine/conjugation never self-heal to the fresh Dicta
+    // morphology — fields would show only the (possibly stale) saved body_json.
+    if (!v3NotesModalSentenceId && String(row.target_kind || "") === "word" && row.target_id) {
+      const tid = String(row.target_id);
+      const ci = tid.indexOf(":");
+      if (ci > 0) v3NotesModalSentenceId = tid.slice(0, ci);
+    }
+    if (!v3NotesModalTextId && row.text_id) v3NotesModalTextId = String(row.text_id);
+
     // Update modal state to mirror the persisted row.
     const newType = String(row.note_type || "free");
     if (newType !== v3NotesModalNoteType) {
@@ -38380,6 +38394,17 @@ async function v3NotesLoadFullNoteIntoModal() {
         v3NotesTemplateHydrate(parsed);
         // Track baseline for dirty-check via a stable serialization.
         v3NotesModalOriginalText = JSON.stringify(parsed || {});
+        // Self-heal to FRESH corpus Dicta on every open path. The eager block in
+        // v3NotesOpen captures word + sentenceId BEFORE this async load, so on a
+        // deep-link it no-ops; run it here where both are known. Mirrors the row-
+        // index path (display-only — won't clobber a user-typed root via userTouched).
+        if (newType === "word_study" && v3NotesModalSentenceId && parsed && parsed.word
+            && typeof v3MorphStoredResolve === "function") {
+          try {
+            const stored = await v3MorphStoredResolve(String(parsed.word), v3NotesModalSentenceId);
+            if (stored) v3MorphApplyResultToForm(stored, String(parsed.word));
+          } catch (_) {}
+        }
       } catch (_) {}
     }
 
