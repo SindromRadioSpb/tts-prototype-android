@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.6.0-kmap-phase3b";
+const CACHE_VERSION = "v3.6.0-kmap-jsziphotfix";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -54,14 +54,15 @@ const GRAPH_CACHE = `linguistpro-graph-${GRAPH_CACHE_VERSION}`;
 const GRAPH_CHUNK_RE = /^\/(vendor\/d3-graph\.min\.js|js\/notes-graph(-loader|-render)?\.js)$/;
 
 // Precache list — relative paths only. Keep this in sync with the modules
-// imported at startup. Lazy modules (jszip.min.js, qrcode.js) are NOT in
-// this list because they're rarely used; they fall through to runtime
-// stale-while-revalidate.
+// imported at startup. qrcode.js stays lazy (rare). jszip.min.js IS precached:
+// Library ZIP import/export is a core flow and the on-demand <script> injection
+// proved flaky on iOS WebKit with a freshly-activated SW — precaching makes the
+// loader hit cache (reliable + offline-capable). It's still executed lazily.
 const PRECACHE_URLS = [
   "/",
   "/index.html",
   "/manifest.json",
-  // Knowledge Map v3.8 (root-centric, flag knowledgeMapV1)
+  // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
   "/js/knowledge-map-view.js",
   // i18n
@@ -81,6 +82,7 @@ const PRECACHE_URLS = [
   "/db/migrations.js",
   "/db/tag.js",
   "/db/db-worker.js",
+  "/db/jszip.min.js",
   // TTS layer
   "/tts/core.js",
   "/tts/backends.js",

@@ -35,6 +35,9 @@ async function main(){
     });
     test("index.html boots; kmap modules expose globals", r.hasData && r.hasView, JSON.stringify(r));
     test("🌳 button visible by default (no flag)", r.btnVisible===true, JSON.stringify(r));
+    // JSZip loader hotfix — must resolve and define window.JSZip (Library import)
+    const jz = await pg.evaluate(async () => { try { const Z = await window.v3LoadJSZip(); return { ok: (typeof window.JSZip === "function") && !!Z }; } catch (e) { return { ok: false, err: String(e && e.message || e) }; } });
+    test("v3LoadJSZip resolves; window.JSZip defined", jz.ok === true, JSON.stringify(jz));
     // fatal pageerrors only (ignore benign resource warnings captured as pageerror is rare)
     test("no fatal pageerror", errs.length===0, errs.join(" | "));
     await pg.screenshot({path:path.join(REPO_ROOT,".tmp","kmap-boot.png")});

@@ -25045,20 +25045,33 @@ let v3JSZipLoadPromise = null;
 function v3LoadJSZip() {
   if (typeof window.JSZip !== "undefined") return Promise.resolve(window.JSZip);
   if (v3JSZipLoadPromise) return v3JSZipLoadPromise;
-  v3JSZipLoadPromise = new Promise((resolve, reject) => {
+  // Primary: inject a <script>. Some engines (notably iOS WebKit, esp. with a
+  // freshly-activated Service Worker) intermittently fire onerror or onload-
+  // without-global on a dynamically injected module. Fallback: fetch the source
+  // and eval it in global scope (the UMD assigns window.JSZip). The fallback
+  // also detects an HTML response (SPA fallback / proxy) and fails loudly.
+  const viaScript = () => new Promise((resolve, reject) => {
     const s = document.createElement("script");
     s.src = "/db/jszip.min.js";
     s.async = true;
-    s.onload = () => {
-      if (typeof window.JSZip !== "undefined") resolve(window.JSZip);
-      else reject(new Error("jszip.min.js loaded but window.JSZip is undefined"));
-    };
-    s.onerror = () => {
-      v3JSZipLoadPromise = null;  // allow retry
-      reject(new Error("jszip.min.js load failed"));
-    };
+    s.onload = () => { (typeof window.JSZip !== "undefined") ? resolve(window.JSZip) : reject(new Error("jszip loaded but window.JSZip undefined")); };
+    s.onerror = () => reject(new Error("jszip script load failed"));
     document.head.appendChild(s);
   });
+  const viaFetchEval = async () => {
+    const r = await fetch("/db/jszip.min.js", { cache: "force-cache" });
+    if (!r.ok) throw new Error("jszip fetch " + r.status);
+    const ct = r.headers.get("content-type") || "";
+    const code = await r.text();
+    if (/text\/html/i.test(ct) || /^\s*<(?:!doctype|html)\b/i.test(code)) throw new Error("jszip fetch returned HTML, not JS");
+    (0, eval)(code); // indirect eval → global scope → defines window.JSZip
+    if (typeof window.JSZip === "undefined") throw new Error("jszip eval did not define window.JSZip");
+    return window.JSZip;
+  };
+  v3JSZipLoadPromise = Promise.resolve()
+    .then(viaScript)
+    .catch((e1) => { console.warn("[jszip] script path failed, trying fetch+eval:", e1 && e1.message); return viaFetchEval(); })
+    .catch((e2) => { v3JSZipLoadPromise = null; throw e2; }); // reset so a later attempt can retry
   return v3JSZipLoadPromise;
 }
 
