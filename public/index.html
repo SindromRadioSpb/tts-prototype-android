@@ -39905,6 +39905,11 @@ const V3_HEB_FUNCTION_WORDS = new Set([
   "כן", "הוא", "היא", "הם", "הן", "אני", "אתה", "אתם", "אתן", "אנחנו", "אנו",
   "כך", "אז", "עוד", "כבר", "מאוד", "פה", "שם", "כאן", "אצל", "בין", "עד",
 ]);
+// Dicta POS categories that NEVER bear a triliteral root (so v3MorphTokenToResult
+// must not fall through to root=lemma — which would show a homograph verb root for an
+// adverb, e.g. בטח/שוב). Prepositions are intentionally absent: they decline (לי/לך)
+// and keep their lemma-based conjugation handling.
+const V3_NON_ROOT_DICTA_POS = new Set(["adverb", "pronoun", "conjunction", "negation", "interrogative", "numeral", "interjection"]);
 // Dicta's morph value is, in CONTEXT: the ROOT for verbs (סכל, גלגל, ברח) and
 // the dictionary LEMMA for nouns/adjectives (מכונית, עין, גדול). We trust it
 // directly (it is context-disambiguated and authoritative) and only consult
@@ -39954,6 +39959,16 @@ async function v3MorphTokenToResult(tok) {
   const dictaPos = tok.posDicta || null;
   if (dictaPos === "propernoun") {
     return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: "noun", kind: "propernoun", confident: tok.confident, feats: tok.feats || null, niqqud: tok.niqqud || null };
+  }
+  // Function words bear NO triliteral root even when their lemma isn't in the small
+  // stoplist above: adverb (בטח «наверняка», שוב «снова»), pronoun, conjunction,
+  // negation, interrogative, numeral, interjection. Without this gate the fall-through
+  // below sets root=lemma → a homograph VERB root would show for an adverb
+  // (בטח→«доверять», שוב→«возвращаться»). Prepositions are EXCLUDED (they decline →
+  // keep the table/lemma handling). Mirrors build-notes FUNCTION_POS + R1.
+  if (V3_NON_ROOT_DICTA_POS.has(dictaPos)) {
+    const pPos = V3_DICTA_DECODED_POS_TO_OPTION[dictaPos] || "other";
+    return { word: tok.word, prefix: tok.prefix, stem: tok.stem, lemma, root: null, binyan: null, pos: pPos, kind: "particle", confident: tok.confident, feats: tok.feats || null, niqqud: tok.niqqud || null };
   }
   let pos = (dictaPos && V3_DICTA_DECODED_POS_TO_OPTION[dictaPos]) || null;
   if (!pos) {

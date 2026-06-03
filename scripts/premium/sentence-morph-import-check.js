@@ -41,7 +41,11 @@ async function main() {
           sentence_morph: [{ sentence_id: "S1", text_id: "T1", model_version: "dicta-morph-v2", provider: "dicta-morph",
             tokens: [
               { word: "את", posDicta: "pronoun", binyan: null, lemma: "אני", niqqud: "אַתְּ", prefix: null, stem: "את", kind: null },
-              { word: "עדיין", posDicta: "adverb", binyan: null, lemma: "עדין", niqqud: "עֲדַיִן", prefix: null, stem: "עדין", kind: null }
+              { word: "עדיין", posDicta: "adverb", binyan: null, lemma: "עדין", niqqud: "עֲדַיִן", prefix: null, stem: "עדין", kind: null },
+              // adverbs that are HOMOGRAPHS of verbs (בטח «trust», שוב «return») — must
+              // NOT inherit the verb root on resolve (lemma is not in the stoplist).
+              { word: "בטח", posDicta: "adverb", binyan: null, lemma: "בטח", niqqud: "בֶּטַח", prefix: null, stem: "בטח", kind: null },
+              { word: "שוב", posDicta: "adverb", binyan: null, lemma: "שוב", niqqud: "שׁוּב", prefix: null, stem: "שוב", kind: null }
             ] }] },
       };
       const res = await ldb.importBundle(bundle, { mode: "skip" });
@@ -52,16 +56,21 @@ async function main() {
       // resolve like the editor: v3MorphStoredResolve(word, sentenceId)
       let resolved = null;
       let resolvedAdv = null;
+      let resolvedBetach = null, resolvedShuv = null;
       if (newSid && typeof window.v3MorphStoredResolve === "function") {
         try { resolved = await window.v3MorphStoredResolve("את", newSid); } catch (e) { resolved = { err: String(e) }; }
         try { resolvedAdv = await window.v3MorphStoredResolve("עדיין", newSid); } catch (e) { resolvedAdv = { err: String(e) }; }
+        try { resolvedBetach = await window.v3MorphStoredResolve("בטח", newSid); } catch (e) { resolvedBetach = { err: String(e) }; }
+        try { resolvedShuv = await window.v3MorphStoredResolve("שוב", newSid); } catch (e) { resolvedShuv = { err: String(e) }; }
       }
-      return { advSm: adv && adv.sentence_morph, newTid, newSid, smCount: Object.keys(smForText).filter(k => k !== "err").length, resolved, resolvedAdv };
+      return { advSm: adv && adv.sentence_morph, newTid, newSid, smCount: Object.keys(smForText).filter(k => k !== "err").length, resolved, resolvedAdv, resolvedBetach, resolvedShuv };
     });
     t("importBundle applied sentence_morph (inserted 1)", r.advSm && r.advSm.inserted === 1, JSON.stringify(r.advSm));
     t("sentence_morph stored under remapped (new) sentence id", !!r.newSid && r.smCount === 1, JSON.stringify({ newTid: r.newTid, newSid: r.newSid, smCount: r.smCount }));
     t("v3MorphStoredResolve('את') → pronoun, particle (offline auto-fill works)", r.resolved && r.resolved.pos === "pronoun" && r.resolved.kind === "particle", JSON.stringify(r.resolved));
     t("v3MorphStoredResolve('עדיין') → adverb, root ≠ 'שונות' (spine bug fix)", r.resolvedAdv && r.resolvedAdv.pos === "adverb" && r.resolvedAdv.root !== "שונות", JSON.stringify(r.resolvedAdv));
+    t("v3MorphStoredResolve('בטח') → adverb, root null (no verb homograph)", r.resolvedBetach && r.resolvedBetach.pos === "adverb" && r.resolvedBetach.root === null && r.resolvedBetach.kind === "particle", JSON.stringify(r.resolvedBetach));
+    t("v3MorphStoredResolve('שוב') → adverb, root null (no verb homograph)", r.resolvedShuv && r.resolvedShuv.pos === "adverb" && r.resolvedShuv.root === null && r.resolvedShuv.kind === "particle", JSON.stringify(r.resolvedShuv));
     t("no pageerror", errs.length === 0, errs.join(" | "));
     await pg.close(); await ctx.close();
   } finally { await browser.close(); await stopServer(srv); }
