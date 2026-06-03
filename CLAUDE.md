@@ -11,7 +11,7 @@
 - Node.js, `server.js` (entry, `npm start`)
 - Своя БД с миграциями/бэкапами (`db/`)
 - PWA-фронтенд, морфологический словарь, движок квизов
-- Спряжение/склонение + перевод (Pealim) + bulk word-заметки (②): резолвер `db/premium/providers/pealim.js` (model `pealim-infl-v11`); отчёт качества + извлечённые уроки + нерешённое → **`docs/WORDNOTE_CONJUGATION_QUALITY_REPORT_2026_06.md`** (≈99.4% корректность). Инструмент теста/генерации: `scripts/premium/build-notes-from-bundle.js`.
+- Спряжение/склонение + перевод (Pealim) + bulk word-заметки (②): резолвер `db/premium/providers/pealim.js` (model `pealim-infl-v12` — stem-aware scoring: проклитика-слова כזאת→זאת через Dicta-стем, без угадывания); отчёт качества + извлечённые уроки + нерешённое → **`docs/WORDNOTE_CONJUGATION_QUALITY_REPORT_2026_06.md`** (≈99.4% корректность). Инструмент теста/генерации: `scripts/premium/build-notes-from-bundle.js`.
 - Доп. Python-часть (`pyproject.toml`) + `Makefile`
 - Тесты: `node --test` + множество smoke-скриптов
 

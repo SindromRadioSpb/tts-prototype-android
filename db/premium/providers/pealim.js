@@ -27,7 +27,7 @@
 const https = require("https");
 
 const PEALIM_HOST   = "www.pealim.com";
-const MODEL_VERSION = "pealim-infl-v11"; // v11: surface fallback also peels proclitics (שלהחלים hifil via להחלים) — recovers proclitic-stacked binyan verbs
+const MODEL_VERSION = "pealim-infl-v12"; // v12: score candidate lemma against proclitic-stripped stems + Dicta stem (כזאת→זאת invariant) — prefixed words no longer score 0 / "no table"
 const TIMEOUT_MS    = Number(process.env.PEALIM_TIMEOUT_MS || 12000);
 const UA            = "Mozilla/5.0 (compatible; LinguistPro/1.0; +https://linguistpro.kolosei.com)";
 
@@ -302,7 +302,7 @@ function wantClass(want) {
 // the noun's lemma == the surface word, the verb's lemma is the infinitive),
 // then root, then binyan refine WITHIN the right class.
 const NONINFLECTING_POS = ["adverb", "pronoun", "conjunction", "interjection", "negation", "numeral", "other"];
-function scoreCandidate(parsed, want, lemmaPlain) {
+function scoreCandidate(parsed, want, lemmaPlain, lemmaAlts) {
   if (!parsed) return -1e9;
   let s = 0;
   const wc = wantClass(want), cc = candClass(parsed);
@@ -335,10 +335,16 @@ function scoreCandidate(parsed, want, lemmaPlain) {
   // fails, a ktiv male/haser variant (mater-insensitive, ≤2 chars apart) is a
   // weaker but real match (+3) — lets the haser query מאד find the invariant
   // entry whose headword is the male spelling מאוד.
-  if (lemmaPlain && parsed.lemma_niqqud) {
+  // Match against the surface AND its proclitic-stripped stems / Dicta stem.
+  // Pealim files prefixed words (כ+זאת, ו+כש+…) under the bare base; the surface
+  // "כזאת" never equals the page lemma "זאת", so without stem-aware matching the
+  // exact-lemma signal (+5) never fires and the right invariant/paradigm scores 0
+  // → "no table". The alts are authoritative-stem-first (Dicta) then shallow peel.
+  const alts = (lemmaAlts && lemmaAlts.length) ? lemmaAlts : (lemmaPlain ? [lemmaPlain] : []);
+  if (alts.length && parsed.lemma_niqqud) {
     const lp = stripNiqqud(parsed.lemma_niqqud);
-    if (lp === lemmaPlain) s += 5;
-    else if (stripMater(lp) === stripMater(lemmaPlain) && Math.abs(lp.length - lemmaPlain.length) <= 2) s += 3;
+    if (alts.indexOf(lp) >= 0) s += 5;
+    else { for (const alt of alts) { if (alt && stripMater(lp) === stripMater(alt) && Math.abs(lp.length - alt.length) <= 2) { s += 3; break; } } }
   }
   if (want.root && parsed.root && want.root === parsed.root) s += 4;
   if (want.binyan && parsed.binyan && want.binyan === parsed.binyan) s += 3;
@@ -376,6 +382,14 @@ async function resolveLemma(heLemma, opts) {
   // match (right POS + exact lemma/root). Parsed pages are disk-cached, so a
   // miss pays the fetch once globally.
   const lemmaPlain = stripNiqqud(heLemma);
+  // Acceptable lemma forms for exact-match scoring: the surface + the Dicta stem
+  // (the AUTHORITATIVE proclitic strip, supplied by the caller). We deliberately
+  // do NOT blind-peel here for the +5: guessing prefixes over-peels real words
+  // (משה "Moses" → שה "lamb"), violating R1. Dicta knows כזאת=כ+זאת but משה has
+  // no prefix — so we trust Dicta's stem, not a heuristic. (The empty-search
+  // fallback below still blind-peels to FIND candidates; scoring gates them.)
+  const lemmaAlts = [lemmaPlain];
+  if (want.stem) { const sp = stripNiqqud(want.stem); if (sp && lemmaAlts.indexOf(sp) < 0) lemmaAlts.push(sp); }
   const MAX_TRY = 8;
   let best = null, bestScore = -1e9, bestId = null, bestFormHit = false;
   const seen = new Set();
@@ -398,7 +412,7 @@ async function resolveLemma(heLemma, opts) {
         continue;
       }
       if (!parsed) continue;
-      const sc = scoreCandidate(parsed, want, lemmaPlain);
+      const sc = scoreCandidate(parsed, want, lemmaPlain, lemmaAlts);
       if (sc > bestScore) { best = parsed; bestScore = sc; bestId = c.id; bestFormHit = formMatches(parsed, want); }
       // Early-exit only when the STRONG pick is also ALIGNED with the disambiguating
       // signals we still owe: don't stop on a binyan MISMATCH (the right binyan may
@@ -446,7 +460,7 @@ async function resolveLemma(heLemma, opts) {
   // agrees — otherwise it's a best-effort pick (warn the user, keep the link).
   const wc = wantClass(want);
   const posOk = wc ? (candClass(best) === wc) : true;
-  const lexOk = (!!best.lemma_niqqud && stripNiqqud(best.lemma_niqqud) === lemmaPlain)
+  const lexOk = (!!best.lemma_niqqud && lemmaAlts.indexOf(stripNiqqud(best.lemma_niqqud)) >= 0)
     || (!!want.root && best.root === want.root);
   return {
     ok: true,

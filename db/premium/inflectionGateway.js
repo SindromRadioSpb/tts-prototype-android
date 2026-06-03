@@ -49,6 +49,7 @@ async function inflect(lemma, opts) {
   try {
     const r = await _limited(() => pealim.resolveLemma(text, {
       binyan: o.binyan, pos: o.pos, root: o.root,
+      stem: o.stem,                                             // Dicta proclitic-stripped base → matches prefixed surfaces (כזאת→זאת) without guessing
       form: o.form,                                             // text's vocalized form → niqqud disambiguation of binyan-homographs
       pageGet: (id) => cache.getPage(id, MODEL_VERSION),         // model-versioned: never reuse stale parsed cells
       pagePut: (id, p) => cache.putPage(id, p, MODEL_VERSION),

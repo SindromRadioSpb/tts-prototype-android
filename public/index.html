@@ -40317,7 +40317,7 @@ window.v3MorphMaybeAutoEnrich = v3MorphMaybeAutoEnrich;
 // ── ② — Pealim conjugation/declension tables (offline-cached) ─────────────
 // Model version mirrors db/premium/providers/pealim.js MODEL_VERSION. Bumping
 // it (here + provider) re-scrapes paradigms.
-const V3_PEALIM_INFL_MODEL = "pealim-infl-v11"; // MUST equal pealim.js MODEL_VERSION; v11: surface fallback peels proclitics (שלהחלים hifil)
+const V3_PEALIM_INFL_MODEL = "pealim-infl-v12"; // MUST equal pealim.js MODEL_VERSION; v12: stem-aware scoring matches prefixed surfaces (כזאת→זאת) via Dicta stem
 
 // Slot grouping for the displayed grid. Verbs → tense blocks; nominals →
 // state + possessive blocks. The provider returns a lossless raw slot→form map
@@ -40679,6 +40679,7 @@ async function v3WordCardLoadInflection(detailsEl) {
   const pos = detailsEl.getAttribute("data-conj-pos") || "";
   const root = detailsEl.getAttribute("data-conj-root") || "";
   const form = detailsEl.getAttribute("data-conj-form") || "";   // text's vocalized form → niqqud disambiguation + cell highlight
+  const stem = detailsEl.getAttribute("data-conj-stem") || "";   // Dicta proclitic-stripped base → prefixed-surface match (כזאת→זאת)
   const renderOpts = { highlightForm: form };
   // Personal pronoun → static SET (offline, no Pealim). Match on the surface word.
   const pron = v3LookupPronounParadigm(detailsEl.getAttribute("data-conj-word") || lemma);
@@ -40707,7 +40708,7 @@ async function v3WordCardLoadInflection(detailsEl) {
   try {
     const resp = await fetch("/api/conjugation", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lemma, binyan: binyan || undefined, pos: pos || undefined, root: root || undefined, form: form || undefined }),
+      body: JSON.stringify({ lemma, binyan: binyan || undefined, pos: pos || undefined, root: root || undefined, form: form || undefined, stem: stem || undefined }),
     });
     const data = await resp.json().catch(() => ({}));
     if (data && data.ok && data.paradigm) {
@@ -40774,7 +40775,7 @@ async function v3NotesTplConjFields() {
   // disambiguates binyan-homographs (תְּגַלִּי piel ≠ תִּגְלִי paal) and is highlighted
   // in the rendered paradigm.
   const form = val("v3NotesTplWordStudyNiqqud") || dictaNiqqud || "";
-  return { word, pos, root, binyan, kind, lemma, form };
+  return { word, pos, root, binyan, kind, lemma, form, stem: dictaStem || "" };
 }
 // Does this word get an in-app inflection table? Prepositions DO decline
 // (אלי/לך/לו…) even though Dicta marks them kind="particle"; other particles +
@@ -40809,6 +40810,7 @@ async function v3NotesTplConjToggle(detailsEl) {
   detailsEl.setAttribute("data-conj-pos", f.pos);
   detailsEl.setAttribute("data-conj-root", f.root);
   detailsEl.setAttribute("data-conj-form", f.form || "");
+  detailsEl.setAttribute("data-conj-stem", f.stem || "");   // Dicta proclitic-stripped base → resolver matches prefixed surfaces (כזאת→זאת)
   v3WordCardLoadInflection(detailsEl);
 }
 window.v3NotesTplConjToggle = v3NotesTplConjToggle;

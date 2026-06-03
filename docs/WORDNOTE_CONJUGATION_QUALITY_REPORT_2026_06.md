@@ -1,7 +1,7 @@
 # Word-note & conjugation quality report — Block ② (2026-06)
 
 Status: **shipped** to prod (`https://linguistpro.kolosei.com`), SW `v3.5.58`,
-resolver model `pealim-infl-v11`. This report consolidates the in-app
+resolver model `pealim-infl-v12`. This report consolidates the in-app
 conjugation/declension + meaning + bulk word-note pipeline, the exhaustive
 quality test, the achieved accuracy, lessons learned, and the unresolved tail.
 
@@ -54,7 +54,11 @@ v2 stress capture · v3 model-versioned page cache · v4 POS-dominant homograph 
 v5 low-confidence guard · v6 non-content penalty · v7 "other"→invariant · **v8** niqqud
 form-match +20 + binyan-gated early-exit · **v9** inflected-surface fallback (hitpael) ·
 **v10** noun↔adj kinship + wrong-binyan form-fallback + proclitic-stripped form-match ·
-**v11** proclitic-stack surface fallback.
+**v11** proclitic-stack surface fallback ·
+**v12** stem-aware exact-lemma scoring — a prefixed surface (כ+זאת, ו+כש+ה+מלך) now
+matches its Pealim base via the **Dicta stem** (threaded client→server→resolver),
+NOT a blind peel (which over-peeled proper names: משה→שה). Fixes the typical
+"prefixed word → empty inflection" class (e.g. כזאת→זֹאת invariant).
 
 ---
 
