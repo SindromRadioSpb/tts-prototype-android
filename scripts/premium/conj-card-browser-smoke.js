@@ -312,8 +312,14 @@ async function main() {
       set("v3NotesTplWordStudyWord", "שוב"); set("v3NotesTplWordStudyPos", "adverb"); set("v3NotesTplWordStudyRoot", ""); set("v3NotesTplWordStudyBinyan", "");
       conj.open = true; conj.removeAttribute("data-conj-loaded"); conj.removeAttribute("data-conj-key");
       await window.v3NotesTplConjToggle(conj);
-      await new Promise((r) => setTimeout(r, 150));
+      // Poll until the body settles (a background dict bulk-import can slow the first
+      // OPFS read past a fixed wait) — for a non-inflecting word the final state is the
+      // "не изменяется" note + a Pealim SEARCH link.
       const body = conj.querySelector(".v3-conj-body");
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r) => setTimeout(r, 100));
+        if (body && body.querySelector(".v3-conj-recheck")) break;
+      }
       return {
         gateOk,
         advNotHidden: conj.style.display !== "none",
