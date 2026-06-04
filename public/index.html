@@ -11860,6 +11860,8 @@ body:not(.theme-light) .v3-heatmap-cell {
 <!-- Offline Pealim inflection dictionary loader (lazy dataset under /data/inflection/) -->
 <script src="/js/inflection-dict.js"></script>
 <script src="/js/pealim-function-links.js"></script>
+<!-- ②-note autogen resolver core (pure, DOM-free; shared with Node audit/parity smoke) -->
+<script src="/js/notes-autogen.js"></script>
 
 <!-- v3.4 C1 — inline [[ autocomplete in the note editor (A-G1).
      Self-contained; read-only candidate search; links materialised
@@ -40056,6 +40058,107 @@ async function v3MorphStoredResolve(word, sentenceId) {
   } catch (_) { return null; }
 }
 window.v3MorphStoredResolve = v3MorphStoredResolve;
+
+// ── ②-note autogen engine (Stage 1.2) ──────────────────────────────────────
+// Turn a saved text card into canonical-lemma word_study note CANDIDATES — offline,
+// deterministic, NO DB writes. The orchestrator owns I/O; the quality-critical
+// resolution (true root + meaning + pealim_id, form-first homograph disambiguation)
+// lives in the pure, parity-tested core (public/js/notes-autogen.js == port of
+// scripts/premium/build-notes-from-bundle.js). Output feeds Stage 1.3 (dedup-upsert)
+// and Stage 2 (Concept-C review queue). Exposed on window for the smoke.
+let _v3AutoGenMapsCache = null;
+// Reverse-index maps over the 3.3 MB Pealim dataset (alias/cell/formIdx/rootAlias).
+// Built once lazily and cached for the SESSION — Concept-C is on-demand and a user
+// may build knowledge from several texts back-to-back. Heavy for mid-range Android,
+// so it is NOT built at boot; InflectionDict releases its own dataset after the OPFS
+// import, so ensureReady() here re-fetches the gz (acceptable for a user action).
+async function _v3AutoGenResolverMaps() {
+  if (_v3AutoGenMapsCache) return _v3AutoGenMapsCache;
+  if (!window.InflectionDict || !window.NotesAutoGen) throw new Error("autogen deps missing");
+  const ds = await window.InflectionDict.ensureReady();   // { paradigms, index }
+  _v3AutoGenMapsCache = window.NotesAutoGen.buildResolverMaps((ds && ds.paradigms) || []);
+  return _v3AutoGenMapsCache;
+}
+
+async function v3NotesAutoGenForText(textId, opts) {
+  opts = opts || {};
+  const NA = window.NotesAutoGen;
+  if (!NA) return { ok: false, reason: "no_core" };
+  const ldb = await ensureLocalDB();
+  if (!ldb || typeof ldb.getSentenceMorphForText !== "function") return { ok: false, reason: "no_schema" };
+
+  let maps;
+  try { maps = await _v3AutoGenResolverMaps(); }
+  catch (e) { return { ok: false, reason: "no_dict", error: String((e && e.message) || e) }; }
+
+  // sentence_morph for the text (Dicta tokens). User texts w/o morph → caller offers
+  // the existing «Обогатить (Dicta)» action (Stage 2); here we just report honestly.
+  let stored = {};
+  try { stored = await ldb.getSentenceMorphForText(textId); } catch (_) { stored = {}; }
+  const sids = Object.keys(stored || {});
+  if (!sids.length) return { ok: false, reason: "no_morph", textId: String(textId) };
+
+  // 1) collect distinct units (lemma|binyan|pos) + every surface occurrence.
+  const units = new Map();
+  for (const sid of sids) {
+    const toks = (stored[sid] && stored[sid].tokens) || [];
+    for (let off = 0; off < toks.length; off++) {
+      const tok = toks[off];
+      let res = null;
+      try { res = await v3MorphTokenToResult(tok); } catch (_) {}
+      if (!res) continue;
+      const word = NA.stripNiqqud(res.word || tok.word || "");
+      if (!word || word.length < 2) continue;
+      const lemma = NA.stripNiqqud(res.lemma || res.stem || "");
+      const unit = {
+        pos: res.pos || "", binyan: res.binyan || "", root: res.root || null,
+        lemma: lemma, stem: NA.stripNiqqud(res.stem || ""),
+        niqqud: res.niqqud || tok.niqqud || "", sampleWord: word, kind: res.kind,
+      };
+      const ukey = (lemma || word) + "|" + unit.binyan + "|" + unit.pos;
+      let entry = units.get(ukey);
+      if (!entry) { entry = { unit: unit, occurrences: [] }; units.set(ukey, entry); }
+      entry.occurrences.push({ text_id: String(textId), sentence_id: String(sid), word_offset: off, surface: word });
+    }
+  }
+
+  // 2) resolve each distinct unit (async I/O: base paradigm via OPFS, function links).
+  const items = [];
+  for (const entry of units.values()) {
+    const u = entry.unit;
+    // Multi-alias base paradigm (mirrors the offline inflect() coverage via the
+    // shipped multi-alias index, form-match preferred) — shared core, so client
+    // output == the Node parity smoke.
+    let baseParadigm = null;
+    if (typeof ldb.getLemmaInflection === "function") {
+      try { baseParadigm = await NA.pickBaseParadigm(u, (k, b) => ldb.getLemmaInflection(k, b || "", V3_PEALIM_INFL_MODEL)); } catch (_) {}
+    }
+    const resolved = NA.resolveContentUnit(maps, u, baseParadigm);
+    // Function-word premium profile (client-only; build-notes parity is content-only):
+    // a direct Pealim page id + invariant vocalized form via the function-links map.
+    if (!resolved.pealim_id && (NA.FUNCTION_POS.has(u.pos) || !u.pos) && window.PealimFunctionLinks) {
+      try {
+        await window.PealimFunctionLinks.ensureReady();
+        const fe = window.PealimFunctionLinks.lookup(u.sampleWord, u.pos, { stem: u.stem, lemma: u.lemma });
+        if (fe && fe.id) {
+          resolved.pealim_id = String(fe.id);
+          const form = window.PealimFunctionLinks.getForm(fe.id);
+          if (form && form.he && !u.niqqud) u.niqqud = form.he;
+          if (resolved.confidence < 0.75) resolved.confidence = 0.75;
+          if (resolved.status === "review") resolved.status = "ok";
+        }
+      } catch (_) {}
+    }
+    items.push({ unit: u, resolved: resolved, occurrences: entry.occurrences });
+  }
+
+  // 3) group into canonical-lemma candidates (dedup_key = pid:<id> | norm(lemma)#pos).
+  const candidates = NA.buildCandidates(items);
+  const stats = NA.summarize(candidates);
+  stats.distinct_units = units.size;
+  return { ok: true, textId: String(textId), model_version: V3_PEALIM_INFL_MODEL, candidates: candidates, stats: stats };
+}
+window.v3NotesAutoGenForText = v3NotesAutoGenForText;
 
 // Hebrew text of the row the current note belongs to (for Dicta context).
 async function v3NotesGetSentenceText() {
