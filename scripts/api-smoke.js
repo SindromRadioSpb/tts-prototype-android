@@ -1,135 +1,44 @@
 "use strict";
 
+// ───────────────────────────────────────────────────────────────────────────
+// API smoke — Phase 6 aware.
+//
+// After the localMode default-on flip (2026-05-08, OPFS migration) every
+// stateful API that touched the server's SQLite DB was permanently removed:
+// library, SRS, progress, history, search, nav/resolve — all now run
+// client-side from OPFS and the server returns 410 GONE_PHASE6 for them.
+//
+// This smoke therefore checks two things the server IS still responsible for:
+//   1. Liveness: /healthz boots and the last-mile data-recovery export works.
+//   2. A Phase-6 tripwire: the removed stateful endpoints MUST keep returning
+//      410 GONE_PHASE6. If one ever 200s again, a stateful route was
+//      resurrected by accident — fail loudly.
+//
+// It deliberately does NOT exercise TTS / transliterate / Gemini paths: those
+// need GCP/Gemini keys and would make the smoke non-deterministic in CI.
+// ───────────────────────────────────────────────────────────────────────────
+
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
-const sqlite3 = require("sqlite3").verbose();
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const DB_PATH = process.env.DB_PATH || path.join(REPO_ROOT, "data", "app.db");
 const PORT = Number(process.env.API_SMOKE_PORT || 3107);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 
+// Representative sample of the stateful endpoints removed in Phase 6. Each must
+// answer 410 with { ok:false, error:"GONE_PHASE6" } via the gone410 middleware.
+const GONE_ENDPOINTS = [
+  "/api/nav/resolve?type=sentence&id=00000000-0000-0000-0000-000000000000",
+  "/api/library/texts/00000000-0000-0000-0000-000000000000",
+  "/api/notes/search?q=x&limit=10",
+  "/api/sentences/search?q=x&limit=10",
+  "/api/srs/templates",
+  "/api/srs/today?limit=10",
+];
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function openDb(dbPath, mode = sqlite3.OPEN_READONLY) {
-  return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(dbPath, mode, (err) => {
-      if (err) reject(err);
-      else resolve(db);
-    });
-  });
-}
-
-function dbGet(db, sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row || null);
-    });
-  });
-}
-
-function dbAll(db, sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows || []);
-    });
-  });
-}
-
-function dbRun(db, sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function onRun(err) {
-      if (err) reject(err);
-      else resolve(this);
-    });
-  });
-}
-
-function closeDb(db) {
-  return new Promise((resolve) => {
-    if (!db) return resolve();
-    db.close(() => resolve());
-  });
-}
-
-function pickNeedle(...values) {
-  for (const value of values) {
-    const text = String(value || "").trim();
-    if (!text) continue;
-    const matches = text.match(/[\p{L}\p{N}][\p{L}\p{N}_'"-]{1,}/gu);
-    if (matches && matches.length > 0) {
-      const token = matches.find((item) => item.length >= 2);
-      if (token) return token;
-    }
-  }
-  return null;
-}
-
-async function loadFixtureData(dbPath) {
-  const db = await openDb(dbPath);
-  try {
-    const srsSentenceSample = await dbGet(
-      db,
-      `
-      SELECT s.id AS sentenceId, s.text_id AS textId, s.he_plain AS hePlain, s.ru AS ru
-      FROM sentences s
-      LEFT JOIN srs_cards c
-        ON c.entity_type = 'sentence'
-       AND c.entity_id = s.id
-      WHERE c.id IS NULL
-      ORDER BY s.created_at DESC, s.order_index ASC
-      LIMIT 1
-      `
-    );
-
-    const sentenceSample = srsSentenceSample || await dbGet(
-      db,
-      `
-      SELECT s.id AS sentenceId, s.text_id AS textId, s.he_plain AS hePlain, s.ru AS ru
-      FROM sentences s
-      ORDER BY s.created_at DESC, s.order_index ASC
-      LIMIT 1
-      `
-    );
-
-    const noteSample = await dbGet(
-      db,
-      `
-      SELECT n.id AS noteId, n.text_id AS textId, n.sentence_id AS sentenceId, n.note AS note
-      FROM sentence_notes n
-      WHERE length(trim(COALESCE(n.note, ''))) >= 2
-      ORDER BY n.updated_at DESC
-      LIMIT 1
-      `
-    );
-
-    return {
-      sentence: sentenceSample
-        ? {
-            ...sentenceSample,
-            q: pickNeedle(sentenceSample.hePlain, sentenceSample.ru),
-          }
-        : null,
-      srsSentence: srsSentenceSample
-        ? {
-            ...srsSentenceSample,
-            q: pickNeedle(srsSentenceSample.hePlain, srsSentenceSample.ru),
-          }
-        : null,
-      note: noteSample
-        ? {
-            ...noteSample,
-            q: pickNeedle(noteSample.note),
-          }
-        : null,
-    };
-  } finally {
-    await closeDb(db);
-  }
 }
 
 async function waitForHealth(baseUrl, timeoutMs = 15000) {
@@ -144,38 +53,15 @@ async function waitForHealth(baseUrl, timeoutMs = 15000) {
   throw new Error(`Server did not become healthy within ${timeoutMs} ms`);
 }
 
-async function fetchJson(url) {
-  const res = await fetch(url);
+async function readBody(res) {
   const text = await res.text();
   let data = null;
   try {
     data = text ? JSON.parse(text) : null;
-  } catch (e) {
-    throw new Error(`Invalid JSON from ${url}: ${e.message}\nBody: ${text}`);
+  } catch (_) {
+    data = null;
   }
-  if (!res.ok) {
-    throw new Error(`Request failed ${res.status} for ${url}: ${text}`);
-  }
-  return data;
-}
-
-async function postJson(url, body) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body || {}),
-  });
-  const text = await res.text();
-  let data = null;
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch (e) {
-    throw new Error(`Invalid JSON from ${url}: ${e.message}\nBody: ${text}`);
-  }
-  if (!res.ok) {
-    throw new Error(`Request failed ${res.status} for ${url}: ${text}`);
-  }
-  return data;
+  return { text, data };
 }
 
 function startServer(dbPath, port) {
@@ -224,306 +110,38 @@ async function stopServer(child) {
   }
 }
 
-async function cleanupSrsArtifacts(dbPath, sentenceId) {
-  if (!sentenceId) return;
-
-  const db = await openDb(dbPath, sqlite3.OPEN_READWRITE);
-  try {
-    const card = await dbGet(
-      db,
-      `SELECT id FROM srs_cards WHERE entity_type = 'sentence' AND entity_id = ?`,
-      [sentenceId]
-    );
-    if (!card || !card.id) return;
-    const rows = await new Promise((resolve, reject) => {
-      db.all(`SELECT id FROM srs_cards WHERE entity_type = 'sentence' AND entity_id = ?`, [sentenceId], (err, list) => {
-        if (err) reject(err);
-        else resolve(list || []);
-      });
-    });
-    for (const row of rows) {
-      await dbRun(db, `DELETE FROM srs_card_exports WHERE card_id = ?`, [row.id]);
-      await dbRun(db, `DELETE FROM srs_attempts WHERE card_id = ?`, [row.id]);
-      await dbRun(db, `DELETE FROM srs_review_events WHERE card_id = ?`, [row.id]);
-      await dbRun(db, `DELETE FROM events WHERE card_id = ?`, [row.id]);
-      await dbRun(db, `DELETE FROM srs_cards WHERE id = ?`, [row.id]);
-    }
-    await dbRun(db, `DELETE FROM srs_session_runs WHERE source = ?`, ["api-smoke"]);
-  } finally {
-    await closeDb(db);
-  }
-}
-
 async function run() {
-  const fixtureData = await loadFixtureData(DB_PATH);
-  if (!fixtureData.sentence || !fixtureData.sentence.sentenceId || !fixtureData.sentence.textId) {
-    throw new Error("Could not find a sentence sample in the database for /api/nav/resolve and /api/sentences/search");
-  }
-
   const { child, logs } = startServer(DB_PATH, PORT);
-  let srsCleanupSentenceId = null;
 
   try {
     await waitForHealth(BASE_URL);
     console.log(`PASS /healthz -> server booted on ${BASE_URL}`);
 
-    const navResolve = await fetchJson(
-      `${BASE_URL}/api/nav/resolve?type=sentence&id=${encodeURIComponent(fixtureData.sentence.sentenceId)}`
-    );
-    if (!navResolve.ok || navResolve.textId !== fixtureData.sentence.textId) {
-      throw new Error(`Unexpected /api/nav/resolve payload: ${JSON.stringify(navResolve)}`);
-    }
-    console.log("PASS /api/nav/resolve -> resolved sentence to expected text");
-
-    const textMeta = await fetchJson(
-      `${BASE_URL}/api/library/texts/${encodeURIComponent(fixtureData.sentence.textId)}`
-    );
-    const textMetaRow = textMeta && textMeta.text ? textMeta.text : textMeta;
-    if (
-      !textMeta.ok ||
-      !textMetaRow ||
-      !Object.prototype.hasOwnProperty.call(textMetaRow, "audio_asset_key") ||
-      !Object.prototype.hasOwnProperty.call(textMetaRow, "audio_tts_profile_json")
-    ) {
-      throw new Error(`Unexpected /api/library/texts/:id payload: ${JSON.stringify(textMeta)}`);
-    }
-    console.log("PASS /api/library/texts/:id -> returns text-level audio metadata");
-
-    if (fixtureData.note && fixtureData.note.q) {
-      const notesSearch = await fetchJson(
-        `${BASE_URL}/api/notes/search?q=${encodeURIComponent(fixtureData.note.q)}&limit=10`
-      );
-      if (!notesSearch.ok || !Array.isArray(notesSearch.results)) {
-        throw new Error(`Unexpected /api/notes/search payload: ${JSON.stringify(notesSearch)}`);
-      }
-      const matched = notesSearch.results.some(
-        (row) => row && row.sentenceId === fixtureData.note.sentenceId && row.textId === fixtureData.note.textId
-      );
-      if (!matched) {
-        throw new Error(`Selected note sample was not returned by /api/notes/search for query "${fixtureData.note.q}"`);
-      }
-      console.log("PASS /api/notes/search -> found selected note sample");
-    } else {
-      const notesGuard = await fetchJson(`${BASE_URL}/api/notes/search?q=&limit=10`);
-      if (!notesGuard.ok || !Array.isArray(notesGuard.results) || notesGuard.results.length !== 0) {
-        throw new Error(`Unexpected empty-query /api/notes/search payload: ${JSON.stringify(notesGuard)}`);
-      }
-      console.log("PASS /api/notes/search -> empty-query guard works");
-    }
-
-    if (!fixtureData.sentence.q) {
-      throw new Error("Could not derive a search token for /api/sentences/search");
-    }
-    const sentencesSearch = await fetchJson(
-      `${BASE_URL}/api/sentences/search?q=${encodeURIComponent(fixtureData.sentence.q)}&limit=10`
-    );
-    if (!sentencesSearch.ok || !Array.isArray(sentencesSearch.results)) {
-      throw new Error(`Unexpected /api/sentences/search payload: ${JSON.stringify(sentencesSearch)}`);
-    }
-    const sentenceMatched = sentencesSearch.results.some(
-      (row) => row && row.sentenceId === fixtureData.sentence.sentenceId && row.textId === fixtureData.sentence.textId
-    );
-    if (!sentenceMatched) {
-      throw new Error(
-        `Selected sentence sample was not returned by /api/sentences/search for query "${fixtureData.sentence.q}"`
-      );
-    }
-    console.log("PASS /api/sentences/search -> found selected sentence sample");
-
-    if (fixtureData.srsSentence && fixtureData.srsSentence.sentenceId) {
-      const templateList = await fetchJson(`${BASE_URL}/api/srs/templates`);
-      if (!templateList.ok || !Array.isArray(templateList.templates) || templateList.templates.length < 2) {
-        throw new Error(`Unexpected /api/srs/templates payload: ${JSON.stringify(templateList)}`);
-      }
-      console.log("PASS /api/srs/templates -> template catalog responds");
-
-      const srsGetBefore = await fetchJson(
-        `${BASE_URL}/api/srs/cards?sentenceId=${encodeURIComponent(fixtureData.srsSentence.sentenceId)}&templateCode=ru_to_he`
-      );
-      if (!srsGetBefore.ok || srsGetBefore.card !== null) {
-        throw new Error(`Unexpected initial /api/srs/cards payload: ${JSON.stringify(srsGetBefore)}`);
-      }
-      console.log("PASS /api/srs/cards -> empty state for fresh sentence");
-
-      const srsCreated = await postJson(`${BASE_URL}/api/srs/cards`, {
-        sentenceId: fixtureData.srsSentence.sentenceId,
-        templateCode: "ru_to_he",
-      });
-      if (!srsCreated.ok || !srsCreated.card || srsCreated.card.state !== "new") {
-        throw new Error(`Unexpected SRS create payload: ${JSON.stringify(srsCreated)}`);
-      }
-      if (!srsCreated.card.template || srsCreated.card.template.code !== "ru_to_he") {
-        throw new Error(`Unexpected default template on create: ${JSON.stringify(srsCreated)}`);
-      }
-      srsCleanupSentenceId = fixtureData.srsSentence.sentenceId;
-      console.log("PASS /api/srs/cards POST -> created new sentence card");
-
-      const srsGenerated = await postJson(`${BASE_URL}/api/srs/cards/generate`, {
-        sentenceId: fixtureData.srsSentence.sentenceId,
-        templateCodes: ["he_to_ru"],
-      });
-      if (!srsGenerated.ok || !Array.isArray(srsGenerated.cards) || !srsGenerated.cards.some((row) => row.card && row.card.template && row.card.template.code === "he_to_ru")) {
-        throw new Error(`Unexpected SRS generate payload: ${JSON.stringify(srsGenerated)}`);
-      }
-      console.log("PASS /api/srs/cards/generate -> created secondary template card");
-
-      const trainerView = await fetchJson(
-        `${BASE_URL}/api/srs/cards/${encodeURIComponent(srsCreated.card.id)}/trainer-view?mode=typing`
-      );
-      if (!trainerView.ok || !trainerView.trainer || trainerView.trainer.mode !== "typing") {
-        throw new Error(`Unexpected /api/srs/cards/:id/trainer-view payload: ${JSON.stringify(trainerView)}`);
-      }
-      console.log("PASS /api/srs/cards/:id/trainer-view -> typing payload responds");
-
-      const expectedTypingAnswer = String(
-        (trainerView.card && trainerView.card.template && trainerView.card.template.code === "he_to_ru")
-          ? (trainerView.sentence && trainerView.sentence.ru)
-          : (trainerView.sentence && (trainerView.sentence.heNiqqud || trainerView.sentence.hePlain))
-      ).trim();
-      if (!expectedTypingAnswer) {
-        throw new Error(`Could not derive expected trainer answer from payload: ${JSON.stringify(trainerView)}`);
-      }
-      const attemptChecked = await postJson(`${BASE_URL}/api/srs/attempts/check`, {
-        cardId: srsCreated.card.id,
-        attemptType: "typing",
-        answer: expectedTypingAnswer,
-        latencyMs: 900,
-      });
-      if (!attemptChecked.ok || !attemptChecked.isCorrect || attemptChecked.attemptType !== "typing") {
-        throw new Error(`Unexpected /api/srs/attempts/check payload: ${JSON.stringify(attemptChecked)}`);
-      }
-      console.log("PASS /api/srs/attempts/check -> typing answer accepted");
-
-      const srsReviewed = await postJson(`${BASE_URL}/api/srs/review`, {
-        sentenceId: fixtureData.srsSentence.sentenceId,
-        templateCode: "ru_to_he",
-        rating: 3,
-        reviewTimeMs: 1200,
-      });
-      if (!srsReviewed.ok || !srsReviewed.card || srsReviewed.card.state !== "review") {
-        throw new Error(`Unexpected SRS review payload: ${JSON.stringify(srsReviewed)}`);
-      }
-      if (Number(srsReviewed.card.intervalDays || 0) < 1) {
-        throw new Error(`Unexpected SRS interval after review: ${JSON.stringify(srsReviewed)}`);
-      }
-      console.log("PASS /api/srs/review -> advanced card schedule");
-
-      const srsToday = await fetchJson(`${BASE_URL}/api/srs/today?limit=10&templateCode=ru_to_he`);
-      if (!srsToday.ok || !Array.isArray(srsToday.cards)) {
-        throw new Error(`Unexpected /api/srs/today payload: ${JSON.stringify(srsToday)}`);
-      }
-      if (!srsToday.cards.every((row) => row && row.card && row.card.id && row.card.template && row.card.template.code === "ru_to_he")) {
-        throw new Error(`Today queue did not return card-backed items: ${JSON.stringify(srsToday)}`);
-      }
-      console.log("PASS /api/srs/today -> queue endpoint respects template filter");
-
-      const srsSummary = await fetchJson(`${BASE_URL}/api/srs/today/summary?limit=20&templateCode=ru_to_he`);
-      if (!srsSummary.ok || !srsSummary.summary || typeof srsSummary.summary.dueCount !== "number") {
-        throw new Error(`Unexpected /api/srs/today/summary payload: ${JSON.stringify(srsSummary)}`);
-      }
-      console.log("PASS /api/srs/today/summary -> summary endpoint respects template filter");
-
-      const sessionStarted = await postJson(`${BASE_URL}/api/srs/sessions`, {
-        source: "api-smoke",
-        limit: 20,
-        mode: "typing",
-        templateCode: "ru_to_he",
-      });
-      if (!sessionStarted.ok || !sessionStarted.session || !sessionStarted.session.id) {
-        throw new Error(`Unexpected /api/srs/sessions payload: ${JSON.stringify(sessionStarted)}`);
-      }
-      if (sessionStarted.session.mode !== "typing") {
-        throw new Error(`Session did not preserve trainer mode: ${JSON.stringify(sessionStarted)}`);
-      }
-      if (sessionStarted.current && sessionStarted.current.card && sessionStarted.current.card.template && sessionStarted.current.card.template.code !== "ru_to_he") {
-        throw new Error(`Session queue leaked a card from another template: ${JSON.stringify(sessionStarted)}`);
-      }
-      console.log("PASS /api/srs/sessions -> started trainer session");
-
-      const sessionNext = await fetchJson(
-        `${BASE_URL}/api/srs/sessions/${encodeURIComponent(sessionStarted.session.id)}/next`
-      );
-      if (!sessionNext.ok || !sessionNext.session) {
-        throw new Error(`Unexpected /api/srs/sessions/:id/next payload: ${JSON.stringify(sessionNext)}`);
-      }
-      if (sessionNext.current && sessionNext.current.card && sessionNext.current.card.template && sessionNext.current.card.template.code !== "ru_to_he") {
-        throw new Error(`Session next returned a card from another template: ${JSON.stringify(sessionNext)}`);
-      }
-      console.log("PASS /api/srs/sessions/:id/next -> next-card endpoint responds");
-
-      if (sessionNext.current && sessionNext.current.card && sessionNext.current.card.id) {
-        const sessionReviewed = await postJson(
-          `${BASE_URL}/api/srs/sessions/${encodeURIComponent(sessionStarted.session.id)}/review`,
-          { rating: 1, reviewTimeMs: 750 }
+    // 1. Phase-6 tripwire: removed stateful endpoints must stay 410 GONE_PHASE6.
+    for (const ep of GONE_ENDPOINTS) {
+      const res = await fetch(`${BASE_URL}${ep}`);
+      const { data, text } = await readBody(res);
+      if (res.status !== 410) {
+        throw new Error(
+          `Phase-6 endpoint resurrected: ${ep} answered ${res.status} (expected 410). Body: ${text}`
         );
-        if (!sessionReviewed.ok || !sessionReviewed.reviewed || !sessionReviewed.session) {
-          throw new Error(`Unexpected /api/srs/sessions/:id/review payload: ${JSON.stringify(sessionReviewed)}`);
-        }
-        console.log("PASS /api/srs/sessions/:id/review -> session review advances queue");
       }
-
-      const sessionFinished = await postJson(
-        `${BASE_URL}/api/srs/sessions/${encodeURIComponent(sessionStarted.session.id)}/finish`,
-        {}
-      );
-      if (!sessionFinished.ok || !sessionFinished.session || sessionFinished.session.status !== "finished") {
-        throw new Error(`Unexpected /api/srs/sessions/:id/finish payload: ${JSON.stringify(sessionFinished)}`);
+      if (!data || data.error !== "GONE_PHASE6") {
+        throw new Error(`Unexpected 410 body for ${ep}: ${text}`);
       }
-      console.log("PASS /api/srs/sessions/:id/finish -> session can be closed");
-
-      const ankiPreview = await fetchJson(
-        `${BASE_URL}/api/srs/export/anki/preview?cardId=${encodeURIComponent(srsCreated.card.id)}`
-      );
-      if (!ankiPreview.ok || !ankiPreview.note || !ankiPreview.preview || !ankiPreview.exportHash) {
-        throw new Error(`Unexpected /api/srs/export/anki/preview payload: ${JSON.stringify(ankiPreview)}`);
-      }
-      if (ankiPreview.preview.templateCode !== "ru_to_he") {
-        throw new Error(`SRS Anki preview lost template direction: ${JSON.stringify(ankiPreview)}`);
-      }
-      console.log("PASS /api/srs/export/anki/preview -> builds stable export preview");
-
-      const ankiStatusBefore = await fetchJson(
-        `${BASE_URL}/api/srs/export/status?cardId=${encodeURIComponent(srsCreated.card.id)}`
-      );
-      if (!ankiStatusBefore.ok || ankiStatusBefore.isExported !== false) {
-        throw new Error(`Unexpected initial /api/srs/export/status payload: ${JSON.stringify(ankiStatusBefore)}`);
-      }
-      console.log("PASS /api/srs/export/status -> reports not exported before first sync");
-
-      const ankiDryRun = await postJson(`${BASE_URL}/api/srs/export/anki`, {
-        cardId: srsCreated.card.id,
-        dryRun: true,
-      });
-      if (!ankiDryRun.ok || !ankiDryRun.dryRun || ankiDryRun.exportHash !== ankiPreview.exportHash) {
-        throw new Error(`Unexpected dry-run /api/srs/export/anki payload: ${JSON.stringify(ankiDryRun)}`);
-      }
-      console.log("PASS /api/srs/export/anki -> dry-run path works without AnkiConnect");
-
-      const analyticsDb = await openDb(DB_PATH);
-      try {
-        const eventRows = await dbAll(
-          analyticsDb,
-          `
-          SELECT event_type, COUNT(*) AS count
-          FROM events
-          WHERE event_type IN ('search_query', 'srs_review', 'trainer_attempt', 'srs_session_started', 'srs_session_finished')
-          GROUP BY event_type
-          ORDER BY event_type ASC
-          `
-        );
-        const counts = Object.fromEntries(eventRows.map((row) => [String(row.event_type || ""), Number(row.count || 0)]));
-        for (const type of ["search_query", "srs_review", "trainer_attempt", "srs_session_started", "srs_session_finished"]) {
-          if (!counts[type] || counts[type] < 1) {
-            throw new Error(`Expected analytics event "${type}" to be written into events table; got ${JSON.stringify(counts)}`);
-          }
-        }
-      } finally {
-        await closeDb(analyticsDb);
-      }
-      console.log("PASS analytics events -> search/SRS/session hooks write into events layer");
-    } else {
-      console.log("SKIP /api/srs/* -> no clean sentence without existing SRS card was available");
     }
+    console.log(`PASS Phase-6 tripwire -> ${GONE_ENDPOINTS.length} removed endpoints still 410 GONE_PHASE6`);
+
+    // 2. Liveness of the kept last-mile data-recovery export.
+    const exportRes = await fetch(`${BASE_URL}/api/library/export`);
+    const { data: exportData, text: exportText } = await readBody(exportRes);
+    if (!exportRes.ok) {
+      throw new Error(`/api/library/export failed ${exportRes.status}: ${exportText.slice(0, 300)}`);
+    }
+    if (!exportData || exportData.exportType !== "linguist-pro-library" || !Array.isArray(exportData.texts)) {
+      throw new Error(`Unexpected /api/library/export payload: ${exportText.slice(0, 300)}`);
+    }
+    console.log("PASS /api/library/export -> data-recovery export still served");
 
     console.log("API smoke: OK");
   } catch (error) {
@@ -531,7 +149,6 @@ async function run() {
     throw new Error(`${error.message}${tail}`);
   } finally {
     await stopServer(child);
-    await cleanupSrsArtifacts(DB_PATH, srsCleanupSentenceId);
   }
 }
 
