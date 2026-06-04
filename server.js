@@ -159,12 +159,29 @@ async function v3TrackEventSafe(event) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Don't advertise the framework — drops the `X-Powered-By: Express` header.
+app.disable("x-powered-by");
+// We run behind Traefik (Coolify). Trust the first proxy hop so req.ip and
+// req.protocol/req.secure reflect the real client + scheme (used by the
+// same-origin guard below and rate-limiter keying).
+app.set("trust proxy", 1);
+
 app.use(bodyParser.json({ limit: "10mb" }));
 
-// COOP/COEP headers required for SharedArrayBuffer (used by wa-sqlite AccessHandlePoolVFS)
+// Security + cross-origin-isolation headers on every response.
+//   • COOP/COEP/CORP enable SharedArrayBuffer (wa-sqlite AccessHandlePoolVFS).
+//   • HSTS: site is HTTPS-only behind Traefik + Let's Encrypt — pin it.
+//   • nosniff / frame-deny / referrer / permissions: standard hardening.
+// Note: no Content-Security-Policy here — index.html relies heavily on inline
+// scripts/styles, so a real CSP needs a dedicated report-only rollout first.
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), browsing-topics=()");
   next();
 });
 
@@ -286,7 +303,14 @@ app.use(express.static(path.join(__dirname, "public"), {
       lower.endsWith(".woff2") ||
       lower.endsWith(".woff") ||
       /[\\/]icons[\\/].+\.(png|svg|ico)$/.test(lower) ||
-      lower.endsWith("favicon.ico")
+      lower.endsWith("favicon.ico") ||
+      // Versioned shipped datasets under public/data (e.g.
+      // pealim-infl-v12.json.gz, pealim-function-links.v1.json). The version
+      // token in the filename guarantees a new URL on every data change, so
+      // these are safe to cache forever. Without this they fell through to
+      // express.static's default `max-age=0`, forcing a revalidation of the
+      // 3.3 MB inflection dict on every cold load.
+      /[\\/]data[\\/].*[._-]v\d+[._-]/.test(lower)
     ) {
       res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
     } else if (
