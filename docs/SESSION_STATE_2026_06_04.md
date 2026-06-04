@@ -15,6 +15,7 @@
 | Function-links (точность) | `5bda857` | v3.7.7 | карта `pealim-function-links.v1.json` (invariant-сироты) → прямая ссылка для служебных слов вместо поиска |
 | Same-POS form-disambig | `a370082` | v3.7.8 | build-notes form-first резолв сохраняет верный `pealim_id`+`meaning` в `body_json`; рантайм линкует по сохранённому id, чужую таблицу скрывает (`seePealim`). 234 ссылки + 47 переводов исправлены |
 | Инвентаризация ссылок | (этот) | — | `npm run audit:pealim-inventory` → `docs/PEALIM_LINK_INVENTORY_2026_06.md` |
+| **Phase 5-R1 настоящие корни** | (этот) | v3.7.9 | имена/прил./глаголы получают настоящий корень Pealim (chip `root`); новое поле `lemma` развязывает запрос таблицы (`data-conj-lemma`); proclitic-form fix (`unitFormVariants`) чинит омограф בַּדָּם. 2366 корней, 0 ошибок, 0 R1. Смоук `smoke:conj:trueroot` 8/8 |
 
 ## Текущее состояние ссылок Pealim (бандл `Library/test-enriched.zip`, 8967 заметок)
 - **Прямых ссылок 90.1%** (8045 form-disambig `pealim_id` + 37 function-links).
@@ -24,13 +25,15 @@
 
 ## Поля ②-заметок
 word 100% · niqqud ~100% · pos/part_of_speech 94.7% (синхронны) · binyan(глаголы) 99.9% ·
-**meaning 96.2%** · root 54% (0 R1-нарушений; noun `root==lemma` 698 — R1-gap, отложено) ·
-sentence_morph 3457. **R1 hard violations: 0.**
+**meaning 96.2%** · root **58.5%** (0 R1-нарушений; **Phase 5-R1 закрыл noun `root==lemma`**:
+2366 настоящих корней, остаток 564 честно пусты, 303 root==слово — легитимные Pealim-корни) ·
+**lemma** (новое поле — запрос таблицы) · sentence_morph 3457. **R1 hard violations: 0.**
 
 ## Постоянные аудиты/смоуки (метрики, не заглушки)
 `npm run audit:note-fields` · `audit:pealim-links` · `audit:pealim-samepos` · `audit:pealim-inventory`
 · `smoke:conj` (17/17) · `smoke:conj:audit` (175/175) · `smoke:conj:link-guard` (12/12) ·
-`smoke:conj:sentence-morph` (7/7) · `smoke:conj:deeplink-selfheal` (5/5) · `smoke:conj:pos-hydrate` (4/4).
+`smoke:conj:sentence-morph` (7/7) · `smoke:conj:deeplink-selfheal` (5/5) · `smoke:conj:pos-hydrate` (4/4)
+· `smoke:conj:trueroot` (8/8 — Phase 5-R1 chip=root / table=lemma decouple gate).
 
 ## Извлечённые уроки (применять впредь)
 1. **«Нет корня/нет таблицы» для служебных слов — по Dicta-POS, а не по маленькому стоп-листу.**
@@ -52,8 +55,8 @@ sentence_morph 3457. **R1 hard violations: 0.**
    line-numbers/idx vs pealim_id).
 
 ## Открытое / отложенное (бэклог)
-- **noun `root==lemma` (698)** — настоящие триконсонантные корни существительных (Phase 5-R1
-  true lemmatization). `root` остаётся «базовой формой» — R1-честно, но не корень.
+- ~~**noun `root==lemma` (698)**~~ — **ЗАКРЫТО Phase 5-R1 (2026-06-04, SW v3.7.9).** Настоящие
+  корни имён/прил./глаголов из Pealim; новое поле `lemma`; proclitic-form fix. 2366 корней, 0 R1.
 - **885 missing-direct ссылок** — почти все внешний предел (нет в Pealim) или омограф без
   form-target; прямая ссылка невозможна без расширения датасета. Честный поиск корректен.
 - **Полная ВЕРНАЯ таблица для same-POS омографа** (сейчас при омографе показываем «таблица на

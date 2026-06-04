@@ -69,7 +69,8 @@ function loadOfflineMeaning() {
   const p = path.join(REPO, "public", "data", "inflection", "pealim-infl-v12.json.gz");
   const alias = new Map();   // base key (root/lemma/form) → [{ binyan, pos, meaning }]
   const cell = new Map();    // inflected surface form (consonantal) → [{ binyan, pos, meaning }]
-  const formIdx = new Map(); // VOCALIZED cell form (normVowels) → [{ binyan, pos, meaning, pealim_id }]
+  const formIdx = new Map(); // VOCALIZED cell form (normVowels) → [{ binyan, pos, meaning, pealim_id, root }]
+  const rootAlias = new Map(); // base key (lemma/root/form, consonantal) → [{ pos, binyan, root }] — Phase 5-R1 true roots
   try {
     const d = JSON.parse(require("zlib").gunzipSync(fs.readFileSync(p)).toString("utf8"));
     const push = (map, kk, par) => {
@@ -80,11 +81,22 @@ function loadOfflineMeaning() {
     const pushForm = (kk, par) => {
       if (!kk) return; if (!formIdx.has(kk)) formIdx.set(kk, []);
       const list = formIdx.get(kk);
-      if (!list.some((x) => x.pealim_id === par.pealim_id)) list.push({ binyan: par.binyan || "", pos: par.pos || "", meaning: par.meaning || "", pealim_id: par.pealim_id || null });
+      if (!list.some((x) => x.pealim_id === par.pealim_id)) list.push({ binyan: par.binyan || "", pos: par.pos || "", meaning: par.meaning || "", pealim_id: par.pealim_id || null, root: stripNiqqud(par.root) });
+    };
+    // Phase 5-R1: index the Pealim-asserted TRUE root by every base key, for content
+    // paradigms only (noun/adjective/verb). Dedup by distinct root per key.
+    const pushRoot = (kk, par) => {
+      const r = stripNiqqud(par.root); if (!kk || !r) return;
+      if (!rootAlias.has(kk)) rootAlias.set(kk, []);
+      const list = rootAlias.get(kk);
+      if (!list.some((x) => x.root === r && x.pos === (par.pos || ""))) list.push({ pos: par.pos || "", binyan: par.binyan || "", root: r });
     };
     for (const par of d.paradigms || []) {
       if (!par) continue;
       if (par.meaning) { for (const k of [par.root, par.lemma, par.form]) push(alias, stripNiqqud(k), par); }
+      if (/noun|adjective|verb/.test(par.pos || "") && par.root) {
+        for (const k of [par.lemma, par.root, par.form]) pushRoot(stripNiqqud(k), par);
+      }
       // inflected cells: a participle Dicta cross-tags as a noun (כותב, עובד) is the
       // AP-ms cell of its verb paradigm — the cell's gloss IS the right «Перевод».
       if (par.cells) for (const ck of Object.keys(par.cells)) {
@@ -96,7 +108,7 @@ function loadOfflineMeaning() {
       }
     }
   } catch (e) { log("offline-dict meaning load failed:", String(e && e.message || e)); }
-  return { alias, cell, formIdx };
+  return { alias, cell, formIdx, rootAlias };
 }
 
 // Form-first paradigm pick: the unit's VOCALIZED form is a cell of a POS-compatible
@@ -104,11 +116,26 @@ function loadOfflineMeaning() {
 // resolver's decisive +20 form-match). Returns { meaning, pealim_id } or null. Content
 // POS only (function words handled by the runtime function-links map).
 const NOUN_KIN = (a, b) => (a === b) || ((a === "noun" || a === "adjective") && (b === "noun" || b === "adjective"));
+// When the unit's surface carries a Dicta proclitic prefix (consonantal surface ≠ stem),
+// the decisive cell is the BASE form (== stem skeleton), NOT the full prefixed surface —
+// otherwise a possessive-suffixed homograph cell of an unrelated noun collides
+// (בַּדָּם «их ткань» root בדד vs בְּדָם «в крови» root דמם). Use Dicta's own stem
+// segmentation (no guessing); fall back to all variants when the stem skeleton matches none.
+function unitFormVariants(u) {
+  const vs = formVariants(u.niqqud);
+  const stem = stripNiqqud(u && u.stem);
+  const surf = stripNiqqud(u && u.niqqud);
+  if (stem && surf && stem !== surf) {
+    const base = vs.filter((v) => stripNiqqud(v) === stem);
+    if (base.length) return base;
+  }
+  return vs;
+}
 function formFirstResolve(maps, u) {
   if (!maps || !maps.formIdx || !u || !u.niqqud) return null;
   const pos = u.pos || "";
   if (!(pos === "verb" || pos === "noun" || pos === "adjective" || pos === "")) return null;
-  for (const v of formVariants(u.niqqud)) {
+  for (const v of unitFormVariants(u)) {
     let arr = maps.formIdx.get(v); if (!arr || !arr.length) continue;
     if (pos) { const f = arr.filter((x) => NOUN_KIN(x.pos, pos)); if (f.length) arr = f; else continue; }
     if (u.binyan) { const f = arr.filter((x) => x.binyan === u.binyan); if (f.length) arr = f; }
@@ -138,6 +165,50 @@ function offlineMeaningLookup(maps, u) {
     const meanings = [...new Set(arr.map((x) => x.meaning))];
     if (meanings.length === 1) return meanings[0];
     return null;   // ambiguous → honest empty
+  }
+  return null;
+}
+
+// Phase 5-R1 — resolve the Pealim-asserted TRUE triliteral root for a content unit.
+// Replaces the lemma-as-root stored for nouns/adjectives (and corrects Dicta's
+// non-standard verb roots, e.g. ל״ה עשי→עשה). Returns a root string or null.
+// NEVER for function words / proper nouns (R1-1 / R1-4). Priority is "form decisive"
+// (lesson 3): the unit's VOCALIZED form is a cell of a paradigm → that paradigm's root
+// is the truth (participle-noun כותב→כתב; III-heh verb לעשות→עשה). A channel that yields
+// >1 distinct root → null (honest empty; never guess a homograph's root).
+function resolveTrueRoot(maps, u, res) {
+  if (!maps || !u) return null;
+  const pos = u.pos || "";
+  if (FUNCTION_POS.has(pos) || u.kind === "propernoun") return null;
+  const compat = (p) => NOUN_KIN(p, pos) || p === "verb" || pos === "verb" || pos === "" || p === "";
+  // 1) form-first (decisive): the unit's BASE vocalized form matches a paradigm cell.
+  if (u.niqqud && maps.formIdx) {
+    for (const v of unitFormVariants(u)) {
+      const arr = maps.formIdx.get(v); if (!arr || !arr.length) continue;
+      let f = arr.filter((x) => x.root && compat(x.pos));
+      if (u.binyan) { const fb = f.filter((x) => x.binyan === u.binyan); if (fb.length) f = fb; }
+      const roots = [...new Set(f.map((x) => x.root))];
+      if (roots.length === 1) return roots[0];
+      if (roots.length > 1) return null;   // homograph form → honest empty
+    }
+  }
+  // 2) verbs only: the gateway's resolved paradigm is already form/POS-disambiguated by
+  //    inflect()'s scorer; trust its root (keeps R1-3 satisfied for ל״ה etc.). Not for
+  //    nouns — a lemma-query homograph could leak a wrong nominal root.
+  if (pos === "verb" && res && res.r && res.r.ok && res.r.paradigm && res.r.paradigm.root
+      && (res.r.paradigm.pos || "verb") === "verb") {
+    return stripNiqqud(res.r.paradigm.root);
+  }
+  // 3) base-form alias by lemma / surface — single unambiguous root only.
+  if (maps.rootAlias) {
+    for (const k of [stripNiqqud(u.lemma), stripNiqqud(u.sampleWord), stripNiqqud(u.stem)].filter(Boolean)) {
+      const arr = maps.rootAlias.get(k); if (!arr || !arr.length) continue;
+      let f = arr.filter((x) => compat(x.pos));
+      if (u.binyan) { const fb = f.filter((x) => x.binyan === u.binyan); if (fb.length) f = fb; }
+      const roots = [...new Set(f.map((x) => x.root))];
+      if (roots.length === 1) return roots[0];
+      if (roots.length > 1) return null;   // ambiguous lemma → honest empty
+    }
   }
   return null;
 }
@@ -277,7 +348,7 @@ function checkUnit(u, r) {
   log("offline-dict meaning keys: alias", offlineMeaning.alias.size, "cell", offlineMeaning.cell.size);
   const unitList = [...units.entries()];
   const resolved = new Map();
-  let ri = 0, meaningFallbacks = 0, formOverrides = 0;
+  let ri = 0, meaningFallbacks = 0, formOverrides = 0, rootUpgrades = 0, rootEmptied = 0;
   for (const [ukey, u] of unitList) {
     const q = queryLemma(u.pos, u.root, u.lemma, u.stem);
     let r = null;
@@ -293,10 +364,15 @@ function checkUnit(u, r) {
     if (ff && ff.pealim_id && String(ff.pealim_id) !== String(pid || "")) { pid = ff.pealim_id; if (ff.meaning) meaning = ff.meaning; formOverrides++; }
     // B0.1: still no gloss → offline dict fallback (real glosses only, never fabricated).
     if (!meaning) { const fb = offlineMeaningLookup(offlineMeaning, u); if (fb) { meaning = fb; meaningFallbacks++; } }
-    resolved.set(ukey, { r, check: checkUnit(u, r), meaning, pid });
+    // Phase 5-R1: Pealim-asserted TRUE root (or null → honest empty for nouns/adj).
+    const trueRoot = resolveTrueRoot(offlineMeaning, u, { r });
+    if (trueRoot && stripNiqqud(trueRoot) !== stripNiqqud(u.root || "")) rootUpgrades++;
+    else if (!trueRoot && (u.pos === "noun" || u.pos === "adjective") && u.root) rootEmptied++;
+    resolved.set(ukey, { r, check: checkUnit(u, r), meaning, pid, trueRoot });
     if (++ri % 50 === 0) log("  resolve", ri + "/" + unitList.length);
   }
-  log("resolve done; meaning fallbacks:", meaningFallbacks, "| form-first overrides:", formOverrides);
+  log("resolve done; meaning fallbacks:", meaningFallbacks, "| form-first overrides:", formOverrides,
+    "| root upgrades:", rootUpgrades, "| nominal roots emptied:", rootEmptied);
 
   // ── 4) build notes_advanced + defect report ──────────────────────────────
   const notes = [];
@@ -305,9 +381,23 @@ function checkUnit(u, r) {
     const ns = noteSeeds[i];
     const res = resolved.get(ns.unitKey) || {};
     const meaning = res.meaning || "";
+    // Phase 5-R1 root field: verb → true Pealim root else keep Dicta root (never empty,
+    // R1-3); noun/adjective → true Pealim root or HONEST EMPTY (no lemma-as-root). The
+    // runtime word card renders empty root via its self-heal (dashed «базовая форма» / «—»),
+    // so empty is never a dead-end. Function/proper already have ns.root === null.
+    const isContent = (ns.pos === "verb" || ns.pos === "noun" || ns.pos === "adjective");
+    const rootField = (ns.pos === "verb") ? (res.trueRoot || ns.root || "")
+      : ((ns.pos === "noun" || ns.pos === "adjective") ? (res.trueRoot || "") : (ns.root || ""));
+    // Phase 5-R1 lemma field: the dictionary/query form for the runtime conjugation-table
+    // lookup (data-conj-lemma), kept SEPARATE from `root`. The offline inflection table is
+    // keyed by LEMMA, not the triliteral root (the noun מילים resolves via its lemma מילה,
+    // NOT root מלל; the adjective רחוקה via lemma רחוק). Content words only — function/proper
+    // resolve via stem/function-links at runtime, where Dicta's lemma over-reduces (adverb
+    // בחוץ→noun חוץ), so we omit it for them.
+    const lemmaField = isContent ? (ns.lemma || ns.word || "") : "";
     // `pos` is the kmap/json_extract key; `part_of_speech` is the note-editor
     // form key (V3_NOTES_TPL_FIELDS) — emit both so POS hydrates in the editor.
-    const body = { word: ns.word, niqqud_variant: ns.niqqud || "", root: ns.root || "", pos: ns.pos || "", part_of_speech: ns.pos || "", binyan: ns.binyan || "", meaning };
+    const body = { word: ns.word, niqqud_variant: ns.niqqud || "", root: rootField, lemma: lemmaField, pos: ns.pos || "", part_of_speech: ns.pos || "", binyan: ns.binyan || "", meaning };
     // Form-disambiguated Pealim page id → the word card links straight to THIS sense's
     // page (not a same-spelling homograph the runtime lemma-lookup would hit). Empty when
     // no form-target (loanword/rare) → runtime keeps its search/dict fallback.

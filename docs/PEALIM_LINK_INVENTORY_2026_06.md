@@ -17,8 +17,8 @@
 
 | причина | кол-во | смысл |
 |---|---|---|
-| `in-pealim-no-target` | 415 | слово есть, но нет form-совпавшей парадигмы (омограф/редкая форма) |
-| `not-in-pealim` | 268 | слова нет в Pealim (loanword/имя/сленг) — внешний предел |
+| `in-pealim-no-target` | 411 | слово есть, но нет form-совпавшей парадигмы (омограф/редкая форма) |
+| `not-in-pealim` | 272 | слова нет в Pealim (loanword/имя/сленг) — внешний предел |
 | `function-no-invariant` | 202 | служебное слово без invariant-записи в Pealim |
 
 ### MISSING по части речи
@@ -219,7 +219,7 @@
 | נובמבר | propernoun | נוֹבֶמְבֶּר |  | not-in-pealim | 1 |
 | אוניברסלי | adjective | אוּנִיבֶרְסָלִי |  | not-in-pealim | 1 |
 | עזאזל | propernoun | עֲזָאזֵל |  | not-in-pealim | 1 |
-| רוקי | noun | רֻקִּי | только | in-pealim-no-target | 1 |
+| רוקי | noun | רֻקִּי | только | not-in-pealim | 1 |
 | לאחד | numeral | לְאֶחָד | объединять | in-pealim-no-target | 1 |
 | ליטר | noun | לִיטֶר |  | not-in-pealim | 1 |
 | במזרונים | noun | בְּמִזְרוֹנִים |  | not-in-pealim | 1 |
@@ -270,7 +270,7 @@
 | שמחרמן | verb | שֶׁמְּחַרְמֵן |  | in-pealim-no-target | 1 |
 | אמ | adverb | אֶמ |  | function-no-invariant | 1 |
 | הממ | adverb | הֶמְמְ |  | function-no-invariant | 1 |
-| ההרתעה | noun | הַהַרְתָּעָה |  | in-pealim-no-target | 1 |
+| ההרתעה | noun | הַהַרְתָּעָה |  | not-in-pealim | 1 |
 | אול | noun | אוּל | глупец, дурак (лит.) | in-pealim-no-target | 1 |
 | סבך | noun | סְבַךְ | путаница | in-pealim-no-target | 1 |
 | הראשון | numeral | הָרִאשׁוֹן | первый | function-no-invariant | 1 |
@@ -381,7 +381,7 @@
 | טקיירו | propernoun | טקיירו |  | not-in-pealim | 1 |
 | ז'נירו | propernoun | זָ'נֵירוֹ |  | not-in-pealim | 1 |
 | בירקון | noun | בַּיַּרְקוֹן |  | not-in-pealim | 1 |
-| המשורר | noun | הַמְּשׁוֹרֵר |  | in-pealim-no-target | 1 |
+| המשורר | noun | הַמְּשׁוֹרֵר |  | not-in-pealim | 1 |
 | בלוטו | noun | בַּלּוֹטוֹ | желудь | in-pealim-no-target | 1 |
 | מעצמי | pronoun | מֵעַצְמִי | закрыть (глаза) | function-no-invariant | 1 |
 | סוער | adjective | סוֹעֵר | бушевать (о буре), быть взбудо | in-pealim-no-target | 1 |
@@ -397,7 +397,7 @@
 | כביר | adjective | כַּבִּיר |  | not-in-pealim | 1 |
 | חלאס |  | חַלַאס |  | not-in-pealim | 1 |
 | זונה | noun | זוֹנָה | развратничать, прелюбодействов | in-pealim-no-target | 1 |
-| מהבאסה | noun | מֵהַבָּאסָה |  | in-pealim-no-target | 1 |
+| מהבאסה | noun | מֵהַבָּאסָה |  | not-in-pealim | 1 |
 | ואן | propernoun | וַן |  | not-in-pealim | 1 |
 | וכשאני | pronoun | וּכְשֶׁאֲנִי | я | function-no-invariant | 1 |
 | פאק | noun | פָאק |  | not-in-pealim | 1 |

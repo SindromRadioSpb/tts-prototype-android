@@ -41032,7 +41032,7 @@ function v3WordCardRichHtml(row) {
   const conjHtml = conjEligible ? `
       <details class="v3-wordcard-acc v3-wordcard-conj"
                data-conj-word="${v3EscapeHtml(word)}"
-               data-conj-lemma="${v3EscapeHtml(root || "")}"
+               data-conj-lemma="${v3EscapeHtml(String(bj.lemma || "").trim() || root || word || "")}"
                data-conj-binyan="${v3EscapeHtml(binyan || "")}"
                data-conj-pos="${v3EscapeHtml(pos || "")}"
                data-conj-root="${v3EscapeHtml(root || "")}"
@@ -41065,6 +41065,7 @@ function v3WordCardRichHtml(row) {
     </div>
   </div>`;
 }
+window.v3WordCardRichHtml = v3WordCardRichHtml;
 
 // Async post-paint enrichment for rich word cards: SRS state badges (one
 // overlay query) + "words from this root" via the CrossText corpus index.

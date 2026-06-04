@@ -100,7 +100,12 @@ function glossConflict(a, b) {
     if (!lemma) lemma = root || b.word; if (!stem) stem = b.word;
     if (!CONTENT_POS.has(pos)) continue;
 
-    const ql = v3ConjQueryLemma(pos, root, lemma, b.word, stem);
+    // Phase 5-R1: the read-card queries the table by the note's stored LEMMA field
+    // (data-conj-lemma = bj.lemma || root || word), NOT the triliteral root. Mirror that
+    // here so the audit reflects the real runtime lookup. Fall back to the legacy
+    // root/lemma derivation for pre-5-R1 bundles that have no `lemma` field.
+    const cardLemma = sp(b.lemma || "");
+    const ql = cardLemma || v3ConjQueryLemma(pos, root, lemma, b.word, stem);
     const hit = clientLookup(ql, stem, binyan);
     if (!hit || !hit.pealim_id) continue;                        // search fallback — not a dict link
     const hp = hit.pos || "";
