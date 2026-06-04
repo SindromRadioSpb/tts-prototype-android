@@ -37846,7 +37846,10 @@ function v3NotesTemplateHydrate(body) {
     conj.open = false;
     conj.removeAttribute("data-conj-loaded");
     conj.removeAttribute("data-conj-key");
-    ["word", "lemma", "binyan", "pos", "root", "form"].forEach((k) => conj.removeAttribute("data-conj-" + k));
+    ["word", "lemma", "binyan", "pos", "root", "form", "pealim-id"].forEach((k) => conj.removeAttribute("data-conj-" + k));
+    // Carry the note's form-disambiguated Pealim id (saved at ②-build) onto the editor
+    // accordion so v3WordCardLoadInflection links to the correct same-spelling sense.
+    if (body && body.pealim_id) conj.setAttribute("data-conj-pealim-id", String(body.pealim_id));
     const cb = conj.querySelector(".v3-conj-body");
     if (cb) cb.innerHTML = "";
     const cs = conj.querySelector(".v3-wordcard-acc-summary");
@@ -40745,7 +40748,18 @@ async function v3WordCardLoadInflection(detailsEl) {
   const root = detailsEl.getAttribute("data-conj-root") || "";
   const form = detailsEl.getAttribute("data-conj-form") || "";   // text's vocalized form → niqqud disambiguation + cell highlight
   const stem = detailsEl.getAttribute("data-conj-stem") || "";   // Dicta proclitic-stripped base → prefixed-surface match (כזאת→זאת)
+  const storedId = (detailsEl.getAttribute("data-conj-pealim-id") || "").trim();  // form-disambiguated Pealim id saved at ②-build → authoritative for same-spelling homographs
   const renderOpts = { highlightForm: form };
+  // The note carries the form-disambiguated correct Pealim page. If the offline lookup
+  // resolves to a DIFFERENT id, it's a same-spelling homograph (מילים→«наполнитель» vs the
+  // note's «слово») — don't render its foreign table; show an honest note + the DIRECT
+  // link to the note's own page. Returns true if it handled (rendered) the mismatch.
+  const storedHomographHandled = (p) => {
+    if (!storedId || !p || String(p.pealim_id || "") === storedId) return false;
+    const url = "https://www.pealim.com/ru/dict/" + encodeURIComponent(storedId) + "-/";
+    body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.seePealim", "Таблица форм — на странице Pealim."))}</div><a class="v3-conj-recheck" href="${v3EscapeHtml(url)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+    return true;
+  };
   // Personal pronoun → static SET (offline, no Pealim). Match on the surface word.
   const pron = v3LookupPronounParadigm(detailsEl.getAttribute("data-conj-word") || lemma);
   if (pron) { detailsEl.setAttribute("data-conj-loaded", "1"); body.innerHTML = v3RenderInflectionParadigm(pron); v3ConjSyncSummary(detailsEl, pron); return; }
@@ -40758,7 +40772,10 @@ async function v3WordCardLoadInflection(detailsEl) {
     const ldb = await ensureLocalDB();
     if (ldb && typeof ldb.getLemmaInflection === "function") {
       const cached = await ldb.getLemmaInflection(lemma, binyan || "", V3_PEALIM_INFL_MODEL);
-      if (cached && v3ConjHitCompatible(pos, kind, cached)) { body.innerHTML = v3RenderInflectionParadigm(cached, renderOpts); v3ConjSyncSummary(detailsEl, cached); return; }
+      if (cached && v3ConjHitCompatible(pos, kind, cached)) {
+        if (storedHomographHandled(cached)) return;
+        body.innerHTML = v3RenderInflectionParadigm(cached, renderOpts); v3ConjSyncSummary(detailsEl, cached); return;
+      }
     }
   } catch (_) {}
 
@@ -40780,6 +40797,8 @@ async function v3WordCardLoadInflection(detailsEl) {
           // Reject a POS-incompatible homograph (e.g. adverb→noun, participle→noun)
           // — don't render its table or cache it; keep trying, then honest search.
           if (!v3ConjHitCompatible(pos, kind, hit)) continue;
+          // Same-spelling SAME-POS homograph: the note's form-disambiguated id wins.
+          if (storedHomographHandled(hit)) return;
           try { const ldb2 = await ensureLocalDB(); await ldb2.saveLemmaInflection(lemma, binyan || "", hit.pos || pos || null, hit.kind || null, V3_PEALIM_INFL_MODEL, hit, hit.source || "pealim", hit.pealim_id || null); } catch (_) {}
           body.innerHTML = v3RenderInflectionParadigm(hit, renderOpts); v3ConjSyncSummary(detailsEl, hit); return;
         }
@@ -40810,6 +40829,14 @@ async function v3WordCardLoadInflection(detailsEl) {
     body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>${fnLink}`;
     return;
   }
+  // Content word, no compatible offline hit, but the note carries a form-disambiguated id
+  // (its correct paradigm may be a collision-orphan absent from the index) → link straight
+  // to that page instead of an online content fetch / search.
+  if (storedId) {
+    const url = "https://www.pealim.com/ru/dict/" + encodeURIComponent(storedId) + "-/";
+    body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.seePealim", "Таблица форм — на странице Pealim."))}</div><a class="v3-conj-recheck" href="${v3EscapeHtml(url)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+    return;
+  }
   if (!navigator.onLine) { body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.offline", "Таблица недоступна офлайн — обогатите текст морфологией."))}</div>${pealimLink}`; return; }
   if (!v3MorphOnlineConsentOk()) {
     detailsEl.removeAttribute("data-conj-loaded");   // allow retry after consent
@@ -40822,7 +40849,7 @@ async function v3WordCardLoadInflection(detailsEl) {
       body: JSON.stringify({ lemma, binyan: binyan || undefined, pos: pos || undefined, root: root || undefined, form: form || undefined, stem: stem || undefined }),
     });
     const data = await resp.json().catch(() => ({}));
-    if (data && data.ok && data.paradigm && v3ConjHitCompatible(pos, kind, data.paradigm)) {
+    if (data && data.ok && data.paradigm && v3ConjHitCompatible(pos, kind, data.paradigm) && !storedHomographHandled(data.paradigm)) {
       try {
         const ldb = await ensureLocalDB();
         await ldb.saveLemmaInflection(lemma, binyan || "", data.paradigm.pos || pos || null, data.paradigm.kind || null, V3_PEALIM_INFL_MODEL, data.paradigm, data.paradigm.source || "pealim", data.paradigm.pealim_id || null);
@@ -41010,6 +41037,7 @@ function v3WordCardRichHtml(row) {
                data-conj-pos="${v3EscapeHtml(pos || "")}"
                data-conj-root="${v3EscapeHtml(root || "")}"
                data-conj-form="${v3EscapeHtml(niqqud || "")}"
+               data-conj-pealim-id="${v3EscapeHtml(String(bj.pealim_id || ""))}"
                ontoggle="v3WordCardConjToggle(this)">
         <summary class="v3-wordcard-acc-summary">${v3EscapeHtml(conjSummary)}</summary>
         <div class="v3-conj-body"></div>

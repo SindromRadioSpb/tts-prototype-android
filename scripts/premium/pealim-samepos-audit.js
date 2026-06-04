@@ -68,6 +68,7 @@ function glossConflict(a, b) {
   // correct paradigm, not its lemma — מילים is the plural cell of מילה).
   const cellIdx = new Map();
   for (const p of par) { if (!p.cells) continue; for (const k of Object.keys(p.cells)) { const c = p.cells[k]; if (!c || !c.he) continue; const nk = normVowels(c.he); if (!nk) continue; if (!cellIdx.has(nk)) cellIdx.set(nk, []); const a = cellIdx.get(nk); if (a.indexOf(p) < 0) a.push(p); } }
+  const byId = new Map(); for (const p of par) if (p.pealim_id) byId.set(String(p.pealim_id), p);  // for stored-id verification
   const altByForm = (form, notePos, hit) => {
     for (const v of formVariants(form)) { const list = cellIdx.get(v); if (!list) continue;
       const same = list.filter((p) => p !== hit && p.pealim_id && (p.pos === notePos || ((notePos === "noun" || notePos === "adjective") && (p.pos === "noun" || p.pos === "adjective"))));
@@ -107,6 +108,20 @@ function glossConflict(a, b) {
     if (!samePos) continue;                                       // cross-POS handled by the guard, not here
     if (!(b.meaning && hit.meaning && glossConflict(b.meaning, hit.meaning))) continue;  // the soft 375 set
     total++; byPos[pos] = (byPos[pos] || 0) + 1;
+
+    // POST-FIX: the note now carries a form-disambiguated pealim_id → the runtime links to
+    // THAT page (not the homograph `hit`). Verify it: form ∈ stored paradigm's cells.
+    const niqForm = niq || "";
+    if (b.pealim_id) {
+      const sp2 = byId.get(String(b.pealim_id));
+      let scls;
+      if (sp2 && niqForm && sp(niqForm) !== niqForm && formInCells(niqForm, sp2.cells)) scls = "STORED_ID_OK";
+      else if (sp2 && String(sp2.pealim_id) !== String(hit.pealim_id)) scls = "STORED_ID_OVERRIDES_HOMOGRAPH";  // differs from wrong hit (good), form unverifiable
+      else scls = "STORED_ID_SAME_AS_HIT";
+      classes[scls] = (classes[scls] || 0) + 1;
+      if (scls !== "STORED_ID_OK") addEx(scls, b.word + " [" + pos + "] stored id " + b.pealim_id + " «" + String((sp2 && sp2.meaning) || "").slice(0, 16) + "» vs hit " + hit.pealim_id + " «" + String(hit.meaning).slice(0, 16) + "»");
+      continue;   // stored id is authoritative — don't re-classify by the stale runtime hit
+    }
 
     let cls;
     const form = niq || "";

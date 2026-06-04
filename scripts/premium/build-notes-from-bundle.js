@@ -68,7 +68,8 @@ function queryLemma(pos, root, lemma, stem) {
 function loadOfflineMeaning() {
   const p = path.join(REPO, "public", "data", "inflection", "pealim-infl-v12.json.gz");
   const alias = new Map();   // base key (root/lemma/form) → [{ binyan, pos, meaning }]
-  const cell = new Map();    // inflected surface form → [{ binyan, pos, meaning }]
+  const cell = new Map();    // inflected surface form (consonantal) → [{ binyan, pos, meaning }]
+  const formIdx = new Map(); // VOCALIZED cell form (normVowels) → [{ binyan, pos, meaning, pealim_id }]
   try {
     const d = JSON.parse(require("zlib").gunzipSync(fs.readFileSync(p)).toString("utf8"));
     const push = (map, kk, par) => {
@@ -76,15 +77,46 @@ function loadOfflineMeaning() {
       const list = map.get(kk);
       if (!list.some((x) => x.binyan === (par.binyan || "") && x.meaning === par.meaning)) list.push({ binyan: par.binyan || "", pos: par.pos || "", meaning: par.meaning });
     };
+    const pushForm = (kk, par) => {
+      if (!kk) return; if (!formIdx.has(kk)) formIdx.set(kk, []);
+      const list = formIdx.get(kk);
+      if (!list.some((x) => x.pealim_id === par.pealim_id)) list.push({ binyan: par.binyan || "", pos: par.pos || "", meaning: par.meaning || "", pealim_id: par.pealim_id || null });
+    };
     for (const par of d.paradigms || []) {
-      if (!par || !par.meaning) continue;
-      for (const k of [par.root, par.lemma, par.form]) push(alias, stripNiqqud(k), par);
+      if (!par) continue;
+      if (par.meaning) { for (const k of [par.root, par.lemma, par.form]) push(alias, stripNiqqud(k), par); }
       // inflected cells: a participle Dicta cross-tags as a noun (כותב, עובד) is the
       // AP-ms cell of its verb paradigm — the cell's gloss IS the right «Перевод».
-      if (par.cells) for (const ck of Object.keys(par.cells)) { const c = par.cells[ck]; if (c && c.he) push(cell, stripNiqqud(c.he), par); }
+      if (par.cells) for (const ck of Object.keys(par.cells)) {
+        const c = par.cells[ck]; if (!c || !c.he) continue;
+        if (par.meaning) push(cell, stripNiqqud(c.he), par);
+        // niqqud-preserving form index — the decisive signal for same-spelling homographs
+        // (only niqqud / pealim_id can tell מילים «слова» from מילוי «наполнитель»).
+        pushForm(normVowels(c.he), par);
+      }
     }
   } catch (e) { log("offline-dict meaning load failed:", String(e && e.message || e)); }
-  return { alias, cell };
+  return { alias, cell, formIdx };
+}
+
+// Form-first paradigm pick: the unit's VOCALIZED form is a cell of a POS-compatible
+// paradigm → that paradigm is the truth (the word literally inflects to it; mirrors the
+// resolver's decisive +20 form-match). Returns { meaning, pealim_id } or null. Content
+// POS only (function words handled by the runtime function-links map).
+const NOUN_KIN = (a, b) => (a === b) || ((a === "noun" || a === "adjective") && (b === "noun" || b === "adjective"));
+function formFirstResolve(maps, u) {
+  if (!maps || !maps.formIdx || !u || !u.niqqud) return null;
+  const pos = u.pos || "";
+  if (!(pos === "verb" || pos === "noun" || pos === "adjective" || pos === "")) return null;
+  for (const v of formVariants(u.niqqud)) {
+    let arr = maps.formIdx.get(v); if (!arr || !arr.length) continue;
+    if (pos) { const f = arr.filter((x) => NOUN_KIN(x.pos, pos)); if (f.length) arr = f; else continue; }
+    if (u.binyan) { const f = arr.filter((x) => x.binyan === u.binyan); if (f.length) arr = f; }
+    const ids = [...new Set(arr.map((x) => x.pealim_id))];
+    const pick = (ids.length === 1) ? arr[0] : arr.find((x) => x.pos === pos) || arr[0];  // unique → sure; else POS-exact, then first
+    if (pick && pick.pealim_id) return { meaning: pick.meaning || null, pealim_id: pick.pealim_id };
+  }
+  return null;
 }
 function offlineMeaningLookup(maps, u) {
   if (!maps) return null;
@@ -245,20 +277,26 @@ function checkUnit(u, r) {
   log("offline-dict meaning keys: alias", offlineMeaning.alias.size, "cell", offlineMeaning.cell.size);
   const unitList = [...units.entries()];
   const resolved = new Map();
-  let ri = 0, meaningFallbacks = 0;
+  let ri = 0, meaningFallbacks = 0, formOverrides = 0;
   for (const [ukey, u] of unitList) {
     const q = queryLemma(u.pos, u.root, u.lemma, u.stem);
     let r = null;
     try { r = await inflect(q, { pos: u.pos || undefined, binyan: u.binyan || undefined, root: u.root || undefined, form: u.niqqud || undefined }); }
     catch (e) { r = { ok: false, reason: String(e && e.message || e) }; }
     let meaning = (r && r.ok && r.paradigm) ? (r.paradigm.meaning || null) : null;
-    // B0.1: live resolve gave no gloss → fall back to the shipped Pealim dataset
-    // (real glosses, never fabricated). Lifts «Перевод» coverage incl. function words.
+    let pid = (r && r.ok && r.paradigm) ? r.paradigm.pealim_id : null;
+    // Form-first override: the unit's VOCALIZED form is a cell of a POS-compatible
+    // paradigm → that's the truth (decisive form-match). Corrects same-spelling
+    // homographs the lemma-query resolved to the wrong sense (מילים «слова» not «наполнитель»;
+    // ללמוד «учить» not «измерять») — fixes both the stored meaning and the link's pealim_id.
+    const ff = formFirstResolve(offlineMeaning, u);
+    if (ff && ff.pealim_id && String(ff.pealim_id) !== String(pid || "")) { pid = ff.pealim_id; if (ff.meaning) meaning = ff.meaning; formOverrides++; }
+    // B0.1: still no gloss → offline dict fallback (real glosses only, never fabricated).
     if (!meaning) { const fb = offlineMeaningLookup(offlineMeaning, u); if (fb) { meaning = fb; meaningFallbacks++; } }
-    resolved.set(ukey, { r, check: checkUnit(u, r), meaning, pid: (r && r.ok && r.paradigm) ? r.paradigm.pealim_id : null });
+    resolved.set(ukey, { r, check: checkUnit(u, r), meaning, pid });
     if (++ri % 50 === 0) log("  resolve", ri + "/" + unitList.length);
   }
-  log("resolve done; meaning fallbacks from offline dict:", meaningFallbacks);
+  log("resolve done; meaning fallbacks:", meaningFallbacks, "| form-first overrides:", formOverrides);
 
   // ── 4) build notes_advanced + defect report ──────────────────────────────
   const notes = [];
@@ -270,6 +308,10 @@ function checkUnit(u, r) {
     // `pos` is the kmap/json_extract key; `part_of_speech` is the note-editor
     // form key (V3_NOTES_TPL_FIELDS) — emit both so POS hydrates in the editor.
     const body = { word: ns.word, niqqud_variant: ns.niqqud || "", root: ns.root || "", pos: ns.pos || "", part_of_speech: ns.pos || "", binyan: ns.binyan || "", meaning };
+    // Form-disambiguated Pealim page id → the word card links straight to THIS sense's
+    // page (not a same-spelling homograph the runtime lemma-lookup would hit). Empty when
+    // no form-target (loanword/rare) → runtime keeps its search/dict fallback.
+    if (res.pid) body.pealim_id = String(res.pid);
     notes.push({
       id: "gen-" + ns.textId + "-" + ns.rowId + "-" + ns.offset,
       target_kind: "word",
