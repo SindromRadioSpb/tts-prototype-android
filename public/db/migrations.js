@@ -663,4 +663,36 @@ export const MIGRATIONS = [
     PRIMARY KEY (lemma, binyan, model_version)
   );
   CREATE INDEX IF NOT EXISTS ix_lemma_inflection_lemma ON lemma_inflection(lemma);`,
+
+  // 052_note_provenance — autogen provenance + canonical-lemma occurrences.
+  // Additive & non-destructive. Existing notes become source='user', user_touched=1
+  // (their edits are NEVER clobbered by regeneration). Auto/curated canonical notes
+  // reuse target_kind='word' with target_id = gen_dedup_key (the target_kind CHECK
+  // enum has no 'lemma' and SQLite can't ALTER a CHECK without a table rebuild);
+  // one canonical note per (sense) lemma, enforced by ux_notes_v2_dedup. Position
+  // provenance moves to note_occurrences (one note → many text occurrences) so the
+  // reading view's per-row note list and the "+N words/+M roots" growth metric work
+  // off a lemma-canonical model.
+  `ALTER TABLE notes_v2 ADD COLUMN source TEXT NOT NULL DEFAULT 'user';
+  ALTER TABLE notes_v2 ADD COLUMN confidence REAL;
+  ALTER TABLE notes_v2 ADD COLUMN model_version TEXT;
+  ALTER TABLE notes_v2 ADD COLUMN user_touched INTEGER NOT NULL DEFAULT 1;
+  ALTER TABLE notes_v2 ADD COLUMN gen_dedup_key TEXT;
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_notes_v2_dedup ON notes_v2(gen_dedup_key)
+    WHERE gen_dedup_key IS NOT NULL;
+  CREATE INDEX IF NOT EXISTS ix_notes_v2_source ON notes_v2(source);
+  CREATE TABLE IF NOT EXISTS note_occurrences (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    note_id      TEXT NOT NULL,
+    text_id      TEXT,
+    sentence_id  TEXT,
+    word_offset  INTEGER,
+    surface      TEXT,
+    created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    FOREIGN KEY (note_id) REFERENCES notes_v2(id) ON DELETE CASCADE
+  );
+  CREATE INDEX IF NOT EXISTS ix_note_occ_note ON note_occurrences(note_id);
+  CREATE INDEX IF NOT EXISTS ix_note_occ_sentence ON note_occurrences(sentence_id);
+  CREATE INDEX IF NOT EXISTS ix_note_occ_text ON note_occurrences(text_id);
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_note_occ ON note_occurrences(note_id, sentence_id, word_offset);`,
 ];
