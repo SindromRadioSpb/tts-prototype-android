@@ -1276,6 +1276,130 @@ export async function searchWordNotes(queryStr, limit = 50) {
   );
 }
 
+// ── Canonical-note surfacing (Stage 2 / FORK 1) ──────────────────────────
+// Canonical autogen notes live with text_id=NULL and their reading positions
+// in note_occurrences (one note → many texts). The legacy reading-view queries
+// filter notes_v2 by text_id, so they can't see canonical notes. These additive
+// variants UNION the legacy result with an occurrence-JOIN so a built note is
+// visible exactly where the user reads (R4 «без тупиков»). Legacy `sid:offset`
+// word notes keep working unchanged.
+
+// Per-row count badge, canonical-aware. Counts each note once per sentence even
+// if it occurs at several offsets in that sentence (GROUP BY note_id,sentence_id).
+export async function getRowNoteCountsWithCanonical(textId) {
+  if (!textId) return [];
+  return q(
+    `SELECT sentence_id, COUNT(*) AS count FROM (
+       SELECT target_id AS sentence_id
+         FROM notes_v2
+        WHERE text_id = ? AND target_kind = 'sentence'
+       UNION ALL
+       SELECT substr(target_id, 1, instr(target_id, ':') - 1) AS sentence_id
+         FROM notes_v2
+        WHERE text_id = ? AND target_kind = 'word'
+          AND instr(target_id, ':') > 0
+       UNION ALL
+       SELECT o.sentence_id AS sentence_id
+         FROM note_occurrences o
+         JOIN notes_v2 n ON n.id = o.note_id
+        WHERE n.text_id IS NULL AND o.text_id = ?
+        GROUP BY o.note_id, o.sentence_id
+     )
+     WHERE sentence_id IS NOT NULL AND sentence_id != ''
+     GROUP BY sentence_id`,
+    [String(textId), String(textId), String(textId)]
+  );
+}
+
+// Per-row note list, canonical-aware. UNION (not UNION ALL) dedups a canonical
+// note that occurs more than once in the same sentence to a single row.
+export async function listNotesForRowWithCanonical(textId, sentenceId) {
+  if (!textId || !sentenceId) return [];
+  return q(
+    `SELECT * FROM (
+       SELECT * FROM notes_v2
+         WHERE text_id = ?
+           AND (
+             (target_kind = 'sentence' AND target_id = ?)
+             OR (target_kind = 'word' AND target_id LIKE ? || ':%')
+           )
+       UNION
+       SELECT n.* FROM notes_v2 n
+         JOIN note_occurrences o ON o.note_id = n.id
+        WHERE n.text_id IS NULL AND o.sentence_id = ?
+     )
+     ORDER BY created_at ASC`,
+    [String(textId), String(sentenceId), String(sentenceId), String(sentenceId)]
+  );
+}
+
+// Editor open-by-position fallback: resolve a tapped (sentence,offset) to the
+// canonical note recorded at that occurrence. Returns the note row or null.
+// (Legacy positional notes are found by `sid:offset` target_id elsewhere; this
+// covers the canonical model where positions live in note_occurrences.)
+export async function getNoteByOccurrence(sentenceId, wordOffset) {
+  if (!sentenceId || !Number.isInteger(wordOffset)) return null;
+  const rows = await q(
+    `SELECT note_id FROM note_occurrences
+       WHERE sentence_id = ? AND word_offset = ?
+       ORDER BY id LIMIT 1`,
+    [String(sentenceId), wordOffset]
+  );
+  if (!rows[0]) return null;
+  return getNoteById(rows[0].note_id);
+}
+
+// searchWordNotes, canonical-aware: same shape as searchWordNotes, plus canonical
+// notes surfaced via a representative occurrence (MIN(id)) so the hit can render
+// the row + snippet and jump back. Niqqud-insensitive (body stored niqqud-free).
+export async function searchWordNotesWithCanonical(queryStr, limit = 50) {
+  const norm = _searchNrm(queryStr);
+  if (!norm) return [];
+  const like = `%${norm}%`;
+  return q(
+    `SELECT * FROM (
+       SELECT n.id, n.text_id, n.target_kind, n.target_id, n.note_type, n.title,
+              n.updated_at, t.title AS text_title,
+              json_extract(n.body_json, '$.word')           AS j_word,
+              json_extract(n.body_json, '$.niqqud_variant') AS j_niqqud,
+              json_extract(n.body_json, '$.meaning')         AS j_meaning,
+              json_extract(n.body_json, '$.markdown')        AS j_markdown,
+              (CASE WHEN instr(n.target_id, ':') > 0
+                    THEN substr(n.target_id, 1, instr(n.target_id, ':') - 1)
+                    ELSE n.target_id END) AS sentence_id,
+              s.he_plain, s.order_index
+         FROM notes_v2 n
+         LEFT JOIN texts t ON n.text_id = t.id
+         LEFT JOIN sentences s ON s.id = (CASE WHEN instr(n.target_id, ':') > 0
+                    THEN substr(n.target_id, 1, instr(n.target_id, ':') - 1)
+                    ELSE n.target_id END)
+        WHERE n.text_id IS NOT NULL
+          AND (n.body_json LIKE ? OR n.title LIKE ?)
+          AND (t.is_archived IS NULL OR t.is_archived = 0)
+       UNION ALL
+       SELECT n.id, o.text_id AS text_id, n.target_kind, n.target_id, n.note_type, n.title,
+              n.updated_at, t.title AS text_title,
+              json_extract(n.body_json, '$.word')           AS j_word,
+              json_extract(n.body_json, '$.niqqud_variant') AS j_niqqud,
+              json_extract(n.body_json, '$.meaning')         AS j_meaning,
+              json_extract(n.body_json, '$.markdown')        AS j_markdown,
+              o.sentence_id AS sentence_id,
+              s.he_plain, s.order_index
+         FROM notes_v2 n
+         JOIN note_occurrences o ON o.note_id = n.id
+              AND o.id = (SELECT MIN(o2.id) FROM note_occurrences o2 WHERE o2.note_id = n.id)
+         LEFT JOIN texts t ON t.id = o.text_id
+         LEFT JOIN sentences s ON s.id = o.sentence_id
+        WHERE n.text_id IS NULL
+          AND (n.body_json LIKE ? OR n.title LIKE ?)
+          AND (t.is_archived IS NULL OR t.is_archived = 0)
+     )
+     ORDER BY updated_at DESC
+     LIMIT ?`,
+    [like, like, like, like, limit]
+  );
+}
+
 // ── Versioning (M5) ──────────────────────────────────────────────────────
 
 // Snapshot semantics (post-9.1.E hardening): v_N stores the body AFTER the

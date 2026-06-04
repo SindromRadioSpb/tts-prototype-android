@@ -86,6 +86,7 @@
     "audit:autogen-quality": "node scripts/premium/autogen-quality-audit.js --gate",
     "smoke:autogen-parity": "node scripts/premium/autogen-parity-smoke.js --gate",
     "smoke:autogen-persist": "node scripts/premium/autogen-persist-browser-smoke.js",
+    "smoke:autogen-surfacing": "node scripts/premium/autogen-surfacing-browser-smoke.js",
     "audit:pealim-links": "node scripts/premium/pealim-link-audit.js",
     "audit:pealim-samepos": "node scripts/premium/pealim-samepos-audit.js",
     "audit:pealim-inventory": "node scripts/premium/pealim-link-inventory.js",

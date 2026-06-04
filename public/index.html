@@ -4076,8 +4076,10 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
     gap: 6px;
     width: 100%;
   }
-  /* 3+3 layout: row 1 = resume / open / delete, row 2 = edit / share / archive.
-     Every button spans 2 of the 6 columns; CSS order slots delete into row 1. */
+  /* 3+3+2 layout: row 1 = resume / open / delete, row 2 = edit / share / archive,
+     row 3 = enrich / buildkn. Every button spans 2 of the 6 columns; explicit
+     order on ALL eight keeps the grid deterministic (enrich/buildkn previously
+     had no order → defaulted to 0 → wrapped unpredictably). */
   .v3-lib-card-actions [data-act] { grid-column: span 2; }
   .v3-lib-card-actions [data-act="resume"]  { order: 1; }
   .v3-lib-card-actions [data-act="open"]    { order: 2; }
@@ -4085,6 +4087,8 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   .v3-lib-card-actions [data-act="edit"]    { order: 4; }
   .v3-lib-card-actions [data-act="share"]   { order: 5; }
   .v3-lib-card-actions [data-act="archive"] { order: 6; }
+  .v3-lib-card-actions [data-act="enrich"]  { order: 7; }
+  .v3-lib-card-actions [data-act="buildkn"] { order: 8; }
   .v3-lib-card-actions button {
     font-size: 12px;
     font-weight: 700;
@@ -21124,7 +21128,10 @@ async function v3NotesSearchNow(scope, opts) {
       // searchNotes only saw the old sentence_notes free-text table, so word
       // notes were unfindable. Build the displayed «Заметка:» line from the
       // structured fields (word — meaning) or the free-note markdown.
-      const rows = await (ldb.searchWordNotes ? ldb.searchWordNotes(qRaw, 50) : ldb.searchNotes(qRaw, 50));
+      // Canonical-aware (Stage 2 / FORK 1): include autogen notes (text_id=NULL)
+      // via their representative occurrence so hits render the row + jump back.
+      const _search = ldb.searchWordNotesWithCanonical || ldb.searchWordNotes;
+      const rows = await (_search ? _search(qRaw, 50) : ldb.searchNotes(qRaw, 50));
       results = (rows || []).map((r) => {
         let note = String(r.note || "");
         if (!note) {
@@ -23102,6 +23109,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
         <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
         <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
         <button class="btn-secondary" data-act="enrich" data-enrich-id="${v3EscapeHtml(id)}" title="${t("library.enrichTitle")}">${t("library.enrich")}</button>
+        <button class="btn-secondary" data-act="buildkn" title="${t("library.buildknTitle")}">${t("library.buildkn")}</button>
         <button class="btn-secondary" data-act="archive">${t("library.archive")}</button>
         <button class="btn-secondary v3-lib-danger" data-act="delete">${t("library.delete")}</button>
       </div>
@@ -23113,6 +23121,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 	const btnEdit = card.querySelector('button[data-act="edit"]');
 	const btnShare = card.querySelector('button[data-act="share"]');
 	const btnEnrich = card.querySelector('button[data-act="enrich"]');
+	const btnBuildkn = card.querySelector('button[data-act="buildkn"]');
 	const btnArchive = card.querySelector('button[data-act="archive"]');
     const btnDelete = card.querySelector('button[data-act="delete"]');
 
@@ -23126,6 +23135,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 		try { const ldb = await ensureLocalDB(); const c = await ldb.getSentenceMorphCoverage(id, V3_DICTA_MORPH_MODEL); force = c.total > 0 && c.enriched >= c.total; } catch (_) {}
 		v3LibraryEnrichMorph(id, { force });
 	});
+	if (btnBuildkn) btnBuildkn.addEventListener("click", () => v3ReviewQueueOpen(id));
     if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
 
@@ -38361,7 +38371,12 @@ async function v3NotesLoadFullNoteIntoModal() {
     // the id is recoverable here. Without it v3MorphStoredResolve(word, sentenceId)
     // bails and the form/spine/conjugation never self-heal to the fresh Dicta
     // morphology — fields would show only the (possibly stale) saved body_json.
-    if (!v3NotesModalSentenceId && String(row.target_kind || "") === "word" && row.target_id) {
+    // Canonical autogen notes (Stage 2) carry target_id = gen_dedup_key
+    // ("pid:<id>" / "<lemma>#<pos>"), NOT a "<sentenceId>:<offset>" — skip the
+    // positional recovery for them (gen_dedup_key set) so we don't mis-parse the
+    // dedup key into a bogus sentence id. Their authoritative body_json renders
+    // directly; the row-index/search open paths already supply a real sentenceId.
+    if (!v3NotesModalSentenceId && String(row.target_kind || "") === "word" && row.target_id && !row.gen_dedup_key) {
       const tid = String(row.target_id);
       const ci = tid.indexOf(":");
       if (ci > 0) v3NotesModalSentenceId = tid.slice(0, ci);
@@ -39521,8 +39536,11 @@ async function v3NotesRowCacheRefresh(textId, sentenceId) {
   if (!LOCAL_MODE || !textId || !sentenceId) return [];
   try {
     const ldb = await ensureLocalDB();
-    if (typeof ldb.listNotesForRow !== "function") return [];
-    const rows = await ldb.listNotesForRow(textId, sentenceId);
+    // Canonical-aware (Stage 2 / FORK 1): surfaces autogen notes whose positions
+    // live in note_occurrences (text_id=NULL); falls back to the legacy query.
+    const _list = ldb.listNotesForRowWithCanonical || ldb.listNotesForRow;
+    if (typeof _list !== "function") return [];
+    const rows = await _list(textId, sentenceId);
     const arr = Array.isArray(rows) ? rows : [];
     v3NotesRowCache[String(sentenceId)] = arr;
     v3NotesRowCountCache[String(sentenceId)] = arr.length;
@@ -39542,8 +39560,10 @@ async function v3NotesRowCountsPrime(textId) {
   if (!LOCAL_MODE || !textId) return;
   try {
     const ldb = await ensureLocalDB();
-    if (typeof ldb.getRowNoteCounts !== "function") return;
-    const rows = await ldb.getRowNoteCounts(textId);
+    // Canonical-aware (Stage 2 / FORK 1): count autogen notes via note_occurrences.
+    const _counts = ldb.getRowNoteCountsWithCanonical || ldb.getRowNoteCounts;
+    if (typeof _counts !== "function") return;
+    const rows = await _counts(textId);
     if (!Array.isArray(rows)) return;
     for (const r of rows) {
       const sid = String(r.sentence_id || "");
@@ -40206,6 +40226,261 @@ async function v3NotesAutoGenPersist(candidates, opts) {
   return { ok: true, new_words: created, new_roots: newRoots.size, created: created, refreshed: refreshed, occurrences_recorded: occ, skipped: skipped };
 }
 window.v3NotesAutoGenPersist = v3NotesAutoGenPersist;
+
+// ════════════════════════════════════════════════════════════════════════
+// Stage 2 (Concept C) — «✨ Построить знания» review queue.
+// Text-card action → run the dormant autogen engine → a review-first queue
+// (rank novelty→i+1→freq) → persist only accepted candidates (source='curated')
+// → growth badge + reading-view/map refresh. Review-first: nothing is written
+// to the base until the user accepts (R4 «без тупиков», R1 «без выдуманных форм»).
+// ════════════════════════════════════════════════════════════════════════
+let v3ReviewQueueState = null; // { textId, candidates:[ cand + _known/_i1/_freq/_decision/_editMeaning ] }
+
+function v3ReviewQueueClose() {
+  const m = document.getElementById("v3ReviewQueueModal");
+  if (m) m.classList.add("hidden");
+  v3ReviewQueueState = null;
+}
+window.v3ReviewQueueClose = v3ReviewQueueClose;
+
+// Distinct roots already present in the base — used for the i+1 rank dimension
+// (a NEW sense of a root the learner already met = the i+1 sweet spot).
+async function v3ReviewQueueBaseRoots() {
+  try {
+    const ldb = await ensureLocalDB();
+    const rows = await ldb.dbQuery(
+      "SELECT DISTINCT json_extract(body_json,'$.root') AS root FROM notes_v2", []);
+    const s = new Set();
+    for (const r of (rows || [])) { const rt = String(r.root || "").trim(); if (rt) s.add(rt); }
+    return s;
+  } catch (_) { return new Set(); }
+}
+
+// Rank novelty → i+1 → freq (deterministic). novelty = brand-new sense (not
+// already in base); i+1 = its root is already known to the learner; freq =
+// occurrence count in THIS text. Known senses sink (they only add an occurrence).
+function v3ReviewQueueRank(cands) {
+  cands.sort(function (a, b) {
+    const nov = (b._known ? 0 : 1) - (a._known ? 0 : 1);
+    if (nov) return nov;
+    const i1 = (b._i1 ? 1 : 0) - (a._i1 ? 1 : 0);
+    if (i1) return i1;
+    const fr = (b._freq || 0) - (a._freq || 0);
+    if (fr) return fr;
+    return String(a.body && a.body.word || "").localeCompare(String(b.body && b.body.word || ""));
+  });
+}
+
+async function v3ReviewQueueOpen(textId) {
+  if (!textId) return;
+  let ldb;
+  try { ldb = await ensureLocalDB(); } catch (_) { showToast(v3NotesT("review.failed", "Не удалось построить знания."), "error"); return; }
+
+  // Pre-flight: the engine needs Dicta sentence_morph. Bundle texts already have
+  // it; a user text may not → offer the existing «Обогатить (Dicta)» first (its
+  // own BYOK/consent), then re-check. R1/R5: never fabricate from nothing.
+  try {
+    const cov = await ldb.getSentenceMorphCoverage(textId, V3_DICTA_MORPH_MODEL);
+    if (!cov || cov.total === 0) { showToast(v3NotesT("review.noSentences", "В тексте нет предложений."), "warning"); return; }
+    if (cov.enriched === 0) {
+      const go = await v3ConfirmModal({
+        title: v3NotesT("review.needEnrichTitle", "Нужна морфология"),
+        body: v3NotesT("review.needEnrich", "Чтобы построить знания, текст нужно сначала обогатить морфологией (Dicta). Запустить обогащение сейчас?"),
+        okText: v3NotesT("review.needEnrichOk", "Обогатить (Dicta)"),
+        cancelText: v3NotesT("review.cancel", "Отмена"),
+      });
+      if (!go) return;
+      const er = await v3LibraryEnrichMorph(textId, {});
+      if (!er || !er.ok) return;
+      const cov2 = await ldb.getSentenceMorphCoverage(textId, V3_DICTA_MORPH_MODEL);
+      if (!cov2 || cov2.enriched === 0) { showToast(v3NotesT("review.stillNoMorph", "Морфология недоступна — попробуйте позже."), "warning"); return; }
+    }
+  } catch (_) { /* coverage check best-effort; engine reports honestly below */ }
+
+  showToast(v3NotesT("review.building", "Строю знания…"), "info");
+  let res;
+  try { res = await v3NotesAutoGenForText(textId); }
+  catch (e) { showToast(v3NotesT("review.failed", "Не удалось построить знания."), "error"); return; }
+  if (!res || !res.ok) {
+    if (res && res.reason === "no_morph") { showToast(v3NotesT("review.needEnrich", "Чтобы построить знания, текст нужно сначала обогатить морфологией (Dicta)."), "warning"); return; }
+    showToast(v3NotesT("review.failed", "Не удалось построить знания."), "error");
+    return;
+  }
+  const cands = (res.candidates || []).slice();
+  if (!cands.length) { showToast(v3NotesT("review.empty", "Новых слов не найдено."), "info"); return; }
+
+  // Annotate novelty / i+1 / freq + default decision.
+  const baseRoots = await v3ReviewQueueBaseRoots();
+  for (const c of cands) {
+    c._freq = (c.occurrences || []).length;
+    try { c._known = !!(await ldb.findNoteByDedupKey(c.dedup_key)); } catch (_) { c._known = false; }
+    c._i1 = !!(c.body && c.body.root && baseRoots.has(String(c.body.root)));
+    c._editMeaning = null;
+    // Default: clean candidates (status 'ok', incl. known→occurrence) accepted;
+    // low-confidence «на проверку» start un-accepted until the user acts.
+    c._decision = (c.status === "ok") ? "accept" : "skip";
+  }
+  v3ReviewQueueRank(cands);
+  v3ReviewQueueState = { textId: String(textId), candidates: cands, stats: res.stats };
+  v3ReviewQueueRender();
+  const m = document.getElementById("v3ReviewQueueModal");
+  if (m) m.classList.remove("hidden");
+}
+window.v3ReviewQueueOpen = v3ReviewQueueOpen;
+
+function v3ReviewQueueConfBadge(conf, status) {
+  const pct = Math.round((Number(conf) || 0) * 100);
+  let cls = "rqc-low";
+  if (status === "ok" && pct >= 75) cls = "rqc-high";
+  else if (pct >= 50) cls = "rqc-mid";
+  return '<span class="rq-conf ' + cls + '">' + pct + "%</span>";
+}
+
+function v3ReviewQueueRender() {
+  const st = v3ReviewQueueState;
+  const listEl = document.getElementById("v3ReviewQueueList");
+  const metaEl = document.getElementById("v3ReviewQueueMeta");
+  if (!st || !listEl) return;
+  const accepted = st.candidates.filter((c) => c._decision === "accept").length;
+  const review = st.candidates.filter((c) => c.status === "review").length;
+  if (metaEl) {
+    metaEl.textContent =
+      v3NotesT("review.counts", "Принято {a} · на проверку {r} · всего {t}")
+        .replace("{a}", String(accepted)).replace("{r}", String(review)).replace("{t}", String(st.candidates.length));
+  }
+  listEl.innerHTML = st.candidates.map((c, i) => v3ReviewQueueCardHtml(c, i)).join("");
+}
+
+function v3ReviewQueueCardHtml(c, i) {
+  const b = c.body || {};
+  const word = v3EscapeHtml(b.niqqud_variant || b.word || "");
+  const pos = v3EscapeHtml(b.part_of_speech || b.pos || "");
+  const root = b.root ? v3EscapeHtml(b.root) : "";
+  const meaning = (c._editMeaning != null) ? c._editMeaning : (b.meaning || "");
+  const isAccepted = c._decision === "accept";
+  const chips = [];
+  if (pos) chips.push('<span class="rq-chip">' + pos + "</span>");
+  if (root) chips.push('<span class="rq-chip rq-chip-root">⌂ ' + root + "</span>");
+  chips.push(v3ReviewQueueConfBadge(c.confidence, c.status));
+  if (c.status === "review") chips.push('<span class="rq-chip rq-chip-review">' + v3EscapeHtml(v3NotesT("review.toCheck", "на проверку")) + "</span>");
+  if (c._known) chips.push('<span class="rq-chip rq-chip-known">' + v3EscapeHtml(v3NotesT("review.alreadyInBase", "уже в базе")) + "</span>");
+  if (c._freq > 1) chips.push('<span class="rq-chip rq-chip-freq">×' + c._freq + "</span>");
+
+  const head =
+    '<div class="rq-card-head">' +
+      '<span class="rq-word" dir="rtl">' + word + "</span>" +
+      '<span class="rq-chips">' + chips.join("") + "</span>" +
+    "</div>";
+
+  // Inline edit state (true textarea, no native prompt — owner invariant «без заглушек»).
+  if (c._editing) {
+    return (
+      '<div class="rq-card rq-card-editing" data-rq-i="' + i + '">' +
+        head +
+        '<textarea class="rq-edit" id="rq-edit-' + i + '" dir="auto" rows="2" placeholder="' +
+          v3EscapeHtml(v3NotesT("review.editPlaceholder", "Перевод / значение")) + '">' + v3EscapeHtml(meaning) + "</textarea>" +
+        '<div class="rq-actions">' +
+          '<button type="button" class="btn-success rq-btn" onclick="v3ReviewQueueEditSave(' + i + ')">' + v3EscapeHtml(v3NotesT("review.save", "Сохранить")) + "</button>" +
+          '<button type="button" class="btn-secondary rq-btn" onclick="v3ReviewQueueEditCancel(' + i + ')">' + v3EscapeHtml(v3NotesT("review.cancel", "Отмена")) + "</button>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+
+  const meaningHtml = meaning
+    ? '<div class="rq-meaning">' + v3EscapeHtml(meaning) + "</div>"
+    : '<div class="rq-meaning rq-meaning-empty">' + v3EscapeHtml(v3NotesT("review.noMeaning", "(нет перевода — добавьте через «Править»)")) + "</div>";
+
+  return (
+    '<div class="rq-card' + (isAccepted ? " rq-card-on" : "") + (c.status === "review" ? " rq-card-review" : "") + '" data-rq-i="' + i + '">' +
+      head +
+      meaningHtml +
+      '<div class="rq-actions">' +
+        '<button type="button" class="' + (isAccepted ? "btn-success" : "btn-secondary") + ' rq-btn" onclick="v3ReviewQueueDecide(' + i + ',\'accept\')">' +
+          (isAccepted ? "✓ " : "") + v3EscapeHtml(v3NotesT("review.accept", "Принять")) + "</button>" +
+        '<button type="button" class="btn-secondary rq-btn" onclick="v3ReviewQueueEdit(' + i + ')">' + v3EscapeHtml(v3NotesT("review.edit", "Править")) + "</button>" +
+        '<button type="button" class="btn-secondary rq-btn' + (c._decision === "skip" ? " rq-btn-off" : "") + '" onclick="v3ReviewQueueDecide(' + i + ',\'skip\')">' + v3EscapeHtml(v3NotesT("review.skip", "Пропустить")) + "</button>" +
+      "</div>" +
+    "</div>"
+  );
+}
+
+function v3ReviewQueueDecide(i, decision) {
+  const st = v3ReviewQueueState;
+  if (!st || !st.candidates[i]) return;
+  st.candidates[i]._decision = decision;
+  v3ReviewQueueRender();
+}
+window.v3ReviewQueueDecide = v3ReviewQueueDecide;
+
+// Inline-edit the meaning (for «на проверку» / empty-gloss candidates) via a
+// real in-card textarea (no native prompt). Editing implies acceptance on save.
+function v3ReviewQueueEdit(i) {
+  const st = v3ReviewQueueState;
+  if (!st || !st.candidates[i]) return;
+  st.candidates[i]._editing = true;
+  v3ReviewQueueRender();
+  try { const ta = document.getElementById("rq-edit-" + i); if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } } catch (_) {}
+}
+window.v3ReviewQueueEdit = v3ReviewQueueEdit;
+
+function v3ReviewQueueEditSave(i) {
+  const st = v3ReviewQueueState;
+  if (!st || !st.candidates[i]) return;
+  const ta = document.getElementById("rq-edit-" + i);
+  const c = st.candidates[i];
+  c._editMeaning = ta ? String(ta.value).trim() : (c._editMeaning || "");
+  c._editing = false;
+  c._decision = "accept";
+  v3ReviewQueueRender();
+}
+window.v3ReviewQueueEditSave = v3ReviewQueueEditSave;
+
+function v3ReviewQueueEditCancel(i) {
+  const st = v3ReviewQueueState;
+  if (!st || !st.candidates[i]) return;
+  st.candidates[i]._editing = false;
+  v3ReviewQueueRender();
+}
+window.v3ReviewQueueEditCancel = v3ReviewQueueEditCancel;
+
+function v3ReviewQueueAcceptAllHighConf() {
+  const st = v3ReviewQueueState;
+  if (!st) return;
+  for (const c of st.candidates) if (c.status === "ok") c._decision = "accept";
+  v3ReviewQueueRender();
+}
+window.v3ReviewQueueAcceptAllHighConf = v3ReviewQueueAcceptAllHighConf;
+
+async function v3ReviewQueueCommit() {
+  const st = v3ReviewQueueState;
+  if (!st) return;
+  const accepted = st.candidates
+    .filter((c) => c._decision === "accept")
+    .map((c) => {
+      if (c._editMeaning != null && c._editMeaning !== "") {
+        return Object.assign({}, c, { body: Object.assign({}, c.body, { meaning: c._editMeaning }) });
+      }
+      return c;
+    });
+  if (!accepted.length) { showToast(v3NotesT("review.nothingAccepted", "Ничего не выбрано."), "warning"); return; }
+  let r;
+  try { r = await v3NotesAutoGenPersist(accepted, { source: "curated" }); }
+  catch (e) { showToast(v3NotesT("review.saveFailed", "Не удалось сохранить."), "error"); return; }
+  if (!r || !r.ok) { showToast(v3NotesT("review.saveFailed", "Не удалось сохранить."), "error"); return; }
+  const textId = st.textId;
+  v3ReviewQueueClose();
+  showToast(
+    v3NotesT("review.grew", "✨ +{w} слов, +{m} корней").replace("{w}", String(r.new_words || 0)).replace("{m}", String(r.new_roots || 0)),
+    "success");
+  // Refresh reading-view note counts (if this text is open) + library cards. The
+  // knowledge map reads notes_v2 fresh on next open, so it reflects the growth
+  // additively without an explicit rebuild.
+  try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(textId); } catch (_) {}
+  try { if (typeof v3NotesRefreshOpenRowBadges === "function") v3NotesRefreshOpenRowBadges(); } catch (_) {}
+  try { if (typeof v3LibrarySearchNow === "function") v3LibrarySearchNow(); } catch (_) {}
+}
+window.v3ReviewQueueCommit = v3ReviewQueueCommit;
 
 // Hebrew text of the row the current note belongs to (for Dicta context).
 async function v3NotesGetSentenceText() {
@@ -42898,6 +43173,52 @@ document.addEventListener("i18n:changed", function () {
         <input type="checkbox" id="v3OnboardingDontShow" style="margin-right:5px;">
         <span data-i18n="onboarding.dontShowAgain">Больше не показывать</span>
       </label>
+    </div>
+  </div>
+</div>
+
+<!-- ── Stage 2: «✨ Построить знания» review queue (Concept C) ──────────── -->
+<style>
+#v3ReviewQueueModal .rq-meta{font-size:12px;opacity:.8;padding:4px 0 10px;}
+#v3ReviewQueueModal .rq-list{display:flex;flex-direction:column;gap:10px;}
+#v3ReviewQueueModal .rq-empty{opacity:.6;text-align:center;padding:24px 8px;}
+.rq-card{border:1px solid var(--theme-border-soft,#e2e8f0);border-radius:12px;padding:10px 12px;background:var(--theme-bg-card,#fff);}
+.rq-card-on{border-color:var(--theme-success,#16a34a);box-shadow:0 0 0 1px var(--theme-success,#16a34a) inset;}
+.rq-card-review{border-color:#f59e0b;}
+.rq-card-editing{border-color:var(--theme-accent,#2563eb);}
+.rq-card-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:space-between;}
+.rq-word{font-size:20px;font-weight:700;letter-spacing:1px;}
+.rq-chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.rq-chip{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--theme-border-soft,#e2e8f0);opacity:.9;}
+.rq-chip-root{background:var(--theme-bg-soft,#f1f5f9);}
+.rq-chip-review{background:#fff7ed;border-color:#fed7aa;color:#b45309;}
+.rq-chip-known{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8;}
+.rq-chip-freq{opacity:.7;}
+.rq-conf{font-size:11px;padding:2px 7px;border-radius:999px;font-weight:700;}
+.rqc-high{background:#dcfce7;color:#15803d;}
+.rqc-mid{background:#fef9c3;color:#a16207;}
+.rqc-low{background:#fee2e2;color:#b91c1c;}
+.rq-meaning{margin:8px 0;font-size:14px;}
+.rq-meaning-empty{opacity:.55;font-style:italic;}
+.rq-edit{width:100%;margin:8px 0;font-size:14px;padding:6px 8px;border-radius:8px;border:1px solid var(--theme-border-soft,#e2e8f0);background:var(--theme-bg-card,#fff);color:inherit;box-sizing:border-box;resize:vertical;}
+.rq-actions{display:flex;gap:6px;flex-wrap:wrap;}
+#v3ReviewQueueModal .rq-btn{width:auto !important;font-size:13px;padding:6px 12px;}
+.rq-btn-off{opacity:.55;}
+</style>
+<div id="v3ReviewQueueModal" class="v3-modal hidden" role="dialog" aria-modal="true" aria-label="Построить знания">
+  <div class="v3-modal-backdrop" onclick="v3ReviewQueueClose()" aria-hidden="true"></div>
+  <div class="v3-modal-panel">
+    <div class="v3-modal-header">
+      <div class="v3-modal-title" data-i18n="review.title">✨ Построить знания</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <button class="btn-secondary" onclick="v3ReviewQueueAcceptAllHighConf()" data-i18n="review.acceptAllHigh">Принять все надёжные</button>
+        <button class="btn-success" onclick="v3ReviewQueueCommit()" data-i18n="review.commit">Сохранить принятые</button>
+        <button class="btn-secondary" onclick="v3ReviewQueueClose()" data-i18n="library.close">Закрыть</button>
+      </div>
+    </div>
+    <div class="v3-modal-body">
+      <div id="v3ReviewQueueMeta" class="rq-meta"></div>
+      <div id="v3ReviewQueueList" class="rq-list"></div>
     </div>
   </div>
 </div>

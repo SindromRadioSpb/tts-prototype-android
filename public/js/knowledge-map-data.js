@@ -90,10 +90,12 @@
   async function _fetchNotes() {
     var rows = await _q(
       "SELECT id, text_id, note_type," +
-      " json_extract(body_json, '$.root')   AS j_root," +
-      " json_extract(body_json, '$.binyan') AS j_binyan," +
-      " json_extract(body_json, '$.word')   AS j_word," +
-      " json_extract(body_json, '$.pos')    AS j_pos" +
+      " json_extract(body_json, '$.root')      AS j_root," +
+      " json_extract(body_json, '$.binyan')    AS j_binyan," +
+      " json_extract(body_json, '$.word')      AS j_word," +
+      " json_extract(body_json, '$.pos')       AS j_pos," +
+      " json_extract(body_json, '$.pealim_id') AS j_pid," +
+      " json_extract(body_json, '$.meaning')   AS j_meaning" +
       " FROM notes_v2", []);
     return rows || [];
   }
@@ -144,18 +146,26 @@
       var pos = _norm(n.j_pos);
       var st3 = _to3(overlay[String(n.id)]);
 
-      var lk = "word:" + lemma;
+      // FORK 2 / Option C — key lemma-nodes by sense, mirroring the canonical
+      // note's gen_dedup_key (pid:<pealim_id> else <norm-lemma>#<pos>). Two
+      // homograph senses no longer collapse into one node, so per-sense
+      // status/freq/binyan stay honest (R3/R2). Degrades to #pos when no pid.
+      var pid = (n.j_pid != null && String(n.j_pid).trim() !== "") ? String(n.j_pid).trim() : "";
+      var meaning = (n.j_meaning != null) ? String(n.j_meaning).trim() : "";
+      var lk = pid ? ("word:pid:" + pid) : ("word:" + lemma + "#" + pos);
       var ln = lemmas.get(lk);
       if (!ln) {
         ln = { id: lk, kind: "word", rawId: lemma, label: lemma, freq: 0,
                status: "new", meta: { roots: new Set(), binyans: new Set(),
-               pos: new Set(), textIds: new Set(), noteIds: [], _states: new Set() } };
+               pos: new Set(), textIds: new Set(), noteIds: [], _states: new Set(),
+               meanings: new Set() } };
         lemmas.set(lk, ln);
       }
       ln.freq++;
       ln.meta.roots.add(root);
       if (binyan) ln.meta.binyans.add(binyan);
       if (pos) ln.meta.pos.add(pos);
+      if (meaning) ln.meta.meanings.add(meaning);
       if (n.text_id != null && String(n.text_id) !== "") ln.meta.textIds.add(String(n.text_id));
       ln.meta.noteIds.push(String(n.id));
       ln.meta._states.add(st3);
@@ -221,6 +231,9 @@
                  binyans: Array.from(ln6.meta.binyans).sort(),
                  pos: Array.from(ln6.meta.pos).sort(),
                  textIds: Array.from(ln6.meta.textIds).sort(),
+                 // sense gloss for the node sub-label (disambiguates homograph
+                 // nodes that now share a lemma label, Option C). First only.
+                 meaning: ln6.meta.meanings.size ? Array.from(ln6.meta.meanings)[0] : "",
                  noteIds: ln6.meta.noteIds.slice() };
       });
 

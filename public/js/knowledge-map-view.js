@@ -304,6 +304,12 @@
     // dominant binyan → labelled once (legend) instead of on every spoke (R2/R4 declutter)
     var binCount = {}; lemmas.forEach(function (l) { var b = (l.binyans && l.binyans[0]) || ""; if (b) binCount[b] = (binCount[b] || 0) + 1; });
     _state._dom = Object.keys(binCount).sort(function (a, b) { return binCount[b] - binCount[a]; })[0] || "";
+    // Option C: nodes are now sense-keyed, so a root family can hold two nodes
+    // with the same lemma label (homograph senses). Mark colliding labels so
+    // _placeNode disambiguates ONLY those with a gloss sub-label (no clutter on
+    // the common case where every label is unique — R4 declutter).
+    var labCount = {}; lemmas.forEach(function (l) { var k = l.label || ""; if (k) labCount[k] = (labCount[k] || 0) + 1; });
+    _state._labelDupes = new Set(Object.keys(labCount).filter(function (k) { return labCount[k] > 1; }));
     var W = host.clientWidth || 600, H = host.clientHeight || 480;
     var svg = svgEl("svg", { width: "100%", height: "100%", viewBox: "0 0 " + W + " " + H, "data-kmap-svg": "1", style: "display:block;" });
     if (!lemmas.length) {
@@ -328,6 +334,12 @@
     var c = svgEl("circle", { cx: x, cy: y, r: _radius(lemma.freq, f.sizeBy), fill: _colorFor(lemma, f.colorBy), stroke: "var(--theme-bg-card,#fff)", "stroke-width": "2" });
     var t = svgEl("text", { x: x, y: y + _radius(lemma.freq, f.sizeBy) + 12, "text-anchor": "middle", "font-size": "13", fill: "var(--theme-text-primary,#0f172a)", direction: "rtl" });
     t.textContent = lemma.label; g.appendChild(c); g.appendChild(t);
+    // Disambiguate homograph senses sharing a label: small muted gloss line.
+    if (lemma.meaning && _state._labelDupes && _state._labelDupes.has(lemma.label)) {
+      var gloss = lemma.meaning.length > 18 ? (lemma.meaning.slice(0, 17) + "…") : lemma.meaning;
+      var st = svgEl("text", { x: x, y: y + _radius(lemma.freq, f.sizeBy) + 25, "text-anchor": "middle", "font-size": "10", fill: "var(--theme-text-secondary,#64748b)", opacity: "0.85" });
+      st.textContent = gloss; g.appendChild(st);
+    }
     g.addEventListener("click", function () { _showPreview(_state.focusHost, lemma); });
     svg.appendChild(g);
   }
