@@ -675,6 +675,8 @@ window.I18N_LOCALES.en = {
       conj: {
         sourcePealim: "Source: Pealim",
         recheck: "double-check (Pealim)",
+        recheckDirect: "Pealim page",
+        recheckSearch: "search on Pealim",
         showFull: "Show full paradigm",
         bestEffort: "Best-effort match — verify via the link",
         loading: "Loading table…",

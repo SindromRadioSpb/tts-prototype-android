@@ -156,8 +156,8 @@ async function main() {
     test("Case 1: content cards have conj accordion (verb→Спряжение, noun→Склонение)",
          r1.vHasConj && r1.nHasConj && /Спряжение/.test(r1.vSummary) && /Склонение/.test(r1.nSummary),
          JSON.stringify(r1));
-    test("Case 1b: Pealim action link retitled to «перепроверка»",
-         /перепроверка/i.test(r1.recheckText), JSON.stringify({ recheck: r1.recheckText }));
+    test("Case 1b: footer is a Pealim action link (honest direct/search label)",
+         /Pealim/i.test(r1.recheckText) && /(страница|поиск|перепроверка)/i.test(r1.recheckText), JSON.stringify({ recheck: r1.recheckText }));
 
     // ── Case 2: render function output ────────────────────────────────────
     const r2 = await pg.evaluate((sample) => {

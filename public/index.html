@@ -39789,6 +39789,43 @@ const V3_WORDCARD_BINYAN_LABEL = {
 function v3WordCardPealimUrl(word) {
   return "https://www.pealim.com/ru/search/?from_lang=he&q=" + encodeURIComponent(String(word || ""));
 }
+function v3WordCardPealimDictUrl(id) {
+  return "https://www.pealim.com/ru/dict/" + encodeURIComponent(String(id || "")) + "-/";
+}
+// Single source of truth for a note's «перепроверка (Pealim)» link. A DIRECT dict page
+// when we know the exact entry — content: the form-disambiguated `bj.pealim_id`; function
+// word (adverb/pronoun/…): the offline function-links map (synchronous, null until
+// PealimFunctionLinks.ensureReady has resolved) — else an HONEST SEARCH. The footer, the
+// conjugation accordion and the editor all route through here so the URL is identical
+// everywhere (no footer=search / accordion=direct split). Returns { url, direct, id }.
+const V3_PEALIM_CONTENT_POS = new Set(["verb", "noun", "adjective"]);
+function v3WordCardBestPealimUrl(bj, ctx) {
+  bj = bj || {}; ctx = ctx || {};
+  const word = String(ctx.word || bj.word || "").trim();
+  const pos = String(ctx.pos || bj.pos || bj.part_of_speech || "").trim();
+  const kind = String(ctx.kind || bj.kind || "");
+  // 1) content: stored form-disambiguated id → its exact Pealim page.
+  const pid = String(bj.pealim_id || ctx.pealim_id || "").trim();
+  if (pid) return { url: v3WordCardPealimDictUrl(pid), direct: true, id: pid };
+  // 2) function word: deep-link map (never for content/proper — avoids a homograph page).
+  if (kind !== "propernoun" && !V3_PEALIM_CONTENT_POS.has(pos)) {
+    try {
+      if (window.PealimFunctionLinks && typeof window.PealimFunctionLinks.lookup === "function") {
+        const fe = window.PealimFunctionLinks.lookup(word, pos, { stem: ctx.stem, lemma: bj.lemma || ctx.lemma });
+        if (fe && fe.id) return { url: v3WordCardPealimDictUrl(fe.id), direct: true, id: String(fe.id) };
+      }
+    } catch (_) {}
+  }
+  // 3) honest search.
+  return { url: v3WordCardPealimUrl(word), direct: false, id: null };
+}
+// Localized link label: a DIRECT entry vs an honest SEARCH (so the user knows whether the
+// link opens the exact page or a search). Falls back to the legacy «перепроверка (Pealim)».
+function v3WordCardPealimLinkLabel(direct) {
+  return direct
+    ? v3NotesT("notes.card.conj.recheckDirect", v3NotesT("notes.card.conj.recheck", "страница Pealim"))
+    : v3NotesT("notes.card.conj.recheckSearch", v3NotesT("notes.card.conj.recheck", "поиск на Pealim"));
+}
 
 // Phase A — the premium word path needs the FULL dict: the basic tier returns
 // NO analysis for inflected/derived forms (so neither root NOR lemma resolve),
@@ -40618,8 +40655,8 @@ function v3RenderInflectionParadigm(p, opts) {
   if (p.kind === "pronoun") return v3RenderPronounSet(p.highlight);
   if (!p.cells) return `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.noTable", "Таблица не найдена."))}</div>`;
   const _badge = `<span class="v3-conj-badge">${v3EscapeHtml(v3NotesT("notes.card.conj.sourcePealim", "Источник: Pealim"))}</span>`;
-  const _recheckUrl = p.pealim_id ? ("https://www.pealim.com/ru/dict/" + encodeURIComponent(p.pealim_id) + "-/") : v3WordCardPealimUrl(p.lemma || "");
-  const _recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(_recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+  const _recheckUrl = p.pealim_id ? v3WordCardPealimDictUrl(p.pealim_id) : v3WordCardPealimUrl(p.lemma || "");
+  const _recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(_recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3WordCardPealimLinkLabel(!!p.pealim_id))} ↗</a>`;
   // Invariant words (adverb/pronoun/conjunction/particle) — no paradigm, but a
   // premium single-form "profile": vocalized form + red-stress translit +
   // tap-to-hear (same cell aesthetic) + POS + honest note + Pealim link.
@@ -40699,8 +40736,8 @@ function v3RenderInflectionParadigm(p, opts) {
     ? `<span class="v3-conj-rootlabel">${v3EscapeHtml(v3NotesT("notes.card.rootTitle", "Корень"))}: <span dir="rtl">${v3EscapeHtml(rootStr)}</span></span>` : "";
   const gizra = p.gizra_note ? `<div class="v3-conj-gizra">${v3EscapeHtml(p.gizra_note)}</div>` : "";
   const beso = p.disambig === "best-effort" ? `<div class="v3-conj-besteffort">⚠ ${v3EscapeHtml(v3NotesT("notes.card.conj.bestEffort", "Подобрано по совпадению — сверьтесь по ссылке"))}</div>` : "";
-  const recheckUrl = p.pealim_id ? ("https://www.pealim.com/ru/dict/" + encodeURIComponent(p.pealim_id) + "-/") : v3WordCardPealimUrl(p.lemma || "");
-  const recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
+  const recheckUrl = p.pealim_id ? v3WordCardPealimDictUrl(p.pealim_id) : v3WordCardPealimUrl(p.lemma || "");
+  const recheck = `<a class="v3-conj-recheck" href="${v3EscapeHtml(recheckUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3WordCardPealimLinkLabel(!!p.pealim_id))} ↗</a>`;
 
   return `<div class="v3-conj-wrap">
     <div class="v3-conj-meta">${badge}${rootHtml}${recheck}</div>
@@ -40767,6 +40804,35 @@ async function v3WordCardLoadInflection(detailsEl) {
   detailsEl.setAttribute("data-conj-loaded", "1");
   body.innerHTML = `<div class="v3-conj-loading">${v3EscapeHtml(v3NotesT("notes.card.conj.loading", "Загрузка таблицы…"))}</div>`;
 
+  // Function word (adverb/pronoun/particle/…) — no content paradigm. Resolve its PREMIUM
+  // invariant profile (vocalized form + stressed translit + tap-to-hear + DIRECT Pealim
+  // link) from the tiny function-links map FIRST: cheap, and avoids the heavy 3.3MB dict
+  // reload that a step-2 miss would trigger after OPFS import. Also reaches homograph-
+  // shadowed entries (בטח→invariant 3600, not the noun id2927 the by-key index returns).
+  // Personal pronouns were handled above.
+  if (!v3ConjPosInflects(pos)) {
+    const fnWord = detailsEl.getAttribute("data-conj-word") || lemma;
+    let fe = null;
+    try { if (window.PealimFunctionLinks) { await window.PealimFunctionLinks.ensureReady(); fe = window.PealimFunctionLinks.lookup(fnWord, pos, { stem, lemma }); } } catch (_) {}
+    // The note's form-disambiguated id wins (same source the footer uses → consistent;
+    // also catches prefixed forms like וכבר→6115 the bare-word map lookup would miss),
+    // then the function-links map.
+    const fnId = storedId || (fe && fe.id) || "";
+    try {
+      const f = (fnId && window.PealimFunctionLinks && window.PealimFunctionLinks.getForm) ? window.PealimFunctionLinks.getForm(fnId) : null;
+      if (f && f.he) {
+        const inv = { kind: "invariant", pos: (fe && fe.pos) || pos || "", pealim_id: String(fnId), cells: {}, form: { he: f.he, translit_html: f.tr || "" } };
+        body.innerHTML = v3RenderInflectionParadigm(inv, renderOpts);
+        v3ConjSyncSummary(detailsEl, inv);
+        return;
+      }
+    } catch (_) {}
+    const fnUrl = fnId ? v3WordCardPealimDictUrl(fnId) : v3WordCardPealimUrl(fnWord);
+    const fnLink = `<a class="v3-conj-recheck" href="${v3EscapeHtml(fnUrl)}" target="_blank" rel="noopener">${v3EscapeHtml(v3WordCardPealimLinkLabel(!!fnId))} ↗</a>`;
+    body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>${fnLink}`;
+    return;
+  }
+
   // 1) OPFS cache (offline)
   try {
     const ldb = await ensureLocalDB();
@@ -40808,27 +40874,6 @@ async function v3WordCardLoadInflection(detailsEl) {
 
   // 3) online + consent → fetch + cache (rare fallback; blocked on prod)
   const pealimLink = `<a class="v3-conj-recheck" href="${v3EscapeHtml(v3WordCardPealimUrl(lemma))}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
-  // Non-inflecting function word (adverb/pronoun/conjunction/…) with no compatible
-  // offline hit → it has no content table; DON'T chase an online content fetch (which
-  // would only match a homograph). Show the honest "не изменяется" note instantly.
-  // For the link, prefer a DIRECT deep-link to the word's own Pealim invariant entry
-  // (from the function-links map) — falls back to a SEARCH link otherwise. (Personal
-  // pronouns + any compatible invariant hit were already handled above.)
-  if (!v3ConjPosInflects(pos)) {
-    let fnLink = pealimLink;
-    try {
-      if (window.PealimFunctionLinks) {
-        try { await window.PealimFunctionLinks.ensureReady(); } catch (_) {}   // tiny file; makes the first open direct too
-        const fe = window.PealimFunctionLinks.lookup(detailsEl.getAttribute("data-conj-word") || lemma, pos, { stem, lemma });
-        if (fe && fe.id) {
-          const url = "https://www.pealim.com/ru/dict/" + encodeURIComponent(fe.id) + "-/";
-          fnLink = `<a class="v3-conj-recheck" href="${v3EscapeHtml(url)}" target="_blank" rel="noopener">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>`;
-        }
-      }
-    } catch (_) {}
-    body.innerHTML = `<div class="v3-conj-empty">${v3EscapeHtml(v3NotesT("notes.card.conj.notInflected", "Это слово не изменяется по формам."))}</div>${fnLink}`;
-    return;
-  }
   // Content word, no compatible offline hit, but the note carries a form-disambiguated id
   // (its correct paradigm may be a collision-orphan absent from the index) → link straight
   // to that page instead of an online content fetch / search.
@@ -40993,6 +41038,10 @@ function v3WordCardRichHtml(row) {
   const posLabel = pos && V3_WORDCARD_POS_KEY[pos]
     ? v3NotesT("notes.tpl.word_study." + V3_WORDCARD_POS_KEY[pos], pos) : "";
   const binyanLabel = binyan && V3_WORDCARD_BINYAN_LABEL[binyan] ? V3_WORDCARD_BINYAN_LABEL[binyan] : "";
+  // Single source of truth for the card's Pealim link (footer). Direct for content
+  // (pealim_id) synchronously; function words upgrade to direct in the enrich pass once
+  // PealimFunctionLinks has loaded (data-pealim-* attrs let it recompute).
+  const _bestPealim = v3WordCardBestPealimUrl(bj, { word, pos });
 
   const headword = word || v3NotesT("notes.card.noWord", "(без слова)");
   const niqqudHtml = (niqqud && niqqud !== word)
@@ -41025,9 +41074,14 @@ function v3WordCardRichHtml(row) {
   // (OPFS cache → instant; miss → online+consent → Pealim). data-conj-* carry
   // the lemma/binyan/pos/root for resolution; the enrich pass refines them from
   // stored morphology. The summary self-corrects to Спряжение/Склонение on load.
-  const conjEligible = word && (v3ConjPosInflects(pos) || !!v3LookupPronounParadigm(word));   // verb/noun/adj/preposition (+ empty) + personal pronouns (static set)
+  // Eligible for the form block: everything except proper nouns. Content words →
+  // conjugation/declension table; function words (adverb/pronoun/…) → an invariant
+  // single-form profile (vocalized form + tap-audio + direct Pealim link), resolved on
+  // open via the function-links id. Proper nouns are trimmed in the enrich pass.
+  const conjEligible = word && bj.kind !== "propernoun" && pos !== "propernoun";
   const conjSummary = pos === "verb"
     ? v3NotesT("notes.card.conj.summaryVerb", "Спряжение")
+    : (pos && !v3ConjPosInflects(pos)) ? v3NotesT("notes.card.conj.summaryInvariant", "Форма слова")
     : (pos ? v3NotesT("notes.card.conj.summaryNoun", "Склонение") : v3NotesT("notes.card.conj.summaryVerb", "Спряжение"));
   const conjHtml = conjEligible ? `
       <details class="v3-wordcard-acc v3-wordcard-conj"
@@ -41057,8 +41111,9 @@ function v3WordCardRichHtml(row) {
     ${accHtml}
     ${conjHtml}
     <div class="v3-wordcard-actions">
-      <a class="v3-wordcard-pealim" href="${v3EscapeHtml(v3WordCardPealimUrl(word))}" target="_blank" rel="noopener"
-         title="${v3EscapeHtml(v3NotesT("notes.card.pealimTitle", "Спряжение на Pealim (внешний словарь)"))}">${v3EscapeHtml(v3NotesT("notes.card.conj.recheck", "перепроверка (Pealim)"))} ↗</a>
+      <a class="v3-wordcard-pealim" href="${v3EscapeHtml(_bestPealim.url)}" target="_blank" rel="noopener"
+         data-pealim-word="${v3EscapeHtml(word)}" data-pealim-pos="${v3EscapeHtml(pos || "")}" data-pealim-lemma="${v3EscapeHtml(String(bj.lemma || ""))}" data-pealim-pid="${v3EscapeHtml(String(bj.pealim_id || ""))}"
+         title="${v3EscapeHtml(v3NotesT("notes.card.pealimTitle", "Спряжение на Pealim (внешний словарь)"))}">${v3EscapeHtml(v3WordCardPealimLinkLabel(_bestPealim.direct))} ↗</a>
       <button type="button" class="v3-wordcard-edit" onclick="v3NotesRowIndexOpenNote('${idEsc}')">${v3EscapeHtml(v3NotesT("notes.card.edit", "Открыть"))}</button>
       <button type="button" class="v3-wordcard-del" onclick="event.stopPropagation(); v3NotesRowIndexDelete('${idEsc}')"
               aria-label="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}">✕</button>
@@ -41072,6 +41127,22 @@ window.v3WordCardRichHtml = v3WordCardRichHtml;
 async function v3NotesRowIndexEnrich() {
   const cards = document.querySelectorAll(".v3-wordcard[data-note-id]");
   if (!cards.length) return;
+  // 0z) Footer «перепроверка (Pealim)» → upgrade to the DIRECT page once the
+  //     function-links map has loaded (the synchronous first render falls back to a
+  //     SEARCH link for function words because the map is async). Content links are
+  //     already direct (pealim_id) at render. Keeps footer == accordion == editor.
+  try {
+    if (window.PealimFunctionLinks) {
+      try { await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
+      for (const a of document.querySelectorAll("a.v3-wordcard-pealim[data-pealim-word]")) {
+        if (a.getAttribute("data-pealim-pid")) continue;           // content already direct
+        const best = v3WordCardBestPealimUrl(
+          { pealim_id: "", lemma: a.getAttribute("data-pealim-lemma") || "" },
+          { word: a.getAttribute("data-pealim-word") || "", pos: a.getAttribute("data-pealim-pos") || "" });
+        if (best.direct) { a.setAttribute("href", best.url); a.firstChild && (a.textContent = v3WordCardPealimLinkLabel(true) + " ↗"); }
+      }
+    }
+  } catch (_) {}
   // 0a) POS pill + grammatical-profile chips back-fill from STORED Dicta
   //     morphology (when the saved note lacks part_of_speech / feats). Offline.
   try {
@@ -41110,7 +41181,18 @@ async function v3NotesRowIndexEnrich() {
             const sum = conj.querySelector(".v3-wordcard-acc-summary");
             if (sum) sum.textContent = v3NotesT("notes.card.conj.summaryPronoun", "Местоимения");
           } else if (!v3NotesTplConjInflects({ pos: res.pos, kind: res.kind })) {
-            conj.remove();                                 // function word / proper noun — no table
+            if (res.kind === "propernoun" || res.pos === "propernoun") {
+              conj.remove();                               // proper noun — no Pealim table/profile
+            } else {
+              // Function word (adverb/pronoun/particle/…) — KEEP the block; on open it
+              // renders the invariant profile (form + tap-audio + direct link) resolved
+              // via the function-links id, else an honest "не изменяется" + search.
+              conj.setAttribute("data-conj-pos", res.pos || "");
+              conj.setAttribute("data-conj-kind", res.kind || "");
+              if (res.stem) conj.setAttribute("data-conj-stem", res.stem);
+              const sum = conj.querySelector(".v3-wordcard-acc-summary");
+              if (sum) sum.textContent = v3NotesT("notes.card.conj.summaryInvariant", "Форма слова");
+            }
           } else {
             // Query the LEMMA (declined prepositions live under their lemma: לי→ל).
             const qLemma = res.root || res.lemma || "";

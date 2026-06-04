@@ -682,6 +682,8 @@ window.I18N_LOCALES.he = {
       conj: {
         sourcePealim: "מקור: Pealim",
         recheck: "בדיקה חוזרת (Pealim)",
+        recheckDirect: "דף Pealim",
+        recheckSearch: "חיפוש ב-Pealim",
         showFull: "הצג נטייה מלאה",
         bestEffort: "התאמה משוערת — בדקו בקישור",
         loading: "טוען טבלה…",

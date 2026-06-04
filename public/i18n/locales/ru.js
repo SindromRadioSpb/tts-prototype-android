@@ -682,6 +682,8 @@ window.I18N_LOCALES.ru = {
       conj: {
         sourcePealim: "Источник: Pealim",
         recheck: "перепроверка (Pealim)",
+        recheckDirect: "страница Pealim",
+        recheckSearch: "поиск на Pealim",
         showFull: "Показать всю парадигму",
         bestEffort: "Подобрано по совпадению — сверьтесь по ссылке",
         loading: "Загрузка таблицы…",

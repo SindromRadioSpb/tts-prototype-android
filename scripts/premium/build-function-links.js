@@ -31,6 +31,7 @@ const FUNCTION_POS = new Set(["adverb", "pronoun", "conjunction", "negation", "i
   const d = JSON.parse(zlib.gunzipSync(fs.readFileSync(GZ)).toString("utf8"));
   const paradigms = d.paradigms || [];
   const links = Object.create(null);   // plain key → { id, pos }
+  const forms = Object.create(null);   // pealim_id → { he, tr, pos } — invariant single-form profile
   let collisions = 0, sources = 0;
 
   // Deterministic preference when two invariant paradigms map to the same plain key:
@@ -49,7 +50,16 @@ const FUNCTION_POS = new Set(["adverb", "pronoun", "conjunction", "negation", "i
     if (!(p.kind === "invariant" || FUNCTION_POS.has(p.pos))) continue;
     sources++;
     const entry = { id: String(p.pealim_id), pos: p.pos || "", _src: p };
-    for (const k of [p.lemma, p.root, p.form]) {
+    // The invariant single-form profile (vocalized form + stressed translit) so the
+    // word card can render the premium profile for function words straight from this
+    // tiny file — no need to reload the 3.3MB dict (which is released after OPFS import).
+    if (p.form && typeof p.form === "object" && p.form.he && !forms[entry.id]) {
+      forms[entry.id] = { he: p.form.he, tr: p.form.translit_html || p.form.translit || "", pos: p.pos || "" };
+    }
+    // p.form on an invariant paradigm is the form PROFILE object {he,translit,…},
+    // not a string — harvest its `.he`, else treat as a plain string (content forms).
+    const formKey = (p.form && typeof p.form === "object") ? p.form.he : p.form;
+    for (const k of [p.lemma, p.root, formKey]) {
       const kk = sp(k); if (!kk) continue;
       const cur = links[kk];
       if (!cur) { links[kk] = entry; }
@@ -65,9 +75,11 @@ const FUNCTION_POS = new Set(["adverb", "pronoun", "conjunction", "negation", "i
     source: d.model_version || "pealim-infl-v12",
     generated_from: "paradigms[] invariant/function-POS",
     entry_count: Object.keys(clean).length,
+    form_count: Object.keys(forms).length,
     source_paradigms: sources,
     collisions,
     links: clean,
+    forms: forms,
   };
   const json = JSON.stringify(out);
   fs.writeFileSync(OUT, json);

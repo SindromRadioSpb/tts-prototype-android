@@ -10,6 +10,7 @@
   function sp(s) { return String(s == null ? "" : s).replace(NIQQUD_RE, "").trim(); }
 
   var _map = null;       // plain word → { id, pos }
+  var _forms = null;     // pealim_id → { he, tr, pos } — invariant single-form profile
   var _loading = null;
 
   function ensureReady() {
@@ -17,9 +18,17 @@
     if (_loading) return _loading;
     _loading = fetch(URL, { credentials: "same-origin" })
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) { _map = (d && d.links) ? d.links : {}; return _map; })
-      .catch(function () { _map = {}; return _map; });
+      .then(function (d) { _map = (d && d.links) ? d.links : {}; _forms = (d && d.forms) ? d.forms : {}; return _map; })
+      .catch(function () { _map = {}; _forms = {}; return _map; });
     return _loading;
+  }
+
+  // The invariant single-form profile for a Pealim id (vocalized form + stressed
+  // translit + POS), so the card renders the premium profile for a function word
+  // without reloading the heavy dict. Returns null until ensureReady has resolved.
+  function getForm(id) {
+    if (!_forms || id == null) return null;
+    return _forms[String(id)] || null;
   }
 
   // Synchronous lookup (returns null until ensureReady has resolved). Prefer an
@@ -38,5 +47,5 @@
     return fallback;                                      // POS-mismatched same-spelling entry, last resort
   }
 
-  window.PealimFunctionLinks = { ensureReady: ensureReady, lookup: lookup, isReady: function () { return !!_map; } };
+  window.PealimFunctionLinks = { ensureReady: ensureReady, lookup: lookup, getForm: getForm, isReady: function () { return !!_map; } };
 })();

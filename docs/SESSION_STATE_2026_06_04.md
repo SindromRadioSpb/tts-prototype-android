@@ -16,6 +16,7 @@
 | Same-POS form-disambig | `a370082` | v3.7.8 | build-notes form-first резолв сохраняет верный `pealim_id`+`meaning` в `body_json`; рантайм линкует по сохранённому id, чужую таблицу скрывает (`seePealim`). 234 ссылки + 47 переводов исправлены |
 | Инвентаризация ссылок | (этот) | — | `npm run audit:pealim-inventory` → `docs/PEALIM_LINK_INVENTORY_2026_06.md` |
 | **Phase 5-R1 настоящие корни** | (этот) | v3.7.9 | имена/прил./глаголы получают настоящий корень Pealim (chip `root`); новое поле `lemma` развязывает запрос таблицы (`data-conj-lemma`); proclitic-form fix (`unitFormVariants`) чинит омограф בַּדָּם. 2366 корней, 0 ошибок, 0 R1. Смоук `smoke:conj:trueroot` 8/8 |
+| **Pealim-ссылки: единый источник + премиум служебных** | (этот) | v3.8.0 | футер карточки вёл на ПОИСК (90% заметок) ≠ аккордеон (прямая). Помощник `v3WordCardBestPealimUrl` (pealim_id→function-links→поиск) → одна прямая ссылка везде. Служебные слова (наречия/местоим.) получили инвариант-профиль (огласов. форма + tap-озвучка + прямая ссылка) через `forms` в function-links (чинит омограф-тень בטח→3600). Баг `[object Object]` в function-links исправлен. Честные метки «страница Pealim»/«поиск на Pealim». Гейты `audit:pealim-footer` (0 desync, 90.1% direct) + `smoke:conj:funcword` 7/7 |
 
 ## Текущее состояние ссылок Pealim (бандл `Library/test-enriched.zip`, 8967 заметок)
 - **Прямых ссылок 90.1%** (8045 form-disambig `pealim_id` + 37 function-links).
@@ -30,10 +31,11 @@ word 100% · niqqud ~100% · pos/part_of_speech 94.7% (синхронны) · bi
 **lemma** (новое поле — запрос таблицы) · sentence_morph 3457. **R1 hard violations: 0.**
 
 ## Постоянные аудиты/смоуки (метрики, не заглушки)
-`npm run audit:note-fields` · `audit:pealim-links` · `audit:pealim-samepos` · `audit:pealim-inventory`
+`npm run audit:note-fields` · `audit:pealim-links` · `audit:pealim-samepos` · `audit:pealim-inventory` · `audit:pealim-footer` (0 desync gate)
 · `smoke:conj` (17/17) · `smoke:conj:audit` (175/175) · `smoke:conj:link-guard` (12/12) ·
 `smoke:conj:sentence-morph` (7/7) · `smoke:conj:deeplink-selfheal` (5/5) · `smoke:conj:pos-hydrate` (4/4)
-· `smoke:conj:trueroot` (8/8 — Phase 5-R1 chip=root / table=lemma decouple gate).
+· `smoke:conj:trueroot` (8/8 — Phase 5-R1 chip=root / table=lemma decouple gate)
+· `smoke:conj:funcword` (7/7 — служебное слово: инвариант-профиль форма+озвучка + футер==аккордеон).
 
 ## Извлечённые уроки (применять впредь)
 1. **«Нет корня/нет таблицы» для служебных слов — по Dicta-POS, а не по маленькому стоп-листу.**
