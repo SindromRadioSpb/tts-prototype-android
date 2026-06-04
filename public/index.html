@@ -40160,6 +40160,53 @@ async function v3NotesAutoGenForText(textId, opts) {
 }
 window.v3NotesAutoGenForText = v3NotesAutoGenForText;
 
+// Persist ACCEPTED autogen candidates (Stage 1.3 — review-first: the Stage-2 queue
+// passes only the candidates the user accepted). Dedup-upsert against the WHOLE base
+// by gen_dedup_key: create one canonical note per new sense-lemma, else add the
+// surface occurrence(s) to the existing note. NEVER clobbers a user-touched note.
+// Returns growth counts for the «+N слов / +M корней» badge.
+async function v3NotesAutoGenPersist(candidates, opts) {
+  opts = opts || {};
+  const ldb = await ensureLocalDB();
+  if (!ldb || typeof ldb.createCanonicalNote !== "function") return { ok: false, reason: "no_schema" };
+  const source = opts.source || "curated";
+  const model = opts.model_version || V3_PEALIM_INFL_MODEL;
+  let created = 0, refreshed = 0, occ = 0, skipped = 0;
+  const newRoots = new Set();
+  for (const cand of (candidates || [])) {
+    if (!cand || !cand.dedup_key) { skipped++; continue; }
+    const body = cand.body || {};
+    let note = null;
+    try { note = await ldb.findNoteByDedupKey(cand.dedup_key); } catch (_) {}
+    if (!note) {
+      try {
+        note = await ldb.createCanonicalNote({
+          gen_dedup_key: cand.dedup_key, body: body, title: body.word || "",
+          source: source, confidence: cand.confidence, model_version: model, user_touched: 0,
+        });
+        created++;
+        if (body.root) newRoots.add(body.root);
+      } catch (_) { skipped++; continue; }
+    } else {
+      // refresh only when untouched AND not a confidence downgrade (regeneration
+      // must improve or hold, never silently worsen an existing note).
+      const exConf = Number.isFinite(note.confidence) ? note.confidence : -1;
+      if (Number(note.user_touched) !== 1 && (Number(cand.confidence) || 0) >= exConf) {
+        try { await ldb.refreshCanonicalNoteBody(note.id, { body: body, source: source, confidence: cand.confidence, model_version: model }); refreshed++; } catch (_) {}
+      }
+    }
+    if (note && note.id) {
+      for (const o of (cand.occurrences || [])) {
+        try { await ldb.addNoteOccurrence(note.id, o); occ++; } catch (_) {}
+      }
+    }
+  }
+  // new_roots counts distinct roots among NEWLY-created notes (an approximation of
+  // novelty-vs-base; precise i+1 novelty is the Stage-2/4 graph prefiight).
+  return { ok: true, new_words: created, new_roots: newRoots.size, created: created, refreshed: refreshed, occurrences_recorded: occ, skipped: skipped };
+}
+window.v3NotesAutoGenPersist = v3NotesAutoGenPersist;
+
 // Hebrew text of the row the current note belongs to (for Dicta context).
 async function v3NotesGetSentenceText() {
   // Captured at open (token picker) — most reliable.

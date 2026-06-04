@@ -1073,6 +1073,104 @@ export async function listAllNotesForText(textId) {
   );
 }
 
+// ── ②-note autogen: canonical-lemma notes + occurrences (migration 052) ─────
+// A canonical note is ONE word_study note per sense-lemma across the whole base,
+// keyed by gen_dedup_key (pid:<id> | norm(lemma)#pos). It is NOT bound to a single
+// text: text_id stays NULL (so deleting one text can't cascade-delete a note shared
+// by others) and every surface position lives in note_occurrences. target_kind
+// reuses 'word' (the CHECK enum has no 'lemma'); target_id = gen_dedup_key.
+
+// The existing canonical note for a dedup key, or null.
+export async function findNoteByDedupKey(dedupKey) {
+  if (!dedupKey) return null;
+  const rows = await q('SELECT * FROM notes_v2 WHERE gen_dedup_key = ?', [String(dedupKey)]);
+  return rows[0] || null;
+}
+
+// Create a canonical word_study note with provenance. source ∈ {auto, curated};
+// user_touched starts 0 (regeneration may refresh it until the user edits → then 1,
+// set by updateNote callers, never by autogen). Returns the inserted row.
+export async function createCanonicalNote(opts) {
+  const o = opts || {};
+  const dedupKey = String(o.gen_dedup_key || '');
+  if (!dedupKey) throw new Error('createCanonicalNote: gen_dedup_key is required');
+  const id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : 'n-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+  const now = new Date().toISOString();
+  const bodyJson = _buildBodyJson('word_study', o.body ?? {});
+  const source = String(o.source || 'auto');
+  await r(
+    `INSERT INTO notes_v2
+       (id, target_kind, target_id, text_id, note_type, title, body_json,
+        audio_anchor_ms, audio_asset_key, srs_card_id,
+        source, confidence, model_version, user_touched, gen_dedup_key,
+        created_at, updated_at)
+     VALUES (?, 'word', ?, NULL, 'word_study', ?, ?, NULL, NULL, NULL, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      id, dedupKey, String(o.title || ''), bodyJson,
+      source,
+      Number.isFinite(o.confidence) ? o.confidence : null,
+      o.model_version != null ? String(o.model_version) : null,
+      o.user_touched ? 1 : 0,
+      dedupKey,
+      now, now,
+    ]
+  );
+  // Seed v1 = body at creation (mirrors createNote — meaningful first history entry).
+  try { await _appendNoteVersion(id, bodyJson); await _stampVersionDiffSummary(id, 1, '', bodyJson); } catch (_) {}
+  const rows = await q('SELECT * FROM notes_v2 WHERE id = ?', [id]);
+  return rows[0] || null;
+}
+
+// Refresh an auto/curated canonical note's body — but NEVER when the user has
+// touched it (user_touched=1 → their edits are sacrosanct under regeneration).
+// Returns true if updated, false if skipped (user-touched / not found).
+export async function refreshCanonicalNoteBody(noteId, opts) {
+  if (!noteId) return false;
+  const o = opts || {};
+  const cur = (await q('SELECT user_touched, body_json FROM notes_v2 WHERE id = ?', [String(noteId)]))[0];
+  if (!cur || Number(cur.user_touched) === 1) return false;
+  const bodyJson = _buildBodyJson('word_study', o.body ?? {});
+  if (bodyJson === cur.body_json && o.confidence == null && o.source == null) return false;
+  const now = new Date().toISOString();
+  await r(
+    `UPDATE notes_v2 SET body_json = ?,
+       source = COALESCE(?, source),
+       confidence = COALESCE(?, confidence),
+       model_version = COALESCE(?, model_version),
+       updated_at = ?
+     WHERE id = ? AND user_touched = 0`,
+    [bodyJson, o.source != null ? String(o.source) : null,
+     Number.isFinite(o.confidence) ? o.confidence : null,
+     o.model_version != null ? String(o.model_version) : null,
+     now, String(noteId)]
+  );
+  return true;
+}
+
+// Record one surface occurrence of a canonical note (idempotent via ux_note_occ).
+export async function addNoteOccurrence(noteId, occ) {
+  if (!noteId || !occ) return;
+  await r(
+    `INSERT OR IGNORE INTO note_occurrences (note_id, text_id, sentence_id, word_offset, surface)
+     VALUES (?, ?, ?, ?, ?)`,
+    [
+      String(noteId),
+      occ.text_id != null ? String(occ.text_id) : null,
+      occ.sentence_id != null ? String(occ.sentence_id) : null,
+      Number.isInteger(occ.word_offset) ? occ.word_offset : null,
+      occ.surface != null ? String(occ.surface) : null,
+    ]
+  );
+}
+
+// All occurrences of a canonical note (reading-view index / growth analytics).
+export async function listNoteOccurrences(noteId) {
+  if (!noteId) return [];
+  return q('SELECT * FROM note_occurrences WHERE note_id = ? ORDER BY id', [String(noteId)]);
+}
+
 // Phase 9.3.5.B — all notes belonging to a single row's learning context.
 // Returns sentence-target notes (target_kind='sentence' AND target_id=sid)
 // PLUS word-target notes whose target_id is scoped to this sentence
