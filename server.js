@@ -168,12 +168,52 @@ app.set("trust proxy", 1);
 
 app.use(bodyParser.json({ limit: "10mb" }));
 
+// ── Content-Security-Policy: REPORT-ONLY rollout ───────────────────────────
+// index.html is inline-script/style heavy, so we can't enforce a strict CSP
+// yet without a nonce/refactor pass. Report-Only is the safe first step: the
+// browser NEVER blocks anything, it only POSTs a violation report to
+// /api/csp-report. That lets us discover the real source map (external
+// origins, eval/wasm needs, framed content) on live traffic with zero risk of
+// breaking the app, then tighten toward an enforceable policy later.
+//
+// This candidate is deliberately strict on the dimensions we want to discover
+// (default/connect/img/font/media/object/frame) and tolerant of inline
+// script/style (a known, separately-tracked refactor) so reports stay signal,
+// not noise. Codebase scan found NO direct client-side calls to Google APIs
+// (BYOK TTS/Translate/Gemini go through our /api proxy), so connect-src 'self'
+// should cover normal traffic — anything else will surface in the reports.
+//
+// Kill switch: set CSP_REPORT_ONLY=0 (or "off") to drop the header instantly
+// via an env change + restart, no code edit. Report-Only cannot regress
+// behaviour, so it ships enabled by default.
+const CSP_REPORT_ONLY_ENABLED =
+  !["0", "off", "false", "no"].includes(String(process.env.CSP_REPORT_ONLY || "").trim().toLowerCase());
+const CSP_REPORT_ONLY_VALUE = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+  "form-action 'self'",
+  // Inline tolerated for now (known refactor); wasm-unsafe-eval for wa-sqlite /
+  // sherpa-onnx WASM; blob: for worker/wasm bootstrap. No 'unsafe-eval' — we
+  // want a report if any plain eval()/new Function() sneaks in.
+  "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob:",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "media-src 'self' blob: data:",
+  "worker-src 'self' blob:",
+  "connect-src 'self'",
+  "manifest-src 'self'",
+  "report-uri /api/csp-report",
+  "report-to csp-endpoint",
+].join("; ");
+
 // Security + cross-origin-isolation headers on every response.
 //   • COOP/COEP/CORP enable SharedArrayBuffer (wa-sqlite AccessHandlePoolVFS).
 //   • HSTS: site is HTTPS-only behind Traefik + Let's Encrypt — pin it.
 //   • nosniff / frame-deny / referrer / permissions: standard hardening.
-// Note: no Content-Security-Policy here — index.html relies heavily on inline
-// scripts/styles, so a real CSP needs a dedicated report-only rollout first.
+//   • CSP: Report-Only (see above) — observational, never blocks.
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
@@ -182,8 +222,63 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), browsing-topics=()");
+  if (CSP_REPORT_ONLY_ENABLED) {
+    // Modern Reporting API endpoint (Chrome) + classic report-uri (all browsers).
+    res.setHeader("Reporting-Endpoints", 'csp-endpoint="/api/csp-report"');
+    res.setHeader("Content-Security-Policy-Report-Only", CSP_REPORT_ONLY_VALUE);
+  }
   next();
 });
+
+// CSP violation report sink (Report-Only). Browsers POST here as either
+// application/csp-report (report-uri, CSP2) or application/reports+json
+// (report-to, Reporting API). We ACK 204 unconditionally and never throw — the
+// browser ignores failures anyway. Logging is windowed + deduped so a noisy
+// policy can't flood the container logs (visible in Coolify → Logs).
+const cspReportState = { windowStart: 0, logged: 0, dropped: 0, seen: new Set() };
+app.post(
+  "/api/csp-report",
+  bodyParser.json({
+    type: ["application/csp-report", "application/reports+json", "application/json", "text/*"],
+    limit: "64kb",
+  }),
+  (req, res) => {
+    res.sendStatus(204);
+    try {
+      const now = Date.now();
+      if (now - cspReportState.windowStart > 60_000) {
+        if (cspReportState.dropped > 0) {
+          console.warn(`[csp-report] window: ${cspReportState.logged} logged, ${cspReportState.dropped} deduped/dropped`);
+        }
+        cspReportState.windowStart = now;
+        cspReportState.logged = 0;
+        cspReportState.dropped = 0;
+        cspReportState.seen.clear();
+      }
+      // Normalise both report shapes into a flat list of violation bodies.
+      const body = req.body || {};
+      const reports = Array.isArray(body)
+        ? body.map((r) => (r && r.body) || r)            // report-to batch
+        : [body["csp-report"] || body];                 // report-uri single
+      for (const r of reports) {
+        if (!r || typeof r !== "object") continue;
+        const directive = r["effective-directive"] || r["violated-directive"] || r.effectiveDirective || "?";
+        const blocked = String(r["blocked-uri"] || r.blockedURL || "?").slice(0, 200);
+        const key = `${directive}|${blocked}`;
+        if (cspReportState.seen.has(key) || cspReportState.logged >= 50) {
+          cspReportState.dropped++;
+          continue;
+        }
+        cspReportState.seen.add(key);
+        cspReportState.logged++;
+        const doc = String(r["document-uri"] || r.documentURL || "").slice(0, 140);
+        console.warn(`[csp-report] ${directive} blocked=${blocked} doc=${doc}`);
+      }
+    } catch (_) {
+      /* never let the report sink throw */
+    }
+  }
+);
 
 // ── B4: Per-IP rate limiting for stateless endpoints ───────────────────────
 // Sliding-window in-memory token bucket. Cheap (O(1) amortised) and zero
