@@ -148,6 +148,23 @@
         '</span></label>';
     } catch (_) {}
 
+    // Stage 3 (Concept A) — eager auto-build of ②-notes (off/conservative/aggressive).
+    try {
+      const mode = (typeof window.v3NotesAutogenMode === 'function') ? window.v3NotesAutogenMode() : 'off';
+      const opt = (v, lbl) => '<option value="' + v + '"' + (mode === v ? ' selected' : '') + '>' + escapeHtml(lbl) + '</option>';
+      body += '<label style="display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--theme-border,#ddd);border-radius:6px;margin-bottom:14px;">' +
+        '<span style="font-size:12.5px;line-height:1.4;font-weight:600;">' +
+        escapeHtml(T('library.autogenModeLabel', 'Авто-строить знания из текстов (②-заметки)')) + '</span>' +
+        '<select id="v3NotesAutogenModeSelect" style="font-size:12.5px;padding:6px 8px;border-radius:6px;border:1px solid var(--theme-border,#ddd);background:var(--theme-bg-card,#fff);color:inherit;">' +
+        opt('off', T('library.autogenModeOff', 'Выкл')) +
+        opt('conservative', T('library.autogenModeConservative', 'Консервативно (надёжные + i+1)')) +
+        opt('aggressive', T('library.autogenModeAggressive', 'Агрессивно (все надёжные)')) +
+        '</select>' +
+        '<span style="font-size:11px;color:var(--theme-text-secondary,#999);line-height:1.35;">' +
+        escapeHtml(T('library.autogenModeHint', 'После обогащения текста морфологией надёжные слова добавляются в базу автоматически; сомнительные — в очередь «на проверку». Ваши правки не затираются.')) +
+        '</span></label>';
+    } catch (_) {}
+
     // Advanced actions.
     body += '<div class="v3-morph-advanced" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">';
     body += '<button type="button" id="v3MorphClearCacheBtn" class="btn-secondary" style="font-size:12px;padding:6px 10px;">' +
@@ -221,6 +238,10 @@
       const enr = document.getElementById('v3MorphAutoEnrichToggle');
       if (enr) enr.addEventListener('change', () => {
         try { if (typeof window.v3MorphSetAutoEnrich === 'function') window.v3MorphSetAutoEnrich(enr.checked); } catch (_) {}
+      });
+      const agm = document.getElementById('v3NotesAutogenModeSelect');
+      if (agm) agm.addEventListener('change', () => {
+        try { if (typeof window.v3NotesSetAutogenMode === 'function') window.v3NotesSetAutogenMode(agm.value); } catch (_) {}
       });
       const btn = document.getElementById('v3MorphClearCacheBtn');
       if (!btn) return;

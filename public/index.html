@@ -23101,6 +23101,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 				${t("library.lastOpened")}: ${v3EscapeHtml(v3FmtDate(lastOpened))}<br/>${t("library.created")}: ${v3EscapeHtml(v3FmtDate(createdAt))}
            </div>
           <div style="margin-top:6px;">${tagsHtml}</div>
+          ${(() => { try { const _p = v3NotesAutoBuildPending[String(id)]; return (_p && _p.length) ? `<div style="margin-top:6px;"><button type="button" data-act="pending" title="${t('review.pendingTitle','Сомнительные авто-кандидаты — открыть очередь проверки')}" style="width:auto;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;border:1px solid #fed7aa;background:#fff7ed;color:#b45309;cursor:pointer;">⚠ ${_p.length} ${t('review.pendingWord','на проверку')}</button></div>` : ""; } catch (_) { return ""; } })()}
         </div>
       </div>
       <div class="v3-lib-card-actions">
@@ -23136,6 +23137,11 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 		v3LibraryEnrichMorph(id, { force });
 	});
 	if (btnBuildkn) btnBuildkn.addEventListener("click", () => v3ReviewQueueOpen(id));
+	const btnPending = card.querySelector('button[data-act="pending"]');
+	if (btnPending) btnPending.addEventListener("click", () => {
+		const _p = v3NotesAutoBuildPending[String(id)];
+		if (_p && _p.length) v3ReviewQueueOpenWith(id, _p); else v3ReviewQueueOpen(id);
+	});
     if (btnArchive) btnArchive.addEventListener("click", () => v3LibraryArchiveText(id));
     if (btnDelete) btnDelete.addEventListener("click", () => v3LibraryDeleteText(id));
 
@@ -23769,6 +23775,9 @@ async function v3LibrarySaveCurrentCore(meta) {
       // Phase D — background corpus morphology enrichment (no-op unless the
       // auto-enrich toggle is on AND online AND consent already given).
       try { if (typeof v3MorphMaybeAutoEnrich === "function") v3MorphMaybeAutoEnrich(String(text.id)); } catch (_) {}
+      // Stage 3 (Concept A) — eager ②-note auto-build (no-op unless mode≠off AND
+      // morphology already present; the enrich-complete hook re-fires after Dicta).
+      try { if (typeof v3NotesMaybeAutoBuild === "function") v3NotesMaybeAutoBuild(String(text.id)); } catch (_) {}
     }
 
     // обновим список, если модалка открыта
@@ -23907,6 +23916,9 @@ async function v3LibraryUpdateCurrentCore(textId, meta) {
       // Phase D — background corpus morphology enrichment (no-op unless the
       // auto-enrich toggle is on AND online AND consent already given).
       try { if (typeof v3MorphMaybeAutoEnrich === "function") v3MorphMaybeAutoEnrich(String(text.id)); } catch (_) {}
+      // Stage 3 (Concept A) — eager ②-note auto-build (no-op unless mode≠off AND
+      // morphology already present; the enrich-complete hook re-fires after Dicta).
+      try { if (typeof v3NotesMaybeAutoBuild === "function") v3NotesMaybeAutoBuild(String(text.id)); } catch (_) {}
     }
 
     try {
@@ -26891,6 +26903,15 @@ async function v3LibraryOnBundleImportSelected(ev) {
         }
       } catch (e) { console.warn("[import] reconcileAudioLinks failed:", e && e.message); }
       v3LibraryRefresh();  // surface texts in Library modal immediately
+      // Stage 3 (Concept A) — bundle texts ship with morphology → eager ②-note
+      // auto-build for each imported text (no-op unless mode≠off; sequential +
+      // non-blocking so a large bundle doesn't run 80 engine passes at once).
+      try {
+        if (typeof v3NotesMaybeAutoBuild === "function" && v3NotesAutogenMode() !== "off") {
+          const _ids = Array.isArray(r.importedIds) ? r.importedIds.slice() : [];
+          (async () => { for (const _id of _ids) { try { await v3NotesMaybeAutoBuild(_id); } catch (_) {} } })();
+        }
+      } catch (_) {}
 
       // PHASE 2 — upload MP3 blobs to Railway audio-cache. Backgrounded with
       // concurrency=4 + progress. The user can already browse texts and see
@@ -36810,6 +36831,20 @@ function v3MorphologyStatusShow() {
       + '<span>' + esc(v3NotesT("morph.autoEnrichToggle", "Авто-обогащать новые тексты через Dicta (онлайн)")) + '</span>'
       + '</label></div>';
   } catch (_) {}
+  // Stage 3 (Concept A) — eager auto-build of ②-notes (off/conservative/aggressive).
+  try {
+    const m = (typeof v3NotesAutogenMode === "function") ? v3NotesAutogenMode() : "off";
+    const o = (v, lbl) => '<option value="' + v + '"' + (m === v ? " selected" : "") + '>' + esc(lbl) + '</option>';
+    body += '<div class="v3-morph-status-row" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">'
+      + '<span style="font-size:13px;font-weight:600;">' + esc(v3NotesT("library.autogenModeLabel", "Авто-строить знания из текстов (②-заметки)")) + '</span>'
+      + '<select onchange="v3NotesSetAutogenMode(this.value)" style="font-size:13px;padding:6px 8px;border-radius:6px;border:1px solid var(--theme-border-soft,#e6e9ef);background:var(--theme-bg-card,#fff);color:inherit;">'
+      + o("off", v3NotesT("library.autogenModeOff", "Выкл"))
+      + o("conservative", v3NotesT("library.autogenModeConservative", "Консервативно (надёжные + i+1)"))
+      + o("aggressive", v3NotesT("library.autogenModeAggressive", "Агрессивно (все надёжные)"))
+      + '</select>'
+      + '<span style="font-size:11px;color:var(--theme-text-secondary,#999);line-height:1.35;">' + esc(v3NotesT("library.autogenModeHint", "После обогащения текста морфологией надёжные слова добавляются в базу автоматически; сомнительные — в очередь «на проверку». Ваши правки не затираются.")) + '</span>'
+      + '</div>';
+  } catch (_) {}
   body += '<div class="v3-morph-status-actions">';
   body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusUpdate()">📥 ' + esc(v3NotesT("morph.btnUpdate", "Обновить словарь")) + '</button>';
   body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusClear()">🗑 ' + esc(v3NotesT("morph.btnClear", "Очистить кеш")) + '</button>';
@@ -40308,25 +40343,37 @@ async function v3ReviewQueueOpen(textId) {
   }
   const cands = (res.candidates || []).slice();
   if (!cands.length) { showToast(v3NotesT("review.empty", "Новых слов не найдено."), "info"); return; }
+  await v3ReviewQueueOpenWith(textId, cands, res.stats);
+}
+window.v3ReviewQueueOpen = v3ReviewQueueOpen;
 
-  // Annotate novelty / i+1 / freq + default decision.
+// Open the review queue on a PRE-COMPUTED candidate subset. The full-run path
+// («✨ Построить знания») passes the engine's whole set; the Stage-3 pending
+// badge passes only the parked low-confidence/non-i+1 candidates (no re-run).
+// Annotates novelty/i+1/freq + default decision, ranks, shows.
+async function v3ReviewQueueOpenWith(textId, candidates, stats) {
+  const cands = (candidates || []).slice();
+  if (!cands.length) { showToast(v3NotesT("review.empty", "Новых слов не найдено."), "info"); return; }
+  let ldb = null;
+  try { ldb = await ensureLocalDB(); } catch (_) {}
   const baseRoots = await v3ReviewQueueBaseRoots();
   for (const c of cands) {
     c._freq = (c.occurrences || []).length;
-    try { c._known = !!(await ldb.findNoteByDedupKey(c.dedup_key)); } catch (_) { c._known = false; }
+    try { c._known = ldb ? !!(await ldb.findNoteByDedupKey(c.dedup_key)) : false; } catch (_) { c._known = false; }
     c._i1 = !!(c.body && c.body.root && baseRoots.has(String(c.body.root)));
     c._editMeaning = null;
-    // Default: clean candidates (status 'ok', incl. known→occurrence) accepted;
-    // low-confidence «на проверку» start un-accepted until the user acts.
+    c._editing = false;
+    // Default: clean candidates (status 'ok') accepted; low-confidence «на
+    // проверку» start un-accepted until the user acts.
     c._decision = (c.status === "ok") ? "accept" : "skip";
   }
   v3ReviewQueueRank(cands);
-  v3ReviewQueueState = { textId: String(textId), candidates: cands, stats: res.stats };
+  v3ReviewQueueState = { textId: String(textId), candidates: cands, stats: stats || null };
   v3ReviewQueueRender();
   const m = document.getElementById("v3ReviewQueueModal");
   if (m) m.classList.remove("hidden");
 }
-window.v3ReviewQueueOpen = v3ReviewQueueOpen;
+window.v3ReviewQueueOpenWith = v3ReviewQueueOpenWith;
 
 function v3ReviewQueueConfBadge(conf, status) {
   const pct = Math.round((Number(conf) || 0) * 100);
@@ -40469,6 +40516,8 @@ async function v3ReviewQueueCommit() {
   catch (e) { showToast(v3NotesT("review.saveFailed", "Не удалось сохранить."), "error"); return; }
   if (!r || !r.ok) { showToast(v3NotesT("review.saveFailed", "Не удалось сохранить."), "error"); return; }
   const textId = st.textId;
+  // Stage 3 — this text's parked pending items have been triaged; clear the badge.
+  try { delete v3NotesAutoBuildPending[String(textId)]; } catch (_) {}
   v3ReviewQueueClose();
   showToast(
     v3NotesT("review.grew", "✨ +{w} слов, +{m} корней").replace("{w}", String(r.new_words || 0)).replace("{m}", String(r.new_roots || 0)),
@@ -40671,6 +40720,98 @@ function v3MorphSetAutoEnrich(on) {
 window.v3MorphAutoEnrichEnabled = v3MorphAutoEnrichEnabled;
 window.v3MorphSetAutoEnrich = v3MorphSetAutoEnrich;
 
+// Stage 3 (Concept A) — eager auto-build of ②-notes behind a setting.
+//   off          — disabled (default).
+//   conservative — auto-persist only high-confidence NEW lemmas whose root is
+//                  already known (i+1); everything else → review queue.
+//   aggressive   — auto-persist ALL high-confidence NEW lemmas; low-confidence
+//                  → review queue. Low-confidence is NEVER silently persisted (R1).
+const V3_NOTES_AUTOGEN_KEY = "notesAutogenMode_v1";
+const V3_NOTES_AUTOGEN_MODES = ["off", "conservative", "aggressive"];
+function v3NotesAutogenMode() {
+  try { const m = localStorage.getItem(V3_NOTES_AUTOGEN_KEY); return V3_NOTES_AUTOGEN_MODES.indexOf(m) >= 0 ? m : "off"; }
+  catch (_) { return "off"; }
+}
+function v3NotesSetAutogenMode(mode) {
+  const m = V3_NOTES_AUTOGEN_MODES.indexOf(mode) >= 0 ? mode : "off";
+  try { localStorage.setItem(V3_NOTES_AUTOGEN_KEY, m); } catch (_) {}
+}
+window.v3NotesAutogenMode = v3NotesAutogenMode;
+window.v3NotesSetAutogenMode = v3NotesSetAutogenMode;
+
+// Per-text low-confidence/non-i+1 candidates parked for review (in-memory; the
+// text-card «⚠ N на проверку» badge + queue read this). Re-derived on next build.
+const v3NotesAutoBuildPending = Object.create(null);
+const v3NotesAutoBuildInflight = new Set();
+
+// Pure partition decision (extracted so it's unit-testable without seeding morph):
+// returns 'auto' (eager-persist source='auto') or 'pending' (→ review queue).
+//   known sense       → 'auto' (occurrence-only upsert) — both modes
+//   new ok + i+1       → 'auto'                          — both modes
+//   new ok, new root   → 'auto' (aggressive) | 'pending' (conservative)
+//   low-confidence     → 'pending' (never silently persisted — R1)
+function v3NotesAutoBuildClassify(cand, opts) {
+  const o = opts || {};
+  if (o.known) return "auto";
+  if (cand && cand.status === "ok" && (o.i1 || o.mode === "aggressive")) return "auto";
+  return "pending";
+}
+window.v3NotesAutoBuildClassify = v3NotesAutoBuildClassify;
+
+// Stage 3 (Concept A) — background eager build. Fire-and-forget, fully guarded,
+// NON-BLOCKING (callers must NOT await). Runs the offline engine, then partitions:
+//   known sense        → persist (occurrence only)        — both modes
+//   new ok + i+1       → auto-persist source='auto'       — both modes
+//   new ok, new root   → auto (aggressive) | pending (conservative)
+//   low-confidence     → pending (never silently persisted — R1)
+async function v3NotesMaybeAutoBuild(textId) {
+  try {
+    const mode = v3NotesAutogenMode();
+    if (mode === "off" || !textId) return;
+    const tid = String(textId);
+    if (v3NotesAutoBuildInflight.has(tid)) return;
+    v3NotesAutoBuildInflight.add(tid);
+    try {
+      const ldb = await ensureLocalDB();
+      // Needs Dicta morphology — never fabricate (R1). If auto-enrich is on, the
+      // enrich-complete hook re-fires this once morphology lands.
+      let cov = null;
+      try { cov = await ldb.getSentenceMorphCoverage(tid, V3_DICTA_MORPH_MODEL); } catch (_) {}
+      if (!cov || !cov.enriched) return;
+      const res = await v3NotesAutoGenForText(tid);
+      if (!res || !res.ok) return;
+      const cands = res.candidates || [];
+      if (!cands.length) return;
+
+      const baseRoots = await v3ReviewQueueBaseRoots();
+      const auto = [], pending = [];
+      for (const c of cands) {
+        let known = false;
+        try { known = !!(await ldb.findNoteByDedupKey(c.dedup_key)); } catch (_) {}
+        const i1 = !!(c.body && c.body.root && baseRoots.has(String(c.body.root)));
+        if (v3NotesAutoBuildClassify(c, { mode, known, i1 }) === "auto") auto.push(c);
+        else pending.push(c);
+      }
+
+      let grew = { new_words: 0, new_roots: 0 };
+      if (auto.length) { try { grew = (await v3NotesAutoGenPersist(auto, { source: "auto" })) || grew; } catch (_) {} }
+      if (pending.length) v3NotesAutoBuildPending[tid] = pending; else delete v3NotesAutoBuildPending[tid];
+
+      const w = grew.new_words || 0, p = pending.length;
+      if (w > 0 || p > 0) {
+        let msg = (w > 0) ? v3NotesT("library.autogenGrew", "✨ +{w} слов в базе знаний").replace("{w}", String(w)) : "";
+        if (p > 0) msg += (msg ? " · " : "") + v3NotesT("library.autogenPending", "⚠ {p} на проверку").replace("{p}", String(p));
+        showToast(msg, "info");
+      }
+      try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(tid); } catch (_) {}
+      try { if (typeof v3LibrarySearchNow === "function") v3LibrarySearchNow(); } catch (_) {}
+    } finally {
+      v3NotesAutoBuildInflight.delete(tid);
+    }
+  } catch (_) { /* background: never surface to the user */ }
+}
+window.v3NotesMaybeAutoBuild = v3NotesMaybeAutoBuild;
+
 // Corpus-aware consent (reuses the same key as the per-word verify — same
 // destination + data category — but discloses the whole-text scope).
 async function v3MorphEnrichEnsureConsent(n) {
@@ -40805,6 +40946,9 @@ async function v3LibraryEnrichMorph(textId, opts) {
       else showToast(v3NotesT("morph.enrich.partial", "Прервано (сеть). Обогащено {n}.").replace("{n}", String(res.enriched)), "warning");
     }
     try { if (typeof v3LibrarySearchNow === "function") v3LibrarySearchNow(); } catch (_) {}
+    // Stage 3 (Concept A) — morphology just landed → eager ②-note auto-build
+    // (no-op unless mode≠off; non-blocking).
+    try { if (res && res.ok && typeof v3NotesMaybeAutoBuild === "function") v3NotesMaybeAutoBuild(String(textId)); } catch (_) {}
     return res;
   } catch (e) {
     v3MorphProgressHide();
@@ -41765,7 +41909,7 @@ function v3NotesRowIndexRender(rows) {
 
   const richWordCards = v3WordCardRichEnabled();
 
-  const html = rows.map((row) => {
+  const cardHtml = (row) => {
     const id = v3EscapeHtml(String(row.id || ""));
     const tk = String(row.target_kind || "sentence");
     const nt = String(row.note_type || "free");
@@ -41789,6 +41933,7 @@ function v3NotesRowIndexRender(rows) {
     const srsBadge = hasSrs
       ? `<span class="v3-notes-row-index-card-badge" title="${v3EscapeHtml(v3NotesT("notes.rowIndex.srsTitle", "В SRS"))}">🎴</span>`
       : "";
+    const provBadge = v3NotesRowIndexProvBadge(row);
 
     const typeLabelKey = "notes.type" + (nt === "free" ? "Free"
       : nt === "word_study" ? "WordStudy"
@@ -41811,18 +41956,63 @@ function v3NotesRowIndexRender(rows) {
           ${updatedRel ? '<span>· ' + v3EscapeHtml(updatedRel) + '</span>' : ''}
         </div>
       </div>
-      <div class="v3-notes-row-index-card-badges">${anchorBadge}${srsBadge}</div>
+      <div class="v3-notes-row-index-card-badges">${anchorBadge}${srsBadge}${provBadge}</div>
       <button type="button" class="v3-notes-row-index-card-delete"
               onclick="event.stopPropagation(); v3NotesRowIndexDelete('${id}')"
               aria-label="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}"
               title="${v3EscapeHtml(v3NotesT("notes.rowIndex.deleteAria", "Удалить заметку"))}">✕</button>
     </div>`;
-  }).join("");
+  };
+
+  // Stage 3 (Concept A) — collapse auto-generated notes under a header so eager
+  // mode never floods the per-row list (R4 «без спама»). User/edited notes stay
+  // expanded; source='auto'|'curated' with user_touched=0 go under «✨ N авто».
+  const isAuto = (r) => Number(r.user_touched) !== 1 && String(r.source || "user") !== "user";
+  const userRows = rows.filter((r) => !isAuto(r));
+  const autoRows = rows.filter(isAuto);
+  let html = userRows.map(cardHtml).join("");
+  if (autoRows.length) {
+    html += `<div class="v3-notes-rowidx-auto-group">` +
+      `<button type="button" class="v3-notes-rowidx-auto-toggle" onclick="v3NotesRowIndexToggleAuto(this)" aria-expanded="false" ` +
+      `style="width:auto;display:flex;align-items:center;gap:6px;margin:8px 0 4px;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:8px;border:1px solid var(--theme-border-soft,#e2e8f0);background:var(--theme-bg-soft,#f1f5f9);color:inherit;cursor:pointer;">` +
+      `<span>✨ ${autoRows.length} ${v3EscapeHtml(v3NotesT("notes.rowIndex.autoGroup", "авто-заметок"))}</span><span class="v3-notes-rowidx-auto-arrow">▸</span></button>` +
+      `<div class="v3-notes-rowidx-auto-list" style="display:none;">${autoRows.map(cardHtml).join("")}</div></div>`;
+  }
   list.innerHTML = html;
   // Slice 1 — layer SRS state badges + "words from this root" after paint.
   try { v3NotesRowIndexEnrich(); } catch (_) {}
 }
 window.v3NotesRowIndexRender = v3NotesRowIndexRender;
+
+// Provenance badge for the per-row note card: «✨ авто»/«✨ курир.» for
+// machine-generated notes the user hasn't edited; nothing for the user's own.
+function v3NotesRowIndexProvBadge(row) {
+  const src = String(row.source || "user");
+  if (Number(row.user_touched) === 1 || src === "user") return "";
+  const label = (src === "curated")
+    ? v3NotesT("notes.badge.curated", "✨ курир.")
+    : v3NotesT("notes.badge.auto", "✨ авто");
+  const conf = (row.confidence == null) ? null : Number(row.confidence);
+  let html = `<span class="v3-notes-row-index-card-badge" title="${v3EscapeHtml(v3NotesT("notes.badge.autoTitle", "Создано автоматически — ваши правки не затираются"))}">${v3EscapeHtml(label)}</span>`;
+  if (conf != null && conf < 0.5) {
+    html += `<span class="v3-notes-row-index-card-badge" style="background:#fff7ed;border-color:#fed7aa;color:#b45309;" title="${v3EscapeHtml(v3NotesT("review.toCheck", "на проверку"))}">⚠</span>`;
+  }
+  return html;
+}
+
+function v3NotesRowIndexToggleAuto(btn) {
+  try {
+    const grp = btn.closest(".v3-notes-rowidx-auto-group");
+    const lst = grp && grp.querySelector(".v3-notes-rowidx-auto-list");
+    const arrow = btn.querySelector(".v3-notes-rowidx-auto-arrow");
+    if (!lst) return;
+    const open = lst.style.display !== "none";
+    lst.style.display = open ? "none" : "";
+    btn.setAttribute("aria-expanded", String(!open));
+    if (arrow) arrow.textContent = open ? "▸" : "▾";
+  } catch (_) {}
+}
+window.v3NotesRowIndexToggleAuto = v3NotesRowIndexToggleAuto;
 
 // Click a card → close index, open edit modal with that note id loaded.
 function v3NotesRowIndexOpenNote(noteId) {

@@ -340,6 +340,8 @@ window.I18N_LOCALES.ru = {
     acceptAllHigh: "Принять все надёжные",
     commit: "Сохранить принятые",
     toCheck: "на проверку",
+    pendingTitle: "Сомнительные авто-кандидаты — открыть очередь проверки",
+    pendingWord: "на проверку",
     alreadyInBase: "уже в базе",
     noMeaning: "(нет перевода — добавьте через «Править»)",
     editPlaceholder: "Перевод / значение",
@@ -377,6 +379,13 @@ window.I18N_LOCALES.ru = {
     enrichTitle: "Предвычислить морфологию (Dicta) для всего текста и сохранить локально — потом граф и карточки работают офлайн",
     buildkn: "✨ Построить знания",
     buildknTitle: "Сгенерировать ②-заметки по всему тексту и пополнить базу знаний — с очередью проверки перед сохранением",
+    autogenModeLabel: "Авто-строить знания из текстов (②-заметки)",
+    autogenModeOff: "Выкл",
+    autogenModeConservative: "Консервативно (надёжные + i+1)",
+    autogenModeAggressive: "Агрессивно (все надёжные)",
+    autogenModeHint: "После обогащения текста морфологией надёжные слова добавляются в базу автоматически; сомнительные — в очередь «на проверку». Ваши правки не затираются.",
+    autogenGrew: "✨ +{w} слов в базе знаний",
+    autogenPending: "⚠ {p} на проверку",
     exportJson: "Экспорт JSON",
     importJson: "Импорт JSON",
     exportZip: "Экспорт ZIP (с аудио)",
@@ -674,6 +683,7 @@ window.I18N_LOCALES.ru = {
       untitled: "(без заголовка)",
       anchorTitle: "С привязкой к аудио",
       srsTitle: "В SRS",
+      autoGroup: "авто-заметок",
       deleteAria: "Удалить заметку",
       addLabel: "+ Новая заметка:",
       addFreeTitle: "Свободная заметка к этой строке",
@@ -681,6 +691,12 @@ window.I18N_LOCALES.ru = {
       addGrammarTitle: "Грамматическое правило, замеченное в этой строке",
       addTranslationTitle: "Расхождение в переводе этой строки",
       addPronunciationTitle: "Заметка о произношении в этой строке",
+    },
+    // Stage 3 (Concept A) — provenance badges.
+    badge: {
+      auto: "✨ авто",
+      curated: "✨ курир.",
+      autoTitle: "Создано автоматически — ваши правки не затираются",
     },
     // Slice 1 — root-aware rich word card (read view).
     card: {
