@@ -84,6 +84,7 @@
     "smoke:conj:deeplink-selfheal": "node scripts/premium/note-deeplink-selfheal-check.js",
     "audit:note-fields": "node scripts/premium/note-fields-audit.js",
     "audit:pealim-links": "node scripts/premium/pealim-link-audit.js",
+    "audit:pealim-samepos": "node scripts/premium/pealim-samepos-audit.js",
     "build:function-links": "node scripts/premium/build-function-links.js",
     "smoke:conj:link-guard": "node scripts/premium/pealim-link-guard-check.js",
     "smoke:conj:dict-browser": "node scripts/premium/inflection-dict-browser-check.js",
