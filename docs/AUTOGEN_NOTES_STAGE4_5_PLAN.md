@@ -59,36 +59,31 @@ pre-filled), no editor round-trip, behind a per-reader toggle, with an undo toas
 
 ---
 
-## 3. Stage 4 — Concept D (synthesis: SRS auto-seed + novelty/i+1/growth analytics) — the PREMIUM PEAK
+## 3. Stage 4 — Concept D (Option B) — ✅ SHIPPED (`v3.9.0-srs-seed`, commit `c1b4804`)
 
-The «all five roles ★★★» vision: generation = knowledge-base growth, with i+1 sequencing + SRS seeding +
-growth analytics. **D pairs with Knowledge-Map Phase 4 (generative quiz + i+1 «learn next»), which is NOT
-implemented** — `docs/KNOWLEDGE_MAP_REDESIGN_v3_8.md:187` specs `public/js/knowledge-map-quiz.js` as a NEW
-file to create (it does NOT exist yet; there is no stub). So D has a **sequencing fork**.
+Synthesis rung «generation = knowledge growth», kept in the **locked SRS lane** (memory
+`project_srs_strategy`: creation+linkage; review → Anki; in-app Trainer = stub; SRS epic → v3.4).
+Owner forks: **D-0 = B** (seed + analytics now; **Phase-4 quiz DEFERRED** as a separate decision because
+an in-app quiz/review re-opens the Anki-review stance), **D-1 scope = i+1 frontier**, **D-1 trigger =
+explicit / opt-in**. Plan `~/.claude/plans/glistening-noodling-puffin.md`. Shipped:
+- **Coverage (read-only, no migration):** `ldb.getTextLearningCoverage(textId)` (`local-db.js`) → per-text
+  `{known,learning,weak,new, i1_ratio, frontier:[noteId…]}` over canonical word_study notes via
+  `note_occurrences` + `getLearningStateOverlay()`. **i+1 frontier** = uncarded note whose root family has
+  a non-`new` sibling (you've started this root — next sense); cold-start roots excluded (no SRS flood).
+- **Seed (creation only):** `v3NotesSeedFrontierToSrs(textId)` (`index.html`) → `ldb.srs.createCardFromNote`
+  per frontier note. **NOTE: it's `ldb.srs.createCardFromNote`, NOT `ldb.createCardFromNote`** (method of the
+  `export const srs = {…}` object). Idempotent, word_study, per-note try/catch.
+- **Trigger:** setting `V3_NOTES_SRS_SEED_KEY` (off default) in `morph-settings-ui.js`; explicit one-tap
+  seed via the review-commit toast action button (`showToast` opts.action); opt-in auto-seed on
+  review-commit + eager build when the setting is on. Toast reinforces Anki export.
+- **Growth surface:** `v3NotesCoverageLine(cov)` «📚 {t} · ✅{k} 🔄{l} 🆕{n} · i+1 {p}%» in the commit toast.
+- **Gate** `npm run smoke:autogen-srs` 13/13 (buckets + i+1% + frontier selection + cold-start exclusion +
+  idempotent seed + setting). All prior gates green.
 
-### FORK D-0 (sequencing) — confirm with owner FIRST
-- **Option A (rec):** ship **Knowledge-Map Phase 4** (the quiz/i+1 engine) first — it's the missing
-  substrate D leans on — then layer D's autogen-fed analytics + SRS seed beside it. Cleaner, but two
-  sub-stages.
-- **Option B:** do the D pieces that DON'T need Phase 4 now (SRS auto-seed + per-text growth analytics),
-  defer the i+1-quiz coupling until Phase 4 lands. Faster value, partial D.
-
-### D building blocks (grounded primitives)
-- **SRS auto-seed:** `ldb.createCardFromNote(noteId)` — `public/db/local-db.js:2480`. Idempotent (returns
-  the existing card if `srs_card_id` set); inserts `srs_cards` with `entity_type='note'` + back-pointer;
-  **word_study only** (free notes rejected — autogen notes ARE word_study, so eligible). Hook after
-  accept/auto-persist. **Fork D-1 (R2):** seed ALL new notes vs only the **i+1 frontier** (roots at the
-  known→learning edge) — rec **frontier-only** («употребление > формы», avoid SRS flood).
-- **Growth analytics:** extend the «+N слов/+M корней» badge to per-text **known/learning/new** coverage +
-  i+1 ratio. Read-only queries over `notes_v2` + `ldb.getLearningStateOverlay()` (same pattern as
-  `ldb.getAnalytics`). The 3-state overlay + `KnowledgeMapData.rankRoots` already exist.
-- **i+1 «learn next»:** depends on Phase 4 (the quiz reconstructs a cluster + logs SRS). Until then,
-  approximate via `rankRoots` + overlay (as the review queue already does for ranking).
-
-### Verify (D)
-- Smoke: accepting/auto-persisting seeds an SRS card (word_study) idempotently; frontier-only policy picks
-  the right set; growth analytics counts match a seeded fixture. Keep all Stage-1–3 gates green.
-- If Phase 4 is built: its own smoke (reconstruct-cluster loop + SRS events) per the KM doc §235.
+### DEFERRED — Knowledge-Map Phase 4 (generative quiz + i+1 «learn next»), a SEPARATE owner decision
+`public/js/knowledge-map-quiz.js` (does NOT exist) — KM doc `docs/KNOWLEDGE_MAP_REDESIGN_v3_8.md:187`.
+An in-app generative quiz overlaps the locked «review → Anki / Trainer = stub» strategy, so it needs an
+explicit strategic go-ahead before building (it is NOT just the next mechanical step).
 
 ---
 
