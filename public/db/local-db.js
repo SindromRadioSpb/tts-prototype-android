@@ -1794,6 +1794,36 @@ export async function getTextLearningCoverage(textId) {
   return { ok: true, total, known, learning, weak, new: neu, i1_ratio, frontier };
 }
 
+// ── R-1 Anki word-cards — a text's canonical word_study knowledge base ────
+// Read-only. Returns every word_study note that OCCURS in this text (positions
+// live in note_occurrences; canonical autogen notes have text_id IS NULL), with
+// its full body_json plus a representative EXAMPLE = the note's first occurrence
+// IN THIS TEXT joined to its sentence (he_niqqud — ru). Real usage from the
+// learner's own text is the best pedagogy (R2). The first-occurrence join mirrors
+// searchWordNotesWithCanonical (MIN(id) per note, scoped to text_id). NO writes.
+export async function getCanonicalWordNotesForText(textId) {
+  if (!textId) return [];
+  const rows = await q(
+    `SELECT n.id, n.body_json,
+            s.he_niqqud AS example_he, s.he_plain AS example_he_plain, s.ru AS example_ru
+       FROM notes_v2 n
+       JOIN note_occurrences o
+         ON o.note_id = n.id
+        AND o.id = (SELECT MIN(o2.id) FROM note_occurrences o2
+                     WHERE o2.note_id = n.id AND o2.text_id = ?)
+       LEFT JOIN sentences s ON s.id = o.sentence_id
+      WHERE n.note_type = 'word_study'
+      ORDER BY o.id ASC`,
+    [String(textId)]
+  );
+  return (rows || []).map((r0) => {
+    const he = String(r0.example_he || r0.example_he_plain || '').trim();
+    const ru = String(r0.example_ru || '').trim();
+    const example = he ? (ru ? he + ' — ' + ru : he) : '';
+    return { id: r0.id, body_json: r0.body_json, example_he: he, example_ru: ru, example };
+  });
+}
+
 // ── Roots reference table ────────────────────────────────────────────────
 
 // Idempotent seed — inserts roots from the provided array if they're not

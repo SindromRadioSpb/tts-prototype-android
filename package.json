@@ -99,6 +99,7 @@
     "smoke:conj:trueroot": "node scripts/premium/note-trueroot-table-check.js",
     "smoke:conj:funcword": "node scripts/premium/funcword-profile-check.js",
     "smoke:conj:dict-browser": "node scripts/premium/inflection-dict-browser-check.js",
+    "smoke:anki-wordcards": "node scripts/premium/anki-wordcard-smoke.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "smoke:notes:srs-candidates": "node scripts/notes-ui/suggest-srs-candidate-smoke.js",

@@ -11244,6 +11244,15 @@ body:not(.theme-light) .v3-heatmap-cell {
       </div>
 
       <div class="v3-form-row">
+        <label for="v3AnkiCardKind" data-i18n="anki.labelKind">Что экспортировать</label>
+        <select id="v3AnkiCardKind">
+          <option value="words" data-i18n="anki.kindWords">Слова (②-база знаний)</option>
+          <option value="sentences" data-i18n="anki.kindSentences">Предложения</option>
+          <option value="both" data-i18n="anki.kindBoth">Оба типа</option>
+        </select>
+      </div>
+
+      <div class="v3-form-row">
         <label for="v3AnkiFrontMode" data-i18n="anki.labelFrontMode">Иврит на лицевой</label>
         <select id="v3AnkiFrontMode">
           <option value="plain" data-i18n="anki.frontPlain">Иврит (без огласовок)</option>
@@ -13924,6 +13933,193 @@ async function v3AnkiEnsureLinguistProModel() {
   return V3_ANKI_MODEL_NAME;
 }
 
+// ── R-1 rich WORD cards ───────────────────────────────────────────────────
+// A SEPARATE Anki model (createModel is create-if-missing only — new fields
+// REQUIRE a new model name; never mutate the sentence model). Carries the
+// learner's ②-vocabulary: niqqud/translit/root/binyan/POS + the full Pealim
+// conjugation/declension table + an example from their own text + meaning.
+const V3_ANKI_WORD_MODEL = 'LinguistPro Word v1';
+const V3_ANKI_WORD_FIELDS = ['Word', 'Niqqud', 'Translit', 'Russian', 'Root', 'Binyan', 'POS', 'Conjugation', 'Example', 'Mnemonic', 'Audio'];
+
+// The word-card model descriptor (css/front/back). Split out so the smoke can
+// statically assert every {{Field}} the templates reference exists in the model
+// field list (no AnkiConnect "card model is missing a field" error).
+function v3AnkiWordModelSpec() {
+  // Base card styles + the FULL .v3-conj-* rule set inlined with hardcoded hex
+  // (Anki has no app theme/CSS vars). Mirrors index.html ~6434+; stress red
+  // #D55E00 preserved. nightMode overrides keep the dark Anki theme readable.
+  const css = `
+.card { font-family: "Helvetica", Arial, sans-serif; font-size: 20px; color: #1f2937; background-color: #f9fafb; text-align: center; padding: 16px; }
+.he { font-size: 30px; direction: rtl; font-family: "Times New Roman", "David", serif; font-weight: 700; }
+.niqqud { font-size: 24px; direction: rtl; color: #374151; margin-top: 2px; }
+.translit { font-style: italic; color: #6b7280; margin-top: 6px; }
+.russian { font-size: 22px; color: #111827; margin-top: 10px; }
+.wc-meta { font-size: 14px; color: #475569; margin-top: 8px; }
+.wc-meta .wc-root { direction: rtl; font-weight: 700; color: #0f172a; }
+.wc-example { direction: rtl; text-align: right; font-size: 17px; color: #1f2937; background: #f1f5f9; border-radius: 8px; padding: 8px 12px; margin-top: 12px; }
+.note { background: #fef3c7; border-left: 3px solid #f59e0b; padding: 8px 12px; text-align: left; margin-top: 14px; font-size: 15px; }
+hr { border: none; border-top: 1px solid #d1d5db; margin: 14px 0; }
+.v3-wordcard-conj { margin-top: 12px; }
+.v3-conj-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 10px; margin-bottom: 6px; }
+.v3-conj-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 7px; background: #0F766E; color: #fff; letter-spacing: 0.02em; white-space: nowrap; }
+.v3-conj-gizra { font-size: 11px; color: #6b7280; }
+.v3-conj-recheck { font-size: 11.5px; font-weight: 600; color: #b45309; text-decoration: none; }
+.v3-conj-besteffort { font-size: 11px; color: #92400e; background: rgba(230,159,0,0.12); border: 1px dashed #E69F00; border-radius: 7px; padding: 3px 8px; margin-bottom: 6px; }
+.v3-conj-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; }
+.v3-conj-cell { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; min-width: 62px; padding: 3px 8px; border-radius: 8px; background: #f1f5f9; border: 1px solid #e2e8f0; font-family: inherit; }
+.v3-conj-cell-hl { background: #fef3c7; border-color: #D55E00; box-shadow: inset 0 0 0 1px #D55E00; }
+.v3-conj-cell-hl .v3-conj-he { color: #b45309; }
+.v3-conj-he { font-size: 15px; font-weight: 600; color: #1f2937; direction: rtl; }
+.v3-conj-lab { font-size: 9px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.02em; white-space: nowrap; }
+.v3-conj-tr { font-size: 9.5px; color: #6b7280; font-style: italic; }
+.v3-conj-tr .v3-conj-stress { color: #D55E00; font-weight: 700; font-style: normal; }
+.v3-conj-rootlabel { font-size: 11px; color: #475569; font-weight: 600; }
+.v3-conj-group { margin-top: 8px; }
+.v3-conj-group-h { font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+.v3-conj-voice-h { font-size: 12px; font-weight: 800; color: #1f2937; margin: 12px 0 4px; padding-bottom: 3px; border-bottom: 1px solid #e2e8f0; }
+.v3-conj-invariant { margin-top: 2px; }
+.v3-conj-cell-lg { min-width: 96px; padding: 8px 14px; }
+.v3-conj-cell-lg .v3-conj-he { font-size: 22px; }
+.v3-conj-note { font-size: 11px; color: #6b7280; margin-top: 6px; }
+.v3-conj-empty { font-size: 12px; color: #6b7280; }
+.nightMode .card { color: #e5e7eb; background-color: #1f2937; }
+.nightMode .russian { color: #f1f5f9; }
+.nightMode .wc-meta .wc-root { color: #f1f5f9; }
+.nightMode .wc-example { background: #334155; color: #e5e7eb; }
+.nightMode .v3-conj-cell { background: #334155; border-color: #475569; }
+.nightMode .v3-conj-he { color: #e5e7eb; }`.trim();
+  const front =
+    '<div class="he">{{Word}}</div>\n' +
+    '{{#Niqqud}}<div class="niqqud">{{Niqqud}}</div>{{/Niqqud}}\n' +
+    '{{#Audio}}<div>{{Audio}}</div>{{/Audio}}';
+  const back =
+    '{{FrontSide}}\n<hr>\n' +
+    '<div class="russian">{{Russian}}</div>\n' +
+    '{{#Translit}}<div class="translit">{{Translit}}</div>{{/Translit}}\n' +
+    '<div class="wc-meta">{{#Root}}<span class="wc-root" dir="rtl">{{Root}}</span>{{/Root}}{{#Binyan}} · {{Binyan}}{{/Binyan}}{{#POS}} · {{POS}}{{/POS}}</div>\n' +
+    '{{#Conjugation}}<div class="v3-wordcard-conj">{{Conjugation}}</div>{{/Conjugation}}\n' +
+    '{{#Example}}<div class="wc-example">{{Example}}</div>{{/Example}}\n' +
+    '{{#Mnemonic}}<div class="note"><b>🧠</b> {{Mnemonic}}</div>{{/Mnemonic}}';
+  return { modelName: V3_ANKI_WORD_MODEL, fields: V3_ANKI_WORD_FIELDS, css, front, back };
+}
+window.v3AnkiWordModelSpec = v3AnkiWordModelSpec;
+
+async function v3AnkiEnsureWordModel() {
+  let allModels = [];
+  try { allModels = await v3AnkiConnectDirect('modelNames'); } catch (_) {}
+  if (Array.isArray(allModels) && allModels.indexOf(V3_ANKI_WORD_MODEL) !== -1) {
+    return V3_ANKI_WORD_MODEL;
+  }
+  const spec = v3AnkiWordModelSpec();
+  await v3AnkiConnectDirect('createModel', {
+    modelName: spec.modelName,
+    inOrderFields: spec.fields,
+    css: spec.css,
+    isCloze: false,
+    cardTemplates: [{
+      Name: 'Card 1',
+      Front: spec.front,
+      Back: spec.back,
+    }],
+  });
+  return V3_ANKI_WORD_MODEL;
+}
+
+// Wrap the shared paradigm renderer for Anki: strip the dead tap-to-hear
+// handler (no TTS engine in Anki) and treat the "no table" placeholder as
+// empty so the field is omitted (R1 — never fabricate a table). The returned
+// string is TRUSTED self-built HTML (already escaped internally) and must NOT
+// be re-escaped when written into the Conjugation field.
+function v3AnkiConjHtml(p, niqqud) {
+  if (!p) return '';
+  let html = '';
+  try { html = v3RenderInflectionParadigm(p, { highlightForm: niqqud || '' }); } catch (_) { return ''; }
+  html = String(html || '').replace(/\s*onclick="v3ConjSpeak\(this\)"/g, '');
+  if (/v3-conj-empty/.test(html)) return '';
+  return html;
+}
+
+// Plain translit (no HTML) of the surface form, taken from the matching
+// paradigm cell — so the Translit field shows "the form you're reading".
+function v3AnkiParadigmTranslit(p, niqqud) {
+  try {
+    if (!p || !p.cells) return '';
+    const want = v3NormVowels(niqqud || '');
+    if (!want) return '';
+    for (const k of Object.keys(p.cells)) {
+      const c = p.cells[k];
+      if (c && c.he && v3NormVowels(c.he) === want) return String(c.translit || '');
+    }
+  } catch (_) {}
+  return '';
+}
+
+// Resolve a word_study note's paradigm envelope offline (OPFS lemma_inflection,
+// read by ROOT then lemma/word — the dict's multi-alias keys accept either).
+// POS-guarded (v3ConjHitCompatible) so a homograph's table never leaks
+// (פה→«рот»). Returns the cells-bearing envelope or null (function words / no
+// table — R1, no fabrication). Async + impure → lives in the export path; the
+// pure v3AnkiBuildWordCardFields takes the already-resolved paradigm.
+async function v3AnkiResolveParadigm(body) {
+  try {
+    const ldb = await ensureLocalDB();
+    if (!ldb || typeof ldb.getLemmaInflection !== 'function') return null;
+    const binyan = String((body && body.binyan) || '');
+    const pos = String((body && body.pos) || '');
+    const keys = [body && body.root, body && body.lemma, body && body.word]
+      .map((x) => String(x || '').trim()).filter(Boolean);
+    const seen = new Set();
+    for (const k of keys) {
+      if (seen.has(k)) continue;
+      seen.add(k);
+      let p = null;
+      try { p = await ldb.getLemmaInflection(k, binyan, V3_PEALIM_INFL_MODEL); } catch (_) {}
+      if (p && p.cells && Object.keys(p.cells).length && v3ConjHitCompatible(pos, '', p)) return p;
+    }
+  } catch (_) {}
+  return null;
+}
+
+// PURE field assembly for a rich word card (tested by smoke without live Anki).
+// note.body_json = word_study body; opts.paradigm = pre-resolved envelope|null;
+// opts.example = "he — ru" string. Escapes every field EXCEPT Conjugation
+// (trusted self-HTML from v3AnkiConjHtml). Omits the table when no paradigm.
+function v3AnkiBuildWordCardFields(note, opts) {
+  const o = opts || {};
+  let body = {};
+  try {
+    const bj = note && note.body_json;
+    if (bj && typeof bj === 'string') body = JSON.parse(bj);
+    else if (bj && typeof bj === 'object') body = bj;
+    else body = note || {};
+  } catch (_) { body = {}; }
+  const esc = (s) => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const posRaw = String(body.pos || '');
+  const posKey = V3_WORDCARD_POS_KEY[posRaw];
+  const posLabel = posKey ? v3NotesT('notes.tpl.word_study.' + posKey, posRaw) : posRaw;
+  const binRaw = String(body.binyan || '');
+  const binLabel = V3_WORDCARD_BINYAN_LABEL[binRaw] || binRaw;
+  const niqqud = body.niqqud_variant || '';
+  return {
+    Word: esc(body.word || ''),
+    Niqqud: esc(niqqud),
+    Translit: esc(v3AnkiParadigmTranslit(o.paradigm || null, niqqud)),
+    Russian: esc(body.meaning || ''),
+    Root: esc(body.root || ''),
+    Binyan: esc(binLabel),
+    POS: esc(posLabel),
+    Conjugation: v3AnkiConjHtml(o.paradigm || null, niqqud), // trusted HTML — NOT escaped
+    Example: esc(o.example || ''),
+    Mnemonic: esc(body.mnemonic || ''),
+    Audio: '',
+  };
+}
+// Exposed for the browser smoke (lexically-scoped funcs aren't on window).
+window.v3AnkiBuildWordCardFields = v3AnkiBuildWordCardFields;
+window.v3AnkiConjHtml = v3AnkiConjHtml;
+window.v3AnkiResolveParadigm = v3AnkiResolveParadigm;
+
 // Pull a row's MP3 from /api/audio/:assetKey, store it in Anki's media folder
 // under audio_<assetKey>.mp3 via storeMediaFile. Returns the filename to
 // reference via [sound:...] in the Audio field, or "" if unavailable.
@@ -13963,6 +14159,23 @@ async function v3AnkiPushLocalMode(textId, opts) {
   const ldb = await ensureLocalDB();
   const text = await ldb.getTextById(textId);
   if (!text) throw new Error('Text not found in local DB: ' + textId);
+  // R-1 — card-kind dispatch. Default 'sentences' preserves every existing
+  // programmatic caller (e.g. the IDE single-card export); the export MODAL
+  // passes 'words' (its own default). 'both' runs each path and merges stats.
+  const cardKind = (opts && opts.cardKind) ? String(opts.cardKind) : 'sentences';
+  if (cardKind === 'words') return v3AnkiPushWordCards(textId, text, opts, ldb);
+  if (cardKind === 'both') {
+    const w = await v3AnkiPushWordCards(textId, text, opts, ldb)
+      .catch((e) => ({ created: 0, duplicates: 0, skipped: 0, failedOther: 0, failedOtherSample: [], _wordError: String((e && e.message) || e) }));
+    const s = await v3AnkiPushSentenceCards(textId, text, opts, ldb);
+    return v3AnkiMergeExportStats(w, s);
+  }
+  return v3AnkiPushSentenceCards(textId, text, opts, ldb);
+}
+
+// Sentence-card export — the original v3AnkiPushLocalMode body, unchanged
+// except the signature (text/ldb are now passed in by the dispatcher).
+async function v3AnkiPushSentenceCards(textId, text, opts, ldb) {
   const sentences = await ldb.getSentences(textId);
   if (!sentences.length) throw new Error('Text has no sentences to export');
   const noteRows = await ldb.listNotes(textId);
@@ -14088,6 +14301,35 @@ async function v3AnkiPushLocalMode(textId, opts) {
     };
   });
 
+  // Sentence- and word-card exports share the delicate add/dedup/freshOnly
+  // pipeline via v3AnkiAddNotesWithDedup (extracted below) so the logic isn't
+  // duplicated. Behavior-preserving — re-run the sentence export to confirm.
+  const dd = await v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, { frontField, titleTag, audioFilenameBySid });
+  return {
+    created: dd.created,
+    updated: 0,
+    audioQueued: dd.audioOnNewNotes,
+    duplicates: dd.duplicates,
+    skipped: skippedEmpty.length + dd.skippedRuntimeEmpty,
+    failedOther: dd.failedOther,
+    failedOtherSample: dd.failedOtherSample,
+    movedToDeck: dd.movedToDeck,
+    dupNotFound: dd.dupNotFound,
+    dupRecreated: dd.dupRecreated,
+    deckName: finalDeck,
+    modelName,
+  };
+}
+
+// Reusable add/dedup/freshOnly pipeline extracted from v3AnkiPushLocalMode.
+// Takes the already-assembled `ankiNotes` (any model) + the target deck and
+// runs the full canAddNotes→chunked addNotes→null/perNote classification→
+// freshOnly-retry / consolidate flow. ctx carries the model's first-field name
+// (frontField), the export titleTag, and the sid→audio map (for the audio
+// count). Returns the count breakdown the caller folds into its toast result.
+async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
+  const { frontField, titleTag = '', audioFilenameBySid = {} } = ctx || {};
+  let skippedRuntimeEmpty = 0;
   // Anki's Note model dedupes at *collection* level (the Note's first field
   // hash is unique across the whole collection). So even when the user picks
   // a brand-new deck, "addNotes" still reports duplicates if those Notes were
@@ -14229,7 +14471,7 @@ async function v3AnkiPushLocalMode(textId, opts) {
 
     // Genuinely empty content → skip without retrying.
     if (msg.includes('empty') || msg.includes('cards are missing') || msg.includes('no cards')) {
-      skippedEmpty.push('(runtime-empty)');
+      skippedRuntimeEmpty++;
       continue;
     }
 
@@ -14411,17 +14653,109 @@ async function v3AnkiPushLocalMode(textId, opts) {
 
   return {
     created: created + dupRecreated,
-    updated: 0,
-    audioQueued: audioOnNewNotes,
     duplicates: preDuplicates + runtimeDuplicates,
-    skipped: skippedEmpty.length,
+    skippedRuntimeEmpty,
+    audioOnNewNotes,
     failedOther,
     failedOtherSample,  // R2.3 — top-2 unique AnkiConnect error messages
     movedToDeck,
     dupNotFound,
     dupRecreated,
+  };
+}
+
+// R-1 — rich WORD-card export from a text's ②-knowledge base. Gathers the
+// text's canonical word_study notes, resolves each one's Pealim paradigm
+// (offline, POS-guarded) + an example from the learner's own text, builds the
+// card fields against the LinguistPro Word v1 model, and runs them through the
+// SHARED add/dedup/freshOnly pipeline. Word-level audio rarely exists → none
+// pre-attached. R1: a note with no resolvable paradigm (function word) simply
+// ships without a table — never fabricated. Per-note try/catch so one bad note
+// can't abort the batch (mirrors the Stage-4 seed).
+async function v3AnkiPushWordCards(textId, text, opts, ldb) {
+  const notes = await ldb.getCanonicalWordNotesForText(textId);
+  if (!notes || !notes.length) {
+    throw new Error('В тексте нет ②-заметок о словах для экспорта.');
+  }
+  const deckName = (opts && opts.deckName) ? String(opts.deckName).trim() : '';
+  const finalDeck = deckName || 'LinguistPro::Words';
+  await v3AnkiConnectDirect('createDeck', { deck: finalDeck });
+
+  let modelName = '';
+  try {
+    modelName = await v3AnkiEnsureWordModel();
+    const fieldNames = await v3AnkiConnectDirect('modelFieldNames', { modelName });
+    if (!Array.isArray(fieldNames) || fieldNames[0] !== 'Word') {
+      throw new Error('модель «' + V3_ANKI_WORD_MODEL + '» имеет неожиданные поля');
+    }
+  } catch (e) {
+    throw new Error('Не удалось подготовить модель карточек-слов в Anki: ' + ((e && e.message) || e));
+  }
+
+  const titleTag = String(text.title || 'untitled')
+    .toLowerCase().replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '').slice(0, 40);
+  const textTag = 'lp_text_' + String(textId || '').replace(/[^0-9a-z]/gi, '').slice(0, 16);
+
+  const ankiNotes = [];
+  let skippedNoBody = 0;
+  for (const n of notes) {
+    try {
+      let body = {};
+      try { body = n.body_json ? JSON.parse(n.body_json) : {}; } catch (_) { body = {}; }
+      if (!body || !String(body.word || '').trim()) { skippedNoBody++; continue; }
+      const paradigm = await v3AnkiResolveParadigm(body);
+      const fields = v3AnkiBuildWordCardFields(n, { paradigm, example: n.example || '' });
+      ankiNotes.push({
+        deckName: finalDeck,
+        modelName,
+        fields,
+        options: { allowDuplicate: false, duplicateScope: 'deck' },
+        tags: ['linguistpro', 'lp_word', textTag, titleTag || 'untitled'].filter(Boolean),
+      });
+    } catch (_) { skippedNoBody++; }
+  }
+  if (!ankiNotes.length) {
+    throw new Error('Не удалось собрать ни одной карточки-слова (нет данных в заметках).');
+  }
+
+  const dd = await v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, { frontField: 'Word', titleTag, audioFilenameBySid: {} });
+  return {
+    created: dd.created,
+    updated: 0,
+    audioQueued: 0,
+    duplicates: dd.duplicates,
+    skipped: skippedNoBody + dd.skippedRuntimeEmpty,
+    failedOther: dd.failedOther,
+    failedOtherSample: dd.failedOtherSample,
+    movedToDeck: dd.movedToDeck,
+    dupNotFound: dd.dupNotFound,
+    dupRecreated: dd.dupRecreated,
     deckName: finalDeck,
     modelName,
+    cardKind: 'words',
+  };
+}
+
+// Merge two export-stat objects (the 'both' card-kind path). Counts add;
+// deck/model names are combined for the honest toast.
+function v3AnkiMergeExportStats(a, b) {
+  const num = (x) => Number(x || 0);
+  const sampleA = Array.isArray(a && a.failedOtherSample) ? a.failedOtherSample : [];
+  const sampleB = Array.isArray(b && b.failedOtherSample) ? b.failedOtherSample : [];
+  return {
+    created: num(a && a.created) + num(b && b.created),
+    updated: 0,
+    audioQueued: num(a && a.audioQueued) + num(b && b.audioQueued),
+    duplicates: num(a && a.duplicates) + num(b && b.duplicates),
+    skipped: num(a && a.skipped) + num(b && b.skipped),
+    failedOther: num(a && a.failedOther) + num(b && b.failedOther),
+    failedOtherSample: sampleA.concat(sampleB).slice(0, 3),
+    movedToDeck: num(a && a.movedToDeck) + num(b && b.movedToDeck),
+    dupNotFound: num(a && a.dupNotFound) + num(b && b.dupNotFound),
+    dupRecreated: num(a && a.dupRecreated) + num(b && b.dupRecreated),
+    deckName: [a && a.deckName, b && b.deckName].filter(Boolean).join(' + ') || '',
+    modelName: [a && a.modelName, b && b.modelName].filter(Boolean).join(' + ') || '',
+    cardKind: 'both',
   };
 }
 
@@ -34733,6 +35067,7 @@ function v3AnkiOpenModal() {
     const st = (typeof v3SessionGet === "function") ? (v3SessionGet() || {}) : {};
 
     const deckEl = document.getElementById("v3AnkiDeck");
+    const kindEl = document.getElementById("v3AnkiCardKind");
     const frontEl = document.getElementById("v3AnkiFrontMode");
     const hintEl = document.getElementById("v3AnkiIncludeHint");
     const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
@@ -34743,6 +35078,8 @@ function v3AnkiOpenModal() {
     const suggestedDeck = level ? `LinguistPro::${level}` : "LinguistPro";
 
     if (deckEl) deckEl.value = String(opts.deckName || deckEl.value || suggestedDeck);
+    // R-1 — default to the rich word cards (the ②-knowledge base); sentences/both opt-in.
+    if (kindEl) kindEl.value = String(opts.cardKind || kindEl.value || "words");
     if (frontEl) frontEl.value = String(opts.frontMode || frontEl.value || "plain");
     if (hintEl) hintEl.checked = (opts.includeHint !== false);
     if (htmlEl) htmlEl.checked = !!opts.includeNoteHtml;
@@ -34862,6 +35199,7 @@ async function v3AnkiPushNow() {
   }
 
   const deckEl = document.getElementById("v3AnkiDeck");
+  const kindEl = document.getElementById("v3AnkiCardKind");
   const frontEl = document.getElementById("v3AnkiFrontMode");
   const hintEl = document.getElementById("v3AnkiIncludeHint");
   const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
@@ -34869,6 +35207,8 @@ async function v3AnkiPushNow() {
 
   const payload = {
     deckName: deckEl ? String(deckEl.value || "").trim() : "",
+    // R-1 — 'words' (②-base, default) | 'sentences' | 'both'.
+    cardKind: kindEl ? String(kindEl.value || "words") : "words",
     frontMode: frontEl ? String(frontEl.value || "plain") : "plain",
     includeHint: hintEl ? !!hintEl.checked : true,
     includeNoteHtml: htmlEl ? !!htmlEl.checked : false,
@@ -34921,6 +35261,7 @@ async function v3AnkiPushNow() {
               audio_queued: Number(s.audioQueued || 0),
               deck_name: String(s.deckName || ""),
               model_name: String(s.modelName || ""),
+              card_kind: String(s.cardKind || payload.cardKind || "sentences"),
               source: "bulk-dialog",
             },
           });
