@@ -38,22 +38,24 @@ verify on PROD `linguistpro.kolosei.com`; bump `public/sw.js` CACHE_VERSION on a
 
 ---
 
-## 2. Stage 5 — Concept B (read-and-collect) — the SMALL, independent next step
+## 2. Stage 5 — Concept B (read-and-collect) — ✅ SHIPPED (`v3.8.7-collect`, commit `d14d557`)
 
-One-tap collect while reading: tapping a word in the reading flow saves a ②-note in one tap (morphology
-pre-filled), no editor round-trip. **Independent of Knowledge-Map Phase 4 → the low-risk pick if you want
-a quick shippable stage.**
-- **Hook:** `v3NotesTokenPickerPick(offset, lemma)` — `public/index.html:39292`. Already builds
-  `target_id=<sid>:<offset>` + plain/niqqud headword + sentence context; today it opens the editor.
-- **Plan:** add a silent-collect branch — resolve the single tapped token via the shared core
-  (`v3MorphTokenToResult` + the autogen resolve path, same logic the engine uses per token) → build one
-  canonical candidate → `v3NotesAutoGenPersist([cand], {source})` + occurrence, bypassing the editor;
-  silent reading-view refresh (`v3NotesRowCountsPrime`). Behind a reading-mode toggle «собирать слова при
-  чтении» (mirror the `V3_NOTES_AUTOGEN_KEY` setting pattern).
-- **Forks (confirm with owner):** (R4) truly silent vs **one-tap + undo toast** (rec — reversible, premium);
-  (R1) source tag `'curated'` (deliberate user tap) vs `'auto'` (rec **curated** — it's a user intent).
-- **Verify:** browser smoke (tap → 1 note created with occurrence, source as chosen, no editor opened) +
-  @380px screenshot of the toggle + collect/undo. SW bump (shell change).
+One-tap collect: tapping a word in the token picker saves a canonical ②-note in one tap (morphology
+pre-filled), no editor round-trip, behind a per-reader toggle, with an undo toast. Owner-locked forks:
+**tap + undo toast** (R4) · source **`'curated'`** (R1, a deliberate tap = intent).
+- **Hook wired:** `v3NotesTokenPickerPick` (`index.html`) branches to `v3NotesCollectToken(slot, offset,
+  niqqudTok, plainTok)` when `v3NotesCollectMode()==='on'`, else the editor (unchanged).
+- **R1 make-or-break:** the per-unit resolve was extracted into `_v3AutoGenResolveItem(maps, ldb, unit,
+  occurrences)` and is now SHARED by the per-text engine loop AND the single-token collect → bodies are
+  byte-identical (proven by the `smoke:autogen-collect` parity assert vs the engine candidate).
+- **Collect:** offline `v3MorphStoredResolve` → unit → `_v3AutoGenResolveItem` → `buildCandidates` →
+  `v3NotesAutoGenPersist([cand], {source:'curated'})` → silent `v3NotesRowCountsPrime` + library refresh →
+  undo toast. No stored morph → falls back to the editor (no fabrication, R1).
+- **Plumbing:** setting `V3_NOTES_COLLECT_KEY` (off default) + toggle in the morph-status modal; `showToast`
+  gained a generic `opts.action={label,onClick}` button + `opts.ttl`; `ldb.removeNoteOccurrence` (undo for
+  the occurrence-only case; `deleteNoteById` covers the created-note case). i18n ru/en/he.
+- **Gate:** `npm run smoke:autogen-collect` (18/18 — deterministic block + real end-to-end + R1 parity +
+  undo-button wiring + no-morph fallback).
 
 ---
 
