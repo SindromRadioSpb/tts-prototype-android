@@ -131,6 +131,35 @@ async function main() {
         await window.v3NotesAutoGenPersist([{ dedup_key: "pid:EAGER1", confidence: 0.95, occurrences: [], body: Object.assign({}, editedBody, { meaning: "ENGINE перевод" }) }], { source: "auto" });
         out.editSurvives = JSON.parse((await ldb.getNoteById(n.id)).body_json).meaning === "МОЙ перевод";
       } else out.dbSkipped = true;
+
+      // ── symmetric section render (DOM, no DB needed) ───────────────────
+      const list = document.getElementById("v3NotesRowIndexList");
+      if (list && typeof window.v3NotesRowIndexRender === "function") {
+        const mk = (o) => Object.assign({ target_kind: "word", note_type: "free", title: "t", body_json: JSON.stringify({ markdown: "x" }), updated_at: new Date(0).toISOString(), confidence: null }, o);
+        // both groups: 2 user (incl. an edited auto) + 4 auto
+        window.v3NotesRowIndexRender([
+          mk({ id: "u1", source: "user", user_touched: 1 }), mk({ id: "u2", source: "auto", user_touched: 1 }),
+          mk({ id: "a1", source: "auto", user_touched: 0 }), mk({ id: "a2", source: "auto", user_touched: 0 }),
+          mk({ id: "a3", source: "curated", user_touched: 0 }), mk({ id: "a4", source: "auto", user_touched: 0 }),
+        ]);
+        const secs = list.querySelectorAll(".v3-notes-rowidx-section");
+        const lists = list.querySelectorAll(".v3-notes-rowidx-section-list");
+        out.secBoth = secs.length === 2;
+        out.yoursOpen = !!lists[0] && lists[0].style.display !== "none" && lists[0].children.length === 2;
+        out.autoCollapsed = !!lists[1] && lists[1].style.display === "none" && lists[1].children.length === 4;
+        const cnt = document.getElementById("v3NotesRowIndexCount");
+        out.headerBreakdown = !!cnt && /✍2/.test(cnt.textContent) && /✨4/.test(cnt.textContent);
+        window.v3NotesRowIndexToggleSection(secs[1].querySelector(".v3-notes-rowidx-section-toggle"));
+        out.toggleExpands = lists[1].style.display !== "none";
+        // user-only → flat (0 sections)
+        window.v3NotesRowIndexRender([mk({ id: "u1", source: "user", user_touched: 1 })]);
+        out.userOnlyFlat = list.querySelectorAll(".v3-notes-rowidx-section").length === 0 && list.children.length === 1;
+        // auto-only small (3) → 1 section, expanded
+        window.v3NotesRowIndexRender([mk({ id: "a1", source: "auto", user_touched: 0 }), mk({ id: "a2", source: "auto", user_touched: 0 }), mk({ id: "a3", source: "auto", user_touched: 0 })]);
+        const s2 = list.querySelectorAll(".v3-notes-rowidx-section");
+        const l2 = list.querySelector(".v3-notes-rowidx-section-list");
+        out.autoOnlyOneOpen = s2.length === 1 && !!l2 && l2.style.display !== "none" && l2.children.length === 3;
+      } else out.renderSkipped = true;
       return out;
     });
 
@@ -149,6 +178,16 @@ async function main() {
       test("R1: user body edit flips user_touched=1 + badge gone", R.editFlips === true);
       test("metadata-only update does NOT flip user_touched", R.metaNoFlip === true);
       test("R1: edited meaning survives regeneration (not clobbered)", R.editSurvives === true);
+    }
+    if (R.renderSkipped) console.log("  · section-render skipped (no list element)");
+    else {
+      test("sections: both groups → 2 symmetric sections", R.secBoth === true);
+      test("sections: «Ваши» expanded, 2 cards", R.yoursOpen === true);
+      test("sections: «Авто» (4>3) collapsed, count visible", R.autoCollapsed === true);
+      test("sections: header breakdown «✍2 · ✨4»", R.headerBreakdown === true);
+      test("sections: tapping «Авто» header expands it", R.toggleExpands === true);
+      test("sections: user-only → flat (no section chrome)", R.userOnlyFlat === true);
+      test("sections: auto-only (≤3) → one expanded section", R.autoOnlyOneOpen === true);
     }
     test("no pageerror on index.html", errs.length === 0, errs.join(" | "));
   } finally {

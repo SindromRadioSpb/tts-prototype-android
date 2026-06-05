@@ -685,6 +685,8 @@ window.I18N_LOCALES.he = {
       anchorTitle: "מוצמד לשמע",
       srsTitle: "ב-SRS",
       autoGroup: "הערות אוטומטיות",
+      sectionYours: "שלכם",
+      sectionAuto: "אוטו׳",
       deleteAria: "מחק הערה",
       addLabel: "+ הערה חדשה:",
       addFreeTitle: "הערה חופשית לשורה זו",

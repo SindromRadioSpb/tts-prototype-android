@@ -677,6 +677,8 @@ window.I18N_LOCALES.en = {
       anchorTitle: "Pinned to audio",
       srsTitle: "In SRS",
       autoGroup: "auto-notes",
+      sectionYours: "Yours",
+      sectionAuto: "Auto",
       deleteAria: "Delete note",
       addLabel: "+ New note:",
       addFreeTitle: "Free comment on this row",

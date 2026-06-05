@@ -684,6 +684,8 @@ window.I18N_LOCALES.ru = {
       anchorTitle: "С привязкой к аудио",
       srsTitle: "В SRS",
       autoGroup: "авто-заметок",
+      sectionYours: "Ваши",
+      sectionAuto: "Авто",
       deleteAria: "Удалить заметку",
       addLabel: "+ Новая заметка:",
       addFreeTitle: "Свободная заметка к этой строке",

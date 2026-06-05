@@ -41964,21 +41964,47 @@ function v3NotesRowIndexRender(rows) {
     </div>`;
   };
 
-  // Stage 3 (Concept A) — collapse auto-generated notes under a header so eager
-  // mode never floods the per-row list (R4 «без спама»). User/edited notes stay
-  // expanded; source='auto'|'curated' with user_touched=0 go under «✨ N авто».
+  // Stage 3 A5 (symmetric sections) — «✍ Ваши» and «✨ Авто» each get a tappable
+  // header with an always-visible count, so the volume of BOTH groups is glanceable
+  // and moving between them is one tap (R4). User notes rank first + expanded (R2);
+  // auto expands when small (≤3) else collapses (anti-flood for eager rows); a single
+  // group renders flat / as one section (no needless chrome). isAuto = machine note
+  // the user hasn't touched.
   const isAuto = (r) => Number(r.user_touched) !== 1 && String(r.source || "user") !== "user";
   const userRows = rows.filter((r) => !isAuto(r));
   const autoRows = rows.filter(isAuto);
-  let html = userRows.map(cardHtml).join("");
-  if (autoRows.length) {
-    html += `<div class="v3-notes-rowidx-auto-group">` +
-      `<button type="button" class="v3-notes-rowidx-auto-toggle" onclick="v3NotesRowIndexToggleAuto(this)" aria-expanded="false" ` +
+  const AUTO_COLLAPSE_OVER = 3;
+
+  const sectionHtml = (icon, label, secRows, open) =>
+    `<div class="v3-notes-rowidx-section">` +
+      `<button type="button" class="v3-notes-rowidx-section-toggle" onclick="v3NotesRowIndexToggleSection(this)" aria-expanded="${open}" ` +
       `style="width:auto;display:flex;align-items:center;gap:6px;margin:8px 0 4px;font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:8px;border:1px solid var(--theme-border-soft,#e2e8f0);background:var(--theme-bg-soft,#f1f5f9);color:inherit;cursor:pointer;">` +
-      `<span>✨ ${autoRows.length} ${v3EscapeHtml(v3NotesT("notes.rowIndex.autoGroup", "авто-заметок"))}</span><span class="v3-notes-rowidx-auto-arrow">▸</span></button>` +
-      `<div class="v3-notes-rowidx-auto-list" style="display:none;">${autoRows.map(cardHtml).join("")}</div></div>`;
+      `<span>${icon} ${v3EscapeHtml(label)}</span><span style="opacity:.7;">· ${secRows.length}</span>` +
+      `<span class="v3-notes-rowidx-section-arrow" style="margin-inline-start:auto;">${open ? "▾" : "▸"}</span></button>` +
+      `<div class="v3-notes-rowidx-section-list" style="display:${open ? "" : "none"};">${secRows.map(cardHtml).join("")}</div></div>`;
+
+  let html;
+  if (userRows.length && autoRows.length) {
+    html = sectionHtml("✍", v3NotesT("notes.rowIndex.sectionYours", "Ваши"), userRows, true) +
+           sectionHtml("✨", v3NotesT("notes.rowIndex.sectionAuto", "Авто"), autoRows, autoRows.length <= AUTO_COLLAPSE_OVER);
+  } else if (autoRows.length) {
+    html = sectionHtml("✨", v3NotesT("notes.rowIndex.sectionAuto", "Авто"), autoRows, autoRows.length <= AUTO_COLLAPSE_OVER);
+  } else {
+    html = userRows.map(cardHtml).join("");
   }
   list.innerHTML = html;
+
+  // Header breakdown «✍K · ✨M» when both groups exist (both volumes at a glance);
+  // else the plain total. Overrides the open-time total set in v3NotesRowIndexOpen.
+  try {
+    const countEl = document.getElementById("v3NotesRowIndexCount");
+    if (countEl) {
+      countEl.textContent = (userRows.length && autoRows.length)
+        ? `✍${userRows.length} · ✨${autoRows.length}`
+        : `(${rows.length})`;
+    }
+  } catch (_) {}
+
   // Slice 1 — layer SRS state badges + "words from this root" after paint.
   try { v3NotesRowIndexEnrich(); } catch (_) {}
 }
@@ -42000,11 +42026,11 @@ function v3NotesRowIndexProvBadge(row) {
   return html;
 }
 
-function v3NotesRowIndexToggleAuto(btn) {
+function v3NotesRowIndexToggleSection(btn) {
   try {
-    const grp = btn.closest(".v3-notes-rowidx-auto-group");
-    const lst = grp && grp.querySelector(".v3-notes-rowidx-auto-list");
-    const arrow = btn.querySelector(".v3-notes-rowidx-auto-arrow");
+    const grp = btn.closest(".v3-notes-rowidx-section");
+    const lst = grp && grp.querySelector(".v3-notes-rowidx-section-list");
+    const arrow = btn.querySelector(".v3-notes-rowidx-section-arrow");
     if (!lst) return;
     const open = lst.style.display !== "none";
     lst.style.display = open ? "none" : "";
@@ -42012,7 +42038,7 @@ function v3NotesRowIndexToggleAuto(btn) {
     if (arrow) arrow.textContent = open ? "▸" : "▾";
   } catch (_) {}
 }
-window.v3NotesRowIndexToggleAuto = v3NotesRowIndexToggleAuto;
+window.v3NotesRowIndexToggleSection = v3NotesRowIndexToggleSection;
 
 // Click a card → close index, open edit modal with that note id loaded.
 function v3NotesRowIndexOpenNote(noteId) {
