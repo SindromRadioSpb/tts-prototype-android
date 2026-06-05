@@ -165,6 +165,20 @@
         '</span></label>';
     } catch (_) {}
 
+    // Stage 5 (Concept B) — one-tap collect-while-reading toggle.
+    try {
+      const collectOn = (typeof window.v3NotesCollectMode === 'function') && window.v3NotesCollectMode() === 'on';
+      body += '<label style="display:flex;align-items:flex-start;gap:8px;padding:10px;border:1px solid var(--theme-border,#ddd);border-radius:6px;cursor:pointer;margin-bottom:14px;">' +
+        '<input type="checkbox" id="v3NotesCollectModeToggle" ' + (collectOn ? 'checked ' : '') +
+        'style="width:17px;height:17px;flex:0 0 auto;margin-top:1px;">' +
+        '<span style="display:flex;flex-direction:column;gap:3px;">' +
+        '<span style="font-size:12.5px;line-height:1.4;font-weight:600;">' +
+        escapeHtml(T('library.collectModeLabel', 'Собирать слова одним тапом (при чтении)')) + '</span>' +
+        '<span style="font-size:11px;color:var(--theme-text-secondary,#999);line-height:1.35;">' +
+        escapeHtml(T('library.collectModeHint', 'Тап по слову в выборе слова сразу сохраняет ②-заметку (морфология подставляется), без редактора. Можно отменить.')) +
+        '</span></span></label>';
+    } catch (_) {}
+
     // Advanced actions.
     body += '<div class="v3-morph-advanced" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">';
     body += '<button type="button" id="v3MorphClearCacheBtn" class="btn-secondary" style="font-size:12px;padding:6px 10px;">' +
@@ -242,6 +256,10 @@
       const agm = document.getElementById('v3NotesAutogenModeSelect');
       if (agm) agm.addEventListener('change', () => {
         try { if (typeof window.v3NotesSetAutogenMode === 'function') window.v3NotesSetAutogenMode(agm.value); } catch (_) {}
+      });
+      const col = document.getElementById('v3NotesCollectModeToggle');
+      if (col) col.addEventListener('change', () => {
+        try { if (typeof window.v3NotesSetCollectMode === 'function') window.v3NotesSetCollectMode(col.checked); } catch (_) {}
       });
       const btn = document.getElementById('v3MorphClearCacheBtn');
       if (!btn) return;
