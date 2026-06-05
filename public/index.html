@@ -36798,123 +36798,11 @@ function v3NotesTplMorphologyAutoFillInit() {
 window.v3NotesTplMorphologyAutoFillInit = v3NotesTplMorphologyAutoFillInit;
 
 // Phase 9.4.D — Morphology Settings panel (requirement #11).
-// Opens via help-popover button OR via direct function call. Shows the
-// lifecycle state of Tier 1 dict + provenance + cache management actions.
-function v3MorphologyStatusShow() {
-  const provider = window.MorphProvider;
-  if (!provider) {
-    showToast(v3NotesT("toast.morphProviderUnavailable", "Морфология недоступна в этой сессии."), "error");
-    return;
-  }
-  const status = provider.getStatus();
-  const t1 = status.tier1;
-  const esc = (s) => v3EscapeHtml(String(s == null ? "" : s));
-  const fmtBytes = (b) => {
-    if (!b) return "—";
-    if (b < 1024) return b + " B";
-    if (b < 1024 * 1024) return (b / 1024).toFixed(1) + " KB";
-    return (b / 1024 / 1024).toFixed(2) + " MB";
-  };
-  const stateLabels = {
-    not_initialized: v3NotesT("morph.state.notDownloaded", "Не загружен"),
-    fetching:        v3NotesT("morph.state.downloading", "Загрузка…"),
-    loading:         v3NotesT("morph.state.parsing", "Подготовка…"),
-    ready:           v3NotesT("morph.state.ready", "✅ Готов к работе offline"),
-    error:           v3NotesT("morph.state.error", "⚠ Ошибка загрузки"),
-  };
-  const stateLabel = stateLabels[t1.state] || t1.state;
-
-  let body = '<div class="v3-morph-status-body">';
-  body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.statusLabel", "Статус")) + ':</b> ' + esc(stateLabel) + '</div>';
-  if (t1.state === "ready") {
-    body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.entries", "Записей в словаре")) + ':</b> ' + esc(t1.entries.toLocaleString()) + '</div>';
-    body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.analyses", "Морфо-анализов")) + ':</b> ' + esc(t1.analyses.toLocaleString()) + '</div>';
-    body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.size", "Размер кеша")) + ':</b> ' + esc(fmtBytes(t1.sizeBytes)) + '</div>';
-    if (t1.meta) {
-      body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.dataProvider", "Источник данных")) + ':</b> ' + esc(t1.meta.data_provider || "—") + '</div>';
-      body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.license", "Лицензия данных")) + ':</b> ' + esc(t1.meta.data_provider_license || "—") + '</div>';
-      body += '<div class="v3-morph-status-row"><b>' + esc(v3NotesT("morph.built", "Собран")) + ':</b> ' + esc(t1.meta.build_timestamp || "—") + '</div>';
-    }
-  } else if (t1.state === "error") {
-    body += '<div class="v3-morph-status-row v3-morph-status-error">' + esc(t1.error || "(unknown)") + '</div>';
-    body += '<div class="v3-morph-status-row">' + esc(v3NotesT("morph.fallback", "Используется fallback: автодополнение из seed-словаря + ручной ввод.")) + '</div>';
-  } else {
-    body += '<div class="v3-morph-status-row">' + esc(v3NotesT("morph.firstUseHint", "Словарь подгружается при первом обращении к шаблону «🔤 Слово отсюда» (~6 MB, кешируется Service Worker).")) + '</div>';
-  }
-  body += '</div>';
-  // Phase D — global auto-enrich toggle (Dicta corpus precompute on import).
-  try {
-    const autoOn = (typeof v3MorphAutoEnrichEnabled === "function") && v3MorphAutoEnrichEnabled();
-    body += '<div class="v3-morph-status-row" style="margin-top:12px;border-top:1px solid var(--theme-border-soft,#e6e9ef);padding-top:12px;">'
-      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;">'
-      + '<input type="checkbox" ' + (autoOn ? "checked" : "")
-      + ' onchange="v3MorphSetAutoEnrich(this.checked)" style="width:17px;height:17px;cursor:pointer;flex:0 0 auto;" />'
-      + '<span>' + esc(v3NotesT("morph.autoEnrichToggle", "Авто-обогащать новые тексты через Dicta (онлайн)")) + '</span>'
-      + '</label></div>';
-  } catch (_) {}
-  // Stage 3 (Concept A) — eager auto-build of ②-notes (off/conservative/aggressive).
-  try {
-    const m = (typeof v3NotesAutogenMode === "function") ? v3NotesAutogenMode() : "off";
-    const o = (v, lbl) => '<option value="' + v + '"' + (m === v ? " selected" : "") + '>' + esc(lbl) + '</option>';
-    body += '<div class="v3-morph-status-row" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">'
-      + '<span style="font-size:13px;font-weight:600;">' + esc(v3NotesT("library.autogenModeLabel", "Авто-строить знания из текстов (②-заметки)")) + '</span>'
-      + '<select onchange="v3NotesSetAutogenMode(this.value)" style="font-size:13px;padding:6px 8px;border-radius:6px;border:1px solid var(--theme-border-soft,#e6e9ef);background:var(--theme-bg-card,#fff);color:inherit;">'
-      + o("off", v3NotesT("library.autogenModeOff", "Выкл"))
-      + o("conservative", v3NotesT("library.autogenModeConservative", "Консервативно (надёжные + i+1)"))
-      + o("aggressive", v3NotesT("library.autogenModeAggressive", "Агрессивно (все надёжные)"))
-      + '</select>'
-      + '<span style="font-size:11px;color:var(--theme-text-secondary,#999);line-height:1.35;">' + esc(v3NotesT("library.autogenModeHint", "После обогащения текста морфологией надёжные слова добавляются в базу автоматически; сомнительные — в очередь «на проверку». Ваши правки не затираются.")) + '</span>'
-      + '</div>';
-  } catch (_) {}
-  // Stage 5 (Concept B) — one-tap collect-while-reading toggle.
-  try {
-    const collectOn = (typeof v3NotesCollectMode === "function") && v3NotesCollectMode() === "on";
-    body += '<div class="v3-morph-status-row" style="margin-top:10px;">'
-      + '<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;">'
-      + '<input type="checkbox" ' + (collectOn ? "checked" : "")
-      + ' onchange="v3NotesSetCollectMode(this.checked)" style="width:17px;height:17px;cursor:pointer;flex:0 0 auto;margin-top:1px;" />'
-      + '<span style="display:flex;flex-direction:column;gap:3px;">'
-      + '<span style="font-weight:600;">' + esc(v3NotesT("library.collectModeLabel", "Собирать слова одним тапом (при чтении)")) + '</span>'
-      + '<span style="font-size:11px;color:var(--theme-text-secondary,#999);line-height:1.35;">' + esc(v3NotesT("library.collectModeHint", "Тап по слову в выборе слова сразу сохраняет ②-заметку (морфология подставляется), без редактора. Можно отменить.")) + '</span>'
-      + '</span></label></div>';
-  } catch (_) {}
-  body += '<div class="v3-morph-status-actions">';
-  body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusUpdate()">📥 ' + esc(v3NotesT("morph.btnUpdate", "Обновить словарь")) + '</button>';
-  body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusClear()">🗑 ' + esc(v3NotesT("morph.btnClear", "Очистить кеш")) + '</button>';
-  body += '</div>';
-
-  v3ConfirmModal({
-    title:      v3NotesT("morph.title", "🔤 Морфология иврита"),
-    body:       body,
-    isHtml:     true,
-    okText:     v3NotesT("morph.btnClose", "Закрыть"),
-    cancelText: "",
-  }).catch(() => {});
-}
-window.v3MorphologyStatusShow = v3MorphologyStatusShow;
-
-async function v3MorphologyStatusUpdate() {
-  if (!window.MorphProvider) return;
-  showToast(v3NotesT("toast.morphUpdating", "Обновление словаря…"), "info");
-  try {
-    await window.MorphProvider.forceUpdate();
-    showToast(v3NotesT("toast.morphUpdated", "Словарь обновлён."), "success");
-  } catch (e) {
-    showToast(v3NotesT("toast.morphUpdateFailed", "Не удалось обновить словарь."), "error");
-  }
-}
-window.v3MorphologyStatusUpdate = v3MorphologyStatusUpdate;
-
-async function v3MorphologyStatusClear() {
-  if (!window.MorphProvider) return;
-  try {
-    await window.MorphProvider.clearCache();
-    showToast(v3NotesT("toast.morphCacheCleared", "Кеш словаря очищен. Перезагрузка применит при следующем обращении."), "success");
-  } catch (e) {
-    showToast(v3NotesT("toast.morphCacheClearFailed", "Не удалось очистить кеш."), "error");
-  }
-}
-window.v3MorphologyStatusClear = v3MorphologyStatusClear;
+// CONSOLIDATED 2026-06-05: the legacy v3MorphologyStatusShow modal («🔤 Морфология
+// иврита») was a drift-prone near-duplicate of the canonical settings surface
+// window.LinguistProMorphSettings.open() («🔤 Морфология: словарь», morph-settings-ui.js).
+// It has been removed; the single «Статус словаря…» entry (in the Notes-Help modal)
+// now opens the canonical modal, which is a functional superset (adds tier selection).
 
 // ─────────────────────────────────────────────────────────────────────────
 // Direction 10 Mode A — Bulk text-card builder
@@ -39884,7 +39772,7 @@ function v3NotesHelpShow() {
     <h4>${T("notes.help.sectionMorphTitle", "🔤 Морфология иврита (offline)")}</h4>
     <p>${T("notes.help.sectionMorphBody",
       "В шаблоне «🔤 Слово отсюда» поля «Корень» и «Биньян» автозаполняются из локального словаря (~6 MB, кешируется при первом обращении). Ручной ввод всегда сохраняется поверх автоподсказки. Без сети.")}
-      <button type="button" class="btn-secondary" style="margin-top:6px;font-size:11px;padding:4px 10px;" onclick="v3MorphologyStatusShow()">${T("morph.btnOpenStatus", "Статус словаря…")}</button>
+      <button type="button" class="btn-secondary" style="margin-top:6px;font-size:11px;padding:4px 10px;" onclick="window.LinguistProMorphSettings&&window.LinguistProMorphSettings.open()">${T("morph.btnOpenStatus", "Статус словаря…")}</button>
     </p>
   </div>`;
 
