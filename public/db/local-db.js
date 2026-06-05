@@ -969,6 +969,17 @@ export async function updateNote(id, patch) {
     Number.isFinite(p.audio_anchor_ms) ? Math.max(0, Math.round(p.audio_anchor_ms)) : null);
   if (Object.prototype.hasOwnProperty.call(p, 'audio_asset_key')) set('audio_asset_key', p.audio_asset_key ?? null);
   if (Object.prototype.hasOwnProperty.call(p, 'srs_card_id'))     set('srs_card_id', p.srs_card_id ?? null);
+  // Provenance (Stage 3 / Concept A): a user-initiated BODY edit marks the note
+  // as touched so regeneration (refreshCanonicalNoteBody) never clobbers it — the
+  // R1 invariant «правки не затираются» — and the provenance badge flips from
+  // «✨ авто» to the user's own. Metadata-only updates (audio anchor, srs link)
+  // do NOT flip it (body unchanged). An explicit patch.user_touched wins.
+  // refreshCanonicalNoteBody uses raw SQL (not updateNote) so autogen never trips this.
+  if (Object.prototype.hasOwnProperty.call(p, 'user_touched')) {
+    set('user_touched', p.user_touched ? 1 : 0);
+  } else if (nextBodyJson !== cur.body_json) {
+    set('user_touched', 1);
+  }
   // body_json change always lands last so the trigger sees a real update.
   if (nextBodyJson !== cur.body_json) set('body_json', nextBodyJson);
   // Always bump updated_at — the trigger handles it but explicit avoids

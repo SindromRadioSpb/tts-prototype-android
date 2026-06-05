@@ -114,6 +114,22 @@ async function main() {
         const PB = window.v3NotesRowIndexProvBadge;
         out.badgeAuto = /✨/.test(PB({ source: "auto", user_touched: 0 }));
         out.badgeUserNone = PB({ source: "auto", user_touched: 1 }) === "" && PB({ source: "user", user_touched: 0 }) === "";
+
+        // R1 invariant — a user BODY edit flips user_touched=1 (→ badge gone) and
+        // is then sacrosanct under regeneration.
+        const editedBody = Object.assign({}, JSON.parse(row.body_json), { meaning: "МОЙ перевод" });
+        await ldb.updateNote(n.id, { body: editedBody, note_type: "word_study" });
+        const afterEdit = await ldb.getNoteById(n.id);
+        out.editFlips = Number(afterEdit.user_touched) === 1
+          && JSON.parse(afterEdit.body_json).meaning === "МОЙ перевод"
+          && PB(afterEdit) === "";                                   // badge gone (now «ваше»)
+        // metadata-only update must NOT flip a still-auto note
+        const n2 = await ldb.createCanonicalNote({ gen_dedup_key: "pid:EAGER2", source: "auto", confidence: 0.9, model_version: "v", user_touched: 0, title: "y", body: { word: "ספר", root: "ספר", lemma: "ספר", pos: "noun", part_of_speech: "noun", meaning: "книга", pealim_id: "EAGER2" } });
+        await ldb.updateNote(n2.id, { audio_anchor_ms: 1234 });
+        out.metaNoFlip = Number((await ldb.getNoteById(n2.id)).user_touched) === 0;
+        // regeneration after the edit must NOT clobber the user's meaning
+        await window.v3NotesAutoGenPersist([{ dedup_key: "pid:EAGER1", confidence: 0.95, occurrences: [], body: Object.assign({}, editedBody, { meaning: "ENGINE перевод" }) }], { source: "auto" });
+        out.editSurvives = JSON.parse((await ldb.getNoteById(n.id)).body_json).meaning === "МОЙ перевод";
       } else out.dbSkipped = true;
       return out;
     });
@@ -130,6 +146,9 @@ async function main() {
       test("persist source='auto' round-trip", R.autoPersisted === true);
       test("provenance badge «✨ авто» for auto+untouched", R.badgeAuto === true);
       test("provenance badge empty for user / user_touched=1", R.badgeUserNone === true);
+      test("R1: user body edit flips user_touched=1 + badge gone", R.editFlips === true);
+      test("metadata-only update does NOT flip user_touched", R.metaNoFlip === true);
+      test("R1: edited meaning survives regeneration (not clobbered)", R.editSurvives === true);
     }
     test("no pageerror on index.html", errs.length === 0, errs.join(" | "));
   } finally {
