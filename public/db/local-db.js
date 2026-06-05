@@ -1746,6 +1746,54 @@ export async function getLearningStateOverlay() {
   return out;
 }
 
+// ── ②-autogen Stage 4 (Concept D) — per-text learning coverage + i+1 frontier ──
+// Read-only. For a text's canonical word_study notes (positions in note_occurrences,
+// canonical notes have text_id IS NULL), bucket each by its SRS learning state
+// (getLearningStateOverlay; uncarded ⇒ 'new') and compute the i+1 FRONTIER: an
+// uncarded note whose root family is already ENGAGED (has a non-'new' sibling
+// somewhere in the base — you've started this root, here's the next sense). Cold-
+// start roots (every member still 'new') are excluded — that avoids an SRS flood
+// and honours «употребление > формы» (R2). The frontier list feeds the explicit
+// SRS seed (v3NotesSeedFrontierToSrs → createCardFromNote). NO writes, NO migration.
+export async function getTextLearningCoverage(textId) {
+  if (!textId) return { ok: false };
+  let occ, allWordNotes, overlay;
+  try {
+    occ = await q(`SELECT DISTINCT note_id FROM note_occurrences WHERE text_id = ?`, [String(textId)]);
+    allWordNotes = await q(
+      `SELECT id, json_extract(body_json,'$.root') AS root, srs_card_id
+         FROM notes_v2 WHERE note_type = 'word_study'`, []);
+    overlay = await getLearningStateOverlay();
+  } catch (_) { return { ok: false }; }
+  const textIds = new Set((occ || []).map((r0) => String(r0.note_id)));
+  // root → engaged? (any member note in a non-'new' state = the learner has touched it)
+  const rootEngaged = new Map();
+  for (const n of (allWordNotes || [])) {
+    const root = String(n.root || "").trim();
+    if (!root) continue;
+    const st = overlay[String(n.id)] || "new";
+    if (st !== "new") rootEngaged.set(root, true);
+    else if (!rootEngaged.has(root)) rootEngaged.set(root, false);
+  }
+  let total = 0, known = 0, learning = 0, weak = 0, neu = 0, i1 = 0;
+  const frontier = [];
+  for (const n of (allWordNotes || [])) {
+    if (!textIds.has(String(n.id))) continue;
+    total++;
+    const root = String(n.root || "").trim();
+    const st = overlay[String(n.id)] || "new";
+    if (st === "known") known++;
+    else if (st === "learning") learning++;
+    else if (st === "weak" || st === "stale") weak++;
+    else neu++;
+    const engaged = !!root && rootEngaged.get(root) === true;
+    if (engaged) i1++;
+    if (engaged && !n.srs_card_id && st === "new") frontier.push(String(n.id));
+  }
+  const i1_ratio = total ? Math.round((100 * i1) / total) : 0;
+  return { ok: true, total, known, learning, weak, new: neu, i1_ratio, frontier };
+}
+
 // ── Roots reference table ────────────────────────────────────────────────
 
 // Idempotent seed — inserts roots from the provided array if they're not

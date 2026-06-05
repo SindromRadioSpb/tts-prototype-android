@@ -89,6 +89,7 @@
     "smoke:autogen-surfacing": "node scripts/premium/autogen-surfacing-browser-smoke.js",
     "smoke:autogen-eager": "node scripts/premium/autogen-eager-browser-smoke.js",
     "smoke:autogen-collect": "node scripts/premium/autogen-collect-browser-smoke.js",
+    "smoke:autogen-srs": "node scripts/premium/autogen-srs-browser-smoke.js",
     "audit:pealim-links": "node scripts/premium/pealim-link-audit.js",
     "audit:pealim-samepos": "node scripts/premium/pealim-samepos-audit.js",
     "audit:pealim-inventory": "node scripts/premium/pealim-link-inventory.js",

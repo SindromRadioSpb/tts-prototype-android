@@ -40554,9 +40554,31 @@ async function v3ReviewQueueCommit() {
   // Stage 3 — this text's parked pending items have been triaged; clear the badge.
   try { delete v3NotesAutoBuildPending[String(textId)]; } catch (_) {}
   v3ReviewQueueClose();
-  showToast(
-    v3NotesT("review.grew", "✨ +{w} слов, +{m} корней").replace("{w}", String(r.new_words || 0)).replace("{m}", String(r.new_roots || 0)),
-    "success");
+  // Stage 4 (Concept D) — growth + per-text coverage + optional i+1 SRS frontier seed.
+  let cov = null;
+  try { const _l = await ensureLocalDB(); if (_l && typeof _l.getTextLearningCoverage === "function") cov = await _l.getTextLearningCoverage(textId); } catch (_) {}
+  let msg = v3NotesT("review.grew", "✨ +{w} слов, +{m} корней").replace("{w}", String(r.new_words || 0)).replace("{m}", String(r.new_roots || 0));
+  const covLine = v3NotesCoverageLine(cov);
+  if (covLine) msg += " · " + covLine;
+  const seedOn = (typeof v3NotesSrsSeedMode === "function") && v3NotesSrsSeedMode() === "on";
+  const frontierN = (cov && Array.isArray(cov.frontier)) ? cov.frontier.length : 0;
+  const toastOpts = { ttl: 6000 };
+  if (seedOn && frontierN > 0) {
+    // Auto-seed (setting on): seed the frontier now and report it inline.
+    try { const s = await v3NotesSeedFrontierToSrs(textId); if (s && s.created) msg += " · " + v3NotesT("toast.srsSeeded", "🎴 +{n} карточек в SRS · экспорт в Anki для повторения").replace("{n}", String(s.created)); } catch (_) {}
+  } else if (frontierN > 0) {
+    // Explicit (setting off): offer a one-tap seed via the toast action button.
+    toastOpts.action = {
+      label: v3NotesT("library.srsSeed", "🎴 Посеять frontier ({n})").replace("{n}", String(frontierN)),
+      onClick: async () => {
+        try {
+          const s = await v3NotesSeedFrontierToSrs(textId);
+          showToast(v3NotesT("toast.srsSeeded", "🎴 +{n} карточек в SRS · экспорт в Anki для повторения").replace("{n}", String((s && s.created) || 0)), "success", { ttl: 5000 });
+        } catch (_) { showToast(v3NotesT("toast.srsSeedFailed", "Не удалось посеять карточки"), "error"); }
+      },
+    };
+  }
+  showToast(msg, "success", toastOpts);
   // Refresh reading-view note counts (if this text is open) + library cards. The
   // knowledge map reads notes_v2 fresh on next open, so it reflects the growth
   // additively without an explicit rebuild.
@@ -40788,6 +40810,64 @@ function v3NotesSetCollectMode(on) {
 window.v3NotesCollectMode = v3NotesCollectMode;
 window.v3NotesSetCollectMode = v3NotesSetCollectMode;
 
+// Stage 4 (Concept D) — opt-in auto-seed of the i+1 SRS frontier after a build.
+// OFF by default: seeding is a deliberate act (explicit button is the primary path;
+// this toggle just lets power users auto-seed on every persist). Mirrors the
+// autogen/collect setting pattern. Seeding only CREATES cards (in-lane); review
+// still flows to Anki (locked SRS strategy).
+const V3_NOTES_SRS_SEED_KEY = "notesSrsSeedMode_v1";
+function v3NotesSrsSeedMode() {
+  try { return localStorage.getItem(V3_NOTES_SRS_SEED_KEY) === "on" ? "on" : "off"; }
+  catch (_) { return "off"; }
+}
+function v3NotesSetSrsSeedMode(on) {
+  try { localStorage.setItem(V3_NOTES_SRS_SEED_KEY, on ? "on" : "off"); } catch (_) {}
+}
+window.v3NotesSrsSeedMode = v3NotesSrsSeedMode;
+window.v3NotesSetSrsSeedMode = v3NotesSetSrsSeedMode;
+
+// Seed the i+1 SRS frontier of a text into the SRS deck (creation only — review
+// happens in Anki, the locked strategy). Frontier = uncarded word_study notes whose
+// root family is already engaged (getTextLearningCoverage). Idempotent: each note is
+// seeded via ldb.createCardFromNote (a no-op if already carded). Per-note try/catch so
+// one bad note can't abort the batch. Returns { ok, created, skipped, frontier }.
+async function v3NotesSeedFrontierToSrs(textId) {
+  if (!textId) return { ok: false, created: 0, skipped: 0, frontier: 0 };
+  const ldb = await ensureLocalDB();
+  // createCardFromNote lives on the `srs` export object (ldb.srs), not the top level.
+  const seedOne = ldb && ldb.srs && typeof ldb.srs.createCardFromNote === "function" ? ldb.srs.createCardFromNote.bind(ldb.srs) : null;
+  if (!ldb || typeof ldb.getTextLearningCoverage !== "function" || !seedOne) {
+    return { ok: false, created: 0, skipped: 0, frontier: 0 };
+  }
+  let cov;
+  try { cov = await ldb.getTextLearningCoverage(textId); } catch (_) { cov = null; }
+  const ids = (cov && cov.ok && Array.isArray(cov.frontier)) ? cov.frontier : [];
+  let created = 0, skipped = 0;
+  for (const noteId of ids) {
+    try {
+      const before = await ldb.getNoteById(noteId);
+      const hadCard = !!(before && before.srs_card_id);
+      await seedOne(noteId);
+      if (hadCard) skipped++; else created++;
+    } catch (_) { skipped++; }
+  }
+  return { ok: true, created, skipped, frontier: ids.length };
+}
+window.v3NotesSeedFrontierToSrs = v3NotesSeedFrontierToSrs;
+
+// Compact per-text learning-coverage line for the growth surface (R4): how much of
+// this text the learner already knows / is learning / is new, + the i+1 ratio.
+function v3NotesCoverageLine(cov) {
+  if (!cov || !cov.ok || !cov.total) return "";
+  return v3NotesT("library.growthLine", "📚 {t} · ✅{k} 🔄{l} 🆕{n} · i+1 {p}%")
+    .replace("{t}", String(cov.total))
+    .replace("{k}", String(cov.known))
+    .replace("{l}", String(cov.learning + cov.weak))
+    .replace("{n}", String(cov.new))
+    .replace("{p}", String(cov.i1_ratio));
+}
+window.v3NotesCoverageLine = v3NotesCoverageLine;
+
 // Per-text low-confidence/non-i+1 candidates parked for review (in-memory; the
 // text-card «⚠ N на проверку» badge + queue read this). Re-derived on next build.
 const v3NotesAutoBuildPending = Object.create(null);
@@ -40854,6 +40934,14 @@ async function v3NotesMaybeAutoBuild(textId) {
       }
       try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(tid); } catch (_) {}
       try { if (typeof v3LibrarySearchNow === "function") v3LibrarySearchNow(); } catch (_) {}
+      // Stage 4 (Concept D) — opt-in: auto-seed the i+1 SRS frontier after an eager
+      // build (only when the setting is on; frontier-only, idempotent — no flood).
+      try {
+        if (typeof v3NotesSrsSeedMode === "function" && v3NotesSrsSeedMode() === "on") {
+          const s = await v3NotesSeedFrontierToSrs(tid);
+          if (s && s.created > 0) showToast(v3NotesT("toast.srsSeeded", "🎴 +{n} карточек в SRS · экспорт в Anki для повторения").replace("{n}", String(s.created)), "info");
+        }
+      } catch (_) {}
     } finally {
       v3NotesAutoBuildInflight.delete(tid);
     }
