@@ -1176,6 +1176,25 @@ export async function addNoteOccurrence(noteId, occ) {
   );
 }
 
+// Remove ONE surface occurrence of a canonical note (Stage-5 collect undo).
+// Matches the exact (note_id, text_id, sentence_id, word_offset) tuple the
+// occurrence was inserted with — uses IS so a NULL text_id (cross-text canonical)
+// also matches. Idempotent: deleting a non-existent row is a no-op.
+export async function removeNoteOccurrence(noteId, occ) {
+  if (!noteId || !occ) return { ok: true };
+  await r(
+    `DELETE FROM note_occurrences
+       WHERE note_id = ? AND text_id IS ? AND sentence_id IS ? AND word_offset IS ?`,
+    [
+      String(noteId),
+      occ.text_id != null ? String(occ.text_id) : null,
+      occ.sentence_id != null ? String(occ.sentence_id) : null,
+      Number.isInteger(occ.word_offset) ? occ.word_offset : null,
+    ]
+  );
+  return { ok: true };
+}
+
 // All occurrences of a canonical note (reading-view index / growth analytics).
 export async function listNoteOccurrences(noteId) {
   if (!noteId) return [];

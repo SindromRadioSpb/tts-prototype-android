@@ -17970,6 +17970,25 @@ updatePlaylistButtonUI();
             toastEl.appendChild(reportBtn);
         }
 
+        // Generic action button (e.g. an Undo for one-tap collect). Reuses the
+        // report-btn styling; clicking runs the handler and dismisses the toast,
+        // but never propagates to the toast's own click-to-dismiss.
+        if (opts.action && opts.action.label && typeof opts.action.onClick === "function") {
+            const actBtn = document.createElement("button");
+            actBtn.className = "toast-report-btn";
+            actBtn.type = "button";
+            actBtn.textContent = String(opts.action.label);
+            actBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                try { opts.action.onClick(); } catch (_) {}
+                toastEl.classList.remove("toast-show");
+                setTimeout(function () {
+                    if (toastEl.parentNode === toastContainerEl) toastContainerEl.removeChild(toastEl);
+                }, 250);
+            });
+            toastEl.appendChild(actBtn);
+        }
+
         toastEl.addEventListener("click", function () {
             toastEl.classList.remove("toast-show");
             setTimeout(function () {
@@ -17986,7 +18005,9 @@ updatePlaylistButtonUI();
         });
 
         // Errors stay longer so user has time to click the report button.
-        const ttl = (safeKind === "error" || safeKind === "warning") ? 5000 : 2500;
+        // opts.ttl overrides (an Undo toast wants more than the 2500ms default).
+        const ttl = Number.isFinite(opts.ttl) ? opts.ttl
+            : ((safeKind === "error" || safeKind === "warning") ? 5000 : 2500);
         toastTimeoutId = setTimeout(function () {
             toastEl.classList.remove("toast-show");
             setTimeout(function () {
@@ -36845,6 +36866,18 @@ function v3MorphologyStatusShow() {
       + '<span style="font-size:11px;color:var(--theme-text-secondary,#999);line-height:1.35;">' + esc(v3NotesT("library.autogenModeHint", "После обогащения текста морфологией надёжные слова добавляются в базу автоматически; сомнительные — в очередь «на проверку». Ваши правки не затираются.")) + '</span>'
       + '</div>';
   } catch (_) {}
+  // Stage 5 (Concept B) — one-tap collect-while-reading toggle.
+  try {
+    const collectOn = (typeof v3NotesCollectMode === "function") && v3NotesCollectMode() === "on";
+    body += '<div class="v3-morph-status-row" style="margin-top:10px;">'
+      + '<label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;">'
+      + '<input type="checkbox" ' + (collectOn ? "checked" : "")
+      + ' onchange="v3NotesSetCollectMode(this.checked)" style="width:17px;height:17px;cursor:pointer;flex:0 0 auto;margin-top:1px;" />'
+      + '<span style="display:flex;flex-direction:column;gap:3px;">'
+      + '<span style="font-weight:600;">' + esc(v3NotesT("library.collectModeLabel", "Собирать слова одним тапом (при чтении)")) + '</span>'
+      + '<span style="font-size:11px;color:var(--theme-text-secondary,#999);line-height:1.35;">' + esc(v3NotesT("library.collectModeHint", "Тап по слову в выборе слова сразу сохраняет ②-заметку (морфология подставляется), без редактора. Можно отменить.")) + '</span>'
+      + '</span></label></div>';
+  } catch (_) {}
   body += '<div class="v3-morph-status-actions">';
   body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusUpdate()">📥 ' + esc(v3NotesT("morph.btnUpdate", "Обновить словарь")) + '</button>';
   body += '<button type="button" class="btn-secondary" onclick="v3MorphologyStatusClear()">🗑 ' + esc(v3NotesT("morph.btnClear", "Очистить кеш")) + '</button>';
@@ -39304,6 +39337,13 @@ function v3NotesTokenPickerPick(offset, lemma) {
   // niqqud-stripping when plain tokens don't align.
   const niqqudTok = (slot.tokens && slot.tokens[offset]) || String(lemma || "");
   const plainTok = (slot.plainTokens && slot.plainTokens[offset]) || "";
+  // Stage 5 (Concept B): one-tap collect mode bypasses the editor entirely —
+  // resolve morphology offline → persist a canonical ②-note (source=curated) →
+  // undo toast. Falls back to the editor below if morphology isn't available.
+  if (typeof v3NotesCollectMode === "function" && v3NotesCollectMode() === "on") {
+    v3NotesCollectToken(slot, offset, niqqudTok, plainTok);
+    return;
+  }
   v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, {
     targetKind: intent.target_kind,
     noteType: intent.note_type,
@@ -39316,6 +39356,101 @@ function v3NotesTokenPickerPick(offset, lemma) {
   });
 }
 window.v3NotesTokenPickerPick = v3NotesTokenPickerPick;
+
+// Stage 5 (Concept B) — one-tap collect. Resolve the tapped word OFFLINE (the
+// same stored-morph → v3MorphTokenToResult path the autogen engine uses), build
+// ONE canonical candidate through the SHARED resolver (_v3AutoGenResolveItem →
+// buildCandidates so the body is byte-identical to the engine — R1), persist it
+// (source='curated' — a deliberate user tap is intent), silently refresh the
+// reading view, and offer an undo. If morphology isn't available for the
+// sentence we DON'T fabricate a thin note — we fall back to the editor (today's
+// behavior). `slot` = the picker context (slot.ctx + slot.sentencePlain/Text).
+async function v3NotesCollectToken(slot, offset, niqqudTok, plainTok) {
+  const ctx = slot && slot.ctx;
+  if (!ctx || !ctx.textId || !ctx.sentenceId) return;
+  const NA = window.NotesAutoGen;
+  // Editor fallback (no fabrication) — mirrors the normal pick's v3NotesOpen call.
+  const openEditor = () => v3NotesOpen(ctx.textId, ctx.sentenceId, ctx.rowIdx, {
+    targetKind: "word", noteType: "word_study",
+    targetId: String(ctx.sentenceId) + ":" + Number(offset),
+    intentKey: "row.word",
+    wordLemma: plainTok || niqqudTok, niqqudForm: niqqudTok,
+    sentence: String((slot && (slot.sentencePlain || slot.sentenceText)) || ""),
+  });
+  if (!NA) { openEditor(); return; }
+
+  let ldb, maps, res;
+  try { ldb = await ensureLocalDB(); } catch (_) { ldb = null; }
+  try { maps = await _v3AutoGenResolverMaps(); } catch (_) { maps = null; }
+  if (!ldb || !maps || typeof ldb.findNoteByDedupKey !== "function") { openEditor(); return; }
+  // Offline morphology for the tapped surface (no network, no consent).
+  try { res = await v3MorphStoredResolve(plainTok || niqqudTok, ctx.sentenceId); } catch (_) { res = null; }
+  if (!res) {
+    showToast(v3NotesT("toast.collectNoMorph", "Морфология не готова — заметка через редактор"), "warning");
+    openEditor();
+    return;
+  }
+
+  // Build the unit EXACTLY as the engine does per token (parity surface).
+  const word = NA.stripNiqqud(res.word || plainTok || "");
+  if (!word || word.length < 2) { openEditor(); return; }
+  const lemma = NA.stripNiqqud(res.lemma || res.stem || "");
+  const unit = {
+    pos: res.pos || "", binyan: res.binyan || "", root: res.root || null,
+    lemma: lemma, stem: NA.stripNiqqud(res.stem || ""),
+    niqqud: res.niqqud || niqqudTok || "", sampleWord: word, kind: res.kind,
+  };
+  const occ = {
+    text_id: String(ctx.textId), sentence_id: String(ctx.sentenceId),
+    word_offset: Number(offset), surface: word,
+  };
+
+  let cand;
+  try {
+    const item = await _v3AutoGenResolveItem(maps, ldb, unit, [occ]);
+    cand = (NA.buildCandidates([item]) || [])[0];
+  } catch (e) { console.warn("[collect] resolve failed", e); openEditor(); return; }
+  if (!cand || !cand.dedup_key) { openEditor(); return; }
+
+  // Capture pre-state so undo can restore precisely: a brand-new canonical note
+  // is deleted; an existing note keeps only the one freshly-added occurrence.
+  let pre = null;
+  try { pre = await ldb.findNoteByDedupKey(cand.dedup_key); } catch (_) {}
+  try {
+    await v3NotesAutoGenPersist([cand], { source: "curated" });
+  } catch (e) { console.warn("[collect] persist failed", e); showToast(v3NotesT("toast.collectFailed", "Не удалось собрать слово"), "error"); return; }
+  let note = null;
+  try { note = await ldb.findNoteByDedupKey(cand.dedup_key); } catch (_) {}
+  const createdNoteId = pre ? null : (note && note.id) || null;
+
+  // Silent reading-view + library refresh (no modal).
+  try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(ctx.textId); } catch (_) {}
+  try { if (typeof v3LibrarySearchNow === "function") v3LibrarySearchNow(); } catch (_) {}
+
+  // Undo toast (R4 — reversible, no dead-end).
+  const label = (cand.body && cand.body.meaning)
+    ? (word + " · " + cand.body.meaning) : word;
+  showToast(
+    v3NotesT("toast.collectSaved", "✨ Собрано: {word}").replace("{word}", label),
+    "success",
+    {
+      ttl: 5000,
+      action: {
+        label: v3NotesT("toast.collectUndo", "Отменить"),
+        onClick: async () => {
+          try {
+            if (createdNoteId) { await ldb.deleteNoteById(createdNoteId); }
+            else if (note && note.id && typeof ldb.removeNoteOccurrence === "function") { await ldb.removeNoteOccurrence(note.id, occ); }
+          } catch (e) { console.warn("[collect] undo failed", e); }
+          try { if (typeof v3NotesRowCountsPrime === "function") await v3NotesRowCountsPrime(ctx.textId); } catch (_) {}
+          try { if (typeof v3LibrarySearchNow === "function") v3LibrarySearchNow(); } catch (_) {}
+          try { showToast(v3NotesT("toast.collectUndone", "Отменено"), "info"); } catch (_) {}
+        },
+      },
+    }
+  );
+}
+window.v3NotesCollectToken = v3NotesCollectToken;
 
 // Locked-info badge renderer. Reads v3NotesModalTargetKind + v3NotesModalNoteType
 // and v3NotesModalTargetId (for word: parse offset from "sid:offset" form) +
@@ -40135,6 +40270,41 @@ async function _v3AutoGenResolverMaps() {
   return _v3AutoGenMapsCache;
 }
 
+// Resolve ONE distinct unit into the item shape `buildCandidates` consumes:
+// { unit, resolved, occurrences }. Extracted from the per-text loop so the
+// single-token collect path (Concept B / Stage 5) produces a body BYTE-IDENTICAL
+// to the engine for the same word (R1 — shared code, never re-implemented).
+// `maps` = _v3AutoGenResolverMaps(); `u` = the unit shape (pos/binyan/root/lemma/
+// stem/niqqud/sampleWord/kind). Mutates `u.niqqud` only as the orchestrator did
+// (function-word vocalized-form backfill). NO DB writes.
+async function _v3AutoGenResolveItem(maps, ldb, u, occurrences) {
+  const NA = window.NotesAutoGen;
+  // Multi-alias base paradigm (mirrors the offline inflect() coverage via the
+  // shipped multi-alias index, form-match preferred) — shared core, so client
+  // output == the Node parity smoke.
+  let baseParadigm = null;
+  if (ldb && typeof ldb.getLemmaInflection === "function") {
+    try { baseParadigm = await NA.pickBaseParadigm(u, (k, b) => ldb.getLemmaInflection(k, b || "", V3_PEALIM_INFL_MODEL)); } catch (_) {}
+  }
+  const resolved = NA.resolveContentUnit(maps, u, baseParadigm);
+  // Function-word premium profile (client-only; build-notes parity is content-only):
+  // a direct Pealim page id + invariant vocalized form via the function-links map.
+  if (!resolved.pealim_id && (NA.FUNCTION_POS.has(u.pos) || !u.pos) && window.PealimFunctionLinks) {
+    try {
+      await window.PealimFunctionLinks.ensureReady();
+      const fe = window.PealimFunctionLinks.lookup(u.sampleWord, u.pos, { stem: u.stem, lemma: u.lemma });
+      if (fe && fe.id) {
+        resolved.pealim_id = String(fe.id);
+        const form = window.PealimFunctionLinks.getForm(fe.id);
+        if (form && form.he && !u.niqqud) u.niqqud = form.he;
+        if (resolved.confidence < 0.75) resolved.confidence = 0.75;
+        if (resolved.status === "review") resolved.status = "ok";
+      }
+    } catch (_) {}
+  }
+  return { unit: u, resolved: resolved, occurrences: occurrences };
+}
+
 async function v3NotesAutoGenForText(textId, opts) {
   opts = opts || {};
   const NA = window.NotesAutoGen;
@@ -40178,33 +40348,10 @@ async function v3NotesAutoGenForText(textId, opts) {
   }
 
   // 2) resolve each distinct unit (async I/O: base paradigm via OPFS, function links).
+  // Shared with the single-token collect path via _v3AutoGenResolveItem (R1 parity).
   const items = [];
   for (const entry of units.values()) {
-    const u = entry.unit;
-    // Multi-alias base paradigm (mirrors the offline inflect() coverage via the
-    // shipped multi-alias index, form-match preferred) — shared core, so client
-    // output == the Node parity smoke.
-    let baseParadigm = null;
-    if (typeof ldb.getLemmaInflection === "function") {
-      try { baseParadigm = await NA.pickBaseParadigm(u, (k, b) => ldb.getLemmaInflection(k, b || "", V3_PEALIM_INFL_MODEL)); } catch (_) {}
-    }
-    const resolved = NA.resolveContentUnit(maps, u, baseParadigm);
-    // Function-word premium profile (client-only; build-notes parity is content-only):
-    // a direct Pealim page id + invariant vocalized form via the function-links map.
-    if (!resolved.pealim_id && (NA.FUNCTION_POS.has(u.pos) || !u.pos) && window.PealimFunctionLinks) {
-      try {
-        await window.PealimFunctionLinks.ensureReady();
-        const fe = window.PealimFunctionLinks.lookup(u.sampleWord, u.pos, { stem: u.stem, lemma: u.lemma });
-        if (fe && fe.id) {
-          resolved.pealim_id = String(fe.id);
-          const form = window.PealimFunctionLinks.getForm(fe.id);
-          if (form && form.he && !u.niqqud) u.niqqud = form.he;
-          if (resolved.confidence < 0.75) resolved.confidence = 0.75;
-          if (resolved.status === "review") resolved.status = "ok";
-        }
-      } catch (_) {}
-    }
-    items.push({ unit: u, resolved: resolved, occurrences: entry.occurrences });
+    items.push(await _v3AutoGenResolveItem(maps, ldb, entry.unit, entry.occurrences));
   }
 
   // 3) group into canonical-lemma candidates (dedup_key = pid:<id> | norm(lemma)#pos).
@@ -40738,6 +40885,20 @@ function v3NotesSetAutogenMode(mode) {
 }
 window.v3NotesAutogenMode = v3NotesAutogenMode;
 window.v3NotesSetAutogenMode = v3NotesSetAutogenMode;
+
+// Stage 5 (Concept B) — one-tap «читай-и-собирай» mode. When "on", tapping a
+// word in the token picker collects a canonical ②-note in one tap (source=
+// 'curated') instead of opening the editor. Mirrors the autogen-mode pattern.
+const V3_NOTES_COLLECT_KEY = "notesCollectMode_v1";
+function v3NotesCollectMode() {
+  try { return localStorage.getItem(V3_NOTES_COLLECT_KEY) === "on" ? "on" : "off"; }
+  catch (_) { return "off"; }
+}
+function v3NotesSetCollectMode(on) {
+  try { localStorage.setItem(V3_NOTES_COLLECT_KEY, on ? "on" : "off"); } catch (_) {}
+}
+window.v3NotesCollectMode = v3NotesCollectMode;
+window.v3NotesSetCollectMode = v3NotesSetCollectMode;
 
 // Per-text low-confidence/non-i+1 candidates parked for review (in-memory; the
 // text-card «⚠ N на проверку» badge + queue read this). Re-derived on next build.
