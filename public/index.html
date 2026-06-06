@@ -14940,6 +14940,119 @@ async function v3AnkiUpsertWordNotes(ankiNotes, finalDeck) {
   return { created, updated, failed, movedToDeck, deckName: finalDeck };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// R-3 — Anki Connect bidirectional sync (read path). Pull per-card review state
+// from the user's local Anki so the app has REAL mastery (today: in-app SM2
+// overlay only). Read-only here; R-3.2 merges into srs_cards. LOCAL_MODE only
+// (server Anki endpoints are 410). All AnkiConnect calls route through
+// v3AnkiConnectDirect → gated by __v3AnkiConnectMock, so fully testable offline.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Map one AnkiConnect `cardsInfo` entry → LinguistPro's SM2 card fields. PURE
+// (no I/O) so the sync gate exercises every branch via fixtures. Anki is the
+// authoritative review layer, so we mirror its scheduler fields:
+//   • queue === -1 ⇒ 'suspended' — a suspended card is NOT mastered and must
+//     never collapse into "known" (see the overlay fix in R-3.2);
+//   • otherwise map by TYPE (0/1/2/3 = new/learning/review/relearning), NOT
+//     queue — queue 3 is the transient "day-learning" bucket and buried (−2/−3)
+//     is transient too, so type is the stable signal.
+//   • factor is ease×1000 (0 on brand-new cards) → default 2.5, clamp to the
+//     SM2 domain [1.3, 4.0] computeSM2 uses.
+//   • We do NOT import Anki's `due` (a collection-creation-relative day number +
+//     rollover hour, untranslatable without the collection crt). Derive due
+//     locally from `mod` (last-modified epoch seconds) + interval.
+function v3AnkiCardStatsToLocalState(ci) {
+  const c = ci || {};
+  const type = Number(c.type);
+  const queue = Number(c.queue);
+  const reps = Math.max(0, Number(c.reps) || 0);
+  const lapses = Math.max(0, Number(c.lapses) || 0);
+  const ivl = Math.max(0, Number(c.interval) || 0);   // days; 0 for new/learning
+  let ease = Number(c.factor) > 0 ? Number(c.factor) / 1000 : 2.5;
+  ease = Math.min(4.0, Math.max(1.3, ease));
+  let state;
+  if (queue === -1) state = 'suspended';
+  else if (type === 1) state = 'learning';
+  else if (type === 2) state = 'review';
+  else if (type === 3) state = 'relearning';
+  else state = 'new';                                  // type 0 (and unknown)
+  let dueDate = null;
+  const modS = Number(c.mod) || 0;
+  if (modS > 0) dueDate = new Date((modS + ivl * 86400) * 1000).toISOString().slice(0, 10);
+  return {
+    state, interval_days: ivl, ease_factor: ease, reps, lapses, due_date: dueDate,
+    anki_mod: modS, anki_type: type, anki_queue: queue,
+  };
+}
+
+// Fetch + map the review state of every LinguistPro word card in Anki. Returns
+// one entry per CANONICAL local note (resolved via the homograph-proof
+// `lp_note_<id>` tag stamped at export), with its representative card's mapped
+// SM2 state. Read-only. Batches notesInfo/cardsInfo (no per-card round-trips).
+// Untagged matches (manual/legacy cards) are skipped — we never guess identity
+// from the `Word` surface. Returns { ok:false, error } if AnkiConnect is
+// unreachable (offline / CORS), so the caller can show an honest toast.
+async function v3AnkiFetchWordReviewStates() {
+  let noteIds;
+  try {
+    noteIds = await v3AnkiConnectDirect('findNotes', { query: 'tag:lp_word' });
+  } catch (e) {
+    return { ok: false, error: (e && e.message) ? e.message : String(e) };
+  }
+  if (!Array.isArray(noteIds) || !noteIds.length) {
+    return { ok: true, states: [], totalNotes: 0, totalCards: 0, untagged: 0 };
+  }
+
+  // notesInfo (batched) → tags + cards per note.
+  const infos = [];
+  for (let s = 0; s < noteIds.length; s += 200) {
+    try {
+      const r = await v3AnkiConnectDirect('notesInfo', { notes: noteIds.slice(s, s + 200) });
+      if (Array.isArray(r)) for (const ni of r) if (ni) infos.push(ni);
+    } catch (_) {}
+  }
+
+  // Resolve each Anki note → local note id (from its lp_note_ tag) + card ids.
+  const noteMeta = [];     // { ankiNoteId, localNoteId, cardIds }
+  const allCardIds = [];
+  let untagged = 0;
+  for (const ni of infos) {
+    const tags = Array.isArray(ni.tags) ? ni.tags : [];
+    const tag = tags.find((tt) => typeof tt === 'string' && tt.indexOf('lp_note_') === 0);
+    const localNoteId = tag ? tag.slice('lp_note_'.length) : '';
+    const cardIds = Array.isArray(ni.cards) ? ni.cards.slice() : [];
+    if (!localNoteId) { untagged++; continue; }
+    noteMeta.push({ ankiNoteId: ni.noteId, localNoteId, cardIds });
+    for (const c of cardIds) allCardIds.push(c);
+  }
+
+  // cardsInfo (batched) → mapped SM2 stats per card.
+  const cardStat = new Map();
+  for (let s = 0; s < allCardIds.length; s += 200) {
+    try {
+      const r = await v3AnkiConnectDirect('cardsInfo', { cards: allCardIds.slice(s, s + 200) });
+      for (const ci of (Array.isArray(r) ? r : [])) {
+        if (ci && ci.cardId != null) cardStat.set(ci.cardId, v3AnkiCardStatsToLocalState(ci));
+      }
+    } catch (_) {}
+  }
+
+  // Aggregate per note. The word model is 1-card-per-note, but be defensive:
+  // representative = the most-reviewed card (ties → longest interval) so a note's
+  // mastery reflects its strongest evidence, not an incidental sibling.
+  const states = [];
+  for (const m of noteMeta) {
+    const stats = m.cardIds.map((c) => cardStat.get(c)).filter(Boolean);
+    if (!stats.length) continue;
+    stats.sort((a, b) => (b.reps - a.reps) || (b.interval_days - a.interval_days));
+    states.push({ localNoteId: m.localNoteId, ankiNoteId: m.ankiNoteId, cardIds: m.cardIds, stat: stats[0] });
+  }
+  return { ok: true, states, totalNotes: noteMeta.length, totalCards: allCardIds.length, untagged };
+}
+
+window.v3AnkiCardStatsToLocalState = v3AnkiCardStatsToLocalState;
+window.v3AnkiFetchWordReviewStates = v3AnkiFetchWordReviewStates;
+
 // Merge two export-stat objects (the 'both' card-kind path). Counts add;
 // deck/model names are combined for the honest toast.
 function v3AnkiMergeExportStats(a, b) {
