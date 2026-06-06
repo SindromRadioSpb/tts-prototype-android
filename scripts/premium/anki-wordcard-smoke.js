@@ -152,7 +152,7 @@ async function main() {
         headwordAudioFile: "lp_head.mp3", exampleAudioFile: "lp_ex.mp3",
       });
       out.Aud_headSound = fAud.Audio === "[sound:lp_head.mp3]";
-      out.Aud_exSound = fAud.Example === (exampleStr + " [sound:lp_ex.mp3]");
+      out.Aud_exSound = fAud.Example === (exampleStr + "<br>[sound:lp_ex.mp3]"); // ▶ on its own line below the sentence
       // No audio files → Audio empty (front uses the {{tts}} fallback), example clean.
       out.Aud_noneEmpty = fA.Audio === "" && !/\[sound:/.test(fA.Example);
 

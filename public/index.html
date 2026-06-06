@@ -14111,8 +14111,10 @@ function v3AnkiBuildWordCardFields(note, opts) {
   // after the escaped text. Both empty ⇒ front uses the {{tts}} device fallback.
   const headFile = String(o.headwordAudioFile || '').trim();
   const exFile = String(o.exampleAudioFile || '').trim();
+  // Example audio sits on its OWN line BELOW the sentence (a <br> separator) so
+  // the ▶ button reads cleanly instead of being wedged inline mid-sentence.
   let exampleField = esc(o.example || '');
-  if (exFile) exampleField += (exampleField ? ' ' : '') + '[sound:' + exFile + ']';
+  if (exFile) exampleField += (exampleField ? '<br>' : '') + '[sound:' + exFile + ']';
   return {
     Word: esc(body.word || ''),
     Niqqud: esc(niqqud),
