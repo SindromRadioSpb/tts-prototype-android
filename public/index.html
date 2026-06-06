@@ -11842,9 +11842,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 </div>
 
 <!-- i18n: locales + core module (must load before main script) -->
-<script src="/i18n/locales/ru.js?v=49"></script>
-<script src="/i18n/locales/en.js?v=49"></script>
-<script src="/i18n/locales/he.js?v=49"></script>
+<script src="/i18n/locales/ru.js?v=50"></script>
+<script src="/i18n/locales/en.js?v=50"></script>
+<script src="/i18n/locales/he.js?v=50"></script>
 <script src="/i18n/index.js"></script>
 
 <!-- Phase 9.4.D — Hebrew morphology layer (Tier 1 local dict + Tier 2 seed) -->
@@ -14391,13 +14391,17 @@ async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
   } catch (_) {}
 
   const sendable = [];
-  const dupQueries = []; // { idx, frontText } for moving existing cards later
+  // Carry the actual note OBJECT (not an index): pre-duplicate indices point into
+  // ankiNotes while runtime-duplicate indices point into the filtered `sendable`,
+  // so a single `idx` was ambiguous and broke the recreate/consolidate retry
+  // (all-duplicate batches recreated 0). The note object is unambiguous.
+  const dupQueries = []; // { note, frontText }
   let preDuplicates = 0;
   for (let i = 0; i < ankiNotes.length; i++) {
     if (Array.isArray(canAdd) && canAdd[i] === false) {
       preDuplicates++;
       const frontVal = ankiNotes[i].fields[frontField];
-      dupQueries.push({ idx: i, frontText: String(frontVal || '') });
+      dupQueries.push({ note: ankiNotes[i], frontText: String(frontVal || '') });
     } else {
       sendable.push({
         ...ankiNotes[i],
@@ -14526,7 +14530,7 @@ async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
     const refusedNote = sendable[i];
     if (refusedNote) {
       const frontVal = refusedNote.fields[frontField];
-      dupQueries.push({ idx: i, frontText: String(frontVal || "") });
+      dupQueries.push({ note: refusedNote, frontText: String(frontVal || "") });
     }
   }
 
@@ -14571,9 +14575,7 @@ async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
     // decks keep their cards intact; target deck gets one new card per
     // input row regardless of cross-collection duplicates.
     for (const dq of dupQueries) {
-      if (typeof dq.idx === 'number' && sendable[dq.idx]) {
-        retryAsFresh.push(sendable[dq.idx]);
-      }
+      if (dq.note) retryAsFresh.push(dq.note);
     }
   } else if (dupQueries.length > 0) {
     try {
@@ -14597,11 +14599,7 @@ async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
         if (!Array.isArray(noteIds) || !noteIds.length) {
           // Strategy 3: nothing found — schedule for forced re-add as a fresh note.
           dupNotFound++;
-          // Find the original note in `sendable` matching this dq.idx and
-          // remember it for the retry pass.
-          if (typeof dq.idx === 'number' && sendable[dq.idx]) {
-            retryAsFresh.push(sendable[dq.idx]);
-          }
+          if (dq.note) retryAsFresh.push(dq.note);
           continue;
         }
         for (const nid of noteIds) allNoteIds.push(nid);
@@ -14766,8 +14764,9 @@ async function v3AnkiPushWordCards(textId, text, opts, ldb) {
     const total = items.length;
     const setProg = () => {
       try {
-        const msg = (typeof t === 'function' && t('toast.ankiAudioProgress', { done, total }))
-          || ('Озвучка слов ' + done + '/' + total + '…');
+        let msg = (typeof t === 'function') ? t('toast.ankiAudioProgress', { done, total }) : '';
+        // t() returns the raw key for a missing translation (truthy) — don't trust it.
+        if (!msg || msg === 'toast.ankiAudioProgress') msg = 'Озвучка слов ' + done + '/' + total + '…';
         v3AnkiSetStatus(msg, false);
       } catch (_) {}
     };
@@ -14805,22 +14804,101 @@ async function v3AnkiPushWordCards(textId, text, opts, ldb) {
     tags: ['linguistpro', 'lp_word', textTag, titleTag || 'untitled'].filter(Boolean),
   }));
 
-  const dd = await v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, { frontField: 'Word', titleTag, audioFilenameBySid: {} });
+  // Idempotent SYNC (R-1.6): create new cards, UPDATE existing ones in place so
+  // re-export applies the freshly-synthesized audio instead of skipping dups.
+  const up = await v3AnkiUpsertWordNotes(ankiNotes, finalDeck);
   return {
-    created: dd.created,
-    updated: 0,
+    created: up.created,
+    updated: up.updated,
     audioQueued: audioCards,
-    duplicates: dd.duplicates,
-    skipped: skippedNoBody + dd.skippedRuntimeEmpty,
-    failedOther: dd.failedOther,
-    failedOtherSample: dd.failedOtherSample,
-    movedToDeck: dd.movedToDeck,
-    dupNotFound: dd.dupNotFound,
-    dupRecreated: dd.dupRecreated,
+    duplicates: 0,
+    skipped: skippedNoBody,
+    failedOther: up.failed,
+    failedOtherSample: [],
+    movedToDeck: up.movedToDeck,
+    dupNotFound: 0,
+    dupRecreated: 0,
     deckName: finalDeck,
     modelName,
     cardKind: 'words',
   };
+}
+
+// R-1.6 — idempotent word-card SYNC. Unlike the sentence freshOnly path, a
+// re-export of the same vocabulary should REFRESH existing cards (apply the
+// newly-synthesized audio + any content changes), not skip them as duplicates
+// or spawn copies. New notes are created; existing ones (matched by Word +
+// tag:lp_word) are updated in place via updateNoteFields and moved into the
+// target deck. Scoped to tag:lp_word so unrelated notes are never rewritten.
+// Per-note try/catch so one failure can't abort the batch.
+async function v3AnkiUpsertWordNotes(ankiNotes, finalDeck) {
+  if (!ankiNotes || !ankiNotes.length) return { created: 0, updated: 0, failed: 0, movedToDeck: 0, deckName: finalDeck };
+
+  const withScope = (n) => ({
+    ...n,
+    options: {
+      ...(n.options || {}),
+      duplicateScope: 'deck',
+      duplicateScopeOptions: { deckName: finalDeck, checkChildren: false, checkAllModels: false },
+    },
+  });
+
+  // 1) Split new vs already-present (deck dup scope).
+  let canAdd = [];
+  try { canAdd = await v3AnkiConnectDirect('canAddNotes', { notes: ankiNotes.map(withScope) }); } catch (_) { canAdd = []; }
+  const newNotes = [];
+  const existing = [];
+  for (let i = 0; i < ankiNotes.length; i++) {
+    if (Array.isArray(canAdd) && canAdd[i] === false) existing.push(ankiNotes[i]);
+    else newNotes.push(ankiNotes[i]);
+  }
+
+  let created = 0, updated = 0, failed = 0, movedToDeck = 0;
+
+  // 2) Create the genuinely new cards (chunked).
+  for (let s = 0; s < newNotes.length; s += 20) {
+    const chunk = newNotes.slice(s, s + 20).map(withScope);
+    try {
+      const r = await v3AnkiConnectDirect('addNotes', { notes: chunk });
+      if (Array.isArray(r)) created += r.filter((x) => x != null).length;
+    } catch (e) {
+      console.debug('[anki] word addNotes chunk failed:', e && e.message);
+    }
+  }
+
+  // 3) Update existing cards in place (refresh fields incl. Audio) + move to deck.
+  for (const note of existing) {
+    try {
+      const word = String((note.fields && note.fields.Word) || '');
+      if (!word) { failed++; continue; }
+      const safe = word.replace(/\\/g, '\\\\').replace(/"/g, '""');
+      let ids = [];
+      try { ids = await v3AnkiConnectDirect('findNotes', { query: 'Word:"' + safe + '" tag:lp_word' }); } catch (_) {}
+      if (!Array.isArray(ids) || !ids.length) {
+        try { ids = await v3AnkiConnectDirect('findNotes', { query: 'Word:"' + safe + '"' }); } catch (_) {}
+      }
+      if (!Array.isArray(ids) || !ids.length) { failed++; continue; }
+      for (const id of ids) {
+        try { await v3AnkiConnectDirect('updateNoteFields', { note: { id, fields: note.fields } }); } catch (_) {}
+      }
+      updated++;
+      try {
+        const infos = await v3AnkiConnectDirect('notesInfo', { notes: ids });
+        const cardIds = [];
+        for (const ni of (Array.isArray(infos) ? infos : [])) {
+          if (ni && Array.isArray(ni.cards)) for (const c of ni.cards) cardIds.push(c);
+        }
+        if (cardIds.length) {
+          try { await v3AnkiConnectDirect('changeDeck', { cards: cardIds, deck: finalDeck }); movedToDeck += cardIds.length; } catch (_) {}
+        }
+        if (Array.isArray(note.tags) && note.tags.length) {
+          try { await v3AnkiConnectDirect('addTags', { notes: ids, tags: note.tags.join(' ') }); } catch (_) {}
+        }
+      } catch (_) {}
+    } catch (_) { failed++; }
+  }
+
+  return { created, updated, failed, movedToDeck, deckName: finalDeck };
 }
 
 // Merge two export-stat objects (the 'both' card-kind path). Counts add;
@@ -34288,6 +34366,10 @@ async function v3AudioPrefetchStartFromUi() {
       speakingRate: Number(P.speakingRate),
       pitch: Number(P.pitch),
     },
+    // BYOK: the server job needs the user's GCP key to synthesize cache-misses
+    // (post-BYOK the server has no key of its own). Without this, prefetch only
+    // returned cache hits and "generated 0".
+    gcpTtsApiKey: (typeof gcpTtsKeyGet === "function") ? gcpTtsKeyGet() : "",
     rows: build.toGenerate
   };
 
@@ -35325,6 +35407,7 @@ async function v3AnkiPushNow() {
         const s = await v3AnkiPushLocalMode(exportId, payload);
         const parts = [];
         parts.push(`создано ${s.created}`);
+        if (s.updated) parts.push(`обновлено ${s.updated}`);
         if (s.dupRecreated) parts.push(`из них пересоздано (allowDuplicate) ${s.dupRecreated}`);
         if (s.audioQueued) parts.push(`с аудио ${s.audioQueued}`);
         if (s.movedToDeck) parts.push(`перенесено в этот deck ${s.movedToDeck} card(s)`);

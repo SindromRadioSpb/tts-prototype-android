@@ -2894,6 +2894,7 @@ async function v3AudioPrefetchRun(job) {
 
           try {
             const ensured = await ensureAudioAsset({
+              apiKey: job.apiKey || undefined,
               text: rawText,
               assetType: "row",
               ttsProfile: job.ttsProfile,
@@ -3073,6 +3074,10 @@ app.post("/api/audio/prefetch/start", async (req, res) => {
 
       concurrency,
       retry: retryCfg,
+
+      // BYOK: the user's GCP key, used by the job's synthesis (cache-misses).
+      // Held in-memory on the job only; never logged or persisted.
+      apiKey: (body.gcpTtsApiKey != null ? String(body.gcpTtsApiKey) : ""),
 
       rows,
 
