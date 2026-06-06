@@ -178,6 +178,70 @@ async function main() {
       // R-1.5 hybrid audio: file when present, else device {{tts}} on the Hebrew Word.
       out.specTtsFallback = /\{\{tts /.test(spec.front) && /\{\{\^Audio\}\}/.test(spec.front) && /\{\{tts he_IL:Word\}\}/.test(spec.front);
 
+      // ── R-2: live upsert/dedup logic via a FAKE AnkiConnect (no running Anki) ──
+      // The __v3AnkiConnectMock seam lets us drive canAddNotes/addNotes/findNotes/
+      // updateNoteFields/changeDeck deterministically and assert the branch logic.
+      const makeMock = (cfg) => {
+        const calls = [];
+        const fn = async (action, params) => {
+          calls.push({ action, params: params || {} });
+          if (Object.prototype.hasOwnProperty.call(cfg, action)) {
+            return (typeof cfg[action] === "function") ? cfg[action](params || {}) : cfg[action];
+          }
+          if (action === "canAddNotes") return ((params && params.notes) || []).map(() => true);
+          if (action === "addNotes") return ((params && params.notes) || []).map((_, i) => 1000 + i);
+          if (action === "findNotes") return [];
+          if (action === "notesInfo") return ((params && params.notes) || []).map((id) => ({ noteId: id, cards: [id * 10] }));
+          return null;
+        };
+        fn._calls = calls;
+        return fn;
+      };
+      const buildNotes = (n) => Array.from({ length: n }, (_, i) => ({
+        deckName: "D", modelName: "M",
+        fields: { Word: "w" + i, Audio: "[sound:lp_" + i + ".mp3]" },
+        options: {}, tags: ["linguistpro", "lp_word"],
+      }));
+
+      // U1 — mix: 1 new + 2 existing → 1 created, 2 updated-in-place (+audio) + changeDeck.
+      {
+        const mock = makeMock({ canAddNotes: [true, false, false], addNotes: (p) => p.notes.map((_, i) => 2000 + i), findNotes: () => [555] });
+        window.__v3AnkiConnectMock = mock;
+        const r = await window.v3AnkiUpsertWordNotes(buildNotes(3), "D");
+        window.__v3AnkiConnectMock = null;
+        const upd = mock._calls.filter((c) => c.action === "updateNoteFields");
+        out.U1_created = r.created === 1;
+        out.U1_updated = r.updated === 2;
+        out.U1_updateCalled = upd.length === 2;
+        out.U1_updateHasAudio = upd.length > 0 && /\[sound:/.test(JSON.stringify(upd[0].params.note.fields));
+        out.U1_changeDeck = mock._calls.some((c) => c.action === "changeDeck");
+        out.U1_addCalled = mock._calls.some((c) => c.action === "addNotes");
+      }
+      // U2 — all existing → updated only, nothing created.
+      {
+        const mock = makeMock({ canAddNotes: [false, false], findNotes: () => [777] });
+        window.__v3AnkiConnectMock = mock;
+        const r = await window.v3AnkiUpsertWordNotes(buildNotes(2), "D");
+        window.__v3AnkiConnectMock = null;
+        out.U2_ok = r.created === 0 && r.updated === 2;
+      }
+      // U3 — all new → created only, no updateNoteFields.
+      {
+        const mock = makeMock({ canAddNotes: [true, true], addNotes: (p) => p.notes.map((_, i) => i + 1) });
+        window.__v3AnkiConnectMock = mock;
+        const r = await window.v3AnkiUpsertWordNotes(buildNotes(2), "D");
+        window.__v3AnkiConnectMock = null;
+        out.U3_ok = r.created === 2 && !mock._calls.some((c) => c.action === "updateNoteFields");
+      }
+      // D1 — dedup index-bug regression: all-duplicate freshOnly batch recreates N (was 0).
+      {
+        const mock = makeMock({ canAddNotes: [false, false, false], addNotes: (p) => p.notes.map((_, i) => 9000 + i) });
+        window.__v3AnkiConnectMock = mock;
+        const r = await window.v3AnkiAddNotesWithDedup(buildNotes(3), "D", { freshOnly: true }, { frontField: "Word" });
+        window.__v3AnkiConnectMock = null;
+        out.D1_recreated = r.created === 3; // idx bug → 0 before the note-object fix
+      }
+
       // ── DB / resolve path (best-effort) ─────────────────────────────────
       let ldb = null;
       for (let i = 0; i < 20 && !ldb; i++) {
@@ -270,6 +334,15 @@ async function main() {
     test("model: builder returns exactly the model's fields", R.specBuilderKeysMatch === true);
     test("model: Conjugation field + inlined conj CSS (hl + stress #D55E00)", R.specHasConjRef === true);
     test("model: hybrid audio front ({{^Audio}} → {{tts he_IL:Word}})", R.specTtsFallback === true);
+
+    // R-2 live upsert/dedup (mocked AnkiConnect)
+    test("upsert: mix → 1 created + 2 updated", R.U1_created === true && R.U1_updated === true);
+    test("upsert: existing cards updated in place (updateNoteFields ×2)", R.U1_updateCalled === true);
+    test("upsert: updated card carries the audio [sound:]", R.U1_updateHasAudio === true);
+    test("upsert: updated cards moved to target deck (changeDeck)", R.U1_changeDeck === true);
+    test("upsert: all-existing → updated only (0 created)", R.U2_ok === true);
+    test("upsert: all-new → created only (no updateNoteFields)", R.U3_ok === true);
+    test("dedup: all-duplicate freshOnly recreates N (idx-bug regression)", R.D1_recreated === true);
 
     // DB resolve path
     if (R.dbSkipped) console.log("  · DB/resolve cases skipped (headless OPFS)");

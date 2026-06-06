@@ -13867,6 +13867,12 @@ function v3LevenshteinAtMost(a, b, budget) {
 // carries the array so callers can interpret duplicates etc. without
 // surfacing them as a global failure.
 async function v3AnkiConnectDirect(action, params) {
+  // Test seam (R-2): the smoke injects a fake AnkiConnect so the live
+  // upsert/dedup logic is gated without a running Anki. Inert in prod
+  // (window.__v3AnkiConnectMock is never set there).
+  if (typeof window !== 'undefined' && typeof window.__v3AnkiConnectMock === 'function') {
+    return window.__v3AnkiConnectMock(action, params || {});
+  }
   const body = JSON.stringify({ action, version: 6, params: params || {} });
   const r = await fetch("http://127.0.0.1:8765", { method: "POST", body });
   const j = await r.json();
@@ -14143,6 +14149,11 @@ function v3AnkiBuildWordCardFields(note, opts) {
 window.v3AnkiBuildWordCardFields = v3AnkiBuildWordCardFields;
 window.v3AnkiConjHtml = v3AnkiConjHtml;
 window.v3AnkiResolveParadigm = v3AnkiResolveParadigm;
+// R-2 gate: live upsert/dedup logic, tested via the __v3AnkiConnectMock seam.
+// Direct refs (hoisted function declarations) — NOT wrapper arrows, which would
+// self-recurse since at top level the name resolves to the window property.
+window.v3AnkiUpsertWordNotes = v3AnkiUpsertWordNotes;
+window.v3AnkiAddNotesWithDedup = v3AnkiAddNotesWithDedup;
 
 // Pull a row's MP3 from /api/audio/:assetKey, store it in Anki's media folder
 // under audio_<assetKey>.mp3 via storeMediaFile. Returns the filename to
