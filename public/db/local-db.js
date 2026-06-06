@@ -1803,15 +1803,21 @@ export async function getTextLearningCoverage(textId) {
 // searchWordNotesWithCanonical (MIN(id) per note, scoped to text_id). NO writes.
 export async function getCanonicalWordNotesForText(textId) {
   if (!textId) return [];
+  // example_audio_key: the example sentence's existing default audio (same join
+  // getSentences uses) — so R-1.5 Anki word-card audio reuses the learner's own
+  // sentence audio for free, no re-synthesis (R3/R5).
   const rows = await q(
     `SELECT n.id, n.body_json,
-            s.he_niqqud AS example_he, s.he_plain AS example_he_plain, s.ru AS example_ru
+            s.he_niqqud AS example_he, s.he_plain AS example_he_plain, s.ru AS example_ru,
+            aa.asset_key AS example_audio_key
        FROM notes_v2 n
        JOIN note_occurrences o
          ON o.note_id = n.id
         AND o.id = (SELECT MIN(o2.id) FROM note_occurrences o2
                      WHERE o2.note_id = n.id AND o2.text_id = ?)
        LEFT JOIN sentences s ON s.id = o.sentence_id
+       LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
+       LEFT JOIN audio_assets aa ON aa.id = sa.audio_id
       WHERE n.note_type = 'word_study'
       ORDER BY o.id ASC`,
     [String(textId)]
@@ -1820,7 +1826,11 @@ export async function getCanonicalWordNotesForText(textId) {
     const he = String(r0.example_he || r0.example_he_plain || '').trim();
     const ru = String(r0.example_ru || '').trim();
     const example = he ? (ru ? he + ' — ' + ru : he) : '';
-    return { id: r0.id, body_json: r0.body_json, example_he: he, example_ru: ru, example };
+    return {
+      id: r0.id, body_json: r0.body_json,
+      example_he: he, example_ru: ru, example,
+      example_audio_key: r0.example_audio_key ? String(r0.example_audio_key) : '',
+    };
   });
 }
 

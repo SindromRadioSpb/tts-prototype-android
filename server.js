@@ -2412,8 +2412,12 @@ if (ttsProfile && typeof ttsProfile === "object") {
 const v3AssetType =
   (assetType && String(assetType).trim()) ? String(assetType).trim() : null;
 
-// v3 mode is enabled only when linking is requested (keeps legacy calls unchanged)
-const hasV3Context = !!(v3SentenceId || v3TextId);
+// v3 mode is enabled when linking is requested (sentence/text) OR for the
+// link-free "word" asset type (R-1.5 Anki word-card audio): arbitrary headword
+// text → cached MP3 + stable assetKey, with NO sentence/text linking (both stay
+// null below, so ensureAudioAsset never touches a default-audio row). Keeps all
+// other legacy calls unchanged.
+const hasV3Context = !!(v3SentenceId || v3TextId || v3AssetType === "word");
 
     console.log("[/api/tts] request", {
       requestId,

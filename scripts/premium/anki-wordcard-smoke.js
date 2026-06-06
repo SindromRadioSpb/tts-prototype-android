@@ -146,6 +146,16 @@ async function main() {
       out.X_escMeaning = fX.Russian === "a &amp; b &lt;c&gt;";
       out.X_escExample = fX.Example === "x &lt;y&gt; &amp; z";
 
+      // ── R-1.5 audio: headword → Audio [sound:], example → appended [sound:] ──
+      const fAud = window.v3AnkiBuildWordCardFields(verbNote, {
+        paradigm: verbParadigm, example: exampleStr,
+        headwordAudioFile: "lp_head.mp3", exampleAudioFile: "lp_ex.mp3",
+      });
+      out.Aud_headSound = fAud.Audio === "[sound:lp_head.mp3]";
+      out.Aud_exSound = fAud.Example === (exampleStr + " [sound:lp_ex.mp3]");
+      // No audio files → Audio empty (front uses the {{tts}} fallback), example clean.
+      out.Aud_noneEmpty = fA.Audio === "" && !/\[sound:/.test(fA.Example);
+
       // ── Model spec: every template field-ref exists; builder keys == fields ─
       const spec = window.v3AnkiWordModelSpec();
       const refs = new Set();
@@ -159,6 +169,8 @@ async function main() {
       const builderKeys = Object.keys(fA).sort().join(",");
       out.specBuilderKeysMatch = builderKeys === [...spec.fields].sort().join(",");
       out.specHasConjRef = refs.has("Conjugation") && /v3-conj-cell-hl/.test(spec.css) && /#D55E00/.test(spec.css);
+      // R-1.5 hybrid audio: file when present, else device {{tts}} on the Hebrew Word.
+      out.specTtsFallback = /\{\{tts /.test(spec.front) && /\{\{\^Audio\}\}/.test(spec.front) && /\{\{tts he_IL:Word\}\}/.test(spec.front);
 
       // ── DB / resolve path (best-effort) ─────────────────────────────────
       let ldb = null;
@@ -203,6 +215,8 @@ async function main() {
       const fDb = window.v3AnkiBuildWordCardFields(row, { paradigm: resolved, example: row.example });
       out.dbConjNonEmpty = /v3-conj-cell-hl/.test(fDb.Conjugation) && !/onclick=/.test(fDb.Conjugation);
       out.dbExampleInCard = /Я пишу письмо/.test(fDb.Example);
+      // R-1.5 — read-fn exposes example_audio_key (string; '' here since no sentence audio seeded).
+      out.dbExampleAudioKeyField = row && typeof row.example_audio_key === "string";
 
       // cleanup
       try { await ldb.deleteNoteById(note.id); } catch (_) {}
@@ -225,7 +239,12 @@ async function main() {
     test("verb: stress markup preserved (.v3-conj-stress)", R.A_stressRed === true);
     test("verb: Example = the learner's own sentence", R.A_example === true);
     test("verb: Translit taken from the highlighted cell", R.A_translit === true, R.A_fields && R.A_fields.Translit);
-    test("verb: Audio empty (word-level audio path off)", R.A_audioEmpty === true);
+    test("verb: Audio empty when no file (front uses {{tts}} fallback)", R.A_audioEmpty === true);
+
+    // R-1.5 audio
+    test("audio: headword file → Audio=[sound:..]", R.Aud_headSound === true);
+    test("audio: example file → appended [sound:..]", R.Aud_exSound === true);
+    test("audio: no files → Audio='' + clean Example", R.Aud_noneEmpty === true);
 
     // noun
     test("noun: Conjugation table renders", R.C_conjMarkup === true);
@@ -244,6 +263,7 @@ async function main() {
     test("model: every template field-ref exists in the model", R.specRefsCovered === true, JSON.stringify(R.specRefsMissing));
     test("model: builder returns exactly the model's fields", R.specBuilderKeysMatch === true);
     test("model: Conjugation field + inlined conj CSS (hl + stress #D55E00)", R.specHasConjRef === true);
+    test("model: hybrid audio front ({{^Audio}} → {{tts he_IL:Word}})", R.specTtsFallback === true);
 
     // DB resolve path
     if (R.dbSkipped) console.log("  · DB/resolve cases skipped (headless OPFS)");
@@ -253,6 +273,7 @@ async function main() {
       test("resolve: paradigm resolved (POS-compatible, by root)", R.dbResolved === true);
       test("resolve: built card has table (hl) + no onclick", R.dbConjNonEmpty === true);
       test("resolve: example carried into the card", R.dbExampleInCard === true);
+      test("resolve: read-fn exposes example_audio_key", R.dbExampleAudioKeyField === true);
     }
 
     test("no pageerror on index.html", errs.length === 0, errs.join(" | "));

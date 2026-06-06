@@ -11266,6 +11266,7 @@ body:not(.theme-light) .v3-heatmap-cell {
           <label><input type="checkbox" id="v3AnkiIncludeHint" checked /> <span data-i18n="anki.optionHint">Подсказка (тема/уровень)</span></label>
           <label><input type="checkbox" id="v3AnkiIncludeNoteHtml" /> <span data-i18n="anki.optionNoteHtml">NoteHtml (safe markdown)</span></label>
           <label title="По умолчанию включено. Существующие карточки с тем же ивритом в других колодах останутся на местах — целевая колода получит ровно одну карточку на строку."><input type="checkbox" id="v3AnkiFreshOnly" checked /> <span data-i18n="anki.optionFreshOnly">Не трогать карточки из других колод (Fresh-only)</span></label>
+          <label title="Только для карточек-слов. Озвучка лицевой стороны: при заданном ключе GCP TTS — премиум-аудио файлом; пример переиспользует уже готовую озвучку предложения. Без ключа — встроенная озвучка устройства Anki ({{tts}})."><input type="checkbox" id="v3AnkiAudioWords" checked /> <span data-i18n="anki.optionAudioWords">Озвучивать слова (GCP/устройство)</span></label>
         </div>
       </div>
 
@@ -13938,7 +13939,7 @@ async function v3AnkiEnsureLinguistProModel() {
 // REQUIRE a new model name; never mutate the sentence model). Carries the
 // learner's ②-vocabulary: niqqud/translit/root/binyan/POS + the full Pealim
 // conjugation/declension table + an example from their own text + meaning.
-const V3_ANKI_WORD_MODEL = 'LinguistPro Word v1';
+const V3_ANKI_WORD_MODEL = 'LinguistPro Word v2';
 const V3_ANKI_WORD_FIELDS = ['Word', 'Niqqud', 'Translit', 'Russian', 'Root', 'Binyan', 'POS', 'Conjugation', 'Example', 'Mnemonic', 'Audio'];
 
 // The word-card model descriptor (css/front/back). Split out so the smoke can
@@ -13991,7 +13992,11 @@ hr { border: none; border-top: 1px solid #d1d5db; margin: 14px 0; }
   const front =
     '<div class="he">{{Word}}</div>\n' +
     '{{#Niqqud}}<div class="niqqud">{{Niqqud}}</div>{{/Niqqud}}\n' +
-    '{{#Audio}}<div>{{Audio}}</div>{{/Audio}}';
+    // Hybrid audio (R-1.5): play the attached GCP MP3 when present, else fall
+    // back to Anki's device TTS so a card always speaks. {{tts}} only on the
+    // pure-Hebrew Word field (never the mixed he—ru Example).
+    '{{#Audio}}<div>{{Audio}}</div>{{/Audio}}\n' +
+    '{{^Audio}}{{tts he_IL:Word}}{{/Audio}}';
   const back =
     '{{FrontSide}}\n<hr>\n' +
     '<div class="russian">{{Russian}}</div>\n' +
@@ -14101,6 +14106,13 @@ function v3AnkiBuildWordCardFields(note, opts) {
   const binRaw = String(body.binyan || '');
   const binLabel = V3_WORDCARD_BINYAN_LABEL[binRaw] || binRaw;
   const niqqud = body.niqqud_variant || '';
+  // R-1.5 — audio filenames (already stored in Anki media by the export). Audio
+  // field holds the headword [sound:]; the example gets its own [sound:] appended
+  // after the escaped text. Both empty ⇒ front uses the {{tts}} device fallback.
+  const headFile = String(o.headwordAudioFile || '').trim();
+  const exFile = String(o.exampleAudioFile || '').trim();
+  let exampleField = esc(o.example || '');
+  if (exFile) exampleField += (exampleField ? ' ' : '') + '[sound:' + exFile + ']';
   return {
     Word: esc(body.word || ''),
     Niqqud: esc(niqqud),
@@ -14110,9 +14122,9 @@ function v3AnkiBuildWordCardFields(note, opts) {
     Binyan: esc(binLabel),
     POS: esc(posLabel),
     Conjugation: v3AnkiConjHtml(o.paradigm || null, niqqud), // trusted HTML — NOT escaped
-    Example: esc(o.example || ''),
+    Example: exampleField,
     Mnemonic: esc(body.mnemonic || ''),
-    Audio: '',
+    Audio: headFile ? '[sound:' + headFile + ']' : '',
   };
 }
 // Exposed for the browser smoke (lexically-scoped funcs aren't on window).
@@ -14142,6 +14154,37 @@ async function v3AnkiAttachAudio(assetKey) {
   } catch (e) {
     console.debug('[anki] storeMediaFile failed for', ak, ':', e && e.message);
     return "";
+  }
+}
+
+// R-1.5 — synthesize a single Hebrew string (a headword / an example sentence)
+// into a cached MP3 and return its stable assetKey, or "" on any failure (no
+// GCP key → 401, network, etc.) so the caller falls back to Anki {{tts}}. Uses
+// the link-free `word` asset type (server keeps sentence/text null → no
+// default-audio mislinking) + the user's current voice profile + BYOK key.
+async function v3AnkiSynthWordAudio(he) {
+  const text = String(he || '').trim();
+  if (!text) return '';
+  if (typeof gcpTtsKeyGet !== 'function' || !gcpTtsKeyGet()) return ''; // no key → {{tts}} fallback
+  try {
+    const profile = (typeof v3AudioPrefetchGetCurrentProfileForCompare === 'function')
+      ? v3AudioPrefetchGetCurrentProfileForCompare()
+      : { language: 'he-IL', voiceName: '', speakingRate: 1, pitch: 0 };
+    const res = await apiCall('/api/tts', {
+      text,
+      assetType: 'word',
+      ttsProfile: profile,
+      language: profile.language || 'he-IL',
+      languageCode: profile.language || 'he-IL',
+      voiceId: profile.voiceName || undefined,
+      speakingRate: Number.isFinite(profile.speakingRate) ? profile.speakingRate : 1,
+      pitch: Number.isFinite(profile.pitch) ? profile.pitch : 0,
+      gcpTtsApiKey: gcpTtsKeyGet(),
+    });
+    return (res && res.assetKey) ? String(res.assetKey) : '';
+  } catch (e) {
+    console.debug('[anki] word audio synth failed:', e && e.message);
+    return '';
   }
 }
 
@@ -14696,33 +14739,77 @@ async function v3AnkiPushWordCards(textId, text, opts, ldb) {
     .toLowerCase().replace(/[^\p{L}\p{N}_-]+/gu, '_').replace(/^_+|_+$/g, '').slice(0, 40);
   const textTag = 'lp_text_' + String(textId || '').replace(/[^0-9a-z]/gi, '').slice(0, 16);
 
-  const ankiNotes = [];
+  // Phase 1 — resolve each note's body + paradigm (keep example + its audio key).
+  const items = [];
   let skippedNoBody = 0;
   for (const n of notes) {
-    try {
-      let body = {};
-      try { body = n.body_json ? JSON.parse(n.body_json) : {}; } catch (_) { body = {}; }
-      if (!body || !String(body.word || '').trim()) { skippedNoBody++; continue; }
-      const paradigm = await v3AnkiResolveParadigm(body);
-      const fields = v3AnkiBuildWordCardFields(n, { paradigm, example: n.example || '' });
-      ankiNotes.push({
-        deckName: finalDeck,
-        modelName,
-        fields,
-        options: { allowDuplicate: false, duplicateScope: 'deck' },
-        tags: ['linguistpro', 'lp_word', textTag, titleTag || 'untitled'].filter(Boolean),
-      });
-    } catch (_) { skippedNoBody++; }
+    let body = {};
+    try { body = n.body_json ? JSON.parse(n.body_json) : {}; } catch (_) { body = {}; }
+    if (!body || !String(body.word || '').trim()) { skippedNoBody++; continue; }
+    let paradigm = null;
+    try { paradigm = await v3AnkiResolveParadigm(body); } catch (_) { paradigm = null; }
+    items.push({ n, body, paradigm, headFile: '', exFile: '' });
   }
-  if (!ankiNotes.length) {
+  if (!items.length) {
     throw new Error('Не удалось собрать ни одной карточки-слова (нет данных в заметках).');
   }
+
+  // Phase 2 — audio (R-1.5). Reuse the example sentence's EXISTING audio for free
+  // (works even without a key); synthesize the headword (and a missing example)
+  // via GCP only when a key is set. Concurrency-capped (4) with a progress line.
+  // No key ⇒ skip synth → those cards use the {{tts}} device fallback. Per-item
+  // try/catch so one synth/attach failure can't abort the batch.
+  const wantAudio = !(opts && opts.audioWords === false);
+  const keyOk = (typeof gcpTtsKeyGet === 'function' && !!gcpTtsKeyGet());
+  if (wantAudio) {
+    let done = 0;
+    const total = items.length;
+    const setProg = () => {
+      try {
+        const msg = (typeof t === 'function' && t('toast.ankiAudioProgress', { done, total }))
+          || ('Озвучка слов ' + done + '/' + total + '…');
+        v3AnkiSetStatus(msg, false);
+      } catch (_) {}
+    };
+    setProg();
+    const worker = async (start) => {
+      for (let i = start; i < items.length; i += 4) {
+        const it = items[i];
+        try {
+          if (keyOk) {
+            const ak = await v3AnkiSynthWordAudio(it.body.niqqud_variant || it.body.word || '');
+            if (ak) it.headFile = await v3AnkiAttachAudio(ak);
+          }
+          let exKey = String(it.n.example_audio_key || '').trim();
+          if (!exKey && keyOk && it.n.example_he) exKey = await v3AnkiSynthWordAudio(it.n.example_he);
+          if (exKey) it.exFile = await v3AnkiAttachAudio(exKey);
+        } catch (_) {}
+        done++; setProg();
+      }
+    };
+    await Promise.all([worker(0), worker(1), worker(2), worker(3)]);
+  }
+  const audioCards = items.filter((it) => it.headFile || it.exFile).length;
+
+  // Phase 3 — build the cards.
+  const ankiNotes = items.map((it) => ({
+    deckName: finalDeck,
+    modelName,
+    fields: v3AnkiBuildWordCardFields(it.n, {
+      paradigm: it.paradigm,
+      example: it.n.example || '',
+      headwordAudioFile: it.headFile,
+      exampleAudioFile: it.exFile,
+    }),
+    options: { allowDuplicate: false, duplicateScope: 'deck' },
+    tags: ['linguistpro', 'lp_word', textTag, titleTag || 'untitled'].filter(Boolean),
+  }));
 
   const dd = await v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, { frontField: 'Word', titleTag, audioFilenameBySid: {} });
   return {
     created: dd.created,
     updated: 0,
-    audioQueued: 0,
+    audioQueued: audioCards,
     duplicates: dd.duplicates,
     skipped: skippedNoBody + dd.skippedRuntimeEmpty,
     failedOther: dd.failedOther,
@@ -35072,6 +35159,7 @@ function v3AnkiOpenModal() {
     const hintEl = document.getElementById("v3AnkiIncludeHint");
     const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
     const freshEl = document.getElementById("v3AnkiFreshOnly");
+    const audioEl = document.getElementById("v3AnkiAudioWords");
 
     // Default deck suggestion: LinguistPro::<level>
     const level = (st && st.level) ? String(st.level || "").trim() : "";
@@ -35086,6 +35174,7 @@ function v3AnkiOpenModal() {
     // R2.5 — Fresh-only is the default and recommended path. See
     // docs/SRS_STRATEGY_v3_2.md + user dogfood 2026-05-12.
     if (freshEl) freshEl.checked = (opts.freshOnly !== false);
+    if (audioEl) audioEl.checked = (opts.audioWords !== false); // R-1.5 default on
 
     v3AnkiSetStatus("Проверьте AnkiConnect и нажмите «Экспортировать».", false);
     v3AnkiHealth();
@@ -35204,6 +35293,7 @@ async function v3AnkiPushNow() {
   const hintEl = document.getElementById("v3AnkiIncludeHint");
   const htmlEl = document.getElementById("v3AnkiIncludeNoteHtml");
   const freshEl = document.getElementById("v3AnkiFreshOnly");
+  const audioEl = document.getElementById("v3AnkiAudioWords");
 
   const payload = {
     deckName: deckEl ? String(deckEl.value || "").trim() : "",
@@ -35215,6 +35305,8 @@ async function v3AnkiPushNow() {
     // R2.5 — when true (default), duplicates create fresh notes in target
     // deck without disturbing existing cards in other decks.
     freshOnly: freshEl ? !!freshEl.checked : true,
+    // R-1.5 — voice the word cards (headword + example). Default on.
+    audioWords: audioEl ? !!audioEl.checked : true,
   };
 
   v3AnkiWriteOpts(payload);
