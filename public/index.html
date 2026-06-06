@@ -15054,11 +15054,75 @@ async function v3AnkiFetchWordReviewStates() {
 window.v3AnkiCardStatsToLocalState = v3AnkiCardStatsToLocalState;
 window.v3AnkiFetchWordReviewStates = v3AnkiFetchWordReviewStates;
 
-// R-3.2 — end-to-end sync orchestrator: pull Anki review state → write REAL
-// mastery into srs_cards. LOCAL_MODE only (browser-direct AnkiConnect; the
+// R-3.3 — cohort-week key (Monday of the review's week, 'YYYY-MM-DD'). PURE.
+// A plain, sortable, unambiguous week bucket for the retention chart — simpler
+// and bug-safer than ISO week numbers, equally valid for "per cohort week".
+function v3AnkiWeekKey(ms) {
+  if (!ms) return '';
+  const d = new Date(Number(ms));
+  const dt = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+  const dow = (dt.getUTCDay() + 6) % 7;              // Mon=0 … Sun=6
+  dt.setUTCDate(dt.getUTCDate() - dow);              // back to Monday
+  return dt.toISOString().slice(0, 10);
+}
+
+// R-3.3 — compute the retention metric from Anki review logs. PURE.
+// getReviewsOfCards returns, per card, entries { id (epoch ms), ease (1–4), ivl,
+// lastIvl, factor, time, type }. "Retention" counts only TRUE review-type reviews
+// (type===1) — initial learning (0) and relearning (2)/cram (3)/manual (4) aren't
+// long-term-recall signals — and scores a review a success when ease>=3
+// (Good/Easy). Returns overall { reviews, good, retentionPct } + per-cohort-week
+// breakdown so the thesis can chart % Good+ over time. retentionPct is null when
+// there are no review-type reviews yet (honest «—», not a fake 0%).
+function v3AnkiRetentionFromReviews(reviewsByCard) {
+  let reviews = 0, good = 0;
+  const weeks = {};                                  // weekKey → { total, good }
+  const src = reviewsByCard || {};
+  for (const cid of Object.keys(src)) {
+    for (const rv of (Array.isArray(src[cid]) ? src[cid] : [])) {
+      if (Number(rv.type) !== 1) continue;           // review-type only
+      reviews++;
+      const ok = Number(rv.ease) >= 3;
+      if (ok) good++;
+      const wk = v3AnkiWeekKey(Number(rv.id) || 0);
+      if (wk) { (weeks[wk] || (weeks[wk] = { total: 0, good: 0 })); weeks[wk].total++; if (ok) weeks[wk].good++; }
+    }
+  }
+  return { reviews, good, retentionPct: reviews ? Math.round((100 * good) / reviews) : null, weeks };
+}
+
+// R-3.3 — pull the Anki review log for the given Anki card ids. getReviewsOfCards
+// is a RECENT AnkiConnect action and is NOT version-detectable (AnkiConnect always
+// reports version 6) → probe by calling and catching an "unsupported action"
+// error, degrading silently ({ available:false }) on older builds. Batched.
+async function v3AnkiFetchReviewLog(cardIds) {
+  if (!Array.isArray(cardIds) || !cardIds.length) return { available: true, reviewsByCard: {} };
+  const reviewsByCard = {};
+  let available = true;
+  for (let s = 0; s < cardIds.length; s += 200) {
+    try {
+      const r = await v3AnkiConnectDirect('getReviewsOfCards', { cards: cardIds.slice(s, s + 200) });
+      if (r && typeof r === 'object') Object.assign(reviewsByCard, r);
+    } catch (e) {
+      const msg = String((e && e.message) || e).toLowerCase();
+      if (/unsupported|unknown action|not.*support|no such action/.test(msg)) { available = false; break; }
+      // transient per-batch error → skip this batch, keep the rest.
+    }
+  }
+  return { available, reviewsByCard };
+}
+
+window.v3AnkiWeekKey = v3AnkiWeekKey;
+window.v3AnkiRetentionFromReviews = v3AnkiRetentionFromReviews;
+window.v3AnkiFetchReviewLog = v3AnkiFetchReviewLog;
+
+// R-3.2/3.3 — end-to-end sync orchestrator: pull Anki review state → write REAL
+// mastery into srs_cards, then (R-3.3) pull the review log → retention metric +
+// durable research events. LOCAL_MODE only (browser-direct AnkiConnect; the
 // server Anki routes are 410). Returns a flat summary for the UI toast (R-3.4):
 //   { ok, totalNotes, totalCards, untagged, materialized, updated,
-//     conflictKeptLocal, skippedNotReviewed, missingNote, suspended }
+//     conflictKeptLocal, skippedNotReviewed, missingNote, suspended,
+//     retentionPct, reviews, retentionAvailable }
 // or { ok:false, error } when AnkiConnect is unreachable / not LOCAL_MODE.
 // Idempotent — safe to run repeatedly. No-op-safe when there are no lp_word cards.
 async function v3AnkiSyncFromAnki() {
@@ -15070,10 +15134,42 @@ async function v3AnkiSyncFromAnki() {
     return { ok: false, error: 'local DB unavailable' };
   }
   const applied = await ldb.applyAnkiReviewStates(fetched.states);
+
+  // R-3.3 — retention metric from the Anki review log (best-effort; degrades
+  // silently on older AnkiConnect). Map each review's Anki card → local note so
+  // the persisted research events carry note provenance.
+  let retentionPct = null, reviews = 0, retentionAvailable = false;
+  try {
+    const allCardIds = [];
+    const cardToNote = new Map();
+    for (const st of fetched.states) {
+      for (const c of (Array.isArray(st.cardIds) ? st.cardIds : [])) { allCardIds.push(c); cardToNote.set(c, st.localNoteId); }
+    }
+    const log = await v3AnkiFetchReviewLog(allCardIds);
+    retentionAvailable = !!log.available;
+    if (log.available) {
+      const metric = v3AnkiRetentionFromReviews(log.reviewsByCard);
+      retentionPct = metric.retentionPct; reviews = metric.reviews;
+      // Persist (idempotent) for the research / thesis per-week aggregate.
+      const rows = [];
+      for (const cid of Object.keys(log.reviewsByCard)) {
+        for (const rv of (log.reviewsByCard[cid] || [])) {
+          rows.push({ ankiReviewId: rv.id, ankiCardId: cid, localNoteId: cardToNote.get(Number(cid)) || cardToNote.get(cid) || null,
+                      ts: rv.id ? new Date(Number(rv.id)).toISOString() : null,
+                      ease: rv.ease, ivl: rv.ivl, lastIvl: rv.lastIvl, type: rv.type });
+        }
+      }
+      if (rows.length && typeof ldb.recordAnkiReviews === 'function') {
+        try { await ldb.recordAnkiReviews(rows); } catch (_) {}
+      }
+    }
+  } catch (_) { /* retention is a bonus — never fail the sync over it */ }
+
   return {
     ok: true,
     totalNotes: fetched.totalNotes, totalCards: fetched.totalCards, untagged: fetched.untagged,
     ...applied,
+    retentionPct, reviews, retentionAvailable,
   };
 }
 window.v3AnkiSyncFromAnki = v3AnkiSyncFromAnki;

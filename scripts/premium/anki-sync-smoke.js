@@ -205,6 +205,62 @@ async function main() {
         out.F4_batchedCards = ciCalls >= 2;
       }
 
+      // ── R-3.3 retention metric (pure + fetch probe) ───────────────────────
+      out.hasRetention = typeof window.v3AnkiRetentionFromReviews === "function";
+      out.hasWeekKey = typeof window.v3AnkiWeekKey === "function";
+      out.hasFetchLog = typeof window.v3AnkiFetchReviewLog === "function";
+      if (out.hasRetention) {
+        // Week key = Monday (UTC) of the review's week. 2023-11-15 (Wed) → 2023-11-13 (Mon).
+        out.R_weekKey = window.v3AnkiWeekKey(Date.UTC(2023, 10, 15, 12, 0, 0)) === "2023-11-13";
+        out.R_weekKeyEmpty = window.v3AnkiWeekKey(0) === "";
+
+        // ease 4,3 = Good+, ease 2,1 = fail → 2/4 = 50%. type≠1 entries ignored.
+        const w0 = Date.UTC(2023, 10, 15);
+        const log = {
+          "10": [
+            { id: w0 + 1, ease: 4, type: 1 }, { id: w0 + 2, ease: 3, type: 1 },
+            { id: w0 + 3, ease: 2, type: 1 }, { id: w0 + 4, ease: 1, type: 1 },
+            { id: w0 + 5, ease: 1, type: 0 },                 // learning — ignored
+            { id: w0 + 6, ease: 1, type: 2 },                 // relearning — ignored
+          ],
+        };
+        const m = window.v3AnkiRetentionFromReviews(log);
+        out.R_reviews = m.reviews === 4;                      // only the 4 type-1
+        out.R_good = m.good === 2;
+        out.R_pct = m.retentionPct === 50;
+        out.R_weekBucket = m.weeks["2023-11-13"] && m.weeks["2023-11-13"].total === 4 && m.weeks["2023-11-13"].good === 2;
+
+        // No review-type reviews → retentionPct null (honest «—», not fake 0%).
+        const mNone = window.v3AnkiRetentionFromReviews({ "1": [{ id: 1, ease: 1, type: 0 }] });
+        out.R_nullWhenNoReviews = mNone.retentionPct === null && mNone.reviews === 0;
+        out.R_emptyOk = window.v3AnkiRetentionFromReviews({}).retentionPct === null;
+      }
+      if (out.hasFetchLog) {
+        // Probe: getReviewsOfCards present → available, reviews collected + batched.
+        {
+          const calls = [];
+          window.__v3AnkiConnectMock = async (action, params) => {
+            calls.push(action);
+            if (action === "getReviewsOfCards") {
+              const o = {}; for (const c of (params.cards || [])) o[c] = [{ id: 1, ease: 3, type: 1 }]; return o;
+            }
+            return null;
+          };
+          const ids = Array.from({ length: 250 }, (_, i) => 2000 + i);
+          const r = await window.v3AnkiFetchReviewLog(ids);
+          window.__v3AnkiConnectMock = null;
+          out.RL_available = r.available === true && Object.keys(r.reviewsByCard).length === 250;
+          out.RL_batched = calls.filter((a) => a === "getReviewsOfCards").length >= 2;
+        }
+        // Probe: unsupported action → available:false (degrade silently).
+        {
+          window.__v3AnkiConnectMock = async () => { throw new Error("unsupported action: getReviewsOfCards"); };
+          const r = await window.v3AnkiFetchReviewLog([1, 2, 3]);
+          window.__v3AnkiConnectMock = null;
+          out.RL_unsupported = r.available === false;
+        }
+      }
+
       // ── R-3.2 merge into srs_cards (best-effort OPFS DB) ──────────────────
       let ldb = null;
       for (let i = 0; i < 20 && !ldb; i++) {
@@ -317,6 +373,25 @@ async function main() {
         out.M7_missing = res.missingNote === 1;
       }
 
+      // M8 — R-3.3 persistence is idempotent: recording the same Anki reviews
+      // twice yields the SAME events count (deterministic id + INSERT OR IGNORE).
+      if (typeof ldb.recordAnkiReviews === "function") {
+        try { await ldb.dbRun("DELETE FROM events WHERE source = 'anki' AND id LIKE 'anki:SMK%'", []); } catch (_) {}
+        const rows = [
+          { ankiReviewId: "SMK1", ankiCardId: 9, localNoteId: "N1", ts: "2023-11-15T00:00:00.000Z", ease: 3, ivl: 10, lastIvl: 4, type: 1 },
+          { ankiReviewId: "SMK2", ankiCardId: 9, localNoteId: "N1", ts: "2023-11-16T00:00:00.000Z", ease: 4, ivl: 20, lastIvl: 10, type: 1 },
+        ];
+        await ldb.recordAnkiReviews(rows);
+        const c1 = (await ldb.dbQuery("SELECT COUNT(*) AS n FROM events WHERE id LIKE 'anki:SMK%'", []))[0].n;
+        await ldb.recordAnkiReviews(rows);                    // re-run
+        const c2 = (await ldb.dbQuery("SELECT COUNT(*) AS n FROM events WHERE id LIKE 'anki:SMK%'", []))[0].n;
+        out.M8_persistOnce = Number(c1) === 2;
+        out.M8_idempotent = Number(c2) === 2;                 // no double-count
+        const ev = (await ldb.dbQuery("SELECT source, event_type FROM events WHERE id = 'anki:SMK1'", []))[0];
+        out.M8_tagged = ev && ev.source === "anki" && ev.event_type === "srs_review";
+        try { await ldb.dbRun("DELETE FROM events WHERE id LIKE 'anki:SMK%'", []); } catch (_) {}
+      } else { out.M8_skip = true; }
+
       return out;
     });
 
@@ -352,6 +427,16 @@ async function main() {
     test("fetch: 250 notes all mapped (batched notesInfo)", R.F4_allMapped === true && R.F4_batchedNotes === true);
     test("fetch: cardsInfo batched (chunks of 200)", R.F4_batchedCards === true);
 
+    // R-3.3 retention (pure + probe)
+    test("retention: exports present (metric + weekKey + fetchLog)", R.hasRetention && R.hasWeekKey && R.hasFetchLog);
+    test("retention: week key = Monday of the review week", R.R_weekKey === true && R.R_weekKeyEmpty === true);
+    test("retention: % Good+ = ease≥3 over type-1 reviews (50%)", R.R_reviews === true && R.R_good === true && R.R_pct === true);
+    test("retention: non-review types ignored", R.R_reviews === true);
+    test("retention: per-cohort-week bucket", R.R_weekBucket === true);
+    test("retention: null (not 0%) when no review-type reviews", R.R_nullWhenNoReviews === true && R.R_emptyOk === true);
+    test("retention: getReviewsOfCards present → available + batched", R.RL_available === true && R.RL_batched === true);
+    test("retention: unsupported action → degrade silently (available:false)", R.RL_unsupported === true);
+
     // R-3.2 merge (DB)
     if (R.dbSkipped) console.log("  · merge/DB cases skipped (headless OPFS)");
     else {
@@ -369,6 +454,11 @@ async function main() {
       test("merge: conflict guard keeps newer in-app review", R.M6_keptLocal === true && R.M6_stateLocal === true);
       test("merge: conflict card still managed → out of queue", R.M6_managedStill === true && R.M6_notInQueue === true);
       test("merge: unknown local note id → missingNote (no throw)", R.M7_missing === true);
+      if (R.M8_skip) console.log("  · retention-persist case skipped (recordAnkiReviews absent)");
+      else {
+        test("retention-persist: reviews recorded as events{source:anki}", R.M8_persistOnce === true && R.M8_tagged === true);
+        test("retention-persist: idempotent (re-run, no double-count)", R.M8_idempotent === true);
+      }
     }
 
     test("no pageerror on index.html", errs.length === 0, errs.join(" | "));

@@ -1892,6 +1892,38 @@ export async function applyAnkiReviewStates(states) {
   return res;
 }
 
+// ── R-3.3 Anki Connect sync — persist imported Anki reviews for research ─────
+// The retention metric is computed client-side (in-memory) from getReviewsOfCards
+// each sync, but we ALSO durably record each review as an `events` row with
+// source='anki' so the research-mode layer (which aggregates events.source) can
+// chart % Good+ per cohort week over time. Idempotent BY CONSTRUCTION: the event
+// id is deterministic (`anki:<ankiReviewId>` — Anki review ids are unique epoch-ms
+// timestamps) + INSERT OR IGNORE, so re-syncing the same history never
+// double-counts (no fragile high-water mark needed). Best-effort per row.
+// `rows`: [{ ankiReviewId, localNoteId, ankiCardId, ts, ease, ivl, lastIvl, type }].
+export async function recordAnkiReviews(rows) {
+  let attempted = 0;
+  for (const rv of (Array.isArray(rows) ? rows : [])) {
+    if (!rv || rv.ankiReviewId == null) continue;
+    attempted++;
+    const id = 'anki:' + String(rv.ankiReviewId);
+    const ts = rv.ts || new Date().toISOString();
+    try {
+      await r(
+        `INSERT OR IGNORE INTO events
+           (id, ts, event_type, entity_type, entity_id, session_id,
+            text_id, sentence_id, note_id, card_id, source, payload_json)
+         VALUES (?, ?, 'srs_review', 'note', ?, NULL, NULL, NULL, ?, NULL, 'anki', ?)`,
+        [id, ts, rv.localNoteId || null, rv.localNoteId || null,
+         JSON.stringify({ grade: Number(rv.ease) || 0, ivl: rv.ivl, last_ivl: rv.lastIvl,
+                          type: Number(rv.type), anki_review_id: rv.ankiReviewId,
+                          anki_card_id: rv.ankiCardId != null ? rv.ankiCardId : null })]
+      );
+    } catch (_) { /* best-effort — one bad row can't abort the import */ }
+  }
+  return { attempted };
+}
+
 // ── R-1 Anki word-cards — a text's canonical word_study knowledge base ────
 // Read-only. Returns every word_study note that OCCURS in this text (positions
 // live in note_occurrences; canonical autogen notes have text_id IS NULL), with
