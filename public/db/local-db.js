@@ -1799,6 +1799,18 @@ export async function getLearningStateOverlay() {
   return out;
 }
 
+// R-3.8 — the per-LEMMA key of a note body (pid:<pealim_id> else lemma#pos;
+// body.lemma is already niqqud-stripped at autogen time). Lets downstream
+// consumers collapse per-form notes back to one lemma so per-form mode never
+// bloats Anki export / i+1 frontier. Mirrors NotesAutoGen.lemmaKey.
+function _noteLemmaKey(body) {
+  if (!body || typeof body !== 'object') return '';
+  if (body.pealim_id) return 'pid:' + String(body.pealim_id);
+  const lem = String(body.lemma || body.word || '').trim();
+  if (!lem) return '';
+  return lem + '#' + String(body.pos || body.part_of_speech || '');
+}
+
 // ── ②-autogen Stage 4 (Concept D) — per-text learning coverage + i+1 frontier ──
 // Read-only. For a text's canonical word_study notes (positions in note_occurrences,
 // canonical notes have text_id IS NULL), bucket each by its SRS learning state
@@ -1814,7 +1826,11 @@ export async function getTextLearningCoverage(textId) {
   try {
     occ = await q(`SELECT DISTINCT note_id FROM note_occurrences WHERE text_id = ?`, [String(textId)]);
     allWordNotes = await q(
-      `SELECT id, json_extract(body_json,'$.root') AS root, srs_card_id
+      `SELECT id, json_extract(body_json,'$.root') AS root,
+              json_extract(body_json,'$.lemma') AS lemma,
+              json_extract(body_json,'$.pos') AS pos,
+              json_extract(body_json,'$.pealim_id') AS pealim_id,
+              srs_card_id
          FROM notes_v2 WHERE note_type = 'word_study'`, []);
     overlay = await getLearningStateOverlay();
   } catch (_) { return { ok: false }; }
@@ -1830,6 +1846,7 @@ export async function getTextLearningCoverage(textId) {
   }
   let total = 0, known = 0, learning = 0, weak = 0, neu = 0, i1 = 0;
   const frontier = [];
+  const frontierSeen = new Set();   // R-3.8 — seed the frontier ONCE per lemma
   for (const n of (allWordNotes || [])) {
     if (!textIds.has(String(n.id))) continue;
     total++;
@@ -1841,7 +1858,12 @@ export async function getTextLearningCoverage(textId) {
     else neu++;
     const engaged = !!root && rootEngaged.get(root) === true;
     if (engaged) i1++;
-    if (engaged && !n.srs_card_id && st === "new") frontier.push(String(n.id));
+    if (engaged && !n.srs_card_id && st === "new") {
+      // per-lemma frontier: with per-form notes, multiple forms share a lemma —
+      // seed only one card per lemma (Anki = review layer; no per-form flood).
+      const lk = n.pealim_id ? ("pid:" + n.pealim_id) : (String(n.lemma || "").trim() + "#" + String(n.pos || ""));
+      if (!lk || !frontierSeen.has(lk)) { if (lk) frontierSeen.add(lk); frontier.push(String(n.id)); }
+    }
   }
   const i1_ratio = total ? Math.round((100 * i1) / total) : 0;
   return { ok: true, total, known, learning, weak, new: neu, i1_ratio, frontier };
@@ -2113,7 +2135,7 @@ export async function getCanonicalWordNotesForText(textId) {
       ORDER BY o.id ASC`,
     [String(textId)]
   );
-  return (rows || []).map((r0) => {
+  const mapped = (rows || []).map((r0) => {
     const he = String(r0.example_he || r0.example_he_plain || '').trim();
     const ru = String(r0.example_ru || '').trim();
     const example = he ? (ru ? he + ' — ' + ru : he) : '';
@@ -2123,6 +2145,18 @@ export async function getCanonicalWordNotesForText(textId) {
       example_audio_key: r0.example_audio_key ? String(r0.example_audio_key) : '',
     };
   });
+  // R-3.8 — per-form mode can produce several notes per lemma; Anki keeps ONE
+  // card per lemma (its declension table already shows every form). Collapse by
+  // lemma key, keeping the first occurrence (ORDER BY o.id ASC above).
+  const seen = new Set();
+  const out = [];
+  for (const m of mapped) {
+    let body = {}; try { body = m.body_json ? JSON.parse(m.body_json) : {}; } catch (_) { body = {}; }
+    const k = _noteLemmaKey(body);
+    if (k) { if (seen.has(k)) continue; seen.add(k); }
+    out.push(m);
+  }
+  return out;
 }
 
 // ── Roots reference table ────────────────────────────────────────────────

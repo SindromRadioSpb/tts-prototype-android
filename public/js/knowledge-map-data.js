@@ -93,6 +93,7 @@
       " json_extract(body_json, '$.root')      AS j_root," +
       " json_extract(body_json, '$.binyan')    AS j_binyan," +
       " json_extract(body_json, '$.word')      AS j_word," +
+      " json_extract(body_json, '$.lemma')     AS j_lemma," +
       " json_extract(body_json, '$.pos')       AS j_pos," +
       " json_extract(body_json, '$.pealim_id') AS j_pid," +
       " json_extract(body_json, '$.meaning')   AS j_meaning" +
@@ -140,6 +141,10 @@
       if (!root) { stats.rootless++; continue; }
       var lemma = _norm(n.j_word);
       if (!lemma) { stats.rootless++; continue; }
+      // R-3.8 — group nodes by LEMMA so per-form notes (same lemma, different
+      // surface) collapse to one node; falls back to the surface when there's no
+      // lemma (function words). Label still shows the surface (below).
+      var lemForKey = _norm(n.j_lemma) || lemma;
       stats.withRoot++;
 
       var binyan = _norm(n.j_binyan);
@@ -152,7 +157,7 @@
       // status/freq/binyan stay honest (R3/R2). Degrades to #pos when no pid.
       var pid = (n.j_pid != null && String(n.j_pid).trim() !== "") ? String(n.j_pid).trim() : "";
       var meaning = (n.j_meaning != null) ? String(n.j_meaning).trim() : "";
-      var lk = pid ? ("word:pid:" + pid) : ("word:" + lemma + "#" + pos);
+      var lk = pid ? ("word:pid:" + pid) : ("word:" + lemForKey + "#" + pos);
       var ln = lemmas.get(lk);
       if (!ln) {
         ln = { id: lk, kind: "word", rawId: lemma, label: lemma, freq: 0,

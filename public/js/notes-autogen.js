@@ -337,22 +337,37 @@
   }
 
   // Canonical dedup key: pid:<pealim_id> (homograph-safe) else norm(lemma)#pos.
-  function dedupKey(body) {
+  function dedupKey(body, opts) {
+    // Per-form mode (opt-in): one note per SURFACE form (ff:norm(word)#pos),
+    // ignoring pealim_id/lemma so inflected forms don't re-collapse.
+    if (opts && opts.perForm) {
+      return "ff:" + stripNiqqud(body.word || body.lemma || "") + "#" + (body.pos || "");
+    }
     if (body.pealim_id) return "pid:" + body.pealim_id;
     var lem = stripNiqqud(body.lemma || body.word || "");
     return stripNiqqud(lem) + "#" + (body.pos || "");
+  }
+
+  // The per-LEMMA key for a body (pid:<pealim_id> else norm(lemma)#pos),
+  // INDEPENDENT of per-form mode. Downstream consumers (Anki export, i+1
+  // frontier, knowledge-map graph) group per-form notes back to one lemma with
+  // this so per-form mode never bloats them.
+  function lemmaKey(body) {
+    if (body && body.pealim_id) return "pid:" + body.pealim_id;
+    var lem = stripNiqqud((body && (body.lemma || body.word)) || "");
+    return stripNiqqud(lem) + "#" + ((body && body.pos) || "");
   }
 
   // Group resolved units into canonical-lemma candidates. `items`: array of
   // { unit, resolved, occurrences:[{text_id,sentence_id,word_offset,surface}] }.
   // One candidate per dedup_key; occurrences unioned; best (highest-confidence)
   // resolution wins the body. NO DB writes.
-  function buildCandidates(items) {
+  function buildCandidates(items, opts) {
     var byKey = new Map();
     for (var i = 0; i < items.length; i++) {
       var it = items[i];
       var body = assembleBody(it.unit, it.resolved);
-      var key = dedupKey(body);
+      var key = dedupKey(body, opts);
       var cand = byKey.get(key);
       if (!cand) {
         cand = { dedup_key: key, body: body, confidence: it.resolved.confidence, status: it.resolved.status, occurrences: [] };
@@ -395,7 +410,7 @@
     offlineMeaningLookup: offlineMeaningLookup, resolveTrueRoot: resolveTrueRoot,
     checkUnit: checkUnit, resolveContentUnit: resolveContentUnit,
     // assembly
-    assembleBody: assembleBody, dedupKey: dedupKey, buildCandidates: buildCandidates, summarize: summarize,
+    assembleBody: assembleBody, dedupKey: dedupKey, lemmaKey: lemmaKey, buildCandidates: buildCandidates, summarize: summarize,
   };
 
   if (typeof window !== "undefined") window.NotesAutoGen = API;
