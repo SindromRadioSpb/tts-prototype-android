@@ -87,6 +87,18 @@ async function main() {
       out.hasSpec = typeof window.v3AnkiWordModelSpec === "function";
       if (!out.hasBuild || !out.hasSpec) return out;
 
+      // ── R-3.0a identity tag: lp_note_<localNoteId> stamped per word card ──
+      out.hasTags = typeof window.v3AnkiWordCardTags === "function";
+      if (out.hasTags) {
+        const tg = window.v3AnkiWordCardTags("550e8400-e29b-41d4-a716-446655440000", "lp_text_t1", "My Title");
+        out.tag_lpNote = tg.includes("lp_note_550e8400-e29b-41d4-a716-446655440000");
+        out.tag_core = tg.includes("linguistpro") && tg.includes("lp_word") && tg.includes("lp_text_t1");
+        out.tag_noEmpty = tg.every((x) => x !== "");                 // empty entries filtered
+        out.tag_oneLpNote = tg.filter((x) => x.indexOf("lp_note_") === 0).length === 1;
+        const tg2 = window.v3AnkiWordCardTags("", "lp_text_t1", ""); // no id, no title
+        out.tag_noIdNoTag = !tg2.some((x) => x.indexOf("lp_note_") === 0) && tg2.includes("untitled");
+      }
+
       // ── Pure-builder cases (no DB) ──────────────────────────────────────
       const verbParadigm = {
         kind: "verb", pos: "verb", binyan: "paal", root: "כתב", lemma: "כתב", pealim_id: "P1",
@@ -300,6 +312,14 @@ async function main() {
 
     test("window exports present (build/conj/resolve/spec)", R.hasBuild && R.hasConj && R.hasResolve && R.hasSpec,
       JSON.stringify({ b: R.hasBuild, c: R.hasConj, r: R.hasResolve, s: R.hasSpec }));
+
+    // R-3.0a identity tag
+    test("tags: v3AnkiWordCardTags exported", R.hasTags === true);
+    test("tags: stamps lp_note_<localNoteId>", R.tag_lpNote === true);
+    test("tags: keeps core tags (linguistpro/lp_word/lp_text_)", R.tag_core === true);
+    test("tags: no empty tag entries", R.tag_noEmpty === true);
+    test("tags: exactly one lp_note_ tag", R.tag_oneLpNote === true);
+    test("tags: no id → no lp_note_ tag + untitled fallback", R.tag_noIdNoTag === true);
 
     // verb pure-builder
     test("verb: all card fields populated", R.A_fieldsPopulated === true, JSON.stringify(R.A_fields));

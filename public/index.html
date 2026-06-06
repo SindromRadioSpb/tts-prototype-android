@@ -14154,6 +14154,7 @@ window.v3AnkiResolveParadigm = v3AnkiResolveParadigm;
 // self-recurse since at top level the name resolves to the window property.
 window.v3AnkiUpsertWordNotes = v3AnkiUpsertWordNotes;
 window.v3AnkiAddNotesWithDedup = v3AnkiAddNotesWithDedup;
+window.v3AnkiWordCardTags = v3AnkiWordCardTags;
 
 // Pull a row's MP3 from /api/audio/:assetKey, store it in Anki's media folder
 // under audio_<assetKey>.mp3 via storeMediaFile. Returns the filename to
@@ -14736,6 +14737,19 @@ async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
 // pre-attached. R1: a note with no resolvable paradigm (function word) simply
 // ships without a table — never fabricated. Per-note try/catch so one bad note
 // can't abort the batch (mirrors the Stage-4 seed).
+// R-3.0a — the tag set stamped on every exported word card. Pure so the sync
+// gate can assert it without running the whole push path. The canonical
+// word_study note id (notes_v2.id, a UUID — no spaces/`::`, so valid as one Anki
+// tag) is stamped as `lp_note_<id>`: the bidirectional-sync read path matches
+// Anki cards back to the local note by THIS tag, NOT the `Word` surface (which
+// collides across homographs, e.g. שָׁנָה «год» vs «изменил»). The tag lives in
+// Anki and is re-stamped on every re-export → it is the identity source of truth.
+function v3AnkiWordCardTags(noteId, textTag, titleTag) {
+  return ['linguistpro', 'lp_word', textTag, titleTag || 'untitled',
+          noteId ? 'lp_note_' + String(noteId) : '']
+    .filter(Boolean);
+}
+
 async function v3AnkiPushWordCards(textId, text, opts, ldb) {
   const notes = await ldb.getCanonicalWordNotesForText(textId);
   if (!notes || !notes.length) {
@@ -14826,7 +14840,7 @@ async function v3AnkiPushWordCards(textId, text, opts, ldb) {
       exampleAudioFile: it.exFile,
     }),
     options: { allowDuplicate: false, duplicateScope: 'deck' },
-    tags: ['linguistpro', 'lp_word', textTag, titleTag || 'untitled'].filter(Boolean),
+    tags: v3AnkiWordCardTags(it.n.id, textTag, titleTag),
   }));
 
   // Idempotent SYNC (R-1.6): create new cards, UPDATE existing ones in place so
