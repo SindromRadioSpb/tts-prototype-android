@@ -712,6 +712,19 @@ window.I18N_LOCALES.he = {
       curated: "✨ נאסף",
       autoTitle: "נוצר אוטומטית — העריכות שלכם לעולם לא נמחקות",
     },
+    // R-3.5 — Anki SRS lifecycle status badge.
+    lifecycle: {
+      label: "🎴 ב‑Anki:",
+      created: "נוצר",
+      in_anki: "ב‑Anki",
+      learning: "בלימוד",
+      known: "ידוע",
+      suspended: "מושהה",
+      reviewedAgo: "חזרה {t}",
+      staleExport: "נערך אחרי הייצוא",
+      staleExportHint: "ההערה השתנתה אחרי הייצוא — ייצאו מחדש ל‑Anki כדי לרענן את הכרטיס.",
+    },
+    grade: { again: "שוב", hard: "קשה", good: "טוב", easy: "קל" },
     // Slice 1 — root-aware rich word card (read view).
     card: {
       wordsFromRoot: "מילים מהשורש הזה",

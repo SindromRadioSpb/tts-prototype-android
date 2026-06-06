@@ -704,6 +704,19 @@ window.I18N_LOCALES.en = {
       curated: "✨ curated",
       autoTitle: "Generated automatically — your edits are never overwritten",
     },
+    // R-3.5 — Anki SRS lifecycle status badge.
+    lifecycle: {
+      label: "🎴 In Anki:",
+      created: "Created",
+      in_anki: "In Anki",
+      learning: "Learning",
+      known: "Known",
+      suspended: "Suspended",
+      reviewedAgo: "reviewed {t}",
+      staleExport: "edited after export",
+      staleExportHint: "This note changed after export — re-export to Anki to refresh the card.",
+    },
+    grade: { again: "Again", hard: "Hard", good: "Good", easy: "Easy" },
     // Slice 1 — root-aware rich word card (read view).
     card: {
       wordsFromRoot: "Words from this root",

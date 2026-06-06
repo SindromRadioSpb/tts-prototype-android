@@ -712,6 +712,19 @@ window.I18N_LOCALES.ru = {
       curated: "✨ курир.",
       autoTitle: "Создано автоматически — ваши правки не затираются",
     },
+    // R-3.5 — Anki SRS lifecycle status badge.
+    lifecycle: {
+      label: "🎴 В Anki:",
+      created: "Создано",
+      in_anki: "В Anki",
+      learning: "Учу",
+      known: "Знаю",
+      suspended: "Отложено",
+      reviewedAgo: "повтор {t}",
+      staleExport: "изменено после экспорта",
+      staleExportHint: "Заметка изменена после экспорта — переэкспортируйте в Anki, чтобы обновить карточку.",
+    },
+    grade: { again: "Снова", hard: "Трудно", good: "Хорошо", easy: "Легко" },
     // Slice 1 — root-aware rich word card (read view).
     card: {
       wordsFromRoot: "Слова от этого корня",

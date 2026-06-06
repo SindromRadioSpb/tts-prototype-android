@@ -6375,10 +6375,39 @@ body:not(.theme-light) .v3-notes-row-index-count { color: var(--theme-bg-page); 
   border-radius: 999px;
   color: #fff;
   background: var(--state-color, #999);
-  text-transform: uppercase;
   letter-spacing: 0.03em;
   white-space: nowrap;
   flex-shrink: 0;
+}
+/* R-3.5 — last Anki grade chip beside the lifecycle badge. */
+.v3-wordcard-grade {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--grade-color, #999);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-inline-start: 4px;
+}
+/* «needs work» (weak/overdue) — subtle warm ring on the lifecycle badge. */
+.v3-wordcard-state-needswork { box-shadow: 0 0 0 2px rgba(213, 94, 0, 0.35); }
+
+/* R-3.5 — Anki lifecycle status row in the note modal. */
+.v3-notes-lifecycle { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.v3-notes-life-badge, .v3-notes-life-grade {
+  font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  color: #fff; white-space: nowrap;
+}
+.v3-notes-life-badge { background: var(--state-color, #999); }
+.v3-notes-life-grade { background: var(--grade-color, #999); }
+.v3-notes-life-meta { font-size: 11px; opacity: 0.7; }
+.v3-notes-life-stale { font-size: 11px; color: #D55E00; font-weight: 600; }
+.v3-notes-life-sync {
+  font-size: 11px; padding: 2px 8px; border-radius: 8px; cursor: pointer;
+  background: var(--theme-bg-muted, #f1f5f9); border: 1px solid var(--theme-border-soft);
+  color: inherit; white-space: nowrap;
 }
 .v3-wordcard-acc {
   border-top: 1px dashed var(--theme-border-soft);
@@ -11470,6 +11499,14 @@ body:not(.theme-light) .v3-heatmap-cell {
         </button>
       </div>
 
+      <!-- R-3.5 — Anki SRS lifecycle status (word_study only). Populated by
+           v3NotesRenderLifecycle: badge + last grade + «последний повтор N назад»
+           + stale-export hint + «↻ Синхронизировать» CTA. -->
+      <div class="v3-notes-meta-row v3-notes-lifecycle-row" id="v3NotesLifecycleRow" style="display:none;">
+        <span class="v3-notes-meta-label" data-i18n="notes.lifecycle.label">🎴 В Anki:</span>
+        <span id="v3NotesLifecycleStatus" class="v3-notes-lifecycle"></span>
+      </div>
+
       <!-- Phase 9.2 — Audio anchoring. Shown only for sentence/word target kinds with a row context. -->
       <div class="v3-notes-meta-row v3-notes-anchor-row" id="v3NotesAnchorRow" style="display:none;">
         <span class="v3-notes-meta-label" data-i18n="notes.anchorLabel">🎧 Аудио:</span>
@@ -14847,6 +14884,16 @@ async function v3AnkiPushWordCards(textId, text, opts, ldb) {
   // Idempotent SYNC (R-1.6): create new cards, UPDATE existing ones in place so
   // re-export applies the freshly-synthesized audio instead of skipping dups.
   const up = await v3AnkiUpsertWordNotes(ankiNotes, finalDeck);
+  // R-3.5 — record export markers so the UI shows «📤 В Anki» immediately (before
+  // any sync; the export path otherwise leaves no local trace). Best-effort; never
+  // blocks the export. body_json is hashed in local-db for the stale-export check.
+  try {
+    if (ldb && typeof ldb.recordAnkiWordExports === 'function') {
+      await ldb.recordAnkiWordExports(items.map((it) => ({
+        note_id: it.n.id, deck_name: finalDeck, model_name: modelName, body_json: it.n.body_json,
+      })));
+    }
+  } catch (_) {}
   return {
     created: up.created,
     updated: up.updated,
@@ -38903,6 +38950,44 @@ function v3NotesToSrsUpdateUI() {
 }
 window.v3NotesToSrsUpdateUI = v3NotesToSrsUpdateUI;
 
+// R-3.5 — render the Anki SRS lifecycle row in the note modal (word_study only):
+// state badge + last grade + «последний повтор N назад» + stale-export hint +
+// «↻ Синхронизировать» CTA (exported-but-unreviewed). Best-effort; hides on fail.
+async function v3NotesRenderLifecycle(noteId) {
+  const row = document.getElementById("v3NotesLifecycleRow");
+  const host = document.getElementById("v3NotesLifecycleStatus");
+  if (!row || !host) return;
+  const hide = () => { row.style.display = "none"; host.innerHTML = ""; };
+  try {
+    if (String(v3NotesModalNoteType || "") !== "word_study" || !noteId) return hide();
+    const ldb = await ensureLocalDB();
+    if (!ldb || typeof ldb.getWordNoteLifecycle !== "function") return hide();
+    const life = (await ldb.getWordNoteLifecycle([noteId]))[String(noteId)];
+    if (!life) return hide();
+    const sty = (window.V3_WORDCARD_LIFECYCLE_STYLE || {})[life.status] || { color: "#999", icon: "🆕" };
+    const parts = [
+      `<span class="v3-notes-life-badge" style="--state-color:${sty.color}">${sty.icon} ${v3EscapeHtml(v3WordLifecycleLabel(life.status))}</span>`,
+    ];
+    if (life.grade && (window.V3_GRADE_STYLE || {})[life.grade]) {
+      const gs = window.V3_GRADE_STYLE[life.grade];
+      parts.push(`<span class="v3-notes-life-grade" style="--grade-color:${gs.color}">${gs.dot} ${v3EscapeHtml(v3GradeLabel(life.grade))}</span>`);
+    }
+    if (life.gradeAt && typeof v3NotesFmtRelative === "function") {
+      const rel = v3NotesFmtRelative(life.gradeAt);
+      if (rel) parts.push(`<span class="v3-notes-life-meta">${v3EscapeHtml(v3NotesT("notes.lifecycle.reviewedAgo", "повтор {t}").replace("{t}", rel))}</span>`);
+    }
+    if (life.staleExport) {
+      parts.push(`<span class="v3-notes-life-stale" title="${v3EscapeHtml(v3NotesT("notes.lifecycle.staleExportHint", "Заметка изменена после экспорта — переэкспортируйте в Anki."))}">✏ ${v3EscapeHtml(v3NotesT("notes.lifecycle.staleExport", "изменено после экспорта"))}</span>`);
+    }
+    if (life.status === "in_anki") {
+      parts.push(`<button type="button" class="v3-notes-life-sync" onclick="v3AnkiSyncNow()">↻ ${v3EscapeHtml(v3NotesT("anki.syncBtn", "Синхронизировать из Anki"))}</button>`);
+    }
+    host.innerHTML = parts.join(" ");
+    row.style.display = "";
+  } catch (_) { hide(); }
+}
+window.v3NotesRenderLifecycle = v3NotesRenderLifecycle;
+
 async function v3NotesConvertToSrs() {
   try {
     if (!LOCAL_MODE) { showToast(v3NotesT("toast.notesPolymorphicLocalOnly", "Расширенные заметки доступны только в локальном режиме."), "error"); return; }
@@ -39244,6 +39329,8 @@ async function v3NotesLoadFullNoteIntoModal() {
     // Phase 9.3.C — SRS card back-pointer.
     v3NotesModalSrsCardId = row.srs_card_id ? String(row.srs_card_id) : null;
     try { v3NotesToSrsUpdateUI(); } catch (_) {}
+    // R-3.5 — Anki SRS lifecycle status row (word_study only).
+    try { v3NotesRenderLifecycle(row.id); } catch (_) {}
   } catch (e) {
     console.warn("[notes] v3NotesLoadFullNoteIntoModal failed:", e && e.message ? e.message : e);
   }
@@ -40704,6 +40791,71 @@ const V3_WORDCARD_STATE_STYLE = {
 function v3WordCardStateLabel(st) {
   return v3NotesT("notes.card.state." + st, st);
 }
+
+// R-3.5 — Anki SRS lifecycle palette for the word-card status badge. Reuses the
+// graph/recall palette where they overlap (learning #56B4E9, known #009E73) so
+// the badge, graph ring and recall bar read as one system (R3); adds
+// created/in_anki/suspended. Status comes from ldb.getWordNoteLifecycle.
+const V3_WORDCARD_LIFECYCLE_STYLE = {
+  created:   { color: "#999999", icon: "🆕" },
+  in_anki:   { color: "#5a67d8", icon: "📤" },
+  learning:  { color: "#56B4E9", icon: "🔄" },
+  known:     { color: "#009E73", icon: "✅" },
+  suspended: { color: "#9aa0a6", icon: "⏸" },
+};
+function v3WordLifecycleLabel(st) { return v3NotesT("notes.lifecycle." + st, st); }
+// Anki grade (1=Again … 4=Easy) → chip color + dot + i18n key.
+const V3_GRADE_STYLE = {
+  1: { color: "#D55E00", dot: "🔴", key: "again" },
+  2: { color: "#E69F00", dot: "🟠", key: "hard" },
+  3: { color: "#009E73", dot: "🟢", key: "good" },
+  4: { color: "#56B4E9", dot: "🔵", key: "easy" },
+};
+function v3GradeLabel(g) {
+  const s = V3_GRADE_STYLE[Number(g)];
+  return s ? v3NotesT("notes.grade." + s.key, s.key) : "";
+}
+window.V3_WORDCARD_LIFECYCLE_STYLE = V3_WORDCARD_LIFECYCLE_STYLE;
+window.V3_GRADE_STYLE = V3_GRADE_STYLE;
+window.v3WordLifecycleLabel = v3WordLifecycleLabel;
+window.v3GradeLabel = v3GradeLabel;
+
+// R-3.5 — set the lifecycle badge (+ last-grade chip) on every rich word card in
+// `cards` (the row-index list AND the reading-view popover share the same
+// .v3-wordcard-state span). One batched lifecycle read. Replaces the old
+// overlay-only badge so uncarded-but-exported words read «📤 В Anki» (not blank)
+// and reviewed words show their Anki grade.
+async function v3ApplyWordLifecycleBadges(cards) {
+  try {
+    const list = Array.from(cards || []);
+    const ids = list.map((c) => c.getAttribute("data-note-id")).filter(Boolean);
+    if (!ids.length) return;
+    const ldb = await ensureLocalDB();
+    if (!ldb || typeof ldb.getWordNoteLifecycle !== "function") return;
+    const life = await ldb.getWordNoteLifecycle(ids);
+    list.forEach((card) => {
+      const lc = life[card.getAttribute("data-note-id")];
+      const badge = card.querySelector(".v3-wordcard-state");
+      if (!lc || !badge) return;
+      const sty = V3_WORDCARD_LIFECYCLE_STYLE[lc.status] || V3_WORDCARD_LIFECYCLE_STYLE.created;
+      badge.setAttribute("data-state", lc.status);
+      badge.style.setProperty("--state-color", sty.color);
+      badge.textContent = sty.icon + " " + v3WordLifecycleLabel(lc.status);
+      badge.classList.toggle("v3-wordcard-state-needswork", !!lc.needsWork);
+      badge.style.display = "";
+      // last-grade chip (sibling element, created on demand).
+      let chip = card.querySelector(".v3-wordcard-grade");
+      if (lc.grade && V3_GRADE_STYLE[lc.grade]) {
+        if (!chip) { chip = document.createElement("span"); chip.className = "v3-wordcard-grade"; badge.insertAdjacentElement("afterend", chip); }
+        const gs = V3_GRADE_STYLE[lc.grade];
+        chip.style.setProperty("--grade-color", gs.color);
+        chip.textContent = gs.dot + " " + v3GradeLabel(lc.grade);
+        chip.style.display = "";
+      } else if (chip) { chip.style.display = "none"; }
+    });
+  } catch (_) {}
+}
+window.v3ApplyWordLifecycleBadges = v3ApplyWordLifecycleBadges;
 
 // part_of_speech value → existing word_study POS i18n key.
 const V3_WORDCARD_POS_KEY = {
@@ -42833,23 +42985,9 @@ async function v3NotesRowIndexEnrich() {
       }
     }
   } catch (_) {}
-  // 1) SRS state badges — single overlay query, applied to all cards.
-  try {
-    const ldb = await ensureLocalDB();
-    if (ldb && typeof ldb.getLearningStateOverlay === "function") {
-      const overlay = await ldb.getLearningStateOverlay();
-      cards.forEach((card) => {
-        const st = overlay[card.getAttribute("data-note-id")];
-        const badge = card.querySelector(".v3-wordcard-state");
-        if (st && badge && V3_WORDCARD_STATE_STYLE[st]) {
-          badge.setAttribute("data-state", st);
-          badge.style.setProperty("--state-color", V3_WORDCARD_STATE_STYLE[st]);
-          badge.textContent = v3WordCardStateLabel(st);
-          badge.style.display = "";
-        }
-      });
-    }
-  } catch (_) {}
+  // 1) Anki SRS lifecycle badges (R-3.5) — created / 📤 в Anki / учу / знаю /
+  //    отложено + last-grade chip. One batched lifecycle read for all cards.
+  try { await v3ApplyWordLifecycleBadges(cards); } catch (_) {}
   // 2) "Words from this root" via CrossText (root-expanded corpus forms).
   try {
     const conts = Array.from(document.querySelectorAll(".v3-wordcard-forms[data-forms-for]"));

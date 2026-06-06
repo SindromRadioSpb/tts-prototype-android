@@ -1924,6 +1924,122 @@ export async function recordAnkiReviews(rows) {
   return { attempted };
 }
 
+// ── R-3.5 Anki word-export markers + per-word lifecycle status ───────────────
+// Stable, dependency-free 36-radix hash of a string (djb2). Used to detect when
+// a note's body changed AFTER it was exported to Anki (the Anki card is stale).
+function _djb2(str) {
+  let h = 5381;
+  const s = String(str || '');
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+
+// Record that word_study notes were exported to an Anki deck (R-3.5). Called by
+// the export path on success so the UI can show «📤 В Anki» immediately, before
+// any sync. `rows`: [{ note_id, deck_name, model_name, body_json }] — we hash
+// body_json HERE so the stale-export check in getWordNoteLifecycle uses the same
+// algorithm on the same input. INSERT OR REPLACE → re-export refreshes the
+// marker (new hash/timestamp clears the stale flag). Best-effort per row.
+export async function recordAnkiWordExports(rows) {
+  let recorded = 0;
+  const now = new Date().toISOString();
+  for (const rv of (Array.isArray(rows) ? rows : [])) {
+    if (!rv || !rv.note_id) continue;
+    recorded++;
+    try {
+      await r(
+        `INSERT OR REPLACE INTO anki_word_exports
+           (note_id, deck_name, model_name, body_hash, exported_at, updated_at)
+         VALUES (?,?,?,?,?,?)`,
+        [String(rv.note_id), rv.deck_name || null, rv.model_name || null,
+         _djb2(rv.body_json || ''), now, now]
+      );
+    } catch (_) { /* best-effort — never block the export */ }
+  }
+  return { recorded };
+}
+
+// Per-word Anki SRS lifecycle status for a batch of note ids (R-3.5). Composes:
+//   • notes_v2 ⋈ srs_cards (state/reps/meta) — was the word reviewed anywhere?
+//   • getLearningStateOverlay() (reuse; one query) — known vs learning/needs-work
+//   • anki_word_exports — exported to Anki? (the only pre-sync signal)
+//   • most-recent events{source:'anki'} grade — last Анки оценка (1–4)
+// Status priority: suspended → known/learning (reps>0) → in_anki (exported) →
+// created. Read-only; tolerant of missing tables. Returns:
+//   { [noteId]: { status, needsWork, grade, gradeAt, exported, exportedAt, deck,
+//                 staleExport, reps, lastReviewAt } }
+export async function getWordNoteLifecycle(noteIds) {
+  const ids = (Array.isArray(noteIds) ? noteIds : []).map(String).filter(Boolean);
+  const out = {};
+  if (!ids.length) return out;
+  const ph = ids.map(() => '?').join(',');
+
+  let noteRows = [];
+  try {
+    noteRows = await q(
+      `SELECT n.id AS note_id, n.body_json AS body_json,
+              c.state AS card_state, c.reps AS reps, c.meta_json AS meta_json,
+              c.last_review_at AS last_review_at
+         FROM notes_v2 n
+         LEFT JOIN srs_cards c ON c.id = n.srs_card_id
+        WHERE n.id IN (${ph})`, ids);
+  } catch (_) { return out; }
+
+  const exp = {};
+  try {
+    for (const r0 of (await q(`SELECT note_id, deck_name, body_hash, exported_at FROM anki_word_exports WHERE note_id IN (${ph})`, ids) || [])) {
+      exp[String(r0.note_id)] = r0;
+    }
+  } catch (_) {}
+
+  const grade = {};
+  try {
+    // One bare-column + a single MAX(ts) → SQLite returns the grade from the row
+    // with the latest ts (ISO strings sort chronologically). Latest Anki grade.
+    for (const r0 of (await q(
+      `SELECT note_id, json_extract(payload_json,'$.grade') AS grade, MAX(ts) AS ts
+         FROM events
+        WHERE source='anki' AND event_type='srs_review' AND note_id IN (${ph})
+        GROUP BY note_id`, ids) || [])) {
+      grade[String(r0.note_id)] = { grade: Number(r0.grade) || null, ts: r0.ts || null };
+    }
+  } catch (_) {}
+
+  let overlay = {};
+  try { overlay = await getLearningStateOverlay(); } catch (_) {}
+
+  for (const nr of (noteRows || [])) {
+    const id = String(nr.note_id);
+    const reps = Number(nr.reps) || 0;
+    const cs = String(nr.card_state || '').toLowerCase();
+    const ex = exp[id];
+    const g = grade[id];
+    const ov = overlay[id];                      // weak|stale|learning|new|known (carded)
+    let staleExport = false;
+    if (ex && ex.body_hash) { try { staleExport = _djb2(String(nr.body_json || '')) !== String(ex.body_hash); } catch (_) {} }
+
+    let status;
+    if (cs === 'suspended') status = 'suspended';
+    else if (reps > 0) status = (ov === 'known' || (!ov && cs === 'review')) ? 'known' : 'learning';
+    else if (ex) status = 'in_anki';
+    else status = 'created';
+
+    out[id] = {
+      status,
+      needsWork: ov === 'weak' || ov === 'stale',
+      grade: g ? g.grade : null,
+      gradeAt: g ? g.ts : null,
+      exported: !!ex,
+      exportedAt: ex ? ex.exported_at : null,
+      deck: ex ? ex.deck_name : null,
+      staleExport,
+      reps,
+      lastReviewAt: nr.last_review_at || null,
+    };
+  }
+  return out;
+}
+
 // ── R-1 Anki word-cards — a text's canonical word_study knowledge base ────
 // Read-only. Returns every word_study note that OCCURS in this text (positions
 // live in note_occurrences; canonical autogen notes have text_id IS NULL), with

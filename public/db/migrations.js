@@ -695,4 +695,22 @@ export const MIGRATIONS = [
   CREATE INDEX IF NOT EXISTS ix_note_occ_sentence ON note_occurrences(sentence_id);
   CREATE INDEX IF NOT EXISTS ix_note_occ_text ON note_occurrences(text_id);
   CREATE UNIQUE INDEX IF NOT EXISTS ux_note_occ ON note_occurrences(note_id, sentence_id, word_offset);`,
+
+  // 053_anki_word_exports — per-word Anki SRS lifecycle (R-3.5). Records that a
+  // word_study note was EXPORTED to an Anki deck so the UI can show «📤 В Anki»
+  // immediately after export, before any sync (the export path otherwise leaves
+  // NO local trace). body_hash = hash of body_json at export time → detect
+  // «изменено после экспорта» (the Anki card is stale vs the current note).
+  // Keyed by note_id (one canonical note → one export marker; re-export upserts).
+  // The events(note_id) index speeds the per-note "last Anki grade" lookup that
+  // the lifecycle reader runs (events had no note_id index).
+  `CREATE TABLE IF NOT EXISTS anki_word_exports (
+    note_id     TEXT PRIMARY KEY,
+    deck_name   TEXT,
+    model_name  TEXT,
+    body_hash   TEXT,
+    exported_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_events_note_id ON events(note_id);`,
 ];
