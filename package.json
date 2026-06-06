@@ -102,6 +102,7 @@
     "smoke:anki-wordcards": "node scripts/premium/anki-wordcard-smoke.js",
     "smoke:anki-sync": "node scripts/premium/anki-sync-smoke.js",
     "smoke:anki-lifecycle": "node scripts/premium/anki-lifecycle-smoke.js",
+    "smoke:notes-roundtrip": "node scripts/premium/notes-roundtrip-smoke.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "smoke:notes:srs-candidates": "node scripts/notes-ui/suggest-srs-candidate-smoke.js",

@@ -1098,6 +1098,51 @@ export async function findNoteByDedupKey(dedupKey) {
   return rows[0] || null;
 }
 
+// R-3.6 — is there a «✍ Ваши» word-note already covering this exact position?
+// Inline word notes use target_id '<sentenceId>:<offset>'; «Ваши» = source='user'
+// OR user_touched=1 (matches the reading-view section split). Used by the autogen
+// guard so an «✨ Авто» occurrence is never stacked on top of a user note (the
+// reported duplicate). text_id is accepted for signature symmetry but the
+// composite target_id is already globally unique (sentence ids are UUIDs).
+export async function findUserWordNoteAt(textId, sentenceId, wordOffset) {
+  if (!sentenceId) return null;
+  const tid = String(sentenceId) + ':' + String(wordOffset);
+  const rows = await q(
+    `SELECT id FROM notes_v2
+      WHERE target_kind='word' AND target_id=? AND (source='user' OR user_touched=1)
+      LIMIT 1`, [tid]);
+  return rows[0] || null;
+}
+
+// R-3.6 — one-time cleanup sweep for the «✍ Ваши» + «✨ Авто» duplicate: a word
+// that has BOTH a user inline note AND a canonical auto note at the SAME position.
+// Per the owner's rule, KEEP the auto note, REMOVE the duplicate user note.
+// dryRun → { ok, dryRun:true, pairs, removed:0, byText } (counts only, no delete).
+// Real run deletes the user notes and returns removed count. No-op (pairs:0) when
+// no such pairs exist. Idempotent. Destructive on a real run — gate behind an
+// explicit user action + dry-run review.
+export async function dedupeUserAutoNotes(opts) {
+  const dryRun = !!(opts && opts.dryRun);
+  let rows = [];
+  try {
+    rows = await q(
+      `SELECT DISTINCT n.id AS user_note_id, n.text_id AS text_id
+         FROM note_occurrences o
+         JOIN notes_v2 c ON c.id = o.note_id AND c.text_id IS NULL AND c.gen_dedup_key IS NOT NULL
+         JOIN notes_v2 n ON n.target_kind = 'word'
+                        AND n.target_id = (o.sentence_id || ':' || o.word_offset)
+                        AND (n.source = 'user' OR n.user_touched = 1)`, []);
+  } catch (_) { return { ok: false, pairs: 0, removed: 0, byText: {} }; }
+  const byText = {};
+  for (const r0 of rows) { const t = String(r0.text_id || '(canonical)'); byText[t] = (byText[t] || 0) + 1; }
+  if (dryRun) return { ok: true, dryRun: true, pairs: rows.length, removed: 0, byText };
+  let removed = 0;
+  for (const r0 of rows) {
+    try { await deleteNoteById(r0.user_note_id); removed++; } catch (_) {}
+  }
+  return { ok: true, dryRun: false, pairs: rows.length, removed, byText };
+}
+
 // Create a canonical word_study note with provenance. source ∈ {auto, curated};
 // user_touched starts 0 (regeneration may refresh it until the user edits → then 1,
 // set by updateNote callers, never by autogen). Returns the inserted row.
@@ -3280,10 +3325,13 @@ async function _buildAdvancedNotesPayload(textIds) {
       // For notes_v2 rows: include text-bound notes only when their text_id
       // is in the export set; include text-independent notes always.
       if (key === 'note') {
-        if (TEXT_BOUND_KINDS.has(tk)) {
-          return allowed.has(String(r.text_id || ''));
+        // Canonical notes are text-INDEPENDENT (target_kind='word' but text_id
+        // IS NULL — positioned via note_occurrences); they must be included in a
+        // scoped export too, else a targeted backup loses them (R-3.6).
+        if (TEXT_BOUND_KINDS.has(tk) && r.text_id) {
+          return allowed.has(String(r.text_id));
         }
-        return true; // root/binyan/note/free — always included
+        return true; // text-independent: root/binyan/note/free OR canonical (text_id NULL)
       }
       return true;
     });
@@ -3347,6 +3395,20 @@ async function _buildAdvancedNotesPayload(textIds) {
     } catch (_) {}
   }
 
+  // 6) note_occurrences — WHERE each note appears (text/sentence/word_offset).
+  //    Canonical autogen notes (text_id IS NULL) are positioned ONLY via this
+  //    table; without exporting it, an imported canonical note loses every
+  //    position and vanishes from the reading view. Keyed by old ids; remapped
+  //    on import. Additive field — older importers ignore it.
+  const occurrences = noteIds.length
+    ? (await q(
+        `SELECT note_id, text_id, sentence_id, word_offset, surface
+           FROM note_occurrences
+          WHERE note_id IN (${noteIds.map(() => '?').join(',')})`,
+        noteIds
+      ))
+    : [];
+
   return {
     schema_version: 1,
     exported_at: new Date().toISOString(),
@@ -3357,6 +3419,7 @@ async function _buildAdvancedNotesPayload(textIds) {
     links,
     roots,
     sentence_morph: sentenceMorph,
+    occurrences,
   };
 }
 
@@ -3650,6 +3713,17 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
         didMerge = true;
       }
     }
+    // Canonical-note dedup-key merge: a note carrying a gen_dedup_key that
+    // already exists (merge into a non-empty library, or a re-import) must NOT
+    // be inserted again — the ux_notes_v2_dedup UNIQUE index would reject it and
+    // the note would be dropped. Reuse the existing canonical note so versions/
+    // occurrences attach to it (mirrors the inline-free merge above).
+    if (!newNoteId && n.gen_dedup_key) {
+      try {
+        const existingCanon = await findNoteByDedupKey(String(n.gen_dedup_key));
+        if (existingCanon && existingCanon.id) { newNoteId = String(existingCanon.id); didMerge = true; }
+      } catch (_) {}
+    }
     if (!newNoteId) {
       newNoteId = (typeof crypto !== 'undefined' && crypto.randomUUID)
         ? crypto.randomUUID()
@@ -3688,14 +3762,23 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
           `INSERT INTO notes_v2
              (id, target_kind, target_id, text_id, note_type, title, body_json,
               audio_anchor_ms, audio_asset_key, srs_card_id,
+              source, confidence, model_version, user_touched, gen_dedup_key,
               created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             newNoteId, tk, insertTargetId, newTextId, nt,
             String(n.title || ''), bodyJson,
             Number.isFinite(n.audio_anchor_ms) ? Math.max(0, Math.round(n.audio_anchor_ms)) : null,
             n.audio_asset_key != null ? String(n.audio_asset_key) : null,
             n.srs_card_id     != null ? String(n.srs_card_id)     : null,
+            // R-3.6 — preserve note provenance so canonical/auto notes survive the
+            // round-trip (was dropped → everything became source='user'). Old
+            // bundles lack these fields → same defaults as before (user/1/null).
+            (n.source != null ? String(n.source) : 'user'),
+            (Number.isFinite(n.confidence) ? n.confidence : null),
+            (n.model_version != null ? String(n.model_version) : null),
+            (n.user_touched != null ? (n.user_touched ? 1 : 0) : 1),
+            (n.gen_dedup_key != null ? String(n.gen_dedup_key) : null),
             n.created_at || new Date().toISOString(),
             n.updated_at || new Date().toISOString(),
           ]
@@ -3817,6 +3900,31 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
     if (!newTid || !newSid || !Array.isArray(e.tokens) || !e.tokens.length) { out.sentence_morph.dropped++; continue; }
     try { await saveSentenceMorph(newTid, newSid, e.model_version || '', e.tokens, e.provider || 'dicta-morph'); out.sentence_morph.inserted++; }
     catch (_) { out.sentence_morph.dropped++; }
+  }
+
+  // Pass 6 — note_occurrences (R-3.6). Restore WHERE each note appears so
+  // canonical autogen notes (text_id NULL) regain their reading-view positions
+  // after import (was dropped entirely before). Remap note/text/sentence ids;
+  // INSERT OR IGNORE is idempotent via ux_note_occ (note_id,sentence_id,offset).
+  out.occurrences = { inserted: 0, dropped: 0 };
+  const occ = Array.isArray(payload.occurrences) ? payload.occurrences : [];
+  for (const o of occ) {
+    if (!o || typeof o !== 'object') { out.occurrences.dropped++; continue; }
+    const newNoteId = oldToNewNoteId.get(String(o.note_id || ''));
+    if (!newNoteId) { out.occurrences.dropped++; continue; }     // note wasn't imported
+    const newSid = o.sentence_id ? _remap(oldToNewSentenceId, o.sentence_id) : null;
+    const newTid = o.text_id ? _remap(oldToNewTextId, o.text_id) : null;
+    if (!newSid) { out.occurrences.dropped++; continue; }         // can't anchor without a sentence
+    try {
+      await r(
+        `INSERT OR IGNORE INTO note_occurrences (note_id, text_id, sentence_id, word_offset, surface)
+         VALUES (?, ?, ?, ?, ?)`,
+        [newNoteId, newTid, newSid,
+         Number.isFinite(o.word_offset) ? o.word_offset : null,
+         o.surface != null ? String(o.surface) : null]
+      );
+      out.occurrences.inserted++;
+    } catch (_) { out.occurrences.dropped++; }
   }
 
   return out;

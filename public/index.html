@@ -41263,7 +41263,7 @@ async function v3NotesAutoGenPersist(candidates, opts) {
   if (!ldb || typeof ldb.createCanonicalNote !== "function") return { ok: false, reason: "no_schema" };
   const source = opts.source || "curated";
   const model = opts.model_version || V3_PEALIM_INFL_MODEL;
-  let created = 0, refreshed = 0, occ = 0, skipped = 0;
+  let created = 0, refreshed = 0, occ = 0, skipped = 0, occSkipped = 0;
   const newRoots = new Set();
   for (const cand of (candidates || [])) {
     if (!cand || !cand.dedup_key) { skipped++; continue; }
@@ -41289,15 +41289,55 @@ async function v3NotesAutoGenPersist(candidates, opts) {
     }
     if (note && note.id) {
       for (const o of (cand.occurrences || [])) {
+        // R-3.6 guard — don't surface an auto occurrence at a position the user
+        // already has a note for (the «✍ Ваши» + «✨ Авто» duplicate). The
+        // canonical note still keeps its OTHER (uncovered) occurrences.
+        try {
+          if (o && o.sentence_id != null && typeof ldb.findUserWordNoteAt === "function"
+              && await ldb.findUserWordNoteAt(o.text_id, o.sentence_id, o.word_offset)) {
+            occSkipped++; continue;
+          }
+        } catch (_) {}
         try { await ldb.addNoteOccurrence(note.id, o); occ++; } catch (_) {}
       }
     }
   }
   // new_roots counts distinct roots among NEWLY-created notes (an approximation of
   // novelty-vs-base; precise i+1 novelty is the Stage-2/4 graph prefiight).
-  return { ok: true, new_words: created, new_roots: newRoots.size, created: created, refreshed: refreshed, occurrences_recorded: occ, skipped: skipped };
+  return { ok: true, new_words: created, new_roots: newRoots.size, created: created, refreshed: refreshed, occurrences_recorded: occ, occurrences_skipped_user: occSkipped, skipped: skipped };
 }
 window.v3NotesAutoGenPersist = v3NotesAutoGenPersist;
+
+// R-3.6 — owner-triggered cleanup of «✍ Ваши»+«✨ Авто» duplicate notes. Runs a
+// DRY-RUN first (counts only), then asks for explicit confirmation before deleting
+// the duplicate user notes (the auto notes are kept). Safe no-op when there's
+// nothing to clean. Destructive on confirm — never deletes silently.
+async function v3NotesDedupeSweep() {
+  const ldb = await ensureLocalDB();
+  if (!ldb || typeof ldb.dedupeUserAutoNotes !== "function") {
+    showToast(v3NotesT("notes.dedupe.unavailable", "Очистка дублей недоступна."), "error"); return;
+  }
+  let dry = null;
+  try { dry = await ldb.dedupeUserAutoNotes({ dryRun: true }); } catch (_) {}
+  if (!dry || !dry.ok) { showToast(v3NotesT("notes.dedupe.failed", "Не удалось проверить дубли."), "error"); return; }
+  if (!dry.pairs) { showToast(v3NotesT("notes.dedupe.none", "Дублей «Ваши ↔ Авто» не найдено."), "success"); return; }
+  const apply = async () => {
+    let res = null;
+    try { res = await ldb.dedupeUserAutoNotes({ dryRun: false }); } catch (_) {}
+    if (res && res.ok) {
+      showToast(v3NotesT("notes.dedupe.done", "Удалено дублей из «Ваши»: {n}.").replace("{n}", String(res.removed)), "success");
+      try { if (typeof v3NotesRowIndexRefresh === "function") await v3NotesRowIndexRefresh(); } catch (_) {}
+    } else {
+      showToast(v3NotesT("notes.dedupe.failed", "Не удалось очистить дубли."), "error");
+    }
+  };
+  showToast(
+    v3NotesT("notes.dedupe.found", "Найдено дублей: {n}. Удалить из «✍ Ваши» (оставить «✨ Авто»)?").replace("{n}", String(dry.pairs)),
+    "warning",
+    { ttl: 15000, action: { label: v3NotesT("notes.dedupe.apply", "Удалить дубли"), onClick: apply } }
+  );
+}
+window.v3NotesDedupeSweep = v3NotesDedupeSweep;
 
 // ════════════════════════════════════════════════════════════════════════
 // Stage 2 (Concept C) — «✨ Построить знания» review queue.
