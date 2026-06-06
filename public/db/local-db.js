@@ -1706,6 +1706,7 @@ export async function getLearningStateOverlay() {
       `SELECT c.source_note_id AS note_id,
               c.state          AS card_state,
               c.lapses         AS lapses,
+              c.reps           AS reps,
               c.due_date       AS due_date,
               COUNT(a.id)      AS attempts,
               SUM(CASE WHEN a.is_correct = 1 THEN 1 ELSE 0 END) AS correct
@@ -1725,15 +1726,22 @@ export async function getLearningStateOverlay() {
     const attempts = Number(r0.attempts) || 0;
     const correct = Number(r0.correct) || 0;
     const lapses = Number(r0.lapses) || 0;
+    const reps = Number(r0.reps) || 0;
     const cs = String(r0.card_state || "new").toLowerCase();
     let state;
-    // "weak" = needs work: poor accuracy over enough attempts, OR a card the
-    // user has lapsed (forgotten) ≥2 times regardless of recent accuracy.
-    if ((attempts >= 3 && (correct / attempts) < 0.5) || lapses >= 2) {
+    // A card studied in Anki (R-3.2 sync) has NO in-app srs_attempts, so the
+    // card's own `state`/`reps` — not attempt count — is the authority on whether
+    // it's been studied. `reps` advances on every review (in-app OR Anki-synced);
+    // a truly-unstudied card has reps 0 AND attempts 0.
+    if (cs === "suspended") {
+      // Deliberately set aside in Anki — engaged but NOT mastered (never "known").
+      state = "learning";
+    } else if ((attempts >= 3 && (correct / attempts) < 0.5) || lapses >= 2) {
+      // "weak" = needs work: poor accuracy over enough attempts, OR ≥2 lapses.
       state = "weak";
     } else if (r0.due_date && Date.parse(r0.due_date) < (now - OVERDUE_MS)) {
       state = "stale";
-    } else if (attempts === 0 || cs === "new") {
+    } else if (cs === "new" || (attempts === 0 && reps === 0)) {
       state = "new";
     } else if (cs === "learning" || cs === "relearning") {
       state = "learning";
@@ -1792,6 +1800,96 @@ export async function getTextLearningCoverage(textId) {
   }
   const i1_ratio = total ? Math.round((100 * i1) / total) : 0;
   return { ok: true, total, known, learning, weak, new: neu, i1_ratio, frontier };
+}
+
+// ── R-3.2 Anki Connect sync — apply Anki review state to local srs_cards ──────
+// Anki is the authoritative review layer (docs/SRS_STRATEGY_v3_2.md), so we
+// mirror its scheduler fields into srs_cards → getLearningStateOverlay /
+// getTextLearningCoverage now reflect REAL mastery (was: in-app SM2 stub only),
+// and the i+1 frontier is seeded from real data. `states` come from the read
+// path v3AnkiFetchWordReviewStates (each already mapped + tied to a CANONICAL
+// note via the lp_note_<id> tag). Behaviour:
+//   • Note already has a card → overwrite its SM2 fields with Anki's.
+//   • Note has NO card but was GENUINELY reviewed in Anki (reps>0 AND
+//     (type!==0 OR interval>0)) → materialize one (createCardFromNote) then
+//     overwrite. Words merely exported but never studied are SKIPPED — no SRS
+//     flood (R2: употребление > формы); the forgotten/reset case (type 0 &
+//     ivl 0) is excluded so a reset card never resurrects as "known".
+//   • Every touched card is stamped meta_json.anki_managed=true (+ a raw Anki
+//     snapshot for provenance/diffing) and is EXCLUDED from the in-app due queue
+//     (listTodayCards) — review lives in Anki, no double-review.
+//   • Conflict guard: Anki wins UNLESS the local card was reviewed in-app strictly
+//     more recently than Anki's last-modified (rare) — then keep the fresh local
+//     SM2 numbers but still mark it managed; the next Anki review reasserts Anki.
+// Idempotent: re-running converges (last-writer-wins keyed on note id). No writes
+// to notes_v2 beyond the createCardFromNote backlink. No migration (meta_json +
+// free-text state already exist).
+export async function applyAnkiReviewStates(states) {
+  const res = { materialized: 0, updated: 0, conflictKeptLocal: 0, skippedNotReviewed: 0, missingNote: 0, suspended: 0 };
+  const nowIso = () => new Date().toISOString();
+  for (const s of (Array.isArray(states) ? states : [])) {
+    const localNoteId = s && s.localNoteId;
+    const st = s && s.stat;
+    if (!localNoteId || !st) continue;
+
+    const noteRows = await q('SELECT id, srs_card_id FROM notes_v2 WHERE id = ?', [String(localNoteId)]);
+    const note = noteRows[0];
+    if (!note) { res.missingNote++; continue; }     // exported from another device/profile
+
+    let cardId = note.srs_card_id;
+    let materializing = false;
+    if (!cardId) {
+      const reviewed = (Number(st.reps) || 0) > 0 && (Number(st.anki_type) !== 0 || (Number(st.interval_days) || 0) > 0);
+      if (!reviewed) { res.skippedNotReviewed++; continue; }
+      try {
+        const card = await srs.createCardFromNote(String(localNoteId));
+        cardId = card && card.id;
+      } catch (_) { cardId = null; }               // free note / no template → skip
+      if (!cardId) { res.skippedNotReviewed++; continue; }
+      materializing = true;
+    }
+
+    const cardRows = await q('SELECT * FROM srs_cards WHERE id = ?', [cardId]);
+    const card = cardRows[0];
+    if (!card) continue;
+
+    if (st.state === 'suspended') res.suspended++;
+
+    // Conflict guard — strictly-newer in-app review keeps its local SM2 numbers.
+    const ankiModMs = (Number(st.anki_mod) || 0) * 1000;
+    const localMs = card.last_review_at ? Date.parse(card.last_review_at) : 0;
+    const keepLocal = !materializing && localMs && ankiModMs && localMs > ankiModMs;
+
+    // Merge meta_json: preserve existing keys, stamp Anki provenance.
+    let meta = {};
+    try { meta = card.meta_json ? JSON.parse(card.meta_json) : {}; } catch (_) { meta = {}; }
+    meta.anki_managed = true;
+    meta.anki = {
+      cardId: (Array.isArray(s.cardIds) && s.cardIds.length) ? s.cardIds[0] : null,
+      noteId: s.ankiNoteId != null ? s.ankiNoteId : null,
+      mod: Number(st.anki_mod) || 0, queue: Number(st.anki_queue), type: Number(st.anki_type),
+      syncedFrom: 'ankiconnect',
+    };
+
+    if (keepLocal) {
+      await r('UPDATE srs_cards SET meta_json = ?, updated_at = ? WHERE id = ?',
+        [JSON.stringify(meta), nowIso(), cardId]);
+      res.conflictKeptLocal++;
+      continue;
+    }
+
+    const lastReview = ankiModMs ? new Date(ankiModMs).toISOString() : nowIso();
+    await r(
+      `UPDATE srs_cards SET state = ?, interval_days = ?, ease_factor = ?, reps = ?, lapses = ?,
+         due_date = ?, meta_json = ?, updated_at = ?, last_review_at = ?
+       WHERE id = ?`,
+      [String(st.state), Number(st.interval_days) || 0, Number(st.ease_factor) || 2.5,
+       Number(st.reps) || 0, Number(st.lapses) || 0, st.due_date || null,
+       JSON.stringify(meta), nowIso(), lastReview, cardId]
+    );
+    if (materializing) res.materialized++; else res.updated++;
+  }
+  return res;
 }
 
 // ── R-1 Anki word-cards — a text's canonical word_study knowledge base ────
@@ -2660,6 +2758,9 @@ export const srs = {
        JOIN srs_card_templates tpl ON c.template_id = tpl.id
        WHERE c.state IN ('new','learning','review','relearning')
          AND (c.due_date IS NULL OR c.due_date <= ?)
+         -- R-3.2: Anki-managed cards are reviewed in Anki (the authoritative
+         -- review layer) → keep them out of the in-app queue (no double-review).
+         AND COALESCE(json_extract(c.meta_json,'$.anki_managed'), 0) <> 1
        ORDER BY CASE c.state WHEN 'learning' THEN 0 WHEN 'relearning' THEN 1 WHEN 'review' THEN 2 ELSE 3 END,
                 c.due_date ASC
        LIMIT 100`,

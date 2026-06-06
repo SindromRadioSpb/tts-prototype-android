@@ -205,6 +205,118 @@ async function main() {
         out.F4_batchedCards = ciCalls >= 2;
       }
 
+      // ── R-3.2 merge into srs_cards (best-effort OPFS DB) ──────────────────
+      let ldb = null;
+      for (let i = 0; i < 20 && !ldb; i++) {
+        try { if (window.__localDBInitPromise) await window.__localDBInitPromise; } catch (_) {}
+        try { const l = await window.ensureLocalDB(); if (l && typeof l.applyAnkiReviewStates === "function") ldb = l; } catch (_) {}
+        if (!ldb) await new Promise((rr) => setTimeout(rr, 500));
+      }
+      if (!ldb) { out.dbSkipped = true; return out; }
+
+      const mkNote = (key) => ldb.createCanonicalNote({
+        gen_dedup_key: key, source: "auto", confidence: 0.9, model_version: "v", user_touched: 0,
+        title: "t", body: { word: "w", niqqud_variant: "w", root: "כתב", lemma: "כתב", pos: "verb", binyan: "paal", meaning: "m" },
+      });
+      const cardFor = async (noteId) => (await ldb.dbQuery("SELECT * FROM srs_cards WHERE source_note_id = ?", [noteId]))[0];
+      const mkState = (noteId, over) => ({
+        localNoteId: noteId, ankiNoteId: 5, cardIds: [50],
+        stat: Object.assign({ state: "review", interval_days: 30, ease_factor: 2.6, reps: 8, lapses: 0,
+                              due_date: "2099-01-01", anki_mod: MOD, anki_type: 2, anki_queue: 2 }, over || {}),
+      });
+      const KEYS = ["ANKISYNC_mat", "ANKISYNC_skip", "ANKISYNC_upd", "ANKISYNC_susp", "ANKISYNC_idem", "ANKISYNC_conf"];
+      for (const k of KEYS) {
+        try { const ex = await ldb.dbQuery("SELECT id FROM notes_v2 WHERE gen_dedup_key = ?", [k]); for (const e of (ex || [])) await ldb.deleteNoteById(e.id); } catch (_) {}
+      }
+
+      // M1 — materialize: a genuinely-reviewed Anki state for an UNCARDED note
+      // creates a card, mirrors the review state, marks it managed, → 'known'.
+      {
+        const n = await mkNote("ANKISYNC_mat");
+        const res = await ldb.applyAnkiReviewStates([mkState(n.id)]);
+        out.M1_materialized = res.materialized === 1 && res.skippedNotReviewed === 0;
+        const c = await cardFor(n.id);
+        out.M1_cardState = !!c && c.state === "review" && c.reps === 8;
+        let meta = {}; try { meta = JSON.parse(c.meta_json); } catch (_) {}
+        out.M1_managed = meta.anki_managed === true && meta.anki && meta.anki.type === 2;
+        const ov = await ldb.getLearningStateOverlay();
+        out.M1_overlayKnown = ov[n.id] === "known";
+        const today = await ldb.srs.listTodayCards();
+        out.M1_notInQueue = !today.some((x) => x.source_note_id === n.id);
+        await ldb.deleteNoteById(n.id);
+      }
+
+      // M2 — skip not-reviewed: reps 0 / type 0 for an uncarded note → no flood.
+      {
+        const n = await mkNote("ANKISYNC_skip");
+        const res = await ldb.applyAnkiReviewStates([mkState(n.id, { reps: 0, interval_days: 0, anki_type: 0, state: "new" })]);
+        out.M2_skipped = res.skippedNotReviewed === 1 && res.materialized === 0;
+        out.M2_noCard = !(await cardFor(n.id));
+        await ldb.deleteNoteById(n.id);
+      }
+
+      // M3 — update existing: a pre-carded note is overwritten, not materialized.
+      {
+        const n = await mkNote("ANKISYNC_upd");
+        await ldb.srs.createCardFromNote(n.id);
+        const res = await ldb.applyAnkiReviewStates([mkState(n.id, { state: "review", reps: 5 })]);
+        out.M3_updated = res.updated === 1 && res.materialized === 0;
+        const c = await cardFor(n.id);
+        out.M3_state = !!c && c.state === "review" && c.reps === 5;
+        await ldb.deleteNoteById(n.id);
+      }
+
+      // M4 — suspended: queue −1 → state 'suspended'; overlay 'learning' (NOT
+      // 'known'); excluded from the in-app queue.
+      {
+        const n = await mkNote("ANKISYNC_susp");
+        const res = await ldb.applyAnkiReviewStates([mkState(n.id, { state: "suspended", anki_queue: -1, reps: 8 })]);
+        out.M4_count = res.suspended === 1 && res.materialized === 1;
+        const c = await cardFor(n.id);
+        out.M4_cardSuspended = !!c && c.state === "suspended";
+        const ov = await ldb.getLearningStateOverlay();
+        out.M4_overlayNotKnown = ov[n.id] === "learning";
+        const today = await ldb.srs.listTodayCards();
+        out.M4_notInQueue = !today.some((x) => x.source_note_id === n.id);
+        await ldb.deleteNoteById(n.id);
+      }
+
+      // M5 — idempotency: run twice → converges (2nd = update, identical card).
+      {
+        const n = await mkNote("ANKISYNC_idem");
+        await ldb.applyAnkiReviewStates([mkState(n.id)]);
+        const c1 = await cardFor(n.id);
+        const res2 = await ldb.applyAnkiReviewStates([mkState(n.id)]);
+        const c2 = await cardFor(n.id);
+        out.M5_converge = res2.updated === 1 && c1.state === c2.state && c1.reps === c2.reps && c1.id === c2.id;
+        await ldb.deleteNoteById(n.id);
+      }
+
+      // M6 — conflict guard: a strictly-newer IN-APP review keeps its local SM2
+      // numbers (Anki mod is older); the card is still marked managed → out of queue.
+      {
+        const n = await mkNote("ANKISYNC_conf");
+        await ldb.srs.createCardFromNote(n.id);
+        const c0 = await cardFor(n.id);
+        await ldb.dbRun("UPDATE srs_cards SET state='learning', reps=1, interval_days=1, last_review_at=? WHERE id=?",
+          [new Date().toISOString(), c0.id]);
+        const res = await ldb.applyAnkiReviewStates([mkState(n.id, { anki_mod: 1600000000 })]); // 2020 (old)
+        out.M6_keptLocal = res.conflictKeptLocal === 1 && res.updated === 0;
+        const c = await cardFor(n.id);
+        out.M6_stateLocal = !!c && c.state === "learning" && c.reps === 1; // Anki numbers NOT applied
+        let meta = {}; try { meta = JSON.parse(c.meta_json); } catch (_) {}
+        out.M6_managedStill = meta.anki_managed === true;
+        const today = await ldb.srs.listTodayCards();
+        out.M6_notInQueue = !today.some((x) => x.source_note_id === n.id);
+        await ldb.deleteNoteById(n.id);
+      }
+
+      // M7 — missing note: a state for an unknown local id → counted, no throw.
+      {
+        const res = await ldb.applyAnkiReviewStates([mkState("no-such-note-id-xyz")]);
+        out.M7_missing = res.missingNote === 1;
+      }
+
       return out;
     });
 
@@ -239,6 +351,25 @@ async function main() {
     test("fetch: offline (findNotes throws) → {ok:false,error}", R.F3_offline === true);
     test("fetch: 250 notes all mapped (batched notesInfo)", R.F4_allMapped === true && R.F4_batchedNotes === true);
     test("fetch: cardsInfo batched (chunks of 200)", R.F4_batchedCards === true);
+
+    // R-3.2 merge (DB)
+    if (R.dbSkipped) console.log("  · merge/DB cases skipped (headless OPFS)");
+    else {
+      test("merge: reviewed Anki state materializes a card", R.M1_materialized === true);
+      test("merge: materialized card mirrors review state (reps)", R.M1_cardState === true);
+      test("merge: card stamped meta.anki_managed + provenance", R.M1_managed === true);
+      test("merge: synced review card → overlay 'known' (attempts=0 not 'new')", R.M1_overlayKnown === true);
+      test("merge: anki_managed card excluded from in-app queue", R.M1_notInQueue === true);
+      test("merge: not-reviewed (reps0/type0) → skipped, no flood", R.M2_skipped === true && R.M2_noCard === true);
+      test("merge: pre-carded note updated in place (not materialized)", R.M3_updated === true && R.M3_state === true);
+      test("merge: suspended → state 'suspended' + counted", R.M4_count === true && R.M4_cardSuspended === true);
+      test("merge: suspended → overlay 'learning' (NOT 'known')", R.M4_overlayNotKnown === true);
+      test("merge: suspended card excluded from in-app queue", R.M4_notInQueue === true);
+      test("merge: idempotent (re-run converges, same card)", R.M5_converge === true);
+      test("merge: conflict guard keeps newer in-app review", R.M6_keptLocal === true && R.M6_stateLocal === true);
+      test("merge: conflict card still managed → out of queue", R.M6_managedStill === true && R.M6_notInQueue === true);
+      test("merge: unknown local note id → missingNote (no throw)", R.M7_missing === true);
+    }
 
     test("no pageerror on index.html", errs.length === 0, errs.join(" | "));
   } finally {

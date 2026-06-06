@@ -15053,6 +15053,30 @@ async function v3AnkiFetchWordReviewStates() {
 window.v3AnkiCardStatsToLocalState = v3AnkiCardStatsToLocalState;
 window.v3AnkiFetchWordReviewStates = v3AnkiFetchWordReviewStates;
 
+// R-3.2 — end-to-end sync orchestrator: pull Anki review state → write REAL
+// mastery into srs_cards. LOCAL_MODE only (browser-direct AnkiConnect; the
+// server Anki routes are 410). Returns a flat summary for the UI toast (R-3.4):
+//   { ok, totalNotes, totalCards, untagged, materialized, updated,
+//     conflictKeptLocal, skippedNotReviewed, missingNote, suspended }
+// or { ok:false, error } when AnkiConnect is unreachable / not LOCAL_MODE.
+// Idempotent — safe to run repeatedly. No-op-safe when there are no lp_word cards.
+async function v3AnkiSyncFromAnki() {
+  if (!LOCAL_MODE) return { ok: false, error: 'sync requires local mode (AnkiConnect)' };
+  const fetched = await v3AnkiFetchWordReviewStates();
+  if (!fetched.ok) return { ok: false, error: fetched.error || 'AnkiConnect unreachable' };
+  const ldb = await ensureLocalDB();
+  if (!ldb || typeof ldb.applyAnkiReviewStates !== 'function') {
+    return { ok: false, error: 'local DB unavailable' };
+  }
+  const applied = await ldb.applyAnkiReviewStates(fetched.states);
+  return {
+    ok: true,
+    totalNotes: fetched.totalNotes, totalCards: fetched.totalCards, untagged: fetched.untagged,
+    ...applied,
+  };
+}
+window.v3AnkiSyncFromAnki = v3AnkiSyncFromAnki;
+
 // Merge two export-stat objects (the 'both' card-kind path). Counts add;
 // deck/model names are combined for the honest toast.
 function v3AnkiMergeExportStats(a, b) {
