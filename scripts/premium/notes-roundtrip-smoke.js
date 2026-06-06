@@ -183,6 +183,105 @@ async function main() {
         try { await ldb.deleteNoteById(cn.id); await ldb.dbRun("DELETE FROM texts WHERE id='RT_T3'"); await ldb.dbRun("DELETE FROM sentences WHERE id=?", [S]); } catch (_) {}
       }
 
+      // ── R-3.7 — full-backup state round-trip (srs_cards + review_events +
+      //    anki_word_exports + events + translation_overrides + text settings/progress) ──
+      {
+        const DK = "RT37_full_kotev#verb", TK = "rt37_key", HEH = "RT37_hehash";
+        // cleanup leftovers
+        try {
+          for (const e of (await ldb.dbQuery("SELECT id FROM notes_v2 WHERE gen_dedup_key = ?", [DK]) || [])) await ldb.deleteNoteById(e.id);
+          for (const t of (await ldb.dbQuery("SELECT id FROM texts WHERE text_key = ?", [TK]) || [])) await ldb.dbRun("DELETE FROM texts WHERE id = ?", [t.id]);
+          await ldb.dbRun("DELETE FROM anki_word_exports WHERE deck_name = 'RT37'");
+          await ldb.dbRun("DELETE FROM translation_overrides WHERE he_hash = ?", [HEH]);
+          await ldb.dbRun("DELETE FROM events WHERE source = 'anki' AND event_type = 'srs_review' AND payload_json LIKE '%RT37%'");
+        } catch (_) {}
+
+        // seed: text (pinned + mastered + progress) + sentence + canonical note +
+        // srs_card (review/reps + anki_managed) + review_event + anki_word_export +
+        // anki review event + translation_override.
+        await ldb.dbRun("INSERT INTO texts (id, text_key, title, source_text, is_pinned, pin_order, manual_smart_tag) VALUES (?,?,?,?,?,?,?)",
+          ["RT37_T", TK, "RT37", "src", 1, 5, "mastered"]);
+        await ldb.dbRun("INSERT INTO sentences (id, text_id, order_index, he_plain, ru) VALUES (?,?,?,?,?)", ["RT37_S", "RT37_T", 0, "כתב", "написал"]);
+        await ldb.setProgress("RT37_T", { last_row_idx: 7, last_step_id: "step-x" });
+        const note = await ldb.createCanonicalNote({ gen_dedup_key: DK, source: "auto", user_touched: 0, title: "כתב", body: { word: "כתב", lemma: "כתב", pos: "verb" } });
+        await ldb.addNoteOccurrence(note.id, { text_id: "RT37_T", sentence_id: "RT37_S", word_offset: 0, surface: "כתב" });
+        const card = await ldb.srs.createCardFromNote(note.id);
+        await ldb.dbRun("UPDATE srs_cards SET state='review', reps=9, interval_days=30, ease_factor=2.6, due_date='2099-01-01', meta_json=? WHERE id=?",
+          [JSON.stringify({ anki_managed: true, anki: { type: 2 } }), card.id]);
+        await ldb.dbRun("INSERT INTO srs_review_events (id, card_id, rating, interval_before, interval_after, reviewed_at) VALUES (?,?,?,?,?,?)",
+          [uuid(), card.id, 3, 10, 30, "2023-11-20T00:00:00.000Z"]);
+        await ldb.recordAnkiWordExports([{ note_id: note.id, deck_name: "RT37", model_name: "M", body_json: (await ldb.dbQuery("SELECT body_json FROM notes_v2 WHERE id=?", [note.id]))[0].body_json }]);
+        await ldb.dbRun("INSERT INTO events (id, ts, event_type, entity_type, entity_id, note_id, source, payload_json) VALUES (?,?,?,?,?,?,?,?)",
+          [uuid(), "2023-11-20T00:00:00.000Z", "srs_review", "note", note.id, note.id, "anki", JSON.stringify({ grade: 3, tag: "RT37" })]);
+        await ldb.dbRun("INSERT INTO translation_overrides (id, he_hash, he, ru, target_lang) VALUES (?,?,?,?,?)",
+          [uuid(), HEH, "כתב", "написал (исправлено)", "ru"]);
+
+        // export (full library so all state sections ride along)
+        const bundle = await ldb.exportBundle({ textIds: ["RT37_T"] });
+        const adv = bundle.notes_advanced || {};
+        out.FS_exportV2 = adv.schema_version === 2 && /v2/.test(String(adv.format || ""));
+        out.FS_exportSrs = (adv.srs_cards || []).some((c) => c.id === card.id)
+          && (adv.srs_review_events || []).some((e) => e.card_id === card.id)
+          && (adv.anki_word_exports || []).some((w) => w.note_id === note.id)
+          && (adv.events || []).some((e) => e.note_id === note.id && e.source === "anki")
+          && (adv.translation_overrides || []).some((t) => t.he_hash === HEH);
+        const expText = (bundle.texts || bundle.library.texts || []).find((t) => t.text_key === TK);
+        out.FS_exportText = !!expText && expText.is_pinned === 1 && expText.manual_smart_tag === "mastered"
+          && expText.progress && expText.progress.last_row_idx === 7;
+
+        // wipe the seeded entities, then import
+        await ldb.deleteNoteById(note.id);                  // cascades occurrences
+        try { await ldb.dbRun("DELETE FROM srs_cards WHERE id=?", [card.id]); } catch (_) {}  // cascades review_events
+        await ldb.dbRun("DELETE FROM anki_word_exports WHERE note_id=?", [note.id]);
+        await ldb.dbRun("DELETE FROM events WHERE note_id=?", [note.id]);
+        await ldb.dbRun("DELETE FROM translation_overrides WHERE he_hash=?", [HEH]);
+        await ldb.dbRun("DELETE FROM texts WHERE id='RT37_T'");
+        await ldb.dbRun("DELETE FROM sentences WHERE id='RT37_S'");
+
+        await ldb.importBundle(bundle, { mode: "skip" });
+
+        // assertions on the restored copy (new ids)
+        const nNote = (await ldb.dbQuery("SELECT id, srs_card_id FROM notes_v2 WHERE gen_dedup_key=?", [DK]))[0];
+        out.FS_noteBack = !!nNote;
+        const nCard = nNote ? (await ldb.dbQuery("SELECT * FROM srs_cards WHERE source_note_id=?", [nNote.id]))[0] : null;
+        out.FS_cardRestored = !!nCard && nCard.state === "review" && Number(nCard.reps) === 9;
+        out.FS_backlink = !!nCard && !!nNote && nNote.srs_card_id === nCard.id;
+        let meta = {}; try { meta = JSON.parse(nCard.meta_json); } catch (_) {}
+        out.FS_cardMeta = meta.anki_managed === true;
+        out.FS_reviewEvent = !!nCard && (await ldb.dbQuery("SELECT COUNT(*) AS n FROM srs_review_events WHERE card_id=?", [nCard.id]))[0].n >= 1;
+        out.FS_ankiExport = !!nNote && (await ldb.dbQuery("SELECT COUNT(*) AS n FROM anki_word_exports WHERE note_id=?", [nNote.id]))[0].n === 1;
+        out.FS_event = !!nNote && (await ldb.dbQuery("SELECT COUNT(*) AS n FROM events WHERE note_id=? AND source='anki'", [nNote.id]))[0].n >= 1;
+        out.FS_translation = (await ldb.dbQuery("SELECT ru FROM translation_overrides WHERE he_hash=?", [HEH]))[0]?.ru === "написал (исправлено)";
+        const nText = (await ldb.dbQuery("SELECT id, is_pinned, manual_smart_tag FROM texts WHERE text_key=?", [TK]))[0];
+        out.FS_textSettings = !!nText && Number(nText.is_pinned) === 1 && nText.manual_smart_tag === "mastered";
+        const nProg = nText ? (await ldb.dbQuery("SELECT last_row_idx, last_step_id FROM text_progress WHERE text_id=?", [nText.id]))[0] : null;
+        out.FS_progress = !!nProg && Number(nProg.last_row_idx) === 7 && nProg.last_step_id === "step-x";
+
+        // re-import idempotency: card count for this note stays 1
+        await ldb.importBundle(bundle, { mode: "skip" });
+        out.FS_idempotent = nNote && (await ldb.dbQuery("SELECT COUNT(*) AS n FROM srs_cards WHERE source_note_id=?", [nNote.id]))[0].n === 1;
+
+        // v1 back-compat: a bundle WITHOUT the new sections still imports clean
+        const v1 = JSON.parse(JSON.stringify(bundle));
+        v1.notes_advanced.schema_version = 1; v1.notes_advanced.format = "linguistpro-notes-advanced-v1";
+        delete v1.notes_advanced.srs_cards; delete v1.notes_advanced.srs_review_events;
+        delete v1.notes_advanced.anki_word_exports; delete v1.notes_advanced.events;
+        delete v1.notes_advanced.translation_overrides; delete v1.notes_advanced.srs_attempts;
+        delete v1.notes_advanced.srs_card_exports;
+        v1.texts = (v1.texts || []).map((t) => ({ ...t, text_key: t.text_key + "_v1" }));
+        let v1ok = true; try { await ldb.importBundle(v1, { mode: "skip" }); } catch (_) { v1ok = false; }
+        out.FS_v1BackCompat = v1ok;
+
+        // cleanup
+        try {
+          for (const e of (await ldb.dbQuery("SELECT id FROM notes_v2 WHERE gen_dedup_key = ?", [DK]) || [])) await ldb.deleteNoteById(e.id);
+          for (const t of (await ldb.dbQuery("SELECT id FROM texts WHERE text_key LIKE ?", [TK + "%"]) || [])) await ldb.dbRun("DELETE FROM texts WHERE id = ?", [t.id]);
+          await ldb.dbRun("DELETE FROM anki_word_exports WHERE deck_name='RT37'");
+          await ldb.dbRun("DELETE FROM translation_overrides WHERE he_hash=?", [HEH]);
+          await ldb.dbRun("DELETE FROM events WHERE payload_json LIKE '%RT37%'");
+        } catch (_) {}
+      }
+
       return out;
     });
 
@@ -199,6 +298,21 @@ async function main() {
       test("sweep: dry-run finds the user+auto pair", R.sweep_dryPairs === true);
       test("sweep: run removes user note, keeps auto", R.sweep_removed === true && R.sweep_userGone === true && R.sweep_autoKept === true);
       test("sweep: no-op after cleanup (0 pairs)", R.sweep_noopAfter === true);
+      // R-3.7 full-backup state round-trip
+      test("state: export bumped to schema_version 2", R.FS_exportV2 === true);
+      test("state: export carries srs/events/anki_export/translation sections", R.FS_exportSrs === true);
+      test("state: export carries text pin/smart-tag/progress", R.FS_exportText === true);
+      test("state: import restores srs_card (state/reps)", R.FS_cardRestored === true);
+      test("state: note↔card backlink re-linked", R.FS_backlink === true);
+      test("state: card meta (anki_managed) preserved", R.FS_cardMeta === true);
+      test("state: srs_review_event restored", R.FS_reviewEvent === true);
+      test("state: anki_word_export restored (note_id remapped)", R.FS_ankiExport === true);
+      test("state: anki review event restored (note_id remapped)", R.FS_event === true);
+      test("state: translation_override restored", R.FS_translation === true);
+      test("state: text pin + smart-tag restored", R.FS_textSettings === true);
+      test("state: reading progress restored", R.FS_progress === true);
+      test("state: re-import idempotent (no duplicate card)", R.FS_idempotent === true);
+      test("state: v1 bundle (no new sections) imports clean", R.FS_v1BackCompat === true);
     }
 
     test("no pageerror on index.html", errs.length === 0, errs.join(" | "));

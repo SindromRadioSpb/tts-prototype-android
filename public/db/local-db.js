@@ -3243,6 +3243,13 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
       ? tagsParsed.map((x) => (typeof x === 'string' ? x : String(x))).filter(Boolean)
       : [];
 
+    // R-3.7 — reading position (text_progress) so restore keeps the user's place.
+    let progress = null;
+    try {
+      const pr = await getProgress(text.id);
+      if (pr) progress = { last_row_idx: pr.last_row_idx ?? null, last_step_id: pr.last_step_id ?? null, updated_at: pr.updated_at || null };
+    } catch (_) {}
+
     texts.push({
       text_id: text.id,
       text_key: text.text_key,
@@ -3259,6 +3266,12 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
       created_at: text.created_at || _exportTs,
       updated_at: text.updated_at || _exportTs,
       is_archived: !!text.is_archived,
+      // R-3.7 — user-settings that were lost on restore before.
+      is_pinned: text.is_pinned ? 1 : 0,
+      pin_order: (text.pin_order != null ? text.pin_order : null),
+      manual_smart_tag: text.manual_smart_tag || null,
+      tts_profile_json: text.tts_profile_json || null,
+      progress,
     });
   }
 
@@ -3295,6 +3308,13 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
        (notesAdvanced.links || []).length ||
        (notesAdvanced.roots || []).length ||
        (notesAdvanced.sentence_morph || []).length)),
+    // R-3.7 — full-backup state (SRS / Anki / events / translation overrides).
+    notes_advanced_schema_version: (notesAdvanced && notesAdvanced.schema_version) || 1,
+    state_present: !!(notesAdvanced &&
+      ((notesAdvanced.srs_cards || []).length ||
+       (notesAdvanced.events || []).length ||
+       (notesAdvanced.anki_word_exports || []).length ||
+       (notesAdvanced.translation_overrides || []).length)),
   };
   const library = { schema_version: 1, texts, audio_assets: audioAssets };
   // Backwards-compat: also expose `texts` at the top of the returned object so
@@ -3409,17 +3429,40 @@ async function _buildAdvancedNotesPayload(textIds) {
       ))
     : [];
 
+  // 7) R-3.7 — full-backup state: SRS scheduling, Anki sync links, analytics
+  //    events, translation overrides. Exported in FULL (the bundle is the user's
+  //    complete backup, so restore/device-migration is faithful WITHOUT Anki
+  //    re-sync). All FK ids (note/sentence/text/card) are remapped on import;
+  //    rows whose refs don't remap are dropped there. Bumps schema_version → 2;
+  //    v1 importers ignore these arrays (additive), v1 bundles import unchanged.
+  const _all = async (sql) => { try { return await q(sql, []); } catch (_) { return []; } };
+  const srsCards            = await _all('SELECT * FROM srs_cards');
+  const srsReviewEvents     = await _all('SELECT * FROM srs_review_events');
+  const srsAttempts         = await _all('SELECT * FROM srs_attempts');
+  const srsCardExports      = await _all('SELECT * FROM srs_card_exports');
+  const ankiWordExports     = await _all('SELECT * FROM anki_word_exports');
+  const eventsRows          = await _all('SELECT * FROM events');
+  const translationOverrides = await _all('SELECT * FROM translation_overrides');
+
   return {
-    schema_version: 1,
+    schema_version: 2,
     exported_at: new Date().toISOString(),
     app_id: 'linguist-pro-web',
-    format: 'linguistpro-notes-advanced-v1',
+    format: 'linguistpro-notes-advanced-v2',
     notes,
     versions,
     links,
     roots,
     sentence_morph: sentenceMorph,
     occurrences,
+    // R-3.7 full-backup state sections:
+    srs_cards: srsCards,
+    srs_review_events: srsReviewEvents,
+    srs_attempts: srsAttempts,
+    srs_card_exports: srsCardExports,
+    anki_word_exports: ankiWordExports,
+    events: eventsRows,
+    translation_overrides: translationOverrides,
   };
 }
 
@@ -3479,7 +3522,13 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         source_text: item.source_text || '',
         source_meta_json: item.source_meta ? JSON.stringify(item.source_meta) : null,
         table_model_meta_json: item.table_model_meta ? JSON.stringify(item.table_model_meta) : null,
+        tts_profile_json: item.tts_profile_json || null,            // R-3.7
         is_archived: item.is_archived ? 1 : 0,
+        // R-3.7 — user-settings carried for the post-insert restore below.
+        is_pinned: item.is_pinned ? 1 : 0,
+        pin_order: (item.pin_order != null ? item.pin_order : null),
+        manual_smart_tag: (item.manual_smart_tag != null ? String(item.manual_smart_tag) : null),
+        progress: item.progress || null,
         created_at: item.created_at || null,
         updated_at: item.updated_at || null,
         sentences: (Array.isArray(item.rows) ? item.rows : []).map((r) => ({
@@ -3578,6 +3627,22 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
           }
         }
       }
+      // R-3.7 — restore text settings createText() doesn't cover (was lost on
+      // import): archive flag, pin state/order, manual smart-tag, reading position.
+      try {
+        await r(
+          `UPDATE texts SET is_archived = ?, is_pinned = ?, pin_order = ?, manual_smart_tag = ? WHERE id = ?`,
+          [textData.is_archived ? 1 : 0,
+           textData.is_pinned ? 1 : 0,
+           (textData.pin_order != null ? textData.pin_order : null),
+           (textData.manual_smart_tag != null ? String(textData.manual_smart_tag) : null),
+           newTextId]
+        );
+      } catch (_) {}
+      const _prog = textData.progress;
+      if (_prog && (_prog.last_row_idx != null || _prog.last_step_id != null)) {
+        try { await setProgress(newTextId, { last_row_idx: _prog.last_row_idx ?? null, last_step_id: _prog.last_step_id ?? null }); } catch (_) {}
+      }
       result.imported++;
       result.importedIds.push(newTextId);
     } catch (e) {
@@ -3649,6 +3714,16 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
   };
 
   const oldToNewNoteId = new Map();
+
+  // R-3.7 — forward-compat guard. KNOWN_MAX is the newest payload schema this
+  // build understands; a newer bundle may carry sections/fields we don't import
+  // (silent drop). Warn but proceed with the sections we DO know.
+  const KNOWN_MAX = 2;
+  const payloadVer = Number(payload && payload.schema_version) || 1;
+  if (payloadVer > KNOWN_MAX) {
+    try { console.warn('[import] notes_advanced schema_version ' + payloadVer + ' > ' + KNOWN_MAX + ' — bundle from a newer app version; some data may not import.'); } catch (_) {}
+  }
+  out.schema_version = payloadVer;
 
   // Pass 1 — notes_v2. Build the note id remap.
   const notes = Array.isArray(payload.notes) ? payload.notes : [];
@@ -3925,6 +4000,172 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
       );
       out.occurrences.inserted++;
     } catch (_) { out.occurrences.dropped++; }
+  }
+
+  // ── R-3.7 full-backup state (schema_version ≥ 2). All FK ids remap via the
+  //    maps above; a row whose required ref doesn't remap is dropped. Idempotent
+  //    on re-import (existing-card reuse + INSERT OR IGNORE/REPLACE). v1 bundles
+  //    have none of these arrays → these passes are no-ops. ──
+  const uuid = () => (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : ('imp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+  const oldToNewCardId = new Map();
+
+  // Pass 7 — srs_cards (build oldToNewCardId). entity_id + source_* remap by
+  // entity_type; template_id is a stable seeded id (verbatim). Reuse an existing
+  // card for the same (entity,template) so re-import / pre-carded notes don't
+  // violate UNIQUE(entity_type,entity_id,template_id).
+  out.srs_cards = { inserted: 0, merged: 0, dropped: 0 };
+  for (const c of (Array.isArray(payload.srs_cards) ? payload.srs_cards : [])) {
+    if (!c || !c.id) { out.srs_cards.dropped++; continue; }
+    const et = String(c.entity_type || 'note');
+    let newSourceNoteId = null, newSourceSentenceId = null, newEntityId = null;
+    if (et === 'note') {
+      newSourceNoteId = oldToNewNoteId.get(String(c.source_note_id || c.entity_id || '')) || null;
+      newEntityId = newSourceNoteId;
+    } else if (et === 'sentence') {
+      newSourceSentenceId = _remap(oldToNewSentenceId, c.source_sentence_id || c.entity_id);
+      newEntityId = newSourceSentenceId;
+    } else {
+      newEntityId = oldToNewNoteId.get(String(c.entity_id || '')) || _remap(oldToNewSentenceId, c.entity_id) || null;
+    }
+    if (!newEntityId) { out.srs_cards.dropped++; continue; }     // can't anchor → drop
+    const tpl = String(c.template_id || 'tpl_note_word_study');
+    try {
+      const exist = await q('SELECT id FROM srs_cards WHERE entity_type=? AND entity_id=? AND template_id=?', [et, newEntityId, tpl]);
+      if (exist && exist.length) { oldToNewCardId.set(String(c.id), String(exist[0].id)); out.srs_cards.merged++; continue; }
+      const newId = uuid();
+      await r(
+        `INSERT INTO srs_cards (id, entity_type, entity_id, template_id, source_sentence_id, source_note_id,
+           meta_json, state, due_date, interval_days, ease_factor, lapses, reps, created_at, updated_at, last_review_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [newId, et, newEntityId, tpl, newSourceSentenceId, newSourceNoteId,
+         (typeof c.meta_json === 'string' ? c.meta_json : '{}'),
+         String(c.state || 'new'), c.due_date || null,
+         Number(c.interval_days) || 0, Number.isFinite(c.ease_factor) ? c.ease_factor : 2.5,
+         Number(c.lapses) || 0, Number(c.reps) || 0,
+         c.created_at || new Date().toISOString(), c.updated_at || new Date().toISOString(),
+         c.last_review_at || null]
+      );
+      oldToNewCardId.set(String(c.id), newId);
+      out.srs_cards.inserted++;
+    } catch (_) { out.srs_cards.dropped++; }
+  }
+
+  // Patch notes_v2.srs_card_id backlink to the new card id (or NULL if the card
+  // couldn't be imported — avoid a dangling reference).
+  for (const n of notes) {
+    if (!n || !n.srs_card_id) continue;
+    const newNoteId = oldToNewNoteId.get(String(n.id || ''));
+    if (!newNoteId) continue;
+    const newCardId = oldToNewCardId.get(String(n.srs_card_id)) || null;
+    try { await r('UPDATE notes_v2 SET srs_card_id = ? WHERE id = ?', [newCardId, newNoteId]); } catch (_) {}
+  }
+
+  // Pass 8 — srs_review_events (remap card_id; new id; idempotent via id PK).
+  out.srs_review_events = { inserted: 0, dropped: 0 };
+  for (const e of (Array.isArray(payload.srs_review_events) ? payload.srs_review_events : [])) {
+    const cid = e && oldToNewCardId.get(String(e.card_id || ''));
+    if (!cid) { out.srs_review_events.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR IGNORE INTO srs_review_events (id, card_id, rating, interval_before, interval_after, ease_before, ease_after, review_time_ms, reviewed_at)
+         VALUES (?,?,?,?,?,?,?,?,?)`,
+        [uuid(), cid, Number(e.rating) || 0, e.interval_before ?? null, e.interval_after ?? null,
+         e.ease_before ?? null, e.ease_after ?? null, e.review_time_ms ?? null, e.reviewed_at || new Date().toISOString()]
+      );
+      out.srs_review_events.inserted++;
+    } catch (_) { out.srs_review_events.dropped++; }
+  }
+
+  // Pass 9 — srs_attempts (remap card_id; session_id dropped — sessions aren't exported).
+  out.srs_attempts = { inserted: 0, dropped: 0 };
+  for (const a of (Array.isArray(payload.srs_attempts) ? payload.srs_attempts : [])) {
+    const cid = a && oldToNewCardId.get(String(a.card_id || ''));
+    if (!cid) { out.srs_attempts.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR IGNORE INTO srs_attempts (id, session_id, card_id, attempt_type, user_answer, normalized_answer, normalized_expected, is_correct, latency_ms, meta_json, created_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        [uuid(), null, cid, String(a.attempt_type || 'review'), a.user_answer ?? null, a.normalized_answer ?? null,
+         a.normalized_expected ?? null, a.is_correct ? 1 : 0, a.latency_ms ?? null,
+         (typeof a.meta_json === 'string' ? a.meta_json : '{}'), a.created_at || new Date().toISOString()]
+      );
+      out.srs_attempts.inserted++;
+    } catch (_) { out.srs_attempts.dropped++; }
+  }
+
+  // Pass 10 — srs_card_exports (remap card_id; idempotent via UNIQUE(provider,card_id)).
+  out.srs_card_exports = { inserted: 0, dropped: 0 };
+  for (const x of (Array.isArray(payload.srs_card_exports) ? payload.srs_card_exports : [])) {
+    const cid = x && oldToNewCardId.get(String(x.card_id || ''));
+    if (!cid) { out.srs_card_exports.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR IGNORE INTO srs_card_exports (id, provider, card_id, deck_name, model_name, template_code, external_note_id, external_card_ids_json, export_hash, last_sync_status, last_error, exported_at, created_at, updated_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [uuid(), String(x.provider || 'anki'), cid, x.deck_name ?? null, x.model_name ?? null, x.template_code ?? null,
+         x.external_note_id ?? null, (typeof x.external_card_ids_json === 'string' ? x.external_card_ids_json : '[]'),
+         String(x.export_hash || ''), String(x.last_sync_status || 'ok'), x.last_error ?? null, x.exported_at ?? null,
+         x.created_at || new Date().toISOString(), x.updated_at || new Date().toISOString()]
+      );
+      out.srs_card_exports.inserted++;
+    } catch (_) { out.srs_card_exports.dropped++; }
+  }
+
+  // Pass 11 — anki_word_exports (remap note_id; idempotent via note_id PK / REPLACE).
+  out.anki_word_exports = { inserted: 0, dropped: 0 };
+  for (const w of (Array.isArray(payload.anki_word_exports) ? payload.anki_word_exports : [])) {
+    const nid = w && oldToNewNoteId.get(String(w.note_id || ''));
+    if (!nid) { out.anki_word_exports.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR REPLACE INTO anki_word_exports (note_id, deck_name, model_name, body_hash, exported_at, updated_at)
+         VALUES (?,?,?,?,?,?)`,
+        [nid, w.deck_name ?? null, w.model_name ?? null, w.body_hash ?? null,
+         w.exported_at || new Date().toISOString(), w.updated_at || new Date().toISOString()]
+      );
+      out.anki_word_exports.inserted++;
+    } catch (_) { out.anki_word_exports.dropped++; }
+  }
+
+  // Pass 12 — events (remap typed FK ids; drop only when a PRESENT ref fails to
+  // remap; keep global events. New id; idempotent via id PK).
+  out.events = { inserted: 0, dropped: 0 };
+  for (const ev of (Array.isArray(payload.events) ? payload.events : [])) {
+    if (!ev || typeof ev !== 'object') { out.events.dropped++; continue; }
+    let drop = false;
+    const remapRef = (val, map) => { if (val == null || val === '') return null; const v = _remap(map, val); if (!v) drop = true; return v; };
+    const nNote = remapRef(ev.note_id, oldToNewNoteId);
+    const nText = remapRef(ev.text_id, oldToNewTextId);
+    const nSent = remapRef(ev.sentence_id, oldToNewSentenceId);
+    const nCard = (ev.card_id != null && ev.card_id !== '') ? (oldToNewCardId.get(String(ev.card_id)) || (drop = true, null)) : null;
+    if (drop) { out.events.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR IGNORE INTO events (id, ts, event_type, entity_type, entity_id, session_id, text_id, sentence_id, note_id, card_id, source, payload_json)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [uuid(), ev.ts || new Date().toISOString(), String(ev.event_type || 'unknown'),
+         ev.entity_type ?? null, ev.entity_id ?? null, ev.session_id ?? null,
+         nText, nSent, nNote, nCard, ev.source ?? null,
+         (typeof ev.payload_json === 'string' ? ev.payload_json : '{}')]
+      );
+      out.events.inserted++;
+    } catch (_) { out.events.dropped++; }
+  }
+
+  // Pass 13 — translation_overrides (natural key — no remap; idempotent via UNIQUE).
+  out.translation_overrides = { inserted: 0, dropped: 0 };
+  for (const t of (Array.isArray(payload.translation_overrides) ? payload.translation_overrides : [])) {
+    if (!t || !t.he_hash || !t.target_lang) { out.translation_overrides.dropped++; continue; }
+    try {
+      await r(
+        `INSERT OR IGNORE INTO translation_overrides (id, he_hash, he, he_niqqud, translit, ru, target_lang, provider_scope, note, created_at, updated_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
+        [uuid(), String(t.he_hash), String(t.he || ''), t.he_niqqud ?? null, t.translit ?? null, t.ru ?? null,
+         String(t.target_lang), String(t.provider_scope || '*'), t.note ?? null,
+         t.created_at || new Date().toISOString(), t.updated_at || new Date().toISOString()]
+      );
+      out.translation_overrides.inserted++;
+    } catch (_) { out.translation_overrides.dropped++; }
   }
 
   return out;
