@@ -485,6 +485,7 @@ window.I18N_LOCALES.ru = {
     checkBtn: "Проверить AnkiConnect",
     copyDiagBtn: "Скопировать диагностику",
     pushBtn: "Экспортировать",
+    syncBtn: "Синхронизировать из Anki",
     helpText: "Требуется запущенный Anki Desktop с установленным AnkiConnect. Dashboard должен быть запущен локально (127.0.0.1:3000).",
   },
   dashboard: {

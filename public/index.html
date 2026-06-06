@@ -11274,6 +11274,7 @@ body:not(.theme-light) .v3-heatmap-cell {
   <button id="v3AnkiCheckBtn" class="btn-secondary" onclick="v3AnkiHealth()" data-i18n="anki.checkBtn">Проверить AnkiConnect</button>
   <button id="v3AnkiCopyBtn" class="btn-secondary" onclick="v3AnkiCopyDiagnostics()" disabled data-i18n="anki.copyDiagBtn">Скопировать диагностику</button>
   <button id="v3AnkiPushBtn" class="btn-primary" onclick="v3AnkiPushNow()" data-i18n="anki.pushBtn">Экспортировать</button>
+  <button id="v3AnkiSyncBtn" class="btn-secondary" onclick="v3AnkiSyncNow()" title="Подтянуть результаты повторений из Anki: слова, которые вы учили в Anki, станут «известными»/«учу» здесь (питает граф знаний и i+1). Повторение остаётся в Anki." data-i18n="anki.syncBtn">Синхронизировать из Anki</button>
 </div>
 
       <div class="v3-modal-hint" data-i18n="anki.helpText">
@@ -35656,7 +35657,68 @@ async function v3AnkiPushNow() {
     if (checkBtn) checkBtn.disabled = false;
   }
 }
-	
+
+// R-3.4 — pull review results from Anki into LinguistPro (bidirectional sync).
+// LOCAL_MODE only (browser → AnkiConnect direct; server routes are 410). Writes
+// REAL mastery into srs_cards (v3AnkiSyncFromAnki) → the knowledge graph + i+1
+// frontier reflect what the learner actually knows. No double-review: synced
+// cards are Anki-managed and stay out of the in-app queue.
+async function v3AnkiSyncNow() {
+  const syncBtn = document.getElementById("v3AnkiSyncBtn");
+  const pushBtn = document.getElementById("v3AnkiPushBtn");
+  const checkBtn = document.getElementById("v3AnkiCheckBtn");
+  if (syncBtn) syncBtn.disabled = true;
+  if (pushBtn) pushBtn.disabled = true;
+  if (checkBtn) checkBtn.disabled = true;
+
+  try {
+    if (!LOCAL_MODE) {
+      v3AnkiSetStatus("Синхронизация доступна только в локальном режиме (AnkiConnect).", true);
+      return;
+    }
+    v3AnkiSetStatus("Синхронизирую из Anki… (читаю результаты повторений)", false);
+    const s = await v3AnkiSyncFromAnki();
+    if (!s || !s.ok) {
+      let msg = String((s && s.error) || "AnkiConnect недоступен");
+      if (/failed to fetch|networkerror|cors/i.test(msg)) {
+        msg += ` — добавьте «${location.origin}» в webCorsOriginList AnkiConnect ` +
+               `(Anki → Tools → Add-ons → AnkiConnect → Config) и перезапустите Anki.`;
+      }
+      v3AnkiSetStatus(`Не удалось синхронизировать: ${msg}`, true);
+      if (typeof showToast === "function") showToast("Синхронизация из Anki не удалась", "error");
+      return;
+    }
+
+    if (!s.totalNotes) {
+      v3AnkiSetStatus("В Anki не найдено карточек LinguistPro (tag:lp_word). Сначала экспортируйте слова, затем учите их в Anki.", false);
+      if (typeof showToast === "function") showToast("Нет карточек LinguistPro в Anki", "info");
+      return;
+    }
+
+    const parts = [];
+    if (s.updated) parts.push(`обновлено ${s.updated}`);
+    if (s.materialized) parts.push(`новых выучено ${s.materialized}`);
+    if (s.suspended) parts.push(`отложено ${s.suspended}`);
+    if (s.conflictKeptLocal) parts.push(`оставлено своё ${s.conflictKeptLocal}`);
+    if (s.skippedNotReviewed) parts.push(`ещё не учили ${s.skippedNotReviewed}`);
+    if (s.missingNote) parts.push(`нет в библиотеке ${s.missingNote}`);
+    const detail = parts.length ? parts.join(", ") : "изменений нет";
+    const retention = (s.retentionPct != null)
+      ? ` · удержание ${s.retentionPct}% (${s.reviews} повторов)` : "";
+    v3AnkiSetStatus(`Синхронизировано: ${s.totalNotes} слов из Anki — ${detail}${retention}.`, false);
+    if (typeof showToast === "function") showToast(`Синхронизировано из Anki: ${detail}`, "success");
+    // Per-text coverage (knowledge graph / i+1 line) recomputes from srs_cards on
+    // the next text view — no live re-render needed here.
+  } catch (e) {
+    v3AnkiSetStatus(`Не удалось синхронизировать: ${String((e && e.message) || e)}`, true);
+    if (typeof showToast === "function") showToast("Синхронизация из Anki не удалась", "error");
+  } finally {
+    if (syncBtn) syncBtn.disabled = false;
+    if (pushBtn) pushBtn.disabled = false;
+    if (checkBtn) checkBtn.disabled = false;
+  }
+}
+
     // ----------------------------
     // FILENAMES
     // ----------------------------

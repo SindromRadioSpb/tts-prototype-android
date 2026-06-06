@@ -489,6 +489,7 @@ window.I18N_LOCALES.he = {
     checkBtn: "בדוק AnkiConnect",
     copyDiagBtn: "העתק אבחון",
     pushBtn: "ייצוא",
+    syncBtn: "סנכרון מ‑Anki",
     helpText: "נדרש Anki Desktop פתוח עם AnkiConnect מותקן. הדשבורד חייב לפעול מקומית (127.0.0.1:3000).",
   },
   dashboard: {

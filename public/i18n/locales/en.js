@@ -484,6 +484,7 @@ window.I18N_LOCALES.en = {
     checkBtn: "Check AnkiConnect",
     copyDiagBtn: "Copy diagnostics",
     pushBtn: "Export",
+    syncBtn: "Sync from Anki",
     helpText: "Requires running Anki Desktop with AnkiConnect installed. Dashboard must run locally (127.0.0.1:3000).",
   },
   dashboard: {
