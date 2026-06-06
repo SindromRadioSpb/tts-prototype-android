@@ -100,7 +100,9 @@ async function main() {
         word: "כותב", niqqud_variant: "כּוֹתֵב", root: "כתב", lemma: "כתב",
         pos: "verb", binyan: "paal", meaning: "пишет", mnemonic: "корень К-Т-В",
       }) };
-      const exampleStr = "אֲנִי כּוֹתֵב מִכְתָּב — Я пишу письмо";
+      const exampleHe = "אֲנִי כּוֹתֵב מִכְתָּב";
+      const exampleRu = "Я пишу письмо";
+      const exampleStr = exampleHe + " — " + exampleRu;
       const fA = window.v3AnkiBuildWordCardFields(verbNote, { paradigm: verbParadigm, example: exampleStr });
       out.A_fieldsPopulated = !!(fA.Word && fA.Niqqud && fA.Russian && fA.Root && fA.Binyan && fA.POS && fA.Mnemonic);
       out.A_conjMarkup = /v3-conj-/.test(fA.Conjugation);
@@ -146,13 +148,17 @@ async function main() {
       out.X_escMeaning = fX.Russian === "a &amp; b &lt;c&gt;";
       out.X_escExample = fX.Example === "x &lt;y&gt; &amp; z";
 
-      // ── R-1.5 audio: headword → Audio [sound:], example → appended [sound:] ──
+      // ── R-1.5/1.7 audio + stacked example: headword [sound:], example = he line /
+      //    ru line / ▶ on its own line (no dash). ──
       const fAud = window.v3AnkiBuildWordCardFields(verbNote, {
-        paradigm: verbParadigm, example: exampleStr,
+        paradigm: verbParadigm, exampleHe, exampleRu,
         headwordAudioFile: "lp_head.mp3", exampleAudioFile: "lp_ex.mp3",
       });
       out.Aud_headSound = fAud.Audio === "[sound:lp_head.mp3]";
-      out.Aud_exSound = fAud.Example === (exampleStr + "<br>[sound:lp_ex.mp3]"); // ▶ on its own line below the sentence
+      out.Aud_exStacked = /<div dir="rtl"[^>]*>אֲנִי כּוֹתֵב מִכְתָּב<\/div>/.test(fAud.Example)
+        && /<div dir="ltr"[^>]*>Я пишу письмо<\/div>/.test(fAud.Example)
+        && !/ — /.test(fAud.Example)                       // dash dropped
+        && /<br>\[sound:lp_ex\.mp3\]$/.test(fAud.Example);  // ▶ on its own third line
       // No audio files → Audio empty (front uses the {{tts}} fallback), example clean.
       out.Aud_noneEmpty = fA.Audio === "" && !/\[sound:/.test(fA.Example);
 
@@ -212,7 +218,7 @@ async function main() {
       let bodyParsed = {}; try { bodyParsed = JSON.parse(row.body_json); } catch (_) {}
       const resolved = await window.v3AnkiResolveParadigm(bodyParsed);
       out.dbResolved = !!(resolved && resolved.cells && Object.keys(resolved.cells).length);
-      const fDb = window.v3AnkiBuildWordCardFields(row, { paradigm: resolved, example: row.example });
+      const fDb = window.v3AnkiBuildWordCardFields(row, { paradigm: resolved, example: row.example, exampleHe: row.example_he, exampleRu: row.example_ru });
       out.dbConjNonEmpty = /v3-conj-cell-hl/.test(fDb.Conjugation) && !/onclick=/.test(fDb.Conjugation);
       out.dbExampleInCard = /Я пишу письмо/.test(fDb.Example);
       // R-1.5 — read-fn exposes example_audio_key (string; '' here since no sentence audio seeded).
@@ -243,7 +249,7 @@ async function main() {
 
     // R-1.5 audio
     test("audio: headword file → Audio=[sound:..]", R.Aud_headSound === true);
-    test("audio: example file → appended [sound:..]", R.Aud_exSound === true);
+    test("audio: stacked example (he / ru / ▶, no dash)", R.Aud_exStacked === true);
     test("audio: no files → Audio='' + clean Example", R.Aud_noneEmpty === true);
 
     // noun

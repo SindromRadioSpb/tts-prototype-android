@@ -14111,9 +14111,19 @@ function v3AnkiBuildWordCardFields(note, opts) {
   // after the escaped text. Both empty ⇒ front uses the {{tts}} device fallback.
   const headFile = String(o.headwordAudioFile || '').trim();
   const exFile = String(o.exampleAudioFile || '').trim();
-  // Example audio sits on its OWN line BELOW the sentence (a <br> separator) so
-  // the ▶ button reads cleanly instead of being wedged inline mid-sentence.
-  let exampleField = esc(o.example || '');
+  // Stacked example block (R-1.7): Hebrew line / Russian line / ▶ — no dash.
+  // RTL+LTR on one line hurt readability; each line gets its own dir so reading
+  // order stays correct while both are centered on the centered card. Inline
+  // styles (no model CSS change → existing cards refresh via the re-export upsert).
+  const exHe = String(o.exampleHe || '').trim();
+  const exRu = String(o.exampleRu || '').trim();
+  let exampleField = '';
+  if (exHe || exRu) {
+    if (exHe) exampleField += '<div dir="rtl" style="text-align:center">' + esc(exHe) + '</div>';
+    if (exRu) exampleField += '<div dir="ltr" style="text-align:center;opacity:.85;font-size:.95em">' + esc(exRu) + '</div>';
+  } else {
+    exampleField = esc(o.example || ''); // fallback: pre-joined string
+  }
   if (exFile) exampleField += (exampleField ? '<br>' : '') + '[sound:' + exFile + ']';
   return {
     Word: esc(body.word || ''),
@@ -14799,6 +14809,8 @@ async function v3AnkiPushWordCards(textId, text, opts, ldb) {
     fields: v3AnkiBuildWordCardFields(it.n, {
       paradigm: it.paradigm,
       example: it.n.example || '',
+      exampleHe: it.n.example_he || '',
+      exampleRu: it.n.example_ru || '',
       headwordAudioFile: it.headFile,
       exampleAudioFile: it.exFile,
     }),
