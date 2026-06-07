@@ -184,10 +184,20 @@ is the *uncompromising help tool* a serious learner needs.
   presets (radial/tree), focus depth, pin/collapse; max 2 channels on
   mobile. Persistence: `kmap_saved_views` migration or OPFS key (decided in
   Phase 0/3).
-- **Phase 4 — Generative quiz + i+1/frequency** (`knowledge-map-quiz.js`):
-  reconstruct cluster (place word→root / guess binyan / recall meaning →
-  reveal); log SRS review/attempt via the engine (canvas stays read-only).
-  i+1 "learn next" recommendation + frequency ranking.
+- **Phase 4 — Generative quiz + i+1/frequency** (`knowledge-map-quiz.js`) —
+  **SHIPPED 2026-06-07 (SW `v3.10.5-km-quiz`).** Reconstruct cluster (place
+  word→root / guess binyan / recall meaning / which-form / connection-recall →
+  reveal); canvas stays read-only. **HYBRID Anki model (owner decision):** the
+  quiz is PRACTICE + card CREATION, NOT a second scheduler — no SM2 intervals,
+  no grade push to Anki; on an answer it seeds a missing frontier card
+  (createCardFromNote) + writes a local `source='quiz'` engagement event; review
+  stays in Anki via the «Повторять в Anki» CTA. All 5 item types are R1-honest
+  (real distractors or honest skip). i+1 "learn next" via `mode:'frontier'`
+  (getTextLearningCoverage) + frequency ranking (rankRoots). Entry: «🎯
+  Потренировать корень» on the desktop focus header + mobile root sheet. i18n
+  ru/en/he under `kmquiz.*`. Gates `smoke:km-quiz` (boot/items/session/gen2/cta,
+  48 assertions). Deferred to follow-ups: per-form which-form richness, audio in
+  recall, the i+1 «Учить дальше» map entry + knowledge-commit-toast hook.
 - **Phase 5 (post-pilot) — Pealim root-family enrichment.** Lazy, per-root,
   provenance, no invented forms; cached like the conjugation accordion.
 - **Phase 6 (post-pilot) — WebGL overview (Sigma.js)** behind the perf gate
@@ -316,4 +326,5 @@ Exact hooks for wiring the new view behind a flag (instant rollback):
 | 2026-06-03 | **Phase 1 DONE.** `public/js/knowledge-map-data.js` (read-only root-centric data layer: build/rootCluster/rankRoots; status overlay 5→3 state; root-less excluded+counted; text never a node). Smoke `scripts/notes-graph/kmap-data-smoke.js` 6/6; wired `smoke:graph:kmap-data` into the `smoke:graph` chain + `smoke:graph:kmap-spike` (manual). |
 | 2026-06-03 | **Flag removed (owner request).** The `knowledgeMapV1` flag + `display:none` gating dropped: the 🌳 button is **always visible** on desktop + mobile (so the owner can test on phone without a console). `v3KnowledgeMapV1Enabled` helper removed; SW `CACHE_VERSION`→`v3.6.0-kmap-phase2b`; boot-check asserts button visible by default. View still self-contained; rollback now = revert the commit. Empty-state hint covers users without root data. |
 | 2026-06-03 | **Phase 3 DONE (facets) + R1–R5 review→rework.** Facets: layout radial/tree, color-by status/binyan/pos, size-by freq/uniform, filters pos/binyan/status, depth 1/2, saved views (localStorage). **5-role review run** (each role independently tested); rework applied: R1 — dropped false POS edge-labels, dominant binyan deduped+named once, honest "surface form (not lemma)" relabel (true lemmatization → Phase 5); R2 — preview onward "Открыть текст" + "+N служебных слов" footer (no dead-end); R3 — `_fetchPreview` routed through read-only guard + new `kmap-privacy-smoke` (4/4, in chain); R4 — mobile depth-2 auto + facets collapsed behind ⚙ + edge-labels suppressed on mobile + status-chip colors + reset-filters + selected-root highlight; R5 — saved views capture root + delete + clearer labels. SW `CACHE_VERSION`→`v3.6.0-kmap-phase3b`. **Deferred (honest):** R1 true Dicta-lemma/noun-root merge (needs ② re-run → Phase 5); R2 full SRS/quiz path (Phase 4). |
+| 2026-06-07 | **Phase 4 DONE (generative graph-quiz) — SHIPPED + PROD-verified (SW `v3.10.5-km-quiz`, commit `4bbb529`).** New thin `public/js/knowledge-map-quiz.js` + lazy loader (mirrors notes-graph-loader; precached, executed lazily; loads the dormant `notes-graph-srs-candidates.js` bridge). **HYBRID Anki model (owner decision, upholds SRS_STRATEGY_v3_2 + R2):** PRACTICE + card CREATION, NOT a 2nd scheduler — no SM2 math, no grade push; on answer seeds a frontier card (`createCardFromNote`) + writes a `source='quiz'` engagement event (invisible to the Anki-grade badge); mastery still only from the Anki PULL sync; honest «Повторять в Anki» CTA → `v3SrsTrainerOpenAnkiExport`. All 5 R1-honest item types (word→root / recall-meaning / guess-binyan / which-form (per-form/paradigm-gated, real cells or honest skip) / connection-recall (real bridge candidates or none)). Downstream stays per-lemma (lemmaKey parity vs `NotesAutoGen.lemmaKey`). Entry «🎯 Потренировать корень» on desktop focus header + mobile root sheet; i18n ru/en/he under `kmquiz.*` (`quiz.*` was taken by the bank-quiz). @380px RTL (HE) verified. Gates `smoke:km-quiz` (boot 8 · items 12 · session 12 · gen2 8 · cta 8 = 48). Regression green (i18n/notes/anki/autogen). **Deferred:** per-form which-form richness, recall audio, i+1 «Учить дальше» map entry + commit-toast hook. |
 | 2026-06-03 | **Phase 2 DONE (v1 focus view).** `public/js/knowledge-map-view.js` — dependency-free SVG root-radial (root centre, radial lemmas, color=status, size=frequency, binyan/pos edge labels, progressive-disclosure preview with lazy gloss/niqqud) + ranked root list + 380px RTL cluster-list + root-sheet radial. Integrated behind flag `knowledgeMapV1` (helper `v3KnowledgeMapV1Enabled`, `🌳 #btnKnowledgeMap`, module `<script>`s, i18n `knowledgeMap.*` ru/en/he, SW `CACHE_VERSION`→`v3.6.0-kmap-phase2` + precache). **Live browser tested:** desktop + 380px RTL (fixture + REAL 9042-note corpus, build+render 1181 ms, no pageerrors); boot-check 3/3 (`smoke:graph:kmap-boot`); dev tools `smoke:graph:kmap-shot|kmap-real`. Next: Phase 3 facets. |
