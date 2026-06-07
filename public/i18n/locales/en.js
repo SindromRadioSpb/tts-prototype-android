@@ -345,6 +345,7 @@ window.I18N_LOCALES.en = {
     grewRoots: "+{m} roots",
     grewForms: "+{o} forms",
     refreshedN: "refreshed {r}",
+    dupReplaced: "replaced {n} duplicates",
     toCheck: "to review",
     pendingTitle: "Uncertain auto-candidates — open the review queue",
     pendingWord: "to review",

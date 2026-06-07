@@ -41274,6 +41274,7 @@ async function v3NotesAutoGenPersist(candidates, opts) {
   const model = opts.model_version || V3_PEALIM_INFL_MODEL;
   let created = 0, refreshed = 0, occ = 0, skipped = 0, occSkipped = 0;
   const newRoots = new Set();
+  const keepByText = {};   // R-3.9 — note ownership of (sentence,offset) per text, for reconcile
   for (const cand of (candidates || [])) {
     if (!cand || !cand.dedup_key) { skipped++; continue; }
     const body = cand.body || {};
@@ -41308,12 +41309,27 @@ async function v3NotesAutoGenPersist(candidates, opts) {
           }
         } catch (_) {}
         try { await ldb.addNoteOccurrence(note.id, o); occ++; } catch (_) {}
+        // R-3.9 — this note OWNS this position now (added or already present);
+        // record so the post-build reconcile can release it from other-scheme notes.
+        if (o && o.sentence_id != null && o.text_id != null) {
+          const tk = String(o.text_id);
+          (keepByText[tk] || (keepByText[tk] = [])).push({ note_id: note.id, sentence_id: o.sentence_id, word_offset: o.word_offset });
+        }
       }
+    }
+  }
+  // R-3.9 — reconcile (build paths only): the current build's notes own their
+  // positions; remove prior-scheme autogen notes' occurrences there + orphan-sweep.
+  // Self-heals per-lemma↔per-form duplication; no-op in same-mode (idempotent).
+  let dupNotesRemoved = 0, dupOccRemoved = 0;
+  if (opts.reconcile && typeof ldb.reconcileTextAutogenOccurrences === "function") {
+    for (const tid of Object.keys(keepByText)) {
+      try { const rc = await ldb.reconcileTextAutogenOccurrences(tid, keepByText[tid]); dupNotesRemoved += (rc.notesDeleted || 0); dupOccRemoved += (rc.occRemoved || 0); } catch (_) {}
     }
   }
   // new_roots counts distinct roots among NEWLY-created notes (an approximation of
   // novelty-vs-base; precise i+1 novelty is the Stage-2/4 graph prefiight).
-  return { ok: true, new_words: created, new_roots: newRoots.size, created: created, refreshed: refreshed, occurrences_recorded: occ, occurrences_skipped_user: occSkipped, skipped: skipped };
+  return { ok: true, new_words: created, new_roots: newRoots.size, created: created, refreshed: refreshed, occurrences_recorded: occ, occurrences_skipped_user: occSkipped, skipped: skipped, dupNotesRemoved: dupNotesRemoved, dupOccRemoved: dupOccRemoved };
 }
 window.v3NotesAutoGenPersist = v3NotesAutoGenPersist;
 
@@ -41612,7 +41628,7 @@ async function v3ReviewQueueCommit() {
     });
   if (!accepted.length) { showToast(v3NotesT("review.nothingAccepted", "Ничего не выбрано."), "warning"); return; }
   let r;
-  try { r = await v3NotesAutoGenPersist(accepted, { source: "curated" }); }
+  try { r = await v3NotesAutoGenPersist(accepted, { source: "curated", reconcile: true }); }
   catch (e) { showToast(v3NotesT("review.saveFailed", "Не удалось сохранить."), "error"); return; }
   if (!r || !r.ok) { showToast(v3NotesT("review.saveFailed", "Не удалось сохранить."), "error"); return; }
   const textId = st.textId;
@@ -41637,6 +41653,8 @@ async function v3ReviewQueueCommit() {
     if (!_nw && !_nr && !_occ && _refd) _p.push(v3NotesT("review.refreshedN", "обновлено {r}").replace("{r}", String(_refd)));
     msg = "✨ " + _p.join(", ");
   }
+  // R-3.9 — report replaced duplicates (e.g. switching per-form ↔ per-lemma).
+  if (r.dupNotesRemoved) msg += " · " + v3NotesT("review.dupReplaced", "заменено дублей {n}").replace("{n}", String(r.dupNotesRemoved));
   const covLine = v3NotesCoverageLine(cov);
   if (covLine) msg += " · " + covLine;
   const seedOn = (typeof v3NotesSrsSeedMode === "function") && v3NotesSrsSeedMode() === "on";
@@ -42016,7 +42034,7 @@ async function v3NotesMaybeAutoBuild(textId) {
       }
 
       let grew = { new_words: 0, new_roots: 0 };
-      if (auto.length) { try { grew = (await v3NotesAutoGenPersist(auto, { source: "auto" })) || grew; } catch (_) {} }
+      if (auto.length) { try { grew = (await v3NotesAutoGenPersist(auto, { source: "auto", reconcile: true })) || grew; } catch (_) {} }
       if (pending.length) v3NotesAutoBuildPending[tid] = pending; else delete v3NotesAutoBuildPending[tid];
 
       const w = grew.new_words || 0, p = pending.length;

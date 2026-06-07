@@ -346,6 +346,7 @@ window.I18N_LOCALES.ru = {
     grewRoots: "+{m} корней",
     grewForms: "+{o} форм",
     refreshedN: "обновлено {r}",
+    dupReplaced: "заменено дублей {n}",
     toCheck: "на проверку",
     pendingTitle: "Сомнительные авто-кандидаты — открыть очередь проверки",
     pendingWord: "на проверку",

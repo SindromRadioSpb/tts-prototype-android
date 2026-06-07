@@ -349,6 +349,7 @@ window.I18N_LOCALES.he = {
     grewRoots: "+{m} שורשים",
     grewForms: "+{o} צורות",
     refreshedN: "עודכנו {r}",
+    dupReplaced: "הוחלפו {n} כפילויות",
     toCheck: "לבדיקה",
     pendingTitle: "מועמדים אוטומטיים מסופקים — פתחו את תור הבדיקה",
     pendingWord: "לבדיקה",

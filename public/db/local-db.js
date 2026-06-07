@@ -1811,6 +1811,54 @@ function _noteLemmaKey(body) {
   return lem + '#' + String(body.pos || body.part_of_speech || '');
 }
 
+// R-3.9 — position-ownership reconcile after an autogen BUILD. The current build
+// OWNS each (sentence, word_offset) it covers; any OTHER autogen note occupying
+// the same position in this text (e.g. the prior keying scheme when switching
+// per-lemma ↔ per-form) has its occurrence here removed. Autogen notes left with
+// ZERO occurrences anywhere are deleted fully — cleaning the refs deleteNoteById
+// does NOT cascade (anki_word_exports.note_id; srs_cards.source_note_id → cascades
+// srs_review_events/attempts/card_exports). NEVER touches user/hand-edited notes
+// (source='user' OR user_touched=1). A note shared with another text keeps its
+// other occurrences. `keep`: [{ note_id, sentence_id, word_offset }] — the build's
+// own occurrence ownership. Returns { occRemoved, notesDeleted }. Idempotent: in
+// same-mode rebuild there are no OTHER-scheme notes → no-op.
+export async function reconcileTextAutogenOccurrences(textId, keep) {
+  const res = { occRemoved: 0, notesDeleted: 0 };
+  if (!textId || !Array.isArray(keep) || !keep.length) return res;
+  const touched = new Set();
+  for (const k of keep) {
+    if (!k || k.sentence_id == null || k.word_offset == null) continue;
+    let rows = [];
+    try {
+      rows = await q(
+        `SELECT DISTINCT o.note_id AS nid
+           FROM note_occurrences o JOIN notes_v2 n ON n.id = o.note_id
+          WHERE o.text_id = ? AND o.sentence_id = ? AND o.word_offset = ?
+            AND o.note_id != ?
+            AND n.source IN ('auto','curated') AND COALESCE(n.user_touched, 0) != 1`,
+        [String(textId), String(k.sentence_id), Number(k.word_offset), String(k.note_id)]);
+    } catch (_) {}
+    for (const r0 of (rows || [])) {
+      try {
+        await r(`DELETE FROM note_occurrences WHERE note_id = ? AND text_id = ? AND sentence_id = ? AND word_offset = ?`,
+          [String(r0.nid), String(textId), String(k.sentence_id), Number(k.word_offset)]);
+        res.occRemoved++; touched.add(String(r0.nid));
+      } catch (_) {}
+    }
+  }
+  for (const nid of touched) {
+    try {
+      const left = await q(`SELECT 1 FROM note_occurrences WHERE note_id = ? LIMIT 1`, [nid]);
+      if (left && left.length) continue;                 // still used elsewhere → keep
+      try { await r(`DELETE FROM anki_word_exports WHERE note_id = ?`, [nid]); } catch (_) {}
+      try { await r(`DELETE FROM srs_cards WHERE source_note_id = ?`, [nid]); } catch (_) {}
+      await deleteNoteById(nid);                          // cascades occurrences/versions/links
+      res.notesDeleted++;
+    } catch (_) {}
+  }
+  return res;
+}
+
 // ── ②-autogen Stage 4 (Concept D) — per-text learning coverage + i+1 frontier ──
 // Read-only. For a text's canonical word_study notes (positions in note_occurrences,
 // canonical notes have text_id IS NULL), bucket each by its SRS learning state
