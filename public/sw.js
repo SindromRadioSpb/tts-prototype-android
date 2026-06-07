@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.4-autogen-reconcile";
+const CACHE_VERSION = "v3.10.5-km-quiz";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -71,6 +71,12 @@ const PRECACHE_URLS = [
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
   "/js/knowledge-map-view.js",
+  // Knowledge Map v3.8 Phase 4 — generative graph-quiz (loader eager; heavy
+  // module + connection-recall bridge precached but executed lazily via the
+  // loader, like jszip)
+  "/js/knowledge-map-quiz-loader.js",
+  "/js/knowledge-map-quiz.js",
+  "/js/notes-graph-srs-candidates.js",
   // Offline Pealim inflection dict loader (dataset itself is lazy, not precached)
   "/js/inflection-dict.js",
   // Function-word → Pealim dict-page link map loader (map JSON is lazy via /data/inflection/)

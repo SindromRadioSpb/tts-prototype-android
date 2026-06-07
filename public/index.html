@@ -11909,6 +11909,9 @@ body:not(.theme-light) .v3-heatmap-cell {
 <!-- Knowledge Map v3.8 (root-centric), behind flag knowledgeMapV1 -->
 <script src="/js/knowledge-map-data.js"></script>
 <script src="/js/knowledge-map-view.js"></script>
+<!-- Knowledge Map v3.8 Phase 4 — generative graph-quiz lazy-load shim (heavy
+     module /js/knowledge-map-quiz.js loads on first KnowledgeMapQuizLoader.open()) -->
+<script src="/js/knowledge-map-quiz-loader.js"></script>
 <!-- Offline Pealim inflection dictionary loader (lazy dataset under /data/inflection/) -->
 <script src="/js/inflection-dict.js"></script>
 <script src="/js/pealim-function-links.js"></script>
@@ -42360,6 +42363,10 @@ function v3ConjSlotLabel(slot) {
   return v3NotesT("notes.card.conj.slot." + String(slot).replace(/-/g, "_"), V3_CONJ_SLOT_FB[slot] || slot);
 }
 function v3ConjGroupLabel(k) { return v3NotesT("notes.card.conj.group." + k, V3_CONJ_GROUP_FB[k] || k); }
+// Exposed for the Knowledge-Map quiz (which-form cue) — canonical slot→label
+// decoder so the quiz never invents a grammatical cue (R1/R4).
+window.v3ConjSlotLabel = v3ConjSlotLabel;
+window.v3ConjGroupLabel = v3ConjGroupLabel;
 
 // Tap a form → speak it offline via the browser's Hebrew voice (no Pealim audio
 // hotlinking, no server round-trip). No-op if no he-IL voice is available.

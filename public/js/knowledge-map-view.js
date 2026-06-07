@@ -452,12 +452,28 @@
     var back = el("button", null, (isRTL() ? "→ " : "← ") + T("knowledgeMap.back", "Назад")); back.style.cssText = "width:auto;border:none;background:none;cursor:pointer;color:inherit;font-size:14px;";
     back.addEventListener("click", function () { sheet.parentNode.removeChild(sheet); });
     var gear = el("button", { "aria-expanded": "false" }, "⚙ " + T("knowledgeMap.facets.settings", "Вид")); gear.style.cssText = "width:auto;margin-inline-start:auto;border:1px solid var(--theme-border-soft,#e2e8f0);background:var(--theme-bg-card,#fff);color:inherit;cursor:pointer;border-radius:8px;padding:4px 10px;font-size:13px;";
-    bar.appendChild(back); bar.appendChild(gear); sheet.appendChild(bar);
+    var train = _trainBtn(false);
+    bar.appendChild(back); bar.appendChild(train); bar.appendChild(gear); sheet.appendChild(bar);
     var fbar = _buildFacetsBar(); fbar.style.display = "none"; sheet.appendChild(fbar);
     gear.addEventListener("click", function () { var open = fbar.style.display === "none"; fbar.style.display = open ? "flex" : "none"; gear.setAttribute("aria-expanded", String(open)); });
     var host = el("div"); host.style.cssText = "position:relative;flex:1;min-height:0;"; sheet.appendChild(host);
     document.body.appendChild(sheet);
     _state.focusHost = host; _renderFocus(host, rootKey); _renderLegend();
+  }
+
+  // ── quiz entry (Phase 4) — view stays read-only; only INVOKES the lazy
+  // quiz module via its loader. Trains the currently-selected root family. ───
+  function _trainBtn(big) {
+    var b = el("button", { type: "button", "data-kmap-train": "1" },
+      "🎯 " + T("kmquiz.trainRoot", "Потренировать корень"));
+    b.style.cssText = "width:auto;cursor:pointer;font-size:" + (big ? "14px" : "13px") + ";font-weight:600;padding:" +
+      (big ? "8px 16px" : "5px 12px") + ";border-radius:8px;border:1px solid var(--theme-accent,#2563eb);background:var(--theme-accent,#2563eb);color:#fff;";
+    b.addEventListener("click", function () {
+      var rootKey = _state.selectedRoot;
+      if (!rootKey || typeof window.KnowledgeMapQuizLoader === "undefined") return;
+      try { window.KnowledgeMapQuizLoader.open({ mode: "root", rootKey: rootKey, _index: _state.index }); } catch (_) {}
+    });
+    return b;
   }
 
   // ── open / close ───────────────────────────────────────────────────────
@@ -476,9 +492,11 @@
     _state.selectedRoot = roots[0].id;
     var rl = _buildRootList(roots, function (rootKey) { _renderFocus(_state.focusHost, rootKey); _rebuildFacets(); _highlightRoot(rootKey); });
     var col = el("div"); col.style.cssText = "flex:1;min-height:0;display:flex;flex-direction:column;";
+    var actionRow = el("div"); actionRow.style.cssText = "display:flex;align-items:center;gap:8px;padding:8px 12px;flex-shrink:0;border-bottom:1px solid var(--theme-border-soft,#e2e8f0);";
+    actionRow.appendChild(_trainBtn(true));
     var facets = _buildFacetsBar();
     var focus = el("div", { "data-kmap-focus": "1" }); focus.style.cssText = "position:relative;flex:1;min-height:0;";
-    col.appendChild(facets); col.appendChild(focus);
+    col.appendChild(actionRow); col.appendChild(facets); col.appendChild(focus);
     body.appendChild(rl.pane); body.appendChild(col);
     _state.focusHost = focus;
     _renderFocus(focus, roots[0].id);
