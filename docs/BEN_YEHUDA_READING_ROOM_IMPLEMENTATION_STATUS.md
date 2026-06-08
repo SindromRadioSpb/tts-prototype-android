@@ -173,7 +173,9 @@ node scripts/premium/room-shot.js # @380px RTL/LTR скриншоты → .tmp/r
 
 ---
 
-## 9. P0-004 + P0-005 — as-built (2026-06-08, реализовано-как-код, НЕ закоммичено)
+## 9. P0-004 + P0-005 — as-built (2026-06-08) — ✅ ЗАКОММИЧЕНО + ЗАДЕПЛОЕНО (см. §10 для полной картины)
+> Этот раздел = первичный as-built P0-004/P0-005. Всё ниже отгружено и живёт на проде;
+> последующие слои (C-phase, robustness, ship-as-asset, batching, A-главы) — в §10.
 
 **P0-004 — конвейер ингестии (DB-free producer, переиспользует движок):**
 - Новое: `scripts/premium/lib/benyehuda.js` (чистые хелперы: RFC-4180 CSV-парсер, чистка genre,
@@ -205,3 +207,69 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
 **Ждёт владельца (до bulk-прогона 50–150):** провайдер (google-free vs Gemini-качество + бюджет/квота) ·
 реальная вычитка (→ review_status `human_proofread`+reviewer, иначе `machine`) · полная курация
 (era/register/themes/editorial_intro/orig_language переводов) vs авто-подбор · аудио-2й-проход (Mode B).
+
+---
+
+## 10. Полный as-built — ✅ LIVE на проде (2026-06-08, SW v3.10.12-canon-v2-chapters)
+
+**Канон сам публикуется при первом заходе в Зал.** Все слои закоммичены, запушены, задеплоены,
+прод-верифицированы (curl sw.js + healthz + байты бандла на каждом шаге).
+
+**Хронология коммитов / SW:**
+| Слой | Коммит | SW / прод |
+|---|---|---|
+| P0-004 ингестия + P0-005 провенанс | `6bec1d8` | v3.10.9-room-prov ✅ |
+| C-phase: `--manifest` курация + **Dicta-cloud никуд** + пин gemini-2.5-flash | `2e2cc23` | (producer) |
+| Robustness: Gemini-таймаут/чанк, novella-guard, niqqud-backoff | `d884e62` | (producer) |
+| Ship-as-asset: бандл в `public/data/` + авто-импорт при 1-м заходе | `9bd7844` | v3.10.10-room-canon ✅ |
+| **Батчинг импорта** (1 транзакция + per-text SAVEPOINT): первый импорт **~101с→~4с** | `87da661` | v3.10.11-import-batch ✅ |
+| **A — главы**: длинные структурные works → полка-оглавление `by-work-<id>` (canon-v2) | `631fe60` | v3.10.12-canon-v2-chapters ✅ |
+
+**Решения владельца (зафиксированы):**
+- **Провайдер перевода = Gemini `gemini-2.5-flash`** (BYOK-ключ через `GEMINI_API_KEY` env, **НЕ в коде**;
+  ротировать после пилота — был в чате). google-free калечит архаику; **Gemini-никуд ОТВЕРГНУТ** (70.6% R1).
+- **Никуд = Dicta CLOUD** (точный). Причина: локальный ai-local sidecar `/nakdan` сменил схему запроса
+  (`pythonClient` шлёт устаревший `{texts}`, sidecar ждёт `{action}`-конверт) → локальный никуд пуст;
+  cloud — рабочий точный путь (backoff от throttle). **Поэзия = аутентичный source-никуд** (не зависит от Dicta).
+- `review_status=machine` (чистый MT, без вычитки). Курация = `scripts/premium/benyehuda-canon-manifest.json`
+  (~55 работ; «популярное» = канон-известность, в дампе НЕТ метрики популярности).
+
+**Канон-бандл (shipped):** `public/data/benyehuda/canon-v2.zip` (версионирован — `/data/**` immutable-cache;
+архив в `Library/`). **79 текстов / 7 полок (4 curated + 3 work-shelf) / R1 79 PASS / перевод ~100% /
+никуд 0.97.** Авто-импорт (`library-ui.js#autoImportCanon`): URL `canon-v2.zip`, флаг
+`benyehuda_canon_v2_imported`, sentinel `by-work-95` (v2-only). `?canon=skip` отключает для тестов.
+
+**A — главы (детали для продолжения):** `lib/benyehuda.js#chapterizeWork/detectChapters`. Маркеры
+(эмпирически на реальных txt): одиночная ивр.-буква `א/ב…`, цифры, `***` (НЕ `פרק`); нумерованные
+приоритетнее `***` (внутриглавные сцены не дробят). **Гейт >12K знаков** (короткие стихи не дробятся —
+строфы≠главы, R7). Длинное неструктурное >50K → «Часть N». Аддитивное `corpus.series`
+{work_byehuda_id,work_title,part,total}. Продюсер строит `by-work-<id>` полку (TOC). Результат:
+#95 מהתחלה (97K, ранее пропускалась) → 17 глав; #413 → 5 (с заголовками); #49 → 3; эссе/#229/стихи → single.
+
+**B (виртуализация) — ЗАМЕРЕНА, НЕ НУЖНА:** самый большой одиночный текст #113 (486 строк) =
+**74мс forced-layout**; открытие ~1.3с — это вес index.html-шелла, не строки. Виртуализация строк не
+оправдана. Замер: `scripts/premium/measure-reader-render.js`.
+
+**Гейты (зелёные):** smoke:corpus 64 · smoke:benyehuda-ingest 59 · smoke:shelves 30 ·
+smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes-roundtrip 25 · test:api-smoke OK.
+Доп. харнессы: `room-prov-shot.js`, `room-canon-autoimport-shot.js`, `measure-reader-render.js`.
+
+### Следующие слои (утверждённый план)
+1. **P0-002b — лёгкий ридер-шелл (УТВЕРЖДЁН, next):** реальный рычаг задержки открытия (~1.3с). Сейчас
+   deep-link тянет весь 39K Studio-апп. Сделать встроенный/облегчённый ридер в `library.html` (или slim
+   room-shell + `sw-room.js`) → открытие текста заметно быстрее. Это B-смежно (комфорт чтения), data-обосновано.
+2. **Полировка (УТВЕРЖДЕНА):** fade-край карусели (scroll-affordance); **P1-006** перенос
+   `#translitProfileSelect` из `#classicTranslationCard` в reading-aids (`#tableSettings`); **P1-009** лёгкий
+   one-tap захват слова в чтении (заменяет скрытую 📝); HE-native-review i18n `room.*`/`room.prov.*`.
+3. **C — BYOK on-open (НА ПОТОМ, зафиксировано):** каталожные заглушки всего корпуса (метаданные из
+   `pseudocatalogue.csv`) → перевод+никуд **при открытии на ключе ПОЛЬЗОВАТЕЛЯ** (BYOK), кэш в его OPFS.
+   **НЕ пред-вычисление** (≠ «18 дней испечь всё»): ленивое, по-пользователю, ноль стоимости владельца,
+   масштаб на 20K+. Крупная стройка: нужен **on-open пайплайн в браузере** (Gemini-перевод + Dicta-cloud-никуд
+   клиентом; сейчас продюсер — Node). Куратор-полки остаются shipped+offline; хвост = BYOK on-open (гибрид-moat R5).
+
+### Известные follow-up (не блокеры)
+- **Update/dedup shipped-полки при версии:** v1→v2 ре-импорт у уже-импортировавшего v1 оставит
+  до-главленый #413 дублем (нет удаления superseded-текстов). Свежая установка — чисто.
+- **Локальный sidecar `/nakdan` request-schema fix** (`{action}`-конверт) → никуд станет быстрым+локальным
+  вместо cloud (cloud throttле под нагрузкой; сейчас обходим backoff'ом + кэшем).
+- **HE i18n** `room.*`/`room.prov.*` — черновик, нужен native/ulpan-review до пилота.

@@ -64,7 +64,7 @@
 - **Notes:** полка = педагогический маршрут, не просто список (R8).
 
 ### BRR-P0-004 — Конвейер курации/ингестии Бен-Йехуда
-- **Status:** ✅ **РЕАЛИЗОВАН-как-код 2026-06-08** (header верифицирован; producer `scripts/premium/ingest-benyehuda.js` + `lib/benyehuda.js` + гейт `smoke:benyehuda-ingest` 53/53; пилот 4 произв. R1 4 PASS/0 FAIL). Bulk (50–150) ждёт решений владельца (провайдер/вычитка/курация/аудио). См. IMPLEMENTATION_STATUS §9.
+- **Status:** ✅ **ОТГРУЖЕНО + ЗАДЕПЛОЕНО НА ПРОД 2026-06-08** (SW v3.10.12-canon-v2-chapters). Producer (Gemini-2.5-flash + Dicta-cloud-никуд) + manifest-курация + **A-главы** (длинные → полки-оглавления) + батчинг импорта (~101с→~4с) + ship-as-asset (авто-публикация при 1-м заходе). Канон **`canon-v2.zip`: 79 текстов / 7 полок / R1 79 PASS**. Bulk-решения владельца ЗАФИКСИРОВАНЫ (Gemini / machine / canon-manifest ~55 / auto). **Полная картина: IMPLEMENTATION_STATUS §10.** Next=P0-002b; C на потом.
 - **Source:** LingQ (import) · Sefaria (структурный ingest)
 - **Observed:** масштабный, но структурированный ingest подлинного контента.
 - **Current:** `build-notes-from-bundle.js` (морфо-enrich) есть; нет парсера Бен-Йехуда (`pseudocatalogue.csv`+`txt/`)→сегментация→перевод+никуд+транслит+TTS→bundle.
@@ -80,7 +80,7 @@
 - **Notes:** вычитка R7/R1 для curated-полок; deep-stacks (P2-015) — позже, on-open.
 
 ### BRR-P0-005 — Провенанс + атрибуция + метки честности
-- **Status:** ✅ **РЕАЛИЗОВАН-как-код 2026-06-08** (карточки Зала: автор + бейджи review/audio; ридер room-mode: бейджи + ссылка-источник `benyehuda.org/read/<ID>` + attribution+издание; i18n `room.prov.*` ru/en/he [HE черновик]; SW `v3.10.9-room-prov`; визуально @380px RTL через `room-prov-shot.js`). См. IMPLEMENTATION_STATUS §9.
+- **Status:** ✅ **ОТГРУЖЕНО + ЗАДЕПЛОЕНО 2026-06-08** (карточки Зала: автор + бейджи review/audio; ридер room-mode: бейджи + ссылка-источник `benyehuda.org/read/<ID>` + attribution+издание; провенанс-url scheme-allowlisted; i18n `room.prov.*` ru/en/he [HE черновик→native-review]; визуально @380px RTL). См. IMPLEMENTATION_STATUS §10.
 - **Source:** Sefaria (источник/издание/дата) · R1-инвариант
 - **Observed:** видимый источник/провенанс перевода.
 - **Current:** провенанс в данных (`_sources`, provider), но не выведен в Зале; нет per-work атрибуции Бен-Йехуда; нет меток «вычитано/машинно/TTS».
