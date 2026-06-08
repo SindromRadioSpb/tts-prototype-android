@@ -12,10 +12,11 @@
 import * as localDb from '/db/local-db.js';
 import * as readerCore from '/js/reader-core.js';
 
-// BRR-P0-002b — same-document embedded reader (warm-worker open). Opt-in via
-// ?embed=1 until parity + the @380px review land; without it, work-cards keep the
-// proven deep-link to index.html?room=1 (the href stays the fallback).
-const EMBED = (() => { try { return new URLSearchParams(location.search).get('embed') === '1'; } catch (_) { return false; } })();
+// BRR-P0-002b — the same-document embedded reader (warm-worker open) is the DEFAULT
+// Room open: parity-proven (smoke:reader-parity) + prod-verified, warm-open ~24-100ms
+// vs ~1s cold deep-link. ?embed=0 forces the legacy cross-document deep-link (escape
+// hatch); right-click / middle-click / no-JS still navigate via the card's href.
+const EMBED = (() => { try { return new URLSearchParams(location.search).get('embed') !== '0'; } catch (_) { return true; } })();
 
 const TRACKS = ['accessible', 'literary'];
 let activeTrack = 'accessible';
@@ -107,8 +108,9 @@ function renderWorkCard(textKey) {
     card.appendChild(meta);
   }
   card.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.open', text: tt('room.work.open') }));
-  // Embedded warm open (opt-in) — preventDefault keeps the href deep-link as the
-  // graceful fallback (right-click/middle-click/no-JS still navigate to the reader).
+  // Embedded warm open (default) — preventDefault keeps the href deep-link as the
+  // graceful fallback (right-click/middle-click/no-JS still navigate to the reader;
+  // ?embed=0 disables the embed path entirely).
   if (EMBED) card.addEventListener('click', (e) => { e.preventDefault(); openReader(hit.id, title); });
   return card;
 }
