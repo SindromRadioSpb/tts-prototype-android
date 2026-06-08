@@ -31,6 +31,9 @@ usage.json
 # Hebrew font sources — only woff2 are committed; zip archives stay out
 public/fonts/*.zip
 
+# Ben-Yehuda canon build artifacts — shipped copy lives in public/data/benyehuda/
+Library/benyehuda-canon-*.zip
+
 # OS / IDE
 .DS_Store
 Thumbs.db

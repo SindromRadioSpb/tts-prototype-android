@@ -54,8 +54,13 @@ Surface: Room=Reading Room visible · Room?=Room optional · Studio · BE=Backen
 | BRR-P0-001 | Модель метаданных корпуса (автор/эпоха/жанр/переводчик/язык-ориг/провенанс + content-hash) | Sefaria, R6 | ✅ DONE (corpus v1 + bundle v2.1, Option A) | high | med | high | R6,R3 | BE | partial | M | 1 | P0 |
 | BRR-P0-002 | Чистая страница Читального зала (`library.html`) | LingQ,Beelinguapp,StoryHebrew | ✅ done (browse + room-mode; embedded/sw-room → P0-002b) | critical | high | high | R4,R5 | Room | new | L | 1 | P0 |
 | BRR-P0-003 | Полки/коллекции + 2 трека (Доступная/Литературная) | Sefaria,Beelinguapp | ✅ DONE (модель; OPFS+bundle, рендер=P0-002) | critical | high | high | R6,R8 | Room | new | M | 1 | P0 |
-| BRR-P0-004 | Конвейер курации/ингестии Бен-Йехуда → бандлы | LingQ(import),Sefaria | partial (`build-notes`) | critical | high | high | R6,R1,R7 | Studio | partial | L | 1 | P0 |
-| BRR-P0-005 | Провенанс per work + атрибуция + метки честности (вычитано/машинно/TTS) | Sefaria,R1 | partial (provenance в данных) | high | med | high | R1,R5,R7 | Room | partial | S | 1 | P0 |
+| BRR-P0-004 | Конвейер курации/ингестии Бен-Йехуда → бандлы | LingQ(import),Sefaria | ✅ DONE (Gemini-перевод + Dicta-cloud никуд + manifest + ship-as-asset; 79 текстов/7 полок, R1 79 PASS) | critical | high | high | R6,R1,R7 | Studio | partial | L | 1 | P0 |
+| BRR-P0-005 | Провенанс per work + атрибуция + метки честности (вычитано/машинно/TTS) | Sefaria,R1 | ✅ DONE (бейджи карточки + ридер-бар + url scheme-allowlist) | high | med | high | R1,R5,R7 | Room | partial | S | 1 | P0 |
+| BRR-P0-002b | Лёгкий ридер-шелл (embedded reader + sw-room.js) | производный (v1 trade-off) | 🔜 NEXT (deep-link тянет 39K шелл; ~1.3с открытие) | high | high | med | R4,R5,R6 | Room | new | L | 1 | P0 |
+| BRR-P0-008 | Версионный update/dedup shipped-контента | аудит 2026-06-08 | 🔜 PLANNED — ⛔ПРЕРЕКВИЗИТ пред-прогона (vN→vN+1 дубли) | high | med | med | R6,R1 | BE | partial | M | 3 | P0 |
+| BRR-P0-009 | Локальный никуд-sidecar /nakdan (request-schema fix) | аудит 2026-06-08 | 🔜 PLANNED — ⛔ПРЕРЕКВИЗИТ пред-прогона (сейчас Dicta-cloud) | high | low | med | R1,R5 | BE | partial | S | 3 | P0 |
+| BRR-P0-006 | Раннер полного пред-прогона корпуса (keyless) | владелец 2026-06-08 | 🔜 PLANNED (после 008/009); резюм-кэш есть | high | high | high | R6,R1,R5 | Studio | partial | L | 3 | P0 |
+| BRR-P0-007 | Доставка keyless-контента (per-work served + OPFS-кэш) | владелец 2026-06-08 | 🔜 PLANNED — нужно решение по архитектуре | high | high | high | R5,R6,R4 | Room?+BE | new | L | 3 | P0 |
 | BRR-P1-006 | Консоль скаффолдинга (никуд fade / транслит / reveal перевода) | StoryHebrew,Beelinguapp | partial (бинарные toggle) | high | high | high | R8,R2,R4 | Room | partial | M | 2 | P1 |
 | BRR-P1-007 | Бейдж сложности+покрытия + «следующий для тебя» | LingQ,StoryHebrew | missing (i+1 есть в данных) | high | high | high | R2,R8,R3 | Room | partial | M | 2 | P1 |
 | BRR-P1-008 | Audio↔text karaoke-подсветка (RTL-safe) | Beelinguapp,LingQ | missing | high | high | med | R4,R2 | Room | new | M | 2 | P1 |

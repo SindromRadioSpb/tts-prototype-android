@@ -95,6 +95,86 @@
 - **DoD:** screenshot карточки+читалки с метками; чек-лист «метка ↔ реальные данные».
 - **Notes:** прямой R1/R5 invariant; см. REJ-03.
 
+### BRR-P0-002b — Лёгкий ридер-шелл (embedded reader + `sw-room.js`) 🔜 NEXT (утверждён)
+- **Status:** 🔜 NEXT (утверждён владельцем). Реализуется первым в продолжении.
+- **Source:** производный (наш v1 trade-off; аудит 2026-06-08).
+- **Observed:** конкуренты дают сфокусированную лёгкую читалку.
+- **Current:** ридер = deep-link `/index.html?room=1#/t/<b64>` (room-mode прячет хром, НО грузит весь 39K Studio-шелл + heavy `sw.js`); открытие ~1.3с (замер `measure-reader-render.js`: 486 строк = 74мс → рычаг = вес шелла, не строки; B-виртуализация ЗАКРЫТА).
+- **Gap:** медленное открытие; отложенный lightweight-SW инвариант стратегии не выполнен.
+- **User story:** *Как ученик, хочу открывать текст быстро в чистой лёгкой читалке.*
+- **Surface:** Room · **Role:** R4, R5, R6 · **Priority:** P0
+- **Strategic fit:** high · **Learner value:** high · **Moat value:** med
+- **Impl:** new (встроить `renderTable`+аудио+тогглы колонок+on-tap в `library.html` ИЛИ slim room-shell) + `sw-room.js` · **Cx:** L
+- **Dependencies:** BRR-P0-002 · **Risks:** tech (извлечение `renderTable` из 50+ глобалов `index.html` — главный риск), UX
+- **Offline:** yes · **BYOK:** n/a
+- **Acceptance:** открытие текста <~300мс (vs ~1.3с); ПАРИТЕТ с deep-link (двуязычная таблица + ▶аудио + тогглы niqqud/translit/ru + on-tap морфология + честные empty/error/loading); @380px RTL; отдельный `sw-room.js` precache БЕЗ морфо/граф/квиз-чанков; deep-link fallback держать до паритета.
+- **DoD:** замер открытия до/после (`measure-reader-render.js`); screenshot @380px RTL; `smoke:room` расширить на embedded-ридер; 0 регрессий.
+- **Notes:** recon-first дизайн на утверждение. Закрывает отложенный «отдельный лёгкий SW» инвариант.
+
+### BRR-P0-008 — Версионный update/dedup shipped-контента ⛔ ПРЕРЕКВИЗИТ пред-прогона
+- **Status:** 🔜 PLANNED — пререквизит BRR-P0-006/007 (аудит 2026-06-08).
+- **Source:** аудит 2026-06-08 (R1/R6).
+- **Observed:** shipped-канон версионируется (`canon-vN.zip`), авто-импорт при 1-м заходе.
+- **Current:** `autoImportCanon` (`mode:'skip'` + sentinel) ДОБАВЛЯЕТ новое поверх старого: vN→vN+1 у апгрейдящегося юзера оставляет superseded-тексты (монолитный #413 v1 дублит главы v2), старые полки по slug не обновляются. Fresh-install — чисто.
+- **Gap:** дубли у апгрейдящихся; рекуррентно на КАЖДОМ бампе; БЛОКИРУЕТ масштабную доставку пред-прогона.
+- **User story:** *Как пользователь, при обновлении канона хочу актуальный набор без дублей; мои созданные тексты не трогаются.*
+- **Surface:** Backend (`library-ui.js`/`local-db.js`) · **Role:** R6, R1 · **Priority:** P0
+- **Strategic fit:** high · **Learner value:** med · **Moat value:** med
+- **Impl:** partial reuse · **Cx:** M
+- **Dependencies:** BRR-P0-003, BRR-P0-004 · **Risks:** НЕ удалить user-контент (только canon-origin)
+- **Offline:** yes · **BYOK:** n/a
+- **Acceptance:** при бампе `canon_version` удаляются canon-origin тексты/полки, отсутствующие в новом манифесте (метка `origin:'benyehuda-ingest'` + `canon_version`), затем импорт; **user-созданный контент НЕ затрагивается**; апгрейд v1→v2 даёт 0 дублей (#413); fresh == upgraded.
+- **DoD:** smoke: v1→v2 апгрейд → 0 дублей + user-контент цел; replace идемпотентен.
+- **Notes:** caveat зафиксирован в IMPLEMENTATION_STATUS §10.
+
+### BRR-P0-009 — Локальный никуд-sidecar `/nakdan` (request-schema fix) ⛔ ПРЕРЕКВИЗИТ пред-прогона
+- **Status:** 🔜 PLANNED — пререквизит BRR-P0-006 (масштаб никуда).
+- **Source:** аудит 2026-06-08 (R1/R5).
+- **Observed:** никуд = Dicta CLOUD (точный, с backoff).
+- **Current:** локальный `ai-local` sidecar `/nakdan`: `pythonClient` шлёт устаревший `{texts}`, sidecar ждёт `{action}`-конверт → локальный никуд пуст; используется cloud.
+- **Gap:** 26K-прогон через Dicta-cloud = rate-limit/стоимость/доступность + внешняя зависимость для «безключевой» библиотеки.
+- **User story:** *Как владелец, хочу прогнать никуд по всему корпусу локально, без облачного throttle/стоимости.*
+- **Surface:** Backend (`niqqudGateway`/`pythonClient` + `ai-local` sidecar) · **Role:** R1, R5 · **Priority:** P0
+- **Strategic fit:** high · **Learner value:** low (опосредованно) · **Moat value:** med
+- **Impl:** partial reuse (починить конверт запроса) · **Cx:** S–M
+- **Dependencies:** — · **Risks:** точность локального vs cloud (сверить на выборке)
+- **Offline:** yes · **BYOK:** n/a
+- **Acceptance:** локальный `/nakdan` отдаёт корректный никуд (паритет с cloud на выборке); продюсер по умолчанию использует локальный путь; cloud = fallback.
+- **DoD:** смоук-сверка локальный vs cloud; пред-прогон не зависит от Dicta-cloud.
+- **Notes:** caveat §10.
+
+### BRR-P0-006 — Раннер полного пред-прогона корпуса (keyless) 🔜 приоритетный фоновый трек
+- **Status:** 🔜 PLANNED (после BRR-P0-008/009). Owner-priority (2026-06-08).
+- **Source:** решение владельца — «испечь всё» = универсальная keyless-библиотека.
+- **Observed:** продюсер кэширует+резюмирует на диск (`.tmp/benyehuda/`).
+- **Current:** курируется ~55 работ (`benyehuda-canon-manifest.json`); полный корпус (~26 455) не прогнан.
+- **Gap:** хвост корпуса недоступен без BYOK.
+- **User story:** *Как любой пользователь без ключей, хочу читать любой текст канона (перевод+никуд готовы заранее).*
+- **Surface:** Studio/Backend (раннер) · **Role:** R6, R1, R5 · **Priority:** P0
+- **Strategic fit:** high · **Learner value:** high · **Moat value:** high
+- **Impl:** partial reuse (`ingest-benyehuda.js` + резюм-кэш) · **Cx:** L
+- **Dependencies:** BRR-P0-008, BRR-P0-009 · **Risks:** cost/quota (Gemini free ~1500/день ≈ месяц), время, качество на масштабе
+- **Offline:** yes (выход) · **BYOK:** yes (генерация на ключе владельца)
+- **Acceptance:** инкрементальный резюмируемый обход всего `pseudocatalogue.csv`, режим «N работ/день, продолжай завтра», провайдер gemini, никуд локальный (P0-009); ДО старта — фактический замер объёма×цены×времени (отчёт владельцу); R7 QA-сэмплинг по эпохам; всё `review_status=machine`.
+- **DoD:** отчёт замера до старта; резюм-прогон переживает рестарт; QA-сэмпл по эпохам зелёный.
+- **Notes:** длительный ленивый прогон; параллелен P0-002b.
+
+### BRR-P0-007 — Доставка keyless-контента (per-work served + OPFS-кэш) 🔜 нужно решение владельца
+- **Status:** 🔜 PLANNED — design-вопрос + решение владельца (после/с BRR-P0-006).
+- **Source:** решение владельца 2026-06-08.
+- **Observed:** канон сейчас = один shipped-бандл (2.16МБ) авто-импортом.
+- **Current:** один бандл/precache не масштабируется на ~26K × ~27КБ ≈ сотни МБ.
+- **Gap:** нет масштабируемой доставки пред-прогона.
+- **User story:** *Как пользователь без ключей, открываю любую работу — её ассеты подгружаются и кэшируются офлайн.*
+- **Surface:** Room? + Backend · **Role:** R5, R6, R4 · **Priority:** P0
+- **Strategic fit:** high · **Learner value:** high · **Moat value:** high
+- **Impl:** new · **Cx:** L
+- **Dependencies:** BRR-P0-006, BRR-P0-008 · **Risks:** OPFS-лимиты устройства/эвикция, доставка/CDN
+- **Offline:** partial (после открытия/пака) · **BYOK:** n/a (keyless)
+- **Acceptance:** РЕШЕНИЕ владельца по архитектуре (рекоменд.: per-work served-on-open без ключа + OPFS-кэш с LRU-эвикцией; ± офлайн-паки по эпохам); curated-полки остаются; honest online/offline-state; не раздувает first-visit/OPFS.
+- **DoD:** дизайн на утверждение; прототип на подвыборке; OPFS-cap/эвикция протестированы.
+- **Notes:** BYOK-on-open вторично (мгновенный доступ к ещё-не-испечённому).
+
 ---
 
 ## P1 — качество v1.0
@@ -282,10 +362,20 @@ Source: Sefaria(API)/Readlang(Anki) · Surface: Backend · Role: R5,R3 · Impl: 
 - [ ] Провенанс/метки честности там, где есть перевод/аудио/морфология.
 
 ### Phase-mapping
-- **Фаза 1 (Зал + 2 полки):** P0-001, P0-002, P0-003, P0-004, P0-005, P2-016, P2-018.
+- **Фаза 1 (Зал + 2 полки):** P0-001 ✅, P0-002 ✅, P0-003 ✅, P0-004 ✅, P0-005 ✅, **P0-002b (next)**, P2-016, P2-018.
 - **Фаза 2 (Скаффолдинг + i+1):** P1-006, P1-007, P1-008, P1-009, P1-010, P1-011, P1-012, P2-014, P2-017, P2-020.
-- **Фаза 3 (Глубокие стеллажи + BYOK):** P2-013, P2-015, P2-019.
+- **Фаза 3 (Глубокие стеллажи + BYOK + ПРЕД-ПРОГОН):** **P0-008 + P0-009 (пререквизиты)** → **P0-006 (раннер)** → **P0-007 (доставка keyless)**, P2-013, P2-015, P2-019.
 - **Фаза 4 (Кураторские маршруты):** P3-021, P3-022, P3-023, P3-024, P3-025.
+
+### Статус и порядок (аудит 2026-06-08)
+**DONE + PROD-LIVE (SW v3.10.12-canon-v2-chapters, main @ 8d3c3ed):** P0-001, P0-002, P0-002a, P0-003,
+P0-004, P0-005 (+ сверх плана: батчинг импорта, ship-as-asset авто-импорт канона, A-главы; canon-v2 =
+79 текстов / 7 полок / R1 79 PASS). Решения: перевод = Gemini `gemini-2.5-flash`; никуд = Dicta-cloud;
+`review_status=machine`. Все 8 гейтов зелёные (проверено аудитом).
+**СЛЕДУЮЩИЙ ПОРЯДОК:** (1) **P0-002b** лёгкий ридер-шелл (next) ∥ (2) пред-прогон-трек —
+**P0-008 → P0-009 → P0-006 → P0-007** (пререквизиты dedup + локальный никуд ПЕРЕД выкатом версионного
+контента) ∥ (3) полировка (P1-006 / P1-009 + бейдж эпоха·регистр + HE-native-review). Полный as-built —
+`docs/BEN_YEHUDA_READING_ROOM_IMPLEMENTATION_STATUS.md` §10.
 
 ### Рекомендуемые первые 10 тикетов (порядок)
 1. **BRR-P0-001** Схема метаданных корпуса + bundle v2.1 (schema-first).
