@@ -21,6 +21,7 @@ const path = require("path");
 const JSZip = require("../../public/db/jszip.min.js");
 const dicta = require("../../db/premium/providers/dictaMorph");
 const { inflect } = require("../../db/premium/inflectionGateway");
+const corpusMeta = require("../../db/premium/corpusMeta");   // BRR-P0-001 contract
 
 const REPO = path.resolve(__dirname, "..", "..");
 const TMP = path.join(REPO, ".tmp");
@@ -281,6 +282,49 @@ function checkUnit(u, r) {
   if (LIMIT) texts = texts.slice(0, LIMIT);
   log("texts:", texts.length, "(limit " + LIMIT + ")");
 
+  // ── BRR-P0-001 — corpus-metadata contract: validate + fill content_hash +
+  //    stamp the bundle v2.1 marker. We do NOT fabricate a corpus for
+  //    un-catalogued texts (that is ingestion, BRR-P0-004) — we only enforce
+  //    the contract on texts that already declare one and fill the derivable
+  //    content_hash. validateCorpus is the R1 honesty gate: a lying corpus
+  //    (e.g. an MT text labelled proofread, or TTS labelled native) fails the
+  //    build. Iterate lib.texts (full set) so library.json stays complete even
+  //    under --limit. Mutations land on the shared object refs in lib.texts.
+  {
+    const allTexts = Array.isArray(lib.texts) ? lib.texts : [];
+    let stamped = 0; const corpusErrors = [];
+    for (const t of allTexts) {
+      if (!t) continue;
+      // Read via the contract accessor — the canonical home is source_meta.corpus,
+      // with a first-class top-level mirror. Validating the raw top-level field
+      // would skip a corpus that lives only in source_meta (e.g. an ingested or
+      // round-tripped library.json), letting a lie slip past the R1 gate.
+      const corpus = corpusMeta.getCorpus(t);
+      if (!corpus) continue;
+      if (!corpus.content_hash) {
+        const parts = (t.rows || []).map((r) => String(r.hebrew_plain || stripNiqqud(r.hebrew_niqqud) || ""));
+        const h = corpusMeta.computeContentHash(parts);
+        if (h) corpus.content_hash = h;   // null on empty content → validator warns
+      }
+      const v = corpusMeta.validateCorpus(corpus);
+      if (!v.ok) corpusErrors.push({ text_id: t.text_id, errors: v.errors });
+      for (const w of (v.warnings || [])) log("  corpus warn [" + (t.text_id || "?") + "]:", w);
+      // Canonicalize: surface the validated object as the first-class top-level
+      // field AND keep the source_meta home in sync (same ref), so the rewritten
+      // library.json is consistent regardless of which place the input used.
+      t.corpus = corpus;
+      if (t.source_meta && typeof t.source_meta === "object") t.source_meta.corpus = corpus;
+      stamped++;
+    }
+    if (corpusErrors.length) {
+      console.error("[build-notes] corpus validation FAILED (R1 honesty gate):");
+      for (const e of corpusErrors) console.error("  " + e.text_id + ": " + e.errors.join("; "));
+      process.exit(3);
+    }
+    lib.corpus_meta_version = corpusMeta.CORPUS_META_VERSION;
+    log("corpus:", stamped, "text(s) with metadata; bundle v2.1 marker stamped");
+  }
+
   // ── 1) Dicta pass (context-faithful), cached on disk for resume ──────────
   const dictaCachePath = path.join(TMP, "bundle-dicta-cache.json");
   let dcache = {};
@@ -459,6 +503,10 @@ function checkUnit(u, r) {
     log("sentence_morph entries:", sentenceMorph.length);
     const advanced = { schema_version: 1, exported_at: stamp, app_id: "linguist-pro-web", format: "linguistpro-notes-advanced-v1", notes, versions: [], links: [], roots: [], sentence_morph: sentenceMorph };
     zip.file("library/notes_advanced.json", JSON.stringify(advanced));
+    // BRR-P0-001 — persist the corpus_meta_version marker + any filled
+    // content_hash back into library.json (JSZip keeps the original entry
+    // untouched otherwise, so it would lack them). Rewrite the SAME entry path.
+    zip.file(libFile.name, JSON.stringify(lib));
     // flip manifest flag
     try { const mf = zip.file("manifest.json"); if (mf) { const m = JSON.parse(await mf.async("string")); m.notes_advanced_present = true; m.notes_count = notes.length; zip.file("manifest.json", JSON.stringify(m, null, 2)); } } catch (_) {}
     const buf = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });

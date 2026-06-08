@@ -3332,6 +3332,14 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
       if (pr) progress = { last_row_idx: pr.last_row_idx ?? null, last_step_id: pr.last_step_id ?? null, updated_at: pr.updated_at || null };
     } catch (_) {}
 
+    // BRR-P0-001 — surface the corpus-metadata object (if any) as a first-class
+    // top-level bundle field for Reading-Room discovery / the Android validator.
+    // Canonical home stays source_meta.corpus; this is a robust mirror (the
+    // object also remains inside source_meta on export, so even an old importer
+    // keeps it inside the blob). Spec: db/premium/corpusMeta.js#liftCorpusToBundle.
+    const _srcMeta = safeJsonParse(text.source_meta_json);
+    const _corpus = (_srcMeta && typeof _srcMeta === 'object' && _srcMeta.corpus) ? _srcMeta.corpus : null;
+
     texts.push({
       text_id: text.id,
       text_key: text.text_key,
@@ -3341,7 +3349,8 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
       source_label: text.source || null,
       topic: text.topic || null,
       source_text: text.source_text || '',
-      source_meta: safeJsonParse(text.source_meta_json),
+      source_meta: _srcMeta,
+      corpus: _corpus,
       table_model_meta: safeJsonParse(text.table_model_meta_json),
       rows,
       text_audio_asset_key: null,
@@ -3398,7 +3407,12 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
        (notesAdvanced.anki_word_exports || []).length ||
        (notesAdvanced.translation_overrides || []).length)),
   };
-  const library = { schema_version: 1, texts, audio_assets: audioAssets };
+  // BRR-P0-001 — bundle v2.1 marker: a purely ADDITIVE SIBLING field on
+  // library.json (whose `schema_version` stays 1). Existing importers ignore
+  // unknown fields, so this needs no version bump or compat shim. Canonical
+  // value: db/premium/corpusMeta.js#CORPUS_META_VERSION (mirrored here as a
+  // single integer for the browser).
+  const library = { schema_version: 1, corpus_meta_version: 1, texts, audio_assets: audioAssets };
   // Backwards-compat: also expose `texts` at the top of the returned object so
   // callers that iterate `bundle.texts` directly (importBundle round-trip,
   // older tests) keep working without changes. Phase 9.1.D adds
@@ -3602,7 +3616,14 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         source: item.source_label || item.source || null,
         topic: item.topic || null,
         source_text: item.source_text || '',
-        source_meta_json: item.source_meta ? JSON.stringify(item.source_meta) : null,
+        // BRR-P0-001 — fold the first-class top-level `corpus` field back into
+        // source_meta.corpus (the OPFS home), preserving every other source_meta
+        // key. Mirrors db/premium/corpusMeta.js#mergeCorpusIntoSourceMeta.
+        source_meta_json: (() => {
+          const _sm = (item.source_meta && typeof item.source_meta === 'object') ? { ...item.source_meta } : {};
+          if (item.corpus && typeof item.corpus === 'object') _sm.corpus = item.corpus;
+          return Object.keys(_sm).length ? JSON.stringify(_sm) : null;
+        })(),
         table_model_meta_json: item.table_model_meta ? JSON.stringify(item.table_model_meta) : null,
         tts_profile_json: item.tts_profile_json || null,            // R-3.7
         is_archived: item.is_archived ? 1 : 0,
