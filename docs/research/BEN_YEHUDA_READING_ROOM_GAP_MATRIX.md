@@ -53,7 +53,7 @@ Surface: Room=Reading Room visible · Room?=Room optional · Studio · BE=Backen
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | BRR-P0-001 | Модель метаданных корпуса (автор/эпоха/жанр/переводчик/язык-ориг/провенанс + content-hash) | Sefaria, R6 | ✅ DONE (corpus v1 + bundle v2.1, Option A) | high | med | high | R6,R3 | BE | partial | M | 1 | P0 |
 | BRR-P0-002 | Чистая страница Читального зала (`library.html`) | LingQ,Beelinguapp,StoryHebrew | missing | critical | high | high | R4,R5 | Room | new | L | 1 | P0 |
-| BRR-P0-003 | Полки/коллекции + 2 трека (Доступная/Литературная) | Sefaria,Beelinguapp | missing | critical | high | high | R6,R8 | Room | new | M | 1 | P0 |
+| BRR-P0-003 | Полки/коллекции + 2 трека (Доступная/Литературная) | Sefaria,Beelinguapp | ✅ DONE (модель; OPFS+bundle, рендер=P0-002) | critical | high | high | R6,R8 | Room | new | M | 1 | P0 |
 | BRR-P0-004 | Конвейер курации/ингестии Бен-Йехуда → бандлы | LingQ(import),Sefaria | partial (`build-notes`) | critical | high | high | R6,R1,R7 | Studio | partial | L | 1 | P0 |
 | BRR-P0-005 | Провенанс per work + атрибуция + метки честности (вычитано/машинно/TTS) | Sefaria,R1 | partial (provenance в данных) | high | med | high | R1,R5,R7 | Room | partial | S | 1 | P0 |
 | BRR-P1-006 | Консоль скаффолдинга (никуд fade / транслит / reveal перевода) | StoryHebrew,Beelinguapp | partial (бинарные toggle) | high | high | high | R8,R2,R4 | Room | partial | M | 2 | P1 |

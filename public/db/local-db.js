@@ -417,6 +417,133 @@ export async function touchOpened(id) {
   await r("UPDATE texts SET last_opened_at = ? WHERE id = ?", [new Date().toISOString(), id]);
 }
 
+// ── shelves (BRR-P0-003 Reading Room collections) ────────────────────────────
+// A shelf is a curated, ordered list of texts in one track (accessible|literary)
+// with an editorial intro. Members reference texts by text_key (survives import).
+// Contract/validation: db/premium/shelfMeta.js. Rides the bundle additively
+// (library.json.shelves[]); slug is the stable, portable identity (upsert key).
+
+// Browser-side import guard. shelfMeta.js is Node-only (CommonJS), so the
+// browser import path (where untrusted/hand-merged bundles land) must enforce
+// the contract's HARD errors itself. Keep in sync with db/premium/shelfMeta.js#
+// validateShelf. SHELF_TRACKS mirrors db/premium/corpusMeta.js#TRACK.
+const SHELF_TRACKS = ['accessible', 'literary'];
+function _validateShelfForImport(sh) {
+  if (!sh || typeof sh !== 'object') return { ok: false, error: 'shelf is not an object' };
+  if (!String(sh.slug || '').trim()) return { ok: false, error: 'slug required (stable shelf id)' };
+  if (!String(sh.title || '').trim()) return { ok: false, error: 'title required' };
+  if (!SHELF_TRACKS.includes(sh.track)) return { ok: false, error: "track '" + sh.track + "' not in [" + SHELF_TRACKS.join(', ') + ']' };
+  if (sh.items != null && !Array.isArray(sh.items)) return { ok: false, error: 'items must be an array' };
+  return { ok: true };
+}
+
+function _shelfRowToObj(row) {
+  let items = [];
+  try { items = JSON.parse(row.items_json || '[]') || []; } catch (_) { items = []; }
+  return {
+    id: row.id,
+    schema: row.schema_version || 1,
+    slug: row.slug,
+    title: row.title,
+    track: row.track,
+    era: row.era || null,
+    genre: row.genre || null,
+    editorial_intro: row.editorial_intro || null,
+    items,
+    order: (row.order_index != null ? row.order_index : null),
+  };
+}
+
+// Reader for the Reading Room surface (BRR-P0-002). Ordered by track then
+// curatorial order. Defensive: returns [] if the table is somehow absent.
+export async function getShelves() {
+  let rows = [];
+  // The table is created unconditionally by migration 054, so a rejection here
+  // is a real DB error (worker down / follower mode / SQL fault), NOT an absent
+  // table — log it so it is debuggable rather than silently swallowed.
+  try { rows = await q('SELECT * FROM shelves ORDER BY track, COALESCE(order_index, 999999), title'); }
+  catch (e) { try { console.warn('[shelves] getShelves read failed:', e); } catch (_) {} rows = []; }
+  return rows.map(_shelfRowToObj);
+}
+
+export async function getShelfBySlug(slug) {
+  const rows = await q('SELECT * FROM shelves WHERE slug = ? LIMIT 1', [String(slug || '')]);
+  return rows.length ? _shelfRowToObj(rows[0]) : null;
+}
+
+// Programmatic create (curation / Studio / tests). `items` = [{text_key, order}].
+export async function createShelf(data) {
+  const d = data || {};
+  if (!d.slug) throw new Error('createShelf: slug is required');
+  if (!d.track) throw new Error('createShelf: track is required');
+  const id = d.id || crypto.randomUUID();
+  const now = new Date().toISOString();
+  const items_json = JSON.stringify(Array.isArray(d.items) ? d.items : []);
+  await r(
+    `INSERT INTO shelves (id, slug, title, track, era, genre, editorial_intro, items_json, order_index, schema_version, created_at, updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [id, String(d.slug), String(d.title == null ? '' : d.title), String(d.track),
+     d.era ?? null, d.genre ?? null, d.editorial_intro ?? null,
+     items_json, (d.order != null ? d.order : null), (d.schema || 1), now, now]
+  );
+  return id;
+}
+
+// Upsert a shelf from a bundle object, keyed by slug. mode 'skip' leaves an
+// existing shelf untouched; any other mode overwrites it (curated shelves are
+// slug-stable, so re-import refreshes the curation). Returns 'inserted' |
+// 'updated' | 'skipped'.
+async function _upsertShelfFromBundle(sh, mode) {
+  const slug = String((sh && sh.slug) || '').trim();
+  if (!slug) return 'skipped';
+  const existing = await q('SELECT id FROM shelves WHERE slug = ?', [slug]);
+  const now = new Date().toISOString();
+  const items_json = JSON.stringify(Array.isArray(sh.items) ? sh.items : []);
+  if (existing.length) {
+    if (mode === 'skip') return 'skipped';
+    await r(
+      `UPDATE shelves SET title=?, track=?, era=?, genre=?, editorial_intro=?, items_json=?, order_index=?, schema_version=?, updated_at=? WHERE slug=?`,
+      [String(sh.title == null ? '' : sh.title), (sh.track ?? null), (sh.era ?? null), (sh.genre ?? null),
+       (sh.editorial_intro ?? null), items_json, (sh.order != null ? sh.order : null), (sh.schema || 1), now, slug]
+    );
+    return 'updated';
+  }
+  await r(
+    `INSERT INTO shelves (id, slug, title, track, era, genre, editorial_intro, items_json, order_index, schema_version, created_at, updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    [crypto.randomUUID(), slug, String(sh.title == null ? '' : sh.title), (sh.track ?? null),
+     (sh.era ?? null), (sh.genre ?? null), (sh.editorial_intro ?? null),
+     items_json, (sh.order != null ? sh.order : null), (sh.schema || 1), now, now]
+  );
+  return 'inserted';
+}
+
+// Map OPFS shelf rows → bundle shelf objects (strip id/timestamps; keep the
+// portable contract shape). Used by buildExport.
+async function _exportShelves() {
+  let rows = [];
+  // Backup path: a swallowed error here would write shelves:[] into a bundle the
+  // user is told is complete. The table always exists (migration 054), so log a
+  // real failure so dropped curation is never silent/undebuggable.
+  try { rows = await q('SELECT * FROM shelves ORDER BY track, COALESCE(order_index, 999999), title'); }
+  catch (e) { try { console.warn('[shelves] _exportShelves read failed — shelves omitted from bundle:', e); } catch (_) {} rows = []; }
+  return rows.map((row) => {
+    let items = [];
+    try { items = JSON.parse(row.items_json || '[]') || []; } catch (_) { items = []; }
+    return {
+      schema: row.schema_version || 1,
+      slug: row.slug,
+      title: row.title,
+      track: row.track,
+      era: row.era || null,
+      genre: row.genre || null,
+      editorial_intro: row.editorial_intro || null,
+      items,
+      order: (row.order_index != null ? row.order_index : null),
+    };
+  });
+}
+
 // ── sentences ──────────────────────────────────────────────────────────────
 
 export async function getSentences(textId) {
@@ -3412,7 +3539,11 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
   // unknown fields, so this needs no version bump or compat shim. Canonical
   // value: db/premium/corpusMeta.js#CORPUS_META_VERSION (mirrored here as a
   // single integer for the browser).
-  const library = { schema_version: 1, corpus_meta_version: 1, texts, audio_assets: audioAssets };
+  // BRR-P0-003 — shelves ride the bundle as an additive sibling array (like
+  // texts/corpus). Exported in full (the bundle is the user's complete backup);
+  // members reference texts by text_key, so they survive id-remap on import.
+  const shelves = await _exportShelves();
+  const library = { schema_version: 1, corpus_meta_version: 1, shelves, texts, audio_assets: audioAssets };
   // Backwards-compat: also expose `texts` at the top of the returned object so
   // callers that iterate `bundle.texts` directly (importBundle round-trip,
   // older tests) keep working without changes. Phase 9.1.D adds
@@ -3585,6 +3716,40 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
   }
 
   const result = { imported: 0, skipped: 0, errors: [], importedIds: [] };
+
+  // BRR-P0-003 — import Reading Room shelves (additive top-level array). Keyed
+  // by slug; members reference texts by text_key (no FK), so this is independent
+  // of the text-id remap below. Older bundles have no `shelves` → no-op.
+  // Validate on THIS path (the browser import is where untrusted/hand-merged
+  // bundles land; shelfMeta.js is Node-only) so an invalid shelf yields an
+  // honest, surfaceable error instead of an opaque SQLite constraint failure or
+  // a silently-mislabelled row. Error shape matches the other importers
+  // (`{ stage, error }`) so the existing UI surfaces a real detail string.
+  const shelvesIn = (lib && Array.isArray(lib.shelves)) ? lib.shelves : [];
+  if (shelvesIn.length) {
+    const _bundleTextKeys = new Set(
+      texts.map((t) => String((t && (t.text_key || (t.text && t.text.text_key))) || '')).filter(Boolean)
+    );
+    const _seenShelfSlugs = new Set();
+    for (const sh of shelvesIn) {
+      const slug = String((sh && sh.slug) || '').trim();
+      const v = _validateShelfForImport(sh);
+      if (!v.ok) { result.errors.push({ stage: 'shelf', slug: slug || '?', error: v.error }); continue; }
+      if (_seenShelfSlugs.has(slug)) {
+        try { console.warn('[shelves] duplicate slug in bundle — later overrides earlier:', slug); } catch (_) {}
+      }
+      _seenShelfSlugs.add(slug);
+      // Honest dead-end guard (R8): warn on members not present in this bundle.
+      const _missing = (Array.isArray(sh.items) ? sh.items : [])
+        .map((it) => String((it && (typeof it === 'string' ? it : it.text_key)) || '').trim())
+        .filter((tk) => tk && !_bundleTextKeys.has(tk));
+      if (_missing.length) {
+        try { console.warn('[shelves] ' + slug + ': ' + _missing.length + ' member(s) reference a text_key not in this bundle'); } catch (_) {}
+      }
+      try { await _upsertShelfFromBundle(sh, mode); }
+      catch (e) { result.errors.push({ stage: 'shelf', slug: slug || '?', error: (e && e.message) ? e.message : String(e) }); }
+    }
+  }
 
   // Phase 9.1.D: build oldId → newId remaps as we go so the advanced
   // notes payload (notes_advanced.json) can rewire its FKs after the

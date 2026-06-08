@@ -112,6 +112,8 @@
     "smoke:notes-perform": "node scripts/premium/notes-perform-smoke.js",
     "smoke:notes-count": "node scripts/premium/notes-count-smoke.js",
     "smoke:corpus": "node scripts/premium/corpus-meta-smoke.js",
+    "smoke:shelves": "node scripts/premium/shelf-meta-smoke.js",
+    "smoke:shelves-roundtrip": "node scripts/premium/shelf-roundtrip-smoke.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "smoke:notes:srs-candidates": "node scripts/notes-ui/suggest-srs-candidate-smoke.js",

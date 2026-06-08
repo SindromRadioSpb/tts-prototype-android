@@ -42,7 +42,8 @@
 - **DoD:** screenshot @380px RTL (полка + читалка); asset-аудит precache; keyboard-path полка→текст→play.
 - **Notes:** отдельный лёгкий SW-precache; **не бампать** основной `CACHE_VERSION` без нужды; i18n namespace `room.*`.
 
-### BRR-P0-003 — Полки/коллекции + два трека
+### BRR-P0-003 — Полки/коллекции + два трека ✅ DONE (модель) 2026-06-08
+- **Status:** ✅ Модель реализована (код) 2026-06-08. Storage **Option A** (owner): OPFS-таблица `shelves` (миграция 054) + round-trip через bundle (`library.json.shelves[]`, аддитивный сиблинг). Контракт `db/premium/shelfMeta.js` (buildShelf/validateShelf/validateMembership; член по `text_key`; `TRACK` reuse из corpusMeta; slug = портируемый id, без фабрикации из не-latin). `local-db.js`: getShelves/getShelfBySlug/createShelf + import-upsert (валидация track-enum+slug+title на браузерном пути, honest `{stage,error}`, dup-slug/dangling-member warns) + export. Гейты: `smoke:shelves` 30/30 (Node-контракт), `smoke:shelves-roundtrip` **17/17** (real-OPFS: items_json-целостность/skip-vs-overwrite/UNIQUE-slug/ordering/invalid-reject/dangling-tolerate), notes-roundtrip 25/25. Адверс-ревью (3 линзы × verify) → 12 находок исправлены. SW `v3.10.7-shelves`. **Рендер полок (поверхность) = BRR-P0-002.**
 - **Source:** Sefaria (Collections, редакторский голос) · Beelinguapp (жанр/уровень-полки)
 - **Observed:** кураторские коллекции с интро + полки по жанру/уровню.
 - **Current:** нет модели полок; только tags/level → плоский список.

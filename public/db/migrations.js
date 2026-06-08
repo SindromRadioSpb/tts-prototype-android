@@ -713,4 +713,29 @@ export const MIGRATIONS = [
     updated_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
   );
   CREATE INDEX IF NOT EXISTS idx_events_note_id ON events(note_id);`,
+
+  // 054_shelves — BRR-P0-003 Reading Room shelf/collection model. A shelf is a
+  // curated, ordered list of works in ONE track (accessible|literary) with an
+  // editorial intro — a pedagogical route, not a flat list (R8). Members are
+  // referenced by text_key (the only id that survives a bundle import; text id
+  // is regenerated). items_json = ordered [{text_key, order}]. slug = the
+  // shelf's stable, portable identity (upsert key on import). Carried additively
+  // in bundle library.json.shelves[] and round-trips like texts/corpus.
+  // Contract + validation: db/premium/shelfMeta.js.
+  `CREATE TABLE IF NOT EXISTS shelves (
+    id              TEXT PRIMARY KEY,
+    slug            TEXT NOT NULL,
+    title           TEXT NOT NULL,
+    track           TEXT NOT NULL,
+    era             TEXT,
+    genre           TEXT,
+    editorial_intro TEXT,
+    items_json      TEXT NOT NULL DEFAULT '[]',
+    order_index     INTEGER,
+    schema_version  INTEGER NOT NULL DEFAULT 1,
+    created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    updated_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_shelves_slug ON shelves(slug);
+  CREATE INDEX IF NOT EXISTS ix_shelves_track_order ON shelves(track, order_index);`,
 ];
