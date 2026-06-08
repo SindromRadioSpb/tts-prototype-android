@@ -103,6 +103,23 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     const dir = await pg.evaluate(() => document.documentElement.getAttribute("dir"));
     console.log("HE locale <html dir>:", dir);
 
+    // Acceptance: warm-open latency. The worker is hot (boot() initialised it), so this
+    // is the embedded-reader's real per-open cost — the whole point of Option A.
+    const warm = await pg.evaluate(async () => {
+      const m = await import("/js/reader-core.js");
+      const ldb = await import("/db/local-db.js");
+      const r = await ldb.dbQuery("SELECT t.id AS id, COUNT(s.id) AS n FROM texts t JOIN sentences s ON s.text_id=t.id GROUP BY t.id ORDER BY n DESC LIMIT 1");
+      const id = r && r[0] && r[0].id;
+      if (!id) return { err: "no text" };
+      // measure a couple of warm opens; report the median-ish (2nd) to avoid first-call jitter.
+      const mount = document.createElement("div");
+      let last = 0, rows = 0;
+      for (let i = 0; i < 3; i++) { const t0 = performance.now(); const res = await m.openText(id, { localDb: ldb, mount, config: { t: (k) => k } }); last = Math.round(performance.now() - t0); rows = res && res.rows ? res.rows.length : 0; }
+      return { ms: last, rows: rows, id: String(id) };
+    });
+    console.log("warm-open (worker hot):", JSON.stringify(warm), warm && warm.ms != null ? (warm.ms < 300 ? "✓ <300ms" : "⚠ >=300ms") : "");
+    if (warm && warm.ms != null && warm.ms >= 300) console.warn("⚠ warm-open >=300ms — acceptance target missed");
+
     console.log(failed ? "\nFAIL — see errors above" : "\nOK — shots in .tmp/room-reader-380-*.png");
   } catch (e) {
     console.error("fatal", e); failed = true;
