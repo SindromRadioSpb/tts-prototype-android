@@ -148,6 +148,46 @@ function setActiveTrack(track) {
   renderTrack();
 }
 
+// BRR-P0-004 — ship-as-asset: the curated canon ships as a precomputed bundle in
+// public/data/benyehuda/ and is auto-imported into OPFS on the first Reading Room
+// visit (then it's fully offline). Idempotent: skipped if the canon shelves already
+// exist (OPFS truth) — import uses mode:'skip' so a re-run is a no-op anyway.
+const CANON_BUNDLE_URL = '/data/benyehuda/canon-v1.zip';
+const CANON_FLAG = 'benyehuda_canon_v1_imported';
+const CANON_SENTINEL_SLUGS = ['by-canon-easy-poems', 'by-canon-major-poems', 'by-canon-essays', 'by-canon-prose'];
+
+async function autoImportCanon() {
+  try {
+    // Opt-out for tests/embedders (room-smoke checks Room structure, not the canon
+    // publish): ?canon=skip disables the shipped-bundle auto-import.
+    try { if (new URLSearchParams(location.search).get('canon') === 'skip') return false; } catch (_) {}
+    // OPFS truth: if a canon shelf already exists, nothing to do.
+    let existing = [];
+    try { existing = await localDb.getShelves(); } catch (_) {}
+    if ((existing || []).some((s) => s && CANON_SENTINEL_SLUGS.includes(s.slug))) {
+      try { localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
+      return false;
+    }
+    if (typeof window.JSZip === 'undefined') { try { console.warn('[room] JSZip unavailable — skip canon auto-import'); } catch (_) {} return false; }
+    showState('room.state.publishing', '📥');
+    const res = await fetch(CANON_BUNDLE_URL, { cache: 'force-cache' });
+    if (!res.ok) throw new Error('fetch ' + res.status);
+    const zip = await window.JSZip.loadAsync(await res.arrayBuffer());
+    const libFile = zip.file('library/library.json') || zip.file('library.json');
+    if (!libFile) throw new Error('no library.json in canon bundle');
+    const library = JSON.parse(await libFile.async('string'));
+    const result = await localDb.importBundle({ library }, { mode: 'skip' });
+    try { localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
+    try { console.log('[room] canon published →', JSON.stringify({ imported: result && result.imported, skipped: result && result.skipped })); } catch (_) {}
+    return true;
+  } catch (e) {
+    // Honest non-fatal: first visit needs network to fetch the shipped shelf; on
+    // failure the Room shows its empty-state and retries on the next online visit.
+    try { console.warn('[room] canon auto-import failed (will retry next visit):', e); } catch (_) {}
+    return false;
+  }
+}
+
 async function loadData() {
   const shelves = await localDb.getShelves();
   shelvesByTrack = { accessible: [], literary: [] };
@@ -189,6 +229,7 @@ async function boot() {
   try {
     await localDb.initLocalDB();
     if (localDb.isFollower && localDb.isFollower()) { showState('room.state.dbBusy', '📑'); return; }
+    await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
     // Default to the first track that actually has shelves (on-ramp first).
     if (!(shelvesByTrack.accessible || []).length && (shelvesByTrack.literary || []).length) activeTrack = 'literary';

@@ -1879,6 +1879,7 @@ window.I18N_LOCALES.en = {
     },
     state: {
       loading: "Loading…",
+      publishing: "Preparing the library — fetching the canon…",
       dbBusy: "The library is open in another tab — close it and reload.",
       error: "Could not load the library.",
     },
