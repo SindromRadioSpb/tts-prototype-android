@@ -20,7 +20,11 @@ const SHELF_SCHEMA_VERSION = 1;
 const TRACK = corpusMeta.TRACK; // ["accessible", "literary"]
 
 // Canonical, ordered field set of a shelf object (what buildShelf emits).
-const SHELF_FIELDS = ["schema", "slug", "title", "track", "era", "genre", "editorial_intro", "items", "order"];
+// BRR-P0-008 — `origin` + `canon_version` are additive provenance: they mark a
+// shelf as producer-published canon ('benyehuda-ingest') so a version bump can
+// reconcile (delete/refresh) canon shelves WITHOUT touching user-curated shelves
+// (which have no origin). Both nullable; absent on legacy/user shelves.
+const SHELF_FIELDS = ["schema", "slug", "title", "track", "era", "genre", "editorial_intro", "items", "order", "origin", "canon_version"];
 
 function _str(v) {
   if (v == null) return null;
@@ -79,6 +83,11 @@ function buildShelf(input) {
     editorial_intro: _str(i.editorial_intro),
     items: normalizeItems(i.items),
     order: _int(i.order),
+    // BRR-P0-008 — canon provenance (nullable). origin='benyehuda-ingest' marks a
+    // producer-published shelf eligible for version reconcile; canon_version is the
+    // bundle version that published it. User-curated shelves leave both null.
+    origin: _str(i.origin),
+    canon_version: _int(i.canon_version),
   };
 }
 

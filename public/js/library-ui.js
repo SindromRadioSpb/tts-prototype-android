@@ -158,18 +158,31 @@ function setActiveTrack(track) {
 // dedups unchanged works by text_key; adds the new chapter texts + work-shelves).
 const CANON_BUNDLE_URL = '/data/benyehuda/canon-v2.zip';
 const CANON_FLAG = 'benyehuda_canon_v2_imported';
-const CANON_SENTINEL_SLUGS = ['by-work-95'];
+// BRR-P0-008 — the canon edition this shipped bundle publishes. Bump in lockstep
+// with the producer's --canon-version when shipping a new canon-vN.zip. The import
+// is OPFS-truth + version-gated: re-import only when the user is BELOW this version
+// (the importBundle reconcile then drops orphans from the prior edition).
+const CANON_BUNDLE_VERSION = 2;
+const CANON_VERSION_KEY = 'benyehuda_canon_version';
 
 async function autoImportCanon() {
   try {
     // Opt-out for tests/embedders (room-smoke checks Room structure, not the canon
     // publish): ?canon=skip disables the shipped-bundle auto-import.
     try { if (new URLSearchParams(location.search).get('canon') === 'skip') return false; } catch (_) {}
-    // OPFS truth: if a canon shelf already exists, nothing to do.
+    // OPFS truth: the highest canon_version among existing canon shelves. If the user
+    // already has this edition (or newer), nothing to fetch. Legacy v1 shelves have
+    // canon_version=null → haveVer 0 → they re-import v2 (reconcile cleans v1 orphans).
     let existing = [];
     try { existing = await localDb.getShelves(); } catch (_) {}
-    if ((existing || []).some((s) => s && CANON_SENTINEL_SLUGS.includes(s.slug))) {
-      try { localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
+    let haveVer = (existing || []).reduce((m, s) => Math.max(m, (s && Number(s.canon_version)) || 0), 0);
+    // Legacy fallback: the unstamped v2 bundle (shipped before P0-008) has
+    // canon_version=null but DOES carry the v2-only work-shelf `by-work-95`. Treat
+    // its presence as v2 so those already-published users are NOT re-imported every
+    // visit — they're superseded normally by the next stamped edition (v>2).
+    if (haveVer === 0 && (existing || []).some((s) => s && s.slug === 'by-work-95')) haveVer = 2;
+    if (haveVer >= CANON_BUNDLE_VERSION) {
+      try { localStorage.setItem(CANON_VERSION_KEY, String(haveVer)); localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
       return false;
     }
     if (typeof window.JSZip === 'undefined') { try { console.warn('[room] JSZip unavailable — skip canon auto-import'); } catch (_) {} return false; }
@@ -180,9 +193,11 @@ async function autoImportCanon() {
     const libFile = zip.file('library/library.json') || zip.file('library.json');
     if (!libFile) throw new Error('no library.json in canon bundle');
     const library = JSON.parse(await libFile.async('string'));
+    // library.canon_version triggers the import-side dedup reconcile (orphans from a
+    // prior edition removed; user content untouched).
     const result = await localDb.importBundle({ library }, { mode: 'skip' });
-    try { localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
-    try { console.log('[room] canon published →', JSON.stringify({ imported: result && result.imported, skipped: result && result.skipped })); } catch (_) {}
+    try { localStorage.setItem(CANON_VERSION_KEY, String(CANON_BUNDLE_VERSION)); localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
+    try { console.log('[room] canon published →', JSON.stringify({ imported: result && result.imported, skipped: result && result.skipped, reconciled: result && result.reconciled })); } catch (_) {}
     return true;
   } catch (e) {
     // Honest non-fatal: first visit needs network to fetch the shipped shelf; on

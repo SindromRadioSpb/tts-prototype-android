@@ -294,11 +294,19 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
    - Честность R1 сохраняется: всё `review_status=machine`; провенанс везде.
 
 ### Известные follow-up + ⛔ ПРЕРЕКВИЗИТЫ пред-прогона (аудит 2026-06-08)
-- **BRR-P0-008 — Update/dedup shipped-контента при версии (⛔ ПРЕРЕКВИЗИТ):** `autoImportCanon`
-  (`mode:'skip'`+sentinel) на vN→vN+1 у апгрейдящегося оставляет до-главленый #413 дублем + не обновляет
-  старые полки по slug. Fresh — чисто. Рекуррентно → блокирует масштабную доставку. Фикс: canon-origin-scoped
-  replace (метка `origin:'benyehuda-ingest'` + `canon_version`; user-контент НЕ трогать).
+- **BRR-P0-008 — Версионный canon dedup — ✅ МЕХАНИЗМ ОТГРУЖЕН (SW v3.10.14-canon-versioned-dedup).**
+  Bundle declares `library.canon_version`; на импорте importBundle **reconcile** удаляет canon-СИРОТ
+  (texts: предикат `corpus.byehuda_id` — ловит и legacy v1; удаляет ТОЛЬКО отсутствующих в новом манифесте →
+  unchanged works KEEP их `text_id` → заметки/прогресс целы; shelves: предикат `origin='benyehuda-ingest'`,
+  canon-полки overwrite-рефреш). User-контент (без byehuda_id/origin) НЕ трогается. Stamping: shelfMeta
+  +`origin`/`canon_version`, **миграция 055** (shelves +2 колонки), продюсер `--canon-version` (def 2) +
+  `buildLibraryJson.canon_version`. autoImportCanon — версия-gated (OPFS-truth `getShelves().canon_version`
+  + legacy by-work-95→v2 fallback, чтобы unstamped-v2 юзеры не ре-импортили каждый визит). Гейт
+  **`smoke:canon-version` 18/18** (v1→v2: моно-сирота ушёл, главы+TOC есть, dropped canon-полка ушла, user
+  текст+полка целы, idempotent). **РЕШИП stamped-бандла ОТЛОЖЕН** на следующую эдицию (pre-run track):
+  /data immutable-cache → нужен новый filename; текущий unstamped-v2 ущерб ≈0 (handoff), reconcile сработает
+  когда продюсер выпустит stamped vN (он уже готов штамповать). Прод-эффект сейчас: механизм LIVE, гейт зелёный.
 - **BRR-P0-009 — Локальный sidecar `/nakdan` request-schema fix** (`{action}`-конверт) → никуд локальный
-  вместо Dicta-cloud (26K через cloud = rate/стоимость/доступность).
+  вместо Dicta-cloud (26K через cloud = rate/стоимость/доступность). **NEXT.**
 - **HE i18n** `room.*`/`room.prov.*` — черновик, нужен native/ulpan-review до пилота.
 - **Housekeeping:** `Library/*.zip` (build-артефакты canon-v1/v2) → в `.gitignore` (шиппится только `public/data/benyehuda/canon-v2.zip`).

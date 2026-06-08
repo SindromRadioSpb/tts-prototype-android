@@ -477,6 +477,11 @@ function _shelfRowToObj(row) {
     editorial_intro: row.editorial_intro || null,
     items,
     order: (row.order_index != null ? row.order_index : null),
+    // BRR-P0-008 — surface canon provenance so the Room's version gate
+    // (library-ui autoImportCanon reads s.canon_version off getShelves()) and the
+    // reconcile work. Nullable; absent on legacy/user shelves (migration 055).
+    origin: (row.origin != null ? row.origin : null),
+    canon_version: (row.canon_version != null ? row.canon_version : null),
   };
 }
 
@@ -515,31 +520,42 @@ export async function createShelf(data) {
   return id;
 }
 
+// BRR-P0-008 — marks a producer-published canon shelf (vs a user-curated one).
+const CANON_ORIGIN = 'benyehuda-ingest';
+
 // Upsert a shelf from a bundle object, keyed by slug. mode 'skip' leaves an
 // existing shelf untouched; any other mode overwrites it (curated shelves are
 // slug-stable, so re-import refreshes the curation). Returns 'inserted' |
 // 'updated' | 'skipped'.
+// BRR-P0-008 — a CANON shelf (origin='benyehuda-ingest') ALWAYS overwrites, even
+// in mode='skip': a version bump must refresh canon membership (new chapters, work
+// shelves) on an upgrading user. User-curated shelves (no origin) keep skip
+// semantics so their hand-curation is never clobbered.
 async function _upsertShelfFromBundle(sh, mode) {
   const slug = String((sh && sh.slug) || '').trim();
   if (!slug) return 'skipped';
+  const isCanon = String((sh && sh.origin) || '') === CANON_ORIGIN;
+  const effMode = (isCanon && mode === 'skip') ? 'overwrite' : mode;
   const existing = await q('SELECT id FROM shelves WHERE slug = ?', [slug]);
   const now = new Date().toISOString();
   const items_json = JSON.stringify(Array.isArray(sh.items) ? sh.items : []);
+  const origin = (sh && sh.origin != null) ? String(sh.origin) : null;
+  const canonVer = (sh && sh.canon_version != null && Number.isInteger(Number(sh.canon_version))) ? Number(sh.canon_version) : null;
   if (existing.length) {
-    if (mode === 'skip') return 'skipped';
+    if (effMode === 'skip') return 'skipped';
     await r(
-      `UPDATE shelves SET title=?, track=?, era=?, genre=?, editorial_intro=?, items_json=?, order_index=?, schema_version=?, updated_at=? WHERE slug=?`,
+      `UPDATE shelves SET title=?, track=?, era=?, genre=?, editorial_intro=?, items_json=?, order_index=?, schema_version=?, origin=?, canon_version=?, updated_at=? WHERE slug=?`,
       [String(sh.title == null ? '' : sh.title), (sh.track ?? null), (sh.era ?? null), (sh.genre ?? null),
-       (sh.editorial_intro ?? null), items_json, (sh.order != null ? sh.order : null), (sh.schema || 1), now, slug]
+       (sh.editorial_intro ?? null), items_json, (sh.order != null ? sh.order : null), (sh.schema || 1), origin, canonVer, now, slug]
     );
     return 'updated';
   }
   await r(
-    `INSERT INTO shelves (id, slug, title, track, era, genre, editorial_intro, items_json, order_index, schema_version, created_at, updated_at)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+    `INSERT INTO shelves (id, slug, title, track, era, genre, editorial_intro, items_json, order_index, schema_version, origin, canon_version, created_at, updated_at)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
     [crypto.randomUUID(), slug, String(sh.title == null ? '' : sh.title), (sh.track ?? null),
      (sh.era ?? null), (sh.genre ?? null), (sh.editorial_intro ?? null),
-     items_json, (sh.order != null ? sh.order : null), (sh.schema || 1), now, now]
+     items_json, (sh.order != null ? sh.order : null), (sh.schema || 1), origin, canonVer, now, now]
   );
   return 'inserted';
 }
@@ -566,6 +582,10 @@ async function _exportShelves() {
       editorial_intro: row.editorial_intro || null,
       items,
       order: (row.order_index != null ? row.order_index : null),
+      // BRR-P0-008 — canon provenance round-trips so a re-exported bundle keeps the
+      // version markers. Nullable; columns added in migration 055 (older rows → null).
+      origin: (row.origin != null ? row.origin : null),
+      canon_version: (row.canon_version != null ? row.canon_version : null),
     };
   });
 }
@@ -3719,7 +3739,7 @@ async function _buildAdvancedNotesPayload(textIds) {
   };
 }
 
-export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
+export async function importBundle(bundleObj, { mode = 'skip', canonVersion = null } = {}) {
   // Accept three bundle shapes:
   //   A) UNIFIED (Android v2 spec, current web export):
   //      { manifest, library: { texts: [{text_id, rows: [{hebrew_plain, ...}], ...}], audio_assets: [...] } }
@@ -3741,7 +3761,7 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
     if (aa && aa.asset_key) audioAssetsByKey.set(String(aa.asset_key), aa);
   }
 
-  const result = { imported: 0, skipped: 0, errors: [], importedIds: [] };
+  const result = { imported: 0, skipped: 0, errors: [], importedIds: [], reconciled: null };
 
   // BRR-P0-004 — batch the whole import in ONE transaction with per-text SAVEPOINTs:
   // collapses thousands of per-statement OPFS fsyncs (~100s for 54 texts / 4417 rows)
@@ -3752,6 +3772,69 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
   let _txOpen = false;
   try {
   await x('BEGIN;'); _txOpen = true;
+
+  // BRR-P0-008 — versioned canon reconcile. When the bundle declares a
+  // `canon_version` (or the caller passes one), the new manifest is AUTHORITATIVE
+  // for producer-published canon: any canon row absent from it is an orphan from a
+  // prior version (e.g. the monolithic #95 that v2 replaced with 17 chapters) and
+  // is removed BEFORE import, so an upgrading user doesn't accumulate duplicates.
+  //   • Texts: a row is canon iff source_meta.corpus.byehuda_id is set (only the
+  //     ingest producer sets it — airtight vs Studio texts, and it catches LEGACY
+  //     v1 rows that predate origin-tagging). We delete ONLY orphans; unchanged
+  //     works (same text_key) are KEPT so the skip-import preserves their text_id →
+  //     user notes/progress survive. Deleting an orphan drops its sentences/progress
+  //     (ON DELETE CASCADE) and inert-dangles its notes_v2 rows — identical to a
+  //     manual deleteText; acceptable for a superseded monolith with no clean
+  //     chapter-note migration. User texts (no byehuda_id) are NEVER touched.
+  //   • Shelves: canon iff origin='benyehuda-ingest'. Orphans deleted; re-shipped
+  //     canon slugs are refreshed by the upsert below (canon shelves overwrite).
+  //     User/legacy shelves (origin NULL) are never touched.
+  const _canonVer = (canonVersion != null && Number.isInteger(Number(canonVersion))) ? Number(canonVersion)
+    : (lib && Number.isInteger(Number(lib.canon_version)) ? Number(lib.canon_version) : null);
+  if (_canonVer != null) {
+    result.reconciled = { textsDeleted: 0, shelvesDeleted: 0, canonVersion: _canonVer };
+    const _itemCorpus = (it) => {
+      if (!it) return null;
+      if (it.corpus && typeof it.corpus === 'object') return it.corpus;
+      if (it.source_meta && it.source_meta.corpus) return it.source_meta.corpus;
+      const smj = it.source_meta_json || (it.text && it.text.source_meta_json);
+      if (smj) { try { const sm = JSON.parse(smj); if (sm && sm.corpus) return sm.corpus; } catch (_) {} }
+      return null;
+    };
+    const _incomingCanonTextKeys = new Set();
+    for (const it of texts) {
+      const tk = String((it && (it.text_key || (it.text && it.text.text_key))) || '').trim();
+      if (!tk) continue;
+      const c = _itemCorpus(it);
+      if (c && c.byehuda_id != null) _incomingCanonTextKeys.add(tk);
+    }
+    const _incomingShelves = (lib && Array.isArray(lib.shelves)) ? lib.shelves : [];
+    const _incomingCanonSlugs = new Set(
+      _incomingShelves.filter((s) => String((s && s.origin) || '') === CANON_ORIGIN)
+        .map((s) => String((s && s.slug) || '').trim()).filter(Boolean)
+    );
+    try {
+      const _existingTexts = await q('SELECT id, text_key, source_meta_json FROM texts');
+      for (const row of (_existingTexts || [])) {
+        let corpus = null;
+        try { const sm = row.source_meta_json ? JSON.parse(row.source_meta_json) : null; corpus = sm && sm.corpus; } catch (_) {}
+        if (!(corpus && corpus.byehuda_id != null)) continue;      // user text → untouched
+        if (_incomingCanonTextKeys.has(String(row.text_key || ''))) continue; // still present → keep
+        try { await r('DELETE FROM texts WHERE id = ?', [row.id]); result.reconciled.textsDeleted++; }
+        catch (e) { result.errors.push({ stage: 'reconcile-text', text_key: String(row.text_key || ''), error: (e && e.message) ? e.message : String(e) }); }
+      }
+    } catch (e) { result.errors.push({ stage: 'reconcile-text', error: (e && e.message) ? e.message : String(e) }); }
+    try {
+      const _existingShelves = await q('SELECT id, slug, origin FROM shelves');
+      for (const row of (_existingShelves || [])) {
+        if (String(row.origin || '') !== CANON_ORIGIN) continue;   // user/legacy shelf → untouched
+        if (_incomingCanonSlugs.has(String(row.slug || ''))) continue;
+        try { await r('DELETE FROM shelves WHERE id = ?', [row.id]); result.reconciled.shelvesDeleted++; }
+        catch (e) { result.errors.push({ stage: 'reconcile-shelf', slug: String(row.slug || ''), error: (e && e.message) ? e.message : String(e) }); }
+      }
+    } catch (e) { result.errors.push({ stage: 'reconcile-shelf', error: (e && e.message) ? e.message : String(e) }); }
+    try { console.log('[canon] reconcile v' + _canonVer + ' → removed', result.reconciled.textsDeleted, 'orphan text(s),', result.reconciled.shelvesDeleted, 'orphan shelf/shelves'); } catch (_) {}
+  }
 
   // BRR-P0-003 — import Reading Room shelves (additive top-level array). Keyed
   // by slug; members reference texts by text_key (no FK), so this is independent

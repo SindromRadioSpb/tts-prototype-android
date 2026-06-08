@@ -738,4 +738,13 @@ export const MIGRATIONS = [
   );
   CREATE UNIQUE INDEX IF NOT EXISTS ux_shelves_slug ON shelves(slug);
   CREATE INDEX IF NOT EXISTS ix_shelves_track_order ON shelves(track, order_index);`,
+
+  // 055_shelf_canon_origin — BRR-P0-008 versioned canon dedup. Marks a shelf as
+  // producer-published canon (origin='benyehuda-ingest') + the bundle version that
+  // published it, so a version bump can reconcile (delete orphan / refresh) canon
+  // shelves WITHOUT touching user-curated shelves (origin NULL). Additive, nullable;
+  // legacy/user shelves stay NULL. (ADD COLUMN runs exactly once — version-tracked.)
+  `ALTER TABLE shelves ADD COLUMN origin TEXT;
+  ALTER TABLE shelves ADD COLUMN canon_version INTEGER;
+  CREATE INDEX IF NOT EXISTS ix_shelves_origin ON shelves(origin);`,
 ];

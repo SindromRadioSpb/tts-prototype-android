@@ -357,14 +357,20 @@ function chapterizeWork(body, opts) {
 }
 
 // ── assemble library.json + manifest (the v2.1 bundle shapes the importers read) ─
-function buildLibraryJson({ texts, shelves }) {
-  return {
+function buildLibraryJson({ texts, shelves, canonVersion }) {
+  const lib = {
     schema_version: 1,
     corpus_meta_version: corpusMeta.CORPUS_META_VERSION,
     shelves: Array.isArray(shelves) ? shelves : [],
     texts: Array.isArray(texts) ? texts : [],
     audio_assets: [],
   };
+  // BRR-P0-008 — declaring canon_version makes this bundle AUTHORITATIVE for
+  // producer-published canon on import: a higher version triggers the dedup
+  // reconcile (drop orphan canon rows from a prior version). Omitted for
+  // non-canon/peer bundles so importBundle never reconciles them.
+  if (canonVersion != null && Number.isInteger(Number(canonVersion))) lib.canon_version = Number(canonVersion);
+  return lib;
 }
 function buildManifest({ textCount, rowCount, noteCount, createdAt }) {
   return {

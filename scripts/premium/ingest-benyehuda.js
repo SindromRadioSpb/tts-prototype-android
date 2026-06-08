@@ -63,6 +63,11 @@ const LITERARY_MAX = Number(arg("literary", Math.floor(LIMIT / 2)));
 const MAX_CHARS = Number(arg("max-chars", 8000));
 const MIN_CHARS = Number(arg("min-chars", 40));
 const MANIFEST_MAX = Number(arg("manifest-max-chars", 30000)); // skip novellas in curated manifest (R6/R8)
+// BRR-P0-008 — canon edition version. Stamped onto every shelf (origin + version)
+// and the bundle (library.json.canon_version) so a bump triggers the import-side
+// dedup reconcile. Default 2 = the current shipped canon-v2 edition.
+const CANON_VERSION = Number(arg("canon-version", 2)) || 2;
+const CANON_ORIGIN = "benyehuda-ingest";
 const NO_FETCH = flag("no-fetch");
 const DRY = flag("dry-run");
 const GCP_KEY = String(arg("gcp-key", process.env.GCP_TRANSLATE_API_KEY || ""));
@@ -414,7 +419,12 @@ async function translateAndBuild(r, body, derived, plainLen, opts) {
 
   if (!texts.length) { console.error("[ingest] no works selected — check manifest/--limit/--max-chars or fetch"); process.exit(4); }
 
-  const lib = by.buildLibraryJson({ texts, shelves });
+  // BRR-P0-008 — every producer shelf is canon: stamp origin + canon_version so the
+  // import-side reconcile can refresh/dedup them on a version bump without touching
+  // user-curated shelves. (Texts are already canon-identifiable via corpus.byehuda_id.)
+  for (const sh of shelves) { sh.origin = CANON_ORIGIN; sh.canon_version = CANON_VERSION; }
+
+  const lib = by.buildLibraryJson({ texts, shelves, canonVersion: CANON_VERSION });
 
   // ── R1 honesty gate ──────────────────────────────────────────────────────
   const gate = by.validateLibrary(lib);
