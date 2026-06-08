@@ -111,8 +111,9 @@
 - **DoD:** замер открытия до/после (`measure-reader-render.js`); screenshot @380px RTL; `smoke:room` расширить на embedded-ридер; 0 регрессий.
 - **Notes:** recon-first дизайн на утверждение. Закрывает отложенный «отдельный лёгкий SW» инвариант.
 
-### BRR-P0-008 — Версионный update/dedup shipped-контента ⛔ ПРЕРЕКВИЗИТ пред-прогона
-- **Status:** 🔜 PLANNED — пререквизит BRR-P0-006/007 (аудит 2026-06-08).
+### BRR-P0-008 — Версионный update/dedup shipped-контента ✅ DONE 2026-06-08
+- **Status:** ✅ SHIPPED + PROD-LIVE 2026-06-08 (`0ac17bb`, SW v3.10.14-canon-versioned-dedup). Пререквизит пред-прогона ВЫПОЛНЕН.
+- **Реализовано:** `library-ui.js` — ключ `benyehuda_canon_version`; при бампе `library.canon_version` import-side reconcile дропает canon-origin orphans прошлой edition; **user-контент не трогается**. Gate `smoke:canon-version` 18/18. (Ниже — описание исходного бага, который это закрывает.)
 - **Source:** аудит 2026-06-08 (R1/R6).
 - **Observed:** shipped-канон версионируется (`canon-vN.zip`), авто-импорт при 1-м заходе.
 - **Current:** `autoImportCanon` (`mode:'skip'` + sentinel) ДОБАВЛЯЕТ новое поверх старого: vN→vN+1 у апгрейдящегося юзера оставляет superseded-тексты (монолитный #413 v1 дублит главы v2), старые полки по slug не обновляются. Fresh-install — чисто.
@@ -127,11 +128,12 @@
 - **DoD:** smoke: v1→v2 апгрейд → 0 дублей + user-контент цел; replace идемпотентен.
 - **Notes:** caveat зафиксирован в IMPLEMENTATION_STATUS §10.
 
-### BRR-P0-009 — Локальный никуд-sidecar `/nakdan` (request-schema fix) ⛔ ПРЕРЕКВИЗИТ пред-прогона
-- **Status:** 🔜 PLANNED — пререквизит BRR-P0-006 (масштаб никуда).
+### BRR-P0-009 — Локальный никуд-sidecar `/nakdan` (foreign-responder guard + порт) ✅ DONE 2026-06-08
+- **Status:** ✅ SHIPPED + PROD-LIVE 2026-06-08 (`c917bcd`, в составе SW v3.10.14). Пререквизит пред-прогона ВЫПОЛНЕН.
 - **Source:** аудит 2026-06-08 (R1/R5).
 - **Observed:** никуд = Dicta CLOUD (точный, с backoff).
-- **Current:** локальный `ai-local` sidecar `/nakdan`: `pythonClient` шлёт устаревший `{texts}`, sidecar ждёт `{action}`-конверт → локальный никуд пуст; используется cloud.
+- **⚠ ИСПРАВЛЕНА ДИАГНОСТИКА (не переоткрывать по-старому):** прежний диагноз «`pythonClient` шлёт `{texts}`, sidecar ждёт `{action}`-конверт» — **МИСДИАГНОЗ**. Реальная причина: дефолт-порт sidecar (8765) совпал с **AnkiConnect**, его HTTP-200 принимался за ответ никуда → локальный путь молча работал неверно.
+- **Что сделано:** (1) `niqqudGateway.js` foreign-responder guard (HTTP-ok-но-нет-`results[]` ⇒ честный fallback на cloud, не порча); (2) дефолт-порт sidecar **8765→8799** (`pythonClient.js:12`, override `AI_LOCAL_PORT`). Gate `niqqudGateway.test` 10/10.
 - **Gap:** 26K-прогон через Dicta-cloud = rate-limit/стоимость/доступность + внешняя зависимость для «безключевой» библиотеки.
 - **User story:** *Как владелец, хочу прогнать никуд по всему корпусу локально, без облачного throttle/стоимости.*
 - **Surface:** Backend (`niqqudGateway`/`pythonClient` + `ai-local` sidecar) · **Role:** R1, R5 · **Priority:** P0

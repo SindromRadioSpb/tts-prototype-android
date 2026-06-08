@@ -9,10 +9,17 @@
 //
 //   responseEnd            — HTML downloaded
 //   →domInteractive        — HTML parse + compile/exec of ALL synchronous scripts
-//                            (the inline 39K-line monolith + 29 blocking <script src>)  ← THE LEVER
+//                            (the inline 39K-line monolith + 29 blocking <script src>)  ← CANDIDATE LEVER A
 //   →domContentLoaded      — DCL handlers
 //   →loadEventEnd          — window.load (deeplink boot kicks off here)
-//   →#proTable full        — DB-init + fetch rows + renderTable
+//   →#proTable full        — DB-init + fetch rows + renderTable  ← CANDIDATE LEVER B (cold DB-worker OPFS page-in)
+//
+// ⚠ UNRECONCILED (audit 2026-06-08): two diagnoses disagree on the DOMINANT lever —
+// (A) domInteractive script parse/compile/exec, vs (B) the cold DB-worker first-SQL OPFS
+// page-in. RE-RUN this and read the ACTUAL waterfall numbers before optimizing, then update
+// this note + the session prompt with the real split. Option A (embedded reader in the slim
+// library.html) removes BOTH (no 39K shell parse + warm-worker reuse), so the direction holds
+// either way — but the <300ms acceptance target must rest on a measured number, not a guess.
 //
 // It also navigates the slim library.html to show the baseline a self-contained
 // reader.html could reach (the prize of Option A), and reports the document's
