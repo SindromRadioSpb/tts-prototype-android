@@ -3717,6 +3717,16 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
 
   const result = { imported: 0, skipped: 0, errors: [], importedIds: [] };
 
+  // BRR-P0-004 — batch the whole import in ONE transaction with per-text SAVEPOINTs:
+  // collapses thousands of per-statement OPFS fsyncs (~100s for 54 texts / 4417 rows)
+  // into a single commit, WITHOUT losing per-text resilience. No nested BEGIN (SAVEPOINT
+  // gives per-text granularity); outer ROLLBACK fires only on an unexpected throw.
+  // x() = the exec helper (l.217), same channel reorderSentences uses; every call awaited
+  // so it reaches the single-threaded FIFO worker in order. Design verified adversarially.
+  let _txOpen = false;
+  try {
+  await x('BEGIN;'); _txOpen = true;
+
   // BRR-P0-003 — import Reading Room shelves (additive top-level array). Keyed
   // by slug; members reference texts by text_key (no FK), so this is independent
   // of the text-id remap below. Older bundles have no `shelves` → no-op.
@@ -3746,8 +3756,8 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
       if (_missing.length) {
         try { console.warn('[shelves] ' + slug + ': ' + _missing.length + ' member(s) reference a text_key not in this bundle'); } catch (_) {}
       }
-      try { await _upsertShelfFromBundle(sh, mode); }
-      catch (e) { result.errors.push({ stage: 'shelf', slug: slug || '?', error: (e && e.message) ? e.message : String(e) }); }
+      try { await x('SAVEPOINT sp_shelf;'); await _upsertShelfFromBundle(sh, mode); await x('RELEASE sp_shelf;'); }
+      catch (e) { try { await x('ROLLBACK TO sp_shelf;'); await x('RELEASE sp_shelf;'); } catch (_) {} result.errors.push({ stage: 'shelf', slug: slug || '?', error: (e && e.message) ? e.message : String(e) }); }
     }
   }
 
@@ -3845,6 +3855,10 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
         continue;
       }
 
+      // SAVEPOINT opened AFTER the mode='skip' continue above, so skipped texts never
+      // leave an unreleased savepoint. A throw before this point (e.g. the dedup SELECT)
+      // hits the catch where ROLLBACK TO is try-guarded for the no-savepoint case.
+      await x('SAVEPOINT sp_text;');
       newTextId = crypto.randomUUID();
       const _oldTid = String(textData.id || '');
       if (_oldTid) oldToNewTextId.set(_oldTid, newTextId);
@@ -3913,13 +3927,21 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
       }
       result.imported++;
       result.importedIds.push(newTextId);
+      await x('RELEASE sp_text;');
     } catch (e) {
       result.errors.push({ title: textData.title, error: e && e.message ? e.message : String(e) });
-      // B2: per-text atomicity — if createText succeeded but a child insert
-      // failed, remove the partial parent row (CASCADE drops orphans).
-      if (newTextId) {
-        try { await deleteText(newTextId); } catch (_) {}
-      }
+      // BRR-P0-004 — per-text atomicity via SAVEPOINT (replaces the deleteText+CASCADE
+      // hack): discard this text's parent + ALL children (sentences/notes/note_versions/
+      // audio links/progress) atomically, no reliance on ON DELETE CASCADE, no swallowed-
+      // delete orphans. Loop CONTINUES (resilience preserved exactly). ROLLBACK TO is
+      // try-guarded so a throw before SAVEPOINT (no savepoint open) is harmless.
+      try { await x('ROLLBACK TO sp_text;'); await x('RELEASE sp_text;'); } catch (_) {}
+      // The in-memory remaps are NOT transactional — drop this failed text's entries so a
+      // later notes_advanced FK-rewire can't target a now-discarded id (dangling-FK guard).
+      const _ot = String(textData.id || '');
+      if (_ot) oldToNewTextId.delete(_ot);
+      for (const s of (textData.sentences || [])) { const _os = String((s && (s.row_id || s.id)) || ''); if (_os) oldToNewSentenceId.delete(_os); }
+      if (newTextId) { for (const k of [...inlineFreeNoteIdByTargetKey.keys()]) if (k.startsWith(newTextId + ':')) inlineFreeNoteIdByTargetKey.delete(k); }
     }
   }
 
@@ -3930,15 +3952,27 @@ export async function importBundle(bundleObj, { mode = 'skip' } = {}) {
   const advanced = (bundleObj && bundleObj.notes_advanced) || null;
   if (advanced && typeof advanced === 'object') {
     try {
+      await x('SAVEPOINT sp_na;');
       const advResult = await _applyAdvancedNotesPayload(advanced, {
         oldToNewTextId,
         oldToNewSentenceId,
         inlineFreeNoteIdByTargetKey,
       });
+      await x('RELEASE sp_na;');
       result.notes_advanced = advResult;
     } catch (e) {
+      try { await x('ROLLBACK TO sp_na;'); await x('RELEASE sp_na;'); } catch (_) {}
       result.errors.push({ stage: 'notes_advanced', error: e && e.message ? e.message : String(e) });
     }
+  }
+
+  await x('COMMIT;'); _txOpen = false;
+  } catch (eOuter) {
+    // Unexpected throw escaped all inner per-text/shelf/na catches → discard the whole
+    // open transaction (true crash-rollback; no half-written orphans) and rethrow so the
+    // caller (e.g. autoImportCanon) handles it.
+    if (_txOpen) { try { await x('ROLLBACK;'); } catch (_) {} }
+    throw eOuter;
   }
 
   return result;

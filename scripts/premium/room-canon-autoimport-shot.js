@@ -72,6 +72,23 @@ async function waitReady(ms = 15000) { const t0 = Date.now(); while (Date.now() 
     const reload = await pg.evaluate(() => ({ cards: document.querySelectorAll(".work-card").length }));
     console.log("[canon-shot] after reload (idempotent):", JSON.stringify(reload));
 
+    // integrity + counts via index.html (same OPFS origin exposes ensureLocalDB + dbQuery)
+    await pg.goto(BASE + "/index.html", { waitUntil: "load" });
+    await sleep(2500);
+    const integ = await pg.evaluate(async () => {
+      let ldb = null;
+      for (let i = 0; i < 20 && !ldb; i++) { try { if (window.__localDBInitPromise) await window.__localDBInitPromise; const l = await window.ensureLocalDB(); if (l && l.dbQuery) ldb = l; } catch (_) {} if (!ldb) await new Promise((r) => setTimeout(r, 500)); }
+      if (!ldb) return { err: "no ldb" };
+      const ic = await ldb.dbQuery("PRAGMA integrity_check");
+      const t = await ldb.dbQuery("SELECT COUNT(*) n FROM texts");
+      const sn = await ldb.dbQuery("SELECT COUNT(*) n FROM sentences");
+      const s = await ldb.getShelves();
+      return { integrity: (ic && ic[0]) ? Object.values(ic[0])[0] : "?", texts: t[0].n, sentences: sn[0].n, shelves: s.length };
+    });
+    console.log("[canon-shot] integrity+counts:", JSON.stringify(integ));
+    if (integ.integrity !== "ok") { console.error("FAIL: integrity_check != ok"); failed++; }
+    if (integ.texts !== 54) { console.error("FAIL: expected 54 texts, got " + integ.texts); failed++; }
+
     if (!R || R.cards === 0) { console.error("FAIL: canon did not auto-import on fresh OPFS"); failed++; }
     if (reload.cards === 0) { console.error("FAIL: shelves gone after reload"); failed++; }
     console.log("[canon-shot] screenshots → .tmp/room-canon-*.png");
