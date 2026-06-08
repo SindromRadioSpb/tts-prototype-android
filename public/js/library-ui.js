@@ -152,9 +152,13 @@ function setActiveTrack(track) {
 // public/data/benyehuda/ and is auto-imported into OPFS on the first Reading Room
 // visit (then it's fully offline). Idempotent: skipped if the canon shelves already
 // exist (OPFS truth) — import uses mode:'skip' so a re-run is a no-op anyway.
-const CANON_BUNDLE_URL = '/data/benyehuda/canon-v1.zip';
-const CANON_FLAG = 'benyehuda_canon_v1_imported';
-const CANON_SENTINEL_SLUGS = ['by-canon-easy-poems', 'by-canon-major-poems', 'by-canon-essays', 'by-canon-prose'];
+// canon-v2: now includes chaptered works as their own shelves (by-work-*). Versioned
+// filename because /data/** is immutable-cached. The sentinel is a v2-ONLY shelf
+// (by-work-95 = the 17-chapter «מהתחלה») so a v1-importer re-imports v2 (mode:'skip'
+// dedups unchanged works by text_key; adds the new chapter texts + work-shelves).
+const CANON_BUNDLE_URL = '/data/benyehuda/canon-v2.zip';
+const CANON_FLAG = 'benyehuda_canon_v2_imported';
+const CANON_SENTINEL_SLUGS = ['by-work-95'];
 
 async function autoImportCanon() {
   try {

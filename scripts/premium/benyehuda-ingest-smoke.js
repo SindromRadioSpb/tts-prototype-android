@@ -95,6 +95,18 @@ test("bundle row has the canonical export field names", eq(Object.keys(rows[0]).
 const realRows = by.buildBundleRows([{ he: "שָׁלוֹם", he_niqqud: "", ru: "мир" }]);
 test("real transliterateWithProfile produces a non-empty translit", typeof realRows[0].translit === "string" && realRows[0].translit.length > 0, realRows[0].translit);
 
+// ── 5b) chaptering (BRR-P0-004 A) ─────────────────────────────────────────────
+// detectChapters = pure structure detection (no length gate):
+const dc = by.detectChapters(["א", "", "פתיחה. ראשית הסיפור.", "", "ב", "", "המשך.", "", "ג", "", "וסוף."].join("\n"));
+test("detectChapters: Hebrew-letter chapters (3)", dc && dc.length === 3 && dc[0].title === "Глава א" && dc[2].title === "Глава ג", JSON.stringify(dc && dc.map((c) => c.title)));
+const dt = by.detectChapters(["א: הרופא", "", "גוף ראשון.", "", "ב: החולה", "", "גוף שני."].join("\n"));
+test("detectChapters: titled 'א: <t>' → label+title", dt && /הרופא/.test(dt[0].title) && dt.length === 2);
+test("detectChapters: unstructured → null (no arbitrary split)", by.detectChapters(["שורה.", "", "פסקה שנייה.", "", "פסקה שלישית."].join("\n")) === null);
+test("detectChapters: ***-only → 'Часть' parts (no numbering)", (() => { const r = by.detectChapters(["טקסט.", "", "***", "", "עוד.", "", "***", "", "סוף."].join("\n")); return r && r.length >= 2 && r.every((c) => /Часть/.test(c.title)); })());
+// chapterizeWork = detectChapters + LENGTH GATE (chapter only long works; owner: >12K):
+test("chapterizeWork: SHORT structured work stays single (poem stanzas ≠ chapters)", by.chapterizeWork(["א", "", "x.", "", "ב", "", "y."].join("\n")).mode === "single");
+test("chapterizeWork: LONG structured work → chapters", (() => { const big = "א\n\n" + "פסקה ארוכה מאוד. ".repeat(900) + "\n\nב\n\n" + "עוד פסקה ארוכה. ".repeat(900); const r = by.chapterizeWork(big); return r.mode === "chapters" && r.chapters.length === 2; })());
+
 // ── 6) corpus mapping (CSV row → buildCorpus) ─────────────────────────────────
 const corp16 = by.corpusFromRow(r16, { ...cPoemShort, content_hash: hBody, audio_status: "none" });
 test("byehuda_id ← ID", corp16.byehuda_id === "16");

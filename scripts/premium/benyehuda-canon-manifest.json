@@ -52,6 +52,7 @@
     { "byehuda_id": "413", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ"], "shelf": "by-canon-prose" },
     { "byehuda_id": "18",  "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ", "голод"], "shelf": "by-canon-prose" },
     { "byehuda_id": "49",  "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ"], "shelf": "by-canon-prose" },
+    { "byehuda_id": "95",  "track": "literary", "register": "literary", "era": "tehiya", "themes": ["повесть"], "shelf": "by-canon-prose" },
     { "byehuda_id": "229", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ"], "shelf": "by-canon-prose" },
     { "byehuda_id": "463", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ", "война"], "shelf": "by-canon-prose" },
     { "byehuda_id": "647", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ", "заповедь"], "shelf": "by-canon-prose" },

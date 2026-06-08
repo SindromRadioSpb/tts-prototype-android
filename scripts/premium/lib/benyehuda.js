@@ -194,6 +194,7 @@ function corpusFromRow(csvRow, derived) {
     register: cleanField(d.register) || undefined,
     track: cleanField(d.track) || undefined,
     difficulty: null, // BRR-P1-007
+    series: d.series || undefined, // BRR-P0-004 A — chapter membership (null for standalone)
     provenance: {
       source: "Project Ben-Yehuda",
       url: csvRow.ID ? "https://benyehuda.org/read/" + cleanField(csvRow.ID) : undefined,
@@ -271,6 +272,90 @@ function buildTextItem({ textId, textKey, title, corpus, rows, sourceText, creat
   };
 }
 
+// ── chaptering (BRR-P0-004 A) ─────────────────────────────────────────────────
+// A long work becomes a multi-part "work" (→ its own shelf = table of contents)
+// ONLY when it has CLEAR chapter structure. Empirically, Ben-Yehuda Hebrew prose
+// marks chapters with a lone Hebrew-letter numeral line (א / ב / …), an Arabic/roman
+// numeral line, or an asterisk separator (***) — NOT the word פרק. A long but
+// UNSTRUCTURED work (an essay/story) is NOT chaptered (arbitrary splits would lie
+// about structure — R7); it stays a single text unless it's huge, in which case it
+// is split into neutral "Часть N" parts at paragraph boundaries to stay tractable.
+const _CH_HEB_NUM = /^[א-ת](?:['׳"״]?[א-ת]){0,2}$/;           // lone Hebrew-letter numeral: א, יא, ט״ו
+const _CH_HEB_TITLED = /^([א-ת](?:['׳"״]?[א-ת]){0,2})\s*[.:]\s*(.+)$/; // "א: <title>"
+const _CH_ARABIC = /^\d{1,3}\s*[.:]?$/;
+const _CH_ROMAN = /^[IVXLCM]{1,7}\s*[.:]?$/i;
+const _CH_STARS = /^[*•־—–\-\s]{3,}$|^\*(\s*\*){0,3}$/;        // *** / * * * / — — —
+function _chapterMarker(line) {
+  const t = String(line == null ? "" : line).trim();
+  if (!t || t.length > 48) return null;
+  let m;
+  if ((m = _CH_HEB_TITLED.exec(t))) return { kind: "num", label: m[1], title: m[2].trim() };
+  if (_CH_HEB_NUM.test(t)) return { kind: "num", label: t, title: "" };
+  if (_CH_ARABIC.test(t)) return { kind: "num", label: t.replace(/[.:]\s*$/, ""), title: "" };
+  if (_CH_ROMAN.test(t)) return { kind: "num", label: t.replace(/[.:]\s*$/, ""), title: "" };
+  if (_CH_STARS.test(t)) return { kind: "sep", label: "", title: "" };
+  return null;
+}
+// Detect chapters; returns [{title, body}] (≥2) or null when not clearly structured.
+function detectChapters(body) {
+  const lines = String(body == null ? "" : body).replace(/\r\n?/g, "\n").split("\n");
+  const numB = [], sepB = [];
+  for (let i = 0; i < lines.length; i++) {
+    const prevBlank = i === 0 || !lines[i - 1].trim();
+    if (!prevBlank) continue; // a marker must open a block (preceded by a blank line)
+    const mk = _chapterMarker(lines[i]);
+    if (!mk) continue;
+    (mk.kind === "sep" ? sepB : numB).push({ idx: i, ...mk });
+  }
+  // Prefer NUMBERED chapters (א/ב, 1/2, I/II) when present — asterisk separators are
+  // usually intra-chapter scene breaks, so they're boundaries only when there is no
+  // numbering at all (a work divided solely by ***).
+  const bounds = numB.length >= 2 ? numB : (sepB.length >= 2 ? sepB : null);
+  if (!bounds) return null;
+  const out = [];
+  // front-matter before the first marker (dedication/preface) — keep it (R1: lose nothing)
+  const front = lines.slice(0, bounds[0].idx).join("\n").trim();
+  if (stripNiqqud(front).length > 150) out.push({ title: "Вступление", body: front });
+  let seq = 0;
+  for (let b = 0; b < bounds.length; b++) {
+    const seg = lines.slice(bounds[b].idx + 1, b + 1 < bounds.length ? bounds[b + 1].idx : lines.length).join("\n").trim();
+    if (!stripNiqqud(seg).length) continue; // skip an empty separator-only segment
+    seq++;
+    const mk = bounds[b];
+    const title = mk.title ? (mk.label ? mk.label + ". " + mk.title : mk.title)
+      : (mk.kind === "sep" ? "Часть " + seq : "Глава " + (mk.label || seq));
+    out.push({ title, body: seg });
+  }
+  return out.length >= 2 ? out : null;
+}
+function _splitByParagraphs(body, targetChars) {
+  const paras = String(body == null ? "" : body).replace(/\r\n?/g, "\n").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  const parts = []; let cur = []; let curLen = 0;
+  for (const p of paras) { cur.push(p); curLen += stripNiqqud(p).length; if (curLen >= targetChars && cur.length) { parts.push(cur.join("\n\n")); cur = []; curLen = 0; } }
+  if (cur.length) parts.push(cur.join("\n\n"));
+  return parts;
+}
+// Decide how a work is materialised. Returns { mode, chapters:[{title,body}] }.
+//   mode 'chapters' — real chapter structure (→ work shelf, titled chapters)
+//   mode 'parts'    — huge & unstructured (→ work shelf, neutral "Часть N")
+//   mode 'single'   — one text (short, or long-but-unstructured under the ceiling)
+function chapterizeWork(body, opts) {
+  const o = opts || {};
+  const plain = stripNiqqud(body).length;
+  // Length gate (owner: chapter only LONG works) — short works stay single even if they
+  // have ≥2 marker-like lines (poem stanza numerals / refrains are NOT chapters — R7).
+  const minCh = o.minChapter != null ? o.minChapter : 12000;
+  if (plain <= minCh) return { mode: "single", chapters: [{ title: null, body }] };
+  const ch = detectChapters(body);
+  if (ch && ch.length >= 2) return { mode: "chapters", chapters: ch };
+  const ceiling = o.partCeiling || 50000;
+  if (plain > ceiling) {
+    const parts = _splitByParagraphs(body, o.partTarget || 12000);
+    if (parts.length >= 2) return { mode: "parts", chapters: parts.map((b, i) => ({ title: "Часть " + (i + 1), body: b })) };
+  }
+  return { mode: "single", chapters: [{ title: null, body }] };
+}
+
 // ── assemble library.json + manifest (the v2.1 bundle shapes the importers read) ─
 function buildLibraryJson({ texts, shelves }) {
   return {
@@ -333,6 +418,7 @@ module.exports = {
   firstQid,
   stripFooter,
   eraForAuthor, classifyWork,
+  detectChapters, chapterizeWork,
   corpusFromRow,
   buildBundleRows,
   buildTextItem,

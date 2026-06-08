@@ -175,6 +175,14 @@ const buRes = cm.validateCorpus(badUri);
 test("malformed author_uri = warning, not error (curation not blocked)", buRes.ok && buRes.warnings.some((w) => /author_uri/.test(w)));
 test("absent author_uri = honest null (never fabricated)", cm.buildCorpus({ author: "a" }).author_uri === null);
 
+// 7g) series (BRR-P0-004 A chapter membership)
+test("series in canonical field set", cm.CORPUS_FIELDS.includes("series"));
+test("absent series = null", cm.buildCorpus({ author: "a" }).series === null);
+const chap = cm.buildCorpus({ author: "a", content_hash: h1, byehuda_id: "95", series: { work_byehuda_id: "95", work_title: "מהתחלה", part: 3, total: 17 } });
+test("series normalized {work_byehuda_id,work_title,part,total}", chap.series && chap.series.part === 3 && chap.series.total === 17 && chap.series.work_title === "מהתחלה");
+test("series corpus still validates (R1)", cm.validateCorpus(chap).ok);
+test("garbage series.part coerced to null", cm.buildCorpus({ series: { part: "x", total: 0 } }).series.part === null);
+
 // 7e) producer path: getCorpus must read the canonical source_meta.corpus home
 const smOnly = { source_meta: { origin: "ingested", corpus: cm.buildCorpus({ author: "a", content_hash: h1, byehuda_id: "p1" }) } };
 test("getCorpus reads source_meta.corpus when no top-level mirror", cm.getCorpus(smOnly) === smOnly.source_meta.corpus);

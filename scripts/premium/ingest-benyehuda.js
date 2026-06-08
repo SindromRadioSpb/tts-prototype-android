@@ -301,16 +301,18 @@ function selectWorks(rows) {
 // One curated/selected work → bundle text item (shared by auto + manifest paths).
 // `derived` = corpus overrides (track/register/era/themes/orig_language/review_status/
 // audio_status). Returns { textItem, textKey, corpus, reportRow } or null on corpus error.
-async function translateAndBuild(r, body, derived, plainLen) {
+async function translateAndBuild(r, body, derived, plainLen, opts) {
+  const o = opts || {};
   const tRows = await translateWork(body);
   const rows = by.buildBundleRows(tRows, { makeRowId: (i) => "r" + i });
   const content_hash = corpusMeta.computeContentHash(rows.map((x) => x.hebrew_plain));
   let corpus;
   try { corpus = by.corpusFromRow(r, { ...derived, content_hash, audio_status: derived.audio_status || "none" }); }
   catch (e) { log("  skip [" + r.ID + "]: " + e.message); return null; }
-  const textKey = computeTextKey(body);
-  const title = by.cleanField(r.title) || ("Без названия #" + r.ID);
-  const textItem = by.buildTextItem({ textId: "by-" + r.ID, textKey, title, corpus, rows, sourceText: body, createdAt: STAMP });
+  const textKey = computeTextKey(body); // content-derived → unique per chapter
+  const title = o.title || by.cleanField(r.title) || ("Без названия #" + r.ID);
+  const textId = o.textId || ("by-" + r.ID);
+  const textItem = by.buildTextItem({ textId, textKey, title, corpus, rows, sourceText: body, createdAt: STAMP });
   const vocalizedRatio = rows.length ? rows.filter((x) => by.hasNiqqud(x.hebrew_niqqud)).length / rows.length : 0;
   const reportRow = { id: r.ID, title, author: by.cleanField(r.authors), track: corpus.track, register: corpus.register, era: corpus.era, genre: corpus.genre, orig_language: corpus.orig_language, rows: rows.length, chars: plainLen, vocalized_ratio: Math.round(vocalizedRatio * 100) / 100, review_status: corpus.review_status, audio_status: corpus.audio_status, content_hash: !!corpus.content_hash, ru_filled: rows.filter((x) => x.russian).length };
   return { textItem, textKey, corpus, reportRow };
@@ -331,6 +333,7 @@ async function translateAndBuild(r, body, derived, plainLen) {
     const man = JSON.parse(fs.readFileSync(MANIFEST, "utf8"));
     const byId = new Map(); for (const r of parsed.rows) if (by.cleanField(r.ID)) byId.set(String(r.ID), r);
     const shelfItems = {}; // slug → [text_key]
+    const workShelves = []; // BRR-P0-004 A — auto "work" shelves (TOC) for chaptered works
     for (const w of (man.works || [])) {
       const r = byId.get(String(w.byehuda_id));
       if (!r) { console.error("[ingest] manifest byehuda_id not in CSV: " + w.byehuda_id); process.exit(5); }
@@ -339,20 +342,43 @@ async function translateAndBuild(r, body, derived, plainLen) {
       if (!body) { console.error("[ingest] empty body for " + w.byehuda_id); process.exit(6); }
       const plainLen = by.stripNiqqud(body).length;
       const lineCount = body.split("\n").filter((l) => l.trim()).length;
-      // Guard: a novella-length work bloats the shelf bundle, costs ~tokens, and a
-      // 500+-row bilingual table is unwieldy (R6/R8). Skip-with-warning (curated set
-      // should be digestible works; long-reads belong in a future track / BYOK-on-open).
-      if (plainLen > MANIFEST_MAX) { log("  ⚠ skip [" + w.byehuda_id + "] " + (by.cleanField(r.title) || "?") + ": " + plainLen + " ch > " + MANIFEST_MAX + " (novella — excluded from shelf bundle)"); continue; }
-      log("→ [" + r.ID + "] " + (by.cleanField(r.title) || "?") + " — " + (by.cleanField(r.authors) || "?") + " (" + w.track + "/" + w.register + ", " + lineCount + " lines, " + plainLen + " ch)");
-      const derived = { track: w.track, register: w.register, era: w.era, themes: w.themes || [], orig_language: w.orig_language || undefined, review_status: w.review_status || undefined, audio_status: "none" };
-      const built = await translateAndBuild(r, body, derived, plainLen);
-      if (!built) { console.error("[ingest] curated work " + w.byehuda_id + " failed corpus build (R1) — not silently dropped"); process.exit(3); }
-      texts.push(built.textItem); reportRows.push(built.reportRow);
-      const slug = w.shelf || ("by-" + built.corpus.track);
-      (shelfItems[slug] = shelfItems[slug] || []).push(built.textKey);
+      const derivedBase = { track: w.track, register: w.register, era: w.era, themes: w.themes || [], orig_language: w.orig_language || undefined, review_status: w.review_status || undefined, audio_status: "none" };
+      // BRR-P0-004 A — a long work with clear chapter structure becomes a multi-part
+      // "work" (its OWN shelf = table of contents); short / single-flow works stay one
+      // text. Replaces the old novella-skip — nothing dropped (owner: "process, don't skip").
+      const chap = by.chapterizeWork(body);
+      if (chap.mode === "single") {
+        log("→ [" + r.ID + "] " + (by.cleanField(r.title) || "?") + " — " + (by.cleanField(r.authors) || "?") + " (" + w.track + "/" + w.register + ", " + lineCount + " lines, " + plainLen + " ch)");
+        const built = await translateAndBuild(r, body, derivedBase, plainLen);
+        if (!built) { console.error("[ingest] curated work " + w.byehuda_id + " failed corpus build (R1) — not silently dropped"); process.exit(3); }
+        texts.push(built.textItem); reportRows.push(built.reportRow);
+        const slug = w.shelf || ("by-" + built.corpus.track);
+        (shelfItems[slug] = shelfItems[slug] || []).push(built.textKey);
+      } else {
+        const workTitle = by.cleanField(r.title) || ("Произведение #" + r.ID);
+        const total = chap.chapters.length;
+        log("→ [" + r.ID + "] " + workTitle + " — " + (by.cleanField(r.authors) || "?") + " (" + chap.mode + " ×" + total + " → work-shelf, " + plainLen + " ch)");
+        const items = [];
+        for (let ci = 0; ci < chap.chapters.length; ci++) {
+          const c = chap.chapters[ci];
+          const cDerived = { ...derivedBase, series: { work_byehuda_id: r.ID, work_title: workTitle, part: ci + 1, total } };
+          const cTitle = c.title ? (workTitle + " · " + c.title) : (workTitle + " · " + (ci + 1));
+          const built = await translateAndBuild(r, c.body, cDerived, by.stripNiqqud(c.body).length, { textId: "by-" + r.ID + "-c" + (ci + 1), title: cTitle });
+          if (!built) { console.error("[ingest] chapter " + (ci + 1) + "/" + total + " of " + w.byehuda_id + " failed corpus build (R1)"); process.exit(3); }
+          texts.push(built.textItem); reportRows.push(built.reportRow);
+          items.push(built.textKey);
+        }
+        // the work's own shelf = its table of contents (R8: a route, not a flat list)
+        workShelves.push(shelfMeta.buildShelf({
+          slug: "by-work-" + r.ID, title: workTitle, track: w.track, era: w.era,
+          genre: by.cleanGenre(r.genre) || undefined,
+          editorial_intro: "Многоглавное произведение — " + (by.cleanField(r.authors) || "") + ". " + total + " " + (chap.mode === "chapters" ? "глав" : "частей") + "; читайте по порядку.",
+          items, order: 100 + workShelves.length,
+        }));
+      }
     }
-    shelves = (man.shelves || []).map((s) => shelfMeta.buildShelf({ slug: s.slug, title: s.title, track: s.track, era: s.era, genre: s.genre, editorial_intro: s.editorial_intro, items: shelfItems[s.slug] || [], order: s.order }));
-    log("manifest:", texts.length, "works,", shelves.length, "shelves");
+    shelves = (man.shelves || []).map((s) => shelfMeta.buildShelf({ slug: s.slug, title: s.title, track: s.track, era: s.era, genre: s.genre, editorial_intro: s.editorial_intro, items: shelfItems[s.slug] || [], order: s.order })).concat(workShelves);
+    log("manifest:", texts.length, "texts (incl. chapters),", shelves.length, "shelves (" + workShelves.length + " work-shelves)");
   } else if (AUTO) {
     // ── heuristic auto-select (originals; known-canon first) ──────────────────
     const candidates = selectWorks(parsed.rows);

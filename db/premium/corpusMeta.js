@@ -75,6 +75,7 @@ const CORPUS_FIELDS = [
   "register",
   "track",
   "difficulty",
+  "series",
   "provenance",
   "attribution",
   "review_status",
@@ -163,6 +164,20 @@ function _difficultyBand(v) {
   return n;
 }
 
+// Chapter-membership object (BRR-P0-004 A). Normalized to a stable shape or null.
+// { work_byehuda_id, work_title, part (1..n), total }. Used by the Reading Room to
+// group a multi-part work and label "Глава part/total".
+function _series(v) {
+  if (!v || typeof v !== "object") return null;
+  const part = Number(v.part), total = Number(v.total);
+  return {
+    work_byehuda_id: _str(v.work_byehuda_id),
+    work_title: _str(v.work_title),
+    part: Number.isInteger(part) && part > 0 ? part : null,
+    total: Number.isInteger(total) && total > 0 ? total : null,
+  };
+}
+
 // ISO-639 1/3 code shape (optional region/script subtag). Used to flag obvious
 // garbage/typos in orig_language (e.g. 'klingon', 'Hebrew') — it is a facet, so
 // a typo silently breaks filtering AND the honesty story.
@@ -205,6 +220,9 @@ function buildCorpus(input) {
     // difficulty is a Phase-2 computed field (BRR-P1-007), null until then.
     // Type is pinned now (integer 1..5 or null); garbage coerces to null.
     difficulty: _difficultyBand(i.difficulty),
+    // BRR-P0-004 A — chapter membership for a multi-part work (a long work split into
+    // chapters → its own shelf=TOC). null for standalone works. Additive, nullable.
+    series: _series(i.series),
     provenance: {
       source: _str(provenanceIn.source),
       url: _str(provenanceIn.url),

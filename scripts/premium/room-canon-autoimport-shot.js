@@ -87,7 +87,8 @@ async function waitReady(ms = 15000) { const t0 = Date.now(); while (Date.now() 
     });
     console.log("[canon-shot] integrity+counts:", JSON.stringify(integ));
     if (integ.integrity !== "ok") { console.error("FAIL: integrity_check != ok"); failed++; }
-    if (integ.texts !== 54) { console.error("FAIL: expected 54 texts, got " + integ.texts); failed++; }
+    if (integ.texts !== 79) { console.error("FAIL: expected 79 texts (canon-v2 incl. chapters), got " + integ.texts); failed++; }
+    if (integ.shelves !== 7) { console.error("FAIL: expected 7 shelves (4 canon + 3 work), got " + integ.shelves); failed++; }
 
     if (!R || R.cards === 0) { console.error("FAIL: canon did not auto-import on fresh OPFS"); failed++; }
     if (reload.cards === 0) { console.error("FAIL: shelves gone after reload"); failed++; }
