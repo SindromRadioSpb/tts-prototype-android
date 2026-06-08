@@ -117,6 +117,7 @@
     "smoke:canon-version": "node scripts/premium/canon-version-smoke.js",
     "smoke:room": "node scripts/premium/room-smoke.js",
     "smoke:room-mode": "node scripts/premium/room-mode-smoke.js",
+    "smoke:reader-parity": "node scripts/premium/reader-parity-smoke.js",
     "smoke:benyehuda-ingest": "node scripts/premium/benyehuda-ingest-smoke.js",
     "ingest:benyehuda": "node scripts/premium/ingest-benyehuda.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",

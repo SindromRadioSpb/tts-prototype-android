@@ -1909,6 +1909,17 @@ window.I18N_LOCALES.he = {
       open: "מקור ↗",
       note: "התרגום והניקוד ממוחשבים, לא הוגהו.",
     },
+    reader: {
+      back: "← מדפים",
+      aids: "הגדרות קריאה",
+      empty: "אין עדיין שורות בטקסט הזה.",
+      translit: "תעתיק",
+      profileSbl: "SBL",
+      profileRu: "תעתיק רוסי",
+      colNiqqud: "ניקוד",
+      colTranslit: "תעתיק",
+      colRu: "תרגום",
+    },
   },
   teacher: {
     pageTitle: "לוח המורה",

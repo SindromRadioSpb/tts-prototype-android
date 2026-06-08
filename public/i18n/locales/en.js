@@ -1899,6 +1899,17 @@ window.I18N_LOCALES.en = {
       open: "Source ↗",
       note: "Translation and vocalization are machine-made, not proofread.",
     },
+    reader: {
+      back: "← Shelves",
+      aids: "Reading settings",
+      empty: "This text has no lines yet.",
+      translit: "Translit",
+      profileSbl: "SBL",
+      profileRu: "Russian phonetic",
+      colNiqqud: "Niqqud",
+      colTranslit: "Translit",
+      colRu: "Translation",
+    },
   },
   teacher: {
     pageTitle: "Teacher Dashboard",

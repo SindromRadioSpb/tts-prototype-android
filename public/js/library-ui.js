@@ -10,6 +10,12 @@
 // loaded before this module; <html dir> flips to rtl for Hebrew automatically.
 
 import * as localDb from '/db/local-db.js';
+import * as readerCore from '/js/reader-core.js';
+
+// BRR-P0-002b — same-document embedded reader (warm-worker open). Opt-in via
+// ?embed=1 until parity + the @380px review land; without it, work-cards keep the
+// proven deep-link to index.html?room=1 (the href stays the fallback).
+const EMBED = (() => { try { return new URLSearchParams(location.search).get('embed') === '1'; } catch (_) { return false; } })();
 
 const TRACKS = ['accessible', 'literary'];
 let activeTrack = 'accessible';
@@ -101,6 +107,9 @@ function renderWorkCard(textKey) {
     card.appendChild(meta);
   }
   card.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.open', text: tt('room.work.open') }));
+  // Embedded warm open (opt-in) — preventDefault keeps the href deep-link as the
+  // graceful fallback (right-click/middle-click/no-JS still navigate to the reader).
+  if (EMBED) card.addEventListener('click', (e) => { e.preventDefault(); openReader(hit.id, title); });
   return card;
 }
 
@@ -146,6 +155,99 @@ function setActiveTrack(track) {
     if (btn) btn.setAttribute('aria-selected', String(t === track));
   });
   renderTrack();
+}
+
+// ── embedded reader (warm-worker open) ───────────────────────────────────────
+// Opens a canon text IN THIS DOCUMENT via reader-core, reusing the db worker that
+// boot() already warmed — the latency win over the cold deep-link. Reading-aids
+// (translit profile + column visibility) re-render from the cached rows, no refetch.
+let readerCfg = { visibleColumns: { action: true, he: true, niqqud: true, translit: true, ru: true }, translitProfile: 'sbl' };
+let readerRows = [];
+
+function readerConfig() {
+  return {
+    visibleColumns: { ...readerCfg.visibleColumns },
+    baseWidths: [15, 20, 20, 21, 24],
+    translitProfile: readerCfg.translitProfile,
+    ideMode: false,
+    t: (k) => tt(k, k),
+    hasNote: () => false,
+  };
+}
+
+function readerStateBox(i18nKey, icon) {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  mount.innerHTML = '';
+  const box = el('div', { class: 'room-state' });
+  if (icon) box.appendChild(el('span', { class: 'room-state-icon', text: icon }));
+  box.appendChild(el('span', { i18n: i18nKey, text: tt(i18nKey) }));
+  mount.appendChild(box);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+function rerenderReader() {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  mount.innerHTML = readerCore.buildBilingualTableHtml(readerRows, readerConfig());
+}
+
+function buildAidsPanel() {
+  const panel = $('readerAids');
+  if (!panel) return;
+  panel.innerHTML = '';
+  const profLab = el('label');
+  profLab.appendChild(el('span', { i18n: 'room.reader.translit', text: tt('room.reader.translit') }));
+  const sel = el('select', { attrs: { 'aria-label': tt('room.reader.translit') } });
+  [['sbl', tt('room.reader.profileSbl', 'SBL')], ['ru-phonetic', tt('room.reader.profileRu', 'Рус')]].forEach(([v, label]) => {
+    const o = el('option', { text: label, attrs: { value: v } });
+    if (v === readerCfg.translitProfile) o.setAttribute('selected', '');
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', (e) => { readerCfg.translitProfile = e.target.value; rerenderReader(); });
+  profLab.appendChild(sel);
+  panel.appendChild(profLab);
+  [['niqqud', 'room.reader.colNiqqud'], ['translit', 'room.reader.colTranslit'], ['ru', 'room.reader.colRu']].forEach(([col, key]) => {
+    const lab = el('label');
+    const cb = el('input', { attrs: { type: 'checkbox' } });
+    cb.checked = !!readerCfg.visibleColumns[col];
+    cb.addEventListener('change', () => { readerCfg.visibleColumns[col] = cb.checked; rerenderReader(); });
+    lab.appendChild(cb);
+    lab.appendChild(el('span', { i18n: key, text: tt(key) }));
+    panel.appendChild(lab);
+  });
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+async function openReader(textId, title) {
+  const reader = $('roomReader'), content = $('roomContent');
+  if (!reader) return;
+  if (content) content.hidden = true;
+  reader.hidden = false;
+  const titleEl = $('readerTitle');
+  if (titleEl) {
+    titleEl.textContent = title || '';
+    if (HEBREW_RE.test(title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
+  }
+  try { window.scrollTo(0, 0); } catch (_) {}
+  const mount = $('roomReaderTable');
+  const res = await readerCore.openText(textId, {
+    localDb, mount, config: readerConfig(),
+    onState: (s) => {
+      if (s.kind === 'loading') readerStateBox('room.state.loading', '⏳');
+      else if (s.kind === 'dbBusy') readerStateBox('room.state.dbBusy', '📑');
+      else if (s.kind === 'notFound' || s.kind === 'error') readerStateBox('room.state.error', '⚠️');
+      else if (s.kind === 'empty') readerStateBox('room.reader.empty', '📄');
+      // 'ready' → table already painted by openText
+    },
+  });
+  readerRows = res && res.ok ? res.rows : [];
+}
+
+function closeReader() {
+  const reader = $('roomReader'), content = $('roomContent');
+  if (reader) reader.hidden = true;
+  if (content) content.hidden = false;
 }
 
 // BRR-P0-004 — ship-as-asset: the curated canon ships as a precomputed bundle in
@@ -238,8 +340,26 @@ function wireChrome() {
     const btn = $(t === 'accessible' ? 'tabAccessible' : 'tabLiterary');
     if (btn) btn.addEventListener('click', () => setActiveTrack(t));
   });
-  // Re-apply translations to dynamically-built nodes when the language changes.
-  document.addEventListener('i18n:changed', () => { try { window.applyI18n && window.applyI18n(); } catch (_) {} });
+  // Embedded reader chrome.
+  const back = $('readerBack');
+  if (back) back.addEventListener('click', closeReader);
+  const aidsToggle = $('readerAidsToggle');
+  if (aidsToggle) aidsToggle.addEventListener('click', () => {
+    const panel = $('readerAids');
+    if (!panel) return;
+    const opening = panel.hidden;
+    if (opening) buildAidsPanel();
+    panel.hidden = !opening;
+    aidsToggle.setAttribute('aria-expanded', String(opening));
+  });
+  // Re-apply translations to dynamically-built nodes when the language changes; the
+  // reader table is built in JS (no data-i18n), so re-render it from cached rows if open.
+  document.addEventListener('i18n:changed', () => {
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    try { const r = $('roomReader'); if (r && !r.hidden && readerRows.length) rerenderReader(); } catch (_) {}
+    // Aids <option> labels are built once (not data-i18n) — rebuild them on locale change.
+    try { const panel = $('readerAids'); if (panel && !panel.hidden) buildAidsPanel(); } catch (_) {}
+  });
 }
 
 async function boot() {

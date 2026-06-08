@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+"use strict";
+// BRR-P0-002b · Stage 1 · slice 3 — embedded-reader screenshot + functional smoke.
+// Boots /library.html?embed=1 (seeds canon, warms the worker), opens a canon text
+// via the in-document warm reader (work-card click → reader-core.openText), and
+// shots @380px: (1) SBL, (2) reading-aids open + ru-phonetic, (3) HE locale (RTL).
+// If #proTable renders inside #roomReaderTable, the embed + reader-core.css + warm
+// open all work. Shots → .tmp/room-reader-*.png.
+//
+// Run: node scripts/premium/room-reader-shot.js
+
+const path = require("path");
+const fs = require("fs");
+const { spawn, spawnSync } = require("child_process");
+const REPO = path.resolve(__dirname, "..", "..");
+const PORT = 3283, BASE = "http://127.0.0.1:" + PORT;
+const OUT = path.join(REPO, ".tmp");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function startServer() {
+  const c = spawn(process.execPath, ["server.js"], { cwd: REPO, env: { ...process.env, PORT: String(PORT) }, stdio: ["ignore", "pipe", "pipe"] });
+  const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x)));
+  return { c, logs };
+}
+async function stop(c) {
+  if (!c || c.killed) return; c.kill("SIGTERM");
+  const ok = await new Promise((r) => { const t = setTimeout(() => r(false), 5000); c.once("exit", () => { clearTimeout(t); r(true); }); });
+  if (!ok && process.platform === "win32") spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"], { stdio: "ignore" });
+}
+async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s < ms) { try { const r = await fetch(BASE + "/healthz"); if (r.status === 200) return true; } catch (_) {} await sleep(200); } return false; }
+
+(async () => {
+  let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright"); process.exit(1); }
+  fs.mkdirSync(OUT, { recursive: true });
+  const srv = startServer();
+  if (!(await ready())) { console.error("server failed"); console.error(srv.logs.join("")); await stop(srv.c); process.exit(1); }
+  const b = await pw.chromium.launch();
+  let failed = false;
+  try {
+    const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+    const pg = await ctx.newPage();
+    await pg.goto(BASE + "/library.html?embed=1", { waitUntil: "load" });
+    // canon publishes + worker warms during boot → wait for a real (enabled) work-card.
+    await pg.waitForSelector("a.work-card", { timeout: 30000 });
+    const cardInfo = await pg.evaluate(() => {
+      const a = document.querySelector("a.work-card");
+      return a ? { title: (a.querySelector(".work-card-title") || {}).textContent || "" } : null;
+    });
+    // Warm open: click the first work-card (embed path = reader-core.openText).
+    await pg.click("a.work-card");
+    await pg.waitForSelector("#roomReaderTable #proTable tbody tr", { timeout: 15000 });
+    const info = await pg.evaluate(() => ({
+      url: location.href,
+      rows: document.querySelectorAll("#roomReaderTable #proTable tbody tr").length,
+      niqqud: !!document.querySelector('#roomReaderTable td[data-col="niqqud"]'),
+      heCell: (document.querySelector('#roomReaderTable td[data-col="he"]') || {}).textContent || "",
+      contentHidden: !!(document.getElementById("roomContent") || {}).hidden,
+      title: (document.getElementById("readerTitle") || {}).textContent || "",
+    }));
+    await pg.screenshot({ path: path.join(OUT, "room-reader-380-sbl.png") });
+    console.log("opened:", JSON.stringify({ card: cardInfo && cardInfo.title, ...info }));
+    if (info.rows < 1) { console.error("✗ no rows rendered"); failed = true; }
+    if (!info.niqqud) console.warn("⚠ no niqqud cell (text may lack vocalization)");
+    if (!info.contentHidden) { console.error("✗ shelves not hidden behind reader"); failed = true; }
+
+    // Reading-aids open + ru-phonetic profile.
+    await pg.click("#readerAidsToggle");
+    await pg.waitForSelector("#readerAids select", { timeout: 5000 });
+    await pg.selectOption("#readerAids select", "ru-phonetic");
+    await sleep(150);
+    await pg.screenshot({ path: path.join(OUT, "room-reader-380-aids-ruphon.png") });
+    const translitHdr = await pg.evaluate(() => (document.querySelector('#roomReaderTable th[data-col="translit"]') || {}).textContent || "");
+    console.log("aids/ru-phonetic translit header:", JSON.stringify(translitHdr));
+
+    // HE locale → RTL chrome.
+    await pg.selectOption("#roomLang", "he");
+    await sleep(300);
+    await pg.screenshot({ path: path.join(OUT, "room-reader-380-he-rtl.png") });
+    const dir = await pg.evaluate(() => document.documentElement.getAttribute("dir"));
+    console.log("HE locale <html dir>:", dir);
+
+    console.log(failed ? "\nFAIL — see errors above" : "\nOK — shots in .tmp/room-reader-380-*.png");
+  } catch (e) {
+    console.error("fatal", e); failed = true;
+  } finally { await b.close(); await stop(srv.c); }
+  process.exit(failed ? 1 : 0);
+})();

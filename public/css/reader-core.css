@@ -1,0 +1,799 @@
+/* reader-core.css — BRR-P0-002b: reader table visual fidelity extracted from index.html for the embedded Reading Room reader. Keep in sync until Stage 2 migrates index.html onto this file. */
+
+/* ════════════════════════════════════════════════════════════════════════════
+   HEBREW WEB FONTS (self-hosted woff2, /fonts/) — load-bearing for niqqud anchoring.
+   Absolute /fonts/ URLs resolve from origin root, so they work from this linked
+   stylesheet. Mirrors index.html @font-face (l.363-416). Frank Ruhl Libre is the
+   primary; Noto Sans Hebrew + Assistant are the --hebrew-font fallbacks.
+   ════════════════════════════════════════════════════════════════════════════ */
+@font-face { font-family: "Frank Ruhl Libre"; src: url("/fonts/frank-ruhl-libre-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Frank Ruhl Libre"; src: url("/fonts/frank-ruhl-libre-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Frank Ruhl Libre"; src: url("/fonts/frank-ruhl-libre-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Noto Sans Hebrew"; src: url("/fonts/noto-sans-hebrew-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Noto Sans Hebrew"; src: url("/fonts/noto-sans-hebrew-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Noto Sans Hebrew"; src: url("/fonts/noto-sans-hebrew-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Assistant"; src: url("/fonts/assistant-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Assistant"; src: url("/fonts/assistant-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+@font-face { font-family: "Assistant"; src: url("/fonts/assistant-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200E, U+0020-007F; }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   0. CUSTOM PROPERTIES
+   library.html defines its own --bg-*/--text-*/--accent tokens, but NOT the
+   --table-*/--row-*/--hebrew-font tokens the reader table requires. Define them
+   here (light :root + BOTH dark variants, mirroring index.html). A small set of
+   --theme-* tokens referenced by copied rules (header text colour, note-count
+   badge) is also defined so the table renders with full fidelity standalone.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Hebrew font stack — multi-tier with system fallbacks (Direction 1). */
+  --hebrew-font: 'Frank Ruhl Libre', 'David CLM', 'Frank Ruehl CLM',
+                 'Noto Sans Hebrew', 'SF Hebrew', 'Arial Hebrew',
+                 'Segoe UI', Tahoma, sans-serif;
+
+  /* Table-specific tokens (light defaults). */
+  --table-bg-outer: #ffffff;
+  --table-bg-row: #ffffff;
+  --table-bg-row-zebra: rgba(0,0,0,0.012);
+  --table-bg-header: #f6f7f8;
+  --table-border: rgba(0,0,0,0.26);
+  --table-border-header: rgba(0,0,0,0.22);
+  --table-text: #0f172a;
+  --table-text-niqqud: rgba(0,0,0,0.92);
+  --table-text-translit: #1f2937;
+  --table-text-ru: #0f172a;
+
+  /* Row-highlight overlays — alpha-based so they layer over any bg. */
+  --row-hl-hover:    rgba(46, 125, 50, 0.22);
+  --row-hl-focus:    rgba(46, 125, 50, 0.22);
+  --row-hl-active:   rgba(255, 230, 0, 0.35);
+  --row-hl-selected: rgba(255, 230, 0, 0.35);
+  --row-hl-playing:  rgba(255, 230, 0, 0.35);
+  --row-rail-selected: rgba(255, 180, 0, 0.85);
+  --row-rail-playing:  rgba(52, 152, 219, 0.75);
+  --row-rail-error:    rgba(231, 76, 60, 0.80);
+
+  /* Theme tokens referenced by copied table rules (subset). */
+  --theme-text-primary: #0f172a;
+  --theme-bg-page: #ffffff;
+  --theme-bg-card: #ffffff;
+  --theme-accent: #2563eb;
+}
+
+/* Auto-mode dark (no explicit class on body): track system preference. */
+@media (prefers-color-scheme: dark) {
+  body:not(.theme-light) {
+    --table-bg-outer: #1e293b;
+    --table-bg-row: #1e293b;
+    --table-bg-row-zebra: rgba(255,255,255,0.025);
+    --table-bg-header: #0f172a;
+    --table-border: rgba(255,255,255,0.10);
+    --table-border-header: rgba(255,255,255,0.14);
+    --table-text: #f1f5f9;
+    --table-text-niqqud: rgba(255,255,255,0.94);
+    --table-text-translit: #cbd5e1;
+    --table-text-ru: #f1f5f9;
+
+    --row-hl-hover:    rgba(74, 222, 128, 0.18);
+    --row-hl-focus:    rgba(74, 222, 128, 0.18);
+    --row-hl-active:   rgba(252, 211, 77, 0.28);
+    --row-hl-selected: rgba(252, 211, 77, 0.28);
+    --row-hl-playing:  rgba(252, 211, 77, 0.28);
+    --row-rail-selected: rgba(252, 191, 73, 0.95);
+    --row-rail-playing:  rgba(96, 165, 250, 0.85);
+    --row-rail-error:    rgba(248, 113, 113, 0.90);
+
+    --theme-text-primary: #f1f5f9;
+    --theme-bg-page: #0f172a;
+    --theme-bg-card: #1e293b;
+    --theme-accent: #60a5fa;
+  }
+}
+
+/* Explicit dark — overrides system pref. Same vars as the @media block. */
+body.theme-dark {
+  --table-bg-outer: #1e293b;
+  --table-bg-row: #1e293b;
+  --table-bg-row-zebra: rgba(255,255,255,0.025);
+  --table-bg-header: #0f172a;
+  --table-border: rgba(255,255,255,0.10);
+  --table-border-header: rgba(255,255,255,0.14);
+  --table-text: #f1f5f9;
+  --table-text-niqqud: rgba(255,255,255,0.94);
+  --table-text-translit: #cbd5e1;
+  --table-text-ru: #f1f5f9;
+
+  --row-hl-hover:    rgba(74, 222, 128, 0.18);
+  --row-hl-focus:    rgba(74, 222, 128, 0.18);
+  --row-hl-active:   rgba(252, 211, 77, 0.28);
+  --row-hl-selected: rgba(252, 211, 77, 0.28);
+  --row-hl-playing:  rgba(252, 211, 77, 0.28);
+  --row-rail-selected: rgba(252, 191, 73, 0.95);
+  --row-rail-playing:  rgba(96, 165, 250, 0.85);
+  --row-rail-error:    rgba(248, 113, 113, 0.90);
+
+  --theme-text-primary: #f1f5f9;
+  --theme-bg-page: #0f172a;
+  --theme-bg-card: #1e293b;
+  --theme-accent: #60a5fa;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   1. HEBREW TEXT RENDERING (niqqud anchoring) + BIDI ISOLATION
+   ════════════════════════════════════════════════════════════════════════════ */
+
+[lang="he"], [dir="rtl"], .hebrew-text {
+  font-feature-settings: "kern" 1, "calt" 1, "liga" 1;
+  -webkit-font-feature-settings: "kern" 1, "calt" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.hebrew-text, [lang="he"] {
+  line-height: 1.65;
+}
+.bidi-isolate {
+  unicode-bidi: isolate;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   2. BASE TABLE — Premium Readability (CSS only)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+#proTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  box-shadow: none;
+  table-layout: fixed;  /* важно для стабильной работы процентов и resize */
+  font-size: 14px;
+  border: 1px solid rgba(0,0,0,0.75);
+  border-radius: 10px;
+}
+
+#proTable th,
+#proTable td {
+  padding: 6px 8px;
+  text-align: left;
+  border: 1px solid rgba(0,0,0,0.75);
+  vertical-align: top;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+  border-color: rgba(0,0,0,0.55);
+}
+
+#proTable th {
+  background: #f5f6f7;
+  color: #000000;
+  font-weight: 700;
+  text-align: center;
+  position: relative;  /* для грипа */
+  user-select: none;
+}
+
+/* PRO: STICKY HEADER */
+#proTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--table-bg-header);
+  overflow: visible;  /* resize grips on th never clipped */
+}
+
+#proTable thead th::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 1px;
+  background: var(--table-border-header);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   3. CELLS · RTL · NIQQUD
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+  font-family: var(--hebrew-font);
+}
+
+.rtl-he {
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.rtl-he-niqqud {
+  font-size: 18px;
+  line-height: 2.18;
+  letter-spacing: 0.12px;
+  font-kerning: normal;
+  font-feature-settings: "kern" 1, "liga" 1;
+  color: rgba(0, 0, 0, 0.92);
+  padding-top: 7px;
+  padding-bottom: 7px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── Reading-UI cell tuning (Week 5) ─────────────────────────────────────── */
+#proTable tbody td {
+  vertical-align: middle;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  background: transparent;
+}
+
+#proTable tbody td:has(br):not(.rtl-he-niqqud) {
+  vertical-align: top;
+}
+
+#proTable tbody td.rtl-he-niqqud {
+  line-height: 2.18;
+  letter-spacing: 0.12px;
+  color: var(--table-text-niqqud);
+}
+
+#proTable tbody td.rtl-he {
+  line-height: 1.78;
+}
+
+#proTable tbody td:not(.rtl) {
+  line-height: 1.52;
+}
+
+/* ── Grid hairline + theme-aware borders/bg (Week 5 glass polish) ────────── */
+#proTable th,
+#proTable td {
+  border-color: var(--table-border);
+}
+
+#proTable {
+  border: 1px solid var(--table-border) !important;
+  background: var(--table-bg-outer);
+  color: var(--table-text);
+}
+
+#proTable th,
+#proTable td {
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-color: var(--table-border) !important;
+}
+
+#proTable thead th {
+  background: var(--table-bg-header) !important;
+  border-color: var(--table-border-header) !important;
+  color: var(--theme-text-primary);
+}
+
+#proTable thead th::before {
+  background: var(--table-border-header) !important;
+  height: 1px !important;
+  opacity: 1 !important;
+}
+
+/* Final reading-rhythm doved (Week 5 glass-smooth) */
+#proTable tbody td.rtl-he-niqqud {
+  line-height: 2.14 !important;
+  letter-spacing: 0.10px !important;
+}
+
+#proTable tbody td.rtl-he {
+  line-height: 1.72 !important;
+}
+
+#proTable tbody td:not(.rtl) {
+  line-height: 1.48 !important;
+}
+
+/* Row backgrounds + soft zebra (theme-aware, does not fight focus-mode) */
+#proTable tbody tr {
+  background: var(--table-bg-row);
+  color: var(--table-text);
+}
+#proTable tbody td {
+  background: transparent;
+}
+
+#proTable tbody tr:nth-child(even) td {
+  background: var(--table-bg-row-zebra);
+}
+
+/* Per-column text colour (helps readability when columns mix scripts) */
+#proTable tbody td[data-col="he"],
+#proTable tbody td[data-col="niqqud"] { color: var(--table-text-niqqud); }
+#proTable tbody td[data-col="translit"] { color: var(--table-text-translit); }
+#proTable tbody td[data-col="ru"] { color: var(--table-text-ru); }
+
+/* Vertical lines quieter than horizontal; header weight/air (Week 5 FINAL) */
+#proTable th:not(:last-child),
+#proTable td:not(:last-child) {
+  border-right-color: rgba(0,0,0,0.18) !important;
+}
+
+#proTable th,
+#proTable td {
+  border-bottom-color: rgba(0,0,0,0.26) !important;
+}
+
+#proTable thead th {
+  font-weight: 600 !important;
+  letter-spacing: 0.2px;
+  color: var(--theme-text-primary) !important;
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+#proTable tbody td.rtl-he,
+#proTable tbody td.rtl-he-niqqud {
+  padding-top: 11px;
+  padding-bottom: 11px;
+}
+
+#proTable tbody td.rtl-he br:first-child,
+#proTable tbody td.rtl-he-niqqud br:first-child {
+  line-height: 1.95;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   4. COLUMN RESIZER (grip)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+body.resizing-cols {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  width: 10px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  background: transparent;
+}
+
+.col-resizer::after {
+  content: "";
+  position: absolute;
+  top: 15%;
+  bottom: 15%;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.18);
+  border-radius: 2px;
+}
+
+th:hover .col-resizer::after {
+  background: rgba(0,0,0,0.35);
+}
+
+.col-resizer.hidden {
+  display: none;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   5. ACTION CELL · BUTTONS · STATE INDICATORS
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── action cell + rows ──────────────────────────────────────────────────── */
+.col-action-cell {
+  text-align: center !important;
+  padding: 4px 3px !important;
+  vertical-align: middle !important;
+  overflow: hidden;
+}
+td.col-action-cell {
+  display: table-cell;
+}
+.col-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+}
+.col-action-row-top { margin-bottom: 2px; }
+.col-action-row-bot {}
+
+/* ── ▶ per-row TTS button ────────────────────────────────────────────────── */
+.row-tts-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #d0d4d8;
+  background: #ffffff;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.row-tts-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
+.row-tts-btn:active { transform: translateY(0px); }
+
+.row-tts-btn:focus-visible {
+  outline: 2px solid rgba(46, 125, 50, 0.45);
+  outline-offset: 2px;
+}
+.row-tts-btn:focus {
+  outline: 2px solid rgba(46, 125, 50, 0.45);
+  outline-offset: 2px;
+}
+.row-tts-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.row-tts-btn[aria-busy="true"] {
+  cursor: progress;
+  opacity: 0.85;
+}
+
+.row-tts-btn.row-tts-playing {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.18);
+}
+
+.row-tts-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  background: #f3f5f7;
+}
+
+.row-tts-btn.row-tts-error {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.18);
+}
+
+.row-tts-btn.row-tts-error:hover {
+  background: rgba(231, 76, 60, 0.06);
+}
+
+/* ── per-row audio readiness marker (●) ──────────────────────────────────── */
+.row-audio-ind {
+  flex: 0 0 auto;
+  margin-top: 9px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.18);
+  background: rgba(0,0,0,0.10);
+  opacity: 0.95;
+}
+.row-audio-ind.state-ok {
+  background: rgba(46, 204, 113, 0.95);
+  border-color: rgba(39, 174, 96, 0.55);
+}
+.row-audio-ind.state-missing {
+  background: rgba(0,0,0,0.12);
+  border-color: rgba(0,0,0,0.20);
+}
+.row-audio-ind.state-mismatch {
+  background: rgba(241, 196, 15, 0.95);
+  border-color: rgba(243, 156, 18, 0.60);
+}
+.row-audio-ind.state-too-long {
+  background: rgba(231, 76, 60, 0.92);
+  border-color: rgba(192, 57, 43, 0.60);
+}
+.row-audio-ind.state-working {
+  background: rgba(52, 152, 219, 0.92);
+  border-color: rgba(41, 128, 185, 0.65);
+  animation: v3AudioPrefetchPulse 1.1s ease-in-out infinite;
+}
+@keyframes v3AudioPrefetchPulse {
+  0%   { transform: scale(1.0); opacity: 0.85; }
+  50%  { transform: scale(1.25); opacity: 1.0; }
+  100% { transform: scale(1.0); opacity: 0.85; }
+}
+
+/* ── 📝 per-row note button ──────────────────────────────────────────────── */
+.row-note-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #d0d4d8;
+  background: #ffffff;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.row-note-btn:hover { background: #f0f4f7; transform: translateY(-1px); }
+.row-note-btn:active { transform: translateY(0px); }
+
+.row-note-btn:focus-visible,
+.row-note-btn:focus {
+  outline: 2px solid rgba(243, 156, 18, 0.35);
+  outline-offset: 2px;
+}
+.row-note-btn:focus:not(:focus-visible) { outline: none; }
+
+.row-note-btn.row-note-active {
+  border-color: rgba(243, 156, 18, 0.85);
+  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.18);
+}
+
+/* anchor indicator overlay on the notes badge (📍) */
+.row-note-btn.row-note-anchored {
+  position: relative;
+}
+.row-note-btn.row-note-anchored::after {
+  content: "📍";
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  font-size: 10px;
+  line-height: 1;
+  background: var(--theme-bg-card, #fff);
+  border-radius: 50%;
+  padding: 1px;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
+/* multi-note count badge */
+.row-note-btn .row-note-btn-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 3px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: var(--theme-accent, #2563eb);
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+body.theme-dark .row-note-btn .row-note-btn-count,
+body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg-page); }
+
+/* ── edit-mode action buttons (hidden unless #proTable.tbl-edit-mode) ─────── */
+.row-edit-actions {
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+#proTable.tbl-edit-mode .row-edit-actions { display: flex; }
+#proTable.tbl-edit-mode .col-action-row-top,
+#proTable.tbl-edit-mode .col-action-row-bot { display: none; }
+
+.row-edit-btn {
+  padding: 3px 6px;
+  border-radius: 5px;
+  border: 1px solid #dee2e6;
+  background: #fff;
+  font-size: 0.80rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.1s;
+  min-width: 28px;
+  text-align: center;
+}
+.row-edit-btn:hover { background: #f0f4f7; }
+.row-edit-btn.btn-up   { color: #1565c0; }
+.row-edit-btn.btn-down { color: #1565c0; }
+.row-edit-btn.btn-del  { color: #c62828; border-color: #ffcdd2; }
+.row-edit-btn.btn-del:hover { background: #ffebee; }
+.row-edit-btn.btn-reset { color: #e65100; border-color: #ffe0b2; font-size: 0.72rem; }
+.row-edit-btn.btn-reset:hover { background: #fff3e0; }
+.row-edit-btn:disabled { opacity: 0.35; cursor: default; }
+
+@media (pointer: coarse) {
+  .row-edit-btn { padding: 5px 9px; font-size: 0.85rem; min-width: 34px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   6. BUTTON VISIBILITY (hover/focus reveal · touch always-on)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ▶ TTS button: hidden by default, slot reserved (no layout jump) */
+#proTable tbody tr .row-tts-btn {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0);
+  transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-tts-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+#proTable tbody tr:focus-within .row-tts-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+#proTable tbody tr .row-tts-btn.row-tts-playing,
+#proTable tbody tr .row-tts-btn[aria-busy="true"] {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr .row-tts-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-tts-btn {
+    transform: translateY(-1px);
+  }
+}
+/* error state always visible, like loading/playing */
+#proTable tbody tr .row-tts-btn.row-tts-error {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* 📝 Note button: same visibility model as TTS */
+#proTable tbody tr .row-note-btn {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(0);
+  transition: opacity 0.12s ease, visibility 0.12s ease, transform 0.12s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover .row-note-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+#proTable tbody tr:focus-within .row-note-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+/* If a note exists — show always */
+#proTable tbody tr .row-note-btn.row-note-active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr .row-note-btn {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   7. ROW STATES — focus-mode · rails · highlight cascade
+   Priority: error > playing > selected > focus-within > hover > active
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Luxury focus mode: active row crisp, others softly dimmed */
+#proTable.focus-mode tbody tr td {
+  transition: opacity 160ms ease, filter 160ms ease, background-color 160ms ease;
+}
+#proTable.focus-mode tbody tr:not(.row-playing):not(.row-selected):not(.row-error) td {
+  opacity: 0.38;
+  filter: grayscale(0.15);
+}
+#proTable.focus-mode tbody tr.row-playing td,
+#proTable.focus-mode tbody tr.row-selected td,
+#proTable.focus-mode tbody tr.row-error td {
+  opacity: 1;
+  filter: none;
+}
+#proTable.focus-mode tbody tr .row-tts-btn {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Micro-IDE rails: inset line inside first visible cell */
+#proTable tbody tr.row-selected td:first-child {
+  box-shadow: inset 3px 0 0 var(--row-rail-selected);
+}
+#proTable tbody tr.row-playing td:first-child {
+  box-shadow: inset 3px 0 0 var(--row-rail-playing);
+}
+#proTable tbody tr.row-error td:first-child {
+  box-shadow: inset 3px 0 0 var(--row-rail-error);
+}
+
+/* Highlight cascade — single source of truth */
+#proTable tbody tr.row-error td,
+#proTable tbody tr.row-error td.rtl {
+  background-color: rgba(231, 76, 60, 0.06) !important;
+}
+#proTable tbody tr.row-playing:not(.row-error) td,
+#proTable tbody tr.row-playing:not(.row-error) td.rtl {
+  background-color: var(--row-hl-playing) !important;
+}
+#proTable tbody tr.row-selected:not(.row-error) td,
+#proTable tbody tr.row-selected:not(.row-error) td.rtl {
+  background-color: var(--row-hl-selected) !important;
+}
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td,
+#proTable tbody tr:focus-within:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+  background-color: var(--row-hl-focus) !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:hover:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+    background-color: var(--row-hl-hover) !important;
+  }
+}
+@media (hover: none), (pointer: coarse) {
+  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td,
+  #proTable tbody tr:active:not(.row-playing):not(.row-selected):not(.row-error) td.rtl {
+    background-color: var(--row-hl-active) !important;
+  }
+}
+
+/* Keep inner flex wrappers transparent (don't paint over row bg) */
+#proTable tbody td .cell-he-wrap,
+#proTable tbody td .row-tts-text {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Jump-to-sentence flash (Wave D) */
+#proTable tbody tr.v3-jump-flash td {
+  box-shadow: inset 0 0 0 9999px rgba(255, 230, 120, 0.14);
+  transition: box-shadow 180ms ease-in-out;
+}
+#proTable tbody tr.v3-jump-flash td:first-child {
+  box-shadow: inset 4px 0 0 var(--row-rail-selected), inset 0 0 0 9999px rgba(255, 230, 120, 0.14);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   8. CRITICAL FORCED-RTL/LTR DIRECTION (must be LAST so its !important wins)
+   Hebrew/Niqqud data columns are always RTL regardless of page dir; translit
+   and translation columns are always LTR. This is the load-bearing direction
+   mechanism the bilingual reader depends on.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+td.rtl-he,
+td.rtl-he-niqqud,
+th[data-col="he"],
+td[data-col="he"],
+th[data-col="niqqud"],
+td[data-col="niqqud"] {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+th[data-col="translit"],
+td[data-col="translit"],
+th[data-col="ru"],
+td[data-col="ru"] {
+  direction: ltr !important;
+  text-align: left !important;
+}

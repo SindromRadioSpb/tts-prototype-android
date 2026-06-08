@@ -1913,6 +1913,17 @@ window.I18N_LOCALES.ru = {
       open: "Источник ↗",
       note: "Перевод и огласовка — машинные, не вычитаны.",
     },
+    reader: {
+      back: "← Полки",
+      aids: "Настройки чтения",
+      empty: "В этом тексте пока нет строк.",
+      translit: "Транслит",
+      profileSbl: "SBL",
+      profileRu: "Рус. фонетика",
+      colNiqqud: "Огласовки",
+      colTranslit: "Транслит",
+      colRu: "Перевод",
+    },
   },
   teacher: {
     pageTitle: "Teacher Dashboard",

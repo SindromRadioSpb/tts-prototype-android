@@ -7,6 +7,9 @@
   <link rel="manifest" href="/manifest.json">
   <link rel="icon" type="image/png" href="/icons/icon-192.png">
   <meta name="theme-color" content="#0f172a">
+  <!-- BRR-P0-002b: shared reader-table fidelity (niqqud/RTL/buttons) + Hebrew webfont, extracted from index.html. -->
+  <link rel="preload" href="/fonts/frank-ruhl-libre-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/reader-core.css">
   <style>
     /* ── Reading Room theme (focused subset; auto light/dark) ─────────────── */
     :root {
@@ -150,6 +153,39 @@
       color: var(--text-secondary); font-size: 14px; line-height: 1.5;
     }
     .room-state-icon { font-size: 34px; display: block; margin-bottom: 10px; opacity: .8; }
+
+    /* ── embedded reader (BRR-P0-002b Stage 1) ───────────────────────────────── */
+    #roomReader[hidden] { display: none; }
+    .reader-bar {
+      position: sticky; top: 0; z-index: 10; background: var(--bg-card);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 10px 12px; padding-top: calc(10px + env(safe-area-inset-top, 0px));
+      display: flex; align-items: center; gap: 10px;
+    }
+    .reader-back, .reader-aids-toggle {
+      flex: none; appearance: none; cursor: pointer; background: var(--bg-muted);
+      color: var(--text-primary); border: 1px solid var(--border-soft);
+      border-radius: 8px; padding: 7px 11px; font-size: 14px; font-weight: 600;
+    }
+    .reader-aids-toggle[aria-expanded="true"] { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+    .reader-title {
+      flex: 1; min-width: 0; margin: 0; font-size: 15px; font-weight: 700; line-height: 1.25;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .reader-aids {
+      border-bottom: 1px solid var(--border-soft); background: var(--bg-muted);
+      padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px;
+    }
+    .reader-aids[hidden] { display: none; }
+    .reader-aids label { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); cursor: pointer; }
+    .reader-aids select {
+      appearance: none; background: var(--bg-card); color: var(--text-primary);
+      border: 1px solid var(--border-soft); border-radius: 7px; padding: 5px 8px; font-size: 13px;
+    }
+    .reader-table-wrap { padding: 12px; overflow-x: auto; }
+    .reader-table-wrap .room-state { margin: 40px auto; }
+    /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
+    #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
   </style>
 </head>
 <body>
@@ -175,6 +211,17 @@
 <main id="roomContent">
   <div class="room-state" data-i18n="room.state.loading">Загрузка…</div>
 </main>
+
+<!-- BRR-P0-002b: same-document embedded reader (warm-worker open). Hidden until a work-card opens it. -->
+<section id="roomReader" hidden aria-label="Reader">
+  <div class="reader-bar">
+    <button id="readerBack" class="reader-back" type="button" data-i18n="room.reader.back">← Полки</button>
+    <h2 id="readerTitle" class="reader-title"></h2>
+    <button id="readerAidsToggle" class="reader-aids-toggle" type="button" aria-expanded="false" aria-controls="readerAids" data-i18n-title="room.reader.aids" title="Настройки чтения">Аа</button>
+  </div>
+  <div id="readerAids" class="reader-aids" hidden></div>
+  <div id="roomReaderTable" class="reader-table-wrap"></div>
+</section>
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
 <script src="/i18n/locales/ru.js"></script>
