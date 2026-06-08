@@ -228,9 +228,12 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
 **Решения владельца (зафиксированы):**
 - **Провайдер перевода = Gemini `gemini-2.5-flash`** (BYOK-ключ через `GEMINI_API_KEY` env, **НЕ в коде**;
   ротировать после пилота — был в чате). google-free калечит архаику; **Gemini-никуд ОТВЕРГНУТ** (70.6% R1).
-- **Никуд = Dicta CLOUD** (точный). Причина: локальный ai-local sidecar `/nakdan` сменил схему запроса
-  (`pythonClient` шлёт устаревший `{texts}`, sidecar ждёт `{action}`-конверт) → локальный никуд пуст;
-  cloud — рабочий точный путь (backoff от throttle). **Поэзия = аутентичный source-никуд** (не зависит от Dicta).
+- **Никуд = Dicta CLOUD** (точный, backoff от throttle). Локальный ai-local sidecar `/nakdan` = fallback
+  (BRR-P0-009, SW v3.10.14). **⚠ Диагноз ПЕРЕСМОТРЕН:** прежняя версия «`pythonClient` шлёт `{texts}`,
+  sidecar ждёт `{action}`-конверт» — **МИСДИАГНОЗ** (`{action}` никогда не было; схемы client↔sidecar
+  совпадают). Реальная причина: дефолт-порт sidecar (8765) совпал с **AnkiConnect**, чей HTTP-200 принимался
+  за ответ никуда → молчаливая порча (R1). Фикс: foreign-responder guard (`Array.isArray(results)`) + порт
+  8765→8799 (детали в follow-up ниже). **Поэзия = аутентичный source-никуд** (не зависит от Dicta).
 - `review_status=machine` (чистый MT, без вычитки). Курация = `scripts/premium/benyehuda-canon-manifest.json`
   (~55 работ; «популярное» = канон-известность, в дампе НЕТ метрики популярности).
 
@@ -267,7 +270,19 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
 Доп. харнессы: `room-prov-shot.js`, `room-canon-autoimport-shot.js`, `measure-reader-render.js`.
 
 ### Следующие слои (утверждённый план) — обновлено аудитом 2026-06-08
-1. **BRR-P0-002b — встроенный ридер (УТВЕРЖДЁН Option A, рационал ПЕРЕСМОТРЕН Phase-0):** рычаг — НЕ парсинг
+1. **BRR-P0-002b — встроенный ридер — ✅ STAGE 1 SHIPPED + PROD 2026-06-09 (SW v3.10.16-embed-default).**
+   3 коммита: `fb477b3` (slices 0–3: parity-гейт + reader-core extract + embed-вью) · `c3469a9` (slice 4:
+   per-row аудио, 3-tier cached→BYOK→browser-speech) · `66be9a3` (slice 5: sw precache + бамп + acceptance).
+   Замер подтвердил рычаг: warm-open **~24мс** (486-строчный текст) vs ~1с cold deep-link; shell-parse был лишь
+   ~128мс/8% (НЕ рычаг). `public/js/reader-core.js` (листья + `buildBilingualTableHtml` + `openText` +
+   `attachRowAudio`) байт-паритетен `renderTable` (гейт `smoke:reader-parity`: golden+leaf+builder+R1
+   никуд/транслит/dir/escapeHtml/cache-key). `public/css/reader-core.css` (фиделити + иврит `@font-face`).
+   `library.html` embed-вью (reader-bar + reading-aids = профиль транслита + тогглы колонок ⇒ **P1-006 закрыт** +
+   честные loading/dbBusy/empty/error). **index.html НЕ тронут.** Флип embed default-on (v3.10.16; `?embed=0` =
+   escape-hatch к deep-link). Латентный ASI-баг `</th>` исправлен в reader-core. Решение D2+b: keyless-аудио
+   = browser-speech до **BRR-P0-007** (предбейк). **Stage 2 (миграция index.html на reader-core) — отложен.**
+   Исходный план-рационал ниже сохранён для контекста.
+   - **(исходный рационал, Phase-0):** рычаг — НЕ парсинг
    шелла (≈0мс выигрыша), а **переиспользование тёплого DB-воркера**. → **same-page embedded ридер-вью внутри
    `library.html`** (переключение полки↔ридер в ОДНОМ документе; воркер уже прогрет `loadData`) + извлечённый
    `reader-core.js` (renderTable+аудио+on-tap+reading-aids, параметризован, без Studio-глобалов) + **narrow

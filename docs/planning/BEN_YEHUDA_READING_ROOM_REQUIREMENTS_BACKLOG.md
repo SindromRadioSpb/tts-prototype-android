@@ -138,7 +138,7 @@
 - **User story:** *Как владелец, хочу прогнать никуд по всему корпусу локально, без облачного throttle/стоимости.*
 - **Surface:** Backend (`niqqudGateway`/`pythonClient` + `ai-local` sidecar) · **Role:** R1, R5 · **Priority:** P0
 - **Strategic fit:** high · **Learner value:** low (опосредованно) · **Moat value:** med
-- **Impl:** partial reuse (починить конверт запроса) · **Cx:** S–M
+- **Impl:** partial reuse (foreign-responder guard + дефолт-порт 8765→8799; конверт НЕ менялся — `{action}` был мисдиагнозом) · **Cx:** S–M
 - **Dependencies:** — · **Risks:** точность локального vs cloud (сверить на выборке)
 - **Offline:** yes · **BYOK:** n/a
 - **Acceptance:** локальный `/nakdan` отдаёт корректный никуд (паритет с cloud на выборке); продюсер по умолчанию использует локальный путь; cloud = fallback.
@@ -364,7 +364,7 @@ Source: Sefaria(API)/Readlang(Anki) · Surface: Backend · Role: R5,R3 · Impl: 
 - [ ] Провенанс/метки честности там, где есть перевод/аудио/морфология.
 
 ### Phase-mapping
-- **Фаза 1 (Зал + 2 полки):** P0-001 ✅, P0-002 ✅, P0-003 ✅, P0-004 ✅, P0-005 ✅, **P0-002b (next)**, P2-016, P2-018.
+- **Фаза 1 (Зал + 2 полки):** P0-001 ✅, P0-002 ✅, P0-003 ✅, P0-004 ✅, P0-005 ✅, **P0-002b Stage 1 ✅ (SW v3.10.16-embed-default; Stage 2 = миграция index.html отложена)**, P2-016, P2-018.
 - **Фаза 2 (Скаффолдинг + i+1):** P1-006, P1-007, P1-008, P1-009, P1-010, P1-011, P1-012, P2-014, P2-017, P2-020.
 - **Фаза 3 (Глубокие стеллажи + BYOK + ПРЕД-ПРОГОН):** **P0-008 + P0-009 (пререквизиты)** → **P0-006 (раннер)** → **P0-007 (доставка keyless)**, P2-013, P2-015, P2-019.
 - **Фаза 4 (Кураторские маршруты):** P3-021, P3-022, P3-023, P3-024, P3-025.
@@ -374,9 +374,11 @@ Source: Sefaria(API)/Readlang(Anki) · Surface: Backend · Role: R5,R3 · Impl: 
 P0-004, P0-005 (+ сверх плана: батчинг импорта, ship-as-asset авто-импорт канона, A-главы; canon-v2 =
 79 текстов / 7 полок / R1 79 PASS). Решения: перевод = Gemini `gemini-2.5-flash`; никуд = Dicta-cloud;
 `review_status=machine`. Все 8 гейтов зелёные (проверено аудитом).
-**СЛЕДУЮЩИЙ ПОРЯДОК:** (1) **P0-002b** лёгкий ридер-шелл (next) ∥ (2) пред-прогон-трек —
-**P0-008 → P0-009 → P0-006 → P0-007** (пререквизиты dedup + локальный никуд ПЕРЕД выкатом версионного
-контента) ∥ (3) полировка (P1-006 / P1-009 + бейдж эпоха·регистр + HE-native-review). Полный as-built —
+**СЛЕДУЮЩИЙ ПОРЯДОК:** (1) **P0-002b Stage 1 ✅ SHIPPED+PROD 2026-06-09** (embedded warm-reader, SW
+v3.10.16; warm-open ~24мс; `reader-core.*` + parity-гейт; P1-006 закрыт) → остаётся **Stage 2** (миграция
+index.html на reader-core, отложена) ∥ (2) пред-прогон-трек: **P0-008 ✅ → P0-009 ✅ → P0-006 (раннер) →
+P0-007 (доставка keyless + аудио-предбейк — снимет browser-speech-fallback)** ∥ (3) полировка (**P1-006 ✅**
+в Зале / P1-009 + бейдж эпоха·регистр + HE-native-review). Полный as-built —
 `docs/BEN_YEHUDA_READING_ROOM_IMPLEMENTATION_STATUS.md` §10.
 
 ### Рекомендуемые первые 10 тикетов (порядок)

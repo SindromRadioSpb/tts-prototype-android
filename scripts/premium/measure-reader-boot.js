@@ -9,17 +9,19 @@
 //
 //   responseEnd            — HTML downloaded
 //   →domInteractive        — HTML parse + compile/exec of ALL synchronous scripts
-//                            (the inline 39K-line monolith + 29 blocking <script src>)  ← CANDIDATE LEVER A
+//                            (the inline 39K-line monolith + 29 blocking <script src>)  ← (A) ~128ms, NOT the lever
 //   →domContentLoaded      — DCL handlers
 //   →loadEventEnd          — window.load (deeplink boot kicks off here)
-//   →#proTable full        — DB-init + fetch rows + renderTable  ← CANDIDATE LEVER B (cold DB-worker OPFS page-in)
+//   →#proTable full        — DB-init + fetch rows + renderTable  ← (B) THE LEVER (cold DB-worker page-in + SELECT* blob)
 //
-// ⚠ UNRECONCILED (audit 2026-06-08): two diagnoses disagree on the DOMINANT lever —
-// (A) domInteractive script parse/compile/exec, vs (B) the cold DB-worker first-SQL OPFS
-// page-in. RE-RUN this and read the ACTUAL waterfall numbers before optimizing, then update
-// this note + the session prompt with the real split. Option A (embedded reader in the slim
-// library.html) removes BOTH (no 39K shell parse + warm-worker reuse), so the direction holds
-// either way — but the <300ms acceptance target must rest on a measured number, not a guess.
+// ✅ RECONCILED (measured 2026-06-09): the lever is (B), not (A). Shell parse/compile (A) = ~128ms
+// (~8% of the open), NOT dominant — slim library.html parse ~55ms, so a slim shell saves only the
+// ~74ms "prize". The ~1.3-2.0s cold open lives entirely AFTER window.load: getTextById SELECT*
+// pulling the unused source_text blob (~1.1s cold) + the cold DB-worker's first-data OPFS page-in.
+// FIX SHIPPED (BRR-P0-002b Stage 1, SW v3.10.16): narrow lite-fetch (drops the blob) + a same-page
+// embedded reader in library.html that REUSES the worker boot() already warmed → warm-open ~24ms
+// for the 486-row largest text (vs ~1s cold). A deep-link onto a fresh index.html is always cold
+// (new worker, no dwell to hide page-in) — which is why the reader had to move into library.html.
 //
 // It also navigates the slim library.html to show the baseline a self-contained
 // reader.html could reach (the prize of Option A), and reports the document's
