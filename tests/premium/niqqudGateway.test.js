@@ -29,6 +29,16 @@ function sidecarError(status = 500) {
   pythonClient.nakdan = async () => ({ ok: false, status, body: null, error: `HTTP ${status}` });
 }
 
+// A FOREIGN service answered the sidecar port: HTTP 200 but no results[]. This is
+// exactly what AnkiConnect (whose default port the sidecar's old default collided
+// with) returns: {result:null, error:"'action' is a required property"}.
+function sidecarForeignResponder() {
+  pythonClient.nakdan = async () => ({
+    ok: true, status: 200,
+    body: { result: null, error: "'action' is a required property" },
+  });
+}
+
 function cloudOk(texts) {
   dictaCloud.nakdan = async (t) => ({
     ok: true, status: 200,
@@ -66,6 +76,33 @@ test("fetchNiqqud: sidecar unreachable → falls back to Dicta cloud", async () 
   assert.equal(result.provider, "dicta-cloud");
   assert.equal(result.degraded, false);
   assert.deepEqual(result.results, ["שלום[cloud-niqqud]", "עולם[cloud-niqqud]"]);
+});
+
+// ── Test 2b: foreign responder on the port (AnkiConnect) → cloud fallback ─────
+
+test("fetchNiqqud: foreign 200 without results[] → not trusted, falls back to cloud", async () => {
+  sidecarForeignResponder();           // AnkiConnect-style {result,error}, HTTP 200
+  cloudOk(["שלום", "עולם"]);
+
+  const result = await gateway.fetchNiqqud(["שלום", "עולם"]);
+
+  assert.equal(result.provider, "dicta-cloud", "a non-nakdan 200 must NOT be trusted as niqqud");
+  assert.equal(result.degraded, false);
+  assert.deepEqual(result.results, ["שלום[cloud-niqqud]", "עולם[cloud-niqqud]"]);
+});
+
+// ── Test 2c: foreign responder AND cloud down → degraded with honest reason ────
+
+test("fetchNiqqud: foreign responder + cloud fail → degraded (sidecar_foreign_responder)", async () => {
+  sidecarForeignResponder();
+  cloudFail();
+
+  const result = await gateway.fetchNiqqud(["שלום"]);
+
+  assert.equal(result.provider, "none");
+  assert.equal(result.degraded, true);
+  assert.equal(result.reason, "sidecar_foreign_responder");
+  assert.deepEqual(result.results, [""], "never emit a foreign body as niqqud");
 });
 
 // ── Test 3: sidecar error (non-zero) → no cloud fallback ──────────────────────

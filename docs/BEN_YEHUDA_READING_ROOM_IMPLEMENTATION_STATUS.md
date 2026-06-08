@@ -306,7 +306,16 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
   текст+полка целы, idempotent). **РЕШИП stamped-бандла ОТЛОЖЕН** на следующую эдицию (pre-run track):
   /data immutable-cache → нужен новый filename; текущий unstamped-v2 ущерб ≈0 (handoff), reconcile сработает
   когда продюсер выпустит stamped vN (он уже готов штамповать). Прод-эффект сейчас: механизм LIVE, гейт зелёный.
-- **BRR-P0-009 — Локальный sidecar `/nakdan` request-schema fix** (`{action}`-конверт) → никуд локальный
-  вместо Dicta-cloud (26K через cloud = rate/стоимость/доступность). **NEXT.**
+- **BRR-P0-009 — Локальный `/nakdan` — ✅ ИСПРАВЛЕНО (диагноз ПЕРЕСМОТРЕН).** Премиса handoff («sidecar
+  ждёт `{action}`-конверт») — **МИСДИАГНОЗ.** Доказано: (1) `git -S action` по sidecar пуст — `{action}`
+  НИКОГДА не было; client↔sidecar схемы СОВПАДАЮТ (`{texts, mark_matres_lectionis}`); (2) `curl :8765/nakdan`
+  → **AnkiConnect** отвечает `200 {result,error:"'action' is a required property"}` — это его ошибка приняли
+  за схему sidecar; (3) `.env.example` сам ставит `ANKI_CONNECT_PORT=8765`, а sidecar дефолтил на ТОТ ЖЕ 8765
+  → коллизия. Реальные баги: **(A)** gateway доверял `200` без `results[]` (foreign-responder = AnkiConnect)
+  как никуду — R1 silent-corruption; **(B)** порт-коллизия. Фикс: `niqqudGateway` — guard `Array.isArray(body.results)`,
+  иначе foreign-responder → Dicta-cloud fallback (не молча принимать); **дефолт-порт 8765→8799** (client/sidecar/
+  scripts/docs/.env). Гейт `niqqudGateway.test` 10/10 (+2 foreign-responder). **Caveat:** локальный никуд
+  end-to-end не проверен (нужен запуск sidecar+BERT-модель — operational); код-фикс верен. Серверный/продюсерный
+  (НЕ shell) → SW-бамп не нужен.
 - **HE i18n** `room.*`/`room.prov.*` — черновик, нужен native/ulpan-review до пилота.
 - **Housekeeping:** `Library/*.zip` (build-артефакты canon-v1/v2) → в `.gitignore` (шиппится только `public/data/benyehuda/canon-v2.zip`).

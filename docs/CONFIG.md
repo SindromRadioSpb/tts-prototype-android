@@ -59,6 +59,8 @@ This document describes all environment variables and configuration options for 
 | `ANKI_CONNECT_PORT` | `8765` | AnkiConnect server port |
 | `ANKI_CONNECT_VERSION` | `6` | AnkiConnect API version |
 | `ANKI_CONNECT_API_KEY` | — | API key (if AnkiConnect requires auth) |
+| `AI_LOCAL_HOST` | `127.0.0.1` | ai-local Python sidecar host (niqqud + MADLAD) |
+| `AI_LOCAL_PORT` | `8799` | ai-local sidecar port. **Deliberately not 8765** — that is AnkiConnect's port (above); a sidecar there collides and its niqqud falls back to Dicta cloud. |
 | `ANKI_CONNECT_ORIGIN` | — | Origin header for CORS |
 | `ANKI_CONNECT_TIMEOUT_MS` | `60000` | Request timeout (ms) |
 | `ANKI_CONNECT_RETRIES` | `3` | Number of retry attempts |

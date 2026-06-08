@@ -55,7 +55,7 @@ async function _madladTranslate(segmentsForApi, target) {
   const r = await pythonClient.translate(segmentsForApi, target);
   if (!r.ok) {
     if (r.status === 0) {
-      const err = new Error("Python sidecar (ai-local) не запущен на 127.0.0.1:8765 — MADLAD недоступен");
+      const err = new Error(`Python sidecar (ai-local) не запущен на ${pythonClient.BASE} — MADLAD недоступен`);
       err.provider = "madlad";
       err.upstream = "translate";
       err.status = 0;

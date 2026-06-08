@@ -4,7 +4,7 @@ param(
   [switch]$SkipAiLocalInstall,
   [switch]$WithHebrewLocal,
   [int]$NodePort = 3000,
-  [int]$AiLocalPort = 8765,
+  [int]$AiLocalPort = 8799,  # NOT 8765 (AnkiConnect's port); see db/premium/pythonClient.js
   [int]$HebrewLocalPort = 8766
 )
 

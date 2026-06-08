@@ -9,7 +9,7 @@
  */
 
 const HOST = process.env.AI_LOCAL_HOST || "127.0.0.1";
-const PORT = process.env.AI_LOCAL_PORT || "8765";
+const PORT = process.env.AI_LOCAL_PORT || "8799"; // 8765 = AnkiConnect; see pythonClient
 const BASE = `http://${HOST}:${PORT}`;
 const WANT_TRANSLATE = process.argv.includes("--translate");
 

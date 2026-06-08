@@ -19,7 +19,9 @@ def _env_int(name: str, default: int) -> int:
 HERE = Path(__file__).resolve().parent.parent
 
 HOST = os.environ.get("AI_LOCAL_HOST", "127.0.0.1")
-PORT = _env_int("AI_LOCAL_PORT", 8765)
+# Default 8799 (NOT 8765 — AnkiConnect's well-known port, which this project uses;
+# a sidecar on 8765 collides with it). Override with AI_LOCAL_PORT.
+PORT = _env_int("AI_LOCAL_PORT", 8799)
 
 MODELS_DIR = Path(os.environ.get("AI_LOCAL_MODELS_DIR", HERE / "models"))
 HF_CACHE_DIR = Path(os.environ.get("AI_LOCAL_HF_CACHE", HERE / "hf-cache"))

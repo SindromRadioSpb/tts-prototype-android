@@ -6,7 +6,10 @@
 // failures (which are reflected as ok=false with error set).
 
 const HOST = process.env.AI_LOCAL_HOST || "127.0.0.1";
-const PORT = process.env.AI_LOCAL_PORT || "8765";
+// Default 8799 (NOT 8765 — that's AnkiConnect's well-known port, which this project
+// uses; a sidecar on 8765 collides and AnkiConnect's 200 reply could be mistaken for
+// niqqud, see niqqudGateway foreign-responder guard). Override with AI_LOCAL_PORT.
+const PORT = process.env.AI_LOCAL_PORT || "8799";
 const BASE = `http://${HOST}:${PORT}`;
 
 // Conservative default; /translate on MADLAD can take ~1-3s per batch,

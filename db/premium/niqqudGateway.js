@@ -3,12 +3,15 @@
 // Niqqud annotation gateway.
 //
 // Implements a two-provider chain for Hebrew vowel-pointing:
-//   1. Local Python sidecar  (http://127.0.0.1:8765/nakdan)
+//   1. Local Python sidecar  (http://127.0.0.1:8799/nakdan, AI_LOCAL_PORT)
 //   2. Dicta cloud API       (https://nakdan-5-1.loadbalancer.dicta.org.il/api)
 //
-// Fallback to cloud happens ONLY when the sidecar is unreachable (status === 0).
-// If the sidecar is reachable but rejects a request, cloud is NOT tried — the
-// error is treated as a model failure, not an infrastructure failure.
+// Fallback to cloud happens when the sidecar is unreachable (status === 0) OR a
+// FOREIGN service answered its port (HTTP ok but no results[] — e.g. AnkiConnect,
+// whose default port 8765 the sidecar's old default collided with). Both mean "no
+// local niqqud here". If the REAL sidecar is reachable but rejects a request
+// (4xx/5xx with its own error), cloud is NOT tried — that's a model failure, not an
+// infrastructure one. A non-nakdan 200 is never trusted as niqqud (R1).
 //
 // Public API:
 //
@@ -44,24 +47,38 @@ async function fetchNiqqud(texts /* , _opts = {} */) {
 
   // ── Provider 1: local Python sidecar ────────────────────────────────────────
   const sidecarResp = await pythonClient.nakdan(texts);
+  const sidecarBody = sidecarResp && sidecarResp.body;
+  // A real sidecar response carries a results[] array. We REQUIRE that shape, not
+  // just HTTP ok: the sidecar's default port (AI_LOCAL_PORT, 8799) used to default
+  // to 8765 — AnkiConnect's well-known port — and a foreign service squatting the
+  // port can answer 200 with a different body (AnkiConnect returns
+  // {result,error:"'action' is a required property"}). Trusting that as niqqud would
+  // silently corrupt the corpus (R1). So a 200 WITHOUT results[] is treated as a
+  // foreign responder, not a success.
+  const sidecarValid = sidecarResp.ok && sidecarBody && Array.isArray(sidecarBody.results);
 
-  if (sidecarResp.ok) {
+  if (sidecarValid) {
     console.log(`[niqqud-gateway] provider=local-sidecar texts=${texts.length}`);
     return {
-      results:       sidecarResp.body.results,
-      model_version: sidecarResp.body.model_version || NIKUD_VERSION,
+      results:       sidecarBody.results,
+      model_version: sidecarBody.model_version || NIKUD_VERSION,
       provider:      "local-sidecar",
       degraded:      false,
     };
   }
 
+  // ok-but-no-results = a non-nakdan service answered the port. Fall back to cloud
+  // exactly like an unreachable sidecar (it IS effectively unreachable for niqqud).
+  const foreignResponder = sidecarResp.ok && !sidecarValid;
   const sidecarReason = sidecarResp.status === 0  ? "sidecar_unreachable"
+                      : foreignResponder          ? "sidecar_foreign_responder"
                       : sidecarResp.status >= 500 ? "sidecar_error"
                       : "sidecar_rejected";
 
-  // ── Provider 2: Dicta cloud (only when sidecar is unreachable) ───────────────
-  if (sidecarResp.status === 0) {
-    console.warn(`[niqqud-gateway] sidecar unreachable — trying Dicta cloud (texts=${texts.length})`);
+  // ── Provider 2: Dicta cloud (when the sidecar is unreachable OR a foreign service
+  //    answered its port — both mean "no local niqqud available") ────────────────
+  if (sidecarResp.status === 0 || foreignResponder) {
+    console.warn(`[niqqud-gateway] sidecar ${sidecarReason} — trying Dicta cloud (texts=${texts.length})`);
     try {
       const cloudResp = await dictaCloud.nakdan(texts);
       if (!cloudResp.ok) {
