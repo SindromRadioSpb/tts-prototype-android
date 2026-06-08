@@ -114,6 +114,36 @@
     .work-card-cta { font-size: 12px; font-weight: 600; color: var(--accent); }
     .work-card[disabled] .work-card-cta { color: var(--text-faint); }
 
+    /* ── BRR-P0-005 provenance / honesty badges ───────────────────────────── */
+    .work-card-author {
+      font-size: 12px; color: var(--text-secondary); line-height: 1.25;
+      display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .work-card-meta { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .prov-badge {
+      font-size: 10px; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 999px;
+      white-space: nowrap; border: 1px solid transparent;
+    }
+    /* honest labels: amber = machine, indigo = machine-assisted, green = proofread */
+    .prov-badge.rs-machine { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .prov-badge.rs-machine_assisted { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
+    .prov-badge.rs-human_proofread { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .prov-badge.audio-none { background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft); }
+    .prov-badge.audio-tts { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .prov-badge.audio-human { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .prov-badge.rs-machine { background: rgba(245,158,11,.18); color: #fcd34d; border-color: rgba(245,158,11,.4); }
+      body:not(.theme-light) .prov-badge.rs-machine_assisted { background: rgba(99,102,241,.2); color: #c7d2fe; border-color: rgba(99,102,241,.4); }
+      body:not(.theme-light) .prov-badge.rs-human_proofread { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+      body:not(.theme-light) .prov-badge.audio-tts { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
+      body:not(.theme-light) .prov-badge.audio-human { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+    }
+    body.theme-dark .prov-badge.rs-machine { background: rgba(245,158,11,.18); color: #fcd34d; border-color: rgba(245,158,11,.4); }
+    body.theme-dark .prov-badge.rs-machine_assisted { background: rgba(99,102,241,.2); color: #c7d2fe; border-color: rgba(99,102,241,.4); }
+    body.theme-dark .prov-badge.rs-human_proofread { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+    body.theme-dark .prov-badge.audio-tts { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
+    body.theme-dark .prov-badge.audio-human { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+
     /* ── states ──────────────────────────────────────────────────────────── */
     .room-state {
       margin: 48px auto; max-width: 320px; padding: 0 24px; text-align: center;

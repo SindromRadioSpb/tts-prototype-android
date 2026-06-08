@@ -165,6 +165,16 @@ test("audio_status=human = warning (verify not TTS)", cm.validateCorpus(audioHum
 test("garbage orig_language warns", cm.validateCorpus(cm.buildCorpus({ author: "a", orig_language: "klingon", content_hash: h1 })).warnings.some((w) => /orig_language/.test(w)));
 test("valid ISO orig_language = no lang warning", cm.validateCorpus(cm.buildCorpus({ author: "a", translator: "t", orig_language: "yi", content_hash: h1 })).warnings.every((w) => !/orig_language/.test(w)));
 
+// 7f) author_uri / translator_uri (BRR-P0-004 additive identity anchors)
+const withUri = cm.buildCorpus({ author: "a", author_uri: "https://wikidata.org/wiki/Q1376036", translator: "t", translator_uri: "https://www.wikidata.org/wiki/Q380425", orig_language: "yi", content_hash: h1, byehuda_id: "p1", provenance: { source: "x" } });
+test("buildCorpus carries author_uri/translator_uri", withUri.author_uri === "https://wikidata.org/wiki/Q1376036" && withUri.translator_uri === "https://www.wikidata.org/wiki/Q380425");
+test("author_uri/translator_uri in canonical field set", cm.CORPUS_FIELDS.includes("author_uri") && cm.CORPUS_FIELDS.includes("translator_uri"));
+test("valid Wikidata QID URLs = no uri warning", cm.validateCorpus(withUri).warnings.every((w) => !/uri/i.test(w)));
+const badUri = cm.buildCorpus({ author: "a", author_uri: "not-a-qid", content_hash: h1, byehuda_id: "p1", provenance: { source: "x" } });
+const buRes = cm.validateCorpus(badUri);
+test("malformed author_uri = warning, not error (curation not blocked)", buRes.ok && buRes.warnings.some((w) => /author_uri/.test(w)));
+test("absent author_uri = honest null (never fabricated)", cm.buildCorpus({ author: "a" }).author_uri === null);
+
 // 7e) producer path: getCorpus must read the canonical source_meta.corpus home
 const smOnly = { source_meta: { origin: "ingested", corpus: cm.buildCorpus({ author: "a", content_hash: h1, byehuda_id: "p1" }) } };
 test("getCorpus reads source_meta.corpus when no top-level mirror", cm.getCorpus(smOnly) === smOnly.source_meta.corpus);

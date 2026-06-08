@@ -1882,6 +1882,22 @@ window.I18N_LOCALES.en = {
       dbBusy: "The library is open in another tab — close it and reload.",
       error: "Could not load the library.",
     },
+    prov: {
+      rs: {
+        machine: "Machine translation",
+        machine_assisted: "Machine-assisted",
+        human_proofread: "Proofread",
+      },
+      audio: {
+        none: "No audio",
+        tts: "Synth. audio",
+        human: "Human voice",
+      },
+      sourceLabel: "Source",
+      license: "public domain",
+      open: "Source ↗",
+      note: "Translation and vocalization are machine-made, not proofread.",
+    },
   },
   teacher: {
     pageTitle: "Teacher Dashboard",

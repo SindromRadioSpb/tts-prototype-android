@@ -65,7 +65,9 @@ const CORPUS_FIELDS = [
   "content_hash",
   "author",
   "author_slug",
+  "author_uri",
   "translator",
+  "translator_uri",
   "orig_language",
   "era",
   "genre",
@@ -166,6 +168,13 @@ function _difficultyBand(v) {
 // a typo silently breaks filtering AND the honesty story.
 const LANG_CODE_RE = /^[a-z]{2,3}(-[a-z0-9]+)?$/i;
 
+// Wikidata QID URL shape (BRR-P0-004). The Project Ben-Yehuda catalogue supplies
+// author_uris / translator_uris as Wikidata entity URLs (e.g.
+// https://wikidata.org/wiki/Q1376036). We store them as a STABLE external
+// identity anchor (R3: attach by id, not display text) — better than a fabricated
+// slug. Shape is WARNING-only (an odd/multi-value URI must not block curation).
+const WIKIDATA_QID_RE = /^https?:\/\/(www\.)?wikidata\.org\/wiki\/Q\d+$/i;
+
 // ── builder ──────────────────────────────────────────────────────────────────
 // Produce a normalized, defaulted `corpus` object from a loose input (e.g. a
 // pseudocatalogue.csv row + computed fields). Honest defaults are applied; the
@@ -180,7 +189,12 @@ function buildCorpus(input) {
     content_hash: _str(i.content_hash),
     author: _str(i.author),
     author_slug: _str(i.author_slug) || authorSlug(i.author_latin),
+    // Wikidata QID URL = stable author/translator identity anchor (R3/R6), from
+    // the catalogue's author_uris / translator_uris. Honest null when absent;
+    // never fabricated. Validated WARNING-only (see WIKIDATA_QID_RE).
+    author_uri: _str(i.author_uri),
     translator: _str(i.translator),
+    translator_uri: _str(i.translator_uri),
     // Honest default: original Hebrew unless the catalogue says otherwise.
     orig_language: _str(i.orig_language) || "he",
     era: _str(i.era),
@@ -247,6 +261,11 @@ function validateCorpus(corpus, opts) {
   // orig_language sanity — flag obvious garbage/typos (it is a facet; a typo
   // breaks filtering and the honesty story). WARNING, not error (open vocab).
   if (corpus.orig_language != null && !LANG_CODE_RE.test(String(corpus.orig_language))) warnings.push("orig_language '" + corpus.orig_language + "' is not an ISO-639 code");
+  // author_uri / translator_uri shape — WARNING only (BRR-P0-004). A malformed or
+  // multi-value URI must not block curation, but a non-Wikidata string breaks the
+  // identity-anchor story, so surface it for a spot-check.
+  if (corpus.author_uri != null && !WIKIDATA_QID_RE.test(String(corpus.author_uri))) warnings.push("author_uri '" + corpus.author_uri + "' is not a Wikidata QID URL");
+  if (corpus.translator_uri != null && !WIKIDATA_QID_RE.test(String(corpus.translator_uri))) warnings.push("translator_uri '" + corpus.translator_uri + "' is not a Wikidata QID URL");
   // human claims need evidence (R1): the enum PERMITS human_proofread/human,
   // but an unverified human claim on otherwise-machine data is exactly the lie
   // this module exists to prevent. Warn (so a reviewer spot-checks) unless a

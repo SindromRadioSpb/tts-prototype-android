@@ -116,6 +116,8 @@
     "smoke:shelves-roundtrip": "node scripts/premium/shelf-roundtrip-smoke.js",
     "smoke:room": "node scripts/premium/room-smoke.js",
     "smoke:room-mode": "node scripts/premium/room-mode-smoke.js",
+    "smoke:benyehuda-ingest": "node scripts/premium/benyehuda-ingest-smoke.js",
+    "ingest:benyehuda": "node scripts/premium/ingest-benyehuda.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "smoke:notes:srs-candidates": "node scripts/notes-ui/suggest-srs-candidate-smoke.js",

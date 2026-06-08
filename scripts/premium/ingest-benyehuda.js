@@ -1,0 +1,312 @@
+#!/usr/bin/env node
+"use strict";
+
+// ingest-benyehuda.js — BRR-P0-004 Reading-Room corpus producer. RUN LOCALLY.
+//
+// Turns the Project Ben-Yehuda public-domain corpus into an honest bilingual
+// (text-only; audio deferred) bundle v2.1 ZIP that fills corpus + shelves and
+// imports straight into the OPFS Reading Room. Reuses the SHIPPED engine
+// primitives — segmenter, the google-free / gcp translation providers, the
+// niqqud gateway (sidecar → Dicta cloud), the transliterator, and the
+// corpusMeta / shelfMeta contracts — but stays DB-FREE (no SQLite, no server,
+// no lock contention): translation/niqqud are cached on disk for resume, the
+// way scrape-pealim-all.js and build-notes-from-bundle.js do.
+//
+//   node scripts/premium/ingest-benyehuda.js --auto --limit 20 \
+//     --provider google-free --out .tmp/benyehuda-pilot.zip
+//
+// Providers:  google-free (default, free workhorse) · gemini (GEMINI_API_KEY env,
+//             quota-limited quality path) · gcp (Cloud Translate BYOK --gcp-key).
+// Niqqud:     source-first — authentic source vocalization is PRESERVED; Dicta
+//             only fills unvocalized lines (R1: never overwrite real vowels).
+// Honesty:    review_status='machine', audio_status='none' (text-only); footer
+//             stripped; translated works need orig_language or the build fails.
+// Verify:     curl …/sw.js unaffected (producer/data only — no SW bump).
+//
+// First-step tripwire (RESOLVED 2026-06-08): the live pseudocatalogue.csv header
+// is ID,path,title,authors,translators,author_uris,translator_uris,
+// original_language,genre,source_edition (verified upstream). See lib/benyehuda.js.
+
+const fs = require("fs");
+const path = require("path");
+const crypto = require("crypto");
+
+const JSZip = require("../../public/db/jszip.min.js");
+const { segment } = require("../../db/premium/segmenter");
+const googleFree = require("../../db/premium/providers/googleFree");
+const gcp = require("../../db/premium/providers/gcp");
+const niqqudGateway = require("../../db/premium/niqqudGateway");
+const { transliterateWithProfile } = require("../../db/premium/translit");
+const corpusMeta = require("../../db/premium/corpusMeta");
+const shelfMeta = require("../../db/premium/shelfMeta");
+const by = require("./lib/benyehuda");
+
+const REPO = path.resolve(__dirname, "..", "..");
+const TMP = path.join(REPO, ".tmp");
+const BY_DIR = path.join(TMP, "benyehuda");
+const TXT_DIR = path.join(BY_DIR, "txt");
+const RAW_BASE = "https://raw.githubusercontent.com/projectbenyehuda/public_domain_dump/master";
+
+// ── args ──────────────────────────────────────────────────────────────────────
+function arg(name, def) { const i = process.argv.indexOf("--" + name); return i >= 0 && i + 1 < process.argv.length && !String(process.argv[i + 1]).startsWith("--") ? process.argv[i + 1] : def; }
+function flag(name) { return process.argv.indexOf("--" + name) >= 0; }
+
+const AUTO = flag("auto");
+const CSV_PATH = String(arg("csv", path.join(BY_DIR, "pseudocatalogue.csv")));
+const OUT = String(arg("out", path.join(TMP, "benyehuda-pilot.zip")));
+const PROVIDER = String(arg("provider", "google-free"));
+const LIMIT = Number(arg("limit", 20)) || 20;
+const ACCESSIBLE_MAX = Number(arg("accessible", Math.ceil(LIMIT / 2)));
+const LITERARY_MAX = Number(arg("literary", Math.floor(LIMIT / 2)));
+const MAX_CHARS = Number(arg("max-chars", 8000));
+const MIN_CHARS = Number(arg("min-chars", 40));
+const NO_FETCH = flag("no-fetch");
+const DRY = flag("dry-run");
+const GCP_KEY = String(arg("gcp-key", process.env.GCP_TRANSLATE_API_KEY || ""));
+const GEMINI_KEY = String(arg("gemini-key", process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || ""));
+const STAMP = new Date().toISOString();
+
+const PROVIDERS = new Set(["google-free", "gemini", "gcp"]);
+if (!PROVIDERS.has(PROVIDER)) { console.error("[ingest] unsupported provider: " + PROVIDER + " (use google-free|gemini|gcp)"); process.exit(2); }
+
+const log = (...a) => console.log("[ingest]", ...a);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function thash(s) { return crypto.createHash("sha256").update(String(s), "utf8").digest("hex"); }
+
+// computeTextKey — byte-identical to db/libraryRepo.js#computeTextKey (kept inline
+// to avoid pulling SQLite into a standalone producer). Stable text_key = re-ingest
+// idempotency + dedup against any existing OPFS text. KEEP IN SYNC with libraryRepo.
+function normalizeSourceText(s) { return String(s || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim(); }
+function computeTextKey(sourceText) {
+  const payload = { v: 1, sourceText: normalizeSourceText(sourceText), ttsProfile: null, tableModelMeta: null };
+  return crypto.createHash("sha256").update(JSON.stringify(payload), "utf8").digest("hex");
+}
+
+// ── disk caches (resume) ────────────────────────────────────────────────────
+function loadJson(p) { try { return JSON.parse(fs.readFileSync(p, "utf8")); } catch (_) { return {}; } }
+const transCachePath = path.join(BY_DIR, "trans-cache.json");
+const niqCachePath = path.join(BY_DIR, "niqqud-cache.json");
+let transCache = loadJson(transCachePath);
+let niqCache = loadJson(niqCachePath);
+function saveCaches() {
+  try { fs.writeFileSync(transCachePath, JSON.stringify(transCache)); } catch (_) {}
+  try { fs.writeFileSync(niqCachePath, JSON.stringify(niqCache)); } catch (_) {}
+}
+
+// ── HTTP (polite, resumable) ────────────────────────────────────────────────
+async function httpGet(url) {
+  if (typeof fetch !== "function") throw new Error("global fetch unavailable — Node >=18 required");
+  let attempt = 0;
+  for (;;) {
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": "linguistpro-benyehuda-ingest/1.0" } });
+      if (res.status === 404) { const e = new Error("404"); e.status = 404; throw e; }
+      if (res.status === 429) { attempt++; if (attempt > 5) throw new Error("429-giveup"); const b = Math.min(60000, 3000 * 2 ** (attempt - 1)); log("429 → backoff " + b / 1000 + "s"); await sleep(b); continue; }
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return await res.text();
+    } catch (e) {
+      if (e && e.status === 404) throw e;
+      attempt++; if (attempt > 3) throw e;
+      await sleep(800);
+    }
+  }
+}
+
+async function loadOrFetchCsv() {
+  if (fs.existsSync(CSV_PATH)) { log("csv (cached):", CSV_PATH); return fs.readFileSync(CSV_PATH, "utf8"); }
+  if (NO_FETCH) throw new Error("csv not found and --no-fetch set: " + CSV_PATH);
+  log("fetching pseudocatalogue.csv from upstream…");
+  const txt = await httpGet(RAW_BASE + "/pseudocatalogue.csv");
+  fs.mkdirSync(path.dirname(CSV_PATH), { recursive: true });
+  fs.writeFileSync(CSV_PATH, txt);
+  log("csv saved:", CSV_PATH, "(" + Math.round(txt.length / 1024) + " KB)");
+  return txt;
+}
+
+async function fetchTxt(byPath) {
+  // byPath like "/p46/m16" → txt/p46/m16.txt
+  const rel = String(byPath || "").replace(/^\//, "");
+  const cacheFile = path.join(TXT_DIR, rel + ".txt");
+  if (fs.existsSync(cacheFile)) return fs.readFileSync(cacheFile, "utf8");
+  if (NO_FETCH) throw new Error("txt not cached and --no-fetch: " + byPath);
+  const txt = await httpGet(RAW_BASE + "/txt/" + rel + ".txt");
+  fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+  fs.writeFileSync(cacheFile, txt);
+  return txt;
+}
+
+// ── translation providers (DB-free dispatch + disk cache) ───────────────────
+let _genaiModel = null;
+function geminiModel() {
+  if (!GEMINI_KEY) throw new Error("--provider gemini needs GEMINI_API_KEY env (or --gemini-key)");
+  if (!_genaiModel) {
+    const { GoogleGenerativeAI } = require("@google/generative-ai");
+    _genaiModel = new GoogleGenerativeAI(GEMINI_KEY).getGenerativeModel({ model: "gemini-flash-latest" });
+  }
+  return _genaiModel;
+}
+// One Gemini call per work: numbered Hebrew lines → numbered Russian (quota-friendly).
+async function geminiTranslateBatch(segs) {
+  const model = geminiModel();
+  const numbered = segs.map((s) => s.index + "\t" + s.he).join("\n");
+  const prompt =
+    "Translate each numbered Hebrew line into natural literary Russian. Keep the SAME line numbers. " +
+    "Return ONLY a JSON array of objects {\"i\": <number>, \"ru\": \"<russian>\"}, one per input line, no markdown.\n\n" + numbered;
+  const result = await model.generateContent(prompt);
+  const raw = (await result.response).text().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+  let arr; try { arr = JSON.parse(raw); } catch (_) { throw new Error("gemini returned non-JSON"); }
+  const m = {}; for (const x of (Array.isArray(arr) ? arr : [])) if (x && x.i != null) m[Number(x.i)] = String(x.ru || "");
+  return { results: segs.map((s) => ({ index: s.index, ru: m[s.index] || "" })) };
+}
+async function providerTranslate(segs) {
+  if (PROVIDER === "gcp") {
+    if (!GCP_KEY) throw new Error("--provider gcp needs --gcp-key (or GCP_TRANSLATE_API_KEY env)");
+    return gcp.translateBatchWithApiKey(segs, "ru", GCP_KEY);
+  }
+  if (PROVIDER === "gemini") return geminiTranslateBatch(segs);
+  return googleFree.translateBatch(segs, "ru");
+}
+
+// Translate a list of plain segments with per-segment disk cache. Returns map index→ru.
+async function translateCached(segs, plain) {
+  const out = {};
+  const todo = [];
+  segs.forEach((s, i) => {
+    const key = thash(PROVIDER + "|ru|" + plain[i]);
+    if (Object.prototype.hasOwnProperty.call(transCache, key)) out[s.index] = transCache[key];
+    else todo.push({ index: s.index, he: plain[i], _key: key });
+  });
+  if (todo.length) {
+    const resp = await providerTranslate(todo.map((t) => ({ index: t.index, he: t.he })));
+    const byIdx = {}; for (const r of (resp.results || [])) byIdx[r.index] = r.ru || "";
+    for (const t of todo) { const ru = byIdx[t.index] || ""; out[t.index] = ru; transCache[t._key] = ru; }
+    saveCaches();
+  }
+  return out;
+}
+
+// Niqqud for plain segments (Dicta via gateway), per-segment disk cache. Returns map plain→niqqud.
+async function niqqudCached(plainList) {
+  const uniq = [...new Set(plainList.filter(Boolean))];
+  const todo = uniq.filter((p) => !Object.prototype.hasOwnProperty.call(niqCache, thash(p)));
+  if (todo.length) {
+    const resp = await niqqudGateway.fetchNiqqud(todo);
+    (resp.results || []).forEach((nq, i) => { niqCache[thash(todo[i])] = nq || ""; });
+    if (resp.degraded) log("niqqud DEGRADED (" + resp.reason + ") — plain rows will lack niqqud");
+    saveCaches();
+  }
+  const m = {}; for (const p of uniq) m[p] = niqCache[thash(p)] || "";
+  return m;
+}
+
+// One work → translateTable-shaped rows {he, he_niqqud, translit, translit_ru, ru}
+// (DB-free). buildBundleRows applies the source-first niqqud merge afterwards.
+async function translateWork(body) {
+  const segs = segment(body); // [{index, he}] — paragraph→line→sentence (poetry & prose)
+  if (!segs.length) return [];
+  const plain = segs.map((s) => by.stripNiqqud(s.he));
+  const ruMap = await translateCached(segs, plain);
+  const needPlain = segs.filter((s) => !by.hasNiqqud(s.he)).map((s) => by.stripNiqqud(s.he));
+  const niqMap = await niqqudCached(needPlain);
+  return segs.map((s, i) => {
+    const srcNiq = by.hasNiqqud(s.he);
+    let he_niqqud = "", translit = "", translit_ru = "";
+    if (!srcNiq) {
+      const nq = niqMap[plain[i]] || "";
+      he_niqqud = nq;
+      if (nq) { try { translit = transliterateWithProfile(nq, "sbl") || ""; } catch (_) {} try { translit_ru = transliterateWithProfile(nq, "ru-phonetic") || ""; } catch (_) {} }
+    }
+    return { he: s.he, he_niqqud, translit, translit_ru, ru: ruMap[s.index] || "" };
+  });
+}
+
+// ── selection ───────────────────────────────────────────────────────────────
+function selectWorks(rows) {
+  // originals only (translated works need a curated orig_language — out of auto pilot)
+  const originals = rows.filter((r) => !by.cleanField(r.translators) && by.cleanField(r.path) && by.cleanField(r.ID));
+  // prefer recognizable canon (known-author era map) for a better pilot, then the rest
+  const known = originals.filter((r) => by.eraForAuthor(r.authors));
+  const rest = originals.filter((r) => !by.eraForAuthor(r.authors));
+  return [...known, ...rest];
+}
+
+(async () => {
+  fs.mkdirSync(BY_DIR, { recursive: true });
+  const csvText = await loadOrFetchCsv();
+  const parsed = by.parseCsv(csvText);
+  log("csv rows:", parsed.rows.length, "| provider:", PROVIDER, "| limit:", LIMIT, "(acc " + ACCESSIBLE_MAX + " / lit " + LITERARY_MAX + ")");
+  if (!AUTO) { log("note: only --auto selection is implemented in this pass; pass --auto"); }
+
+  const candidates = selectWorks(parsed.rows);
+  log("candidates (originals):", candidates.length, "| known-canon first:", candidates.filter((r) => by.eraForAuthor(r.authors)).length);
+
+  const texts = [];
+  const shelfItems = { accessible: [], literary: [] };
+  const reportRows = [];
+  let accN = 0, litN = 0, scanned = 0;
+
+  for (const r of candidates) {
+    if (accN >= ACCESSIBLE_MAX && litN >= LITERARY_MAX) break;
+    if (texts.length >= LIMIT) break;
+    scanned++;
+    let raw; try { raw = await fetchTxt(r.path); } catch (e) { continue; }
+    const { body } = by.stripFooter(raw);
+    if (!body) continue;
+    const plainLen = by.stripNiqqud(body).length;
+    if (plainLen < MIN_CHARS || plainLen > MAX_CHARS) continue;
+    const lineCount = body.split("\n").filter((l) => l.trim()).length;
+    const cls = by.classifyWork({ genre: r.genre, author: r.authors, shape: { lineCount, charCount: plainLen } });
+    if (cls.track === "accessible" && accN >= ACCESSIBLE_MAX) continue;
+    if (cls.track === "literary" && litN >= LITERARY_MAX) continue;
+
+    log("→ [" + r.ID + "] " + (by.cleanField(r.title) || "?") + " — " + (by.cleanField(r.authors) || "?") + " (" + cls.track + "/" + cls.register + ", " + lineCount + " lines, " + plainLen + " ch)");
+    const tRows = await translateWork(body);
+    const rows = by.buildBundleRows(tRows, { makeRowId: (i) => "r" + i });
+    const content_hash = corpusMeta.computeContentHash(rows.map((x) => x.hebrew_plain));
+    let corpus;
+    try { corpus = by.corpusFromRow(r, { ...cls, content_hash, audio_status: "none" }); }
+    catch (e) { log("  skip [" + r.ID + "]: " + e.message); continue; }
+    const textKey = computeTextKey(body);
+    const title = by.cleanField(r.title) || ("Без названия #" + r.ID);
+    texts.push(by.buildTextItem({ textId: "by-" + r.ID, textKey, title, corpus, rows, sourceText: body, createdAt: STAMP }));
+    shelfItems[corpus.track].push(textKey);
+    const vocalizedRatio = rows.length ? rows.filter((x) => by.hasNiqqud(x.hebrew_niqqud)).length / rows.length : 0;
+    reportRows.push({ id: r.ID, title, author: by.cleanField(r.authors), track: corpus.track, register: corpus.register, era: corpus.era, genre: corpus.genre, orig_language: corpus.orig_language, rows: rows.length, chars: plainLen, vocalized_ratio: Math.round(vocalizedRatio * 100) / 100, review_status: corpus.review_status, audio_status: corpus.audio_status, content_hash: !!corpus.content_hash, ru_filled: rows.filter((x) => x.russian).length });
+    if (corpus.track === "accessible") accN++; else litN++;
+  }
+
+  log("selected:", texts.length, "(accessible " + accN + " / literary " + litN + ") from", scanned, "scanned");
+  if (!texts.length) { console.error("[ingest] no works selected — widen --limit/--max-chars or check fetch"); process.exit(4); }
+
+  const shelves = [];
+  if (shelfItems.accessible.length) shelves.push(shelfMeta.buildShelf({ slug: "by-accessible", title: "Доступная полка", track: "accessible", editorial_intro: "Короткие стихи и простые тексты — мягкий вход в чтение на иврите. (Автоподборка пилота; кураторский маршрут — на этапе bulk.)", items: shelfItems.accessible, order: 0 }));
+  if (shelfItems.literary.length) shelves.push(shelfMeta.buildShelf({ slug: "by-literary", title: "Литературная полка", track: "literary", editorial_intro: "Канонические тексты для уверенного чтения с морфо-опорой. (Автоподборка пилота; кураторский маршрут — на этапе bulk.)", items: shelfItems.literary, order: 1 }));
+
+  const lib = by.buildLibraryJson({ texts, shelves });
+
+  // ── R1 honesty gate ──────────────────────────────────────────────────────
+  const gate = by.validateLibrary(lib);
+  log("R1 gate:", JSON.stringify(gate.classes), "| errors:", gate.errors.length, "| warnings:", gate.warnings.length);
+  for (const w of gate.warnings) log("  warn [" + (w.text_id || w.slug || "?") + "]: " + w.warning);
+  const report = { generated_at: STAMP, provider: PROVIDER, scanned, selected: texts.length, accessible: accN, literary: litN, classes: gate.classes, errors: gate.errors, warnings: gate.warnings, works: reportRows };
+  const reportPath = path.join(TMP, "benyehuda-ingest-report.json");
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+  log("QA report →", reportPath);
+  if (!gate.ok) {
+    console.error("[ingest] R1 honesty gate FAILED:");
+    for (const e of gate.errors) console.error("  " + (e.text_id || e.slug) + ": " + (e.errors || []).join("; "));
+    process.exit(3);
+  }
+
+  if (DRY) { log("dry-run — no ZIP written"); return; }
+
+  const zip = new JSZip();
+  const rowCount = texts.reduce((a, t) => a + t.rows.length, 0);
+  zip.file("manifest.json", JSON.stringify(by.buildManifest({ textCount: texts.length, rowCount, noteCount: 0, createdAt: STAMP }), null, 2));
+  zip.file("library/library.json", JSON.stringify(lib));
+  const buf = await zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 6 } });
+  fs.mkdirSync(path.dirname(OUT), { recursive: true });
+  fs.writeFileSync(OUT, buf);
+  log("bundle →", OUT, "(" + Math.round(buf.length / 1024) + " KB, " + texts.length + " texts, " + rowCount + " rows, " + shelves.length + " shelves)");
+  log("next: import into the OPFS Reading Room and open @380px RTL (both tracks).");
+})().catch((e) => { console.error("[ingest] fatal:", e); process.exit(1); });

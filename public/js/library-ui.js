@@ -73,6 +73,33 @@ function renderWorkCard(textKey) {
   const titleEl = el('span', { class: 'work-card-title', text: title });
   if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
   card.appendChild(titleEl);
+  // BRR-P0-005 — honest provenance on the discovery surface: author + the
+  // review_status / audio_status labels straight off the corpus metadata. No
+  // fabrication — what the bundle declares is what we show (the clickable source
+  // link lives in the reader to avoid an invalid <a> inside this card link).
+  const corpus = hit.corpus;
+  if (corpus) {
+    if (corpus.author) {
+      const a = el('span', { class: 'work-card-author', text: corpus.author });
+      if (HEBREW_RE.test(corpus.author)) a.setAttribute('dir', 'rtl');
+      card.appendChild(a);
+    }
+    // Known enums (corpusMeta) get localized labels + styled chips; an unknown
+    // value (only from an un-gated peer bundle) shows the raw claimed value
+    // verbatim — honest, and avoids rendering a raw i18n key.
+    const RS_KNOWN = { machine: 1, machine_assisted: 1, human_proofread: 1 };
+    const AU_KNOWN = { none: 1, tts: 1, human: 1 };
+    const meta = el('div', { class: 'work-card-meta' });
+    const rs = String(corpus.review_status || 'machine');
+    const rsOpts = { class: 'prov-badge rs-' + rs, text: RS_KNOWN[rs] ? tt('room.prov.rs.' + rs) : rs };
+    if (RS_KNOWN[rs]) rsOpts.i18n = 'room.prov.rs.' + rs;
+    meta.appendChild(el('span', rsOpts));
+    const au = String(corpus.audio_status || 'none');
+    const auOpts = { class: 'prov-badge audio-' + au, text: AU_KNOWN[au] ? tt('room.prov.audio.' + au) : au };
+    if (AU_KNOWN[au]) auOpts.i18n = 'room.prov.audio.' + au;
+    meta.appendChild(el('span', auOpts));
+    card.appendChild(meta);
+  }
   card.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.open', text: tt('room.work.open') }));
   return card;
 }
@@ -127,11 +154,18 @@ async function loadData() {
   for (const sh of shelves) {
     if (shelvesByTrack[sh.track]) shelvesByTrack[sh.track].push(sh);
   }
-  // Resolve members (text_key -> {id, title}) via the shared query escape hatch.
+  // Resolve members (text_key -> {id, title, corpus}) via the shared query escape
+  // hatch. corpus rides source_meta_json.corpus (the canonical OPFS home, per
+  // db/premium/corpusMeta.js) — parsed here for the P0-005 provenance badges.
   textByKey = new Map();
   try {
-    const rows = await localDb.dbQuery('SELECT id, text_key, title FROM texts');
-    for (const r of (rows || [])) if (r && r.text_key) textByKey.set(String(r.text_key), { id: r.id, title: r.title });
+    const rows = await localDb.dbQuery('SELECT id, text_key, title, source_meta_json FROM texts');
+    for (const r of (rows || [])) {
+      if (!r || !r.text_key) continue;
+      let corpus = null;
+      try { const sm = r.source_meta_json ? JSON.parse(r.source_meta_json) : null; if (sm && sm.corpus) corpus = sm.corpus; } catch (_) {}
+      textByKey.set(String(r.text_key), { id: r.id, title: r.title, corpus });
+    }
   } catch (e) { try { console.warn('[room] text resolution failed:', e); } catch (_) {} }
 }
 

@@ -133,13 +133,17 @@ node scripts/premium/room-shot.js # @380px RTL/LTR скриншоты → .tmp/r
 - ✅ **room-mode в index.html** РЕАЛИЗОВАН (BRR-P0-002a, см. §3): `?room=1` → `body.room-mode` прячет весь Studio-хром + подавляет first-run-цепочку (без взвода флагов). Остаётся мелочь: ✎-иконка в шапке таблицы (полировка).
 - **HE i18n `room.*`** — черновик Claude, ждёт native/ulpan-review.
 - **Тема не синхронизирована** с index.html (Зал — авто-тема, не читает localStorage-toggle index.html).
-- Полировка: fade-градиент на краю карусели (scroll-affordance); badges провенанса/сложности на карточках — это P0-005/P1-007.
+- Полировка: fade-градиент на краю карусели (scroll-affordance); badges **провенанса — ✅ P0-005 РЕАЛИЗОВАНЫ** (см. ниже); сложности — P1-007.
 - Reader deep-link E2E с РЕАЛЬНЫМ открытием текста (с предложениями) не прогонялся в смоуке (фикстура без sentences); кодировка/маршрут проверены.
 
 **P0-001/P0-003 (модели):**
 - `author`/`translator` НЕ нормализованы в entity-таблицы (R3 defer; `author_slug` кладёт ID-фундамент).
 - `difficulty` — не вычисляется (Phase 2 / P1-007).
-- **`pseudocatalogue.csv` header не верифицирован** против живого файла — обязательная пред-работа P0-004 (tripwire в mapping-доке).
+- ✅ **`pseudocatalogue.csv` header ВЕРИФИЦИРОВАН 2026-06-08** (первый шаг P0-004): реальный
+  `ID,path,title,authors,translators,author_uris,translator_uris,original_language,genre,source_edition`.
+  Дельты сверены в mapping-доке (author→authors, нет sort_author→author_slug=null, новые
+  author_uris/translator_uris→`author_uri`/`translator_uri` аддитивно, source_edition→attribution,
+  genre чистится от `Translation missing: he.`).
 - corpus same-POS / прочие — вне scope P0-001.
 
 **Стратегические:** отклонение по SW (см. §5) — если инвариант «отдельный лёгкий precache» критичен, нужен отдельный тикет на sw-room.js + (вероятно) embedded-ридер.
@@ -151,7 +155,7 @@ node scripts/premium/room-shot.js # @380px RTL/LTR скриншоты → .tmp/r
 1. **P0-002: визуальный ОК** макета (или правки) → разблокирует SW-bump+commit+push (`v3.10.8-room`).
 2. **Reader-стратегия:** принять deep-link-reuse (+ отдельный тикет на room-mode index.html) ИЛИ требовать embedded-ридер (бóльший рефактор).
 3. **SW-стратегия:** принять reuse `sw.js` ИЛИ требовать отдельный `sw-room.js` (инвариант стратегии).
-4. **Следующий тикет:** P0-004 (ингестия pseudocatalogue.csv → бандлы, наполняет corpus+shelves) или P0-005 (провенанс/честные метки). Оба зависят от уже готовых схем.
+4. ✅ **P0-004 + P0-005 РЕАЛИЗОВАНЫ-как-код 2026-06-08** (ждут вашего ревью пилота → bulk-решения; см. ниже §9).
 
 ---
 
@@ -166,3 +170,38 @@ node scripts/premium/room-shot.js # @380px RTL/LTR скриншоты → .tmp/r
 - [ ] Прод: `v3.10.6` live; после P0-003 деплоя — `v3.10.7`.
 - [ ] Отклонения §5 — приемлемы или нужен пересмотр?
 - [ ] Дать задачи на доработку по §6/§7.
+
+---
+
+## 9. P0-004 + P0-005 — as-built (2026-06-08, реализовано-как-код, НЕ закоммичено)
+
+**P0-004 — конвейер ингестии (DB-free producer, переиспользует движок):**
+- Новое: `scripts/premium/lib/benyehuda.js` (чистые хелперы: RFC-4180 CSV-парсер, чистка genre,
+  strip BY-футера, source-first niqqud-merge, corpus-маппер, авто-классификатор, сборка bundle),
+  `scripts/premium/ingest-benyehuda.js` (оркестратор, CLI), `scripts/premium/benyehuda-ingest-smoke.js`
+  (+ гейт `smoke:benyehuda-ingest` 53/53, офлайн).
+- Переиспользует: `segment` (segmenter), `googleFree`/`gcp` провайдеры + опц. **Gemini** (`gemini-flash-latest`,
+  ключ через `GEMINI_API_KEY` env — НЕ в коде), `niqqudGateway` (sidecar→Dicta-cloud), `transliterateWithProfile`,
+  `corpusMeta`/`shelfMeta`, `computeTextKey` (инлайн, без SQLite). **DB-free**: трансляция/никуд кэшируются на диск.
+- Честность (R1): source-first никуд (аутентичная огласовка не перетирается машинной); футер вырезан из тела+хэша;
+  `review_status='machine'`, `audio_status='none'` (текст-онли); переводы без orig_language → билд падает.
+- Аддитивная правка контракта: `corpusMeta.js` +`author_uri`/`translator_uri` (Wikidata QID, nullable,
+  schema=1, warning-only валидация). `smoke:corpus` 54→59.
+- **Пилот прогнан:** 4 произведения (Гордон + 3 Бялика), CSV 26 455 строк, R1-гейт 4 PASS/0 FAIL/0 warnings,
+  bundle 28 КБ. Никуд (sidecar) аутентичный + SBL-транслит. **Находка:** google-free плохо переводит архаику
+  (צִפֹּרָה→«орнитолог»), **Gemini заметно лучше** («птичка милая») — данные для bulk-решения владельца.
+
+**P0-005 — провенанс/честные метки (UI):**
+- Карточки Зала (`library.html` + `library-ui.js`): автор + бейджи `review_status`/`audio_status` из corpus.
+- Ридер (room-mode, `index.html`): бар провенанса = бейджи + **ссылка-источник** `benyehuda.org/read/<ID>`
+  (требование лицензии public-domain) + attribution с изданием. Self-contained (hash→OPFS, не трогает рендер);
+  фикс: хэш захватывается до `v3DeeplinkBoot` (`window.__roomInitialHash`).
+- i18n `room.prov.*` ru/en/he (HE черновик → native-review). **SW bump `v3.10.9-room-prov`.**
+- Визуально проверено @380px RTL (RU+HE): `scripts/premium/room-prov-shot.js` (карточки+ридер, бейджи+ссылка).
+
+**Зелёный бейзлайн (все):** smoke:corpus 59 · smoke:benyehuda-ingest 53 · smoke:shelves 30 ·
+smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes-roundtrip 25 · test:api-smoke OK.
+
+**Ждёт владельца (до bulk-прогона 50–150):** провайдер (google-free vs Gemini-качество + бюджет/квота) ·
+реальная вычитка (→ review_status `human_proofread`+reviewer, иначе `machine`) · полная курация
+(era/register/themes/editorial_intro/orig_language переводов) vs авто-подбор · аудио-2й-проход (Mode B).

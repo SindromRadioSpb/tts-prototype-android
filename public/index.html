@@ -9630,6 +9630,21 @@ body.room-mode #roomReturnBar .room-return-link:focus-visible {
   outline: 2px solid var(--theme-accent, #2563eb); outline-offset: 2px; border-radius: 6px;
 }
 body.room-mode #roomReturnBar .room-return-title { color: var(--theme-text-secondary, #475569); font-size: 14px; font-weight: 600; }
+/* BRR-P0-005 — reader provenance line (the source-attribution link the work-card
+   can't hold, + honest review/audio labels). Self-contained chips read on any theme. */
+body.room-mode #roomReturnBar { flex-wrap: wrap; }
+body.room-mode #roomProvenance { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; margin-top: 6px; }
+body.room-mode #roomProvenance:empty { display: none; }
+body.room-mode .prov-badge { font-size: 11px; font-weight: 700; line-height: 1; padding: 3px 7px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
+body.room-mode .prov-badge.rs-machine { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+body.room-mode .prov-badge.rs-machine_assisted { background: #e0e7ff; color: #3730a3; border-color: #c7d2fe; }
+body.room-mode .prov-badge.rs-human_proofread { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+body.room-mode .prov-badge.audio-none { background: var(--theme-bg-muted, #eef2f7); color: var(--theme-text-faint, #94a3b8); border-color: var(--theme-border-soft, #e2e8f0); }
+body.room-mode .prov-badge.audio-tts { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+body.room-mode .prov-badge.audio-human { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+body.room-mode .room-prov-src { font-size: 12px; font-weight: 600; color: var(--theme-accent, #2563eb); text-decoration: none; }
+body.room-mode .room-prov-src:hover { text-decoration: underline; }
+body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-secondary, #64748b); width: 100%; line-height: 1.35; }
 @media (max-width: 600px) { body.room-mode { padding-top: 0 !important; } }
 
 </style>
@@ -9644,6 +9659,10 @@ body.room-mode #roomReturnBar .room-return-title { color: var(--theme-text-secon
     var saved, density;
     try { saved = localStorage.getItem(V3_THEME_KEY); } catch (_) {}
     try { density = localStorage.getItem(V3_DENSITY_KEY); } catch (_) {}
+    // BRR-P0-005 — capture the deep-link hash NOW (script-parse time), before
+    // v3DeeplinkBoot replaceState's it away, so the room-mode provenance hook can
+    // still resolve the open work's id on first load.
+    try { window.__roomInitialHash = location.hash || ""; } catch (_) {}
     // Defer body class application until <body> exists. Wait for it
     // synchronously by polling — the body element is parsed shortly
     // after the head and DOMContentLoaded handlers below will kick in
@@ -9800,6 +9819,8 @@ body.room-mode #roomReturnBar .room-return-title { color: var(--theme-text-secon
 <div id="roomReturnBar">
   <a class="room-return-link" href="/library.html" data-i18n="room.back">← В библиотеку</a>
   <span class="room-return-title" data-i18n="room.readingTitle">Чтение</span>
+  <!-- BRR-P0-005 — honest provenance for the open work (populated by v3RoomShowProvenance). -->
+  <span id="roomProvenance"></span>
 </div>
 
 <!-- V3 IDE Header (shown in IDE mode) -->
@@ -17051,6 +17072,71 @@ function v3DeeplinkBase64urlDecode(str) {
   } catch (_) {
     return null;
   }
+}
+
+// BRR-P0-005 — room-mode reader provenance. Self-contained: decode the open
+// work's id from the hash, read its corpus from OPFS (source_meta.corpus home),
+// and render the honest review/audio labels + the public-domain SOURCE LINK
+// (the license-attribution the work-card can't hold as a nested <a>) into the
+// room return bar. Reads only — never touches the reader's render path. No-op
+// outside room-mode or for texts without corpus metadata.
+async function v3RoomShowProvenance() {
+  try {
+    if (!document.body.classList.contains("room-mode")) return;
+    const host = document.getElementById("roomProvenance");
+    if (!host) return;
+    // location.hash is cleared by v3DeeplinkBoot on first load → fall back to the
+    // hash captured pre-boot (window.__roomInitialHash); on later in-room
+    // navigations location.hash is current.
+    const h = String(location.hash || window.__roomInitialHash || "");
+    const i = h.indexOf("/t/");
+    if (i < 0) { host.innerHTML = ""; return; }
+    const payload = v3DeeplinkBase64urlDecode(h.slice(i + 3));
+    let id = null;
+    try { const o = JSON.parse(payload); id = o && o.id; } catch (_) {}
+    if (!id) return;
+    const ldb = await ensureLocalDB();
+    const rows = await ldb.dbQuery("SELECT source_meta_json FROM texts WHERE id = ? LIMIT 1", [String(id)]);
+    const sm = rows && rows[0] && rows[0].source_meta_json ? JSON.parse(rows[0].source_meta_json) : null;
+    const c = sm && sm.corpus ? sm.corpus : null;
+    if (!c) { host.innerHTML = ""; return; }
+    const T = (k, f) => { try { return (window.t && window.t(k)) || f || k; } catch (_) { return f || k; } };
+    const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[m]));
+    // Known enums (corpusMeta) — a known value gets its localized label + styled chip;
+    // an unknown one (only possible from an un-gated peer bundle) shows the raw claimed
+    // value verbatim (honest, not a lie) without a bogus i18n key.
+    const RS_KNOWN = { machine: 1, machine_assisted: 1, human_proofread: 1 };
+    const AU_KNOWN = { none: 1, tts: 1, human: 1 };
+    const rs = String(c.review_status || "machine");
+    const au = String(c.audio_status || "none");
+    const rsLabel = RS_KNOWN[rs] ? T("room.prov.rs." + rs) : rs;
+    const auLabel = AU_KNOWN[au] ? T("room.prov.audio." + au) : au;
+    const parts = [
+      '<span class="prov-badge rs-' + esc(rs) + '"' + (RS_KNOWN[rs] ? ' data-i18n="room.prov.rs.' + esc(rs) + '"' : '') + '>' + esc(rsLabel) + '</span>',
+      '<span class="prov-badge audio-' + esc(au) + '"' + (AU_KNOWN[au] ? ' data-i18n="room.prov.audio.' + esc(au) + '"' : '') + '>' + esc(auLabel) + '</span>',
+    ];
+    // Scheme-allowlist the source URL — a peer/hand-merged bundle could carry a
+    // javascript:/data: URL that importBundle does not sanitize (R1/security).
+    const rawUrl = c.provenance && c.provenance.url;
+    const url = /^https?:\/\//i.test(String(rawUrl || "")) ? rawUrl : null;
+    if (url) parts.push('<a class="room-prov-src" href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" data-i18n="room.prov.open">' + esc(T("room.prov.open", "Источник ↗")) + '</a>');
+    if (c.attribution) parts.push('<span class="room-prov-attr" dir="auto">' + esc(c.attribution) + '</span>');
+    host.innerHTML = parts.join("");
+  } catch (_) { /* presentational only — never break the reader */ }
+}
+if (typeof window !== "undefined") {
+  window.addEventListener("hashchange", () => { try { v3RoomShowProvenance(); } catch (_) {} });
+  // Kick on DOMContentLoaded (NOT at parse time — body.room-mode is set by the
+  // head boot IIFE on DOMContentLoaded, after this script parses). Retry briefly:
+  // the text + OPFS may not be ready instantly. Stops once the bar populates.
+  var _roomProvKick = function () {
+    try {
+      if (!(document.body && document.body.classList.contains("room-mode"))) return;
+      (async () => { for (let n = 0; n < 12; n++) { await v3RoomShowProvenance(); const el = document.getElementById("roomProvenance"); if (el && el.children.length) break; await new Promise((r) => setTimeout(r, 400)); } })();
+    } catch (_) {}
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", _roomProvKick, { once: true });
+  else _roomProvKick();
 }
 
 /**

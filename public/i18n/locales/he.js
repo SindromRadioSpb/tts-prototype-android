@@ -1892,6 +1892,22 @@ window.I18N_LOCALES.he = {
       dbBusy: "הספרייה פתוחה בכרטיסייה אחרת — סגרו אותה ורעננו את העמוד.",
       error: "לא ניתן לטעון את הספרייה.",
     },
+    prov: {
+      rs: {
+        machine: "תרגום מכונה",
+        machine_assisted: "בסיוע מכונה",
+        human_proofread: "הוגה",
+      },
+      audio: {
+        none: "ללא הקראה",
+        tts: "הקראה ממוחשבת",
+        human: "הקלטת קול",
+      },
+      sourceLabel: "מקור",
+      license: "נחלת הכלל",
+      open: "מקור ↗",
+      note: "התרגום והניקוד ממוחשבים, לא הוגהו.",
+    },
   },
   teacher: {
     pageTitle: "לוח המורה",
