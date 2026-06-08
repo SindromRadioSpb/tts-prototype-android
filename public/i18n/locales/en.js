@@ -1856,6 +1856,33 @@ window.I18N_LOCALES.en = {
       },
     },
   },
+  room: {
+    pageTitle: "Reading Room",
+    back: "← Library",
+    readingTitle: "Reading",
+    header: {
+      title: "📖 Reading Room",
+      subtitle: "A bilingual library — the canon with morphology on tap",
+      lang: "Language",
+    },
+    tabs: {
+      accessible: "Accessible",
+      literary: "Literary",
+    },
+    shelf: {
+      empty: "No shelves yet. Texts are coming soon.",
+      emptyTrack: "No shelves on this track yet.",
+    },
+    work: {
+      open: "Read",
+      unavailable: "Text unavailable",
+    },
+    state: {
+      loading: "Loading…",
+      dbBusy: "The library is open in another tab — close it and reload.",
+      error: "Could not load the library.",
+    },
+  },
   teacher: {
     pageTitle: "Teacher Dashboard",
     login: {

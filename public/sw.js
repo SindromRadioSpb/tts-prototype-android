@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.7-shelves";
+const CACHE_VERSION = "v3.10.8-room";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -68,6 +68,10 @@ const PRECACHE_URLS = [
   "/",
   "/index.html",
   "/manifest.json",
+  // BRR-P0-002/002a — Reading Room surface (clean sub-brand). Shares this SW
+  // (scope "/") for v1; a separate lightweight sw-room.js is deferred to P0-002b.
+  "/library.html",
+  "/js/library-ui.js",
   // Knowledge Map v3.8 (root-centric, always on)
   "/js/knowledge-map-data.js",
   "/js/knowledge-map-view.js",

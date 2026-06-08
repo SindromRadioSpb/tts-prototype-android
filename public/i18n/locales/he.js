@@ -1866,6 +1866,33 @@ window.I18N_LOCALES.he = {
       },
     },
   },
+  room: {
+    pageTitle: "חדר קריאה",
+    back: "← לספרייה",
+    readingTitle: "קריאה",
+    header: {
+      title: "📖 חדר קריאה",
+      subtitle: "ספרייה דו-לשונית — הקאנון עם מורפולוגיה בלחיצה",
+      lang: "שפה",
+    },
+    tabs: {
+      accessible: "נגיש",
+      literary: "ספרותי",
+    },
+    shelf: {
+      empty: "אין עדיין מדפים. טקסטים יתווספו בקרוב.",
+      emptyTrack: "אין עדיין מדפים במסלול זה.",
+    },
+    work: {
+      open: "קריאה",
+      unavailable: "הטקסט אינו זמין",
+    },
+    state: {
+      loading: "טוען…",
+      dbBusy: "הספרייה פתוחה בכרטיסייה אחרת — סגרו אותה ורעננו את העמוד.",
+      error: "לא ניתן לטעון את הספרייה.",
+    },
+  },
   teacher: {
     pageTitle: "לוח המורה",
     login: {

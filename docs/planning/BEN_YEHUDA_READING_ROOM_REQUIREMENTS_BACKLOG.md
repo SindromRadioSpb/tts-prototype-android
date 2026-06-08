@@ -27,7 +27,12 @@
 - **DoD:** smoke round-trip; маппинг-таблица csv→schema; миграция аддитивна (обратная совместимость v2).
 - **Notes:** schema-first — делать ПЕРВЫМ, иначе болезненная миграция (R6 red flag).
 
-### BRR-P0-002 — Чистая страница Читального зала (`library.html`)
+### BRR-P0-002 — Чистая страница Читального зала (`library.html`) ✅ SHIPPED 2026-06-08
+- **Status:** ✅ Реализовано + закоммичено 2026-06-08 (SW `v3.10.8-room`). Макет **Variant A** (табы трека → стопка полок → карусели карточек). НОВЫЕ `public/library.html` + `public/js/library-ui.js` (Layout A, honest empty-states, dangling=disabled, карточка=семантич. `<a href>`) + namespace `room.*` (ru/en/he, HE черновик). Reader = **deep-link на index.html** (`?room=1#/t/<base64>`, кодировка проверена vs `v3DeeplinkBase64urlEncode`), НЕ embedded. Гейт `smoke:room` **14/14**; @380px RTL+LTR проверено. **Отклонения** (`IMPLEMENTATION_STATUS.md` §5): SW переиспользуется (отдельный sw-room.js → **P0-002b** defer); тема не синхронизирована с index.html (follow-up).
+
+#### BRR-P0-002a — Room-mode (чистое чтение из Зала) ✅ SHIPPED 2026-06-08
+- **Status:** ✅ Путь A. `?room=1` → `body.room-mode` (pre-paint, без FOUC, без sessionStorage — контра-кейс без утечки). Презентационный CSS-слой прячет весь персистентный Studio-хром (.classic-shell-head/.classic-workflow-column/#classicStatusStrip/#classicResultPanel/export/edit/.row-note-btn/IDE), оставляет таблицу+▶аудио+тоггл-колонки+on-tap+back-bar «← В библиотеку». **First-run-цепочка подавлена в room-mode (решение-а):** Phase-6/онбординг(×2, key onboardingSeen_v1)/BYOK-hint/BYOK-онбординг — ранний return при room-mode, **флаги НЕ взводятся** (полное приложение позже всё ещё промптит → нет потери данных). Гейт `smoke:room-mode` **23/23** (Studio скрыт · чтение+аудио+aids видимы · back-link · first-run НЕ виден (getClientRects fixed-aware) + seen-флаги unset · контра без утечки).
+- **Follow-ups:** **P1-006** перенести `#translitProfileSelect` из `#classicTranslationCard` в ридинг-аиды (#tableSettings) → переключатель схемы в Зале чисто. **P1-009** заменить скрытую 📝 лёгким one-tap-захватом. **P0-002b** (DEFER/P2): embedded-reader в library.html + отдельный лёгкий `sw-room.js` (сейчас deep-link-reuse → ридер тянет тяжёлый index.html-shell — осознанный v1-trade-off). Мелочь: скрыть ✎-иконку в шапке таблицы.
 - **Source:** LingQ / Beelinguapp / StoryHebrew (отдельная чистая читалка = продукт)
 - **Observed:** конкуренты дают сфокусированную читалку без «нагромождённого интерфейса».
 - **Current:** `public/library.html` не существует; всё в `index.html` (40K строк).

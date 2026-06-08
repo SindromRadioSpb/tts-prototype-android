@@ -9587,6 +9587,51 @@ body:not(.theme-light) .v3-heatmap-cell {
 .toast-report-btn:hover { background: rgba(255,255,255,0.3); }
 .toast { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
 
+/* ── BRR-P0-002a · Room-mode: чистое чтение при входе из Читального зала ──────
+   Активируется body.room-mode (ставится pre-paint из ?room=1). Презентационный
+   слой: прячем ТОЛЬКО персистентный Studio-хром; читалку + ▶-аудио + ридинг-аиды
+   (видимость колонок niqqud/translit/ru) + on-tap морфологию ОСТАВЛЯЕМ. !important
+   обязателен: IDE-панели несут inline display:none и блок стоит поздно в каскаде
+   (см. CSS-ловушки CLAUDE.md). НИКАКИХ изменений данных/морфологии/честности (R1). */
+body.room-mode .classic-shell-head { display: none !important; }              /* верхний nav/utility/title/mode-toggle */
+body.room-mode .classic-workflow-column { display: none !important; }         /* композер + TTS-синтез + перевод/транслит-конфиг (translit-профиль → P1-006) */
+body.room-mode #classicStatusStrip { display: none !important; }              /* биллинг/квоты */
+body.room-mode #classicResultPanel { display: none !important; }              /* «Результат»: save/download/trust-chips/provenance */
+body.room-mode #classicResultWorkspace > summary { display: none !important; }/* аккордеон-заголовок «Таблица и действия» */
+body.room-mode #classicExportHint,
+body.room-mode .classic-export-actions,
+body.room-mode .export-actions { display: none !important; }                  /* экспорт-хинт + Audio/Anki */
+body.room-mode #tableEditToolbar { display: none !important; }                /* edit-режим */
+body.room-mode .row-note-btn { display: none !important; }                    /* тяжёлый редактор заметок → лёгкий захват P1-009 */
+/* IDE shell (страховка, если открылись в IDE-режиме): прячем хром; центр
+   заполняет flex-строку автоматически при скрытых боковых панелях (flexbox). */
+body.room-mode #v3IdeHeader,
+body.room-mode #v3IdeTabBar,
+body.room-mode #v3IdeLeft,
+body.room-mode #v3IdeRight,
+body.room-mode #v3IdePanelBackdrop { display: none !important; }
+/* страховка видимости ядра чтения (на случай чужих правил) */
+body.room-mode #classicResultWorkspace,
+body.room-mode #tableContainer { display: block !important; }
+/* ── Room-return-bar: единственный chrome в room-mode (R4: не тупик) ── */
+#roomReturnBar { display: none; }
+body.room-mode #roomReturnBar {
+  display: flex !important; align-items: center; justify-content: space-between; gap: 12px;
+  position: sticky; top: 0; z-index: 50;
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+  background: var(--theme-bg-card, #fff); border-bottom: 1px solid var(--theme-border-soft, #e2e8f0);
+}
+body.room-mode #roomReturnBar .room-return-link {
+  display: inline-flex; align-items: center; gap: 6px; width: auto;
+  font: inherit; font-weight: 600; text-decoration: none;
+  color: var(--theme-accent, #2563eb); background: none; border: none; cursor: pointer;
+}
+body.room-mode #roomReturnBar .room-return-link:focus-visible {
+  outline: 2px solid var(--theme-accent, #2563eb); outline-offset: 2px; border-radius: 6px;
+}
+body.room-mode #roomReturnBar .room-return-title { color: var(--theme-text-secondary, #475569); font-size: 14px; font-weight: 600; }
+@media (max-width: 600px) { body.room-mode { padding-top: 0 !important; } }
+
 </style>
 
 <!-- ── Direction 2: theme bootstrap (apply BEFORE first paint, no FOWT) ── -->
@@ -9614,6 +9659,13 @@ body:not(.theme-light) .v3-heatmap-cell {
       // Density: default comfortable.
       var d = density === "compact" || density === "comfortable" || density === "spacious" ? density : "comfortable";
       b.classList.add("theme-density-" + d);
+      // BRR-P0-002a — room-mode: clean reading view when opened from the Reading
+      // Room (`?room=1`). Pure presentational layer (body.room-mode CSS only).
+      // Set here, pre-paint, to avoid a flash of Studio chrome. `?room=1` survives
+      // v3DeeplinkBoot's hash-clear (replaceState keeps the search string), so the
+      // mode holds for the reading session without sessionStorage — and a direct
+      // /index.html visit (no room=1) stays full Studio.
+      try { if (new URLSearchParams(location.search).get("room") === "1") b.classList.add("room-mode"); } catch (_) {}
     };
     if (document.body) pending();
     else document.addEventListener("DOMContentLoaded", pending, { once: true });
@@ -9742,6 +9794,13 @@ body:not(.theme-light) .v3-heatmap-cell {
 
 </head>
 <body>
+
+<!-- BRR-P0-002a — Room-mode return bar (visible only in body.room-mode; the one
+     piece of chrome the clean reading view keeps — R4: explicit non-dead-end). -->
+<div id="roomReturnBar">
+  <a class="room-return-link" href="/library.html" data-i18n="room.back">← В библиотеку</a>
+  <span class="room-return-title" data-i18n="room.readingTitle">Чтение</span>
+</div>
 
 <!-- V3 IDE Header (shown in IDE mode) -->
 <header id="v3IdeHeader" class="v3-ide-header" style="display:none;">
@@ -20711,6 +20770,10 @@ updatePlaylistButtonUI();
     // we must not spam the user. Dismissed in DOM only — no persistence.
     let _gcpTtsKeyHintShown = false;
     function showGcpTtsKeyHintOnce() {
+        // BRR-P0-002a — no BYOK key hint in room-mode (curated shelves are
+        // pre-baked/offline; reading needs no key). Suppress only the auto-hint;
+        // the BYOK feature stays reachable for deep stacks (P2-015) / cost (P1-010).
+        if (document.body.classList.contains("room-mode")) return;
         if (_gcpTtsKeyHintShown) return;
         _gcpTtsKeyHintShown = true;
         try {
@@ -25013,6 +25076,11 @@ const V3_PHASE6_DECISION_KEY = "phase6FirstOpenSeen";
 const V3_PHASE6_OPT_IN_KEY = "phase6PromptOptIn";
 
 function v3Phase6PromptShouldShow() {
+  // BRR-P0-002a — never auto-prompt the server-migration dialog in the clean
+  // Reading Room (room-mode). We do NOT set any seen-flag here, so a later
+  // full-app visit (no room=1) still gets the prompt → no data loss. Room-first
+  // users have no server data anyway (server texts are 410'd; store is OPFS).
+  if (document.body.classList.contains("room-mode")) return false;
   if (localStorage.getItem(V3_PHASE6_DECISION_KEY)) return false;
   // Don't re-prompt users who already opted in/out of localMode explicitly.
   if (localStorage.getItem("localMode") !== null) return false;
@@ -25492,6 +25560,9 @@ const V3_ONBOARDING_DEMO_TEXT =
   "שִׁירוּ לַיהוָה שִׁיר חָדָשׁ, כִּי נִפְלָאוֹת עָשָׂה. הוֹשִׁיעָה-לּוֹ יְמִינוֹ, וּזְרוֹעַ קָדְשׁוֹ.";
 
 function v3OnboardingShouldShow() {
+  // BRR-P0-002a — skip the onboarding tour in room-mode (no seen-flag set, so the
+  // full app still shows it on a later non-room visit).
+  if (document.body.classList.contains("room-mode")) return false;
   if (localStorage.getItem(V3_ONBOARDING_SEEN_KEY)) return false;
   if (sessionStorage.getItem(V3_ONBOARDING_SEEN_KEY)) return false;
   if (window.__localDBFollower) return false;
@@ -31852,6 +31923,8 @@ try {
     }
 
     function byokOnboardingShouldShow() {
+        // BRR-P0-002a — no BYOK onboarding modal auto-pop in room-mode (no flag set).
+        try { if (document.body.classList.contains("room-mode")) return false; } catch (_) {}
         try {
             if (localStorage.getItem(BYOK_ONBOARDING_LS_KEY) === "1") return false;
         } catch (_) { return false; }
@@ -44847,6 +44920,10 @@ document.addEventListener("i18n:changed", function () {
 
   function v3OnboardingShouldShow() {
     try {
+      // BRR-P0-002a — no onboarding tour auto-pop in the clean Reading Room
+      // (room-mode). We do NOT set the seen-flag, so the full app still shows it
+      // on a later non-room visit (no onboarding loss).
+      if (document.body.classList.contains("room-mode")) return false;
       if (localStorage.getItem(V3_ONB_KEY)) return false;
       // Don't pop onboarding on the typo-test page or other side-pages.
       if (location.pathname && location.pathname !== "/" && location.pathname !== "/index.html") return false;
