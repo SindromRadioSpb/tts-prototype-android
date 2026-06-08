@@ -229,7 +229,9 @@ export function buildBilingualTableHtml(rows, config) {
     : (selectedProfile === "ru-phonetic" ? t("table.colTranslitRu") + " (нет данных)" : t("table.colTranslitSbl"));
 
   const colMeta = {
-    action: { title: "▶📝", headerClass: "", cellClass: "col-action-cell" },
+    // actionTitle defaults to "▶📝" (index.html parity); the Room passes "▶" since
+    // its note/edit affordances are hidden — no header advertising a hidden feature.
+    action: { title: (typeof cfg.actionTitle === "string" ? cfg.actionTitle : "▶📝"), headerClass: "", cellClass: "col-action-cell" },
     he: { title: t("table.colHebrew"), headerClass: "rtl", cellClass: "rtl rtl-he" },
     niqqud: { title: t("table.colNiqqud"), headerClass: "rtl", cellClass: "rtl rtl-he-niqqud" },
     translit: { title: tTitle, headerClass: "", cellClass: "" },
@@ -360,4 +362,151 @@ export async function openText(textId, opts) {
   mount.innerHTML = buildBilingualTableHtml(rows, config);
   emit({ kind: rows.length ? "ready" : "empty", text: text, rows: rows });
   return { ok: true, text: text, rows: rows };
+}
+
+// ── Per-row audio (Room) ─────────────────────────────────────────────────────
+// Delegated ▶ playback on a mount, reproducing index.html's Library audio path,
+// SLIMMED to three keyless-first tiers (owner decision D2+b):
+//   1) cached /api/audio/:assetKey   — keyless, when the row carries an asset key
+//      whose mp3 is already in the server cache (HEAD pre-flight, then stream);
+//   2) BYOK GCP /api/tts             — fresh synth when a per-user GCP key exists
+//      (Library row → assetKey → /api/audio; else base64 blob);
+//   3) browser SpeechSynthesis       — keyless fallback (Web Speech API, he-IL),
+//      best-effort & device-dependent, so canon has a voice with no key + no
+//      pre-baked audio (until BRR-P0-007 ships cached audio).
+// Toggling, single player, and honest ▶/■/…/! button states. Returns { detach }.
+//
+//   opts = {
+//     getRow(rowIdx) => row,   // resolve the row model by index
+//     profile,                 // {voiceId,rate,pitch} or () => same (TTS request profile)
+//     gcpKey,                  // string or () => string (BYOK GCP TTS key; '' → skip tier 2)
+//     t,                       // i18n (optional)
+//     onError(err),            // optional
+//   }
+export function attachRowAudio(mount, opts) {
+  opts = opts || {};
+  if (!mount) return { detach() {} };
+  const getRow = typeof opts.getRow === "function" ? opts.getRow : () => null;
+  const profileOf = () => (typeof opts.profile === "function" ? opts.profile() : opts.profile) || {};
+  const gcpKeyOf = () => String((typeof opts.gcpKey === "function" ? opts.gcpKey() : opts.gcpKey) || "");
+  const LANG = "he-IL";
+  let player = null, playingIdx = null, objUrl = null, mode = null; // mode: 'audio' | 'speech'
+
+  const btnOf = (idx) => mount.querySelector('button.row-tts-btn[data-row-idx="' + idx + '"]');
+  const trOf = (idx) => { const b = btnOf(idx); return b ? b.closest("tr") : null; };
+  const ensurePlayer = () => {
+    if (player) return player;
+    player = new Audio();
+    player.addEventListener("ended", () => { if (mode === "audio") clearPlaying(); });
+    return player;
+  };
+  const revoke = () => { if (objUrl) { try { URL.revokeObjectURL(objUrl); } catch (_) {} objUrl = null; } };
+  const setLoading = (idx) => { const b = btnOf(idx); if (b) { b.setAttribute("aria-busy", "true"); b.disabled = true; b.textContent = "…"; } };
+  const setPlaying = (idx) => {
+    const b = btnOf(idx); if (b) { b.removeAttribute("aria-busy"); b.disabled = false; b.classList.add("row-tts-playing"); b.classList.remove("row-tts-error"); b.textContent = "■"; }
+    const tr = trOf(idx); if (tr) tr.classList.add("row-playing");
+  };
+  const setError = (idx, msg) => {
+    const b = btnOf(idx); if (b) { b.removeAttribute("aria-busy"); b.disabled = false; b.classList.add("row-tts-error"); b.classList.remove("row-tts-playing"); b.textContent = "!"; if (msg) b.title = msg; }
+    const tr = trOf(idx); if (tr) { tr.classList.remove("row-playing"); tr.classList.add("row-error"); }
+  };
+  const clearError = (idx) => {
+    const b = btnOf(idx); if (b) { b.classList.remove("row-tts-error"); if (!b.classList.contains("row-tts-playing")) b.textContent = "▶"; b.removeAttribute("title"); }
+    const tr = trOf(idx); if (tr) tr.classList.remove("row-error");
+  };
+  const clearPlaying = () => {
+    if (playingIdx != null) { const b = btnOf(playingIdx); if (b) { b.classList.remove("row-tts-playing"); if (!b.classList.contains("row-tts-error")) b.textContent = "▶"; } const tr = trOf(playingIdx); if (tr) tr.classList.remove("row-playing"); }
+    playingIdx = null; mode = null;
+  };
+  const stopAll = () => {
+    try { if (player && !player.paused) player.pause(); } catch (_) {}
+    try { if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_) {}
+  };
+  const speakBrowser = (text, idx, prof) => {
+    if (typeof window === "undefined" || !window.speechSynthesis || typeof SpeechSynthesisUtterance === "undefined") throw new Error("speech unavailable");
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = LANG;
+    try { const v = (window.speechSynthesis.getVoices() || []).find((x) => /^(he|iw)/i.test(x.lang || "")); if (v) u.voice = v; } catch (_) {}
+    if (typeof prof.rate === "number") u.rate = Math.min(2, Math.max(0.5, prof.rate));
+    u.onend = () => { if (playingIdx === idx && mode === "speech") clearPlaying(); };
+    u.onerror = () => { if (playingIdx === idx) setError(idx, "speech"); };
+    mode = "speech"; setPlaying(idx);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  };
+
+  async function postTts(text, prof, row) {
+    const body = { text: text, language: LANG, voiceId: prof.voiceId || "", speakingRate: typeof prof.rate === "number" ? prof.rate : 1.0, pitch: typeof prof.pitch === "number" ? prof.pitch : 0.0, gcpTtsApiKey: gcpKeyOf() };
+    if (row && row._v3_sentenceId && row._v3_textId) { body.sentenceId = String(row._v3_sentenceId); body.textId = String(row._v3_textId); body.assetType = "row"; }
+    const r = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (!r.ok) { let m = ""; try { const j = await r.json(); m = (j && (j.error || j.message)) || ""; } catch (_) {} throw new Error("tts " + r.status + (m ? ": " + m : "")); }
+    return r.json();
+  }
+
+  async function play(idx) {
+    const row = getRow(idx);
+    if (!row) return;
+    clearError(idx);
+    const p = ensurePlayer();
+    // toggle: tapping the playing row stops it.
+    if (playingIdx === idx) { stopAll(); clearPlaying(); return; }
+    stopAll(); clearPlaying();
+    const text = getRowTtsTextForRow(row);
+    if (!text) return;
+    const prof = profileOf();
+    setLoading(idx);
+    playingIdx = idx;
+    try {
+      // tier 1 — keyless cached asset
+      const assetKey = String(row._v3_audioAssetKey || "").trim();
+      if (assetKey) {
+        let ok = false;
+        try { const h = await fetch("/api/audio/" + encodeURIComponent(assetKey), { method: "HEAD" }); ok = !!(h && h.ok); } catch (_) { ok = false; }
+        if (ok) { revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(assetKey); setPlaying(idx); await p.play(); return; }
+      }
+      // tier 2 — BYOK GCP fresh synth (only if a key is present)
+      if (gcpKeyOf()) {
+        const res = await postTts(text, prof, row);
+        const freshKey = res && typeof res.assetKey === "string" ? res.assetKey.trim() : "";
+        if (freshKey) { revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(freshKey); row._v3_audioAssetKey = freshKey; setPlaying(idx); await p.play(); return; }
+        const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
+        if (b64) {
+          const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+          revoke(); objUrl = URL.createObjectURL(new Blob([bytes], { type: "audio/mpeg" }));
+          mode = "audio"; p.src = objUrl; setPlaying(idx); await p.play(); return;
+        }
+        // no usable audio from GCP → fall through to browser speech
+      }
+      // tier 3 — keyless browser SpeechSynthesis fallback
+      speakBrowser(text, idx, prof);
+    } catch (err) {
+      // last-ditch: if a network/synth tier threw, still try browser speech once.
+      try { if (mode !== "speech") { speakBrowser(text, idx, prof); return; } } catch (_) {}
+      clearPlaying();
+      setError(idx, (err && err.message) || "audio error");
+      if (opts.onError) { try { opts.onError(err); } catch (_) {} }
+    } finally {
+      const b = btnOf(idx);
+      if (b && !b.classList.contains("row-tts-playing") && !b.classList.contains("row-tts-error")) { b.removeAttribute("aria-busy"); b.disabled = false; b.textContent = "▶"; }
+    }
+  }
+
+  const onClick = (e) => {
+    const target = e.target;
+    const btn = target && target.closest ? target.closest("button.row-tts-btn") : null;
+    if (btn && mount.contains(btn)) {
+      const idx = Number(btn.getAttribute("data-row-idx"));
+      if (Number.isFinite(idx) && idx >= 0) play(idx);
+      return;
+    }
+    // tap-to-hear: tapping a content cell (not a button) plays that row.
+    const td = target && target.closest ? target.closest('#proTable tbody td[data-col]') : null;
+    if (td && mount.contains(td) && td.getAttribute("data-col") !== "action") {
+      const tr = td.closest("tr[data-row-idx]");
+      const idx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+      if (Number.isFinite(idx) && idx >= 0) play(idx);
+    }
+  };
+  mount.addEventListener("click", onClick);
+  return { detach() { mount.removeEventListener("click", onClick); stopAll(); revoke(); playingIdx = null; mode = null; } };
 }

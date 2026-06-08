@@ -163,6 +163,11 @@ function setActiveTrack(track) {
 // (translit profile + column visibility) re-render from the cached rows, no refetch.
 let readerCfg = { visibleColumns: { action: true, he: true, niqqud: true, translit: true, ru: true }, translitProfile: 'sbl' };
 let readerRows = [];
+let readerAudio = null; // attachRowAudio detach handle
+
+// BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
+// Empty is fine: audio falls back to keyless browser SpeechSynthesis.
+function gcpTtsKey() { try { return localStorage.getItem('v3.gcpTtsApiKey') || ''; } catch (_) { return ''; } }
 
 function readerConfig() {
   return {
@@ -170,9 +175,25 @@ function readerConfig() {
     baseWidths: [15, 20, 20, 21, 24],
     translitProfile: readerCfg.translitProfile,
     ideMode: false,
+    actionTitle: '▶', // Room hides note/edit → no "📝" in the action header
     t: (k) => tt(k, k),
     hasNote: () => false,
   };
+}
+
+// (Re)attach the delegated per-row audio handler to the reader mount. Called after
+// every render (open + aids re-render); detaches first so there is exactly one
+// listener and playback state resets cleanly.
+function attachReaderAudio() {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
+  readerAudio = readerCore.attachRowAudio(mount, {
+    getRow: (i) => readerRows[i],
+    profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
+    gcpKey: gcpTtsKey,
+    t: (k) => tt(k, k),
+  });
 }
 
 function readerStateBox(i18nKey, icon) {
@@ -190,6 +211,7 @@ function rerenderReader() {
   const mount = $('roomReaderTable');
   if (!mount) return;
   mount.innerHTML = readerCore.buildBilingualTableHtml(readerRows, readerConfig());
+  attachReaderAudio();
 }
 
 function buildAidsPanel() {
@@ -242,9 +264,11 @@ async function openReader(textId, title) {
     },
   });
   readerRows = res && res.ok ? res.rows : [];
+  if (res && res.ok) attachReaderAudio();
 }
 
 function closeReader() {
+  if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   const reader = $('roomReader'), content = $('roomContent');
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;

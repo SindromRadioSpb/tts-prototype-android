@@ -63,6 +63,30 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     if (!info.niqqud) console.warn("⚠ no niqqud cell (text may lack vocalization)");
     if (!info.contentHidden) { console.error("✗ shelves not hidden behind reader"); failed = true; }
 
+    // Action header must be "▶" in the Room (not "▶📝" — note buttons are hidden).
+    const actionHdr = await pg.evaluate(() => (document.querySelector('#roomReaderTable th[data-col="action"]') || {}).textContent || "");
+    console.log("action header:", JSON.stringify(actionHdr));
+    if (actionHdr.indexOf("📝") !== -1) { console.error("✗ action header still advertises 📝"); failed = true; }
+    // Note/edit row buttons must be hidden (CSS), ▶ visible.
+    const afford = await pg.evaluate(() => {
+      const note = document.querySelector('#roomReaderTable .row-note-btn');
+      const tts = document.querySelector('#roomReaderTable .row-tts-btn');
+      const vis = (el) => el && getComputedStyle(el).display !== 'none';
+      return { ttsVisible: vis(tts), noteVisible: vis(note) };
+    });
+    console.log("affordances:", JSON.stringify(afford));
+    if (!afford.ttsVisible) { console.error("✗ ▶ button not visible"); failed = true; }
+    if (afford.noteVisible) { console.error("✗ note button visible in Room (should be hidden)"); failed = true; }
+    // Click ▶ → honest response (not a dead button): playing / error / busy state.
+    await pg.click('#roomReaderTable button.row-tts-btn[data-row-idx="0"]');
+    await sleep(1500);
+    const btnState = await pg.evaluate(() => {
+      const b = document.querySelector('#roomReaderTable button.row-tts-btn[data-row-idx="0"]');
+      return b ? { cls: b.className, txt: b.textContent, busy: b.getAttribute('aria-busy') } : null;
+    });
+    console.log("▶ after click:", JSON.stringify(btnState));
+    await pg.screenshot({ path: path.join(OUT, "room-reader-380-audio-click.png") });
+
     // Reading-aids open + ru-phonetic profile.
     await pg.click("#readerAidsToggle");
     await pg.waitForSelector("#readerAids select", { timeout: 5000 });
