@@ -3,8 +3,8 @@
   "note": "BRR-P0-004 canon bulk manifest (owner decision 4: 50-150 'most popular'). R7 curation. NOTE: the Ben-Yehuda dump has NO popularity/view metric — 'popular' here = canonical fame + author prominence (verifiable signal absent). All originals (orig_language=he). review_status=machine (Gemini MT, no human proofread; owner decision 3). audio_status=none (text-only). Book-length novels excluded (Mapu/Mendele/Smolenskin romans) — too long for shipped bundle. byehuda_id joins live pseudocatalogue.csv ID. ~56 works.",
   "works": [
     { "byehuda_id": "19",  "track": "accessible", "register": "poetic", "era": "mandate",  "themes": ["душа"], "shelf": "by-canon-easy-poems" },
-    { "byehuda_id": "148", "track": "accessible", "register": "poetic", "era": "mandate",  "themes": ["ступени"], "shelf": "by-canon-easy-poems" },
-    { "byehuda_id": "180", "track": "accessible", "register": "poetic", "era": "mandate",  "themes": ["плач"], "shelf": "by-canon-easy-poems" },
+    { "byehuda_id": "148", "track": "accessible", "register": "poetic", "era": "haskalah", "themes": ["ступени"], "shelf": "by-canon-easy-poems" },
+    { "byehuda_id": "180", "track": "accessible", "register": "poetic", "era": "haskalah", "themes": ["плач"], "shelf": "by-canon-easy-poems" },
     { "byehuda_id": "248", "track": "accessible", "register": "poetic", "era": "mandate",  "themes": ["песня"], "shelf": "by-canon-easy-poems" },
     { "byehuda_id": "249", "track": "accessible", "register": "poetic", "era": "mandate",  "themes": ["вестник"], "shelf": "by-canon-easy-poems" },
     { "byehuda_id": "139", "track": "accessible", "register": "poetic", "era": "mandate",  "themes": ["воробей"], "shelf": "by-canon-easy-poems" },
@@ -52,7 +52,6 @@
     { "byehuda_id": "413", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ"], "shelf": "by-canon-prose" },
     { "byehuda_id": "18",  "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ", "голод"], "shelf": "by-canon-prose" },
     { "byehuda_id": "49",  "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ"], "shelf": "by-canon-prose" },
-    { "byehuda_id": "95",  "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ"], "shelf": "by-canon-prose" },
     { "byehuda_id": "229", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ"], "shelf": "by-canon-prose" },
     { "byehuda_id": "463", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ", "война"], "shelf": "by-canon-prose" },
     { "byehuda_id": "647", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ", "заповедь"], "shelf": "by-canon-prose" },

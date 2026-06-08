@@ -62,6 +62,7 @@ const ACCESSIBLE_MAX = Number(arg("accessible", Math.ceil(LIMIT / 2)));
 const LITERARY_MAX = Number(arg("literary", Math.floor(LIMIT / 2)));
 const MAX_CHARS = Number(arg("max-chars", 8000));
 const MIN_CHARS = Number(arg("min-chars", 40));
+const MANIFEST_MAX = Number(arg("manifest-max-chars", 30000)); // skip novellas in curated manifest (R6/R8)
 const NO_FETCH = flag("no-fetch");
 const DRY = flag("dry-run");
 const GCP_KEY = String(arg("gcp-key", process.env.GCP_TRANSLATE_API_KEY || ""));
@@ -149,18 +150,51 @@ function geminiModel() {
   }
   return _genaiModel;
 }
-// One Gemini call per work: numbered Hebrew lines → numbered Russian (quota-friendly).
-async function geminiTranslateBatch(segs) {
+// One Gemini call per chunk: numbered Hebrew lines → numbered Russian. Returns an
+// index→ru map, or null if the model didn't return parseable JSON (caller retries/splits).
+const GEMINI_TIMEOUT_MS = Number(arg("gemini-timeout", 90000));
+async function _geminiCallOnce(segs) {
   const model = geminiModel();
   const numbered = segs.map((s) => s.index + "\t" + s.he).join("\n");
   const prompt =
     "Translate each numbered Hebrew line into natural literary Russian. Keep the SAME line numbers. " +
     "Return ONLY a JSON array of objects {\"i\": <number>, \"ru\": \"<russian>\"}, one per input line, no markdown.\n\n" + numbered;
-  const result = await model.generateContent(prompt);
-  const raw = (await result.response).text().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
-  let arr; try { arr = JSON.parse(raw); } catch (_) { throw new Error("gemini returned non-JSON"); }
-  const m = {}; for (const x of (Array.isArray(arr) ? arr : [])) if (x && x.i != null) m[Number(x.i)] = String(x.ru || "");
-  return { results: segs.map((s) => ({ index: s.index, ru: m[s.index] || "" })) };
+  try {
+    // The @google/generative-ai SDK has NO request timeout — a hung call would stall the
+    // whole bulk indefinitely (observed). Race it against a hard timeout; on timeout/error
+    // return null so the caller retries/splits/degrades gracefully.
+    const result = await Promise.race([
+      model.generateContent(prompt),
+      new Promise((_, rej) => setTimeout(() => rej(new Error("gemini timeout " + GEMINI_TIMEOUT_MS + "ms")), GEMINI_TIMEOUT_MS)),
+    ]);
+    const raw = (await result.response).text().replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+    let arr; try { arr = JSON.parse(raw); } catch (_) { return null; }
+    const m = {}; for (const x of (Array.isArray(arr) ? arr : [])) if (x && x.i != null) m[Number(x.i)] = String(x.ru || "");
+    return m;
+  } catch (e) { log("  gemini call error: " + (e && e.message || e)); return null; }
+}
+// Robust Gemini translation: chunk long works (a 150+-line single prompt often returns
+// truncated/non-JSON), retry once, then split-and-recurse; a chunk that still fails after
+// all that degrades to EMPTY ru for those lines (logged) rather than aborting the whole bulk.
+const GEMINI_CHUNK = Number(arg("gemini-chunk", 50));
+async function geminiTranslateBatch(segs) {
+  const out = {};
+  for (let i = 0; i < segs.length; i += GEMINI_CHUNK) {
+    const chunk = segs.slice(i, i + GEMINI_CHUNK);
+    let m = await _geminiCallOnce(chunk);
+    if (!m) { await sleep(1500); m = await _geminiCallOnce(chunk); } // transient retry
+    if (!m && chunk.length > 1) { // split-and-recurse on persistent non-JSON
+      const mid = Math.ceil(chunk.length / 2);
+      for (const part of [chunk.slice(0, mid), chunk.slice(mid)]) {
+        const r = await geminiTranslateBatch(part);
+        for (const x of r.results) if (x.ru) out[x.index] = x.ru;
+      }
+      continue;
+    }
+    if (m) { for (const k in m) out[k] = m[k]; }
+    else log("  gemini: " + chunk.length + " line(s) untranslated after retry (honest empty ru)");
+  }
+  return { results: segs.map((s) => ({ index: s.index, ru: out[s.index] || "" })) };
 }
 async function providerTranslate(segs) {
   if (PROVIDER === "gcp") {
@@ -210,13 +244,22 @@ async function niqqudCached(plainList) {
     });
     if (need2.length) {
       log("niqqud: " + need2.length + "/" + todo.length + " → Dicta cloud fallback (sidecar empty)");
-      try {
-        const c = await dictaCloud.nakdan(need2);
-        const cr = (c && c.body && c.body.results) || [];
-        let filled = 0;
-        need2.forEach((p, i) => { const nq = cr[i] || ""; if (NIQ_RE.test(nq)) { niqCache[thash(p)] = nq; filled++; } });
-        log("niqqud: cloud filled " + filled + "/" + need2.length);
-      } catch (e) { log("dicta-cloud fallback failed: " + e.message); }
+      // Retry empties with exponential backoff — Dicta's public API throttles under bulk
+      // load (observed: 0/N filled once warmed up). Items that stay empty are left honest-
+      // empty and cached as such NO (only real niqqud is cached) → retried on the next run.
+      let remaining = need2.slice();
+      for (let attempt = 0; attempt < 3 && remaining.length; attempt++) {
+        if (attempt) await sleep(4000 * attempt); // 0, 4s, 8s backoff
+        try {
+          const c = await dictaCloud.nakdan(remaining);
+          const cr = (c && c.body && c.body.results) || [];
+          const stillEmpty = [];
+          remaining.forEach((p, i) => { const nq = cr[i] || ""; if (NIQ_RE.test(nq)) niqCache[thash(p)] = nq; else stillEmpty.push(p); });
+          remaining = stillEmpty;
+        } catch (e) { log("  dicta-cloud attempt " + (attempt + 1) + " failed: " + e.message); }
+      }
+      const filled = need2.length - remaining.length;
+      log("niqqud: cloud filled " + filled + "/" + need2.length + (remaining.length ? " (" + remaining.length + " still empty — honest, retried next run)" : ""));
     }
     saveCaches();
   }
@@ -296,6 +339,10 @@ async function translateAndBuild(r, body, derived, plainLen) {
       if (!body) { console.error("[ingest] empty body for " + w.byehuda_id); process.exit(6); }
       const plainLen = by.stripNiqqud(body).length;
       const lineCount = body.split("\n").filter((l) => l.trim()).length;
+      // Guard: a novella-length work bloats the shelf bundle, costs ~tokens, and a
+      // 500+-row bilingual table is unwieldy (R6/R8). Skip-with-warning (curated set
+      // should be digestible works; long-reads belong in a future track / BYOK-on-open).
+      if (plainLen > MANIFEST_MAX) { log("  ⚠ skip [" + w.byehuda_id + "] " + (by.cleanField(r.title) || "?") + ": " + plainLen + " ch > " + MANIFEST_MAX + " (novella — excluded from shelf bundle)"); continue; }
       log("→ [" + r.ID + "] " + (by.cleanField(r.title) || "?") + " — " + (by.cleanField(r.authors) || "?") + " (" + w.track + "/" + w.register + ", " + lineCount + " lines, " + plainLen + " ch)");
       const derived = { track: w.track, register: w.register, era: w.era, themes: w.themes || [], orig_language: w.orig_language || undefined, review_status: w.review_status || undefined, audio_status: "none" };
       const built = await translateAndBuild(r, body, derived, plainLen);
