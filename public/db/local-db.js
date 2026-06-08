@@ -370,6 +370,32 @@ export async function getTextById(id) {
   return rows[0] ?? null;
 }
 
+// BRR-P0-002b — reader open path: `source_text` is the full raw work (tens of KB
+// per text) and is NOT needed to render the table (rows come from `sentences`).
+// Measured: SELECT * (with the blob) ~270-300ms vs the same row without it ~2-6ms.
+// This lite fetch drops only `source_text`; callers that need it (Studio composer,
+// offline cache, export) hydrate it lazily via getTextSourceText(). Column list is
+// read from PRAGMA so it stays correct as later migrations add columns (source,
+// topic, is_pinned, …) — a hardcoded list would silently drop new fields.
+let _textColsLiteCache = null;
+async function _textColsLite() {
+  if (_textColsLiteCache) return _textColsLiteCache;
+  const info = await q('PRAGMA table_info(texts)');
+  const cols = (info || []).map((c) => c && c.name).filter((n) => n && n !== 'source_text');
+  // Defensive: if PRAGMA returned nothing (shouldn't happen), fall back to SELECT *.
+  _textColsLiteCache = cols.length ? cols.map((c) => '"' + c + '"').join(', ') : '*';
+  return _textColsLiteCache;
+}
+export async function getTextByIdLite(id) {
+  const cols = await _textColsLite();
+  const rows = await q('SELECT ' + cols + ' FROM texts WHERE id = ?', [id]);
+  return rows[0] ?? null;
+}
+export async function getTextSourceText(id) {
+  const rows = await q('SELECT source_text FROM texts WHERE id = ?', [id]);
+  return rows[0] ? (rows[0].source_text ?? '') : '';
+}
+
 export async function createText(data) {
   const { id, text_key, title, source_text, level, tags_json, source, topic, tts_profile_json, source_meta_json } = data;
   if (!id) throw new Error('createText: id is required');

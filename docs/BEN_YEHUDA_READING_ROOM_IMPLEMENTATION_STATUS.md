@@ -246,21 +246,36 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
 {work_byehuda_id,work_title,part,total}. Продюсер строит `by-work-<id>` полку (TOC). Результат:
 #95 מהתחלה (97K, ранее пропускалась) → 17 глав; #413 → 5 (с заголовками); #49 → 3; эссе/#229/стихи → single.
 
-**B (виртуализация) — ЗАМЕРЕНА, НЕ НУЖНА:** самый большой одиночный текст #113 (486 строк) =
-**74мс forced-layout**; открытие ~1.3с — это вес index.html-шелла, не строки. Виртуализация строк не
-оправдана. Замер: `scripts/premium/measure-reader-render.js`.
+**B (виртуализация) — ЗАМЕРЕНА, НЕ НУЖНА:** самый большой одиночный текст «האילמת» (486 строк) =
+**74мс render**. Виртуализация строк не оправдана. Замер: `scripts/premium/measure-reader-render.js`.
+
+**P0-002b Phase-0 boot-attribution — ⚠ ПРЕМИСА ПЕРЕСМОТРЕНА (замер 2026-06-08, `measure-reader-boot.js`):**
+открытие ~1.3–2.0с — это **НЕ вес шелла** (parse+compile всего index.html, включая inline-монолит 1.85МБ +
+29 `<script>` = **~110мс**; library.html parse = **~40мс** → slim-шелл экономит ~0мс на парсинге). Реальный
+рычаг — **первый SQL-statement в свежем DB-воркере = ~0.9–1.2с** (OPFS page-in заполненной канон-БД; на пустой
+OPFS первый запрос = **3мс** → стоимость зависит от РАЗМЕРА файла БД, не от WASM-warmup). Вторичный налог:
+`getTextById` делает `SELECT *` (тянет blob `source_text`, ридеру не нужный) = **~270–300мс** vs narrow-SELECT
+= **2–6мс**. Тёплый воркер: getTextById 28–32мс / getSentences 11–14мс / render 74мс. **Вывод:** deep-link на
+свежую index.html-страницу всегда поднимает ХОЛОДНЫЙ воркер → заново платит ~1с (нет dwell, чтобы спрятать).
+**Рычаг = переиспользование тёплого DB-воркера** (library.html уже греет его в `loadData` при показе полок,
+пока юзер выбирает) → **встроенный (same-page) ридер**, НЕ отдельная навигируемая `reader.html` (та = новый
+холодный воркер = тот же ~1с). + narrow text-fetch (−300мс). Slim-парсинг/`sw-room.js` — польза для офлайн-PWA
+(R5/трек-3), не для латентности.
 
 **Гейты (зелёные):** smoke:corpus 64 · smoke:benyehuda-ingest 59 · smoke:shelves 30 ·
 smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes-roundtrip 25 · test:api-smoke OK.
 Доп. харнессы: `room-prov-shot.js`, `room-canon-autoimport-shot.js`, `measure-reader-render.js`.
 
 ### Следующие слои (утверждённый план) — обновлено аудитом 2026-06-08
-1. **BRR-P0-002b — лёгкий ридер-шелл (УТВЕРЖДЁН, next):** реальный рычаг задержки открытия (~1.3с) — это
-   вес 39K Studio-шелла, не строки (замер: 486 строк=74мс; B ЗАКРЫТА). Встроенный/облегчённый ридер в
-   `library.html` (или slim room-shell) + **отдельный `sw-room.js`** (закрывает отложенный lightweight-SW
-   инвариант). Acceptance: открытие <~300мс; ПАРИТЕТ с deep-link (таблица+аудио+тогглы+on-tap+честные
-   состояния); @380px RTL; deep-link fallback до паритета. Recon-first дизайн на утверждение (риск:
-   извлечение `renderTable` из 50+ глобалов index.html).
+1. **BRR-P0-002b — встроенный ридер (УТВЕРЖДЁН Option A, рационал ПЕРЕСМОТРЕН Phase-0):** рычаг — НЕ парсинг
+   шелла (≈0мс выигрыша), а **переиспользование тёплого DB-воркера**. → **same-page embedded ридер-вью внутри
+   `library.html`** (переключение полки↔ридер в ОДНОМ документе; воркер уже прогрет `loadData`) + извлечённый
+   `reader-core.js` (renderTable+аудио+on-tap+reading-aids, параметризован, без Studio-глобалов) + **narrow
+   text-fetch** (без `source_text`, −300мс) + `sw-room.js` (офлайн-PWA, R5/трек-3). **НЕ отдельная reader.html**
+   (навигация = холодный воркер = тот же ~1с). Acceptance: тёплое открытие <~300мс; ПАРИТЕТ с deep-link
+   (таблица+аудио+тогглы+on-tap+честные состояния); @380px RTL; `smoke:reader-parity` (byte-identical DOM +
+   audio cache-keys); deep-link fallback до паритета. Stage 1 — index.html НЕ трогаем; Stage 2 (позже) — миграция
+   index.html на `reader-core.js`. Риск: извлечение `renderTable` из 50+ глобалов index.html.
 2. **Полировка (УТВЕРЖДЕНА):** fade-край карусели; **P1-006** перенос `#translitProfileSelect` из
    `#classicTranslationCard` в reading-aids (`#tableSettings`); **P1-009** лёгкий one-tap захват слова
    (заменяет скрытую 📝); **бейдж эпоха·регистр** (данные есть); HE-native-review i18n `room.*`/`room.prov.*`.

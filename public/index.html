@@ -24320,7 +24320,10 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
       console.warn("notes preload failed (non-critical)", e);
       return { ok: false, notes: [] };
     });
-    text = await ldb.getTextById(textId);
+    // BRR-P0-002b — lite fetch drops the `source_text` blob (not needed to render
+    // the table — rows come from sentences) to cut ~300ms off every library open.
+    // source_text is hydrated lazily below for the Studio composer + offline cache.
+    text = await ldb.getTextByIdLite(textId);
     sentences = await ldb.getSentences(textId);
   } else {
     notesPromise = v3GetJson("/api/library/texts/" + encodeURIComponent(textId) + "/notes")
@@ -24406,28 +24409,59 @@ const resume = !!(opts && (opts.resume || resumeSentenceId));
         return v3MapSentenceApiRowToUiRow(r, textId);
       });
 	  
-	      // Save offline cache for restore-on-load (Offline+F5)
-    try {
-      v3LibraryCacheSave(textId, {
-        v: 1,
-        savedAt: new Date().toISOString(),
-        textId: String(textId),
-        title: (text && text.title) ? String(text.title) : null,
-        level: (text && text.level) ? String(text.level) : null,
-        topic: (text && (text.topic ?? text.topic_text ?? text.topicText)) ? String(text.topic ?? text.topic_text ?? text.topicText) : null,
-        source: (text && (text.source ?? text.source_text ?? text.sourceText)) ? String(text.source ?? text.source_text ?? text.sourceText) : null,
-        tags: (text && (text.tags_json ?? text.tagsJson ?? text.tags)) ? (text.tags_json ?? text.tagsJson ?? text.tags) : null,
-        sourceText: (text && (text.source_text || text.sourceText)) ? String(text.source_text || text.sourceText) : "",
-        rows: rows
-      });
-    } catch (_) {}
+	      // Save offline cache for restore-on-load (Offline+F5). Factored into a
+	      // closure so the BRR-P0-002b source_text backfill below can re-save with
+	      // the hydrated blob using the IDENTICAL shape (no drift).
+    const saveLibCache = () => {
+      try {
+        v3LibraryCacheSave(textId, {
+          v: 1,
+          savedAt: new Date().toISOString(),
+          textId: String(textId),
+          title: (text && text.title) ? String(text.title) : null,
+          level: (text && text.level) ? String(text.level) : null,
+          topic: (text && (text.topic ?? text.topic_text ?? text.topicText)) ? String(text.topic ?? text.topic_text ?? text.topicText) : null,
+          source: (text && (text.source ?? text.source_text ?? text.sourceText)) ? String(text.source ?? text.source_text ?? text.sourceText) : null,
+          tags: (text && (text.tags_json ?? text.tagsJson ?? text.tags)) ? (text.tags_json ?? text.tagsJson ?? text.tags) : null,
+          sourceText: (text && (text.source_text || text.sourceText)) ? String(text.source_text || text.sourceText) : "",
+          rows: rows
+        });
+      } catch (_) {}
+    };
+    saveLibCache();
 
 	  //// W10-NOTES-PREMIUM-03: reset notes for this text BEFORE render (avoid cross-text leakage)
 try { v3NotesIngest(textId, []); } catch (_) { v3NotesReset(); }
-	  
+
     v3PrepareForNewTableRender();
 
 	const renderToken = v3RenderTableFromLibrary(rows);
+
+	// BRR-P0-002b — hydrate source_text AFTER render (non-blocking). The lite fetch
+	// above skipped the blob so the table paints ~300ms sooner; the Studio composer,
+	// active-text meta, and offline cache still need it, so fetch it now and backfill
+	// idempotently. Room-mode hides the composer → invisible there; Studio sees it
+	// fill a beat after the table. Server-mode already has source_text from /meta.
+	if (LOCAL_MODE && text && !(text.source_text || text.sourceText)) {
+	  (async () => {
+	    try {
+	      const _ldb = await ensureLocalDB();
+	      const _st = await _ldb.getTextSourceText(textId);
+	      if (!_st) return;
+	      text.source_text = _st;
+	      try {
+	        if (window.v3SetActiveLibraryTextMeta) window.v3SetActiveLibraryTextMeta({
+	          textId: String(textId),
+	          sourceText: String(_st),
+	          audioAssetKey: String((text.audio_asset_key || text.audioAssetKey) || ""),
+	          audioTtsProfileJson: String((text.audio_tts_profile_json || text.audioTtsProfileJson) || ""),
+	        });
+	      } catch (_) {}
+	      try { v3SetSourceTextFromLibrary(String(_st)); } catch (_) {}
+	      saveLibCache();
+	    } catch (_) {}
+	  })();
+	}
 	
 	// W10-NOTES-PREMIUM-03: async notes ingest AFTER table render (never blocks UX)
 notesPromise.then(async (notesRes) => {
