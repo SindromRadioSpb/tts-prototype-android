@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "note": "BRR-P0-004 curated Gemini pilot — 18 canon works, 2 tracks. R7 curation; all originals (orig_language=he honest). review_status=machine (Gemini MT, no human proofread), audio_status=none (text-only). byehuda_id joins to live pseudocatalogue.csv ID.",
+  "works": [
+    { "byehuda_id": "194", "track": "accessible", "register": "poetic", "era": "tehiya", "themes": ["природа", "цветы"], "shelf": "by-pilot-accessible" },
+    { "byehuda_id": "21",  "track": "accessible", "register": "poetic", "era": "tehiya", "themes": ["странствие", "даль"], "shelf": "by-pilot-accessible" },
+    { "byehuda_id": "25",  "track": "accessible", "register": "poetic", "era": "tehiya", "themes": ["возвращение"], "shelf": "by-pilot-accessible" },
+    { "byehuda_id": "24",  "track": "accessible", "register": "poetic", "era": "tehiya", "themes": ["рассвет"], "shelf": "by-pilot-accessible" },
+    { "byehuda_id": "181", "track": "accessible", "register": "mixed",  "era": "tehiya", "themes": ["притча", "Соломон"], "shelf": "by-pilot-accessible" },
+    { "byehuda_id": "38",  "track": "accessible", "register": "poetic", "era": "haskalah", "themes": ["песня"], "shelf": "by-pilot-accessible" },
+    { "byehuda_id": "41",  "track": "accessible", "register": "poetic", "era": "haskalah", "themes": ["рассвет"], "shelf": "by-pilot-accessible" },
+    { "byehuda_id": "297", "track": "accessible", "register": "poetic", "era": "tehiya", "themes": ["любовь"], "shelf": "by-pilot-accessible" },
+
+    { "byehuda_id": "20",  "track": "literary", "register": "poetic",  "era": "tehiya", "themes": ["птица", "тоска", "Сион"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "23",  "track": "literary", "register": "poetic",  "era": "tehiya", "themes": ["ночь", "размышление"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "54",  "track": "literary", "register": "poetic",  "era": "tehiya", "themes": ["Сион"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "185", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["эссе", "народ"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "174", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["Аполлон", "красота", "эллинизм"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "175", "track": "literary", "register": "poetic",  "era": "tehiya", "themes": ["легенда"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "10",  "track": "literary", "register": "literary", "era": "tehiya", "themes": ["эссе", "утешение"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "548", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["эссе", "сионизм"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "647", "track": "literary", "register": "literary", "era": "tehiya", "themes": ["рассказ", "заповедь"], "shelf": "by-pilot-literary" },
+    { "byehuda_id": "39",  "track": "literary", "register": "poetic",  "era": "haskalah", "themes": ["мудрость"], "shelf": "by-pilot-literary" }
+  ],
+  "shelves": [
+    {
+      "slug": "by-pilot-accessible",
+      "title": "Первые шаги: стихи и притчи",
+      "track": "accessible",
+      "era": "tehiya",
+      "genre": "poetry",
+      "order": 0,
+      "editorial_intro": "Короткие стихи и притчи — мягкий вход в чтение на иврите через классику: птица, цветок, рассвет, мудрость Соломона. Читайте с огласовкой, переводом и морфологией на тапе."
+    },
+    {
+      "slug": "by-pilot-literary",
+      "title": "Канон: Тхия и Хаскала",
+      "track": "literary",
+      "era": "tehiya",
+      "genre": "mixed",
+      "order": 1,
+      "editorial_intro": "Большие оды, программные эссе и проза — Бялик, Черниховский, Ахад-ха-Ам, Гордон. Для уверенного чтения архаичного литературного иврита с морфо-опорой и честным провенансом."
+    }
+  ]
+}

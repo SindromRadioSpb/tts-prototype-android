@@ -36,6 +36,7 @@ const { segment } = require("../../db/premium/segmenter");
 const googleFree = require("../../db/premium/providers/googleFree");
 const gcp = require("../../db/premium/providers/gcp");
 const niqqudGateway = require("../../db/premium/niqqudGateway");
+const dictaCloud = require("../../db/premium/providers/dictaCloud");
 const { transliterateWithProfile } = require("../../db/premium/translit");
 const corpusMeta = require("../../db/premium/corpusMeta");
 const shelfMeta = require("../../db/premium/shelfMeta");
@@ -52,6 +53,7 @@ function arg(name, def) { const i = process.argv.indexOf("--" + name); return i 
 function flag(name) { return process.argv.indexOf("--" + name) >= 0; }
 
 const AUTO = flag("auto");
+const MANIFEST = arg("manifest", null) || null; // explicit curation manifest (JSON); overrides auto
 const CSV_PATH = String(arg("csv", path.join(BY_DIR, "pseudocatalogue.csv")));
 const OUT = String(arg("out", path.join(TMP, "benyehuda-pilot.zip")));
 const PROVIDER = String(arg("provider", "google-free"));
@@ -64,6 +66,7 @@ const NO_FETCH = flag("no-fetch");
 const DRY = flag("dry-run");
 const GCP_KEY = String(arg("gcp-key", process.env.GCP_TRANSLATE_API_KEY || ""));
 const GEMINI_KEY = String(arg("gemini-key", process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || ""));
+const GEMINI_MODEL = String(arg("gemini-model", "gemini-2.5-flash")); // pinned for predictable cost (owner decision 1)
 const STAMP = new Date().toISOString();
 
 const PROVIDERS = new Set(["google-free", "gemini", "gcp"]);
@@ -71,6 +74,7 @@ if (!PROVIDERS.has(PROVIDER)) { console.error("[ingest] unsupported provider: " 
 
 const log = (...a) => console.log("[ingest]", ...a);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const NIQ_RE = /[֑-ׇ]/; // non-global (safe for .test in loops)
 function thash(s) { return crypto.createHash("sha256").update(String(s), "utf8").digest("hex"); }
 
 // computeTextKey — byte-identical to db/libraryRepo.js#computeTextKey (kept inline
@@ -141,7 +145,7 @@ function geminiModel() {
   if (!GEMINI_KEY) throw new Error("--provider gemini needs GEMINI_API_KEY env (or --gemini-key)");
   if (!_genaiModel) {
     const { GoogleGenerativeAI } = require("@google/generative-ai");
-    _genaiModel = new GoogleGenerativeAI(GEMINI_KEY).getGenerativeModel({ model: "gemini-flash-latest" });
+    _genaiModel = new GoogleGenerativeAI(GEMINI_KEY).getGenerativeModel({ model: GEMINI_MODEL });
   }
   return _genaiModel;
 }
@@ -171,8 +175,9 @@ async function providerTranslate(segs) {
 async function translateCached(segs, plain) {
   const out = {};
   const todo = [];
+  const provTag = PROVIDER === "gemini" ? "gemini:" + GEMINI_MODEL : PROVIDER;
   segs.forEach((s, i) => {
-    const key = thash(PROVIDER + "|ru|" + plain[i]);
+    const key = thash(provTag + "|ru|" + plain[i]);
     if (Object.prototype.hasOwnProperty.call(transCache, key)) out[s.index] = transCache[key];
     else todo.push({ index: s.index, he: plain[i], _key: key });
   });
@@ -185,14 +190,34 @@ async function translateCached(segs, plain) {
   return out;
 }
 
-// Niqqud for plain segments (Dicta via gateway), per-segment disk cache. Returns map plain→niqqud.
+// Niqqud for plain segments — local gateway first, accurate Dicta CLOUD fallback for
+// anything the local sidecar doesn't vocalize. Per-segment disk cache (only real niqqud
+// is cached, so a transient miss is retried). Returns map plain→niqqud.
+// Why the cloud fallback: the gateway only auto-falls-back when the sidecar is UNREACHABLE
+// (status 0); a reachable-but-empty sidecar (observed: its /nakdan returns {result} not the
+// {results} the gateway reads) would otherwise silently yield NO niqqud for plain prose.
+// Dicta cloud is the same specialized vocalizer (accurate) — far better than a machine guess.
 async function niqqudCached(plainList) {
   const uniq = [...new Set(plainList.filter(Boolean))];
-  const todo = uniq.filter((p) => !Object.prototype.hasOwnProperty.call(niqCache, thash(p)));
+  const todo = uniq.filter((p) => !niqCache[thash(p)]); // only retry items without a cached niqqud
   if (todo.length) {
     const resp = await niqqudGateway.fetchNiqqud(todo);
-    (resp.results || []).forEach((nq, i) => { niqCache[thash(todo[i])] = nq || ""; });
-    if (resp.degraded) log("niqqud DEGRADED (" + resp.reason + ") — plain rows will lack niqqud");
+    const gw = Array.isArray(resp.results) ? resp.results : [];
+    const need2 = [];
+    todo.forEach((p, i) => {
+      const nq = gw[i] || "";
+      if (NIQ_RE.test(nq)) niqCache[thash(p)] = nq; else need2.push(p);
+    });
+    if (need2.length) {
+      log("niqqud: " + need2.length + "/" + todo.length + " → Dicta cloud fallback (sidecar empty)");
+      try {
+        const c = await dictaCloud.nakdan(need2);
+        const cr = (c && c.body && c.body.results) || [];
+        let filled = 0;
+        need2.forEach((p, i) => { const nq = cr[i] || ""; if (NIQ_RE.test(nq)) { niqCache[thash(p)] = nq; filled++; } });
+        log("niqqud: cloud filled " + filled + "/" + need2.length);
+      } catch (e) { log("dicta-cloud fallback failed: " + e.message); }
+    }
     saveCaches();
   }
   const m = {}; for (const p of uniq) m[p] = niqCache[thash(p)] || "";
@@ -230,57 +255,91 @@ function selectWorks(rows) {
   return [...known, ...rest];
 }
 
+// One curated/selected work → bundle text item (shared by auto + manifest paths).
+// `derived` = corpus overrides (track/register/era/themes/orig_language/review_status/
+// audio_status). Returns { textItem, textKey, corpus, reportRow } or null on corpus error.
+async function translateAndBuild(r, body, derived, plainLen) {
+  const tRows = await translateWork(body);
+  const rows = by.buildBundleRows(tRows, { makeRowId: (i) => "r" + i });
+  const content_hash = corpusMeta.computeContentHash(rows.map((x) => x.hebrew_plain));
+  let corpus;
+  try { corpus = by.corpusFromRow(r, { ...derived, content_hash, audio_status: derived.audio_status || "none" }); }
+  catch (e) { log("  skip [" + r.ID + "]: " + e.message); return null; }
+  const textKey = computeTextKey(body);
+  const title = by.cleanField(r.title) || ("Без названия #" + r.ID);
+  const textItem = by.buildTextItem({ textId: "by-" + r.ID, textKey, title, corpus, rows, sourceText: body, createdAt: STAMP });
+  const vocalizedRatio = rows.length ? rows.filter((x) => by.hasNiqqud(x.hebrew_niqqud)).length / rows.length : 0;
+  const reportRow = { id: r.ID, title, author: by.cleanField(r.authors), track: corpus.track, register: corpus.register, era: corpus.era, genre: corpus.genre, orig_language: corpus.orig_language, rows: rows.length, chars: plainLen, vocalized_ratio: Math.round(vocalizedRatio * 100) / 100, review_status: corpus.review_status, audio_status: corpus.audio_status, content_hash: !!corpus.content_hash, ru_filled: rows.filter((x) => x.russian).length };
+  return { textItem, textKey, corpus, reportRow };
+}
+
 (async () => {
   fs.mkdirSync(BY_DIR, { recursive: true });
   const csvText = await loadOrFetchCsv();
   const parsed = by.parseCsv(csvText);
-  log("csv rows:", parsed.rows.length, "| provider:", PROVIDER, "| limit:", LIMIT, "(acc " + ACCESSIBLE_MAX + " / lit " + LITERARY_MAX + ")");
-  if (!AUTO) { log("note: only --auto selection is implemented in this pass; pass --auto"); }
-
-  const candidates = selectWorks(parsed.rows);
-  log("candidates (originals):", candidates.length, "| known-canon first:", candidates.filter((r) => by.eraForAuthor(r.authors)).length);
+  log("csv rows:", parsed.rows.length, "| provider:", PROVIDER, MANIFEST ? "| manifest: " + MANIFEST : "| auto limit " + LIMIT + " (acc " + ACCESSIBLE_MAX + " / lit " + LITERARY_MAX + ")");
 
   const texts = [];
-  const shelfItems = { accessible: [], literary: [] };
   const reportRows = [];
-  let accN = 0, litN = 0, scanned = 0;
+  let shelves = [];
 
-  for (const r of candidates) {
-    if (accN >= ACCESSIBLE_MAX && litN >= LITERARY_MAX) break;
-    if (texts.length >= LIMIT) break;
-    scanned++;
-    let raw; try { raw = await fetchTxt(r.path); } catch (e) { continue; }
-    const { body } = by.stripFooter(raw);
-    if (!body) continue;
-    const plainLen = by.stripNiqqud(body).length;
-    if (plainLen < MIN_CHARS || plainLen > MAX_CHARS) continue;
-    const lineCount = body.split("\n").filter((l) => l.trim()).length;
-    const cls = by.classifyWork({ genre: r.genre, author: r.authors, shape: { lineCount, charCount: plainLen } });
-    if (cls.track === "accessible" && accN >= ACCESSIBLE_MAX) continue;
-    if (cls.track === "literary" && litN >= LITERARY_MAX) continue;
-
-    log("→ [" + r.ID + "] " + (by.cleanField(r.title) || "?") + " — " + (by.cleanField(r.authors) || "?") + " (" + cls.track + "/" + cls.register + ", " + lineCount + " lines, " + plainLen + " ch)");
-    const tRows = await translateWork(body);
-    const rows = by.buildBundleRows(tRows, { makeRowId: (i) => "r" + i });
-    const content_hash = corpusMeta.computeContentHash(rows.map((x) => x.hebrew_plain));
-    let corpus;
-    try { corpus = by.corpusFromRow(r, { ...cls, content_hash, audio_status: "none" }); }
-    catch (e) { log("  skip [" + r.ID + "]: " + e.message); continue; }
-    const textKey = computeTextKey(body);
-    const title = by.cleanField(r.title) || ("Без названия #" + r.ID);
-    texts.push(by.buildTextItem({ textId: "by-" + r.ID, textKey, title, corpus, rows, sourceText: body, createdAt: STAMP }));
-    shelfItems[corpus.track].push(textKey);
-    const vocalizedRatio = rows.length ? rows.filter((x) => by.hasNiqqud(x.hebrew_niqqud)).length / rows.length : 0;
-    reportRows.push({ id: r.ID, title, author: by.cleanField(r.authors), track: corpus.track, register: corpus.register, era: corpus.era, genre: corpus.genre, orig_language: corpus.orig_language, rows: rows.length, chars: plainLen, vocalized_ratio: Math.round(vocalizedRatio * 100) / 100, review_status: corpus.review_status, audio_status: corpus.audio_status, content_hash: !!corpus.content_hash, ru_filled: rows.filter((x) => x.russian).length });
-    if (corpus.track === "accessible") accN++; else litN++;
+  if (MANIFEST) {
+    // ── explicit curation (R6/R7): manifest works + manifest shelves ──────────
+    const man = JSON.parse(fs.readFileSync(MANIFEST, "utf8"));
+    const byId = new Map(); for (const r of parsed.rows) if (by.cleanField(r.ID)) byId.set(String(r.ID), r);
+    const shelfItems = {}; // slug → [text_key]
+    for (const w of (man.works || [])) {
+      const r = byId.get(String(w.byehuda_id));
+      if (!r) { console.error("[ingest] manifest byehuda_id not in CSV: " + w.byehuda_id); process.exit(5); }
+      let raw; try { raw = await fetchTxt(r.path); } catch (e) { console.error("[ingest] txt fetch failed for " + w.byehuda_id + ": " + e.message); process.exit(6); }
+      const { body } = by.stripFooter(raw);
+      if (!body) { console.error("[ingest] empty body for " + w.byehuda_id); process.exit(6); }
+      const plainLen = by.stripNiqqud(body).length;
+      const lineCount = body.split("\n").filter((l) => l.trim()).length;
+      log("→ [" + r.ID + "] " + (by.cleanField(r.title) || "?") + " — " + (by.cleanField(r.authors) || "?") + " (" + w.track + "/" + w.register + ", " + lineCount + " lines, " + plainLen + " ch)");
+      const derived = { track: w.track, register: w.register, era: w.era, themes: w.themes || [], orig_language: w.orig_language || undefined, review_status: w.review_status || undefined, audio_status: "none" };
+      const built = await translateAndBuild(r, body, derived, plainLen);
+      if (!built) { console.error("[ingest] curated work " + w.byehuda_id + " failed corpus build (R1) — not silently dropped"); process.exit(3); }
+      texts.push(built.textItem); reportRows.push(built.reportRow);
+      const slug = w.shelf || ("by-" + built.corpus.track);
+      (shelfItems[slug] = shelfItems[slug] || []).push(built.textKey);
+    }
+    shelves = (man.shelves || []).map((s) => shelfMeta.buildShelf({ slug: s.slug, title: s.title, track: s.track, era: s.era, genre: s.genre, editorial_intro: s.editorial_intro, items: shelfItems[s.slug] || [], order: s.order }));
+    log("manifest:", texts.length, "works,", shelves.length, "shelves");
+  } else if (AUTO) {
+    // ── heuristic auto-select (originals; known-canon first) ──────────────────
+    const candidates = selectWorks(parsed.rows);
+    log("candidates (originals):", candidates.length, "| known-canon first:", candidates.filter((r) => by.eraForAuthor(r.authors)).length);
+    const shelfItems = { accessible: [], literary: [] };
+    let accN = 0, litN = 0, scanned = 0;
+    for (const r of candidates) {
+      if (accN >= ACCESSIBLE_MAX && litN >= LITERARY_MAX) break;
+      if (texts.length >= LIMIT) break;
+      scanned++;
+      let raw; try { raw = await fetchTxt(r.path); } catch (e) { continue; }
+      const { body } = by.stripFooter(raw);
+      if (!body) continue;
+      const plainLen = by.stripNiqqud(body).length;
+      if (plainLen < MIN_CHARS || plainLen > MAX_CHARS) continue;
+      const lineCount = body.split("\n").filter((l) => l.trim()).length;
+      const cls = by.classifyWork({ genre: r.genre, author: r.authors, shape: { lineCount, charCount: plainLen } });
+      if (cls.track === "accessible" && accN >= ACCESSIBLE_MAX) continue;
+      if (cls.track === "literary" && litN >= LITERARY_MAX) continue;
+      log("→ [" + r.ID + "] " + (by.cleanField(r.title) || "?") + " — " + (by.cleanField(r.authors) || "?") + " (" + cls.track + "/" + cls.register + ", " + lineCount + " lines, " + plainLen + " ch)");
+      const built = await translateAndBuild(r, body, { ...cls, audio_status: "none" }, plainLen);
+      if (!built) continue;
+      texts.push(built.textItem); reportRows.push(built.reportRow);
+      shelfItems[built.corpus.track].push(built.textKey);
+      if (built.corpus.track === "accessible") accN++; else litN++;
+    }
+    log("selected:", texts.length, "(accessible " + accN + " / literary " + litN + ") from", scanned, "scanned");
+    if (shelfItems.accessible.length) shelves.push(shelfMeta.buildShelf({ slug: "by-accessible", title: "Доступная полка", track: "accessible", editorial_intro: "Короткие стихи и простые тексты — мягкий вход в чтение на иврите. (Автоподборка пилота; кураторский маршрут — на этапе bulk.)", items: shelfItems.accessible, order: 0 }));
+    if (shelfItems.literary.length) shelves.push(shelfMeta.buildShelf({ slug: "by-literary", title: "Литературная полка", track: "literary", editorial_intro: "Канонические тексты для уверенного чтения с морфо-опорой. (Автоподборка пилота; кураторский маршрут — на этапе bulk.)", items: shelfItems.literary, order: 1 }));
+  } else {
+    console.error("[ingest] pass --manifest <path> (curated) or --auto (heuristic)"); process.exit(2);
   }
 
-  log("selected:", texts.length, "(accessible " + accN + " / literary " + litN + ") from", scanned, "scanned");
-  if (!texts.length) { console.error("[ingest] no works selected — widen --limit/--max-chars or check fetch"); process.exit(4); }
-
-  const shelves = [];
-  if (shelfItems.accessible.length) shelves.push(shelfMeta.buildShelf({ slug: "by-accessible", title: "Доступная полка", track: "accessible", editorial_intro: "Короткие стихи и простые тексты — мягкий вход в чтение на иврите. (Автоподборка пилота; кураторский маршрут — на этапе bulk.)", items: shelfItems.accessible, order: 0 }));
-  if (shelfItems.literary.length) shelves.push(shelfMeta.buildShelf({ slug: "by-literary", title: "Литературная полка", track: "literary", editorial_intro: "Канонические тексты для уверенного чтения с морфо-опорой. (Автоподборка пилота; кураторский маршрут — на этапе bulk.)", items: shelfItems.literary, order: 1 }));
+  if (!texts.length) { console.error("[ingest] no works selected — check manifest/--limit/--max-chars or fetch"); process.exit(4); }
 
   const lib = by.buildLibraryJson({ texts, shelves });
 
@@ -288,7 +347,8 @@ function selectWorks(rows) {
   const gate = by.validateLibrary(lib);
   log("R1 gate:", JSON.stringify(gate.classes), "| errors:", gate.errors.length, "| warnings:", gate.warnings.length);
   for (const w of gate.warnings) log("  warn [" + (w.text_id || w.slug || "?") + "]: " + w.warning);
-  const report = { generated_at: STAMP, provider: PROVIDER, scanned, selected: texts.length, accessible: accN, literary: litN, classes: gate.classes, errors: gate.errors, warnings: gate.warnings, works: reportRows };
+  const accCount = texts.filter((t) => (corpusMeta.getCorpus(t) || {}).track === "accessible").length;
+  const report = { generated_at: STAMP, provider: PROVIDER, mode: MANIFEST ? "manifest" : "auto", selected: texts.length, accessible: accCount, literary: texts.length - accCount, classes: gate.classes, errors: gate.errors, warnings: gate.warnings, works: reportRows };
   const reportPath = path.join(TMP, "benyehuda-ingest-report.json");
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   log("QA report →", reportPath);
