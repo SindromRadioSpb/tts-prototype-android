@@ -1050,7 +1050,16 @@ const HEBREW_TTS_LICENSE_MODES_BLOCKED = new Set(["commercial", "premium_commerc
 // --------------------------------------------------------
 // V3 Audio Assets helpers (P0)
 // --------------------------------------------------------
-const TTS_ENGINE_VERSION = "gcp-tts-v1"; // bump when you change engine/ssml normalization etc.
+// The content-addressed asset-key cluster lives in db/premium/ttsAssetKey.js so
+// the offline canon-audio bake (BRR-P0-007) computes byte-identical keys. Keep
+// these names in local scope — they're referenced throughout this file.
+const {
+  TTS_ENGINE_VERSION,
+  stableStringify,
+  normalizeTtsProfile,
+  computeAssetKey,
+  getAudioRelativePath,
+} = require("./db/premium/ttsAssetKey");
 
 function ensureAudioCacheDir() {
   try {
@@ -1060,39 +1069,6 @@ function ensureAudioCacheDir() {
   } catch (e) {
     console.error("ensureAudioCacheDir failed:", e);
   }
-}
-
-function stableStringify(obj) {
-  if (obj === null || obj === undefined) return JSON.stringify(obj);
-  if (typeof obj !== "object") return JSON.stringify(obj);
-  const keys = Object.keys(obj).sort();
-  const out = {};
-  for (const k of keys) out[k] = obj[k];
-  return JSON.stringify(out);
-}
-
-function normalizeTtsProfile(profile) {
-  const p = profile && typeof profile === "object" ? profile : {};
-  return {
-    language: p.language || null,
-    voiceName: p.voiceName || null,
-    speakingRate: (p.speakingRate == null ? 1.0 : Number(p.speakingRate)),
-    pitch: (p.pitch == null ? 0.0 : Number(p.pitch)),
-  };
-}
-
-function computeAssetKey({ text, ttsProfile, assetType }) {
-  const payload = {
-    assetType: String(assetType || "row"),
-    engine: TTS_ENGINE_VERSION,
-    ttsProfile: normalizeTtsProfile(ttsProfile),
-    text: String(text || ""),
-  };
-  return crypto.createHash("sha256").update(stableStringify(payload), "utf8").digest("hex");
-}
-
-function getAudioRelativePath(assetKey) {
-  return `audio-cache/${assetKey}.mp3`;
 }
 
 function writeMp3IfNotExists(absPath, mp3Buffer) {

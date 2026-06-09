@@ -284,13 +284,17 @@ function closeReader() {
 // filename because /data/** is immutable-cached. The sentinel is a v2-ONLY shelf
 // (by-work-95 = the 17-chapter «מהתחלה») so a v1-importer re-imports v2 (mode:'skip'
 // dedups unchanged works by text_key; adds the new chapter texts + work-shelves).
-const CANON_BUNDLE_URL = '/data/benyehuda/canon-v2.zip';
-const CANON_FLAG = 'benyehuda_canon_v2_imported';
+// canon-v3 (BRR-P0-007): adds pre-baked WaveNet he-IL audio — every row carries an
+// audio_asset_key whose MP3 lives in prod's audio cache, so reader-core tier-1
+// streams it KEYLESS (replacing best-effort browser-speech). Same 79 texts/shelves
+// as v2 → reconcile finds no orphans; the bump just publishes the audio links.
+const CANON_BUNDLE_URL = '/data/benyehuda/canon-v3.zip';
+const CANON_FLAG = 'benyehuda_canon_v3_imported';
 // BRR-P0-008 — the canon edition this shipped bundle publishes. Bump in lockstep
 // with the producer's --canon-version when shipping a new canon-vN.zip. The import
 // is OPFS-truth + version-gated: re-import only when the user is BELOW this version
 // (the importBundle reconcile then drops orphans from the prior edition).
-const CANON_BUNDLE_VERSION = 2;
+const CANON_BUNDLE_VERSION = 3;
 const CANON_VERSION_KEY = 'benyehuda_canon_version';
 
 async function autoImportCanon() {
@@ -324,6 +328,17 @@ async function autoImportCanon() {
     // library.canon_version triggers the import-side dedup reconcile (orphans from a
     // prior edition removed; user content untouched).
     const result = await localDb.importBundle({ library }, { mode: 'skip' });
+    // BRR-P0-007 — attach the pre-baked audio. mode:'skip' leaves an UPGRADING
+    // user's already-imported canon texts untouched, so importBundle alone won't
+    // stamp the new audio_asset_key onto their rows. reconcileAudioLinks adds the
+    // sentence→audio links idempotently (matches by order_index/he_plain); on a
+    // fresh install importBundle already linked them, so this is a no-op there.
+    try {
+      if (typeof localDb.reconcileAudioLinks === 'function') {
+        const al = await localDb.reconcileAudioLinks({ library });
+        try { console.log('[room] canon audio links →', JSON.stringify({ created: al && al.linksCreated, already: al && al.linksAlready, matched: al && al.textsMatched })); } catch (_) {}
+      }
+    } catch (e) { try { console.warn('[room] reconcileAudioLinks failed (non-fatal):', e && e.message); } catch (_) {} }
     try { localStorage.setItem(CANON_VERSION_KEY, String(CANON_BUNDLE_VERSION)); localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
     try { console.log('[room] canon published →', JSON.stringify({ imported: result && result.imported, skipped: result && result.skipped, reconciled: result && result.reconciled })); } catch (_) {}
     return true;
