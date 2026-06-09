@@ -328,17 +328,18 @@ async function autoImportCanon() {
     // library.canon_version triggers the import-side dedup reconcile (orphans from a
     // prior edition removed; user content untouched).
     const result = await localDb.importBundle({ library }, { mode: 'skip' });
-    // BRR-P0-007 — attach the pre-baked audio. mode:'skip' leaves an UPGRADING
-    // user's already-imported canon texts untouched, so importBundle alone won't
-    // stamp the new audio_asset_key onto their rows. reconcileAudioLinks adds the
-    // sentence→audio links idempotently (matches by order_index/he_plain); on a
-    // fresh install importBundle already linked them, so this is a no-op there.
-    try {
-      if (typeof localDb.reconcileAudioLinks === 'function') {
+    // BRR-P0-007 — attach the pre-baked audio. importBundle links audio INLINE
+    // (within its batched transaction) for every freshly-imported text, so a
+    // fresh install needs nothing more. Only an UPGRADING user — whose existing
+    // canon texts are mode:'skip' skipped (no inline linking) — needs the
+    // backfill. Gate on result.skipped so a fresh install doesn't re-check 6.6K
+    // already-present links (~70s of wasted "publishing" time).
+    if (result && Number(result.skipped) > 0 && typeof localDb.reconcileAudioLinks === 'function') {
+      try {
         const al = await localDb.reconcileAudioLinks({ library });
-        try { console.log('[room] canon audio links →', JSON.stringify({ created: al && al.linksCreated, already: al && al.linksAlready, matched: al && al.textsMatched })); } catch (_) {}
-      }
-    } catch (e) { try { console.warn('[room] reconcileAudioLinks failed (non-fatal):', e && e.message); } catch (_) {} }
+        try { console.log('[room] canon audio backfill →', JSON.stringify({ created: al && al.linksCreated, already: al && al.linksAlready, matched: al && al.textsMatched })); } catch (_) {}
+      } catch (e) { try { console.warn('[room] reconcileAudioLinks failed (non-fatal):', e && e.message); } catch (_) {} }
+    }
     try { localStorage.setItem(CANON_VERSION_KEY, String(CANON_BUNDLE_VERSION)); localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
     try { console.log('[room] canon published →', JSON.stringify({ imported: result && result.imported, skipped: result && result.skipped, reconciled: result && result.reconciled })); } catch (_) {}
     return true;

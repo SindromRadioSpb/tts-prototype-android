@@ -4619,6 +4619,14 @@ export async function reconcileAudioLinks(bundleObj) {
 
   const summary = { textsScanned: 0, textsMatched: 0, textsNotFound: 0, linksCreated: 0, linksAlready: 0, errors: [] };
 
+  // BRR-P0-007 — wrap the whole backfill in ONE transaction. Without it every
+  // upsertAudioAsset + linkSentenceAudio auto-commits, so an upgrading user's
+  // 6.6K canon links take ~70s; batched it matches importBundle's inline path
+  // (~15s). Guarded BEGIN: if a tx is already open (nested call), fall back to
+  // auto-commit rather than erroring.
+  let _txOpen = false;
+  try { await x('BEGIN;'); _txOpen = true; } catch (_) { _txOpen = false; }
+  try {
   for (const item of texts) {
     summary.textsScanned++;
     let textKey, rowsIn;
@@ -4696,6 +4704,11 @@ export async function reconcileAudioLinks(bundleObj) {
         summary.errors.push({ asset_key: ak, error: e && e.message ? e.message : String(e) });
       }
     }
+  }
+    if (_txOpen) { await x('COMMIT;'); _txOpen = false; }
+  } catch (e) {
+    if (_txOpen) { try { await x('ROLLBACK;'); } catch (_) {} _txOpen = false; }
+    summary.errors.push({ stage: 'reconcile-audio', error: (e && e.message) ? e.message : String(e) });
   }
   return summary;
 }
