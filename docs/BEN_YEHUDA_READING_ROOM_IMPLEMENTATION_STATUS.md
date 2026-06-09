@@ -333,4 +333,34 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
   end-to-end не проверен (нужен запуск sidecar+BERT-модель — operational); код-фикс верен. Серверный/продюсерный
   (НЕ shell) → SW-бамп не нужен.
 - **HE i18n** `room.*`/`room.prov.*` — черновик, нужен native/ulpan-review до пилота.
-- **Housekeeping:** `Library/*.zip` (build-артефакты canon-v1/v2) → в `.gitignore` (шиппится только `public/data/benyehuda/canon-v2.zip`).
+- **Housekeeping:** `Library/*.zip` (build-артефакты canon-v1/v2) → в `.gitignore` (шиппится только `public/data/benyehuda/canon-v3.zip`).
+
+---
+
+## 11. BRR-P0-007 — Аудио-предбейк канона (keyless WaveNet) — ✅ SHIPPED + PROD 2026-06-09
+
+**SW `v3.10.18-canon-audio-fastlink` LIVE; прод-верифицировано** (curl sw.js + healthz 200 + browser e2e: tier-1 `HEAD 200`→`GET 206` keyless WaveNet @380px).
+
+**Что:** все 79 текстов курируемого канона теперь играют **GCP WaveNet `he-IL-Wavenet-A` keyless** (без BYOK, без browser-speech) — стрим из prod-кэша через reader-core tier-1. Заменяет best-effort browser-speech.
+
+**Коммиты:** `a9659c7` (feature: bake→stamp canon-v3→push→ship, SW v3.10.17) · `a038862` (perf-fix первого импорта, SW v3.10.18).
+
+**Цифры:** 6 446 уник-клипов · 617 921 знак · **$0** (WaveNet 4M/мес free) · 305 МБ в prod-кэше · 0 сбоев bake/push · все 6 646 строк линкованы.
+
+**Конвейер (новое, всё DB-free/offline где можно):**
+- `db/premium/ttsAssetKey.js` — извлечён из `server.js` (единый source-of-truth content-addressed ключа; server require-swap, без смены поведения). `tests/premium/ttsAssetKey.test.js` frozen-vector 8/8.
+- `scripts/premium/lib/ttsBake.js` (GCP REST + chunking + ключ) + `bake-voice-sample.js` (выбор голоса) + `bake-canon-audio.js` (резюмируемый bake, vocalised-text basis = reader-core `getRowTtsTextForRow`).
+- `scripts/premium/lib/stampCanon.js` + `build-canon-v3.js` — штамп canon-v2→canon-v3: `audio_asset_key` на строку + `audio_assets[]` (метаданные, **без MP3-байт** — D1 server-cache streaming) + `audio_status:'tts'` (R1, никогда `human`) + P0-008 shelf `origin`/`canon_version:3`.
+- `push-canon-audio.js` — идемпотентный push MP3 в prod через `/api/audio/cache/upload` (HEAD-precheck).
+- Гейт **`smoke:audio-prebake` 26/26** (паритет ключа · stamped-row⊆audio_assets · dedup · R1-честность · негативные контроли). `index.html` НЕ тронут.
+
+**Доставка = D1 (server-cache streaming):** MP3 живут в `/app/data/audio` (персистентный том), `canon-v3.zip` несёт только ключи+метаданные (~2.8МБ). reader-core tier-1 стримит keyless. Офлайн-OPFS-паки = отдельная фаза (с P0-006).
+
+**Perf-fix первого импорта (`a038862`):** первый деплой делал первую загрузку Зала ~85с (`autoImportCanon` звал `reconcileAudioLinks` безусловно, перепроверяя 6 446 уже-линкованных строк). `importBundle` линкует аудио **inline** (в своей batched-транзакции) для свежеимпортированных текстов → reconcile нужен только upgrade-юзеру (skip-import). Фикс: (1) `library-ui.js` — reconcile только при `skipped>0`; (2) `local-db.js` — обернул `reconcileAudioLinks` в одну транзакцию. **Замер:** fresh **17с** (было 85с), upgrade **4с** (было 74с), 6 646 линков, 0 ошибок.
+
+**🟢 РЕШЕНО (mitigated) — iPhone «Не удалось загрузить библиотеку» (BRR-P0-011):** баг был на v3.10.17 (85с импорт → iOS убивал длинную задачу → error). **Perf-fix `a038862` (85с→17с) решил — owner-iPhone грузится нормально после retry.** WebKit-репро (iPhone-профиль, без OPFS) показал зависание импорта на не-OPFS/медленном backend — это путь для СТАРЫХ iOS (<17). **Оптимизация остаётся (не срочно):** computed asset-key в reader-core (tier-1 вычисляет ключ из текста+canon-профиля → ноль per-row storage/linking → лёгкий импорт + масштаб на 26K) + never-hang safety. Детали → backlog BRR-P0-011.
+
+**Security follow-up (BRR-P0-010):** `/api/audio/cache/upload` пропускает по `X-Local-Mode: 1` → writable анонимно (pre-existing). Нужен owner-token-гейт.
+
+### Следующий естественный шаг — **Track C (BRR-P0-006): раннер полного корпуса (~26K)**
+Этот конвейер (bake/stamp/push) + замеры стоимости/объёма ($0 на 79; для 26K ~45K Gemini-запросов/~30 дней + Dicta-никуд bottleneck) + резюмируемый паттерн (`bake-canon-audio.js` idempotent skip-if-exists, ledger) = **основа** для P0-006. ДО старта — фактический замер объёма×цены×времени + R7 QA-сэмплинг по эпохам. Раннеру нужно сверх текущего продюсера: work-ledger, daily-quota stop, 429-detect, per-work output chunking. **Аудио-доставка для 26K** решается через computed-key (BRR-P0-011 фикс B) — без per-row storage.

@@ -161,10 +161,13 @@
 - **DoD:** отчёт замера до старта; резюм-прогон переживает рестарт; QA-сэмпл по эпохам зелёный.
 - **Notes:** длительный ленивый прогон; параллелен P0-002b.
 
-### BRR-P0-007 — Доставка keyless-контента (per-work served + OPFS-кэш) 🔜 нужно решение владельца
-- **Status:** 🔜 PLANNED — design-вопрос + решение владельца (после/с BRR-P0-006).
+### BRR-P0-007 — Аудио-предбейк канона + доставка keyless 🟡 ЧАСТИЧНО SHIPPED 2026-06-09
+- **Status:** 🟡 PARTIAL. **Аудио-предбейк курируемого канона = SHIPPED + PROD** (`a9659c7`+`a038862`, SW `v3.10.18-canon-audio-fastlink`). Доставка для ПОЛНОГО 26K (per-work served + OPFS-паки) — ещё PLANNED (с BRR-P0-006).
+- **As-built (audio-prebake, D1 server-cache streaming):** GCP WaveNet `he-IL-Wavenet-A` для всех 79 текстов (6 446 клипов / 617 921 знак / **$0** free-tier / 0 сбоев). `db/premium/ttsAssetKey.js` (извлечён из server.js = единый источник ключа) + `scripts/premium/{bake-voice-sample,bake-canon-audio,build-canon-v3,push-canon-audio,audio-prebake-smoke}.js` + `lib/{ttsBake,stampCanon}.js`. `canon-v3.zip` штампует `audio_asset_key` на строку + `audio_assets[]` (метаданные, без MP3-байт) + `audio_status:'tts'` (R1, никогда `human`) + P0-008 shelf `origin`/`canon_version:3`. MP3 запушены в prod-кэш `/app/data/audio` (через `/api/audio/cache/upload` + `X-Local-Mode`). reader-core tier-1 (`HEAD`→`GET 206`) стримит keyless — прод-верифицировано @380px. Гейт `smoke:audio-prebake` 26/26; ротация ключа после прогона; idempotent re-bake (content-addressed).
+- **⚠ Mobile caveat (открыто → BRR-P0-011):** первый импорт canon-v3 (6 646 строк + 6 446 аудио-линков) ~17-21с на desktop-OPFS; на не-OPFS/медленном Safari (старый iOS) импорт зависает → "Не удалось загрузить библиотеку". Фикс v3.10.18 убрал избыточный reconcile (85с→17с fresh / 74с→4с upgrade), но импорт всё ещё тяжёл для mobile → нужен lighten-first-load (BRR-P0-011).
+- **Open (full-corpus delivery):** per-work served-on-open + OPFS-кэш LRU / офлайн-паки по эпохам — design + решение владельца (с P0-006).
 - **Source:** решение владельца 2026-06-08.
-- **Observed:** канон сейчас = один shipped-бандл (2.16МБ) авто-импортом.
+- **Observed:** канон сейчас = один shipped-бандл (canon-v3 ~2.8МБ) авто-импортом.
 - **Current:** один бандл/precache не масштабируется на ~26K × ~27КБ ≈ сотни МБ.
 - **Gap:** нет масштабируемой доставки пред-прогона.
 - **User story:** *Как пользователь без ключей, открываю любую работу — её ассеты подгружаются и кэшируются офлайн.*
@@ -176,6 +179,27 @@
 - **Acceptance:** РЕШЕНИЕ владельца по архитектуре (рекоменд.: per-work served-on-open без ключа + OPFS-кэш с LRU-эвикцией; ± офлайн-паки по эпохам); curated-полки остаются; honest online/offline-state; не раздувает first-visit/OPFS.
 - **DoD:** дизайн на утверждение; прототип на подвыборке; OPFS-cap/эвикция протестированы.
 - **Notes:** BYOK-on-open вторично (мгновенный доступ к ещё-не-испечённому).
+
+### BRR-P0-011 — iOS/mobile: облегчить первый импорт канона 🟢 MITIGATED v3.10.18 (опт. остаётся)
+- **Status:** 🟢 MITIGATED — owner-iPhone грузится нормально на v3.10.18 (после retry). Баг «Не удалось загрузить библиотеку» был на v3.10.17 (85с импорт → iOS убивал длинную задачу). Perf-fix `a038862` (85с→17с) решил для owner-устройства. **Облегчение-импорта (computed-key) остаётся как оптимизация** для старых/медленных устройств + масштаб Track C (не срочно).
+- **Observed (WebKit-репро, iPhone-профиль):** на не-OPFS Safari (`navigator.storage.getDirectory` отсутствует → AccessHandlePool VFS падает → медленный fallback) импорт canon-v3 **не завершается за 90-160с** → Зал висит на "Готовим библиотеку" / эвентуально error. v3.10.17 (85с) iOS вероятно убивал длинную задачу → error. v3.10.18 быстрее (17-21с на desktop-OPFS), но импорт 6 646 строк + 6 446 аудио-линков всё ещё тяжёл для mobile.
+- **Caveat репро:** Playwright-WebKit-Windows НЕ имеет OPFS (в отличие от реального iOS 17+) → репро = не-OPFS путь, не зеркалит iOS-17+-с-OPFS. Нужны: версия iOS владельца + (идеально) Safari-консоль + retry на v3.10.18.
+- **User story:** *Как пользователь на iPhone, открываю Зал и он грузится без зависания/ошибки.*
+- **Surface:** Room/Backend · **Role:** R4, R5, R6 · **Priority:** P0 (mobile = ключевой surface)
+- **Impl:** new · **Cx:** M · **Dependencies:** BRR-P0-007
+- **Кандидат-фиксы (на выбор):** (A) **lazy-per-text audio-link** — импортить канон БЕЗ аудио (вес = canon-v2), линковать аудио строки при открытии текста (idempotent, дёшево); (B) **computed asset-key в reader-core** — не хранить/линковать аудио вовсе; tier-1 вычисляет ключ из текста строки + известного canon-профиля (SHA-256 via crypto.subtle) → HEAD `/api/audio/<key>` (масштабируется на 26K, идеально для P0-006); (C) **defer + render-first** — лёгкий импорт текстов → рендер полок → фоновая линковка (риск: незавершённость при version-gate). **Реком.: B** (убирает весь storage/linking-cost, чинит mobile, готовит Track C).
+- **Acceptance:** Зал грузится <~10с на mobile Safari (OPFS и не-OPFS); НИКОГДА не висит вечно (timeout → честное состояние + retry); tier-1 keyless-аудио работает; @380px RTL.
+- **DoD:** WebKit-репро зелёный; прод-верификация на iPhone владельца; never-hang safety.
+
+### BRR-P0-010 — Lock down `/api/audio/cache/upload` (X-Local-Mode bypass) 🟠 OPEN (security)
+- **Status:** 🟠 OPEN (follow-up из P0-007 push). Не-блокер беты, но writable-endpoint.
+- **Observed:** `POST /api/audio/cache/upload {assetKey, mp3Base64}` гейтится `v3AudioPrefetchIsAllowed`, который пропускает по заголовку `X-Local-Mode: 1` → **любой** может писать в prod audio-cache (cap 20МБ/файл, sha256-keyshape, НЕ верифицирует что MP3 совпадает с ключом). Pre-existing (не введено P0-007; использовано для push канона).
+- **Risk:** cache-poisoning / disk-fill чужими MP3 под валидными ключами; tier-1 отдаст их keyless.
+- **User story:** *Как владелец, хочу чтобы только я мог пополнять prod audio-cache.*
+- **Surface:** Backend · **Role:** R5/ops · **Priority:** P0 (security) · **Cx:** S
+- **Кандидат-фиксы:** owner-token-гейт (env `AUDIO_UPLOAD_TOKEN` + заголовок) на `/api/audio/cache/upload` (и пересмотреть, нужен ли `X-Local-Mode`-bypass на write-путях вообще); push-скрипт шлёт токен из env. Опц.: верифицировать `sha256(mp3)==assetKey` для row/text-ассетов.
+- **Acceptance:** аноним (без токена) → 403; push с токеном → 200; гейт прод-верифицирован; `X-Local-Mode` не даёт write на upload.
+- **DoD:** токен-гейт + тест; push-скрипт обновлён; docs.
 
 ---
 
