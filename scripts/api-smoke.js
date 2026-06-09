@@ -25,6 +25,10 @@ const REPO_ROOT = path.resolve(__dirname, "..");
 const DB_PATH = process.env.DB_PATH || path.join(REPO_ROOT, "data", "app.db");
 const PORT = Number(process.env.API_SMOKE_PORT || 3107);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
+// BRR-P0-010: a known token injected into the test server so the upload lock can be
+// proven from loopback (the revised gate requires the token even locally once a
+// secret is set, so X-Local-Mode / no-token must be rejected even here).
+const SMOKE_AUDIO_TOKEN = "smoke-only-audio-upload-token-do-not-use-in-prod-0123456789";
 
 // Representative sample of the stateful endpoints removed in Phase 6. Each must
 // answer 410 with { ok:false, error:"GONE_PHASE6" } via the gone410 middleware.
@@ -71,6 +75,7 @@ function startServer(dbPath, port) {
       ...process.env,
       DB_PATH: dbPath,
       PORT: String(port),
+      AUDIO_UPLOAD_TOKEN: SMOKE_AUDIO_TOKEN, // BRR-P0-010 — exercise the upload lock
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -142,6 +147,37 @@ async function run() {
       throw new Error(`Unexpected /api/library/export payload: ${exportText.slice(0, 300)}`);
     }
     console.log("PASS /api/library/export -> data-recovery export still served");
+
+    // 3. BRR-P0-010: /api/audio/cache/upload is owner-token gated. With
+    //    AUDIO_UPLOAD_TOKEN set on the server, even a loopback request must present
+    //    the token and X-Local-Mode must NOT authorize a write. A deliberately bad
+    //    assetKey is used so the AUTHORIZED case stops at validation (400) and never
+    //    writes a file to disk.
+    const UPLOAD_URL = `${BASE_URL}/api/audio/cache/upload`;
+    const badKeyBody = JSON.stringify({ assetKey: "not-a-valid-key", mp3Base64: "AAAA" });
+
+    {
+      const res = await fetch(UPLOAD_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: badKeyBody });
+      const { data, text } = await readBody(res);
+      if (res.status !== 403 || !data || data.error !== "BAD_UPLOAD_TOKEN") {
+        throw new Error(`audio upload lock: no-token expected 403 BAD_UPLOAD_TOKEN, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(UPLOAD_URL, { method: "POST", headers: { "Content-Type": "application/json", "X-Local-Mode": "1" }, body: badKeyBody });
+      const { data, text } = await readBody(res);
+      if (res.status !== 403 || !data || data.error !== "BAD_UPLOAD_TOKEN") {
+        throw new Error(`audio upload lock: X-Local-Mode alone expected 403 BAD_UPLOAD_TOKEN (header must not authorize), got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(UPLOAD_URL, { method: "POST", headers: { "Content-Type": "application/json", "X-Audio-Upload-Token": SMOKE_AUDIO_TOKEN }, body: badKeyBody });
+      const { data, text } = await readBody(res);
+      if (res.status !== 400 || !data || data.error !== "BAD_ASSET_KEY") {
+        throw new Error(`audio upload lock: valid token expected 400 BAD_ASSET_KEY (auth passed → reached validation), got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    console.log("PASS /api/audio/cache/upload -> owner-token gated (X-Local-Mode rejected; valid token reaches validation)");
 
     console.log("API smoke: OK");
   } catch (error) {

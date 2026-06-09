@@ -1182,6 +1182,73 @@ function requireAdminToken(req, res) {
   return true;
 }
 
+// BRR-P0-010 — /api/audio/cache/upload is a server-wide WRITE into the shared
+// audio cache (reader-core tier-1 serves it KEYLESS to every reader). It must NOT
+// be writable anonymously. The previous gate (v3AudioPrefetchIsAllowed) honoured an
+// `X-Local-Mode: 1` header from ANY remote client — so anyone could pre-seed or
+// disk-fill the prod cache. This gate requires an operator token instead. Decision
+// logic lives in the pure, unit-tested db/premium/audioUploadAuth.js.
+const { decideAudioUploadAuth } = require("./db/premium/audioUploadAuth");
+
+// Defence-in-depth: a tight, SEPARATE brute-force bound on FAILED upload-token
+// attempts. rlAudioUpload (2000/min) is sized for legit bulk ZIP imports and is far
+// too loose for secret guessing; this caps wrong-token attempts per IP (cf. the
+// tight rlResearchAdmin cap). Success / loopback-dev / disabled never count here.
+// Primary defence remains a high-entropy AUDIO_UPLOAD_TOKEN (>=32 random bytes).
+const AUDIO_UPLOAD_AUTHFAIL_WINDOW_MS = 600_000; // 10 min
+const AUDIO_UPLOAD_AUTHFAIL_MAX = 20;
+const _audioUploadAuthFails = new Map(); // ip -> [timestamps]
+function _audioUploadAuthFailsFresh(ip, now) {
+  const arr = (_audioUploadAuthFails.get(ip) || []).filter((t) => now - t < AUDIO_UPLOAD_AUTHFAIL_WINDOW_MS);
+  // Bound memory under a unique-IP flood (mirrors makeRateLimiter's sweep).
+  if (_audioUploadAuthFails.size > 5000) {
+    for (const [k, v] of _audioUploadAuthFails) {
+      const keep = v.filter((t) => now - t < AUDIO_UPLOAD_AUTHFAIL_WINDOW_MS);
+      if (keep.length === 0) _audioUploadAuthFails.delete(k);
+      else if (keep.length !== v.length) _audioUploadAuthFails.set(k, keep);
+    }
+  }
+  return arr;
+}
+function audioUploadAuthFailExceeded(ip) {
+  const now = Date.now();
+  const arr = _audioUploadAuthFailsFresh(ip, now);
+  _audioUploadAuthFails.set(ip, arr);
+  return arr.length >= AUDIO_UPLOAD_AUTHFAIL_MAX;
+}
+function audioUploadAuthFailRecord(ip) {
+  const now = Date.now();
+  const arr = _audioUploadAuthFailsFresh(ip, now);
+  arr.push(now);
+  _audioUploadAuthFails.set(ip, arr);
+}
+
+// Owner-token gate for /api/audio/cache/upload. Writes the 4xx/5xx response and
+// returns false when not authorized; returns true to proceed. When AUDIO_UPLOAD_TOKEN
+// is set, ONLY a matching X-Audio-Upload-Token authorizes — even from loopback — so
+// no Traefik/X-Forwarded-For behaviour is load-bearing. When unset: loopback-only
+// (pure dev), remote → 503 disabled (fail-closed). timingSafeStrEqual /
+// ankiIsLocalHttpRequest are hoisted function declarations (defined later in file).
+function requireAudioUploadAuth(req, res) {
+  const secret = process.env.AUDIO_UPLOAD_TOKEN || "";
+  const secretSet = !!secret;
+  const ip = req.ip || "unknown";
+  // Bound brute force before running any compare.
+  if (secretSet && audioUploadAuthFailExceeded(ip)) {
+    res.set("Retry-After", String(Math.ceil(AUDIO_UPLOAD_AUTHFAIL_WINDOW_MS / 1000)));
+    res.status(429).json({ ok: false, error: "TOO_MANY_AUTH_FAILURES" });
+    return false;
+  }
+  const provided = req.get("X-Audio-Upload-Token") || (req.body && req.body.upload_token) || "";
+  const tokenMatches = secretSet && timingSafeStrEqual(provided, secret);
+  const isLoopback = (typeof ankiIsLocalHttpRequest === "function") && ankiIsLocalHttpRequest(req);
+  const verdict = decideAudioUploadAuth({ secretSet, tokenMatches, isLoopback });
+  if (verdict.authorized) return true;
+  if (verdict.error === "BAD_UPLOAD_TOKEN") audioUploadAuthFailRecord(ip);
+  res.status(verdict.status).json({ ok: false, error: verdict.error, message: verdict.message });
+  return false;
+}
+
 app.post("/api/tts/key", (req, res) => {
   if (!requireAdminToken(req, res)) return;
   try {
@@ -3131,8 +3198,10 @@ app.post("/api/audio/prefetch/cancel", async (req, res) => {
   }
 });
 
-// POST /api/audio/cache/upload — repopulate Railway audio-cache with an MP3
-// shipped inside a user's ZIP-bundle (Phase 5 cross-device flow).
+// POST /api/audio/cache/upload — repopulate the shared server audio-cache with an
+// MP3 (owner canon push, or a user's ZIP-bundle Phase-5 cross-device flow).
+// AUTH (BRR-P0-010): owner-token gated via requireAudioUploadAuth — X-Local-Mode no
+// longer authorizes this write; anonymous remote → 403 (or 503 if token unset).
 // Body: { assetKey: "<sha256>", mp3Base64: "<base64>" }
 // The asset_key MUST be a 64-char lowercase hex SHA-256, identical to what
 // the server itself produces in computeAssetKey — that's the contract that
@@ -3183,9 +3252,7 @@ app.post("/api/transliterate", requireSameOriginJson, rlTransliterate, async (re
 // engine version), but we do validate the key shape.
 app.post("/api/audio/cache/upload", rlAudioUpload, async (req, res) => {
   try {
-    if (!v3AudioPrefetchIsAllowed(req)) {
-      return res.status(403).json({ ok: false, error: "LOCAL_ONLY" });
-    }
+    if (!requireAudioUploadAuth(req, res)) return; // BRR-P0-010 (writes the 4xx/5xx)
     const body = (req.body && typeof req.body === "object") ? req.body : {};
     const assetKey = String(body.assetKey || "").trim().toLowerCase();
     if (!/^[a-f0-9]{64}$/.test(assetKey)) {

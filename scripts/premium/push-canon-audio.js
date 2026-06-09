@@ -10,11 +10,13 @@
 //                                            [--dir .tmp/benyehuda-audio/audio-cache]
 //                                            [--concurrency 6] [--limit N] [--dry-run]
 //
-// Upload contract: POST /api/audio/cache/upload { assetKey, mp3Base64 }. The
-// endpoint is LOCAL_ONLY but honours the `X-Local-Mode: 1` header (same gate the
-// localMode browser uses), so no prod env toggle / redeploy is needed. It writes
-// audio-cache/<key>.mp3 on the PERSISTENT volume (survives redeploys). Honest:
-// failures are counted + listed, never swallowed.
+// Upload contract: POST /api/audio/cache/upload { assetKey, mp3Base64 }. As of
+// BRR-P0-010 the endpoint is OWNER-TOKEN gated: send header X-Audio-Upload-Token =
+// process.env.AUDIO_UPLOAD_TOKEN (must match the server's env). X-Local-Mode no
+// longer authorizes writes. So the prod env var MUST be set first (set it in
+// Coolify, then deploy, then run this). It writes audio-cache/<key>.mp3 on the
+// PERSISTENT volume (survives redeploys). Honest: failures are counted + listed,
+// never swallowed; 403 (bad token) and 503 (token unset on server) abort fatally.
 //
 // ⚠ OUTWARD-FACING: this publishes audio to the live server. Run only on the
 // owner's explicit go. Uploading MP3s alone is harmless until canon-v3.zip ships
@@ -24,6 +26,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..", "..");
+const TOKEN = process.env.AUDIO_UPLOAD_TOKEN || ""; // BRR-P0-010 owner-token (must match server env)
 
 function parseArgs(argv) {
   const a = { base: "https://linguistpro.kolosei.com", dir: path.join(ROOT, ".tmp", "benyehuda-audio", "audio-cache"), concurrency: 6, limit: 0, dryRun: false };
@@ -54,12 +57,13 @@ async function uploadOne(base, key, filePath, tries = 3) {
     try {
       const r = await fetch(base + "/api/audio/cache/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "X-Local-Mode": "1" },
+        headers: { "Content-Type": "application/json", "X-Audio-Upload-Token": TOKEN },
         body: JSON.stringify({ assetKey: key, mp3Base64 }),
       });
       const body = await r.json().catch(() => ({}));
       if (r.ok && body && body.ok) return { ok: true, alreadyExisted: !!body.alreadyExisted };
-      if (r.status === 403) { const e = new Error("LOCAL_ONLY (403) — endpoint refused; X-Local-Mode header rejected or server changed"); e.fatal = true; throw e; }
+      if (r.status === 403) { const e = new Error("403 BAD_UPLOAD_TOKEN — X-Audio-Upload-Token missing/wrong (does AUDIO_UPLOAD_TOKEN match the server?)"); e.fatal = true; throw e; }
+      if (r.status === 503) { const e = new Error("503 UPLOAD_DISABLED — server has no AUDIO_UPLOAD_TOKEN set; set it in the prod env first"); e.fatal = true; throw e; }
       if (r.status === 429 || (r.status >= 500 && r.status < 600)) { lastErr = new Error("HTTP " + r.status); }
       else throw new Error("HTTP " + r.status + " " + JSON.stringify(body).slice(0, 120));
     } catch (e) {
@@ -79,6 +83,13 @@ async function runPool(items, concurrency, worker) {
 
 async function main() {
   const args = parseArgs(process.argv);
+  if (!TOKEN && !args.dryRun) {
+    console.error("ERROR: AUDIO_UPLOAD_TOKEN is not set (BRR-P0-010). Export the same token the server has, then re-run.\n" +
+      "  PowerShell:  $env:AUDIO_UPLOAD_TOKEN = '<token>'\n" +
+      "  bash:        export AUDIO_UPLOAD_TOKEN=<token>\n" +
+      "  (--dry-run needs no token: it only HEAD-checks what would upload.)");
+    process.exit(2);
+  }
   if (!fs.existsSync(args.dir)) { console.error("ERROR: staging dir not found: " + args.dir + "\nRun bake-canon-audio.js first."); process.exit(2); }
   let files = fs.readdirSync(args.dir).filter((f) => KEY_RE.test(f));
   if (args.limit) files = files.slice(0, args.limit);

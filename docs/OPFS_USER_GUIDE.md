@@ -163,7 +163,7 @@ read-only и переливает в OPFS).
 |-------------------------------|---------------------------|---------------------|---------------------|
 | `POST /api/transliterate`     | `requireSameOriginJson`   | application/json    | 60/min            |
 | `POST /api/export/docx`       | `requireSameOriginJson`   | application/json    | 30/min            |
-| `POST /api/audio/cache/upload`| `v3AudioPrefetchIsAllowed` (env / X-Local-Mode header / local-IP) | — (multipart) | 200/min |
+| `POST /api/audio/cache/upload`| `requireAudioUploadAuth` (owner-token `X-Audio-Upload-Token`; loopback only if token unset — BRR-P0-010; X-Local-Mode no longer authorizes) | application/json | 2000/min + 20-fail/10min |
 
 `requireSameOriginJson` отклоняет запросы:
 - с `Content-Type` не `application/json` → 415;

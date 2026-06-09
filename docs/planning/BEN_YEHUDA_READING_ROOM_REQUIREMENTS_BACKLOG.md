@@ -191,8 +191,8 @@
 - **Acceptance:** Зал грузится <~10с на mobile Safari (OPFS и не-OPFS); НИКОГДА не висит вечно (timeout → честное состояние + retry); tier-1 keyless-аудио работает; @380px RTL.
 - **DoD:** WebKit-репро зелёный; прод-верификация на iPhone владельца; never-hang safety.
 
-### BRR-P0-010 — Lock down `/api/audio/cache/upload` (X-Local-Mode bypass) 🟠 OPEN (security)
-- **Status:** 🟠 OPEN (follow-up из P0-007 push). Не-блокер беты, но writable-endpoint.
+### BRR-P0-010 — Lock down `/api/audio/cache/upload` (X-Local-Mode bypass) ✅ DONE 2026-06-09
+- **Status:** ✅ SHIPPED-as-code 2026-06-09 (gates green; **no SW bump** — server/script/docs only). Owner-token gate `requireAudioUploadAuth` replaces `v3AudioPrefetchIsAllowed` on the upload route. Decision logic = pure unit-tested `db/premium/audioUploadAuth.js`; `AUDIO_UPLOAD_TOKEN` env, header `X-Audio-Upload-Token`, constant-time compare (`timingSafeStrEqual`). **Token SET → only a matching token authorizes (even from loopback → kills the `trust proxy`/`X-Forwarded-For:127.0.0.1` spoof bypass the adversarial review found); UNSET → loopback-only (dev), remote 503 fail-closed.** `X-Local-Mode` + `ALLOW_REMOTE_AUDIO_PREFETCH` no longer authorize this write. Added a tight failed-auth limiter (20/10min/IP) on top of `rlAudioUpload`. `push-canon-audio.js` sends the token + aborts if unset (atomic with the gate, so the owner's push doesn't break). `.env.example` documents `AUDIO_UPLOAD_TOKEN` (≥32 random bytes). Gates: **`audioUploadAuth.test` (node --test) + `test:api-smoke` extended** (no-token→403, X-Local-Mode→403, valid-token→reaches validation). **`sha256(mp3)==assetKey` verify = N/A** (the key is over the TTS *request payload*, not the MP3 bytes — proven infeasible by design; the optional MP3 magic-byte check was DROPPED to avoid false-rejecting legit GCP clips). **⚠ Rollout (ops): set `AUDIO_UPLOAD_TOKEN` in Coolify env FIRST → then deploy → then push; GCP-key rotation is INDEPENDENT.** **Residual (P1):** `/api/audio/prefetch/start` is a second, BYOK-self-funded write into the same cache, still `X-Local-Mode`-reachable → **BRR-P1-013**. **Collateral (Stage-2):** in prod, a user importing their OWN audio-embedded ZIP now 403s on repopulation (canon auto-import carries **zero** MP3 bytes → unaffected; verified); audio still plays via tier-2/3, but the `index.html` toast `zipImportAudioRetry` ("will finish caching next time") becomes inaccurate — `index.html` is frozen until Stage 2, so the i18n copy fix is queued for Stage 2.
 - **Observed:** `POST /api/audio/cache/upload {assetKey, mp3Base64}` гейтится `v3AudioPrefetchIsAllowed`, который пропускает по заголовку `X-Local-Mode: 1` → **любой** может писать в prod audio-cache (cap 20МБ/файл, sha256-keyshape, НЕ верифицирует что MP3 совпадает с ключом). Pre-existing (не введено P0-007; использовано для push канона).
 - **Risk:** cache-poisoning / disk-fill чужими MP3 под валидными ключами; tier-1 отдаст их keyless.
 - **User story:** *Как владелец, хочу чтобы только я мог пополнять prod audio-cache.*
@@ -309,6 +309,15 @@
 - **Acceptance:** редактор правит he_niqqud/translit/ru per-segment; override побеждает кэш; «вычитано» ставится только после вычитки; провенанс обновляется.
 - **DoD:** smoke override→render; чек-лист статусов; не ломает 3-tier кэш.
 - **Notes:** питает честные метки P0-005.
+
+### BRR-P1-013 — Gate `/api/audio/prefetch/start` (second self-funded write path) 🟠 OPEN (security follow-up)
+- **Status:** 🟠 OPEN (surfaced by the BRR-P0-010 adversarial review 2026-06-09).
+- **Observed:** `/api/audio/prefetch/start` (+`/status`,`/cancel`) still gate only on `v3AudioPrefetchIsAllowed`, which honors `X-Local-Mode: 1` from **any** remote client. The job runner calls `ensureAudioAsset → writeMp3IfNotExists` into the **same** content-addressed `audio-cache/<key>.mp3` directory as `/upload`. Synthesis is **BYOK-only** (`synthesizeMp3Buffer` throws `TTS_KEY_REQUIRED` without a server key) — so it is NOT an anonymous server-cost path — but an attacker supplying **their own** GCP key can still write attacker-text MP3s under server-computed keys (self-funded poisoning / disk-fill). Bounded by `wx`-create no-overwrite (can't replace existing canon).
+- **Gap:** P0-010 closed the *cheap, anonymous, arbitrary-bytes* path (`/upload`); this BYOK-funded residual remains. The cheapest poisoning vector is gone, but the ticket's risk statement isn't fully discharged.
+- **Why deferred to P1 (not folded into P0-010):** the prefetch endpoints back the **legitimate** in-browser localMode self-prefetch flow (a user pre-caching *their own* library with *their own* key) — that browser has no owner token, so an owner-token gate would break it. Needs a different control (e.g. per-session/BYOK-scoped quota, or a write-cap-per-IP on prefetch, or binding writes to the requesting session) rather than the owner-token used for `/upload`.
+- **Surface:** Backend · **Role:** R5/ops, R1 · **Priority:** P1 · **Cx:** M · **Dependencies:** BRR-P0-010
+- **Acceptance:** prefetch-start can no longer be driven by an anonymous remote `X-Local-Mode` caller to write arbitrary keys at scale; the legit in-browser self-prefetch still works; honest 4xx on refusal.
+- **DoD:** control chosen + test; doc the trust model; do NOT break localMode prefetch.
 
 ---
 
