@@ -1,5 +1,9 @@
 # Ben-Yehuda Reading Room — Implementation Status & Audit Guide
 
+> ⚠ **CURRENT TRUTH / read first:** `docs/BEN_YEHUDA_CURRENT_STATE_2026_06_09.md` reconciles
+> the live state, owner decisions, and cancelled premises across all docs. If a section below
+> conflicts with it, that file wins (as of 2026-06-09).
+
 **Дата:** 2026-06-08 · **Назначение:** as-built отчёт для аудита, тестирования и
 выдачи рекомендаций/доработок владельцем. Описывает ФАКТ реализации (не план).
 Источники канона: [strategy](strategy/BEN_YEHUDA_LIBRARY_READING_ROOM_STRATEGY.md) ·
