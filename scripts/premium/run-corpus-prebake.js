@@ -4,34 +4,48 @@
 // run-corpus-prebake.js — BRR-P0-006 full-corpus pre-run runner (RUN LOCALLY).
 //
 // Owner decisions 2026-06-09 (docs/planning/BEN_YEHUDA_CORPUS_RUNNER_PLAN.md):
-//   A) scope  = tiered (known-era originals first; size-tiering + giant-defer at run time)
+//   A) scope  = tiered (known-era originals first; giant-defer at run time)
 //   B) speed  = free-tier only (1500 Gemini req/day, $0) → daily-quota stop + resume
 //   C) audio  = on-demand computed-key (runner does NOT pre-bake tail audio)
 //   D) niqqud = Dicta-cloud with backoff
 //
-// THIS INCREMENT = the resumable PLANNER + work-ledger (offline, deterministic):
-// it selects the originals, orders them known-era-first, seeds the ledger, and prints
-// the day-by-day free-tier schedule + ETA from the measured reqs/work. It does NOT yet
-// run the translate/niqqud bake loop — that lands in the next increment (it reuses the
-// shipped producer's translateWork/niqqud orchestration via an extracted lib/ingestCore;
-// see the plan doc). Running the bake without that is intentionally refused (no stub).
+// Two modes:
+//   --plan  : offline, deterministic. Selects originals, orders known-era-first, seeds
+//             the ledger, prints the free-tier day-schedule + ETA. No network.
+//   --bake  : the real resumable run. For each pending work (known-era first): fetch →
+//             segment → giant-defer if over the cap → translate (Gemini, free-tier) +
+//             niqqud (Dicta-cloud) via the SHARED lib/ingestCore → R1 corpus build →
+//             accumulate into a per-era shard bundle. Stops on the daily Gemini quota
+//             (proactive) or a quota/429 from the API (marks the in-flight work for
+//             retry), saving the ledger + caches so tomorrow resumes cleanly.
 //
 //   node scripts/premium/run-corpus-prebake.js --plan
-//   node scripts/premium/run-corpus-prebake.js --plan --gemini-per-day 1500 --reqs-per-work 5.7
+//   node scripts/premium/run-corpus-prebake.js --bake --provider gemini   # needs GEMINI_API_KEY
+//   node scripts/premium/run-corpus-prebake.js --bake --provider google-free --limit 5   # smoke
 //
-// Ledger: .tmp/benyehuda/prebake-ledger.json (resume-safe; re-running --plan re-seeds
-// only new ids and reports current progress without resetting done works).
+// Ledger: .tmp/benyehuda/prebake-ledger.json · shards: .tmp/benyehuda/shards/ (gitignored).
+// CAVEAT: the ledger is provider-AGNOSTIC (it records done/failed per work, not which
+// provider produced it). Use ONE provider for a whole run; to switch providers (e.g.
+// google-free smoke → gemini real run), delete the ledger so every work re-bakes with
+// the chosen provider. (The disk trans-cache is provider-KEYED, so it never mixes.)
 
 const fs = require("fs");
 const path = require("path");
 
 const by = require("./lib/benyehuda");
 const ledgerLib = require("./lib/corpusLedger");
+const shelfMeta = require("../../db/premium/shelfMeta");
+const corpusMeta = require("../../db/premium/corpusMeta");
+const { createIngestCore } = require("./lib/ingestCore");
+const { segment } = require("../../db/premium/segmenter");
+const JSZip = require("../../public/db/jszip.min.js");
 
 const REPO = path.resolve(__dirname, "..", "..");
-const BY_DIR = path.join(REPO, ".tmp", "benyehuda");
+const TMP = path.join(REPO, ".tmp");
+const BY_DIR = path.join(TMP, "benyehuda");
 const CSV_PATH = path.join(BY_DIR, "pseudocatalogue.csv");
-const ESTIMATE_PATH = path.join(REPO, ".tmp", "by-prerun-estimate.json");
+const ESTIMATE_PATH = path.join(TMP, "by-prerun-estimate.json");
+const RAW_BASE = "https://raw.githubusercontent.com/projectbenyehuda/public_domain_dump/master";
 
 function arg(name, def) { const i = process.argv.indexOf("--" + name); return i >= 0 && i + 1 < process.argv.length && !String(process.argv[i + 1]).startsWith("--") ? process.argv[i + 1] : def; }
 function flag(name) { return process.argv.indexOf("--" + name) >= 0; }
@@ -40,8 +54,20 @@ const PLAN = flag("plan");
 const BAKE = flag("bake");
 const GEMINI_PER_DAY = Number(arg("gemini-per-day", 1500)) || 1500;
 const LEDGER_PATH = String(arg("ledger", path.join(BY_DIR, "prebake-ledger.json")));
+const SHARD_DIR = String(arg("shard-dir", path.join(BY_DIR, "shards")));
+const PROVIDER = String(arg("provider", "gemini"));
+const GEMINI_KEY = String(arg("gemini-key", process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || ""));
+const GEMINI_MODEL = String(arg("gemini-model", "gemini-2.5-flash"));
+const GEMINI_CHUNK = Number(arg("gemini-chunk", 50));
+const GEMINI_TIMEOUT = Number(arg("gemini-timeout", 90000));
+const GCP_KEY = String(arg("gcp-key", process.env.GCP_TRANSLATE_API_KEY || ""));
+const NO_FETCH = flag("no-fetch");
+const GIANT_SEGMENTS = Number(arg("giant-segments", 2000)) || 2000; // defer works over this to a later giant pass
+const LIMIT = Number(arg("limit", 0)) || 0;                          // 0 = no cap (besides the daily quota)
+const FLUSH_EVERY = Number(arg("flush", 300)) || 300;                // texts per era before a shard flushes
+const CANON_VERSION = Number(arg("canon-version", 3)) || 3;
+const CANON_ORIGIN = "benyehuda-ingest";
 
-// reqs/work: prefer the measured estimate (.tmp/by-prerun-estimate.json), else default.
 function defaultReqsPerWork() {
   try {
     const est = JSON.parse(fs.readFileSync(ESTIMATE_PATH, "utf8"));
@@ -58,43 +84,145 @@ function selectAndOrderOriginals(rows) {
   const known = [], rest = [];
   for (const r of originals) {
     let era = null; try { era = by.eraForAuthor(r.authors); } catch (_) {}
-    (era ? known : rest).push({ id: String(by.cleanField(r.ID)), tier: era ? "known-era" : "rest", era: era || null });
+    (era ? known : rest).push({ id: String(by.cleanField(r.ID)), tier: era ? "known-era" : "rest" });
   }
   return { originals, known, rest, ordered: [...known, ...rest] };
 }
 
-function main() {
-  if (!fs.existsSync(CSV_PATH)) { console.error("CSV not found: " + CSV_PATH + "\nRun `node scripts/premium/ingest-benyehuda.js` once (or measure-corpus-prerun.js) to fetch it."); process.exit(2); }
-  if (BAKE) {
-    console.error("[prebake] --bake is NOT wired in this increment (no stub). The translate/niqqud bake loop\n" +
-      "          (free-tier daily-quota + 429-detect + per-shard output, reusing the producer core via\n" +
-      "          lib/ingestCore) is the next increment — see docs/planning/BEN_YEHUDA_CORPUS_RUNNER_PLAN.md.\n" +
-      "          Use --plan for the schedule + to seed/inspect the ledger.");
-    process.exit(2);
-  }
-  if (!PLAN) { console.error("[prebake] pass --plan (the bake loop is the next increment). See --help in the header."); process.exit(2); }
-
+function doPlan() {
   const { rows } = by.parseCsv(fs.readFileSync(CSV_PATH, "utf8"));
   const sel = selectAndOrderOriginals(rows);
-
   const ledger = ledgerLib.loadLedger(LEDGER_PATH);
   const added = ledgerLib.seedLedger(ledger, sel.ordered);
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
   ledgerLib.saveLedger(LEDGER_PATH, ledger);
   const s = ledgerLib.stats(ledger);
-
   const pending = ledgerLib.pendingWorks(ledger, sel.ordered.map((e) => e.id)).length;
   const worksPerDay = Math.max(1, Math.floor(GEMINI_PER_DAY / REQS_PER_WORK));
   const etaDays = Math.ceil(pending / worksPerDay);
-
   console.log("=== BRR-P0-006 PRE-RUN PLAN (free-tier, tiered, resumable) ===");
   console.log(`corpus: ${rows.length} works | originals ${sel.originals.length} (translations handled separately)`);
   console.log(`tiers:  known-era ${sel.known.length} (FIRST) → rest ${sel.rest.length}`);
   console.log(`ledger: ${LEDGER_PATH} (seeded +${added} new) | done ${s.done} · pending ${s.pending} · failed ${s.failed} · deferred-giant ${s.deferredGiant} · skipped ${s.skipped}`);
   console.log(`budget: ${GEMINI_PER_DAY} Gemini req/day · ~${REQS_PER_WORK.toFixed(1)} req/work → ~${worksPerDay} works/day`);
-  console.log(`ETA:    ~${etaDays} days to drain ${pending} pending originals ($0 free-tier) — giants deferred to a capped tail pass at run time`);
+  console.log(`ETA:    ~${etaDays} days to drain ${pending} pending originals ($0 free-tier) — giants (> ${GIANT_SEGMENTS} segs) deferred to a capped tail pass`);
   console.log("audio:  on-demand computed-key (NOT pre-baked here); niqqud: Dicta-cloud w/ backoff; review_status=machine.");
-  console.log("next:   wire the bake loop (translate/niqqud via lib/ingestCore, per-shard output, 429-detect) — see plan doc.");
+  console.log("bake:   `--bake --provider gemini` (needs GEMINI_API_KEY) to start; resumes daily on the quota.");
 }
 
-main();
+async function doBake() {
+  if (PROVIDER === "gemini" && !GEMINI_KEY) { console.error("[bake] --provider gemini needs GEMINI_API_KEY env (or --gemini-key)."); process.exit(2); }
+  const { rows } = by.parseCsv(fs.readFileSync(CSV_PATH, "utf8"));
+  const sel = selectAndOrderOriginals(rows);
+  const byId = new Map(); for (const r of rows) { const id = by.cleanField(r.ID); if (id) byId.set(String(id), r); }
+  const ledger = ledgerLib.loadLedger(LEDGER_PATH);
+  ledgerLib.seedLedger(ledger, sel.ordered);
+  fs.mkdirSync(SHARD_DIR, { recursive: true });
+
+  const core = createIngestCore({
+    provider: PROVIDER, geminiKey: GEMINI_KEY, geminiModel: GEMINI_MODEL,
+    geminiChunk: GEMINI_CHUNK, geminiTimeout: GEMINI_TIMEOUT, gcpKey: GCP_KEY,
+    byDir: BY_DIR, csvPath: CSV_PATH, rawBase: RAW_BASE, noFetch: NO_FETCH,
+    stamp: new Date().toISOString(), log: (...a) => console.log("  [core]", ...a),
+  });
+
+  const today = new Date().toISOString().slice(0, 10); // UTC day for the quota budget
+  const orderedIds = sel.ordered.map((e) => e.id);
+  const pending = ledgerLib.pendingWorks(ledger, orderedIds, { includeGiant: false });
+  console.log(`[bake] day ${today} | provider ${PROVIDER} | pending ${pending.length} | quota ${GEMINI_PER_DAY}/day (used ${ledgerLib.dayReqsUsed(ledger, today)})`);
+
+  const shards = new Map(); // era → [{ item, key }]
+  const shardSeq = {};
+  let processed = 0, doneN = 0, failN = 0, giantN = 0, skipN = 0;
+
+  function flushShard(era) {
+    const arr = shards.get(era) || [];
+    if (!arr.length) return;
+    const texts = arr.map((x) => x.item);
+    const slugEra = String(era || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "unknown";
+    const seq = (shardSeq[era] = (shardSeq[era] || 0) + 1);
+    const shelf = shelfMeta.buildShelf({
+      slug: "by-era-" + slugEra + "-" + seq, title: "Эпоха: " + era, track: "literary",
+      editorial_intro: "Автособранный срез корпуса по эпохе «" + era + "» (часть " + seq + "). Машинный перевод + Dicta-никуд; провенанс на карточках.",
+      items: arr.map((x) => x.key), order: 200 + seq,
+    });
+    shelf.origin = CANON_ORIGIN; shelf.canon_version = CANON_VERSION;
+    const lib = by.buildLibraryJson({ texts, shelves: [shelf], canonVersion: CANON_VERSION });
+    const gate = by.validateLibrary(lib);
+    if (!gate.ok) console.error("[bake] ⚠ shard era=" + era + " R1 gate errors (per-work R1 already enforced; writing anyway): " + gate.errors.length);
+    const zip = new JSZip();
+    const rowCount = texts.reduce((a, t) => a + t.rows.length, 0);
+    zip.file("manifest.json", JSON.stringify(by.buildManifest({ textCount: texts.length, rowCount, noteCount: 0, createdAt: new Date().toISOString() }), null, 2));
+    zip.file("library/library.json", JSON.stringify(lib));
+    const out = path.join(SHARD_DIR, "by-era-" + slugEra + "-" + seq + ".zip");
+    return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE", compressionOptions: { level: 6 } }).then((buf) => {
+      fs.writeFileSync(out, buf);
+      console.log(`\n[bake] shard → ${path.basename(out)} (${texts.length} texts, ${rowCount} rows, ${Math.round(buf.length / 1024)} KB)`);
+      shards.set(era, []);
+    });
+  }
+
+  let stopReason = "pending drained";
+  try {
+    for (const id of pending) {
+      if (LIMIT && processed >= LIMIT) { stopReason = "--limit " + LIMIT; break; }
+      if (PROVIDER === "gemini" && ledgerLib.dayQuotaRemaining(ledger, today, GEMINI_PER_DAY) <= 0) { stopReason = "daily Gemini quota"; break; }
+      const r = byId.get(id);
+      if (!r) { ledgerLib.markSkipped(ledger, id, { error: "row-missing" }, today); skipN++; continue; }
+      let raw; try { raw = await core.fetchTxt(r.path); }
+      catch (e) { ledgerLib.markFailed(ledger, id, "fetch:" + (e && e.message), today); failN++; continue; }
+      const { body } = by.stripFooter(raw);
+      if (!body || !body.trim()) { ledgerLib.markSkipped(ledger, id, { error: "empty-body" }, today); skipN++; continue; }
+      const segCount = segment(body).length;
+      if (segCount > GIANT_SEGMENTS) { ledgerLib.markDeferredGiant(ledger, id, { segments: segCount }, today); giantN++; continue; }
+
+      const plainLen = by.stripNiqqud(body).length;
+      const lineCount = body.split("\n").filter((l) => l.trim()).length;
+      const cls = by.classifyWork({ genre: r.genre, author: r.authors, shape: { lineCount, charCount: plainLen } });
+      const reqsBefore = core.stats.geminiRequests;
+      let built = null, err = null;
+      try { built = await core.translateAndBuild(r, body, { ...cls, audio_status: "none" }, plainLen); }
+      catch (e) { err = (e && e.message) || String(e); }
+      const reqsDelta = core.stats.geminiRequests - reqsBefore;
+      if (reqsDelta) ledgerLib.recordReqs(ledger, today, reqsDelta);
+
+      if (core.quotaExhausted) {
+        // Gemini quota hit mid-work → mark for retry (real translations were cached;
+        // empties are NOT cached, so tomorrow only redoes the unfinished part), then stop.
+        ledgerLib.markFailed(ledger, id, "gemini-quota", today);
+        ledgerLib.saveLedger(LEDGER_PATH, ledger); core.saveCaches();
+        stopReason = "Gemini quota exhausted (work " + id + " marked for retry)";
+        break;
+      }
+      if (err) { ledgerLib.markFailed(ledger, id, "translate:" + err, today); failN++; continue; }
+      if (!built) { ledgerLib.markFailed(ledger, id, "corpus-build-R1", today); failN++; continue; }
+
+      const era = built.corpus.era || "unknown";
+      if (!shards.has(era)) shards.set(era, []);
+      shards.get(era).push({ item: built.textItem, key: built.textKey });
+      ledgerLib.markDone(ledger, id, { tier: cls.track, segments: built.textItem.rows.length, reqs: reqsDelta, ru_filled: built.reportRow.ru_filled, content_hash: built.corpus.content_hash }, today);
+      doneN++; processed++;
+      if (shards.get(era).length >= FLUSH_EVERY) await flushShard(era);
+      if (processed % 20 === 0) { ledgerLib.saveLedger(LEDGER_PATH, ledger); core.saveCaches(); process.stdout.write(`  [bake] processed ${processed} (done ${doneN} fail ${failN} giant ${giantN} skip ${skipN}) reqs-today ${ledgerLib.dayReqsUsed(ledger, today)}\r`); }
+    }
+  } finally {
+    for (const era of Array.from(shards.keys())) await flushShard(era);
+    ledgerLib.saveLedger(LEDGER_PATH, ledger);
+    core.saveCaches();
+  }
+
+  const s = ledgerLib.stats(ledger);
+  console.log(`\n[bake] STOP (${stopReason}). this run: +done ${doneN} / fail ${failN} / giant-deferred ${giantN} / skip ${skipN}; reqs-today ${ledgerLib.dayReqsUsed(ledger, today)}/${GEMINI_PER_DAY}.`);
+  console.log(`[bake] ledger totals: done ${s.done} · pending ${s.pending} · failed ${s.failed} · deferred-giant ${s.deferredGiant} · skipped ${s.skipped} of ${s.total}. shards → ${SHARD_DIR}`);
+  console.log("[bake] resume: re-run the same command (failed works retry; done works skip; quota resets next UTC day).");
+}
+
+async function main() {
+  if (!fs.existsSync(CSV_PATH)) { console.error("CSV not found: " + CSV_PATH + "\nRun `node scripts/premium/measure-corpus-prerun.js` or ingest-benyehuda.js once to fetch it."); process.exit(2); }
+  if (BAKE) return doBake();
+  if (PLAN) return doPlan();
+  console.error("[prebake] pass --plan (offline schedule) or --bake (the resumable run). See the header for flags.");
+  process.exit(2);
+}
+
+main().catch((e) => { console.error("[prebake] fatal:", (e && e.stack) || e); process.exit(1); });
