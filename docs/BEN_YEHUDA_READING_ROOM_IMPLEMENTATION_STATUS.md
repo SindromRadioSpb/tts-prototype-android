@@ -362,5 +362,18 @@ smoke:shelves-roundtrip 17 · smoke:room 14 · smoke:room-mode 23 · smoke:notes
 
 **Security follow-up (BRR-P0-010) — ✅ DONE 2026-06-09 (code; no SW bump):** `/api/audio/cache/upload` now owner-token gated via `requireAudioUploadAuth` (pure decision in `db/premium/audioUploadAuth.js`; env `AUDIO_UPLOAD_TOKEN`; header `X-Audio-Upload-Token`; constant-time compare; **token-set ⇒ required even from loopback** so no `X-Forwarded-For` spoof bypass; unset ⇒ loopback-only dev, remote 503 fail-closed). `X-Local-Mode`/`ALLOW_REMOTE_AUDIO_PREFETCH` no longer authorize writes; +20-fail/10min brute-force bound. `push-canon-audio.js` sends the token (aborts if unset). Gates: `audioUploadAuth.test` 9/9 + `test:api-smoke` extended (no-token→403 / X-Local-Mode→403 / valid→validation). **Adversarial review (4 lenses) folded in.** **Ops rollout:** set `AUDIO_UPLOAD_TOKEN` in Coolify env FIRST → deploy → push (GCP-key rotation independent). **Residual → BRR-P1-013** (`/api/audio/prefetch/start` is a BYOK-self-funded second write path, X-Local-Mode-reachable; deferred because gating it would break legit in-browser self-prefetch). **Collateral → Stage 2:** prod users importing an OWN audio-embedded ZIP now 403 on repopulation (canon auto-import carries zero MP3 bytes → unaffected; verified twice) — audio still plays (tier-2/3); the `index.html` `zipImportAudioRetry` toast copy is queued for the Stage-2 i18n rewrite (index.html frozen until then).
 
-### Следующий естественный шаг — **Track C (BRR-P0-006): раннер полного корпуса (~26K)**
-Этот конвейер (bake/stamp/push) + замеры стоимости/объёма ($0 на 79; для 26K ~45K Gemini-запросов/~30 дней + Dicta-никуд bottleneck) + резюмируемый паттерн (`bake-canon-audio.js` idempotent skip-if-exists, ledger) = **основа** для P0-006. ДО старта — фактический замер объёма×цены×времени + R7 QA-сэмплинг по эпохам. Раннеру нужно сверх текущего продюсера: work-ledger, daily-quota stop, 429-detect, per-work output chunking. **Аудио-доставка для 26K** решается через computed-key (BRR-P0-011 фикс B) — без per-row storage.
+### ВЫБРАННОЕ НАПРАВЛЕНИЕ (2026-06-09) — **Track A / BRR-P0-006: раннер полного корпуса (~26 455)** — ГЛАВНЫЙ стратегический
+Владелец выбрал Track A главным направлением (после отгрузки P0-010) и санкционировал планирование + реализацию.
+**Планирование ПЕРВЫМ (DoD тикета):** no-code отчёт замера (объём × цена × время) + дизайн раннера + R7 QA-сэмплинг
+по эпохам → утверждение владельцем ДО длинного прогона; затем реализация раннера.
+- **Основа готова:** конвейер `ingest-benyehuda.js` + `lib/benyehuda.js` (disk-cache resume, manifest-курация,
+  A-главы) + bake/stamp/push (P0-007) + резюмируемый паттерн ($0 на 79). Раннеру нужно СВЕРХ продюсера:
+  work-ledger, daily-quota stop, 429-detect/backoff, per-work output chunking.
+- **Замер (предварительно):** Gemini free-tier ~1500/день ⇒ ~45K запросов ≈ ~30 дней; **Dicta-никуд = узкое
+  место** (P0-009 локальный sidecar-фикс отгружен, но e2e-local не проверен — operational). Точные цифры — в
+  отчёте замера (планируется).
+- **Аудио-доставка для 26K** = через **computed asset-key (BRR-P0-011 фикс B)**, встроена в дизайн доставки A —
+  БЕЗ per-row storage (не масштабируется). curated-полки остаются.
+- **R1-инварианты:** всё `review_status=machine`; провенанс везде; схема аддитивна; никуд source-first→Dicta.
+- **Параллельно (не блокеры):** BRR-P1-013 (закрыть `prefetch/start`), полировка (бейдж эпоха·регистр / fade /
+  HE-review / P1-009). **Отложено:** Stage 2 (index.html→reader-core) + правка тоста `zipImportAudioRetry`.

@@ -145,8 +145,8 @@
 - **DoD:** смоук-сверка локальный vs cloud; пред-прогон не зависит от Dicta-cloud.
 - **Notes:** caveat §10.
 
-### BRR-P0-006 — Раннер полного пред-прогона корпуса (keyless) 🔜 приоритетный фоновый трек
-- **Status:** 🔜 PLANNED (после BRR-P0-008/009). Owner-priority (2026-06-08).
+### BRR-P0-006 — Раннер полного пред-прогона корпуса (keyless) 🟢 IN PROGRESS — ГЛАВНОЕ направление
+- **Status:** 🟢 IN PROGRESS (выбрано главным направлением 2026-06-09 после отгрузки P0-010; пререквизиты P0-008/009 ✅). **Планирование ПЕРВЫМ:** no-code отчёт замера (объём×цена×время) + дизайн раннера (work-ledger / daily-quota stop / 429-detect / per-work chunking / резюмируемость) + R7 QA-сэмплинг по эпохам → утверждение владельцем ДО длинного прогона. Аудио-доставка 26K = computed asset-key (BRR-P0-011 фикс B), встроена в дизайн доставки. Owner-priority (2026-06-08). **Замер ✅ (sample 800): 24 641 originals + 1814 переводов; ~141K Gemini-reqs ≈ ~95 дней free-tier $0; аудио full pre-bake НЕВОЗМОЖЕН ≈288 ГБ → on-demand. Решения A–D зафиксированы; key-safety проверена. План + замер: `docs/planning/BEN_YEHUDA_CORPUS_RUNNER_PLAN.md`.** **Реализовано (код, не закоммичено):** `lib/corpusLedger.js`+test 6/6, `run-corpus-prebake.js --plan` (тиринг known-era-first + ETA), `measure-corpus-prerun.js`. **Next = bake-loop** (вынести producer-оркестрацию в `lib/ingestCore.js` → `--bake`: quota-stop/429-detect/per-shard/giant-defer/QA-сэмпл).
 - **Source:** решение владельца — «испечь всё» = универсальная keyless-библиотека.
 - **Observed:** продюсер кэширует+резюмирует на диск (`.tmp/benyehuda/`).
 - **Current:** курируется ~55 работ (`benyehuda-canon-manifest.json`); полный корпус (~26 455) не прогнан.
