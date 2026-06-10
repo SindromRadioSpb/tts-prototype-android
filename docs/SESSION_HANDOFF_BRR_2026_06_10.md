@@ -1,12 +1,20 @@
-# BRR session handoff — 2026-06-10 (Путь А: A0→A4→A2 SHIPPED; NEXT = A3)
+# BRR session handoff — 2026-06-10 (Путь А: A0→A4→A2→A3-Slice1 SHIPPED+PROD; NEXT = A3 Slice 2)
 
 > **READ FIRST in the new session** for Ben-Yehuda Reading Room / full-corpus delivery work.
 > Consolidated state so the next session picks up without losing context.
 
 ## Сверенное состояние (git)
-- **Branch `main` = origin/main = HEAD `a5f9ebd`**, дерево ЧИСТОЕ, всё запушено.
-- **Прод SW = `v3.10.20-corpus-coverage`** — в этой сессии НЕ бампался (трогались только server.js / producer / data / scripts / docs — НИ index.html, НИ library.html, НИ library-ui.js). **A3 первым делом бампнёт `public/sw.js` CACHE_VERSION** (там меняется shell).
+- **Branch `main` = origin/main = HEAD `b992fba`** (A3 Slice 1), дерево ЧИСТОЕ, всё запушено.
+- **Прод SW = `v3.10.21-corpus-drill`** — A3 Slice 1 бампнул (shell: library.html + library-ui.js). **ПРОД-ВЕРИФИЦИРОВАНО** end-to-end на linguistpro.kolosei.com (drill L1→L2→L3→reader, 0 pageerror).
 - **Бейк (пауза):** `node scripts/premium/run-corpus-prebake.js --status` → done 100 · pending 24541 · failed 0 · gemini today 0/1500. Резюм = `--bake` (нужен GEMINI_API_KEY — **ждёт ротации ключа**).
+
+## A3 Slice 1 — клиент Период→Автор→Работа на v3 — SHIPPED+PROD (`b992fba`)
+Владелец одобрил рекомендованную архитектуру (recon-first + competitor research: benyehuda.org/Sefaria/LingQ/Standard Ebooks). L1 = рейл «✓ Готовы к чтению (100)» + хронологическая сетка периодов; решения: 2 слайса · полный глобальный title-search (→ Slice 2).
+- **Продюсер** (`build-corpus-catalog.js --full`): NEW сайдкар **`corpus-index-v3.json`** (~160КБ raw / ~35КБ gz) = per-era author-index с **block-membership** + counts + 100 ready-карточек + per-era жанр/язык гистограммы; `ERA_META.range` (флоруит-окно, зеркалит era-map ERA_BOUNDS) + `gloss` → era_taxonomy; **`text_key` на baked-карточках** (served-on-open OPFS resolve / idempotent re-open); root несёт `index_file`+`author_count`. Только 6 манифестов изменились (те, что держат baked).
+- **Клиент** (`library-ui.js`): `CORPUS_CATALOG_VERSION=3`; тонкий корень на boot, ленивый сайдкар при первом открытии Корпуса, per-author манифест-блок(и) при drill-in (кэш). L1 рейл+сетка · L2 lean градуированный список авторов + incremental reveal (CORPUS_PAGE=60) · L3 секции (Готовы/перевод позже) + датчик объёма + провенанс, baked ▶ openable / unprocessed ⏳ disabled; breadcrumb back; `openCorpusWork` без изменений.
+- **library.html**: corpus-nav CSS (380px RTL, dark). **index.html НЕ тронут.** sw.js precache ТОЛЬКО тонкий корень v3 (D5). i18n `room.corpus.*` (ru/en/he; HE best-effort).
+- **Лэйзи-бюджет (D1/R4) доказан гейтом:** L1 = 0 манифестов, L3 = ≤2 (блок автора), не 18/10МБ.
+- **Гейты:** `smoke:corpus-room`→v3 **18/18** · NEW `smoke:corpus-nav` **21/21** · room 14 · room-mode 23 · reader-parity · full-catalog 24 · corpus-catalog 34 (v2 цел) · era-map 17 · api-smoke. @380px RTL скрины L1–L4.
 
 ## Что отгружено ЭТОЙ сессией (2026-06-10) — НЕ переделывать
 Путь А (canon: `docs/planning/BEN_YEHUDA_DELIVERY_26K_PLAN.md` §«IA Зала — РЕШЕНО (A0)» + backlog `BRR-P1-007/014/015`).
@@ -42,15 +50,20 @@ public/data/benyehuda/
 ```
 Эпохи (хронологически, `ERA_META`): biblical · medieval · haskalah · tehiya · mandate · modern · contemporary · **unknown** («Период не определён», сортируется последней). by_era (works): medieval 5376 · tehiya 10007 · haskalah 2889 · mandate 5220 · unknown 2806 · biblical 84 · modern 73.
 
-## NEXT — A3 (клиент Вариант-2 IA на v3) — длинная задача, recon-first
-**Старт по команде владельца → recon-first дизайн ЭКРАНОВ (R4/R6/R8) на утверждение, потом код** (как A2/A4).
-- **Цель:** вкладка «Корпус» в `library.html`/`library-ui.js`: **Период→Автор→Работа** + фасеты (жанр/язык/перевод/озвучка) + поиск + **градуированный дефолт** (переведённые+канон сверху; period-grid хронологически, бейдж «готовы к чтению N») + **coverage-бейджи** (⚙ Машинный перевод / 🔇 Без озвучки / эпоха·регистр) + честный **«перевод позже»** (unprocessed = НЕ openable; v1.1 BYOK «перевести на лету»).
-- **Переключить клиент с v2 на v3:** `CORPUS_CATALOG_VERSION = 3` (library-ui.js:33); `loadCorpusCatalog()` (library-ui.js:483) сейчас читает плоский `cat.works[]` — переписать на **корень v3 (фасеты/таксономия) + ленивую загрузку per-era манифеста при drill-in** (D1/R4: мобайл не парсит 26K; грузит корень + 1 активный манифест ≤827КБ). `openCorpusWork` (library-ui.js:350) уже served-on-open по `card.file` — работает для baked; для unprocessed (нет file) → честный «перевод позже», не открывать.
-- **SW-бамп** обязателен (`public/sw.js` CACHE_VERSION) + рассмотреть precache ТОЛЬКО корня v3 (D5: манифесты/works НИКОГДА не precache). v2 можно снять с прода после переключения (или оставить).
-- **index.html НЕ трогать.** @380px RTL скриншот перед UI-коммитом. i18n namespace `room.*`.
-- **Гейты A3:** `smoke:corpus-room` (фетчит work — оставить рабочим), `smoke:room`/`smoke:room-mode`/`smoke:reader-parity` зелёные; добавить smoke на v3-навигацию (период→автор→работа, фасет-фильтр, unprocessed не-openable).
+## NEXT — A3 Slice 2 (фасеты + глобальный поиск + полиш) — по отмашке владельца
+A3 Slice 1 (ядро навигации) SHIPPED+PROD выше. Slice 2 достраивает премиум-слой:
+- **Фасет-чипы со счётчиками** (benyehuda faceted sidebar): «✓ Готовые» / Жанр / Язык — на L1 фильтруют ready-набор, внутри эпохи — набор эпохи (счётчики из `corpus-index-v3.json.facets[era]`). **«Озвучка» отложена** (у корпуса `audio:none` везде — пустой чип = ложь, R8).
+- **Глобальный title-search по всем 26K** (решение владельца): продюсер эмитит `corpus-search-v3.json` (заголовок+id+author+era+ready, **niqqud-insensitive** как `_searchNrm` в library note search; ~0.4–0.6 МБ br, **грузится лениво при первом фокусе поиска**, НЕ в precache/SW). Клиент: авторы+готовые мгновенно из сайдкара, заголовки всех работ из search-индекса.
+- **Сорты + jump-bar** (Standard Ebooks user-intent sorts + benyehuda א–ת): сорт авторов алфавит/популярность/число-работ; в алфавит-режиме — ивритский jump-bar (Slice 1 = только градуированный порядок). Сорт работ объём/эпоха/алфавит.
+- **Гейты Slice 2:** расширить `smoke:corpus-nav` (фасет-фильтр меняет набор; глобальный поиск находит unprocessed-заголовок из др. эпохи); @380px RTL скрин; прод-верифи; commit+push.
 
 Далее: **A5** (fill-queue/дашборд покрытия + таргетинг прогонов) · **probe niqqud** rest-тира (keyless, можно параллельно — гейт широкого бейка).
+
+### Ключевые файлы A3 (для Slice 2)
+- продюсер: `scripts/premium/build-corpus-catalog.js` (`--full` ветка `buildFullCatalog` — добавить эмиссию search-индекса рядом с сайдкаром; `ERA_META` range/gloss).
+- клиент: `public/js/library-ui.js` (`loadCorpusIndex`/`renderCorpusHome`/`renderCorpusAuthors`/`renderCorpusWorks` + helpers `corpusProvBadge`/`corpusIsReady`; добавить фасет-бар + search-бар).
+- CSS: `public/library.html` (блок «BRR-P1-015 A3»). i18n: `room.corpus.*` в ru/en/he.
+- гейты: `scripts/premium/corpus-nav-smoke.js` (3272) + `corpus-room-smoke.js` (3271, v3).
 
 ## Ключевые файлы
 - producer: `scripts/premium/build-corpus-catalog.js` (`--full` → v3) · `scripts/premium/build-era-map.js` (era-map)
@@ -59,8 +72,8 @@ public/data/benyehuda/
 - lib: `scripts/premium/lib/benyehuda.js` (parseCsv/cleanGenre/firstQid/eraForAuthor) · `db/premium/corpusMeta.js`
 - данные: `public/data/benyehuda/{corpus-catalog-v3.json, catalog/, author-era-map-v1.json, works/, canon-v3.zip}`
 
-## Гейты (зелёные на HEAD)
-`smoke:era-map` 17/17 · `smoke:full-catalog` 24/24 · `smoke:corpus-catalog` 34/34 · `smoke:corpus-room` 16/16 · `smoke:room` 14/14 · `smoke:room-mode` 23/23 · `smoke:reader-parity` · `test:api-smoke` (incl. works-upload) · `audioUploadAuth` 9/9 · `node --test tests/premium/corpusLedger.test.js`.
+## Гейты (зелёные на HEAD `b992fba`)
+`smoke:era-map` 17/17 · `smoke:full-catalog` 24/24 · `smoke:corpus-catalog` 34/34 (v2 цел) · `smoke:corpus-room` 18/18 (v3) · **`smoke:corpus-nav` 21/21 (NEW, A3 drill)** · `smoke:room` 14/14 · `smoke:room-mode` 23/23 · `smoke:reader-parity` · `test:api-smoke` (incl. works-upload) · `audioUploadAuth` 9/9 · `node --test tests/premium/corpusLedger.test.js`.
 
 ## 🔑 ЖДЁТ ВЛАДЕЛЬЦА (security)
 1. **Ротация `AUDIO_UPLOAD_TOKEN`** — светился в чате (значение `8de9…0989`). Сгенерировать новый (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`), заменить ОБЕ записи в Coolify (Production + Preview Deployments), **Redeploy**. Это НАШ secret, отдельно от Google.
