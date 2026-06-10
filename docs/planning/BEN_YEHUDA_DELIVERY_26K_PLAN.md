@@ -1,7 +1,20 @@
-# BRR-P0-007 (full-corpus delivery) — 26K delivery architecture — APPROVED
+# BRR-P0-007 (full-corpus delivery) — 26K delivery architecture — APPROVED + Проход-3 SHIPPING
 
-**Дата:** 2026-06-09 · **Обновлено:** 2026-06-10 · **Статус:** ✅ APPROVED — D1–D5 закрыты решением владельца
-2026-06-10 (§7); реализация (**Проход 3** в CURRENT_STATE §8) — отдельный код-инкремент по команде владельца.
+**Дата:** 2026-06-09 · **Обновлено:** 2026-06-10 · **Статус:** ✅ APPROVED (D1–D5, §7) · **Проход-3 Срезы 1+2 SHIPPED+PROD 2026-06-10.**
+
+## ✅ Проход-3 реализация — Срезы 1+2 (PROD 2026-06-10)
+Первый тир (100 испечённых работ haskalah+tehiya) опубликован catalog-driven, БЕЗ авто-импорта.
+- **Срез 1 (`9ccf6b1`) — producer:** `scripts/premium/build-corpus-catalog.js` взрывает `.tmp/benyehuda/shards/*.zip`
+  → `public/data/benyehuda/corpus-catalog-v1.json` (тонкий индекс, 38КБ, D1) + `works/<id>.json` (100 файлов,
+  7МБ, importBundle Shape A, `source_text` стрипнут). R1-гейт (review_status=machine; ложь → exit 1).
+  Re-publish: `--catalog-version N+1` (клиент cache-bust работ через `?v=N`). Гейт `smoke:corpus-catalog` 27/27.
+- **Срез 2 (`67443ad`, SW v3.10.19) — клиент:** library.html 3-я вкладка «Корпус» (ОТДЕЛЬНО от курируемого
+  канона — R8: неградуированный машинный корпус не подмешан). Served-on-open: тап → fetch `works/<id>.json?v=1`
+  → importBundle → тёплый ридер; повторное открытие резолвится из OPFS (без 2-го fetch). Честные бейджи
+  (Машинный перевод / Без озвучки) + era-полки. Гейт `smoke:corpus-room` 16/16 + регрессия room/room-mode/parity.
+- **Осталось:** Срез 3 (OPFS LRU, D2 — greenfield, не блокер на 100 работах) · аудио корпуса (P0-011 computed-key;
+  сейчас audio_status=none → браузерная речь) · R7-сэмплинг 100 до широкого доверия · масштаб 26K = object storage
+  вместо loose-файлов в git (§6).
 **Роли:** R5 (инфра/стоимость/доверие), R4 (mobile-first UX), R6 (discovery/каталог), R3 (архитектура/версионирование).
 **Контекст:** runner (BRR-P0-006) производит per-era shard-бандлы; **не описано, как 26K попадают к юзеру.** Это
 главный НЕ-кодовый разрыв (owner review §5). Замер: 24 641 originals, аудио ~288 ГБ (→ on-demand), тексты per-work
