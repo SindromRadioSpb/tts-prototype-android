@@ -64,6 +64,38 @@ test("markDone records info fields and stats aggregates them", () => {
   assert.equal(led.works["1"].content_hash, "abc");
 });
 
+test("giantWorks returns only deferred-giant ids, in caller order (Проход-2 list)", () => {
+  const led = L.emptyLedger();
+  L.seedLedger(led, [{ id: "a" }, { id: "g1" }, { id: "b" }, { id: "g2" }]);
+  L.markDeferredGiant(led, "g1", { segments: 5000 }, "d1");
+  L.markDeferredGiant(led, "g2", { segments: 9000 }, "d1");
+  L.markDone(led, "b", {}, "d1");
+  assert.deepEqual(L.giantWorks(led, ["g2", "a", "g1", "b"]), ["g2", "g1"]);
+  // unknown ids ignored; pending/done/failed never leak into the giant pass
+  L.markFailed(led, "a", "net", "d1");
+  assert.deepEqual(L.giantWorks(led, ["zz", "a", "b"]), []);
+});
+
+test("giant lifecycle: deferred-giant → done with parts recorded and aggregated", () => {
+  const led = L.emptyLedger();
+  L.seedLedger(led, [{ id: "g" }]);
+  L.markDeferredGiant(led, "g", { segments: 5200 }, "d1");
+  // a failed giant attempt keeps DEFERRED status with the error recorded (retry on next giant pass)
+  L.markDeferredGiant(led, "g", { segments: 5200, error: "giant:part 2/4: boom" }, "d1");
+  assert.equal(led.works["g"].status, "deferred-giant");
+  assert.equal(led.works["g"].error, "giant:part 2/4: boom");
+  L.markDone(led, "g", { segments: 5180, parts: 4, reqs: 110, ru_filled: 5180 }, "d2");
+  assert.equal(led.works["g"].status, "done");
+  assert.equal(led.works["g"].parts, 4);
+  const s = L.stats(led);
+  assert.equal(s.done, 1);
+  assert.equal(s.deferredGiant, 0);
+  assert.equal(s.parts, 4);
+  // a completed giant no longer appears on either work list
+  assert.deepEqual(L.giantWorks(led, ["g"]), []);
+  assert.deepEqual(L.pendingWorks(led, ["g"]), []);
+});
+
 test("loadLedger returns a fresh empty ledger on a missing/garbage path (never throws)", () => {
   const led = L.loadLedger("E:/__definitely_not_a_real_path__/ledger.json");
   assert.equal(led.version, L.LEDGER_VERSION);

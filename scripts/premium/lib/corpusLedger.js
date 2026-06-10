@@ -17,10 +17,12 @@
 //   {
 //     version: 1,
 //     works: { "<byehuda_id>": { status, tier, segments, reqs, niqqud, ru_filled,
-//                                content_hash, error, day } },
+//                                parts, content_hash, error, day } },
 //     daily: { "<YYYY-MM-DD>": reqsUsed }
 //   }
 // status ∈ pending | done | failed | deferred-giant | skipped
+// `parts` (giant pass, Проход-2): how many chapterized parts a deferred-giant was
+// emitted as when it completed (absent for normal single-text works).
 
 const fs = require("fs");
 
@@ -59,7 +61,7 @@ function seedLedger(ledger, entries) {
 function setStatus(ledger, id, status, info, day) {
   const w = ledger.works[String(id)] || (ledger.works[String(id)] = { status: STATUS.PENDING, tier: null });
   w.status = status;
-  if (info && typeof info === "object") for (const k of ["tier", "segments", "reqs", "niqqud", "ru_filled", "content_hash", "error"]) if (info[k] !== undefined) w[k] = info[k];
+  if (info && typeof info === "object") for (const k of ["tier", "segments", "reqs", "niqqud", "ru_filled", "parts", "content_hash", "error"]) if (info[k] !== undefined) w[k] = info[k];
   if (day) w.day = day;
   return w;
 }
@@ -94,8 +96,20 @@ function pendingWorks(ledger, orderedIds, opts) {
   return out;
 }
 
+// Deferred-giant work ids in caller order — the Проход-2 (giant pass) work list.
+// Separate from pendingWorks so the giant pass can NEVER pick up normal pending /
+// failed works by accident (and vice versa).
+function giantWorks(ledger, orderedIds) {
+  const out = [];
+  for (const id of orderedIds) {
+    const w = ledger.works[String(id)];
+    if (w && w.status === STATUS.DEFERRED) out.push(String(id));
+  }
+  return out;
+}
+
 function stats(ledger) {
-  const s = { total: 0, pending: 0, done: 0, failed: 0, deferredGiant: 0, skipped: 0, segments: 0, reqs: 0, niqqud: 0, ru_filled: 0 };
+  const s = { total: 0, pending: 0, done: 0, failed: 0, deferredGiant: 0, skipped: 0, segments: 0, reqs: 0, niqqud: 0, ru_filled: 0, parts: 0 };
   for (const id in ledger.works) {
     const w = ledger.works[id]; s.total++;
     if (w.status === STATUS.PENDING) s.pending++;
@@ -105,6 +119,7 @@ function stats(ledger) {
     else if (w.status === STATUS.SKIPPED) s.skipped++;
     s.segments += Number(w.segments || 0); s.reqs += Number(w.reqs || 0);
     s.niqqud += Number(w.niqqud || 0); s.ru_filled += Number(w.ru_filled || 0);
+    s.parts += Number(w.parts || 0);
   }
   return s;
 }
@@ -112,5 +127,5 @@ function stats(ledger) {
 module.exports = {
   LEDGER_VERSION, STATUS, emptyLedger, loadLedger, saveLedger, seedLedger,
   markDone, markFailed, markDeferredGiant, markSkipped, setStatus,
-  recordReqs, dayReqsUsed, dayQuotaRemaining, pendingWorks, stats,
+  recordReqs, dayReqsUsed, dayQuotaRemaining, pendingWorks, giantWorks, stats,
 };

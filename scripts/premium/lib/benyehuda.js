@@ -356,6 +356,64 @@ function chapterizeWork(body, opts) {
   return { mode: "single", chapters: [{ title: null, body }] };
 }
 
+// ── giant chapterization (BRR-P0-006 Проход-2) ────────────────────────────────
+// A deferred-giant (segment count over the runner cap) must NEVER be emitted as one
+// monolithic text: a multi-thousand-row table freezes mobile render and OPFS import
+// (R4) and defeats daily-quota pacing (R5). Strategy:
+//   1) honest structure first — chapterizeWork with its DEFAULT gates (R7: stanza
+//      numerals in short poetry are never "chapters");
+//   2) cap enforcement — any part still over `giantSegments` splits further at
+//      paragraph boundaries (~partTargetChars chars); pathological bodies with no
+//      usable paragraph breaks fall back to grouping the segmenter's own segments;
+//   3) a forced split of an UNSTRUCTURED giant yields neutral "Часть N" titles
+//      (never fabricated chapter names — R1/R7).
+// Invariant: every returned part's segment count ≤ giantSegments; a true giant
+// always yields ≥ 2 parts. The segmenter is injected so the cap check stays in
+// lockstep with the runner's segmentation (db/premium/segmenter).
+function _splitBySegmentGroups(body, segmenter, capSegs) {
+  const segs = segmenter(body).map((s) => s.he);
+  const per = Math.max(1, Math.floor(capSegs / 2)); // headroom: re-segmenting may split finer
+  const parts = [];
+  for (let i = 0; i < segs.length; i += per) parts.push(segs.slice(i, i + per).join("\n"));
+  return parts;
+}
+function _enforceSegCap(part, segmenter, cap, targetChars, acc) {
+  if (segmenter(part.body).length <= cap) { acc.push(part); return; }
+  let subs = _splitByParagraphs(part.body, targetChars);
+  if (subs.length < 2) subs = _splitBySegmentGroups(part.body, segmenter, cap);
+  for (let i = 0; i < subs.length; i++) {
+    _enforceSegCap({ title: part.title ? part.title + " · " + (i + 1) : null, body: subs[i] }, segmenter, cap, targetChars, acc);
+  }
+}
+function chapterizeGiant(body, opts) {
+  const o = opts || {};
+  const segmenter = o.segmenter;
+  if (typeof segmenter !== "function") throw new Error("chapterizeGiant: opts.segmenter is required");
+  const cap = Number(o.giantSegments) > 0 ? Number(o.giantSegments) : 2000;
+  const targetChars = Number(o.partTargetChars) > 0 ? Number(o.partTargetChars) : 12000;
+  // not a giant — normal rules apply (map our partTargetChars → chapterizeWork's partTarget
+  // so the documented option is honored on this path too, not silently defaulted to 12000).
+  if (segmenter(body).length <= cap) return chapterizeWork(body, { ...o, partTarget: targetChars });
+  const base = chapterizeWork(body, { minChapter: o.minChapter, partCeiling: o.partCeiling, partTarget: targetChars });
+  const acc = [];
+  for (const c of base.chapters) _enforceSegCap(c, segmenter, cap, targetChars, acc);
+  if (base.mode === "single") {
+    // unstructured giant forced into parts — neutral numbering, honestly unnamed
+    return { mode: "parts", forced: true, chapters: acc.map((c, i) => ({ title: "Часть " + (i + 1), body: c.body })) };
+  }
+  return { mode: base.mode, forced: acc.length !== base.chapters.length, chapters: acc };
+}
+
+// Russian count-noun agreement for editorial prose (R4: shipped UI text must be correct):
+//   ruPlural(1,"глава","главы","глав")="глава"; (2)="главы"; (5)="глав"; (21)="глава"; (12)="глав".
+// one = nom.sg (n%10==1, n%100!=11) · few = nom.pl-paucal (n%10∈2..4, n%100∉12..14) · many = gen.pl.
+function ruPlural(n, one, few, many) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
 // ── assemble library.json + manifest (the v2.1 bundle shapes the importers read) ─
 function buildLibraryJson({ texts, shelves, canonVersion }) {
   const lib = {
@@ -424,7 +482,7 @@ module.exports = {
   firstQid,
   stripFooter,
   eraForAuthor, classifyWork,
-  detectChapters, chapterizeWork,
+  detectChapters, chapterizeWork, chapterizeGiant, ruPlural,
   corpusFromRow,
   buildBundleRows,
   buildTextItem,

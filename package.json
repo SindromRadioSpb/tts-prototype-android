@@ -112,6 +112,7 @@
     "smoke:notes-perform": "node scripts/premium/notes-perform-smoke.js",
     "smoke:notes-count": "node scripts/premium/notes-count-smoke.js",
     "smoke:corpus": "node scripts/premium/corpus-meta-smoke.js",
+    "smoke:giant-pass": "node scripts/premium/giant-pass-smoke.js",
     "smoke:shelves": "node scripts/premium/shelf-meta-smoke.js",
     "smoke:shelves-roundtrip": "node scripts/premium/shelf-roundtrip-smoke.js",
     "smoke:canon-version": "node scripts/premium/canon-version-smoke.js",
