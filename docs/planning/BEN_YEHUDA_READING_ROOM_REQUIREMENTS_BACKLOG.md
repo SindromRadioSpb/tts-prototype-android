@@ -257,8 +257,12 @@
   правки library-ui/SW; volume-first, git-fallback, честный 404) + push-скрипт `scripts/premium/
   push-corpus-works.js` (зеркало push-canon-audio: header-токен, 403/503 fatal, резюм через `--skip-existing`).
   Гейты: `test:api-smoke` расширен (no-token→403 · X-Local-Mode→403 · traversal→400 · payload→400 · valid→200
-  + GET из тома) + audioUploadAuth 9/9; corpus/room регрессия зелёная. **Догфуд-push 100 на ПРОД-том + удаление
-  из git = owner-действие** (нужен `AUDIO_UPLOAD_TOKEN`; делать вместе с/после ротации ключей). Fill-queue (A5) ниже.
+  + GET из тома) + audioUploadAuth 9/9; corpus/room регрессия зелёная. **Догфуд-push 100 на ПРОД-том ✅ ВЫПОЛНЕН
+  2026-06-10** (100/100 uploaded, 0 failed; том отдаёт — `Cache-Control: …immutable` на `works/16.json` доказывает
+  volume-first над git-static). **git-rm 100 НЕ делаем:** `corpus-room-smoke.js` фетчит реальный work с локального
+  сервера (+ локалдев/fresh-clone) → удаление повалило бы `smoke:corpus-room`; 100 остаются git-фикстурой/базлайном,
+  «off-git» применяется к **хвосту A2 (volume-only)**. ⚠ `AUDIO_UPLOAD_TOKEN` светился в чате → **ротировать**
+  (отдельно от Gemini/GCP). Fill-queue (A5) ниже.
 - **Source:** решение владельца (хранилище на масштабе + выборочное наполнение перевод/озвучка).
 - **Observed:** 100 loose-JSON в git = 7МБ (ок); 26K ≈ 1.5–2 ГБ — в git нельзя.
 - **Current:** works в git (`public/data/benyehuda/works/`); раздаются статикой.
