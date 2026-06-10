@@ -147,6 +147,100 @@
     body.theme-dark .prov-badge.audio-tts { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
     body.theme-dark .prov-badge.audio-human { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
 
+    /* ── BRR-P1-015 A3 — Корпус drill (Период→Автор→Работа) ──────────────────── */
+    .corpus-nav { padding-bottom: 8px; }
+
+    /* breadcrumb (sticky under the tabs) */
+    .corpus-crumb {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      position: sticky; top: 0; z-index: 5; background: var(--bg-page); border-bottom: 1px solid var(--border-soft);
+    }
+    .corpus-back {
+      flex: none; appearance: none; cursor: pointer; background: var(--bg-muted); color: var(--text-primary);
+      border: 1px solid var(--border-soft); border-radius: 8px; padding: 6px 11px; font-size: 15px; font-weight: 700; line-height: 1;
+    }
+    .corpus-crumb-trail { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-width: 0; font-size: 14px; }
+    .corpus-crumb-part {
+      appearance: none; background: none; border: none; padding: 0; margin: 0; font: inherit; cursor: pointer;
+      color: var(--accent); font-weight: 600;
+    }
+    .corpus-crumb-part.leaf { color: var(--text-primary); cursor: default; font-weight: 700; }
+    .corpus-crumb-sep { color: var(--text-faint); }
+
+    /* period grid (2-up @380px) */
+    .corpus-period-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px 4px; }
+    .period-card {
+      background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 12px; box-shadow: var(--shadow);
+      cursor: pointer; padding: 12px; display: flex; flex-direction: column; gap: 7px; transition: transform .1s ease, border-color .15s;
+    }
+    .period-card:active { transform: scale(.98); }
+    .period-card-titlerow { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+    .period-card-title { font-size: 15px; font-weight: 700; line-height: 1.2; }
+    .period-card-range { font-size: 11.5px; color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .period-card-gloss {
+      font-size: 12px; color: var(--text-secondary); line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .period-card-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; }
+    .period-chip { font-size: 10.5px; font-weight: 700; line-height: 1; padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+    .period-chip.ready { background: #dcfce7; color: #166534; }
+    .period-chip.later { background: var(--bg-muted); color: var(--text-faint); }
+    .period-chip.muted { background: var(--bg-muted); color: var(--text-secondary); }
+
+    /* author list (lean rows, graduated order) */
+    .corpus-list-head { padding: 12px 16px 4px; }
+    .corpus-list-count { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+    .corpus-author-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer;
+      padding: 13px 16px; border-bottom: 1px solid var(--border-soft);
+    }
+    .corpus-author-row:active { background: var(--bg-muted); }
+    .corpus-author-name { font-size: 15px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .corpus-author-meta { flex: none; display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+    .corpus-author-ready { font-size: 12px; font-weight: 700; color: #166534; }
+    .corpus-author-works { font-size: 13px; color: var(--text-faint); }
+
+    /* work rows + sections (ready / catalog-later) */
+    .corpus-work-section { margin-top: 6px; }
+    .corpus-section-head { display: flex; align-items: center; gap: 7px; padding: 12px 16px 6px; }
+    .corpus-section-icon { font-size: 14px; }
+    .corpus-section-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+    .corpus-section-count { font-size: 12px; color: var(--text-faint); }
+    .corpus-work-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border-soft); }
+    .corpus-work-row[role="button"] { cursor: pointer; }
+    .corpus-work-row[role="button"]:active { background: var(--bg-muted); }
+    .corpus-work-row.is-later { opacity: .72; }
+    .corpus-work-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+    .corpus-work-title {
+      font-size: 15px; font-weight: 600; line-height: 1.25;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .corpus-work-meta { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+    .corpus-work-len { font-size: 11px; color: var(--text-faint); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .corpus-work-genre { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
+    .corpus-work-cta { flex: none; font-size: 16px; color: var(--accent); }
+    .corpus-work-row.is-later .corpus-work-cta { color: var(--text-faint); }
+    .prov-badge.later {
+      background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft);
+      font-size: 10px; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 999px;
+    }
+
+    /* incremental reveal */
+    .corpus-more { padding: 12px 16px; }
+    .corpus-more-btn {
+      width: 100%; appearance: none; cursor: pointer; background: var(--bg-muted); color: var(--accent);
+      border: 1px solid var(--border-soft); border-radius: 10px; padding: 11px; font-size: 14px; font-weight: 600;
+    }
+    .corpus-more-btn:active { background: var(--border-soft); }
+
+    /* dark-mode greens (mirror prov-badge pattern) */
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .period-chip.ready { background: rgba(34,197,94,.18); color: #bbf7d0; }
+      body:not(.theme-light) .corpus-author-ready { color: #bbf7d0; }
+    }
+    body.theme-dark .period-chip.ready { background: rgba(34,197,94,.18); color: #bbf7d0; }
+    body.theme-dark .corpus-author-ready { color: #bbf7d0; }
+
     /* ── states ──────────────────────────────────────────────────────────── */
     .room-state {
       margin: 48px auto; max-width: 320px; padding: 0 24px; text-align: center;

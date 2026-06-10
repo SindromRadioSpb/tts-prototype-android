@@ -51,19 +51,26 @@ const DRY = flag("dry-run");
 const KEEP_SOURCE_TEXT = flag("keep-source-text");
 
 // Era display + chronological order (R6 librarian — a route, honest period labels).
+// BRR-P1-015 A3: `range` + `gloss` per era for the premium period grid (benyehuda.org
+// /periods + Sefaria descriptive-subtitle pattern). `range` is the FLORUIT (литературный
+// расцвет) window — it MIRRORS build-era-map.js ERA_BOUNDS (≤600/1780/1881/1920/1948/2000),
+// since the era bucket is floruit-derived; honest to call it the period of literary
+// activity, not birth/death (R7/R8). `gloss` is a one-line descriptive subtitle (R6/R7).
 const ERA_META = {
-  biblical:     { title: "Библейский период",        order: 1 },
-  rabbinic:     { title: "Эпоха мудрецов",            order: 2 },
-  medieval:     { title: "Средневековье",             order: 3 },
-  haskalah:     { title: "Хаскала (Просвещение)",     order: 4 },
-  tehiya:       { title: "Тхия (Возрождение)",        order: 5 },
-  mandate:      { title: "Подмандатный период",       order: 6 },
-  modern:       { title: "Современная литература",     order: 7 },
-  contemporary: { title: "Новейшая литература",        order: 8 },
-  unknown:      { title: "Период не определён",        order: 90 }, // BRR-P1-014 A2: era not derivable (honest, sorts last)
+  biblical:     { title: "Библейский период",        order: 1,  range: "до ~600",      gloss: "Древнейший пласт ивритской словесности" },
+  rabbinic:     { title: "Эпоха мудрецов",            order: 2,  range: "~70–600",      gloss: "Литература мудрецов: Мишна, Талмуд, мидраш" },
+  medieval:     { title: "Средневековье",             order: 3,  range: "~600–1780",    gloss: "Средневековая поэзия и проза; Золотой век Сфарада" },
+  haskalah:     { title: "Хаскала (Просвещение)",     order: 4,  range: "~1780–1880",   gloss: "Еврейское Просвещение; обновление литературного иврита" },
+  tehiya:       { title: "Тхия (Возрождение)",        order: 5,  range: "~1880–1920",   gloss: "Национальное возрождение; новая ивритская литература" },
+  mandate:      { title: "Подмандатный период",       order: 6,  range: "~1920–1948",   gloss: "Литература подмандатной Палестины" },
+  modern:       { title: "Современная литература",     order: 7,  range: "~1948–2000",   gloss: "Литература Государства Израиль" },
+  contemporary: { title: "Новейшая литература",        order: 8,  range: "~2000–",       gloss: "Новейшие авторы" },
+  unknown:      { title: "Период не определён",        order: 90, range: "—",            gloss: "Эпоха автора не установлена" }, // BRR-P1-014 A2: era not derivable (honest, sorts last)
 };
 function eraTitle(era) { return (ERA_META[era] && ERA_META[era].title) || ("Эпоха: " + (era || "—")); }
 function eraOrder(era) { return (ERA_META[era] && ERA_META[era].order) || 99; }
+function eraRange(era) { return (ERA_META[era] && ERA_META[era].range) || ""; }
+function eraGloss(era) { return (ERA_META[era] && ERA_META[era].gloss) || ""; }
 
 const NIQQUD_RE = /[֑-ׇ]/;
 function vocalizedRatio(rows) {
@@ -154,6 +161,10 @@ async function buildFullCatalog() {
         id, title, author, author_qid: qid, era, register: b.register || null, track: b.track || "literary",
         genre, orig_language: origLang, parts: b.parts || 1, segments: b.segments || 0, vocalized_ratio: b.vocalized_ratio || 0,
         review_status: b.review_status || "machine", audio_status: b.audio_status || "none",
+        // BRR-P1-015 A3: carry text_key on BAKED cards so the client's served-on-open can
+        // resolve the work in OPFS BEFORE fetching (idempotent re-open, no second fetch —
+        // the corpus-room gate asserts this). Unprocessed cards have no work file → no key.
+        text_key: b.text_key || null,
         file: b.file || ("works/" + id + ".json"),
         coverage: { ...(b.coverage || {}), era_known: !!era },
       });
@@ -167,27 +178,65 @@ async function buildFullCatalog() {
   }
   if (lies.length) { console.error(`[full] ✗ R1 GATE FAILED — ${lies.length} honesty violation(s); nothing written:`); for (const l of lies.slice(0, 20)) console.error("   " + l); process.exit(1); }
 
-  // group by era → manifests (author-block split when an era exceeds CAP)
+  // BRR-P1-015 A3: a work is "ready to read" when it has a body (text) AND a translation —
+  // the same definition eraTaxonomy.ready_count and the client's "✓ Готовы к чтению" rail use
+  // (openable + translated, not merely baked). Honest: machine translation still counts as
+  // ready-to-READ (it's openable), the ⚙ provenance badge keeps it from posing as proofread.
+  const isReady = (c) => !!(c.coverage && c.coverage.text && c.coverage.translation && c.coverage.translation !== "none");
+
+  // group by era → manifests (author-block split when an era exceeds CAP). The SAME pass
+  // accumulates the A3 sidecar inputs: per-era author index (with the block(s) each author's
+  // works land in — authors are contiguous in the author-sorted list, so ≤2 adjacent blocks)
+  // and per-era genre/language facet histograms, so the client's L1/L2 + facet chips never
+  // need to parse the multi-MB manifests (D1/R4 mobile budget).
   const byEra = new Map();
   for (const c of cards) { const e = c.era || "unknown"; if (!byEra.has(e)) byEra.set(e, []); byEra.get(e).push(c); }
   const manifests = [], eraTaxonomy = [], writes = [];
+  const authorsByEra = {}; // era -> [{ name, qid, works, ready, blocks:[blockId|null] }]
+  const facetsByEra = {};  // era -> { genre:{}, lang:{} }
+  const readyCards = [];   // openable+translated cards across all eras (the L1 graduated rail)
   for (const era of Array.from(byEra.keys()).sort((a, b) => eraOrder(a) - eraOrder(b))) {
     const list = byEra.get(era);
     list.sort((a, b) => String(a.author || "").localeCompare(String(b.author || "")) || String(a.id).localeCompare(String(b.id)));
-    const readyCount = list.filter((c) => c.coverage.text && c.coverage.translation !== "none").length;
-    eraTaxonomy.push({ era, title: eraTitle(era), order: eraOrder(era), count: list.length, ready_count: readyCount });
+    const readyCount = list.filter(isReady).length;
+
+    // emit manifest block(s) + record block membership per card (used for the author index)
+    const blockOf = new Map(); // card -> blockId|null
     if (list.length <= CAP) {
       const rel = "catalog/era-" + era + "-v" + V + ".json";
       writes.push({ rel, json: { schema: 1, version: V, era, block: null, count: list.length, works: list } });
       manifests.push({ era, block: null, file: rel, count: list.length });
+      for (const c of list) blockOf.set(c, null);
     } else {
       for (let i = 0, blk = 0; i < list.length; i += CAP, blk++) {
         const chunk = list.slice(i, i + CAP), bb = String(blk).padStart(2, "0");
         const rel = "catalog/era-" + era + "-b" + bb + "-v" + V + ".json";
         writes.push({ rel, json: { schema: 1, version: V, era, block: bb, count: chunk.length, works: chunk } });
         manifests.push({ era, block: bb, file: rel, count: chunk.length });
+        for (const c of chunk) blockOf.set(c, bb);
       }
     }
+
+    // author index (key by display name — manifest contiguity is by name; carry first qid for R9)
+    const aMap = new Map(); // name -> { name, qid, works, ready, blocks:Set }
+    const genre = {}, lang = {};
+    for (const c of list) {
+      const name = c.author || "(без автора)";
+      let a = aMap.get(name);
+      if (!a) { a = { name, qid: c.author_qid || null, works: 0, ready: 0, blocks: new Set() }; aMap.set(name, a); }
+      a.works++; if (isReady(c)) a.ready++; a.blocks.add(blockOf.get(c));
+      if (!a.qid && c.author_qid) a.qid = c.author_qid;
+      genre[c.genre || "(none)"] = (genre[c.genre || "(none)"] || 0) + 1;
+      lang[c.orig_language || "he"] = (lang[c.orig_language || "he"] || 0) + 1;
+      if (isReady(c)) readyCards.push(c);
+    }
+    // ready-authors first (graduated), then by works desc, then alpha (R8 graded-design)
+    authorsByEra[era] = Array.from(aMap.values())
+      .map((a) => ({ name: a.name, qid: a.qid, works: a.works, ready: a.ready, blocks: Array.from(a.blocks) }))
+      .sort((x, y) => (y.ready - x.ready) || (y.works - x.works) || String(x.name).localeCompare(String(y.name)));
+    facetsByEra[era] = { genre, lang };
+
+    eraTaxonomy.push({ era, title: eraTitle(era), range: eraRange(era), gloss: eraGloss(era), order: eraOrder(era), count: list.length, author_count: aMap.size, ready_count: readyCount });
   }
 
   const byEraCount = {}, byGenre = {}, byLang = {}, byTier = {}; let bakedCount = 0;
@@ -198,26 +247,42 @@ async function buildFullCatalog() {
     byTier[(c.coverage && c.coverage.tier) || (c.coverage && c.coverage.text ? "baked" : "?")] = (byTier[(c.coverage && c.coverage.tier) || (c.coverage && c.coverage.text ? "baked" : "?")] || 0) + 1;
     if (c.coverage && c.coverage.text) bakedCount++;
   }
+  const INDEX_FILE = "corpus-index-v" + V + ".json";
   const root = {
     schema: 1, version: V, corpus_meta_version: corpusMeta.CORPUS_META_VERSION,
     origin: "benyehuda-ingest", generated_from: "csv+era-map+baked",
+    // BRR-P1-015 A3: thin root carries the discovery axes (counts + period taxonomy +
+    // manifest map). The companion sidecar (index_file) carries the author index + ready
+    // rail + facet histograms — loaded lazily on first Корпус open, NEVER precached (D5).
+    index_file: INDEX_FILE,
     counts: { works: cards.length, baked: bakedCount, by_era: byEraCount, by_genre: byGenre, by_lang: byLang, by_tier: byTier },
     era_taxonomy: eraTaxonomy,
     manifests,
     pointers: { ready: cards.filter((c) => c.coverage && c.coverage.text).map((c) => c.id) },
   };
+  // A3 sidecar — everything the client needs for L1 (graduated rail + period grid),
+  // L2 (per-era author list) and facet chips WITHOUT touching the manifests. `authors[era]`
+  // entries carry the block(s) that hold the author's works → L3 fetches only those block(s).
+  const index = {
+    schema: 1, version: V, generated_from: "csv+era-map+baked",
+    ready: readyCards,        // openable+translated cards across all eras (full card → render + open)
+    authors: authorsByEra,    // era -> [{ name, qid, works, ready, blocks:[blockId|null] }] (graduated order)
+    facets: facetsByEra,      // era -> { genre:{}, lang:{} }
+  };
 
   const rootBytes = Buffer.byteLength(JSON.stringify(root));
+  const idxBytes = Buffer.byteLength(JSON.stringify(index));
   let manBytes = 0, maxMan = 0; for (const w of writes) { const b = Buffer.byteLength(JSON.stringify(w.json)); manBytes += b; if (b > maxMan) maxMan = b; }
-  console.log(`[full] works ${cards.length} · baked ${bakedCount} · eras ${eraTaxonomy.length} · manifests ${writes.length} · R1 clean`);
+  console.log(`[full] works ${cards.length} · baked ${bakedCount} · eras ${eraTaxonomy.length} · manifests ${writes.length} · ready-rail ${readyCards.length} · R1 clean`);
   console.log(`[full] by_tier: ${Object.entries(byTier).map(([k, v]) => k + " " + v).join(" · ")}`);
-  console.log(`[full] by_era: ${eraTaxonomy.map((t) => t.era + " " + t.count + "(ready " + t.ready_count + ")").join(" · ")}`);
-  console.log(`[full] root ${(rootBytes / 1024).toFixed(0)}KB · manifests total ${(manBytes / 1024 / 1024).toFixed(1)}MB · largest ${(maxMan / 1024).toFixed(0)}KB`);
+  console.log(`[full] by_era: ${eraTaxonomy.map((t) => t.era + " " + t.count + "(ready " + t.ready_count + ", авт " + t.author_count + ")").join(" · ")}`);
+  console.log(`[full] root ${(rootBytes / 1024).toFixed(0)}KB · sidecar ${(idxBytes / 1024).toFixed(0)}KB · manifests total ${(manBytes / 1024 / 1024).toFixed(1)}MB · largest ${(maxMan / 1024).toFixed(0)}KB`);
   if (DRY) { console.log("[full] dry-run — nothing written"); return; }
   fs.mkdirSync(path.join(OUT_DIR, "catalog"), { recursive: true });
   for (const w of writes) fs.writeFileSync(path.join(OUT_DIR, w.rel), JSON.stringify(w.json));
   fs.writeFileSync(path.join(OUT_DIR, "corpus-catalog-v" + V + ".json"), JSON.stringify(root));
-  console.log(`[full] wrote corpus-catalog-v${V}.json + ${writes.length} manifests → ${path.relative(REPO, OUT_DIR)}`);
+  fs.writeFileSync(path.join(OUT_DIR, INDEX_FILE), JSON.stringify(index));
+  console.log(`[full] wrote corpus-catalog-v${V}.json + ${INDEX_FILE} + ${writes.length} manifests → ${path.relative(REPO, OUT_DIR)}`);
   console.log(`[full] NOTE: bump --catalog-version on re-publish; v2 stays live until A3 switches the client to v3.`);
 }
 

@@ -1,20 +1,22 @@
 #!/usr/bin/env node
 "use strict";
 
-// corpus-room-smoke.js — BRR-P0-007 Проход-3 Slice 2 gate. Drives the REAL library.html
-// against the SHIPPED corpus catalog (public/data/benyehuda/corpus-catalog-v2.json +
-// works/*.json served by server.js), no canon, no network beyond localhost:
-//   • the "Корпус" tab appears once the catalog loads (hidden until then)
-//   • the Корпус track renders era shelves + corpus cards (role=button, NOT <a> — there
-//     is no no-JS deep-link to a not-yet-imported work)
-//   • a corpus card carries honest provenance badges (review_status=machine / audio=none)
-//   • opening a corpus card materialises the work into OPFS (served-on-open import) and
-//     the warm reader paints its bilingual rows
-//   • re-opening the same work resolves it from OPFS (no second import)
+// corpus-room-smoke.js — BRR-P1-015 A3 gate (served-on-open, v3). Drives the REAL
+// library.html against the SHIPPED v3 corpus catalog (corpus-catalog-v3.json root +
+// corpus-index-v3.json sidecar + catalog/*.json manifests + works/*.json), no canon, no
+// network beyond localhost:
+//   • the "Корпус" tab appears once the thin root loads (hidden until then)
+//   • opening the Корпус track lazily loads the sidecar + renders the "✓ Готовы к чтению"
+//     rail of openable corpus cards (role=button — NOT <a>: no no-JS deep-link to a
+//     not-yet-imported work)
+//   • a ready card carries honest provenance badges (review_status=machine / audio=none)
+//   • opening a ready card materialises the work into OPFS (served-on-open import) and the
+//     warm reader paints its bilingual rows
+//   • re-opening the same work resolves it from OPFS (no second work fetch — idempotent)
 //   • no pageerror on library.html
 //
-// Loads with ?canon=skip so the heavy curated-canon auto-import never runs — this gate
-// is the corpus path ONLY. (?corpus=skip would disable the very thing under test.)
+// Loads with ?canon=skip so the heavy curated-canon auto-import never runs — this gate is
+// the corpus path ONLY. (?corpus=skip would disable the very thing under test.)
 
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
@@ -44,10 +46,14 @@ async function main() {
   if (!(await waitForReady())) { console.error("[corpus-room-smoke] server failed"); srv.logs.forEach((l) => process.stderr.write(l)); await stopServer(srv.child); process.exit(1); }
   console.log("[corpus-room-smoke] server up");
 
-  // sanity: the catalog + a work file are actually served
-  const cat = await fetch(BASE + "/data/benyehuda/corpus-catalog-v2.json").then((r) => r.ok ? r.json() : null).catch(() => null);
-  test("corpus-catalog-v2.json served", !!cat && Array.isArray(cat.works) && cat.works.length > 0, cat ? ("works=" + (cat.works || []).length) : "no fetch");
-  const sampleFile = cat && cat.works[0] && cat.works[0].file;
+  // sanity: the v3 root + sidecar + a work file are actually served
+  const root = await fetch(BASE + "/data/benyehuda/corpus-catalog-v3.json").then((r) => r.ok ? r.json() : null).catch(() => null);
+  test("corpus-catalog-v3.json (thin root) served", !!root && Array.isArray(root.era_taxonomy) && root.counts && root.counts.works > 0, root ? ("works=" + (root.counts && root.counts.works)) : "no fetch");
+  test("root declares its sidecar (index_file)", !!root && typeof root.index_file === "string", root ? root.index_file : "");
+  const idx = await fetch(BASE + "/data/benyehuda/" + (root && root.index_file || "corpus-index-v3.json")).then((r) => r.ok ? r.json() : null).catch(() => null);
+  test("corpus-index-v3.json (sidecar) served with ready rail + author index + facets", !!idx && Array.isArray(idx.ready) && idx.ready.length > 0 && idx.authors && idx.facets, idx ? ("ready=" + (idx.ready || []).length) : "no fetch");
+  const sampleFile = idx && idx.ready[0] && idx.ready[0].file;
+  test("a ready card carries a work file + text_key (served-on-open inputs)", !!sampleFile && !!(idx.ready[0].text_key));
   const work0 = sampleFile ? await fetch(BASE + "/data/benyehuda/" + sampleFile).then((r) => r.ok ? r.json() : null).catch(() => null) : null;
   test("a per-work file is served (Shape A)", !!work0 && work0.library && Array.isArray(work0.library.texts) && work0.library.texts.length > 0);
 
@@ -64,37 +70,37 @@ async function main() {
 
     const T = await pg.evaluate(() => {
       const tab = document.getElementById("tabCorpus");
-      return { present: !!tab, hidden: tab ? tab.hidden : true, label: tab ? tab.textContent : null };
+      return { present: !!tab, hidden: tab ? tab.hidden : true };
     });
-    test("Корпус tab present + visible after catalog load", T.present && !T.hidden, JSON.stringify(T));
+    test("Корпус tab present + visible after root load", T.present && !T.hidden, JSON.stringify(T));
 
-    // open the Корпус track
-    await pg.click("#tabCorpus"); await sleep(300);
+    // open the Корпус track → ready rail (lazy sidecar)
+    await pg.click("#tabCorpus");
+    await pg.waitForSelector(".corpus-ready .work-card", { timeout: 15000 }).catch(() => {});
     const C = await pg.evaluate(() => {
       const c = document.getElementById("roomContent");
-      const cards = c.querySelectorAll(".work-card");
+      const cards = c.querySelectorAll(".corpus-ready .work-card");
       const first = cards[0];
       return {
-        shelves: c.querySelectorAll(".shelf").length,
+        readyRail: !!c.querySelector(".corpus-ready"),
+        periodGrid: !!c.querySelector(".corpus-period-grid"),
         cards: cards.length,
         anchors: c.querySelectorAll("a.work-card").length,
-        buttons: c.querySelectorAll('.work-card[role="button"]').length,
+        buttons: c.querySelectorAll('.corpus-ready .work-card[role="button"]').length,
         firstRsBadge: first ? !!first.querySelector(".prov-badge.rs-machine") : false,
         firstAudioBadge: first ? !!first.querySelector(".prov-badge.audio-none") : false,
         corpusSel: document.getElementById("tabCorpus").getAttribute("aria-selected"),
-        shelfTitles: Array.from(c.querySelectorAll(".shelf-title")).map((h) => h.textContent),
       };
     });
     test("Корпус tab selected after click", C.corpusSel === "true");
-    test("corpus track renders era shelves", C.shelves >= 1, "shelves=" + C.shelves);
-    test("corpus track renders work cards", C.cards > 0, "cards=" + C.cards);
-    test("corpus cards are role=button (served-on-open, no no-JS deep-link)", C.buttons > 0 && C.anchors === 0, "buttons=" + C.buttons + " anchors=" + C.anchors);
-    test("corpus card shows honest review_status=machine badge", C.firstRsBadge);
-    test("corpus card shows honest audio_status=none badge", C.firstAudioBadge);
-    test("era shelf titles are honest period names (Хаскала/Тхия)", C.shelfTitles.some((t) => /Хаскала|Тхия/.test(t)), JSON.stringify(C.shelfTitles));
+    test("L1 renders the «✓ Готовы к чтению» rail", C.readyRail && C.cards > 0, "cards=" + C.cards);
+    test("L1 renders the period grid (browse-all axis)", C.periodGrid);
+    test("ready cards are role=button (served-on-open, no no-JS deep-link)", C.buttons > 0 && C.anchors === 0, "buttons=" + C.buttons + " anchors=" + C.anchors);
+    test("ready card shows honest review_status=machine badge", C.firstRsBadge);
+    test("ready card shows honest audio_status=none badge", C.firstAudioBadge);
 
-    // open a corpus work — served-on-open: fetch works/<id>.json → importBundle → warm reader
-    await pg.click('.work-card[role="button"]'); // first corpus card
+    // open a ready work — served-on-open: fetch works/<id>.json → importBundle → warm reader
+    await pg.click('.corpus-ready .work-card[role="button"]');
     await pg.waitForFunction(() => {
       const reader = document.getElementById("roomReader");
       const tbl = document.getElementById("roomReaderTable");
@@ -118,7 +124,7 @@ async function main() {
 
     // re-open the SAME work → resolved from OPFS, NO second network fetch
     await pg.click("#readerBack"); await sleep(150);
-    await pg.click('.work-card[role="button"]');
+    await pg.click('.corpus-ready .work-card[role="button"]');
     await pg.waitForFunction(() => { const t = document.getElementById("roomReaderTable"); return t && t.querySelectorAll("tr").length > 0; }, { timeout: 15000 }).catch(() => {});
     await sleep(200);
     test("re-opening resolves from OPFS (no second work fetch — idempotent)", workFetches.length === fetchesAfterFirst, "fetches=" + workFetches.length);

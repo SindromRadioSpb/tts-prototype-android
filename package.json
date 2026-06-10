@@ -115,6 +115,7 @@
     "smoke:giant-pass": "node scripts/premium/giant-pass-smoke.js",
     "smoke:corpus-catalog": "node scripts/premium/corpus-catalog-smoke.js",
     "smoke:corpus-room": "node scripts/premium/corpus-room-smoke.js",
+    "smoke:corpus-nav": "node scripts/premium/corpus-nav-smoke.js",
     "smoke:era-map": "node scripts/premium/era-map-smoke.js",
     "smoke:full-catalog": "node scripts/premium/full-catalog-smoke.js",
     "smoke:shelves": "node scripts/premium/shelf-meta-smoke.js",

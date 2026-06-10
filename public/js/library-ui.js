@@ -24,16 +24,29 @@ let activeTrack = 'accessible';
 let shelvesByTrack = { accessible: [], literary: [], corpus: [] };
 let textByKey = new Map(); // text_key -> { id, title }
 
-// BRR-P0-007 Проход-3 — the machine-translated full corpus is delivered catalog-driven
-// (NOT auto-imported like the curated canon): library-ui fetches a thin catalog and
-// materialises a work into OPFS only when its card is opened (served-on-open). It lives
-// in its OWN "Корпус" track — never mixed into the curated canon shelves — and every
-// card/shelf is honestly labelled (review_status=machine, audio_status=none), so the
-// un-graded machine corpus is never silently dressed as the curated canon (R8/owner).
-const CORPUS_CATALOG_VERSION = 2; // v2 (BRR-P1-007): cards carry the coverage{} spine
-const CORPUS_CATALOG_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
-let corpusWorksById = new Map(); // work id -> catalog card
+// BRR-P0-007 Проход-3 / BRR-P1-015 A3 — the machine-translated full corpus is delivered
+// catalog-driven (NOT auto-imported like the curated canon): a work materialises into OPFS
+// only when its card is opened (served-on-open). It lives in its OWN "Корпус" track — never
+// mixed into the curated canon shelves — and every card is honestly labelled
+// (review_status=machine, audio_status=none / "перевод позже"), so the un-graded machine
+// corpus is never silently dressed as the curated canon (R8/owner).
+//
+// A3: the v2 flat-shelf surface is replaced by a Период→Автор→Работа drill (benyehuda.org
+// parity). The client reads a THIN root (era taxonomy + manifest map, precached) + a lazy
+// sidecar (author index + ready rail + facet histograms, fetched once on first Корпус open)
+// + per-era manifest BLOCK(s) on demand (only the block(s) an author lives in — D1/R4 keeps
+// the mobile budget to root + 1 active manifest, never the 26K/10MB at once).
+const CORPUS_CATALOG_VERSION = 3;
+const CORPUS_ROOT_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
+let corpusRoot = null;          // thin root: { era_taxonomy, manifests, counts, index_file, pointers }
+let corpusIndex = null;         // sidecar: { ready:[card], authors:{era:[{name,qid,works,ready,blocks}]}, facets }
+let corpusIndexLoading = null;  // single-flight guard for the lazy sidecar fetch
+const corpusManifestCache = new Map(); // manifest file path -> works[] (fetched block, cached)
+let corpusNav = { level: 'home', era: null, author: null }; // current drill position
+let corpusReveal = 0;           // incremental-reveal cursor for the active long list
+let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
+const CORPUS_PAGE = 60;         // "показать ещё" page size for author/work lists
 
 const $ = (id) => document.getElementById(id);
 const tt = (key, fallback) => { try { return (window.t && window.t(key)) || fallback || key; } catch (_) { return fallback || key; } };
@@ -142,13 +155,10 @@ function renderShelf(shelf) {
   const rail = el('div', { class: 'shelf-rail' });
   const items = Array.isArray(shelf.items) ? shelf.items : [];
   for (const it of items) {
-    if (shelf.__corpus) {
-      // corpus shelf items are work ids (catalog); the work materialises into OPFS on open
-      rail.appendChild(renderCorpusCard(corpusWorksById.get(String(it))));
-    } else {
-      const key = typeof it === 'string' ? it : (it && it.text_key);
-      if (key) rail.appendChild(renderWorkCard(key));
-    }
+    // Curated canon shelves (accessible/literary) carry text_key members. The Корпус track
+    // is NOT shelf-driven any more (A3): it renders the Период→Автор→Работа drill instead.
+    const key = typeof it === 'string' ? it : (it && it.text_key);
+    if (key) rail.appendChild(renderWorkCard(key));
   }
   wrap.appendChild(rail);
   return wrap;
@@ -198,6 +208,8 @@ function renderCorpusCard(card) {
 function renderTrack() {
   const main = $('roomContent');
   if (!main) return;
+  // A3 — the Корпус track is a Период→Автор→Работа drill, not a shelf stack.
+  if (activeTrack === 'corpus') { renderCorpus(); return; }
   const shelves = shelvesByTrack[activeTrack] || [];
   const anyShelves = TRACKS.some((t) => (shelvesByTrack[t] || []).length);
   if (!anyShelves) { showState('room.shelf.empty', '📚'); return; }
@@ -477,23 +489,347 @@ async function loadData() {
   } catch (e) { try { console.warn('[room] text resolution failed:', e); } catch (_) {} }
 }
 
-// BRR-P0-007 Проход-3 — load the thin corpus catalog (discovery only, no bodies) and
-// populate the "Корпус" track. Non-fatal: if it fails (offline first visit / not yet
-// published), the Корпус tab stays hidden and the curated canon is unaffected.
+// BRR-P1-015 A3 — load the THIN root (era taxonomy + manifest map only; no bodies, no
+// author index). This is the only corpus file fetched at boot (precached); the sidecar +
+// manifests load lazily on demand. Non-fatal: on failure the Корпус tab stays hidden and
+// the curated canon is unaffected.
 async function loadCorpusCatalog() {
   try {
     // Opt-out for structural smokes (?corpus=skip), independent of ?canon=skip.
     try { if (new URLSearchParams(location.search).get('corpus') === 'skip') return; } catch (_) {}
-    const res = await fetch(CORPUS_CATALOG_URL, { cache: 'force-cache' });
+    const res = await fetch(CORPUS_ROOT_URL, { cache: 'force-cache' });
     if (!res.ok) return;
-    const cat = await res.json();
-    corpusWorksById = new Map();
-    for (const w of (cat.works || [])) corpusWorksById.set(String(w.id), w);
-    const corpusShelves = (cat.shelves || []).map((s) => ({ ...s, track: 'corpus', __corpus: true }));
-    shelvesByTrack.corpus = corpusShelves;
+    const root = await res.json();
+    if (!root || !Array.isArray(root.era_taxonomy)) return;
+    corpusRoot = root;
     const tab = $('tabCorpus');
-    if (tab) { if (corpusShelves.length) tab.hidden = false; else tab.hidden = true; }
-  } catch (e) { try { console.warn('[room] corpus catalog load failed (non-fatal):', e); } catch (_) {} }
+    if (tab) tab.hidden = !((root.counts && root.counts.works) > 0);
+  } catch (e) { try { console.warn('[room] corpus root load failed (non-fatal):', e); } catch (_) {} }
+}
+
+// Lazy sidecar (author index + ready rail + facet histograms) — fetched once, on the first
+// Корпус render. ~160KB (≈35KB gz over br) → it replaces parsing the 10MB of manifests for
+// L1/L2; NEVER precached (D5). Single-flight so concurrent renders share one request.
+async function loadCorpusIndex() {
+  if (corpusIndex) return corpusIndex;
+  if (corpusIndexLoading) return corpusIndexLoading;
+  const file = (corpusRoot && corpusRoot.index_file) || 'corpus-index-v3.json';
+  corpusIndexLoading = (async () => {
+    const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+    if (!res.ok) throw new Error('corpus index ' + res.status);
+    const json = await res.json();
+    corpusIndex = json;
+    return json;
+  })();
+  try { return await corpusIndexLoading; } finally { corpusIndexLoading = null; }
+}
+
+// Resolve the manifest file for an era+block from the root map (single-file era → block null).
+function corpusManifestFile(era, block) {
+  const ms = (corpusRoot && corpusRoot.manifests) || [];
+  const m = ms.find((x) => x.era === era && x.block === (block == null ? null : block));
+  return m ? m.file : null;
+}
+// Fetch + cache a manifest block's works[] (a deliberate per-author drill; immutable-cached).
+async function fetchCorpusManifest(file) {
+  if (corpusManifestCache.has(file)) return corpusManifestCache.get(file);
+  const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+  if (!res.ok) throw new Error('manifest ' + res.status);
+  const json = await res.json();
+  const works = Array.isArray(json.works) ? json.works : [];
+  corpusManifestCache.set(file, works);
+  return works;
+}
+
+// "Ready to read" = openable (has body) AND translated. Machine translation still counts as
+// readable; the ⚙ badge keeps it honest. Same predicate the producer used (R8 parity).
+function corpusIsReady(c) { return !!(c && c.coverage && c.coverage.text && c.coverage.translation && c.coverage.translation !== 'none'); }
+function corpusEraTitle(era) { const e = ((corpusRoot && corpusRoot.era_taxonomy) || []).find((x) => x.era === era); return (e && e.title) || era; }
+function corpusGenreLabel(g) { return g ? tt('room.corpus.genre.' + g, g) : ''; }
+function corpusLengthLabel(c) {
+  if (c && c.parts > 1) return c.parts + ' ' + tt('room.corpus.parts', 'ч.');
+  if (c && c.segments) return c.segments + ' ' + tt('room.corpus.rows', 'стр.');
+  return '';
+}
+// Honest provenance chip (shared by the ready rail + work rows). Known enums get a localized
+// label + styled class; an unknown value is shown verbatim (never a raw i18n key).
+function corpusProvBadge(kind, val) {
+  const KNOWN = kind === 'audio' ? { none: 1, tts: 1, human: 1 } : { machine: 1, machine_assisted: 1, human_proofread: 1 };
+  const v = String(val || (kind === 'audio' ? 'none' : 'machine'));
+  const cls = (kind === 'audio' ? 'audio-' : 'rs-') + v;
+  const key = (kind === 'audio' ? 'room.prov.audio.' : 'room.prov.rs.') + v;
+  const opts = { class: 'prov-badge ' + cls, text: KNOWN[v] ? tt(key) : v };
+  if (KNOWN[v]) opts.i18n = key;
+  return el('span', opts);
+}
+function stateBoxNode(i18nKey, icon) {
+  const box = el('div', { class: 'room-state' });
+  if (icon) box.appendChild(el('span', { class: 'room-state-icon', text: icon }));
+  box.appendChild(el('span', { i18n: i18nKey, text: tt(i18nKey) }));
+  return box;
+}
+
+// Navigate the drill; resets the incremental-reveal cursor + re-renders.
+function corpusNavTo(level, era, author) {
+  corpusNav = { level: level || 'home', era: era || null, author: author || null };
+  corpusReveal = 0;
+  renderCorpus();
+}
+
+// ↑ breadcrumb. parts = [{label, onClick?}, …]; the leaf is plain text, ancestors are
+// buttons. The ← back button goes to the parent (or home).
+function corpusCrumb(parts) {
+  const bar = el('div', { class: 'corpus-crumb' });
+  const back = el('button', { class: 'corpus-back', attrs: { type: 'button', 'aria-label': tt('room.corpus.back', 'Назад') } });
+  back.textContent = '←';
+  const parent = parts.length >= 2 ? parts[parts.length - 2] : null;
+  back.addEventListener('click', () => { if (parent && parent.onClick) parent.onClick(); else corpusNavTo('home'); });
+  bar.appendChild(back);
+  const trail = el('nav', { class: 'corpus-crumb-trail' });
+  parts.forEach((p, i) => {
+    if (i) trail.appendChild(el('span', { class: 'corpus-crumb-sep', text: '▸' }));
+    const isLeaf = i === parts.length - 1;
+    const part = el(isLeaf ? 'span' : 'button', { class: 'corpus-crumb-part' + (isLeaf ? ' leaf' : '') });
+    part.textContent = p.label || '';
+    if (HEBREW_RE.test(p.label || '')) part.setAttribute('dir', 'rtl');
+    if (!isLeaf && p.onClick) { part.setAttribute('type', 'button'); part.addEventListener('click', p.onClick); }
+    trail.appendChild(part);
+  });
+  bar.appendChild(trail);
+  return bar;
+}
+
+// Drill dispatcher. Lazy-loads the sidecar on first paint; guards async work against rapid
+// navigation with a render token.
+async function renderCorpus() {
+  const main = $('roomContent');
+  if (!main) return;
+  const token = ++corpusRenderToken;
+  if (!corpusRoot) { showState('room.shelf.emptyTrack', '📚'); return; }
+  if (!corpusIndex) {
+    showState('room.state.loading', '⏳');
+    try { await loadCorpusIndex(); } catch (e) { if (token === corpusRenderToken) showState('room.state.error', '⚠️'); return; }
+    if (token !== corpusRenderToken) return;
+  }
+  if (corpusNav.level === 'authors') return renderCorpusAuthors(corpusNav.era, token);
+  if (corpusNav.level === 'works') return renderCorpusWorks(corpusNav.era, corpusNav.author, token);
+  return renderCorpusHome(token);
+}
+
+// L1 — graduated landing: "✓ Готовы к чтению" rail (openable machine works, cross-era) on
+// top, then the chronological period grid (browse-all axis). 5/7 eras are empty today, so
+// the rail is where the value lives (Duolingo: lead with one obvious default).
+function renderCorpusHome(token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  main.innerHTML = '';
+  const wrap = el('div', { class: 'corpus-nav' });
+
+  const ready = (corpusIndex && corpusIndex.ready) || [];
+  if (ready.length) {
+    const sec = el('section', { class: 'shelf corpus-ready' });
+    const head = el('div', { class: 'shelf-head' });
+    const h = el('h2', { class: 'shelf-title' });
+    h.textContent = '✓ ' + tt('room.corpus.readyTitle', 'Готовы к чтению') + ' (' + ready.length + ')';
+    head.appendChild(h);
+    head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.readyIntro', text: tt('room.corpus.readyIntro') }));
+    sec.appendChild(head);
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const c of ready) rail.appendChild(renderCorpusCard(c));
+    sec.appendChild(rail);
+    wrap.appendChild(sec);
+  }
+
+  const periods = el('section', { class: 'corpus-periods' });
+  const ph = el('div', { class: 'shelf-head' });
+  ph.appendChild(el('h2', { class: 'shelf-title', i18n: 'room.corpus.periodsTitle', text: tt('room.corpus.periodsTitle') }));
+  periods.appendChild(ph);
+  const grid = el('div', { class: 'corpus-period-grid' });
+  const eras = ((corpusRoot && corpusRoot.era_taxonomy) || []).slice().sort((a, b) => a.order - b.order);
+  for (const e of eras) grid.appendChild(renderPeriodCard(e));
+  periods.appendChild(grid);
+  wrap.appendChild(periods);
+
+  main.appendChild(wrap);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// Period card: title + floruit range + one-line gloss + counts (ready / works / authors).
+// "готовы N" is the graduated signal (benyehuda counts + Sefaria gloss); a 0-ready era is
+// honestly marked «перевод позже» (R8 — never dressed as readable).
+function renderPeriodCard(e) {
+  const card = el('div', { class: 'period-card', attrs: { role: 'button', tabindex: '0' } });
+  const titlerow = el('div', { class: 'period-card-titlerow' });
+  titlerow.appendChild(el('span', { class: 'period-card-title', text: e.title || e.era }));
+  if (e.range) titlerow.appendChild(el('span', { class: 'period-card-range', text: e.range }));
+  card.appendChild(titlerow);
+  if (e.gloss) card.appendChild(el('span', { class: 'period-card-gloss', text: e.gloss }));
+  const meta = el('div', { class: 'period-card-meta' });
+  if (e.ready_count > 0) meta.appendChild(el('span', { class: 'period-chip ready', text: '✓ ' + tt('room.corpus.readyN', 'готовы') + ' ' + e.ready_count }));
+  else meta.appendChild(el('span', { class: 'period-chip later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
+  meta.appendChild(el('span', { class: 'period-chip muted', text: tt('room.corpus.worksN', 'работ') + ' ' + (e.count || 0) }));
+  if (e.author_count) meta.appendChild(el('span', { class: 'period-chip muted', text: tt('room.corpus.authorsN', 'авт.') + ' ' + e.author_count }));
+  card.appendChild(meta);
+  const open = () => corpusNavTo('authors', e.era);
+  card.addEventListener('click', open);
+  card.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
+  return card;
+}
+
+// L2 — lean author list (name + ✓ready + works count), graduated order (ready-first) from
+// the sidecar. Long eras reveal incrementally («показать ещё»). Rich author detail is
+// deferred (benyehuda: lean list → rich page); jump-bar + sorts land in Slice 2.
+function renderCorpusAuthors(era, token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  main.innerHTML = '';
+  const wrap = el('div', { class: 'corpus-nav' });
+  wrap.appendChild(corpusCrumb([
+    { label: tt('room.tabs.corpus', 'Корпус'), onClick: () => corpusNavTo('home') },
+    { label: corpusEraTitle(era) },
+  ]));
+  const authors = (corpusIndex.authors && corpusIndex.authors[era]) || [];
+  const head = el('div', { class: 'corpus-list-head' });
+  head.appendChild(el('span', { class: 'corpus-list-count', text: tt('room.corpus.authorsTitle', 'Авторы') + ' (' + authors.length + ')' }));
+  wrap.appendChild(head);
+  const list = el('div', { class: 'corpus-author-list' });
+  const moreWrap = el('div', { class: 'corpus-more' });
+  wrap.appendChild(list);
+  wrap.appendChild(moreWrap);
+  const slice = () => {
+    const upTo = Math.min(authors.length, corpusReveal + CORPUS_PAGE);
+    for (let i = corpusReveal; i < upTo; i++) list.appendChild(renderAuthorRow(era, authors[i]));
+    corpusReveal = upTo;
+    moreWrap.innerHTML = '';
+    if (corpusReveal < authors.length) {
+      const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
+      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (authors.length - corpusReveal) + ')';
+      btn.addEventListener('click', slice);
+      moreWrap.appendChild(btn);
+    }
+  };
+  corpusReveal = 0;
+  slice();
+  main.appendChild(wrap);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+function renderAuthorRow(era, a) {
+  const row = el('div', { class: 'corpus-author-row', attrs: { role: 'button', tabindex: '0' } });
+  const name = el('span', { class: 'corpus-author-name', text: a.name || '(без автора)' });
+  if (HEBREW_RE.test(a.name || '')) name.setAttribute('dir', 'rtl');
+  row.appendChild(name);
+  const meta = el('span', { class: 'corpus-author-meta' });
+  if (a.ready > 0) meta.appendChild(el('span', { class: 'corpus-author-ready', text: '✓ ' + a.ready }));
+  meta.appendChild(el('span', { class: 'corpus-author-works', text: String(a.works) }));
+  row.appendChild(meta);
+  const open = () => corpusNavTo('works', era, a);
+  row.addEventListener('click', open);
+  row.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
+  return row;
+}
+
+// L3 — an author's works, fetched from ONLY the block(s) they live in (author.blocks), split
+// into «✓ Готовы к чтению» (openable rows) and «В каталоге · перевод позже» (disabled rows).
+// Each section reveals incrementally so a 1857-work author stays navigable.
+async function renderCorpusWorks(era, author, token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  if (!author) return renderCorpusAuthors(era, token);
+  main.innerHTML = '';
+  const wrap = el('div', { class: 'corpus-nav' });
+  wrap.appendChild(corpusCrumb([
+    { label: corpusEraTitle(era), onClick: () => corpusNavTo('authors', era) },
+    { label: author.name },
+  ]));
+  const body = el('div', { class: 'corpus-works-body' });
+  wrap.appendChild(body);
+  main.appendChild(wrap);
+  body.appendChild(stateBoxNode('room.state.loading', '⏳'));
+
+  let works = [];
+  try {
+    const blocks = Array.isArray(author.blocks) && author.blocks.length ? author.blocks : [null];
+    const files = blocks.map((b) => corpusManifestFile(era, b)).filter(Boolean);
+    const lists = await Promise.all(files.map(fetchCorpusManifest));
+    if (token !== corpusRenderToken) return;
+    works = [].concat(...lists).filter((w) => (w.author || '(без автора)') === author.name);
+  } catch (e) {
+    if (token === corpusRenderToken) { body.innerHTML = ''; body.appendChild(stateBoxNode('room.state.error', '⚠️')); }
+    return;
+  }
+  if (token !== corpusRenderToken) return;
+  body.innerHTML = '';
+  const ready = works.filter(corpusIsReady);
+  const later = works.filter((w) => !corpusIsReady(w));
+  ready.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  later.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+  if (ready.length) body.appendChild(corpusWorkSection('room.corpus.sectionReady', '✓', ready, true));
+  if (later.length) body.appendChild(corpusWorkSection('room.corpus.sectionLater', '⏳', later, false));
+  if (!ready.length && !later.length) body.appendChild(stateBoxNode('room.reader.empty', '📄'));
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+function corpusWorkSection(titleKey, icon, works, openable) {
+  const sec = el('section', { class: 'corpus-work-section' });
+  const head = el('div', { class: 'corpus-section-head' });
+  head.appendChild(el('span', { class: 'corpus-section-icon', text: icon }));
+  head.appendChild(el('span', { class: 'corpus-section-title', i18n: titleKey, text: tt(titleKey) }));
+  head.appendChild(el('span', { class: 'corpus-section-count', text: '(' + works.length + ')' }));
+  sec.appendChild(head);
+  const list = el('div', { class: 'corpus-work-list' });
+  const moreWrap = el('div', { class: 'corpus-more' });
+  sec.appendChild(list);
+  sec.appendChild(moreWrap);
+  let cursor = 0;
+  const slice = () => {
+    const upTo = Math.min(works.length, cursor + CORPUS_PAGE);
+    for (let i = cursor; i < upTo; i++) list.appendChild(renderCorpusWorkRow(works[i], openable));
+    cursor = upTo;
+    moreWrap.innerHTML = '';
+    if (cursor < works.length) {
+      const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
+      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (works.length - cursor) + ')';
+      btn.addEventListener('click', () => { slice(); try { window.applyI18n && window.applyI18n(); } catch (_) {} });
+      moreWrap.appendChild(btn);
+    }
+  };
+  slice();
+  return sec;
+}
+
+// A dense work ROW (not a card — scannable at scale, benyehuda/Sefaria/Standard Ebooks).
+// Baked → ▶ openable (served-on-open). Unprocessed → ⏳ disabled, honest «перевод позже»
+// (R8 — visible in the catalog, never dead-ended, never posing as readable).
+function renderCorpusWorkRow(card, openable) {
+  const row = el('div', { class: 'corpus-work-row' + (openable ? '' : ' is-later') });
+  const col = el('div', { class: 'corpus-work-col' });
+  const title = el('span', { class: 'corpus-work-title', text: card.title || '—' });
+  if (HEBREW_RE.test(card.title || '')) title.setAttribute('dir', 'rtl');
+  col.appendChild(title);
+  const meta = el('div', { class: 'corpus-work-meta' });
+  const len = corpusLengthLabel(card);
+  if (len) meta.appendChild(el('span', { class: 'corpus-work-len', text: len }));
+  if (card.genre) meta.appendChild(el('span', { class: 'corpus-work-genre', text: corpusGenreLabel(card.genre) }));
+  if (openable) {
+    meta.appendChild(corpusProvBadge('rs', card.review_status));
+    meta.appendChild(corpusProvBadge('audio', card.audio_status));
+  } else {
+    meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
+  }
+  col.appendChild(meta);
+  row.appendChild(col);
+  const cta = el('span', { class: 'corpus-work-cta', text: openable ? '▶' : '⏳' });
+  row.appendChild(cta);
+  if (openable) {
+    row.setAttribute('role', 'button'); row.setAttribute('tabindex', '0');
+    const open = () => openCorpusWork(card);
+    row.addEventListener('click', open);
+    row.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
+  } else {
+    row.setAttribute('aria-disabled', 'true');
+  }
+  return row;
 }
 
 function wireChrome() {
@@ -523,6 +859,9 @@ function wireChrome() {
   document.addEventListener('i18n:changed', () => {
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
     try { const r = $('roomReader'); if (r && !r.hidden && readerRows.length) rerenderReader(); } catch (_) {}
+    // Corpus nav builds dynamic labels (counts, "показать ещё") in JS — re-render it on
+    // locale change so they re-translate, but only when the reader isn't covering it.
+    try { const rd = $('roomReader'); if (activeTrack === 'corpus' && (!rd || rd.hidden)) renderCorpus(); } catch (_) {}
     // Aids <option> labels are built once (not data-i18n) — rebuild them on locale change.
     try { const panel = $('readerAids'); if (panel && !panel.hidden) buildAidsPanel(); } catch (_) {}
   });
@@ -537,10 +876,10 @@ async function boot() {
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
     await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
-    // Default to the first track that actually has shelves (on-ramp first).
+    // Default to the first track that actually has content (on-ramp first; corpus = root loaded).
     if (!(shelvesByTrack.accessible || []).length) {
       if ((shelvesByTrack.literary || []).length) activeTrack = 'literary';
-      else if ((shelvesByTrack.corpus || []).length) activeTrack = 'corpus';
+      else if (corpusRoot) activeTrack = 'corpus';
     }
     setActiveTrack(activeTrack);
   } catch (e) {

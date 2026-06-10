@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.20-corpus-coverage";
+const CACHE_VERSION = "v3.10.21-corpus-drill";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -91,6 +91,10 @@ const PRECACHE_URLS = [
   "/js/pealim-function-links.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
+  // BRR-P1-015 A3 — ONLY the thin Корпус root v3 is precached (≈4KB: era taxonomy +
+  // manifest map → period grid works offline). The sidecar (author index/ready rail,
+  // ~160KB) and per-era manifests/works are NEVER precached — lazy, on-demand (D5).
+  "/data/benyehuda/corpus-catalog-v3.json",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js",
