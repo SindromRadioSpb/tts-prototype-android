@@ -18,6 +18,8 @@
 // need GCP/Gemini keys and would make the smoke non-deterministic in CI.
 // ───────────────────────────────────────────────────────────────────────────
 
+const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const { spawn, spawnSync } = require("child_process");
 
@@ -68,13 +70,16 @@ async function readBody(res) {
   return { text, data };
 }
 
-function startServer(dbPath, port) {
+function startServer(dbPath, port, dataDir) {
   const child = spawn(process.execPath, ["server.js"], {
     cwd: REPO_ROOT,
     env: {
       ...process.env,
       DB_PATH: dbPath,
       PORT: String(port),
+      // Isolate the volume to a throwaway dir so BRR-P1-014 works uploads (and any audio
+      // writes) never touch the dev/prod data dir; run() removes it afterwards.
+      DATA_DIR: dataDir,
       AUDIO_UPLOAD_TOKEN: SMOKE_AUDIO_TOKEN, // BRR-P0-010 — exercise the upload lock
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -116,7 +121,8 @@ async function stopServer(child) {
 }
 
 async function run() {
-  const { child, logs } = startServer(DB_PATH, PORT);
+  const tmpDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "lp-apismoke-"));
+  const { child, logs } = startServer(DB_PATH, PORT, tmpDataDir);
 
   try {
     await waitForHealth(BASE_URL);
@@ -179,12 +185,67 @@ async function run() {
     }
     console.log("PASS /api/audio/cache/upload -> owner-token gated (X-Local-Mode rejected; valid token reaches validation)");
 
+    // 4. BRR-P1-014 A4: /api/benyehuda/works/upload reuses the SAME owner-token gate
+    //    (AUDIO_UPLOAD_TOKEN). Prove: no-token→403, X-Local-Mode→403, traversal id→400,
+    //    bad payload→400, valid→200 atomic-write, then the body is served back from the
+    //    volume at /data/benyehuda/works/<id>.json (static mount wins over public).
+    const WORKS_URL = `${BASE_URL}/api/benyehuda/works/upload`;
+    const goodWork = {
+      id: "__smoke_work__",
+      json: { library: { schema_version: 1, texts: [{ text_id: "x", text_key: "k", title: "t", rows: [] }], shelves: [], audio_assets: [] } },
+    };
+    const worksAuth = { "Content-Type": "application/json", "X-Audio-Upload-Token": SMOKE_AUDIO_TOKEN };
+    {
+      const res = await fetch(WORKS_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(goodWork) });
+      const { data, text } = await readBody(res);
+      if (res.status !== 403 || !data || data.error !== "BAD_UPLOAD_TOKEN") {
+        throw new Error(`works upload lock: no-token expected 403 BAD_UPLOAD_TOKEN, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(WORKS_URL, { method: "POST", headers: { "Content-Type": "application/json", "X-Local-Mode": "1" }, body: JSON.stringify(goodWork) });
+      const { data, text } = await readBody(res);
+      if (res.status !== 403 || !data || data.error !== "BAD_UPLOAD_TOKEN") {
+        throw new Error(`works upload lock: X-Local-Mode alone expected 403 BAD_UPLOAD_TOKEN (header must not authorize), got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(WORKS_URL, { method: "POST", headers: worksAuth, body: JSON.stringify({ id: "../evil", json: goodWork.json }) });
+      const { data, text } = await readBody(res);
+      if (res.status !== 400 || !data || data.error !== "BAD_WORK_ID") {
+        throw new Error(`works upload: traversal id expected 400 BAD_WORK_ID, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(WORKS_URL, { method: "POST", headers: worksAuth, body: JSON.stringify({ id: "__smoke_work__", json: { nope: true } }) });
+      const { data, text } = await readBody(res);
+      if (res.status !== 400 || !data || data.error !== "BAD_WORK_PAYLOAD") {
+        throw new Error(`works upload: bad payload expected 400 BAD_WORK_PAYLOAD, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(WORKS_URL, { method: "POST", headers: worksAuth, body: JSON.stringify(goodWork) });
+      const { data, text } = await readBody(res);
+      if (res.status !== 200 || !data || !data.ok || data.id !== "__smoke_work__") {
+        throw new Error(`works upload: valid token expected 200 ok, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    {
+      const res = await fetch(`${BASE_URL}/data/benyehuda/works/__smoke_work__.json`);
+      const { data, text } = await readBody(res);
+      if (!res.ok || !data || !data.library || !Array.isArray(data.library.texts)) {
+        throw new Error(`works serve: expected the uploaded body back from the volume, got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    console.log("PASS /api/benyehuda/works/upload -> owner-token gated + atomic write served from volume");
+
     console.log("API smoke: OK");
   } catch (error) {
     const tail = logs.length ? `\nServer log tail:\n${logs.join("\n")}` : "";
     throw new Error(`${error.message}${tail}`);
   } finally {
     await stopServer(child);
+    try { fs.rmSync(tmpDataDir, { recursive: true, force: true }); } catch (_) {}
   }
 }
 

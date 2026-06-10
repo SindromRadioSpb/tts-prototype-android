@@ -251,6 +251,14 @@
 - **Notes:** 1 814 переводов (translators set, orig_language≠he) — отдельный фасет, отдельная курация.
 
 ### BRR-P1-015 — Миграция works → прод-том + fill-queue (выборочное покрытие) 🟢 APPROVED (2026-06-10)
+- **A4 (works→том) SHIPPED-as-code 2026-06-10:** `POST /api/benyehuda/works/upload` (owner-token гейт —
+  reuse `AUDIO_UPLOAD_TOKEN` + `X-Audio-Upload-Token`, паттерн P0-010; id-валидация + path-guard + атомарная
+  перезапись) + статик-маунт тома `/data/benyehuda/works` ПЕРЕД public-static (тот же клиентский URL → без
+  правки library-ui/SW; volume-first, git-fallback, честный 404) + push-скрипт `scripts/premium/
+  push-corpus-works.js` (зеркало push-canon-audio: header-токен, 403/503 fatal, резюм через `--skip-existing`).
+  Гейты: `test:api-smoke` расширен (no-token→403 · X-Local-Mode→403 · traversal→400 · payload→400 · valid→200
+  + GET из тома) + audioUploadAuth 9/9; corpus/room регрессия зелёная. **Догфуд-push 100 на ПРОД-том + удаление
+  из git = owner-действие** (нужен `AUDIO_UPLOAD_TOKEN`; делать вместе с/после ротации ключей). Fill-queue (A5) ниже.
 - **Source:** решение владельца (хранилище на масштабе + выборочное наполнение перевод/озвучка).
 - **Observed:** 100 loose-JSON в git = 7МБ (ок); 26K ≈ 1.5–2 ГБ — в git нельзя.
 - **Current:** works в git (`public/data/benyehuda/works/`); раздаются статикой.

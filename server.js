@@ -320,6 +320,9 @@ const rlExportDocx    = makeRateLimiter({ windowMs: 60_000, max: 30,  name: "exp
 // roughly its own minute even under contention, but still bounds total
 // writes per attacker per minute.
 const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 2000, name: "audio-cache-upload" });
+// BRR-P1-014 A4 — corpus work-body push onto the persistent volume. Same generous
+// window as audio-cache-upload (an A2 publish ships many small JSON bodies in a burst).
+const rlWorksUpload   = makeRateLimiter({ windowMs: 60_000, max: 2000, name: "corpus-works-upload" });
 
 // ── Phase 6: stateful library/SRS/progress/history routes are gone ────────
 // After the localMode default-on flip (2026-05-08), every stateful API
@@ -390,6 +393,23 @@ function requireSameOriginJson(req, res, next) {
 //   3. no-cache for entry points (index.html, manifest.json, sw.js) so the
 //      Service Worker controls its own update lifecycle and the browser
 //      always re-validates the shell.
+// BRR-P1-014 A4 — corpus work bodies live on the PERSISTENT volume
+// (DATA_DIR/benyehuda/works/<id>.json), NOT git, so the ~26K corpus tail never bloats
+// the repo (only the thin catalog index ships in the repo). Mounted at the SAME public
+// URL the Reading Room already fetches (`/data/benyehuda/works/<id>.json?v=N`) and placed
+// BEFORE express.static(public) so a volume copy wins; a miss falls through
+// (fallthrough:true) to the in-git canon baseline, then to an honest 404. The client URL
+// is unchanged → no library-ui.js / SW change. Versioned via ?v=<catalogVersion> → a
+// re-publish bumps the query and busts the cache, so the body is immutable-cacheable.
+app.use("/data/benyehuda/works", express.static(path.join(DATA_DIR, "benyehuda", "works"), {
+  fallthrough: true,
+  index: false,
+  setHeaders(res) {
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  },
+}));
+
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
@@ -3293,6 +3313,54 @@ app.post("/api/audio/cache/upload", rlAudioUpload, async (req, res) => {
   } catch (e) {
     console.error("POST /api/audio/cache/upload error:", e);
     return res.status(500).json({ ok: false, error: "UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
+  }
+});
+
+// POST /api/benyehuda/works/upload — BRR-P1-014 A4. Owner-token push of ONE per-work
+// corpus bundle JSON onto the persistent volume → DATA_DIR/benyehuda/works/<id>.json,
+// served back KEYLESS at /data/benyehuda/works/<id>.json (static mount above). Keeps the
+// ~26K corpus tail OFF git (only the thin catalog index ships in the repo).
+// AUTH: reuses the BRR-P0-010 owner-token gate (AUDIO_UPLOAD_TOKEN + X-Audio-Upload-Token)
+// — owner decision 2026-06-10: a single shared owner-upload secret, one thing to rotate.
+// Re-publishable: ATOMIC overwrite (temp+rename), unlike content-addressed audio (a work's
+// body changes on re-bake; the client cache-busts via ?v=<catalogVersion>). Body: { id, json }.
+const WORKS_ID_RE = /^[A-Za-z0-9_-]{1,40}$/;
+app.post("/api/benyehuda/works/upload", rlWorksUpload, async (req, res) => {
+  try {
+    if (!requireAudioUploadAuth(req, res)) return; // BRR-P0-010 shared owner-token gate (writes the 4xx/5xx)
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const id = String(body.id || "").trim();
+    if (!WORKS_ID_RE.test(id)) return res.status(400).json({ ok: false, error: "BAD_WORK_ID" });
+    const work = body.json;
+    if (!work || typeof work !== "object" || !work.library || !Array.isArray(work.library.texts)) {
+      return res.status(400).json({ ok: false, error: "BAD_WORK_PAYLOAD", message: "expected { id, json: { library: { texts: [...] } } }" });
+    }
+    const worksDir = path.join(DATA_DIR, "benyehuda", "works");
+    const absPath = path.resolve(worksDir, id + ".json");
+    // Path-traversal guard: the resolved file MUST sit directly inside worksDir (defence in
+    // depth — WORKS_ID_RE already forbids '/', '\\' and '.'; this also rejects symlink games).
+    if (path.dirname(absPath) !== path.resolve(worksDir)) {
+      return res.status(400).json({ ok: false, error: "BAD_WORK_ID" });
+    }
+    const serialized = JSON.stringify(work);
+    if (Buffer.byteLength(serialized) > 10 * 1024 * 1024) {
+      // bodyParser already caps the request body at 10mb; a work beyond this would be
+      // chaptered per-part upstream (BRR-P0-006 giant-pass). Honest refusal, not a silent trim.
+      return res.status(413).json({ ok: false, error: "WORK_TOO_LARGE" });
+    }
+    try { if (!fs.existsSync(worksDir)) fs.mkdirSync(worksDir, { recursive: true }); } catch (_) {}
+    const tmp = absPath + ".tmp-" + crypto.randomBytes(6).toString("hex");
+    try {
+      fs.writeFileSync(tmp, serialized, "utf8");
+      fs.renameSync(tmp, absPath); // atomic replace (re-publishable)
+    } catch (e) {
+      try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch (_) {}
+      return res.status(500).json({ ok: false, id, error: "WRITE_FAILED", details: e && e.message ? e.message : String(e) });
+    }
+    return res.json({ ok: true, id, bytes: Buffer.byteLength(serialized) });
+  } catch (e) {
+    console.error("POST /api/benyehuda/works/upload error:", e);
+    return res.status(500).json({ ok: false, error: "WORKS_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
   }
 });
 
