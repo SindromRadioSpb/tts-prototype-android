@@ -68,7 +68,8 @@ const GCP_KEY = String(arg("gcp-key", process.env.GCP_TRANSLATE_API_KEY || ""));
 const NO_FETCH = flag("no-fetch");
 const GIANT_SEGMENTS = Number(arg("giant-segments", 2000)) || 2000; // defer works over this to a later giant pass
 const LIMIT = Number(arg("limit", 0)) || 0;                          // 0 = no cap (besides the daily quota)
-const FLUSH_EVERY = Number(arg("flush", 300)) || 300;                // texts per era before a shard flushes
+const FLUSH_WORKS = Number(arg("flush", 25)) || 25;                  // durable flush of ALL eras + ledger save every N processed works (crash-safety)
+const WORK_TIMEOUT = Number(arg("work-timeout", 600000)) || 600000;  // per-work wall-clock watchdog (ms): a hung text aborts → marked failed → retried next run
 const CANON_VERSION = Number(arg("canon-version", 3)) || 3;
 const CANON_ORIGIN = "benyehuda-ingest";
 
@@ -89,6 +90,26 @@ function writeRunStatus(obj) { try { fs.mkdirSync(path.dirname(RUN_STATUS_PATH),
 function countShards() { try { return fs.readdirSync(SHARD_DIR).filter((f) => /\.zip$/.test(f)).length; } catch (_) { return 0; } }
 function nowIso() { return new Date().toISOString(); }
 function utcDay() { return nowIso().slice(0, 10); }
+
+// Per-work watchdog: race the work against a hard wall-clock deadline so one hung network
+// call (Dicta-cloud / Gemini) can never stall a multi-day unattended run. The losing promise
+// is left to settle on its own (caller swallows its late rejection). [BRR-P0-006 hardening]
+function withTimeout(promise, ms, label) {
+  let to;
+  const guard = new Promise((_, reject) => { to = setTimeout(() => reject(new Error("watchdog: " + label + " exceeded " + ms + "ms")), ms); });
+  return Promise.race([promise, guard]).finally(() => clearTimeout(to));
+}
+
+// Next shard sequence for an era, derived from files ALREADY on disk — so periodic flushes
+// (and resumed runs) never overwrite an earlier shard. [BRR-P0-006 hardening]
+function nextShardSeq(slugEra) {
+  try {
+    const re = new RegExp("^by-era-" + slugEra.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "-(\\d+)\\.zip$");
+    let max = 0;
+    for (const f of fs.readdirSync(SHARD_DIR)) { const m = f.match(re); if (m) max = Math.max(max, Number(m[1])); }
+    return max + 1;
+  } catch (_) { return 1; }
+}
 
 function selectAndOrderOriginals(rows) {
   const originals = rows.filter((r) => !by.cleanField(r.translators) && by.cleanField(r.path) && by.cleanField(r.ID));
@@ -183,7 +204,6 @@ async function doBake() {
   console.log(`[bake] day ${today} | provider ${PROVIDER} | pending ${pending.length} | quota ${GEMINI_PER_DAY}/day (used ${ledgerLib.dayReqsUsed(ledger, today)})`);
 
   const shards = new Map(); // era → [{ item, key }]
-  const shardSeq = {};
   let processed = 0, doneN = 0, failN = 0, giantN = 0, skipN = 0;
 
   function flushShard(era) {
@@ -191,7 +211,7 @@ async function doBake() {
     if (!arr.length) return Promise.resolve();
     const texts = arr.map((x) => x.item);
     const slugEra = String(era || "unknown").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "unknown";
-    const seq = (shardSeq[era] = (shardSeq[era] || 0) + 1);
+    const seq = nextShardSeq(slugEra);
     const shelf = shelfMeta.buildShelf({
       slug: "by-era-" + slugEra + "-" + seq, title: "Эпоха: " + era, track: "literary",
       editorial_intro: "Автособранный срез корпуса по эпохе «" + era + "» (часть " + seq + "). Машинный перевод + Dicta-никуд; провенанс на карточках.",
@@ -220,8 +240,12 @@ async function doBake() {
       if (PROVIDER === "gemini" && ledgerLib.dayQuotaRemaining(ledger, today, GEMINI_PER_DAY) <= 0) { stopReason = "daily Gemini quota"; break; }
       const r = byId.get(id);
       if (!r) { ledgerLib.markSkipped(ledger, id, { error: "row-missing" }, today); skipN++; continue; }
-      let raw; try { raw = await core.fetchTxt(r.path); }
-      catch (e) { run.lastError = { id, error: "fetch:" + (e && e.message), at: nowIso() }; ledgerLib.markFailed(ledger, id, run.lastError.error, today); failN++; continue; }
+      let raw;
+      try {
+        const fetchP = core.fetchTxt(r.path);
+        fetchP.catch(() => {}); // swallow late rejection if the watchdog wins the race
+        raw = await withTimeout(fetchP, Math.min(WORK_TIMEOUT, 120000), "fetch " + id);
+      } catch (e) { run.lastError = { id, error: "fetch:" + (e && e.message), at: nowIso() }; ledgerLib.markFailed(ledger, id, run.lastError.error, today); failN++; continue; }
       const { body } = by.stripFooter(raw);
       if (!body || !body.trim()) { ledgerLib.markSkipped(ledger, id, { error: "empty-body" }, today); skipN++; continue; }
       const segCount = segment(body).length;
@@ -232,8 +256,11 @@ async function doBake() {
       const cls = by.classifyWork({ genre: r.genre, author: r.authors, shape: { lineCount, charCount: plainLen } });
       const reqsBefore = core.stats.geminiRequests;
       let built = null, err = null;
-      try { built = await core.translateAndBuild(r, body, { ...cls, audio_status: "none" }, plainLen); }
-      catch (e) { err = (e && e.message) || String(e); }
+      try {
+        const buildP = core.translateAndBuild(r, body, { ...cls, audio_status: "none" }, plainLen);
+        buildP.catch(() => {}); // swallow late rejection if the watchdog wins the race
+        built = await withTimeout(buildP, WORK_TIMEOUT, "work " + id + " (" + segCount + " seg)");
+      } catch (e) { err = (e && e.message) || String(e); }
       const reqsDelta = core.stats.geminiRequests - reqsBefore;
       if (reqsDelta) ledgerLib.recordReqs(ledger, today, reqsDelta);
 
@@ -255,8 +282,12 @@ async function doBake() {
       run.curTier = cls.track; run.curEra = era; run.lastSuccessAt = nowIso();
       ledgerLib.markDone(ledger, id, { tier: cls.track, segments: built.textItem.rows.length, reqs: reqsDelta, ru_filled: built.reportRow.ru_filled, content_hash: built.corpus.content_hash }, today);
       doneN++; processed++;
-      if (shards.get(era).length >= FLUSH_EVERY) await flushShard(era);
-      if (processed % 20 === 0) {
+      // Durability: flush ALL accumulated shards to disk, THEN persist the ledger, every
+      // FLUSH_WORKS works. Flush-before-save preserves the on-disk invariant that every
+      // ledger-"done" work is already in a shard — a crash loses ≤FLUSH_WORKS works, which
+      // re-bake from the trans-cache on resume (never orphaned done-but-unflushed rows).
+      if (processed % FLUSH_WORKS === 0) {
+        for (const era2 of Array.from(shards.keys())) await flushShard(era2);
         ledgerLib.saveLedger(LEDGER_PATH, ledger); core.saveCaches(); writeRunStatus(snapshot(ledger, run, today));
         process.stdout.write(`  [bake] processed ${processed} (done ${doneN} fail ${failN} giant ${giantN} skip ${skipN}) reqs-today ${ledgerLib.dayReqsUsed(ledger, today)}\r`);
       }
