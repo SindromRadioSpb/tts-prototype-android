@@ -4,7 +4,7 @@
 > Consolidated state so the next session picks up without losing context.
 
 ## Сверенное состояние (git)
-- **Branch `main` = origin/main = HEAD `4db4358`** (A3 Slice 2), дерево ЧИСТОЕ, всё запушено.
+- **Branch `main` = origin/main = HEAD `faf0c40`** (A5 таргет-слайс; A3 = `4db4358`), дерево ЧИСТОЕ, всё запушено.
 - **Прод SW = `v3.10.22-corpus-search`** — A3 Slice 1+2 (shell: library.html + library-ui.js). **ПРОД-ВЕРИФИЦИРОВАНО** end-to-end на linguistpro.kolosei.com (drill L1→L2→L3→reader + глобальный поиск/фасеты, 0 pageerror).
 - **A3 ПОЛНОСТЬЮ ОТГРУЖЕН** (Slice 1 drill + Slice 2 search/facets). NEXT = A5 / probe niqqud (НЕ часть A3).
 - **Бейк (пауза):** `node scripts/premium/run-corpus-prebake.js --status` → done 100 · pending 24541 · failed 0 · gemini today 0/1500. Резюм = `--bake` (нужен GEMINI_API_KEY — **ждёт ротации ключа**).
@@ -59,10 +59,19 @@ public/data/benyehuda/
 ```
 Эпохи (хронологически, `ERA_META`): biblical · medieval · haskalah · tehiya · mandate · modern · contemporary · **unknown** («Период не определён», сортируется последней). by_era (works): medieval 5376 · tehiya 10007 · haskalah 2889 · mandate 5220 · unknown 2806 · biblical 84 · modern 73.
 
-## NEXT — A5 · probe niqqud (A3 ПОЛНОСТЬЮ ОТГРУЖЕН) — по отмашке владельца
-- **A5** — fill-queue / дашборд покрытия + таргетинг прогонов бейка (какие эпохи/авторы добивать; сейчас done 100 / pending 24541). Длинная задача → recon-first.
-- **probe niqqud** rest-тира (keyless, можно параллельно — гейт широкого бейка).
-- **Опц. полиш A3 (не запрошено, в бэклог):** within-era фасеты (сейчас фасеты глобальные на L1) · фасет «Озвучка» когда появится corpus-audio · сорт работ в L3 (объём/эпоха) · «озвучка»-провенанс когда забейкаем corpus-audio.
+## A5 ТАРГЕТ-СЛАЙС — SHIPPED (`faf0c40`) — таргетированный бейк по эпохам
+Владелец захотел сфокусировать бейк на 3 эпохах (modern 73 + mandate 5220 + unknown 2806). Решение: НЕ полный A5 (дашборд/UI), а **минимальный таргет-кирпич** (= лёгкое семя fill-queue):
+- **`scripts/premium/build-fill-list.js --eras modern,mandate,unknown [--out]`** → упорядоченный id-список из манифестов каталога v3 (**Wikidata-эпоха = то, что видит владелец в UI**, НЕ раннер-эвристика `eraForAuthor`, которая бакетит иначе!). Детерминированно; дефолт `.tmp/benyehuda/fill-ids.json` (gitignored).
+- **раннер `--ids-file <path>`** → `selectAndOrderOriginals(rows, idFilter)` ограничивает+переупорядочивает `ordered` к списку ∩ bakeable-originals, **в порядке списка**. `doPlan` печатает TARGETED+ETA; `doBake` обрабатывает ТОЛЬКО набор; остальной леджер не тронут. Эпох-эвристика/шардинг/ledger-lib не тронуты (продюсер re-derives эпоху из era-map → каталог корректен).
+- **Гейт `smoke:fill-list` 11/11** (офлайн). corpusLedger.test 8/8.
+- **Офлайн-превью проверено:** `--plan --ids-file` → **7922/8099 bakeable** (177 = переводы/без-path отброшены), **modern 72 → mandate 5157 → unknown 2693**, ~31 день free-tier $0. Real-ledger restriction подтверждён read-only (бейкнёт ровно 7922, остальное не трогает).
+- **Запуск бейка:** `node scripts/premium/build-fill-list.js --eras modern,mandate,unknown` → `node scripts/premium/run-corpus-prebake.js --bake --provider gemini --ids-file .tmp/benyehuda/fill-ids.json` (нужен **GEMINI_API_KEY** — ждёт ротации; ~31-дневный unattended-прогон = отдельная команда владельца). После бейка: re-run `build-corpus-catalog.js --full` чтобы новые baked попали в каталог v3.
+
+## NEXT — бейк 3 эпох (после Gemini) · полный A5 (дашборд) опц. · probe niqqud
+- **Бейк modern→mandate→unknown** — код готов (таргет-слайс); запуск после ротации Gemini-ключа (длинный unattended). После — re-publish каталога v3.
+- **Полный A5 (дашборд покрытия + fill-queue UI)** — отложен (таргет-слайс закрыл непосредственную нужду); вернуться если наполнение пойдёт долго/широко.
+- **probe niqqud** rest-тира (keyless).
+- **Опц. полиш A3 (в бэклог):** within-era фасеты · фасет «Озвучка» когда появится corpus-audio · сорт работ в L3.
 
 ### Ключевые файлы A3 (отгружено — справка)
 - продюсер: `scripts/premium/build-corpus-catalog.js` (`--full`→`buildFullCatalog`: эмитит root v3 + 18 манифестов + `corpus-index-v3.json` сайдкар + `corpus-search-v3.json` индекс; `ERA_META` range/gloss).
@@ -78,8 +87,8 @@ public/data/benyehuda/
 - lib: `scripts/premium/lib/benyehuda.js` (parseCsv/cleanGenre/firstQid/eraForAuthor) · `db/premium/corpusMeta.js`
 - данные: `public/data/benyehuda/{corpus-catalog-v3.json, catalog/, author-era-map-v1.json, works/, canon-v3.zip}`
 
-## Гейты (зелёные на HEAD `4db4358`)
-`smoke:era-map` 17/17 · `smoke:full-catalog` 24/24 · `smoke:corpus-catalog` 34/34 (v2 цел) · `smoke:corpus-room` 18/18 (v3) · **`smoke:corpus-nav` 33/33 (A3 drill + Slice 2 search/facets/jump-bar)** · `smoke:room` 14/14 · `smoke:room-mode` 23/23 · `smoke:reader-parity` · `test:api-smoke` (incl. works-upload) · `audioUploadAuth` 9/9 · `node --test tests/premium/corpusLedger.test.js`.
+## Гейты (зелёные на HEAD `faf0c40`)
+`smoke:era-map` 17/17 · `smoke:full-catalog` 24/24 · `smoke:corpus-catalog` 34/34 (v2 цел) · `smoke:corpus-room` 18/18 (v3) · **`smoke:corpus-nav` 33/33 (A3 drill + Slice 2 search/facets/jump-bar)** · **`smoke:fill-list` 11/11 (A5 таргет-слайс)** · `smoke:room` 14/14 · `smoke:room-mode` 23/23 · `smoke:reader-parity` · `test:api-smoke` (incl. works-upload) · `audioUploadAuth` 9/9 · `node --test tests/premium/corpusLedger.test.js` 8/8.
 
 ## 🔑 ЖДЁТ ВЛАДЕЛЬЦА (security)
 1. **Ротация `AUDIO_UPLOAD_TOKEN`** — светился в чате (значение `8de9…0989`). Сгенерировать новый (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`), заменить ОБЕ записи в Coolify (Production + Preview Deployments), **Redeploy**. Это НАШ secret, отдельно от Google.
