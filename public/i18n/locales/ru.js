@@ -1882,6 +1882,7 @@ window.I18N_LOCALES.ru = {
     tabs: {
       accessible: "Доступная",
       literary: "Литературная",
+      corpus: "Корпус",
     },
     shelf: {
       empty: "Здесь пока нет полок. Скоро появятся тексты.",

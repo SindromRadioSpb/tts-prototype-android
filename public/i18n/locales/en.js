@@ -1868,6 +1868,7 @@ window.I18N_LOCALES.en = {
     tabs: {
       accessible: "Accessible",
       literary: "Literary",
+      corpus: "Corpus",
     },
     shelf: {
       empty: "No shelves yet. Texts are coming soon.",

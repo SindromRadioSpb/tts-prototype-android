@@ -72,7 +72,7 @@ async function main() {
     test("fixture seeded", seeded === true);
 
     // populated Room (accessible default)
-    await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" }); // ?canon=skip: this structural smoke must not trigger the shipped-canon auto-import
+    await pg.goto(BASE + "/library.html?canon=skip&corpus=skip", { waitUntil: "load" }); // skip both shipped sources: this structural smoke seeds its own shelves
     await pg.waitForSelector(".shelf, .room-state", { timeout: 10000 }).catch(() => {});
     await sleep(300);
     const A = await pg.evaluate(() => {
@@ -111,7 +111,7 @@ async function main() {
     await pg.goto(BASE + "/index.html", { waitUntil: "load" });
     for (let i = 0; i < 20; i++) { if (await pg.evaluate(() => !!window.ensureLocalDB).catch(() => false)) break; await sleep(500); }
     await pg.evaluate(async () => { const l = await window.ensureLocalDB(); try { await l.dbRun("DELETE FROM shelves WHERE slug LIKE 'rt-%'"); } catch (_) {} }).catch(() => {});
-    await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" }); // ?canon=skip: this structural smoke must not trigger the shipped-canon auto-import
+    await pg.goto(BASE + "/library.html?canon=skip&corpus=skip", { waitUntil: "load" }); // skip both shipped sources: this structural smoke seeds its own shelves
     await pg.waitForSelector(".shelf, .room-state", { timeout: 10000 }).catch(() => {});
     await sleep(200);
     const E = await pg.evaluate(() => ({ states: document.querySelectorAll(".room-state").length, shelves: document.querySelectorAll(".shelf").length }));

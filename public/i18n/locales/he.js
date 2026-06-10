@@ -1878,6 +1878,7 @@ window.I18N_LOCALES.he = {
     tabs: {
       accessible: "נגיש",
       literary: "ספרותי",
+      corpus: "מאגר",
     },
     shelf: {
       empty: "אין עדיין מדפים. טקסטים יתווספו בקרוב.",

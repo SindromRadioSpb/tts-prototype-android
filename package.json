@@ -114,6 +114,7 @@
     "smoke:corpus": "node scripts/premium/corpus-meta-smoke.js",
     "smoke:giant-pass": "node scripts/premium/giant-pass-smoke.js",
     "smoke:corpus-catalog": "node scripts/premium/corpus-catalog-smoke.js",
+    "smoke:corpus-room": "node scripts/premium/corpus-room-smoke.js",
     "smoke:shelves": "node scripts/premium/shelf-meta-smoke.js",
     "smoke:shelves-roundtrip": "node scripts/premium/shelf-roundtrip-smoke.js",
     "smoke:canon-version": "node scripts/premium/canon-version-smoke.js",

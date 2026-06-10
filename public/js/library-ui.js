@@ -18,10 +18,22 @@ import * as readerCore from '/js/reader-core.js';
 // hatch); right-click / middle-click / no-JS still navigate via the card's href.
 const EMBED = (() => { try { return new URLSearchParams(location.search).get('embed') !== '0'; } catch (_) { return true; } })();
 
-const TRACKS = ['accessible', 'literary'];
+const TRACKS = ['accessible', 'literary', 'corpus'];
+const TAB_ID = { accessible: 'tabAccessible', literary: 'tabLiterary', corpus: 'tabCorpus' };
 let activeTrack = 'accessible';
-let shelvesByTrack = { accessible: [], literary: [] };
+let shelvesByTrack = { accessible: [], literary: [], corpus: [] };
 let textByKey = new Map(); // text_key -> { id, title }
+
+// BRR-P0-007 Проход-3 — the machine-translated full corpus is delivered catalog-driven
+// (NOT auto-imported like the curated canon): library-ui fetches a thin catalog and
+// materialises a work into OPFS only when its card is opened (served-on-open). It lives
+// in its OWN "Корпус" track — never mixed into the curated canon shelves — and every
+// card/shelf is honestly labelled (review_status=machine, audio_status=none), so the
+// un-graded machine corpus is never silently dressed as the curated canon (R8/owner).
+const CORPUS_CATALOG_VERSION = 1;
+const CORPUS_CATALOG_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
+let corpusWorksById = new Map(); // work id -> catalog card
+let corpusImporting = false;
 
 const $ = (id) => document.getElementById(id);
 const tt = (key, fallback) => { try { return (window.t && window.t(key)) || fallback || key; } catch (_) { return fallback || key; } };
@@ -130,11 +142,57 @@ function renderShelf(shelf) {
   const rail = el('div', { class: 'shelf-rail' });
   const items = Array.isArray(shelf.items) ? shelf.items : [];
   for (const it of items) {
-    const key = typeof it === 'string' ? it : (it && it.text_key);
-    if (key) rail.appendChild(renderWorkCard(key));
+    if (shelf.__corpus) {
+      // corpus shelf items are work ids (catalog); the work materialises into OPFS on open
+      rail.appendChild(renderCorpusCard(corpusWorksById.get(String(it))));
+    } else {
+      const key = typeof it === 'string' ? it : (it && it.text_key);
+      if (key) rail.appendChild(renderWorkCard(key));
+    }
   }
   wrap.appendChild(rail);
   return wrap;
+}
+
+// A corpus card renders from the catalog (no OPFS row yet). Same DOM + honest provenance
+// badges as the canon card, but it is a role=button (served-on-open needs JS — there is
+// no no-JS deep-link to a not-yet-imported text; <div role=button> also dodges the mobile
+// `button { width:100% }` trap, CLAUDE.md §1). Keyboard-openable (Enter/Space).
+function renderCorpusCard(card) {
+  if (!card) {
+    const dead = el('div', { class: 'work-card', attrs: { 'aria-disabled': 'true' } });
+    dead.setAttribute('disabled', '');
+    dead.appendChild(el('span', { class: 'work-card-title', text: '—' }));
+    dead.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.unavailable', text: tt('room.work.unavailable') }));
+    return dead;
+  }
+  const node = el('div', { class: 'work-card', attrs: { role: 'button', tabindex: '0' } });
+  const title = card.title || '';
+  const titleEl = el('span', { class: 'work-card-title', text: title });
+  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  node.appendChild(titleEl);
+  if (card.author) {
+    const a = el('span', { class: 'work-card-author', text: card.author });
+    if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
+    node.appendChild(a);
+  }
+  const RS_KNOWN = { machine: 1, machine_assisted: 1, human_proofread: 1 };
+  const AU_KNOWN = { none: 1, tts: 1, human: 1 };
+  const meta = el('div', { class: 'work-card-meta' });
+  const rs = String(card.review_status || 'machine');
+  const rsOpts = { class: 'prov-badge rs-' + rs, text: RS_KNOWN[rs] ? tt('room.prov.rs.' + rs) : rs };
+  if (RS_KNOWN[rs]) rsOpts.i18n = 'room.prov.rs.' + rs;
+  meta.appendChild(el('span', rsOpts));
+  const au = String(card.audio_status || 'none');
+  const auOpts = { class: 'prov-badge audio-' + au, text: AU_KNOWN[au] ? tt('room.prov.audio.' + au) : au };
+  if (AU_KNOWN[au]) auOpts.i18n = 'room.prov.audio.' + au;
+  meta.appendChild(el('span', auOpts));
+  node.appendChild(meta);
+  node.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.open', text: tt('room.work.open') }));
+  const open = () => openCorpusWork(card);
+  node.addEventListener('click', open);
+  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  return node;
 }
 
 function renderTrack() {
@@ -153,7 +211,7 @@ function setActiveTrack(track) {
   if (TRACKS.indexOf(track) === -1) return;
   activeTrack = track;
   TRACKS.forEach((t) => {
-    const btn = $(t === 'accessible' ? 'tabAccessible' : 'tabLiterary');
+    const btn = $(TAB_ID[t]);
     if (btn) btn.setAttribute('aria-selected', String(t === track));
   });
   renderTrack();
@@ -276,6 +334,53 @@ function closeReader() {
   if (content) content.hidden = false;
 }
 
+// Resolve a stable text_key → the ephemeral local OPFS id (importBundle remaps ids on
+// import, so discovery keys on text_key and the reader opens by local id).
+async function resolveLocalIdByKey(textKey) {
+  try {
+    const rows = await localDb.dbQuery('SELECT id FROM texts WHERE text_key = ?', [textKey]);
+    return rows && rows[0] ? rows[0].id : null;
+  } catch (_) { return null; }
+}
+
+// BRR-P0-007 Проход-3 — open a corpus work served-on-open: resolve it in OPFS, and if
+// absent, fetch its per-work JSON, importBundle it (mode:'skip' — idempotent), then open
+// the warm reader by local id. The work file is fetched with ?v=<catalogVersion> so a
+// re-published catalog cache-busts the immutable work payloads.
+async function openCorpusWork(card) {
+  if (!card || corpusImporting) return;
+  const reader = $('roomReader'), content = $('roomContent');
+  if (content) content.hidden = true;
+  if (reader) reader.hidden = false;
+  const titleEl = $('readerTitle');
+  if (titleEl) {
+    titleEl.textContent = card.title || '';
+    if (HEBREW_RE.test(card.title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
+  }
+  try { window.scrollTo(0, 0); } catch (_) {}
+  readerStateBox('room.state.loading', '⏳');
+  corpusImporting = true;
+  try {
+    let localId = await resolveLocalIdByKey(card.text_key);
+    if (!localId) {
+      const url = '/data/benyehuda/' + card.file + '?v=' + CORPUS_CATALOG_VERSION;
+      const res = await fetch(url, { cache: 'force-cache' });
+      if (!res.ok) throw new Error('fetch ' + res.status);
+      const bundle = await res.json(); // { library: { texts:[…], shelves:[], audio_assets:[] } }
+      if (!bundle || !bundle.library) throw new Error('malformed work payload');
+      await localDb.importBundle(bundle, { mode: 'skip' });
+      localId = await resolveLocalIdByKey(card.text_key);
+    }
+    if (!localId) throw new Error('work not resolvable after import');
+    await openReader(localId, card.title);
+  } catch (e) {
+    try { console.warn('[room] open corpus work failed:', e); } catch (_) {}
+    readerStateBox('room.state.error', '⚠️');
+  } finally {
+    corpusImporting = false;
+  }
+}
+
 // BRR-P0-004 — ship-as-asset: the curated canon ships as a precomputed bundle in
 // public/data/benyehuda/ and is auto-imported into OPFS on the first Reading Room
 // visit (then it's fully offline). Idempotent: skipped if the canon shelves already
@@ -353,7 +458,7 @@ async function autoImportCanon() {
 
 async function loadData() {
   const shelves = await localDb.getShelves();
-  shelvesByTrack = { accessible: [], literary: [] };
+  shelvesByTrack = { accessible: [], literary: [], corpus: [] };
   for (const sh of shelves) {
     if (shelvesByTrack[sh.track]) shelvesByTrack[sh.track].push(sh);
   }
@@ -372,6 +477,25 @@ async function loadData() {
   } catch (e) { try { console.warn('[room] text resolution failed:', e); } catch (_) {} }
 }
 
+// BRR-P0-007 Проход-3 — load the thin corpus catalog (discovery only, no bodies) and
+// populate the "Корпус" track. Non-fatal: if it fails (offline first visit / not yet
+// published), the Корпус tab stays hidden and the curated canon is unaffected.
+async function loadCorpusCatalog() {
+  try {
+    // Opt-out for structural smokes (?corpus=skip), independent of ?canon=skip.
+    try { if (new URLSearchParams(location.search).get('corpus') === 'skip') return; } catch (_) {}
+    const res = await fetch(CORPUS_CATALOG_URL, { cache: 'force-cache' });
+    if (!res.ok) return;
+    const cat = await res.json();
+    corpusWorksById = new Map();
+    for (const w of (cat.works || [])) corpusWorksById.set(String(w.id), w);
+    const corpusShelves = (cat.shelves || []).map((s) => ({ ...s, track: 'corpus', __corpus: true }));
+    shelvesByTrack.corpus = corpusShelves;
+    const tab = $('tabCorpus');
+    if (tab) { if (corpusShelves.length) tab.hidden = false; else tab.hidden = true; }
+  } catch (e) { try { console.warn('[room] corpus catalog load failed (non-fatal):', e); } catch (_) {} }
+}
+
 function wireChrome() {
   const lang = $('roomLang');
   if (lang) {
@@ -379,7 +503,7 @@ function wireChrome() {
     lang.addEventListener('change', (e) => { try { window.appSetLocale && window.appSetLocale(e.target.value); } catch (_) {} });
   }
   TRACKS.forEach((t) => {
-    const btn = $(t === 'accessible' ? 'tabAccessible' : 'tabLiterary');
+    const btn = $(TAB_ID[t]);
     if (btn) btn.addEventListener('click', () => setActiveTrack(t));
   });
   // Embedded reader chrome.
@@ -412,8 +536,12 @@ async function boot() {
     if (localDb.isFollower && localDb.isFollower()) { showState('room.state.dbBusy', '📑'); return; }
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
+    await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
     // Default to the first track that actually has shelves (on-ramp first).
-    if (!(shelvesByTrack.accessible || []).length && (shelvesByTrack.literary || []).length) activeTrack = 'literary';
+    if (!(shelvesByTrack.accessible || []).length) {
+      if ((shelvesByTrack.literary || []).length) activeTrack = 'literary';
+      else if ((shelvesByTrack.corpus || []).length) activeTrack = 'corpus';
+    }
     setActiveTrack(activeTrack);
   } catch (e) {
     if (e instanceof localDb.DbUnavailableError) { showState('room.state.dbBusy', '📑'); return; }
