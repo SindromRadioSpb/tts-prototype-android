@@ -1,13 +1,16 @@
-# BRR session handoff — 2026-06-10 (Путь А: A0→A4→A2→A3 (Slice 1+2) SHIPPED+PROD; NEXT = A5 · probe niqqud)
+# BRR session handoff — 2026-06-11 (A0→A4→A2→A3→A5-таргет→probe SHIPPED; БЕЙК ИДЁТ; NEXT = dev-трек + наполнение)
 
 > **READ FIRST in the new session** for Ben-Yehuda Reading Room / full-corpus delivery work.
-> Consolidated state so the next session picks up without losing context.
+> Consolidated state so the next session picks up without losing context. Краткая копия —
+> `.remember/remember.md` (авто-грузится на старте сессии).
 
 ## Сверенное состояние (git)
-- **Branch `main` = origin/main = HEAD `faf0c40`** (A5 таргет-слайс; A3 = `4db4358`), дерево ЧИСТОЕ, всё запушено.
-- **Прод SW = `v3.10.22-corpus-search`** — A3 Slice 1+2 (shell: library.html + library-ui.js). **ПРОД-ВЕРИФИЦИРОВАНО** end-to-end на linguistpro.kolosei.com (drill L1→L2→L3→reader + глобальный поиск/фасеты, 0 pageerror).
-- **A3 ПОЛНОСТЬЮ ОТГРУЖЕН** (Slice 1 drill + Slice 2 search/facets). NEXT = A5 / probe niqqud (НЕ часть A3).
-- **Бейк (пауза):** `node scripts/premium/run-corpus-prebake.js --status` → done 100 · pending 24541 · failed 0 · gemini today 0/1500. Резюм = `--bake` (нужен GEMINI_API_KEY — **ждёт ротации ключа**).
+- **Branch `main` = origin/main = HEAD `146d797`** (probe-niqqud; A5 = `faf0c40`; A3 = `4db4358`), дерево ЧИСТОЕ, всё запушено.
+- **Прод SW = `v3.10.22-corpus-search`** — A3 Slice 1+2 (shell: library.html + library-ui.js). **ПРОД-ВЕРИФИЦИРОВАНО** end-to-end (drill L1→L2→L3→reader + глобальный поиск/фасеты, 0 pageerror; мобайл — реальный iPhone владельца ✓ + Android Pixel 7 ✓).
+- **A3 ПОЛНОСТЬЮ ОТГРУЖЕН** (Slice 1 drill + Slice 2 search/facets) · **A5 таргет-слайс ОТГРУЖЕН** (build-fill-list + `--ids-file`) · **probe-niqqud ОТГРУЖЕН** (гейт качества PASS 97.8%).
+- **🔥 БЕЙК ИДЁТ** (НЕ пауза): таргетированный modern→mandate→unknown (7922 ивр.-оригинала). `--status` → done 107 (100 prior + 7 targeted) · pending 24534 · targeted 7/8099 · failed 0. ~260 работ/день (free-tier Gemini 1500/день), ~31 день, $0. Резюм/durable-цикл + публикация — см. раздел «БЕЙК» ниже.
+
+## A3 Slice 1 — клиент Период→Автор→Работа на v3 — SHIPPED+PROD (`b992fba`)
 
 ## A3 Slice 1 — клиент Период→Автор→Работа на v3 — SHIPPED+PROD (`b992fba`)
 Владелец одобрил рекомендованную архитектуру (recon-first + competitor research: benyehuda.org/Sefaria/LingQ/Standard Ebooks). L1 = рейл «✓ Готовы к чтению (100)» + хронологическая сетка периодов; решения: 2 слайса · полный глобальный title-search (→ Slice 2).
@@ -67,11 +70,29 @@ public/data/benyehuda/
 - **Офлайн-превью проверено:** `--plan --ids-file` → **7922/8099 bakeable** (177 = переводы/без-path отброшены), **modern 72 → mandate 5157 → unknown 2693**, ~31 день free-tier $0. Real-ledger restriction подтверждён read-only (бейкнёт ровно 7922, остальное не трогает).
 - **Запуск бейка:** `node scripts/premium/build-fill-list.js --eras modern,mandate,unknown` → `node scripts/premium/run-corpus-prebake.js --bake --provider gemini --ids-file .tmp/benyehuda/fill-ids.json` (нужен **GEMINI_API_KEY** — ждёт ротации; ~31-дневный unattended-прогон = отдельная команда владельца). После бейка: re-run `build-corpus-catalog.js --full` чтобы новые baked попали в каталог v3.
 
-## NEXT — бейк 3 эпох (после Gemini) · полный A5 (дашборд) опц. · probe niqqud
-- **Бейк modern→mandate→unknown** — код готов (таргет-слайс); запуск после ротации Gemini-ключа (длинный unattended). После — re-publish каталога v3.
-- **Полный A5 (дашборд покрытия + fill-queue UI)** — отложен (таргет-слайс закрыл непосредственную нужду); вернуться если наполнение пойдёт долго/широко.
-- **probe niqqud** rest-тира (keyless).
-- **Опц. полиш A3 (в бэклог):** within-era фасеты · фасет «Озвучка» когда появится corpus-audio · сорт работ в L3.
+## probe-niqqud — SHIPPED (`146d797`) — гейт качества огласовки для бейка
+`npm run probe:niqqud` (`scripts/premium/probe-niqqud.js`) — сканирует бейк-шарды → per-shard + overall % огласовки/перевода + PASS/WARN. **Первый прогон: PASS — 97.8% огласовано / 100% переведено** по 8 шардам; rest-тир (unknown) 99.2%, на уровне ядра. Sidecar (локальный niqqud-сервис `127.0.0.1:8799`, `AI_LOCAL_PORT`) **выключен — не блокер**: Dicta-cloud niqqud работает (~0.8с/вызов), residual <1% «cloud filled 0/N» = трудные токены, честно retry. Гейт качества пройден → **широкий бейк зелёный**.
+
+## 🔥 БЕЙК — ИДЁТ (таргетированный modern→mandate→unknown)
+- Запущен в этой сессии с Gemini-ключом владельца. Леджер `.tmp/benyehuda/prebake-ledger.json`: done 107 (100 prior + 7 targeted) · pending 24534 · targeted **7/8099** · failed 0. ~260 работ/день (Gemini free-tier 1500/день), ~31 день, $0.
+- **Resumable + crash-safe** (отдельная закалка): леджер скипает done, ретраит pending/failed; `--flush 5` сейв каждые 5 работ; `nextShardSeq` не перезаписывает; niqqud+translate кэши персистят. Резюм = та же команда.
+- **Durable-цикл (терминал владельца), с видимостью:**
+  ```powershell
+  $env:GEMINI_API_KEY="<key>"
+  while ($true) {
+    node scripts/premium/run-corpus-prebake.js --bake --provider gemini --ids-file .tmp/benyehuda/fill-ids.json --flush 5
+    node scripts/premium/run-corpus-prebake.js --status
+    Start-Sleep -Seconds 3600
+  }
+  ```
+- Прогресс: `run-corpus-prebake.js --status` · качество: `npm run probe:niqqud`. **Только ОДИН экземпляр** (леджер не для параллели).
+- ⚠ **Метка эпохи в шарде косметическая** (раннер-эвристика); при публикации `build-corpus-catalog.js --full` эпоха **переопределяется по era-map** → в Зале правильно. Счётчик `gemini today` слегка недосчитывает при краше до флаша — мелочь.
+- **ПУБЛИКАЦИЯ baked в Зал** (повторяющийся шаг, когда набралась порция): `node scripts/premium/build-corpus-catalog.js --full` → пересобирает v3 catalog/index/search + манифесты → **SW-бамп** → commit+push → прод-верифи. Новые baked появятся как «✓ Готовы к чтению» в своих эпохах.
+
+## NEXT (dev-трек — выбирает владелец; полный A5-дашборд ON HOLD)
+1. **Продолжать бейк** (durable-цикл) + публиковать порции периодически + `probe:niqqud` чек.
+2. **Опции разработки:** (a) **полиш A3** — within-era фасеты + сорт работ в L3; (b) **«Следующий для тебя» (i+1)** — премиум learner-рекомендация (leftover acceptance BRR-P1-007, высокая ценность, крупнее); (c) **BYOK «перевод на лету»** для unprocessed (v1.1); (d) **полный A5-дашборд** — ON HOLD.
+3. Параллельная разработка с бейком — без конфликта (бейк пишет только в `.tmp`, не трогает код/каталог до явной публикации).
 
 ### Ключевые файлы A3 (отгружено — справка)
 - продюсер: `scripts/premium/build-corpus-catalog.js` (`--full`→`buildFullCatalog`: эмитит root v3 + 18 манифестов + `corpus-index-v3.json` сайдкар + `corpus-search-v3.json` индекс; `ERA_META` range/gloss).
@@ -87,8 +108,11 @@ public/data/benyehuda/
 - lib: `scripts/premium/lib/benyehuda.js` (parseCsv/cleanGenre/firstQid/eraForAuthor) · `db/premium/corpusMeta.js`
 - данные: `public/data/benyehuda/{corpus-catalog-v3.json, catalog/, author-era-map-v1.json, works/, canon-v3.zip}`
 
-## Гейты (зелёные на HEAD `faf0c40`)
-`smoke:era-map` 17/17 · `smoke:full-catalog` 24/24 · `smoke:corpus-catalog` 34/34 (v2 цел) · `smoke:corpus-room` 18/18 (v3) · **`smoke:corpus-nav` 33/33 (A3 drill + Slice 2 search/facets/jump-bar)** · **`smoke:fill-list` 11/11 (A5 таргет-слайс)** · `smoke:room` 14/14 · `smoke:room-mode` 23/23 · `smoke:reader-parity` · `test:api-smoke` (incl. works-upload) · `audioUploadAuth` 9/9 · `node --test tests/premium/corpusLedger.test.js` 8/8.
+## Гейты (зелёные на HEAD `146d797`)
+`smoke:era-map` 17/17 · `smoke:full-catalog` 24/24 · `smoke:corpus-catalog` 34/34 (v2 цел) · `smoke:corpus-room` 18/18 (v3) · **`smoke:corpus-nav` 33/33 (A3 drill + Slice 2)** · **`smoke:fill-list` 11/11 (A5)** · **`npm run probe:niqqud` PASS (97.8%)** · `smoke:room` 14/14 · `smoke:room-mode` 23/23 · `smoke:reader-parity` · `test:api-smoke` · `audioUploadAuth` 9/9 · `node --test tests/premium/corpusLedger.test.js` 8/8.
+
+## 🔑 ЖДЁТ ВЛАДЕЛЬЦА (security — напоминать)
+Ротация **AUDIO_UPLOAD_TOKEN** (светился в чате) + **Gemini-ключ** (сейчас В РАБОТЕ для бейка → ротировать ПОСЛЕ прогона / ограничить в Google Cloud до Generative Language API + квота) + старый GCP TTS-ключ.
 
 ## 🔑 ЖДЁТ ВЛАДЕЛЬЦА (security)
 1. **Ротация `AUDIO_UPLOAD_TOKEN`** — светился в чате (значение `8de9…0989`). Сгенерировать новый (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`), заменить ОБЕ записи в Coolify (Production + Preview Deployments), **Redeploy**. Это НАШ secret, отдельно от Google.
