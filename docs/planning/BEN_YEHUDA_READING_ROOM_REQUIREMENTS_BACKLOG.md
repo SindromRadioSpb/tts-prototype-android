@@ -165,7 +165,7 @@
 - **Status:** 🟡 PARTIAL. **Аудио-предбейк курируемого канона = SHIPPED + PROD** (`a9659c7`+`a038862`, SW `v3.10.18-canon-audio-fastlink`). Доставка для ПОЛНОГО 26K (per-work served + OPFS-паки) — ещё PLANNED (с BRR-P0-006).
 - **As-built (audio-prebake, D1 server-cache streaming):** GCP WaveNet `he-IL-Wavenet-A` для всех 79 текстов (6 446 клипов / 617 921 знак / **$0** free-tier / 0 сбоев). `db/premium/ttsAssetKey.js` (извлечён из server.js = единый источник ключа) + `scripts/premium/{bake-voice-sample,bake-canon-audio,build-canon-v3,push-canon-audio,audio-prebake-smoke}.js` + `lib/{ttsBake,stampCanon}.js`. `canon-v3.zip` штампует `audio_asset_key` на строку + `audio_assets[]` (метаданные, без MP3-байт) + `audio_status:'tts'` (R1, никогда `human`) + P0-008 shelf `origin`/`canon_version:3`. MP3 запушены в prod-кэш `/app/data/audio` (через `/api/audio/cache/upload` + `X-Local-Mode`). reader-core tier-1 (`HEAD`→`GET 206`) стримит keyless — прод-верифицировано @380px. Гейт `smoke:audio-prebake` 26/26; ротация ключа после прогона; idempotent re-bake (content-addressed).
 - **⚠ Mobile caveat (открыто → BRR-P0-011):** первый импорт canon-v3 (6 646 строк + 6 446 аудио-линков) ~17-21с на desktop-OPFS; на не-OPFS/медленном Safari (старый iOS) импорт зависает → "Не удалось загрузить библиотеку". Фикс v3.10.18 убрал избыточный reconcile (85с→17с fresh / 74с→4с upgrade), но импорт всё ещё тяжёл для mobile → нужен lighten-first-load (BRR-P0-011).
-- **Open (full-corpus delivery):** **Дизайн закрыт (D1–D5, 2026-06-10).** **Проход-3 Срезы 1+2 SHIPPED+PROD 2026-06-10:** Срез 1 (`9ccf6b1`) producer `build-corpus-catalog.js` → `corpus-catalog-v1.json` (38КБ) + `works/<id>.json` (100, Shape A); Срез 2 (`67443ad`, SW v3.10.19) library.html вкладка «Корпус» + served-on-open (тап → fetch work → importBundle → тёплый ридер; re-open из OPFS). 100 работ haskalah+tehiya на проде, ОТДЕЛЬНО от канона (R8). Гейты `smoke:corpus-catalog` 27/27 + `smoke:corpus-room` 16/16; прод-верифицировано @380px. **Осталось:** Срез 3 (OPFS LRU, D2) · аудио корпуса (computed-key) · R7-сэмплинг 100 · 26K → object storage.
+- **Open (full-corpus delivery):** **Дизайн закрыт (D1–D5, 2026-06-10).** **Проход-3 Срезы 1+2 SHIPPED+PROD 2026-06-10:** Срез 1 (`9ccf6b1`) producer `build-corpus-catalog.js` → `corpus-catalog-v1.json` (38КБ) + `works/<id>.json` (100, Shape A); Срез 2 (`67443ad`, SW v3.10.19) library.html вкладка «Корпус» + served-on-open (тап → fetch work → importBundle → тёплый ридер; re-open из OPFS). 100 работ haskalah+tehiya на проде, ОТДЕЛЬНО от канона (R8). Гейты `smoke:corpus-catalog` 27/27 + `smoke:corpus-room` 16/16; прод-верифицировано @380px. **Решения владельца 2026-06-10 (Путь А APPROVED):** (а) OPFS LRU отложен (нет нагрузки); (б) owner-key аудио НЕ предбейкаем — BYOK/браузер сейчас, выборочная публикация клипов позже; (в) Gemini-MT принят как стандарт, R7-сэмплинг НЕ делаем. **Дальше = coverage-aware полный каталог** → `BRR-P1-007/014/015` + `DELIVERY_26K_PLAN` «Coverage-модель».
 - **Source:** решение владельца 2026-06-08.
 - **Observed:** канон сейчас = один shipped-бандл (canon-v3 ~2.8МБ) авто-импортом.
 - **Current:** один бандл/precache не масштабируется на ~26K × ~27КБ ≈ сотни МБ.
@@ -220,20 +220,41 @@
 - **DoD:** screenshot всех состояний @380px RTL; keyboard-доступ к toggle; prefers-reduced-motion.
 - **Notes:** **самая быстрая премиум-победа** (данные есть, чистый UX).
 
-### BRR-P1-007 — Бейдж сложности+покрытия + «следующий для тебя»
-- **Source:** LingQ (оценка уровня) · StoryHebrew (CEFR-бейджи)
-- **Observed:** уровень/сложность при discovery + ощущение прогресса.
-- **Current:** `getTextLearningCoverage` + `rankRoots` есть, но не выведены как learner-бейдж; нет «next text».
-- **Gap:** i+1-данные не превращены в дружелюбную рекомендацию.
-- **User story:** *Как ученик, я хочу видеть, насколько текст мне по силам, и получать «следующий для тебя», чтобы не выбирать вслепую.*
-- **Surface:** Room · **Role:** R2, R8, R3 · **Priority:** P1
+### BRR-P1-007 — Coverage-aware каталог: фильтры/поиск + бейдж покрытия + «следующий для тебя» 🟢 APPROVED Путь А (2026-06-10)
+- **РАСШИРЕНО 2026-06-10 (владелец утвердил Путь А):** из «бейдж сложности» в **центральную фичу качества v1.0** — coverage-aware каталог. Спайн = `coverage{text,niqqud,translation,audio,era_known,tier}` (см. `DELIVERY_26K_PLAN` «Coverage-модель»). Слайсы A1 (coverage в producer/catalog) → A2 (полный каталог из `pseudocatalogue.csv`, шардинг по эпохам) → A3 (фильтры эпоха/автор/жанр + перевод/озвучка + градуированный дефолт + честный «перевод позже»).
+- **Source:** LingQ (оценка уровня) · StoryHebrew (CEFR-бейджи) · Sefaria/HathiTrust (coverage-aware каталог).
+- **Observed:** уровень/сложность при discovery + ощущение прогресса; владелец хочет листить весь перечень + фильтровать по покрытию.
+- **Current:** `getTextLearningCoverage` + `rankRoots` есть; Проход-3 Срезы 1+2 (каталог + Корпус-вкладка) SHIPPED; coverage-флаги ещё не выведены, фильтров/поиска нет, листятся только baked-100.
+- **Gap:** каталог не покрывает весь перечень; нет coverage-фильтров; i+1-данные не превращены в дружелюбную рекомендацию.
+- **User story:** *Как ученик — вижу, что текст мне по силам и переведён/озвучен, фильтрую библиотеку, получаю «следующий».* *Как владелец — вижу покрытие и выборочно наполняю перевод/озвучку.*
+- **Surface:** Room (+ Studio для fill-queue) · **Role:** R2, R8, R6, R4, R3, R1 · **Priority:** P1 (v1.0 качество)
 - **Strategic fit:** high · **Learner value:** high · **Moat value:** high
-- **Impl:** partial reuse (данные есть) · **Cx:** M
-- **Dependencies:** BRR-P0-001, BRR-P0-003 · **Risks:** UX (без пугающего техжаргона сложности)
-- **Offline:** yes · **BYOK:** n/a
-- **Acceptance:** каждый текст показывает понятный индикатор (покрытие%/уровень, дружелюбно); «next» возвращает реально i+1-тексты по частотности.
-- **DoD:** screenshot бейджа+ленты; sanity оценщика vs частотность; empty-state «next» честный.
-- **Notes:** ключевая моат-фича (i+1 на подлинной литературе — нет ни у кого для иврита).
+- **Impl:** partial reuse (Проход-3 + данные есть) · **Cx:** L (мульти-слайс A1–A5)
+- **Dependencies:** BRR-P0-007 (Проход-3), BRR-P1-014 (works→том), BRR-P1-015 (fill-queue) · **Risks:** UX (без техжаргона; не «свалить» хвост → градуированный дефолт), масштаб каталога (шардинг)
+- **Offline:** yes · **BYOK:** v1.1 (перевод на лету)
+- **Acceptance:** каталог листит весь перечень coverage-aware; фильтры перевод/озвучка/эпоха/автор/жанр; дефолт градуированный (переведённые+канон сверху); честные бейджи (R1); «next» = реальные i+1 по частотности.
+- **DoD:** screenshot фильтров+бейджей @380px; coverage-гейт зелёный; empty-state/«перевод позже» честные.
+- **Notes:** ключевая моат-фича (i+1 на подлинной литературе — нет ни у кого для иврита). Перевод-стандарт = Gemini-MT (решение владельца 2026-06-10, R7-сэмплинг не делаем). Аудио — BYOK/браузер сейчас; выборочная публикация owner-key клипов позже.
+
+### BRR-P1-014 — Полный каталог (весь перечень ~26K) + шардинг 🟢 APPROVED (2026-06-10)
+- **Source:** решение владельца «загрузить весь перечень» (Путь А).
+- **Observed:** метаданные всех 26 455 работ есть в `pseudocatalogue.csv` (бесплатно) → можно листить весь канон сразу, обогащая coverage во времени.
+- **Current:** каталог листит только 100 baked (Проход-3 Срез 1).
+- **Gap:** producer не читает CSV для unprocessed-карточек; один JSON-массив не масштабируется (26K × ~150Б ≈ 4МБ).
+- **Surface:** producer + Room · **Role:** R6, R5, R3 · **Priority:** P1
+- **Acceptance:** `build-corpus-catalog.js` мёржит CSV (весь перечень) + shards (coverage) → тонкий индекс + shard-манифесты по эпохам/автор-префиксу (D1); unprocessed-карточки честные (tier=unprocessed, «перевод позже»).
+- **DoD:** гейт на coverage-мёрж + размер шардов; @380px дефолт градуированный.
+- **Notes:** 1 814 переводов (translators set, orig_language≠he) — отдельный фасет, отдельная курация.
+
+### BRR-P1-015 — Миграция works → прод-том + fill-queue (выборочное покрытие) 🟢 APPROVED (2026-06-10)
+- **Source:** решение владельца (хранилище на масштабе + выборочное наполнение перевод/озвучка).
+- **Observed:** 100 loose-JSON в git = 7МБ (ок); 26K ≈ 1.5–2 ГБ — в git нельзя.
+- **Current:** works в git (`public/data/benyehuda/works/`); раздаются статикой.
+- **Gap:** нет push-эндпоинта на том; нет coverage-дашборда/таргетинга.
+- **Surface:** Backend + Studio · **Role:** R5, R3 · **Priority:** P1
+- **Acceptance:** тела works на `/app/data/benyehuda/works/` (статика + owner-token push, паттерн BRR-P0-010); индекс каталога остаётся в git; coverage-отчёт «что не покрыто» + таргетинг раннера/аудио по эпохе/id.
+- **DoD:** push-эндпоинт owner-token-gated (smoke); coverage-отчёт; works НЕ в git на масштабе.
+- **Notes:** предусловие реального 26K-наполнения. niqqud-probe rest-тира (20–50 works → Dicta backoff vs sidecar) = гейт широкого бейка (см. BRR-P0-006 §4b).
 
 ### BRR-P1-008 — Audio↔text karaoke-подсветка (RTL-safe)
 - **Source:** Beelinguapp, LingQ (karaoke highlight)
