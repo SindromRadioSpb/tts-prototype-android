@@ -30,7 +30,7 @@ let textByKey = new Map(); // text_key -> { id, title }
 // in its OWN "Корпус" track — never mixed into the curated canon shelves — and every
 // card/shelf is honestly labelled (review_status=machine, audio_status=none), so the
 // un-graded machine corpus is never silently dressed as the curated canon (R8/owner).
-const CORPUS_CATALOG_VERSION = 1;
+const CORPUS_CATALOG_VERSION = 2; // v2 (BRR-P1-007): cards carry the coverage{} spine
 const CORPUS_CATALOG_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
 let corpusWorksById = new Map(); // work id -> catalog card
 let corpusImporting = false;

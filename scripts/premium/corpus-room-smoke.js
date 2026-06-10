@@ -2,7 +2,7 @@
 "use strict";
 
 // corpus-room-smoke.js — BRR-P0-007 Проход-3 Slice 2 gate. Drives the REAL library.html
-// against the SHIPPED corpus catalog (public/data/benyehuda/corpus-catalog-v1.json +
+// against the SHIPPED corpus catalog (public/data/benyehuda/corpus-catalog-v2.json +
 // works/*.json served by server.js), no canon, no network beyond localhost:
 //   • the "Корпус" tab appears once the catalog loads (hidden until then)
 //   • the Корпус track renders era shelves + corpus cards (role=button, NOT <a> — there
@@ -45,8 +45,8 @@ async function main() {
   console.log("[corpus-room-smoke] server up");
 
   // sanity: the catalog + a work file are actually served
-  const cat = await fetch(BASE + "/data/benyehuda/corpus-catalog-v1.json").then((r) => r.ok ? r.json() : null).catch(() => null);
-  test("corpus-catalog-v1.json served", !!cat && Array.isArray(cat.works) && cat.works.length > 0, cat ? ("works=" + (cat.works || []).length) : "no fetch");
+  const cat = await fetch(BASE + "/data/benyehuda/corpus-catalog-v2.json").then((r) => r.ok ? r.json() : null).catch(() => null);
+  test("corpus-catalog-v2.json served", !!cat && Array.isArray(cat.works) && cat.works.length > 0, cat ? ("works=" + (cat.works || []).length) : "no fetch");
   const sampleFile = cat && cat.works[0] && cat.works[0].file;
   const work0 = sampleFile ? await fetch(BASE + "/data/benyehuda/" + sampleFile).then((r) => r.ok ? r.json() : null).catch(() => null) : null;
   test("a per-work file is served (Shape A)", !!work0 && work0.library && Array.isArray(work0.library.texts) && work0.library.texts.length > 0);

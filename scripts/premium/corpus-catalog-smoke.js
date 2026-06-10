@@ -110,6 +110,16 @@ function tmp(label) { return fs.mkdtempSync(path.join(os.tmpdir(), "corpus-catal
   const card11 = cat && cat.works.find((w) => w.id === "11");
   test("card 11 vocalized_ratio = 0 (no niqqud)", card11 && card11.vocalized_ratio === 0, card11 && card11.vocalized_ratio);
 
+  // ── coverage spine (BRR-P1-007 / Путь А) ─────────────────────────────────────
+  const cov = card && card.coverage;
+  test("card carries coverage{} spine", !!cov && typeof cov === "object", JSON.stringify(cov));
+  test("coverage.text true for a baked work", cov && cov.text === true);
+  test("coverage.niqqud mirrors vocalized_ratio (1)", cov && cov.niqqud === 1, cov && cov.niqqud);
+  test("coverage.translation = machine (RU filled, review_status=machine)", cov && cov.translation === "machine", cov && cov.translation);
+  test("coverage.audio = none (not voiced)", cov && cov.audio === "none", cov && cov.audio);
+  test("coverage.era_known true (era set)", cov && cov.era_known === true);
+  test("coverage.tier = machine-known (era known)", cov && cov.tier === "machine-known", cov && cov.tier);
+
   // multi-part work 21
   const card21 = cat && cat.works.find((w) => w.id === "21");
   test("work 21 grouped: parts = 2", card21 && card21.parts === 2, card21 && card21.parts);

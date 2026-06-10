@@ -41,7 +41,7 @@ function flag(name) { return process.argv.indexOf("--" + name) >= 0; }
 
 const SHARD_DIR = path.resolve(arg("shard-dir", path.join(REPO, ".tmp", "benyehuda", "shards")));
 const OUT_DIR = path.resolve(arg("out-dir", path.join(REPO, "public", "data", "benyehuda")));
-const CATALOG_VERSION = Number(arg("catalog-version", 1)) || 1;
+const CATALOG_VERSION = Number(arg("catalog-version", 2)) || 2;
 const DRY = flag("dry-run");
 // Read-path needs only the rows (reader-core reads sentences, never source_text); the raw
 // blob is reconstructable by joining rows. Strip it by default → ~half-size served-on-open
@@ -69,6 +69,26 @@ function vocalizedRatio(rows) {
   if (!heRows.length) return 0;
   const voc = heRows.filter((r) => NIQQUD_RE.test(r.hebrew_niqqud || "")).length;
   return Math.round((voc / heRows.length) * 100) / 100;
+}
+
+// Coverage spine (BRR-P1-007 / Путь А) for a BAKED work (rows present). The producer
+// computes it honestly from the corpus metadata + rows; the client filters and the owner
+// fill-queue read it. (Unprocessed CSV-only cards — BRR-P1-014 — set their own coverage
+// with text:false / tier:"unprocessed".) review_status drives the translation flag so a
+// machine_assisted edition still reads as machine-translated, never as human-reviewed (R1).
+function coverageFor(corpus, rows) {
+  const c = corpus || {};
+  const hasRu = (rows || []).some((r) => (r.russian || "").trim());
+  const audio = c.audio_status === "tts" || c.audio_status === "human" ? c.audio_status : "none";
+  const eraKnown = !!c.era;
+  return {
+    text: (rows || []).length > 0,
+    niqqud: vocalizedRatio(rows || []),
+    translation: hasRu ? (c.review_status === "machine_assisted" ? "machine_assisted" : "machine") : "none",
+    audio,
+    era_known: eraKnown,
+    tier: eraKnown ? "machine-known" : "machine-rest",
+  };
 }
 
 async function readShards() {
@@ -151,6 +171,11 @@ async function readShards() {
       vocalized_ratio: vocalizedRatio(allRows),
       review_status: c.review_status || "machine",
       audio_status: c.audio_status || "none",
+      // BRR-P1-007 coverage spine (Путь А): the normalized filter/fill model. For a baked
+      // work `text` is true (rows materialised), `translation` reflects whether RU is filled,
+      // `audio` honestly tracks published voicing. Unprocessed (CSV-only, BRR-P1-014) cards
+      // will carry text:false / tier:"unprocessed".
+      coverage: coverageFor(c, allRows),
     });
   }
   if (lies.length) {
