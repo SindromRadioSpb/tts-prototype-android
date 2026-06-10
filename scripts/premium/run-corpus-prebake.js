@@ -82,6 +82,7 @@ const GCP_KEY = String(arg("gcp-key", process.env.GCP_TRANSLATE_API_KEY || ""));
 const NO_FETCH = flag("no-fetch");
 const GIANT_SEGMENTS = Number(arg("giant-segments", 2000)) || 2000; // defer works over this to a later giant pass
 const LIMIT = Number(arg("limit", 0)) || 0;                          // 0 = no cap (besides the daily quota)
+const IDS_FILE = String(arg("ids-file", ""));                        // BRR-P1-015 A5: targeted bake (ordered work-id list from build-fill-list.js)
 const FLUSH_WORKS = Number(arg("flush", 25)) || 25;                  // durable flush of ALL eras + ledger save every N processed works (crash-safety)
 const WORK_TIMEOUT = Number(arg("work-timeout", 600000)) || 600000;  // per-work wall-clock watchdog (ms): a hung text aborts → marked failed → retried next run
 const CANON_VERSION = Number(arg("canon-version", 3)) || 3;
@@ -125,8 +126,32 @@ function nextShardSeq(slugEra) {
   } catch (_) { return 1; }
 }
 
-function selectAndOrderOriginals(rows) {
+// BRR-P1-015 A5 — optional targeting via `--ids-file` (an ORDERED work-id list, produced by
+// build-fill-list.js from the v3 catalog = Wikidata eras). When present we restrict + reorder
+// `ordered` to that list ∩ bakeable originals, IN LIST ORDER — so `--bake` processes only the
+// targeted set (e.g. modern→mandate→unknown), in that order, without touching the runner's
+// name-heuristic tiering or the rest of the ledger.
+function loadIdsFile() {
+  if (!IDS_FILE) return null;
+  let j; try { j = JSON.parse(fs.readFileSync(IDS_FILE, "utf8")); }
+  catch (e) { console.error("[run] --ids-file load failed: " + e.message); process.exit(2); }
+  const arr = Array.isArray(j) ? j : (Array.isArray(j.ids) ? j.ids : null);
+  if (!arr || !arr.length) { console.error("[run] --ids-file has no ids[]"); process.exit(2); }
+  return arr;
+}
+function selectAndOrderOriginals(rows, idFilter) {
   const originals = rows.filter((r) => !by.cleanField(r.translators) && by.cleanField(r.path) && by.cleanField(r.ID));
+  if (idFilter && idFilter.length) {
+    const origIds = new Set(originals.map((r) => String(by.cleanField(r.ID))));
+    const seen = new Set(); const ordered = [];
+    for (const it of idFilter) {
+      const id = String(it && it.id != null ? it.id : it);
+      if (!origIds.has(id) || seen.has(id)) continue; // keep only bakeable originals, dedup
+      seen.add(id);
+      ordered.push({ id, tier: (it && (it.era || it.tier)) || "targeted" });
+    }
+    return { originals, known: [], rest: [], ordered, targeted: true, requested: idFilter.length, matched: ordered.length };
+  }
   const known = [], rest = [];
   for (const r of originals) {
     let era = null; try { era = by.eraForAuthor(r.authors); } catch (_) {}
@@ -152,7 +177,8 @@ function snapshot(ledger, run, today) {
 
 function doPlan() {
   const { rows } = by.parseCsv(fs.readFileSync(CSV_PATH, "utf8"));
-  const sel = selectAndOrderOriginals(rows);
+  const idFilter = loadIdsFile();
+  const sel = selectAndOrderOriginals(rows, idFilter);
   const ledger = ledgerLib.loadLedger(LEDGER_PATH);
   const added = ledgerLib.seedLedger(ledger, sel.ordered);
   fs.mkdirSync(path.dirname(LEDGER_PATH), { recursive: true });
@@ -162,12 +188,18 @@ function doPlan() {
   const etaDays = Math.ceil(pending / worksPerDay());
   console.log("=== BRR-P0-006 PRE-RUN PLAN (free-tier, tiered, resumable) ===");
   console.log(`corpus: ${rows.length} works | originals ${sel.originals.length} (translations handled separately)`);
-  console.log(`tiers:  known-era ${sel.known.length} (FIRST) → rest ${sel.rest.length}`);
+  if (sel.targeted) {
+    const perTier = {}; for (const e of sel.ordered) perTier[e.tier] = (perTier[e.tier] || 0) + 1;
+    console.log(`TARGETED: --ids-file ${IDS_FILE} → ${sel.matched}/${sel.requested} ids matched bakeable originals`);
+    console.log(`          set (in bake order): ${Object.entries(perTier).map(([k, v]) => k + " " + v).join(" → ")}`);
+  } else {
+    console.log(`tiers:  known-era ${sel.known.length} (FIRST) → rest ${sel.rest.length}`);
+  }
   console.log(`ledger: ${LEDGER_PATH} (seeded +${added} new) | done ${s.done} · pending ${s.pending} · failed ${s.failed} · deferred-giant ${s.deferredGiant} · skipped ${s.skipped}`);
   console.log(`budget: ${GEMINI_PER_DAY} Gemini req/day · ~${REQS_PER_WORK.toFixed(1)} req/work → ~${worksPerDay()} works/day`);
-  console.log(`ETA:    ~${etaDays} days to drain ${pending} pending originals ($0 free-tier) — giants (> ${GIANT_SEGMENTS} segs) deferred to a capped tail pass`);
+  console.log(`ETA:    ~${etaDays} days to drain ${pending} ${sel.targeted ? "TARGETED " : ""}pending originals ($0 free-tier) — giants (> ${GIANT_SEGMENTS} segs) deferred to a capped tail pass`);
   console.log("audio:  on-demand computed-key (NOT pre-baked here); niqqud: Dicta-cloud w/ backoff; review_status=machine.");
-  console.log("bake:   `--bake --provider gemini` (needs GEMINI_API_KEY) to start; resumes daily on the quota. `--status` for the dashboard.");
+  console.log(`bake:   \`--bake --provider gemini${sel.targeted ? " --ids-file " + IDS_FILE : ""}\` (needs GEMINI_API_KEY) to start; resumes daily on the quota. \`--status\` for the dashboard.`);
 }
 
 function doStatus() {
@@ -193,7 +225,9 @@ async function doBake(opts) {
   const giantPass = !!(opts && opts.giantPass);
   if (PROVIDER === "gemini" && !GEMINI_KEY) { console.error("[bake] --provider gemini needs GEMINI_API_KEY env (or --gemini-key)."); process.exit(2); }
   const { rows } = by.parseCsv(fs.readFileSync(CSV_PATH, "utf8"));
-  const sel = selectAndOrderOriginals(rows);
+  const idFilter = loadIdsFile();
+  const sel = selectAndOrderOriginals(rows, idFilter);
+  if (sel.targeted) console.log(`[bake] TARGETED --ids-file ${IDS_FILE} → ${sel.matched}/${sel.requested} bakeable; processing ONLY this set, in list order.`);
   const byId = new Map(); for (const r of rows) { const id = by.cleanField(r.ID); if (id) byId.set(String(id), r); }
   const ledger = ledgerLib.loadLedger(LEDGER_PATH);
   ledgerLib.seedLedger(ledger, sel.ordered);
