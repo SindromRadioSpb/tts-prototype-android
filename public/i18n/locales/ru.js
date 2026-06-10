@@ -1940,6 +1940,10 @@ window.I18N_LOCALES.ru = {
       rows: "стр.",
       sectionReady: "Готовы к чтению",
       sectionLater: "В каталоге · перевод позже",
+      search: { placeholder: "Поиск по корпусу…", results: "Результаты", empty: "Ничего не найдено." },
+      facets: { ready: "Готовые", genre: "Жанр", lang: "Язык", clear: "Сбросить" },
+      sort: { graduated: "Готовые сверху", alpha: "По алфавиту" },
+      jumpbar: "Буквы",
       genre: {
         poetry: "поэзия", prose: "проза", article: "статья", memoir: "мемуары",
         fables: "басни", letters: "письма", reference: "справка", drama: "драма", lexicon: "лексикон",

@@ -248,13 +248,17 @@ async function buildFullCatalog() {
     if (c.coverage && c.coverage.text) bakedCount++;
   }
   const INDEX_FILE = "corpus-index-v" + V + ".json";
+  const SEARCH_FILE = "corpus-search-v" + V + ".json";
   const root = {
     schema: 1, version: V, corpus_meta_version: corpusMeta.CORPUS_META_VERSION,
     origin: "benyehuda-ingest", generated_from: "csv+era-map+baked",
     // BRR-P1-015 A3: thin root carries the discovery axes (counts + period taxonomy +
     // manifest map). The companion sidecar (index_file) carries the author index + ready
     // rail + facet histograms — loaded lazily on first Корпус open, NEVER precached (D5).
+    // A3 Slice 2: search_file is the flat title/facet index — loaded lazily on the FIRST
+    // search/facet use only (NOT precached, NOT on Корпус open).
     index_file: INDEX_FILE,
+    search_file: SEARCH_FILE,
     counts: { works: cards.length, baked: bakedCount, by_era: byEraCount, by_genre: byGenre, by_lang: byLang, by_tier: byTier },
     era_taxonomy: eraTaxonomy,
     manifests,
@@ -269,20 +273,32 @@ async function buildFullCatalog() {
     authors: authorsByEra,    // era -> [{ name, qid, works, ready, blocks:[blockId|null] }] (graduated order)
     facets: facetsByEra,      // era -> { genre:{}, lang:{} }
   };
+  // A3 Slice 2 — flat search/facet index over ALL works (the ONE store backing both global
+  // title-search AND global facet filtering). Minimal per-row (short keys to keep it small):
+  //   t=title  a=author  e=era  g=genre  l=orig_language  r=ready(0|1)
+  // The client niqqud-normalizes t once on load (no t_nrm shipped → single normalizer, no
+  // Node/browser drift). A ready hit (r=1) is opened by joining its id to index.ready; an
+  // unprocessed hit is a display-only row (honest «перевод позже», never openable).
+  const search = cards.map((c) => ({
+    id: c.id, t: c.title || "", a: c.author || "", e: c.era || "unknown",
+    g: c.genre || null, l: c.orig_language || "he", r: isReady(c) ? 1 : 0,
+  }));
 
   const rootBytes = Buffer.byteLength(JSON.stringify(root));
   const idxBytes = Buffer.byteLength(JSON.stringify(index));
+  const searchBytes = Buffer.byteLength(JSON.stringify(search));
   let manBytes = 0, maxMan = 0; for (const w of writes) { const b = Buffer.byteLength(JSON.stringify(w.json)); manBytes += b; if (b > maxMan) maxMan = b; }
-  console.log(`[full] works ${cards.length} · baked ${bakedCount} · eras ${eraTaxonomy.length} · manifests ${writes.length} · ready-rail ${readyCards.length} · R1 clean`);
+  console.log(`[full] works ${cards.length} · baked ${bakedCount} · eras ${eraTaxonomy.length} · manifests ${writes.length} · ready-rail ${readyCards.length} · search-rows ${search.length} · R1 clean`);
   console.log(`[full] by_tier: ${Object.entries(byTier).map(([k, v]) => k + " " + v).join(" · ")}`);
   console.log(`[full] by_era: ${eraTaxonomy.map((t) => t.era + " " + t.count + "(ready " + t.ready_count + ", авт " + t.author_count + ")").join(" · ")}`);
-  console.log(`[full] root ${(rootBytes / 1024).toFixed(0)}KB · sidecar ${(idxBytes / 1024).toFixed(0)}KB · manifests total ${(manBytes / 1024 / 1024).toFixed(1)}MB · largest ${(maxMan / 1024).toFixed(0)}KB`);
+  console.log(`[full] root ${(rootBytes / 1024).toFixed(0)}KB · sidecar ${(idxBytes / 1024).toFixed(0)}KB · search ${(searchBytes / 1024).toFixed(0)}KB · manifests total ${(manBytes / 1024 / 1024).toFixed(1)}MB · largest ${(maxMan / 1024).toFixed(0)}KB`);
   if (DRY) { console.log("[full] dry-run — nothing written"); return; }
   fs.mkdirSync(path.join(OUT_DIR, "catalog"), { recursive: true });
   for (const w of writes) fs.writeFileSync(path.join(OUT_DIR, w.rel), JSON.stringify(w.json));
   fs.writeFileSync(path.join(OUT_DIR, "corpus-catalog-v" + V + ".json"), JSON.stringify(root));
   fs.writeFileSync(path.join(OUT_DIR, INDEX_FILE), JSON.stringify(index));
-  console.log(`[full] wrote corpus-catalog-v${V}.json + ${INDEX_FILE} + ${writes.length} manifests → ${path.relative(REPO, OUT_DIR)}`);
+  fs.writeFileSync(path.join(OUT_DIR, SEARCH_FILE), JSON.stringify(search));
+  console.log(`[full] wrote corpus-catalog-v${V}.json + ${INDEX_FILE} + ${SEARCH_FILE} + ${writes.length} manifests → ${path.relative(REPO, OUT_DIR)}`);
   console.log(`[full] NOTE: bump --catalog-version on re-publish; v2 stays live until A3 switches the client to v3.`);
 }
 

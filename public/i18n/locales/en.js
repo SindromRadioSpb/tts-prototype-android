@@ -1926,6 +1926,10 @@ window.I18N_LOCALES.en = {
       rows: "rows",
       sectionReady: "Ready to read",
       sectionLater: "In catalogue · translation later",
+      search: { placeholder: "Search the corpus…", results: "Results", empty: "Nothing found." },
+      facets: { ready: "Ready", genre: "Genre", lang: "Language", clear: "Clear" },
+      sort: { graduated: "Ready first", alpha: "Alphabetical" },
+      jumpbar: "Letters",
       genre: {
         poetry: "poetry", prose: "prose", article: "article", memoir: "memoir",
         fables: "fables", letters: "letters", reference: "reference", drama: "drama", lexicon: "lexicon",

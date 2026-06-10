@@ -52,6 +52,7 @@ async function main() {
     const pg = await ctx.newPage();
     const errs = []; pg.on("pageerror", (e) => errs.push(String(e)));
     const manifestFetches = new Set(); pg.on("request", (r) => { const m = /\/data\/benyehuda\/(catalog\/[^?]+)/.exec(r.url()); if (m) manifestFetches.add(m[1]); });
+    const searchFetches = []; pg.on("request", (r) => { if (/corpus-search-v3\.json/.test(r.url())) searchFetches.push(r.url()); });
 
     await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
     await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 15000 }).catch(() => {});
@@ -145,6 +146,67 @@ async function main() {
     await pg.waitForSelector(".corpus-period-grid", { timeout: 10000 }).catch(() => {});
     const backToL1 = await pg.evaluate(() => !!document.querySelector(".corpus-period-grid") && !document.querySelector(".corpus-author-row"));
     test("breadcrumb back returns L2 → L1 (period grid)", backToL1);
+
+    // ── A3 Slice 2 — global search + facets + L2 sort/jump-bar ────────────────
+    const FB = await pg.evaluate(() => ({ bar: !!document.querySelector(".corpus-filterbar"), input: !!document.querySelector(".corpus-search-input") }));
+    test("L1 has the global filter bar (search + facets)", FB.bar && FB.input);
+    test("search index NOT fetched on Корпус open (lazy)", searchFetches.length === 0, "fetches=" + searchFetches.length);
+
+    // global title-search → results view; index loads exactly once
+    await pg.fill(".corpus-search-input", "בית");
+    await pg.waitForFunction(() => document.querySelectorAll(".corpus-work-row").length > 0, { timeout: 20000 }).catch(() => {});
+    await sleep(300);
+    const SR = await pg.evaluate(() => ({
+      count: parseInt((document.querySelector(".corpus-results-count") || {}).textContent || "0", 10),
+      hasAuthor: !!document.querySelector(".corpus-work-author"),
+      ready: document.querySelectorAll('.corpus-work-row[role="button"]').length,
+      later: document.querySelectorAll(".corpus-work-row.is-later").length,
+      focused: document.activeElement === document.querySelector(".corpus-search-input"),
+    }));
+    test("global title-search loads the index once + returns hits", searchFetches.length === 1 && SR.count > 0, "fetches=" + searchFetches.length + " count=" + SR.count);
+    test("results are cross-author (author rendered on rows)", SR.hasAuthor);
+    test("results mix ready (openable) + catalog (later) hits across eras", SR.ready > 0 && SR.later > 0, JSON.stringify(SR));
+    test("typing keeps the search input focused (in-place body refresh)", SR.focused);
+    test("catalog (unprocessed) result rows are NOT openable", await pg.evaluate(() => document.querySelectorAll('.corpus-work-row.is-later[role="button"]').length) === 0);
+
+    // genre facet narrows the set
+    const beforeGenre = SR.count;
+    await pg.selectOption(".corpus-facet-select select >> nth=0", { index: 1 });
+    await sleep(300);
+    const AG = await pg.evaluate(() => parseInt((document.querySelector(".corpus-results-count") || {}).textContent || "0", 10));
+    test("genre facet narrows the result set", AG > 0 && AG < beforeGenre, "before=" + beforeGenre + " after=" + AG);
+
+    // clear → home
+    await pg.click(".corpus-facet-chip.clear");
+    await pg.waitForSelector(".corpus-period-grid", { timeout: 10000 }).catch(() => {});
+    test("clear resets the filter → home (period grid)", await pg.evaluate(() => !!document.querySelector(".corpus-period-grid") && !document.querySelector(".corpus-results-summary")));
+
+    // «✓ Готовые» facet alone → the ready set, every row openable
+    await pg.click(".corpus-facet-chip"); // ready toggle (first chip)
+    await pg.waitForSelector(".corpus-work-row", { timeout: 10000 }).catch(() => {});
+    await sleep(200);
+    const RO = await pg.evaluate(() => ({
+      count: parseInt((document.querySelector(".corpus-results-count") || {}).textContent || "0", 10),
+      allOpenable: Array.from(document.querySelectorAll(".corpus-work-row")).every((r) => r.getAttribute("role") === "button"),
+    }));
+    test("«Готовые» facet → ready set, every row openable", RO.count > 0 && RO.allOpenable, "count=" + RO.count);
+    await pg.click(".corpus-facet-chip.clear");
+    await pg.waitForSelector(".corpus-period-grid", { timeout: 8000 }).catch(() => {});
+
+    // L2 alpha sort → Hebrew jump-bar
+    await pg.evaluate(() => { const c = Array.from(document.querySelectorAll(".period-card")).find((x) => /Тхия/.test(x.textContent)); c && c.click(); });
+    await pg.waitForSelector(".corpus-author-row", { timeout: 15000 }).catch(() => {});
+    await pg.click(".corpus-sort-btn >> nth=1"); // По алфавиту
+    await pg.waitForSelector(".corpus-jumpbar", { timeout: 10000 }).catch(() => {});
+    await sleep(200);
+    const JB = await pg.evaluate(() => ({
+      bar: !!document.querySelector(".corpus-jumpbar"),
+      letters: document.querySelectorAll(".corpus-jump").length,
+      rowsHaveLetter: !!document.querySelector(".corpus-author-row[data-letter]"),
+      firstLetter: (document.querySelector(".corpus-author-row") || {}).getAttribute && document.querySelector(".corpus-author-row").getAttribute("data-letter"),
+    }));
+    test("L2 alpha sort renders the Hebrew jump-bar (22 letters)", JB.bar && JB.letters === 22, JSON.stringify(JB));
+    test("alpha author rows carry a first-letter anchor (jump target)", JB.rowsHaveLetter && JB.firstLetter === "א", JSON.stringify(JB));
 
     test("no pageerror on library.html", errs.length === 0, errs[0]);
 

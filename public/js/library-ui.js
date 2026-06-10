@@ -48,6 +48,22 @@ let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
 const CORPUS_PAGE = 60;         // "показать ещё" page size for author/work lists
 
+// A3 Slice 2 — global search + facets, backed by ONE lazy flat index (corpus-search-v3.json,
+// ~370KB br, fetched on the FIRST search/facet use only, NOT precached). It powers both the
+// title-search and the genre/lang/ready facet filter; a ready hit is opened by joining its id
+// to corpusIndex.ready, an unprocessed hit is a display-only row (honest, never openable).
+let corpusSearch = null;         // [{id,t,a,e,g,l,r, _n:niqqud-stripped title}] (normalized on load)
+let corpusSearchLoading = null;  // single-flight guard
+let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
+let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
+                                 // filter bar — and the search input's focus — survive typing)
+let corpusClearChip = null;      // ref to the «✕ Сбросить» chip (shown only when a filter is active)
+let corpusAuthorSort = 'graduated'; // L2 author order: 'graduated' (ready-first) | 'alpha'
+
+const CORPUS_NIQQUD_RE = /[֑-ׇ]/g; // same range as notes-autogen stripNiqqud (single normalizer)
+function corpusNrm(s) { return String(s == null ? '' : s).replace(CORPUS_NIQQUD_RE, '').toLowerCase().trim(); }
+
 const $ = (id) => document.getElementById(id);
 const tt = (key, fallback) => { try { return (window.t && window.t(key)) || fallback || key; } catch (_) { return fallback || key; } };
 const HEBREW_RE = /[֐-׿]/;
@@ -541,6 +557,64 @@ async function fetchCorpusManifest(file) {
   return works;
 }
 
+// A3 Slice 2 — lazy global search/facet index (single-flight). Titles are niqqud-normalized
+// ONCE on load (`_n`); the query is normalized the same way at match time.
+async function loadCorpusSearch() {
+  if (corpusSearch) return corpusSearch;
+  if (corpusSearchLoading) return corpusSearchLoading;
+  const file = (corpusRoot && corpusRoot.search_file) || 'corpus-search-v3.json';
+  corpusSearchLoading = (async () => {
+    const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+    if (!res.ok) throw new Error('corpus search ' + res.status);
+    const rows = await res.json();
+    for (const r of rows) r._n = corpusNrm(r.t);
+    corpusSearch = rows;
+    return rows;
+  })();
+  try { return await corpusSearchLoading; } finally { corpusSearchLoading = null; }
+}
+// id -> full ready card (built once from the sidecar) so a search hit that IS ready opens
+// via served-on-open; the search index itself stays minimal (no file/text_key per row).
+function corpusReadyMap() {
+  if (corpusReadyById) return corpusReadyById;
+  corpusReadyById = new Map();
+  for (const c of ((corpusIndex && corpusIndex.ready) || [])) corpusReadyById.set(String(c.id), c);
+  return corpusReadyById;
+}
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly); }
+function corpusApplyFilter() {
+  const rows = corpusSearch || [];
+  const f = corpusFilter; const q = corpusNrm(f.q);
+  return rows.filter((row) => {
+    if (f.readyOnly && !row.r) return false;
+    if (f.genre && row.g !== f.genre) return false;
+    if (f.lang && row.l !== f.lang) return false;
+    if (q && !(String(row._n || '').includes(q) || corpusNrm(row.a).includes(q))) return false;
+    return true;
+  });
+}
+// Language label via the platform's locale-aware display names (he/en/ru), raw code fallback.
+function corpusLangLabel(l) {
+  if (!l) return '';
+  try { const loc = (window.appGetLocale && window.appGetLocale()) || 'ru'; return new Intl.DisplayNames([loc], { type: 'language' }).of(l) || l; } catch (_) { return l; }
+}
+function corpusFilterSummary() {
+  const f = corpusFilter; const parts = [];
+  if (String(f.q || '').trim()) parts.push('«' + f.q.trim() + '»');
+  if (f.genre) parts.push(corpusGenreLabel(f.genre));
+  if (f.lang) parts.push(corpusLangLabel(f.lang));
+  if (f.readyOnly) parts.push(tt('room.corpus.facets.ready', 'Готовые'));
+  return parts.join(' · ') || tt('room.corpus.search.results', 'Результаты');
+}
+// Synthesize a minimal card from a search row for a display-only (unprocessed) result row.
+function corpusSearchRowToCard(h) {
+  return {
+    id: h.id, title: h.t, author: h.a, era: h.e, genre: h.g, orig_language: h.l,
+    review_status: 'machine', audio_status: 'none',
+    coverage: { text: !!h.r, translation: h.r ? 'machine' : 'none' },
+  };
+}
+
 // "Ready to read" = openable (has body) AND translated. Machine translation still counts as
 // readable; the ⚙ badge keeps it honest. Same predicate the producer used (R8 parity).
 function corpusIsReady(c) { return !!(c && c.coverage && c.coverage.text && c.coverage.translation && c.coverage.translation !== 'none'); }
@@ -616,15 +690,36 @@ async function renderCorpus() {
   return renderCorpusHome(token);
 }
 
-// L1 — graduated landing: "✓ Готовы к чтению" rail (openable machine works, cross-era) on
-// top, then the chronological period grid (browse-all axis). 5/7 eras are empty today, so
-// the rail is where the value lives (Duolingo: lead with one obvious default).
+// L1 — graduated landing with a PERSISTENT global filter bar (search + facets) on top. The
+// body below toggles between the home content (ready rail + chronological period grid) and the
+// global RESULTS list, driven by corpusFilter — refreshed IN PLACE so the search input never
+// loses focus while typing.
 function renderCorpusHome(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-nav' });
+  wrap.appendChild(buildCorpusFilterBar());
+  const body = el('div', { class: 'corpus-l1-body' });
+  corpusL1Body = body;
+  wrap.appendChild(body);
+  main.appendChild(wrap);
+  corpusRefreshL1Body();
+}
 
+// Refresh ONLY the L1 body (the filter bar + its focused input stay put): the global results
+// when a filter is active, the home rail + period grid otherwise.
+function corpusRefreshL1Body() {
+  const body = corpusL1Body;
+  if (!body) return;
+  // keep the clear chip in sync without rebuilding the bar (preserves input focus)
+  if (corpusClearChip) corpusClearChip.hidden = !corpusFilterActive();
+  if (corpusFilterActive()) renderResultsInto(body);
+  else renderHomeInto(body);
+}
+
+function renderHomeInto(body) {
+  body.innerHTML = '';
   const ready = (corpusIndex && corpusIndex.ready) || [];
   if (ready.length) {
     const sec = el('section', { class: 'shelf corpus-ready' });
@@ -637,9 +732,8 @@ function renderCorpusHome(token) {
     const rail = el('div', { class: 'shelf-rail' });
     for (const c of ready) rail.appendChild(renderCorpusCard(c));
     sec.appendChild(rail);
-    wrap.appendChild(sec);
+    body.appendChild(sec);
   }
-
   const periods = el('section', { class: 'corpus-periods' });
   const ph = el('div', { class: 'shelf-head' });
   ph.appendChild(el('h2', { class: 'shelf-title', i18n: 'room.corpus.periodsTitle', text: tt('room.corpus.periodsTitle') }));
@@ -648,10 +742,96 @@ function renderCorpusHome(token) {
   const eras = ((corpusRoot && corpusRoot.era_taxonomy) || []).slice().sort((a, b) => a.order - b.order);
   for (const e of eras) grid.appendChild(renderPeriodCard(e));
   periods.appendChild(grid);
-  wrap.appendChild(periods);
-
-  main.appendChild(wrap);
+  body.appendChild(periods);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// Global results (search ∪ facets) over the lazy index. Ready hits open via served-on-open
+// (joined to the sidecar's full card); unprocessed hits are display-only rows (honest, never
+// openable). Async: shows a loading state on first index fetch.
+async function renderResultsInto(body) {
+  if (!corpusSearch) {
+    body.innerHTML = '';
+    body.appendChild(stateBoxNode('room.state.loading', '⏳'));
+    try { await loadCorpusSearch(); } catch (e) { if (corpusL1Body === body) { body.innerHTML = ''; body.appendChild(stateBoxNode('room.state.error', '⚠️')); } return; }
+    if (corpusL1Body !== body) return; // a full re-render replaced the body while loading
+  }
+  if (corpusL1Body !== body) return;
+  body.innerHTML = '';
+  const hits = corpusApplyFilter();
+  const summary = el('div', { class: 'corpus-results-summary' });
+  summary.appendChild(el('span', { class: 'corpus-results-label', text: corpusFilterSummary() }));
+  summary.appendChild(el('span', { class: 'corpus-results-count', text: String(hits.length) }));
+  body.appendChild(summary);
+  if (!hits.length) { body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍')); try { window.applyI18n && window.applyI18n(); } catch (_) {} return; }
+  hits.sort((a, b) => (b.r - a.r) || String(a.t).localeCompare(String(b.t)));
+  const list = el('div', { class: 'corpus-work-list' });
+  const moreWrap = el('div', { class: 'corpus-more' });
+  body.appendChild(list); body.appendChild(moreWrap);
+  const readyMap = corpusReadyMap();
+  let cursor = 0;
+  const slice = () => {
+    const upTo = Math.min(hits.length, cursor + CORPUS_PAGE);
+    for (let i = cursor; i < upTo; i++) {
+      const h = hits[i];
+      const full = h.r ? readyMap.get(String(h.id)) : null;
+      list.appendChild(renderCorpusWorkRow(full || corpusSearchRowToCard(h), !!full, { showAuthor: true }));
+    }
+    cursor = upTo;
+    moreWrap.innerHTML = '';
+    if (cursor < hits.length) {
+      const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
+      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (hits.length - cursor) + ')';
+      btn.addEventListener('click', () => { slice(); try { window.applyI18n && window.applyI18n(); } catch (_) {} });
+      moreWrap.appendChild(btn);
+    }
+  };
+  slice();
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// Persistent global filter bar: search input + ✓Готовые toggle + genre/lang selects (counts
+// from the root) + a clear chip when any filter is active. Each control refreshes only the L1
+// body, so the input focus + select values survive.
+function buildCorpusFilterBar() {
+  const bar = el('div', { class: 'corpus-filterbar' });
+  const input = el('input', { class: 'corpus-search-input', attrs: { type: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
+  input.value = corpusFilter.q || '';
+  let deb;
+  input.addEventListener('input', () => { clearTimeout(deb); deb = setTimeout(() => { corpusFilter.q = input.value; corpusRefreshL1Body(); }, 200); });
+  bar.appendChild(input);
+  const chips = el('div', { class: 'corpus-facets' });
+  const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly) } });
+  ready.textContent = '✓ ' + tt('room.corpus.facets.ready', 'Готовые');
+  ready.addEventListener('click', () => { corpusFilter.readyOnly = !corpusFilter.readyOnly; ready.classList.toggle('on', corpusFilter.readyOnly); ready.setAttribute('aria-pressed', String(corpusFilter.readyOnly)); corpusRefreshL1Body(); });
+  chips.appendChild(ready);
+  chips.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel));
+  chips.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel));
+  // The clear chip is ALWAYS in the bar (the bar is not rebuilt on filter change to keep the
+  // input focused) — its visibility is toggled by corpusRefreshL1Body.
+  const clear = el('button', { class: 'corpus-facet-chip clear', attrs: { type: 'button' } });
+  clear.textContent = '✕ ' + tt('room.corpus.facets.clear', 'Сбросить');
+  clear.hidden = !corpusFilterActive();
+  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; corpusNavTo('home'); });
+  corpusClearChip = clear;
+  chips.appendChild(clear);
+  bar.appendChild(chips);
+  return bar;
+}
+
+// A facet <select> (native = compact + accessible on mobile); options are the histogram keys
+// sorted by count desc, each with its count. The label gets an `on` class when a value is set.
+function buildFacetSelect(key, labelKey, counts, labelFn) {
+  const wrap = el('label', { class: 'corpus-facet-select' + (corpusFilter[key] ? ' on' : '') });
+  const sel = el('select', { attrs: { 'aria-label': tt(labelKey) } });
+  sel.appendChild(el('option', { text: tt(labelKey), attrs: { value: '' } }));
+  Object.entries(counts).filter(([k]) => k && k !== '(none)').sort((a, b) => b[1] - a[1]).forEach(([k, n]) => {
+    sel.appendChild(el('option', { text: (labelFn(k) || k) + ' (' + n + ')', attrs: { value: k } }));
+  });
+  sel.value = corpusFilter[key] || '';
+  sel.addEventListener('change', () => { corpusFilter[key] = sel.value; wrap.classList.toggle('on', !!sel.value); corpusRefreshL1Body(); });
+  wrap.appendChild(sel);
+  return wrap;
 }
 
 // Period card: title + floruit range + one-line gloss + counts (ready / works / authors).
@@ -676,9 +856,31 @@ function renderPeriodCard(e) {
   return card;
 }
 
-// L2 — lean author list (name + ✓ready + works count), graduated order (ready-first) from
-// the sidecar. Long eras reveal incrementally («показать ещё»). Rich author detail is
-// deferred (benyehuda: lean list → rich page); jump-bar + sorts land in Slice 2.
+// Hebrew alphabet jump-bar (benyehuda א–ת). First-letter key normalizes final forms.
+const HEBREW_LETTERS = 'אבגדהוזחטיכלמנסעפצקרשת'.split('');
+const HEBREW_FINALS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
+function hebFirstLetter(name) {
+  const s = String(name || '').replace(/[^א-ת]/g, '');
+  const c = s.charAt(0);
+  return HEBREW_FINALS[c] || c || '';
+}
+function buildHebrewJumpBar(listEl, presentSet) {
+  const bar = el('div', { class: 'corpus-jumpbar', attrs: { dir: 'rtl', role: 'navigation', 'aria-label': tt('room.corpus.jumpbar', 'Буквы') } });
+  for (const L of HEBREW_LETTERS) {
+    const has = presentSet.has(L);
+    const b = el('button', { class: 'corpus-jump' + (has ? '' : ' off'), attrs: { type: 'button' } });
+    b.textContent = L;
+    if (has) b.addEventListener('click', () => { const t = listEl.querySelector('[data-letter="' + L + '"]'); if (t) t.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
+    else b.disabled = true;
+    bar.appendChild(b);
+  }
+  return bar;
+}
+
+// L2 — lean author list (name + ✓ready + works count). Default order = graduated (ready-first,
+// from the sidecar); the sort toggle switches to alphabetical, which adds a Hebrew א–ת jump-bar
+// and renders ALL authors (so the letter anchors exist). Rich author detail is deferred
+// (benyehuda: lean list → rich page).
 function renderCorpusAuthors(era, token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
@@ -688,11 +890,33 @@ function renderCorpusAuthors(era, token) {
     { label: tt('room.tabs.corpus', 'Корпус'), onClick: () => corpusNavTo('home') },
     { label: corpusEraTitle(era) },
   ]));
-  const authors = (corpusIndex.authors && corpusIndex.authors[era]) || [];
+  const base = (corpusIndex.authors && corpusIndex.authors[era]) || [];
+  const alpha = corpusAuthorSort === 'alpha';
+  const authors = alpha ? base.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), 'he')) : base;
+
   const head = el('div', { class: 'corpus-list-head' });
   head.appendChild(el('span', { class: 'corpus-list-count', text: tt('room.corpus.authorsTitle', 'Авторы') + ' (' + authors.length + ')' }));
+  const sortWrap = el('div', { class: 'corpus-sort' });
+  [['graduated', 'room.corpus.sort.graduated'], ['alpha', 'room.corpus.sort.alpha']].forEach(([mode, key]) => {
+    const b = el('button', { class: 'corpus-sort-btn' + (corpusAuthorSort === mode ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusAuthorSort === mode) } });
+    b.textContent = tt(key);
+    b.addEventListener('click', () => { if (corpusAuthorSort !== mode) { corpusAuthorSort = mode; corpusReveal = 0; renderCorpusAuthors(era, ++corpusRenderToken); } });
+    sortWrap.appendChild(b);
+  });
+  head.appendChild(sortWrap);
   wrap.appendChild(head);
+
   const list = el('div', { class: 'corpus-author-list' });
+  if (alpha) {
+    const present = new Set(authors.map((a) => hebFirstLetter(a.name)).filter(Boolean));
+    wrap.appendChild(buildHebrewJumpBar(list, present));
+    wrap.appendChild(list);
+    for (const a of authors) list.appendChild(renderAuthorRow(era, a)); // all rendered (anchors)
+    main.appendChild(wrap);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    return;
+  }
+  // graduated → incremental reveal
   const moreWrap = el('div', { class: 'corpus-more' });
   wrap.appendChild(list);
   wrap.appendChild(moreWrap);
@@ -716,6 +940,8 @@ function renderCorpusAuthors(era, token) {
 
 function renderAuthorRow(era, a) {
   const row = el('div', { class: 'corpus-author-row', attrs: { role: 'button', tabindex: '0' } });
+  const L = hebFirstLetter(a.name);
+  if (L) row.setAttribute('data-letter', L);
   const name = el('span', { class: 'corpus-author-name', text: a.name || '(без автора)' });
   if (HEBREW_RE.test(a.name || '')) name.setAttribute('dir', 'rtl');
   row.appendChild(name);
@@ -801,12 +1027,18 @@ function corpusWorkSection(titleKey, icon, works, openable) {
 // A dense work ROW (not a card — scannable at scale, benyehuda/Sefaria/Standard Ebooks).
 // Baked → ▶ openable (served-on-open). Unprocessed → ⏳ disabled, honest «перевод позже»
 // (R8 — visible in the catalog, never dead-ended, never posing as readable).
-function renderCorpusWorkRow(card, openable) {
+function renderCorpusWorkRow(card, openable, opts) {
   const row = el('div', { class: 'corpus-work-row' + (openable ? '' : ' is-later') });
   const col = el('div', { class: 'corpus-work-col' });
   const title = el('span', { class: 'corpus-work-title', text: card.title || '—' });
   if (HEBREW_RE.test(card.title || '')) title.setAttribute('dir', 'rtl');
   col.appendChild(title);
+  // In cross-author contexts (global results) show the author under the title.
+  if (opts && opts.showAuthor && card.author) {
+    const a = el('span', { class: 'corpus-work-author', text: card.author });
+    if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
+    col.appendChild(a);
+  }
   const meta = el('div', { class: 'corpus-work-meta' });
   const len = corpusLengthLabel(card);
   if (len) meta.appendChild(el('span', { class: 'corpus-work-len', text: len }));
