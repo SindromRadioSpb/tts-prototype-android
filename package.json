@@ -116,6 +116,7 @@
     "smoke:corpus-catalog": "node scripts/premium/corpus-catalog-smoke.js",
     "smoke:corpus-room": "node scripts/premium/corpus-room-smoke.js",
     "smoke:era-map": "node scripts/premium/era-map-smoke.js",
+    "smoke:full-catalog": "node scripts/premium/full-catalog-smoke.js",
     "smoke:shelves": "node scripts/premium/shelf-meta-smoke.js",
     "smoke:shelves-roundtrip": "node scripts/premium/shelf-roundtrip-smoke.js",
     "smoke:canon-version": "node scripts/premium/canon-version-smoke.js",

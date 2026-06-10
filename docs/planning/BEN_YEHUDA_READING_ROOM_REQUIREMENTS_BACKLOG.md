@@ -241,6 +241,14 @@
   Работа + фасеты жанр/язык/coverage); шардинг = **era-primary + автор-блок** (корневой индекс + per-era
   манифесты, переполненная эпоха → автор-блоки cap ~2–3К); эпоха = **Wikidata-батч** (author QID 90.2% → даты
   жизни → бакет; пред-шаг A2, гейт перед нарезкой по эпохам); остаток = `era="unknown"` (честная полка).
+- **A2.0 SHIPPED 2026-06-10 (`45e9ad0`):** `build-era-map.js` → Wikidata SPARQL (флоруит-бакет) → `author-era-map-v1.json`
+  (823/847 QID, works-покрытие 89.4%); R9-роль введена; гейт `smoke:era-map` 17/17.
+- **A2.1/A2.2/A2.3 SHIPPED-as-code 2026-06-10:** `build-corpus-catalog.js --full` (CSV весь перечень 26 455 +
+  era-map + overlay baked-coverage из v2 → корневой `corpus-catalog-v3.json` 3.5КБ + 18 per-era/автор-блок манифестов
+  `catalog/era-*-v3.json`, cap 2000; by_tier machine-known 100 / unprocessed 26 355; unprocessed = `text:false`/нет
+  work_ref/«перевод позже»; R1-гейт на baked-overlay). **v3 рядом с живым v2** (Корпус-таб на v2 до A3). Индекс+манифесты
+  в git (19 файлов ~10.4МБ — discovery-слой; тела работ на томе A4). Гейт `smoke:full-catalog` 24/24; v2-путь
+  (`smoke:corpus-catalog` 34/34) не тронут. **NEXT = A3** (клиент Вариант-2 IA на v3) → A5.
 - **Source:** решение владельца «загрузить весь перечень» (Путь А).
 - **Observed:** метаданные всех 26 455 работ есть в `pseudocatalogue.csv` (бесплатно) → можно листить весь канон сразу, обогащая coverage во времени.
 - **Current:** каталог листит только 100 baked (Проход-3 Срез 1).

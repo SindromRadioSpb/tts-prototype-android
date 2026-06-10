@@ -34,6 +34,7 @@ const fs = require("fs");
 const path = require("path");
 const JSZip = require("../../public/db/jszip.min.js");
 const corpusMeta = require("../../db/premium/corpusMeta");
+const by = require("./lib/benyehuda"); // BRR-P1-014 A2: parseCsv/cleanGenre/firstQid/eraForAuthor
 
 const REPO = path.resolve(__dirname, "..", "..");
 function arg(name, def) { const i = process.argv.indexOf("--" + name); return i >= 0 && i + 1 < process.argv.length && !String(process.argv[i + 1]).startsWith("--") ? process.argv[i + 1] : def; }
@@ -59,6 +60,7 @@ const ERA_META = {
   mandate:      { title: "Подмандатный период",       order: 6 },
   modern:       { title: "Современная литература",     order: 7 },
   contemporary: { title: "Новейшая литература",        order: 8 },
+  unknown:      { title: "Период не определён",        order: 90 }, // BRR-P1-014 A2: era not derivable (honest, sorts last)
 };
 function eraTitle(era) { return (ERA_META[era] && ERA_META[era].title) || ("Эпоха: " + (era || "—")); }
 function eraOrder(era) { return (ERA_META[era] && ERA_META[era].order) || 99; }
@@ -109,7 +111,118 @@ async function readShards() {
   return { texts, cmVersion };
 }
 
+// ── BRR-P1-014 A2.1/A2.2 — full coverage-aware catalog (era-primary + author-block) ──
+// Distinct from the v2 path above: reads the ENTIRE pseudocatalogue.csv (~26K) for the
+// full listing, derives era from the committed Wikidata era-map (A2.0), and OVERLAYS the
+// baked coverage from the existing v2 catalog (committed → reproducible, no shard re-read).
+// Emits a THIN root index + per-era manifests (oversized era → author-block split @cap),
+// v3 ALONGSIDE the live v2 (the Корпус tab stays on v2 until A3 switches the client).
+// Unprocessed (CSV-only) works carry coverage{text:false,tier:"unprocessed"} and NO work_ref
+// → honest "перевод позже" (not openable). R1: a baked overlay claiming human review/audio aborts.
+function qidNum(uri) { const m = /\/(Q\d+)\b/.exec(String(uri || "")); return m ? m[1] : null; }
+async function buildFullCatalog() {
+  const V = Number(arg("catalog-version", 3)) || 3;
+  const CAP = Number(arg("shard-cap", 2000)) || 2000;
+  const CSV = path.resolve(arg("csv", path.join(REPO, ".tmp", "benyehuda", "pseudocatalogue.csv")));
+  const ERA_MAP_PATH = path.resolve(arg("era-map", path.join(OUT_DIR, "author-era-map-v1.json")));
+  const BAKED_FROM = path.resolve(arg("baked-from", path.join(OUT_DIR, "corpus-catalog-v2.json")));
+  console.log(`[full] BRR-P1-014 A2 · csv=${path.relative(REPO, CSV)} · era-map=${path.relative(REPO, ERA_MAP_PATH)} · baked=${path.relative(REPO, BAKED_FROM)} · v${V} · cap=${CAP}${DRY ? " (dry-run)" : ""}`);
+  if (!fs.existsSync(CSV)) { console.error("[full] CSV not found: " + CSV); process.exit(2); }
+  const { rows } = by.parseCsv(fs.readFileSync(CSV, "utf8"));
+  const eraMap = fs.existsSync(ERA_MAP_PATH) ? JSON.parse(fs.readFileSync(ERA_MAP_PATH, "utf8")) : { authors: {} };
+  const baked = new Map();
+  if (fs.existsSync(BAKED_FROM)) { const v2 = JSON.parse(fs.readFileSync(BAKED_FROM, "utf8")); for (const c of (v2.works || [])) baked.set(String(c.id), c); }
+  else console.warn("[full] WARNING: baked catalog not found (" + BAKED_FROM + ") → all cards unprocessed");
+
+  const cards = [];
+  const lies = [];
+  const seenId = new Set();
+  for (const r of rows) {
+    const id = by.cleanField(r.ID); if (!id || seenId.has(id)) continue; seenId.add(id);
+    const qid = qidNum(by.firstQid(r.author_uris));
+    const eraFromMap = qid && eraMap.authors && eraMap.authors[qid] ? eraMap.authors[qid].era : null;
+    const b = baked.get(id);
+    const era = eraFromMap || (b && b.era) || by.eraForAuthor(r.authors) || null;
+    const genre = by.cleanGenre(r.genre) || (b && b.genre) || null;
+    const origLang = by.cleanField(r.original_language) || "he";
+    const title = by.cleanField(r.title) || (b && b.title) || "";
+    const author = by.cleanField(r.authors) || (b && b.author) || null;
+    if (b) {
+      if (b.review_status && b.review_status !== "machine" && b.review_status !== "machine_assisted") lies.push(id + ": review_status=" + b.review_status);
+      if (b.audio_status === "human") lies.push(id + ": audio_status=human");
+      cards.push({
+        id, title, author, author_qid: qid, era, register: b.register || null, track: b.track || "literary",
+        genre, orig_language: origLang, parts: b.parts || 1, segments: b.segments || 0, vocalized_ratio: b.vocalized_ratio || 0,
+        review_status: b.review_status || "machine", audio_status: b.audio_status || "none",
+        file: b.file || ("works/" + id + ".json"),
+        coverage: { ...(b.coverage || {}), era_known: !!era },
+      });
+    } else {
+      cards.push({
+        id, title, author, author_qid: qid, era, register: null, track: "literary", genre, orig_language: origLang,
+        parts: 0, segments: 0, vocalized_ratio: 0, review_status: "machine", audio_status: "none",
+        coverage: { text: false, niqqud: 0, translation: "none", audio: "none", era_known: !!era, tier: "unprocessed" },
+      });
+    }
+  }
+  if (lies.length) { console.error(`[full] ✗ R1 GATE FAILED — ${lies.length} honesty violation(s); nothing written:`); for (const l of lies.slice(0, 20)) console.error("   " + l); process.exit(1); }
+
+  // group by era → manifests (author-block split when an era exceeds CAP)
+  const byEra = new Map();
+  for (const c of cards) { const e = c.era || "unknown"; if (!byEra.has(e)) byEra.set(e, []); byEra.get(e).push(c); }
+  const manifests = [], eraTaxonomy = [], writes = [];
+  for (const era of Array.from(byEra.keys()).sort((a, b) => eraOrder(a) - eraOrder(b))) {
+    const list = byEra.get(era);
+    list.sort((a, b) => String(a.author || "").localeCompare(String(b.author || "")) || String(a.id).localeCompare(String(b.id)));
+    const readyCount = list.filter((c) => c.coverage.text && c.coverage.translation !== "none").length;
+    eraTaxonomy.push({ era, title: eraTitle(era), order: eraOrder(era), count: list.length, ready_count: readyCount });
+    if (list.length <= CAP) {
+      const rel = "catalog/era-" + era + "-v" + V + ".json";
+      writes.push({ rel, json: { schema: 1, version: V, era, block: null, count: list.length, works: list } });
+      manifests.push({ era, block: null, file: rel, count: list.length });
+    } else {
+      for (let i = 0, blk = 0; i < list.length; i += CAP, blk++) {
+        const chunk = list.slice(i, i + CAP), bb = String(blk).padStart(2, "0");
+        const rel = "catalog/era-" + era + "-b" + bb + "-v" + V + ".json";
+        writes.push({ rel, json: { schema: 1, version: V, era, block: bb, count: chunk.length, works: chunk } });
+        manifests.push({ era, block: bb, file: rel, count: chunk.length });
+      }
+    }
+  }
+
+  const byEraCount = {}, byGenre = {}, byLang = {}, byTier = {}; let bakedCount = 0;
+  for (const c of cards) {
+    byEraCount[c.era || "unknown"] = (byEraCount[c.era || "unknown"] || 0) + 1;
+    byGenre[c.genre || "(none)"] = (byGenre[c.genre || "(none)"] || 0) + 1;
+    byLang[c.orig_language || "he"] = (byLang[c.orig_language || "he"] || 0) + 1;
+    byTier[(c.coverage && c.coverage.tier) || (c.coverage && c.coverage.text ? "baked" : "?")] = (byTier[(c.coverage && c.coverage.tier) || (c.coverage && c.coverage.text ? "baked" : "?")] || 0) + 1;
+    if (c.coverage && c.coverage.text) bakedCount++;
+  }
+  const root = {
+    schema: 1, version: V, corpus_meta_version: corpusMeta.CORPUS_META_VERSION,
+    origin: "benyehuda-ingest", generated_from: "csv+era-map+baked",
+    counts: { works: cards.length, baked: bakedCount, by_era: byEraCount, by_genre: byGenre, by_lang: byLang, by_tier: byTier },
+    era_taxonomy: eraTaxonomy,
+    manifests,
+    pointers: { ready: cards.filter((c) => c.coverage && c.coverage.text).map((c) => c.id) },
+  };
+
+  const rootBytes = Buffer.byteLength(JSON.stringify(root));
+  let manBytes = 0, maxMan = 0; for (const w of writes) { const b = Buffer.byteLength(JSON.stringify(w.json)); manBytes += b; if (b > maxMan) maxMan = b; }
+  console.log(`[full] works ${cards.length} · baked ${bakedCount} · eras ${eraTaxonomy.length} · manifests ${writes.length} · R1 clean`);
+  console.log(`[full] by_tier: ${Object.entries(byTier).map(([k, v]) => k + " " + v).join(" · ")}`);
+  console.log(`[full] by_era: ${eraTaxonomy.map((t) => t.era + " " + t.count + "(ready " + t.ready_count + ")").join(" · ")}`);
+  console.log(`[full] root ${(rootBytes / 1024).toFixed(0)}KB · manifests total ${(manBytes / 1024 / 1024).toFixed(1)}MB · largest ${(maxMan / 1024).toFixed(0)}KB`);
+  if (DRY) { console.log("[full] dry-run — nothing written"); return; }
+  fs.mkdirSync(path.join(OUT_DIR, "catalog"), { recursive: true });
+  for (const w of writes) fs.writeFileSync(path.join(OUT_DIR, w.rel), JSON.stringify(w.json));
+  fs.writeFileSync(path.join(OUT_DIR, "corpus-catalog-v" + V + ".json"), JSON.stringify(root));
+  console.log(`[full] wrote corpus-catalog-v${V}.json + ${writes.length} manifests → ${path.relative(REPO, OUT_DIR)}`);
+  console.log(`[full] NOTE: bump --catalog-version on re-publish; v2 stays live until A3 switches the client to v3.`);
+}
+
 (async () => {
+  if (flag("full")) { await buildFullCatalog(); return; } // BRR-P1-014 A2: full coverage catalog (v3)
   console.log(`[catalog] BRR-P0-007 Проход-3 · shards → ${path.relative(REPO, OUT_DIR)} · catalog v${CATALOG_VERSION}${DRY ? " (dry-run)" : ""}`);
   const { texts, cmVersion } = await readShards();
 
