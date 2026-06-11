@@ -39,11 +39,13 @@ node scripts/premium/publish-corpus-batch.js --apply        # build v(N+1) into 
 ```
 The helper does: snapshot+validate shards → build v2 → compute next version (current+1) → build
 v(N+1) root/index/search/manifests → (`--apply`) edit `CORPUS_CATALOG_VERSION` + `CACHE_VERSION` +
-the precache root → structural self-check → gates (`smoke:full-catalog`, `smoke:corpus-room`,
-`smoke:corpus-nav`, `probe:niqqud`). **If it aborts (mid-flush shard / R1 lie / anchor mismatch) or any
-gate fails → STOP. Do NOT push.** Review the printed proposed CACHE_VERSION + version diffs before continuing.
-- Note: `smoke:full-catalog` is **v3-pinned** and does NOT validate the new version — rely on the helper's
-  own self-check (it asserts `version`, `counts.baked`, `pointers.ready`, manifests-on-disk, precache↔client match).
+the precache root → structural self-check → gates (`smoke:corpus-room`, `smoke:corpus-nav`,
+`probe:niqqud`, each retried under concurrent-bake CPU load). **If it aborts (mid-flush shard / R1 lie /
+anchor mismatch) or any gate fails → STOP. Do NOT push.** Review the printed proposed CACHE_VERSION +
+version diffs before continuing.
+- Note: the helper does NOT run `smoke:full-catalog` — it re-tests the *producer* with fixtures (not the
+  published catalog) and flakes under a concurrent bake; the published v(N+1) is validated by the helper's
+  own self-check (`version`, `counts.baked`, `pointers.ready`, manifests-on-disk, precache↔client) + corpus-room/nav.
 
 ### 2) Push bodies FIRST (manual — secret, outward-facing)
 ```
