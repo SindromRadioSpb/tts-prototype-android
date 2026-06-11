@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.23-room-morph";
+const CACHE_VERSION = "v3.10.24-corpus-fill";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -94,10 +94,13 @@ const PRECACHE_URLS = [
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/reader-morph.js",
-  // BRR-P1-015 A3 — ONLY the thin Корпус root v3 is precached (≈4KB: era taxonomy +
+  // BRR-P1-015 A3 — ONLY the thin Корпус root is precached (≈4KB: era taxonomy +
   // manifest map → period grid works offline). The sidecar (author index/ready rail,
   // ~160KB) and per-era manifests/works are NEVER precached — lazy, on-demand (D5).
-  "/data/benyehuda/corpus-catalog-v3.json",
+  // Versioned filename (corpus-catalog-v<N>) → each re-publish (new baked batch) bumps
+  // the catalog version so the immutable-cached lazy files (?v=N) cache-bust; the SW
+  // CACHE_VERSION bump refreshes this precached root + library-ui.js in lockstep.
+  "/data/benyehuda/corpus-catalog-v4.json",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js",

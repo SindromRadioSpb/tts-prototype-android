@@ -19,6 +19,7 @@
 // the corpus path ONLY. (?corpus=skip would disable the very thing under test.)
 
 const path = require("path");
+const fs = require("fs");
 const { spawn, spawnSync } = require("child_process");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const PORT = 3271;
@@ -46,12 +47,15 @@ async function main() {
   if (!(await waitForReady())) { console.error("[corpus-room-smoke] server failed"); srv.logs.forEach((l) => process.stderr.write(l)); await stopServer(srv.child); process.exit(1); }
   console.log("[corpus-room-smoke] server up");
 
-  // sanity: the v3 root + sidecar + a work file are actually served
-  const root = await fetch(BASE + "/data/benyehuda/corpus-catalog-v3.json").then((r) => r.ok ? r.json() : null).catch(() => null);
-  test("corpus-catalog-v3.json (thin root) served", !!root && Array.isArray(root.era_taxonomy) && root.counts && root.counts.works > 0, root ? ("works=" + (root.counts && root.counts.works)) : "no fetch");
+  // sanity: the LIVE root + sidecar + a work file are served. Version-derived from the
+  // client (CORPUS_CATALOG_VERSION) so a re-publish version bump doesn't churn this gate.
+  const CV = (fs.readFileSync(path.join(REPO_ROOT, "public", "js", "library-ui.js"), "utf8").match(/CORPUS_CATALOG_VERSION\s*=\s*(\d+)/) || [])[1] || "3";
+  const rootFile = "corpus-catalog-v" + CV + ".json";
+  const root = await fetch(BASE + "/data/benyehuda/" + rootFile).then((r) => r.ok ? r.json() : null).catch(() => null);
+  test(rootFile + " (thin root) served", !!root && Array.isArray(root.era_taxonomy) && root.counts && root.counts.works > 0, root ? ("works=" + (root.counts && root.counts.works)) : "no fetch");
   test("root declares its sidecar (index_file)", !!root && typeof root.index_file === "string", root ? root.index_file : "");
-  const idx = await fetch(BASE + "/data/benyehuda/" + (root && root.index_file || "corpus-index-v3.json")).then((r) => r.ok ? r.json() : null).catch(() => null);
-  test("corpus-index-v3.json (sidecar) served with ready rail + author index + facets", !!idx && Array.isArray(idx.ready) && idx.ready.length > 0 && idx.authors && idx.facets, idx ? ("ready=" + (idx.ready || []).length) : "no fetch");
+  const idx = await fetch(BASE + "/data/benyehuda/" + (root && root.index_file || ("corpus-index-v" + CV + ".json"))).then((r) => r.ok ? r.json() : null).catch(() => null);
+  test("sidecar " + (root && root.index_file) + " served with ready rail + author index + facets", !!idx && Array.isArray(idx.ready) && idx.ready.length > 0 && idx.authors && idx.facets, idx ? ("ready=" + (idx.ready || []).length) : "no fetch");
   const sampleFile = idx && idx.ready[0] && idx.ready[0].file;
   test("a ready card carries a work file + text_key (served-on-open inputs)", !!sampleFile && !!(idx.ready[0].text_key));
   const work0 = sampleFile ? await fetch(BASE + "/data/benyehuda/" + sampleFile).then((r) => r.ok ? r.json() : null).catch(() => null) : null;

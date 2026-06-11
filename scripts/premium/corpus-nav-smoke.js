@@ -52,7 +52,7 @@ async function main() {
     const pg = await ctx.newPage();
     const errs = []; pg.on("pageerror", (e) => errs.push(String(e)));
     const manifestFetches = new Set(); pg.on("request", (r) => { const m = /\/data\/benyehuda\/(catalog\/[^?]+)/.exec(r.url()); if (m) manifestFetches.add(m[1]); });
-    const searchFetches = []; pg.on("request", (r) => { if (/corpus-search-v3\.json/.test(r.url())) searchFetches.push(r.url()); });
+    const searchFetches = []; pg.on("request", (r) => { if (/corpus-search-v\d+\.json/.test(r.url())) searchFetches.push(r.url()); });
 
     await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
     await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 15000 }).catch(() => {});

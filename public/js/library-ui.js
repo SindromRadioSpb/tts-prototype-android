@@ -36,7 +36,7 @@ let textByKey = new Map(); // text_key -> { id, title }
 // sidecar (author index + ready rail + facet histograms, fetched once on first Корпус open)
 // + per-era manifest BLOCK(s) on demand (only the block(s) an author lives in — D1/R4 keeps
 // the mobile budget to root + 1 active manifest, never the 26K/10MB at once).
-const CORPUS_CATALOG_VERSION = 3;
+const CORPUS_CATALOG_VERSION = 4;
 const CORPUS_ROOT_URL = '/data/benyehuda/corpus-catalog-v' + CORPUS_CATALOG_VERSION + '.json';
 let corpusRoot = null;          // thin root: { era_taxonomy, manifests, counts, index_file, pointers }
 let corpusIndex = null;         // sidecar: { ready:[card], authors:{era:[{name,qid,works,ready,blocks}]}, facets }
