@@ -382,11 +382,16 @@ export async function openText(textId, opts) {
 //     gcpKey,                  // string or () => string (BYOK GCP TTS key; '' → skip tier 2)
 //     t,                       // i18n (optional)
 //     onError(err),            // optional
+//     tapToHearExcludeCols,    // optional string[] of data-col values whose CELL tap must
+//                              //   NOT play the row (the ▶ button still plays). The Room
+//                              //   passes ['he','niqqud'] so those cells are free for the
+//                              //   word-tap morphology layer (reader-morph.js).
 //   }
 export function attachRowAudio(mount, opts) {
   opts = opts || {};
   if (!mount) return { detach() {} };
   const getRow = typeof opts.getRow === "function" ? opts.getRow : () => null;
+  const excludeTapCols = Array.isArray(opts.tapToHearExcludeCols) ? opts.tapToHearExcludeCols : [];
   const profileOf = () => (typeof opts.profile === "function" ? opts.profile() : opts.profile) || {};
   const gcpKeyOf = () => String((typeof opts.gcpKey === "function" ? opts.gcpKey() : opts.gcpKey) || "");
   const LANG = "he-IL";
@@ -499,12 +504,16 @@ export function attachRowAudio(mount, opts) {
       if (Number.isFinite(idx) && idx >= 0) play(idx);
       return;
     }
-    // tap-to-hear: tapping a content cell (not a button) plays that row.
+    // tap-to-hear: tapping a content cell (not a button) plays that row — except for
+    // columns the caller reserved for another interaction (Room: he/niqqud → word-tap).
     const td = target && target.closest ? target.closest('#proTable tbody td[data-col]') : null;
-    if (td && mount.contains(td) && td.getAttribute("data-col") !== "action") {
-      const tr = td.closest("tr[data-row-idx]");
-      const idx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
-      if (Number.isFinite(idx) && idx >= 0) play(idx);
+    if (td && mount.contains(td)) {
+      const col = td.getAttribute("data-col");
+      if (col !== "action" && excludeTapCols.indexOf(col) < 0) {
+        const tr = td.closest("tr[data-row-idx]");
+        const idx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+        if (Number.isFinite(idx) && idx >= 0) play(idx);
+      }
     }
   };
   mount.addEventListener("click", onClick);

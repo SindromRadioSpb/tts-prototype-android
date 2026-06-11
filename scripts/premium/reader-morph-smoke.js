@@ -1,0 +1,134 @@
+#!/usr/bin/env node
+"use strict";
+// BRR-P1-011 · smoke:reader-morph — browser gate for the Reading-Room light
+// morphology-on-tap layer (public/js/reader-morph.js + library.html wiring).
+//
+// Boots library.html in a real browser (SW blocked, locale 'ru', 380x844) and proves:
+//   1) the offline engine loads the REAL shipped Pealim dataset and resolves words
+//      (form-first: root + gloss + provenance) — incl. niqqud homograph disambiguation;
+//   2) R1 honesty — unknown/proper-noun words return an empty gloss labelled "unknown"
+//      (never a fabricated certainty);
+//   3) the post-render word-wrap is parity-safe — wrapping preserves the cell's exact
+//      textContent (no characters added/dropped);
+//   4) a real tap opens the light card with the resolved fields;
+//   5) offline-capable — the 3.3 MB dataset is fetched EXACTLY ONCE; subsequent taps
+//      resolve from the resident dataset with no further network.
+// Also writes a 380px RTL screenshot of the open card.
+//
+// Run:  node scripts/premium/reader-morph-smoke.js   (gate)   [--keep-screenshot]
+
+const path = require("path");
+const fs = require("fs");
+const { spawn, spawnSync } = require("child_process");
+
+const REPO = path.resolve(__dirname, "..", "..");
+const PORT = 3284, BASE = "http://127.0.0.1:" + PORT;
+const SHOT = path.join(REPO, ".tmp", "reader-morph-380.png");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function startServer() {
+  const c = spawn(process.execPath, ["server.js"], { cwd: REPO, env: { ...process.env, PORT: String(PORT) }, stdio: ["ignore", "pipe", "pipe"] });
+  const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x)));
+  return { c, logs };
+}
+async function stop(c) {
+  if (!c || c.killed) return; c.kill("SIGTERM");
+  const ok = await new Promise((r) => { const t = setTimeout(() => r(false), 5000); c.once("exit", () => { clearTimeout(t); r(true); }); });
+  if (!ok && process.platform === "win32") spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"], { stdio: "ignore" });
+}
+async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s < ms) { try { const r = await fetch(BASE + "/healthz"); if (r.status === 200) return true; } catch (_) {} await sleep(200); } return false; }
+
+(async () => {
+  let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright — `npm i -D playwright` first"); process.exit(1); }
+  const srv = startServer();
+  if (!(await ready())) { console.error("server failed to start"); console.error(srv.logs.join("")); await stop(srv.c); process.exit(1); }
+  const b = await pw.chromium.launch();
+  const failures = [];
+  const fail = (m) => failures.push(m);
+  const eq = (cond, m) => { if (!cond) fail(m); };
+  try {
+    const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+    await ctx.addInitScript(() => { try { localStorage.setItem("app.locale", "ru"); } catch (_) {} });
+    // Count fetches of the heavy inflection dataset — must be exactly one (offline-capable).
+    let dictFetches = 0;
+    ctx.on("request", (r) => { if (/\/data\/inflection\/pealim-infl-.*\.json\.gz/.test(r.url())) dictFetches++; });
+    const pg = await ctx.newPage();
+    const pageErrors = [];
+    pg.on("pageerror", (e) => pageErrors.push(String(e)));
+    await pg.goto(BASE + "/library.html", { waitUntil: "load" });
+
+    await pg.waitForFunction(() =>
+      !!window.ReaderMorph && !!window.InflectionDict && !!window.NotesAutoGen && !!window.PealimFunctionLinks,
+      { timeout: 20000 });
+
+    // ── 1) engine: resolve real words (form-first) + R1 honesty ───────────────
+    const eng = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      const shalom = await R.resolveWordLight("שלום", "שָׁלוֹם");
+      const sefer = await R.resolveWordLight("ספר", "סֵפֶר");   // book (noun)
+      const siper = await R.resolveWordLight("ספר", "סִפֵּר");  // tell (piel)
+      const xyz = await R.resolveWordLight("xyz", "xyz");
+      const avraham = await R.resolveWordLight("אברהם", "אַבְרָהָם");
+      return { shalom, sefer, siper, xyz, avraham };
+    });
+    eq(eng.shalom && eng.shalom.root === "שלם", "shalom root should be שלם, got " + JSON.stringify(eng.shalom && eng.shalom.root));
+    eq(eng.shalom && /мир/.test(eng.shalom.meaning || ""), "shalom gloss should contain 'мир'");
+    eq(eng.shalom && eng.shalom.label === "exact", "shalom should be labelled exact");
+    eq(eng.shalom && eng.shalom.pealim_direct === true, "shalom should have a direct Pealim page");
+    eq(eng.sefer && eng.sefer.pos === "noun", "סֵפֶר should be noun");
+    eq(eng.siper && eng.siper.pos === "verb" && eng.siper.binyan === "piel", "סִפֵּר should be verb/piel (homograph disambiguation)");
+    eq(eng.sefer && eng.siper && eng.sefer.pealim_id !== eng.siper.pealim_id, "homographs must resolve to distinct Pealim ids");
+    // R1: never fabricate.
+    eq(eng.xyz && eng.xyz.meaning === "" && eng.xyz.label === "unknown", "xyz must be honest-empty/unknown");
+    eq(eng.avraham && eng.avraham.meaning === "" && eng.avraham.label === "unknown", "proper noun must be honest-empty/unknown");
+
+    // ── 2/3/4) DOM: wrap parity-safe + tap opens card ─────────────────────────
+    const dom = await pg.evaluate(() => {
+      const mount = document.createElement("div");
+      mount.id = "rm-mount";
+      mount.innerHTML =
+        '<table id="proTable"><tbody>' +
+        '<tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שלום עולם</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁלוֹם עוֹלָם</td>' +
+        "</tr></tbody></table>";
+      document.body.appendChild(mount);
+      const rows = [{ he: "שלום עולם", he_niqqud: "שָׁלוֹם עוֹלָם" }];
+      window.__rmHandle = window.ReaderMorph.attach(mount, { getRow: (i) => rows[i] });
+      const heCell = mount.querySelector('td[data-col="he"]');
+      const spans = heCell.querySelectorAll(".rm-w");
+      return { spanCount: spans.length, heText: heCell.textContent, firstSurface: spans[0] && spans[0].getAttribute("data-surface") };
+    });
+    eq(dom.spanCount === 2, "he cell should wrap 2 words, got " + dom.spanCount);
+    eq(dom.heText === "שלום עולם", "wrap must preserve exact cell text, got " + JSON.stringify(dom.heText));
+    eq(dom.firstSurface === "שלום", "first word surface should be שלום, got " + JSON.stringify(dom.firstSurface));
+
+    await pg.locator('#rm-mount td[data-col="he"] .rm-w').first().click();
+    await pg.waitForSelector(".rm-sheet.rm-open", { timeout: 10000 });
+    const card = await pg.evaluate(() => {
+      const body = document.querySelector(".rm-sheet-body");
+      return { text: body ? body.textContent : "", hasProvExact: !!document.querySelector(".rm-prov-exact"), hasLink: !!document.querySelector(".rm-link") };
+    });
+    eq(/שלם/.test(card.text), "card should show the root שלם");
+    eq(/мир/.test(card.text), "card should show the gloss мир");
+    eq(card.hasProvExact, "card should show the 'exact' provenance badge");
+    eq(card.hasLink, "card should show a Pealim link");
+
+    // screenshot the open card @380px RTL
+    try { fs.mkdirSync(path.dirname(SHOT), { recursive: true }); } catch (_) {}
+    await pg.screenshot({ path: SHOT });
+
+    // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
+    eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
+    eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));
+
+    console.log("reader-morph: engine + homograph + R1-honesty + wrap-parity + tap-card + offline-once");
+    console.log("screenshot → " + path.relative(REPO, SHOT));
+    if (failures.length) {
+      console.error("\nFAIL (" + failures.length + "):");
+      for (const f of failures) console.error("  ✗ " + f);
+      await b.close(); await stop(srv.c); process.exit(1);
+    }
+    console.log("PASS — reader-morph smoke green");
+  } finally { await b.close(); await stop(srv.c); }
+})().catch((e) => { console.error("fatal", e); process.exit(1); });

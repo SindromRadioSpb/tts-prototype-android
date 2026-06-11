@@ -252,6 +252,7 @@ function setActiveTrack(track) {
 let readerCfg = { visibleColumns: { action: true, he: true, niqqud: true, translit: true, ru: true }, translitProfile: 'sbl' };
 let readerRows = [];
 let readerAudio = null; // attachRowAudio detach handle
+let readerMorph = null; // ReaderMorph attach detach handle
 
 // BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
 // Empty is fine: audio falls back to keyless browser SpeechSynthesis.
@@ -281,7 +282,21 @@ function attachReaderAudio() {
     profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
     gcpKey: gcpTtsKey,
     t: (k) => tt(k, k),
+    // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶
+    // button + translit/ru cells still play the row.
+    tapToHearExcludeCols: ['he', 'niqqud'],
   });
+  attachReaderMorph(mount);
+}
+
+// Attach the light morphology-on-tap layer (reader-morph.js): wraps he/niqqud words
+// into tappable spans (post-render, parity-safe — the reader-core builder is untouched)
+// → a tap shows a light root/binyan/POS/gloss card with honest provenance. The 3.3 MB
+// offline Pealim dataset loads lazily on the FIRST tap, never at text-open.
+function attachReaderMorph(mount) {
+  if (!mount || !window.ReaderMorph) return;
+  if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
+  try { readerMorph = window.ReaderMorph.attach(mount, { getRow: (i) => readerRows[i] }); } catch (_) {}
 }
 
 function readerStateBox(i18nKey, icon) {
@@ -357,6 +372,7 @@ async function openReader(textId, title) {
 
 function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
+  if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   const reader = $('roomReader'), content = $('roomContent');
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;

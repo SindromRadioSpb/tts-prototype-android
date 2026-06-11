@@ -334,6 +334,55 @@
     .reader-table-wrap .room-state { margin: 40px auto; }
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
+
+    /* ── morphology-on-tap (BRR-P1-011) ──────────────────────────────────────── */
+    /* Tappable Hebrew word spans (post-render wrap; no size change → no layout shift). */
+    .rm-w { cursor: pointer; border-radius: 3px; transition: background .12s ease; }
+    .rm-w:hover { background: var(--bg-muted); }
+    .rm-w:focus { outline: none; background: var(--bg-muted); }
+    .rm-w:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+    .rm-w-active { background: var(--accent); color: var(--accent-contrast); }
+    /* Light bottom-sheet card */
+    .rm-sheet { position: fixed; inset: 0; z-index: 1000; }
+    .rm-sheet[hidden] { display: none; }
+    .rm-sheet-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+    .rm-sheet-card {
+      position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto;
+      background: var(--bg-card); color: var(--text-primary);
+      border-top-left-radius: 16px; border-top-right-radius: 16px; border-top: 1px solid var(--border-soft);
+      padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      max-height: 72vh; overflow-y: auto; box-shadow: 0 -8px 30px rgba(0,0,0,.32);
+      transform: translateY(100%); transition: transform .22s ease;
+    }
+    .rm-sheet.rm-open .rm-sheet-card { transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) { .rm-sheet-card { transition: none; } }
+    .rm-sheet-x {
+      position: absolute; top: 12px; left: 12px; appearance: none; cursor: pointer;
+      background: var(--bg-muted); border: 1px solid var(--border-soft); color: var(--text-secondary);
+      border-radius: 8px; width: 30px; height: 30px; font-size: 14px; line-height: 1;
+    }
+    .rm-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding-inline-end: 36px; }
+    .rm-word { font-size: 27px; font-weight: 700; line-height: 1.2; }
+    .rm-prov { flex: none; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .rm-prov-exact { background: rgba(46,160,67,.16); color: #3fb950; }
+    .rm-prov-likely { background: rgba(56,139,253,.16); color: #5a9bff; }
+    .rm-prov-guessed, .rm-prov-unknown { background: rgba(210,153,34,.16); color: #d29922; }
+    .rm-prov-function { background: var(--bg-muted); color: var(--text-secondary); }
+    .rm-meaning { font-size: 16px; line-height: 1.4; color: var(--text-primary); margin-bottom: 12px; }
+    .rm-meaning-empty { color: var(--text-faint); font-style: italic; }
+    .rm-rows { display: flex; flex-direction: column; gap: 6px; }
+    .rm-row { display: flex; gap: 10px; font-size: 14px; }
+    .rm-k { flex: none; min-width: 88px; color: var(--text-secondary); }
+    .rm-v { color: var(--text-primary); font-weight: 600; }
+    .rm-v[lang="he"] { font-size: 18px; }
+    .rm-actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .rm-link {
+      display: inline-block; padding: 9px 13px; border-radius: 8px; text-decoration: none;
+      background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft);
+      font-size: 13px; font-weight: 600;
+    }
+    .rm-link:hover { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+    .rm-loading, .rm-card-empty { color: var(--text-secondary); font-size: 14px; padding: 14px 2px; }
   </style>
 </head>
 <body>
@@ -380,6 +429,13 @@
 
 <!-- JSZip (precached) — used by library-ui.js to unzip the shipped canon bundle on first visit. -->
 <script src="/db/jszip.min.js"></script>
+<!-- Morphology-on-tap (BRR-P1-011): offline resolver engine + light card. These define
+     window.NotesAutoGen / InflectionDict / PealimFunctionLinks / ReaderMorph but do NO
+     heavy work at load — the 3.3 MB Pealim dataset is fetched lazily on the first word tap. -->
+<script src="/js/notes-autogen.js"></script>
+<script src="/js/inflection-dict.js"></script>
+<script src="/js/pealim-function-links.js"></script>
+<script src="/js/reader-morph.js"></script>
 <script type="module" src="/js/library-ui.js"></script>
 </body>
 </html>
