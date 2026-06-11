@@ -8,6 +8,7 @@
 //
 //   node scripts/premium/push-corpus-works.js [--base https://linguistpro.kolosei.com]
 //                                             [--dir public/data/benyehuda/works]
+//                                             [--ids-file <path.json>]   ← only these ids (targeted re-publish)
 //                                             [--concurrency 6] [--limit N]
 //                                             [--skip-existing] [--dry-run]
 //
@@ -32,7 +33,7 @@ function parseArgs(argv) {
   const a = {
     base: "https://linguistpro.kolosei.com",
     dir: path.join(ROOT, "public", "data", "benyehuda", "works"),
-    concurrency: 6, limit: 0, skipExisting: false, dryRun: false,
+    concurrency: 6, limit: 0, skipExisting: false, dryRun: false, idsFile: "",
   };
   for (let i = 2; i < argv.length; i++) {
     const k = argv[i];
@@ -40,6 +41,7 @@ function parseArgs(argv) {
     else if (k === "--dir") a.dir = path.resolve(String(argv[++i] || a.dir));
     else if (k === "--concurrency") a.concurrency = Math.max(1, Number(argv[++i] || 6));
     else if (k === "--limit") a.limit = Number(argv[++i] || 0);
+    else if (k === "--ids-file") a.idsFile = path.resolve(String(argv[++i] || ""));
     else if (k === "--skip-existing") a.skipExisting = true;
     else if (k === "--dry-run") a.dryRun = true;
   }
@@ -103,8 +105,18 @@ async function main() {
   }
   if (!fs.existsSync(args.dir)) { console.error("ERROR: works dir not found: " + args.dir + "\nRun build-corpus-catalog.js first."); process.exit(2); }
   let files = fs.readdirSync(args.dir).filter((f) => FILE_RE.test(f));
+  if (args.idsFile) {
+    // targeted publish: only the ids in the file (e.g. a re-bake batch). Order = file order.
+    let raw; try { raw = JSON.parse(fs.readFileSync(args.idsFile, "utf8")); }
+    catch (e) { console.error("ERROR: --ids-file unreadable: " + args.idsFile + " (" + (e && e.message) + ")"); process.exit(2); }
+    const want = (Array.isArray(raw) ? raw : (raw.ids || raw.work_ids || [])).map(String);
+    const have = new Set(files.map((f) => f.replace(/\.json$/, "")));
+    const missing = want.filter((id) => !have.has(id));
+    files = want.filter((id) => have.has(id)).map((id) => id + ".json");
+    console.log("[ids-file] " + want.length + " requested → " + files.length + " present" + (missing.length ? " (" + missing.length + " missing on disk: " + missing.slice(0, 5).join(",") + (missing.length > 5 ? "…" : "") + ")" : ""));
+  }
   if (args.limit) files = files.slice(0, args.limit);
-  if (!files.length) { console.error("ERROR: no <id>.json work files in " + args.dir); process.exit(2); }
+  if (!files.length) { console.error("ERROR: no <id>.json work files to push" + (args.idsFile ? " (after --ids-file filter)" : " in " + args.dir)); process.exit(2); }
 
   console.log("=== BRR-P1-014 A4 push corpus works → prod volume ===");
   console.log("base=" + args.base + "  files=" + files.length + "  concurrency=" + args.concurrency +
