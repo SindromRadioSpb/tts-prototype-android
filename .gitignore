@@ -138,3 +138,8 @@ repo_tree.txt
 # it via DecompressionStream. Rebuild raw via `npm run build:morphology:full`
 # if you need it for debugging.
 public/morph/heb_morphology_full.bin
+
+# Ben-Yehuda corpus work BODIES — live on the prod volume, served volume-first by
+# server.js; NOT in git (the thin catalog index ships, bodies do not). Re-bakeable
+# + backed up. (Legacy: ~100 were committed in 9ccf6b1 before this norm; now untracked.)
+public/data/benyehuda/works/
