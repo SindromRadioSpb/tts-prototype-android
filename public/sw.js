@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.28-room-conj";
+const CACHE_VERSION = "v3.10.29-corpus-v7";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -102,7 +102,7 @@ const PRECACHE_URLS = [
   // Versioned filename (corpus-catalog-v<N>) → each re-publish (new baked batch) bumps
   // the catalog version so the immutable-cached lazy files (?v=N) cache-bust; the SW
   // CACHE_VERSION bump refreshes this precached root + library-ui.js in lockstep.
-  "/data/benyehuda/corpus-catalog-v6.json",
+  "/data/benyehuda/corpus-catalog-v7.json",
   // i18n
   "/i18n/index.js",
   "/i18n/locales/ru.js",
