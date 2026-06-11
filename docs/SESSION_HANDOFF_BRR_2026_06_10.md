@@ -87,7 +87,7 @@ public/data/benyehuda/
   ```
 - Прогресс: `run-corpus-prebake.js --status` · качество: `npm run probe:niqqud`. **Только ОДИН экземпляр** (леджер не для параллели).
 - ⚠ **Метка эпохи в шарде косметическая** (раннер-эвристика); при публикации `build-corpus-catalog.js --full` эпоха **переопределяется по era-map** → в Зале правильно. Счётчик `gemini today` слегка недосчитывает при краше до флаша — мелочь.
-- **ПУБЛИКАЦИЯ baked в Зал** (повторяющийся шаг, когда набралась порция): `node scripts/premium/build-corpus-catalog.js --full` → пересобирает v3 catalog/index/search + манифесты → **SW-бамп** → commit+push → прод-верифи. Новые baked появятся как «✓ Готовы к чтению» в своих эпохах.
+- **ПУБЛИКАЦИЯ baked в Зал** (повторяющийся шаг, когда набралась порция) — **skill `publish-corpus-batch`** + хелпер **`scripts/premium/publish-corpus-batch.js`** (`--dry-run` превью → `--apply` сборка каталога v(N+1) + авто-бамп версии/SW + гейты → печатает ручные шаги: bodies-first `push-corpus-works.js --skip-existing` на прод-том (AUDIO_UPLOAD_TOKEN) → allowlist git add (НЕ works/) → commit+push → `--verify-only` прод-верифи). Первая порция отгружена вручную = `21bd873` (каталог v3→v4, 470 готовых; тела на прод-том). Новые baked появляются как «✓ Готовы к чтению» в своих эпохах. SKILL: `.claude/skills/publish-corpus-batch/SKILL.md`.
 
 ## NEXT (dev-трек — выбирает владелец; полный A5-дашборд ON HOLD)
 1. **Продолжать бейк** (durable-цикл) + публиковать порции периодически + `probe:niqqud` чек.
