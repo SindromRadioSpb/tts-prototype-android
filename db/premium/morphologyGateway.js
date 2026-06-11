@@ -19,10 +19,11 @@ async function analyze(sentence, opts) {
     const r = await dictaMorph.analyzeSentence(text, (opts && opts.genre) || "modern");
     if (r && r.ok && Array.isArray(r.tokens)) {
       // R10 honest degradation: a non-empty HEBREW sentence must yield ≥1 token. Zero
-      // tokens means the provider was reached but returned nothing usable — on prod this
-      // is the Dicta-egress-intercept signature (empty [] response). Surfacing it as
-      // success (degraded:false) is a silent failure; report degraded so the client
-      // falls back to the offline path consciously instead of trusting an empty result.
+      // tokens means the provider was reached but returned nothing usable (a transient
+      // Dicta hiccup, or a garbled/non-Hebrew payload). Surfacing it as success
+      // (degraded:false) is a silent failure; report degraded so the client falls back to
+      // the offline path consciously instead of trusting an empty result. (NB: prod DOES
+      // reach Dicta — a prior "egress blocked" reading was a curl UTF-8 test artifact.)
       if (r.tokens.length === 0 && /[א-ת]/.test(text)) {
         return { ok: false, tokens: [], model_version: r.model_version || dictaMorph.MODEL_VERSION, provider: r.provider || "none", degraded: true, reason: "provider_empty_on_hebrew" };
       }

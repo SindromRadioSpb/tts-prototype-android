@@ -1,11 +1,13 @@
 // reader-dicta.js — CLIENT-SIDE context-aware morphology for the Reading Room (Tier-3).
 //
-// Why client-side: the prod server (Hetzner) gets an empty result from Dicta-Nakdan
-// (datacenter-egress / IP soft-block — same pattern as the Pealim scrape), so the server
-// route /api/morphology returns degraded. But the USER'S BROWSER reaches Dicta fine, and
-// Dicta sends `Access-Control-Allow-Origin: *`, so the Room can call it DIRECTLY — no
-// server egress fix needed. Caveat: Dicta's CORS preflight (OPTIONS) 500s, so we must send
-// a "simple" request (Content-Type: text/plain) that the browser does NOT preflight.
+// Why client-side (offline-first, R5): the Room is a client-side OPFS app. Calling Dicta
+// from the browser avoids a server round-trip and keeps the morphology path independent of
+// the server. (The prod server's /api/morphology ALSO reaches Dicta fine — an earlier
+// "egress blocked" reading was a curl UTF-8-mangling test artifact, since corrected — so
+// a server-side Tier-3 is equally viable; this client path is the lighter, offline-leaning
+// alternative.) Dicta sends `Access-Control-Allow-Origin: *`, so the browser can read it.
+// Caveat: Dicta's CORS preflight (OPTIONS) 500s, so we must send a "simple" request
+// (Content-Type: text/plain) that the browser does NOT preflight.
 //
 // What it gives the Room: per-word CONTEXT-correct niqqud + lemma + POS. The tapped word's
 // context-correct niqqud feeds the existing offline form-first resolver, which then matches

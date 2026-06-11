@@ -24,25 +24,28 @@
   13/15) → исключён. **ОПУБЛИКОВАНО: 109 тел на прод-том** (`push-corpus-works.js --ids-file
   reniqqud-publish-ids.json`, token владельца), PROD-верифи: 11778=94%/16477=88%/40=96% niqqud.
   staleWhileRevalidate → юзеры видят на 2-е открытие; SW-бамп не нужен.
-- **Тир 3a — honest degradation** (`09651fe`): `morphologyGateway` — непустой иврит + 0 токенов →
-  `degraded:true` (был молчаливый `degraded:false`). ⏳ Ждёт Coolify-деплоя (uptime показывал старый код).
-- **Тир 3 фундамент — client-side Dicta** (этот коммит): **egress чинить НЕ надо** — браузер юзера ходит
-  в Dicta напрямую (ACAO:*; подвох — preflight 500 → слать `text/plain`, без preflight). `reader-dicta.js`
-  (`window.ReaderDicta`) + `smoke:reader-dicta` (зелёный, реальный браузер→Dicta). НЕ подключён к резолву
-  (фича «точный режим» — на owner-go, дизайн в `BRR_TIER3_CONTEXT_MODE_…`).
+- **Тир 3a — honest degradation** (`5a287a6`, ЗАДЕПЛОЕНО + браузер-верифи Kapture): `morphologyGateway`
+  — непустой иврит + 0 токенов → `degraded:true`. Деплои НЕ застревали (Coolify Success).
+- **⚠ EGRESS-МИФ РАЗВЕЯН:** «прод не достаёт Dicta» = артефакт Windows-curl (слал «????» → Dicta пусто).
+  С корректным UTF-8 (Node/браузер) прод `/api/morphology` ОТДАЁТ реальные контекст-токены (הַיּוֹם→adverb,
+  עלינו→preposition). Тир-3 работает И сервер-сайд (существующий эндпоинт) И клиент-сайд.
+- **Тир 3 фундамент — client-side Dicta** (`5a287a6`): `reader-dicta.js` (`window.ReaderDicta`) +
+  `smoke:reader-dicta` (зелёный, реальный браузер→Dicta, text/plain ACAO:*). Offline-first путь. НЕ
+  подключён к резолву (фича «точный режим» — на owner-go, дизайн `BRR_TIER3_CONTEXT_MODE_…`, выбор S vs C).
 
 ## Текущее состояние тиров
 - Тир 1: **в проде**, закрыт. Тир 2: **в проде** (109 тел), закрыт; остаток ~10% — контент-гомографы.
-- Тир 3a: код есть, **ждёт деплоя** (проверить `/api/morphology` иврит → degraded:true после Coolify).
-- Тир 3 (фича): фундамент-провайдер + гейт есть; **интеграция «точный режим» — на owner-go**.
+- Тир 3a: **задеплоено** (`5a287a6`); прод `/api/morphology` отдаёт токены (egress работает).
+- Тир 3 (фича): фундамент (S сервер-сайд работает + C client-side провайдер); **интеграция — на owner-go**.
 
 ## NEXT (owner picks)
 1. **i+1 «Следующий для тебя» (BRR-P1-007)** — нужен recon + **4 решения владельца** (см.
    `BRR_P1_007_I_PLUS_1_RECON_…`): №1 строить vocab-профиль работ на publish-time (вар. A, рекоменд)?
    №2 пороги «знаю»/зоны i+1; №3 холодный старт; №4 публикация сайдкара. Дай ответы → начну с пробы-замера.
-2. **Тир 3 «точный режим»** — подключить `reader-dicta` к резолву (opt-in тумблер, провенанс «контекст»,
-   per-row кэш). Дизайн готов в `BRR_TIER3_CONTEXT_MODE_…` — нужен owner-go.
-3. **Тир 3a деплой** — дождаться/триггернуть Coolify; проверить degraded:true на проде.
+2. **Тир 3 «точный режим»** — подключить контекст-Dicta к резолву (opt-in тумблер, провенанс «контекст»,
+   per-row кэш). Выбор S (сервер `/api/morphology`, работает) vs C (client `reader-dicta`, offline-first).
+   Дизайн готов в `BRR_TIER3_CONTEXT_MODE_…` — нужен owner-go.
+3. ~~Тир 3a деплой~~ — СДЕЛАНО (`5a287a6` задеплоен; egress-миф развеян, прод Dicta работает).
 4. Полиш: ranked-candidate senses; «Подробнее → Студия» deep-link; GCP-WaveNet form-audio.
 
 ## 🔧 Owner-решения / открытое
