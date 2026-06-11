@@ -2090,6 +2090,39 @@ export async function getTextLearningCoverage(textId) {
   return { ok: true, total, known, learning, weak, new: neu, i1_ratio, frontier };
 }
 
+// BRR-P1-009 — lemmaKey → learning-state map for Reading-Room word-status colouring.
+// Enumerates ALL word_study notes, joins each to its SRS state (getLearningStateOverlay;
+// uncarded ⇒ 'new'), and folds them onto the CANONICAL lemma key (pid:<id> else
+// norm(lemma|word)#pos — byte-identical to NotesAutoGen.lemmaKey so the reader card joins).
+// When several inflected forms share a lemma, the MOST-ADVANCED state wins (knowing any
+// form ⇒ the lemma is known). Words the user has no note for are simply ABSENT — the
+// reader treats absent as 'new'/unseen. Read-only; graceful {} when notes/SRS absent.
+const _KWS_RANK = { known: 4, learning: 3, weak: 2, stale: 2, new: 1 };
+export async function getKnownWordStates() {
+  let notes, overlay;
+  try {
+    notes = await q(
+      `SELECT id, json_extract(body_json,'$.lemma') AS lemma,
+              json_extract(body_json,'$.word') AS word,
+              json_extract(body_json,'$.pos') AS pos,
+              json_extract(body_json,'$.pealim_id') AS pealim_id
+         FROM notes_v2 WHERE note_type = 'word_study'`, []);
+    overlay = await getLearningStateOverlay();
+  } catch (_) { return {}; }
+  const out = {};
+  for (const n of (notes || [])) {
+    const pid = (n.pealim_id != null && String(n.pealim_id) !== "") ? String(n.pealim_id) : "";
+    const lk = pid
+      ? ("pid:" + pid)
+      : (String(n.lemma || n.word || "").replace(/[֑-ׇ]/g, "").trim() + "#" + String(n.pos || ""));
+    if (!lk || lk === "#") continue;
+    const st = overlay[String(n.id)] || "new";
+    const prev = out[lk];
+    if (!prev || (_KWS_RANK[st] || 0) > (_KWS_RANK[prev] || 0)) out[lk] = st;
+  }
+  return out;
+}
+
 // ── R-3.2 Anki Connect sync — apply Anki review state to local srs_cards ──────
 // Anki is the authoritative review layer (docs/SRS_STRATEGY_v3_2.md), so we
 // mirror its scheduler fields into srs_cards → getLearningStateOverlay /

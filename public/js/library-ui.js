@@ -258,6 +258,87 @@ let readerMorph = null; // ReaderMorph attach detach handle
 // Empty is fine: audio falls back to keyless browser SpeechSynthesis.
 function gcpTtsKey() { try { return localStorage.getItem('v3.gcpTtsApiKey') || ''; } catch (_) { return ''; } }
 
+// BRR-P1-009 — word-status colouring (opt-in). The lemmaKey→state map is built once
+// per reader session from the user's OPFS notes; enabling the toggle warms the morph
+// engine (3.3 MB dict) + paints, so the DEFAULT reader-open stays light + offline-cheap.
+let readerWordStates = null; // cached {lemmaKey: state}
+function wordStatusEnabled() { try { return localStorage.getItem('room.wordStatus') === '1'; } catch (_) { return false; } }
+function wordStatusSet(v) { try { localStorage.setItem('room.wordStatus', v ? '1' : '0'); } catch (_) {} }
+async function ensureWordStates() {
+  if (readerWordStates) return readerWordStates;
+  try { readerWordStates = await localDb.getKnownWordStates(); } catch (_) { readerWordStates = {}; }
+  return readerWordStates;
+}
+async function applyWordStatus() {
+  const mount = $('roomReaderTable');
+  if (!mount || !window.ReaderMorph) return;
+  if (!wordStatusEnabled()) { try { window.ReaderMorph.clearLearningStatus(mount); } catch (_) {} return; }
+  const states = await ensureWordStates();
+  try { await window.ReaderMorph.paintLearningStatus(mount, states); } catch (_) {}
+}
+
+// ── note-formation: turn a tapped word into a word_study note (the «превращение») ──
+// Reuses the Studio pipeline (NotesAutoGen.dedupKey + localDb canonical-note API). The
+// card (reader-morph) calls lookupNote on open + saveWord on «Сохранить». Idempotent
+// (one canonical note per lemma; re-save just adds an occurrence).
+function roomNoteBody(card) {
+  const body = {
+    word: card.word || '', niqqud_variant: card.niqqud || '',
+    root: card.root || '', lemma: card.lemma || '',
+    pos: card.pos || '', part_of_speech: card.pos || '',
+    binyan: card.binyan || '', meaning: card.meaning || '',
+  };
+  if (card.pealim_id) body.pealim_id = String(card.pealim_id);
+  return body;
+}
+function roomDedupKey(card) {
+  try { return window.NotesAutoGen ? window.NotesAutoGen.dedupKey(roomNoteBody(card)) : ''; } catch (_) { return ''; }
+}
+async function roomLookupNote(card) {
+  const dk = roomDedupKey(card);
+  if (!dk) return null;
+  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
+  if (!note) return null;
+  let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
+  return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
+}
+async function roomSaveWord(card, occ) {
+  const body = roomNoteBody(card);
+  const dk = roomDedupKey(card);
+  if (!dk) return null;
+  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
+  if (!note) {
+    try {
+      note = await localDb.createCanonicalNote({
+        gen_dedup_key: dk, body, title: body.word || '', source: 'curated',
+        confidence: typeof card.confidence === 'number' ? card.confidence : null,
+        model_version: (window.InflectionDict && window.InflectionDict.MODEL) || null,
+        user_touched: 0,
+      });
+    } catch (e) { try { console.warn('[room] save note failed', e); } catch (_) {} return null; }
+  }
+  if (note && occ && (occ.text_id || occ.sentence_id)) {
+    try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
+  }
+  readerWordStates = null; // saved a note → status map is stale; repaint if colouring is on
+  try { if (wordStatusEnabled()) applyWordStatus(); } catch (_) {}
+  roomToast(tt('room.morph.savedToast', 'Слово сохранено в заметки'));
+  if (!note) return { status: 'created' };
+  let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
+  return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
+}
+
+let _roomToastEl = null, _roomToastT = null;
+function roomToast(msg) {
+  try {
+    if (!_roomToastEl) { _roomToastEl = el('div', { class: 'room-toast' }); document.body.appendChild(_roomToastEl); }
+    _roomToastEl.textContent = msg;
+    _roomToastEl.classList.add('show');
+    if (_roomToastT) clearTimeout(_roomToastT);
+    _roomToastT = setTimeout(() => { if (_roomToastEl) _roomToastEl.classList.remove('show'); }, 2200);
+  } catch (_) {}
+}
+
 function readerConfig() {
   return {
     visibleColumns: { ...readerCfg.visibleColumns },
@@ -296,7 +377,8 @@ function attachReaderAudio() {
 function attachReaderMorph(mount) {
   if (!mount || !window.ReaderMorph) return;
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
-  try { readerMorph = window.ReaderMorph.attach(mount, { getRow: (i) => readerRows[i] }); } catch (_) {}
+  try { readerMorph = window.ReaderMorph.attach(mount, { getRow: (i) => readerRows[i], saveWord: roomSaveWord, lookupNote: roomLookupNote }); } catch (_) {}
+  applyWordStatus();
 }
 
 function readerStateBox(i18nKey, icon) {
@@ -341,6 +423,14 @@ function buildAidsPanel() {
     lab.appendChild(el('span', { i18n: key, text: tt(key) }));
     panel.appendChild(lab);
   });
+  // BRR-P1-009 — word-status colouring toggle (opt-in; warms the morph engine on enable).
+  const wsLab = el('label', { class: 'reader-aids-status' });
+  const wsCb = el('input', { attrs: { type: 'checkbox' } });
+  wsCb.checked = wordStatusEnabled();
+  wsCb.addEventListener('change', () => { wordStatusSet(wsCb.checked); applyWordStatus(); });
+  wsLab.appendChild(wsCb);
+  wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', '🎨 Статус слов') }));
+  panel.appendChild(wsLab);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 

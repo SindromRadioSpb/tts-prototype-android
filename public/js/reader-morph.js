@@ -180,9 +180,10 @@
     var meaning = r.meaning || (par && par.meaning) || "";
     var pealim_id = r.pealim_id || (par && par.pealim_id ? String(par.pealim_id) : "");
     var pealim_url = (par && par.pealim_url) || "";
+    var lemma = (par && par.lemma) || "";       // for the no-pid lemmaKey join (status colouring)
     return {
       word: surfaceOrig || stripNiqqud(n0), niqqud: n0,
-      root: root, binyan: binyan, pos: pos, meaning: meaning,
+      root: root, binyan: binyan, pos: pos, meaning: meaning, lemma: lemma,
       pealim_id: pealim_id, pealim_url: pealim_url,
       channel: r.channel, confidence: r.confidence, status: r.status,
       label: provenanceLabel(r, pos),
@@ -269,10 +270,11 @@
       var surface, niqqud;
       if (niqqudForCell) { var pair = niqqudForCell[wIdx] || {}; surface = pair.surface || tk.text; niqqud = pair.niqqud || ""; }
       else { surface = stripNiqqud(tk.text); niqqud = tk.text; }
-      wIdx++;
+      var off = wIdx; wIdx++;   // word offset within the row/sentence (for note occurrences)
       html += '<span class="rm-w" role="button" tabindex="0"' +
         ' data-surface="' + escapeHtml(surface) + '"' +
-        ' data-niqqud="' + escapeHtml(niqqud) + '">' + escapeHtml(tk.text) + "</span>";
+        ' data-niqqud="' + escapeHtml(niqqud) + '"' +
+        ' data-w-offset="' + off + '">' + escapeHtml(tk.text) + "</span>";
     }
     return html;
   }
@@ -317,6 +319,15 @@
     interjection: ["room.morph.pos.interjection", "междометие"], particle: ["room.morph.pos.particle", "частица"],
     negation: ["room.morph.pos.negation", "отрицание"],
   };
+  // word-note lifecycle (from getWordNoteLifecycle): created/in_anki/learning/known/suspended.
+  var LIFECYCLE = {
+    created: ["room.morph.life.created", "🆕 в заметках"],
+    in_anki: ["room.morph.life.inAnki", "📤 в Anki"],
+    learning: ["room.morph.life.learning", "🔄 учу"],
+    known: ["room.morph.life.known", "✅ знаю"],
+    suspended: ["room.morph.life.suspended", "⏸ пауза"],
+  };
+  var _activeCard = null, _activeOcc = null, _attachOpts = {};
 
   function ensureSheet() {
     if (_sheet) return _sheet;
@@ -332,7 +343,11 @@
       '  <div class="rm-sheet-body"></div>' +
       "</div>";
     document.body.appendChild(el);
-    el.addEventListener("click", function (e) { var t = e.target; if (t && t.getAttribute && t.getAttribute("data-rm-close")) closeSheet(); });
+    el.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
+      if (t && t.closest && t.closest(".rm-save")) { onSaveClick(); return; }
+    });
     _sheet = el;
     return el;
   }
@@ -353,7 +368,10 @@
     var head =
       '<div class="rm-head">' +
       '<span class="rm-word" lang="he">' + escapeHtml(card.niqqud || card.word) + "</span>" +
+      '<span class="rm-badges">' +
       '<span class="rm-prov rm-prov-' + escapeHtml(card.label) + '">' + escapeHtml(tt(label[0], label[1])) + "</span>" +
+      '<span class="rm-life" data-rm-life hidden></span>' +
+      "</span>" +
       "</div>";
     var meaning = card.meaning
       ? '<div class="rm-meaning" dir="ltr">' + escapeHtml(card.meaning) + "</div>"
@@ -362,7 +380,13 @@
     var link = card.pealim_url
       ? '<a class="rm-link" href="' + escapeHtml(card.pealim_url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(linkLabel) + " ↗</a>"
       : "";
-    return head + meaning + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + link + "</div>";
+    // «Сохранить» — frictionless capture: turns the word into a word_study note (the
+    // prerequisite for status colouring + Anki + i+1). The glue (DB persist) is the
+    // caller's opts.saveWord; the button is shown whenever a save handler is wired.
+    var saveBtn = _attachOpts.saveWord
+      ? '<button type="button" class="rm-save" data-rm-save>' + escapeHtml(tt("room.morph.save", "＋ Сохранить")) + "</button>"
+      : "";
+    return head + meaning + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>";
   }
 
   function openCardLoading() {
@@ -370,10 +394,43 @@
     el.querySelector(".rm-sheet-body").innerHTML = '<div class="rm-loading">' + escapeHtml(tt("room.morph.loading", "Анализ…")) + "</div>";
     el.hidden = false; el.classList.add("rm-open");
   }
-  function openCard(card) {
+  function openCard(card, occ) {
+    _activeCard = card; _activeOcc = occ || null;
     var el = ensureSheet();
     el.querySelector(".rm-sheet-body").innerHTML = renderCardHtml(card);
     el.hidden = false; el.classList.add("rm-open");
+    if (card) refreshCardMeta(card);
+  }
+  function lifecycleText(status) { var L = LIFECYCLE[status] || LIFECYCLE.created; return tt(L[0], L[1]); }
+  // Reflect whether this word is already a saved note (+ its SRS lifecycle) onto the
+  // card: a status badge + the save button flips to «✓ В заметках». info = {status} | null.
+  function applyLifecycle(info) {
+    if (!_sheet) return;
+    var lifeEl = _sheet.querySelector("[data-rm-life]");
+    var saveBtn = _sheet.querySelector(".rm-save");
+    var has = !!(info && info.status);
+    if (lifeEl) {
+      if (has) { lifeEl.textContent = lifecycleText(info.status); lifeEl.className = "rm-life rm-life-" + info.status; lifeEl.hidden = false; }
+      else lifeEl.hidden = true;
+    }
+    if (saveBtn) {
+      if (has) { saveBtn.textContent = tt("room.morph.saved", "✓ В заметках"); saveBtn.classList.add("rm-save-done"); }
+      else { saveBtn.textContent = tt("room.morph.save", "＋ Сохранить"); saveBtn.classList.remove("rm-save-done"); }
+    }
+  }
+  async function refreshCardMeta(card) {
+    if (!_attachOpts.lookupNote) return;
+    var info; try { info = await _attachOpts.lookupNote(card); } catch (_) { info = null; }
+    if (_activeCard === card) applyLifecycle(info);
+  }
+  async function onSaveClick() {
+    if (!_activeCard || !_attachOpts.saveWord) return;
+    var saveBtn = _sheet && _sheet.querySelector(".rm-save");
+    if (saveBtn) saveBtn.disabled = true;
+    try {
+      var info = await _attachOpts.saveWord(_activeCard, _activeOcc);
+      applyLifecycle(info && info.status ? info : { status: "created" });
+    } catch (_) {} finally { if (saveBtn) saveBtn.disabled = false; }
   }
 
   // ── Public: attach the learner layer to a painted reader mount ──────────────
@@ -383,18 +440,37 @@
     opts = opts || {};
     if (!mount) return { detach: function () {}, refresh: function () {} };
     var getRow = typeof opts.getRow === "function" ? opts.getRow : function () { return null; };
+    _attachOpts = opts;
 
     var refresh = function () { try { wrapMount(mount, getRow); } catch (_) {} };
     refresh();
+
+    // Occurrence context for a tapped word: where it appears (text/sentence/offset) so a
+    // saved note records a real occurrence. Baked corpus rows carry _v3_textId/_v3_sentenceId.
+    var computeOcc = function (span) {
+      try {
+        var tr = span.closest("tr[data-row-idx]");
+        var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+        var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
+        var off = Number(span.getAttribute("data-w-offset"));
+        return {
+          text_id: row && row._v3_textId ? String(row._v3_textId) : null,
+          sentence_id: row && row._v3_sentenceId ? String(row._v3_sentenceId) : null,
+          word_offset: Number.isFinite(off) ? off : null,
+          surface: span.getAttribute("data-surface") || "",
+        };
+      } catch (_) { return null; }
+    };
 
     var onActivate = async function (span) {
       if (_activeSpan) _activeSpan.classList.remove("rm-w-active");
       _activeSpan = span; span.classList.add("rm-w-active");
       var surface = span.getAttribute("data-surface") || span.textContent || "";
       var niqqud = span.getAttribute("data-niqqud") || "";
+      var occ = computeOcc(span);
       openCardLoading();
-      try { var card = await resolveWordLight(surface, niqqud); if (_activeSpan === span) openCard(card); }
-      catch (e) { if (_activeSpan === span) openCard(null); }
+      try { var card = await resolveWordLight(surface, niqqud); if (_activeSpan === span) openCard(card, occ); }
+      catch (e) { if (_activeSpan === span) openCard(null, occ); }
     };
 
     var onClick = function (e) {
@@ -424,6 +500,42 @@
     };
   }
 
+  // ── BRR-P1-009: word-status colouring (LingQ-style, confidence-gated) ────────
+  // Paints each wrapped .rm-w word by the user's learning state. statesMap = {lemmaKey:
+  // state} from local-db.getKnownWordStates(). R1: ONLY decisively-resolved words
+  // (label exact|likely) are coloured; ambiguous / unvocalized words stay neutral —
+  // honest degradation, no fake "known". Progressive (chunked) so a long text never
+  // blocks the UI. Absent-from-map ⇒ 'new' (unseen). Idempotent (re-resolves spans).
+  var STATE_CLASS = { known: "rm-w-known", learning: "rm-w-learning", weak: "rm-w-learning", stale: "rm-w-learning", "new": "rm-w-new" };
+  function clearLearningStatus(mount) {
+    if (!mount) return;
+    var painted = mount.querySelectorAll(".rm-w-known, .rm-w-learning, .rm-w-new");
+    for (var i = 0; i < painted.length; i++) painted[i].classList.remove("rm-w-known", "rm-w-learning", "rm-w-new");
+  }
+  async function paintLearningStatus(mount, statesMap) {
+    if (!mount) return;
+    var states = statesMap || {};
+    var NA = window.NotesAutoGen;
+    var eng; try { eng = await ensureEngine(); } catch (_) { return; }
+    var spans = Array.prototype.slice.call(mount.querySelectorAll(".rm-w"));
+    var i = 0;
+    while (i < spans.length) {
+      var end = Math.min(i + 60, spans.length);
+      for (; i < end; i++) {
+        var span = spans[i];
+        span.classList.remove("rm-w-known", "rm-w-learning", "rm-w-new");
+        var surface = span.getAttribute("data-surface") || "";
+        var niqqud = span.getAttribute("data-niqqud") || "";
+        var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { continue; }
+        if (!card || (card.label !== "exact" && card.label !== "likely")) continue;   // confidence-gate (R1)
+        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) : "";
+        var cls = STATE_CLASS[states[lk] || "new"];
+        if (cls) span.classList.add(cls);
+      }
+      if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
+    }
+  }
+
   var API = {
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
@@ -431,7 +543,7 @@
     wrapCellHtml: wrapCellHtml, isWordChar: isWordChar,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
-    closeSheet: closeSheet,
+    closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;
