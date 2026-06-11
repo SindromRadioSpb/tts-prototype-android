@@ -99,3 +99,17 @@ api-smoke. SW `v3.10.30-room-gloss-gate`. @380px скрин gated-карточк
 **PROD-ВЕРИФИЦИРОВАНО** (linguistpro.kolosei.com, SW v3.10.30-room-gloss-gate, 0 pageerror, `e63dd8b`):
 אֵין→«нет» · עָלֵינוּ→«на нас» · עוֹד→«ещё» · אֲפִלּוּ→«даже» (все [служебное слово]+поиск, без таблицы);
 контент не тронут: יֶלֶד→«мальчик»+таблица+direct, לִבֵּנוּ→«сердце»+таблица+direct. **Тир-1 в проде.**
+
+---
+
+## ✅ ТИР 2 ВЫПОЛНЕН локально (2026-06-11) — niqqud-only re-bake (контентный рычаг)
+Измерено: 110 «слабых» работ имели ПУСТОЙ/частичный `hebrew_niqqud` (оригинальный бейк не вокализовал);
+Dicta-Nakdan вокализует plain ~98%. NEW `scripts/premium/reniqqud-fill.js` (`reniqqud:fill`) — заполняет
+ТОЛЬКО niqqud, пер-словная реконструкция (R1: подставляет огласовку лишь при совпадении скелета → **текст
+исходника не меняется никогда**; гейт `smoke:reniqqud` 6/6), crash-safe леджер, бэкап всех 110.
+**Результат: 109 Hebrew works 40%→91% покрытия, 0 порчи** (проверено против бэкапа); **resolver-лифт на
+11778: exact|likely 2%→51%** (прямая корреспонденция). **1 идиш (47097) исключён** (adversarial Workflow
+поймал → авто-гейт по идиш-токенам). Adversarial Workflow (16 агентов): **ship-with-notes (13/15 pass)**.
+Honest-degradation (Тир-3a) пофикшен в `morphologyGateway` (пустой Hebrew-ответ → `degraded:true`, не молчком).
+Полный runbook + publish-шаги (owner-gated, token) → `BRR_TIER2_RENIQQUD_RUNBOOK_2026_06_11.md`.
+**Публикация 109 тел на прод — за владельцем** (`push-corpus-works.js --ids-file …reniqqud-publish-ids.json`).

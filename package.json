@@ -85,6 +85,8 @@
     "audit:note-fields": "node scripts/premium/note-fields-audit.js",
     "audit:autogen-quality": "node scripts/premium/autogen-quality-audit.js --gate",
     "audit:corpus-niqqud": "node scripts/premium/audit-corpus-niqqud.js",
+    "reniqqud:fill": "node scripts/premium/reniqqud-fill.js",
+    "smoke:reniqqud": "node scripts/premium/reniqqud-smoke.js",
     "smoke:autogen-parity": "node scripts/premium/autogen-parity-smoke.js --gate",
     "smoke:autogen-persist": "node scripts/premium/autogen-persist-browser-smoke.js",
     "smoke:autogen-surfacing": "node scripts/premium/autogen-surfacing-browser-smoke.js",

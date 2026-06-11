@@ -18,6 +18,14 @@ async function analyze(sentence, opts) {
   try {
     const r = await dictaMorph.analyzeSentence(text, (opts && opts.genre) || "modern");
     if (r && r.ok && Array.isArray(r.tokens)) {
+      // R10 honest degradation: a non-empty HEBREW sentence must yield ≥1 token. Zero
+      // tokens means the provider was reached but returned nothing usable — on prod this
+      // is the Dicta-egress-intercept signature (empty [] response). Surfacing it as
+      // success (degraded:false) is a silent failure; report degraded so the client
+      // falls back to the offline path consciously instead of trusting an empty result.
+      if (r.tokens.length === 0 && /[א-ת]/.test(text)) {
+        return { ok: false, tokens: [], model_version: r.model_version || dictaMorph.MODEL_VERSION, provider: r.provider || "none", degraded: true, reason: "provider_empty_on_hebrew" };
+      }
       return { ok: true, tokens: r.tokens, model_version: r.model_version, provider: r.provider, degraded: false };
     }
     return { ok: false, tokens: [], model_version: dictaMorph.MODEL_VERSION, provider: "none", degraded: true, reason: "provider_empty" };
