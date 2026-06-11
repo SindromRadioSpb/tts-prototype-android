@@ -69,7 +69,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const siper = await R.resolveWordLight("ספר", "סִפֵּר");  // tell (piel)
       const xyz = await R.resolveWordLight("xyz", "xyz");
       const avraham = await R.resolveWordLight("אברהם", "אַבְרָהָם");
-      return { shalom, sefer, siper, xyz, avraham };
+      // R10 honest-gloss gate: function-form homograph traps + content guards.
+      const ein = await R.resolveWordLight("אין", "אֵין");          // negation, was «уничтожить»
+      const aleinu = await R.resolveWordLight("עלינו", "עָלֵינוּ");  // prep+suf, was «лист»
+      const afilu = await R.resolveWordLight("אפלו", "אֲפִלּוּ");    // «даже» (defective ktiv), was «темнота»
+      const lihyot = await R.resolveWordLight("להיות", "לִהְיוֹת");  // content guard: «быть», NOT gated
+      const libenu = await R.resolveWordLight("לבנו", "לִבֵּנוּ");   // content guard: «сердце», NOT gated
+      const gateNeg = R.functionGate("אין"), gatePrep = R.functionGate("עלינו"), gateContent = R.functionGate("לבנו");
+      return { shalom, sefer, siper, xyz, avraham, ein, aleinu, afilu, lihyot, libenu, gateNeg, gatePrep, gateContent };
     });
     eq(eng.shalom && eng.shalom.root === "שלם", "shalom root should be שלם, got " + JSON.stringify(eng.shalom && eng.shalom.root));
     eq(eng.shalom && /мир/.test(eng.shalom.meaning || ""), "shalom gloss should contain 'мир'");
@@ -81,6 +88,24 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // R1: never fabricate.
     eq(eng.xyz && eng.xyz.meaning === "" && eng.xyz.label === "unknown", "xyz must be honest-empty/unknown");
     eq(eng.avraham && eng.avraham.meaning === "" && eng.avraham.label === "unknown", "proper noun must be honest-empty/unknown");
+
+    // R10 honest-gloss gate — function forms get the honest reading (no homograph content gloss,
+    // no leaf-noun table); genuine content words keep their full reading + paradigm.
+    eq(eng.ein && eng.ein.functionWord === true && /нет/.test(eng.ein.meaning || "") && eng.ein.label === "function",
+      "אֵין must gate to «нет» (function), got " + JSON.stringify(eng.ein && eng.ein.meaning));
+    eq(eng.ein && !eng.ein.paradigm, "gated אֵין must NOT carry a (wrong) conjugation table");
+    eq(eng.aleinu && eng.aleinu.functionWord === true && /на нас/.test(eng.aleinu.meaning || ""),
+      "עָלֵינוּ must gate to «на нас» (prep+suffix), got " + JSON.stringify(eng.aleinu && eng.aleinu.meaning));
+    eq(eng.aleinu && !eng.aleinu.paradigm && !eng.aleinu.root, "gated עָלֵינוּ must drop the leaf-noun root/table");
+    eq(eng.afilu && /даже/.test(eng.afilu.meaning || ""), "אֲפִלּוּ (defective) must gate to «даже», got " + JSON.stringify(eng.afilu && eng.afilu.meaning));
+    // content guards — must NOT be gated, must keep full reading + table.
+    eq(eng.lihyot && eng.lihyot.functionWord !== true && /быть/.test(eng.lihyot.meaning || "") && eng.lihyot.paradigm,
+      "לִהְיוֹת must stay content «быть» with a table (not gated as «поскольку»)");
+    eq(eng.libenu && eng.libenu.functionWord !== true && /сердце/.test(eng.libenu.meaning || "") && eng.libenu.paradigm,
+      "לִבֵּנוּ must stay content «сердце» with a table (single-letter base guard)");
+    // pure functionGate contract
+    eq(eng.gateNeg && eng.gateNeg.isFunc === true && eng.gatePrep && eng.gatePrep.isFunc === true, "functionGate must flag אין + עלינו");
+    eq(eng.gateContent && eng.gateContent.isFunc === false, "functionGate must NOT flag content לבנו");
 
     // ── 2/3/4) DOM: wrap parity-safe + tap opens card ─────────────────────────
     const dom = await pg.evaluate(() => {
@@ -122,7 +147,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));
 
-    console.log("reader-morph: engine + homograph + R1-honesty + wrap-parity + tap-card + offline-once");
+    console.log("reader-morph: engine + homograph + R1-honesty + R10-function-gate + wrap-parity + tap-card + offline-once");
     console.log("screenshot → " + path.relative(REPO, SHOT));
     if (failures.length) {
       console.error("\nFAIL (" + failures.length + "):");

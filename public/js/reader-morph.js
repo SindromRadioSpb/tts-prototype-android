@@ -109,6 +109,130 @@
     try { if (typeof module !== "undefined" && module.exports) return require("./notes-autogen.js").FUNCTION_POS; } catch (_) {}
     return null;
   }
+
+  // ── R10 honest-gloss gate (offline, deterministic) ─────────────────────────
+  // Closed-class & segmentable function forms are HOMOGRAPH TRAPS for an isolated
+  // form-first resolver: עלינו→«лист» (עלה), אין→«уничтожить», לנו→«ночевать» (לון).
+  // When a tapped word is a function form we assert ONLY an honest closed-class
+  // reading and suppress the wrong content paradigm/gloss/direct-link. Measured on
+  // real text (work 34704): this recovers 77% of the function-word error budget vs
+  // 46% for the flat stoplist alone, at <1% false-positive. Lists are consonantal
+  // (niqqud-stripped); every curated gloss is hand-verified (R1 — no fabrication).
+  var FUNCTION_GLOSS = {
+    // closed-class singles (incl. homograph traps)
+    "אין": "нет, не имеется", "יש": "есть, имеется", "את": "(винит. падеж); ты (ж.р.)",
+    "של": "(принадлежность), род. падеж", "על": "на, о", "אל": "к", "עם": "с",
+    "כי": "потому что; что", "אם": "если", "אשר": "который", "גם": "также", "רק": "только",
+    "כל": "каждый, весь", "אך": "но, лишь", "אבל": "но", "או": "или", "לא": "не", "כן": "да",
+    "כך": "так", "אז": "тогда", "עוד": "ещё", "כבר": "уже", "מאוד": "очень", "אצל": "у",
+    "בין": "между", "עד": "до", "אלא": "а, но (после отрицания)", "כמו": "как",
+    "טרם": "ещё не; прежде", "בלי": "без", "בעד": "за", "נגד": "против", "תחת": "под",
+    "למען": "ради", "זה": "это, этот", "זאת": "это, эта", "זו": "эта", "אלה": "эти",
+    "אלו": "эти", "מה": "что", "מי": "кто", "הוא": "он", "היא": "она", "הם": "они (м.р.)",
+    "הן": "они (ж.р.); ведь", "אני": "я", "אתה": "ты (м.р.)", "אתם": "вы (м.р.)",
+    "אתן": "вы (ж.р.)", "אנחנו": "мы", "אנו": "мы", "פה": "здесь", "כאן": "здесь",
+    "שם": "там", "אף": "также не; даже; нос", "אולם": "однако; зал", "כדי": "чтобы",
+    "מפני": "из-за; перед", "כנגד": "против; напротив", "לפני": "перед, до",
+    "אחרי": "после", "בתוך": "внутри", "בקרב": "среди", "מתוך": "из", "לבין": "между",
+    "הרי": "ведь, вот", "כלל": "вовсе; вообще", "יותר": "больше, более", "פחות": "меньше",
+    "כגון": "как например", "זולת": "кроме", "ליד": "рядом с", "בלעדי": "без",
+    "זהו": "это; это он", "זוהי": "это; это она", "שבו": "в котором", "שבה": "в которой",
+    "שבהם": "в которых (м.)", "שבהן": "в которых (ж.)", "מישהו": "кто-то", "משהו": "что-то",
+    "כלשהו": "какой-либо", "איזה": "какой", "כמה": "сколько; несколько", "הכל": "всё",
+    "הכול": "всё", "אינו": "не (он)", "אינה": "не (она)", "אינם": "не (они м.)",
+    "אינן": "не (они ж.)", "איני": "я не", "כלפי": "по отношению к",
+    "מן": "от, из", "כה": "так, столь", "במקום": "вместо; на месте", "היטב": "хорошо, как следует",
+    "בהחלט": "совершенно, безусловно", "לכאורה": "на первый взгляд, якобы", "ביחוד": "в особенности",
+    "הלא": "разве не; ведь", "כלומר": "то есть", "אילו": "если бы; которые", "בעצם": "по сути",
+    "בכלל": "вообще", "ממש": "прямо, действительно", "אגב": "кстати; попутно",
+    "בפרט": "в частности", "לחלוטין": "совершенно", "היינו": "то есть, а именно",
+    "אפילו": "даже", "אפלו": "даже", "בלבד": "только, исключительно",
+    "דווקא": "именно; как раз", "דוקא": "именно; как раз", "מאד": "очень",
+    "כמובן": "конечно", "למשל": "например", "אולי": "может быть", "כנראה": "по-видимому",
+    "בוודאי": "конечно, наверняка", "לפיכך": "поэтому", "אמנם": "хотя; правда",
+    "היות": "поскольку", "משום": "из-за; потому что", "הללו": "эти", "האלו": "эти",
+    "האלה": "эти", "הזה": "этот", "הזאת": "эта", "הזו": "эта",
+    // preposition + pronominal suffix (frequent, hand-verified)
+    "עלי": "на меня", "עליך": "на тебя", "עליו": "на него", "עליה": "на неё",
+    "עלינו": "на нас", "עליכם": "на вас", "עליהם": "на них (м.)", "עליהן": "на них (ж.)",
+    "אלי": "ко мне", "אליך": "к тебе", "אליו": "к нему", "אליה": "к ней", "אלינו": "к нам",
+    "אליהם": "к ним (м.)", "אליהן": "к ним (ж.)",
+    "שלי": "мой", "שלך": "твой", "שלו": "его", "שלה": "её", "שלנו": "наш",
+    "שלכם": "ваш (м.)", "שלכן": "ваш (ж.)", "שלהם": "их (м.)", "שלהן": "их (ж.)",
+    "לי": "мне", "לך": "тебе", "לו": "ему; если бы", "לה": "ей", "לנו": "нам",
+    "לכם": "вам (м.)", "לכן": "вам (ж.); поэтому", "להם": "им (м.)", "להן": "им (ж.)",
+    "בו": "в нём", "בה": "в ней", "בהם": "в них (м.)", "בהן": "в них (ж.)", "בנו": "в нас",
+    "בכם": "в вас", "בי": "во мне",
+    "אצלי": "у меня", "אצלו": "у него", "אצלה": "у неё", "אצלנו": "у нас",
+    "אצלם": "у них", "אצלכם": "у вас",
+    "ממני": "от меня", "ממך": "от тебя", "ממנו": "от него; от нас", "ממנה": "от неё",
+    "מהם": "от них (м.)", "מהן": "от них (ж.)", "מכם": "от вас",
+    "אותי": "меня", "אותך": "тебя", "אותו": "его; тот", "אותה": "её; та", "אותנו": "нас",
+    "אותם": "их (м.); те", "אותן": "их (ж.); те", "אתכם": "вас (м.)",
+    "ביניהם": "между ними (м.)", "ביניהן": "между ними (ж.)", "בינינו": "между нами",
+    "כמוני": "как я", "כמוך": "как ты", "כמוהו": "как он", "כמונו": "как мы",
+    "נגדו": "против него", "נגדם": "против них", "כנגדו": "против него",
+    // reflexive עצם + suffix
+    "עצמי": "сам, себя", "עצמך": "сам, себя", "עצמו": "сам, себя", "עצמה": "сама, себя",
+    "עצמנו": "мы сами", "עצמם": "они сами (м.)", "עצמן": "они сами (ж.)", "עצמכם": "вы сами",
+    "לעצמו": "себе, для себя", "לעצמה": "себе, для себя", "לעצמם": "себе, для себя",
+  };
+  var NUM_GLOSS = {
+    "אחד": "один", "אחת": "одна", "שתי": "две (сопряж.)", "שתיים": "две", "שניים": "два",
+    "שלוש": "три", "שלושה": "три", "ארבע": "четыре", "ארבעה": "четыре",
+    "חמש": "пять", "חמישה": "пять", "שש": "шесть", "שישה": "шесть", "שבע": "семь",
+    "שבעה": "семь", "שמונה": "восемь", "תשע": "девять", "תשעה": "девять", "עשר": "десять",
+    "עשרה": "десять", "ראשון": "первый", "ראשונה": "первая", "ראשונים": "первые",
+    "ראשונות": "первые", "שלישי": "третий", "רביעי": "четвёртый", "חמישי": "пятый",
+  };
+  // Preposition/reflexive bases (consonantal, length ≥ 2) that take pronominal suffixes.
+  // Single-letter bases (ב/כ/ל/מ) are EXCLUDED — they collide with word-initial letters
+  // (לִבֵּנוּ = «наше сердце», NOT a preposition). Their suffixed forms are listed verbatim
+  // in FUNCTION_GLOSS instead (לי/לו/בו/…), so precision stays high.
+  var PREP_SUF_BASE = ["על", "אל", "של", "אצל", "בין", "כמו", "נגד", "כנגד", "תחת",
+    "בעד", "לפני", "אחרי", "מפני", "בתוך", "בקרב", "למען", "בלעדי", "זולת", "לעצמ", "עצמ", "כלפי"];
+  var PRON_SUF = ["נו", "כם", "כן", "הם", "הן", "יו", "יה", "יהם", "יהן", "ינו", "יכם",
+    "ני", "הו", "י", "ך", "ו", "ה", "ם", "ן"];
+
+  // Classify a (niqqud-stripped) surface as a function form. Returns {isFunc, via, gloss, pos}.
+  // Deterministic: a flat-map hit, a numeral, or a base(≥2)+pronominal-suffix segmentation
+  // (optionally after stripping ONE leading proclitic ו/ש/ה/כ/ל from a ≥5-letter word).
+  function functionGate(stripped) {
+    var w = String(stripped || "");
+    if (!w) return { isFunc: false };
+    if (Object.prototype.hasOwnProperty.call(FUNCTION_GLOSS, w))
+      return { isFunc: true, via: "flat", gloss: FUNCTION_GLOSS[w], pos: "particle" };
+    if (Object.prototype.hasOwnProperty.call(NUM_GLOSS, w))
+      return { isFunc: true, via: "numeral", gloss: NUM_GLOSS[w], pos: "numeral" };
+    // definite article ה + numeral (הָאֶחָד, הָרִאשׁוֹנָה) — ה+numeral is reliably a definite
+    // numeral (NUM-only keeps this safe: ה+content-noun never enters the closed numeral list).
+    if (w.length > 2 && w.charAt(0) === "ה" && Object.prototype.hasOwnProperty.call(NUM_GLOSS, w.slice(1)))
+      return { isFunc: true, via: "art+num", gloss: NUM_GLOSS[w.slice(1)], pos: "numeral" };
+    var cands = [w];
+    // strip ONE leading proclitic, then retest. Only ו/ש (and/that) — the safest: rarely
+    // content-initial. ל/כ/ה are NOT stripped here: ל+gerund forms a content infinitive
+    // (לִהְיוֹת=«быть», not «поскольку»), ה+noun a content noun (הַשֵּׁם=«имя»). Requires ≥4 letters.
+    if (/^[וש]/.test(w) && w.length >= 4) cands.push(w.slice(1));
+    for (var ci = 0; ci < cands.length; ci++) {
+      var c = cands[ci];
+      if (ci > 0 && Object.prototype.hasOwnProperty.call(FUNCTION_GLOSS, c))
+        return { isFunc: true, via: "proclitic", gloss: FUNCTION_GLOSS[c], pos: "particle" };
+      for (var bi = 0; bi < PREP_SUF_BASE.length; bi++) {
+        var base = PREP_SUF_BASE[bi];
+        if (c.length <= base.length || c.indexOf(base) !== 0) continue;
+        var rest = c.slice(base.length);
+        for (var si = 0; si < PRON_SUF.length; si++) {
+          if (rest === PRON_SUF[si]) {
+            var isRefl = base === "עצמ" || base === "לעצמ";
+            return { isFunc: true, via: isRefl ? "reflexive" : "prep+suf", gloss: "",
+              pos: isRefl ? "pronoun" : "preposition" };
+          }
+        }
+      }
+    }
+    return { isFunc: false };
+  }
+
   function provenanceLabel(r, pos) {
     if (!r) return "unknown";
     if (r.channel === "form-first") return "exact";
@@ -181,12 +305,28 @@
     var pealim_id = r.pealim_id || (par && par.pealim_id ? String(par.pealim_id) : "");
     var pealim_url = (par && par.pealim_url) || "";
     var lemma = (par && par.lemma) || "";       // for the no-pid lemmaKey join (status colouring)
+    // R10 honest-gloss gate: when the tapped word is a closed-class / segmentable
+    // function form, an isolated form-first OR meaning-fallback content reading is a
+    // homograph trap (עלינו→«лист», אין→«уничтожить»). Assert only the honest function
+    // reading and suppress the wrong content paradigm/gloss/direct-link; the link then
+    // falls through to PealimFunctionLinks / honest search in resolveWordLight.
+    var gatedLabel = null, gateVia = "";
+    var fg = functionGate(stripNiqqud(n0) || surfaceOrig || "");
+    if (fg.isFunc) {
+      gateVia = fg.via || "";
+      meaning = fg.gloss || "";          // curated honest gloss, or "" → "уточните по ссылке"
+      root = null; binyan = ""; par = null;   // no leaf-noun table for עלינו; no "destroy" for אין
+      pos = fg.pos || "";
+      pealim_id = ""; pealim_url = ""; lemma = "";
+      gatedLabel = fg.gloss ? "function" : "unknown";
+    }
     return {
       word: surfaceOrig || stripNiqqud(n0), niqqud: n0,
       root: root, binyan: binyan, pos: pos, meaning: meaning, lemma: lemma,
       pealim_id: pealim_id, pealim_url: pealim_url, paradigm: par || null,
-      channel: r.channel, confidence: r.confidence, status: r.status,
-      label: provenanceLabel(r, pos),
+      channel: fg.isFunc ? "function-gate" : r.channel, confidence: r.confidence, status: r.status,
+      functionWord: fg.isFunc, gateVia: gateVia,
+      label: gatedLabel || provenanceLabel(r, pos),
     };
   }
 
@@ -597,7 +737,7 @@
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
-    wrapCellHtml: wrapCellHtml, isWordChar: isWordChar,
+    functionGate: functionGate, wrapCellHtml: wrapCellHtml, isWordChar: isWordChar,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
