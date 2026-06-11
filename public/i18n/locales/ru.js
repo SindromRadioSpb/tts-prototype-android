@@ -1940,6 +1940,8 @@ window.I18N_LOCALES.ru = {
       savedToast: "Слово сохранено в заметки",
       statusToggle: "🎨 Статус слов",
       life: { created: "🆕 в заметках", inAnki: "📤 в Anki", learning: "🔄 учу", known: "✅ знаю", suspended: "⏸ пауза" },
+      rootFamily: "Слова от этого корня",
+      conj: "Спряжение / Склонение",
       prov: { exact: "точно", likely: "вероятно", guessed: "подобрано", "function": "служебное слово", unknown: "не определено офлайн" },
       pos: { verb: "глагол", noun: "существительное", adjective: "прилагательное", preposition: "предлог", adverb: "наречие", pronoun: "местоимение", conjunction: "союз", numeral: "числительное", interjection: "междометие", particle: "частица", negation: "отрицание" },
     },

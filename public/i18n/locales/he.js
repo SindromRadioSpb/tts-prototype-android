@@ -1936,6 +1936,8 @@ window.I18N_LOCALES.he = {
       savedToast: "המילה נשמרה בהערות",
       statusToggle: "🎨 סטטוס מילים",
       life: { created: "🆕 בהערות", inAnki: "📤 ב־Anki", learning: "🔄 לומד", known: "✅ ידוע", suspended: "⏸ מושהה" },
+      rootFamily: "מילים מאותו שורש",
+      conj: "נטייה",
       prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", unknown: "לא זוהה במצב לא־מקוון" },
       pos: { verb: "פועל", noun: "שם עצם", adjective: "שם תואר", preposition: "מילת יחס", adverb: "תואר הפועל", pronoun: "כינוי", conjunction: "מילת חיבור", numeral: "מספר", interjection: "מילת קריאה", particle: "חלקיק", negation: "שלילה" },
     },

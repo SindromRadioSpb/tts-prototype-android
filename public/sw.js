@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.27-corpus-v6";
+const CACHE_VERSION = "v3.10.28-room-conj";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -94,6 +94,8 @@ const PRECACHE_URLS = [
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/reader-morph.js",
+  // BRR-P1-009 Stage 2 — ported Pealim inflection-table renderer (1:1 with Studio).
+  "/js/inflection-render.js",
   // BRR-P1-015 A3 — ONLY the thin Корпус root is precached (≈4KB: era taxonomy +
   // manifest map → period grid works offline). The sidecar (author index/ready rail,
   // ~160KB) and per-era manifests/works are NEVER precached — lazy, on-demand (D5).

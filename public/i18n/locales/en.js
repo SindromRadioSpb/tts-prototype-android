@@ -1926,6 +1926,8 @@ window.I18N_LOCALES.en = {
       savedToast: "Word saved to notes",
       statusToggle: "🎨 Word status",
       life: { created: "🆕 saved", inAnki: "📤 in Anki", learning: "🔄 learning", known: "✅ known", suspended: "⏸ paused" },
+      rootFamily: "Words from this root",
+      conj: "Conjugation / Declension",
       prov: { exact: "exact", likely: "likely", guessed: "best guess", "function": "function word", unknown: "not resolved offline" },
       pos: { verb: "verb", noun: "noun", adjective: "adjective", preposition: "preposition", adverb: "adverb", pronoun: "pronoun", conjunction: "conjunction", numeral: "numeral", interjection: "interjection", particle: "particle", negation: "negation" },
     },

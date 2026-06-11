@@ -184,7 +184,7 @@
     return {
       word: surfaceOrig || stripNiqqud(n0), niqqud: n0,
       root: root, binyan: binyan, pos: pos, meaning: meaning, lemma: lemma,
-      pealim_id: pealim_id, pealim_url: pealim_url,
+      pealim_id: pealim_id, pealim_url: pealim_url, paradigm: par || null,
       channel: r.channel, confidence: r.confidence, status: r.status,
       label: provenanceLabel(r, pos),
     };
@@ -211,11 +211,26 @@
         var p = ds.paradigms[i];
         if (p && p.pealim_id != null && !pidMap.has(String(p.pealim_id))) pidMap.set(String(p.pealim_id), p);
       }
+      // root → lemmas index (for the «Слова от этого корня» chips; dictionary-derived,
+      // self-contained — no corpus/CrossText dependency).
+      var rootIndex = new Map();
+      for (var j = 0; j < ds.paradigms.length; j++) {
+        var pp = ds.paradigms[j];
+        if (!pp || !pp.root) continue;
+        var disp = pp.lemma_niqqud || pp.lemma || "";
+        var kk = stripNiqqud(pp.lemma || "");
+        if (!disp || !kk) continue;
+        var rk = String(pp.root);
+        if (!rootIndex.has(rk)) rootIndex.set(rk, []);
+        var arr = rootIndex.get(rk);
+        var seen = false; for (var s2 = 0; s2 < arr.length; s2++) { if (arr[s2].key === kk) { seen = true; break; } }
+        if (!seen) arr.push({ disp: disp, key: kk, pid: pp.pealim_id != null ? String(pp.pealim_id) : "", pos: pp.pos || "" });
+      }
       var index = ds.index, paradigms = ds.paradigms;
       var lookup = function (k, b) { var ix = index[String(k) + " " + String(b || "")]; return (ix != null && paradigms[ix]) ? paradigms[ix] : null; };
       // warm function-word links (small, optional, graceful)
       try { if (window.PealimFunctionLinks) window.PealimFunctionLinks.ensureReady(); } catch (_) {}
-      _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup };
+      _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex };
       return _eng;
     })().catch(function (e) { _engPromise = null; throw e; });
     return _engPromise;
@@ -244,6 +259,21 @@
       card.pealim_url = "https://www.pealim.com/ru/search/?q=" + encodeURIComponent(surface);
       card.pealim_direct = false;
     }
+    // rich-card data (Stage 2): paradigm for the inflection table (+ pronoun fallback)
+    // and the dictionary root family.
+    if (!card.paradigm && window.InflectionRender && window.InflectionRender.lookupPronounParadigm) {
+      try { card.paradigm = window.InflectionRender.lookupPronounParadigm(surface); } catch (_) {}
+    }
+    card.rootFamily = [];
+    try {
+      if (eng.rootIndex && card.root) {
+        var selfKey = stripNiqqud(card.lemma || card.word || "");
+        card.rootFamily = (eng.rootIndex.get(String(card.root)) || []).filter(function (x) {
+          if (card.pealim_id && x.pid === String(card.pealim_id)) return false;
+          return x.key !== selfKey;
+        }).slice(0, 16);
+      }
+    } catch (_) {}
     return card;
   }
 
@@ -347,6 +377,9 @@
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
       if (t && t.closest && t.closest(".rm-save")) { onSaveClick(); return; }
+      var chip = t && t.closest ? t.closest(".rm-rootfam-chip") : null;
+      if (chip) { onChipClick(chip); return; }
+      // conjugation cells voice themselves via inline onclick → window.v3ConjSpeak.
     });
     _sheet = el;
     return el;
@@ -386,7 +419,22 @@
     var saveBtn = _attachOpts.saveWord
       ? '<button type="button" class="rm-save" data-rm-save>' + escapeHtml(tt("room.morph.save", "＋ Сохранить")) + "</button>"
       : "";
-    return head + meaning + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>";
+    // Stage 2 — rich content (progressive disclosure, collapsed by default):
+    // «Слова от этого корня» (dict root family) + «Спряжение / Склонение» (Pealim table,
+    // 1:1 with the Studio via InflectionRender; tap a form → speak it).
+    var fam = (card.rootFamily && card.rootFamily.length)
+      ? '<details class="rm-acc"><summary class="rm-acc-sum">' + escapeHtml(tt("room.morph.rootFamily", "Слова от этого корня")) + "</summary>" +
+        '<div class="rm-rootfam">' + card.rootFamily.map(function (x) {
+          return '<button type="button" class="rm-rootfam-chip" dir="rtl" data-w="' + escapeHtml(x.disp) + '">' + escapeHtml(x.disp) + "</button>";
+        }).join("") + "</div></details>"
+      : "";
+    var conj = "";
+    if (card.paradigm && window.InflectionRender && window.InflectionRender.renderParadigm) {
+      var tbl = ""; try { tbl = window.InflectionRender.renderParadigm(card.paradigm, { highlightForm: card.niqqud }); } catch (_) { tbl = ""; }
+      if (tbl) conj = '<details class="rm-acc rm-acc-conj"><summary class="rm-acc-sum">' + escapeHtml(tt("room.morph.conj", "Спряжение / Склонение")) + "</summary>" +
+        '<div class="rm-conj-body">' + tbl + "</div></details>";
+    }
+    return head + meaning + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
   }
 
   function openCardLoading() {
@@ -431,6 +479,15 @@
       var info = await _attachOpts.saveWord(_activeCard, _activeOcc);
       applyLifecycle(info && info.status ? info : { status: "created" });
     } catch (_) {} finally { if (saveBtn) saveBtn.disabled = false; }
+  }
+  // Tap a root-family chip → open that related word's card (no occurrence context).
+  async function onChipClick(chip) {
+    var disp = chip.getAttribute("data-w") || "";
+    var surface = stripNiqqud(disp);
+    if (!surface) return;
+    openCardLoading();
+    try { var card = await resolveWordLight(surface, disp); openCard(card, null); }
+    catch (_) { openCard(null, null); }
   }
 
   // ── Public: attach the learner layer to a painted reader mount ──────────────
