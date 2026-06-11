@@ -161,10 +161,14 @@ function runGates() {
   if (NO_GATES) { console.log("[publish] --no-gates → skipping (run manually: npm run smoke:full-catalog && smoke:corpus-room && smoke:corpus-nav && probe:niqqud)"); return; }
   console.log("[publish] gates (room/nav read the LIVE CORPUS_CATALOG_VERSION; full-catalog is v3-PINNED — self-check covers v" + "N):");
   for (const s of ["smoke:full-catalog", "smoke:corpus-room", "smoke:corpus-nav", "probe:niqqud"]) {
-    const r = npm(s);
+    let r = npm(s);
+    // Retry once: these gates run producers/Playwright that can transiently fail when the
+    // bake is concurrently mid-flush (a shard being written). A clean retry resolves it; a
+    // genuine failure fails twice.
+    if (r.status !== 0) { console.log("   ↻ " + s + " failed — retry once (transient? concurrent bake may have been mid-flush)…"); r = npm(s); }
     const pass = r.status === 0;
     console.log("   " + (pass ? "✓" : "✗") + " npm run " + s);
-    if (!pass) { process.stdout.write((r.stdout || "").split("\n").slice(-6).join("\n") + "\n"); die("gate failed: " + s, 1); }
+    if (!pass) { process.stdout.write((r.stdout || "").split("\n").slice(-6).join("\n") + "\n"); die("gate failed (after retry): " + s, 1); }
   }
 }
 
