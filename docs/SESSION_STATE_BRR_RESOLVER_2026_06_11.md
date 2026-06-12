@@ -83,6 +83,9 @@
 - ~~**Тир-3 позитивный тап**~~ — ✅ ПОДТВЕРЖДЁН владельцем с устройства (2026-06-12): тумблер «🎯 Точный
   режим» → тап הַיּוֹם → бейдж «контекст (Dicta)» + «сегодня». Тир-3 закрыт полностью.
 
+## §7 real-profile validation — ЗАВЕРШЕНО (2026-06-13, 8a5ca00, SW v3.10.41)
+- Прогон на реальном профиле владельца: все слова в SRS-состоянии new (учит в Anki) → known+learning давал 0; медиана покрытия ~54% (литкорпус выше пересечения). Owner-решения: «знакомо»=сохранённое (CV.CFG.KNOWN_STATES += new/weak/stale, бейдж честно «знакомо»); зона i+1 → 70–90% (~15 работ). Чинит и полку владельца. Engine 37/37. **i+1-band = измеренный факт.** Diag-overlay ?validate=1 + сниппет — для будущих профилей. Profile-cache-fix ensureWordStates (c5b85aa).
+
 ## Гейты (зелёные на HEAD)
 `smoke:reader-morph`(+R10) · `smoke:reader-notes` · `smoke:reader-parity` (index.html не тронут) ·
 `smoke:reniqqud` 6 · `smoke:reader-dicta` + `smoke:reader-context` (сетевые, graceful-SKIP при Dicta-503) ·
