@@ -943,10 +943,16 @@ function showValidationOverlay(text) {
   ov.appendChild(box);
   document.body.appendChild(ov);
 }
+function validateRequested() {
+  try { return new URLSearchParams(location.search).get('validate') === '1'; } catch (_) { return false; }
+}
 function maybeRunValidation() {
-  try { if (new URLSearchParams(location.search).get('validate') !== '1') return; } catch (_) { return; }
+  if (!validateRequested()) return;
   setTimeout(() => { try { runRealProfileValidation(); } catch (_) {} }, 500);
 }
+// Shown when ?validate=1 but the DB is held by ANOTHER tab (the Studio at linguistpro.kolosei.com/) —
+// the Room is a follower and can't read the notes. Actionable instead of the silent 📑 dbBusy state.
+const VALIDATE_DBBUSY_MSG = '⚠ База данных занята другой вкладкой.\n\nЗакрой ВСЕ вкладки linguistpro.kolosei.com — особенно Студию (адрес БЕЗ /library.html, там твои заметки), и любые другие.\n\nОставь только ЭТУ вкладку, обнови её — и валидация запустится.';
 
 // id -> full ready card (built once from the sidecar) so a search hit that IS ready opens
 // via served-on-open; the search index itself stays minimal (no file/text_key per row).
@@ -1480,7 +1486,10 @@ async function boot() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   try {
     await localDb.initLocalDB();
-    if (localDb.isFollower && localDb.isFollower()) { showState('room.state.dbBusy', '📑'); return; }
+    if (localDb.isFollower && localDb.isFollower()) {
+      if (validateRequested()) { showValidationOverlay(VALIDATE_DBBUSY_MSG); return; }
+      showState('room.state.dbBusy', '📑'); return;
+    }
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
     await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
@@ -1492,7 +1501,10 @@ async function boot() {
     setActiveTrack(activeTrack);
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
   } catch (e) {
-    if (e instanceof localDb.DbUnavailableError) { showState('room.state.dbBusy', '📑'); return; }
+    if (e instanceof localDb.DbUnavailableError) {
+      if (validateRequested()) { showValidationOverlay(VALIDATE_DBBUSY_MSG); return; }
+      showState('room.state.dbBusy', '📑'); return;
+    }
     try { console.error('[room] init failed:', e); } catch (_) {}
     showState('room.state.error', '⚠️');
   }
