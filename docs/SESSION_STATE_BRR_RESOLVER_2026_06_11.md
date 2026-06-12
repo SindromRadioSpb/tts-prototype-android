@@ -29,22 +29,27 @@
 - **⚠ EGRESS-МИФ РАЗВЕЯН:** «прод не достаёт Dicta» = артефакт Windows-curl (слал «????» → Dicta пусто).
   С корректным UTF-8 (Node/браузер) прод `/api/morphology` ОТДАЁТ реальные контекст-токены (הַיּוֹם→adverb,
   עלינו→preposition). Тир-3 работает И сервер-сайд (существующий эндпоинт) И клиент-сайд.
-- **Тир 3 фундамент — client-side Dicta** (`5a287a6`): `reader-dicta.js` (`window.ReaderDicta`) +
-  `smoke:reader-dicta` (зелёный, реальный браузер→Dicta, text/plain ACAO:*). Offline-first путь. НЕ
-  подключён к резолву (фича «точный режим» — на owner-go, дизайн `BRR_TIER3_CONTEXT_MODE_…`, выбор S vs C).
+- **Тир 3 «ТОЧНЫЙ РЕЖИМ» ОТГРУЖЕН** (путь C client-side, measurement-driven): opt-in тумблер «🎯 Точный
+  режим (Dicta)» в reader-aids → на тап шлёт предложение в Dicta, `pickContextReading` честно дизамбигует.
+  **Measure-first исправил наивный дизайн:** не просто niqqud-feed (регрессировал היום), а POS-guard (тип A) +
+  курир. `CONTEXT_GLOSS` для наречий (тип B: היום→«сегодня», מעט→«мало», מספיק→«достаточно»). RETEST: FP=0,
+  broke=0, починено 4–5 гомографов, 10/12 gold. `reader-morph.js`(хук+pickContextReading+context-label) ·
+  `library-ui.js`(тумблер+provider+кэш) · `library.html`(CSS+script) · locales · `sw.js` bump
+  `v3.10.31-room-context-mode`. Gate `smoke:reader-context` (graceful-skip при Dicta-503). index.html не тронут.
+  Дизайн+результаты → `BRR_TIER3_CONTEXT_MODE_2026_06_11.md`. NB: Dicta троттлит при массовом тесте (HTTP 503).
 
 ## Текущее состояние тиров
 - Тир 1: **в проде**, закрыт. Тир 2: **в проде** (109 тел), закрыт; остаток ~10% — контент-гомографы.
 - Тир 3a: **задеплоено** (`5a287a6`); прод `/api/morphology` отдаёт токены (egress работает).
-- Тир 3 (фича): фундамент (S сервер-сайд работает + C client-side провайдер); **интеграция — на owner-go**.
+- Тир 3 «точный режим»: **ОТГРУЖЕН-как-код** (путь C, SW v3.10.31). Тест-петля сошлась (FP=0). Коммит+прод-
+  верифи тапом — после Dicta-recovery (троттлит 503 при массовом тесте). OFF-mode байт-идентичен.
 
 ## NEXT (owner picks)
 1. **i+1 «Следующий для тебя» (BRR-P1-007)** — нужен recon + **4 решения владельца** (см.
    `BRR_P1_007_I_PLUS_1_RECON_…`): №1 строить vocab-профиль работ на publish-time (вар. A, рекоменд)?
    №2 пороги «знаю»/зоны i+1; №3 холодный старт; №4 публикация сайдкара. Дай ответы → начну с пробы-замера.
-2. **Тир 3 «точный режим»** — подключить контекст-Dicta к резолву (opt-in тумблер, провенанс «контекст»,
-   per-row кэш). Выбор S (сервер `/api/morphology`, работает) vs C (client `reader-dicta`, offline-first).
-   Дизайн готов в `BRR_TIER3_CONTEXT_MODE_…` — нужен owner-go.
+2. ~~Тир 3 «точный режим»~~ — ОТГРУЖЕН (путь C). NEXT-полиш: больше `CONTEXT_GLOSS`-наречий по мере находок;
+   опц. контекст для bulk-цвет-статуса (сейчас офлайн); ranked-кандидаты.
 3. ~~Тир 3a деплой~~ — СДЕЛАНО (`5a287a6` задеплоен; egress-миф развеян, прод Dicta работает).
 4. Полиш: ranked-candidate senses; «Подробнее → Студия» deep-link; GCP-WaveNet form-audio.
 

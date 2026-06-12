@@ -55,6 +55,32 @@
 `morphologyGateway` → `degraded:true` при пустом ивр.-ответе) задеплоен и корректен (срабатывает лишь на
 реально-пустой ответ Dicta). Никаких Coolify/firewall-правок не нужно.
 
+## ✅ ОТГРУЖЕНО (2026-06-11, путь C, measurement-driven) — owner «делаем C, тест-петля, роли, go»
+**Measure-first (R10) исправил наивный дизайн ДО кода** (`.tmp/context-mode-verify.js`, dictaMorph-silver):
+наивное «скормить контекст-niqqud офлайн-резолверу» — НЕДОСТАТОЧНО и иногда ВРЕДНО:
+- **тип A** (niqqud отличается, оба чтения в дикте): niqqud-feed чинит (סֵפֶר/שֵׁנִי/מֶלֶךְ/האף) ✅;
+- **тип B** (POS-only: הַיּוֹם «день»=«сегодня» одинаковая огласовка; מְעַט/מספיק — наречие без офлайн-статьи):
+  niqqud не помогает, а на היום даже РЕГРЕССИРОВАЛ («сегодня»→«день»).
+**Итоговый дизайн (3 правила, `reader-morph.pickContextReading`, чистая+Node-тестируемая):**
+(1) niqqud-feed принимается ТОЛЬКО если Dicta-POS контентный И совпадает с POS разрешённой парадигмы И
+pealim_id отличается от офлайн (тип A, без регресса); (2) если Dicta-POS функц./наречие И есть курир.
+`CONTEXT_GLOSS[surface]` (היום→«сегодня», מעט→«мало», מספיק→«достаточно», …) → показать его (тип B); (3)
+иначе — офлайн без изменений (НИКОГДА не ухудшаем). **RETEST (end-to-end shipped-decision):** FP=0,
+broke=0, починено 4–5 гомографов, gold-correct 10/12 (2 промаха — реально-двусмысленные היум). Hard-критерий
+FP≈0 выполнен.
+**Реализация:** `reader-morph.js` (хук `attach.opts.contextProvider` → `onActivate` берёт `row.he` →
+provider → `resolveWordLight(surface,niqqud,ctx)` → `pickContextReading`; `context`-label) · `library-ui.js`
+(тумблер «🎯 Точный режим (Dicta)» + хинт; `contextModeEnabled/Set` localStorage `room.contextMode`; провайдер
+`makeContextProvider` с per-sentence promise-кэшем → `ReaderDicta.analyzeSentence`→`tokenForSurface`; degrade→null
+молча) · `library.html` (CSS `.rm-prov-context` фиолет + `.reader-aids-hint` + статический `reader-dicta.js`) ·
+locales ru/en/he (`room.morph.prov.context`/`contextToggle`/`contextHint`) · `sw.js` precache+bump
+`v3.10.31-room-context-mode`. **index.html НЕ тронут; parity green; OFF-mode байт-идентичен.**
+Гейты: NEW `smoke:reader-context` (тап→«контекст»-бейдж+«сегодня»; Dicta-abort→молчаливый офлайн-откол;
+graceful-skip при 503/offline) · reader-morph/parity/corpus-room/room/notes зелёные · `.tmp/context-mode-verify`.
+
 ## Статус-лог
 - 2026-06-11: путь доказан (браузер→Dicta text/plain, ACAO:*), `reader-dicta.js` + `smoke:reader-dicta`
   зелёный отгружены как фундамент. Интеграция «точного режима» — на owner-go (recon-first выше).
+- 2026-06-11: **«точный режим» ОТГРУЖЕН** (путь C, measurement-driven, см. секцию ✅ выше). Тест-петля
+  TEST→ANALYZE→CORRECT→RETEST сошлась (FP=0). NB: Dicta троттлит (HTTP 503) при массовом тесте — позитивный
+  smoke graceful-skip; в проде тап-частота низкая. Owner-норма: prod-verify тапом после деплоя.

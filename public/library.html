@@ -326,6 +326,7 @@
     }
     .reader-aids[hidden] { display: none; }
     .reader-aids label { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); cursor: pointer; }
+    .reader-aids-hint { flex-basis: 100%; font-size: 11px; line-height: 1.4; color: var(--text-faint); margin-top: -2px; }
     .reader-aids select {
       appearance: none; background: var(--bg-card); color: var(--text-primary);
       border: 1px solid var(--border-soft); border-radius: 7px; padding: 5px 8px; font-size: 13px;
@@ -368,6 +369,7 @@
     .rm-prov-likely { background: rgba(56,139,253,.16); color: #5a9bff; }
     .rm-prov-guessed, .rm-prov-unknown { background: rgba(210,153,34,.16); color: #d29922; }
     .rm-prov-function { background: var(--bg-muted); color: var(--text-secondary); }
+    .rm-prov-context { background: rgba(163,113,247,.18); color: #a371f7; }
     .rm-meaning { font-size: 16px; line-height: 1.4; color: var(--text-primary); margin-bottom: 12px; }
     .rm-meaning-empty { color: var(--text-faint); font-style: italic; }
     .rm-rows { display: flex; flex-direction: column; gap: 6px; }
@@ -506,6 +508,8 @@
 <!-- BRR-P1-009 Stage 2: ported Pealim inflection-table renderer (1:1 with Studio). -->
 <script src="/js/inflection-render.js"></script>
 <script src="/js/reader-morph.js"></script>
+<!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
+<script src="/js/reader-dicta.js"></script>
 <script type="module" src="/js/library-ui.js"></script>
 </body>
 </html>

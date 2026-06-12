@@ -264,6 +264,25 @@ function gcpTtsKey() { try { return localStorage.getItem('v3.gcpTtsApiKey') || '
 let readerWordStates = null; // cached {lemmaKey: state}
 function wordStatusEnabled() { try { return localStorage.getItem('room.wordStatus') === '1'; } catch (_) { return false; } }
 function wordStatusSet(v) { try { localStorage.setItem('room.wordStatus', v ? '1' : '0'); } catch (_) {} }
+// Tier-3 «точный режим» (context mode, opt-in, default OFF). The provider sends the tapped
+// word's SENTENCE to Dicta (browser-direct) and returns the context token; reader-morph's
+// pickContextReading does the honest disambiguation. Per-sentence promise cache so multiple
+// taps in one row = one Dicta call; cleared on (re)attach. Degrade/offline → null (silent).
+function contextModeEnabled() { try { return localStorage.getItem('room.contextMode') === '1'; } catch (_) { return false; } }
+function contextModeSet(v) { try { localStorage.setItem('room.contextMode', v ? '1' : '0'); } catch (_) {} }
+let _ctxCache = new Map();
+function makeContextProvider() {
+  return async function (sentence, surface) {
+    const key = String(sentence || '');
+    if (!key || !window.ReaderDicta) return null;
+    let p = _ctxCache.get(key);
+    if (!p) { p = window.ReaderDicta.analyzeSentence(key).catch(() => null); _ctxCache.set(key, p); }
+    const res = await p;
+    if (!res || !res.ok || res.degraded || !Array.isArray(res.tokens)) return null;
+    const tok = window.ReaderDicta.tokenForSurface(res.tokens, surface);
+    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma } : null;
+  };
+}
 async function ensureWordStates() {
   if (readerWordStates) return readerWordStates;
   try { readerWordStates = await localDb.getKnownWordStates(); } catch (_) { readerWordStates = {}; }
@@ -377,7 +396,10 @@ function attachReaderAudio() {
 function attachReaderMorph(mount) {
   if (!mount || !window.ReaderMorph) return;
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
-  try { readerMorph = window.ReaderMorph.attach(mount, { getRow: (i) => readerRows[i], saveWord: roomSaveWord, lookupNote: roomLookupNote }); } catch (_) {}
+  _ctxCache = new Map();   // fresh per (re)attach
+  const opts = { getRow: (i) => readerRows[i], saveWord: roomSaveWord, lookupNote: roomLookupNote };
+  if (contextModeEnabled()) opts.contextProvider = makeContextProvider();   // Tier-3 opt-in
+  try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyWordStatus();
 }
 
@@ -431,6 +453,19 @@ function buildAidsPanel() {
   wsLab.appendChild(wsCb);
   wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', '🎨 Статус слов') }));
   panel.appendChild(wsLab);
+  // Tier-3 — «точный режим» (context disambiguation via Dicta; opt-in, online). On tap, the
+  // sentence is sent to Dicta to pick the contextually-correct homograph. Honest outbound label.
+  const cmLab = el('label', { class: 'reader-aids-status' });
+  const cmCb = el('input', { attrs: { type: 'checkbox' } });
+  cmCb.checked = contextModeEnabled();
+  cmCb.addEventListener('change', () => {
+    contextModeSet(cmCb.checked);
+    const m = $('roomReaderTable'); if (m) attachReaderMorph(m);   // re-wire with/without provider
+  });
+  cmLab.appendChild(cmCb);
+  cmLab.appendChild(el('span', { i18n: 'room.morph.contextToggle', text: tt('room.morph.contextToggle', '🎯 Точный режим (Dicta)') }));
+  panel.appendChild(cmLab);
+  panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.contextHint', text: tt('room.morph.contextHint', 'Отправляет предложение в Dicta для точного значения в контексте. Машинный разбор, не носитель.') }));
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 

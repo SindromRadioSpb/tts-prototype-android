@@ -88,6 +88,7 @@
     "reniqqud:fill": "node scripts/premium/reniqqud-fill.js",
     "smoke:reniqqud": "node scripts/premium/reniqqud-smoke.js",
     "smoke:reader-dicta": "node scripts/premium/reader-dicta-smoke.js",
+    "smoke:reader-context": "node scripts/premium/reader-context-smoke.js",
     "smoke:autogen-parity": "node scripts/premium/autogen-parity-smoke.js --gate",
     "smoke:autogen-persist": "node scripts/premium/autogen-persist-browser-smoke.js",
     "smoke:autogen-surfacing": "node scripts/premium/autogen-surfacing-browser-smoke.js",

@@ -1935,10 +1935,12 @@ window.I18N_LOCALES.he = {
       saved: "✓ בהערות",
       savedToast: "המילה נשמרה בהערות",
       statusToggle: "🎨 סטטוס מילים",
+      contextToggle: "🎯 מצב מדויק (Dicta)",
+      contextHint: "שולח את המשפט ל־Dicta למשמעות מדויקת בהקשר. ניתוח מכונה, לא דובר ילידי.",
       life: { created: "🆕 בהערות", inAnki: "📤 ב־Anki", learning: "🔄 לומד", known: "✅ ידוע", suspended: "⏸ מושהה" },
       rootFamily: "מילים מאותו שורש",
       conj: "נטייה",
-      prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", unknown: "לא זוהה במצב לא־מקוון" },
+      prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", unknown: "לא זוהה במצב לא־מקוון" },
       pos: { verb: "פועל", noun: "שם עצם", adjective: "שם תואר", preposition: "מילת יחס", adverb: "תואר הפועל", pronoun: "כינוי", conjunction: "מילת חיבור", numeral: "מספר", interjection: "מילת קריאה", particle: "חלקיק", negation: "שלילה" },
     },
     corpus: {

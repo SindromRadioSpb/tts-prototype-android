@@ -233,6 +233,45 @@
     return { isFunc: false };
   }
 
+  // ── Tier-3 context disambiguation (opt-in «точный режим») ───────────────────
+  // The offline form-first resolver reads a word in isolation. Some homographs need
+  // SENTENCE context: (A) genuine vocalization homographs whose niqqud differs
+  // (סֵפֶר «book» vs סִפֵּר «told», שֵׁנִי «second» vs שָׁנִי «crimson») — feeding the
+  // context niqqud picks the right paradigm; (B) same-niqqud / POS-only readings whose
+  // contextual sense has NO offline Pealim entry (הַיּוֹם «day»→«today», מְעַט «to diminish»→
+  // «little») — niqqud can't help, only Dicta's POS can. Measured (.tmp/context-mode-verify):
+  // naive niqqud-feeding fixes type-A but can REGRESS type-B (היום «сегодня»→«день»). So we
+  // (1) feed niqqud only when Dicta's CONTENT POS agrees with the resulting paradigm, and
+  // (2) for adverbial/function readings supply a small curated context-gloss. R1: shown only
+  // when Dicta context confirms the POS; badge «контекст (Dicta)» — machine, not native.
+  var CONTEXT_GLOSS = {
+    "היום": "сегодня", "מעט": "мало, немного", "מספיק": "достаточно", "הרבה": "много",
+    "פעם": "однажды; раз", "כמעט": "почти", "ממש": "прямо, действительно", "דווקא": "именно",
+  };
+  function _isContentPos(p) { return p === "noun" || p === "verb" || p === "adjective"; }
+  function _isFuncPos(p) {
+    return p === "adverb" || p === "preposition" || p === "conjunction" || p === "pronoun" ||
+      p === "negation" || p === "interjection" || p === "particle" || p === "numeral" || p === "interrogative";
+  }
+  // Pure decision (Node-testable): given the OFFLINE card (corpus niqqud), the CONTEXT card
+  // (resolved with Dicta's context niqqud), the Dicta token, and the stripped surface →
+  // choose. Returns {use:"offline"|"context"|"gloss", gloss?, pos?}. R10: never regress —
+  // accept context only when STRICTLY more decisive AND Dicta's POS agrees with the reading.
+  function pickContextReading(offlineCard, ctxCard, ctx, surface) {
+    var pos = (ctx && ctx.posDicta) || "";
+    var s = stripNiqqud(surface || "");
+    // (B) adverbial / function reading with a curated gloss, gated by Dicta's function POS
+    if (Object.prototype.hasOwnProperty.call(CONTEXT_GLOSS, s) && _isFuncPos(pos))
+      return { use: "gloss", gloss: CONTEXT_GLOSS[s], pos: pos };
+    // (A) content homograph: accept the context-niqqud reading only if it is decisive,
+    // Dicta's content POS matches the resolved POS, and it actually differs from offline.
+    if (ctxCard && (ctxCard.label === "exact" || ctxCard.label === "likely") && ctxCard.meaning &&
+      _isContentPos(pos) && pos === (ctxCard.pos || "") &&
+      String(ctxCard.pealim_id || "") !== String(offlineCard.pealim_id || ""))
+      return { use: "context" };
+    return { use: "offline" };   // no confident improvement → keep offline (no regression)
+  }
+
   function provenanceLabel(r, pos) {
     if (!r) return "unknown";
     if (r.channel === "form-first") return "exact";
@@ -378,11 +417,26 @@
 
   // Browser resolve: ensureEngine -> resolveCore -> function-word enrichment (R1 premium
   // profile + direct dict link for closed-class words, layered AFTER the parity core).
-  async function resolveWordLight(surface, niqqud) {
+  // ctx (optional, Tier-3 context mode) = { niqqud, posDicta, lemma } from window.ReaderDicta,
+  // or null. When present, the sentence-context reading is applied via pickContextReading
+  // BEFORE enrichment — so the card surfaces the contextually-correct homograph.
+  async function resolveWordLight(surface, niqqud, ctx) {
     surface = stripNiqqud(surface);
     if (!surface) return null;
     var eng = await ensureEngine();
     var card = await resolveCore(eng, surface, niqqud);
+    if (ctx && ctx.niqqud) {
+      try {
+        var ctxCard = await resolveCore(eng, surface, ctx.niqqud);
+        var pick = pickContextReading(card, ctxCard, ctx, surface);
+        if (pick.use === "context") { ctxCard.label = "context"; ctxCard.contextUsed = true; card = ctxCard; }
+        else if (pick.use === "gloss") {
+          card.meaning = pick.gloss; card.pos = pick.pos || card.pos;
+          card.root = null; card.binyan = ""; card.paradigm = null; card.lemma = "";
+          card.pealim_id = ""; card.pealim_url = ""; card.label = "context"; card.contextUsed = true;
+        }
+      } catch (_) { /* Dicta hiccup → keep offline card (silent, no dead-end) */ }
+    }
     if (!card.pealim_url && window.PealimFunctionLinks) {
       try {
         var fl = window.PealimFunctionLinks.lookup(surface, card.pos || "", { lemma: surface });
@@ -479,6 +533,7 @@
     likely: ["room.morph.prov.likely", "вероятно"],
     guessed: ["room.morph.prov.guessed", "подобрано"],
     "function": ["room.morph.prov.function", "служебное слово"],
+    context: ["room.morph.prov.context", "контекст (Dicta)"],
     unknown: ["room.morph.prov.unknown", "не определено офлайн"],
   };
   var POS_TEXT = {
@@ -666,8 +721,20 @@
       var niqqud = span.getAttribute("data-niqqud") || "";
       var occ = computeOcc(span);
       openCardLoading();
-      try { var card = await resolveWordLight(surface, niqqud); if (_activeSpan === span) openCard(card, occ); }
-      catch (e) { if (_activeSpan === span) openCard(null, occ); }
+      try {
+        // Tier-3 «точный режим» (opt-in): if a contextProvider is wired, fetch the
+        // sentence-context reading for this word; degrade silently to offline on any miss.
+        var ctx = null;
+        if (typeof _attachOpts.contextProvider === "function") {
+          var tr = span.closest("tr[data-row-idx]");
+          var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+          var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
+          var sentence = row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "";
+          if (sentence) { try { ctx = await _attachOpts.contextProvider(sentence, stripNiqqud(surface)); } catch (_) { ctx = null; } }
+        }
+        var card = await resolveWordLight(surface, niqqud, ctx);
+        if (_activeSpan === span) openCard(card, occ);
+      } catch (e) { if (_activeSpan === span) openCard(null, occ); }
     };
 
     var onClick = function (e) {
@@ -737,7 +804,8 @@
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
-    functionGate: functionGate, wrapCellHtml: wrapCellHtml, isWordChar: isWordChar,
+    functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
+    wrapCellHtml: wrapCellHtml, isWordChar: isWordChar,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
