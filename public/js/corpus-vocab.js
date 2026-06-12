@@ -26,6 +26,7 @@
     ZONE_LO: 0.80, ZONE_HI: 0.95,                    // i+1 drill-coverage band (recalibratable)
     LOAD_FALLBACK_HI: 0.18, LOAD_MATCHED_LO: 0.50,   // reading-load flag thresholds
     KNOWN_STATES: { known: true, learning: true },   // "known" = known+learning (D2)
+    MIN_RAIL: 3, RAIL_TOP: 12, AUTHOR_CAP: 2,        // S4 «Следующий для тебя» gating/size
   };
 
   // delta-encoded ascending ids → absolute ids (prefix-sum; mirror of the producer)
@@ -73,6 +74,48 @@
     return "hard";                           // <80% — too many unknowns for comfortable reading
   }
 
+  // S4 «Следующий для тебя» — PURE rail decision over scored ready works (DOM-free, unit-tested).
+  // scored: [{ id, author, cov }] where cov is a coverageForWork() result. Returns
+  // { kind:'next'|'challenge', ids:[…] } or null. The honest gating (DESIGN D3/R8): a single i+1
+  // rail is EMPTY at both ends of the growth curve, so —
+  //   • ≥MIN_RAIL works in the 80–95% zone → 'next' (the sweet spot), ranked gentlest-first
+  //     (coverage desc = most comprehensible i+1 first, R8 on-ramp);
+  //   • else if the reader has OUTGROWN it (≥MIN_RAIL mastered/'easy' AND <MIN_RAIL in-zone AND
+  //     ≥MIN_RAIL still-'hard') → 'challenge': the hardest-but-closest-to-tractable stretch picks
+  //     (coverage desc among 'hard'), honestly framed as a challenge, never as "для тебя";
+  //   • else (too-new: little mastered, little in-zone) → null → cold-start «С чего начать» owns L1.
+  // Author-capped (one prolific writer can't fill the rail) + hard size gate (never a thin list).
+  function pickPersonalRail(scored, cfg) {
+    cfg = cfg || CFG;
+    var MIN = cfg.MIN_RAIL || 3, TOP = cfg.RAIL_TOP || 12, CAP = cfg.AUTHOR_CAP || 2;
+    var inZone = [], easy = 0, hard = [];
+    for (var i = 0; i < (scored || []).length; i++) {
+      var x = scored[i], z = x && x.cov && x.cov.zone;
+      if (z === "in") inZone.push(x);
+      else if (z === "easy") easy++;
+      else if (z === "hard") hard.push(x);
+    }
+    var pool, kind;
+    if (inZone.length >= MIN) {
+      inZone.sort(function (a, b) { return b.cov.matchedDrillCov - a.cov.matchedDrillCov; });
+      pool = inZone; kind = "next";
+    } else if (easy >= MIN && hard.length >= MIN) {
+      hard.sort(function (a, b) { return b.cov.matchedDrillCov - a.cov.matchedDrillCov; });
+      pool = hard; kind = "challenge";
+    } else {
+      return null;
+    }
+    var per = {}, ids = [];
+    for (var j = 0; j < pool.length; j++) {
+      var a = pool[j].author || "?";
+      if ((per[a] || 0) >= CAP) continue;
+      per[a] = (per[a] || 0) + 1; ids.push(pool[j].id);
+      if (ids.length >= TOP) break;
+    }
+    if (ids.length < MIN) return null;   // hard gate — never a thin «для тебя» list
+    return { kind: kind, ids: ids };
+  }
+
   // ── thin browser loader (single-flight, lazy, NOT precached) — mirror of loadCorpusSearch ──
   var _vocab = null, _loading = null;
   function ensureVocab(opts) {
@@ -98,6 +141,7 @@
 
   var API = {
     reconstructIds: reconstructIds, coverageForWork: coverageForWork, classifyZone: classifyZone,
+    pickPersonalRail: pickPersonalRail,
     ensureVocab: ensureVocab, getLoaded: getLoaded, CFG: CFG, _setForTest: _setForTest,
   };
   if (typeof window !== "undefined") window.CorpusVocab = API;

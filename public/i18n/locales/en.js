@@ -1939,6 +1939,10 @@ window.I18N_LOCALES.en = {
       readyIntro: "Machine translation (Gemini) + Dicta niqqud. Provenance on every card.",
       coldStartTitle: "Where to start",
       coldStartIntro: "Short texts built from high-frequency vocabulary — an easy way in.",
+      nextTitle: "Next for you",
+      nextIntro: "Texts where you already know ~80–95% of the words — the sweet spot for growth.",
+      challengeTitle: "Next challenge",
+      challengeIntro: "You've outgrown the easy ones — here's a reachable stretch just above your level.",
       cov: {
         estimate: "Estimated familiar words from your notes",
         load: "many names/archaic",

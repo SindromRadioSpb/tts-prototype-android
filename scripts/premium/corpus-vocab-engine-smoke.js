@@ -81,6 +81,37 @@ let emptyOk = true;
 for (const id of ids.slice(0, 200)) { const c = CV.coverageForWork(sidecar.works[id], sidecar.dict, {}); if (!c || c.matchedDrillCov !== 0) emptyOk = false; }
 ok(emptyOk, "real works: empty profile → drill-cov 0");
 
+// ── 5. S4 pickPersonalRail (pure rail decision) ───────────────────────────────
+const mkCov = (zone, cov) => ({ zone, matchedDrillCov: cov, knownDistinct: zone === "hard" ? 1 : 5 });
+// too-new (all hard) → null
+ok(CV.pickPersonalRail([{ id: "a", author: "A", cov: mkCov("hard", .3) }, { id: "b", author: "B", cov: mkCov("hard", .5) }, { id: "c", author: "C", cov: mkCov("hard", .6) }]) === null, "too-new → null");
+// 5 in-zone diff authors → next, ranked coverage desc
+let pr = CV.pickPersonalRail([
+  { id: "a", author: "X", cov: mkCov("in", .82) }, { id: "b", author: "Y", cov: mkCov("in", .93) },
+  { id: "c", author: "Z", cov: mkCov("in", .88) }, { id: "d", author: "W", cov: mkCov("in", .85) },
+  { id: "e", author: "V", cov: mkCov("in", .90) }, { id: "f", author: "U", cov: mkCov("hard", .5) },
+]);
+ok(pr && pr.kind === "next", "in-zone≥MIN → next");
+ok(pr && pr.ids.length === 5, "next picks all 5 in-zone");
+ok(pr && pr.ids[0] === "b" && pr.ids[1] === "e", "next ranked coverage desc (.93,.90 first)");
+// all-same-author capped below MIN → null
+ok(CV.pickPersonalRail([0, 1, 2, 3, 4, 5].map((i) => ({ id: "s" + i, author: "SAME", cov: mkCov("in", .85) }))) === null, "all-same-author cap → <MIN → null");
+// 3 authors × 2 in-zone → all pass cap → 6 ids
+pr = CV.pickPersonalRail(["A", "A", "B", "B", "C", "C"].map((au, i) => ({ id: "m" + i, author: au, cov: mkCov("in", .85 + i * .01) })));
+ok(pr && pr.kind === "next" && pr.ids.length === 6, "3 authors×2 → 6 in-zone within cap");
+// outgrown (4 easy, 3 hard, 0 in-zone) → challenge, hardest-closest-first
+pr = CV.pickPersonalRail([
+  ...["e0", "e1", "e2", "e3"].map((id) => ({ id, author: id, cov: mkCov("easy", .98) })),
+  { id: "h0", author: "P", cov: mkCov("hard", .78) }, { id: "h1", author: "Q", cov: mkCov("hard", .60) }, { id: "h2", author: "R", cov: mkCov("hard", .72) },
+]);
+ok(pr && pr.kind === "challenge", "outgrown → challenge");
+ok(pr && pr.ids[0] === "h0" && pr.ids[1] === "h2", "challenge ranked hardest-closest-first (.78,.72)");
+ok(pr && pr.ids.length === 3, "challenge picks 3 hard");
+// 2 in-zone (<MIN), not outgrown → null
+ok(CV.pickPersonalRail([{ id: "i0", author: "A", cov: mkCov("in", .85) }, { id: "i1", author: "B", cov: mkCov("in", .9) }, { id: "h", author: "C", cov: mkCov("hard", .5) }]) === null, "2 in-zone (<MIN), not outgrown → null");
+// outgrown but <MIN hard → null (no thin challenge)
+ok(CV.pickPersonalRail([...["e0", "e1", "e2", "e3"].map((id) => ({ id, author: id, cov: mkCov("easy", .98) })), { id: "h0", author: "P", cov: mkCov("hard", .7) }, { id: "h1", author: "Q", cov: mkCov("hard", .6) }]) === null, "outgrown but <MIN hard → null");
+
 console.log(`[corpus-vocab-engine-smoke] ${pass} pass / ${fail} fail`);
 if (fail) { console.error(`✗ smoke:corpus-vocab-engine FAILED (${fail})`); process.exit(1); }
 console.log("✓ smoke:corpus-vocab-engine PASS");

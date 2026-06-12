@@ -804,43 +804,85 @@ function enhanceCardWithCoverage(node, card) {
   }).catch(() => {});
 }
 
+// Build a corpus shelf section (reused by the personal rail + the cold-start rail).
+function buildRailSection(cssClass, meta, cards) {
+  if (!cards || !cards.length) return null;
+  const sec = el('section', { class: 'shelf ' + cssClass });
+  const head = el('div', { class: 'shelf-head' });
+  const h = el('h2', { class: 'shelf-title' });
+  h.textContent = meta.emoji + ' ' + tt(meta.titleKey, meta.titleFallback);
+  head.appendChild(h);
+  head.appendChild(el('p', { class: 'shelf-intro', i18n: meta.introKey, text: tt(meta.introKey, meta.introFallback) }));
+  sec.appendChild(head);
+  const rail = el('div', { class: 'shelf-rail' });
+  for (const c of cards) rail.appendChild(renderCorpusCard(c));
+  sec.appendChild(rail);
+  return sec;
+}
+
 // S3 — cold-start «С чего начать» rail (profile-FREE): the most accessible ready works by the
-// sidecar's intrinsic easiness score (ez: common-vocab × low proper-noun load × coherent length;
-// fragments/archaic sink — DESIGN D3, owner chose pure-algorithmic). Author-diversity capped so
-// one prolific poet can't fill the rail. Lazy (loads the vocab sidecar on first L1 open — the
-// cold-start surface IS the first i+1 need). Prepended to L1 (the on-ramp comes first). No %
-// badge here — these are absolute «короткий · частотная лексика» cues, honest for empty profiles.
-async function injectColdStartRail(body) {
+// sidecar's intrinsic easiness score (ez). Author-diversity capped. No % badge — absolute
+// «короткий · частотная лексика» cues, honest for empty profiles.
+function buildColdStartSection(v) {
+  const ready = (corpusIndex && corpusIndex.ready) || [];
+  const scored = ready
+    .map((c) => ({ c: c, ez: (v.works[String(c.id)] || {}).ez || 0 }))
+    .filter((x) => x.ez > 0).sort((a, b) => b.ez - a.ez);
+  const perAuthor = {}, pick = [];
+  for (const x of scored) {
+    const a = x.c.author || '?';
+    if ((perAuthor[a] || 0) >= 2) continue;
+    perAuthor[a] = (perAuthor[a] || 0) + 1; pick.push(x.c);
+    if (pick.length >= 12) break;
+  }
+  return buildRailSection('corpus-coldstart', {
+    emoji: '🌱', titleKey: 'room.corpus.coldStartTitle', titleFallback: 'С чего начать',
+    introKey: 'room.corpus.coldStartIntro', introFallback: 'Короткие тексты с частотной лексикой — лёгкий вход в иврит.',
+  }, pick);
+}
+
+// S4 — corpus L1 rail coordinator: ONE rail at the top, chosen by the reader's profile.
+// Loads the vocab sidecar + the profile states ONCE (single-flight — NOT a per-card query;
+// the S3 stampede lesson [[feedback-test-with-nonempty-profile]]), scores every ready work
+// SYNCHRONOUSLY (coverageForWork is pure), and lets the pure engine pickPersonalRail decide:
+//   • «🎯 Следующий для тебя» — works in your 80–95% i+1 zone (≥MIN, gentlest first); OR
+//   • «🔥 Следующий вызов» — you've outgrown the zone → the closest tractable stretch; OR
+//   • neither (too-new) → «🌱 С чего начать» cold-start owns L1.
+// When a personal rail shows, the cold-start rail RECEDES (DESIGN D3: Rail-2 fades as Rail-1
+// fills). Re-render-guarded; fully try/caught (a rail failure never breaks L1).
+async function injectCorpusRails(body) {
   try {
     const ready = (corpusIndex && corpusIndex.ready) || [];
-    if (!ready.length || !window.CorpusVocabRoom) return;
+    if (!ready.length || !window.CorpusVocab) return;
     const v = await loadCorpusVocab();
     if (!v || !v.works) return;
-    const scored = ready
-      .map((c) => ({ c: c, ez: (v.works[String(c.id)] || {}).ez || 0 }))
-      .filter((x) => x.ez > 0).sort((a, b) => b.ez - a.ez);
-    const perAuthor = {}, pick = [];
-    for (const x of scored) {
-      const a = x.c.author || '?';
-      if ((perAuthor[a] || 0) >= 2) continue;
-      perAuthor[a] = (perAuthor[a] || 0) + 1; pick.push(x.c);
-      if (pick.length >= 12) break;
+    const states = (await ensureWordStates()) || {};   // ONE shared query (single-flight)
+    const cardById = new Map();
+    const scored = [];
+    for (const c of ready) {
+      const w = v.works[String(c.id)];
+      if (!w) continue;
+      const cov = window.CorpusVocab.coverageForWork(w, v.dict, states);   // pure, no DB query
+      if (!cov) continue;
+      cardById.set(String(c.id), c);
+      scored.push({ id: String(c.id), author: c.author, cov: cov });
     }
-    if (!pick.length) return;
-    const sec = el('section', { class: 'shelf corpus-coldstart' });
-    const head = el('div', { class: 'shelf-head' });
-    const h = el('h2', { class: 'shelf-title' });
-    h.textContent = '🌱 ' + tt('room.corpus.coldStartTitle', 'С чего начать');
-    head.appendChild(h);
-    head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.coldStartIntro', text: tt('room.corpus.coldStartIntro', 'Короткие тексты с частотной лексикой — лёгкий вход в иврит.') }));
-    sec.appendChild(head);
-    const rail = el('div', { class: 'shelf-rail' });
-    for (const c of pick) rail.appendChild(renderCorpusCard(c));
-    sec.appendChild(rail);
-    const existing = body.querySelector('.corpus-coldstart');
-    if (existing) existing.remove();
-    body.insertBefore(sec, body.firstChild);
-    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    const decision = window.CorpusVocab.pickPersonalRail(scored);
+    body.querySelectorAll('.corpus-coldstart, .corpus-nextforyou').forEach((e) => e.remove());
+    let sec = null;
+    if (decision && decision.kind) {
+      const cards = decision.ids.map((id) => cardById.get(String(id))).filter(Boolean);
+      const meta = decision.kind === 'challenge'
+        ? { emoji: '🔥', titleKey: 'room.corpus.challengeTitle', titleFallback: 'Следующий вызов', introKey: 'room.corpus.challengeIntro', introFallback: 'Ты перерос лёгкое — вот посильный вызов чуть выше твоего уровня.' }
+        : { emoji: '🎯', titleKey: 'room.corpus.nextTitle', titleFallback: 'Следующий для тебя', introKey: 'room.corpus.nextIntro', introFallback: 'Тексты, где ты уже знаешь ~80–95% слов — идеальны для роста.' };
+      sec = buildRailSection('corpus-nextforyou', meta, cards);
+    } else {
+      sec = buildColdStartSection(v);   // too-new → cold-start on-ramp
+    }
+    if (sec) {
+      body.insertBefore(sec, body.firstChild);
+      try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    }
   } catch (_) {}
 }
 // id -> full ready card (built once from the sidecar) so a search hit that IS ready opens
@@ -1014,7 +1056,7 @@ function renderHomeInto(body) {
   periods.appendChild(grid);
   body.appendChild(periods);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  injectColdStartRail(body);   // S3: prepend the cold-start «С чего начать» rail once the vocab sidecar loads
+  injectCorpusRails(body);   // S4: prepend ONE profile-chosen rail (personal i+1 / challenge / cold-start)
 }
 
 // Global results (search ∪ facets) over the lazy index. Ready hits open via served-on-open

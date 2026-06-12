@@ -222,8 +222,19 @@ GZIP-размер для hard build-gate (база: corpus-search-v7 ≈530 КБ
   `smoke:corpus-vocab(-engine)` 15+23 (+ez), corpus-room 18 + room 14 + reader-parity. **Браузер
   @380px RTL верифи:** рельс рендерится (Elisheva-лирика = recon-топ), бейджи ≈98%/89%/70%
   (easy/in/hard цвета), 0 console-err. index.html не тронут.
-- **S4:** Рельс1 «Следующий для тебя» (персональный i+1, рендер только при ≥N в зоне). По выбору
-  владельца #1 — шипим сразу (не за gate), зона 80–95% = конфиг-константа, перекалибровка по §7.
+- **S4 — SHIPPED (2026-06-12, SW `v3.10.35-room-next-rail`):** Рельс1 — ОДИН профиль-выбранный рельс на L1:
+  чистый движок `CorpusVocab.pickPersonalRail(scored)` (DOM-free, 11 unit-тестов): ≥MIN_RAIL(3) в зоне
+  80–95% → «🎯 Следующий для тебя» (gentlest-first, coverage desc); иначе перерос (≥MIN easy & <MIN in &
+  ≥MIN hard) → «🔥 Следующий вызов» (hardest-closest-to-zone stretch, честно НЕ «для тебя»); иначе too-new
+  → «🌱 С чего начать» cold-start. Author-cap 2 + hard size-gate (нет тонкого списка). Координатор
+  `injectCorpusRails` грузит vocab+states ОДИН раз (single-flight, НЕ пер-карточка — урок S3), скорит
+  все 796 ready СИНХРОННО (coverageForWork pure, без DB-запроса), Рельс2 RECEDE когда Рельс1 показан.
+  Зона = конфиг `CV.CFG.ZONE_LO/HI`, MIN_RAIL/RAIL_TOP/AUTHOR_CAP — перекалибровка по §7. i18n ru/en/he +
+  CSS accent-заголовок. Гейты engine 34/34 (+11 pickPersonalRail) + corpus-room 18 + room 14 + reader-parity.
+  **Браузер @380px (3 профиля): A empty→cold-start+текст открывается (810 sync coverageForWork, 1 DB-запрос,
+  НЕ стампид, 159мс); B in-zone→«🎯 Следующий для тебя» (cold-start recede, ≈88% green бейджи); C outgrown→
+  «🔥 Следующий вызов».** 0 console-err. index.html не тронут. **Learner-loop ЗАМКНУТ: читай→тап→карточка→
+  Сохранить→цвет-статус→Anki→ЧТО ДАЛЬШЕ (i+1).**
 - **Пост-шип (параллельно):** §7 real-profile validation харнесс → перекалибровка зоны/флагов;
   per-era fallback на medieval/biblical; wiring producer внутрь `build-corpus-catalog --full`.
 Каждый слайс — отдельный owner-go; **index.html не трогаем**; гейты зелёные до push; @380px RTL скрин
