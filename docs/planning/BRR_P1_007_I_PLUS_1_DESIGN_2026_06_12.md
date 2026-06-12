@@ -186,14 +186,30 @@ GZIP-размер для hard build-gate (база: corpus-search-v7 ≈530 КБ
 схлопывается как all-token (напр. <50 читабельных работ у типичного учащегося) → A переусложнён,
 падаем в C.** Это и есть A-vs-C-решатель. Producer-кода НЕТ, пока не пройдёт.
 
-## 8. План слайсов (после owner-решений §6 + замера §7)
-- **S0 (gate):** real-profile validation харнесс (§7) → owner-go/decision A-vs-C.
-- **S1:** producer `corpus-vocab` внутри `build-corpus-catalog` (lemmaKey-кор reuse) + `smoke:corpus-vocab`
-  (parity/size/divergence) + lockstep версия.
-- **S2:** клиент ленивый загрузчик + two-channel coverage (без UI-полок) + гейт join'а.
-- **S3:** Рельс2 «С чего начать» (холодный старт, лёгкость) + бейджи @380px RTL.
-- **S4 (за gate):** Рельс1 «Следующий для тебя» (персональный i+1) — только если §7 зелёный.
-Каждый слайс — отдельный owner-go; index.html не трогаем; гейты зелёные до push.
+## 8. План слайсов
+- ~~**S0 (gate):** real-profile validation как pre-gate~~ — СНЯТ владельцем (#1 «полный A сейчас»,
+  validate-in-prod). Харнесс §7 гоняется ПАРАЛЛЕЛЬНО (пост-шип, не блокирует).
+- **S1 — SHIPPED `3f87b60` (2026-06-12):** producer `scripts/premium/build-corpus-vocab.js` +
+  гейт `smoke:corpus-vocab` 15/15 + npm `build:corpus-vocab`/`smoke:corpus-vocab`. **Tooling-only —
+  ДАННЫЕ сайдкара шипятся в S2** (с клиентом + SW-бамп). Решения формата (замерено):
+  - Офлайн form-first над `pealim-infl-v12` → matched pid-леммы + token-counts + (m,n) reading-load;
+    fallback ≈13% только агрегатом (не learnable). Ключ через `NA.lemmaKey` (байт-идентичен join'у).
+  - **ids delta-кодированы** (−33%, lossless), dict stable-sorted по pid (детерминизм).
+  - Замер: 796 работ → 253 КБ gz (318 КБ/1k) → **~2.5 МБ @8099-bakeable** (dict насыщается).
+    Escape-hatch при росте к 26K: drop `tok` (→~4.9MB) / per-era шарды / binary-packed.
+  - Lockstep D4 как ГЕЙТ (не code-coupling): `smoke:corpus-vocab` валит при version≠catalog,
+    нарушении join-parity, неполноте (baked-id ∉ sidecar), порче payload, недетерминизме, size>400КБ/1k.
+- **S2 (next):** клиент ленивый загрузчик `corpus-vocab-v<V>` (как corpus-search, НЕ precache) +
+  two-channel coverage (matched-drill + all-token-load) клиент-сайд против `getKnownWordStates()` +
+  SW CACHE_VERSION бамп + генерация+коммит данных сайдкара. Без UI-полок (только движок+бейдж-данные).
+- **S3:** Рельс2 «С чего начать» (холодный старт по лёгкости: мин.связная длина + частотная
+  концентрация, НЕ эпоха) + бейджи покрытия @380px RTL (только openable+профиль есть, мягкая оценка).
+- **S4:** Рельс1 «Следующий для тебя» (персональный i+1, рендер только при ≥N в зоне). По выбору
+  владельца #1 — шипим сразу (не за gate), зона 80–95% = конфиг-константа, перекалибровка по §7.
+- **Пост-шип (параллельно):** §7 real-profile validation харнесс → перекалибровка зоны/флагов;
+  per-era fallback на medieval/biblical; wiring producer внутрь `build-corpus-catalog --full`.
+Каждый слайс — отдельный owner-go; **index.html не трогаем**; гейты зелёные до push; @380px RTL скрин
+перед UI-коммитом (S3/S4); SW-бамп при S2+.
 
 ## Связки
 Reuse: `getKnownWordStates`/`getTextLearningCoverage`/`NotesAutoGen.lemmaKey`/corpus-search
