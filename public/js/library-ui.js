@@ -885,6 +885,69 @@ async function injectCorpusRails(body) {
     }
   } catch (_) {}
 }
+// BRR-P1-007 §7 — on-device real-profile validation, triggered by ?validate=1 so the owner can
+// run it on the PHONE (where the profile lives) WITHOUT a console. Privacy-preserving: it reuses
+// CorpusVocabRoom.coverageFor (which scores each work against the LIVE getKnownWordStates profile)
+// and aggregates ONLY anonymous counts — the known-words never leave the device. Sequential (no
+// query stampede). Output goes to a copyable overlay. Turns the 80–95% i+1 band from a
+// validate-in-prod hypothesis into a measured fact (matched-only vs all-token vs type denominators,
+// distribution + candidate bands for recalibrating CV.CFG, per-era fallback load).
+async function runRealProfileValidation() {
+  let R = '';
+  try {
+    const CV = window.CorpusVocab, Room = window.CorpusVocabRoom;
+    if (!CV || !Room) { showValidationOverlay('Движок не готов — открой ещё раз library.html?validate=1'); return; }
+    const vocab = await Room.ensure();
+    if (!vocab || !vocab.works) { showValidationOverlay('vocab-сайдкар не загрузился'); return; }
+    let eraById = {};
+    try { const s = await (await fetch('/data/benyehuda/corpus-search-v' + CORPUS_CATALOG_VERSION + '.json?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' })).json(); for (const r of s) eraById[String(r.id)] = r.e || 'unknown'; } catch (_) {}
+    const rows = [];
+    for (const id of Object.keys(vocab.works)) {
+      const c = await Room.coverageFor(id);
+      if (!c || c.matchedDistinct < 20) continue;
+      rows.push({ mt: c.matchedDrillCov, at: c.totalCov, ty: c.matchedDistinct ? c.knownDistinct / c.matchedDistinct : 0, fb: c.fallbackShare, known: c.knownDistinct, era: eraById[id] || 'unknown' });
+    }
+    const N = rows.length;
+    const LO = CV.CFG.ZONE_LO, HI = CV.CFG.ZONE_HI;
+    const inB = (k, lo, hi) => rows.filter((r) => r[k] >= lo && r[k] < hi).length;
+    const ge = (k, h) => rows.filter((r) => r[k] >= h).length;
+    const lt = (k, l) => rows.filter((r) => r[k] < l).length;
+    const pc = (k) => { const a = rows.map((r) => r[k]).sort((x, y) => x - y); return N ? [10, 25, 50, 75, 90].map((p) => a[Math.min(a.length - 1, Math.floor(a.length * p / 100))].toFixed(2)).join('/') : '—'; };
+    const eras = {}; for (const r of rows) { const e = eras[r.era] = eras[r.era] || { n: 0, fb: 0, in: 0 }; e.n++; e.fb += r.fb; if (r.mt >= LO && r.mt < HI) e.in++; }
+    const bands = [[.80, .95], [.75, .95], [.75, .90], [.70, .90], [.70, .85], [.65, .85]];
+    R += '=== BRR-P1-007 §7 real-profile validation ===\n';
+    R += 'scored=' + N + ' · engaged(≥1 known)=' + rows.filter((r) => r.known > 0).length + '\n';
+    R += 'zone ' + LO + '–' + HI + ' IN-ZONE: matched-token in=' + inB('mt', LO, HI) + ' easy=' + ge('mt', HI) + ' hard=' + lt('mt', LO) + '\n';
+    R += '            all-token   in=' + inB('at', LO, HI) + ' easy=' + ge('at', HI) + ' hard=' + lt('at', LO) + '\n';
+    R += '            type        in=' + inB('ty', LO, HI) + ' easy=' + ge('ty', HI) + ' hard=' + lt('ty', LO) + '\n';
+    R += 'matched-token pct p10/25/50/75/90: ' + pc('mt') + '\n';
+    R += 'in-zone @ bands: ' + bands.map(([l, h]) => '[' + l + '-' + h + ']=' + inB('mt', l, h)).join('  ') + '\n';
+    R += 'per-era (fb%·in): ' + Object.keys(eras).sort((a, b) => eras[b].n - eras[a].n).map((e) => e + ' n=' + eras[e].n + ' fb=' + (100 * eras[e].fb / eras[e].n).toFixed(0) + '% in=' + eras[e].in).join(' | ') + '\n';
+    showValidationOverlay(R);
+  } catch (e) { showValidationOverlay('ошибка валидации: ' + (e && e.message || e) + '\n' + R); }
+}
+function showValidationOverlay(text) {
+  const ov = el('div', { attrs: { style: 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;' } });
+  const box = el('div', { attrs: { style: 'background:var(--bg-card,#fff);color:var(--text-primary,#111);max-width:560px;width:100%;border-radius:12px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.3);' } });
+  box.appendChild(el('div', { attrs: { style: 'font-weight:700;margin-bottom:8px;' }, text: '§7 валидация — пришли мне этот текст' }));
+  const ta = el('textarea', { attrs: { readonly: 'true', style: 'width:100%;height:230px;font:12px/1.4 monospace;white-space:pre;border:1px solid var(--border-soft,#ccc);border-radius:8px;padding:8px;box-sizing:border-box;background:var(--bg-muted,#f6f6f6);color:inherit;' } });
+  ta.value = text;
+  box.appendChild(ta);
+  const btns = el('div', { attrs: { style: 'display:flex;gap:8px;margin-top:10px;' } });
+  const copyBtn = el('button', { attrs: { style: 'flex:1;padding:11px;border-radius:8px;border:0;background:var(--accent,#2563eb);color:#fff;font-weight:600;width:auto;' }, text: 'Копировать' });
+  copyBtn.addEventListener('click', async () => { try { ta.focus(); ta.select(); await navigator.clipboard.writeText(text); copyBtn.textContent = '✓ Скопировано'; } catch (_) { try { ta.select(); document.execCommand('copy'); copyBtn.textContent = '✓ Скопировано'; } catch (e2) {} } });
+  const closeBtn = el('button', { attrs: { style: 'padding:11px 14px;border-radius:8px;border:1px solid var(--border-soft,#ccc);background:transparent;color:inherit;width:auto;' }, text: 'Закрыть' });
+  closeBtn.addEventListener('click', () => ov.remove());
+  btns.appendChild(copyBtn); btns.appendChild(closeBtn);
+  box.appendChild(btns);
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+}
+function maybeRunValidation() {
+  try { if (new URLSearchParams(location.search).get('validate') !== '1') return; } catch (_) { return; }
+  setTimeout(() => { try { runRealProfileValidation(); } catch (_) {} }, 500);
+}
+
 // id -> full ready card (built once from the sidecar) so a search hit that IS ready opens
 // via served-on-open; the search index itself stays minimal (no file/text_key per row).
 function corpusReadyMap() {
@@ -1427,6 +1490,7 @@ async function boot() {
       else if (corpusRoot) activeTrack = 'corpus';
     }
     setActiveTrack(activeTrack);
+    maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
   } catch (e) {
     if (e instanceof localDb.DbUnavailableError) { showState('room.state.dbBusy', '📑'); return; }
     try { console.error('[room] init failed:', e); } catch (_) {}
