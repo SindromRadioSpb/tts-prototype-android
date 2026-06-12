@@ -122,6 +122,7 @@
     "smoke:corpus-room": "node scripts/premium/corpus-room-smoke.js",
     "smoke:corpus-nav": "node scripts/premium/corpus-nav-smoke.js",
     "smoke:corpus-vocab": "node scripts/premium/corpus-vocab-smoke.js",
+    "smoke:corpus-vocab-engine": "node scripts/premium/corpus-vocab-engine-smoke.js",
     "build:corpus-vocab": "node scripts/premium/build-corpus-vocab.js",
     "smoke:fill-list": "node scripts/premium/fill-list-smoke.js",
     "probe:niqqud": "node scripts/premium/probe-niqqud.js",

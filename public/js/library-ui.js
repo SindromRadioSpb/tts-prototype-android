@@ -54,6 +54,8 @@ const CORPUS_PAGE = 60;         // "показать ещё" page size for autho
 // to corpusIndex.ready, an unprocessed hit is a display-only row (honest, never openable).
 let corpusSearch = null;         // [{id,t,a,e,g,l,r, _n:niqqud-stripped title}] (normalized on load)
 let corpusSearchLoading = null;  // single-flight guard
+let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n}} } (lazy, NOT precached)
+let corpusVocabLoading = null;   // single-flight guard
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
@@ -713,6 +715,34 @@ async function loadCorpusSearch() {
     return rows;
   })();
   try { return await corpusSearchLoading; } finally { corpusSearchLoading = null; }
+}
+
+// BRR-P1-007 S2 — lazy per-work vocab sidecar (single-flight). Loaded on FIRST i+1 need
+// only (NOT precached, NOT on Корпус open) — same budget discipline as corpus-search.
+// The engine (window.CorpusVocab) computes coverage CLIENT-SIDE against the live profile;
+// the sidecar ships ingredients, never a frozen %. No UI here (Slice 2 = engine + data).
+async function loadCorpusVocab() {
+  if (corpusVocab) return corpusVocab;
+  if (corpusVocabLoading) return corpusVocabLoading;
+  if (!window.CorpusVocab) return null;
+  corpusVocabLoading = (async () => {
+    corpusVocab = await window.CorpusVocab.ensureVocab({ version: CORPUS_CATALOG_VERSION });
+    return corpusVocab;
+  })();
+  try { return await corpusVocabLoading; } catch (_) { return null; } finally { corpusVocabLoading = null; }
+}
+
+// Two-channel i+1 coverage for a work id against the LIVE reader profile, or null when the
+// sidecar lacks the work (unbaked / not-yet-profiled) or the engine is absent. Honest empty,
+// never a fabricated number. Consumed by S3/S4 badges+rails (exposed on window for those + verify).
+async function roomVocabCoverageFor(id) {
+  const v = await loadCorpusVocab();
+  if (!v || !v.works || !v.works[String(id)]) return null;
+  const states = await ensureWordStates();
+  return window.CorpusVocab.coverageForWork(v.works[String(id)], v.dict, states || {});
+}
+if (typeof window !== 'undefined') {
+  window.CorpusVocabRoom = { ensure: loadCorpusVocab, coverageFor: roomVocabCoverageFor };
 }
 // id -> full ready card (built once from the sidecar) so a search hit that IS ready opens
 // via served-on-open; the search index itself stays minimal (no file/text_key per row).

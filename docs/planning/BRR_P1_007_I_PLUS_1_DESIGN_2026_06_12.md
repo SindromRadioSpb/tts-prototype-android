@@ -199,9 +199,16 @@ GZIP-размер для hard build-gate (база: corpus-search-v7 ≈530 КБ
     Escape-hatch при росте к 26K: drop `tok` (→~4.9MB) / per-era шарды / binary-packed.
   - Lockstep D4 как ГЕЙТ (не code-coupling): `smoke:corpus-vocab` валит при version≠catalog,
     нарушении join-parity, неполноте (baked-id ∉ sidecar), порче payload, недетерминизме, size>400КБ/1k.
-- **S2 (next):** клиент ленивый загрузчик `corpus-vocab-v<V>` (как corpus-search, НЕ precache) +
-  two-channel coverage (matched-drill + all-token-load) клиент-сайд против `getKnownWordStates()` +
-  SW CACHE_VERSION бамп + генерация+коммит данных сайдкара. Без UI-полок (только движок+бейдж-данные).
+- **S2 — SHIPPED (2026-06-12, SW `v3.10.32-room-vocab-engine`):** чистый клиент-движок
+  `public/js/corpus-vocab.js` (`window.CorpusVocab`: reconstructIds·coverageForWork·classifyZone +
+  ленивый `ensureVocab`, НЕ precache) + ленивый загрузчик в `library-ui.js`
+  (`loadCorpusVocab`+`window.CorpusVocabRoom.coverageFor`, single-flight) + library.html script +
+  sw.js precache + **данные `corpus-vocab-v7.json` (253КБ gz) закоммичены**. Two-channel
+  клиент-сайд против живого `getKnownWordStates()`: `matchedDrillCov` (token-weighted, drill+зона) +
+  `totalCov`/`loadFlag` (reading-load). Без UI-полок (движок+бейдж-данные). Гейт
+  `smoke:corpus-vocab-engine` 23/23 + lockstep 15/15 + corpus-room 18 + room 14 (0 pageerror).
+  **E2E браузер-верифи @localhost:** ленивый fetch ✓ (dict 6887/works 796/delta/v7), coverage ✓
+  (work10 пустой профиль→drill 0/fallback 8.5%/frontier 530/zone hard), 0 console-err, @380px чисто.
 - **S3:** Рельс2 «С чего начать» (холодный старт по лёгкости: мин.связная длина + частотная
   концентрация, НЕ эпоха) + бейджи покрытия @380px RTL (только openable+профиль есть, мягкая оценка).
 - **S4:** Рельс1 «Следующий для тебя» (персональный i+1, рендер только при ≥N в зоне). По выбору
