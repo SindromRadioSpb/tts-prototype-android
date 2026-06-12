@@ -1,5 +1,7 @@
 # SESSION STATE — BRR resolver-correspondence (2026-06-11) — READ FIRST
 
+> **Git: main = HEAD `97b0993`, всё запушено. Prod SW `v3.10.31-room-context-mode`. 3-тировый roadmap
+> карточка↔Pealim ЗАВЕРШЁН (Тир-1/2/3 + 3a — все в проде).**
 > Единый консолидированный handoff для продолжения (новая или текущая сессия). Project =
 > LinguistPro (Node PWA, HE↔RU). Prod: https://linguistpro.kolosei.com. Роли R1–R10 авто
 > (`docs/PROJECT_ROLES.md`). Owner-инвариант: «бескомпромиссное качество, без заглушек».
@@ -54,18 +56,22 @@
 4. Полиш: ranked-candidate senses; «Подробнее → Студия» deep-link; GCP-WaveNet form-audio.
 
 ## 🔧 Owner-решения / открытое
-- **16 из перебейканных работ git-TRACKED** (legacy seed) → modified-uncommitted на диске (niqqud улучшен,
-  опубликован). НЕ закоммичены (норма bodies-on-volume). Решить: commit-as-data ИЛИ untrack+gitignore.
-  Откат потеряет niqqud для них. Связано с .gitignore-вопросом ниже.
-- ~500 untracked + 16 tracked work-JSON — добавить тела в `.gitignore` / untrack?
+- ~~16/100 tracked work-JSON~~ — РЕШЕНО (`3fa3c20`): untrack + gitignore `public/data/benyehuda/works/`
+  (все тела — volume-only, single source of truth; не фикстуры; прод отдаёт с тома; reversible `git add -f`).
 - **47097 — идиш, мис-категоризован** в ивритском корпусе → исключить из Зала или идиш-вокализатор (R6/R7).
-- 🔑 **Ротация секретов:** `AUDIO_UPLOAD_TOKEN` (вставлен в чат сегодня!) + Gemini + старый GCP TTS key.
+  Авто-пропускается Yiddish-гейтом `reniqqud-fill`.
+- 🔑 **Ротация секретов (срочно):** `AUDIO_UPLOAD_TOKEN` (вставлен+использован в чате 2026-06-11 → в
+  транскрипте!) + Gemini + старый GCP TTS key.
+- **Тир-3 позитивный тап** — live-верифи браузером не сделан (Dicta троттлит 503 МОЙ IP от массового теста).
+  Проверить с чистого IP (устройство владельца): Корпус→текст→тумблер «🎯 Точный режим»→тап הַיּוֹם →
+  бейдж «контекст (Dicta)»+«сегодня». Данные подтверждены через прод-сервер (Hetzner IP): היום→adverb→«сегодня».
 
 ## Гейты (зелёные на HEAD)
 `smoke:reader-morph`(+R10) · `smoke:reader-notes` · `smoke:reader-parity` (index.html не тронут) ·
-`smoke:reniqqud` 6 · `smoke:reader-dicta` (сетевой, SKIP офлайн) · `smoke:corpus-nav` 33 · `corpus-room` 18 ·
-`room` 14 · `room-mode` 23 · `audit:autogen-quality` 0R1 · `audit:corpus-niqqud` · `test:api-smoke`.
-Норма: @380px RTL скрин перед UI-коммитом; **index.html НЕ трогать** (Зал = library.html).
+`smoke:reniqqud` 6 · `smoke:reader-dicta` + `smoke:reader-context` (сетевые, graceful-SKIP при Dicta-503) ·
+`smoke:corpus-nav` 33 · `corpus-room` 18 · `room` 14 · `room-mode` 23 · `audit:autogen-quality` 0R1 ·
+`audit:corpus-niqqud` · `test:api-smoke`. Норма: @380px RTL скрин перед UI-коммитом; **index.html НЕ трогать**.
+Харнессы (.tmp, gitignored): `context-mode-verify.js` (Тир-3 recall/FP), `qa-verify-gate.js` (Тир-1).
 
 ## Ключевые файлы
 `public/js/reader-morph.js` (functionGate+gated resolveCore) · `reader-dicta.js` (client Dicta) ·
@@ -75,22 +81,33 @@
 
 ## Промт для НОВОЙ сессии (копипаст)
 ```
-Продолжаем BRR resolver-correspondence (LinguistPro, Node PWA, prod linguistpro.kolosei.com).
+Продолжаем BRR Reading Room (LinguistPro — Node PWA, иврит↔рус, prod linguistpro.kolosei.com).
 READ FIRST: docs/SESSION_STATE_BRR_RESOLVER_2026_06_11.md + .remember/remember.md + docs/PROJECT_ROLES.md
-(роли R1–R10 авто; R10 = вычислит. морфолог). Инвариант: бескомпромиссное качество, без заглушек.
-Норма: index.html НЕ трогать (Зал = public/library.html); планы в docs/planning/ (коммит); recon-first
-MEASURE до кода; гейты зелёные до push; prod-verify после; SW CACHE_VERSION бамп при смене shell-ассета.
+(роли R1–R10 применяй авто; R10 = вычислит. морфолог: дизамбигуация + ИЗМЕРИМОСТЬ обязательна).
+Инвариант владельца: бескомпромиссное качество, без заглушек.
 
-Состояние: Тир-1 (честный гейт глосса) + Тир-2 (re-niqqud 109 работ, ОПУБЛИКОВАНО на прод, 2%→51%
-resolver) — в проде. Тир-3a honest-degradation — ждёт Coolify-деплоя. Тир-3 фундамент (client-side
-Dicta, reader-dicta.js + smoke:reader-dicta) — отгружен; «точный режим» (интеграция) на owner-go.
+НОРМЫ (стоячие): index.html НЕ трогать (Зал = public/library.html, шарят OPFS-движок); большие фичи →
+recon-first дизайн в docs/planning/<TICKET>.md НА УТВЕРЖДЕНИЕ до кода; MEASURE до кода (харнесс .tmp,
+паттерн qa-verify-gate); развилка → варианты по ролям + рекомендация, решает владелец; гейты зелёные
+до push; commit+push автономно (Coolify авто-деплой); prod-verify после; SW CACHE_VERSION бамп при смене
+shell-ассета; @380px RTL скрин перед UI-коммитом. ⚠ НЕ диагностировать «прод не достаёт Dicta» Windows-
+curl'ом — он калечит UTF-8-иврит в «????»; проверяй Node fetch/браузером (egress РАБОТАЕТ).
 
-Сегодня я хочу: <ВЫБОР>
-  (a) i+1 «Следующий для тебя» — ответь на 4 решения из docs/planning/BRR_P1_007_I_PLUS_1_RECON_2026_06_11.md
-      (главное №1: vocab-профиль на publish-time, вариант A?), затем проба-замер размера сайдкара;
-  (b) Тир-3 «точный режим» — подключить reader-dicta к резолву по дизайну
-      docs/planning/BRR_TIER3_CONTEXT_MODE_2026_06_11.md (opt-in тумблер, провенанс «контекст», per-row кэш);
-  (c) полиш / другое.
-Открытые owner-решения: судьба 16 tracked work-JSON (commit/gitignore); 47097 (идиш) в ивр. корпусе;
-ротация AUDIO_UPLOAD_TOKEN+Gemini+GCP. Начни с recon-first дизайна на утверждение.
+СОСТОЯНИЕ (всё в проде): 3-тировый roadmap «соответствие карточка↔Pealim» ЗАВЕРШЁН —
+  Тир-1 честный гейт служебных слов (SW v3.10.30) · Тир-2 re-niqqud 109 работ ОПУБЛИКОВАНО (resolver
+  exact|likely 2%→51%) · Тир-3a honest-degradation (5a287a6) · Тир-3 «точный режим» (контекст-Dicta,
+  client-side, SW v3.10.31, 97b0993) — opt-in тумблер «🎯 Точный режим», pickContextReading, FP=0.
+  Learner-loop Зала полон: читай→тап→1:1-карточка→Сохранить→цвет-статус→Anki.
+
+СЕГОДНЯ я хочу: <ВЫБОР>
+  (a) i+1 «Следующий для тебя» (BRR-P1-007) — БОЛЬШАЯ фича, последний keystone. Ответь на 4 решения из
+      docs/planning/BRR_P1_007_I_PLUS_1_RECON_2026_06_11.md (главное №1: строить per-work vocab-профиль на
+      publish-time, сайдкар corpus-vocab-v<N>, вариант A?). Я начну с recon-замера (размер сайдкара/качество).
+  (b) Тир-3 полиш — расширить CONTEXT_GLOSS-наречия по находкам; перепрогнать smoke:reader-context
+      позитивный путь (когда Dicta не троттлит); опц. контекст для bulk цвет-статуса (сейчас офлайн).
+  (c) другое / полиш (ranked-candidate senses; «Подробнее→Студия» deep-link; GCP-WaveNet form-audio).
+
+ОТКРЫТО (owner): 🔑 СРОЧНО ротация AUDIO_UPLOAD_TOKEN (был в чате) + Gemini + GCP TTS key;
+47097 = идиш в ивр. корпусе (исключить/идиш-вокализатор, R6/R7); Тир-3 позитивный тап подтвердить с
+устройства владельца (мой IP был Dicta-503-throttled). Начни с recon-first дизайна НА УТВЕРЖДЕНИЕ.
 ```
