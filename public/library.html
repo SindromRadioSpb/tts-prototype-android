@@ -147,6 +147,23 @@
     body.theme-dark .prov-badge.audio-tts { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
     body.theme-dark .prov-badge.audio-human { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
 
+    /* ── BRR-P1-007 S3 — i+1 coverage badge (soft estimate) + reading-load flag ── */
+    /* green = i+1 sweet spot (80–95%) · sky = mastered (≥95%) · slate = many unknowns (<80%) */
+    .prov-badge.coverage-in { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .prov-badge.coverage-easy { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
+    .prov-badge.coverage-load { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .prov-badge.coverage-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+      body:not(.theme-light) .prov-badge.coverage-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
+      body:not(.theme-light) .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft); }
+      body:not(.theme-light) .prov-badge.coverage-load { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
+    }
+    body.theme-dark .prov-badge.coverage-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+    body.theme-dark .prov-badge.coverage-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
+    body.theme-dark .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft); }
+    body.theme-dark .prov-badge.coverage-load { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
+
     /* ── BRR-P1-015 A3 — Корпус drill (Период→Автор→Работа) ──────────────────── */
     .corpus-nav { padding-bottom: 8px; }
 

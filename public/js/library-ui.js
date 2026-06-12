@@ -54,8 +54,9 @@ const CORPUS_PAGE = 60;         // "показать ещё" page size for autho
 // to corpusIndex.ready, an unprocessed hit is a display-only row (honest, never openable).
 let corpusSearch = null;         // [{id,t,a,e,g,l,r, _n:niqqud-stripped title}] (normalized on load)
 let corpusSearchLoading = null;  // single-flight guard
-let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n}} } (lazy, NOT precached)
+let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n,ez}} } (lazy, NOT precached)
 let corpusVocabLoading = null;   // single-flight guard
+const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
@@ -194,7 +195,7 @@ function renderCorpusCard(card) {
     dead.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.unavailable', text: tt('room.work.unavailable') }));
     return dead;
   }
-  const node = el('div', { class: 'work-card', attrs: { role: 'button', tabindex: '0' } });
+  const node = el('div', { class: 'work-card', attrs: { role: 'button', tabindex: '0', 'data-work-id': String(card.id == null ? '' : card.id) } });
   const title = card.title || '';
   const titleEl = el('span', { class: 'work-card-title', text: title });
   if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
@@ -220,6 +221,7 @@ function renderCorpusCard(card) {
   const open = () => openCorpusWork(card);
   node.addEventListener('click', open);
   node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  enhanceCardWithCoverage(node, card);   // S3: progressive coverage badge (profile-gated, soft estimate)
   return node;
 }
 
@@ -718,15 +720,18 @@ async function loadCorpusSearch() {
 }
 
 // BRR-P1-007 S2 — lazy per-work vocab sidecar (single-flight). Loaded on FIRST i+1 need
-// only (NOT precached, NOT on Корпус open) — same budget discipline as corpus-search.
-// The engine (window.CorpusVocab) computes coverage CLIENT-SIDE against the live profile;
-// the sidecar ships ingredients, never a frozen %. No UI here (Slice 2 = engine + data).
+// (NOT precached) — same budget discipline as corpus-search. The engine (window.CorpusVocab)
+// computes coverage CLIENT-SIDE against the live profile; the sidecar ships ingredients,
+// never a frozen %. CORPUS_VOCAB_DATA_REV busts force-cache when the sidecar CONTENT changes
+// WITHIN a catalog version (e.g. S3 added per-work `ez`) — the catalog `?v=` alone would serve
+// a stale immutable copy. BUMP it whenever build-corpus-vocab emits a new field/shape.
 async function loadCorpusVocab() {
   if (corpusVocab) return corpusVocab;
   if (corpusVocabLoading) return corpusVocabLoading;
   if (!window.CorpusVocab) return null;
+  const url = '/data/benyehuda/corpus-vocab-v' + CORPUS_CATALOG_VERSION + '.json?v=' + CORPUS_CATALOG_VERSION + '.' + CORPUS_VOCAB_DATA_REV;
   corpusVocabLoading = (async () => {
-    corpusVocab = await window.CorpusVocab.ensureVocab({ version: CORPUS_CATALOG_VERSION });
+    corpusVocab = await window.CorpusVocab.ensureVocab({ version: CORPUS_CATALOG_VERSION, url: url });
     return corpusVocab;
   })();
   try { return await corpusVocabLoading; } catch (_) { return null; } finally { corpusVocabLoading = null; }
@@ -743,6 +748,69 @@ async function roomVocabCoverageFor(id) {
 }
 if (typeof window !== 'undefined') {
   window.CorpusVocabRoom = { ensure: loadCorpusVocab, coverageFor: roomVocabCoverageFor };
+}
+
+// S3 — progressive coverage badge on a rendered corpus card. Fire-and-forget (does not
+// block render). HONEST: shows a % ONLY when the reader has a real profile overlap with
+// this work (knownDistinct>0) — a 0% against an empty known-set is a lie, so absent ⇒ no
+// badge (matches DESIGN D3/R4). The % is a SOFT estimate («≈ по твоим словам»), zone-coloured
+// (in 80–95% = sweet spot · easy ≥95% · hard <80%); the load flag «много имён/архаики» fires
+// when proper-noun/archaic share is high (the two-channel honesty, DESIGN D2). Ready cards only
+// (unbaked works are absent from the sidecar → coverageFor returns null → no badge).
+function enhanceCardWithCoverage(node, card) {
+  if (!node || !card || card.id == null || !window.CorpusVocabRoom) return;
+  roomVocabCoverageFor(card.id).then((cov) => {
+    if (!cov || cov.knownDistinct === 0) return;
+    const meta = node.querySelector('.work-card-meta');
+    if (!meta || meta.querySelector('.coverage-badge')) return;
+    const pct = Math.round(cov.matchedDrillCov * 100);
+    const b = el('span', { class: 'prov-badge coverage-badge coverage-' + cov.zone, text: '≈' + pct + '%' });
+    b.title = tt('room.corpus.cov.estimate', 'Оценка знакомых слов по твоим заметкам');
+    meta.appendChild(b);
+    if (cov.loadFlag) {
+      meta.appendChild(el('span', { class: 'prov-badge coverage-load', i18n: 'room.corpus.cov.load', text: tt('room.corpus.cov.load', 'много имён/архаики') }));
+    }
+  }).catch(() => {});
+}
+
+// S3 — cold-start «С чего начать» rail (profile-FREE): the most accessible ready works by the
+// sidecar's intrinsic easiness score (ez: common-vocab × low proper-noun load × coherent length;
+// fragments/archaic sink — DESIGN D3, owner chose pure-algorithmic). Author-diversity capped so
+// one prolific poet can't fill the rail. Lazy (loads the vocab sidecar on first L1 open — the
+// cold-start surface IS the first i+1 need). Prepended to L1 (the on-ramp comes first). No %
+// badge here — these are absolute «короткий · частотная лексика» cues, honest for empty profiles.
+async function injectColdStartRail(body) {
+  try {
+    const ready = (corpusIndex && corpusIndex.ready) || [];
+    if (!ready.length || !window.CorpusVocabRoom) return;
+    const v = await loadCorpusVocab();
+    if (!v || !v.works) return;
+    const scored = ready
+      .map((c) => ({ c: c, ez: (v.works[String(c.id)] || {}).ez || 0 }))
+      .filter((x) => x.ez > 0).sort((a, b) => b.ez - a.ez);
+    const perAuthor = {}, pick = [];
+    for (const x of scored) {
+      const a = x.c.author || '?';
+      if ((perAuthor[a] || 0) >= 2) continue;
+      perAuthor[a] = (perAuthor[a] || 0) + 1; pick.push(x.c);
+      if (pick.length >= 12) break;
+    }
+    if (!pick.length) return;
+    const sec = el('section', { class: 'shelf corpus-coldstart' });
+    const head = el('div', { class: 'shelf-head' });
+    const h = el('h2', { class: 'shelf-title' });
+    h.textContent = '🌱 ' + tt('room.corpus.coldStartTitle', 'С чего начать');
+    head.appendChild(h);
+    head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.coldStartIntro', text: tt('room.corpus.coldStartIntro', 'Короткие тексты с частотной лексикой — лёгкий вход в иврит.') }));
+    sec.appendChild(head);
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const c of pick) rail.appendChild(renderCorpusCard(c));
+    sec.appendChild(rail);
+    const existing = body.querySelector('.corpus-coldstart');
+    if (existing) existing.remove();
+    body.insertBefore(sec, body.firstChild);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
 }
 // id -> full ready card (built once from the sidecar) so a search hit that IS ready opens
 // via served-on-open; the search index itself stays minimal (no file/text_key per row).
@@ -915,6 +983,7 @@ function renderHomeInto(body) {
   periods.appendChild(grid);
   body.appendChild(periods);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  injectColdStartRail(body);   // S3: prepend the cold-start «С чего начать» rail once the vocab sidecar loads
 }
 
 // Global results (search ∪ facets) over the lazy index. Ready hits open via served-on-open

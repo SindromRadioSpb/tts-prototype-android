@@ -209,8 +209,19 @@ GZIP-размер для hard build-gate (база: corpus-search-v7 ≈530 КБ
   `smoke:corpus-vocab-engine` 23/23 + lockstep 15/15 + corpus-room 18 + room 14 (0 pageerror).
   **E2E браузер-верифи @localhost:** ленивый fetch ✓ (dict 6887/works 796/delta/v7), coverage ✓
   (work10 пустой профиль→drill 0/fallback 8.5%/frontier 530/zone hard), 0 console-err, @380px чисто.
-- **S3:** Рельс2 «С чего начать» (холодный старт по лёгкости: мин.связная длина + частотная
-  концентрация, НЕ эпоха) + бейджи покрытия @380px RTL (только openable+профиль есть, мягкая оценка).
+- **S3 — SHIPPED (2026-06-12, SW `v3.10.33-room-coldstart-badges`):** (a) producer per-work
+  intrinsic `ez` (headShare × matchedShare × lenShape — профиль-НЕзависимо; validated
+  `.tmp/easiness-recon.js`: top=доступная лирика/проза, фрагменты тонут БЕЗ курации = owner #4);
+  (b) Рельс2 «🌱 С чего начать» на L1 Корпуса (top-12 ready по ez, author-cap 2, лениво грузит
+  сайдкар, prepend = on-ramp первым; БЕЗ %-бейджа — абсолютные cue); (c) progressive coverage-бейдж
+  на карточках (`enhanceCardWithCoverage`, профиль-gated: % ТОЛЬКО при knownDistinct>0; soft
+  «≈87%», zone-цвет in/easy/hard + флаг «много имён/архаики» при loadFlag). `data-work-id` на
+  карточке. i18n ru/en/he (he best-effort). **Cache-bust fix:** `CORPUS_VOCAB_DATA_REV` busts
+  force-cache когда контент сайдкара меняется ВНУТРИ версии каталога (catalog `?v=` иначе отдаёт
+  stale immutable — поймано в браузер-верифи: ez добавлен, но грузился S2-сайдкар без ez). Гейты
+  `smoke:corpus-vocab(-engine)` 15+23 (+ez), corpus-room 18 + room 14 + reader-parity. **Браузер
+  @380px RTL верифи:** рельс рендерится (Elisheva-лирика = recon-топ), бейджи ≈98%/89%/70%
+  (easy/in/hard цвета), 0 console-err. index.html не тронут.
 - **S4:** Рельс1 «Следующий для тебя» (персональный i+1, рендер только при ≥N в зоне). По выбору
   владельца #1 — шипим сразу (не за gate), зона 80–95% = конфиг-константа, перекалибровка по §7.
 - **Пост-шип (параллельно):** §7 real-profile validation харнесс → перекалибровка зоны/флагов;

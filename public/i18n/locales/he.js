@@ -1947,6 +1947,12 @@ window.I18N_LOCALES.he = {
       back: "חזרה",
       readyTitle: "מוכן לקריאה",
       readyIntro: "תרגום מכונה (Gemini) + ניקוד Dicta. ייחוס על כל כרטיס.",
+      coldStartTitle: "מאיפה להתחיל",
+      coldStartIntro: "טקסטים קצרים עם אוצר מילים נפוץ — כניסה קלה לעברית.",
+      cov: {
+        estimate: "הערכת מילים מוכרות לפי ההערות שלך",
+        load: "הרבה שמות/ארכאיזם",
+      },
       periodsTitle: "תקופות",
       readyN: "מוכנים",
       worksN: "יצירות",

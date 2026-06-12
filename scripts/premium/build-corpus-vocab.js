@@ -146,6 +146,17 @@ function buildCorpusVocab(opts = {}) {
   });
   const key2id = new Map(dictKeys.map((k, i) => [k, i]));
 
+  // S3 cold-start easiness — PROFILE-INDEPENDENT intrinsic score (build-time, not a stale
+  // per-user verdict): common-vocab concentration × low proper-noun load × coherent length.
+  // The «С чего начать» rail sorts by ez; fragments/scraps (n<MIN) sink, archaic/name-heavy
+  // sink (low matchedShare). Validated in .tmp/benyehuda/easiness-recon.js (top=accessible
+  // modern lyric/prose, bottom=title-scraps). top-1000 global-frequency lemma set:
+  const topKeyIds = new Set(
+    Array.from(keyFreq.entries()).sort((a, b) => b[1] - a[1]).slice(0, 1000).map((e) => key2id.get(e[0]))
+  );
+  const EZ_MIN_LEN = 80, EZ_BIG_LEN = 1500;
+  const lenShape = (n) => (n < EZ_MIN_LEN ? (n / EZ_MIN_LEN) * 0.6 : (n > EZ_BIG_LEN ? Math.max(0.4, EZ_BIG_LEN / n) : 1));
+
   // finalize per-work payload: ascending id list DELTA-encoded (gaps → smaller numbers
   // → ~33% better gzip, lossless) + parallel token counts. Client reconstructs absolute
   // ids by prefix-sum. tok[i] = in-work token count of lemma ids[i] (token-weighted i+1).
@@ -153,9 +164,12 @@ function buildCorpusVocab(opts = {}) {
   for (const id of Object.keys(worksOut)) {
     const w = worksOut[id];
     const pairs = Array.from(w._counts.entries(), ([k, c]) => [key2id.get(k), c]).sort((a, b) => a[0] - b[0]);
-    let prev = 0; const d = [];
-    for (const [absId] of pairs) { d.push(absId - prev); prev = absId; }
-    works[id] = { ids: d, tok: pairs.map((p) => p[1]), m: w.m, n: w.n };
+    let prev = 0, headTok = 0; const d = [];
+    for (const [absId, c] of pairs) { d.push(absId - prev); prev = absId; if (topKeyIds.has(absId)) headTok += c; }
+    const headShare = w.m ? headTok / w.m : 0;        // common-vocab concentration
+    const matchedShare = w.n ? w.m / w.n : 0;          // 1 - fallback (low proper-noun load)
+    const ez = +(headShare * matchedShare * lenShape(w.n)).toFixed(3);
+    works[id] = { ids: d, tok: pairs.map((p) => p[1]), m: w.m, n: w.n, ez: ez };
   }
 
   const sidecar = {

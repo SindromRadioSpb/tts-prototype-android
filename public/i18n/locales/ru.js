@@ -1951,6 +1951,12 @@ window.I18N_LOCALES.ru = {
       back: "Назад",
       readyTitle: "Готовы к чтению",
       readyIntro: "Машинный перевод (Gemini) + Dicta-никуд. Провенанс на каждой карточке.",
+      coldStartTitle: "С чего начать",
+      coldStartIntro: "Короткие тексты с частотной лексикой — лёгкий вход в иврит.",
+      cov: {
+        estimate: "Оценка знакомых слов по твоим заметкам",
+        load: "много имён/архаики",
+      },
       periodsTitle: "Периоды",
       readyN: "готовы",
       worksN: "работ",

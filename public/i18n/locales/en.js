@@ -1937,6 +1937,12 @@ window.I18N_LOCALES.en = {
       back: "Back",
       readyTitle: "Ready to read",
       readyIntro: "Machine translation (Gemini) + Dicta niqqud. Provenance on every card.",
+      coldStartTitle: "Where to start",
+      coldStartIntro: "Short texts built from high-frequency vocabulary — an easy way in.",
+      cov: {
+        estimate: "Estimated familiar words from your notes",
+        load: "many names/archaic",
+      },
       periodsTitle: "Periods",
       readyN: "ready",
       worksN: "works",

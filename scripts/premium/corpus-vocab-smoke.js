@@ -98,6 +98,7 @@ const ok = (c, m) => { if (c) { pass++; } else { fail++; console.error("  ✗ " 
     }
     if (!absOk) { badPayload++; continue; }
     if (!(w.m > 0 && w.m <= w.n && w.m === sumTok)) { badPayload++; continue; }
+    if (typeof w.ez !== "number" || w.ez < 0 || w.ez > 1) { badPayload++; continue; }   // S3 intrinsic easiness
     // coverage join: known ∩ work over matched (token-weighted) ∈ [0,1]
     let num = 0, den = 0, p2 = 0;
     for (let i = 0; i < w.ids.length; i++) { p2 += w.ids[i]; const key = "pid:" + s.dict[p2]; den += w.tok[i]; if (known.has(key)) num += w.tok[i]; }
