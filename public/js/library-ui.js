@@ -906,34 +906,42 @@ async function runRealProfileValidation() {
     if (!vocab || !vocab.works) { showValidationOverlay('vocab-сайдкар не загрузился'); return; }
     let eraById = {};
     try { const s = await (await fetch('/data/benyehuda/corpus-search-v' + CORPUS_CATALOG_VERSION + '.json?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' })).json(); for (const r of s) eraById[String(r.id)] = r.e || 'unknown'; } catch (_) {}
-    // Use a FRESH authoritative profile (NOT the possibly-stale ensureWordStates cache) — and heal
-    // the app cache while we're at it, so the rails/badges pick up the real profile after validation.
+    // FRESH profile with a small retry (the first getKnownWordStates after boot can come back empty
+    // transiently on a 10K-note DB). Heal the app cache too.
     let states = {};
-    try { states = await localDb.getKnownWordStates(); } catch (_) { states = {}; }
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try { states = await localDb.getKnownWordStates(); } catch (_) { states = {}; }
+      if (states && Object.keys(states).length) break;
+      await new Promise((r) => setTimeout(r, 300));
+    }
     if (states && Object.keys(states).length) readerWordStates = states;
-    const rows = [];
+    // SRS-state distribution — the likely reason engaged=0: saved words sit in 'new' state, and the
+    // current CV.CFG.KNOWN_STATES = {known,learning} EXCLUDES 'new', so saved vocab isn't counted.
+    const stDist = {}; for (const k in states) stDist[states[k]] = (stDist[states[k]] || 0) + 1;
+    // Recompute under BOTH interpretations: current (known+learning) AND saved-as-known (any state).
+    const SAVED_CFG = Object.assign({}, CV.CFG, { KNOWN_STATES: { known: 1, learning: 1, new: 1, weak: 1, stale: 1 } });
+    const rows = [], rowsSaved = [];
     for (const id of Object.keys(vocab.works)) {
-      const w = vocab.works[id];
-      const c = w && window.CorpusVocab.coverageForWork(w, vocab.dict, states);
+      const w = vocab.works[id]; if (!w) continue;
+      const c = window.CorpusVocab.coverageForWork(w, vocab.dict, states);
       if (!c || c.matchedDistinct < 20) continue;
-      rows.push({ mt: c.matchedDrillCov, at: c.totalCov, ty: c.matchedDistinct ? c.knownDistinct / c.matchedDistinct : 0, fb: c.fallbackShare, known: c.knownDistinct, era: eraById[id] || 'unknown' });
+      const cs = window.CorpusVocab.coverageForWork(w, vocab.dict, states, SAVED_CFG);
+      rows.push({ mt: c.matchedDrillCov, at: c.totalCov, ty: c.matchedDistinct ? c.knownDistinct / c.matchedDistinct : 0, known: c.knownDistinct, era: eraById[id] || 'unknown' });
+      rowsSaved.push({ mt: cs.matchedDrillCov, fb: cs.fallbackShare, known: cs.knownDistinct, era: eraById[id] || 'unknown' });
     }
     const N = rows.length;
     const LO = CV.CFG.ZONE_LO, HI = CV.CFG.ZONE_HI;
-    const inB = (k, lo, hi) => rows.filter((r) => r[k] >= lo && r[k] < hi).length;
-    const ge = (k, h) => rows.filter((r) => r[k] >= h).length;
-    const lt = (k, l) => rows.filter((r) => r[k] < l).length;
-    const pc = (k) => { const a = rows.map((r) => r[k]).sort((x, y) => x - y); return N ? [10, 25, 50, 75, 90].map((p) => a[Math.min(a.length - 1, Math.floor(a.length * p / 100))].toFixed(2)).join('/') : '—'; };
-    const eras = {}; for (const r of rows) { const e = eras[r.era] = eras[r.era] || { n: 0, fb: 0, in: 0 }; e.n++; e.fb += r.fb; if (r.mt >= LO && r.mt < HI) e.in++; }
+    const inB = (arr, k, lo, hi) => arr.filter((r) => r[k] >= lo && r[k] < hi).length;
+    const pc = (arr, k) => { const a = arr.map((r) => r[k]).sort((x, y) => x - y); return a.length ? [10, 25, 50, 75, 90].map((p) => a[Math.min(a.length - 1, Math.floor(a.length * p / 100))].toFixed(2)).join('/') : '—'; };
     const bands = [[.80, .95], [.75, .95], [.75, .90], [.70, .90], [.70, .85], [.65, .85]];
+    const eras = {}; for (const r of rowsSaved) { const e = eras[r.era] = eras[r.era] || { n: 0, fb: 0, in: 0 }; e.n++; e.fb += r.fb; if (r.mt >= LO && r.mt < HI) e.in++; }
     R += '=== BRR-P1-007 §7 real-profile validation ===\n';
-    R += 'scored=' + N + ' · engaged(≥1 known)=' + rows.filter((r) => r.known > 0).length + '\n';
-    R += 'zone ' + LO + '–' + HI + ' IN-ZONE: matched-token in=' + inB('mt', LO, HI) + ' easy=' + ge('mt', HI) + ' hard=' + lt('mt', LO) + '\n';
-    R += '            all-token   in=' + inB('at', LO, HI) + ' easy=' + ge('at', HI) + ' hard=' + lt('at', LO) + '\n';
-    R += '            type        in=' + inB('ty', LO, HI) + ' easy=' + ge('ty', HI) + ' hard=' + lt('ty', LO) + '\n';
-    R += 'matched-token pct p10/25/50/75/90: ' + pc('mt') + '\n';
-    R += 'in-zone @ bands: ' + bands.map(([l, h]) => '[' + l + '-' + h + ']=' + inB('mt', l, h)).join('  ') + '\n';
-    R += 'per-era (fb%·in): ' + Object.keys(eras).sort((a, b) => eras[b].n - eras[a].n).map((e) => e + ' n=' + eras[e].n + ' fb=' + (100 * eras[e].fb / eras[e].n).toFixed(0) + '% in=' + eras[e].in).join(' | ') + '\n';
+    R += 'scored=' + N + ' · profile states: ' + (Object.keys(stDist).map((s) => s + '=' + stDist[s]).join(' ') || '(empty)') + '\n';
+    R += '[known+learning]  engaged=' + rows.filter((r) => r.known > 0).length + ' · in-zone(mt ' + LO + '–' + HI + ')=' + inB(rows, 'mt', LO, HI) + '\n';
+    R += '[saved=known]     engaged=' + rowsSaved.filter((r) => r.known > 0).length + ' · in-zone(mt ' + LO + '–' + HI + ')=' + inB(rowsSaved, 'mt', LO, HI) + '\n';
+    R += '[saved] mt pct p10/25/50/75/90: ' + pc(rowsSaved, 'mt') + '\n';
+    R += '[saved] in-zone @ bands: ' + bands.map(([l, h]) => '[' + l + '-' + h + ']=' + inB(rowsSaved, 'mt', l, h)).join('  ') + '\n';
+    R += '[saved] per-era (fb%·in): ' + Object.keys(eras).sort((a, b) => eras[b].n - eras[a].n).map((e) => e + ' n=' + eras[e].n + ' fb=' + (100 * eras[e].fb / eras[e].n).toFixed(0) + '% in=' + eras[e].in).join(' | ') + '\n';
     // PROFILE DIAGNOSTIC — pinpoints why engaged might be 0 (note counts/types + pid presence + corpus join)
     let diag = '--- profile diagnostic ---\n';
     try {
