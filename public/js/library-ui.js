@@ -221,7 +221,7 @@ function renderCorpusCard(card) {
   const open = () => openCorpusWork(card);
   node.addEventListener('click', open);
   node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
-  enhanceCardWithCoverage(node, card);   // S3: progressive coverage badge (profile-gated, soft estimate)
+  observeCardCoverage(node, card);   // S3: lazy coverage badge (visible cards only — profile-gated, soft estimate)
   return node;
 }
 
@@ -266,6 +266,7 @@ function gcpTtsKey() { try { return localStorage.getItem('v3.gcpTtsApiKey') || '
 // per reader session from the user's OPFS notes; enabling the toggle warms the morph
 // engine (3.3 MB dict) + paints, so the DEFAULT reader-open stays light + offline-cheap.
 let readerWordStates = null; // cached {lemmaKey: state}
+let readerWordStatesLoading = null; // single-flight guard (S3: 796 cards call ensureWordStates at once)
 function wordStatusEnabled() { try { return localStorage.getItem('room.wordStatus') === '1'; } catch (_) { return false; } }
 function wordStatusSet(v) { try { localStorage.setItem('room.wordStatus', v ? '1' : '0'); } catch (_) {} }
 // Tier-3 «точный режим» (context mode, opt-in, default OFF). The provider sends the tapped
@@ -289,8 +290,17 @@ function makeContextProvider() {
 }
 async function ensureWordStates() {
   if (readerWordStates) return readerWordStates;
-  try { readerWordStates = await localDb.getKnownWordStates(); } catch (_) { readerWordStates = {}; }
-  return readerWordStates;
+  // SINGLE-FLIGHT (critical): S3's per-card coverage badge calls this for EVERY corpus card
+  // (the ready rail alone is ~796). Without the guard, 796 concurrent getKnownWordStates()
+  // queries flood the OPFS SQLite worker queue and block openCorpusWork's importBundle write
+  // → texts won't open (worse with a large note profile, where each query is slow). The guard
+  // collapses them to ONE query that every caller awaits.
+  if (readerWordStatesLoading) return readerWordStatesLoading;
+  readerWordStatesLoading = (async () => {
+    try { readerWordStates = await localDb.getKnownWordStates(); } catch (_) { readerWordStates = {}; }
+    return readerWordStates;
+  })();
+  try { return await readerWordStatesLoading; } finally { readerWordStatesLoading = null; }
 }
 async function applyWordStatus() {
   const mount = $('roomReaderTable');
@@ -757,6 +767,27 @@ if (typeof window !== 'undefined') {
 // (in 80–95% = sweet spot · easy ≥95% · hard <80%); the load flag «много имён/архаики» fires
 // when proper-noun/archaic share is high (the two-channel honesty, DESIGN D2). Ready cards only
 // (unbaked works are absent from the sidecar → coverageFor returns null → no badge).
+// Compute coverage badges LAZILY — only when a card scrolls near the viewport. A corpus rail
+// holds up to ~796 cards but shows ~4 at once; computing all eagerly fanned getKnownWordStates
+// out across every card (the S3 regression that jammed text-open). The observer keeps it to the
+// handful actually visible. Eager fallback where IntersectionObserver is unavailable.
+let _covObserver = null;
+function getCovObserver() {
+  if (_covObserver !== null) return _covObserver;
+  _covObserver = (typeof IntersectionObserver !== 'undefined')
+    ? new IntersectionObserver((entries, obs) => {
+        for (const e of entries) if (e.isIntersecting) { obs.unobserve(e.target); enhanceCardWithCoverage(e.target, e.target.__covCard); }
+      }, { rootMargin: '300px' })
+    : false;
+  return _covObserver;
+}
+function observeCardCoverage(node, card) {
+  if (!node || card == null || card.id == null || !window.CorpusVocabRoom) return;
+  const obs = getCovObserver();
+  if (!obs) { enhanceCardWithCoverage(node, card); return; }
+  node.__covCard = card;
+  obs.observe(node);
+}
 function enhanceCardWithCoverage(node, card) {
   if (!node || !card || card.id == null || !window.CorpusVocabRoom) return;
   roomVocabCoverageFor(card.id).then((cov) => {
