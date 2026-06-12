@@ -297,8 +297,13 @@ async function ensureWordStates() {
   // collapses them to ONE query that every caller awaits.
   if (readerWordStatesLoading) return readerWordStatesLoading;
   readerWordStatesLoading = (async () => {
-    try { readerWordStates = await localDb.getKnownWordStates(); } catch (_) { readerWordStates = {}; }
-    return readerWordStates;
+    // CRITICAL: a transient FIRST getKnownWordStates() failure right after boot (heavy on a 10K-note
+    // profile) used to be cached as {} — and `if (readerWordStates)` treats the empty object as
+    // "loaded", so it NEVER retried. The reader's whole profile (i+1 rail, coverage badges,
+    // word-status) then silently saw an empty profile. Fix: on error leave the cache NULL so the
+    // next call retries; only a successful load (even genuinely empty) is cached.
+    try { readerWordStates = await localDb.getKnownWordStates(); return readerWordStates; }
+    catch (_) { readerWordStates = null; return {}; }
   })();
   try { return await readerWordStatesLoading; } finally { readerWordStatesLoading = null; }
 }
@@ -901,9 +906,15 @@ async function runRealProfileValidation() {
     if (!vocab || !vocab.works) { showValidationOverlay('vocab-сайдкар не загрузился'); return; }
     let eraById = {};
     try { const s = await (await fetch('/data/benyehuda/corpus-search-v' + CORPUS_CATALOG_VERSION + '.json?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' })).json(); for (const r of s) eraById[String(r.id)] = r.e || 'unknown'; } catch (_) {}
+    // Use a FRESH authoritative profile (NOT the possibly-stale ensureWordStates cache) — and heal
+    // the app cache while we're at it, so the rails/badges pick up the real profile after validation.
+    let states = {};
+    try { states = await localDb.getKnownWordStates(); } catch (_) { states = {}; }
+    if (states && Object.keys(states).length) readerWordStates = states;
     const rows = [];
     for (const id of Object.keys(vocab.works)) {
-      const c = await Room.coverageFor(id);
+      const w = vocab.works[id];
+      const c = w && window.CorpusVocab.coverageForWork(w, vocab.dict, states);
       if (!c || c.matchedDistinct < 20) continue;
       rows.push({ mt: c.matchedDrillCov, at: c.totalCov, ty: c.matchedDistinct ? c.knownDistinct / c.matchedDistinct : 0, fb: c.fallbackShare, known: c.knownDistinct, era: eraById[id] || 'unknown' });
     }
