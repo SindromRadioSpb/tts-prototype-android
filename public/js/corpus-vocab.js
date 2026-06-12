@@ -23,9 +23,16 @@
   "use strict";
 
   var CFG = {
-    ZONE_LO: 0.80, ZONE_HI: 0.95,                    // i+1 drill-coverage band (recalibratable)
+    // i+1 drill-coverage band — RECALIBRATED to the first real profile (§7, 2026-06-13): at the
+    // owner's ~54% median corpus coverage the strict 80–95% comfort band held only ~2 works, so the
+    // band was lowered to 70–90% (~15 works) — an honest "growth" zone for the literary corpus.
+    ZONE_LO: 0.70, ZONE_HI: 0.90,
     LOAD_FALLBACK_HI: 0.18, LOAD_MATCHED_LO: 0.50,   // reading-load flag thresholds
-    KNOWN_STATES: { known: true, learning: true },   // "known" = known+learning (D2)
+    // "familiar" = the learner has ENGAGED with the word (has a word_study note) — known+learning
+    // AND new/weak/stale. §7 found the owner's saved vocab sits in 'new' state (they review in Anki,
+    // not the in-app SRS), so known+learning-only counted 0; saved-as-familiar is the available signal.
+    // The badge is honestly labelled «знакомо» (familiar), not «выучено» (mastered).
+    KNOWN_STATES: { known: true, learning: true, new: true, weak: true, stale: true },
     MIN_RAIL: 3, RAIL_TOP: 12, AUTHOR_CAP: 2,        // S4 «Следующий для тебя» gating/size
   };
 

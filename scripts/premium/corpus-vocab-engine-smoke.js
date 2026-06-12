@@ -18,11 +18,18 @@ const approx = (a, b, e) => Math.abs(a - b) <= (e || 1e-9);
 ok(JSON.stringify(CV.reconstructIds([3, 1, 2, 5])) === JSON.stringify([3, 4, 6, 11]), "reconstructIds delta→abs");
 ok(JSON.stringify(CV.reconstructIds([0, 1, 1])) === JSON.stringify([0, 1, 2]), "reconstructIds from 0");
 
-// ── 2. classifyZone bounds ────────────────────────────────────────────────────
-ok(CV.classifyZone(0.79) === "hard", "0.79→hard");
-ok(CV.classifyZone(0.80) === "in", "0.80→in (lo inclusive)");
-ok(CV.classifyZone(0.94) === "in", "0.94→in");
-ok(CV.classifyZone(0.95) === "easy", "0.95→easy (hi inclusive)");
+// strict cfg (old 80–95% / known+learning) for bound-INDEPENDENT logic tests — decoupled from the
+// shipped CV.CFG, which is recalibrated to the real profile (70–90% / saved=familiar).
+const SC = { ZONE_LO: 0.80, ZONE_HI: 0.95, KNOWN_STATES: { known: true, learning: true } };
+
+// ── 2. classifyZone bounds (explicit cfg) ─────────────────────────────────────
+ok(CV.classifyZone(0.79, SC) === "hard", "0.79→hard");
+ok(CV.classifyZone(0.80, SC) === "in", "0.80→in (lo inclusive)");
+ok(CV.classifyZone(0.94, SC) === "in", "0.94→in");
+ok(CV.classifyZone(0.95, SC) === "easy", "0.95→easy (hi inclusive)");
+// shipped CV.CFG is the recalibrated config (§7 real-profile)
+ok(CV.CFG.ZONE_LO === 0.70 && CV.CFG.ZONE_HI === 0.90, "shipped zone = 70–90% (recalibrated)");
+ok(CV.CFG.KNOWN_STATES.new === true && CV.CFG.KNOWN_STATES.known === true, "shipped KNOWN_STATES = saved-as-familiar");
 
 // ── 3. synthetic sidecar (hand-checkable) ─────────────────────────────────────
 // dict ids: 0=pid:10, 1=pid:20, 2=pid:30, 3=pid:40. One work:
@@ -39,10 +46,10 @@ ok(r && r.zone === "hard", "empty profile zone hard");
 ok(r && approx(r.fallbackShare, 0.20) && r.loadFlag === true, "fallbackShare 0.20 → loadFlag (>0.18)");
 
 // know the two HIGH-token lemmas (pid:10 tok10, pid:20 tok5) → knownTok=15/20=0.75 drill
-r = CV.coverageForWork(work, dict, { "pid:10": "known", "pid:20": "learning" });
+r = CV.coverageForWork(work, dict, { "pid:10": "known", "pid:20": "learning" }, SC);
 ok(r && approx(r.matchedDrillCov, 0.75), "drill-cov token-weighted 15/20=0.75 (known+learning both count)");
 ok(r && approx(r.totalCov, 15 / 25), "totalCov 15/25 over ALL tokens");
-ok(r && r.zone === "hard", "0.75 < 0.80 → hard");
+ok(r && r.zone === "hard", "0.75 < 0.80 → hard (strict cfg)");
 ok(r && r.frontierCount === 2 && r.frontier[0].pid === "30", "frontier = 2 unknowns, most-frequent (pid:30 tok3) first");
 
 // token-weighting proof: knowing the SINGLE highest-token lemma (pid:10 tok10) = 0.50,
@@ -50,13 +57,15 @@ ok(r && r.frontierCount === 2 && r.frontier[0].pid === "30", "frontier = 2 unkno
 r = CV.coverageForWork(work, dict, { "pid:10": "known" });
 ok(r && approx(r.matchedDrillCov, 0.50), "token-weighted: 1 high-freq known → 0.50 not type-0.25");
 
-// 'new'/'weak' do NOT count as known
-r = CV.coverageForWork(work, dict, { "pid:10": "new", "pid:20": "weak" });
-ok(r && approx(r.matchedDrillCov, 0), "new/weak are not 'known'");
+// strict cfg EXCLUDES 'new'/'weak'; shipped CFG (saved=familiar) INCLUDES them
+r = CV.coverageForWork(work, dict, { "pid:10": "new", "pid:20": "weak" }, SC);
+ok(r && approx(r.matchedDrillCov, 0), "strict cfg: new/weak are not 'known'");
+r = CV.coverageForWork(work, dict, { "pid:10": "new", "pid:20": "weak" });   // shipped CFG
+ok(r && approx(r.matchedDrillCov, 0.75), "shipped cfg: saved (new/weak) count as familiar → 15/20");
 
-// in-zone: know everything but the smallest (tok2) → 18/20 = 0.90 → in
-r = CV.coverageForWork(work, dict, { "pid:10": "known", "pid:20": "known", "pid:30": "known" });
-ok(r && approx(r.matchedDrillCov, 0.90) && r.zone === "in", "18/20=0.90 → in-zone");
+// in-zone: know everything but the smallest (tok2) → 18/20 = 0.90 → in (strict cfg)
+r = CV.coverageForWork(work, dict, { "pid:10": "known", "pid:20": "known", "pid:30": "known" }, SC);
+ok(r && approx(r.matchedDrillCov, 0.90) && r.zone === "in", "18/20=0.90 → in-zone (strict cfg)");
 
 // malformed → honest null
 ok(CV.coverageForWork(null, dict, {}) === null, "null work → null");
