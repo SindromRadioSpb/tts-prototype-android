@@ -61,7 +61,13 @@
    (796 карточек × `ensureWordStates` без single-flight → стампид OPFS-запросов блокировал `importBundle`;
    виден только на БОЛЬШОМ профиле). Фикс: single-flight `ensureWordStates` + ленивый IntersectionObserver
    `observeCardCoverage` (coverage только для видимых карточек). Прод-верифи: 6 вызовов не 796, открытие 172мс.
-   Урок → [[feedback-test-with-nonempty-profile]]. **NEXT = S4** (Рельс1 «Следующий для тебя», рендер при ≥N в зоне).
+   Урок → [[feedback-test-with-nonempty-profile]]. **S4 SHIPPED+PROD** (`087f704`, SW `v3.10.35-room-next-rail`):
+   Рельс1 — ОДИН профиль-выбранный рельс `pickPersonalRail` (pure, 11 unit): зона→«🎯 Следующий для тебя» /
+   перерос→«🔥 Следующий вызов» / too-new→«🌱 С чего начать»; координатор `injectCorpusRails` (single-flight,
+   796 sync скоринг, Рельс2 recede). Прод-верифи: picker `next:3`, cold-start+открытие 167мс, 0 err.
+   **🎉 KEYSTONE BRR-P1-007 ЗАВЕРШЁН (S1–S4 в проде) — learner-loop замкнут: читай→тап→карточка→Сохранить→
+   цвет-статус→Anki→ЧТО ДАЛЬШЕ (i+1).** NEXT (опц.): пост-шип real-profile validation (§7 дизайна) →
+   перекалибровка зоны `CV.CFG` + per-era fallback; «Подробнее→Студия» deep-link; GCP-WaveNet form-audio.
 2. ~~Тир 3 «точный режим»~~ — ОТГРУЖЕН (путь C). NEXT-полиш: больше `CONTEXT_GLOSS`-наречий по мере находок;
    опц. контекст для bulk-цвет-статуса (сейчас офлайн); ranked-кандидаты.
 3. ~~Тир 3a деплой~~ — СДЕЛАНО (`5a287a6` задеплоен; egress-миф развеян, прод Dicta работает).
