@@ -51,11 +51,13 @@
    SHIPPED** (`3f87b60`, 2026-06-12). Полное состояние → **`docs/planning/BRR_P1_007_I_PLUS_1_DESIGN_2026_06_12.md`**
    (READ для продолжения). Владелец выбрал агрессивный путь (полный A / все эпохи / «26K» / без курации;
    честность на уровне поля). Замерено: офлайн match 86.7%, сайдкар ~2.5МБ gz @8099. i+1-рекомендатель =
-   гипотеза (validate-in-prod). **S1+S2 SHIPPED+PROD** (`3f87b60`,`e2b4ebc`, SW `v3.10.32-room-vocab-engine`):
-   S1 producer+гейт; S2 клиент-движок `corpus-vocab.js` (`window.CorpusVocab`/`CorpusVocabRoom`) +
-   ленивый сайдкар `corpus-vocab-v7.json` (253КБ gz) + two-channel coverage; гейты
-   `smoke:corpus-vocab(-engine)` 15+23, прод-верифи браузером (drill/frontier/zone ок). **NEXT = S3**
-   (UI: бейджи покрытия @380px RTL + Рельс2 «С чего начать» холодный старт), затем S4 (Рельс1 i+1).
+   гипотеза (validate-in-prod). **S1+S2+S3 SHIPPED+PROD** (`3f87b60`,`e2b4ebc`,`bdf3ae5`, SW
+   `v3.10.33-room-coldstart-badges`): S1 producer+гейт; S2 клиент-движок `corpus-vocab.js`
+   (`window.CorpusVocab`/`CorpusVocabRoom`) + ленивый сайдкар `corpus-vocab-v7.json` + two-channel
+   coverage; **S3** producer `ez` + Рельс2 «🌱 С чего начать» (top-12 ready по лёгкости, profile-free) +
+   progressive coverage-бейдж (профиль-gated %, zone-цвет + load-флаг) + cache-bust `CORPUS_VOCAB_DATA_REV`.
+   Гейты `smoke:corpus-vocab(-engine)` 15+23, corpus-room 18, room 14; прод-верифи браузером @380px
+   (рельс+локаль+ez ок). **NEXT = S4** (Рельс1 «Следующий для тебя» персональный i+1, рендер при ≥N в зоне).
 2. ~~Тир 3 «точный режим»~~ — ОТГРУЖЕН (путь C). NEXT-полиш: больше `CONTEXT_GLOSS`-наречий по мере находок;
    опц. контекст для bulk-цвет-статуса (сейчас офлайн); ranked-кандидаты.
 3. ~~Тир 3a деплой~~ — СДЕЛАНО (`5a287a6` задеплоен; egress-миф развеян, прод Dicta работает).
