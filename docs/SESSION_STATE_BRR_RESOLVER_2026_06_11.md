@@ -56,8 +56,12 @@
    (`window.CorpusVocab`/`CorpusVocabRoom`) + ленивый сайдкар `corpus-vocab-v7.json` + two-channel
    coverage; **S3** producer `ez` + Рельс2 «🌱 С чего начать» (top-12 ready по лёгкости, profile-free) +
    progressive coverage-бейдж (профиль-gated %, zone-цвет + load-флаг) + cache-bust `CORPUS_VOCAB_DATA_REV`.
-   Гейты `smoke:corpus-vocab(-engine)` 15+23, corpus-room 18, room 14; прод-верифи браузером @380px
-   (рельс+локаль+ez ок). **NEXT = S4** (Рельс1 «Следующий для тебя» персональный i+1, рендер при ≥N в зоне).
+   Гейты `smoke:corpus-vocab(-engine)` 15+23, corpus-room 18, room 14; прод-верифи браузером @380px.
+   **S3-HOTFIX** (`8f50b06`, SW `v3.10.34-room-coverage-lazy`): S3 регрессия — тексты не открывались
+   (796 карточек × `ensureWordStates` без single-flight → стампид OPFS-запросов блокировал `importBundle`;
+   виден только на БОЛЬШОМ профиле). Фикс: single-flight `ensureWordStates` + ленивый IntersectionObserver
+   `observeCardCoverage` (coverage только для видимых карточек). Прод-верифи: 6 вызовов не 796, открытие 172мс.
+   Урок → [[feedback-test-with-nonempty-profile]]. **NEXT = S4** (Рельс1 «Следующий для тебя», рендер при ≥N в зоне).
 2. ~~Тир 3 «точный режим»~~ — ОТГРУЖЕН (путь C). NEXT-полиш: больше `CONTEXT_GLOSS`-наречий по мере находок;
    опц. контекст для bulk-цвет-статуса (сейчас офлайн); ranked-кандидаты.
 3. ~~Тир 3a деплой~~ — СДЕЛАНО (`5a287a6` задеплоен; egress-миф развеян, прод Dicta работает).
