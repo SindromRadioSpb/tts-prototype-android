@@ -923,7 +923,25 @@ async function runRealProfileValidation() {
     R += 'matched-token pct p10/25/50/75/90: ' + pc('mt') + '\n';
     R += 'in-zone @ bands: ' + bands.map(([l, h]) => '[' + l + '-' + h + ']=' + inB('mt', l, h)).join('  ') + '\n';
     R += 'per-era (fb%·in): ' + Object.keys(eras).sort((a, b) => eras[b].n - eras[a].n).map((e) => e + ' n=' + eras[e].n + ' fb=' + (100 * eras[e].fb / eras[e].n).toFixed(0) + '% in=' + eras[e].in).join(' | ') + '\n';
-    showValidationOverlay(R);
+    // PROFILE DIAGNOSTIC — pinpoints why engaged might be 0 (note counts/types + pid presence + corpus join)
+    let diag = '--- profile diagnostic ---\n';
+    try {
+      const tot = await localDb.dbQuery("SELECT COUNT(*) c FROM notes_v2", []);
+      const ws = await localDb.dbQuery("SELECT COUNT(*) c FROM notes_v2 WHERE note_type='word_study'", []);
+      const wsPid = await localDb.dbQuery("SELECT COUNT(*) c FROM notes_v2 WHERE note_type='word_study' AND COALESCE(json_extract(body_json,'$.pealim_id'),'')!=''", []);
+      const types = await localDb.dbQuery("SELECT note_type, COUNT(*) c FROM notes_v2 GROUP BY note_type", []);
+      diag += 'notes_v2 total=' + ((tot[0] || {}).c) + ' · word_study=' + ((ws[0] || {}).c) + ' (с pealim_id=' + ((wsPid[0] || {}).c) + ')\n';
+      diag += 'note_type: ' + (types || []).map((r) => r.note_type + '=' + r.c).join(' ') + '\n';
+    } catch (e) { diag += 'diag-query ERR: ' + (e && e.message || e) + '\n'; }
+    try {
+      const prof = await localDb.getKnownWordStates();
+      const pk = Object.keys(prof || {});
+      const pid = pk.filter((k) => k.indexOf('pid:') === 0);
+      const dictSet = new Set((vocab.dict || []).map((p) => 'pid:' + p));
+      diag += 'getKnownWordStates keys=' + pk.length + ' (pid:' + pid.length + ' · norm#pos:' + (pk.length - pid.length) + ') · pid∩corpus=' + pid.filter((k) => dictSet.has(k)).length + '\n';
+      diag += 'sample pid: ' + pid.slice(0, 8).join(',') + '\n';
+    } catch (e) { diag += 'kws ERR: ' + (e && e.message || e) + '\n'; }
+    showValidationOverlay(diag + '\n' + R);
   } catch (e) { showValidationOverlay('ошибка валидации: ' + (e && e.message || e) + '\n' + R); }
 }
 function showValidationOverlay(text) {
