@@ -1940,7 +1940,7 @@ window.I18N_LOCALES.en = {
       coldStartTitle: "Where to start",
       coldStartIntro: "Short texts built from high-frequency vocabulary — an easy way in.",
       nextTitle: "Next for you",
-      nextIntro: "Texts where you already know ~80–95% of the words — the sweet spot for growth.",
+      nextIntro: "Texts in your growth zone — you know most of the words; the rest you'll pick up as you read.",
       challengeTitle: "Next challenge",
       challengeIntro: "You've outgrown the easy ones — here's a reachable stretch just above your level.",
       cov: {
