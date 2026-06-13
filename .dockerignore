@@ -21,6 +21,12 @@ data/
 !public/data/
 !public/data/inflection/
 !public/data/inflection/**
+# Corpus work BODIES live on the prod volume, NOT in the image (re-bakeable;
+# gitignored, but present locally during baking → would bloat the context/image).
+public/data/benyehuda/works/
+# Full morphology dict raw form (~75MB) — regenerated at runtime from the tracked
+# .gz sibling; gitignored, local-only. The .gz + .bin (basic) stay in the image.
+public/morph/heb_morphology_full.bin
 
 # Test/personal library fixtures (version-controlled in git, but NOT baked
 # into the server image — user libraries live in browser OPFS, not on server)
