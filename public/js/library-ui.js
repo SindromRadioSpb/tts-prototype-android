@@ -1530,10 +1530,13 @@ async function boot() {
     await autoImportCanon();   // publish the shipped canon shelf on first visit (idempotent)
     await loadData();
     await loadCorpusCatalog(); // BRR-P0-007 Проход-3 — catalog-driven "Корпус" track (served-on-open)
-    // Default to the first track that actually has content (on-ramp first; corpus = root loaded).
-    if (!(shelvesByTrack.accessible || []).length) {
-      if ((shelvesByTrack.literary || []).length) activeTrack = 'literary';
-      else if (corpusRoot) activeTrack = 'corpus';
+    // Default to the Корпус (Reading Room) track when its catalog is available — the bilingual
+    // canon with morphology-on-tap now leads. Fall back to the on-ramp tracks only if the corpus
+    // root didn't load or is empty (mirrors the tabCorpus un-hide condition in loadCorpusCatalog).
+    if (corpusRoot && corpusRoot.counts && corpusRoot.counts.works > 0) {
+      activeTrack = 'corpus';
+    } else if (!(shelvesByTrack.accessible || []).length && (shelvesByTrack.literary || []).length) {
+      activeTrack = 'literary';
     }
     setActiveTrack(activeTrack);
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
