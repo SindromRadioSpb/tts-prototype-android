@@ -253,7 +253,29 @@ function setActiveTrack(track) {
 // Opens a canon text IN THIS DOCUMENT via reader-core, reusing the db worker that
 // boot() already warmed — the latency win over the cold deep-link. Reading-aids
 // (translit profile + column visibility) re-render from the cached rows, no refetch.
-let readerCfg = { visibleColumns: { action: true, he: true, niqqud: true, translit: true, ru: true }, translitProfile: 'sbl' };
+// BRR-P1-006 Scaffolded Reading Console — scaffolding "modes" (not just on/off) so the leves can FADE.
+//   niqqudMode: 'full' (all vocalized) | 'adaptive' (de-vocalize words you know) | 'off' (column hidden)
+//   ruMode:     'show'  (translation shown) | 'reveal' (blurred, tap a row to reveal) | 'off'
+// Persisted to localStorage (loadReaderCfg/saveReaderCfg) so the scaffolding is a JOURNEY, not reset each load.
+let readerCfg = { niqqudMode: 'full', translitOn: true, translitProfile: 'sbl', ruMode: 'show' };
+function loadReaderCfg() {
+  try {
+    const nm = localStorage.getItem('room.niqqudMode'); if (nm === 'full' || nm === 'adaptive' || nm === 'off') readerCfg.niqqudMode = nm;
+    const tp = localStorage.getItem('room.translitProfile'); if (tp === 'sbl' || tp === 'ru-phonetic') readerCfg.translitProfile = tp;
+    const to = localStorage.getItem('room.translitOn'); if (to != null) readerCfg.translitOn = to === '1';
+    const rm = localStorage.getItem('room.ruMode'); if (rm === 'show' || rm === 'reveal' || rm === 'off') readerCfg.ruMode = rm;
+  } catch (_) {}
+}
+function saveReaderCfg() {
+  try {
+    localStorage.setItem('room.niqqudMode', readerCfg.niqqudMode);
+    localStorage.setItem('room.translitProfile', readerCfg.translitProfile);
+    localStorage.setItem('room.translitOn', readerCfg.translitOn ? '1' : '0');
+    localStorage.setItem('room.ruMode', readerCfg.ruMode);
+  } catch (_) {}
+}
+function aidsHinted() { try { return localStorage.getItem('room.aidsHinted') === '1'; } catch (_) { return true; } }
+function aidsHintedSet() { try { localStorage.setItem('room.aidsHinted', '1'); } catch (_) {} }
 let readerRows = [];
 let readerAudio = null; // attachRowAudio detach handle
 let readerMorph = null; // ReaderMorph attach detach handle
@@ -307,12 +329,17 @@ async function ensureWordStates() {
   })();
   try { return await readerWordStatesLoading; } finally { readerWordStatesLoading = null; }
 }
-async function applyWordStatus() {
+// BRR-P1-006/009 — apply BOTH word-status colouring and adaptive niqqud fade in ONE pass
+// (reader-morph resolves each word once). States are only fetched when a decoration needs them
+// (colour on, or niqqud 'adaptive'); otherwise a cheap clear restores plain/neutral.
+async function applyDecorations() {
   const mount = $('roomReaderTable');
   if (!mount || !window.ReaderMorph) return;
-  if (!wordStatusEnabled()) { try { window.ReaderMorph.clearLearningStatus(mount); } catch (_) {} return; }
-  const states = await ensureWordStates();
-  try { await window.ReaderMorph.paintLearningStatus(mount, states); } catch (_) {}
+  const color = wordStatusEnabled();
+  const fadeMode = readerCfg.niqqudMode;            // 'full' | 'adaptive' | 'off'
+  const need = color || fadeMode === 'adaptive';
+  const states = need ? await ensureWordStates() : {};
+  try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode }); } catch (_) {}
 }
 
 // ── note-formation: turn a tapped word into a word_study note (the «превращение») ──
@@ -358,8 +385,8 @@ async function roomSaveWord(card, occ) {
   if (note && occ && (occ.text_id || occ.sentence_id)) {
     try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
   }
-  readerWordStates = null; // saved a note → status map is stale; repaint if colouring is on
-  try { if (wordStatusEnabled()) applyWordStatus(); } catch (_) {}
+  readerWordStates = null; // saved a note → status map is stale; re-decorate (colour + adaptive fade)
+  try { applyDecorations(); } catch (_) {}
   roomToast(tt('room.morph.savedToast', 'Слово сохранено в заметки'));
   if (!note) return { status: 'created' };
   let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
@@ -379,7 +406,13 @@ function roomToast(msg) {
 
 function readerConfig() {
   return {
-    visibleColumns: { ...readerCfg.visibleColumns },
+    // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
+    visibleColumns: {
+      action: true, he: true,
+      niqqud: readerCfg.niqqudMode !== 'off',
+      translit: !!readerCfg.translitOn,
+      ru: readerCfg.ruMode !== 'off',
+    },
     baseWidths: [15, 20, 20, 21, 24],
     translitProfile: readerCfg.translitProfile,
     ideMode: false,
@@ -401,11 +434,31 @@ function attachReaderAudio() {
     profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
     gcpKey: gcpTtsKey,
     t: (k) => tt(k, k),
-    // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶
-    // button + translit/ru cells still play the row.
-    tapToHearExcludeCols: ['he', 'niqqud'],
+    // he/niqqud cell taps are reserved for the word-morphology layer below; the ▶ button +
+    // translit cell still play the row. In reveal mode the ru cell tap reveals (not audio).
+    tapToHearExcludeCols: readerCfg.ruMode === 'reveal' ? ['he', 'niqqud', 'ru'] : ['he', 'niqqud'],
   });
   attachReaderMorph(mount);
+  applyReveal(mount);
+}
+
+// BRR-P1-006 D2 — progressive translation reveal (active recall). In 'reveal' mode the ru cells
+// start blurred (.ru-veiled); a capture-phase tap reveals that row (.ru-revealed). Per-row state is
+// DOM-only (resets on rerender/new text — fine for v1; the MODE itself persists). The handler runs
+// in capture so it pre-empts reader-core's row-audio delegate (ru is also excluded from audio above).
+let revealHandler = null;
+function applyReveal(mount) {
+  if (!mount) return;
+  if (revealHandler) { try { mount.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
+  const ruCells = mount.querySelectorAll('#proTable tbody td[data-col="ru"]');
+  const on = readerCfg.ruMode === 'reveal';
+  ruCells.forEach((td) => { if (on) td.classList.add('ru-veiled'); else td.classList.remove('ru-veiled', 'ru-revealed'); });
+  if (!on) return;
+  revealHandler = (e) => {
+    const td = e.target && e.target.closest ? e.target.closest('td[data-col="ru"]') : null;
+    if (td && mount.contains(td)) { e.preventDefault(); e.stopPropagation(); td.classList.toggle('ru-revealed'); }
+  };
+  mount.addEventListener('click', revealHandler, true);
 }
 
 // Attach the light morphology-on-tap layer (reader-morph.js): wraps he/niqqud words
@@ -419,7 +472,7 @@ function attachReaderMorph(mount) {
   const opts = { getRow: (i) => readerRows[i], saveWord: roomSaveWord, lookupNote: roomLookupNote };
   if (contextModeEnabled()) opts.contextProvider = makeContextProvider();   // Tier-3 opt-in
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
-  applyWordStatus();
+  applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }
 
 function readerStateBox(i18nKey, icon) {
@@ -444,34 +497,55 @@ function buildAidsPanel() {
   const panel = $('readerAids');
   if (!panel) return;
   panel.innerHTML = '';
-  const profLab = el('label');
-  profLab.appendChild(el('span', { i18n: 'room.reader.translit', text: tt('room.reader.translit') }));
-  const sel = el('select', { attrs: { 'aria-label': tt('room.reader.translit') } });
-  [['sbl', tt('room.reader.profileSbl', 'SBL')], ['ru-phonetic', tt('room.reader.profileRu', 'Рус')]].forEach(([v, label]) => {
-    const o = el('option', { text: label, attrs: { value: v } });
-    if (v === readerCfg.translitProfile) o.setAttribute('selected', '');
-    sel.appendChild(o);
-  });
-  sel.addEventListener('change', (e) => { readerCfg.translitProfile = e.target.value; rerenderReader(); });
-  profLab.appendChild(sel);
-  panel.appendChild(profLab);
-  [['niqqud', 'room.reader.colNiqqud'], ['translit', 'room.reader.colTranslit'], ['ru', 'room.reader.colRu']].forEach(([col, key]) => {
+  // labeled <select> helper — opts = [[value, i18nKey, fallback]]; onChange(value). Mode changes
+  // persist (saveReaderCfg) and rerender the table (column visibility + fresh fade/reveal).
+  const addSelect = (labelKey, labelFallback, opts, current, onChange) => {
     const lab = el('label');
-    const cb = el('input', { attrs: { type: 'checkbox' } });
-    cb.checked = !!readerCfg.visibleColumns[col];
-    cb.addEventListener('change', () => { readerCfg.visibleColumns[col] = cb.checked; rerenderReader(); });
-    lab.appendChild(cb);
-    lab.appendChild(el('span', { i18n: key, text: tt(key) }));
+    lab.appendChild(el('span', { i18n: labelKey, text: tt(labelKey, labelFallback) }));
+    const sel = el('select', { attrs: { 'aria-label': tt(labelKey, labelFallback) } });
+    opts.forEach(([v, k, fb]) => {
+      const o = el('option', { i18n: k, text: tt(k, fb), attrs: { value: v } });
+      if (v === current) o.setAttribute('selected', '');
+      sel.appendChild(o);
+    });
+    sel.addEventListener('change', (e) => onChange(e.target.value));
+    lab.appendChild(sel);
     panel.appendChild(lab);
-  });
+  };
+  // BRR-P1-006 — Огласовка: всегда / по нужде / выкл (adaptive = fade on words you already know).
+  addSelect('room.reader.niqqudMode', 'Огласовка', [
+    ['full', 'room.reader.niqqudFull', 'всегда'],
+    ['adaptive', 'room.reader.niqqudAdaptive', 'по нужде'],
+    ['off', 'room.reader.niqqudOff', 'выкл'],
+  ], readerCfg.niqqudMode, (v) => { readerCfg.niqqudMode = v; saveReaderCfg(); rerenderReader(); });
+  // Транслит — профиль (SBL / Рус) + вкл/выкл.
+  addSelect('room.reader.translit', 'Транслит', [
+    ['sbl', 'room.reader.profileSbl', 'SBL'],
+    ['ru-phonetic', 'room.reader.profileRu', 'Рус'],
+  ], readerCfg.translitProfile, (v) => { readerCfg.translitProfile = v; saveReaderCfg(); rerenderReader(); });
+  const tLab = el('label');   // plain label (NOT .reader-aids-status — that marks the status/context toggles)
+  const tCb = el('input', { attrs: { type: 'checkbox' } });
+  tCb.checked = !!readerCfg.translitOn;
+  tCb.addEventListener('change', () => { readerCfg.translitOn = tCb.checked; saveReaderCfg(); rerenderReader(); });
+  tLab.appendChild(tCb);
+  tLab.appendChild(el('span', { i18n: 'room.reader.colTranslit', text: tt('room.reader.colTranslit', 'Транслит') }));
+  panel.appendChild(tLab);
+  // BRR-P1-006 — Перевод: показан / по тапу / выкл (reveal = active recall).
+  addSelect('room.reader.ruMode', 'Перевод', [
+    ['show', 'room.reader.ruShow', 'показан'],
+    ['reveal', 'room.reader.ruReveal', 'по тапу'],
+    ['off', 'room.reader.ruOff', 'выкл'],
+  ], readerCfg.ruMode, (v) => { readerCfg.ruMode = v; saveReaderCfg(); rerenderReader(); });
   // BRR-P1-009 — word-status colouring toggle (opt-in; warms the morph engine on enable).
   const wsLab = el('label', { class: 'reader-aids-status' });
   const wsCb = el('input', { attrs: { type: 'checkbox' } });
   wsCb.checked = wordStatusEnabled();
-  wsCb.addEventListener('change', () => { wordStatusSet(wsCb.checked); applyWordStatus(); });
+  wsCb.addEventListener('change', () => { wordStatusSet(wsCb.checked); applyDecorations(); });
   wsLab.appendChild(wsCb);
   wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', '🎨 Статус слов') }));
   panel.appendChild(wsLab);
+  // R8 on-ramp — one short line teaching the two fading aids.
+  panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.reader.scaffoldHint', text: tt('room.reader.scaffoldHint', '«По нужде»: огласовка тает на знакомых словах. «По тапу»: перевод скрыт — тапни строку, чтобы открыть.') }));
   // Tier-3 — «точный режим» (context disambiguation via Dicta; opt-in, online). On tap, the
   // sentence is sent to Dicta to pick the contextually-correct homograph. Honest outbound label.
   const cmLab = el('label', { class: 'reader-aids-status' });
@@ -517,6 +591,8 @@ async function openReader(textId, title) {
 function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
+  const rm = $('roomReaderTable');
+  if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
   const reader = $('roomReader'), content = $('roomContent');
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;
@@ -1497,11 +1573,14 @@ function wireChrome() {
   const back = $('readerBack');
   if (back) back.addEventListener('click', closeReader);
   const aidsToggle = $('readerAidsToggle');
+  // BRR-P1-006 — one-time discoverability nudge: pulse the «Аа» button until the reader first
+  // opens the aids panel (the scaffolding fade/reveal live there). No dark pattern — pulses, then quiet.
+  if (aidsToggle && !aidsHinted()) aidsToggle.classList.add('aids-hint');
   if (aidsToggle) aidsToggle.addEventListener('click', () => {
     const panel = $('readerAids');
     if (!panel) return;
     const opening = panel.hidden;
-    if (opening) buildAidsPanel();
+    if (opening) { buildAidsPanel(); aidsToggle.classList.remove('aids-hint'); aidsHintedSet(); }
     panel.hidden = !opening;
     aidsToggle.setAttribute('aria-expanded', String(opening));
   });
@@ -1519,6 +1598,7 @@ function wireChrome() {
 }
 
 async function boot() {
+  loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
   wireChrome();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   try {

@@ -363,6 +363,12 @@
     .rm-w:focus { outline: none; background: var(--bg-muted); }
     .rm-w:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
     .rm-w-active { background: var(--accent); color: var(--accent-contrast); }
+    /* BRR-P1-006 — progressive translation reveal: ru cells blurred until tapped (active recall). */
+    #roomReaderTable td[data-col="ru"].ru-veiled { filter: blur(5px); cursor: pointer; user-select: none; transition: filter .15s ease; }
+    #roomReaderTable td[data-col="ru"].ru-veiled.ru-revealed { filter: none; user-select: text; }
+    /* BRR-P1-006 — one-time discoverability pulse on the reading-settings («Аа») button. */
+    @keyframes aidsPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(90,155,255,0); } 50% { box-shadow: 0 0 0 4px rgba(90,155,255,.4); } }
+    .reader-aids-toggle.aids-hint { animation: aidsPulse 1.6s ease-in-out 3; }
     /* Light bottom-sheet card */
     .rm-sheet { position: fixed; inset: 0; z-index: 1000; }
     .rm-sheet[hidden] { display: none; }

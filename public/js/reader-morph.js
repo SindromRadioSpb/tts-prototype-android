@@ -764,20 +764,45 @@
     };
   }
 
-  // ── BRR-P1-009: word-status colouring (LingQ-style, confidence-gated) ────────
-  // Paints each wrapped .rm-w word by the user's learning state. statesMap = {lemmaKey:
-  // state} from local-db.getKnownWordStates(). R1: ONLY decisively-resolved words
-  // (label exact|likely) are coloured; ambiguous / unvocalized words stay neutral —
-  // honest degradation, no fake "known". Progressive (chunked) so a long text never
-  // blocks the UI. Absent-from-map ⇒ 'new' (unseen). Idempotent (re-resolves spans).
+  // ── BRR-P1-009 colour + BRR-P1-006 adaptive niqqud fade — ONE confidence-gated pass ──
+  // Resolves each wrapped .rm-w word ONCE, then (a) colours it by learning state and/or
+  // (b) in adaptive niqqud mode de-vocalizes FAMILIAR+confident words so the niqqud
+  // concentrates exactly on the new/archaic. R1/R10: ONLY decisively-resolved words
+  // (label exact|likely) are touched — ambiguous / unvocalized words stay neutral AND keep
+  // their niqqud (honest degradation: never hide help on a word we can't confidently identify).
+  // Chunked (60/batch + yields) so a long text never blocks the UI. Absent-from-map ⇒ 'new'.
   var STATE_CLASS = { known: "rm-w-known", learning: "rm-w-learning", weak: "rm-w-learning", stale: "rm-w-learning", "new": "rm-w-new" };
-  function clearLearningStatus(mount) {
+  // "familiar" mirrors corpus-vocab CFG.KNOWN_STATES (saved=familiar; §7 — owner's saved vocab
+  // sits in 'new'/Anki, so familiar = any engaged word, not just mastered).
+  var FAMILIAR = { known: 1, learning: 1, weak: 1, stale: 1, "new": 1 };
+
+  // PURE (Node-testable): does the niqqud cell show the PLAIN surface or the vocalized form?
+  // Fade only in 'adaptive' mode, only for confidently-resolved familiar words. Everything else
+  // (full mode, off mode, unconfident, unknown) keeps the niqqud.
+  function fadeDecision(state, label, mode) {
+    if (mode !== "adaptive") return "niqqud";
+    var confident = (label === "exact" || label === "likely");
+    if (confident && state && FAMILIAR[state]) return "plain";
+    return "niqqud";
+  }
+
+  function _colOf(span) { var td = span && span.closest ? span.closest("td[data-col]") : null; return td ? td.getAttribute("data-col") : null; }
+
+  // Remove all decorations: colour classes + restore any de-vocalized niqqud spans. Cheap, no resolve.
+  function clearDecorations(mount) {
     if (!mount) return;
     var painted = mount.querySelectorAll(".rm-w-known, .rm-w-learning, .rm-w-new");
     for (var i = 0; i < painted.length; i++) painted[i].classList.remove("rm-w-known", "rm-w-learning", "rm-w-new");
+    var niq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
+    for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null) niq[j].textContent = n; }
   }
-  async function paintLearningStatus(mount, statesMap) {
+
+  // opts = { color: bool, fadeMode: 'full'|'adaptive'|'off' }. statesMap = {lemmaKey: state}.
+  async function decorateWords(mount, statesMap, opts) {
     if (!mount) return;
+    opts = opts || {};
+    var color = !!opts.color, fadeMode = opts.fadeMode || "full";
+    if (!color && fadeMode !== "adaptive") { clearDecorations(mount); return; }   // nothing to resolve
     var states = statesMap || {};
     var NA = window.NotesAutoGen;
     var eng; try { eng = await ensureEngine(); } catch (_) { return; }
@@ -788,27 +813,38 @@
       for (; i < end; i++) {
         var span = spans[i];
         span.classList.remove("rm-w-known", "rm-w-learning", "rm-w-new");
+        var isNiqqud = _colOf(span) === "niqqud";
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";
-        var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { continue; }
-        if (!card || (card.label !== "exact" && card.label !== "likely")) continue;   // confidence-gate (R1)
-        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) : "";
-        var cls = STATE_CLASS[states[lk] || "new"];
-        if (cls) span.classList.add(cls);
+        var card; try { card = await resolveCore(eng, surface, niqqud); }
+        catch (_) { if (isNiqqud && niqqud != null) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
+        var confident = !!(card && (card.label === "exact" || card.label === "likely"));   // gate (R1/R10)
+        var raw = undefined;   // the learner's SAVED state for this lemma; undefined = UNSEEN (never "familiar" → keeps niqqud)
+        if (confident) {
+          var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) : "";
+          raw = states[lk];
+        }
+        if (color && confident) { var cls = STATE_CLASS[raw || "new"]; if (cls) span.classList.add(cls); }   // unseen ⇒ 'new' (blue)
+        if (isNiqqud) span.textContent = (fadeDecision(raw, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud;
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }
   }
+
+  // Back-compat thin wrappers (existing callers / smoke).
+  function clearLearningStatus(mount) { clearDecorations(mount); }
+  async function paintLearningStatus(mount, statesMap) { return decorateWords(mount, statesMap, { color: true, fadeMode: "full" }); }
 
   var API = {
     // pure core (Node-testable)
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
-    wrapCellHtml: wrapCellHtml, isWordChar: isWordChar,
+    wrapCellHtml: wrapCellHtml, isWordChar: isWordChar, fadeDecision: fadeDecision,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
+    decorateWords: decorateWords, clearDecorations: clearDecorations,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;
