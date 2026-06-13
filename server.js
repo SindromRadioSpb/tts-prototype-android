@@ -336,6 +336,12 @@ const rlWorksUpload   = makeRateLimiter({ windowMs: 60_000, max: 2000, name: "co
 //   • Stateless services (TTS, transliterate, audio cache, DOCX builder).
 //   • GET /api/library/export(/bundle) — last-mile data recovery for any
 //     straggler whose client-side migration didn't run.
+//     SECURITY INVARIANT (2026-06-13 going-public audit, AUTHZ-1 — accepted): the
+//     export/import routes are intentionally unauthenticated. The app has no
+//     server-side user auth (user data is client-side OPFS), so this is acceptable
+//     ONLY while the server `texts` table stays empty in prod — it is, the OPFS
+//     migration retired it. If the server DB is ever repopulated, gate export +
+//     import behind requireAudioUploadAuth (the owner token) before doing so.
 // Everything else returns 410 Gone with a friendly pointer to the user
 // guide. We chose middleware over physical handler deletion to keep the
 // diff small, the helper functions intact (some are imported by stateless
@@ -1173,7 +1179,11 @@ app.get("/healthz", (req, res) => {
 
 app.get("/api/tts/key", (_req, res) => {
   try {
-    res.json(getTtsKeyStatusSummary());
+    // Privacy (INFO-LEAK-1): do not expose the service-account identity
+    // (project_id/client_email) to unauthenticated callers — only whether a key
+    // is configured + its source. The status UI degrades gracefully without them.
+    const s = getTtsKeyStatusSummary() || {};
+    res.json({ configured: !!s.configured, source: s.source || null });
   } catch (e) {
     res.status(500).json({ error: "Не удалось прочитать статус TTS ключа", details: e.message });
   }
@@ -3831,13 +3841,9 @@ Rules:
       if (!keyFile || !fs.existsSync(keyFile)) {
         return res.json({ configured: false, source: null });
       }
-      let project_id = null, client_email = null;
-      try {
-        const raw = JSON.parse(fs.readFileSync(keyFile, "utf8"));
-        project_id = raw.project_id || null;
-        client_email = raw.client_email || null;
-      } catch (_) {}
-      res.json({ configured: true, source, project_id, client_email });
+      // Privacy (INFO-LEAK-1): do not expose the service-account identity
+      // (project_id/client_email) to unauthenticated callers — only configured + source.
+      res.json({ configured: true, source });
     } catch (e) {
       res.status(500).json({ error: "Не удалось прочитать статус GCP ключа", details: e.message });
     }
