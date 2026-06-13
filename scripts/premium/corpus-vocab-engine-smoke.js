@@ -103,11 +103,12 @@ let pr = CV.pickPersonalRail([
 ok(pr && pr.kind === "next", "in-zone≥MIN → next");
 ok(pr && pr.ids.length === 5, "next picks all 5 in-zone");
 ok(pr && pr.ids[0] === "b" && pr.ids[1] === "e", "next ranked coverage desc (.93,.90 first)");
-// all-same-author capped below MIN → null
-ok(CV.pickPersonalRail([0, 1, 2, 3, 4, 5].map((i) => ({ id: "s" + i, author: "SAME", cov: mkCov("in", .85) }))) === null, "all-same-author cap → <MIN → null");
-// 3 authors × 2 in-zone → all pass cap → 6 ids
-pr = CV.pickPersonalRail(["A", "A", "B", "B", "C", "C"].map((au, i) => ({ id: "m" + i, author: au, cov: mkCov("in", .85 + i * .01) })));
-ok(pr && pr.kind === "next" && pr.ids.length === 6, "3 authors×2 → 6 in-zone within cap");
+// author-cap LOGIC (when a cap is set via cfg): 6 same-author in-zone, cap 2 → 2 < MIN → null
+const PCAP = { MIN_RAIL: 3, RAIL_TOP: 12, AUTHOR_CAP: 2 };
+ok(CV.pickPersonalRail([0, 1, 2, 3, 4, 5].map((i) => ({ id: "s" + i, author: "SAME", cov: mkCov("in", .85) })), PCAP) === null, "cfg AUTHOR_CAP=2: all-same-author → <MIN → null");
+// shipped CFG has AUTHOR_CAP=0 (NO cap) → same 6 same-author works all show
+pr = CV.pickPersonalRail([0, 1, 2, 3, 4, 5].map((i) => ({ id: "s" + i, author: "SAME", cov: mkCov("in", .85) })));
+ok(CV.CFG.AUTHOR_CAP === 0 && pr && pr.kind === "next" && pr.ids.length === 6, "shipped: no author-cap → all 6 in-zone shown");
 // outgrown (4 easy, 3 hard, 0 in-zone) → challenge, hardest-closest-first
 pr = CV.pickPersonalRail([
   ...["e0", "e1", "e2", "e3"].map((id) => ({ id, author: id, cov: mkCov("easy", .98) })),

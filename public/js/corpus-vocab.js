@@ -33,7 +33,10 @@
     // not the in-app SRS), so known+learning-only counted 0; saved-as-familiar is the available signal.
     // The badge is honestly labelled «знакомо» (familiar), not «выучено» (mastered).
     KNOWN_STATES: { known: true, learning: true, new: true, weak: true, stale: true },
-    MIN_RAIL: 3, RAIL_TOP: 12, AUTHOR_CAP: 2,        // S4 «Следующий для тебя» gating/size
+    // S4 «Следующий для тебя» gating/size. AUTHOR_CAP=0 ⇒ NO per-author cap — at the current corpus
+    // size the cap blindly hid valid in-zone works (owner 2026-06-13: 15-in-zone → 11). Show all
+    // matches; author-diversity belongs in the proper filter/sort layer once the corpus is large.
+    MIN_RAIL: 3, RAIL_TOP: 50, AUTHOR_CAP: 0,
   };
 
   // delta-encoded ascending ids → absolute ids (prefix-sum; mirror of the producer)
@@ -94,7 +97,8 @@
   // Author-capped (one prolific writer can't fill the rail) + hard size gate (never a thin list).
   function pickPersonalRail(scored, cfg) {
     cfg = cfg || CFG;
-    var MIN = cfg.MIN_RAIL || 3, TOP = cfg.RAIL_TOP || 12, CAP = cfg.AUTHOR_CAP || 2;
+    var MIN = cfg.MIN_RAIL || 3, TOP = cfg.RAIL_TOP || 12;
+    var CAP = (cfg.AUTHOR_CAP != null) ? cfg.AUTHOR_CAP : 2;   // preserve explicit 0 (= no cap)
     var inZone = [], easy = 0, hard = [];
     for (var i = 0; i < (scored || []).length; i++) {
       var x = scored[i], z = x && x.cov && x.cov.zone;
@@ -115,7 +119,7 @@
     var per = {}, ids = [];
     for (var j = 0; j < pool.length; j++) {
       var a = pool[j].author || "?";
-      if ((per[a] || 0) >= CAP) continue;
+      if (CAP && (per[a] || 0) >= CAP) continue;   // CAP=0/falsy ⇒ no per-author cap
       per[a] = (per[a] || 0) + 1; ids.push(pool[j].id);
       if (ids.length >= TOP) break;
     }
