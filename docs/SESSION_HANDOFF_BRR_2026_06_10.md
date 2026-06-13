@@ -115,9 +115,9 @@ public/data/benyehuda/
 Ротация **AUDIO_UPLOAD_TOKEN** (светился в чате) + **Gemini-ключ** (сейчас В РАБОТЕ для бейка → ротировать ПОСЛЕ прогона / ограничить в Google Cloud до Generative Language API + квота) + старый GCP TTS-ключ.
 
 ## 🔑 ЖДЁТ ВЛАДЕЛЬЦА (security)
-1. **Ротация `AUDIO_UPLOAD_TOKEN`** — светился в чате (значение `8de9…0989`). Сгенерировать новый (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`), заменить ОБЕ записи в Coolify (Production + Preview Deployments), **Redeploy**. Это НАШ secret, отдельно от Google.
+1. **Ротация `AUDIO_UPLOAD_TOKEN`** — светился в чате (значение — в `.claude/PROD_OPS_PRIVATE.md`, gitignored). Сгенерировать новый (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`), заменить ОБЕ записи в Coolify (Production + Preview Deployments), **Redeploy**. Это НАШ secret, отдельно от Google.
 2. **Ротация Gemini-ключа + старого GCP TTS-ключа** (Google-кредиты; нужны для резюма бейка).
-- Coolify env страница (kapture-вкладка осталась открыта): `http://167.235.200.19:8000/project/tu9f73va4qp044iyb8nmlsoo/environment/u8dc4qw6re2s8y5cnshe5h2c/application/glmw0wjd6nm70fntxgjy6fkp/environment-variables`
+- Coolify env-vars admin URL (с GUID-ами) — в `.claude/PROD_OPS_PRIVATE.md` (gitignored, не публикуется).
 
 ## НЕ ДЕЛАТЬ
 index.html не трогать (до Stage 2) · не пушить с красными гейтами (прод-верифицировать после) · не делать R7-сэмплинг и не предбейкать owner-key аудио (решения владельца «в»/«б») · не git-rm 100 baked works (фикстура) · не начинать A3/полный бейк без отмашки (длинные задачи) · новую роль — предлагать заранее (кроме явной pre-authorization).

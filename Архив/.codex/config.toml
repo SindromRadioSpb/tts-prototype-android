@@ -1,8 +1,0 @@
-model = "o3"
-approval_policy = "on-request"
-
-[sandbox]
-sandbox_mode = "permissive"
-
-# Synced from E:\projects\tts-prototype-android\.claude\settings.json
-# Source allow-list/ask-list is documented in the Claude file; direct one-to-one command policy mapping is partial in Codex.

@@ -24,8 +24,16 @@ const { RESEARCH_DATA_DIR, ensureDirSync } = require("../storage");
 
 const SCHEMA_VERSION = "v1";
 
+// Cohort codes are always [A-Z0-9-]{4,16} (see the validators on the create /
+// aggregates / outcomes routes). Enforce that here too so a code can never carry
+// path separators or `..` into path.join — defence-in-depth against traversal
+// (e.g. an unvalidated cohort_code reaching deleteStudentFromCohort).
 function cohortDir(cohortCode) {
-  return path.join(RESEARCH_DATA_DIR, cohortCode);
+  const code = String(cohortCode || "");
+  if (!/^[A-Z0-9-]{4,16}$/.test(code)) {
+    throw new Error(`INVALID_COHORT_CODE: ${code}`);
+  }
+  return path.join(RESEARCH_DATA_DIR, code);
 }
 
 function cohortMetaPath(cohortCode) {
@@ -93,7 +101,12 @@ function createCohort({
 function verifyResearcherToken(cohortCode, tokenPlain) {
   const meta = readCohortMeta(cohortCode);
   const got = crypto.createHash("sha256").update(String(tokenPlain)).digest("hex");
-  return got === meta.researcher_token_hash;
+  const want = String(meta.researcher_token_hash || "");
+  // Constant-time compare (consistent with the admin / audio-upload token gates).
+  // Both sides are fixed-length SHA-256 hex; bail on length mismatch first since
+  // timingSafeEqual throws on unequal-length buffers.
+  if (got.length !== want.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(got), Buffer.from(want));
 }
 
 // Find existing upload line in <upload_ts>.jsonl matching dedupe key.

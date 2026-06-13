@@ -22,8 +22,8 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Runtime deps for sqlite3 native binding
-RUN apk add --no-cache sqlite
+# Runtime deps: sqlite3 native binding + su-exec (privilege drop in entrypoint)
+RUN apk add --no-cache sqlite su-exec
 
 # Copy production node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
@@ -42,4 +42,10 @@ ENV DATA_DIR=/app/data \
 
 EXPOSE 3000
 
+# Least privilege: the Node process runs as the unprivileged `node` user.
+# The entrypoint runs as root only to make the mounted /app/data volume writable
+# by `node` (handles a pre-existing root-owned volume), then drops via su-exec.
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh && chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["node", "server.js"]

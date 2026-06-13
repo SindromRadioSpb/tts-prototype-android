@@ -320,6 +320,10 @@ const rlExportDocx    = makeRateLimiter({ windowMs: 60_000, max: 30,  name: "exp
 // roughly its own minute even under contention, but still bounds total
 // writes per attacker per minute.
 const rlAudioUpload   = makeRateLimiter({ windowMs: 60_000, max: 2000, name: "audio-cache-upload" });
+// Throttle the prefetch job-submission endpoint. Its gate (v3AudioPrefetchIsAllowed)
+// honours an X-Local-Mode header, so without a per-IP cap an unauthenticated remote
+// caller could enqueue heavy TTS batches (up to V3_AUDIO_PREFETCH_MAX_ROWS each).
+const rlAudioPrefetch = makeRateLimiter({ windowMs: 60_000, max: 20,   name: "audio-prefetch" });
 // BRR-P1-014 A4 — corpus work-body push onto the persistent volume. Same generous
 // window as audio-cache-upload (an A2 publish ships many small JSON bodies in a burst).
 const rlWorksUpload   = makeRateLimiter({ windowMs: 60_000, max: 2000, name: "corpus-works-upload" });
@@ -1159,12 +1163,11 @@ app.get("/healthz", (req, res) => {
     ok: true,
     uptimeSec: Math.round(process.uptime()),
     now: new Date().toISOString(),
-    db: getDbHealth(),
-	migrations: getMigrationsHealth(),
-	
-	dataDir: DATA_DIR,
-    dbPath: DB_PATH,
-    backupsDir: BACKUPS_DIR,
+    // Liveness only — do NOT leak internal paths (dataDir/dbPath/backupsDir) or
+    // the migration inventory to unauthenticated callers. UptimeRobot needs ok=200;
+    // detailed health lives behind the admin token / /api/diag for the operator.
+    db: { ready: getDbHealth().ready === true },
+    migrations: { ready: getMigrationsHealth().ready === true },
   });
 });
 
@@ -3065,7 +3068,7 @@ async function v3AudioPrefetchRun(job) {
 }
 
 // POST /api/audio/prefetch/start
-app.post("/api/audio/prefetch/start", async (req, res) => {
+app.post("/api/audio/prefetch/start", rlAudioPrefetch, async (req, res) => {
   try {
     if (!v3AudioPrefetchIsAllowed(req)) {
       return res.status(403).json({ ok: false, error: "LOCAL_ONLY" });
@@ -9143,6 +9146,11 @@ app.delete("/api/research/v1/student/:student_id", async (req, res) => {
     // Optional cohort_code query narrows the scope. UUID alone is the auth
     // token (per master-plan D4 — student_id is anonymous, possession = auth).
     const explicitCohort = req.query.cohort_code ? String(req.query.cohort_code) : null;
+    // Validate before the code reaches the filesystem (path-traversal guard; the
+    // sibling create/aggregates/outcomes routes apply this same pattern).
+    if (explicitCohort && !/^[A-Z0-9-]{4,16}$/.test(explicitCohort)) {
+      return res.status(400).json({ ok: false, error: "BAD_COHORT_CODE" });
+    }
     let cohorts;
     if (explicitCohort) {
       if (!researchStorage.cohortExists(explicitCohort)) {

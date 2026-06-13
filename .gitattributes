@@ -4,3 +4,6 @@
 *.html text eol=lf
 *.css text eol=lf
 *.json text eol=lf
+# Shell scripts MUST stay LF — they run in the Linux (Alpine) container;
+# CRLF would break the shebang / `set -e`. Esp. docker-entrypoint.sh.
+*.sh text eol=lf

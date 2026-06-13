@@ -103,7 +103,9 @@ part.bin
 repo_tree.txt
 
 .mcp.json
-Архив/.claude/worktrees/
+# Архив/ = local archive of old dev tooling/agent configs — never part of the repo
+# (was partially tracked; untracked 2026-06-13 before going public).
+Архив/
 .claude/settings.local.json
 
 # Phase 9.3.5+ scratch debugging probes
