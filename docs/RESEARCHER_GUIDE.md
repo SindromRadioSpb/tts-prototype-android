@@ -177,7 +177,7 @@ a `.jsonl` archive and exits 3 if any line fails.
 
 ### 2.2 RESEARCH_DATA_DIR
 
-Сервер пишет cohort-данные в `RESEARCH_DATA_DIR` (env var; default `<DATA_DIR>/research`). На Hetzner CX23 (Coolify) это Docker volume `glmw0wjd6nm70fntxgjy6fkp-linguistpro-data` — persistent, не сбрасывается между deploy'ями. Ежедневный бэкап в `/opt/backups/linguistpro/` (хранится 14 дней).
+Сервер пишет cohort-данные в `RESEARCH_DATA_DIR` (env var; default `<DATA_DIR>/research`). На Hetzner CX23 (Coolify) это persistent Docker volume (`<DOCKER_VOLUME>`) — не сбрасывается между deploy'ями. Ежедневный бэкап (`<BACKUP_DIR>`, хранится 14 дней).
 
 Local dev: `data/research/<cohort>/...` относительно репо.
 
