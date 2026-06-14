@@ -3,7 +3,17 @@
 **★ READ FIRST:** `docs/SESSION_STATE_BRR_2026_06_14.md` (КОНСОЛИДИРОВАННЫЙ — открой первым) + `docs/PROJECT_ROLES.md` (R1–R10 авто).
 Глубже: i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`; word-karaoke кандидат → `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`.
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com.
-**main HEAD `7e5124c`, SW `v3.10.48-room-karaoke-words` (прод-верифицирован).**
+**main HEAD `f9760ec`, SW `v3.10.53-canon-v4-refresh` (прод-верифицирован).**
+> **Canon refresh (BRR-P1-008b fix для iPhone):** word-karaoke не работал на iPhone — `?wkdebug` показал `tN=0` (тайминг 404).
+> Причина: застарелый канон-импорт держал СТАРЫЙ дефолт audio-link (asset_key 1654fe4a…) прежней редакции; текущий канон/тайминг = 73c099d0…;
+> version-gate (haveVer 3 ≥ 3) блокировал ре-импорт. Фикс: **canon-v4.zip** (хирургический бамп canon_version 3→4, ключи БЕЗ изменений; `scripts/premium/bump-canon-version.js`)
+> + library-ui→v4 (`CANON_BUNDLE_VERSION=4`) → застарелые устройства ре-импортят (mode:'skip', заметки целы) → `reconcileAudioLinks` перевешивает дефолт-аудио на текущий ключ → /timing 200 → подсветка едет.
+> `?canon=refresh` форсит. `audio_asset_key`=виртуальный JOIN (sentence_audio→audio_assets). Подсветка слова = rAF (не timeupdate; iOS-fix v3.10.51), янтарный пилл `.rm-w-speaking` (v3.10.49). Диагностика `?wkdebug=1`.
+> 008b follow-ups: канон-тайминг 6446/6446 (100%) на проде · подсветка слова = **тёплый янтарь** (dark-theme fix, v3.10.49) ·
+> **тема-переключатель 🌗/☀️/🌙** в Зале (v3.10.50, делится со Studio appTheme_v1) · **подсветка через rAF** не timeupdate
+> (iOS Safari не шлёт timeupdate на detached new Audio() — фикс v3.10.51) · **on-device диагностика `?wkdebug=1`** (overlay:
+> mode/t/timingN/off/ticks/key + rm-w/speaking). Word-karaoke только на КАНОНЕ (Доступная/Литературная); Корпус=речь устройства, без тайминга.
+> #2 (BYOK-таймпойнты для Корпуса, само-кеш) — СПРОЕКТИРОВАН, ждёт owner-go (server /api/tts withTimepoints). 🔑 ротировать AUDIO_UPLOAD_TOKEN (GCP уже ротирован).
 Owner-инвариант: бескомпромиссное качество, без заглушек. Норма: index.html НЕ трогать (Зал=library.html);
 MEASURE до кода (профиль-зависимое → НЕПУСТОЙ профиль); гейты до push; commit+push автономно (Coolify);
 SW CACHE_VERSION бамп при shell-ассете (+CORPUS_VOCAB_DATA_REV при формате сайдкара); @380px RTL до UI-коммита;

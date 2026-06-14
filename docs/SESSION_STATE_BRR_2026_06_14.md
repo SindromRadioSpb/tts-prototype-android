@@ -1,6 +1,11 @@
 # SESSION STATE — Ben-Yehuda Reading Room (2026-06-14) — READ FIRST
 
-> **Git: main = HEAD `7e5124c`, всё запушено. Prod SW `v3.10.48-room-karaoke-words` (прод = код, верифицирован).**
+> **Git: main = HEAD `f9760ec`, всё запушено. Prod SW `v3.10.53-canon-v4-refresh` (прод = код, верифицирован).**
+> **BRR-P1-008b word-karaoke полностью:** канон-тайминг 6446/6446; подсветка слова = янтарный `.rm-w-speaking` (v3.10.49),
+> rAF-driven не timeupdate (iOS-fix v3.10.51); тема-переключатель 🌗 (v3.10.50); диагностика `?wkdebug=1`; **canon-v4 refresh**
+> (v3.10.53) — застарелые устройства ре-импортят канон (mode:'skip', заметки целы) → `reconcileAudioLinks` чинит стале-asset-keys
+> → /timing 200. `?canon=refresh` форсит. Только КАНОН (Доступная/Литературная); Корпус=речь устройства без тайминга
+> (BYOK-таймпойнты для Корпуса — спроектирован, ждёт go). 🔑 ротировать AUDIO_UPLOAD_TOKEN (GCP ротирован ✓).
 > Project = LinguistPro (Node PWA, иврит↔рус). Prod: https://linguistpro.kolosei.com (Зал: `/library.html`).
 > Роли R1–R10 авто (`docs/PROJECT_ROLES.md`). Owner-инвариант: **бескомпромиссное качество, без заглушек.**
 > Это консолидированный READ-FIRST. Предыдущие (актуальны для глубины): i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`;
