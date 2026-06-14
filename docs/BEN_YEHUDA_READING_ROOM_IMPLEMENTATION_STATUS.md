@@ -1,8 +1,9 @@
 # Ben-Yehuda Reading Room — Implementation Status & Audit Guide
 
-> ⚠ **CURRENT TRUTH / read first:** `docs/BEN_YEHUDA_CURRENT_STATE_2026_06_09.md` reconciles
-> the live state, owner decisions, and cancelled premises across all docs. If a section below
-> conflicts with it, that file wins (as of 2026-06-09).
+> ⚠ **CURRENT TRUTH / read first:** `docs/SESSION_STATE_BRR_2026_06_14.md` (consolidated state — HEAD `98d29e4`,
+> SW `v3.10.47`). This file below is a P0-era historical as-built log; where it conflicts (e.g. an early
+> "P1-006 закрыт" referring to the embed reading-aids), the consolidated doc wins. (Older reconcile:
+> `docs/BEN_YEHUDA_CURRENT_STATE_2026_06_09.md`.)
 
 **Дата:** 2026-06-08 · **Назначение:** as-built отчёт для аудита, тестирования и
 выдачи рекомендаций/доработок владельцем. Описывает ФАКТ реализации (не план).

@@ -205,7 +205,8 @@
 
 ## P1 — качество v1.0
 
-### BRR-P1-006 — Консоль скаффолдинга (никуд-fade / транслит / reveal перевода)
+### BRR-P1-006 — Консоль скаффолдинга (никуд-fade / транслит / reveal перевода) ✅ SHIPPED+PROD 2026-06-14
+- **SHIPPED 2026-06-14 (`b30c2c1`→`cc1d380`, SW v3.10.45):** адаптивная огласовка «по нужде» (де-вокализация знакомых слов на word-status-движке i+1, honest-gate R10/R1: фейдят только уверенно-резолвнутые сохранённые слова, unseen≠familiar) + tap-to-reveal перевод (active recall) + персистентность режимов (`room.niqqudMode/translitProfile/translitOn/heOn/ruMode`) + тогл колонки Иврит + раскраска статуса ЗАЛИВКОЙ (была подчёркиванием) + тултип «Статус слов» + одноразовый хинт «Аа». Унификация colour+fade в один `reader-morph.decorateWords`. Дизайн `docs/planning/BRR_P1_006_SCAFFOLDED_READING_CONSOLE_2026_06_14.md`. Гейт `smoke:reader-scaffold`. **Отложено:** per-word translit-fade (translit-колонка не токенизируется); native HE-review строк.
 - **Source:** StoryHebrew (никуд full/partial/off) · Beelinguapp (параллель) · Sefaria (огласовка toggle)
 - **Observed:** регулируемая огласовка + выбор формы двуязычия.
 - **Current:** бинарные column-toggle (ru on/off, niqqud-профиль); нет sentence-level reveal, нет graceful никуд-fade.
@@ -280,10 +281,11 @@
 - **DoD:** push-эндпоинт owner-token-gated (smoke); coverage-отчёт; works НЕ в git на масштабе.
 - **Notes:** предусловие реального 26K-наполнения. niqqud-probe rest-тира (20–50 works → Dicta backoff vs sidecar) = гейт широкого бейка (см. BRR-P0-006 §4b).
 
-### BRR-P1-008 — Audio↔text karaoke-подсветка (RTL-safe)
+### BRR-P1-008 — Audio↔text karaoke-подсветка (RTL-safe) ✅ SHIPPED+PROD 2026-06-14 (sentence-level)
+- **SHIPPED 2026-06-14 (`98d29e4`, SW v3.10.47):** sentence-level караоке. `.row-playing`-подсветка уже была (reader-core.css) → добавлен ПОТОК: `attachRowAudio` continuous (`playAll/stop/onRowChange` + чистая `nextPlayableIndex`, skip пустых/упавших строк), кнопка «▶ Читать вслух» в reader-bar (▶↔■), авто-скролл (пауза на ручной скролл), усиленная подсветка `.karaoke-on`. Канон tier-1 бесплатно / корпус tier-3 браузер-речь keyless / BYOK если ключ. Гейт `smoke:reader-karaoke`. Дизайн `docs/planning/BRR_P1_008_KARAOKE_2026_06_14.md`. **Word-level → BRR-P1-008b.**
 - **Source:** Beelinguapp, LingQ (karaoke highlight)
 - **Observed:** подсветка по мере воспроизведения связывает звук и текст.
-- **Current:** аудио по предложению есть; sync-подсветки нет.
+- **Current:** ✅ sentence-level в проде; word-level (пословная подсветка) НЕ сделана — у бейкнутых клипов нет per-word тайминга (см. BRR-P1-008b).
 - **Gap:** чтение+слушание не один loop.
 - **User story:** *Как слушатель, я хочу видеть подсвеченное предложение/слово при воспроизведении, чтобы связать звук с письмом.*
 - **Surface:** Room · **Role:** R4, R2 · **Priority:** P1
@@ -293,9 +295,25 @@
 - **Offline:** yes (для pre-baked аудио) · **BYOK:** n/a
 - **Acceptance:** активное предложение подсвечено синхронно; RTL-safe; prefers-reduced-motion; нет дрейфа на уровне предложения.
 - **DoD:** screenshot/запись подсветки @380px RTL; тест на длинном тексте.
-- **Notes:** начать с sentence-level (надёжно), word-level — позже.
+- **Notes:** sentence-level сделан; word-level вынесен в **BRR-P1-008b**.
 
-### BRR-P1-009 — In-reader статус слов + one-tap лёгкий захват
+### BRR-P1-008b — Word-level karaoke: перебейк озвучки с TTS-timepoints (SSML `<mark>`) 🔵 PROPOSED (2026-06-14, дизайн готов)
+- **Source:** Beelinguapp/LingQ (пословная подсветка) · owner-приоритет 2026-06-14 («это важно»).
+- **Observed:** sentence-level (P1-008) связывает строку и звук; пословная подсветка («бегущее слово») — следующий премиум-уровень.
+- **Current:** бейкнутые MP3 несут только текст-уровень; **per-word тайминга нет** → пословная синхронизация невозможна без новых данных.
+- **Gap:** нет временных меток «слово → t_start/t_end»; reader-core играет клип без знания, какое слово звучит.
+- **Approach (основной):** перебейк через GCP TTS **SSML `<mark name="wN"/>`** перед каждым словом → ответ `timepoints[]` (mark→timeSeconds) сохраняется как **аудио-сайдкар** (`<assetKey>.timing.json`) рядом с клипом; клиент по `audio.currentTime` подсвечивает соответствующий `.rm-w` (reuse существующих per-word спанов из reader-morph). **Альтернатива:** forced-alignment (напр. aeneas/MFA) для уже-готовых клипов без перебейка.
+- **User story:** *Как слушатель, я хочу видеть подсвеченное СЛОВО в момент его произнесения, чтобы точно связать звук с письмом и орфографией.*
+- **Surface:** Room (+ bake-pipeline) · **Role:** R4, R2, R10 (измеримость дрейфа), R5 (стоимость перебейка) · **Priority:** P1 (после ②, owner-важно)
+- **Strategic fit:** med-high · **Learner value:** high · **Moat value:** high (никто для иврита)
+- **Impl:** new (pipeline + сайдкар + клиент-sync); reuse `.rm-w` спаны + `attachRowAudio` continuous · **Cx:** L
+- **Dependencies:** BRR-P1-008 (sentence-level, готов) · перебейк аудио → **зависит от ротации `AUDIO_UPLOAD_TOKEN`/GCP-ключа** + публикации клипов на том · OPFS/том-объём (сайдкары тайминга ~КБ/клип) · **Risks:** стоимость/время перебейка (канон ~6.4К клипов; план free-tier/$0 если возможно), дрейф SSML-mark на иврите с никудом (R10 — мерить смещение vs аудио), word-сегментация ↔ `.rm-w`-токены (выравнивание; маппинг mark→offset).
+- **Offline:** yes (тайминг-сайдкар precache/served-on-open вместе с клипом) · **BYOK:** опц. (свежий синтез с timepoints на ключе пользователя)
+- **Acceptance:** при воспроизведении строки активное СЛОВО подсвечено в пределах ~±150мс; RTL-safe; деградация на sentence-level если тайминга нет (честно); prefers-reduced-motion.
+- **DoD:** запись @380px RTL пословной подсветки; измеренный дрейф на выборке (R10-гейт); fallback на sentence-level при отсутствии `.timing.json`; гейт на парсер timepoints↔offset.
+- **Notes:** **Полный recon-first дизайн → `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`** (на утверждение перед кодом). Перебейк не начинать до ротации секретов и owner-go.
+
+### BRR-P1-009 — In-reader статус слов + one-tap лёгкий захват ✅ SHIPPED+PROD (раскраска + save-из-карточки)
 - **Source:** LingQ (corpus-wide статус) · Readlang (авто-захват)
 - **Observed:** видимый статус new/learning/known + захват в карточку из чтения.
 - **Current:** `getLearningStateOverlay` есть; не показан в чтении; захват тяжёлый (word-card модал).
