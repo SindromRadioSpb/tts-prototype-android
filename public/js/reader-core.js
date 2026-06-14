@@ -69,6 +69,21 @@ export function nextPlayableIndex(rows, fromIdx) {
   return -1;
 }
 
+// BRR-P1-008b word-level karaoke — given a row's word timings (sorted [{o,t}] from the
+// <assetKey>.timing.json sidecar) and the audio currentTime, return the WORD OFFSET (.o)
+// being spoken now, or -1 before the first word. PURE (Node-testable). Tolerates partial
+// timing (only the words GCP returned timepoints for are tracked → honest, no fake highlight).
+export function activeWordIndex(words, currentTime) {
+  if (!Array.isArray(words) || !words.length) return -1;
+  const t = Number(currentTime) || 0;
+  let active = -1;
+  for (let i = 0; i < words.length; i++) {
+    if (t >= (Number(words[i].t) || 0)) active = (Number.isInteger(words[i].o) ? words[i].o : -1);
+    else break;
+  }
+  return active;
+}
+
 // API/DB sentence row → UI row shape (snake_case + camelCase tolerant).
 // = index.html v3MapSentenceApiRowToUiRow, verbatim. Carries BOTH Hebrew forms
 // (he, he_niqqud) and BOTH translit profiles (translit, translit_ru) separately so
@@ -421,12 +436,51 @@ export function attachRowAudio(mount, opts) {
     continuous = false; notifyRow(-1);   // reached the end → karaoke done
   };
 
+  // BRR-P1-008b word-level karaoke — per-clip word timing from <assetKey>.timing.json (lazy,
+  // cached incl. null). Only tier-1/2 'audio' rows (real currentTime) get word highlight; tier-3
+  // browser-speech has no timing → sentence-level only. No timing file ⇒ graceful sentence-level.
+  let activeTiming = null, speakingWord = -1;
+  const timingCache = new Map();
+  async function ensureTiming(assetKey) {
+    if (!assetKey) return null;
+    if (timingCache.has(assetKey)) return timingCache.get(assetKey);
+    let t = null;
+    try {
+      const r = await fetch("/api/audio/" + encodeURIComponent(assetKey) + "/timing", { cache: "force-cache" });
+      if (r && r.ok) { const j = await r.json(); if (j && Array.isArray(j.words) && j.words.length) t = j; }
+    } catch (_) { t = null; }
+    timingCache.set(assetKey, t);
+    return t;
+  }
+
   const btnOf = (idx) => mount.querySelector('button.row-tts-btn[data-row-idx="' + idx + '"]');
   const trOf = (idx) => { const b = btnOf(idx); return b ? b.closest("tr") : null; };
+  const clearSpeakingWord = () => {
+    if (!mount) return;
+    const prev = mount.querySelectorAll(".rm-w-speaking");
+    for (let i = 0; i < prev.length; i++) prev[i].classList.remove("rm-w-speaking");
+    speakingWord = -1;
+  };
+  // Highlight the spoken word (offset) in the playing row — both he + niqqud cells share the offset.
+  const paintSpeakingWord = (rowIdx, off) => {
+    const tr = trOf(rowIdx); if (!tr) return;
+    const cur = tr.querySelectorAll(".rm-w-speaking");
+    for (let i = 0; i < cur.length; i++) cur[i].classList.remove("rm-w-speaking");
+    if (off < 0) return;
+    const spans = tr.querySelectorAll('.rm-w[data-w-offset="' + off + '"]');
+    for (let j = 0; j < spans.length; j++) spans[j].classList.add("rm-w-speaking");
+  };
   const ensurePlayer = () => {
     if (player) return player;
     player = new Audio();
     player.addEventListener("ended", () => { if (mode === "audio") { const fin = playingIdx; clearPlaying(); if (continuous) advance(fin); } });
+    // BRR-P1-008b — drive word-level highlight off audio position.
+    player.addEventListener("timeupdate", () => {
+      if (mode !== "audio" || !activeTiming || playingIdx == null) return;
+      const off = activeWordIndex(activeTiming.words, player.currentTime);
+      if (off === speakingWord) return;
+      speakingWord = off; paintSpeakingWord(playingIdx, off);
+    });
     return player;
   };
   const revoke = () => { if (objUrl) { try { URL.revokeObjectURL(objUrl); } catch (_) {} objUrl = null; } };
@@ -445,6 +499,7 @@ export function attachRowAudio(mount, opts) {
   };
   const clearPlaying = () => {
     if (playingIdx != null) { const b = btnOf(playingIdx); if (b) { b.classList.remove("row-tts-playing"); if (!b.classList.contains("row-tts-error")) b.textContent = "▶"; } const tr = trOf(playingIdx); if (tr) tr.classList.remove("row-playing"); }
+    clearSpeakingWord(); activeTiming = null;   // BRR-P1-008b
     playingIdx = null; mode = null;
   };
   const stopAll = () => {
@@ -492,7 +547,12 @@ export function attachRowAudio(mount, opts) {
       if (assetKey) {
         let ok = false;
         try { const h = await fetch("/api/audio/" + encodeURIComponent(assetKey), { method: "HEAD" }); ok = !!(h && h.ok); } catch (_) { ok = false; }
-        if (ok) { revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(assetKey); setPlaying(idx); await p.play(); return; }
+        if (ok) {
+          revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(assetKey); setPlaying(idx);
+          activeTiming = null; speakingWord = -1;   // BRR-P1-008b — load word timing in parallel
+          ensureTiming(assetKey).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
+          await p.play(); return;
+        }
       }
       // tier 2 — BYOK GCP fresh synth (only if a key is present)
       if (gcpKeyOf()) {

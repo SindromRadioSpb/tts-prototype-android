@@ -2623,6 +2623,23 @@ if (hasV3Context) {
 
 // --------------------------------------------------------
 // 8.3 API: Stream MP3 by assetKey (V3 audio assets)
+// GET /api/audio/:assetKey/timing — BRR-P1-008b word-level karaoke. Serves the per-clip
+// word-timing sidecar (audio-cache/<key>.timing.json) from the volume. Content-addressed →
+// immutable cache; 404 when absent (client gracefully falls back to sentence-level karaoke).
+app.get("/api/audio/:assetKey/timing", (req, res) => {
+  const assetKey = String(req.params.assetKey || "").trim();
+  if (!/^[a-f0-9]{64}$/i.test(assetKey)) return res.status(400).json({ error: "BAD_ASSET_KEY" });
+  const audioCacheRoot = path.resolve(audioCacheDir);
+  const absPath = path.resolve(DATA_DIR, "audio-cache/" + assetKey + ".timing.json");
+  if (!absPath.startsWith(audioCacheRoot + path.sep)) return res.status(400).json({ error: "BAD_ASSET_PATH" });
+  let raw;
+  try { raw = fs.readFileSync(absPath, "utf8"); } catch (_) { return res.status(404).json({ error: "NOT_FOUND" }); }
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("ETag", '"' + assetKey + '-t"');
+  return res.status(200).send(raw);
+});
+
 // GET /api/audio/:assetKey
 // - Streams file from audio-cache/<assetKey>.mp3
 // - Supports Range requests (seeking)
@@ -3291,38 +3308,44 @@ app.post("/api/audio/cache/upload", rlAudioUpload, async (req, res) => {
     if (!/^[a-f0-9]{64}$/.test(assetKey)) {
       return res.status(400).json({ ok: false, error: "BAD_ASSET_KEY" });
     }
+    // BRR-P1-008b — accept mp3 and/or a word-timing sidecar; at least one required.
     const mp3B64 = String(body.mp3Base64 || "");
-    if (!mp3B64) return res.status(400).json({ ok: false, error: "NO_MP3" });
-    let buf;
-    try { buf = Buffer.from(mp3B64, "base64"); } catch (_) {
-      return res.status(400).json({ ok: false, error: "BAD_BASE64" });
-    }
-    if (!buf || !buf.length) return res.status(400).json({ ok: false, error: "EMPTY_MP3" });
-    if (buf.length > 20 * 1024 * 1024) {
-      // 20 MB cap per file is generous for TTS row clips.
-      return res.status(413).json({ ok: false, error: "MP3_TOO_LARGE" });
-    }
+    const timingJson = (body.timingJson && typeof body.timingJson === "object" && !Array.isArray(body.timingJson)) ? body.timingJson : null;
+    const overwrite = body.overwrite === true || body.overwrite === "1";
+    if (!mp3B64 && !timingJson) return res.status(400).json({ ok: false, error: "NO_PAYLOAD" });
+
     const relPath = getAudioRelativePath(assetKey).replace(/\\/g, "/");
     const absPath = path.resolve(DATA_DIR, relPath);
     const dir = path.dirname(absPath);
     try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
-    const wr = writeMp3IfNotExists(absPath, buf);
-    // Surface real failures so the ZIP-import upload loop can retry/count
-    // errors honestly instead of swallowing them with ok:true.
-    if (wr.error) {
-      return res.status(500).json({
-        ok: false,
-        assetKey,
-        error: "WRITE_FAILED",
-        details: wr.error,
-      });
+
+    let mp3Written = null;
+    if (mp3B64) {
+      let buf;
+      try { buf = Buffer.from(mp3B64, "base64"); } catch (_) { return res.status(400).json({ ok: false, error: "BAD_BASE64" }); }
+      if (!buf || !buf.length) return res.status(400).json({ ok: false, error: "EMPTY_MP3" });
+      if (buf.length > 20 * 1024 * 1024) return res.status(413).json({ ok: false, error: "MP3_TOO_LARGE" });
+      if (overwrite) {
+        // re-bake (BRR-P1-008b): the served clip MUST match the pushed timepoints → overwrite.
+        try { fs.writeFileSync(absPath, buf); mp3Written = true; }
+        catch (e) { return res.status(500).json({ ok: false, assetKey, error: "WRITE_FAILED", details: e && e.message }); }
+      } else {
+        const wr = writeMp3IfNotExists(absPath, buf);
+        if (wr.error) return res.status(500).json({ ok: false, assetKey, error: "WRITE_FAILED", details: wr.error });
+        mp3Written = !!wr.written;
+      }
     }
-    return res.json({
-      ok: true,
-      assetKey,
-      written: !!wr.written,
-      alreadyExisted: !wr.written,
-    });
+
+    let timingWritten = false;
+    if (timingJson) {
+      if (!Array.isArray(timingJson.words)) return res.status(400).json({ ok: false, error: "BAD_TIMING" });
+      const tStr = JSON.stringify(timingJson);
+      if (tStr.length > 2 * 1024 * 1024) return res.status(413).json({ ok: false, error: "TIMING_TOO_LARGE" });
+      try { fs.writeFileSync(path.resolve(DATA_DIR, "audio-cache/" + assetKey + ".timing.json"), tStr); timingWritten = true; }
+      catch (e) { return res.status(500).json({ ok: false, assetKey, error: "TIMING_WRITE_FAILED", details: e && e.message }); }
+    }
+
+    return res.json({ ok: true, assetKey, written: mp3Written, alreadyExisted: mp3Written === false, timingWritten });
   } catch (e) {
     console.error("POST /api/audio/cache/upload error:", e);
     return res.status(500).json({ ok: false, error: "UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });

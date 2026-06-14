@@ -9,6 +9,10 @@
 // gcpTtsRestSynthesize); no running server needed, canonical assetType:'row'.
 
 const { computeAssetKey } = require("../../../db/premium/ttsAssetKey");
+// BRR-P1-008b — reuse the EXACT client word tokenization so an SSML <mark> index ==
+// the .rm-w data-w-offset the reader builds → no mark↔word drift. reader-morph is a
+// CJS-exporting IIFE (require-safe in Node; used by smoke:reader-scaffold too).
+const { tokenize: heTokenize } = require("../../../public/js/reader-morph.js");
 
 // Hebrew WaveNet voices offered by GCP (2 female A/C, 2 male B/D).
 const VOICE_CANDIDATES = ["he-IL-Wavenet-A", "he-IL-Wavenet-B", "he-IL-Wavenet-C", "he-IL-Wavenet-D"];
@@ -113,6 +117,66 @@ async function synthesizeMp3(apiKey, text, profile) {
   return Buffer.concat(buffers);
 }
 
+// ── BRR-P1-008b — word-level timepoints (SSML <mark>) ───────────────────────────
+function escapeXml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+// Wrap each WORD with a <mark name="wN"/> immediately before it, PRESERVING the original
+// separators/punctuation (commas, periods) so the synthesized audio keeps its prosody/pauses
+// and matches what the reader shows. Tokenization is reader-morph.tokenize — the SAME split
+// that builds the client's .rm-w spans → mark index == data-w-offset (no drift).
+function buildMarkedSsml(text) {
+  const toks = heTokenize(String(text || ""));
+  let ssml = "<speak>", k = 0;
+  for (const t of toks) {
+    if (t.isWord) { ssml += '<mark name="w' + k + '"/>'; k++; }
+    ssml += escapeXml(t.text);
+  }
+  ssml += "</speak>";
+  return { ssml, wordCount: k };
+}
+
+// Parse GCP timepoints[] → sorted [{o,t}] (o=word offset, t=start sec). Tolerates partial
+// returns (the v1beta1 "truncate after first period" quirk) — missing words just won't highlight.
+function timingFromTimepoints(timepoints, wordCount) {
+  const tps = Array.isArray(timepoints) ? timepoints : [];
+  const words = tps
+    .map((tp) => ({ o: parseInt(String((tp && tp.markName) || "").replace(/^w/, ""), 10), t: Number(tp && tp.timeSeconds) || 0 }))
+    .filter((x) => Number.isInteger(x.o) && x.o >= 0)
+    .sort((a, b) => a.o - b.o);
+  return { v: 1, n: Number(wordCount) || words.length, got: words.length, words: words };
+}
+
+// v1beta1 synth WITH SSML mark timepoints. Returns { mp3:Buffer, timing:{v,n,got,words:[{o,t}]} }.
+// Same voice/rate/pitch as synthesizeMp3 → audio matches; marks are zero-duration.
+async function synthesizeWithTimepoints(apiKey, text, profile) {
+  if (!apiKey) { const e = new Error("GCP TTS API key required (env)"); e.code = "TTS_KEY_REQUIRED"; throw e; }
+  const clean = String(text || "").trim();
+  if (!clean) return { mp3: Buffer.alloc(0), timing: { v: 1, n: 0, got: 0, words: [] } };
+  const { ssml, wordCount } = buildMarkedSsml(clean);
+  const p = profile || {};
+  const request = {
+    input: { ssml },
+    voice: { languageCode: p.language || "he-IL", name: p.voiceName || undefined },
+    audioConfig: { audioEncoding: "MP3", speakingRate: p.speakingRate || 1.0, pitch: p.pitch || 0.0 },
+    enableTimePointing: ["SSML_MARK"],
+  };
+  const url = "https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=" + encodeURIComponent(apiKey);
+  const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
+  if (!resp.ok) {
+    let bt = ""; try { bt = await resp.text(); } catch (_) {}
+    let parsed = null; try { parsed = JSON.parse(bt); } catch (_) {}
+    const err = new Error((parsed && parsed.error && parsed.error.message) || ("GCP TTS v1beta1 HTTP " + resp.status));
+    err.status = resp.status; err.code = parsed && parsed.error && parsed.error.status; throw err;
+  }
+  const data = await resp.json();
+  if (!data || !data.audioContent) throw new Error("GCP TTS v1beta1: empty audioContent");
+  return { mp3: Buffer.from(data.audioContent, "base64"), timing: timingFromTimepoints(data.timepoints, wordCount) };
+}
+
 module.exports = {
   VOICE_CANDIDATES,
   TTS_MAX_INPUT_BYTES,
@@ -124,4 +188,9 @@ module.exports = {
   splitForTts,
   gcpSynth,
   synthesizeMp3,
+  // BRR-P1-008b
+  escapeXml,
+  buildMarkedSsml,
+  timingFromTimepoints,
+  synthesizeWithTimepoints,
 };
