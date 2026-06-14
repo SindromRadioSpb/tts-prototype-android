@@ -442,6 +442,37 @@
       text-align: center; opacity: 0; pointer-events: none; z-index: 1200; transition: opacity .2s, transform .2s;
     }
     .room-toast.show { opacity: 1; transform: translate(-50%, 0); }
+    /* ── BRR chrome: SW-update toast + footer + «О Зале» modal ─────────────────── */
+    .room-update-toast {
+      position: fixed; left: 50%; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+      background: #1f2937; color: #fff; border-radius: 10px; padding: 10px 12px 10px 16px; font-size: 14px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 1300; display: flex; align-items: center; gap: 10px; max-width: 92vw;
+    }
+    .room-update-toast button { width: auto; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px; padding: 6px 12px; }
+    .room-update-toast .ru-upd { background: var(--accent); color: var(--accent-contrast); font-weight: 700; }
+    .room-update-toast .ru-later { background: transparent; color: #9ca3af; padding: 6px 10px; }
+    .room-footer {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px;
+      padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); margin-top: 8px;
+      border-top: 1px solid var(--border-soft); background: var(--bg-muted); font-size: 12px; color: var(--text-secondary);
+    }
+    .room-footer-left, .room-footer-right { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+    .room-footer a { color: var(--text-secondary); text-decoration: none; cursor: pointer; }
+    .room-footer a:hover { color: var(--text-primary); text-decoration: underline; }
+    .room-privacy-badge { background: rgba(63,185,80,.12); border-radius: 999px; padding: 3px 10px; }
+    .room-footer-version { color: var(--text-faint); cursor: pointer; }
+    .room-about { position: fixed; inset: 0; z-index: 1400; display: flex; align-items: center; justify-content: center; }
+    .room-about[hidden] { display: none; }
+    .room-about-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+    .room-about-card {
+      position: relative; background: var(--bg-card); color: var(--text-primary); border-radius: 14px;
+      max-width: 460px; width: calc(100vw - 32px); max-height: 80vh; overflow-y: auto; padding: 20px 18px; box-shadow: 0 12px 40px rgba(0,0,0,.3);
+    }
+    .room-about-card h2 { margin: 0 0 10px; font-size: 18px; }
+    .room-about-card p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: var(--text-secondary); }
+    .room-about-x { position: absolute; top: 10px; inset-inline-end: 12px; width: auto; background: transparent; border: 0; font-size: 18px; color: var(--text-faint); cursor: pointer; }
+    .room-about-version { margin-top: 12px; font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .room-about-update button { width: auto; background: var(--accent); color: var(--accent-contrast); border: 0; border-radius: 6px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
     /* Stage 2 — rich card: collapsible root-family + ported Pealim inflection table */
     .rm-acc { margin-top: 12px; border-top: 1px solid var(--border-soft); padding-top: 8px; }
     .rm-acc-sum { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text-secondary); list-style: none; padding: 4px 0; }
@@ -521,6 +552,39 @@
   <div id="readerAids" class="reader-aids" hidden></div>
   <div id="roomReaderTable" class="reader-table-wrap"></div>
 </section>
+
+<!-- ── Trust footer (R4/R5) + Ben-Yehuda source attribution (R6/R9) ───────────── -->
+<footer class="room-footer" id="roomFooter">
+  <div class="room-footer-left">
+    <a class="room-privacy-badge" href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.privacyBadge">🔒 Данные на этом устройстве</a>
+    <span class="room-footer-credit"><span data-i18n="footer.madeBy">Made with ❤️ by</span> <span data-i18n="footer.devName">Kolosei Peter</span></span>
+    <a class="room-footer-source" href="https://benyehuda.org" target="_blank" rel="noopener" data-i18n="room.footer.source">Тексты: Проект Бен-Иегуда (общественное достояние)</a>
+  </div>
+  <div class="room-footer-right">
+    <a href="https://github.com/SindromRadioSpb/tts-prototype-android/issues/new" target="_blank" rel="noopener" data-i18n="footer.feedbackLink">💬 Сообщить о проблеме</a>
+    <a href="/docs/PRIVACY.md" target="_blank" rel="noopener" data-i18n="footer.privacyLink">Приватность</a>
+    <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
+    <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
+    <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.6.0</span>
+  </div>
+</footer>
+
+<!-- «О Зале» — lightweight info modal (what it is, source, offline, version + update status) -->
+<div id="roomAbout" class="room-about" hidden role="dialog" aria-modal="true" aria-labelledby="roomAboutTitle">
+  <div class="room-about-backdrop" data-close="1"></div>
+  <div class="room-about-card">
+    <button class="room-about-x" id="roomAboutClose" type="button" aria-label="Close" data-close="1">✕</button>
+    <h2 id="roomAboutTitle" data-i18n="room.about.title">О Читальном зале</h2>
+    <p data-i18n="room.about.what">—</p>
+    <p data-i18n="room.about.source">—</p>
+    <p data-i18n="room.about.offline">—</p>
+    <div class="room-about-version">
+      <span data-i18n="room.about.versionLabel">Версия</span>&nbsp;<strong id="roomAboutVersion">—</strong>
+      <span id="roomAboutUpdate" class="room-about-update"></span>
+    </div>
+  </div>
+</div>
 
 <!-- i18n: locales BEFORE core (sets <html dir> for Hebrew) -->
 <script src="/i18n/locales/ru.js"></script>

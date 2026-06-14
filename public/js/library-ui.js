@@ -406,6 +406,81 @@ function roomToast(msg) {
   } catch (_) {}
 }
 
+// ── PWA update toast + «О Зале» (premium chrome — the Room registers the SW itself, so an
+// update prompt + About surface exist even when the Room is opened directly, not via Studio) ──
+let roomWaitingWorker = null, roomReloadingForUpdate = false, roomUpdateToastEl = null, roomAppVersion = '';
+function dismissRoomUpdateToast() {
+  if (roomUpdateToastEl && roomUpdateToastEl.parentNode) roomUpdateToastEl.parentNode.removeChild(roomUpdateToastEl);
+  roomUpdateToastEl = null;
+}
+function applyRoomUpdate() {
+  const w = roomWaitingWorker;
+  dismissRoomUpdateToast();
+  if (w) {
+    // Ask the waiting SW to activate; 'controllerchange' reloads INTO the new shell. Long fallback
+    // only covers a dropped message (a short timer reloads onto the old shell on iOS → toast loops).
+    w.postMessage({ type: 'SKIP_WAITING' });
+    setTimeout(() => { if (!roomReloadingForUpdate) { roomReloadingForUpdate = true; location.reload(); } }, 3500);
+  } else { location.reload(); }
+}
+function showRoomUpdateToast(worker) {
+  roomWaitingWorker = worker || roomWaitingWorker;
+  refreshAboutUpdateStatus();
+  dismissRoomUpdateToast();
+  const box = el('div', { class: 'room-update-toast', attrs: { role: 'status' } });
+  box.appendChild(el('span', { text: tt('app.updateAvailable', 'Доступно обновление приложения') }));
+  const up = el('button', { class: 'ru-upd', text: tt('app.updateNow', 'Обновить') });
+  up.addEventListener('click', applyRoomUpdate);
+  const later = el('button', { class: 'ru-later', text: tt('app.updateLater', 'Позже') });
+  later.addEventListener('click', dismissRoomUpdateToast);
+  box.appendChild(up); box.appendChild(later);
+  document.body.appendChild(box);
+  roomUpdateToastEl = box;
+}
+function registerRoomServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (roomReloadingForUpdate) return; roomReloadingForUpdate = true; location.reload();
+  });
+  navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
+    if (reg.waiting && navigator.serviceWorker.controller) showRoomUpdateToast(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const nw = reg.installing; if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed' && navigator.serviceWorker.controller) showRoomUpdateToast(nw);
+      });
+    });
+    const check = () => { try { reg.update(); } catch (_) {} };
+    check();
+    setInterval(check, 30 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
+  }).catch((e) => { try { console.warn('[room] sw register failed', e); } catch (_) {} });
+}
+async function loadRoomVersion() {
+  try {
+    const j = await (await fetch('/api/client-config', { cache: 'no-store' })).json();
+    if (j && j.version) {
+      roomAppVersion = String(j.version);
+      const fv = $('roomFooterVersion'); if (fv) fv.textContent = roomAppVersion;
+      const av = $('roomAboutVersion'); if (av) av.textContent = roomAppVersion;
+    }
+  } catch (_) {}
+}
+function refreshAboutUpdateStatus() {
+  const box = $('roomAboutUpdate'); if (!box) return;
+  box.innerHTML = '';
+  if (roomWaitingWorker) {
+    box.appendChild(el('span', { text: tt('room.about.updateAvailable', 'Доступно обновление') + ' ' }));
+    const b = el('button', { text: tt('app.updateNow', 'Обновить') });
+    b.addEventListener('click', applyRoomUpdate);
+    box.appendChild(b);
+  } else {
+    box.appendChild(el('span', { text: tt('room.about.upToDate', '✓ Актуальная версия') }));
+  }
+}
+function openRoomAbout() { refreshAboutUpdateStatus(); const m = $('roomAbout'); if (m) m.hidden = false; }
+function closeRoomAbout() { const m = $('roomAbout'); if (m) m.hidden = true; }
+
 function readerConfig() {
   return {
     // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
@@ -1586,6 +1661,14 @@ function wireChrome() {
     const btn = $(TAB_ID[t]);
     if (btn) btn.addEventListener('click', () => setActiveTrack(t));
   });
+  // Footer «О Зале» modal: open from the link + version label; close on backdrop/✕/Esc.
+  const aboutLink = $('roomAboutLink');
+  if (aboutLink) aboutLink.addEventListener('click', (e) => { e.preventDefault(); openRoomAbout(); });
+  const verEl = $('roomFooterVersion');
+  if (verEl) verEl.addEventListener('click', openRoomAbout);
+  const aboutModal = $('roomAbout');
+  if (aboutModal) aboutModal.addEventListener('click', (e) => { if (e.target && e.target.getAttribute && e.target.getAttribute('data-close') === '1') closeRoomAbout(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeRoomAbout(); });
   // Embedded reader chrome.
   const back = $('readerBack');
   if (back) back.addEventListener('click', closeReader);
@@ -1618,6 +1701,8 @@ async function boot() {
   loadReaderCfg();   // BRR-P1-006 — restore persisted scaffolding modes before any reader render
   wireChrome();
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  registerRoomServiceWorker();   // PWA update toast «Обновить» (works even if opened directly)
+  loadRoomVersion();             // footer + «О Зале» version from /api/client-config
   try {
     await localDb.initLocalDB();
     if (localDb.isFollower && localDb.isFollower()) {
