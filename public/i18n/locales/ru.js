@@ -1906,6 +1906,14 @@ window.I18N_LOCALES.ru = {
     work: {
       open: "Читать",
       unavailable: "Текст недоступен",
+      untitled: "Без названия",
+    },
+    resume: {
+      shelfTitle: "Продолжить чтение",
+      continue: "Продолжить",
+      fromRow: "Вы остановились на строке",
+      toStart: "Читать с начала",
+      read: "прочитано",
     },
     state: {
       loading: "Загрузка…",

@@ -281,6 +281,7 @@ function aidsHintedSet() { try { localStorage.setItem('room.aidsHinted', '1'); }
 let readerRows = [];
 let readerAudio = null; // attachRowAudio detach handle
 let readerMorph = null; // ReaderMorph attach detach handle
+let readerTextId = null; // BRR-P2-002 — local OPFS id of the open text (for progress)
 
 // BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
 // Empty is fine: audio falls back to keyless browser SpeechSynthesis.
@@ -582,6 +583,7 @@ function setReadAloudBtn(active) {
 }
 function onKaraokeRowChange(idx) {
   if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }
+  recordProgress(idx);   // BRR-P2-002 — the read-aloud row is a strong progress signal
   if (!karaokeActive || karaokeUserScrolled) return;
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
@@ -604,6 +606,82 @@ function toggleReadAloud() {
 function stopKaraoke() {
   if (karaokeActive && readerAudio) { try { readerAudio.stop(); } catch (_) {} }
   karaokeActive = false; setReadAloudBtn(false);
+}
+
+// BRR-P2-002 «Продолжить чтение» — record the reading position (debounced) and restore
+// it on the next open. Position = topmost row at the sticky bar OR the karaoke-playing row.
+// All DOM/DB; the in-range decision math lives in the pure window.ReaderProgress (gated).
+let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false;
+function recordProgress(idx) {
+  if (readerTextId == null || idx == null || idx < 0) return;
+  const tid = readerTextId, row = idx;
+  if (_progressTimer) clearTimeout(_progressTimer);
+  _progressTimer = setTimeout(() => {
+    _progressTimer = null;
+    try { localDb.setProgress(tid, { last_row_idx: row }); } catch (_) {}
+  }, 800);
+}
+function readerBarOffset() {
+  const bar = $('roomReader') && $('roomReader').querySelector('.reader-bar');
+  if (!bar) return 0;
+  try { return Math.max(0, bar.getBoundingClientRect().bottom); } catch (_) { return 0; }
+}
+function currentTopRowIdx() {
+  const mount = $('roomReaderTable'); if (!mount || !window.ReaderProgress) return null;
+  const trs = mount.querySelectorAll('tr[data-row-idx]');
+  if (!trs.length) return null;
+  const rows = [];
+  for (const tr of trs) {
+    const rc = tr.getBoundingClientRect();
+    rows.push({ idx: Number(tr.getAttribute('data-row-idx')), top: rc.top, bottom: rc.bottom });
+  }
+  return window.ReaderProgress.topVisibleRowIdx(rows, readerBarOffset());
+}
+function wireProgressScroll() {
+  if (_progressScrollWired) return; _progressScrollWired = true;
+  window.addEventListener('scroll', () => {
+    if (readerTextId == null) return;
+    if (_scrollTimer) clearTimeout(_scrollTimer);
+    _scrollTimer = setTimeout(() => {
+      _scrollTimer = null;
+      const idx = currentTopRowIdx();
+      if (idx != null) recordProgress(idx);
+    }, 600);
+  }, { passive: true });
+}
+function scrollToReaderRow(idx) {
+  const mount = $('roomReaderTable');
+  const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
+  if (tr && tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
+}
+function clearResumeBanner() { const b = $('readerResume'); if (b && b.remove) b.remove(); }
+function showResumeBanner(idx) {
+  clearResumeBanner();
+  const reader = $('roomReader'), tbl = $('roomReaderTable');
+  if (!reader || !tbl) return;
+  const bar = el('div', { class: 'reader-resume' }); bar.id = 'readerResume';
+  bar.appendChild(el('span', { class: 'reader-resume-msg', text: tt('room.resume.fromRow', 'Вы остановились на строке') + ' ' + (idx + 1) }));
+  const go = el('button', { class: 'reader-resume-go', i18n: 'room.resume.continue', text: tt('room.resume.continue', 'Продолжить') });
+  go.type = 'button';
+  go.addEventListener('click', () => { scrollToReaderRow(idx); clearResumeBanner(); });
+  const x = el('button', { class: 'reader-resume-x', text: '✕', attrs: { 'aria-label': tt('room.resume.toStart', 'Читать с начала') } });
+  x.type = 'button';
+  x.title = tt('room.resume.toStart', 'Читать с начала');
+  x.addEventListener('click', clearResumeBanner);
+  bar.appendChild(go); bar.appendChild(x);
+  reader.insertBefore(bar, tbl);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+// After a fresh open: offer (or, for an explicit «Продолжить» tap, perform) the resume.
+async function restoreReaderPosition(textId, opts) {
+  if (!window.ReaderProgress) return;
+  let prog = null;
+  try { prog = await localDb.getProgress(textId); } catch (_) { prog = null; }
+  if (readerTextId !== textId) return;            // navigated away while awaiting
+  const target = window.ReaderProgress.resumeTarget(prog, readerRows.length);
+  if (target == null) return;
+  if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
+  else showResumeBanner(target);                        // normal open → non-jumping affordance (R4)
 }
 
 // BRR-P1-006 D2 — progressive translation reveal (active recall). In 'reveal' mode the ru cells
@@ -740,11 +818,13 @@ function buildAidsPanel() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
-async function openReader(textId, title) {
+async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
   if (content) content.hidden = true;
   reader.hidden = false;
+  clearResumeBanner();                 // BRR-P2-002 — never carry a stale resume bar across opens
+  readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
   if (titleEl) {
     titleEl.textContent = title || '';
@@ -763,18 +843,37 @@ async function openReader(textId, title) {
     },
   });
   readerRows = res && res.ok ? res.rows : [];
-  if (res && res.ok) attachReaderAudio();
+  if (res && res.ok) {
+    attachReaderAudio();
+    try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
+    wireProgressScroll();
+    restoreReaderPosition(readerTextId, opts);           // offer/perform resume (R4 reliability)
+  }
 }
 
-function closeReader() {
+async function closeReader() {
+  // BRR-P2-002 — flush the current position synchronously BEFORE hiding (the 800ms debounce
+  // may not have fired if Back is tapped quickly). Read the top-visible row while the table is
+  // still laid out, persist it, then stop recording.
+  const tid = readerTextId;
+  if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
+  if (tid != null) {
+    const idx = currentTopRowIdx();
+    if (idx != null) { try { await localDb.setProgress(tid, { last_row_idx: idx }); } catch (_) {} }
+  }
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
+  clearResumeBanner(); readerTextId = null;         // BRR-P2-002 — stop recording after close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
   const reader = $('roomReader'), content = $('roomContent');
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;
+  // Surface the just-read text in «Продолжить чтение» (corpus home only; results / other tabs untouched).
+  if (tid != null && activeTrack === 'corpus' && corpusNav.level === 'home' && !corpusFilterActive()) {
+    try { corpusRefreshL1Body(); } catch (_) {}
+  }
 }
 
 // Resolve a stable text_key → the ephemeral local OPFS id (importBundle remaps ids on
@@ -1115,6 +1214,51 @@ function buildColdStartSection(v) {
 //   • neither (too-new) → «🌱 С чего начать» cold-start owns L1.
 // When a personal rail shows, the cold-start rail RECEDES (DESIGN D3: Rail-2 fades as Rail-1
 // fills). Re-render-guarded; fully try/caught (a rail failure never breaks L1).
+// BRR-P2-002 — a «Продолжить чтение» card: an already-imported text the reader left mid-way.
+// Tapping resumes straight to the saved row (explicit intent → jump, not the passive banner).
+function renderContinueCard(item) {
+  const node = el('div', { class: 'work-card continue-card', attrs: { role: 'button', tabindex: '0' } });
+  const title = item.title || tt('room.work.untitled', 'Без названия');
+  const titleEl = el('span', { class: 'work-card-title', text: title });
+  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  node.appendChild(titleEl);
+  const pct = window.ReaderProgress ? window.ReaderProgress.continuePercent(item.last_row_idx, item.n_rows) : 0;
+  const meta = el('div', { class: 'work-card-meta' });
+  meta.appendChild(el('span', { class: 'prov-badge continue-pct', text: pct + '% ' + tt('room.resume.read', 'прочитано') }));
+  node.appendChild(meta);
+  node.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.resume.continue', text: tt('room.resume.continue', 'Продолжить') }));
+  const open = () => openReader(item.id, item.title, { resume: true });
+  node.addEventListener('click', open);
+  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  return node;
+}
+
+// Prepend the «Продолжить чтение» shelf above everything (R8 «что дальше»). Guarded against a
+// stale/swapped body (a navigation or filter replaced the L1 home while the DB query was in flight).
+async function injectContinueReading(body) {
+  try {
+    let items = [];
+    try { items = await localDb.getContinueReading(12); } catch (_) { items = []; }
+    if (!items || !items.length || corpusL1Body !== body || corpusFilterActive()) return;
+    const sec = el('section', { class: 'shelf corpus-continue' });
+    const head = el('div', { class: 'shelf-head' });
+    head.appendChild(el('h2', { class: 'shelf-title', text: '▶ ' + tt('room.resume.shelfTitle', 'Продолжить чтение') }));
+    sec.appendChild(head);
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const it of items) rail.appendChild(renderContinueCard(it));
+    sec.appendChild(rail);
+    body.insertBefore(sec, body.firstChild);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
+}
+
+// Inject the L1 home rails in deterministic order: «Продолжить чтение» ends up ABOVE the
+// profile rail because both prepend to firstChild and Continue runs last.
+async function injectHomeRails(body) {
+  await injectCorpusRails(body);
+  await injectContinueReading(body);
+}
+
 async function injectCorpusRails(body) {
   try {
     const ready = (corpusIndex && corpusIndex.ready) || [];
@@ -1422,7 +1566,7 @@ function renderHomeInto(body) {
   periods.appendChild(grid);
   body.appendChild(periods);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  injectCorpusRails(body);   // S4: prepend ONE profile-chosen rail (personal i+1 / challenge / cold-start)
+  injectHomeRails(body);   // S4 personal rail + BRR-P2-002 «Продолжить чтение» (Continue on top)
 }
 
 // Global results (search ∪ facets) over the lazy index. Ready hits open via served-on-open

@@ -361,6 +361,18 @@
     }
     .reader-table-wrap { padding: 12px; overflow-x: auto; }
     .reader-table-wrap .room-state { margin: 40px auto; }
+    /* BRR-P2-002 «Продолжить чтение» — non-jumping resume affordance (sits under the sticky bar). */
+    .reader-resume {
+      position: sticky; top: 0; z-index: 9; display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; background: var(--bg-muted); border-bottom: 1px solid var(--border-soft);
+      font-size: 13px; color: var(--text-secondary);
+    }
+    .reader-resume-msg { flex: 1; min-width: 0; }
+    .reader-resume button { width: auto; flex: none; appearance: none; cursor: pointer; border-radius: 7px; font: inherit; }
+    .reader-resume-go { background: var(--accent); color: var(--accent-contrast); border: 0; padding: 6px 13px; font-size: 13px; font-weight: 600; }
+    .reader-resume-x { background: transparent; border: 0; color: var(--text-faint); font-size: 16px; padding: 4px 6px; line-height: 1; }
+    /* «Продолжить чтение» shelf card — a % progress chip in lieu of provenance badges. */
+    .continue-card .continue-pct { background: var(--accent); color: var(--accent-contrast); border: 0; }
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 
@@ -632,6 +644,8 @@
 <script src="/js/reader-dicta.js"></script>
 <!-- BRR-P1-007 S2 «Следующий для тебя» (i+1): pure client coverage engine over the lazy vocab sidecar. -->
 <script src="/js/corpus-vocab.js"></script>
+<!-- BRR-P2-002 «Продолжить чтение»: pure resume helpers (window.ReaderProgress; shared with Node gate). -->
+<script src="/js/reader-progress.js"></script>
 <script type="module" src="/js/library-ui.js"></script>
 </body>
 </html>

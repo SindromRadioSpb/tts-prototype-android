@@ -1892,6 +1892,14 @@ window.I18N_LOCALES.en = {
     work: {
       open: "Read",
       unavailable: "Text unavailable",
+      untitled: "Untitled",
+    },
+    resume: {
+      shelfTitle: "Continue reading",
+      continue: "Continue",
+      fromRow: "You stopped at line",
+      toStart: "Read from start",
+      read: "read",
     },
     state: {
       loading: "Loading…",

@@ -1902,6 +1902,14 @@ window.I18N_LOCALES.he = {
     work: {
       open: "קריאה",
       unavailable: "הטקסט אינו זמין",
+      untitled: "ללא כותרת",
+    },
+    resume: {
+      shelfTitle: "המשך קריאה",
+      continue: "המשך",
+      fromRow: "עצרת בשורה",
+      toStart: "קריאה מההתחלה",
+      read: "נקרא",
     },
     state: {
       loading: "טוען…",

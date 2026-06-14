@@ -140,6 +140,7 @@
     "smoke:studio-karaoke": "node scripts/premium/studio-karaoke-smoke.js",
     "smoke:reader-morph": "node scripts/premium/reader-morph-smoke.js",
     "smoke:reader-notes": "node scripts/premium/reader-notes-smoke.js",
+    "smoke:reader-resume": "node scripts/premium/reader-resume-smoke.js",
     "smoke:benyehuda-ingest": "node scripts/premium/benyehuda-ingest-smoke.js",
     "smoke:audio-prebake": "node scripts/premium/audio-prebake-smoke.js",
     "ingest:benyehuda": "node scripts/premium/ingest-benyehuda.js",
