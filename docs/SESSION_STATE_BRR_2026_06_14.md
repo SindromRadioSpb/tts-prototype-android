@@ -1,20 +1,22 @@
 # SESSION STATE — Ben-Yehuda Reading Room (2026-06-14) — READ FIRST
 
-> **Git: main = `01ebff2` (BRR-P1-008d), запушено. Prod SW `v3.10.55-studio-word-karaoke` (деплой/прод-верифай ниже).**
-> **BRR-P1-008d (NEW, эта сессия):** перенёс «бегущее слово» из Зала в **Studio** (`index.html`), ТОЛЬКО построчно
-> (решение владельца). Новый `public/js/studio-karaoke.js` (`window.StudioKaraoke`) + `<script src=/js/reader-morph.js>`
-> (общий `ReaderMorph.tokenize` → offset parity с SSML-метками) → ленивая POST-render обёртка строки `.rm-w` + rAF
-> `.rm-w-speaking` (янтарь, scoped `#proTable`). index.html-диф точечный (2 script-тега + `withTimepoints` + 2 вызова
-> `StudioKaraoke.start`; `renderTable` НЕ тронут → parity зелён). Сервер 008c переиспользован, кеш тайминга **общий с
-> Залом**. Гейт `smoke:studio-karaoke` 18/0; браузерный e2e (Playwright fake-audio) + @380px light/dark пройдены.
-> As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`. **Owner prod-verify с BYOK — последний шаг.**
+> **Git: main = `01ebff2` (BRR-P1-008d код; docs-стампы поверх), запушено. Prod SW `v3.10.55-studio-word-karaoke` — ПРОД-ВЕРИФИЦИРОВАН ВЛАДЕЛЬЦЕМ.**
+> **🎉 СЕМЕЙСТВО KARAOKE (008/008b/008c/008d) ЗАВЕРШЕНО И В ПРОДЕ НА ОБЕИХ ПОВЕРХНОСТЯХ** (Зал + Studio): построчное +
+> пословное «бегущее слово», для канона/Корпуса/любого BYOK-текста, с само-кешем (общий кеш Зал↔Studio).
+> **BRR-P1-008d (эта сессия, ✅ владелец подтвердил «подсветка слов работает на текстах»):** перенёс «бегущее слово» из
+> Зала в **Studio** (`index.html`), ТОЛЬКО построчно (решение владельца). Новый `public/js/studio-karaoke.js`
+> (`window.StudioKaraoke`) + `<script src=/js/reader-morph.js>` (общий `ReaderMorph.tokenize` → offset parity с SSML-метками)
+> → ленивая POST-render обёртка строки `.rm-w` + rAF `.rm-w-speaking` (янтарь, scoped `#proTable`). index.html-диф точечный
+> (2 script-тега + `withTimepoints` + 2 вызова `StudioKaraoke.start`; `renderTable` НЕ тронут → parity зелён). Сервер 008c
+> переиспользован, кеш тайминга **общий с Залом**. Гейт `smoke:studio-karaoke` 18/0; браузерный e2e (Playwright fake-audio)
+> + @380px light/dark пройдены. As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`.
 > **BRR-P1-008c:** пословный тайминг для ЛЮБОГО текста (вкл. **Корпус**) при BYOK-ключе, **само-кеш**. Сервер
 > `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`) синтезит v1beta1 SSML `<mark>` → пишет
 > mp3+`<key>.timing.json` → отвечает assetKey; клиент `reader-core.postTts` шлёт флаг, дальше существующий
 > `ensureTiming`→`/timing`→rAF `.rm-w-speaking`. Первый синтез на ключе пользователя → потом клип+тайминг отдаются
 > ВСЕМ keyless (tier-1). Длинный текст → graceful sentence-level. Гейты `test:api-smoke` +2 (роутинг→честный 401 без
 > ключа; self-cache keyless+`/timing` words[]). As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`.
-> **Owner prod-verify с BYOK-ключом — последний шаг.** 🔑 ротировать AUDIO_UPLOAD_TOKEN (GCP ротирован ✓).
+> **Прод-верифицирован** (401-роутинг + само-кеш). 🔑 ротировать AUDIO_UPLOAD_TOKEN (GCP ротирован ✓).
 > **BRR-P1-008b word-karaoke полностью:** канон-тайминг 6446/6446; подсветка слова = янтарный `.rm-w-speaking` (v3.10.49),
 > rAF-driven не timeupdate (iOS-fix v3.10.51); тема-переключатель 🌗 (v3.10.50); диагностика `?wkdebug=1`; **canon-v4 refresh**
 > (v3.10.53) — застарелые устройства ре-импортят канон (mode:'skip', заметки целы) → `reconcileAudioLinks` чинит стале-asset-keys
@@ -41,13 +43,17 @@
    - **Word-level подсветки НЕТ** (клипы без per-word тайминга) → вынесено в **BRR-P1-008b** (см. ниже).
 5. **BRR-P1-008b Word-level karaoke (канон)** IMPLEMENTED+PROD (`7e5124c`, SW v3.10.48) + canon-v4 refresh (v3.10.53). Тайминг забейкан → «бегущее слово» на КАНОНЕ.
 6. **BRR-P1-008c BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** IMPLEMENTED (SW v3.10.54, эта сессия). Сервер `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`, v1beta1 SSML `<mark>` → mp3+`<key>.timing.json`); клиент `reader-core.postTts` шлёт флаг (tier-2 уже грузит timing+rAF из 008b). Само-кеш: первый синтез на ключе пользователя → потом keyless tier-1 для всех. Длинный текст → graceful sentence-level. Гейты `test:api-smoke` +2 (честный 401 без ключа; self-cache keyless). As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. Прод-верифицирован (401-роутинг + SW v3.10.54).
-7. **BRR-P1-008d Word-karaoke в Studio (построчно)** IMPLEMENTED (SW v3.10.55, эта сессия). Перенос «бегущего слова» из Зала в `index.html`, только построчно (решение владельца). Новый `public/js/studio-karaoke.js` + `reader-morph.js` тег → POST-render `.rm-w` обёртка + rAF `.rm-w-speaking` (янтарь, `#proTable`); сервер 008c переиспользован, кеш общий с Залом. `renderTable` НЕ тронут (parity зелён). Гейт `smoke:studio-karaoke` 18/0 + браузерный e2e + @380px light/dark. As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`. **Owner prod-verify с BYOK — последний шаг.**
+7. **BRR-P1-008d Word-karaoke в Studio (построчно)** SHIPPED+PROD (`01ebff2`, SW v3.10.55, эта сессия; **владелец прод-подтвердил**). Перенос «бегущего слова» из Зала в `index.html`, только построчно (решение владельца). Новый `public/js/studio-karaoke.js` + `reader-morph.js` тег → POST-render `.rm-w` обёртка + rAF `.rm-w-speaking` (янтарь, `#proTable`); сервер 008c переиспользован, кеш общий с Залом. `renderTable` НЕ тронут (parity зелён). Гейт `smoke:studio-karaoke` 18/0 + браузерный e2e + @380px light/dark. As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`.
 
 ## Ключевые файлы / гейты
 - Движки (Room-only): `public/js/reader-core.js` (builder parity-locked + `attachRowAudio` continuous + `nextPlayableIndex`),
   `public/js/reader-morph.js` (`decorateWords`/`fadeDecision`/wrap `.rm-w`), `public/js/corpus-vocab.js` (i+1).
   Координатор: `public/js/library-ui.js`. Поверхность: `public/library.html`. i18n: `public/i18n/locales/{ru,en,he}.js`.
-- **index.html НЕ трогать** (Студия); общий движок шарится; `smoke:reader-parity` доказывает, что builder/index.html не тронуты — ВСЕ Room-фичи = post-render DOM-декорация на `.rm-w`/строках.
+- Studio-поверхность: `public/index.html` (39K строк) + новый `public/js/studio-karaoke.js` (Studio word-karaoke).
+- **ОБНОВЛЁННОЕ ПРАВИЛО про index.html** (008d сознательно его тронул с одобрения владельца): `renderTable` НЕ менять —
+  он byte-parity к `reader-core.buildBilingualTableHtml` (гейт `smoke:reader-parity`). Прочие правки index.html ДОПУСТИМЫ
+  для owner-одобренных Studio-фич, НО по паттерну **POST-render декорация + логика во внешнем `/js/*.js`** (минимальный
+  inline-диф, SW-бамп). Зальные фичи остаются в `library.html`/Room-движке; декорация всегда на `.rm-w`/строках.
 - Гейты (все зелёные на HEAD): `smoke:reader-parity` · `smoke:reader-scaffold` (234) · `smoke:reader-karaoke` (9) ·
   `smoke:reader-karaoke-words` (18) · `smoke:studio-karaoke` (18, 008d) · `smoke:reader-morph` · `smoke:reader-notes` (56) ·
   `smoke:corpus-vocab(-engine)` · `smoke:room` (14) · `smoke:corpus-room` (18) · `test:api-smoke` (вкл. 008c: withTimepoints-роутинг→честный 401, self-cache keyless).
@@ -60,8 +66,9 @@
   Гейт `smoke:reader-karaoke-words`. Live audio-«бег» слова проверяется на реальном устройстве (headless без mp3-кодека).
 - ✅ **BRR-P1-008c — BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** — IMPLEMENTED+ПРОД (SW v3.10.54).
   As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. (Корпус-текст ▶ → `?wkdebug=1` → tN>0; повторно → tier-1 из кеша.)
-- ✅ **BRR-P1-008d — Word-karaoke в Studio (построчно), само-кеш** — IMPLEMENTED (SW v3.10.55, эта сессия).
-  As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`. **Остался owner prod-verify с BYOK** (Studio → Library-строка ▶ → `?wkdebug=1`).
+- ✅ **BRR-P1-008d — Word-karaoke в Studio (построчно), само-кеш** — SHIPPED+PROD (SW v3.10.55, владелец подтвердил).
+  As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`.
+- — **Семейство Karaoke закрыто** (Зал+Studio, построчно+пословно). Дальше — направления ниже. —
 - ③ **Накормить i+1**: опубликовать ~132 бейкнутых→каталог v8 (skill `publish-corpus-batch`) + leveling. **Зависит от `AUDIO_UPLOAD_TOKEN`.** Дефицит modern (73 в каталоге).
 - ④ **Качество/измеримость R10**: replace recall/FP тап-глосса vs Dicta-silver + бейджи провенанса + **47097 идиш** (R6/R7).
 - ⑤ **Anki-sync** (real mastery → строгая i+1 80–95%); mobile-ограничение Anki-Connect.
@@ -73,20 +80,29 @@
 Бейк-леджер: 928/24641 done; в каталоге v7 опубликовано 796 → ~132 бейкнутых ждут публикации (③).
 
 ## НОРМЫ (стоячие)
-index.html НЕ трогать (Зал=library.html, шарят OPFS-движок). MEASURE до кода (.tmp-харнесс; профиль-зависимое → НЕПУСТОЙ профиль).
+`renderTable` в index.html НЕ менять (byte-parity, гейт `smoke:reader-parity`); прочие правки index.html — только
+owner-одобренные Studio-фичи по паттерну POST-render + внешний `/js/*.js` (см. «Ключевые файлы»). Зальные фичи — в
+`library.html`/Room-движке. MEASURE до кода (.tmp-харнесс; профиль-зависимое → НЕПУСТОЙ профиль).
 Большие фичи → recon-first дизайн в `docs/planning/<TICKET>.md` НА УТВЕРЖДЕНИЕ до кода. Развилка → варианты по ролям + рекомендация (AskUserQuestion), решает владелец.
 Гейты зелёные до push; commit+push автономно (Coolify авто-деплой); prod-verify после (Node fetch/браузер, ⚠ НЕ Windows-curl для не-ASCII). @380px RTL скрин перед UI-коммитом. SW-апдейт = тост «Обновить».
 
 ## ПРОМТ для НОВОЙ сессии (копипаст)
 ```
-Продолжаем LinguistPro (Node PWA, иврит↔рус, prod linguistpro.kolosei.com / Зал /library.html).
-READ FIRST: docs/SESSION_STATE_BRR_2026_06_14.md (консолидированный), затем по нужде docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md,
-docs/PROJECT_ROLES.md (R1–R10 авто), CLAUDE.md, .remember/remember.md.
-Owner-инвариант: бескомпромиссное качество, без заглушек. Нормы: index.html НЕ трогать; MEASURE до кода;
-большие фичи → recon-first дизайн в docs/planning/<TICKET>.md НА УТВЕРЖДЕНИЕ; гейты до push; commit+push автономно
-(Coolify); prod-verify после; SW бамп при shell-ассете; @380px RTL до UI-коммита.
-Состояние: ①Scaffolded Console + ②Karaoke(sentence) ОТГРУЖЕНЫ (HEAD 98d29e4, SW v3.10.47). NEXT-меню: BRR-P1-008b
-(word-karaoke, PROPOSED, owner-важно), ③publish+leveling, ④R10-качество+47097, ⑤Anki-sync, ⑥discovery.
-🔑 СРОЧНО: ротация AUDIO_UPLOAD_TOKEN+Gemini+GCP (блокер публикации + ③ + 008b).
+Продолжаем LinguistPro (Node PWA, иврит↔рус, prod linguistpro.kolosei.com; Зал /library.html, Studio /index.html).
+READ FIRST: docs/SESSION_STATE_BRR_2026_06_14.md (консолидированный READ-FIRST), .remember/remember.md (live-буфер),
+docs/PROJECT_ROLES.md (R1–R10 авто), CLAUDE.md. По нужде as-built: docs/planning/BRR_P1_008{B,C,D}_*_2026_06_14.md.
+Owner-инвариант: бескомпромиссное качество, без заглушек.
+Нормы: renderTable в index.html НЕ менять (parity-гейт smoke:reader-parity); прочие правки index.html — только
+owner-одобренные Studio-фичи по паттерну POST-render + внешний /js/*.js; Зальные фичи — в library.html/Room-движке;
+MEASURE до кода (профиль-зависимое → НЕПУСТОЙ профиль); крупные фичи → recon-first дизайн в docs/planning/<TICKET>.md
+НА УТВЕРЖДЕНИЕ; гейты зелёные до push; commit+push автономно (Coolify); prod-verify после (Node fetch, НЕ Windows-curl
+для не-ASCII); SW CACHE_VERSION бамп при shell-ассете; @380px RTL скрин перед UI-коммитом.
+СОСТОЯНИЕ (main HEAD ~bcc0d02, SW v3.10.55, всё в проде): СЕМЕЙСТВО KARAOKE ЗАВЕРШЕНО — построчное+пословное «бегущее
+слово» в Зале И Studio, для канона/Корпуса/любого BYOK-текста, само-кеш (общий кеш Зал↔Studio). Тж в проде: i+1
+«Следующий для тебя» (007), Scaffolded Console (006), Chrome Зала, sentence-karaoke (008).
+NEXT-меню (владелец выбирает): ③ publish ~132 бейкнутых→каталог v8 + leveling (зависит от ротации AUDIO_UPLOAD_TOKEN);
+④ R10-качество (replace recall/FP тап-глосса vs Dicta) + 47097 идиш; ⑤ Anki-sync; ⑥ discovery (full-text search wiring +
+фильтр/сорт полок + закладки); хвосты ①: per-word translit-fade, native HE-review строк room.*.
+🔑 СРОЧНО (владелец): ротация AUDIO_UPLOAD_TOKEN (+Gemini, +старый GCP) — блокер публикации репо (PUBLIC) и предусловие ③.
 Спроси, какое направление берём, ИЛИ продолжай выбранное. Кода без утверждённого дизайна для крупной фичи не писать.
 ```
