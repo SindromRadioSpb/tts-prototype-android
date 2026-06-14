@@ -135,6 +135,7 @@
     "smoke:room-mode": "node scripts/premium/room-mode-smoke.js",
     "smoke:reader-parity": "node scripts/premium/reader-parity-smoke.js",
     "smoke:reader-scaffold": "node scripts/premium/reader-scaffold-smoke.js",
+    "smoke:reader-karaoke": "node scripts/premium/reader-karaoke-smoke.js",
     "smoke:reader-morph": "node scripts/premium/reader-morph-smoke.js",
     "smoke:reader-notes": "node scripts/premium/reader-notes-smoke.js",
     "smoke:benyehuda-ingest": "node scripts/premium/benyehuda-ingest-smoke.js",

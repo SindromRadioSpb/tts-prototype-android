@@ -1934,6 +1934,8 @@ window.I18N_LOCALES.en = {
       ruReveal: "on tap",
       ruOff: "off",
       scaffoldHint: "“As needed”: niqqud fades on words you know. “On tap”: translation is hidden — tap a row to reveal it.",
+      readAloud: "Read aloud",
+      stopAloud: "Stop",
     },
     morph: {
       loading: "Analyzing…",

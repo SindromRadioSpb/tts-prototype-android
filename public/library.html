@@ -434,6 +434,8 @@
     .rm-w-learning { background: rgba(210,153,34,.22); border-radius: 3px; }
     .rm-w-new { background: rgba(90,155,255,.20); border-radius: 3px; }
     .rm-w.rm-w-active { background: var(--accent); color: var(--accent-contrast); }   /* tapped word wins over fill */
+    /* BRR-P1-008 karaoke — stronger "current line" while reading aloud (reuses .row-playing). */
+    #roomReaderTable.karaoke-on tr.row-playing:not(.row-error) td { background: rgba(90,155,255,.16); }
     /* transient toast */
     .room-toast {
       position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
@@ -547,6 +549,7 @@
   <div class="reader-bar">
     <button id="readerBack" class="reader-back" type="button" data-i18n="room.reader.back">← Полки</button>
     <h2 id="readerTitle" class="reader-title"></h2>
+    <button id="roomReadAloud" class="reader-aids-toggle" type="button" aria-pressed="false" data-i18n-title="room.reader.readAloud" title="Читать вслух">▶</button>
     <button id="readerAidsToggle" class="reader-aids-toggle" type="button" aria-expanded="false" aria-controls="readerAids" data-i18n-title="room.reader.aids" title="Настройки чтения">Аа</button>
   </div>
   <div id="readerAids" class="reader-aids" hidden></div>

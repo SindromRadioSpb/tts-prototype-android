@@ -56,6 +56,19 @@ export function getRowTtsTextForRow(row) {
   return "";
 }
 
+// BRR-P1-008 karaoke — next row index (> fromIdx) that has speakable Hebrew text, or -1 at
+// end. PURE (Node-testable) so the continuous-playback advance is gate-covered. Skips rows
+// with no he/he_niqqud (separators, blanks) so karaoke never stalls on a silent row.
+export function nextPlayableIndex(rows, fromIdx) {
+  if (!Array.isArray(rows)) return -1;
+  let from = Number(fromIdx);
+  if (!Number.isFinite(from)) from = -1;   // undefined/NaN ⇒ start from the top (i=0)
+  for (let i = from + 1; i < rows.length; i++) {
+    if (getRowTtsTextForRow(rows[i])) return i;
+  }
+  return -1;
+}
+
 // API/DB sentence row → UI row shape (snake_case + camelCase tolerant).
 // = index.html v3MapSentenceApiRowToUiRow, verbatim. Carries BOTH Hebrew forms
 // (he, he_niqqud) and BOTH translit profiles (translit, translit_ru) separately so
@@ -396,13 +409,24 @@ export function attachRowAudio(mount, opts) {
   const gcpKeyOf = () => String((typeof opts.gcpKey === "function" ? opts.gcpKey() : opts.gcpKey) || "");
   const LANG = "he-IL";
   let player = null, playingIdx = null, objUrl = null, mode = null; // mode: 'audio' | 'speech'
+  // BRR-P1-008 karaoke — continuous auto-advance. opts.rowCount()=>n and opts.onRowChange(idx)
+  // (idx>=0 a row started; idx<0 karaoke ended/stopped) let the Room auto-scroll + reset its control.
+  let continuous = false;
+  const rowCountOf = () => { const v = typeof opts.rowCount === "function" ? opts.rowCount() : opts.rowCount; return Number.isFinite(v) ? v : 0; };
+  const notifyRow = (i) => { if (typeof opts.onRowChange === "function") { try { opts.onRowChange(i); } catch (_) {} } };
+  const advance = (fromIdx) => {
+    if (!continuous) return;
+    const n = rowCountOf();
+    for (let i = fromIdx + 1; i < n; i++) { const r = getRow(i); if (r && getRowTtsTextForRow(r)) { play(i); return; } }
+    continuous = false; notifyRow(-1);   // reached the end → karaoke done
+  };
 
   const btnOf = (idx) => mount.querySelector('button.row-tts-btn[data-row-idx="' + idx + '"]');
   const trOf = (idx) => { const b = btnOf(idx); return b ? b.closest("tr") : null; };
   const ensurePlayer = () => {
     if (player) return player;
     player = new Audio();
-    player.addEventListener("ended", () => { if (mode === "audio") clearPlaying(); });
+    player.addEventListener("ended", () => { if (mode === "audio") { const fin = playingIdx; clearPlaying(); if (continuous) advance(fin); } });
     return player;
   };
   const revoke = () => { if (objUrl) { try { URL.revokeObjectURL(objUrl); } catch (_) {} objUrl = null; } };
@@ -433,7 +457,7 @@ export function attachRowAudio(mount, opts) {
     u.lang = LANG;
     try { const v = (window.speechSynthesis.getVoices() || []).find((x) => /^(he|iw)/i.test(x.lang || "")); if (v) u.voice = v; } catch (_) {}
     if (typeof prof.rate === "number") u.rate = Math.min(2, Math.max(0.5, prof.rate));
-    u.onend = () => { if (playingIdx === idx && mode === "speech") clearPlaying(); };
+    u.onend = () => { if (playingIdx === idx && mode === "speech") { clearPlaying(); if (continuous) advance(idx); } };
     u.onerror = () => { if (playingIdx === idx) setError(idx, "speech"); };
     mode = "speech"; setPlaying(idx);
     window.speechSynthesis.cancel();
@@ -461,6 +485,7 @@ export function attachRowAudio(mount, opts) {
     const prof = profileOf();
     setLoading(idx);
     playingIdx = idx;
+    notifyRow(idx);   // karaoke: a row started → Room auto-scrolls it into view
     try {
       // tier 1 — keyless cached asset
       const assetKey = String(row._v3_audioAssetKey || "").trim();
@@ -490,6 +515,7 @@ export function attachRowAudio(mount, opts) {
       clearPlaying();
       setError(idx, (err && err.message) || "audio error");
       if (opts.onError) { try { opts.onError(err); } catch (_) {} }
+      if (continuous) advance(idx);   // karaoke: skip a failed row, keep going
     } finally {
       const b = btnOf(idx);
       if (b && !b.classList.contains("row-tts-playing") && !b.classList.contains("row-tts-error")) { b.removeAttribute("aria-busy"); b.disabled = false; b.textContent = "▶"; }
@@ -501,6 +527,7 @@ export function attachRowAudio(mount, opts) {
     const btn = target && target.closest ? target.closest("button.row-tts-btn") : null;
     if (btn && mount.contains(btn)) {
       const idx = Number(btn.getAttribute("data-row-idx"));
+      if (continuous) { continuous = false; notifyRow(-1); }   // a manual tap ends karaoke
       if (Number.isFinite(idx) && idx >= 0) play(idx);
       return;
     }
@@ -512,10 +539,23 @@ export function attachRowAudio(mount, opts) {
       if (col !== "action" && excludeTapCols.indexOf(col) < 0) {
         const tr = td.closest("tr[data-row-idx]");
         const idx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+        if (continuous) { continuous = false; notifyRow(-1); }   // a manual tap ends karaoke
         if (Number.isFinite(idx) && idx >= 0) play(idx);
       }
     }
   };
   mount.addEventListener("click", onClick);
-  return { detach() { mount.removeEventListener("click", onClick); stopAll(); revoke(); playingIdx = null; mode = null; } };
+  return {
+    detach() { mount.removeEventListener("click", onClick); continuous = false; stopAll(); revoke(); playingIdx = null; mode = null; },
+    // BRR-P1-008 — start continuous karaoke from the first speakable row at/after startIdx.
+    playAll(startIdx) {
+      const n = rowCountOf();
+      for (let i = Math.max(0, Number(startIdx) || 0); i < n; i++) {
+        const r = getRow(i);
+        if (r && getRowTtsTextForRow(r)) { continuous = true; play(i); return; }
+      }
+      notifyRow(-1);   // nothing speakable
+    },
+    stop() { continuous = false; stopAll(); clearPlaying(); notifyRow(-1); },
+  };
 }

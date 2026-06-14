@@ -509,6 +509,8 @@ function attachReaderAudio() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   readerAudio = readerCore.attachRowAudio(mount, {
     getRow: (i) => readerRows[i],
+    rowCount: () => readerRows.length,        // BRR-P1-008 karaoke — bound for auto-advance
+    onRowChange: onKaraokeRowChange,          // idx>=0 → auto-scroll; idx<0 → karaoke ended
     profile: { voiceId: '', rate: 1.0, pitch: 0.0 },
     gcpKey: gcpTtsKey,
     t: (k) => tt(k, k),
@@ -518,6 +520,45 @@ function attachReaderAudio() {
   });
   attachReaderMorph(mount);
   applyReveal(mount);
+  karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
+}
+
+// BRR-P1-008 — continuous read-aloud (karaoke). Reuses the existing per-row .row-playing highlight;
+// adds a «Читать вслух» control, auto-advance (in reader-core), and auto-scroll that yields to manual scroll.
+let karaokeActive = false, karaokeUserScrolled = false, _karaokeScrollWired = false;
+function setReadAloudBtn(active) {
+  const m = $('roomReaderTable'); if (m) m.classList.toggle('karaoke-on', !!active);   // stronger current-line during karaoke
+  const b = $('roomReadAloud'); if (!b) return;
+  b.textContent = active ? '■' : '▶';
+  b.setAttribute('aria-pressed', String(!!active));
+  const key = active ? 'room.reader.stopAloud' : 'room.reader.readAloud';
+  b.setAttribute('data-i18n-title', key);
+  b.title = tt(key, active ? 'Стоп' : 'Читать вслух');
+}
+function onKaraokeRowChange(idx) {
+  if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }
+  if (!karaokeActive || karaokeUserScrolled) return;
+  const mount = $('roomReaderTable');
+  const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
+  if (tr && tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
+}
+function wireKaraokeScrollPause() {
+  if (_karaokeScrollWired) return; _karaokeScrollWired = true;
+  const pause = () => { if (karaokeActive) karaokeUserScrolled = true; };   // user took over → stop fighting scroll
+  window.addEventListener('wheel', pause, { passive: true });
+  window.addEventListener('touchmove', pause, { passive: true });
+}
+function toggleReadAloud() {
+  if (!readerAudio) return;
+  if (karaokeActive) { try { readerAudio.stop(); } catch (_) {} return; }   // stop() → onRowChange(-1) resets UI
+  karaokeActive = true; karaokeUserScrolled = false;
+  wireKaraokeScrollPause();
+  setReadAloudBtn(true);
+  try { readerAudio.playAll(0); } catch (_) { karaokeActive = false; setReadAloudBtn(false); }
+}
+function stopKaraoke() {
+  if (karaokeActive && readerAudio) { try { readerAudio.stop(); } catch (_) {} }
+  karaokeActive = false; setReadAloudBtn(false);
 }
 
 // BRR-P1-006 D2 — progressive translation reveal (active recall). In 'reveal' mode the ru cells
@@ -683,6 +724,7 @@ async function openReader(textId, title) {
 function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
+  karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
   const reader = $('roomReader'), content = $('roomContent');
@@ -1672,6 +1714,8 @@ function wireChrome() {
   // Embedded reader chrome.
   const back = $('readerBack');
   if (back) back.addEventListener('click', closeReader);
+  const readAloud = $('roomReadAloud');
+  if (readAloud) readAloud.addEventListener('click', toggleReadAloud);   // BRR-P1-008 karaoke
   const aidsToggle = $('readerAidsToggle');
   // BRR-P1-006 — one-time discoverability nudge: pulse the «Аа» button until the reader first
   // opens the aids panel (the scaffolding fade/reveal live there). No dark pattern — pulses, then quiet.

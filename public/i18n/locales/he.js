@@ -1944,6 +1944,8 @@ window.I18N_LOCALES.he = {
       ruReveal: "בהקשה",
       ruOff: "כבוי",
       scaffoldHint: "«לפי הצורך»: הניקוד נמוג במילים שאתה כבר מכיר. «בהקשה»: התרגום מוסתר — הקש על שורה כדי לחשוף אותו.",
+      readAloud: "הקראה",
+      stopAloud: "עצור",
     },
     morph: {
       loading: "מנתח…",
