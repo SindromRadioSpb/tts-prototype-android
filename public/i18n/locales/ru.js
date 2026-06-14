@@ -1893,6 +1893,7 @@ window.I18N_LOCALES.ru = {
       updateAvailable: "Доступно обновление",
       close: "Закрыть",
     },
+    theme: { label: "Тема", auto: "Авто", light: "Светлая", dark: "Тёмная" },
     tabs: {
       accessible: "Доступная",
       literary: "Литературная",

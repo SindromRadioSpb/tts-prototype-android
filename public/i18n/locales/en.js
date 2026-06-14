@@ -1879,6 +1879,7 @@ window.I18N_LOCALES.en = {
       updateAvailable: "Update available",
       close: "Close",
     },
+    theme: { label: "Theme", auto: "Auto", light: "Light", dark: "Dark" },
     tabs: {
       accessible: "Accessible",
       literary: "Literary",

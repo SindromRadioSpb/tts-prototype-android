@@ -481,6 +481,30 @@ function refreshAboutUpdateStatus() {
 function openRoomAbout() { refreshAboutUpdateStatus(); const m = $('roomAbout'); if (m) m.hidden = false; }
 function closeRoomAbout() { const m = $('roomAbout'); if (m) m.hidden = true; }
 
+// Theme — shared with Studio via localStorage.appTheme_v1 (light|dark|auto). body.theme-light/
+// theme-dark override prefers-color-scheme (CSS already honors them); auto = no class = follow OS.
+// A no-flash inline script in library.html applies the class pre-paint; this sets the toggle icon/title.
+const THEME_KEY = 'appTheme_v1';
+const THEME_ICON = { auto: '🌗', light: '☀️', dark: '🌙' };
+function getTheme() { try { const v = localStorage.getItem(THEME_KEY); return (v === 'light' || v === 'dark') ? v : 'auto'; } catch (_) { return 'auto'; } }
+function applyTheme(mode) {
+  document.body.classList.remove('theme-light', 'theme-dark');
+  if (mode === 'light') document.body.classList.add('theme-light');
+  else if (mode === 'dark') document.body.classList.add('theme-dark');
+  const b = $('roomTheme');
+  if (b) {
+    b.textContent = THEME_ICON[mode] || THEME_ICON.auto;
+    const lbl = tt('room.theme.label', 'Тема') + ': ' + tt('room.theme.' + mode, mode);
+    b.setAttribute('title', lbl); b.setAttribute('aria-label', lbl);
+  }
+}
+function cycleTheme() {
+  const order = ['auto', 'light', 'dark'];
+  const next = order[(order.indexOf(getTheme()) + 1) % order.length];
+  try { if (next === 'auto') localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, next); } catch (_) {}
+  applyTheme(next);
+}
+
 function readerConfig() {
   return {
     // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
@@ -1703,6 +1727,10 @@ function wireChrome() {
     const btn = $(TAB_ID[t]);
     if (btn) btn.addEventListener('click', () => setActiveTrack(t));
   });
+  // Theme toggle (light/dark/auto) — premium parity with Studio.
+  const themeBtn = $('roomTheme');
+  if (themeBtn) themeBtn.addEventListener('click', cycleTheme);
+  applyTheme(getTheme());   // set icon/title (body class already applied no-flash pre-paint)
   // Footer «О Зале» modal: open from the link + version label; close on backdrop/✕/Esc.
   const aboutLink = $('roomAboutLink');
   if (aboutLink) aboutLink.addEventListener('click', (e) => { e.preventDefault(); openRoomAbout(); });
@@ -1732,6 +1760,7 @@ function wireChrome() {
   // reader table is built in JS (no data-i18n), so re-render it from cached rows if open.
   document.addEventListener('i18n:changed', () => {
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    try { applyTheme(getTheme()); } catch (_) {}   // re-localize the theme toggle title
     try { const r = $('roomReader'); if (r && !r.hidden && readerRows.length) rerenderReader(); } catch (_) {}
     // Corpus nav builds dynamic labels (counts, "показать ещё") in JS — re-render it on
     // locale change so they re-translate, but only when the reader isn't covering it.

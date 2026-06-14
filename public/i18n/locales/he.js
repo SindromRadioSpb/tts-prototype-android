@@ -1889,6 +1889,7 @@ window.I18N_LOCALES.he = {
       updateAvailable: "זמין עדכון",
       close: "סגירה",
     },
+    theme: { label: "ערכת נושא", auto: "אוטומטי", light: "בהיר", dark: "כהה" },
     tabs: {
       accessible: "נגיש",
       literary: "ספרותי",

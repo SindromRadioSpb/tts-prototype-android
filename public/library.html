@@ -70,6 +70,13 @@
       flex: none; appearance: none; background: var(--bg-muted); color: var(--text-primary);
       border: 1px solid var(--border-soft); border-radius: 8px; padding: 6px 10px; font-size: 13px;
     }
+    .room-head-controls { display: flex; align-items: center; gap: 8px; flex: none; }
+    .room-theme-btn {
+      flex: none; appearance: none; cursor: pointer; width: auto; line-height: 1; font-size: 15px;
+      background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft);
+      border-radius: 8px; padding: 6px 9px;
+    }
+    .room-theme-btn:hover { border-color: var(--accent); }
 
     /* ── track tabs ──────────────────────────────────────────────────────── */
     .room-tabs { display: flex; gap: 8px; margin-top: 12px; }
@@ -530,6 +537,8 @@
   </style>
 </head>
 <body>
+<!-- No-flash theme: apply the shared Studio theme choice (appTheme_v1) before paint. -->
+<script>(function(){try{var t=localStorage.getItem("appTheme_v1");if(t==="light")document.body.classList.add("theme-light");else if(t==="dark")document.body.classList.add("theme-dark");}catch(_){}})();</script>
 
 <header class="room-header">
   <div class="room-header-row">
@@ -537,11 +546,14 @@
       <h1 class="room-title" data-i18n="room.header.title">📖 Читальный зал</h1>
       <p class="room-subtitle" data-i18n="room.header.subtitle">Двуязычная библиотека</p>
     </div>
-    <select id="roomLang" class="room-lang" aria-label="Язык / Language / שפה">
-      <option value="ru">Рус</option>
-      <option value="en">Eng</option>
-      <option value="he">עב</option>
-    </select>
+    <div class="room-head-controls">
+      <button id="roomTheme" class="room-theme-btn" type="button" aria-label="Тема" data-i18n-title="room.theme.label" title="Тема">🌗</button>
+      <select id="roomLang" class="room-lang" aria-label="Язык / Language / שפה">
+        <option value="ru">Рус</option>
+        <option value="en">Eng</option>
+        <option value="he">עב</option>
+      </select>
+    </div>
   </div>
   <div class="room-tabs" id="roomTabs" role="tablist">
     <button class="room-tab" id="tabAccessible" role="tab" aria-selected="true" data-track="accessible" data-i18n="room.tabs.accessible">Доступная</button>
