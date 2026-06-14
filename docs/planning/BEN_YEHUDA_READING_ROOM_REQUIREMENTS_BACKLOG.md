@@ -328,6 +328,21 @@
 - **DoD:** гейты зелёные (api-smoke +2 кейса); honest-401 без ключа (не 500); self-cache keyless; **owner prod-verify с BYOK-ключом** (последний шаг).
 - **Notes:** план (утверждён) → `~/.claude/plans/linguistpro-node-pwa-snoopy-lampson.md`; as-built → `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. ⚠ ротировать AUDIO_UPLOAD_TOKEN (GCP ротирован).
 
+### BRR-P1-008d — Word-karaoke в **Studio** (построчно), само-кеш ✅ IMPLEMENTED (2026-06-14, SW v3.10.55) — *surface: Studio, не Зал*
+- **SHIPPED 2026-06-14:** перенос «бегущего слова» из Зала в Studio (`index.html`), ТОЛЬКО построчно (решение владельца).
+  Новый `public/js/studio-karaoke.js` (IIFE `window.StudioKaraoke`) + `<script src=/js/reader-morph.js>` (для
+  `ReaderMorph.tokenize` — тот же токенайзер, что SSML-метки → offset parity) → ленивая POST-render обёртка строки
+  `.rm-w[data-w-offset]` + rAF-подсветка `.rm-w-speaking` (янтарь, тема-независим, scoped `#proTable`). index.html-диф
+  точечный (2 script-тега + `ttsBody.withTimepoints=true` + 2 вызова `StudioKaraoke.start` в tier-1/tier-2; `renderTable`
+  НЕ тронут → `smoke:reader-parity` зелён). Сервер 008c переиспользован без изменений; кеш тайминга **общий с Залом**.
+  Гейт `smoke:studio-karaoke` 18/0 (activeWordIndex==reader-core + offset-выравнивание). Браузерный e2e (Playwright,
+  fake-audio + stub /timing): wrap→rAF→paint→unwrap, ровно одно слово, чистый откат; @380px light+dark. As-built →
+  `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`. **Owner prod-verify с BYOK — последний шаг.**
+- **Source:** owner-приоритет 2026-06-14 («реализуй то же караоке в Studio»). **Role:** R4/R2/R3/R10.
+- **Scope OUT:** `playTTS` (весь текст) + Anki-карточка; не-Library/base64/system_fallback строки (нет assetKey) → graceful построчно.
+- **Уроки:** index.html-фичи = POST-render + внешний файл (parity цел, диф мал) · переиспользовать общий токенайзер
+  (offset parity) · стоп на событиях audioEl (не править clearRowPlayingState) · rAF не timeupdate (iOS) · янтарь тема-независим.
+
 ### BRR-P1-009 — In-reader статус слов + one-tap лёгкий захват ✅ SHIPPED+PROD (раскраска + save-из-карточки)
 - **Source:** LingQ (corpus-wide статус) · Readlang (авто-захват)
 - **Observed:** видимый статус new/learning/known + захват в карточку из чтения.

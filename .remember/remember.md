@@ -3,7 +3,7 @@
 **★ READ FIRST:** `docs/SESSION_STATE_BRR_2026_06_14.md` (КОНСОЛИДИРОВАННЫЙ — открой первым) + `docs/PROJECT_ROLES.md` (R1–R10 авто).
 Глубже: 008c → `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`; 008b → `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`; i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`.
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал: `/library.html`).
-**main HEAD `45307a3` (BRR-P1-008c), SW `v3.10.54-byok-word-timing`.**
+**main HEAD = коммит BRR-P1-008d (эта сессия), SW `v3.10.55-studio-word-karaoke`.**
 
 ## Эта сессия (2026-06-14): BRR-P1-008c — BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш — IMPLEMENTED
 Owner-запрос: «озвучка с таймингами по словам для любых текстов, в т.ч. Корпуса, если установлен ключ» + кеширование.
@@ -47,8 +47,27 @@ MEASURE до кода (профиль-зависимое → НЕПУСТОЙ п
 push; commit+push автономно (Coolify авто-деплой); prod-verify после (Node fetch/браузер, ⚠ НЕ Windows-curl для не-ASCII).
 SW `CACHE_VERSION` бамп при shell-ассете. @380px RTL скрин перед UI-коммитом. SW-апдейт = тост «Обновить».
 
+## Эта сессия (после 008c): BRR-P1-008d — Word-karaoke в **Studio** (построчно) — IMPLEMENTED (SW v3.10.55)
+Owner: «реализуй то же караоке в Studio (prod-корень /)». Scope (решение владельца): ТОЛЬКО построчно (▶ в строке +
+авто-плейлист). Сервер 008c переиспользован (не менялся); кеш тайминга **общий с Залом**.
+- **Новый `public/js/studio-karaoke.js`** (IIFE `window.StudioKaraoke` + Node-export): `activeWordIndex` (копия
+  reader-core), `start(rowIdx,assetKey,audioEl)` (stop-prev → fetch `/timing` → ленивая обёртка строки `.rm-w` через
+  `ReaderMorph.tokenize` → rAF красит `.rm-w-speaking`; стоп само-управляется на `ended/pause/error` audioEl), `stop()`
+  (un-wrap + restore innerHTML), `wkDebug`+`?wkdebug=1`.
+- **index.html точечно:** `<script src=/js/reader-morph.js>` + `</js/studio-karaoke.js>` (после tts-backends `~12019`);
+  `ttsBody.withTimepoints=true` (`~36633`); 2 вызова `StudioKaraoke.start` после `audio.play()` в tier-1 (`~36615`) и
+  tier-2 (`~36678`); CSS `#proTable .rm-w.rm-w-speaking` (янтарь). **`renderTable` НЕ тронут** → `smoke:reader-parity` зелён.
+- **sw.js** → `v3.10.55-studio-word-karaoke` + `/js/studio-karaoke.js` в PRECACHE_URLS. **Гейт** `smoke:studio-karaoke` 18/0.
+- **Тест:** браузерный e2e (Playwright `/index.html?room=1`, fake-audio-объект + stub `/timing`): wrap→rAF→paint→unwrap,
+  ровно одно слово, чистый откат текста; @380px light(«אֶל»)+dark(«הַקָּטָן»). Все гейты зелёные. **Owner prod-verify с BYOK — последний шаг.**
+- As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`.
+**Уроки (008d):** index.html-фичи = POST-render + внешний файл (parity цел, диф мал) · переиспользовать общий
+токенайзер `ReaderMorph.tokenize` (offset parity client↔server, не писать свой) · стоп караоке на событиях audioEl, не
+править централизованный `clearRowPlayingState` (start идемпотентен) · rAF не timeupdate (iOS) · янтарь #f7b733 тема-независим
+(Зальное `.rm-w-speaking` scoped `#roomReaderTable` → Studio своё под `#proTable`) · headless e2e через fake-audio-объект + stub fetch.
+
 ## NEXT (опционально, владелец выбирает)
-- ✅ ① Scaffolded Console · ✅ ② Karaoke(sentence) · ✅ 008b word-karaoke(канон) · ✅ **008c BYOK word-timing(любой текст)**.
+- ✅ ① Scaffolded Console · ✅ ② Karaoke(sentence) · ✅ 008b word-karaoke(канон) · ✅ **008c BYOK(любой текст)** · ✅ **008d Studio word-karaoke**.
 - ③ Накормить i+1: опубликовать ~132 бейкнутых→каталог v8 (`publish-corpus-batch`) + leveling; дефицит modern (73 в каталоге). **Зависит от AUDIO_UPLOAD_TOKEN.**
 - ④ Качество/измеримость R10: replace recall/FP тап-глосса vs Dicta-silver + provenance-бейджи + 47097 идиш.
 - ⑤ Anki-sync (mobile-ограничение) · ⑥ Discovery: full-text search wiring + фильтр/сорт полок + закладки.

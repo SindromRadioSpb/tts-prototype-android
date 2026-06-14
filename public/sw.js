@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.54-byok-word-timing";
+const CACHE_VERSION = "v3.10.55-studio-word-karaoke";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -94,6 +94,9 @@ const PRECACHE_URLS = [
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;
   // the 3.3 MB Pealim dataset itself stays lazy via the inflection runtime cache).
   "/js/reader-morph.js",
+  // BRR-P1-008d — Studio per-row word-karaoke driver (reuses ReaderMorph.tokenize for
+  // offset parity with the server's SSML marks; timing sidecars are lazy, not precached).
+  "/js/studio-karaoke.js",
   // Tier-3 «точный режим» — client-side Dicta context morphology (opt-in; no outbound until enabled).
   "/js/reader-dicta.js",
   // BRR-P1-007 S2 «Следующий для тебя» (i+1) — pure client coverage engine (the vocab sidecar

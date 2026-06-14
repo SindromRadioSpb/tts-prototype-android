@@ -1,7 +1,14 @@
 # SESSION STATE — Ben-Yehuda Reading Room (2026-06-14) — READ FIRST
 
-> **Git: main = HEAD `45307a3` (BRR-P1-008c), запушено. Prod SW `v3.10.54-byok-word-timing` (деплой/прод-верифай ниже).**
-> **BRR-P1-008c (NEW):** пословный тайминг для ЛЮБОГО текста (вкл. **Корпус**) при BYOK-ключе, **само-кеш**. Сервер
+> **Git: main = HEAD `<008d-commit>` (BRR-P1-008d), запушено. Prod SW `v3.10.55-studio-word-karaoke`.**
+> **BRR-P1-008d (NEW, эта сессия):** перенёс «бегущее слово» из Зала в **Studio** (`index.html`), ТОЛЬКО построчно
+> (решение владельца). Новый `public/js/studio-karaoke.js` (`window.StudioKaraoke`) + `<script src=/js/reader-morph.js>`
+> (общий `ReaderMorph.tokenize` → offset parity с SSML-метками) → ленивая POST-render обёртка строки `.rm-w` + rAF
+> `.rm-w-speaking` (янтарь, scoped `#proTable`). index.html-диф точечный (2 script-тега + `withTimepoints` + 2 вызова
+> `StudioKaraoke.start`; `renderTable` НЕ тронут → parity зелён). Сервер 008c переиспользован, кеш тайминга **общий с
+> Залом**. Гейт `smoke:studio-karaoke` 18/0; браузерный e2e (Playwright fake-audio) + @380px light/dark пройдены.
+> As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`. **Owner prod-verify с BYOK — последний шаг.**
+> **BRR-P1-008c:** пословный тайминг для ЛЮБОГО текста (вкл. **Корпус**) при BYOK-ключе, **само-кеш**. Сервер
 > `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`) синтезит v1beta1 SSML `<mark>` → пишет
 > mp3+`<key>.timing.json` → отвечает assetKey; клиент `reader-core.postTts` шлёт флаг, дальше существующий
 > `ensureTiming`→`/timing`→rAF `.rm-w-speaking`. Первый синтез на ключе пользователя → потом клип+тайминг отдаются
@@ -33,7 +40,8 @@
    - `.row-playing`-подсветка уже была → добавлен ПОТОК: `attachRowAudio` continuous (`playAll/stop/onRowChange` + чистая `nextPlayableIndex`, skip пустых/упавших), кнопка **«▶ Читать вслух»** в reader-bar (▶↔■), авто-скролл (пауза на ручной скролл), усиленная подсветка `.karaoke-on`. Гейт `smoke:reader-karaoke`.
    - **Word-level подсветки НЕТ** (клипы без per-word тайминга) → вынесено в **BRR-P1-008b** (см. ниже).
 5. **BRR-P1-008b Word-level karaoke (канон)** IMPLEMENTED+PROD (`7e5124c`, SW v3.10.48) + canon-v4 refresh (v3.10.53). Тайминг забейкан → «бегущее слово» на КАНОНЕ.
-6. **BRR-P1-008c BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** IMPLEMENTED (SW v3.10.54, эта сессия). Сервер `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`, v1beta1 SSML `<mark>` → mp3+`<key>.timing.json`); клиент `reader-core.postTts` шлёт флаг (tier-2 уже грузит timing+rAF из 008b). Само-кеш: первый синтез на ключе пользователя → потом keyless tier-1 для всех. Длинный текст → graceful sentence-level. Гейты `test:api-smoke` +2 (честный 401 без ключа; self-cache keyless). As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. **Owner prod-verify с BYOK — последний шаг.**
+6. **BRR-P1-008c BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** IMPLEMENTED (SW v3.10.54, эта сессия). Сервер `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`, v1beta1 SSML `<mark>` → mp3+`<key>.timing.json`); клиент `reader-core.postTts` шлёт флаг (tier-2 уже грузит timing+rAF из 008b). Само-кеш: первый синтез на ключе пользователя → потом keyless tier-1 для всех. Длинный текст → graceful sentence-level. Гейты `test:api-smoke` +2 (честный 401 без ключа; self-cache keyless). As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. Прод-верифицирован (401-роутинг + SW v3.10.54).
+7. **BRR-P1-008d Word-karaoke в Studio (построчно)** IMPLEMENTED (SW v3.10.55, эта сессия). Перенос «бегущего слова» из Зала в `index.html`, только построчно (решение владельца). Новый `public/js/studio-karaoke.js` + `reader-morph.js` тег → POST-render `.rm-w` обёртка + rAF `.rm-w-speaking` (янтарь, `#proTable`); сервер 008c переиспользован, кеш общий с Залом. `renderTable` НЕ тронут (parity зелён). Гейт `smoke:studio-karaoke` 18/0 + браузерный e2e + @380px light/dark. As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`. **Owner prod-verify с BYOK — последний шаг.**
 
 ## Ключевые файлы / гейты
 - Движки (Room-only): `public/js/reader-core.js` (builder parity-locked + `attachRowAudio` continuous + `nextPlayableIndex`),
@@ -41,8 +49,8 @@
   Координатор: `public/js/library-ui.js`. Поверхность: `public/library.html`. i18n: `public/i18n/locales/{ru,en,he}.js`.
 - **index.html НЕ трогать** (Студия); общий движок шарится; `smoke:reader-parity` доказывает, что builder/index.html не тронуты — ВСЕ Room-фичи = post-render DOM-декорация на `.rm-w`/строках.
 - Гейты (все зелёные на HEAD): `smoke:reader-parity` · `smoke:reader-scaffold` (234) · `smoke:reader-karaoke` (9) ·
-  `smoke:reader-karaoke-words` (18) · `smoke:reader-morph` · `smoke:reader-notes` (56) · `smoke:corpus-vocab(-engine)` ·
-  `smoke:room` (14) · `smoke:corpus-room` (18) · `test:api-smoke` (вкл. 008c: withTimepoints-роутинг→честный 401, self-cache keyless).
+  `smoke:reader-karaoke-words` (18) · `smoke:studio-karaoke` (18, 008d) · `smoke:reader-morph` · `smoke:reader-notes` (56) ·
+  `smoke:corpus-vocab(-engine)` · `smoke:room` (14) · `smoke:corpus-room` (18) · `test:api-smoke` (вкл. 008c: withTimepoints-роутинг→честный 401, self-cache keyless).
 - SW: бамп `CACHE_VERSION` при смене shell-ассета (+`CORPUS_VOCAB_DATA_REV` при смене формата corpus-vocab-сайдкара). На устройстве = тост «Обновить».
 
 ## NEXT — меню направлений (из разведки 2026-06-13; владелец выбирает)
@@ -50,8 +58,10 @@
 - ✅ **BRR-P1-008b — Word-level karaoke (TTS-timepoints SSML `<mark>`)** — КОД ОТГРУЖЕН+ПРОД (`7e5124c`, SW v3.10.48);
   канон-перебейк тайминга выполнялся ключами владельца (gitignored `.tmp/`). As-built `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`.
   Гейт `smoke:reader-karaoke-words`. Live audio-«бег» слова проверяется на реальном устройстве (headless без mp3-кодека).
-- ✅ **BRR-P1-008c — BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** — IMPLEMENTED (SW v3.10.54, эта сессия).
-  As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. **Остался owner prod-verify с BYOK-ключом** (корпус-текст ▶ → `?wkdebug=1` → tN>0, янтарное слово едет; повторно → tier-1 из кеша).
+- ✅ **BRR-P1-008c — BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** — IMPLEMENTED+ПРОД (SW v3.10.54).
+  As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. (Корпус-текст ▶ → `?wkdebug=1` → tN>0; повторно → tier-1 из кеша.)
+- ✅ **BRR-P1-008d — Word-karaoke в Studio (построчно), само-кеш** — IMPLEMENTED (SW v3.10.55, эта сессия).
+  As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`. **Остался owner prod-verify с BYOK** (Studio → Library-строка ▶ → `?wkdebug=1`).
 - ③ **Накормить i+1**: опубликовать ~132 бейкнутых→каталог v8 (skill `publish-corpus-batch`) + leveling. **Зависит от `AUDIO_UPLOAD_TOKEN`.** Дефицит modern (73 в каталоге).
 - ④ **Качество/измеримость R10**: replace recall/FP тап-глосса vs Dicta-silver + бейджи провенанса + **47097 идиш** (R6/R7).
 - ⑤ **Anki-sync** (real mastery → строгая i+1 80–95%); mobile-ограничение Anki-Connect.

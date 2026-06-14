@@ -2851,6 +2851,24 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
     box-shadow: inset 3px 0 0 var(--row-rail-error);
 }
 
+/* BRR-P1-008d — word-level karaoke "running word" spotlight. Studio's table is
+   #proTable (the Reading Room's .rm-w-speaking is scoped to #roomReaderTable, so we
+   define our own here). Warm amber is deliberately theme-INDEPENDENT (high contrast on
+   both light and dark) so the spoken word never blends into the .row-playing background.
+   .rm-w spans are added post-render only while a row plays (studio-karaoke.js). */
+#proTable .rm-w.rm-w-speaking {
+    background: #f7b733;
+    color: #1a1205;
+    font-weight: 700;
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px rgba(247, 183, 51, .45);
+}
+@media (prefers-reduced-motion: no-preference) {
+    #proTable .rm-w.rm-w-speaking {
+        transition: background-color .1s ease, box-shadow .1s ease;
+    }
+}
+
 
 /* Ensure Row TTS button stays fully visible in focus mode */
 #proTable.focus-mode tbody tr .row-tts-btn {
@@ -12017,6 +12035,15 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/tts/runtime/runtimeStatus.js"></script>
 <script src="/tts/runtime/sherpaOnnxAdapter.js"></script>
 <script src="/tts/backends.js"></script>
+
+<!-- BRR-P1-008d — Word-level karaoke ("running word") for per-row TTS playback.
+     reader-morph (IIFE → window.ReaderMorph) provides the shared Hebrew tokenizer so
+     word offsets match the server's SSML <mark> offsets; studio-karaoke is the Studio
+     driver (lazy per-row span wrap + rAF highlight). reader-morph MUST load first.
+     renderTable is untouched (smoke:reader-parity) — wrapping is post-render only. -->
+<script src="/js/reader-morph.js"></script>
+<script src="/js/studio-karaoke.js"></script>
+
 <script>
     // i18n safety shim: if i18n module failed to load, t() returns the key unchanged
     if (typeof t !== 'function') { window.t = function(k) { return k; }; }
@@ -36613,6 +36640,8 @@ if (hasV3Ctx && v3RowTtsMatchesCurrentProfile(row)) {
       v3RowTtsTrackPlay(row, assetKey);
       setRowPlayingUI(rowIdx, true);
       await audio.play();
+      // BRR-P1-008d: word-level karaoke from the cached timing sidecar (if any).
+      try { if (window.StudioKaraoke) window.StudioKaraoke.start(rowIdx, assetKey, audio); } catch (_) {}
       loadStats();
       return;
     }
@@ -36629,7 +36658,11 @@ if (hasV3Ctx && v3RowTtsMatchesCurrentProfile(row)) {
   pitch: cfg.pitch,
   // BYOK: server requires a per-user key for fresh synthesis (cache hits still
   // succeed without one). Sending an empty string is OK for cache lookups.
-  gcpTtsApiKey: (typeof gcpTtsKeyGet === "function") ? gcpTtsKeyGet() : ""
+  gcpTtsApiKey: (typeof gcpTtsKeyGet === "function") ? gcpTtsKeyGet() : "",
+  // BRR-P1-008d: ask the server (008c path) to also produce+cache a word-timing
+  // sidecar so per-row playback gets word-level karaoke. Honest no-op without a key
+  // (structured 401 → existing fallback); self-caches keyless for everyone after.
+  withTimepoints: true
 };
 
 // V3 Library context: только если строка пришла из Library
@@ -36673,9 +36706,12 @@ try {
   try { v3LibraryRememberCardProfileForActiveText(); } catch (_) {}
 
   v3RowTtsTrackPlay(row, assetKey);
-  
+
   setRowPlayingUI(rowIdx, true);
   await audio.play();
+  // BRR-P1-008d: word-level karaoke — the 008c server path just wrote the timing
+  // sidecar for this assetKey, so the running-word highlight starts immediately.
+  try { if (window.StudioKaraoke) window.StudioKaraoke.start(rowIdx, assetKey, audio); } catch (_) {}
 
   loadStats();
   return;
