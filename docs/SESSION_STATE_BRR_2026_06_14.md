@@ -1,6 +1,6 @@
 # SESSION STATE — Ben-Yehuda Reading Room (2026-06-14) — READ FIRST
 
-> **Git: main = HEAD `<008c-commit>` (BRR-P1-008c в этой сессии), запушено. Prod SW `v3.10.54-byok-word-timing`.**
+> **Git: main = HEAD `45307a3` (BRR-P1-008c), запушено. Prod SW `v3.10.54-byok-word-timing` (деплой/прод-верифай ниже).**
 > **BRR-P1-008c (NEW):** пословный тайминг для ЛЮБОГО текста (вкл. **Корпус**) при BYOK-ключе, **само-кеш**. Сервер
 > `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`) синтезит v1beta1 SSML `<mark>` → пишет
 > mp3+`<key>.timing.json` → отвечает assetKey; клиент `reader-core.postTts` шлёт флаг, дальше существующий

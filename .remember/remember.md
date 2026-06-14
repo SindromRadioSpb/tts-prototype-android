@@ -3,7 +3,7 @@
 **★ READ FIRST:** `docs/SESSION_STATE_BRR_2026_06_14.md` (КОНСОЛИДИРОВАННЫЙ — открой первым) + `docs/PROJECT_ROLES.md` (R1–R10 авто).
 Глубже: 008c → `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`; 008b → `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`; i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`.
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал: `/library.html`).
-**main HEAD = коммит BRR-P1-008c (эта сессия), SW `v3.10.54-byok-word-timing`.**
+**main HEAD `45307a3` (BRR-P1-008c), SW `v3.10.54-byok-word-timing`.**
 
 ## Эта сессия (2026-06-14): BRR-P1-008c — BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш — IMPLEMENTED
 Owner-запрос: «озвучка с таймингами по словам для любых текстов, в т.ч. Корпуса, если установлен ключ» + кеширование.
