@@ -836,20 +836,25 @@ async function openCorpusWork(card) {
 // audio_asset_key whose MP3 lives in prod's audio cache, so reader-core tier-1
 // streams it KEYLESS (replacing best-effort browser-speech). Same 79 texts/shelves
 // as v2 → reconcile finds no orphans; the bump just publishes the audio links.
-const CANON_BUNDLE_URL = '/data/benyehuda/canon-v3.zip';
-const CANON_FLAG = 'benyehuda_canon_v3_imported';
+const CANON_BUNDLE_URL = '/data/benyehuda/canon-v4.zip';
+const CANON_FLAG = 'benyehuda_canon_v4_imported';
 // BRR-P0-008 — the canon edition this shipped bundle publishes. Bump in lockstep
 // with the producer's --canon-version when shipping a new canon-vN.zip. The import
 // is OPFS-truth + version-gated: re-import only when the user is BELOW this version
 // (the importBundle reconcile then drops orphans from the prior edition).
-const CANON_BUNDLE_VERSION = 3;
+const CANON_BUNDLE_VERSION = 4;   // BRR-P1-008b canon refresh: bump → stale devices re-import + reconcileAudioLinks re-points default audio to current keys (fixes word-timing 404)
 const CANON_VERSION_KEY = 'benyehuda_canon_version';
 
 async function autoImportCanon() {
   try {
     // Opt-out for tests/embedders (room-smoke checks Room structure, not the canon
     // publish): ?canon=skip disables the shipped-bundle auto-import.
-    try { if (new URLSearchParams(location.search).get('canon') === 'skip') return false; } catch (_) {}
+    let canonParam = '';
+    try { canonParam = new URLSearchParams(location.search).get('canon') || ''; } catch (_) {}
+    if (canonParam === 'skip') return false;
+    // BRR-P1-008b — ?canon=refresh forces a re-import even when up-to-date, so a stale device
+    // (old default audio links → word-timing 404) can be re-aligned on demand via reconcileAudioLinks.
+    const forceRefresh = canonParam === 'refresh';
     // OPFS truth: the highest canon_version among existing canon shelves. If the user
     // already has this edition (or newer), nothing to fetch. Legacy v1 shelves have
     // canon_version=null → haveVer 0 → they re-import v2 (reconcile cleans v1 orphans).
@@ -861,7 +866,7 @@ async function autoImportCanon() {
     // its presence as v2 so those already-published users are NOT re-imported every
     // visit — they're superseded normally by the next stamped edition (v>2).
     if (haveVer === 0 && (existing || []).some((s) => s && s.slug === 'by-work-95')) haveVer = 2;
-    if (haveVer >= CANON_BUNDLE_VERSION) {
+    if (!forceRefresh && haveVer >= CANON_BUNDLE_VERSION) {
       try { localStorage.setItem(CANON_VERSION_KEY, String(haveVer)); localStorage.setItem(CANON_FLAG, '1'); } catch (_) {}
       return false;
     }
