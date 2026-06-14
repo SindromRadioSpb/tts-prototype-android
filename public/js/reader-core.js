@@ -470,17 +470,33 @@ export function attachRowAudio(mount, opts) {
     const spans = tr.querySelectorAll('.rm-w[data-w-offset="' + off + '"]');
     for (let j = 0; j < spans.length; j++) spans[j].classList.add("rm-w-speaking");
   };
+  // BRR-P1-008b — drive the word highlight via requestAnimationFrame polling currentTime, NOT the
+  // <audio> 'timeupdate' event: iOS Safari fires timeupdate unreliably on a DETACHED new Audio(),
+  // so the timeupdate-driven highlight worked on desktop but not on iPhone. rAF reads currentTime
+  // every frame → robust cross-platform + smoother. Loops only while an audio row is playing.
+  let _rafId = null, _wkTicks = 0;
+  const _tick = () => {
+    try {
+      if (mode === "audio" && activeTiming && playingIdx != null && player) {
+        _wkTicks++;
+        const off = activeWordIndex(activeTiming.words, player.currentTime || 0);
+        if (off !== speakingWord) { speakingWord = off; paintSpeakingWord(playingIdx, off); }
+      }
+    } catch (_) {}
+    _rafId = (playingIdx != null && typeof requestAnimationFrame !== "undefined") ? requestAnimationFrame(_tick) : null;
+  };
+  const startWordTick = () => { if (_rafId == null && typeof requestAnimationFrame !== "undefined") _rafId = requestAnimationFrame(_tick); };
+  const stopWordTick = () => { if (_rafId != null && typeof cancelAnimationFrame !== "undefined") cancelAnimationFrame(_rafId); _rafId = null; };
+  // On-device diagnostic snapshot (?wkdebug=1 overlay reads this).
+  const wkDebug = () => ({
+    mode: mode, t: player ? +(player.currentTime || 0).toFixed(2) : null,
+    timingN: activeTiming ? activeTiming.words.length : 0, off: speakingWord, ticks: _wkTicks,
+    key: (playingIdx != null && getRow(playingIdx)) ? String(getRow(playingIdx)._v3_audioAssetKey || "").slice(0, 8) : null,
+  });
   const ensurePlayer = () => {
     if (player) return player;
     player = new Audio();
     player.addEventListener("ended", () => { if (mode === "audio") { const fin = playingIdx; clearPlaying(); if (continuous) advance(fin); } });
-    // BRR-P1-008b — drive word-level highlight off audio position.
-    player.addEventListener("timeupdate", () => {
-      if (mode !== "audio" || !activeTiming || playingIdx == null) return;
-      const off = activeWordIndex(activeTiming.words, player.currentTime);
-      if (off === speakingWord) return;
-      speakingWord = off; paintSpeakingWord(playingIdx, off);
-    });
     return player;
   };
   const revoke = () => { if (objUrl) { try { URL.revokeObjectURL(objUrl); } catch (_) {} objUrl = null; } };
@@ -498,6 +514,7 @@ export function attachRowAudio(mount, opts) {
     const tr = trOf(idx); if (tr) tr.classList.remove("row-error");
   };
   const clearPlaying = () => {
+    stopWordTick();   // BRR-P1-008b — stop the rAF highlight loop
     if (playingIdx != null) { const b = btnOf(playingIdx); if (b) { b.classList.remove("row-tts-playing"); if (!b.classList.contains("row-tts-error")) b.textContent = "▶"; } const tr = trOf(playingIdx); if (tr) tr.classList.remove("row-playing"); }
     clearSpeakingWord(); activeTiming = null;   // BRR-P1-008b
     playingIdx = null; mode = null;
@@ -551,6 +568,7 @@ export function attachRowAudio(mount, opts) {
           revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(assetKey); setPlaying(idx);
           activeTiming = null; speakingWord = -1;   // BRR-P1-008b — load word timing in parallel
           ensureTiming(assetKey).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
+          startWordTick();   // rAF word-highlight loop (iOS-safe)
           await p.play(); return;
         }
       }
@@ -558,12 +576,18 @@ export function attachRowAudio(mount, opts) {
       if (gcpKeyOf()) {
         const res = await postTts(text, prof, row);
         const freshKey = res && typeof res.assetKey === "string" ? res.assetKey.trim() : "";
-        if (freshKey) { revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(freshKey); row._v3_audioAssetKey = freshKey; setPlaying(idx); await p.play(); return; }
+        if (freshKey) {
+          revoke(); mode = "audio"; p.src = "/api/audio/" + encodeURIComponent(freshKey); row._v3_audioAssetKey = freshKey; setPlaying(idx);
+          activeTiming = null; speakingWord = -1;
+          ensureTiming(freshKey).then((tm) => { if (playingIdx === idx && mode === "audio") activeTiming = tm; });
+          startWordTick();
+          await p.play(); return;
+        }
         const b64 = res && typeof res.audioContent === "string" ? res.audioContent : "";
         if (b64) {
           const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
           revoke(); objUrl = URL.createObjectURL(new Blob([bytes], { type: "audio/mpeg" }));
-          mode = "audio"; p.src = objUrl; setPlaying(idx); await p.play(); return;
+          mode = "audio"; p.src = objUrl; setPlaying(idx); startWordTick(); await p.play(); return;
         }
         // no usable audio from GCP → fall through to browser speech
       }
@@ -606,7 +630,8 @@ export function attachRowAudio(mount, opts) {
   };
   mount.addEventListener("click", onClick);
   return {
-    detach() { mount.removeEventListener("click", onClick); continuous = false; stopAll(); revoke(); playingIdx = null; mode = null; },
+    detach() { mount.removeEventListener("click", onClick); continuous = false; stopWordTick(); stopAll(); revoke(); playingIdx = null; mode = null; },
+    debug: wkDebug,   // BRR-P1-008b on-device diagnostic (?wkdebug=1)
     // BRR-P1-008 — start continuous karaoke from the first speakable row at/after startIdx.
     playAll(startIdx) {
       const n = rowCountOf();

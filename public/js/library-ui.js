@@ -505,6 +505,25 @@ function cycleTheme() {
   applyTheme(next);
 }
 
+// BRR-P1-008b — on-device word-karaoke diagnostic. Open any text with ?wkdebug=1 and play: a small
+// overlay shows the live internal state so a device-specific issue (browser-speech vs audio, timing
+// not loaded, rAF not ticking, spans missing) can be read off WITHOUT a console (iPhone-friendly).
+function maybeStartWkDebug() {
+  let on = false; try { on = new URLSearchParams(location.search).get('wkdebug') === '1'; } catch (_) {}
+  if (!on) return;
+  const box = el('div', { attrs: { id: 'wkDebugBox' } });
+  box.style.cssText = 'position:fixed;left:6px;bottom:calc(6px + env(safe-area-inset-bottom,0px));z-index:99999;background:rgba(0,0,0,.85);color:#5f5;font:11px/1.45 ui-monospace,monospace;padding:7px 9px;border-radius:7px;max-width:94vw;white-space:pre;pointer-events:none';
+  document.body.appendChild(box);
+  setInterval(() => {
+    let d = null; try { d = (readerAudio && readerAudio.debug) ? readerAudio.debug() : null; } catch (_) {}
+    const mount = $('roomReaderTable');
+    const rmw = mount ? mount.querySelectorAll('.rm-w').length : 0;
+    const speaking = mount ? mount.querySelectorAll('.rm-w-speaking').length : 0;
+    box.textContent = 'wk: ' + (d ? ('mode=' + d.mode + ' t=' + d.t + ' tN=' + d.timingN + ' off=' + d.off + ' ticks=' + d.ticks + ' key=' + d.key) : '(not playing)')
+      + '\nDOM: rm-w=' + rmw + ' speaking=' + speaking + ' raf=' + (typeof requestAnimationFrame !== 'undefined');
+  }, 250);
+}
+
 function readerConfig() {
   return {
     // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
@@ -1776,6 +1795,7 @@ async function boot() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   registerRoomServiceWorker();   // PWA update toast «Обновить» (works even if opened directly)
   loadRoomVersion();             // footer + «О Зале» version from /api/client-config
+  maybeStartWkDebug();           // BRR-P1-008b ?wkdebug=1 on-device karaoke diagnostic
   try {
     await localDb.initLocalDB();
     if (localDb.isFollower && localDb.isFollower()) {
