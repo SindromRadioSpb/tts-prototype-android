@@ -420,6 +420,19 @@ app.use("/data/benyehuda/works", express.static(path.join(DATA_DIR, "benyehuda",
   },
 }));
 
+// BRR-P2-001 full-text index shards live on the SAME persistent volume (DATA_DIR/benyehuda/fts/),
+// NOT git — the index grows with corpus coverage (tens of MB) and would bloat the repo. The THIN
+// manifest (corpus-fts-v<N>.json) DOES ship in the repo (precached); only the per-letter exact
+// shards + lemma index are volume-served + lazy. Same fallthrough-to-public pattern as works/.
+app.use("/data/benyehuda/fts", express.static(path.join(DATA_DIR, "benyehuda", "fts"), {
+  fallthrough: true,
+  index: false,
+  setHeaders(res) {
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  },
+}));
+
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
@@ -3465,6 +3478,46 @@ app.post("/api/benyehuda/works/upload", rlWorksUpload, async (req, res) => {
   } catch (e) {
     console.error("POST /api/benyehuda/works/upload error:", e);
     return res.status(500).json({ ok: false, error: "WORKS_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
+  }
+});
+
+// POST /api/benyehuda/fts/upload — BRR-P2-001. Owner-token push of ONE full-text index shard
+// (corpus-fts manifest / ex-<letter> / lemma / lemmamap) onto the volume → DATA_DIR/benyehuda/fts/,
+// served KEYLESS at /data/benyehuda/fts/<file> (static mount above). Same shared-owner-token gate
+// + atomic overwrite + path-traversal guard as the works upload. Body: { file, json }.
+const FTS_FILE_RE = /^(corpus-fts-v\d+\.json|(ex-[א-ת]+|lemma|lemmamap)-v\d+\.json)$/;
+app.post("/api/benyehuda/fts/upload", rlWorksUpload, async (req, res) => {
+  try {
+    if (!requireAudioUploadAuth(req, res)) return;
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const file = String(body.file || "").trim();
+    if (!FTS_FILE_RE.test(file)) return res.status(400).json({ ok: false, error: "BAD_FTS_FILE" });
+    const payload = body.json;
+    if (!payload || typeof payload !== "object") {
+      return res.status(400).json({ ok: false, error: "BAD_FTS_PAYLOAD", message: "expected { file, json }" });
+    }
+    const ftsDir = path.join(DATA_DIR, "benyehuda", "fts");
+    const absPath = path.resolve(ftsDir, file);
+    if (path.dirname(absPath) !== path.resolve(ftsDir)) {
+      return res.status(400).json({ ok: false, error: "BAD_FTS_FILE" });
+    }
+    const serialized = JSON.stringify(payload);
+    if (Buffer.byteLength(serialized) > 10 * 1024 * 1024) {
+      return res.status(413).json({ ok: false, error: "FTS_SHARD_TOO_LARGE" });
+    }
+    try { if (!fs.existsSync(ftsDir)) fs.mkdirSync(ftsDir, { recursive: true }); } catch (_) {}
+    const tmp = absPath + ".tmp-" + crypto.randomBytes(6).toString("hex");
+    try {
+      fs.writeFileSync(tmp, serialized, "utf8");
+      fs.renameSync(tmp, absPath); // atomic replace (re-publishable)
+    } catch (e) {
+      try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch (_) {}
+      return res.status(500).json({ ok: false, file, error: "WRITE_FAILED", details: e && e.message ? e.message : String(e) });
+    }
+    return res.json({ ok: true, file, bytes: Buffer.byteLength(serialized) });
+  } catch (e) {
+    console.error("POST /api/benyehuda/fts/upload error:", e);
+    return res.status(500).json({ ok: false, error: "FTS_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
   }
 });
 

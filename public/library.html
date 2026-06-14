@@ -386,6 +386,9 @@
       white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
       overflow: hidden; font-size: 13px; line-height: 1.35;
     }
+    /* BRR-P2-001 — full-text «в тексте» group + lemma-expansion honesty marker (R10). */
+    .corpus-fts-group { margin-top: 14px; }
+    .prov-badge.fts-byform { background: var(--bg-muted); color: var(--text-faint); border: 1px dashed var(--border-soft); }
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 
@@ -659,6 +662,9 @@
 <script src="/js/corpus-vocab.js"></script>
 <!-- BRR-P2-002 «Продолжить чтение»: pure resume helpers (window.ReaderProgress; shared with Node gate). -->
 <script src="/js/reader-progress.js"></script>
+<!-- BRR-P2-001 full-text «поиск внутри текстов»: Hebrew-aware inverted-index query engine
+     (window.CorpusFTS; shared with the build + Node gates). Index shards are lazy (NOT precached). -->
+<script src="/js/corpus-fts.js"></script>
 <script type="module" src="/js/library-ui.js"></script>
 </body>
 </html>

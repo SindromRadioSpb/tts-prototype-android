@@ -145,3 +145,6 @@ public/morph/heb_morphology_full.bin
 # server.js; NOT in git (the thin catalog index ships, bodies do not). Re-bakeable
 # + backed up. (Legacy: ~100 were committed in 9ccf6b1 before this norm; now untracked.)
 public/data/benyehuda/works/
+# BRR-P2-001 full-text index SHARDS — tens of MB, grow with coverage; volume-served
+# (push-corpus-fts.js), NOT git. The thin manifest corpus-fts-v<N>.json DOES ship.
+public/data/benyehuda/fts/

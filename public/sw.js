@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.57-room-bookmarks";
+const CACHE_VERSION = "v3.10.58-room-fts";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -106,6 +106,10 @@ const PRECACHE_URLS = [
   "/js/inflection-render.js",
   // BRR-P2-002 «Продолжить чтение» — pure resume helpers (window.ReaderProgress).
   "/js/reader-progress.js",
+  // BRR-P2-001 full-text search — query engine + THIN manifest precached (era taxonomy of the
+  // index); the per-first-letter shards + lemma index stay lazy/runtime-cached on first search.
+  "/js/corpus-fts.js",
+  "/data/benyehuda/corpus-fts-v7.json",
   // BRR-P1-015 A3 — ONLY the thin Корпус root is precached (≈4KB: era taxonomy +
   // manifest map → period grid works offline). The sidecar (author index/ready rail,
   // ~160KB) and per-era manifests/works are NEVER precached — lazy, on-demand (D5).

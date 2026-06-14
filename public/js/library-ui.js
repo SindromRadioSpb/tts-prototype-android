@@ -57,6 +57,7 @@ let corpusSearchLoading = null;  // single-flight guard
 let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n,ez}} } (lazy, NOT precached)
 let corpusVocabLoading = null;   // single-flight guard
 const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
+const FTS_DATA_REV = 2;           // BRR-P2-001 — bump when the FTS index CONTENT changes within a catalog version
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
@@ -1711,30 +1712,89 @@ async function renderResultsInto(body) {
   summary.appendChild(el('span', { class: 'corpus-results-label', text: corpusFilterSummary() }));
   summary.appendChild(el('span', { class: 'corpus-results-count', text: String(hits.length) }));
   body.appendChild(summary);
-  if (!hits.length) { body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍')); try { window.applyI18n && window.applyI18n(); } catch (_) {} return; }
-  hits.sort((a, b) => (b.r - a.r) || String(a.t).localeCompare(String(b.t)));
+  // Group A — title/author matches (the existing flat list + «показать ещё» pagination).
+  if (hits.length) {
+    hits.sort((a, b) => (b.r - a.r) || String(a.t).localeCompare(String(b.t)));
+    appendPagedWorkRows(body, hits.map((h) => ({ sr: h })));
+  }
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  // Group B — BRR-P2-001 full-text «в тексте» (async; lazy-loads only the shard(s) a query needs).
+  await appendFtsGroup(body, corpusFilter.q, hits);
+  if (corpusL1Body === body && !hits.length && !body.querySelector('.corpus-fts-group')) {
+    body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍'));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  }
+}
+
+// Shared paged renderer for a list of { sr, r? } work hits (sr = corpus-search row).
+function appendPagedWorkRows(container, items, decorate) {
   const list = el('div', { class: 'corpus-work-list' });
   const moreWrap = el('div', { class: 'corpus-more' });
-  body.appendChild(list); body.appendChild(moreWrap);
+  container.appendChild(list); container.appendChild(moreWrap);
   const readyMap = corpusReadyMap();
   let cursor = 0;
   const slice = () => {
-    const upTo = Math.min(hits.length, cursor + CORPUS_PAGE);
+    const upTo = Math.min(items.length, cursor + CORPUS_PAGE);
     for (let i = cursor; i < upTo; i++) {
-      const h = hits[i];
-      const full = h.r ? readyMap.get(String(h.id)) : null;
-      list.appendChild(renderCorpusWorkRow(full || corpusSearchRowToCard(h), !!full, { showAuthor: true }));
+      const it = items[i], sr = it.sr;
+      const full = sr.r ? readyMap.get(String(sr.id)) : null;
+      const node = renderCorpusWorkRow(full || corpusSearchRowToCard(sr), !!full, { showAuthor: true });
+      if (decorate) decorate(node, it);
+      list.appendChild(node);
     }
     cursor = upTo;
     moreWrap.innerHTML = '';
-    if (cursor < hits.length) {
+    if (cursor < items.length) {
       const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
-      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (hits.length - cursor) + ')';
+      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (items.length - cursor) + ')';
       btn.addEventListener('click', () => { slice(); try { window.applyI18n && window.applyI18n(); } catch (_) {} });
       moreWrap.appendChild(btn);
     }
   };
   slice();
+}
+
+let _ftsConfigured = false;
+function ensureFtsConfigured() {
+  if (_ftsConfigured || !window.CorpusFTS) return;
+  window.CorpusFTS.configure({ version: CORPUS_CATALOG_VERSION, dataRev: FTS_DATA_REV, base: '/data/benyehuda/' });
+  _ftsConfigured = true;
+}
+// Query the full-text index and render a «🔎 в тексте» group for hits NOT already shown in the
+// title/author group. Ready hits open into the bilingual reader; non-ready hits are honest
+// «найдено · перевод готовится» (display-only). A lemma-only hit is marked «по форме слова» (R10).
+async function appendFtsGroup(body, q, titleHits) {
+  if (!window.CorpusFTS || !q || !String(q).trim()) return;
+  if (!window.CorpusFTS.tokenizeText(q).length) return;   // index is Hebrew — skip non-Hebrew queries
+  ensureFtsConfigured();
+  let res = [];
+  try { res = await window.CorpusFTS.search(q); } catch (_) { return; }
+  if (corpusL1Body !== body) return;                       // navigated away while loading shards
+  if (!res || !res.length) return;
+  const f = corpusFilter;
+  const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
+  const items = [];
+  for (const r of res) {
+    const sr = corpusSearch[r.w];
+    if (!sr) continue;
+    if (f.readyOnly && !sr.r) continue;
+    if (f.genre && sr.g !== f.genre) continue;
+    if (f.lang && sr.l !== f.lang) continue;
+    if (titleIds.has(String(sr.id))) continue;             // already in the title/author group
+    items.push({ sr: sr, r: r });
+  }
+  if (!items.length) return;
+  const sec = el('section', { class: 'shelf corpus-fts-group' });
+  const head = el('div', { class: 'shelf-head' });
+  head.appendChild(el('h2', { class: 'shelf-title', text: '🔎 ' + tt('room.corpus.search.inText', 'В тексте') + ' (' + items.length + ')' }));
+  sec.appendChild(head);
+  body.appendChild(sec);
+  appendPagedWorkRows(sec, items, (node, it) => {
+    if (it.r && it.r.exact === 0 && it.r.lemma > 0) {       // matched only via lemma expansion
+      const meta = node.querySelector('.work-card-meta') || node;
+      meta.appendChild(el('span', { class: 'prov-badge fts-byform', i18n: 'room.corpus.search.byForm', text: tt('room.corpus.search.byForm', 'по форме слова') }));
+    }
+  });
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
