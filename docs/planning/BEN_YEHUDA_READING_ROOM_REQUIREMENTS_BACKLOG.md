@@ -297,7 +297,8 @@
 - **DoD:** screenshot/запись подсветки @380px RTL; тест на длинном тексте.
 - **Notes:** sentence-level сделан; word-level вынесен в **BRR-P1-008b**.
 
-### BRR-P1-008b — Word-level karaoke: перебейк озвучки с TTS-timepoints (SSML `<mark>`) 🔵 PROPOSED (2026-06-14, дизайн готов)
+### BRR-P1-008b — Word-level karaoke: перебейк озвучки с TTS-timepoints (SSML `<mark>`) ✅ IMPLEMENTED+PROD (2026-06-14, SW v3.10.48; канон-перебейк тайминга выполняется)
+- **SHIPPED 2026-06-14 (`7e5124c`):** producer `ttsBake.synthesizeWithTimepoints` (v1beta1 SSML_MARK, пунктуация сохранена, mark==offset) + runner `bake-and-push-timing.js` + server `GET /api/audio/:key/timing` + upload `timingJson`/overwrite + client `reader-core` (`activeWordIndex`→`.rm-w-speaking`, fallback sentence-level) + гейт `smoke:reader-karaoke-words`. Пилот: 100% timepoint-покрытие на he-IL-Wavenet-A, без period-truncation. Канон-перебейк (6446 клипов) выполняется ключами владельца. As-built → `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`. ⚠ ротировать GCP+AUDIO_UPLOAD_TOKEN после прогона.
 - **Source:** Beelinguapp/LingQ (пословная подсветка) · owner-приоритет 2026-06-14 («это важно»).
 - **Observed:** sentence-level (P1-008) связывает строку и звук; пословная подсветка («бегущее слово») — следующий премиум-уровень.
 - **Current:** бейкнутые MP3 несут только текст-уровень; **per-word тайминга нет** → пословная синхронизация невозможна без новых данных.

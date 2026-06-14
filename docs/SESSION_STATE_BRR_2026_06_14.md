@@ -1,6 +1,6 @@
 # SESSION STATE — Ben-Yehuda Reading Room (2026-06-14) — READ FIRST
 
-> **Git: main = HEAD `98d29e4`, всё запушено. Prod SW `v3.10.47-room-karaoke` (прод = код, верифицирован).**
+> **Git: main = HEAD `7e5124c`, всё запушено. Prod SW `v3.10.48-room-karaoke-words` (прод = код, верифицирован).**
 > Project = LinguistPro (Node PWA, иврит↔рус). Prod: https://linguistpro.kolosei.com (Зал: `/library.html`).
 > Роли R1–R10 авто (`docs/PROJECT_ROLES.md`). Owner-инвариант: **бескомпромиссное качество, без заглушек.**
 > Это консолидированный READ-FIRST. Предыдущие (актуальны для глубины): i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`;
@@ -33,8 +33,9 @@
 
 ## NEXT — меню направлений (из разведки 2026-06-13; владелец выбирает)
 - ✅ ① Scaffolded Reading Console — закрыто. ✅ ② Karaoke (sentence-level) — закрыто.
-- 🔵 **BRR-P1-008b — Word-level karaoke (перебейк с TTS-timepoints SSML `<mark>`)** — **PROPOSED, owner-важно**;
-  полный дизайн `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md` (на утверждение; зависит от ротации секретов).
+- ✅ **BRR-P1-008b — Word-level karaoke (TTS-timepoints SSML `<mark>`)** — КОД ОТГРУЖЕН+ПРОД (`7e5124c`, SW v3.10.48);
+  канон-перебейк тайминга выполнялся ключами владельца (gitignored `.tmp/`). As-built `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`.
+  Гейт `smoke:reader-karaoke-words`. Live audio-«бег» слова проверяется на реальном устройстве (headless без mp3-кодека).
 - ③ **Накормить i+1**: опубликовать ~132 бейкнутых→каталог v8 (skill `publish-corpus-batch`) + leveling. **Зависит от `AUDIO_UPLOAD_TOKEN`.** Дефицит modern (73 в каталоге).
 - ④ **Качество/измеримость R10**: replace recall/FP тап-глосса vs Dicta-silver + бейджи провенанса + **47097 идиш** (R6/R7).
 - ⑤ **Anki-sync** (real mastery → строгая i+1 80–95%); mobile-ограничение Anki-Connect.

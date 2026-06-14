@@ -1,6 +1,27 @@
-# BRR-P1-008b — Word-level karaoke (перебейк озвучки с TTS-timepoints) — RECON-FIRST DESIGN
+# BRR-P1-008b — Word-level karaoke (перебейк озвучки с TTS-timepoints) — ✅ IMPLEMENTED (2026-06-14)
 
-**Статус:** 🔵 PROPOSED (2026-06-14). Дизайн на утверждение; кода нет. Owner-приоритет («это важно»).
+**Статус:** ✅ КОД ОТГРУЖЕН + ПРОД (HEAD `7e5124c`, SW `v3.10.48-room-karaoke-words`); канон-перебейк тайминга
+выполняется (background, ключи владельца). Дизайн ниже = as-built. Owner-приоритет («это важно»).
+
+## AS-BUILT (что сделано)
+- **Approach A подтверждён пилотом** на реальном he-IL-Wavenet-A: v1beta1 `enableTimePointing:["SSML_MARK"]` →
+  `timepoints[]`; **100% покрытие, БЕЗ обрезания после точки** (пунктуация сохранена в SSML → прозодия цела).
+- **Producer** `scripts/premium/lib/ttsBake.js`: `buildMarkedSsml` (reuse `reader-morph.tokenize` → mark-index==
+  `.rm-w` data-w-offset, пунктуация сохранена) + `synthesizeWithTimepoints` + `timingFromTimepoints`.
+- **Runner** `scripts/premium/bake-and-push-timing.js` (re-synth mp3+timing → push overwrite, resumable
+  `--skip-existing-timing`, R10-отчёт покрытия). Voice he-IL-Wavenet-A (== canon stamped key).
+- **Server** `GET /api/audio/:key/timing` (том-сайдкар, immutable) + `/api/audio/cache/upload` расширен
+  (`timingJson` + mp3 `overwrite`; owner-token; api-smoke зелёный).
+- **Client** `reader-core`: ленивый `<key>.timing.json` на tier-1 play; `timeupdate`→чистая `activeWordIndex`→
+  `.rm-w-speaking` (he+niqqud по offset). Нет тайминга ⇒ sentence-level (честно, ноль регрессии).
+- **Гейт** `smoke:reader-karaoke-words` (18/0). CSS `.rm-w-speaking`. @380px подсветка слова подтверждена.
+- **Прод-данные:** timing-сайдкары на томе (`<key>.timing.json`), endpoint отдаёт; mp3 overwrite = клип совпадает с таймингом.
+- **Не верифицируемо headless:** живой audio-driven «бег» слова (Playwright-Chromium без mp3-кодека) → проверка на реальном устройстве владельца.
+- ⚠ Ключи (GCP+AUDIO_UPLOAD_TOKEN) использованы из gitignored `.tmp/` (НЕ в git) → **ротировать после прогона.**
+
+---
+## (исходный дизайн — для контекста)
+
 **Поверхность:** `public/library.html` Зал + bake-pipeline (`scripts/premium/*`, `lib/ttsBake.js`). **index.html НЕ трогать.**
 Роли: R4 (UX/RTL), R2 (восприятие/орфография), **R10 (измеримость дрейфа)**, R5 (стоимость перебейка).
 Базируется на BRR-P1-008 (sentence-level karaoke, SHIPPED `98d29e4`).

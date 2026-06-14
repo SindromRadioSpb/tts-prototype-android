@@ -3,7 +3,7 @@
 **★ READ FIRST:** `docs/SESSION_STATE_BRR_2026_06_14.md` (КОНСОЛИДИРОВАННЫЙ — открой первым) + `docs/PROJECT_ROLES.md` (R1–R10 авто).
 Глубже: i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`; word-karaoke кандидат → `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`.
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com.
-**main HEAD `98d29e4`, SW `v3.10.47-room-karaoke` (прод-верифицирован).**
+**main HEAD `7e5124c`, SW `v3.10.48-room-karaoke-words` (прод-верифицирован).**
 Owner-инвариант: бескомпромиссное качество, без заглушек. Норма: index.html НЕ трогать (Зал=library.html);
 MEASURE до кода (профиль-зависимое → НЕПУСТОЙ профиль); гейты до push; commit+push автономно (Coolify);
 SW CACHE_VERSION бамп при shell-ассете (+CORPUS_VOCAB_DATA_REV при формате сайдкара); @380px RTL до UI-коммита;
@@ -56,8 +56,8 @@ corpus-vocab(-engine), room, room-mode, corpus-room, test:api-smoke.
 (владелец вставляет в консоль Зала для авторитетного per-profile числа). E2E проверено: 4/73 на 10-словном seed-профиле.
 
 ## NEXT (опционально, владелец выбирает) — из разведки направлений ①–⑥
-- ✅ ① Scaffolded Console + ✅ ② Karaoke (sentence-level) — ОТГРУЖЕНЫ.
-- 🔵 **BRR-P1-008b — Word-level karaoke (перебейк с TTS-timepoints SSML `<mark>`)** — PROPOSED, **owner-важно**; дизайн `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md` (на утверждение; зависит от ротации секретов).
+- ✅ ① Scaffolded Console + ✅ ② Karaoke(sentence) + ✅ **BRR-P1-008b Word-level karaoke** (TTS-timepoints, `7e5124c`, SW v3.10.48) — ОТГРУЖЕНЫ.
+  008b as-built: `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`; гейт `smoke:reader-karaoke-words`; producer `ttsBake.synthesizeWithTimepoints` + runner `bake-and-push-timing.js`; канон-перебейк тайминга прогонялся ключами владельца. **Live audio-«бег» слова — проверить на реальном устройстве** (headless без mp3). **⚠ ротировать GCP+AUDIO_UPLOAD_TOKEN — снова светились в чате.**
 - ③ Накормить i+1: опубликовать ~132 бейкнутых→каталог v8 (publish-corpus-batch) + leveling; **дефицит modern (73 в каталоге)**.
 - ④ Качество/измеримость R10: replace recall/FP тап-глосса vs Dicta-silver + provenance-бейджи + 47097 идиш.
 - ⑤ Anki-sync (mobile-ограничение) · ⑥ Discovery: full-text search wiring + фильтр/сорт полок + закладки.
