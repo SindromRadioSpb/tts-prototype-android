@@ -537,7 +537,7 @@ export function attachRowAudio(mount, opts) {
   };
 
   async function postTts(text, prof, row) {
-    const body = { text: text, language: LANG, voiceId: prof.voiceId || "", speakingRate: typeof prof.rate === "number" ? prof.rate : 1.0, pitch: typeof prof.pitch === "number" ? prof.pitch : 0.0, gcpTtsApiKey: gcpKeyOf() };
+    const body = { text: text, language: LANG, voiceId: prof.voiceId || "", speakingRate: typeof prof.rate === "number" ? prof.rate : 1.0, pitch: typeof prof.pitch === "number" ? prof.pitch : 0.0, gcpTtsApiKey: gcpKeyOf(), withTimepoints: true };
     if (row && row._v3_sentenceId && row._v3_textId) { body.sentenceId = String(row._v3_sentenceId); body.textId = String(row._v3_textId); body.assetType = "row"; }
     const r = await fetch("/api/tts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!r.ok) { let m = ""; try { const j = await r.json(); m = (j && (j.error || j.message)) || ""; } catch (_) {} throw new Error("tts " + r.status + (m ? ": " + m : "")); }

@@ -314,6 +314,20 @@
 - **DoD:** запись @380px RTL пословной подсветки; измеренный дрейф на выборке (R10-гейт); fallback на sentence-level при отсутствии `.timing.json`; гейт на парсер timepoints↔offset.
 - **Notes:** **Полный recon-first дизайн → `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`** (на утверждение перед кодом). Перебейк не начинать до ротации секретов и owner-go.
 
+### BRR-P1-008c — Word-timing для ЛЮБОГО текста (вкл. Корпус) при BYOK-ключе, само-кеш ✅ IMPLEMENTED (2026-06-14, SW v3.10.54)
+- **SHIPPED 2026-06-14:** opt-in серверный путь `ensureAudioAssetWithTiming` (sibling к `ensureAudioAsset`) — `/api/tts` с `withTimepoints:true` синтезит через GCP **v1beta1 SSML `<mark>`** → пишет mp3 + `<assetKey>.timing.json` сайдкар → отвечает `assetKey`; клиент (`reader-core.postTts` шлёт флаг) `ensureTiming`→`/timing`→rAF `.rm-w-speaking`. **Само-кеш:** computeAssetKey = тот же (плоский текст+профиль) → после ПЕРВОГО (платного, на ключе пользователя) синтеза клип+тайминг отдаются ВСЕМ keyless (tier-1). Длинный текст (> `TTS_SAFE_TARGET_BYTES`) → graceful plain-mp3 без тайминга (честный sentence-level). Гейты `test:api-smoke` (+2 кейса: withTimepoints-роутинг→честный 401 без ключа; self-cache: засеянный mp3+timing отдаётся keyless, `/timing`→words[]).
+- **Source:** owner-приоритет 2026-06-14 («озвучка с таймингами для любых текстов, в т.ч. Корпуса, если установлен ключ»).
+- **Observed:** P1-008b даёт пословную подсветку только на КАНОНЕ (там тайминг забейкан); Корпус/любой не-забейканный текст играл plain v1 (без timepoints) → нет «бегущего слова».
+- **Gap (закрыт):** сервер на `/api/tts` (v3-context) синтезил v1 `input.text` без меток → таймпойнтов нет.
+- **Approach:** opt-in флаг `withTimepoints` маршрутит в timing-синтез (переиспользует `ttsBake.synthesizeWithTimepoints`); mp3 перезаписывается из ТОГО ЖЕ SSML-рендера (клип совпадает с метками); сайдкар пишется синхронно до ответа (нет гонки с `ensureTiming`). Studio (`index.html`) не трогается (флаг только из `reader-core`).
+- **Surface:** Room (любой текст incl. Корпус) · **Role:** R4, R2, R5 (стоимость на ключе пользователя), R10 (дрейф mark) · **Priority:** P1 (owner-важно, продолжение 008b)
+- **Impl:** `server.js` (`ensureAudioAssetWithTiming` + флаг в `/api/tts`), `reader-core.postTts` (+`withTimepoints:true`), `sw.js` бамп · **Cx:** S-M · клиент уже был подключён (tier-2 `ensureTiming`+rAF из 008b).
+- **Dependencies:** BRR-P1-008b (тайминг-инфра: ttsBake/`GET /timing`/`.rm-w`) · BYOK GCP-ключ задан в приложении (иначе честный 401→tier-3 браузер-речь). **Risks:** длинные строки без тайминга (graceful), перезапись plain-mp3 SSML-рендером (аудио ≈ идентично), стоимость одного синтеза на (текст,профиль) — затем из кеша.
+- **Offline:** yes (после первого синтеза сайдкар+клип кешированы на томе, served-on-open) · **BYOK:** да (синтез на ключе пользователя; кеш потом keyless для всех).
+- **Acceptance:** ключ задан → корпус-строка ▶ → `?wkdebug=1`: `mode=audio, tN>0, off меняется, speaking=1`, янтарное слово едет; повторное открытие (даже без ключа) → tier-1 + тайминг из кеша.
+- **DoD:** гейты зелёные (api-smoke +2 кейса); honest-401 без ключа (не 500); self-cache keyless; **owner prod-verify с BYOK-ключом** (последний шаг).
+- **Notes:** план (утверждён) → `~/.claude/plans/linguistpro-node-pwa-snoopy-lampson.md`; as-built → `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. ⚠ ротировать AUDIO_UPLOAD_TOKEN (GCP ротирован).
+
 ### BRR-P1-009 — In-reader статус слов + one-tap лёгкий захват ✅ SHIPPED+PROD (раскраска + save-из-карточки)
 - **Source:** LingQ (corpus-wide статус) · Readlang (авто-захват)
 - **Observed:** видимый статус new/learning/known + захват в карточку из чтения.

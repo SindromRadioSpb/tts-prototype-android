@@ -1,11 +1,17 @@
 # SESSION STATE — Ben-Yehuda Reading Room (2026-06-14) — READ FIRST
 
-> **Git: main = HEAD `f9760ec`, всё запушено. Prod SW `v3.10.53-canon-v4-refresh` (прод = код, верифицирован).**
+> **Git: main = HEAD `<008c-commit>` (BRR-P1-008c в этой сессии), запушено. Prod SW `v3.10.54-byok-word-timing`.**
+> **BRR-P1-008c (NEW):** пословный тайминг для ЛЮБОГО текста (вкл. **Корпус**) при BYOK-ключе, **само-кеш**. Сервер
+> `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`) синтезит v1beta1 SSML `<mark>` → пишет
+> mp3+`<key>.timing.json` → отвечает assetKey; клиент `reader-core.postTts` шлёт флаг, дальше существующий
+> `ensureTiming`→`/timing`→rAF `.rm-w-speaking`. Первый синтез на ключе пользователя → потом клип+тайминг отдаются
+> ВСЕМ keyless (tier-1). Длинный текст → graceful sentence-level. Гейты `test:api-smoke` +2 (роутинг→честный 401 без
+> ключа; self-cache keyless+`/timing` words[]). As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`.
+> **Owner prod-verify с BYOK-ключом — последний шаг.** 🔑 ротировать AUDIO_UPLOAD_TOKEN (GCP ротирован ✓).
 > **BRR-P1-008b word-karaoke полностью:** канон-тайминг 6446/6446; подсветка слова = янтарный `.rm-w-speaking` (v3.10.49),
 > rAF-driven не timeupdate (iOS-fix v3.10.51); тема-переключатель 🌗 (v3.10.50); диагностика `?wkdebug=1`; **canon-v4 refresh**
 > (v3.10.53) — застарелые устройства ре-импортят канон (mode:'skip', заметки целы) → `reconcileAudioLinks` чинит стале-asset-keys
-> → /timing 200. `?canon=refresh` форсит. Только КАНОН (Доступная/Литературная); Корпус=речь устройства без тайминга
-> (BYOK-таймпойнты для Корпуса — спроектирован, ждёт go). 🔑 ротировать AUDIO_UPLOAD_TOKEN (GCP ротирован ✓).
+> → /timing 200. `?canon=refresh` форсит.
 > Project = LinguistPro (Node PWA, иврит↔рус). Prod: https://linguistpro.kolosei.com (Зал: `/library.html`).
 > Роли R1–R10 авто (`docs/PROJECT_ROLES.md`). Owner-инвариант: **бескомпромиссное качество, без заглушек.**
 > Это консолидированный READ-FIRST. Предыдущие (актуальны для глубины): i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`;
@@ -26,6 +32,8 @@
 4. **② Karaoke (BRR-P1-008, sentence-level)** SHIPPED+PROD (`98d29e4`, SW v3.10.47). Дизайн `docs/planning/BRR_P1_008_KARAOKE_2026_06_14.md`.
    - `.row-playing`-подсветка уже была → добавлен ПОТОК: `attachRowAudio` continuous (`playAll/stop/onRowChange` + чистая `nextPlayableIndex`, skip пустых/упавших), кнопка **«▶ Читать вслух»** в reader-bar (▶↔■), авто-скролл (пауза на ручной скролл), усиленная подсветка `.karaoke-on`. Гейт `smoke:reader-karaoke`.
    - **Word-level подсветки НЕТ** (клипы без per-word тайминга) → вынесено в **BRR-P1-008b** (см. ниже).
+5. **BRR-P1-008b Word-level karaoke (канон)** IMPLEMENTED+PROD (`7e5124c`, SW v3.10.48) + canon-v4 refresh (v3.10.53). Тайминг забейкан → «бегущее слово» на КАНОНЕ.
+6. **BRR-P1-008c BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** IMPLEMENTED (SW v3.10.54, эта сессия). Сервер `ensureAudioAssetWithTiming` (opt-in `/api/tts {withTimepoints:true}`, v1beta1 SSML `<mark>` → mp3+`<key>.timing.json`); клиент `reader-core.postTts` шлёт флаг (tier-2 уже грузит timing+rAF из 008b). Само-кеш: первый синтез на ключе пользователя → потом keyless tier-1 для всех. Длинный текст → graceful sentence-level. Гейты `test:api-smoke` +2 (честный 401 без ключа; self-cache keyless). As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. **Owner prod-verify с BYOK — последний шаг.**
 
 ## Ключевые файлы / гейты
 - Движки (Room-only): `public/js/reader-core.js` (builder parity-locked + `attachRowAudio` continuous + `nextPlayableIndex`),
@@ -33,7 +41,8 @@
   Координатор: `public/js/library-ui.js`. Поверхность: `public/library.html`. i18n: `public/i18n/locales/{ru,en,he}.js`.
 - **index.html НЕ трогать** (Студия); общий движок шарится; `smoke:reader-parity` доказывает, что builder/index.html не тронуты — ВСЕ Room-фичи = post-render DOM-декорация на `.rm-w`/строках.
 - Гейты (все зелёные на HEAD): `smoke:reader-parity` · `smoke:reader-scaffold` (234) · `smoke:reader-karaoke` (9) ·
-  `smoke:reader-morph` · `smoke:reader-notes` (56) · `smoke:corpus-vocab(-engine)` · `smoke:room` (14) · `smoke:corpus-room` (18) · `test:api-smoke`.
+  `smoke:reader-karaoke-words` (18) · `smoke:reader-morph` · `smoke:reader-notes` (56) · `smoke:corpus-vocab(-engine)` ·
+  `smoke:room` (14) · `smoke:corpus-room` (18) · `test:api-smoke` (вкл. 008c: withTimepoints-роутинг→честный 401, self-cache keyless).
 - SW: бамп `CACHE_VERSION` при смене shell-ассета (+`CORPUS_VOCAB_DATA_REV` при смене формата corpus-vocab-сайдкара). На устройстве = тост «Обновить».
 
 ## NEXT — меню направлений (из разведки 2026-06-13; владелец выбирает)
@@ -41,6 +50,8 @@
 - ✅ **BRR-P1-008b — Word-level karaoke (TTS-timepoints SSML `<mark>`)** — КОД ОТГРУЖЕН+ПРОД (`7e5124c`, SW v3.10.48);
   канон-перебейк тайминга выполнялся ключами владельца (gitignored `.tmp/`). As-built `docs/planning/BRR_P1_008B_KARAOKE_WORD_TIMINGS_2026_06_14.md`.
   Гейт `smoke:reader-karaoke-words`. Live audio-«бег» слова проверяется на реальном устройстве (headless без mp3-кодека).
+- ✅ **BRR-P1-008c — BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш** — IMPLEMENTED (SW v3.10.54, эта сессия).
+  As-built `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. **Остался owner prod-verify с BYOK-ключом** (корпус-текст ▶ → `?wkdebug=1` → tN>0, янтарное слово едет; повторно → tier-1 из кеша).
 - ③ **Накормить i+1**: опубликовать ~132 бейкнутых→каталог v8 (skill `publish-corpus-batch`) + leveling. **Зависит от `AUDIO_UPLOAD_TOKEN`.** Дефицит modern (73 в каталоге).
 - ④ **Качество/измеримость R10**: replace recall/FP тап-глосса vs Dicta-silver + бейджи провенанса + **47097 идиш** (R6/R7).
 - ⑤ **Anki-sync** (real mastery → строгая i+1 80–95%); mobile-ограничение Anki-Connect.

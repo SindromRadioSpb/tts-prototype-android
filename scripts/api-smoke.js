@@ -239,6 +239,54 @@ async function run() {
     }
     console.log("PASS /api/benyehuda/works/upload -> owner-token gated + atomic write served from volume");
 
+    // 5. BRR-P1-008c: /api/tts honours withTimepoints (routes to ensureAudioAssetWithTiming)
+    //    but a BYOK key missing must still surface as a structured 401 TTS_KEY_REQUIRED —
+    //    never a 500. byokKey has no server-env fallback, so this is hermetic (no network).
+    //    Without the flag, the contract is identical (regression guard for the shared path).
+    const TTS_URL = `${BASE_URL}/api/tts`;
+    const ttsBody = (extra) => JSON.stringify({
+      text: "שלום עולם", language: "he-IL", voiceId: "he-IL-Wavenet-A",
+      sentenceId: "00000000-0000-0000-0000-000000000001",
+      textId: "00000000-0000-0000-0000-000000000002",
+      ...extra,
+    });
+    for (const [label, extra] of [["withTimepoints:true", { withTimepoints: true }], ["no flag", {}]]) {
+      const res = await fetch(TTS_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: ttsBody(extra) });
+      const { data, text } = await readBody(res);
+      if (res.status !== 401 || !data || data.error_code !== "TTS_KEY_REQUIRED") {
+        throw new Error(`/api/tts ${label} without key expected 401 TTS_KEY_REQUIRED (not 500), got ${res.status}: ${text.slice(0, 200)}`);
+      }
+    }
+    console.log("PASS /api/tts -> withTimepoints routes to timing path; missing BYOK key still honest 401 (not 500)");
+
+    // 6. BRR-P1-008c self-cache guarantee: once a clip's mp3 + <key>.timing.json exist on the
+    //    volume, /api/tts {withTimepoints:true} serves it WITHOUT a BYOK key (keyless tier-1 for
+    //    everyone after the first paid bake), returns the matching assetKey + fromCache, and
+    //    GET /api/audio/<key>/timing returns the word array. Hermetic: we seed the cache, no synth.
+    {
+      const { computeAssetKey } = require(path.join(REPO_ROOT, "db/premium/ttsAssetKey"));
+      const seedText = "שלום עולם";
+      const seedProfile = { language: "he-IL", voiceName: "he-IL-Wavenet-A", speakingRate: 1.0, pitch: 0.0 };
+      const seedKey = computeAssetKey({ text: seedText, ttsProfile: seedProfile, assetType: "row" });
+      const cacheDir = path.join(tmpDataDir, "audio-cache");
+      fs.mkdirSync(cacheDir, { recursive: true });
+      fs.writeFileSync(path.join(cacheDir, `${seedKey}.mp3`), Buffer.from("ID3-smoke-fake-mp3"));
+      const seedTiming = { v: 1, n: 2, got: 2, words: [{ o: 0, t: 0.0 }, { o: 1, t: 0.42 }] };
+      fs.writeFileSync(path.join(cacheDir, `${seedKey}.timing.json`), JSON.stringify(seedTiming));
+
+      const res = await fetch(TTS_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: ttsBody({ withTimepoints: true }) });
+      const { data, text } = await readBody(res);
+      if (res.status !== 200 || !data || data.assetKey !== seedKey || data.fromCache !== true) {
+        throw new Error(`/api/tts withTimepoints cache-hit expected 200 fromCache=true assetKey=${seedKey} (no key needed), got ${res.status}: ${text.slice(0, 200)}`);
+      }
+      const tRes = await fetch(`${BASE_URL}/api/audio/${seedKey}/timing`);
+      const { data: tData, text: tText } = await readBody(tRes);
+      if (!tRes.ok || !tData || !Array.isArray(tData.words) || tData.words.length !== 2) {
+        throw new Error(`/api/audio/<key>/timing expected the seeded word array, got ${tRes.status}: ${tText.slice(0, 200)}`);
+      }
+    }
+    console.log("PASS /api/tts -> self-cache: seeded mp3+timing served keyless; /timing returns words[]");
+
     console.log("API smoke: OK");
   } catch (error) {
     const tail = logs.length ? `\nServer log tail:\n${logs.join("\n")}` : "";

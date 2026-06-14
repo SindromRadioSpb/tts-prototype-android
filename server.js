@@ -1091,6 +1091,11 @@ const {
   getAudioRelativePath,
 } = require("./db/premium/ttsAssetKey");
 
+// BRR-P1-008c — word-level timepoints synth (GCP v1beta1 SSML <mark>), reused from the canon-bake
+// lib. DB-free, key-from-arg; require-safe in Node (its reader-morph/ttsAssetKey deps already load
+// under the smoke harness). Used only by ensureAudioAssetWithTiming (opt-in /api/tts withTimepoints).
+const { synthesizeWithTimepoints, utf8Len: ttsUtf8Len } = require("./scripts/premium/lib/ttsBake");
+
 function ensureAudioCacheDir() {
   try {
     if (!fs.existsSync(audioDir)) fs.mkdirSync(audioDir, { recursive: true });
@@ -2036,6 +2041,66 @@ const audioContent = wantAudioContent && mp3Buffer ? mp3Buffer.toString("base64"
 return { audioContent, fromCache, assetKey, relativePath };
 }
 
+// BRR-P1-008c — like ensureAudioAsset, but ALSO writes a per-clip word-timing sidecar
+// (audio-cache/<key>.timing.json) via GCP v1beta1 SSML <mark> timepoints, so the Reading Room can do
+// word-level karaoke for ANY text (incl. corpus) when a BYOK key is set. assetKey is identical (plain
+// text + profile) → mp3+timing self-cache for everyone afterwards (even keyless tier-1). The mp3 is
+// (over)written from the SAME SSML synth so the served clip matches the timepoints. Long text (over
+// the SSML byte cap) gracefully falls back to a plain mp3 with NO timing (honest sentence-level).
+async function ensureAudioAssetWithTiming(params) {
+  const { apiKey, text, assetType, ttsProfile, sentenceId, textId, languageCode, voiceName, speakingRate, pitch } = params || {};
+  const cleanText = String(text || "").trim();
+  if (!cleanText) return { audioContent: "", fromCache: false, assetKey: null, relativePath: null };
+  ensureAudioCacheDir();
+
+  const normalizedProfile = normalizeTtsProfile(ttsProfile || {
+    language: languageCode || null, voiceName: voiceName || null,
+    speakingRate: speakingRate == null ? 1.0 : Number(speakingRate), pitch: pitch == null ? 0.0 : Number(pitch),
+  });
+  const assetKey = computeAssetKey({ text: cleanText, ttsProfile: normalizedProfile, assetType: String(assetType || "row") });
+  const relativePath = getAudioRelativePath(assetKey).replace(/\\/g, "/");
+  const absPath = path.resolve(DATA_DIR, relativePath);
+  const timingPath = path.resolve(DATA_DIR, "audio-cache/" + assetKey + ".timing.json");
+
+  let fromCache = false, mp3Buffer = null;
+  if (fs.existsSync(absPath) && fs.existsSync(timingPath)) {
+    fromCache = true; mp3Buffer = fs.readFileSync(absPath);                 // both cached → no synth, no key needed
+  } else if (ttsUtf8Len(cleanText) > TTS_SAFE_TARGET_BYTES) {
+    // Too long for one SSML+marks call → graceful: plain mp3, no timing (sentence-level karaoke).
+    console.warn("[v3-audio-timing] text over SSML byte cap — skipping timepoints", { assetKey, bytes: ttsUtf8Len(cleanText) });
+    if (fs.existsSync(absPath)) { fromCache = true; mp3Buffer = fs.readFileSync(absPath); }
+    else {
+      mp3Buffer = await synthesizeMp3Buffer(apiKey, cleanText, normalizedProfile.language || languageCode, normalizedProfile.voiceName || voiceName, normalizedProfile.speakingRate, normalizedProfile.pitch);
+      const wr = writeMp3IfNotExists(absPath, mp3Buffer);
+      if (!wr.written && fs.existsSync(absPath)) mp3Buffer = fs.readFileSync(absPath);
+    }
+  } else {
+    const out = await synthesizeWithTimepoints(apiKey, cleanText, normalizedProfile);   // throws TTS_KEY_REQUIRED if no key
+    mp3Buffer = out.mp3;
+    try { fs.writeFileSync(absPath, mp3Buffer); } catch (e) { console.warn("[v3-audio-timing] mp3 write failed", { assetKey, message: e && e.message }); }
+    try { fs.writeFileSync(timingPath, JSON.stringify(out.timing || { v: 1, n: 0, got: 0, words: [] })); }
+    catch (e) { console.warn("[v3-audio-timing] timing write failed (non-fatal)", { assetKey, message: e && e.message }); }
+  }
+
+  let durationMs = null;
+  try { durationMs = await probeMp3DurationMs(absPath); } catch (_) { durationMs = null; }
+
+  try {
+    const h = getDbHealth();
+    if (h && h.ok) {
+      const row = await upsertAudioAsset({ id: uuidv4(), assetKey, assetType: String(assetType || "row"), relativePath, mime: "audio/mpeg", durationMs, sizeBytes: mp3Buffer ? mp3Buffer.length : null, ttsProfileJson: JSON.stringify(normalizedProfile) });
+      if (row && row.id) {
+        if (sentenceId) await setSentenceDefaultAudio(String(sentenceId), String(row.id));
+        if (textId) await setTextDefaultAudio(String(textId), String(row.id));
+      }
+    }
+  } catch (e) { console.warn("[v3-audio-timing] db upsert/link failed (non-fatal)", { assetKey, message: e && e.message }); }
+
+  const wantAudioContent = !(params && params.returnAudioContent === false);
+  const audioContent = wantAudioContent && mp3Buffer ? mp3Buffer.toString("base64") : "";
+  return { audioContent, fromCache, assetKey, relativePath };
+}
+
 function isHebrewLocalExperimentalEnabled() {
   const raw = String(process.env.TTS_HEBREW_LOCAL_EXPERIMENTAL || "false").trim().toLowerCase();
   return !(raw === "false" || raw === "0" || raw === "off" || raw === "no");
@@ -2518,7 +2583,10 @@ const hasV3Context = !!(v3SentenceId || v3TextId || v3AssetType === "word");
 let audioContent, fromCache, cacheId, assetKeyOut, relativePathOut;
 
 if (hasV3Context) {
-  const ensured = await ensureAudioAsset({
+  // BRR-P1-008c — Reading Room sends withTimepoints to also produce+cache a word-timing sidecar
+  // (v1beta1 SSML marks) for word-level karaoke on ANY text. Absent flag → unchanged behavior.
+  const withTiming = !!(req.body && req.body.withTimepoints === true);
+  const ensured = await (withTiming ? ensureAudioAssetWithTiming : ensureAudioAsset)({
     apiKey: byokKey,
     text: cleanText,
     assetType: v3AssetType || (v3SentenceId ? "row" : "text"),
