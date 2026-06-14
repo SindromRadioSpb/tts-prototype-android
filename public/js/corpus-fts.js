@@ -127,10 +127,18 @@
     if (_lemma) return Promise.resolve({ lemma: _lemma, map: _lemmaMap });
     if (_lemmaLoading) return _lemmaLoading;
     _lemmaLoading = ensureManifest().then(function (m) {
+      // lemma index is sharded by size (lemma_files[]); load all + merge. Back-compat: a single
+      // lemma_file is still honoured. lemmamap (skeleton→pid) loads alongside.
+      var lemmaList = m.lemma_files || (m.lemma_file ? [m.lemma_file] : []);
       return Promise.all([
-        m.lemma_file ? _fetchJson(m.lemma_file) : Promise.resolve({}),
-        m.lemmamap_file ? _fetchJson(m.lemmamap_file) : Promise.resolve({}),
-      ]).then(function (r) { _lemma = _decodeIndex(r[0]); _lemmaMap = r[1] || {}; return { lemma: _lemma, map: _lemmaMap }; });
+        Promise.all(lemmaList.map(function (f) { return _fetchJson(f).catch(function () { return {}; }); })),
+        m.lemmamap_file ? _fetchJson(m.lemmamap_file).catch(function () { return {}; }) : Promise.resolve({}),
+      ]).then(function (r) {
+        _lemma = {};
+        r[0].forEach(function (obj) { for (var k in obj) if (obj.hasOwnProperty(k)) _lemma[k] = decodePostings(obj[k]); });
+        _lemmaMap = r[1] || {};
+        return { lemma: _lemma, map: _lemmaMap };
+      });
     }).finally(function () { _lemmaLoading = null; });
     return _lemmaLoading;
   }

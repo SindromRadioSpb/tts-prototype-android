@@ -57,13 +57,15 @@ let corpusSearchLoading = null;  // single-flight guard
 let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n,ez}} } (lazy, NOT precached)
 let corpusVocabLoading = null;   // single-flight guard
 const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
-const FTS_DATA_REV = 2;           // BRR-P2-001 — bump when the FTS index CONTENT changes within a catalog version
+const FTS_DATA_REV = 3;           // BRR-P2-001 — bump when the FTS index CONTENT changes within a catalog version
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
                                  // filter bar — and the search input's focus — survive typing)
 let corpusClearChip = null;      // ref to the «✕ Сбросить» chip (shown only when a filter is active)
 let corpusAuthorSort = 'graduated'; // L2 author order: 'graduated' (ready-first) | 'alpha'
+let corpusWorkSort = 'graded';      // BRR-P2-004 L3 work order: 'graded'(id) | 'alpha' | 'length'
+let corpusWorkGenre = '';           // BRR-P2-004 L3 genre filter within the author ('' = all)
 
 const CORPUS_NIQQUD_RE = /[֑-ׇ]/g; // same range as notes-autogen stripNiqqud (single normalizer)
 function corpusNrm(s) { return String(s == null ? '' : s).replace(CORPUS_NIQQUD_RE, '').toLowerCase().trim(); }
@@ -1971,6 +1973,7 @@ async function renderCorpusWorks(era, author, token) {
   if (!main || token !== corpusRenderToken) return;
   if (!author) return renderCorpusAuthors(era, token);
   main.innerHTML = '';
+  corpusWorkGenre = '';   // BRR-P2-004 — genre filter is author-specific; reset on each author (sort persists)
   const wrap = el('div', { class: 'corpus-nav' });
   wrap.appendChild(corpusCrumb([
     { label: corpusEraTitle(era), onClick: () => corpusNavTo('authors', era) },
@@ -1994,14 +1997,54 @@ async function renderCorpusWorks(era, author, token) {
   }
   if (token !== corpusRenderToken) return;
   body.innerHTML = '';
-  const ready = works.filter(corpusIsReady);
-  const later = works.filter((w) => !corpusIsReady(w));
-  ready.sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  later.sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
-  if (ready.length) body.appendChild(corpusWorkSection('room.corpus.sectionReady', '✓', ready, true));
-  if (later.length) body.appendChild(corpusWorkSection('room.corpus.sectionLater', '⏳', later, false));
-  if (!ready.length && !later.length) body.appendChild(stateBoxNode('room.reader.empty', '📄'));
-  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  // BRR-P2-004 — L3 sort + genre filter (was: fixed id/title sort, no controls). Re-paints the
+  // sections in place over the already-fetched works (no re-fetch). Ready/later split is kept.
+  const sectionsWrap = el('div', { class: 'corpus-work-sections' });
+  const paint = () => {
+    sectionsWrap.innerHTML = '';
+    const filtered = corpusWorkGenre ? works.filter((w) => w.genre === corpusWorkGenre) : works;
+    const cmp = corpusWorkComparator(corpusWorkSort);
+    const ready = filtered.filter(corpusIsReady).sort(cmp);
+    const later = filtered.filter((w) => !corpusIsReady(w)).sort(cmp);
+    if (ready.length) sectionsWrap.appendChild(corpusWorkSection('room.corpus.sectionReady', '✓', ready, true));
+    if (later.length) sectionsWrap.appendChild(corpusWorkSection('room.corpus.sectionLater', '⏳', later, false));
+    if (!ready.length && !later.length) sectionsWrap.appendChild(stateBoxNode(corpusWorkGenre ? 'room.corpus.search.empty' : 'room.reader.empty', corpusWorkGenre ? '🔍' : '📄'));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  };
+  if (works.length > 1) body.appendChild(buildWorkControls(works, paint));
+  body.appendChild(sectionsWrap);
+  paint();
+}
+
+// L3 work comparator: graded (id order — the producer's graded sequence), alpha (title), length (longest first).
+function corpusWorkComparator(mode) {
+  if (mode === 'alpha') return (a, b) => String(a.title || '').localeCompare(String(b.title || ''));
+  if (mode === 'length') return (a, b) => ((b.segments || 0) - (a.segments || 0)) || String(a.id).localeCompare(String(b.id));
+  return (a, b) => String(a.id).localeCompare(String(b.id));
+}
+// Sort segmented control (reuses the L2 .corpus-sort pattern) + a genre <select> built from the
+// genres present in THIS author's works. Both re-paint in place.
+function buildWorkControls(works, onChange) {
+  const bar = el('div', { class: 'corpus-work-controls' });
+  const sortWrap = el('div', { class: 'corpus-sort' });
+  [['graded', 'room.corpus.sort.graded', 'По порядку'], ['alpha', 'room.corpus.sort.alpha', 'По алфавиту'], ['length', 'room.corpus.sort.length', 'По длине']]
+    .forEach(([mode, key, fb]) => {
+      const b = el('button', { class: 'corpus-sort-btn' + (corpusWorkSort === mode ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusWorkSort === mode) } });
+      b.textContent = tt(key, fb);
+      b.addEventListener('click', () => { if (corpusWorkSort === mode) return; corpusWorkSort = mode; sortWrap.querySelectorAll('.corpus-sort-btn').forEach((x) => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); onChange(); });
+      sortWrap.appendChild(b);
+    });
+  bar.appendChild(sortWrap);
+  const genres = Array.from(new Set(works.map((w) => w.genre).filter(Boolean))).sort();
+  if (genres.length > 1) {
+    const sel = el('select', { class: 'corpus-work-genre', attrs: { 'aria-label': tt('room.corpus.facets.genre', 'Жанр') } });
+    const all = el('option', { attrs: { value: '' }, text: tt('room.corpus.facets.genre', 'Жанр') }); sel.appendChild(all);
+    for (const g of genres) { const o = el('option', { attrs: { value: g }, text: corpusGenreLabel(g) }); if (corpusWorkGenre === g) o.selected = true; sel.appendChild(o); }
+    sel.value = corpusWorkGenre;
+    sel.addEventListener('change', () => { corpusWorkGenre = sel.value; onChange(); });
+    bar.appendChild(sel);
+  }
+  return bar;
 }
 
 function corpusWorkSection(titleKey, icon, works, openable) {

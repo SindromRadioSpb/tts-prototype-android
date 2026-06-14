@@ -2017,7 +2017,7 @@ window.I18N_LOCALES.ru = {
       sectionLater: "В каталоге · перевод позже",
       search: { placeholder: "Поиск по корпусу…", results: "Результаты", empty: "Ничего не найдено.", inText: "В тексте", byForm: "по форме слова" },
       facets: { ready: "Готовые", genre: "Жанр", lang: "Язык", clear: "Сбросить" },
-      sort: { graduated: "Готовые сверху", alpha: "По алфавиту" },
+      sort: { graduated: "Готовые сверху", alpha: "По алфавиту", graded: "По порядку", length: "По длине" },
       jumpbar: "Буквы",
       genre: {
         poetry: "поэзия", prose: "проза", article: "статья", memoir: "мемуары",

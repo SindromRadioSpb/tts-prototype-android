@@ -2013,7 +2013,7 @@ window.I18N_LOCALES.he = {
       sectionLater: "בקטלוג · תרגום בהמשך",
       search: { placeholder: "חיפוש בקורפוס…", results: "תוצאות", empty: "לא נמצאו תוצאות.", inText: "בתוך הטקסט", byForm: "לפי צורת המילה" },
       facets: { ready: "מוכנים", genre: "סוגה", lang: "שפה", clear: "ניקוי" },
-      sort: { graduated: "מוכנים תחילה", alpha: "לפי א״ב" },
+      sort: { graduated: "מוכנים תחילה", alpha: "לפי א״ב", graded: "לפי הסדר", length: "לפי אורך" },
       jumpbar: "אותיות",
       genre: {
         poetry: "שירה", prose: "פרוזה", article: "מאמר", memoir: "זכרונות",

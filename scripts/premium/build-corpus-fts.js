@@ -144,6 +144,19 @@ async function buildCorpusFts(opts = {}) {
   for (const [skel, m] of exact) { const b = FTS.bucketOf(skel); if (!b) continue; (buckets[b] || (buckets[b] = {}))[skel] = encode(m); }
   for (const b of Object.keys(buckets)) buckets[b] = sortObj(buckets[b]);
   const lemmaObj = {}; for (const [pid, m] of lemma) lemmaObj[pid] = encode(m);
+  // Shard the lemma index by a raw-size budget — one file would outgrow the upload body cap
+  // (and keeps growing with the corpus). Deterministic: sorted pids accumulated into shards.
+  const LEMMA_SHARD_BUDGET = 8 * 1024 * 1024;
+  const lemmaShards = [];
+  {
+    let cur = {}, curBytes = 0;
+    for (const pid of Object.keys(lemmaObj).sort((a, b) => Number(a) - Number(b))) {
+      const entryBytes = pid.length + JSON.stringify(lemmaObj[pid]).length + 4;
+      if (curBytes > 0 && curBytes + entryBytes > LEMMA_SHARD_BUDGET) { lemmaShards.push(cur); cur = {}; curBytes = 0; }
+      cur[pid] = lemmaObj[pid]; curBytes += entryBytes;
+    }
+    if (Object.keys(cur).length) lemmaShards.push(cur);
+  }
   // lemmamap = query-skeleton → pid for the SURVIVING content lemmas. Two sources so ANY
   // query form resolves: (1) skeletons actually seen in the corpus, plus (2) EVERY dictionary
   // form of those pids (so the bare lemma «מלך» resolves even when the corpus only carries
@@ -157,19 +170,20 @@ async function buildCorpusFts(opts = {}) {
     if (skel && PURE_HEB.test(skel) && lemmaMapObj[skel] == null) lemmaMapObj[skel] = pid;
   }
 
+  const lemmaFiles = lemmaShards.map((_, i) => "fts/lemma-" + i + "-v" + V + ".json");
   const manifest = {
     schema: 1, version: V, data_rev: dataRev,
     fields: ["exact", "lemma"],
     works_file: "corpus-search-v" + V + ".json",
-    lemma_file: "fts/lemma-v" + V + ".json",
+    lemma_files: lemmaFiles,
     lemmamap_file: "fts/lemmamap-v" + V + ".json",
     buckets: Object.keys(buckets).sort(),
     max_df_ratio: maxDfRatio,
-    counts: { works: search.length, indexed, missing, exact_keys: exact.size, lemma_keys: lemma.size, dropped_exact: droppedExact, dropped_lemma: droppedLemma, collisions, total_tokens: totalTok, matched_tokens: matchedTok },
+    counts: { works: search.length, indexed, missing, exact_keys: exact.size, lemma_keys: lemma.size, lemma_shards: lemmaShards.length, dropped_exact: droppedExact, dropped_lemma: droppedLemma, collisions, total_tokens: totalTok, matched_tokens: matchedTok },
   };
 
   return {
-    V, dataRev, manifest, buckets,
+    V, dataRev, manifest, buckets, lemmaShards,
     lemmaObj: sortObj(lemmaObj), lemmaMapObj: sortObj(lemmaMapObj),
     stats: manifest.counts,
   };
@@ -188,7 +202,7 @@ function writeArtifacts(outDir, res) {
   // clean stale shards for this version first (a shrunk bucket set must not leave orphans)
   for (const f of fs.readdirSync(ftsDir)) { if (new RegExp("-v" + res.V + "\\.json$").test(f)) fs.unlinkSync(path.join(ftsDir, f)); }
   for (const b of Object.keys(res.buckets)) write(path.join(ftsDir, "ex-" + b + "-v" + res.V + ".json"), res.buckets[b]);
-  write(path.join(ftsDir, "lemma-v" + res.V + ".json"), res.lemmaObj);
+  res.lemmaShards.forEach((obj, i) => write(path.join(ftsDir, "lemma-" + i + "-v" + res.V + ".json"), obj));
   write(path.join(ftsDir, "lemmamap-v" + res.V + ".json"), res.lemmaMapObj);
   const manRaw = JSON.stringify(res.manifest);
   fs.writeFileSync(path.join(outDir, "corpus-fts-v" + res.V + ".json"), manRaw);

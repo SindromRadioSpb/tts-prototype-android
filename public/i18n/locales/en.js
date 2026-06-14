@@ -2003,7 +2003,7 @@ window.I18N_LOCALES.en = {
       sectionLater: "In catalogue · translation later",
       search: { placeholder: "Search the corpus…", results: "Results", empty: "Nothing found.", inText: "In the text", byForm: "by word form" },
       facets: { ready: "Ready", genre: "Genre", lang: "Language", clear: "Clear" },
-      sort: { graduated: "Ready first", alpha: "Alphabetical" },
+      sort: { graduated: "Ready first", alpha: "Alphabetical", graded: "In order", length: "By length" },
       jumpbar: "Letters",
       genre: {
         poetry: "poetry", prose: "prose", article: "article", memoir: "memoir",

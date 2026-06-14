@@ -45,6 +45,7 @@ async function main() {
   ok(res.manifest.schema === 1 && res.manifest.version === 1, "manifest schema/version");
   ok(res.manifest.works_file === "corpus-search-v1.json", "manifest points at the works table");
   ok(JSON.stringify(res.manifest.fields) === JSON.stringify(["exact", "lemma"]), "dual fields declared");
+  ok(Array.isArray(res.manifest.lemma_files) && res.manifest.lemma_files.length >= 1, "lemma index is sharded (lemma_files[])");
   ok(res.stats.indexed === 3, "all 3 works indexed", "indexed=" + res.stats.indexed);
   ok(res.stats.collisions === 0, "no skeleton→pid collisions");
 
