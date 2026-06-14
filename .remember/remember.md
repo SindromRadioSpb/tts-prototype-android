@@ -1,84 +1,64 @@
-# BRR continuation handoff — обновлено 2026-06-14 (BRR-P1-008d, Karaoke family ЗАВЕРШЕНО)
+# BRR continuation handoff — обновлено 2026-06-14 (BRR-P2 Discovery block ЗАВЕРШЁН)
 
-**★ READ FIRST:** `docs/SESSION_STATE_BRR_2026_06_14.md` (КОНСОЛИДИРОВАННЫЙ — открой первым) + `docs/PROJECT_ROLES.md` (R1–R10 авто).
-Глубже (as-built): 008d → `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`; 008c → `..._008C_BYOK_WORD_TIMING_...`; 008b → `..._008B_KARAOKE_WORD_TIMINGS_...`; i+1 → `SESSION_STATE_BRR_I1_2026_06_13.md`.
+**★ READ FIRST:** `docs/planning/BRR_P2_DISCOVERY_2026_06_14.md` (дизайн-канон блока Discovery, все 4 стадии SHIPPED) +
+`docs/SESSION_STATE_BRR_2026_06_14.md` (предыдущий READ-FIRST: Karaoke-семейство) + `docs/PROJECT_ROLES.md` (R1–R10 авто).
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал: `/library.html`, Studio: `/index.html`).
-**main HEAD `01ebff2` (BRR-P1-008d код; docs-стампы поверх), SW `v3.10.55-studio-word-karaoke` — ПРОД-ВЕРИФИЦИРОВАН ВЛАДЕЛЬЦЕМ.**
-> **🎉 Семейство Karaoke (008/008b/008c/008d) ЗАВЕРШЕНО в проде на ОБЕИХ поверхностях** (Зал + Studio): построчное+пословное
-> «бегущее слово», для канона/Корпуса/любого BYOK-текста, само-кеш (общий кеш Зал↔Studio). Владелец подтвердил Studio 2026-06-14.
+**main HEAD `6f7c385`, SW `v3.10.59-room-sortfilter` — ПРОД-ВЕРИФИЦИРОВАН (FTS-поиск работает на проде, 0 console-errors).**
 
-## Эта сессия (2026-06-14): BRR-P1-008c — BYOK word-timing для ЛЮБОГО текста (вкл. Корпус), само-кеш — IMPLEMENTED
-Owner-запрос: «озвучка с таймингами по словам для любых текстов, в т.ч. Корпуса, если установлен ключ» + кеширование.
-- **Сервер** (`server.js`): новая `ensureAudioAssetWithTiming` (sibling к `ensureAudioAsset`) — `/api/tts` с
-  `withTimepoints:true` синтезит **GCP v1beta1 SSML `<mark>`** (`ttsBake.synthesizeWithTimepoints`) → пишет
-  `<key>.mp3` + `<key>.timing.json` в `DATA_DIR/audio-cache` → отвечает `assetKey`. mp3 перезаписывается из ТОГО ЖЕ
-  SSML-рендера (клип совпадает с метками). `computeAssetKey` тот же (плоский текст+профиль) → **само-кеш**: первый
-  синтез на ключе пользователя, потом mp3+timing отдаются ВСЕМ keyless (tier-1). Длинный текст (> `TTS_SAFE_TARGET_BYTES`)
-  → graceful plain-mp3 без тайминга (честный sentence-level). Нет ключа → `byokKey=""` (нет серверного фолбэка) →
-  `synthesizeWithTimepoints` бросает `TTS_KEY_REQUIRED` → catch `/api/tts` → структурный **401** (не 500) → tier-3 браузер-речь.
-- **Клиент** (`public/js/reader-core.js`): `postTts` шлёт `withTimepoints: true` (Room-only). tier-2 уже грузил
-  `ensureTiming`→`/timing`→rAF `.rm-w-speaking` из 008b — других правок не нужно. Корпус играется тем же
-  `attachReaderAudio`, те же `.rm-w` (reader-morph.tokenize) → mark-index == data-w-offset → подсветка едет.
-- **SW** (`public/sw.js`): `CACHE_VERSION` → `v3.10.54-byok-word-timing`.
-- **Гейты** (зелёные): `test:api-smoke` +2 кейса — (5) `/api/tts {withTimepoints:true}` без ключа → 401 `TTS_KEY_REQUIRED`
-  (не 500), и без флага контракт тот же; (6) self-cache: засеять `<key>.mp3`+`<key>.timing.json` → запрос без ключа →
-  200 `fromCache:true assetKey=<key>`, `GET /api/audio/<key>/timing` → 200 words[]. + `smoke:room` 14, `smoke:corpus-room` 18,
-  `smoke:reader-parity`, `smoke:reader-karaoke` 9, `smoke:reader-karaoke-words` 18, `smoke:reader-morph`, `smoke:reader-notes`.
-- **Не-UI коммит** (server/JS/sw/test, без HTML/CSS) → @380px-скрин не требуется; подсветка идентична канону (008b).
-- **✅ Прод-верифицирован** (401-роутинг + SW v3.10.54; и в составе общего «подсветка слов работает на текстах»):
-  ключ задан → корпус-текст ▶ → `?wkdebug=1` → `mode=audio, tN>0, off↑, speaking=1`; повторно (даже сняв ключ) → tier-1 из кеша.
-- As-built → `docs/planning/BRR_P1_008C_BYOK_WORD_TIMING_2026_06_14.md`. Plan (утверждён) → `~/.claude/plans/linguistpro-node-pwa-snoopy-lampson.md`.
+> **🎉 БЛОК BRR-P2 «DISCOVERY» ЗАВЕРШЁН В ПРОДЕ** — 4 стадии (каждая @380px light/dark + e2e + гейты зелёные):
+> Continue Reading + Bookmarks + Full-text search «внутри текстов» + L3 sort/filter. Owner-выбор: «full-text 26K find-only + чтение растёт бейком».
 
-## Предыдущее (в проде, кратко)
-- **008b word-karaoke (КАНОН):** канон-тайминг 6446/6446; янтарный `.rm-w-speaking` (v3.10.49); rAF не timeupdate
-  (iOS-fix v3.10.51); тема-переключатель 🌗 (v3.10.50); диагностика `?wkdebug=1`; **canon-v4 refresh** (v3.10.53) —
-  застарелые устройства ре-импортят канон (mode:'skip', заметки целы) → `reconcileAudioLinks` чинит стале-asset-keys →
-  /timing 200. `?canon=refresh` форсит. `audio_asset_key` = виртуальный JOIN (sentence_audio→audio_assets).
-- **① Scaffolded Console** (v3.10.44–45): adaptive niqqud fade + tap-reveal + persist + тогл колонки Иврит + заливка-статус.
-- **Chrome Зала** (v3.10.46): SW-update тост, trust-footer (Kolosei Peter), «О Зале» модалка, Бен-Иегуда атрибуция.
-- **② Karaoke sentence-level** (v3.10.47): `attachRowAudio` continuous + «▶ Читать вслух».
+## Что отгружено (хронология, всё prod-верифицировано)
+1. **BRR-P2-002 Continue Reading** (`2631e91`, SW v3.10.56). `text_progress` в Зал: запись позиции (debounced scroll +
+   karaoke-row + **sync-flush на закрытии** — быстрый «Назад» не теряет место) + ненавязчивый баннер «Вы остановились на
+   строке N» (R4, бить Apple Books) + полка «▶ Продолжить чтение». Новый `public/js/reader-progress.js` (UMD pure).
+   Гейт `smoke:reader-resume` (22/0).
+2. **BRR-P2-003 Bookmarks** (`bbf9c45`, SW v3.10.57). Миграция 056 `bookmarks` (НЕ `notes_v2 note_type='bookmark'` — CHECK
+   бросит). POST-render ☆/★ в `.col-action-cell` (Room-mount; parity цел). Полка «🔖 Закладки» (билингв-снипет; прыжок к
+   предложению по `_v3_sentenceId`). Гейт `smoke:bookmarks` (11/0, реальный OPFS headless + CASCADE).
+3. **BRR-P2-001 Full-text** (`2d6c252`, SW v3.10.58). Собственный Hebrew-aware инвертированный индекс (FTS5 не в wa-sqlite).
+   `scripts/premium/build-corpus-fts.js` + `public/js/corpus-fts.js`. Контент→lemma-поле (Dicta-class), имена→exact-fallback.
+   Группа «🔎 в тексте» + честный «перевод позже»/«по форме слова». **10 228/26 455 работ на ПРОД-ТОМЕ** (gitignored;
+   `/api/benyehuda/fts/upload` + `push-corpus-fts.js`; манифест в git+precache). Гейты `smoke:corpus-fts`(12)+`-parity`(20).
+   Уроки → memory `feedback_fts_hebrew_inverted_index`.
+4. **BRR-P2-004 L3 sort/filter** (`6f7c385`, SW v3.10.59). Сорт По порядку/алфавиту/длине + genre-select на L3 (был пробел).
+   + fix: lemma-индекс шардирован по размеру (`lemma-<i>`, upload-cap).
 
-## Архитектура/швы (стоячее)
-**index.html: `renderTable` НЕ менять** (byte-parity, гейт `smoke:reader-parity`); прочие правки index.html — только
-owner-одобренные Studio-фичи по паттерну **POST-render + внешний `/js/*.js`** (008d так и сделан: `studio-karaoke.js`).
-Зальные фичи — в `library.html`/Room-движке; всё = post-render DOM-декорация на `.rm-w`-спанах. `reader-morph.js`
-(`tokenize`/`decorateWords`/`fadeDecision`) — общий: Зал И Studio (тег в index.html для `ReaderMorph.tokenize`).
-`reader-core.js` — builder parity-locked + `attachRowAudio` (karaoke+word-timing) + `ensureTiming`/rAF (Room).
-`studio-karaoke.js` — Studio построчный word-karaoke (`window.StudioKaraoke.start/stop`). Координатор Зала `library-ui.js`.
-
-## НОРМЫ (стоячие)
-MEASURE до кода (профиль-зависимое → НЕПУСТОЙ профиль). Крупные фичи → recon-first дизайн в `docs/planning/<TICKET>.md`
-НА УТВЕРЖДЕНИЕ до кода. Развилка → варианты по ролям + рекомендация (AskUserQuestion), решает владелец. Гейты зелёные до
-push; commit+push автономно (Coolify авто-деплой); prod-verify после (Node fetch/браузер, ⚠ НЕ Windows-curl для не-ASCII).
-SW `CACHE_VERSION` бамп при shell-ассете. @380px RTL скрин перед UI-коммитом. SW-апдейт = тост «Обновить».
-
-## Эта сессия (после 008c): BRR-P1-008d — Word-karaoke в **Studio** (построчно) — IMPLEMENTED (SW v3.10.55)
-Owner: «реализуй то же караоке в Studio (prod-корень /)». Scope (решение владельца): ТОЛЬКО построчно (▶ в строке +
-авто-плейлист). Сервер 008c переиспользован (не менялся); кеш тайминга **общий с Залом**.
-- **Новый `public/js/studio-karaoke.js`** (IIFE `window.StudioKaraoke` + Node-export): `activeWordIndex` (копия
-  reader-core), `start(rowIdx,assetKey,audioEl)` (stop-prev → fetch `/timing` → ленивая обёртка строки `.rm-w` через
-  `ReaderMorph.tokenize` → rAF красит `.rm-w-speaking`; стоп само-управляется на `ended/pause/error` audioEl), `stop()`
-  (un-wrap + restore innerHTML), `wkDebug`+`?wkdebug=1`.
-- **index.html точечно:** `<script src=/js/reader-morph.js>` + `</js/studio-karaoke.js>` (после tts-backends `~12019`);
-  `ttsBody.withTimepoints=true` (`~36633`); 2 вызова `StudioKaraoke.start` после `audio.play()` в tier-1 (`~36615`) и
-  tier-2 (`~36678`); CSS `#proTable .rm-w.rm-w-speaking` (янтарь). **`renderTable` НЕ тронут** → `smoke:reader-parity` зелён.
-- **sw.js** → `v3.10.55-studio-word-karaoke` + `/js/studio-karaoke.js` в PRECACHE_URLS. **Гейт** `smoke:studio-karaoke` 18/0.
-- **Тест:** браузерный e2e (Playwright `/index.html?room=1`, fake-audio-объект + stub `/timing`): wrap→rAF→paint→unwrap,
-  ровно одно слово, чистый откат текста; @380px light(«אֶל»)+dark(«הַקָּטָן»). Все гейты зелёные. **✅ Владелец прод-подтвердил («подсветка слов работает на текстах»).**
-- As-built `docs/planning/BRR_P1_008D_STUDIO_WORD_KARAOKE_2026_06_14.md`.
-**Уроки (008d):** index.html-фичи = POST-render + внешний файл (parity цел, диф мал) · переиспользовать общий
-токенайзер `ReaderMorph.tokenize` (offset parity client↔server, не писать свой) · стоп караоке на событиях audioEl, не
-править централизованный `clearRowPlayingState` (start идемпотентен) · rAF не timeupdate (iOS) · янтарь #f7b733 тема-независим
-(Зальное `.rm-w-speaking` scoped `#roomReaderTable` → Studio своё под `#proTable`) · headless e2e через fake-audio-объект + stub fetch.
-
-## NEXT (опционально, владелец выбирает)
-- ✅ ① Scaffolded Console · ✅ ② Karaoke(sentence) · ✅ 008b word-karaoke(канон) · ✅ **008c BYOK(любой текст)** · ✅ **008d Studio word-karaoke**.
-- ③ Накормить i+1: опубликовать ~132 бейкнутых→каталог v8 (`publish-corpus-batch`) + leveling; дефицит modern (73 в каталоге). **Зависит от AUDIO_UPLOAD_TOKEN.**
-- ④ Качество/измеримость R10: replace recall/FP тап-глосса vs Dicta-silver + provenance-бейджи + 47097 идиш.
-- ⑤ Anki-sync (mobile-ограничение) · ⑥ Discovery: full-text search wiring + фильтр/сорт полок + закладки.
-- Хвосты ①: per-word translit-fade · native HE-review строк `room.reader.*`/`room.about.*`.
+## Рост покрытия FTS (как довести к 26K)
+`npm run fetch:corpus-bodies -- --limit N` (вежливый дофетч ивр-тел в `.tmp/benyehuda/txt`) → `npm run build:corpus-fts`
+(`--no-fetch`) → бамп `FTS_DATA_REV` в `library-ui.js` + `CACHE_VERSION` в sw.js → `AUDIO_UPLOAD_TOKEN=<…> npm run push:corpus-fts`
+→ commit манифест+sw+library-ui → prod-verify (Node fetch шардов). Сейчас 10 228 индексировано, ~16K тел осталось дофетчить.
 
 ## 🔑 OPEN (owner) — СРОЧНО
-Ротация: **AUDIO_UPLOAD_TOKEN** (+ если ещё не: Gemini, старый GCP TTS key — GCP TTS уже ротирован ✓). Репо готовится к
-PUBLIC (`.claude/SECURITY_AUDIT_2026-06-13.md`) — блокер публикации + предусловие ③ (publish). ⚠ GCP+AUDIO_UPLOAD_TOKEN снова светились в чате.
-Бейк-леджер: 928/24641 done (в каталоге v7 опубликовано 796 → ~132 ждут публикации).
+**Ротация `AUDIO_UPLOAD_TOKEN`** (+Gemini, +старый GCP). Токен дан в чате 2026-06-14 (использован для пуша FTS-шардов) →
+**ЗАСВЕЧЕН, ротировать**. НЕ сохранён в код/git. Блокер публикации репо (PUBLIC, `.claude/SECURITY_AUDIT_2026-06-13.md`).
+
+## NEXT — меню (owner выбирает)
+- ④ **R10-качество**: replace recall/FP тап-глосса vs Dicta-silver + бейджи провенанса + **47097 идиш** (R6/R7).
+- ⑤ **Anki-sync** (real mastery → строгая i+1 80–95%).
+- **Рост FTS-покрытия** к 26K (дофетч+ребилд+пуш, см. выше) — итеративно.
+- **L1-результаты-сорт** (relevance/coverage) — отложено в P2-004 (анти-stampede снапшот; L1 уже имеет фильтр-бар).
+- ③ **publish бейкнутых→каталог v8** (зависит от ротации токена) — растит ready→FTS-хиты открываемы.
+
+## НОРМЫ (стоячие)
+`reader-core` builder/`renderTable` НЕ трогать (parity `smoke:reader-parity`); ридерные фичи — POST-render на Room-mount.
+MEASURE до кода (профиль-зависимое → НЕПУСТОЙ профиль). Крупная фича → recon-дизайн в `docs/planning/<TICKET>.md` НА УТВЕРЖДЕНИЕ.
+Гейты зелёные до push; commit+push автономно (Coolify); prod-verify Node-fetch (НЕ Windows-curl для иврита); SW `CACHE_VERSION`
+бамп при shell-ассете; @380px RTL скрин перед UI-коммитом. SW-апдейт = тост; на уже-открытой прод-вкладке старый SW контролирует
+до reload (верифи с unregister+reload).
+
+## ПРОМТ для НОВОЙ сессии (копипаст)
+```
+Продолжаем LinguistPro (Node PWA, иврит↔рус, prod linguistpro.kolosei.com; Зал /library.html, Studio /index.html).
+READ FIRST: docs/planning/BRR_P2_DISCOVERY_2026_06_14.md (Discovery-блок, всё SHIPPED), .remember/remember.md (live-буфер),
+docs/PROJECT_ROLES.md (R1–R10 авто), CLAUDE.md.
+Owner-инвариант: бескомпромиссное качество, без заглушек.
+Нормы: reader-core builder НЕ трогать (parity smoke:reader-parity); ридерные фичи POST-render на Room-mount; MEASURE до кода;
+крупные фичи → recon-дизайн в docs/planning/<TICKET>.md НА УТВЕРЖДЕНИЕ; гейты зелёные до push; commit+push автономно (Coolify);
+prod-verify Node-fetch (НЕ Windows-curl для иврита); SW CACHE_VERSION бамп при shell-ассете; @380px RTL скрин перед UI-коммитом.
+СОСТОЯНИЕ (main 6f7c385, SW v3.10.59, всё в проде): БЛОК DISCOVERY ЗАВЕРШЁН — Continue Reading + Bookmarks + Full-text
+«в тексте» (10.2K/26.4K работ, на прод-томе, растёт дофетчем) + L3 sort/filter. Тж в проде: Karaoke-семейство, i+1, Scaffolded Console.
+NEXT (owner): ④ R10-качество + 47097 идиш; ⑤ Anki-sync; рост FTS-покрытия к 26K; L1-результаты-сорт (отложено); ③ publish→каталог v8.
+🔑 СРОЧНО (owner): ротация AUDIO_UPLOAD_TOKEN (засвечен в чате) +Gemini +старый GCP — блокер публикации репо.
+Спроси, какое направление берём, ИЛИ продолжай выбранное. Кода без утверждённого дизайна для крупной фичи не писать.
+```

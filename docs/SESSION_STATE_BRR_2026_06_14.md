@@ -72,7 +72,8 @@
 - ③ **Накормить i+1**: опубликовать ~132 бейкнутых→каталог v8 (skill `publish-corpus-batch`) + leveling. **Зависит от `AUDIO_UPLOAD_TOKEN`.** Дефицит modern (73 в каталоге).
 - ④ **Качество/измеримость R10**: replace recall/FP тап-глосса vs Dicta-silver + бейджи провенанса + **47097 идиш** (R6/R7).
 - ⑤ **Anki-sync** (real mastery → строгая i+1 80–95%); mobile-ограничение Anki-Connect.
-- ⑥ **Discovery**: full-text search wiring (индекс corpus-search-v7 есть) + фильтр/сорт полок + закладки.
+- ✅ ⑥ **Discovery** — ЗАВЕРШЁН 2026-06-14 (BRR-P2, main `6f7c385`, SW `v3.10.59`): Continue Reading + Bookmarks + full-text
+  «в тексте» (собственный Hebrew-индекс, 10.2K/26.4K на прод-томе) + L3 sort/filter. READ-FIRST → `docs/planning/BRR_P2_DISCOVERY_2026_06_14.md`.
 - Хвосты ①: per-word translit-fade (нужна токенизация translit-колонки); native HE-review строк `room.reader.*`/`room.about.*`.
 
 ## 🔑 OPEN (owner) — СРОЧНО
