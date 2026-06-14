@@ -436,8 +436,16 @@
     .rm-w.rm-w-active { background: var(--accent); color: var(--accent-contrast); }   /* tapped word wins over fill */
     /* BRR-P1-008 karaoke — stronger "current line" while reading aloud (reuses .row-playing). */
     #roomReaderTable.karaoke-on tr.row-playing:not(.row-error) td { background: rgba(90,155,255,.16); }
-    /* BRR-P1-008b — word-level: the word being spoken now (rides the current line, sentence→word). */
-    #roomReaderTable .rm-w.rm-w-speaking { background: var(--accent); color: var(--accent-contrast); border-radius: 3px; }
+    /* BRR-P1-008b — the word being spoken now: a WARM "spotlight" pill, theme-independent and
+       high-contrast, deliberately distinct from the cool-blue karaoke line so it never blends
+       (light OR dark theme). Fixed colours (not --accent) guarantee contrast on any background. */
+    #roomReaderTable .rm-w.rm-w-speaking {
+      background: #f7b733; color: #1a1205; font-weight: 700; border-radius: 4px;
+      box-shadow: 0 0 0 2px rgba(247,183,51,.45);   /* soft glow — spotlight, no motion */
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      #roomReaderTable .rm-w.rm-w-speaking { transition: background-color .1s ease, box-shadow .1s ease; }
+    }
     /* transient toast */
     .room-toast {
       position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
