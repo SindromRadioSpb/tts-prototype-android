@@ -1915,6 +1915,13 @@ window.I18N_LOCALES.ru = {
       toStart: "Читать с начала",
       read: "прочитано",
     },
+    bookmark: {
+      shelfTitle: "Закладки",
+      add: "Закладка",
+      remove: "Убрать закладку",
+      added: "Закладка добавлена",
+      open: "Открыть",
+    },
     state: {
       loading: "Загрузка…",
       publishing: "Готовим библиотеку — загружаем канон…",

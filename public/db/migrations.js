@@ -747,4 +747,29 @@ export const MIGRATIONS = [
   `ALTER TABLE shelves ADD COLUMN origin TEXT;
   ALTER TABLE shelves ADD COLUMN canon_version INTEGER;
   CREATE INDEX IF NOT EXISTS ix_shelves_origin ON shelves(origin);`,
+
+  // 056_bookmarks — BRR-P2-003 Reading-Room passage bookmarks. A bookmark is a
+  // position POINTER (sentence/row), NOT a study note — so it gets its own table
+  // rather than overloading notes_v2 (whose note_type CHECK forbids 'bookmark' and
+  // whose study semantics feed getKnownWordStates). text_id = local OPFS id
+  // (FK CASCADE — bookmarks die with their text; foreign_keys=ON, db-worker.js).
+  // text_key + sentence_id/order_index re-anchor across a bundle re-import. title +
+  // snippet are denormalised (the work title + the he/ru line) so the global
+  // bookmarks shelf and LIKE search need no body fetch — corpus bodies may not be
+  // in OPFS. One bookmark per (text, sentence) row (toggle is idempotent).
+  `CREATE TABLE IF NOT EXISTS bookmarks (
+    id          TEXT PRIMARY KEY,
+    text_id     TEXT NOT NULL REFERENCES texts(id) ON DELETE CASCADE,
+    text_key    TEXT,
+    sentence_id TEXT,
+    order_index INTEGER,
+    title       TEXT,
+    snippet     TEXT,
+    note        TEXT,
+    created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+  CREATE INDEX IF NOT EXISTS ix_bookmarks_text ON bookmarks(text_id, order_index);
+  CREATE INDEX IF NOT EXISTS ix_bookmarks_created ON bookmarks(created_at DESC);
+  CREATE INDEX IF NOT EXISTS ix_bookmarks_key ON bookmarks(text_key);
+  CREATE UNIQUE INDEX IF NOT EXISTS ux_bookmarks_pos ON bookmarks(text_id, sentence_id);`,
 ];

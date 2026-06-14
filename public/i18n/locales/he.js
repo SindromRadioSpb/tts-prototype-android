@@ -1911,6 +1911,13 @@ window.I18N_LOCALES.he = {
       toStart: "קריאה מההתחלה",
       read: "נקרא",
     },
+    bookmark: {
+      shelfTitle: "סימניות",
+      add: "סימנייה",
+      remove: "הסרת סימנייה",
+      added: "סימנייה נוספה",
+      open: "פתיחה",
+    },
     state: {
       loading: "טוען…",
       publishing: "מכינים את הספרייה — טוענים את הקאנון…",

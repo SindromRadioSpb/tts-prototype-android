@@ -2550,6 +2550,84 @@ export async function getContinueReading(limit = 12) {
   );
 }
 
+// ── bookmarks (BRR-P2-003 Reading-Room passage bookmarks) ────────────────────
+// A bookmark is a position pointer (text + sentence/row). Denormalised title +
+// snippet keep the global shelf and LIKE search body-free. One per (text, sentence).
+
+function _bmId() {
+  return (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : ('bm-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+}
+
+// Returns the bookmark id at this position, or null. `IS` is null-safe so a row with
+// no sentence_id still matches.
+export async function isBookmarked(textId, sentenceId) {
+  const rows = await q(
+    'SELECT id FROM bookmarks WHERE text_id = ? AND sentence_id IS ? LIMIT 1',
+    [textId, sentenceId ?? null]
+  );
+  return rows && rows[0] ? rows[0].id : null;
+}
+
+// Idempotent add (UNIQUE(text_id, sentence_id) → INSERT OR IGNORE), then refresh the
+// denormalised display fields. Returns the canonical id at this position.
+export async function addBookmark(bm) {
+  const id = _bmId();
+  const now = new Date().toISOString();
+  await r(
+    `INSERT OR IGNORE INTO bookmarks (id, text_id, text_key, sentence_id, order_index, title, snippet, note, created_at)
+     VALUES (?,?,?,?,?,?,?,?,?)`,
+    [id, bm.text_id, bm.text_key ?? null, bm.sentence_id ?? null, bm.order_index ?? null,
+     bm.title ?? null, bm.snippet ?? null, bm.note ?? null, now]
+  );
+  await r(
+    `UPDATE bookmarks SET snippet = COALESCE(?, snippet), title = COALESCE(?, title),
+            order_index = COALESCE(?, order_index), text_key = COALESCE(?, text_key)
+       WHERE text_id = ? AND sentence_id IS ?`,
+    [bm.snippet ?? null, bm.title ?? null, bm.order_index ?? null, bm.text_key ?? null, bm.text_id, bm.sentence_id ?? null]
+  );
+  return (await isBookmarked(bm.text_id, bm.sentence_id)) || id;
+}
+
+export async function removeBookmark(textId, sentenceId) {
+  await r('DELETE FROM bookmarks WHERE text_id = ? AND sentence_id IS ?', [textId, sentenceId ?? null]);
+}
+
+export async function removeBookmarkById(id) {
+  await r('DELETE FROM bookmarks WHERE id = ?', [id]);
+}
+
+// List bookmarks for one text (reading order) or, with no textId, the newest across
+// all texts (the global «🔖 Закладки» shelf), carrying the live text title.
+export async function listBookmarks(textId, limit = 200) {
+  if (textId != null) {
+    return q('SELECT * FROM bookmarks WHERE text_id = ? ORDER BY order_index ASC, created_at ASC', [textId]);
+  }
+  return q(
+    `SELECT b.*, t.title AS text_title
+       FROM bookmarks b LEFT JOIN texts t ON t.id = b.text_id
+      WHERE (t.is_archived IS NULL OR t.is_archived = 0)
+      ORDER BY b.created_at DESC LIMIT ?`,
+    [limit]
+  );
+}
+
+// Niqqud is already stripped out of snippets at save time; a plain LIKE over the
+// denormalised snippet/note/title is enough (no body fetch).
+export async function searchBookmarks(queryStr, limit = 50) {
+  if (!queryStr || !queryStr.trim()) return [];
+  const like = `%${queryStr.trim()}%`;
+  return q(
+    `SELECT b.*, t.title AS text_title
+       FROM bookmarks b LEFT JOIN texts t ON t.id = b.text_id
+      WHERE (b.snippet LIKE ? OR b.note LIKE ? OR b.title LIKE ?)
+        AND (t.is_archived IS NULL OR t.is_archived = 0)
+      ORDER BY b.created_at DESC LIMIT ?`,
+    [like, like, like, limit]
+  );
+}
+
 // ── nav / resolve ──────────────────────────────────────────────────────────
 
 export async function resolveSentence(id) {

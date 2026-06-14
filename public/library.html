@@ -373,6 +373,19 @@
     .reader-resume-x { background: transparent; border: 0; color: var(--text-faint); font-size: 16px; padding: 4px 6px; line-height: 1; }
     /* «Продолжить чтение» shelf card — a % progress chip in lieu of provenance badges. */
     .continue-card .continue-pct { background: var(--accent); color: var(--accent-contrast); border: 0; }
+    /* BRR-P2-003 — per-row ☆/★ bookmark control (Room-only; injected into the action cell). */
+    #roomReader .col-action-row-bm { margin-top: 2px; display: flex; justify-content: center; }
+    #roomReader .row-bookmark-btn {
+      width: auto; appearance: none; cursor: pointer; background: transparent; border: 0;
+      color: var(--text-faint); font-size: 17px; line-height: 1; padding: 2px 4px;
+    }
+    #roomReader .row-bookmark-btn.bookmarked { color: var(--accent); }
+    #roomReader .row-bookmark-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); border-radius: 4px; }
+    /* «🔖 Закладки» shelf card — the saved passage snippet wraps (up to 3 lines). */
+    .bookmark-card .bookmark-snippet {
+      white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+      overflow: hidden; font-size: 13px; line-height: 1.35;
+    }
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 

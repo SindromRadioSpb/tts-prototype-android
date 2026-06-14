@@ -1901,6 +1901,13 @@ window.I18N_LOCALES.en = {
       toStart: "Read from start",
       read: "read",
     },
+    bookmark: {
+      shelfTitle: "Bookmarks",
+      add: "Bookmark",
+      remove: "Remove bookmark",
+      added: "Bookmark added",
+      open: "Open",
+    },
     state: {
       loading: "Loading…",
       publishing: "Preparing the library — fetching the canon…",

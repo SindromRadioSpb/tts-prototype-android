@@ -282,6 +282,9 @@ let readerRows = [];
 let readerAudio = null; // attachRowAudio detach handle
 let readerMorph = null; // ReaderMorph attach detach handle
 let readerTextId = null; // BRR-P2-002 — local OPFS id of the open text (for progress)
+let readerTextTitle = ''; // BRR-P2-003 — title + key of the open text (denormalised into bookmarks)
+let readerTextKey = null;
+let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
 
 // BYOK GCP TTS key — same localStorage slot index.html uses (v3.gcpTtsApiKey).
 // Empty is fine: audio falls back to keyless browser SpeechSynthesis.
@@ -566,6 +569,7 @@ function attachReaderAudio() {
   });
   attachReaderMorph(mount);
   applyReveal(mount);
+  attachBookmarks(mount);   // BRR-P2-003 — POST-render ☆/★ per row (Room-only, parity-safe)
   karaokeActive = false; setReadAloudBtn(false);   // a fresh (re)attach resets karaoke state
 }
 
@@ -682,6 +686,75 @@ async function restoreReaderPosition(textId, opts) {
   if (target == null) return;
   if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
   else showResumeBanner(target);                        // normal open → non-jumping affordance (R4)
+}
+
+// BRR-P2-003 — passage bookmarks. A ☆/★ control is injected per row POST-render on the
+// Room mount (the parity-locked reader-core builder is never touched). Bookmarks are keyed
+// by sentence_id; the snippet (plain he · ru) is denormalised so the shelf + search are body-free.
+async function loadBookmarkSet() {
+  _bookmarkSet = new Set();
+  if (readerTextId == null) return _bookmarkSet;
+  try {
+    const rows = await localDb.listBookmarks(readerTextId);
+    for (const b of rows) if (b.sentence_id) _bookmarkSet.add(String(b.sentence_id));
+  } catch (_) {}
+  return _bookmarkSet;
+}
+async function attachBookmarks(mount) {
+  if (!mount) return;
+  const set = await loadBookmarkSet();
+  if (!mount.isConnected) return;
+  mount.querySelectorAll('tr[data-row-idx]').forEach((tr) => {
+    const idx = Number(tr.getAttribute('data-row-idx'));
+    const row = readerRows[idx];
+    if (!row || !row._v3_sentenceId) return;
+    const cell = tr.querySelector('.col-action-cell');
+    if (!cell || cell.querySelector('.row-bookmark-btn')) return;
+    const on = set.has(String(row._v3_sentenceId));
+    const btn = el('button', {
+      class: 'row-bookmark-btn' + (on ? ' bookmarked' : ''),
+      text: on ? '★' : '☆',
+      attrs: {
+        type: 'button', 'data-row-idx': String(idx), 'aria-pressed': String(on),
+        title: tt(on ? 'room.bookmark.remove' : 'room.bookmark.add', on ? 'Убрать закладку' : 'Закладка'),
+        'aria-label': tt('room.bookmark.add', 'Закладка'),
+      },
+    });
+    btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); toggleBookmark(idx, btn); });
+    const wrap = el('div', { class: 'col-action-row col-action-row-bm' });
+    wrap.appendChild(btn);
+    cell.appendChild(wrap);
+  });
+}
+async function toggleBookmark(idx, btn) {
+  const row = readerRows[idx];
+  if (!row || !row._v3_sentenceId || readerTextId == null) return;
+  const sid = String(row._v3_sentenceId);
+  const on = btn.classList.contains('bookmarked');
+  const setOn = (state) => {
+    btn.classList.toggle('bookmarked', state);
+    btn.textContent = state ? '★' : '☆';
+    btn.setAttribute('aria-pressed', String(state));
+    btn.title = tt(state ? 'room.bookmark.remove' : 'room.bookmark.add', state ? 'Убрать закладку' : 'Закладка');
+  };
+  try {
+    if (on) {
+      await localDb.removeBookmark(readerTextId, sid);
+      if (_bookmarkSet) _bookmarkSet.delete(sid);
+      setOn(false);
+    } else {
+      const he = row.he || row.he_niqqud || '', ru = row.ru || '';
+      const snippet = (he + (ru ? ' · ' + ru : '')).trim().slice(0, 200);
+      await localDb.addBookmark({
+        text_id: readerTextId, text_key: readerTextKey, sentence_id: sid,
+        order_index: row._v3_orderIndex != null ? row._v3_orderIndex : idx,
+        title: readerTextTitle, snippet,
+      });
+      if (_bookmarkSet) _bookmarkSet.add(sid);
+      setOn(true);
+      roomToast(tt('room.bookmark.added', 'Закладка добавлена'));
+    }
+  } catch (_) {}
 }
 
 // BRR-P1-006 D2 — progressive translation reveal (active recall). In 'reveal' mode the ru cells
@@ -843,12 +916,23 @@ async function openReader(textId, title, opts) {
     },
   });
   readerRows = res && res.ok ? res.rows : [];
+  readerTextTitle = title || (res && res.text && res.text.title) || '';
+  readerTextKey = (res && res.text && res.text.text_key) || null;
   if (res && res.ok) {
     attachReaderAudio();
     try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
     wireProgressScroll();
-    restoreReaderPosition(readerTextId, opts);           // offer/perform resume (R4 reliability)
+    if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
+    else restoreReaderPosition(readerTextId, opts);      // offer/perform resume (R4 reliability)
   }
+}
+
+// Jump to the row carrying a given sentence_id (robust to order_index gaps) — used when
+// opening a bookmark. Falls back silently if the row is absent.
+function scrollToSentence(sid) {
+  sid = String(sid);
+  const idx = readerRows.findIndex((r) => r && String(r._v3_sentenceId) === sid);
+  if (idx >= 0) scrollToReaderRow(idx);
 }
 
 async function closeReader() {
@@ -865,6 +949,7 @@ async function closeReader() {
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   clearResumeBanner(); readerTextId = null;         // BRR-P2-002 — stop recording after close
+  _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
   const reader = $('roomReader'), content = $('roomContent');
@@ -1252,10 +1337,50 @@ async function injectContinueReading(body) {
   } catch (_) {}
 }
 
-// Inject the L1 home rails in deterministic order: «Продолжить чтение» ends up ABOVE the
-// profile rail because both prepend to firstChild and Continue runs last.
+// BRR-P2-003 — a «🔖 Закладки» card: the saved passage snippet + its work title; opens the
+// text and jumps to the exact bookmarked sentence (robust by sentence_id, not order_index).
+function renderBookmarkCard(b) {
+  const node = el('div', { class: 'work-card bookmark-card', attrs: { role: 'button', tabindex: '0' } });
+  const snip = b.snippet || b.title || b.text_title || '';
+  const snEl = el('span', { class: 'work-card-title bookmark-snippet', text: snip });
+  if (HEBREW_RE.test(snip)) snEl.setAttribute('dir', 'rtl');
+  node.appendChild(snEl);
+  const title = b.text_title || b.title || '';
+  if (title) {
+    const a = el('span', { class: 'work-card-author', text: title });
+    if (HEBREW_RE.test(title)) a.setAttribute('dir', 'rtl');
+    node.appendChild(a);
+  }
+  node.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.bookmark.open', text: tt('room.bookmark.open', 'Открыть') }));
+  const open = () => openReader(b.text_id, b.text_title || b.title, { scrollToSentence: b.sentence_id });
+  node.addEventListener('click', open);
+  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  return node;
+}
+
+// Prepend the «🔖 Закладки» shelf (newest passages across all texts). Same stale-body guard.
+async function injectBookmarksShelf(body) {
+  try {
+    let items = [];
+    try { items = await localDb.listBookmarks(null, 16); } catch (_) { items = []; }
+    if (!items || !items.length || corpusL1Body !== body || corpusFilterActive()) return;
+    const sec = el('section', { class: 'shelf corpus-bookmarks' });
+    const head = el('div', { class: 'shelf-head' });
+    head.appendChild(el('h2', { class: 'shelf-title', text: '🔖 ' + tt('room.bookmark.shelfTitle', 'Закладки') }));
+    sec.appendChild(head);
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const b of items) rail.appendChild(renderBookmarkCard(b));
+    sec.appendChild(rail);
+    body.insertBefore(sec, body.firstChild);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
+}
+
+// Inject the L1 home rails in deterministic top-to-bottom order — because each prepends to
+// firstChild, the LAST to run sits highest: Продолжить → 🔖 Закладки → profile rail → ready → периоды.
 async function injectHomeRails(body) {
   await injectCorpusRails(body);
+  await injectBookmarksShelf(body);
   await injectContinueReading(body);
 }
 
