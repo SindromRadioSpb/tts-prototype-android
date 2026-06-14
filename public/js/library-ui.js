@@ -257,9 +257,10 @@ function setActiveTrack(track) {
 //   niqqudMode: 'full' (all vocalized) | 'adaptive' (de-vocalize words you know) | 'off' (column hidden)
 //   ruMode:     'show'  (translation shown) | 'reveal' (blurred, tap a row to reveal) | 'off'
 // Persisted to localStorage (loadReaderCfg/saveReaderCfg) so the scaffolding is a JOURNEY, not reset each load.
-let readerCfg = { niqqudMode: 'full', translitOn: true, translitProfile: 'sbl', ruMode: 'show' };
+let readerCfg = { heOn: true, niqqudMode: 'full', translitOn: true, translitProfile: 'sbl', ruMode: 'show' };
 function loadReaderCfg() {
   try {
+    const he = localStorage.getItem('room.heOn'); if (he != null) readerCfg.heOn = he === '1';
     const nm = localStorage.getItem('room.niqqudMode'); if (nm === 'full' || nm === 'adaptive' || nm === 'off') readerCfg.niqqudMode = nm;
     const tp = localStorage.getItem('room.translitProfile'); if (tp === 'sbl' || tp === 'ru-phonetic') readerCfg.translitProfile = tp;
     const to = localStorage.getItem('room.translitOn'); if (to != null) readerCfg.translitOn = to === '1';
@@ -268,6 +269,7 @@ function loadReaderCfg() {
 }
 function saveReaderCfg() {
   try {
+    localStorage.setItem('room.heOn', readerCfg.heOn ? '1' : '0');
     localStorage.setItem('room.niqqudMode', readerCfg.niqqudMode);
     localStorage.setItem('room.translitProfile', readerCfg.translitProfile);
     localStorage.setItem('room.translitOn', readerCfg.translitOn ? '1' : '0');
@@ -408,7 +410,8 @@ function readerConfig() {
   return {
     // visibleColumns derived from the scaffolding modes (niqqud/ru 'off' ⇒ column hidden).
     visibleColumns: {
-      action: true, he: true,
+      action: true,
+      he: !!readerCfg.heOn,
       niqqud: readerCfg.niqqudMode !== 'off',
       translit: !!readerCfg.translitOn,
       ru: readerCfg.ruMode !== 'off',
@@ -512,6 +515,18 @@ function buildAidsPanel() {
     lab.appendChild(sel);
     panel.appendChild(lab);
   };
+  // plain checkbox helper (NOT .reader-aids-status — that class marks the status/context toggles).
+  const addCheck = (key, fallback, checked, onChange) => {
+    const lab = el('label');
+    const cb = el('input', { attrs: { type: 'checkbox' } });
+    cb.checked = !!checked;
+    cb.addEventListener('change', () => onChange(cb.checked));
+    lab.appendChild(cb);
+    lab.appendChild(el('span', { i18n: key, text: tt(key, fallback) }));
+    panel.appendChild(lab);
+  };
+  // Иврит (he-plain column) on/off — so a learner can read translit/niqqud only, or hide the consonantal column.
+  addCheck('room.reader.colHe', 'Иврит', readerCfg.heOn, (v) => { readerCfg.heOn = v; saveReaderCfg(); rerenderReader(); });
   // BRR-P1-006 — Огласовка: всегда / по нужде / выкл (adaptive = fade on words you already know).
   addSelect('room.reader.niqqudMode', 'Огласовка', [
     ['full', 'room.reader.niqqudFull', 'всегда'],
@@ -537,12 +552,14 @@ function buildAidsPanel() {
     ['off', 'room.reader.ruOff', 'выкл'],
   ], readerCfg.ruMode, (v) => { readerCfg.ruMode = v; saveReaderCfg(); rerenderReader(); });
   // BRR-P1-009 — word-status colouring toggle (opt-in; warms the morph engine on enable).
-  const wsLab = el('label', { class: 'reader-aids-status' });
+  const statusHint = tt('room.morph.statusHint', 'Подсвечивает слова по твоему статусу: зелёный — знаешь, оранжевый — учишь, синий — новое. Только уверенно распознанные слова.');
+  const wsLab = el('label', { class: 'reader-aids-status', attrs: { title: statusHint } });
   const wsCb = el('input', { attrs: { type: 'checkbox' } });
   wsCb.checked = wordStatusEnabled();
   wsCb.addEventListener('change', () => { wordStatusSet(wsCb.checked); applyDecorations(); });
   wsLab.appendChild(wsCb);
   wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', '🎨 Статус слов') }));
+  wsLab.appendChild(el('span', { class: 'reader-aids-info', attrs: { title: statusHint, 'aria-hidden': 'true' }, text: 'ⓘ' }));
   panel.appendChild(wsLab);
   // R8 on-ramp — one short line teaching the two fading aids.
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.reader.scaffoldHint', text: tt('room.reader.scaffoldHint', '«По нужде»: огласовка тает на знакомых словах. «По тапу»: перевод скрыт — тапни строку, чтобы открыть.') }));

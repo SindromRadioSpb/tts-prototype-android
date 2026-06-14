@@ -347,6 +347,7 @@
     .reader-aids[hidden] { display: none; }
     .reader-aids label { display: inline-flex; align-items: center; gap: 5px; color: var(--text-secondary); cursor: pointer; }
     .reader-aids-hint { flex-basis: 100%; font-size: 11px; line-height: 1.4; color: var(--text-faint); margin-top: -2px; }
+    .reader-aids-info { color: var(--text-faint); cursor: help; font-size: 12px; margin-inline-start: 2px; }
     .reader-aids select {
       appearance: none; background: var(--bg-card); color: var(--text-primary);
       border: 1px solid var(--border-soft); border-radius: 7px; padding: 5px 8px; font-size: 13px;
@@ -426,9 +427,13 @@
     .rm-save:disabled { opacity: .6; cursor: default; }
     .rm-save-done { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
     /* word-status colouring in the reading text (LingQ-style, subtle) */
-    .rm-w-known { box-shadow: inset 0 -2px 0 rgba(63,185,80,.65); }
-    .rm-w-learning { box-shadow: inset 0 -2px 0 rgba(210,153,34,.7); background: rgba(210,153,34,.08); }
-    .rm-w-new { box-shadow: inset 0 -1.5px 0 rgba(90,155,255,.5); }
+    /* BRR-P1-009 word-status — FILL (highlighter), not underline (R4: clearer at a glance @380px,
+       LingQ-parity; underline collided with low niqqud marks). Calibrated: known calm, new/learning
+       brighter (attention flows to what you don't know). .rm-w padding keeps fills from touching. */
+    .rm-w-known { background: rgba(63,185,80,.15); border-radius: 3px; }
+    .rm-w-learning { background: rgba(210,153,34,.22); border-radius: 3px; }
+    .rm-w-new { background: rgba(90,155,255,.20); border-radius: 3px; }
+    .rm-w.rm-w-active { background: var(--accent); color: var(--accent-contrast); }   /* tapped word wins over fill */
     /* transient toast */
     .room-toast {
       position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px));
