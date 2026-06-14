@@ -1,6 +1,6 @@
 # SESSION STATE — Ben-Yehuda Reading Room (2026-06-14) — READ FIRST
 
-> **Git: main = HEAD `<008d-commit>` (BRR-P1-008d), запушено. Prod SW `v3.10.55-studio-word-karaoke`.**
+> **Git: main = `01ebff2` (BRR-P1-008d), запушено. Prod SW `v3.10.55-studio-word-karaoke` (деплой/прод-верифай ниже).**
 > **BRR-P1-008d (NEW, эта сессия):** перенёс «бегущее слово» из Зала в **Studio** (`index.html`), ТОЛЬКО построчно
 > (решение владельца). Новый `public/js/studio-karaoke.js` (`window.StudioKaraoke`) + `<script src=/js/reader-morph.js>`
 > (общий `ReaderMorph.tokenize` → offset parity с SSML-метками) → ленивая POST-render обёртка строки `.rm-w` + rAF
