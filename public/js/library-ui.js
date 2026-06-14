@@ -508,6 +508,7 @@ function cycleTheme() {
 // BRR-P1-008b — on-device word-karaoke diagnostic. Open any text with ?wkdebug=1 and play: a small
 // overlay shows the live internal state so a device-specific issue (browser-speech vs audio, timing
 // not loaded, rAF not ticking, spans missing) can be read off WITHOUT a console (iPhone-friendly).
+let _wkBootErr = '';   // captured boot/load error, surfaced in the ?wkdebug overlay (iPhone has no console)
 function maybeStartWkDebug() {
   let on = false; try { on = new URLSearchParams(location.search).get('wkdebug') === '1'; } catch (_) {}
   if (!on) return;
@@ -520,7 +521,8 @@ function maybeStartWkDebug() {
     const rmw = mount ? mount.querySelectorAll('.rm-w').length : 0;
     const speaking = mount ? mount.querySelectorAll('.rm-w-speaking').length : 0;
     box.textContent = 'wk: ' + (d ? ('mode=' + d.mode + ' t=' + d.t + ' tN=' + d.timingN + ' off=' + d.off + ' ticks=' + d.ticks + ' key=' + d.key) : '(not playing)')
-      + '\nDOM: rm-w=' + rmw + ' speaking=' + speaking + ' raf=' + (typeof requestAnimationFrame !== 'undefined');
+      + '\nDOM: rm-w=' + rmw + ' speaking=' + speaking + ' raf=' + (typeof requestAnimationFrame !== 'undefined')
+      + (_wkBootErr ? '\nERR: ' + String(_wkBootErr).slice(0, 200) : '');
   }, 250);
 }
 
@@ -1817,9 +1819,11 @@ async function boot() {
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
   } catch (e) {
     if (e instanceof localDb.DbUnavailableError) {
+      _wkBootErr = 'DbUnavailable: ' + ((e && e.message) || '');
       if (validateRequested()) { showValidationOverlay(VALIDATE_DBBUSY_MSG); return; }
       showState('room.state.dbBusy', '📑'); return;
     }
+    _wkBootErr = (e && (e.message || e.name)) ? ((e.name || 'Error') + ': ' + (e.message || '')) : String(e);
     try { console.error('[room] init failed:', e); } catch (_) {}
     showState('room.state.error', '⚠️');
   }
