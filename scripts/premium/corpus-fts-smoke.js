@@ -71,6 +71,21 @@ async function main() {
   // so out-of-corpus inflections of a present paradigm still resolve)
   ok(Object.keys(res.lemmaMapObj).length > 20, "lemmamap expanded with dictionary forms", "keys=" + Object.keys(res.lemmaMapObj).length);
 
+  // firstMatchRow (BRR-P2-005 — FTS hit opens AT the matched sentence)
+  const rows = [
+    { he: 'בראשית ברא' },
+    { he: 'מלכים רבים בארץ' },
+    { he_niqqud: 'אַהֲבָה רַבָּה' },   // voweled — niqqud-insensitive match must still work
+  ];
+  ok(FTS.firstMatchRow(rows, 'מלכים') === 1, "firstMatchRow: exact skeleton → row 1", "got " + FTS.firstMatchRow(rows, 'מלכים'));
+  ok(FTS.firstMatchRow(rows, 'אהבה') === 2, "firstMatchRow: voweled row matched by unvoweled query", "got " + FTS.firstMatchRow(rows, 'אהבה'));
+  ok(FTS.firstMatchRow(rows, 'zzzнет') === -1, "firstMatchRow: no match → -1");
+  ok(FTS.firstMatchRow([], 'מלך') === -1, "firstMatchRow: no rows → -1");
+  // lemma path: inject a lemmamap so an inflection in the row resolves to the query's pid
+  FTS._setLemmaMapForTest({ [FTS.normalizeToken('מלכים')]: '6002', [FTS.normalizeToken('מלך')]: '6002' });
+  ok(FTS.firstMatchRow([{ he: 'מלכים' }], 'מלך') === 0, "firstMatchRow: lemma pid match (query מלך → row מלכים)");
+  FTS._setLemmaMapForTest(null);
+
   // determinism — rebuild → byte-identical artifacts
   const res2 = await buildCorpusFts(opts);
   const norm = (r) => JSON.stringify({ m: r.manifest, b: r.buckets, l: r.lemmaObj, lm: r.lemmaMapObj });

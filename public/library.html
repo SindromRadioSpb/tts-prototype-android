@@ -395,6 +395,19 @@
     /* BRR-P2-001 — full-text «в тексте» group + lemma-expansion honesty marker (R10). */
     .corpus-fts-group { margin-top: 14px; }
     .prov-badge.fts-byform { background: var(--bg-muted); color: var(--text-faint); border: 1px dashed var(--border-soft); }
+    /* BRR-P2-005 — unified jump-highlight (resume / bookmark / FTS hit): a soft AMBER tint on the
+       whole row (both language columns) + a leading accent bar, persistent until the next user
+       interaction. Amber is distinct from the Room's BLUE playback highlight; theme-independent
+       (like the karaoke word marker). a11y: the bar is a non-colour second channel (WCAG 1.4.1)
+       at ≥3:1; no underline (никуд-safe). Playback/error win the cascade. */
+    #roomReaderTable tr.rm-row-jump:not(.row-playing):not(.row-error) td,
+    #roomReaderTable tr.rm-row-jump:not(.row-playing):not(.row-error) td.rtl {
+      background-color: rgba(255, 184, 28, 0.20) !important;
+      transition: background-color 180ms ease;
+    }
+    #roomReaderTable tr.rm-row-jump:not(.row-playing):not(.row-error) td:first-child {
+      box-shadow: inset 3px 0 0 #f59e0b;
+    }
     /* Room reader is read-only: hide Studio row affordances (mirrors index.html room-mode). */
     #roomReader .row-note-btn, #roomReader .row-edit-actions { display: none !important; }
 

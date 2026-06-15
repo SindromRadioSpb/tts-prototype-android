@@ -38,6 +38,17 @@
     return p < 0 ? 0 : (p > 100 ? 100 : p);
   }
 
+  // mergeProgress(prevMax, idx) → the FURTHEST 0-based row reached this session (Math.max of
+  // valid non-negative ints; -1 if neither is valid). The fix for the «Продолжить» disappearance:
+  // a played/read row must NOT be lowered by a later "top-visible = 0" close-flush — resume is the
+  // furthest point reached (Kindle/Whispersync semantics), not the current scroll-top.
+  function mergeProgress(prevMax, idx) {
+    var p = Number(prevMax), i = Number(idx);
+    var pv = (isFinite(p) && p >= 0) ? Math.floor(p) : -1;
+    var iv = (isFinite(i) && i >= 0) ? Math.floor(i) : -1;
+    return pv > iv ? pv : iv;
+  }
+
   // topVisibleRowIdx(rows, topOffset) → idx of the topmost row still at/under the
   // sticky reader-bar (the row the user is reading), or null when there are no rows.
   //   rows: [{ idx, top, bottom }] in DOM order, in viewport coordinates.
@@ -53,7 +64,7 @@
     return rows[rows.length - 1].idx;
   }
 
-  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx };
+  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, mergeProgress: mergeProgress };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.ReaderProgress = API;
 })();

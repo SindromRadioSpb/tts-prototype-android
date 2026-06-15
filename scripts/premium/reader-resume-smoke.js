@@ -16,9 +16,21 @@ function eq(got, want, msg) {
   else { fail++; console.error(`FAIL ${msg}: got ${a} want ${b}`); }
 }
 
-for (const fn of ['resumeTarget', 'continuePercent', 'topVisibleRowIdx']) {
+for (const fn of ['resumeTarget', 'continuePercent', 'topVisibleRowIdx', 'mergeProgress']) {
   if (typeof RP[fn] !== 'function') { console.error(`FAIL: reader-progress.${fn} not exported`); process.exit(1); }
 }
+
+// ── mergeProgress (BRR-P2-005 «Продолжить» disappearance fix) ────────────────
+// THE FIX: a played/read row is NEVER lowered by a later top-visible=0 close-flush.
+eq(RP.mergeProgress(-1, 3), 3, 'first record (no prior max)');
+eq(RP.mergeProgress(3, 0), 3, 'played row 3, close at top 0 → stays 3 (THE FIX)');
+eq(RP.mergeProgress(3, 5), 5, 'scroll forward advances');
+eq(RP.mergeProgress(5, 2), 5, 'scroll back keeps furthest');
+eq(RP.mergeProgress(5, -1), 5, 'no current → keep max');
+eq(RP.mergeProgress(-1, -1), -1, 'nothing reached → -1 (close-flush writes nothing)');
+eq(RP.mergeProgress(null, 4), 4, 'null prior → idx');
+eq(RP.mergeProgress(2, null), 2, 'null idx → prior');
+eq(RP.mergeProgress(2.0, 3.0), 3, 'integer floor');
 
 // ── resumeTarget ────────────────────────────────────────────────────────────
 // 1) Real in-range past-start position ⇒ resume to it.

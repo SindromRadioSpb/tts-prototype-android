@@ -618,10 +618,13 @@ function stopKaraoke() {
 // BRR-P2-002 «Продолжить чтение» — record the reading position (debounced) and restore
 // it on the next open. Position = topmost row at the sticky bar OR the karaoke-playing row.
 // All DOM/DB; the in-range decision math lives in the pure window.ReaderProgress (gated).
-let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false;
+let _progressTimer = null, _scrollTimer = null, _progressScrollWired = false, _sessionMaxRow = -1;
+// BRR-P2-005 — record the FURTHEST row reached this session, never a lower one. Fixes the
+// «Продолжить» disappearance: playing row N then closing at scroll-top no longer writes 0.
 function recordProgress(idx) {
   if (readerTextId == null || idx == null || idx < 0) return;
-  const tid = readerTextId, row = idx;
+  _sessionMaxRow = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionMaxRow, idx) : Math.max(_sessionMaxRow, idx);
+  const tid = readerTextId, row = _sessionMaxRow;
   if (_progressTimer) clearTimeout(_progressTimer);
   _progressTimer = setTimeout(() => {
     _progressTimer = null;
@@ -659,7 +662,43 @@ function wireProgressScroll() {
 function scrollToReaderRow(idx) {
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
-  if (tr && tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
+  if (!tr) return;
+  if (tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
+  if (window.ReaderProgress) _sessionMaxRow = window.ReaderProgress.mergeProgress(_sessionMaxRow, idx);   // a jump fixes position
+  highlightReaderRow(idx);   // BRR-P2-005 — «ты здесь» jump-highlight (resume / bookmark / FTS)
+}
+
+// BRR-P2-005 — unified jump-highlight: tint + leading bar on the row we jumped to, persistent
+// until the next genuine user interaction (tap / scroll / key). Distinct hue from playback
+// (gold) so «куда я прыгнул» never reads as «что играет».
+let _jumpClearFn = null;
+function clearRowJump() {
+  const m = $('roomReaderTable');
+  if (m) m.querySelectorAll('tr.rm-row-jump').forEach((t) => t.classList.remove('rm-row-jump'));
+  if (_jumpClearFn) { _jumpClearFn(); _jumpClearFn = null; }
+}
+function highlightReaderRow(idx) {
+  const mount = $('roomReaderTable');
+  const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
+  if (!tr) return;
+  clearRowJump();
+  tr.classList.add('rm-row-jump');
+  const onInteract = () => clearRowJump();
+  // Wire the dismiss listeners after a tick so the programmatic smooth-scroll settling doesn't
+  // instantly dismiss the highlight.
+  const t = setTimeout(() => {
+    window.addEventListener('wheel', onInteract, { passive: true, once: true });
+    window.addEventListener('touchstart', onInteract, { passive: true, once: true });
+    window.addEventListener('keydown', onInteract, { once: true });
+    if (mount) mount.addEventListener('click', onInteract, true);
+  }, 500);
+  _jumpClearFn = () => {
+    clearTimeout(t);
+    window.removeEventListener('wheel', onInteract);
+    window.removeEventListener('touchstart', onInteract);
+    window.removeEventListener('keydown', onInteract);
+    if (mount) mount.removeEventListener('click', onInteract, true);
+  };
 }
 function clearResumeBanner() { const b = $('readerResume'); if (b && b.remove) b.remove(); }
 function showResumeBanner(idx) {
@@ -899,7 +938,8 @@ async function openReader(textId, title, opts) {
   if (!reader) return;
   if (content) content.hidden = true;
   reader.hidden = false;
-  clearResumeBanner();                 // BRR-P2-002 — never carry a stale resume bar across opens
+  clearResumeBanner(); clearRowJump();   // BRR-P2-002/005 — never carry a stale banner/jump across opens
+  _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
   if (titleEl) {
@@ -925,7 +965,8 @@ async function openReader(textId, title, opts) {
     attachReaderAudio();
     try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
     wireProgressScroll();
-    if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
+    if (opts && opts.ftsQuery) jumpToFtsMatch(opts.ftsQuery);                     // BRR-P2-005 — FTS hit → matched row
+    else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
     else restoreReaderPosition(readerTextId, opts);      // offer/perform resume (R4 reliability)
   }
 }
@@ -938,6 +979,16 @@ function scrollToSentence(sid) {
   if (idx >= 0) scrollToReaderRow(idx);
 }
 
+// BRR-P2-005 — open an FTS hit AT the first row whose Hebrew contains the query (exact skeleton
+// or lemma pid, via the SAME normaliser the index used). Falls back to normal resume if no row
+// is located (lemmamap loaded post-search, so this is the common path for a ready hit).
+function jumpToFtsMatch(q) {
+  let idx = -1;
+  try { idx = (window.CorpusFTS && window.CorpusFTS.firstMatchRow) ? window.CorpusFTS.firstMatchRow(readerRows, q) : -1; } catch (_) { idx = -1; }
+  if (idx >= 0) scrollToReaderRow(idx);
+  else restoreReaderPosition(readerTextId, {});
+}
+
 async function closeReader() {
   // BRR-P2-002 — flush the current position synchronously BEFORE hiding (the 800ms debounce
   // may not have fired if Back is tapped quickly). Read the top-visible row while the table is
@@ -945,13 +996,17 @@ async function closeReader() {
   const tid = readerTextId;
   if (_progressTimer) { clearTimeout(_progressTimer); _progressTimer = null; }
   if (tid != null) {
-    const idx = currentTopRowIdx();
-    if (idx != null) { try { await localDb.setProgress(tid, { last_row_idx: idx }); } catch (_) {} }
+    // BRR-P2-005 — flush the FURTHEST row reached (max of session-max + current top), NEVER a
+    // lower value, and only if > 0. This is the «Продолжить» disappearance fix: playing a row
+    // then closing at scroll-top no longer overwrites the position with 0.
+    const top = currentTopRowIdx();
+    const idx = window.ReaderProgress ? window.ReaderProgress.mergeProgress(_sessionMaxRow, top == null ? -1 : top) : Math.max(_sessionMaxRow, top == null ? -1 : top);
+    if (idx > 0) { try { await localDb.setProgress(tid, { last_row_idx: idx }); } catch (_) {} }
   }
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
-  clearResumeBanner(); readerTextId = null;         // BRR-P2-002 — stop recording after close
+  clearResumeBanner(); clearRowJump(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005 — stop recording after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -977,7 +1032,7 @@ async function resolveLocalIdByKey(textKey) {
 // absent, fetch its per-work JSON, importBundle it (mode:'skip' — idempotent), then open
 // the warm reader by local id. The work file is fetched with ?v=<catalogVersion> so a
 // re-published catalog cache-busts the immutable work payloads.
-async function openCorpusWork(card) {
+async function openCorpusWork(card, openOpts) {
   if (!card || corpusImporting) return;
   const reader = $('roomReader'), content = $('roomContent');
   if (content) content.hidden = true;
@@ -1002,7 +1057,7 @@ async function openCorpusWork(card) {
       localId = await resolveLocalIdByKey(card.text_key);
     }
     if (!localId) throw new Error('work not resolvable after import');
-    await openReader(localId, card.title);
+    await openReader(localId, card.title, openOpts);
   } catch (e) {
     try { console.warn('[room] open corpus work failed:', e); } catch (_) {}
     readerStateBox('room.state.error', '⚠️');
@@ -1729,7 +1784,9 @@ async function renderResultsInto(body) {
 }
 
 // Shared paged renderer for a list of { sr, r? } work hits (sr = corpus-search row).
-function appendPagedWorkRows(container, items, decorate) {
+// rowOpts (optional) is merged into each row's opts — e.g. { openOpts: { ftsQuery } } so an FTS
+// hit opens AT the matched sentence (BRR-P2-005).
+function appendPagedWorkRows(container, items, decorate, rowOpts) {
   const list = el('div', { class: 'corpus-work-list' });
   const moreWrap = el('div', { class: 'corpus-more' });
   container.appendChild(list); container.appendChild(moreWrap);
@@ -1740,7 +1797,7 @@ function appendPagedWorkRows(container, items, decorate) {
     for (let i = cursor; i < upTo; i++) {
       const it = items[i], sr = it.sr;
       const full = sr.r ? readyMap.get(String(sr.id)) : null;
-      const node = renderCorpusWorkRow(full || corpusSearchRowToCard(sr), !!full, { showAuthor: true });
+      const node = renderCorpusWorkRow(full || corpusSearchRowToCard(sr), !!full, Object.assign({ showAuthor: true }, rowOpts || {}));
       if (decorate) decorate(node, it);
       list.appendChild(node);
     }
@@ -1796,7 +1853,7 @@ async function appendFtsGroup(body, q, titleHits) {
       const meta = node.querySelector('.work-card-meta') || node;
       meta.appendChild(el('span', { class: 'prov-badge fts-byform', i18n: 'room.corpus.search.byForm', text: tt('room.corpus.search.byForm', 'по форме слова') }));
     }
-  });
+  }, { openOpts: { ftsQuery: q } });   // BRR-P2-005 — ready FTS hit opens AT the matched sentence
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -2106,7 +2163,7 @@ function renderCorpusWorkRow(card, openable, opts) {
   row.appendChild(cta);
   if (openable) {
     row.setAttribute('role', 'button'); row.setAttribute('tabindex', '0');
-    const open = () => openCorpusWork(card);
+    const open = () => openCorpusWork(card, opts && opts.openOpts);   // BRR-P2-005 — FTS: open at matched row
     row.addEventListener('click', open);
     row.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
   } else {

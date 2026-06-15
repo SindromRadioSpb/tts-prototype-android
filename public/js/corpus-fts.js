@@ -167,13 +167,41 @@
     });
   }
 
+  // BRR-P2-005 — firstMatchRow(rows, query) → index of the FIRST reader row whose Hebrew contains
+  // a query match (exact skeleton OR lemma pid via the loaded lemmamap), or -1. Uses the SAME
+  // normaliser/tokeniser as the index, so the row that made the work a hit is located
+  // deterministically — the search-hit opens AT that line. lemmamap is loaded after a search();
+  // if absent, exact-skeleton matching still works. _setLemmaMapForTest injects it for the gate.
+  function firstMatchRow(rows, query) {
+    if (!rows || !rows.length) return -1;
+    var qToks = tokenizeText(query).map(normalizeToken).filter(Boolean);
+    if (!qToks.length) return -1;
+    var qSkel = {}; qToks.forEach(function (t) { qSkel[t] = 1; });
+    var qPid = {};
+    if (_lemmaMap) qToks.forEach(function (t) { var p = _lemmaMap[t]; if (p != null) qPid[String(p)] = 1; });
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]; if (!r) continue;
+      var heb = r.he_niqqud || r.he || r.hebrew_niqqud || r.hebrew_plain || '';
+      if (!heb) continue;
+      var toks = tokenizeText(heb);
+      for (var j = 0; j < toks.length; j++) {
+        var s = normalizeToken(toks[j]); if (!s) continue;
+        if (qSkel[s]) return i;
+        if (_lemmaMap) { var p2 = _lemmaMap[s]; if (p2 != null && qPid[String(p2)]) return i; }
+      }
+    }
+    return -1;
+  }
+
+  function _setLemmaMapForTest(m) { _lemmaMap = m || null; }
   function _resetForTest() { _manifest = null; _bucketCache = new Map(); _lemma = null; _lemmaMap = null; }
 
   var API = {
     normalizeToken: normalizeToken, tokenizeText: tokenizeText, bucketOf: bucketOf,
-    decodePostings: decodePostings, scoreHits: scoreHits,
+    decodePostings: decodePostings, scoreHits: scoreHits, firstMatchRow: firstMatchRow,
     FINALS: FINALS,
-    configure: configure, search: search, ensureManifest: ensureManifest, _resetForTest: _resetForTest,
+    configure: configure, search: search, ensureManifest: ensureManifest,
+    _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.CorpusFTS = API;
