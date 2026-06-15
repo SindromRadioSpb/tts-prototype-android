@@ -3,7 +3,14 @@
 **★ READ FIRST:** `docs/planning/BRR_P2_DISCOVERY_2026_06_14.md` (дизайн-канон блока Discovery, все 4 стадии SHIPPED) +
 `docs/SESSION_STATE_BRR_2026_06_14.md` (предыдущий READ-FIRST: Karaoke-семейство) + `docs/PROJECT_ROLES.md` (R1–R10 авто).
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал: `/library.html`, Studio: `/index.html`).
-**main HEAD `6f7c385`, SW `v3.10.59-room-sortfilter` — ПРОД-ВЕРИФИЦИРОВАН (FTS-поиск работает на проде, 0 console-errors).**
+**main HEAD `824c535`, SW `v3.10.60-room-jumphighlight` — ПРОД-ВЕРИФИЦИРОВАН (0 console-errors).**
+
+> **+ BRR-P2-005 (fix-блок смоук-чека владельца, SHIPPED+PROD):** ① «Продолжить» disappearance fix (furthest-max
+> `_sessionMaxRow`/`ReaderProgress.mergeProgress` — close-flush не перезатирает сыгранную строку нулём, БД-подтверждён) ·
+> единый **jump-highlight `.rm-row-jump`** (амбер заливка обеих колонок + ведущая полоса, держится до взаимодействия,
+> distinct от синего playback, a11y/RTL) на resume/закладке/FTS · **FTS открывается НА совпавшей строке** (`CorpusFTS.firstMatchRow`).
+> Гейты `smoke:reader-resume` 31/0, `smoke:corpus-fts` 17/0. Беклог P1/P2 + находки → `docs/planning/BRR_READING_UX_REQUIREMENTS_2026_06_15.md`
+> + журнал §B в `BRR_P2_DISCOVERY_2026_06_14.md`.
 
 > **🎉 БЛОК BRR-P2 «DISCOVERY» ЗАВЕРШЁН В ПРОДЕ** — 4 стадии (каждая @380px light/dark + e2e + гейты зелёные):
 > Continue Reading + Bookmarks + Full-text search «внутри текстов» + L3 sort/filter. Owner-выбор: «full-text 26K find-only + чтение растёт бейком».
