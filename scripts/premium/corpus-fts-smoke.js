@@ -75,10 +75,12 @@ async function main() {
   const rows = [
     { he: 'בראשית ברא' },
     { he: 'מלכים רבים בארץ' },
-    { he_niqqud: 'אַהֲבָה רַבָּה' },   // voweled — niqqud-insensitive match must still work
+    { he_niqqud: 'אַהֲבָה רַבָּה' },     // voweled — niqqud-insensitive match must still work
+    { he: 'מלחמת השחרור הגדולה' },     // contains שחרור — substring of the query «שחר»
   ];
-  ok(FTS.firstMatchRow(rows, 'מלכים') === 1, "firstMatchRow: exact skeleton → row 1", "got " + FTS.firstMatchRow(rows, 'מלכים'));
+  ok(FTS.firstMatchRow(rows, 'מלכים') === 1, "firstMatchRow: whole-token → row 1", "got " + FTS.firstMatchRow(rows, 'מלכים'));
   ok(FTS.firstMatchRow(rows, 'אהבה') === 2, "firstMatchRow: voweled row matched by unvoweled query", "got " + FTS.firstMatchRow(rows, 'אהבה'));
+  ok(FTS.firstMatchRow(rows, 'שחר') === 3, "firstMatchRow: substring (שחר ∈ שחרור) → row 3", "got " + FTS.firstMatchRow(rows, 'שחר'));
   ok(FTS.firstMatchRow(rows, 'zzzнет') === -1, "firstMatchRow: no match → -1");
   ok(FTS.firstMatchRow([], 'מלך') === -1, "firstMatchRow: no rows → -1");
   // lemma path: inject a lemmamap so an inflection in the row resolves to the query's pid

@@ -176,18 +176,24 @@
     if (!rows || !rows.length) return -1;
     var qToks = tokenizeText(query).map(normalizeToken).filter(Boolean);
     if (!qToks.length) return -1;
-    var qSkel = {}; qToks.forEach(function (t) { qSkel[t] = 1; });
     var qPid = {};
     if (_lemmaMap) qToks.forEach(function (t) { var p = _lemmaMap[t]; if (p != null) qPid[String(p)] = 1; });
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i]; if (!r) continue;
       var heb = r.he_niqqud || r.he || r.hebrew_niqqud || r.hebrew_plain || '';
       if (!heb) continue;
-      var toks = tokenizeText(heb);
-      for (var j = 0; j < toks.length; j++) {
-        var s = normalizeToken(toks[j]); if (!s) continue;
-        if (qSkel[s]) return i;
-        if (_lemmaMap) { var p2 = _lemmaMap[s]; if (p2 != null && qPid[String(p2)]) return i; }
+      // SUBSTRING (niqqud-stripped + finals-folded, like the corpus title-search): covers a whole
+      // token, a proclitic form (בית∈בבית), AND a substring-of-word match (שחר∈שחרור) — so a
+      // title-substring hit still lands on the line where the term appears.
+      var rowNorm = foldFinals(stripNiqqud(heb)).toLowerCase();
+      for (var k = 0; k < qToks.length; k++) { if (rowNorm.indexOf(qToks[k]) >= 0) return i; }
+      // LEMMA: a row token whose pid matches the query's pid (catches truly different inflections).
+      if (_lemmaMap) {
+        var toks = tokenizeText(heb);
+        for (var j = 0; j < toks.length; j++) {
+          var s = normalizeToken(toks[j]); if (!s) continue;
+          var p2 = _lemmaMap[s]; if (p2 != null && qPid[String(p2)]) return i;
+        }
       }
     }
     return -1;

@@ -589,8 +589,12 @@ function setReadAloudBtn(active) {
   b.title = tt(key, active ? 'Стоп' : 'Читать вслух');
 }
 function onKaraokeRowChange(idx) {
-  if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }
+  if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }   // playback ended → keep last marker
   recordProgress(idx);   // BRR-P2-002 — the read-aloud row is a strong progress signal
+  // BRR-P2-005.2 — mark the playing row with the jump-highlight: it's MASKED by the blue
+  // .row-playing while audio plays (CSS :not(.row-playing)) and stays as the amber «here you
+  // stopped» marker once playback ends (single-row end fires no -1; karaoke end leaves the last).
+  highlightReaderRow(idx);
   if (!karaokeActive || karaokeUserScrolled) return;
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
@@ -1769,10 +1773,12 @@ async function renderResultsInto(body) {
   summary.appendChild(el('span', { class: 'corpus-results-label', text: corpusFilterSummary() }));
   summary.appendChild(el('span', { class: 'corpus-results-count', text: String(hits.length) }));
   body.appendChild(summary);
-  // Group A — title/author matches (the existing flat list + «показать ещё» pagination).
+  // Group A — title/author matches (the existing flat list + «показать ещё» pagination). BRR-P2-005.2:
+  // thread the query so a title-hit ALSO opens AT the matched body row when the word is in the body
+  // (else firstMatchRow → -1 → normal resume/top). Was the «no highlighted row on drill-in» bug.
   if (hits.length) {
     hits.sort((a, b) => (b.r - a.r) || String(a.t).localeCompare(String(b.t)));
-    appendPagedWorkRows(body, hits.map((h) => ({ sr: h })));
+    appendPagedWorkRows(body, hits.map((h) => ({ sr: h })), null, { openOpts: { ftsQuery: corpusFilter.q } });
   }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   // Group B — BRR-P2-001 full-text «в тексте» (async; lazy-loads only the shard(s) a query needs).
