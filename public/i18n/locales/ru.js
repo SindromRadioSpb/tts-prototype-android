@@ -2015,7 +2015,7 @@ window.I18N_LOCALES.ru = {
       rows: "стр.",
       sectionReady: "Готовы к чтению",
       sectionLater: "В каталоге · перевод позже",
-      search: { placeholder: "Поиск по корпусу…", results: "Результаты", empty: "Ничего не найдено.", inText: "В тексте", byForm: "по форме слова", phrase: "Точная фраза", words: "Слова в тексте" },
+      search: { placeholder: "Поиск по корпусу…", results: "Результаты", empty: "Ничего не найдено.", inText: "В тексте", byForm: "по форме слова", phrase: "Точная фраза", words: "Слова в тексте", searching: "Ищем в текстах…" },
       facets: { ready: "Готовые", genre: "Жанр", lang: "Язык", clear: "Сбросить" },
       sort: { graduated: "Готовые сверху", alpha: "По алфавиту", graded: "По порядку", length: "По длине" },
       jumpbar: "Буквы",

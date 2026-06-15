@@ -2001,7 +2001,7 @@ window.I18N_LOCALES.en = {
       rows: "rows",
       sectionReady: "Ready to read",
       sectionLater: "In catalogue · translation later",
-      search: { placeholder: "Search the corpus…", results: "Results", empty: "Nothing found.", inText: "In the text", byForm: "by word form", phrase: "Exact phrase", words: "Words in the text" },
+      search: { placeholder: "Search the corpus…", results: "Results", empty: "Nothing found.", inText: "In the text", byForm: "by word form", phrase: "Exact phrase", words: "Words in the text", searching: "Searching the texts…" },
       facets: { ready: "Ready", genre: "Genre", lang: "Language", clear: "Clear" },
       sort: { graduated: "Ready first", alpha: "Alphabetical", graded: "In order", length: "By length" },
       jumpbar: "Letters",

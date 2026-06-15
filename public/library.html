@@ -396,6 +396,12 @@
        BRR-P2-001 «по форме слова» badge was retired in P2-006: content words are lemma-only by
        design, so it lit on every content hit and signalled nothing — honest grouping replaced it. */
     .corpus-fts-group { margin-top: 14px; }
+    /* BRR-P2-006a — full-text search loading affordance (the index lazy-loads its shards; without a
+       cue the user reads the title-match count «0» as «nothing found»). Spinner + honest text. */
+    .corpus-fts-loading { display: flex; align-items: center; gap: 9px; margin: 16px 2px; color: var(--text-secondary); font-size: 13px; }
+    .corpus-fts-spinner { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--border-soft); border-top-color: var(--accent); animation: ftsspin .7s linear infinite; flex: 0 0 auto; }
+    @keyframes ftsspin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .corpus-fts-spinner { animation-duration: 1.6s; } }
     /* BRR-P2-005 — unified jump-highlight (resume / bookmark / FTS hit): a soft AMBER tint on the
        whole row (both language columns) + a leading accent bar, persistent until the next user
        interaction. Amber is distinct from the Room's BLUE playback highlight; theme-independent

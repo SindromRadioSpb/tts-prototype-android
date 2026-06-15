@@ -179,28 +179,49 @@ async function buildCorpusFts(opts = {}) {
   const buckets = {};
   for (const [skel, m] of exact) { const b = FTS.bucketOf(skel); if (!b) continue; (buckets[b] || (buckets[b] = {}))[skel] = encodePos(m); }
   for (const b of Object.keys(buckets)) buckets[b] = sortObj(buckets[b]);
-  // A positional letter-bucket (every token's offsets) can outgrow the 10 MB upload body cap — the
-  // ה/ו/ב buckets are tens of MB. Split each letter into raw-size-bounded sub-shards (ex-<L>-<i>);
-  // a small letter stays the single ex-<L>. The client loads every sub-shard for a needed letter
-  // and merges (so a phrase query touching that letter pays its cost once, then HTTP/SW-cached).
+  // A positional letter-bucket (every token's offsets) can be tens of MB — the ה/ו/ב buckets dominate.
+  // BRR-P2-006a — TWO-LEVEL sharding so a phrase query never downloads a whole heavy letter:
+  //   • LIGHT letter (raw ≤ threshold) → single key = letter (ex-<L>), size-split only if > upload cap.
+  //   • HEAVY letter (raw > threshold) → split by FIRST TWO letters (ex-<L1L2>), so «הנופל» fetches a
+  //     tiny «הנ» shard, not all of ה. The client (shardKeyFor) keys heavy letters by the 2-letter
+  //     prefix and loads exactly that shard. A length-1 skeleton keys by the letter itself (tiny file).
+  // Every shard still stays under the 10 MB upload body cap via the secondary size-split.
   const BUCKET_SHARD_BUDGET = 8 * 1024 * 1024;
-  const bucketFiles = {};       // letter → [shard file paths] (manifest)
+  const BUCKET_2LEVEL_THRESHOLD = opts.bucket2LevelThreshold != null ? Number(opts.bucket2LevelThreshold) : (3 * 1024 * 1024);
+  const bucketFiles = {};       // shard key (letter OR 2-letter prefix) → [file paths] (manifest)
   const bucketShards = [];      // [{ file, obj }] (writeArtifacts)
-  for (const b of Object.keys(buckets).sort()) {
-    const skels = Object.keys(buckets[b]);   // already sorted by sortObj
+  const shardedLetters = [];    // heavy letters split by 2-letter prefix
+  const groupBytes = (g) => { let n = 0; for (const s in g) n += s.length + JSON.stringify(g[s]).length + 6; return n; };
+  // size-split a {skel: encoded} group (sorted skels) into ≤BUDGET parts; files ex-<key>[-<i>]
+  const emitSized = (key, group) => {
     const parts = []; let cur = {}, curBytes = 0;
-    for (const skel of skels) {
-      const entryBytes = skel.length + JSON.stringify(buckets[b][skel]).length + 6;
+    for (const skel of Object.keys(group)) {     // insertion order == sorted (deterministic)
+      const entryBytes = skel.length + JSON.stringify(group[skel]).length + 6;
       if (curBytes > 0 && curBytes + entryBytes > BUCKET_SHARD_BUDGET) { parts.push(cur); cur = {}; curBytes = 0; }
-      cur[skel] = buckets[b][skel]; curBytes += entryBytes;
+      cur[skel] = group[skel]; curBytes += entryBytes;
     }
     if (Object.keys(cur).length) parts.push(cur);
-    bucketFiles[b] = parts.map((obj, i) => {
-      const file = "fts/ex-" + b + (parts.length > 1 ? "-" + i : "") + "-v" + V + ".json";
+    bucketFiles[key] = parts.map((obj, i) => {
+      const file = "fts/ex-" + key + (parts.length > 1 ? "-" + i : "") + "-v" + V + ".json";
       bucketShards.push({ file, obj });
       return file;
     });
+  };
+  for (const b of Object.keys(buckets).sort()) {
+    const group = buckets[b];                    // {skel: encoded}, already sorted by skel
+    if (groupBytes(group) > BUCKET_2LEVEL_THRESHOLD) {
+      shardedLetters.push(b);
+      const byPrefix = {};
+      for (const skel of Object.keys(group)) {
+        const prefix = skel.length >= 2 ? skel.slice(0, 2) : skel;
+        (byPrefix[prefix] || (byPrefix[prefix] = {}))[skel] = group[skel];
+      }
+      for (const prefix of Object.keys(byPrefix).sort()) emitSized(prefix, byPrefix[prefix]);
+    } else {
+      emitSized(b, group);
+    }
   }
+  shardedLetters.sort();
   const lemmaObj = {}; for (const [pid, m] of lemma) lemmaObj[pid] = encodeCount(m);
   // Shard the lemma index by a raw-size budget — one file would outgrow the upload body cap
   // (and keeps growing with the corpus). Deterministic: sorted pids accumulated into shards.
@@ -237,9 +258,10 @@ async function buildCorpusFts(opts = {}) {
     lemma_files: lemmaFiles,
     lemmamap_file: "fts/lemmamap-v" + V + ".json",
     buckets: Object.keys(buckets).sort(),
-    bucket_files: bucketFiles,         // letter → [sub-shard files] (positional exact, lazy per letter)
+    bucket_files: bucketFiles,         // shard key (letter|2-letter prefix) → [sub-shard files] (lazy)
+    sharded_letters: shardedLetters,   // heavy letters keyed by 2-letter prefix (BRR-P2-006a)
     max_df_ratio: maxDfRatio,
-    counts: { works: search.length, indexed, missing, exact_keys: exact.size, lemma_keys: lemma.size, lemma_shards: lemmaShards.length, bucket_shards: bucketShards.length, dropped_exact: droppedExact, dropped_lemma: droppedLemma, collisions, total_tokens: totalTok, matched_tokens: matchedTok },
+    counts: { works: search.length, indexed, missing, exact_keys: exact.size, lemma_keys: lemma.size, lemma_shards: lemmaShards.length, bucket_shards: bucketShards.length, sharded_letters: shardedLetters.length, dropped_exact: droppedExact, dropped_lemma: droppedLemma, collisions, total_tokens: totalTok, matched_tokens: matchedTok },
   };
 
   return {
@@ -278,6 +300,7 @@ if (require.main === module) {
       outDir, byDir: arg("by-dir", undefined),
       catalogVersion: arg("catalog-version", undefined), dataRev: arg("data-rev", 1),
       limit: arg("limit", undefined), maxPos: arg("max-pos", undefined),
+      bucket2LevelThreshold: arg("bucket-2level-threshold", undefined),
       noFetch: flag("no-fetch") ? true : (flag("fetch") ? false : true),
       quiet: flag("quiet"),
     });

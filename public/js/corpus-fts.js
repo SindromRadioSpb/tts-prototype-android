@@ -157,7 +157,8 @@
   // ── client lazy loader (browser only) ───────────────────────────────────────
   var _cfg = { version: null, dataRev: 0, base: '/data/benyehuda/' };
   var _manifest = null, _manifestLoading = null;
-  var _bucketCache = new Map();     // bucket letter → { skel:[postings] } (decoded)
+  var _bucketCache = new Map();     // shard key → { skel:[postings] } (decoded)
+  var _shardLoading = new Map();    // shard key → in-flight Promise (single-flight)
   var _lemma = null, _lemmaLoading = null;     // pid → [postings] (decoded)
   var _lemmaMap = null;             // skeleton → pid
 
@@ -178,23 +179,38 @@
   // phrase engine uses pos directly. One decode per shard load, reused by both query paths.
   function _decodeIndex(obj) { var out = {}; for (var k in obj) if (obj.hasOwnProperty(k)) out[k] = decodePositions(obj[k]); return out; }
 
-  // A letter's positional exact index is split into raw-size sub-shards (bucket_files[letter]); load
-  // every sub-shard for the letter and merge. Back-compat: a manifest without bucket_files falls back
-  // to the single ex-<letter> file. The merged decode is cached so a phrase reusing the letter is free.
-  function ensureBucket(letter) {
-    if (_bucketCache.has(letter)) return Promise.resolve(_bucketCache.get(letter));
-    return ensureManifest().then(function (m) {
-      var files = (m.bucket_files && m.bucket_files[letter])
-        || ((m.buckets && m.buckets.indexOf(letter) !== -1) ? ['fts/ex-' + letter + '-v' + _cfg.version + '.json'] : []);
-      if (!files.length) { _bucketCache.set(letter, {}); return {}; }
+  // shardKeyFor(skel[, m]) → the exact-index shard key for a query skeleton. Light letters key by
+  // first letter (ex-<L>); HEAVY letters (manifest sharded_letters — ה/ו/ב…) key by the first TWO
+  // letters (ex-<L1L2>), so «הנופל» loads a tiny «הנ» shard instead of the whole 11 MB ה bucket
+  // (BRR-P2-006a). A length-1 skeleton of a heavy letter keys by the letter itself (its own tiny file).
+  function shardKeyFor(skel, m) {
+    m = m || _manifest;
+    var L = bucketOf(skel);
+    if (m && m.sharded_letters && m.sharded_letters.indexOf(L) !== -1 && skel.length >= 2) return skel.slice(0, 2);
+    return L;
+  }
+
+  // ensureShard(key) — load + merge the sub-shards for a shard key (letter OR 2-letter prefix) from
+  // manifest.bucket_files[key], decode positions, cache by key. Single-flight (_shardLoading) so the
+  // warm pass + the real query don't double-fetch. Back-compat: a manifest without bucket_files for a
+  // single letter falls back to ex-<letter>.
+  function ensureShard(key) {
+    if (_bucketCache.has(key)) return Promise.resolve(_bucketCache.get(key));
+    if (_shardLoading.has(key)) return _shardLoading.get(key);
+    var p = ensureManifest().then(function (m) {
+      var files = (m.bucket_files && m.bucket_files[key])
+        || ((m.buckets && m.buckets.indexOf(key) !== -1) ? ['fts/ex-' + key + '-v' + _cfg.version + '.json'] : []);
+      if (!files.length) { _bucketCache.set(key, {}); return {}; }
       return Promise.all(files.map(function (f) {
         return _fetchJson(f).then(function (raw) { return _decodeIndex(raw); }).catch(function () { return {}; });
       })).then(function (decs) {
         var merged = {};
         decs.forEach(function (d) { for (var k in d) if (d.hasOwnProperty(k)) merged[k] = d[k]; });
-        _bucketCache.set(letter, merged); return merged;
+        _bucketCache.set(key, merged); return merged;
       });
-    });
+    }).finally(function () { _shardLoading.delete(key); });
+    _shardLoading.set(key, p);
+    return p;
   }
 
   function ensureLemma() {
@@ -217,6 +233,27 @@
     return _lemmaLoading;
   }
 
+  // warm() — prefetch+decode the ALWAYS-needed layer (manifest + lemma + lemmamap, ~6.5 MB) in the
+  // background so the first real query doesn't wait on it (BRR-P2-006a; called in idle on Room load).
+  // Idempotent via the ensure* single-flight guards. Swallows errors (warming is best-effort).
+  function warm() {
+    return ensureManifest().then(function () { return ensureLemma(); }).catch(function () {});
+  }
+
+  // warmQuery(query) — fire-and-forget prefetch of the exact-index shards a query will need, so they
+  // load WHILE the user types/pastes (a pasted phrase fires `input` once with the whole line → every
+  // shard starts immediately). Best-effort; the real phraseSearch() reuses the in-flight loads.
+  function warmQuery(query) {
+    try {
+      var toks = tokenizeText(query).map(normalizeToken).filter(Boolean);
+      if (!toks.length) return;
+      ensureManifest().then(function (m) {
+        var keys = {}; toks.forEach(function (t) { keys[shardKeyFor(t, m)] = 1; });
+        Object.keys(keys).forEach(function (k) { if (k) ensureShard(k); });
+      }).catch(function () {});
+    } catch (_) {}
+  }
+
   // search(query) → Promise<[{w, score, exact, lemma}]> (w = ordinal into the works/search array).
   function search(query) {
     var raw = tokenizeText(query);
@@ -224,20 +261,22 @@
     // de-dupe query terms (repeating a word should not require it twice)
     toks = toks.filter(function (t, i) { return toks.indexOf(t) === i; });
     if (!toks.length) return Promise.resolve([]);
-    var buckets = {}; toks.forEach(function (t) { buckets[bucketOf(t)] = 1; });
-    var jobs = [ensureLemma()];
-    Object.keys(buckets).forEach(function (b) { if (b) jobs.push(ensureBucket(b)); });
-    return Promise.all(jobs).then(function (res) {
-      var lem = res[0];
-      var exact = {}, lemma = {};
-      toks.forEach(function (t) {
-        var b = bucketOf(t);
-        var shard = _bucketCache.get(b) || {};
-        if (shard[t]) exact[t] = shard[t];
-        var pid = lem.map[t];
-        if (pid != null && lem.lemma[pid]) lemma[t] = lem.lemma[pid];
+    // resolve shard keys via the manifest first (sharded_letters → 2-letter prefixes), then fan out.
+    return ensureManifest().then(function (m) {
+      var keys = {}; toks.forEach(function (t) { keys[shardKeyFor(t, m)] = 1; });
+      var jobs = [ensureLemma()];
+      Object.keys(keys).forEach(function (k) { if (k) jobs.push(ensureShard(k)); });
+      return Promise.all(jobs).then(function (res) {
+        var lem = res[0];
+        var exact = {}, lemma = {};
+        toks.forEach(function (t) {
+          var shard = _bucketCache.get(shardKeyFor(t, m)) || {};
+          if (shard[t]) exact[t] = shard[t];
+          var pid = lem.map[t];
+          if (pid != null && lem.lemma[pid]) lemma[t] = lem.lemma[pid];
+        });
+        return scoreHits(toks, { exact: exact, lemma: lemma });
       });
-      return scoreHits(toks, { exact: exact, lemma: lemma });
     });
   }
 
@@ -291,15 +330,17 @@
     var ordered = _resolveQueryTokens(query);
     if (!ordered.length) return Promise.resolve({ tokens: [], multiToken: false, results: [] });
     var distinct = ordered.filter(function (t, i) { return ordered.indexOf(t) === i; });
-    var buckets = {}; distinct.forEach(function (t) { buckets[bucketOf(t)] = 1; });
-    var jobs = [ensureLemma()];
-    Object.keys(buckets).forEach(function (b) { if (b) jobs.push(ensureBucket(b)); });
-    return Promise.all(jobs).then(function (res) {
+    // resolve shard keys via the manifest first (sharded_letters → 2-letter prefixes), then fan out.
+    return ensureManifest().then(function (m) {
+      var keys = {}; distinct.forEach(function (t) { keys[shardKeyFor(t, m)] = 1; });
+      var jobs = [ensureLemma()];
+      Object.keys(keys).forEach(function (k) { if (k) jobs.push(ensureShard(k)); });
+      return Promise.all(jobs).then(function (res) {
       var lem = res[0];
       // word-AND scoring (unchanged recall): resolve each distinct token's posting lists.
       var exact = {}, lemma = {};
       distinct.forEach(function (t) {
-        var shard = _bucketCache.get(bucketOf(t)) || {};
+        var shard = _bucketCache.get(shardKeyFor(t, m)) || {};
         if (shard[t]) exact[t] = shard[t];
         var pid = lem.map[t];
         if (pid != null && lem.lemma[pid]) lemma[t] = lem.lemma[pid];
@@ -317,7 +358,7 @@
       // the scattered «слова» group above still carries inflection-tolerant recall.)
       var posMaps = ordered.map(function (t) {
         var map = new Map();
-        var shard = _bucketCache.get(bucketOf(t));
+        var shard = _bucketCache.get(shardKeyFor(t, m));
         _mergePos(map, shard && shard[t]);
         return map;
       });
@@ -328,6 +369,7 @@
       });
       results.sort(function (a, b) { return (b.phrase - a.phrase) || (b.score - a.score) || (a.w - b.w); });
       return { tokens: distinct, multiToken: true, results: results };
+      });
     });
   }
 
@@ -362,7 +404,7 @@
 
   function _setLemmaMapForTest(m) { _lemmaMap = m || null; }
   function _setManifestForTest(m) { _manifest = m || null; }
-  function _resetForTest() { _manifest = null; _bucketCache = new Map(); _lemma = null; _lemmaMap = null; }
+  function _resetForTest() { _manifest = null; _bucketCache = new Map(); _shardLoading = new Map(); _lemma = null; _lemmaMap = null; }
 
   var API = {
     normalizeToken: normalizeToken, tokenizeText: tokenizeText, bucketOf: bucketOf,
@@ -370,6 +412,7 @@
     scoreHits: scoreHits, firstMatchRow: firstMatchRow, firstPhraseRow: firstPhraseRow,
     FINALS: FINALS,
     configure: configure, search: search, phraseSearch: phraseSearch, ensureManifest: ensureManifest,
+    warm: warm, warmQuery: warmQuery, shardKeyFor: shardKeyFor,
     _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest, _setManifestForTest: _setManifestForTest,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;

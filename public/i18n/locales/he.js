@@ -2011,7 +2011,7 @@ window.I18N_LOCALES.he = {
       rows: "שו׳",
       sectionReady: "מוכן לקריאה",
       sectionLater: "בקטלוג · תרגום בהמשך",
-      search: { placeholder: "חיפוש בקורפוס…", results: "תוצאות", empty: "לא נמצאו תוצאות.", inText: "בתוך הטקסט", byForm: "לפי צורת המילה", phrase: "ביטוי מדויק", words: "מילים בטקסט" },
+      search: { placeholder: "חיפוש בקורפוס…", results: "תוצאות", empty: "לא נמצאו תוצאות.", inText: "בתוך הטקסט", byForm: "לפי צורת המילה", phrase: "ביטוי מדויק", words: "מילים בטקסט", searching: "מחפש בטקסטים…" },
       facets: { ready: "מוכנים", genre: "סוגה", lang: "שפה", clear: "ניקוי" },
       sort: { graduated: "מוכנים תחילה", alpha: "לפי א״ב", graded: "לפי הסדר", length: "לפי אורך" },
       jumpbar: "אותיות",

@@ -157,6 +157,46 @@ async function main() {
     try { fs.rmSync(cdir, { recursive: true, force: true }); } catch (_) {}
   }
 
+  // (6) BRR-P2-006a — TWO-LEVEL sharding of heavy letters by 2-letter prefix.
+  ok(Array.isArray(res.manifest.sharded_letters), "manifest declares sharded_letters");
+  ok(res.manifest.sharded_letters.length === 0, "tiny corpus → no letter exceeds the 2-level threshold");
+  // reconstruct the CLIENT lookup through prefix shards: skel → shardKeyFor(manifest) → bucket_files[key] → positions
+  function shardExPos(r, word, ord) {
+    const skel = FTS.normalizeToken(word);
+    FTS._setManifestForTest(r.manifest);
+    const key = FTS.shardKeyFor(skel);
+    FTS._setManifestForTest(null);
+    const files = (r.manifest.bucket_files && r.manifest.bucket_files[key]) || [];
+    for (const f of files) {
+      const sh = r.bucketShards.find((s) => s.file === f);
+      if (sh && sh.obj[skel]) { const dec = FTS.decodePositions(sh.obj[skel]).find((e) => e.w === ord); return dec ? dec.pos : null; }
+    }
+    return null;
+  }
+  {
+    const hdir = fs.mkdtempSync(path.join(os.tmpdir(), "fts-shard-"));
+    const hworks = path.join(hdir, "works"); fs.mkdirSync(hworks, { recursive: true });
+    fs.writeFileSync(path.join(hdir, "corpus-search-v1.json"), JSON.stringify([{ id: "1", t: "א", a: "x", e: "modern", g: "prose", l: "he", r: 1 }]));
+    fs.writeFileSync(path.join(hworks, "1.json"), JSON.stringify(mkWork("1", "שלום שיר שמש")));   // 3 ש-words, distinct 2nd letters
+    const shRes = await buildCorpusFts({ outDir: hdir, byDir: hdir, catalogVersion: 1, dataRev: 1, worksDir: hworks, noFetch: true, quiet: true, bucket2LevelThreshold: 1 });
+    ok(shRes.manifest.sharded_letters.indexOf('ש') !== -1, "heavy letter ש is 2-level sharded", JSON.stringify(shRes.manifest.sharded_letters));
+    ok(Object.keys(shRes.manifest.bucket_files).indexOf('של') !== -1, "bucket_files keyed by 2-letter prefix של", Object.keys(shRes.manifest.bucket_files).join(","));
+    // shardKeyFor routing (heavy len≥2 → prefix; heavy len-1 → letter)
+    FTS._setManifestForTest(shRes.manifest);
+    ok(FTS.shardKeyFor(FTS.normalizeToken('שלום')) === 'של', "shardKeyFor: heavy len≥2 → 2-letter prefix", FTS.shardKeyFor(FTS.normalizeToken('שלום')));
+    ok(FTS.shardKeyFor('ש') === 'ש', "shardKeyFor: heavy len-1 → letter");
+    FTS._setManifestForTest(null);
+    // light-letter routing is independent of the build (pure): a letter NOT in sharded_letters → itself
+    FTS._setManifestForTest({ sharded_letters: ['ש'] });
+    ok(FTS.shardKeyFor(FTS.normalizeToken('מלך')) === 'מ', "shardKeyFor: light letter → single letter");
+    FTS._setManifestForTest(null);
+    // positions resolve through the prefix shard (the client path) → phrase «שלום שיר» still works
+    const pA = shardExPos(shRes, 'שלום', 0), pB = shardExPos(shRes, 'שיר', 0);
+    ok(pA && pA[0] === 0, "positions resolve via 2-letter prefix shard", JSON.stringify(pA));
+    ok(pA && pB && FTS.phraseHit([pA, pB], 0).hit === true, "phrase «שלום שיר» resolves across prefix shards");
+    try { fs.rmSync(hdir, { recursive: true, force: true }); } catch (_) {}
+  }
+
   // determinism — rebuild → byte-identical artifacts
   const res2 = await buildCorpusFts(opts);
   const norm = (r) => JSON.stringify({ m: r.manifest, b: r.buckets, l: r.lemmaObj, lm: r.lemmaMapObj });

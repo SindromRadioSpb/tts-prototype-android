@@ -15,7 +15,7 @@ function eq(got, want, msg) {
   if (a === b) pass++; else { fail++; console.error(`FAIL ${msg}: got ${a} want ${b}`); }
 }
 
-for (const fn of ["normalizeToken", "tokenizeText", "bucketOf", "decodePostings", "decodePositions", "phraseHit", "scoreHits"]) {
+for (const fn of ["normalizeToken", "tokenizeText", "bucketOf", "decodePostings", "decodePositions", "phraseHit", "scoreHits", "shardKeyFor"]) {
   if (typeof FTS[fn] !== "function") { console.error("FAIL: corpus-fts." + fn + " not exported"); process.exit(1); }
 }
 
@@ -53,6 +53,15 @@ eq(FTS.phraseHit([[0], [1], [2]], 0).hit, true, "phraseHit consecutive run");
 eq(FTS.phraseHit([[0], [2]], 0).hit, false, "phraseHit gap blocks at slop 0");
 eq(FTS.phraseHit([[0], [2]], 1).hit, true, "phraseHit gap allowed at slop 1");
 eq(FTS.phraseHit([[4], []], 0).hit, false, "phraseHit empty token list → no hit");
+
+// shardKeyFor — BRR-P2-006a: heavy letters (manifest sharded_letters) key by 2-letter prefix,
+// light letters by the single first letter, length-1 skeletons by the letter itself.
+FTS._setManifestForTest({ sharded_letters: ["ש", "ה"] });
+eq(FTS.shardKeyFor("שלומ"), "של", "shardKeyFor heavy len≥2 → 2-letter prefix");
+eq(FTS.shardKeyFor("הנופל"), "הנ", "shardKeyFor heavy ה → הנ");
+eq(FTS.shardKeyFor("מלכ"), "מ", "shardKeyFor light → single letter");
+eq(FTS.shardKeyFor("ש"), "ש", "shardKeyFor heavy length-1 → letter");
+FTS._setManifestForTest(null);
 
 // scoreHits — AND across terms, exact boosted over lemma-only
 const lookups = {

@@ -57,7 +57,8 @@ let corpusSearchLoading = null;  // single-flight guard
 let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n,ez}} } (lazy, NOT precached)
 let corpusVocabLoading = null;   // single-flight guard
 const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
-const FTS_DATA_REV = 4;           // BRR-P2-001/006 — bump when the FTS index CONTENT/FORMAT changes (rev 4 = positional, schema 2)
+const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS index CONTENT/FORMAT changes (rev 5 = 2-level prefix shards)
+let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
@@ -1191,7 +1192,16 @@ async function loadCorpusCatalog() {
     if (!root || !Array.isArray(root.era_taxonomy)) return;
     corpusRoot = root;
     const tab = $('tabCorpus');
-    if (tab) tab.hidden = !((root.counts && root.counts.works) > 0);
+    const hasCorpus = (root.counts && root.counts.works) > 0;
+    if (tab) tab.hidden = !hasCorpus;
+    // BRR-P2-006a — warm the always-needed FTS layer (manifest + lemma + lemmamap, ~6.5MB) in IDLE
+    // so the first corpus search doesn't wait on it (owner choice: warm on Room load). Gated on the
+    // corpus being present; requestIdleCallback (setTimeout fallback for iOS Safari) keeps it off the
+    // critical path. The letter/prefix shards stay lazy (warmed per query by warmQuery).
+    if (hasCorpus && window.CorpusFTS && window.CorpusFTS.warm) {
+      const _warm = () => { try { ensureFtsConfigured(); window.CorpusFTS.warm(); } catch (_) {} };
+      (window.requestIdleCallback || function (cb) { return setTimeout(cb, 1200); })(_warm);
+    }
   } catch (e) { try { console.warn('[room] corpus root load failed (non-fatal):', e); } catch (_) {} }
 }
 
@@ -1766,11 +1776,12 @@ function renderHomeInto(body) {
 // (joined to the sidecar's full card); unprocessed hits are display-only rows (honest, never
 // openable). Async: shows a loading state on first index fetch.
 async function renderResultsInto(body) {
+  const mySeq = ++corpusFtsSeq;   // BRR-P2-006a — this render owns the FTS slot; a newer query supersedes it
   if (!corpusSearch) {
     body.innerHTML = '';
     body.appendChild(stateBoxNode('room.state.loading', '⏳'));
     try { await loadCorpusSearch(); } catch (e) { if (corpusL1Body === body) { body.innerHTML = ''; body.appendChild(stateBoxNode('room.state.error', '⚠️')); } return; }
-    if (corpusL1Body !== body) return; // a full re-render replaced the body while loading
+    if (corpusL1Body !== body || mySeq !== corpusFtsSeq) return; // a full re-render / newer query replaced this
   }
   if (corpusL1Body !== body) return;
   body.innerHTML = '';
@@ -1788,8 +1799,10 @@ async function renderResultsInto(body) {
   }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   // Group B — BRR-P2-001 full-text «в тексте» (async; lazy-loads only the shard(s) a query needs).
-  await appendFtsGroup(body, corpusFilter.q, hits);
-  if (corpusL1Body === body && !hits.length && !body.querySelector('.corpus-fts-group')) {
+  // Shows its own «Ищем в текстах…» placeholder while loading; the seq token drops stale late results.
+  await appendFtsGroup(body, corpusFilter.q, hits, mySeq);
+  // Empty state ONLY once this render is still current AND nothing was found (never mid-load).
+  if (corpusL1Body === body && mySeq === corpusFtsSeq && !hits.length && !body.querySelector('.corpus-fts-group')) {
     body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍'));
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   }
@@ -1849,13 +1862,23 @@ function appendFtsSection(body, q, label, items) {
 // фраза», positions-verified consecutive words, ranked first) + a scattered «слова в тексте» group;
 // a single word stays one «🔎 В тексте» group. The old misleading «по форме слова» badge is gone:
 // content words are lemma-only by design, so it lit on every content hit and signalled nothing.
-async function appendFtsGroup(body, q, titleHits) {
+async function appendFtsGroup(body, q, titleHits, seq) {
   if (!window.CorpusFTS || !q || !String(q).trim()) return;
   if (!window.CorpusFTS.tokenizeText(q).length) return;   // index is Hebrew — skip non-Hebrew queries
   ensureFtsConfigured();
+  // BRR-P2-006a — show progress IMMEDIATELY: loading the lemma layer + letter-shards can take a few
+  // seconds (especially a pasted phrase). Without this the user saw the title-match count «0» and
+  // assumed the search failed. role=status/aria-live announces it to assistive tech.
+  const loading = el('div', { class: 'corpus-fts-loading', attrs: { role: 'status', 'aria-live': 'polite' } });
+  loading.appendChild(el('span', { class: 'corpus-fts-spinner', attrs: { 'aria-hidden': 'true' } }));
+  loading.appendChild(el('span', { i18n: 'room.corpus.search.searching', text: tt('room.corpus.search.searching', 'Ищем в текстах…') }));
+  body.appendChild(loading);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  const stale = () => corpusL1Body !== body || (seq != null && seq !== corpusFtsSeq);
   let out = null;
-  try { out = await window.CorpusFTS.phraseSearch(q); } catch (_) { return; }
-  if (corpusL1Body !== body) return;                       // navigated away while loading shards
+  try { out = await window.CorpusFTS.phraseSearch(q); } catch (_) { try { loading.remove(); } catch (_2) {} return; }
+  try { loading.remove(); } catch (_) {}                   // search settled → drop the placeholder
+  if (stale()) return;                                     // navigated away / query superseded while loading
   const res = (out && out.results) || [];
   if (!res.length) return;
   const f = corpusFilter;
@@ -1889,7 +1912,13 @@ function buildCorpusFilterBar() {
   const input = el('input', { class: 'corpus-search-input', attrs: { type: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
   input.value = corpusFilter.q || '';
   let deb;
-  input.addEventListener('input', () => { clearTimeout(deb); deb = setTimeout(() => { corpusFilter.q = input.value; corpusRefreshL1Body(); }, 200); });
+  input.addEventListener('input', () => {
+    // BRR-P2-006a — warm the exact-index shards this query will need IMMEDIATELY (before the debounce):
+    // a pasted phrase fires one `input` with the whole line → every prefix-shard starts loading at once,
+    // so by the time the debounced search runs they're in flight/cached. Fire-and-forget.
+    try { ensureFtsConfigured(); window.CorpusFTS && window.CorpusFTS.warmQuery(input.value); } catch (_) {}
+    clearTimeout(deb); deb = setTimeout(() => { corpusFilter.q = input.value; corpusRefreshL1Body(); }, 200);
+  });
   bar.appendChild(input);
   const chips = el('div', { class: 'corpus-facets' });
   const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly) } });
