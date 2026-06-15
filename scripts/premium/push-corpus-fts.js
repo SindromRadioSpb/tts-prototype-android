@@ -21,7 +21,7 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const TOKEN = process.env.AUDIO_UPLOAD_TOKEN || "";
-const FTS_FILE_RE = /^((ex-[א-ת]+|lemma(-\d+)?|lemmamap)-v\d+\.json)$/;
+const FTS_FILE_RE = /^((ex-[א-ת]+(-\d+)?|lemma(-\d+)?|lemmamap)-v\d+\.json)$/;
 
 function parseArgs(argv) {
   const a = { base: "https://linguistpro.kolosei.com", dir: path.join(ROOT, "public", "data", "benyehuda", "fts"), concurrency: 4, dryRun: false };

@@ -3485,7 +3485,7 @@ app.post("/api/benyehuda/works/upload", rlWorksUpload, async (req, res) => {
 // (corpus-fts manifest / ex-<letter> / lemma / lemmamap) onto the volume → DATA_DIR/benyehuda/fts/,
 // served KEYLESS at /data/benyehuda/fts/<file> (static mount above). Same shared-owner-token gate
 // + atomic overwrite + path-traversal guard as the works upload. Body: { file, json }.
-const FTS_FILE_RE = /^(corpus-fts-v\d+\.json|(ex-[א-ת]+|lemma(-\d+)?|lemmamap)-v\d+\.json)$/;
+const FTS_FILE_RE = /^(corpus-fts-v\d+\.json|(ex-[א-ת]+(-\d+)?|lemma(-\d+)?|lemmamap)-v\d+\.json)$/;
 app.post("/api/benyehuda/fts/upload", rlWorksUpload, async (req, res) => {
   try {
     if (!requireAudioUploadAuth(req, res)) return;

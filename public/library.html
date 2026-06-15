@@ -392,9 +392,10 @@
       white-space: normal; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
       overflow: hidden; font-size: 13px; line-height: 1.35;
     }
-    /* BRR-P2-001 — full-text «в тексте» group + lemma-expansion honesty marker (R10). */
+    /* BRR-P2-001/006 — full-text «в тексте» group (phrase + scattered-words sub-groups). The
+       BRR-P2-001 «по форме слова» badge was retired in P2-006: content words are lemma-only by
+       design, so it lit on every content hit and signalled nothing — honest grouping replaced it. */
     .corpus-fts-group { margin-top: 14px; }
-    .prov-badge.fts-byform { background: var(--bg-muted); color: var(--text-faint); border: 1px dashed var(--border-soft); }
     /* BRR-P2-005 — unified jump-highlight (resume / bookmark / FTS hit): a soft AMBER tint on the
        whole row (both language columns) + a leading accent bar, persistent until the next user
        interaction. Amber is distinct from the Room's BLUE playback highlight; theme-independent

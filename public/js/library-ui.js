@@ -57,7 +57,7 @@ let corpusSearchLoading = null;  // single-flight guard
 let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n,ez}} } (lazy, NOT precached)
 let corpusVocabLoading = null;   // single-flight guard
 const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
-const FTS_DATA_REV = 3;           // BRR-P2-001 — bump when the FTS index CONTENT changes within a catalog version
+const FTS_DATA_REV = 4;           // BRR-P2-001/006 — bump when the FTS index CONTENT/FORMAT changes (rev 4 = positional, schema 2)
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
@@ -983,12 +983,18 @@ function scrollToSentence(sid) {
   if (idx >= 0) scrollToReaderRow(idx);
 }
 
-// BRR-P2-005 — open an FTS hit AT the first row whose Hebrew contains the query (exact skeleton
-// or lemma pid, via the SAME normaliser the index used). Falls back to normal resume if no row
-// is located (lemmamap loaded post-search, so this is the common path for a ready hit).
+// BRR-P2-005/006 — open an FTS hit AT the matched line. For a multi-word query, prefer the row
+// carrying the whole PHRASE (consecutive query tokens, firstPhraseRow); fall back to the first row
+// containing any query token (firstMatchRow); fall back to normal resume if none is located.
 function jumpToFtsMatch(q) {
   let idx = -1;
-  try { idx = (window.CorpusFTS && window.CorpusFTS.firstMatchRow) ? window.CorpusFTS.firstMatchRow(readerRows, q) : -1; } catch (_) { idx = -1; }
+  try {
+    const C = window.CorpusFTS;
+    if (C) {
+      if (C.firstPhraseRow) idx = C.firstPhraseRow(readerRows, q);
+      if (idx < 0 && C.firstMatchRow) idx = C.firstMatchRow(readerRows, q);
+    }
+  } catch (_) { idx = -1; }
   if (idx >= 0) scrollToReaderRow(idx);
   else restoreReaderPosition(readerTextId, {});
 }
@@ -1825,20 +1831,36 @@ function ensureFtsConfigured() {
   window.CorpusFTS.configure({ version: CORPUS_CATALOG_VERSION, dataRev: FTS_DATA_REV, base: '/data/benyehuda/' });
   _ftsConfigured = true;
 }
-// Query the full-text index and render a «🔎 в тексте» group for hits NOT already shown in the
-// title/author group. Ready hits open into the bilingual reader; non-ready hits are honest
-// «найдено · перевод готовится» (display-only). A lemma-only hit is marked «по форме слова» (R10).
+// Render one FTS sub-group section (title + paged work rows). Ready hits open into the bilingual
+// reader AT the matched line (ftsQuery → firstPhraseRow/firstMatchRow); non-ready hits are honest
+// «найдено · перевод готовится» (display-only).
+function appendFtsSection(body, q, label, items) {
+  if (!items.length) return;
+  const sec = el('section', { class: 'shelf corpus-fts-group' });
+  const head = el('div', { class: 'shelf-head' });
+  head.appendChild(el('h2', { class: 'shelf-title', text: label + ' (' + items.length + ')' }));
+  sec.appendChild(head);
+  body.appendChild(sec);
+  appendPagedWorkRows(sec, items, null, { openOpts: { ftsQuery: q } });   // BRR-P2-005/006 — opens AT the matched/phrase line
+}
+
+// Query the full-text index and render «в тексте» groups for hits NOT already shown in the
+// title/author group. BRR-P2-006 — a multi-word query is split into a PHRASE group («🔎 точная
+// фраза», positions-verified consecutive words, ranked first) + a scattered «слова в тексте» group;
+// a single word stays one «🔎 В тексте» group. The old misleading «по форме слова» badge is gone:
+// content words are lemma-only by design, so it lit on every content hit and signalled nothing.
 async function appendFtsGroup(body, q, titleHits) {
   if (!window.CorpusFTS || !q || !String(q).trim()) return;
   if (!window.CorpusFTS.tokenizeText(q).length) return;   // index is Hebrew — skip non-Hebrew queries
   ensureFtsConfigured();
-  let res = [];
-  try { res = await window.CorpusFTS.search(q); } catch (_) { return; }
+  let out = null;
+  try { out = await window.CorpusFTS.phraseSearch(q); } catch (_) { return; }
   if (corpusL1Body !== body) return;                       // navigated away while loading shards
-  if (!res || !res.length) return;
+  const res = (out && out.results) || [];
+  if (!res.length) return;
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
-  const items = [];
+  const phraseItems = [], wordItems = [];
   for (const r of res) {
     const sr = corpusSearch[r.w];
     if (!sr) continue;
@@ -1846,20 +1868,16 @@ async function appendFtsGroup(body, q, titleHits) {
     if (f.genre && sr.g !== f.genre) continue;
     if (f.lang && sr.l !== f.lang) continue;
     if (titleIds.has(String(sr.id))) continue;             // already in the title/author group
-    items.push({ sr: sr, r: r });
+    (r.phrase ? phraseItems : wordItems).push({ sr: sr, r: r });
   }
-  if (!items.length) return;
-  const sec = el('section', { class: 'shelf corpus-fts-group' });
-  const head = el('div', { class: 'shelf-head' });
-  head.appendChild(el('h2', { class: 'shelf-title', text: '🔎 ' + tt('room.corpus.search.inText', 'В тексте') + ' (' + items.length + ')' }));
-  sec.appendChild(head);
-  body.appendChild(sec);
-  appendPagedWorkRows(sec, items, (node, it) => {
-    if (it.r && it.r.exact === 0 && it.r.lemma > 0) {       // matched only via lemma expansion
-      const meta = node.querySelector('.work-card-meta') || node;
-      meta.appendChild(el('span', { class: 'prov-badge fts-byform', i18n: 'room.corpus.search.byForm', text: tt('room.corpus.search.byForm', 'по форме слова') }));
-    }
-  }, { openOpts: { ftsQuery: q } });   // BRR-P2-005 — ready FTS hit opens AT the matched sentence
+  if (!phraseItems.length && !wordItems.length) return;
+  // Multi-word query with at least one exact-phrase hit → two honest groups; otherwise one.
+  if (out.multiToken && phraseItems.length) {
+    appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), phraseItems);
+    appendFtsSection(body, q, tt('room.corpus.search.words', 'Слова в тексте'), wordItems);
+  } else {
+    appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.inText', 'В тексте'), phraseItems.concat(wordItems));
+  }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 

@@ -82,10 +82,30 @@ async function buildCorpusFts(opts = {}) {
   // common CONTENT words (love/king appear in many works but are real search targets). 0.92 = drop
   // a term only when it is in >92% of indexed works.
   const maxDfRatio = opts.maxDfRatio != null ? Number(opts.maxDfRatio) : 0.92;
-  const exact = new Map();      // skeleton → Map(ord → tf)
-  const lemma = new Map();      // pid → Map(ord → tf)
+  // BRR-P2-006 — two-layer index tuned for a mobile PWA:
+  //   • lemma  — COUNT-only, pid-keyed (Dicta-class recall). SMALL + always-loaded on a search;
+  //              powers word-AND scoring and the scattered «слова в тексте» group. (Unchanged
+  //              footprint from the shipped v7 — positions are NOT put here: a content pid spans
+  //              thousands of works × many positions and the lemma index loads in full, so adding
+  //              positions here exploded it to 100 MB. Measured, rejected.)
+  //   • exact  — POSITIONAL, skeleton-keyed, over EVERY token, sharded by first letter and lazily
+  //              loaded per query letter. Each (skeleton, work) carries the WORD OFFSETS of its
+  //              occurrences so the client can test phrase ADJACENCY. A phrase query loads only the
+  //              2–3 letter buckets of its tokens, never the whole index. «Точная фраза» = exact
+  //              consonantal skeleton run — which is exactly what that label promises.
+  // MAX_POS caps offsets per (skeleton, work): a frequent word in a long work stores only its first
+  // N positions (a phrase almost always lives among the early occurrences) — bounds the bucket size.
+  const MAX_POS = opts.maxPos != null ? Number(opts.maxPos) : 16;
+  const exact = new Map();      // skeleton → Map(ord → [offsets])  (positional, all tokens)
+  const lemma = new Map();      // pid → Map(ord → tf)              (count-only, content tokens)
   const lemmaMap = new Map();   // skeleton → pid (first-wins)
   let indexed = 0, missing = 0, totalTok = 0, matchedTok = 0, collisions = 0;
+  // push offset into the (ord → [offsets]) slot for `skel` in the exact map, honouring MAX_POS
+  const pushPos = (skel, ord, off) => {
+    let m = exact.get(skel); if (!m) { m = new Map(); exact.set(skel, m); }
+    let a = m.get(ord); if (!a) { a = []; m.set(ord, a); }
+    if (a.length < MAX_POS) a.push(off);
+  };
 
   const ids = search.map((r) => String(r.id));
   const todo = limit ? ids.slice(0, limit) : ids;
@@ -98,23 +118,24 @@ async function buildCorpusFts(opts = {}) {
     const toks = FTS.tokenizeText(text);
     if (!toks.length) { missing++; continue; }
     let any = false;
+    // off = the word's 0-based position in the body token-stream. It increments for EVERY Hebrew
+    // token so consecutive body words get consecutive offsets — the coordinate phrase adjacency is
+    // checked in. Query-side uses the SAME tokenizer (parity gate).
+    let off = 0;
     for (const tk of toks) {
+      const myOff = off++;
       const skel = FTS.normalizeToken(tk); if (!skel) continue;
       any = true; totalTok++;
+      // EVERY token → positional exact field (powers exact-phrase adjacency AND literal/name search).
+      pushPos(skel, ord, myOff);
       const pid = tokenToPid(form2pid, tk);
       if (pid) {
-        // CONTENT word → the lemma field collapses all its inflections/proclitics into one pid
-        // (Dicta-class recall + compact: no per-surface-form explosion). lemmamap resolves a
-        // query skeleton → pid without shipping the 3.3 MB dict.
+        // CONTENT word → ALSO the lemma field (count): collapses inflections/proclitics into one pid
+        // for Dicta-class word recall. lemmamap resolves a query skeleton → pid without the 3.3 MB dict.
         matchedTok++;
         if (!lemmaMap.has(skel)) lemmaMap.set(skel, pid);
         else if (lemmaMap.get(skel) !== pid) collisions++;
         let lm = lemma.get(pid); if (!lm) { lm = new Map(); lemma.set(pid, lm); } lm.set(ord, (lm.get(ord) || 0) + 1);
-      } else {
-        // FALLBACK token (proper noun / archaic / non-Pealim ≈15%) → the lemma field can't hold
-        // it, so the exact-skeleton field carries it (keeps name/place search; small because the
-        // proclitic-inflated content vocabulary lives in the lemma field, not here).
-        let m = exact.get(skel); if (!m) { m = new Map(); exact.set(skel, m); } m.set(ord, (m.get(ord) || 0) + 1);
       }
     }
     if (any) indexed++;
@@ -131,19 +152,56 @@ async function buildCorpusFts(opts = {}) {
   const keptPids = new Set();
   for (const [pid, m] of lemma) { if (m.size > maxDf) { lemma.delete(pid); droppedLemma++; } else keptPids.add(pid); }
 
-  // flat [w0,c0,dw1,c1,...] (ord ascending, delta-encoded) — lossless, gzip-friendly
-  function encode(m) {
+  // COUNT flat encoding (lemma): `[w0,c0,dw1,c1,…]` (ord delta, tf) — round-trips through
+  // corpus-fts.js decodePostings (gate-pinned). Compact + always-loaded.
+  function encodeCount(m) {
     const arr = Array.from(m.entries()).sort((a, b) => a[0] - b[0]);
     const out = []; let prev = 0;
     for (const [ord, c] of arr) { out.push(ord - prev, c); prev = ord; }
     return out;
   }
+  // POSITIONAL flat encoding (exact, schema 2): per work `[w, n, off0, dΔ1, …]` — ord delta across
+  // works, n = #offsets, offsets delta-encoded within the work (ascending; first delta absolute).
+  // Lossless, gzip-friendly, round-trips through corpus-fts.js decodePositions (gate-pinned).
+  function encodePos(m) {
+    const arr = Array.from(m.entries()).sort((a, b) => a[0] - b[0]);
+    const out = []; let prevOrd = 0;
+    for (const [ord, offs] of arr) {
+      out.push(ord - prevOrd, offs.length);
+      let prevOff = 0;
+      for (const o of offs) { out.push(o - prevOff); prevOff = o; }
+      prevOrd = ord;
+    }
+    return out;
+  }
   const sortObj = (o) => { const out = {}; for (const k of Object.keys(o).sort()) out[k] = o[k]; return out; };
 
   const buckets = {};
-  for (const [skel, m] of exact) { const b = FTS.bucketOf(skel); if (!b) continue; (buckets[b] || (buckets[b] = {}))[skel] = encode(m); }
+  for (const [skel, m] of exact) { const b = FTS.bucketOf(skel); if (!b) continue; (buckets[b] || (buckets[b] = {}))[skel] = encodePos(m); }
   for (const b of Object.keys(buckets)) buckets[b] = sortObj(buckets[b]);
-  const lemmaObj = {}; for (const [pid, m] of lemma) lemmaObj[pid] = encode(m);
+  // A positional letter-bucket (every token's offsets) can outgrow the 10 MB upload body cap — the
+  // ה/ו/ב buckets are tens of MB. Split each letter into raw-size-bounded sub-shards (ex-<L>-<i>);
+  // a small letter stays the single ex-<L>. The client loads every sub-shard for a needed letter
+  // and merges (so a phrase query touching that letter pays its cost once, then HTTP/SW-cached).
+  const BUCKET_SHARD_BUDGET = 8 * 1024 * 1024;
+  const bucketFiles = {};       // letter → [shard file paths] (manifest)
+  const bucketShards = [];      // [{ file, obj }] (writeArtifacts)
+  for (const b of Object.keys(buckets).sort()) {
+    const skels = Object.keys(buckets[b]);   // already sorted by sortObj
+    const parts = []; let cur = {}, curBytes = 0;
+    for (const skel of skels) {
+      const entryBytes = skel.length + JSON.stringify(buckets[b][skel]).length + 6;
+      if (curBytes > 0 && curBytes + entryBytes > BUCKET_SHARD_BUDGET) { parts.push(cur); cur = {}; curBytes = 0; }
+      cur[skel] = buckets[b][skel]; curBytes += entryBytes;
+    }
+    if (Object.keys(cur).length) parts.push(cur);
+    bucketFiles[b] = parts.map((obj, i) => {
+      const file = "fts/ex-" + b + (parts.length > 1 ? "-" + i : "") + "-v" + V + ".json";
+      bucketShards.push({ file, obj });
+      return file;
+    });
+  }
+  const lemmaObj = {}; for (const [pid, m] of lemma) lemmaObj[pid] = encodeCount(m);
   // Shard the lemma index by a raw-size budget — one file would outgrow the upload body cap
   // (and keeps growing with the corpus). Deterministic: sorted pids accumulated into shards.
   const LEMMA_SHARD_BUDGET = 8 * 1024 * 1024;
@@ -172,18 +230,20 @@ async function buildCorpusFts(opts = {}) {
 
   const lemmaFiles = lemmaShards.map((_, i) => "fts/lemma-" + i + "-v" + V + ".json");
   const manifest = {
-    schema: 1, version: V, data_rev: dataRev,
+    schema: 2, version: V, data_rev: dataRev,            // schema 2 = positional postings (BRR-P2-006)
+    positions: true, max_pos: MAX_POS,
     fields: ["exact", "lemma"],
     works_file: "corpus-search-v" + V + ".json",
     lemma_files: lemmaFiles,
     lemmamap_file: "fts/lemmamap-v" + V + ".json",
     buckets: Object.keys(buckets).sort(),
+    bucket_files: bucketFiles,         // letter → [sub-shard files] (positional exact, lazy per letter)
     max_df_ratio: maxDfRatio,
-    counts: { works: search.length, indexed, missing, exact_keys: exact.size, lemma_keys: lemma.size, lemma_shards: lemmaShards.length, dropped_exact: droppedExact, dropped_lemma: droppedLemma, collisions, total_tokens: totalTok, matched_tokens: matchedTok },
+    counts: { works: search.length, indexed, missing, exact_keys: exact.size, lemma_keys: lemma.size, lemma_shards: lemmaShards.length, bucket_shards: bucketShards.length, dropped_exact: droppedExact, dropped_lemma: droppedLemma, collisions, total_tokens: totalTok, matched_tokens: matchedTok },
   };
 
   return {
-    V, dataRev, manifest, buckets, lemmaShards,
+    V, dataRev, manifest, buckets, bucketShards, lemmaShards,
     lemmaObj: sortObj(lemmaObj), lemmaMapObj: sortObj(lemmaMapObj),
     stats: manifest.counts,
   };
@@ -201,7 +261,8 @@ function writeArtifacts(outDir, res) {
   };
   // clean stale shards for this version first (a shrunk bucket set must not leave orphans)
   for (const f of fs.readdirSync(ftsDir)) { if (new RegExp("-v" + res.V + "\\.json$").test(f)) fs.unlinkSync(path.join(ftsDir, f)); }
-  for (const b of Object.keys(res.buckets)) write(path.join(ftsDir, "ex-" + b + "-v" + res.V + ".json"), res.buckets[b]);
+  // exact buckets: write each size-bounded sub-shard (path is "fts/ex-…", strip the "fts/" prefix)
+  for (const sh of res.bucketShards) write(path.join(ftsDir, path.basename(sh.file)), sh.obj);
   res.lemmaShards.forEach((obj, i) => write(path.join(ftsDir, "lemma-" + i + "-v" + res.V + ".json"), obj));
   write(path.join(ftsDir, "lemmamap-v" + res.V + ".json"), res.lemmaMapObj);
   const manRaw = JSON.stringify(res.manifest);
@@ -216,7 +277,8 @@ if (require.main === module) {
     const res = await buildCorpusFts({
       outDir, byDir: arg("by-dir", undefined),
       catalogVersion: arg("catalog-version", undefined), dataRev: arg("data-rev", 1),
-      limit: arg("limit", undefined), noFetch: flag("no-fetch") ? true : (flag("fetch") ? false : true),
+      limit: arg("limit", undefined), maxPos: arg("max-pos", undefined),
+      noFetch: flag("no-fetch") ? true : (flag("fetch") ? false : true),
       quiet: flag("quiet"),
     });
     const s = res.stats;

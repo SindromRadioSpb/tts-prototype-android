@@ -15,7 +15,7 @@ function eq(got, want, msg) {
   if (a === b) pass++; else { fail++; console.error(`FAIL ${msg}: got ${a} want ${b}`); }
 }
 
-for (const fn of ["normalizeToken", "tokenizeText", "bucketOf", "decodePostings", "scoreHits"]) {
+for (const fn of ["normalizeToken", "tokenizeText", "bucketOf", "decodePostings", "decodePositions", "phraseHit", "scoreHits"]) {
   if (typeof FTS[fn] !== "function") { console.error("FAIL: corpus-fts." + fn + " not exported"); process.exit(1); }
 }
 
@@ -39,9 +39,20 @@ eq(FTS.tokenizeText(""), [], "empty → []");
 eq(FTS.bucketOf("שלום"), "ש", "bucket = first letter");
 eq(FTS.bucketOf("המלכ"), "ה", "bucket ה");
 
-// decodePostings — delta + prefix-sum round-trip
-eq(FTS.decodePostings([2, 5, 3, 1, 10, 2]), [{ w: 2, c: 5 }, { w: 5, c: 1 }, { w: 15, c: 2 }], "delta decode");
+// decodePostings — lemma COUNT field `[w0,c0,dw1,c1,…]`, delta + prefix-sum round-trip
+eq(FTS.decodePostings([2, 5, 3, 1, 10, 2]), [{ w: 2, c: 5 }, { w: 5, c: 1 }, { w: 15, c: 2 }], "count delta decode");
 eq(FTS.decodePostings([]), [], "empty postings");
+// decodePositions — exact POSITIONAL field (schema 2): per work [w, n, off0, dΔ…], offsets prefix-summed.
+//   work@ord2: 3 offsets [0,5,6]; work@ord5: 1 offset [2]; work@ord15: 2 offsets [0,1]
+eq(FTS.decodePositions([2, 3, 0, 5, 1, 3, 1, 2, 10, 2, 0, 1]),
+  [{ w: 2, pos: [0, 5, 6] }, { w: 5, pos: [2] }, { w: 15, pos: [0, 1] }], "positions delta decode");
+eq(FTS.decodePositions([]), [], "empty positions");
+
+// phraseHit — pure adjacency (slop 0 = consecutive; slop widens the allowed gap)
+eq(FTS.phraseHit([[0], [1], [2]], 0).hit, true, "phraseHit consecutive run");
+eq(FTS.phraseHit([[0], [2]], 0).hit, false, "phraseHit gap blocks at slop 0");
+eq(FTS.phraseHit([[0], [2]], 1).hit, true, "phraseHit gap allowed at slop 1");
+eq(FTS.phraseHit([[4], []], 0).hit, false, "phraseHit empty token list → no hit");
 
 // scoreHits — AND across terms, exact boosted over lemma-only
 const lookups = {
