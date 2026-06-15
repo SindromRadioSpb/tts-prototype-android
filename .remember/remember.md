@@ -3,7 +3,7 @@
 **★ READ FIRST:** `docs/planning/BRR_P2_DISCOVERY_2026_06_14.md` (дизайн-канон Discovery; P2-001..006 SHIPPED) +
 `docs/PROJECT_ROLES.md` (R1–R10 авто) + CLAUDE.md.
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал `/library.html`, Studio `/index.html`).
-**main HEAD `<pending-stamp>`, SW `v3.10.62-fts-phrase`.** Owner-инвариант: бескомпромиссное качество, без заглушек.
+**main HEAD `8ab334e`, SW `v3.10.62-fts-phrase` — ПРОД-ВЕРИФИЦИРОВАН (37 шардов на томе, 1 phrase-хит, 0 console-errors).** Owner-инвариант: бескомпромиссное качество, без заглушек.
 
 ## ✅ BRR-P2-006 — позиционный ФРАЗОВЫЙ full-text «найти строку/фразу» (SHIPPED, prod-verify в процессе)
 Находка смоук-чека #8: искал фразу «אתם כבר יודעים» → 2399 шумных «по форме слова», строка зарыта (FTS был ПОСЛОВНЫЙ AND).
