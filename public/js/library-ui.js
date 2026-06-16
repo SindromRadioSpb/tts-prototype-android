@@ -60,7 +60,11 @@ const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT chan
 const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS index CONTENT/FORMAT changes (rev 5 = 2-level prefix shards)
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
-let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode)
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance)
+let corpusSearchInputEl = null;     // S12 — ref so recent/suggestion chips can set the query
+let corpusRecentsEl = null;         // S12 — recents/suggestions row (under the filter bar)
+const RECENTS_KEY = 'corpus_recent_searches_v1';
+const CORPUS_SUGGESTIONS = ['אהבה', 'מלך', 'לב', 'חיים', 'שלום', 'ירושלים'];   // S12 cold-start prompts (high-frequency, R7-honest)
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
                                  // filter bar — and the search input's focus — survive typing)
 let corpusClearChip = null;      // ref to the «✕ Сбросить» chip (shown only when a filter is active)
@@ -1633,15 +1637,28 @@ function corpusReadyMap() {
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) corpusReadyById.set(String(c.id), c);
   return corpusReadyById;
 }
-function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly); }
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed); }
+// BRR-S16 — provenance filters (audio / human-reviewed) are properties of the READY card (corpus-search
+// rows don't carry them), so they imply readable works: a non-ready row has no card → excluded honestly.
+function corpusAdvOk(row, readyMap) {
+  const f = corpusFilter;
+  if (!f.hasAudio && !f.reviewed) return true;
+  const card = readyMap.get(String(row.id));
+  if (!card) return false;
+  if (f.hasAudio && !(card.audio_status && card.audio_status !== 'none')) return false;
+  if (f.reviewed && !(card.review_status === 'human_proofread' || card.review_status === 'machine_assisted')) return false;
+  return true;
+}
 function corpusApplyFilter() {
   const rows = corpusSearch || [];
   const f = corpusFilter; const q = corpusNrm(f.q);
+  const readyMap = corpusReadyMap();
   return rows.filter((row) => {
     if (f.readyOnly && !row.r) return false;
     if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // S7 — i+1 zone only
     if (f.genre && row.g !== f.genre) return false;
     if (f.lang && row.l !== f.lang) return false;
+    if ((f.hasAudio || f.reviewed) && !corpusAdvOk(row, readyMap)) return false;             // S16 — provenance
     if (q && !(String(row._n || '').includes(q) || corpusNrm(row.a).includes(q))) return false;
     return true;
   });
@@ -1658,6 +1675,8 @@ function corpusFilterSummary() {
   if (f.lang) parts.push(corpusLangLabel(f.lang));
   if (f.readyOnly) parts.push(tt('room.corpus.facets.ready', 'Готовые'));
   if (f.readableOnly) parts.push(tt('room.corpus.facets.readable', 'Читаемые для меня'));
+  if (f.hasAudio) parts.push(tt('room.corpus.facets.hasAudio', 'С аудио'));
+  if (f.reviewed) parts.push(tt('room.corpus.facets.reviewed', 'Проверено'));
   return parts.join(' · ') || tt('room.corpus.search.results', 'Результаты');
 }
 // BRR-S6 — the results count, split so a «0» can't be misread. `titleN` = title/author matches;
@@ -1775,6 +1794,8 @@ function corpusRefreshL1Body() {
   if (!body) return;
   // keep the clear chip in sync without rebuilding the bar (preserves input focus)
   if (corpusClearChip) corpusClearChip.hidden = !corpusFilterActive();
+  // S12 — recents/suggestions are a home-only affordance; repaint (history may have grown) + toggle.
+  if (corpusRecentsEl) { if (corpusFilterActive()) corpusRecentsEl.hidden = true; else { paintRecents(); corpusRecentsEl.hidden = false; } }
   if (corpusFilterActive()) renderResultsInto(body);
   else renderHomeInto(body);
 }
@@ -2032,7 +2053,8 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
   const stale = () => corpusL1Body !== body || (seq != null && seq !== corpusFtsSeq);
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
-  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
+  const advReadyMap = corpusReadyMap();
+  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
   let ftsCount = 0;
   const bumpCount = (done) => { if (summary && summary.countEl) { try { summary.countEl.textContent = corpusCountLabel(summary.titleN, ftsCount, done); } catch (_) {} } };
 
@@ -2083,6 +2105,63 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
+// ── BRR-S12 — recent searches (localStorage) + cold-start suggestions ──────────────
+function getRecentSearches() { try { const a = JSON.parse(localStorage.getItem(RECENTS_KEY) || '[]'); return Array.isArray(a) ? a.filter((x) => typeof x === 'string') : []; } catch (_) { return []; } }
+function pushRecentSearch(q) {
+  q = String(q || '').trim(); if (q.length < 2) return;
+  try {
+    // prefix-collapse: a typing progression (אהב→אהבה) keeps only the refined query, not every partial
+    let a = getRecentSearches().filter((x) => !(q.indexOf(x) === 0 || x.indexOf(q) === 0));
+    a.unshift(q);
+    localStorage.setItem(RECENTS_KEY, JSON.stringify(a.slice(0, 8)));
+  } catch (_) {}
+}
+function clearRecentSearches() { try { localStorage.removeItem(RECENTS_KEY); } catch (_) {} }
+function setSearchQueryFromChip(term) {
+  if (corpusSearchInputEl) {
+    corpusSearchInputEl.value = term;
+    const cx = corpusSearchInputEl.parentNode && corpusSearchInputEl.parentNode.querySelector('.corpus-search-clear');
+    if (cx) cx.hidden = false;
+  }
+  corpusFilter.q = term; pushRecentSearch(term); corpusRefreshL1Body();
+  try { ensureFtsConfigured(); window.CorpusFTS && window.CorpusFTS.warmQuery(term); } catch (_) {}
+  try { corpusSearchInputEl && corpusSearchInputEl.focus(); } catch (_) {}
+}
+// Paint the recents/suggestions row (under the bar, only when no query is active). Recents win;
+// an empty history falls back to honest «попробуйте» cold-start prompts.
+function paintRecents() {
+  const host = corpusRecentsEl; if (!host) return;
+  host.innerHTML = '';
+  const recents = getRecentSearches();
+  const list = recents.length ? recents : CORPUS_SUGGESTIONS;
+  host.appendChild(el('span', { class: 'corpus-recents-label', text: recents.length ? tt('room.corpus.search.recent', 'Недавние') : tt('room.corpus.search.try', 'Попробуйте') }));
+  const chips = el('div', { class: 'corpus-recents-chips' });
+  for (const term of list) {
+    const c = el('button', { class: 'corpus-recent-chip', attrs: { type: 'button' } });
+    c.textContent = term; if (HEBREW_RE.test(term)) c.setAttribute('dir', 'rtl');
+    c.addEventListener('click', () => setSearchQueryFromChip(term));
+    chips.appendChild(c);
+  }
+  host.appendChild(chips);
+  if (recents.length) {
+    const clr = el('button', { class: 'corpus-recents-clear', attrs: { type: 'button', title: tt('room.corpus.search.clearRecent', 'Очистить историю'), 'aria-label': tt('room.corpus.search.clearRecent', 'Очистить историю') } });
+    clr.textContent = '✕';
+    clr.addEventListener('click', () => { clearRecentSearches(); paintRecents(); });
+    host.appendChild(clr);
+  }
+}
+
+// BRR-S14 — «ещё у автора»: jump to the author's full works list (the existing Период→Автор→Работа
+// drill). Robust to a missing era on the card by scanning the author index across all eras.
+function corpusNavToAuthor(era, name) {
+  if (!name) return;
+  loadCorpusIndex().then(() => {
+    const authors = (corpusIndex && corpusIndex.authors) || {};
+    const eras = era ? [era] : Object.keys(authors);
+    for (const e of eras) { const a = (authors[e] || []).find((x) => x.name === name); if (a) { corpusNavTo('works', e, a); return; } }
+  }).catch(() => {});
+}
+
 // Persistent global filter bar: search input + ✓Готовые toggle + genre/lang selects (counts
 // from the root) + a clear chip when any filter is active. Each control refreshes only the L1
 // body, so the input focus + select values survive.
@@ -2091,12 +2170,13 @@ function buildCorpusFilterBar() {
   const inputWrap = el('div', { class: 'corpus-search-wrap' });
   const input = el('input', { class: 'corpus-search-input', attrs: { type: 'search', enterkeyhint: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
   input.value = corpusFilter.q || '';
+  corpusSearchInputEl = input;   // S12 — recents/suggestion chips set the query through this ref
   // BRR-S4 — inline ✕ clear (tabindex -1: it's a mouse/touch affordance; Escape clears via keyboard).
   const clearX = el('button', { class: 'corpus-search-clear', attrs: { type: 'button', tabindex: '-1', 'aria-label': tt('room.corpus.search.clearInput', 'Очистить') } });
   clearX.textContent = '✕';
   clearX.hidden = !input.value;
   let deb;
-  const applyQuery = () => { corpusFilter.q = input.value; corpusRefreshL1Body(); };
+  const applyQuery = () => { corpusFilter.q = input.value; pushRecentSearch(input.value); corpusRefreshL1Body(); };   // S12 — record the search
   const doClear = () => { input.value = ''; clearX.hidden = true; clearTimeout(deb); corpusFilter.q = ''; corpusRefreshL1Body(); try { input.focus(); } catch (_) {} };
   input.addEventListener('input', () => {
     // BRR-P2-006a — warm the exact-index shards this query will need IMMEDIATELY (before the debounce):
@@ -2136,6 +2216,17 @@ function buildCorpusFilterBar() {
   exactChip.textContent = '🔤 ' + tt('room.corpus.search.exactForm', 'Точная форма');
   exactChip.addEventListener('click', () => { corpusFilter.exactForm = !corpusFilter.exactForm; exactChip.classList.toggle('on', corpusFilter.exactForm); exactChip.setAttribute('aria-pressed', String(corpusFilter.exactForm)); corpusRefreshL1Body(); });
   chips.appendChild(exactChip);
+  // BRR-S16 — provenance filters (data-feasible from ready cards; imply readable works). A simple toggle
+  // chip each: 🔊 has-audio, ✍ human-reviewed. (Length is covered by the L3 length-sort; niqqud-ratio
+  // would need a new corpus-search field — deferred, see the impl doc.)
+  const mkProvChip = (key, emoji, i18nKey, fb) => {
+    const c = el('button', { class: 'corpus-facet-chip' + (corpusFilter[key] ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter[key]) } });
+    c.textContent = emoji + ' ' + tt(i18nKey, fb);
+    c.addEventListener('click', () => { corpusFilter[key] = !corpusFilter[key]; c.classList.toggle('on', corpusFilter[key]); c.setAttribute('aria-pressed', String(corpusFilter[key])); corpusRefreshL1Body(); });
+    return c;
+  };
+  chips.appendChild(mkProvChip('hasAudio', '🔊', 'room.corpus.facets.hasAudio', 'С аудио'));
+  chips.appendChild(mkProvChip('reviewed', '✍', 'room.corpus.facets.reviewed', 'Проверено'));
   chips.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel));
   chips.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel));
   // The clear chip is ALWAYS in the bar (the bar is not rebuilt on filter change to keep the
@@ -2143,10 +2234,15 @@ function buildCorpusFilterBar() {
   const clear = el('button', { class: 'corpus-facet-chip clear', attrs: { type: 'button' } });
   clear.textContent = '✕ ' + tt('room.corpus.facets.clear', 'Сбросить');
   clear.hidden = !corpusFilterActive();
-  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false }; corpusNavTo('home'); });
+  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false }; corpusNavTo('home'); });
   corpusClearChip = clear;
   chips.appendChild(clear);
   bar.appendChild(chips);
+  // BRR-S12 — recents/suggestions row (shown only when no query is active; toggled in corpusRefreshL1Body).
+  corpusRecentsEl = el('div', { class: 'corpus-recents' });
+  bar.appendChild(corpusRecentsEl);
+  paintRecents();
+  corpusRecentsEl.hidden = corpusFilterActive();
   return bar;
 }
 
@@ -2411,11 +2507,15 @@ function renderCorpusWorkRow(card, openable, opts) {
   if (qToks && qToks.length) appendMarkedHebrew(title, card.title || '—', qToks); else title.textContent = card.title || '—';
   if (HEBREW_RE.test(card.title || '')) title.setAttribute('dir', 'rtl');
   col.appendChild(title);
-  // In cross-author contexts (global results) show the author under the title.
+  // In cross-author contexts (global results) show the author under the title. BRR-S14 — the author is a
+  // tappable «ещё у автора» link → the author's full works drill (stopPropagation so it never opens the work).
   if (opts && opts.showAuthor && card.author) {
-    const a = el('span', { class: 'corpus-work-author' });
+    const a = el('span', { class: 'corpus-work-author corpus-work-author-link', attrs: { role: 'button', tabindex: '0', title: tt('room.corpus.search.moreByAuthor', 'Ещё у автора') } });
     if (qToks && qToks.length) appendMarkedHebrew(a, card.author, qToks); else a.textContent = card.author;
     if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
+    const goAuthor = (ev) => { ev.preventDefault(); ev.stopPropagation(); corpusNavToAuthor(card.era, card.author); };
+    a.addEventListener('click', goAuthor);
+    a.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') goAuthor(ev); });
     col.appendChild(a);
   }
   const meta = el('div', { class: 'corpus-work-meta' });

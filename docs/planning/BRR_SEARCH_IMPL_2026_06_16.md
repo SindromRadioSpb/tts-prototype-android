@@ -75,7 +75,25 @@ firstPhraseRow/firstMatchRow on raw body rows). **SW** `CACHE_VERSION=v3.10.64-f
 - **Headless OPFS does not durably persist across reload** in a Playwright context (lock/flush race) — a returning-user profile can't be verified via seed→reload. Verify the live session instead: seed via `localDb.createNote`, then drop the boot-cached snapshot (`CorpusVocabRoom.refresh`) so the live page re-reads. (`refresh()` is also a genuine API for external profile changes.)
 - A word saved from search must carry its **`pealim_id`** to fold to `pid:<id>` — without it the note keys on `norm#pos` and never joins the pid-keyed corpus-vocab (S7 coverage wouldn't update). `lemmamap` (already loaded by search) provides the pid cheaply.
 
-## ⏳ P1-S8 + P2 — big bricks pending owner approval of their `<TICKET>` recon-designs (S8 KWIC, S11 scoped, S13 saved-lists, S15 in-reader-find); P2 non-big (S12 recent, S14 related, S16 advanced filters) in progress.
+## ✅ P2 (non-big: S12 · S14 · S16) — SHIPPED (SW v3.10.66-fts-discovery2)
+
+| # | What shipped | Where | Role |
+|---|---|---|---|
+| **S12** | **Recent searches + cold-start suggestions** — a chips row under the filter bar (home only): recents from `localStorage` (prefix-collapsed so a typing progression keeps only the refined query; max 8) with a ✕ clear-history; an empty history falls back to honest «Попробуйте» high-frequency prompts. A chip sets the query + warms shards | `library-ui.js` (`getRecentSearches`/`pushRecentSearch`/`paintRecents`/`setSearchQueryFromChip`; recorded in `applyQuery`; toggled in `corpusRefreshL1Body`), `library.html` CSS | R5 |
+| **S14** | **Related / «ещё у автора»** — the author under a result row is a tappable link → the author's full works drill (`corpusNavToAuthor` → existing Период→Автор→Работа; robust to a missing era by scanning the author index). stopPropagation so it never opens the work | `library-ui.js` (`corpusNavToAuthor` + `renderCorpusWorkRow`), `library.html` CSS | R6 |
+| **S16** | **Advanced filters (provenance)** — «🔊 С аудио» + «✍ Проверено» chips (`hasAudio`/`reviewed`), joined from the ready card (`audio_status` / `review_status`) so they imply readable works (a non-ready row has no card → excluded honestly). **Length** deferred (the L3 already has a length sort); **niqqud-ratio** deferred (needs a new corpus-search field + token-gated push — documented, not faked) | `library-ui.js` (`corpusAdvOk`/`corpusApplyFilter`/`appendFtsGroup`/chips), i18n | R6/R9 |
+
+**i18n:** `room.corpus.search.{recent,try,clearRecent,moreByAuthor}` · `room.corpus.facets.{hasAudio,reviewed}` (ru/en/he). SW `CACHE_VERSION=v3.10.66-fts-discovery2`.
+
+### P2 non-big verification
+- Browser @380px, 0 console errors: **S12** home shows «Попробуйте» + suggestion chips → click runs the query → after clearing, it appears under «Недавние». **S14** the author link on a result row navigates to that author's L3 works. **S16** «🔊 С аудио»/«✍ Проверено» chips toggle + name themselves in the summary. `smoke:i18n` 226/0, syntax OK.
+- R4 note: the filter bar now wraps to ~4 rows of chips @380px — dense but clean; a future polish could collapse the advanced/provenance chips behind a «⚙» disclosure.
+
+## ⏳ Remaining — BIG BRICKS (owner approval of their `<TICKET>` recon-design required before code)
+S8 KWIC/concordance · S11 scoped search · S13 saved searches/reading-lists · S15 in-reader find. Design docs in `docs/planning/`.
+
+## 🔑 OPEN (owner)
+Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code; P0–P2-non-big shipped without it).
 
 ## 🔑 OPEN (owner)
 Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code).

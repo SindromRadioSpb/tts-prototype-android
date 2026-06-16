@@ -328,6 +328,20 @@
     }
     .corpus-snippet-save:active { background: var(--bg-muted); }
     .corpus-snippet-save[disabled] { color: var(--text-faint); cursor: default; }
+    /* BRR-S14 — tappable author («ещё у автора») */
+    .corpus-work-author-link { cursor: pointer; color: var(--accent); }
+    .corpus-work-author-link:active { opacity: .7; }
+    /* BRR-S12 — recent searches / cold-start suggestions row under the filter bar */
+    .corpus-recents { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 2px 0; }
+    .corpus-recents[hidden] { display: none; }
+    .corpus-recents-label { font-size: 12px; color: var(--text-faint); font-weight: 700; }
+    .corpus-recents-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .corpus-recent-chip {
+      width: auto; appearance: none; cursor: pointer; background: var(--bg-muted); color: var(--text-secondary);
+      border: 1px solid var(--border-soft); border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600;
+    }
+    .corpus-recent-chip:active { background: var(--border-soft); }
+    .corpus-recents-clear { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-faint); font-size: 13px; line-height: 1; padding: 4px 6px; }
     /* BRR-S2 — niqqud-insensitive query highlight (amber, distinct from the row-jump tint; no underline → никуд-safe) */
     mark.fts-mark { background: rgba(255, 184, 28, 0.34); color: inherit; border-radius: 3px; padding: 0 1px; }
     @media (prefers-color-scheme: dark) { body:not(.theme-light) mark.fts-mark { background: rgba(255, 199, 72, 0.30); } }

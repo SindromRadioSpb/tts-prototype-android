@@ -2011,8 +2011,8 @@ window.I18N_LOCALES.he = {
       rows: "שו׳",
       sectionReady: "מוכן לקריאה",
       sectionLater: "בקטלוג · תרגום בהמשך",
-      search: { placeholder: "חיפוש בקורפוס…", results: "תוצאות", empty: "לא נמצאו תוצאות.", inText: "בתוך הטקסט", byForm: "לפי צורת המילה", phrase: "ביטוי מדויק", words: "מילים בטקסט", searching: "מחפש בטקסטים…", byTitle: "לפי כותרת", clearInput: "ניקוי", exactForm: "צורה מדויקת", exactFormHint: "רק הצורה המדויקת של המילה, ללא צורות אחרות של השורש", exactWords: "צורה מדויקת בטקסט", saveToNotes: "לרשימה", savedToNotes: "נשמר לרשימה", saveFailed: "השמירה נכשלה" },
-      facets: { ready: "מוכנים", genre: "סוגה", lang: "שפה", clear: "ניקוי", readable: "קריאים עבורי" },
+      search: { placeholder: "חיפוש בקורפוס…", results: "תוצאות", empty: "לא נמצאו תוצאות.", inText: "בתוך הטקסט", byForm: "לפי צורת המילה", phrase: "ביטוי מדויק", words: "מילים בטקסט", searching: "מחפש בטקסטים…", byTitle: "לפי כותרת", clearInput: "ניקוי", exactForm: "צורה מדויקת", exactFormHint: "רק הצורה המדויקת של המילה, ללא צורות אחרות של השורש", exactWords: "צורה מדויקת בטקסט", saveToNotes: "לרשימה", savedToNotes: "נשמר לרשימה", saveFailed: "השמירה נכשלה", recent: "אחרונים", try: "נסו", clearRecent: "ניקוי היסטוריה", moreByAuthor: "עוד מאת המחבר" },
+      facets: { ready: "מוכנים", genre: "סוגה", lang: "שפה", clear: "ניקוי", readable: "קריאים עבורי", hasAudio: "עם שמע", reviewed: "נבדק" },
       sort: { graduated: "מוכנים תחילה", alpha: "לפי א״ב", graded: "לפי הסדר", length: "לפי אורך" },
       jumpbar: "אותיות",
       genre: {
