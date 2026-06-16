@@ -2017,11 +2017,11 @@ window.I18N_LOCALES.ru = {
       sectionReady: "Готовы к чтению",
       sectionLater: "В каталоге · перевод позже",
       search: { placeholder: "Поиск по корпусу…", results: "Результаты", empty: "Ничего не найдено.", inText: "В тексте", byForm: "по форме слова", phrase: "Точная фраза", words: "Слова в тексте", searching: "Ищем в текстах…", byTitle: "По названию", clearInput: "Очистить", exactForm: "Точная форма", exactFormHint: "Только точная форма слова, без других форм корня", exactWords: "Точная форма в тексте", saveToNotes: "В заметки", savedToNotes: "Сохранено в заметки", saveFailed: "Не удалось сохранить", recent: "Недавние", try: "Попробуйте", clearRecent: "Очистить историю", moreByAuthor: "Ещё у автора" },
-      facets: { ready: "Готовые", genre: "Жанр", lang: "Язык", clear: "Сбросить", readable: "Читаемые для меня", hasAudio: "С аудио", reviewed: "Проверено" },
+      facets: { ready: "Готовые", genre: "Жанр", lang: "Язык", clear: "Сбросить", readable: "Читаемые для меня", hasAudio: "С аудио", reviewed: "Проверено", more: "Ещё фильтры" },
       scope: { inAuthor: "в авторе", inEra: "в периоде", searchAuthor: "Искать у автора", searchEra: "Искать в периоде", clear: "Искать по всему корпусу" },
       concordance: { title: "Конкорданс", entry: "Все вхождения (конкорданс)", occurrences: "вхождений", texts: "текстов", moreLines: "ещё в этом тексте" },
       saved: { title: "Сохранённые поиски", save: "Сохранить поиск", savedToast: "Поиск сохранён", remove: "Удалить" },
-      lists: { add: "В список чтения", short: "В список", added: "Добавлено в список", removed: "Убрано из списка", shelfTitle: "Читать позже", remove: "Убрать", notReady: "Перевод готовится" },
+      lists: { add: "В список чтения", short: "В список", added: "Добавлено в список", removed: "Убрано из списка", shelfTitle: "Читать позже", remove: "Убрать", notReady: "Перевод готовится", defaultName: "Читать позже", untitled: "Список", addTo: "Добавить в список", newName: "Новый список…", create: "Создать список", done: "Готово", deleteList: "Удалить список" },
       sort: { graduated: "Готовые сверху", alpha: "По алфавиту", graded: "По порядку", length: "По длине" },
       jumpbar: "Буквы",
       genre: {

@@ -127,7 +127,32 @@ corpus card flow renders + opens it correctly, no migration, no headless-write c
 reading list + multiple saved searches; multiple NAMED lists = a small documented follow-up. Verified
 @380px: save→restore→delete a search; add→shelf→remove a work, 0 errors. [R6/R4]
 
-## ✅ ALL S1–S16 SHIPPED + verified. P3 (S17 inflection-tolerant phrase · S18 translit helper · S19 Knowledge-Map link · FTS coverage→26K) remain backlog.
+## ✅ ALL S1–S16 SHIPPED + verified.
+
+## ✅ P3 polish — «⚙» filter collapse + multiple named reading lists — SHIPPED (SW v3.10.69-fts-p3polish)
+- **«⚙» collapsible filters:** the primary chips (Готовые/Читаемые) stay in the lean main row; the advanced
+  ones (Точная форма · С аудио · Проверено · Жанр · Язык) collapse behind a gear (persisted
+  `corpus_filters_expanded`; AUTO-expands when an advanced filter is active; gear shows «•»). Tames the dense
+  @380px bar (default now ~2 rows). [R4]
+- **Multiple named reading lists** (completes S13): storage `corpus_reading_lists_v1` = `[{id,name,items}]`
+  (migrates the v1 flat «Читать позже»); «➕ В список» opens a bottom-sheet picker (toggle membership across
+  lists + «+ Новый список» inline); home shows one «📚 <list>» shelf per non-empty list (per-card ✕ + per-list
+  ✕). localStorage (corpus works are served-on-open, not OPFS texts). [R6]
+- Verified @380px (gear collapse/expand/persist; picker add + inline-create a 2nd list; multi-shelf home;
+  delete-list), 0 console-errors. i18n `room.corpus.facets.more` + `room.corpus.lists.{defaultName,addTo,newName,create,done,deleteList,untitled}`.
+
+## ⏳ P3 remaining — forks/blockers (owner decision)
+- **S17 inflection-tolerant PHRASE** — index-level needs POSITIONAL lemma data (breaks the 6.5MB always-loaded
+  mobile budget) + a token push; client-side ready-only re-scan is marginal (firstPhraseRow already does it on
+  drill-in). Recommend DEFER (or a `slop` gap-tolerance toggle, which IS cheap on the exact positions).
+- **S18 translit helper рус→иврит** — feasible WELL via an authoritative reverse-translit index built from the
+  bodies' `translit_ru` (committable to git, NO token); a naive phonetic map risks R1 garbage. It's a producer
+  brick (recon-design + a shipped map + lazy client). Owner: build it / skip.
+- **S19 Knowledge-Map link (root→graph)** — the KM (`window.KnowledgeMap`) is Studio-only (not in `library.html`);
+  a root-focus deep-link would touch `index.html` (canon forbids) or load the full KM into the lean Room.
+  Recommend DEFER (Stage-2 decision).
+- **FTS coverage → 26K** — mechanical, but the push step needs `AUDIO_UPLOAD_TOKEN` (LEAKED, pending owner
+  rotation). BLOCKED until rotation.
 
 ## 🔑 OPEN (owner)
 Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code; P0–P2-non-big shipped without it).

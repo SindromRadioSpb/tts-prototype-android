@@ -73,6 +73,8 @@ const SAVED_SEARCHES_KEY = 'corpus_saved_searches_v1';
 const READING_LIST_KEY = 'corpus_reading_list_v1';
 const _lsGet = (k) => { try { const a = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } };
 const _lsSet = (k, a) => { try { localStorage.setItem(k, JSON.stringify(a)); } catch (_) {} };
+function _filtersExpanded() { try { return localStorage.getItem('corpus_filters_expanded') === '1'; } catch (_) { return false; } }   // BRR-P3 «⚙»
+function _setFiltersExpanded(v) { try { localStorage.setItem('corpus_filters_expanded', v ? '1' : '0'); } catch (_) {} }
 function getSavedSearches() { return _lsGet(SAVED_SEARCHES_KEY); }
 function saveCurrentSearch() {
   const f = corpusFilter; const name = corpusFilterSummary();
@@ -86,16 +88,39 @@ function restoreSavedSearch(f) {
   if (corpusFilter.readableOnly) { ensureReadableSet().then(() => corpusNavTo('home')).catch(() => corpusNavTo('home')); }
   else corpusNavTo('home');
 }
-function getReadingList() { return _lsGet(READING_LIST_KEY); }
-function isInReadingList(id) { id = String(id); return getReadingList().some((x) => String(x.id) === id); }
-function toggleReadingItem(card) {
-  const id = String(card.id); const a = getReadingList();
-  const i = a.findIndex((x) => String(x.id) === id);
-  if (i >= 0) { a.splice(i, 1); _lsSet(READING_LIST_KEY, a); return false; }
-  a.unshift({ id: card.id, text_key: card.text_key || '', file: card.file || '', title: card.title || '', author: card.author || '', r: !!(card.file && card.text_key), era: card.era || '', genre: card.genre || '' });
-  _lsSet(READING_LIST_KEY, a.slice(0, 200)); return true;
+// BRR-P3 — multiple NAMED reading lists. Schema `corpus_reading_lists_v1` = [{id,name,items:[card]}]; the
+// v1 flat «Читать позже» (`corpus_reading_list_v1`) is migrated once into a default list. localStorage
+// (corpus works are served-on-open, not OPFS texts — see [[project_search_discovery_closure]]).
+const READING_LISTS_KEY = 'corpus_reading_lists_v1';
+function getReadingLists() {
+  let lists = _lsGet(READING_LISTS_KEY);
+  if (!lists.length) {
+    const old = _lsGet(READING_LIST_KEY);
+    lists = [{ id: 'default', name: tt('room.corpus.lists.defaultName', 'Читать позже'), items: old }];
+    if (old.length) _lsSet(READING_LISTS_KEY, lists);   // persist only if there was something to migrate
+  }
+  return lists;
 }
-function removeReadingItem(id) { id = String(id); _lsSet(READING_LIST_KEY, getReadingList().filter((x) => String(x.id) !== id)); }
+function saveReadingLists(lists) { _lsSet(READING_LISTS_KEY, lists); }
+function isInAnyList(id) { id = String(id); return getReadingLists().some((L) => (L.items || []).some((x) => String(x.id) === id)); }
+function cardToListItem(card) { return { id: card.id, text_key: card.text_key || '', file: card.file || '', title: card.title || '', author: card.author || '', r: !!(card.file && card.text_key), era: card.era || '', genre: card.genre || '' }; }
+function toggleItemInList(listId, card) {
+  const lists = getReadingLists(); const L = lists.find((x) => x.id === listId); if (!L) return false;
+  L.items = L.items || []; const id = String(card.id); const i = L.items.findIndex((x) => String(x.id) === id);
+  if (i >= 0) { L.items.splice(i, 1); saveReadingLists(lists); return false; }
+  L.items.unshift(cardToListItem(card)); if (L.items.length > 300) L.items = L.items.slice(0, 300);
+  saveReadingLists(lists); return true;
+}
+function createReadingList(name) {
+  const lists = getReadingLists();
+  const L = { id: 'l-' + Date.now() + Math.random().toString(36).slice(2, 6), name: String(name || '').trim() || tt('room.corpus.lists.untitled', 'Список'), items: [] };
+  lists.unshift(L); saveReadingLists(lists); return L;
+}
+function deleteReadingList(listId) { saveReadingLists(getReadingLists().filter((x) => x.id !== listId)); }
+function removeItemFromList(listId, id) {
+  const lists = getReadingLists(); const L = lists.find((x) => x.id === listId); if (!L) return;
+  L.items = (L.items || []).filter((x) => String(x.id) !== String(id)); saveReadingLists(lists);
+}
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
                                  // filter bar — and the search input's focus — survive typing)
 let corpusClearChip = null;      // ref to the «✕ Сбросить» chip (shown only when a filter is active)
@@ -1635,9 +1660,53 @@ function injectSavedSearches(body) {
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
 }
-// BRR-S13 — «📚 Читать позже» shelf (corpus reading list). Opens ready items via the corpus card flow;
-// non-ready items honestly show «перевод позже» (R8 no dead-end). ✕ removes.
-function renderReadingListCard(it) {
+// BRR-P3 — list picker: choose which named list(s) to add a work to, or create a new one inline.
+function updateListBtn(btn, card) {
+  const on = isInAnyList(card.id);
+  btn.textContent = (on ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список');
+  btn.setAttribute('aria-pressed', String(on));
+}
+function openListPicker(card, btn) {
+  const ov = el('div', { class: 'list-picker-ov' });
+  const box = el('div', { class: 'list-picker' });
+  box.appendChild(el('div', { class: 'list-picker-title', text: tt('room.corpus.lists.addTo', 'Добавить в список') }));
+  const listsWrap = el('div', { class: 'list-picker-lists' });
+  const repaint = () => {
+    listsWrap.innerHTML = '';
+    for (const L of getReadingLists()) {
+      const has = (L.items || []).some((x) => String(x.id) === String(card.id));
+      const row = el('button', { class: 'list-picker-row' + (has ? ' on' : ''), attrs: { type: 'button' } });
+      row.textContent = (has ? '✓ ' : '＋ ') + L.name + ' (' + ((L.items || []).length) + ')';
+      if (HEBREW_RE.test(L.name)) row.setAttribute('dir', 'rtl');
+      row.addEventListener('click', () => { const now = toggleItemInList(L.id, card); repaint(); if (btn) updateListBtn(btn, card); roomToast(tt(now ? 'room.corpus.lists.added' : 'room.corpus.lists.removed', now ? 'Добавлено' : 'Убрано')); });
+      listsWrap.appendChild(row);
+    }
+  };
+  repaint();
+  box.appendChild(listsWrap);
+  const createRow = el('div', { class: 'list-picker-create' });
+  const inp = el('input', { class: 'list-picker-input', attrs: { type: 'text', placeholder: tt('room.corpus.lists.newName', 'Новый список…'), 'aria-label': tt('room.corpus.lists.newName', 'Новый список') } });
+  const add = el('button', { class: 'list-picker-add', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.create', 'Создать список') } }); add.textContent = '＋';
+  const doCreate = () => { const nm = inp.value.trim(); if (!nm) { try { inp.focus(); } catch (_) {} return; } const L = createReadingList(nm); toggleItemInList(L.id, card); inp.value = ''; repaint(); if (btn) updateListBtn(btn, card); roomToast(tt('room.corpus.lists.added', 'Добавлено')); };
+  add.addEventListener('click', doCreate);
+  inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doCreate(); } });
+  createRow.appendChild(inp); createRow.appendChild(add);
+  box.appendChild(createRow);
+  const done = el('button', { class: 'list-picker-done', attrs: { type: 'button' } }); done.textContent = tt('room.corpus.lists.done', 'Готово');
+  const close = () => { try { ov.remove(); } catch (_) {} document.removeEventListener('keydown', onKey); };
+  done.addEventListener('click', close);
+  box.appendChild(done);
+  ov.appendChild(box);
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  setTimeout(() => { try { inp.focus(); } catch (_) {} }, 50);
+}
+// «📚 <list>» shelf card (corpus reading list). Opens ready items via the corpus card flow; non-ready
+// items honestly show «перевод позже» (R8 no dead-end). ✕ removes from THIS list.
+function renderReadingListCard(listId, it) {
   const node = el('div', { class: 'work-card readinglist-card', attrs: { role: 'button', tabindex: '0' } });
   const title = it.title || tt('room.work.untitled', 'Без названия');
   const t = el('span', { class: 'work-card-title', text: title }); if (HEBREW_RE.test(title)) t.setAttribute('dir', 'rtl'); node.appendChild(t);
@@ -1646,25 +1715,32 @@ function renderReadingListCard(it) {
   if (!it.r) meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
   const rm = el('button', { class: 'readinglist-rm', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.remove', 'Убрать') } });
   rm.textContent = '✕';
-  rm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); removeReadingItem(it.id); corpusRefreshL1Body(); });
+  rm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); removeItemFromList(listId, it.id); corpusRefreshL1Body(); });
   meta.appendChild(rm); node.appendChild(meta);
   const open = () => { if (it.r && it.file && it.text_key) openCorpusWork(it); else roomToast(tt('room.corpus.lists.notReady', 'Перевод готовится')); };
   node.addEventListener('click', open);
   node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
   return node;
 }
-function injectReadingListShelf(body) {
+// One shelf per non-empty named list (each prepended → newest list highest). A ✕ on the head deletes the list.
+function injectReadingListShelves(body) {
   try {
-    const items = getReadingList();
-    if (!items.length || corpusL1Body !== body || corpusFilterActive()) return;
-    const sec = el('section', { class: 'shelf corpus-readinglist' });
-    const head = el('div', { class: 'shelf-head' });
-    head.appendChild(el('h2', { class: 'shelf-title', text: '📚 ' + tt('room.corpus.lists.shelfTitle', 'Читать позже') }));
-    sec.appendChild(head);
-    const rail = el('div', { class: 'shelf-rail' });
-    for (const it of items) rail.appendChild(renderReadingListCard(it));
-    sec.appendChild(rail);
-    body.insertBefore(sec, body.firstChild);
+    const lists = getReadingLists().filter((L) => (L.items || []).length);
+    if (!lists.length || corpusL1Body !== body || corpusFilterActive()) return;
+    for (const L of lists) {
+      const sec = el('section', { class: 'shelf corpus-readinglist' });
+      const head = el('div', { class: 'shelf-head corpus-readinglist-head' });
+      head.appendChild(el('h2', { class: 'shelf-title', text: '📚 ' + L.name }));
+      const del = el('button', { class: 'shelf-list-del', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.deleteList', 'Удалить список') } });
+      del.textContent = '✕';
+      del.addEventListener('click', () => { deleteReadingList(L.id); corpusRefreshL1Body(); });
+      head.appendChild(del);
+      sec.appendChild(head);
+      const rail = el('div', { class: 'shelf-rail' });
+      for (const it of L.items) rail.appendChild(renderReadingListCard(L.id, it));
+      sec.appendChild(rail);
+      body.insertBefore(sec, body.firstChild);
+    }
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
 }
@@ -1674,7 +1750,7 @@ function injectReadingListShelf(body) {
 // profile rail → ready → периоды.
 async function injectHomeRails(body) {
   await injectCorpusRails(body);
-  injectReadingListShelf(body);
+  injectReadingListShelves(body);
   await injectBookmarksShelf(body);
   await injectContinueReading(body);
   injectSavedSearches(body);
@@ -2190,17 +2266,10 @@ async function fillRowSnippet(rowNode) {
   saveBtn.textContent = '💾 ' + tt('room.corpus.search.saveToNotes', 'В заметки');
   saveBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); saveSnippetToNotes(saveBtn, q, he, ru, card); });
   actions.appendChild(saveBtn);
-  // BRR-S13 — add this work to the reading list («Читать позже»), toggle.
-  const onList0 = isInReadingList(card.id);
-  const listBtn = el('button', { class: 'corpus-snippet-save', attrs: { type: 'button', 'aria-pressed': String(onList0), title: tt('room.corpus.lists.add', 'В список чтения') } });
-  listBtn.textContent = (onList0 ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список');
-  listBtn.addEventListener('click', (e) => {
-    e.preventDefault(); e.stopPropagation();
-    const now = toggleReadingItem(card);
-    listBtn.textContent = (now ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список');
-    listBtn.setAttribute('aria-pressed', String(now));
-    roomToast(tt(now ? 'room.corpus.lists.added' : 'room.corpus.lists.removed', now ? 'Добавлено в список' : 'Убрано из списка'));
-  });
+  // BRR-P3 — add this work to a named reading list (picker: existing lists + «+ Новый список»).
+  const listBtn = el('button', { class: 'corpus-snippet-save', attrs: { type: 'button', 'aria-pressed': String(isInAnyList(card.id)), title: tt('room.corpus.lists.add', 'В список чтения') } });
+  updateListBtn(listBtn, card);
+  listBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openListPicker(card, listBtn); });
   actions.appendChild(listBtn);
   snip.appendChild(actions);
   const col = rowNode.querySelector('.corpus-work-col');
@@ -2575,12 +2644,24 @@ function buildCorpusFilterBar() {
     corpusRefreshL1Body();
   });
   chips.appendChild(readable);
+  // BRR-P3 — «⚙» progressive disclosure: keep the primary chips (Готовые/Читаемые) in the lean main row,
+  // collapse the advanced filters (точная форма · аудио · проверено · жанр · язык) into a second row that
+  // the gear toggles. Persisted; AUTO-expands when any advanced filter is active (active filters stay
+  // visible); the gear shows «•» when advanced filters are on. Tames the @380px chip density (R4).
+  const advWrap = el('div', { class: 'corpus-facets-advanced' });
+  const advActive = !!(corpusFilter.exactForm || corpusFilter.hasAudio || corpusFilter.reviewed || corpusFilter.genre || corpusFilter.lang);
+  let advExpanded = advActive || _filtersExpanded();
+  const gear = el('button', { class: 'corpus-facet-chip corpus-facets-gear' + (advActive ? ' on' : ''), attrs: { type: 'button', 'aria-expanded': String(advExpanded), 'aria-controls': 'corpusFacetsAdv', title: tt('room.corpus.facets.more', 'Ещё фильтры') } });
+  gear.textContent = '⚙' + (advActive ? ' •' : '');
+  gear.addEventListener('click', () => { advExpanded = !advExpanded; advWrap.hidden = !advExpanded; gear.setAttribute('aria-expanded', String(advExpanded)); _setFiltersExpanded(advExpanded); });
+  chips.appendChild(gear);
+  advWrap.id = 'corpusFacetsAdv';
   // BRR-S9 — «🔤 Точная форма»: default search is lemma-tolerant («по корню» — all forms of the root);
   // ON restricts the in-text «слова» group to the LITERAL consonantal form (Reverso-class exact toggle).
   const exactChip = el('button', { class: 'corpus-facet-chip' + (corpusFilter.exactForm ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.exactForm), title: tt('room.corpus.search.exactFormHint', 'Только точная форма слова, без других форм корня') } });
   exactChip.textContent = '🔤 ' + tt('room.corpus.search.exactForm', 'Точная форма');
   exactChip.addEventListener('click', () => { corpusFilter.exactForm = !corpusFilter.exactForm; exactChip.classList.toggle('on', corpusFilter.exactForm); exactChip.setAttribute('aria-pressed', String(corpusFilter.exactForm)); corpusRefreshL1Body(); });
-  chips.appendChild(exactChip);
+  advWrap.appendChild(exactChip);
   // BRR-S16 — provenance filters (data-feasible from ready cards; imply readable works). A simple toggle
   // chip each: 🔊 has-audio, ✍ human-reviewed. (Length is covered by the L3 length-sort; niqqud-ratio
   // would need a new corpus-search field — deferred, see the impl doc.)
@@ -2590,10 +2671,11 @@ function buildCorpusFilterBar() {
     c.addEventListener('click', () => { corpusFilter[key] = !corpusFilter[key]; c.classList.toggle('on', corpusFilter[key]); c.setAttribute('aria-pressed', String(corpusFilter[key])); corpusRefreshL1Body(); });
     return c;
   };
-  chips.appendChild(mkProvChip('hasAudio', '🔊', 'room.corpus.facets.hasAudio', 'С аудио'));
-  chips.appendChild(mkProvChip('reviewed', '✍', 'room.corpus.facets.reviewed', 'Проверено'));
-  chips.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel));
-  chips.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel));
+  advWrap.appendChild(mkProvChip('hasAudio', '🔊', 'room.corpus.facets.hasAudio', 'С аудио'));
+  advWrap.appendChild(mkProvChip('reviewed', '✍', 'room.corpus.facets.reviewed', 'Проверено'));
+  advWrap.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel));
+  advWrap.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel));
+  advWrap.hidden = !advExpanded;
   // The clear chip is ALWAYS in the bar (the bar is not rebuilt on filter change to keep the
   // input focused) — its visibility is toggled by corpusRefreshL1Body.
   const clear = el('button', { class: 'corpus-facet-chip clear', attrs: { type: 'button' } });
@@ -2603,6 +2685,7 @@ function buildCorpusFilterBar() {
   corpusClearChip = clear;
   chips.appendChild(clear);
   bar.appendChild(chips);
+  bar.appendChild(advWrap);
   // BRR-S12 — recents/suggestions row (shown only when no query is active; toggled in corpusRefreshL1Body).
   corpusRecentsEl = el('div', { class: 'corpus-recents' });
   bar.appendChild(corpusRecentsEl);
