@@ -1962,6 +1962,7 @@ window.I18N_LOCALES.he = {
       scaffoldHint: "«לפי הצורך»: הניקוד נמוג במילים שאתה כבר מכיר. «בהקשה»: התרגום מוסתר — הקש על שורה כדי לחשוף אותו.",
       readAloud: "הקראה",
       stopAloud: "עצור",
+      find: { label: "חיפוש בטקסט", placeholder: "חיפוש בטקסט…", prev: "הקודם", next: "הבא", close: "סגירת חיפוש" },
     },
     morph: {
       loading: "מנתח…",

@@ -1952,6 +1952,7 @@ window.I18N_LOCALES.en = {
       scaffoldHint: "“As needed”: niqqud fades on words you know. “On tap”: translation is hidden — tap a row to reveal it.",
       readAloud: "Read aloud",
       stopAloud: "Stop",
+      find: { label: "Find in text", placeholder: "Find in text…", prev: "Previous", next: "Next", close: "Close find" },
     },
     morph: {
       loading: "Analyzing…",

@@ -472,6 +472,24 @@
   // word saved from search folds to `pid:<id>` (joins i+1 coverage) instead of an orphan norm-key.
   function pidForToken(token) { var s = normalizeToken(token); return (s && _lemmaMap && _lemmaMap[s] != null) ? _lemmaMap[s] : null; }
 
+  // findRows(rows, query) → [rowIdx…] of EVERY reader row whose Hebrew contains ALL query tokens (skeleton
+  // substring, niqqud-insensitive — same rule as firstMatchRow, but all rows + AND). BRR-S15 in-reader find.
+  function findRows(rows, query) {
+    if (!rows || !rows.length) return [];
+    var qToks = _resolveQueryTokens(query);
+    if (!qToks.length) return [];
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]; if (!r) continue;
+      var heb = r.he_niqqud || r.he || r.hebrew_niqqud || r.hebrew_plain || ''; if (!heb) continue;
+      var rowNorm = foldFinals(stripNiqqud(heb)).toLowerCase();
+      var all = true;
+      for (var k = 0; k < qToks.length; k++) { if (rowNorm.indexOf(qToks[k]) < 0) { all = false; break; } }
+      if (all) out.push(i);
+    }
+    return out;
+  }
+
   function _setLemmaMapForTest(m) { _lemmaMap = m || null; }
   function _setManifestForTest(m) { _manifest = m || null; }
   function _setBucketForTest(key, decoded) { _bucketCache.set(key, decoded || {}); }   // inject a decoded EXACT shard (phraseOnlySearch gate)
@@ -481,7 +499,7 @@
   var API = {
     normalizeToken: normalizeToken, tokenizeText: tokenizeText, bucketOf: bucketOf,
     decodePostings: decodePostings, decodePositions: decodePositions, phraseHit: phraseHit,
-    scoreHits: scoreHits, firstMatchRow: firstMatchRow, firstPhraseRow: firstPhraseRow,
+    scoreHits: scoreHits, firstMatchRow: firstMatchRow, firstPhraseRow: firstPhraseRow, findRows: findRows,
     markSegments: markSegments, pidForToken: pidForToken, FINALS: FINALS,
     configure: configure, search: search, phraseSearch: phraseSearch, phraseOnlySearch: phraseOnlySearch, ensureManifest: ensureManifest,
     warm: warm, warmQuery: warmQuery, shardKeyFor: shardKeyFor,

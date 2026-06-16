@@ -114,6 +114,13 @@ async function main() {
   ok(FTS.firstPhraseRow(rows, "שמי חייך") === 1, "firstPhraseRow finds the consecutive phrase line");
   ok(FTS.firstPhraseRow(rows, "שמי נעוריך") === -1, "firstPhraseRow → -1 for a non-adjacent pair");
 
+  console.log("findRows (S15 — in-reader find: ALL matching rows, AND):");
+  ok(JSON.stringify(FTS.findRows(rows, "שמי")) === "[1]", "findRows: single token → matching row(s)");
+  ok(JSON.stringify(FTS.findRows(rows, "מרים")) === "[0]", "findRows: niqqud-insensitive substring (למרים∋מרים)");
+  ok(JSON.stringify(FTS.findRows(rows, "שמי חייך")) === "[1]", "findRows: multi-word AND on one row");
+  ok(JSON.stringify(FTS.findRows(rows, "שמי מרים")) === "[]", "findRows: AND across rows → no single-row match");
+  ok(JSON.stringify(FTS.findRows(rows, "כלבלב")) === "[]", "findRows: absent → []");
+
   console.log("\n" + (fail ? "✗ " + fail + " FAILED" : "✓ ALL PASS") + " (" + pass + " checks)");
   process.exit(fail ? 1 : 0);
 }

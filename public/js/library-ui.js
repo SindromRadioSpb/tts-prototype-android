@@ -858,6 +858,7 @@ function rerenderReader() {
   if (!mount) return;
   mount.innerHTML = readerCore.buildBilingualTableHtml(readerRows, readerConfig());
   attachReaderAudio();
+  try { refreshFindAfterRerender(); } catch (_) {}   // BRR-S15 — re-apply find marks after a table rebuild
 }
 
 function buildAidsPanel() {
@@ -1022,7 +1023,7 @@ async function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
-  clearResumeBanner(); clearRowJump(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005 — stop recording after close
+  clearResumeBanner(); clearRowJump(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 — stop recording + clear find after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -1033,6 +1034,98 @@ async function closeReader() {
   if (tid != null && activeTrack === 'corpus' && corpusNav.level === 'home' && !corpusFilterActive()) {
     try { corpusRefreshL1Body(); } catch (_) {}
   }
+}
+
+// ── BRR-S15 — in-reader find (Kindle/Apple-Books table-stakes) ──────────────────────────────
+// A find bar over the OPEN text: niqqud-insensitive matches highlighted + «k / N» counter + ↑/↓
+// navigation. POST-render on the Room mount (the parity-locked builder is untouched — reader-parity
+// stays green): it toggles classes on the already-rendered rows + the morph `.rm-w` spans, never
+// rebuilds a cell. Distinct GREEN hue (jump=amber, playback=blue) per the reading-UX palette.
+let _findMatches = [], _findCur = -1, _findQuery = '', _findInputEl = null, _findCountEl = null;
+function buildFindBar() {
+  const bar = $('readerFind'); if (!bar) return;
+  bar.innerHTML = '';
+  const input = el('input', { class: 'reader-find-input', attrs: { type: 'search', enterkeyhint: 'search', placeholder: tt('room.reader.find.placeholder', 'Найти в тексте…'), 'aria-label': tt('room.reader.find.label', 'Найти в тексте') } });
+  const counter = el('span', { class: 'reader-find-count', attrs: { 'aria-live': 'polite' } });
+  const prev = el('button', { class: 'reader-find-nav', attrs: { type: 'button', 'aria-label': tt('room.reader.find.prev', 'Предыдущее') } }); prev.textContent = '↑';
+  const next = el('button', { class: 'reader-find-nav', attrs: { type: 'button', 'aria-label': tt('room.reader.find.next', 'Следующее') } }); next.textContent = '↓';
+  const close = el('button', { class: 'reader-find-close', attrs: { type: 'button', 'aria-label': tt('room.reader.find.close', 'Закрыть поиск') } }); close.textContent = '✕';
+  let deb;
+  input.addEventListener('input', () => { clearTimeout(deb); deb = setTimeout(() => runFind(input.value), 150); });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); }
+    else if (e.key === 'Escape') { e.preventDefault(); closeReaderFind(); }
+  });
+  prev.addEventListener('click', () => findStep(-1));
+  next.addEventListener('click', () => findStep(1));
+  close.addEventListener('click', closeReaderFind);
+  bar.appendChild(input); bar.appendChild(counter); bar.appendChild(prev); bar.appendChild(next); bar.appendChild(close);
+  _findInputEl = input; _findCountEl = counter;
+}
+function openReaderFind() {
+  const bar = $('readerFind'), toggle = $('readerFindToggle');
+  if (!bar) return;
+  if (!bar.hidden) { closeReaderFind(); return; }   // the 🔍 button toggles
+  buildFindBar();
+  bar.hidden = false;
+  if (toggle) toggle.setAttribute('aria-expanded', 'true');
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  try { _findInputEl && _findInputEl.focus(); } catch (_) {}
+}
+function closeReaderFind() {
+  const bar = $('readerFind'), toggle = $('readerFindToggle');
+  clearFindMarks(); _findMatches = []; _findCur = -1; _findQuery = '';
+  if (bar) { bar.hidden = true; bar.innerHTML = ''; }
+  if (toggle) toggle.setAttribute('aria-expanded', 'false');
+  _findInputEl = null; _findCountEl = null;
+}
+function runFind(q) {
+  _findQuery = String(q || '');
+  clearFindMarks();
+  const C = window.CorpusFTS;
+  _findMatches = (C && C.findRows) ? C.findRows(readerRows, _findQuery) : [];
+  _findCur = _findMatches.length ? 0 : -1;
+  applyFindMarks();
+  if (_findCur >= 0) gotoFindMatch(); else updateFindCount();
+}
+function applyFindMarks() {
+  const mount = $('roomReaderTable'); if (!mount) return;
+  const qToks = ftsQueryTokens(_findQuery);
+  for (const idx of _findMatches) {
+    const tr = mount.querySelector('tr[data-row-idx="' + idx + '"]'); if (!tr) continue;
+    tr.classList.add('rm-find-row');
+    if (qToks.length) tr.querySelectorAll('.rm-w').forEach((w) => {
+      let skel = ''; try { skel = window.CorpusFTS.normalizeToken(w.textContent); } catch (_) {}
+      if (skel && qToks.some((t) => skel.indexOf(t) >= 0)) w.classList.add('rm-find-word');
+    });
+  }
+}
+function clearFindMarks() {
+  const mount = $('roomReaderTable'); if (!mount) return;
+  mount.querySelectorAll('.rm-find-row-current').forEach((t) => t.classList.remove('rm-find-row-current'));
+  mount.querySelectorAll('.rm-find-row').forEach((t) => t.classList.remove('rm-find-row'));
+  mount.querySelectorAll('.rm-find-word').forEach((w) => w.classList.remove('rm-find-word'));
+}
+function gotoFindMatch() {
+  const mount = $('roomReaderTable'); if (!mount || _findCur < 0) return;
+  mount.querySelectorAll('.rm-find-row-current').forEach((t) => t.classList.remove('rm-find-row-current'));
+  const tr = mount.querySelector('tr[data-row-idx="' + _findMatches[_findCur] + '"]');
+  if (tr) { tr.classList.add('rm-find-row-current'); if (tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} } }
+  updateFindCount();
+}
+function findStep(dir) {
+  if (!_findMatches.length) return;
+  _findCur = (_findCur + dir + _findMatches.length) % _findMatches.length;
+  gotoFindMatch();
+}
+function updateFindCount() {
+  if (!_findCountEl) return;
+  _findCountEl.textContent = _findMatches.length ? ((_findCur + 1) + ' / ' + _findMatches.length) : (String(_findQuery).trim() ? '0' : '');
+}
+// Re-apply the find decoration after a reader re-render (aids/locale change rebuilt the table).
+function refreshFindAfterRerender() {
+  if (!$('readerFind') || $('readerFind').hidden || !String(_findQuery).trim()) return;
+  runFind(_findQuery);
 }
 
 // Resolve a stable text_key → the ephemeral local OPFS id (importBundle remaps ids on
@@ -2575,6 +2668,8 @@ function wireChrome() {
   if (back) back.addEventListener('click', closeReader);
   const readAloud = $('roomReadAloud');
   if (readAloud) readAloud.addEventListener('click', toggleReadAloud);   // BRR-P1-008 karaoke
+  const findToggle = $('readerFindToggle');
+  if (findToggle) findToggle.addEventListener('click', openReaderFind);   // BRR-S15 in-reader find
   const aidsToggle = $('readerAidsToggle');
   // BRR-P1-006 — one-time discoverability nudge: pulse the «Аа» button until the reader first
   // opens the aids panel (the scaffolding fade/reveal live there). No dark pattern — pulses, then quiet.

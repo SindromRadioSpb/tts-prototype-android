@@ -420,6 +420,29 @@
     .reader-resume button { width: auto; flex: none; appearance: none; cursor: pointer; border-radius: 7px; font: inherit; }
     .reader-resume-go { background: var(--accent); color: var(--accent-contrast); border: 0; padding: 6px 13px; font-size: 13px; font-weight: 600; }
     .reader-resume-x { background: transparent; border: 0; color: var(--text-faint); font-size: 16px; padding: 4px 6px; line-height: 1; }
+    /* BRR-S15 — in-reader find bar (sticky under the reader bar) + GREEN find marks (distinct from
+       the amber jump-highlight and the blue playback row). a11y: «k / N» counter + scroll = 2nd channel. */
+    .reader-find {
+      position: sticky; top: 0; z-index: 9; display: flex; align-items: center; gap: 6px;
+      padding: 8px 12px; background: var(--bg-muted); border-bottom: 1px solid var(--border-soft);
+    }
+    .reader-find[hidden] { display: none; }
+    .reader-find-input {
+      flex: 1; min-width: 0; appearance: none; font: inherit; background: var(--bg-card); color: var(--text-primary);
+      border: 1px solid var(--border-soft); border-radius: 8px; padding: 7px 10px; font-size: 14px;
+    }
+    .reader-find-input:focus { outline: none; border-color: var(--accent); }
+    .reader-find-count { flex: none; font-size: 12px; color: var(--text-secondary); font-variant-numeric: tabular-nums; min-width: 46px; text-align: center; }
+    .reader-find-nav, .reader-find-close {
+      width: auto; flex: none; appearance: none; cursor: pointer; background: var(--bg-card); color: var(--text-primary);
+      border: 1px solid var(--border-soft); border-radius: 8px; padding: 6px 9px; font-size: 14px; line-height: 1;
+    }
+    .reader-find-close { color: var(--text-faint); }
+    #roomReaderTable .rm-find-word { background: rgba(34, 197, 94, 0.30); border-radius: 3px; }
+    #roomReaderTable tr.rm-find-row-current .rm-find-word { background: rgba(34, 197, 94, 0.55); box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.7); }
+    #roomReaderTable tr.rm-find-row-current td, #roomReaderTable tr.rm-find-row-current td.rtl { background-color: rgba(34, 197, 94, 0.10); }
+    @media (prefers-color-scheme: dark) { body:not(.theme-light) #roomReaderTable .rm-find-word { background: rgba(74, 222, 128, 0.30); } }
+    body.theme-dark #roomReaderTable .rm-find-word { background: rgba(74, 222, 128, 0.30); }
     /* «Продолжить чтение» shelf card — a % progress chip in lieu of provenance badges. */
     .continue-card .continue-pct { background: var(--accent); color: var(--accent-contrast); border: 0; }
     /* BRR-P2-003 — per-row ☆/★ bookmark control (Room-only; injected into the action cell). */
@@ -669,8 +692,10 @@
     <button id="readerBack" class="reader-back" type="button" data-i18n="room.reader.back">← Полки</button>
     <h2 id="readerTitle" class="reader-title"></h2>
     <button id="roomReadAloud" class="reader-aids-toggle" type="button" aria-pressed="false" data-i18n-title="room.reader.readAloud" title="Читать вслух">▶</button>
+    <button id="readerFindToggle" class="reader-aids-toggle" type="button" aria-expanded="false" aria-controls="readerFind" data-i18n-title="room.reader.find.label" title="Найти в тексте">🔍</button>
     <button id="readerAidsToggle" class="reader-aids-toggle" type="button" aria-expanded="false" aria-controls="readerAids" data-i18n-title="room.reader.aids" title="Настройки чтения">Аа</button>
   </div>
+  <div id="readerFind" class="reader-find" hidden></div>
   <div id="readerAids" class="reader-aids" hidden></div>
   <div id="roomReaderTable" class="reader-table-wrap"></div>
 </section>

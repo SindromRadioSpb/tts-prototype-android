@@ -89,8 +89,20 @@ firstPhraseRow/firstMatchRow on raw body rows). **SW** `CACHE_VERSION=v3.10.64-f
 - Browser @380px, 0 console errors: **S12** home shows «Попробуйте» + suggestion chips → click runs the query → after clearing, it appears under «Недавние». **S14** the author link on a result row navigates to that author's L3 works. **S16** «🔊 С аудио»/«✍ Проверено» chips toggle + name themselves in the summary. `smoke:i18n` 226/0, syntax OK.
 - R4 note: the filter bar now wraps to ~4 rows of chips @380px — dense but clean; a future polish could collapse the advanced/provenance chips behind a «⚙» disclosure.
 
-## ⏳ Remaining — BIG BRICKS (owner approval of their `<TICKET>` recon-design required before code)
-S8 KWIC/concordance · S11 scoped search · S13 saved searches/reading-lists · S15 in-reader find. Design docs in `docs/planning/`.
+## ✅ BIG BRICKS — owner-APPROVED 2026-06-16 (all V1 recommended). Design docs `docs/planning/BRR_S{8,11,13,15}_*.md`.
+
+### S15 in-reader find — SHIPPED (SW v3.10.67-fts-find)
+A 🔍 in the reader bar opens a find bar (input + «k / N» + ↑/↓ + ✕) over the OPEN text: niqqud-insensitive
+matches highlight in a distinct GREEN (jump=amber, playback=blue), current-match row accented + scrolled.
+POST-render on the Room mount (class-toggle on rendered rows + morph `.rm-w` spans — the builder is
+untouched, `smoke:reader-parity` green). Engine `CorpusFTS.findRows(rows,q)` (all rows containing ALL query
+tokens, AND, skeleton-substring). i18n `room.reader.find.*`. Gate: `smoke:corpus-snippet` +5 (findRows = 27).
+**Verification:** findRows gate (logic) + find-bar plumbing smoke (button→bar→runFind→counter→Escape, 0
+errors) + reader-parity. The live marking/navigation e2e is the owner's on-device smoke-check — opening a
+work uses `importBundle`, which crashes wa-sqlite in HEADLESS Chromium (a harness limit; reader-open is
+prod-proven daily). [R5 table-stakes · R4 RTL/a11y · R10 honest match]
+
+### ⏳ In progress: S8 KWIC/concordance · S11 scoped search · S13 saved searches/reading-lists.
 
 ## 🔑 OPEN (owner)
 Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code; P0–P2-non-big shipped without it).
