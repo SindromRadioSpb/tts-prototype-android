@@ -57,8 +57,25 @@ firstPhraseRow/firstMatchRow on raw body rows). **SW** `CACHE_VERSION=v3.10.64-f
 
 ---
 
-## ⏳ P1 (S7–S10) · P2 (S11–S16) — in progress
-Big bricks pending owner approval of their `<TICKET>` recon-designs: S8 KWIC, S11 scoped, S13 saved-lists, S15 in-reader-find.
+## ✅ P1 (non-big: S7 · S9 · S10) — SHIPPED (SW v3.10.65-fts-discovery)
+
+| # | What shipped | Where | Role |
+|---|---|---|---|
+| **S7** | **Readability-aware search** — «📖 Читаемые для меня» filter chip (i+1 zone in/easy vs the LIVE profile) + a lazy **«≈N%»** coverage badge on ready result rows. The readable-set is built ONCE from the vocab sidecar + a SINGLE `ensureWordStates` snapshot (`ensureReadableSet`, anti-stampede — never a per-row DB query), cached + invalidated on word-save. Badge reuses `observeCardCoverage`/`enhanceCardWithCoverage` (now targets `.work-card-meta, .corpus-work-meta`). Honest: empty profile → no readable hits, no badge | `library-ui.js` (`ensureReadableSet`/`corpusFilter.readableOnly`/`corpusApplyFilter`/`appendFtsGroup` passFilter/`renderCorpusWorkRow`/`buildCorpusFilterBar`), `CorpusVocabRoom.refresh` | R8/R2 |
+| **S9** | **Root/lemma vs exact-form mode** — the default search is already lemma-tolerant («по корню» — all forms of the root); added a **«🔤 Точная форма»** toggle that restricts the in-text «слова» group to the literal consonantal form (engine `phraseSearch`/`search` gain `exactOnly` — skip the lemma layer). Group relabels «Точная форма в тексте» | `corpus-fts.js` (`exactOnly`), `library-ui.js` (`corpusFilter.exactForm` + chip + `appendFtsGroup`) | R10/R1 |
+| **S10** | **Search→study hook** — «💾 В заметки» on each ready snippet saves the matched line as a study artifact: a SINGLE-word query → a `word_study` note for that word grounded in the authoritative Pealim pid (`CorpusFTS.pidForToken` → folds to `pid:<id>`, joins i+1 coverage + the Anki word export) with the bilingual line as `body.context` (no fabricated morphology — empty, enriched later in the reader); a PHRASE → a `free` example note. Client-side `createNote` — **NOT token-gated** | `corpus-fts.js` (`pidForToken`), `library-ui.js` (`saveSnippetToNotes` + snippet action), `library.html` CSS | R2 |
+
+**i18n:** `room.corpus.facets.readable` · `room.corpus.search.{exactForm,exactFormHint,exactWords,saveToNotes,savedToNotes,saveFailed}` (ru/en/he). **Gate:** `smoke:corpus-snippet` extended to 22 (exactOnly subset + pidForToken). SW `CACHE_VERSION=v3.10.65-fts-discovery`.
+
+### P1 verification
+- Gates: `smoke:corpus-snippet` 22/0 · `smoke:corpus-fts` 48/0 · `smoke:corpus-fts-parity` 30/0 · `smoke:corpus-vocab-engine` 37/0 · `smoke:reader-parity` PASS · `smoke:i18n` 226/0.
+- Browser @380px, 0 console errors: **S7** with a REAL seeded profile (learn one short work's lemmas → it reaches zone easy/100%) → «📖 Читаемые» narrows to readable works + «≈100%» badge renders («много имён/архаики» load-flag too). **S9** «מלך» all-forms count ≥ exact-form count, group relabels. **S10** «💾» writes a `word_study` note to `notes_v2` with `context` + `pealim_id` (DB-verified).
+
+### Lessons (P1)
+- **Headless OPFS does not durably persist across reload** in a Playwright context (lock/flush race) — a returning-user profile can't be verified via seed→reload. Verify the live session instead: seed via `localDb.createNote`, then drop the boot-cached snapshot (`CorpusVocabRoom.refresh`) so the live page re-reads. (`refresh()` is also a genuine API for external profile changes.)
+- A word saved from search must carry its **`pealim_id`** to fold to `pid:<id>` — without it the note keys on `norm#pos` and never joins the pid-keyed corpus-vocab (S7 coverage wouldn't update). `lemmamap` (already loaded by search) provides the pid cheaply.
+
+## ⏳ P1-S8 + P2 — big bricks pending owner approval of their `<TICKET>` recon-designs (S8 KWIC, S11 scoped, S13 saved-lists, S15 in-reader-find); P2 non-big (S12 recent, S14 related, S16 advanced filters) in progress.
 
 ## 🔑 OPEN (owner)
 Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code).

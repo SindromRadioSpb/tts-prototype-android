@@ -2001,8 +2001,8 @@ window.I18N_LOCALES.en = {
       rows: "rows",
       sectionReady: "Ready to read",
       sectionLater: "In catalogue · translation later",
-      search: { placeholder: "Search the corpus…", results: "Results", empty: "Nothing found.", inText: "In the text", byForm: "by word form", phrase: "Exact phrase", words: "Words in the text", searching: "Searching the texts…", byTitle: "By title", clearInput: "Clear" },
-      facets: { ready: "Ready", genre: "Genre", lang: "Language", clear: "Clear" },
+      search: { placeholder: "Search the corpus…", results: "Results", empty: "Nothing found.", inText: "In the text", byForm: "by word form", phrase: "Exact phrase", words: "Words in the text", searching: "Searching the texts…", byTitle: "By title", clearInput: "Clear", exactForm: "Exact form", exactFormHint: "Only the exact word form, not other forms of the root", exactWords: "Exact form in the text", saveToNotes: "To notes", savedToNotes: "Saved to notes", saveFailed: "Couldn’t save" },
+      facets: { ready: "Ready", genre: "Genre", lang: "Language", clear: "Clear", readable: "Readable for me" },
       sort: { graduated: "Ready first", alpha: "Alphabetical", graded: "In order", length: "By length" },
       jumpbar: "Letters",
       genre: {

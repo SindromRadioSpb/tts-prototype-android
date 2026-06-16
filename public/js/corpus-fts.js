@@ -282,8 +282,11 @@
     } catch (_) {}
   }
 
-  // search(query) → Promise<[{w, score, exact, lemma}]> (w = ordinal into the works/search array).
-  function search(query) {
+  // search(query, {exactOnly}) → Promise<[{w, score, exact, lemma}]> (w = ordinal into the works array).
+  // exactOnly (BRR-S9 «точная форма»): skip the lemma layer → only the literal consonantal form matches,
+  // never inflections/proclitics (the inverse of the default Pealim-class «по корню / все формы»).
+  function search(query, opts) {
+    var exactOnly = !!(opts && opts.exactOnly);
     var raw = tokenizeText(query);
     var toks = []; for (var i = 0; i < raw.length; i++) { var s = normalizeToken(raw[i]); if (s) toks.push(s); }
     // de-dupe query terms (repeating a word should not require it twice)
@@ -292,16 +295,15 @@
     // resolve shard keys via the manifest first (sharded_letters → 2-letter prefixes), then fan out.
     return ensureManifest().then(function (m) {
       var keys = {}; toks.forEach(function (t) { keys[shardKeyFor(t, m)] = 1; });
-      var jobs = [ensureLemma()];
-      Object.keys(keys).forEach(function (k) { if (k) jobs.push(ensureShard(k)); });
-      return Promise.all(jobs).then(function (res) {
+      var lemJob = exactOnly ? Promise.resolve({ lemma: {}, map: {} }) : ensureLemma();
+      var shardKeys = Object.keys(keys).filter(Boolean);
+      return Promise.all([lemJob].concat(shardKeys.map(function (k) { return ensureShard(k); }))).then(function (res) {
         var lem = res[0];
         var exact = {}, lemma = {};
         toks.forEach(function (t) {
           var shard = _bucketCache.get(shardKeyFor(t, m)) || {};
           if (shard[t]) exact[t] = shard[t];
-          var pid = lem.map[t];
-          if (pid != null && lem.lemma[pid]) lemma[t] = lem.lemma[pid];
+          if (!exactOnly) { var pid = lem.map[t]; if (pid != null && lem.lemma[pid]) lemma[t] = lem.lemma[pid]; }
         });
         return scoreHits(toks, { exact: exact, lemma: lemma });
       });
@@ -355,23 +357,23 @@
   function phraseSearch(query, opts) {
     opts = opts || {};
     var slop = opts.slop || 0;
+    var exactOnly = !!opts.exactOnly;   // BRR-S9 — «точная форма»: literal form only, no lemma expansion
     var ordered = _resolveQueryTokens(query);
     if (!ordered.length) return Promise.resolve({ tokens: [], multiToken: false, results: [] });
     var distinct = ordered.filter(function (t, i) { return ordered.indexOf(t) === i; });
     // resolve shard keys via the manifest first (sharded_letters → 2-letter prefixes), then fan out.
     return ensureManifest().then(function (m) {
       var keys = {}; distinct.forEach(function (t) { keys[shardKeyFor(t, m)] = 1; });
-      var jobs = [ensureLemma()];
-      Object.keys(keys).forEach(function (k) { if (k) jobs.push(ensureShard(k)); });
-      return Promise.all(jobs).then(function (res) {
+      var lemJob = exactOnly ? Promise.resolve({ lemma: {}, map: {} }) : ensureLemma();
+      var shardKeys = Object.keys(keys).filter(Boolean);
+      return Promise.all([lemJob].concat(shardKeys.map(function (k) { return ensureShard(k); }))).then(function (res) {
       var lem = res[0];
       // word-AND scoring (unchanged recall): resolve each distinct token's posting lists.
       var exact = {}, lemma = {};
       distinct.forEach(function (t) {
         var shard = _bucketCache.get(shardKeyFor(t, m)) || {};
         if (shard[t]) exact[t] = shard[t];
-        var pid = lem.map[t];
-        if (pid != null && lem.lemma[pid]) lemma[t] = lem.lemma[pid];
+        if (!exactOnly) { var pid = lem.map[t]; if (pid != null && lem.lemma[pid]) lemma[t] = lem.lemma[pid]; }
       });
       var hits = scoreHits(distinct, { exact: exact, lemma: lemma });
 
@@ -465,19 +467,25 @@
     return -1;
   }
 
+  // pidForToken(token) → the Pealim pid a query token resolves to (via the loaded lemmamap), or null.
+  // BRR-S10 — grounds a search→study note in the authoritative id the corpus-vocab + reader share, so a
+  // word saved from search folds to `pid:<id>` (joins i+1 coverage) instead of an orphan norm-key.
+  function pidForToken(token) { var s = normalizeToken(token); return (s && _lemmaMap && _lemmaMap[s] != null) ? _lemmaMap[s] : null; }
+
   function _setLemmaMapForTest(m) { _lemmaMap = m || null; }
   function _setManifestForTest(m) { _manifest = m || null; }
   function _setBucketForTest(key, decoded) { _bucketCache.set(key, decoded || {}); }   // inject a decoded EXACT shard (phraseOnlySearch gate)
+  function _setLemmaForTest(lemma, map) { _lemma = lemma || {}; _lemmaMap = map || {}; }   // inject the decoded lemma layer (exactOnly gate)
   function _resetForTest() { _manifest = null; _bucketCache = new Map(); _shardLoading = new Map(); _lemma = null; _lemmaMap = null; }
 
   var API = {
     normalizeToken: normalizeToken, tokenizeText: tokenizeText, bucketOf: bucketOf,
     decodePostings: decodePostings, decodePositions: decodePositions, phraseHit: phraseHit,
     scoreHits: scoreHits, firstMatchRow: firstMatchRow, firstPhraseRow: firstPhraseRow,
-    markSegments: markSegments, FINALS: FINALS,
+    markSegments: markSegments, pidForToken: pidForToken, FINALS: FINALS,
     configure: configure, search: search, phraseSearch: phraseSearch, phraseOnlySearch: phraseOnlySearch, ensureManifest: ensureManifest,
     warm: warm, warmQuery: warmQuery, shardKeyFor: shardKeyFor,
-    _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest, _setManifestForTest: _setManifestForTest, _setBucketForTest: _setBucketForTest,
+    _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest, _setManifestForTest: _setManifestForTest, _setBucketForTest: _setBucketForTest, _setLemmaForTest: _setLemmaForTest,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.CorpusFTS = API;

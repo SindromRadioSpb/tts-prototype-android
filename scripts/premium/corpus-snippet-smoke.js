@@ -78,6 +78,29 @@ async function main() {
   }
   FTS._resetForTest();
 
+  console.log("phraseSearch exactOnly (S9 — «точная форма» vs «по корню/все формы»):");
+  // Inject EXACT (literal form in work 0) + a LEMMA layer (same root, inflected form, in work 1).
+  // Default search returns both; exactOnly returns only the literal-form work.
+  FTS._setManifestForTest({ schema: 2, positions: true, sharded_letters: [], bucket_files: { "מ": ["x"] } });
+  const skM = FTS.normalizeToken("מלך");
+  FTS._setBucketForTest("מ", { [skM]: [{ w: 0, pos: [0] }] });        // literal מלך in work 0
+  FTS._setLemmaForTest({ "777": [{ w: 1, c: 2 }] }, { [skM]: "777" }); // root pid 777 (e.g. מלכים) in work 1
+  {
+    const all = await FTS.phraseSearch("מלך");                         // default = по корню / all forms
+    const ws = all.results.map((r) => r.w).sort();
+    ok(ws.length === 2 && ws[0] === 0 && ws[1] === 1, "default «по корню» returns literal + inflected works", JSON.stringify(ws));
+    const ex = await FTS.phraseSearch("מלך", { exactOnly: true });     // S9 «точная форма»
+    const wx = ex.results.map((r) => r.w);
+    ok(wx.length === 1 && wx[0] === 0, "exactOnly returns ONLY the literal-form work (no lemma expansion)", JSON.stringify(wx));
+  }
+  FTS._resetForTest();
+
+  console.log("pidForToken (S10 — ground a saved word in the authoritative Pealim pid):");
+  FTS._setLemmaMapForTest({ [FTS.normalizeToken("אהבה")]: "777" });
+  ok(FTS.pidForToken("אַהֲבָה") === "777", "pidForToken resolves a voweled query to its lemmamap pid (folds via skeleton)");
+  ok(FTS.pidForToken("כלבלב") == null, "pidForToken → null for an unmapped token (orphan note avoided honestly)");
+  FTS._resetForTest();
+
   console.log("firstPhraseRow / firstMatchRow on RAW body rows (S1 — snippet line selection):");
   // The lazy snippet loader passes works/<id>.json rows (hebrew_niqqud) straight into these.
   const rows = [

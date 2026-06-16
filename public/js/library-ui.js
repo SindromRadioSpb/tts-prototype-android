@@ -60,7 +60,7 @@ const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT chan
 const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS index CONTENT/FORMAT changes (rev 5 = 2-level prefix shards)
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
-let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; // active global filter
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode)
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
                                  // filter bar — and the search input's focus — survive typing)
 let corpusClearChip = null;      // ref to the «✕ Сбросить» chip (shown only when a filter is active)
@@ -396,6 +396,7 @@ async function roomSaveWord(card, occ) {
     try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
   }
   readerWordStates = null; // saved a note → status map is stale; re-decorate (colour + adaptive fade)
+  try { invalidateReadableSet(); } catch (_) {}   // S7 — profile changed → recompute «Читаемые для меня»
   try { applyDecorations(); } catch (_) {}
   roomToast(tt('room.morph.savedToast', 'Слово сохранено в заметки'));
   if (!note) return { status: 'created' };
@@ -1284,8 +1285,34 @@ async function roomVocabCoverageFor(id) {
   return window.CorpusVocab.coverageForWork(v.works[String(id)], v.dict, states || {});
 }
 if (typeof window !== 'undefined') {
-  window.CorpusVocabRoom = { ensure: loadCorpusVocab, coverageFor: roomVocabCoverageFor };
+  // refresh() drops the cached profile snapshots (word-states + readable-set) so the next coverage/
+  // readability read re-queries the live profile — for when it changed outside the reader's save path.
+  window.CorpusVocabRoom = { ensure: loadCorpusVocab, coverageFor: roomVocabCoverageFor, refresh: () => { readerWordStates = null; try { invalidateReadableSet(); } catch (_) {} } };
 }
+
+// BRR-S7 — «Читаемые для меня»: the set of work ids the reader can read NOW (i+1 zone in/easy against
+// the LIVE profile). Computed ONCE from the vocab sidecar + a SINGLE ensureWordStates snapshot (the
+// anti-stampede discipline — never a per-row DB query [[feedback-test-with-nonempty-profile]]), cached
+// until the profile changes (invalidated on word-save). Honest: only works the reader has real overlap
+// with (knownDistinct>0) count; an empty profile → empty set (the filter then shows nothing, not a lie).
+let _readableSet = null;
+async function ensureReadableSet() {
+  if (_readableSet) return _readableSet;
+  const set = new Set();
+  try {
+    const v = await loadCorpusVocab();
+    if (v && v.works && window.CorpusVocab) {
+      const states = (await ensureWordStates()) || {};
+      for (const id in v.works) {
+        const cov = window.CorpusVocab.coverageForWork(v.works[id], v.dict, states);
+        if (cov && cov.knownDistinct > 0 && (cov.zone === 'in' || cov.zone === 'easy')) set.add(String(id));
+      }
+    }
+  } catch (_) {}
+  _readableSet = set;
+  return set;
+}
+function invalidateReadableSet() { _readableSet = null; }
 
 // S3 — progressive coverage badge on a rendered corpus card. Fire-and-forget (does not
 // block render). HONEST: shows a % ONLY when the reader has a real profile overlap with
@@ -1319,7 +1346,7 @@ function enhanceCardWithCoverage(node, card) {
   if (!node || !card || card.id == null || !window.CorpusVocabRoom) return;
   roomVocabCoverageFor(card.id).then((cov) => {
     if (!cov || cov.knownDistinct === 0) return;
-    const meta = node.querySelector('.work-card-meta');
+    const meta = node.querySelector('.work-card-meta, .corpus-work-meta');   // rail card OR result row (S7)
     if (!meta || meta.querySelector('.coverage-badge')) return;
     const pct = Math.round(cov.matchedDrillCov * 100);
     const b = el('span', { class: 'prov-badge coverage-badge coverage-' + cov.zone, text: '≈' + pct + '%' });
@@ -1606,12 +1633,13 @@ function corpusReadyMap() {
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) corpusReadyById.set(String(c.id), c);
   return corpusReadyById;
 }
-function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly); }
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly); }
 function corpusApplyFilter() {
   const rows = corpusSearch || [];
   const f = corpusFilter; const q = corpusNrm(f.q);
   return rows.filter((row) => {
     if (f.readyOnly && !row.r) return false;
+    if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // S7 — i+1 zone only
     if (f.genre && row.g !== f.genre) return false;
     if (f.lang && row.l !== f.lang) return false;
     if (q && !(String(row._n || '').includes(q) || corpusNrm(row.a).includes(q))) return false;
@@ -1629,6 +1657,7 @@ function corpusFilterSummary() {
   if (f.genre) parts.push(corpusGenreLabel(f.genre));
   if (f.lang) parts.push(corpusLangLabel(f.lang));
   if (f.readyOnly) parts.push(tt('room.corpus.facets.ready', 'Готовые'));
+  if (f.readableOnly) parts.push(tt('room.corpus.facets.readable', 'Читаемые для меня'));
   return parts.join(' · ') || tt('room.corpus.search.results', 'Результаты');
 }
 // BRR-S6 — the results count, split so a «0» can't be misread. `titleN` = title/author matches;
@@ -1927,8 +1956,42 @@ async function fillRowSnippet(rowNode) {
   appendMarkedHebrew(heEl, he, qToks);
   snip.appendChild(heEl);
   if (ru) snip.appendChild(el('div', { class: 'corpus-snippet-ru', text: ru }));
+  // BRR-S10 — quick capture: save the matched line as a study example (feeds notes → Anki word export).
+  const actions = el('div', { class: 'corpus-snippet-actions' });
+  const saveBtn = el('button', { class: 'corpus-snippet-save', attrs: { type: 'button', title: tt('room.corpus.search.saveToNotes', 'Сохранить строку в заметки') } });
+  saveBtn.textContent = '💾 ' + tt('room.corpus.search.saveToNotes', 'В заметки');
+  saveBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); saveSnippetToNotes(saveBtn, q, he, ru, card); });
+  actions.appendChild(saveBtn);
+  snip.appendChild(actions);
   const col = rowNode.querySelector('.corpus-work-col');
   if (col) col.appendChild(snip);
+}
+
+// BRR-S10 — save a found line as a study artifact. A SINGLE-word query → a word_study note for that
+// word, grounded in the authoritative Pealim pid (pidForToken → joins i+1 coverage + the Anki word
+// export), with the matched bilingual line as `context` (no fabricated morphology — empty, honestly
+// enriched later in the reader). A PHRASE → a free example note (the bilingual line + provenance).
+async function saveSnippetToNotes(btn, q, he, ru, card) {
+  const qToks = ftsQueryTokens(q);
+  const ctx = (String(he || '') + (ru ? ' · ' + ru : '')).trim().slice(0, 600);
+  try {
+    if (qToks.length <= 1) {
+      const segs = (window.CorpusFTS && window.CorpusFTS.markSegments(he, qToks)) || [];
+      const niqWord = ((segs.find((s) => s.m) || {}).t || '').trim();
+      const word = (niqWord ? corpusNrm(niqWord) : String(q || '').trim());
+      const body = { word: word, niqqud_variant: niqWord, meaning: '', root: '', lemma: '', pos: '', binyan: '', context: ctx, examples: ctx };
+      let pid = null; try { pid = window.CorpusFTS && window.CorpusFTS.pidForToken ? window.CorpusFTS.pidForToken(word) : null; } catch (_) {}
+      if (pid != null) body.pealim_id = String(pid);
+      await localDb.createNote({ target_kind: 'word', target_id: null, text_id: null, note_type: 'word_study', title: word, body: body });
+    } else {
+      const md = String(he || '') + (ru ? '\n' + ru : '') + (card && card.title ? '\n\n— ' + card.title : '');
+      await localDb.createNote({ target_kind: 'free', target_id: null, text_id: null, note_type: 'free', title: String(q || '').trim().slice(0, 80), body: md });
+    }
+    readerWordStates = null; try { invalidateReadableSet(); } catch (_) {}   // S7 — profile grew → recompute coverage
+    btn.textContent = '✓ ' + tt('room.corpus.search.savedToNotes', 'Сохранено');
+    btn.disabled = true;
+    roomToast(tt('room.corpus.search.savedToNotes', 'Сохранено в заметки'));
+  } catch (e) { try { console.warn('[room] save snippet failed', e); } catch (_) {} roomToast(tt('room.corpus.search.saveFailed', 'Не удалось сохранить')); }
 }
 
 let _ftsConfigured = false;
@@ -1969,7 +2032,7 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
   const stale = () => corpusL1Body !== body || (seq != null && seq !== corpusFtsSeq);
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
-  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
+  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
   let ftsCount = 0;
   const bumpCount = (done) => { if (summary && summary.countEl) { try { summary.countEl.textContent = corpusCountLabel(summary.titleN, ftsCount, done); } catch (_) {} } };
 
@@ -1993,8 +2056,9 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
 
   // STAGE 2 — full search (loads the lemma layer): the scattered «слова в тексте» group. Its phrase
   // hit-set equals stage 1's (same EXACT positional field), so those works are excluded here → no dupes.
+  const exactMode = !!f.exactForm;   // BRR-S9 — literal-form vs «по корню/все формы» (default)
   let out = null;
-  try { out = await window.CorpusFTS.phraseSearch(q); } catch (_) { try { loading.remove(); } catch (_2) {} return; }
+  try { out = await window.CorpusFTS.phraseSearch(q, { exactOnly: exactMode }); } catch (_) { try { loading.remove(); } catch (_2) {} return; }
   try { loading.remove(); } catch (_) {}
   if (stale()) return;
   const res = (out && out.results) || [];
@@ -2009,7 +2073,9 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
     phraseShown = latePhrase.length; ftsCount += phraseShown;
   }
   if (wordItems.length) {
-    const label = (phraseShown || out.multiToken) ? tt('room.corpus.search.words', 'Слова в тексте') : ('🔎 ' + tt('room.corpus.search.inText', 'В тексте'));
+    const label = exactMode
+      ? ('🔎 ' + tt('room.corpus.search.exactWords', 'Точная форма в тексте'))
+      : ((phraseShown || out.multiToken) ? tt('room.corpus.search.words', 'Слова в тексте') : ('🔎 ' + tt('room.corpus.search.inText', 'В тексте')));
     appendFtsSection(body, q, label, wordItems);
     ftsCount += wordItems.length;
   }
@@ -2052,6 +2118,24 @@ function buildCorpusFilterBar() {
   ready.textContent = '✓ ' + tt('room.corpus.facets.ready', 'Готовые');
   ready.addEventListener('click', () => { corpusFilter.readyOnly = !corpusFilter.readyOnly; ready.classList.toggle('on', corpusFilter.readyOnly); ready.setAttribute('aria-pressed', String(corpusFilter.readyOnly)); corpusRefreshL1Body(); });
   chips.appendChild(ready);
+  // BRR-S7 — «Читаемые для меня»: i+1 readability filter (zone in/easy vs the live profile). Loads the
+  // readable-set once (anti-stampede) before refreshing; an empty profile honestly yields no readable hits.
+  const readable = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readableOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readableOnly) } });
+  readable.textContent = '📖 ' + tt('room.corpus.facets.readable', 'Читаемые для меня');
+  readable.addEventListener('click', async () => {
+    corpusFilter.readableOnly = !corpusFilter.readableOnly;
+    readable.classList.toggle('on', corpusFilter.readableOnly);
+    readable.setAttribute('aria-pressed', String(corpusFilter.readableOnly));
+    if (corpusFilter.readableOnly) { readable.disabled = true; try { await ensureReadableSet(); } catch (_) {} readable.disabled = false; }
+    corpusRefreshL1Body();
+  });
+  chips.appendChild(readable);
+  // BRR-S9 — «🔤 Точная форма»: default search is lemma-tolerant («по корню» — all forms of the root);
+  // ON restricts the in-text «слова» group to the LITERAL consonantal form (Reverso-class exact toggle).
+  const exactChip = el('button', { class: 'corpus-facet-chip' + (corpusFilter.exactForm ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.exactForm), title: tt('room.corpus.search.exactFormHint', 'Только точная форма слова, без других форм корня') } });
+  exactChip.textContent = '🔤 ' + tt('room.corpus.search.exactForm', 'Точная форма');
+  exactChip.addEventListener('click', () => { corpusFilter.exactForm = !corpusFilter.exactForm; exactChip.classList.toggle('on', corpusFilter.exactForm); exactChip.setAttribute('aria-pressed', String(corpusFilter.exactForm)); corpusRefreshL1Body(); });
+  chips.appendChild(exactChip);
   chips.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel));
   chips.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel));
   // The clear chip is ALWAYS in the bar (the bar is not rebuilt on filter change to keep the
@@ -2059,7 +2143,7 @@ function buildCorpusFilterBar() {
   const clear = el('button', { class: 'corpus-facet-chip clear', attrs: { type: 'button' } });
   clear.textContent = '✕ ' + tt('room.corpus.facets.clear', 'Сбросить');
   clear.hidden = !corpusFilterActive();
-  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false }; corpusNavTo('home'); });
+  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false }; corpusNavTo('home'); });
   corpusClearChip = clear;
   chips.appendChild(clear);
   bar.appendChild(chips);
@@ -2358,6 +2442,9 @@ function renderCorpusWorkRow(card, openable, opts) {
   }
   // BRR-S1 — lazy bilingual snippet of the matched line (ready hits in a search context only).
   if (openable && ftsQ && card.file) observeRowSnippet(row, card, ftsQ);
+  // BRR-S7 — «≈N% тебе по силам» readability badge on ready result rows (lazy; honest — absent when
+  // the reader has no profile overlap). Result rows are the showAuthor=true (cross-author) context.
+  if (openable && opts && opts.showAuthor && card.id != null) observeCardCoverage(row, card);
   return row;
 }
 

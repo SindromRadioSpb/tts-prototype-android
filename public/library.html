@@ -320,6 +320,14 @@
     }
     .corpus-snippet-he { font-size: 13px; line-height: 1.55; color: var(--text-primary); }
     .corpus-snippet-ru { font-size: 12px; line-height: 1.4; color: var(--text-secondary); margin-top: 2px; }
+    /* BRR-S10 — save-to-notes action under the snippet */
+    .corpus-snippet-actions { display: flex; justify-content: flex-end; margin-top: 5px; }
+    .corpus-snippet-save {
+      width: auto; appearance: none; cursor: pointer; background: var(--bg-card); color: var(--accent);
+      border: 1px solid var(--border-soft); border-radius: 999px; padding: 4px 11px; font-size: 12px; font-weight: 600;
+    }
+    .corpus-snippet-save:active { background: var(--bg-muted); }
+    .corpus-snippet-save[disabled] { color: var(--text-faint); cursor: default; }
     /* BRR-S2 — niqqud-insensitive query highlight (amber, distinct from the row-jump tint; no underline → никуд-safe) */
     mark.fts-mark { background: rgba(255, 184, 28, 0.34); color: inherit; border-radius: 3px; padding: 0 1px; }
     @media (prefers-color-scheme: dark) { body:not(.theme-light) mark.fts-mark { background: rgba(255, 199, 72, 0.30); } }
