@@ -58,6 +58,7 @@ let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,
 let corpusVocabLoading = null;   // single-flight guard
 const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
 const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS index CONTENT/FORMAT changes (rev 5 = 2-level prefix shards)
+const TRANSLIT_DATA_REV = 1;     // BRR-S18 — bump when build-translit-index output changes within a catalog version
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search)
@@ -2128,6 +2129,8 @@ async function renderResultsInto(body) {
       conc.textContent = '📑 ' + tt('room.corpus.concordance.entry', 'Все вхождения (конкорданс)');
       conc.addEventListener('click', () => corpusNavTo('concordance'));
       body.appendChild(conc);
+    } else if (/[а-яё]/i.test(corpusFilter.q)) {
+      maybeTranslitSuggest(body, corpusFilter.q);   // BRR-S18 — cyrillic query → Hebrew candidates
     }
     // BRR-S13 — save the current search (query + all filters) to re-run later.
     const saveS = el('button', { class: 'corpus-concordance-entry', attrs: { type: 'button' } });
@@ -2414,6 +2417,50 @@ function setSearchQueryFromChip(term) {
   corpusFilter.q = term; pushRecentSearch(term); corpusRefreshL1Body();
   try { ensureFtsConfigured(); window.CorpusFTS && window.CorpusFTS.warmQuery(term); } catch (_) {}
   try { corpusSearchInputEl && corpusSearchInputEl.focus(); } catch (_) {}
+}
+
+// ── BRR-S18 — translit helper рус→иврит ──────────────────────────────────────────────────────────
+// A non-Hebrew (cyrillic) query can't match the Hebrew corpus → offer authoritative Hebrew candidates
+// from the reverse-translit index (built from the bodies' translit_ru). foldCyrLib MUST stay byte-identical
+// to build-translit-index.js foldCyr (parity — index keys + query folded the same way). Lazy, single-flight.
+let _translitIdx = null, _translitLoading = null;
+function foldCyrLib(s) { return String(s == null ? '' : s).toLowerCase().replace(/[^а-яё]/g, '').replace(/ё/g, 'е').replace(/э/g, 'е').replace(/[ъь]/g, '').replace(/(.)\1+/g, '$1'); }
+function loadTranslitIndex() {
+  if (_translitIdx) return Promise.resolve(_translitIdx);
+  if (_translitLoading) return _translitLoading;
+  const url = '/data/benyehuda/translit-ru-v' + CORPUS_CATALOG_VERSION + '.json?v=' + CORPUS_CATALOG_VERSION + '.' + TRANSLIT_DATA_REV;
+  _translitLoading = fetch(url, { cache: 'force-cache' })
+    .then((r) => { if (!r.ok) throw new Error('translit ' + r.status); return r.json(); })
+    .then((j) => { _translitIdx = j; return j; })
+    .finally(() => { _translitLoading = null; });
+  return _translitLoading;
+}
+// Insert a «Возможно, вы искали: <иврит>» banner for a cyrillic query (fire-and-forget; stale-guarded).
+async function maybeTranslitSuggest(body, q) {
+  const toks = String(q || '').toLowerCase().match(/[а-яё]+/g) || [];
+  if (!toks.length) return;
+  let idx = null; try { idx = await loadTranslitIndex(); } catch (_) { return; }
+  if (!idx || !idx.cyr || corpusL1Body !== body || corpusFilter.q !== q) return;   // navigated away / query changed
+  let chips = [];
+  if (toks.length === 1) {
+    chips = (idx.cyr[foldCyrLib(toks[0])] || []).slice(0, 3);
+  } else {
+    const tops = toks.map((t) => (idx.cyr[foldCyrLib(t)] || [])[0]);
+    if (tops.every(Boolean)) chips = [tops.join(' ')];                              // whole phrase resolved
+    else chips = tops.filter(Boolean).slice(0, 3);                                   // partial → per-word tops
+  }
+  if (!chips.length) return;
+  const sec = el('div', { class: 'corpus-translit-suggest' });
+  sec.appendChild(el('span', { class: 'corpus-translit-label', text: tt('room.corpus.translit.maybe', 'Возможно, вы искали') + ':' }));
+  for (const heb of chips) {
+    const c = el('button', { class: 'corpus-recent-chip', attrs: { type: 'button', dir: 'rtl' } });
+    c.textContent = heb;
+    c.addEventListener('click', () => setSearchQueryFromChip(heb));
+    sec.appendChild(c);
+  }
+  const summary = body.querySelector('.corpus-results-summary');
+  if (summary && summary.nextSibling) body.insertBefore(sec, summary.nextSibling);
+  else body.appendChild(sec);
 }
 // Paint the recents/suggestions row (under the bar, only when no query is active). Recents win;
 // an empty history falls back to honest «попробуйте» cold-start prompts.

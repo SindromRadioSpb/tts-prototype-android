@@ -141,18 +141,31 @@ reading list + multiple saved searches; multiple NAMED lists = a small documente
 - Verified @380px (gear collapse/expand/persist; picker add + inline-create a 2nd list; multi-shelf home;
   delete-list), 0 console-errors. i18n `room.corpus.facets.more` + `room.corpus.lists.{defaultName,addTo,newName,create,done,deleteList,untitled}`.
 
-## ⏳ P3 remaining — forks/blockers (owner decision)
+## ✅ S18 translit helper рус→иврит — SHIPPED (owner-approved authoritative path; SW v3.10.70-fts-translit)
+A non-Hebrew (cyrillic) query → a «Возможно, вы искали: <иврит>» banner with authoritative Hebrew candidates.
+**Producer** `scripts/premium/build-translit-index.js` (`build:translit`): word-aligns each body row's
+`hebrew_plain` ↔ `translit_ru`, folds the translit to a coarse phonetic skeleton (`foldCyr` — collapses
+ё/э→е, drops signs, collapses doubles), keeps the top-3 Hebrew surface forms by frequency (≥2), strips
+punctuation from candidates. Output `public/data/benyehuda/translit-ru-v7.json` (41.5K keys, 1.3MB; committed
+to git, immutable-cached, **lazy** — loaded only on a cyrillic query; **NO token**). **Client** (library-ui):
+`loadTranslitIndex` (single-flight) + `foldCyrLib` (**byte-parity with the producer `foldCyr`**) +
+`maybeTranslitSuggest` (banner in `renderResultsInto` for a cyrillic query; single word → top-3 chips,
+multi-word → joined Hebrew phrase; a chip runs the Hebrew search). v1 = cyrillic only (SBL-latin is
+digraph-mismatched → documented follow-up). Gate `smoke:translit` (15: fold parity + buildIndex
+alignment/MIN_COUNT/clean/top-K). i18n `room.corpus.translit.maybe`. Verified @380px («шалом»→שלום→search;
+«мелех адам»→מלך אדם), 0 console-errors. [R5/R2 · R1 honest (real transliterations, not a guessed map)]
+
+## ⏳ P3 DEFERRED (owner-confirmed 2026-06-16 — documented, not built)
 - **S17 inflection-tolerant PHRASE** — index-level needs POSITIONAL lemma data (breaks the 6.5MB always-loaded
-  mobile budget) + a token push; client-side ready-only re-scan is marginal (firstPhraseRow already does it on
-  drill-in). Recommend DEFER (or a `slop` gap-tolerance toggle, which IS cheap on the exact positions).
-- **S18 translit helper рус→иврит** — feasible WELL via an authoritative reverse-translit index built from the
-  bodies' `translit_ru` (committable to git, NO token); a naive phonetic map risks R1 garbage. It's a producer
-  brick (recon-design + a shipped map + lazy client). Owner: build it / skip.
-- **S19 Knowledge-Map link (root→graph)** — the KM (`window.KnowledgeMap`) is Studio-only (not in `library.html`);
-  a root-focus deep-link would touch `index.html` (canon forbids) or load the full KM into the lean Room.
-  Recommend DEFER (Stage-2 decision).
-- **FTS coverage → 26K** — mechanical, but the push step needs `AUDIO_UPLOAD_TOKEN` (LEAKED, pending owner
-  rotation). BLOCKED until rotation.
+  mobile budget R4/R5) + a token push; client ready-only re-scan is marginal (firstPhraseRow already does it on
+  drill-in). DEFERRED. Cheap alternative if revisited: a `slop` gap-tolerance toggle on «Точная фраза» (phraseHit
+  already takes `slop`, exact positions exist — no token, no budget hit).
+- **S19 Knowledge-Map link (root→graph)** — KM (`window.KnowledgeMap`) is Studio-only (not in `library.html`); a
+  root-focus deep-link would touch `index.html` (canon forbids) or load the full KM into the lean Room. DEFERRED
+  to a Stage-2 decision.
+- **FTS coverage → 26K** — mechanical (`fetch:corpus-bodies`→`build:corpus-fts`→`push`), but the push needs
+  `AUDIO_UPLOAD_TOKEN` (LEAKED, pending owner rotation — reusing it would deepen the leak). BLOCKED until rotation.
+- **S18 latin/SBL input** + **non-ready add-to-reading-list** — small follow-ups.
 
 ## 🔑 OPEN (owner)
 Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code; P0–P2-non-big shipped without it).

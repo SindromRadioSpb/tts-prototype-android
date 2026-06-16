@@ -2016,6 +2016,7 @@ window.I18N_LOCALES.he = {
       facets: { ready: "מוכנים", genre: "סוגה", lang: "שפה", clear: "ניקוי", readable: "קריאים עבורי", hasAudio: "עם שמע", reviewed: "נבדק", more: "עוד מסננים" },
       scope: { inAuthor: "אצל המחבר", inEra: "בתקופה", searchAuthor: "חיפוש אצל המחבר", searchEra: "חיפוש בתקופה", clear: "חיפוש בכל הקורפוס" },
       concordance: { title: "קונקורדנציה", entry: "כל המופעים (קונקורדנציה)", occurrences: "מופעים", texts: "טקסטים", moreLines: "עוד בטקסט הזה" },
+      translit: { maybe: "אולי התכוונת" },
       saved: { title: "חיפושים שמורים", save: "שמירת חיפוש", savedToast: "החיפוש נשמר", remove: "מחיקה" },
       lists: { add: "הוספה לרשימת קריאה", short: "לרשימה", added: "נוסף לרשימה", removed: "הוסר מהרשימה", shelfTitle: "לקרוא אחר כך", remove: "הסרה", notReady: "התרגום בהכנה", defaultName: "לקרוא אחר כך", untitled: "רשימה", addTo: "הוספה לרשימה", newName: "רשימה חדשה…", create: "יצירת רשימה", done: "סיום", deleteList: "מחיקת רשימה" },
       sort: { graduated: "מוכנים תחילה", alpha: "לפי א״ב", graded: "לפי הסדר", length: "לפי אורך" },

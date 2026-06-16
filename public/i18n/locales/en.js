@@ -2006,6 +2006,7 @@ window.I18N_LOCALES.en = {
       facets: { ready: "Ready", genre: "Genre", lang: "Language", clear: "Clear", readable: "Readable for me", hasAudio: "With audio", reviewed: "Reviewed", more: "More filters" },
       scope: { inAuthor: "in author", inEra: "in period", searchAuthor: "Search this author", searchEra: "Search this period", clear: "Search the whole corpus" },
       concordance: { title: "Concordance", entry: "All occurrences (concordance)", occurrences: "occurrences", texts: "texts", moreLines: "more in this text" },
+      translit: { maybe: "Did you mean" },
       saved: { title: "Saved searches", save: "Save search", savedToast: "Search saved", remove: "Delete" },
       lists: { add: "Add to reading list", short: "List", added: "Added to list", removed: "Removed from list", shelfTitle: "Read later", remove: "Remove", notReady: "Translation in progress", defaultName: "Read later", untitled: "List", addTo: "Add to a list", newName: "New list…", create: "Create list", done: "Done", deleteList: "Delete list" },
       sort: { graduated: "Ready first", alpha: "Alphabetical", graded: "In order", length: "By length" },

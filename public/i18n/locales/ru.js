@@ -2020,6 +2020,7 @@ window.I18N_LOCALES.ru = {
       facets: { ready: "Готовые", genre: "Жанр", lang: "Язык", clear: "Сбросить", readable: "Читаемые для меня", hasAudio: "С аудио", reviewed: "Проверено", more: "Ещё фильтры" },
       scope: { inAuthor: "в авторе", inEra: "в периоде", searchAuthor: "Искать у автора", searchEra: "Искать в периоде", clear: "Искать по всему корпусу" },
       concordance: { title: "Конкорданс", entry: "Все вхождения (конкорданс)", occurrences: "вхождений", texts: "текстов", moreLines: "ещё в этом тексте" },
+      translit: { maybe: "Возможно, вы искали" },
       saved: { title: "Сохранённые поиски", save: "Сохранить поиск", savedToast: "Поиск сохранён", remove: "Удалить" },
       lists: { add: "В список чтения", short: "В список", added: "Добавлено в список", removed: "Убрано из списка", shelfTitle: "Читать позже", remove: "Убрать", notReady: "Перевод готовится", defaultName: "Читать позже", untitled: "Список", addTo: "Добавить в список", newName: "Новый список…", create: "Создать список", done: "Готово", deleteList: "Удалить список" },
       sort: { graduated: "Готовые сверху", alpha: "По алфавиту", graded: "По порядку", length: "По длине" },
