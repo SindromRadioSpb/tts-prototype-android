@@ -5,7 +5,17 @@
 > в НОВОЙ сессии, всё одним заходом (промт в конце файла). Дизайн-канон + журнал находок: `BRR_P2_DISCOVERY_2026_06_14.md` (§B).
 > Reading-row UX: `BRR_READING_UX_REQUIREMENTS_2026_06_15.md`. Роли: `docs/PROJECT_ROLES.md`.
 
-## Где мы (всё SHIPPED + PROD-верифицировано)
+## ✅ ВЕСЬ НАБОР S1–S16 РЕАЛИЗОВАН + ОТГРУЖЕН 2026-06-16 (SW `v3.10.68-fts-discovery3`, main `616c7d7`)
+> Реализация-лог + детали по каждому S → **`docs/planning/BRR_SEARCH_IMPL_2026_06_16.md`**. Большие кирпичи (S8/S11/S13/S15)
+> УТВЕРЖДЕНЫ владельцем (все V1) — рекон-дизайны `BRR_S{8,11,13,15}_*.md`.
+> **P0** S1 сниппет билингв · S2 `<mark>` · S3 прогрессивная фраза · S4 ✕/Enter/Esc · S5 релевантность · S6 ясность счётчика.
+> **P1** S7 readability-фильтр+бейдж · S8 KWIC-конкорданс · S9 точная-форма/по-корню · S10 поиск→заметки(context+pid).
+> **P2** S11 scoped (автор/период) · S12 recent+suggestions · S13 сохранённые-поиски+список-чтения · S14 ещё-у-автора · S15 in-reader-find · S16 провенанс-фильтры(аудио/проверено).
+> Гейты зелёные (`smoke:corpus-snippet` 30 · `corpus-fts` 48 · `-parity` 30 · `reader-parity`/`-resume`/`bookmarks`/`i18n`).
+> Прод-верифи (Node-fetch + браузер @380px light+dark, 0 console-errors). НЕ ОТГРУЖЕНО (P3-беклог): S17 инфлексия-толерантная ФРАЗА · S18 транслит-помощник · S19 link в Knowledge-Map · рост FTS-покрытия к 26K.
+> Никуд-ловушки/нюансы: index.html не тронут; reader-core builder parity-locked; S10 НЕ блокируется токеном (клиентский createNote); ротация `AUDIO_UPLOAD_TOKEN`+Gemini+GCP всё ещё блокер публикации репо + ③.
+
+## Где мы (ядро P2-001..006a — было SHIPPED + PROD-верифицировано ДО этого захода)
 - **main `fff01aa`, SW `v3.10.63-fts-fast`.** Зал `/library.html` + `public/js/library-ui.js`; движок `public/js/corpus-fts.js`;
   билд `scripts/premium/build-corpus-fts.js`; индекс на ПРОД-ТОМЕ (gitignored), пуш `push-corpus-fts.js`; манифест в git+precache.
 - **P2-001** Full-text «в тексте» (свой Hebrew-aware инвертированный индекс; FTS5 нет в wa-sqlite).
