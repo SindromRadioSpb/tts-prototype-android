@@ -2004,6 +2004,10 @@ window.I18N_LOCALES.en = {
       sectionLater: "In catalogue · translation later",
       search: { placeholder: "Search the corpus…", results: "Results", empty: "Nothing found.", inText: "In the text", byForm: "by word form", phrase: "Exact phrase", words: "Words in the text", searching: "Searching the texts…", byTitle: "By title", clearInput: "Clear", exactForm: "Exact form", exactFormHint: "Only the exact word form, not other forms of the root", exactWords: "Exact form in the text", saveToNotes: "To notes", savedToNotes: "Saved to notes", saveFailed: "Couldn’t save", recent: "Recent", try: "Try", clearRecent: "Clear history", moreByAuthor: "More by this author" },
       facets: { ready: "Ready", genre: "Genre", lang: "Language", clear: "Clear", readable: "Readable for me", hasAudio: "With audio", reviewed: "Reviewed" },
+      scope: { inAuthor: "in author", inEra: "in period", searchAuthor: "Search this author", searchEra: "Search this period", clear: "Search the whole corpus" },
+      concordance: { title: "Concordance", entry: "All occurrences (concordance)", occurrences: "occurrences", texts: "texts", moreLines: "more in this text" },
+      saved: { title: "Saved searches", save: "Save search", savedToast: "Search saved", remove: "Delete" },
+      lists: { add: "Add to reading list", short: "List", added: "Added to list", removed: "Removed from list", shelfTitle: "Read later", remove: "Remove", notReady: "Translation in progress" },
       sort: { graduated: "Ready first", alpha: "Alphabetical", graded: "In order", length: "By length" },
       jumpbar: "Letters",
       genre: {

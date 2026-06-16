@@ -310,6 +310,19 @@
     });
   }
 
+  // concordance(query) → Promise<{total, works:[{w, count}]}> — BRR-S8. The corpus-wide frequency view:
+  // every work containing the query, ranked by occurrence count (exact tf + lemma tf), with a total. Reuses
+  // search() (loads exact + lemma), so it's inflection-tolerant like the «слова» group. The KWIC context
+  // LINES are rendered client-side from ready bodies (findRows) — the index has counts, not per-line text.
+  function concordance(query) {
+    return search(query).then(function (hits) {
+      var works = hits.map(function (h) { return { w: h.w, count: (h.exact || 0) + (h.lemma || 0) }; });
+      works.sort(function (a, b) { return (b.count - a.count) || (a.w - b.w); });
+      var total = 0; for (var i = 0; i < works.length; i++) total += works[i].count;
+      return { total: total, works: works };
+    });
+  }
+
   // BRR-P2-005 — firstMatchRow(rows, query) → index of the FIRST reader row whose Hebrew contains
   // a query match (exact skeleton OR lemma pid via the loaded lemmamap), or -1. Uses the SAME
   // normaliser/tokeniser as the index, so the row that made the work a hit is located
@@ -501,7 +514,7 @@
     decodePostings: decodePostings, decodePositions: decodePositions, phraseHit: phraseHit,
     scoreHits: scoreHits, firstMatchRow: firstMatchRow, firstPhraseRow: firstPhraseRow, findRows: findRows,
     markSegments: markSegments, pidForToken: pidForToken, FINALS: FINALS,
-    configure: configure, search: search, phraseSearch: phraseSearch, phraseOnlySearch: phraseOnlySearch, ensureManifest: ensureManifest,
+    configure: configure, search: search, phraseSearch: phraseSearch, phraseOnlySearch: phraseOnlySearch, concordance: concordance, ensureManifest: ensureManifest,
     warm: warm, warmQuery: warmQuery, shardKeyFor: shardKeyFor,
     _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest, _setManifestForTest: _setManifestForTest, _setBucketForTest: _setBucketForTest, _setLemmaForTest: _setLemmaForTest,
   };

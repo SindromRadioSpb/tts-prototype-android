@@ -60,11 +60,42 @@ const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT chan
 const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS index CONTENT/FORMAT changes (rev 5 = 2-level prefix shards)
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
-let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance)
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search)
 let corpusSearchInputEl = null;     // S12 — ref so recent/suggestion chips can set the query
 let corpusRecentsEl = null;         // S12 — recents/suggestions row (under the filter bar)
 const RECENTS_KEY = 'corpus_recent_searches_v1';
 const CORPUS_SUGGESTIONS = ['אהבה', 'מלך', 'לב', 'חיים', 'שלום', 'ירושלים'];   // S12 cold-start prompts (high-frequency, R7-honest)
+// BRR-S13 — saved searches + reading list. localStorage (not the shelves table): a corpus work is
+// served-on-open (NOT an OPFS text), so the shelf renderer would show it «unavailable»; localStorage +
+// the corpus card flow renders + opens it correctly, device-local, no migration. (Multiple named lists =
+// documented follow-up; v1 ships one «Читать позже» list + multiple saved searches.)
+const SAVED_SEARCHES_KEY = 'corpus_saved_searches_v1';
+const READING_LIST_KEY = 'corpus_reading_list_v1';
+const _lsGet = (k) => { try { const a = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(a) ? a : []; } catch (_) { return []; } };
+const _lsSet = (k, a) => { try { localStorage.setItem(k, JSON.stringify(a)); } catch (_) {} };
+function getSavedSearches() { return _lsGet(SAVED_SEARCHES_KEY); }
+function saveCurrentSearch() {
+  const f = corpusFilter; const name = corpusFilterSummary();
+  const entry = { name: name, f: { q: f.q, genre: f.genre, lang: f.lang, readyOnly: f.readyOnly, readableOnly: f.readableOnly, exactForm: f.exactForm, hasAudio: f.hasAudio, reviewed: f.reviewed, scopeAuthor: f.scopeAuthor, scopeEra: f.scopeEra } };
+  const a = getSavedSearches().filter((x) => x.name !== name);   // dedup by human name
+  a.unshift(entry); _lsSet(SAVED_SEARCHES_KEY, a.slice(0, 20));
+}
+function removeSavedSearch(name) { _lsSet(SAVED_SEARCHES_KEY, getSavedSearches().filter((x) => x.name !== name)); }
+function restoreSavedSearch(f) {
+  corpusFilter = Object.assign({ q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }, f || {});
+  if (corpusFilter.readableOnly) { ensureReadableSet().then(() => corpusNavTo('home')).catch(() => corpusNavTo('home')); }
+  else corpusNavTo('home');
+}
+function getReadingList() { return _lsGet(READING_LIST_KEY); }
+function isInReadingList(id) { id = String(id); return getReadingList().some((x) => String(x.id) === id); }
+function toggleReadingItem(card) {
+  const id = String(card.id); const a = getReadingList();
+  const i = a.findIndex((x) => String(x.id) === id);
+  if (i >= 0) { a.splice(i, 1); _lsSet(READING_LIST_KEY, a); return false; }
+  a.unshift({ id: card.id, text_key: card.text_key || '', file: card.file || '', title: card.title || '', author: card.author || '', r: !!(card.file && card.text_key), era: card.era || '', genre: card.genre || '' });
+  _lsSet(READING_LIST_KEY, a.slice(0, 200)); return true;
+}
+function removeReadingItem(id) { id = String(id); _lsSet(READING_LIST_KEY, getReadingList().filter((x) => String(x.id) !== id)); }
 let corpusL1Body = null;         // ref to the L1 body region (refreshed in place so the
                                  // filter bar — and the search input's focus — survive typing)
 let corpusClearChip = null;      // ref to the «✕ Сбросить» chip (shown only when a filter is active)
@@ -1578,12 +1609,75 @@ async function injectBookmarksShelf(body) {
   } catch (_) {}
 }
 
-// Inject the L1 home rails in deterministic top-to-bottom order — because each prepends to
-// firstChild, the LAST to run sits highest: Продолжить → 🔖 Закладки → profile rail → ready → периоды.
+// BRR-S13 — «⭐ Сохранённые поиски» chips (persistent, full-filter) on home. Tap re-runs (restores all
+// filters); ✕ deletes. Synchronous (localStorage); guarded against a stale/filtered body.
+function injectSavedSearches(body) {
+  try {
+    const saved = getSavedSearches();
+    if (!saved.length || corpusL1Body !== body || corpusFilterActive()) return;
+    const sec = el('section', { class: 'shelf corpus-saved' });
+    const head = el('div', { class: 'shelf-head' });
+    head.appendChild(el('h2', { class: 'shelf-title', text: '⭐ ' + tt('room.corpus.saved.title', 'Сохранённые поиски') }));
+    sec.appendChild(head);
+    const chips = el('div', { class: 'corpus-saved-chips' });
+    for (const s of saved) {
+      const chip = el('div', { class: 'corpus-saved-chip' });
+      const run = el('button', { class: 'corpus-saved-run', attrs: { type: 'button' } });
+      run.textContent = s.name; if (HEBREW_RE.test(s.name)) run.setAttribute('dir', 'rtl');
+      run.addEventListener('click', () => restoreSavedSearch(s.f));
+      const x = el('button', { class: 'corpus-saved-del', attrs: { type: 'button', 'aria-label': tt('room.corpus.saved.remove', 'Удалить') } });
+      x.textContent = '✕';
+      x.addEventListener('click', () => { removeSavedSearch(s.name); corpusRefreshL1Body(); });
+      chip.appendChild(run); chip.appendChild(x); chips.appendChild(chip);
+    }
+    sec.appendChild(chips);
+    body.insertBefore(sec, body.firstChild);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
+}
+// BRR-S13 — «📚 Читать позже» shelf (corpus reading list). Opens ready items via the corpus card flow;
+// non-ready items honestly show «перевод позже» (R8 no dead-end). ✕ removes.
+function renderReadingListCard(it) {
+  const node = el('div', { class: 'work-card readinglist-card', attrs: { role: 'button', tabindex: '0' } });
+  const title = it.title || tt('room.work.untitled', 'Без названия');
+  const t = el('span', { class: 'work-card-title', text: title }); if (HEBREW_RE.test(title)) t.setAttribute('dir', 'rtl'); node.appendChild(t);
+  if (it.author) { const a = el('span', { class: 'work-card-author', text: it.author }); if (HEBREW_RE.test(it.author)) a.setAttribute('dir', 'rtl'); node.appendChild(a); }
+  const meta = el('div', { class: 'work-card-meta' });
+  if (!it.r) meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
+  const rm = el('button', { class: 'readinglist-rm', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.remove', 'Убрать') } });
+  rm.textContent = '✕';
+  rm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); removeReadingItem(it.id); corpusRefreshL1Body(); });
+  meta.appendChild(rm); node.appendChild(meta);
+  const open = () => { if (it.r && it.file && it.text_key) openCorpusWork(it); else roomToast(tt('room.corpus.lists.notReady', 'Перевод готовится')); };
+  node.addEventListener('click', open);
+  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  return node;
+}
+function injectReadingListShelf(body) {
+  try {
+    const items = getReadingList();
+    if (!items.length || corpusL1Body !== body || corpusFilterActive()) return;
+    const sec = el('section', { class: 'shelf corpus-readinglist' });
+    const head = el('div', { class: 'shelf-head' });
+    head.appendChild(el('h2', { class: 'shelf-title', text: '📚 ' + tt('room.corpus.lists.shelfTitle', 'Читать позже') }));
+    sec.appendChild(head);
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const it of items) rail.appendChild(renderReadingListCard(it));
+    sec.appendChild(rail);
+    body.insertBefore(sec, body.firstChild);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
+}
+
+// Inject the L1 home rails in deterministic top-to-bottom order — because each prepends to firstChild,
+// the LAST to run sits highest: ⭐ Сохранённые поиски → Продолжить → 🔖 Закладки → 📚 Читать позже →
+// profile rail → ready → периоды.
 async function injectHomeRails(body) {
   await injectCorpusRails(body);
+  injectReadingListShelf(body);
   await injectBookmarksShelf(body);
   await injectContinueReading(body);
+  injectSavedSearches(body);
 }
 
 async function injectCorpusRails(body) {
@@ -1730,7 +1824,7 @@ function corpusReadyMap() {
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) corpusReadyById.set(String(c.id), c);
   return corpusReadyById;
 }
-function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed); }
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeEra); }
 // BRR-S16 — provenance filters (audio / human-reviewed) are properties of the READY card (corpus-search
 // rows don't carry them), so they imply readable works: a non-ready row has no card → excluded honestly.
 function corpusAdvOk(row, readyMap) {
@@ -1749,6 +1843,8 @@ function corpusApplyFilter() {
   return rows.filter((row) => {
     if (f.readyOnly && !row.r) return false;
     if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // S7 — i+1 zone only
+    if (f.scopeAuthor && row.a !== f.scopeAuthor) return false;                              // S11 — scoped to one author
+    if (f.scopeEra && row.e !== f.scopeEra) return false;                                    // S11 — scoped to one period
     if (f.genre && row.g !== f.genre) return false;
     if (f.lang && row.l !== f.lang) return false;
     if ((f.hasAudio || f.reviewed) && !corpusAdvOk(row, readyMap)) return false;             // S16 — provenance
@@ -1763,6 +1859,8 @@ function corpusLangLabel(l) {
 }
 function corpusFilterSummary() {
   const f = corpusFilter; const parts = [];
+  if (f.scopeAuthor) parts.push(tt('room.corpus.scope.inAuthor', 'в авторе') + ': ' + f.scopeAuthor);   // S11
+  if (f.scopeEra) parts.push(tt('room.corpus.scope.inEra', 'в периоде') + ': ' + corpusEraTitle(f.scopeEra));
   if (String(f.q || '').trim()) parts.push('«' + f.q.trim() + '»');
   if (f.genre) parts.push(corpusGenreLabel(f.genre));
   if (f.lang) parts.push(corpusLangLabel(f.lang));
@@ -1860,6 +1958,7 @@ async function renderCorpus() {
   }
   if (corpusNav.level === 'authors') return renderCorpusAuthors(corpusNav.era, token);
   if (corpusNav.level === 'works') return renderCorpusWorks(corpusNav.era, corpusNav.author, token);
+  if (corpusNav.level === 'concordance') return renderConcordance(token);   // BRR-S8
   return renderCorpusHome(token);
 }
 
@@ -1945,6 +2044,21 @@ async function renderResultsInto(body) {
   const countEl = el('span', { class: 'corpus-results-count', text: hasQuery ? corpusCountLabel(hits.length, null, false) : String(hits.length) });
   summary.appendChild(countEl);
   body.appendChild(summary);
+  // BRR-S8 — concordance entry (only for a Hebrew query, where the FTS index applies).
+  if (hasQuery) {
+    let heQ = false; try { heQ = !!(window.CorpusFTS && window.CorpusFTS.tokenizeText(corpusFilter.q).length); } catch (_) {}
+    if (heQ) {
+      const conc = el('button', { class: 'corpus-concordance-entry', attrs: { type: 'button' } });
+      conc.textContent = '📑 ' + tt('room.corpus.concordance.entry', 'Все вхождения (конкорданс)');
+      conc.addEventListener('click', () => corpusNavTo('concordance'));
+      body.appendChild(conc);
+    }
+    // BRR-S13 — save the current search (query + all filters) to re-run later.
+    const saveS = el('button', { class: 'corpus-concordance-entry', attrs: { type: 'button' } });
+    saveS.textContent = '⭐ ' + tt('room.corpus.saved.save', 'Сохранить поиск');
+    saveS.addEventListener('click', () => { saveCurrentSearch(); roomToast(tt('room.corpus.saved.savedToast', 'Поиск сохранён')); });
+    body.appendChild(saveS);
+  }
   // Group A — title/author matches (the existing flat list + «показать ещё» pagination). BRR-P2-005.2:
   // thread the query so a title-hit ALSO opens AT the matched body row when the word is in the body
   // (else firstMatchRow → -1 → normal resume/top). Was the «no highlighted row on drill-in» bug.
@@ -2076,6 +2190,18 @@ async function fillRowSnippet(rowNode) {
   saveBtn.textContent = '💾 ' + tt('room.corpus.search.saveToNotes', 'В заметки');
   saveBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); saveSnippetToNotes(saveBtn, q, he, ru, card); });
   actions.appendChild(saveBtn);
+  // BRR-S13 — add this work to the reading list («Читать позже»), toggle.
+  const onList0 = isInReadingList(card.id);
+  const listBtn = el('button', { class: 'corpus-snippet-save', attrs: { type: 'button', 'aria-pressed': String(onList0), title: tt('room.corpus.lists.add', 'В список чтения') } });
+  listBtn.textContent = (onList0 ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список');
+  listBtn.addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    const now = toggleReadingItem(card);
+    listBtn.textContent = (now ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список');
+    listBtn.setAttribute('aria-pressed', String(now));
+    roomToast(tt(now ? 'room.corpus.lists.added' : 'room.corpus.lists.removed', now ? 'Добавлено в список' : 'Убрано из списка'));
+  });
+  actions.appendChild(listBtn);
   snip.appendChild(actions);
   const col = rowNode.querySelector('.corpus-work-col');
   if (col) col.appendChild(snip);
@@ -2147,7 +2273,7 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
   const advReadyMap = corpusReadyMap();
-  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
+  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && !(f.scopeAuthor && sr.a !== f.scopeAuthor) && !(f.scopeEra && sr.e !== f.scopeEra) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
   let ftsCount = 0;
   const bumpCount = (done) => { if (summary && summary.countEl) { try { summary.countEl.textContent = corpusCountLabel(summary.titleN, ftsCount, done); } catch (_) {} } };
 
@@ -2255,6 +2381,139 @@ function corpusNavToAuthor(era, name) {
   }).catch(() => {});
 }
 
+// BRR-S11 — enter a scoped search: set the author/era scope, go to the L1 results surface, focus the
+// input. The query (corpusFilter.q) persists across the drill, so an in-flight search re-runs scoped.
+function corpusScopeTo(opts) {
+  corpusFilter.scopeAuthor = (opts && opts.author) || '';
+  corpusFilter.scopeEra = (opts && opts.era) || '';
+  corpusNavTo('home');
+  setTimeout(() => { try { corpusSearchInputEl && corpusSearchInputEl.focus(); } catch (_) {} }, 60);
+}
+// A «🔍 искать у автора / в периоде» entry shown on the L2/L3 headers.
+function buildScopeSearchRow(opts) {
+  const row = el('div', { class: 'corpus-scope-search' });
+  const b = el('button', { class: 'corpus-scope-search-btn', attrs: { type: 'button' } });
+  b.textContent = '🔍 ' + (opts.author ? tt('room.corpus.scope.searchAuthor', 'Искать у автора') : tt('room.corpus.scope.searchEra', 'Искать в периоде'));
+  b.addEventListener('click', () => corpusScopeTo(opts));
+  row.appendChild(b);
+  return row;
+}
+
+// ── BRR-S8 — KWIC / concordance («все вхождения слова по корпусу») ─────────────────────────────
+// Frequency + per-work counts across ALL indexed works (from the index); KWIC context LINES for READY
+// works only (lazy body-fetch + findRows — the index has counts, not per-line text); non-ready works are
+// honest count-only «перевод позже». A generic lazy observer (rootMargin 300px) drives the per-work fills.
+let _lazyObserver = null;
+function getLazyObserver() {
+  if (_lazyObserver !== null) return _lazyObserver;
+  _lazyObserver = (typeof IntersectionObserver !== 'undefined')
+    ? new IntersectionObserver((entries, obs) => { for (const e of entries) if (e.isIntersecting) { obs.unobserve(e.target); try { e.target.__lazyFill && e.target.__lazyFill(); } catch (_) {} } }, { rootMargin: '300px' })
+    : false;
+  return _lazyObserver;
+}
+async function renderConcordance(token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  const q = corpusFilter.q;
+  main.innerHTML = '';
+  const wrap = el('div', { class: 'corpus-nav' });
+  wrap.appendChild(corpusCrumb([
+    { label: tt('room.tabs.corpus', 'Корпус'), onClick: () => corpusNavTo('home') },
+    { label: '📑 ' + tt('room.corpus.concordance.title', 'Конкорданс') },
+  ]));
+  const body = el('div', { class: 'corpus-concordance' });
+  wrap.appendChild(body);
+  main.appendChild(wrap);
+  body.appendChild(stateBoxNode('room.state.loading', '⏳'));
+  if (!corpusSearch) { try { await loadCorpusSearch(); } catch (_) {} }
+  if (token !== corpusRenderToken) return;
+  ensureFtsConfigured();
+  let out = null;
+  try { out = await window.CorpusFTS.concordance(q); } catch (_) { out = { total: 0, works: [] }; }
+  if (token !== corpusRenderToken) return;
+  body.innerHTML = '';
+  const works = (out.works || []).filter((x) => corpusSearch[x.w]);
+  const head = el('div', { class: 'corpus-concordance-head' });
+  head.appendChild(el('span', { class: 'corpus-concordance-q', text: '«' + String(q || '').trim() + '»' }));
+  if (HEBREW_RE.test(q || '')) head.lastChild.setAttribute('dir', 'rtl');
+  head.appendChild(el('span', { class: 'corpus-concordance-stat', text: tt('room.corpus.concordance.occurrences', 'вхождений') + ': ' + out.total + ' · ' + tt('room.corpus.concordance.texts', 'текстов') + ': ' + works.length }));
+  body.appendChild(head);
+  if (!works.length) { body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍')); try { window.applyI18n && window.applyI18n(); } catch (_) {} return; }
+  const list = el('div', { class: 'corpus-concordance-list' });
+  const moreWrap = el('div', { class: 'corpus-more' });
+  body.appendChild(list); body.appendChild(moreWrap);
+  const readyMap = corpusReadyMap();
+  let cursor = 0;
+  const slice = () => {
+    const upTo = Math.min(works.length, cursor + 24);
+    for (let i = cursor; i < upTo; i++) {
+      const x = works[i], sr = corpusSearch[x.w];
+      const full = sr.r ? readyMap.get(String(sr.id)) : null;
+      list.appendChild(renderConcordanceWork(sr, full, x.count, q));
+    }
+    cursor = upTo;
+    moreWrap.innerHTML = '';
+    if (cursor < works.length) {
+      const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
+      btn.textContent = tt('room.corpus.showMore', 'Показать ещё') + ' (' + (works.length - cursor) + ')';
+      btn.addEventListener('click', () => { slice(); try { window.applyI18n && window.applyI18n(); } catch (_) {} });
+      moreWrap.appendChild(btn);
+    }
+  };
+  slice();
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+function renderConcordanceWork(sr, full, count, q) {
+  const sec = el('section', { class: 'corpus-concordance-work' });
+  const head = el('div', { class: 'corpus-concordance-work-head' });
+  const col = el('div', { class: 'corpus-concordance-work-col' });
+  const title = el('span', { class: 'corpus-concordance-work-title', text: sr.t || '—' });
+  if (HEBREW_RE.test(sr.t || '')) title.setAttribute('dir', 'rtl');
+  col.appendChild(title);
+  if (sr.a) { const a = el('span', { class: 'corpus-work-author', text: sr.a }); if (HEBREW_RE.test(sr.a)) a.setAttribute('dir', 'rtl'); col.appendChild(a); }
+  head.appendChild(col);
+  head.appendChild(el('span', { class: 'corpus-concordance-count', text: String(count) }));
+  sec.appendChild(head);
+  if (full && full.file) {
+    const linesWrap = el('div', { class: 'corpus-concordance-lines' });
+    sec.appendChild(linesWrap);
+    linesWrap.__lazyFill = () => fillConcordanceLines(linesWrap, full, q);
+    const obs = getLazyObserver();
+    if (!obs) linesWrap.__lazyFill(); else obs.observe(linesWrap);
+  } else {
+    const later = el('div', { class: 'corpus-concordance-later' });
+    later.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
+    sec.appendChild(later);
+  }
+  return sec;
+}
+async function fillConcordanceLines(node, card, q) {
+  if (!node.isConnected) return;
+  let rows = null; try { rows = await loadWorkBodyRows(card); } catch (_) { return; }
+  if (!rows || !rows.length || !node.isConnected) return;
+  const matchIdx = (window.CorpusFTS && window.CorpusFTS.findRows) ? window.CorpusFTS.findRows(rows, q) : [];
+  const qToks = ftsQueryTokens(q);
+  const K = 5;
+  for (let i = 0; i < Math.min(matchIdx.length, K); i++) {
+    const row = rows[matchIdx[i]];
+    const he = row.hebrew_niqqud || row.hebrew_plain || '', ru = row.russian || '';
+    const line = el('div', { class: 'corpus-concordance-line', attrs: { role: 'button', tabindex: '0' } });
+    const heEl = el('div', { class: 'corpus-snippet-he', attrs: { dir: 'rtl' } });
+    appendMarkedHebrew(heEl, he, qToks); line.appendChild(heEl);
+    if (ru) line.appendChild(el('div', { class: 'corpus-snippet-ru', text: ru }));
+    const open = () => openCorpusWork(card, { ftsQuery: q });
+    line.addEventListener('click', open);
+    line.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    node.appendChild(line);
+  }
+  if (matchIdx.length > K) {
+    const more = el('button', { class: 'corpus-concordance-more', attrs: { type: 'button' } });
+    more.textContent = '+' + (matchIdx.length - K) + ' ' + tt('room.corpus.concordance.moreLines', 'ещё в этом тексте');
+    more.addEventListener('click', () => openCorpusWork(card, { ftsQuery: q }));
+    node.appendChild(more);
+  }
+}
+
 // Persistent global filter bar: search input + ✓Готовые toggle + genre/lang selects (counts
 // from the root) + a clear chip when any filter is active. Each control refreshes only the L1
 // body, so the input focus + select values survive.
@@ -2287,6 +2546,19 @@ function buildCorpusFilterBar() {
   inputWrap.appendChild(input); inputWrap.appendChild(clearX);
   bar.appendChild(inputWrap);
   const chips = el('div', { class: 'corpus-facets' });
+  // BRR-S11 — when a scope is active, a removable «✕ в авторе/периоде: X» chip leads the row (honest,
+  // explicit scope; clearing it returns to global search). The bar is rebuilt on home render, so the
+  // chip appears/disappears with the scope.
+  if (corpusFilter.scopeAuthor || corpusFilter.scopeEra) {
+    const label = corpusFilter.scopeAuthor
+      ? (tt('room.corpus.scope.inAuthor', 'в авторе') + ': ' + corpusFilter.scopeAuthor)
+      : (tt('room.corpus.scope.inEra', 'в периоде') + ': ' + corpusEraTitle(corpusFilter.scopeEra));
+    const sc = el('button', { class: 'corpus-facet-chip on corpus-scope-chip', attrs: { type: 'button', title: tt('room.corpus.scope.clear', 'Искать по всему корпусу') } });
+    sc.textContent = '✕ ' + label;
+    if (HEBREW_RE.test(label)) sc.setAttribute('dir', 'rtl');
+    sc.addEventListener('click', () => { corpusFilter.scopeAuthor = ''; corpusFilter.scopeEra = ''; renderCorpus(); });
+    chips.appendChild(sc);
+  }
   const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly) } });
   ready.textContent = '✓ ' + tt('room.corpus.facets.ready', 'Готовые');
   ready.addEventListener('click', () => { corpusFilter.readyOnly = !corpusFilter.readyOnly; ready.classList.toggle('on', corpusFilter.readyOnly); ready.setAttribute('aria-pressed', String(corpusFilter.readyOnly)); corpusRefreshL1Body(); });
@@ -2327,7 +2599,7 @@ function buildCorpusFilterBar() {
   const clear = el('button', { class: 'corpus-facet-chip clear', attrs: { type: 'button' } });
   clear.textContent = '✕ ' + tt('room.corpus.facets.clear', 'Сбросить');
   clear.hidden = !corpusFilterActive();
-  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false }; corpusNavTo('home'); });
+  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }; corpusNavTo('home'); });
   corpusClearChip = clear;
   chips.appendChild(clear);
   bar.appendChild(chips);
@@ -2410,6 +2682,7 @@ function renderCorpusAuthors(era, token) {
     { label: tt('room.tabs.corpus', 'Корпус'), onClick: () => corpusNavTo('home') },
     { label: corpusEraTitle(era) },
   ]));
+  wrap.appendChild(buildScopeSearchRow({ era }));   // BRR-S11 — «🔍 искать в периоде»
   const base = (corpusIndex.authors && corpusIndex.authors[era]) || [];
   const alpha = corpusAuthorSort === 'alpha';
   const authors = alpha ? base.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), 'he')) : base;
@@ -2489,6 +2762,7 @@ async function renderCorpusWorks(era, author, token) {
     { label: corpusEraTitle(era), onClick: () => corpusNavTo('authors', era) },
     { label: author.name },
   ]));
+  wrap.appendChild(buildScopeSearchRow({ author: author.name, era }));   // BRR-S11 — «🔍 искать у автора»
   const body = el('div', { class: 'corpus-works-body' });
   wrap.appendChild(body);
   main.appendChild(wrap);

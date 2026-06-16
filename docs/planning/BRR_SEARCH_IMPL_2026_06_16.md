@@ -102,7 +102,32 @@ errors) + reader-parity. The live marking/navigation e2e is the owner's on-devic
 work uses `importBundle`, which crashes wa-sqlite in HEADLESS Chromium (a harness limit; reader-open is
 prod-proven daily). [R5 table-stakes · R4 RTL/a11y · R10 honest match]
 
-### ⏳ In progress: S8 KWIC/concordance · S11 scoped search · S13 saved searches/reading-lists.
+### S11 scoped search — SHIPPED (SW v3.10.68)
+Search inside an author (L3) / period (L2) via a «🔍 искать у автора / в периоде» entry on the header →
+results scoped (predicate on `sr.a`/`sr.e` in `corpusApplyFilter` + the FTS `passFilter`), shown as a
+removable «✕ в авторе/периоде: X» chip; the query persists across the drill. i18n `room.corpus.scope.*`.
+Verified @380px: drill → scope → results restricted to one author → clear → global, 0 errors. [R6/R5]
+
+### S8 KWIC / concordance — SHIPPED (SW v3.10.68)
+«📑 Все вхождения» entry on a Hebrew search → a concordance view: corpus-wide frequency + per-work counts
+(engine `CorpusFTS.concordance` = `search` reused; exact tf + lemma tf, ranked) with lazy KWIC context
+LINES for READY works (body-fetch + `findRows`, keyword `<mark>`-centred, tap → open at the line);
+non-ready works honest count-only «перевод позже». Generic lazy observer (anti-stampede). i18n
+`room.corpus.concordance.*`. Gate `smoke:corpus-snippet` +1 concordance (30). Verified @380px («תקלליני»
+→ header freq/texts + counts + KWIC lines + marks + back-nav, 0 errors). [R7/R10/R9]
+
+### S13 saved searches + reading list — SHIPPED (SW v3.10.68)
+«⭐ Сохранить поиск» → persists {query + all filters} to localStorage, surfaced as «⭐ Сохранённые поиски»
+chips on home (tap re-runs/restores all filters; ✕ deletes). «➕ В список» on a snippet → toggles the work
+into a «📚 Читать позже» reading list (localStorage), shown as a home shelf (opens ready items via the
+corpus card flow; non-ready honest «перевод позже»; ✕ removes). i18n `room.corpus.{saved,lists}.*`.
+**Design refinement (documented):** the approval said «reuse the shelves table», but a corpus work is
+served-on-open (NOT an OPFS text) → the shelf renderer would mark it «unavailable»; localStorage + the
+corpus card flow renders + opens it correctly, no migration, no headless-write crash. v1 ships ONE
+reading list + multiple saved searches; multiple NAMED lists = a small documented follow-up. Verified
+@380px: save→restore→delete a search; add→shelf→remove a work, 0 errors. [R6/R4]
+
+## ✅ ALL S1–S16 SHIPPED + verified. P3 (S17 inflection-tolerant phrase · S18 translit helper · S19 Knowledge-Map link · FTS coverage→26K) remain backlog.
 
 ## 🔑 OPEN (owner)
 Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code; P0–P2-non-big shipped without it).

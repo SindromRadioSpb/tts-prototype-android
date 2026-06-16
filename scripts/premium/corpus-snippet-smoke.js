@@ -101,6 +101,19 @@ async function main() {
   ok(FTS.pidForToken("כלבלב") == null, "pidForToken → null for an unmapped token (orphan note avoided honestly)");
   FTS._resetForTest();
 
+  console.log("concordance (S8 — corpus-wide frequency, exact tf + lemma tf, ranked):");
+  FTS._setManifestForTest({ schema: 2, positions: true, sharded_letters: [], bucket_files: { "מ": ["x"] } });
+  const skC = FTS.normalizeToken("מלך");
+  FTS._setBucketForTest("מ", { [skC]: [{ w: 0, pos: [2] }, { w: 1, pos: [0, 5] }] });   // literal in works 0,1
+  FTS._setLemmaForTest({ "777": [{ w: 2, c: 3 }] }, { [skC]: "777" });                    // inflected (pid) in work 2
+  {
+    const conc = await FTS.concordance("מלך");
+    ok(conc.total === 6, "total = Σ occurrences (1 + 2 exact + 3 lemma)", "total=" + conc.total);
+    ok(conc.works.length === 3, "lists every containing work");
+    ok(conc.works[0].w === 2 && conc.works[0].count === 3, "ranked by occurrence count desc", JSON.stringify(conc.works[0]));
+  }
+  FTS._resetForTest();
+
   console.log("firstPhraseRow / firstMatchRow on RAW body rows (S1 — snippet line selection):");
   // The lazy snippet loader passes works/<id>.json rows (hebrew_niqqud) straight into these.
   const rows = [
