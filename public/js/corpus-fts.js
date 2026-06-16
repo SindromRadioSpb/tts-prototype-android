@@ -16,6 +16,7 @@
   'use strict';
 
   var NIQQUD_RE = /[֑-ׇ]/g;                 // same range as corpusNrm / build-corpus-vocab
+  var NIQQUD_ONE = /[֑-ׇ]/;                 // NON-global twin (safe for .test in a char loop — no lastIndex state)
   var HEB_LETTER = /[א-ת]/;
   // final → medial fold (only inside the normalised key, never in display)
   var FINALS = { 'ך': 'כ', 'ם': 'מ', 'ן': 'נ', 'ף': 'פ', 'ץ': 'צ' };
@@ -151,6 +152,33 @@
       out.push({ w: w, score: rec.score, exact: rec.exact, lemma: rec.lemma });
     });
     out.sort(function (a, b) { return b.score - a.score || a.w - b.w; });
+    return out;
+  }
+
+  // markSegments(text, qTokens) → [{ t: substring, m: bool }] that re-concatenates to `text` exactly
+  // (BRR S2 — niqqud-insensitive query highlight, XSS-safe: the caller builds <mark> DOM nodes, never
+  // innerHTML). A Hebrew WORD run (letters + niqqud) is marked when its skeleton CONTAINS any normalised
+  // query token — the SAME substring rule as firstMatchRow, so a proclitic/substring hit (שחר∈שחרור,
+  // בית∈בבית) lights the whole word, and никуд never splits a <mark>. Pure + gate-tested.
+  function markSegments(text, qTokens) {
+    var s = String(text == null ? '' : text);
+    var toks = (qTokens || []).filter(Boolean);
+    if (!s) return [];
+    if (!toks.length) return [{ t: s, m: false }];
+    var out = [], i = 0, n = s.length;
+    var isWordChar = function (c) { return HEB_LETTER.test(c) || NIQQUD_ONE.test(c); };
+    while (i < n) {
+      var word = isWordChar(s[i]), j = i;
+      while (j < n && isWordChar(s[j]) === word) j++;
+      var seg = s.slice(i, j), mark = false;
+      if (word) {
+        var skel = normalizeToken(seg);
+        if (skel) { for (var k = 0; k < toks.length; k++) { if (skel.indexOf(toks[k]) >= 0) { mark = true; break; } } }
+      }
+      if (out.length && out[out.length - 1].m === mark) out[out.length - 1].t += seg;  // coalesce same-mark runs
+      else out.push({ t: seg, m: mark });
+      i = j;
+    }
     return out;
   }
 
@@ -373,6 +401,41 @@
     });
   }
 
+  // phraseOnlySearch(query, {slop}) → Promise<{tokens, results:[{w, phraseStart, score}]}> resolved from ONLY
+  // the positional EXACT shards (no ensureLemma). Lets the «Точная фраза» group paint from the small prefix
+  // shards (~1.3MB) BEFORE the always-loaded lemma layer (~6.5MB) finishes warming — BRR S3 «прогрессивная
+  // фраза», kills the cold-floor on the first pasted line. Returns [] for <2 tokens or a non-positional index
+  // (caller falls back to the full phraseSearch). The phrase hit-set is IDENTICAL to phraseSearch's (both read
+  // phrase adjacency from the same exact positional field; lemma is count-only and carries no positions).
+  function phraseOnlySearch(query, opts) {
+    opts = opts || {};
+    var slop = opts.slop || 0;
+    var ordered = _resolveQueryTokens(query);
+    if (ordered.length < 2) return Promise.resolve({ tokens: ordered, results: [] });
+    var distinct = ordered.filter(function (t, i) { return ordered.indexOf(t) === i; });
+    return ensureManifest().then(function (m) {
+      if (!(m && (m.positions || m.schema >= 2))) return { tokens: distinct, results: [] };
+      var keys = {}; distinct.forEach(function (t) { keys[shardKeyFor(t, m)] = 1; });
+      return Promise.all(Object.keys(keys).filter(Boolean).map(function (k) { return ensureShard(k); })).then(function () {
+        var lists = {};
+        for (var di = 0; di < distinct.length; di++) {
+          var t = distinct[di], shard = _bucketCache.get(shardKeyFor(t, m)) || {};
+          if (!shard[t]) return { tokens: distinct, results: [] };   // a token missing in EXACT → no exact phrase
+          lists[t] = shard[t];
+        }
+        var posMaps = ordered.map(function (t) { var mp = new Map(); _mergePos(mp, lists[t]); return mp; });
+        var results = [];
+        posMaps[0].forEach(function (_p, w) {                         // a phrase must include the first token's work
+          var posLists = posMaps.map(function (mp) { return mp.get(w) || []; });
+          var ph = phraseHit(posLists, slop);
+          if (ph.hit) results.push({ w: w, phraseStart: ph.start, score: posLists.reduce(function (a, b) { return a + b.length; }, 0) });
+        });
+        results.sort(function (a, b) { return (b.score - a.score) || (a.w - b.w); });
+        return { tokens: distinct, results: results };
+      });
+    });
+  }
+
   // firstPhraseRow(rows, query, {slop}) → index of the first reader row that contains the query
   // as a PHRASE (consecutive query tokens within the row, matched by skeleton OR lemma pid), or -1.
   // Precise drill-in for a phrase hit; caller falls back to firstMatchRow (any token) when -1.
@@ -404,16 +467,17 @@
 
   function _setLemmaMapForTest(m) { _lemmaMap = m || null; }
   function _setManifestForTest(m) { _manifest = m || null; }
+  function _setBucketForTest(key, decoded) { _bucketCache.set(key, decoded || {}); }   // inject a decoded EXACT shard (phraseOnlySearch gate)
   function _resetForTest() { _manifest = null; _bucketCache = new Map(); _shardLoading = new Map(); _lemma = null; _lemmaMap = null; }
 
   var API = {
     normalizeToken: normalizeToken, tokenizeText: tokenizeText, bucketOf: bucketOf,
     decodePostings: decodePostings, decodePositions: decodePositions, phraseHit: phraseHit,
     scoreHits: scoreHits, firstMatchRow: firstMatchRow, firstPhraseRow: firstPhraseRow,
-    FINALS: FINALS,
-    configure: configure, search: search, phraseSearch: phraseSearch, ensureManifest: ensureManifest,
+    markSegments: markSegments, FINALS: FINALS,
+    configure: configure, search: search, phraseSearch: phraseSearch, phraseOnlySearch: phraseOnlySearch, ensureManifest: ensureManifest,
     warm: warm, warmQuery: warmQuery, shardKeyFor: shardKeyFor,
-    _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest, _setManifestForTest: _setManifestForTest,
+    _resetForTest: _resetForTest, _setLemmaMapForTest: _setLemmaMapForTest, _setManifestForTest: _setManifestForTest, _setBucketForTest: _setBucketForTest,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.CorpusFTS = API;

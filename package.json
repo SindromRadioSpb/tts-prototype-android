@@ -128,6 +128,7 @@
     "fetch:corpus-bodies": "node scripts/premium/fetch-corpus-bodies.js",
     "smoke:corpus-fts": "node scripts/premium/corpus-fts-smoke.js",
     "smoke:corpus-fts-parity": "node scripts/premium/corpus-fts-parity-smoke.js",
+    "smoke:corpus-snippet": "node scripts/premium/corpus-snippet-smoke.js",
     "smoke:fill-list": "node scripts/premium/fill-list-smoke.js",
     "probe:niqqud": "node scripts/premium/probe-niqqud.js",
     "smoke:era-map": "node scripts/premium/era-map-smoke.js",

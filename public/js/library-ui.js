@@ -1631,6 +1631,13 @@ function corpusFilterSummary() {
   if (f.readyOnly) parts.push(tt('room.corpus.facets.ready', 'Готовые'));
   return parts.join(' · ') || tt('room.corpus.search.results', 'Результаты');
 }
+// BRR-S6 — the results count, split so a «0» can't be misread. `titleN` = title/author matches;
+// `ftsN` = in-text matches (null until the async FTS resolves; a trailing «…» marks it still loading).
+function corpusCountLabel(titleN, ftsN, done) {
+  let s = tt('room.corpus.search.byTitle', 'По названию') + ': ' + titleN;
+  if (ftsN != null || done) s += ' · ' + tt('room.corpus.search.inText', 'В тексте') + ': ' + (ftsN == null ? 0 : ftsN) + (done ? '' : '…');
+  return s;
+}
 // Synthesize a minimal card from a search row for a display-only (unprocessed) result row.
 function corpusSearchRowToCard(h) {
   return {
@@ -1788,7 +1795,12 @@ async function renderResultsInto(body) {
   const hits = corpusApplyFilter();
   const summary = el('div', { class: 'corpus-results-summary' });
   summary.appendChild(el('span', { class: 'corpus-results-label', text: corpusFilterSummary() }));
-  summary.appendChild(el('span', { class: 'corpus-results-count', text: String(hits.length) }));
+  // BRR-S6 — when there's a TEXT query, label the count as «По названию: N» so a «0» reads as
+  // «no title match», not «nothing found» (the in-text group below carries its own count, merged in
+  // after the async FTS resolves). A filter-only view (genre/lang, no query) keeps the plain count.
+  const hasQuery = !!String(corpusFilter.q || '').trim();
+  const countEl = el('span', { class: 'corpus-results-count', text: hasQuery ? corpusCountLabel(hits.length, null, false) : String(hits.length) });
+  summary.appendChild(countEl);
   body.appendChild(summary);
   // Group A — title/author matches (the existing flat list + «показать ещё» pagination). BRR-P2-005.2:
   // thread the query so a title-hit ALSO opens AT the matched body row when the word is in the body
@@ -1800,7 +1812,7 @@ async function renderResultsInto(body) {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   // Group B — BRR-P2-001 full-text «в тексте» (async; lazy-loads only the shard(s) a query needs).
   // Shows its own «Ищем в текстах…» placeholder while loading; the seq token drops stale late results.
-  await appendFtsGroup(body, corpusFilter.q, hits, mySeq);
+  await appendFtsGroup(body, corpusFilter.q, hits, mySeq, { countEl, titleN: hits.length });
   // Empty state ONLY once this render is still current AND nothing was found (never mid-load).
   if (corpusL1Body === body && mySeq === corpusFtsSeq && !hits.length && !body.querySelector('.corpus-fts-group')) {
     body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍'));
@@ -1838,6 +1850,87 @@ function appendPagedWorkRows(container, items, decorate, rowOpts) {
   slice();
 }
 
+// ── BRR S1/S2 — result-row bilingual snippet + query <mark> (client-side, body-driven) ──────────
+// The FTS index carries no per-line text (offsets are a flat token stream), so the snippet is built
+// from the work BODY (works/<id>.json — the very payload the reader opens). A snippet is shown ONLY
+// for READY hits (a non-ready hit has no body → honestly no preview, never fabricated). Lazy +
+// single-flight + IntersectionObserver: a 60-row result page never fans out 60 body fetches (the S3
+// stampede lesson [[feedback-test-with-nonempty-profile]]).
+let _ftsQTokCache = { q: null, toks: null };
+function ftsQueryTokens(q) {
+  if (!q) return [];
+  if (_ftsQTokCache.q === q) return _ftsQTokCache.toks;
+  let toks = [];
+  try { toks = window.CorpusFTS ? window.CorpusFTS.tokenizeText(q).map(window.CorpusFTS.normalizeToken).filter(Boolean) : []; } catch (_) { toks = []; }
+  _ftsQTokCache = { q: q, toks: toks };
+  return toks;
+}
+// Append `text` to `parent` with matched query tokens wrapped in <mark> (XSS-safe DOM nodes, not innerHTML).
+function appendMarkedHebrew(parent, text, qToks) {
+  let segs = null;
+  try { segs = (qToks && qToks.length && window.CorpusFTS) ? window.CorpusFTS.markSegments(text, qToks) : null; } catch (_) { segs = null; }
+  if (!segs) { parent.appendChild(document.createTextNode(String(text == null ? '' : text))); return; }
+  for (const s of segs) {
+    if (s.m) parent.appendChild(el('mark', { class: 'fts-mark', text: s.t }));
+    else parent.appendChild(document.createTextNode(s.t));
+  }
+}
+const _workBodyCache = new Map();   // card.id → Promise<rows[]> (single-flight; bodies immutable + force-cached)
+function loadWorkBodyRows(card) {
+  const key = String(card.id);
+  if (_workBodyCache.has(key)) return _workBodyCache.get(key);
+  const p = (async () => {
+    const res = await fetch('/data/benyehuda/' + card.file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+    if (!res.ok) throw new Error('body ' + res.status);
+    const bundle = await res.json();
+    const texts = bundle && bundle.library && bundle.library.texts;
+    return (texts && texts[0] && texts[0].rows) || [];
+  })();
+  _workBodyCache.set(key, p);
+  p.catch(() => { _workBodyCache.delete(key); });   // a failed fetch may retry on a later observe
+  return p;
+}
+let _snipObserver = null;
+function getSnipObserver() {
+  if (_snipObserver !== null) return _snipObserver;
+  _snipObserver = (typeof IntersectionObserver !== 'undefined')
+    ? new IntersectionObserver((entries, obs) => {
+        for (const e of entries) if (e.isIntersecting) { obs.unobserve(e.target); fillRowSnippet(e.target); }
+      }, { rootMargin: '250px' })
+    : false;
+  return _snipObserver;
+}
+function observeRowSnippet(rowNode, card, ftsQuery) {
+  if (!rowNode || !card || !card.file || !ftsQuery) return;
+  rowNode.__snipCard = card; rowNode.__snipQuery = ftsQuery;
+  const obs = getSnipObserver();
+  if (!obs) { fillRowSnippet(rowNode); return; }
+  obs.observe(rowNode);
+}
+// Find the matched line in the body and render it bilingually. Honest: a title/author-only match
+// (no body line located) shows NO snippet — never a fabricated one.
+async function fillRowSnippet(rowNode) {
+  const card = rowNode && rowNode.__snipCard, q = rowNode && rowNode.__snipQuery;
+  if (!card || !q || !rowNode.isConnected || rowNode.querySelector('.corpus-work-snippet')) return;
+  let rows = null;
+  try { rows = await loadWorkBodyRows(card); } catch (_) { return; }
+  if (!rows || !rows.length || !rowNode.isConnected) return;
+  let idx = -1;
+  try { const C = window.CorpusFTS; if (C) { idx = C.firstPhraseRow(rows, q); if (idx < 0) idx = C.firstMatchRow(rows, q); } } catch (_) { idx = -1; }
+  if (idx < 0) return;
+  const row = rows[idx];
+  const he = row.hebrew_niqqud || row.hebrew_plain || '', ru = row.russian || '';
+  if (!he) return;
+  const qToks = ftsQueryTokens(q);
+  const snip = el('div', { class: 'corpus-work-snippet' });
+  const heEl = el('div', { class: 'corpus-snippet-he', attrs: { dir: 'rtl' } });
+  appendMarkedHebrew(heEl, he, qToks);
+  snip.appendChild(heEl);
+  if (ru) snip.appendChild(el('div', { class: 'corpus-snippet-ru', text: ru }));
+  const col = rowNode.querySelector('.corpus-work-col');
+  if (col) col.appendChild(snip);
+}
+
 let _ftsConfigured = false;
 function ensureFtsConfigured() {
   if (_ftsConfigured || !window.CorpusFTS) return;
@@ -1862,45 +1955,65 @@ function appendFtsSection(body, q, label, items) {
 // фраза», positions-verified consecutive words, ranked first) + a scattered «слова в тексте» group;
 // a single word stays one «🔎 В тексте» group. The old misleading «по форме слова» badge is gone:
 // content words are lemma-only by design, so it lit on every content hit and signalled nothing.
-async function appendFtsGroup(body, q, titleHits, seq) {
+async function appendFtsGroup(body, q, titleHits, seq, summary) {
   if (!window.CorpusFTS || !q || !String(q).trim()) return;
   if (!window.CorpusFTS.tokenizeText(q).length) return;   // index is Hebrew — skip non-Hebrew queries
   ensureFtsConfigured();
-  // BRR-P2-006a — show progress IMMEDIATELY: loading the lemma layer + letter-shards can take a few
-  // seconds (especially a pasted phrase). Without this the user saw the title-match count «0» and
-  // assumed the search failed. role=status/aria-live announces it to assistive tech.
+  // BRR-P2-006a — show progress IMMEDIATELY (the index lazy-loads shards; without a cue the title-match
+  // count «0» reads as «search failed»). role=status/aria-live announces it to assistive tech.
   const loading = el('div', { class: 'corpus-fts-loading', attrs: { role: 'status', 'aria-live': 'polite' } });
   loading.appendChild(el('span', { class: 'corpus-fts-spinner', attrs: { 'aria-hidden': 'true' } }));
   loading.appendChild(el('span', { i18n: 'room.corpus.search.searching', text: tt('room.corpus.search.searching', 'Ищем в текстах…') }));
   body.appendChild(loading);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   const stale = () => corpusL1Body !== body || (seq != null && seq !== corpusFtsSeq);
-  let out = null;
-  try { out = await window.CorpusFTS.phraseSearch(q); } catch (_) { try { loading.remove(); } catch (_2) {} return; }
-  try { loading.remove(); } catch (_) {}                   // search settled → drop the placeholder
-  if (stale()) return;                                     // navigated away / query superseded while loading
-  const res = (out && out.results) || [];
-  if (!res.length) return;
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
-  const phraseItems = [], wordItems = [];
+  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
+  let ftsCount = 0;
+  const bumpCount = (done) => { if (summary && summary.countEl) { try { summary.countEl.textContent = corpusCountLabel(summary.titleN, ftsCount, done); } catch (_) {} } };
+
+  // STAGE 1 (BRR-S3 «прогрессивная фраза») — the «Точная фраза» group painted from the small EXACT
+  // prefix shards (~1.3MB) BEFORE the always-loaded lemma layer (~6.5MB) finishes warming. Kills the
+  // cold-floor on the first pasted line: the exact phrase appears while «Слова» still resolves.
+  let phraseShown = 0;
+  try {
+    const po = await window.CorpusFTS.phraseOnlySearch(q);
+    if (stale()) { try { loading.remove(); } catch (_) {} return; }
+    const phraseItems = [];
+    for (const r of (po.results || [])) { const sr = corpusSearch[r.w]; if (passFilter(sr)) phraseItems.push({ sr: sr, r: r }); }
+    if (phraseItems.length) {
+      appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), phraseItems);
+      phraseShown = phraseItems.length; ftsCount += phraseShown;
+      try { body.appendChild(loading); } catch (_) {}   // keep the spinner BELOW the phrase group while words resolve
+      bumpCount(false);
+      try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    }
+  } catch (_) {}
+
+  // STAGE 2 — full search (loads the lemma layer): the scattered «слова в тексте» group. Its phrase
+  // hit-set equals stage 1's (same EXACT positional field), so those works are excluded here → no dupes.
+  let out = null;
+  try { out = await window.CorpusFTS.phraseSearch(q); } catch (_) { try { loading.remove(); } catch (_2) {} return; }
+  try { loading.remove(); } catch (_) {}
+  if (stale()) return;
+  const res = (out && out.results) || [];
+  const wordItems = [], latePhrase = [];
   for (const r of res) {
-    const sr = corpusSearch[r.w];
-    if (!sr) continue;
-    if (f.readyOnly && !sr.r) continue;
-    if (f.genre && sr.g !== f.genre) continue;
-    if (f.lang && sr.l !== f.lang) continue;
-    if (titleIds.has(String(sr.id))) continue;             // already in the title/author group
-    (r.phrase ? phraseItems : wordItems).push({ sr: sr, r: r });
+    const sr = corpusSearch[r.w]; if (!passFilter(sr)) continue;
+    if (r.phrase) { if (!phraseShown) latePhrase.push({ sr: sr, r: r }); }   // defensive: only if stage 1 produced none
+    else wordItems.push({ sr: sr, r: r });
   }
-  if (!phraseItems.length && !wordItems.length) return;
-  // Multi-word query with at least one exact-phrase hit → two honest groups; otherwise one.
-  if (out.multiToken && phraseItems.length) {
-    appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), phraseItems);
-    appendFtsSection(body, q, tt('room.corpus.search.words', 'Слова в тексте'), wordItems);
-  } else {
-    appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.inText', 'В тексте'), phraseItems.concat(wordItems));
+  if (!phraseShown && latePhrase.length) {
+    appendFtsSection(body, q, '🔎 ' + tt('room.corpus.search.phrase', 'Точная фраза'), latePhrase);
+    phraseShown = latePhrase.length; ftsCount += phraseShown;
   }
+  if (wordItems.length) {
+    const label = (phraseShown || out.multiToken) ? tt('room.corpus.search.words', 'Слова в тексте') : ('🔎 ' + tt('room.corpus.search.inText', 'В тексте'));
+    appendFtsSection(body, q, label, wordItems);
+    ftsCount += wordItems.length;
+  }
+  bumpCount(true);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -1909,17 +2022,31 @@ async function appendFtsGroup(body, q, titleHits, seq) {
 // body, so the input focus + select values survive.
 function buildCorpusFilterBar() {
   const bar = el('div', { class: 'corpus-filterbar' });
-  const input = el('input', { class: 'corpus-search-input', attrs: { type: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
+  const inputWrap = el('div', { class: 'corpus-search-wrap' });
+  const input = el('input', { class: 'corpus-search-input', attrs: { type: 'search', enterkeyhint: 'search', placeholder: tt('room.corpus.search.placeholder', 'Поиск по корпусу…'), 'aria-label': tt('room.corpus.search.placeholder', 'Поиск') } });
   input.value = corpusFilter.q || '';
+  // BRR-S4 — inline ✕ clear (tabindex -1: it's a mouse/touch affordance; Escape clears via keyboard).
+  const clearX = el('button', { class: 'corpus-search-clear', attrs: { type: 'button', tabindex: '-1', 'aria-label': tt('room.corpus.search.clearInput', 'Очистить') } });
+  clearX.textContent = '✕';
+  clearX.hidden = !input.value;
   let deb;
+  const applyQuery = () => { corpusFilter.q = input.value; corpusRefreshL1Body(); };
+  const doClear = () => { input.value = ''; clearX.hidden = true; clearTimeout(deb); corpusFilter.q = ''; corpusRefreshL1Body(); try { input.focus(); } catch (_) {} };
   input.addEventListener('input', () => {
     // BRR-P2-006a — warm the exact-index shards this query will need IMMEDIATELY (before the debounce):
     // a pasted phrase fires one `input` with the whole line → every prefix-shard starts loading at once,
     // so by the time the debounced search runs they're in flight/cached. Fire-and-forget.
     try { ensureFtsConfigured(); window.CorpusFTS && window.CorpusFTS.warmQuery(input.value); } catch (_) {}
-    clearTimeout(deb); deb = setTimeout(() => { corpusFilter.q = input.value; corpusRefreshL1Body(); }, 200);
+    clearX.hidden = !input.value;
+    clearTimeout(deb); deb = setTimeout(applyQuery, 200);
   });
-  bar.appendChild(input);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(deb); applyQuery(); }      // BRR-S4 — search now (skip debounce)
+    else if (e.key === 'Escape' && input.value) { e.preventDefault(); doClear(); }       // BRR-S4 — Escape clears + keeps focus
+  });
+  clearX.addEventListener('click', (e) => { e.preventDefault(); doClear(); });
+  inputWrap.appendChild(input); inputWrap.appendChild(clearX);
+  bar.appendChild(inputWrap);
   const chips = el('div', { class: 'corpus-facets' });
   const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly) } });
   ready.textContent = '✓ ' + tt('room.corpus.facets.ready', 'Готовые');
@@ -2191,12 +2318,19 @@ function corpusWorkSection(titleKey, icon, works, openable) {
 function renderCorpusWorkRow(card, openable, opts) {
   const row = el('div', { class: 'corpus-work-row' + (openable ? '' : ' is-later') });
   const col = el('div', { class: 'corpus-work-col' });
-  const title = el('span', { class: 'corpus-work-title', text: card.title || '—' });
+  // BRR-S2 — in a search context (opts.openOpts.ftsQuery — the same query threaded to the open handler)
+  // the matched tokens are <mark>-highlighted in the title + author (niqqud-insensitive, word-level via
+  // markSegments); otherwise plain text.
+  const ftsQ = (opts && opts.openOpts && opts.openOpts.ftsQuery) || '';
+  const qToks = ftsQ ? ftsQueryTokens(ftsQ) : null;
+  const title = el('span', { class: 'corpus-work-title' });
+  if (qToks && qToks.length) appendMarkedHebrew(title, card.title || '—', qToks); else title.textContent = card.title || '—';
   if (HEBREW_RE.test(card.title || '')) title.setAttribute('dir', 'rtl');
   col.appendChild(title);
   // In cross-author contexts (global results) show the author under the title.
   if (opts && opts.showAuthor && card.author) {
-    const a = el('span', { class: 'corpus-work-author', text: card.author });
+    const a = el('span', { class: 'corpus-work-author' });
+    if (qToks && qToks.length) appendMarkedHebrew(a, card.author, qToks); else a.textContent = card.author;
     if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
     col.appendChild(a);
   }
@@ -2222,6 +2356,8 @@ function renderCorpusWorkRow(card, openable, opts) {
   } else {
     row.setAttribute('aria-disabled', 'true');
   }
+  // BRR-S1 — lazy bilingual snippet of the matched line (ready hits in a search context only).
+  if (openable && ftsQ && card.file) observeRowSnippet(row, card, ftsQ);
   return row;
 }
 
