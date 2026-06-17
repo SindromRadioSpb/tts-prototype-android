@@ -155,6 +155,38 @@ digraph-mismatched → documented follow-up). Gate `smoke:translit` (15: fold pa
 alignment/MIN_COUNT/clean/top-K). i18n `room.corpus.translit.maybe`. Verified @380px («шалом»→שלום→search;
 «мелех адам»→מלך אדם), 0 console-errors. [R5/R2 · R1 honest (real transliterations, not a guessed map)]
 
+## ✅ Non-ready add-to-reading-list — SHIPPED (SW v3.10.71-list-nonready, 2026-06-17)
+The «➕ В список» control moved from the lazy snippet (ready + located-body-line only) to the work ROW
+(`renderCorpusWorkRow`, `opts.showListBtn`) so EVERY result is savable — non-ready (⏳) hits and title-only
+matches included, not just ready+matched rows. Icon-only (`updateListBtn` reads `btn.__iconOnly`) to stay
+compact @380px; `stopPropagation` so it never opens the work. Enabled on the search/FTS pager
+(`appendPagedWorkRows`) **and** the L3 author drill (`corpusWorkSection`) — the strongest R6 «save-for-later»
+surface (browse an author's full catalog incl. unbaked works). **Honesty (R8):** the authoritative `openable`
+flag is threaded `renderCorpusWorkRow → openListPicker(card, btn, ready) → toggleItemInList →
+cardToListItem(card, ready)`, so a non-ready work is stored `r:false` even if its catalog card happens to
+carry a pre-bake file/text_key path — never a dead-end open. **Auto-upgrade (R4):** `renderReadingListCard`
+re-derives readiness from the LIVE ready index (`corpusReadyMap`) — a work saved while «перевод готовится»
+drops its badge and opens the moment it ships (the live ready card carries file+text_key even when the saved
+stub did not); no migration, no stale dead state. Files: `library-ui.js` only (+ `library.html` CSS
+`.corpus-work-listbtn`). No new i18n keys (reuses `room.corpus.lists.{add,short,notReady}` + `room.corpus.later`);
+no token; `index.html`/reader-core untouched. Gates green:
+`smoke:corpus-snippet`(30)/`corpus-fts`(48)/`corpus-fts-parity`(30)/`reader-parity`/`i18n`(226). Verified
+@380px light+dark (89/89 non-ready rows show ➕; add → `r:false` honest; shelf badge «перевод позже»;
+tap → toast «Перевод готовится»; auto-upgrade opens a 17-row reader), 0 console-errors. [R4/R6/R8]
+
+### Lessons
+- The list affordance lived INSIDE the lazy snippet, which renders only for ready hits with a located body
+  line — so non-ready **and** ready-title-only matches silently lacked it. A per-result action that must
+  cover every result belongs on the ROW, not the lazy snippet.
+- Freeze-vs-derive: a stored `r` flag goes stale as the corpus grows. Re-deriving readiness at RENDER time
+  from the live index auto-upgrades saved stubs with zero migration — cheaper and more honest than a
+  background upgrade pass. Pull the openable card from the live map (it has file+text_key) instead of
+  trusting the saved stub's fields.
+- This Room surface is localStorage + corpus-served-on-open (NOT OPFS importBundle) → fully live-verifiable
+  in a headless browser, unlike reader-open features that crash wa-sqlite headless. Drove the whole flow
+  (button → picker → store → shelf → toast → auto-upgrade) via selector-based `evaluate`, freshness-probing
+  the served CSS class first. See [[feedback_headless_opfs_playwright]].
+
 ## ⏳ P3 DEFERRED (owner-confirmed 2026-06-16 — documented, not built)
 - **S17 inflection-tolerant PHRASE** — index-level needs POSITIONAL lemma data (breaks the 6.5MB always-loaded
   mobile budget R4/R5) + a token push; client ready-only re-scan is marginal (firstPhraseRow already does it on
@@ -165,7 +197,7 @@ alignment/MIN_COUNT/clean/top-K). i18n `room.corpus.translit.maybe`. Verified @3
   to a Stage-2 decision.
 - **FTS coverage → 26K** — mechanical (`fetch:corpus-bodies`→`build:corpus-fts`→`push`), but the push needs
   `AUDIO_UPLOAD_TOKEN` (LEAKED, pending owner rotation — reusing it would deepen the leak). BLOCKED until rotation.
-- **S18 latin/SBL input** + **non-ready add-to-reading-list** — small follow-ups.
+- **S18 latin/SBL input** — small follow-up (digraph-aware fold; low ROI for the russian-speaking audience → owner-deprioritized). ~~non-ready add-to-reading-list~~ **SHIPPED 2026-06-17** (see above).
 
 ## 🔑 OPEN (owner)
 Rotate `AUDIO_UPLOAD_TOKEN` (leaked) + Gemini + old GCP — blocks repo publish + ③ corpus publish (NOT this block's code; P0–P2-non-big shipped without it).

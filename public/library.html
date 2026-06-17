@@ -247,6 +247,14 @@
     .corpus-work-genre { font-size: 11px; color: var(--text-secondary); font-weight: 600; }
     .corpus-work-cta { flex: none; font-size: 16px; color: var(--accent); }
     .corpus-work-row.is-later .corpus-work-cta { color: var(--text-faint); }
+    /* BRR — «➕ В список» icon button on the work row (search + author drill; non-ready works too). */
+    .corpus-work-listbtn {
+      flex: none; width: auto; appearance: none; -webkit-appearance: none; cursor: pointer;
+      background: transparent; color: var(--text-faint); border: 1px solid var(--border-soft);
+      border-radius: 999px; padding: 5px 9px; font-size: 13px; line-height: 1; font-weight: 600;
+    }
+    .corpus-work-listbtn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); }
+    .corpus-work-listbtn:active { background: var(--bg-muted); }
     .prov-badge.later {
       background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft);
       font-size: 10px; font-weight: 700; line-height: 1; padding: 3px 6px; border-radius: 999px;

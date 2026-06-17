@@ -1,56 +1,47 @@
-# BRR continuation handoff — updated 2026-06-16 (Search & Discovery block S1–S16 SHIPPED+PROD)
+# BRR continuation handoff — updated 2026-06-17 (non-ready add-to-list SHIPPED; Anki ⑤ design NEXT)
 
-**★ READ FIRST:** `docs/planning/BRR_SEARCH_IMPL_2026_06_16.md` (per-feature implementation log) +
-`docs/planning/BRR_SEARCH_DISCOVERY_STATE_2026_06_16.md` (canon, now marked SHIPPED) +
-`docs/PROJECT_ROLES.md` (R1–R10 auto) + CLAUDE.md.
+**★ READ FIRST:** `docs/planning/BRR_SEARCH_IMPL_2026_06_16.md` (per-feature impl log — non-ready add-to-list section + lessons at end) ·
+`docs/planning/BRR_SEARCH_DISCOVERY_STATE_2026_06_16.md` (canon, SHIPPED) · `docs/planning/BRR_P2_DISCOVERY_2026_06_14.md` (§B journal) ·
+`docs/PROJECT_ROLES.md` (R1–R10 auto) · CLAUDE.md.
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал `/library.html`, Studio `/index.html`).
-**main HEAD `616c7d7`, SW `v3.10.68-fts-discovery3`.** Owner-инвариант: бескомпромиссное качество, без заглушек.
+Owner-инвариант: бескомпромиссное качество, без заглушек; роли R1–R10 авто.
 
-## ✅ SHIPPED THIS SESSION — the whole approved search closure S1–S16 (one pass, by phase)
-All implemented + gate-green + browser-verified @380px light+dark (0 console-errors) + prod-verified (Node-fetch + browser).
-- **P0** S1 bilingual snippet of the matched line (lazy, body-driven, ready-only honest) · S2 `<mark>` query highlight
-  (niqqud-insensitive, `markSegments`) · S3 progressive «Точная фраза» (exact-shards-only `phraseOnlySearch` before lemma) ·
-  S4 input ✕/Enter/Escape · S5 relevance (phrase>exact>lemma + title group + stable) · S6 count split «По названию:N · В тексте:M».
-- **P1** S7 readability filter «📖 Читаемые для меня» + «≈N%» badge (`ensureReadableSet`, one states snapshot) · S8 KWIC
-  «📑 Все вхождения» (`concordance` + lazy KWIC lines on ready works) · S9 «🔤 Точная форма» (engine `exactOnly`) · S10
-  «💾 В заметки» (word_study note + `body.context` + `pidForToken` → joins coverage; client-side, NOT token-gated).
-- **P2** S11 scoped «🔍 искать у автора/в периоде» (+ removable chip, query persists) · S12 recent searches + cold-start
-  suggestions · S13 «⭐ Сохранить поиск» + «📚 Читать позже» (localStorage; NOT shelves — corpus works are served-on-open) ·
-  S14 «ещё у автора» (author link → works drill) · S15 in-reader find (🔍 bar, green marks, k/N, ↑/↓) · S16 «🔊 С аудио»/«✍ Проверено».
+## ✅ SHIPPED THIS SESSION — non-ready add-to-reading-list (SW `v3.10.71-list-nonready`)
+**Was:** «➕ В список» lived only inside the lazy snippet → appeared on ready+matched-line rows only.
+**Now:** the button is on the work ROW (`renderCorpusWorkRow`, `opts.showListBtn`; icon-only via `btn.__iconOnly`) → offered on EVERY
+result incl. ⏳ non-ready + title-only matches, on the search/FTS pager (`appendPagedWorkRows`) AND the L3 author drill (`corpusWorkSection`).
+- **Honest store (R8):** authoritative `openable` threaded `openListPicker(card,btn,ready)`→`toggleItemInList(…,ready)`→`cardToListItem(card,ready)`
+  — wins over the `file&&text_key` heuristic, so a non-ready work is stored `r:false` even if its catalog card carries a pre-bake path (no dead-end).
+- **Auto-upgrade (R4):** `renderReadingListCard` re-derives readiness from the LIVE `corpusReadyMap` — a work saved while «перевод готовится»
+  drops its «перевод позже» badge and opens the moment it ships (live ready card has file+text_key even when the saved stub didn't); no migration.
+- Snippet keeps only 💾 «В заметки». `library-ui.js` only (+ `library.html` CSS `.corpus-work-listbtn`). **No new i18n keys** (reuses
+  `room.corpus.lists.{add,short,notReady}` + `room.corpus.later`); **no token**; **index.html/reader-core untouched.**
+- **Gates green:** `smoke:corpus-snippet`(30) · `corpus-fts`(48) · `corpus-fts-parity`(30) · `reader-parity` · `i18n`(226).
+- **Live-verified @380px L+D** (89/89 ⏳ rows show ➕; add→`r:false`; shelf badge; tap→toast «Перевод готовится»; auto-upgrade opens 17-row reader), 0 console-err.
+  Lesson: a per-result action that must cover EVERY result belongs on the ROW, not the lazy snippet · freeze-vs-derive: re-derive readiness at
+  render = zero-migration auto-upgrade · this Room surface (localStorage + corpus-served-on-open, NOT OPFS) IS headless-live-verifiable.
 
-## Files
-`public/js/corpus-fts.js` (markSegments · phraseOnlySearch · exactOnly on search/phraseSearch · pidForToken · findRows ·
-concordance · test hooks _setBucketForTest/_setLemmaForTest) · `public/js/library-ui.js` (всё UI: snippet/mark/readable/
-exactForm/save-to-notes/recents/author-link/provenance/scope/concordance/saved-searches/reading-list/in-reader-find;
-`CorpusVocabRoom.refresh`) · `public/library.html` (CSS + 🔍 reader-find button + #readerFind) · i18n ru/en/he
-(`room.corpus.search.* facets.* scope.* concordance.* saved.* lists.*` + `room.reader.find.*`) · `public/sw.js` v3.10.68 ·
-`scripts/premium/corpus-snippet-smoke.js` (NEW gate, 30 checks) · docs.
+## STATE
+main HEAD will be the new commit (was `0004d54`), **SW `v3.10.71-list-nonready`**. Whole search/Discovery block S1–S16 + P3 + this follow-up = SHIPPED.
+FTS core (P2-001..006a) + Karaoke + i+1 + Scaffolded Console in prod. Engine `public/js/corpus-fts.js`; all search/Discovery UI in `public/js/library-ui.js`.
+Data: works/<id>.json (796 ready, in git locally) · corpus-{catalog,index,search}-v7 (in git) · corpus-fts-v7 shards (PROD-vol, gitignored) · translit-ru-v7.json (in git).
 
-## Gates (all green)
-`smoke:corpus-snippet` 30 · `smoke:corpus-fts` 48 · `smoke:corpus-fts-parity` 30 · `smoke:reader-parity` · `smoke:reader-resume` 31 ·
-`smoke:bookmarks` 11 · `smoke:i18n` 226. **index.html + reader-core builder NOT touched.**
+## NEXT — ⑤ Anki-sync design doc (owner picked: "A now, then ⑤ design")
+Produce a **recon design doc** `docs/planning/<TICKET>.md` for the Anki review-layer sync engine — FOR OWNER APPROVAL **before any code** (крупная фича norm).
+Hook already exists: S10 «💾 В заметки» writes `notes_v2` (word_study w/ `pealim_id` + bilingual `body.context`); `ankiExportRepo` already implemented.
+Lens R1–R10 (esp. R2 SLA retention, R5 market). See memory [[project_srs_strategy]] (v3.2 decision: LinguistPro=creation+linkage, Anki=review layer; FSRS+AnkiConnect deferred to v3.4) — reconcile with that.
 
-## Lessons (this session) — see also impl doc + memory files
-- **Row opts carry the query at `opts.openOpts.ftsQuery`, not `opts.ftsQuery`** (appendPagedWorkRows merges it for the open
-  handler). The mark/snippet path must read the nested location — caught only in-browser.
-- **Headless Chromium OPFS:** small writes (createNote/createShelf) work, but `importBundle` (reader-open / canon import)
-  crashes wa-sqlite («memory access out of bounds»). So the reader-open flow + S15 live marking can't be e2e'd headlessly
-  (it's prod-proven daily) — verify via logic gates + plumbing smoke + reader-parity; the live marking is the owner device
-  smoke-check (canon norm). And OPFS doesn't durably persist across reload in a headless context → for a returning-user
-  profile, seed in-session + `CorpusVocabRoom.refresh()` (drop the boot-cached snapshot), don't seed→reload.
-- **Playwright `fill` via a stale `$` handle races a prod re-render** (prod boots/warms slower than localhost → the input was
-  detached, value empty). Use selector-based `page.fill(sel,…)` (auto-re-resolves) + settle after boot.
-- A word saved from search must carry its **`pealim_id`** (via `pidForToken` from the loaded lemmamap) to fold to `pid:<id>`
-  and join the pid-keyed corpus-vocab (else it keys on `norm#pos` and S7 coverage never sees it).
-- **Reading lists of corpus works ≠ shelves:** a corpus work is served-on-open (not an OPFS text), so the shelf renderer
-  marks it «unavailable» → localStorage + the corpus card flow is the correct store (documented deviation from the S13 design).
+## P3 BACKLOG (owner-deprioritized / blocked)
+- **S18 latin/SBL input** — only remaining small follow-up (digraph-aware fold; low ROI for russian audience).
+- S17 inflection-phrase (cheap alt = `slop` toggle) · S19 KMap-link (Studio-only, touches index.html → Stage-2) · FTS→26K (needs token rotation).
+- Other tracks: ④ R10 tap-gloss quality + Yiddish 47097 · ③ publish baked → catalog v8 (token-blocked).
 
-## NEXT (P3 backlog / owner choice)
-S17 inflection-tolerant PHRASE (lemma-pid) · S18 translit helper рус→иврит · S19 link in Knowledge-Map (root→graph) ·
-**multiple NAMED reading lists** (v1 ships one «Читать позже») · **non-ready add to reading list** · collapse advanced/
-provenance chips behind a «⚙» (filter bar is dense @380px) · grow FTS coverage → 26K (fetch:corpus-bodies→build→push).
-Other tracks: ④ R10-quality+идиш · ⑤ Anki-sync engine · ③ publish→каталог v8.
+## 🔑 OPEN (owner, not code) — STILL OWED
+Rotate **AUDIO_UPLOAD_TOKEN** (leaked) + **Gemini** + old **GCP** — blocks repo publish + ③ corpus publish + FTS-grow→26K.
 
-## 🔑 OPEN (owner) — СРОЧНО
-Ротация `AUDIO_UPLOAD_TOKEN` (засвечен) + Gemini + старый GCP. НЕ в код/git. Блокер публикации репо + ③ publish.
-(Search block S1–S16 НЕ требовал токена — всё клиентское / уже-в-проде данные.)
+## NORMS (hard)
+index.html + reader-core builder UNtouched (`smoke:reader-parity`); reader features POST-render on Room mount; крупная фича → recon-дизайн
+`docs/planning/<TICKET>.md` НА УТВЕРЖДЕНИЕ перед кодом; MEASURE on non-empty profile; gates green before push; commit+push autonomously (Coolify);
+prod-verify Node-fetch (NOT Windows-curl for Hebrew) + browser on FRESH code (freshness probe; don't clear cache before warm-speed measure);
+bump SW CACHE_VERSION + FTS_DATA_REV/TRANSLIT_DATA_REV on format change; @380px RTL light+dark screenshot.
+Lessons memory: [[project_search_discovery_closure]] · [[feedback_headless_opfs_playwright]] · [[feedback_fts_hebrew_inverted_index]] · [[feedback_browser_verify_fresh_code]].

@@ -104,12 +104,15 @@ function getReadingLists() {
 }
 function saveReadingLists(lists) { _lsSet(READING_LISTS_KEY, lists); }
 function isInAnyList(id) { id = String(id); return getReadingLists().some((L) => (L.items || []).some((x) => String(x.id) === id)); }
-function cardToListItem(card) { return { id: card.id, text_key: card.text_key || '', file: card.file || '', title: card.title || '', author: card.author || '', r: !!(card.file && card.text_key), era: card.era || '', genre: card.genre || '' }; }
-function toggleItemInList(listId, card) {
+// `ready` (optional) is the AUTHORITATIVE readiness flag from the render context (openable). It wins
+// over the file&&text_key heuristic so a non-ready work — even one whose catalog card happens to carry
+// a file/text_key path before it is baked — is stored honestly as r:false (R8 — never a dead-end open).
+function cardToListItem(card, ready) { return { id: card.id, text_key: card.text_key || '', file: card.file || '', title: card.title || '', author: card.author || '', r: ready != null ? !!ready : !!(card.file && card.text_key), era: card.era || '', genre: card.genre || '' }; }
+function toggleItemInList(listId, card, ready) {
   const lists = getReadingLists(); const L = lists.find((x) => x.id === listId); if (!L) return false;
   L.items = L.items || []; const id = String(card.id); const i = L.items.findIndex((x) => String(x.id) === id);
   if (i >= 0) { L.items.splice(i, 1); saveReadingLists(lists); return false; }
-  L.items.unshift(cardToListItem(card)); if (L.items.length > 300) L.items = L.items.slice(0, 300);
+  L.items.unshift(cardToListItem(card, ready)); if (L.items.length > 300) L.items = L.items.slice(0, 300);
   saveReadingLists(lists); return true;
 }
 function createReadingList(name) {
@@ -1664,10 +1667,11 @@ function injectSavedSearches(body) {
 // BRR-P3 — list picker: choose which named list(s) to add a work to, or create a new one inline.
 function updateListBtn(btn, card) {
   const on = isInAnyList(card.id);
-  btn.textContent = (on ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список');
+  // `btn.__iconOnly` (dense work-row button) shows just the glyph; the snippet/picker buttons show the label.
+  btn.textContent = btn.__iconOnly ? (on ? '✓' : '➕') : ((on ? '✓ ' : '➕ ') + tt('room.corpus.lists.short', 'В список'));
   btn.setAttribute('aria-pressed', String(on));
 }
-function openListPicker(card, btn) {
+function openListPicker(card, btn, ready) {
   const ov = el('div', { class: 'list-picker-ov' });
   const box = el('div', { class: 'list-picker' });
   box.appendChild(el('div', { class: 'list-picker-title', text: tt('room.corpus.lists.addTo', 'Добавить в список') }));
@@ -1679,7 +1683,7 @@ function openListPicker(card, btn) {
       const row = el('button', { class: 'list-picker-row' + (has ? ' on' : ''), attrs: { type: 'button' } });
       row.textContent = (has ? '✓ ' : '＋ ') + L.name + ' (' + ((L.items || []).length) + ')';
       if (HEBREW_RE.test(L.name)) row.setAttribute('dir', 'rtl');
-      row.addEventListener('click', () => { const now = toggleItemInList(L.id, card); repaint(); if (btn) updateListBtn(btn, card); roomToast(tt(now ? 'room.corpus.lists.added' : 'room.corpus.lists.removed', now ? 'Добавлено' : 'Убрано')); });
+      row.addEventListener('click', () => { const now = toggleItemInList(L.id, card, ready); repaint(); if (btn) updateListBtn(btn, card); roomToast(tt(now ? 'room.corpus.lists.added' : 'room.corpus.lists.removed', now ? 'Добавлено' : 'Убрано')); });
       listsWrap.appendChild(row);
     }
   };
@@ -1688,7 +1692,7 @@ function openListPicker(card, btn) {
   const createRow = el('div', { class: 'list-picker-create' });
   const inp = el('input', { class: 'list-picker-input', attrs: { type: 'text', placeholder: tt('room.corpus.lists.newName', 'Новый список…'), 'aria-label': tt('room.corpus.lists.newName', 'Новый список') } });
   const add = el('button', { class: 'list-picker-add', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.create', 'Создать список') } }); add.textContent = '＋';
-  const doCreate = () => { const nm = inp.value.trim(); if (!nm) { try { inp.focus(); } catch (_) {} return; } const L = createReadingList(nm); toggleItemInList(L.id, card); inp.value = ''; repaint(); if (btn) updateListBtn(btn, card); roomToast(tt('room.corpus.lists.added', 'Добавлено')); };
+  const doCreate = () => { const nm = inp.value.trim(); if (!nm) { try { inp.focus(); } catch (_) {} return; } const L = createReadingList(nm); toggleItemInList(L.id, card, ready); inp.value = ''; repaint(); if (btn) updateListBtn(btn, card); roomToast(tt('room.corpus.lists.added', 'Добавлено')); };
   add.addEventListener('click', doCreate);
   inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doCreate(); } });
   createRow.appendChild(inp); createRow.appendChild(add);
@@ -1706,19 +1710,30 @@ function openListPicker(card, btn) {
   setTimeout(() => { try { inp.focus(); } catch (_) {} }, 50);
 }
 // «📚 <list>» shelf card (corpus reading list). Opens ready items via the corpus card flow; non-ready
-// items honestly show «перевод позже» (R8 no dead-end). ✕ removes from THIS list.
+// items honestly show «перевод позже» (R8 no dead-end). ✕ removes from THIS list. A non-ready item
+// AUTO-UPGRADES once the corpus grows (BRR — non-ready add-to-list): readiness is re-derived from the
+// LIVE ready index, so a work saved while «перевод готовится» becomes openable the moment it ships — no
+// migration, no stale dead state. The live card carries file+text_key even when the saved stub did not.
 function renderReadingListCard(listId, it) {
   const node = el('div', { class: 'work-card readinglist-card', attrs: { role: 'button', tabindex: '0' } });
   const title = it.title || tt('room.work.untitled', 'Без названия');
   const t = el('span', { class: 'work-card-title', text: title }); if (HEBREW_RE.test(title)) t.setAttribute('dir', 'rtl'); node.appendChild(t);
   if (it.author) { const a = el('span', { class: 'work-card-author', text: it.author }); if (HEBREW_RE.test(it.author)) a.setAttribute('dir', 'rtl'); node.appendChild(a); }
+  const savedReady = !!(it.r && it.file && it.text_key);
+  let live = null;
+  if (!savedReady) { try { live = corpusReadyMap().get(String(it.id)) || null; } catch (_) { live = null; } }
+  const liveReady = !!(live && live.file && live.text_key);
   const meta = el('div', { class: 'work-card-meta' });
-  if (!it.r) meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
+  if (!savedReady && !liveReady) meta.appendChild(el('span', { class: 'prov-badge later', i18n: 'room.corpus.later', text: tt('room.corpus.later') }));
   const rm = el('button', { class: 'readinglist-rm', attrs: { type: 'button', 'aria-label': tt('room.corpus.lists.remove', 'Убрать') } });
   rm.textContent = '✕';
   rm.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); removeItemFromList(listId, it.id); corpusRefreshL1Body(); });
   meta.appendChild(rm); node.appendChild(meta);
-  const open = () => { if (it.r && it.file && it.text_key) openCorpusWork(it); else roomToast(tt('room.corpus.lists.notReady', 'Перевод готовится')); };
+  const open = () => {
+    if (savedReady) { openCorpusWork(it); return; }
+    if (liveReady) { openCorpusWork(live); return; }   // shipped since saving → open the live ready card
+    roomToast(tt('room.corpus.lists.notReady', 'Перевод готовится'));
+  };
   node.addEventListener('click', open);
   node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
   return node;
@@ -2170,7 +2185,7 @@ function appendPagedWorkRows(container, items, decorate, rowOpts) {
     for (let i = cursor; i < upTo; i++) {
       const it = items[i], sr = it.sr;
       const full = sr.r ? readyMap.get(String(sr.id)) : null;
-      const node = renderCorpusWorkRow(full || corpusSearchRowToCard(sr), !!full, Object.assign({ showAuthor: true }, rowOpts || {}));
+      const node = renderCorpusWorkRow(full || corpusSearchRowToCard(sr), !!full, Object.assign({ showAuthor: true, showListBtn: true }, rowOpts || {}));
       if (decorate) decorate(node, it);
       list.appendChild(node);
     }
@@ -2269,11 +2284,8 @@ async function fillRowSnippet(rowNode) {
   saveBtn.textContent = '💾 ' + tt('room.corpus.search.saveToNotes', 'В заметки');
   saveBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); saveSnippetToNotes(saveBtn, q, he, ru, card); });
   actions.appendChild(saveBtn);
-  // BRR-P3 — add this work to a named reading list (picker: existing lists + «+ Новый список»).
-  const listBtn = el('button', { class: 'corpus-snippet-save', attrs: { type: 'button', 'aria-pressed': String(isInAnyList(card.id)), title: tt('room.corpus.lists.add', 'В список чтения') } });
-  updateListBtn(listBtn, card);
-  listBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openListPicker(card, listBtn); });
-  actions.appendChild(listBtn);
+  // The «➕ В список» control lives on the work ROW (renderCorpusWorkRow, opts.showListBtn) so it is offered
+  // for EVERY result — including non-ready hits (no snippet) and title-only matches — not just ready+matched.
   snip.appendChild(actions);
   const col = rowNode.querySelector('.corpus-work-col');
   if (col) col.appendChild(snip);
@@ -2975,7 +2987,7 @@ function corpusWorkSection(titleKey, icon, works, openable) {
   let cursor = 0;
   const slice = () => {
     const upTo = Math.min(works.length, cursor + CORPUS_PAGE);
-    for (let i = cursor; i < upTo; i++) list.appendChild(renderCorpusWorkRow(works[i], openable));
+    for (let i = cursor; i < upTo; i++) list.appendChild(renderCorpusWorkRow(works[i], openable, { showListBtn: true }));
     cursor = upTo;
     moreWrap.innerHTML = '';
     if (cursor < works.length) {
@@ -3027,6 +3039,16 @@ function renderCorpusWorkRow(card, openable, opts) {
   }
   col.appendChild(meta);
   row.appendChild(col);
+  // BRR — «➕ В список» on the work row (search results + author drill). Offered for non-ready works too:
+  // the reading list honestly stores them as r:false (← openable) and auto-upgrades them once they ship.
+  // Icon-only to stay compact at 380px; stopPropagation so it never opens the work.
+  if (opts && opts.showListBtn && card.id != null) {
+    const listBtn = el('button', { class: 'corpus-work-listbtn', attrs: { type: 'button', title: tt('room.corpus.lists.add', 'В список чтения'), 'aria-label': tt('room.corpus.lists.add', 'В список чтения') } });
+    listBtn.__iconOnly = true;
+    updateListBtn(listBtn, card);
+    listBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openListPicker(card, listBtn, openable); });
+    row.appendChild(listBtn);
+  }
   const cta = el('span', { class: 'corpus-work-cta', text: openable ? '▶' : '⏳' });
   row.appendChild(cta);
   if (openable) {
