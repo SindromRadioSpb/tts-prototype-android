@@ -114,6 +114,7 @@
     "smoke:anki-sync": "node scripts/premium/anki-sync-smoke.js",
     "smoke:anki-lifecycle": "node scripts/premium/anki-lifecycle-smoke.js",
     "smoke:anki-apkg": "node scripts/premium/anki-apkg-smoke.js",
+    "smoke:anki-apkg-client": "node scripts/premium/anki-apkg-client-smoke.js",
     "smoke:notes-roundtrip": "node scripts/premium/notes-roundtrip-smoke.js",
     "smoke:notes-perform": "node scripts/premium/notes-perform-smoke.js",
     "smoke:notes-count": "node scripts/premium/notes-count-smoke.js",
@@ -198,6 +199,7 @@
     "jszip": "^3.10.1",
     "marked": "^14.1.4",
     "qrcode-generator": "^2.0.4",
+    "sql.js": "^1.14.1",
     "sqlite3": "^5.1.7",
     "uuid": "^9.0.0",
     "wa-sqlite": "^1.0.0"

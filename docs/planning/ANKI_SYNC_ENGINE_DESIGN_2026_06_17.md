@@ -121,8 +121,19 @@ archiver, no black-box dep — toolchain verified present) · audio **text-first
   «LinguistPro SRS Card v1» reusing the existing 17-field spec + adding Root/Binyan/PealimId/Context. Gate
   `smoke:anki-apkg`: build → unzip → open SQLite → assert schema/notes/csum/dedupe-GUID/round-trip. **Self-contained,
   no browser/OPFS — the foundational brick.**
-- **A2 — wire export**: server route `GET /api/srs/export/anki.apkg` (stream download) reusing `srs_card_exports`
-  idempotency; Studio Trainer «📦 Скачать .apkg» button; later the Зал.
+- **A2 — CLIENT-side export (owner chose client build 2026-06-17).** The server has NO user data (OPFS-first;
+  `texts` empty in prod, `server.js:342`); precedent `exportBundle` is client-side; wa-sqlite has no serialize →
+  client uses vendored sql.js.
+  - **A2a — engine — ✅ DONE 2026-06-17.** Shared core `public/db/anki-apkg-core.js` (UMD, pure-JS SHA-1
+    byte-equal to crypto, all col-JSON/DDL/csum/guid/`prepareCollection`); `lib/ankiApkg.js` refactored onto it
+    (server sqlite3+archiver adapter); **client `public/db/anki-apkg.js`** (sql.js+jszip → `buildApkgBytes`/
+    `buildApkgBlob`/`downloadApkg` + lazy-loaders); sql.js vendored `/db/sql-wasm.{js,wasm}` (lazy, only on export).
+    Gates `smoke:anki-apkg` **36/36** + `smoke:anki-apkg-client` **21/21** (server↔client PARITY identical
+    guids/flds/csum/col-JSON; valid collection; idempotent; empty deck). Headless.
+  - **A2b — wiring — NEXT.** Gather SRS cards from OPFS (`srs.listCards` + linked `notes_v2`/sentences) → the 17
+    «LinguistPro SRS Card v1» fields CLIENT-side (replicate `buildSrsAnkiPreview`'s mapping from OPFS) → «📦 Скачать
+    .apkg» button in Studio Trainer (then Зал) → `AnkiApkg.downloadApkg`. Browser-verify @380px; re-import-updates =
+    owner device-smoke. SW bump when the button ships (new referenced shell assets).
 - **B1 — AnkiConnect read-back (local-only)**: wire the live pull (`findCards`/`cardsInfo`/`getReviewsOfCards`) →
   existing `v3AnkiCardStatsToLocalState` → `applyAnkiReviewStates`/`recordAnkiReviews`; settings toggle + honest
   «requires Anki Desktop on this machine» gate; never offered to a remote prod user as functional.

@@ -60,6 +60,14 @@ async function openApkg(buf) {
 (async () => {
   console.log("smoke:anki-apkg — .apkg builder golden gate\n");
 
+  // 0) the shared core's pure-JS SHA-1 must be byte-equal to Node crypto (Anki dupe-detection relies on
+  // a correct csum). Verify across ASCII / Hebrew / Cyrillic / empty.
+  const crypto = require("crypto");
+  for (const s of ["1001", "", "shalom", "בַּיִת", "царь מלך", "<b>x</b>[sound:a.mp3]"]) {
+    const nodeHex = crypto.createHash("sha1").update(s, "utf8").digest("hex");
+    ok("pure-JS sha1Hex === crypto sha1  (" + JSON.stringify(s).slice(0, 18) + ")", anki.sha1Hex(s) === nodeHex, "got " + anki.sha1Hex(s));
+  }
+
   // 1) build + structural assertions
   const notes = sampleNotes();
   const buf = await anki.buildApkg(buildSpec(notes));
