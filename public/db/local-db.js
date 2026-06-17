@@ -2123,6 +2123,14 @@ export async function getKnownWordStates() {
   return out;
 }
 
+// ⑤ Anki-sync A2b — full word_study note bodies for the client-side .apkg export (AnkiSrsExport parses
+// body_json + dedups by lemma). Returns [{ id, body_json }]. Read-only; graceful [] when notes absent.
+export async function listWordStudyNotesForExport() {
+  try {
+    return await q("SELECT id, body_json FROM notes_v2 WHERE note_type = 'word_study'", []);
+  } catch (_) { return []; }
+}
+
 // ── R-3.2 Anki Connect sync — apply Anki review state to local srs_cards ──────
 // Anki is the authoritative review layer (docs/SRS_STRATEGY_v3_2.md), so we
 // mirror its scheduler fields into srs_cards → getLearningStateOverlay /

@@ -115,6 +115,7 @@
     "smoke:anki-lifecycle": "node scripts/premium/anki-lifecycle-smoke.js",
     "smoke:anki-apkg": "node scripts/premium/anki-apkg-smoke.js",
     "smoke:anki-apkg-client": "node scripts/premium/anki-apkg-client-smoke.js",
+    "smoke:anki-srs-export": "node scripts/premium/anki-srs-export-smoke.js",
     "smoke:notes-roundtrip": "node scripts/premium/notes-roundtrip-smoke.js",
     "smoke:notes-perform": "node scripts/premium/notes-perform-smoke.js",
     "smoke:notes-count": "node scripts/premium/notes-count-smoke.js",

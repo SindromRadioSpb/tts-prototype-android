@@ -130,10 +130,16 @@ archiver, no black-box dep — toolchain verified present) · audio **text-first
     `buildApkgBlob`/`downloadApkg` + lazy-loaders); sql.js vendored `/db/sql-wasm.{js,wasm}` (lazy, only on export).
     Gates `smoke:anki-apkg` **36/36** + `smoke:anki-apkg-client` **21/21** (server↔client PARITY identical
     guids/flds/csum/col-JSON; valid collection; idempotent; empty deck). Headless.
-  - **A2b — wiring — NEXT.** Gather SRS cards from OPFS (`srs.listCards` + linked `notes_v2`/sentences) → the 17
-    «LinguistPro SRS Card v1» fields CLIENT-side (replicate `buildSrsAnkiPreview`'s mapping from OPFS) → «📦 Скачать
-    .apkg» button in Studio Trainer (then Зал) → `AnkiApkg.downloadApkg`. Browser-verify @380px; re-import-updates =
-    owner device-smoke. SW bump when the button ships (new referenced shell assets).
+  - **A2b — wiring — ✅ DONE 2026-06-17.** v1 exports **word_study notes** (the S10/②-vocabulary — the simplest
+    high-value path; sentence-card export via the 17-field model is a follow-up). `public/db/anki-srs-export.js`
+    (`buildWordStudySpec` → purpose-built «LinguistPro Word v1» model: Word/Niqqud/Root/Binyan/POS/Meaning/PealimId;
+    He→Ru template; lemma-dedup; stable per-lemma GUID). OPFS query `listWordStudyNotesForExport()` (local-db.js).
+    «📦 Скачать .apkg (словарь)» button + `v3SrsDownloadApkg()` in the Studio Trainer home — **edited `index.html`
+    inline (the live source); `check_script.js` is a gitignored dead copy (TRAP — see lessons)**. 3 UMD scripts loaded
+    in index.html + added to SW PRECACHE_URLS (sql.js stays lazy); SW bumped **v3.10.72-anki-apkg**. Gate
+    `smoke:anki-srs-export` **14/14**. Browser-verified @380px dark: globals load, OPFS query runs, **real in-browser
+    sql.js(27ms)+jszip pipeline → valid Anki collection** (re-opened), button renders + wired, empty-path graceful,
+    0 console-errors. Real-profile export→Anki-import = owner device-smoke. **NEXT follow-ups:** Зал surface · sentence-card export.
 - **B1 — AnkiConnect read-back (local-only)**: wire the live pull (`findCards`/`cardsInfo`/`getReviewsOfCards`) →
   existing `v3AnkiCardStatsToLocalState` → `applyAnkiReviewStates`/`recordAnkiReviews`; settings toggle + honest
   «requires Anki Desktop on this machine» gate; never offered to a remote prod user as functional.

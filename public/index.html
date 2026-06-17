@@ -12044,6 +12044,13 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/reader-morph.js"></script>
 <script src="/js/studio-karaoke.js"></script>
 
+<!-- ⑤ Anki-sync A2b — client-side «.apkg» export (UMD globals AnkiApkgCore → AnkiApkg → AnkiSrsExport).
+     Card data never leaves the device; sql.js (/db/sql-wasm.*) lazy-loads only when the user exports.
+     Order matters: core first (the others depend on it). -->
+<script src="/db/anki-apkg-core.js"></script>
+<script src="/db/anki-apkg.js"></script>
+<script src="/db/anki-srs-export.js"></script>
+
 <script>
     // i18n safety shim: if i18n module failed to load, t() returns the key unchanged
     if (typeof t !== 'function') { window.t = function(k) { return k; }; }
@@ -28718,6 +28725,9 @@ function v3SrsTrainerRenderHome() {
       ${v3SrsTrainerRenderTemplateButtons()}
       <div class="v3-srs-subtle" style="margin-top:12px;">${v3EscapeHtml(v3NotesT("srs.trainer.trainerMode", "Режим тренажёра"))}</div>
       ${v3SrsTrainerRenderModeButtons()}
+      <div class="v3-srs-subtle" style="margin-top:14px;">${v3EscapeHtml(v3NotesT("srs.trainer.apkgTitle", "Экспорт словаря в Anki"))}</div>
+      <div class="v3-srs-subtle">${v3EscapeHtml(v3NotesT("srs.trainer.apkgHelp", "Скачивает все словарные заметки одним .apkg (собирается в браузере — данные не покидают устройство). Повторный импорт обновляет карточки."))}</div>
+      <button class="btn-secondary" style="margin-top:8px;" onclick="v3SrsDownloadApkg()">${v3EscapeHtml(v3NotesT("srs.trainer.apkgBtn", "📦 Скачать .apkg (словарь)"))}</button>
     </div>
   `;
 }
@@ -29236,6 +29246,28 @@ window.v3SrsAnkiCheckConnect = v3SrsAnkiCheckConnect;
 window.v3IdeSrsAnkiPreview = v3IdeSrsAnkiPreview;
 window.v3IdeSrsExportAnki = v3IdeSrsExportAnki;
 window.v3SrsTrainerExportAnki = v3SrsTrainerExportAnki;
+
+// ⑤ Anki A2b — download the WHOLE word_study vocabulary as a «LinguistPro Word v1» .apkg, built ENTIRELY
+// in the browser (sql.js + jszip via window.AnkiApkg) so card data never leaves the device. Re-import
+// UPDATES instead of duplicating (stable per-lemma guid). Unlike «Export to Anki» (AnkiConnect, local-only),
+// this works for every user / platform / offline. The opposite direction (read-back) is the B-brick.
+async function v3SrsDownloadApkg() {
+  try {
+    if (!window.AnkiSrsExport || !window.AnkiApkg) { showToast("Экспорт .apkg недоступен (модуль не загружен).", "error"); return; }
+    const ldb = await ensureLocalDB();
+    if (!ldb || typeof ldb.listWordStudyNotesForExport !== "function") { showToast("Локальная база недоступна.", "error"); return; }
+    const rows = await ldb.listWordStudyNotesForExport();
+    const spec = window.AnkiSrsExport.buildWordStudySpec(rows || []);
+    if (!spec.notes.length) { showToast("Нет словарных заметок (word_study) для экспорта.", "info"); return; }
+    const fname = "LinguistPro-Words-" + new Date().toISOString().slice(0, 10) + ".apkg";
+    const res = await window.AnkiApkg.downloadApkg(spec, fname);
+    showToast("Экспортировано " + spec.notes.length + " карточек → " + res.filename, "success");
+  } catch (e) {
+    console.error("[apkg] word export failed:", e);
+    showToast("Не удалось собрать .apkg: " + (e && e.message ? e.message : String(e)), "error");
+  }
+}
+window.v3SrsDownloadApkg = v3SrsDownloadApkg;
 
 // ── 6.8 Diagnostic panel ─────────────────────────────────────────────────
 async function v3DiagLoad() {
