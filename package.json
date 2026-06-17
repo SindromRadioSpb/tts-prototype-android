@@ -113,6 +113,7 @@
     "smoke:anki-wordcards": "node scripts/premium/anki-wordcard-smoke.js",
     "smoke:anki-sync": "node scripts/premium/anki-sync-smoke.js",
     "smoke:anki-lifecycle": "node scripts/premium/anki-lifecycle-smoke.js",
+    "smoke:anki-apkg": "node scripts/premium/anki-apkg-smoke.js",
     "smoke:notes-roundtrip": "node scripts/premium/notes-roundtrip-smoke.js",
     "smoke:notes-perform": "node scripts/premium/notes-perform-smoke.js",
     "smoke:notes-count": "node scripts/premium/notes-count-smoke.js",

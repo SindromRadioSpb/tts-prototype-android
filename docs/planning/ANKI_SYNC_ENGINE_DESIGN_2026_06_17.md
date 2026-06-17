@@ -102,6 +102,33 @@ slogan into two honest, shippable bricks.
 5. **Audio in cards:** text-only v1 (smaller, simpler) vs embed keyless-TTS mp3 media (richer, heavier) — recommend
    text-first, audio v1.1.
 
+## 5a. APPROVED 2026-06-17 — scope **A + B** (owner)
+Owner chose **A + B together**. Secondary defaults (doc §5, owner may redirect): builder **hand-rolled** (sqlite3 +
+archiver, no black-box dep — toolchain verified present) · audio **text-first v1**, keyless-TTS media in v1.1 · surface
+**Studio Trainer (`btnAnki`) first**, Зал «В заметки» export next · read-back **B is honestly local-only gated**.
+
+### Phased plan
+- **A1 — `.apkg` builder lib — ✅ DONE 2026-06-17.** `lib/ankiApkg.js` (hand-rolled, sqlite3+archiver, no black-box
+  dep) builds a legacy `collection.anki2` (ver 11) + media-zip → `.apkg` Buffer; stable per-card GUID (`stableGuid`,
+  genanki-shaped base91) → idempotent re-import; correct `csum`/`sfld`/`req`; fixed deck/model ids merge on re-import.
+  Gate `smoke:anki-apkg` **30/30** (unzip → open SQLite → assert schema/fields/csum/guid-idempotency/cards/empty-deck).
+  **Open for A2:** confirm where the user's SRS cards live (server `srs_cards` + `getCardSnapshotById`/`buildSrsAnkiPreview`
+  vs OPFS — the app went OPFS-first with stateful endpoints 410'd; the Anki export endpoints are server-side). Real-Anki
+  *import* test = owner device-smoke (the gate validates structure, not a live Anki round-trip). **Original A1 spec:**
+- ~~A1 — `.apkg` builder lib~~ (`lib/ankiApkg.js`): pure Node, builds a legacy `collection.anki2` (schema ver 11) — `col`
+  (models/decks/conf JSON), `notes` (`guid` stable per lp card / `pid:<id>`; `flds` `\x1f`-joined; `sfld`; `csum` = first
+  8 hex of sha1(first field)), `cards` (new: type/queue 0, due=ordinal), zipped with `media` map → `.apkg`. Model
+  «LinguistPro SRS Card v1» reusing the existing 17-field spec + adding Root/Binyan/PealimId/Context. Gate
+  `smoke:anki-apkg`: build → unzip → open SQLite → assert schema/notes/csum/dedupe-GUID/round-trip. **Self-contained,
+  no browser/OPFS — the foundational brick.**
+- **A2 — wire export**: server route `GET /api/srs/export/anki.apkg` (stream download) reusing `srs_card_exports`
+  idempotency; Studio Trainer «📦 Скачать .apkg» button; later the Зал.
+- **B1 — AnkiConnect read-back (local-only)**: wire the live pull (`findCards`/`cardsInfo`/`getReviewsOfCards`) →
+  existing `v3AnkiCardStatsToLocalState` → `applyAnkiReviewStates`/`recordAnkiReviews`; settings toggle + honest
+  «requires Anki Desktop on this machine» gate; never offered to a remote prod user as functional.
+- **B2 — feed read-back into value**: research retention metric (`ULPAN_RESEARCH_PLAN_v3_2`) + Anki-fed i+1 mastery
+  (`getKnownWordStates` overlay → `corpus-vocab` zone).
+
 ## 6. Norms / gates this will honor
 index.html/reader-core untouched (export is server + Trainer/Зал button); new gate `smoke:anki-apkg` (re-open + validate);
 extend `anki-sync-smoke`/`anki-lifecycle-smoke`; @380px export UX screenshot; SW bump on shell change; prod-verify
