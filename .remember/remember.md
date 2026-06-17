@@ -26,10 +26,14 @@ main HEAD will be the new commit (was `0004d54`), **SW `v3.10.71-list-nonready`*
 FTS core (P2-001..006a) + Karaoke + i+1 + Scaffolded Console in prod. Engine `public/js/corpus-fts.js`; all search/Discovery UI in `public/js/library-ui.js`.
 Data: works/<id>.json (796 ready, in git locally) · corpus-{catalog,index,search}-v7 (in git) · corpus-fts-v7 shards (PROD-vol, gitignored) · translit-ru-v7.json (in git).
 
-## NEXT — ⑤ Anki-sync design doc (owner picked: "A now, then ⑤ design")
-Produce a **recon design doc** `docs/planning/<TICKET>.md` for the Anki review-layer sync engine — FOR OWNER APPROVAL **before any code** (крупная фича norm).
-Hook already exists: S10 «💾 В заметки» writes `notes_v2` (word_study w/ `pealim_id` + bilingual `body.context`); `ankiExportRepo` already implemented.
-Lens R1–R10 (esp. R2 SLA retention, R5 market). See memory [[project_srs_strategy]] (v3.2 decision: LinguistPro=creation+linkage, Anki=review layer; FSRS+AnkiConnect deferred to v3.4) — reconcile with that.
+## ⑤ Anki-sync — design APPROVED (scope **A+B**), A1 SHIPPED, A2/B1/B2 NEXT
+Design `docs/planning/ANKI_SYNC_ENGINE_DESIGN_2026_06_17.md` (committed `3d0d105`) + memory [[project_anki_sync_design]].
+**Decisive finding:** AnkiConnect = **local-only** (server→`127.0.0.1:8765`) → non-functional for remote prod users; **no `.apkg` gen existed**.
+Owner approved **A+B**: A = universal `.apkg` export (deploy-safe one-way); B = AnkiConnect bridge repositioned as LOCAL/power-user + read-back (retention metric + Anki-fed i+1 mastery). Defer C (in-app FSRS). Reconciles [[project_srs_strategy]] (Anki=review layer; no competing scheduler).
+- **A1 SHIPPED `4018ce8`:** `lib/ankiApkg.js` hand-rolled legacy `collection.anki2`(ver 11)+media-zip→`.apkg` Buffer (sqlite3+archiver, no black-box). Stable per-card GUID (genanki-shaped base91)→idempotent re-import; fixed deck/model ids merge; correct csum/sfld/req; model mirrors server `getSrsAnkiModelSpec` («LinguistPro SRS Card v1», 17 fields). Gate **`smoke:anki-apkg` 30/30**. Server-side lib (no SW bump). Real-Anki *import* = owner device-smoke (gate validates structure only).
+- **A2 NEXT — wire export:** server route `GET /api/srs/export/anki.apkg` (stream) + Studio Trainer «📦 Скачать .apkg» button + Зал later. **⚠ OPEN QUESTION to resolve first:** where do the user's SRS cards live? Server `srs_cards`+`getCardSnapshotById`/`buildSrsAnkiPreview` (server.js ~5029) vs OPFS (app went OPFS-first, stateful endpoints 410'd — see [[project_opfs_migration]]). The existing AnkiConnect export is server-side; confirm the card source before building the .apkg gather loop. Reuse `srs_card_exports` idempotency + per-card field build from `buildSrsAnkiPreview`.
+- **B1 NEXT — read-back (local-only):** wire live pull (AnkiConnect `findCards`/`cardsInfo`/`getReviewsOfCards`) → existing `v3AnkiCardStatsToLocalState` → `applyAnkiReviewStates`/`recordAnkiReviews` (`public/db/local-db.js` :2148/:2225); settings toggle + honest «requires Anki Desktop on this machine» gate.
+- **B2 NEXT — value:** feed read-back → research retention metric (`ULPAN_RESEARCH_PLAN_v3_2`) + Anki-fed i+1 mastery (`getKnownWordStates` :2101 overlay → `corpus-vocab` zone).
 
 ## P3 BACKLOG (owner-deprioritized / blocked)
 - **S18 latin/SBL input** — only remaining small follow-up (digraph-aware fold; low ROI for russian audience).
