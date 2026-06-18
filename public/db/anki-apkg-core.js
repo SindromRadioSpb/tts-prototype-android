@@ -109,11 +109,13 @@
     const flds = o.fieldNames.map((name, ord) => ({ name, ord, sticky: false, rtl: false, font: "Arial", size: 20, media: [] }));
     const tmpls = o.templates.map((t, ord) => ({ name: t.Name || ("Card " + (ord + 1)), ord, qfmt: t.Front || "", afmt: t.Back || "", did: null, bqfmt: "", bafmt: "" }));
     const req = o.templates.map((t, ord) => templateReq(ord, t.Front || "", o.fieldNames));
-    return { [String(o.modelId)]: { id: o.modelId, name: o.modelName, type: 0, mod: o.modSec, usn: -1, sortf: 0, did: LP_DECK_ID, tmpls, flds, css: o.css || "", latexPre: "", latexPost: "", latexsvg: false, req, vers: [], tags: [] } };
+    return { [String(o.modelId)]: { id: o.modelId, name: o.modelName, type: 0, mod: o.modSec, usn: -1, sortf: 0, did: o.deckId != null ? o.deckId : LP_DECK_ID, tmpls, flds, css: o.css || "", latexPre: "", latexPost: "", latexsvg: false, req, vers: [], tags: [] } };
+  }
+  function deckEntry(id, name, modSec) {
+    return { id, name, mod: modSec, usn: -1, lrnToday: [0, 0], revToday: [0, 0], newToday: [0, 0], timeToday: [0, 0], collapsed: false, browserCollapsed: false, desc: "", dyn: 0, conf: 1, extendNew: 10, extendRev: 50 };
   }
   function buildDecksJson(o) {
-    const deck = (id, name) => ({ id, name, mod: o.modSec, usn: -1, lrnToday: [0, 0], revToday: [0, 0], newToday: [0, 0], timeToday: [0, 0], collapsed: false, browserCollapsed: false, desc: "", dyn: 0, conf: 1, extendNew: 10, extendRev: 50 });
-    return { "1": deck(1, "Default"), [String(o.deckId)]: deck(o.deckId, o.deckName) };
+    return { "1": deckEntry(1, "Default", o.modSec), [String(o.deckId)]: deckEntry(o.deckId, o.deckName, o.modSec) };
   }
   function buildConfJson(o) {
     return { nextPos: 1, estTimes: true, activeDecks: [o.deckId], sortType: "noteFld", timeLim: 0, sortBackwards: false, addToCur: true, curDeck: o.deckId, newBury: true, newSpread: 0, dueCounts: true, curModel: String(o.modelId), collapseTime: 1200 };
@@ -138,33 +140,44 @@
   ];
 
   // Turn a deck spec into ready-to-insert rows. `opts.now` (ms) makes ids deterministic (parity tests).
-  // spec = { deckName, modelName, fieldNames, templates:[{Name,Front,Back}], css, notes:[{guid?,fields:[],tags?}], media? }
+  // Single-model spec: { deckName, modelName, fieldNames, templates:[{Name,Front,Back}], css, notes:[{guid?,fields:[],tags?}], media? }
+  // Multi-model spec (e.g. «both» = words + sentences in ONE .apkg): { groups: [<single-model spec without media>, ...], media? }
+  // Each group gets its OWN model id (LP_MODEL_ID+gi) + deck (LP_DECK_ID+gi) so a collection can hold many.
   function prepareCollection(spec, opts) {
     opts = opts || {};
     const nowMs = opts.now != null ? opts.now : Date.now();
     const crtSec = Math.floor(nowMs / 1000);
     const modSec = crtSec;
-    const fieldNames = spec.fieldNames, templates = spec.templates;
-    const models = buildModelsJson({ modelId: LP_MODEL_ID, modelName: spec.modelName, fieldNames, templates, css: spec.css, modSec });
-    const decks = buildDecksJson({ deckId: LP_DECK_ID, deckName: spec.deckName, modSec });
+    const groups = (Array.isArray(spec.groups) && spec.groups.length)
+      ? spec.groups
+      : [{ deckName: spec.deckName, modelName: spec.modelName, fieldNames: spec.fieldNames, templates: spec.templates, css: spec.css, notes: spec.notes }];
+
+    const models = {};
+    const decks = { "1": deckEntry(1, "Default", modSec) };
+    const notes = [], cards = [];
+    let nid = nowMs, cid = nowMs + 100000, pos = 0;
+    groups.forEach((g, gi) => {
+      const mid = LP_MODEL_ID + gi, did = LP_DECK_ID + gi;
+      const templates = g.templates || [];
+      Object.assign(models, buildModelsJson({ modelId: mid, deckId: did, modelName: g.modelName, fieldNames: g.fieldNames, templates, css: g.css, modSec }));
+      decks[String(did)] = deckEntry(did, g.deckName, modSec);
+      for (const note of (g.notes || [])) {
+        const fields = note.fields || [];
+        const first = fields[0] != null ? String(fields[0]) : "";
+        const flds = fields.map((f) => String(f == null ? "" : f)).join(FIELD_SEP);
+        const tags = " " + (Array.isArray(note.tags) ? note.tags.join(" ") : String(note.tags || "")).trim() + " ";
+        notes.push({ id: nid, guid: note.guid || stableGuid(first), mid, mod: modSec, usn: -1, tags, flds, sfld: stripHtmlMedia(first), csum: fieldChecksum(first), flags: 0, data: "" });
+        for (let ord = 0; ord < templates.length; ord++) {
+          cards.push({ id: cid, nid, did, ord, mod: modSec, usn: -1, type: 0, queue: 0, due: pos, ivl: 0, factor: 0, reps: 0, lapses: 0, left: 0, odue: 0, odid: 0, flags: 0, data: "" });
+          cid += 1;
+        }
+        nid += 1; pos += 1;
+      }
+    });
+    // conf points at the FIRST group's model/deck (curModel/curDeck).
     const conf = buildConfJson({ modelId: LP_MODEL_ID, deckId: LP_DECK_ID });
     const dconf = buildDconfJson();
     const colValues = [1, crtSec, nowMs, nowMs, 11, 0, 0, 0, JSON.stringify(conf), JSON.stringify(models), JSON.stringify(decks), JSON.stringify(dconf), "{}"];
-
-    const notes = [], cards = [];
-    let nid = nowMs, cid = nowMs + 100000, pos = 0;
-    for (const note of (spec.notes || [])) {
-      const fields = note.fields || [];
-      const first = fields[0] != null ? String(fields[0]) : "";
-      const flds = fields.map((f) => String(f == null ? "" : f)).join(FIELD_SEP);
-      const tags = " " + (Array.isArray(note.tags) ? note.tags.join(" ") : String(note.tags || "")).trim() + " ";
-      notes.push({ id: nid, guid: note.guid || stableGuid(first), mid: LP_MODEL_ID, mod: modSec, usn: -1, tags, flds, sfld: stripHtmlMedia(first), csum: fieldChecksum(first), flags: 0, data: "" });
-      for (let ord = 0; ord < templates.length; ord++) {
-        cards.push({ id: cid, nid, did: LP_DECK_ID, ord, mod: modSec, usn: -1, type: 0, queue: 0, due: pos, ivl: 0, factor: 0, reps: 0, lapses: 0, left: 0, odue: 0, odid: 0, flags: 0, data: "" });
-        cid += 1;
-      }
-      nid += 1; pos += 1;
-    }
     const media = Array.isArray(spec.media) ? spec.media : [];
     const mediaMap = {};
     media.forEach((m, i) => { mediaMap[String(i)] = m.name; });

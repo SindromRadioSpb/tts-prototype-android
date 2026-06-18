@@ -19,8 +19,12 @@
   // Build the .apkg bytes from a deck spec. deps = { SQL (initialized sql.js module), JSZip (constructor),
   // now? (ms, for deterministic ids), zipType? ('uint8array'|'blob'|'nodebuffer') }.
   async function buildApkgBytes(spec, deps) {
-    if (!spec || !Array.isArray(spec.fieldNames) || !spec.fieldNames.length) throw new Error("AnkiApkg: fieldNames required");
-    if (!Array.isArray(spec.templates) || !spec.templates.length) throw new Error("AnkiApkg: templates required");
+    const groups = (Array.isArray(spec && spec.groups) && spec.groups.length) ? spec.groups : (spec ? [spec] : []);
+    if (!groups.length) throw new Error("AnkiApkg: spec required");
+    for (const g of groups) {
+      if (!Array.isArray(g.fieldNames) || !g.fieldNames.length) throw new Error("AnkiApkg: fieldNames required");
+      if (!Array.isArray(g.templates) || !g.templates.length) throw new Error("AnkiApkg: templates required");
+    }
     if (!deps || !deps.SQL || !deps.JSZip) throw new Error("AnkiApkg: deps.SQL and deps.JSZip required");
     const prepared = core.prepareCollection(spec, { now: deps.now });
 

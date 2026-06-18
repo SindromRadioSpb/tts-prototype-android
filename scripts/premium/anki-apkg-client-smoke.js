@@ -98,7 +98,27 @@ function rows(db, sql) { const r = db.exec(sql); return r.length ? r[0].values :
   const E = await openCollection(SQL, emptyZip);
   ok("client: empty deck builds valid collection (0 notes)", rows(E.db, "SELECT COUNT(*) FROM notes")[0][0] === 0);
 
-  [C, S, C2, E].forEach((x) => { try { x.db && x.db.close(); } catch (_) {} });
+  // 6) MULTI-MODEL «both» — words + sentences models + decks in ONE .apkg (the unify case)
+  const multiSpec = { groups: [
+    { deckName: "LinguistPro::Words", modelName: "LinguistPro Word v2", fieldNames: ["Word", "Russian"], templates: [{ Name: "w", Front: "{{Word}}", Back: "{{Russian}}" }], css: "", notes: [{ fields: ["שלום", "мир"] }, { fields: ["בית", "дом"] }] },
+    { deckName: "LinguistPro::SRS", modelName: "LinguistPro SRS Card v1", fieldNames: ["Hebrew", "Russian"], templates: [{ Name: "s", Front: "{{Hebrew}}", Back: "{{Russian}}" }], css: "", notes: [{ fields: ["זה הבית שלי", "это мой дом"] }] },
+  ] };
+  const mz = await AnkiApkg.buildApkgBytes(multiSpec, { SQL, JSZip, now: NOW, zipType: "uint8array" });
+  const M = await openCollection(SQL, mz);
+  const mModels = JSON.parse(rows(M.db, "SELECT models FROM col WHERE id=1")[0][0]);
+  ok("multi: 2 distinct models in one collection", Object.keys(mModels).length === 2);
+  ok("multi: both model names present", Object.values(mModels).map((m) => m.name).sort().join("|") === "LinguistPro SRS Card v1|LinguistPro Word v2");
+  const mDecks = JSON.parse(rows(M.db, "SELECT decks FROM col WHERE id=1")[0][0]);
+  ok("multi: Default + 2 group decks", Object.keys(mDecks).length === 3);
+  const mNotes = rows(M.db, "SELECT mid FROM notes ORDER BY id");
+  ok("multi: 3 notes across 2 models", mNotes.length === 3 && new Set(mNotes.map((r) => r[0])).size === 2);
+  const midSet = new Set(Object.keys(mModels).map(Number));
+  ok("multi: every note.mid exists in models", mNotes.every((r) => midSet.has(r[0])));
+  const mCards = rows(M.db, "SELECT did FROM cards");
+  ok("multi: cards reference 2 distinct decks", new Set(mCards.map((r) => r[0])).size === 2);
+  ok("multi: each model's did maps to a real deck", Object.values(mModels).every((m) => mDecks[String(m.did)]));
+
+  [C, S, C2, E, M].forEach((x) => { try { x.db && x.db.close(); } catch (_) {} });
   console.log("\nsmoke:anki-apkg-client — " + passed + " passed, " + failed + " failed");
   process.exit(failed ? 1 : 0);
 })().catch((e) => { console.error("FATAL", e); process.exit(1); });

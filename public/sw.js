@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.72-anki-apkg";
+const CACHE_VERSION = "v3.10.73-anki-multimodel";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
