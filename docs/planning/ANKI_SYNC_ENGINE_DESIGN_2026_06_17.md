@@ -169,6 +169,26 @@ market. The genuinely-unique + achievable thing = the **Desktop read-back loop =
 reading recommendations + true retention metric). **Q3 collapses into B** (already approved). Do NOT FSRS-rework the
 Trainer now (re-opens the settled v3.2 "Anki = review layer"; v3.4 epic).
 
+**A-unify progress (owner chose A-unify→B, 2026-06-18):**
+- **A-unify-1 — ✅ DONE `84b4089` (SW v3.10.73):** generalized the `.apkg` engine to **multi-model/multi-deck** —
+  `prepareCollection` accepts `{ groups: [<single-model spec>, …] }` → one collection with many models+decks (each
+  group: mid=LP_MODEL_ID+i, did=LP_DECK_ID+i); single-model specs backward-compatible. Foundation for «both»
+  (Word v2 + SRS Card v1 in one `.apkg`). Gate `smoke:anki-apkg-client` 28/28 (+7 multi-model); anki-apkg 36 +
+  anki-srs-export 14 green. Engine only, not yet UI-wired.
+- **A-unify-2 — NEXT (browser).** Reuse the INLINE index.html builders (do NOT duplicate): `v3AnkiWordModelSpec()`
+  (~14171, Word v2 spec) + `v3AnkiBuildWordCardFields(note,{paradigm,exampleHe,exampleRu,headwordAudioFile,…})`
+  (~14253) + `v3AnkiResolveParadigm` (offline, OPFS lemma_inflection) for the Conjugation field. Word group →
+  Word v2; sentence group → SRS Card v1 (6 fields: Hebrew/Niqqud/Translit/Russian/Note/Audio, built ~14490 in
+  `v3AnkiPushSentenceCards`; extract a small `buildSentenceFields(s,note,includeHint)`). **Audio: text-first** —
+  leave Audio empty → Word v2 front has `{{tts he_IL:Word}}` device-TTS fallback (sentences silent). Build the
+  multi-group spec by `cardKind` (words/sentences/both) → `AnkiApkg.buildApkgBytes`. Add «📦 Скачать .apkg» button
+  to `v3AnkiModal` (~11403, next to `v3AnkiPushBtn`) reading the SAME form state (textId, cardKind, includeHint).
+  **Reconcile A2b:** retire `anki-srs-export.js` Word v1 (8-field) → the Trainer button should produce the SAME
+  Word v2 cards (point `v3SrsDownloadApkg` at the unified word-export, scoped to all texts or current). Stable
+  per-lemma/-sentence GUID for idempotent re-import. SW bump; browser-verify @380px (3 options → valid `.apkg`,
+  models match AnkiConnect); prod-verify. Build seam ref: AnkiConnect `ankiNotes` array exists at index.html
+  ~14985 (words) / ~14482 (sentences) BEFORE the transport call.
+
 **Recommended sequencing:** A-unify (`.apkg` words/sentences/both + reconcile A2b→Word v2, ~2–3 d) → B1/B2
 (Desktop read-back, honestly local-only gated → retention metric + Anki-fed i+1, ~4–5 d). Honest framing: «Экспорт
 в Anki (.apkg, везде)» + optional «Desktop Anki-мост (power-user): adds cards AND reads mastery back to tune

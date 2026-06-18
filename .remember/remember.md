@@ -1,54 +1,31 @@
-# BRR continuation handoff — updated 2026-06-17 (non-ready add-to-list SHIPPED; Anki ⑤ design NEXT)
+# BRR/SRS continuation handoff — updated 2026-06-18
 
-**★ READ FIRST:** `docs/planning/BRR_SEARCH_IMPL_2026_06_16.md` (per-feature impl log — non-ready add-to-list section + lessons at end) ·
-`docs/planning/BRR_SEARCH_DISCOVERY_STATE_2026_06_16.md` (canon, SHIPPED) · `docs/planning/BRR_P2_DISCOVERY_2026_06_14.md` (§B journal) ·
-`docs/PROJECT_ROLES.md` (R1–R10 auto) · CLAUDE.md.
-Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал `/library.html`, Studio `/index.html`).
-Owner-инвариант: бескомпромиссное качество, без заглушек; роли R1–R10 авто.
+**★ READ FIRST:** `docs/planning/ANKI_SYNC_ENGINE_DESIGN_2026_06_17.md` (⑤ canon — design + Q2/Q3 study + A-unify plan) ·
+`docs/planning/BRR_SEARCH_IMPL_2026_06_16.md` + `BRR_SEARCH_DISCOVERY_STATE_2026_06_16.md` (search/Discovery) · `docs/PROJECT_ROLES.md` (R1–R10 auto) · CLAUDE.md.
+Memory: [[project_anki_sync_design]] · [[feedback_studio_live_source_inline]] · [[project_search_discovery_closure]] · [[feedback_headless_opfs_playwright]] · [[project_srs_strategy]].
+Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал `/library.html`, Studio `/index.html`). Owner-инвариант: бескомпромиссное качество, без заглушек; R1–R10 авто.
 
-## ✅ SHIPPED THIS SESSION — non-ready add-to-reading-list (SW `v3.10.71-list-nonready`)
-**Was:** «➕ В список» lived only inside the lazy snippet → appeared on ready+matched-line rows only.
-**Now:** the button is on the work ROW (`renderCorpusWorkRow`, `opts.showListBtn`; icon-only via `btn.__iconOnly`) → offered on EVERY
-result incl. ⏳ non-ready + title-only matches, on the search/FTS pager (`appendPagedWorkRows`) AND the L3 author drill (`corpusWorkSection`).
-- **Honest store (R8):** authoritative `openable` threaded `openListPicker(card,btn,ready)`→`toggleItemInList(…,ready)`→`cardToListItem(card,ready)`
-  — wins over the `file&&text_key` heuristic, so a non-ready work is stored `r:false` even if its catalog card carries a pre-bake path (no dead-end).
-- **Auto-upgrade (R4):** `renderReadingListCard` re-derives readiness from the LIVE `corpusReadyMap` — a work saved while «перевод готовится»
-  drops its «перевод позже» badge and opens the moment it ships (live ready card has file+text_key even when the saved stub didn't); no migration.
-- Snippet keeps only 💾 «В заметки». `library-ui.js` only (+ `library.html` CSS `.corpus-work-listbtn`). **No new i18n keys** (reuses
-  `room.corpus.lists.{add,short,notReady}` + `room.corpus.later`); **no token**; **index.html/reader-core untouched.**
-- **Gates green:** `smoke:corpus-snippet`(30) · `corpus-fts`(48) · `corpus-fts-parity`(30) · `reader-parity` · `i18n`(226).
-- **Live-verified @380px L+D** (89/89 ⏳ rows show ➕; add→`r:false`; shelf badge; tap→toast «Перевод готовится»; auto-upgrade opens 17-row reader), 0 console-err.
-  Lesson: a per-result action that must cover EVERY result belongs on the ROW, not the lazy snippet · freeze-vs-derive: re-derive readiness at
-  render = zero-migration auto-upgrade · this Room surface (localStorage + corpus-served-on-open, NOT OPFS) IS headless-live-verifiable.
+## STATE — main HEAD `84b4089`, SW `v3.10.73-anki-multimodel` (prod-verified up to A2b; A-unify-1 deploying)
+**SHIPPED+PROD this arc:**
+- **Зал non-ready add-to-list** (SW v3.10.71) — ➕ on every result row + auto-upgrade. [[project_search_discovery_closure]]
+- **⑤ Anki design APPROVED A+B** + **Q2/Q3 feasibility study** (3-agent research, in the design doc §5b).
+- **⑤ A1+A2a** — client-side `.apkg` engine: shared core `public/db/anki-apkg-core.js` (UMD, pure-JS SHA-1=crypto, `prepareCollection`) + `lib/ankiApkg.js` (server sqlite3+archiver) + `public/db/anki-apkg.js` (client sql.js+jszip, `buildApkgBytes`/`downloadApkg`); sql.js vendored `/db/sql-wasm.{js,wasm}` (lazy). Gates `smoke:anki-apkg` 36 + `smoke:anki-apkg-client` 28.
+- **⑤ A2b** (SW v3.10.72) — «📦 Скачать .apkg (словарь)» in Studio Trainer exports word_study notes → «LinguistPro Word v1» (`public/db/anki-srs-export.js` `buildWordStudySpec`; OPFS query `listWordStudyNotesForExport()`). Gate `smoke:anki-srs-export` 14. PROD-verified (real browser sql.js+jszip → valid collection).
+- **⑤ A-unify-1** `84b4089` (SW v3.10.73) — engine now **multi-model/multi-deck** (`{groups:[…]}` → many models+decks in one `.apkg`; single-model backward-compat). Foundation for «both». Gate +7 multi-model checks (client 28/28).
 
-## STATE
-main HEAD will be the new commit (was `0004d54`), **SW `v3.10.71-list-nonready`**. Whole search/Discovery block S1–S16 + P3 + this follow-up = SHIPPED.
-FTS core (P2-001..006a) + Karaoke + i+1 + Scaffolded Console in prod. Engine `public/js/corpus-fts.js`; all search/Discovery UI in `public/js/library-ui.js`.
-Data: works/<id>.json (796 ready, in git locally) · corpus-{catalog,index,search}-v7 (in git) · corpus-fts-v7 shards (PROD-vol, gitignored) · translit-ru-v7.json (in git).
+## ⑤ Q2/Q3 STUDY VERDICT (design doc §5b)
+- **Existing «Экспорт в Anki (AnkiConnect)» modal** (`v3AnkiModal` index.html ~11356) already has words/sentences/both with RICH models: **Word v2** (11 fields incl. conjugation+mnemonic+GCP-TTS audio; `v3AnkiWordModelSpec` ~14171, builder `v3AnkiBuildWordCardFields` ~14253) + **SRS Card v1** (6 fields). But transport = browser→`127.0.0.1:8765` → FAILS remote/mobile (mixed-content/CORS/Chrome-142 LNA). So `.apkg` is the only universal path.
+- **Q2:** unify `.apkg` to 3 options reusing those builders/models = NOT a Trainer rework (gather+build; SM2 untouched). **R8: reconcile my A2b Word v1 → Word v2** (no divergence).
+- **Q3:** full bidirectional **mobile** Anki sync from a PWA is **IMPOSSIBLE** (iOS write-only `anki://`; Android ContentProvider native-only; no AnkiWeb API). DON'T market it. The genuinely-unique+achievable thing = **Desktop read-back loop = B** (Anki mastery → i+1 reading recommendations + retention metric); no competitor reads Anki state back. **Owner chose: A-unify → B.**
 
-## ⑤ Anki-sync — design APPROVED (scope **A+B**), A1 SHIPPED, A2/B1/B2 NEXT
-Design `docs/planning/ANKI_SYNC_ENGINE_DESIGN_2026_06_17.md` (committed `3d0d105`) + memory [[project_anki_sync_design]].
-**Decisive finding:** AnkiConnect = **local-only** (server→`127.0.0.1:8765`) → non-functional for remote prod users; **no `.apkg` gen existed**.
-Owner approved **A+B**: A = universal `.apkg` export (deploy-safe one-way); B = AnkiConnect bridge repositioned as LOCAL/power-user + read-back (retention metric + Anki-fed i+1 mastery). Defer C (in-app FSRS). Reconciles [[project_srs_strategy]] (Anki=review layer; no competing scheduler).
-- **A1 SHIPPED `4018ce8`:** `lib/ankiApkg.js` hand-rolled legacy `collection.anki2`(ver 11)+media-zip→`.apkg` Buffer (sqlite3+archiver, no black-box). Stable per-card GUID (genanki-shaped base91)→idempotent re-import; fixed deck/model ids merge; correct csum/sfld/req; model mirrors server `getSrsAnkiModelSpec` («LinguistPro SRS Card v1», 17 fields). Gate **`smoke:anki-apkg` 30/30**. Server-side lib (no SW bump). Real-Anki *import* = owner device-smoke (gate validates structure only).
-- **A2 — CLIENT-side export (owner chose client build). Resolved open question:** SRS cards live in **OPFS** (`public/db/local-db.js` `srs.listCards`/`createCard`/`createCardFromNote`); the **server has NO user data** (OPFS-first; `texts` empty in prod, `server.js:342`); precedent `exportBundle` (local-db.js:3534) is client-side; wa-sqlite has no serialize → client uses **sql.js**.
-  - **A2a SHIPPED `a22a191`:** shared core `public/db/anki-apkg-core.js` (UMD, pure-JS SHA-1 byte-equal to crypto, col-JSON/DDL/csum/guid/`prepareCollection`); `lib/ankiApkg.js` refactored onto it; **client `public/db/anki-apkg.js`** (sql.js+jszip → `buildApkgBytes`/`buildApkgBlob`/`downloadApkg`); sql.js vendored `/db/sql-wasm.{js,wasm}` (lazy). Gates **`smoke:anki-apkg` 36/36** + **`smoke:anki-apkg-client` 21/21** (server↔client PARITY). Headless. Not wired to UI yet → no SW bump.
-  - **A2b SHIPPED+PROD `0da074d` (SW `v3.10.72-anki-apkg`):** v1 exports **word_study notes** (S10/②-vocabulary — simplest high-value; sentence-cards = follow-up). `public/db/anki-srs-export.js` `buildWordStudySpec` → «LinguistPro Word v1» (Word/Niqqud/Root/Binyan/POS/Meaning/PealimId; He→Ru; lemma-dedup; stable per-lemma GUID). OPFS query `listWordStudyNotesForExport()` (local-db.js). «📦 Скачать .apkg (словарь)» + `v3SrsDownloadApkg()` in Studio Trainer home — **edited `index.html` INLINE (live source); `public/check_script.js` = gitignored DEAD copy, DON'T edit → [[feedback_studio_live_source_inline]]**. 3 UMD scripts in index.html + SW PRECACHE (sql.js lazy). Gate `smoke:anki-srs-export` 14/14; reader-parity+i18n green. PROD-verified Node-fetch + prod browser (real sql.js(27ms)+jszip → valid collection re-opened; button renders+wired; only a benign pre-existing 410). Real-profile export→Anki-import = owner device-smoke.
-- **⑤ NEXT = B (AnkiConnect read-back, LOCAL-only gated):** B1 wire live pull `findCards`/`cardsInfo`/`getReviewsOfCards` → existing `v3AnkiCardStatsToLocalState` → `applyAnkiReviewStates`/`recordAnkiReviews` (`public/db/local-db.js` :2148/:2225) + settings toggle + honest «requires Anki Desktop on this machine» gate. B2 feed read-back → research retention metric (`ULPAN_RESEARCH_PLAN_v3_2`) + Anki-fed i+1 mastery (`getKnownWordStates` overlay → `corpus-vocab` zone). A-follow-ups: Зал export surface · sentence-card export (17-field model mirroring `getSrsAnkiModelSpec` server.js:4910).
-- **B1 NEXT — read-back (local-only):** wire live pull (AnkiConnect `findCards`/`cardsInfo`/`getReviewsOfCards`) → existing `v3AnkiCardStatsToLocalState` → `applyAnkiReviewStates`/`recordAnkiReviews` (`public/db/local-db.js` :2148/:2225); settings toggle + honest «requires Anki Desktop on this machine» gate.
-- **B2 NEXT — value:** feed read-back → research retention metric (`ULPAN_RESEARCH_PLAN_v3_2`) + Anki-fed i+1 mastery (`getKnownWordStates` :2101 overlay → `corpus-vocab` zone).
+## NEXT — A-unify-2 (browser), then B
+**A-unify-2** (full plan in design doc §5b A-unify-2): add «📦 Скачать .apkg» to `v3AnkiModal` (~11403) reading the same form (textId, cardKind words/sentences/both, includeHint). REUSE the INLINE builders (do NOT duplicate): `v3AnkiWordModelSpec()` + `v3AnkiBuildWordCardFields()` + `v3AnkiResolveParadigm()` (offline) for words → Word v2 group; extract `buildSentenceFields(s,note,includeHint)` (~14490) for sentences → SRS Card v1 group; «both» → two groups → `AnkiApkg.buildApkgBytes({groups:[…]})` (multi-model ready). **Audio text-first** (Audio empty → Word v2 `{{tts he_IL:Word}}` device-TTS; sentences silent). Stable per-note/-sentence GUID. **Reconcile A2b:** retire `anki-srs-export.js` Word v1 → Trainer button produces SAME Word v2 cards. SW bump; browser-verify @380px (3 options→valid `.apkg`, models == AnkiConnect); prod-verify.
+**Then B1/B2** (Desktop read-back, LOCAL-only gated): wire pull `findCards`/`cardsInfo`/`getReviewsOfCards` → existing `v3AnkiCardStatsToLocalState` → `applyAnkiReviewStates`/`recordAnkiReviews` (local-db.js :2148/:2233; orchestrator `v3AnkiFetchWordReviewStates` already inline+tested in anki-sync-smoke) + settings toggle + «requires Anki Desktop» gate → research retention metric + Anki-fed i+1 mastery.
 
-## P3 BACKLOG (owner-deprioritized / blocked)
-- **S18 latin/SBL input** — only remaining small follow-up (digraph-aware fold; low ROI for russian audience).
-- S17 inflection-phrase (cheap alt = `slop` toggle) · S19 KMap-link (Studio-only, touches index.html → Stage-2) · FTS→26K (needs token rotation).
-- Other tracks: ④ R10 tap-gloss quality + Yiddish 47097 · ③ publish baked → catalog v8 (token-blocked).
+## NORMS / TRAPS (hard)
+- **Studio live JS = INLINE in `index.html`; `public/check_script.js` = gitignored DEAD copy — verify a file is `<script>`-loaded before editing** ([[feedback_studio_live_source_inline]]). Zал=`library-ui.js`(real). DB=`local-db.js`(real, `window.__localDB`, `ensureLocalDB()`).
+- index.html table renderer parity-locked (`smoke:reader-parity`) — don't touch renderTable. Global `button{width:100%}` mobile trap. Bump SW `CACHE_VERSION` on ANY index.html/precached-asset change. `v3NotesT(key,fallback)` new keys w/o locale entries DON'T break `smoke:i18n`.
+- PWA SW staleness: clear SW+caches + reload + freshness-probe before browser-verify ([[feedback_browser_verify_fresh_code]]). Headless OPFS importBundle crashes wa-sqlite; small writes ok; `createNote` needs valid `target_kind` (seeding word_study headless is fiddly → real-profile export = owner device-smoke) ([[feedback_headless_opfs_playwright]]).
+- commit+push autonomously (Coolify); prod-verify Node-fetch (NOT Windows-curl for Hebrew) + fresh-code browser.
 
-## 🔑 OPEN (owner, not code) — STILL OWED
-Rotate **AUDIO_UPLOAD_TOKEN** (leaked) + **Gemini** + old **GCP** — blocks repo publish + ③ corpus publish + FTS-grow→26K.
-
-## NORMS (hard)
-index.html + reader-core builder UNtouched (`smoke:reader-parity`); reader features POST-render on Room mount; крупная фича → recon-дизайн
-`docs/planning/<TICKET>.md` НА УТВЕРЖДЕНИЕ перед кодом; MEASURE on non-empty profile; gates green before push; commit+push autonomously (Coolify);
-prod-verify Node-fetch (NOT Windows-curl for Hebrew) + browser on FRESH code (freshness probe; don't clear cache before warm-speed measure);
-bump SW CACHE_VERSION + FTS_DATA_REV/TRANSLIT_DATA_REV on format change; @380px RTL light+dark screenshot.
-Lessons memory: [[project_search_discovery_closure]] · [[feedback_headless_opfs_playwright]] · [[feedback_fts_hebrew_inverted_index]] · [[feedback_browser_verify_fresh_code]].
+## 🔑 OPEN (owner, not code) — rotate AUDIO_UPLOAD_TOKEN (leaked) + Gemini + old GCP. Blocks repo publish + ③ corpus publish + FTS→26K. (NOT blocking ⑤/Зал dev.)
