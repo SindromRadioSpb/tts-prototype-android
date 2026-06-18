@@ -5,7 +5,14 @@
 Memory: [[project_anki_sync_design]] · [[feedback_studio_live_source_inline]] · [[project_search_discovery_closure]] · [[feedback_headless_opfs_playwright]] · [[project_srs_strategy]].
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал `/library.html`, Studio `/index.html`). Owner-инвариант: бескомпромиссное качество, без заглушек; R1–R10 авто.
 
-## STATE — main HEAD `84b4089`, SW `v3.10.73-anki-multimodel` (prod-verified up to A2b; A-unify-1 deploying)
+## STATE — main HEAD `e9ccb2d`, SW `v3.10.74-anki-wordv2` (ALL prod-verified)
+**NEW since 84b4089:** ⑤ re-test on REAL data + A-unify-2a (Word v1→v2 reconciliation) + user help guide — all SHIPPED+PROD:
+- **Re-test (design doc §5c):** `Library/test-enriched-lean.zip` 8967 real word notes → 1924 cards (lemma-dedup=1 card/lemma), valid+idempotent; multi-model «both» real words+sentences → 2 models/3 decks; browser end-to-end (seed via `createNote({target_kind:'word',note_type:'word_study',body})` → real button → **downloaded `.apkg` = valid importable Anki collection**). Headless seeding now solved → [[feedback_headless_opfs_playwright]].
+- **A-unify-2a `c98096f`/`e9ccb2d` (SW v3.10.74):** Word v1→v2 reconciliation. NEW `public/db/anki-models.js` (UMD) = canonical «LinguistPro Word v2»(11 fields)+«SRS Card v1» specs. `anki-srs-export.js` builds Word v2 via it (was divergent v1). `index.html` `v3AnkiWordModelSpec()` DELEGATES to `AnkiModels.wordV2()` (inline fallback BYTE-IDENTICAL — 3-dim adversarial-review-verified) → AnkiConnect push + client `.apkg` = IDENTICAL cards. Gate `smoke:anki-srs-export` 19. Browser+prod verified.
+- **User help guide:** `docs/ANKI_EXPORT_GUIDE.md` (rendered via /docs/*.md).
+- **A-unify-2b NEXT** (design doc §A-unify-2b): modal «📦 Скачать .apkg» words/sentences/both — reuse inline `v3AnkiBuildWordCardFields`(Word v2, ~14253)+`v3AnkiResolveParadigm` + a sentence builder (SRS Card v1, fields built ~14490) → `AnkiApkg.buildApkgBytes({groups})` (multi-model ready); button in `v3AnkiModal` (~11403) reading cardKind. Then B1/B2 (Desktop read-back). Anki interop limits (mobile sync IMPOSSIBLE) + competitive (read-back loop unique) in design doc §5b.
+
+## (earlier this session) HEAD `84b4089`, SW `v3.10.73-anki-multimodel`
 **SHIPPED+PROD this arc:**
 - **Зал non-ready add-to-list** (SW v3.10.71) — ➕ on every result row + auto-upgrade. [[project_search_discovery_closure]]
 - **⑤ Anki design APPROVED A+B** + **Q2/Q3 feasibility study** (3-agent research, in the design doc §5b).
