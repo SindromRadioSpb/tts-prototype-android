@@ -14894,7 +14894,7 @@ async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
 // R-1 — rich WORD-card export from a text's ②-knowledge base. Gathers the
 // text's canonical word_study notes, resolves each one's Pealim paradigm
 // (offline, POS-guarded) + an example from the learner's own text, builds the
-// card fields against the LinguistPro Word v1 model, and runs them through the
+// card fields against the LinguistPro Word v2 model, and runs them through the
 // SHARED add/dedup/freshOnly pipeline. Word-level audio rarely exists → none
 // pre-attached. R1: a note with no resolvable paradigm (function word) simply
 // ships without a table — never fabricated. Per-note try/catch so one bad note
@@ -29254,7 +29254,7 @@ window.v3IdeSrsAnkiPreview = v3IdeSrsAnkiPreview;
 window.v3IdeSrsExportAnki = v3IdeSrsExportAnki;
 window.v3SrsTrainerExportAnki = v3SrsTrainerExportAnki;
 
-// ⑤ Anki A2b — download the WHOLE word_study vocabulary as a «LinguistPro Word v1» .apkg, built ENTIRELY
+// ⑤ Anki A2b — download the WHOLE word_study vocabulary as a «LinguistPro Word v2» .apkg, built ENTIRELY
 // in the browser (sql.js + jszip via window.AnkiApkg) so card data never leaves the device. Re-import
 // UPDATES instead of duplicating (stable per-lemma guid). Unlike «Export to Anki» (AnkiConnect, local-only),
 // this works for every user / platform / offline. The opposite direction (read-back) is the B-brick.

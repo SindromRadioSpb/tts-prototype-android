@@ -175,7 +175,13 @@ Trainer now (re-opens the settled v3.2 "Anki = review layer"; v3.4 epic).
   group: mid=LP_MODEL_ID+i, did=LP_DECK_ID+i); single-model specs backward-compatible. Foundation for «both»
   (Word v2 + SRS Card v1 in one `.apkg`). Gate `smoke:anki-apkg-client` 28/28 (+7 multi-model); anki-apkg 36 +
   anki-srs-export 14 green. Engine only, not yet UI-wired.
-- **A-unify-2 — NEXT (browser).** Reuse the INLINE index.html builders (do NOT duplicate): `v3AnkiWordModelSpec()`
+- **A-unify-2a — ✅ DONE `c98096f` (SW v3.10.74) — Word v1→v2 reconciliation (DRY).** New `public/db/anki-models.js`
+  (UMD) = canonical «LinguistPro Word v2» (11 fields) + «SRS Card v1» specs. `anki-srs-export.js` builds Word v2 via it
+  (was a divergent Word v1). `index.html` `v3AnkiWordModelSpec()` **delegates** to `window.AnkiModels.wordV2()`
+  (load-order fallback kept) → AnkiConnect push + client `.apkg` produce IDENTICAL cards. Gate `smoke:anki-srs-export`
+  19/19 (Word v2, {{tts}} fallback); browser+prod verified (export = Word v2 11 fields; `acUsesSharedWordV2=true`;
+  real card `לכתוב→писать`; 0 console-err). **A-unify-2b NEXT** = the modal «Скачать .apkg» (words/sentences/both):
+- **A-unify-2b — NEXT (browser).** Reuse the INLINE index.html builders (do NOT duplicate): `v3AnkiWordModelSpec()`
   (~14171, Word v2 spec) + `v3AnkiBuildWordCardFields(note,{paradigm,exampleHe,exampleRu,headwordAudioFile,…})`
   (~14253) + `v3AnkiResolveParadigm` (offline, OPFS lemma_inflection) for the Conjugation field. Word group →
   Word v2; sentence group → SRS Card v1 (6 fields: Hebrew/Niqqud/Translit/Russian/Note/Audio, built ~14490 in
