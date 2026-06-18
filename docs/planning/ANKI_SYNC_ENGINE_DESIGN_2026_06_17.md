@@ -194,6 +194,33 @@ Trainer now (re-opens the settled v3.2 "Anki = review layer"; v3.4 epic).
 в Anki (.apkg, везде)» + optional «Desktop Anki-мост (power-user): adds cards AND reads mastery back to tune
 reading». Never promise mobile sync.
 
+## 5c. Re-test on REAL data — 2026-06-18 (A2b + A-unify-1 re-validated)
+Re-ran the shipped export on the project's enriched bundle `Library/test-enriched-lean.zip` (real Hebrew vocabulary):
+- **8,967 real `word_study` notes → 1,924 cards** (lemma-dedup collapsed 7,043 same-`pealim_id` notes → **ONE card per
+  lemma** — correct for vocab SRS), 259 KB `.apkg` in 679 ms; sample cards correct (`לכתוב [לִכְתֹּב] √כתב verb → писать`).
+  Integrity over all 1,924: csum correct · mid valid · ZERO duplicate GUIDs · idempotent rebuild.
+- **Multi-model «both» on real data:** real words (`buildWordStudySpec`) + real sentences (SRS Card v1 group) → ONE
+  `.apkg` with **2 models + 3 decks** (Default + `LinguistPro::Words` + `LinguistPro::SRS`), correct per-model counts.
+- **Browser end-to-end:** seeded 5 real notes via the real `createNote({target_kind:'word', note_type:'word_study', body})`
+  → `listWordStudyNotesForExport()` returns them → the **real `v3SrsDownloadApkg()` button** ran (toast «Экспортировано 5
+  карточек») → a `.apkg` **downloaded to disk** → re-opened: a **valid importable Anki collection** (ver 11, 2 decks, 5
+  notes/cards, every card links a real note, all NEW, unique GUIDs). 0 console-errors.
+
+### Lessons (re-test)
+- **Test the export on REAL data, not just fixtures.** The enriched bundle stores `note_type` at the top with `body_json`
+  as a **string** (NOT `note.body`); feed `{ id, body_json }` straight in (the exact `listWordStudyNotesForExport` shape).
+- **Seed real OPFS notes** via `createNote({ target_kind:'word', target_id:'…', note_type:'word_study', body:{…} })` — a
+  word note needs `target_kind:'word'` (not `'word_study'`; that's the note_type). Valid kinds: sentence/word/root/binyan/
+  text/note/free (`_TARGET_KINDS`). This unblocks headless real-flow testing the earlier handoff marked owner-only.
+- **Validate the ACTUAL downloaded file**, not just the in-memory bytes: Playwright captures the `a.download` click to disk;
+  re-open with sql.js and assert Anki-import invariants (ver 11, note.mid↔model, card.nid↔note, new-state, unique guid).
+- **Product note (confirm w/ owner):** lemma-dedup = one card per lemma (8,967 notes → 1,924). Right default for vocab;
+  documented in the user guide `docs/ANKI_EXPORT_GUIDE.md`.
+
+User-facing help seeded: **`docs/ANKI_EXPORT_GUIDE.md`** (rendered via the /docs/*.md premium renderer) — how to export,
+import (Desktop/AnkiDroid/AnkiMobile), what's in a card, `.apkg` vs AnkiConnect, troubleshooting. Update it when A-unify-2
+ships (Word v2 + words/sentences/both).
+
 ## 6. Norms / gates this will honor
 index.html/reader-core untouched (export is server + Trainer/Зал button); new gate `smoke:anki-apkg` (re-open + validate);
 extend `anki-sync-smoke`/`anki-lifecycle-smoke`; @380px export UX screenshot; SW bump on shell change; prod-verify
