@@ -27,7 +27,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.10.73-anki-multimodel";
+const CACHE_VERSION = "v3.10.74-anki-wordv2";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -138,6 +138,7 @@ const PRECACHE_URLS = [
   // ⑤ Anki-sync A2b — client .apkg export (small UMD core + builders). sql.js (/db/sql-wasm.*) is LAZY
   // (~700KB, fetched only on first export) → intentionally NOT precached.
   "/db/anki-apkg-core.js",
+  "/db/anki-models.js",
   "/db/anki-apkg.js",
   "/db/anki-srs-export.js",
   // TTS layer

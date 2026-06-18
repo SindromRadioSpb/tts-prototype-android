@@ -12048,6 +12048,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Card data never leaves the device; sql.js (/db/sql-wasm.*) lazy-loads only when the user exports.
      Order matters: core first (the others depend on it). -->
 <script src="/db/anki-apkg-core.js"></script>
+<script src="/db/anki-models.js"></script>
 <script src="/db/anki-apkg.js"></script>
 <script src="/db/anki-srs-export.js"></script>
 
@@ -14107,6 +14108,12 @@ const V3_ANKI_WORD_FIELDS = ['Word', 'Niqqud', 'Translit', 'Russian', 'Root', 'B
 // statically assert every {{Field}} the templates reference exists in the model
 // field list (no AnkiConnect "card model is missing a field" error).
 function v3AnkiWordModelSpec() {
+  // ⑤ A-unify — single source of truth: delegate to the shared model module (public/db/anki-models.js) so
+  // the AnkiConnect push and the client `.apkg` export build IDENTICAL «Word v2» cards (no divergence). The
+  // inline spec below is a load-order fallback (kept byte-identical).
+  if (window.AnkiModels && typeof window.AnkiModels.wordV2 === 'function') {
+    return window.AnkiModels.toAnkiConnect(window.AnkiModels.wordV2());
+  }
   // Base card styles + the FULL .v3-conj-* rule set inlined with hardcoded hex
   // (Anki has no app theme/CSS vars). Mirrors index.html ~6434+; stress red
   // #D55E00 preserved. nightMode overrides keep the dark Anki theme readable.
