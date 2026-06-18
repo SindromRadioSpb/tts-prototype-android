@@ -146,6 +146,34 @@ archiver, no black-box dep — toolchain verified present) · audio **text-first
 - **B2 — feed read-back into value**: research retention metric (`ULPAN_RESEARCH_PLAN_v3_2`) + Anki-fed i+1 mastery
   (`getKnownWordStates` overlay → `corpus-vocab` zone).
 
+## 5b. Q2/Q3 feasibility study — 2026-06-18 (owner-asked: unify export · rework Trainer? · Desktop/Mobile sync "unique"?)
+Research: 3 agents (AnkiConnect-export map · Trainer architecture · Anki-sync tech + competitive, sourced).
+
+**Q2 — unify `.apkg` to words/sentences/both; rework Trainer?** The live «Экспорт в Anki (AnkiConnect)» modal
+(`v3AnkiModal`, index.html ~11356) ALREADY offers 3 options with RICHER models than A2b: words → **`LinguistPro
+Word v2`** (11 fields incl. full conjugation paradigm + mnemonic + GCP-TTS audio; `v3AnkiBuildWordCardFields`
+~14253), sentences → **`LinguistPro SRS Card v1`** (6 fields: Hebrew/Niqqud/Translit/Russian/Note/Audio), both →
+merge; per-text scoped. Its transport is **direct browser→`127.0.0.1:8765`** → fails for remote/mobile (mixed-
+content/CORS/Chrome-142 LNA). **Verdict:** unify = make the `.apkg` export reuse the SAME builders/models + 3
+options → the universal deploy-safe twin of the Desktop-only AnkiConnect export. **NOT a Trainer rework** (Trainer
+SM2 scheduler untouched; export is a gather+build step, ~2–3 d). **R8 fix:** A2b shipped `Word v1` (8 fields) —
+DIVERGENT from live `Word v2`; unify must reconcile A2b → Word v2 (one card per word, two transports).
+
+**Q3 — Desktop/Mobile sync as a "unique feature"?** BLUNT (sourced): full bidirectional in-app-trainer ↔ Anki
+**MOBILE** sync from a PWA is **IMPOSSIBLE** — iOS only write-only `anki://` app-switch (no review-state read);
+Android ContentProvider/Instant-Add is native-app-only (no web surface); AnkiWeb has no public sync API. Desktop
+AnkiConnect works but is fragile (Anki open + `webCorsOriginList` + Chrome-142 Local-Network-Access prompt).
+Competitive: everyone does ONE-WAY export→Anki; NOBODY reads Anki review-state BACK to drive in-app behavior
+(JPDB does app→Anki; Migaku owns its SRS). **Verdict:** "mobile bidirectional sync" = false promise, don't ship/
+market. The genuinely-unique + achievable thing = the **Desktop read-back loop = B1/B2** (Anki mastery → i+1
+reading recommendations + true retention metric). **Q3 collapses into B** (already approved). Do NOT FSRS-rework the
+Trainer now (re-opens the settled v3.2 "Anki = review layer"; v3.4 epic).
+
+**Recommended sequencing:** A-unify (`.apkg` words/sentences/both + reconcile A2b→Word v2, ~2–3 d) → B1/B2
+(Desktop read-back, honestly local-only gated → retention metric + Anki-fed i+1, ~4–5 d). Honest framing: «Экспорт
+в Anki (.apkg, везде)» + optional «Desktop Anki-мост (power-user): adds cards AND reads mastery back to tune
+reading». Never promise mobile sync.
+
 ## 6. Norms / gates this will honor
 index.html/reader-core untouched (export is server + Trainer/Зал button); new gate `smoke:anki-apkg` (re-open + validate);
 extend `anki-sync-smoke`/`anki-lifecycle-smoke`; @380px export UX screenshot; SW bump on shell change; prod-verify
