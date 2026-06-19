@@ -35999,7 +35999,12 @@ async function v3AnkiDownloadApkg() {
     const fname = "lp_" + ak + ".mp3";
     if (mediaByKey.has(ak)) return fname;
     try {
-      const r = await fetch(location.origin + "/api/audio/" + encodeURIComponent(ak), { cache: "force-cache" });
+      // P1 — bound each fetch so one slow/hung asset can't hang the whole export (AbortController + 8s timeout).
+      const ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      const to = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch (_) {} }, 8000) : null;
+      let r;
+      try { r = await fetch(location.origin + "/api/audio/" + encodeURIComponent(ak), { cache: "force-cache", signal: ctrl ? ctrl.signal : undefined }); }
+      finally { if (to) clearTimeout(to); }
       if (!r.ok) return "";
       mediaByKey.set(ak, { name: fname, data: new Uint8Array(await r.arrayBuffer()) });
       return fname;
@@ -36032,6 +36037,7 @@ async function v3AnkiDownloadApkg() {
     const total = groups.reduce((a, g) => a + (g.notes ? g.notes.length : 0), 0);
     if (!total) { showToast("Нет карточек для экспорта в этом тексте.", "info"); v3AnkiSetStatus("", false); return; }
     const media = Array.from(mediaByKey.values());
+    v3AnkiSetStatus("Собираю .apkg (" + total + " карточек" + (media.length ? " · " + media.length + " аудио" : "") + ")…", false);
     const fname = "LinguistPro-" + new Date().toISOString().slice(0, 10) + ".apkg";
     const res = await window.AnkiApkg.downloadApkg({ groups, media }, fname);
     const wc = (groups.find((g) => g.modelName === window.AnkiSrsExport.MODEL_NAME) || { notes: [] }).notes.length;
