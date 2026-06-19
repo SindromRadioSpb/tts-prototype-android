@@ -76,5 +76,54 @@
     };
   }
 
-  return { buildWordStudySpec, noteBody, bodyToFields, lemmaKey, MODEL_NAME: MODEL.modelName, FIELD_NAMES: MODEL.fieldNames };
+  // ── A-unify-2b — sentence + multi-group builders (the modal words/sentences/both `.apkg`) ────────────
+  const SENT_MODEL = models.srsCardV1(); // «LinguistPro SRS Card v1»
+
+  // OPFS sentence row → the 6 «SRS Card v1» fields. Text-first (Audio empty). `noteText` = the optional
+  // per-sentence annotation (only when includeHint).
+  function sentenceFields(s, noteText) {
+    s = s || {};
+    return {
+      Hebrew: String(s.he_plain || s.he_niqqud || s.hebrew_plain || ""),
+      Niqqud: String(s.he_niqqud || s.hebrew_niqqud || ""),
+      Translit: String(s.translit || s.translit_ru || ""),
+      Russian: String(s.ru || s.russian || ""),
+      Note: String(noteText || ""),
+      Audio: "",
+    };
+  }
+  // sentences[] (+ opts.noteBySid[sid]) → an «SRS Card v1» deck group. Stable guid per sentence id.
+  function sentenceGroup(sentences, opts) {
+    opts = opts || {};
+    const noteBySid = opts.noteBySid || {};
+    const out = [];
+    for (const s of (sentences || [])) {
+      const f = sentenceFields(s, s ? noteBySid[s.id] : "");
+      if (!f.Hebrew && !f.Niqqud) continue;
+      out.push({ guid: core.stableGuid("sent:" + (s && s.id != null ? s.id : f.Hebrew)), fields: SENT_MODEL.fieldNames.map((n) => f[n] || ""), tags: ["lp", "lp_sentence"] });
+    }
+    return { deckName: opts.deckName || "LinguistPro::SRS", modelName: SENT_MODEL.modelName, fieldNames: SENT_MODEL.fieldNames, templates: SENT_MODEL.templates, css: SENT_MODEL.css, notes: out };
+  }
+  // items[]: { key, fields } where `fields` is a Word v2 field OBJECT (built in the browser by
+  // v3AnkiBuildWordCardFields — carries Conjugation/Example) and `key` is the lemma key (lemmaKey(body)).
+  // → a «Word v2» group, deduped by lemma, same guid scheme as buildWordStudySpec (one card per lemma).
+  function wordGroupFromCards(items, opts) {
+    opts = opts || {};
+    const seen = new Set();
+    const out = [];
+    for (const it of (items || [])) {
+      const f = (it && it.fields) || {};
+      if (!f.Word && !f.Niqqud) continue;
+      const key = (it && it.key) || ("w:" + core.stripHtmlMedia(f.Word || f.Niqqud).trim() + "#" + (f.POS || ""));
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ guid: core.stableGuid("word:" + key), fields: MODEL.fieldNames.map((n) => f[n] || ""), tags: ["lp", "lp_word"].concat(f.POS ? ["lp_pos_" + String(f.POS).replace(/\s+/g, "_")] : []) });
+    }
+    return { deckName: opts.deckName || "LinguistPro::Words", modelName: MODEL.modelName, fieldNames: MODEL.fieldNames, templates: MODEL.templates, css: MODEL.css, notes: out };
+  }
+
+  return {
+    buildWordStudySpec, noteBody, bodyToFields, lemmaKey, MODEL_NAME: MODEL.modelName, FIELD_NAMES: MODEL.fieldNames,
+    sentenceFields, sentenceGroup, wordGroupFromCards, SENT_MODEL_NAME: SENT_MODEL.modelName, SENT_FIELD_NAMES: SENT_MODEL.fieldNames,
+  };
 });

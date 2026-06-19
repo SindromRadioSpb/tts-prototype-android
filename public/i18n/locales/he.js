@@ -497,8 +497,9 @@ window.I18N_LOCALES.he = {
     checkBtn: "בדוק AnkiConnect",
     copyDiagBtn: "העתק אבחון",
     pushBtn: "ייצוא",
+    apkgBtn: "📦 הורדת .apkg",
     syncBtn: "סנכרון מ‑Anki",
-    helpText: "נדרש Anki Desktop פתוח עם AnkiConnect מותקן. הדשבורד חייב לפעול מקומית (127.0.0.1:3000).",
+    helpText: "«📦 הורדת .apkg» עובדת בכל מקום (Desktop / Android / iPhone) — הורידו את הקובץ וייבאו ל‑Anki. «ייצוא» שולח כרטיסים ישירות ל‑Anki Desktop פעיל (נדרש AnkiConnect; הדשבורד מקומית על 127.0.0.1:3000).",
   },
   dashboard: {
     title: "לוח למידה",

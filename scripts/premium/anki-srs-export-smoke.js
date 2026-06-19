@@ -68,6 +68,39 @@ const V2_ORDER = "Word,Niqqud,Translit,Russian,Root,Binyan,POS,Conjugation,Examp
   const empty = SrsExport.buildWordStudySpec([], {});
   ok("empty notes → 0-note spec (still valid Word v2)", empty.notes.length === 0 && empty.modelName === "LinguistPro Word v2");
 
+  // 5) A-unify-2b — sentence group (SRS Card v1)
+  const sents = [
+    { id: "s1", he_plain: "זה הבית שלי", he_niqqud: "זֶה הַבַּיִת שֶׁלִּי", translit: "ze ha-bayit", ru: "это мой дом" },
+    { id: "s2", he_plain: "אני לומד עברית", he_niqqud: "", translit_ru: "ani lomed", ru: "я учу иврит" },
+    { id: "s3", he_plain: "", he_niqqud: "", ru: "пусто" }, // no Hebrew → skipped
+  ];
+  const sg = SrsExport.sentenceGroup(sents, { noteBySid: { s1: "важное предложение" }, deckName: "LinguistPro::SRS" });
+  ok("sentenceGroup = «SRS Card v1», 6 fields", sg.modelName === "LinguistPro SRS Card v1" && sg.fieldNames.join(",") === "Hebrew,Niqqud,Translit,Russian,Note,Audio");
+  ok("sentenceGroup builds 2 (skips empty s3)", sg.notes.length === 2, "got " + sg.notes.length);
+  ok("sentence fields: Hebrew/Russian + Note(includeHint)", sg.notes[0].fields[0] === "זה הבית שלי" && sg.notes[0].fields[3] === "это мой дом" && sg.notes[0].fields[4] === "важное предложение");
+  ok("sentence guid stable per id", sg.notes[0].guid === core.stableGuid("sent:s1"));
+
+  // 6) wordGroupFromCards (browser passes pre-built Word v2 field objects + lemma key)
+  const items = [
+    { key: "pid:1234", fields: { Word: "הלך", Niqqud: "הָלַךְ", Russian: "идти", Root: "הלך", POS: "verb", Conjugation: "<table>…</table>", Example: "הלכתי הביתה" } },
+    { key: "pid:1234", fields: { Word: "הלך", Russian: "(dup)" } }, // same key → collapses
+    { key: "w:ספר#noun", fields: { Word: "ספר", Russian: "книга" } },
+  ];
+  const wg = SrsExport.wordGroupFromCards(items, { deckName: "LinguistPro::Words" });
+  ok("wordGroupFromCards = Word v2, dedup by key (3→2)", wg.modelName === "LinguistPro Word v2" && wg.notes.length === 2);
+  ok("word group carries Conjugation/Example from the built fields", wg.notes[0].fields[7] === "<table>…</table>" && wg.notes[0].fields[8] === "הלכתי הביתה");
+  ok("word group guid matches buildWordStudySpec scheme", wg.notes[0].guid === core.stableGuid("word:pid:1234"));
+
+  // 7) «BOTH» — words + sentences in ONE .apkg (multi-model)
+  const bothBytes = await AnkiApkg.buildApkgBytes({ groups: [wg, sg] }, { SQL, JSZip, now: NOW, zipType: "uint8array" });
+  const bdb = new SQL.Database(await (await JSZip.loadAsync(bothBytes)).file("collection.anki2").async("uint8array"));
+  const bModels = JSON.parse(bdb.exec("SELECT models FROM col WHERE id=1")[0].values[0][0]);
+  const bDecks = JSON.parse(bdb.exec("SELECT decks FROM col WHERE id=1")[0].values[0][0]);
+  ok("both: 2 models (Word v2 + SRS Card v1)", Object.values(bModels).map((m) => m.name).sort().join("|") === "LinguistPro SRS Card v1|LinguistPro Word v2");
+  ok("both: 3 decks (Default + Words + SRS)", Object.keys(bDecks).length === 3);
+  ok("both: 4 notes (2 word + 2 sentence)", bdb.exec("SELECT COUNT(*) FROM notes")[0].values[0][0] === 4);
+  bdb.close();
+
   console.log("\nsmoke:anki-srs-export — " + passed + " passed, " + failed + " failed");
   process.exit(failed ? 1 : 0);
 })().catch((e) => { console.error("FATAL", e); process.exit(1); });

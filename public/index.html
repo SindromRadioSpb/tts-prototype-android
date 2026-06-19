@@ -11401,11 +11401,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
   <button id="v3AnkiCheckBtn" class="btn-secondary" onclick="v3AnkiHealth()" data-i18n="anki.checkBtn">Проверить AnkiConnect</button>
   <button id="v3AnkiCopyBtn" class="btn-secondary" onclick="v3AnkiCopyDiagnostics()" disabled data-i18n="anki.copyDiagBtn">Скопировать диагностику</button>
   <button id="v3AnkiPushBtn" class="btn-primary" onclick="v3AnkiPushNow()" data-i18n="anki.pushBtn">Экспортировать</button>
+  <button id="v3AnkiApkgBtn" class="btn-primary" onclick="v3AnkiDownloadApkg()" title="Скачать выбранные карточки одним файлом .apkg. Работает в ЛЮБОМ Anki (Desktop / AnkiDroid / AnkiMobile), без AnkiConnect и без локального запуска. Собирается в браузере — данные не покидают устройство." data-i18n="anki.apkgBtn">📦 Скачать .apkg</button>
   <button id="v3AnkiSyncBtn" class="btn-secondary" onclick="v3AnkiSyncNow()" title="Подтянуть результаты повторений из Anki: слова, которые вы учили в Anki, станут «известными»/«учу» здесь (питает граф знаний и i+1). Повторение остаётся в Anki." data-i18n="anki.syncBtn">Синхронизировать из Anki</button>
 </div>
 
       <div class="v3-modal-hint" data-i18n="anki.helpText">
-        Требуется запущенный Anki Desktop с установленным AnkiConnect. Dashboard должен быть запущен локально (127.0.0.1:3000).
+        «📦 Скачать .apkg» работает везде (Desktop / Android / iPhone) — скачайте файл и импортируйте в Anki. «Экспортировать» отправляет напрямую в запущенный Anki Desktop (нужен AnkiConnect; Dashboard локально на 127.0.0.1:3000).
       </div>
     </div>
   </div>
@@ -35939,6 +35940,65 @@ async function v3AnkiHealth() {
     if (btn) btn.disabled = false;
   }
 }
+
+// ⑤ A-unify-2b — «📦 Скачать .apkg» from the Anki modal: builds the SAME words/sentences/both deck (shared
+// «Word v2» + «SRS Card v1» models — identical to the AnkiConnect push) as a downloadable `.apkg`, ENTIRELY
+// in the browser via the multi-model client engine. No AnkiConnect, no localhost → works for every user /
+// platform / offline; card data never leaves the device. Reuses the inline word-card builders
+// (v3AnkiBuildWordCardFields + v3AnkiResolveParadigm → Conjugation/Example) so cards match AnkiConnect.
+async function v3AnkiDownloadApkg() {
+  const exportId = v3AnkiGetExportId();
+  const isUuid = typeof exportId === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(exportId);
+  if (!isUuid) { if (typeof showToast === "function") showToast(t("toast.saveToLibraryFirst"), "warning"); return; }
+  if (!window.AnkiSrsExport || !window.AnkiApkg) { showToast("Экспорт .apkg недоступен (модуль не загружен).", "error"); return; }
+  const kindEl = document.getElementById("v3AnkiCardKind");
+  const hintEl = document.getElementById("v3AnkiIncludeHint");
+  const deckEl = document.getElementById("v3AnkiDeck");
+  const cardKind = kindEl ? String(kindEl.value || "words") : "words";
+  const includeHint = hintEl ? !!hintEl.checked : true;
+  const deckBase = deckEl ? String(deckEl.value || "").trim() : "";
+  const dlBtn = document.getElementById("v3AnkiApkgBtn");
+  if (dlBtn) dlBtn.disabled = true;
+  try {
+    v3AnkiSetStatus("Собираю .apkg…", false);
+    const ldb = await ensureLocalDB();
+    const groups = [];
+    if (cardKind === "words" || cardKind === "both") {
+      const notes = await ldb.getCanonicalWordNotesForText(exportId);
+      const items = [];
+      for (const n of (notes || [])) {
+        let body = {}; try { body = n.body_json ? JSON.parse(n.body_json) : {}; } catch (_) {}
+        if (!String(body.word || body.lemma || "").trim() && !String(body.niqqud_variant || body.niqqud || "").trim()) continue;
+        let paradigm = null; try { paradigm = await v3AnkiResolveParadigm(body); } catch (_) {}
+        const fields = v3AnkiBuildWordCardFields(n, { paradigm, example: n.example || "", exampleHe: n.example_he || "", exampleRu: n.example_ru || "", headwordAudioFile: "", exampleAudioFile: "" });
+        items.push({ key: window.AnkiSrsExport.lemmaKey(body), fields });
+      }
+      groups.push(window.AnkiSrsExport.wordGroupFromCards(items, { deckName: (deckBase && cardKind === "words") ? deckBase : "LinguistPro::Words" }));
+    }
+    if (cardKind === "sentences" || cardKind === "both") {
+      const sents = await ldb.getSentences(exportId);
+      const noteBySid = {};
+      if (includeHint) { const noteRows = await ldb.listNotes(exportId); for (const nr of (noteRows || [])) noteBySid[nr.sentence_id] = nr.note; }
+      groups.push(window.AnkiSrsExport.sentenceGroup(sents, { noteBySid, deckName: (deckBase && cardKind === "sentences") ? deckBase : "LinguistPro::SRS" }));
+    }
+    const total = groups.reduce((a, g) => a + (g.notes ? g.notes.length : 0), 0);
+    if (!total) { showToast("Нет карточек для экспорта в этом тексте.", "info"); v3AnkiSetStatus("", false); return; }
+    const fname = "LinguistPro-" + new Date().toISOString().slice(0, 10) + ".apkg";
+    const res = await window.AnkiApkg.downloadApkg({ groups }, fname);
+    const wc = (groups.find((g) => g.modelName === window.AnkiSrsExport.MODEL_NAME) || { notes: [] }).notes.length;
+    const sc = (groups.find((g) => g.modelName === window.AnkiSrsExport.SENT_MODEL_NAME) || { notes: [] }).notes.length;
+    showToast("Скачано " + total + " карточек (слов " + wc + " · предложений " + sc + ") → " + res.filename, "success");
+    v3AnkiSetStatus("Готово: " + res.filename, false);
+  } catch (e) {
+    console.error("[apkg] modal export failed:", e);
+    showToast("Не удалось собрать .apkg: " + (e && e.message ? e.message : String(e)), "error");
+    v3AnkiSetStatus("Ошибка сборки .apkg", true);
+  } finally {
+    if (dlBtn) dlBtn.disabled = false;
+  }
+}
+window.v3AnkiDownloadApkg = v3AnkiDownloadApkg;
 
 async function v3AnkiPushNow() {
   const exportId = v3AnkiGetExportId();

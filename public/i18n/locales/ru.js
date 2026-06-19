@@ -493,8 +493,9 @@ window.I18N_LOCALES.ru = {
     checkBtn: "Проверить AnkiConnect",
     copyDiagBtn: "Скопировать диагностику",
     pushBtn: "Экспортировать",
+    apkgBtn: "📦 Скачать .apkg",
     syncBtn: "Синхронизировать из Anki",
-    helpText: "Требуется запущенный Anki Desktop с установленным AnkiConnect. Dashboard должен быть запущен локально (127.0.0.1:3000).",
+    helpText: "«📦 Скачать .apkg» работает везде (Desktop / Android / iPhone) — скачайте файл и импортируйте в Anki. «Экспортировать» отправляет напрямую в запущенный Anki Desktop (нужен AnkiConnect; Dashboard локально на 127.0.0.1:3000).",
   },
   dashboard: {
     title: "Дашборд обучения",

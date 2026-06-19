@@ -492,8 +492,9 @@ window.I18N_LOCALES.en = {
     checkBtn: "Check AnkiConnect",
     copyDiagBtn: "Copy diagnostics",
     pushBtn: "Export",
+    apkgBtn: "📦 Download .apkg",
     syncBtn: "Sync from Anki",
-    helpText: "Requires running Anki Desktop with AnkiConnect installed. Dashboard must run locally (127.0.0.1:3000).",
+    helpText: "“📦 Download .apkg” works everywhere (Desktop / Android / iPhone) — download the file and import it into Anki. “Export” sends cards straight to a running Anki Desktop (needs AnkiConnect; Dashboard running locally on 127.0.0.1:3000).",
   },
   dashboard: {
     title: "Learning Dashboard",
