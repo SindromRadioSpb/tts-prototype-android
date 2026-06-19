@@ -181,19 +181,32 @@ Trainer now (re-opens the settled v3.2 "Anki = review layer"; v3.4 epic).
   (load-order fallback kept) → AnkiConnect push + client `.apkg` produce IDENTICAL cards. Gate `smoke:anki-srs-export`
   19/19 (Word v2, {{tts}} fallback); browser+prod verified (export = Word v2 11 fields; `acUsesSharedWordV2=true`;
   real card `לכתוב→писать`; 0 console-err). **A-unify-2b NEXT** = the modal «Скачать .apkg» (words/sentences/both):
-- **A-unify-2b — NEXT (browser).** Reuse the INLINE index.html builders (do NOT duplicate): `v3AnkiWordModelSpec()`
-  (~14171, Word v2 spec) + `v3AnkiBuildWordCardFields(note,{paradigm,exampleHe,exampleRu,headwordAudioFile,…})`
-  (~14253) + `v3AnkiResolveParadigm` (offline, OPFS lemma_inflection) for the Conjugation field. Word group →
-  Word v2; sentence group → SRS Card v1 (6 fields: Hebrew/Niqqud/Translit/Russian/Note/Audio, built ~14490 in
-  `v3AnkiPushSentenceCards`; extract a small `buildSentenceFields(s,note,includeHint)`). **Audio: text-first** —
-  leave Audio empty → Word v2 front has `{{tts he_IL:Word}}` device-TTS fallback (sentences silent). Build the
-  multi-group spec by `cardKind` (words/sentences/both) → `AnkiApkg.buildApkgBytes`. Add «📦 Скачать .apkg» button
-  to `v3AnkiModal` (~11403, next to `v3AnkiPushBtn`) reading the SAME form state (textId, cardKind, includeHint).
-  **Reconcile A2b:** retire `anki-srs-export.js` Word v1 (8-field) → the Trainer button should produce the SAME
-  Word v2 cards (point `v3SrsDownloadApkg` at the unified word-export, scoped to all texts or current). Stable
-  per-lemma/-sentence GUID for idempotent re-import. SW bump; browser-verify @380px (3 options → valid `.apkg`,
-  models match AnkiConnect); prod-verify. Build seam ref: AnkiConnect `ankiNotes` array exists at index.html
-  ~14985 (words) / ~14482 (sentences) BEFORE the transport call.
+- **A-unify-2b — ✅ DONE `29e58a8` (SW v3.10.75) — modal «📦 Скачать .apkg» words/sentences/both.** The Anki modal
+  (`v3AnkiModal`) now offers a `.apkg` download next to the AnkiConnect push, same form options. `anki-srs-export.js`
+  adds pure group-builders `sentenceGroup` (SRS Card v1, stable `sent:<id>` guid) + `wordGroupFromCards` (Word v2,
+  dedup by lemma, `word:<key>` guid). Browser orchestrator `v3AnkiDownloadApkg` (index.html, before `v3AnkiPushNow`)
+  reuses the INLINE `v3AnkiBuildWordCardFields` + `v3AnkiResolveParadigm` (→ rich Conjugation+Example, richer than the
+  global Trainer export) + `getCanonicalWordNotesForText`/`getSentences`/`listNotes` → `{groups}` →
+  `AnkiApkg.downloadApkg`. Text-first audio ({{tts}} fallback). i18n `anki.apkgBtn` + clarified `anki.helpText` (ru/en/he).
+  Gate `smoke:anki-srs-export` 29/29 (+sentenceGroup/wordGroupFromCards/«both»). Browser-verified: «both»→2 models/3
+  decks, word card carries rich Example HTML; 0 console-err. Real modal-click on a text = owner device-smoke. **NOTE:**
+  custom deck-name only applies for single-kind (ignored for «both», which uses the two default decks) — acceptable v1.
+  **⑤ NEXT = B1/B2** (Desktop read-back). A-follow-ups: embedded audio in `.apkg`; Зал export surface.
+
+### A-unify-2b — adversarial review (3-dim workflow) + lessons (2026-06-18/19)
+Review verdict: **0 blocker/major/minor; 3 nits, all acceptable/documented:** (a) custom deck-name ignored for «both» —
+CORRECT (matches the AnkiConnect «both» path's fixed `::Words`+`::SRS` decks); (b) toast strings literal-Russian not i18n
+keys — consistent with the surrounding `v3Anki*` status strings; (c) `headwordAudioFile:''` ignores the resolvable
+`example_audio_key` — the deliberate text-first v1 decision (embedding existing sentence audio = the follow-up). No fixes.
+**Lessons:**
+- **`data-i18n` overrides HTML literals.** A modal element with `data-i18n="anki.helpText"` (an EXISTING key) renders the
+  LOCALE value, so editing the HTML literal does nothing — you MUST update `public/i18n/locales/{ru,en,he}.js`. A NEW
+  `data-i18n` key absent from locales shows the HTML literal (`applyI18n` skips passthrough). Add new keys to all 3 locales.
+- **A review Workflow can hang at synthesis.** The 3 high-effort review agents completed (large `agent-*.jsonl`) but the run
+  never emitted completion (≈1.5 h idle). Detect via the workflow dir's file mtime vs `date`; recover by `TaskStop` + grep
+  the `agent-*.jsonl` for `"severity"`/`"verdict"` (do NOT full-read — overflow) to extract findings, then proceed. The
+  change was already gate+browser+prod verified, so the hang didn't block shipping.
+- ~~A-unify-2b plan~~ (superseded — DONE above). Original: reuse `v3AnkiWordModelSpec()`
 
 **Recommended sequencing:** A-unify (`.apkg` words/sentences/both + reconcile A2b→Word v2, ~2–3 d) → B1/B2
 (Desktop read-back, honestly local-only gated → retention metric + Anki-fed i+1, ~4–5 d). Honest framing: «Экспорт
