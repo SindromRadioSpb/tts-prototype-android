@@ -2421,6 +2421,52 @@ export async function getCanonicalWordNotesForText(textId) {
   return out;
 }
 
+// ── G2 — GLOBAL canonical word-cards (the whole word_study vocabulary) ─────
+// Same row shape as getCanonicalWordNotesForText but NOT scoped to a text:
+// every word_study note + the EXAMPLE from its FIRST occurrence ANYWHERE
+// (MIN(id) across all texts) + that sentence's default audio key. LEFT JOIN
+// note_occurrences (matched to the global MIN id) so autogen canonical notes
+// that never landed in a saved text — i.e. have NO occurrence — STILL export
+// (example empty). This powers the Trainer-wide `.apkg` so the global export
+// emits the SAME rich «Word v2» cards as the per-text modal: identical guid
+// per lemma ⇒ re-import UPDATES and a lean global deck can never clobber the
+// rich Conjugation/Example/Audio fields (audit G2). Lemma-dedup (one card per
+// lemma; first occurrence wins). Read-only.
+export async function getCanonicalWordNotesAll() {
+  const rows = await q(
+    `SELECT n.id, n.body_json,
+            s.he_niqqud AS example_he, s.he_plain AS example_he_plain, s.ru AS example_ru,
+            aa.asset_key AS example_audio_key
+       FROM notes_v2 n
+       LEFT JOIN note_occurrences o
+         ON o.id = (SELECT MIN(o2.id) FROM note_occurrences o2 WHERE o2.note_id = n.id)
+       LEFT JOIN sentences s ON s.id = o.sentence_id
+       LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
+       LEFT JOIN audio_assets aa ON aa.id = sa.audio_id
+      WHERE n.note_type = 'word_study'
+      ORDER BY n.id ASC`
+  );
+  const mapped = (rows || []).map((r0) => {
+    const he = String(r0.example_he || r0.example_he_plain || '').trim();
+    const ru = String(r0.example_ru || '').trim();
+    const example = he ? (ru ? he + ' — ' + ru : he) : '';
+    return {
+      id: r0.id, body_json: r0.body_json,
+      example_he: he, example_ru: ru, example,
+      example_audio_key: r0.example_audio_key ? String(r0.example_audio_key) : '',
+    };
+  });
+  const seen = new Set();
+  const out = [];
+  for (const m of mapped) {
+    let body = {}; try { body = m.body_json ? JSON.parse(m.body_json) : {}; } catch (_) { body = {}; }
+    const k = _noteLemmaKey(body);
+    if (k) { if (seen.has(k)) continue; seen.add(k); }
+    out.push(m);
+  }
+  return out;
+}
+
 // ── Roots reference table ────────────────────────────────────────────────
 
 // Idempotent seed — inserts roots from the provided array if they're not

@@ -14,12 +14,31 @@
   closed** (both transports now share the `lp_lemma_` read-back identity; cross-transport visual dups on MIXING push+
   `.apkg` remain — AnkiConnect `addNote` can't set the GUID — documented).
 - **✅ P1 (partial) — DONE `cb6964e` (SW v3.10.78).** Each `/api/audio` fetch bounded by AbortController + 8s timeout
-  (a hung asset can't hang the export); progress status shows card+audio count. Full parallelization/cap = follow-up
-  (the catastrophic 1924-cards+audio case doesn't occur: global export has no audio @679ms; modal is per-text bounded).
-- **⏳ REMAINING:** G2 (lean global export clobbers rich modal cards on re-import — partially solvable: the global lean
-  deck can't carry per-text examples/audio; fix = unify global on the rich builder where possible OR distinct decks/GUIDs
-  + document) · G4 (model field-version guard) · full large-deck perf (parallel audio + cap). Live Anki round-trips (incl.
-  the G1 fix on real Anki) = owner device-smoke (see the manual smoke-check below).
+  (a hung asset can't hang the export); progress status shows card+audio count.
+- **✅ G2 + full perf — DONE (SW v3.10.79).** The Trainer **global** export was lean (`buildWordStudySpec` → empty
+  Conjugation/Example/Audio) yet shared the rich modal's `word:<lemmaKey>` GUID, so a re-import after a rich export
+  silently overwrote all 11 fields with empties. **Fix = unify the global export on the RICH builder:** new global query
+  `getCanonicalWordNotesAll()` (local-db.js — every `word_study` note + its first-occurrence-anywhere example + audio;
+  `LEFT JOIN` so autogen notes with no occurrence still export) feeds a shared `v3AnkiBuildWordGroup()` (paradigm +
+  example + audio → `wordGroupFromCards`) used by **both** surfaces ⇒ byte-equivalent cards, one GUID per lemma, re-import
+  UPDATES (no clobber) and the global cards gain conjugation/example/audio. **Full perf:** shared `v3AnkiMakeAudioAttacher()`
+  (P1 timeout + **single-flight** dedup) + **bounded concurrency** (CONC=6) over paradigm-resolve+audio-fetch per word +
+  live `N/Total` button progress + a soft heads-up (no cap — exporting everything is the point) when >3000 words.
+- **✅ G4 — DONE (SW v3.10.79).** Two halves: (a) **durable** — `smoke:anki-srs-export` now LOCKS the exact ordered field
+  lists (Word v2 = 11, SRS Card v1 = 6) so any reorder/rename/removal fails CI (the `.apkg` writes flds positionally →
+  a shift would corrupt existing cards on re-import); (b) **runtime** — `v3AnkiEnsureWordModel` now, when the model already
+  exists, reads `modelFieldNames` and **APPENDS** any missing field (never reorders/removes) so an older/divergent live
+  «Word v2» can't make the by-name AnkiConnect push fail. Browser-proven via mocked AnkiConnect (divergent → appends exactly
+  the 8 missing; complete → no-op; absent → createModel with the full ordered list).
+- **🟢 SMOKE-CHECK (headless-executable parts) RUN 2026-06-19** — see "Manual smoke-check" below for the live-Anki residue.
+  Green: gates `smoke:anki-srs-export` **44**, `anki-apkg` 36, `anki-apkg-client` 28, `anki-sync` 52, `anki-lifecycle` 15,
+  `anki-wordcards` 42, `reader-parity`, `i18n` 226; **browser** (real OPFS, non-empty profile of 9 lemmas): global query
+  lemma-dedup + dup-collapse + empty-skip, rich build deterministic, **LEAN guids ≡ RICH guids (the G2 collision proof)**,
+  real exported `.apkg` re-opened with sql.js+jszip = valid ver-11 collection (8 notes = 8 cards, unique GUIDs, all NEW,
+  all `lp_lemma_`-tagged, Word v2 11-field model), and the G4 guard cases. **Owner device-smoke residue:** real Anki
+  Desktop/AnkiDroid/AnkiMobile import + visual render (conjugation table, audio playback) + the conjugation/example/audio
+  ENRICHMENT on a real text-bearing profile (headless OPFS has notes but no occurrences/inflection dict → those fields
+  empty-but-correct) + a real divergent-model AnkiConnect round-trip.
 
 ## Root cause (one sentence)
 The three Anki write/read paths use **incompatible identity**: the `.apkg` builder sets a stable `word:<lemmaKey>` GUID +
@@ -99,16 +118,19 @@ do it before any teacher-dashboard work.
 
 ### A — Export (`.apkg`, universal)
 1. **Trainer global:** 🎯 SRS Тренажёр → «📦 Скачать .apkg (словарь)». Expect a file `LinguistPro-Words-<date>.apkg`.
-   - Desktop: import → deck **LinguistPro::Words** appears; open a card → Hebrew front, Russian+root+binyan+pos back;
-     model **LinguistPro Word v2**; tap audio → device TTS speaks the word. Count cards ≈ unique lemmas (not note count).
-   - **Re-import the same file** → Anki says "updated", **no duplicates**.
+   - **(G2 fix)** The button now shows live `N/Total` progress and the deck is **RICH** — the same as the per-text modal:
+     word cards carry the **conjugation table + example sentence + embedded audio** (resolved from each word's first
+     occurrence anywhere), not just a TTS-fallback headword. Model **LinguistPro Word v2**, deck **LinguistPro::Words**.
+   - **Re-import the same file** → Anki says "updated", **no duplicates**. Count cards ≈ unique lemmas (not note count).
 2. **Modal per-text:** open a text → «Anki» → choose **Слова** / **Предложения** / **Оба** → «📦 Скачать .apkg».
    - Import → word cards show the **conjugation table + example sentence**; sentence cards in **LinguistPro::SRS**;
      with «озвучка» ON, the example/sentence **plays embedded audio** (not just TTS).
    - **«Оба»** → ONE file imports BOTH decks (Words + SRS).
 3. **Mobile:** open a `.apkg` from Files/share → AnkiDroid/AnkiMobile imports it → cards + audio play. (No AnkiConnect needed.)
-4. **⚠ KNOWN-BUG CHECK (G2):** export the **modal rich** deck, import; THEN export the **Trainer global lean** deck for the
-   same words, import → check whether the rich cards LOST their conjugation/example/audio. (Expected today: yes — confirms G2.)
+4. **✅ REGRESSION CHECK (G2 — FIXED):** export the **modal rich** deck, import; THEN export the **Trainer global** deck for
+   the same words, import → the rich cards must **KEEP** their conjugation/example/audio (the global deck is now rich too, so
+   the re-import updates equivalent content instead of clobbering it). Headless-proven (LEAN guids ≡ RICH guids + both rich);
+   confirm on real Anki that no field goes blank after the second import.
 5. **⚠ KNOWN-BUG CHECK (G3):** export+import via `.apkg`, THEN push the same text via «Экспортировать» (AnkiConnect) →
    check for **duplicate** cards. (Expected today: duplicates — confirms G3.)
 

@@ -14180,12 +14180,28 @@ hr { border: none; border-top: 1px solid #d1d5db; margin: 14px 0; }
 window.v3AnkiWordModelSpec = v3AnkiWordModelSpec;
 
 async function v3AnkiEnsureWordModel() {
+  const spec = v3AnkiWordModelSpec();
   let allModels = [];
   try { allModels = await v3AnkiConnectDirect('modelNames'); } catch (_) {}
   if (Array.isArray(allModels) && allModels.indexOf(V3_ANKI_WORD_MODEL) !== -1) {
+    // G4 — the model already exists, but it may be an OLDER / divergent «Word v2» (e.g. a pre-conjugation
+    // build) MISSING fields our templates + push rely on. AnkiConnect addNote maps fields BY NAME, so a
+    // missing field would make the push fail. Reconcile by APPENDING the missing fields only (never reorder
+    // or remove → existing cards keep all their data, and the field order our `.apkg` writes stays an append-
+    // only superset). Best-effort: an old AnkiConnect without modelFieldNames/modelFieldAdd is left untouched.
+    try {
+      const existing = await v3AnkiConnectDirect('modelFieldNames', { modelName: V3_ANKI_WORD_MODEL });
+      const have = new Set(Array.isArray(existing) ? existing.map(String) : []);
+      const missing = spec.fields.filter((f) => !have.has(f));
+      for (const f of missing) {
+        try { await v3AnkiConnectDirect('modelFieldAdd', { modelName: V3_ANKI_WORD_MODEL, fieldName: f }); } catch (_) {}
+      }
+      if (missing.length && typeof v3AnkiSetStatus === 'function') {
+        v3AnkiSetStatus('Модель «' + V3_ANKI_WORD_MODEL + '» дополнена недостающими полями: ' + missing.join(', ') + '.', false);
+      }
+    } catch (_) { /* modelFieldNames unsupported → leave the model as-is */ }
     return V3_ANKI_WORD_MODEL;
   }
-  const spec = v3AnkiWordModelSpec();
   await v3AnkiConnectDirect('createModel', {
     modelName: spec.modelName,
     inOrderFields: spec.fields,
@@ -14199,6 +14215,8 @@ async function v3AnkiEnsureWordModel() {
   });
   return V3_ANKI_WORD_MODEL;
 }
+// Exposed for the browser smoke (G4 model field-version guard) — lexically-scoped funcs aren't on window.
+window.v3AnkiEnsureWordModel = v3AnkiEnsureWordModel;
 
 // Wrap the shared paradigm renderer for Anki: strip the dead tap-to-hear
 // handler (no TTS engine in Anki) and treat the "no table" placeholder as
@@ -28762,7 +28780,7 @@ function v3SrsTrainerRenderHome() {
       ${v3SrsTrainerRenderModeButtons()}
       <div class="v3-srs-subtle" style="margin-top:14px;">${v3EscapeHtml(v3NotesT("srs.trainer.apkgTitle", "Экспорт словаря в Anki"))}</div>
       <div class="v3-srs-subtle">${v3EscapeHtml(v3NotesT("srs.trainer.apkgHelp", "Скачивает все словарные заметки одним .apkg (собирается в браузере — данные не покидают устройство). Повторный импорт обновляет карточки."))}</div>
-      <button class="btn-secondary" style="margin-top:8px;" onclick="v3SrsDownloadApkg()">${v3EscapeHtml(v3NotesT("srs.trainer.apkgBtn", "📦 Скачать .apkg (словарь)"))}</button>
+      <button class="btn-secondary" style="margin-top:8px;" onclick="v3SrsDownloadApkg(event)">${v3EscapeHtml(v3NotesT("srs.trainer.apkgBtn", "📦 Скачать .apkg (словарь)"))}</button>
     </div>
   `;
 }
@@ -29282,24 +29300,41 @@ window.v3IdeSrsAnkiPreview = v3IdeSrsAnkiPreview;
 window.v3IdeSrsExportAnki = v3IdeSrsExportAnki;
 window.v3SrsTrainerExportAnki = v3SrsTrainerExportAnki;
 
-// ⑤ Anki A2b — download the WHOLE word_study vocabulary as a «LinguistPro Word v2» .apkg, built ENTIRELY
-// in the browser (sql.js + jszip via window.AnkiApkg) so card data never leaves the device. Re-import
-// UPDATES instead of duplicating (stable per-lemma guid). Unlike «Export to Anki» (AnkiConnect, local-only),
-// this works for every user / platform / offline. The opposite direction (read-back) is the B-brick.
-async function v3SrsDownloadApkg() {
+// ⑤ Anki A2b / G2 — download the WHOLE word_study vocabulary as a «LinguistPro Word v2» .apkg, built ENTIRELY
+// in the browser (sql.js + jszip via window.AnkiApkg) so card data never leaves the device. Re-import UPDATES
+// instead of duplicating (stable per-lemma guid). Unlike «Export to Anki» (AnkiConnect, local-only), this works
+// for every user / platform / offline. RICH cards — the SAME shared builder the per-text modal uses (conjugation
+// paradigm + the learner's own example sentence + its audio) — so the two surfaces share ONE guid per lemma and
+// a re-import never clobbers the rich fields with a lean variant (audit G2). The read-back direction is brick B.
+async function v3SrsDownloadApkg(ev) {
+  const btn = (ev && ev.currentTarget) ? ev.currentTarget
+    : (typeof document !== "undefined" ? document.querySelector('[onclick*="v3SrsDownloadApkg"]') : null);
+  const origLabel = btn ? btn.textContent : "";
+  const setBtn = (txt, dis) => { if (btn) { if (txt != null) btn.textContent = txt; btn.disabled = !!dis; } };
   try {
     if (!window.AnkiSrsExport || !window.AnkiApkg) { showToast("Экспорт .apkg недоступен (модуль не загружен).", "error"); return; }
     const ldb = await ensureLocalDB();
-    if (!ldb || typeof ldb.listWordStudyNotesForExport !== "function") { showToast("Локальная база недоступна.", "error"); return; }
-    const rows = await ldb.listWordStudyNotesForExport();
-    const spec = window.AnkiSrsExport.buildWordStudySpec(rows || []);
-    if (!spec.notes.length) { showToast("Нет словарных заметок (word_study) для экспорта.", "info"); return; }
+    if (!ldb || typeof ldb.getCanonicalWordNotesAll !== "function") { showToast("Локальная база недоступна.", "error"); return; }
+    setBtn("⏳ Собираю…", true);
+    const notes = await ldb.getCanonicalWordNotesAll();
+    if (!notes.length) { showToast("Нет словарных заметок (word_study) для экспорта.", "info"); setBtn(origLabel, false); return; }
+    // Soft heads-up on a very large vocabulary — NO cap (exporting everything is the point), just warn it takes time.
+    if (notes.length > 3000) showToast("Большой словарь (" + notes.length + " слов) — сборка с разборами и аудио может занять до минуты.", "info");
+    const audio = v3AnkiMakeAudioAttacher();
+    const group = await v3AnkiBuildWordGroup(notes, {
+      withAudio: true, attach: audio.attach, deckName: "LinguistPro::Words",
+      onProgress: (d, total) => setBtn("⏳ " + d + "/" + total + "…", true),
+    });
+    if (!group.notes.length) { showToast("Нет словарных заметок (word_study) для экспорта.", "info"); return; }
+    const media = Array.from(audio.mediaByKey.values());
     const fname = "LinguistPro-Words-" + new Date().toISOString().slice(0, 10) + ".apkg";
-    const res = await window.AnkiApkg.downloadApkg(spec, fname);
-    showToast("Экспортировано " + spec.notes.length + " карточек → " + res.filename, "success");
+    const res = await window.AnkiApkg.downloadApkg({ groups: [group], media }, fname);
+    showToast("Экспортировано " + group.notes.length + " карточек" + (media.length ? " · аудио " + media.length : "") + " → " + res.filename, "success");
   } catch (e) {
     console.error("[apkg] word export failed:", e);
     showToast("Не удалось собрать .apkg: " + (e && e.message ? e.message : String(e)), "error");
+  } finally {
+    setBtn(origLabel || "📦 Скачать .apkg (словарь)", false);
   }
 }
 window.v3SrsDownloadApkg = v3SrsDownloadApkg;
@@ -35968,11 +36003,86 @@ async function v3AnkiHealth() {
   }
 }
 
+// ⑤ Shared `.apkg` audio attacher — used by BOTH export surfaces (per-text modal + global Trainer). Fetches
+// /api/audio/<key> ONCE per unique asset_key → media file lp_<key>.mp3 (the AnkiConnect convention). Audit P1:
+// AbortController + 8 s per-fetch timeout so one hung/slow asset can't stall a large export; single-flight
+// (inflight map) so concurrent word builds never double-fetch the same clip (project lesson: bound fan-outs).
+// A 404 / offline asset ⇒ "" (the card degrades gracefully: word → {{tts}} device voice, example → no [sound:]).
+// Returns { attach(assetKey) → filename|"", mediaByKey } — collect Array.from(mediaByKey.values()) at the end.
+function v3AnkiMakeAudioAttacher() {
+  const mediaByKey = new Map();
+  const inflight = new Map();
+  async function fetchOne(ak, fname) {
+    try {
+      const ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+      const to = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch (_) {} }, 8000) : null;
+      let r;
+      try { r = await fetch(location.origin + "/api/audio/" + encodeURIComponent(ak), { cache: "force-cache", signal: ctrl ? ctrl.signal : undefined }); }
+      finally { if (to) clearTimeout(to); }
+      if (!r.ok) return "";
+      mediaByKey.set(ak, { name: fname, data: new Uint8Array(await r.arrayBuffer()) });
+      return fname;
+    } catch (_) { return ""; }
+  }
+  async function attach(assetKey) {
+    const ak = String(assetKey || "").trim();
+    if (!ak) return "";
+    const fname = "lp_" + ak + ".mp3";
+    if (mediaByKey.has(ak)) return fname;
+    if (inflight.has(ak)) { try { await inflight.get(ak); } catch (_) {} return mediaByKey.has(ak) ? fname : ""; }
+    const p = fetchOne(ak, fname);
+    inflight.set(ak, p);
+    try { return await p; } finally { inflight.delete(ak); }
+  }
+  return { attach, mediaByKey };
+}
+
+// ⑤ G2 — shared RICH «Word v2» group builder. BOTH the per-text modal export AND the global Trainer export
+// call this so the two surfaces emit BYTE-EQUIVALENT cards: same guid per lemma ⇒ re-import UPDATES, and a
+// later export can NEVER clobber Conjugation/Example/Audio with a lean variant (the audit-G2 silent-data-loss
+// bug — the global export used to ship LEAN cards that shared the rich guid). Bounded concurrency (CONC) keeps
+// a large vocabulary responsive (each word = a paradigm resolve + an audio fetch); the items[] array is index-
+// addressed so order — hence the lemma-dedup in wordGroupFromCards — stays deterministic regardless of timing.
+async function v3AnkiBuildWordGroup(notes, opts) {
+  opts = opts || {};
+  const withAudio = !!opts.withAudio;
+  const attach = (typeof opts.attach === "function") ? opts.attach : (async () => "");
+  const deckName = opts.deckName || "LinguistPro::Words";
+  const onProgress = (typeof opts.onProgress === "function") ? opts.onProgress : null;
+  const list = Array.isArray(notes) ? notes : [];
+  const CONC = Math.max(1, Math.min(6, list.length));
+  const items = new Array(list.length).fill(null);
+  let cursor = 0, done = 0;
+  async function worker() {
+    while (cursor < list.length) {
+      const i = cursor++;
+      const n = list[i];
+      let body = {}; try { body = n && n.body_json ? JSON.parse(n.body_json) : {}; } catch (_) {}
+      const hasFront = String(body.word || body.lemma || "").trim() || String(body.niqqud_variant || body.niqqud || "").trim();
+      if (hasFront) {
+        let paradigm = null; try { paradigm = await v3AnkiResolveParadigm(body); } catch (_) {}
+        const exFile = withAudio ? await attach(n.example_audio_key) : "";
+        const fields = v3AnkiBuildWordCardFields(n, { paradigm, example: n.example || "", exampleHe: n.example_he || "", exampleRu: n.example_ru || "", headwordAudioFile: "", exampleAudioFile: exFile });
+        items[i] = { key: window.AnkiSrsExport.lemmaKey(body), fields };
+      }
+      done++;
+      if (onProgress && (done % 25 === 0 || done === list.length)) { try { onProgress(done, list.length); } catch (_) {} }
+    }
+  }
+  const workers = [];
+  for (let w = 0; w < CONC; w++) workers.push(worker());
+  await Promise.all(workers);
+  return window.AnkiSrsExport.wordGroupFromCards(items.filter(Boolean), { deckName });
+}
+// Exposed for the browser smoke + cross-surface reuse (lexically-scoped funcs aren't on window).
+window.v3AnkiMakeAudioAttacher = v3AnkiMakeAudioAttacher;
+window.v3AnkiBuildWordGroup = v3AnkiBuildWordGroup;
+
 // ⑤ A-unify-2b — «📦 Скачать .apkg» from the Anki modal: builds the SAME words/sentences/both deck (shared
 // «Word v2» + «SRS Card v1» models — identical to the AnkiConnect push) as a downloadable `.apkg`, ENTIRELY
 // in the browser via the multi-model client engine. No AnkiConnect, no localhost → works for every user /
-// platform / offline; card data never leaves the device. Reuses the inline word-card builders
-// (v3AnkiBuildWordCardFields + v3AnkiResolveParadigm → Conjugation/Example) so cards match AnkiConnect.
+// platform / offline; card data never leaves the device. Reuses the shared rich word-group builder
+// (v3AnkiBuildWordGroup → v3AnkiBuildWordCardFields + v3AnkiResolveParadigm) so cards match the Trainer + AnkiConnect.
 async function v3AnkiDownloadApkg() {
   const exportId = v3AnkiGetExportId();
   const isUuid = typeof exportId === "string" &&
@@ -35989,54 +36099,30 @@ async function v3AnkiDownloadApkg() {
   const withAudio = audioEl ? !!audioEl.checked : true;
   const dlBtn = document.getElementById("v3AnkiApkgBtn");
   if (dlBtn) dlBtn.disabled = true;
-  // Embed the learner's EXISTING audio (no re-synthesis) into the `.apkg`: fetch `/api/audio/<key>` bytes
-  // once per unique asset_key → media file `lp_<key>.mp3` (the same convention AnkiConnect uses). Deduped;
-  // a 404/offline asset is skipped gracefully (word → {{tts}} fallback, sentence → silent).
-  const mediaByKey = new Map();
-  async function attachApkgAudio(assetKey) {
-    const ak = String(assetKey || "").trim();
-    if (!ak) return "";
-    const fname = "lp_" + ak + ".mp3";
-    if (mediaByKey.has(ak)) return fname;
-    try {
-      // P1 — bound each fetch so one slow/hung asset can't hang the whole export (AbortController + 8s timeout).
-      const ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
-      const to = ctrl ? setTimeout(() => { try { ctrl.abort(); } catch (_) {} }, 8000) : null;
-      let r;
-      try { r = await fetch(location.origin + "/api/audio/" + encodeURIComponent(ak), { cache: "force-cache", signal: ctrl ? ctrl.signal : undefined }); }
-      finally { if (to) clearTimeout(to); }
-      if (!r.ok) return "";
-      mediaByKey.set(ak, { name: fname, data: new Uint8Array(await r.arrayBuffer()) });
-      return fname;
-    } catch (_) { return ""; }
-  }
+  // Embed the learner's EXISTING audio (no re-synthesis) into the `.apkg` via the shared attacher (P1 timeout
+  // + single-flight dedup); a 404/offline asset degrades gracefully (word → {{tts}}, sentence → silent).
+  const audio = v3AnkiMakeAudioAttacher();
   try {
     v3AnkiSetStatus("Собираю .apkg…", false);
     const ldb = await ensureLocalDB();
     const groups = [];
     if (cardKind === "words" || cardKind === "both") {
       const notes = await ldb.getCanonicalWordNotesForText(exportId);
-      const items = [];
-      for (const n of (notes || [])) {
-        let body = {}; try { body = n.body_json ? JSON.parse(n.body_json) : {}; } catch (_) {}
-        if (!String(body.word || body.lemma || "").trim() && !String(body.niqqud_variant || body.niqqud || "").trim()) continue;
-        let paradigm = null; try { paradigm = await v3AnkiResolveParadigm(body); } catch (_) {}
-        const exFile = withAudio ? await attachApkgAudio(n.example_audio_key) : "";
-        const fields = v3AnkiBuildWordCardFields(n, { paradigm, example: n.example || "", exampleHe: n.example_he || "", exampleRu: n.example_ru || "", headwordAudioFile: "", exampleAudioFile: exFile });
-        items.push({ key: window.AnkiSrsExport.lemmaKey(body), fields });
-      }
-      groups.push(window.AnkiSrsExport.wordGroupFromCards(items, { deckName: (deckBase && cardKind === "words") ? deckBase : "LinguistPro::Words" }));
+      groups.push(await v3AnkiBuildWordGroup(notes, {
+        withAudio, attach: audio.attach,
+        deckName: (deckBase && cardKind === "words") ? deckBase : "LinguistPro::Words",
+      }));
     }
     if (cardKind === "sentences" || cardKind === "both") {
       const sents = await ldb.getSentences(exportId);
       const noteBySid = {}, audioBySid = {};
       if (includeHint) { const noteRows = await ldb.listNotes(exportId); for (const nr of (noteRows || [])) noteBySid[nr.sentence_id] = nr.note; }
-      if (withAudio) { for (const s of (sents || [])) { if (s && s.audio_asset_key) { const af = await attachApkgAudio(s.audio_asset_key); if (af) audioBySid[s.id] = af; } } }
+      if (withAudio) { for (const s of (sents || [])) { if (s && s.audio_asset_key) { const af = await audio.attach(s.audio_asset_key); if (af) audioBySid[s.id] = af; } } }
       groups.push(window.AnkiSrsExport.sentenceGroup(sents, { noteBySid, audioBySid, deckName: (deckBase && cardKind === "sentences") ? deckBase : "LinguistPro::SRS" }));
     }
     const total = groups.reduce((a, g) => a + (g.notes ? g.notes.length : 0), 0);
     if (!total) { showToast("Нет карточек для экспорта в этом тексте.", "info"); v3AnkiSetStatus("", false); return; }
-    const media = Array.from(mediaByKey.values());
+    const media = Array.from(audio.mediaByKey.values());
     v3AnkiSetStatus("Собираю .apkg (" + total + " карточек" + (media.length ? " · " + media.length + " аудио" : "") + ")…", false);
     const fname = "LinguistPro-" + new Date().toISOString().slice(0, 10) + ".apkg";
     const res = await window.AnkiApkg.downloadApkg({ groups, media }, fname);

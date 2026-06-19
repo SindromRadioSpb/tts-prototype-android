@@ -132,6 +132,28 @@ const V2_ORDER = "Word,Niqqud,Translit,Russian,Root,Binyan,POS,Conjugation,Examp
   const cardTag = wspec.notes[0].tags.find((t) => t.indexOf("lp_lemma_") === 0);
   ok("read-back: card lemma tag fans to ALL notes of that lemma (A+B, not C)", JSON.stringify((idx.get(cardTag) || []).sort()) === '["A","B"]');
 
+  // 10) G4 — «Word v2» / «SRS Card v1» field ORDER is LOCKED (append-only invariant). The `.apkg` writes flds
+  //     POSITIONALLY, so a reorder / rename / removal would silently shift every existing card's data on
+  //     re-import. This lock fails CI the instant the field list diverges — the durable half of the G4 guard
+  //     (the runtime half is v3AnkiEnsureWordModel appending missing fields to an older/divergent live model).
+  ok("LOCK: Word v2 field list is exactly the 11 fields in canonical order", AnkiModels.WORD_V2_FIELDS.join(",") === V2_ORDER);
+  ok("LOCK: SRS Card v1 field list is exactly the 6 fields in canonical order", AnkiModels.SENT_V1_FIELDS.join(",") === "Hebrew,Niqqud,Translit,Russian,Note,Audio");
+
+  // 11) G2 — lean (global, body-only) and rich (modal, paradigm+example+audio) cards for the SAME lemma share
+  //     ONE guid + lemma tag, so Anki MERGES them on re-import → a LEAN re-export would OVERWRITE the rich
+  //     Conjugation/Example/Audio with empties (the silent-data-loss bug). The fix ships RICH from BOTH
+  //     surfaces (Trainer global now uses getCanonicalWordNotesAll + v3AnkiBuildWordGroup); this asserts the
+  //     collision + the empty/rich field gap so a regression can't quietly reintroduce a lean global path.
+  const g2body = { word: "כתב", niqqud_variant: "כָּתַב", root: "כתב", binyan: "קל", pos: "verb", meaning: "писать", pealim_id: "9001" };
+  const leanCard = SrsExport.buildWordStudySpec([{ id: "g2", body: g2body }], {}).notes[0];
+  const richCard = SrsExport.wordGroupFromCards([{ key: SrsExport.lemmaKey(g2body), fields: { Word: "כתב", Niqqud: "כָּתַב", Russian: "писать", Root: "כתב", Binyan: "קל", POS: "verb", Conjugation: "<table>conj</table>", Example: "כתבתי מכתב", Audio: "[sound:lp_x.mp3]" } }], {}).notes[0];
+  ok("G2: lean & rich cards for one lemma share the SAME guid (Anki merges → clobber risk)", leanCard.guid === richCard.guid);
+  const leanLemmaTag = leanCard.tags.find((t) => t.indexOf("lp_lemma_") === 0);
+  const richLemmaTag = richCard.tags.find((t) => t.indexOf("lp_lemma_") === 0);
+  ok("G2: lean & rich share the same lp_lemma_ tag", !!leanLemmaTag && leanLemmaTag === richLemmaTag);
+  ok("G2: LEAN card has EMPTY Conjugation/Example/Audio (the fields a re-import would clobber)", leanCard.fields[7] === "" && leanCard.fields[8] === "" && leanCard.fields[10] === "");
+  ok("G2: RICH card CARRIES Conjugation/Example/Audio (so the global export must ship rich)", richCard.fields[7] === "<table>conj</table>" && richCard.fields[8] === "כתבתי מכתב" && richCard.fields[10] === "[sound:lp_x.mp3]");
+
   console.log("\nsmoke:anki-srs-export — " + passed + " passed, " + failed + " failed");
   process.exit(failed ? 1 : 0);
 })().catch((e) => { console.error("FATAL", e); process.exit(1); });
