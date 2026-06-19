@@ -5,6 +5,22 @@
 > worthwhile gaps exist** — a cluster with ONE root cause: **cross-surface note-identity inconsistency.** This doc is the
 > plan (FOR APPROVAL — touches already-shipped export/read-back behavior) + a manual smoke-check for live validation.
 
+## Progress (2026-06-19)
+- **✅ G1 — DONE `ea24294` (SW v3.10.77).** Shared identity `public/db/anki-identity.js` (`lemmaKey` == export GUID key;
+  `lemmaTag` = tag-safe `lp_lemma_<sha1-12>`). BOTH write paths stamp `lp_lemma_` on word cards; the read-back
+  (`v3AnkiFetchWordReviewStates`) builds a `{lemma-tag → localNoteIds}` index and fans a lemma's Anki mastery to ALL its
+  `word_study` notes when a card lacks `lp_note_` (every `.apkg` card). Gate `smoke:anki-srs-export` 38; browser-proven
+  end-to-end (mocked AnkiConnect: lemma-tagged/no-`lp_note_` card → `untagged:0` → i+1 `new`→`known`). **G3 partially
+  closed** (both transports now share the `lp_lemma_` read-back identity; cross-transport visual dups on MIXING push+
+  `.apkg` remain — AnkiConnect `addNote` can't set the GUID — documented).
+- **✅ P1 (partial) — DONE `cb6964e` (SW v3.10.78).** Each `/api/audio` fetch bounded by AbortController + 8s timeout
+  (a hung asset can't hang the export); progress status shows card+audio count. Full parallelization/cap = follow-up
+  (the catastrophic 1924-cards+audio case doesn't occur: global export has no audio @679ms; modal is per-text bounded).
+- **⏳ REMAINING:** G2 (lean global export clobbers rich modal cards on re-import — partially solvable: the global lean
+  deck can't carry per-text examples/audio; fix = unify global on the rich builder where possible OR distinct decks/GUIDs
+  + document) · G4 (model field-version guard) · full large-deck perf (parallel audio + cap). Live Anki round-trips (incl.
+  the G1 fix on real Anki) = owner device-smoke (see the manual smoke-check below).
+
 ## Root cause (one sentence)
 The three Anki write/read paths use **incompatible identity**: the `.apkg` builder sets a stable `word:<lemmaKey>` GUID +
 tags `['lp','lp_word','lp_pos_X']`; the AnkiConnect push lets Anki auto-GUID, dedups by `Word`+`tag:lp_word`, and stamps
