@@ -191,7 +191,26 @@ Trainer now (re-opens the settled v3.2 "Anki = review layer"; v3.4 epic).
   Gate `smoke:anki-srs-export` 29/29 (+sentenceGroup/wordGroupFromCards/«both»). Browser-verified: «both»→2 models/3
   decks, word card carries rich Example HTML; 0 console-err. Real modal-click on a text = owner device-smoke. **NOTE:**
   custom deck-name only applies for single-kind (ignored for «both», which uses the two default decks) — acceptable v1.
-  **⑤ NEXT = B1/B2** (Desktop read-back). A-follow-ups: embedded audio in `.apkg`; Зал export surface.
+  **A track = DONE.**
+
+### B (Desktop read-back) — ALREADY IMPLEMENTED + LIVE (audit 2026-06-19; earlier "B next" was WRONG)
+A deep code audit found B is essentially **already shipped** (not a future task — the v3.4 sync landed):
+- **B1 read-back — LIVE.** Button «Синхронизировать из Anki» (`v3AnkiSyncBtn`) → `v3AnkiSyncNow` (index.html ~36131) →
+  `v3AnkiSyncFromAnki` (~15300): LOCAL_MODE-gated → `v3AnkiFetchWordReviewStates` (AnkiConnect findNotes `tag:lp_word`→
+  notesInfo→cardsInfo, map by `lp_note_<id>` tag) → pure mapper `v3AnkiCardStatsToLocalState` (~15137) →
+  `applyAnkiReviewStates` (local-db.js ~2156, writes srs_cards state/ivl/ease/reps/lapses/due + meta.anki_managed; conflict
+  guard local-newer; materializes reviewed-but-uncarded). Honest LOCAL_MODE/CORS messaging.
+- **B2 i+1 — LIVE.** `getLearningStateOverlay` (local-db.js ~1920) reads the Anki-written `srs_cards.state`/`reps`
+  (comment cites "R-3.2 sync"; review+reps>0 → "known", suspended→"learning") → `getKnownWordStates` → `corpus-vocab`
+  «Следующий для тебя». Round-trip wired; no gap.
+- **B2 retention — RECORDED.** `v3AnkiFetchReviewLog` (getReviewsOfCards, degrades silently on old AnkiConnect) →
+  `v3AnkiRetentionFromReviews` (type-1 reviews, ease≥3, per-week) → toast «удержание X%» + `recordAnkiReviews` writes
+  `events(source='anki', event_type='srs_review')` idempotently (id `anki:<reviewId>`).
+- Gates `smoke:anki-sync` **52/52** + `smoke:anki-lifecycle` **15/15**. Live AnkiConnect round-trip = owner device-smoke.
+- **RESIDUAL GAP (the only real B work left):** the recorded `source='anki'` retention events are NOT surfaced as a
+  real retention metric in the teacher/research dashboard (`teacher.html` has no anki/retention read) — the v3.4
+  research-completion piece. It touches the privacy-sensitive Direction 11 (opt-in, k=5) and the pilot is postponed →
+  **PROPOSE before implementing.** A-follow-ups: embedded audio in `.apkg` (reuse `example_audio_key`); Зал export surface.
 
 ### A-unify-2b — adversarial review (3-dim workflow) + lessons (2026-06-18/19)
 Review verdict: **0 blocker/major/minor; 3 nits, all acceptable/documented:** (a) custom deck-name ignored for «both» —
