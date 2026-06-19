@@ -5,8 +5,13 @@
 Memory: [[project_anki_sync_design]] · [[feedback_studio_live_source_inline]] · [[feedback_headless_opfs_playwright]] · [[feedback_workflow_hang_recovery]] · [[project_search_discovery_closure]] · [[project_srs_strategy]].
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Зал `/library.html`, Studio `/index.html`). Owner-инвариант: бескомпромиссное качество, без заглушек; R1–R10 авто.
 
-## STATE — main HEAD `9dc14f0`, SW `v3.10.75-anki-modal-apkg` (ALL prod-verified)
-**⑤ Anki track A = DONE (universal client-side `.apkg` export).** Built this arc, all SHIPPED+PROD:
+## STATE — main HEAD `b5301f3`, SW `v3.10.76-anki-apkg-audio` (ALL prod-verified)
+**⑤ Anki = DONE (track A export + B read-back).** Newest:
+- **B (Anki read-back) was ALREADY LIVE** (audit 2026-06-19; earlier "B next" was WRONG): «Синхронизировать из Anki»→`v3AnkiSyncNow`→`v3AnkiSyncFromAnki` (LOCAL_MODE→`v3AnkiFetchWordReviewStates`→`applyAnkiReviewStates`); B2 i+1 LIVE (`getLearningStateOverlay` reads Anki srs_cards.state→known→`getKnownWordStates`→corpus-vocab); retention events recorded. Gates `smoke:anki-sync` 52 + `smoke:anki-lifecycle` 15. Live round-trip = owner device-smoke. **Residual (task #9):** real Anki retention NOT surfaced in teacher/research dashboard → PROPOSE (Direction 11, pilot postponed). Details: design doc §B.
+- **Embedded audio in modal `.apkg`** `ee1e6d4` (SW v3.10.76): reuse EXISTING audio (sentence `audio_asset_key`, word `example_audio_key`) → media in `.apkg` (deduped, `lp_<key>.mp3`, gated on «озвучка»); 404 graceful. `attachApkgAudio` fetches `/api/audio/<key>`; `sentenceGroup` `audioBySid`→`[sound:…]`; `{groups, media}`. Gate `smoke:anki-srs-export` 33. Browser-verified (media bytes preserved). Headword still {{tts}}.
+- **⑤ NEXT options:** B2-retention-surfacing (PROPOSE, Direction 11) · Зал export surface (low) · or another track (④ R10 quality + Yiddish 47097). 🔑 token rotation still owed (blocks repo publish + ③ + FTS→26K).
+
+**Track A export (earlier this arc), all SHIPPED+PROD:**
 - **A1+A2a** — `.apkg` engine: shared core `public/db/anki-apkg-core.js` (UMD, pure-JS SHA-1=crypto, `prepareCollection` — now **multi-model/multi-deck** via `{groups:[…]}`) + `lib/ankiApkg.js` (server sqlite3+archiver) + `public/db/anki-apkg.js` (client sql.js+jszip → `buildApkgBytes`/`downloadApkg`); sql.js vendored `/db/sql-wasm.{js,wasm}` (lazy). Gates `smoke:anki-apkg` 36 · `smoke:anki-apkg-client` 28.
 - **A2b** — Studio Trainer «📦 Скачать .apkg (словарь)» = whole word_study vocabulary (global).
 - **A-unify-2a** — Word v1→v2 reconciliation. `public/db/anki-models.js` = canonical «Word v2»(11 fields)+«SRS Card v1» (single source). `index.html` `v3AnkiWordModelSpec()` delegates to it → AnkiConnect push + `.apkg` = identical cards.
