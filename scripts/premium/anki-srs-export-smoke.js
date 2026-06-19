@@ -9,6 +9,7 @@ const JSZip = require("jszip");
 const SrsExport = require("../../public/db/anki-srs-export.js");
 const AnkiApkg = require("../../public/db/anki-apkg.js");
 const AnkiModels = require("../../public/db/anki-models.js");
+const AnkiIdentity = require("../../public/db/anki-identity.js");
 const core = require("../../public/db/anki-apkg-core.js");
 
 let passed = 0, failed = 0;
@@ -113,6 +114,23 @@ const V2_ORDER = "Word,Niqqud,Translit,Russian,Root,Binyan,POS,Conjugation,Examp
   const mf = mIdx != null ? azip.file(String(mIdx)) : null;
   const mfBytes = mf ? await mf.async("uint8array") : null;
   ok("apkg contains the numbered media file with preserved bytes", !!mfBytes && mfBytes.length === 4 && mfBytes[0] === 1);
+
+  // 9) cross-transport IDENTITY (audit P0/G1) — shared lemma tag so read-back sees .apkg cards
+  const bodyPid = { word: "הלך", niqqud_variant: "הָלַךְ", pos: "verb", pealim_id: "1234" };
+  const bodyNoPid = { word: "ספר", pos: "noun" };
+  ok("identity.lemmaKey matches the export GUID key (no GUID shift)", AnkiIdentity.lemmaKey(bodyPid) === "pid:1234" && AnkiIdentity.lemmaKey(bodyNoPid) === "w:ספר#noun");
+  const lt = AnkiIdentity.lemmaTag("pid:1234");
+  ok("lemmaTag is tag-safe (lp_lemma_<12 hex>) + deterministic", /^lp_lemma_[0-9a-f]{12}$/.test(lt) && lt === AnkiIdentity.lemmaTag("pid:1234"));
+  ok("lemmaTag differs per lemma", AnkiIdentity.lemmaTag("pid:1234") !== AnkiIdentity.lemmaTag("pid:5678"));
+  // buildWordStudySpec word cards carry the lemma tag
+  const wspec = SrsExport.buildWordStudySpec([{ id: "n1", body: bodyPid }], {});
+  ok(".apkg word card carries lp_lemma_ tag", wspec.notes[0].tags.includes(AnkiIdentity.lemmaTagForBody(bodyPid)));
+  // ROUND-TRIP: an exported card's lemma tag maps back to the local note via lemmaTagForBody (the read-back path)
+  const localNotes = [{ id: "A", body: bodyPid }, { id: "B", body: { word: "הָלַךְ", niqqud_variant: "הָלַךְ", pos: "verb", pealim_id: "1234" } }, { id: "C", body: bodyNoPid }];
+  const idx = new Map();
+  for (const n of localNotes) { const tg = AnkiIdentity.lemmaTagForBody(n.body); (idx.get(tg) || idx.set(tg, []).get(tg)).push(n.id); }
+  const cardTag = wspec.notes[0].tags.find((t) => t.indexOf("lp_lemma_") === 0);
+  ok("read-back: card lemma tag fans to ALL notes of that lemma (A+B, not C)", JSON.stringify((idx.get(cardTag) || []).sort()) === '["A","B"]');
 
   console.log("\nsmoke:anki-srs-export — " + passed + " passed, " + failed + " failed");
   process.exit(failed ? 1 : 0);

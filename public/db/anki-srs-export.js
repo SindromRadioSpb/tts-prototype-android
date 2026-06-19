@@ -8,9 +8,9 @@
  * Pure logic (no I/O) → gate `smoke:anki-srs-export`. UMD: require() in Node, global `AnkiSrsExport` in the browser.
  */
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory(require("./anki-apkg-core.js"), require("./anki-models.js"));
-  else root.AnkiSrsExport = factory(root.AnkiApkgCore, root.AnkiModels);
-})(typeof self !== "undefined" ? self : this, function (core, models) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./anki-apkg-core.js"), require("./anki-models.js"), require("./anki-identity.js"));
+  else root.AnkiSrsExport = factory(root.AnkiApkgCore, root.AnkiModels, root.AnkiIdentity);
+})(typeof self !== "undefined" ? self : this, function (core, models, identity) {
   "use strict";
 
   const MODEL = models.wordV2(); // { modelName, fieldNames, templates, css }
@@ -42,11 +42,7 @@
 
   // Lemma-stable key (same shape as corpus-vocab) → GUID, so re-export updates instead of duplicating and
   // homograph/duplicate-lemma notes collapse to one card.
-  function lemmaKey(b) {
-    if (b.pealim_id != null && String(b.pealim_id) !== "") return "pid:" + String(b.pealim_id);
-    const w = core.stripHtmlMedia(b.word || b.lemma || b.niqqud_variant || b.niqqud).trim();
-    return "w:" + w + "#" + String(b.pos || b.part_of_speech || "");
-  }
+  function lemmaKey(b) { return identity.lemmaKey(b); } // single source — see anki-identity.js
 
   // Build the Anki deck spec from word_study note rows. opts.deckName overrides the deck.
   function buildWordStudySpec(notes, opts) {
@@ -60,10 +56,12 @@
       if (seen.has(key)) continue;                                            // dedup by lemma
       seen.add(key);
       const f = bodyToFields(b);
+      // lp_lemma_<hash> = the cross-transport read-back key (the AnkiConnect push stamps the same) so an
+      // .apkg-imported card is visible to «Синхронизировать из Anki» (audit G1).
       outNotes.push({
         guid: core.stableGuid("word:" + key),
         fields: MODEL.fieldNames.map((name) => f[name] || ""),
-        tags: ["lp", "lp_word"].concat(f.POS ? ["lp_pos_" + f.POS.replace(/\s+/g, "_")] : []),
+        tags: ["lp", "lp_word"].concat(f.POS ? ["lp_pos_" + f.POS.replace(/\s+/g, "_")] : []).concat([identity.lemmaTag(key)]),
       });
     }
     return {
@@ -118,7 +116,7 @@
       const key = (it && it.key) || ("w:" + core.stripHtmlMedia(f.Word || f.Niqqud).trim() + "#" + (f.POS || ""));
       if (seen.has(key)) continue;
       seen.add(key);
-      out.push({ guid: core.stableGuid("word:" + key), fields: MODEL.fieldNames.map((n) => f[n] || ""), tags: ["lp", "lp_word"].concat(f.POS ? ["lp_pos_" + String(f.POS).replace(/\s+/g, "_")] : []) });
+      out.push({ guid: core.stableGuid("word:" + key), fields: MODEL.fieldNames.map((n) => f[n] || ""), tags: ["lp", "lp_word"].concat(f.POS ? ["lp_pos_" + String(f.POS).replace(/\s+/g, "_")] : []).concat([identity.lemmaTag(key)]) });
     }
     return { deckName: opts.deckName || "LinguistPro::Words", modelName: MODEL.modelName, fieldNames: MODEL.fieldNames, templates: MODEL.templates, css: MODEL.css, notes: out };
   }

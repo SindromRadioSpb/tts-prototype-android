@@ -12049,6 +12049,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
      Card data never leaves the device; sql.js (/db/sql-wasm.*) lazy-loads only when the user exports.
      Order matters: core first (the others depend on it). -->
 <script src="/db/anki-apkg-core.js"></script>
+<script src="/db/anki-identity.js"></script>
 <script src="/db/anki-models.js"></script>
 <script src="/db/anki-apkg.js"></script>
 <script src="/db/anki-srs-export.js"></script>
@@ -14907,9 +14908,12 @@ async function v3AnkiAddNotesWithDedup(ankiNotes, finalDeck, opts, ctx) {
 // Anki cards back to the local note by THIS tag, NOT the `Word` surface (which
 // collides across homographs, e.g. שָׁנָה «год» vs «изменил»). The tag lives in
 // Anki and is re-stamped on every re-export → it is the identity source of truth.
-function v3AnkiWordCardTags(noteId, textTag, titleTag) {
+function v3AnkiWordCardTags(noteId, textTag, titleTag, body) {
+  // lp_lemma_<hash> = the cross-transport read-back key (the .apkg export stamps the same) so a lemma's
+  // Anki mastery fans to ALL its word_study notes, and push/.apkg cards share read-back identity (audit G1/G3).
+  const lemmaTag = (body && window.AnkiIdentity) ? window.AnkiIdentity.lemmaTagForBody(body) : '';
   return ['linguistpro', 'lp_word', textTag, titleTag || 'untitled',
-          noteId ? 'lp_note_' + String(noteId) : '']
+          noteId ? 'lp_note_' + String(noteId) : '', lemmaTag]
     .filter(Boolean);
 }
 
@@ -15003,7 +15007,7 @@ async function v3AnkiPushWordCards(textId, text, opts, ldb) {
       exampleAudioFile: it.exFile,
     }),
     options: { allowDuplicate: false, duplicateScope: 'deck' },
-    tags: v3AnkiWordCardTags(it.n.id, textTag, titleTag),
+    tags: v3AnkiWordCardTags(it.n.id, textTag, titleTag, it.body),
   }));
 
   // Idempotent SYNC (R-1.6): create new cards, UPDATE existing ones in place so
@@ -15185,17 +15189,38 @@ async function v3AnkiFetchWordReviewStates() {
     } catch (_) {}
   }
 
-  // Resolve each Anki note → local note id (from its lp_note_ tag) + card ids.
-  const noteMeta = [];     // { ankiNoteId, localNoteId, cardIds }
+  // Build a lemma index from LOCAL word_study notes (lp_lemma_<hash> → [localNoteId]) so an .apkg-imported
+  // card — which carries lp_lemma_ but NOT lp_note_ — maps by lemma to ALL notes of that lemma (audit G1).
+  const lemmaIndex = new Map();
+  try {
+    const ldb0 = await ensureLocalDB();
+    if (ldb0 && window.AnkiIdentity && typeof ldb0.listWordStudyNotesForExport === 'function') {
+      const rows = await ldb0.listWordStudyNotesForExport();
+      for (const rr of (rows || [])) {
+        let b = {}; try { b = rr.body_json ? JSON.parse(rr.body_json) : {}; } catch (_) {}
+        const lt = window.AnkiIdentity.lemmaTagForBody(b);
+        if (!lemmaIndex.has(lt)) lemmaIndex.set(lt, []);
+        lemmaIndex.get(lt).push(String(rr.id));
+      }
+    }
+  } catch (_) {}
+
+  // Resolve each Anki note → local note id(s) + card ids. Fast path = per-note lp_note_ tag (AnkiConnect push);
+  // fallback = lp_lemma_ tag (any transport, incl. .apkg) fanned to every word_study note sharing the lemma.
+  const noteMeta = [];     // { ankiNoteId, localNoteIds:[...], cardIds }
   const allCardIds = [];
   let untagged = 0;
   for (const ni of infos) {
     const tags = Array.isArray(ni.tags) ? ni.tags : [];
-    const tag = tags.find((tt) => typeof tt === 'string' && tt.indexOf('lp_note_') === 0);
-    const localNoteId = tag ? tag.slice('lp_note_'.length) : '';
     const cardIds = Array.isArray(ni.cards) ? ni.cards.slice() : [];
-    if (!localNoteId) { untagged++; continue; }
-    noteMeta.push({ ankiNoteId: ni.noteId, localNoteId, cardIds });
+    const noteTag = tags.find((tt) => typeof tt === 'string' && tt.indexOf('lp_note_') === 0);
+    let localNoteIds = noteTag ? [noteTag.slice('lp_note_'.length)] : [];
+    if (!localNoteIds.length) {
+      const lemTag = tags.find((tt) => typeof tt === 'string' && tt.indexOf('lp_lemma_') === 0);
+      if (lemTag && lemmaIndex.has(lemTag)) localNoteIds = lemmaIndex.get(lemTag).slice();
+    }
+    if (!localNoteIds.length) { untagged++; continue; }
+    noteMeta.push({ ankiNoteId: ni.noteId, localNoteIds, cardIds });
     for (const c of cardIds) allCardIds.push(c);
   }
 
@@ -15218,7 +15243,9 @@ async function v3AnkiFetchWordReviewStates() {
     const stats = m.cardIds.map((c) => cardStat.get(c)).filter(Boolean);
     if (!stats.length) continue;
     stats.sort((a, b) => (b.reps - a.reps) || (b.interval_days - a.interval_days));
-    states.push({ localNoteId: m.localNoteId, ankiNoteId: m.ankiNoteId, cardIds: m.cardIds, stat: stats[0] });
+    for (const lid of m.localNoteIds) {
+      states.push({ localNoteId: lid, ankiNoteId: m.ankiNoteId, cardIds: m.cardIds, stat: stats[0] });
+    }
   }
   return { ok: true, states, totalNotes: noteMeta.length, totalCards: allCardIds.length, untagged };
 }
