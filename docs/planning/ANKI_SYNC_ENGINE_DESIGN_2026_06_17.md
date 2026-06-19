@@ -210,7 +210,17 @@ A deep code audit found B is essentially **already shipped** (not a future task 
 - **RESIDUAL GAP (the only real B work left):** the recorded `source='anki'` retention events are NOT surfaced as a
   real retention metric in the teacher/research dashboard (`teacher.html` has no anki/retention read) — the v3.4
   research-completion piece. It touches the privacy-sensitive Direction 11 (opt-in, k=5) and the pilot is postponed →
-  **PROPOSE before implementing.** A-follow-ups: embedded audio in `.apkg` (reuse `example_audio_key`); Зал export surface.
+  **PROPOSE before implementing.**
+
+### A-follow-up — embedded audio in `.apkg` — ✅ DONE `ee1e6d4` (SW v3.10.76)
+The modal export now embeds the learner's EXISTING audio (no re-synthesis), gated on the «озвучка» checkbox:
+sentence `audio_asset_key` → sentence-card Audio; word `example_audio_key` → word-card Example. Orchestrator
+`attachApkgAudio` fetches `/api/audio/<key>` once per unique key (deduped) → media file `lp_<key>.mp3` (same
+convention as AnkiConnect's `v3AnkiAttachAudio`); 404/offline skips gracefully ({{tts}} for words, silent for
+sentences). `anki-srs-export.js` `sentenceFields`/`sentenceGroup` take `audioBySid` → `[sound:…]`; `{groups, media}`
+→ the multi-model engine's media path. Gate `smoke:anki-srs-export` 33/33 (+`[sound:]` field + media-file bytes
+preserved). Browser-verified (real sql.js+jszip embeds media; Audio=`[sound:lp_demo.mp3]`). Real audio fetch +
+Anki-plays = owner device-smoke. **Remaining A-follow-up:** Зал export surface (lower priority).
 
 ### A-unify-2b — adversarial review (3-dim workflow) + lessons (2026-06-18/19)
 Review verdict: **0 blocker/major/minor; 3 nits, all acceptable/documented:** (a) custom deck-name ignored for «both» —
