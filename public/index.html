@@ -35955,11 +35955,29 @@ async function v3AnkiDownloadApkg() {
   const kindEl = document.getElementById("v3AnkiCardKind");
   const hintEl = document.getElementById("v3AnkiIncludeHint");
   const deckEl = document.getElementById("v3AnkiDeck");
+  const audioEl = document.getElementById("v3AnkiAudioWords");
   const cardKind = kindEl ? String(kindEl.value || "words") : "words";
   const includeHint = hintEl ? !!hintEl.checked : true;
   const deckBase = deckEl ? String(deckEl.value || "").trim() : "";
+  const withAudio = audioEl ? !!audioEl.checked : true;
   const dlBtn = document.getElementById("v3AnkiApkgBtn");
   if (dlBtn) dlBtn.disabled = true;
+  // Embed the learner's EXISTING audio (no re-synthesis) into the `.apkg`: fetch `/api/audio/<key>` bytes
+  // once per unique asset_key → media file `lp_<key>.mp3` (the same convention AnkiConnect uses). Deduped;
+  // a 404/offline asset is skipped gracefully (word → {{tts}} fallback, sentence → silent).
+  const mediaByKey = new Map();
+  async function attachApkgAudio(assetKey) {
+    const ak = String(assetKey || "").trim();
+    if (!ak) return "";
+    const fname = "lp_" + ak + ".mp3";
+    if (mediaByKey.has(ak)) return fname;
+    try {
+      const r = await fetch(location.origin + "/api/audio/" + encodeURIComponent(ak), { cache: "force-cache" });
+      if (!r.ok) return "";
+      mediaByKey.set(ak, { name: fname, data: new Uint8Array(await r.arrayBuffer()) });
+      return fname;
+    } catch (_) { return ""; }
+  }
   try {
     v3AnkiSetStatus("Собираю .apkg…", false);
     const ldb = await ensureLocalDB();
@@ -35971,24 +35989,27 @@ async function v3AnkiDownloadApkg() {
         let body = {}; try { body = n.body_json ? JSON.parse(n.body_json) : {}; } catch (_) {}
         if (!String(body.word || body.lemma || "").trim() && !String(body.niqqud_variant || body.niqqud || "").trim()) continue;
         let paradigm = null; try { paradigm = await v3AnkiResolveParadigm(body); } catch (_) {}
-        const fields = v3AnkiBuildWordCardFields(n, { paradigm, example: n.example || "", exampleHe: n.example_he || "", exampleRu: n.example_ru || "", headwordAudioFile: "", exampleAudioFile: "" });
+        const exFile = withAudio ? await attachApkgAudio(n.example_audio_key) : "";
+        const fields = v3AnkiBuildWordCardFields(n, { paradigm, example: n.example || "", exampleHe: n.example_he || "", exampleRu: n.example_ru || "", headwordAudioFile: "", exampleAudioFile: exFile });
         items.push({ key: window.AnkiSrsExport.lemmaKey(body), fields });
       }
       groups.push(window.AnkiSrsExport.wordGroupFromCards(items, { deckName: (deckBase && cardKind === "words") ? deckBase : "LinguistPro::Words" }));
     }
     if (cardKind === "sentences" || cardKind === "both") {
       const sents = await ldb.getSentences(exportId);
-      const noteBySid = {};
+      const noteBySid = {}, audioBySid = {};
       if (includeHint) { const noteRows = await ldb.listNotes(exportId); for (const nr of (noteRows || [])) noteBySid[nr.sentence_id] = nr.note; }
-      groups.push(window.AnkiSrsExport.sentenceGroup(sents, { noteBySid, deckName: (deckBase && cardKind === "sentences") ? deckBase : "LinguistPro::SRS" }));
+      if (withAudio) { for (const s of (sents || [])) { if (s && s.audio_asset_key) { const af = await attachApkgAudio(s.audio_asset_key); if (af) audioBySid[s.id] = af; } } }
+      groups.push(window.AnkiSrsExport.sentenceGroup(sents, { noteBySid, audioBySid, deckName: (deckBase && cardKind === "sentences") ? deckBase : "LinguistPro::SRS" }));
     }
     const total = groups.reduce((a, g) => a + (g.notes ? g.notes.length : 0), 0);
     if (!total) { showToast("Нет карточек для экспорта в этом тексте.", "info"); v3AnkiSetStatus("", false); return; }
+    const media = Array.from(mediaByKey.values());
     const fname = "LinguistPro-" + new Date().toISOString().slice(0, 10) + ".apkg";
-    const res = await window.AnkiApkg.downloadApkg({ groups }, fname);
+    const res = await window.AnkiApkg.downloadApkg({ groups, media }, fname);
     const wc = (groups.find((g) => g.modelName === window.AnkiSrsExport.MODEL_NAME) || { notes: [] }).notes.length;
     const sc = (groups.find((g) => g.modelName === window.AnkiSrsExport.SENT_MODEL_NAME) || { notes: [] }).notes.length;
-    showToast("Скачано " + total + " карточек (слов " + wc + " · предложений " + sc + ") → " + res.filename, "success");
+    showToast("Скачано " + total + " карточек (слов " + wc + " · предложений " + sc + (media.length ? " · аудио " + media.length : "") + ") → " + res.filename, "success");
     v3AnkiSetStatus("Готово: " + res.filename, false);
   } catch (e) {
     console.error("[apkg] modal export failed:", e);

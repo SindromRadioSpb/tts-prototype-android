@@ -101,6 +101,19 @@ const V2_ORDER = "Word,Niqqud,Translit,Russian,Root,Binyan,POS,Conjugation,Examp
   ok("both: 4 notes (2 word + 2 sentence)", bdb.exec("SELECT COUNT(*) FROM notes")[0].values[0][0] === 4);
   bdb.close();
 
+  // 8) embedded audio — sentence Audio field [sound:…] + media file inside the .apkg
+  const sgA = SrsExport.sentenceGroup([{ id: "sa", he_plain: "שלום", ru: "привет" }], { audioBySid: { sa: "lp_k1.mp3" } });
+  ok("sentenceGroup audio → [sound:] in Audio field", sgA.notes[0].fields[5] === "[sound:lp_k1.mp3]");
+  ok("sentenceGroup no audio → empty Audio", SrsExport.sentenceGroup([{ id: "sb", he_plain: "בית", ru: "дом" }], {}).notes[0].fields[5] === "");
+  const az = await AnkiApkg.buildApkgBytes({ groups: [sgA], media: [{ name: "lp_k1.mp3", data: new Uint8Array([1, 2, 3, 4]) }] }, { SQL, JSZip, now: NOW, zipType: "uint8array" });
+  const azip = await JSZip.loadAsync(az);
+  const mediaMap = JSON.parse(await azip.file("media").async("string"));
+  ok("apkg media map references the audio file", Object.values(mediaMap).includes("lp_k1.mp3"));
+  const mIdx = Object.keys(mediaMap).find((k) => mediaMap[k] === "lp_k1.mp3");
+  const mf = mIdx != null ? azip.file(String(mIdx)) : null;
+  const mfBytes = mf ? await mf.async("uint8array") : null;
+  ok("apkg contains the numbered media file with preserved bytes", !!mfBytes && mfBytes.length === 4 && mfBytes[0] === 1);
+
   console.log("\nsmoke:anki-srs-export — " + passed + " passed, " + failed + " failed");
   process.exit(failed ? 1 : 0);
 })().catch((e) => { console.error("FATAL", e); process.exit(1); });

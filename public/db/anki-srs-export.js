@@ -79,9 +79,9 @@
   // ── A-unify-2b — sentence + multi-group builders (the modal words/sentences/both `.apkg`) ────────────
   const SENT_MODEL = models.srsCardV1(); // «LinguistPro SRS Card v1»
 
-  // OPFS sentence row → the 6 «SRS Card v1» fields. Text-first (Audio empty). `noteText` = the optional
-  // per-sentence annotation (only when includeHint).
-  function sentenceFields(s, noteText) {
+  // OPFS sentence row → the 6 «SRS Card v1» fields. `noteText` = the optional per-sentence annotation (only
+  // when includeHint). `audioFile` (e.g. 'lp_<key>.mp3') embeds existing audio → `[sound:…]` (else {{TTS}}-less silent).
+  function sentenceFields(s, noteText, audioFile) {
     s = s || {};
     return {
       Hebrew: String(s.he_plain || s.he_niqqud || s.hebrew_plain || ""),
@@ -89,16 +89,17 @@
       Translit: String(s.translit || s.translit_ru || ""),
       Russian: String(s.ru || s.russian || ""),
       Note: String(noteText || ""),
-      Audio: "",
+      Audio: audioFile ? ("[sound:" + audioFile + "]") : "",
     };
   }
-  // sentences[] (+ opts.noteBySid[sid]) → an «SRS Card v1» deck group. Stable guid per sentence id.
+  // sentences[] (+ opts.noteBySid[sid], opts.audioBySid[sid]) → an «SRS Card v1» deck group. Stable guid per id.
   function sentenceGroup(sentences, opts) {
     opts = opts || {};
     const noteBySid = opts.noteBySid || {};
+    const audioBySid = opts.audioBySid || {};
     const out = [];
     for (const s of (sentences || [])) {
-      const f = sentenceFields(s, s ? noteBySid[s.id] : "");
+      const f = sentenceFields(s, s ? noteBySid[s.id] : "", s ? audioBySid[s.id] : "");
       if (!f.Hebrew && !f.Niqqud) continue;
       out.push({ guid: core.stableGuid("sent:" + (s && s.id != null ? s.id : f.Hebrew)), fields: SENT_MODEL.fieldNames.map((n) => f[n] || ""), tags: ["lp", "lp_sentence"] });
     }
