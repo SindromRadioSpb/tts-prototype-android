@@ -3902,6 +3902,86 @@ body:not(.theme-light) .row-note-btn .row-note-btn-count { color: var(--theme-bg
   margin-bottom: 10px;
 }
 
+/* ── Library export — premium progress (T2) ─────────────────────────────
+   Design: docs/planning/LIBRARY_EXPORT_PROGRESS_T2_2026_06_23.md
+   Custom classes (not btn-primary/secondary) so the mobile width:100%
+   rule never touches these — explicit widths below own the cascade. */
+.v3-exp-card {
+  margin: 4px 0 12px; padding: 12px 14px;
+  border: 1px solid #e5e7eb; border-radius: 12px;
+  background: linear-gradient(180deg,#ffffff,#f8fafc);
+  box-shadow: 0 2px 10px rgba(15,23,42,0.06);
+}
+.v3-exp-steps { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.v3-exp-step {
+  font-size:11.5px; font-weight:600; color:#9ca3af;
+  padding:2px 9px; border-radius:999px; background:#f1f5f9;
+  display:inline-flex; align-items:center; gap:4px;
+}
+.v3-exp-step.is-active { color:#1d4ed8; background:#dbeafe; }
+.v3-exp-step.is-done { color:#16a34a; background:#dcfce7; }
+.v3-exp-step.is-done::before { content:"\2713"; font-weight:800; }
+.v3-exp-bar { height:8px; border-radius:999px; background:#e5e7eb; overflow:hidden; }
+.v3-exp-bar-fill {
+  height:100%; width:0%; border-radius:999px;
+  background:linear-gradient(90deg,#2563eb,#3b82f6);
+  transition:width .25s ease;
+}
+.v3-exp-bar.is-indeterminate .v3-exp-bar-fill {
+  width:35% !important; animation:v3ExpIndet 1.1s ease-in-out infinite;
+}
+@keyframes v3ExpIndet { 0%{margin-left:-35%} 100%{margin-left:100%} }
+.v3-exp-meta {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:10px; margin-top:8px; font-size:12px; color:#4b5563;
+}
+.v3-exp-counts { font-variant-numeric:tabular-nums; }
+.v3-exp-eta { color:#6b7280; font-variant-numeric:tabular-nums; }
+.v3-exp-miss { color:#b45309; font-weight:600; white-space:nowrap; }
+.v3-exp-cancel {
+  width:auto; padding:5px 12px; border:1px solid #fecaca;
+  background:#fef2f2; color:#b91c1c; border-radius:8px;
+  font-size:12px; font-weight:700; cursor:pointer; flex:0 0 auto;
+}
+.v3-exp-cancel:hover { background:#fee2e2; }
+.v3-exp-card.is-done { border-color:#bbf7d0; background:linear-gradient(180deg,#ffffff,#f0fdf4); }
+.v3-exp-card.is-done .v3-exp-bar-fill { background:linear-gradient(90deg,#16a34a,#22c55e); }
+.v3-exp-card.is-error { border-color:#fecaca; background:linear-gradient(180deg,#ffffff,#fef2f2); }
+
+/* Preflight overlay */
+.v3-exp-pf-backdrop {
+  position:fixed; inset:0; background:rgba(15,23,42,0.45);
+  z-index:100000; display:flex; align-items:center; justify-content:center; padding:16px;
+}
+.v3-exp-pf { width:min(420px,92vw); background:#fff; border-radius:14px;
+  padding:18px 18px 16px; box-shadow:0 18px 50px rgba(0,0,0,0.3); }
+.v3-exp-pf h3 { margin:0 0 10px; font-size:16px; font-weight:700; color:#0f172a; }
+.v3-exp-pf-summary { font-size:13px; color:#334155; line-height:1.7; }
+.v3-exp-pf-summary b { font-variant-numeric:tabular-nums; }
+.v3-exp-pf-warn { margin:10px 0 2px; padding:8px 10px; border-radius:8px;
+  background:#fffbeb; border:1px solid #fde68a; color:#92400e; font-size:12px; line-height:1.5; }
+.v3-exp-pf-actions { display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+.v3-exp-pf-btn { width:100%; padding:11px 14px; border-radius:10px; border:1px solid transparent;
+  font-size:14px; font-weight:700; cursor:pointer; text-align:center; }
+.v3-exp-pf-btn.primary { background:#2563eb; color:#fff; }
+.v3-exp-pf-btn.primary:hover { background:#1d4ed8; }
+.v3-exp-pf-btn.secondary { background:#f1f5f9; color:#0f172a; border-color:#e2e8f0; }
+.v3-exp-pf-btn.secondary:hover { background:#e2e8f0; }
+.v3-exp-pf-btn.ghost { background:transparent; color:#64748b; }
+.v3-exp-pf-btn .sub { display:block; font-size:11px; font-weight:500; opacity:.8; margin-top:2px; }
+
+/* Global chip (survives modal close) */
+.v3-exp-chip {
+  position:fixed; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px);
+  z-index:99997; display:inline-flex; align-items:center; gap:10px;
+  background:#1f2937; color:#fff; border-radius:999px; padding:8px 10px 8px 14px;
+  font-size:13px; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.28);
+  cursor:pointer; max-width:80vw;
+}
+.v3-exp-chip-x { border:0; background:rgba(255,255,255,0.16); color:#fff; border-radius:999px;
+  width:22px; height:22px; line-height:1; font-size:13px; cursor:pointer; flex:0 0 auto; }
+[dir="rtl"] .v3-exp-chip { right:auto; left:16px; }
+
 /* --------------------------------------------------------
    Wave D (Premium PRO): Notes search UI (D3)
 -------------------------------------------------------- */
@@ -10832,6 +10912,7 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 </div>
 	  
       <div id="v3LibraryStatus" class="v3-lib-status"></div>
+	  <div id="v3LibExportCardHost"></div>
 	  <div id="v3LibraryNotesMatches" class="v3-notes-matches" style="display:none;"></div>
 	  <div id="v3LibraryRowsMatches" class="v3-notes-matches" style="display:none;"></div>
 	  <div id="v3LibraryBulkBar" style="display:none; position:sticky; top:0; z-index:10; padding:10px 14px; background:#1e3a8a; color:#fff; border-radius:8px; margin-bottom:10px; gap:8px; flex-wrap:wrap; align-items:center; box-shadow:0 2px 8px rgba(30,58,138,0.3);">
@@ -27763,134 +27844,357 @@ window.v3LibraryOnImportSelected = v3LibraryOnImportSelected;
 
 // ── Bundle export/import (ZIP with audio) ────────────────────────────────────
 
+// ════════════════════════════════════════════════════════════════════════
+// Library export — premium progress engine (T2)
+//   Preflight (with / without audio) · progress card · cancel · global chip ·
+//   ETA. Drives the LOCAL_MODE export path.
+//   Design: docs/planning/LIBRARY_EXPORT_PROGRESS_T2_2026_06_23.md
+// ════════════════════════════════════════════════════════════════════════
+let v3ExportState = null;
+
+function v3ExpT(k, fb, p) {
+  try { const v = (typeof window.t === "function") ? window.t(k, p) : null; return (v && v !== k) ? v : fb; }
+  catch (_) { return fb; }
+}
+function v3ExpFmtMB(bytes) { return Math.round((bytes || 0) / 1048576); }
+function v3ExpFmtTime(sec) {
+  sec = Math.max(0, Math.round(sec || 0));
+  if (sec < 60) return sec + " " + v3ExpT("exp.sec", "сек");
+  return "~" + Math.round(sec / 60) + " " + v3ExpT("exp.min", "мин");
+}
+function v3ExportStatusLine(msg) {
+  try { const el = document.getElementById("v3LibraryStatus"); if (el) el.textContent = msg; } catch (_) {}
+}
+
+function v3ExportPercent(state) {
+  if (!state || state.phase === "read") return null; // indeterminate
+  if (state.phase === "done") return 100;
+  if (state.mode === "meta") return Math.round(state.packPercent || 0);
+  const af = state.audioTotal ? (state.audioDone / state.audioTotal) : ((state.phase === "pack") ? 1 : 0);
+  return Math.round(af * 85 + (state.packPercent || 0) * 0.15);
+}
+
+function v3ExportShowCard(state) {
+  const host = document.getElementById("v3LibExportCardHost");
+  if (!host) return;
+  host.innerHTML =
+    '<div class="v3-exp-card" id="v3LibExportCard" role="group" aria-label="' + v3ExpT("exp.cardLabel", "Экспорт библиотеки") + '">'
+    +   '<div class="v3-exp-steps">'
+    +     '<span class="v3-exp-step" data-step="read">' + v3ExpT("exp.stepRead", "Чтение") + '</span>'
+    +     '<span class="v3-exp-step" data-step="audio">' + v3ExpT("exp.stepAudio", "Аудио") + '</span>'
+    +     '<span class="v3-exp-step" data-step="pack">' + v3ExpT("exp.stepPack", "Упаковка") + '</span>'
+    +     '<span class="v3-exp-step" data-step="done">' + v3ExpT("exp.stepDone", "Готово") + '</span>'
+    +   '</div>'
+    +   '<div class="v3-exp-bar" id="v3ExpBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">'
+    +     '<div class="v3-exp-bar-fill" id="v3ExpBarFill"></div>'
+    +   '</div>'
+    +   '<div class="v3-exp-meta">'
+    +     '<span class="v3-exp-counts" id="v3ExpCounts" aria-live="polite"></span>'
+    +     '<span class="v3-exp-miss" id="v3ExpMiss"></span>'
+    +   '</div>'
+    +   '<div class="v3-exp-meta">'
+    +     '<span class="v3-exp-eta" id="v3ExpEta"></span>'
+    +     '<button type="button" class="v3-exp-cancel" id="v3ExpCancel">' + v3ExpT("exp.cancel", "Отмена") + '</button>'
+    +   '</div>'
+    + '</div>';
+  const cancelBtn = document.getElementById("v3ExpCancel");
+  if (cancelBtn) cancelBtn.onclick = function () { v3ExportCancel(); };
+  v3ExportPaint(state, true);
+}
+function v3ExportHideCard() {
+  const host = document.getElementById("v3LibExportCardHost");
+  if (host) host.innerHTML = "";
+}
+function v3ExportPhase(state, phase) { if (state) { state.phase = phase; v3ExportPaint(state, true); } }
+
+function v3ExportTrackRate(state) {
+  const now = Date.now();
+  state._win.push({ t: now, n: state.audioDone });
+  while (state._win.length > 2 && (now - state._win[0].t) > 5000) state._win.shift();
+  const a = state._win[0], b = state._win[state._win.length - 1];
+  const dt = (b.t - a.t) / 1000, dn = b.n - a.n;
+  state.rate = (dt > 0 && dn > 0) ? (dn / dt) : 0;
+  state.etaSec = (state.rate > 0) ? ((state.audioTotal - state.audioDone) / state.rate) : null;
+}
+
+function v3ExportPaint(state, force) {
+  if (!state) return;
+  const now = Date.now();
+  if (!force && (now - (state._lastPaint || 0)) < 90) return;
+  state._lastPaint = now;
+
+  const pct = v3ExportPercent(state);
+  const bar = document.getElementById("v3ExpBar");
+  const fill = document.getElementById("v3ExpBarFill");
+  if (bar) {
+    if (pct === null) { bar.classList.add("is-indeterminate"); bar.setAttribute("aria-valuenow", "0"); }
+    else { bar.classList.remove("is-indeterminate"); bar.setAttribute("aria-valuenow", String(pct)); if (fill) fill.style.width = pct + "%"; }
+  }
+  const order = ["read", "audio", "pack", "done"];
+  const phaseForStep = (state.phase === "cancelled" || state.phase === "error") ? "pack" : state.phase;
+  const curIdx = order.indexOf(phaseForStep);
+  const steps = document.querySelectorAll("#v3LibExportCard .v3-exp-step");
+  steps.forEach(function (el) {
+    const s = el.getAttribute("data-step");
+    el.classList.remove("is-active", "is-done");
+    if (state.mode === "meta" && s === "audio") { el.style.display = "none"; return; }
+    el.style.display = "";
+    const idx = order.indexOf(s);
+    if (state.phase === "done" || idx < curIdx) el.classList.add("is-done");
+    else if (idx === curIdx) el.classList.add("is-active");
+  });
+  const counts = document.getElementById("v3ExpCounts");
+  if (counts) {
+    if (state.phase === "read") counts.textContent = v3ExpT("exp.reading", "Чтение библиотеки…");
+    else if (state.phase === "audio") counts.textContent = v3ExpT("exp.audioCount", "Аудио {done}/{total} · {mb} МБ", { done: state.audioDone, total: state.audioTotal, mb: v3ExpFmtMB(state.bytes) });
+    else if (state.phase === "pack") counts.textContent = v3ExpT("exp.packing", "Упаковка… {percent}%", { percent: Math.round(state.packPercent || 0) });
+    else if (state.phase === "done") counts.textContent = v3ExpT("exp.doneShort", "Готово · {mb} МБ", { mb: v3ExpFmtMB(state.bytes) });
+  }
+  const miss = document.getElementById("v3ExpMiss");
+  if (miss) { miss.textContent = state.missing ? ("⚠ " + state.missing) : ""; if (state.missing) miss.title = v3ExpT("exp.missTitle", "Пропущено (таймаут / не в кэше)"); }
+  const eta = document.getElementById("v3ExpEta");
+  if (eta) {
+    if (state.phase === "audio" && state.rate > 0 && state.etaSec != null)
+      eta.textContent = v3ExpT("exp.eta", "Осталось {time} · {rate}/сек", { time: v3ExpFmtTime(state.etaSec), rate: Math.round(state.rate) });
+    else eta.textContent = "";
+  }
+  v3ExportChipPaint(state, pct);
+}
+
+function v3ExportChipPaint(state, pct) {
+  const modal = document.getElementById("v3LibraryModal");
+  const modalHidden = !modal || modal.classList.contains("hidden");
+  let chip = document.getElementById("v3ExportChip");
+  const active = state && !state.done;
+  if (active && modalHidden) {
+    if (!chip) {
+      chip = document.createElement("div");
+      chip.id = "v3ExportChip";
+      chip.className = "v3-exp-chip";
+      chip.innerHTML = '<span id="v3ExportChipTxt"></span><button type="button" class="v3-exp-chip-x" id="v3ExportChipX" aria-label="' + v3ExpT("exp.cancel", "Отмена") + '">✕</button>';
+      chip.addEventListener("click", function (e) {
+        if (e.target && e.target.id === "v3ExportChipX") { v3ExportCancel(); return; }
+        try { if (typeof v3LibraryOpen === "function") v3LibraryOpen(); } catch (_) {}
+      });
+      document.body.appendChild(chip);
+    }
+    const txt = document.getElementById("v3ExportChipTxt");
+    if (txt) txt.textContent = v3ExpT("exp.chip", "⬇ Экспорт… {percent}%", { percent: (pct == null ? 0 : pct) });
+  } else if (chip) { chip.remove(); }
+}
+
+function v3ExportCancel() {
+  const state = v3ExportState;
+  if (!state || state.done) return;
+  state.cancelled = true;
+  try { state.abort.abort(); } catch (_) {}
+  if (state._preflightResolve) { const r = state._preflightResolve; state._preflightResolve = null; r(null); }
+}
+
+function v3ExportSetBtnBusy(btn, busy) {
+  if (!btn) return;
+  btn.disabled = !!busy;
+  btn.style.opacity = busy ? "0.6" : "";
+}
+function v3ExportFocusCard() {
+  try {
+    const modal = document.getElementById("v3LibraryModal");
+    if (typeof v3LibraryOpen === "function" && modal && modal.classList.contains("hidden")) v3LibraryOpen();
+    const card = document.getElementById("v3LibExportCard");
+    if (card && card.scrollIntoView) card.scrollIntoView({ block: "center", behavior: "smooth" });
+  } catch (_) {}
+}
+function v3ExportEndCommon(state, btn) {
+  state.done = true;
+  v3ExportState = null;
+  v3ExportSetBtnBusy(btn, false);
+  const chip = document.getElementById("v3ExportChip"); if (chip) chip.remove();
+}
+function v3ExportFinishCancelled(state, btn) {
+  v3ExportEndCommon(state, btn);
+  v3ExportStatusLine(v3ExpT("exp.cancelled", "Экспорт отменён"));
+  showToast(v3ExpT("exp.cancelled", "Экспорт отменён"), "info");
+  setTimeout(v3ExportHideCard, 900);
+}
+function v3ExportFinishError(state, btn, e) {
+  const msg = t("toast.exportError", { error: (e && e.message) || "см. консоль" });
+  const card = document.getElementById("v3LibExportCard"); if (card) card.classList.add("is-error");
+  v3ExportEndCommon(state, btn);
+  v3ExportStatusLine(msg);
+  showToast(msg, "error");
+  setTimeout(v3ExportHideCard, 1600);
+}
+function v3ExportFinishDone(state, btn, info) {
+  state.phase = "done";
+  const card = document.getElementById("v3LibExportCard"); if (card) card.classList.add("is-done");
+  v3ExportPaint(state, true);
+  const msg = t("toast.zipReady", { count: info.texts, audio: info.audioMsg, missing: info.missingNote });
+  v3ExportStatusLine(msg);
+  showToast(msg, info.warn ? "warning" : "success");
+  v3ExportEndCommon(state, btn);
+  setTimeout(v3ExportHideCard, 4500);
+}
+
+function v3ExportPreflight(info) {
+  return new Promise(function (resolve) {
+    const state = v3ExportState;
+    if (state) state._preflightResolve = resolve;
+    const warn = (info.audio > 3000) || (info.sizeEst > 200 * 1048576);
+    const backdrop = document.createElement("div");
+    backdrop.className = "v3-exp-pf-backdrop";
+    backdrop.id = "v3ExpPfBackdrop";
+    const finish = function (choice) {
+      if (state) state._preflightResolve = null;
+      try { backdrop.remove(); } catch (_) {}
+      resolve(choice);
+    };
+    backdrop.innerHTML =
+      '<div class="v3-exp-pf" role="dialog" aria-modal="true">'
+      +   '<h3>' + v3ExpT("exp.pfTitle", "Экспорт библиотеки") + '</h3>'
+      +   '<div class="v3-exp-pf-summary">'
+      +     v3ExpT("exp.pfSummary", "<b>{texts}</b> текстов · <b>{audio}</b> аудио<br>≈ <b>{mb}</b> МБ · ~{time}", { texts: info.texts, audio: info.audio, mb: v3ExpFmtMB(info.sizeEst), time: v3ExpFmtTime(info.etaSec) })
+      +   '</div>'
+      +   (warn ? ('<div class="v3-exp-pf-warn">' + v3ExpT("exp.pfWarn", "Большой архив — это займёт время. Можно выбрать «Только метаданные» (быстро): аудио восстановится на приёмнике при первом воспроизведении.") + '</div>') : "")
+      +   '<div class="v3-exp-pf-actions">'
+      +     '<button type="button" class="v3-exp-pf-btn primary" id="v3ExpPfAudio">' + v3ExpT("exp.pfAudio", "Экспорт с аудио") + '</button>'
+      +     '<button type="button" class="v3-exp-pf-btn secondary" id="v3ExpPfMeta">' + v3ExpT("exp.pfMeta", "Только метаданные") + '<span class="sub">' + v3ExpT("exp.pfMetaSub", "быстро · без аудиофайлов") + '</span></button>'
+      +     '<button type="button" class="v3-exp-pf-btn ghost" id="v3ExpPfCancel">' + v3ExpT("exp.cancel", "Отмена") + '</button>'
+      +   '</div>'
+      + '</div>';
+    backdrop.addEventListener("click", function (e) { if (e.target === backdrop) finish(null); });
+    document.body.appendChild(backdrop);
+    document.getElementById("v3ExpPfAudio").onclick = function () { finish("audio"); };
+    document.getElementById("v3ExpPfMeta").onclick = function () { finish("meta"); };
+    document.getElementById("v3ExpPfCancel").onclick = function () { finish(null); };
+  });
+}
+
+async function v3ExportRunLocal() {
+  if (v3ExportState && !v3ExportState.done) { v3ExportFocusCard(); return; }
+  const btn = document.querySelector('button[onclick="v3LibraryExportBundle()"]');
+  const state = v3ExportState = {
+    abort: new AbortController(), cancelled: false, done: false, mode: "audio",
+    phase: "read", textCount: 0, audioTotal: 0, audioDone: 0, missing: 0,
+    bytes: 0, packPercent: 0, rate: 0, etaSec: null, _win: [], _lastPaint: 0,
+  };
+  v3ExportSetBtnBusy(btn, true);
+  v3ExportShowCard(state);
+  try {
+    const JSZip = await v3LoadJSZip();
+    v3ExportPhase(state, "read");
+    const ldb = await ensureLocalDB();
+    const payload = await ldb.exportBundle({ includeArchived: true });
+    if (state.cancelled) return v3ExportFinishCancelled(state, btn);
+
+    const allKeys = new Set();
+    for (const tx of (payload.library.texts || []))
+      for (const r of (tx.rows || [])) { const k = String(r.audio_asset_key || "").trim(); if (k) allKeys.add(k); }
+    const keys = Array.from(allKeys);
+    state.textCount = (payload.library.texts || []).length;
+    state.audioTotal = keys.length;
+
+    // Preflight: counts exact, size ≈ count × ~42KB calibration, ETA ≈ count / ~12·s⁻¹.
+    const sizeEst = keys.length * 42 * 1024;
+    const etaEst = keys.length ? Math.round(keys.length / 12) : 0;
+    const choice = await v3ExportPreflight({ texts: state.textCount, audio: keys.length, sizeEst: sizeEst, etaSec: etaEst });
+    if (!choice || state.cancelled) return v3ExportFinishCancelled(state, btn);
+    state.mode = choice;
+
+    const zip = new JSZip();
+    const missing = [];
+
+    if (choice === "audio") {
+      v3ExportPhase(state, "audio");
+      const audioFolder = zip.folder("audio");
+      const CONCURRENCY = 6, FETCH_TIMEOUT_MS = 8000;
+      let cursor = 0;
+      state._win.push({ t: Date.now(), n: 0 });
+      const worker = async function () {
+        while (cursor < keys.length) {
+          if (state.cancelled) return;
+          const key = keys[cursor++];
+          let timer = null;
+          const ctrl = new AbortController();
+          const onAbort = function () { try { ctrl.abort(); } catch (_) {} };
+          if (state.abort.signal.aborted) onAbort();
+          state.abort.signal.addEventListener("abort", onAbort, { once: true });
+          try {
+            timer = setTimeout(onAbort, FETCH_TIMEOUT_MS);
+            const r = await fetch("/api/audio/" + encodeURIComponent(key), { signal: ctrl.signal });
+            if (!r.ok) { missing.push({ owner_type: "row", asset_key: key, reason: "file_missing_in_cache" }); }
+            else {
+              const ab = await r.arrayBuffer();
+              audioFolder.file(key + ".mp3", ab, { compression: "STORE" });
+              state.bytes += ab.byteLength;
+              const aa = (payload.library.audio_assets || []).find(function (x) { return x.asset_key === key; });
+              if (aa) aa.size_bytes = ab.byteLength;
+            }
+          } catch (e) {
+            if (state.cancelled) return;
+            missing.push({ owner_type: "row", asset_key: key, reason: (e && e.name === "AbortError") ? "timeout" : "fetch_error" });
+          } finally {
+            if (timer) clearTimeout(timer);
+            state.abort.signal.removeEventListener("abort", onAbort);
+          }
+          state.audioDone++; state.missing = missing.length;
+          v3ExportTrackRate(state);
+          v3ExportPaint(state);
+        }
+      };
+      const ws = [];
+      for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) ws.push(worker());
+      await Promise.all(ws);
+      if (state.cancelled) return v3ExportFinishCancelled(state, btn);
+    }
+
+    const audioCount = (choice === "audio") ? (keys.length - missing.length) : 0;
+    payload.manifest.audio_count = audioCount;
+    payload.manifest.missing_audio_count = missing.length;
+    payload.manifest.partial_backup = (choice !== "audio") || (missing.length > 0);
+    payload.manifest.export_mode = choice; // provenance: audio | meta
+
+    zip.file("manifest.json", JSON.stringify(payload.manifest, null, 2));
+    zip.file("library/library.json", JSON.stringify(payload.library, null, 2));
+    if (payload.notes_advanced && payload.manifest.notes_advanced_present)
+      zip.file("library/notes_advanced.json", JSON.stringify(payload.notes_advanced, null, 2));
+    if (missing.length)
+      zip.file("metadata/missing_audio.json", JSON.stringify({
+        missing_audio: missing, count: missing.length,
+        help: "Эти ассеты ссылаются предложениями, но audio-cache их не отдал (таймаут или сервер передеплоен). Чтобы восстановить — переTTS-ните соответствующие строки.",
+      }, null, 2));
+
+    v3ExportPhase(state, "pack");
+    const blob = await zip.generateAsync(
+      { type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } },
+      function (meta) { try { if (meta && typeof meta.percent === "number") { state.packPercent = meta.percent; v3ExportPaint(state); } } catch (_) {} }
+    );
+    if (state.cancelled) return v3ExportFinishCancelled(state, btn);
+
+    const filename = v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
+    const a = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+
+    const audioMsg = (choice === "audio")
+      ? (audioCount + "/" + keys.length + " " + v3ExpT("exp.audioFiles", "аудио файлов"))
+      : v3ExpT("exp.metaOnlyMsg", "без аудио (метаданные)");
+    const missingNote = missing.length ? (" ⚠ " + missing.length) : "";
+    v3ExportFinishDone(state, btn, { texts: state.textCount, audioMsg: audioMsg, missingNote: missingNote, warn: missing.length > 0 });
+  } catch (e) {
+    if (state.cancelled) return v3ExportFinishCancelled(state, btn);
+    console.warn("v3ExportRunLocal failed", e);
+    v3ExportFinishError(state, btn, e);
+  }
+}
+
 async function v3LibraryExportBundle() {
   try {
     let blob, filename;
     if (LOCAL_MODE) {
-      // Browser-side ZIP in the **unified Android v2 / web v3** layout
-      // (see docs/ANDROID_V2_LIBRARY_EXPORT_SPEC.md). Same ZIP works for
-      // both web import and Android v2 SAF import.
-      //   manifest.json
-      //   library/library.json
-      //   audio/<asset_key>.mp3
-      //   metadata/missing_audio.json (when partial_backup)
-      // Lazy-load JSZip (Phase B). The script tag is injected on demand
-      // and the result cached, so subsequent export/import calls don't
-      // re-fetch.
-      const JSZip = await v3LoadJSZip();
-      // Persistent progress channel. The start toast auto-dismisses in 2.5s,
-      // but a big library (audio fetch + ZIP packing) can run for minutes —
-      // without a live counter the user can't tell "working" from "crashed".
-      // We drive the Library status line (visible while the modal is open) so
-      // there's always a heartbeat; the toast stays as a quick confirmation.
-      const _setExpStatus = (msg) => {
-        try { const el = document.getElementById("v3LibraryStatus"); if (el) el.textContent = msg; } catch (_) {}
-      };
-      showToast(t("toast.zipPrepFromOpfs"));
-      _setExpStatus(t("toast.zipPrepFromOpfs"));
-      const ldb = await ensureLocalDB();
-      const payload = await ldb.exportBundle({ includeArchived: true });
-
-      // Collect unique asset_keys across all texts.
-      const allKeys = new Set();
-      for (const tx of (payload.library.texts || [])) {
-        for (const r of (tx.rows || [])) {
-          const k = String(r.audio_asset_key || "").trim();
-          if (k) allKeys.add(k);
-        }
-      }
-
-      const zip = new JSZip();
-      const audioFolder = zip.folder("audio");
-      const missing = [];
-
-      // Fetch audio in parallel (capped). Per-asset errors are non-fatal.
-      const keys = Array.from(allKeys);
-      const textCount = (payload.library.texts || []).length;
-      _setExpStatus(t("toast.zipBuildStart", { texts: textCount, audio: keys.length }));
-      const CONCURRENCY = 6;
-      const FETCH_TIMEOUT_MS = 8000;  // a single hung asset must not stall the whole export
-      let cursor = 0;
-      let fetched = 0;
-      async function worker() {
-        while (cursor < keys.length) {
-          const i = cursor++;
-          const key = keys[i];
-          let timer = null;
-          try {
-            const ctrl = new AbortController();
-            timer = setTimeout(() => { try { ctrl.abort(); } catch (_) {} }, FETCH_TIMEOUT_MS);
-            const r = await fetch("/api/audio/" + encodeURIComponent(key), { signal: ctrl.signal });
-            if (!r.ok) {
-              missing.push({ owner_type: 'row', asset_key: key, reason: 'file_missing_in_cache' });
-            } else {
-              const ab = await r.arrayBuffer();
-              // MP3 is already compressed — STORE it so packing is near-instant
-              // instead of minutes of pointless DEFLATE on the main thread.
-              audioFolder.file(key + ".mp3", ab, { compression: "STORE" });
-              // Update audio_assets metadata with file size for the ZIP manifest.
-              const aa = (payload.library.audio_assets || []).find((x) => x.asset_key === key);
-              if (aa) aa.size_bytes = ab.byteLength;
-            }
-          } catch (e) {
-            missing.push({ owner_type: 'row', asset_key: key, reason: (e && e.name === 'AbortError') ? 'timeout' : 'fetch_error' });
-          } finally {
-            if (timer) clearTimeout(timer);
-          }
-          fetched++;
-          if (keys.length) _setExpStatus(t("toast.zipFetchingAudio", { done: fetched, total: keys.length }));
-        }
-      }
-      const workers = [];
-      for (let i = 0; i < Math.min(CONCURRENCY, keys.length); i++) workers.push(worker());
-      await Promise.all(workers);
-
-      // Update manifest with actual numbers.
-      payload.manifest.audio_count = keys.length - missing.length;
-      payload.manifest.missing_audio_count = missing.length;
-      payload.manifest.partial_backup = missing.length > 0;
-
-      zip.file("manifest.json", JSON.stringify(payload.manifest, null, 2));
-      zip.file("library/library.json", JSON.stringify(payload.library, null, 2));
-      // Phase 9.1.D: advanced notes payload (web-only, Android v2 ignores
-      // unknown ZIP entries). Only writes when there's actually something
-      // to ride (manifest.notes_advanced_present is set accordingly by
-      // exportBundle).
-      if (payload.notes_advanced && payload.manifest.notes_advanced_present) {
-        zip.file("library/notes_advanced.json", JSON.stringify(payload.notes_advanced, null, 2));
-      }
-      if (missing.length) {
-        zip.file("metadata/missing_audio.json", JSON.stringify({
-          missing_audio: missing,
-          count: missing.length,
-          help:
-            "Эти ассеты ссылаются предложениями, но Railway audio-cache их не отдал " +
-            "(скорее всего сервер был передеплоен и кэш потерялся). Чтобы восстановить, " +
-            "переTTS-ните соответствующие строки.",
-        }, null, 2));
-      }
-
-      // DEFLATE here only compresses the JSON manifests — audio is STORE'd
-      // per-file above, so packing stays fast even for hundreds of MB. The
-      // onUpdate callback keeps the status line ticking through the pack.
-      _setExpStatus(t("toast.zipPacking", { percent: 0 }));
-      blob = await zip.generateAsync(
-        { type: "blob", compression: "DEFLATE", compressionOptions: { level: 6 } },
-        (meta) => {
-          try {
-            if (meta && typeof meta.percent === "number") {
-              _setExpStatus(t("toast.zipPacking", { percent: Math.round(meta.percent) }));
-            }
-          } catch (_) {}
-        }
-      );
-      filename = v3LibraryMakeExportFilename("library-bundle").replace(".json", ".zip");
-      const audioMsg = (keys.length - missing.length) + "/" + keys.length + " аудио файлов";
-      const missingNote = missing.length
-        ? ` ⚠ ${missing.length} аудио не найдены в кеше (см. metadata/missing_audio.json)`
-        : "";
-      _setExpStatus(t("toast.zipReady", { count: textCount, audio: audioMsg, missing: missingNote }));
-      showToast(t("toast.zipReady", { count: textCount, audio: audioMsg, missing: missingNote }), missing.length ? "warning" : "success");
+      // LOCAL → premium progress engine (preflight + progress card + cancel
+      // + global chip + ETA). It owns its own download + terminal toasts.
+      return v3ExportRunLocal();
     } else {
       showToast(t("toast.zipPrepWithAudio"));
       try { const _el = document.getElementById("v3LibraryStatus"); if (_el) _el.textContent = t("toast.zipServerRequest"); } catch (_) {}
