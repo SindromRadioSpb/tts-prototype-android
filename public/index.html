@@ -28106,7 +28106,10 @@ async function v3ExportRunLocal() {
     if (choice === "audio") {
       v3ExportPhase(state, "audio");
       const audioFolder = zip.folder("audio");
-      const CONCURRENCY = 6, FETCH_TIMEOUT_MS = 8000;
+      // P (perf): audio fetch is network-I/O-bound over HTTP/2 — bumped 6→12.
+      // Paired with the server X-Bulk path (DB-free), so higher fan-out stays
+      // safe on the 1.5-CPU prod box. See LIBRARY_EXPORT_PERF_P_2026_06_24.md.
+      const CONCURRENCY = 12, FETCH_TIMEOUT_MS = 8000;
       let cursor = 0;
       state._win.push({ t: Date.now(), n: 0 });
       const worker = async function () {
@@ -28120,7 +28123,7 @@ async function v3ExportRunLocal() {
           state.abort.signal.addEventListener("abort", onAbort, { once: true });
           try {
             timer = setTimeout(onAbort, FETCH_TIMEOUT_MS);
-            const r = await fetch("/api/audio/" + encodeURIComponent(key), { signal: ctrl.signal });
+            const r = await fetch("/api/audio/" + encodeURIComponent(key), { signal: ctrl.signal, headers: { "X-Bulk": "1" } });
             if (!r.ok) { missing.push({ owner_type: "row", asset_key: key, reason: "file_missing_in_cache" }); }
             else {
               const ab = await r.arrayBuffer();

@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+### Performance — Library export аудио-фетч (P) (SW v3.10.82-export-perf-p)
+
+Дизайн: `docs/planning/LIBRARY_EXPORT_PERF_P_2026_06_24.md`. Ускорение экспорта с аудио
+для больших библиотек (источник: измеренные ~7–16 клипов/сек на 8906-клиповом профиле).
+
+- **Сервер `X-Bulk: 1` fast-path** (`/api/audio/:assetKey`): bulk-экспорт шлёт заголовок →
+  сервер пропускает `touchAudioAsset` (телеметрия last_used) и DB-lookup `relative_path`,
+  отдаёт клип чистым стримом по детерминированному content-addressed пути. Read-only,
+  stateless, те же immutable-заголовки. Заголовок (не query) → ключ HTTP-кэша совпадает с
+  обычным воспроизведением, cache-hit'ы переиспользуются. Снимает 8906 per-request DB-записей.
+- **Клиент: параллелизм 6 → 12** в `v3ExportRunLocal` (network-I/O-bound по HTTP/2; безопасно
+  на 1.5-CPU проде после снятия DB-работы).
+
 ### Added — Library export премиум-прогресс T2 (SW v3.10.81-export-progress-t2)
 
 Дизайн: `docs/planning/LIBRARY_EXPORT_PROGRESS_T2_2026_06_23.md`. Поверх v3.10.80:

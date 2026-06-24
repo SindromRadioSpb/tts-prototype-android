@@ -2734,26 +2734,38 @@ app.get("/api/audio/:assetKey", async (req, res) => {
     return res.status(400).json({ error: "BAD_ASSET_KEY" });
   }
 
-  // Best-effort DB touch (do not block streaming)
-  try {
-    const h = typeof getDbHealth === "function" ? getDbHealth() : null;
-    if (h && h.ok && typeof touchAudioAsset === "function") {
-      touchAudioAsset(assetKey).catch(() => {});
-    }
-  } catch (_) {}
+  // P (perf): the Library bulk export sends `X-Bulk: 1` to take a DB-free fast
+  // path — skip the last_used telemetry touch AND the relative_path DB lookup,
+  // serving straight from the deterministic content-addressed path. Read-only
+  // and stateless. Header (not query) so the browser HTTP-cache key matches a
+  // normal playback fetch and cache hits are reused (see LIBRARY_EXPORT_PERF_P R-1).
+  const bulk = String(req.headers["x-bulk"] || "") === "1";
 
-  // Resolve file relative path (prefer DB relative_path if present; fallback to deterministic)
+  // Best-effort DB touch (do not block streaming) — skipped for bulk export.
+  if (!bulk) {
+    try {
+      const h = typeof getDbHealth === "function" ? getDbHealth() : null;
+      if (h && h.ok && typeof touchAudioAsset === "function") {
+        touchAudioAsset(assetKey).catch(() => {});
+      }
+    } catch (_) {}
+  }
+
+  // Resolve file relative path (prefer DB relative_path if present; fallback to
+  // deterministic). Bulk skips the DB lookup and uses the deterministic path.
   let rel = (typeof getAudioRelativePath === "function")
     ? getAudioRelativePath(assetKey)
     : `audio-cache/${assetKey}.mp3`;
 
-  try {
-    const h = typeof getDbHealth === "function" ? getDbHealth() : null;
-    if (h && h.ok && typeof getAudioAssetByKey === "function") {
-      const row = await getAudioAssetByKey(assetKey);
-      if (row && row.relative_path) rel = String(row.relative_path);
-    }
-  } catch (_) {}
+  if (!bulk) {
+    try {
+      const h = typeof getDbHealth === "function" ? getDbHealth() : null;
+      if (h && h.ok && typeof getAudioAssetByKey === "function") {
+        const row = await getAudioAssetByKey(assetKey);
+        if (row && row.relative_path) rel = String(row.relative_path);
+      }
+    } catch (_) {}
+  }
 
   // Only allow paths inside audio-cache
   const audioCacheRoot = path.resolve(audioCacheDir);
