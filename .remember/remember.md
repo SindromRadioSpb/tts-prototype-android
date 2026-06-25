@@ -1,49 +1,28 @@
-# Library-export epic — CLOSED 2026-06-25
+# Reading Room UX program + Library-export closure — handoff 2026-06-25
 
-**★ READ FIRST:** `docs/planning/LIBRARY_EXPORT_T3_2026_06_25.md` (T3 closure + measurement data) ·
-`docs/planning/LIBRARY_EXPORT_PROGRESS_T2_2026_06_23.md` (T2) · `docs/planning/LIBRARY_EXPORT_PERF_P_2026_06_24.md` (P) · `docs/PROJECT_ROLES.md` (R1–R10 auto) · CLAUDE.md.
-Memory: [[project_library_export_progress]] · [[feedback_commit_push_deploy_default]] · [[feedback_studio_live_source_inline]] · [[feedback_headless_opfs_playwright]] · [[feedback_curl_utf8_egress_myth]].
+**★ READ FIRST for Зал/UX work:** `docs/planning/BRR_UX_AUDIT_2026_06_25.md` (9-epic plan) ·
+`docs/planning/BRR_EPIC1_RESOLVER_HONESTY_2026_06_25.md` (NEXT) · `docs/planning/BRR_EPIC7_DESKTOP_LAYOUT_2026_06_25.md` (SHIPPED) ·
+`docs/PROJECT_ROLES.md` (R1–R10 auto). Memory: [[project_brr_ux_audit]] · [[project_ben_yehuda_reading_room]] · [[feedback_studio_live_source_inline]] · [[feedback_browser_verify_fresh_code]] · [[feedback_headless_opfs_playwright]] · [[feedback_test_with_nonempty_profile]].
 Project = LinguistPro (Node PWA, иврит↔рус), prod https://linguistpro.kolosei.com (Studio `/index.html`, Зал `/library.html`).
-Owner-инвариант: бескомпромиссное качество, без заглушек; R1–R10 авто; развилка → варианты + рекомендация, владелец решает.
 
-## STATE — main = эпик-closure + P2-diagnostic doc-коммиты поверх `c778434`, SW `v3.10.82-export-perf-p` (кода/SW НЕ трогали — только docs/память)
+## STATE — main HEAD `c74e715`, prod SW `v3.10.84-room-desktop` (all prod-verified)
 
-**Эпик «Экспорт ZIP (с аудио)» ЗАВЕРШЁН.** 3 релиза отгружены+прод-верифицированы; T3 закрыт по данным замеров (кода не добавлено).
-- **v3.10.80** (`d9e7c0e`): live-прогресс + STORE для аудио + 8с таймаут (починка «висит»).
-- **v3.10.81 T2** (`171a24e`): премиум-UX — пре-флайт / «только метаданные» / карточка / Отмена / чип. Движок `v3ExportRunLocal()` + `v3Export*` INLINE в `public/index.html`.
-- **v3.10.82 P** (`c778434`): сервер `X-Bulk` DB-free путь /api/audio + параллелизм 6→12. Аудио-байты ТОЛЬКО на сервере (нет OPFS/SW-cache).
+### Эта сессия закрыла:
+1. **Library-export эпик ЗАВЕРШЁН** (`dd21944`): T3 закрыт + P2 отклонён — оба по замерам (фризы=1×167мс блик, Blob off-heap; узкое место = полоса ~0.4 MB/s клиент↔origin, не round-trips). [[project_library_export_progress]].
+2. **Читальный зал UX-аудит + план по 9 эпикам** (`eee0e6c`): ролевой workflow (11 линз R1–R10+UX) + live Kapture → 37 верифиц. находок → 9 эпиков. Флагман P0 = резолвер тратит «точно» на неразрешённые чтения (живой баг הֵלֶךְ). [[project_brr_ux_audit]].
+3. **Эпик 7 (десктоп-раскладка) SHIPPED+PROD+ПОЛНОСТЬЮ ВЕРИФИЦИРОВАН** (`c74e715`, SW v3.10.84): центр-контейнер 1120px + 880 book-reader (`#proTable` не тронут, parity зелёный) + period-grid auto-fill + полки carousel+scrollbar. **Урок:** v3.10.83 wrap-grid разворачивал длинную полку в 25kpx-страницу → откат на carousel (v3.10.84). **Device-check ЗАКРЫТ 0 фиксов:** мобайл light+dark (owner, 11 скринов `Picture UI/25.06.26/` — mobile-каскад не тронут, badge=«прочитано») + десктоп light+dark (Kapture@1920: roomContent 1120 центр, reader 880, jump-row амбер читаем на dark). recon-доки эпиков 1+7 = `bea487a`. **Эпик 7 ЗАКРЫТ.**
 
-## T3 — ❌ ЗАКРЫТ (гейт §0 измерен: фризы/память НЕ проблема; владелец решил закрыть 2026-06-25)
+## NEXT — Эпик 1: Честность резолвера (P0) — владелец одобрил («Эпик 7 сейчас, потом Эпик 1»)
+Recon-дизайн готов: `docs/planning/BRR_EPIC1_RESOLVER_HONESTY_2026_06_25.md`. Дефолты развилок одобрены: D1 Dicta-cloud+кэш+graceful-skip · D2 floor по baseline-замеру · D3 «вероятно»+alts · D4 имена P1.3 · D5 ядро P1.0–P1.2 первым.
+**Корень бага (в коде):** `notes-autogen.js formFirstResolve` (стр. 133–147) на `ids.length>1` (гомограф огласов. ячейки) угадывает `arr.find(pos)||arr[0]` как решающий (conf 0.92 → «exact») — единственный путь без guard'а кратности (сёстры `resolveTrueRoot`:190 / `offlineMeaningLookup`:167 возвращают null). `reader-morph.js provenanceLabel`:277 даёт «exact» на ЛЮБОМ form-first. resolveCore:312 хардкодит `kind:null` → guard'ы имён не срабатывают.
+**Фазы:** P1.0 харнесс `smoke:reader-morph:audit` (выборка baked-работ → resolveCore офлайн vs Dicta-silver, precision-floor) + baseline-замер — **СТРОИТСЯ ПЕРВЫМ** (measure-before-code, R10) → P1.1 F1+F2+F3 мультиплик. демоция (ambiguous+alts, conf 0.65, label!exact) → P1.2 F4+F5 alts-UI + гейт обогащения (Pealim→search/таблица«возможная»/семья скрыта при не-exact). Затем (добивка): P1.3 стоп-лист имён · P1.4 borrowed-vs-unknown · P1.5 никуд-бейдж.
+**lock-step:** обновить build-notes генератор симметрично F1/F2 (иначе разойдётся parity заметок). Volume-тест на большом профиле владельца.
 
-**Гейт-вопрос:** после P+STORE фризы UI / память при сборке 360-МБ blob всё ещё реальная проблема? → **НЕТ** (два независимых замера).
-- **Шаг 0 (Node-изоляция, `scratchpad/pack-bench.js`, JSZip 3.10.1):** `generateAsync` кооперативно чанкуется (44.5K уступок), худший стол event-loop'а **71–76мс**; пик памяти nodebuffer ~720МБ / uint8array worst-case ~1.44ГБ; завершается штатно.
-- **Шаг 2 (боевой Chrome desktop, eval-реплика прод-логики, профиль владельца 8906/345МБ, 16.1 мин):**
-  - **Джанк:** фаза audio — НОЛЬ просадок (0 кадров >50мс на ~57K кадрах/15мин, 60fps); фаза pack — **один блик 167мс** (1 longtask 123мс).
-  - **Память:** пик JS-heap **828МБ**, но `measureUserAgentSpecificMemory` всего **418МБ** ⇒ Chrome держит Blob ВНЕ JS-памяти агента (disk-backed) ⇒ FSA-стриминг убрал бы то, что и так off-heap → выигрыш маргинальный. Десктоп-безопасно (20% от лимита 4192МБ). baseline 27МБ; after-fetch 395МБ.
-  - **Настоящее узкое место — ФЕТЧ ~16 мин** (темп деградировал 13→5/с, 48 таймаутов = 0.54%). T3 (Worker+FSA) фетч НЕ ускоряет.
-- **Вывод:** Worker чинит блик 167мс (не оправдан); FSA маргинален. **Закрыли эпик.** Вердикт-док `docs/planning/LIBRARY_EXPORT_T3_2026_06_25.md`.
+## Остальные 7 эпиков (после 1+7) — в плане-доке, по приоритету
+2 уверенность-читаема+Tier3 P1·R10 · 3 премиум-карточка P1·R2 · 4 петля удержания LingQ P1·R2/R5 · 5 graded-импульс P1·R8 · 6 курир.библиотека P1·R6 · 8 a11y/honest/first-run P2·R4 · 9 read-aloud/караоке UX P2·R4.
 
-**Инструмент-урок (Kapture):** клики (CDP input) требуют активной Kapture-панели в DevTools + фокус вкладки (иначе timeout); read-ops (dom/elements/scroll) работают всегда; **`mcp__kapture__evaluate`** доступен ТОЛЬКО после «Allow JavaScript Execution» владельцем — им и гнали реплику (eval-инжект, не клики). Прод оказался `crossOriginIsolated:true` → `measureUserAgentSpecificMemory()` доступен. Замер-реплика на `window.__expRun` (fire-and-forget т.к. eval-таймаут 60с < прогон), опрос между фоновыми паузами.
+## Инварианты/нормы (Зал)
+ВСЁ Room-only: `index.html` + parity-locked `reader-core.js` билдер НЕ трогать (`smoke:reader-parity`); десктоп max-width на Room-локальных селекторах НЕ в общий `reader-core.css`. Offline-first/OPFS. honest-gate (Эпик 1) — зависимость 2/3/4/5. @380px RTL скрин + dark перед коммитом. SW CACHE_VERSION bump на shell-изменение → тост «Обновить» (.ru-upd) → reload для свежести [[feedback_browser_verify_fresh_code]]. Прод-верифи Node-fetch (не Windows-curl). commit+push=деплой по умолчанию [[feedback_commit_push_deploy_default]]. Kapture: клики нужен активный Kapture-панель+фокус; eval-MCP опт-ин и может отвалиться; не ресайзит → мобайл @380px = owner narrow-window.
 
-## P2 (скорость фетча) — ❌ ИССЛЕДОВАН + ОТКЛОНЁН 2026-06-25 (диагностика, данные в LIBRARY_EXPORT_PERF_P §«P2 … ОТКЛОНЁН»)
-Гейт «round-trips доминируют?» — НЕТ. Kapture eval, холодная сеть `no-store`, разные срезы ключей:
-- Одиночный round-trip **95 мс** (p90 112), healthz RTT 86 мс → НЕ round-trip-bound.
-- Агрегат НЕ растёт с параллелизмом: conc 1→0.14 / 6→0.35 / 12→0.39 / 24→0.45 MB/s (плато ~0.4), латентность раздувается до 10с.
-- Одиночный непрерывный стрим 3.3 МБ: ~0.34 MB/s — тот же потолок.
-- **Вывод: полоса ~0.4 MB/s (~3 Мбит/с) клиент↔origin** = общий потолок (не запрос-накладные, не сервер: бокс здоров). 360 МБ ÷ 0.4 = ~15 мин при 1 запросе == при 8906 → **batch физику не обходит, НЕ строим.**
-
-## Опц. будущее (НЕ эпик)
-- **Реальные рычаги по скорости** (раз дело в полосе): «только метаданные» (УЖЕ в T2, аудио лениво на приёмнике) · сторона канала/VPN (Hetzner egress гигабитный → потолок у владельца; на быстром канале текущий код уже быстрый) · опц. микро-твик **conc 12→6** (полоса насыщается на 6; на 12 только латентность+таймауты; одна строка + SW-бамп).
-- **Лёгкий retry** для ~0.5% клипов, что уходят в `missing_audio.json` на длинных прогонах (один проход, 8с таймаут, без повтора).
-- Экспорт-поверхность в Зале (`library.html`); более богатые docs по мобайл-импорту.
-
-## Standing backlog (вне эпика)
-- 🔑 **Ротация AUDIO_UPLOAD_TOKEN + Gemini + GCP** — засвечены в чате, висит (security/ops). Поднять перед публикацией/наполнением корпуса.
-- 47097 Yiddish; B2-retention в дашборде (privacy, Direction 11 — сначала PROPOSE).
-
-## Norms (били раньше)
-- **Commit+push to `main` = deploy (Coolify) по умолчанию** для verified-фиксов с зелёными гейтами [[feedback_commit_push_deploy_default]] / [[feedback_autonomous_commit_push]].
-- Studio live source = `index.html` INLINE (`public/check_script.js` = мёртвая копия) [[feedback_studio_live_source_inline]].
-- Бамп `sw.js CACHE_VERSION` на ЛЮБОЕ изменение index.html/locale/shell. Прод-верифи Node-fetch (не Windows curl).
-- Гейты (если тронут код): `smoke:i18n`, `smoke:reader-parity`, `test:api-smoke` (если server.js), `node --check`. @380px+RTL для UI.
-- `git commit -F - <<'EOF'` (email `<…>` в `-m` ломает шелл). Прод-деплой ~60–105с. Свежесть в браузере = тост «Обновить»→reload→проба нового символа перед тестом.
+## Standing backlog
+🔑 Ротация AUDIO_UPLOAD_TOKEN+Gemini+GCP (засвечены в чате). FTS→26K blocked на ротации. 47097 Yiddish.
