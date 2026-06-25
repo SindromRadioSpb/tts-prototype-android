@@ -1,6 +1,9 @@
 # Читальный зал — UI/UX аудит и план по эпикам (2026-06-25)
 
-**Статус:** 🟢 ПЛАН (research+design завершён; код НЕ начат — эпики ждут выбора владельца).
+**Статус:** 🟢 ПЛАН (research+design завершён). **Прогресс по эпикам:**
+- ✅ **Эпик 7 (десктоп-раскладка)** — SHIPPED+PROD (SW v3.10.84, `c74e715`).
+- ✅ **Эпик 1 (честность резолвера, P0)** — SHIPPED+PROD (SW v3.10.88, до `c41ebdc`). Ядро P1.0–P1.2 + хвост (broaden/auto-Tier-3/participle-soften); хвост честен 90.3%; остаток ~9 имён (F6). Док `BRR_EPIC1_RESOLVER_HONESTY_2026_06_25.md`. **Honest-gate (зависимость Эпиков 2/3/4/5) ГОТОВ.**
+- ⏳ Эпики 2/3/4/5/6/8/9 — ждут выбора владельца. Рекомендация: Эпик 2 (уверенность-читаема + Tier-3 on-demand, R10) следующим.
 **Метод:** ролевой аудит R1–R10 + кросс-режущая UX-линза, прогнан как multi-agent workflow + живой Kapture-замер на проде (профиль владельца).
 **Поверхность:** `public/library.html` + `public/js/library-ui.js` + `reader-core.js`/`reader-morph.js`/`corpus-vocab.js`/`corpus-fts.js`/`inflection-render.js` + `reader-core.css`. **Studio (`index.html`) НЕ трогаем.**
 **Канон ролей:** `docs/PROJECT_ROLES.md`. Связано: [[project_ben_yehuda_reading_room]], BRR_* планы.
