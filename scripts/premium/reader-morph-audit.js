@@ -62,6 +62,7 @@ const getStr = (name) => { const a = argv.find((x) => x.startsWith("--" + name +
 // R1.0 gold-eval (measure-before-code; breaks Dicta-silver circularity with HUMAN gold)
 const WORKSHEET_N = getNum("worksheet", 0);    // producer: emit a gold TSV of N homograph-focused tokens
 const GOLD_FILE = getStr("gold");              // scorer: score a filled worksheet (pure, no browser)
+const REGOLD_FILE = getStr("regold");          // regression gate: re-resolve gold tokens LIVE + re-score
 const OUT_OVERRIDE = getStr("out");            // override worksheet output path
 const FORCE = argv.includes("--force");        // allow overwriting an existing (in-progress) worksheet
 // worksheet needs a generous pool so the rare strata (tail/collision) actually fill
@@ -434,34 +435,55 @@ function lexemeMatch(coarsePos, offLemma, offRoot, goldLemma) {
   return false;
 }
 
-async function runGold(file) {
+// Parse a (BOM/comment-tolerant) gold TSV → { col, rows, gv }. rows = arrays of cells.
+function parseGoldTsv(file) {
   let raw; try { raw = fs.readFileSync(file, "utf8"); } catch (e) { console.error("cannot read gold file: " + file + " — " + e.message); process.exit(1); }
   raw = raw.replace(/^﻿/, "");
-  let header = null; const dataRows = [];
+  let header = null; const rows = [];
   for (const ln of raw.split(/\r?\n/)) {
     if (!ln.trim() || ln.startsWith("#")) continue;
     if (!header) { header = ln.split("\t").map((s) => s.trim()); continue; }
-    dataRows.push(ln.split("\t"));
+    rows.push(ln.split("\t"));
   }
   if (!header) { console.error("no header row found in " + file); process.exit(1); }
   const col = {}; header.forEach((h, i) => (col[h] = i));
   for (const c of ["offline_pos", "offline_label", "gold_pos"]) if (!(c in col)) { console.error("gold file missing required column: " + c); process.exit(1); }
-  const g = (r, name) => { const i = col[name]; return i == null ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+  const gv = (r, name) => { const i = col[name]; return i == null ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+  return { col, rows, gv };
+}
 
-  const HEDGED = new Set(["likely", "guessed"]);
+// Build scoring records from parsed TSV rows. offline_* may be OVERRIDDEN (for --regold, where
+// we re-resolve live with the current resolver while keeping the human gold columns).
+function recordsFromTsv(rows, gv, overrideByIdx) {
+  return rows.map((r, i) => {
+    const o = (overrideByIdx && overrideByIdx[i]) || null;
+    return {
+      niqqud: gv(r, "niqqud"), stratum: gv(r, "stratum") || "?",
+      label: o ? o.label : gv(r, "offline_label"),
+      offPos: o ? o.pos : gv(r, "offline_pos"),
+      offLemma: o ? o.lemma : gv(r, "offline_lemma"),
+      offRoot: o ? o.root : gv(r, "offline_root"),
+      goldPos: gv(r, "gold_pos"), goldLemma: gv(r, "gold_lemma"),
+      nak: gv(r, "nakdan_pos"), verdict: gv(r, "verdict").toLowerCase(),
+    };
+  });
+}
+
+// Score records against human gold (verb-citation-aware). Pure — shared by --gold and --regold.
+const HEDGED_LABELS = new Set(["likely", "guessed"]);
+function computeMetrics(records) {
   let N = 0, annotated = 0, skipped = 0, ambig = 0;
   let exactN = 0, exactOK = 0, wrongN = 0, wrongHedged = 0, hedgedN = 0, hedgedUnique = 0;
   let lemmaN = 0, lemmaOK = 0, lemmaStrictOK = 0, lemmaVerbN = 0, lemmaVerbOK = 0, lemmaNonVerbN = 0, lemmaNonVerbOK = 0;
   let nakN = 0, nakOK = 0, posStrictN = 0, posStrictOK = 0;
   const byStratum = {}, byLabel = {}; const falseExacts = [];
-  for (const r of dataRows) {
+  for (const rec of records) {
     N++;
-    const goldPos = g(r, "gold_pos"); const verdict = g(r, "verdict").toLowerCase();
+    const { goldPos, verdict } = rec;
     if (!goldPos && !verdict) continue;             // unannotated
     if (verdict === "skip") { skipped++; continue; }
     annotated++;
-    const label = g(r, "offline_label"), stratum = g(r, "stratum") || "?";
-    const offPos = g(r, "offline_pos"), offLemma = g(r, "offline_lemma"), offRoot = g(r, "offline_root"), goldLemma = g(r, "gold_lemma"), nak = g(r, "nakdan_pos");
+    const { label, stratum, offPos, offLemma, offRoot, goldLemma, nak } = rec;
     const isAmbig = verdict === "ambig"; if (isAmbig) ambig++;
     let offlineCorrect;
     if (verdict === "ok") offlineCorrect = true;
@@ -471,9 +493,9 @@ async function runGold(file) {
     if (label === "exact") { exactN++; if (offlineCorrect && !isAmbig) exactOK++; }
     if (!offlineCorrect || isAmbig) {
       wrongN++; if (label !== "exact") wrongHedged++;
-      else if (falseExacts.length < 40) falseExacts.push({ niqqud: g(r, "niqqud"), offPos, goldPos, offLemma, goldLemma, verdict: verdict || "(derived)", stratum });
+      else if (falseExacts.length < 40) falseExacts.push({ niqqud: rec.niqqud, offPos, goldPos, offLemma, goldLemma, verdict: verdict || "(derived)", stratum });
     }
-    if (HEDGED.has(label)) { hedgedN++; if (offlineCorrect && !isAmbig) hedgedUnique++; }
+    if (HEDGED_LABELS.has(label)) { hedgedN++; if (offlineCorrect && !isAmbig) hedgedUnique++; }
     if (goldLemma) {
       lemmaN++;
       const cg = coarseGold(goldPos);
@@ -488,58 +510,135 @@ async function runGold(file) {
     bs.n++; if (label === "exact") { bs.exactN++; if (offlineCorrect && !isAmbig) bs.exactOK++; } if (!offlineCorrect || isAmbig) bs.wrong++;
     byLabel[label] = (byLabel[label] || 0) + 1;
   }
-  try { fs.mkdirSync(path.dirname(GOLD_REPORT), { recursive: true }); } catch (_) {}
-  const report = {
-    generated_for: "R1 gold eval (HUMAN gold vs resolver — non-circular)",
+  return { N, annotated, skipped, ambig, exactN, exactOK, wrongN, wrongHedged, hedgedN, hedgedUnique,
+    lemmaN, lemmaOK, lemmaStrictOK, lemmaVerbN, lemmaVerbOK, lemmaNonVerbN, lemmaNonVerbOK,
+    nakN, nakOK, posStrictN, posStrictOK, byStratum, byLabel, falseExacts };
+}
+
+function buildReport(m, file, generatedFor) {
+  return {
+    generated_for: generatedFor,
     file: path.relative(REPO, path.resolve(file)),
-    coverage: { totalRows: N, annotated, skipped, unannotated: N - annotated - skipped },
+    coverage: { totalRows: m.N, annotated: m.annotated, skipped: m.skipped, unannotated: m.N - m.annotated - m.skipped },
     headline: {
-      precisionOfExact: rate(exactOK, exactN), exactN,
-      honestDegradationRecall: rate(wrongHedged, wrongN), wrongN,
-      overHedgeRate: rate(hedgedUnique, hedgedN), hedgedN,
-      lemmaAccuracy: rate(lemmaOK, lemmaN), lemmaN,
-      lemmaAccuracyStrictString: rate(lemmaStrictOK, lemmaN),
-      lemmaAccuracyVerb: rate(lemmaVerbOK, lemmaVerbN), lemmaVerbN,
-      lemmaAccuracyNonVerb: rate(lemmaNonVerbOK, lemmaNonVerbN), lemmaNonVerbN,
-      posStrictMatch: rate(posStrictOK, posStrictN),
+      precisionOfExact: rate(m.exactOK, m.exactN), exactN: m.exactN,
+      honestDegradationRecall: rate(m.wrongHedged, m.wrongN), wrongN: m.wrongN,
+      overHedgeRate: rate(m.hedgedUnique, m.hedgedN), hedgedN: m.hedgedN,
+      lemmaAccuracy: rate(m.lemmaOK, m.lemmaN), lemmaN: m.lemmaN,
+      lemmaAccuracyStrictString: rate(m.lemmaStrictOK, m.lemmaN),
+      lemmaAccuracyVerb: rate(m.lemmaVerbOK, m.lemmaVerbN), lemmaVerbN: m.lemmaVerbN,
+      lemmaAccuracyNonVerb: rate(m.lemmaNonVerbOK, m.lemmaNonVerbN), lemmaNonVerbN: m.lemmaNonVerbN,
+      posStrictMatch: rate(m.posStrictOK, m.posStrictN),
     },
-    silver: { nakdanGoldAgreement: rate(nakOK, nakN), nakN, genuineAmbiguityRate: rate(ambig, annotated), ambig },
-    byStratum, byLabel, falseExactOffenders: falseExacts,
+    silver: { nakdanGoldAgreement: rate(m.nakOK, m.nakN), nakN: m.nakN, genuineAmbiguityRate: rate(m.ambig, m.annotated), ambig: m.ambig },
+    byStratum: m.byStratum, byLabel: m.byLabel, falseExactOffenders: m.falseExacts,
     caveat: "precision/recall/lemma use a VERB-CITATION-AWARE lexeme match (resolver infinitive lemma vs gold 3ms-past compared on root, weak-letter tolerant). Sampling is HOMOGRAPH-WEIGHTED — read precision PER STRATUM: control ≈ representative clean «exact»; tail = deliberately oversampled vocalized homographs.",
   };
-  fs.writeFileSync(GOLD_REPORT, JSON.stringify(report, null, 2));
+}
 
-  console.log("\n══════════ reader-morph-audit · R1 GOLD SCORE ══════════");
+function renderMetrics(m, file, reportPath, title) {
+  console.log("\n══════════ reader-morph-audit · " + title + " ══════════");
   console.log("file          : " + path.relative(REPO, path.resolve(file)));
-  console.log("coverage      : " + annotated + " scored + " + skipped + " skipped = " + (annotated + skipped) + " / " + N + " rows   (" + (N - annotated - skipped) + " unannotated)");
-  if (!annotated) { console.log("\nno annotated rows yet — fill gold_pos (+ gold_lemma) and re-run.\nreport → " + path.relative(REPO, GOLD_REPORT)); return; }
+  console.log("coverage      : " + m.annotated + " scored + " + m.skipped + " skipped = " + (m.annotated + m.skipped) + " / " + m.N + " rows   (" + (m.N - m.annotated - m.skipped) + " unannotated)");
+  if (!m.annotated) { console.log("\nno annotated rows yet — fill gold_pos (+ gold_lemma) and re-run.\nreport → " + path.relative(REPO, reportPath)); return; }
   console.log("⚠ HOMOGRAPH-WEIGHTED sample → read PER-STRATUM below (control≈representative, tail=oversampled hard cases); blended headline is NOT a corpus base-rate.");
   console.log("─ headline (vs HUMAN gold — non-circular) ─");
-  console.log("  precision of «exact»        : " + pct(rate(exactOK, exactN)) + "  (" + exactOK + "/" + exactN + ")   ← true trust of «точно»");
-  console.log("  honest-degradation recall   : " + pct(rate(wrongHedged, wrongN)) + "  (" + wrongHedged + "/" + wrongN + ")   ← of wrong/ambig, NOT «точно»");
-  console.log("  over-hedge rate             : " + pct(rate(hedgedUnique, hedgedN)) + "  (" + hedgedUnique + "/" + hedgedN + ")   ← hedged but actually unique");
-  console.log("  lemma/lexeme accuracy       : " + pct(rate(lemmaOK, lemmaN)) + "  (" + lemmaOK + "/" + lemmaN + ")   verb-citation-aware  (strict-string " + pct(rate(lemmaStrictOK, lemmaN)) + ")");
-  console.log("    └ verb " + pct(rate(lemmaVerbOK, lemmaVerbN)) + " (" + lemmaVerbOK + "/" + lemmaVerbN + ")    non-verb " + pct(rate(lemmaNonVerbOK, lemmaNonVerbN)) + " (" + lemmaNonVerbOK + "/" + lemmaNonVerbN + ")");
-  console.log("  POS strict-string match     : " + pct(rate(posStrictOK, posStrictN)) + "  (" + posStrictOK + "/" + posStrictN + ")");
+  console.log("  precision of «exact»        : " + pct(rate(m.exactOK, m.exactN)) + "  (" + m.exactOK + "/" + m.exactN + ")   ← true trust of «точно»");
+  console.log("  honest-degradation recall   : " + pct(rate(m.wrongHedged, m.wrongN)) + "  (" + m.wrongHedged + "/" + m.wrongN + ")   ← of wrong/ambig, NOT «точно»");
+  console.log("  over-hedge rate             : " + pct(rate(m.hedgedUnique, m.hedgedN)) + "  (" + m.hedgedUnique + "/" + m.hedgedN + ")   ← hedged but actually unique");
+  console.log("  lemma/lexeme accuracy       : " + pct(rate(m.lemmaOK, m.lemmaN)) + "  (" + m.lemmaOK + "/" + m.lemmaN + ")   verb-citation-aware  (strict-string " + pct(rate(m.lemmaStrictOK, m.lemmaN)) + ")");
+  console.log("    └ verb " + pct(rate(m.lemmaVerbOK, m.lemmaVerbN)) + " (" + m.lemmaVerbOK + "/" + m.lemmaVerbN + ")    non-verb " + pct(rate(m.lemmaNonVerbOK, m.lemmaNonVerbN)) + " (" + m.lemmaNonVerbOK + "/" + m.lemmaNonVerbN + ")");
+  console.log("  POS strict-string match     : " + pct(rate(m.posStrictOK, m.posStrictN)) + "  (" + m.posStrictOK + "/" + m.posStrictN + ")");
   console.log("─ silver validation (how much to trust Dicta on archaic) ─");
-  console.log("  Nakdan-silver ↔ gold agree  : " + pct(rate(nakOK, nakN)) + "  (" + nakOK + "/" + nakN + ")");
-  console.log("  genuine ambiguity rate      : " + pct(rate(ambig, annotated)) + "  (" + ambig + "/" + annotated + ")");
+  console.log("  Nakdan-silver ↔ gold agree  : " + pct(rate(m.nakOK, m.nakN)) + "  (" + m.nakOK + "/" + m.nakN + ")");
+  console.log("  genuine ambiguity rate      : " + pct(rate(m.ambig, m.annotated)) + "  (" + m.ambig + "/" + m.annotated + ")");
   console.log("─ per-stratum (precision of «exact») ─");
-  for (const s of WS_ORDER.concat(Object.keys(byStratum).filter((k) => WS_ORDER.indexOf(k) < 0))) {
-    const b = byStratum[s]; if (!b) continue;
+  for (const s of WS_ORDER.concat(Object.keys(m.byStratum).filter((k) => WS_ORDER.indexOf(k) < 0))) {
+    const b = m.byStratum[s]; if (!b) continue;
     console.log("  " + (s + "          ").slice(0, 11) + "n=" + b.n + "  exact " + b.exactOK + "/" + b.exactN + " (" + pct(rate(b.exactOK, b.exactN)) + ")  wrong=" + b.wrong);
   }
-  console.log("label dist    : " + Object.entries(byLabel).map(([k, v]) => k + "=" + v).join("  "));
-  if (falseExacts.length) {
+  console.log("label dist    : " + Object.entries(m.byLabel).map(([k, v]) => k + "=" + v).join("  "));
+  if (m.falseExacts.length) {
     console.log("─ «exact» contradicted by gold (top) ─");
-    for (const o of falseExacts.slice(0, 10)) console.log("  " + o.niqqud + "  off=" + o.offPos + "/" + (o.offLemma || "–") + " gold=" + o.goldPos + "/" + (o.goldLemma || "–") + " [" + o.verdict + "]");
+    for (const o of m.falseExacts.slice(0, 12)) console.log("  " + o.niqqud + "  off=" + o.offPos + "/" + (o.offLemma || "–") + " gold=" + o.goldPos + "/" + (o.goldLemma || "–") + " [" + o.verdict + "]");
   }
-  console.log("report → " + path.relative(REPO, GOLD_REPORT));
+  console.log("report → " + path.relative(REPO, reportPath));
+}
+
+async function runGold(file) {
+  const { rows, gv } = parseGoldTsv(file);
+  const m = computeMetrics(recordsFromTsv(rows, gv, null));
+  try { fs.mkdirSync(path.dirname(GOLD_REPORT), { recursive: true }); } catch (_) {}
+  fs.writeFileSync(GOLD_REPORT, JSON.stringify(buildReport(m, file, "R1 gold eval (HUMAN gold vs resolver — non-circular)"), null, 2));
+  renderMetrics(m, file, GOLD_REPORT, "R1 GOLD SCORE");
+}
+
+// Re-resolve each annotated gold token LIVE with the CURRENT resolver (offline only — no Dicta),
+// keep the human gold columns, re-score. Turns the gold set into a fixed before/after REGRESSION
+// gate for the tail-fix levers (control must not regress; tail precision + honest-recall rise).
+const PAGE_RERESOLVE = `async (items) => {
+  const RM = window.ReaderMorph; await RM.ensureEngine();
+  const out = [];
+  for (const it of items) {
+    let c = null; try { c = await RM.resolveWordLight(it.surface, it.niqqud); } catch (_) { c = null; }
+    out.push(c ? { label: c.label, pos: c.pos || "", lemma: c.lemma || "", root: c.root || "" } : { label: "", pos: "", lemma: "", root: "" });
+  }
+  return out;
+}`;
+
+async function runRegold(file) {
+  let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright — `npm i -D playwright` first"); process.exit(1); }
+  const { rows, gv } = parseGoldTsv(file);
+  // only annotated rows need re-resolution; map back by index
+  const todo = [];
+  rows.forEach((r, i) => { const gp = gv(r, "gold_pos"), v = gv(r, "verdict").toLowerCase(); if ((gp || v) && v !== "skip") todo.push({ i, surface: gv(r, "surface"), niqqud: gv(r, "niqqud") }); });
+  console.log("reader-morph-audit [REGOLD]: re-resolving " + todo.length + " annotated tokens live (offline, no Dicta)");
+
+  const srv = startServer();
+  if (!(await ready())) { console.error("server failed to start"); console.error(srv.logs.join("")); await stop(srv.c); process.exit(1); }
+  const b = await pw.chromium.launch();
+  const overrideByIdx = {};
+  try {
+    const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+    await ctx.addInitScript(() => { try { localStorage.setItem("app.locale", "ru"); } catch (_) {} });
+    const pg = await ctx.newPage();
+    const pageErrors = []; pg.on("pageerror", (e) => pageErrors.push(String(e)));
+    await pg.goto(BASE + "/library.html", { waitUntil: "load" });
+    await pg.waitForFunction(() => !!window.ReaderMorph && !!window.InflectionDict && !!window.NotesAutoGen && !!window.PealimFunctionLinks, { timeout: 25000 });
+    await pg.evaluate(async () => { await window.ReaderMorph.ensureEngine(); });
+    const BATCH = 60;
+    for (let s = 0; s < todo.length; s += BATCH) {
+      const items = todo.slice(s, s + BATCH);
+      let res = []; try { res = await pg.evaluate("(" + PAGE_RERESOLVE + ")(" + JSON.stringify(items.map((t) => ({ surface: t.surface, niqqud: t.niqqud }))) + ")"); } catch (_) { res = []; }
+      items.forEach((t, k) => { if (res[k]) overrideByIdx[t.i] = res[k]; });
+      process.stdout.write("\r  re-resolved " + Math.min(s + BATCH, todo.length) + "/" + todo.length + "   ");
+    }
+    process.stdout.write("\n");
+    if (pageErrors.length) console.error("page errors: " + pageErrors.slice(0, 3).join(" | "));
+  } finally { if (!KEEP) await b.close(); await stop(srv.c); }
+
+  const m = computeMetrics(recordsFromTsv(rows, gv, overrideByIdx));
+  const REGOLD_REPORT = path.join(OUTDIR, "reader-morph-gold-regold-report.json");
+  try { fs.mkdirSync(path.dirname(REGOLD_REPORT), { recursive: true }); } catch (_) {}
+  fs.writeFileSync(REGOLD_REPORT, JSON.stringify(buildReport(m, file, "REGOLD — current resolver re-scored vs human gold (regression gate)"), null, 2));
+  renderMetrics(m, file, REGOLD_REPORT, "REGOLD (current resolver vs gold)");
+  // before/after vs the committed R1.0 baseline report
+  let base = null; try { base = JSON.parse(fs.readFileSync(GOLD_REPORT, "utf8")); } catch (_) {}
+  if (base && base.byStratum) {
+    const d = (a, bb) => (a == null || bb == null) ? "n/a" : (((a - bb) * 100 >= 0 ? "+" : "") + ((a - bb) * 100).toFixed(1) + "pp");
+    const bs = (s, r) => (r.byStratum[s] ? r.byStratum[s].exactOK + "/" + r.byStratum[s].exactN : "–");
+    console.log("─ Δ vs R1.0 baseline (reader-morph-gold-report.json) ─");
+    console.log("  control precision : " + bs("control", base) + " → " + bs("control", m) + "   (must NOT drop)");
+    console.log("  tail precision    : " + bs("tail", base) + " → " + bs("tail", m) + "   " + d(rate((m.byStratum.tail || {}).exactOK, (m.byStratum.tail || {}).exactN), rate((base.byStratum.tail || {}).exactOK, (base.byStratum.tail || {}).exactN)));
+    console.log("  honest-degr recall: " + pct(base.headline.honestDegradationRecall) + " → " + pct(rate(m.wrongHedged, m.wrongN)) + "   " + d(rate(m.wrongHedged, m.wrongN), base.headline.honestDegradationRecall));
+  }
 }
 
 (async () => {
   // R1.0 scorer is a PURE file pass — no server/browser. Branch out before anything boots.
   if (GOLD_FILE) { return runGold(GOLD_FILE); }
+  // REGOLD boots its own server+browser (re-resolve gold tokens live) — branch before the audit boot.
+  if (REGOLD_FILE) { return runRegold(REGOLD_FILE); }
   let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright — `npm i -D playwright` first"); process.exit(1); }
   try { fs.mkdirSync(OUTDIR, { recursive: true }); } catch (_) {}
   let cache = {};
