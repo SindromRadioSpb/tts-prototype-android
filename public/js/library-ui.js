@@ -365,15 +365,29 @@ let readerWordStates = null; // cached {lemmaKey: state}
 let readerWordStatesLoading = null; // single-flight guard (S3: 796 cards call ensureWordStates at once)
 function wordStatusEnabled() { try { return localStorage.getItem('room.wordStatus') === '1'; } catch (_) { return false; } }
 function wordStatusSet(v) { try { localStorage.setItem('room.wordStatus', v ? '1' : '0'); } catch (_) {} }
-// Tier-3 «точный режим» (context mode, opt-in, default OFF). The provider sends the tapped
-// word's SENTENCE to Dicta (browser-direct) and returns the context token; reader-morph's
-// pickContextReading does the honest disambiguation. Per-sentence promise cache so multiple
-// taps in one row = one Dicta call; cleared on (re)attach. Degrade/offline → null (silent).
-function contextModeEnabled() { try { return localStorage.getItem('room.contextMode') === '1'; } catch (_) { return false; } }
-function contextModeSet(v) { try { localStorage.setItem('room.contextMode', v ? '1' : '0'); } catch (_) {} }
+// Tier-3 «точный режим» (context disambiguation). Owner choice: AUTO on every tap once the
+// user gives a one-time consent (the outbound to Dicta is privacy-sensitive — R5). The
+// provider is ALWAYS wired; it gates per-tap on the consent state ('granted'|'declined'|'').
+// On the first tap while undecided it resolves OFFLINE and raises a one-time consent prompt.
+// Per-sentence promise cache so multiple taps in one row = one Dicta call; cleared on (re)attach.
+function contextConsent() {
+  try {
+    const c = localStorage.getItem('room.contextConsent');
+    if (c === 'granted' || c === 'declined') return c;
+    if (localStorage.getItem('room.contextMode') === '1') return 'granted';   // migrate legacy opt-in
+    return '';
+  } catch (_) { return ''; }
+}
+function contextConsentSet(v) {
+  try { localStorage.setItem('room.contextConsent', v); localStorage.setItem('room.contextMode', v === 'granted' ? '1' : '0'); } catch (_) {}
+}
 let _ctxCache = new Map();
+let _ctxConsentAsked = false;          // session debounce for the prompt
 function makeContextProvider() {
   return async function (sentence, surface) {
+    const consent = contextConsent();
+    if (consent === 'declined') return null;
+    if (consent !== 'granted') { promptContextConsent(); return null; }   // undecided → ask once, offline this tap
     const key = String(sentence || '');
     if (!key || !window.ReaderDicta) return null;
     let p = _ctxCache.get(key);
@@ -383,6 +397,25 @@ function makeContextProvider() {
     const tok = window.ReaderDicta.tokenForSurface(res.tokens, surface);
     return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma } : null;
   };
+}
+// One-time consent prompt (R5): explains the outbound, then auto-fires on every tap if granted.
+function promptContextConsent() {
+  if (_ctxConsentAsked || contextConsent()) return;
+  _ctxConsentAsked = true;
+  const overlay = el('div', { class: 'room-consent-overlay' });
+  const box = el('div', { class: 'room-consent', attrs: { role: 'dialog', 'aria-modal': 'true' } });
+  box.appendChild(el('div', { class: 'room-consent-title', i18n: 'room.morph.consentTitle', text: tt('room.morph.consentTitle', 'Уточнять значения по контексту?') }));
+  box.appendChild(el('div', { class: 'room-consent-body', i18n: 'room.morph.consentBody', text: tt('room.morph.consentBody', 'Точный режим отправляет предложение в облако Dicta при каждом тапе по слову, чтобы выбрать значение по контексту (гомографы). Машинный разбор, не носитель. Можно отключить в «Подсказках чтения».') }));
+  const actions = el('div', { class: 'room-consent-actions' });
+  const no = el('button', { class: 'room-consent-no', i18n: 'room.morph.consentNo', text: tt('room.morph.consentNo', 'Не сейчас') });
+  const yes = el('button', { class: 'room-consent-yes', i18n: 'room.morph.consentYes', text: tt('room.morph.consentYes', 'Включить') });
+  const finish = (v) => { contextConsentSet(v); try { overlay.remove(); } catch (_) {} };
+  no.addEventListener('click', () => finish('declined'));
+  yes.addEventListener('click', () => { finish('granted'); roomToast(tt('room.morph.consentOn', 'Точный режим включён')); });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) { try { overlay.remove(); } catch (_) {} } });   // dismiss = undecided (asks again next session)
+  actions.appendChild(no); actions.appendChild(yes); box.appendChild(actions); overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 async function ensureWordStates() {
   if (readerWordStates) return readerWordStates;
@@ -897,7 +930,7 @@ function attachReaderMorph(mount) {
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   _ctxCache = new Map();   // fresh per (re)attach
   const opts = { getRow: (i) => readerRows[i], saveWord: roomSaveWord, lookupNote: roomLookupNote };
-  if (contextModeEnabled()) opts.contextProvider = makeContextProvider();   // Tier-3 opt-in
+  opts.contextProvider = makeContextProvider();   // always wired; gates per-tap on consent (auto once granted)
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }
@@ -988,15 +1021,13 @@ function buildAidsPanel() {
   panel.appendChild(wsLab);
   // R8 on-ramp — one short line teaching the two fading aids.
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.reader.scaffoldHint', text: tt('room.reader.scaffoldHint', '«По нужде»: огласовка тает на знакомых словах. «По тапу»: перевод скрыт — тапни строку, чтобы открыть.') }));
-  // Tier-3 — «точный режим» (context disambiguation via Dicta; opt-in, online). On tap, the
-  // sentence is sent to Dicta to pick the contextually-correct homograph. Honest outbound label.
+  // Tier-3 — «точный режим» (context disambiguation via Dicta; auto on every tap once granted).
+  // On tap, the sentence is sent to Dicta to pick the contextually-correct homograph. The toggle
+  // sets the consent directly (no re-attach needed — the provider gates per-tap on consent).
   const cmLab = el('label', { class: 'reader-aids-status' });
   const cmCb = el('input', { attrs: { type: 'checkbox' } });
-  cmCb.checked = contextModeEnabled();
-  cmCb.addEventListener('change', () => {
-    contextModeSet(cmCb.checked);
-    const m = $('roomReaderTable'); if (m) attachReaderMorph(m);   // re-wire with/without provider
-  });
+  cmCb.checked = contextConsent() === 'granted';
+  cmCb.addEventListener('change', () => { contextConsentSet(cmCb.checked ? 'granted' : 'declined'); });
   cmLab.appendChild(cmCb);
   cmLab.appendChild(el('span', { i18n: 'room.morph.contextToggle', text: tt('room.morph.contextToggle', '🎯 Точный режим (Dicta)') }));
   panel.appendChild(cmLab);

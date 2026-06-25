@@ -649,6 +649,21 @@
       text-align: center; opacity: 0; pointer-events: none; z-index: 1200; transition: opacity .2s, transform .2s;
     }
     .room-toast.show { opacity: 1; transform: translate(-50%, 0); }
+    /* Tier-3 one-time consent (R5: outbound to Dicta on every tap once granted). */
+    .room-consent-overlay {
+      position: fixed; inset: 0; z-index: 1400; background: rgba(0,0,0,.45);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .room-consent {
+      background: var(--bg-card); color: var(--text-primary); border-radius: 14px; max-width: 380px;
+      width: 100%; padding: 20px; box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    .room-consent-title { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+    .room-consent-body { font-size: 13.5px; line-height: 1.5; color: var(--text-secondary); margin-bottom: 18px; }
+    .room-consent-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .room-consent-actions button { width: auto; padding: 9px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid var(--border-soft); }
+    .room-consent-no { background: transparent; color: var(--text-secondary); }
+    .room-consent-yes { background: var(--accent, #2563eb); color: #fff; border-color: transparent; }
     /* ── BRR chrome: SW-update toast + footer + «О Зале» modal ─────────────────── */
     .room-update-toast {
       position: fixed; left: 50%; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);

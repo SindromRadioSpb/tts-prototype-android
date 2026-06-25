@@ -118,6 +118,23 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(eng.gateNeg && eng.gateNeg.isFunc === true && eng.gatePrep && eng.gatePrep.isFunc === true, "functionGate must flag אין + עלינו");
     eq(eng.gateContent && eng.gateContent.isFunc === false, "functionGate must NOT flag content לבנו");
 
+    // Epic 1 tail — broadened pickContextReading: Dicta's context FUNCTION POS demotes an
+    // offline CONTENT reading (homograph trap), curated gloss when known, else POS-only.
+    const ctxPick = await pg.evaluate(() => {
+      const R = window.ReaderMorph;
+      const offNoun = { pos: "noun", pealim_id: "1", meaning: "вечность" };
+      return {
+        prep: R.pickContextReading(offNoun, null, { posDicta: "preposition" }, "עד"),     // curated → «до»
+        advUncurated: R.pickContextReading(offNoun, null, { posDicta: "adverb" }, "כזותי"), // no gloss → POS-only
+        agree: R.pickContextReading({ pos: "noun", pealim_id: "1" }, null, { posDicta: "noun" }, "ספר"), // no demotion
+      };
+    });
+    eq(ctxPick.prep && ctxPick.prep.use === "gloss" && ctxPick.prep.pos === "preposition" && /до/.test(ctxPick.prep.gloss || ""),
+      "Dicta preposition over offline noun → curated function gloss «до» (עד)");
+    eq(ctxPick.advUncurated && ctxPick.advUncurated.use === "gloss" && ctxPick.advUncurated.pos === "adverb" && ctxPick.advUncurated.gloss === "",
+      "Dicta function POS over offline content, no curated gloss → POS-only demotion (no fabricated gloss)");
+    eq(ctxPick.agree && ctxPick.agree.use === "offline", "agreeing content POS must NOT trigger a spurious demotion");
+
     // ── 2/3/4) DOM: wrap parity-safe + tap opens card ─────────────────────────
     const dom = await pg.evaluate(() => {
       const mount = document.createElement("div");

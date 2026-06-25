@@ -244,9 +244,16 @@
   // (1) feed niqqud only when Dicta's CONTENT POS agrees with the resulting paradigm, and
   // (2) for adverbial/function readings supply a small curated context-gloss. R1: shown only
   // when Dicta context confirms the POS; badge «контекст (Dicta)» — machine, not native.
+  // Curated context glosses (R1-honest): used ONLY when Dicta confirms a function POS in
+  // context, so these never override a legitimate content reading of the same skeleton
+  // (עד «свидетель» noun stays a noun unless Dicta says it's the preposition here).
   var CONTEXT_GLOSS = {
     "היום": "сегодня", "מעט": "мало, немного", "מספיק": "достаточно", "הרבה": "много",
     "פעם": "однажды; раз", "כמעט": "почти", "ממש": "прямо, действительно", "דווקא": "именно",
+    // Epic-1 tail — high-frequency adverbial/function homographs (Dicta-POS-gated).
+    "עד": "до, вплоть до", "באמת": "действительно, в самом деле", "להפך": "наоборот, напротив",
+    "בדיוק": "точно, как раз", "לפחות": "по крайней мере", "בכלל": "вообще", "אמנם": "правда, хотя",
+    "בעצם": "по сути, собственно", "לגמרי": "совершенно, полностью", "כבר": "уже",
   };
   function _isContentPos(p) { return p === "noun" || p === "verb" || p === "adjective"; }
   function _isFuncPos(p) {
@@ -260,9 +267,13 @@
   function pickContextReading(offlineCard, ctxCard, ctx, surface) {
     var pos = (ctx && ctx.posDicta) || "";
     var s = stripNiqqud(surface || "");
-    // (B) adverbial / function reading with a curated gloss, gated by Dicta's function POS
-    if (Object.prototype.hasOwnProperty.call(CONTEXT_GLOSS, s) && _isFuncPos(pos))
-      return { use: "gloss", gloss: CONTEXT_GLOSS[s], pos: pos };
+    // (B) Dicta says this is a FUNCTION word in context. Take the function reading when we
+    // either have a curated gloss for it OR the offline resolver asserted a CONTENT reading
+    // (an homograph trap: וְעַד noun→prep, בֶּאֱמֶת noun→adverb). Trusting the context POS we
+    // suppress the wrong content gloss/root/table; gloss is curated when known, else POS-only
+    // (never a fabricated content gloss). R1: shown under the «контекст (Dicta)» machine badge.
+    if (_isFuncPos(pos) && (Object.prototype.hasOwnProperty.call(CONTEXT_GLOSS, s) || _isContentPos(offlineCard.pos || "")))
+      return { use: "gloss", gloss: CONTEXT_GLOSS[s] || "", pos: pos };
     // (A) content homograph: accept the context-niqqud reading only if it is decisive,
     // Dicta's content POS matches the resolved POS, and it actually differs from offline.
     if (ctxCard && (ctxCard.label === "exact" || ctxCard.label === "likely") && ctxCard.meaning &&
