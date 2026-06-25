@@ -274,7 +274,9 @@
 
   function provenanceLabel(r, pos) {
     if (!r) return "unknown";
-    if (r.channel === "form-first") return "exact";
+    // «точно» only for a DECISIVE form-first cell. A multi-id (ambiguous) cell is a guess
+    // among homographs → it falls through to «вероятно» (+ «возможно также» in the card).
+    if (r.channel === "form-first" && !r.ambiguous) return "exact";
     if (r.channel === "paradigm" && r.confidence >= 0.85) return "exact";
     var FN = _functionPos();
     if (FN && pos && FN.has(pos) && !r.meaning) return "function";
@@ -365,6 +367,7 @@
       pealim_id: pealim_id, pealim_url: pealim_url, paradigm: par || null,
       channel: fg.isFunc ? "function-gate" : r.channel, confidence: r.confidence, status: r.status,
       functionWord: fg.isFunc, gateVia: gateVia,
+      ambiguous: fg.isFunc ? false : !!r.ambiguous, alts: fg.isFunc ? [] : (r.alts || []),
       label: gatedLabel || provenanceLabel(r, pos),
     };
   }

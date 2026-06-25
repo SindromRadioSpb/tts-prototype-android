@@ -141,7 +141,19 @@
       if (u.binyan) { var fb = arr.filter(function (x) { return x.binyan === u.binyan; }); if (fb.length) arr = fb; }
       var ids = Array.from(new Set(arr.map(function (x) { return x.pealim_id; })));
       var pick = (ids.length === 1) ? arr[0] : (arr.find(function (x) { return x.pos === pos; }) || arr[0]);
-      if (pick && pick.pealim_id) return { meaning: pick.meaning || null, pealim_id: pick.pealim_id };
+      if (pick && pick.pealim_id) {
+        // ids.length === 1 → the vocalized form is a UNIQUE paradigm cell: decisive.
+        if (ids.length === 1) return { meaning: pick.meaning || null, pealim_id: pick.pealim_id, ambiguous: false, alts: [] };
+        // ids.length > 1 → an homograph cell: `pick` is a best-effort guess, NOT decisive.
+        // Flag it (so the badge can't claim «точно») and carry the rivals for «возможно также».
+        var pickId = String(pick.pealim_id), seen = {}, alts = [];
+        for (var a = 0; a < arr.length && alts.length < 3; a++) {
+          var x = arr[a], key = String(x.pealim_id);
+          if (!x.pealim_id || key === pickId || seen[key]) continue; seen[key] = 1;
+          alts.push({ pealim_id: x.pealim_id, pos: x.pos || "", meaning: x.meaning || null, root: x.root || null });
+        }
+        return { meaning: pick.meaning || null, pealim_id: pick.pealim_id, ambiguous: true, alts: alts };
+      }
     }
     return null;
   }
@@ -298,10 +310,15 @@
     var meaning = (baseParadigm && baseParadigm.meaning) || null;
     var pid = (baseParadigm && baseParadigm.pealim_id) || null;
     var channel = baseParadigm ? "paradigm" : "none";
-    // form-first override (decisive homograph fix).
+    // form-first override (decisive homograph fix). A MULTI-ID (ambiguous) form-first cell
+    // is a best-effort guess, NOT decisive — captured here so it cannot earn «точно» (F2).
     var ff = formFirstResolve(maps, u);
-    if (ff && ff.pealim_id && String(ff.pealim_id) !== String(pid || "")) { pid = ff.pealim_id; if (ff.meaning) meaning = ff.meaning; channel = "form-first"; }
-    else if (ff && ff.pealim_id) { channel = "form-first"; if (!meaning && ff.meaning) meaning = ff.meaning; }
+    var ffAmbiguous = false, ffAlts = [];
+    if (ff && ff.pealim_id) {
+      ffAmbiguous = !!ff.ambiguous; ffAlts = ff.alts || [];
+      if (String(ff.pealim_id) !== String(pid || "")) { pid = ff.pealim_id; if (ff.meaning) meaning = ff.meaning; channel = "form-first"; }
+      else { channel = "form-first"; if (!meaning && ff.meaning) meaning = ff.meaning; }
+    }
     // gloss fallback (real glosses only, never fabricated).
     if (!meaning) { var fb = offlineMeaningLookup(maps, u); if (fb) { meaning = fb; if (channel === "none") channel = "meaning-fallback"; } }
     // true root (or honest empty for nouns/adj).
@@ -309,15 +326,20 @@
     var check = checkUnit(u, baseParadigm);
     // deterministic confidence/status from the winning channel.
     var formHit = formMatches(u, baseParadigm) || (channel === "form-first");
+    // ambiguous form-first → 0.65 (a real-but-undisambiguated gloss = «вероятно», not «точно»).
+    var ambiguous = (channel === "form-first") && ffAmbiguous;
     var conf, status;
-    if (channel === "form-first") { conf = 0.92; status = "ok"; }
+    if (channel === "form-first") { conf = ambiguous ? 0.65 : 0.92; status = "ok"; }
     else if (baseParadigm && meaning && formHit) { conf = 0.85; status = "ok"; }
     else if (baseParadigm && meaning) { conf = 0.65; status = "ok"; }
     else if (meaning) { conf = 0.6; status = "ok"; }
     else if (FUNCTION_POS.has(u.pos || "") || u.kind === "propernoun") { conf = 0.5; status = "ok"; }
     else { conf = check.status === "FAIL" ? 0.15 : 0.3; status = "review"; }
-    if (check.status === "SUSPECT" && status === "ok" && conf < 0.85) status = "review";
-    return { meaning: meaning, pealim_id: pid ? String(pid) : null, trueRoot: trueRoot, channel: channel, check: check, confidence: conf, status: status };
+    // A form-first cell match is its OWN evidence — a thin/absent BASE paradigm (SUSPECT)
+    // must not downgrade an ambiguous form-first below «вероятно» (D3). Clean form-first
+    // (0.92) is already immune (conf≥0.85); this keeps the ambiguous one (0.65) at «likely».
+    if (check.status === "SUSPECT" && status === "ok" && conf < 0.85 && channel !== "form-first") status = "review";
+    return { meaning: meaning, pealim_id: pid ? String(pid) : null, trueRoot: trueRoot, channel: channel, check: check, confidence: conf, status: status, ambiguous: ambiguous, alts: ambiguous ? ffAlts : [] };
   }
 
   // Assemble the word_study body_json (== build-notes lines 388–400). `resolved`

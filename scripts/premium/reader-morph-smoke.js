@@ -69,6 +69,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const siper = await R.resolveWordLight("ספר", "סִפֵּר");  // tell (piel)
       const xyz = await R.resolveWordLight("xyz", "xyz");
       const avraham = await R.resolveWordLight("אברהם", "אַבְרָהָם");
+      // Epic 1 P1.1 — multi-id (homograph) cell must NOT claim «точно»: שָׁנָה (year/repeat)
+      // is a classic homograph; it must demote to «вероятно» (likely) + carry alternatives.
+      const shana = await R.resolveWordLight("שנה", "שָׁנָה");
       // R10 honest-gloss gate: function-form homograph traps + content guards.
       const ein = await R.resolveWordLight("אין", "אֵין");          // negation, was «уничтожить»
       const aleinu = await R.resolveWordLight("עלינו", "עָלֵינוּ");  // prep+suf, was «лист»
@@ -76,11 +79,19 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const lihyot = await R.resolveWordLight("להיות", "לִהְיוֹת");  // content guard: «быть», NOT gated
       const libenu = await R.resolveWordLight("לבנו", "לִבֵּנוּ");   // content guard: «сердце», NOT gated
       const gateNeg = R.functionGate("אין"), gatePrep = R.functionGate("עלינו"), gateContent = R.functionGate("לבנו");
-      return { shalom, sefer, siper, xyz, avraham, ein, aleinu, afilu, lihyot, libenu, gateNeg, gatePrep, gateContent };
+      return { shalom, sefer, siper, xyz, avraham, shana, ein, aleinu, afilu, lihyot, libenu, gateNeg, gatePrep, gateContent };
     });
     eq(eng.shalom && eng.shalom.root === "שלם", "shalom root should be שלם, got " + JSON.stringify(eng.shalom && eng.shalom.root));
     eq(eng.shalom && /мир/.test(eng.shalom.meaning || ""), "shalom gloss should contain 'мир'");
     eq(eng.shalom && eng.shalom.label === "exact", "shalom should be labelled exact");
+    eq(eng.shalom && eng.shalom.ambiguous === false, "shalom (unique cell) must be ambiguous=false (stays «точно»)");
+    // Epic 1 P1.1 — honesty floor: an homograph (multi-id) cell may not be sold as «точно».
+    eq(eng.shana && eng.shana.channel === "form-first", "שָׁנָה should still resolve form-first");
+    eq(eng.shana && eng.shana.ambiguous === true, "שָׁנָה (homograph) must be flagged ambiguous");
+    eq(eng.shana && eng.shana.label !== "exact", "שָׁנָה must NOT claim «точно», got label " + JSON.stringify(eng.shana && eng.shana.label));
+    eq(eng.shana && eng.shana.label === "likely", "שָׁנָה should demote to «вероятно» (likely), got " + JSON.stringify(eng.shana && eng.shana.label));
+    eq(eng.shana && Array.isArray(eng.shana.alts) && eng.shana.alts.length >= 1, "שָׁנָה must carry ≥1 alternative reading for «возможно также»");
+    eq(eng.shana && /повтор|год/.test(eng.shana.meaning || ""), "שָׁנָה must still surface a real gloss (best-effort pick), got " + JSON.stringify(eng.shana && eng.shana.meaning));
     eq(eng.shalom && eng.shalom.pealim_direct === true, "shalom should have a direct Pealim page");
     eq(eng.sefer && eng.sefer.pos === "noun", "סֵפֶר should be noun");
     eq(eng.siper && eng.siper.pos === "verb" && eng.siper.binyan === "piel", "סִפֵּר should be verb/piel (homograph disambiguation)");

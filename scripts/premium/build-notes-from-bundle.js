@@ -142,7 +142,19 @@ function formFirstResolve(maps, u) {
     if (u.binyan) { const f = arr.filter((x) => x.binyan === u.binyan); if (f.length) arr = f; }
     const ids = [...new Set(arr.map((x) => x.pealim_id))];
     const pick = (ids.length === 1) ? arr[0] : arr.find((x) => x.pos === pos) || arr[0];  // unique → sure; else POS-exact, then first
-    if (pick && pick.pealim_id) return { meaning: pick.meaning || null, pealim_id: pick.pealim_id };
+    if (pick && pick.pealim_id) {
+      // Lock-step with notes-autogen.js formFirstResolve: same {meaning,pealim_id} pick
+      // (note bodies unchanged), + an ambiguity signal the browser card consumes for the
+      // honest badge. build-notes does not read ambiguous/alts; mirrored for faithful-port.
+      if (ids.length === 1) return { meaning: pick.meaning || null, pealim_id: pick.pealim_id, ambiguous: false, alts: [] };
+      const pickId = String(pick.pealim_id), seen = {}, alts = [];
+      for (let a = 0; a < arr.length && alts.length < 3; a++) {
+        const x = arr[a], key = String(x.pealim_id);
+        if (!x.pealim_id || key === pickId || seen[key]) continue; seen[key] = 1;
+        alts.push({ pealim_id: x.pealim_id, pos: x.pos || "", meaning: x.meaning || null, root: x.root || null });
+      }
+      return { meaning: pick.meaning || null, pealim_id: pick.pealim_id, ambiguous: true, alts };
+    }
   }
   return null;
 }
