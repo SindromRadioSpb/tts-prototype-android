@@ -456,6 +456,12 @@
       card.pealim_url = "https://www.pealim.com/ru/search/?q=" + encodeURIComponent(surface);
       card.pealim_direct = false;
     }
+    // F5 enrichment gate: an ambiguous (homograph) reading must not present a SPECIFIC
+    // Pealim page as authoritative — downgrade to a search so the user disambiguates.
+    if (card.ambiguous && card.pealim_direct) {
+      card.pealim_url = "https://www.pealim.com/ru/search/?q=" + encodeURIComponent(surface);
+      card.pealim_direct = false;
+    }
     // rich-card data (Stage 2): paradigm for the inflection table (+ pronoun fallback)
     // and the dictionary root family.
     if (!card.paradigm && window.InflectionRender && window.InflectionRender.lookupPronounParadigm) {
@@ -607,6 +613,12 @@
     var meaning = card.meaning
       ? '<div class="rm-meaning" dir="ltr">' + escapeHtml(card.meaning) + "</div>"
       : '<div class="rm-meaning rm-meaning-empty" dir="ltr">' + escapeHtml(tt("room.morph.noGloss", "Перевод не найден офлайн.")) + "</div>";
+    // F4 — homograph honesty: surface the rival readings of an ambiguous cell so the gloss
+    // above reads as one possibility, not a verdict. «возможно также: год; …»
+    var altGlosses = (card.alts || []).map(function (a) { return a && a.meaning; }).filter(Boolean);
+    var altLine = altGlosses.length
+      ? '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.altReadings", "возможно также")) + ":</span> " + escapeHtml(altGlosses.slice(0, 3).join("; ")) + "</div>"
+      : "";
     var linkLabel = card.pealim_direct ? tt("room.morph.pealimPage", "Открыть на Pealim") : tt("room.morph.pealimSearch", "Искать на Pealim");
     var link = card.pealim_url
       ? '<a class="rm-link" href="' + escapeHtml(card.pealim_url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(linkLabel) + " ↗</a>"
@@ -620,7 +632,9 @@
     // Stage 2 — rich content (progressive disclosure, collapsed by default):
     // «Слова от этого корня» (dict root family) + «Спряжение / Склонение» (Pealim table,
     // 1:1 with the Studio via InflectionRender; tap a form → speak it).
-    var fam = (card.rootFamily && card.rootFamily.length)
+    // F5 — root uncertain on a homograph guess → hide the «слова от этого корня» family
+    // (it would be the family of a rival lemma, not necessarily this word's).
+    var fam = (card.rootFamily && card.rootFamily.length && !card.ambiguous)
       ? '<details class="rm-acc"><summary class="rm-acc-sum">' + escapeHtml(tt("room.morph.rootFamily", "Слова от этого корня")) + "</summary>" +
         '<div class="rm-rootfam">' + card.rootFamily.map(function (x) {
           return '<button type="button" class="rm-rootfam-chip" dir="rtl" data-w="' + escapeHtml(x.disp) + '">' + escapeHtml(x.disp) + "</button>";
@@ -629,10 +643,14 @@
     var conj = "";
     if (card.paradigm && window.InflectionRender && window.InflectionRender.renderParadigm) {
       var tbl = ""; try { tbl = window.InflectionRender.renderParadigm(card.paradigm, { highlightForm: card.niqqud }); } catch (_) { tbl = ""; }
-      if (tbl) conj = '<details class="rm-acc rm-acc-conj"><summary class="rm-acc-sum">' + escapeHtml(tt("room.morph.conj", "Спряжение / Склонение")) + "</summary>" +
+      // F5 — when the reading isn't «точно», the table is for the resolver's best guess, not
+      // a fact: label it «возможная парадигма» so it isn't read as the authoritative paradigm.
+      var conjSure = card.label === "exact";
+      var conjLabel = conjSure ? tt("room.morph.conj", "Спряжение / Склонение") : tt("room.morph.possibleParadigm", "возможная парадигма");
+      if (tbl) conj = '<details class="rm-acc rm-acc-conj' + (conjSure ? "" : " rm-acc-uncertain") + '"><summary class="rm-acc-sum">' + escapeHtml(conjLabel) + "</summary>" +
         '<div class="rm-conj-body">' + tbl + "</div></details>";
     }
-    return head + meaning + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
+    return head + meaning + altLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
   }
 
   function openCardLoading() {

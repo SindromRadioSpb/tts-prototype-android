@@ -150,6 +150,35 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(card.hasProvExact, "card should show the 'exact' provenance badge");
     eq(card.hasLink, "card should show a Pealim link");
 
+    // ── Epic 1 P1.2 — ambiguous homograph card: «возможно также» + enrichment gated ──
+    await pg.evaluate(() => { try { window.ReaderMorph.closeSheet(); } catch (_) {} });
+    await pg.waitForSelector(".rm-sheet.rm-open", { state: "hidden", timeout: 5000 }).catch(() => {});
+    await pg.evaluate(() => {
+      const mount = document.createElement("div"); mount.id = "rm-amb";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שנה</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁנָה</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      const rows = [{ he: "שנה", he_niqqud: "שָׁנָה" }];
+      window.ReaderMorph.attach(mount, { getRow: (i) => rows[i] });
+    });
+    await pg.locator('#rm-amb td[data-col="he"] .rm-w').first().click();
+    await pg.waitForSelector(".rm-sheet.rm-open", { timeout: 10000 });
+    const amb = await pg.evaluate(() => {
+      const body = document.querySelector(".rm-sheet-body"), link = document.querySelector(".rm-link");
+      return {
+        text: body ? body.textContent : "",
+        hasAlts: !!document.querySelector(".rm-alts"), hasProvLikely: !!document.querySelector(".rm-prov-likely"),
+        hasFamily: !!document.querySelector(".rm-rootfam"), hasUncertainTable: !!document.querySelector(".rm-acc-uncertain"),
+        linkHref: link ? link.getAttribute("href") : "",
+      };
+    });
+    eq(amb.hasProvLikely, "שָׁנָה card should carry the «вероятно» badge");
+    eq(amb.hasAlts && /возможно также/.test(amb.text), "ambiguous card must render «возможно также» alternatives (F4)");
+    eq(!amb.hasFamily, "ambiguous card must HIDE the root family (root uncertain) (F5)");
+    eq(/\/search\//.test(amb.linkHref) && !/\/dict\//.test(amb.linkHref), "ambiguous card Pealim link must be SEARCH, not a direct page (F5), got " + JSON.stringify(amb.linkHref));
+    eq(amb.hasUncertainTable, "ambiguous card conjugation table must be flagged «возможная парадигма» (F5)");
+
     // screenshot the open card @380px RTL
     try { fs.mkdirSync(path.dirname(SHOT), { recursive: true }); } catch (_) {}
     await pg.screenshot({ path: SHOT });
