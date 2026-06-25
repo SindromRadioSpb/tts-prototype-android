@@ -373,6 +373,24 @@
     });
     return rest && rest !== s ? rest : "";
   }
+  // R1-tail L4: is the matched form a DEFINITE participle (beinoni behind the article ה)? The
+  // article substantivizes the participle (הַמַּדְרִיךְ «гид», הָעוֹלִים «репатрианты», הַמַּקִּיף) —
+  // a nominal use the «точно» verb badge over-claims. Bare beinoni (כּוֹתֵב «пишет») is left
+  // verbal. Matches the article-stripped consonantal form against the paradigm's active/passive
+  // participle (AP-*) cells. Returns false when not definite or the paradigm has no participle.
+  function isDefiniteParticiple(par, niqqud) {
+    if (!par || !par.cells) return false;
+    var stripped = articleStrippedForm(niqqud);
+    if (!stripped) return false;                       // only fires on the article ה
+    var target = stripNiqqud(stripped);
+    var keys = Object.keys(par.cells);
+    for (var i = 0; i < keys.length; i++) {
+      if (!/(^|-)AP-/.test(keys[i])) continue;         // AP-ms/fs/mp/fp + passive-AP-*
+      var c = par.cells[keys[i]];
+      if (c && c.he && stripNiqqud(c.he) === target) return true;
+    }
+    return false;
+  }
   function _channelRank(ch) { return ch === "form-first" ? 3 : ch === "paradigm" ? 2 : ch === "meaning-fallback" ? 1 : 0; }
 
   async function _resolveVariant(eng, surface, niqqud) {
@@ -439,6 +457,13 @@
         Object.prototype.hasOwnProperty.call(CONTEXT_GLOSS, advKey)) {
       label = "likely"; ambiguous = true;
       alts = alts.concat([{ pos: "adverb", meaning: CONTEXT_GLOSS[advKey], root: null }]);
+    }
+    // R1-tail L4: substantivized (definite) participle — drop «точно», surface the nominal use
+    // as «возможно также». The verb reading stays primary (the lexeme is right); only the
+    // certainty is hedged. Bare verbal beinoni keeps «точно». Tier-3 refines on context.
+    if (!fg.isFunc && label === "exact" && pos === "verb" && isDefiniteParticiple(par, n0)) {
+      label = "likely"; ambiguous = true;
+      alts = alts.concat([{ pos: "noun", meaning: "(причастие как сущ./прил.)", root: root }]);
     }
     return {
       word: surfaceOrig || stripNiqqud(n0), niqqud: n0,

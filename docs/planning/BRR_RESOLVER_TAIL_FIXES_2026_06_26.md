@@ -58,12 +58,16 @@ All Room-only, offline, in the honest-label / `functionGate` layer (`reader-morp
 - L5 names: אירופה/יעקב/משה… → propernoun, honest-empty (seed gazetteer; homograph names + the
   full Wikidata+KIMA list deferred to R2). Scorer: function/numeral/**propernoun** need no lemma.
 
-**L4 (beinoni) DEFERRED — R10 finding + owner decision.** Feasible in reader-morph.js (AP-* cell
-keys identify participles; pidMap is in-engine, no parity-core change). BUT measure-before-code:
-a blanket offline demotion of beinoni «точно» would also hedge GENUINE verbal present-tense forms
-(correctly verb), risking the control 97.2% + spiking over-hedge. The existing Tier-3 participle-
-soften path already handles verb↔noun via Dicta context. So L4 needs a nuanced design (Tier-3-gated,
-or demote only when a competing nominal sense exists) — surfaced to owner, not rushed.
+**L4 (beinoni) SHIPPED v3.11.2 — targeted (owner choice).** Demote «точно»→«вероятно» + nominal
+alt ONLY for DEFINITE participles (article ה substantivizes the beinoni: הָעוֹלִים «репатрианты»,
+הַמַּקִּיף, הַנִּשְׁאָרִים) — detected by matching the article-stripped form against the paradigm's
+AP-* cells (reader-morph.js only, pidMap in-engine, no parity-core change). Bare verbal beinoni
+(כּוֹתֵב «пишет», הוֹלֵךְ) keeps «точно»; definite nouns (הַסֵּפֶר) unaffected (no AP cell). Probe-
+verified. Bare-beinoni nominal homographs (מְחַנֵּךְ, מַעֲצִיב) remain — left to Tier-3/context.
+
+**FULL SWEEP DONE.** Cumulative L1–L5 (--regold vs human gold): tail precision **26.5% → 54.5%**
+(+28.1pp) · honest-degradation recall **45.2% → 79.2%** (+34.1pp) · control **35/36 = 97.2% held**
+throughout. v3.11.1 (L1+L2+L3+L5) + v3.11.2 (L4).
 
 ## Norms / gates
 
