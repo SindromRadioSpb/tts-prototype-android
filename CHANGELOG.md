@@ -7,6 +7,56 @@
 
 ## [Unreleased]
 
+## [3.11.0] — 2026-06-25
+
+Веха-выравнивание версии после длинной серии непрерывных деплоев (v3.7–v3.10.88; прод
+деплоится по push в `main`, точечные метки — в `sw.js` CACHE_VERSION). Заголовок вехи:
+**Читальный зал (Ben-Yehuda Reading Room)** как зрелая вторая поверхность + **честный
+резолвер морфологии-на-тапе** (Эпик 1).
+
+### Added — Эпик 1: Честность резолвера морфологии-на-тапе (P0) (SW v3.10.85→v3.10.88)
+
+Док `docs/planning/BRR_EPIC1_RESOLVER_HONESTY_2026_06_25.md`. Measure-before-code (R10):
+новый гейт `npm run smoke:reader-morph:audit` (выборка baked-работ → офлайн-резолв vs
+Dicta-silver-оракул, precision-«exact» + recall честной деградации). Room-only
+(`reader-morph.js` + `notes-autogen.js` lock-step с build-notes; `index.html` не тронут).
+
+- **Демоция гомографов (P1.1):** бейдж «точно» — ТОЛЬКО на решающих ячейках. Мультипликатив-
+  ные (огласованный гомограф) → «вероятно» + альтернативы. Замер: ложных-«точно» на
+  мультиплик-ячейке 12.6%→0.1%; recall честной деградации 0→99.2%; precision (vs Dicta) 83.6→89.2%.
+- **Альтернативы + гейт обогащения (P1.2):** «возможно также: …» под глоссом; при не-«точно» —
+  Pealim direct→поиск, таблица «возможная парадигма», «слова от этого корня» скрыты.
+- **Tier-3 контекст по тапу (хвост):** `reader-dicta.js` (браузер→Dicta) авто-разрешает
+  гомографы по контексту предложения на каждый тап после **разового согласия** (R5,
+  одноразовый consent-модал). Расширенный приём (content→function: וְעַד→предлог) +
+  participle-soften (participle→noun: הוֹרָה «точно»→«вероятно» + «по контексту, возможно:
+  существительное»). Хвост честен 90.3% (0 регрессий на каждом замере).
+
+### Added — Эпик 7: Десктоп-раскладка Читального зала (SW v3.10.84)
+
+Аддитивный `@media(min-width:1024px)` в `library.html`: центр-контейнер 1120px + 880px
+book-reader column + период-грид + полки-карусель со скроллбаром. `index.html`/`#proTable`
+и parity-locked билдер не тронуты (`smoke:reader-parity` зелёный).
+
+### Summary — крупная работа с 3.6.0 (детали — git-история + `docs/planning/`)
+
+- **Читальный зал (BRR):** новая поверхность `public/library.html` над общим OPFS-движком
+  (byte-parity к Studio, гейт `smoke:reader-parity`). Вкладка «Корпус» — навигация
+  Период→Автор→Работа по ~26K публичных ивритских работ; embedded warm reader (~24мс),
+  canon-аудио (keyless WaveNet), караоке (SSML word-highlight), scaffolded reading (адаптив-
+  ный никуд-fade + tap-reveal), поиск внутри текстов (Hebrew FTS), discovery (continue/
+  bookmarks), i+1 «Следующий для тебя», заметки-в-Зале, морфология-на-тапе.
+- **Морфология / Pealim:** офлайн-словарь спряжений/склонений (9279 парадигм, shipped gz),
+  Dicta-декодер морфологии (morphId-битфилд), ②-премиум-заметки (полевые цели + гейт
+  `audit:note-fields`), auto-②-заметки (concepts C/A/B/D + i+1-frontier).
+- **Anki:** production-grade `.apkg`-экспорт (embedded-audio) + bidirectional sync
+  (Anki review → mastery → i+1); per-lemma/per-form заметки.
+- **Knowledge Map:** root-centric редизайн (spine = семья корня) + генеративный граф-квиз.
+- **Library export:** ZIP с аудио (прогресс/пре-флайт/отмена/«только метаданные»/оптимизация
+  полосы) — см. записи ниже.
+- **Ops/безопасность:** security-хедеры (HSTS/nosniff/X-Frame), Brotli, deploy-нотификации,
+  BYOK (Gemini / GCP TTS / GCP Translate), going-public security audit.
+
 ### Performance — Library export аудио-фетч (P) (SW v3.10.82-export-perf-p)
 
 Дизайн: `docs/planning/LIBRARY_EXPORT_PERF_P_2026_06_24.md`. Ускорение экспорта с аудио
