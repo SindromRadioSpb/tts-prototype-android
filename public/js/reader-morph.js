@@ -172,6 +172,12 @@
     "ביניהם": "между ними (м.)", "ביניהן": "между ними (ж.)", "בינינו": "между нами",
     "כמוני": "как я", "כמוך": "как ты", "כמוהו": "как он", "כמונו": "как мы",
     "נגדו": "против него", "נגדם": "против них", "כנגדו": "против него",
+    // R1-tail L1: «над/вокруг X» — yod plural-construct prep forms, distinct from the nouns
+    // מַעֲלָה «ступень» / סְבִיבָה «среда» (which lack the yod / take ה) → no over-trigger.
+    "מעליו": "над ним", "מעליה": "над ней", "מעליך": "над тобой", "מעליהם": "над ними (м.)",
+    "מעליהן": "над ними (ж.)", "מעלינו": "над нами", "מעליכם": "над вами",
+    "סביבי": "вокруг меня", "סביבו": "вокруг него", "סביבך": "вокруг тебя", "סביבם": "вокруг них (м.)",
+    "סביבן": "вокруг них (ж.)", "סביבנו": "вокруг нас", "סביבכם": "вокруг вас",
     // reflexive עצם + suffix
     "עצמי": "сам, себя", "עצמך": "сам, себя", "עצמו": "сам, себя", "עצמה": "сама, себя",
     "עצמנו": "мы сами", "עצמם": "они сами (м.)", "עצמן": "они сами (ж.)", "עצמכם": "вы сами",
@@ -190,10 +196,20 @@
   // (לִבֵּנוּ = «наше сердце», NOT a preposition). Their suffixed forms are listed verbatim
   // in FUNCTION_GLOSS instead (לי/לו/בו/…), so precision stays high.
   var PREP_SUF_BASE = ["על", "אל", "של", "אצל", "בין", "כמו", "נגד", "כנגד", "תחת",
-    "בעד", "לפני", "אחרי", "מפני", "בתוך", "בקרב", "למען", "בלעדי", "זולת", "לעצמ", "עצמ", "כלפי"];
+    "בעד", "לפני", "אחרי", "מפני", "בתוך", "בקרב", "למען", "בלעדי", "זולת", "לעצמ", "עצמ", "כלפי",
+    // R1-tail L1: inflected prepositions the gold pass flagged as false-exact «точно» (noun).
+    // ONLY bases with no common noun-homograph via a short suffix. (סביב→סביבה «среда»,
+    // בפני→בפנים «внутри», מעל→מעלה «ступень» over-trigger → handled as flat forms below, not here.)
+    "לקראת", "בשביל"];
   var PRON_SUF = ["נו", "כם", "כן", "הם", "הן", "יו", "יה", "יהם", "יהן", "ינו", "יכם",
-    "ני", "הו", "י", "ך", "ו", "ה", "ם", "ן"];
+    "ני", "הו", "יך", "י", "ך", "ו", "ה", "ם", "ן"];
 
+  // Normalize Hebrew final-form letters to medial so a base stored in final form (בְּתוֹך) still
+  // prefix-matches its suffixed form, where the letter turns medial (בְּתוֹכוֹ). Without this the
+  // prep+suf gate missed every final-letter base → false-exact «точно» (R1-tail L1).
+  function finalToMedial(s) {
+    return String(s || "").replace(/ך/g, "כ").replace(/ם/g, "מ").replace(/ן/g, "נ").replace(/ף/g, "פ").replace(/ץ/g, "צ");
+  }
   // Classify a (niqqud-stripped) surface as a function form. Returns {isFunc, via, gloss, pos}.
   // Deterministic: a flat-map hit, a numeral, or a base(≥2)+pronominal-suffix segmentation
   // (optionally after stripping ONE leading proclitic ו/ש/ה/כ/ל from a ≥5-letter word).
@@ -219,7 +235,7 @@
         return { isFunc: true, via: "proclitic", gloss: FUNCTION_GLOSS[c], pos: "particle" };
       for (var bi = 0; bi < PREP_SUF_BASE.length; bi++) {
         var base = PREP_SUF_BASE[bi];
-        if (c.length <= base.length || c.indexOf(base) !== 0) continue;
+        if (c.length <= base.length || finalToMedial(c.slice(0, base.length)) !== finalToMedial(base)) continue;
         var rest = c.slice(base.length);
         for (var si = 0; si < PRON_SUF.length; si++) {
           if (rest === PRON_SUF[si]) {

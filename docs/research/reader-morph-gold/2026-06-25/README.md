@@ -25,7 +25,7 @@ below). 0 `ambig`. Report: `reader-morph-gold-report.json`.
 | precision of «exact» — **control** | **35/36 = 97.2%** | the «точно» badge is trustworthy on clean cells |
 | precision of «exact» — **tail** | 18/68 = 26.5% | the real leak: single-id vocalized homographs |
 | precision of «exact» — blended | 54/105 = 51.4% | inflated-down by the oversampled tail |
-| honest-degradation recall | 49/100 = 49.0% | of wrong/ambig, fraction NOT sold as «точно» |
+| honest-degradation recall | 42/93 = 45.2% | of wrong/ambig, fraction NOT sold as «точно» |
 | over-hedge rate | 18/52 = 34.6% | hedged but actually unique → lost moat value |
 | lemma/lexeme accuracy | 91/172 = 52.9% (verb 92.9%, non-verb 45.1%; strict-string 37.8%) | non-verb dragged by tail false-exacts |
 | **Nakdan-silver ↔ gold** | **143/165 = 86.7%** | Dicta is ~87% right on archaic → prior silver had ~13% noise |
