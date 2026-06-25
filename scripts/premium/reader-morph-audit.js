@@ -39,6 +39,11 @@ const WORKS = path.join(REPO, "public", "data", "benyehuda", "works");
 const OUTDIR = path.join(REPO, ".tmp", "benyehuda");
 const CACHE = path.join(OUTDIR, "reader-morph-audit-dicta-cache.json");
 const REPORT = path.join(OUTDIR, "reader-morph-audit-report.json");
+// R1.0 gold-eval artifacts (dev-only; never shipped, no SW bump)
+const WORKSHEET = path.join(OUTDIR, "reader-morph-gold-worksheet.tsv");
+const WORKSHEET_PREVIEW = path.join(OUTDIR, "reader-morph-gold-worksheet-PREVIEW.tsv");
+const LEGEND = path.join(OUTDIR, "reader-morph-gold-LEGEND.md");
+const GOLD_REPORT = path.join(OUTDIR, "reader-morph-gold-report.json");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── CLI ──────────────────────────────────────────────────────────────────────
@@ -48,6 +53,14 @@ const TARGET_ROWS = getNum("rows", 300);
 const USE_ORACLE = !argv.includes("--no-oracle");
 const USE_TIER3 = argv.includes("--tier3");   // simulate the opt-in Tier-3 context path
 const KEEP = argv.includes("--keep");
+const getStr = (name) => { const a = argv.find((x) => x.startsWith("--" + name + "=")); return a ? a.split("=").slice(1).join("=") : ""; };
+// R1.0 gold-eval (measure-before-code; breaks Dicta-silver circularity with HUMAN gold)
+const WORKSHEET_N = getNum("worksheet", 0);    // producer: emit a gold TSV of N homograph-focused tokens
+const GOLD_FILE = getStr("gold");              // scorer: score a filled worksheet (pure, no browser)
+const OUT_OVERRIDE = getStr("out");            // override worksheet output path
+const FORCE = argv.includes("--force");        // allow overwriting an existing (in-progress) worksheet
+// worksheet needs a generous pool so the rare strata (tail/collision) actually fill
+const SAMPLE_ROWS = WORKSHEET_N ? getNum("rows", 380) : TARGET_ROWS;
 
 // ── server lifecycle (mirror of reader-morph-smoke) ───────────────────────────
 function startServer() {
@@ -144,6 +157,8 @@ const PAGE_RESOLVE = `async (row) => {
     if (card.channel === "form-first") coll = collisionFor(p.niqqud || "", surf, card.pealim_id);
     out.push({ surface: surf, niqqud: p.niqqud || "", label: card.label, channel: card.channel,
       pos: card.pos || "", pealim_id: String(card.pealim_id || ""), meaning: card.meaning || "",
+      lemma: card.lemma || "", root: card.root || "", ambiguous: !!card.ambiguous,
+      alts: (card.alts || []).slice(0, 3).map(function (a) { return { pos: (a && a.pos) || "", meaning: (a && a.meaning) || "", root: (a && a.root) || "" }; }),
       confidence: card.confidence, functionWord: !!card.functionWord, coll });
   }
   return out;
@@ -177,17 +192,305 @@ function coarse(pos) {
   return "function";   // adverb/pronoun/conjunction/preposition/particle/…
 }
 
+// ── R1.0 gold-eval helpers (worksheet producer + scorer) ──────────────────────
+// measure-before-code (R10): the resolver's true precision on ARCHAIC vocalized Hebrew is
+// unknown — every prior number is vs Dicta SILVER, which is circular and drifts on archaic
+// text. These build a homograph-focused worksheet from baked Ben-Yehuda for HUMAN gold, then
+// score the resolver against that gold (non-circular). Dev-only; nothing here ships.
+const pct = (x) => (x == null || (typeof x === "number" && isNaN(x))) ? "n/a" : (x * 100).toFixed(1) + "%";
+const rate = (a, b) => (b ? a / b : null);
+const NIQ_RE = /[֑-ׇ]/g;
+const stripNiq = (s) => String(s == null ? "" : s).replace(NIQ_RE, "").trim();
+const tsvCell = (s) => String(s == null ? "" : s).replace(/[\t\r\n]+/g, " ").trim();
+function fmtAlts(alts) {
+  if (!Array.isArray(alts) || !alts.length) return "";
+  return alts.map((a) => ((a.pos || "") + (a.meaning ? (":" + a.meaning) : ""))).filter(Boolean).join(" ¦ ");
+}
+// Gold POS coarse classes — KEEPS propernoun & numeral distinct (unlike audit's coarse(),
+// which lumps them into "function"); names matter for F6 and numerals are their own axis.
+function coarseGold(pos) {
+  pos = String(pos || "").toLowerCase().trim();
+  if (!pos) return "";
+  if (pos === "verb") return "verb";
+  if (pos === "noun" || pos === "adjective" || pos === "adj" || pos === "participle") return "nominal";
+  if (pos === "propernoun" || pos === "proper" || pos === "propn" || pos === "name") return "propernoun";
+  if (pos === "numeral" || pos === "number" || pos === "num") return "numeral";
+  return "function";  // pronoun / adverb / preposition / conjunction / particle / …
+}
+// Classify a resolved token into ONE sampling stratum (priority order). Homograph-weighted:
+// the contested cells (collision/tail/hedged) are what gold must scrutinise; control = the
+// "easy" exacts (catch systematic lemma errors); fill = the rest, to round out N.
+function stratumOf(t) {
+  const exact = t.label === "exact";
+  const multi = !!(t.coll && t.coll.located && t.coll.n > 1);
+  const disagree = exact && t.oraclePos && coarse(t.oraclePos) && coarse(t.pos) !== coarse(t.oraclePos);
+  if (exact && multi) return "collision";                                   // exact sold on a homograph cell
+  if (disagree) return "tail";                                              // exact the silver contradicts
+  if ((t.label === "likely" || t.label === "guessed") &&
+      (t.ambiguous || (t.alts && t.alts.length) || multi)) return "hedged"; // honestly-degraded multi-reading
+  if (exact) return "control";                                             // clean exact
+  return "fill";
+}
+
+const WS_COLS = ["id", "work", "row_id", "surface", "niqqud", "sentence", "offline_pos", "offline_lemma", "offline_root", "offline_meaning", "offline_label", "offline_alts", "nakdan_pos", "stratum", "gold_pos", "gold_lemma", "verdict", "note"];
+const WS_QUOTA = { collision: 0.15, tail: 0.25, hedged: 0.30, control: 0.20, fill: 0.10 };
+const WS_ORDER = ["collision", "tail", "hedged", "control", "fill"];
+
+function emitWorksheet(tokens, N, outPath, force) {
+  if (fs.existsSync(outPath) && !force) {
+    console.error("\n⛔ worksheet already exists: " + path.relative(REPO, outPath));
+    console.error("   refusing to overwrite an in-progress annotation. Use --force to replace, or --out=<path>.");
+    process.exit(2);
+  }
+  // 1) content tokens only, drop literal (form+sentence) repeats, cap repeats of any one form
+  const MAX_PER_FORM = 4;
+  const seenRow = new Set(); const perForm = new Map();
+  const byStratum = { collision: [], tail: [], hedged: [], control: [], fill: [] };
+  for (const t of tokens) {
+    if (!t.surface || t.surface.length < 2) continue;
+    const dk = (t.niqqud || "") + "|" + (t.sentence || "");
+    if (seenRow.has(dk)) continue; seenRow.add(dk);
+    const fk = t.niqqud || t.surface;
+    const fc = perForm.get(fk) || 0; if (fc >= MAX_PER_FORM) continue; perForm.set(fk, fc + 1);
+    byStratum[stratumOf(t)].push(t);
+  }
+  // 2) quota fill in priority order, then redistribute the deficit to later strata
+  const picked = []; let remaining = N; const used = {};
+  for (const s of WS_ORDER) {
+    const want = Math.round(N * WS_QUOTA[s]);
+    const take = Math.min(want, byStratum[s].length, remaining);
+    for (let i = 0; i < take; i++) picked.push(byStratum[s][i]);
+    used[s] = take; remaining -= take;
+  }
+  for (const s of WS_ORDER) {
+    if (remaining <= 0) break;
+    for (let i = used[s]; i < byStratum[s].length && remaining > 0; i++) { picked.push(byStratum[s][i]); remaining--; }
+  }
+  // 3) emit TSV (UTF-8 BOM so Excel reads Hebrew; the 4 human columns are EMPTY at the end)
+  const idSeen = new Map();
+  const mkId = (t) => {
+    const base = t.work + "::" + (t.row_id || "") + "::" + stripNiq(t.niqqud);
+    let id = base, k = 1; while (idSeen.has(id)) id = base + "#" + (++k); idSeen.set(id, true); return id;
+  };
+  const rowOf = (t) => [
+    mkId(t), t.work, t.row_id || "", t.surface, t.niqqud, String(t.sentence || "").slice(0, 400),
+    t.pos || "", t.lemma || "", t.root || "", String(t.meaning || "").slice(0, 60), t.label || "",
+    fmtAlts(t.alts), t.oraclePos || "", stratumOf(t),
+    "", "", "", "",            // gold_pos, gold_lemma, verdict, note — for the owner to fill
+  ].map(tsvCell).join("\t");
+  const head = [
+    "# LinguistPro · R1 gold worksheet (reader-morph resolver eval) — fill gold_pos + gold_lemma per row.",
+    "# verdict/note optional. ambig = both readings valid · skip = unjudgeable (OCR/garbage). See reader-morph-gold-LEGEND.md.",
+    "# Sampling is HOMOGRAPH-WEIGHTED (NOT corpus base-rate) → read results PER-STRATUM.",
+    "# nakdan_pos = Dicta SILVER reference only (NOT truth). offline_* = the resolver under test.",
+  ].join("\n");
+  const lines = picked.map(rowOf);
+  const body = "﻿" + head + "\n" + WS_COLS.join("\t") + "\n" + lines.join("\n") + "\n";
+  fs.writeFileSync(outPath, body);
+  const prevLines = lines.slice(0, 15);
+  fs.writeFileSync(WORKSHEET_PREVIEW, "﻿" + head + "\n" + WS_COLS.join("\t") + "\n" + prevLines.join("\n") + "\n");
+
+  const counts = {}; for (const t of picked) counts[stratumOf(t)] = (counts[stratumOf(t)] || 0) + 1;
+  console.log("\n══════════ reader-morph-audit · R1 GOLD WORKSHEET ══════════");
+  console.log("selected      : " + picked.length + " / N=" + N + " tokens   (from " + tokens.length + " resolved)");
+  console.log("strata        : " + WS_ORDER.map((s) => s + "=" + (counts[s] || 0)).join("  "));
+  console.log("worksheet     → " + path.relative(REPO, outPath));
+  console.log("preview (15)  → " + path.relative(REPO, WORKSHEET_PREVIEW));
+  console.log("legend        → " + path.relative(REPO, LEGEND));
+  console.log("\n─ preview (first 10; open the TSV in a spreadsheet for true RTL) ─");
+  for (const t of picked.slice(0, 10)) {
+    console.log("  [" + stratumOf(t) + "] " + t.niqqud + "   pos=" + (t.pos || "–") + " lemma=" + (t.lemma || "–") + " root=" + (t.root || "–") + " label=" + t.label + " nakdan=" + (t.oraclePos || "–"));
+    console.log("      ctx: " + String(t.sentence || "").slice(0, 88));
+  }
+  console.log("\nfill gold_pos + gold_lemma, then:  npm run gold:score");
+}
+
+function writeLegend(outPath) {
+  const md = [
+    "# R1 Gold Worksheet — annotation legend",
+    "",
+    "Goal: measure the **true** precision of the tap-morphology resolver on **archaic, vocalized**",
+    "Hebrew (baked Ben-Yehuda), independent of the Dicta silver oracle (which is circular and",
+    "drifts on archaic text). You provide the human gold; the scorer compares the resolver to it.",
+    "",
+    "## How to fill",
+    "Open the `.tsv` in a spreadsheet (Excel/Sheets/LibreOffice) — it's UTF-8 with BOM so Hebrew +",
+    "niqqud render correctly, RTL per cell. For each row read `niqqud` (the form being judged) in",
+    "the `sentence` context, then fill **only**:",
+    "- **gold_pos** — the correct part of speech in context (vocab below). *Required* to score a row.",
+    "- **gold_lemma** — the correct dictionary citation form. Niqqud optional (compared",
+    "  niqqud-insensitively — only the consonants must be right). For verbs: 3ms past (קָטַל-pattern,",
+    "  Pealim convention); for nouns: absolute singular. Leave blank if you only want to judge POS.",
+    "- **verdict** / **note** — optional (see below).",
+    "",
+    "You do NOT need to fill the reference columns (offline_*, nakdan_pos, stratum) — they're the",
+    "machine guesses you're adjudicating. Annotate in any order / in batches; the scorer counts only",
+    "filled rows and reports coverage X/N.",
+    "",
+    "## gold_pos vocabulary (controlled)",
+    "Write the precise tag; the scorer also coarsens it for the headline.",
+    "",
+    "| tag | coarse class |",
+    "|---|---|",
+    "| `verb` | verb |",
+    "| `noun` | nominal |",
+    "| `adjective` | nominal |",
+    "| `participle` | nominal *(beinoni; tag the surface category — Dicta cross-tags these)* |",
+    "| `propernoun` | propernoun *(personal/place name — kept distinct, matters for F6)* |",
+    "| `numeral` | numeral |",
+    "| `pronoun` | function |",
+    "| `adverb` | function |",
+    "| `preposition` | function |",
+    "| `conjunction` | function |",
+    "| `particle` | function *(article, question/negation/relativizer, etc.)* |",
+    "",
+    "The **headline** precision compares at the coarse level (verb / nominal / propernoun / numeral /",
+    "function) — the axis the «точно» badge actually hinges on. A separate strict-string POS match is",
+    "also reported.",
+    "",
+    "## verdict (optional — leave blank for normal rows)",
+    "- *(blank)* — scorer derives correctness from gold_pos (+ gold_lemma). Use this for most rows.",
+    "- **ambig** — *first-class*: both readings are genuinely valid in this context. The resolver is",
+    "  then expected to **hedge** (not say «точно»). A hedged card on an `ambig` token = correct honesty;",
+    "  an «exact» card on it = false certainty.",
+    "- **skip** — *first-class*: unjudgeable (OCR garbage, truncated form, not really Hebrew). Excluded",
+    "  from all rates; counted separately in coverage.",
+    "- **ok** / **badpos** / **badlemma** / **badboth** — optional manual overrides if you'd rather state",
+    "  the verdict directly than have it derived.",
+    "",
+    "## What the scorer reports (`gold:score`)",
+    "- **precision of «exact»** — of cards labeled «точно», fraction actually correct vs gold. The headline.",
+    "- **honest-degradation recall** — of wrong/ambiguous tokens, fraction the resolver did NOT call «точно».",
+    "- **over-hedge rate** — of hedged cards, fraction that were actually *uniquely* correct (= moat value we",
+    "  left on the table by hedging). Only gold can measure this.",
+    "- **lemma accuracy** — POS-right-but-lemma-wrong still gives the wrong root family/table (R1).",
+    "- **Nakdan-silver ↔ gold agreement** — quantifies how trustworthy Dicta is on archaic Hebrew, i.e.",
+    "  retroactively validates/discounts every prior silver-based number (incl. Epic 1's 90.3%).",
+    "- per-stratum + per-label breakdown; list of «exact» cards gold contradicts.",
+    "",
+    "## Columns",
+    "`id` stable join key · `work`/`row_id` source · `surface` consonantal · `niqqud` vocalized form judged ·",
+    "`sentence` vocalized context line · `offline_*` the resolver's reading (pos/lemma/root/meaning/label) ·",
+    "`offline_alts` other readings it considered (`pos:meaning`) · `nakdan_pos` Dicta silver (reference, NOT",
+    "truth) · `stratum` which sampling bucket · `gold_pos`/`gold_lemma`/`verdict`/`note` ← you fill.",
+    "",
+    "## Strata (why a row was picked)",
+    "- **collision** — «exact» sitting on a multi-id homograph cell (should be ~0 post-Epic-1; verify).",
+    "- **tail** — «exact» that the silver contradicts (content→function / participle→noun / name).",
+    "- **hedged** — «вероятно»/guessed multi-reading cells (calibration: are we right to hedge?).",
+    "- **control** — clean «exact» (catch systematic lemma errors on easy cases).",
+    "- **fill** — remainder, to round out N.",
+    "",
+    "> Sampling is deliberately homograph-weighted, so the overall numbers are NOT corpus base-rates —",
+    "> read precision **per stratum**.",
+    "",
+  ].join("\n");
+  fs.writeFileSync(outPath, md);
+}
+
+async function runGold(file) {
+  let raw; try { raw = fs.readFileSync(file, "utf8"); } catch (e) { console.error("cannot read gold file: " + file + " — " + e.message); process.exit(1); }
+  raw = raw.replace(/^﻿/, "");
+  let header = null; const dataRows = [];
+  for (const ln of raw.split(/\r?\n/)) {
+    if (!ln.trim() || ln.startsWith("#")) continue;
+    if (!header) { header = ln.split("\t").map((s) => s.trim()); continue; }
+    dataRows.push(ln.split("\t"));
+  }
+  if (!header) { console.error("no header row found in " + file); process.exit(1); }
+  const col = {}; header.forEach((h, i) => (col[h] = i));
+  for (const c of ["offline_pos", "offline_label", "gold_pos"]) if (!(c in col)) { console.error("gold file missing required column: " + c); process.exit(1); }
+  const g = (r, name) => { const i = col[name]; return i == null ? "" : String(r[i] == null ? "" : r[i]).trim(); };
+
+  const HEDGED = new Set(["likely", "guessed"]);
+  let N = 0, annotated = 0, skipped = 0, ambig = 0;
+  let exactN = 0, exactOK = 0, wrongN = 0, wrongHedged = 0, hedgedN = 0, hedgedUnique = 0;
+  let lemmaN = 0, lemmaOK = 0, nakN = 0, nakOK = 0, posStrictN = 0, posStrictOK = 0;
+  const byStratum = {}, byLabel = {}; const falseExacts = [];
+  for (const r of dataRows) {
+    N++;
+    const goldPos = g(r, "gold_pos"); const verdict = g(r, "verdict").toLowerCase();
+    if (!goldPos && !verdict) continue;             // unannotated
+    if (verdict === "skip") { skipped++; continue; }
+    annotated++;
+    const label = g(r, "offline_label"), stratum = g(r, "stratum") || "?";
+    const offPos = g(r, "offline_pos"), offLemma = g(r, "offline_lemma"), goldLemma = g(r, "gold_lemma"), nak = g(r, "nakdan_pos");
+    const isAmbig = verdict === "ambig"; if (isAmbig) ambig++;
+    let offlineCorrect;
+    if (verdict === "ok") offlineCorrect = true;
+    else if (verdict === "bad" || verdict === "badpos" || verdict === "badlemma" || verdict === "badboth") offlineCorrect = false;
+    else if (isAmbig) offlineCorrect = false;       // not UNIQUELY correct
+    else offlineCorrect = (coarseGold(offPos) === coarseGold(goldPos)) && (!goldLemma || stripNiq(offLemma) === stripNiq(goldLemma));
+    if (label === "exact") { exactN++; if (offlineCorrect && !isAmbig) exactOK++; }
+    if (!offlineCorrect || isAmbig) {
+      wrongN++; if (label !== "exact") wrongHedged++;
+      else if (falseExacts.length < 40) falseExacts.push({ niqqud: g(r, "niqqud"), offPos, goldPos, offLemma, goldLemma, verdict: verdict || "(derived)", stratum });
+    }
+    if (HEDGED.has(label)) { hedgedN++; if (offlineCorrect && !isAmbig) hedgedUnique++; }
+    if (goldLemma) { lemmaN++; if (stripNiq(offLemma) === stripNiq(goldLemma)) lemmaOK++; }
+    if (nak && goldPos) { nakN++; if (coarseGold(nak) === coarseGold(goldPos)) nakOK++; }
+    if (goldPos) { posStrictN++; if (offPos.toLowerCase() === goldPos.toLowerCase()) posStrictOK++; }
+    const bs = byStratum[stratum] || (byStratum[stratum] = { n: 0, exactN: 0, exactOK: 0, wrong: 0 });
+    bs.n++; if (label === "exact") { bs.exactN++; if (offlineCorrect && !isAmbig) bs.exactOK++; } if (!offlineCorrect || isAmbig) bs.wrong++;
+    byLabel[label] = (byLabel[label] || 0) + 1;
+  }
+  try { fs.mkdirSync(OUTDIR, { recursive: true }); } catch (_) {}
+  const report = {
+    generated_for: "R1 gold eval (HUMAN gold vs resolver — non-circular)",
+    file: path.relative(REPO, path.resolve(file)),
+    coverage: { totalRows: N, annotated, skipped, unannotated: N - annotated - skipped },
+    headline: {
+      precisionOfExact: rate(exactOK, exactN), exactN,
+      honestDegradationRecall: rate(wrongHedged, wrongN), wrongN,
+      overHedgeRate: rate(hedgedUnique, hedgedN), hedgedN,
+      lemmaAccuracy: rate(lemmaOK, lemmaN), lemmaN,
+      posStrictMatch: rate(posStrictOK, posStrictN),
+    },
+    silver: { nakdanGoldAgreement: rate(nakOK, nakN), nakN, genuineAmbiguityRate: rate(ambig, annotated), ambig },
+    byStratum, byLabel, falseExactOffenders: falseExacts,
+  };
+  fs.writeFileSync(GOLD_REPORT, JSON.stringify(report, null, 2));
+
+  console.log("\n══════════ reader-morph-audit · R1 GOLD SCORE ══════════");
+  console.log("file          : " + path.relative(REPO, path.resolve(file)));
+  console.log("coverage      : " + annotated + " scored + " + skipped + " skipped = " + (annotated + skipped) + " / " + N + " rows   (" + (N - annotated - skipped) + " unannotated)");
+  if (!annotated) { console.log("\nno annotated rows yet — fill gold_pos (+ gold_lemma) and re-run.\nreport → " + path.relative(REPO, GOLD_REPORT)); return; }
+  console.log("─ headline (vs HUMAN gold — non-circular) ─");
+  console.log("  precision of «exact»        : " + pct(rate(exactOK, exactN)) + "  (" + exactOK + "/" + exactN + ")   ← true trust of «точно»");
+  console.log("  honest-degradation recall   : " + pct(rate(wrongHedged, wrongN)) + "  (" + wrongHedged + "/" + wrongN + ")   ← of wrong/ambig, NOT «точно»");
+  console.log("  over-hedge rate             : " + pct(rate(hedgedUnique, hedgedN)) + "  (" + hedgedUnique + "/" + hedgedN + ")   ← hedged but actually unique");
+  console.log("  lemma accuracy              : " + pct(rate(lemmaOK, lemmaN)) + "  (" + lemmaOK + "/" + lemmaN + ")");
+  console.log("  POS strict-string match     : " + pct(rate(posStrictOK, posStrictN)) + "  (" + posStrictOK + "/" + posStrictN + ")");
+  console.log("─ silver validation (how much to trust Dicta on archaic) ─");
+  console.log("  Nakdan-silver ↔ gold agree  : " + pct(rate(nakOK, nakN)) + "  (" + nakOK + "/" + nakN + ")");
+  console.log("  genuine ambiguity rate      : " + pct(rate(ambig, annotated)) + "  (" + ambig + "/" + annotated + ")");
+  console.log("─ per-stratum (precision of «exact») ─");
+  for (const s of WS_ORDER.concat(Object.keys(byStratum).filter((k) => WS_ORDER.indexOf(k) < 0))) {
+    const b = byStratum[s]; if (!b) continue;
+    console.log("  " + (s + "          ").slice(0, 11) + "n=" + b.n + "  exact " + b.exactOK + "/" + b.exactN + " (" + pct(rate(b.exactOK, b.exactN)) + ")  wrong=" + b.wrong);
+  }
+  console.log("label dist    : " + Object.entries(byLabel).map(([k, v]) => k + "=" + v).join("  "));
+  if (falseExacts.length) {
+    console.log("─ «exact» contradicted by gold (top) ─");
+    for (const o of falseExacts.slice(0, 10)) console.log("  " + o.niqqud + "  off=" + o.offPos + "/" + (o.offLemma || "–") + " gold=" + o.goldPos + "/" + (o.goldLemma || "–") + " [" + o.verdict + "]");
+  }
+  console.log("report → " + path.relative(REPO, GOLD_REPORT));
+}
+
 (async () => {
+  // R1.0 scorer is a PURE file pass — no server/browser. Branch out before anything boots.
+  if (GOLD_FILE) { return runGold(GOLD_FILE); }
   let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright — `npm i -D playwright` first"); process.exit(1); }
   try { fs.mkdirSync(OUTDIR, { recursive: true }); } catch (_) {}
   let cache = {};
   try { cache = JSON.parse(fs.readFileSync(CACHE, "utf8")); } catch (_) { cache = {}; }
   const saveCache = () => { try { fs.writeFileSync(CACHE, JSON.stringify(cache)); } catch (_) {} };
 
-  const rows = sampleRows(TARGET_ROWS);
+  const rows = sampleRows(SAMPLE_ROWS);
   if (!rows.length) { console.error("no sample rows found under " + WORKS); process.exit(1); }
   const workSpan = new Set(rows.map((r) => r.work)).size;
-  console.log("reader-morph-audit: sampled " + rows.length + " rows across " + workSpan + " works (target " + TARGET_ROWS + "); oracle=" + (USE_ORACLE ? "Dicta" : "off"));
+  const modeLabel = WORKSHEET_N ? "WORKSHEET (gold producer, N=" + WORKSHEET_N + ")" : "AUDIT";
+  console.log("reader-morph-audit [" + modeLabel + "]: sampled " + rows.length + " rows across " + workSpan + " works (pool " + SAMPLE_ROWS + "); oracle=" + (USE_ORACLE ? "Dicta" : "off"));
 
   const srv = startServer();
   if (!(await ready())) { console.error("server failed to start"); console.error(srv.logs.join("")); await stop(srv.c); process.exit(1); }
@@ -245,13 +548,21 @@ function coarse(pos) {
         let t3 = []; try { t3 = await pg.evaluate("(" + PAGE_TIER3 + ")(" + JSON.stringify(t3items) + ")"); } catch (_) { t3 = []; }
         for (const x of (t3 || [])) if (x && x.surface) t3map[x.surface] = x;
       }
-      for (const r of recs) tokens.push({ ...r, work: row.work, oraclePos: r._oraclePos, tier3: t3map[r.surface] || null });
+      for (const r of recs) tokens.push({ ...r, work: row.work, row_id: row.row_id, sentence: row.he_niqqud, sentencePlain: row.he, oraclePos: r._oraclePos, tier3: t3map[r.surface] || null });
       if ((i + 1) % 25 === 0 || i === rows.length - 1) process.stdout.write("\r  resolved " + (i + 1) + "/" + rows.length + " rows, " + tokens.length + " tokens   ");
     }
     process.stdout.write("\n");
     saveCache();
     if (pageErrors.length) console.error("page errors: " + pageErrors.slice(0, 3).join(" | "));
   } finally { if (!KEEP) await b.close(); await stop(srv.c); }
+
+  // ── R1.0 worksheet producer — emit gold TSV + legend, then stop (skip audit metrics) ──
+  if (WORKSHEET_N) {
+    try { fs.mkdirSync(OUTDIR, { recursive: true }); } catch (_) {}
+    writeLegend(LEGEND);
+    emitWorksheet(tokens, WORKSHEET_N, OUT_OVERRIDE || WORKSHEET, FORCE);
+    return;
+  }
 
   // ── metrics ─────────────────────────────────────────────────────────────────
   const isContent = (t) => CONTENT.has(String(t.pos).toLowerCase()) || t.channel === "form-first";
@@ -329,7 +640,6 @@ function coarse(pos) {
   const labelDist = {};
   for (const t of tokens) labelDist[t.label] = (labelDist[t.label] || 0) + 1;
 
-  const pct = (x) => x == null ? "n/a" : (x * 100).toFixed(1) + "%";
   const report = {
     generated_for: "Epic 1 P1.0 baseline (measure-before-code)",
     sample: { rows: rows.length, works: workSpan, tokens: tokens.length, contentTokens: tokens.filter(isContent).length },

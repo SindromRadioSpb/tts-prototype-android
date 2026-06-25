@@ -150,6 +150,8 @@
     "smoke:studio-karaoke": "node scripts/premium/studio-karaoke-smoke.js",
     "smoke:reader-morph": "node scripts/premium/reader-morph-smoke.js",
     "smoke:reader-morph:audit": "node scripts/premium/reader-morph-audit.js",
+    "gold:worksheet": "node scripts/premium/reader-morph-audit.js --worksheet=180",
+    "gold:score": "node scripts/premium/reader-morph-audit.js --gold=.tmp/benyehuda/reader-morph-gold-worksheet.tsv",
     "smoke:reader-notes": "node scripts/premium/reader-notes-smoke.js",
     "smoke:reader-resume": "node scripts/premium/reader-resume-smoke.js",
     "smoke:bookmarks": "node scripts/premium/bookmarks-smoke.js",
