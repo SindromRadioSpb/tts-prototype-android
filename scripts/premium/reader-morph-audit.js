@@ -46,6 +46,7 @@ const argv = process.argv.slice(2);
 const getNum = (name, def) => { const a = argv.find((x) => x.startsWith("--" + name + "=")); return a ? parseInt(a.split("=")[1], 10) || def : def; };
 const TARGET_ROWS = getNum("rows", 300);
 const USE_ORACLE = !argv.includes("--no-oracle");
+const USE_TIER3 = argv.includes("--tier3");   // simulate the opt-in Tier-3 context path
 const KEEP = argv.includes("--keep");
 
 // ── server lifecycle (mirror of reader-morph-smoke) ───────────────────────────
@@ -154,6 +155,18 @@ const PAGE_DICTA = `async (sentence) => {
   catch (e) { return { ok:false, degraded:true, reason:String((e&&e.message)||e) }; }
 }`;
 
+// Tier-3 simulation: re-resolve each token WITH the Dicta context (the opt-in «точный
+// режим» path). Uses the already-cached Dicta token → no new network. contextUsed reflects
+// pickContextReading's CONSERVATIVE accept (only when strictly more decisive + POS agrees).
+const PAGE_TIER3 = `async (items) => {
+  const R = window.ReaderMorph; const out = [];
+  for (const it of items) {
+    let c = null; try { c = await R.resolveWordLight(it.surface, it.niqqud, it.ctx); } catch (_) { c = null; }
+    out.push(c ? { surface: it.surface, label: c.label, pos: c.pos || "", channel: c.channel, contextUsed: !!c.contextUsed, meaning: (c.meaning||"").slice(0,30) } : { surface: it.surface, label: null });
+  }
+  return out;
+}`;
+
 // ── POS coarse classes (resolver pos vs Dicta context pos) ────────────────────
 const CONTENT = new Set(["verb", "noun", "adjective"]);
 function coarse(pos) {
@@ -216,16 +229,23 @@ function coarse(pos) {
           }
         }
       }
-      // attach oracle POS to each token by surface match
+      // attach oracle POS to each token by surface match (+ collect ctx for Tier-3)
+      const t3items = [];
       for (const r of recs) {
-        let oraclePos = null;
+        let ot = null;
         if (oracleTokens) {
           const surf = r.surface;
-          const ot = oracleTokens.find((t) => String(t.stem || "").replace(/[֑-ׇ]/g, "") === surf || String(t.word || "").replace(/[֑-ׇ]/g, "") === surf);
-          if (ot && ot.posDicta) oraclePos = ot.posDicta;
+          ot = oracleTokens.find((t) => String(t.stem || "").replace(/[֑-ׇ]/g, "") === surf || String(t.word || "").replace(/[֑-ׇ]/g, "") === surf);
         }
-        tokens.push({ ...r, work: row.work, oraclePos });
+        r._oraclePos = (ot && ot.posDicta) || null;
+        if (USE_TIER3 && ot && ot.niqqud) t3items.push({ surface: r.surface, niqqud: r.niqqud, ctx: { niqqud: ot.niqqud, posDicta: ot.posDicta, lemma: ot.lemma } });
       }
+      let t3map = {};
+      if (USE_TIER3 && t3items.length) {
+        let t3 = []; try { t3 = await pg.evaluate("(" + PAGE_TIER3 + ")(" + JSON.stringify(t3items) + ")"); } catch (_) { t3 = []; }
+        for (const x of (t3 || [])) if (x && x.surface) t3map[x.surface] = x;
+      }
+      for (const r of recs) tokens.push({ ...r, work: row.work, oraclePos: r._oraclePos, tier3: t3map[r.surface] || null });
       if ((i + 1) % 25 === 0 || i === rows.length - 1) process.stdout.write("\r  resolved " + (i + 1) + "/" + rows.length + " rows, " + tokens.length + " tokens   ");
     }
     process.stdout.write("\n");
@@ -273,6 +293,31 @@ function coarse(pos) {
   }
   const precisionExact = (confirmed + contradicted) ? confirmed / (confirmed + contradicted) : null;
 
+  // ── Tier-3 simulation (opt-in context path) — tail COVERAGE + REGRESSION guard ──
+  let tier3M = null;
+  if (USE_TIER3) {
+    const wT3 = tokens.filter((t) => t.tier3 && t.tier3.label);
+    const ctxAccepted = wT3.filter((t) => t.tier3.contextUsed);
+    // tail = offline false-exact (label exact but POS disagrees with Dicta context)
+    const tail = wT3.filter((t) => t.label === "exact" && t.oraclePos && coarse(t.oraclePos) && coarse(t.pos) !== coarse(t.oraclePos));
+    const tailFixed = tail.filter((t) => coarse(t.tier3.pos) === coarse(t.oraclePos));
+    // regression (NON-circular) = offline-correct exact that Tier-3 flips to disagree with Dicta
+    const okExact = wT3.filter((t) => t.label === "exact" && t.oraclePos && coarse(t.pos) === coarse(t.oraclePos));
+    const regressed = okExact.filter((t) => t.tier3.contextUsed && coarse(t.tier3.pos) && coarse(t.tier3.pos) !== coarse(t.oraclePos));
+    // ambiguous «вероятно» (form-first likely) cards Tier-3 upgrades to a context reading
+    const ambCards = wT3.filter((t) => t.label === "likely" && t.channel === "form-first");
+    const ambUpgraded = ambCards.filter((t) => t.tier3.contextUsed);
+    const tailMiss = tail.filter((t) => coarse(t.tier3.pos) !== coarse(t.oraclePos)).slice(0, 20)
+      .map((t) => ({ niqqud: t.niqqud, offline: t.pos, dicta: t.oraclePos, tier3: t.tier3.pos, tier3label: t.tier3.label }));
+    tier3M = {
+      evaluated: wT3.length, contextAccepted: ctxAccepted.length,
+      tailFalseExact: tail.length, tailFixed: tailFixed.length, tailFixRate: tail.length ? tailFixed.length / tail.length : null,
+      offlineCorrectExact: okExact.length, regressed: regressed.length,
+      ambiguousCards: ambCards.length, ambiguousUpgraded: ambUpgraded.length, tailMissSample: tailMiss,
+      caveat: "Tier-3 USES Dicta → precision-vs-Dicta is circular; the honest signals are COVERAGE (tailFixRate, conservative pickContextReading accept) + REGRESSION (regressed, non-circular).",
+    };
+  }
+
   // worst structural offenders (exact on multi-id cell) — for the report
   const collOffenders = ffCollision.slice(0, 25).map((t) => ({ surface: t.surface, niqqud: t.niqqud, pos: t.pos, pealim_id: t.pealim_id, meaning: t.meaning, idsCount: t.coll.n, oraclePos: t.oraclePos || null }));
 
@@ -301,6 +346,7 @@ function coarse(pos) {
       precisionExact, falseExactComposition: comp,
       caveat: "silver≠gold — Dicta drifts on archaic Hebrew; POS-only comparison, coarse classes",
     },
+    tier3: tier3M,
     collisionOffenders: collOffenders,
     posContradictionOffenders: offenders,
   };
@@ -324,6 +370,17 @@ function coarse(pos) {
     console.log("  precision of 'exact' vs Dicta : " + pct(precisionExact) + "   (confirmed " + confirmed + " / contradicted " + contradicted + ")");
     console.log("  false-exact composition       : multi-id=" + comp.multiId + " (→P1.1)  single-id=" + comp.singleId + " (→tail: function=" + comp.toFunction + " content=" + comp.toContent + " proper=" + comp.toProper + ")");
     console.log("  caveat: silver≠gold (Dicta archaic drift; coarse POS only)");
+  }
+  if (tier3M) {
+    console.log("─ Tier-3 simulation (opt-in context path; uses cached Dicta, no new network) ─");
+    console.log("  tokens re-resolved w/ context : " + tier3M.evaluated + "  (context accepted: " + tier3M.contextAccepted + ")");
+    console.log("  TAIL false-exact fixed        : " + tier3M.tailFixed + "/" + tier3M.tailFalseExact + "  (" + pct(tier3M.tailFixRate) + ")   ← coverage of the single-id tail");
+    console.log("  ⚠ REGRESSIONS (broke good)    : " + tier3M.regressed + "/" + tier3M.offlineCorrectExact + "   ← must stay ~0 (non-circular)");
+    console.log("  «вероятно» cards upgraded     : " + tier3M.ambiguousUpgraded + "/" + tier3M.ambiguousCards);
+    if (tier3M.tailMissSample.length) {
+      console.log("  ─ tail STILL missed by Tier-3 (sample) ─");
+      for (const m of tier3M.tailMissSample.slice(0, 8)) console.log("    " + m.niqqud + "  off=" + m.offline + " dicta=" + m.dicta + " → tier3=" + m.tier3 + " (" + m.tier3label + ")");
+    }
   }
   if (collOffenders.length) {
     console.log("─ top structural offenders (exact sold on a multi-id cell) ─");
