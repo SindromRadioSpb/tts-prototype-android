@@ -1,0 +1,434 @@
+{
+  "generated_for": "R1 gold eval (HUMAN gold vs resolver — non-circular)",
+  "file": "docs\\research\\reader-morph-gold\\2026-06-25\\reader-morph-gold-worksheet.tsv",
+  "coverage": {
+    "totalRows": 180,
+    "annotated": 172,
+    "skipped": 8,
+    "unannotated": 0
+  },
+  "headline": {
+    "precisionOfExact": 0.5142857142857142,
+    "exactN": 105,
+    "honestDegradationRecall": 0.49,
+    "wrongN": 100,
+    "overHedgeRate": 0.34615384615384615,
+    "hedgedN": 52,
+    "lemmaAccuracy": 0.5290697674418605,
+    "lemmaN": 172,
+    "lemmaAccuracyStrictString": 0.37790697674418605,
+    "lemmaAccuracyVerb": 0.9285714285714286,
+    "lemmaVerbN": 28,
+    "lemmaAccuracyNonVerb": 0.4513888888888889,
+    "lemmaNonVerbN": 144,
+    "posStrictMatch": 0.436046511627907
+  },
+  "silver": {
+    "nakdanGoldAgreement": 0.8666666666666667,
+    "nakN": 165,
+    "genuineAmbiguityRate": 0,
+    "ambig": 0
+  },
+  "byStratum": {
+    "collision": {
+      "n": 1,
+      "exactN": 1,
+      "exactOK": 1,
+      "wrong": 0
+    },
+    "tail": {
+      "n": 68,
+      "exactN": 68,
+      "exactOK": 18,
+      "wrong": 50
+    },
+    "hedged": {
+      "n": 49,
+      "exactN": 0,
+      "exactOK": 0,
+      "wrong": 32
+    },
+    "control": {
+      "n": 36,
+      "exactN": 36,
+      "exactOK": 35,
+      "wrong": 1
+    },
+    "fill": {
+      "n": 18,
+      "exactN": 0,
+      "exactOK": 0,
+      "wrong": 17
+    }
+  },
+  "byLabel": {
+    "exact": 105,
+    "likely": 50,
+    "function": 7,
+    "unknown": 8,
+    "guessed": 2
+  },
+  "falseExactOffenders": [
+    {
+      "niqqud": "וְעַד",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "עד",
+      "goldLemma": "עד",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "בֶּאֱמֶת",
+      "offPos": "noun",
+      "goldPos": "adverb",
+      "offLemma": "אמת",
+      "goldLemma": "באמת",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "לְהֶפֶךְ",
+      "offPos": "noun",
+      "goldPos": "adverb",
+      "offLemma": "הפך",
+      "goldLemma": "להפך",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַרְבֵּה",
+      "offPos": "verb",
+      "goldPos": "adverb",
+      "offLemma": "להרבות",
+      "goldLemma": "הרבה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "בְּחָזְקָה",
+      "offPos": "verb",
+      "goldPos": "noun",
+      "offLemma": "לחזוק",
+      "goldLemma": "חזקה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הוֹרָה",
+      "offPos": "verb",
+      "goldPos": "noun",
+      "offLemma": "להורות",
+      "goldLemma": "הורה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הוֹרָה",
+      "offPos": "verb",
+      "goldPos": "noun",
+      "offLemma": "להורות",
+      "goldLemma": "הורה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "סוֹעֶרֶת",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "לסעור",
+      "goldLemma": "סוער",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "סְבִיבִי",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "סביב",
+      "goldLemma": "סביב",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "בְּאֵירוֹפָּה",
+      "offPos": "noun",
+      "goldPos": "propernoun",
+      "offLemma": "אירופה",
+      "goldLemma": "אירופה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "בִּשְׁבִילֵנוּ",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "בשביל",
+      "goldLemma": "בשביל",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "בִּשְׁבִילֵנוּ",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "בשביל",
+      "goldLemma": "בשביל",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "מְחַנֵּךְ",
+      "offPos": "verb",
+      "goldPos": "noun",
+      "offLemma": "לחנך",
+      "goldLemma": "מחנך",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "שׁוּב",
+      "offPos": "verb",
+      "goldPos": "adverb",
+      "offLemma": "לשוב",
+      "goldLemma": "שוב",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "שׁוּב",
+      "offPos": "verb",
+      "goldPos": "adverb",
+      "offLemma": "לשוב",
+      "goldLemma": "שוב",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הָעוֹלִים",
+      "offPos": "verb",
+      "goldPos": "noun",
+      "offLemma": "לעלות",
+      "goldLemma": "עולה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "דּוֹמֶה",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "לדמות",
+      "goldLemma": "דומה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַנִּשְׁאָרִים",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "להישאר",
+      "goldLemma": "נשאר",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "וְעַד",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "עד",
+      "goldLemma": "עד",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַיּוֹם",
+      "offPos": "noun",
+      "goldPos": "adverb",
+      "offLemma": "יום",
+      "goldLemma": "היום",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "לְעֵרֶךְ",
+      "offPos": "noun",
+      "goldPos": "adverb",
+      "offLemma": "ערך",
+      "goldLemma": "לערך",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "אֶלֶף",
+      "offPos": "noun",
+      "goldPos": "numeral",
+      "offLemma": "אלף",
+      "goldLemma": "אלף",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "אֶלֶף",
+      "offPos": "noun",
+      "goldPos": "numeral",
+      "offLemma": "אלף",
+      "goldLemma": "אלף",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "לִקְרָאתִי",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "לקראת",
+      "goldLemma": "לקראת",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַמְּצִלּוֹת",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "להצל",
+      "goldLemma": "מצל",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַמַּכְסִיף",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "להכסיף",
+      "goldLemma": "מכסיף",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "מֵעָלַיִךְ",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "מעל",
+      "goldLemma": "מעל",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "שׁוּב",
+      "offPos": "verb",
+      "goldPos": "adverb",
+      "offLemma": "לשוב",
+      "goldLemma": "שוב",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַיּוֹם",
+      "offPos": "noun",
+      "goldPos": "adverb",
+      "offLemma": "יום",
+      "goldLemma": "היום",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "מֵהַרְבֵּה",
+      "offPos": "verb",
+      "goldPos": "adverb",
+      "offLemma": "להרבות",
+      "goldLemma": "הרבה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "יַעֲקֹב",
+      "offPos": "verb",
+      "goldPos": "propernoun",
+      "offLemma": "לעקוב",
+      "goldLemma": "יעקב",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "מַעֲצִיב",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "להעציב",
+      "goldLemma": "מעציב",
+      "verdict": "(derived)",
+      "stratum": "control"
+    },
+    {
+      "niqqud": "שָׁלוֹם",
+      "offPos": "noun",
+      "goldPos": "propernoun",
+      "offLemma": "שלום",
+      "goldLemma": "שלום",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "וְהִלֵּל",
+      "offPos": "verb",
+      "goldPos": "propernoun",
+      "offLemma": "להלל",
+      "goldLemma": "הלל",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "נִשְׁכָּח",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "להישכח",
+      "goldLemma": "נשכח",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "רְחַב",
+      "offPos": "verb",
+      "goldPos": "adjective",
+      "offLemma": "לרחוב",
+      "goldLemma": "רחב",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "לְשֵׁם",
+      "offPos": "noun",
+      "goldPos": "preposition",
+      "offLemma": "שם",
+      "goldLemma": "לשם",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַמַּקִּיף",
+      "offPos": "verb",
+      "goldPos": "participle",
+      "offLemma": "להקיף",
+      "goldLemma": "הקיף",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "הַמַּקִּיפִים",
+      "offPos": "verb",
+      "goldPos": "participle",
+      "offLemma": "להקיף",
+      "goldLemma": "הקיף",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    },
+    {
+      "niqqud": "מֵאָה",
+      "offPos": "noun",
+      "goldPos": "numeral",
+      "offLemma": "מאה",
+      "goldLemma": "מאה",
+      "verdict": "(derived)",
+      "stratum": "tail"
+    }
+  ],
+  "caveat": "precision/recall/lemma use a VERB-CITATION-AWARE lexeme match (resolver infinitive lemma vs gold 3ms-past compared on root, weak-letter tolerant). Sampling is HOMOGRAPH-WEIGHTED — read precision PER STRATUM: control ≈ representative clean «exact»; tail = deliberately oversampled vocalized homographs."
+}

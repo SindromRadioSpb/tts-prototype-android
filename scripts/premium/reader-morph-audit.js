@@ -211,6 +211,17 @@ function fmtAlts(alts) {
   if (!Array.isArray(alts) || !alts.length) return "";
   return alts.map((a) => ((a.pos || "") + (a.meaning ? (":" + a.meaning) : ""))).filter(Boolean).join(" ¦ ");
 }
+// Context window CENTERED on the judged token so it is ALWAYS visible. Long baked lines
+// otherwise truncate the token off the end of a fixed slice — that made 8 rows of the first
+// batch unjudgeable (correctly skipped by the annotator). Falls back to a head-slice if the
+// token can't be located in the line.
+function ctxWindow(sentence, token, radius) {
+  const s = String(sentence || ""), t = String(token || "");
+  const idx = t ? s.indexOf(t) : -1;
+  if (idx < 0) return s.slice(0, 360);
+  const start = Math.max(0, idx - radius), end = Math.min(s.length, idx + t.length + radius);
+  return (start > 0 ? "…" : "") + s.slice(start, end) + (end < s.length ? "…" : "");
+}
 // Gold POS coarse classes — KEEPS propernoun & numeral distinct (unlike audit's coarse(),
 // which lumps them into "function"); names matter for F6 and numerals are their own axis.
 function coarseGold(pos) {
@@ -278,7 +289,7 @@ function emitWorksheet(tokens, N, outPath, force) {
     let id = base, k = 1; while (idSeen.has(id)) id = base + "#" + (++k); idSeen.set(id, true); return id;
   };
   const rowOf = (t) => [
-    mkId(t), t.work, t.row_id || "", t.surface, t.niqqud, String(t.sentence || "").slice(0, 400),
+    mkId(t), t.work, t.row_id || "", t.surface, t.niqqud, ctxWindow(t.sentence, t.niqqud, 150),
     t.pos || "", t.lemma || "", t.root || "", String(t.meaning || "").slice(0, 60), t.label || "",
     fmtAlts(t.alts), t.oraclePos || "", stratumOf(t),
     "", "", "", "",            // gold_pos, gold_lemma, verdict, note — for the owner to fill
@@ -371,6 +382,9 @@ function writeLegend(outPath) {
     "- **over-hedge rate** — of hedged cards, fraction that were actually *uniquely* correct (= moat value we",
     "  left on the table by hedging). Only gold can measure this.",
     "- **lemma accuracy** — POS-right-but-lemma-wrong still gives the wrong root family/table (R1).",
+    "  Verb-citation-aware: the resolver cites the INFINITIVE (ללכת) while you cite 3ms-past (הלך);",
+    "  verbs are matched on ROOT (bidirectional subsequence, weak-letter tolerant) so the convention",
+    "  gap isn't mis-scored. A strict-string lemma rate is also reported for transparency.",
     "- **Nakdan-silver ↔ gold agreement** — quantifies how trustworthy Dicta is on archaic Hebrew, i.e.",
     "  retroactively validates/discounts every prior silver-based number (incl. Epic 1's 90.3%).",
     "- per-stratum + per-label breakdown; list of «exact» cards gold contradicts.",
@@ -395,6 +409,31 @@ function writeLegend(outPath) {
   fs.writeFileSync(outPath, md);
 }
 
+// Verb citation convention: the resolver cites the INFINITIVE lemma (ללכת) while human gold
+// cites the 3ms-past (הלך) — the SAME lexeme, two valid conventions. Compare verbs on the
+// resolver's ROOT under weak-letter (אהוי) tolerance so the convention gap isn't mis-scored as
+// a lexeme error (verified: it accounted for 18/18 of the POS-matching "lemma mismatches", all
+// same-lexeme). Non-verbs use niqqud-insensitive lemma strings. Blank gold_lemma = POS-only.
+const weakStrip = (s) => stripNiq(s).replace(/[אהוי]/g, "");
+const isSubseq = (a, b) => { let i = 0; for (const ch of b) { if (a[i] === ch) i++; } return a.length > 0 && i === a.length; };
+function lexemeMatch(coarsePos, offLemma, offRoot, goldLemma) {
+  if (!goldLemma) return true;
+  const ol = stripNiq(offLemma), gl = stripNiq(goldLemma);
+  if (ol === gl) return true;
+  if (coarsePos === "verb") {
+    // The resolver cites the INFINITIVE / triliteral root; gold cites the 3ms-past, which may
+    // carry a binyan prefix (נ niphal / ה hifil / ת hitpael) and weak-letter elisions. Same
+    // lexeme ⇒ root consonants subsume — or are subsumed by — the past-form consonants.
+    // Bidirectional subsequence handles strong (הלך), all-weak (היה), elided-weak (קום↔קם),
+    // and prefixed (עור↔ניעור) verbs without merging distinct roots.
+    const r = stripNiq(offRoot);
+    if (r && (isSubseq(r, gl) || isSubseq(gl, r))) return true;
+    if (weakStrip(r) && weakStrip(r) === weakStrip(gl)) return true;
+    if (weakStrip(gl) && weakStrip(ol.replace(/^ל/, "")) === weakStrip(gl)) return true;
+  }
+  return false;
+}
+
 async function runGold(file) {
   let raw; try { raw = fs.readFileSync(file, "utf8"); } catch (e) { console.error("cannot read gold file: " + file + " — " + e.message); process.exit(1); }
   raw = raw.replace(/^﻿/, "");
@@ -412,7 +451,8 @@ async function runGold(file) {
   const HEDGED = new Set(["likely", "guessed"]);
   let N = 0, annotated = 0, skipped = 0, ambig = 0;
   let exactN = 0, exactOK = 0, wrongN = 0, wrongHedged = 0, hedgedN = 0, hedgedUnique = 0;
-  let lemmaN = 0, lemmaOK = 0, nakN = 0, nakOK = 0, posStrictN = 0, posStrictOK = 0;
+  let lemmaN = 0, lemmaOK = 0, lemmaStrictOK = 0, lemmaVerbN = 0, lemmaVerbOK = 0, lemmaNonVerbN = 0, lemmaNonVerbOK = 0;
+  let nakN = 0, nakOK = 0, posStrictN = 0, posStrictOK = 0;
   const byStratum = {}, byLabel = {}; const falseExacts = [];
   for (const r of dataRows) {
     N++;
@@ -421,20 +461,27 @@ async function runGold(file) {
     if (verdict === "skip") { skipped++; continue; }
     annotated++;
     const label = g(r, "offline_label"), stratum = g(r, "stratum") || "?";
-    const offPos = g(r, "offline_pos"), offLemma = g(r, "offline_lemma"), goldLemma = g(r, "gold_lemma"), nak = g(r, "nakdan_pos");
+    const offPos = g(r, "offline_pos"), offLemma = g(r, "offline_lemma"), offRoot = g(r, "offline_root"), goldLemma = g(r, "gold_lemma"), nak = g(r, "nakdan_pos");
     const isAmbig = verdict === "ambig"; if (isAmbig) ambig++;
     let offlineCorrect;
     if (verdict === "ok") offlineCorrect = true;
     else if (verdict === "bad" || verdict === "badpos" || verdict === "badlemma" || verdict === "badboth") offlineCorrect = false;
     else if (isAmbig) offlineCorrect = false;       // not UNIQUELY correct
-    else offlineCorrect = (coarseGold(offPos) === coarseGold(goldPos)) && (!goldLemma || stripNiq(offLemma) === stripNiq(goldLemma));
+    else { const cg = coarseGold(goldPos); offlineCorrect = (coarseGold(offPos) === cg) && lexemeMatch(cg, offLemma, offRoot, goldLemma); }
     if (label === "exact") { exactN++; if (offlineCorrect && !isAmbig) exactOK++; }
     if (!offlineCorrect || isAmbig) {
       wrongN++; if (label !== "exact") wrongHedged++;
       else if (falseExacts.length < 40) falseExacts.push({ niqqud: g(r, "niqqud"), offPos, goldPos, offLemma, goldLemma, verdict: verdict || "(derived)", stratum });
     }
     if (HEDGED.has(label)) { hedgedN++; if (offlineCorrect && !isAmbig) hedgedUnique++; }
-    if (goldLemma) { lemmaN++; if (stripNiq(offLemma) === stripNiq(goldLemma)) lemmaOK++; }
+    if (goldLemma) {
+      lemmaN++;
+      const cg = coarseGold(goldPos);
+      const lm = lexemeMatch(cg, offLemma, offRoot, goldLemma);
+      if (lm) lemmaOK++;
+      if (stripNiq(offLemma) === stripNiq(goldLemma)) lemmaStrictOK++;
+      if (cg === "verb") { lemmaVerbN++; if (lm) lemmaVerbOK++; } else { lemmaNonVerbN++; if (lm) lemmaNonVerbOK++; }
+    }
     if (nak && goldPos) { nakN++; if (coarseGold(nak) === coarseGold(goldPos)) nakOK++; }
     if (goldPos) { posStrictN++; if (offPos.toLowerCase() === goldPos.toLowerCase()) posStrictOK++; }
     const bs = byStratum[stratum] || (byStratum[stratum] = { n: 0, exactN: 0, exactOK: 0, wrong: 0 });
@@ -451,10 +498,14 @@ async function runGold(file) {
       honestDegradationRecall: rate(wrongHedged, wrongN), wrongN,
       overHedgeRate: rate(hedgedUnique, hedgedN), hedgedN,
       lemmaAccuracy: rate(lemmaOK, lemmaN), lemmaN,
+      lemmaAccuracyStrictString: rate(lemmaStrictOK, lemmaN),
+      lemmaAccuracyVerb: rate(lemmaVerbOK, lemmaVerbN), lemmaVerbN,
+      lemmaAccuracyNonVerb: rate(lemmaNonVerbOK, lemmaNonVerbN), lemmaNonVerbN,
       posStrictMatch: rate(posStrictOK, posStrictN),
     },
     silver: { nakdanGoldAgreement: rate(nakOK, nakN), nakN, genuineAmbiguityRate: rate(ambig, annotated), ambig },
     byStratum, byLabel, falseExactOffenders: falseExacts,
+    caveat: "precision/recall/lemma use a VERB-CITATION-AWARE lexeme match (resolver infinitive lemma vs gold 3ms-past compared on root, weak-letter tolerant). Sampling is HOMOGRAPH-WEIGHTED — read precision PER STRATUM: control ≈ representative clean «exact»; tail = deliberately oversampled vocalized homographs.",
   };
   fs.writeFileSync(GOLD_REPORT, JSON.stringify(report, null, 2));
 
@@ -462,11 +513,13 @@ async function runGold(file) {
   console.log("file          : " + path.relative(REPO, path.resolve(file)));
   console.log("coverage      : " + annotated + " scored + " + skipped + " skipped = " + (annotated + skipped) + " / " + N + " rows   (" + (N - annotated - skipped) + " unannotated)");
   if (!annotated) { console.log("\nno annotated rows yet — fill gold_pos (+ gold_lemma) and re-run.\nreport → " + path.relative(REPO, GOLD_REPORT)); return; }
+  console.log("⚠ HOMOGRAPH-WEIGHTED sample → read PER-STRATUM below (control≈representative, tail=oversampled hard cases); blended headline is NOT a corpus base-rate.");
   console.log("─ headline (vs HUMAN gold — non-circular) ─");
   console.log("  precision of «exact»        : " + pct(rate(exactOK, exactN)) + "  (" + exactOK + "/" + exactN + ")   ← true trust of «точно»");
   console.log("  honest-degradation recall   : " + pct(rate(wrongHedged, wrongN)) + "  (" + wrongHedged + "/" + wrongN + ")   ← of wrong/ambig, NOT «точно»");
   console.log("  over-hedge rate             : " + pct(rate(hedgedUnique, hedgedN)) + "  (" + hedgedUnique + "/" + hedgedN + ")   ← hedged but actually unique");
-  console.log("  lemma accuracy              : " + pct(rate(lemmaOK, lemmaN)) + "  (" + lemmaOK + "/" + lemmaN + ")");
+  console.log("  lemma/lexeme accuracy       : " + pct(rate(lemmaOK, lemmaN)) + "  (" + lemmaOK + "/" + lemmaN + ")   verb-citation-aware  (strict-string " + pct(rate(lemmaStrictOK, lemmaN)) + ")");
+  console.log("    └ verb " + pct(rate(lemmaVerbOK, lemmaVerbN)) + " (" + lemmaVerbOK + "/" + lemmaVerbN + ")    non-verb " + pct(rate(lemmaNonVerbOK, lemmaNonVerbN)) + " (" + lemmaNonVerbOK + "/" + lemmaNonVerbN + ")");
   console.log("  POS strict-string match     : " + pct(rate(posStrictOK, posStrictN)) + "  (" + posStrictOK + "/" + posStrictN + ")");
   console.log("─ silver validation (how much to trust Dicta on archaic) ─");
   console.log("  Nakdan-silver ↔ gold agree  : " + pct(rate(nakOK, nakN)) + "  (" + nakOK + "/" + nakN + ")");

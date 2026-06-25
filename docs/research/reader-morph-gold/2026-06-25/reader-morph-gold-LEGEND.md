@@ -55,6 +55,9 @@ also reported.
 - **over-hedge rate** — of hedged cards, fraction that were actually *uniquely* correct (= moat value we
   left on the table by hedging). Only gold can measure this.
 - **lemma accuracy** — POS-right-but-lemma-wrong still gives the wrong root family/table (R1).
+  Verb-citation-aware: the resolver cites the INFINITIVE (ללכת) while you cite 3ms-past (הלך);
+  verbs are matched on ROOT (bidirectional subsequence, weak-letter tolerant) so the convention
+  gap isn't mis-scored. A strict-string lemma rate is also reported for transparency.
 - **Nakdan-silver ↔ gold agreement** — quantifies how trustworthy Dicta is on archaic Hebrew, i.e.
   retroactively validates/discounts every prior silver-based number (incl. Epic 1's 90.3%).
 - per-stratum + per-label breakdown; list of «exact» cards gold contradicts.
