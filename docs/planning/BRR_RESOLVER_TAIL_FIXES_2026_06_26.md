@@ -47,6 +47,24 @@ All Room-only, offline, in the honest-label / `functionGate` layer (`reader-morp
 5. **L5 — names gazetteer (R2/F6, 7).** Offline Wikidata/KIMA personal+place list → suppress
    morphology, label proper noun. Catches יעקב/אירופה/שלום/הלל; org-from-context not reliable.
 
+## Status (2026-06-26)
+
+**SHIPPED L1+L2+L3+L5 (v3.11.1).** Gold-gated cumulative (--regold, vs human gold):
+- tail precision **26.5% → 41.9%** (+15.4pp) · honest-degradation recall **45.2% → 66.2%** (+21.1pp)
+- control **35/36 = 97.2% held** (no regression) · all gates green.
+- L1 prepositions: בתוכו/לקראתי/בשבילנו/מעליך/סביבי → «предлог» (finalToMedial + bases + flat forms).
+- L2 numerals: אלף/מאה/מאות/שני + tens/ordinals → numeral (NUM_NOUN_HOMOGRAPH guards הַמֵּאָה=век).
+- L3 adverbs: הרבה/היום/באמת/להפך/שוב/לערך → demote «точно»→«вероятно» + alt (reuses CONTEXT_GLOSS).
+- L5 names: אירופה/יעקב/משה… → propernoun, honest-empty (seed gazetteer; homograph names + the
+  full Wikidata+KIMA list deferred to R2). Scorer: function/numeral/**propernoun** need no lemma.
+
+**L4 (beinoni) DEFERRED — R10 finding + owner decision.** Feasible in reader-morph.js (AP-* cell
+keys identify participles; pidMap is in-engine, no parity-core change). BUT measure-before-code:
+a blanket offline demotion of beinoni «точно» would also hedge GENUINE verbal present-tense forms
+(correctly verb), risking the control 97.2% + spiking over-hedge. The existing Tier-3 participle-
+soften path already handles verb↔noun via Dicta context. So L4 needs a nuanced design (Tier-3-gated,
+or demote only when a competing nominal sense exists) — surfaced to owner, not rushed.
+
 ## Norms / gates
 
 Room-only · offline-first (no network/consent) · gold-gated each lever (`--regold`) ·

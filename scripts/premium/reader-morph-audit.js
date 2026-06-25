@@ -419,11 +419,11 @@ const weakStrip = (s) => stripNiq(s).replace(/[אהוי]/g, "");
 const isSubseq = (a, b) => { let i = 0; for (const ch of b) { if (a[i] === ch) i++; } return a.length > 0 && i === a.length; };
 function lexemeMatch(coarsePos, offLemma, offRoot, goldLemma) {
   if (!goldLemma) return true;
-  // Function-class words (prep/particle/adverb/pronoun/conjunction) and numerals have NO Pealim
-  // lexeme lemma — the resolver's honest function-gate emits an empty lemma on purpose. POS
-  // identity is the whole claim there, so don't require a lemma-string match (would mis-score a
-  // correctly-identified preposition as wrong just because it carries no lemma).
-  if (coarsePos === "function" || coarsePos === "numeral") return true;
+  // Function-class words (prep/particle/adverb/pronoun/conjunction), numerals, and proper names
+  // have NO Pealim lexeme lemma — the resolver's honest function/name-gate emits an empty lemma
+  // on purpose. POS identity is the whole claim there, so don't require a lemma-string match
+  // (would mis-score a correctly-identified preposition/name as wrong just for carrying no lemma).
+  if (coarsePos === "function" || coarsePos === "numeral" || coarsePos === "propernoun") return true;
   const ol = stripNiq(offLemma), gl = stripNiq(goldLemma);
   if (ol === gl) return true;
   if (coarsePos === "verb") {

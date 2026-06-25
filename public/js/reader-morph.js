@@ -203,6 +203,16 @@
   // the BARE counting form, but do NOT let the definite ה+X path read them as numerals
   // (הַמֵּאָה = «век», not «сотня» — gold-verified regression guard, R1-tail L2).
   var NUM_NOUN_HOMOGRAPH = { "מאה": 1, "מאות": 1, "אלף": 1 };
+  // R1-tail L5: proper-name gazetteer SEED — unambiguous personal/place names that are NOT
+  // common Hebrew words (so no over-trigger). A full Wikidata+KIMA gazetteer is the R2 follow-up;
+  // homograph names (שלום «мир», הלל «хвала», דוד «дядя») and context-org names are deferred.
+  var NAME_PROPER = {
+    "אירופה": 1, "ירושלים": 1, "ישראל": 1, "מצרים": 1, "בבל": 1, "אשור": 1, "רומא": 1, "ציון": 1,
+    "כנען": 1, "סיני": 1, "אמריקה": 1, "אסיה": 1, "אפריקה": 1, "מוסקבה": 1, "פריז": 1, "ברלין": 1,
+    "יעקב": 1, "יצחק": 1, "אברהם": 1, "משה": 1, "אהרן": 1, "יוסף": 1, "יהושע": 1, "שמואל": 1,
+    "מרדכי": 1, "אסתר": 1, "רבקה": 1, "רחל": 1, "לאה": 1, "מרים": 1, "גדעון": 1, "שמשון": 1,
+    "שלמה": 1, "בנימין": 1, "אפרים": 1, "ירמיהו": 1, "ישעיהו": 1, "יחזקאל": 1, "מנשה": 1, "ראובן": 1,
+  };
   // Preposition/reflexive bases (consonantal, length ≥ 2) that take pronominal suffixes.
   // Single-letter bases (ב/כ/ל/מ) are EXCLUDED — they collide with word-initial letters
   // (לִבֵּנוּ = «наше сердце», NOT a preposition). Their suffixed forms are listed verbatim
@@ -236,6 +246,13 @@
     // numeral (NUM-only keeps this safe: ה+content-noun never enters the closed numeral list).
     if (w.length > 2 && w.charAt(0) === "ה" && Object.prototype.hasOwnProperty.call(NUM_GLOSS, w.slice(1)) && !NUM_NOUN_HOMOGRAPH[w.slice(1)])
       return { isFunc: true, via: "art+num", gloss: NUM_GLOSS[w.slice(1)], pos: "numeral" };
+    // R1-tail L5: proper name (optionally behind one proclitic ב/ל/מ/כ/ה/ו/ש, e.g. בְּאֵירוֹפָּה).
+    // gloss="" → honest-empty / «unknown» label (R1 invariant: no fabricated meaning for a name);
+    // pos=propernoun still flows so the card/scoring know it is a name, morphology suppressed.
+    if (Object.prototype.hasOwnProperty.call(NAME_PROPER, w))
+      return { isFunc: true, via: "name", gloss: "", pos: "propernoun" };
+    if (w.length >= 4 && /^[ובלמכהש]/.test(w) && Object.prototype.hasOwnProperty.call(NAME_PROPER, w.slice(1)))
+      return { isFunc: true, via: "name", gloss: "", pos: "propernoun" };
     var cands = [w];
     // strip ONE leading proclitic, then retest. Only ו/ש (and/that) — the safest: rarely
     // content-initial. ל/כ/ה are NOT stripped here: ל+gerund forms a content infinitive
