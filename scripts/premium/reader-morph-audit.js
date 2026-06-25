@@ -37,13 +37,18 @@ const REPO = path.resolve(__dirname, "..", "..");
 const PORT = 3289, BASE = "http://127.0.0.1:" + PORT;
 const WORKS = path.join(REPO, "public", "data", "benyehuda", "works");
 const OUTDIR = path.join(REPO, ".tmp", "benyehuda");
-const CACHE = path.join(OUTDIR, "reader-morph-audit-dicta-cache.json");
-const REPORT = path.join(OUTDIR, "reader-morph-audit-report.json");
-// R1.0 gold-eval artifacts (dev-only; never shipped, no SW bump)
-const WORKSHEET = path.join(OUTDIR, "reader-morph-gold-worksheet.tsv");
-const WORKSHEET_PREVIEW = path.join(OUTDIR, "reader-morph-gold-worksheet-PREVIEW.tsv");
-const LEGEND = path.join(OUTDIR, "reader-morph-gold-LEGEND.md");
-const GOLD_REPORT = path.join(OUTDIR, "reader-morph-gold-report.json");
+const CACHE = path.join(OUTDIR, "reader-morph-audit-dicta-cache.json");   // scratch/cache → .tmp
+const REPORT = path.join(OUTDIR, "reader-morph-audit-report.json");       // scratch → .tmp
+// R1.0 gold-eval DELIVERABLES live in a stable, user-visible repo path — NOT .tmp.
+// (See "Artifact storage rule" in CLAUDE.md: user-facing artifacts the owner reviews /
+// annotates / preserves must be in a tracked folder, never only in gitignored .tmp.)
+// Dev-only harness still: never shipped, no SW bump. The Dicta cache + audit report above
+// stay scratch in .tmp by design.
+const GOLD_DIR = path.join(REPO, "docs", "research", "reader-morph-gold", "2026-06-25");
+const WORKSHEET = path.join(GOLD_DIR, "reader-morph-gold-worksheet.tsv");
+const WORKSHEET_PREVIEW = path.join(GOLD_DIR, "reader-morph-gold-worksheet-PREVIEW.tsv");
+const LEGEND = path.join(GOLD_DIR, "reader-morph-gold-LEGEND.md");
+const GOLD_REPORT = path.join(GOLD_DIR, "reader-morph-gold-report.json");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── CLI ──────────────────────────────────────────────────────────────────────
@@ -285,6 +290,8 @@ function emitWorksheet(tokens, N, outPath, force) {
     "# nakdan_pos = Dicta SILVER reference only (NOT truth). offline_* = the resolver under test.",
   ].join("\n");
   const lines = picked.map(rowOf);
+  try { fs.mkdirSync(path.dirname(outPath), { recursive: true }); } catch (_) {}
+  try { fs.mkdirSync(path.dirname(WORKSHEET_PREVIEW), { recursive: true }); } catch (_) {}
   const body = "﻿" + head + "\n" + WS_COLS.join("\t") + "\n" + lines.join("\n") + "\n";
   fs.writeFileSync(outPath, body);
   const prevLines = lines.slice(0, 15);
@@ -434,7 +441,7 @@ async function runGold(file) {
     bs.n++; if (label === "exact") { bs.exactN++; if (offlineCorrect && !isAmbig) bs.exactOK++; } if (!offlineCorrect || isAmbig) bs.wrong++;
     byLabel[label] = (byLabel[label] || 0) + 1;
   }
-  try { fs.mkdirSync(OUTDIR, { recursive: true }); } catch (_) {}
+  try { fs.mkdirSync(path.dirname(GOLD_REPORT), { recursive: true }); } catch (_) {}
   const report = {
     generated_for: "R1 gold eval (HUMAN gold vs resolver — non-circular)",
     file: path.relative(REPO, path.resolve(file)),
@@ -558,7 +565,7 @@ async function runGold(file) {
 
   // ── R1.0 worksheet producer — emit gold TSV + legend, then stop (skip audit metrics) ──
   if (WORKSHEET_N) {
-    try { fs.mkdirSync(OUTDIR, { recursive: true }); } catch (_) {}
+    try { fs.mkdirSync(GOLD_DIR, { recursive: true }); } catch (_) {}
     writeLegend(LEGEND);
     emitWorksheet(tokens, WORKSHEET_N, OUT_OVERRIDE || WORKSHEET, FORCE);
     return;

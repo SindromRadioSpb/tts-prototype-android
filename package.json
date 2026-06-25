@@ -151,7 +151,7 @@
     "smoke:reader-morph": "node scripts/premium/reader-morph-smoke.js",
     "smoke:reader-morph:audit": "node scripts/premium/reader-morph-audit.js",
     "gold:worksheet": "node scripts/premium/reader-morph-audit.js --worksheet=180",
-    "gold:score": "node scripts/premium/reader-morph-audit.js --gold=.tmp/benyehuda/reader-morph-gold-worksheet.tsv",
+    "gold:score": "node scripts/premium/reader-morph-audit.js --gold=docs/research/reader-morph-gold/2026-06-25/reader-morph-gold-worksheet.tsv",
     "smoke:reader-notes": "node scripts/premium/reader-notes-smoke.js",
     "smoke:reader-resume": "node scripts/premium/reader-resume-smoke.js",
     "smoke:bookmarks": "node scripts/premium/bookmarks-smoke.js",
