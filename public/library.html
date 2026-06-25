@@ -717,6 +717,31 @@
     .rm-conj-body .v3-conj-invariant { margin-top: 2px; }
     .rm-conj-body .v3-conj-cell-lg { min-width: 96px; padding: 8px 14px; }
     .rm-conj-body .v3-conj-cell-lg .v3-conj-he { font-size: 22px; }
+
+    /* ── desktop layout layer (Epic 7, R4) ───────────────────────────────────
+       Additive @media(min-width) ONLY — the @380px mobile cascade is untouched.
+       Centers the Room into a column on wide screens (no stretched-mobile look) and
+       gives the bilingual reader a book-like reading measure. NB: the reading-measure
+       max-width lives on the Room-local .reader-table-wrap / #roomReader, NEVER on
+       #proTable (that lives in the shared reader-core.css and is used by Studio too —
+       touching it would break index.html / smoke:reader-parity). CSS-only: parity is
+       HTML byte-parity of the builder, so this stays green. */
+    @media (min-width: 1024px) {
+      .room-header-row, .room-tabs { max-width: 1120px; margin-inline: auto; }
+      main#roomContent { max-width: 1120px; margin-inline: auto; }
+      .room-footer { max-width: 1120px; margin-inline: auto; }
+      /* read view = narrower, book-like centered column */
+      #roomReader { max-width: 880px; margin-inline: auto; }
+      /* period grid: fill columns instead of the hardcoded 1fr 1fr */
+      .corpus-period-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+      /* shelves: wrap-grid instead of a sparse hidden-scroll carousel
+         (also dissolves the shelf-carousel-affordance finding — no hidden overflow) */
+      .shelf-rail {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        overflow-x: visible; scroll-snap-type: none;
+      }
+      .work-card { width: auto; }
+    }
   </style>
 </head>
 <body>
