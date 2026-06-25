@@ -127,6 +127,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         prep: R.pickContextReading(offNoun, null, { posDicta: "preposition" }, "עד"),     // curated → «до»
         advUncurated: R.pickContextReading(offNoun, null, { posDicta: "adverb" }, "כזותי"), // no gloss → POS-only
         agree: R.pickContextReading({ pos: "noun", pealim_id: "1" }, null, { posDicta: "noun" }, "ספר"), // no demotion
+        soften: R.pickContextReading({ pos: "verb", pealim_id: "9" }, null, { posDicta: "noun" }, "מת"),  // participle↔noun → soften
       };
     });
     eq(ctxPick.prep && ctxPick.prep.use === "gloss" && ctxPick.prep.pos === "preposition" && /до/.test(ctxPick.prep.gloss || ""),
@@ -134,6 +135,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(ctxPick.advUncurated && ctxPick.advUncurated.use === "gloss" && ctxPick.advUncurated.pos === "adverb" && ctxPick.advUncurated.gloss === "",
       "Dicta function POS over offline content, no curated gloss → POS-only demotion (no fabricated gloss)");
     eq(ctxPick.agree && ctxPick.agree.use === "offline", "agreeing content POS must NOT trigger a spurious demotion");
+    eq(ctxPick.soften && ctxPick.soften.use === "soften" && ctxPick.soften.pos === "noun",
+      "offline verb vs Dicta noun (participle↔noun) → soften «точно»→«вероятно» (not suppress)");
 
     // ── 2/3/4) DOM: wrap parity-safe + tap opens card ─────────────────────────
     const dom = await pg.evaluate(() => {

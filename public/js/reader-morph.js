@@ -280,6 +280,13 @@
       _isContentPos(pos) && pos === (ctxCard.pos || "") &&
       String(ctxCard.pealim_id || "") !== String(offlineCard.pealim_id || ""))
       return { use: "context" };
+    // (C) Dicta's CONTENT POS disagrees with the offline content reading on the verb↔nominal
+    // axis (a participle↔noun homograph: הַמֵּת/הוֹרָה/הָעוֹלִים — offline form-matches the verb,
+    // Dicta reads a noun). We can't produce the noun's gloss offline, so we keep the (related)
+    // offline reading but SOFTEN it — «точно» becomes «вероятно» (no more false certainty).
+    if (_isContentPos(pos) && _isContentPos(offlineCard.pos || "") &&
+      (pos === "verb") !== ((offlineCard.pos || "") === "verb"))
+      return { use: "soften", pos: pos };
     return { use: "offline" };   // no confident improvement → keep offline (no regression)
   }
 
@@ -448,6 +455,13 @@
           card.meaning = pick.gloss; card.pos = pick.pos || card.pos;
           card.root = null; card.binyan = ""; card.paradigm = null; card.lemma = "";
           card.pealim_id = ""; card.pealim_url = ""; card.label = "context"; card.contextUsed = true;
+        }
+        else if (pick.use === "soften") {
+          // Dicta disputes the content POS but we have no offline gloss for its reading: keep
+          // the related offline reading, drop the «точно» claim. ambiguous=true engages the
+          // enrichment gate (search link / «возможная парадигма» / family hidden).
+          if (card.label === "exact") card.label = "likely";
+          card.ambiguous = true; card.contextUsed = true; card.contextPos = pick.pos || "";
         }
       } catch (_) { /* Dicta hiccup → keep offline card (silent, no dead-end) */ }
     }
@@ -630,6 +644,11 @@
     var altLine = altGlosses.length
       ? '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.altReadings", "возможно также")) + ":</span> " + escapeHtml(altGlosses.slice(0, 3).join("; ")) + "</div>"
       : "";
+    // Participle-soften hint: Dicta read a different content POS in context (verb↔noun) — name it.
+    var cpt = card.contextPos && card.contextPos !== card.pos && POS_TEXT[card.contextPos];
+    var ctxPosLine = cpt
+      ? '<div class="rm-alts" dir="ltr"><span class="rm-alts-k">' + escapeHtml(tt("room.morph.contextSuggests", "по контексту, возможно")) + ":</span> " + escapeHtml(tt(cpt[0], cpt[1])) + "</div>"
+      : "";
     var linkLabel = card.pealim_direct ? tt("room.morph.pealimPage", "Открыть на Pealim") : tt("room.morph.pealimSearch", "Искать на Pealim");
     var link = card.pealim_url
       ? '<a class="rm-link" href="' + escapeHtml(card.pealim_url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(linkLabel) + " ↗</a>"
@@ -661,7 +680,7 @@
       if (tbl) conj = '<details class="rm-acc rm-acc-conj' + (conjSure ? "" : " rm-acc-uncertain") + '"><summary class="rm-acc-sum">' + escapeHtml(conjLabel) + "</summary>" +
         '<div class="rm-conj-body">' + tbl + "</div></details>";
     }
-    return head + meaning + altLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
+    return head + meaning + altLine + ctxPosLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
   }
 
   function openCardLoading() {

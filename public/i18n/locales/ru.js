@@ -2026,6 +2026,7 @@ window.I18N_LOCALES.ru = {
       conj: "Спряжение / Склонение",
       altReadings: "возможно также",
       possibleParadigm: "возможная парадигма",
+      contextSuggests: "по контексту, возможно",
       prov: { exact: "точно", likely: "вероятно", guessed: "подобрано", "function": "служебное слово", context: "контекст (Dicta)", unknown: "не определено офлайн" },
       pos: { verb: "глагол", noun: "существительное", adjective: "прилагательное", preposition: "предлог", adverb: "наречие", pronoun: "местоимение", conjunction: "союз", numeral: "числительное", interjection: "междометие", particle: "частица", negation: "отрицание" },
     },

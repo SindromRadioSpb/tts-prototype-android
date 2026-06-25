@@ -301,6 +301,10 @@ function coarse(pos) {
     // tail = offline false-exact (label exact but POS disagrees with Dicta context)
     const tail = wT3.filter((t) => t.label === "exact" && t.oraclePos && coarse(t.oraclePos) && coarse(t.pos) !== coarse(t.oraclePos));
     const tailFixed = tail.filter((t) => coarse(t.tier3.pos) === coarse(t.oraclePos));
+    // "honest" = Tier-3 either FIXED the POS or SOFTENED off «точно» (participle-soften) → no
+    // remaining false certainty. Softened = still POS-disagree but label no longer exact.
+    const tailSoftened = tail.filter((t) => coarse(t.tier3.pos) !== coarse(t.oraclePos) && t.tier3.label && t.tier3.label !== "exact");
+    const tailHonest = tail.filter((t) => coarse(t.tier3.pos) === coarse(t.oraclePos) || (t.tier3.label && t.tier3.label !== "exact"));
     // regression (NON-circular) = offline-correct exact that Tier-3 flips to disagree with Dicta
     const okExact = wT3.filter((t) => t.label === "exact" && t.oraclePos && coarse(t.pos) === coarse(t.oraclePos));
     const regressed = okExact.filter((t) => t.tier3.contextUsed && coarse(t.tier3.pos) && coarse(t.tier3.pos) !== coarse(t.oraclePos));
@@ -312,6 +316,7 @@ function coarse(pos) {
     tier3M = {
       evaluated: wT3.length, contextAccepted: ctxAccepted.length,
       tailFalseExact: tail.length, tailFixed: tailFixed.length, tailFixRate: tail.length ? tailFixed.length / tail.length : null,
+      tailSoftened: tailSoftened.length, tailHonest: tailHonest.length, tailHonestRate: tail.length ? tailHonest.length / tail.length : null,
       offlineCorrectExact: okExact.length, regressed: regressed.length,
       ambiguousCards: ambCards.length, ambiguousUpgraded: ambUpgraded.length, tailMissSample: tailMiss,
       caveat: "Tier-3 USES Dicta → precision-vs-Dicta is circular; the honest signals are COVERAGE (tailFixRate, conservative pickContextReading accept) + REGRESSION (regressed, non-circular).",
@@ -374,7 +379,8 @@ function coarse(pos) {
   if (tier3M) {
     console.log("─ Tier-3 simulation (opt-in context path; uses cached Dicta, no new network) ─");
     console.log("  tokens re-resolved w/ context : " + tier3M.evaluated + "  (context accepted: " + tier3M.contextAccepted + ")");
-    console.log("  TAIL false-exact fixed        : " + tier3M.tailFixed + "/" + tier3M.tailFalseExact + "  (" + pct(tier3M.tailFixRate) + ")   ← coverage of the single-id tail");
+    console.log("  TAIL false-exact fixed        : " + tier3M.tailFixed + "/" + tier3M.tailFalseExact + "  (" + pct(tier3M.tailFixRate) + ")   ← POS corrected");
+    console.log("  TAIL made HONEST (fix+soften) : " + tier3M.tailHonest + "/" + tier3M.tailFalseExact + "  (" + pct(tier3M.tailHonestRate) + ")   ← no false «точно» (soften " + tier3M.tailSoftened + ")");
     console.log("  ⚠ REGRESSIONS (broke good)    : " + tier3M.regressed + "/" + tier3M.offlineCorrectExact + "   ← must stay ~0 (non-circular)");
     console.log("  «вероятно» cards upgraded     : " + tier3M.ambiguousUpgraded + "/" + tier3M.ambiguousCards);
     if (tier3M.tailMissSample.length) {
