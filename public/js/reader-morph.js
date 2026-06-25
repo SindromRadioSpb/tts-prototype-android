@@ -282,6 +282,8 @@
     "עד": "до, вплоть до", "באמת": "действительно, в самом деле", "להפך": "наоборот, напротив",
     "בדיוק": "точно, как раз", "לפחות": "по крайней мере", "בכלל": "вообще", "אמנם": "правда, хотя",
     "בעצם": "по сути, собственно", "לגמרי": "совершенно, полностью", "כבר": "уже",
+    // R1-tail L3 — more high-frequency adverb homographs the gold pass flagged.
+    "שוב": "снова, опять", "לערך": "примерно, приблизительно", "מהרבה": "много",
   };
   function _isContentPos(p) { return p === "noun" || p === "verb" || p === "adjective"; }
   function _isFuncPos(p) {
@@ -407,14 +409,28 @@
       pealim_id = ""; pealim_url = ""; lemma = "";
       gatedLabel = fg.gloss ? "function" : "unknown";
     }
+    var label = gatedLabel || provenanceLabel(r, pos);
+    var ambiguous = fg.isFunc ? false : !!r.ambiguous;
+    var alts = fg.isFunc ? [] : (r.alts || []);
+    // R1-tail L3: OFFLINE homograph-adverb demotion. CONTEXT_GLOSS skeletons have a
+    // high-frequency adverbial/function reading the offline path can't confirm (only Tier-3/Dicta
+    // can — see the type-B note above). When form-first asserts a CONTENT «точно» on one, demote
+    // off «точно» and surface the adverb reading as «возможно также», so the card is honest (not
+    // a false «точно», not an over-asserted adverb). Tier-3 upgrades it when Dicta confirms POS.
+    var advKey = stripNiqqud(n0) || surfaceOrig || "";
+    if (!fg.isFunc && label === "exact" && _isContentPos(pos) &&
+        Object.prototype.hasOwnProperty.call(CONTEXT_GLOSS, advKey)) {
+      label = "likely"; ambiguous = true;
+      alts = alts.concat([{ pos: "adverb", meaning: CONTEXT_GLOSS[advKey], root: null }]);
+    }
     return {
       word: surfaceOrig || stripNiqqud(n0), niqqud: n0,
       root: root, binyan: binyan, pos: pos, meaning: meaning, lemma: lemma,
       pealim_id: pealim_id, pealim_url: pealim_url, paradigm: par || null,
       channel: fg.isFunc ? "function-gate" : r.channel, confidence: r.confidence, status: r.status,
       functionWord: fg.isFunc, gateVia: gateVia,
-      ambiguous: fg.isFunc ? false : !!r.ambiguous, alts: fg.isFunc ? [] : (r.alts || []),
-      label: gatedLabel || provenanceLabel(r, pos),
+      ambiguous: ambiguous, alts: alts,
+      label: label,
     };
   }
 
