@@ -190,7 +190,19 @@
     "שבעה": "семь", "שמונה": "восемь", "תשע": "девять", "תשעה": "девять", "עשר": "десять",
     "עשרה": "десять", "ראשון": "первый", "ראשונה": "первая", "ראשונים": "первые",
     "ראשונות": "первые", "שלישי": "третий", "רביעי": "четвёртый", "חמישי": "пятый",
+    // R1-tail L2: large numbers + missing ordinals/tens flagged as false-exact «точно» noun.
+    // (מאת excluded — homograph with the preposition «от».)
+    "אלף": "тысяча", "אלפים": "тысячи", "אלפיים": "две тысячи",
+    "מאה": "сто", "מאות": "сотни", "מאתיים": "двести",
+    "שני": "второй; два (сопряж.)", "שנייה": "вторая; секунда",
+    "שביעי": "седьмой", "שמיני": "восьмой", "תשיעי": "девятый", "עשירי": "десятый",
+    "עשרים": "двадцать", "שלושים": "тридцать", "ארבעים": "сорок", "חמישים": "пятьдесят",
+    "שישים": "шестьдесят", "שבעים": "семьдесят", "שמונים": "восемьдесят", "תשעים": "девяносто",
   };
+  // Numerals that are ALSO common nouns (מֵאָה «век», אֶלֶף «вождь/алеф») → keep them gating in
+  // the BARE counting form, but do NOT let the definite ה+X path read them as numerals
+  // (הַמֵּאָה = «век», not «сотня» — gold-verified regression guard, R1-tail L2).
+  var NUM_NOUN_HOMOGRAPH = { "מאה": 1, "מאות": 1, "אלף": 1 };
   // Preposition/reflexive bases (consonantal, length ≥ 2) that take pronominal suffixes.
   // Single-letter bases (ב/כ/ל/מ) are EXCLUDED — they collide with word-initial letters
   // (לִבֵּנוּ = «наше сердце», NOT a preposition). Their suffixed forms are listed verbatim
@@ -222,7 +234,7 @@
       return { isFunc: true, via: "numeral", gloss: NUM_GLOSS[w], pos: "numeral" };
     // definite article ה + numeral (הָאֶחָד, הָרִאשׁוֹנָה) — ה+numeral is reliably a definite
     // numeral (NUM-only keeps this safe: ה+content-noun never enters the closed numeral list).
-    if (w.length > 2 && w.charAt(0) === "ה" && Object.prototype.hasOwnProperty.call(NUM_GLOSS, w.slice(1)))
+    if (w.length > 2 && w.charAt(0) === "ה" && Object.prototype.hasOwnProperty.call(NUM_GLOSS, w.slice(1)) && !NUM_NOUN_HOMOGRAPH[w.slice(1)])
       return { isFunc: true, via: "art+num", gloss: NUM_GLOSS[w.slice(1)], pos: "numeral" };
     var cands = [w];
     // strip ONE leading proclitic, then retest. Only ו/ש (and/that) — the safest: rarely
