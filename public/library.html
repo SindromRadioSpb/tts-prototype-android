@@ -734,13 +734,12 @@
       #roomReader { max-width: 880px; margin-inline: auto; }
       /* period grid: fill columns instead of the hardcoded 1fr 1fr */
       .corpus-period-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-      /* shelves: wrap-grid instead of a sparse hidden-scroll carousel
-         (also dissolves the shelf-carousel-affordance finding — no hidden overflow) */
-      .shelf-rail {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        overflow-x: visible; scroll-snap-type: none;
-      }
-      .work-card { width: auto; }
+      /* shelves: keep the horizontal carousel, but give mouse users a visible
+         scrollbar (the mobile carousel hides it — the shelf-carousel-affordance
+         fix) WITHOUT exploding a long shelf into a giant vertical grid. */
+      .shelf-rail { scrollbar-width: thin; }
+      .shelf-rail::-webkit-scrollbar { display: block; height: 8px; }
+      .shelf-rail::-webkit-scrollbar-thumb { background: var(--border-soft); border-radius: 4px; }
     }
   </style>
 </head>
