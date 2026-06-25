@@ -2,7 +2,8 @@
 
 **Статус:** 🟢 RESEARCH ЗАВЕРШЁН → приоритизированный план ниже (ждёт выбора владельца, какие R-айтемы планировать).
 **Метод:** deep-research workflow (6 углов · 26 источников · 124 утверждения → 25 верифицировано состязательно, 22 подтверждено / 3 убито). Роли R10 (вед.) · R1 · R5 (offline-first).
-**Связано:** `BRR_EPIC1_RESOLVER_HONESTY_2026_06_25.md` (Эпик 1 SHIPPED), [[project_brr_ux_audit]]. Полный отчёт: транскрипт workflow `wf_10d84913-061`.
+**Связано:** `BRR_EPIC1_RESOLVER_HONESTY_2026_06_25.md` (Эпик 1 SHIPPED), [[project_brr_ux_audit]].
+**📚 ПОЛНАЯ доказательная база (durable research dossier):** `docs/research/HEBREW_MORPHOLOGY_RESOLVER_RESEARCH_2026_06_25.md` — таблицы трибанков/моделей/лицензий, [ВЕРИФ]/[ОПРОВЕРГНУТО]-разметка, методология, аннотированные источники. Этот файл = action-план; dossier = evidence.
 
 ---
 
