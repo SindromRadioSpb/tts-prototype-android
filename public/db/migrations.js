@@ -772,4 +772,18 @@ export const MIGRATIONS = [
   CREATE INDEX IF NOT EXISTS ix_bookmarks_created ON bookmarks(created_at DESC);
   CREATE INDEX IF NOT EXISTS ix_bookmarks_key ON bookmarks(text_key);
   CREATE UNIQUE INDEX IF NOT EXISTS ux_bookmarks_pos ON bookmarks(text_id, sentence_id);`,
+
+  // 057_word_status — BRR Epic 4 keystone. MANUAL reader-knowledge status, SEPARATE from
+  // notes/srs/anki (so marking «known» never spawns a flashcard — the OPFS status store the
+  // audit mandated). lemma_key = canonical NotesAutoGen.lemmaKey (pid:<id> | <norm-lemma>#<pos>),
+  // byte-identical to the inline key in getKnownWordStates so it overlays the reader colouring +
+  // i+1 directly. status ∈ l1|l2|l3|l4 (LingQ learning levels) | known | ignore; ABSENCE of a row
+  // = new/unseen. Manual-wins over the SRS-derived overlay for the READING colour (a distinct axis
+  // from the review schedule, which stays in srs_cards). No FK — a lemma can be marked with no note.
+  `CREATE TABLE IF NOT EXISTS word_status (
+    lemma_key  TEXT PRIMARY KEY,
+    status     TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );
+  CREATE INDEX IF NOT EXISTS ix_word_status_status ON word_status(status);`,
 ];

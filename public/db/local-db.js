@@ -2120,7 +2120,49 @@ export async function getKnownWordStates() {
     const prev = out[lk];
     if (!prev || (_KWS_RANK[st] || 0) > (_KWS_RANK[prev] || 0)) out[lk] = st;
   }
+  // Epic 4 keystone — overlay the MANUAL reader-knowledge status (manual-wins): the user's explicit
+  // one-tap choice is the authority for the reading colour, and applies even to lemmas with NO note
+  // (mark «known»/«ignore» without ever creating a flashcard). The SRS-derived state stays only where
+  // no manual status exists. Returned values may now be l1|l2|l3|l4|known|ignore in addition to the
+  // SRS states; the reader/colouring + i+1 map these (a distinct axis from the review schedule).
+  try {
+    const manual = await getAllWordStatuses();
+    for (const lk in manual) { if (manual[lk]) out[lk] = manual[lk]; }
+  } catch (_) {}
   return out;
+}
+
+// Epic 4 keystone — MANUAL reader-knowledge status store (word_status table, migration 057),
+// SEPARATE from notes/srs/anki so marking «known» never spawns a flashcard. lemma_key = canonical
+// NotesAutoGen.lemmaKey. status ∈ l1|l2|l3|l4|known|ignore; '' / null / 'new' clears the row.
+const _WS_VALUES = { l1: 1, l2: 1, l3: 1, l4: 1, known: 1, ignore: 1 };
+export async function setWordStatus(lemmaKey, status) {
+  const lk = String(lemmaKey || "").trim();
+  if (!lk) return false;
+  const st = String(status || "").trim();
+  try {
+    if (!st || st === "new" || !_WS_VALUES[st]) {
+      await r(`DELETE FROM word_status WHERE lemma_key = ?`, [lk]);
+    } else {
+      await r(`INSERT OR REPLACE INTO word_status (lemma_key, status, updated_at)
+               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`, [lk, st]);
+    }
+    return true;
+  } catch (_) { return false; }
+}
+export async function getWordStatus(lemmaKey) {
+  const lk = String(lemmaKey || "").trim();
+  if (!lk) return "";
+  try { const rows = await q(`SELECT status FROM word_status WHERE lemma_key = ?`, [lk]); return (rows && rows[0] && String(rows[0].status)) || ""; }
+  catch (_) { return ""; }
+}
+export async function getAllWordStatuses() {
+  try {
+    const rows = await q(`SELECT lemma_key, status FROM word_status`, []);
+    const out = {};
+    for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = String(w.status || "");
+    return out;
+  } catch (_) { return {}; }
 }
 
 // ⑤ Anki-sync A2b — full word_study note bodies for the client-side .apkg export (AnkiSrsExport parses
