@@ -1,0 +1,611 @@
+﻿# R2 name-gazetteer curation record — every unambiguous-bucket candidate + keep/drop + reason.
+# Producer: scripts/premium/build-name-gazetteer.js → gazetteer-split.json; curated by scratchpad/curate.js (conservative, precision-first).
+skel	freq	hspell	decision	reason
+פני	389	1	drop	in-hspell (possible common-word homograph)
+בני	383	1	drop	in-hspell (possible common-word homograph)
+בן	359	0	drop	len<3 (collision-prone)
+די	238	1	drop	len<3 (collision-prone)
+יהודה	141	1	drop	in-hspell (possible common-word homograph)
+מעין	121	0	drop	common-word/construct/junk (hspell-missed)
+מיני	102	1	drop	in-hspell (possible common-word homograph)
+דוד	94	1	drop	in-hspell (possible common-word homograph)
+אליהו	88	1	keep	recovered toponym/classical name
+רוב	86	1	drop	in-hspell (possible common-word homograph)
+מימי	62	1	drop	in-hspell (possible common-word homograph)
+עמי	59	1	drop	in-hspell (possible common-word homograph)
+ניצן	55	0	keep	not-in-hspell name
+נח	54	1	drop	len<3 (collision-prone)
+שירי	52	1	drop	in-hspell (possible common-word homograph)
+אורי	48	1	drop	in-hspell (possible common-word homograph)
+ליובה	48	0	keep	not-in-hspell name
+גבי	47	1	drop	in-hspell (possible common-word homograph)
+אבשלום	46	0	keep	not-in-hspell name
+פרץ	45	0	keep	not-in-hspell name
+אנגליה	45	1	keep	recovered toponym/classical name
+ולמה	43	0	drop	common-word/construct/junk (hspell-missed)
+מניה	43	1	drop	in-hspell (possible common-word homograph)
+בר	43	1	drop	len<3 (collision-prone)
+אן	41	0	drop	len<3 (collision-prone)
+מאלה	37	0	drop	common-word/construct/junk (hspell-missed)
+בנין	36	0	drop	common-word/construct/junk (hspell-missed)
+ברכת	35	1	drop	in-hspell (possible common-word homograph)
+חנה	34	1	drop	in-hspell (possible common-word homograph)
+חיפה	33	1	keep	recovered toponym/classical name
+עלייה	32	1	drop	in-hspell (possible common-word homograph)
+קלמן	31	0	keep	not-in-hspell name
+חטא	31	1	drop	in-hspell (possible common-word homograph)
+עזרא	30	1	keep	recovered toponym/classical name
+גרמניה	30	1	keep	recovered toponym/classical name
+דמיאן	29	0	keep	not-in-hspell name
+יזהר	29	1	drop	in-hspell (possible common-word homograph)
+חדרה	29	1	keep	recovered toponym/classical name
+אליעזר	28	1	keep	recovered toponym/classical name
+אוריאל	26	1	keep	recovered toponym/classical name
+אנה	26	1	drop	in-hspell (possible common-word homograph)
+הי	26	0	drop	len<3 (collision-prone)
+רוסיה	26	1	keep	recovered toponym/classical name
+כנרת	25	1	keep	recovered toponym/classical name
+נעמי	25	1	drop	in-hspell (possible common-word homograph)
+הגר	25	1	drop	in-hspell (possible common-word homograph)
+יפו	24	1	keep	recovered toponym/classical name
+גורדון	23	0	keep	not-in-hspell name
+אבני	23	1	drop	in-hspell (possible common-word homograph)
+עוז	23	1	drop	in-hspell (possible common-word homograph)
+מלאכי	22	1	keep	recovered toponym/classical name
+ברק	22	1	drop	in-hspell (possible common-word homograph)
+גלי	22	1	drop	in-hspell (possible common-word homograph)
+חוה	22	1	drop	in-hspell (possible common-word homograph)
+הרמן	21	0	keep	not-in-hspell name
+חסן	21	0	keep	not-in-hspell name
+מיכל	21	1	drop	in-hspell (possible common-word homograph)
+פטר	21	1	drop	in-hspell (possible common-word homograph)
+נחמן	21	0	keep	not-in-hspell name
+מירי	21	1	drop	in-hspell (possible common-word homograph)
+בל	21	1	drop	len<3 (collision-prone)
+ניסה	21	1	drop	in-hspell (possible common-word homograph)
+מחמוד	20	0	keep	not-in-hspell name
+הרצל	20	1	drop	in-hspell (possible common-word homograph)
+לאו	20	1	drop	in-hspell (possible common-word homograph)
+לונדון	20	0	keep	not-in-hspell name
+אלוהים	20	0	drop	common-word/construct/junk (hspell-missed)
+רד	19	1	drop	len<3 (collision-prone)
+עדי	19	1	drop	in-hspell (possible common-word homograph)
+פולין	19	0	keep	not-in-hspell name
+לירה	19	1	drop	in-hspell (possible common-word homograph)
+יריחו	19	1	keep	recovered toponym/classical name
+לוי	18	1	drop	in-hspell (possible common-word homograph)
+בלה	18	1	drop	in-hspell (possible common-word homograph)
+בכה	18	1	drop	in-hspell (possible common-word homograph)
+איה	18	1	drop	in-hspell (possible common-word homograph)
+פינה	18	1	drop	in-hspell (possible common-word homograph)
+רוני	17	1	drop	in-hspell (possible common-word homograph)
+דני	17	1	drop	in-hspell (possible common-word homograph)
+נוגה	17	1	drop	in-hspell (possible common-word homograph)
+הו	17	0	drop	len<3 (collision-prone)
+רום	16	0	drop	common-word/construct/junk (hspell-missed)
+מני	16	1	drop	in-hspell (possible common-word homograph)
+עדן	16	0	keep	not-in-hspell name
+איפה	15	1	drop	in-hspell (possible common-word homograph)
+גזע	14	1	drop	in-hspell (possible common-word homograph)
+פתחי	14	1	drop	in-hspell (possible common-word homograph)
+אלכסנדר	14	1	keep	recovered toponym/classical name
+אלפרד	14	0	keep	not-in-hspell name
+זוהר	14	1	drop	in-hspell (possible common-word homograph)
+גילה	14	1	drop	in-hspell (possible common-word homograph)
+אדר	13	1	drop	in-hspell (possible common-word homograph)
+חרמון	13	0	keep	not-in-hspell name
+מג	13	1	drop	len<3 (collision-prone)
+טוהר	13	1	drop	in-hspell (possible common-word homograph)
+גאולה	13	1	drop	in-hspell (possible common-word homograph)
+סיון	13	0	keep	not-in-hspell name
+אוסטריה	13	1	keep	recovered toponym/classical name
+אומה	13	1	drop	in-hspell (possible common-word homograph)
+מיכאל	12	1	keep	recovered toponym/classical name
+טוביה	12	1	keep	recovered toponym/classical name
+שמעיה	12	1	keep	recovered toponym/classical name
+אלזה	12	0	keep	not-in-hspell name
+מאי	12	1	drop	in-hspell (possible common-word homograph)
+מילה	12	1	drop	in-hspell (possible common-word homograph)
+חולדה	12	1	drop	in-hspell (possible common-word homograph)
+ליטא	12	1	keep	recovered toponym/classical name
+חמד	12	1	drop	in-hspell (possible common-word homograph)
+דמשק	12	1	keep	recovered toponym/classical name
+אספו	12	1	drop	in-hspell (possible common-word homograph)
+יפת	11	1	drop	in-hspell (possible common-word homograph)
+ניסן	11	0	keep	not-in-hspell name
+עזיז	11	1	drop	in-hspell (possible common-word homograph)
+איציק	11	1	drop	in-hspell (possible common-word homograph)
+יפעת	11	1	drop	in-hspell (possible common-word homograph)
+שרי	11	1	drop	in-hspell (possible common-word homograph)
+עדנה	11	1	drop	in-hspell (possible common-word homograph)
+אדית	11	0	keep	not-in-hspell name
+נוי	11	1	drop	in-hspell (possible common-word homograph)
+מטולה	11	1	keep	recovered toponym/classical name
+בשאר	11	0	keep	not-in-hspell name
+גוטפריד	10	0	keep	not-in-hspell name
+עמוס	10	1	drop	in-hspell (possible common-word homograph)
+פינחס	10	0	keep	not-in-hspell name
+עבדול	10	0	keep	not-in-hspell name
+תום	10	0	drop	common-word/construct/junk (hspell-missed)
+משולם	10	0	keep	not-in-hspell name
+אלעזר	10	1	keep	recovered toponym/classical name
+יחיאל	10	1	keep	recovered toponym/classical name
+אילנה	10	1	keep	recovered toponym/classical name
+איטליה	10	1	keep	recovered toponym/classical name
+רומניה	10	1	keep	recovered toponym/classical name
+בריה	10	1	drop	in-hspell (possible common-word homograph)
+לר	10	0	drop	len<3 (collision-prone)
+לוין	9	0	keep	not-in-hspell name
+יון	9	0	drop	common-word/construct/junk (hspell-missed)
+ארון	9	0	drop	common-word/construct/junk (hspell-missed)
+פיל	9	1	drop	in-hspell (possible common-word homograph)
+נחום	9	0	keep	not-in-hspell name
+איוואן	9	0	keep	not-in-hspell name
+רומן	9	0	keep	not-in-hspell name
+לירי	9	1	drop	in-hspell (possible common-word homograph)
+הילה	9	1	drop	in-hspell (possible common-word homograph)
+טורי	9	1	drop	in-hspell (possible common-word homograph)
+פרידה	9	1	drop	in-hspell (possible common-word homograph)
+יובל	9	1	drop	in-hspell (possible common-word homograph)
+אופיר	9	1	keep	recovered toponym/classical name
+פיק	9	1	drop	in-hspell (possible common-word homograph)
+קרע	9	1	drop	in-hspell (possible common-word homograph)
+חסון	8	0	drop	common-word/construct/junk (hspell-missed)
+גיא	8	1	drop	in-hspell (possible common-word homograph)
+ברי	8	1	drop	in-hspell (possible common-word homograph)
+איוב	8	1	drop	in-hspell (possible common-word homograph)
+יולי	8	1	drop	in-hspell (possible common-word homograph)
+הרצליה	8	1	keep	recovered toponym/classical name
+שפרה	8	1	drop	in-hspell (possible common-word homograph)
+נטע	8	1	drop	in-hspell (possible common-word homograph)
+יוחאי	8	1	keep	recovered toponym/classical name
+סלובקיה	8	1	keep	recovered toponym/classical name
+הונגריה	8	1	keep	recovered toponym/classical name
+בבא	7	0	drop	common-word/construct/junk (hspell-missed)
+ארס	7	1	drop	in-hspell (possible common-word homograph)
+יוחנן	7	0	keep	not-in-hspell name
+מנו	7	1	drop	in-hspell (possible common-word homograph)
+שמעון	7	0	keep	not-in-hspell name
+אוגוסט	7	1	drop	in-hspell (possible common-word homograph)
+פרנץ	7	0	keep	not-in-hspell name
+זלמן	7	0	keep	not-in-hspell name
+רקפת	7	1	drop	in-hspell (possible common-word homograph)
+אוריה	7	1	keep	recovered toponym/classical name
+קוניגונדה	7	0	keep	not-in-hspell name
+בתיה	7	1	keep	recovered toponym/classical name
+אפריל	7	1	drop	in-hspell (possible common-word homograph)
+סתיו	7	1	drop	in-hspell (possible common-word homograph)
+צפת	7	1	keep	recovered toponym/classical name
+הוגו	6	0	keep	not-in-hspell name
+זבולון	6	0	keep	not-in-hspell name
+רובן	6	0	keep	not-in-hspell name
+ארי	6	1	drop	in-hspell (possible common-word homograph)
+דוב	6	1	drop	in-hspell (possible common-word homograph)
+אלימלך	6	0	keep	not-in-hspell name
+מנדל	6	0	keep	not-in-hspell name
+מתתיהו	6	1	keep	recovered toponym/classical name
+פאריס	6	0	keep	not-in-hspell name
+אהרון	6	0	keep	not-in-hspell name
+הארי	6	0	keep	not-in-hspell name
+דפנה	6	1	drop	in-hspell (possible common-word homograph)
+אולגה	6	0	keep	not-in-hspell name
+מרי	6	1	drop	in-hspell (possible common-word homograph)
+דינה	6	1	keep	recovered toponym/classical name
+אלכס	6	1	drop	in-hspell (possible common-word homograph)
+קדיש	6	1	drop	in-hspell (possible common-word homograph)
+בולגריה	6	1	keep	recovered toponym/classical name
+חנקין	6	0	keep	not-in-hspell name
+קיסריה	6	1	keep	recovered toponym/classical name
+חברון	6	0	keep	not-in-hspell name
+פשמישל	6	0	keep	not-in-hspell name
+קובנה	6	1	keep	recovered toponym/classical name
+תלמי	5	1	drop	in-hspell (possible common-word homograph)
+אטלס	5	1	drop	in-hspell (possible common-word homograph)
+אמיל	5	0	keep	not-in-hspell name
+מיכה	5	1	keep	recovered toponym/classical name
+בצלאל	5	1	keep	recovered toponym/classical name
+פנחס	5	1	keep	recovered toponym/classical name
+יורם	5	0	keep	not-in-hspell name
+יגאל	5	1	keep	recovered toponym/classical name
+ירדן	5	0	keep	not-in-hspell name
+נפתלי	5	1	keep	recovered toponym/classical name
+יקותיאל	5	1	keep	recovered toponym/classical name
+ארם	5	0	keep	not-in-hspell name
+אדי	5	1	drop	in-hspell (possible common-word homograph)
+יו	5	1	drop	len<3 (collision-prone)
+יעל	5	1	drop	in-hspell (possible common-word homograph)
+מינה	5	1	drop	in-hspell (possible common-word homograph)
+מיהו	5	1	drop	in-hspell (possible common-word homograph)
+בקי	5	1	drop	in-hspell (possible common-word homograph)
+בלט	5	1	drop	in-hspell (possible common-word homograph)
+הינדה	5	1	drop	in-hspell (possible common-word homograph)
+גוני	5	1	drop	in-hspell (possible common-word homograph)
+סוריה	5	1	keep	recovered toponym/classical name
+טבריה	5	1	keep	recovered toponym/classical name
+שרגא	4	1	drop	in-hspell (possible common-word homograph)
+פריץ	4	0	keep	not-in-hspell name
+ישי	4	1	drop	in-hspell (possible common-word homograph)
+אמיתי	4	0	keep	not-in-hspell name
+ישו	4	1	drop	in-hspell (possible common-word homograph)
+עמיר	4	1	drop	in-hspell (possible common-word homograph)
+קלמנס	4	0	keep	not-in-hspell name
+חוסה	4	1	drop	in-hspell (possible common-word homograph)
+אלחנן	4	0	keep	not-in-hspell name
+נחמיה	4	1	keep	recovered toponym/classical name
+אבנר	4	1	keep	recovered toponym/classical name
+אוז	4	0	drop	common-word/construct/junk (hspell-missed)
+אורן	4	0	drop	common-word/construct/junk (hspell-missed)
+מימון	4	0	drop	common-word/construct/junk (hspell-missed)
+חנוך	4	0	keep	not-in-hspell name
+עקיבא	4	1	keep	recovered toponym/classical name
+הרברט	4	0	keep	not-in-hspell name
+רוברט	4	0	keep	not-in-hspell name
+קורי	4	1	drop	in-hspell (possible common-word homograph)
+באסם	4	0	keep	not-in-hspell name
+אריין	4	0	keep	not-in-hspell name
+מיטל	4	0	keep	not-in-hspell name
+ספטמבר	4	1	drop	in-hspell (possible common-word homograph)
+יערה	4	1	drop	in-hspell (possible common-word homograph)
+מישה	4	0	keep	not-in-hspell name
+נימה	4	1	drop	in-hspell (possible common-word homograph)
+יששכר	4	1	keep	recovered toponym/classical name
+שין	4	0	drop	common-word/construct/junk (hspell-missed)
+יוון	4	0	keep	not-in-hspell name
+לבנון	4	0	keep	not-in-hspell name
+רעננה	4	1	keep	recovered toponym/classical name
+נפת	4	1	drop	in-hspell (possible common-word homograph)
+רועי	3	1	drop	in-hspell (possible common-word homograph)
+זרובבל	3	1	keep	recovered toponym/classical name
+עזריאל	3	1	keep	recovered toponym/classical name
+אהוד	3	1	keep	recovered toponym/classical name
+אידר	3	0	drop	common-word/construct/junk (hspell-missed)
+שמריהו	3	1	keep	recovered toponym/classical name
+דניאל	3	1	keep	recovered toponym/classical name
+ורן	3	0	drop	common-word/construct/junk (hspell-missed)
+רוק	3	1	drop	in-hspell (possible common-word homograph)
+יוסוף	3	0	keep	not-in-hspell name
+גבריאל	3	1	keep	recovered toponym/classical name
+ביל	3	0	keep	not-in-hspell name
+סעד	3	1	drop	in-hspell (possible common-word homograph)
+פנקס	3	1	drop	in-hspell (possible common-word homograph)
+נדב	3	1	keep	recovered toponym/classical name
+נאור	3	1	drop	in-hspell (possible common-word homograph)
+איתי	3	1	drop	in-hspell (possible common-word homograph)
+לייב	3	1	drop	in-hspell (possible common-word homograph)
+שלווה	3	1	drop	in-hspell (possible common-word homograph)
+אנדרה	3	0	keep	not-in-hspell name
+רביד	3	1	drop	in-hspell (possible common-word homograph)
+אביגדור	3	1	keep	recovered toponym/classical name
+כרמל	3	1	keep	recovered toponym/classical name
+גדי	3	1	drop	in-hspell (possible common-word homograph)
+תאו	3	1	drop	in-hspell (possible common-word homograph)
+האשם	3	0	drop	common-word/construct/junk (hspell-missed)
+אביהו	3	1	drop	in-hspell (possible common-word homograph)
+אווה	3	1	drop	in-hspell (possible common-word homograph)
+הדסה	3	1	keep	recovered toponym/classical name
+חניתה	3	1	keep	recovered toponym/classical name
+אלכסנדרה	3	1	keep	recovered toponym/classical name
+מריה	3	0	keep	not-in-hspell name
+מא	3	0	drop	len<3 (collision-prone)
+גלית	3	1	drop	in-hspell (possible common-word homograph)
+זהרה	3	1	drop	in-hspell (possible common-word homograph)
+אלכסנדריה	3	1	keep	recovered toponym/classical name
+ורה	3	0	keep	not-in-hspell name
+זויה	3	0	keep	not-in-hspell name
+אמירה	3	1	drop	in-hspell (possible common-word homograph)
+איילה	3	1	drop	in-hspell (possible common-word homograph)
+דורה	3	1	drop	in-hspell (possible common-word homograph)
+קרי	3	1	drop	in-hspell (possible common-word homograph)
+נועם	3	0	drop	common-word/construct/junk (hspell-missed)
+מעיין	3	0	drop	common-word/construct/junk (hspell-missed)
+סאשה	3	0	keep	not-in-hspell name
+שרון	3	0	keep	not-in-hspell name
+דורי	3	1	drop	in-hspell (possible common-word homograph)
+אסא	3	1	drop	in-hspell (possible common-word homograph)
+קלי	3	1	drop	in-hspell (possible common-word homograph)
+ראם	3	0	drop	common-word/construct/junk (hspell-missed)
+היל	3	0	drop	common-word/construct/junk (hspell-missed)
+נעמה	3	1	drop	in-hspell (possible common-word homograph)
+אמוץ	3	0	keep	not-in-hspell name
+לטביה	3	1	keep	recovered toponym/classical name
+עפולה	3	1	keep	recovered toponym/classical name
+טירה	3	1	drop	in-hspell (possible common-word homograph)
+לוד	3	1	keep	recovered toponym/classical name
+גדרה	3	1	keep	recovered toponym/classical name
+לימה	3	0	keep	not-in-hspell name
+דרבן	3	0	drop	common-word/construct/junk (hspell-missed)
+עשהאל	2	0	keep	not-in-hspell name
+רמי	2	1	drop	in-hspell (possible common-word homograph)
+הנרי	2	0	keep	not-in-hspell name
+זכריה	2	1	keep	recovered toponym/classical name
+חוסיין	2	0	keep	not-in-hspell name
+תיאודור	2	0	keep	not-in-hspell name
+עמרם	2	0	keep	not-in-hspell name
+סטניסלב	2	0	keep	not-in-hspell name
+אופק	2	1	drop	in-hspell (possible common-word homograph)
+ניק	2	0	drop	common-word/construct/junk (hspell-missed)
+פר	2	1	drop	len<3 (collision-prone)
+חנו	2	1	drop	in-hspell (possible common-word homograph)
+בס	2	1	drop	len<3 (collision-prone)
+גריידי	2	0	keep	not-in-hspell name
+נאסר	2	1	drop	in-hspell (possible common-word homograph)
+רפאל	2	1	keep	recovered toponym/classical name
+ניל	2	0	keep	not-in-hspell name
+מרקו	2	1	drop	in-hspell (possible common-word homograph)
+ארתור	2	1	drop	in-hspell (possible common-word homograph)
+עמנואל	2	1	keep	recovered toponym/classical name
+סולומון	2	0	keep	not-in-hspell name
+אחמד	2	0	keep	not-in-hspell name
+מוחמד	2	1	drop	in-hspell (possible common-word homograph)
+לס	2	1	drop	len<3 (collision-prone)
+עומר	2	1	drop	in-hspell (possible common-word homograph)
+מרס	2	1	drop	in-hspell (possible common-word homograph)
+קאן	2	0	keep	not-in-hspell name
+נתנאל	2	1	keep	recovered toponym/classical name
+זיגמונד	2	0	keep	not-in-hspell name
+כפה	2	1	drop	in-hspell (possible common-word homograph)
+היינריך	2	0	keep	not-in-hspell name
+קרל	2	0	keep	not-in-hspell name
+וס	2	0	drop	len<3 (collision-prone)
+עופר	2	1	drop	in-hspell (possible common-word homograph)
+ערן	2	0	keep	not-in-hspell name
+מרון	2	0	keep	not-in-hspell name
+הילל	2	1	drop	in-hspell (possible common-word homograph)
+סימון	2	0	keep	not-in-hspell name
+יואב	2	1	drop	in-hspell (possible common-word homograph)
+ברטולד	2	0	keep	not-in-hspell name
+נועה	2	1	drop	in-hspell (possible common-word homograph)
+דליה	2	1	drop	in-hspell (possible common-word homograph)
+נדיה	2	1	drop	in-hspell (possible common-word homograph)
+נטשה	2	1	drop	in-hspell (possible common-word homograph)
+מירה	2	1	drop	in-hspell (possible common-word homograph)
+חנן	2	0	drop	common-word/construct/junk (hspell-missed)
+קטיה	2	0	keep	not-in-hspell name
+לילית	2	1	drop	in-hspell (possible common-word homograph)
+סברה	2	1	drop	in-hspell (possible common-word homograph)
+יטה	2	1	drop	in-hspell (possible common-word homograph)
+ליה	2	0	drop	common-word/construct/junk (hspell-missed)
+אינגריד	2	0	keep	not-in-hspell name
+יונית	2	1	drop	in-hspell (possible common-word homograph)
+סילון	2	0	drop	common-word/construct/junk (hspell-missed)
+דונג	2	1	drop	in-hspell (possible common-word homograph)
+דאו	2	1	drop	in-hspell (possible common-word homograph)
+ענבר	2	1	drop	in-hspell (possible common-word homograph)
+גיורא	2	1	keep	recovered toponym/classical name
+עירית	2	1	drop	in-hspell (possible common-word homograph)
+בלגיה	2	1	drop	in-hspell (possible common-word homograph)
+וינקלר	2	0	keep	not-in-hspell name
+פו	2	0	drop	len<3 (collision-prone)
+ולס	2	0	drop	common-word/construct/junk (hspell-missed)
+דרי	2	1	drop	in-hspell (possible common-word homograph)
+מרידה	2	1	drop	in-hspell (possible common-word homograph)
+נתיבות	2	1	keep	recovered toponym/classical name
+מורדי	2	1	drop	in-hspell (possible common-word homograph)
+נצרת	2	1	keep	recovered toponym/classical name
+לוני	2	1	drop	in-hspell (possible common-word homograph)
+סור	2	1	drop	in-hspell (possible common-word homograph)
+מלו	2	1	drop	in-hspell (possible common-word homograph)
+לסה	2	0	drop	common-word/construct/junk (hspell-missed)
+לובה	2	1	drop	in-hspell (possible common-word homograph)
+קוצק	2	0	keep	not-in-hspell name
+ורשה	2	1	keep	recovered toponym/classical name
+לימון	2	0	drop	common-word/construct/junk (hspell-missed)
+יורק	2	1	keep	recovered toponym/classical name
+מילאנו	2	1	keep	recovered toponym/classical name
+להסה	2	0	keep	not-in-hspell name
+רחביה	1	1	keep	recovered toponym/classical name
+גלעד	1	1	keep	recovered toponym/classical name
+וילהלם	1	0	keep	not-in-hspell name
+איילון	1	0	keep	not-in-hspell name
+אוראל	1	0	keep	not-in-hspell name
+מנור	1	0	drop	common-word/construct/junk (hspell-missed)
+דניס	1	1	drop	in-hspell (possible common-word homograph)
+יאן	1	0	keep	not-in-hspell name
+עובדיה	1	1	drop	in-hspell (possible common-word homograph)
+שגיב	1	1	drop	in-hspell (possible common-word homograph)
+מארה	1	0	drop	common-word/construct/junk (hspell-missed)
+פיודור	1	0	keep	not-in-hspell name
+לוקה	1	1	drop	in-hspell (possible common-word homograph)
+ויטל	1	0	keep	not-in-hspell name
+סרגיי	1	0	keep	not-in-hspell name
+טובי	1	1	drop	in-hspell (possible common-word homograph)
+תנחום	1	0	keep	not-in-hspell name
+שוקי	1	1	drop	in-hspell (possible common-word homograph)
+לויד	1	0	keep	not-in-hspell name
+מארק	1	0	keep	not-in-hspell name
+חננאל	1	1	keep	recovered toponym/classical name
+ירמיה	1	1	keep	recovered toponym/classical name
+אריך	1	0	keep	not-in-hspell name
+פרנק	1	0	keep	not-in-hspell name
+סטפן	1	0	keep	not-in-hspell name
+קארל	1	0	keep	not-in-hspell name
+אנדריי	1	0	keep	not-in-hspell name
+דון	1	0	keep	not-in-hspell name
+מקס	1	0	keep	not-in-hspell name
+טד	1	0	drop	len<3 (collision-prone)
+יוזף	1	0	keep	not-in-hspell name
+נפוליאון	1	0	keep	not-in-hspell name
+הארדי	1	0	keep	not-in-hspell name
+מרטין	1	0	keep	not-in-hspell name
+אויגן	1	0	keep	not-in-hspell name
+לאנס	1	0	keep	not-in-hspell name
+ליאור	1	1	drop	in-hspell (possible common-word homograph)
+יוז	1	0	drop	common-word/construct/junk (hspell-missed)
+וילסון	1	0	keep	not-in-hspell name
+ברונו	1	1	drop	in-hspell (possible common-word homograph)
+חנניה	1	1	drop	in-hspell (possible common-word homograph)
+מרקס	1	0	keep	not-in-hspell name
+מארי	1	0	keep	not-in-hspell name
+רובי	1	1	drop	in-hspell (possible common-word homograph)
+מרשל	1	1	drop	in-hspell (possible common-word homograph)
+גץ	1	0	drop	len<3 (collision-prone)
+וינס	1	0	drop	common-word/construct/junk (hspell-missed)
+אדוניס	1	0	keep	not-in-hspell name
+וסילי	1	0	keep	not-in-hspell name
+פלטיאל	1	0	keep	not-in-hspell name
+עידן	1	0	drop	common-word/construct/junk (hspell-missed)
+ארבר	1	0	drop	common-word/construct/junk (hspell-missed)
+יואל	1	1	keep	recovered toponym/classical name
+רוס	1	0	drop	common-word/construct/junk (hspell-missed)
+יהושפט	1	1	keep	recovered toponym/classical name
+פייר	1	0	keep	not-in-hspell name
+סלמאן	1	0	keep	not-in-hspell name
+פורד	1	0	keep	not-in-hspell name
+אנגל	1	0	drop	common-word/construct/junk (hspell-missed)
+אמורי	1	1	drop	in-hspell (possible common-word homograph)
+גרשום	1	0	keep	not-in-hspell name
+רון	1	0	keep	not-in-hspell name
+סקוט	1	0	keep	not-in-hspell name
+אסיף	1	0	drop	common-word/construct/junk (hspell-missed)
+עבדי	1	1	drop	in-hspell (possible common-word homograph)
+לואיס	1	0	keep	not-in-hspell name
+אדגר	1	0	keep	not-in-hspell name
+קלר	1	0	keep	not-in-hspell name
+שיין	1	0	keep	not-in-hspell name
+ארנסט	1	0	keep	not-in-hspell name
+חגי	1	1	keep	recovered toponym/classical name
+וורם	1	0	drop	common-word/construct/junk (hspell-missed)
+איברהים	1	0	keep	not-in-hspell name
+ברוק	1	1	drop	in-hspell (possible common-word homograph)
+קארו	1	0	keep	not-in-hspell name
+גד	1	1	drop	len<3 (collision-prone)
+הורסט	1	0	keep	not-in-hspell name
+בדר	1	1	drop	in-hspell (possible common-word homograph)
+לטיף	1	0	keep	not-in-hspell name
+אמנון	1	0	keep	not-in-hspell name
+אביתר	1	1	keep	recovered toponym/classical name
+יהונתן	1	0	keep	not-in-hspell name
+רפי	1	1	drop	in-hspell (possible common-word homograph)
+טרומן	1	0	keep	not-in-hspell name
+אריאל	1	1	drop	in-hspell (possible common-word homograph)
+אפולו	1	1	drop	in-hspell (possible common-word homograph)
+ברוס	1	0	keep	not-in-hspell name
+פרימו	1	0	keep	not-in-hspell name
+ויט	1	0	drop	common-word/construct/junk (hspell-missed)
+באסל	1	0	keep	not-in-hspell name
+מלכיצדק	1	0	keep	not-in-hspell name
+אלדוס	1	0	keep	not-in-hspell name
+ירון	1	0	keep	not-in-hspell name
+ינון	1	0	keep	not-in-hspell name
+שלומי	1	1	drop	in-hspell (possible common-word homograph)
+ארנון	1	0	keep	not-in-hspell name
+יוסי	1	1	drop	in-hspell (possible common-word homograph)
+אליקים	1	0	keep	not-in-hspell name
+אדיל	1	0	drop	common-word/construct/junk (hspell-missed)
+סונה	1	1	drop	in-hspell (possible common-word homograph)
+אטילה	1	1	drop	in-hspell (possible common-word homograph)
+מישאל	1	0	keep	not-in-hspell name
+דידי	1	1	drop	in-hspell (possible common-word homograph)
+ירוסלב	1	0	keep	not-in-hspell name
+הני	1	0	drop	common-word/construct/junk (hspell-missed)
+אדוה	1	1	drop	in-hspell (possible common-word homograph)
+ניצה	1	1	drop	in-hspell (possible common-word homograph)
+אלבינה	1	1	drop	in-hspell (possible common-word homograph)
+קלרה	1	1	drop	in-hspell (possible common-word homograph)
+ברוריה	1	1	keep	recovered toponym/classical name
+שלומית	1	1	keep	recovered toponym/classical name
+שפרינצה	1	0	keep	not-in-hspell name
+גורי	1	1	drop	in-hspell (possible common-word homograph)
+מליה	1	0	keep	not-in-hspell name
+מוריה	1	1	keep	recovered toponym/classical name
+נופר	1	1	drop	in-hspell (possible common-word homograph)
+אריקה	1	1	drop	in-hspell (possible common-word homograph)
+מאמי	1	0	keep	not-in-hspell name
+שיהו	1	0	drop	common-word/construct/junk (hspell-missed)
+סוניה	1	0	keep	not-in-hspell name
+רימה	1	1	drop	in-hspell (possible common-word homograph)
+פגי	1	1	drop	in-hspell (possible common-word homograph)
+אתנה	1	1	drop	in-hspell (possible common-word homograph)
+קיי	1	0	drop	common-word/construct/junk (hspell-missed)
+פייפר	1	0	keep	not-in-hspell name
+גרטה	1	0	keep	not-in-hspell name
+רומי	1	1	drop	in-hspell (possible common-word homograph)
+רות	1	1	drop	in-hspell (possible common-word homograph)
+דורית	1	1	drop	in-hspell (possible common-word homograph)
+הנרייטה	1	0	keep	not-in-hspell name
+קוני	1	1	drop	in-hspell (possible common-word homograph)
+אביגיל	1	1	keep	recovered toponym/classical name
+זיוה	1	1	drop	in-hspell (possible common-word homograph)
+ננסי	1	1	drop	in-hspell (possible common-word homograph)
+דורין	1	0	keep	not-in-hspell name
+אביבה	1	1	drop	in-hspell (possible common-word homograph)
+לוליטה	1	1	drop	in-hspell (possible common-word homograph)
+רוז	1	0	keep	not-in-hspell name
+קלבדיה	1	0	keep	not-in-hspell name
+יסמין	1	0	keep	not-in-hspell name
+רוזה	1	0	keep	not-in-hspell name
+חינה	1	1	drop	in-hspell (possible common-word homograph)
+קיה	1	0	drop	common-word/construct/junk (hspell-missed)
+ענת	1	1	keep	recovered toponym/classical name
+נאוה	1	1	drop	in-hspell (possible common-word homograph)
+נורית	1	1	drop	in-hspell (possible common-word homograph)
+סלמה	1	0	keep	not-in-hspell name
+כרמלה	1	0	keep	not-in-hspell name
+בטינה	1	0	keep	not-in-hspell name
+רקה	1	1	drop	in-hspell (possible common-word homograph)
+אפרת	1	1	keep	recovered toponym/classical name
+רובין	1	0	keep	not-in-hspell name
+טוני	1	1	drop	in-hspell (possible common-word homograph)
+דרו	1	1	drop	in-hspell (possible common-word homograph)
+לין	1	0	keep	not-in-hspell name
+דילון	1	0	keep	not-in-hspell name
+הולנד	1	1	keep	recovered toponym/classical name
+מסה	1	1	drop	in-hspell (possible common-word homograph)
+קמרון	1	0	keep	not-in-hspell name
+דווי	1	1	drop	in-hspell (possible common-word homograph)
+שילה	1	0	keep	not-in-hspell name
+לוז	1	1	drop	in-hspell (possible common-word homograph)
+וויי	1	1	drop	in-hspell (possible common-word homograph)
+ון	1	0	drop	len<3 (collision-prone)
+מעוז	1	1	drop	in-hspell (possible common-word homograph)
+שניר	1	0	keep	not-in-hspell name
+שחף	1	0	drop	common-word/construct/junk (hspell-missed)
+חיותה	1	1	drop	in-hspell (possible common-word homograph)
+סו	1	0	drop	len<3 (collision-prone)
+רושדי	1	0	keep	not-in-hspell name
+עטיה	1	1	drop	in-hspell (possible common-word homograph)
+גולן	1	0	keep	not-in-hspell name
+קסטן	1	0	keep	not-in-hspell name
+ידין	1	0	drop	common-word/construct/junk (hspell-missed)
+תהילה	1	1	drop	in-hspell (possible common-word homograph)
+יונג	1	0	keep	not-in-hspell name
+נסרין	1	0	keep	not-in-hspell name
+קפריסין	1	0	keep	not-in-hspell name
+מלטה	1	1	keep	recovered toponym/classical name
+פינלנד	1	1	keep	recovered toponym/classical name
+אוסטרליה	1	1	keep	recovered toponym/classical name
+תימן	1	0	keep	not-in-hspell name
+וילנה	1	1	keep	recovered toponym/classical name
+מוש	1	1	drop	in-hspell (possible common-word homograph)
+תילה	1	1	drop	in-hspell (possible common-word homograph)
+עכו	1	1	keep	recovered toponym/classical name
+זרקא	1	0	keep	not-in-hspell name
+ערד	1	1	keep	recovered toponym/classical name
+נווה	1	1	drop	in-hspell (possible common-word homograph)
+מורינו	1	1	drop	in-hspell (possible common-word homograph)
+ילובה	1	1	drop	in-hspell (possible common-word homograph)
+וולס	1	0	drop	common-word/construct/junk (hspell-missed)
+רמלה	1	1	keep	recovered toponym/classical name
+סובאלק	1	0	keep	not-in-hspell name
+מרוזי	1	0	drop	common-word/construct/junk (hspell-missed)
+חילה	1	1	drop	in-hspell (possible common-word homograph)
+חריש	1	1	drop	in-hspell (possible common-word homograph)
+מיניה	1	1	drop	in-hspell (possible common-word homograph)
+חומרה	1	1	drop	in-hspell (possible common-word homograph)
+מכמש	1	0	keep	not-in-hspell name
+בדולה	1	0	drop	common-word/construct/junk (hspell-missed)
+העי	1	0	keep	not-in-hspell name
+עמודה	1	1	drop	in-hspell (possible common-word homograph)
+מישן	1	0	drop	common-word/construct/junk (hspell-missed)
+באליה	1	0	drop	common-word/construct/junk (hspell-missed)
+אסלה	1	1	drop	in-hspell (possible common-word homograph)
+אלג	1	0	drop	common-word/construct/junk (hspell-missed)
+צעדה	1	1	drop	in-hspell (possible common-word homograph)
+קופנהגן	1	0	keep	not-in-hspell name
+וולין	1	0	keep	not-in-hspell name
+לייפציג	1	0	keep	not-in-hspell name
+סוקרה	1	1	drop	in-hspell (possible common-word homograph)
+קנטרברי	1	0	keep	not-in-hspell name
+לובלין	1	0	keep	not-in-hspell name
+דרבי	1	1	drop	in-hspell (possible common-word homograph)
+ביאליסטוק	1	0	keep	not-in-hspell name

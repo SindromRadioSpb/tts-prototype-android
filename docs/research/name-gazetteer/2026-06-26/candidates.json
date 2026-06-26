@@ -1,0 +1,8034 @@
+[
+ {
+  "skel": "של",
+  "niqqud": "שֶׁל",
+  "freq": 6935,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לא",
+  "niqqud": "לֹא",
+  "freq": 5889,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אשר",
+  "niqqud": "אֲשֶׁר",
+  "freq": 2486,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אל",
+  "niqqud": "אֶל",
+  "freq": 2336,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לו",
+  "niqqud": "לוֹ",
+  "freq": 1582,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מן",
+  "niqqud": "מִן",
+  "freq": 1317,
+  "types": [
+   "given-name",
+   "city"
+  ]
+ },
+ {
+  "skel": "אני",
+  "niqqud": "אֲנִי",
+  "freq": 1284,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אבל",
+  "niqqud": "אֲבָל",
+  "freq": 1145,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לי",
+  "niqqud": "לִי",
+  "freq": 1079,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אלה",
+  "niqqud": "אֵלֶּה",
+  "freq": 935,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "בו",
+  "niqqud": "בּוֹ",
+  "freq": 927,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אנו",
+  "niqqud": "אָנוּ",
+  "freq": 817,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "לה",
+  "niqqud": "לָהּ",
+  "freq": 685,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לנו",
+  "niqqud": "לָנוּ",
+  "freq": 680,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ישראל",
+  "niqqud": "יִשְׂרָאֵל",
+  "freq": 607,
+  "types": [
+   "male-given",
+   "given-name",
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "יום",
+  "niqqud": "יוֹם",
+  "freq": 561,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שני",
+  "niqqud": "שְׁנֵי",
+  "freq": 467,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אדם",
+  "niqqud": "אָדָם",
+  "freq": 416,
+  "types": [
+   "male-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "אולם",
+  "niqqud": "אוּלָם",
+  "freq": 390,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "פני",
+  "niqqud": "פְּנֵי",
+  "freq": 389,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "בני",
+  "niqqud": "בְּנֵי",
+  "freq": 383,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בן",
+  "niqqud": "בֶּן",
+  "freq": 359,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חיים",
+  "niqqud": "חַיִּים",
+  "freq": 342,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לב",
+  "niqqud": "לֵב",
+  "freq": 293,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יהודית",
+  "niqqud": "יְהוּדִית",
+  "freq": 293,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שלום",
+  "niqqud": "שָׁלוֹם",
+  "freq": 264,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "קול",
+  "niqqud": "קוֹל",
+  "freq": 252,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מים",
+  "niqqud": "מַיִם",
+  "freq": 251,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "עלי",
+  "niqqud": "עֲלֵי",
+  "freq": 249,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "די",
+  "niqqud": "די",
+  "freq": 238,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "שלו",
+  "niqqud": "שֶׁלּוֹ",
+  "freq": 233,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אור",
+  "niqqud": "אוֹר",
+  "freq": 228,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אליו",
+  "niqqud": "אֵלָיו",
+  "freq": 221,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אינה",
+  "niqqud": "אֵינָהּ",
+  "freq": 209,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חי",
+  "niqqud": "חַי",
+  "freq": 185,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "באו",
+  "niqqud": "בָּאוּ",
+  "freq": 159,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "טובה",
+  "niqqud": "טוֹבָה",
+  "freq": 153,
+  "types": [
+   "male-given",
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "איזה",
+  "niqqud": "אֵיזֶה",
+  "freq": 153,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אלי",
+  "niqqud": "אֱלֵי",
+  "freq": 149,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יהודה",
+  "niqqud": "יְהוּדָה",
+  "freq": 141,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "צבי",
+  "niqqud": "צְבִי",
+  "freq": 131,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אליה",
+  "niqqud": "אֵלֶיהָ",
+  "freq": 126,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "בנו",
+  "niqqud": "בְּנוֹ",
+  "freq": 125,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מעין",
+  "niqqud": "מֵעֵין",
+  "freq": 121,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נתן",
+  "niqqud": "נָתַן",
+  "freq": 117,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוסף",
+  "niqqud": "יוֹסֵף",
+  "freq": 117,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שלמה",
+  "niqqud": "שְׁלֵמָה",
+  "freq": 110,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רצון",
+  "niqqud": "רָצוֹן",
+  "freq": 106,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מיני",
+  "niqqud": "מִינֵי",
+  "freq": 102,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פרי",
+  "niqqud": "פְּרִי",
+  "freq": 99,
+  "types": [
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "יעקב",
+  "niqqud": "יַעֲקֹב",
+  "freq": 98,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שלי",
+  "niqqud": "שֶׁלִּי",
+  "freq": 98,
+  "types": [
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "דוד",
+  "niqqud": "דָּוִד",
+  "freq": 94,
+  "types": [
+   "male-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "אהבה",
+  "niqqud": "אַהֲבָה",
+  "freq": 94,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ברוך",
+  "niqqud": "בָּרוּךְ",
+  "freq": 92,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אליהו",
+  "niqqud": "אֵלִיָּהוּ",
+  "freq": 88,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רוב",
+  "niqqud": "רוב",
+  "freq": 86,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אבא",
+  "niqqud": "אַבָּא",
+  "freq": 86,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ים",
+  "niqqud": "יָם",
+  "freq": 84,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "דור",
+  "niqqud": "דּוֹר",
+  "freq": 83,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שמחה",
+  "niqqud": "שִׂמְחָה",
+  "freq": 83,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "שיר",
+  "niqqud": "שִׁיר",
+  "freq": 82,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אילו",
+  "niqqud": "אילו",
+  "freq": 82,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "משה",
+  "niqqud": "מֹשֶׁה",
+  "freq": 81,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חן",
+  "niqqud": "חֵן",
+  "freq": 75,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אבי",
+  "niqqud": "אָבִי",
+  "freq": 73,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לילה",
+  "niqqud": "לַיְלָה",
+  "freq": 73,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מטה",
+  "niqqud": "מַטָּה",
+  "freq": 72,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אריה",
+  "niqqud": "אַרְיֵה",
+  "freq": 68,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ירושלים",
+  "niqqud": "יְרוּשָׁלַיִם",
+  "freq": 67,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אברהם",
+  "niqqud": "אַבְרָהָם",
+  "freq": 66,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ואינו",
+  "niqqud": "וְאֵינוֹ",
+  "freq": 66,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרים",
+  "niqqud": "מִרְיָם",
+  "freq": 63,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אדמה",
+  "niqqud": "אֲדָמָה",
+  "freq": 62,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "חיה",
+  "niqqud": "חַיָּה",
+  "freq": 62,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מימי",
+  "niqqud": "מִימֵי",
+  "freq": 62,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ציון",
+  "niqqud": "צִיּוֹן",
+  "freq": 59,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יצחק",
+  "niqqud": "יִצְחָק",
+  "freq": 59,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עמי",
+  "niqqud": "עִמִּי",
+  "freq": 59,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שמואל",
+  "niqqud": "שְׁמוּאֵל",
+  "freq": 58,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ניצן",
+  "niqqud": "ניצן",
+  "freq": 55,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "נח",
+  "niqqud": "נַחַ",
+  "freq": 54,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "תקוה",
+  "niqqud": "תִּקְוָה",
+  "freq": 54,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "עליזה",
+  "niqqud": "עַלִּיזָה",
+  "freq": 53,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שירי",
+  "niqqud": "שִׁירֵי",
+  "freq": 52,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ישר",
+  "niqqud": "יָשָׁר",
+  "freq": 51,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אביב",
+  "niqqud": "אָבִיב",
+  "freq": 51,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אורי",
+  "niqqud": "אוּרִי",
+  "freq": 48,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברכה",
+  "niqqud": "בְּרָכָה",
+  "freq": 48,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פיה",
+  "niqqud": "פִּיהָ",
+  "freq": 48,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ליובה",
+  "niqqud": "ליוּבּה",
+  "freq": 48,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אמי",
+  "niqqud": "אִמִּי",
+  "freq": 48,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קר",
+  "niqqud": "קַר",
+  "freq": 47,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נעים",
+  "niqqud": "נָעִים",
+  "freq": 47,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גבי",
+  "niqqud": "גַּבֵּי",
+  "freq": 47,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אבשלום",
+  "niqqud": "אַבְשָׁלוֹם",
+  "freq": 46,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "האל",
+  "niqqud": "הָאֵל",
+  "freq": 46,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "פרץ",
+  "niqqud": "פּרץ",
+  "freq": 45,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שרה",
+  "niqqud": "שָׂרָה",
+  "freq": 45,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אנגליה",
+  "niqqud": "אַנְגְּלִיָּה",
+  "freq": 45,
+  "types": [
+   "country"
+  ]
+ },
+ {
+  "skel": "חלב",
+  "niqqud": "חָלָב",
+  "freq": 45,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מלך",
+  "niqqud": "מֶלֶךְ",
+  "freq": 44,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "כלב",
+  "niqqud": "כֶּלֶב",
+  "freq": 43,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ולמה",
+  "niqqud": "וְלָמָּה",
+  "freq": 43,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רמה",
+  "niqqud": "רָמָה",
+  "freq": 43,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מניה",
+  "niqqud": "מִנֵּיהּ",
+  "freq": 43,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "בר",
+  "niqqud": "בַּר",
+  "freq": 43,
+  "types": [
+   "unisex-given",
+   "given-name",
+   "city"
+  ]
+ },
+ {
+  "skel": "דין",
+  "niqqud": "דִּין",
+  "freq": 42,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אן",
+  "niqqud": "אַן",
+  "freq": 41,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אמונה",
+  "niqqud": "אֱמוּנָה",
+  "freq": 41,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "יאיר",
+  "niqqud": "יָאִיר",
+  "freq": 40,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מדינה",
+  "niqqud": "מְדִינָה",
+  "freq": 40,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שבעה",
+  "niqqud": "שִׁבְעָה",
+  "freq": 40,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "מנחם",
+  "niqqud": "מְנַחֵם",
+  "freq": 38,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חמה",
+  "niqqud": "חַמָּה",
+  "freq": 38,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "גיל",
+  "niqqud": "גִּיל",
+  "freq": 37,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "זיו",
+  "niqqud": "זִיו",
+  "freq": 37,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מאלה",
+  "niqqud": "מֵאֵלֶּה",
+  "freq": 37,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "עמל",
+  "niqqud": "עָמָל",
+  "freq": 36,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרה",
+  "niqqud": "מָרָה",
+  "freq": 36,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מצרים",
+  "niqqud": "מִצְרַיִם",
+  "freq": 36,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "בנין",
+  "niqqud": "בִּנְיַן",
+  "freq": 36,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "ריק",
+  "niqqud": "רֵיק",
+  "freq": 35,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרדכי",
+  "niqqud": "מָרְדְּכַי",
+  "freq": 35,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוסיף",
+  "niqqud": "יוֹסִיף",
+  "freq": 35,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברכת",
+  "niqqud": "בִּרְכַּת",
+  "freq": 35,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "יפים",
+  "niqqud": "יָפִים",
+  "freq": 34,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שירה",
+  "niqqud": "שִׁירָה",
+  "freq": 34,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חנה",
+  "niqqud": "חַנָּה",
+  "freq": 34,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קו",
+  "niqqud": "קַו",
+  "freq": 34,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "רחמים",
+  "niqqud": "רַחֲמִים",
+  "freq": 33,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מורה",
+  "niqqud": "מוֹרֶה",
+  "freq": 33,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "חיפה",
+  "niqqud": "חֵיפָה",
+  "freq": 33,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "זאב",
+  "niqqud": "זְאֵב",
+  "freq": 32,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זך",
+  "niqqud": "זַךְ",
+  "freq": 32,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עלייה",
+  "niqqud": "עלייה",
+  "freq": 32,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קלמן",
+  "niqqud": "קַלְמָן",
+  "freq": 31,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חטא",
+  "niqqud": "חֵטְא",
+  "freq": 31,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "עזרא",
+  "niqqud": "עֶזְרָא",
+  "freq": 30,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קרן",
+  "niqqud": "קֶרֶן",
+  "freq": 30,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "גרמניה",
+  "niqqud": "גֶּרְמַנְיָה",
+  "freq": 30,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "שכם",
+  "niqqud": "שֶׁכֶם",
+  "freq": 30,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "דמיאן",
+  "niqqud": "דַמְיָאן",
+  "freq": 29,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יזהר",
+  "niqqud": "יִזְהָר",
+  "freq": 29,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קנה",
+  "niqqud": "קָנָה",
+  "freq": 29,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "טל",
+  "niqqud": "טַל",
+  "freq": 29,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "חדרה",
+  "niqqud": "חֲדֵרָה",
+  "freq": 29,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "עזה",
+  "niqqud": "עַזָּה",
+  "freq": 29,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אפרים",
+  "niqqud": "אפרים",
+  "freq": 28,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אליעזר",
+  "niqqud": "אֱלִיעֶזֶר",
+  "freq": 28,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מאיר",
+  "niqqud": "מֵאִיר",
+  "freq": 28,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רם",
+  "niqqud": "רָם",
+  "freq": 28,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אתי",
+  "niqqud": "אִתִּי",
+  "freq": 28,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יין",
+  "niqqud": "יַיִן",
+  "freq": 27,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לאה",
+  "niqqud": "לאה",
+  "freq": 27,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "אמה",
+  "niqqud": "אִמָּהּ",
+  "freq": 27,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שחר",
+  "niqqud": "שַׁחַר",
+  "freq": 27,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קן",
+  "niqqud": "קֵן",
+  "freq": 26,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אוריאל",
+  "niqqud": "אוּרִיאֵל",
+  "freq": 26,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אנה",
+  "niqqud": "אָנָה",
+  "freq": 26,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פסח",
+  "niqqud": "פֶּסַח",
+  "freq": 26,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "הי",
+  "niqqud": "הי",
+  "freq": 26,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רוסיה",
+  "niqqud": "רוּסְיָה",
+  "freq": 26,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "אהרן",
+  "niqqud": "אַהֲרֹן",
+  "freq": 25,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חוזה",
+  "niqqud": "חוֹזֶה",
+  "freq": 25,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "כנרת",
+  "niqqud": "כִּנֶּרֶת",
+  "freq": 25,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נעמי",
+  "niqqud": "נעמי",
+  "freq": 25,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "הגר",
+  "niqqud": "הַגְּרָ",
+  "freq": 25,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דודי",
+  "niqqud": "דּוֹדִי",
+  "freq": 25,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "תם",
+  "niqqud": "תֹּם",
+  "freq": 24,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אסתר",
+  "niqqud": "אֶסְתֵּר",
+  "freq": 24,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אביה",
+  "niqqud": "אָבִיהָ",
+  "freq": 24,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "יפו",
+  "niqqud": "יָפוֹ",
+  "freq": 24,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יהושע",
+  "niqqud": "יְהוֹשֻׁעַ",
+  "freq": 23,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גורדון",
+  "niqqud": "גּוֹרְדּוֹן",
+  "freq": 23,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שאול",
+  "niqqud": "שָׁאוּל",
+  "freq": 23,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אבני",
+  "niqqud": "אַבְנֵי",
+  "freq": 23,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עוז",
+  "niqqud": "עוז",
+  "freq": 23,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ניר",
+  "niqqud": "נְיָר",
+  "freq": 23,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גל",
+  "niqqud": "גַּל",
+  "freq": 23,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "עדה",
+  "niqqud": "עֵדָה",
+  "freq": 23,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מלאכי",
+  "niqqud": "מַלְאֲכֵי",
+  "freq": 22,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אסף",
+  "niqqud": "אָסַף",
+  "freq": 22,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברק",
+  "niqqud": "בְּרַק",
+  "freq": 22,
+  "types": [
+   "male-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "יונה",
+  "niqqud": "יוֹנָה",
+  "freq": 22,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "גלי",
+  "niqqud": "גַּלֵּי",
+  "freq": 22,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חוה",
+  "niqqud": "חוה",
+  "freq": 22,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פונה",
+  "niqqud": "פּוֹנֶה",
+  "freq": 22,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "הרמן",
+  "niqqud": "הֶרְמָן",
+  "freq": 21,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חסן",
+  "niqqud": "חַסַן",
+  "freq": 21,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מיכל",
+  "niqqud": "מִיכַל",
+  "freq": 21,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פטר",
+  "niqqud": "פֵּטֶר",
+  "freq": 21,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נחמן",
+  "niqqud": "נַחְמָן",
+  "freq": 21,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אמיר",
+  "niqqud": "אָמִיר",
+  "freq": 21,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מירי",
+  "niqqud": "מִירִי",
+  "freq": 21,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אורה",
+  "niqqud": "אוֹרָה",
+  "freq": 21,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "לינה",
+  "niqqud": "לִינָה",
+  "freq": 21,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "הדר",
+  "niqqud": "הָדָר",
+  "freq": 21,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "בל",
+  "niqqud": "בַּל",
+  "freq": 21,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "לאל",
+  "niqqud": "לְאֵל",
+  "freq": 21,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רחובות",
+  "niqqud": "רְחוֹבוֹת",
+  "freq": 21,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קולה",
+  "niqqud": "קוֹלָהּ",
+  "freq": 21,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "ניסה",
+  "niqqud": "ניסה",
+  "freq": 21,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מחמוד",
+  "niqqud": "מַחְמוּד",
+  "freq": 20,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הרצל",
+  "niqqud": "הֵרְצְל",
+  "freq": 20,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לאו",
+  "niqqud": "לָאו",
+  "freq": 20,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פז",
+  "niqqud": "פָּז",
+  "freq": 20,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אמריקה",
+  "niqqud": "אָמֵרִיקָה",
+  "freq": 20,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "עלמה",
+  "niqqud": "עַלְמָה",
+  "freq": 20,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לונדון",
+  "niqqud": "לוֹנְדוֹן",
+  "freq": 20,
+  "types": [
+   "unisex-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "אנוש",
+  "niqqud": "אֱנוֹשׁ",
+  "freq": 20,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אלוהים",
+  "niqqud": "אלוהים",
+  "freq": 20,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אילן",
+  "niqqud": "אִילָן",
+  "freq": 19,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רד",
+  "niqqud": "רַד",
+  "freq": 19,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נחמה",
+  "niqqud": "נֶחָמָה",
+  "freq": 19,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "עדי",
+  "niqqud": "עֲדֵי",
+  "freq": 19,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "פולין",
+  "niqqud": "פּוֹלִין",
+  "freq": 19,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "הודו",
+  "niqqud": "הוֹדוּ",
+  "freq": 19,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "לירה",
+  "niqqud": "לירה",
+  "freq": 19,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "חוש",
+  "niqqud": "חוּשׁ",
+  "freq": 19,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יריחו",
+  "niqqud": "יְרִיחוֹ",
+  "freq": 19,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לוי",
+  "niqqud": "לֵוִי",
+  "freq": 18,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אדיר",
+  "niqqud": "אַדִּיר",
+  "freq": 18,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בלה",
+  "niqqud": "בֵּלָה",
+  "freq": 18,
+  "types": [
+   "male-given",
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "בכה",
+  "niqqud": "בְּכֹה",
+  "freq": 18,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איה",
+  "niqqud": "אַיֵּה",
+  "freq": 18,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חביב",
+  "niqqud": "חָבִיב",
+  "freq": 18,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "צרפת",
+  "niqqud": "צָרְפַת",
+  "freq": 18,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "פינה",
+  "niqqud": "פינה",
+  "freq": 18,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "רוני",
+  "niqqud": "רוֹנִי",
+  "freq": 17,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רעות",
+  "niqqud": "רָעוֹת",
+  "freq": 17,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דני",
+  "niqqud": "דני",
+  "freq": 17,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "נוגה",
+  "niqqud": "נוּגֶה",
+  "freq": 17,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "קנו",
+  "niqqud": "קִנּוֹ",
+  "freq": 17,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "הו",
+  "niqqud": "הוֹ",
+  "freq": 17,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "רום",
+  "niqqud": "רוֹם",
+  "freq": 16,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ראובן",
+  "niqqud": "רְאוּבֵן",
+  "freq": 16,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מני",
+  "niqqud": "מִנִּי",
+  "freq": 16,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עזר",
+  "niqqud": "עֵזֶר",
+  "freq": 16,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איתן",
+  "niqqud": "אֵיתָן",
+  "freq": 16,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ורד",
+  "niqqud": "וֶרֶד",
+  "freq": 16,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "עדן",
+  "niqqud": "עֵדֶן",
+  "freq": 16,
+  "types": [
+   "unisex-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "אפל",
+  "niqqud": "אָפֵל",
+  "freq": 16,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "דן",
+  "niqqud": "דָּן",
+  "freq": 15,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עבדו",
+  "niqqud": "עָבְדוּ",
+  "freq": 15,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הנס",
+  "niqqud": "הַנֵּס",
+  "freq": 15,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דבורה",
+  "niqqud": "דְּבוֹרָה",
+  "freq": 15,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מרב",
+  "niqqud": "מֵרֹב",
+  "freq": 15,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רענן",
+  "niqqud": "רַעֲנָן",
+  "freq": 15,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "איפה",
+  "niqqud": "אֵיפֹה",
+  "freq": 15,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "גזע",
+  "niqqud": "גזע",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פתחי",
+  "niqqud": "פִּתְחֵי",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלכסנדר",
+  "niqqud": "אָלֶכְּסַנְדֶּר",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלפרד",
+  "niqqud": "אַלְפְרֶד",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בנימין",
+  "niqqud": "בִּנְיָמִין",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זוהר",
+  "niqqud": "זוהר",
+  "freq": 14,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "ריב",
+  "niqqud": "רִיב",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שבתי",
+  "niqqud": "שַׁבְתִּי",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הארון",
+  "niqqud": "הָאָרוֹן",
+  "freq": 14,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גילה",
+  "niqqud": "גילה",
+  "freq": 14,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רחל",
+  "niqqud": "רָחֵל",
+  "freq": 14,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מאור",
+  "niqqud": "מֵאוֹר",
+  "freq": 14,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "יפרח",
+  "niqqud": "יִפְרַח",
+  "freq": 14,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "שדרות",
+  "niqqud": "שְׂדֵרוֹת",
+  "freq": 14,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אד",
+  "niqqud": "אֵד",
+  "freq": 13,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אדר",
+  "niqqud": "אֲדָר",
+  "freq": 13,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חרמון",
+  "niqqud": "חֶרְמוֹן",
+  "freq": 13,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מג",
+  "niqqud": "מג",
+  "freq": 13,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "טוהר",
+  "niqqud": "טוהר",
+  "freq": 13,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "גאולה",
+  "niqqud": "גאולה",
+  "freq": 13,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "סיון",
+  "niqqud": "סִיוָן",
+  "freq": 13,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אוסטריה",
+  "niqqud": "אוֹסְטְרִיָּה",
+  "freq": 13,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "אומה",
+  "niqqud": "אומה",
+  "freq": 13,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יבנה",
+  "niqqud": "יִבָּנֶה",
+  "freq": 13,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "צור",
+  "niqqud": "צוּר",
+  "freq": 13,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יספר",
+  "niqqud": "יְסַפֵּר",
+  "freq": 12,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מיכאל",
+  "niqqud": "מִיכָאֵל",
+  "freq": 12,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איל",
+  "niqqud": "אֱיָל",
+  "freq": 12,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דיון",
+  "niqqud": "דִּיּוּן",
+  "freq": 12,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "טוביה",
+  "niqqud": "טוּבְיָה",
+  "freq": 12,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שמעיה",
+  "niqqud": "שְׁמַעְיָה",
+  "freq": 12,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלזה",
+  "niqqud": "אלזה",
+  "freq": 12,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מאי",
+  "niqqud": "מַאי",
+  "freq": 12,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מילה",
+  "niqqud": "מילה",
+  "freq": 12,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "סהר",
+  "niqqud": "סַהַר",
+  "freq": 12,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "חולדה",
+  "niqqud": "חולדה",
+  "freq": 12,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ספרד",
+  "niqqud": "סְפָרַד",
+  "freq": 12,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "ליטא",
+  "niqqud": "לִיטָא",
+  "freq": 12,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "חמד",
+  "niqqud": "חֶמֶד",
+  "freq": 12,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יעזר",
+  "niqqud": "יֵעָזֵר",
+  "freq": 12,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "דמשק",
+  "niqqud": "דַּמֶּשֶׂק",
+  "freq": 12,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אספו",
+  "niqqud": "אֶסְפוּ",
+  "freq": 12,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יפת",
+  "niqqud": "יֶפֶת",
+  "freq": 11,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לותר",
+  "niqqud": "לְוַתֵּר",
+  "freq": 11,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נועד",
+  "niqqud": "נוֹעַד",
+  "freq": 11,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ניסן",
+  "niqqud": "נִיסָן",
+  "freq": 11,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עזיז",
+  "niqqud": "עָזִיז",
+  "freq": 11,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איציק",
+  "niqqud": "אִיצִיק",
+  "freq": 11,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יפעת",
+  "niqqud": "יִפְעַת",
+  "freq": 11,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שרי",
+  "niqqud": "שָׂרֵי",
+  "freq": 11,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ריקה",
+  "niqqud": "רֵיקָה",
+  "freq": 11,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "עדנה",
+  "niqqud": "עֶדְנָה",
+  "freq": 11,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אדית",
+  "niqqud": "אֵדִית",
+  "freq": 11,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נוי",
+  "niqqud": "נוֹי",
+  "freq": 11,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "מטולה",
+  "niqqud": "מְטוּלָה",
+  "freq": 11,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בשאר",
+  "niqqud": "בִּשְׁאַר",
+  "freq": 11,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "רובה",
+  "niqqud": "רוֹבֶה",
+  "freq": 11,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מסרו",
+  "niqqud": "מָסְרוּ",
+  "freq": 11,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "גור",
+  "niqqud": "גּוּר",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גוטפריד",
+  "niqqud": "גּוֹטְפְרִיד",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עמוס",
+  "niqqud": "עָמוֹס",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פינחס",
+  "niqqud": "פִּינְחָס",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עבדול",
+  "niqqud": "עַבְּדוּל",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "תום",
+  "niqqud": "תום",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "משולם",
+  "niqqud": "משולם",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גר",
+  "niqqud": "גָּר",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלעזר",
+  "niqqud": "אֶלְעָזָר",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יחיאל",
+  "niqqud": "יחיאל",
+  "freq": 10,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חמדה",
+  "niqqud": "חֶמְדָּה",
+  "freq": 10,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אילנה",
+  "niqqud": "אילנה",
+  "freq": 10,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מנה",
+  "niqqud": "מָנָה",
+  "freq": 10,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מלכה",
+  "niqqud": "מַלְכָּה",
+  "freq": 10,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "איטליה",
+  "niqqud": "אִיטַלְיָה",
+  "freq": 10,
+  "types": [
+   "female-given",
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "מרשה",
+  "niqqud": "מַרְשֶׁה",
+  "freq": 10,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נסה",
+  "niqqud": "נַסֵּה",
+  "freq": 10,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רומניה",
+  "niqqud": "רוֹמַנְיָה",
+  "freq": 10,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "ולבה",
+  "niqqud": "וְלִבָּהּ",
+  "freq": 10,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בריה",
+  "niqqud": "בְּרִיָּה",
+  "freq": 10,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לר",
+  "niqqud": "לֵר",
+  "freq": 10,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אפיה",
+  "niqqud": "אֲפִיָּה",
+  "freq": 10,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לוין",
+  "niqqud": "לֵוִין",
+  "freq": 9,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יון",
+  "niqqud": "יָוָן",
+  "freq": 9,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ארון",
+  "niqqud": "אֲרוֹן",
+  "freq": 9,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פיל",
+  "niqqud": "פיל",
+  "freq": 9,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נדיר",
+  "niqqud": "נָדִיר",
+  "freq": 9,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "נחום",
+  "niqqud": "נַחוּם",
+  "freq": 9,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מנשה",
+  "niqqud": "מְנַשֶּׁה",
+  "freq": 9,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איוואן",
+  "niqqud": "איוואן",
+  "freq": 9,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רומן",
+  "niqqud": "רוֹמָן",
+  "freq": 9,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קורה",
+  "niqqud": "קוֹרֶה",
+  "freq": 9,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לילך",
+  "niqqud": "לִילָךְ",
+  "freq": 9,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לירי",
+  "niqqud": "לירי",
+  "freq": 9,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "הילה",
+  "niqqud": "הילה",
+  "freq": 9,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "טורי",
+  "niqqud": "טוּרֵי",
+  "freq": 9,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אניה",
+  "niqqud": "אֳנִיָּה",
+  "freq": 9,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פרידה",
+  "niqqud": "פרידה",
+  "freq": 9,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שושנה",
+  "niqqud": "שׁוֹשַׁנָּה",
+  "freq": 9,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יובל",
+  "niqqud": "יוֹבֵל",
+  "freq": 9,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אופיר",
+  "niqqud": "אוֹפִיר",
+  "freq": 9,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "שקד",
+  "niqqud": "שָׁקֵד",
+  "freq": 9,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אודה",
+  "niqqud": "אוֹדֶה",
+  "freq": 9,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "נשר",
+  "niqqud": "נֶשֶׁר",
+  "freq": 9,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בודה",
+  "niqqud": "בּוֹדֶה",
+  "freq": 9,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "פיק",
+  "niqqud": "פִּיק",
+  "freq": 9,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קרע",
+  "niqqud": "קרע",
+  "freq": 9,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "חסון",
+  "niqqud": "חסוֹן",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גיא",
+  "niqqud": "גֵּיא",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יחזקאל",
+  "niqqud": "יְחֶזְקֵאל",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברי",
+  "niqqud": "ברי",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פול",
+  "niqqud": "פּוֹל",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שמשון",
+  "niqqud": "שמשון",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נסים",
+  "niqqud": "נִסִּים",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "כרם",
+  "niqqud": "כֶּרֶם",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איוב",
+  "niqqud": "אִיּוֹב",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יולי",
+  "niqqud": "יוּלִי",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דמה",
+  "niqqud": "דָּמָה",
+  "freq": 8,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הרצליה",
+  "niqqud": "הֶרְצְלִיָּה",
+  "freq": 8,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "מאירה",
+  "niqqud": "מְאִירָה",
+  "freq": 8,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שפרה",
+  "niqqud": "שִׁפְרָה",
+  "freq": 8,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חביבה",
+  "niqqud": "חֲבִיבָה",
+  "freq": 8,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אהובה",
+  "niqqud": "אֲהוּבָה",
+  "freq": 8,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נטע",
+  "niqqud": "נֶטַע",
+  "freq": 8,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "יוחאי",
+  "niqqud": "יוֹחַאי",
+  "freq": 8,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "סלובקיה",
+  "niqqud": "סְלוֹבַקְיָה",
+  "freq": 8,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "הונגריה",
+  "niqqud": "הוּנְגַּרְיָה",
+  "freq": 8,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "חלם",
+  "niqqud": "חָלַם",
+  "freq": 8,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בבא",
+  "niqqud": "בָּבָא",
+  "freq": 7,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לזר",
+  "niqqud": "לָזָר",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הולם",
+  "niqqud": "הוֹלֵם",
+  "freq": 7,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ארס",
+  "niqqud": "אֶרֶס",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוחנן",
+  "niqqud": "יוֹחָנָן",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "כרים",
+  "niqqud": "כָּרִים",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מנו",
+  "niqqud": "מֶנּוּ",
+  "freq": 7,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "שמעון",
+  "niqqud": "שִׁמְעוֹן",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דודו",
+  "niqqud": "דּוֹדוֹ",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלון",
+  "niqqud": "אַלּוֹן",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ישעיהו",
+  "niqqud": "יְשַׁעְיָהוּ",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אוגוסט",
+  "niqqud": "אוגוסט",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פרנץ",
+  "niqqud": "פְרַנְץ",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אנטה",
+  "niqqud": "אֶנָּטֶה",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לסקר",
+  "niqqud": "לִסְקֹר",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דרור",
+  "niqqud": "דְּרוֹר",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זלמן",
+  "niqqud": "זַלְמָן",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גלה",
+  "niqqud": "גָּלָה",
+  "freq": 7,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רקפת",
+  "niqqud": "רַקֶּפֶת",
+  "freq": 7,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אוריה",
+  "niqqud": "אוריה",
+  "freq": 7,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "רבקה",
+  "niqqud": "רִבְקָה",
+  "freq": 7,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קוניגונדה",
+  "niqqud": "קוֹנִיגוֹנְדָה",
+  "freq": 7,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "בתיה",
+  "niqqud": "בִּתְיָה",
+  "freq": 7,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "עדינה",
+  "niqqud": "עֲדִינָה",
+  "freq": 7,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אפריל",
+  "niqqud": "אַפְּרִיל",
+  "freq": 7,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רז",
+  "niqqud": "רָז",
+  "freq": 7,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "סתיו",
+  "niqqud": "סתיו",
+  "freq": 7,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אפי",
+  "niqqud": "אַפִּי",
+  "freq": 7,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "צפת",
+  "niqqud": "צְפַת",
+  "freq": 7,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "באנו",
+  "niqqud": "בָּאנוּ",
+  "freq": 7,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בור",
+  "niqqud": "בּוֹר",
+  "freq": 7,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יורה",
+  "niqqud": "יוֹרֶה",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הוגו",
+  "niqqud": "הוּגוֹ",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זבולון",
+  "niqqud": "זְבוּלוּן",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רובן",
+  "niqqud": "רובן",
+  "freq": 6,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רמון",
+  "niqqud": "רִמּוֹן",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ארי",
+  "niqqud": "אֲרִי",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דוב",
+  "niqqud": "דוב",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלימלך",
+  "niqqud": "אֱלִימֶלֶךְ",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מנדל",
+  "niqqud": "מֵנְדְל",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מתתיהו",
+  "niqqud": "מַתִּתְיָהוּ",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רנה",
+  "niqqud": "רִנָּה",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דביר",
+  "niqqud": "דְּבִיר",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברן",
+  "niqqud": "בְּרֹן",
+  "freq": 6,
+  "types": [
+   "male-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "פאריס",
+  "niqqud": "פָּארִיס",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דב",
+  "niqqud": "דֹּב",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אהרון",
+  "niqqud": "אהרוֹן",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הארי",
+  "niqqud": "הָארִי",
+  "freq": 6,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דפנה",
+  "niqqud": "דַּפְנָה",
+  "freq": 6,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "סופי",
+  "niqqud": "סוֹפִי",
+  "freq": 6,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אולגה",
+  "niqqud": "אוֹלְגָּה",
+  "freq": 6,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מרי",
+  "niqqud": "מָרִי",
+  "freq": 6,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "דינה",
+  "niqqud": "דינה",
+  "freq": 6,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אלכס",
+  "niqqud": "אָלֵכְּס",
+  "freq": 6,
+  "types": [
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אביר",
+  "niqqud": "אַבִּיר",
+  "freq": 6,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "גילי",
+  "niqqud": "גִּילִי",
+  "freq": 6,
+  "types": [
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "קדיש",
+  "niqqud": "קַדִּישׁ",
+  "freq": 6,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "בולגריה",
+  "niqqud": "בּוּלְגַּרְיָה",
+  "freq": 6,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "חנקין",
+  "niqqud": "חִנְקִין",
+  "freq": 6,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קיסריה",
+  "niqqud": "קֵיסָרְיָה",
+  "freq": 6,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "חברון",
+  "niqqud": "חֶבְרוֹן",
+  "freq": 6,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אבה",
+  "niqqud": "אָבָה",
+  "freq": 6,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "פשמישל",
+  "niqqud": "פַּשְׁמִישֶׁל",
+  "freq": 6,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קובנה",
+  "niqqud": "קוֹבְנָה",
+  "freq": 6,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אוהד",
+  "niqqud": "אוֹהֵד",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ניב",
+  "niqqud": "נִיב",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "תלמי",
+  "niqqud": "תַּלְמֵי",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אטלס",
+  "niqqud": "אַטְלָס",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אמיל",
+  "niqqud": "אֵמִיל",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מיכה",
+  "niqqud": "מִיכָה",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פלג",
+  "niqqud": "פֶּלֶג",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דאג",
+  "niqqud": "דָּאַג",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בצלאל",
+  "niqqud": "בְּצַלְאֵל",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פנחס",
+  "niqqud": "פִּנְחָס",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יורם",
+  "niqqud": "יוֹרָם",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יגאל",
+  "niqqud": "יִגְאָל",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יפתח",
+  "niqqud": "יִפְתַּח",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ירדן",
+  "niqqud": "יַרְדֵּן",
+  "freq": 5,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "הלל",
+  "niqqud": "הִלֵּל",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נפתלי",
+  "niqqud": "נַפְתָּלִי",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בארון",
+  "niqqud": "בָּאָרוֹן",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יקותיאל",
+  "niqqud": "יְקוּתִיאֵל",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זרקו",
+  "niqqud": "זָרְקוּ",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ארם",
+  "niqqud": "אֲרַם",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אדי",
+  "niqqud": "אֵדֵי",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בער",
+  "niqqud": "בָּעֵר",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ארז",
+  "niqqud": "אֶרֶז",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ירמיהו",
+  "niqqud": "יִרְמְיָהוּ",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יו",
+  "niqqud": "יוֹ",
+  "freq": 5,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "כור",
+  "niqqud": "כּוּר",
+  "freq": 5,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יעל",
+  "niqqud": "יַעַל",
+  "freq": 5,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לילי",
+  "niqqud": "לֵילִי",
+  "freq": 5,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מינה",
+  "niqqud": "מינה",
+  "freq": 5,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "מיהו",
+  "niqqud": "מִיהוּ",
+  "freq": 5,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "בקי",
+  "niqqud": "בָּקִי",
+  "freq": 5,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פולט",
+  "niqqud": "פּוֹלֵט",
+  "freq": 5,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מרפה",
+  "niqqud": "מַרְפֶּה",
+  "freq": 5,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "בלט",
+  "niqqud": "בַּלָּט",
+  "freq": 5,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "תו",
+  "niqqud": "תָּו",
+  "freq": 5,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "סם",
+  "niqqud": "סַם",
+  "freq": 5,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קורן",
+  "niqqud": "קוֹרֵן",
+  "freq": 5,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קים",
+  "niqqud": "קַיָּם",
+  "freq": 5,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "רן",
+  "niqqud": "רֹן",
+  "freq": 5,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "ששון",
+  "niqqud": "שָׂשׂוֹן",
+  "freq": 5,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "הינדה",
+  "niqqud": "הִינְדָה",
+  "freq": 5,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "גוני",
+  "niqqud": "גּוֹנֵי",
+  "freq": 5,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "סוריה",
+  "niqqud": "סוריה",
+  "freq": 5,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "טבריה",
+  "niqqud": "טבריה",
+  "freq": 5,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יעבד",
+  "niqqud": "יַעֲבֹד",
+  "freq": 5,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "גלו",
+  "niqqud": "גָּלוּ",
+  "freq": 5,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בבל",
+  "niqqud": "בָּבֶל",
+  "freq": 5,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "גרמה",
+  "niqqud": "גָּרְמָה",
+  "freq": 5,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "סודו",
+  "niqqud": "סוֹדוֹ",
+  "freq": 5,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קומו",
+  "niqqud": "קוּמוּ",
+  "freq": 5,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "שרגא",
+  "niqqud": "שרגא",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פריץ",
+  "niqqud": "פריץ",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ישי",
+  "niqqud": "יִשַׁי",
+  "freq": 4,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אמיתי",
+  "niqqud": "אמיתי",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ישו",
+  "niqqud": "ישוּ",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברכיה",
+  "niqqud": "בִּרְכֶּיהָ",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פרו",
+  "niqqud": "פָּרוּ",
+  "freq": 4,
+  "types": [
+   "male-given",
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "עמיר",
+  "niqqud": "עָמִיר",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גדעון",
+  "niqqud": "גִּדְעוֹן",
+  "freq": 4,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "קלמנס",
+  "niqqud": "קֶלְמֵנְס",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "היינה",
+  "niqqud": "הֱיֶינָה",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חוסה",
+  "niqqud": "חוּסה",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלחנן",
+  "niqqud": "אֶלְחָנָן",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נחמיה",
+  "niqqud": "נְחֶמְיָה",
+  "freq": 4,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אבנר",
+  "niqqud": "אַבְנֵר",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אוז",
+  "niqqud": "אוָז",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אורן",
+  "niqqud": "אורן",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מימון",
+  "niqqud": "מַיְמוֹן",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חנוך",
+  "niqqud": "חנוך",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מורנו",
+  "niqqud": "מוֹרֵנוּ",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עקיבא",
+  "niqqud": "עֲקִיבָא",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הרברט",
+  "niqqud": "הֶרְבֵּרְט",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רוברט",
+  "niqqud": "רוֹבֵּרְט",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קורי",
+  "niqqud": "קוּרֵי",
+  "freq": 4,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "באסם",
+  "niqqud": "בָּאֹסֶם",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אריין",
+  "niqqud": "אַריין",
+  "freq": 4,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מיטל",
+  "niqqud": "מיטל",
+  "freq": 4,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ספטמבר",
+  "niqqud": "סֶפְּטֶמְבֶּר",
+  "freq": 4,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "תאיר",
+  "niqqud": "תָּאִיר",
+  "freq": 4,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יערה",
+  "niqqud": "יַעְרָה",
+  "freq": 4,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דנה",
+  "niqqud": "דָּנָה",
+  "freq": 4,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "תמר",
+  "niqqud": "תָּמָר",
+  "freq": 4,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פרחיה",
+  "niqqud": "פְּרָחֶיהָ",
+  "freq": 4,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "עטרה",
+  "niqqud": "עֲטָרָה",
+  "freq": 4,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "גפן",
+  "niqqud": "גֶּפֶן",
+  "freq": 4,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "מישה",
+  "niqqud": "מִישָׁה",
+  "freq": 4,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "נימה",
+  "niqqud": "נימה",
+  "freq": 4,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "סמר",
+  "niqqud": "סָמַר",
+  "freq": 4,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "יששכר",
+  "niqqud": "יִשָּׂשכָר",
+  "freq": 4,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "שין",
+  "niqqud": "שין",
+  "freq": 4,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "יוון",
+  "niqqud": "יוון",
+  "freq": 4,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "לבנון",
+  "niqqud": "לְבָנוֹן",
+  "freq": 4,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "רעננה",
+  "niqqud": "רעננה",
+  "freq": 4,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "צורי",
+  "niqqud": "צוּרִי",
+  "freq": 4,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אפלו",
+  "niqqud": "אֲפִלּוּ",
+  "freq": 4,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "נפת",
+  "niqqud": "נֹפֶת",
+  "freq": 4,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "רועי",
+  "niqqud": "רועי",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זרובבל",
+  "niqqud": "זרובבל",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "עזריאל",
+  "niqqud": "עזריאל",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אהוד",
+  "niqqud": "אֵהוּד",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אידר",
+  "niqqud": "אידר",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יורו",
+  "niqqud": "יוֹרוּ",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שמריהו",
+  "niqqud": "שְׁמַרְיָהוּ",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דניאל",
+  "niqqud": "דָּנִיֵּאל",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ורן",
+  "niqqud": "וָרָן",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רוק",
+  "niqqud": "רוָק",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוסוף",
+  "niqqud": "יוּסוּף",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גבריאל",
+  "niqqud": "גַּבְרִיאֵל",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אלן",
+  "niqqud": "אָלֶן",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מקסים",
+  "niqqud": "מַקְסִים",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ביל",
+  "niqqud": "בִּיל",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סעד",
+  "niqqud": "סעד",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פנקס",
+  "niqqud": "פנקס",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נדב",
+  "niqqud": "נָדָב",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שי",
+  "niqqud": "שַׁי",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ידידיה",
+  "niqqud": "יְדִידֶיהָ",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נאור",
+  "niqqud": "נָאוֹר",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נטו",
+  "niqqud": "נָטוּ",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יונתן",
+  "niqqud": "יוֹנָתָן",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איתי",
+  "niqqud": "איתי",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "זמיר",
+  "niqqud": "זָמִיר",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לייב",
+  "niqqud": "לייב",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שלווה",
+  "niqqud": "שלווה",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אנדרה",
+  "niqqud": "אַנְדְּרֶה",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רביד",
+  "niqqud": "רְבִיד",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "וליד",
+  "niqqud": "וַלִיד",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אביגדור",
+  "niqqud": "אֲבִיגְדוֹר",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "כרמל",
+  "niqqud": "כרמל",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "גדי",
+  "niqqud": "גָּדִי",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "תאו",
+  "niqqud": "תֵּאוֹ",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "האשם",
+  "niqqud": "הָאָשָׁם",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אביהו",
+  "niqqud": "אָבִיהוּ",
+  "freq": 3,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אווה",
+  "niqqud": "אווה",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פרד",
+  "niqqud": "פֶּרֶד",
+  "freq": 3,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "יפית",
+  "niqqud": "יָפִית",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חסידה",
+  "niqqud": "חֲסִידָה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "הדסה",
+  "niqqud": "הדסה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חניתה",
+  "niqqud": "חֲנִיתָהּ",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אלכסנדרה",
+  "niqqud": "אלכסנדרה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מריה",
+  "niqqud": "מָרִיָּה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מאשה",
+  "niqqud": "מֵאִשָּׁה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מא",
+  "niqqud": "מא",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "גלית",
+  "niqqud": "גַּלִּית",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "זהרה",
+  "niqqud": "זָהֳרָהּ",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אלכסנדריה",
+  "niqqud": "אָלֶכְּסַנְדְּרִיָּה",
+  "freq": 3,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "גאלה",
+  "niqqud": "גְּאֻלָּה",
+  "freq": 3,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "ורה",
+  "niqqud": "וָרֶה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "הודיה",
+  "niqqud": "הוֹדָיָה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "זויה",
+  "niqqud": "זוֹיָה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אמירה",
+  "niqqud": "אֲמִירָה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "איילה",
+  "niqqud": "איילה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דורה",
+  "niqqud": "דּוֹרָה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "טסה",
+  "niqqud": "טָסָה",
+  "freq": 3,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "עורב",
+  "niqqud": "עוֹרֵב",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קרי",
+  "niqqud": "קרי",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "נועם",
+  "niqqud": "נועם",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "מעיין",
+  "niqqud": "מעיין",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "סאשה",
+  "niqqud": "סָאשָׁה",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "שרון",
+  "niqqud": "שָׁרוֹן",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "דורי",
+  "niqqud": "דּוֹרֵי",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "אסא",
+  "niqqud": "אָסָא",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קלי",
+  "niqqud": "קלי",
+  "freq": 3,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "ראם",
+  "niqqud": "רְאֵם",
+  "freq": 3,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "היל",
+  "niqqud": "הַיֵּל",
+  "freq": 3,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "נעמה",
+  "niqqud": "נָעֵמָה",
+  "freq": 3,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "דקל",
+  "niqqud": "דֶּקֶל",
+  "freq": 3,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "אמוץ",
+  "niqqud": "אָמוֹץ",
+  "freq": 3,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "לטביה",
+  "niqqud": "לַטְבִיָּה",
+  "freq": 3,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "קטר",
+  "niqqud": "קַטָּר",
+  "freq": 3,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "ונטה",
+  "niqqud": "וְנַטֶּה",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "עפולה",
+  "niqqud": "עפולה",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "טירה",
+  "niqqud": "טירה",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אזרע",
+  "niqqud": "אֶזְרַע",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לוד",
+  "niqqud": "לוד",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "גדרה",
+  "niqqud": "גְּדֵרָה",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לימה",
+  "niqqud": "לִימָה",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "דרבן",
+  "niqqud": "דֶּרְבֶּן",
+  "freq": 3,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "רשף",
+  "niqqud": "רֶשֶׁף",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עשהאל",
+  "niqqud": "עֲשָׂהאֵל",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רמי",
+  "niqqud": "רמי",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הנרי",
+  "niqqud": "הֶנְרִי",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זכריה",
+  "niqqud": "זְכַרְיָה",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חוסיין",
+  "niqqud": "חוסיין",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "תיאודור",
+  "niqqud": "תיאודור",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עמרם",
+  "niqqud": "עַמְרָם",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יהב",
+  "niqqud": "יְהָב",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אריק",
+  "niqqud": "אָרִיק",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סטניסלב",
+  "niqqud": "סְטָנִיסְלָב",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אופק",
+  "niqqud": "אופק",
+  "freq": 2,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ניק",
+  "niqqud": "ניק",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פר",
+  "niqqud": "פּר",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חנו",
+  "niqqud": "חָנוֹ",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בס",
+  "niqqud": "בָּס",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קולט",
+  "niqqud": "קוֹלֵט",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גריידי",
+  "niqqud": "גריידי",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נאסר",
+  "niqqud": "נאסר",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רפאל",
+  "niqqud": "רפאל",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ניל",
+  "niqqud": "נִילִ",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרקו",
+  "niqqud": "מרקו",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ארתור",
+  "niqqud": "אַרְתוּר",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עמנואל",
+  "niqqud": "עִמָּנוּאֵל",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סולומון",
+  "niqqud": "סוֹלוֹמוֹן",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אחמד",
+  "niqqud": "אחמד",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מוחמד",
+  "niqqud": "מוחמד",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לס",
+  "niqqud": "לֵס",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עומר",
+  "niqqud": "עומר",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרס",
+  "niqqud": "מַרְס",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קאן",
+  "niqqud": "קאָן",
+  "freq": 2,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "נתנאל",
+  "niqqud": "נְתַנְאֵל",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "זיגמונד",
+  "niqqud": "זיגמונד",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "כפה",
+  "niqqud": "כפּה",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "היינריך",
+  "niqqud": "היינריך",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רנן",
+  "niqqud": "רִנֵּן",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קרל",
+  "niqqud": "קַרְל",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "וס",
+  "niqqud": "וס",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עופר",
+  "niqqud": "עופר",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ערן",
+  "niqqud": "עֵרָן",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרון",
+  "niqqud": "מֵרוֹן",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הילל",
+  "niqqud": "הֵילֵל",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סימון",
+  "niqqud": "סִימוֹן",
+  "freq": 2,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "יואב",
+  "niqqud": "יוֹאָב",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בארי",
+  "niqqud": "בָּאֲרִי",
+  "freq": 2,
+  "types": [
+   "male-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "ברטולד",
+  "niqqud": "בֶּרְטוֹלְד",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נדו",
+  "niqqud": "נָדוּ",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עודד",
+  "niqqud": "עוֹדֵד",
+  "freq": 2,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הלמה",
+  "niqqud": "הָלְמָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "זורה",
+  "niqqud": "זוֹרָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נועה",
+  "niqqud": "נועה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דליה",
+  "niqqud": "דליה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נדיה",
+  "niqqud": "נַדְיָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ספיר",
+  "niqqud": "סַפִּיר",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נטשה",
+  "niqqud": "נִטְּשָׁה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "תאה",
+  "niqqud": "תָּאָהּ",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מירה",
+  "niqqud": "מִירָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חנן",
+  "niqqud": "חָנָן",
+  "freq": 2,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "זנה",
+  "niqqud": "זָנָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נורה",
+  "niqqud": "נוֹרָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קטיה",
+  "niqqud": "קַטְיָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לילית",
+  "niqqud": "לילית",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "זהבה",
+  "niqqud": "זְהָבָהּ",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "סברה",
+  "niqqud": "סברה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אגם",
+  "niqqud": "אֲגַם",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יטה",
+  "niqqud": "יטה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ורדה",
+  "niqqud": "וְרֻדָּה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אפריקה",
+  "niqqud": "אַפְרִיקָה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ליה",
+  "niqqud": "ליה",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אינגריד",
+  "niqqud": "אִינְגְּרִיד",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לידיה",
+  "niqqud": "לְיָדֶיהָ",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יונית",
+  "niqqud": "יוֹנִית",
+  "freq": 2,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "טרי",
+  "niqqud": "טָרִי",
+  "freq": 2,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "סילון",
+  "niqqud": "סילוֹן",
+  "freq": 2,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "נור",
+  "niqqud": "נוּר",
+  "freq": 2,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "דונג",
+  "niqqud": "דּוֹנַג",
+  "freq": 2,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "דאו",
+  "niqqud": "דָאוּ",
+  "freq": 2,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ענבר",
+  "niqqud": "עַנְבָּר",
+  "freq": 2,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "גיורא",
+  "niqqud": "גִּיּוֹרָא",
+  "freq": 2,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "עירית",
+  "niqqud": "עִירִית",
+  "freq": 2,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "בלגיה",
+  "niqqud": "בֶּלְגִּיָּה",
+  "freq": 2,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "וינקלר",
+  "niqqud": "וִינְקְלֵר",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "פו",
+  "niqqud": "פּוֹ",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "ולס",
+  "niqqud": "וַלְס",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "דרי",
+  "niqqud": "דָּרֵי",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מרידה",
+  "niqqud": "מרידה",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "נתיבות",
+  "niqqud": "נְתִיבוֹת",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "כופה",
+  "niqqud": "כּוֹפֶה",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מורדי",
+  "niqqud": "מוֹרְדֵי",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "צנורי",
+  "niqqud": "צִנּוֹרִי",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "ואשים",
+  "niqqud": "וְאָשִׂים",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "נצרת",
+  "niqqud": "נָצְרַת",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לוני",
+  "niqqud": "לִוָּנִי",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "סור",
+  "niqqud": "סוֹר",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מלו",
+  "niqqud": "מלו",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לסה",
+  "niqqud": "לסה",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אוני",
+  "niqqud": "אוֹנִי",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לובה",
+  "niqqud": "לובה",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קוצק",
+  "niqqud": "קוֹצְק",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "ורשה",
+  "niqqud": "וַרְשָׁה",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לימון",
+  "niqqud": "לימוֹן",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "יורק",
+  "niqqud": "יוֹרְק",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מילאנו",
+  "niqqud": "מילאנו",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "להסה",
+  "niqqud": "לְהָסֶה",
+  "freq": 2,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "באד",
+  "niqqud": "בְּאֵד",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רחביה",
+  "niqqud": "רחביה",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גלעד",
+  "niqqud": "גִּלְעָד",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "וילהלם",
+  "niqqud": "וילהלם",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איילון",
+  "niqqud": "איילוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אוראל",
+  "niqqud": "אוראל",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מנור",
+  "niqqud": "מָנוֹר",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דניס",
+  "niqqud": "דניס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יאן",
+  "niqqud": "יאן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עובדיה",
+  "niqqud": "עוֹבְדֶיהָ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שגיב",
+  "niqqud": "שַׂגִּיב",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מארה",
+  "niqqud": "מְאֵרָה",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "פיודור",
+  "niqqud": "פיודור",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לוקה",
+  "niqqud": "לוֹקֵה",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "ויטל",
+  "niqqud": "וִיטֶל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סרגיי",
+  "niqqud": "סרגיי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "טובי",
+  "niqqud": "טוֹבי",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "תנחום",
+  "niqqud": "תַּנְחוּם",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שוקי",
+  "niqqud": "שׁוּקֵי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לויד",
+  "niqqud": "לויד",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מארק",
+  "niqqud": "מארק",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "חננאל",
+  "niqqud": "חֲנַנְאֵל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ויין",
+  "niqqud": "וְיַיִן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ירמיה",
+  "niqqud": "יִרְמְיָה",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אריך",
+  "niqqud": "אֵרִיךְ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פרנק",
+  "niqqud": "פרנק",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סטפן",
+  "niqqud": "סטפן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קארל",
+  "niqqud": "קארל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אנדריי",
+  "niqqud": "אנדריי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דון",
+  "niqqud": "דּוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מקס",
+  "niqqud": "מקס",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "טד",
+  "niqqud": "טֵד",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוזף",
+  "niqqud": "יוֹזֶף",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "נפוליאון",
+  "niqqud": "נפוליאון",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הארדי",
+  "niqqud": "הָארְדִּי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרטין",
+  "niqqud": "מרטין",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "אויגן",
+  "niqqud": "אויגן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לאנס",
+  "niqqud": "לְאַנָּס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אוטו",
+  "niqqud": "אוֹטוֹ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוסט",
+  "niqqud": "יוּסַט",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ליאור",
+  "niqqud": "לַיְּאוֹר",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוז",
+  "niqqud": "יוּז",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "וילסון",
+  "niqqud": "וִילְסוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פארק",
+  "niqqud": "פַּארְק",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברונו",
+  "niqqud": "בְּרוּנוֹ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חנניה",
+  "niqqud": "חֲנַנְיָה",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מרקס",
+  "niqqud": "מַרְקְס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מארי",
+  "niqqud": "מָארִי",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "רובי",
+  "niqqud": "רוֹבֵי",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מרשל",
+  "niqqud": "מרשל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גץ",
+  "niqqud": "גץ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "וינס",
+  "niqqud": "וַיָּנֹס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אדוניס",
+  "niqqud": "אָדוֹנִיס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מורו",
+  "niqqud": "מוֹרוֹ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פולו",
+  "niqqud": "פּוֹלוֹ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "וסילי",
+  "niqqud": "וָסִילִי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פלטיאל",
+  "niqqud": "פַּלְטִיאֵל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלין",
+  "niqqud": "אָלִין",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עידן",
+  "niqqud": "עידן",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ארבר",
+  "niqqud": "אַרְבֶר",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יניב",
+  "niqqud": "יָנִיב",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יואל",
+  "niqqud": "יוֹאֵל",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רוס",
+  "niqqud": "רוס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יהושפט",
+  "niqqud": "יהושפט",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פייר",
+  "niqqud": "פייר",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "סלמאן",
+  "niqqud": "סַלְמָאן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פורד",
+  "niqqud": "פוֹרְד",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אנגל",
+  "niqqud": "אִנְגֵּל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קין",
+  "niqqud": "קַיִן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אמורי",
+  "niqqud": "אמורי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "גרשום",
+  "niqqud": "גרשום",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רון",
+  "niqqud": "רוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סקוט",
+  "niqqud": "סְקוֹט",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אסיף",
+  "niqqud": "אָסִיף",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "עבדי",
+  "niqqud": "עַבְדֵי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לואיס",
+  "niqqud": "לואיס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אדגר",
+  "niqqud": "אֶדְגָּר",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "קלר",
+  "niqqud": "קֵלֶר",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שיין",
+  "niqqud": "שיין",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ארנסט",
+  "niqqud": "אֵרְנְסְט",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "חגי",
+  "niqqud": "חָגִּי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "וורם",
+  "niqqud": "וורם",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "איברהים",
+  "niqqud": "איברהים",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברוק",
+  "niqqud": "בְּרוּק",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "given-name",
+   "city"
+  ]
+ },
+ {
+  "skel": "קארו",
+  "niqqud": "קָארוֹ",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "גד",
+  "niqqud": "גד",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הורסט",
+  "niqqud": "הוֹרְסְט",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "בדר",
+  "niqqud": "בָּדֶר",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "לטיף",
+  "niqqud": "לָטִיף",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אמנון",
+  "niqqud": "אַמְנוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אביתר",
+  "niqqud": "אֶבְיָתָר",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יהונתן",
+  "niqqud": "יְהוֹנָתָן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "רפי",
+  "niqqud": "רְפֵי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "טרומן",
+  "niqqud": "טְרוּמָן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אריאל",
+  "niqqud": "אֲרִיאֵל",
+  "freq": 1,
+  "types": [
+   "male-given",
+   "unisex-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "אפולו",
+  "niqqud": "אַפּוֹלוֹ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ברוס",
+  "niqqud": "ברוֹס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "פרימו",
+  "niqqud": "פִּרְיָמוֹ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ויט",
+  "niqqud": "וַיַּט",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "באסל",
+  "niqqud": "בְּאֵסֶל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מלכיצדק",
+  "niqqud": "מַלְכִּיצָדָק",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אלדוס",
+  "niqqud": "אַלְדּוּס",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הרש",
+  "niqqud": "הָרָשׁ",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ירון",
+  "niqqud": "ירוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ינון",
+  "niqqud": "יָנוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "שלומי",
+  "niqqud": "שְׁלוֹמֵי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ארנון",
+  "niqqud": "אַרְנוֹן",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "יוסי",
+  "niqqud": "יוֹסִי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אליקים",
+  "niqqud": "אֶלְיָקִים",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אדיל",
+  "niqqud": "אדיל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "סונה",
+  "niqqud": "סוּנָה",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "אטילה",
+  "niqqud": "אֲטַיְּלָה",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "מישאל",
+  "niqqud": "מִישָׁאֵל",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "דידי",
+  "niqqud": "דִּידִי",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "ירוסלב",
+  "niqqud": "יְרוּסְלָב",
+  "freq": 1,
+  "types": [
+   "male-given"
+  ]
+ },
+ {
+  "skel": "הני",
+  "niqqud": "הָנִי",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אגר",
+  "niqqud": "אָגַר",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אדוה",
+  "niqqud": "אַדוָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ניצה",
+  "niqqud": "נִיצָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אלבינה",
+  "niqqud": "אַלְבִּינָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קלרה",
+  "niqqud": "קְלָרָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ברוריה",
+  "niqqud": "בְּרוּרְיָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שלומית",
+  "niqqud": "שְׁלוֹמִית",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שפרינצה",
+  "niqqud": "שפרינצה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "גורי",
+  "niqqud": "גּוּרֵי",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "מליה",
+  "niqqud": "מֶלְיָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מוריה",
+  "niqqud": "מוריה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נופר",
+  "niqqud": "נוֹפָר",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אריקה",
+  "niqqud": "אֲרִיקָהּ",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "city"
+  ]
+ },
+ {
+  "skel": "רוית",
+  "niqqud": "רָוִית",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מאמי",
+  "niqqud": "מאמי",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "שיהו",
+  "niqqud": "שֶׁיְּהוּ",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "סוניה",
+  "niqqud": "סוֹנְיָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נינה",
+  "niqqud": "נִינָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רימה",
+  "niqqud": "רימה",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "פגי",
+  "niqqud": "פַּגִּי",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אתנה",
+  "niqqud": "אֶתֵּנָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קיי",
+  "niqqud": "קֵיי",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "פייפר",
+  "niqqud": "פייפר",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "גרטה",
+  "niqqud": "גְּרֵטָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רומי",
+  "niqqud": "רוֹמִי",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "גאל",
+  "niqqud": "גָּאַל",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רות",
+  "niqqud": "רְוַת",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "סיף",
+  "niqqud": "סַיִף",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דורית",
+  "niqqud": "דּוֹרִית",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "הנרייטה",
+  "niqqud": "הנרייטה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קוני",
+  "niqqud": "קוֹני",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אביגיל",
+  "niqqud": "אֲבִיגַיִל",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מריצה",
+  "niqqud": "מְרִיצָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "זיוה",
+  "niqqud": "זִיוָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ננסי",
+  "niqqud": "נַנְסִי",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "מולי",
+  "niqqud": "מוּלִי",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דורין",
+  "niqqud": "דורין",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רני",
+  "niqqud": "רֹנִּי",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "סמא",
+  "niqqud": "סִמֵּא",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אביבה",
+  "niqqud": "אֲבִיבָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לוליטה",
+  "niqqud": "לוֹלִיטָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רוז",
+  "niqqud": "רוּזֶ",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קלבדיה",
+  "niqqud": "קַלְבֶּדְּיָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רומא",
+  "niqqud": "רוֹמָא",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "לדה",
+  "niqqud": "לֵדָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "יסמין",
+  "niqqud": "יַסְמִין",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "רוזה",
+  "niqqud": "רוֹזה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "חינה",
+  "niqqud": "חינה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "קיה",
+  "niqqud": "קיה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ענת",
+  "niqqud": "עֲנָת",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נאוה",
+  "niqqud": "נָּאוֶה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ירש",
+  "niqqud": "יָרַשׁ",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ימית",
+  "niqqud": "יָמִית",
+  "freq": 1,
+  "types": [
+   "female-given",
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "סעדה",
+  "niqqud": "סָעֲדָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "נורית",
+  "niqqud": "נוּרִית",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "סלמה",
+  "niqqud": "סַלְּמָהּ",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "דלילה",
+  "niqqud": "דְּלִילָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "כרמלה",
+  "niqqud": "כַּרְמֶלָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "בטינה",
+  "niqqud": "בּטינה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רקה",
+  "niqqud": "רֵקָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אפרת",
+  "niqqud": "אֶפְרָת",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "ונסה",
+  "niqqud": "וְנָסָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "אלימה",
+  "niqqud": "אַלִּימָה",
+  "freq": 1,
+  "types": [
+   "female-given"
+  ]
+ },
+ {
+  "skel": "רובין",
+  "niqqud": "רוּבִּין",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "פריז",
+  "niqqud": "פריז",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "טוני",
+  "niqqud": "טוֹנִי",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "דרו",
+  "niqqud": "דְרוֹ",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "לין",
+  "niqqud": "לין",
+  "freq": 1,
+  "types": [
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "דילון",
+  "niqqud": "דילון",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "הולנד",
+  "niqqud": "הוֹלַנְד",
+  "freq": 1,
+  "types": [
+   "unisex-given",
+   "country"
+  ]
+ },
+ {
+  "skel": "מסה",
+  "niqqud": "מסה",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "קמרון",
+  "niqqud": "קמרוֹן",
+  "freq": 1,
+  "types": [
+   "unisex-given",
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "עמית",
+  "niqqud": "עָמִית",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "דווי",
+  "niqqud": "דווי",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "שילה",
+  "niqqud": "שִׁילֹה",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "לוז",
+  "niqqud": "לוּז",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "וויי",
+  "niqqud": "וויי",
+  "freq": 1,
+  "types": [
+   "unisex-given"
+  ]
+ },
+ {
+  "skel": "ון",
+  "niqqud": "ון",
+  "freq": 1,
+  "types": [
+   "unisex-given",
+   "given-name"
+  ]
+ },
+ {
+  "skel": "יקיר",
+  "niqqud": "יַקִּיר",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "מעוז",
+  "niqqud": "מָעוֹז",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "שניר",
+  "niqqud": "שְׂנִיר",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "שחף",
+  "niqqud": "שָׁחַף",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "חיותה",
+  "niqqud": "חַיּוּתָהּ",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "סו",
+  "niqqud": "סו",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "רושדי",
+  "niqqud": "רוּשְׁדִּי",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "זכי",
+  "niqqud": "זַכִּי",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "עטיה",
+  "niqqud": "עֹטְיָה",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "גולן",
+  "niqqud": "גּוֹלָן",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "קסטן",
+  "niqqud": "קַסְטָן",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "ידין",
+  "niqqud": "יָדִין",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "תהילה",
+  "niqqud": "תהילה",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "יונג",
+  "niqqud": "יונג",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "נסרין",
+  "niqqud": "נסרין",
+  "freq": 1,
+  "types": [
+   "given-name"
+  ]
+ },
+ {
+  "skel": "קניה",
+  "niqqud": "קְנִיָּה",
+  "freq": 1,
+  "types": [
+   "country",
+   "city",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "קפריסין",
+  "niqqud": "קַפְרִיסִין",
+  "freq": 1,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "מלטה",
+  "niqqud": "מלטה",
+  "freq": 1,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "פינלנד",
+  "niqqud": "פִינְלַנְד",
+  "freq": 1,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "אוסטרליה",
+  "niqqud": "אוֹסְטְרַלְיָה",
+  "freq": 1,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "תימן",
+  "niqqud": "תֵימָן",
+  "freq": 1,
+  "types": [
+   "country",
+   "sovereign-state"
+  ]
+ },
+ {
+  "skel": "וילנה",
+  "niqqud": "וִילְנָה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מוש",
+  "niqqud": "מוש",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "תילה",
+  "niqqud": "תילה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "עכו",
+  "niqqud": "עַכּוֹ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "זרקא",
+  "niqqud": "זַרְקָא",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "ערד",
+  "niqqud": "ערד",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "נווה",
+  "niqqud": "נווה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מורינו",
+  "niqqud": "מורינו",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "ילובה",
+  "niqqud": "ילובה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "וולס",
+  "niqqud": "וולס",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מולה",
+  "niqqud": "מוּלָהּ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "רמלה",
+  "niqqud": "רַמְלֶה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "סובאלק",
+  "niqqud": "סובאלק",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מרוזי",
+  "niqqud": "מֵרוֹזִי",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "חילה",
+  "niqqud": "חילה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מפרק",
+  "niqqud": "מִפֶּרֶק",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "חריש",
+  "niqqud": "חָרִישׁ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מיניה",
+  "niqqud": "מיניה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "חומרה",
+  "niqqud": "חומרה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מקלה",
+  "niqqud": "מְקִלָּה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לאפי",
+  "niqqud": "לְאַפִּי",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מכמש",
+  "niqqud": "מִכְמָשׁ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בדולה",
+  "niqqud": "בדוּלה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "העי",
+  "niqqud": "הָעַי",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אפק",
+  "niqqud": "אֹפֶק",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "עמודה",
+  "niqqud": "עַמּוּדָה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "תרמז",
+  "niqqud": "תִּרְמֹז",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מישן",
+  "niqqud": "מִיּשֶׁן",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מרקה",
+  "niqqud": "מַרַקָּה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "באליה",
+  "niqqud": "בְּאַלְיָה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אסלה",
+  "niqqud": "אסלהּ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "גורה",
+  "niqqud": "גּוּרָהּ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "צורו",
+  "niqqud": "צוּרוֹ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "באפיה",
+  "niqqud": "בְּאָפְיָהּ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "צוען",
+  "niqqud": "צוֹעֵן",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "מרואה",
+  "niqqud": "מֵרוֹאָה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "וידה",
+  "niqqud": "וְיָדָה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "בוראו",
+  "niqqud": "בּוֹרְאוֹ",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "אלג",
+  "niqqud": "אלג",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "צעדה",
+  "niqqud": "צְעָדָה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קופנהגן",
+  "niqqud": "קוֹפֶּנְהָגֶן",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "וולין",
+  "niqqud": "וולין",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לייפציג",
+  "niqqud": "לייפציג",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "סוקרה",
+  "niqqud": "סוֹקרה",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "קנטרברי",
+  "niqqud": "קַנְטֶרְבָּרִי",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "לובלין",
+  "niqqud": "לוּבְּלִין",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "דרבי",
+  "niqqud": "דֶּרְבִּי",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ },
+ {
+  "skel": "ביאליסטוק",
+  "niqqud": "בּיאליסטוֹק",
+  "freq": 1,
+  "types": [
+   "city"
+  ]
+ }
+]
