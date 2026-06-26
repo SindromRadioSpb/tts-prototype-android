@@ -2014,6 +2014,17 @@ window.I18N_LOCALES.en = {
       possibleParadigm: "possible paradigm",
       contextSuggests: "in context, maybe",
       prov: { exact: "exact", likely: "likely", guessed: "best guess", "function": "function word", context: "context (Dicta)", unknown: "not resolved offline" },
+      niqqudMachine: "vocalization is machine-made (Dicta)",
+      legend: {
+        title: "What do the confidence badges mean?",
+        exact: "the offline dictionary recognized the word unambiguously",
+        likely: "the most likely reading; others are possible",
+        context: "meaning chosen from sentence context (Dicta, machine)",
+        "function": "function word — we give its role, not a paradigm",
+        guessed: "approximate — from a related word",
+        unknown: "not resolved offline — check via the link",
+        alts: "other possible readings of this word",
+      },
       pos: { verb: "verb", noun: "noun", adjective: "adjective", preposition: "preposition", adverb: "adverb", pronoun: "pronoun", conjunction: "conjunction", numeral: "numeral", interjection: "interjection", particle: "particle", negation: "negation" },
     },
     corpus: {

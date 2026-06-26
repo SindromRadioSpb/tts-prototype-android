@@ -2024,6 +2024,17 @@ window.I18N_LOCALES.he = {
       possibleParadigm: "פרדיגמה אפשרית",
       contextSuggests: "בהקשר, ייתכן",
       prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", unknown: "לא זוהה במצב לא־מקוון" },
+      niqqudMachine: "הניקוד ממוחשב (Dicta)",
+      legend: {
+        title: "מה משמעות תגי הוודאות?",
+        exact: "המילון הלא־מקוון זיהה את המילה בוודאות",
+        likely: "הקריאה הסבירה ביותר; ייתכנו אחרות",
+        context: "המשמעות נבחרה לפי הקשר (Dicta, מכונה)",
+        "function": "מילת תפקוד — מציגים את התפקיד, לא פרדיגמה",
+        guessed: "בקירוב — לפי מילה קרובה",
+        unknown: "לא זוהה במצב לא־מקוון — בדקו בקישור",
+        alts: "קריאות אפשריות אחרות של המילה",
+      },
       pos: { verb: "פועל", noun: "שם עצם", adjective: "שם תואר", preposition: "מילת יחס", adverb: "תואר הפועל", pronoun: "כינוי", conjunction: "מילת חיבור", numeral: "מספר", interjection: "מילת קריאה", particle: "חלקיק", negation: "שלילה" },
     },
     corpus: {

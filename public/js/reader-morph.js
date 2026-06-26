@@ -701,6 +701,30 @@
     context: ["room.morph.prov.context", "контекст (Dicta)"],
     unknown: ["room.morph.prov.unknown", "не определено офлайн"],
   };
+  // Epic-2 #1 — confidence-taxonomy legend (one-line meaning per badge, behind a «?»). The
+  // badge NAMES reuse LABEL_TEXT; these are the explanations. Ordered decisive → least.
+  var LEGEND_DESC = {
+    exact: ["room.morph.legend.exact", "офлайн-словарь распознал слово однозначно"],
+    likely: ["room.morph.legend.likely", "наиболее вероятное чтение; возможны другие"],
+    context: ["room.morph.legend.context", "значение выбрано по контексту (Dicta, машина)"],
+    "function": ["room.morph.legend.function", "служебное слово — показываем роль, не парадигму"],
+    guessed: ["room.morph.legend.guessed", "приблизительно — по родственному слову"],
+    unknown: ["room.morph.legend.unknown", "офлайн не определено — уточни по ссылке"],
+  };
+  var LEGEND_ORDER = ["exact", "likely", "context", "function", "guessed", "unknown"];
+  // UI text direction (rtl for the he locale) — the legend/niqqud-prov copy is UI-localized,
+  // so it must follow the locale, not the card's dir="rtl" (which is for the Hebrew headword).
+  function uiDir() { try { return (document.documentElement && document.documentElement.getAttribute("dir")) || "ltr"; } catch (_) { return "ltr"; } }
+  function legendHtml() {
+    var rows = LEGEND_ORDER.map(function (k) {
+      var nm = LABEL_TEXT[k], d = LEGEND_DESC[k];
+      return '<li class="rm-legend-row"><span class="rm-prov rm-prov-' + k + '">' + escapeHtml(tt(nm[0], nm[1])) + "</span>" +
+        '<span class="rm-legend-desc">' + escapeHtml(tt(d[0], d[1])) + "</span></li>";
+    }).join("");
+    rows += '<li class="rm-legend-row"><span class="rm-legend-altk">' + escapeHtml(tt("room.morph.altReadings", "возможно также")) + "</span>" +
+      '<span class="rm-legend-desc">' + escapeHtml(tt("room.morph.legend.alts", "другие возможные чтения этого слова")) + "</span></li>";
+    return '<ul class="rm-legend" data-rm-legend-panel dir="' + uiDir() + '" hidden>' + rows + "</ul>";
+  }
   var POS_TEXT = {
     verb: ["room.morph.pos.verb", "глагол"], noun: ["room.morph.pos.noun", "существительное"],
     adjective: ["room.morph.pos.adjective", "прилагательное"], preposition: ["room.morph.pos.preposition", "предлог"],
@@ -736,6 +760,7 @@
     el.addEventListener("click", function (e) {
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
+      if (t && t.closest && t.closest("[data-rm-legend]")) { onLegendToggle(); return; }
       if (t && t.closest && t.closest(".rm-save")) { onSaveClick(); return; }
       var chip = t && t.closest ? t.closest(".rm-rootfam-chip") : null;
       if (chip) { onChipClick(chip); return; }
@@ -750,6 +775,17 @@
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
   }
 
+  // Epic-2 #1 — toggle the confidence-taxonomy legend under the «?» badge-helper.
+  function onLegendToggle() {
+    if (!_sheet) return;
+    var panel = _sheet.querySelector("[data-rm-legend-panel]");
+    var btn = _sheet.querySelector("[data-rm-legend]");
+    if (!panel) return;
+    var show = panel.hidden;
+    panel.hidden = !show;
+    if (btn) btn.setAttribute("aria-expanded", show ? "true" : "false");
+  }
+
   function renderCardHtml(card) {
     if (!card) return '<div class="rm-card-empty">' + escapeHtml(tt("room.morph.empty", "Слово не распознано.")) + "</div>";
     var label = LABEL_TEXT[card.label] || LABEL_TEXT.unknown;
@@ -762,10 +798,18 @@
       '<div class="rm-head">' +
       '<span class="rm-word" lang="he">' + escapeHtml(card.niqqud || card.word) + "</span>" +
       '<span class="rm-badges">' +
+      '<span class="rm-prov-line">' +
       '<span class="rm-prov rm-prov-' + escapeHtml(card.label) + '">' + escapeHtml(tt(label[0], label[1])) + "</span>" +
+      '<button type="button" class="rm-prov-help" data-rm-legend aria-expanded="false" aria-label="' + escapeHtml(tt("room.morph.legend.title", "Что значат бейджи уверенности?")) + '">?</button>' +
+      "</span>" +
       '<span class="rm-life" data-rm-life hidden></span>' +
       "</span>" +
       "</div>";
+    // Epic-2 #3 — niqqud honesty (R9 derived-as-asserted): the vocalization shown is machine-made
+    // (Dicta/Gemini), not native — say so when the headword actually carries niqqud points.
+    var niqMark = (card.niqqud && /[֑-ׇ]/.test(card.niqqud))
+      ? '<div class="rm-niqqud-prov" dir="' + uiDir() + '"><span class="rm-niqqud-prov-ic" aria-hidden="true">ⓜ</span> ' + escapeHtml(tt("room.morph.niqqudMachine", "огласовка — машинная (Dicta)")) + "</div>"
+      : "";
     var meaning = card.meaning
       ? '<div class="rm-meaning" dir="ltr">' + escapeHtml(card.meaning) + "</div>"
       : '<div class="rm-meaning rm-meaning-empty" dir="ltr">' + escapeHtml(tt("room.morph.noGloss", "Перевод не найден офлайн.")) + "</div>";
@@ -811,7 +855,7 @@
       if (tbl) conj = '<details class="rm-acc rm-acc-conj' + (conjSure ? "" : " rm-acc-uncertain") + '"><summary class="rm-acc-sum">' + escapeHtml(conjLabel) + "</summary>" +
         '<div class="rm-conj-body">' + tbl + "</div></details>";
     }
-    return head + meaning + altLine + ctxPosLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
+    return head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
   }
 
   function openCardLoading() {

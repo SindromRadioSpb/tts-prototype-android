@@ -186,11 +186,15 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     await pg.waitForSelector(".rm-sheet.rm-open", { timeout: 10000 });
     const amb = await pg.evaluate(() => {
       const body = document.querySelector(".rm-sheet-body"), link = document.querySelector(".rm-link");
+      const lp = document.querySelector("[data-rm-legend-panel]");
       return {
         text: body ? body.textContent : "",
         hasAlts: !!document.querySelector(".rm-alts"), hasProvLikely: !!document.querySelector(".rm-prov-likely"),
         hasFamily: !!document.querySelector(".rm-rootfam"), hasUncertainTable: !!document.querySelector(".rm-acc-uncertain"),
         linkHref: link ? link.getAttribute("href") : "",
+        // Epic-2 #1 legend «?» + #3 machine-niqqud caption
+        hasHelp: !!document.querySelector(".rm-prov-help"), legendHiddenInitially: lp ? lp.hidden : null,
+        hasNiqqudProv: !!document.querySelector(".rm-niqqud-prov"),
       };
     });
     eq(amb.hasProvLikely, "שָׁנָה card should carry the «вероятно» badge");
@@ -198,8 +202,25 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(!amb.hasFamily, "ambiguous card must HIDE the root family (root uncertain) (F5)");
     eq(/\/search\//.test(amb.linkHref) && !/\/dict\//.test(amb.linkHref), "ambiguous card Pealim link must be SEARCH, not a direct page (F5), got " + JSON.stringify(amb.linkHref));
     eq(amb.hasUncertainTable, "ambiguous card conjugation table must be flagged «возможная парадигма» (F5)");
+    // Epic-2 #1 — confidence-taxonomy legend behind a «?» (starts collapsed).
+    eq(amb.hasHelp, "card must show the «?» confidence-legend helper (Epic-2 #1)");
+    eq(amb.legendHiddenInitially === true, "legend must start collapsed (hidden)");
+    // Epic-2 #3 — vocalized card asserts the niqqud is machine-made (R9).
+    eq(amb.hasNiqqudProv, "vocalized card must show the machine-niqqud provenance caption (Epic-2 #3)");
 
-    // screenshot the open card @380px RTL
+    // expand the legend → it reveals all 6 badge meanings + the «возможно также» row.
+    await pg.locator(".rm-prov-help").click();
+    const legend = await pg.evaluate(() => {
+      const p = document.querySelector("[data-rm-legend-panel]"), btn = document.querySelector(".rm-prov-help");
+      return { visible: p ? !p.hidden : false, rows: p ? p.querySelectorAll(".rm-legend-row").length : 0,
+        expanded: btn ? btn.getAttribute("aria-expanded") : null, text: p ? p.textContent : "" };
+    });
+    eq(legend.visible, "clicking «?» must reveal the confidence legend (Epic-2 #1)");
+    eq(legend.rows === 7, "legend must list 6 badges + the «возможно также» row, got " + legend.rows);
+    eq(legend.expanded === "true", "«?» must reflect aria-expanded=true when the legend is open");
+    eq(/офлайн-словарь распознал/.test(legend.text), "legend must carry the «точно» explanation copy");
+
+    // screenshot the open card @380px RTL (legend expanded)
     try { fs.mkdirSync(path.dirname(SHOT), { recursive: true }); } catch (_) {}
     await pg.screenshot({ path: SHOT });
 

@@ -41,7 +41,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
   const eq = (cond, m) => { if (!cond) failures.push(m); };
   try {
     const ctx = await b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
-    await ctx.addInitScript(() => { try { localStorage.setItem("app.locale", "ru"); } catch (_) {} });
+    // Pre-decline the Tier-3 context consent so the one-time consent overlay never appears
+    // (it would intercept the «Сохранить» click). This test is about OFFLINE note capture,
+    // not Tier-3 — declining keeps it offline-pure. (The overlay path is gated by reader-context.)
+    await ctx.addInitScript(() => { try { localStorage.setItem("app.locale", "ru"); localStorage.setItem("room.contextConsent", "declined"); } catch (_) {} });
     const pg = await ctx.newPage();
     const errs = []; pg.on("pageerror", (e) => errs.push(String(e)));
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
