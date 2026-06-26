@@ -1,0 +1,20 @@
+{
+ "contentTokens": 85,
+ "offlineExact": 72,
+ "dictaUnreach": 0,
+ "overrideOfExact": 1,
+ "overrideOfNonExact": 0,
+ "soften": 8,
+ "gloss": 1,
+ "offlineKept": 74,
+ "examples": [
+  {
+   "work": "76",
+   "surface": "שמנו",
+   "offN": "שָׁמְנוּ",
+   "offM": "жиреть, толстеть",
+   "ctxN": "שְׁמֵנוּ",
+   "ctxM": "имя"
+  }
+ ]
+}

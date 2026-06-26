@@ -128,6 +128,11 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         advUncurated: R.pickContextReading(offNoun, null, { posDicta: "adverb" }, "כזותי"), // no gloss → POS-only
         agree: R.pickContextReading({ pos: "noun", pealim_id: "1" }, null, { posDicta: "noun" }, "ספר"), // no demotion
         soften: R.pickContextReading({ pos: "verb", pealim_id: "9" }, null, { posDicta: "noun" }, "מת"),  // participle↔noun → soften
+        // R11 do-no-harm / source-precedence: Dicta must NOT override a DECISIVE offline reading.
+        // בקר: offline exact «утро» (4235) vs Dicta «скот» (9185), same noun POS → keep offline.
+        overrideExact: R.pickContextReading({ pos: "noun", pealim_id: "4235", label: "exact" }, { pos: "noun", pealim_id: "9185", label: "exact", meaning: "крупный рогатый скот" }, { posDicta: "noun" }, "בקר"),
+        // but when offline FAILED (non-exact), context may still resolve it.
+        overrideNonExact: R.pickContextReading({ pos: "noun", pealim_id: "4235", label: "likely" }, { pos: "noun", pealim_id: "9185", label: "exact", meaning: "крупный рогатый скот" }, { posDicta: "noun" }, "בקר"),
       };
     });
     eq(ctxPick.prep && ctxPick.prep.use === "gloss" && ctxPick.prep.pos === "preposition" && /до/.test(ctxPick.prep.gloss || ""),
@@ -137,6 +142,19 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(ctxPick.agree && ctxPick.agree.use === "offline", "agreeing content POS must NOT trigger a spurious demotion");
     eq(ctxPick.soften && ctxPick.soften.use === "soften" && ctxPick.soften.pos === "noun",
       "offline verb vs Dicta noun (participle↔noun) → soften «точно»→«вероятно» (not suppress)");
+    // R11 regression guard (the בקר → «скот» bug): never override a decisive corpus-grounded reading.
+    eq(ctxPick.overrideExact && ctxPick.overrideExact.use === "offline",
+      "R11: Dicta must NOT override an offline-EXACT corpus-grounded reading (בקר «утро» must stay, not flip to «скот»), got " + JSON.stringify(ctxPick.overrideExact));
+    eq(ctxPick.overrideNonExact && ctxPick.overrideNonExact.use === "context",
+      "R11: context MAY still resolve a NON-exact offline reading (offline failed → Dicta helps)");
+    // R11 end-to-end (no network — ctx supplied): tapping בֹּקֶר with a cattle-Dicta context must
+    // stay «утро»/בֹּקֶר/exact + correct direct link — the card must equal the niqqud column.
+    const r11 = await pg.evaluate(async () => {
+      const c = await window.ReaderMorph.resolveWordLight("בקר", "בֹּקֶר", { niqqud: "בָּקָר", posDicta: "noun", lemma: "בקר" });
+      return { label: c.label, meaning: c.meaning, niqqud: c.niqqud, pid: c.pealim_id, direct: c.pealim_direct };
+    });
+    eq(r11 && /утро/.test(r11.meaning || "") && r11.niqqud === "בֹּקֶר" && r11.label === "exact" && r11.pid === "4235",
+      "R11 e2e: בֹּקֶר + cattle-Dicta-context must stay «утро»/בֹּקֶר/exact/4235 (card == column), got " + JSON.stringify(r11));
 
     // ── 2/3/4) DOM: wrap parity-safe + tap opens card ─────────────────────────
     const dom = await pg.evaluate(() => {

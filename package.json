@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.5",
+  "version": "3.11.6",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -89,6 +89,7 @@
     "smoke:reniqqud": "node scripts/premium/reniqqud-smoke.js",
     "smoke:reader-dicta": "node scripts/premium/reader-dicta-smoke.js",
     "smoke:reader-context": "node scripts/premium/reader-context-smoke.js",
+    "smoke:reader-tier3-regression": "node scripts/premium/reader-tier3-regression.js",
     "smoke:autogen-parity": "node scripts/premium/autogen-parity-smoke.js --gate",
     "smoke:autogen-persist": "node scripts/premium/autogen-persist-browser-smoke.js",
     "smoke:autogen-surfacing": "node scripts/premium/autogen-surfacing-browser-smoke.js",

@@ -366,9 +366,15 @@
     // (never a fabricated content gloss). R1: shown under the «контекст (Dicta)» machine badge.
     if (_isFuncPos(pos) && (Object.prototype.hasOwnProperty.call(CONTEXT_GLOSS, s) || _isContentPos(offlineCard.pos || "")))
       return { use: "gloss", gloss: CONTEXT_GLOSS[s] || "", pos: pos };
-    // (A) content homograph: accept the context-niqqud reading only if it is decisive,
-    // Dicta's content POS matches the resolved POS, and it actually differs from offline.
-    if (ctxCard && (ctxCard.label === "exact" || ctxCard.label === "likely") && ctxCard.meaning &&
+    // (A) content homograph: accept the context-niqqud reading only when the OFFLINE reading is
+    // NOT already decisive, the context reading IS decisive, Dicta's content POS matches, and it
+    // differs from offline. R11 source-precedence / do-no-harm: a corpus-niqqud-grounded «exact»
+    // reading is what the reader SEES in the niqqud column; a live single-sentence Dicta
+    // re-vocalization (unreliable on the archaic corpus) must NEVER override it — בֹּקֶר «утро»
+    // was being flipped to בָּקָר «крупный рогатый скот» (Dicta picks the high-freq homograph on
+    // bare archaic text). Context still helps where offline genuinely FAILED (non-exact).
+    if (offlineCard.label !== "exact" &&
+      ctxCard && (ctxCard.label === "exact" || ctxCard.label === "likely") && ctxCard.meaning &&
       _isContentPos(pos) && pos === (ctxCard.pos || "") &&
       String(ctxCard.pealim_id || "") !== String(offlineCard.pealim_id || ""))
       return { use: "context" };
