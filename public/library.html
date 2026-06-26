@@ -736,13 +736,31 @@
     .rm-acc-sum::-webkit-details-marker { display: none; }
     .rm-acc-sum::before { content: "▸ "; opacity: .6; }
     .rm-acc[open] > .rm-acc-sum::before { content: "▾ "; }
-    .rm-rootfam { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 0 2px; }
+    /* Epic-3a — root-family chips: vocalized form + POS + gloss + learner status colour. */
+    .rm-rootfam { display: flex; flex-wrap: wrap; gap: 7px; padding: 6px 0 2px; }
     .rm-rootfam-chip {
-      appearance: none; cursor: pointer; width: auto; font-size: 16px; font-weight: 600;
+      appearance: none; cursor: pointer; width: auto; text-align: start;
+      display: flex; flex-direction: column; gap: 2px; min-width: 70px;
       background: var(--bg-muted); color: var(--text-primary); border: 1px solid var(--border-soft);
-      border-radius: 8px; padding: 5px 11px;
+      border-radius: 9px; padding: 6px 10px;
     }
     .rm-rootfam-chip:hover { border-color: var(--accent); }
+    .rm-fam-he { font-size: 17px; font-weight: 700; line-height: 1.15; }
+    .rm-fam-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 7px; }
+    .rm-fam-pos { font-size: 10.5px; color: var(--text-faint); }
+    .rm-fam-gloss { font-size: 12px; color: var(--text-secondary); }
+    /* status tint (mirrors in-text word-status; left accent bar so colour isn't the only cue, WCAG) */
+    .rm-rootfam-chip.rm-fam-known { border-color: rgba(63,185,80,.55); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-learning { border-color: rgba(210,153,34,.6); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-new { border-color: rgba(90,155,255,.6); border-inline-start-width: 3px; }
+    /* Epic-3a — pronounce-headword button next to the vocalized form. */
+    .rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+    .rm-speak {
+      appearance: none; cursor: pointer; flex: none; width: 32px; height: 32px; padding: 0; line-height: 1;
+      border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); font-size: 15px;
+    }
+    .rm-speak:hover { border-color: var(--accent); background: var(--accent); }
+    .rm-speak:active { transform: scale(.94); }
     /* ported .v3-conj-* (Pealim table) — adapted to Room dark vars */
     .rm-conj-body { margin-top: 6px; }
     .rm-conj-body .v3-conj-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 6px; }
@@ -857,7 +875,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.6</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.7</span>
   </div>
 </footer>
 

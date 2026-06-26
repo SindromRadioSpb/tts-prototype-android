@@ -2021,6 +2021,7 @@ window.I18N_LOCALES.en = {
       refineAll: "Turn on for all words",
       refineMiss: "Context didn’t add a clarification.",
       refining: "Refining by context…",
+      pronounce: "Pronounce",
       legend: {
         title: "What do the confidence badges mean?",
         exact: "the offline dictionary recognized the word unambiguously",

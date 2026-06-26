@@ -183,12 +183,18 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const body = document.querySelector(".rm-sheet-body");
       // scope to the head VERDICT badge: the confidence legend (Epic-2 #1) renders a sample of
       // every badge class, so a doc-wide .rm-prov-* query would also match the legend.
-      return { text: body ? body.textContent : "", hasProvExact: !!document.querySelector(".rm-head .rm-prov-exact"), hasLink: !!document.querySelector(".rm-link") };
+      const fam = body ? body.querySelectorAll(".rm-rootfam-chip") : [];
+      const famHe = body ? body.querySelector(".rm-rootfam-chip .rm-fam-he") : null;
+      return { text: body ? body.textContent : "", hasProvExact: !!document.querySelector(".rm-head .rm-prov-exact"), hasLink: !!document.querySelector(".rm-link"),
+        hasSpeak: !!document.querySelector(".rm-head .rm-speak"), famCount: fam.length, famHasHe: !!famHe };
     });
     eq(/שלם/.test(card.text), "card should show the root שלם");
     eq(/мир/.test(card.text), "card should show the gloss мир");
     eq(card.hasProvExact, "card should show the 'exact' provenance badge");
     eq(card.hasLink, "card should show a Pealim link");
+    // Epic-3a — pronounce button + enriched root-family chips (vocalized form span per chip).
+    eq(card.hasSpeak, "card head must show a 🔊 pronounce button (Epic-3a)");
+    eq(card.famCount === 0 || card.famHasHe, "root-family chips (when present) must render a .rm-fam-he vocalized form (Epic-3a), got famCount=" + card.famCount + " famHasHe=" + card.famHasHe);
 
     // ── Epic 1 P1.2 — ambiguous homograph card: «возможно также» + enrichment gated ──
     await pg.evaluate(() => { try { window.ReaderMorph.closeSheet(); } catch (_) {} });

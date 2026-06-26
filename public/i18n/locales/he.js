@@ -2031,6 +2031,7 @@ window.I18N_LOCALES.he = {
       refineAll: "להפעיל לכל המילים",
       refineMiss: "ההקשר לא הוסיף הבהרה.",
       refining: "מדייק לפי הקשר…",
+      pronounce: "להשמיע",
       legend: {
         title: "מה משמעות תגי הוודאות?",
         exact: "המילון הלא־מקוון זיהה את המילה בוודאות",

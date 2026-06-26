@@ -358,6 +358,39 @@ let _bookmarkSet = null;  // Set of bookmarked sentence_ids in the current text
 // Empty is fine: audio falls back to keyless browser SpeechSynthesis.
 function gcpTtsKey() { try { return localStorage.getItem('v3.gcpTtsApiKey') || ''; } catch (_) { return ''; } }
 
+// Epic-3a — pronounce a single Hebrew word (card headword). BYOK GCP TTS (WaveNet quality) when
+// a key is set, else keyless browser SpeechSynthesis. Self-contained (no row timing/caching),
+// offline-safe (any GCP failure falls back to browser — no dead-end). Same /api/tts contract as rows.
+let _wordAudio = null;
+function browserSpeakWord(he) {
+  try {
+    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') return;
+    const u = new SpeechSynthesisUtterance(he);
+    u.lang = 'he-IL'; u.rate = 0.9;
+    try { const v = (window.speechSynthesis.getVoices() || []).find((x) => /^(he|iw)/i.test(x.lang || '')); if (v) u.voice = v; } catch (_) {}
+    window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+  } catch (_) {}
+}
+async function speakWord(text) {
+  const he = String(text || '').trim();
+  if (!he) return;
+  const key = gcpTtsKey();
+  if (!key) { browserSpeakWord(he); return; }                 // keyless → browser
+  try {
+    const r = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: he, language: 'he-IL', voiceId: '', speakingRate: 0.95, pitch: 0.0, gcpTtsApiKey: key, withTimepoints: false }) });
+    if (!r.ok) throw new Error('tts ' + r.status);
+    const res = await r.json();
+    let src = '';
+    if (res && res.assetKey) src = '/api/audio/' + encodeURIComponent(String(res.assetKey).trim());
+    else if (res && res.audioContent) { const bytes = Uint8Array.from(atob(res.audioContent), (c) => c.charCodeAt(0)); src = URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })); }
+    if (!src) throw new Error('no audio');
+    if (!_wordAudio) _wordAudio = new Audio();
+    try { _wordAudio.pause(); } catch (_) {}
+    _wordAudio.src = src; await _wordAudio.play();
+  } catch (_) { browserSpeakWord(he); }                       // GCP miss/offline → browser, never a dead-end
+}
+
 // BRR-P1-009 — word-status colouring (opt-in). The lemmaKey→state map is built once
 // per reader session from the user's OPFS notes; enabling the toggle warms the morph
 // engine (3.3 MB dict) + paints, so the DEFAULT reader-open stays light + offline-cheap.
@@ -955,6 +988,10 @@ function attachReaderMorph(mount) {
   opts.refineContext = makeRefineProvider();
   opts.canRefine = canRefine;
   opts.grantContextConsent = () => { contextConsentSet('granted'); roomToast(tt('room.morph.consentOn', 'Точный режим включён')); };
+  // Epic-3a — pronounce the headword (GCP→browser) + word-status map for the root-family chips
+  // (reuses the single-flight ensureWordStates cache; chips colour known/learning/new).
+  opts.speakWord = speakWord;
+  opts.getWordStates = ensureWordStates;
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }

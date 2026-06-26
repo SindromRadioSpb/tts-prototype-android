@@ -560,8 +560,11 @@
         var rk = String(pp.root);
         if (!rootIndex.has(rk)) rootIndex.set(rk, []);
         var arr = rootIndex.get(rk);
-        var seen = false; for (var s2 = 0; s2 < arr.length; s2++) { if (arr[s2].key === kk) { seen = true; break; } }
-        if (!seen) arr.push({ disp: disp, key: kk, pid: pp.pealim_id != null ? String(pp.pealim_id) : "", pos: pp.pos || "" });
+        // Epic-3a — dedup by pealim_id (not stripped lemma): keep distinct homographs of the same
+        // surface as SEPARATE chips (POS/gloss disambiguates them), instead of collapsing to one.
+        var dk = pp.pealim_id != null ? ("p" + pp.pealim_id) : ("k" + kk);
+        var seen = false; for (var s2 = 0; s2 < arr.length; s2++) { if (arr[s2]._dk === dk) { seen = true; break; } }
+        if (!seen) arr.push({ disp: disp, key: kk, pid: pp.pealim_id != null ? String(pp.pealim_id) : "", pos: pp.pos || "", meaning: pp.meaning || "", _dk: dk });
       }
       var index = ds.index, paradigms = ds.paradigms;
       var lookup = function (k, b) { var ix = index[String(k) + " " + String(b || "")]; return (ix != null && paradigms[ix]) ? paradigms[ix] : null; };
@@ -639,6 +642,21 @@
         }).slice(0, 16);
       }
     } catch (_) {}
+    // Epic-3a — colour each family chip by the learner's saved status (known/learning/new), so
+    // the family shows what you already know (LingQ-quality). Reuses the wired single-flight
+    // word-states cache; offline-cheap, best-effort (no states wired → chips render uncoloured).
+    if (card.rootFamily.length && typeof _attachOpts.getWordStates === "function" && eng.NA && eng.NA.lemmaKey) {
+      try {
+        var states = await _attachOpts.getWordStates();
+        if (states) {
+          for (var fi = 0; fi < card.rootFamily.length; fi++) {
+            var fx = card.rootFamily[fi];
+            var lk = eng.NA.lemmaKey({ pealim_id: fx.pid, lemma: fx.key, word: fx.key, pos: fx.pos });
+            fx.state = (lk && states[lk]) || "";
+          }
+        }
+      } catch (_) {}
+    }
     return card;
   }
 
@@ -747,6 +765,8 @@
     known: ["room.morph.life.known", "✅ знаю"],
     suspended: ["room.morph.life.suspended", "⏸ пауза"],
   };
+  // Epic-3a — root-family chip status colour (mirrors the in-text word-status palette).
+  var FAM_STATE = { known: "rm-fam-known", learning: "rm-fam-learning", weak: "rm-fam-learning", stale: "rm-fam-learning", "new": "rm-fam-new" };
   var _activeCard = null, _activeOcc = null, _attachOpts = {};
   // Epic-2 #2 — context needed to RE-resolve the active word with Tier-3 (per-card refine):
   // the stripped surface, its niqqud, and the sentence to send to Dicta. null on root-family
@@ -770,6 +790,7 @@
     el.addEventListener("click", function (e) {
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
+      if (t && t.closest && t.closest("[data-rm-speak]")) { onSpeak(); return; }
       if (t && t.closest && t.closest("[data-rm-legend]")) { onLegendToggle(); return; }
       if (t && t.closest && t.closest("[data-rm-refine-go]")) { onRefine(false); return; }
       if (t && t.closest && t.closest("[data-rm-refine-all]")) { onRefine(true); return; }
@@ -786,6 +807,16 @@
   function closeSheet() {
     if (_sheet) { _sheet.hidden = true; _sheet.classList.remove("rm-open"); }
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
+  }
+
+  // Epic-3a — pronounce the active card's headword (vocalized form). Prefers the wired GCP→browser
+  // speakWord; falls back to the in-card browser TTS (v3ConjSpeak) used by the conjugation cells.
+  function onSpeak() {
+    if (!_activeCard) return;
+    var he = _activeCard.niqqud || _activeCard.word || "";
+    if (!he) return;
+    if (typeof _attachOpts.speakWord === "function") { try { _attachOpts.speakWord(he); return; } catch (_) {} }
+    try { if (typeof window !== "undefined" && window.v3ConjSpeak) window.v3ConjSpeak(he); } catch (_) {}
   }
 
   // Epic-2 #1 — toggle the confidence-taxonomy legend under the «?» badge-helper.
@@ -832,9 +863,14 @@
     add(tt("room.morph.root", "корень"), card.root, true);
     if (card.binyan) add(tt("room.morph.binyan", "биньян"), card.binyan, false);
     if (card.pos) { var pt = POS_TEXT[card.pos]; add(tt("room.morph.posLabel", "часть речи"), pt ? tt(pt[0], pt[1]) : card.pos, false); }
+    // Epic-3a — pronounce the headword (🔊): GCP-when-keyed → keyless browser. Shown whenever a
+    // speak handler is wired (or browser TTS is available); voices the vocalized form.
+    var speakBtn = (_attachOpts.speakWord || (typeof window !== "undefined" && window.v3ConjSpeak))
+      ? '<button type="button" class="rm-speak" data-rm-speak aria-label="' + escapeHtml(tt("room.morph.pronounce", "Произнести")) + '">🔊</button>'
+      : "";
     var head =
       '<div class="rm-head">' +
-      '<span class="rm-word" lang="he">' + escapeHtml(card.niqqud || card.word) + "</span>" +
+      '<span class="rm-word-wrap"><span class="rm-word" lang="he">' + escapeHtml(card.niqqud || card.word) + "</span>" + speakBtn + "</span>" +
       '<span class="rm-badges">' +
       '<span class="rm-prov-line">' +
       '<span class="rm-prov rm-prov-' + escapeHtml(card.label) + '">' + escapeHtml(tt(label[0], label[1])) + "</span>" +
@@ -877,10 +913,21 @@
     // 1:1 with the Studio via InflectionRender; tap a form → speak it).
     // F5 — root uncertain on a homograph guess → hide the «слова от этого корня» family
     // (it would be the family of a rival lemma, not necessarily this word's).
+    // Epic-3a — root-family chips are no longer dead Hebrew: each shows the vocalized form + its
+    // POS + gloss + the learner's status colour (known/learning/new). Homographs are kept as
+    // separate chips (deduped by pealim_id upstream). Tapping a chip opens its own honest card.
     var fam = (card.rootFamily && card.rootFamily.length && !card.ambiguous)
       ? '<details class="rm-acc"><summary class="rm-acc-sum">' + escapeHtml(tt("room.morph.rootFamily", "Слова от этого корня")) + "</summary>" +
         '<div class="rm-rootfam">' + card.rootFamily.map(function (x) {
-          return '<button type="button" class="rm-rootfam-chip" dir="rtl" data-w="' + escapeHtml(x.disp) + '">' + escapeHtml(x.disp) + "</button>";
+          var stCls = x.state && FAM_STATE[x.state] ? " " + FAM_STATE[x.state] : "";
+          var pt = x.pos && POS_TEXT[x.pos];
+          var posL = pt ? tt(pt[0], pt[1]) : "";
+          var meta = (posL || x.meaning)
+            ? '<span class="rm-fam-meta">' + (posL ? '<span class="rm-fam-pos">' + escapeHtml(posL) + "</span>" : "") +
+              (x.meaning ? '<span class="rm-fam-gloss" dir="ltr">' + escapeHtml(x.meaning) + "</span>" : "") + "</span>"
+            : "";
+          return '<button type="button" class="rm-rootfam-chip' + stCls + '" data-w="' + escapeHtml(x.disp) + '">' +
+            '<span class="rm-fam-he" dir="rtl" lang="he">' + escapeHtml(x.disp) + "</span>" + meta + "</button>";
         }).join("") + "</div></details>"
       : "";
     var conj = "";
