@@ -1,0 +1,14 @@
+{
+  "encoder_params_M": 44.67,
+  "fp32_MB": 0.0,
+  "int8_MB": 44.8,
+  "q4_error": "ImportError(\"cannot import name 'matmul_4bits_quantizer' from 'onnxruntime.quantization' (C:\\\\Users\\\\lletp\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\E--projects-tts-protot",
+  "q4_MB": null,
+  "tokenizer_json_MB": "n/a",
+  "int8_latency_ms_per_sent_cpu": 0.7,
+  "bench_seq_len": 5,
+  "q4_matmul_only_MB": 163.4,
+  "q4_note": "MatMul-4bit skips the embedding Gather (128K x 312 ~40M params stays fp32) -> 163MB. Only int8 quantize_dynamic compresses embeddings -> 44.8MB floor. <30MB needs non-standard int4-embedding quant (quality risk).",
+  "deployable_estimate": "int8 model 44.8MB + tokenizer 3.6MB ~= 48MB shipped; + JS multi-head decode port + onnxruntime-web Worker",
+  "verdict": "NO-GO (size gate fail + marginal payoff)"
+}
