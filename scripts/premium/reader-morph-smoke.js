@@ -327,6 +327,36 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(statusUi.call && statusUi.call[1] === "known" && /^(pid:|[^#]*#)/.test(statusUi.call[0] || ""), "tapping «знаю» must call setWordStatus(lemmaKey, 'known'), got " + JSON.stringify(statusUi.call));
     eq(statusUi.activeVal === "known", "the chosen status must be highlighted active, got " + JSON.stringify(statusUi.activeVal));
 
+    // ── Epic 4.2 — long-press a word → quick-status popover (no card opened). ──
+    const lp = await pg.evaluate(async () => {
+      try { window.ReaderMorph.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-lp").forEach((n) => n.remove());
+      const mount = document.createElement("div"); mount.id = "rm-lp";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שלום</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁלוֹם</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      const rows = [{ he: "שלום", he_niqqud: "שָׁלוֹם" }];
+      window.__lpCalls = [];
+      if (window.__rmLP) { try { window.__rmLP.detach(); } catch (_) {} }
+      window.__rmLP = window.ReaderMorph.attach(mount, { getRow: (i) => rows[i], getWordStatus: async () => "", setWordStatus: async (lk, st) => { window.__lpCalls.push([lk, st]); } });
+      const span = mount.querySelector('td[data-col="he"] .rm-w');
+      span.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, clientX: 12, clientY: 12 }));   // hold (no pointerup)
+      await new Promise((r) => setTimeout(r, 700));   // > LP_MS → long-press fires
+      const pop = document.querySelector(".rm-statpop");
+      const popVisible = pop ? !pop.hidden : false;
+      const cardOpen = !!document.querySelector(".rm-sheet.rm-open");
+      const known = pop ? pop.querySelector('[data-rm-statpop="known"]') : null;
+      if (known) known.click();
+      await new Promise((r) => setTimeout(r, 60));
+      const popAfter = document.querySelector(".rm-statpop");
+      return { popVisible, cardOpen, call: window.__lpCalls[window.__lpCalls.length - 1] || null, closedAfter: popAfter ? popAfter.hidden : true };
+    });
+    eq(lp.popVisible, "long-press a word must show the quick-status popover (Epic 4.2)");
+    eq(!lp.cardOpen, "long-press must NOT also open the full card (gesture suppression)");
+    eq(lp.call && lp.call[1] === "known", "tapping a popover level must call setWordStatus(lemmaKey, value), got " + JSON.stringify(lp.call));
+    eq(lp.closedAfter, "the quick-status popover must close after a status is chosen");
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

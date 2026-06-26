@@ -782,6 +782,14 @@
     .rm-status-btn.rm-status-l4 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.18); }
     .rm-status-btn.rm-status-new { box-shadow: inset 0 -3px 0 rgba(90,155,255,.5); }
     .rm-status-btn.rm-status-active { box-shadow: none; }
+    /* Epic 4.2 — in-text quick-status popover (long-press a word → set level without the card). */
+    .rm-statpop { position: fixed; z-index: 1300; }
+    .rm-statpop[hidden] { display: none; }
+    .rm-statpop-inner {
+      display: flex; flex-wrap: wrap; gap: 5px; max-width: 300px; padding: 8px;
+      background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 12px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.30);
+    }
     /* Epic-3a — pronounce-headword button next to the vocalized form. */
     .rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
     .rm-speak {
@@ -904,7 +912,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.9</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.10</span>
   </div>
 </footer>
 

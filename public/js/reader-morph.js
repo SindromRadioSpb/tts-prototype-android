@@ -846,6 +846,63 @@
     if (sel) for (var i = 0; i < sel.length; i++) sel[i].classList.toggle("rm-status-active", sel[i].getAttribute("data-rm-status") === (st || "new"));
   }
 
+  // Epic 4.2 — in-text quick-status popover (long-press a word → set its level without opening the
+  // full card). A floating singleton anchored near the word; reuses STATUS_OPTS + setWordStatus.
+  var _statpop = null, _statpopKey = "";
+  function ensureStatPop() {
+    if (_statpop) return _statpop;
+    var el = document.createElement("div");
+    el.className = "rm-statpop"; el.hidden = true;
+    el.addEventListener("click", function (e) {
+      var b = e.target && e.target.closest ? e.target.closest("[data-rm-statpop]") : null;
+      if (b) { e.stopPropagation(); onStatPopSet(b.getAttribute("data-rm-statpop")); }
+    });
+    document.body.appendChild(el);
+    return (_statpop = el);
+  }
+  function openStatPop(span, lemmaKey, cur) {
+    var el = ensureStatPop();
+    _statpopKey = lemmaKey;
+    var btns = STATUS_OPTS.map(function (o) {
+      var val = o[0], lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : val.replace("l", "");
+      return '<button type="button" class="rm-status-btn rm-status-' + val + ((cur || "new") === val ? " rm-status-active" : "") + '" data-rm-statpop="' + val + '">' + lab + "</button>";
+    }).join("");
+    el.innerHTML = '<div class="rm-statpop-inner" dir="' + uiDir() + '">' + btns + "</div>";
+    el.hidden = false;
+    try {
+      var r = span.getBoundingClientRect(), pw = el.offsetWidth, ph = el.offsetHeight, vw = window.innerWidth;
+      var left = Math.min(Math.max(8, r.left + r.width / 2 - pw / 2), vw - pw - 8);
+      var top = r.top - ph - 8; if (top < 8) top = r.bottom + 8;   // flip below if no room above
+      el.style.left = left + "px"; el.style.top = top + "px";
+    } catch (_) {}
+  }
+  async function onStatPopSet(value) {
+    if (!_statpopKey || typeof _attachOpts.setWordStatus !== "function") { closeStatPop(); return; }
+    var activeBtn = _statpop && _statpop.querySelector(".rm-status-btn.rm-status-active");
+    var st = (value === "new" || (activeBtn && activeBtn.getAttribute("data-rm-statpop") === value)) ? "" : value;   // re-tap active → clear
+    try { await _attachOpts.setWordStatus(_statpopKey, st); } catch (_) {}
+    closeStatPop();
+  }
+  function closeStatPop() { if (_statpop) _statpop.hidden = true; _statpopKey = ""; }
+  // Resolve the long-pressed word → lemmaKey + current status → show the popover. Falls back to the
+  // full card when the word can't be confidently keyed (so a long-press is never a dead end).
+  async function showStatusPopover(span) {
+    if (typeof _attachOpts.setWordStatus !== "function") return false;
+    try { window.getSelection().removeAllRanges(); } catch (_) {}
+    var surface = span.getAttribute("data-surface") || span.textContent || "";
+    var niqqud = span.getAttribute("data-niqqud") || "";
+    var lk = "", cur = "";
+    try {
+      var eng = await ensureEngine();
+      var card = await resolveCore(eng, stripNiqqud(niqqud) || surface, niqqud);
+      if (eng.NA && eng.NA.lemmaKey) lk = eng.NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) || "";
+    } catch (_) { lk = ""; }
+    if (!lk) return false;   // caller falls back to opening the card
+    if (typeof _attachOpts.getWordStatus === "function") { try { cur = (await _attachOpts.getWordStatus(lk)) || ""; } catch (_) {} }
+    openStatPop(span, lk, cur);
+    return true;
+  }
+
   // Epic-3a — pronounce the active card's headword (vocalized form). Prefers the wired GCP→browser
   // speakWord; falls back to the in-card browser TTS (v3ConjSpeak) used by the conjugation cells.
   function onSpeak() {
@@ -1112,29 +1169,70 @@
       } catch (e) { if (_activeSpan === span) openCard(null, occ); }
     };
 
+    // Epic 4.2 — long-press a word → quick-status popover (set level without opening the card).
+    // A short press is a normal tap (→ card); a long press shows the popover AND suppresses the
+    // click that follows, so the two gestures never both fire. Movement/scroll cancels (it's a drag).
+    var LP_MS = 480, LP_MOVE = 10, _lpTimer = null, _lpSpan = null, _lpXY = null, _suppressClick = false;
+    var cancelLP = function () { if (_lpTimer) { clearTimeout(_lpTimer); _lpTimer = null; } _lpSpan = null; };
+    var onPointerDown = function (e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      var span = e.target && e.target.closest ? e.target.closest(".rm-w") : null;
+      if (!span || !mount.contains(span)) return;
+      _lpSpan = span; _lpXY = { x: e.clientX, y: e.clientY };
+      if (_lpTimer) clearTimeout(_lpTimer);
+      _lpTimer = setTimeout(function () {
+        _lpTimer = null;
+        if (_lpSpan !== span) return;
+        showStatusPopover(span).then(function (ok) { if (ok) _suppressClick = true; });
+      }, LP_MS);
+    };
+    var onPointerMove = function (e) {
+      if (!_lpTimer || !_lpXY) return;
+      if (Math.abs(e.clientX - _lpXY.x) > LP_MOVE || Math.abs(e.clientY - _lpXY.y) > LP_MOVE) cancelLP();
+    };
+    var onPointerUp = function () { cancelLP(); };
+
     var onClick = function (e) {
       var span = e.target && e.target.closest ? e.target.closest(".rm-w") : null;
-      if (span && mount.contains(span)) { e.preventDefault(); e.stopPropagation(); onActivate(span); }
+      if (span && mount.contains(span)) {
+        e.preventDefault(); e.stopPropagation();
+        if (_suppressClick) { _suppressClick = false; return; }   // long-press already handled this word
+        onActivate(span);
+      }
     };
     var onKey = function (e) {
       if (e.key !== "Enter" && e.key !== " ") return;
       var span = e.target && e.target.closest ? e.target.closest(".rm-w") : null;
       if (span && mount.contains(span)) { e.preventDefault(); e.stopPropagation(); onActivate(span); }
     };
-    var onDocKey = function (e) { if (e.key === "Escape") closeSheet(); };
+    var onDocKey = function (e) { if (e.key === "Escape") { closeStatPop(); closeSheet(); } };
+    var onDocDown = function (e) { if (_statpop && !_statpop.hidden && e.target && e.target.closest && !e.target.closest(".rm-statpop")) closeStatPop(); };
+    var onScroll = function () { closeStatPop(); };
 
     // Capture phase so a word tap is handled BEFORE reader-core's row-audio delegate.
     mount.addEventListener("click", onClick, true);
     mount.addEventListener("keydown", onKey);
+    mount.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("pointermove", onPointerMove);
+    document.addEventListener("pointerup", onPointerUp);
+    document.addEventListener("pointercancel", onPointerUp);
+    document.addEventListener("pointerdown", onDocDown, true);
     document.addEventListener("keydown", onDocKey);
+    window.addEventListener("scroll", onScroll, true);
 
     return {
       refresh: refresh,
       detach: function () {
         mount.removeEventListener("click", onClick, true);
         mount.removeEventListener("keydown", onKey);
+        mount.removeEventListener("pointerdown", onPointerDown);
+        document.removeEventListener("pointermove", onPointerMove);
+        document.removeEventListener("pointerup", onPointerUp);
+        document.removeEventListener("pointercancel", onPointerUp);
+        document.removeEventListener("pointerdown", onDocDown, true);
         document.removeEventListener("keydown", onDocKey);
-        closeSheet();
+        window.removeEventListener("scroll", onScroll, true);
+        cancelLP(); closeStatPop(); closeSheet();
       },
     };
   }
