@@ -2022,6 +2022,7 @@ window.I18N_LOCALES.en = {
       refineMiss: "Context didn’t add a clarification.",
       refining: "Refining by context…",
       pronounce: "Pronounce",
+      status: { title: "My status", "new": "new", known: "known", ignore: "ignore" },
       legend: {
         title: "What do the confidence badges mean?",
         exact: "the offline dictionary recognized the word unambiguously",

@@ -660,9 +660,19 @@
     /* BRR-P1-009 word-status — FILL (highlighter), not underline (R4: clearer at a glance @380px,
        LingQ-parity; underline collided with low niqqud marks). Calibrated: known calm, new/learning
        brighter (attention flows to what you don't know). .rm-w padding keeps fills from touching. */
-    .rm-w-known { background: rgba(63,185,80,.15); border-radius: 3px; }
+    /* Epic 4 — LingQ-faithful palette (cross-competitor standard: the page CLEARS as you learn).
+       new=blue · manual levels l1..l4=amber gradient (1 strong → 4 faint) · known=NO fill (clears) ·
+       ignore=plain + faint dotted underline (distinguish «skip» from «known»). SRS-derived learning
+       keeps its amber; weak/stale reuse learning. known≠new is signalled by PRESENCE of fill (not
+       colour alone, WCAG); the explicit level lives as a number in the card selector. */
+    .rm-w-known { background: transparent; }                       /* the wall clears to plain text */
+    .rm-w-ignore { background: transparent; text-decoration: underline dotted rgba(127,127,127,.5); text-underline-offset: 3px; }
     .rm-w-learning { background: rgba(210,153,34,.22); border-radius: 3px; }
     .rm-w-new { background: rgba(90,155,255,.20); border-radius: 3px; }
+    .rm-w-l1 { background: rgba(240,165,0,.36); border-radius: 3px; }
+    .rm-w-l2 { background: rgba(240,165,0,.27); border-radius: 3px; }
+    .rm-w-l3 { background: rgba(240,165,0,.18); border-radius: 3px; }
+    .rm-w-l4 { background: rgba(240,165,0,.10); border-radius: 3px; }
     .rm-w.rm-w-active { background: var(--accent); color: var(--accent-contrast); }   /* tapped word wins over fill */
     /* BRR-P1-008 karaoke — stronger "current line" while reading aloud (reuses .row-playing). */
     #roomReaderTable.karaoke-on tr.row-playing:not(.row-error) td { background: rgba(90,155,255,.16); }
@@ -753,6 +763,25 @@
     .rm-rootfam-chip.rm-fam-known { border-color: rgba(63,185,80,.55); border-inline-start-width: 3px; }
     .rm-rootfam-chip.rm-fam-learning { border-color: rgba(210,153,34,.6); border-inline-start-width: 3px; }
     .rm-rootfam-chip.rm-fam-new { border-color: rgba(90,155,255,.6); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-l1, .rm-rootfam-chip.rm-fam-l2, .rm-rootfam-chip.rm-fam-l3, .rm-rootfam-chip.rm-fam-l4 { border-color: rgba(240,165,0,.6); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-ignore { border-color: var(--border-soft); opacity: .6; }
+    /* Epic 4 — one-tap manual status selector (LingQ levels new/1-4/known/ignore). */
+    .rm-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; }
+    .rm-status-k { font-size: 12px; color: var(--text-secondary); margin-inline-end: 2px; }
+    .rm-status-btn {
+      appearance: none; cursor: pointer; min-width: 30px; padding: 5px 9px; border-radius: 7px;
+      border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-secondary);
+      font-size: 12.5px; font-weight: 600; line-height: 1;
+    }
+    .rm-status-btn:hover { border-color: var(--accent); }
+    .rm-status-btn.rm-status-active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
+    /* per-value swatch hint on the level buttons (so the selector previews the in-text colour) */
+    .rm-status-btn.rm-status-l1 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.55); }
+    .rm-status-btn.rm-status-l2 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.42); }
+    .rm-status-btn.rm-status-l3 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.3); }
+    .rm-status-btn.rm-status-l4 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.18); }
+    .rm-status-btn.rm-status-new { box-shadow: inset 0 -3px 0 rgba(90,155,255,.5); }
+    .rm-status-btn.rm-status-active { box-shadow: none; }
     /* Epic-3a — pronounce-headword button next to the vocalized form. */
     .rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
     .rm-speak {
@@ -875,7 +904,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.8</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.9</span>
   </div>
 </footer>
 

@@ -294,6 +294,39 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     const refOff = await tapShanaWith(false);
     eq(!refOff.hasBtn, "card must HIDE the refine button when canRefine() is false (offline / globally granted) — R5 privacy");
 
+    // ── Epic 4 — manual one-tap status selector (LingQ levels). Gated on a wired setWordStatus;
+    //    tapping a level calls setWordStatus(lemmaKey, value) + highlights it. Pure UI (no DB).
+    const statusUi = await pg.evaluate(async () => {
+      try { window.ReaderMorph.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-status-m").forEach((n) => n.remove());
+      const mount = document.createElement("div"); mount.id = "rm-status-m";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שלום</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁלוֹם</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      const rows = [{ he: "שלום", he_niqqud: "שָׁלוֹם" }];
+      window.__statusCalls = [];
+      if (window.__rmS) { try { window.__rmS.detach(); } catch (_) {} }
+      window.__rmS = window.ReaderMorph.attach(mount, {
+        getRow: (i) => rows[i],
+        getWordStatus: async () => "",
+        setWordStatus: async (lk, st) => { window.__statusCalls.push([lk, st]); },
+      });
+      mount.querySelector('td[data-col="he"] .rm-w').click();
+      for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-prov")) break; await new Promise((r) => setTimeout(r, 100)); }
+      const sel = document.querySelector(".rm-status");
+      const btnCount = sel ? sel.querySelectorAll(".rm-status-btn").length : 0;
+      const knownBtn = document.querySelector('.rm-status-btn[data-rm-status="known"]');
+      if (knownBtn) knownBtn.click();
+      await new Promise((r) => setTimeout(r, 60));
+      const active = document.querySelector(".rm-status-btn.rm-status-active");
+      return { hasSel: !!sel, btnCount, call: window.__statusCalls[window.__statusCalls.length - 1] || null, activeVal: active ? active.getAttribute("data-rm-status") : "" };
+    });
+    eq(statusUi.hasSel, "card must show the one-tap status selector when setWordStatus is wired (Epic 4)");
+    eq(statusUi.btnCount === 7, "status selector must offer 7 options (new/1-4/known/ignore), got " + statusUi.btnCount);
+    eq(statusUi.call && statusUi.call[1] === "known" && /^(pid:|[^#]*#)/.test(statusUi.call[0] || ""), "tapping «знаю» must call setWordStatus(lemmaKey, 'known'), got " + JSON.stringify(statusUi.call));
+    eq(statusUi.activeVal === "known", "the chosen status must be highlighted active, got " + JSON.stringify(statusUi.activeVal));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

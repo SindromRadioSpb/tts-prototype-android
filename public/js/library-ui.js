@@ -992,6 +992,14 @@ function attachReaderMorph(mount) {
   // (reuses the single-flight ensureWordStates cache; chips colour known/learning/new).
   opts.speakWord = speakWord;
   opts.getWordStates = ensureWordStates;
+  // Epic 4 — one-tap manual status: persist (separate word_status store, no flashcard) then
+  // invalidate the cached states + repaint the text so the colour updates immediately.
+  opts.getWordStatus = (lk) => localDb.getWordStatus(lk);
+  opts.setWordStatus = async (lk, st) => {
+    try { await localDb.setWordStatus(lk, st); } catch (_) {}
+    readerWordStates = null;
+    try { applyDecorations(); } catch (_) {}
+  };
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }

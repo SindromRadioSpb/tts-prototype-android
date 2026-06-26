@@ -32,7 +32,7 @@
     // AND new/weak/stale. §7 found the owner's saved vocab sits in 'new' state (they review in Anki,
     // not the in-app SRS), so known+learning-only counted 0; saved-as-familiar is the available signal.
     // The badge is honestly labelled «знакомо» (familiar), not «выучено» (mastered).
-    KNOWN_STATES: { known: true, learning: true, new: true, weak: true, stale: true },
+    KNOWN_STATES: { known: true, learning: true, new: true, weak: true, stale: true, l1: true, l2: true, l3: true, l4: true, ignore: true },
     // S4 «Следующий для тебя» gating/size. AUTHOR_CAP=0 ⇒ NO per-author cap — at the current corpus
     // size the cap blindly hid valid in-zone works (owner 2026-06-13: 15-in-zone → 11). Show all
     // matches; author-diversity belongs in the proper filter/sort layer once the corpus is large.

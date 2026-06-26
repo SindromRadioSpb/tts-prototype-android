@@ -657,6 +657,14 @@
         }
       } catch (_) {}
     }
+    // Epic 4 — canonical lemma key (aligned with getKnownWordStates) + the RAW manual status, so
+    // the card's one-tap level selector highlights what the user explicitly set (vs SRS-derived).
+    card.lemmaKey = "";
+    try { if (eng.NA && eng.NA.lemmaKey) card.lemmaKey = eng.NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) || ""; } catch (_) {}
+    card.manualStatus = "";
+    if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
+      try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) {}
+    }
     return card;
   }
 
@@ -766,7 +774,12 @@
     suspended: ["room.morph.life.suspended", "⏸ пауза"],
   };
   // Epic-3a — root-family chip status colour (mirrors the in-text word-status palette).
-  var FAM_STATE = { known: "rm-fam-known", learning: "rm-fam-learning", weak: "rm-fam-learning", stale: "rm-fam-learning", "new": "rm-fam-new" };
+  var FAM_STATE = { known: "rm-fam-known", learning: "rm-fam-learning", weak: "rm-fam-learning", stale: "rm-fam-learning", "new": "rm-fam-new", l1: "rm-fam-l1", l2: "rm-fam-l2", l3: "rm-fam-l3", l4: "rm-fam-l4", ignore: "rm-fam-ignore" };
+  // Epic 4 — manual status one-tap level selector (LingQ-style new/1-4/known/ignore).
+  var STATUS_OPTS = [
+    ["new", ["room.morph.status.new", "новое"]], ["l1", null], ["l2", null], ["l3", null], ["l4", null],
+    ["known", ["room.morph.status.known", "знаю"]], ["ignore", ["room.morph.status.ignore", "игнор"]],
+  ];
   var _activeCard = null, _activeOcc = null, _attachOpts = {};
   // Epic-2 #2 — context needed to RE-resolve the active word with Tier-3 (per-card refine):
   // the stripped surface, its niqqud, and the sentence to send to Dicta. null on root-family
@@ -790,6 +803,8 @@
     el.addEventListener("click", function (e) {
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
+      var sbtn = t && t.closest ? t.closest("[data-rm-status]") : null;
+      if (sbtn) { onStatusSet(sbtn.getAttribute("data-rm-status")); return; }
       if (t && t.closest && t.closest("[data-rm-speak]")) { onSpeak(); return; }
       if (t && t.closest && t.closest("[data-rm-legend]")) { onLegendToggle(); return; }
       if (t && t.closest && t.closest("[data-rm-refine-go]")) { onRefine(false); return; }
@@ -807,6 +822,28 @@
   function closeSheet() {
     if (_sheet) { _sheet.hidden = true; _sheet.classList.remove("rm-open"); }
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
+  }
+
+  // Epic 4 — one-tap manual status selector (new/1/2/3/4/known/ignore). Shown when a setWordStatus
+  // handler is wired + we have a canonical lemmaKey. The active value is highlighted; re-tapping it
+  // clears to «new». LingQ-style: known→clears the highlight, ignore→excluded from i+1.
+  function statusSelectorHtml(card) {
+    if (!card || !card.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return "";
+    var cur = card.manualStatus || "new";
+    var btns = STATUS_OPTS.map(function (o) {
+      var val = o[0];
+      var lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : val.replace("l", "");
+      return '<button type="button" class="rm-status-btn rm-status-' + val + (cur === val ? " rm-status-active" : "") + '" data-rm-status="' + val + '">' + lab + "</button>";
+    }).join("");
+    return '<div class="rm-status" dir="' + uiDir() + '"><span class="rm-status-k">' + escapeHtml(tt("room.morph.status.title", "Мой статус")) + ":</span>" + btns + "</div>";
+  }
+  async function onStatusSet(value) {
+    if (!_activeCard || !_activeCard.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return;
+    var st = (value === "new" || _activeCard.manualStatus === value) ? "" : value;   // re-tap active → clear
+    try { await _attachOpts.setWordStatus(_activeCard.lemmaKey, st); } catch (_) {}
+    _activeCard.manualStatus = st;
+    var sel = _sheet && _sheet.querySelectorAll(".rm-status-btn");
+    if (sel) for (var i = 0; i < sel.length; i++) sel[i].classList.toggle("rm-status-active", sel[i].getAttribute("data-rm-status") === (st || "new"));
   }
 
   // Epic-3a — pronounce the active card's headword (vocalized form). Prefers the wired GCP→browser
@@ -962,7 +999,7 @@
         '<button type="button" class="rm-refine-all" data-rm-refine-all>' + escapeHtml(tt("room.morph.refineAll", "Включить для всех слов")) + "</button>" +
         "</div></div></div>";
     }
-    return head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1109,10 +1146,15 @@
   // (label exact|likely) are touched — ambiguous / unvocalized words stay neutral AND keep
   // their niqqud (honest degradation: never hide help on a word we can't confidently identify).
   // Chunked (60/batch + yields) so a long text never blocks the UI. Absent-from-map ⇒ 'new'.
-  var STATE_CLASS = { known: "rm-w-known", learning: "rm-w-learning", weak: "rm-w-learning", stale: "rm-w-learning", "new": "rm-w-new" };
+  // Epic 4 — manual LingQ-style levels (l1..l4) + known/ignore join the SRS-derived states.
+  // Palette (cross-competitor standard): new=blue · l1..l4=amber gradient · known=NO tint (the
+  // wall clears) · ignore=plain (faint dotted). The class is applied; the colour lives in CSS.
+  var STATE_CLASS = { known: "rm-w-known", learning: "rm-w-learning", weak: "rm-w-learning", stale: "rm-w-learning", "new": "rm-w-new", l1: "rm-w-l1", l2: "rm-w-l2", l3: "rm-w-l3", l4: "rm-w-l4", ignore: "rm-w-ignore" };
+  var _RM_W_CLASSES = ["rm-w-known", "rm-w-learning", "rm-w-new", "rm-w-l1", "rm-w-l2", "rm-w-l3", "rm-w-l4", "rm-w-ignore"];
   // "familiar" mirrors corpus-vocab CFG.KNOWN_STATES (saved=familiar; §7 — owner's saved vocab
-  // sits in 'new'/Anki, so familiar = any engaged word, not just mastered).
-  var FAMILIAR = { known: 1, learning: 1, weak: 1, stale: 1, "new": 1 };
+  // sits in 'new'/Anki, so familiar = any engaged word, not just mastered). Manual levels + ignore
+  // are engaged too → familiar (niqqud may fade on them).
+  var FAMILIAR = { known: 1, learning: 1, weak: 1, stale: 1, "new": 1, l1: 1, l2: 1, l3: 1, l4: 1, ignore: 1 };
 
   // PURE (Node-testable): does the niqqud cell show the PLAIN surface or the vocalized form?
   // Fade only in 'adaptive' mode, only for confidently-resolved familiar words. Everything else
@@ -1129,8 +1171,8 @@
   // Remove all decorations: colour classes + restore any de-vocalized niqqud spans. Cheap, no resolve.
   function clearDecorations(mount) {
     if (!mount) return;
-    var painted = mount.querySelectorAll(".rm-w-known, .rm-w-learning, .rm-w-new");
-    for (var i = 0; i < painted.length; i++) painted[i].classList.remove("rm-w-known", "rm-w-learning", "rm-w-new");
+    var painted = mount.querySelectorAll("." + _RM_W_CLASSES.join(", ."));
+    for (var i = 0; i < painted.length; i++) painted[i].classList.remove.apply(painted[i].classList, _RM_W_CLASSES);
     var niq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
     for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null) niq[j].textContent = n; }
   }
@@ -1150,7 +1192,7 @@
       var end = Math.min(i + 60, spans.length);
       for (; i < end; i++) {
         var span = spans[i];
-        span.classList.remove("rm-w-known", "rm-w-learning", "rm-w-new");
+        span.classList.remove.apply(span.classList, _RM_W_CLASSES);
         var isNiqqud = _colOf(span) === "niqqud";
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";

@@ -2032,6 +2032,7 @@ window.I18N_LOCALES.he = {
       refineMiss: "ההקשר לא הוסיף הבהרה.",
       refining: "מדייק לפי הקשר…",
       pronounce: "להשמיע",
+      status: { title: "הסטטוס שלי", "new": "חדש", known: "ידוע", ignore: "התעלם" },
       legend: {
         title: "מה משמעות תגי הוודאות?",
         exact: "המילון הלא־מקוון זיהה את המילה בוודאות",
