@@ -742,6 +742,10 @@
     suspended: ["room.morph.life.suspended", "⏸ пауза"],
   };
   var _activeCard = null, _activeOcc = null, _attachOpts = {};
+  // Epic-2 #2 — context needed to RE-resolve the active word with Tier-3 (per-card refine):
+  // the stripped surface, its niqqud, and the sentence to send to Dicta. null on root-family
+  // chip cards (no sentence) so the refine button never offers an outbound it can't make.
+  var _activeWordCtx = null;
 
   function ensureSheet() {
     if (_sheet) return _sheet;
@@ -761,6 +765,9 @@
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
       if (t && t.closest && t.closest("[data-rm-legend]")) { onLegendToggle(); return; }
+      if (t && t.closest && t.closest("[data-rm-refine-go]")) { onRefine(false); return; }
+      if (t && t.closest && t.closest("[data-rm-refine-all]")) { onRefine(true); return; }
+      if (t && t.closest && t.closest("[data-rm-refine]")) { onRefinePrompt(); return; }
       if (t && t.closest && t.closest(".rm-save")) { onSaveClick(); return; }
       var chip = t && t.closest ? t.closest(".rm-rootfam-chip") : null;
       if (chip) { onChipClick(chip); return; }
@@ -784,6 +791,31 @@
     var show = panel.hidden;
     panel.hidden = !show;
     if (btn) btn.setAttribute("aria-expanded", show ? "true" : "false");
+  }
+
+  // Epic-2 #2 — per-card refine. The button reveals a one-line consent confirm (R5: the
+  // outbound is explicit, per card, never silent). «Уточнить разово» does a single Dicta call
+  // for THIS word without touching the global auto-mode; «Включить для всех слов» grants the
+  // global consent first. Either way we re-resolve the word with context and re-render.
+  function onRefinePrompt() {
+    if (!_sheet) return;
+    var btn = _sheet.querySelector("[data-rm-refine]");
+    var panel = _sheet.querySelector("[data-rm-refine-confirm]");
+    if (btn) { btn.hidden = true; btn.setAttribute("aria-expanded", "true"); }
+    if (panel) panel.hidden = false;
+  }
+  async function onRefine(grantAll) {
+    if (typeof _attachOpts.refineContext !== "function" || !_activeWordCtx || !_activeWordCtx.sentence) return;
+    if (grantAll && typeof _attachOpts.grantContextConsent === "function") { try { _attachOpts.grantContextConsent(); } catch (_) {} }
+    var box = _sheet && _sheet.querySelector(".rm-refine");
+    if (box) box.innerHTML = '<div class="rm-refine-busy">' + escapeHtml(tt("room.morph.refining", "Уточняю в контексте…")) + "</div>";
+    var wc = _activeWordCtx;
+    var ctx = null;
+    try { ctx = await _attachOpts.refineContext(wc.sentence, wc.surface); } catch (_) { ctx = null; }
+    try {
+      var card = await resolveWordLight(wc.surface, wc.niqqud, ctx);
+      if (card) { card.refineTried = true; if (_activeWordCtx === wc) openCard(card, _activeOcc); }
+    } catch (_) { /* keep the (now busy-cleared) card; a re-tap retries */ }
   }
 
   function renderCardHtml(card) {
@@ -855,7 +887,29 @@
       if (tbl) conj = '<details class="rm-acc rm-acc-conj' + (conjSure ? "" : " rm-acc-uncertain") + '"><summary class="rm-acc-sum">' + escapeHtml(conjLabel) + "</summary>" +
         '<div class="rm-conj-body">' + tbl + "</div></details>";
     }
-    return head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + fam + conj;
+    // Epic-2 #2 — per-card one-off Tier-3 refine. Offered ONLY when the offline reading is
+    // non-decisive (not «точно», not a closed-class function word) AND not already context-used,
+    // we have the sentence, a refine provider is wired, and canRefine() is true — which the app
+    // sets to (online && global auto-mode OFF). Granted users already auto-refine every tap, so
+    // the button would be redundant; offline it is hidden (R5 privacy: no silent outbound).
+    var refineWired = card && typeof _attachOpts.refineContext === "function" && _activeWordCtx && _activeWordCtx.sentence;
+    var refineEligible = refineWired && !card.contextUsed && card.label !== "exact" && card.label !== "function" &&
+      (typeof _attachOpts.canRefine !== "function" || _attachOpts.canRefine());
+    var refineHtml = "";
+    if (card && card.refineTried && !card.contextUsed) {
+      refineHtml = '<div class="rm-refine"><div class="rm-refine-miss">' + escapeHtml(tt("room.morph.refineMiss", "Контекст не дал уточнения.")) + "</div></div>";
+    } else if (refineEligible) {
+      refineHtml =
+        '<div class="rm-refine">' +
+        '<button type="button" class="rm-refine-btn" data-rm-refine aria-expanded="false">' + escapeHtml(tt("room.morph.refine", "🎯 Уточнить в контексте")) + "</button>" +
+        '<div class="rm-refine-confirm" data-rm-refine-confirm dir="' + uiDir() + '" hidden>' +
+        '<div class="rm-refine-note">' + escapeHtml(tt("room.morph.refineNote", "Разово отправит это предложение в облако Dicta, чтобы выбрать значение по контексту. Машинный разбор, не носитель.")) + "</div>" +
+        '<div class="rm-refine-actions">' +
+        '<button type="button" class="rm-refine-go" data-rm-refine-go>' + escapeHtml(tt("room.morph.refineGo", "Уточнить разово")) + "</button>" +
+        '<button type="button" class="rm-refine-all" data-rm-refine-all>' + escapeHtml(tt("room.morph.refineAll", "Включить для всех слов")) + "</button>" +
+        "</div></div></div>";
+    }
+    return head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -906,6 +960,7 @@
     var disp = chip.getAttribute("data-w") || "";
     var surface = stripNiqqud(disp);
     if (!surface) return;
+    _activeWordCtx = null;   // chip card has no sentence → no per-card refine offered
     openCardLoading();
     try { var card = await resolveWordLight(surface, disp); openCard(card, null); }
     catch (_) { openCard(null, null); }
@@ -948,15 +1003,19 @@
       var occ = computeOcc(span);
       openCardLoading();
       try {
-        // Tier-3 «точный режим» (opt-in): if a contextProvider is wired, fetch the
-        // sentence-context reading for this word; degrade silently to offline on any miss.
+        // The sentence (for any Tier-3 reach) + the word's resolve inputs, stashed so the
+        // per-card refine can RE-resolve this exact word later (Epic-2 #2).
+        var tr = span.closest("tr[data-row-idx]");
+        var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+        var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
+        var sentence = row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "";
+        _activeWordCtx = { surface: stripNiqqud(surface), niqqud: niqqud, sentence: sentence };
+        // Tier-3 «точный режим» (opt-in, GLOBAL auto): when a contextProvider is wired it
+        // gates on the user's standing consent and returns the context reading (or null when
+        // declined/undecided/offline); degrade silently to offline on any miss.
         var ctx = null;
-        if (typeof _attachOpts.contextProvider === "function") {
-          var tr = span.closest("tr[data-row-idx]");
-          var rowIdx = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
-          var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
-          var sentence = row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "";
-          if (sentence) { try { ctx = await _attachOpts.contextProvider(sentence, stripNiqqud(surface)); } catch (_) { ctx = null; } }
+        if (typeof _attachOpts.contextProvider === "function" && sentence) {
+          try { ctx = await _attachOpts.contextProvider(sentence, stripNiqqud(surface)); } catch (_) { ctx = null; }
         }
         var card = await resolveWordLight(surface, niqqud, ctx);
         if (_activeSpan === span) openCard(card, occ);

@@ -77,8 +77,10 @@ const ROW = { he: "היום אני הולך לעבודה", he_niqqud: "הַיּ�
         const body = document.querySelector(".rm-sheet-body");
         return {
           text: body ? body.textContent : "",
-          isContext: !!document.querySelector(".rm-prov-context"),
-          provClass: (document.querySelector(".rm-prov") || {}).className || "",
+          // scope to the VERDICT badge in the card head — the confidence legend (Epic-2 #1)
+          // renders a sample of every badge incl. .rm-prov-context, so a doc-wide query lies.
+          isContext: !!document.querySelector(".rm-head .rm-prov-context"),
+          provClass: (document.querySelector(".rm-head .rm-prov") || {}).className || "",
         };
       }, { he: ROW.he, heN: ROW.he_niqqud, useDicta });
     }

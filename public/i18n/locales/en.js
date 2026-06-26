@@ -2015,6 +2015,12 @@ window.I18N_LOCALES.en = {
       contextSuggests: "in context, maybe",
       prov: { exact: "exact", likely: "likely", guessed: "best guess", "function": "function word", context: "context (Dicta)", unknown: "not resolved offline" },
       niqqudMachine: "vocalization is machine-made (Dicta)",
+      refine: "🎯 Refine by context",
+      refineNote: "Sends this sentence to the Dicta cloud once to pick the context-correct meaning. Machine analysis, not a native speaker.",
+      refineGo: "Refine once",
+      refineAll: "Turn on for all words",
+      refineMiss: "Context didn’t add a clarification.",
+      refining: "Refining by context…",
       legend: {
         title: "What do the confidence badges mean?",
         exact: "the offline dictionary recognized the word unambiguously",

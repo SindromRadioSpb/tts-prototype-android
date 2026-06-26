@@ -37,7 +37,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
   const failures = [];
   const eq = (cond, m) => { if (!cond) failures.push(m); };
   try {
-    const ctx = await b.newContext();
+    // Block the service worker (as every sibling reader smoke does): without it the SW takes
+    // control after domcontentloaded and reloads the page, destroying the evaluate context below.
+    const ctx = await b.newContext({ serviceWorkers: "block" });
     const pg = await ctx.newPage();
     await pg.goto(BASE + "/library.html", { waitUntil: "domcontentloaded" });
     await pg.addScriptTag({ path: path.join(REPO, "public", "js", "reader-dicta.js") });

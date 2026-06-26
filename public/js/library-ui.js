@@ -417,6 +417,25 @@ function promptContextConsent() {
   document.body.appendChild(overlay);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
+// Epic-2 #2 — per-card refine. canRefine() decides whether the card OFFERS the «уточнить»
+// button: only when ONLINE and the global auto-mode is OFF (granted users already auto-refine
+// every tap, so the button would be redundant). Offline → false → the card hides it (R5: no
+// outbound affordance when we couldn't reach Dicta anyway). makeRefineProvider does the ONE-OFF
+// Dicta call WITHOUT consulting consent — the explicit per-card confirm is the consent.
+function canRefine() { try { return !!navigator.onLine && contextConsent() !== 'granted'; } catch (_) { return false; } }
+function makeRefineProvider() {
+  return async function (sentence, surface) {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return null;   // never reach out offline
+    const key = String(sentence || '');
+    if (!key || !window.ReaderDicta) return null;
+    let p = _ctxCache.get(key);
+    if (!p) { p = window.ReaderDicta.analyzeSentence(key).catch(() => null); _ctxCache.set(key, p); }
+    const res = await p;
+    if (!res || !res.ok || res.degraded || !Array.isArray(res.tokens)) return null;
+    const tok = window.ReaderDicta.tokenForSurface(res.tokens, surface);
+    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma } : null;
+  };
+}
 async function ensureWordStates() {
   if (readerWordStates) return readerWordStates;
   // SINGLE-FLIGHT (critical): S3's per-card coverage badge calls this for EVERY corpus card
@@ -931,6 +950,11 @@ function attachReaderMorph(mount) {
   _ctxCache = new Map();   // fresh per (re)attach
   const opts = { getRow: (i) => readerRows[i], saveWord: roomSaveWord, lookupNote: roomLookupNote };
   opts.contextProvider = makeContextProvider();   // always wired; gates per-tap on consent (auto once granted)
+  // Epic-2 #2 — per-card one-off refine: a separate provider that does NOT consult the global
+  // consent (the per-card confirm IS the consent), and the gate that decides whether to OFFER it.
+  opts.refineContext = makeRefineProvider();
+  opts.canRefine = canRefine;
+  opts.grantContextConsent = () => { contextConsentSet('granted'); roomToast(tt('room.morph.consentOn', 'Точный режим включён')); };
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }

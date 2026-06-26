@@ -163,7 +163,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     await pg.waitForSelector(".rm-sheet.rm-open", { timeout: 10000 });
     const card = await pg.evaluate(() => {
       const body = document.querySelector(".rm-sheet-body");
-      return { text: body ? body.textContent : "", hasProvExact: !!document.querySelector(".rm-prov-exact"), hasLink: !!document.querySelector(".rm-link") };
+      // scope to the head VERDICT badge: the confidence legend (Epic-2 #1) renders a sample of
+      // every badge class, so a doc-wide .rm-prov-* query would also match the legend.
+      return { text: body ? body.textContent : "", hasProvExact: !!document.querySelector(".rm-head .rm-prov-exact"), hasLink: !!document.querySelector(".rm-link") };
     });
     eq(/שלם/.test(card.text), "card should show the root שלם");
     eq(/мир/.test(card.text), "card should show the gloss мир");
@@ -189,7 +191,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const lp = document.querySelector("[data-rm-legend-panel]");
       return {
         text: body ? body.textContent : "",
-        hasAlts: !!document.querySelector(".rm-alts"), hasProvLikely: !!document.querySelector(".rm-prov-likely"),
+        hasAlts: !!document.querySelector(".rm-alts"), hasProvLikely: !!document.querySelector(".rm-head .rm-prov-likely"),
         hasFamily: !!document.querySelector(".rm-rootfam"), hasUncertainTable: !!document.querySelector(".rm-acc-uncertain"),
         linkHref: link ? link.getAttribute("href") : "",
         // Epic-2 #1 legend «?» + #3 machine-niqqud caption
@@ -223,6 +225,50 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // screenshot the open card @380px RTL (legend expanded)
     try { fs.mkdirSync(path.dirname(SHOT), { recursive: true }); } catch (_) {}
     await pg.screenshot({ path: SHOT });
+
+    // ── Epic-2 #2 — per-card refine UI gating (pure UI; no real Dicta) ─────────
+    // The «уточнить в контексте» button is offered ONLY when a refine provider is wired AND
+    // canRefine() is true (app: online && global mode off). Tapping it reveals a one-line
+    // consent confirm; «уточнить разово» re-resolves (here the stub returns null → «miss» note),
+    // never silently. With canRefine()=false (offline / globally-granted) the button is HIDDEN.
+    async function tapShanaWith(canRefine) {
+      return await pg.evaluate(async (canR) => {
+        try { window.ReaderMorph.closeSheet(); } catch (_) {}
+        document.querySelectorAll("#rm-refine").forEach((n) => n.remove());
+        const mount = document.createElement("div"); mount.id = "rm-refine";
+        mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+          '<td data-col="he" class="rtl rtl-he">שנה</td>' +
+          '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁנָה</td></tr></tbody></table>';
+        document.body.appendChild(mount);
+        const rows = [{ he: "שנה אחת", he_niqqud: "שָׁנָה אַחַת" }];
+        if (window.__rmR) { try { window.__rmR.detach(); } catch (_) {} }
+        window.__rmR = window.ReaderMorph.attach(mount, {
+          getRow: (i) => rows[i],
+          refineContext: async () => null,            // stub: Dicta "miss" (no network)
+          canRefine: () => canR,
+          grantContextConsent: () => {},
+        });
+        mount.querySelector('td[data-col="he"] .rm-w').click();
+        for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-prov")) break; await new Promise((r) => setTimeout(r, 100)); }
+        return { hasBtn: !!document.querySelector(".rm-refine-btn") };
+      }, canRefine);
+    }
+    const refOn = await tapShanaWith(true);
+    eq(refOn.hasBtn, "non-exact card must OFFER «уточнить в контексте» when canRefine() is true (Epic-2 #2)");
+    // reveal the confirm, then run a one-off refine (stub returns null → honest «miss» note)
+    await pg.locator(".rm-refine-btn").click();
+    const confirm = await pg.evaluate(() => {
+      const c = document.querySelector("[data-rm-refine-confirm]");
+      return { visible: c ? !c.hidden : false, hasGo: !!document.querySelector("[data-rm-refine-go]"), hasAll: !!document.querySelector("[data-rm-refine-all]") };
+    });
+    eq(confirm.visible && confirm.hasGo && confirm.hasAll, "tapping refine must reveal the one-off consent confirm with both actions (R5)");
+    await pg.locator("[data-rm-refine-go]").click();
+    await pg.waitForFunction(() => !!document.querySelector(".rm-refine-miss") || !!document.querySelector(".rm-prov-context"), { timeout: 8000 }).catch(() => {});
+    const afterGo = await pg.evaluate(() => ({ miss: !!document.querySelector(".rm-refine-miss"), btn: !!document.querySelector(".rm-refine-btn") }));
+    eq(afterGo.miss && !afterGo.btn, "a refine that adds nothing must show an honest «контекст не дал уточнения», not re-offer the button");
+    // privacy / redundancy: offline OR globally-granted → canRefine()=false → button hidden.
+    const refOff = await tapShanaWith(false);
+    eq(!refOff.hasBtn, "card must HIDE the refine button when canRefine() is false (offline / globally granted) — R5 privacy");
 
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);

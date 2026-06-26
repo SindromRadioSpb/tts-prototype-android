@@ -2025,6 +2025,12 @@ window.I18N_LOCALES.he = {
       contextSuggests: "בהקשר, ייתכן",
       prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", unknown: "לא זוהה במצב לא־מקוון" },
       niqqudMachine: "הניקוד ממוחשב (Dicta)",
+      refine: "🎯 לדייק לפי הקשר",
+      refineNote: "שולח את המשפט פעם אחת לענן Dicta כדי לבחור את המשמעות בהקשר. ניתוח מכונה, לא דובר יליד.",
+      refineGo: "לדייק פעם אחת",
+      refineAll: "להפעיל לכל המילים",
+      refineMiss: "ההקשר לא הוסיף הבהרה.",
+      refining: "מדייק לפי הקשר…",
       legend: {
         title: "מה משמעות תגי הוודאות?",
         exact: "המילון הלא־מקוון זיהה את המילה בוודאות",
