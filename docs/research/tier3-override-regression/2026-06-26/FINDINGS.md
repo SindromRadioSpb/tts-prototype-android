@@ -1,6 +1,6 @@
 # Tier-3 context override silently degrades correct, corpus-grounded readings (בקר → «скот»)
 
-**Date:** 2026-06-26 · **Status:** 🔬 investigation complete, fix options pending owner decision.
+**Date:** 2026-06-26 · **Status:** ✅ **SHIPPED+PROD** (v3.11.6, `81575f7`). Owner chose Option 1 (precedence guard) + embed R11 + Dicta-independent gate. Fix verified e2e @380px + prod Node-fetch; `smoke:reader-tier3-regression` = 0 overrides. Role R11 in `docs/PROJECT_ROLES.md` + `CLAUDE.md`.
 **Severity:** P0 honesty regression on moat #1 (tap-morphology). **Surface:** `public/js/reader-morph.js` (`pickContextReading` / `resolveWordLight` Tier-3 path). **Room-only.**
 
 > **What this folder is.** A reproducible investigation of a user-reported tap-card bug. Generated 2026-06-26 from main `65d8e98`. `quant-harness.js` = the measurement script (run via `node quant-harness.js`, boots library.html + live Dicta). `quant-result.json` = its raw tally (small network-bounded sample). This `FINDINGS.md` = the analysis + proposed new role + fix options. Nothing here is shipped code; it informs the decision.
