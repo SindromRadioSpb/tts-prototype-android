@@ -613,6 +613,17 @@
     } catch (_) {}
     return "";
   }
+  // THE single canonical status/colour key for a resolved card. Every save+paint path derives the
+  // key here (decorateWords paint · resolveWordLight save · showStatusPopover · collectNewWords), so
+  // the save-key can never drift from the paint-key — the #1 class of Epic-4 bugs. Mirrors
+  // setWordStatus/getKnownWordStates exactly: niqqud-derived surface (ktiv male/chaser parity) +
+  // function-link pid. NA = NotesAutoGen; returns "" when NA/lemmaKey is unavailable.
+  function statusKeyForCard(NA, card, niqqud, surface) {
+    if (!NA || !NA.lemmaKey) return "";
+    var ks = _statusKeyWord(card, niqqud, surface);
+    try { return NA.lemmaKey({ pealim_id: _statusPid(card, ks), lemma: card.lemma, word: ks, pos: card.pos }) || ""; }
+    catch (_) { return ""; }
+  }
   async function resolveWordLight(surface, niqqud, ctx) {
     surface = stripNiqqud(surface);
     if (!surface) return null;
@@ -691,13 +702,7 @@
     }
     // Epic 4 — canonical lemma key (aligned with getKnownWordStates) + the RAW manual status, so
     // the card's one-tap level selector highlights what the user explicitly set (vs SRS-derived).
-    card.lemmaKey = "";
-    try {
-      if (eng.NA && eng.NA.lemmaKey) {
-        var _ks = _statusKeyWord(card, niqqud, surface);
-        card.lemmaKey = eng.NA.lemmaKey({ pealim_id: _statusPid(card, _ks), lemma: card.lemma, word: _ks, pos: card.pos }) || "";
-      }
-    } catch (_) {}
+    card.lemmaKey = statusKeyForCard(eng.NA, card, niqqud, surface);
     card.manualStatus = "";
     if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
       try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) {}
@@ -972,12 +977,9 @@
     try {
       var eng = await ensureEngine();
       var card = await resolveCore(eng, stripNiqqud(niqqud) || surface, niqqud);
-      // Key IDENTICALLY to the card (resolveWordLight) + decorateWords — niqqud-derived surface +
-      // function-link pid — so a long-press status lands on the same key the paint looks up.
-      if (eng.NA && eng.NA.lemmaKey) {
-        var ks = _statusKeyWord(card, niqqud, stripNiqqud(niqqud) || surface);
-        lk = eng.NA.lemmaKey({ pealim_id: _statusPid(card, ks), lemma: card.lemma, word: ks, pos: card.pos }) || "";
-      }
+      // Key IDENTICALLY to the card (resolveWordLight) + decorateWords via the shared keyer, so a
+      // long-press status lands on the same key the paint looks up.
+      lk = statusKeyForCard(eng.NA, card, niqqud, stripNiqqud(niqqud) || surface);
       isConf = card.label === "exact" || card.label === "likely";
     } catch (_) { lk = ""; }
     if (!lk) return false;   // caller falls back to opening the card
@@ -1442,11 +1444,10 @@
         var card; try { card = await resolveCore(eng, surface, niqqud); }
         catch (_) { if (isNiqqud && niqqud != null) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
         var confident = !!(card && (card.label === "exact" || card.label === "likely"));   // gate (R1/R10)
-        // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident),
-        // byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status on a function/unknown
-        // word (which the resolver can't confidently ID) still colours by its surface form.
-        var ksurf = _statusKeyWord(card, niqqud, surface);
-        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: _statusPid(card, ksurf), lemma: card.lemma, word: ksurf, pos: card.pos }) : "";
+        // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident)
+        // via the shared keyer, byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status
+        // on a function/unknown word (which the resolver can't confidently ID) still colours by surface.
+        var lk = statusKeyForCard(NA, card, niqqud, surface);
         var raw = lk ? states[lk] : undefined;
         if (color) {
           // Confident → defaults to 'new' (the unseen «blue wall»). UNCONFIDENT → coloured ONLY when the
@@ -1463,6 +1464,70 @@
     }
   }
 
+  // ── Epic 4.3a — frontier-study collection (R2/R8 i+1) ───────────────────────
+  // Gather the learner's NEXT words from the painted reader: confidently-resolved content words
+  // (label exact|likely → a real root/gloss, R1-honest) whose status is still new/unset, ranked by
+  // in-text frequency (most-frequent first = best next words, mirrors corpus-vocab's frontier rank).
+  // Keyed THROUGH statusKeyForCard — byte-identical to decorateWords' paint key — so a word collected
+  // here is the SAME word the text colours, and marking it from the study sheet repaints the exact
+  // occurrences (save-key == paint-key). statesMap = getKnownWordStates() (note-derived + manual).
+  // Returns [{ lemmaKey, surface, niqqud, gloss, root, pos, freq }] (≤ topN, freq-desc, deterministic
+  // tie-break on first appearance — no Math.random, replayable). Pure-engine + DOM-read; the caller
+  // (library-ui) owns the study sheet + persistence. Chunked like decorateWords so a long text never
+  // blocks the UI.
+  function _studyWordSpans(mount) {
+    // Count each word ONCE: prefer the he column (its spans carry the aligned vocalized form), then
+    // the niqqud column, then any .rm-w. Scanning BOTH columns would double every word's frequency.
+    var he = mount.querySelectorAll('#proTable tbody td[data-col="he"] .rm-w');
+    if (he.length) return Array.prototype.slice.call(he);
+    var nq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
+    if (nq.length) return Array.prototype.slice.call(nq);
+    return Array.prototype.slice.call(mount.querySelectorAll(".rm-w"));
+  }
+  async function collectNewWords(mount, statesMap, opts) {
+    opts = opts || {};
+    var topN = opts.topN || 8;
+    if (!mount) return [];
+    var states = statesMap || {};
+    var NA = window.NotesAutoGen;
+    var eng; try { eng = await ensureEngine(); } catch (_) { return []; }
+    // Function-word keys depend on the lazy PealimFunctionLinks map; await it so any key we compute
+    // matches decorateWords/resolveWordLight exactly (function words are excluded below, but the
+    // gate is cheap and keeps the keyer's behaviour identical across paths).
+    try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
+    var spans = _studyWordSpans(mount);
+    var group = new Map();
+    var i = 0;
+    while (i < spans.length) {
+      var end = Math.min(i + 60, spans.length);
+      for (; i < end; i++) {
+        var span = spans[i];
+        var surface = span.getAttribute("data-surface") || "";
+        var niqqud = span.getAttribute("data-niqqud") || "";
+        var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { continue; }
+        // Only confidently-resolved content words are honest study candidates (a real root/gloss to
+        // learn). Function/unknown words have no paradigm to study → excluded (R1; mirrors the colour
+        // gate, which only auto-colours confident words).
+        if (!card || (card.label !== "exact" && card.label !== "likely")) continue;
+        var lk = statusKeyForCard(NA, card, niqqud, surface);
+        if (!lk) continue;
+        var st = states[lk];
+        // frontier = not yet engaged beyond «new»: undefined (unseen) or explicitly «new» (tracking,
+        // not known). l1–l4/known/ignore are already on the radar → not "new to study".
+        if (st !== undefined && st !== "new") continue;
+        var g = group.get(lk);
+        if (!g) { g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, _i: i }; group.set(lk, g); }
+        g.freq++;
+      }
+      if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
+    }
+    var arr = Array.from(group.values());
+    arr.sort(function (a, b) { return b.freq - a.freq || a._i - b._i; });
+    return arr.slice(0, topN).map(function (g) {
+      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq };
+    });
+  }
+
   // Back-compat thin wrappers (existing callers / smoke).
   function clearLearningStatus(mount) { clearDecorations(mount); }
   async function paintLearningStatus(mount, statesMap) { return decorateWords(mount, statesMap, { color: true, fadeMode: "full" }); }
@@ -1476,7 +1541,7 @@
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
-    decorateWords: decorateWords, clearDecorations: clearDecorations,
+    decorateWords: decorateWords, clearDecorations: clearDecorations, collectNewWords: collectNewWords,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

@@ -848,6 +848,44 @@
       background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 12px;
       box-shadow: 0 6px 24px rgba(0,0,0,.30);
     }
+    /* Epic 4.3a — «📚 Учить» frontier-study: aids-panel button + bottom-sheet (models .rm-sheet). */
+    .reader-aids-study {
+      appearance: none; cursor: pointer; width: 100%; margin: 12px 0 4px; padding: 11px 12px;
+      border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-contrast);
+      font-size: 13.5px; font-weight: 700;
+    }
+    .reader-aids-study:hover { filter: brightness(1.06); }
+    .reader-aids-study:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .room-study { position: fixed; inset: 0; z-index: 1100; }
+    .room-study[hidden] { display: none; }
+    .room-study-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
+    .room-study-card {
+      position: absolute; left: 0; right: 0; bottom: 0; max-width: 560px; margin: 0 auto;
+      background: var(--bg-card); color: var(--text-primary);
+      border-top-left-radius: 16px; border-top-right-radius: 16px; border-top: 1px solid var(--border-soft);
+      padding: 18px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      max-height: 80vh; overflow-y: auto; box-shadow: 0 -8px 30px rgba(0,0,0,.32);
+      transform: translateY(100%); transition: transform .22s ease;
+    }
+    .room-study.room-study-open .room-study-card { transform: translateY(0); }
+    @media (prefers-reduced-motion: reduce) { .room-study-card { transition: none; } }
+    .room-study-x {
+      position: absolute; top: 12px; left: 12px; appearance: none; cursor: pointer;
+      background: var(--bg-muted); border: 1px solid var(--border-soft); color: var(--text-secondary);
+      border-radius: 8px; width: 30px; height: 30px; font-size: 14px; line-height: 1;
+    }
+    .room-study-head { margin-bottom: 10px; padding-inline-end: 38px; }
+    .room-study-title { font-size: 18px; font-weight: 800; }
+    .room-study-intro, .room-study-loading { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
+    .room-study-empty { font-size: 14px; color: var(--text-primary); text-align: center; padding: 22px 6px; }
+    .room-study-row { padding: 11px 0; border-top: 1px solid var(--border-soft); }
+    .room-study-row:first-of-type { border-top: none; }
+    .room-study-lead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+    .room-study-he { font-size: 23px; font-weight: 700; line-height: 1.2; flex: none; }
+    .room-study-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; min-width: 0; text-align: end; }
+    .room-study-gloss { font-size: 13px; color: var(--text-secondary); }
+    .room-study-sub { font-size: 11px; color: var(--text-faint); }
+    .room-study-sel { margin: 0; }
     /* Epic-3a — pronounce-headword button next to the vocalized form. */
     .rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
     .rm-speak {
@@ -970,7 +1008,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.21</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.22</span>
   </div>
 </footer>
 

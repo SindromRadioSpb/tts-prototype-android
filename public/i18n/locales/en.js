@@ -2033,6 +2033,13 @@ window.I18N_LOCALES.en = {
       refining: "Refining by context…",
       pronounce: "Pronounce",
       status: { title: "My status", "new": "new", known: "known", ignore: "ignore" },
+      study: {
+        open: "📚 Study new words",
+        title: "📚 Study new words",
+        intro: "Mark what you already know — the text recolours instantly.",
+        loading: "Gathering new words…",
+        empty: "No new words to study on this screen 🎉",
+      },
       legend: {
         title: "What do the confidence badges mean?",
         exact: "the offline dictionary recognized the word unambiguously",

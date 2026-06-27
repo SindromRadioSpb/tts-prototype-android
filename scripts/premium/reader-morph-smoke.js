@@ -579,6 +579,43 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(/rm-w-known/.test(ta.colAl), "T-a: a manual status on the FUNCTION word על must colour it by surface, got " + JSON.stringify(ta.colAl) + " key=" + ta.alKey);
     eq(/rm-w-l2/.test(ta.colBn), "T-a: a manual status on the OUT-OF-DICT word בנימה must colour it by surface, got " + JSON.stringify(ta.colBn) + " key=" + ta.bnKey);
 
+    // ── Epic 4.3a — collectNewWords: gather confident, still-new words ranked by frequency, keyed
+    //    IDENTICALLY to decorateWords (save-key == collect-key) — a word marked by that key drops/stays.
+    const cnw = await pg.evaluate(async () => {
+      const R = window.ReaderMorph, NA = window.NotesAutoGen;
+      document.querySelectorAll("#rm-cnw").forEach((n) => n.remove());
+      const row = { he: "שלום שלום ספר אין", he_niqqud: "שָׁלוֹם שָׁלוֹם סֵפֶר אֵין" };
+      const mount = document.createElement("div"); mount.id = "rm-cnw";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">' + row.he + '</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">' + row.he_niqqud + '</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      R.attach(mount, { getRow: () => row });
+      const eng = await R.ensureEngine();
+      const sc = await R.resolveCore(eng, "שלום", "שָׁלוֹם");
+      const shalomKey = NA.lemmaKey({ pealim_id: sc.pealim_id, lemma: sc.lemma, word: sc.word, pos: sc.pos });
+      const all = await R.collectNewWords(mount, {}, { topN: 8 });               // empty profile → all confident words are frontier
+      const minus = await R.collectNewWords(mount, { [shalomKey]: "known" }, { topN: 8 });  // mark known → must drop
+      const withNew = await R.collectNewWords(mount, { [shalomKey]: "new" }, { topN: 8 });  // mark new → must stay
+      const e0 = all[0] || {};
+      return {
+        shalomKey,
+        words: all.map((w) => ({ k: w.lemmaKey, he: w.niqqud, gloss: w.gloss, root: w.root, pos: w.pos, freq: w.freq })),
+        firstKey: e0.lemmaKey,
+        hasFunc: all.some((w) => R.stripNiqqud(w.niqqud || w.surface || "") === "אין"),
+        minusHasShalom: minus.some((w) => w.lemmaKey === shalomKey),
+        withNewHasShalom: withNew.some((w) => w.lemmaKey === shalomKey),
+        shalomEntry: all.find((w) => w.lemmaKey === shalomKey) || null,
+      };
+    });
+    eq(cnw.shalomEntry, "collectNewWords must include the confident frontier word שלום, got " + JSON.stringify(cnw.words));
+    eq(cnw.shalomEntry && cnw.shalomEntry.freq === 2, "collectNewWords must count in-text frequency (שלום ×2), got " + JSON.stringify(cnw.shalomEntry && cnw.shalomEntry.freq));
+    eq(cnw.firstKey === cnw.shalomKey, "collectNewWords must rank most-frequent first (שלום ×2 before ספר ×1), got " + JSON.stringify(cnw.words));
+    eq(cnw.shalomEntry && /мир/.test(cnw.shalomEntry.gloss || "") && /[֑-ׇ]/.test(cnw.shalomEntry.niqqud || ""), "a collected word must carry its vocalized form + gloss, got " + JSON.stringify(cnw.shalomEntry));
+    eq(!cnw.hasFunc, "collectNewWords must EXCLUDE function words (אין — no paradigm to study), got " + JSON.stringify(cnw.words));
+    eq(!cnw.minusHasShalom, "a word marked 'known' must DROP from collectNewWords (frontier = new/undefined) — proves save-key==collect-key parity");
+    eq(cnw.withNewHasShalom, "a word marked 'new' must STAY in collectNewWords (new = tracking, not known)");
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

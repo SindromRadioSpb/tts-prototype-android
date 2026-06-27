@@ -501,6 +501,102 @@ async function applyDecorations() {
   try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode }); } catch (_) {}
 }
 
+// ── Epic 4.3a — «📚 Учить» frontier-study sheet ─────────────────────────────────
+// Collect THIS screen's new words (ReaderMorph.collectNewWords — confident content words still
+// new/unset, freq-ranked) into a bottom-sheet where each is shown (vocalized form + gloss + root)
+// with a one-tap status selector. Marking promotes new→l1..known/ignore and repaints the text
+// immediately (manual-wins, NO flashcard — the SAME word_status store as the card/long-press
+// selectors). Self-contained over the morph engine + the manual status store; Room-only, parity-safe.
+const STUDY_STATUS_OPTS = [
+  ['new', 'room.morph.status.new', 'новое'], ['l1', null, '1'], ['l2', null, '2'], ['l3', null, '3'], ['l4', null, '4'],
+  ['known', 'room.morph.status.known', 'знаю'], ['ignore', 'room.morph.status.ignore', 'игнор'],
+];
+let _studySheet = null;
+function ensureStudySheet() {
+  if (_studySheet) return _studySheet;
+  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'false' } });
+  sheet.hidden = true;
+  const card = el('div', { class: 'room-study-card' });
+  const xBtn = el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } });
+  const head = el('div', { class: 'room-study-head' });
+  head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Учить новые слова') }));
+  const body = el('div', { class: 'room-study-body' });
+  card.appendChild(xBtn); card.appendChild(head); card.appendChild(body);
+  sheet.appendChild(el('div', { class: 'room-study-backdrop', attrs: { 'data-study-close': '1' } }));
+  sheet.appendChild(card);
+  document.body.appendChild(sheet);
+  sheet.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t && t.closest && t.closest('[data-study-close]')) { closeStudySheet(); return; }
+    const b = t && t.closest ? t.closest('[data-study-status]') : null;
+    if (b) onStudyStatusSet(b);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && _studySheet && !_studySheet.hidden) closeStudySheet(); });
+  _studySheet = sheet;
+  return sheet;
+}
+function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } }
+function studyRowEl(w, curStatus) {
+  const uiDir = (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr';
+  const row = el('div', { class: 'room-study-row' });
+  row.dataset.key = w.lemmaKey; row.dataset.cur = curStatus || '';
+  const lead = el('div', { class: 'room-study-lead' });
+  lead.appendChild(el('span', { class: 'room-study-he', text: w.niqqud || w.surface, attrs: { lang: 'he', dir: 'rtl' } }));
+  const meta = el('div', { class: 'room-study-meta' });
+  if (w.gloss) meta.appendChild(el('span', { class: 'room-study-gloss', text: w.gloss, attrs: { dir: 'ltr' } }));
+  const subParts = [];
+  if (w.root) subParts.push(w.root);
+  if (w.freq > 1) subParts.push('×' + w.freq);
+  if (subParts.length) meta.appendChild(el('span', { class: 'room-study-sub', text: subParts.join(' · '), attrs: { dir: 'rtl', lang: 'he' } }));
+  lead.appendChild(meta);
+  row.appendChild(lead);
+  const sel = el('div', { class: 'rm-status room-study-sel', attrs: { dir: uiDir } });
+  STUDY_STATUS_OPTS.forEach(([v, key, fb]) => {
+    const lab = key ? tt(key, fb) : fb;
+    const cls = 'rm-status-btn rm-status-' + v + ((curStatus || '') === v ? ' rm-status-active' : '');
+    sel.appendChild(el('button', { class: cls, text: lab, attrs: { type: 'button', 'data-study-status': v } }));
+  });
+  row.appendChild(sel);
+  return row;
+}
+async function onStudyStatusSet(btn) {
+  const row = btn.closest ? btn.closest('.room-study-row') : null;
+  if (!row) return;
+  const lk = row.dataset.key;
+  if (!lk) return;
+  const val = btn.getAttribute('data-study-status');
+  const st = (row.dataset.cur === val) ? '' : val;   // re-tap toggles off (→ new/unset)
+  try { await localDb.setWordStatus(lk, st); } catch (_) {}
+  row.dataset.cur = st;
+  row.querySelectorAll('.rm-status-btn').forEach((b) => b.classList.toggle('rm-status-active', b.getAttribute('data-study-status') === st));
+  readerWordStates = null;
+  try { invalidateReadableSet(); } catch (_) {}
+  try { applyDecorations(); } catch (_) {}   // repaint the text — the wall recolours immediately
+}
+async function roomOpenStudyList() {
+  const mount = $('roomReaderTable');
+  if (!mount || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== 'function') return;
+  const sheet = ensureStudySheet();
+  const body = sheet.querySelector('.room-study-body');
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю новые слова…') }));
+  sheet.hidden = false; sheet.classList.add('room-study-open');
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  let words = [], states = {};
+  try { states = (await ensureWordStates()) || {}; words = await window.ReaderMorph.collectNewWords(mount, states, { topN: 12 }); }
+  catch (_) { words = []; }
+  if (!_studySheet || _studySheet.hidden) return;   // user closed it while collecting
+  body.innerHTML = '';
+  if (!words.length) {
+    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.empty', text: tt('room.morph.study.empty', 'На этом экране нет новых слов для изучения 🎉') }));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    return;
+  }
+  body.appendChild(el('div', { class: 'room-study-intro', i18n: 'room.morph.study.intro', text: tt('room.morph.study.intro', 'Отметь, что уже знаешь — цвет в тексте обновится сразу.') }));
+  words.forEach((w) => body.appendChild(studyRowEl(w, states[w.lemmaKey] || '')));
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
 // ── note-formation: turn a tapped word into a word_study note (the «превращение») ──
 // Reuses the Studio pipeline (NotesAutoGen.dedupKey + localDb canonical-note API). The
 // card (reader-morph) calls lookupNote on open + saveWord on «Сохранить». Idempotent
@@ -1145,6 +1241,10 @@ function buildAidsPanel() {
   });
   panel.appendChild(legend);
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.statusNote', text: tt('room.morph.statusNote', 'Цвет — у уверенно распознанных учебных слов; служебные и не найденные в словаре остаются без цвета.') }));
+  // Epic 4.3a — «📚 Учить»: gather THIS screen's new words into a quick study sheet (one-tap mark → recolour).
+  const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', '📚 Учить новые слова'), attrs: { type: 'button' } });
+  studyBtn.addEventListener('click', roomOpenStudyList);
+  panel.appendChild(studyBtn);
   // R8 on-ramp — one short line teaching the two fading aids.
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.reader.scaffoldHint', text: tt('room.reader.scaffoldHint', '«По нужде»: огласовка тает на знакомых словах. «По тапу»: перевод скрыт — тапни строку, чтобы открыть.') }));
   // Tier-3 — «точный режим» (context disambiguation via Dicta; auto on every tap once granted).
