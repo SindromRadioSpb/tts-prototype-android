@@ -333,13 +333,20 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const knownBtn = document.querySelector('.rm-status-btn[data-rm-status="known"]');
       if (knownBtn) knownBtn.click();
       await new Promise((r) => setTimeout(r, 60));
+      const knownCall = window.__statusCalls[window.__statusCalls.length - 1] || null;
       const active = document.querySelector(".rm-status-btn.rm-status-active");
-      return { hasSel: !!sel, btnCount, call: window.__statusCalls[window.__statusCalls.length - 1] || null, activeVal: active ? active.getAttribute("data-rm-status") : "" };
+      // «new» is now a real storable status (not a clear): tapping it must STORE 'new', not ''.
+      const newBtn = document.querySelector('.rm-status-btn[data-rm-status="new"]');
+      if (newBtn) newBtn.click();
+      await new Promise((r) => setTimeout(r, 60));
+      const newCall = window.__statusCalls[window.__statusCalls.length - 1] || null;
+      return { hasSel: !!sel, btnCount, knownCall, activeVal: active ? active.getAttribute("data-rm-status") : "", newCall };
     });
     eq(statusUi.hasSel, "card must show the one-tap status selector when setWordStatus is wired (Epic 4)");
     eq(statusUi.btnCount === 7, "status selector must offer 7 options (new/1-4/known/ignore), got " + statusUi.btnCount);
-    eq(statusUi.call && statusUi.call[1] === "known" && /^(pid:|[^#]*#)/.test(statusUi.call[0] || ""), "tapping «знаю» must call setWordStatus(lemmaKey, 'known'), got " + JSON.stringify(statusUi.call));
+    eq(statusUi.knownCall && statusUi.knownCall[1] === "known" && /^(pid:|[^#]*#)/.test(statusUi.knownCall[0] || ""), "tapping «знаю» must call setWordStatus(lemmaKey, 'known'), got " + JSON.stringify(statusUi.knownCall));
     eq(statusUi.activeVal === "known", "the chosen status must be highlighted active, got " + JSON.stringify(statusUi.activeVal));
+    eq(statusUi.newCall && statusUi.newCall[1] === "new", "tapping «новое» must STORE 'new' (not clear) so unconfident words can be marked purple, got " + JSON.stringify(statusUi.newCall));
 
     // ── Epic 4.2 — long-press a word → quick-status popover (no card opened). ──
     const lp = await pg.evaluate(async () => {

@@ -897,7 +897,10 @@
   // clears to «new». LingQ-style: known→clears the highlight, ignore→excluded from i+1.
   function statusSelectorHtml(card) {
     if (!card || !card.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return "";
-    var cur = card.manualStatus || "new";
+    // Highlight the EFFECTIVE status: an explicit manual status, else «new» ONLY for a confident
+    // word (which auto-shows the purple «new wall»); an unconfident word with no status highlights
+    // nothing (it's plain until the user marks it), so the toggle reads honestly.
+    var cur = card.manualStatus || ((card.label === "exact" || card.label === "likely") ? "new" : "");
     var btns = STATUS_OPTS.map(function (o) {
       var val = o[0];
       var lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : val.replace("l", "");
@@ -907,16 +910,20 @@
   }
   async function onStatusSet(value) {
     if (!_activeCard || !_activeCard.lemmaKey || typeof _attachOpts.setWordStatus !== "function") return;
-    var st = (value === "new" || _activeCard.manualStatus === value) ? "" : value;   // re-tap active → clear
+    // Toggle on the ACTUAL stored status (not «new», which is now a real storable status): re-tap
+    // the stored value → clear; otherwise store the tapped value (incl. «new» → purple).
+    var st = (_activeCard.manualStatus === value) ? "" : value;
     try { await _attachOpts.setWordStatus(_activeCard.lemmaKey, st); } catch (_) {}
     _activeCard.manualStatus = st;
+    var isConf = _activeCard.label === "exact" || _activeCard.label === "likely";
+    var active = st || (isConf ? "new" : "");
     var sel = _sheet && _sheet.querySelectorAll(".rm-status-btn");
-    if (sel) for (var i = 0; i < sel.length; i++) sel[i].classList.toggle("rm-status-active", sel[i].getAttribute("data-rm-status") === (st || "new"));
+    if (sel) for (var i = 0; i < sel.length; i++) sel[i].classList.toggle("rm-status-active", sel[i].getAttribute("data-rm-status") === active);
   }
 
   // Epic 4.2 — in-text quick-status popover (long-press a word → set its level without opening the
   // full card). A floating singleton anchored near the word; reuses STATUS_OPTS + setWordStatus.
-  var _statpop = null, _statpopKey = "";
+  var _statpop = null, _statpopKey = "", _statpopCur = "";
   function ensureStatPop() {
     if (_statpop) return _statpop;
     var el = document.createElement("div");
@@ -928,12 +935,14 @@
     document.body.appendChild(el);
     return (_statpop = el);
   }
-  function openStatPop(span, lemmaKey, cur) {
+  function openStatPop(span, lemmaKey, cur, isConf) {
     var el = ensureStatPop();
     _statpopKey = lemmaKey;
+    _statpopCur = cur || "";   // the ACTUAL stored status — drives the toggle (clear on re-tap)
+    var active = _statpopCur || (isConf ? "new" : "");   // effective highlight (confident default = new)
     var btns = STATUS_OPTS.map(function (o) {
       var val = o[0], lab = o[1] ? escapeHtml(tt(o[1][0], o[1][1])) : val.replace("l", "");
-      return '<button type="button" class="rm-status-btn rm-status-' + val + ((cur || "new") === val ? " rm-status-active" : "") + '" data-rm-statpop="' + val + '">' + lab + "</button>";
+      return '<button type="button" class="rm-status-btn rm-status-' + val + (active === val ? " rm-status-active" : "") + '" data-rm-statpop="' + val + '">' + lab + "</button>";
     }).join("");
     el.innerHTML = '<div class="rm-statpop-inner" dir="' + uiDir() + '">' + btns + "</div>";
     el.hidden = false;
@@ -946,12 +955,12 @@
   }
   async function onStatPopSet(value) {
     if (!_statpopKey || typeof _attachOpts.setWordStatus !== "function") { closeStatPop(); return; }
-    var activeBtn = _statpop && _statpop.querySelector(".rm-status-btn.rm-status-active");
-    var st = (value === "new" || (activeBtn && activeBtn.getAttribute("data-rm-statpop") === value)) ? "" : value;   // re-tap active → clear
+    // Toggle on the ACTUAL stored status: re-tap the stored value → clear; else store it (incl. «new»).
+    var st = (_statpopCur === value) ? "" : value;
     try { await _attachOpts.setWordStatus(_statpopKey, st); } catch (_) {}
     closeStatPop();
   }
-  function closeStatPop() { if (_statpop) _statpop.hidden = true; _statpopKey = ""; }
+  function closeStatPop() { if (_statpop) _statpop.hidden = true; _statpopKey = ""; _statpopCur = ""; }
   // Resolve the long-pressed word → lemmaKey + current status → show the popover. Falls back to the
   // full card when the word can't be confidently keyed (so a long-press is never a dead end).
   async function showStatusPopover(span) {
@@ -959,15 +968,21 @@
     try { window.getSelection().removeAllRanges(); } catch (_) {}
     var surface = span.getAttribute("data-surface") || span.textContent || "";
     var niqqud = span.getAttribute("data-niqqud") || "";
-    var lk = "", cur = "";
+    var lk = "", cur = "", isConf = false;
     try {
       var eng = await ensureEngine();
       var card = await resolveCore(eng, stripNiqqud(niqqud) || surface, niqqud);
-      if (eng.NA && eng.NA.lemmaKey) lk = eng.NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) || "";
+      // Key IDENTICALLY to the card (resolveWordLight) + decorateWords — niqqud-derived surface +
+      // function-link pid — so a long-press status lands on the same key the paint looks up.
+      if (eng.NA && eng.NA.lemmaKey) {
+        var ks = _statusKeyWord(card, niqqud, stripNiqqud(niqqud) || surface);
+        lk = eng.NA.lemmaKey({ pealim_id: _statusPid(card, ks), lemma: card.lemma, word: ks, pos: card.pos }) || "";
+      }
+      isConf = card.label === "exact" || card.label === "likely";
     } catch (_) { lk = ""; }
     if (!lk) return false;   // caller falls back to opening the card
     if (typeof _attachOpts.getWordStatus === "function") { try { cur = (await _attachOpts.getWordStatus(lk)) || ""; } catch (_) {} }
-    openStatPop(span, lk, cur);
+    openStatPop(span, lk, cur, isConf);
     return true;
   }
 

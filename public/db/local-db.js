@@ -2134,14 +2134,16 @@ export async function getKnownWordStates() {
 
 // Epic 4 keystone — MANUAL reader-knowledge status store (word_status table, migration 057),
 // SEPARATE from notes/srs/anki so marking «known» never spawns a flashcard. lemma_key = canonical
-// NotesAutoGen.lemmaKey. status ∈ l1|l2|l3|l4|known|ignore; '' / null / 'new' clears the row.
-const _WS_VALUES = { l1: 1, l2: 1, l3: 1, l4: 1, known: 1, ignore: 1 };
+// NotesAutoGen.lemmaKey. status ∈ new|l1|l2|l3|l4|known|ignore; '' / null clears the row.
+// «new» IS storable (so an UNCONFIDENT word — function/unknown, which has no auto-default colour —
+// can be explicitly marked «новое»/purple); only an empty status clears.
+const _WS_VALUES = { "new": 1, l1: 1, l2: 1, l3: 1, l4: 1, known: 1, ignore: 1 };
 export async function setWordStatus(lemmaKey, status) {
   const lk = String(lemmaKey || "").trim();
   if (!lk) return false;
   const st = String(status || "").trim();
   try {
-    if (!st || st === "new" || !_WS_VALUES[st]) {
+    if (!st || !_WS_VALUES[st]) {
       await r(`DELETE FROM word_status WHERE lemma_key = ?`, [lk]);
     } else {
       await r(`INSERT OR REPLACE INTO word_status (lemma_key, status, updated_at)

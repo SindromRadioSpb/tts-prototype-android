@@ -48,7 +48,13 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       // invalid value → treated as clear (never persisted)
       await ldb.setWordStatus(KEY, "bogus");
       const all4 = await ldb.getAllWordStatuses();
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY] };
+      // «new» IS a storable status (so an UNCONFIDENT word can be marked purple) — must persist + overlay.
+      const NKEY = "כוס#";
+      await ldb.setWordStatus(NKEY, "new");
+      const allN = await ldb.getAllWordStatuses();
+      const kwsN = await ldb.getKnownWordStates();
+      await ldb.setWordStatus(NKEY, "");   // cleanup
+      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY] };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -58,6 +64,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.clearedAll === undefined, "clearing (status '') must DELETE the row, got " + JSON.stringify(res.clearedAll));
     eq(res.clearedKws === undefined, "cleared lemma must no longer overlay getKnownWordStates, got " + JSON.stringify(res.clearedKws));
     eq(res.bogus === undefined, "an invalid status value must be treated as clear (never persisted), got " + JSON.stringify(res.bogus));
+    eq(res.newSet === "new", "setWordStatus('new') MUST persist (an unconfident word can be marked «новое»/purple), got " + JSON.stringify(res.newSet));
+    eq(res.newKws === "new", "stored 'new' must overlay getKnownWordStates, got " + JSON.stringify(res.newKws));
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     console.log("reader-word-status: word_status store + manual-wins overlay (no-note mark-known + upsert + clear)");
