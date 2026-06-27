@@ -875,17 +875,38 @@
       border-radius: 8px; width: 30px; height: 30px; font-size: 14px; line-height: 1;
     }
     .room-study-head { margin-bottom: 10px; padding-inline-end: 38px; }
+    .room-study-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
     .room-study-title { font-size: 18px; font-weight: 800; }
+    .room-study-total { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
     .room-study-intro, .room-study-loading { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 12px; }
     .room-study-empty { font-size: 14px; color: var(--text-primary); text-align: center; padding: 22px 6px; }
+    /* A+B+C+D controls */
+    .room-study-controls { display: flex; flex-direction: column; gap: 9px; margin: 10px 0 8px; }
+    .room-study-segrow { display: inline-flex; gap: 0; border: 1px solid var(--border-soft); border-radius: 9px; overflow: hidden; align-self: flex-start; }
+    .room-study-seg { appearance: none; cursor: pointer; padding: 7px 13px; border: none; background: var(--bg-muted); color: var(--text-secondary); font-size: 12.5px; font-weight: 600; }
+    .room-study-seg.on { background: var(--accent); color: var(--accent-contrast); }
+    .room-study-selrow { display: flex; flex-wrap: wrap; gap: 10px 16px; }
+    .room-study-sel-lab { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+    .room-study-sel-lab select { font-size: 12.5px; padding: 4px 6px; border-radius: 7px; border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--text-primary); }
+    .room-study-check { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; }
+    .room-study-bulk { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; padding: 8px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+    .room-study-bulk-k { font-size: 11.5px; color: var(--text-faint); margin-inline-end: 2px; }
+    .room-study-bulk-btn { appearance: none; cursor: pointer; padding: 6px 11px; border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 12px; font-weight: 600; }
+    .room-study-bulk-btn:hover { border-color: var(--accent); }
+    .room-study-count { font-size: 11.5px; color: var(--text-faint); margin: 0 0 6px; }
     .room-study-row { padding: 11px 0; border-top: 1px solid var(--border-soft); }
     .room-study-row:first-of-type { border-top: none; }
     .room-study-lead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
-    .room-study-he { font-size: 23px; font-weight: 700; line-height: 1.2; flex: none; }
+    .room-study-hewrap { display: inline-flex; align-items: baseline; gap: 8px; flex: none; flex-wrap: wrap; }
+    .room-study-he { font-size: 23px; font-weight: 700; line-height: 1.2; }
+    .room-study-nameflag { font-size: 10px; font-weight: 700; color: #d29922; background: rgba(210,153,34,.16); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
     .room-study-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; min-width: 0; text-align: end; }
     .room-study-gloss { font-size: 13px; color: var(--text-secondary); }
     .room-study-sub { font-size: 11px; color: var(--text-faint); }
     .room-study-sel { margin: 0; }
+    .room-study-more { margin-top: 4px; }
+    .room-study-morebtn { appearance: none; cursor: pointer; width: 100%; padding: 10px; border-radius: 9px; border: 1px dashed var(--border-soft); background: transparent; color: var(--accent); font-size: 13px; font-weight: 600; }
+    .room-study-morebtn:hover { border-color: var(--accent); background: var(--bg-muted); }
     /* Epic-3a — pronounce-headword button next to the vocalized form. */
     .rm-word-wrap { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
     .rm-speak {
@@ -1008,7 +1029,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.22</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.23</span>
   </div>
 </footer>
 

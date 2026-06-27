@@ -1464,17 +1464,33 @@
     }
   }
 
-  // ── Epic 4.3a — frontier-study collection (R2/R8 i+1) ───────────────────────
+  // ── Epic 4.3a+ — frontier-study collection (R2/R8 i+1) ──────────────────────
   // Gather the learner's NEXT words from the painted reader: confidently-resolved content words
   // (label exact|likely → a real root/gloss, R1-honest) whose status is still new/unset, ranked by
   // in-text frequency (most-frequent first = best next words, mirrors corpus-vocab's frontier rank).
   // Keyed THROUGH statusKeyForCard — byte-identical to decorateWords' paint key — so a word collected
   // here is the SAME word the text colours, and marking it from the study sheet repaints the exact
   // occurrences (save-key == paint-key). statesMap = getKnownWordStates() (note-derived + manual).
-  // Returns [{ lemmaKey, surface, niqqud, gloss, root, pos, freq }] (≤ topN, freq-desc, deterministic
-  // tie-break on first appearance — no Math.random, replayable). Pure-engine + DOM-read; the caller
-  // (library-ui) owns the study sheet + persistence. Chunked like decorateWords so a long text never
-  // blocks the UI.
+  // opts: { topN?  → omit for the FULL frontier (caller paginates) · rowFrom?/rowTo? → restrict the
+  // scan to a row range (scope «дальше по тексту») }. Returns [{ lemmaKey, surface, niqqud, gloss,
+  // root, pos, freq, nameSuspect }] (freq-desc, deterministic tie-break on first appearance — no
+  // Math.random). Pure-engine + DOM-read; the caller (library-ui) owns the sheet + persistence.
+  // Chunked like decorateWords so a long text never blocks the UI.
+  //
+  // NAME_HINT (R10·R6·R1) — common Hebrew given-names that are DICTIONARY HOMOGRAPHS (resolve
+  // confidently as a content word): in prose/plays they top the frequency list as character names
+  // mis-glossed as vocabulary (יהודית→«еврейский», צבי→«газель», עליזה→«весёлый»). This ONLY sets a
+  // SOFT `nameSuspect` flag for the study list (a «возможно имя» hint + an opt-in «hide names»
+  // filter); it NEVER changes resolveCore/colour/notes (≠ NAME_PROPER, which suppresses morphology)
+  // — R11/R1-safe. Keyed on the niqqud-stripped skeleton. Clear non-homograph names already fall out
+  // via the resolver's NAME_PROPER gazetteer (label≠confident → excluded from the frontier entirely).
+  var NAME_HINT = {
+    "יהודית":1,"צבי":1,"עליזה":1,"ורד":1,"יעל":1,"תמר":1,"שושנה":1,"אילה":1,"נעמי":1,"רחל":1,
+    "שרה":1,"ברק":1,"שחר":1,"ניר":1,"עומר":1,"עמר":1,"שירה":1,"רון":1,"גיל":1,"נועם":1,
+    "איתן":1,"עוז":1,"דרור":1,"כרמל":1,"רות":1,"אביב":1,"אלון":1,"ארז":1,"תומר":1,"רימון":1,
+    "גפן":1,"מרגלית":1,"פנינה":1,"כוכבה":1,"לבנה":1,"נחמה":1,"מנוחה":1,"מזל":1,"אורה":1,"חמדה":1,
+    "נורית":1,"סיגל":1,"רעות":1,"זהבה":1,
+  };
   function _studyWordSpans(mount) {
     // Count each word ONCE: prefer the he column (its spans carry the aligned vocalized form), then
     // the niqqud column, then any .rm-w. Scanning BOTH columns would double every word's frequency.
@@ -1486,7 +1502,9 @@
   }
   async function collectNewWords(mount, statesMap, opts) {
     opts = opts || {};
-    var topN = opts.topN || 8;
+    var topN = (opts.topN != null) ? Number(opts.topN) : null;   // omit → FULL frontier (caller paginates)
+    var rowFrom = (opts.rowFrom != null) ? Number(opts.rowFrom) : null;
+    var rowTo = (opts.rowTo != null) ? Number(opts.rowTo) : null;
     if (!mount) return [];
     var states = statesMap || {};
     var NA = window.NotesAutoGen;
@@ -1502,6 +1520,15 @@
       var end = Math.min(i + 60, spans.length);
       for (; i < end; i++) {
         var span = spans[i];
+        // scope (B): restrict to a row range when requested («дальше по тексту» = from current pos).
+        if (rowFrom != null || rowTo != null) {
+          var tr = span.closest ? span.closest("tr[data-row-idx]") : null;
+          var ri = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+          if (Number.isFinite(ri)) {
+            if (rowFrom != null && ri < rowFrom) continue;
+            if (rowTo != null && ri > rowTo) continue;
+          }
+        }
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";
         var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { continue; }
@@ -1516,15 +1543,20 @@
         // not known). l1–l4/known/ignore are already on the radar → not "new to study".
         if (st !== undefined && st !== "new") continue;
         var g = group.get(lk);
-        if (!g) { g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, _i: i }; group.set(lk, g); }
+        if (!g) {
+          var skel = stripNiqqud(card.word || surface);
+          g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, nameSuspect: !!NAME_HINT[skel], _i: i };
+          group.set(lk, g);
+        }
         g.freq++;
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }
     var arr = Array.from(group.values());
     arr.sort(function (a, b) { return b.freq - a.freq || a._i - b._i; });
-    return arr.slice(0, topN).map(function (g) {
-      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq };
+    if (topN != null && topN >= 0) arr = arr.slice(0, topN);
+    return arr.map(function (g) {
+      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq, nameSuspect: g.nameSuspect };
     });
   }
 

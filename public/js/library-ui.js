@@ -501,47 +501,75 @@ async function applyDecorations() {
   try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode }); } catch (_) {}
 }
 
-// ── Epic 4.3a — «📚 Учить» frontier-study sheet ─────────────────────────────────
-// Collect THIS screen's new words (ReaderMorph.collectNewWords — confident content words still
-// new/unset, freq-ranked) into a bottom-sheet where each is shown (vocalized form + gloss + root)
-// with a one-tap status selector. Marking promotes new→l1..known/ignore and repaints the text
-// immediately (manual-wins, NO flashcard — the SAME word_status store as the card/long-press
-// selectors). Self-contained over the morph engine + the manual status store; Room-only, parity-safe.
+// ── Epic 4.3a+ — «📚 Учить» → premium frontier-vocabulary sheet (A+B+C+D) ─────────
+// Collect the reader's new words (ReaderMorph.collectNewWords — confident content words still
+// new/unset, freq-ranked) into a full vocabulary surface: total count + progressive chunks (A) ·
+// scope «весь текст / дальше по тексту» (B) · frequency-band filter + soft «возможно имя» flag +
+// hide-names (C) · sort + bulk «видимые → знаю/игнор» (D). One-tap status → setWordStatus →
+// repaint (manual-wins, NO flashcard — same word_status store). Self-contained over the morph
+// engine + the manual status store; Room-only, parity-safe. Plan: BRR_EPIC4_3A_STUDY_LIST_PREMIUM.
 const STUDY_STATUS_OPTS = [
   ['new', 'room.morph.status.new', 'новое'], ['l1', null, '1'], ['l2', null, '2'], ['l3', null, '3'], ['l4', null, '4'],
   ['known', 'room.morph.status.known', 'знаю'], ['ignore', 'room.morph.status.ignore', 'игнор'],
 ];
+const STUDY_CHUNK = 20;   // progressive render batch (A) — 973-word frontiers never blow up the DOM
 let _studySheet = null;
+let _studyAll = [];       // full collected frontier for the current scope (FIXED until scope change / re-open)
+let _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
+function uiDirRoom() { return (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr'; }
 function ensureStudySheet() {
   if (_studySheet) return _studySheet;
   const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'false' } });
   sheet.hidden = true;
   const card = el('div', { class: 'room-study-card' });
-  const xBtn = el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } });
+  card.appendChild(el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } }));
   const head = el('div', { class: 'room-study-head' });
   head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Учить новые слова') }));
-  const body = el('div', { class: 'room-study-body' });
-  card.appendChild(xBtn); card.appendChild(head); card.appendChild(body);
+  head.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
+  card.appendChild(head);
+  card.appendChild(el('div', { class: 'room-study-controls' }));
+  card.appendChild(el('div', { class: 'room-study-bulk' }));
+  card.appendChild(el('div', { class: 'room-study-count' }));
+  card.appendChild(el('div', { class: 'room-study-body' }));
+  card.appendChild(el('div', { class: 'room-study-more' }));
   sheet.appendChild(el('div', { class: 'room-study-backdrop', attrs: { 'data-study-close': '1' } }));
   sheet.appendChild(card);
   document.body.appendChild(sheet);
   sheet.addEventListener('click', (e) => {
-    const t = e.target;
-    if (t && t.closest && t.closest('[data-study-close]')) { closeStudySheet(); return; }
-    const b = t && t.closest ? t.closest('[data-study-status]') : null;
-    if (b) onStudyStatusSet(b);
+    const t = e.target; if (!t || !t.closest) return;
+    if (t.closest('[data-study-close]')) { closeStudySheet(); return; }
+    const sb = t.closest('[data-study-status]'); if (sb) { onStudyStatusSet(sb); return; }
+    if (t.closest('[data-study-more]')) { _studyView.shown += STUDY_CHUNK; renderStudyBody(); return; }
+    const bulk = t.closest('[data-study-bulk]'); if (bulk) { onStudyBulk(bulk.getAttribute('data-study-bulk')); return; }
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && _studySheet && !_studySheet.hidden) closeStudySheet(); });
   _studySheet = sheet;
   return sheet;
 }
 function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } }
-function studyRowEl(w, curStatus) {
-  const uiDir = (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr';
+
+// View = filter (C: band + hide-names) then sort (D: freq[default, already freq-desc+stable] | alpha).
+function studyFiltered() {
+  const v = _studyView;
+  let arr = _studyAll.filter((w) => {
+    if (v.hideNames && w.nameSuspect) return false;
+    if (v.band === '4plus') return w.freq >= 4;
+    if (v.band === '2to3') return w.freq >= 2 && w.freq <= 3;
+    if (v.band === 'rare') return w.freq === 1;
+    return true;
+  });
+  if (v.sort === 'alpha') arr = arr.slice().sort((a, b) => String(a.surface || '').localeCompare(String(b.surface || ''), 'he'));
+  return arr;   // freq → collectNewWords already returns freq-desc + stable tie-break
+}
+function studyRowEl(w) {
+  const cur = w._status || '';
   const row = el('div', { class: 'room-study-row' });
-  row.dataset.key = w.lemmaKey; row.dataset.cur = curStatus || '';
+  row.dataset.key = w.lemmaKey; row.dataset.cur = cur;
   const lead = el('div', { class: 'room-study-lead' });
-  lead.appendChild(el('span', { class: 'room-study-he', text: w.niqqud || w.surface, attrs: { lang: 'he', dir: 'rtl' } }));
+  const heWrap = el('div', { class: 'room-study-hewrap' });
+  heWrap.appendChild(el('span', { class: 'room-study-he', text: w.niqqud || w.surface, attrs: { lang: 'he', dir: 'rtl' } }));
+  if (w.nameSuspect) heWrap.appendChild(el('span', { class: 'room-study-nameflag', i18n: 'room.morph.study.nameSuspect', text: tt('room.morph.study.nameSuspect', 'возможно имя') }));
+  lead.appendChild(heWrap);
   const meta = el('div', { class: 'room-study-meta' });
   if (w.gloss) meta.appendChild(el('span', { class: 'room-study-gloss', text: w.gloss, attrs: { dir: 'ltr' } }));
   const subParts = [];
@@ -550,14 +578,82 @@ function studyRowEl(w, curStatus) {
   if (subParts.length) meta.appendChild(el('span', { class: 'room-study-sub', text: subParts.join(' · '), attrs: { dir: 'rtl', lang: 'he' } }));
   lead.appendChild(meta);
   row.appendChild(lead);
-  const sel = el('div', { class: 'rm-status room-study-sel', attrs: { dir: uiDir } });
-  STUDY_STATUS_OPTS.forEach(([v, key, fb]) => {
+  const sel = el('div', { class: 'rm-status room-study-sel', attrs: { dir: uiDirRoom() } });
+  STUDY_STATUS_OPTS.forEach(([val, key, fb]) => {
     const lab = key ? tt(key, fb) : fb;
-    const cls = 'rm-status-btn rm-status-' + v + ((curStatus || '') === v ? ' rm-status-active' : '');
-    sel.appendChild(el('button', { class: cls, text: lab, attrs: { type: 'button', 'data-study-status': v } }));
+    const cls = 'rm-status-btn rm-status-' + val + (cur === val ? ' rm-status-active' : '');
+    sel.appendChild(el('button', { class: cls, text: lab, attrs: { type: 'button', 'data-study-status': val } }));
   });
   row.appendChild(sel);
   return row;
+}
+// Rebuild count + list (chunked) + «показать ещё» from _studyAll + _studyView (no re-collect).
+function renderStudyBody() {
+  if (!_studySheet) return;
+  const body = _studySheet.querySelector('.room-study-body');
+  const countEl = _studySheet.querySelector('.room-study-count');
+  const moreEl = _studySheet.querySelector('.room-study-more');
+  const bulkEl = _studySheet.querySelector('.room-study-bulk');
+  if (!body) return;
+  const filtered = studyFiltered();
+  const shown = Math.min(_studyView.shown, filtered.length);
+  body.innerHTML = '';
+  if (!filtered.length) {
+    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.empty', text: tt('room.morph.study.empty', 'На этом экране нет новых слов для изучения 🎉') }));
+  } else {
+    for (let i = 0; i < shown; i++) body.appendChild(studyRowEl(filtered[i]));
+  }
+  if (countEl) countEl.textContent = filtered.length ? (tt('room.morph.study.shown', 'Показано') + ' ' + shown + ' / ' + filtered.length) : '';
+  if (moreEl) {
+    moreEl.innerHTML = '';
+    if (shown < filtered.length) moreEl.appendChild(el('button', { class: 'room-study-morebtn', text: tt('room.morph.study.more', 'Показать ещё') + ' (' + (filtered.length - shown) + ')', attrs: { type: 'button', 'data-study-more': '1' } }));
+  }
+  if (bulkEl) bulkEl.style.display = filtered.length ? '' : 'none';
+}
+function renderStudyControls() {
+  if (!_studySheet) return;
+  const wrap = _studySheet.querySelector('.room-study-controls');
+  const bulk = _studySheet.querySelector('.room-study-bulk');
+  const total = _studySheet.querySelector('.room-study-total');
+  if (total) total.textContent = tt('room.morph.study.total', 'Новых слов') + ': ' + _studyAll.length;
+  if (wrap) {
+    wrap.innerHTML = '';
+    const seg = (key, fb, group, val, cur) => el('button', { class: 'room-study-seg' + (cur === val ? ' on' : ''), i18n: key, text: tt(key, fb), attrs: { type: 'button', ['data-study-' + group]: val } });
+    // B — scope
+    const scopeRow = el('div', { class: 'room-study-segrow', attrs: { dir: uiDirRoom() } });
+    scopeRow.appendChild(seg('room.morph.study.scopeAll', 'Весь текст', 'scope', 'all', _studyView.scope));
+    scopeRow.appendChild(seg('room.morph.study.scopeAhead', 'Дальше', 'scope', 'ahead', _studyView.scope));
+    wrap.appendChild(scopeRow);
+    // D — sort + C — band (selects)
+    const mkSel = (labelKey, labelFb, group, opts) => {
+      const lab = el('label', { class: 'room-study-sel-lab' });
+      lab.appendChild(el('span', { i18n: labelKey, text: tt(labelKey, labelFb) }));
+      const s = el('select', { attrs: { 'data-study-select': group, 'aria-label': tt(labelKey, labelFb) } });
+      opts.forEach(([v, k, fb]) => { const o = el('option', { i18n: k, text: tt(k, fb), attrs: { value: v } }); if (v === _studyView[group]) o.setAttribute('selected', ''); s.appendChild(o); });
+      lab.appendChild(s); return lab;
+    };
+    const selRow = el('div', { class: 'room-study-selrow', attrs: { dir: uiDirRoom() } });
+    selRow.appendChild(mkSel('room.morph.study.sort', 'Сортировка', 'sort', [['freq', 'room.morph.study.sortFreq', 'по частоте'], ['alpha', 'room.morph.study.sortAlpha', 'по алфавиту']]));
+    selRow.appendChild(mkSel('room.morph.study.band', 'Частота', 'band', [['all', 'room.morph.study.bandAll', 'все'], ['4plus', 'room.morph.study.band4', 'частые (4+)'], ['2to3', 'room.morph.study.band23', 'средние (2–3)'], ['rare', 'room.morph.study.bandRare', 'редкие (1)']]));
+    wrap.appendChild(selRow);
+    // C — hide names
+    const hn = el('label', { class: 'room-study-check' });
+    const cb = el('input', { attrs: { type: 'checkbox', 'data-study-hidenames': '1' } });
+    cb.checked = !!_studyView.hideNames;
+    hn.appendChild(cb);
+    hn.appendChild(el('span', { i18n: 'room.morph.study.hideNames', text: tt('room.morph.study.hideNames', 'Скрыть возможные имена') }));
+    wrap.appendChild(hn);
+    // wire control changes (delegated change for selects/checkbox)
+    wrap.querySelectorAll('[data-study-scope]').forEach((b) => b.addEventListener('click', () => { _studyView.scope = b.getAttribute('data-study-scope'); _studyView.shown = STUDY_CHUNK; recollectStudy(); }));
+    wrap.querySelectorAll('[data-study-select]').forEach((s) => s.addEventListener('change', (e) => { _studyView[s.getAttribute('data-study-select')] = e.target.value; _studyView.shown = STUDY_CHUNK; renderStudyBody(); }));
+    if (cb) cb.addEventListener('change', () => { _studyView.hideNames = cb.checked; _studyView.shown = STUDY_CHUNK; renderStudyBody(); });
+  }
+  if (bulk) {
+    bulk.innerHTML = '';
+    bulk.appendChild(el('span', { class: 'room-study-bulk-k', i18n: 'room.morph.study.bulkLabel', text: tt('room.morph.study.bulkLabel', 'Видимые:') }));
+    bulk.appendChild(el('button', { class: 'room-study-bulk-btn', text: tt('room.morph.study.bulkKnown', '✓ знаю'), attrs: { type: 'button', 'data-study-bulk': 'known' } }));
+    bulk.appendChild(el('button', { class: 'room-study-bulk-btn', text: tt('room.morph.study.bulkIgnore', '🚫 игнор'), attrs: { type: 'button', 'data-study-bulk': 'ignore' } }));
+  }
 }
 async function onStudyStatusSet(btn) {
   const row = btn.closest ? btn.closest('.room-study-row') : null;
@@ -568,33 +664,53 @@ async function onStudyStatusSet(btn) {
   const st = (row.dataset.cur === val) ? '' : val;   // re-tap toggles off (→ new/unset)
   try { await localDb.setWordStatus(lk, st); } catch (_) {}
   row.dataset.cur = st;
+  const w = _studyAll.find((x) => x.lemmaKey === lk); if (w) w._status = st;   // keep the row visible w/ new highlight (gentle; re-collect on re-open)
   row.querySelectorAll('.rm-status-btn').forEach((b) => b.classList.toggle('rm-status-active', b.getAttribute('data-study-status') === st));
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the text — the wall recolours immediately
 }
+// D — bulk: set status on every CURRENTLY-VISIBLE word (filtered + shown) at once (fast name pruning).
+async function onStudyBulk(status) {
+  const filtered = studyFiltered();
+  const shown = Math.min(_studyView.shown, filtered.length);
+  const targets = filtered.slice(0, shown);
+  if (!targets.length) return;
+  for (const w of targets) { try { await localDb.setWordStatus(w.lemmaKey, status); } catch (_) {} w._status = status; }
+  readerWordStates = null;
+  try { invalidateReadableSet(); } catch (_) {}
+  try { applyDecorations(); } catch (_) {}
+  renderStudyBody();   // reflect the new highlights (rows stay visible)
+  roomToast(tt('room.morph.study.bulkDone', 'Отмечено: ') + targets.length);
+}
+// Collect the frontier for the current scope (B), seed each word's live status, render.
+async function recollectStudy() {
+  const mount = $('roomReaderTable');
+  if (!mount || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== 'function') return;
+  const body = _studySheet && _studySheet.querySelector('.room-study-body');
+  if (body) { body.innerHTML = ''; body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю новые слова…') })); }
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  let states = {}, words = [];
+  try {
+    states = (await ensureWordStates()) || {};
+    const opts = {};
+    if (_studyView.scope === 'ahead') { let top = 0; try { top = currentTopRowIdx() || 0; } catch (_) { top = 0; } opts.rowFrom = top; }
+    words = await window.ReaderMorph.collectNewWords(mount, states, opts);   // NO topN → full frontier
+  } catch (_) { words = []; }
+  if (!_studySheet || _studySheet.hidden) return;   // closed while collecting
+  words.forEach((w) => { w._status = states[w.lemmaKey] || ''; });
+  _studyAll = words;
+  renderStudyControls();
+  renderStudyBody();
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
 async function roomOpenStudyList() {
   const mount = $('roomReaderTable');
   if (!mount || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== 'function') return;
   const sheet = ensureStudySheet();
-  const body = sheet.querySelector('.room-study-body');
-  body.innerHTML = '';
-  body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю новые слова…') }));
+  _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
   sheet.hidden = false; sheet.classList.add('room-study-open');
-  try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  let words = [], states = {};
-  try { states = (await ensureWordStates()) || {}; words = await window.ReaderMorph.collectNewWords(mount, states, { topN: 12 }); }
-  catch (_) { words = []; }
-  if (!_studySheet || _studySheet.hidden) return;   // user closed it while collecting
-  body.innerHTML = '';
-  if (!words.length) {
-    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.empty', text: tt('room.morph.study.empty', 'На этом экране нет новых слов для изучения 🎉') }));
-    try { window.applyI18n && window.applyI18n(); } catch (_) {}
-    return;
-  }
-  body.appendChild(el('div', { class: 'room-study-intro', i18n: 'room.morph.study.intro', text: tt('room.morph.study.intro', 'Отметь, что уже знаешь — цвет в тексте обновится сразу.') }));
-  words.forEach((w) => body.appendChild(studyRowEl(w, states[w.lemmaKey] || '')));
-  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  await recollectStudy();
 }
 
 // ── note-formation: turn a tapped word into a word_study note (the «превращение») ──

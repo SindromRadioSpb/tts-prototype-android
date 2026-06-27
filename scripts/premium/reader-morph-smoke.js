@@ -579,40 +579,52 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(/rm-w-known/.test(ta.colAl), "T-a: a manual status on the FUNCTION word על must colour it by surface, got " + JSON.stringify(ta.colAl) + " key=" + ta.alKey);
     eq(/rm-w-l2/.test(ta.colBn), "T-a: a manual status on the OUT-OF-DICT word בנימה must colour it by surface, got " + JSON.stringify(ta.colBn) + " key=" + ta.bnKey);
 
-    // ── Epic 4.3a — collectNewWords: gather confident, still-new words ranked by frequency, keyed
-    //    IDENTICALLY to decorateWords (save-key == collect-key) — a word marked by that key drops/stays.
+    // ── Epic 4.3a+ — collectNewWords v2: full frontier (uncapped), freq-rank, key-parity, function
+    //    exclusion, scope (rowFrom/rowTo), name-suspect flag. Two-row mount for the scope test.
     const cnw = await pg.evaluate(async () => {
       const R = window.ReaderMorph, NA = window.NotesAutoGen;
       document.querySelectorAll("#rm-cnw").forEach((n) => n.remove());
-      const row = { he: "שלום שלום ספר אין", he_niqqud: "שָׁלוֹם שָׁלוֹם סֵפֶר אֵין" };
+      const r0 = { he: "שלום שלום שלום צבי אין", he_niqqud: "שָׁלוֹם שָׁלוֹם שָׁלוֹם צְבִי אֵין" };
+      const r1 = { he: "ספר ספר", he_niqqud: "סֵפֶר סֵפֶר" };
+      const rows = [r0, r1];
       const mount = document.createElement("div"); mount.id = "rm-cnw";
-      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
-        '<td data-col="he" class="rtl rtl-he">' + row.he + '</td>' +
-        '<td data-col="niqqud" class="rtl rtl-he-niqqud">' + row.he_niqqud + '</td></tr></tbody></table>';
+      mount.innerHTML = '<table id="proTable"><tbody>' +
+        '<tr data-row-idx="0"><td data-col="he" class="rtl rtl-he">' + r0.he + '</td><td data-col="niqqud" class="rtl rtl-he-niqqud">' + r0.he_niqqud + '</td></tr>' +
+        '<tr data-row-idx="1"><td data-col="he" class="rtl rtl-he">' + r1.he + '</td><td data-col="niqqud" class="rtl rtl-he-niqqud">' + r1.he_niqqud + '</td></tr>' +
+        '</tbody></table>';
       document.body.appendChild(mount);
-      R.attach(mount, { getRow: () => row });
+      R.attach(mount, { getRow: (i) => rows[i] });
       const eng = await R.ensureEngine();
-      const sc = await R.resolveCore(eng, "שלום", "שָׁלוֹם");
-      const shalomKey = NA.lemmaKey({ pealim_id: sc.pealim_id, lemma: sc.lemma, word: sc.word, pos: sc.pos });
-      const all = await R.collectNewWords(mount, {}, { topN: 8 });               // empty profile → all confident words are frontier
-      const minus = await R.collectNewWords(mount, { [shalomKey]: "known" }, { topN: 8 });  // mark known → must drop
-      const withNew = await R.collectNewWords(mount, { [shalomKey]: "new" }, { topN: 8 });  // mark new → must stay
+      const keyOf = async (s, n) => { const c = await R.resolveCore(eng, s, n); return NA.lemmaKey({ pealim_id: c.pealim_id, lemma: c.lemma, word: c.word, pos: c.pos }); };
+      const shalomKey = await keyOf("שלום", "שָׁלוֹם");
+      const seferKey = await keyOf("ספר", "סֵפֶר");
+      const all = await R.collectNewWords(mount, {});                              // NO topN → full frontier
+      const scoped = await R.collectNewWords(mount, {}, { rowFrom: 1 });           // only row 1 (ספר)
+      const minus = await R.collectNewWords(mount, { [shalomKey]: "known" });      // mark known → must drop
+      const withNew = await R.collectNewWords(mount, { [shalomKey]: "new" });      // mark new → must stay
       const e0 = all[0] || {};
+      const tzvi = all.find((w) => R.stripNiqqud(w.niqqud || w.surface || "") === "צבי") || null;
+      const shalomEntry = all.find((w) => w.lemmaKey === shalomKey) || null;
       return {
-        shalomKey,
-        words: all.map((w) => ({ k: w.lemmaKey, he: w.niqqud, gloss: w.gloss, root: w.root, pos: w.pos, freq: w.freq })),
+        shalomKey, seferKey, allLen: all.length,
+        words: all.map((w) => ({ k: w.lemmaKey, he: w.niqqud, freq: w.freq, name: w.nameSuspect })),
         firstKey: e0.lemmaKey,
         hasFunc: all.some((w) => R.stripNiqqud(w.niqqud || w.surface || "") === "אין"),
+        shalomEntry, tzviName: tzvi ? tzvi.nameSuspect : null, shalomName: shalomEntry ? shalomEntry.nameSuspect : null,
+        scopedKeys: scoped.map((w) => w.lemmaKey), scopedLen: scoped.length,
         minusHasShalom: minus.some((w) => w.lemmaKey === shalomKey),
         withNewHasShalom: withNew.some((w) => w.lemmaKey === shalomKey),
-        shalomEntry: all.find((w) => w.lemmaKey === shalomKey) || null,
       };
     });
     eq(cnw.shalomEntry, "collectNewWords must include the confident frontier word שלום, got " + JSON.stringify(cnw.words));
-    eq(cnw.shalomEntry && cnw.shalomEntry.freq === 2, "collectNewWords must count in-text frequency (שלום ×2), got " + JSON.stringify(cnw.shalomEntry && cnw.shalomEntry.freq));
-    eq(cnw.firstKey === cnw.shalomKey, "collectNewWords must rank most-frequent first (שלום ×2 before ספר ×1), got " + JSON.stringify(cnw.words));
+    eq(cnw.shalomEntry && cnw.shalomEntry.freq === 3, "collectNewWords must count in-text frequency (שלום ×3), got " + JSON.stringify(cnw.shalomEntry && cnw.shalomEntry.freq));
+    eq(cnw.firstKey === cnw.shalomKey, "collectNewWords must rank most-frequent first (שלום ×3 before others), got " + JSON.stringify(cnw.words));
+    eq(cnw.allLen >= 3, "collectNewWords WITHOUT topN must return the FULL frontier (שלום+ספר+צבי ≥3), got " + cnw.allLen);
     eq(cnw.shalomEntry && /мир/.test(cnw.shalomEntry.gloss || "") && /[֑-ׇ]/.test(cnw.shalomEntry.niqqud || ""), "a collected word must carry its vocalized form + gloss, got " + JSON.stringify(cnw.shalomEntry));
     eq(!cnw.hasFunc, "collectNewWords must EXCLUDE function words (אין — no paradigm to study), got " + JSON.stringify(cnw.words));
+    eq(cnw.tzviName === true, "צבי (a NAME_HINT homograph) must carry nameSuspect=true, got " + JSON.stringify(cnw.tzviName) + " words=" + JSON.stringify(cnw.words));
+    eq(cnw.shalomName === false, "שלום (not a name homograph) must NOT be nameSuspect, got " + JSON.stringify(cnw.shalomName));
+    eq(cnw.scopedLen === 1 && cnw.scopedKeys[0] === cnw.seferKey, "scope {rowFrom:1} must collect ONLY row-1 words (ספר), not row-0 (שלום/צבי), got " + JSON.stringify(cnw.scopedKeys));
     eq(!cnw.minusHasShalom, "a word marked 'known' must DROP from collectNewWords (frontier = new/undefined) — proves save-key==collect-key parity");
     eq(cnw.withNewHasShalom, "a word marked 'new' must STAY in collectNewWords (new = tracking, not known)");
 
