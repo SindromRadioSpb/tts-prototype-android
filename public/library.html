@@ -897,8 +897,12 @@
     .room-study-row { padding: 11px 0; border-top: 1px solid var(--border-soft); }
     .room-study-row:first-of-type { border-top: none; }
     .room-study-lead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
-    .room-study-hewrap { display: inline-flex; align-items: baseline; gap: 8px; flex: none; flex-wrap: wrap; }
+    .room-study-hewrap { display: inline-flex; align-items: center; gap: 8px; flex: none; flex-wrap: wrap; cursor: pointer; }
     .room-study-he { font-size: 23px; font-weight: 700; line-height: 1.2; }
+    .room-study-speak { appearance: none; cursor: pointer; flex: none; width: 30px; height: 30px; padding: 0; line-height: 1;
+      border-radius: 8px; border: 1px solid var(--border-soft); background: var(--bg-muted); font-size: 14px; }
+    .room-study-speak:hover { border-color: var(--accent); background: var(--accent); }
+    .room-study-speak:active { transform: scale(.94); }
     .room-study-nameflag { font-size: 10px; font-weight: 700; color: #d29922; background: rgba(210,153,34,.16); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
     .room-study-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; min-width: 0; text-align: end; }
     .room-study-gloss { font-size: 13px; color: var(--text-secondary); }
@@ -1029,7 +1033,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.23</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.24</span>
   </div>
 </footer>
 

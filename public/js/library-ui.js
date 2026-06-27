@@ -539,6 +539,7 @@ function ensureStudySheet() {
     const t = e.target; if (!t || !t.closest) return;
     if (t.closest('[data-study-close]')) { closeStudySheet(); return; }
     const sb = t.closest('[data-study-status]'); if (sb) { onStudyStatusSet(sb); return; }
+    const sp = t.closest('[data-study-speak]'); if (sp) { onStudySpeak(sp.closest('.room-study-row')); return; }
     if (t.closest('[data-study-more]')) { _studyView.shown += STUDY_CHUNK; renderStudyBody(); return; }
     const bulk = t.closest('[data-study-bulk]'); if (bulk) { onStudyBulk(bulk.getAttribute('data-study-bulk')); return; }
   });
@@ -565,9 +566,13 @@ function studyRowEl(w) {
   const cur = w._status || '';
   const row = el('div', { class: 'room-study-row' });
   row.dataset.key = w.lemmaKey; row.dataset.cur = cur;
+  row.dataset.he = w.niqqud || w.surface || '';   // vocalized form spoken on 🔊 / word tap
   const lead = el('div', { class: 'room-study-lead' });
-  const heWrap = el('div', { class: 'room-study-hewrap' });
+  // pronounce (🔊) — by analogy with the tap-card: tap the word OR the speaker to hear it (reuses
+  // the wired speakWord: BYOK GCP WaveNet → keyless browser). The vocalized form is what's voiced.
+  const heWrap = el('div', { class: 'room-study-hewrap', attrs: { 'data-study-speak': '1' } });
   heWrap.appendChild(el('span', { class: 'room-study-he', text: w.niqqud || w.surface, attrs: { lang: 'he', dir: 'rtl' } }));
+  heWrap.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-study-speak': '1', 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   if (w.nameSuspect) heWrap.appendChild(el('span', { class: 'room-study-nameflag', i18n: 'room.morph.study.nameSuspect', text: tt('room.morph.study.nameSuspect', 'возможно имя') }));
   lead.appendChild(heWrap);
   const meta = el('div', { class: 'room-study-meta' });
@@ -669,6 +674,12 @@ async function onStudyStatusSet(btn) {
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the text — the wall recolours immediately
+}
+// 🔊 pronounce a study row's word (reuses the wired speakWord — GCP WaveNet → keyless browser).
+function onStudySpeak(row) {
+  if (!row) return;
+  const he = row.dataset.he || '';
+  if (he) { try { speakWord(he); } catch (_) {} }
 }
 // D — bulk: set status on every CURRENTLY-VISIBLE word (filtered + shown) at once (fast name pruning).
 async function onStudyBulk(status) {
