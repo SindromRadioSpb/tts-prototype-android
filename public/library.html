@@ -596,6 +596,10 @@
       background: var(--bg-muted); border: 1px solid var(--border-soft); color: var(--text-secondary);
       border-radius: 8px; width: 30px; height: 30px; font-size: 14px; line-height: 1;
     }
+    /* root-family drill «‹ Назад» (above the headword; ✕ stays top-left absolute, no collision). */
+    .rm-back { appearance: none; cursor: pointer; display: inline-flex; align-items: center; gap: 2px;
+      background: none; border: none; color: var(--accent); font-size: 13.5px; font-weight: 600; padding: 0; margin: 0 0 8px; }
+    .rm-back:hover { text-decoration: underline; }
     .rm-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding-inline-end: 36px; }
     .rm-word { font-size: 27px; font-weight: 700; line-height: 1.2; }
     .rm-prov { flex: none; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
@@ -946,7 +950,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.12</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.13</span>
   </div>
 </footer>
 

@@ -1988,6 +1988,7 @@ window.I18N_LOCALES.en = {
     morph: {
       loading: "Analyzing…",
       close: "Close",
+      back: "Back",
       root: "root",
       binyan: "binyan",
       posLabel: "part of speech",

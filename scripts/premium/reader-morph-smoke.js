@@ -195,6 +195,20 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // Epic-3a — pronounce button + enriched root-family chips (vocalized form span per chip).
     eq(card.hasSpeak, "card head must show a 🔊 pronounce button (Epic-3a)");
     eq(card.famCount === 0 || card.famHasHe, "root-family chips (when present) must render a .rm-fam-he vocalized form (Epic-3a), got famCount=" + card.famCount + " famHasHe=" + card.famHasHe);
+    // root-family drill «‹ Назад»: tap a chip → card replaced + back row appears → back → original restored.
+    if (card.famCount > 0) {
+      const headOf = () => pg.evaluate(() => { const w = document.querySelector(".rm-sheet-body .rm-word"); return w ? w.textContent : ""; });
+      const baseHead = await headOf();
+      await pg.evaluate(() => { const c = document.querySelector(".rm-sheet-body .rm-rootfam-chip"); const d = c && c.closest ? c.closest("details") : null; if (d) d.open = true; });
+      await pg.locator(".rm-sheet-body .rm-rootfam-chip").first().click();
+      await pg.waitForFunction((h) => { const w = document.querySelector(".rm-sheet-body .rm-word"); return w && w.textContent !== h && document.querySelector(".rm-back"); }, baseHead, { timeout: 8000 }).catch(() => {});
+      const drilled = await pg.evaluate(() => ({ head: (document.querySelector(".rm-sheet-body .rm-word") || {}).textContent || "", hasBack: !!document.querySelector(".rm-back") }));
+      eq(drilled.hasBack && drilled.head !== baseHead, "drilling into a root-family chip must open its card + show «‹ Назад», got " + JSON.stringify(drilled));
+      await pg.locator(".rm-back").click();
+      await pg.waitForFunction((h) => { const w = document.querySelector(".rm-sheet-body .rm-word"); return w && w.textContent === h; }, baseHead, { timeout: 8000 }).catch(() => {});
+      const backHead = await headOf();
+      eq(backHead === baseHead, "«‹ Назад» must restore the original word, got " + JSON.stringify(backHead) + " want " + JSON.stringify(baseHead));
+    }
 
     // ── Epic 1 P1.2 — ambiguous homograph card: «возможно также» + enrichment gated ──
     await pg.evaluate(() => { try { window.ReaderMorph.closeSheet(); } catch (_) {} });

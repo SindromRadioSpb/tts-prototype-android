@@ -785,6 +785,10 @@
   // the stripped surface, its niqqud, and the sentence to send to Dicta. null on root-family
   // chip cards (no sentence) so the refine button never offers an outbound it can't make.
   var _activeWordCtx = null;
+  // Root-family drill back-stack — tapping a «Слова от этого корня» chip pushes the current card
+  // here, so «‹ Назад» can step back sequentially through however many drills (instead of forcing
+  // the user to close + re-tap). Reset on a fresh word tap (onActivate) and on close.
+  var _cardStack = [];
 
   function ensureSheet() {
     if (_sheet) return _sheet;
@@ -803,6 +807,7 @@
     el.addEventListener("click", function (e) {
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
+      if (t && t.closest && t.closest("[data-rm-back]")) { onCardBack(); return; }
       var sbtn = t && t.closest ? t.closest("[data-rm-status]") : null;
       if (sbtn) { onStatusSet(sbtn.getAttribute("data-rm-status")); return; }
       if (t && t.closest && t.closest("[data-rm-speak]")) { onSpeak(); return; }
@@ -822,6 +827,12 @@
   function closeSheet() {
     if (_sheet) { _sheet.hidden = true; _sheet.classList.remove("rm-open"); }
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
+    _cardStack = [];   // drilling history dies with the sheet
+  }
+  // Root-family «‹ Назад» — pop the previous card and re-render it (sequential, multi-level).
+  function onCardBack() {
+    var prev = _cardStack.pop();
+    if (prev) openCard(prev.card, prev.occ);
   }
 
   // Epic 4 — one-tap manual status selector (new/1/2/3/4/known/ignore). Shown when a setWordStatus
@@ -1056,7 +1067,11 @@
         '<button type="button" class="rm-refine-all" data-rm-refine-all>' + escapeHtml(tt("room.morph.refineAll", "Включить для всех слов")) + "</button>" +
         "</div></div></div>";
     }
-    return head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    // Root-family drill — «‹ Назад» row when we've drilled in from a chip (sequential pop).
+    var backRow = _cardStack.length
+      ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
+      : "";
+    return backRow + head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1107,6 +1122,7 @@
     var disp = chip.getAttribute("data-w") || "";
     var surface = stripNiqqud(disp);
     if (!surface) return;
+    if (_activeCard) _cardStack.push({ card: _activeCard, occ: _activeOcc });   // drill → remember where we came from
     _activeWordCtx = null;   // chip card has no sentence → no per-card refine offered
     openCardLoading();
     try { var card = await resolveWordLight(surface, disp); openCard(card, null); }
@@ -1157,6 +1173,7 @@
         var row = Number.isFinite(rowIdx) ? getRow(rowIdx) : null;
         var sentence = row ? (String(row.he || "") || stripNiqqud(String(row.he_niqqud || ""))) : "";
         _activeWordCtx = { surface: stripNiqqud(surface), niqqud: niqqud, sentence: sentence };
+        _cardStack = [];   // a fresh word tap starts a new drill history
         // Tier-3 «точный режим» (opt-in, GLOBAL auto): when a contextProvider is wired it
         // gates on the user's standing consent and returns the context reading (or null when
         // declined/undecided/offline); degrade silently to offline on any miss.

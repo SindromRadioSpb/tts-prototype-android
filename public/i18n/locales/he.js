@@ -1998,6 +1998,7 @@ window.I18N_LOCALES.he = {
     morph: {
       loading: "מנתח…",
       close: "סגירה",
+      back: "חזרה",
       root: "שורש",
       binyan: "בניין",
       posLabel: "חלק דיבר",

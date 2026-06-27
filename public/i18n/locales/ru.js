@@ -2002,6 +2002,7 @@ window.I18N_LOCALES.ru = {
     morph: {
       loading: "Анализ…",
       close: "Закрыть",
+      back: "Назад",
       root: "корень",
       binyan: "биньян",
       posLabel: "часть речи",
