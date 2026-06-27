@@ -1314,13 +1314,21 @@
         var card; try { card = await resolveCore(eng, surface, niqqud); }
         catch (_) { if (isNiqqud && niqqud != null) span.textContent = niqqud; continue; }   // unconfident → keep niqqud
         var confident = !!(card && (card.label === "exact" || card.label === "likely"));   // gate (R1/R10)
-        var raw = undefined;   // the learner's SAVED state for this lemma; undefined = UNSEEN (never "familiar" → keeps niqqud)
-        if (confident) {
-          var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) : "";
-          raw = states[lk];
+        // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident),
+        // byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status on a function/unknown
+        // word (which the resolver can't confidently ID) still colours by its surface form.
+        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) : "";
+        var raw = lk ? states[lk] : undefined;
+        if (color) {
+          // Confident → defaults to 'new' (the unseen «blue wall»). UNCONFIDENT → coloured ONLY when the
+          // user explicitly engaged it (manual status OR saved note → a states entry); NEVER defaulted to
+          // 'new' (honest: we don't fabricate a status for a word we can't identify). R11 precedence: a
+          // confident word uses its lemma-key, so a surface-status never leaks onto a confident homograph.
+          var st = confident ? (raw || "new") : (raw || "");
+          var cls = st ? STATE_CLASS[st] : "";
+          if (cls) span.classList.add(cls);
         }
-        if (color && confident) { var cls = STATE_CLASS[raw || "new"]; if (cls) span.classList.add(cls); }   // unseen ⇒ 'new' (blue)
-        if (isNiqqud) span.textContent = (fadeDecision(raw, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud;
+        if (isNiqqud) span.textContent = (fadeDecision(confident ? raw : undefined, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud;
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }

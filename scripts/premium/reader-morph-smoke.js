@@ -412,6 +412,31 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(row.al.label === "function" && row.al.fn && !row.al.confident, "על must be a FUNCTION word → honestly NOT coloured (not a bug), got " + JSON.stringify(row.al));
     eq(row.benima.label === "unknown" && !row.benima.confident, "בנימה must be «unknown» (נימה not in offline dict) → honestly NOT coloured (not a keying bug), got " + JSON.stringify(row.benima));
 
+    // ── T-a — manual status colours UNCONFIDENT words (function/unknown) by SURFACE; without an
+    //    explicit user engagement they stay plain (honest — never auto-fabricated). ──
+    const ta = await pg.evaluate(async () => {
+      const R = window.ReaderMorph, NA = window.NotesAutoGen;
+      document.querySelectorAll("#rm-ta").forEach((n) => n.remove());
+      const mount = document.createElement("div"); mount.id = "rm-ta";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">על בנימה</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">עַל בְּנִימָה</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      R.attach(mount, { getRow: () => ({ he: "על בנימה", he_niqqud: "עַל בְּנִימָה" }) });
+      const eng = await R.ensureEngine();
+      const key = async (s, n) => { const c = await R.resolveCore(eng, s, n); return NA.lemmaKey({ pealim_id: c.pealim_id, lemma: c.lemma, word: c.word, pos: c.pos }); };
+      const alKey = await key("על", "עַל"), bnKey = await key("בנימה", "בְּנִימָה");
+      const clsOf = (surf) => { const s = mount.querySelector('td[data-col="he"] .rm-w[data-surface="' + surf + '"]'); return s ? s.className : ""; };
+      await R.decorateWords(mount, {}, { color: true, fadeMode: "full" });   // (b) no engagement → plain
+      const plainAl = clsOf("על"), plainBn = clsOf("בנימה");
+      const states = {}; states[alKey] = "known"; states[bnKey] = "l2";       // (a) manual → colour by surface
+      await R.decorateWords(mount, states, { color: true, fadeMode: "full" });
+      return { alKey, bnKey, plainAl, plainBn, colAl: clsOf("על"), colBn: clsOf("בנימה") };
+    });
+    eq(!/rm-w-/.test(ta.plainAl) && !/rm-w-/.test(ta.plainBn), "T-a: unconfident words with NO engagement must stay plain (no rm-w-*), got al=" + JSON.stringify(ta.plainAl) + " bn=" + JSON.stringify(ta.plainBn));
+    eq(/rm-w-known/.test(ta.colAl), "T-a: a manual status on the FUNCTION word על must colour it by surface, got " + JSON.stringify(ta.colAl) + " key=" + ta.alKey);
+    eq(/rm-w-l2/.test(ta.colBn), "T-a: a manual status on the OUT-OF-DICT word בנימה must colour it by surface, got " + JSON.stringify(ta.colBn) + " key=" + ta.bnKey);
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));
