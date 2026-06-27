@@ -55,4 +55,5 @@ v1 (этот заход): A+B+C+D как выше (фронтир-словарь
 - **CSS** `.room-study-*` (controls/seg/select/bulk/count/more/nameflag), **i18n** ru/en/he (+20 study-ключей).
 - **Гейты:** reader-morph (+collectNewWords v2: full/scope/nameSuspect/key-parity), scaffold 234, parity, word-status, notes, context, corpus-vocab 37, i18n 226. @380px свет+тёмная ✓.
 - **Live-verify (Kapture, прод, профиль 7026, «הכינור» 1769 строк):** fullCount=**973** (было 12), scope rowFrom:800→**655**, nameSuspect=**[יהודית, צבי, עליזה]** — ровно те 3 имени, что вскрыл measure. Прод-маркеры v3.11.23 ✓.
-- **v2-беклог:** Tier-3 batch name/sense-check; manage-all-vocabulary (не только фронтир); root-family группировка.
+- **🔊 произношение в листе (v3.11.24, `053c48e`):** по аналогии с тап-карточкой — у каждой строки 🔊 (и сам огласованный word тапается) → `speakWord` (BYOK GCP WaveNet → keyless browser); `row.dataset.he` = огласованная форма. Reuse шиппнутого pronounce, без резолвер/i18n-изменений (room.morph.pronounce). CSS `.room-study-speak`. Прод-маркеры ✓; @380px свет. Последовательный «прослушать всё» → v2 (нужен надёжный end-detect для GCP+browser TTS).
+- **v2-беклог:** sequential «прослушать всё» (listen-drill); Tier-3 batch name/sense-check; manage-all-vocabulary (не только фронтир); root-family группировка.
