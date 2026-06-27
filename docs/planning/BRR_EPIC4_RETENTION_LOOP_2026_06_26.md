@@ -1,6 +1,6 @@
 # Эпик 4 — Замкнуть петлю удержания в Зале (моат LingQ) · P1 / L · R2/R5
 
-**Дата:** 2026-06-26 · **Статус:** 🟢 RECON одобрен (решения ниже), фаза 4.1 в работе.
+**Дата:** 2026-06-26 (обновл. 2026-06-27) · **Статус:** 🟢 Фазы 4.1+4.2+**4.3a SHIPPED+PROD** (v3.11.22); 4.3b (cloze recall) — next.
 **Родитель:** `docs/planning/BRR_UX_AUDIT_2026_06_25.md` §ЭПИК 4 + аудит петли `docs/research/retention-loop-audit/2026-06-26/FINDINGS.md`. Память [[project_brr_ux_audit]] · [[project_srs_strategy]] · [[feedback_no_override_grounded_reading]]. Роли R2/R5 (вед.) · R4 · R3 · R8 · R11.
 
 ## Почему (из аудита петли)
@@ -54,7 +54,7 @@ A11y: known≠new кодируется присутствием-подсветк
 
 ## 🟢 АКТУАЛИЗАЦИЯ 2026-06-27 (READ FIRST перед 4.3) — что изменилось и как это влияет на 4.3
 
-**Прод: app+SW v3.11.21, HEAD `3c79cf9`.** Все гейты зелёные. Фазы 4.1 (a+b) + 4.2 SHIPPED+PROD. 4.3 — следующая (не начата). После 4.2 в этой сессии отгружено много смежного — оно МЕНЯЕТ вход для 4.3:
+**Прод: app+SW v3.11.22, HEAD `909fa2a`.** Все гейты зелёные. Фазы 4.1 (a+b) + 4.2 + **4.3a SHIPPED+PROD**. **4.3b (recall-loop cloze) — следующая, не начата.** После 4.2 в этой сессии отгружено много смежного — оно МЕНЯЕТ вход для 4.3:
 
 ### Отгружено 2026-06-27 (по порядку, всё PROD-verified)
 - **Track-any-word T-a (v3.11.14 `d42dada`):** `decorateWords` красит ЛЮБОЕ engaged-слово. confident → lemma-key (дефолт `new`/синий); unconfident (служебное/неизвестное) → красится ТОЛЬКО при явной записи в states (manual-статус ИЛИ заметка), иначе plain. R11-прецедент: surface-статус не течёт на confident-гомограф.
@@ -75,10 +75,11 @@ A11y: known≠new кодируется присутствием-подсветк
 - Читаемость/frontier: `corpus-vocab.coverageForWork` (KNOWN_STATES без «new»; known/l1-4/learning/weak/stale/ignore считаются; new+undefined = unknown-gap = frontier-кандидаты).
 - Аиды-панель (куда «📚 Учить»): `library-ui.js buildAidsPanel()` (≈стр.1072) — там уже toggle статуса + видимая легенда.
 
-### 4.3a frontier-study (NEXT) — уточнённый план
-1. **`ReaderMorph.collectNewWords(mount, statesMap, {topN=8})`** (НОВЫЙ, экспортировать): скан `.rm-w` → per-span резолв → ключ через `_statusKeyWord`+`_statusPid` (НЕ голый resolveCore!) → группа по lemmaKey → фильтр `status∈{new, undefined}` (через statesMap=getKnownWordStates) → ранг по частоте в тексте → top-N. Возврат `[{lemmaKey, surface, niqqud, gloss, root, pos, freq}]`. Self-contained (резолвер + statesMap).
-2. **library-ui:** «📚 Учить» в `buildAidsPanel` → лист собранных слов (niqqud + глосс + компактный статус-селектор, reuse `.rm-status`-паттерн) → one-tap mark (setWordStatus) → инвалидировать readerWordStates + applyDecorations (мгновенная перекраска). i18n `room.morph.study.*` (ru/en/he).
-3. **Гейт:** smoke (collectNewWords: фильтрует new/undefined, ранг по частоте, ключи как у decorateWords) + @380px свет+тёмная. Volume-тест на большом профиле.
+### 4.3a frontier-study — ✅ SHIPPED+PROD (v3.11.22, `909fa2a`, 2026-06-27)
+1. **`ReaderMorph.collectNewWords(mount, statesMap, {topN=8})`** (НОВЫЙ, экспортирован): скан `.rm-w` (he-колонка, fallback niqqud — каждое слово 1 раз) → per-span resolveCore → ключ через **новый общий `statusKeyForCard(NA,card,niqqud,surface)`** → фильтр confident (exact|likely, content) + `status∈{new, undefined}` → ранг по частоте → top-N. Возврат `[{lemmaKey, surface, niqqud, gloss, root, pos, freq}]`. **Anti-drift:** `statusKeyForCard` = ЕДИНЫЙ кейер, на него переведены decorateWords/resolveWordLight/showStatusPopover (раньше ключ дублировался инлайн в 3 местах → риск дрейфа save≠paint).
+2. **library-ui:** «📚 Учить» в `buildAidsPanel` → bottom-sheet `roomOpenStudyList` (niqqud + глосс + root·×freq + компактный `.rm-status`-селектор) → one-tap `setWordStatus` → инвалидировать readerWordStates + applyDecorations (мгновенная перекраска). i18n `room.morph.study.*` (ru/en/he).
+3. **Гейт:** reader-morph smoke +collectNewWords-блок (фильтр new/undefined, freq-ранг, **key-parity: слово, помеченное 'known' по ключу, выпадает из collectNewWords**, function-word исключён). @380px свет+тёмная ✓. **Measure-before-code + live-verify (Kapture, реальный профиль 7026):** shipped-функция воспроизвела measure 1-в-1; `parityDrop` подтверждён на живом движке (pid:122 'known' → выпал).
+**Файлы:** `reader-morph.js` (statusKeyForCard + collectNewWords + export), `library-ui.js` (study-sheet + кнопка), `library.html` (CSS .room-study/.reader-aids-study), locales ru/en/he, smoke. **NEXT → 4.3b recall-loop (cloze).**
 
 ### 4.3b recall-loop — план
 In-session cloze из `readerRows` (в памяти; `note_occurrences` хранит ids+surface БЕЗ текста → cross-text cloze отложен). Бланкуем сохранённое/учимое слово в РЕАЛЬНОМ предложении readerRows → узнавание (MC из честных ривалов — родственные/похожие леммы) ИЛИ ввод → верно→уровень↑ (setWordStatus l→l+1/known), нет→↓. Manual-статус, НЕ Anki-карта (Anki держит расписание). **Детерминированный shuffle (НЕ Math.random — индекс/seed).** Гейт + @380px.
