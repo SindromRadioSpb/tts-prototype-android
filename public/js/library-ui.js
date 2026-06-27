@@ -1088,6 +1088,17 @@ function buildAidsPanel() {
   wsLab.appendChild(el('span', { i18n: 'room.morph.statusToggle', text: tt('room.morph.statusToggle', '🎨 Статус слов') }));
   wsLab.appendChild(el('span', { class: 'reader-aids-info', attrs: { title: statusHint, 'aria-hidden': 'true' }, text: 'ⓘ' }));
   panel.appendChild(wsLab);
+  // Epic 4 — VISIBLE status-colour legend (premium + mobile-legible; title tooltips fail @380px).
+  const legend = el('div', { class: 'reader-status-legend', attrs: { 'aria-label': tt('room.morph.statusToggle', '🎨 Статус слов') } });
+  [['new', tt('room.morph.status.new', 'новое')], ['l1', '1'], ['l2', '2'], ['l3', '3'], ['l4', '4'],
+    ['known', tt('room.morph.status.known', 'знаю')], ['ignore', tt('room.morph.status.ignore', 'игнор')]].forEach(([c, l]) => {
+    const sw = el('span', { class: 'reader-status-sw' });
+    sw.appendChild(el('span', { class: 'reader-status-dot sw-' + c }));
+    sw.appendChild(el('span', { text: l }));
+    legend.appendChild(sw);
+  });
+  panel.appendChild(legend);
+  panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.morph.statusNote', text: tt('room.morph.statusNote', 'Цвет — у уверенно распознанных учебных слов; служебные и не найденные в словаре остаются без цвета.') }));
   // R8 on-ramp — one short line teaching the two fading aids.
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.reader.scaffoldHint', text: tt('room.reader.scaffoldHint', '«По нужде»: огласовка тает на знакомых словах. «По тапу»: перевод скрыт — тапни строку, чтобы открыть.') }));
   // Tier-3 — «точный режим» (context disambiguation via Dicta; auto on every tap once granted).

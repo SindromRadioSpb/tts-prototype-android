@@ -23,6 +23,16 @@
       --accent: #2563eb;
       --accent-contrast: #ffffff;
       --shadow: 0 1px 3px rgba(15, 23, 42, .08), 0 1px 2px rgba(15, 23, 42, .04);
+      /* Epic 4 — word-status palette (SINGLE SOURCE OF TRUTH for table words + card chips + family
+         chips). Premium soft-chip: low-alpha bg · saturated border · readable text. Temperature:
+         new=blue · 1=amber · 2=orange · 3=lime · 4=teal · known=emerald · ignore=slate. */
+      --ws-new-bg: rgba(37,99,235,.12);     --ws-new-bd: rgba(37,99,235,.5);    --ws-new-tx: #1d4ed8;
+      --ws-l1-bg: rgba(245,158,11,.17);     --ws-l1-bd: rgba(245,158,11,.6);    --ws-l1-tx: #b45309;
+      --ws-l2-bg: rgba(249,115,22,.16);     --ws-l2-bd: rgba(249,115,22,.6);    --ws-l2-tx: #c2410c;
+      --ws-l3-bg: rgba(132,204,22,.20);     --ws-l3-bd: rgba(132,204,22,.65);   --ws-l3-tx: #4d7c0f;
+      --ws-l4-bg: rgba(20,184,166,.17);     --ws-l4-bd: rgba(20,184,166,.6);    --ws-l4-tx: #0f766e;
+      --ws-known-bg: rgba(5,150,105,.17);   --ws-known-bd: rgba(5,150,105,.62); --ws-known-tx: #047857;
+      --ws-ignore-bg: rgba(100,116,139,.14);--ws-ignore-bd: rgba(100,116,139,.5);--ws-ignore-tx: #475569;
     }
     @media (prefers-color-scheme: dark) {
       body:not(.theme-light) {
@@ -36,6 +46,13 @@
         --accent: #60a5fa;
         --accent-contrast: #0b1220;
         --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+        --ws-new-bg: rgba(59,130,246,.24);    --ws-new-bd: rgba(59,130,246,.55);  --ws-new-tx: #93c5fd;
+        --ws-l1-bg: rgba(245,158,11,.22);     --ws-l1-bd: rgba(245,158,11,.55);   --ws-l1-tx: #fcd34d;
+        --ws-l2-bg: rgba(249,115,22,.22);     --ws-l2-bd: rgba(249,115,22,.55);   --ws-l2-tx: #fdba74;
+        --ws-l3-bg: rgba(132,204,22,.22);     --ws-l3-bd: rgba(132,204,22,.55);   --ws-l3-tx: #bef264;
+        --ws-l4-bg: rgba(20,184,166,.24);     --ws-l4-bd: rgba(20,184,166,.55);   --ws-l4-tx: #5eead4;
+        --ws-known-bg: rgba(16,185,129,.24);  --ws-known-bd: rgba(16,185,129,.6); --ws-known-tx: #6ee7b7;
+        --ws-ignore-bg: rgba(100,116,139,.22);--ws-ignore-bd: rgba(100,116,139,.5);--ws-ignore-tx: #cbd5e1;
       }
     }
     body.theme-dark {
@@ -43,6 +60,13 @@
       --text-primary: #f1f5f9; --text-secondary: #cbd5e1; --text-faint: #7c8ba3;
       --border-soft: #334155; --accent: #60a5fa; --accent-contrast: #0b1220;
       --shadow: 0 1px 3px rgba(0, 0, 0, .4);
+      --ws-new-bg: rgba(59,130,246,.24);    --ws-new-bd: rgba(59,130,246,.55);  --ws-new-tx: #93c5fd;
+      --ws-l1-bg: rgba(245,158,11,.22);     --ws-l1-bd: rgba(245,158,11,.55);   --ws-l1-tx: #fcd34d;
+      --ws-l2-bg: rgba(249,115,22,.22);     --ws-l2-bd: rgba(249,115,22,.55);   --ws-l2-tx: #fdba74;
+      --ws-l3-bg: rgba(132,204,22,.22);     --ws-l3-bd: rgba(132,204,22,.55);   --ws-l3-tx: #bef264;
+      --ws-l4-bg: rgba(20,184,166,.24);     --ws-l4-bd: rgba(20,184,166,.55);   --ws-l4-tx: #5eead4;
+      --ws-known-bg: rgba(16,185,129,.24);  --ws-known-bd: rgba(16,185,129,.6); --ws-known-tx: #6ee7b7;
+      --ws-ignore-bg: rgba(100,116,139,.22);--ws-ignore-bd: rgba(100,116,139,.5);--ws-ignore-tx: #cbd5e1;
     }
 
     * { box-sizing: border-box; }
@@ -665,14 +689,17 @@
        ignore=plain + faint dotted underline (distinguish «skip» from «known»). SRS-derived learning
        keeps its amber; weak/stale reuse learning. known≠new is signalled by PRESENCE of fill (not
        colour alone, WCAG); the explicit level lives as a number in the card selector. */
-    .rm-w-known { background: transparent; }                       /* the wall clears to plain text */
-    .rm-w-ignore { background: transparent; text-decoration: underline dotted rgba(127,127,127,.5); text-underline-offset: 3px; }
-    .rm-w-learning { background: rgba(210,153,34,.22); border-radius: 3px; }
-    .rm-w-new { background: rgba(90,155,255,.20); border-radius: 3px; }
-    .rm-w-l1 { background: rgba(240,165,0,.36); border-radius: 3px; }
-    .rm-w-l2 { background: rgba(240,165,0,.27); border-radius: 3px; }
-    .rm-w-l3 { background: rgba(240,165,0,.18); border-radius: 3px; }
-    .rm-w-l4 { background: rgba(240,165,0,.10); border-radius: 3px; }
+    /* Epic 4 — temperature palette via the --ws-* tokens. known=emerald (NOT transparent — a
+       confident «выучено», distinct from plain/untracked + unconfident words, which stay plain).
+       Function/unknown words are intentionally NOT coloured (honest gate) — see the status legend. */
+    .rm-w-new { background: var(--ws-new-bg); border-radius: 3px; }
+    .rm-w-l1 { background: var(--ws-l1-bg); border-radius: 3px; }
+    .rm-w-l2 { background: var(--ws-l2-bg); border-radius: 3px; }
+    .rm-w-l3 { background: var(--ws-l3-bg); border-radius: 3px; }
+    .rm-w-l4 { background: var(--ws-l4-bg); border-radius: 3px; }
+    .rm-w-known { background: var(--ws-known-bg); border-radius: 3px; }
+    .rm-w-ignore { background: var(--ws-ignore-bg); border-radius: 3px; }
+    .rm-w-learning { background: var(--ws-l2-bg); border-radius: 3px; }   /* SRS-derived (Anki) → temperature-mapped */
     .rm-w.rm-w-active { background: var(--accent); color: var(--accent-contrast); }   /* tapped word wins over fill */
     /* BRR-P1-008 karaoke — stronger "current line" while reading aloud (reuses .row-playing). */
     #roomReaderTable.karaoke-on tr.row-playing:not(.row-error) td { background: rgba(90,155,255,.16); }
@@ -759,29 +786,45 @@
     .rm-fam-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 7px; }
     .rm-fam-pos { font-size: 10.5px; color: var(--text-faint); }
     .rm-fam-gloss { font-size: 12px; color: var(--text-secondary); }
-    /* status tint (mirrors in-text word-status; left accent bar so colour isn't the only cue, WCAG) */
-    .rm-rootfam-chip.rm-fam-known { border-color: rgba(63,185,80,.55); border-inline-start-width: 3px; }
-    .rm-rootfam-chip.rm-fam-learning { border-color: rgba(210,153,34,.6); border-inline-start-width: 3px; }
-    .rm-rootfam-chip.rm-fam-new { border-color: rgba(90,155,255,.6); border-inline-start-width: 3px; }
-    .rm-rootfam-chip.rm-fam-l1, .rm-rootfam-chip.rm-fam-l2, .rm-rootfam-chip.rm-fam-l3, .rm-rootfam-chip.rm-fam-l4 { border-color: rgba(240,165,0,.6); border-inline-start-width: 3px; }
-    .rm-rootfam-chip.rm-fam-ignore { border-color: var(--border-soft); opacity: .6; }
-    /* Epic 4 — one-tap manual status selector (LingQ levels new/1-4/known/ignore). */
+    /* status tint — family chips carry the SAME --ws-* palette on a left accent bar (colour ≠ only cue, WCAG). */
+    .rm-rootfam-chip.rm-fam-new { border-inline-start-color: var(--ws-new-bd); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-l1 { border-inline-start-color: var(--ws-l1-bd); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-l2 { border-inline-start-color: var(--ws-l2-bd); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-l3 { border-inline-start-color: var(--ws-l3-bd); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-l4 { border-inline-start-color: var(--ws-l4-bd); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-known { border-inline-start-color: var(--ws-known-bd); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-learning { border-inline-start-color: var(--ws-l2-bd); border-inline-start-width: 3px; }
+    .rm-rootfam-chip.rm-fam-ignore { border-inline-start-color: var(--ws-ignore-bd); border-inline-start-width: 3px; opacity: .7; }
+    /* Epic 4 — one-tap manual status selector. Each button is a premium chip in its OWN status
+       colour (so the row previews the in-text palette); the active one is emphasised (2px + bold). */
     .rm-status { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; }
     .rm-status-k { font-size: 12px; color: var(--text-secondary); margin-inline-end: 2px; }
     .rm-status-btn {
-      appearance: none; cursor: pointer; min-width: 30px; padding: 5px 9px; border-radius: 7px;
+      appearance: none; cursor: pointer; min-width: 30px; padding: 5px 10px; border-radius: 8px;
       border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-secondary);
-      font-size: 12.5px; font-weight: 600; line-height: 1;
+      font-size: 12.5px; font-weight: 700; line-height: 1;
     }
-    .rm-status-btn:hover { border-color: var(--accent); }
-    .rm-status-btn.rm-status-active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
-    /* per-value swatch hint on the level buttons (so the selector previews the in-text colour) */
-    .rm-status-btn.rm-status-l1 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.55); }
-    .rm-status-btn.rm-status-l2 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.42); }
-    .rm-status-btn.rm-status-l3 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.3); }
-    .rm-status-btn.rm-status-l4 { box-shadow: inset 0 -3px 0 rgba(240,165,0,.18); }
-    .rm-status-btn.rm-status-new { box-shadow: inset 0 -3px 0 rgba(90,155,255,.5); }
-    .rm-status-btn.rm-status-active { box-shadow: none; }
+    .rm-status-btn.rm-status-new    { background: var(--ws-new-bg);    border-color: var(--ws-new-bd);    color: var(--ws-new-tx); }
+    .rm-status-btn.rm-status-l1     { background: var(--ws-l1-bg);     border-color: var(--ws-l1-bd);     color: var(--ws-l1-tx); }
+    .rm-status-btn.rm-status-l2     { background: var(--ws-l2-bg);     border-color: var(--ws-l2-bd);     color: var(--ws-l2-tx); }
+    .rm-status-btn.rm-status-l3     { background: var(--ws-l3-bg);     border-color: var(--ws-l3-bd);     color: var(--ws-l3-tx); }
+    .rm-status-btn.rm-status-l4     { background: var(--ws-l4-bg);     border-color: var(--ws-l4-bd);     color: var(--ws-l4-tx); }
+    .rm-status-btn.rm-status-known  { background: var(--ws-known-bg);  border-color: var(--ws-known-bd);  color: var(--ws-known-tx); }
+    .rm-status-btn.rm-status-ignore { background: var(--ws-ignore-bg); border-color: var(--ws-ignore-bd); color: var(--ws-ignore-tx); }
+    .rm-status-btn:hover { border-color: currentColor; }
+    .rm-status-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .rm-status-btn.rm-status-active { border-width: 2px; font-weight: 800; box-shadow: inset 0 0 0 1px currentColor; }
+    /* Epic 4 — visible status-colour legend (aids panel; mobile-legible, references the --ws-* tokens). */
+    .reader-status-legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 6px 0 2px; }
+    .reader-status-sw { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-secondary); }
+    .reader-status-dot { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid var(--border-soft); flex: none; }
+    .reader-status-dot.sw-new { background: var(--ws-new-bg); border-color: var(--ws-new-bd); }
+    .reader-status-dot.sw-l1 { background: var(--ws-l1-bg); border-color: var(--ws-l1-bd); }
+    .reader-status-dot.sw-l2 { background: var(--ws-l2-bg); border-color: var(--ws-l2-bd); }
+    .reader-status-dot.sw-l3 { background: var(--ws-l3-bg); border-color: var(--ws-l3-bd); }
+    .reader-status-dot.sw-l4 { background: var(--ws-l4-bg); border-color: var(--ws-l4-bd); }
+    .reader-status-dot.sw-known { background: var(--ws-known-bg); border-color: var(--ws-known-bd); }
+    .reader-status-dot.sw-ignore { background: var(--ws-ignore-bg); border-color: var(--ws-ignore-bd); }
     /* Epic 4.2 — in-text quick-status popover (long-press a word → set level without the card). */
     .rm-statpop { position: fixed; z-index: 1300; }
     .rm-statpop[hidden] { display: none; }
@@ -912,7 +955,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.10</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.11</span>
   </div>
 </footer>
 

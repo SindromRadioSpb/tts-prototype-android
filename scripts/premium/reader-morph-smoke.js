@@ -357,6 +357,47 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(lp.call && lp.call[1] === "known", "tapping a popover level must call setWordStatus(lemmaKey, value), got " + JSON.stringify(lp.call));
     eq(lp.closedAfter, "the quick-status popover must close after a status is chosen");
 
+    // ── Palette — status→class mapping (decorateWords paints the right .rm-w-* per state) ──
+    const palette = await pg.evaluate(async () => {
+      const R = window.ReaderMorph, NA = window.NotesAutoGen;
+      document.querySelectorAll("#rm-pal").forEach((n) => n.remove());
+      const mount = document.createElement("div"); mount.id = "rm-pal";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שלום</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁלוֹם</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      R.attach(mount, { getRow: () => ({ he: "שלום", he_niqqud: "שָׁלוֹם" }) });   // wrap words into .rm-w spans
+      const eng = await R.ensureEngine();
+      const card = await R.resolveCore(eng, "שלום", "שָׁלוֹם");
+      const lk = NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos });
+      const CLS = { "new": "rm-w-new", l1: "rm-w-l1", l2: "rm-w-l2", l3: "rm-w-l3", l4: "rm-w-l4", known: "rm-w-known", ignore: "rm-w-ignore", learning: "rm-w-learning" };
+      const got = {};
+      for (const st of Object.keys(CLS)) {
+        const states = {}; states[lk] = st;
+        await R.decorateWords(mount, states, { color: true, fadeMode: "full" });
+        const span = mount.querySelector('td[data-col="he"] .rm-w');
+        got[st] = CLS[st] && span.classList.contains(CLS[st]);
+      }
+      return got;
+    });
+    for (const st of ["new", "l1", "l2", "l3", "l4", "known", "ignore", "learning"]) {
+      eq(palette[st], "status '" + st + "' must paint its .rm-w class (decorateWords mapping)");
+    }
+
+    // ── Regression: row «ועברה על לבי, ונגעה בנימה» — על=function, בנימה=unknown (NOT coloured),
+    //    while ועברה/לבי/ונגעה are content «exact» (coloured). Honest-gate, measured 2026-06-27. ──
+    const row = await pg.evaluate(async () => {
+      const R = window.ReaderMorph, eng = await R.ensureEngine(), strip = R.stripNiqqud;
+      const probe = async (s, n) => { const c = await R.resolveCore(eng, strip(n) || s, n); return { label: c.label, confident: c.label === "exact" || c.label === "likely", fn: R.functionGate(strip(n) || s).isFunc }; };
+      return {
+        overa: await probe("ועברה", "וְעָבְרָה"), al: await probe("על", "עַל"), libi: await probe("לבי", "לִבִּי"),
+        nagea: await probe("ונגעה", "וְנָגְעָה"), benima: await probe("בנימה", "בְּנִימָה"),
+      };
+    });
+    eq(row.overa.confident && row.libi.confident && row.nagea.confident, "content words ועברה/לבי/ונגעה must resolve «exact» (coloured)");
+    eq(row.al.label === "function" && row.al.fn && !row.al.confident, "על must be a FUNCTION word → honestly NOT coloured (not a bug), got " + JSON.stringify(row.al));
+    eq(row.benima.label === "unknown" && !row.benima.confident, "בנימה must be «unknown» (נימה not in offline dict) → honestly NOT coloured (not a keying bug), got " + JSON.stringify(row.benima));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));
