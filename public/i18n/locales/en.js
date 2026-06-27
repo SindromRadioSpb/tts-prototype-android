@@ -1999,7 +1999,7 @@ window.I18N_LOCALES.en = {
       saved: "✓ Saved",
       savedToast: "Word saved to notes",
       statusToggle: "🎨 Word status",
-      statusHint: "Colour = your word status: blue — new, amber→teal — levels 1–4, emerald — known, slate — ignore. Only confidently-recognized learning words are highlighted; function words and ones not in the dictionary stay uncoloured.",
+      statusHint: "Colour = your word status: violet — new; 1→4 — red→orange→green→blue (Anki-style); teal — known; grey — ignore. Only confidently-recognized learning words are highlighted; function words and ones not in the dictionary stay uncoloured.",
       statusNote: "Colour is shown on confidently-recognized learning words; function words and ones not in the dictionary stay uncoloured.",
       contextToggle: "🎯 Precise mode (Dicta)",
       contextHint: "Sends the sentence to Dicta for the context-correct meaning. Machine analysis, not a native speaker.",
