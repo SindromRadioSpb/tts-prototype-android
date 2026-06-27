@@ -1409,6 +1409,11 @@
     var states = statesMap || {};
     var NA = window.NotesAutoGen;
     var eng; try { eng = await ensureEngine(); } catch (_) { return; }
+    // The status key of a FUNCTION word depends on its PealimFunctionLinks id (_statusPid). The map
+    // is lazy; if it isn't loaded yet the paint would key by surface#pos while the saved status is
+    // pid:N → a brief miss until the next repaint. Await readiness so the very first paint already
+    // keys function words by pid (consistent with resolveWordLight). Idempotent + offline-cheap.
+    try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
     var spans = Array.prototype.slice.call(mount.querySelectorAll(".rm-w"));
     var i = 0;
     while (i < spans.length) {
