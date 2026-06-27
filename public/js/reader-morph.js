@@ -665,6 +665,16 @@
     if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
       try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) {}
     }
+    // T-b — out-of-dict word with no offline gloss: re-surface the learner's OWN saved
+    // translation (word_study note, meaning_source=user) so re-opening shows it + «ваш».
+    // Only fills an honest-empty gloss; a machine reading (incl. Tier-3) always wins.
+    card.meaningSource = "";
+    if (!card.meaning && typeof _attachOpts.lookupUserMeaning === "function") {
+      try {
+        var um = await _attachOpts.lookupUserMeaning(card);
+        if (um) { card.meaning = um; card.meaningSource = "user"; }
+      } catch (_) {}
+    }
     return card;
   }
 
@@ -815,10 +825,20 @@
       if (t && t.closest && t.closest("[data-rm-refine-go]")) { onRefine(false); return; }
       if (t && t.closest && t.closest("[data-rm-refine-all]")) { onRefine(true); return; }
       if (t && t.closest && t.closest("[data-rm-refine]")) { onRefinePrompt(); return; }
+      if (t && t.closest && t.closest("[data-rm-meaning-save]")) { onMeaningSave(); return; }
+      if (t && t.closest && t.closest("[data-rm-meaning-cancel]")) { onMeaningEditToggle(false); return; }
+      if (t && t.closest && (t.closest("[data-rm-meaning-add]") || t.closest("[data-rm-meaning-edit]"))) { onMeaningEditToggle(true); return; }
       if (t && t.closest && t.closest(".rm-save")) { onSaveClick(); return; }
       var chip = t && t.closest ? t.closest(".rm-rootfam-chip") : null;
       if (chip) { onChipClick(chip); return; }
       // conjugation cells voice themselves via inline onclick → window.v3ConjSpeak.
+    });
+    // T-b — Enter inside the translation input saves; Esc cancels (mobile-keyboard friendly).
+    el.addEventListener("keydown", function (e) {
+      var t = e.target;
+      if (!(t && t.closest && t.closest("[data-rm-meaning-input]"))) return;
+      if (e.key === "Enter") { e.preventDefault(); onMeaningSave(); }
+      else if (e.key === "Escape") { e.preventDefault(); onMeaningEditToggle(false); }
     });
     _sheet = el;
     return el;
@@ -989,9 +1009,34 @@
     var niqMark = (card.niqqud && /[֑-ׇ]/.test(card.niqqud))
       ? '<div class="rm-niqqud-prov" dir="' + uiDir() + '"><span class="rm-niqqud-prov-ic" aria-hidden="true">ⓜ</span> ' + escapeHtml(tt("room.morph.niqqudMachine", "огласовка — машинная (Dicta)")) + "</div>"
       : "";
-    var meaning = card.meaning
-      ? '<div class="rm-meaning" dir="ltr">' + escapeHtml(card.meaning) + "</div>"
-      : '<div class="rm-meaning rm-meaning-empty" dir="ltr">' + escapeHtml(tt("room.morph.noGloss", "Перевод не найден офлайн.")) + "</div>";
+    // T-b — manual translation: when the resolver has no offline gloss, let the learner add
+    // their OWN (a real word_study note, Anki-synced). A user-asserted meaning is tagged «ваш»
+    // (R9 provenance ≠ machine) and stays editable; the inline editor is hidden until invoked.
+    var canEditMeaning = typeof _attachOpts.saveUserMeaning === "function";
+    var meaning;
+    if (card.meaning) {
+      var provBadge = card.meaningSource === "user"
+        ? ' <span class="rm-meaning-mine" title="' + escapeHtml(tt("room.morph.yourMeaningHint", "ваш перевод, не машинный")) + '">' + escapeHtml(tt("room.morph.yourMeaning", "ваш")) + "</span>"
+        : "";
+      var editIc = canEditMeaning
+        ? ' <button type="button" class="rm-meaning-edit" data-rm-meaning-edit aria-label="' + escapeHtml(tt("room.morph.editMeaning", "Изменить перевод")) + '">✎</button>'
+        : "";
+      meaning = '<div class="rm-meaning" dir="ltr">' + escapeHtml(card.meaning) + provBadge + editIc + "</div>";
+    } else {
+      var addBtn = canEditMeaning
+        ? ' <button type="button" class="rm-meaning-add" data-rm-meaning-add>' + escapeHtml(tt("room.morph.addMeaning", "＋ Добавить перевод")) + "</button>"
+        : "";
+      meaning = '<div class="rm-meaning rm-meaning-empty" dir="ltr">' + escapeHtml(tt("room.morph.noGloss", "Перевод не найден офлайн.")) + addBtn + "</div>";
+    }
+    var meaningEditor = canEditMeaning
+      ? '<div class="rm-meaning-editor" data-rm-meaning-editor dir="' + uiDir() + '" hidden>' +
+          '<input type="text" class="rm-meaning-input" data-rm-meaning-input dir="ltr" maxlength="120" ' +
+            'placeholder="' + escapeHtml(tt("room.morph.meaningPlaceholder", "перевод / значение")) + '" ' +
+            'value="' + escapeHtml(card.meaningSource === "user" ? (card.meaning || "") : "") + '" />' +
+          '<button type="button" class="rm-meaning-save" data-rm-meaning-save>' + escapeHtml(tt("room.morph.saveMeaning", "Сохранить")) + "</button>" +
+          '<button type="button" class="rm-meaning-cancel" data-rm-meaning-cancel>' + escapeHtml(tt("room.morph.cancel", "Отмена")) + "</button>" +
+        "</div>"
+      : "";
     // F4 — homograph honesty: surface the rival readings of an ambiguous cell so the gloss
     // above reads as one possibility, not a verdict. «возможно также: год; …»
     var altGlosses = (card.alts || []).map(function (a) { return a && a.meaning; }).filter(Boolean);
@@ -1071,7 +1116,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + altLine + ctxPosLine + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + meaningEditor + altLine + ctxPosLine + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1116,6 +1161,32 @@
       var info = await _attachOpts.saveWord(_activeCard, _activeOcc);
       applyLifecycle(info && info.status ? info : { status: "created" });
     } catch (_) {} finally { if (saveBtn) saveBtn.disabled = false; }
+  }
+  // T-b — translation editor (out-of-dict words). Toggle reveals an inline input; save persists
+  // the learner's own meaning into the canonical word_study note (caller's saveUserMeaning) and
+  // re-renders the card so it shows the meaning + «ваш» + flips the lifecycle badge.
+  function onMeaningEditToggle(open) {
+    if (!_sheet) return;
+    var box = _sheet.querySelector("[data-rm-meaning-editor]");
+    if (!box) return;
+    box.hidden = !open;
+    if (open) {
+      var input = _sheet.querySelector("[data-rm-meaning-input]");
+      if (input) { try { input.focus(); input.select(); } catch (_) {} }
+    }
+  }
+  async function onMeaningSave() {
+    if (!_activeCard || typeof _attachOpts.saveUserMeaning !== "function") return;
+    var input = _sheet && _sheet.querySelector("[data-rm-meaning-input]");
+    var val = input ? String(input.value || "").trim() : "";
+    if (!val) { if (input) { try { input.focus(); } catch (_) {} } return; }
+    var btn = _sheet && _sheet.querySelector(".rm-meaning-save");
+    if (btn) btn.disabled = true;
+    try {
+      await _attachOpts.saveUserMeaning(_activeCard, _activeOcc, val);
+      _activeCard.meaning = val; _activeCard.meaningSource = "user";
+      openCard(_activeCard, _activeOcc);   // re-render → meaning + «ваш» + «✓ В заметках»
+    } catch (_) { if (btn) btn.disabled = false; }
   }
   // Tap a root-family chip → open that related word's card (no occurrence context).
   async function onChipClick(chip) {

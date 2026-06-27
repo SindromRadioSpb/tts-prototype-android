@@ -371,6 +371,71 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(lp.call && lp.call[1] === "known", "tapping a popover level must call setWordStatus(lemmaKey, value), got " + JSON.stringify(lp.call));
     eq(lp.closedAfter, "the quick-status popover must close after a status is chosen");
 
+    // ── T-b — manual translation for out-of-dict words. An unknown word (no offline gloss)
+    //    offers «＋ Добавить перевод» when saveUserMeaning is wired; add→type→save persists the
+    //    learner's own meaning (saveUserMeaning) + re-renders with «ваш»; lookupUserMeaning
+    //    re-surfaces a saved meaning on re-open. בנימה = confirmed out-of-dict (no fabrication).
+    const tb = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-tb").forEach((n) => n.remove());
+      const mount = document.createElement("div"); mount.id = "rm-tb";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">בנימה</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">בְּנִימָה</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      const rows = [{ he: "בנימה", he_niqqud: "בְּנִימָה" }];
+      window.__umCalls = [];
+      if (window.__rmTB) { try { window.__rmTB.detach(); } catch (_) {} }
+      window.__rmTB = R.attach(mount, {
+        getRow: (i) => rows[i],
+        lookupUserMeaning: async () => "",
+        saveUserMeaning: async (card, occ, m) => { window.__umCalls.push([card.lemmaKey, m]); return { ok: true }; },
+      });
+      mount.querySelector('td[data-col="he"] .rm-w').click();
+      for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-prov")) break; await new Promise((r) => setTimeout(r, 100)); }
+      const emptyBefore = !!document.querySelector(".rm-meaning-empty");
+      const addBtn = document.querySelector("[data-rm-meaning-add]");
+      const ctaShown = !!addBtn;
+      // editor must be visually hidden until invoked (computed display, not just the .hidden prop —
+      // author display:flex would otherwise beat the UA [hidden] rule).
+      const editorPre = document.querySelector("[data-rm-meaning-editor]");
+      const editorHiddenBefore = editorPre ? getComputedStyle(editorPre).display === "none" : false;
+      if (addBtn) addBtn.click();
+      await new Promise((r) => setTimeout(r, 40));
+      const editor = document.querySelector("[data-rm-meaning-editor]");
+      const editorOpen = editor ? (!editor.hidden && getComputedStyle(editor).display !== "none") : false;
+      const input = document.querySelector("[data-rm-meaning-input]");
+      if (input) input.value = "тест-перевод";
+      const saveBtn = document.querySelector("[data-rm-meaning-save]");
+      if (saveBtn) saveBtn.click();
+      await new Promise((r) => setTimeout(r, 140));
+      const mine = document.querySelector(".rm-meaning-mine");
+      const meaningText = (document.querySelector(".rm-meaning") || {}).textContent || "";
+      return { emptyBefore, ctaShown, editorHiddenBefore, editorOpen, call: window.__umCalls[window.__umCalls.length - 1] || null, hasMine: !!mine, meaningText };
+    });
+    eq(tb.emptyBefore, "an out-of-dict word must render the honest empty-gloss state (no fabricated meaning)");
+    eq(tb.ctaShown, "unknown word + wired saveUserMeaning must offer «＋ Добавить перевод» (T-b)");
+    eq(tb.editorHiddenBefore, "the translation editor must be hidden until «＋ Добавить перевод» is tapped (computed display:none)");
+    eq(tb.editorOpen, "tapping «＋ Добавить перевод» must reveal the inline translation editor");
+    eq(tb.call && tb.call[1] === "тест-перевод" && /^(pid:|[^#]*#)/.test(tb.call[0] || ""), "saving must call saveUserMeaning(lemmaKey, meaning), got " + JSON.stringify(tb.call));
+    eq(tb.hasMine && tb.meaningText.indexOf("тест-перевод") >= 0, "after save the card must show the user meaning marked «ваш», got " + JSON.stringify({ hasMine: tb.hasMine, meaningText: tb.meaningText }));
+
+    // re-surface: a saved user-meaning fills an honest-empty gloss on re-open (lookupUserMeaning).
+    const tbRe = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-tb2").forEach((n) => n.remove());
+      const mount = document.createElement("div"); mount.id = "rm-tb2";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0"><td data-col="he" class="rtl rtl-he">בנימה</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      if (window.__rmTB2) { try { window.__rmTB2.detach(); } catch (_) {} }
+      window.__rmTB2 = R.attach(mount, { getRow: () => ({ he: "בנימה", he_niqqud: "בְּנִימָה" }), lookupUserMeaning: async () => "моё значение" });
+      const card = await R.resolveWordLight("בנימה", "בְּנִימָה");
+      return { meaning: card.meaning, src: card.meaningSource };
+    });
+    eq(tbRe.meaning === "моё значение" && tbRe.src === "user", "lookupUserMeaning must re-surface a saved user-meaning on re-open (meaningSource=user), got " + JSON.stringify(tbRe));
+
     // ── Palette — status→class mapping (decorateWords paints the right .rm-w-* per state) ──
     const palette = await pg.evaluate(async () => {
       const R = window.ReaderMorph, NA = window.NotesAutoGen;

@@ -643,6 +643,26 @@
     .rm-refine-busy, .rm-refine-miss { font-size: 12px; color: var(--text-secondary); padding: 4px 2px; }
     .rm-meaning { font-size: 16px; line-height: 1.4; color: var(--text-primary); margin-bottom: 12px; }
     .rm-meaning-empty { color: var(--text-faint); font-style: italic; }
+    /* T-b — learner's own translation (out-of-dict words): «ваш» provenance + inline editor. */
+    .rm-meaning-mine { font-size: 11px; font-weight: 700; font-style: normal; vertical-align: 2px;
+      color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border-radius: 6px; padding: 1px 6px; margin-inline-start: 6px; }
+    .rm-meaning-add, .rm-meaning-edit {
+      font-family: inherit; cursor: pointer; border: 1px solid var(--border-soft);
+      background: var(--bg-muted); color: var(--accent); border-radius: 8px; }
+    .rm-meaning-add { font-size: 13px; font-style: normal; font-weight: 600; padding: 3px 10px; margin-inline-start: 6px; }
+    .rm-meaning-edit { font-size: 12px; padding: 1px 6px; margin-inline-start: 6px; line-height: 1.4; }
+    .rm-meaning-editor { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: -4px 0 12px; }
+    .rm-meaning-editor[hidden] { display: none; }   /* author display:flex would otherwise beat UA [hidden] */
+    .rm-meaning-input { flex: 1 1 140px; min-width: 0; font: inherit; font-size: 15px;
+      padding: 7px 10px; border: 1px solid var(--accent); border-radius: 8px;
+      background: var(--bg-card); color: var(--text-primary); }
+    .rm-meaning-input:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+    .rm-meaning-save, .rm-meaning-cancel { font: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; border-radius: 8px; padding: 7px 12px; width: auto; }
+    .rm-meaning-save { background: var(--accent); color: #fff; border: 1px solid var(--accent); }
+    .rm-meaning-save:disabled { opacity: .6; cursor: default; }
+    .rm-meaning-cancel { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-soft); }
     /* F4 — rival readings of an ambiguous (homograph) cell; muted, secondary to the gloss. */
     .rm-alts { font-size: 13px; line-height: 1.35; color: var(--text-secondary); margin: -6px 0 12px; }
     .rm-alts-k { color: var(--text-faint); }
@@ -950,7 +970,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.14</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.15</span>
   </div>
 </footer>
 

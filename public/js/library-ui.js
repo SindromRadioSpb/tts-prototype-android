@@ -552,6 +552,48 @@ async function roomSaveWord(card, occ) {
   let life = {}; try { life = await localDb.getWordNoteLifecycle([note.id]); } catch (_) {}
   return { noteId: note.id, status: (life && life[note.id] && life[note.id].status) || 'created' };
 }
+// T-b — manual translation for out-of-dict / unknown words. The card surfaces an editor
+// when the resolver has no offline gloss; the user's own meaning lands in the SAME canonical
+// word_study note (so it syncs to Anki + counts toward i+1), tagged meaning_source='user' so
+// the card can mark it «ваш» (R9 provenance ≠ machine) and the resolver re-surfaces it on
+// re-open. The dedup key is meaning-independent (pid:/lemma#pos), so lookup stays stable.
+async function roomLookupUserMeaning(card) {
+  const dk = roomDedupKey(card);
+  if (!dk) return '';
+  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
+  if (!note) return '';
+  let body = {}; try { body = JSON.parse(note.body_json || '{}'); } catch (_) { body = {}; }
+  return (body && body.meaning_source === 'user' && body.meaning) ? String(body.meaning) : '';
+}
+async function roomSaveUserMeaning(card, occ, meaning) {
+  const m = String(meaning || '').trim();
+  const dk = roomDedupKey(card);
+  if (!dk || !m) return null;
+  const body = roomNoteBody(card);
+  body.meaning = m;
+  body.meaning_source = 'user';   // R9 provenance — user-asserted, never machine
+  let note; try { note = await localDb.findNoteByDedupKey(dk); } catch (_) { note = null; }
+  if (note) {
+    try { await localDb.updateNote(note.id, { body, user_touched: 1 }); } catch (e) { try { console.warn('[room] update meaning failed', e); } catch (_) {} return null; }
+  } else {
+    try {
+      note = await localDb.createCanonicalNote({
+        gen_dedup_key: dk, body, title: body.word || '', source: 'curated',
+        confidence: typeof card.confidence === 'number' ? card.confidence : null,
+        model_version: (window.InflectionDict && window.InflectionDict.MODEL) || null,
+        user_touched: 1,
+      });
+    } catch (e) { try { console.warn('[room] save meaning failed', e); } catch (_) {} return null; }
+  }
+  if (note && occ && (occ.text_id || occ.sentence_id)) {
+    try { await localDb.addNoteOccurrence(note.id, { text_id: occ.text_id, sentence_id: occ.sentence_id, word_offset: occ.word_offset, surface: occ.surface }); } catch (_) {}
+  }
+  readerWordStates = null;
+  try { invalidateReadableSet(); } catch (_) {}
+  try { applyDecorations(); } catch (_) {}
+  roomToast(tt('room.morph.meaningSavedToast', 'Перевод сохранён'));
+  return { ok: true };
+}
 
 let _roomToastEl = null, _roomToastT = null;
 function roomToast(msg) {
@@ -1000,6 +1042,10 @@ function attachReaderMorph(mount) {
     readerWordStates = null;
     try { applyDecorations(); } catch (_) {}
   };
+  // T-b — manual translation for out-of-dict words: re-surface a saved user-meaning on re-open
+  // (lookup) + persist a new one into the canonical word_study note (save, Anki-synced).
+  opts.lookupUserMeaning = roomLookupUserMeaning;
+  opts.saveUserMeaning = roomSaveUserMeaning;
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }

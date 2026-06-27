@@ -1,6 +1,6 @@
 # Концепция «Отмечать любое слово — честно» (статус-окраска для служебных + не-из-словаря) + back-nav семьи корня
 
-**Дата:** 2026-06-27 · **Статус:** 🟡 КОНЦЕПЦИЯ на обсуждение (role-research; требования — после OK владельца).
+**Дата:** 2026-06-27 · **Статус:** ✅ РЕАЛИЗОВАНО — T-a (v3.11.14) + T-b (v3.11.15) + back-nav (v3.11.13). См. «СТАТУС РЕАЛИЗАЦИИ» в конце.
 **Родитель:** `BRR_EPIC4_RETENTION_LOOP_*` (петля удержания) · палитра `docs/research/word-status-palette/2026-06-27/`. Роли R1·R2·R3·R4·R5·R8·R9·R10·R11.
 **Поверхность:** `reader-morph.js` + `library.html`-CSS (+ возможно `local-db.js` для manual-gloss). Room-only; resolver НЕ трогаем.
 
@@ -58,3 +58,12 @@
 
 ### Затрагиваемые файлы
 T-a: `reader-morph.js` (decorateWords) + smoke. T-b: `reader-morph.js` (card unknown-edit UI) + `library-ui.js` (note create/update + provenance) + `library.html` CSS + locales + smoke.
+
+---
+
+## СТАТУС РЕАЛИЗАЦИИ
+
+- **T-a — ✅ SHIPPED (v3.11.14, `d42dada`).** `decorateWords` снял confident-гейт с ПОИСКА цвета: confident → lemma-key (default `new`); unconfident → красится ТОЛЬКО при явной записи `states[surfaceKey]` (manual-статус / сохранённая заметка), иначе plain (честно). R11-прецедент соблюдён. Smoke: `על`/`בנימה` без engagement → plain; со статусом → красятся по surface.
+- **T-b — ✅ SHIPPED (v3.11.15).** Карточка unknown (нет офлайн-глосса) → CTA «＋ Добавить перевод» → инлайн-редактор → `saveUserMeaning` создаёт/обновляет **ту же** канон-заметку word_study с `meaning_source='user'` (синк Anki, dedup-key meaning-independent). На карточке user-meaning помечен **«ваш»** + ✎ (R9 provenance). `resolveWordLight` ре-сёрфит сохранённый перевод при ре-открытии (только в honest-empty глосс; машинное/Tier-3 чтение всегда побеждает). Файлы: `library-ui.js` (`roomLookupUserMeaning`/`roomSaveUserMeaning` + opts), `reader-morph.js` (`resolveWordLight` lookup + `renderCardHtml` editor + `onMeaningSave`/`onMeaningEditToggle` + delegation/Enter), `library.html` CSS (+`[hidden]`-гард над `display:flex`), locales ru/en/he, smoke `reader-morph` (T-b блок: CTA + editor-hidden-before(computed) + save→«ваш» + lookup re-surface).
+- **Гейты (все зелёные):** reader-morph (+T-a +T-b), reader-notes, reader-word-status, reader-context, reader-scaffold 234, reader-parity, i18n 226.
+- **NEXT:** прод-верифи v3.11.15 (T-a+T-b вместе); затем Эпик 4.3 (recall-loop + frontier-study).
