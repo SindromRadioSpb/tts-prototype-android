@@ -1,6 +1,10 @@
-## 2026-06-27 | main | Track-any-word T-a + T-b + кросс-колоночный фикс окраски
+## 2026-06-27 | main | Track-any-word T-a + T-b + фиксы окраски (кросс-колонка + служебные слова)
 
-**Прод app+SW → v3.11.16** (верифи ✓). Зал-only, parity-safe, resolver не тронут.
+**Прод app+SW → v3.11.18** (верифи ✓, в т.ч. на живом тексте владельца через Kapture). Зал-only, parity-safe, resolver не тронут.
+
+**v3.11.17 (`3b2db33`) + v3.11.18 (`79c2f41`) — служебные слова с function-link pid:** владелец на «גם אותך לא ידעתי» — `גם`/`לא` не красились при пометке. Диагноз на LIVE через Kapture-evaluate: `PealimFunctionLinks.lookup(גם)`→`{id:3304}` → `resolveWordLight` ставит `pealim_id` → save-ключ `pid:3304`; `decorateWords` (resolveCore-only) → paint-ключ `גם#particle` → рассинхрон. НЕ воспроизводилось локально (прод-датасет function-links богаче). Фикс: `_statusPid` (mirror function-link гейта) в save+paint; v3.11.18 `await PealimFunctionLinks.ensureReady()` в decorateWords (lazy-map race). **Верифи на живом тексте: 50 уник.слов/94 спана `allMarkable:true`; прежние метки владельца под `pid:` теперь отображаются.** Принцип: paint-ключ ДОЛЖЕН воспроизводить обогащение save-ключа (`_statusKeyWord`+`_statusPid` в обоих). Память [[feedback_ktiv_surface_key_consistency]].
+
+**v3.11.16 (`965f91f`) — кросс-колоночный фикс (ktiv male/chaser):**
 
 **v3.11.16 (`965f91f`) — фикс кросс-колоночной окраски (ktiv male/chaser):** владелец на «חֲרוּז נִשְׁכָּח» — статус, поставленный 1 раз, красил только ОДНУ колонку у части слов. Измерено: для слова с расхождением плене/дефектного написания (`חרישי` простой текст vs `חֵרִשִׁי`→`חרשי` огласовки) (a) `alignSurfaceNiqqud` не сматчивал (равенство снятых огласовок) → плене-слово без огласовки, (b) surface-ключ неуверенного слова из расходящегося `card.word`. Фикс (Room-only, resolveCore/card.word/notes НЕ тронуты): позиционный fallback в `alignSurfaceNiqqud` (остаток токенов 1:1) + `_statusKeyWord` деривирует ключ из огласовки. Регрессия в smoke reader-morph; зонд `colorall.js` (тап 1 колонки → красятся ВСЕ спаны обеих). **«Синий» на тапнутом слове = `.rm-w-active`(accent), маскирует статус-заливку пока карточка открыта — НЕ баг.** Память [[feedback_ktiv_surface_key_consistency]].
 
