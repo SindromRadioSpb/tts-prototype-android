@@ -2068,6 +2068,7 @@ window.I18N_LOCALES.ru = {
         bandRare: "редкие (1)",
         hideNames: "Скрыть возможные имена",
         nameSuspect: "возможно имя",
+        expand: "Подробнее о слове",
         bulkLabel: "Видимые:",
         bulkKnown: "✓ знаю",
         bulkIgnore: "🚫 игнор",

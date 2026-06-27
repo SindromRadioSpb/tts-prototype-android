@@ -2064,6 +2064,7 @@ window.I18N_LOCALES.he = {
         bandRare: "נדירות (1)",
         hideNames: "להסתיר שמות אפשריים",
         nameSuspect: "ייתכן שם",
+        expand: "פרטים על המילה",
         bulkLabel: "מוצגים:",
         bulkKnown: "✓ ידוע",
         bulkIgnore: "🚫 התעלם",

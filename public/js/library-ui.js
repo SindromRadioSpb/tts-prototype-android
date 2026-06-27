@@ -540,6 +540,7 @@ function ensureStudySheet() {
     if (t.closest('[data-study-close]')) { closeStudySheet(); return; }
     const sb = t.closest('[data-study-status]'); if (sb) { onStudyStatusSet(sb); return; }
     const sp = t.closest('[data-study-speak]'); if (sp) { onStudySpeak(sp.closest('.room-study-row')); return; }
+    const cd = t.closest('[data-study-card]'); if (cd) { onStudyExpand(cd.closest('.room-study-row')); return; }
     if (t.closest('[data-study-more]')) { _studyView.shown += STUDY_CHUNK; renderStudyBody(); return; }
     const bulk = t.closest('[data-study-bulk]'); if (bulk) { onStudyBulk(bulk.getAttribute('data-study-bulk')); return; }
   });
@@ -566,16 +567,18 @@ function studyRowEl(w) {
   const cur = w._status || '';
   const row = el('div', { class: 'room-study-row' });
   row.dataset.key = w.lemmaKey; row.dataset.cur = cur;
-  row.dataset.he = w.niqqud || w.surface || '';   // vocalized form spoken on 🔊 / word tap
+  row.dataset.he = w.niqqud || w.surface || '';   // vocalized form voiced on 🔊
+  row.dataset.surface = w.surface || '';           // consonantal surface for the expand card
   const lead = el('div', { class: 'room-study-lead' });
-  // pronounce (🔊) — by analogy with the tap-card: tap the word OR the speaker to hear it (reuses
-  // the wired speakWord: BYOK GCP WaveNet → keyless browser). The vocalized form is what's voiced.
-  const heWrap = el('div', { class: 'room-study-hewrap', attrs: { 'data-study-speak': '1' } });
+  // Tap the word / gloss → expand the SAME rich tap-card (form-level analysis: present-tense
+  // כּוֹתֵב → verb/paal + conjugation; not just the lemma gloss «писать»). 🔊 is a separate button →
+  // pronounce via the wired speakWord (GCP WaveNet → keyless browser). Status buttons stay separate.
+  const heWrap = el('div', { class: 'room-study-hewrap', attrs: { 'data-study-card': '1', role: 'button', tabindex: '0', 'aria-label': tt('room.morph.study.expand', 'Подробнее о слове') } });
   heWrap.appendChild(el('span', { class: 'room-study-he', text: w.niqqud || w.surface, attrs: { lang: 'he', dir: 'rtl' } }));
-  heWrap.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-study-speak': '1', 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   if (w.nameSuspect) heWrap.appendChild(el('span', { class: 'room-study-nameflag', i18n: 'room.morph.study.nameSuspect', text: tt('room.morph.study.nameSuspect', 'возможно имя') }));
+  heWrap.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-study-speak': '1', 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   lead.appendChild(heWrap);
-  const meta = el('div', { class: 'room-study-meta' });
+  const meta = el('div', { class: 'room-study-meta', attrs: { 'data-study-card': '1' } });
   if (w.gloss) meta.appendChild(el('span', { class: 'room-study-gloss', text: w.gloss, attrs: { dir: 'ltr' } }));
   const subParts = [];
   if (w.root) subParts.push(w.root);
@@ -680,6 +683,16 @@ function onStudySpeak(row) {
   if (!row) return;
   const he = row.dataset.he || '';
   if (he) { try { speakWord(he); } catch (_) {} }
+}
+// Expand a study row → the SAME rich tap-card (form-level analysis, conjugation, root family) the
+// reader shows, so «писать» on כּוֹתֵב is resolved to its actual form (present m.sg.). Reuses
+// ReaderMorph.openWordCard; the card stacks above the study sheet (z-index) and returns on close.
+function onStudyExpand(row) {
+  if (!row || !window.ReaderMorph || typeof window.ReaderMorph.openWordCard !== 'function') return;
+  const surface = row.dataset.surface || row.dataset.he || '';
+  const niqqud = row.dataset.he || '';
+  if (!surface && !niqqud) return;
+  try { window.ReaderMorph.openWordCard(surface, niqqud); } catch (_) {}
 }
 // D — bulk: set status on every CURRENTLY-VISIBLE word (filtered + shown) at once (fast name pruning).
 async function onStudyBulk(status) {

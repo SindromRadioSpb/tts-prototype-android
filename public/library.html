@@ -856,7 +856,7 @@
     }
     .reader-aids-study:hover { filter: brightness(1.06); }
     .reader-aids-study:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .room-study { position: fixed; inset: 0; z-index: 1100; }
+    .room-study { position: fixed; inset: 0; z-index: 990; }   /* below .rm-sheet(1000) so a row's expand-card stacks ABOVE the list */
     .room-study[hidden] { display: none; }
     .room-study-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
     .room-study-card {
@@ -904,7 +904,8 @@
     .room-study-speak:hover { border-color: var(--accent); background: var(--accent); }
     .room-study-speak:active { transform: scale(.94); }
     .room-study-nameflag { font-size: 10px; font-weight: 700; color: #d29922; background: rgba(210,153,34,.16); border-radius: 6px; padding: 2px 6px; white-space: nowrap; }
-    .room-study-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; min-width: 0; text-align: end; }
+    .room-study-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; min-width: 0; text-align: end; cursor: pointer; }
+    .room-study-hewrap:hover .room-study-he, .room-study-meta:hover .room-study-gloss { color: var(--accent); }
     .room-study-gloss { font-size: 13px; color: var(--text-secondary); }
     .room-study-sub { font-size: 11px; color: var(--text-faint); }
     .room-study-sel { margin: 0; }
@@ -1033,7 +1034,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.24</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.25</span>
   </div>
 </footer>
 

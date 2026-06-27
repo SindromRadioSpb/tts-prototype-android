@@ -628,6 +628,21 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(!cnw.minusHasShalom, "a word marked 'known' must DROP from collectNewWords (frontier = new/undefined) — proves save-key==collect-key parity");
     eq(cnw.withNewHasShalom, "a word marked 'new' must STAY in collectNewWords (new = tracking, not known)");
 
+    // ── Epic 4.3a+ — openWordCard: a «📚 Учить» row expands to the SAME rich tap-card, surfacing the
+    //    FORM-level analysis (כּוֹתֵב present m.sg → verb/paal + conjugation), not just the lemma gloss.
+    const owc = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      await R.openWordCard("כותב", "כּוֹתֵב");
+      for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-prov")) break; await new Promise((r) => setTimeout(r, 100)); }
+      const body = document.querySelector(".rm-sheet-body");
+      return { open: !!document.querySelector(".rm-sheet.rm-open"), text: body ? body.textContent : "", hasConj: !!document.querySelector(".rm-acc-conj"), isVerb: !!(body && /глагол|paal/i.test(body.textContent)) };
+    });
+    eq(owc.open, "openWordCard must open the rich card sheet (study-row expand)");
+    eq(/כתב/.test(owc.text), "openWordCard card must show the root כתב (form→lemma analysis), got " + JSON.stringify(owc.text.slice(0, 80)));
+    eq(owc.hasConj, "openWordCard card must include the conjugation table (form-level detail beyond the lemma gloss «писать»)");
+    eq(owc.isVerb, "openWordCard for כּוֹתֵב must reveal it is a verb/paal (not just the bare infinitive gloss)");
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

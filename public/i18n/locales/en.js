@@ -2054,6 +2054,7 @@ window.I18N_LOCALES.en = {
         bandRare: "rare (1)",
         hideNames: "Hide likely names",
         nameSuspect: "possibly a name",
+        expand: "Word details",
         bulkLabel: "Visible:",
         bulkKnown: "✓ known",
         bulkIgnore: "🚫 ignore",

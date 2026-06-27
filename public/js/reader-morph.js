@@ -1185,6 +1185,18 @@
     el.hidden = false; el.classList.add("rm-open");
     if (card) refreshCardMeta(card);
   }
+  // Epic 4.3a+ — open the SAME rich tap-card for an arbitrary word (e.g. a «📚 Учить» study row),
+  // so a study word expands to its FORM-level analysis (present-tense כּוֹתֵב → verb/paal +
+  // conjugation table with the met form highlighted + root family), not just the lemma gloss.
+  // Reuses resolveWordLight + openCard verbatim (R11: no parallel morphology view). No sentence
+  // context → no per-card refine (like a root-family chip card). _attachOpts (status/save/speak)
+  // is whatever the reader wired via attach(); the card degrades gracefully if unwired.
+  async function openWordCard(surface, niqqud) {
+    _activeWordCtx = null; _cardStack = [];
+    openCardLoading();
+    try { var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud); openCard(card, null); }
+    catch (_) { openCard(null, null); }
+  }
   function lifecycleText(status) { var L = LIFECYCLE[status] || LIFECYCLE.created; return tt(L[0], L[1]); }
   // Reflect whether this word is already a saved note (+ its SRS lifecycle) onto the
   // card: a status badge + the save button flips to «✓ В заметках». info = {status} | null.
@@ -1574,6 +1586,7 @@
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
     decorateWords: decorateWords, clearDecorations: clearDecorations, collectNewWords: collectNewWords,
+    openWordCard: openWordCard,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;
