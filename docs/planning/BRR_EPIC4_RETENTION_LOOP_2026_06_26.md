@@ -1,6 +1,6 @@
 # Эпик 4 — Замкнуть петлю удержания в Зале (моат LingQ) · P1 / L · R2/R5
 
-**Дата:** 2026-06-26 (обновл. 2026-06-27) · **Статус:** 🟢 Фазы 4.1+4.2+**4.3a SHIPPED+PROD** (v3.11.22); 4.3b (cloze recall) — next.
+**Дата:** 2026-06-26 (обновл. 2026-06-28) · **Статус:** 🟢 Фазы 4.1+4.2+**4.3a SHIPPED+PROD** (v3.11.22) + **4.3a+ премиум-словарь** (v3.11.23, A+B+C+D — см. `BRR_EPIC4_3A_STUDY_LIST_PREMIUM_2026_06_27.md`); 4.3b (cloze recall) — next.
 **Родитель:** `docs/planning/BRR_UX_AUDIT_2026_06_25.md` §ЭПИК 4 + аудит петли `docs/research/retention-loop-audit/2026-06-26/FINDINGS.md`. Память [[project_brr_ux_audit]] · [[project_srs_strategy]] · [[feedback_no_override_grounded_reading]]. Роли R2/R5 (вед.) · R4 · R3 · R8 · R11.
 
 ## Почему (из аудита петли)

@@ -1,6 +1,6 @@
 # Эпик 4.3a+ — «📚 Учить» → премиум-словарь текста (A+B+C+D) · P1 / L · вед. R2/R5/R8/R10
 
-**Дата:** 2026-06-27 · **Статус:** 🟢 направление одобрено владельцем (A+B+C+D), recon локится этим доком → build.
+**Дата:** 2026-06-27 · **Статус:** ✅ SHIPPED+PROD (v3.11.23, `6ed0194`, 2026-06-28). A+B+C+D отгружены; live-verify Kapture ниже.
 **Родитель:** `BRR_EPIC4_RETENTION_LOOP_2026_06_26.md` §4.3a (frontier-study v1 SHIPPED v3.11.22). Память [[project_brr_ux_audit]] · [[project_track_any_word]] · [[feedback_ktiv_surface_key_consistency]].
 
 ## Проблема (владелец 2026-06-27, измерено)
@@ -48,3 +48,11 @@
 
 ## Этапность
 v1 (этот заход): A+B+C+D как выше (фронтир-словарь). v2 (отложено): Tier-3 batch name/sense-check; «manage all vocabulary» (все статусы, не только фронтир); root-family группировка.
+
+## ✅ SHIPPED v3.11.23 (`6ed0194`, 2026-06-28)
+- **reader-morph `collectNewWords` v2:** opts `{rowFrom,rowTo}` (scope B), topN omitted → FULL фронтир (A), `+nameSuspect` через curated `NAME_HINT` (C, SOFT, не трогает resolveCore/окраску). Ключ через общий `statusKeyForCard` (parity).
+- **library-ui премиум-лист:** total-счётчик + чанки 20 + «Показать ещё» (A) · scope-сегмент «Весь текст/Дальше» от `currentTopRowIdx` (B) · сорт частота/алфавит + полоса-фильтр + «скрыть имена» + бейдж «возможно имя» (C/D) · bulk «видимые→знаю/игнор» (D) · per-row статус→repaint.
+- **CSS** `.room-study-*` (controls/seg/select/bulk/count/more/nameflag), **i18n** ru/en/he (+20 study-ключей).
+- **Гейты:** reader-morph (+collectNewWords v2: full/scope/nameSuspect/key-parity), scaffold 234, parity, word-status, notes, context, corpus-vocab 37, i18n 226. @380px свет+тёмная ✓.
+- **Live-verify (Kapture, прод, профиль 7026, «הכינור» 1769 строк):** fullCount=**973** (было 12), scope rowFrom:800→**655**, nameSuspect=**[יהודית, צבי, עליזה]** — ровно те 3 имени, что вскрыл measure. Прод-маркеры v3.11.23 ✓.
+- **v2-беклог:** Tier-3 batch name/sense-check; manage-all-vocabulary (не только фронтир); root-family группировка.
