@@ -89,6 +89,11 @@
         var k = j;
         while (k < nq.length && k < j + 3 && stripNiqqud(nq[k]) !== s) k++;
         if (k < nq.length && k < j + 3 && stripNiqqud(nq[k]) === s) { paired = nq[k]; j = k + 1; }
+        // ktiv male/chaser: the vocalized form is spelled defectively (חֵרִשִׁי → חרשי) while the
+        // plain text is plene (חרישי), so the stripped forms never match. When the remaining token
+        // counts still line up 1:1, this IS the same word — pair it positionally. Otherwise the word
+        // loses its vowels (no niqqud fade) AND its colour/status surface-key splits between columns.
+        else if (j < nq.length && (he.length - i) === (nq.length - j)) { paired = nq[j]; j++; }
       }
       out.push({ surface: s, niqqud: paired });
     }
@@ -581,6 +586,17 @@
   // ctx (optional, Tier-3 context mode) = { niqqud, posDicta, lemma } from window.ReaderDicta,
   // or null. When present, the sentence-context reading is applied via pickContextReading
   // BEFORE enrichment — so the card surfaces the contextually-correct homograph.
+  // The colour/status key must be stable across BOTH table columns and across the tapped column.
+  // The plain text (ktiv male, e.g. חרישי) and the niqqud-stripped vocalized form (ktiv chaser,
+  // e.g. חרשי) can differ — which would split an UNCONFIDENT word's surface-key, so a manual
+  // status set on one form fails to colour the other column / occurrences. Derive the key surface
+  // from the vocalization when present (identical for both columns) so every occurrence matches.
+  // Confident words key by pid/lemma (this value is ignored by NA.lemmaKey), so only unconfident
+  // surface-keys are normalized. Resolver (resolveCore), card.word, display + notes are untouched.
+  function _statusKeyWord(card, niqqud, surface) {
+    if (niqqud && /[֑-ׇ]/.test(niqqud)) return stripNiqqud(niqqud);
+    return (card && card.word) || surface || "";
+  }
   async function resolveWordLight(surface, niqqud, ctx) {
     surface = stripNiqqud(surface);
     if (!surface) return null;
@@ -660,7 +676,7 @@
     // Epic 4 — canonical lemma key (aligned with getKnownWordStates) + the RAW manual status, so
     // the card's one-tap level selector highlights what the user explicitly set (vs SRS-derived).
     card.lemmaKey = "";
-    try { if (eng.NA && eng.NA.lemmaKey) card.lemmaKey = eng.NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) || ""; } catch (_) {}
+    try { if (eng.NA && eng.NA.lemmaKey) card.lemmaKey = eng.NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: _statusKeyWord(card, niqqud, surface), pos: card.pos }) || ""; } catch (_) {}
     card.manualStatus = "";
     if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
       try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) {}
@@ -1388,7 +1404,7 @@
         // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident),
         // byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status on a function/unknown
         // word (which the resolver can't confidently ID) still colours by its surface form.
-        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: card.word, pos: card.pos }) : "";
+        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: _statusKeyWord(card, niqqud, surface), pos: card.pos }) : "";
         var raw = lk ? states[lk] : undefined;
         if (color) {
           // Confident → defaults to 'new' (the unseen «blue wall»). UNCONFIDENT → coloured ONLY when the

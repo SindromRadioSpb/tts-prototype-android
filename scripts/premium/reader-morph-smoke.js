@@ -436,6 +436,44 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     });
     eq(tbRe.meaning === "моё значение" && tbRe.src === "user", "lookupUserMeaning must re-surface a saved user-meaning on re-open (meaningSource=user), got " + JSON.stringify(tbRe));
 
+    // ── T-a regression — ktiv male/chaser cross-column consistency. The plain text (חרישי, plene)
+    //    and the vocalized form (חֵרִשִׁי → חרשי, defective) differ, so an UNCONFIDENT word's surface
+    //    key used to split between the two columns: a status set once coloured only one column.
+    //    Fix = positional alignment fallback (gives the plene word its niqqud) + niqqud-derived
+    //    status key. A single tap must now colour the word in BOTH columns. (Real owner-reported
+    //    case from «חֲרוּז נִשְׁכָּח».)
+    const kv = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-kv").forEach((n) => n.remove());
+      const row = { he: "לקול חרישי", he_niqqud: "לְקוֹל חֵרִשִׁי" };
+      const mount = document.createElement("div"); mount.id = "rm-kv";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">' + row.he + '</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">' + row.he_niqqud + '</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      if (window.__rmKV) { try { window.__rmKV.detach(); } catch (_) {} }
+      window.__rmKV = R.attach(mount, { getRow: () => row });
+      const eng = await R.ensureEngine();
+      const al = R.alignSurfaceNiqqud(row.he, row.he_niqqud);
+      const alignedNiqqud = (al[1] || {}).niqqud || "";
+      const heSpans = mount.querySelectorAll('td[data-col="he"] .rm-w');
+      const niqSpans = mount.querySelectorAll('td[data-col="niqqud"] .rm-w');
+      const heW = heSpans[heSpans.length - 1], niqW = niqSpans[niqSpans.length - 1];
+      // ONE tap (niqqud column) → save key
+      const card = await R.resolveWordLight(niqW.getAttribute("data-surface"), niqW.getAttribute("data-niqqud"));
+      const states = {}; states[card.lemmaKey] = "l3";
+      await R.decorateWords(mount, states, { color: true, fadeMode: "full" });
+      return {
+        alignedNiqqud, saveKey: card.lemmaKey,
+        heSurf: heW.getAttribute("data-surface"), niqSurf: niqW.getAttribute("data-surface"),
+        hePainted: heW.classList.contains("rm-w-l3"), niqPainted: niqW.classList.contains("rm-w-l3"),
+      };
+    });
+    eq(kv.alignedNiqqud.length > 0, "alignSurfaceNiqqud must pair a plene plain word (חרישי) with its defective vocalized form (חֵרִשִׁי), got " + JSON.stringify(kv.alignedNiqqud));
+    eq(kv.heSurf !== kv.niqSurf, "sanity: plene plain surface vs niqqud-stripped surface should genuinely differ here, got " + JSON.stringify([kv.heSurf, kv.niqSurf]));
+    eq(kv.hePainted && kv.niqPainted, "a status set once must colour a ktiv-variant word in BOTH columns, got " + JSON.stringify({ hePainted: kv.hePainted, niqPainted: kv.niqPainted, saveKey: kv.saveKey }));
+
     // ── Palette — status→class mapping (decorateWords paints the right .rm-w-* per state) ──
     const palette = await pg.evaluate(async () => {
       const R = window.ReaderMorph, NA = window.NotesAutoGen;
