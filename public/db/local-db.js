@@ -2636,15 +2636,20 @@ export async function setProgress(textId, { last_row_idx, last_step_id }) {
 
 // BRR-P2-002 «Продолжить чтение» — texts the reader has progressed into, newest first.
 // Joins text_progress (last_row_idx > 0 = past the start) to texts; carries n_rows so the
-// Room can show a "% прочитано" chip. Cross-track (any opened text, canon or corpus).
+// Room can show a "% прочитано" chip. The «Продолжить чтение» rail lives on the CORPUS tab home,
+// so it must surface only Ben-Yehuda CANON works (source_meta.origin = CANON_ORIGIN) — NOT local
+// Studio/user texts (source_meta_json NULL), which leaked in via this source-agnostic query
+// (owner 2026-06-27: a Studio «150 Глаголов» appeared among the public canon). json_extract on a
+// NULL source_meta_json returns NULL (no error) → those rows fall out of the equality filter.
 export async function getContinueReading(limit = 12) {
   return q(
     `SELECT t.id, t.title, t.text_key, tp.last_row_idx AS last_row_idx, tp.updated_at AS updated_at,
             (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows
      FROM text_progress tp JOIN texts t ON t.id = tp.text_id
      WHERE COALESCE(t.is_archived, 0) = 0 AND tp.last_row_idx > 0
+       AND json_extract(t.source_meta_json, '$.origin') = ?
      ORDER BY tp.updated_at DESC LIMIT ?`,
-    [limit]
+    [CANON_ORIGIN, limit]
   );
 }
 

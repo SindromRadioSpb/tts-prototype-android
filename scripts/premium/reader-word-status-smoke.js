@@ -54,7 +54,21 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const allN = await ldb.getAllWordStatuses();
       const kwsN = await ldb.getKnownWordStates();
       await ldb.setWordStatus(NKEY, "");   // cleanup
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY] };
+      // getContinueReading («Продолжить чтение» on the Corpus tab) must surface ONLY Ben-Yehuda canon
+      // works (source_meta.origin='benyehuda-ingest'), NOT local Studio texts (owner 2026-06-27).
+      let contCanon = null, contStudio = null;
+      try {
+        await ldb.createText({ id: "cont-canon-x1", text_key: "cont-canon-k1", title: "CANON WORK", source: "Project Ben-Yehuda", source_meta_json: JSON.stringify({ origin: "benyehuda-ingest" }) });
+        await ldb.createText({ id: "cont-studio-x1", text_key: "cont-studio-k1", title: "STUDIO TEXT" });   // no source_meta → local
+        await ldb.setProgress("cont-canon-x1", { last_row_idx: 5 });
+        await ldb.setProgress("cont-studio-x1", { last_row_idx: 5 });
+        const cont = await ldb.getContinueReading(50);
+        const ids = (cont || []).map((c) => c.id);
+        contCanon = ids.includes("cont-canon-x1");
+        contStudio = ids.includes("cont-studio-x1");
+        try { await ldb.deleteText("cont-canon-x1"); await ldb.deleteText("cont-studio-x1"); } catch (_) {}
+      } catch (e) { contCanon = "ERR:" + e.message; }
+      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -66,6 +80,8 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.bogus === undefined, "an invalid status value must be treated as clear (never persisted), got " + JSON.stringify(res.bogus));
     eq(res.newSet === "new", "setWordStatus('new') MUST persist (an unconfident word can be marked «новое»/purple), got " + JSON.stringify(res.newSet));
     eq(res.newKws === "new", "stored 'new' must overlay getKnownWordStates, got " + JSON.stringify(res.newKws));
+    eq(res.contCanon === true, "getContinueReading MUST include a Ben-Yehuda canon work (origin=benyehuda-ingest), got " + JSON.stringify(res.contCanon));
+    eq(res.contStudio === false, "getContinueReading MUST EXCLUDE a local Studio text (no canon origin) from the Corpus «Продолжить чтение», got " + JSON.stringify(res.contStudio));
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     console.log("reader-word-status: word_status store + manual-wins overlay (no-note mark-known + upsert + clear)");
