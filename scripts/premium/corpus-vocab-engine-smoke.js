@@ -29,7 +29,7 @@ ok(CV.classifyZone(0.94, SC) === "in", "0.94→in");
 ok(CV.classifyZone(0.95, SC) === "easy", "0.95→easy (hi inclusive)");
 // shipped CV.CFG is the recalibrated config (§7 real-profile)
 ok(CV.CFG.ZONE_LO === 0.70 && CV.CFG.ZONE_HI === 0.90, "shipped zone = 70–90% (recalibrated)");
-ok(CV.CFG.KNOWN_STATES.new === true && CV.CFG.KNOWN_STATES.known === true, "shipped KNOWN_STATES = saved-as-familiar");
+ok(CV.CFG.KNOWN_STATES.new !== true && CV.CFG.KNOWN_STATES.known === true && CV.CFG.KNOWN_STATES.l1 === true, "shipped KNOWN_STATES EXCLUDES 'new' (tracked≠known) but counts known/levels");
 
 // ── 3. synthetic sidecar (hand-checkable) ─────────────────────────────────────
 // dict ids: 0=pid:10, 1=pid:20, 2=pid:30, 3=pid:40. One work:
@@ -57,11 +57,12 @@ ok(r && r.frontierCount === 2 && r.frontier[0].pid === "30", "frontier = 2 unkno
 r = CV.coverageForWork(work, dict, { "pid:10": "known" });
 ok(r && approx(r.matchedDrillCov, 0.50), "token-weighted: 1 high-freq known → 0.50 not type-0.25");
 
-// strict cfg EXCLUDES 'new'/'weak'; shipped CFG (saved=familiar) INCLUDES them
+// strict cfg EXCLUDES 'new'/'weak'; shipped CFG counts 'weak' (learned-but-decaying) but NOT 'new'
+// (tracked-but-unknown) — owner 2026-06-27. So pid:10='new' is excluded, pid:20='weak' counts.
 r = CV.coverageForWork(work, dict, { "pid:10": "new", "pid:20": "weak" }, SC);
 ok(r && approx(r.matchedDrillCov, 0), "strict cfg: new/weak are not 'known'");
 r = CV.coverageForWork(work, dict, { "pid:10": "new", "pid:20": "weak" });   // shipped CFG
-ok(r && approx(r.matchedDrillCov, 0.75), "shipped cfg: saved (new/weak) count as familiar → 15/20");
+ok(r && approx(r.matchedDrillCov, 5 / 20), "shipped cfg: 'new' EXCLUDED, only 'weak' (pid:20 tok5) counts → 5/20");
 
 // in-zone: know everything but the smallest (tok2) → 18/20 = 0.90 → in (strict cfg)
 r = CV.coverageForWork(work, dict, { "pid:10": "known", "pid:20": "known", "pid:30": "known" }, SC);

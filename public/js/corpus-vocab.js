@@ -28,11 +28,13 @@
     // band was lowered to 70–90% (~15 works) — an honest "growth" zone for the literary corpus.
     ZONE_LO: 0.70, ZONE_HI: 0.90,
     LOAD_FALLBACK_HI: 0.18, LOAD_MATCHED_LO: 0.50,   // reading-load flag thresholds
-    // "familiar" = the learner has ENGAGED with the word (has a word_study note) — known+learning
-    // AND new/weak/stale. §7 found the owner's saved vocab sits in 'new' state (they review in Anki,
-    // not the in-app SRS), so known+learning-only counted 0; saved-as-familiar is the available signal.
+    // "familiar/readable" = the learner KNOWS the word well enough that it doesn't block reading:
+    // known + the SRS learning/weak/stale (you learned it, it's decaying) + manual levels l1–l4 +
+    // ignore (skipped, e.g. a name — doesn't block). «new» is DELIBERATELY EXCLUDED (owner 2026-06-27):
+    // «новое» = a word the learner is TRACKING but does NOT yet know, so counting it as readable would
+    // make every marked text falsely «100% читаемо» and break the i+1 «Следующий для тебя» signal.
     // The badge is honestly labelled «знакомо» (familiar), not «выучено» (mastered).
-    KNOWN_STATES: { known: true, learning: true, new: true, weak: true, stale: true, l1: true, l2: true, l3: true, l4: true, ignore: true },
+    KNOWN_STATES: { known: true, learning: true, weak: true, stale: true, l1: true, l2: true, l3: true, l4: true, ignore: true },
     // S4 «Следующий для тебя» gating/size. AUTHOR_CAP=0 ⇒ NO per-author cap — at the current corpus
     // size the cap blindly hid valid in-zone works (owner 2026-06-13: 15-in-zone → 11). Show all
     // matches; author-diversity belongs in the proper filter/sort layer once the corpus is large.
