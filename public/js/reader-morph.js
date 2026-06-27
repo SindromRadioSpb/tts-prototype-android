@@ -597,6 +597,22 @@
     if (niqqud && /[֑-ׇ]/.test(niqqud)) return stripNiqqud(niqqud);
     return (card && card.word) || surface || "";
   }
+  // The status/colour key's pealim_id must also match between the card (save) and decorateWords
+  // (paint). resolveWordLight enriches a FUNCTION word with a Pealim id via PealimFunctionLinks
+  // (for the «открыть на Pealim» link) → its key becomes pid:N. decorateWords resolves with
+  // resolveCore ONLY (no function-link enrichment) → it would key by surface#pos and never match,
+  // so a manually-marked function word (גם→pid:3304, לא→pid:2943) wouldn't colour. Mirror the same
+  // function-link lookup here so both paths agree. Resolver/notes/card display untouched.
+  function _statusPid(card, surface) {
+    if (card && card.pealim_id) return String(card.pealim_id);
+    try {
+      if (typeof window !== "undefined" && window.PealimFunctionLinks && surface) {
+        var fl = window.PealimFunctionLinks.lookup(surface, (card && card.pos) || "", { lemma: surface });
+        if (fl && fl.id != null) return String(fl.id);
+      }
+    } catch (_) {}
+    return "";
+  }
   async function resolveWordLight(surface, niqqud, ctx) {
     surface = stripNiqqud(surface);
     if (!surface) return null;
@@ -676,7 +692,12 @@
     // Epic 4 — canonical lemma key (aligned with getKnownWordStates) + the RAW manual status, so
     // the card's one-tap level selector highlights what the user explicitly set (vs SRS-derived).
     card.lemmaKey = "";
-    try { if (eng.NA && eng.NA.lemmaKey) card.lemmaKey = eng.NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: _statusKeyWord(card, niqqud, surface), pos: card.pos }) || ""; } catch (_) {}
+    try {
+      if (eng.NA && eng.NA.lemmaKey) {
+        var _ks = _statusKeyWord(card, niqqud, surface);
+        card.lemmaKey = eng.NA.lemmaKey({ pealim_id: _statusPid(card, _ks), lemma: card.lemma, word: _ks, pos: card.pos }) || "";
+      }
+    } catch (_) {}
     card.manualStatus = "";
     if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
       try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) {}
@@ -1404,7 +1425,8 @@
         // T-a — key EVERY word (pid:/lemma#pos for confident · surface#pos / surface# for unconfident),
         // byte-identical to setWordStatus/getKnownWordStates, so a MANUAL status on a function/unknown
         // word (which the resolver can't confidently ID) still colours by its surface form.
-        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: card.pealim_id, lemma: card.lemma, word: _statusKeyWord(card, niqqud, surface), pos: card.pos }) : "";
+        var ksurf = _statusKeyWord(card, niqqud, surface);
+        var lk = (NA && NA.lemmaKey) ? NA.lemmaKey({ pealim_id: _statusPid(card, ksurf), lemma: card.lemma, word: ksurf, pos: card.pos }) : "";
         var raw = lk ? states[lk] : undefined;
         if (color) {
           // Confident → defaults to 'new' (the unseen «blue wall»). UNCONFIDENT → coloured ONLY when the

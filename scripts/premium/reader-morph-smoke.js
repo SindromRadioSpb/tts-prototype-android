@@ -474,6 +474,38 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(kv.heSurf !== kv.niqSurf, "sanity: plene plain surface vs niqqud-stripped surface should genuinely differ here, got " + JSON.stringify([kv.heSurf, kv.niqSurf]));
     eq(kv.hePainted && kv.niqPainted, "a status set once must colour a ktiv-variant word in BOTH columns, got " + JSON.stringify({ hePainted: kv.hePainted, niqPainted: kv.niqPainted, saveKey: kv.saveKey }));
 
+    // ── T-a regression — function word carrying a Pealim-link id (גם→pid, owner-reported on prod).
+    //    resolveWordLight enriches a function word with a PealimFunctionLinks id (key → pid:N), but
+    //    decorateWords resolves with resolveCore only; without mirroring the function-link lookup the
+    //    paint key stayed surface#pos and the marked word never coloured. Mock the links so the
+    //    assertion is deterministic regardless of the shipped dataset (prod has גם→3304, לא→2943).
+    const fnpid = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      const savedFL = window.PealimFunctionLinks;
+      window.PealimFunctionLinks = { lookup: (s) => (R.stripNiqqud(s) === "גם" ? { id: "999777", pos: "other" } : null) };
+      try {
+        document.querySelectorAll("#rm-fp").forEach((n) => n.remove());
+        const row = { he: "גם זה", he_niqqud: "גַם זֶה" };
+        const mount = document.createElement("div"); mount.id = "rm-fp";
+        mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+          '<td data-col="he" class="rtl rtl-he">' + row.he + '</td>' +
+          '<td data-col="niqqud" class="rtl rtl-he-niqqud">' + row.he_niqqud + '</td></tr></tbody></table>';
+        document.body.appendChild(mount);
+        if (window.__rmFP) { try { window.__rmFP.detach(); } catch (_) {} }
+        window.__rmFP = R.attach(mount, { getRow: () => row });
+        const niqSpans = mount.querySelectorAll('td[data-col="niqqud"] .rm-w');
+        const card = await R.resolveWordLight(niqSpans[0].getAttribute("data-surface"), niqSpans[0].getAttribute("data-niqqud"));
+        const states = {}; states[card.lemmaKey] = "known";
+        await R.decorateWords(mount, states, { color: true, fadeMode: "full" });
+        const heW = mount.querySelector('td[data-col="he"] .rm-w');
+        const niqW = mount.querySelector('td[data-col="niqqud"] .rm-w');
+        return { saveKey: card.lemmaKey, hePainted: heW.classList.contains("rm-w-known"), niqPainted: niqW.classList.contains("rm-w-known") };
+      } finally { window.PealimFunctionLinks = savedFL; }
+    });
+    eq(fnpid.saveKey === "pid:999777", "a function word with a PealimFunctionLinks id must key by pid (save path), got " + JSON.stringify(fnpid.saveKey));
+    eq(fnpid.hePainted && fnpid.niqPainted, "decorateWords must mirror the function-link pid so a marked function word (גם/לא) colours in BOTH columns, got " + JSON.stringify(fnpid));
+
     // ── Palette — status→class mapping (decorateWords paints the right .rm-w-* per state) ──
     const palette = await pg.evaluate(async () => {
       const R = window.ReaderMorph, NA = window.NotesAutoGen;
