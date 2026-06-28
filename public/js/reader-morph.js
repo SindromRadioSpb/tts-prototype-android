@@ -841,13 +841,14 @@
   // here, so «‹ Назад» can step back sequentially through however many drills (instead of forcing
   // the user to close + re-tap). Reset on a fresh word tap (onActivate) and on close.
   var _cardStack = [];
+  var _cardReturnFocus = null;   // Epic 8b — element to restore focus to when the card closes (WCAG 2.4.3)
 
   function ensureSheet() {
     if (_sheet) return _sheet;
     var el = document.createElement("div");
     el.className = "rm-sheet";
     el.setAttribute("role", "dialog");
-    el.setAttribute("aria-modal", "false");
+    el.setAttribute("aria-modal", "true");   // Epic 8b — WCAG: a backdrop-dimming sheet is modal
     el.hidden = true;
     el.innerHTML =
       '<div class="rm-sheet-backdrop" data-rm-close="1"></div>' +
@@ -890,6 +891,8 @@
     if (_sheet) { _sheet.hidden = true; _sheet.classList.remove("rm-open"); }
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
     _cardStack = [];   // drilling history dies with the sheet
+    try { if (_cardReturnFocus && _cardReturnFocus.focus) _cardReturnFocus.focus(); } catch (_) {}   // WCAG 2.4.3 — restore focus
+    _cardReturnFocus = null;
   }
   // Root-family «‹ Назад» — pop the previous card and re-render it (sequential, multi-level).
   function onCardBack() {
@@ -1175,8 +1178,10 @@
 
   function openCardLoading() {
     var el = ensureSheet();
+    if (el.hidden) { try { _cardReturnFocus = document.activeElement; } catch (_) { _cardReturnFocus = null; } }   // fresh open → remember trigger
     el.querySelector(".rm-sheet-body").innerHTML = '<div class="rm-loading">' + escapeHtml(tt("room.morph.loading", "Анализ…")) + "</div>";
     el.hidden = false; el.classList.add("rm-open");
+    try { var x = el.querySelector(".rm-sheet-x"); if (x) x.focus(); } catch (_) {}   // WCAG 2.4.3 — focus into the dialog
   }
   function openCard(card, occ) {
     _activeCard = card; _activeOcc = occ || null;

@@ -32,6 +32,8 @@
       --ws-new-fill: rgba(124,58,237,.26);  --ws-l1-fill: rgba(207,75,67,.30);   --ws-l2-fill: rgba(211,128,31,.30);
       --ws-l3-fill: rgba(67,160,71,.30);    --ws-l4-fill: rgba(67,115,224,.28);  --ws-known-fill: rgba(13,148,136,.28);
       --ws-ignore-fill: rgba(100,116,139,.22);
+      /* Epic 8d — confidence-pill text: LIGHT theme needs darker hues for ≥4.5:1 on the .16 fills. */
+      --prov-exact: #15803d; --prov-likely: #1d4ed8; --prov-amber: #92660f; --prov-context: #6d28d9;
     }
     @media (prefers-color-scheme: dark) {
       body:not(.theme-light) {
@@ -48,6 +50,7 @@
         --ws-new-fill: rgba(139,92,246,.34);  --ws-l1-fill: rgba(224,99,92,.34);   --ws-l2-fill: rgba(230,150,55,.34);
         --ws-l3-fill: rgba(80,190,95,.32);    --ws-l4-fill: rgba(96,140,240,.32);  --ws-known-fill: rgba(20,184,166,.32);
         --ws-ignore-fill: rgba(140,150,165,.26);
+        --prov-exact: #3fb950; --prov-likely: #5a9bff; --prov-amber: #d29922; --prov-context: #a371f7;
       }
     }
     body.theme-dark {
@@ -58,6 +61,7 @@
       --ws-new-fill: rgba(139,92,246,.34);  --ws-l1-fill: rgba(224,99,92,.34);   --ws-l2-fill: rgba(230,150,55,.34);
       --ws-l3-fill: rgba(80,190,95,.32);    --ws-l4-fill: rgba(96,140,240,.32);  --ws-known-fill: rgba(20,184,166,.32);
       --ws-ignore-fill: rgba(140,150,165,.26);
+      --prov-exact: #3fb950; --prov-likely: #5a9bff; --prov-amber: #d29922; --prov-context: #a371f7;
     }
 
     * { box-sizing: border-box; }
@@ -576,7 +580,31 @@
     #roomReaderTable td[data-col="ru"].ru-veiled.ru-revealed { filter: none; user-select: text; }
     /* BRR-P1-006 — one-time discoverability pulse on the reading-settings («Аа») button. */
     @keyframes aidsPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(90,155,255,0); } 50% { box-shadow: 0 0 0 4px rgba(90,155,255,.4); } }
-    .reader-aids-toggle.aids-hint { animation: aidsPulse 1.6s ease-in-out 3; }
+    @media (prefers-reduced-motion: no-preference) {   /* Epic 8b — WCAG 2.3.3: no pulse when motion is reduced */
+      .reader-aids-toggle.aids-hint { animation: aidsPulse 1.6s ease-in-out 3; }
+    }
+    /* Epic 8a — first-open discoverability tip strip (dismissible, non-modal). */
+    .reader-tip { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; padding: 9px 11px;
+      border-radius: 10px; border: 1px solid var(--accent); background: var(--bg-muted); }
+    .reader-tip[hidden] { display: none; }
+    .reader-tip-ic { flex: none; font-size: 15px; }
+    .reader-tip-txt { flex: 1 1 auto; font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
+    .reader-tip-x { flex: none; appearance: none; cursor: pointer; width: 26px; height: 26px; padding: 0; line-height: 1;
+      border-radius: 7px; border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--text-secondary); font-size: 13px; }
+    .reader-tip-x:hover { border-color: var(--accent); color: var(--text-primary); }
+    /* Epic 8c — corpus-open loading skeleton (shimmer previews the bilingual rows). */
+    .reader-skeleton { display: flex; flex-direction: column; gap: 14px; padding: 16px 4px; }
+    .reader-skeleton-row { display: flex; gap: 12px; }
+    .reader-skeleton-bar { height: 18px; border-radius: 6px; background: var(--bg-muted); }
+    .reader-skeleton-bar.he { flex: 1 1 55%; }
+    .reader-skeleton-bar.ru { flex: 1 1 45%; opacity: .7; }
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes readerShimmer { 0% { opacity: .55; } 50% { opacity: 1; } 100% { opacity: .55; } }
+      .reader-skeleton-bar { animation: readerShimmer 1.3s ease-in-out infinite; }
+      .reader-skeleton-row:nth-child(2) .reader-skeleton-bar { animation-delay: .15s; }
+      .reader-skeleton-row:nth-child(3) .reader-skeleton-bar { animation-delay: .3s; }
+      .reader-skeleton-row:nth-child(4) .reader-skeleton-bar { animation-delay: .45s; }
+    }
     /* Light bottom-sheet card */
     .rm-sheet { position: fixed; inset: 0; z-index: 1000; }
     .rm-sheet[hidden] { display: none; }
@@ -603,11 +631,11 @@
     .rm-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; padding-inline-end: 36px; }
     .rm-word { font-size: 27px; font-weight: 700; line-height: 1.2; }
     .rm-prov { flex: none; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-    .rm-prov-exact { background: rgba(46,160,67,.16); color: #3fb950; }
-    .rm-prov-likely { background: rgba(56,139,253,.16); color: #5a9bff; }
-    .rm-prov-guessed, .rm-prov-unknown { background: rgba(210,153,34,.16); color: #d29922; }
+    .rm-prov-exact { background: rgba(46,160,67,.16); color: var(--prov-exact); }
+    .rm-prov-likely { background: rgba(56,139,253,.16); color: var(--prov-likely); }
+    .rm-prov-guessed, .rm-prov-unknown { background: rgba(210,153,34,.16); color: var(--prov-amber); }
     .rm-prov-function { background: var(--bg-muted); color: var(--text-secondary); }
-    .rm-prov-context { background: rgba(163,113,247,.18); color: #a371f7; }
+    .rm-prov-context { background: rgba(163,113,247,.18); color: var(--prov-context); }
     /* Epic-2 #1 — «?» badge-helper + collapsed confidence-taxonomy legend. */
     .rm-prov-line { display: inline-flex; align-items: center; gap: 6px; }
     .rm-prov-help {
@@ -1056,6 +1084,7 @@
   </div>
   <div id="readerFind" class="reader-find" hidden></div>
   <div id="readerAids" class="reader-aids" hidden></div>
+  <div id="readerTip" class="reader-tip" hidden></div>
   <div id="roomReaderTable" class="reader-table-wrap"></div>
   <!-- Epic-2 #3 — honest provenance: translation AND vocalization are machine-made (R9). -->
   <p id="readerProvNote" class="reader-prov-note" dir="auto" data-i18n="room.prov.note">Перевод и огласовка — машинные, не вычитаны.</p>
@@ -1074,7 +1103,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.26</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.27</span>
   </div>
 </footer>
 

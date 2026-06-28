@@ -346,6 +346,48 @@ function saveReaderCfg() {
 }
 function aidsHinted() { try { return localStorage.getItem('room.aidsHinted') === '1'; } catch (_) { return true; } }
 function aidsHintedSet() { try { localStorage.setItem('room.aidsHinted', '1'); } catch (_) {} }
+// Epic 8a — first-open discoverability tip strip (one-time, localStorage flag).
+function readerTipSeen() { try { return localStorage.getItem('room.readerTipSeen') === '1'; } catch (_) { return true; } }
+function readerTipSeenSet() { try { localStorage.setItem('room.readerTipSeen', '1'); } catch (_) {} }
+// Dismissible, NON-modal strip above the reader naming the Room's core gestures (tap-word→card,
+// long-press→status, 📚 Учить, ▶ row-audio) — they have no other affordance. Shown ONCE; reuses
+// el()/tt(); reduced-motion-safe. Owner: not a blocking modal (≠ the suppressed Studio modal).
+function showReaderTip() {
+  const tip = $('readerTip');
+  if (!tip) return;
+  if (readerTipSeen()) { tip.hidden = true; return; }
+  tip.innerHTML = '';
+  tip.appendChild(el('span', { class: 'reader-tip-ic', text: '💡', attrs: { 'aria-hidden': 'true' } }));
+  tip.appendChild(el('span', { class: 'reader-tip-txt', i18n: 'room.onboard.readerTip', text: tt('room.onboard.readerTip', 'Тап по слову — разбор · долгий тап — статус · 📚 Учить — словарь · ▶ строка — озвучка') }));
+  const x = el('button', { class: 'reader-tip-x', text: '✕', attrs: { type: 'button', 'aria-label': tt('room.morph.close', 'Закрыть') } });
+  x.addEventListener('click', () => { tip.hidden = true; readerTipSeenSet(); });
+  tip.appendChild(x);
+  tip.hidden = false;
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+// Epic 8b — post-render SR/lang tagging of the painted bilingual table (parity-safe: mutates the
+// DOM AFTER reader-core paints; the byte-parity builder is untouched). Lets a screen reader switch
+// voice per column (Hebrew vs Russian). Idempotent.
+function tagReaderTableLang(mount) {
+  if (!mount) return;
+  mount.querySelectorAll('#proTable tbody td[data-col="he"], #proTable tbody td[data-col="niqqud"]').forEach((td) => td.setAttribute('lang', 'he'));
+  mount.querySelectorAll('#proTable tbody td[data-col="ru"]').forEach((td) => td.setAttribute('lang', 'ru'));
+  mount.querySelectorAll('#proTable tbody td[data-col="translit"]').forEach((td) => td.setAttribute('lang', 'he-Latn'));
+}
+// Epic 8b — minimal focus management (WCAG 2.4.3): move focus INTO an opened sheet (its close
+// button) and RESTORE it to the trigger on close. Shared by the room sheets (study/consent);
+// the morphology card manages its own (reader-morph). Soft (no full trap — v2 backlog).
+let _roomFocusReturn = null;
+function roomFocusInto(container) {
+  try { _roomFocusReturn = document.activeElement; } catch (_) { _roomFocusReturn = null; }
+  if (!container) return;
+  const f = container.querySelector('button, [tabindex="0"], input, select, a[href]') || container;
+  try { if (f && f.focus) f.focus(); } catch (_) {}
+}
+function roomFocusRestore() {
+  try { if (_roomFocusReturn && _roomFocusReturn.focus) _roomFocusReturn.focus(); } catch (_) {}
+  _roomFocusReturn = null;
+}
 let readerRows = [];
 let readerAudio = null; // attachRowAudio detach handle
 let readerMorph = null; // ReaderMorph attach detach handle
@@ -521,7 +563,7 @@ let _trainSession = null; // { items, pool, idx, total, correct, levelUps, answe
 function uiDirRoom() { return (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr'; }
 function ensureStudySheet() {
   if (_studySheet) return _studySheet;
-  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'false' } });
+  const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', '📚 Учить новые слова') } });
   sheet.hidden = true;
   const card = el('div', { class: 'room-study-card' });
   card.appendChild(el('button', { class: 'room-study-x', text: '✕', attrs: { type: 'button', 'data-study-close': '1', 'aria-label': tt('room.morph.close', 'Закрыть') } }));
@@ -567,7 +609,7 @@ function ensureStudySheet() {
   _studySheet = sheet;
   return sheet;
 }
-function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; }
+function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; roomFocusRestore(); }
 // Show/hide the list-only chrome (controls/bulk/count/more) — hidden in «🎯 Тренировка».
 function _studyListChrome(show) {
   if (!_studySheet) return;
@@ -770,6 +812,7 @@ async function roomOpenStudyList() {
   sheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'list'));
   _studyListChrome(true);
   sheet.hidden = false; sheet.classList.add('room-study-open');
+  roomFocusInto(sheet.querySelector('.room-study-card'));   // WCAG 2.4.3 — focus into the sheet
   await recollectStudy();
 }
 
@@ -1523,6 +1566,21 @@ function readerStateBox(i18nKey, icon) {
   mount.appendChild(box);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
+// Epic 8c — corpus-open loading SKELETON (replaces the bare «⏳» text). Shimmer rows preview the
+// bilingual table structure; reduced-motion-safe (CSS gates the shimmer). role=status announces it.
+function readerSkeleton() {
+  const mount = $('roomReaderTable');
+  if (!mount) return;
+  mount.innerHTML = '';
+  const box = el('div', { class: 'reader-skeleton', attrs: { role: 'status', 'aria-live': 'polite', 'aria-label': tt('room.state.loading', 'Загрузка…') } });
+  for (let i = 0; i < 7; i++) {
+    const row = el('div', { class: 'reader-skeleton-row' });
+    row.appendChild(el('div', { class: 'reader-skeleton-bar he' }));
+    row.appendChild(el('div', { class: 'reader-skeleton-bar ru' }));
+    box.appendChild(row);
+  }
+  mount.appendChild(box);
+}
 
 function rerenderReader() {
   const mount = $('roomReaderTable');
@@ -1646,7 +1704,7 @@ async function openReader(textId, title, opts) {
   const res = await readerCore.openText(textId, {
     localDb, mount, config: readerConfig(),
     onState: (s) => {
-      if (s.kind === 'loading') readerStateBox('room.state.loading', '⏳');
+      if (s.kind === 'loading') readerSkeleton();
       else if (s.kind === 'dbBusy') readerStateBox('room.state.dbBusy', '📑');
       else if (s.kind === 'notFound' || s.kind === 'error') readerStateBox('room.state.error', '⚠️');
       else if (s.kind === 'empty') readerStateBox('room.reader.empty', '📄');
@@ -1659,6 +1717,8 @@ async function openReader(textId, title, opts) {
   if (res && res.ok) {
     attachReaderAudio();
     try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
+    try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
+    try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
     wireProgressScroll();
     if (opts && opts.ftsQuery) jumpToFtsMatch(opts.ftsQuery);                     // BRR-P2-005 — FTS hit → matched row
     else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row

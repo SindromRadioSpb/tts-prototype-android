@@ -2095,6 +2095,9 @@ window.I18N_LOCALES.he = {
       },
       pos: { verb: "פועל", noun: "שם עצם", adjective: "שם תואר", preposition: "מילת יחס", adverb: "תואר הפועל", pronoun: "כינוי", conjunction: "מילת חיבור", numeral: "מספר", interjection: "מילת קריאה", particle: "חלקיק", negation: "שלילה" },
     },
+    onboard: {
+      readerTip: "הקשה על מילה — ניתוח · לחיצה ארוכה — סטטוס · 📚 ללמוד — אוצר מילים · ▶ שורה — שמע",
+    },
     corpus: {
       back: "חזרה",
       readyTitle: "מוכן לקריאה",
