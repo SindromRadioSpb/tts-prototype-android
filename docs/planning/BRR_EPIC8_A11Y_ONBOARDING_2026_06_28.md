@@ -1,6 +1,6 @@
 # Эпик 8 — a11y / онбординг / first-run · P2 / M-L · вед. R4/UX · R8/R2/R11
 
-**Дата:** 2026-06-28 · **Статус:** 🟢 направление + развилки одобрены (8a+8b+8c+8d; онбординг = дисмисс-полоска+аффордансы) → build.
+**Дата:** 2026-06-28 · **Статус:** ✅ SHIPPED+PROD (v3.11.27, `3c424ee`). 8a+8b+8c+8d отгружены.
 **Родитель:** `BRR_UX_AUDIT_2026_06_25.md` §ЭПИК 8. Память [[project_brr_ux_audit]] · [[feedback_verify_stale_plan_vs_live_code]] · [[feedback_hidden_attr_vs_display]].
 
 ## Зачем
@@ -39,6 +39,13 @@
 
 ## Гейты / инварианты
 reader-parity (КРИТИЧНО — трогаем sheet + post-render lang) · reader-morph (aria-modal/focus) · reader-scaffold/word-status/notes/context (регресс) · i18n (+onboard/state ключи) · corpus-vocab. @380px свет+тёмная (полоска, скелетон). Bump SW+футеры+package. commit+push→Coolify→prod-verify (Node no-store)→live-verify Kapture. Room-only; resolver/notes-autogen не тронуты.
+
+## ✅ SHIPPED v3.11.27 (`3c424ee`, 2026-06-28)
+- **8a:** дисмисс-полоска `#readerTip` (showReaderTip, флаг `room.readerTipSeen`) над ридером при первом открытии — называет жесты; `.rm-w` уже cursor:pointer. i18n `room.onboard.readerTip` ru/en/he.
+- **8b:** фокус в карточку (openCardLoading→.rm-sheet-x, closeSheet restore) + study-sheet (roomFocusInto/Restore) + `aria-modal=true`; `aidsPulse` под `@media (prefers-reduced-motion: no-preference)`; post-render `tagReaderTableLang` (lang=he/ru/he-Latn на ячейках, parity-safe).
+- **8c:** `readerSkeleton` (shimmer-строки, role=status, reduced-motion-safe) вместо «⏳» при загрузке корпус-работы.
+- **8d:** prov-pills → `--prov-*` CSS-vars; СВЕТЛАЯ тема затемнена (#15803d/#1d4ed8/#92660f/#6d28d9) до ≥4.5:1, тёмная — яркая.
+- **Гейты:** reader-parity (post-render lang не ломает byte-parity билдера) · reader-morph (aria-modal/focus) · scaffold 234 · word-status · notes · context · i18n 226. @380px свет+тёмная (полоска+скелетон). Прод-маркеры v3.11.27 ✓ (вкл. reduced-motion-guard).
 
 ## v2-беклог
 Полный фокус-трап (Tab-цикл); интерактивный тур; SR aria-describedby; offline/error-матрица полностью; in-text второй канал статуса (ограничение: подчёркивание конфликтует с никудом — отложено).
