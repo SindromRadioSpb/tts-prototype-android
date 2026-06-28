@@ -2100,7 +2100,8 @@ window.I18N_LOCALES.ru = {
       pos: { verb: "глагол", noun: "существительное", adjective: "прилагательное", preposition: "предлог", adverb: "наречие", pronoun: "местоимение", conjunction: "союз", numeral: "числительное", interjection: "междометие", particle: "частица", negation: "отрицание" },
     },
     onboard: {
-      readerTip: "Тап по слову — разбор · долгий тап — статус · 📚 Учить — словарь · ▶ строка — озвучка",
+      readerTip1: "👆 тап — разбор · долгий тап — статус",
+      readerTip2: "📚 Учить — словарь · ▶ строка — озвучка",
     },
     corpus: {
       back: "Назад",

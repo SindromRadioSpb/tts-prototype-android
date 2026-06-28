@@ -2086,7 +2086,8 @@ window.I18N_LOCALES.en = {
       pos: { verb: "verb", noun: "noun", adjective: "adjective", preposition: "preposition", adverb: "adverb", pronoun: "pronoun", conjunction: "conjunction", numeral: "numeral", interjection: "interjection", particle: "particle", negation: "negation" },
     },
     onboard: {
-      readerTip: "Tap a word — analysis · long-press — status · 📚 Study — vocabulary · ▶ row — audio",
+      readerTip1: "👆 tap — analysis · long-press — status",
+      readerTip2: "📚 Study — vocabulary · ▶ row — audio",
     },
     corpus: {
       back: "Back",

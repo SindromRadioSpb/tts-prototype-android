@@ -357,8 +357,12 @@ function showReaderTip() {
   if (!tip) return;
   if (readerTipSeen()) { tip.hidden = true; return; }
   tip.innerHTML = '';
-  tip.appendChild(el('span', { class: 'reader-tip-ic', text: '💡', attrs: { 'aria-hidden': 'true' } }));
-  tip.appendChild(el('span', { class: 'reader-tip-txt', i18n: 'room.onboard.readerTip', text: tt('room.onboard.readerTip', 'Тап по слову — разбор · долгий тап — статус · 📚 Учить — словарь · ▶ строка — озвучка') }));
+  // Two CONTROLLED lines — group the two reading gestures on line 1, the two study gestures on
+  // line 2. Never free-wrap mid-phrase (premium UI: a logical group must not split across lines).
+  const txt = el('div', { class: 'reader-tip-txt' });
+  txt.appendChild(el('span', { class: 'reader-tip-line', i18n: 'room.onboard.readerTip1', text: tt('room.onboard.readerTip1', '👆 тап — разбор · долгий тап — статус') }));
+  txt.appendChild(el('span', { class: 'reader-tip-line', i18n: 'room.onboard.readerTip2', text: tt('room.onboard.readerTip2', '📚 Учить — словарь · ▶ строка — озвучка') }));
+  tip.appendChild(txt);
   const x = el('button', { class: 'reader-tip-x', text: '✕', attrs: { type: 'button', 'aria-label': tt('room.morph.close', 'Закрыть') } });
   x.addEventListener('click', () => { tip.hidden = true; readerTipSeenSet(); });
   tip.appendChild(x);
@@ -599,6 +603,7 @@ function ensureStudySheet() {
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
     if (t.closest('[data-train-again]')) { startTraining(); return; }
     const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
+    if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
     if (t.closest('[data-train-card]')) { onTrainCard(); return; }
   });
   document.addEventListener('keydown', (e) => {
@@ -876,9 +881,9 @@ function _trainBuildCloze(item) {
     const cz = R.buildCloze(R.tokenize(sent), o.wordOffset);
     if (!cz) continue;
     const count = R.words(sent).length;
-    if (count > bestCount || (count === bestCount && best && o.rowIdx < best.rowIdx)) { best = { cz, ru: data.ru, rowIdx: o.rowIdx }; bestCount = count; }
+    if (count > bestCount || (count === bestCount && best && o.rowIdx < best.rowIdx)) { best = { cz, ru: data.ru, sentence: sent, rowIdx: o.rowIdx }; bestCount = count; }
   }
-  return best;   // { cz:{answer,before,after}, ru, rowIdx } | null
+  return best;   // { cz:{answer,before,after}, ru, sentence, rowIdx } | null
 }
 function renderTrainItem() {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
@@ -892,13 +897,21 @@ function renderTrainItem() {
   const mc = window.ReaderMorph.isMcLevel(item.status);
   body.innerHTML = '';
   body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
-  // cloze sentence (vocalized) with the blank, dir rtl
+  // cloze sentence (vocalized) with the blank + an always-present 🔊 row-audio hint (plays the
+  // whole sentence — by analogy with the study list's 🔊, owner request).
+  const clozeWrap = el('div', { class: 'room-train-clozewrap' });
   const cloze = el('div', { class: 'room-train-cloze', attrs: { dir: 'rtl', lang: 'he' } });
   cloze.appendChild(el('span', { text: built.cz.before }));
   cloze.appendChild(el('span', { class: 'room-train-blank', text: ' ____ ' }));
   cloze.appendChild(el('span', { text: built.cz.after }));
-  body.appendChild(cloze);
+  clozeWrap.appendChild(cloze);
+  clozeWrap.appendChild(el('button', { class: 'room-study-speak room-train-rowspeak', text: '🔊', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
+  body.appendChild(clozeWrap);
+  // prompt = lemma gloss (the dictionary/infinitive form) …
   body.appendChild(el('div', { class: 'room-train-prompt', attrs: { dir: 'ltr' }, text: '✎ ' + (item.gloss || tt('room.morph.study.recall', 'вспомни слово')) }));
+  // … PLUS the full row translation (context — the word in the sentence may be in a different form
+  // than the infinitive gloss; the translation shows which). Owner request.
+  if (built.ru) body.appendChild(el('div', { class: 'room-train-ctxq', attrs: { dir: 'ltr' }, text: built.ru }));
   if (mc) {
     const ans = { lemmaKey: item.lemmaKey, surface: item.surface, niqqud: built.cz.answer, root: item.root, pos: item.pos };
     const distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3);
