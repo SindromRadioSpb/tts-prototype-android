@@ -1729,19 +1729,37 @@
   var _FINMAP = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
   function _skel(s) { return stripNiqqud(String(s || "")).replace(/[ךםןףץ]/g, function (c) { return _FINMAP[c] || c; }).trim(); }
   var _PROCLITIC = { "ו": 1, "ה": 1, "ב": 1, "כ": 1, "ל": 1, "ש": 1, "מ": 1 };
+  function _normNq(s) { return String(s || "").replace(/[ךםןףץ]/g, function (c) { return _FINMAP[c] || c; }); }
+  // Drop a leading proclitic LETTER + its combining marks (niqqud-level), so an exact-vocalized compare
+  // can run on the bare stem (e.g. וְאָמַר → אָמַר). Conservative: only when the first letter is a proclitic.
+  function _dropProcliticNq(s) {
+    s = String(s || ""); if (!s || !_PROCLITIC[_skel(s[0])]) return s;
+    var i = 1; while (i < s.length && s.charCodeAt(i) >= 0x0591 && s.charCodeAt(i) <= 0x05c7) i++;
+    return s.slice(i);
+  }
   function findSlot(paradigm, niqqud) {
     if (!paradigm || !paradigm.cells) return { slot: null, count: 0 };
     var sk = _skel(niqqud);
     if (!sk) return { slot: null, count: 0 };
-    var stems = [sk];
-    if (sk.length > 2 && _PROCLITIC[sk[0]]) { stems.push(sk.slice(1)); if (sk.length > 3 && _PROCLITIC[sk[1]]) stems.push(sk.slice(2)); }
+    // each stem = { skeleton, vocalized } — prefer matching the ACTUAL vocalized form (disambiguates
+    // a SYNCRETIC skeleton, e.g. אמר = past אָמַר vs imperative אֱמֹר → pick the slot the reader saw),
+    // falling back to the lexicographically-smallest skeleton match when no cell's niqqud matches.
+    var stems = [{ sk: sk, nq: _normNq(niqqud) }];
+    if (sk.length > 2 && _PROCLITIC[sk[0]]) {
+      var s1 = _dropProcliticNq(niqqud); stems.push({ sk: sk.slice(1), nq: _normNq(s1) });
+      if (sk.length > 3 && _PROCLITIC[sk[1]]) stems.push({ sk: sk.slice(2), nq: _normNq(_dropProcliticNq(s1)) });
+    }
     for (var si = 0; si < stems.length; si++) {
-      var stem = stems[si], slot = null, count = 0;
+      var stem = stems[si].sk, wantNq = stems[si].nq, exact = null, lexi = null, count = 0;
       for (var k in paradigm.cells) {
         var c = paradigm.cells[k];
-        if (c && c.he && _skel(c.he) === stem) { count++; if (slot === null || k < slot) slot = k; }
+        if (!c || !c.he || _skel(c.he) !== stem) continue;
+        count++;
+        if (lexi === null || k < lexi) lexi = k;
+        if (wantNq && _normNq(c.he) === wantNq && (exact === null || k < exact)) exact = k;
       }
-      if (slot !== null) return { slot: slot, count: count };
+      if (exact !== null) return { slot: exact, count: count };
+      if (lexi !== null) return { slot: lexi, count: count };
     }
     return { slot: null, count: 0 };
   }

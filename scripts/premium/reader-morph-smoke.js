@@ -787,6 +787,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const article = R.findSlot(par, 'הַכּוֹתֵב');      // article ה (+dagesh, handled at skeleton)
       const miss = R.findSlot(par, 'זִזְזוּז');
       const syn = R.findSlot({ cells: { B: { he: 'דָּבָר' }, A: { he: 'דָּבָר' } } }, 'דָּבָר');
+      // syncretic skeleton (כתב = past כָּתַב vs imperative כְּתֹב) → prefer the cell matching the ACTUAL niqqud,
+      // even though 'IMP-2ms' < 'PERF-3ms' lexicographically (the reader saw the past form).
+      const synNq = R.findSlot({ cells: { 'IMP-2ms': { he: 'כְּתֹב' }, 'PERF-3ms': { he: 'כָּתַב' } } }, 'כָּתַב');
       const words = ['סֵפֶר', 'שָׁלוֹם', 'עוֹלָם', 'טוֹב', 'אָמַר', 'כָּתַב', 'יֶלֶד', 'דֶּרֶךְ'];
       let built = null, builtWord = null, deterministic = null;
       for (const w of words) {
@@ -801,13 +804,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         vocalized = built.options.every((h) => /[֑-ׇ]/.test(h));
         distinct = built.options.every((h) => norm(h) !== norm(built.correctHe)) && new Set(built.options.map(norm)).size === built.options.length;
       }
-      return { direct, proc, article, miss, syn, builtWord, deterministic, vocalized, distinct, optCount: built ? built.options.length : 0 };
+      return { direct, proc, article, miss, syn, synNq, builtWord, deterministic, vocalized, distinct, optCount: built ? built.options.length : 0 };
     });
     eq(d1.direct.slot === 'PERF-3ms', "findSlot direct match → PERF-3ms, got " + JSON.stringify(d1.direct));
     eq(d1.proc.slot === 'PERF-3ms', "findSlot strips leading proclitic ו → PERF-3ms, got " + JSON.stringify(d1.proc));
     eq(d1.article.slot === 'AP-ms', "findSlot strips article ה → AP-ms, got " + JSON.stringify(d1.article));
     eq(d1.miss.slot === null, "findSlot no cell match → null, got " + JSON.stringify(d1.miss));
-    eq(d1.syn.count === 2 && d1.syn.slot === 'A', "findSlot syncretism → count2 + deterministic slot A, got " + JSON.stringify(d1.syn));
+    eq(d1.syn.count === 2 && d1.syn.slot === 'A', "findSlot syncretism (identical he) → count2 + deterministic slot A, got " + JSON.stringify(d1.syn));
+    eq(d1.synNq.slot === 'PERF-3ms', "findSlot prefers the cell matching the ACTUAL niqqud over lexicographic (כָּתַב→PERF-3ms not IMP-2ms), got " + JSON.stringify(d1.synNq));
     eq(!!d1.builtWord, "buildMcSlotOptions builds for >=1 real word (slot-inflected distractors), got " + d1.builtWord);
     eq(d1.optCount === 3, "buildMcSlotOptions returns 3 distractor forms, got " + d1.optCount);
     eq(d1.vocalized === true, "buildMcSlotOptions distractors are vocalized (no bare-consonant tell)");
