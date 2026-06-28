@@ -10,6 +10,8 @@
 
 > **UPDATE 2026-06-29 — D1 ОТГРУЖЕН (prod `v3.11.35` `324645d` + fix `v3.11.36` `4baa3e8`).** Slot-inflected MC-дистракторы (R10-моат). PURE `findSlot` (проклитика-aware, пин-по-лемме, синкретизм→ячейка по реальному никуду) + async `buildMcSlotOptions` (банк = same-POS парадигмы из engine `pidMap`, фильтр по слоту, L4 семантика корень-семья/глосс-поле; ВСЕ 4 варианта = голые слот-формы из ячеек Pealim → нет tell; откат к B1). Measure-before-code нашёл проклитики (61% токенов) как главный рычаг. **Аудит `smoke:reader-cloze:audit`: охват 96.5% (1249/1294), bad-form 0** — превышает цель. Live-Kapture: אָמַר→PERF-3ms (форма из текста), סֵפֶר→корень-семья. План `BRR_EPIC4_3B_D1_SLOT_DISTRACTORS_2026_06_29.md`; артефакт `docs/research/epic4-3b-d1-slot/2026-06-29/`. **СЛЕДУЮЩЕЕ = D5** (teach-before-test: перед первым тестом нового слова — краткий показ форма+значение+аудio; reuse openWordCard/speakWord; не считать показ за recall) или D7/D6/D2 по очередности.
 
+> **UPDATE 2026-06-29 — D1 live-UI-кликтру ✓ + PWA auto-update (prod `v3.11.37`, `bcae910`).** D1 подтверждён РЕАЛЬНЫМ путём (текст→Аа→Учить→Тренировка): MC «אַף פַּעַם לֹא ____» (трогать) → 4 варианта נָגַעְתִּי(✓)/הִגַּעְתִּי/כָּתַבְתִּי/שָׁכַבְתִּי — все PERF-1s в ОДНОМ слоте, выбор только по значению (R10-моат живьём). Багов нет. SW `skipWaiting` на install → свежий код с первого reload (§6).
+
 ---
 
 ## 0. Что прочитать первым (канон, в этом порядке)
@@ -108,6 +110,7 @@ npm run test:api-smoke              # API smoke
 - **Windows curl + иврит:** коверкает не-ASCII тела → ложное «egress blocked». Прод-проверки иврита — Node fetch / браузер.
 - **Headless OPFS:** `importBundle` крашит wa-sqlite headless (мелкие записи ок) → reader-фичи верить через logic-gate + parity + plumbing-smoke; полный клиент = устройство владельца.
 - **SW кэш:** бампить `CACHE_VERSION` при любом index.html/locale/shell изменении, иначе сырые i18n-ключи / старый shell.
+- **SW авто-обновление (v3.11.37+):** SW теперь `self.skipWaiting()` на install + `clients.claim()` на activate + гард `controllerchange`→reload в library-ui → **свежий код подхватывается с ПЕРВОГО reload** (live-verify: один Kapture-reload с v3.11.36→v3.11.37 без SKIP_WAITING/unregister). Прежний 2-reload/unregister-танец БОЛЬШЕ НЕ НУЖЕН. (Память [[feedback_browser_verify_fresh_code]] обновлена.)
 - **Студия live = INLINE в index.html** (не public/check_script.js).
 - Полный журнал уроков — память-файлы `feedback_*` (см. MEMORY.md): linebreak, cloze-skeleton, upsert-preserve, no-override-grounded, ktiv-surface-key, workflow-front-size, verify-stale-plan-vs-live-code и др.
 
