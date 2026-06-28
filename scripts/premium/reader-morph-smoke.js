@@ -699,6 +699,35 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(rc.shStatus === "l2", "collectReviewItems must reflect the stored status (שלום→l2), got " + JSON.stringify(rc.shStatus));
     eq(rc.anyOcc, "a review item must carry occurrences {rowIdx,wordOffset} (for the cloze sentence), got " + JSON.stringify(rc.shOcc));
 
+    // ── Epic 4.3b Phase A — buildClozeForTarget (blank-by-skeleton, blank-ALL) + distractor collision guard.
+    const phA = await pg.evaluate(() => {
+      const R = window.ReaderMorph, strip = R.stripNiqqud;
+      const toks = R.tokenize("שלום עולם שלום טוב");                 // target repeats → both must blank
+      const cz = R.buildClozeForTarget(toks, strip("שלום"));
+      const visible = (cz.segments || []).filter((s) => !s.blank).map((s) => s.t).join("");
+      const answer = { lemmaKey: "pid:1", surface: "כתב", niqqud: "כָּתַב", root: "כתב", pos: "verb", freq: 5 };
+      const pool = [
+        answer,
+        { lemmaKey: "pid:2", surface: "כתב", niqqud: "כָּתַב", root: "כתב", pos: "verb", freq: 3 },   // same DISPLAY as answer → must drop
+        { lemmaKey: "pid:3", surface: "קרא", niqqud: "קָרָא", root: "קרא", pos: "verb", freq: 9 },
+        { lemmaKey: "pid:4", surface: "אמר", niqqud: "אָמַר", root: "אמר", pos: "verb", freq: 8 },
+        { lemmaKey: "pid:5", surface: "הלך", niqqud: "הָלַךְ", root: "הלך", pos: "verb", freq: 7 },
+      ];
+      const d = R.pickDistractors(answer, pool, 3);
+      return {
+        count: cz.count, answer: cz.answer, blanks: (cz.segments || []).filter((s) => s.blank).length,
+        visibleHasTarget: strip(visible).indexOf("שלום") >= 0, nullOnMiss: R.buildClozeForTarget(toks, "זזזז") === null,
+        distKeys: d.map((x) => x.lemmaKey), distDisplays: d.map((x) => strip(x.niqqud || x.surface)), answerDisp: strip(answer.niqqud),
+      };
+    });
+    eq(phA.count === 2 && phA.blanks === 2, "A2: buildClozeForTarget must blank ALL copies of a repeated target, got count=" + phA.count + " blanks=" + phA.blanks);
+    eq(phA.answer === "שלום", "buildClozeForTarget answer must be the matched vocalized token, got " + JSON.stringify(phA.answer));
+    eq(!phA.visibleHasTarget, "A2: no visible copy of the target may remain in the cloze sentence");
+    eq(phA.nullOnMiss, "buildClozeForTarget must return null when the target skeleton isn't present (→ unusable occurrence)");
+    eq(phA.distKeys.indexOf("pid:2") < 0, "A4: pickDistractors must DROP a distractor whose displayed form equals the answer (pid:2), got " + JSON.stringify(phA.distKeys));
+    eq(phA.distDisplays.indexOf(phA.answerDisp) < 0, "A4: no distractor may display the answer's skeleton, got " + JSON.stringify(phA.distDisplays) + " ans=" + phA.answerDisp);
+    eq(phA.distKeys.length === 3, "pickDistractors still returns 3 valid distractors after the collision guard, got " + JSON.stringify(phA.distKeys));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

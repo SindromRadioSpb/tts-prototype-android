@@ -1604,6 +1604,23 @@
     for (var j = 0; j < tokens.length; j++) { if (j < ti) before += tokens[j].text; else if (j > ti) after += tokens[j].text; }
     return { answer: tokens[ti].text, before: before, after: after };
   }
+  // Epic 4.3b Phase A (A1+A2) — blank EVERY word token whose niqqud-stripped skeleton === targetSkel.
+  // Keying by skeleton (not a HE-column index) fixes offset drift between he and he_niqqud tokenizations,
+  // and blanking all matches kills the repeated-target leak (a twin of the answer staying visible).
+  // Returns { answer (first matched token's vocalized text), segments:[{t}|{blank}], count } or null
+  // when NO token matches (→ caller treats the occurrence as unusable, never a wrong/leaky question).
+  function buildClozeForTarget(tokens, targetSkel) {
+    if (!Array.isArray(tokens) || !targetSkel) return null;
+    var idx = {}, answer = "", count = 0;
+    for (var i = 0; i < tokens.length; i++) {
+      var tk = tokens[i];
+      if (tk && tk.isWord && stripNiqqud(tk.text) === targetSkel) { idx[i] = 1; if (!answer) answer = tk.text; count++; }
+    }
+    if (!count) return null;
+    var segments = [];
+    for (var j = 0; j < tokens.length; j++) segments.push(idx[j] ? { blank: true } : { t: tokens[j].text });
+    return { answer: answer, segments: segments, count: count };
+  }
   // nextLevel: gentle do-no-harm SRS-lite (owner decision 3). correct → +1 (…→known); wrong → −1
   // with floors (new stays, l1 floors at l1, known→l4 — one miss never nukes a known word to «new»).
   var _LV_UP = { "new": "l1", l1: "l2", l2: "l3", l3: "l4", l4: "known", known: "known" };
@@ -1621,11 +1638,18 @@
     n = n || 3;
     if (!answer || !Array.isArray(pool)) return [];
     var aLen = _surfLen(answer.surface || answer.niqqud), aPos = answer.pos || "", aRoot = answer.root || "";
-    var seen = {}, uniq = [];
+    // Epic 4.3b Phase A (A4): never offer an option whose DISPLAYED skeleton equals the answer's (or a
+    // twin of another option) — dedupe by displayed form, not just lemmaKey, so no two buttons look the
+    // same and no distractor is secretly a correct answer.
+    var aDisp = stripNiqqud(answer.niqqud || answer.surface || "");
+    var seen = {}, seenDisp = {}, uniq = [];
     for (var i = 0; i < pool.length; i++) {
       var c = pool[i];
       if (!c || c.lemmaKey === answer.lemmaKey || !(c.niqqud || c.surface)) continue;
-      if (seen[c.lemmaKey]) continue; seen[c.lemmaKey] = 1; uniq.push(c);
+      if (seen[c.lemmaKey]) continue;
+      var disp = stripNiqqud(c.niqqud || c.surface || "");
+      if (!disp || disp === aDisp || seenDisp[disp]) continue;
+      seen[c.lemmaKey] = 1; seenDisp[disp] = 1; uniq.push(c);
     }
     function score(c) {
       var s = 0;
@@ -1657,8 +1681,8 @@
     decorateWords: decorateWords, clearDecorations: clearDecorations, collectNewWords: collectNewWords,
     openWordCard: openWordCard,
     // Epic 4.3b — recall-loop / cloze
-    collectReviewItems: collectReviewItems, buildCloze: buildCloze, nextLevel: nextLevel,
-    isMcLevel: isMcLevel, pickDistractors: pickDistractors,
+    collectReviewItems: collectReviewItems, buildCloze: buildCloze, buildClozeForTarget: buildClozeForTarget,
+    nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

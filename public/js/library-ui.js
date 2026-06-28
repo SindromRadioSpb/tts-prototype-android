@@ -558,6 +558,11 @@ const STUDY_STATUS_OPTS = [
   ['new', 'room.morph.status.new', 'новое'], ['l1', null, '1'], ['l2', null, '2'], ['l3', null, '3'], ['l4', null, '4'],
   ['known', 'room.morph.status.known', 'знаю'], ['ignore', 'room.morph.status.ignore', 'игнор'],
 ];
+// A9 — localized label for a status code (used in the training level-move «новое → 1», not raw codes).
+function statusLabel(code) {
+  const o = STUDY_STATUS_OPTS.find((x) => x[0] === code);
+  return o ? (o[1] ? tt(o[1], o[2]) : o[2]) : String(code || '');
+}
 const STUDY_CHUNK = 20;   // progressive render batch (A) — 973-word frontiers never blow up the DOM
 let _studySheet = null;
 let _studyAll = [];       // full collected frontier for the current scope (FIXED until scope change / re-open)
@@ -801,7 +806,7 @@ async function recollectStudy() {
     if (_studyView.scope === 'ahead') { let top = 0; try { top = currentTopRowIdx() || 0; } catch (_) { top = 0; } opts.rowFrom = top; }
     words = await window.ReaderMorph.collectNewWords(mount, states, opts);   // NO topN → full frontier
   } catch (_) { words = []; }
-  if (!_studySheet || _studySheet.hidden) return;   // closed while collecting
+  if (!_studySheet || _studySheet.hidden || _studyMode !== 'list') return;   // A6 — closed OR switched to Тренировка while collecting → don't clobber
   words.forEach((w) => { w._status = states[w.lemmaKey] || ''; });
   _studyAll = words;
   renderStudyControls();
@@ -855,7 +860,10 @@ async function startTraining() {
   let states = {}, all = [];
   try { states = (await ensureWordStates()) || {}; all = await window.ReaderMorph.collectReviewItems(mount, states, {}); } catch (_) { all = []; }
   if (!_studySheet || _studySheet.hidden || _studyMode !== 'train') return;
-  const items = buildTrainSession(all);
+  if (_studyView.hideNames) all = all.filter((x) => !x.nameSuspect);   // A10 — honor the list's «скрыть имена» (also keeps names out of the distractor pool)
+  // A3 — pre-build each item's cloze; keep only BUILDABLE ones so «X / N» counts only askable items
+  // (a target whose skeleton isn't found in any of its sentences is dropped, not scored as a miss).
+  const items = buildTrainSession(all).map((it) => { it._built = _trainBuildCloze(it); return it; }).filter((it) => it._built);
   _trainSession = { items, pool: all, idx: 0, total: items.length, correct: 0, levelUps: 0, answered: false };
   renderTrainItem();
 }
@@ -871,19 +879,24 @@ function _trainRowData(rowIdx) {
   return { he: cell('he'), he_niqqud: cell('niqqud') || cell('he'), ru: cell('ru') };
 }
 // Pick the occurrence with the richest context (most word tokens), tie-break rowIdx asc → cloze.
+// A1+A2: blank by SKELETON (buildClozeForTarget) — finds the target by its consonantal form (not the
+// HE-column wordOffset, which can drift vs the he_niqqud tokenization) and blanks ALL its copies (no
+// repeated-word leak). An occurrence where the target skeleton isn't found is unusable → skipped.
 function _trainBuildCloze(item) {
   const R = window.ReaderMorph;
+  const targetSkel = R.stripNiqqud(item.surface || item.niqqud || '');
+  if (!targetSkel) return null;
   let best = null, bestCount = -1;
   for (const o of (item.occ || [])) {
     const data = _trainRowData(o.rowIdx);
     if (!data) continue;
     const sent = String(data.he_niqqud || data.he || '');
-    const cz = R.buildCloze(R.tokenize(sent), o.wordOffset);
-    if (!cz) continue;
+    const cz = R.buildClozeForTarget(R.tokenize(sent), targetSkel);
+    if (!cz) continue;   // target not present in this sentence (offset drift / wrong row) → unusable
     const count = R.words(sent).length;
     if (count > bestCount || (count === bestCount && best && o.rowIdx < best.rowIdx)) { best = { cz, ru: data.ru, sentence: sent, rowIdx: o.rowIdx }; bestCount = count; }
   }
-  return best;   // { cz:{answer,before,after}, ru, sentence, rowIdx } | null
+  return best;   // { cz:{answer,segments,count}, ru, sentence, rowIdx } | null
 }
 function renderTrainItem() {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
@@ -891,19 +904,23 @@ function renderTrainItem() {
   if (s.idx >= s.total) return renderTrainSummary();
   s.answered = false;
   const item = s.items[s.idx];
-  const built = _trainBuildCloze(item);
-  if (!built) { s.idx++; return renderTrainItem(); }   // no usable sentence → skip
+  const built = item._built || _trainBuildCloze(item);
+  if (!built) { s.idx++; return renderTrainItem(); }   // safety (items were pre-filtered to buildable)
   s._built = built;
-  const mc = window.ReaderMorph.isMcLevel(item.status);
+  // A5 — decide MC vs typed: MC needs ≥3 honest distractors, else fall back to typed for THIS item.
+  let mc = window.ReaderMorph.isMcLevel(item.status);
+  let distractors = [];
+  if (mc) { distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3); if (distractors.length < 3) mc = false; }
   body.innerHTML = '';
   body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
-  // cloze sentence (vocalized) with the blank + an always-present 🔊 row-audio hint (plays the
-  // whole sentence — by analogy with the study list's 🔊, owner request).
+  // cloze sentence (vocalized) — segments blank EVERY copy of the target (A2) + an always-present 🔊
+  // row-audio that plays the WHOLE sentence (owner decision A7: full audio incl. the target, as a hint).
   const clozeWrap = el('div', { class: 'room-train-clozewrap' });
   const cloze = el('div', { class: 'room-train-cloze', attrs: { dir: 'rtl', lang: 'he' } });
-  cloze.appendChild(el('span', { text: built.cz.before }));
-  cloze.appendChild(el('span', { class: 'room-train-blank', text: ' ____ ' }));
-  cloze.appendChild(el('span', { text: built.cz.after }));
+  (built.cz.segments || []).forEach((seg) => {
+    if (seg.blank) cloze.appendChild(el('span', { class: 'room-train-blank', text: ' ____ ', attrs: { 'aria-label': tt('room.morph.study.blank', 'пропуск') } }));
+    else cloze.appendChild(el('span', { text: seg.t }));
+  });
   clozeWrap.appendChild(cloze);
   clozeWrap.appendChild(el('button', { class: 'room-study-speak room-train-rowspeak', text: '🔊', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
   body.appendChild(clozeWrap);
@@ -913,8 +930,6 @@ function renderTrainItem() {
   // than the infinitive gloss; the translation shows which). Owner request.
   if (built.ru) body.appendChild(el('div', { class: 'room-train-ctxq', attrs: { dir: 'ltr' }, text: built.ru }));
   if (mc) {
-    const ans = { lemmaKey: item.lemmaKey, surface: item.surface, niqqud: built.cz.answer, root: item.root, pos: item.pos };
-    const distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3);
     const opts = [{ key: item.lemmaKey, he: built.cz.answer, correct: true }].concat(
       distractors.map((d) => ({ key: d.lemmaKey, he: d.niqqud || d.surface, correct: false })));
     // deterministic placement: rotate by item index (no Math.random)
@@ -961,8 +976,9 @@ async function checkTrainAnswer(correct) {
   const item = s.items[s.idx];
   const next = window.ReaderMorph.nextLevel(item.status, correct);
   if (next !== item.status) { try { await localDb.setWordStatus(item.lemmaKey, next); } catch (_) {} }
-  if (correct) { s.correct++; if (next !== item.status && /^(l[2-4]|known)$/.test(next)) s.levelUps++; }
-  const moved = item.status + (next !== item.status ? ' → ' + next : '');
+  if (correct && next !== item.status) { s.correct++; s.levelUps++; }   // A8 — any promotion counts (incl. new→l1)
+  else if (correct) { s.correct++; }
+  const moved = (next !== item.status) ? (statusLabel(item.status) + ' → ' + statusLabel(next)) : '';   // A9 — localized, not raw codes
   item._from = item.status; item.status = next;
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}

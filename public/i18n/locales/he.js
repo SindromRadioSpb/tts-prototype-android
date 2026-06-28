@@ -2072,6 +2072,7 @@ window.I18N_LOCALES.he = {
         modeList: "📋 רשימה",
         modeTrain: "🎯 תרגול",
         recall: "היזכרו במילה",
+        blank: "מקום ריק",
         typePlaceholder: "הקלידו את המילה…",
         check: "בדיקה",
         correct: "✓ נכון",
