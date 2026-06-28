@@ -14,12 +14,14 @@
 //     state, depend on quotas, or upload data; caching them would be wrong.
 //
 // ── Update lifecycle ─────────────────────────────────────────────────────
-// On install we precache the shell into a versioned cache. We do NOT call
-// skipWaiting() automatically — the new SW waits in `installed` state
-// until the user explicitly accepts the update via the "Обновить" toast
-// shown in the app (which posts {type:'SKIP_WAITING'} to us). This is the
-// classic premium PWA pattern: the user is in control of when to apply
-// the update. On activate we purge any cache whose name doesn't match
+// On install we precache the shell into a versioned cache and call
+// skipWaiting() so a freshly-deployed SW activates immediately instead of
+// waiting in `installed` state. Paired with clients.claim() on activate and
+// the shell's guarded `controllerchange` → reload (library-ui), a new
+// deploy is picked up on the FIRST reload, no manual "Обновить" tap needed.
+// (The "Обновить" toast + {type:'SKIP_WAITING'} message handler are kept as
+// a harmless fallback for browsers that drop controllerchange.)
+// On activate we purge any cache whose name doesn't match
 // the current versioned set, then claim clients so the controlled page
 // uses the new SW immediately.
 //
@@ -27,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.36";
+const CACHE_VERSION = "v3.11.37";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -172,6 +174,7 @@ const NETWORK_FIRST_TIMEOUT_MS = 2500;
 
 // ── install ──────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
+  self.skipWaiting();   // auto-activate the new SW (no waiting state) → first-reload pickup
   event.waitUntil((async () => {
     const cache = await caches.open(PRECACHE);
     // Use { cache: 'reload' } to bypass HTTP cache for the precache fetch
