@@ -607,6 +607,8 @@ function ensureStudySheet() {
     if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
     if (t.closest('[data-train-skip]')) { onTrainSkip(); return; }
+    const tile = t.closest('[data-train-tile]'); if (tile) { onTrainTile(tile); return; }
+    const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
     if (t.closest('[data-train-again]')) { startTraining(); return; }
     const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
     if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
@@ -838,11 +840,28 @@ function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).rep
 // proclitic-carrying sentence form and vice-versa. Conservative (single letter, length>2).
 function _stripProclitic(s) { return (s && s.length > 2 && /^[והבכלשמ]/.test(s)) ? s.slice(1) : s; }
 // Accepted normalized skeletons for a cloze: the inflected sentence form + the lemma, each with/without
-// a leading proclitic. The typed answer is correct if its skeleton (or proclitic-stripped) is in here.
+// a leading proclitic. The typed/assembled answer is correct if its skeleton (or proclitic-stripped) is here.
 function _acceptedSkeletons(answerForm, lemmaSurface) {
   const set = new Set();
   [answerForm, lemmaSurface].forEach((b) => { const n = _normHe(b || ''); if (n) { set.add(n); set.add(_stripProclitic(n)); } });
   return set;
+}
+// C1 — tap-letters production tier (mobile-friendly Hebrew input, no keyboard). Returns the answer's
+// consonantal letters + 2 decoys, deterministically scrambled (seed = item index; NO Math.random).
+const HE_LETTERS = ['א','ב','ג','ד','ה','ו','ז','ח','ט','י','כ','ל','מ','נ','ס','ע','פ','צ','ק','ר','ש','ת'];
+function _letterTiles(skel, seed) {
+  const base = Array.from(String(skel || ''));
+  const decoys = [];
+  for (let i = 0; i < HE_LETTERS.length && decoys.length < 2; i++) {
+    const c = HE_LETTERS[(i + seed * 5 + 3) % HE_LETTERS.length];
+    if (base.indexOf(c) < 0 && decoys.indexOf(c) < 0) decoys.push(c);
+  }
+  const all = base.concat(decoys);
+  // deterministic permutation: stable-sort by a seeded key derived from position + char
+  return all
+    .map((ch, i) => ({ ch, k: (((i + 1) * 1103515245 + (seed + 1) * 12345 + ch.charCodeAt(0) * 131) >>> 0) }))
+    .sort((a, b) => a.k - b.k)
+    .map((x) => x.ch);
 }
 // Session = learning (l1–l4) + new (active, freq-desc), with ~15% known-refresh interleaved (decision 2).
 function buildTrainSession(all) {
@@ -918,10 +937,13 @@ function renderTrainItem() {
   const built = item._built || _trainBuildCloze(item);
   if (!built) { s.idx++; return renderTrainItem(); }   // safety (items were pre-filtered to buildable)
   s._built = built;
-  // A5 — decide MC vs typed: MC needs ≥3 honest distractors, else fall back to typed for THIS item.
-  let mc = window.ReaderMorph.isMcLevel(item.status);
+  // Escalation ladder: MC (recognition) for new/l1/l2 · tap-letters (assisted production, mobile-OK)
+  // for l3/l4 · free typing (top production tier) only for known. A5 — too few honest distractors →
+  // fall back to tap-letters (not free typing — keyboard-free on mobile).
+  let mode = window.ReaderMorph.isMcLevel(item.status) ? 'mc' : (item.status === 'known' ? 'type' : 'tiles');
   let distractors = [];
-  if (mc) { distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3); if (distractors.length < 3) mc = false; }
+  if (mode === 'mc') { distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3); if (distractors.length < 3) mode = 'tiles'; }
+  s._mode = mode;
   body.innerHTML = '';
   body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
   // cloze sentence (vocalized) — segments blank EVERY copy of the target (A2) + an always-present 🔊
@@ -940,7 +962,7 @@ function renderTrainItem() {
   // … PLUS the full row translation (context — the word in the sentence may be in a different form
   // than the infinitive gloss; the translation shows which). Owner request.
   if (built.ru) body.appendChild(el('div', { class: 'room-train-ctxq', attrs: { dir: 'ltr' }, text: built.ru }));
-  if (mc) {
+  if (mode === 'mc') {
     const opts = [{ key: item.lemmaKey, he: built.cz.answer, correct: true }].concat(
       distractors.map((d) => ({ key: d.lemmaKey, he: d.niqqud || d.surface, correct: false })));
     // deterministic placement: rotate by item index (no Math.random)
@@ -949,16 +971,26 @@ function renderTrainItem() {
     const grid = el('div', { class: 'room-train-opts', attrs: { dir: 'rtl' } });
     ordered.forEach((o) => grid.appendChild(el('button', { class: 'room-train-opt', attrs: { type: 'button', 'data-train-opt': '1', 'data-correct': o.correct ? '1' : '0', lang: 'he', dir: 'rtl' }, text: o.he })));
     body.appendChild(grid);
-  } else {
+  } else if (mode === 'type') {
     const inWrap = el('div', { class: 'room-train-inputwrap' });
     inWrap.appendChild(el('input', { class: 'room-train-input', attrs: { type: 'text', 'data-train-input': '1', dir: 'rtl', lang: 'he', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: tt('room.morph.study.typePlaceholder', 'впиши слово…') } }));
     inWrap.appendChild(el('button', { class: 'room-train-submit', i18n: 'room.morph.study.check', text: tt('room.morph.study.check', 'Проверить'), attrs: { type: 'button', 'data-train-submit': '1' } }));
     body.appendChild(inWrap);
+  } else {
+    // C1 — tap-letters: assemble the answer from scrambled letter tiles (+2 decoys), no keyboard.
+    s._assembled = [];
+    const targetSkel = window.ReaderMorph.stripNiqqud(item.surface || built.cz.answer || '');
+    body.appendChild(el('div', { class: 'room-train-assemblehint', i18n: 'room.morph.study.assemble', text: tt('room.morph.study.assemble', 'Собери слово из букв') }));
+    body.appendChild(el('div', { class: 'room-train-build', attrs: { dir: 'rtl', lang: 'he', 'data-train-build': '1' } }));
+    const tilesWrap = el('div', { class: 'room-train-tiles', attrs: { dir: 'rtl' } });
+    _letterTiles(targetSkel, s.idx).forEach((ch, i) => tilesWrap.appendChild(el('button', { class: 'room-train-tile', text: ch, attrs: { type: 'button', 'data-train-tile': String(i), lang: 'he' } })));
+    body.appendChild(tilesWrap);
+    body.appendChild(el('button', { class: 'room-train-submit', i18n: 'room.morph.study.check', text: tt('room.morph.study.check', 'Проверить'), attrs: { type: 'button', 'data-train-submit': '1' } }));
   }
   // B2 — «Не знаю»: reveal without guessing (honest no-recall, soft demotion).
   body.appendChild(el('button', { class: 'room-train-skip', i18n: 'room.morph.study.dontKnow', text: tt('room.morph.study.dontKnow', 'Не знаю'), attrs: { type: 'button', 'data-train-skip': '1' } }));
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  if (!mc) { const inp = body.querySelector('[data-train-input]'); if (inp) { try { inp.focus(); } catch (_) {} } }
+  if (mode === 'type') { const inp = body.querySelector('[data-train-input]'); if (inp) { try { inp.focus(); } catch (_) {} } }
 }
 function onTrainOption(btn) {
   if (!_trainSession || _trainSession.answered) return;
@@ -974,15 +1006,47 @@ function onTrainOption(btn) {
 }
 function onTrainSubmit() {
   if (!_trainSession || _trainSession.answered) return;
-  const inp = _studySheet && _studySheet.querySelector('[data-train-input]');
-  if (!inp) return;
-  const val = _normHe(inp.value);
-  if (!val) { try { inp.focus(); } catch (_) {} return; }
   const built = _trainSession._built, item = _trainSession.items[_trainSession.idx];
+  const buildEl = _studySheet && _studySheet.querySelector('[data-train-build]');
+  let val, target;
+  if (buildEl) {   // C1 — tap-letters: read the assembled string
+    val = _normHe((_trainSession._assembled || []).map((a) => a.ch).join(''));
+    if (!val) return;
+    target = buildEl;
+  } else {
+    const inp = _studySheet && _studySheet.querySelector('[data-train-input]');
+    if (!inp) return;
+    val = _normHe(inp.value);
+    if (!val) { try { inp.focus(); } catch (_) {} return; }
+    inp.disabled = true; target = inp;
+  }
   const accepted = _acceptedSkeletons(built.cz.answer, item.surface);   // B5 — form OR lemma, ± proclitic
   const correct = accepted.has(val) || accepted.has(_stripProclitic(val));
-  inp.classList.add(correct ? 'room-train-ok' : 'room-train-bad'); inp.disabled = true;
+  if (target) target.classList.add(correct ? 'room-train-ok' : 'room-train-bad');
   checkTrainAnswer(correct);
+}
+// C1 — tap-letters interactions: tap a tile → append to the build; tap a built letter → return it.
+function _renderBuild() {
+  const build = _studySheet && _studySheet.querySelector('[data-train-build]');
+  if (!build) return;
+  build.innerHTML = '';
+  (_trainSession._assembled || []).forEach((a, pos) => build.appendChild(el('span', { class: 'room-train-builtch', text: a.ch, attrs: { 'data-train-unbuild': String(pos), lang: 'he' } })));
+}
+function onTrainTile(btn) {
+  if (!_trainSession || _trainSession.answered || btn.disabled) return;
+  _trainSession._assembled = _trainSession._assembled || [];
+  _trainSession._assembled.push({ ch: btn.textContent, tileIdx: btn.getAttribute('data-train-tile') });
+  btn.disabled = true; btn.classList.add('used');
+  _renderBuild();
+}
+function onTrainUnbuild(pos) {
+  if (!_trainSession || _trainSession.answered) return;
+  const a = (_trainSession._assembled || [])[pos];
+  if (!a) return;
+  _trainSession._assembled.splice(pos, 1);
+  const tile = _studySheet && _studySheet.querySelector('.room-train-tile[data-train-tile="' + a.tileIdx + '"]');
+  if (tile) { tile.disabled = false; tile.classList.remove('used'); }
+  _renderBuild();
 }
 // B2 — «Не знаю»/skip: reveal the answer without a blind guess; soft no-recall (nextLevel(false)),
 // never counted correct. Honest "don't know" beats a 25%-lucky MC promotion.

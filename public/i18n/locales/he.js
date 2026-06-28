@@ -2075,6 +2075,7 @@ window.I18N_LOCALES.he = {
         blank: "מקום ריק",
         dontKnow: "לא יודע",
         skipped: "— דילוג",
+        assemble: "הרכיבו את המילה מהאותיות",
         typePlaceholder: "הקלידו את המילה…",
         check: "בדיקה",
         correct: "✓ נכון",

@@ -2065,6 +2065,7 @@ window.I18N_LOCALES.en = {
         blank: "blank",
         dontKnow: "Don't know",
         skipped: "— Skipped",
+        assemble: "Assemble the word from letters",
         typePlaceholder: "type the word…",
         check: "Check",
         correct: "✓ Correct",

@@ -963,6 +963,19 @@
     .room-train-input.room-train-bad { border-color: #f85149; }
     .room-train-submit { appearance: none; cursor: pointer; flex: none; padding: 0 16px; border-radius: 10px; border: 1px solid var(--accent);
       background: var(--accent); color: var(--accent-contrast); font-size: 14px; font-weight: 700; }
+    /* C1 — tap-letters production tier */
+    .room-train-assemblehint { font-size: 12px; color: var(--text-faint); margin: 2px 0 8px; }
+    .room-train-build { min-height: 44px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 8px 10px;
+      border: 1px dashed var(--accent); border-radius: 10px; margin-bottom: 12px; }
+    .room-train-build.room-train-ok { border-style: solid; border-color: #3fb950; }
+    .room-train-build.room-train-bad { border-style: solid; border-color: #f85149; }
+    .room-train-builtch { cursor: pointer; font-size: 22px; font-weight: 700; line-height: 1; padding: 4px 8px; border-radius: 7px;
+      background: var(--bg-card); border: 1px solid var(--border-soft); }
+    .room-train-tiles { display: flex; flex-wrap: wrap; gap: 8px; }
+    .room-train-tile { appearance: none; cursor: pointer; min-width: 42px; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid var(--border-soft); background: var(--bg-muted); color: var(--text-primary); font-size: 22px; font-weight: 700; line-height: 1; }
+    .room-train-tile:hover:not(:disabled) { border-color: var(--accent); }
+    .room-train-tile.used, .room-train-tile:disabled { opacity: .28; cursor: default; }
     .room-train-skip { appearance: none; cursor: pointer; display: block; margin: 12px auto 0; padding: 7px 14px; border-radius: 9px;
       border: 1px solid var(--border-soft); background: transparent; color: var(--text-secondary); font-size: 12.5px; font-weight: 600; }
     .room-train-skip:hover { border-color: var(--accent); color: var(--text-primary); }
@@ -1111,7 +1124,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.30</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.31</span>
   </div>
 </footer>
 

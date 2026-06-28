@@ -2079,6 +2079,7 @@ window.I18N_LOCALES.ru = {
         blank: "пропуск",
         dontKnow: "Не знаю",
         skipped: "— Пропущено",
+        assemble: "Собери слово из букв",
         typePlaceholder: "впиши слово…",
         check: "Проверить",
         correct: "✓ Верно",
