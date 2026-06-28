@@ -1,6 +1,6 @@
 # Эпик 4.3b — recall-loop / cloze (замыкание петли удержания) · P1 / L · вед. R2/R5/R8/R10
 
-**Дата:** 2026-06-28 · **Статус:** 🟢 направление + 4 развилки одобрены владельцем → build.
+**Дата:** 2026-06-28 · **Статус:** ✅ SHIPPED+PROD (v3.11.26, `b3c7876`). Петля удержания замкнута. Live-verify ниже.
 **Родитель:** `BRR_EPIC4_RETENTION_LOOP_2026_06_26.md` §4.3b · `BRR_EPIC4_3A_STUDY_LIST_PREMIUM_2026_06_27.md`. Память [[project_brr_ux_audit]] · [[project_srs_strategy]] · [[feedback_no_override_grounded_reading]].
 
 ## Зачем
@@ -53,6 +53,13 @@
 ## Гейты / инварианты
 - reader-morph smoke: collectReviewItems (status+occ+pool, statuses-фильтр) · buildCloze · nextLevel (все переходы+полы) · pickDistractors (морфо-приоритет, детерминизм, без ответа). all reader gates + corpus-vocab + i18n. @380px свет+тёмная (MC+ввод+reveal).
 - Room-only; resolver-ядро/notes-autogen/parity не тронуты; статус — тот же word_status (не плодить Anki-карты). i18n ru/en/he. Bump SW+футеры+package. commit+push→Coolify→prod-verify (Node no-store)→live-verify Kapture (реальный текст: сессия строится, уровни двигаются). Volume-тест (большой текст).
+
+## ✅ SHIPPED v3.11.26 (`b3c7876`, 2026-06-28)
+- **Движок (reader-morph):** общий `_scanWords` (occ+meta; `collectNewWords` переведён на него — без дрейфа) · `collectReviewItems` (все уверенные леммы + effective-status + occ + пул) · PURE Node-tested: `buildCloze`, `nextLevel` (мягкие полы), `isMcLevel`, `pickDistractors` (sameRoot≫samePOS+len>samePOS, детерминизм).
+- **library-ui:** тоггл «📋 Список / 🎯 Тренировка»; сессия (ранж + known-refresh интерлив); клоуз из readerRows (self-contained + DOM-fallback); MC(new/l1/l2)/ввод(l3/l4/known) по уровню; проверка→reveal (🔊 + openWordCard + ru-контекст + движение уровня «new → l1») → setWordStatus → перекраска; итог + «Ещё». CSS `.room-train-*`, i18n ru/en/he.
+- **Гейты:** reader-morph (+5 рекалл-блоков), parity, scaffold 234, word-status, notes, context, corpus-vocab 37, i18n 226. @380px: вопрос(MC) + reveal(«new → l1»).
+- **Live-verify (Kapture, прод, профиль 7034):** «הכינור» 973-айтем sibling + «חֲרוּז נִשְׁכָּח» 36 айтемов с реальными статусами (new:29/l3:3/known:2/l2:1/ignore:1); пример אָמַר l3→**typed** (эскалация), клоуз «כָּךְ [__] לְבָבִי», дистракторы — все глаголы (морфо-честно), l3→l4. Прод-маркеры v3.11.26 ✓. ⚠ мульти-таб OPFS-лок (Студия-таб) — мерить при wsCount>0.
+- **Эпик 4 (петля удержания) ЗАВЕРШЁН:** 4.1+4.2+4.3a+4.3a+премиум+4.3b.
 
 ## v2-беклог
 Аудио-only cloze (listening); интервалы по времени (не только в одном тексте); cross-text recall (нужны тела работ); «сложность» по θ; стрик/геймификация; ввод с экранной ивритской раскладкой.
