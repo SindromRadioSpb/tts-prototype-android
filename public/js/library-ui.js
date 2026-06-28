@@ -964,6 +964,19 @@ async function startTraining() {
   // A3 — pre-build each item's cloze; keep only BUILDABLE ones so «X / N» counts only askable items
   // (a target whose skeleton isn't found in any of its sentences is dropped, not scored as a miss).
   const items = buildTrainSession(all, Date.now()).map((it) => { it._built = _trainBuildCloze(it); return it; }).filter((it) => it._built);
+  // D1 — pre-compute slot-inflected MC options for MC-eligible items (R10 moat): resolve the answer to
+  // its paradigm → buildMcSlotOptions (proclitic-aware slot + dict bank + L4 semantic). null → render
+  // falls back to the current B1 distractors (R11 no-regress). Async, ≤N items, offline.
+  if (typeof window.ReaderMorph.buildMcSlotOptions === 'function') {
+    for (const it of items) {
+      if (!window.ReaderMorph.isMcLevel(it.status)) continue;
+      try {
+        const ans = await window.ReaderMorph.resolveWordLight(it.surface, it.niqqud);
+        if (ans) { if (!ans.gloss) ans.gloss = it.gloss; const o = await window.ReaderMorph.buildMcSlotOptions(ans, 3); if (o && o.options && o.options.length >= 3) it._mcOptions = o; }
+      } catch (_) {}
+    }
+  }
+  if (!_studySheet || _studySheet.hidden || _studyMode !== 'train') return;   // re-check after the await fan-out
   _trainSession = { items, pool: all, idx: 0, total: items.length, correct: 0, levelUps: 0, answered: false };
   renderTrainItem();
 }
@@ -1012,7 +1025,8 @@ function renderTrainItem() {
   // fall back to tap-letters (not free typing — keyboard-free on mobile).
   let mode = window.ReaderMorph.isMcLevel(item.status) ? 'mc' : (item.status === 'known' ? 'type' : 'tiles');
   let distractors = [];
-  if (mode === 'mc') { distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3); if (distractors.length < 3) mode = 'tiles'; }
+  const slotMc = (mode === 'mc' && item._mcOptions && item._mcOptions.options && item._mcOptions.options.length >= 3) ? item._mcOptions : null;
+  if (mode === 'mc' && !slotMc) { distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3); if (distractors.length < 3) mode = 'tiles'; }
   s._mode = mode;
   body.innerHTML = '';
   body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
@@ -1033,8 +1047,12 @@ function renderTrainItem() {
   // than the infinitive gloss; the translation shows which). Owner request.
   if (built.ru) body.appendChild(el('div', { class: 'room-train-ctxq', attrs: { dir: 'ltr' }, text: built.ru }));
   if (mode === 'mc') {
-    const opts = [{ key: item.lemmaKey, he: built.cz.answer, correct: true }].concat(
-      distractors.map((d) => ({ key: d.lemmaKey, he: d.niqqud || d.surface, correct: false })));
+    // D1 — when slot-inflected options exist, ALL 4 are bare slot forms (correct + distractors), so no
+    // proclitic/inflection tell; correctness is flagged (data-correct), not string-matched. Else B1.
+    const opts = slotMc
+      ? [{ he: slotMc.correctHe, correct: true }].concat(slotMc.options.slice(0, 3).map((he) => ({ he, correct: false })))
+      : [{ key: item.lemmaKey, he: built.cz.answer, correct: true }].concat(
+          distractors.map((d) => ({ key: d.lemmaKey, he: d.niqqud || d.surface, correct: false })));
     // deterministic placement: rotate by item index (no Math.random)
     const rot = s.idx % opts.length;
     const ordered = opts.slice(rot).concat(opts.slice(0, rot));

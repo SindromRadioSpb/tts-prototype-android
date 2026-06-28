@@ -1,0 +1,16 @@
+{
+  "generated_for": "Epic 4.3b D1 slot-distractor coverage (after)",
+  "sample_rows": 400,
+  "mc_eligible": 1294,
+  "d1_fired": 1249,
+  "coverage_pct": 96.5,
+  "bad_form": 0,
+  "byPos": {
+    "verb": 466,
+    "noun": 641,
+    "adjective": 147,
+    "adverb": 37,
+    "conjunction": 3
+  },
+  "date": "2026-06-29"
+}

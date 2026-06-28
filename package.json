@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.34",
+  "version": "3.11.35",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -152,6 +152,7 @@
     "smoke:studio-karaoke": "node scripts/premium/studio-karaoke-smoke.js",
     "smoke:reader-morph": "node scripts/premium/reader-morph-smoke.js",
     "smoke:reader-morph:audit": "node scripts/premium/reader-morph-audit.js",
+    "smoke:reader-cloze:audit": "node scripts/premium/reader-cloze-audit.js",
     "gold:worksheet": "node scripts/premium/reader-morph-audit.js --worksheet=180",
     "gold:score": "node scripts/premium/reader-morph-audit.js --gold=docs/research/reader-morph-gold/2026-06-25/reader-morph-gold-worksheet.tsv",
     "gold:regold": "node scripts/premium/reader-morph-audit.js --regold=docs/research/reader-morph-gold/2026-06-25/reader-morph-gold-worksheet.tsv",

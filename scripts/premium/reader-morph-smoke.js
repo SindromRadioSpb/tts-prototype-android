@@ -778,6 +778,42 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(JSON.stringify(wk.identity) === JSON.stringify(['x','y','z']), "rankByWeakness all-zero lapses → identity order, got " + JSON.stringify(wk.identity));
     eq(wk.emptyLen === 0 && wk.nullLen === 0, "rankByWeakness empty/null → [], got " + wk.emptyLen + "/" + wk.nullLen);
 
+    // ── Epic 4.3b Phase D1 — findSlot (pure, proclitic-aware) + buildMcSlotOptions (slot-inflected). ──
+    const d1 = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      const par = { cells: { 'PERF-3ms': { he: 'כָּתַב' }, 'AP-ms': { he: 'כּוֹתֵב' }, 'INF-L': { he: 'לִכְתֹּב' }, 'PERF-1s': { he: 'כָּתַבְתִּי' } } };
+      const direct = R.findSlot(par, 'כָּתַב');
+      const proc = R.findSlot(par, 'וְכָתַב');          // leading ו proclitic
+      const article = R.findSlot(par, 'הַכּוֹתֵב');      // article ה (+dagesh, handled at skeleton)
+      const miss = R.findSlot(par, 'זִזְזוּז');
+      const syn = R.findSlot({ cells: { B: { he: 'דָּבָר' }, A: { he: 'דָּבָר' } } }, 'דָּבָר');
+      const words = ['סֵפֶר', 'שָׁלוֹם', 'עוֹלָם', 'טוֹב', 'אָמַר', 'כָּתַב', 'יֶלֶד', 'דֶּרֶךְ'];
+      let built = null, builtWord = null, deterministic = null;
+      for (const w of words) {
+        const card = await R.resolveWordLight(R.stripNiqqud(w), w);
+        if (!card) continue;
+        const o = await R.buildMcSlotOptions(card, 3);
+        if (o && o.options && o.options.length === 3) { built = o; builtWord = w; const o2 = await R.buildMcSlotOptions(card, 3); deterministic = JSON.stringify(o.options) === JSON.stringify(o2.options); break; }
+      }
+      let vocalized = null, distinct = null;
+      if (built) {
+        const norm = (s) => R.stripNiqqud(s);
+        vocalized = built.options.every((h) => /[֑-ׇ]/.test(h));
+        distinct = built.options.every((h) => norm(h) !== norm(built.correctHe)) && new Set(built.options.map(norm)).size === built.options.length;
+      }
+      return { direct, proc, article, miss, syn, builtWord, deterministic, vocalized, distinct, optCount: built ? built.options.length : 0 };
+    });
+    eq(d1.direct.slot === 'PERF-3ms', "findSlot direct match → PERF-3ms, got " + JSON.stringify(d1.direct));
+    eq(d1.proc.slot === 'PERF-3ms', "findSlot strips leading proclitic ו → PERF-3ms, got " + JSON.stringify(d1.proc));
+    eq(d1.article.slot === 'AP-ms', "findSlot strips article ה → AP-ms, got " + JSON.stringify(d1.article));
+    eq(d1.miss.slot === null, "findSlot no cell match → null, got " + JSON.stringify(d1.miss));
+    eq(d1.syn.count === 2 && d1.syn.slot === 'A', "findSlot syncretism → count2 + deterministic slot A, got " + JSON.stringify(d1.syn));
+    eq(!!d1.builtWord, "buildMcSlotOptions builds for >=1 real word (slot-inflected distractors), got " + d1.builtWord);
+    eq(d1.optCount === 3, "buildMcSlotOptions returns 3 distractor forms, got " + d1.optCount);
+    eq(d1.vocalized === true, "buildMcSlotOptions distractors are vocalized (no bare-consonant tell)");
+    eq(d1.distinct === true, "buildMcSlotOptions distractors distinct + never == answer");
+    eq(d1.deterministic === true, "buildMcSlotOptions deterministic across calls");
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

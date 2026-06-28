@@ -1717,6 +1717,85 @@
     return uniq.slice(0, n);
   }
 
+  // ── Epic 4.3b Phase D1 — slot-inflected distractors (R10 moat) ─────────────────────
+  // findSlot: PURE — locate the grammatical SLOT (cells key, e.g. "PERF-3ms"/"AP-ms"/"s") of a vocalized
+  // form within its (pinned) paradigm, tolerant to a LEADING PROCLITIC (ו/ה/ב/כ/ל/ש/מ — measured: 61% of
+  // tokens carry one, and proclitic-stripping recovers 90% of the dominant "no cell match" loss; the
+  // article ה also geminates the next consonant with a dagesh, but stripNiqqud drops it so a skeleton
+  // compare handles it). Compares niqqud-stripped + final-letter-normalized skeletons. Returns
+  // { slot, count }: slot = the deterministic (lexicographically-smallest) matching cell key; count =
+  // cells matching that stem (count>1 = syncretism, still usable — any matching slot is a valid reading).
+  // { slot:null } when no stem matches → caller falls back (R11 no-regress).
+  var _FINMAP = { "ך": "כ", "ם": "מ", "ן": "נ", "ף": "פ", "ץ": "צ" };
+  function _skel(s) { return stripNiqqud(String(s || "")).replace(/[ךםןףץ]/g, function (c) { return _FINMAP[c] || c; }).trim(); }
+  var _PROCLITIC = { "ו": 1, "ה": 1, "ב": 1, "כ": 1, "ל": 1, "ש": 1, "מ": 1 };
+  function findSlot(paradigm, niqqud) {
+    if (!paradigm || !paradigm.cells) return { slot: null, count: 0 };
+    var sk = _skel(niqqud);
+    if (!sk) return { slot: null, count: 0 };
+    var stems = [sk];
+    if (sk.length > 2 && _PROCLITIC[sk[0]]) { stems.push(sk.slice(1)); if (sk.length > 3 && _PROCLITIC[sk[1]]) stems.push(sk.slice(2)); }
+    for (var si = 0; si < stems.length; si++) {
+      var stem = stems[si], slot = null, count = 0;
+      for (var k in paradigm.cells) {
+        var c = paradigm.cells[k];
+        if (c && c.he && _skel(c.he) === stem) { count++; if (slot === null || k < slot) slot = k; }
+      }
+      if (slot !== null) return { slot: slot, count: count };
+    }
+    return { slot: null, count: 0 };
+  }
+  // L4 — semantic-field proximity via significant RU-gloss tokens (drop short/stop words).
+  var _RU_STOP = { "и": 1, "в": 1, "на": 1, "с": 1, "к": 1, "по": 1, "не": 1, "что": 1, "то": 1, "или": 1, "the": 1, "to": 1, "of": 1 };
+  function _glossTokens(s) {
+    var out = {}, parts = String(s || "").toLowerCase().split(/[^a-zа-яё]+/);
+    for (var i = 0; i < parts.length; i++) { var t = parts[i]; if (t && t.length >= 3 && !_RU_STOP[t]) out[t] = 1; }
+    return out;
+  }
+  function _glossOverlap(aTok, bGloss) { var b = _glossTokens(bGloss); for (var t in aTok) if (b[t]) return true; return false; }
+  var _posIndex = null;
+  function _ensurePosIndex(pidMap) {
+    if (_posIndex) return _posIndex;
+    var idx = {}; pidMap.forEach(function (p) { if (!p || !p.cells) return; var pos = p.pos || "?"; (idx[pos] || (idx[pos] = [])).push(p); });
+    _posIndex = idx; return idx;
+  }
+  // buildMcSlotOptions: ASYNC — the answer's bare slot form + n morpho-honest, slot-INFLECTED,
+  // semantically-near distractor forms. Bank = same-POS paradigms (engine pidMap) that HAVE the answer's
+  // slot; ranked by same-root-family ≫ RU-gloss-field overlap > deterministic pid. All forms come straight
+  // from Pealim cells (R1 — nothing fabricated; proclitics NOT re-pointed → every option is a BARE form,
+  // so no proclitic/niqqud tell). Dedup by displayed skeleton, never == the answer. Returns
+  // { correctHe, options:[he…], slot } or null (→ caller falls back to B1; R11 no-regress). Deterministic.
+  async function buildMcSlotOptions(answerCard, n) {
+    n = n || 3;
+    if (!answerCard) return null;
+    var eng; try { eng = await ensureEngine(); } catch (_) { return null; }
+    var par = (answerCard.paradigm && answerCard.paradigm.cells) ? answerCard.paradigm
+      : (answerCard.pealim_id != null ? eng.pidMap.get(String(answerCard.pealim_id)) : null);
+    if (!par || !par.cells) return null;
+    var info = findSlot(par, answerCard.niqqud || answerCard.surface);
+    if (!info.slot) return null;
+    var slot = info.slot, correctCell = par.cells[slot], correctHe = correctCell && correctCell.he;
+    if (!correctHe) return null;
+    var correctSkel = _skel(correctHe);
+    var aPid = String(answerCard.pealim_id != null ? answerCard.pealim_id : (par.pealim_id || ""));
+    var aRoot = answerCard.root || par.root || "";
+    var aTok = _glossTokens(answerCard.gloss || answerCard.meaning || par.meaning);
+    var bank = _ensurePosIndex(eng.pidMap)[answerCard.pos || par.pos || "?"] || [];
+    var cands = [];
+    for (var i = 0; i < bank.length; i++) {
+      var c = bank[i]; if (!c || String(c.pealim_id || "") === aPid) continue;
+      var cell = c.cells[slot], he = cell && cell.he; if (!he) continue;
+      var sk = _skel(he); if (!sk || sk === correctSkel) continue;
+      var score = 0; if (aRoot && c.root === aRoot) score += 100; if (_glossOverlap(aTok, c.meaning)) score += 10;
+      cands.push({ he: he, sk: sk, score: score, pid: String(c.pealim_id || "") });
+    }
+    cands.sort(function (a, b) { return (b.score - a.score) || (a.pid < b.pid ? -1 : a.pid > b.pid ? 1 : 0); });
+    var options = [], seen = {}; seen[correctSkel] = 1;
+    for (var j = 0; j < cands.length && options.length < n; j++) { if (seen[cands[j].sk]) continue; seen[cands[j].sk] = 1; options.push(cands[j].he); }
+    if (options.length < n) return null;
+    return { correctHe: correctHe, options: options, slot: slot };
+  }
+
   // Back-compat thin wrappers (existing callers / smoke).
   function clearLearningStatus(mount) { clearDecorations(mount); }
   async function paintLearningStatus(mount, statesMap) { return decorateWords(mount, statesMap, { color: true, fadeMode: "full" }); }
@@ -1736,6 +1815,7 @@
     collectReviewItems: collectReviewItems, buildCloze: buildCloze, buildClozeForTarget: buildClozeForTarget,
     nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs,
     dueCounts: dueCounts, rankByWeakness: rankByWeakness,
+    findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;
