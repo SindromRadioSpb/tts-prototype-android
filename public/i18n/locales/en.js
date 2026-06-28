@@ -2063,6 +2063,8 @@ window.I18N_LOCALES.en = {
         modeTrain: "🎯 Train",
         recall: "recall the word",
         blank: "blank",
+        dontKnow: "Don't know",
+        skipped: "— Skipped",
         typePlaceholder: "type the word…",
         check: "Check",
         correct: "✓ Correct",

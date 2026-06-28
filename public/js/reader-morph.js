@@ -1655,6 +1655,9 @@
       var s = 0;
       if (aRoot && c.root && c.root === aRoot) s += 100;
       if (aPos && c.pos === aPos) { s += 10; if (Math.abs(_surfLen(c.surface || c.niqqud) - aLen) <= 2) s += 5; }
+      // B1: prefer VOCALIZED distractors so an option never renders bare-consonant next to a pointed
+      // answer (a niqqud-presence tell). Tie-level bonus only — keeps the pool from starving.
+      if (c.niqqud && /[֑-ׇ]/.test(c.niqqud)) s += 2;
       return s;
     }
     uniq.sort(function (a, b) {

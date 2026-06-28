@@ -606,6 +606,7 @@ function ensureStudySheet() {
     const opt = t.closest('[data-train-opt]'); if (opt) { onTrainOption(opt); return; }
     if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
+    if (t.closest('[data-train-skip]')) { onTrainSkip(); return; }
     if (t.closest('[data-train-again]')) { startTraining(); return; }
     const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
     if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
@@ -833,6 +834,16 @@ async function roomOpenStudyList() {
 // + setWordStatus + openWordCard + speakWord. Deterministic (no Math.random). Plan: BRR_EPIC4_3B.
 const TRAIN_N = 12;
 function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ').replace(/ף/g, 'פ').replace(/ץ/g, 'צ').trim(); }
+// B5 — typed-answer tolerance: drop ONE leading proclitic (ו/ה/ב/כ/ל/ש/מ) so the bare lemma matches a
+// proclitic-carrying sentence form and vice-versa. Conservative (single letter, length>2).
+function _stripProclitic(s) { return (s && s.length > 2 && /^[והבכלשמ]/.test(s)) ? s.slice(1) : s; }
+// Accepted normalized skeletons for a cloze: the inflected sentence form + the lemma, each with/without
+// a leading proclitic. The typed answer is correct if its skeleton (or proclitic-stripped) is in here.
+function _acceptedSkeletons(answerForm, lemmaSurface) {
+  const set = new Set();
+  [answerForm, lemmaSurface].forEach((b) => { const n = _normHe(b || ''); if (n) { set.add(n); set.add(_stripProclitic(n)); } });
+  return set;
+}
 // Session = learning (l1–l4) + new (active, freq-desc), with ~15% known-refresh interleaved (decision 2).
 function buildTrainSession(all) {
   const withOcc = (all || []).filter((x) => x.occ && x.occ.length);
@@ -944,6 +955,8 @@ function renderTrainItem() {
     inWrap.appendChild(el('button', { class: 'room-train-submit', i18n: 'room.morph.study.check', text: tt('room.morph.study.check', 'Проверить'), attrs: { type: 'button', 'data-train-submit': '1' } }));
     body.appendChild(inWrap);
   }
+  // B2 — «Не знаю»: reveal without guessing (honest no-recall, soft demotion).
+  body.appendChild(el('button', { class: 'room-train-skip', i18n: 'room.morph.study.dontKnow', text: tt('room.morph.study.dontKnow', 'Не знаю'), attrs: { type: 'button', 'data-train-skip': '1' } }));
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   if (!mc) { const inp = body.querySelector('[data-train-input]'); if (inp) { try { inp.focus(); } catch (_) {} } }
 }
@@ -966,11 +979,22 @@ function onTrainSubmit() {
   const val = _normHe(inp.value);
   if (!val) { try { inp.focus(); } catch (_) {} return; }
   const built = _trainSession._built, item = _trainSession.items[_trainSession.idx];
-  const correct = val === _normHe(built.cz.answer) || val === _normHe(item.surface);
+  const accepted = _acceptedSkeletons(built.cz.answer, item.surface);   // B5 — form OR lemma, ± proclitic
+  const correct = accepted.has(val) || accepted.has(_stripProclitic(val));
   inp.classList.add(correct ? 'room-train-ok' : 'room-train-bad'); inp.disabled = true;
   checkTrainAnswer(correct);
 }
-async function checkTrainAnswer(correct) {
+// B2 — «Не знаю»/skip: reveal the answer without a blind guess; soft no-recall (nextLevel(false)),
+// never counted correct. Honest "don't know" beats a 25%-lucky MC promotion.
+function onTrainSkip() {
+  if (!_trainSession || _trainSession.answered) return;
+  const grid = _studySheet && _studySheet.querySelector('.room-train-opts');
+  if (grid) grid.querySelectorAll('.room-train-opt').forEach((b) => { if (b.getAttribute('data-correct') === '1') b.classList.add('room-train-ok'); b.disabled = true; });
+  const inp = _studySheet && _studySheet.querySelector('[data-train-input]');
+  if (inp) inp.disabled = true;
+  checkTrainAnswer(false, true);
+}
+async function checkTrainAnswer(correct, skipped) {
   const s = _trainSession; if (!s || s.answered) return;
   s.answered = true;
   const item = s.items[s.idx];
@@ -983,14 +1007,15 @@ async function checkTrainAnswer(correct) {
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the reader behind
-  renderTrainReveal(correct, moved);
+  renderTrainReveal(correct, moved, skipped);
 }
-function renderTrainReveal(correct, moved) {
+function renderTrainReveal(correct, moved, skipped) {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
   if (!s || !body) return;
   const item = s.items[s.idx], built = s._built;
-  const rev = el('div', { class: 'room-train-reveal ' + (correct ? 'room-train-reveal-ok' : 'room-train-reveal-bad') });
-  rev.appendChild(el('div', { class: 'room-train-verdict', text: correct ? tt('room.morph.study.correct', '✓ Верно') : tt('room.morph.study.wrong', '✗ Неверно') }));
+  const cls = skipped ? 'room-train-reveal-skip' : (correct ? 'room-train-reveal-ok' : 'room-train-reveal-bad');
+  const rev = el('div', { class: 'room-train-reveal ' + cls });
+  rev.appendChild(el('div', { class: 'room-train-verdict', text: skipped ? tt('room.morph.study.skipped', '— Пропущено') : (correct ? tt('room.morph.study.correct', '✓ Верно') : tt('room.morph.study.wrong', '✗ Неверно')) }));
   const ansRow = el('div', { class: 'room-train-ansrow' });
   ansRow.appendChild(el('span', { class: 'room-train-ans', attrs: { lang: 'he', dir: 'rtl' }, text: built.cz.answer }));
   ansRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': built.cz.answer, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));

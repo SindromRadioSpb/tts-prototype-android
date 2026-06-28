@@ -2077,6 +2077,8 @@ window.I18N_LOCALES.ru = {
         modeTrain: "🎯 Тренировка",
         recall: "вспомни слово",
         blank: "пропуск",
+        dontKnow: "Не знаю",
+        skipped: "— Пропущено",
         typePlaceholder: "впиши слово…",
         check: "Проверить",
         correct: "✓ Верно",

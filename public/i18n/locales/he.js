@@ -2073,6 +2073,8 @@ window.I18N_LOCALES.he = {
         modeTrain: "🎯 תרגול",
         recall: "היזכרו במילה",
         blank: "מקום ריק",
+        dontKnow: "לא יודע",
+        skipped: "— דילוג",
         typePlaceholder: "הקלידו את המילה…",
         check: "בדיקה",
         correct: "✓ נכון",
