@@ -899,6 +899,21 @@
     .reader-aids-duebadge.has-due [data-due-now] { color: var(--accent); }
     .room-study-duebadge { justify-content: center; margin: 4px 12px 8px; }
     .room-train-nextdue { margin-top: 6px; font-size: 12.5px; color: var(--text-secondary); text-align: center; }
+    /* Epic 4.3b Phase D4 — leech nudge (soft, opt-in): shown on reveal once a word has been missed enough. */
+    .room-train-leech {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
+      margin-top: 8px; padding: 8px 10px; border-radius: 9px;
+      background: var(--ws-ignore, rgba(120,120,120,.12)); border: 1px solid var(--border-soft);
+      font-size: 12.5px; color: var(--text-secondary);
+    }
+    .room-train-leech-btn {
+      width: auto; appearance: none; cursor: pointer; padding: 5px 10px; border-radius: 8px;
+      border: 1px solid var(--border-soft); background: var(--bg-card); color: var(--text-primary);
+      font-size: 12.5px; font-weight: 700;
+    }
+    .room-train-leech-btn:hover { filter: brightness(1.06); }
+    .room-train-leech-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .room-train-leech-done { font-size: 12.5px; color: var(--text-secondary); }
     .room-study { position: fixed; inset: 0; z-index: 990; }   /* below .rm-sheet(1000) so a row's expand-card stacks ABOVE the list */
     .room-study[hidden] { display: none; }
     .room-study-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
@@ -1139,7 +1154,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.33</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.34</span>
   </div>
 </footer>
 

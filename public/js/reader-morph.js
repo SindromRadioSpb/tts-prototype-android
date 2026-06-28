@@ -1664,6 +1664,20 @@
     }
     return { inProgress: inProgress, dueNow: dueNow, nextDue: nextDue };
   }
+  // Epic 4.3b Phase D4 — weakness-weighting (R2 difficulty): STABLE reorder of a due candidate list so
+  // words you fail more often (srs lapses) come first → effort goes where memory is weakest (Quizlet/FSRS
+  // difficulty), not flat coverage. Reads item._srs.lapses (attached by the trainer). PURE + deterministic:
+  // ties keep the INPUT order (so the existing learning-before-fresh + freq ranking is the tie-break), and
+  // an all-zero-lapse list is returned UNCHANGED — a no-op until misses accrue, never a regression. Note
+  // (R2): a missed «new» word floors at «new» yet still increments lapses, so weighting the WHOLE due pool
+  // (not just l1–l4) is required to surface weak fresh words too.
+  function rankByWeakness(items) {
+    if (!Array.isArray(items)) return [];
+    return items
+      .map(function (x, i) { return { x: x, i: i, lp: (x && x._srs && Number(x._srs.lapses)) || 0 }; })
+      .sort(function (a, b) { return (b.lp - a.lp) || (a.i - b.i); })
+      .map(function (o) { return o.x; });
+  }
   // MC mode by maturity (escalate, owner decision 1): new/l1/l2 → recognition (MC); l3/l4/known → typed.
   function isMcLevel(status) { var s = status || "new"; return s === "new" || s === "l1" || s === "l2"; }
   // pickDistractors (R10 moat): morpho-honest, deterministic. Score: same root ≫ same POS+near length >
@@ -1721,7 +1735,7 @@
     // Epic 4.3b — recall-loop / cloze
     collectReviewItems: collectReviewItems, buildCloze: buildCloze, buildClozeForTarget: buildClozeForTarget,
     nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs,
-    dueCounts: dueCounts,
+    dueCounts: dueCounts, rankByWeakness: rankByWeakness,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

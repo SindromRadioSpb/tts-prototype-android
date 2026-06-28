@@ -2092,6 +2092,9 @@ window.I18N_LOCALES.he = {
         nextReview: "החזרה הבאה בעוד",
         unitDays: "ימים",
         unitHours: "שעות",
+        leechHint: "טועה במילה הזו הרבה.",
+        leechIgnore: "🚫 התעלם",
+        leechDone: "סומן: התעלם",
       },
       legend: {
         title: "מה משמעות תגי הוודאות?",

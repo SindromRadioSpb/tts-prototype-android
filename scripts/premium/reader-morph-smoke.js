@@ -764,6 +764,20 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(dc.empty.inProgress === 0 && dc.empty.dueNow === 0 && dc.empty.nextDue === null, "dueCounts empty → 0/0/null, got " + JSON.stringify(dc.empty));
     eq(dc.nullSafe.inProgress === 0 && dc.nullSafe.dueNow === 0 && dc.nullSafe.nextDue === null, "dueCounts null-safe → 0/0/null, got " + JSON.stringify(dc.nullSafe));
 
+    // ── Epic 4.3b Phase D4 — rankByWeakness (stable lapse-desc; no-data identity). ──
+    const wk = await pg.evaluate(() => {
+      const R = window.ReaderMorph;
+      const mk = (k, lp) => ({ lemmaKey: k, _srs: lp == null ? null : { lapses: lp } });
+      const ranked = R.rankByWeakness([mk('a',0), mk('b',3), mk('c',0), mk('d',1), mk('e',3), mk('f',null)]).map(x => x.lemmaKey);
+      const identity = R.rankByWeakness([mk('x',0), mk('y',0), mk('z',0)]).map(x => x.lemmaKey);
+      const empty = R.rankByWeakness([]);
+      const nullArg = R.rankByWeakness(null);
+      return { ranked, identity, emptyLen: empty.length, nullLen: nullArg.length };
+    });
+    eq(JSON.stringify(wk.ranked) === JSON.stringify(['b','e','d','a','c','f']), "rankByWeakness: lapses desc, ties keep input order (b,e,d,a,c,f), got " + JSON.stringify(wk.ranked));
+    eq(JSON.stringify(wk.identity) === JSON.stringify(['x','y','z']), "rankByWeakness all-zero lapses → identity order, got " + JSON.stringify(wk.identity));
+    eq(wk.emptyLen === 0 && wk.nullLen === 0, "rankByWeakness empty/null → [], got " + wk.emptyLen + "/" + wk.nullLen);
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

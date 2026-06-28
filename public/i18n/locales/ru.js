@@ -2096,6 +2096,9 @@ window.I18N_LOCALES.ru = {
         nextReview: "Следующее повторение через",
         unitDays: "дн.",
         unitHours: "ч.",
+        leechHint: "Часто ошибаешься в этом слове.",
+        leechIgnore: "🚫 Игнорировать",
+        leechDone: "Отмечено: игнор",
       },
       legend: {
         title: "Что значат бейджи уверенности?",

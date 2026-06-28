@@ -2082,6 +2082,9 @@ window.I18N_LOCALES.en = {
         nextReview: "Next review in",
         unitDays: "d",
         unitHours: "h",
+        leechHint: "You miss this word a lot.",
+        leechIgnore: "🚫 Ignore",
+        leechDone: "Marked: ignore",
       },
       legend: {
         title: "What do the confidence badges mean?",

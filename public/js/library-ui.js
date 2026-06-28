@@ -652,6 +652,7 @@ function ensureStudySheet() {
     const opt = t.closest('[data-train-opt]'); if (opt) { onTrainOption(opt); return; }
     if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
+    if (t.closest('[data-train-leech]')) { onTrainLeechIgnore(t.closest('.room-train-leech')); return; }
     if (t.closest('[data-train-skip]')) { onTrainSkip(); return; }
     const tile = t.closest('[data-train-tile]'); if (tile) { onTrainTile(tile); return; }
     const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
@@ -884,6 +885,7 @@ async function roomOpenStudyList() {
 // Self-contained over ReaderMorph.collectReviewItems/buildCloze/nextLevel/isMcLevel/pickDistractors
 // + setWordStatus + openWordCard + speakWord. Deterministic (no Math.random). Plan: BRR_EPIC4_3B.
 const TRAIN_N = 12;
+const LEECH_LAPSES = 4;   // D4 — after this many misses on a word, gently offer «отметить ignore?» (leech)
 function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ').replace(/ף/g, 'פ').replace(/ץ/g, 'צ').trim(); }
 // B5 — typed-answer tolerance: drop ONE leading proclitic (ו/ה/ב/כ/ל/ש/מ) so the bare lemma matches a
 // proclitic-carrying sentence form and vice-versa. Conservative (single letter, length>2).
@@ -924,7 +926,11 @@ function buildTrainSession(all, nowMs) {
   const fresh = due.filter((x) => x.status === 'new');
   const known = due.filter((x) => x.status === 'known');
   const kRefresh = Math.min(known.length, Math.max(0, Math.round(TRAIN_N * 0.15)));
-  const active = learning.concat(fresh).slice(0, TRAIN_N - kRefresh);
+  // D4 — weakness-weighting: surface words you fail more often (srs lapses) first within the due pool.
+  // Stable: ties keep the learning-before-fresh + freq order; all-zero lapses → unchanged (no regression).
+  const pool = learning.concat(fresh);
+  const ranked = (window.ReaderMorph && window.ReaderMorph.rankByWeakness) ? window.ReaderMorph.rankByWeakness(pool) : pool;
+  const active = ranked.slice(0, TRAIN_N - kRefresh);
   const refresh = known.slice(0, kRefresh);
   const out = active.slice();
   if (refresh.length) {
@@ -1138,9 +1144,11 @@ async function checkTrainAnswer(correct, skipped) {
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the reader behind
   try { refreshDueBadge(); } catch (_) {}    // D3 — schedule changed → badge + _dueCounts stay fresh for the summary
-  renderTrainReveal(correct, moved, skipped);
+  // D4 — leech: this word has now been missed enough times → gently offer «отметить ignore?» (not yet ignored).
+  const isLeech = !!(sched && (Number(sched.lapses) || 0) >= LEECH_LAPSES) && item.status !== 'ignore';
+  renderTrainReveal(correct, moved, skipped, isLeech);
 }
-function renderTrainReveal(correct, moved, skipped) {
+function renderTrainReveal(correct, moved, skipped, isLeech) {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
   if (!s || !body) return;
   const item = s.items[s.idx], built = s._built;
@@ -1154,6 +1162,13 @@ function renderTrainReveal(correct, moved, skipped) {
   if (item.gloss) rev.appendChild(el('div', { class: 'room-train-ansgloss', attrs: { dir: 'ltr' }, text: item.gloss }));
   if (moved && moved.indexOf('→') >= 0) rev.appendChild(el('div', { class: 'room-train-moved', text: moved }));
   if (built.ru) rev.appendChild(el('div', { class: 'room-train-ctx', attrs: { dir: 'ltr' }, text: built.ru }));
+  // D4 — leech nudge: soft, opt-in (reuses setWordStatus; never auto-ignores).
+  if (isLeech) {
+    const leech = el('div', { class: 'room-train-leech', attrs: { dir: uiDirRoom() } });
+    leech.appendChild(el('span', { class: 'room-train-leech-k', i18n: 'room.morph.study.leechHint', text: tt('room.morph.study.leechHint', 'Часто ошибаешься в этом слове.') }));
+    leech.appendChild(el('button', { class: 'room-train-leech-btn', i18n: 'room.morph.study.leechIgnore', text: tt('room.morph.study.leechIgnore', '🚫 Игнорировать'), attrs: { type: 'button', 'data-train-leech': '1' } }));
+    rev.appendChild(leech);
+  }
   const actions = el('div', { class: 'room-train-actions' });
   actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.expand', text: tt('room.morph.study.expand', 'Подробнее'), attrs: { type: 'button', 'data-train-card': '1' } }));
   actions.appendChild(el('button', { class: 'room-train-next', text: tt('room.morph.study.next', 'Дальше →'), attrs: { type: 'button', 'data-train-next': '1' } }));
@@ -1161,6 +1176,20 @@ function renderTrainReveal(correct, moved, skipped) {
   body.appendChild(rev);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   try { rev.scrollIntoView({ block: 'nearest' }); } catch (_) {}
+}
+// D4 — leech: user accepted the nudge → mark the word «ignore» (reuses setWordStatus; plain set keeps any
+// srs schedule via UPSERT). Repaints the wall + refreshes the due badge; the nudge becomes a confirmation.
+async function onTrainLeechIgnore(box) {
+  const s = _trainSession; if (!s) return;
+  const item = s.items[s.idx]; if (!item) return;
+  try { await localDb.setWordStatus(item.lemmaKey, 'ignore'); } catch (_) {}
+  item.status = 'ignore';
+  readerWordStates = null;
+  try { invalidateReadableSet(); } catch (_) {}
+  try { applyDecorations(); } catch (_) {}
+  try { refreshDueBadge(); } catch (_) {}
+  if (box) { box.innerHTML = ''; box.appendChild(el('span', { class: 'room-train-leech-done', i18n: 'room.morph.study.leechDone', text: tt('room.morph.study.leechDone', 'Отмечено: игнор') })); }
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 function onTrainCard() {
   const s = _trainSession; if (!s || !s._built) return;
