@@ -68,7 +68,19 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         contStudio = ids.includes("cont-studio-x1");
         try { await ldb.deleteText("cont-canon-x1"); await ldb.deleteText("cont-studio-x1"); } catch (_) {}
       } catch (e) { contCanon = "ERR:" + e.message; }
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio };
+      // C2 — SRS schedule (migration 058): a recall write persists the schedule; a PLAIN status set
+      // must PRESERVE it (UPSERT, not REPLACE). getSrsSchedule returns due/interval/reps/lapses.
+      let srsSet = null, srsPreserved = null, srsStatusAfter = null, srsErr = null;
+      try {
+        const SK = "pid:99977050";
+        await ldb.setWordStatus(SK, "l2", { due: 1700000000000, interval: 3, reps: 2, lapses: 0 });
+        srsSet = (await ldb.getSrsSchedule())[SK] || null;
+        await ldb.setWordStatus(SK, "l3");   // plain set — MUST preserve srs_*
+        srsPreserved = (await ldb.getSrsSchedule())[SK] || null;
+        srsStatusAfter = (await ldb.getAllWordStatuses())[SK] || null;
+        await ldb.setWordStatus(SK, "");     // cleanup
+      } catch (e) { srsErr = String(e); }
+      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, srsSet, srsPreserved, srsStatusAfter, srsErr };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -82,6 +94,11 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.newKws === "new", "stored 'new' must overlay getKnownWordStates, got " + JSON.stringify(res.newKws));
     eq(res.contCanon === true, "getContinueReading MUST include a Ben-Yehuda canon work (origin=benyehuda-ingest), got " + JSON.stringify(res.contCanon));
     eq(res.contStudio === false, "getContinueReading MUST EXCLUDE a local Studio text (no canon origin) from the Corpus «Продолжить чтение», got " + JSON.stringify(res.contStudio));
+    // C2 — SRS schedule (migration 058)
+    eq(res.srsErr === null, "C2 SRS schedule path must not error (migration 058 columns), got " + JSON.stringify(res.srsErr));
+    eq(res.srsSet && res.srsSet.interval === 3 && res.srsSet.reps === 2, "setWordStatus(status, sched) must persist the SRS schedule (getSrsSchedule), got " + JSON.stringify(res.srsSet));
+    eq(res.srsPreserved && res.srsPreserved.interval === 3 && res.srsPreserved.reps === 2, "a PLAIN setWordStatus must PRESERVE the SRS schedule (UPSERT, not REPLACE), got " + JSON.stringify(res.srsPreserved));
+    eq(res.srsStatusAfter === "l3", "the plain set must still update the status (→l3) while preserving srs, got " + JSON.stringify(res.srsStatusAfter));
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     console.log("reader-word-status: word_status store + manual-wins overlay (no-note mark-known + upsert + clear)");

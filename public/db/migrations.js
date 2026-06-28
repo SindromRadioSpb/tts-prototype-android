@@ -786,4 +786,15 @@ export const MIGRATIONS = [
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
   );
   CREATE INDEX IF NOT EXISTS ix_word_status_status ON word_status(status);`,
+
+  // 058_word_status_srs — BRR Epic 4.3b Phase C2. Time-based cross-session spacing for recall
+  // (SM2-lite): per-lemma next-due timestamp + interval/reps/lapses, ON the existing word_status row
+  // (additive columns — a plain status set preserves these via UPSERT, only a recall answer updates
+  // them). Absent srs_due = never recall-tested (always due). The reading-colour axis (status) is
+  // unchanged; this is purely the review SCHEDULE, still device-local, NOT an Anki card.
+  `ALTER TABLE word_status ADD COLUMN srs_due TEXT;
+   ALTER TABLE word_status ADD COLUMN srs_interval REAL NOT NULL DEFAULT 0;
+   ALTER TABLE word_status ADD COLUMN srs_reps INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE word_status ADD COLUMN srs_lapses INTEGER NOT NULL DEFAULT 0;
+   CREATE INDEX IF NOT EXISTS ix_word_status_due ON word_status(srs_due);`,
 ];

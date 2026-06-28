@@ -728,6 +728,20 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(phA.distDisplays.indexOf(phA.answerDisp) < 0, "A4: no distractor may display the answer's skeleton, got " + JSON.stringify(phA.distDisplays) + " ans=" + phA.answerDisp);
     eq(phA.distKeys.length === 3, "pickDistractors still returns 3 valid distractors after the collision guard, got " + JSON.stringify(phA.distKeys));
 
+    // ── Epic 4.3b Phase C2 — nextSrs (SM2-lite, pure, deterministic with nowMs). ──
+    const srs = await pg.evaluate(() => {
+      const R = window.ReaderMorph, now = 1000000000000, day = 86400000;
+      const a = R.nextSrs(null, true, now);   // new+correct → reps1 interval1
+      const b = R.nextSrs(a, true, now);      // reps2 interval3
+      const c = R.nextSrs(b, true, now);      // reps3 interval round(3*2.3)=7
+      const d = R.nextSrs(c, false, now);     // wrong → reps0 interval0 lapses1 due=now
+      return { a, b, c, d, day, now };
+    });
+    eq(srs.a.reps === 1 && srs.a.interval === 1 && srs.a.due === srs.now + srs.day, "nextSrs new+correct → reps1/interval1/due+1d, got " + JSON.stringify(srs.a));
+    eq(srs.b.interval === 3 && srs.b.reps === 2, "nextSrs 2nd correct → interval 3, got " + JSON.stringify(srs.b));
+    eq(srs.c.interval === 7 && srs.c.reps === 3, "nextSrs 3rd correct → interval ≈7 (round 3×2.3), got " + JSON.stringify(srs.c));
+    eq(srs.d.reps === 0 && srs.d.interval === 0 && srs.d.lapses === 1 && srs.d.due === srs.now, "nextSrs wrong → reps0/interval0/lapse1/due=now, got " + JSON.stringify(srs.d));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

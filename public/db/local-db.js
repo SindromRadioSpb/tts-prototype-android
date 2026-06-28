@@ -2138,19 +2138,40 @@ export async function getKnownWordStates() {
 // «new» IS storable (so an UNCONFIDENT word — function/unknown, which has no auto-default colour —
 // can be explicitly marked «новое»/purple); only an empty status clears.
 const _WS_VALUES = { "new": 1, l1: 1, l2: 1, l3: 1, l4: 1, known: 1, ignore: 1 };
-export async function setWordStatus(lemmaKey, status) {
+export async function setWordStatus(lemmaKey, status, sched) {
   const lk = String(lemmaKey || "").trim();
   if (!lk) return false;
   const st = String(status || "").trim();
   try {
     if (!st || !_WS_VALUES[st]) {
       await r(`DELETE FROM word_status WHERE lemma_key = ?`, [lk]);
+    } else if (sched && typeof sched === "object") {
+      // C2 — recall answer: set status AND the SM2-lite schedule (next-due/interval/reps/lapses).
+      const due = sched.due != null ? new Date(sched.due).toISOString() : null;
+      await r(`INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses)
+               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?)
+               ON CONFLICT(lemma_key) DO UPDATE SET status=excluded.status, updated_at=excluded.updated_at,
+                 srs_due=excluded.srs_due, srs_interval=excluded.srs_interval, srs_reps=excluded.srs_reps, srs_lapses=excluded.srs_lapses`,
+        [lk, st, due, Number(sched.interval) || 0, Number(sched.reps) || 0, Number(sched.lapses) || 0]);
     } else {
-      await r(`INSERT OR REPLACE INTO word_status (lemma_key, status, updated_at)
-               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`, [lk, st]);
+      // plain status set (list / long-press / card): UPSERT so any existing SRS schedule is PRESERVED
+      // (INSERT OR REPLACE would wipe the srs_* columns — see C2).
+      await r(`INSERT INTO word_status (lemma_key, status, updated_at)
+               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+               ON CONFLICT(lemma_key) DO UPDATE SET status=excluded.status, updated_at=excluded.updated_at`, [lk, st]);
     }
     return true;
   } catch (_) { return false; }
+}
+// C2 — per-lemma recall SCHEDULE (only rows that have been recall-tested carry srs_due). Returns
+// { lemmaKey: { due(ms), interval, reps, lapses } }. Read-only; graceful {} if the column/table absent.
+export async function getSrsSchedule() {
+  try {
+    const rows = await q(`SELECT lemma_key, srs_due, srs_interval, srs_reps, srs_lapses FROM word_status WHERE srs_due IS NOT NULL`, []);
+    const out = {};
+    for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = { due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0, reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0 };
+    return out;
+  } catch (_) { return {}; }
 }
 export async function getWordStatus(lemmaKey) {
   const lk = String(lemmaKey || "").trim();

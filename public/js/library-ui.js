@@ -864,11 +864,16 @@ function _letterTiles(skel, seed) {
     .map((x) => x.ch);
 }
 // Session = learning (l1–l4) + new (active, freq-desc), with ~15% known-refresh interleaved (decision 2).
-function buildTrainSession(all) {
+function buildTrainSession(all, nowMs) {
   const withOcc = (all || []).filter((x) => x.occ && x.occ.length);
-  const learning = withOcc.filter((x) => /^l[1-4]$/.test(x.status));
-  const fresh = withOcc.filter((x) => x.status === 'new');
-  const known = withOcc.filter((x) => x.status === 'known');
+  // C2 — time-based spacing: a word answered correctly recently waits its interval (srs_due > now);
+  // never-tested or overdue words are DUE. Compose from due; if too few, top up with soonest-due.
+  const isDue = (x) => !x._srs || !x._srs.due || x._srs.due <= nowMs;
+  const due = withOcc.filter(isDue);
+  const notDue = withOcc.filter((x) => !isDue(x)).sort((a, b) => (a._srs.due || 0) - (b._srs.due || 0));
+  const learning = due.filter((x) => /^l[1-4]$/.test(x.status));
+  const fresh = due.filter((x) => x.status === 'new');
+  const known = due.filter((x) => x.status === 'known');
   const kRefresh = Math.min(known.length, Math.max(0, Math.round(TRAIN_N * 0.15)));
   const active = learning.concat(fresh).slice(0, TRAIN_N - kRefresh);
   const refresh = known.slice(0, kRefresh);
@@ -876,9 +881,14 @@ function buildTrainSession(all) {
   if (refresh.length) {
     const step = Math.max(1, Math.floor((active.length + refresh.length) / (refresh.length + 1)));
     let pos = step;
-    for (const r of refresh) { out.splice(Math.min(pos, out.length), 0, r); pos += step + 1; }
+    for (const r2 of refresh) { out.splice(Math.min(pos, out.length), 0, r2); pos += step + 1; }
   }
-  return out.slice(0, TRAIN_N);
+  const session = out.slice(0, TRAIN_N);
+  if (session.length < TRAIN_N) {
+    const have = new Set(session.map((x) => x.lemmaKey));
+    for (const x of notDue) { if (session.length >= TRAIN_N) break; if (!have.has(x.lemmaKey)) session.push(x); }
+  }
+  return session;
 }
 async function startTraining() {
   const mount = $('roomReaderTable');
@@ -887,13 +897,18 @@ async function startTraining() {
   body.innerHTML = '';
   body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю…') }));
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
-  let states = {}, all = [];
-  try { states = (await ensureWordStates()) || {}; all = await window.ReaderMorph.collectReviewItems(mount, states, {}); } catch (_) { all = []; }
+  let states = {}, all = [], schedule = {};
+  try {
+    states = (await ensureWordStates()) || {};
+    schedule = (await localDb.getSrsSchedule()) || {};   // C2 — per-lemma review schedule
+    all = await window.ReaderMorph.collectReviewItems(mount, states, {});
+  } catch (_) { all = []; }
   if (!_studySheet || _studySheet.hidden || _studyMode !== 'train') return;
   if (_studyView.hideNames) all = all.filter((x) => !x.nameSuspect);   // A10 — honor the list's «скрыть имена» (also keeps names out of the distractor pool)
+  all.forEach((x) => { x._srs = schedule[x.lemmaKey] || null; });      // C2 — attach schedule for due-aware composition
   // A3 — pre-build each item's cloze; keep only BUILDABLE ones so «X / N» counts only askable items
   // (a target whose skeleton isn't found in any of its sentences is dropped, not scored as a miss).
-  const items = buildTrainSession(all).map((it) => { it._built = _trainBuildCloze(it); return it; }).filter((it) => it._built);
+  const items = buildTrainSession(all, Date.now()).map((it) => { it._built = _trainBuildCloze(it); return it; }).filter((it) => it._built);
   _trainSession = { items, pool: all, idx: 0, total: items.length, correct: 0, levelUps: 0, answered: false };
   renderTrainItem();
 }
@@ -1063,7 +1078,9 @@ async function checkTrainAnswer(correct, skipped) {
   s.answered = true;
   const item = s.items[s.idx];
   const next = window.ReaderMorph.nextLevel(item.status, correct);
-  if (next !== item.status) { try { await localDb.setWordStatus(item.lemmaKey, next); } catch (_) {} }
+  const sched = window.ReaderMorph.nextSrs(item._srs, correct, Date.now());   // C2 — schedule the next review
+  try { await localDb.setWordStatus(item.lemmaKey, next, sched); } catch (_) {}   // status + schedule in one write
+  item._srs = sched;
   if (correct && next !== item.status) { s.correct++; s.levelUps++; }   // A8 — any promotion counts (incl. new→l1)
   else if (correct) { s.correct++; }
   const moved = (next !== item.status) ? (statusLabel(item.status) + ' → ' + statusLabel(next)) : '';   // A9 — localized, not raw codes

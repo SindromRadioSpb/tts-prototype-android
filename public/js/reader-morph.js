@@ -1629,6 +1629,20 @@
     var s = status || "new";
     return (correct ? _LV_UP : _LV_DOWN)[s] || s;
   }
+  // Epic 4.3b Phase C2 — SM2-lite time-based schedule (PURE, Node-testable; nowMs passed in so it's
+  // deterministic/replayable). prev = { interval(days), reps, lapses } (0/0/0 if never recall-tested).
+  // correct → reps++ and the interval grows (1d → 3d → ×2.3, capped 365d); wrong → reps reset, lapse++,
+  // interval 0 (due now = re-test next session). Returns { interval, reps, lapses, due(ms) }.
+  function nextSrs(prev, correct, nowMs) {
+    var p = prev || {}, reps = p.reps || 0, lapses = p.lapses || 0, interval = p.interval || 0;
+    if (correct) {
+      reps += 1;
+      interval = reps <= 1 ? 1 : (reps === 2 ? 3 : Math.min(365, Math.round(interval * 2.3)));
+    } else {
+      lapses += 1; reps = 0; interval = 0;
+    }
+    return { interval: interval, reps: reps, lapses: lapses, due: (Number(nowMs) || 0) + interval * 86400000 };
+  }
   // MC mode by maturity (escalate, owner decision 1): new/l1/l2 → recognition (MC); l3/l4/known → typed.
   function isMcLevel(status) { var s = status || "new"; return s === "new" || s === "l1" || s === "l2"; }
   // pickDistractors (R10 moat): morpho-honest, deterministic. Score: same root ≫ same POS+near length >
@@ -1685,7 +1699,7 @@
     openWordCard: openWordCard,
     // Epic 4.3b — recall-loop / cloze
     collectReviewItems: collectReviewItems, buildCloze: buildCloze, buildClozeForTarget: buildClozeForTarget,
-    nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors,
+    nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;
