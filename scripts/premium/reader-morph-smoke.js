@@ -643,6 +643,62 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(owc.hasConj, "openWordCard card must include the conjugation table (form-level detail beyond the lemma gloss «писать»)");
     eq(owc.isVerb, "openWordCard for כּוֹתֵב must reveal it is a verb/paal (not just the bare infinitive gloss)");
 
+    // ── Epic 4.3b — recall-loop / cloze engine core (pure helpers + collectReviewItems). ──
+    const rc = await pg.evaluate(async () => {
+      const R = window.ReaderMorph, NA = window.NotesAutoGen;
+      // pure: buildCloze — blank the 2nd word (offset 1), keep separators
+      const toks = R.tokenize("שלום עולם טוב");
+      const cz = R.buildCloze(toks, 1);
+      // pure: nextLevel — gentle floors
+      const up = ["new", "l1", "l2", "l3", "l4", "known"].map((s) => R.nextLevel(s, true));
+      const down = ["new", "l1", "l2", "l3", "l4", "known"].map((s) => R.nextLevel(s, false));
+      // pure: isMcLevel
+      const mc = { newm: R.isMcLevel("new"), l2: R.isMcLevel("l2"), l3: R.isMcLevel("l3"), known: R.isMcLevel("known") };
+      // pure: pickDistractors — morpho-honest, deterministic
+      const answer = { lemmaKey: "pid:1", surface: "כותב", niqqud: "כּוֹתֵב", root: "כתב", pos: "verb", freq: 5 };
+      const pool = [
+        answer,
+        { lemmaKey: "pid:2", surface: "נכתב", niqqud: "נִכְתָּב", root: "כתב", pos: "verb", freq: 2 },   // same root → top
+        { lemmaKey: "pid:3", surface: "קורא", niqqud: "קוֹרֵא", root: "קרא", pos: "verb", freq: 9 },     // same POS
+        { lemmaKey: "pid:4", surface: "בית", niqqud: "בַּיִת", root: "בית", pos: "noun", freq: 9 },       // other POS
+      ];
+      const d1 = R.pickDistractors(answer, pool, 3);
+      const d2 = R.pickDistractors(answer, pool, 3);
+      // browser: collectReviewItems on a 2-row mount; mark שלום l2
+      document.querySelectorAll("#rm-rc").forEach((n) => n.remove());
+      const r0 = { he: "שלום עולם", he_niqqud: "שָׁלוֹם עוֹלָם" };
+      const r1 = { he: "ספר טוב", he_niqqud: "סֵפֶר טוֹב" };
+      const rows = [r0, r1];
+      const mount = document.createElement("div"); mount.id = "rm-rc";
+      mount.innerHTML = '<table id="proTable"><tbody>' +
+        '<tr data-row-idx="0"><td data-col="he" class="rtl rtl-he">' + r0.he + '</td><td data-col="niqqud" class="rtl rtl-he-niqqud">' + r0.he_niqqud + '</td></tr>' +
+        '<tr data-row-idx="1"><td data-col="he" class="rtl rtl-he">' + r1.he + '</td><td data-col="niqqud" class="rtl rtl-he-niqqud">' + r1.he_niqqud + '</td></tr>' +
+        '</tbody></table>';
+      document.body.appendChild(mount);
+      R.attach(mount, { getRow: (i) => rows[i] });
+      const eng = await R.ensureEngine();
+      const sc = await R.resolveCore(eng, "שלום", "שָׁלוֹם");
+      const shalomKey = NA.lemmaKey({ pealim_id: sc.pealim_id, lemma: sc.lemma, word: sc.word, pos: sc.pos });
+      const items = await R.collectReviewItems(mount, { [shalomKey]: "l2" });
+      const sh = items.find((x) => x.lemmaKey === shalomKey) || null;
+      return {
+        cz, up, down, mc, d1Keys: d1.map((x) => x.lemmaKey), d2Keys: d2.map((x) => x.lemmaKey),
+        itemCount: items.length, shStatus: sh ? sh.status : null, shOcc: sh ? sh.occ : null,
+        hasAllStatuses: items.every((x) => !!x.status), anyOcc: !!(sh && sh.occ && sh.occ.length && sh.occ[0].rowIdx === 0 && typeof sh.occ[0].wordOffset === "number"),
+      };
+    });
+    eq(rc.cz && rc.cz.answer === "עולם" && /שלום/.test(rc.cz.before) && /טוב/.test(rc.cz.after), "buildCloze must blank the offset-th word keeping separators, got " + JSON.stringify(rc.cz));
+    eq(JSON.stringify(rc.up) === JSON.stringify(["l1", "l2", "l3", "l4", "known", "known"]), "nextLevel(correct) must climb new→l1→…→known→known, got " + JSON.stringify(rc.up));
+    eq(JSON.stringify(rc.down) === JSON.stringify(["new", "l1", "l1", "l2", "l3", "l4"]), "nextLevel(wrong) must be gentle with floors (new→new, l1→l1, known→l4), got " + JSON.stringify(rc.down));
+    eq(rc.mc.newm && rc.mc.l2 && !rc.mc.l3 && !rc.mc.known, "isMcLevel: MC for new/l1/l2, typed for l3/l4/known, got " + JSON.stringify(rc.mc));
+    eq(rc.d1Keys.length === 3 && rc.d1Keys.indexOf("pid:1") < 0, "pickDistractors must return 3 distractors excluding the answer, got " + JSON.stringify(rc.d1Keys));
+    eq(rc.d1Keys[0] === "pid:2", "pickDistractors must rank a SAME-ROOT word first (morpho-honest), got " + JSON.stringify(rc.d1Keys));
+    eq(JSON.stringify(rc.d1Keys) === JSON.stringify(rc.d2Keys), "pickDistractors must be deterministic (same input → same output)");
+    eq(rc.itemCount >= 3, "collectReviewItems must return ALL confident lemmas (שלום/עולם/ספר/טוב ≥3), got " + rc.itemCount);
+    eq(rc.hasAllStatuses, "every review item must carry an effective status (states[lk]||'new')");
+    eq(rc.shStatus === "l2", "collectReviewItems must reflect the stored status (שלום→l2), got " + JSON.stringify(rc.shStatus));
+    eq(rc.anyOcc, "a review item must carry occurrences {rowIdx,wordOffset} (for the cloze sentence), got " + JSON.stringify(rc.shOcc));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

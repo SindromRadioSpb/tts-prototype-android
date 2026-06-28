@@ -1512,30 +1512,28 @@
     if (nq.length) return Array.prototype.slice.call(nq);
     return Array.prototype.slice.call(mount.querySelectorAll(".rm-w"));
   }
-  async function collectNewWords(mount, statesMap, opts) {
+  // Shared scan — ONE chunked pass over the painted he-spans → Map(lemmaKey → {surface, niqqud,
+  // gloss, root, pos, freq, nameSuspect, occ:[{rowIdx,wordOffset}], _i}). Only confident content
+  // words (exact|likely). Keyed via statusKeyForCard (collect==save==paint parity). collectNewWords
+  // (frontier) + collectReviewItems (4.3b recall) both build on this — single source, no drift.
+  async function _scanWords(mount, opts) {
     opts = opts || {};
-    var topN = (opts.topN != null) ? Number(opts.topN) : null;   // omit → FULL frontier (caller paginates)
     var rowFrom = (opts.rowFrom != null) ? Number(opts.rowFrom) : null;
     var rowTo = (opts.rowTo != null) ? Number(opts.rowTo) : null;
-    if (!mount) return [];
-    var states = statesMap || {};
+    var group = new Map();
+    if (!mount) return group;
     var NA = window.NotesAutoGen;
-    var eng; try { eng = await ensureEngine(); } catch (_) { return []; }
-    // Function-word keys depend on the lazy PealimFunctionLinks map; await it so any key we compute
-    // matches decorateWords/resolveWordLight exactly (function words are excluded below, but the
-    // gate is cheap and keeps the keyer's behaviour identical across paths).
+    var eng; try { eng = await ensureEngine(); } catch (_) { return group; }
     try { if (window.PealimFunctionLinks && window.PealimFunctionLinks.ensureReady) await window.PealimFunctionLinks.ensureReady(); } catch (_) {}
     var spans = _studyWordSpans(mount);
-    var group = new Map();
     var i = 0;
     while (i < spans.length) {
       var end = Math.min(i + 60, spans.length);
       for (; i < end; i++) {
         var span = spans[i];
-        // scope (B): restrict to a row range when requested («дальше по тексту» = from current pos).
-        if (rowFrom != null || rowTo != null) {
-          var tr = span.closest ? span.closest("tr[data-row-idx]") : null;
-          var ri = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+        var tr = span.closest ? span.closest("tr[data-row-idx]") : null;
+        var ri = tr ? Number(tr.getAttribute("data-row-idx")) : NaN;
+        if (rowFrom != null || rowTo != null) {   // scope (B): «дальше по тексту»
           if (Number.isFinite(ri)) {
             if (rowFrom != null && ri < rowFrom) continue;
             if (rowTo != null && ri > rowTo) continue;
@@ -1544,32 +1542,98 @@
         var surface = span.getAttribute("data-surface") || "";
         var niqqud = span.getAttribute("data-niqqud") || "";
         var card; try { card = await resolveCore(eng, surface, niqqud); } catch (_) { continue; }
-        // Only confidently-resolved content words are honest study candidates (a real root/gloss to
-        // learn). Function/unknown words have no paradigm to study → excluded (R1; mirrors the colour
-        // gate, which only auto-colours confident words).
+        // Only confidently-resolved content words (a real root/gloss). Function/unknown → excluded.
         if (!card || (card.label !== "exact" && card.label !== "likely")) continue;
         var lk = statusKeyForCard(NA, card, niqqud, surface);
         if (!lk) continue;
-        var st = states[lk];
-        // frontier = not yet engaged beyond «new»: undefined (unseen) or explicitly «new» (tracking,
-        // not known). l1–l4/known/ignore are already on the radar → not "new to study".
-        if (st !== undefined && st !== "new") continue;
         var g = group.get(lk);
         if (!g) {
           var skel = stripNiqqud(card.word || surface);
-          g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, nameSuspect: !!NAME_HINT[skel], _i: i };
+          g = { lemmaKey: lk, surface: card.word || surface, niqqud: card.niqqud || niqqud, gloss: card.meaning || "", root: card.root || "", pos: card.pos || "", freq: 0, nameSuspect: !!NAME_HINT[skel], occ: [], _i: i };
           group.set(lk, g);
         }
         g.freq++;
+        var off = Number(span.getAttribute("data-w-offset"));
+        if (Number.isFinite(ri) && Number.isFinite(off) && g.occ.length < 12) g.occ.push({ rowIdx: ri, wordOffset: off });
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }
-    var arr = Array.from(group.values());
+    return group;
+  }
+  async function collectNewWords(mount, statesMap, opts) {
+    opts = opts || {};
+    var topN = (opts.topN != null) ? Number(opts.topN) : null;   // omit → FULL frontier (caller paginates)
+    var states = statesMap || {};
+    var group = await _scanWords(mount, opts);
+    var arr = [];
+    group.forEach(function (g) { var st = states[g.lemmaKey]; if (st === undefined || st === "new") arr.push(g); });
     arr.sort(function (a, b) { return b.freq - a.freq || a._i - b._i; });
     if (topN != null && topN >= 0) arr = arr.slice(0, topN);
     return arr.map(function (g) {
       return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq, nameSuspect: g.nameSuspect };
     });
+  }
+  // ── Epic 4.3b — recall items (cloze training) ───────────────────────────────
+  // ALL confident lemmas of the (scoped) text + effective status (states[lk]||'new' — untouched
+  // confident = the «new» frontier) + occurrences (rowIdx+wordOffset, so the caller builds a cloze
+  // from the REAL sentence) + freq. Returns the whole set: library-ui filters the SESSION by status
+  // (l1–l4 + new + capped known-refresh) AND uses the full list as the morpho-honest distractor pool.
+  async function collectReviewItems(mount, statesMap, opts) {
+    var states = statesMap || {};
+    var group = await _scanWords(mount, opts);
+    var arr = Array.from(group.values());
+    arr.sort(function (a, b) { return b.freq - a.freq || a._i - b._i; });
+    return arr.map(function (g) {
+      return { lemmaKey: g.lemmaKey, surface: g.surface, niqqud: g.niqqud, gloss: g.gloss, root: g.root, pos: g.pos, freq: g.freq, nameSuspect: g.nameSuspect, status: (states[g.lemmaKey] || "new"), occ: g.occ.slice(0, 8) };
+    });
+  }
+  // ── Epic 4.3b — pure recall helpers (Node-testable) ─────────────────────────
+  // buildCloze: blank the wordOffset-th WORD token of a tokenized sentence, keeping separators.
+  // tokens = tokenize(sentence). Returns { answer, before, after } or null (offset out of range).
+  function buildCloze(tokens, wordOffset) {
+    if (!Array.isArray(tokens)) return null;
+    var w = -1, ti = -1;
+    for (var i = 0; i < tokens.length; i++) { if (tokens[i] && tokens[i].isWord) { w++; if (w === wordOffset) { ti = i; break; } } }
+    if (ti < 0) return null;
+    var before = "", after = "";
+    for (var j = 0; j < tokens.length; j++) { if (j < ti) before += tokens[j].text; else if (j > ti) after += tokens[j].text; }
+    return { answer: tokens[ti].text, before: before, after: after };
+  }
+  // nextLevel: gentle do-no-harm SRS-lite (owner decision 3). correct → +1 (…→known); wrong → −1
+  // with floors (new stays, l1 floors at l1, known→l4 — one miss never nukes a known word to «new»).
+  var _LV_UP = { "new": "l1", l1: "l2", l2: "l3", l3: "l4", l4: "known", known: "known" };
+  var _LV_DOWN = { "new": "new", l1: "l1", l2: "l1", l3: "l2", l4: "l3", known: "l4" };
+  function nextLevel(status, correct) {
+    var s = status || "new";
+    return (correct ? _LV_UP : _LV_DOWN)[s] || s;
+  }
+  // MC mode by maturity (escalate, owner decision 1): new/l1/l2 → recognition (MC); l3/l4/known → typed.
+  function isMcLevel(status) { var s = status || "new"; return s === "new" || s === "l1" || s === "l2"; }
+  // pickDistractors (R10 moat): morpho-honest, deterministic. Score: same root ≫ same POS+near length >
+  // same POS > other; tie-break freq desc then lemmaKey. Drawn from the SAME text's confident lemmas.
+  function _surfLen(s) { return stripNiqqud(s || "").length; }
+  function pickDistractors(answer, pool, n) {
+    n = n || 3;
+    if (!answer || !Array.isArray(pool)) return [];
+    var aLen = _surfLen(answer.surface || answer.niqqud), aPos = answer.pos || "", aRoot = answer.root || "";
+    var seen = {}, uniq = [];
+    for (var i = 0; i < pool.length; i++) {
+      var c = pool[i];
+      if (!c || c.lemmaKey === answer.lemmaKey || !(c.niqqud || c.surface)) continue;
+      if (seen[c.lemmaKey]) continue; seen[c.lemmaKey] = 1; uniq.push(c);
+    }
+    function score(c) {
+      var s = 0;
+      if (aRoot && c.root && c.root === aRoot) s += 100;
+      if (aPos && c.pos === aPos) { s += 10; if (Math.abs(_surfLen(c.surface || c.niqqud) - aLen) <= 2) s += 5; }
+      return s;
+    }
+    uniq.sort(function (a, b) {
+      var sa = score(a), sb = score(b); if (sb !== sa) return sb - sa;
+      if ((b.freq || 0) !== (a.freq || 0)) return (b.freq || 0) - (a.freq || 0);
+      return String(a.lemmaKey).localeCompare(String(b.lemmaKey));
+    });
+    return uniq.slice(0, n);
   }
 
   // Back-compat thin wrappers (existing callers / smoke).
@@ -1587,6 +1651,9 @@
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
     decorateWords: decorateWords, clearDecorations: clearDecorations, collectNewWords: collectNewWords,
     openWordCard: openWordCard,
+    // Epic 4.3b — recall-loop / cloze
+    collectReviewItems: collectReviewItems, buildCloze: buildCloze, nextLevel: nextLevel,
+    isMcLevel: isMcLevel, pickDistractors: pickDistractors,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

@@ -516,6 +516,8 @@ const STUDY_CHUNK = 20;   // progressive render batch (A) — 973-word frontiers
 let _studySheet = null;
 let _studyAll = [];       // full collected frontier for the current scope (FIXED until scope change / re-open)
 let _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
+let _studyMode = 'list';  // 'list' (📚 collect/mark) | 'train' (🎯 4.3b cloze recall)
+let _trainSession = null; // { items, pool, idx, total, correct, levelUps, answered }
 function uiDirRoom() { return (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr'; }
 function ensureStudySheet() {
   if (_studySheet) return _studySheet;
@@ -527,6 +529,11 @@ function ensureStudySheet() {
   head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Учить новые слова') }));
   head.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
   card.appendChild(head);
+  // 4.3b — «Список / Тренировка» mode toggle (owner decision 4)
+  const modeRow = el('div', { class: 'room-study-modetoggle', attrs: { dir: uiDirRoom() } });
+  modeRow.appendChild(el('button', { class: 'room-study-seg on', i18n: 'room.morph.study.modeList', text: tt('room.morph.study.modeList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
+  modeRow.appendChild(el('button', { class: 'room-study-seg', i18n: 'room.morph.study.modeTrain', text: tt('room.morph.study.modeTrain', '🎯 Тренировка'), attrs: { type: 'button', 'data-study-mode': 'train' } }));
+  card.appendChild(modeRow);
   card.appendChild(el('div', { class: 'room-study-controls' }));
   card.appendChild(el('div', { class: 'room-study-bulk' }));
   card.appendChild(el('div', { class: 'room-study-count' }));
@@ -538,17 +545,43 @@ function ensureStudySheet() {
   sheet.addEventListener('click', (e) => {
     const t = e.target; if (!t || !t.closest) return;
     if (t.closest('[data-study-close]')) { closeStudySheet(); return; }
+    const md = t.closest('[data-study-mode]'); if (md) { setStudyMode(md.getAttribute('data-study-mode')); return; }
     const sb = t.closest('[data-study-status]'); if (sb) { onStudyStatusSet(sb); return; }
     const sp = t.closest('[data-study-speak]'); if (sp) { onStudySpeak(sp.closest('.room-study-row')); return; }
     const cd = t.closest('[data-study-card]'); if (cd) { onStudyExpand(cd.closest('.room-study-row')); return; }
     if (t.closest('[data-study-more]')) { _studyView.shown += STUDY_CHUNK; renderStudyBody(); return; }
     const bulk = t.closest('[data-study-bulk]'); if (bulk) { onStudyBulk(bulk.getAttribute('data-study-bulk')); return; }
+    // 4.3b training
+    const opt = t.closest('[data-train-opt]'); if (opt) { onTrainOption(opt); return; }
+    if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
+    if (t.closest('[data-train-next]')) { onTrainNext(); return; }
+    if (t.closest('[data-train-again]')) { startTraining(); return; }
+    const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
+    if (t.closest('[data-train-card]')) { onTrainCard(); return; }
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && _studySheet && !_studySheet.hidden) closeStudySheet(); });
+  document.addEventListener('keydown', (e) => {
+    if (!_studySheet || _studySheet.hidden) return;
+    if (e.key === 'Escape') { closeStudySheet(); return; }
+    if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('[data-train-input]')) { e.preventDefault(); onTrainSubmit(); }
+  });
   _studySheet = sheet;
   return sheet;
 }
-function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } }
+function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; }
+// Show/hide the list-only chrome (controls/bulk/count/more) — hidden in «🎯 Тренировка».
+function _studyListChrome(show) {
+  if (!_studySheet) return;
+  ['.room-study-controls', '.room-study-bulk', '.room-study-count', '.room-study-more'].forEach((sel) => {
+    const e = _studySheet.querySelector(sel); if (e) e.style.display = show ? '' : 'none';
+  });
+}
+function setStudyMode(mode) {
+  _studyMode = mode === 'train' ? 'train' : 'list';
+  if (_studySheet) _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === _studyMode));
+  _studyListChrome(_studyMode === 'list');
+  if (_studyMode === 'list') renderStudyBody();
+  else startTraining();
+}
 
 // View = filter (C: band + hide-names) then sort (D: freq[default, already freq-desc+stable] | alpha).
 function studyFiltered() {
@@ -733,8 +766,202 @@ async function roomOpenStudyList() {
   if (!mount || !window.ReaderMorph || typeof window.ReaderMorph.collectNewWords !== 'function') return;
   const sheet = ensureStudySheet();
   _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, shown: STUDY_CHUNK };
+  _studyMode = 'list'; _trainSession = null;
+  sheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'list'));
+  _studyListChrome(true);
   sheet.hidden = false; sheet.classList.add('room-study-open');
   await recollectStudy();
+}
+
+// ── Epic 4.3b — «🎯 Тренировка»: cloze recall in REAL sentences from the open text ──────────────
+// Active recall closes the retention loop: a word the learner is studying is blanked in a real
+// readerRows sentence → recognize (MC, escalates to typed by level) → gentle level move → repaint.
+// Self-contained over ReaderMorph.collectReviewItems/buildCloze/nextLevel/isMcLevel/pickDistractors
+// + setWordStatus + openWordCard + speakWord. Deterministic (no Math.random). Plan: BRR_EPIC4_3B.
+const TRAIN_N = 12;
+function _normHe(s) { return window.ReaderMorph.stripNiqqud(String(s || '')).replace(/ך/g, 'כ').replace(/ם/g, 'מ').replace(/ן/g, 'נ').replace(/ף/g, 'פ').replace(/ץ/g, 'צ').trim(); }
+// Session = learning (l1–l4) + new (active, freq-desc), with ~15% known-refresh interleaved (decision 2).
+function buildTrainSession(all) {
+  const withOcc = (all || []).filter((x) => x.occ && x.occ.length);
+  const learning = withOcc.filter((x) => /^l[1-4]$/.test(x.status));
+  const fresh = withOcc.filter((x) => x.status === 'new');
+  const known = withOcc.filter((x) => x.status === 'known');
+  const kRefresh = Math.min(known.length, Math.max(0, Math.round(TRAIN_N * 0.15)));
+  const active = learning.concat(fresh).slice(0, TRAIN_N - kRefresh);
+  const refresh = known.slice(0, kRefresh);
+  const out = active.slice();
+  if (refresh.length) {
+    const step = Math.max(1, Math.floor((active.length + refresh.length) / (refresh.length + 1)));
+    let pos = step;
+    for (const r of refresh) { out.splice(Math.min(pos, out.length), 0, r); pos += step + 1; }
+  }
+  return out.slice(0, TRAIN_N);
+}
+async function startTraining() {
+  const mount = $('roomReaderTable');
+  const body = _studySheet && _studySheet.querySelector('.room-study-body');
+  if (!mount || !body || !window.ReaderMorph || typeof window.ReaderMorph.collectReviewItems !== 'function') return;
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю…') }));
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  let states = {}, all = [];
+  try { states = (await ensureWordStates()) || {}; all = await window.ReaderMorph.collectReviewItems(mount, states, {}); } catch (_) { all = []; }
+  if (!_studySheet || _studySheet.hidden || _studyMode !== 'train') return;
+  const items = buildTrainSession(all);
+  _trainSession = { items, pool: all, idx: 0, total: items.length, correct: 0, levelUps: 0, answered: false };
+  renderTrainItem();
+}
+// Sentence (he/he_niqqud/ru) for a row — readerRows is the fast path; fall back to the painted DOM
+// row so training is self-contained (works even if readerRows is empty/desynced).
+function _trainRowData(rowIdx) {
+  const r = readerRows[rowIdx];
+  if (r) return { he: String(r.he || ''), he_niqqud: String(r.he_niqqud || ''), ru: String(r.ru || '') };
+  const mount = $('roomReaderTable');
+  const tr = mount && mount.querySelector('#proTable tbody tr[data-row-idx="' + rowIdx + '"]');
+  if (!tr) return null;
+  const cell = (col) => { const td = tr.querySelector('td[data-col="' + col + '"]'); return td ? td.textContent : ''; };
+  return { he: cell('he'), he_niqqud: cell('niqqud') || cell('he'), ru: cell('ru') };
+}
+// Pick the occurrence with the richest context (most word tokens), tie-break rowIdx asc → cloze.
+function _trainBuildCloze(item) {
+  const R = window.ReaderMorph;
+  let best = null, bestCount = -1;
+  for (const o of (item.occ || [])) {
+    const data = _trainRowData(o.rowIdx);
+    if (!data) continue;
+    const sent = String(data.he_niqqud || data.he || '');
+    const cz = R.buildCloze(R.tokenize(sent), o.wordOffset);
+    if (!cz) continue;
+    const count = R.words(sent).length;
+    if (count > bestCount || (count === bestCount && best && o.rowIdx < best.rowIdx)) { best = { cz, ru: data.ru, rowIdx: o.rowIdx }; bestCount = count; }
+  }
+  return best;   // { cz:{answer,before,after}, ru, rowIdx } | null
+}
+function renderTrainItem() {
+  const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
+  if (!s || !body) return;
+  if (s.idx >= s.total) return renderTrainSummary();
+  s.answered = false;
+  const item = s.items[s.idx];
+  const built = _trainBuildCloze(item);
+  if (!built) { s.idx++; return renderTrainItem(); }   // no usable sentence → skip
+  s._built = built;
+  const mc = window.ReaderMorph.isMcLevel(item.status);
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
+  // cloze sentence (vocalized) with the blank, dir rtl
+  const cloze = el('div', { class: 'room-train-cloze', attrs: { dir: 'rtl', lang: 'he' } });
+  cloze.appendChild(el('span', { text: built.cz.before }));
+  cloze.appendChild(el('span', { class: 'room-train-blank', text: ' ____ ' }));
+  cloze.appendChild(el('span', { text: built.cz.after }));
+  body.appendChild(cloze);
+  body.appendChild(el('div', { class: 'room-train-prompt', attrs: { dir: 'ltr' }, text: '✎ ' + (item.gloss || tt('room.morph.study.recall', 'вспомни слово')) }));
+  if (mc) {
+    const ans = { lemmaKey: item.lemmaKey, surface: item.surface, niqqud: built.cz.answer, root: item.root, pos: item.pos };
+    const distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3);
+    const opts = [{ key: item.lemmaKey, he: built.cz.answer, correct: true }].concat(
+      distractors.map((d) => ({ key: d.lemmaKey, he: d.niqqud || d.surface, correct: false })));
+    // deterministic placement: rotate by item index (no Math.random)
+    const rot = s.idx % opts.length;
+    const ordered = opts.slice(rot).concat(opts.slice(0, rot));
+    const grid = el('div', { class: 'room-train-opts', attrs: { dir: 'rtl' } });
+    ordered.forEach((o) => grid.appendChild(el('button', { class: 'room-train-opt', attrs: { type: 'button', 'data-train-opt': '1', 'data-correct': o.correct ? '1' : '0', lang: 'he', dir: 'rtl' }, text: o.he })));
+    body.appendChild(grid);
+  } else {
+    const inWrap = el('div', { class: 'room-train-inputwrap' });
+    inWrap.appendChild(el('input', { class: 'room-train-input', attrs: { type: 'text', 'data-train-input': '1', dir: 'rtl', lang: 'he', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: tt('room.morph.study.typePlaceholder', 'впиши слово…') } }));
+    inWrap.appendChild(el('button', { class: 'room-train-submit', i18n: 'room.morph.study.check', text: tt('room.morph.study.check', 'Проверить'), attrs: { type: 'button', 'data-train-submit': '1' } }));
+    body.appendChild(inWrap);
+  }
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  if (!mc) { const inp = body.querySelector('[data-train-input]'); if (inp) { try { inp.focus(); } catch (_) {} } }
+}
+function onTrainOption(btn) {
+  if (!_trainSession || _trainSession.answered) return;
+  const correct = btn.getAttribute('data-correct') === '1';
+  // mark chosen + reveal the correct one
+  const grid = btn.closest('.room-train-opts');
+  if (grid) grid.querySelectorAll('.room-train-opt').forEach((b) => {
+    if (b.getAttribute('data-correct') === '1') b.classList.add('room-train-ok');
+    if (b === btn && !correct) b.classList.add('room-train-bad');
+    b.disabled = true;
+  });
+  checkTrainAnswer(correct);
+}
+function onTrainSubmit() {
+  if (!_trainSession || _trainSession.answered) return;
+  const inp = _studySheet && _studySheet.querySelector('[data-train-input]');
+  if (!inp) return;
+  const val = _normHe(inp.value);
+  if (!val) { try { inp.focus(); } catch (_) {} return; }
+  const built = _trainSession._built, item = _trainSession.items[_trainSession.idx];
+  const correct = val === _normHe(built.cz.answer) || val === _normHe(item.surface);
+  inp.classList.add(correct ? 'room-train-ok' : 'room-train-bad'); inp.disabled = true;
+  checkTrainAnswer(correct);
+}
+async function checkTrainAnswer(correct) {
+  const s = _trainSession; if (!s || s.answered) return;
+  s.answered = true;
+  const item = s.items[s.idx];
+  const next = window.ReaderMorph.nextLevel(item.status, correct);
+  if (next !== item.status) { try { await localDb.setWordStatus(item.lemmaKey, next); } catch (_) {} }
+  if (correct) { s.correct++; if (next !== item.status && /^(l[2-4]|known)$/.test(next)) s.levelUps++; }
+  const moved = item.status + (next !== item.status ? ' → ' + next : '');
+  item._from = item.status; item.status = next;
+  readerWordStates = null;
+  try { invalidateReadableSet(); } catch (_) {}
+  try { applyDecorations(); } catch (_) {}   // repaint the reader behind
+  renderTrainReveal(correct, moved);
+}
+function renderTrainReveal(correct, moved) {
+  const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
+  if (!s || !body) return;
+  const item = s.items[s.idx], built = s._built;
+  const rev = el('div', { class: 'room-train-reveal ' + (correct ? 'room-train-reveal-ok' : 'room-train-reveal-bad') });
+  rev.appendChild(el('div', { class: 'room-train-verdict', text: correct ? tt('room.morph.study.correct', '✓ Верно') : tt('room.morph.study.wrong', '✗ Неверно') }));
+  const ansRow = el('div', { class: 'room-train-ansrow' });
+  ansRow.appendChild(el('span', { class: 'room-train-ans', attrs: { lang: 'he', dir: 'rtl' }, text: built.cz.answer }));
+  ansRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': built.cz.answer, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
+  rev.appendChild(ansRow);
+  if (item.gloss) rev.appendChild(el('div', { class: 'room-train-ansgloss', attrs: { dir: 'ltr' }, text: item.gloss }));
+  if (moved && moved.indexOf('→') >= 0) rev.appendChild(el('div', { class: 'room-train-moved', text: moved }));
+  if (built.ru) rev.appendChild(el('div', { class: 'room-train-ctx', attrs: { dir: 'ltr' }, text: built.ru }));
+  const actions = el('div', { class: 'room-train-actions' });
+  actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.expand', text: tt('room.morph.study.expand', 'Подробнее'), attrs: { type: 'button', 'data-train-card': '1' } }));
+  actions.appendChild(el('button', { class: 'room-train-next', text: tt('room.morph.study.next', 'Дальше →'), attrs: { type: 'button', 'data-train-next': '1' } }));
+  rev.appendChild(actions);
+  body.appendChild(rev);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  try { rev.scrollIntoView({ block: 'nearest' }); } catch (_) {}
+}
+function onTrainCard() {
+  const s = _trainSession; if (!s || !s._built) return;
+  const item = s.items[s.idx];
+  try { window.ReaderMorph.openWordCard(item.surface || s._built.cz.answer, s._built.cz.answer); } catch (_) {}
+}
+function onTrainNext() {
+  if (!_trainSession) return;
+  _trainSession.idx++;
+  renderTrainItem();
+}
+function renderTrainSummary() {
+  const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
+  if (!s || !body) return;
+  body.innerHTML = '';
+  if (!s.total) {
+    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.trainEmpty', text: tt('room.morph.study.trainEmpty', 'Нет слов для тренировки на этом экране — отметь слова в «Список».') }));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    return;
+  }
+  const box = el('div', { class: 'room-train-summary' });
+  box.appendChild(el('div', { class: 'room-train-score', text: tt('room.morph.study.done', 'Готово') + ': ' + s.correct + ' / ' + s.total }));
+  if (s.levelUps) box.appendChild(el('div', { class: 'room-train-levelups', text: '↑ ' + s.levelUps + ' ' + tt('room.morph.study.levelUps', 'уровней') }));
+  const actions = el('div', { class: 'room-train-actions' });
+  actions.appendChild(el('button', { class: 'room-train-next', i18n: 'room.morph.study.again', text: tt('room.morph.study.again', '🎯 Ещё'), attrs: { type: 'button', 'data-train-again': '1' } }));
+  actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.toList', text: tt('room.morph.study.toList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
+  box.appendChild(actions);
+  body.appendChild(box);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
 // ── note-formation: turn a tapped word into a word_study note (the «превращение») ──
