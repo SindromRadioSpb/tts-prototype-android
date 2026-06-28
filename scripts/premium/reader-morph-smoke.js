@@ -742,6 +742,28 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(srs.c.interval === 7 && srs.c.reps === 3, "nextSrs 3rd correct → interval ≈7 (round 3×2.3), got " + JSON.stringify(srs.c));
     eq(srs.d.reps === 0 && srs.d.interval === 0 && srs.d.lapses === 1 && srs.d.due === srs.now, "nextSrs wrong → reps0/interval0/lapse1/due=now, got " + JSON.stringify(srs.d));
 
+    // ── Epic 4.3b Phase D3 — dueCounts (visible due-counter; pure, deterministic, badge==trainer). ──
+    const dc = await pg.evaluate(() => {
+      const R = window.ReaderMorph, now = 1000000000000, day = 86400000;
+      const status = { a: 'l1', b: 'l2', c: 'l4', d: 'known', e: 'new', f: 'ignore', g: 'l3' };  // l1–l4 = 4 in-progress
+      const sched = {
+        a: { due: now - day },        // overdue → due
+        c: { due: now },              // exactly now → due
+        f: { due: now - day },        // overdue BUT ignored → NOT counted
+        d: { due: now + 2 * day },    // future
+        h: { due: now + 5 * day },    // future (further)
+      };
+      const r = R.dueCounts(status, sched, now);
+      const empty = R.dueCounts({}, {}, now);
+      const nullSafe = R.dueCounts(null, null, now);
+      return { r, empty, nullSafe, now, day };
+    });
+    eq(dc.r.inProgress === 4, "dueCounts inProgress must count l1–l4 only (=4), got " + dc.r.inProgress);
+    eq(dc.r.dueNow === 2, "dueCounts dueNow must count due<=now scheduled, excluding «ignore» (=2), got " + dc.r.dueNow);
+    eq(dc.r.nextDue === dc.now + 2 * dc.day, "dueCounts nextDue must be the soonest FUTURE due, got " + JSON.stringify(dc.r.nextDue));
+    eq(dc.empty.inProgress === 0 && dc.empty.dueNow === 0 && dc.empty.nextDue === null, "dueCounts empty → 0/0/null, got " + JSON.stringify(dc.empty));
+    eq(dc.nullSafe.inProgress === 0 && dc.nullSafe.dueNow === 0 && dc.nullSafe.nextDue === null, "dueCounts null-safe → 0/0/null, got " + JSON.stringify(dc.nullSafe));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

@@ -1643,6 +1643,27 @@
     }
     return { interval: interval, reps: reps, lapses: lapses, due: (Number(nowMs) || 0) + interval * 86400000 };
   }
+  // Epic 4.3b Phase D3 — visible due-counter. PURE counts (deterministic; nowMs injected) over the
+  // GLOBAL status map + the per-lemma SRS schedule, so the badge needs NO morph scan:
+  //   inProgress = words actively being learned (status l1–l4) — the breadth of your current study;
+  //   dueNow     = SCHEDULED words whose review time has ARRIVED (due<=now), excluding «ignore» — the
+  //                true spaced-repetition return signal (never-tested «new» words are NOT counted here,
+  //                they surface as «new»/in-progress; the badge must not over-claim — R11/R2);
+  //   nextDue    = soonest FUTURE due (ms) or null → «next review in …» when nothing is due yet.
+  // statusMap = { lemmaKey: status }; schedule = getSrsSchedule() shape { lemmaKey: { due, ... } }.
+  var _INPROG = { l1: 1, l2: 1, l3: 1, l4: 1 };
+  function dueCounts(statusMap, schedule, nowMs) {
+    var now = Number(nowMs) || 0, inProgress = 0, dueNow = 0, nextDue = null;
+    if (statusMap) for (var k in statusMap) { if (_INPROG[statusMap[k]]) inProgress++; }
+    if (schedule) for (var lk in schedule) {
+      var e = schedule[lk]; if (!e) continue;
+      if (statusMap && statusMap[lk] === "ignore") continue;   // ignored words are not «to review» (badge==trainer)
+      var due = Number(e.due) || 0;
+      if (due <= now) dueNow++;                                 // overdue / due-now scheduled word
+      else if (nextDue === null || due < nextDue) nextDue = due;
+    }
+    return { inProgress: inProgress, dueNow: dueNow, nextDue: nextDue };
+  }
   // MC mode by maturity (escalate, owner decision 1): new/l1/l2 → recognition (MC); l3/l4/known → typed.
   function isMcLevel(status) { var s = status || "new"; return s === "new" || s === "l1" || s === "l2"; }
   // pickDistractors (R10 moat): morpho-honest, deterministic. Score: same root ≫ same POS+near length >
@@ -1700,6 +1721,7 @@
     // Epic 4.3b — recall-loop / cloze
     collectReviewItems: collectReviewItems, buildCloze: buildCloze, buildClozeForTarget: buildClozeForTarget,
     nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs,
+    dueCounts: dueCounts,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

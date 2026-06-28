@@ -2076,6 +2076,12 @@ window.I18N_LOCALES.en = {
         again: "🎯 More",
         toList: "📋 List",
         trainEmpty: "No words to train on this screen — mark some in “List”.",
+        inProgress: "Learning",
+        due: "Due",
+        dueMore: "More due",
+        nextReview: "Next review in",
+        unitDays: "d",
+        unitHours: "h",
       },
       legend: {
         title: "What do the confidence badges mean?",

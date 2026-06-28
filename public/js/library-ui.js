@@ -570,6 +570,51 @@ let _studyView = { scope: 'all', sort: 'freq', band: 'all', hideNames: false, sh
 let _studyMode = 'list';  // 'list' (📚 collect/mark) | 'train' (🎯 4.3b cloze recall)
 let _trainSession = null; // { items, pool, idx, total, correct, levelUps, answered }
 function uiDirRoom() { return (document.documentElement && document.documentElement.getAttribute('dir')) || 'ltr'; }
+
+// ── Epic 4.3b Phase D3 — visible due-counter «В работе: N · К повторению: M» ────────────────────
+// Makes the (otherwise invisible) SRS schedule legible → closes the feedback loop and gives a reason
+// to return. TWO GLOBAL numbers, computed with NO morph scan: «В работе» = words you're actively
+// learning (l1–l4, from the already-loaded status map), «К повторению» = SCHEDULED words due now
+// (getSrsSchedule overdue, «ignore» excluded). Pure arithmetic lives in ReaderMorph.dueCounts (gated).
+// Scope = ALL your words (the daily-review habit is cross-text; serving them in any text is D2).
+let _dueCounts = null;
+function _dueBadgeEl(extraClass) {
+  const box = el('div', { class: 'reader-aids-duebadge' + (extraClass ? ' ' + extraClass : ''), attrs: { 'data-due-badge': '1', dir: uiDirRoom() } });
+  box.hidden = true;
+  const grp = (labelKey, labelFb, numAttr) => {
+    const g = el('span', { class: 'db-group' });
+    g.appendChild(el('span', { class: 'db-k', i18n: labelKey, text: tt(labelKey, labelFb) }));
+    g.appendChild(el('span', { class: 'db-sep', text: ': ' }));
+    g.appendChild(el('b', { class: 'db-n', text: '0', attrs: { [numAttr]: '1' } }));
+    return g;
+  };
+  box.appendChild(grp('room.morph.study.inProgress', 'В работе', 'data-due-inprogress'));
+  box.appendChild(grp('room.morph.study.due', 'К повторению', 'data-due-now'));
+  return box;
+}
+function _paintDueBadge(box, c) {
+  const show = !!(c && (c.inProgress > 0 || c.dueNow > 0));
+  box.hidden = !show;
+  if (!show) return;
+  const ip = box.querySelector('[data-due-inprogress]'); if (ip) ip.textContent = String(c.inProgress);
+  const dn = box.querySelector('[data-due-now]'); if (dn) dn.textContent = String(c.dueNow);
+  box.classList.toggle('has-due', c.dueNow > 0);   // accent only when something is actually due now
+}
+async function refreshDueBadge() {
+  if (!window.ReaderMorph || typeof window.ReaderMorph.dueCounts !== 'function') return;
+  let states = readerWordStates, schedule = {};
+  try { if (!states) states = (await ensureWordStates()) || {}; } catch (_) { states = states || {}; }
+  try { schedule = (await localDb.getSrsSchedule()) || {}; } catch (_) { schedule = {}; }
+  _dueCounts = window.ReaderMorph.dueCounts(states || {}, schedule, Date.now());
+  document.querySelectorAll('[data-due-badge]').forEach((b) => _paintDueBadge(b, _dueCounts));
+}
+// Humanize a future due-instant → { n, unit:'d'|'h' } for the «next review in …» summary line.
+function _humanizeUntil(ms, nowMs) {
+  const d = Math.max(0, (Number(ms) || 0) - (Number(nowMs) || 0));
+  const days = Math.round(d / 86400000);
+  if (days >= 1) return { n: days, unit: 'd' };
+  return { n: Math.max(1, Math.round(d / 3600000)), unit: 'h' };
+}
 function ensureStudySheet() {
   if (_studySheet) return _studySheet;
   const sheet = el('div', { class: 'room-study', attrs: { role: 'dialog', 'aria-modal': 'true', 'aria-label': tt('room.morph.study.title', '📚 Учить новые слова') } });
@@ -580,6 +625,7 @@ function ensureStudySheet() {
   head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Учить новые слова') }));
   head.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
   card.appendChild(head);
+  card.appendChild(_dueBadgeEl('room-study-duebadge'));   // D3 — «В работе / К повторению» (both modes)
   // 4.3b — «Список / Тренировка» mode toggle (owner decision 4)
   const modeRow = el('div', { class: 'room-study-modetoggle', attrs: { dir: uiDirRoom() } });
   modeRow.appendChild(el('button', { class: 'room-study-seg on', i18n: 'room.morph.study.modeList', text: tt('room.morph.study.modeList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
@@ -622,7 +668,7 @@ function ensureStudySheet() {
   _studySheet = sheet;
   return sheet;
 }
-function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; roomFocusRestore(); }
+function closeStudySheet() { if (_studySheet) { _studySheet.hidden = true; _studySheet.classList.remove('room-study-open'); } _trainSession = null; roomFocusRestore(); try { refreshDueBadge(); } catch (_) {} }
 // Show/hide the list-only chrome (controls/bulk/count/more) — hidden in «🎯 Тренировка».
 function _studyListChrome(show) {
   if (!_studySheet) return;
@@ -765,6 +811,7 @@ async function onStudyStatusSet(btn) {
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the text — the wall recolours immediately
+  try { refreshDueBadge(); } catch (_) {}    // D3 — «В работе» reflects the new level immediately
 }
 // 🔊 pronounce a study row's word (reuses the wired speakWord — GCP WaveNet → keyless browser).
 function onStudySpeak(row) {
@@ -792,6 +839,7 @@ async function onStudyBulk(status) {
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}
+  try { refreshDueBadge(); } catch (_) {}   // D3 — bulk mark updates «В работе»
   renderStudyBody();   // reflect the new highlights (rows stay visible)
   roomToast(tt('room.morph.study.bulkDone', 'Отмечено: ') + targets.length);
 }
@@ -826,6 +874,7 @@ async function roomOpenStudyList() {
   _studyListChrome(true);
   sheet.hidden = false; sheet.classList.add('room-study-open');
   roomFocusInto(sheet.querySelector('.room-study-card'));   // WCAG 2.4.3 — focus into the sheet
+  try { refreshDueBadge(); } catch (_) {}   // D3 — populate the head badge on open
   await recollectStudy();
 }
 
@@ -1088,6 +1137,7 @@ async function checkTrainAnswer(correct, skipped) {
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the reader behind
+  try { refreshDueBadge(); } catch (_) {}    // D3 — schedule changed → badge + _dueCounts stay fresh for the summary
   renderTrainReveal(correct, moved, skipped);
 }
 function renderTrainReveal(correct, moved, skipped) {
@@ -1134,6 +1184,17 @@ function renderTrainSummary() {
   const box = el('div', { class: 'room-train-summary' });
   box.appendChild(el('div', { class: 'room-train-score', text: tt('room.morph.study.done', 'Готово') + ': ' + s.correct + ' / ' + s.total }));
   if (s.levelUps) box.appendChild(el('div', { class: 'room-train-levelups', text: '↑ ' + s.levelUps + ' ' + tt('room.morph.study.levelUps', 'уровней') }));
+  // D3 — closure feedback: more due right now, else when the next batch returns by the SRS schedule.
+  try { refreshDueBadge(); } catch (_) {}   // keep the head badge fresh after the session (fire-and-forget)
+  if (_dueCounts) {
+    if (_dueCounts.dueNow > 0) {
+      box.appendChild(el('div', { class: 'room-train-nextdue', text: tt('room.morph.study.dueMore', 'К повторению ещё') + ': ' + _dueCounts.dueNow }));
+    } else if (_dueCounts.nextDue) {
+      const h = _humanizeUntil(_dueCounts.nextDue, Date.now());
+      const unit = h.unit === 'd' ? tt('room.morph.study.unitDays', 'дн.') : tt('room.morph.study.unitHours', 'ч.');
+      box.appendChild(el('div', { class: 'room-train-nextdue', attrs: { dir: uiDirRoom() }, text: tt('room.morph.study.nextReview', 'Следующее повторение через') + ' ' + h.n + ' ' + unit }));
+    }
+  }
   const actions = el('div', { class: 'room-train-actions' });
   actions.appendChild(el('button', { class: 'room-train-next', i18n: 'room.morph.study.again', text: tt('room.morph.study.again', '🎯 Ещё'), attrs: { type: 'button', 'data-train-again': '1' } }));
   actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.toList', text: tt('room.morph.study.toList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
@@ -1805,6 +1866,8 @@ function buildAidsPanel() {
   const studyBtn = el('button', { class: 'reader-aids-study', i18n: 'room.morph.study.open', text: tt('room.morph.study.open', '📚 Учить новые слова'), attrs: { type: 'button' } });
   studyBtn.addEventListener('click', roomOpenStudyList);
   panel.appendChild(studyBtn);
+  panel.appendChild(_dueBadgeEl('reader-aids-duebadge'));   // D3 — due-counter under «📚 Учить» (the return CTA)
+  try { refreshDueBadge(); } catch (_) {}
   // R8 on-ramp — one short line teaching the two fading aids.
   panel.appendChild(el('div', { class: 'reader-aids-hint', i18n: 'room.reader.scaffoldHint', text: tt('room.reader.scaffoldHint', '«По нужде»: огласовка тает на знакомых словах. «По тапу»: перевод скрыт — тапни строку, чтобы открыть.') }));
   // Tier-3 — «точный режим» (context disambiguation via Dicta; auto on every tap once granted).

@@ -2086,6 +2086,12 @@ window.I18N_LOCALES.he = {
         again: "🎯 עוד",
         toList: "📋 רשימה",
         trainEmpty: "אין מילים לתרגול במסך הזה — סמנו מילים ב«רשימה».",
+        inProgress: "בלימוד",
+        due: "לחזרה",
+        dueMore: "עוד לחזרה",
+        nextReview: "החזרה הבאה בעוד",
+        unitDays: "ימים",
+        unitHours: "שעות",
       },
       legend: {
         title: "מה משמעות תגי הוודאות?",
