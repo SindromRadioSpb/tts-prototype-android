@@ -287,8 +287,14 @@ function renderCorpusCard(card) {
     node.appendChild(n);
   }
   if (card.author) {
-    const a = el('span', { class: 'work-card-author', text: card.author });
+    // PC-9 — tappable author drill «ещё у автора» (mirrors the search-row pattern); stopPropagation so it
+    // never opens the work; keyboard-operable. Consistent rail-card ↔ search-row behaviour.
+    const a = el('span', { class: 'work-card-author corpus-work-author-link', attrs: { role: 'button', tabindex: '0', title: tt('room.corpus.search.moreByAuthor', 'Ещё у автора') } });
+    a.textContent = card.author;
     if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
+    const goAuthor = (ev) => { ev.preventDefault(); ev.stopPropagation(); corpusNavToAuthor(card.era, card.author); };
+    a.addEventListener('click', goAuthor);
+    a.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') goAuthor(ev); });
     node.appendChild(a);
   }
   const RS_KNOWN = { machine: 1, machine_assisted: 1, human_proofread: 1 };
@@ -298,6 +304,8 @@ function renderCorpusCard(card) {
   // is stated once in the rail intro, PC-6). Show the rs pill ONLY when it DIFFERS from the machine default;
   // show the audio pill ONLY when audio actually EXISTS (positive affordance, never «Без озвучки» on every card).
   const meta = el('div', { class: 'work-card-meta' });
+  const len = corpusLengthLabel(card);   // PC-11 — neutral «сколько» length caption (distinct from the learning cluster)
+  if (len) meta.appendChild(el('span', { class: 'work-card-len', text: len }));
   const rs = String(card.review_status || 'machine');
   if (rs !== 'machine') {
     const rsOpts = { class: 'prov-badge rs-' + rs, text: RS_KNOWN[rs] ? tt('room.prov.rs.' + rs) : rs };
@@ -3109,10 +3117,18 @@ async function appendDifficultyRow(node, card) {
   if (!band) return;
   if (!node.isConnected || node.querySelector('.diff-band')) return;   // re-check after the await
   const row = _cardLearnRow(node); if (!row) return;
-  const bandKey = 'room.corpus.diff.' + band;
-  const bandFb = band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее';
-  const chip = el('span', { class: 'diff-band diff-' + band, i18n: bandKey, text: tt(bandKey, bandFb) });
-  chip.title = tt('room.corpus.diff.prov', 'прибл. — по частотности лексики');
+  let chip;
+  if (card.register === 'poetic') {
+    // PC-10 — for POETIC register, ez (token-frequency) is a poor difficulty proxy (a dense poem of common
+    // words isn't «легче», R7) → a neutral «поэзия» tag instead of a confident easy/mid/hard claim (R9 derived≠asserted).
+    chip = el('span', { class: 'diff-band diff-poetry', i18n: 'room.corpus.diff.poetry', text: tt('room.corpus.diff.poetry', 'поэзия') });
+    chip.title = tt('room.corpus.diff.poetryProv', 'регистр — поэзия; оценка сложности по частотности здесь приблизительна');
+  } else {
+    const bandKey = 'room.corpus.diff.' + band;
+    const bandFb = band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее';
+    chip = el('span', { class: 'diff-band diff-' + band, i18n: bandKey, text: tt(bandKey, bandFb) });
+    chip.title = tt('room.corpus.diff.prov', 'прибл. — по частотности лексики');
+  }
   row.appendChild(chip);
   if (window.CorpusVocab.loadFlagFor(w) && !row.querySelector('.diff-archaica')) {
     row.appendChild(el('span', { class: 'diff-archaica', i18n: 'room.corpus.cov.load', text: tt('room.corpus.cov.load', 'много имён/архаики') }));
@@ -3720,7 +3736,7 @@ function renderHomeInto(body) {
     const sec = el('section', { class: 'shelf corpus-ready' });
     const head = el('div', { class: 'shelf-head' });
     const h = el('h2', { class: 'shelf-title' });
-    h.textContent = '✓ ' + tt('room.corpus.readyTitle', 'Готовы к чтению') + ' (' + ready.length + ')';
+    h.textContent = '✓ ' + tt('room.corpus.readyTitle', 'Готовы к чтению') + ' — ' + ready.length + ' ' + tt('room.corpus.worksN', 'работ');   // PC-12 — framed count, not a bare «(796)»
     head.appendChild(h);
     head.appendChild(el('p', { class: 'shelf-intro', i18n: 'room.corpus.readyIntro', text: tt('room.corpus.readyIntro') }));
     sec.appendChild(head);
