@@ -382,6 +382,7 @@
     .corpus-facet-select select {
       appearance: none; -webkit-appearance: none; background: transparent; color: var(--text-secondary);
       border: none; padding: 7px 26px 7px 12px; font-size: 13px; font-weight: 600; max-width: 46vw; font-family: inherit;
+      text-overflow: ellipsis;   /* FB-19 — ellipsize a long «Жанр»/«Язык» value instead of a hard clip */
     }
     /* FB-7 — restore a dropdown affordance: appearance:none stripped the native arrow, so «Жанр»/«Язык»
        read as dead pills (esp. iOS). A ▾ at the logical inline-end (RTL-safe); tints when a value is set. */
@@ -465,7 +466,9 @@
       border: 1px solid var(--border-soft); border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 600;
     }
     .corpus-scope-search-btn:active { background: var(--border-soft); }
-    .corpus-scope-chip { max-width: 72vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .corpus-scope-chip { max-width: 72vw; gap: 5px; }   /* FB-18 — ✕ + dir-isolated label as two spans */
+    .corpus-scope-chip .scope-x { flex: none; }
+    .corpus-scope-chip .scope-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* BRR-S8 — KWIC / concordance view */
     .corpus-concordance-entry {
       width: auto; display: inline-flex; margin: 0 16px 8px; appearance: none; cursor: pointer;
@@ -696,6 +699,10 @@
     .finished-card { position: relative; }
     .finished-card .work-card-title { padding-inline-end: 22px; }
     .finished-card .finished-done { background: rgba(34,197,94,.16); color: #166534; border: 0; }
+    /* FB-20 — recognition badge on browse/search work cards already read (muted, never competes with the CTA). */
+    .finished-read-badge { background: rgba(34,197,94,.14); color: #166534; border: 0; }
+    @media (prefers-color-scheme: dark) { body:not(.theme-light) .finished-read-badge { color: #86efac; } }
+    body.theme-dark .finished-read-badge { color: #86efac; }
     .finished-card .finished-partial { background: var(--bg-muted); color: var(--text-secondary); border: 1px solid var(--border-soft); }
     .finished-unmark {
       position: absolute; top: 6px; inset-inline-end: 6px; width: auto; appearance: none; cursor: pointer;
@@ -1418,7 +1425,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.54</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.55</span>
   </div>
 </footer>
 

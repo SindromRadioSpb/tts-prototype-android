@@ -2216,7 +2216,7 @@ async function renderEndOfTextCard(tid) {
     actions.appendChild(el('span', { class: 'reader-end-done', i18n: 'room.resume.readDone', text: tt('room.resume.readDone', '✓ прочитано') }));
     const undo = el('button', { class: 'reader-end-undo', i18n: 'room.resume.unmark', text: tt('room.resume.unmark', 'снять отметку') });
     undo.type = 'button';
-    undo.addEventListener('click', async () => { try { await localDb.clearTextFinished(tid); } catch (_) {} renderEndOfTextCard(tid); });
+    undo.addEventListener('click', async () => { try { await localDb.clearTextFinished(tid); } catch (_) {} invalidateFinishedSet(); renderEndOfTextCard(tid); });
     actions.appendChild(undo);
   } else {
     const mark = el('button', { class: 'reader-end-mark', i18n: 'room.resume.markRead', text: tt('room.resume.markRead', '✓ Прочитано') });
@@ -2224,6 +2224,7 @@ async function renderEndOfTextCard(tid) {
     mark.addEventListener('click', async () => {
       mark.disabled = true;
       try { await localDb.setTextFinished(tid); } catch (_) {}
+      invalidateFinishedSet();
       try { roomToast(tt('room.resume.markedRead', 'Отмечено: прочитано')); } catch (_) {}
       renderEndOfTextCard(tid);   // flip to the finished state (offers «снять отметку»)
     });
@@ -3056,6 +3057,42 @@ async function ensureReadableSet() {
 }
 function invalidateReadableSet() { _readableSet = null; }
 
+// FB-20 — recognition: which corpus works has the reader already finished, by CATALOG id. finished_at
+// lives in the DB keyed by local text_id; corpus cards are keyed by catalog id — bridged via the work's
+// text_key → corpusReadyKeyMap → ready card → card.id (the W4 text_key↔id pattern, done right). A finished
+// NON-ready work (no translation → absent from the ready index) simply won't resolve → no badge (honest;
+// never a wrong-id badge). Single-flight cache; invalidated whenever finished state changes.
+let _finishedSet = null;
+async function ensureFinishedSet() {
+  if (_finishedSet) return _finishedSet;
+  const set = new Set();
+  try {
+    const items = await localDb.getFinishedTexts(500);
+    const keyMap = corpusReadyKeyMap();
+    for (const it of (items || [])) {
+      const card = it && it.text_key != null ? keyMap.get(String(it.text_key)) : null;
+      if (card && card.id != null) set.add(String(card.id));
+    }
+  } catch (_) {}
+  _finishedSet = set;
+  return set;
+}
+function invalidateFinishedSet() { _finishedSet = null; }
+// Paint a muted «✓ прочитано» badge on an already-read card/row. Idempotent; no-op until the set loads.
+// Used BOTH as a per-row decorate (covers «показать ещё» pagination) AND as a post-pass (covers rows that
+// existed before the async set resolved, + the later FTS «в тексте» group). recognition-over-recall.
+function _finishedBadgeNode(node) {
+  if (!_finishedSet || !_finishedSet.size || !node || !node.getAttribute) return;
+  const id = node.getAttribute('data-work-id');
+  if (!id || !_finishedSet.has(String(id)) || node.querySelector('.finished-read-badge')) return;
+  const badge = el('span', { class: 'prov-badge finished-read-badge', text: '✓ ' + tt('room.resume.read', 'прочитано') });
+  (node.querySelector('.work-card-meta') || node.querySelector('.corpus-work-meta') || node).appendChild(badge);
+}
+function decorateFinishedBadges(container) {
+  if (!container || !_finishedSet || !_finishedSet.size) return;
+  container.querySelectorAll('.work-card[data-work-id], .corpus-work-row[data-work-id]').forEach(_finishedBadgeNode);
+}
+
 // S3 — progressive coverage badge on a rendered corpus card. Fire-and-forget (does not
 // block render). HONEST: shows a % ONLY when the reader has a real profile overlap with
 // this work (knownDistinct>0) — a 0% against an empty known-set is a lie, so absent ⇒ no
@@ -3216,6 +3253,7 @@ function renderContinueCard(item) {
     e.stopPropagation(); e.preventDefault();
     done.disabled = true;
     try { await localDb.setTextFinished(item.id); } catch (_) {}
+    invalidateFinishedSet();
     // FB-4 — capture the card's position so «Отменить» can restore it (reversible destructive action).
     const rail = node.parentNode;
     const sib = node.nextSibling;
@@ -3226,6 +3264,7 @@ function renderContinueCard(item) {
     if (rail && !rail.children.length && sec && sec.remove) sec.remove();
     const undo = async () => {
       try { await localDb.clearTextFinished(item.id); } catch (_) {}
+      invalidateFinishedSet();
       done.disabled = false;
       try {
         if (rail) rail.insertBefore(node, sib);                                      // re-home the card
@@ -3290,6 +3329,7 @@ function renderFinishedCard(item) {
     e.stopPropagation(); e.preventDefault();
     un.disabled = true;
     try { await localDb.clearTextFinished(item.id); } catch (_) {}
+    invalidateFinishedSet();
     const rail = node.parentNode;
     if (node.remove) node.remove();
     if (rail && !rail.children.length) { const sec = rail.closest ? rail.closest('.corpus-finished') : null; if (sec && sec.remove) sec.remove(); }
@@ -3354,7 +3394,7 @@ async function openFinishedAllSheet() {
       row.appendChild(main);
       const un = el('button', { class: 'finished-sheet-unmark', attrs: { type: 'button', 'aria-label': tt('room.resume.unmark', 'снять отметку') } });
       un.textContent = '↩';
-      un.addEventListener('click', async () => { try { await localDb.clearTextFinished(it.id); } catch (_) {} items = items.filter((x) => x.id !== it.id); repaint(); });
+      un.addEventListener('click', async () => { try { await localDb.clearTextFinished(it.id); } catch (_) {} invalidateFinishedSet(); items = items.filter((x) => x.id !== it.id); repaint(); });
       row.appendChild(un);
       listWrap.appendChild(row);
     }
@@ -3977,12 +4017,18 @@ async function renderResultsInto(body) {
   if (hits.length) {
     // FB-9 — a query keeps the readiness-first default ('ready'); browse views honor the chosen sort.
     hits.sort(corpusL1Comparator(hasQuery ? 'ready' : corpusL1Sort, corpusReadyMap()));
-    appendPagedWorkRows(body, hits.map((h) => ({ sr: h })), null, { openOpts: { ftsQuery: corpusFilter.q } });
+    // FB-20 — the per-row decorate badges read works AS they render (covers «показать ещё» pagination
+    // once the set is loaded); the post-pass below covers page-1 rows that pre-date the async set load.
+    appendPagedWorkRows(body, hits.map((h) => ({ sr: h })), (node) => _finishedBadgeNode(node), { openOpts: { ftsQuery: corpusFilter.q } });
+    ensureFinishedSet().then(() => { if (corpusL1Body === body) decorateFinishedBadges(body); }).catch(() => {});
   }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
   // Group B — BRR-P2-001 full-text «в тексте» (async; lazy-loads only the shard(s) a query needs).
   // Shows its own «Ищем в текстах…» placeholder while loading; the seq token drops stale late results.
   await appendFtsGroup(body, corpusFilter.q, hits, mySeq, { countEl, titleN: hits.length });
+  // FB-20 — the FTS «в тексте» rows arrive after the title group; re-run the idempotent badge pass so a
+  // read work surfaced only as an in-text hit also shows «✓ прочитано» (adversarial-caught inconsistency).
+  ensureFinishedSet().then(() => { if (corpusL1Body === body) decorateFinishedBadges(body); }).catch(() => {});
   // Empty state ONLY once this render is still current AND nothing was found (never mid-load).
   if (corpusL1Body === body && mySeq === corpusFtsSeq && !hits.length && !body.querySelector('.corpus-fts-group')) {
     // FB-13 — «Читаемые для меня» on an empty/tiny vocab profile yields 0 readable works (knownDistinct=0
@@ -4321,7 +4367,14 @@ function paintRecents() {
   if (recents.length) {
     const clr = el('button', { class: 'corpus-recents-clear', attrs: { type: 'button', title: tt('room.corpus.search.clearRecent', 'Очистить историю'), 'aria-label': tt('room.corpus.search.clearRecent', 'Очистить историю') } });
     clr.textContent = '✕';
-    clr.addEventListener('click', () => { clearRecentSearches(); paintRecents(); });
+    clr.addEventListener('click', () => {
+      const prev = getRecentSearches();   // FB-17 — clearing history is reversible («Отменить»)
+      clearRecentSearches(); paintRecents();
+      try {
+        roomToast(tt('room.corpus.search.historyCleared', 'История очищена'), tt('room.resume.undo', 'Отменить'),
+          () => { try { localStorage.setItem(RECENTS_KEY, JSON.stringify(prev)); } catch (_) {} paintRecents(); });
+      } catch (_) {}
+    });
     host.appendChild(clr);
   }
 }
@@ -4517,8 +4570,12 @@ function buildCorpusFilterBar() {
       ? (tt('room.corpus.scope.inAuthor', 'в авторе') + ': ' + corpusFilter.scopeAuthor)
       : (tt('room.corpus.scope.inEra', 'в периоде') + ': ' + corpusEraTitle(corpusFilter.scopeEra));
     const sc = el('button', { class: 'corpus-facet-chip on corpus-scope-chip', attrs: { type: 'button', title: tt('room.corpus.scope.clear', 'Искать по всему корпусу') } });
-    sc.textContent = '✕ ' + label;
-    if (HEBREW_RE.test(label)) sc.setAttribute('dir', 'rtl');
+    // FB-18 — the ✕ is a SEPARATE LTR span, the label dir-isolated: packing «✕ »+Hebrew into one RTL text
+    // node placed the remove glyph ambiguously on scoped Hebrew-author searches (bidi). Now each is isolated.
+    sc.appendChild(el('span', { class: 'scope-x', text: '✕', attrs: { 'aria-hidden': 'true' } }));
+    const scLbl = el('span', { class: 'scope-label', text: label });
+    if (HEBREW_RE.test(label)) scLbl.setAttribute('dir', 'rtl');
+    sc.appendChild(scLbl);
     sc.addEventListener('click', () => { corpusFilter.scopeAuthor = ''; corpusFilter.scopeEra = ''; renderCorpus(); });
     chips.appendChild(sc);
   }
@@ -4861,7 +4918,7 @@ function corpusWorkSection(titleKey, icon, works, openable) {
 // Baked → ▶ openable (served-on-open). Unprocessed → ⏳ disabled, honest «перевод позже»
 // (R8 — visible in the catalog, never dead-ended, never posing as readable).
 function renderCorpusWorkRow(card, openable, opts) {
-  const row = el('div', { class: 'corpus-work-row' + (openable ? '' : ' is-later') });
+  const row = el('div', { class: 'corpus-work-row' + (openable ? '' : ' is-later'), attrs: { 'data-work-id': String(card && card.id != null ? card.id : '') } });
   const col = el('div', { class: 'corpus-work-col' });
   // BRR-S2 — in a search context (opts.openOpts.ftsQuery — the same query threaded to the open handler)
   // the matched tokens are <mark>-highlighted in the title + author (niqqud-insensitive, word-level via
