@@ -47,7 +47,7 @@
 |---|---|---|---|---|---|
 | W1 | continue-mark-read | v3.11.43 | _(текущий)_ | reader-resume(45/0, +atTextEnd/lastRowVisible) · reader-word-status(mig 061 + finished round-trip + UPSERT-preserve обе стороны) | ✅ SHIPPED |
 | W2 | end-of-text-handoff | v3.11.44 | _(текущий)_ | corpus-vocab(pickPersonalRail) · scaffold 234 · i18n 226 · parity · node 265/9 | ✅ SHIPPED |
-| W3 | difficulty-band | — | — | corpus-vocab | ⏳ |
+| W3 | difficulty-band | v3.11.45 | _(текущий)_ | corpus-vocab 25/0 (+difficultyBand/loadFlagFor + real-sidecar) · scaffold 234 · i18n 226 · parity | ✅ SHIPPED |
 | W4 | in-text-coverage-chip | — | — | reader-morph | ⏳ |
 | W5 | niqqud-fade-graduation | — | — | reader-scaffold | ⏳ |
 
@@ -68,6 +68,15 @@
 - **Adversarial review pass** — поймал 1 Important: заголовок-эмодзи 🎯/🔥/🌱 стирался `applyI18n` (`data-i18n` на элементе с emoji-текстом → перезапись на emoji-less ключ; ровно паттерн, который home-rail избегает). Фикс: emoji = текст-нода + заголовок = дочерний `[data-i18n]` span (эмодзи переживает + live-релокализация). **Эмпирически подтверждено против реального `applyI18n`:** fixed=«🎯 Следующий для тебя», buggy=«Следующий для тебя». Остальная поверхность (async-гонка/sheet-setup/exclusion/empty/стампида/parity/i18n/card-reuse) — чисто.
 - **Гейты:** corpus-vocab 15/0 · scaffold 234 · i18n 226 · reader-morph/context/parity · word-status · node 265/9 (==baseline) · api-smoke. @380px свет+тёмная (mark+review+3 next-карты, RTL). ⚠ live-verify за владельцем на реальном/одноразовом тексте (next-веер + «Повторить слова»).
 - **СЛЕДУЮЩЕЕ = W3 difficulty-band** (ez-тертиль .30/.67 + decoupled loadFlag, client-only, без ребилда).
+
+### W3 — ✅ SHIPPED (v3.11.45)
+**difficulty-signal.** Решения владельца: абсолют .30/.67 (3 бэнда) · **отдельная строка сложности** · ez-тертиль + decoupled loadFlag, client-only. Stale-plan trap (ez в vocab-сайдкаре, не catalog; нет `archaica`-поля) учтён.
+- **corpus-vocab (PURE, без ребилда/DATA_REV — только читает существующий `ez`/`m`/`n`):** `difficultyBand(ez)` (ez≥.67→easy/легче · .30–.67→mid/средне · <.30→hard/сложнее · нет/невалид→null=честно нет бэнда, R1/R9) + `loadFlagFor(work)` (профиль-FREE `m/n`, та же формула что coverageForWork.loadFlag). Гейт `smoke:corpus-vocab` +10 ассертов (детерм. пороги + реальный 796-сайдкар: каждый baked бандится, распределение non-degenerate) → **25/0**.
+- **library-ui:** `appendDifficultyRow(node,card)` — лениво из `enhanceCardWithCoverage` (видимые карты, observer; reuse cached single-flight `loadCorpusVocab`, **0 DB-fan-out**), профиль-FREE, идемпотент, не-baked→нет строки. **«много имён/архаики» ПЕРЕНЕСЁН** с профиль-гейтнутого coverage-пути в эту профиль-free строку (R7 archaica=свойство ТЕКСТА; без дубля). Provenance-title «прибл. — по частотности лексики» (R9, не CEFR); отдельный сигнал от coverage-бейджа (R11 не смешивать).
+- **i18n** `room.corpus.diff.{easy,mid,hard,prov}` ×3; CSS `.work-card-difficulty`/`.diff-band/.diff-{easy,mid,hard}/.diff-archaica` (свет+тёмная).
+- **Adversarial review pass** — поймал 1 Important: строка сложности **мис-плейсилась на S7 search-RESULT-ROW** (`.corpus-work-row` горизонтальный flex, нет `.work-card-cta` → `appendChild` кидал бэнд справа от ▶, теснил заголовок @380px). Фикс: surface-aware placement — `.corpus-work-col` (result row → внутрь колонки под meta) иначе before `.work-card-cta` (card). +`node.isConnected` guard (W2-консистентность) + убран лишний per-card `applyI18n` (tt() уже локализует). Нит-комментарий smoke поправлен. **Скрин @380px подтвердил оба surface** (rail-карта + result-row).
+- **Гейты:** corpus-vocab 25/0 · scaffold 234 · i18n 226 · reader-morph/context/parity. @380px свет+тёмная (rail-карты: легче/средне/сложнее+архаика; result-row: стек в колонке). ⚠ live-verify бэнда на проде — на реальных corpus-картах.
+- **СЛЕДУЮЩЕЕ = W4 in-text-coverage-chip** (sidecar-first `roomVocabCoverageFor` 0-скан для corpus / live `collectReviewItems` для user; reuse `CFG.KNOWN_STATES`+`classifyZone`+`statusKeyForCard` → chip==карта==краска, R11).
 
 ## Источник измерений
 Полный grounded-прогон (6 агентов, file:line, реальные распределения) — рабочий артефакт сессии; ключевые факты сведены в таблицу выше. Независимо подтверждено: niqqud-дефолт `'full'`, `ez`@build-corpus-vocab.js:171 (нет `archaica`), `getContinueReading` без порога, `ready`=796.

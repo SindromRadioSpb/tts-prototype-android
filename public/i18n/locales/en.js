@@ -2143,6 +2143,12 @@ window.I18N_LOCALES.en = {
         estimate: "Estimated familiar words from your notes",
         load: "many names/archaic",
       },
+      diff: {
+        easy: "easier",
+        mid: "medium",
+        hard: "harder",
+        prov: "approx. — by vocabulary frequency",
+      },
       periodsTitle: "Periods",
       readyN: "ready",
       worksN: "works",

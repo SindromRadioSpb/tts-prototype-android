@@ -199,6 +199,25 @@
     body.theme-dark .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft); }
     body.theme-dark .prov-badge.coverage-load { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
 
+    /* ── W3 (Epic 5) — profile-FREE intrinsic difficulty row (ez band + archaica), its OWN row so it
+       never crowds the provenance/coverage meta badges (@380px); archaica = property of the TEXT (R7). ── */
+    .work-card-difficulty { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
+    .diff-band, .diff-archaica { font-size: 11px; padding: 2px 8px; border-radius: 8px; border: 1px solid transparent; font-weight: 600; white-space: nowrap; }
+    .diff-band.diff-easy { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .diff-band.diff-mid  { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+    .diff-band.diff-hard { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .diff-archaica { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .diff-band.diff-easy { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+      body:not(.theme-light) .diff-band.diff-mid  { background: rgba(245,158,11,.18); color: #fde68a; border-color: rgba(245,158,11,.4); }
+      body:not(.theme-light) .diff-band.diff-hard { background: rgba(239,68,68,.18); color: #fecaca; border-color: rgba(239,68,68,.4); }
+      body:not(.theme-light) .diff-archaica { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
+    }
+    body.theme-dark .diff-band.diff-easy { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+    body.theme-dark .diff-band.diff-mid  { background: rgba(245,158,11,.18); color: #fde68a; border-color: rgba(245,158,11,.4); }
+    body.theme-dark .diff-band.diff-hard { background: rgba(239,68,68,.18); color: #fecaca; border-color: rgba(239,68,68,.4); }
+    body.theme-dark .diff-archaica { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
+
     /* BRR-P1-007 S4 — the personalized «Следующий для тебя» rail title reads as "yours" (accent). */
     .shelf.corpus-nextforyou .shelf-title { color: var(--accent); }
 
@@ -1251,7 +1270,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.44</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.45</span>
   </div>
 </footer>
 

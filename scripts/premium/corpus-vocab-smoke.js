@@ -26,6 +26,7 @@ const fs = require("fs");
 const path = require("path");
 const zlib = require("zlib");
 const NA = require("../../public/js/notes-autogen.js");
+const CV = require("../../public/js/corpus-vocab.js");   // engine — difficultyBand/loadFlagFor (W3)
 const { buildCorpusVocab, detectCatalogVersion } = require("./build-corpus-vocab.js");
 
 const REPO = path.resolve(__dirname, "..", "..");
@@ -117,6 +118,23 @@ const ok = (c, m) => { if (c) { pass++; } else { fail++; console.error("  ✗ " 
   const gz = zlib.gzipSync(Buffer.from(JSON.stringify(s)), { level: 9 }).length;
   const per1k = gz / Math.max(1, workIds.length) * 1000;
   ok(per1k / 1024 <= CEILING_KB_PER_1K, `size ${(per1k / 1024).toFixed(0)}KB-gz/1000-works > ceiling ${CEILING_KB_PER_1K}KB`);
+
+  // 8 — W3 difficulty-band + profile-free load flag (Epic 5 difficulty-signal). Absolute thresholds
+  // .30/.67 (owner choice, measured baked tertiles); honest null for no-ez (unbaked).
+  ok(typeof CV.difficultyBand === "function" && typeof CV.loadFlagFor === "function", "CV.difficultyBand/loadFlagFor not exported");
+  ok(CV.difficultyBand(0.70) === "easy" && CV.difficultyBand(0.67) === "easy", "ez≥.67 → easy");
+  ok(CV.difficultyBand(0.50) === "mid" && CV.difficultyBand(0.30) === "mid", "ez .30–.67 → mid (boundary .30 inclusive)");
+  ok(CV.difficultyBand(0.2999) === "hard" && CV.difficultyBand(0.01) === "hard", "ez <.30 → hard");
+  ok(CV.difficultyBand(0) === null && CV.difficultyBand(-1) === null && CV.difficultyBand(undefined) === null && CV.difficultyBand(NaN) === null, "no/invalid ez → null (honest no band)");
+  ok(CV.loadFlagFor({ m: 30, n: 100 }) === true, "fallbackShare .70 > .18 → load flag");      // 70% non-Pealim
+  ok(CV.loadFlagFor({ m: 95, n: 100 }) === false, "matchedShare .95 → no load flag");
+  ok(CV.loadFlagFor({ m: 0, n: 0 }) === false && CV.loadFlagFor(null) === false, "n=0 / null → no flag (no throw)");
+  // against the REAL sidecar: every baked work bands non-null (measured min ez≈0.007 > 0; #5 asserts ez∈[0,1]).
+  // A future degenerate ez=0 work would honestly get NO band — and this gate (nullBand===0) would then flag it.
+  let nullBand = 0; const bandDist = { easy: 0, mid: 0, hard: 0 };
+  for (const id of workIds) { const bnd = CV.difficultyBand(s.works[id].ez); if (!bnd) nullBand++; else bandDist[bnd]++; }
+  ok(nullBand === 0, `${nullBand} baked works got a null band despite ez>0 (W3 should band every baked work)`);
+  ok(bandDist.easy > 0 && bandDist.mid > 0 && bandDist.hard > 0, `band distribution degenerate: ${JSON.stringify(bandDist)} (expected all three populated)`);
 
   console.log(`[corpus-vocab-smoke] v${V} · ${workIds.length} works · ${D} lemmas · ` +
     `${(gz / 1024).toFixed(0)}KB-gz (${(per1k / 1024).toFixed(0)}KB/1k) · ${pass} pass / ${fail} fail`);

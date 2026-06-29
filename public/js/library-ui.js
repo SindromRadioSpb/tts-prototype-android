@@ -2917,6 +2917,7 @@ function observeCardCoverage(node, card) {
 }
 function enhanceCardWithCoverage(node, card) {
   if (!node || !card || card.id == null || !window.CorpusVocabRoom) return;
+  appendDifficultyRow(node, card);   // W3 — profile-FREE difficulty band + «много имён/архаики» (own row), always
   roomVocabCoverageFor(card.id).then((cov) => {
     if (!cov || cov.knownDistinct === 0) return;
     const meta = node.querySelector('.work-card-meta, .corpus-work-meta');   // rail card OR result row (S7)
@@ -2925,10 +2926,44 @@ function enhanceCardWithCoverage(node, card) {
     const b = el('span', { class: 'prov-badge coverage-badge coverage-' + cov.zone, text: '≈' + pct + '%' });
     b.title = tt('room.corpus.cov.estimate', 'Оценка знакомых слов по твоим заметкам');
     meta.appendChild(b);
-    if (cov.loadFlag) {
-      meta.appendChild(el('span', { class: 'prov-badge coverage-load', i18n: 'room.corpus.cov.load', text: tt('room.corpus.cov.load', 'много имён/архаики') }));
-    }
+    // W3 — the «много имён/архаики» load flag moved to the profile-FREE difficulty row (appendDifficultyRow):
+    // archaica is a property of the TEXT (R7), so it must show WITHOUT a profile; removed here to avoid a duplicate.
   }).catch(() => {});
+}
+
+// W3 (Epic 5 difficulty-signal) — append a profile-FREE difficulty row to a corpus card: the intrinsic
+// ez band («легче/средне/сложнее») + the «много имён/архаики» load tag, shown on EVERY baked card
+// regardless of profile (archaica = property of the TEXT, R7; derived/approximate with a provenance
+// title, never CEFR — R9). Lazy (called from the visible-card enhancer), idempotent, fire-and-forget.
+// Unbaked works (no ez in the sidecar) get NO row — honest, not a fabricated band (R1/R9).
+async function appendDifficultyRow(node, card) {
+  if (!node || !card || card.id == null || !window.CorpusVocab || !window.CorpusVocab.difficultyBand) return;
+  if (node.querySelector('.work-card-difficulty')) return;
+  let v = null;
+  try { v = await loadCorpusVocab(); } catch (_) {}
+  if (!v || !v.works) return;
+  const w = v.works[String(card.id)];
+  if (!w) return;                                            // unbaked → no band
+  const band = window.CorpusVocab.difficultyBand(w.ez);
+  if (!band) return;
+  if (!node.isConnected || node.querySelector('.work-card-difficulty')) return;   // re-check after the await (detached / already added)
+  const row = el('div', { class: 'work-card-difficulty' });
+  const bandKey = 'room.corpus.diff.' + band;
+  const bandFb = band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее';
+  const chip = el('span', { class: 'diff-band diff-' + band, i18n: bandKey, text: tt(bandKey, bandFb) });   // tt() already localizes
+  chip.title = tt('room.corpus.diff.prov', 'прибл. — по частотности лексики');
+  row.appendChild(chip);
+  if (window.CorpusVocab.loadFlagFor(w)) {
+    row.appendChild(el('span', { class: 'diff-archaica', i18n: 'room.corpus.cov.load', text: tt('room.corpus.cov.load', 'много имён/архаики') }));
+  }
+  // Placement is surface-aware: the S7 search/author RESULT ROW (.corpus-work-row, horizontal flex) stacks
+  // everything inside .corpus-work-col → append there (under the meta, where the coverage badge also lands);
+  // the rail/grid CARD (.work-card, column) inserts the row between the meta badges and the «Открыть» CTA.
+  const col = node.querySelector('.corpus-work-col');
+  const cta = node.querySelector('.work-card-cta');
+  if (col) col.appendChild(row);
+  else if (cta && cta.parentNode === node) node.insertBefore(row, cta);
+  else node.appendChild(row);
 }
 
 // Build a corpus shelf section (reused by the personal rail + the cold-start rail).

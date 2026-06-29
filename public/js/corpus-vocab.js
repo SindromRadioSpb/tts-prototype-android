@@ -86,6 +86,32 @@
     return "hard";                           // <80% — too many unknowns for comfortable reading
   }
 
+  // W3 (Epic 5 difficulty-signal) — profile-INDEPENDENT difficulty band from the intrinsic easiness
+  // score ez (build-time: headShare*matchedShare*lenShape, in corpus-vocab-v*.json). ABSOLUTE thresholds
+  // (owner choice: stable across catalog versions; the measured baked tertiles are ≈0.30/0.67). archaica
+  // is a property of the TEXT, not the reader (R7) → no profile needed. Returns 'easy'|'mid'|'hard', or
+  // null when there is no ez (unbaked work / missing field → honestly NO band, not a fabricated one;
+  // R9 derived/approximate, R1 no-guess). Pure, Node-testable (gate: smoke:corpus-vocab).
+  function difficultyBand(ez) {
+    var e = Number(ez);
+    if (!isFinite(e) || e <= 0) return null;
+    if (e >= 0.67) return "easy";   // легче — high common-vocabulary concentration
+    if (e >= 0.30) return "mid";    // средне
+    return "hard";                  // сложнее
+  }
+
+  // W3 — profile-INDEPENDENT reading-load flag («много имён/архаики») from m,n only (proper-noun /
+  // archaic / non-Pealim token share). Same thresholds as coverageForWork's loadFlag, but needs NO
+  // profile (decoupled from the knownDistinct gate that hid it before). Returns boolean.
+  function loadFlagFor(workEntry, cfg) {
+    cfg = cfg || CFG;
+    if (!workEntry) return false;
+    var m = Number(workEntry.m) || 0, n = Number(workEntry.n) || 0;
+    if (n <= 0) return false;
+    var matchedShare = m / n, fallbackShare = 1 - matchedShare;
+    return (fallbackShare > cfg.LOAD_FALLBACK_HI) || (matchedShare < cfg.LOAD_MATCHED_LO);
+  }
+
   // S4 «Следующий для тебя» — PURE rail decision over scored ready works (DOM-free, unit-tested).
   // scored: [{ id, author, cov }] where cov is a coverageForWork() result. Returns
   // { kind:'next'|'challenge', ids:[…] } or null. The honest gating (DESIGN D3/R8): a single i+1
@@ -154,6 +180,7 @@
 
   var API = {
     reconstructIds: reconstructIds, coverageForWork: coverageForWork, classifyZone: classifyZone,
+    difficultyBand: difficultyBand, loadFlagFor: loadFlagFor,
     pickPersonalRail: pickPersonalRail,
     ensureVocab: ensureVocab, getLoaded: getLoaded, CFG: CFG, _setForTest: _setForTest,
   };
