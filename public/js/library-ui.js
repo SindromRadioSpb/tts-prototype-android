@@ -436,13 +436,13 @@ async function speakWord(text) {
     _wordAudio.src = src; await _wordAudio.play();
   } catch (_) { browserSpeakWord(he); }                       // GCP miss/offline → browser, never a dead-end
 }
-// D6 — play a READER ROW's audio (the cloze sentence) for the «🎧 Аудио» channel: tier-1 baked/cached
-// asset (keyless /api/audio/<assetKey>, the always-available canon path) → else speakWord the sentence
-// text (BYOK GCP → browser voice). Reuses the single _wordAudio element. Mirrors reader-core's tier order
-// WITHOUT touching the parity-locked reader-core (we read the row's own asset key).
-async function playClozeRowAudio(rowIdx) {
-  const row = readerRows[rowIdx];
-  const ak = row && String(row._v3_audioAssetKey || '').trim();
+// D6/D2 — play a cloze SENTENCE's audio for the «🎧 Аудио» channel from the built item (source-agnostic:
+// open-text rows AND cross-text due items both carry built.audioAssetKey). tier-1 baked/cached asset
+// (keyless /api/audio/<assetKey>, the always-available canon path) → else speakWord the sentence text
+// (BYOK GCP → browser voice). Reuses the single _wordAudio element; reader-core (parity-locked) untouched.
+async function _playSentenceAudio(built) {
+  if (!built) return;
+  const ak = String(built.audioAssetKey || '').trim();
   if (ak) {
     try {
       const h = await fetch('/api/audio/' + encodeURIComponent(ak), { method: 'HEAD' });
@@ -454,7 +454,7 @@ async function playClozeRowAudio(rowIdx) {
     } catch (_) {}
   }
   // fallback — TTS the sentence text (needs a key or a browser Hebrew voice; gated by availableChannels)
-  try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || (row && (row.he_niqqud || row.he)) || ''); } catch (_) {}
+  try { speakWord(String(built.sentence || '')); } catch (_) {}
 }
 // D6 — stop any in-flight word/row audio (so switching channel or advancing never overlaps playback).
 function _stopTrainAudio() {
@@ -477,7 +477,7 @@ function _trainAudioCaps(items) {
   let bakedAll = false;
   try {
     const list = items || [];
-    bakedAll = list.length > 0 && list.every((it) => { const b = it && it._built; const r = b && readerRows[b.rowIdx]; return !!(r && r._v3_audioAssetKey); });
+    bakedAll = list.length > 0 && list.every((it) => !!(it && it._built && it._built.audioAssetKey));
   } catch (_) {}
   return { hasGcpKey: !!gcpTtsKey(), hasHeVoice: _heVoiceAvailable(), rowHasBakedAudio: bakedAll };
 }
@@ -626,6 +626,7 @@ function uiDirRoom() { return (document.documentElement && document.documentElem
 // (getSrsSchedule overdue, «ignore» excluded). Pure arithmetic lives in ReaderMorph.dueCounts (gated).
 // Scope = ALL your words (the daily-review habit is cross-text; serving them in any text is D2).
 let _dueCounts = null;
+let _dueReviewCount = 0;  // D2 — count of due words the cross-text queue can actually serve (sourced)
 let _streakView = null;   // D7 — last computed streak/goal (pure ReaderMorph.streakView over study_day)
 // D7 — TODAY as a LOCAL calendar day-string ('YYYY-MM-DD'). Computed in the UI layer ONLY (the engine
 // stays Date-free for determinism, invariant #5); injected into the pure streak fold.
@@ -698,7 +699,21 @@ async function refreshDueBadge() {
     try { _streakView = window.ReaderMorph.streakView((await localDb.getStudyDays()) || [], window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr()); }
     catch (_) { _streakView = null; }
   }
+  // D2 — sourced-due count for the home CTA (what the cross-text queue can actually serve; never over-claim).
+  try { _dueReviewCount = (typeof localDb.getDueReviewCount === 'function') ? (await localDb.getDueReviewCount(Date.now())) : ((_dueCounts && _dueCounts.dueNow) || 0); }
+  catch (_) { _dueReviewCount = 0; }
   document.querySelectorAll('[data-due-badge]').forEach((b) => _paintDueBadge(b, _dueCounts));
+  _paintDueCTA();
+}
+// D2 — the home «🔁 К повторению: N» CTA (cross-text daily-review entry). Shown only on the home (reader
+// closed) when scheduled words are DUE now (dueCounts.dueNow). Tapping → startDueReview (no open text needed).
+function _paintDueCTA() {
+  const cta = document.getElementById('roomDueCta'); if (!cta) return;
+  const reader = $('roomReader');
+  const n = _dueReviewCount || 0;   // sourced-due only → the CTA never promises more than the queue serves
+  const show = n > 0 && !!(reader && reader.hidden);   // home only — not while reading
+  cta.hidden = !show;
+  if (show) cta.textContent = '🔁 ' + tt('room.morph.study.due', 'К повторению') + ': ' + n + ' →';
 }
 // Humanize a future due-instant → { n, unit:'d'|'h' } for the «next review in …» summary line.
 function _humanizeUntil(ms, nowMs) {
@@ -752,7 +767,7 @@ function ensureStudySheet() {
     if (t.closest('[data-train-again]')) { startTraining(); return; }
     if (t.closest('[data-streak-toggle]')) { streakHiddenSet(!streakHidden()); try { refreshDueBadge(); } catch (_) {} renderTrainSummary(); return; }   // D7 — premium off-switch
     const chSeg = t.closest('[data-train-channel]'); if (chSeg) { onTrainChannel(chSeg.getAttribute('data-train-channel')); return; }   // D6 — channel
-    if (t.closest('[data-train-listen-row]')) { try { playClozeRowAudio(_trainSession && _trainSession._built && _trainSession._built.rowIdx); } catch (_) {} return; }   // D6 — replay sentence
+    if (t.closest('[data-train-listen-row]')) { try { _playSentenceAudio(_trainSession && _trainSession._built); } catch (_) {} return; }   // D6 — replay sentence
     if (t.closest('[data-train-listen-word]')) { const b = _trainSession && _trainSession._built, it = _trainSession && _trainSession.items[_trainSession.idx]; try { speakWord((b && b.cz && b.cz.answer) || (it && (it.niqqud || it.surface)) || ''); } catch (_) {} return; }   // D6 — replay word (sentence-inflected form)
     const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
     if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
@@ -1061,34 +1076,90 @@ async function startTraining() {
   // A3 — pre-build each item's cloze; keep only BUILDABLE ones so «X / N» counts only askable items
   // (a target whose skeleton isn't found in any of its sentences is dropped, not scored as a miss).
   const items = buildTrainSession(all, Date.now()).map((it) => { it._built = _trainBuildCloze(it); return it; }).filter((it) => it._built);
-  // D1 — pre-compute slot-inflected MC options for MC-eligible items (R10 moat): resolve the answer to
-  // its paradigm → buildMcSlotOptions (proclitic-aware slot + dict bank + L4 semantic). null → render
-  // falls back to the current B1 distractors (R11 no-regress). Async, ≤N items, offline.
+  // D2 — persist the SOURCE occurrence of each item (text_key + sentence_id + order_index + surface) so the
+  // cross-text «due today» queue can re-cloze this word later WITHOUT opening its text. Data already in hand.
+  items.forEach((it) => {
+    const r = it._built && readerRows[it._built.rowIdx];
+    it._source = r ? { textKey: readerTextKey, sentenceId: r._v3_sentenceId, orderIndex: r._v3_orderIndex, surface: it.surface } : null;
+  });
+  await _launchTrainSession(items, { pool: all });
+}
+// Shared session launch (open-text AND cross-text D2): D1 MC pre-compute → audio caps/channels → session →
+// D7 ledger → render. `items` already carry _built (cloze) + _source. opts.pool = distractor pool (B1);
+// opts.cross = D2 cross-text session (no open reader behind).
+async function _launchTrainSession(items, opts) {
+  opts = opts || {};
+  // D1 — pre-compute slot-inflected MC options for MC-eligible items (R10 moat): resolve the answer to its
+  // paradigm → buildMcSlotOptions (proclitic-aware slot + dict bank + L4 semantic). null → render falls back
+  // to the B1 distractors (R11 no-regress). Async, ≤N items, offline.
   if (typeof window.ReaderMorph.buildMcSlotOptions === 'function') {
     for (const it of items) {
       if (!window.ReaderMorph.isMcLevel(it.status)) continue;
       try {
-        const ans = await window.ReaderMorph.resolveWordLight(it.surface, it.niqqud);
+        const ans = it._card || await window.ReaderMorph.resolveWordLight(it.surface, it.niqqud);   // D2 reuses its resolved card
         if (ans) { if (!ans.gloss) ans.gloss = it.gloss; const o = await window.ReaderMorph.buildMcSlotOptions(ans, 3); if (o && o.options && o.options.length >= 3) it._mcOptions = o; }
       } catch (_) {}
     }
   }
   if (!_studySheet || _studySheet.hidden || _studyMode !== 'train') return;   // re-check after the await fan-out
-  // D7 — «available work today» = GENUINELY due/new items only, NOT buildTrainSession's not-yet-due
-  // padding (it backfills the session with words whose srs_due > now). Using the padded items.length would
-  // (a) mask the caught-up learner's honest rest-credit (available never hits 0) and (b) let the adaptive
-  // goal count not-yet-due reviews (R2 «never push ahead of schedule»). So count only the due/new portion.
+  // D7 — «available work today» = GENUINELY due/new items only (not-yet-due padding excluded — R2/honest rest-credit).
   const _nowDue = Date.now();
   const dueAvail = items.filter((it) => !it._srs || !it._srs.due || it._srs.due <= _nowDue).length;
-  // D6 — extraction channels: probe audio caps → which of read/listen/reverse/dictate are offerable
-  // (R10 honest degradation); restore the persisted channel, falling back to 'read' if it's unavailable.
+  // D6 — extraction channels: probe audio caps → which of read/listen/reverse/dictate are offerable.
   const caps = _trainAudioCaps(items);
   const channels = (window.ReaderMorph.availableChannels ? window.ReaderMorph.availableChannels(caps) : { read: true, reverse: true, listen: false, dictate: false });
   let channel = trainChannel(); if (!channels[channel]) channel = 'read';
-  _trainSession = { items, pool: all, idx: 0, total: items.length, dueAvail: dueAvail, channel: channel, channels: channels, correct: 0, levelUps: 0, answered: false };
+  _trainSession = { items, pool: opts.pool || items, idx: 0, total: items.length, dueAvail: dueAvail, channel: channel, channels: channels, correct: 0, levelUps: 0, answered: false, cross: !!opts.cross };
   try { localDb.noteAvailable(_localDayStr(), dueAvail); } catch (_) {}   // dueAvail==0 → honest rest-credit
   try { refreshDueBadge(); } catch (_) {}   // reflect today's goal denominator before the first question
   renderTrainItem();
+}
+// D2 — cross-text «due today» session: scheduled-due words across ALL read texts (getDueWithSource),
+// re-clozed from their stored SOURCE sentence (re-fetched cross-text, re-anchored by text_key+order_index).
+// Reuses the whole training UI (channels D6, streak D7); needs NO open reader. A due word whose sentence is
+// gone (deleted / re-import mismatch / never-sourced legacy) is SKIPPED — never a fabricated cloze (R11).
+async function startDueReview() {
+  ensureStudySheet();
+  _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
+  _studyMode = 'train'; _trainSession = null;
+  try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
+  try { _studyListChrome(false); } catch (_) {}
+  const body = _studySheet.querySelector('.room-study-body');
+  if (!body || !window.ReaderMorph) return;
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'room-study-loading', i18n: 'room.morph.study.loading', text: tt('room.morph.study.loading', 'Собираю…') }));
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  let due = [];
+  try { due = (await localDb.getDueWithSource(Date.now())) || []; } catch (_) { due = []; }
+  const R = window.ReaderMorph, items = [];
+  for (const d of due) {
+    if (items.length >= TRAIN_N * 2) break;   // bound the fetch work; weakness-rank + slice below
+    if (!d.source || !d.source.surface) continue;   // never-sourced (legacy) → skip (trains in its own text)
+    let sent = null;
+    try { sent = await localDb.getSentenceForReview(d.source.sentenceId, d.source.textKey, d.source.orderIndex); } catch (_) { sent = null; }
+    if (!sent) continue;   // sentence gone (deleted / re-import) → skip
+    const heN = String(sent.he_niqqud || sent.he_plain || sent.he || '');
+    if (!heN) continue;
+    const cz = R.buildClozeForTarget(R.tokenize(heN), R.stripNiqqud(d.source.surface));
+    if (!cz) continue;   // word not present in the sentence (re-anchor mismatch) → skip
+    let card = null;
+    try { card = await R.resolveWordLight(R.stripNiqqud(d.source.surface), cz.answer); } catch (_) {}
+    items.push({
+      lemmaKey: d.lemmaKey, surface: d.source.surface, niqqud: (card && card.niqqud) || cz.answer || '',
+      gloss: (card && (card.meaning || card.gloss)) || '', root: (card && card.root) || '', pos: (card && card.pos) || '',
+      status: d.status, _srs: d.srs, _source: d.source, _card: card || null,   // reuse in the D1 MC pre-compute
+      _built: { cz, ru: sent.ru || '', sentence: heN, audioAssetKey: String(sent.audio_asset_key || ''), rowIdx: null },
+    });
+  }
+  if (!_studySheet || _studySheet.hidden) return;
+  const ranked = (R.rankByWeakness ? R.rankByWeakness(items) : items).slice(0, TRAIN_N);
+  if (!ranked.length) {
+    body.innerHTML = '';
+    body.appendChild(el('div', { class: 'room-study-empty', i18n: 'room.morph.study.dueEmpty', text: tt('room.morph.study.dueEmpty', 'Нет слов к повторению сегодня — открой текст и потренируй новые слова.') }));
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    return;
+  }
+  await _launchTrainSession(ranked, { cross: true });
 }
 // Sentence (he/he_niqqud/ru) for a row — readerRows is the fast path; fall back to the painted DOM
 // row so training is self-contained (works even if readerRows is empty/desynced).
@@ -1117,9 +1188,12 @@ function _trainBuildCloze(item) {
     const cz = R.buildClozeForTarget(R.tokenize(sent), targetSkel);
     if (!cz) continue;   // target not present in this sentence (offset drift / wrong row) → unusable
     const count = R.words(sent).length;
-    if (count > bestCount || (count === bestCount && best && o.rowIdx < best.rowIdx)) { best = { cz, ru: data.ru, sentence: sent, rowIdx: o.rowIdx }; bestCount = count; }
+    if (count > bestCount || (count === bestCount && best && o.rowIdx < best.rowIdx)) {
+      const ak = (readerRows[o.rowIdx] && readerRows[o.rowIdx]._v3_audioAssetKey) || '';   // D6/D2 — baked row audio
+      best = { cz, ru: data.ru, sentence: sent, rowIdx: o.rowIdx, audioAssetKey: ak }; bestCount = count;
+    }
   }
-  return best;   // { cz:{answer,segments,count}, ru, sentence, rowIdx } | null
+  return best;   // { cz:{answer,segments,count}, ru, sentence, rowIdx, audioAssetKey } | null
 }
 // D5 — light first-encounter teach panel. Writes NOTHING (not counted as recall); just seeds the word
 // before its first scored test. Word + gloss + 🔊 + the word in its sentence (target VISIBLE) +
@@ -1227,7 +1301,7 @@ function renderTrainItem() {
     au.appendChild(el('button', { class: 'room-train-bigplay', text: '🔊', attrs: { type: 'button', 'data-train-listen-row': '1', 'aria-label': tt('room.morph.study.replay', 'Прослушать ещё раз') } }));
     au.appendChild(el('span', { class: 'room-train-audiohint', i18n: 'room.morph.study.listenHint', text: tt('room.morph.study.listenHint', '🎧 Прослушай предложение') }));
     body.appendChild(au);
-    try { playClozeRowAudio(built.rowIdx); } catch (_) {}   // auto-play once on render
+    try { _playSentenceAudio(built); } catch (_) {}   // auto-play once on render (baked asset → TTS fallback)
   } else if (channel === 'dictate') {
     // hear the ISOLATED word (vocalized TTS) → write it. Pure listening + spelling.
     const au = el('div', { class: 'room-train-audioprompt' });
@@ -1366,7 +1440,9 @@ async function checkTrainAnswer(correct, skipped) {
   const item = s.items[s.idx];
   const next = window.ReaderMorph.nextLevel(item.status, correct);
   const sched = window.ReaderMorph.nextSrs(item._srs, correct, Date.now());   // C2 — schedule the next review
-  try { await localDb.setWordStatus(item.lemmaKey, next, sched); } catch (_) {}   // status + schedule in one write
+  // D2 — persist status + schedule + the SOURCE sentence (so the cross-text «due today» queue can re-cloze
+  // this word later without opening its text). item._source set at session build (open-text or D2 itself).
+  try { await localDb.setWordStatus(item.lemmaKey, next, sched, item._source || null); } catch (_) {}
   item._srs = sched;
   if (correct && next !== item.status) { s.correct++; s.levelUps++; }   // A8 — any promotion counts (incl. new→l1)
   else if (correct) { s.correct++; }
@@ -2187,6 +2263,7 @@ async function openReader(textId, title, opts) {
   if (!reader) return;
   if (content) content.hidden = true;
   reader.hidden = false;
+  try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
   clearResumeBanner(); clearRowJump();   // BRR-P2-002/005 — never carry a stale banner/jump across opens
   _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
   readerTextId = textId != null ? String(textId) : null;
@@ -2270,6 +2347,7 @@ async function closeReader() {
   const reader = $('roomReader'), content = $('roomContent');
   if (reader) reader.hidden = true;
   if (content) content.hidden = false;
+  try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   // Surface the just-read text in «Продолжить чтение» (corpus home only; results / other tabs untouched).
   if (tid != null && activeTrack === 'corpus' && corpusNav.level === 'home' && !corpusFilterActive()) {
     try { corpusRefreshL1Body(); } catch (_) {}
@@ -4272,6 +4350,8 @@ function wireChrome() {
   // Embedded reader chrome.
   const back = $('readerBack');
   if (back) back.addEventListener('click', closeReader);
+  const dueCta = document.getElementById('roomDueCta');   // D2 — cross-text «due today» entry
+  if (dueCta) dueCta.addEventListener('click', () => { try { startDueReview(); } catch (_) {} });
   const readAloud = $('roomReadAloud');
   if (readAloud) readAloud.addEventListener('click', toggleReadAloud);   // BRR-P1-008 karaoke
   const findToggle = $('readerFindToggle');
@@ -4327,6 +4407,7 @@ async function boot() {
       activeTrack = 'literary';
     }
     setActiveTrack(activeTrack);
+    try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
   } catch (e) {
     if (e instanceof localDb.DbUnavailableError) {

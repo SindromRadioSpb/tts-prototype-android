@@ -109,6 +109,15 @@
     .room-tab[aria-selected="true"] {
       background: var(--accent); color: var(--accent-contrast); border-color: var(--accent);
     }
+    /* D2 — cross-text «due today» CTA (the daily-review habit entry). Prominent but calm accent banner;
+       full-width is intentional for a primary daily action. Hidden unless scheduled words are due now. */
+    .room-due-cta {
+      display: block; width: 100%; margin-top: 10px; padding: 11px 14px; cursor: pointer;
+      border: none; border-radius: 10px; font-size: 14.5px; font-weight: 700; text-align: center;
+      background: var(--accent); color: var(--accent-contrast);
+    }
+    .room-due-cta[hidden] { display: none; }   /* author display:block beats UA [hidden] → explicit guard */
+    .room-due-cta:hover { filter: brightness(1.06); }
 
     /* ── shelves ─────────────────────────────────────────────────────────── */
     main { padding: 14px 0 32px; }
@@ -1172,6 +1181,9 @@
     <button class="room-tab" id="tabLiterary" role="tab" aria-selected="false" data-track="literary" data-i18n="room.tabs.literary">Литературная</button>
     <button class="room-tab" id="tabCorpus" role="tab" aria-selected="false" data-track="corpus" data-i18n="room.tabs.corpus" hidden>Корпус</button>
   </div>
+  <!-- D2 — cross-text «due today» CTA: the daily-review habit entry, launchable WITHOUT opening a text.
+       Shown on the home (reader closed) only when scheduled words are due now. Count set by JS. -->
+  <button class="room-due-cta" id="roomDueCta" type="button" hidden></button>
 </header>
 
 <main id="roomContent">
@@ -1208,7 +1220,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.41</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.42</span>
   </div>
 </footer>
 

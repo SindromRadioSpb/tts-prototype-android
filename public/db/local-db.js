@@ -2138,7 +2138,7 @@ export async function getKnownWordStates() {
 // «new» IS storable (so an UNCONFIDENT word — function/unknown, which has no auto-default colour —
 // can be explicitly marked «новое»/purple); only an empty status clears.
 const _WS_VALUES = { "new": 1, l1: 1, l2: 1, l3: 1, l4: 1, known: 1, ignore: 1 };
-export async function setWordStatus(lemmaKey, status, sched) {
+export async function setWordStatus(lemmaKey, status, sched, source) {
   const lk = String(lemmaKey || "").trim();
   if (!lk) return false;
   const st = String(status || "").trim();
@@ -2146,13 +2146,23 @@ export async function setWordStatus(lemmaKey, status, sched) {
     if (!st || !_WS_VALUES[st]) {
       await r(`DELETE FROM word_status WHERE lemma_key = ?`, [lk]);
     } else if (sched && typeof sched === "object") {
-      // C2 — recall answer: set status AND the SM2-lite schedule (next-due/interval/reps/lapses).
+      // C2 — recall answer: set status AND the SM2-lite schedule (next-due/interval/reps/lapses). D2 —
+      // also record the SOURCE sentence (text_key + sentence_id + order_index + surface) so the cross-text
+      // «due today» queue can re-cloze this word without opening its text. COALESCE keeps a prior source if
+      // this recall didn't carry one (defensive — checkTrainAnswer always passes it).
       const due = sched.due != null ? new Date(sched.due).toISOString() : null;
-      await r(`INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses)
-               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?)
+      const src = source && typeof source === "object" ? source : {};
+      const tk = src.textKey != null ? String(src.textKey) : null;
+      const sid = src.sentenceId != null ? String(src.sentenceId) : null;
+      const oix = src.orderIndex != null ? Number(src.orderIndex) : null;
+      const surf = src.surface != null ? String(src.surface) : null;
+      await r(`INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface)
+               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(lemma_key) DO UPDATE SET status=excluded.status, updated_at=excluded.updated_at,
-                 srs_due=excluded.srs_due, srs_interval=excluded.srs_interval, srs_reps=excluded.srs_reps, srs_lapses=excluded.srs_lapses`,
-        [lk, st, due, Number(sched.interval) || 0, Number(sched.reps) || 0, Number(sched.lapses) || 0]);
+                 srs_due=excluded.srs_due, srs_interval=excluded.srs_interval, srs_reps=excluded.srs_reps, srs_lapses=excluded.srs_lapses,
+                 srs_text_key=COALESCE(excluded.srs_text_key, srs_text_key), srs_sentence_id=COALESCE(excluded.srs_sentence_id, srs_sentence_id),
+                 srs_order_index=COALESCE(excluded.srs_order_index, srs_order_index), srs_surface=COALESCE(excluded.srs_surface, srs_surface)`,
+        [lk, st, due, Number(sched.interval) || 0, Number(sched.reps) || 0, Number(sched.lapses) || 0, tk, sid, oix, surf]);
     } else {
       // plain status set (list / long-press / card): UPSERT so any existing SRS schedule is PRESERVED
       // (INSERT OR REPLACE would wipe the srs_* columns — see C2).
@@ -2172,6 +2182,72 @@ export async function getSrsSchedule() {
     for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = { due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0, reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0 };
     return out;
   } catch (_) { return {}; }
+}
+// D2 — cross-text «due today»: scheduled words whose review time has ARRIVED (srs_due<=now), «ignore»
+// excluded, WITH their stored source occurrence so the queue can re-cloze each one without opening its
+// text. Read-only; graceful [] if the columns/table are absent.
+export async function getDueWithSource(nowMs) {
+  const now = Number(nowMs) || 0;
+  try {
+    const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses,
+                                 srs_text_key, srs_sentence_id, srs_order_index, srs_surface
+                            FROM word_status WHERE srs_due IS NOT NULL AND status != 'ignore'
+                           ORDER BY srs_lapses DESC, srs_due ASC`, []);
+    const out = [];
+    for (const w of (rows || [])) {
+      if (!w.lemma_key) continue;
+      const due = w.srs_due ? Date.parse(w.srs_due) : 0;
+      if (!(due <= now)) continue;   // only DUE-now (honest «к повторению»; matches dueCounts.dueNow)
+      out.push({
+        lemmaKey: String(w.lemma_key), status: String(w.status || ""),
+        srs: { due, interval: Number(w.srs_interval) || 0, reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0 },
+        source: { textKey: w.srs_text_key || null, sentenceId: w.srs_sentence_id || null,
+          orderIndex: (w.srs_order_index == null ? null : Number(w.srs_order_index)), surface: w.srs_surface || null },
+      });
+    }
+    return out;
+  } catch (_) { return []; }
+}
+// D2 — count of due words the cross-text queue can ACTUALLY serve = scheduled-due (srs_due<=now, not
+// ignore) AND carrying a stored source (srs_surface). Drives the home «🔁 К повторению» CTA so it never
+// over-claims: a word recall-tested BEFORE migration 060 (or whose source text was deleted) has srs_due
+// but no source → it can't be re-clozed cross-text yet → it must NOT inflate the CTA (R11 honest count;
+// it still trains, and gets sourced, when its own text is opened). The D3 schedule badge keeps dueNow.
+export async function getDueReviewCount(nowMs) {
+  const now = Number(nowMs) || 0;
+  try {
+    const rows = await q(`SELECT srs_due FROM word_status
+                           WHERE srs_due IS NOT NULL AND status != 'ignore' AND srs_surface IS NOT NULL`, []);
+    let n = 0;
+    for (const w of (rows || [])) { const d = w.srs_due ? Date.parse(w.srs_due) : 0; if (d <= now) n++; }
+    return n;
+  } catch (_) { return 0; }
+}
+// D2 — fetch a sentence for the cross-text queue: by sentence_id (fast path), else re-anchor by
+// text_key + order_index (survives a delete/re-import that regenerated the sentence id — bookmarks pattern).
+// Returns the sentence row (he_plain/he_niqqud/ru + default audio_asset_key) or null.
+const _SENT_SELECT = `SELECT s.*, aa.asset_key AS audio_asset_key
+                        FROM sentences s
+                   LEFT JOIN sentence_audio sa ON sa.sentence_id = s.id AND sa.is_default = 1
+                   LEFT JOIN audio_assets   aa ON aa.id = sa.audio_id`;
+export async function getSentenceForReview(sentenceId, textKey, orderIndex) {
+  try {
+    if (sentenceId) {
+      const rows = await q(`${_SENT_SELECT} WHERE s.id = ?`, [String(sentenceId)]);
+      if (rows && rows[0]) return rows[0];
+    }
+  } catch (_) {}
+  try {
+    if (textKey && orderIndex != null) {
+      const t = await q(`SELECT id FROM texts WHERE text_key = ?`, [String(textKey)]);
+      const tid = t && t[0] && t[0].id;
+      if (tid) {
+        const rows = await q(`${_SENT_SELECT} WHERE s.text_id = ? AND s.order_index = ?`, [String(tid), Number(orderIndex)]);
+        if (rows && rows[0]) return rows[0];
+      }
+    }
+  } catch (_) {}
+  return null;
 }
 export async function getWordStatus(lemmaKey) {
   const lk = String(lemmaKey || "").trim();

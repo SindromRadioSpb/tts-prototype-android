@@ -2104,6 +2104,7 @@ window.I18N_LOCALES.en = {
         dictateHint: "✍️ Listen and type the word",
         reverseHint: "🔤 Recall the word in Hebrew",
         replay: "Play again",
+        dueEmpty: "Nothing due for review today — open a text and practice new words.",
       },
       legend: {
         title: "What do the confidence badges mean?",

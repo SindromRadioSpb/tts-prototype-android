@@ -93,7 +93,25 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         const sdRows = await ldb.getStudyDays("2099-01-01");
         d7 = (sdRows || []).find((x) => x.day === DAY) || null;
       } catch (e) { d7Err = String(e); }
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, srsSet, srsPreserved, srsStatusAfter, srsErr, d7, d7Bad, d7Err };
+      // D2 (migration 060) — cross-text source persist + due read + sentence re-fetch (incl. re-anchor).
+      let d2 = null, d2Sent = null, d2Reanchor = null, d2Null = null, d2NotDue = null, d2Err = null;
+      try {
+        const TID = "d2-text-1", TKEY = "d2-key-1", SID = "d2-sent-1", LK = "pid:99977200", LK2 = "pid:99977201";
+        await ldb.createText({ id: TID, text_key: TKEY, title: "D2 SRC" });
+        await ldb.addSentence(TID, { id: SID, he_niqqud: "שָׁלוֹם עוֹלָם", ru: "мир мир" });   // order_index 0
+        const past = Date.now() - 86400000, future = Date.now() + 5 * 86400000;
+        await ldb.setWordStatus(LK, "l2", { due: past, interval: 1, reps: 1, lapses: 0 }, { textKey: TKEY, sentenceId: SID, orderIndex: 0, surface: "שלום" });
+        await ldb.setWordStatus(LK2, "l1", { due: future, interval: 3, reps: 2, lapses: 0 }, { textKey: TKEY, sentenceId: SID, orderIndex: 0, surface: "עולם" });  // future → not due
+        await ldb.setWordStatus(LK, "l3");   // PLAIN set after a source-recall MUST preserve the source + srs_due (UPSERT, COALESCE)
+        const due = await ldb.getDueWithSource(Date.now());
+        d2 = (due || []).find((x) => x.lemmaKey === LK) || null;
+        d2NotDue = !(due || []).some((x) => x.lemmaKey === LK2);
+        const byId = await ldb.getSentenceForReview(SID, TKEY, 0); d2Sent = byId ? String(byId.he_niqqud || "") : null;
+        const byAnchor = await ldb.getSentenceForReview("nope-" + SID, TKEY, 0); d2Reanchor = byAnchor ? String(byAnchor.he_niqqud || "") : null;
+        d2Null = await ldb.getSentenceForReview("nope", "nokey", 99);
+        await ldb.setWordStatus(LK, ""); await ldb.setWordStatus(LK2, ""); try { await ldb.deleteText(TID); } catch (_) {}
+      } catch (e) { d2Err = String(e); }
+      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, srsSet, srsPreserved, srsStatusAfter, srsErr, d7, d7Bad, d7Err, d2, d2Sent, d2Reanchor, d2Null, d2NotDue, d2Err };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -116,6 +134,15 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.d7Err === null, "D7 study_day ledger path must not error (migration 059 table), got " + JSON.stringify(res.d7Err));
     eq(res.d7 && res.d7.recalls >= 2 && res.d7.available === 12, "recordRecall must increment recalls + noteAvailable must keep the per-day MAX available (=12), got " + JSON.stringify(res.d7));
     eq(res.d7Bad === false, "recordRecall must reject a malformed day-key (not YYYY-MM-DD), got " + JSON.stringify(res.d7Bad));
+    // D2 — cross-text «due today» source persist + due read + sentence re-fetch (migration 060)
+    eq(res.d2Err === null, "D2 source/due path must not error (migration 060 columns), got " + JSON.stringify(res.d2Err));
+    eq(res.d2 && res.d2.source && res.d2.source.sentenceId === "d2-sent-1" && res.d2.source.surface === "שלום" && res.d2.source.orderIndex === 0,
+      "getDueWithSource must return a due word WITH its stored source (sentence_id/order/surface), got " + JSON.stringify(res.d2));
+    eq(res.d2 && res.d2.status === "l3", "a PLAIN status set after a source-recall must PRESERVE the source + srs_due (UPSERT/COALESCE) while updating status→l3, got " + JSON.stringify(res.d2 && res.d2.status));
+    eq(res.d2NotDue === true, "getDueWithSource must EXCLUDE a FUTURE-due word (only due<=now — honest «к повторению»), got " + JSON.stringify(res.d2NotDue));
+    eq(res.d2Sent && res.d2Sent.indexOf("שָׁלוֹם") >= 0, "getSentenceForReview must fetch the source sentence by id, got " + JSON.stringify(res.d2Sent));
+    eq(res.d2Reanchor && res.d2Reanchor.indexOf("שָׁלוֹם") >= 0, "getSentenceForReview must RE-ANCHOR by text_key+order_index when the id misses (re-import survival), got " + JSON.stringify(res.d2Reanchor));
+    eq(res.d2Null === null, "getSentenceForReview must return null when neither id nor anchor resolves, got " + JSON.stringify(res.d2Null));
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     console.log("reader-word-status: word_status store + manual-wins overlay (no-note mark-known + upsert + clear)");

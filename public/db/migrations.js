@@ -811,4 +811,15 @@ export const MIGRATIONS = [
     available  INTEGER NOT NULL DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
   );`,
+
+  // 060_word_status_srs_source — BRR Epic 4.3b Phase D2 (cross-text «due today»). The SOURCE sentence a
+  // word was last recall-tested from, so the daily review queue can re-cloze a DUE word WITHOUT opening its
+  // text (sentences of read texts live in OPFS — Studio + imported corpus). Anchored robustly: srs_sentence_id
+  // = fast path; srs_text_key + srs_order_index = re-anchor across a delete/re-publish (sentence ids regenerate
+  // on re-import — same pattern as bookmarks). srs_surface = the inflected form to blank. Additive, nullable;
+  // a plain status set preserves them via UPSERT (only a recall answer writes them, COALESCE-guarded). Device-local.
+  `ALTER TABLE word_status ADD COLUMN srs_text_key TEXT;
+   ALTER TABLE word_status ADD COLUMN srs_sentence_id TEXT;
+   ALTER TABLE word_status ADD COLUMN srs_order_index INTEGER;
+   ALTER TABLE word_status ADD COLUMN srs_surface TEXT;`,
 ];
