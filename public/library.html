@@ -191,31 +191,41 @@
     @media (prefers-color-scheme: dark) {
       body:not(.theme-light) .prov-badge.coverage-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
       body:not(.theme-light) .prov-badge.coverage-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
-      body:not(.theme-light) .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft); }
+      body:not(.theme-light) .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
       body:not(.theme-light) .prov-badge.coverage-load { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
     }
     body.theme-dark .prov-badge.coverage-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
     body.theme-dark .prov-badge.coverage-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
-    body.theme-dark .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-faint); border-color: var(--border-soft); }
+    body.theme-dark .prov-badge.coverage-hard { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
     body.theme-dark .prov-badge.coverage-load { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
 
     /* ── W3 (Epic 5) — profile-FREE intrinsic difficulty row (ez band + archaica), its OWN row so it
        never crowds the provenance/coverage meta badges (@380px); archaica = property of the TEXT (R7). ── */
     .work-card-difficulty { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
+    /* PC-1 — signal-family separation. AXIS→TREATMENT map (one family per zone): PROVENANCE = filled pill
+       (amber/indigo/green, .prov-badge.rs-*/audio-*, above) — shown only for non-default values (PC-2);
+       the LEARNING cluster (.work-card-difficulty) = intrinsic DIFFICULTY as an OUTLINE pill (transparent
+       fill, never a filled provenance chip; the WORD легче/средне/сложнее is the non-colour channel, WCAG
+       1.4.1) + personal COVERAGE «≈N% знакомо» (filled .coverage-*) + ARCHAICA caveat (filled purple).
+       `order` pins the visual order band→coverage→archaica regardless of async append order. */
     .diff-band, .diff-archaica { font-size: 11px; padding: 2px 8px; border-radius: 8px; border: 1px solid transparent; font-weight: 600; white-space: nowrap; }
-    .diff-band.diff-easy { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-    .diff-band.diff-mid  { background: #fef3c7; color: #92400e; border-color: #fde68a; }
-    .diff-band.diff-hard { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+    .diff-band { background: transparent; }
+    .diff-band.diff-easy { color: #166534; border-color: #86efac; }
+    .diff-band.diff-mid  { color: #b45309; border-color: #fcd34d; }
+    .diff-band.diff-hard { color: #b91c1c; border-color: #fca5a5; }
     .diff-archaica { background: #faf5ff; color: #6b21a8; border-color: #e9d5ff; }
+    .work-card-difficulty .diff-band { order: 1; }
+    .work-card-difficulty .coverage-badge { order: 2; }
+    .work-card-difficulty .diff-archaica { order: 3; }
     @media (prefers-color-scheme: dark) {
-      body:not(.theme-light) .diff-band.diff-easy { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
-      body:not(.theme-light) .diff-band.diff-mid  { background: rgba(245,158,11,.18); color: #fde68a; border-color: rgba(245,158,11,.4); }
-      body:not(.theme-light) .diff-band.diff-hard { background: rgba(239,68,68,.18); color: #fecaca; border-color: rgba(239,68,68,.4); }
+      body:not(.theme-light) .diff-band.diff-easy { color: #86efac; border-color: rgba(34,197,94,.5); }
+      body:not(.theme-light) .diff-band.diff-mid  { color: #fcd34d; border-color: rgba(245,158,11,.5); }
+      body:not(.theme-light) .diff-band.diff-hard { color: #fca5a5; border-color: rgba(239,68,68,.5); }
       body:not(.theme-light) .diff-archaica { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
     }
-    body.theme-dark .diff-band.diff-easy { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
-    body.theme-dark .diff-band.diff-mid  { background: rgba(245,158,11,.18); color: #fde68a; border-color: rgba(245,158,11,.4); }
-    body.theme-dark .diff-band.diff-hard { background: rgba(239,68,68,.18); color: #fecaca; border-color: rgba(239,68,68,.4); }
+    body.theme-dark .diff-band.diff-easy { color: #86efac; border-color: rgba(34,197,94,.5); }
+    body.theme-dark .diff-band.diff-mid  { color: #fcd34d; border-color: rgba(245,158,11,.5); }
+    body.theme-dark .diff-band.diff-hard { color: #fca5a5; border-color: rgba(239,68,68,.5); }
     body.theme-dark .diff-archaica { background: rgba(168,85,247,.18); color: #e9d5ff; border-color: rgba(168,85,247,.4); }
 
     /* BRR-P1-007 S4 — the personalized «Следующий для тебя» rail title reads as "yours" (accent). */
@@ -1302,7 +1312,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.47</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.48</span>
   </div>
 </footer>
 

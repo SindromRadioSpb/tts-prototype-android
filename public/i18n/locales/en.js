@@ -2138,13 +2138,13 @@ window.I18N_LOCALES.en = {
     corpus: {
       back: "Back",
       readyTitle: "Ready to read",
-      readyIntro: "Machine translation (Gemini) + Dicta niqqud. Provenance on every card.",
+      readyIntro: "Translation and vocalization are automatic — not yet proofread by an editor. Good for reading and study.",
       coldStartTitle: "Where to start",
-      coldStartIntro: "Short texts built from high-frequency vocabulary — an easy way in.",
+      coldStartIntro: "Short texts built from high-frequency vocabulary — an easy way in. Translation and vocalization are automatic.",
       nextTitle: "Next for you",
-      nextIntro: "Texts in your growth zone — you know most of the words; the rest you'll pick up as you read.",
+      nextIntro: "Texts in your growth zone — you know most of the words; the rest you'll pick up as you read. Translation and vocalization are automatic.",
       challengeTitle: "Next challenge",
-      challengeIntro: "You've outgrown the easy ones — here's a reachable stretch just above your level.",
+      challengeIntro: "You've outgrown the easy ones — here's a reachable stretch just above your level. Translation and vocalization are automatic.",
       cov: {
         estimate: "Estimated familiar words from your notes",
         load: "many names/archaic",
