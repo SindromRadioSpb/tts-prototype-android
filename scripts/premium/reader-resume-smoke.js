@@ -16,7 +16,7 @@ function eq(got, want, msg) {
   else { fail++; console.error(`FAIL ${msg}: got ${a} want ${b}`); }
 }
 
-for (const fn of ['resumeTarget', 'continuePercent', 'topVisibleRowIdx', 'mergeProgress']) {
+for (const fn of ['resumeTarget', 'continuePercent', 'topVisibleRowIdx', 'mergeProgress', 'atTextEnd', 'lastRowVisible']) {
   if (typeof RP[fn] !== 'function') { console.error(`FAIL: reader-progress.${fn} not exported`); process.exit(1); }
 }
 
@@ -57,6 +57,29 @@ eq(RP.continuePercent(99, 100), 100, 'last row = 100%');
 eq(RP.continuePercent(0, 1), 100, 'single-row text finished');
 eq(RP.continuePercent(5, 0), 0, 'no rows ⇒ 0');
 eq(RP.continuePercent(-1, 100), 0, 'negative ⇒ 0');
+
+// ── atTextEnd (Epic-5 W1 «✓ Прочитано» auto-prompt trigger) ─────────────────
+eq(RP.atTextEnd(99, 100), true, 'last row reached');
+eq(RP.atTextEnd(100, 100), true, 'past last (defensive) ⇒ end');
+eq(RP.atTextEnd(98, 100), false, 'one row short ⇒ not end');
+eq(RP.atTextEnd(0, 1), true, 'single-row text ⇒ end at row 0');
+eq(RP.atTextEnd(0, 100), false, 'start of long text ⇒ not end');
+eq(RP.atTextEnd(-1, 100), false, 'no row reached ⇒ not end');
+eq(RP.atTextEnd(5, 0), false, 'no rows ⇒ not end');
+eq(RP.atTextEnd(5, null), false, 'invalid rowCount ⇒ not end');
+
+// ── lastRowVisible (Epic-5 W1 — scroll-to-end «✓ Прочитано» trigger; the reviewer-caught fix) ──
+const _endRows = [
+  { idx: 0, top: -400, bottom: -320 },
+  { idx: 1, top: -320, bottom: -240 },
+  { idx: 2, top: 700, bottom: 790 },   // last row near the viewport bottom (viewport 844)
+];
+eq(RP.lastRowVisible(_endRows, 844, 4), true, 'last row bottom (790) <= viewport (844) ⇒ end reached');
+eq(RP.lastRowVisible([{ idx: 0, top: 700, bottom: 980 }], 844, 4), false, 'last row bottom (980) below viewport ⇒ not yet end');
+eq(RP.lastRowVisible([{ idx: 0, top: 10, bottom: 90 }], 844, 4), true, 'single-screen text fully visible ⇒ end');
+eq(RP.lastRowVisible([{ idx: 0, top: 845, bottom: 848 }], 844, 4), true, 'within margin (848 <= 844+4) ⇒ end');
+eq(RP.lastRowVisible([], 844, 4), false, 'no rows ⇒ not end');
+eq(RP.lastRowVisible(_endRows, 0, 4), false, 'invalid viewport ⇒ not end');
 
 // ── topVisibleRowIdx ────────────────────────────────────────────────────────
 const rows = [

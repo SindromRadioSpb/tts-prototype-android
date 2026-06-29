@@ -1945,6 +1945,12 @@ window.I18N_LOCALES.ru = {
       fromRow: "Вы остановились на строке",
       toStart: "Читать с начала",
       read: "прочитано",
+      endOfText: "— конец текста —",
+      markRead: "✓ Прочитано",
+      readDone: "✓ прочитано",
+      unmark: "снять отметку",
+      markedRead: "Отмечено: прочитано",
+      markReadTip: "Отметить прочитанным",
     },
     bookmark: {
       shelfTitle: "Закладки",

@@ -1931,6 +1931,12 @@ window.I18N_LOCALES.en = {
       fromRow: "You stopped at line",
       toStart: "Read from start",
       read: "read",
+      endOfText: "— end of text —",
+      markRead: "✓ Read",
+      readDone: "✓ read",
+      unmark: "unmark",
+      markedRead: "Marked as read",
+      markReadTip: "Mark as read",
     },
     bookmark: {
       shelfTitle: "Bookmarks",

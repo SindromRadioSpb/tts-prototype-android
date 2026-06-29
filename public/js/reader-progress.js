@@ -49,6 +49,34 @@
     return pv > iv ? pv : iv;
   }
 
+  // atTextEnd(lastIdx, nRows) → true when the furthest row reached is the FINAL row, i.e. the
+  // reader has reached the end of the text. Drives the Epic-5 W1 «✓ Прочитано» auto-prompt (and
+  // the W2 end-of-text handoff). Defensive: never true for empty/invalid counts. Equivalent to
+  // continuePercent==100 but integer-exact (no float rounding at the boundary).
+  function atTextEnd(lastIdx, nRows) {
+    var i = Number(lastIdx), n = Number(nRows);
+    if (!isFinite(i) || i < 0 || !isFinite(n) || n <= 0) return false;
+    return i >= n - 1;
+  }
+
+  // lastRowVisible(rows, viewportH, margin) → true when the LAST row (DOM order) has scrolled into
+  // view, i.e. its bottom edge is at/above the viewport bottom. This is the honest «reached the end of
+  // the text» signal for plain SCROLL reading: topVisibleRowIdx only reports the last idx once the last
+  // row is scrolled ABOVE the sticky bar, which document-bottom (the last line resting near the viewport
+  // bottom, only a prov-note below) never reaches — so a scroll-reader would otherwise never see the
+  // «✓ Прочитано» auto-prompt. Also true for a single-screen text on open (whole text visible). margin
+  // tolerates sub-pixel rounding / a small slack. Defensive on empty/invalid input.
+  function lastRowVisible(rows, viewportH, margin) {
+    if (!rows || !rows.length) return false;
+    var vh = Number(viewportH);
+    if (!isFinite(vh) || vh <= 0) return false;
+    var m = Number(margin) || 0;
+    var last = rows[rows.length - 1];
+    var b = Number(last && last.bottom);
+    if (!isFinite(b)) return false;
+    return b <= vh + m;
+  }
+
   // topVisibleRowIdx(rows, topOffset) → idx of the topmost row still at/under the
   // sticky reader-bar (the row the user is reading), or null when there are no rows.
   //   rows: [{ idx, top, bottom }] in DOM order, in viewport coordinates.
@@ -64,7 +92,7 @@
     return rows[rows.length - 1].idx;
   }
 
-  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, mergeProgress: mergeProgress };
+  var API = { resumeTarget: resumeTarget, continuePercent: continuePercent, topVisibleRowIdx: topVisibleRowIdx, mergeProgress: mergeProgress, atTextEnd: atTextEnd, lastRowVisible: lastRowVisible };
   if (typeof module !== 'undefined' && module.exports) module.exports = API;
   if (typeof window !== 'undefined') window.ReaderProgress = API;
 })();

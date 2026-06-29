@@ -1928,7 +1928,7 @@ function wireProgressScroll() {
     _scrollTimer = setTimeout(() => {
       _scrollTimer = null;
       const idx = currentTopRowIdx();
-      if (idx != null) recordProgress(idx);
+      if (idx != null) { recordProgress(idx); maybeShowEndOfText(); }   // Epic-5 W1 — last row in view → «✓ Прочитано» card
     }, 600);
   }, { passive: true });
 }
@@ -2001,6 +2001,71 @@ async function restoreReaderPosition(textId, opts) {
   if (target == null) return;
   if (opts && opts.resume) scrollToReaderRow(target);   // explicit continue-card tap → jump
   else showResumeBanner(target);                        // normal open → non-jumping affordance (R4)
+}
+
+// ── BRR Epic 5 W1 — continue-mark-read: end-of-text «✓ Прочитано» auto-prompt ─────────────
+// When the furthest row reached is the final row (ReaderProgress.atTextEnd), an end-of-text card
+// surfaces with a one-tap «✓ Прочитано». MANUAL mark only — never auto-set (karaoke autoplay /
+// scroll-to-end must not falsely complete a text, R4 honesty). Marking writes the durable finished_at
+// (localDb.setTextFinished) so the «Продолжить чтение» shelf drops it. POST-render Room DOM (mounted
+// after the parity-locked table) — this card is also the mount point the Epic-5 W2 handoff extends.
+let _endCardFor = null;   // textId the end card is shown for this open (idempotent per open)
+function removeEndCard() { const c = $('readerEndCard'); if (c && c.remove) c.remove(); }
+function resetEndCard() { removeEndCard(); _endCardFor = null; }
+// True once the reader has reached the end of the text. TWO honest signals: (a) the furthest tracked
+// row is the last row (karaoke auto-scroll / resume-to-end set _sessionMaxRow to it), or (b) the last
+// rendered row is visible in the viewport (plain scroll reading — topVisibleRowIdx never reports the
+// last idx at document-bottom, so this is the real scroll-to-end trigger, and it also covers a
+// single-screen text whose whole body is visible on open).
+function readerAtEnd() {
+  if (!window.ReaderProgress || !readerRows.length) return false;
+  if (window.ReaderProgress.atTextEnd(_sessionMaxRow, readerRows.length)) return true;
+  const mount = $('roomReaderTable'); if (!mount) return false;
+  const trs = mount.querySelectorAll('tr[data-row-idx]');
+  if (!trs.length) return false;
+  const rows = [];
+  for (const tr of trs) { const rc = tr.getBoundingClientRect(); rows.push({ idx: Number(tr.getAttribute('data-row-idx')), top: rc.top, bottom: rc.bottom }); }
+  return window.ReaderProgress.lastRowVisible(rows, window.innerHeight || 0, 60);
+}
+function maybeShowEndOfText() {
+  if (readerTextId == null || !readerRows.length) return;
+  if (!readerAtEnd()) return;
+  if (_endCardFor === readerTextId) return;
+  _endCardFor = readerTextId;
+  renderEndOfTextCard(readerTextId);
+}
+async function renderEndOfTextCard(tid) {
+  const reader = $('roomReader');
+  if (!reader || readerTextId !== tid) return;
+  let finished = false;
+  try { const p = await localDb.getProgress(tid); finished = !!(p && p.finished_at); } catch (_) {}
+  if (readerTextId !== tid) return;   // navigated away while awaiting
+  removeEndCard();
+  const card = el('div', { class: 'reader-end' }); card.id = 'readerEndCard';
+  card.appendChild(el('div', { class: 'reader-end-head', i18n: 'room.resume.endOfText', text: tt('room.resume.endOfText', '— конец текста —') }));
+  const actions = el('div', { class: 'reader-end-actions' });
+  if (finished) {
+    actions.appendChild(el('span', { class: 'reader-end-done', i18n: 'room.resume.readDone', text: tt('room.resume.readDone', '✓ прочитано') }));
+    const undo = el('button', { class: 'reader-end-undo', i18n: 'room.resume.unmark', text: tt('room.resume.unmark', 'снять отметку') });
+    undo.type = 'button';
+    undo.addEventListener('click', async () => { try { await localDb.clearTextFinished(tid); } catch (_) {} renderEndOfTextCard(tid); });
+    actions.appendChild(undo);
+  } else {
+    const mark = el('button', { class: 'reader-end-mark', i18n: 'room.resume.markRead', text: tt('room.resume.markRead', '✓ Прочитано') });
+    mark.type = 'button';
+    mark.addEventListener('click', async () => {
+      mark.disabled = true;
+      try { await localDb.setTextFinished(tid); } catch (_) {}
+      try { roomToast(tt('room.resume.markedRead', 'Отмечено: прочитано')); } catch (_) {}
+      renderEndOfTextCard(tid);   // flip to the finished state (offers «снять отметку»)
+    });
+    actions.appendChild(mark);
+  }
+  card.appendChild(actions);
+  const provNote = $('readerProvNote');
+  if (provNote && provNote.parentNode === reader) reader.insertBefore(card, provNote);
+  else reader.appendChild(card);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
 // BRR-P2-003 — passage bookmarks. A ☆/★ control is injected per row POST-render on the
@@ -2264,7 +2329,7 @@ async function openReader(textId, title, opts) {
   if (content) content.hidden = true;
   reader.hidden = false;
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
-  clearResumeBanner(); clearRowJump();   // BRR-P2-002/005 — never carry a stale banner/jump across opens
+  clearResumeBanner(); clearRowJump(); resetEndCard();   // BRR-P2-002/005 + Epic-5 W1 — never carry a stale banner/jump/end-card across opens
   _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
@@ -2296,6 +2361,10 @@ async function openReader(textId, title, opts) {
     if (opts && opts.ftsQuery) jumpToFtsMatch(opts.ftsQuery);                     // BRR-P2-005 — FTS hit → matched row
     else if (opts && opts.scrollToSentence) scrollToSentence(opts.scrollToSentence);   // open a bookmark at its row
     else restoreReaderPosition(readerTextId, opts);      // offer/perform resume (R4 reliability)
+    // Epic-5 W1 — a resumed-to-end / single-screen text reaches the end without a scroll event;
+    // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles
+    // both the «last row visible» and the resume/karaoke-latch cases).
+    try { setTimeout(() => { try { maybeShowEndOfText(); } catch (_) {} }, 450); } catch (_) {}
   }
 }
 
@@ -2340,7 +2409,7 @@ async function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
-  clearResumeBanner(); clearRowJump(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 — stop recording + clear find after close
+  clearResumeBanner(); clearRowJump(); resetEndCard(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1 — stop recording + clear find/end-card after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -2835,6 +2904,22 @@ function renderContinueCard(item) {
   const open = () => openReader(item.id, item.title, { resume: true });
   node.addEventListener('click', open);
   node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  // Epic-5 W1 — dismiss ✓: mark this text read straight from the shelf (clears a finished/near-done
+  // text without reopening). stopPropagation so it never triggers the card's open handler.
+  const done = el('button', { class: 'continue-done', text: '✓', attrs: { 'aria-label': tt('room.resume.markReadTip', 'Отметить прочитанным') } });
+  done.type = 'button';
+  done.title = tt('room.resume.markReadTip', 'Отметить прочитанным');
+  done.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); });
+  done.addEventListener('click', async (e) => {
+    e.stopPropagation(); e.preventDefault();
+    done.disabled = true;
+    try { await localDb.setTextFinished(item.id); } catch (_) {}
+    const rail = node.parentNode;
+    if (node.remove) node.remove();
+    if (rail && !rail.children.length) { const sec = rail.closest ? rail.closest('.corpus-continue') : null; if (sec && sec.remove) sec.remove(); }
+    try { roomToast(tt('room.resume.markedRead', 'Отмечено: прочитано')); } catch (_) {}
+  });
+  node.appendChild(done);
   return node;
 }
 

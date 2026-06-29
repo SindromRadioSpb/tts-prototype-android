@@ -513,6 +513,20 @@
     .reader-resume button { width: auto; flex: none; appearance: none; cursor: pointer; border-radius: 7px; font: inherit; }
     .reader-resume-go { background: var(--accent); color: var(--accent-contrast); border: 0; padding: 6px 13px; font-size: 13px; font-weight: 600; }
     .reader-resume-x { background: transparent; border: 0; color: var(--text-faint); font-size: 16px; padding: 4px 6px; line-height: 1; }
+    /* BRR Epic 5 W1 — end-of-text «✓ Прочитано» card (in text flow, before the prov-note). Auto-width
+       buttons escape the global button{width:100%}. Also the mount point the W2 «что дальше» handoff extends. */
+    .reader-end {
+      margin: 20px 16px 8px; padding: 16px; border: 1px solid var(--border-soft); border-radius: 12px;
+      background: var(--bg-card); display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
+    }
+    .reader-end-head { font-size: 11px; letter-spacing: 0.06em; color: var(--text-faint); text-transform: uppercase; }
+    .reader-end-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+    .reader-end button { width: auto; appearance: none; cursor: pointer; font: inherit; border-radius: 9px; }
+    .reader-end-mark { background: var(--accent); color: var(--accent-contrast); border: 0; padding: 9px 18px; font-size: 14px; font-weight: 700; }
+    .reader-end-mark:disabled { opacity: 0.6; cursor: default; }
+    .reader-end-done { font-size: 14px; font-weight: 700; color: var(--accent); }
+    .reader-end-undo { background: transparent; border: 0; color: var(--text-faint); font-size: 13px; text-decoration: underline; padding: 4px 6px; }
+    .reader-end-mark:focus-visible, .reader-end-undo:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
     /* BRR-S15 — in-reader find bar (sticky under the reader bar) + GREEN find marks (distinct from
        the amber jump-highlight and the blue playback row). a11y: «k / N» counter + scroll = 2nd channel. */
     .reader-find {
@@ -538,6 +552,16 @@
     body.theme-dark #roomReaderTable .rm-find-word { background: rgba(74, 222, 128, 0.30); }
     /* «Продолжить чтение» shelf card — a % progress chip in lieu of provenance badges. */
     .continue-card .continue-pct { background: var(--accent); color: var(--accent-contrast); border: 0; }
+    /* Epic-5 W1 — dismiss ✓: mark a Continue-shelf text read without reopening (top inline-end corner). */
+    .continue-card { position: relative; }
+    .continue-card .work-card-title { padding-inline-end: 22px; }
+    .continue-done {
+      position: absolute; top: 6px; inset-inline-end: 6px; width: auto; appearance: none; cursor: pointer;
+      background: transparent; border: 1px solid var(--border-soft); border-radius: 50%;
+      color: var(--text-faint); font-size: 12px; line-height: 1; padding: 3px 6px;
+    }
+    .continue-done:hover, .continue-done:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+    .continue-done:disabled { opacity: 0.5; cursor: default; }
     /* BRR-P2-003 — per-row ☆/★ bookmark control (Room-only; injected into the action cell). */
     #roomReader .col-action-row-bm { margin-top: 2px; display: flex; justify-content: center; }
     #roomReader .row-bookmark-btn {
@@ -1220,7 +1244,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.42</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.43</span>
   </div>
 </footer>
 

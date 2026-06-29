@@ -822,4 +822,13 @@ export const MIGRATIONS = [
    ALTER TABLE word_status ADD COLUMN srs_sentence_id TEXT;
    ALTER TABLE word_status ADD COLUMN srs_order_index INTEGER;
    ALTER TABLE word_status ADD COLUMN srs_surface TEXT;`,
+
+  // 061_text_progress_finished — BRR Epic 5 (graded-momentum) W1 «continue-mark-read». A durable
+  // per-text «прочитано» mark so the «Продолжить чтение» shelf stops holding a fully-read text forever
+  // (getContinueReading had NO completion cutoff → a 100%-read canon work sat on the shelf permanently).
+  // finished_at = ISO timestamp the reader marked it read (NULL = unread). Additive, nullable; written by
+  // a NARROW UPSERT (setTextFinished) that touches ONLY finished_at, so the 800ms scroll-writer (setProgress)
+  // never clobbers it and a mark never lowers last_row_idx (UPSERT-preserve lesson, inv #2). getContinueReading
+  // filters finished_at IS NULL; carried in the library bundle export/import for portability (R9). Device-local OPFS.
+  `ALTER TABLE text_progress ADD COLUMN finished_at TEXT;`,
 ];

@@ -2771,6 +2771,32 @@ export async function setProgress(textId, { last_row_idx, last_step_id }) {
   );
 }
 
+// BRR Epic 5 W1 «continue-mark-read» — mark a text as READ (durable, per-text). NARROW UPSERT that
+// touches ONLY finished_at + updated_at: the 800ms scroll-writer (setProgress) sets only last_row_idx/
+// last_step_id, so the two writers never clobber each other (UPSERT-preserve, inv #2), and a mark never
+// lowers last_row_idx. finishedAt defaults to now (ISO). getContinueReading then excludes finished texts.
+export async function setTextFinished(textId, finishedAt) {
+  const now = new Date().toISOString();
+  const ts = finishedAt || now;
+  await r(
+    `INSERT INTO text_progress (text_id, finished_at, updated_at)
+     VALUES (?,?,?)
+     ON CONFLICT(text_id) DO UPDATE SET
+       finished_at = excluded.finished_at,
+       updated_at  = excluded.updated_at`,
+    [textId, ts, now]
+  );
+}
+
+// Un-mark a finished text (the «снять отметку» affordance) — it re-enters the «Продолжить» shelf if it
+// still has last_row_idx>0. UPDATE only (no row to create when un-marking); preserves last_row_idx.
+export async function clearTextFinished(textId) {
+  await r(
+    `UPDATE text_progress SET finished_at = NULL, updated_at = ? WHERE text_id = ?`,
+    [new Date().toISOString(), textId]
+  );
+}
+
 // BRR-P2-002 «Продолжить чтение» — texts the reader has progressed into, newest first.
 // Joins text_progress (last_row_idx > 0 = past the start) to texts; carries n_rows so the
 // Room can show a "% прочитано" chip. The «Продолжить чтение» rail lives on the CORPUS tab home,
@@ -2784,6 +2810,7 @@ export async function getContinueReading(limit = 12) {
             (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows
      FROM text_progress tp JOIN texts t ON t.id = tp.text_id
      WHERE COALESCE(t.is_archived, 0) = 0 AND tp.last_row_idx > 0
+       AND tp.finished_at IS NULL
        AND json_extract(t.source_meta_json, '$.origin') = ?
      ORDER BY tp.updated_at DESC LIMIT ?`,
     [CANON_ORIGIN, limit]
@@ -3867,7 +3894,7 @@ export async function exportBundle({ includeArchived = false, textIds = null } =
     let progress = null;
     try {
       const pr = await getProgress(text.id);
-      if (pr) progress = { last_row_idx: pr.last_row_idx ?? null, last_step_id: pr.last_step_id ?? null, updated_at: pr.updated_at || null };
+      if (pr) progress = { last_row_idx: pr.last_row_idx ?? null, last_step_id: pr.last_step_id ?? null, finished_at: pr.finished_at ?? null, updated_at: pr.updated_at || null };
     } catch (_) {}
 
     // BRR-P0-001 — surface the corpus-metadata object (if any) as a first-class
@@ -4398,6 +4425,11 @@ export async function importBundle(bundleObj, { mode = 'skip', canonVersion = nu
       const _prog = textData.progress;
       if (_prog && (_prog.last_row_idx != null || _prog.last_step_id != null)) {
         try { await setProgress(newTextId, { last_row_idx: _prog.last_row_idx ?? null, last_step_id: _prog.last_step_id ?? null }); } catch (_) {}
+      }
+      // Epic 5 W1 — carry the «прочитано» mark across export/import (R9 portability). Separate narrow
+      // write so it never clobbers the position above.
+      if (_prog && _prog.finished_at != null) {
+        try { await setTextFinished(newTextId, String(_prog.finished_at)); } catch (_) {}
       }
       result.imported++;
       result.importedIds.push(newTextId);

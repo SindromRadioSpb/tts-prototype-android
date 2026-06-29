@@ -1941,6 +1941,12 @@ window.I18N_LOCALES.he = {
       fromRow: "עצרת בשורה",
       toStart: "קריאה מההתחלה",
       read: "נקרא",
+      endOfText: "— סוף הטקסט —",
+      markRead: "✓ נקרא",
+      readDone: "✓ נקרא",
+      unmark: "בטל סימון",
+      markedRead: "סומן כנקרא",
+      markReadTip: "סמן כנקרא",
     },
     bookmark: {
       shelfTitle: "סימניות",

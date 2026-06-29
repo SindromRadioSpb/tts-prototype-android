@@ -57,6 +57,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       // getContinueReading («Продолжить чтение» on the Corpus tab) must surface ONLY Ben-Yehuda canon
       // works (source_meta.origin='benyehuda-ingest'), NOT local Studio texts (owner 2026-06-27).
       let contCanon = null, contStudio = null;
+      let finExcluded = null, finLastRowPreserved = null, finStillFinished = null, finReincluded = null, finLastRowAfter = null;
       try {
         await ldb.createText({ id: "cont-canon-x1", text_key: "cont-canon-k1", title: "CANON WORK", source: "Project Ben-Yehuda", source_meta_json: JSON.stringify({ origin: "benyehuda-ingest" }) });
         await ldb.createText({ id: "cont-studio-x1", text_key: "cont-studio-k1", title: "STUDIO TEXT" });   // no source_meta → local
@@ -66,6 +67,20 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         const ids = (cont || []).map((c) => c.id);
         contCanon = ids.includes("cont-canon-x1");
         contStudio = ids.includes("cont-studio-x1");
+        // Epic-5 W1 «continue-mark-read» (migration 061) — marking a text «прочитано» EXCLUDES it from the
+        // shelf; the mark must NOT clobber last_row_idx (narrow UPSERT, inv #2), and a later scroll-write
+        // (setProgress) must NOT clobber finished_at. clearTextFinished re-admits it to the shelf.
+        await ldb.setTextFinished("cont-canon-x1");
+        finExcluded = !(await ldb.getContinueReading(50)).map((c) => c.id).includes("cont-canon-x1");
+        const prog1 = await ldb.getProgress("cont-canon-x1");
+        finLastRowPreserved = !!(prog1 && Number(prog1.last_row_idx) === 5 && prog1.finished_at);
+        await ldb.setProgress("cont-canon-x1", { last_row_idx: 7 });   // scroll-writer fires AFTER a finish
+        const prog2 = await ldb.getProgress("cont-canon-x1");
+        finStillFinished = !!(prog2 && prog2.finished_at && Number(prog2.last_row_idx) === 7);
+        await ldb.clearTextFinished("cont-canon-x1");
+        const clearItem = (await ldb.getContinueReading(50)).find((c) => c.id === "cont-canon-x1");
+        finReincluded = !!clearItem;
+        finLastRowAfter = clearItem ? Number(clearItem.last_row_idx) : null;
         try { await ldb.deleteText("cont-canon-x1"); await ldb.deleteText("cont-studio-x1"); } catch (_) {}
       } catch (e) { contCanon = "ERR:" + e.message; }
       // C2 — SRS schedule (migration 058): a recall write persists the schedule; a PLAIN status set
@@ -111,7 +126,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         d2Null = await ldb.getSentenceForReview("nope", "nokey", 99);
         await ldb.setWordStatus(LK, ""); await ldb.setWordStatus(LK2, ""); try { await ldb.deleteText(TID); } catch (_) {}
       } catch (e) { d2Err = String(e); }
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, srsSet, srsPreserved, srsStatusAfter, srsErr, d7, d7Bad, d7Err, d2, d2Sent, d2Reanchor, d2Null, d2NotDue, d2Err };
+      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, finExcluded, finLastRowPreserved, finStillFinished, finReincluded, finLastRowAfter, srsSet, srsPreserved, srsStatusAfter, srsErr, d7, d7Bad, d7Err, d2, d2Sent, d2Reanchor, d2Null, d2NotDue, d2Err };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -125,6 +140,12 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.newKws === "new", "stored 'new' must overlay getKnownWordStates, got " + JSON.stringify(res.newKws));
     eq(res.contCanon === true, "getContinueReading MUST include a Ben-Yehuda canon work (origin=benyehuda-ingest), got " + JSON.stringify(res.contCanon));
     eq(res.contStudio === false, "getContinueReading MUST EXCLUDE a local Studio text (no canon origin) from the Corpus «Продолжить чтение», got " + JSON.stringify(res.contStudio));
+    // Epic-5 W1 — continue-mark-read (migration 061): finished filter + UPSERT-preserve both directions
+    eq(res.finExcluded === true, "W1: setTextFinished MUST exclude the text from getContinueReading, got " + JSON.stringify(res.finExcluded));
+    eq(res.finLastRowPreserved === true, "W1: setTextFinished MUST preserve last_row_idx (narrow UPSERT, inv #2) + set finished_at, got " + JSON.stringify(res.finLastRowPreserved));
+    eq(res.finStillFinished === true, "W1: a scroll-write (setProgress) after a finish MUST NOT clobber finished_at (and updates last_row_idx→7), got " + JSON.stringify(res.finStillFinished));
+    eq(res.finReincluded === true, "W1: clearTextFinished MUST re-admit the text to getContinueReading, got " + JSON.stringify(res.finReincluded));
+    eq(res.finLastRowAfter === 7, "W1: after clear, last_row_idx reflects the latest scroll position (7), got " + JSON.stringify(res.finLastRowAfter));
     // C2 — SRS schedule (migration 058)
     eq(res.srsErr === null, "C2 SRS schedule path must not error (migration 058 columns), got " + JSON.stringify(res.srsErr));
     eq(res.srsSet && res.srsSet.interval === 3 && res.srsSet.reps === 2, "setWordStatus(status, sched) must persist the SRS schedule (getSrsSchedule), got " + JSON.stringify(res.srsSet));
