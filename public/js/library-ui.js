@@ -1028,7 +1028,14 @@ function renderTrainTeach(item) {
   wordRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': item.niqqud || item.surface, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   box.appendChild(wordRow);
   if (item.gloss) box.appendChild(el('div', { class: 'room-train-teach-gloss', attrs: { dir: 'ltr' }, text: item.gloss }));
-  if (built && built.sentence) box.appendChild(el('div', { class: 'room-train-teach-ctx', attrs: { lang: 'he', dir: 'rtl' }, text: built.sentence }));
+  if (built && built.sentence) {
+    // sentence with its own 🔊 (plays the WHOLE sentence — reuses the data-train-rowspeak handler),
+    // alongside the word-level 🔊 above. Owner request 2026-06-29.
+    const ctxRow = el('div', { class: 'room-train-teach-ctxrow' });
+    ctxRow.appendChild(el('span', { class: 'room-train-teach-ctx', attrs: { lang: 'he', dir: 'rtl' }, text: built.sentence }));
+    ctxRow.appendChild(el('button', { class: 'room-study-speak room-train-rowspeak', text: '🔊', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
+    box.appendChild(ctxRow);
+  }
   if (built && built.ru) box.appendChild(el('div', { class: 'room-train-teach-ru', attrs: { dir: 'ltr' }, text: built.ru }));
   const actions = el('div', { class: 'room-train-actions' });
   actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.expand', text: tt('room.morph.study.expand', 'Подробнее'), attrs: { type: 'button', 'data-train-card': '1' } }));
