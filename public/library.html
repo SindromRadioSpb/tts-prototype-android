@@ -494,8 +494,28 @@
       position: sticky; top: 0; z-index: 10; background: var(--bg-card);
       border-bottom: 1px solid var(--border-soft);
       padding: 10px 12px; padding-top: calc(10px + env(safe-area-inset-top, 0px));
-      display: flex; align-items: center; gap: 10px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
     }
+    /* W4 — in-reader coverage chip: a full-width second row of the sticky bar (flex-basis:100% → its own
+       row); always visible during reading; tap → «Учить». Zone-coloured like the card badge; logical wrap. */
+    .reader-cov-chip {
+      flex-basis: 100%; order: 9; box-sizing: border-box; width: 100%;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px;
+      appearance: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 500;
+      padding: 6px 10px; border: 1px solid var(--border-soft); border-radius: 8px;
+      background: var(--bg-muted); color: var(--text-secondary);
+    }
+    .reader-cov-chip[hidden] { display: none; }
+    .reader-cov-chip .cov-chip-new { font-weight: 700; }
+    .reader-cov-chip.cov-in { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+    .reader-cov-chip.cov-easy { background: #e0f2fe; color: #075985; border-color: #bae6fd; }
+    .reader-cov-chip.cov-hard { background: var(--bg-muted); color: var(--text-secondary); border-color: var(--border-soft); }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .reader-cov-chip.cov-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+      body:not(.theme-light) .reader-cov-chip.cov-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
+    }
+    body.theme-dark .reader-cov-chip.cov-in { background: rgba(34,197,94,.18); color: #bbf7d0; border-color: rgba(34,197,94,.4); }
+    body.theme-dark .reader-cov-chip.cov-easy { background: rgba(14,165,233,.2); color: #bae6fd; border-color: rgba(14,165,233,.4); }
     .reader-back, .reader-aids-toggle {
       flex: none; appearance: none; cursor: pointer; background: var(--bg-muted);
       color: var(--text-primary); border: 1px solid var(--border-soft);
@@ -1270,7 +1290,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.45</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.46</span>
   </div>
 </footer>
 

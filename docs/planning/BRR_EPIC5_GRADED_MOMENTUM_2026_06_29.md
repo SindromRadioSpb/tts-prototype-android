@@ -48,7 +48,7 @@
 | W1 | continue-mark-read | v3.11.43 | _(текущий)_ | reader-resume(45/0, +atTextEnd/lastRowVisible) · reader-word-status(mig 061 + finished round-trip + UPSERT-preserve обе стороны) | ✅ SHIPPED |
 | W2 | end-of-text-handoff | v3.11.44 | _(текущий)_ | corpus-vocab(pickPersonalRail) · scaffold 234 · i18n 226 · parity · node 265/9 | ✅ SHIPPED |
 | W3 | difficulty-band | v3.11.45 | _(текущий)_ | corpus-vocab 25/0 (+difficultyBand/loadFlagFor + real-sidecar) · scaffold 234 · i18n 226 · parity | ✅ SHIPPED |
-| W4 | in-text-coverage-chip | — | — | reader-morph | ⏳ |
+| W4 | in-text-coverage-chip | v3.11.46 | _(текущий)_ | reader-morph · scaffold 234 · i18n 226 · context/parity | ✅ SHIPPED |
 | W5 | niqqud-fade-graduation | — | — | reader-scaffold | ⏳ |
 
 ### W1 — ✅ SHIPPED (v3.11.43)
@@ -77,6 +77,14 @@
 - **Adversarial review pass** — поймал 1 Important: строка сложности **мис-плейсилась на S7 search-RESULT-ROW** (`.corpus-work-row` горизонтальный flex, нет `.work-card-cta` → `appendChild` кидал бэнд справа от ▶, теснил заголовок @380px). Фикс: surface-aware placement — `.corpus-work-col` (result row → внутрь колонки под meta) иначе before `.work-card-cta` (card). +`node.isConnected` guard (W2-консистентность) + убран лишний per-card `applyI18n` (tt() уже локализует). Нит-комментарий smoke поправлен. **Скрин @380px подтвердил оба surface** (rail-карта + result-row).
 - **Гейты:** corpus-vocab 25/0 · scaffold 234 · i18n 226 · reader-morph/context/parity. @380px свет+тёмная (rail-карты: легче/средне/сложнее+архаика; result-row: стек в колонке). ⚠ live-verify бэнда на проде — на реальных corpus-картах.
 - **СЛЕДУЮЩЕЕ = W4 in-text-coverage-chip** (sidecar-first `roomVocabCoverageFor` 0-скан для corpus / live `collectReviewItems` для user; reuse `CFG.KNOWN_STATES`+`classifyZone`+`statusKeyForCard` → chip==карта==краска, R11).
+
+### W4 — ✅ SHIPPED (v3.11.46)
+**in-text-coverage-chip.** Решения владельца: «≈X% знакомо · N новых» · sidecar-corpus / live-scan-user. Карточный «≈N% знакомо» исчезал при открытии.
+- **library-ui:** `refreshCovChip()` — CORPUS → `roomVocabCoverageFor` (sidecar, 0 скан, % byte-identical карточному бейджу, R11) через `corpusReadyKeyMap()` (text_key→card→catalog-id→sidecar); USER → один `collectReviewItems` fold по `CFG.KNOWN_STATES`. Пустой профиль → только «N новых» (без вводящего в заблуждение «≈0% знакомо», зеркало badge-hide). Чип = full-width 2-я строка sticky reader-bar (`flex-basis:100%`), tap → `roomOpenStudyList` («Учить» — «N новых» в один тап от изучения). Hook в `applyDecorations` (open+status+config); `clearCovChip` на open/close.
+- **i18n** `room.corpus.cov.{familiar,newShort,chipAria}` ×3; CSS `.reader-bar{flex-wrap}` + `.reader-cov-chip` (+зоны cov-in/easy/hard, свет+тёмная).
+- **Adversarial review поймал 1 CRITICAL + 2 Important:** **(C)** corpus-ветка = МЁРТВЫЙ код — `corpusReadyMap` keyed by `id` (мал. int), но `readerTextKey`=64-hex `text_key` → `.get()` всегда undefined → каждая corpus-работа молча падала в live-scan fallback (ломая R11-паритет И 0-скан). Фикс: `corpusReadyKeyMap()` keyed by text_key (data-chain verified: key→card→id→sidecar 10/10). **(I)** scan на каждом repaint вкл. config-toggle → memoize user-fold по (tid, statesRef) (config-toggle = тот же profile-ref = cache-hit, без скана). **(I)** busy-guard ронял concurrent refresh без trailing re-run → dirty-flag coalesce.
+- **Гейты:** reader-morph · scaffold 234 · i18n 226 · context/parity. @380px свет+тёмная (known-state «≈87% знакомо · 12 новых» cov-in + empty «📖 N новых» honest). ⚠ live-verify на проде: chip% == card% на реальной corpus-работе.
+- **СЛЕДУЮЩЕЕ = W5 niqqud-fade-graduation** (последний; auto-graduation full→adaptive по порогу знакомых слов; fadeDecision/decorateWords без изменений, лишь fadeMode; 'full' остаётся честным cold-дефолтом; R11 do-no-harm — не «огласовывать назад» заслуженный fade).
 
 ## Источник измерений
 Полный grounded-прогон (6 агентов, file:line, реальные распределения) — рабочий артефакт сессии; ключевые факты сведены в таблицу выше. Независимо подтверждено: niqqud-дефолт `'full'`, `ez`@build-corpus-vocab.js:171 (нет `archaica`), `getContinueReading` без порога, `ready`=796.

@@ -2152,6 +2152,9 @@ window.I18N_LOCALES.he = {
       cov: {
         estimate: "הערכת מילים מוכרות לפי ההערות שלך",
         load: "הרבה שמות/ארכאיזם",
+        familiar: "מוכר",
+        newShort: "חדשות",
+        chipAria: "כיסוי אוצר מילים — פתח «ללמוד»",
       },
       diff: {
         easy: "קל יותר",

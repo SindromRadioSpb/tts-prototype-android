@@ -61,6 +61,7 @@ const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS i
 const TRANSLIT_DATA_REV = 1;     // BRR-S18 — bump when build-translit-index output changes within a catalog version
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
+let corpusReadyByKey = null;     // Map(text_key -> full ready card) — W4: resolve the OPEN work's sidecar coverage
 let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search)
 let corpusSearchInputEl = null;     // S12 — ref so recent/suggestion chips can set the query
 let corpusRecentsEl = null;         // S12 — recents/suggestions row (under the filter bar)
@@ -593,6 +594,82 @@ async function applyDecorations() {
   const need = color || fadeMode === 'adaptive';
   const states = need ? await ensureWordStates() : {};
   try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode }); } catch (_) {}
+  try { refreshCovChip(); } catch (_) {}   // W4 — keep the in-reader coverage chip in sync on open / status / config change
+}
+
+// ── BRR Epic 5 W4 — in-reader coverage chip («≈X% знакомо · N новых») ─────────────────────────
+// Always-visible during reading (a full-width second row of the sticky reader-bar) so the card's i+1
+// verdict persists into the session. CORPUS work → reuse the card's SIDECAR coverage (roomVocabCoverageFor,
+// ZERO scan, byte-identical % to the card badge — R11 cross-surface); USER text (no sidecar) → ONE
+// collectReviewItems pass (the same chunked scan «Учить» uses), folded over CFG.KNOWN_STATES so «знакомо»
+// means the same everywhere. Empty profile → show only «N новых» (no misleading «≈0% знакомо» — mirrors the
+// card's badge-hide on knownDistinct===0). Tap → «📚 Учить» so «N новых» is one tap from learning them.
+function _covChipMount() {
+  const reader = $('roomReader'); if (!reader) return null;
+  const bar = reader.querySelector('.reader-bar'); if (!bar) return null;
+  let chip = $('readerCovChip');
+  if (!chip) {
+    chip = el('button', { class: 'reader-cov-chip', attrs: { type: 'button' } });
+    chip.id = 'readerCovChip'; chip.hidden = true;
+    chip.title = tt('room.corpus.cov.chipAria', 'Покрытие словаря — открыть «Учить»');
+    chip.addEventListener('click', () => { try { roomOpenStudyList(); } catch (_) {} });
+    bar.appendChild(chip);   // last child → wraps to its own full-width row (flex-basis:100%)
+  }
+  return chip;
+}
+function clearCovChip() { const c = $('readerCovChip'); if (c) c.hidden = true; }
+let _covChipBusy = false, _covChipDirty = false, _covChipCache = null;   // cache: {tid, statesRef, pct, newCount, zone, hasKnown}
+async function refreshCovChip() {
+  const tid = readerTextId; if (tid == null) return;
+  if (_covChipBusy) { _covChipDirty = true; return; }   // coalesce: re-run once after the in-flight pass (no missed refresh)
+  _covChipBusy = true;
+  try {
+    let pct = null, newCount = 0, zone = '', hasKnown = false;
+    // CORPUS work → sidecar coverage (0 scan, % byte-identical to the card badge). Resolve the ready card by
+    // text_key (the open work's key; corpusReadyMap is keyed by the small catalog id, NOT the key) → its id → sidecar.
+    let covCard = null;
+    if (readerTextKey) { try { covCard = corpusReadyKeyMap().get(String(readerTextKey)) || null; } catch (_) {} }
+    if (covCard && covCard.id != null && window.CorpusVocabRoom) {
+      const cov = await roomVocabCoverageFor(covCard.id);
+      if (readerTextId !== tid) return;
+      if (cov && cov.matchedDistinct > 0) { pct = Math.round(cov.matchedDrillCov * 100); newCount = cov.frontierCount || 0; zone = cov.zone || ''; hasKnown = cov.knownDistinct > 0; }
+    }
+    // USER text (no sidecar) → ONE live scan, MEMOIZED by (textId, profile-ref): a config toggle (niqqud/colour)
+    // that doesn't change the profile reuses the fold instead of re-scanning (the S3 cost guard). ensureWordStates
+    // returns a reference-stable cache that is nulled on any word-status change → cache miss → re-scan.
+    if (pct == null) {
+      const mount = $('roomReaderTable'), R = window.ReaderMorph, CV = window.CorpusVocab;
+      if (mount && R && R.collectReviewItems && CV) {
+        const states = (await ensureWordStates()) || {};
+        if (readerTextId !== tid) return;
+        if (_covChipCache && _covChipCache.tid === tid && _covChipCache.statesRef === states) {
+          ({ pct, newCount, zone, hasKnown } = _covChipCache);
+        } else {
+          const items = await R.collectReviewItems(mount, states, {});
+          if (readerTextId !== tid) return;
+          const KS = (CV.CFG && CV.CFG.KNOWN_STATES) || {};
+          let knownTok = 0, allTok = 0, nc = 0;
+          for (const it of items) { const f = it.freq || 1; allTok += f; if (KS[it.status]) knownTok += f; else nc++; }
+          if (allTok > 0) { pct = Math.round(knownTok / allTok * 100); newCount = nc; zone = CV.classifyZone ? CV.classifyZone(knownTok / allTok) : ''; hasKnown = knownTok > 0; }
+          _covChipCache = { tid: tid, statesRef: states, pct: pct, newCount: newCount, zone: zone, hasKnown: hasKnown };
+        }
+      }
+    }
+    if (readerTextId !== tid) return;
+    const chip = _covChipMount(); if (!chip) return;
+    if (pct == null || (!hasKnown && newCount === 0)) { chip.hidden = true; return; }   // nothing confident to show
+    if (!hasKnown) zone = '';   // 0% known on an empty profile is not «hard» — don't colour it (R6/R11 honesty)
+    chip.className = 'reader-cov-chip' + (zone ? ' cov-' + zone : '');
+    chip.textContent = '';
+    const lead = el('span', { class: 'cov-chip-pct' });
+    lead.textContent = hasKnown ? ('📖 ≈' + pct + '% ' + tt('room.corpus.cov.familiar', 'знакомо')) : '📖';
+    chip.appendChild(lead);
+    if (newCount > 0) chip.appendChild(el('span', { class: 'cov-chip-new', text: (hasKnown ? ' · ' : ' ') + newCount + ' ' + tt('room.corpus.cov.newShort', 'новых') }));
+    chip.hidden = false;
+  } catch (_) { } finally {
+    _covChipBusy = false;
+    if (_covChipDirty) { _covChipDirty = false; try { refreshCovChip(); } catch (_) {} }   // run the coalesced request
+  }
 }
 
 // ── Epic 4.3a+ — «📚 Учить» → premium frontier-vocabulary sheet (A+B+C+D) ─────────
@@ -2418,7 +2495,7 @@ async function openReader(textId, title, opts) {
   if (content) content.hidden = true;
   reader.hidden = false;
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
-  clearResumeBanner(); clearRowJump(); resetEndCard();   // BRR-P2-002/005 + Epic-5 W1 — never carry a stale banner/jump/end-card across opens
+  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip();   // BRR-P2-002/005 + Epic-5 W1/W4 — never carry a stale banner/jump/end-card/cov-chip across opens
   _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
@@ -2498,7 +2575,7 @@ async function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
-  clearResumeBanner(); clearRowJump(); resetEndCard(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1 — stop recording + clear find/end-card after close
+  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4 — stop recording + clear find/end-card/cov-chip after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
@@ -3382,6 +3459,15 @@ function corpusReadyMap() {
   corpusReadyById = new Map();
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) corpusReadyById.set(String(c.id), c);
   return corpusReadyById;
+}
+// W4 — the OPEN reader knows the work by text_key (64-hex content hash), but the vocab sidecar is keyed
+// by the small catalog id. Memoized text_key→ready-card map so refreshCovChip can resolve the card (and
+// thus its catalog id) on every repaint without an O(ready) scan. Same session-stable lifecycle as corpusReadyMap.
+function corpusReadyKeyMap() {
+  if (corpusReadyByKey) return corpusReadyByKey;
+  corpusReadyByKey = new Map();
+  for (const c of ((corpusIndex && corpusIndex.ready) || [])) if (c.text_key != null) corpusReadyByKey.set(String(c.text_key), c);
+  return corpusReadyByKey;
 }
 function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeEra); }
 // BRR-S16 — provenance filters (audio / human-reviewed) are properties of the READY card (corpus-search

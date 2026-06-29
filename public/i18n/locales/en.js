@@ -2142,6 +2142,9 @@ window.I18N_LOCALES.en = {
       cov: {
         estimate: "Estimated familiar words from your notes",
         load: "many names/archaic",
+        familiar: "familiar",
+        newShort: "new",
+        chipAria: "Vocabulary coverage — open «Study»",
       },
       diff: {
         easy: "easier",
