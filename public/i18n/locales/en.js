@@ -2157,8 +2157,6 @@ window.I18N_LOCALES.en = {
         mid: "medium",
         hard: "harder",
         prov: "approx. — by vocabulary frequency",
-        poetry: "poetry",
-        poetryProv: "register: poetry — the frequency-based difficulty estimate is rough here",
       },
       periodsTitle: "Periods",
       readyN: "ready",

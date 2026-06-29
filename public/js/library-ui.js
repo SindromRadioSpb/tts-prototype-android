@@ -3117,18 +3117,14 @@ async function appendDifficultyRow(node, card) {
   if (!band) return;
   if (!node.isConnected || node.querySelector('.diff-band')) return;   // re-check after the await
   const row = _cardLearnRow(node); if (!row) return;
-  let chip;
-  if (card.register === 'poetic') {
-    // PC-10 — for POETIC register, ez (token-frequency) is a poor difficulty proxy (a dense poem of common
-    // words isn't «легче», R7) → a neutral «поэзия» tag instead of a confident easy/mid/hard claim (R9 derived≠asserted).
-    chip = el('span', { class: 'diff-band diff-poetry', i18n: 'room.corpus.diff.poetry', text: tt('room.corpus.diff.poetry', 'поэзия') });
-    chip.title = tt('room.corpus.diff.poetryProv', 'регистр — поэзия; оценка сложности по частотности здесь приблизительна');
-  } else {
-    const bandKey = 'room.corpus.diff.' + band;
-    const bandFb = band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее';
-    chip = el('span', { class: 'diff-band diff-' + band, i18n: bandKey, text: tt(bandKey, bandFb) });
-    chip.title = tt('room.corpus.diff.prov', 'прибл. — по частотности лексики');
-  }
+  // PC-10 (owner 2026-06-29) — poetry stays WITHIN the легче/средне/сложнее scale like prose: it's 53% of the
+  // corpus, so dropping the graded signal there gutted it (and «поэзия» on half the cards = the same noise PC-2
+  // removed). ez is a rougher proxy for poetry (R7), but a rough signal beats none — kept honest by the
+  // «по частотности» label (not a CEFR verdict). So: the same intrinsic band for every baked work.
+  const bandKey = 'room.corpus.diff.' + band;
+  const bandFb = band === 'easy' ? 'легче' : band === 'mid' ? 'средне' : 'сложнее';
+  const chip = el('span', { class: 'diff-band diff-' + band, i18n: bandKey, text: tt(bandKey, bandFb) });
+  chip.title = tt('room.corpus.diff.prov', 'прибл. — по частотности лексики');
   row.appendChild(chip);
   if (window.CorpusVocab.loadFlagFor(w) && !row.querySelector('.diff-archaica')) {
     row.appendChild(el('span', { class: 'diff-archaica', i18n: 'room.corpus.cov.load', text: tt('room.corpus.cov.load', 'много имён/архаики') }));
