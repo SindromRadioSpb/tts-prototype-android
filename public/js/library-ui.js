@@ -652,6 +652,7 @@ function ensureStudySheet() {
     const opt = t.closest('[data-train-opt]'); if (opt) { onTrainOption(opt); return; }
     if (t.closest('[data-train-submit]')) { onTrainSubmit(); return; }
     if (t.closest('[data-train-next]')) { onTrainNext(); return; }
+    if (t.closest('[data-train-teach-done]')) { onTrainTeachDone(); return; }
     if (t.closest('[data-train-leech]')) { onTrainLeechIgnore(t.closest('.room-train-leech')); return; }
     if (t.closest('[data-train-skip]')) { onTrainSkip(); return; }
     const tile = t.closest('[data-train-tile]'); if (tile) { onTrainTile(tile); return; }
@@ -1011,6 +1012,37 @@ function _trainBuildCloze(item) {
   }
   return best;   // { cz:{answer,segments,count}, ru, sentence, rowIdx } | null
 }
+// D5 — light first-encounter teach panel. Writes NOTHING (not counted as recall); just seeds the word
+// before its first scored test. Word + gloss + 🔊 + the word in its sentence (target VISIBLE) +
+// «Подробнее» (reuses openWordCard) + «Понятно, проверь меня» (→ onTrainTeachDone → the scored test).
+function renderTrainTeach(item) {
+  const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
+  if (!s || !body) return;
+  const built = s._built;
+  body.innerHTML = '';
+  body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
+  const box = el('div', { class: 'room-train-teach' });
+  box.appendChild(el('div', { class: 'room-train-teach-tag', i18n: 'room.morph.study.teachNew', text: tt('room.morph.study.teachNew', '✦ Новое слово') }));
+  const wordRow = el('div', { class: 'room-train-teach-wordrow' });
+  wordRow.appendChild(el('span', { class: 'room-train-teach-word', attrs: { lang: 'he', dir: 'rtl' }, text: item.niqqud || item.surface }));
+  wordRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': item.niqqud || item.surface, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
+  box.appendChild(wordRow);
+  if (item.gloss) box.appendChild(el('div', { class: 'room-train-teach-gloss', attrs: { dir: 'ltr' }, text: item.gloss }));
+  if (built && built.sentence) box.appendChild(el('div', { class: 'room-train-teach-ctx', attrs: { lang: 'he', dir: 'rtl' }, text: built.sentence }));
+  if (built && built.ru) box.appendChild(el('div', { class: 'room-train-teach-ru', attrs: { dir: 'ltr' }, text: built.ru }));
+  const actions = el('div', { class: 'room-train-actions' });
+  actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.expand', text: tt('room.morph.study.expand', 'Подробнее'), attrs: { type: 'button', 'data-train-card': '1' } }));
+  actions.appendChild(el('button', { class: 'room-train-next', i18n: 'room.morph.study.teachReady', text: tt('room.morph.study.teachReady', 'Понятно, проверь меня'), attrs: { type: 'button', 'data-train-teach-done': '1' } }));
+  box.appendChild(actions);
+  body.appendChild(box);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+function onTrainTeachDone() {
+  const s = _trainSession; if (!s) return;
+  const item = s.items[s.idx]; if (!item) return;
+  item._taught = true;   // seed shown → now render the scored test for this same word
+  renderTrainItem();
+}
 function renderTrainItem() {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
   if (!s || !body) return;
@@ -1020,6 +1052,10 @@ function renderTrainItem() {
   const built = item._built || _trainBuildCloze(item);
   if (!built) { s.idx++; return renderTrainItem(); }   // safety (items were pre-filtered to buildable)
   s._built = built;
+  // D5 — teach-before-test: a NEW word never recall-tested (no srs row) gets a brief teach FIRST (form +
+  // gloss + 🔊 + the word in its sentence) so the first encounter isn't a cold guess. The show writes
+  // NOTHING (R2: not counted as recall); the following test scores normally. _taught guards re-render.
+  if (item.status === 'new' && !item._srs && !item._taught) { return renderTrainTeach(item); }
   // Escalation ladder: MC (recognition) for new/l1/l2 · tap-letters (assisted production, mobile-OK)
   // for l3/l4 · free typing (top production tier) only for known. A5 — too few honest distractors →
   // fall back to tap-letters (not free typing — keyboard-free on mobile).

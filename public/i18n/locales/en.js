@@ -2085,6 +2085,8 @@ window.I18N_LOCALES.en = {
         leechHint: "You miss this word a lot.",
         leechIgnore: "🚫 Ignore",
         leechDone: "Marked: ignore",
+        teachNew: "✦ New word",
+        teachReady: "Got it, test me",
       },
       legend: {
         title: "What do the confidence badges mean?",

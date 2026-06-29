@@ -914,6 +914,14 @@
     .room-train-leech-btn:hover { filter: brightness(1.06); }
     .room-train-leech-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .room-train-leech-done { font-size: 12.5px; color: var(--text-secondary); }
+    /* Epic 4.3b Phase D5 — light first-encounter teach panel (shown before a new word's first test). */
+    .room-train-teach { display: flex; flex-direction: column; gap: 8px; padding: 10px 4px; text-align: center; }
+    .room-train-teach-tag { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: .02em; }
+    .room-train-teach-wordrow { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .room-train-teach-word { font-size: 26px; font-weight: 800; color: var(--text-primary); }
+    .room-train-teach-gloss { font-size: 15px; color: var(--text-primary); }
+    .room-train-teach-ctx { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+    .room-train-teach-ru { font-size: 13px; color: var(--text-faint); }
     .room-study { position: fixed; inset: 0; z-index: 990; }   /* below .rm-sheet(1000) so a row's expand-card stacks ABOVE the list */
     .room-study[hidden] { display: none; }
     .room-study-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.45); }
@@ -1154,7 +1162,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.37</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.38</span>
   </div>
 </footer>
 

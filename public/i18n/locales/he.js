@@ -2095,6 +2095,8 @@ window.I18N_LOCALES.he = {
         leechHint: "טועה במילה הזו הרבה.",
         leechIgnore: "🚫 התעלם",
         leechDone: "סומן: התעלם",
+        teachNew: "✦ מילה חדשה",
+        teachReady: "הבנתי, תבחנו אותי",
       },
       legend: {
         title: "מה משמעות תגי הוודאות?",

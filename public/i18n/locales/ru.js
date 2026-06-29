@@ -2099,6 +2099,8 @@ window.I18N_LOCALES.ru = {
         leechHint: "Часто ошибаешься в этом слове.",
         leechIgnore: "🚫 Игнорировать",
         leechDone: "Отмечено: игнор",
+        teachNew: "✦ Новое слово",
+        teachReady: "Понятно, проверь меня",
       },
       legend: {
         title: "Что значат бейджи уверенности?",
