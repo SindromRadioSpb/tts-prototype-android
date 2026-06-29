@@ -1827,13 +1827,25 @@ async function roomSaveUserMeaning(card, occ, meaning) {
 }
 
 let _roomToastEl = null, _roomToastT = null;
-function roomToast(msg) {
+// roomToast(msg) — plain transient toast. roomToast(msg, actionLabel, actionFn) — FB-4: an
+// «Отменить»-style action (reversible destructive ops). With an action the toast lingers longer
+// (5s) so the user can reach it; tapping runs actionFn then dismisses. The element is rebuilt only
+// when its shape changes (plain↔action) to avoid a stale button leaking across calls.
+function roomToast(msg, actionLabel, actionFn) {
   try {
     if (!_roomToastEl) { _roomToastEl = el('div', { class: 'room-toast' }); document.body.appendChild(_roomToastEl); }
-    _roomToastEl.textContent = msg;
+    _roomToastEl.innerHTML = '';
+    _roomToastEl.appendChild(el('span', { class: 'room-toast-msg', text: msg }));
+    const hide = () => { if (_roomToastEl) _roomToastEl.classList.remove('show'); };
+    if (actionLabel && typeof actionFn === 'function') {
+      const btn = el('button', { class: 'room-toast-action', attrs: { type: 'button' } });
+      btn.textContent = actionLabel;
+      btn.addEventListener('click', () => { try { actionFn(); } catch (_) {} hide(); });
+      _roomToastEl.appendChild(btn);
+    }
     _roomToastEl.classList.add('show');
     if (_roomToastT) clearTimeout(_roomToastT);
-    _roomToastT = setTimeout(() => { if (_roomToastEl) _roomToastEl.classList.remove('show'); }, 2200);
+    _roomToastT = setTimeout(hide, actionLabel ? 5000 : 2200);
   } catch (_) {}
 }
 
@@ -3203,10 +3215,23 @@ function renderContinueCard(item) {
     e.stopPropagation(); e.preventDefault();
     done.disabled = true;
     try { await localDb.setTextFinished(item.id); } catch (_) {}
+    // FB-4 — capture the card's position so «Отменить» can restore it (reversible destructive action).
     const rail = node.parentNode;
+    const sib = node.nextSibling;
+    const sec = rail && rail.closest ? rail.closest('.corpus-continue') : null;
+    const secParent = sec ? sec.parentNode : null;
+    const secSib = sec ? sec.nextSibling : null;
     if (node.remove) node.remove();
-    if (rail && !rail.children.length) { const sec = rail.closest ? rail.closest('.corpus-continue') : null; if (sec && sec.remove) sec.remove(); }
-    try { roomToast(tt('room.resume.markedRead', 'Отмечено: прочитано')); } catch (_) {}
+    if (rail && !rail.children.length && sec && sec.remove) sec.remove();
+    const undo = async () => {
+      try { await localDb.clearTextFinished(item.id); } catch (_) {}
+      done.disabled = false;
+      try {
+        if (rail) rail.insertBefore(node, sib);                                      // re-home the card
+        if (sec && !sec.isConnected && secParent) secParent.insertBefore(sec, secSib); // re-attach an emptied shelf
+      } catch (_) {}   // DOM moved on → the card reappears on the next home render (clearTextFinished persisted)
+    };
+    try { roomToast(tt('room.resume.markedRead', 'Отмечено: прочитано'), tt('room.resume.undo', 'Отменить'), undo); } catch (_) {}
   });
   node.appendChild(done);
   return node;
@@ -3229,6 +3254,121 @@ async function injectContinueReading(body) {
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
+}
+
+// FB-3 — honest read-label for a finished text. finished_at is set by the end-card «✓ Прочитано» AND
+// by the Continue dismiss-✓ at ANY progress, so «прочитано» is asserted ONLY at a true end-reach
+// (≥95% of rows); a dismissed-early text reads «отмечено · N%» — never overclaimed as fully read.
+function finishedReadBadge(item) {
+  const pct = window.ReaderProgress ? window.ReaderProgress.continuePercent(item.last_row_idx, item.n_rows) : 0;
+  if (pct >= 95) return el('span', { class: 'prov-badge finished-done', i18n: 'room.resume.readDone', text: tt('room.resume.readDone', '✓ прочитано') });
+  return el('span', { class: 'prov-badge finished-partial', text: tt('room.resume.markedPartial', 'отмечено') + ' · ' + pct + '%' });
+}
+
+// FB-1 — a «✓ Прочитанные» card: a text the reader MARKED finished. Opens by its live local id
+// (resume to where they left). «↩ снять отметку» (clearTextFinished) returns it to «Продолжить».
+function renderFinishedCard(item) {
+  const node = el('div', { class: 'work-card finished-card', attrs: { role: 'button', tabindex: '0' } });
+  const title = item.title || tt('room.work.untitled', 'Без названия');
+  const titleEl = el('span', { class: 'work-card-title', text: title });
+  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  node.appendChild(titleEl);
+  const meta = el('div', { class: 'work-card-meta' });
+  meta.appendChild(finishedReadBadge(item));
+  node.appendChild(meta);
+  node.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.bookmark.open', text: tt('room.bookmark.open', 'Открыть') }));
+  const open = () => openReader(item.id, item.title, { resume: true });
+  node.addEventListener('click', open);
+  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  // ↩ un-mark — a corner control mirroring the Continue dismiss-✓ (fits the 132px rail card; the full
+  // «снять отметку» label lives in the «Показать все» sheet + the end-card). aria-label carries intent.
+  const un = el('button', { class: 'finished-unmark', text: '↩', attrs: { type: 'button', 'aria-label': tt('room.resume.unmark', 'снять отметку') } });
+  un.title = tt('room.resume.unmark', 'снять отметку');
+  un.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); });
+  un.addEventListener('click', async (e) => {
+    e.stopPropagation(); e.preventDefault();
+    un.disabled = true;
+    try { await localDb.clearTextFinished(item.id); } catch (_) {}
+    const rail = node.parentNode;
+    if (node.remove) node.remove();
+    if (rail && !rail.children.length) { const sec = rail.closest ? rail.closest('.corpus-finished') : null; if (sec && sec.remove) sec.remove(); }
+    try { roomToast(tt('room.resume.unmarked', 'Отметка снята — снова в «Продолжить»')); } catch (_) {}
+  });
+  node.appendChild(un);
+  return node;
+}
+
+// FB-1 — the «✓ Прочитанные» shelf, directly below «Продолжить чтение». Self-hides when empty
+// (a new profile gets no dead-end). Fetches one over the rail cap so «Показать все» appears ONLY when
+// there genuinely are more than the rail shows. Same stale-body + filter-active guards as Continue.
+async function injectFinishedReading(body) {
+  try {
+    const RAIL = 12;
+    let items = [];
+    try { items = await localDb.getFinishedTexts(RAIL + 1); } catch (_) { items = []; }
+    if (!items || !items.length || corpusL1Body !== body || corpusFilterActive()) return;
+    const hasMore = items.length > RAIL;
+    const shown = items.slice(0, RAIL);
+    const sec = el('section', { class: 'shelf corpus-finished' });
+    const head = el('div', { class: 'shelf-head' });
+    head.appendChild(el('h2', { class: 'shelf-title', text: '✓ ' + tt('room.resume.finishedShelf', 'Прочитанные') }));
+    if (hasMore) {
+      const all = el('button', { class: 'shelf-showall', attrs: { type: 'button' } });
+      all.textContent = tt('room.resume.showAll', 'Показать все') + ' →';
+      all.addEventListener('click', () => openFinishedAllSheet());
+      head.appendChild(all);
+    }
+    sec.appendChild(head);
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const it of shown) rail.appendChild(renderFinishedCard(it));
+    sec.appendChild(rail);
+    body.insertBefore(sec, body.firstChild);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
+}
+
+// FB-1 (fork ①) — «Показать все» beyond the rail: a DB-backed bottom-sheet listing every finished
+// text (NOT a corpusSearch filter — finished-ness can't ride the catalog). Each row opens or un-marks.
+async function openFinishedAllSheet() {
+  let items = [];
+  try { items = await localDb.getFinishedTexts(500); } catch (_) { items = []; }
+  const ov = el('div', { class: 'list-picker-ov finished-sheet-ov' });
+  const box = el('div', { class: 'list-picker finished-sheet' });
+  const titleEl = el('div', { class: 'list-picker-title' });
+  box.appendChild(titleEl);
+  const listWrap = el('div', { class: 'finished-sheet-list' });
+  const close = () => { try { ov.remove(); } catch (_) {} document.removeEventListener('keydown', onKey); };
+  const repaint = () => {
+    titleEl.textContent = '✓ ' + tt('room.resume.finishedShelf', 'Прочитанные') + ' (' + items.length + ')';   // keep the count live after an in-sheet un-mark
+    listWrap.innerHTML = '';
+    if (!items.length) { listWrap.appendChild(el('div', { class: 'finished-sheet-empty', text: tt('room.resume.finishedEmpty', 'Пока нет прочитанных текстов.') })); return; }
+    for (const it of items) {
+      const row = el('div', { class: 'finished-sheet-row' });
+      const main = el('button', { class: 'finished-sheet-open', attrs: { type: 'button' } });
+      const t = el('span', { class: 'finished-sheet-title', text: it.title || tt('room.work.untitled', 'Без названия') });
+      if (HEBREW_RE.test(it.title || '')) t.setAttribute('dir', 'rtl');
+      main.appendChild(t);
+      main.appendChild(finishedReadBadge(it));
+      main.addEventListener('click', () => { close(); openReader(it.id, it.title, { resume: true }); });
+      row.appendChild(main);
+      const un = el('button', { class: 'finished-sheet-unmark', attrs: { type: 'button', 'aria-label': tt('room.resume.unmark', 'снять отметку') } });
+      un.textContent = '↩';
+      un.addEventListener('click', async () => { try { await localDb.clearTextFinished(it.id); } catch (_) {} items = items.filter((x) => x.id !== it.id); repaint(); });
+      row.appendChild(un);
+      listWrap.appendChild(row);
+    }
+  };
+  repaint();
+  box.appendChild(listWrap);
+  const done = el('button', { class: 'list-picker-done', attrs: { type: 'button' } }); done.textContent = tt('room.corpus.lists.done', 'Готово');
+  done.addEventListener('click', close);
+  box.appendChild(done);
+  ov.appendChild(box);
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
 // BRR-P2-003 — a «🔖 Закладки» card: the saved passage snippet + its work title; opens the
@@ -3393,15 +3533,16 @@ function injectReadingListShelves(body) {
   } catch (_) {}
 }
 
-// Inject the L1 home rails in deterministic top-to-bottom order — because each prepends to firstChild,
-// the LAST to run sits highest: ⭐ Сохранённые поиски → Продолжить → 🔖 Закладки → 📚 Читать позже →
-// profile rail → ready → периоды.
+// Each shelf prepends to body.firstChild → the LAST injected lands on TOP. FB-21 — order so the
+// reader's own activity leads: Continue (top), then Прочитанные, then Bookmarks, then Reading-Lists,
+// then Saved-Searches, then the personal/cold-start Corpus rails at the bottom. Inject in REVERSE.
 async function injectHomeRails(body) {
   await injectCorpusRails(body);
+  injectSavedSearches(body);
   injectReadingListShelves(body);
   await injectBookmarksShelf(body);
-  await injectContinueReading(body);
-  injectSavedSearches(body);
+  await injectFinishedReading(body);   // «✓ Прочитанные» — directly below «Продолжить чтение»
+  await injectContinueReading(body);   // «Продолжить чтение» leads
 }
 
 async function injectCorpusRails(body) {

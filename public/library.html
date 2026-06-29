@@ -647,6 +647,44 @@
     }
     .continue-done:hover, .continue-done:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
     .continue-done:disabled { opacity: 0.5; cursor: default; }
+    /* FB-1 — «✓ Прочитанные» shelf: honest read-status badge (done vs marked-N%) + un-mark + «Показать все». */
+    .corpus-finished .shelf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .shelf-showall {
+      width: auto; flex: none; appearance: none; cursor: pointer; background: transparent; border: 0;
+      color: var(--accent); font-size: 13px; font-weight: 600; padding: 2px 4px;
+    }
+    .shelf-showall:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); border-radius: 6px; }
+    .finished-card { position: relative; }
+    .finished-card .work-card-title { padding-inline-end: 22px; }
+    .finished-card .finished-done { background: rgba(34,197,94,.16); color: #166534; border: 0; }
+    .finished-card .finished-partial { background: var(--bg-muted); color: var(--text-secondary); border: 1px solid var(--border-soft); }
+    .finished-unmark {
+      position: absolute; top: 6px; inset-inline-end: 6px; width: auto; appearance: none; cursor: pointer;
+      background: transparent; border: 1px solid var(--border-soft); border-radius: 50%;
+      color: var(--text-faint); font-size: 12px; line-height: 1; padding: 3px 6px;
+    }
+    .finished-unmark:hover, .finished-unmark:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+    .finished-unmark:disabled { opacity: .5; cursor: default; }
+    @media (prefers-color-scheme: dark) {
+      body:not(.theme-light) .finished-card .finished-done { color: #86efac; }
+    }
+    body.theme-dark .finished-card .finished-done { color: #86efac; }
+    /* FB-1 (fork ①) — «Показать все» finished bottom-sheet (reuses the list-picker shell). */
+    .finished-sheet-list { display: flex; flex-direction: column; gap: 6px; max-height: 56vh; overflow-y: auto; }
+    .finished-sheet-row { display: flex; align-items: stretch; gap: 6px; }
+    .finished-sheet-open {
+      flex: 1; min-width: 0; text-align: start; appearance: none; cursor: pointer; display: flex;
+      align-items: center; justify-content: space-between; gap: 10px; background: var(--bg-muted);
+      color: var(--text-primary); border: 1px solid var(--border-soft); border-radius: 10px; padding: 10px 12px;
+    }
+    .finished-sheet-open:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
+    .finished-sheet-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
+    .finished-sheet-unmark {
+      flex: none; appearance: none; cursor: pointer; background: var(--bg-card); color: var(--text-faint);
+      border: 1px solid var(--border-soft); border-radius: 10px; padding: 0 12px; font-size: 15px;
+    }
+    .finished-sheet-unmark:hover, .finished-sheet-unmark:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
+    .finished-sheet-empty { color: var(--text-secondary); font-size: 14px; padding: 12px 4px; }
     /* BRR-P2-003 — per-row ☆/★ bookmark control (Room-only; injected into the action cell). */
     #roomReader .col-action-row-bm { margin-top: 2px; display: flex; justify-content: center; }
     #roomReader .row-bookmark-btn {
@@ -882,6 +920,18 @@
       text-align: center; opacity: 0; pointer-events: none; z-index: 1200; transition: opacity .2s, transform .2s;
     }
     .room-toast.show { opacity: 1; transform: translate(-50%, 0); }
+    /* FB-4 — undo action inside the toast. The toast is pointer-events:none; the action re-enables
+       itself (child overrides parent) so «Отменить» stays tappable without unblocking the backdrop. */
+    .room-toast { display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .room-toast-msg { min-width: 0; }
+    .room-toast-action {
+      pointer-events: auto; flex: none; appearance: none; cursor: pointer; background: transparent;
+      border: 0; color: var(--accent); font: inherit; font-weight: 700; text-decoration: underline; padding: 2px 2px;
+    }
+    .room-toast-action:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); border-radius: 4px; }
+    /* The toast stays laid out at opacity:0 after fade-out; ungate the action's hit-testing so an invisible
+       «Отменить» can't capture stray taps in the bottom-center thumb zone (adversarial-caught). */
+    .room-toast:not(.show) .room-toast-action { pointer-events: none; }
     /* Tier-3 one-time consent (R5: outbound to Dicta on every tap once granted). */
     .room-consent-overlay {
       position: fixed; inset: 0; z-index: 1400; background: rgba(0,0,0,.45);
@@ -1329,7 +1379,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.51</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.52</span>
   </div>
 </footer>
 

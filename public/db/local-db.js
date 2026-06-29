@@ -2817,6 +2817,26 @@ export async function getContinueReading(limit = 12) {
   );
 }
 
+// BRR Epic 5 W1 follow-up (FB-1) — «✓ Прочитанные»: the inverse of getContinueReading. A text the
+// reader MARKED finished (end-card «✓ Прочитано» or the Continue dismiss-✓) leaves the Continue shelf
+// (finished_at IS NOT NULL) and had NO home — unreachable except by retyping its title (R4 dead-end).
+// This surfaces them, newest-finished first. MUST mirror getContinueReading's anti-leak predicate
+// VERBATIM (FB-2): the same CANON_ORIGIN + is_archived guards keep a locally-finished Studio/user text
+// off the public canon shelf (the 2026-06-27 «150 Глаголов» leak). last_row_idx>0 carries the honest
+// %-read so the shelf can label «прочитано» (≥95%) vs «отмечено · N%» (a 12%-dismissed text — FB-3).
+export async function getFinishedTexts(limit = 12) {
+  return q(
+    `SELECT t.id, t.title, t.text_key, tp.last_row_idx AS last_row_idx, tp.finished_at AS finished_at,
+            (SELECT COUNT(*) FROM sentences s WHERE s.text_id = t.id) AS n_rows
+     FROM text_progress tp JOIN texts t ON t.id = tp.text_id
+     WHERE COALESCE(t.is_archived, 0) = 0 AND tp.last_row_idx > 0
+       AND tp.finished_at IS NOT NULL
+       AND json_extract(t.source_meta_json, '$.origin') = ?
+     ORDER BY tp.finished_at DESC LIMIT ?`,
+    [CANON_ORIGIN, limit]
+  );
+}
+
 // ── bookmarks (BRR-P2-003 Reading-Room passage bookmarks) ────────────────────
 // A bookmark is a position pointer (text + sentence/row). Denormalised title +
 // snippet keep the global shelf and LIKE search body-free. One per (text, sentence).

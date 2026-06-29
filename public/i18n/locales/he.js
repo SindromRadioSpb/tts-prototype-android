@@ -1948,6 +1948,12 @@ window.I18N_LOCALES.he = {
       markedRead: "סומן כנקרא",
       markReadTip: "סמן כנקרא",
       reviewWords: "🔁 חזרה על מילים",
+      finishedShelf: "נקראו",
+      markedPartial: "סומן",
+      showAll: "הצג הכול",
+      undo: "בטל",
+      unmarked: "הסימון הוסר — חזר ל«המשך»",
+      finishedEmpty: "אין עדיין טקסטים שנקראו.",
     },
     bookmark: {
       shelfTitle: "סימניות",

@@ -100,8 +100,12 @@ async function main() {
     test("L1 renders the «✓ Готовы к чтению» rail", C.readyRail && C.cards > 0, "cards=" + C.cards);
     test("L1 renders the period grid (browse-all axis)", C.periodGrid);
     test("ready cards are role=button (served-on-open, no no-JS deep-link)", C.buttons > 0 && C.anchors === 0, "buttons=" + C.buttons + " anchors=" + C.anchors);
-    test("ready card shows honest review_status=machine badge", C.firstRsBadge);
-    test("ready card shows honest audio_status=none badge", C.firstAudioBadge);
+    // PC-2 de-noise (shipped v3.11.48–50): the whole ready rail is review_status=machine + audio=none, so
+    // a per-card «Машинный перевод»/«Без озвучки» pill is constant noise — the machine provenance is stated
+    // ONCE in the rail intro (PC-6). The rs pill shows only when it DIFFERS from machine; the audio pill only
+    // when audio actually exists. So a default machine/none card must NOT carry these constant badges.
+    test("PC-2 · machine ready card omits the constant rs-machine badge", !C.firstRsBadge);
+    test("PC-2 · none-audio ready card omits the constant audio-none badge", !C.firstAudioBadge);
 
     // open a ready work — served-on-open: fetch works/<id>.json → importBundle → warm reader
     await pg.click('.corpus-ready .work-card[role="button"]');

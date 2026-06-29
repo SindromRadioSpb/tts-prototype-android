@@ -1952,6 +1952,12 @@ window.I18N_LOCALES.ru = {
       markedRead: "Отмечено: прочитано",
       markReadTip: "Отметить прочитанным",
       reviewWords: "🔁 Повторить слова",
+      finishedShelf: "Прочитанные",
+      markedPartial: "отмечено",
+      showAll: "Показать все",
+      undo: "Отменить",
+      unmarked: "Отметка снята — снова в «Продолжить»",
+      finishedEmpty: "Пока нет прочитанных текстов.",
     },
     bookmark: {
       shelfTitle: "Закладки",

@@ -1938,6 +1938,12 @@ window.I18N_LOCALES.en = {
       markedRead: "Marked as read",
       markReadTip: "Mark as read",
       reviewWords: "🔁 Review words",
+      finishedShelf: "Read",
+      markedPartial: "marked",
+      showAll: "Show all",
+      undo: "Undo",
+      unmarked: "Unmarked — back in Continue",
+      finishedEmpty: "No finished texts yet.",
     },
     bookmark: {
       shelfTitle: "Bookmarks",
