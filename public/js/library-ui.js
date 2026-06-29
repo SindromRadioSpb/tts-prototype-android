@@ -436,6 +436,54 @@ async function speakWord(text) {
     _wordAudio.src = src; await _wordAudio.play();
   } catch (_) { browserSpeakWord(he); }                       // GCP miss/offline → browser, never a dead-end
 }
+// D6 — play a READER ROW's audio (the cloze sentence) for the «🎧 Аудио» channel: tier-1 baked/cached
+// asset (keyless /api/audio/<assetKey>, the always-available canon path) → else speakWord the sentence
+// text (BYOK GCP → browser voice). Reuses the single _wordAudio element. Mirrors reader-core's tier order
+// WITHOUT touching the parity-locked reader-core (we read the row's own asset key).
+async function playClozeRowAudio(rowIdx) {
+  const row = readerRows[rowIdx];
+  const ak = row && String(row._v3_audioAssetKey || '').trim();
+  if (ak) {
+    try {
+      const h = await fetch('/api/audio/' + encodeURIComponent(ak), { method: 'HEAD' });
+      if (h && h.ok) {
+        if (!_wordAudio) _wordAudio = new Audio();
+        try { _wordAudio.pause(); } catch (_) {}
+        _wordAudio.src = '/api/audio/' + encodeURIComponent(ak); await _wordAudio.play(); return;
+      }
+    } catch (_) {}
+  }
+  // fallback — TTS the sentence text (needs a key or a browser Hebrew voice; gated by availableChannels)
+  try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || (row && (row.he_niqqud || row.he)) || ''); } catch (_) {}
+}
+// D6 — stop any in-flight word/row audio (so switching channel or advancing never overlaps playback).
+function _stopTrainAudio() {
+  try { if (_wordAudio) _wordAudio.pause(); } catch (_) {}
+  try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch (_) {}
+}
+// D6 — training extraction CHANNEL (device-local view pref, like the streak off-switch). 'read' default.
+function trainChannel() { try { return localStorage.getItem('room.trainChannel') || 'read'; } catch (_) { return 'read'; } }
+function trainChannelSet(c) { try { localStorage.setItem('room.trainChannel', c); } catch (_) {} }
+// D6 — does the browser expose a Hebrew (he/iw) speech-synthesis voice? (getVoices can be empty until
+// 'voiceschanged'; we probe best-effort — a BYOK GCP key is the reliable path, this is the keyless one.)
+function _heVoiceAvailable() {
+  try { return !!(window.speechSynthesis && (window.speechSynthesis.getVoices() || []).some((v) => /^(he|iw)/i.test(v.lang || ''))); } catch (_) { return false; }
+}
+// D6 — audio capabilities for availableChannels(): a BYOK key, a browser Hebrew voice, and whether EVERY
+// session item's cloze row carries a baked/cached asset → «🎧 Аудио» plays keyless for ALL of them. We
+// require ALL rows baked (not «any row»): under partial baking with NO key/voice, an un-baked item would
+// fall to a silent browser-TTS — so listen is only offered when all-baked OR a key/voice covers the gap (R10).
+function _trainAudioCaps(items) {
+  let bakedAll = false;
+  try {
+    const list = items || [];
+    bakedAll = list.length > 0 && list.every((it) => { const b = it && it._built; const r = b && readerRows[b.rowIdx]; return !!(r && r._v3_audioAssetKey); });
+  } catch (_) {}
+  return { hasGcpKey: !!gcpTtsKey(), hasHeVoice: _heVoiceAvailable(), rowHasBakedAudio: bakedAll };
+}
+// Warm the speech-synthesis voice list early (getVoices() is often empty until 'voiceschanged') so the
+// keyless he-voice probe is reliable by the time training opens. Best-effort; a BYOK key is the sure path.
+try { if (typeof window !== 'undefined' && window.speechSynthesis) window.speechSynthesis.getVoices(); } catch (_) {}
 
 // BRR-P1-009 — word-status colouring (opt-in). The lemmaKey→state map is built once
 // per reader session from the user's OPFS notes; enabling the toggle warms the morph
@@ -703,6 +751,9 @@ function ensureStudySheet() {
     const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
     if (t.closest('[data-train-again]')) { startTraining(); return; }
     if (t.closest('[data-streak-toggle]')) { streakHiddenSet(!streakHidden()); try { refreshDueBadge(); } catch (_) {} renderTrainSummary(); return; }   // D7 — premium off-switch
+    const chSeg = t.closest('[data-train-channel]'); if (chSeg) { onTrainChannel(chSeg.getAttribute('data-train-channel')); return; }   // D6 — channel
+    if (t.closest('[data-train-listen-row]')) { try { playClozeRowAudio(_trainSession && _trainSession._built && _trainSession._built.rowIdx); } catch (_) {} return; }   // D6 — replay sentence
+    if (t.closest('[data-train-listen-word]')) { const b = _trainSession && _trainSession._built, it = _trainSession && _trainSession.items[_trainSession.idx]; try { speakWord((b && b.cz && b.cz.answer) || (it && (it.niqqud || it.surface)) || ''); } catch (_) {} return; }   // D6 — replay word (sentence-inflected form)
     const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
     if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
     if (t.closest('[data-train-card]')) { onTrainCard(); return; }
@@ -1029,7 +1080,12 @@ async function startTraining() {
   // goal count not-yet-due reviews (R2 «never push ahead of schedule»). So count only the due/new portion.
   const _nowDue = Date.now();
   const dueAvail = items.filter((it) => !it._srs || !it._srs.due || it._srs.due <= _nowDue).length;
-  _trainSession = { items, pool: all, idx: 0, total: items.length, dueAvail: dueAvail, correct: 0, levelUps: 0, answered: false };
+  // D6 — extraction channels: probe audio caps → which of read/listen/reverse/dictate are offerable
+  // (R10 honest degradation); restore the persisted channel, falling back to 'read' if it's unavailable.
+  const caps = _trainAudioCaps(items);
+  const channels = (window.ReaderMorph.availableChannels ? window.ReaderMorph.availableChannels(caps) : { read: true, reverse: true, listen: false, dictate: false });
+  let channel = trainChannel(); if (!channels[channel]) channel = 'read';
+  _trainSession = { items, pool: all, idx: 0, total: items.length, dueAvail: dueAvail, channel: channel, channels: channels, correct: 0, levelUps: 0, answered: false };
   try { localDb.noteAvailable(_localDayStr(), dueAvail); } catch (_) {}   // dueAvail==0 → honest rest-credit
   try { refreshDueBadge(); } catch (_) {}   // reflect today's goal denominator before the first question
   renderTrainItem();
@@ -1103,10 +1159,43 @@ function onTrainTeachDone() {
   item._taught = true;   // seed shown → now render the scored test for this same word
   renderTrainItem();
 }
+// D6 — extraction-channel selector (📖 read · 🎧 listen · 🔤 reverse RU→HE · ✍️ dictate). A segment is
+// disabled (with an honest hint) when its audio can't play (availableChannels). Auto-width buttons
+// (escape the global button{width:100%} trap). i18n labels via tt().
+const _TRAIN_CHANNELS = [
+  { ch: 'read', key: 'room.morph.study.chRead', fb: '📖 Чтение' },
+  { ch: 'listen', key: 'room.morph.study.chListen', fb: '🎧 Аудио' },
+  { ch: 'reverse', key: 'room.morph.study.chReverse', fb: '🔤 RU→HE' },
+  { ch: 'dictate', key: 'room.morph.study.chDictate', fb: '✍️ Диктант' },
+];
+function _trainChannelBar() {
+  const s = _trainSession;
+  const bar = el('div', { class: 'room-train-channels', attrs: { dir: uiDirRoom(), role: 'tablist' } });
+  _TRAIN_CHANNELS.forEach((c) => {
+    const avail = !s.channels || s.channels[c.ch];
+    const b = el('button', { class: 'room-train-chseg' + (s.channel === c.ch ? ' on' : '') + (avail ? '' : ' disabled'),
+      i18n: c.key, text: tt(c.key, c.fb), attrs: { type: 'button', 'data-train-channel': c.ch, role: 'tab', 'aria-selected': String(s.channel === c.ch) } });
+    if (!avail) { b.disabled = true; b.title = tt('room.morph.study.chNoAudio', 'Нужен голос иврита или ключ TTS'); }
+    bar.appendChild(b);
+  });
+  return bar;
+}
+function onTrainChannel(c) {
+  const s = _trainSession; if (!s) return;
+  if (s.channels && !s.channels[c]) return;   // disabled channel — ignore
+  if (s.channel === c) return;
+  s.channel = c; trainChannelSet(c);
+  _stopTrainAudio();   // don't let the previous channel's audio keep playing
+  // Re-pose the CURRENT word in the new channel ONLY if it hasn't been answered yet — re-rendering an
+  // already-answered item would reset `answered` and let it be scored twice (double-counting recall +
+  // the D7 streak). After an answer, the new channel simply takes effect from the NEXT item.
+  if (!s.answered) renderTrainItem();
+}
 function renderTrainItem() {
   const s = _trainSession, body = _studySheet && _studySheet.querySelector('.room-study-body');
   if (!s || !body) return;
   if (s.idx >= s.total) return renderTrainSummary();
+  _stopTrainAudio();   // D6 — a new question must not overlap the previous item's audio
   s.answered = false;
   const item = s.items[s.idx];
   const built = item._built || _trainBuildCloze(item);
@@ -1123,24 +1212,53 @@ function renderTrainItem() {
   let distractors = [];
   const slotMc = (mode === 'mc' && item._mcOptions && item._mcOptions.options && item._mcOptions.options.length >= 3) ? item._mcOptions : null;
   if (mode === 'mc' && !slotMc) { distractors = window.ReaderMorph.pickDistractors(item, s.pool, 3); if (distractors.length < 3) mode = 'tiles'; }
+  // D6 — extraction channels share the answer/grading machinery; ONLY the PROMPT differs. Dictation
+  // (hear → write) is inherently production → never MC (drop to tap-letters even for a fresh word).
+  const channel = s.channel || 'read';
+  if (channel === 'dictate' && mode === 'mc') mode = 'tiles';
   s._mode = mode;
   body.innerHTML = '';
+  body.appendChild(_trainChannelBar());   // D6 — read/listen/reverse/dictate selector (availability-gated)
   body.appendChild(el('div', { class: 'room-train-progress', text: (s.idx + 1) + ' / ' + s.total }));
-  // cloze sentence (vocalized) — segments blank EVERY copy of the target (A2) + an always-present 🔊
-  // row-audio that plays the WHOLE sentence (owner decision A7: full audio incl. the target, as a hint).
-  const clozeWrap = el('div', { class: 'room-train-clozewrap' });
-  const cloze = el('div', { class: 'room-train-cloze', attrs: { dir: 'rtl', lang: 'he' } });
-  (built.cz.segments || []).forEach((seg) => {
-    if (seg.blank) cloze.appendChild(el('span', { class: 'room-train-blank', text: ' ____ ', attrs: { 'aria-label': tt('room.morph.study.blank', 'пропуск') } }));
-    else cloze.appendChild(el('span', { text: seg.t }));
-  });
-  clozeWrap.appendChild(cloze);
-  clozeWrap.appendChild(el('button', { class: 'room-study-speak room-train-rowspeak', text: '🔊', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
-  body.appendChild(clozeWrap);
-  // prompt = lemma gloss (the dictionary/infinitive form) …
+  // ── per-channel PROMPT ────────────────────────────────────────────────────────────────────────────
+  if (channel === 'listen') {
+    // hear the sentence (baked audio when present, else TTS), NO written Hebrew → map sound to form.
+    const au = el('div', { class: 'room-train-audioprompt' });
+    au.appendChild(el('button', { class: 'room-train-bigplay', text: '🔊', attrs: { type: 'button', 'data-train-listen-row': '1', 'aria-label': tt('room.morph.study.replay', 'Прослушать ещё раз') } }));
+    au.appendChild(el('span', { class: 'room-train-audiohint', i18n: 'room.morph.study.listenHint', text: tt('room.morph.study.listenHint', '🎧 Прослушай предложение') }));
+    body.appendChild(au);
+    try { playClozeRowAudio(built.rowIdx); } catch (_) {}   // auto-play once on render
+  } else if (channel === 'dictate') {
+    // hear the ISOLATED word (vocalized TTS) → write it. Pure listening + spelling.
+    const au = el('div', { class: 'room-train-audioprompt' });
+    au.appendChild(el('button', { class: 'room-train-bigplay', text: '🔊', attrs: { type: 'button', 'data-train-listen-word': '1', 'aria-label': tt('room.morph.study.replay', 'Прослушать ещё раз') } }));
+    au.appendChild(el('span', { class: 'room-train-audiohint', i18n: 'room.morph.study.dictateHint', text: tt('room.morph.study.dictateHint', '✍️ Прослушай и впиши слово') }));
+    body.appendChild(au);
+    // play the sentence-INFLECTED vocalized form (built.cz.answer) — it matches what the reveal shows and
+    // what _acceptedSkeletons grades against (item.niqqud is the lemma form, which can differ / be empty).
+    try { speakWord(built.cz.answer || item.niqqud || item.surface || ''); } catch (_) {}   // auto-play once
+  } else if (channel === 'reverse') {
+    // RU→HE production: the meaning is the question, NO Hebrew shown → produce/recognize the Hebrew. NOTE:
+    // MC distractors are the sentence-slot morpho-honest set; a distractor that is ALSO a valid translation
+    // of the gloss would be a synonym false-negative — bounded (same root/POS) + the reveal is honest (R11).
+    body.appendChild(el('div', { class: 'room-train-reverseprompt', i18n: 'room.morph.study.reverseHint', text: tt('room.morph.study.reverseHint', '🔤 Вспомни слово на иврите') }));
+  } else {
+    // read (default) — cloze sentence (vocalized), blank EVERY copy of the target (A2) + 🔊 row-audio
+    // playing the WHOLE sentence (owner decision A7: full audio incl. the target, as a hint).
+    const clozeWrap = el('div', { class: 'room-train-clozewrap' });
+    const cloze = el('div', { class: 'room-train-cloze', attrs: { dir: 'rtl', lang: 'he' } });
+    (built.cz.segments || []).forEach((seg) => {
+      if (seg.blank) cloze.appendChild(el('span', { class: 'room-train-blank', text: ' ____ ', attrs: { 'aria-label': tt('room.morph.study.blank', 'пропуск') } }));
+      else cloze.appendChild(el('span', { text: seg.t }));
+    });
+    clozeWrap.appendChild(cloze);
+    clozeWrap.appendChild(el('button', { class: 'room-study-speak room-train-rowspeak', text: '🔊', attrs: { type: 'button', 'data-train-rowspeak': '1', 'aria-label': tt('room.reader.readAloud', 'Озвучить строку') } }));
+    body.appendChild(clozeWrap);
+  }
+  // prompt = lemma gloss (the meaning anchor — for 'reverse' this IS the question) …
   body.appendChild(el('div', { class: 'room-train-prompt', attrs: { dir: 'ltr' }, text: '✎ ' + (item.gloss || tt('room.morph.study.recall', 'вспомни слово')) }));
-  // … PLUS the full row translation (context — the word in the sentence may be in a different form
-  // than the infinitive gloss; the translation shows which). Owner request.
+  // … PLUS the full row translation (sense context; for reverse it disambiguates which Hebrew word; for
+  // listen/dictate it anchors meaning→form). The Hebrew form itself is never leaked here.
   if (built.ru) body.appendChild(el('div', { class: 'room-train-ctxq', attrs: { dir: 'ltr' }, text: built.ru }));
   if (mode === 'mc') {
     // D1 — when slot-inflected options exist, ALL 4 are bare slot forms (correct + distractors), so no
@@ -1280,6 +1398,11 @@ function renderTrainReveal(correct, moved, skipped, isLeech) {
   ansRow.appendChild(el('button', { class: 'room-study-speak', text: '🔊', attrs: { type: 'button', 'data-train-speak': '1', 'data-he': built.cz.answer, 'aria-label': tt('room.morph.pronounce', 'Произнести') } }));
   rev.appendChild(ansRow);
   if (item.gloss) rev.appendChild(el('div', { class: 'room-train-ansgloss', attrs: { dir: 'ltr' }, text: item.gloss }));
+  // D6 — for audio/reverse channels the Hebrew sentence wasn't shown in the question; reveal it now so the
+  // learner sees the word in its context (read mode already showed it, so skip there to avoid repetition).
+  if (s.channel && s.channel !== 'read' && built && built.sentence) {
+    rev.appendChild(el('div', { class: 'room-train-revealsent', attrs: { dir: 'rtl', lang: 'he' }, text: built.sentence }));
+  }
   if (moved && moved.indexOf('→') >= 0) rev.appendChild(el('div', { class: 'room-train-moved', text: moved }));
   if (built.ru) rev.appendChild(el('div', { class: 'room-train-ctx', attrs: { dir: 'ltr' }, text: built.ru }));
   // D4 — leech nudge: soft, opt-in (reuses setWordStatus; never auto-ignores).

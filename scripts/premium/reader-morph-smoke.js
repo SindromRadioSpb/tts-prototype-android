@@ -854,6 +854,28 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(stk.empty.cur === 0 && stk.empty.best === 0 && stk.empty.lastDay === null, "streakFromDays empty → 0/0/null, got " + JSON.stringify(stk.empty));
     eq(stk.nullSafe.cur === 0 && stk.nullSafe.best === 0 && stk.nullSafe.alive === false, "streakView null-safe → 0/0/not-alive, got " + JSON.stringify(stk.nullSafe));
 
+    // ── Epic 4.3b Phase D6 — availableChannels (R10 honest audio degradation; pure). ──
+    const ch = await pg.evaluate(() => {
+      const R = window.ReaderMorph;
+      return {
+        none: R.availableChannels({ hasGcpKey: false, hasHeVoice: false, rowHasBakedAudio: false }),
+        baked: R.availableChannels({ hasGcpKey: false, hasHeVoice: false, rowHasBakedAudio: true }),
+        voice: R.availableChannels({ hasGcpKey: false, hasHeVoice: true, rowHasBakedAudio: false }),
+        key: R.availableChannels({ hasGcpKey: true, hasHeVoice: false, rowHasBakedAudio: false }),
+        nullArg: R.availableChannels(null),
+      };
+    });
+    eq(ch.none.read === true && ch.none.reverse === true && ch.none.listen === false && ch.none.dictate === false,
+      "availableChannels: no audio → read+reverse only (listen/dictate OFF), got " + JSON.stringify(ch.none));
+    eq(ch.baked.listen === true && ch.baked.dictate === false,
+      "availableChannels: baked sentence audio enables LISTEN but NOT dictate (no per-word baked audio), got " + JSON.stringify(ch.baked));
+    eq(ch.voice.listen === true && ch.voice.dictate === true,
+      "availableChannels: a browser Hebrew voice enables BOTH listen + dictate, got " + JSON.stringify(ch.voice));
+    eq(ch.key.listen === true && ch.key.dictate === true,
+      "availableChannels: a BYOK key enables BOTH listen + dictate, got " + JSON.stringify(ch.key));
+    eq(ch.nullArg.read === true && ch.nullArg.reverse === true && ch.nullArg.listen === false && ch.nullArg.dictate === false,
+      "availableChannels null-safe → read/reverse on, audio off, got " + JSON.stringify(ch.nullArg));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

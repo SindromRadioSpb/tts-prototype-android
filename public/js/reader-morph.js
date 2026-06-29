@@ -1756,6 +1756,17 @@
     return { cur: cur, best: fold.best, grace: fold.grace, alive: alive, cap: cap,
       todayRecalls: todayRecalls, todayGoal: todayGoal, todayRest: todayRest, todayQualified: todayQualified };
   }
+  // Epic 4.3b Phase D6 — extraction-channel availability (R10 honest degradation). The SAME word can be
+  // tested via different prompts: read (HE sentence shown), reverse (RU→HE, no audio), listen (hear the
+  // sentence), dictate (hear the isolated word → write). read + reverse need NO audio → always offered.
+  // listen needs PLAYABLE sentence audio = a baked/cached asset (keyless) OR a BYOK GCP key OR a browser
+  // Hebrew voice. dictate has NO per-word baked audio → needs a key OR a browser Hebrew voice. A channel
+  // must NEVER be offered when its audio can't play (a broken feature is an R5/R10 red flag). PURE.
+  function availableChannels(caps) {
+    var c = caps || {};
+    var key = !!c.hasGcpKey, voice = !!c.hasHeVoice, baked = !!c.rowHasBakedAudio;
+    return { read: true, reverse: true, listen: (baked || key || voice), dictate: (key || voice) };
+  }
   // MC mode by maturity (escalate, owner decision 1): new/l1/l2 → recognition (MC); l3/l4/known → typed.
   function isMcLevel(status) { var s = status || "new"; return s === "new" || s === "l1" || s === "l2"; }
   // pickDistractors (R10 moat): morpho-honest, deterministic. Score: same root ≫ same POS+near length >
@@ -1914,6 +1925,7 @@
     findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
     streakFromDays: streakFromDays, streakView: streakView,
     STREAK_GOAL_CAP: STREAK_GOAL_CAP, STREAK_GRACE_MAX: STREAK_GRACE_MAX,
+    availableChannels: availableChannels,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

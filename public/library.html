@@ -920,6 +920,29 @@
       color: var(--text-secondary); font-size: 12px; opacity: .8; cursor: pointer;
     }
     .room-train-streaktoggle:hover { opacity: 1; text-decoration: underline; }
+    /* Epic 4.3b Phase D6 — extraction-channel selector (read/listen/reverse/dictate) + audio/reverse prompts.
+       Pill buttons are auto-width (escape the global button{width:100%} trap); break only between pills. */
+    .room-train-channels { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 12px; }
+    .room-train-chseg {
+      width: auto !important; flex: 0 0 auto; display: inline-block; padding: 5px 11px;
+      border-radius: 999px; font-size: 12.5px; cursor: pointer; white-space: nowrap;
+      background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-secondary);
+    }
+    .room-train-chseg.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+    .room-train-chseg.disabled { opacity: .42; cursor: not-allowed; }
+    .room-train-audioprompt { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 16px 0 12px; }
+    .room-train-bigplay {
+      width: 72px !important; height: 72px; border-radius: 50%; font-size: 30px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--bg-card); border: 2px solid var(--accent); color: var(--accent);
+    }
+    .room-train-bigplay:hover { background: var(--accent); color: #fff; }
+    .room-train-audiohint { font-size: 13.5px; color: var(--text-secondary); text-align: center; }
+    .room-train-reverseprompt { font-size: 16px; font-weight: 700; color: var(--text-primary); text-align: center; margin: 8px 0 10px; }
+    .room-train-revealsent {
+      margin-top: 8px; font-size: 15px; line-height: 1.7; color: var(--text-secondary);
+      border-top: 1px dashed var(--border-soft); padding-top: 8px; text-align: center;
+    }
     /* Epic 4.3b Phase D4 — leech nudge (soft, opt-in): shown on reveal once a word has been missed enough. */
     .room-train-leech {
       display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
@@ -1185,7 +1208,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.40</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.41</span>
   </div>
 </footer>
 
