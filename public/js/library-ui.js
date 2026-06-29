@@ -4263,7 +4263,10 @@ function paintRecents() {
   host.innerHTML = '';
   const recents = getRecentSearches();
   const list = recents.length ? recents : CORPUS_SUGGESTIONS;
-  host.appendChild(el('span', { class: 'corpus-recents-label', text: recents.length ? tt('room.corpus.search.recent', 'Недавние') : tt('room.corpus.search.try', 'Попробуйте') }));
+  // FB-6 — clarify these are recent SEARCHES, not filter/sort tabs: a 🕘 history label (only over real
+  // history; cold-start suggestions are «Популярные запросы», no clock). The glyph carries no data-i18n.
+  const recLabel = recents.length ? ('🕘 ' + tt('room.corpus.search.recent', 'Недавние запросы')) : tt('room.corpus.search.try', 'Популярные запросы');
+  host.appendChild(el('span', { class: 'corpus-recents-label', text: recLabel }));
   const chips = el('div', { class: 'corpus-recents-chips' });
   for (const term of list) {
     const c = el('button', { class: 'corpus-recent-chip', attrs: { type: 'button' } });
@@ -4455,7 +4458,14 @@ function buildCorpusFilterBar() {
   clearX.addEventListener('click', (e) => { e.preventDefault(); doClear(); });
   inputWrap.appendChild(input); inputWrap.appendChild(clearX);
   bar.appendChild(inputWrap);
-  const chips = el('div', { class: 'corpus-facets' });
+  // FB-6 — search history sits directly under the input (the universal position), ABOVE the filter facets,
+  // so a row of recent-QUERY chips is never read as filter/sort tabs (the owner's «блок сортировки» misread).
+  corpusRecentsEl = el('div', { class: 'corpus-recents' });
+  bar.appendChild(corpusRecentsEl);
+  paintRecents();
+  corpusRecentsEl.hidden = corpusFilterActive();
+  // FB-12 — group semantics so a screen reader announces «Фильтры корпуса», not a bare button stream.
+  const chips = el('div', { class: 'corpus-facets', attrs: { role: 'group', 'aria-label': tt('room.corpus.facets.groupLabel', 'Фильтры корпуса') } });
   // BRR-S11 — when a scope is active, a removable «✕ в авторе/периоде: X» chip leads the row (honest,
   // explicit scope; clearing it returns to global search). The bar is rebuilt on home render, so the
   // chip appears/disappears with the scope.
@@ -4469,14 +4479,16 @@ function buildCorpusFilterBar() {
     sc.addEventListener('click', () => { corpusFilter.scopeAuthor = ''; corpusFilter.scopeEra = ''; renderCorpus(); });
     chips.appendChild(sc);
   }
-  const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly) } });
+  const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly), title: tt('room.corpus.facets.readyHint', 'С переводом — можно открыть и читать') } });
   ready.textContent = '✓ ' + tt('room.corpus.facets.ready', 'Готовые');
   ready.addEventListener('click', () => { corpusFilter.readyOnly = !corpusFilter.readyOnly; ready.classList.toggle('on', corpusFilter.readyOnly); ready.setAttribute('aria-pressed', String(corpusFilter.readyOnly)); corpusRefreshL1Body(); });
   chips.appendChild(ready);
   // BRR-S7 — «Читаемые для меня»: i+1 readability filter (zone in/easy vs the live profile). Loads the
   // readable-set once (anti-stampede) before refreshing; an empty profile honestly yields no readable hits.
-  const readable = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readableOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readableOnly) } });
-  readable.textContent = '📖 ' + tt('room.corpus.facets.readable', 'Читаемые для меня');
+  // FB-15 — short visible label «📖 Читаемые» keeps the lean main row on ONE line @380px; the full
+  // «Читаемые для меня» rides title/aria-label (FB-13 honest hint: this is the i+1 personal filter).
+  const readable = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readableOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readableOnly), 'aria-label': tt('room.corpus.facets.readable', 'Читаемые для меня'), title: tt('room.corpus.facets.readableHint', 'По вашему словарю (i+1) — посильные тексты') } });
+  readable.textContent = '📖 ' + tt('room.corpus.facets.readableShort', 'Читаемые');
   readable.addEventListener('click', async () => {
     corpusFilter.readableOnly = !corpusFilter.readableOnly;
     readable.classList.toggle('on', corpusFilter.readableOnly);
@@ -4490,18 +4502,42 @@ function buildCorpusFilterBar() {
   // the gear toggles. Persisted; AUTO-expands when any advanced filter is active (active filters stay
   // visible); the gear shows «•» when advanced filters are on. Tames the @380px chip density (R4).
   const advWrap = el('div', { class: 'corpus-facets-advanced' });
-  const advActive = !!(corpusFilter.exactForm || corpusFilter.hasAudio || corpusFilter.reviewed || corpusFilter.genre || corpusFilter.lang);
+  const advCount = (corpusFilter.exactForm ? 1 : 0) + (corpusFilter.hasAudio ? 1 : 0) + (corpusFilter.reviewed ? 1 : 0) + (corpusFilter.genre ? 1 : 0) + (corpusFilter.lang ? 1 : 0);
+  const advActive = advCount > 0;
   let advExpanded = advActive || _filtersExpanded();
-  const gear = el('button', { class: 'corpus-facet-chip corpus-facets-gear' + (advActive ? ' on' : ''), attrs: { type: 'button', 'aria-expanded': String(advExpanded), 'aria-controls': 'corpusFacetsAdv', title: tt('room.corpus.facets.more', 'Ещё фильтры') } });
-  gear.textContent = '⚙' + (advActive ? ' •' : '');
-  gear.addEventListener('click', () => { advExpanded = !advExpanded; advWrap.hidden = !advExpanded; gear.setAttribute('aria-expanded', String(advExpanded)); _setFiltersExpanded(advExpanded); });
+  // FB-11 — the gear is icon-only; give AT a real name + the active count, and replace the decorative «•»
+  // with a numeric badge «⚙ 2» so sighted users see how many advanced filters hide here.
+  const gearLabel = tt('room.corpus.facets.more', 'Ещё фильтры');
+  const gear = el('button', { class: 'corpus-facet-chip corpus-facets-gear' + (advActive ? ' on' : ''), attrs: { type: 'button', 'aria-expanded': String(advExpanded), 'aria-controls': 'corpusFacetsAdv', title: gearLabel, 'aria-label': gearLabel + (advCount ? (', ' + tt('room.corpus.facets.activeCount', 'активно') + ': ' + advCount) : '') } });
+  gear.textContent = '⚙' + (advCount ? ' ' + advCount : '');
+  // The bar is NOT rebuilt when an advanced filter toggles (corpusRefreshL1Body re-renders only the body),
+  // so the gear must sync from the LIVE corpusFilter — else its count/.on stay stale and FB-8 reads a stale
+  // advActive and could collapse the row over a just-enabled filter (adversarial-caught). Returns isActive.
+  const syncGear = () => {
+    const n = (corpusFilter.exactForm ? 1 : 0) + (corpusFilter.hasAudio ? 1 : 0) + (corpusFilter.reviewed ? 1 : 0) + (corpusFilter.genre ? 1 : 0) + (corpusFilter.lang ? 1 : 0);
+    gear.textContent = '⚙' + (n ? ' ' + n : '');
+    gear.classList.toggle('on', n > 0);
+    gear.setAttribute('aria-label', gearLabel + (n ? (', ' + tt('room.corpus.facets.activeCount', 'активно') + ': ' + n) : ''));
+    return n > 0;
+  };
+  gear.addEventListener('click', () => {
+    // FB-8 — active advanced filters must never be hidden behind the gear: while any is on, the row stays
+    // open (collapsing it would hide an applied filter → results look wrong with no visible cause).
+    const active = syncGear();
+    advExpanded = active ? true : !advExpanded;
+    advWrap.hidden = !advExpanded;
+    gear.setAttribute('aria-expanded', String(advExpanded));
+    if (!active) _setFiltersExpanded(advExpanded);
+  });
   chips.appendChild(gear);
   advWrap.id = 'corpusFacetsAdv';
+  advWrap.setAttribute('role', 'group');
+  advWrap.setAttribute('aria-label', tt('room.corpus.facets.advGroupLabel', 'Дополнительные фильтры'));
   // BRR-S9 — «🔤 Точная форма»: default search is lemma-tolerant («по корню» — all forms of the root);
   // ON restricts the in-text «слова» group to the LITERAL consonantal form (Reverso-class exact toggle).
   const exactChip = el('button', { class: 'corpus-facet-chip' + (corpusFilter.exactForm ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.exactForm), title: tt('room.corpus.search.exactFormHint', 'Только точная форма слова, без других форм корня') } });
   exactChip.textContent = '🔤 ' + tt('room.corpus.search.exactForm', 'Точная форма');
-  exactChip.addEventListener('click', () => { corpusFilter.exactForm = !corpusFilter.exactForm; exactChip.classList.toggle('on', corpusFilter.exactForm); exactChip.setAttribute('aria-pressed', String(corpusFilter.exactForm)); corpusRefreshL1Body(); });
+  exactChip.addEventListener('click', () => { corpusFilter.exactForm = !corpusFilter.exactForm; exactChip.classList.toggle('on', corpusFilter.exactForm); exactChip.setAttribute('aria-pressed', String(corpusFilter.exactForm)); corpusRefreshL1Body(); syncGear(); });
   advWrap.appendChild(exactChip);
   // BRR-S16 — provenance filters (data-feasible from ready cards; imply readable works). A simple toggle
   // chip each: 🔊 has-audio, ✍ human-reviewed. (Length is covered by the L3 length-sort; niqqud-ratio
@@ -4509,13 +4545,13 @@ function buildCorpusFilterBar() {
   const mkProvChip = (key, emoji, i18nKey, fb) => {
     const c = el('button', { class: 'corpus-facet-chip' + (corpusFilter[key] ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter[key]) } });
     c.textContent = emoji + ' ' + tt(i18nKey, fb);
-    c.addEventListener('click', () => { corpusFilter[key] = !corpusFilter[key]; c.classList.toggle('on', corpusFilter[key]); c.setAttribute('aria-pressed', String(corpusFilter[key])); corpusRefreshL1Body(); });
+    c.addEventListener('click', () => { corpusFilter[key] = !corpusFilter[key]; c.classList.toggle('on', corpusFilter[key]); c.setAttribute('aria-pressed', String(corpusFilter[key])); corpusRefreshL1Body(); syncGear(); });
     return c;
   };
   advWrap.appendChild(mkProvChip('hasAudio', '🔊', 'room.corpus.facets.hasAudio', 'С аудио'));
   advWrap.appendChild(mkProvChip('reviewed', '✍', 'room.corpus.facets.reviewed', 'Проверено'));
-  advWrap.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel));
-  advWrap.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel));
+  advWrap.appendChild(buildFacetSelect('genre', 'room.corpus.facets.genre', ((corpusRoot && corpusRoot.counts) || {}).by_genre || {}, corpusGenreLabel, syncGear));
+  advWrap.appendChild(buildFacetSelect('lang', 'room.corpus.facets.lang', ((corpusRoot && corpusRoot.counts) || {}).by_lang || {}, corpusLangLabel, syncGear));
   advWrap.hidden = !advExpanded;
   // The clear chip is ALWAYS in the bar (the bar is not rebuilt on filter change to keep the
   // input focused) — its visibility is toggled by corpusRefreshL1Body.
@@ -4527,17 +4563,12 @@ function buildCorpusFilterBar() {
   chips.appendChild(clear);
   bar.appendChild(chips);
   bar.appendChild(advWrap);
-  // BRR-S12 — recents/suggestions row (shown only when no query is active; toggled in corpusRefreshL1Body).
-  corpusRecentsEl = el('div', { class: 'corpus-recents' });
-  bar.appendChild(corpusRecentsEl);
-  paintRecents();
-  corpusRecentsEl.hidden = corpusFilterActive();
   return bar;
 }
 
 // A facet <select> (native = compact + accessible on mobile); options are the histogram keys
 // sorted by count desc, each with its count. The label gets an `on` class when a value is set.
-function buildFacetSelect(key, labelKey, counts, labelFn) {
+function buildFacetSelect(key, labelKey, counts, labelFn, onChange) {
   const wrap = el('label', { class: 'corpus-facet-select' + (corpusFilter[key] ? ' on' : '') });
   const sel = el('select', { attrs: { 'aria-label': tt(labelKey) } });
   sel.appendChild(el('option', { text: tt(labelKey), attrs: { value: '' } }));
@@ -4545,7 +4576,7 @@ function buildFacetSelect(key, labelKey, counts, labelFn) {
     sel.appendChild(el('option', { text: (labelFn(k) || k) + ' (' + n + ')', attrs: { value: k } }));
   });
   sel.value = corpusFilter[key] || '';
-  sel.addEventListener('change', () => { corpusFilter[key] = sel.value; wrap.classList.toggle('on', !!sel.value); corpusRefreshL1Body(); });
+  sel.addEventListener('change', () => { corpusFilter[key] = sel.value; wrap.classList.toggle('on', !!sel.value); corpusRefreshL1Body(); if (onChange) onChange(); });
   wrap.appendChild(sel);
   return wrap;
 }
