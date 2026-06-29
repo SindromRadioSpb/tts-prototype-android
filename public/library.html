@@ -552,6 +552,18 @@
     .reader-resume button { width: auto; flex: none; appearance: none; cursor: pointer; border-radius: 7px; font: inherit; }
     .reader-resume-go { background: var(--accent); color: var(--accent-contrast); border: 0; padding: 6px 13px; font-size: 13px; font-weight: 600; }
     .reader-resume-x { background: transparent; border: 0; color: var(--text-faint); font-size: 16px; padding: 4px 6px; line-height: 1; }
+    /* W5 — one-time niqqud-fade graduation nudge (accent-bordered, opt-in; sits above the text). */
+    .reader-fadegrad {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      margin: 10px 12px; padding: 10px 12px; border-radius: 10px;
+      background: var(--bg-muted); border: 1px solid var(--accent); font-size: 13px; color: var(--text-primary);
+    }
+    .reader-fadegrad-msg { flex: 1; min-width: 140px; }
+    .reader-fadegrad-actions { display: flex; align-items: center; gap: 6px; flex: none; }
+    .reader-fadegrad button { width: auto; flex: none; appearance: none; cursor: pointer; border-radius: 7px; font: inherit; }
+    .reader-fadegrad-go { background: var(--accent); color: var(--accent-contrast); border: 0; padding: 6px 14px; font-size: 13px; font-weight: 600; }
+    .reader-fadegrad-x { background: transparent; border: 0; color: var(--text-faint); font-size: 15px; padding: 4px 6px; line-height: 1; }
+    .reader-fadegrad-go:focus-visible, .reader-fadegrad-x:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--accent); }
     /* BRR Epic 5 W1 — end-of-text «✓ Прочитано» card (in text flow, before the prov-note). Auto-width
        buttons escape the global button{width:100%}. Also the mount point the W2 «что дальше» handoff extends. */
     .reader-end {
@@ -1290,7 +1302,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.46</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.47</span>
   </div>
 </footer>
 

@@ -44,5 +44,21 @@ eq(fd(undefined, 'likely', 'adaptive'), 'niqqud', 'adaptive unseen likely');
 // 5) Adaptive + non-familiar state value ⇒ keep niqqud.
 eq(fd('bogus', 'exact', 'adaptive'), 'niqqud', 'adaptive non-familiar state');
 
+// ── W5 — fadeGraduationReady: OFFER adaptive fade once GENUINELY-LEARNED words reach the threshold.
+// Counts known + SRS learning/weak/stale + manual l1–l4; EXCLUDES 'new' (tracked-but-unknown) and
+// 'ignore' (skipped) so they never trigger the offer. The user (not the engine) flips the mode.
+const fg = RM.fadeGraduationReady, MIN = RM.FADE_GRADUATION_MIN;
+if (typeof fg !== 'function' || typeof MIN !== 'number') { console.error('FAIL: reader-morph.fadeGraduationReady/FADE_GRADUATION_MIN not exported'); process.exit(1); }
+const mkStates = (counts) => { const m = {}; let i = 0; for (const [st, n] of Object.entries(counts)) for (let j = 0; j < n; j++) m['k' + (i++)] = st; return m; };
+eq(fg(mkStates({ known: MIN })), true, `exactly MIN(${MIN}) known ⇒ ready`);
+eq(fg(mkStates({ known: MIN - 1 })), false, `MIN-1 known ⇒ not ready`);
+eq(fg(mkStates({ known: 10, l2: 10, learning: 10, l4: MIN - 30 })), true, `mixed genuinely-learned ≥MIN ⇒ ready`);
+eq(fg(mkStates({ 'new': 1000, ignore: 1000 })), false, `new+ignore (any count) ⇒ not ready (not progress)`);
+eq(fg(mkStates({ known: MIN - 1, 'new': 100, ignore: 100 })), false, `MIN-1 learned + lots of new/ignore ⇒ still not ready`);
+eq(fg({}), false, 'empty states ⇒ not ready');
+eq(fg(null), false, 'null states ⇒ not ready');
+eq(fg(mkStates({ known: 5 }), 5), true, 'custom min=5 honoured');
+eq(fg(mkStates({ known: 4 }), 5), false, 'custom min=5 not met');
+
 console.log(`smoke:reader-scaffold — ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

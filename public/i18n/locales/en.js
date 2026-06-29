@@ -1971,6 +1971,12 @@ window.I18N_LOCALES.en = {
     reader: {
       back: "← Shelves",
       aids: "Reading settings",
+      fadeGrad: {
+        msg: "🎯 You already know many words — fade niqqud on the ones you know?",
+        on: "Enable",
+        done: "Adaptive niqqud on — it fades on words you know",
+        dismiss: "Not now",
+      },
       empty: "This text has no lines yet.",
       translit: "Translit",
       profileSbl: "SBL",

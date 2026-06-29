@@ -1,6 +1,6 @@
 # Эпик 5 — Импульс graded-reading: никаких тупиков, всегда «что дальше» · P1 / L · вед. R8 (R2/R7/R9/R4/R11)
 
-**Дата:** 2026-06-29 · **Статус:** 🟢 ПЛАН утверждён владельцем (scope + первые развилки) → имплементация по компонентам.
+**Дата:** 2026-06-29 · **Статус:** ✅ **ЗАВЕРШЁН — W1–W5 SHIPPED+PROD (v3.11.43–47).** Все 5 компонентов отгружены и прод-верифицированы; каждый прошёл measure→роли→adversarial-review→фикс→гейты→@380px→prod-verify.
 **Родитель:** `BRR_UX_AUDIT_2026_06_25.md` §«ЭПИК 5» · `BRR_HANDOFF_NEXT_SESSION_2026_06_28.md` §«ЭПИК 5 — СТАРТ». Память [[project_brr_ux_audit]].
 **Прод на старте:** v3.11.42 (`163cda3`); Эпик 4 + Phase D (D1–D7) завершены.
 
@@ -49,7 +49,9 @@
 | W2 | end-of-text-handoff | v3.11.44 | _(текущий)_ | corpus-vocab(pickPersonalRail) · scaffold 234 · i18n 226 · parity · node 265/9 | ✅ SHIPPED |
 | W3 | difficulty-band | v3.11.45 | _(текущий)_ | corpus-vocab 25/0 (+difficultyBand/loadFlagFor + real-sidecar) · scaffold 234 · i18n 226 · parity | ✅ SHIPPED |
 | W4 | in-text-coverage-chip | v3.11.46 | _(текущий)_ | reader-morph · scaffold 234 · i18n 226 · context/parity | ✅ SHIPPED |
-| W5 | niqqud-fade-graduation | — | — | reader-scaffold | ⏳ |
+| W5 | niqqud-fade-graduation | v3.11.47 | _(текущий)_ | reader-scaffold 243 (+fadeGraduationReady) · i18n 226 · morph/context/parity | ✅ SHIPPED |
+
+**🎉 ЭПИК 5 ЗАВЕРШЁН (W1–W5, v3.11.43–47, 2026-06-29).** Нить `learn→recall→next-step` замкнута на чтении; «никаких тупиков, всегда что дальше». Все 5 — measure-before-code → роли → adversarial-review → фикс → гейты → @380px → prod-verify. Adversarial-review поймал реальный баг в 4 из 5 (W1 scroll-trigger · W2 emoji-strip · W3 result-row · W4 **CRITICAL** corpus dead-code; W5 — чисто SHIP).
 
 ### W1 — ✅ SHIPPED (v3.11.43)
 **continue-mark-read.** Решения владельца: ручная отметка + авто-подсказка; `finished_at`; bundle round-trip.
@@ -85,6 +87,14 @@
 - **Adversarial review поймал 1 CRITICAL + 2 Important:** **(C)** corpus-ветка = МЁРТВЫЙ код — `corpusReadyMap` keyed by `id` (мал. int), но `readerTextKey`=64-hex `text_key` → `.get()` всегда undefined → каждая corpus-работа молча падала в live-scan fallback (ломая R11-паритет И 0-скан). Фикс: `corpusReadyKeyMap()` keyed by text_key (data-chain verified: key→card→id→sidecar 10/10). **(I)** scan на каждом repaint вкл. config-toggle → memoize user-fold по (tid, statesRef) (config-toggle = тот же profile-ref = cache-hit, без скана). **(I)** busy-guard ронял concurrent refresh без trailing re-run → dirty-flag coalesce.
 - **Гейты:** reader-morph · scaffold 234 · i18n 226 · context/parity. @380px свет+тёмная (known-state «≈87% знакомо · 12 новых» cov-in + empty «📖 N новых» honest). ⚠ live-verify на проде: chip% == card% на реальной corpus-работе.
 - **СЛЕДУЮЩЕЕ = W5 niqqud-fade-graduation** (последний; auto-graduation full→adaptive по порогу знакомых слов; fadeDecision/decorateWords без изменений, лишь fadeMode; 'full' остаётся честным cold-дефолтом; R11 do-no-harm — не «огласовывать назад» заслуженный fade).
+
+### W5 — ✅ SHIPPED (v3.11.47)
+**niqqud-fade-graduation.** Решения владельца: **nudge + opt-in** (читатель сам жмёт, НЕ авто-флип — R5 автономия) · порог = глоб. счёт знакомых. Флагманский адаптивный fade был мёртв (дефолт 'full', нет пути включить).
+- **reader-morph (PURE):** `fadeGraduationReady(statesMap,min?)` — счёт GENUINELY-LEARNED (known/learning/weak/stale/l1–l4; ИСКЛ. 'new' tracked-unknown + 'ignore' skipped) ≥ `FADE_GRADUATION_MIN`(40). `fadeDecision` НЕ тронут (гейт уверенности не ослаблен, R9/R11). Гейт reader-scaffold +9 ассертов → **243/0**.
+- **library-ui:** `maybeOfferFadeGraduation` (гейт `niqqudMode==='full'` && `!localStorage 'room.fadeGradOffered'` && ready) → `showFadeGradNudge` (accent-баннер над текстом: «🎯 Ты уже знаешь много слов — убрать огласовку со знакомых?» + «Включить» → `niqqudMode='adaptive'`+`saveReaderCfg`+`rerenderReader`+toast; «✕»). Один раз (flag на выбор). `openReader` после рендера; `clearFadeGradNudge` на open/close.
+- **i18n** `room.reader.fadeGrad.{msg,on,done,dismiss}` ×3 (🎯 в i18n-ЗНАЧЕНИИ → нет W2-strip); CSS `.reader-fadegrad*` (accent-border, свет+тёмная).
+- **Adversarial review: SHIP — 0 Critical/0 Important** (первый чистый). Подтверждено: «Включить» byte-identical существующему niqqud-select onChange (adaptive реально включается+persist); async-гонка guarded (tid); R5/R11 (только юзер флипает, fadeDecision untouched, не «огласовывает назад»); 🎯 не стирается. 3 нита by-design/косметика (✕-aria-relocalize как у reader-resume; re-offer до явного выбора; offer на тексте без знакомых — niqqudMode глобален).
+- **Гейты:** reader-scaffold 243 · i18n 226 · reader-morph/context/parity. @380px свет+тёмная (accent-баннер + «Включить»/«✕»). ⚠ live-verify: набрать ≥40 знакомых → открыть текст → nudge → «Включить» → fade сходит со знакомых.
 
 ## Источник измерений
 Полный grounded-прогон (6 агентов, file:line, реальные распределения) — рабочий артефакт сессии; ключевые факты сведены в таблицу выше. Независимо подтверждено: niqqud-дефолт `'full'`, `ez`@build-corpus-vocab.js:171 (нет `archaica`), `getContinueReading` без порога, `ready`=796.

@@ -1423,6 +1423,20 @@
     return "niqqud";
   }
 
+  // W5 (Epic 5 niqqud-fade-graduation) — has the reader genuinely learned enough words that the adaptive
+  // niqqud fade is worth OFFERING? Counts GENUINELY-LEARNED states (known + SRS learning/weak/stale + manual
+  // levels l1–l4); deliberately EXCLUDES 'new' (tracked-but-unknown) and 'ignore' (skipped, e.g. names) —
+  // those de-vocalize in adaptive but are NOT a "you're making progress" signal. Pure (Node-testable);
+  // the offer is one-time + opt-in (the USER, not this fn, flips the mode — fadeDecision is unchanged).
+  var GENUINELY_LEARNED = { known: 1, learning: 1, weak: 1, stale: 1, l1: 1, l2: 1, l3: 1, l4: 1 };
+  var FADE_GRADUATION_MIN = 40;
+  function fadeGraduationReady(statesMap, min) {
+    if (!statesMap) return false;
+    var need = (typeof min === "number" && min > 0) ? min : FADE_GRADUATION_MIN, n = 0;
+    for (var k in statesMap) { if (GENUINELY_LEARNED[statesMap[k]]) { n++; if (n >= need) return true; } }
+    return false;
+  }
+
   function _colOf(span) { var td = span && span.closest ? span.closest("td[data-col]") : null; return td ? td.getAttribute("data-col") : null; }
 
   // Remove all decorations: colour classes + restore any de-vocalized niqqud spans. Cheap, no resolve.
@@ -1913,6 +1927,7 @@
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
     wrapCellHtml: wrapCellHtml, isWordChar: isWordChar, fadeDecision: fadeDecision,
+    fadeGraduationReady: fadeGraduationReady, FADE_GRADUATION_MIN: FADE_GRADUATION_MIN,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,

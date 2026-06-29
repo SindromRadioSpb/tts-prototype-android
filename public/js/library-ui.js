@@ -672,6 +672,50 @@ async function refreshCovChip() {
   }
 }
 
+// ── BRR Epic 5 W5 — niqqud-fade-graduation: one-time opt-in to adaptive fade ──────────────────
+// The flagship adaptive niqqud fade defaults to 'full' with NO path to ever turn on (the «леса, что не
+// затухают»). Once the reader has GENUINELY learned enough words (ReaderMorph.fadeGraduationReady), OFFER —
+// once, opt-in — to switch to 'adaptive' (огласовка сходит со знакомых слов). The USER accepts; we NEVER
+// auto-flip the mode (R5 autonomy) and NEVER relax the confidence gate (fadeDecision is untouched, R9/R11).
+function clearFadeGradNudge() { const b = $('readerFadeGrad'); if (b && b.remove) b.remove(); }
+async function maybeOfferFadeGraduation() {
+  try {
+    if (readerCfg.niqqudMode !== 'full') return;                       // already adaptive/off → nothing to offer
+    if (localStorage.getItem('room.fadeGradOffered') === '1') return;  // one-time (accepted OR dismissed)
+    if (!window.ReaderMorph || typeof window.ReaderMorph.fadeGraduationReady !== 'function') return;
+    const tid = readerTextId;
+    const states = (await ensureWordStates()) || {};
+    if (readerTextId !== tid) return;                                  // navigated away while loading
+    if (!window.ReaderMorph.fadeGraduationReady(states)) return;
+    showFadeGradNudge();
+  } catch (_) {}
+}
+function showFadeGradNudge() {
+  const reader = $('roomReader'); if (!reader || $('readerFadeGrad')) return;
+  const bar = el('div', { class: 'reader-fadegrad' }); bar.id = 'readerFadeGrad';
+  bar.appendChild(el('span', { class: 'reader-fadegrad-msg', i18n: 'room.reader.fadeGrad.msg', text: tt('room.reader.fadeGrad.msg', '🎯 Ты уже знаешь много слов — убрать огласовку со знакомых?') }));
+  const actions = el('div', { class: 'reader-fadegrad-actions' });
+  const dismiss = () => { try { localStorage.setItem('room.fadeGradOffered', '1'); } catch (_) {} clearFadeGradNudge(); };
+  const go = el('button', { class: 'reader-fadegrad-go', i18n: 'room.reader.fadeGrad.on', text: tt('room.reader.fadeGrad.on', 'Включить') });
+  go.type = 'button';
+  go.addEventListener('click', () => {
+    readerCfg.niqqudMode = 'adaptive';
+    try { saveReaderCfg(); } catch (_) {}
+    try { rerenderReader(); } catch (_) { try { applyDecorations(); } catch (_) {} }
+    try { roomToast(tt('room.reader.fadeGrad.done', 'Адаптивная огласовка включена — сходит со знакомых слов')); } catch (_) {}
+    dismiss();
+  });
+  const x = el('button', { class: 'reader-fadegrad-x', text: '✕', attrs: { 'aria-label': tt('room.reader.fadeGrad.dismiss', 'Не сейчас') } });
+  x.type = 'button'; x.title = tt('room.reader.fadeGrad.dismiss', 'Не сейчас');
+  x.addEventListener('click', dismiss);
+  actions.appendChild(go); actions.appendChild(x);
+  bar.appendChild(actions);
+  const tbl = $('roomReaderTable');
+  if (tbl && tbl.parentNode === reader) reader.insertBefore(bar, tbl);
+  else reader.appendChild(bar);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
 // ── Epic 4.3a+ — «📚 Учить» → premium frontier-vocabulary sheet (A+B+C+D) ─────────
 // Collect the reader's new words (ReaderMorph.collectNewWords — confident content words still
 // new/unset, freq-ranked) into a full vocabulary surface: total count + progressive chunks (A) ·
@@ -2495,7 +2539,7 @@ async function openReader(textId, title, opts) {
   if (content) content.hidden = true;
   reader.hidden = false;
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
-  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip();   // BRR-P2-002/005 + Epic-5 W1/W4 — never carry a stale banner/jump/end-card/cov-chip across opens
+  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // BRR-P2-002/005 + Epic-5 W1/W4/W5 — never carry a stale banner/jump/end-card/cov-chip/fade-nudge across opens
   _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
@@ -2531,6 +2575,7 @@ async function openReader(textId, title, opts) {
     // check once after layout settles so the «✓ Прочитано» card can surface (readerAtEnd handles
     // both the «last row visible» and the resume/karaoke-latch cases).
     try { setTimeout(() => { try { maybeShowEndOfText(); } catch (_) {} }, 450); } catch (_) {}
+    try { maybeOfferFadeGraduation(); } catch (_) {}   // Epic-5 W5 — one-time opt-in to adaptive niqqud fade
   }
 }
 
@@ -2575,7 +2620,7 @@ async function closeReader() {
   if (readerAudio) { try { readerAudio.detach(); } catch (_) {} readerAudio = null; }
   if (readerMorph) { try { readerMorph.detach(); } catch (_) {} readerMorph = null; }
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
-  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4 — stop recording + clear find/end-card/cov-chip after close
+  clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
