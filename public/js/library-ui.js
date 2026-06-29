@@ -256,6 +256,17 @@ function renderShelf(shelf) {
 // badges as the canon card, but it is a role=button (served-on-open needs JS — there is
 // no no-JS deep-link to a not-yet-imported text; <div role=button> also dodges the mobile
 // `button { width:100% }` trap, CLAUDE.md §1). Keyboard-openable (Enter/Space).
+// PC-4 — display-clean: peel ONLY a TRAILING editorial variant-note bracket containing «נוסח» (e.g.
+// «… [נוסח 'שירים']») off the headline into {title, note}; the note becomes a muted sub-line (preserved,
+// never discarded — it can disambiguate). Conservative / do-no-harm (R6): does NOT touch disambiguator
+// brackets, whole-string incipits «[…]», trailing «…» incipits, or gershayim «"». Whole-title incipits
+// and disambiguator-as-subline are a producer-side follow-up; this client pass fixes the «[נוסח …]» leak.
+function corpusTitleParts(raw) {
+  const s = String(raw || '');
+  const m = s.match(/^([\s\S]*?\S)\s*([\[(][^\])]*נוסח[^\])]*[\])])\s*$/);
+  if (m) return { title: m[1], note: m[2] };
+  return { title: s, note: '' };
+}
 function renderCorpusCard(card) {
   if (!card) {
     const dead = el('div', { class: 'work-card', attrs: { 'aria-disabled': 'true' } });
@@ -265,10 +276,16 @@ function renderCorpusCard(card) {
     return dead;
   }
   const node = el('div', { class: 'work-card', attrs: { role: 'button', tabindex: '0', 'data-work-id': String(card.id == null ? '' : card.id) } });
-  const title = card.title || '';
-  const titleEl = el('span', { class: 'work-card-title', text: title });
-  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  const parts = corpusTitleParts(card.title);
+  const titleEl = el('span', { class: 'work-card-title', text: parts.title });
+  if (card.title) titleEl.title = card.title;   // PC-4 — full original (incl. the variant note) on hover/long-press
+  if (HEBREW_RE.test(parts.title)) titleEl.setAttribute('dir', 'rtl');
   node.appendChild(titleEl);
+  if (parts.note) {   // PC-4 — the «[נוסח …]» editorial variant note → muted sub-line (preserved, не выброшено)
+    const n = el('span', { class: 'work-card-note', text: parts.note });
+    if (HEBREW_RE.test(parts.note)) n.setAttribute('dir', 'rtl');
+    node.appendChild(n);
+  }
   if (card.author) {
     const a = el('span', { class: 'work-card-author', text: card.author });
     if (HEBREW_RE.test(card.author)) a.setAttribute('dir', 'rtl');
@@ -292,6 +309,9 @@ function renderCorpusCard(card) {
     meta.appendChild(el('span', { class: 'prov-badge audio-' + au, i18n: 'room.prov.audio.' + au, text: tt('room.prov.audio.' + au) }));
   }
   if (meta.children.length) node.appendChild(meta);   // never mount an empty provenance row
+  // PC-5 — reserve the LEARNING row EAGERLY (empty, with a CSS min-height) so the lazy difficulty/coverage
+  // append FILLS it instead of GROWING the card after first paint (no layout-shift / rail re-inflation).
+  node.appendChild(el('div', { class: 'work-card-difficulty' }));
   node.appendChild(el('span', { class: 'work-card-cta', i18n: 'room.work.open', text: tt('room.work.open') }));
   const open = () => openCorpusWork(card);
   node.addEventListener('click', open);
@@ -4621,10 +4641,13 @@ function renderCorpusWorkRow(card, openable, opts) {
   // markSegments); otherwise plain text.
   const ftsQ = (opts && opts.openOpts && opts.openOpts.ftsQuery) || '';
   const qToks = ftsQ ? ftsQueryTokens(ftsQ) : null;
+  const _tp = corpusTitleParts(card.title || '—');   // PC-4 — clean the «[נוסח …]» off the search/author-row headline too
   const title = el('span', { class: 'corpus-work-title' });
-  if (qToks && qToks.length) appendMarkedHebrew(title, card.title || '—', qToks); else title.textContent = card.title || '—';
-  if (HEBREW_RE.test(card.title || '')) title.setAttribute('dir', 'rtl');
+  if (qToks && qToks.length) appendMarkedHebrew(title, _tp.title, qToks); else title.textContent = _tp.title;
+  if (card.title) title.title = card.title;
+  if (HEBREW_RE.test(_tp.title)) title.setAttribute('dir', 'rtl');
   col.appendChild(title);
+  if (_tp.note) { const _n = el('span', { class: 'corpus-work-note', text: _tp.note }); if (HEBREW_RE.test(_tp.note)) _n.setAttribute('dir', 'rtl'); col.appendChild(_n); }
   // In cross-author contexts (global results) show the author under the title. BRR-S14 — the author is a
   // tappable «ещё у автора» link → the author's full works drill (stopPropagation so it never opens the work).
   if (opts && opts.showAuthor && card.author) {

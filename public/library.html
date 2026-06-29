@@ -138,18 +138,23 @@
       flex: 0 0 auto; width: 132px; min-height: 92px; scroll-snap-align: start;
       background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 12px;
       box-shadow: var(--shadow); cursor: pointer; text-align: start; text-decoration: none;
-      padding: 12px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+      padding: 12px; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px;
       transition: transform .1s ease, border-color .15s; font: inherit; color: var(--text-primary);
     }
     .work-card:active { transform: scale(.97); }
     .work-card[disabled] { cursor: default; opacity: .55; }
+    /* PC-5 — clamp to 2 lines + RESERVE that height (min-height) so a 1-line and a 2-line title give the
+       same title band → the badge cluster starts at the same y on every card (no space-between float). */
     .work-card-title {
-      font-size: 17px; font-weight: 600; line-height: 1.25; color: var(--text-primary);
-      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+      font-size: 17px; font-weight: 600; line-height: 1.25; color: var(--text-primary); min-height: 2.5em;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     }
+    /* PC-4 — muted variant-note sub-line («[נוסח …]» peeled off the headline). */
+    .work-card-note, .corpus-work-note { font-size: 11px; color: var(--text-faint); line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     /* Hebrew title gets a touch larger + proper bidi isolation */
     .work-card-title[dir="rtl"] { font-size: 18px; }
-    .work-card-cta { font-size: 12px; font-weight: 600; color: var(--accent); }
+    /* PC-5 — CTA is the ONLY bottom-pinned element; everything else top-packs. */
+    .work-card-cta { font-size: 12px; font-weight: 600; color: var(--accent); margin-top: auto; }
     .work-card[disabled] .work-card-cta { color: var(--text-faint); }
 
     /* ── BRR-P0-005 provenance / honesty badges ───────────────────────────── */
@@ -201,7 +206,7 @@
 
     /* ── W3 (Epic 5) — profile-FREE intrinsic difficulty row (ez band + archaica), its OWN row so it
        never crowds the provenance/coverage meta badges (@380px); archaica = property of the TEXT (R7). ── */
-    .work-card-difficulty { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
+    .work-card-difficulty { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; min-height: 21px; }
     /* PC-1 — signal-family separation. AXIS→TREATMENT map (one family per zone): PROVENANCE = filled pill
        (amber/indigo/green, .prov-badge.rs-*/audio-*, above) — shown only for non-default values (PC-2);
        the LEARNING cluster (.work-card-difficulty) = intrinsic DIFFICULTY as an OUTLINE pill (transparent
@@ -446,7 +451,7 @@
     .corpus-saved-chip { display: inline-flex; align-items: center; background: var(--bg-muted); border: 1px solid var(--border-soft); border-radius: 999px; overflow: hidden; }
     .corpus-saved-run { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-secondary); padding: 6px 4px 6px 11px; font-size: 12px; font-weight: 600; max-width: 62vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .corpus-saved-del { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-faint); padding: 6px 9px 6px 4px; font-size: 12px; line-height: 1; }
-    .readinglist-card .work-card-meta { display: flex; justify-content: flex-end; }
+    .readinglist-card .work-card-meta { display: flex; justify-content: flex-end; margin-top: auto; }   /* PC-5 nit — no CTA on this card → keep the ✕ bottom-anchored */
     .readinglist-rm { width: auto; appearance: none; cursor: pointer; background: transparent; border: 0; color: var(--text-faint); font-size: 13px; line-height: 1; padding: 2px 4px; }
     /* BRR-P3 — multiple named lists: head delete + the add-to-list picker (bottom sheet) */
     .corpus-readinglist-head { display: flex; align-items: center; justify-content: space-between; }
@@ -1312,7 +1317,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.48</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.49</span>
   </div>
 </footer>
 
