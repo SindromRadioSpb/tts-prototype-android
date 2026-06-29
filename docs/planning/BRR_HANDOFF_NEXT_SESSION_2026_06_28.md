@@ -2,7 +2,17 @@
 
 Единая точка входа для продолжения разработки Читального зала (Ben-Yehuda Reading Room) без потери контекста. Открой ЭТОТ файл первым, затем ссылки из §0.
 
-**Состояние на момент хэндоффа:** прод `v3.11.32`, SW синхронизирован, ветка `main` чистая, последний коммит `9bd47b8`. Эпик 4 (петля удержания) ЗАВЕРШЁН и live-подтверждён. Следующая работа — **одобренный Phase D (D1–D7)**.
+**СОСТОЯНИЕ — АКТУАЛЬНО 2026-06-29 (ЭТА секция авторитетна над §0–§5):** прод **`v3.11.39`**, SW синхронизирован (**auto-skipWaiting** — свежий код с первого reload), ветка `main` чистая, посл. коммит `dcc3433`. **Эпик 4 (петля удержания) ЗАВЕРШЁН + Phase D: D1·D3·D4·D5 ОТГРУЖЕНЫ и live-подтверждены.** Следующее по очередности — **D7 (геймификация, R5)**.
+
+> ⚠ §0–§5 (основной текст ниже) — baseline-снимок на `v3.11.32`, НАМЕРЕННО не переписан. Авторитетны: ЭТА «PHASE D — статус» секция + UPDATE-блоки ниже + план 4.3b §«Phase D». Карта кода §2 и гейты §4 ДОПОЛНЕНЫ D-функциями (см. там пометки «Phase D»).
+
+**PHASE D — статус (prod `v3.11.39`):**
+- **D1 ✅** slot-inflected MC-дистракторы, R10-моат (v3.11.35/36 `324645d`/`4baa3e8`) — `ReaderMorph.findSlot`(проклитика-aware, пин-по-лемме, синкретизм→ячейка по РЕАЛЬНОМУ никуду) + `buildMcSlotOptions`(банк = same-POS парадигмы из engine `pidMap`, фильтр по слоту, L4 корень-семья/глосс-поле; ВСЕ 4 варианта = голые слот-формы из ячеек Pealim → нет tell; откат к B1). Гейт `smoke:reader-cloze:audit` = **96.5%, bad-form 0**. Live: אָמַר→PERF-3ms, MC «אַף פַּעַם לֹא ___»→4×PERF-1s.
+- **D3 ✅** видимый due-счётчик (v3.11.33 `46536e9`) — `ReaderMorph.dueCounts(statusMap,schedule,nowMs)` → бейдж «В работе:N · К повторению:M» под «📚 Учить» + в шапке листа + «следующее повторение через X» в итоге сессии. Live: 47/9.
+- **D4 ✅** weakness-weighting + лич-няж (v3.11.34 `ef3ab0a`) — `ReaderMorph.rankByWeakness(items)`(стаб. lapses↓, tie=вход, all-zero=no-op) в `buildTrainSession`; `LEECH_LAPSES=4` → reveal opt-in «🚫 Игнорировать» (`onTrainLeechIgnore`).
+- **D5 ✅** teach-before-test (v3.11.38/39 `dab62ea`/`dcc3433`) — never-tested new (`status==='new' && !item._srs`) → лёгкая `renderTrainTeach` (форма+гло́сс+🔊-слово+🔊-предложение+слово-в-предложении+Подробнее+«проверь») ПЕРЕД первым MC; показ НЕ пишет ничего (R2 «показ≠recall»); тест считается обычно. Live: לִינָה→teach→MC.
+- **PWA ✅** auto-skipWaiting (v3.11.37 `bcae910`) — SW `skipWaiting`(install)+`clients.claim`(activate)+гард `controllerchange`→reload → свежий код с ПЕРВОГО reload.
+- **СЛЕДУЮЩЕЕ = D7** (геймификация); затем **D6** (reverse/listening/dictation), **D2** (cross-text due — нужны тела работ).
 
 > **UPDATE 2026-06-29 — D3 ОТГРУЖЕН (prod `v3.11.33`, `46536e9`).** Видимый due-счётчик «В работе: N · К повторению: M» (два глобальных числа; решение владельца после measure: srs=0/in-progress=41 на реальном профиле). PURE `ReaderMorph.dueCounts` + бейдж под «📚 Учить» и в шапке листа + строка «следующее повторение через X» в итоге сессии. Все гейты зелёные, live-Kapture подтвердил «В работе: 41 · К повт.: 0». Детали — план 4.3b §«D3 SHIPPED».
 
@@ -40,14 +50,14 @@
 ---
 
 ## 2. Карта кода (поверхности Зала — где что лежит)
-- **`public/js/reader-morph.js`** — движок (engine). Ключевое: `statusKeyForCard` (общий keyer), `collectNewWords`/`_scanWords` (общий скан), `collectReviewItems`, `buildCloze`, `buildClozeForTarget(tokens,targetSkel)`, `nextLevel(status,correct)`, `isMcLevel`, `pickDistractors` (sameRoot≫samePOS+len, дедуп+огласовка), `nextSrs(prev,correct,nowMs)` (SM2-lite), `openWordCard`, `NAME_HINT`. Всё экспортится на `window.ReaderMorph`.
-- **`public/js/library-ui.js`** — UI Зала. Study sheet (`ensureStudySheet`, `roomOpenStudyList`, `renderStudyControls/Body`, `studyFiltered/RowEl`, `onStudyStatusSet/Expand/Speak/Bulk`); training (`startTraining`, `buildTrainSession(all,nowMs)` due-aware, `_trainBuildCloze`, `renderTrainItem` 3-mode, `onTrainOption/Submit/Skip`, `checkTrainAnswer`, `renderTrainReveal/Summary`, `_normHe/_stripProclitic/_acceptedSkeletons`, `_letterTiles/onTrainTile/onTrainUnbuild/_renderBuild`); onboarding (`showReaderTip` 2-line, `tagReaderTableLang`, `roomFocusInto/Restore`, `readerSkeleton`).
+- **`public/js/reader-morph.js`** — движок (engine). Ключевое: `statusKeyForCard` (общий keyer), `collectNewWords`/`_scanWords` (общий скан), `collectReviewItems`, `buildCloze`, `buildClozeForTarget(tokens,targetSkel)`, `nextLevel(status,correct)`, `isMcLevel`, `pickDistractors` (sameRoot≫samePOS+len, дедуп+огласовка), `nextSrs(prev,correct,nowMs)` (SM2-lite), `openWordCard`, `NAME_HINT`. **Phase D (экспортированы):** `dueCounts(statusMap,schedule,nowMs)→{inProgress,dueNow,nextDue}` (D3) · `rankByWeakness(items)` стаб. lapses↓ (D4) · `findSlot(paradigm,niqqud)→{slot,count}` проклитика-aware (D1) · `buildMcSlotOptions(answerCard,n)→{correctHe,options,slot}|null` (D1). Всё экспортится на `window.ReaderMorph`.
+- **`public/js/library-ui.js`** — UI Зала. Study sheet (`ensureStudySheet`, `roomOpenStudyList`, `renderStudyControls/Body`, `studyFiltered/RowEl`, `onStudyStatusSet/Expand/Speak/Bulk`); training (`startTraining`, `buildTrainSession(all,nowMs)` due-aware, `_trainBuildCloze`, `renderTrainItem` 3-mode, `onTrainOption/Submit/Skip`, `checkTrainAnswer`, `renderTrainReveal/Summary`, `_normHe/_stripProclitic/_acceptedSkeletons`, `_letterTiles/onTrainTile/onTrainUnbuild/_renderBuild`); onboarding (`showReaderTip` 2-line, `tagReaderTableLang`, `roomFocusInto/Restore`, `readerSkeleton`). **Phase D UI:** `_dueBadgeEl/_paintDueBadge/refreshDueBadge` + `_humanizeUntil` (D3 бейдж; рефреш на open/close/статус/bulk/ответ) · `LEECH_LAPSES`+`onTrainLeechIgnore` (D4 лич-няж в reveal) · `renderTrainTeach/onTrainTeachDone` (D5 teach-экран; гейт `status==='new' && !item._srs && !_taught`) · `buildMcSlotOptions`-предсчёт `item._mcOptions` в `startTraining` + ветка в `renderTrainItem` (D1).
 - **`public/db/migrations.js`** — миграции; последняя = **058 (index 57)**: `word_status` +srs_* + `ix_word_status_due`.
 - **`public/db/local-db.js`** — `setWordStatus(lemmaKey,status,sched?)` (UPSERT, сохраняет srs при плоском set), `getSrsSchedule()`.
 - **`public/library.html`** — Зал-шелл + CSS (`.room-study-*`, `.room-train-*`, `.reader-tip-*`, `.reader-skeleton-*`, `--prov-*` контраст-vars, aidsPulse под reduced-motion). Футер `#roomFooterVersion`.
 - **`public/index.html`** — Студия. **НЕ ТРОГАТЬ** при работе над Залом (до Stage 2). Live JS Студии — INLINE в index.html (public/check_script.js — мёртвая копия).
 - **`public/i18n/locales/{ru,en,he}.js`** — `room.morph.study.*` + `room.onboard.readerTip1/2`.
-- **Smoke:** `scripts/premium/reader-morph-smoke.js` (collectNewWords/collectReviewItems/buildClozeForTarget/pickDistractors-collision/nextSrs/openWordCard), `scripts/premium/reader-word-status-smoke.js` (+миграция 058 + persist/preserve).
+- **Smoke:** `scripts/premium/reader-morph-smoke.js` (collectNewWords/collectReviewItems/buildClozeForTarget/pickDistractors/nextSrs/openWordCard + **D3 dueCounts · D4 rankByWeakness · D1 findSlot/buildMcSlotOptions**), `scripts/premium/reader-word-status-smoke.js` (+миграция 058 + persist/preserve), **`scripts/premium/reader-cloze-audit.js`** (`smoke:reader-cloze:audit` — D1 slot-coverage аудит, 96.5%, отчёт → `docs/research/epic4-3b-d1-slot/2026-06-29/`).
 
 ---
 
@@ -65,7 +75,8 @@
 ## 4. Гейты / деплой / live-verify (рабочий цикл)
 **Гейты (прогнать перед коммитом, релевантные к правке):**
 ```
-npm run smoke:reader-morph          # движок: cloze/distractors/nextSrs/collect*
+npm run smoke:reader-morph          # движок: cloze/distractors/nextSrs/collect* + D3 dueCounts/D4 rankByWeakness/D1 findSlot+buildMcSlotOptions
+npm run smoke:reader-cloze:audit    # D1: slot-inflection охват ≥96.5% + bad-form 0 (R1/R10/R11)
 npm run smoke:reader-word-status    # word_status + миграция 058 + SRS persist/preserve
 npm run smoke:reader-parity         # reader-core byte-parity (НЕ ломать)
 npm run smoke:reader-scaffold       # niqqud-fade/tap-reveal/modes
@@ -97,13 +108,21 @@ npm run test:api-smoke              # API smoke
 | **D2** | Cross-text «due today» | R2/R5 | C2 готов; нужны ТЕЛА др. работ для клоуза вне открытого текста |
 | ~~**D3**~~ ✅ | Видимый due-счётчик (ОТГРУЖЕН v3.11.33) | R4/R5 | done — два числа «В работе/К повторению» |
 | ~~**D4**~~ ✅ | Weakness-weighting + лич-няж (ОТГРУЖЕН v3.11.34) | R2 | done — rankByWeakness lapses↓ + leech opt-in |
-| **D5** | Teach-before-test | R2/R8 | reuse openWordCard/speakWord; не считать показ за recall |
+| ~~**D5**~~ ✅ | Teach-before-test (ОТГРУЖЕН v3.11.38/39) | R2/R8 | done — renderTrainTeach, показ≠recall, 🔊 слово+предложение |
 | **D6** | Reverse / listening / dictation | R8/R2 | reuse baked-аудио + B5 accepted-skeletons |
 | **D7** | Gamification (стрик/дневная цель) | R5 | парн. к D2/D3; держать «мягкой» (без тёмных паттернов) |
 
 **Предложенная очередность (владелец решает):** дешёвые на готовом C2 сначала → **D3 → D4 → D1 → D5 → D7 → D2/D6** (D2/D6 крупнее — нужны тела работ / новые каналы). Каждый пункт — отдельная фаза с гейтами по образцу A/B/C (headless-smoke + @380px реальным путём + прод/Kapture live-verify).
 
 **Рекомендация на старт следующей сессии:** D1+D3+D4+D5 ОТГРУЖЕНЫ (v3.11.33–38). Следующее по очередности — **D7 (геймификация, R5):** мягкий стрик / дневная цель повторений → внешнее давление возврата (привычка — двигатель SRS); парная к D3-due-счётчику; локальное хранилище стрика/цели; ⚠ держать «мягкой», без тёмных паттернов. Затем **D6** (reverse RU→HE / listening / dictation — новые каналы извлечения, reuse baked-аудио + B5) · **D2** (cross-text due — нужны тела др. работ для клоуза вне открытого текста; крупнее). Перед кодом — краткий план + развилки + measure (как обычно). ⚠ training-флоу live-verify — на ОДНОРАЗОВОМ тексте (см. §6 урок).
+
+**D7 — техно-скаффолд для старта (ПОДСКАЗКИ-зацепки, НЕ решения — дизайн через план+развилки+measure, владелец решает):**
+- **Ценность (из плана 4.3b §Phase D, дословно):** внешнее давление возврата (стрик, дневная цель) → двигает ЕЖЕДНЕВНЫЕ повторения (привычка — то, что заставляет SRS работать) → выше удержание. Парная к D3-due-очереди. ⚠ «мягкая», без тёмных паттернов (R5).
+- **Источник данных «сделано сегодня»:** `localDb.getSrsSchedule()` + `ReaderMorph.dueCounts(states,schedule,now)` уже дают `{inProgress,dueNow,nextDue}` (D3). Прогресс дня = сколько recall-ответов/слов сегодня. Запись расписания идёт в `checkTrainAnswer` (там же удобно инкрементить дневной счётчик/стрик).
+- **Хранилище стрика/цели (развилка):** localStorage (просто, device-local, как `wordStatusEnabled`/`contextConsent`) ИЛИ новая мелкая таблица/строка в OPFS (переживает, синкабельно). Детерминизм: `Date.now()` только в UI-слое (не в чистом движке) — день считать по локальной дате; чистую логику стрика (`nextStreak(prev, lastDayStr, todayStr, goalMet)`) вынести pure+Node-тест (как dueCounts/nextSrs).
+- **Хуки:** `checkTrainAnswer` → инкремент дневного счёта + обновление стрика при достижении цели; `refreshDueBadge`/итог сессии (`renderTrainSummary`) → показ «🔥 N дней · сегодня k/цель». Reuse паттерн D3-бейджа (`_dueBadgeEl`/`refreshDueBadge`) для отображения.
+- **Развилки на план:** где показывать (бейдж рядом с due-счётчиком / строка в итоге сессии / тост); что считать «целью дня» (N recall-ответов? N слов? due-очередь пуста?); считать ли стрик по любому заходу или только по достижению цели; жёсткость («мягкая» — без потери при пропуске дня? grace-day?).
+- **Гейт:** pure `nextStreak`/дневной-счёт → reader-morph smoke (детерм., инъекция дат); @380px бейдж/итог; live на ОДНОРАЗОВОМ тексте.
 
 ---
 
@@ -113,10 +132,50 @@ npm run test:api-smoke              # API smoke
 - **Headless OPFS:** `importBundle` крашит wa-sqlite headless (мелкие записи ок) → reader-фичи верить через logic-gate + parity + plumbing-smoke; полный клиент = устройство владельца.
 - **SW кэш:** бампить `CACHE_VERSION` при любом index.html/locale/shell изменении, иначе сырые i18n-ключи / старый shell.
 - **SW авто-обновление (v3.11.37+):** SW теперь `self.skipWaiting()` на install + `clients.claim()` на activate + гард `controllerchange`→reload в library-ui → **свежий код подхватывается с ПЕРВОГО reload** (live-verify: один Kapture-reload с v3.11.36→v3.11.37 без SKIP_WAITING/unregister). Прежний 2-reload/unregister-танец БОЛЬШЕ НЕ НУЖЕН. (Память [[feedback_browser_verify_fresh_code]] обновлена.)
+- **Live-verify training-флоу — на ОДНОРАЗОВОМ baked-тексте, НЕ на рабочем профиле.** В сессии `buildTrainSession` ранжирует leveled+previously-failed ПЕРЕД never-tested-new; дойти до нужного айтема (teach/конкретный режим) можно только листая, а skip/ответ ПИШУТ srs/level (skip=soft-demote+lapse). На D5-проверке дошёл до teach через 11 skip = soft-demote 11 слов владельца. **Движок-уровень** (`window.ReaderMorph.*`) live-verify-ить напрямую через `mcp__kapture__evaluate` — БЕЗ сессии, нулевая мутация (как D1 `buildMcSlotOptions` на реальных словах). Память [[feedback_live_verify_training_throwaway_text]].
 - **Студия live = INLINE в index.html** (не public/check_script.js).
 - Полный журнал уроков — память-файлы `feedback_*` (см. MEMORY.md): linebreak, cloze-skeleton, upsert-preserve, no-override-grounded, ktiv-surface-key, workflow-front-size, verify-stale-plan-vs-live-code и др.
 
 ---
 
 ## 7. РЕКОМЕНДОВАННЫЙ СТАРТОВЫЙ ПРОМТ (вставить в начало новой сессии)
-См. дублирующий блок в ответе сессии 2026-06-28. Суть: «Открой и прочитай `docs/planning/BRR_HANDOFF_NEXT_SESSION_2026_06_28.md` (READ FIRST) + по ссылкам §0. Прод v3.11.32, Эпик 4 завершён и live-подтверждён, ветка main чистая (`9bd47b8`). Следующее одобрено: Phase D (D1–D7), начни с D3 (видимый due-счётчик) — applied R-линзы, measure-before-code, держи инварианты §3, цикл деплоя §4. Перед кодом покажи мне краткий план D3 по ролям и развилки, я решу.»
+
+```
+Продолжаем разработку Читального зала (Ben-Yehuda Reading Room) в проекте
+tts-prototype-android (Node.js/PWA, иврит↔русский; несмотря на имя — не Android).
+
+ПЕРВЫМ ДЕЛОМ прочитай (Read), не пересказывай:
+1. docs/planning/BRR_HANDOFF_NEXT_SESSION_2026_06_28.md ← READ FIRST. Верхний блок
+   «СОСТОЯНИЕ — АКТУАЛЬНО» + «PHASE D — статус» АВТОРИТЕТНЫ (§0–§5 — baseline на
+   v3.11.32, намеренно не переписан; карта кода §2 и гейты §4 дополнены D-функциями).
+2. по ссылкам §0: BRR_EPIC4_3B_RECALL_CLOZE_2026_06_28.md (план 4.3b + Phase D, §«D1/D3/D4/D5 SHIPPED»),
+   BRR_EPIC4_3B_D1_SLOT_DISTRACTORS_2026_06_29.md (D1), CLAUDE.md (нормы, CSS-ловушки
+   index.html, prod-деплой, artifact storage rule), docs/PROJECT_ROLES.md (R1–R11).
+
+СОСТОЯНИЕ: прод v3.11.39, ветка main чистая (последний коммит dcc3433).
+Эпик 4 (петля удержания collect→mark→recall) ЗАВЕРШЁН. Phase D: D1 (slot-inflected
+MC-дистракторы, R10-моат, охват 96.5%) · D3 (видимый due-счётчик) · D4 (weakness-
+weighting + лич-няж) · D5 (teach-before-test) — ОТГРУЖЕНЫ и live-подтверждены.
+PWA auto-skipWaiting: свежий код подхватывается с первого reload.
+
+СЛЕДУЮЩЕЕ (одобрено владельцем) — D7 (геймификация, R5): мягкий стрик / дневная
+цель повторений → внешнее давление возврата (привычка — двигатель SRS); парная к
+D3-due-счётчику; БЕЗ тёмных паттернов. Техно-зацепки (НЕ решения) — в §5 handoff
+«D7 — техно-скаффолд». Затем по очередности D6 (reverse/listening/dictation), D2
+(cross-text due — нужны тела работ).
+
+КАК РАБОТАТЬ: применяй роли-линзы R1–R11 автоматически; measure-before-code (R10);
+держи 7 инвариантов §3 (key-parity save==paint==collect · UPSERT не INSERT OR REPLACE ·
+cloze по СКЕЛЕТУ · R11 do-no-harm/oracle-independence · детерминизм без Math.random/
+Date.now в чистом движке · Room-only/parity-safe, index.html и reader-core не трогать ·
+premium-UI перенос строк по логической границе). Цикл деплоя §4 (зелёные гейты →
+bump version+SW+футер → push → Coolify → prod-verify Node fetch no-store, НЕ curl →
+live-verify). ⚠ training-флоу live-verify — на ОДНОРАЗОВОМ baked-тексте или через
+движок-eval (window.ReaderMorph.*), НЕ листая рабочий профиль (skip/ответ мутируют srs).
+
+СНАЧАЛА: покажи краткий план D7 по релевантным ролям (R5 + R2/R4), развилки с
+рекомендацией (где показывать стрик/цель · что считать «целью дня» · хранилище
+localStorage vs OPFS · жёсткость/grace-day) и нужные измерения (есть ли смысл; что
+уже дают getSrsSchedule()/dueCounts) — я решу, прежде чем писать код. Без заглушек,
+бескомпромиссное качество.
+```
