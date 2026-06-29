@@ -132,6 +132,7 @@ let corpusClearChip = null;      // ref to the «✕ Сбросить» chip (sh
 let corpusAuthorSort = 'graduated'; // L2 author order: 'graduated' (ready-first) | 'alpha'
 let corpusWorkSort = 'graded';      // BRR-P2-004 L3 work order: 'graded'(id) | 'alpha' | 'length'
 let corpusWorkGenre = '';           // BRR-P2-004 L3 genre filter within the author ('' = all)
+let corpusL1Sort = 'ready';         // FB-9 L1 results order: 'ready'(ready-first+alpha) | 'alpha' | 'length'
 
 const CORPUS_NIQQUD_RE = /[֑-ׇ]/g; // same range as notes-autogen stripNiqqud (single normalizer)
 function corpusNrm(s) { return String(s == null ? '' : s).replace(CORPUS_NIQQUD_RE, '').toLowerCase().trim(); }
@@ -3895,6 +3896,31 @@ function renderHomeInto(body) {
   injectHomeRails(body);   // S4 personal rail + BRR-P2-002 «Продолжить чтение» (Continue on top)
 }
 
+// FB-9 — L1 results order. 'ready' keeps the readiness-first + alpha default; 'alpha' sorts by title;
+// 'length' sorts longest-first using the READY card's segment count (search rows carry no length, so a
+// non-ready hit has no measurable length → 0 → it sorts after the measured ones, then alpha; honest —
+// never a fabricated length ranking among unknowns, R10).
+function corpusL1Len(h, readyMap) { const c = readyMap.get(String(h.id)); return (c && (c.segments || 0)) || 0; }
+function corpusL1Comparator(mode, readyMap) {
+  if (mode === 'alpha') return (a, b) => String(a.t || '').localeCompare(String(b.t || ''));
+  if (mode === 'length') return (a, b) => (corpusL1Len(b, readyMap) - corpusL1Len(a, readyMap)) || String(a.t || '').localeCompare(String(b.t || ''));
+  return (a, b) => (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));   // 'ready' (default)
+}
+// FB-9 — the L1 results sort control (segmented, reuses the L2 .corpus-sort pattern). Re-renders L1.
+function buildL1SortControl() {
+  const bar = el('div', { class: 'corpus-list-head corpus-l1-controls' });
+  const sortWrap = el('div', { class: 'corpus-sort', attrs: { role: 'group', 'aria-label': tt('room.corpus.sort.label', 'Сортировка') } });
+  [['ready', 'room.corpus.sort.readyFirst', 'Сначала готовые'], ['length', 'room.corpus.sort.length', 'По длине'], ['alpha', 'room.corpus.sort.alpha', 'По алфавиту']]
+    .forEach(([mode, key, fb]) => {
+      const b = el('button', { class: 'corpus-sort-btn' + (corpusL1Sort === mode ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusL1Sort === mode) } });
+      b.textContent = tt(key, fb);
+      b.addEventListener('click', () => { if (corpusL1Sort === mode) return; corpusL1Sort = mode; corpusRefreshL1Body(); });
+      sortWrap.appendChild(b);
+    });
+  bar.appendChild(sortWrap);
+  return bar;
+}
+
 // Global results (search ∪ facets) over the lazy index. Ready hits open via served-on-open
 // (joined to the sidecar's full card); unprocessed hits are display-only rows (honest, never
 // openable). Async: shows a loading state on first index fetch.
@@ -3915,9 +3941,19 @@ async function renderResultsInto(body) {
   // «no title match», not «nothing found» (the in-text group below carries its own count, merged in
   // after the async FTS resolves). A filter-only view (genre/lang, no query) keeps the plain count.
   const hasQuery = !!String(corpusFilter.q || '').trim();
-  const countEl = el('span', { class: 'corpus-results-count', text: hasQuery ? corpusCountLabel(hits.length, null, false) : String(hits.length) });
+  // FB-14 — «N из M» scale feedback when a non-query facet narrows the (un-scoped) corpus, so the user
+  // can see how much was excluded. M = all searchable works. Scoped/query views keep their own labels.
+  const facetNarrows = !hasQuery && !corpusFilter.scopeAuthor && !corpusFilter.scopeEra &&
+    !!(corpusFilter.genre || corpusFilter.lang || corpusFilter.readyOnly || corpusFilter.readableOnly || corpusFilter.hasAudio || corpusFilter.reviewed);
+  const totalM = (corpusSearch || []).length;
+  const countText = hasQuery ? corpusCountLabel(hits.length, null, false)
+    : (facetNarrows && totalM ? (hits.length + ' ' + tt('room.corpus.ofTotal', 'из') + ' ' + totalM) : String(hits.length));
+  const countEl = el('span', { class: 'corpus-results-count', text: countText });
   summary.appendChild(countEl);
   body.appendChild(summary);
+  // FB-9 — a real sort control for browse (filter-only) views; a query keeps relevance/ready order and
+  // its own FTS «в тексте» group, so the control would mis-imply it reorders those — show it only here.
+  if (!hasQuery && hits.length > 1) body.appendChild(buildL1SortControl());
   // BRR-S8 — concordance entry (only for a Hebrew query, where the FTS index applies).
   if (hasQuery) {
     let heQ = false; try { heQ = !!(window.CorpusFTS && window.CorpusFTS.tokenizeText(corpusFilter.q).length); } catch (_) {}
@@ -3939,7 +3975,8 @@ async function renderResultsInto(body) {
   // thread the query so a title-hit ALSO opens AT the matched body row when the word is in the body
   // (else firstMatchRow → -1 → normal resume/top). Was the «no highlighted row on drill-in» bug.
   if (hits.length) {
-    hits.sort((a, b) => (b.r - a.r) || String(a.t).localeCompare(String(b.t)));
+    // FB-9 — a query keeps the readiness-first default ('ready'); browse views honor the chosen sort.
+    hits.sort(corpusL1Comparator(hasQuery ? 'ready' : corpusL1Sort, corpusReadyMap()));
     appendPagedWorkRows(body, hits.map((h) => ({ sr: h })), null, { openOpts: { ftsQuery: corpusFilter.q } });
   }
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
@@ -3948,7 +3985,13 @@ async function renderResultsInto(body) {
   await appendFtsGroup(body, corpusFilter.q, hits, mySeq, { countEl, titleN: hits.length });
   // Empty state ONLY once this render is still current AND nothing was found (never mid-load).
   if (corpusL1Body === body && mySeq === corpusFtsSeq && !hits.length && !body.querySelector('.corpus-fts-group')) {
-    body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍'));
+    // FB-13 — «Читаемые для меня» on an empty/tiny vocab profile yields 0 readable works (knownDistinct=0
+    // gate → empty set). Teach, don't dead-end with a bare «ничего не найдено».
+    if (corpusFilter.readableOnly && _readableSet && _readableSet.size === 0) {
+      body.appendChild(stateBoxNode('room.corpus.search.emptyReadable', '🌱'));
+    } else {
+      body.appendChild(stateBoxNode('room.corpus.search.empty', '🔍'));
+    }
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   }
 }

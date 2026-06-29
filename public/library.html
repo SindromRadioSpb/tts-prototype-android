@@ -396,7 +396,7 @@
     /* FB-5 — keyboard/switch focus ring across the whole bar (the card-polish added it everywhere EXCEPT
        here). Matches .work-card:focus-visible. The select shows it on the wrapper via :focus-within. */
     .corpus-facet-chip:focus-visible, .corpus-recent-chip:focus-visible, .corpus-recents-clear:focus-visible,
-    .corpus-sort-btn:focus-visible, .corpus-search-clear:focus-visible, .corpus-work-genre:focus-visible {
+    .corpus-sort-btn:focus-visible, .corpus-search-clear:focus-visible, select.corpus-work-genre:focus-visible {
       outline: none; box-shadow: 0 0 0 2px var(--accent);
     }
     .corpus-facet-select:focus-within { box-shadow: 0 0 0 2px var(--accent); }
@@ -520,16 +520,23 @@
       min-height: 36px; display: inline-flex; align-items: center;   /* FB-10 — tap target */
     }
     .corpus-sort-btn.on { background: var(--bg-card); color: var(--accent); box-shadow: var(--shadow); }
-    /* BRR-P2-004 — L3 work sort + genre filter controls */
+    /* FB-9 — L1 results sort row (under the count). Left-aligned; the segmented pill scrolls rather than
+       wraps if the labels overflow @380px (a wrapped segmented control reads as broken). */
+    .corpus-l1-controls { padding: 2px 16px 6px; justify-content: flex-start; }
+    .corpus-l1-controls .corpus-sort { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+    .corpus-l1-controls .corpus-sort::-webkit-scrollbar { display: none; }
+    /* BRR-P2-004 — L3 work sort + genre filter controls. FB-7 — ALL pill + chevron styling is scoped to the
+       `select`: the SAME class also tags a NON-interactive genre LABEL <span> in result rows (lib-ui ~4892),
+       which must fall back to the plain 11px-secondary label rule above (~321), consistent with .corpus-work-len
+       — NOT render as a clickable bordered pill (adversarial-caught: the «статья ▾» false-affordance leak). */
     .corpus-work-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 4px 16px 10px; }
-    /* FB-7 — dropdown affordance on the standalone L3 genre select (a ▾ via background SVG, RTL-flipped). */
-    .corpus-work-genre {
+    select.corpus-work-genre {
       width: auto; appearance: none; -webkit-appearance: none; cursor: pointer; background: var(--bg-card); color: var(--text-primary);
-      border: 1px solid var(--border-soft); border-radius: 999px; padding: 7px 26px 7px 11px; font-size: 12px; font-weight: 600; min-height: 36px;
+      border: 1px solid var(--border-soft); border-radius: 999px; font-size: 12px; font-weight: 600; min-height: 36px; padding: 7px 26px 7px 11px;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath fill='%23999' d='M0 0h8L4 5z'/%3E%3C/svg%3E");
       background-repeat: no-repeat; background-position: right 10px center;
     }
-    html[dir="rtl"] .corpus-work-genre { padding: 7px 11px 7px 26px; background-position: left 10px center; }
+    html[dir="rtl"] select.corpus-work-genre { padding: 7px 11px 7px 26px; background-position: left 10px center; }
 
     /* Hebrew jump-bar */
     .corpus-jumpbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 12px 8px; justify-content: center; }
@@ -1411,7 +1418,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.53</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.54</span>
   </div>
 </footer>
 
