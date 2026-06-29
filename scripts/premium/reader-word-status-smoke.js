@@ -80,7 +80,20 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         srsStatusAfter = (await ldb.getAllWordStatuses())[SK] || null;
         await ldb.setWordStatus(SK, "");     // cleanup
       } catch (e) { srsErr = String(e); }
-      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, srsSet, srsPreserved, srsStatusAfter, srsErr };
+      // D7 — study_day ledger (migration 059): recordRecall increments the genuine-recall count;
+      // noteAvailable keeps the per-day MAX available; getStudyDays returns the raw rows (streak fold).
+      // A malformed day-key must be rejected. (Far-future synthetic day; assertions rerun-tolerant.)
+      let d7 = null, d7Bad = null, d7Err = null;
+      try {
+        const DAY = "2099-01-15";
+        await ldb.noteAvailable(DAY, 8);            // session built: 8 trainable
+        await ldb.recordRecall(DAY, 8);             // one genuine recall
+        await ldb.recordRecall(DAY, 12);            // another (available grows to MAX 12)
+        d7Bad = await ldb.recordRecall("not-a-day", 5);   // malformed → must reject
+        const sdRows = await ldb.getStudyDays("2099-01-01");
+        d7 = (sdRows || []).find((x) => x.day === DAY) || null;
+      } catch (e) { d7Err = String(e); }
+      return { set: all1[KEY], get: get1, inKws: kws1[KEY], changed: kws2[KEY], clearedAll: all3[KEY], clearedKws: kws3[KEY], bogus: all4[KEY], newSet: allN[NKEY], newKws: kwsN[NKEY], contCanon, contStudio, srsSet, srsPreserved, srsStatusAfter, srsErr, d7, d7Bad, d7Err };
     });
 
     eq(res.set === "known", "setWordStatus('known') must persist (getAllWordStatuses), got " + JSON.stringify(res.set));
@@ -99,6 +112,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.srsSet && res.srsSet.interval === 3 && res.srsSet.reps === 2, "setWordStatus(status, sched) must persist the SRS schedule (getSrsSchedule), got " + JSON.stringify(res.srsSet));
     eq(res.srsPreserved && res.srsPreserved.interval === 3 && res.srsPreserved.reps === 2, "a PLAIN setWordStatus must PRESERVE the SRS schedule (UPSERT, not REPLACE), got " + JSON.stringify(res.srsPreserved));
     eq(res.srsStatusAfter === "l3", "the plain set must still update the status (→l3) while preserving srs, got " + JSON.stringify(res.srsStatusAfter));
+    // D7 — study_day ledger (migration 059)
+    eq(res.d7Err === null, "D7 study_day ledger path must not error (migration 059 table), got " + JSON.stringify(res.d7Err));
+    eq(res.d7 && res.d7.recalls >= 2 && res.d7.available === 12, "recordRecall must increment recalls + noteAvailable must keep the per-day MAX available (=12), got " + JSON.stringify(res.d7));
+    eq(res.d7Bad === false, "recordRecall must reject a malformed day-key (not YYYY-MM-DD), got " + JSON.stringify(res.d7Bad));
     eq(errs.length === 0, "no pageerror, got: " + errs.join(" | "));
 
     console.log("reader-word-status: word_status store + manual-wins overlay (no-note mark-known + upsert + clear)");

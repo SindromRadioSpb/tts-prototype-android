@@ -818,6 +818,42 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(d1.distinct === true, "buildMcSlotOptions distractors distinct + never == answer");
     eq(d1.deterministic === true, "buildMcSlotOptions deterministic across calls");
 
+    // ── Epic 4.3b Phase D7 — streak/goal engine (pure, deterministic; day-string injected). ──
+    const stk = await pg.evaluate(() => {
+      const R = window.ReaderMorph, CAP = R.STREAK_GOAL_CAP;
+      const D = (day, recalls, available) => ({ day, recalls, available });
+      const consec = R.streakFromDays([D('2026-06-01', 10, 12), D('2026-06-02', 10, 12), D('2026-06-03', 5, 5)], CAP);   // last = small text (goal=available)
+      const week = [];
+      for (let i = 1; i <= 7; i++) week.push(D('2026-06-0' + i, 10, 10));   // 7 consecutive → earns 1 grace
+      week.push(D('2026-06-09', 10, 10));                                   // skip 06-08 → grace bridges → 8
+      const bridged = R.streakFromDays(week, CAP);
+      const broke = R.streakFromDays([D('2026-06-01', 10, 10), D('2026-06-02', 10, 10), D('2026-06-03', 10, 10), D('2026-06-06', 10, 10)], CAP);   // gap>grace
+      const rest = R.streakFromDays([D('2026-06-01', 0, 0)], CAP);          // available=0 = rest-credit
+      const under = R.streakFromDays([D('2026-06-01', 3, 8)], CAP);         // work present, under goal → not qualified
+      const aliveY = R.streakView([D('2026-06-01', 10, 10)], CAP, '2026-06-02');   // streak from yesterday still alive
+      const lapsed = R.streakView([D('2026-06-01', 10, 10)], CAP, '2026-06-05');   // gap beyond grace → lapsed
+      const todayV = R.streakView([D('2026-06-01', 10, 12), D('2026-06-02', 5, 5)], CAP, '2026-06-02');
+      // future-dated rows (forward clock-skew) must be IGNORED: today=06-02 + two future qualified days
+      // must NOT inflate cur to 3 — only today counts → cur 1.
+      const future = R.streakView([D('2026-06-02', 10, 10), D('2026-06-03', 10, 10), D('2026-06-04', 10, 10)], CAP, '2026-06-02');
+      const empty = R.streakFromDays([], CAP);
+      const nullSafe = R.streakView(null, CAP, '2026-06-02');
+      return { CAP, consec, bridged, broke, rest, under, aliveY, lapsed, todayV, future, empty, nullSafe };
+    });
+    eq(stk.CAP === 10, "STREAK_GOAL_CAP must be 10 (small capped daily goal), got " + stk.CAP);
+    eq(stk.consec.cur === 3 && stk.consec.best === 3, "streakFromDays: 3 consecutive qualified days → cur/best 3, got " + JSON.stringify(stk.consec));
+    eq(stk.bridged.cur === 8, "streakFromDays: banked grace (earned at 7) must bridge a 1-day gap → 8, got " + JSON.stringify(stk.bridged));
+    eq(stk.broke.cur === 1 && stk.broke.best === 3, "streakFromDays: a gap beyond grace SOFT-resets cur→1 but KEEPS best=3 (no punitive reset), got " + JSON.stringify(stk.broke));
+    eq(stk.rest.cur === 1, "streakFromDays: available=0 (nothing trainable) = rest-credit → qualifies, got " + JSON.stringify(stk.rest));
+    eq(stk.under.cur === 0, "streakFromDays: work present but under goal (3/8) → NOT qualified, got " + JSON.stringify(stk.under));
+    eq(stk.aliveY.alive === true && stk.aliveY.cur === 1, "streakView: a streak from yesterday is still ALIVE today (in progress), got " + JSON.stringify(stk.aliveY));
+    eq(stk.lapsed.alive === false && stk.lapsed.cur === 0 && stk.lapsed.best === 1, "streakView: a gap beyond grace lapses (alive=false, cur=0) but best kept, got " + JSON.stringify(stk.lapsed));
+    eq(stk.todayV.todayQualified === true && stk.todayV.todayRecalls === 5 && stk.todayV.todayGoal === 5 && stk.todayV.cur === 2,
+      "streakView: surfaces today's progress (5/5 → qualified) + cur=2, got " + JSON.stringify(stk.todayV));
+    eq(stk.future.cur === 1 && stk.future.todayQualified === true, "streakView must IGNORE future-dated rows (forward clock-skew can't inflate the streak → cur 1, today counts), got " + JSON.stringify(stk.future));
+    eq(stk.empty.cur === 0 && stk.empty.best === 0 && stk.empty.lastDay === null, "streakFromDays empty → 0/0/null, got " + JSON.stringify(stk.empty));
+    eq(stk.nullSafe.cur === 0 && stk.nullSafe.best === 0 && stk.nullSafe.alive === false, "streakView null-safe → 0/0/not-alive, got " + JSON.stringify(stk.nullSafe));
+
     // ── 5) offline-capable: dataset fetched exactly once ──────────────────────
     eq(dictFetches === 1, "inflection dataset must be fetched exactly once (offline-capable), got " + dictFetches);
     eq(pageErrors.length === 0, "no pageerror, got: " + pageErrors.join(" | "));

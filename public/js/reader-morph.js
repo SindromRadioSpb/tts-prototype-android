@@ -1678,6 +1678,84 @@
       .sort(function (a, b) { return (b.lp - a.lp) || (a.i - b.i); })
       .map(function (o) { return o.x; });
   }
+  // Epic 4.3b Phase D7 — soft gamification (streak + adaptive daily goal). PURE + deterministic: the
+  // streak is FOLDED from the study_day ledger (one { day, recalls, available } row per LOCAL day) and the
+  // TODAY day-string is INJECTED — no Date.now()/argless Date in the engine (invariant #5; Date.UTC /
+  // new Date(number) are pure). Honest by construction (R2/R11/R5):
+  //   • a day's goal = min(cap, available) GENUINE recalls; available===0 (engaged, nothing trainable) =
+  //     REST-CREDIT (qualified) so the SRS doing its job never breaks the streak;
+  //   • a gap is bridged by banked grace (earn +1 per 7 qualified days, cap GRACE_MAX), else the CURRENT
+  //     streak SOFT-PAUSES to 0 — best is NEVER erased (no punitive reset — «soft, no dark patterns»);
+  //   • skips/teach-views are not recalls → they never reach this ledger (recall≠show; reuses D5).
+  var STREAK_GOAL_CAP = 10;   // small capped daily goal (R2 ~5–10 min / R5 ~8–10) — reachable almost every day
+  var STREAK_GRACE_MAX = 2;   // auto-banked grace days, +1 per 7 qualified (UPenn/UCLA «slack» > rigid rules)
+  function _dayNum(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ""));
+    if (!m) return null;
+    return Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000);
+  }
+  function _dayStr(n) { return new Date(n * 86400000).toISOString().slice(0, 10); }
+  function _dayQualifies(row, cap) {
+    var avail = Math.max(0, Number(row && row.available) || 0);
+    var rec = Math.max(0, Number(row && row.recalls) || 0);
+    if (avail === 0) return true;                    // rest-credit: engaged, nothing trainable today
+    return rec >= Math.min(cap, avail) && rec >= 1;  // did the day's small (capped) goal
+  }
+  // Fold the ledger → { cur, best, lastDay, grace } as of the LAST qualified day. Deterministic.
+  function streakFromDays(rows, cap) {
+    cap = cap || STREAK_GOAL_CAP;
+    var seen = {}, qDays = [];
+    if (Array.isArray(rows)) for (var i = 0; i < rows.length; i++) {
+      var dn = _dayNum(rows[i] && rows[i].day); if (dn === null) continue;
+      if (_dayQualifies(rows[i], cap) && !seen[dn]) { seen[dn] = 1; qDays.push(dn); }
+    }
+    qDays.sort(function (a, b) { return a - b; });
+    if (!qDays.length) return { cur: 0, best: 0, lastDay: null, grace: 0 };
+    var cur = 0, best = 0, grace = 0, prev = null;
+    for (var j = 0; j < qDays.length; j++) {
+      var d = qDays[j];
+      if (prev === null) cur = 1;
+      else {
+        var gap = d - prev;
+        if (gap === 1) cur += 1;
+        else {
+          var missed = gap - 1;
+          if (grace >= missed) { grace -= missed; cur += 1; }   // bridge the gap with banked grace
+          else { cur = 1; grace = 0; }                          // soft-pause: current resets, best KEPT
+        }
+      }
+      if (cur > 0 && cur % 7 === 0 && grace < STREAK_GRACE_MAX) grace += 1;   // earn grace by consistency
+      if (cur > best) best = cur;
+      prev = d;
+    }
+    return { cur: cur, best: best, lastDay: _dayStr(qDays[qDays.length - 1]), grace: grace };
+  }
+  // Display view (mutation-free): folds the ledger, then applies the gap-to-TODAY for liveness — a streak
+  // standing from yesterday is still ALIVE today (doing today's goal extends it); only a gap beyond grace
+  // lapses it. Surfaces today's raw progress for the «сегодня k/цель» line. todayStr injected (local date).
+  function streakView(rows, cap, todayStr) {
+    cap = cap || STREAK_GOAL_CAP;
+    var td = _dayNum(todayStr), todayRow = null;
+    // Ignore any row dated AFTER today (a forward device-clock must NOT inflate the streak — R11 do-no-harm).
+    var past = Array.isArray(rows) ? rows.filter(function (r) { var n = _dayNum(r && r.day); return n !== null && (td === null || n <= td); }) : [];
+    var fold = streakFromDays(past, cap);
+    if (Array.isArray(rows)) for (var i = 0; i < rows.length; i++) { if (rows[i] && rows[i].day === todayStr) { todayRow = rows[i]; break; } }
+    var todayRecalls = Math.max(0, Number(todayRow && todayRow.recalls) || 0);
+    var todayAvail = Math.max(0, Number(todayRow && todayRow.available) || 0);
+    var todayRest = !!todayRow && todayAvail === 0;
+    var todayGoal = todayAvail > 0 ? Math.min(cap, todayAvail) : 0;
+    var todayQualified = todayRow ? _dayQualifies(todayRow, cap) : false;
+    var lastDay = fold.lastDay ? _dayNum(fold.lastDay) : null;
+    var alive = false, cur = 0;
+    if (lastDay !== null && td !== null) {
+      var gapToday = td - lastDay;
+      if (gapToday <= 0) { alive = true; cur = fold.cur; }            // qualified today (or future-dated edge)
+      else if ((gapToday - 1) <= fold.grace) { alive = true; cur = fold.cur; }   // today in progress, grace covers the gap
+      else { alive = false; cur = 0; }                               // lapsed → soft-paused (best kept)
+    }
+    return { cur: cur, best: fold.best, grace: fold.grace, alive: alive, cap: cap,
+      todayRecalls: todayRecalls, todayGoal: todayGoal, todayRest: todayRest, todayQualified: todayQualified };
+  }
   // MC mode by maturity (escalate, owner decision 1): new/l1/l2 → recognition (MC); l3/l4/known → typed.
   function isMcLevel(status) { var s = status || "new"; return s === "new" || s === "l1" || s === "l2"; }
   // pickDistractors (R10 moat): morpho-honest, deterministic. Score: same root ≫ same POS+near length >
@@ -1834,6 +1912,8 @@
     nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs,
     dueCounts: dueCounts, rankByWeakness: rankByWeakness,
     findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
+    streakFromDays: streakFromDays, streakView: streakView,
+    STREAK_GOAL_CAP: STREAK_GOAL_CAP, STREAK_GRACE_MAX: STREAK_GRACE_MAX,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;

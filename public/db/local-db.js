@@ -2188,6 +2188,46 @@ export async function getAllWordStatuses() {
   } catch (_) { return {}; }
 }
 
+// D7 (migration 059) — daily learning-activity LEDGER (study_day). The single source of truth for the
+// soft streak + adaptive daily goal; the streak itself is FOLDED from this ledger by the pure engine
+// (ReaderMorph.streakView), never stored here (derived≠asserted). day = 'YYYY-MM-DD' (LOCAL, computed by
+// the UI). recordRecall bumps the GENUINE-recall count once per scored answer (NOT skips / teach-views —
+// recall≠show); noteAvailable records the largest trainable-pool size seen that day (drives the adaptive
+// goal + the 0-available rest-credit). Both UPSERT one row/day; available keeps the per-day MAX.
+const _DAYRE = /^\d{4}-\d{2}-\d{2}$/;
+export async function recordRecall(dayStr, availableSeen) {
+  const d = String(dayStr || "").trim(); if (!_DAYRE.test(d)) return false;
+  const av = Math.max(0, Number(availableSeen) || 0);
+  try {
+    await r(`INSERT INTO study_day (day, recalls, available, updated_at)
+             VALUES (?, 1, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+             ON CONFLICT(day) DO UPDATE SET recalls = recalls + 1,
+               available = MAX(study_day.available, excluded.available),
+               updated_at = excluded.updated_at`, [d, av]);
+    return true;
+  } catch (_) { return false; }
+}
+export async function noteAvailable(dayStr, availableSeen) {
+  const d = String(dayStr || "").trim(); if (!_DAYRE.test(d)) return false;
+  const av = Math.max(0, Number(availableSeen) || 0);
+  try {
+    await r(`INSERT INTO study_day (day, recalls, available, updated_at)
+             VALUES (?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+             ON CONFLICT(day) DO UPDATE SET available = MAX(study_day.available, excluded.available),
+               updated_at = excluded.updated_at`, [d, av]);
+    return true;
+  } catch (_) { return false; }
+}
+export async function getStudyDays(sinceDayStr) {
+  const since = String(sinceDayStr || "").trim();
+  try {
+    const rows = _DAYRE.test(since)
+      ? await q(`SELECT day, recalls, available FROM study_day WHERE day >= ? ORDER BY day ASC`, [since])
+      : await q(`SELECT day, recalls, available FROM study_day ORDER BY day ASC`, []);
+    return (rows || []).map((w) => ({ day: String(w.day), recalls: Number(w.recalls) || 0, available: Number(w.available) || 0 }));
+  } catch (_) { return []; }
+}
+
 // ⑤ Anki-sync A2b — full word_study note bodies for the client-side .apkg export (AnkiSrsExport parses
 // body_json + dedups by lemma). Returns [{ id, body_json }]. Read-only; graceful [] when notes absent.
 export async function listWordStudyNotesForExport() {

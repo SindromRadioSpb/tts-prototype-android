@@ -797,4 +797,18 @@ export const MIGRATIONS = [
    ALTER TABLE word_status ADD COLUMN srs_reps INTEGER NOT NULL DEFAULT 0;
    ALTER TABLE word_status ADD COLUMN srs_lapses INTEGER NOT NULL DEFAULT 0;
    CREATE INDEX IF NOT EXISTS ix_word_status_due ON word_status(srs_due);`,
+
+  // 059_study_day — BRR Epic 4.3b Phase D7 (soft gamification). Per-day learning-activity LEDGER:
+  // one row per LOCAL calendar day with the count of GENUINE recall answers (recalls) and the largest
+  // trainable-pool size seen that day (available). This is the SINGLE SOURCE OF TRUTH for the daily goal
+  // + streak — the streak (current/best/grace) is FOLDED from this ledger by the pure engine
+  // (ReaderMorph.streakView), never stored redundantly (derived≠asserted, R9/R11 — no dual-write drift,
+  // the UPSERT lesson). day = 'YYYY-MM-DD' (local). Skips and teach-views write NOTHING here (recall≠show,
+  // reuses the D5 invariant). Device-local OPFS; the month-heatmap (D7.1) reads the same ledger for free.
+  `CREATE TABLE IF NOT EXISTS study_day (
+    day        TEXT PRIMARY KEY,
+    recalls    INTEGER NOT NULL DEFAULT 0,
+    available  INTEGER NOT NULL DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );`,
 ];

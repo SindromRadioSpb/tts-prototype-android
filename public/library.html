@@ -899,6 +899,27 @@
     .reader-aids-duebadge.has-due [data-due-now] { color: var(--accent); }
     .room-study-duebadge { justify-content: center; margin: 4px 12px 8px; }
     .room-train-nextdue { margin-top: 6px; font-size: 12.5px; color: var(--text-secondary); text-align: center; }
+    /* Epic 4.3b Phase D7 — soft gamification: a CALM streak group on the due-badge + the session-summary
+       payoff line + the premium off-switch. Restraint is the brief: muted, secondary, no loud flame. */
+    .reader-aids-duebadge .db-streak { color: var(--text-secondary); }
+    .reader-aids-duebadge .db-streak .db-n { font-weight: 800; color: var(--text-primary); }
+    .reader-aids-duebadge .db-streak-goal { color: var(--text-secondary); }
+    .reader-aids-duebadge .db-streak.db-streak-done .db-n { color: var(--accent); }   /* subtle: today's goal met */
+    .room-train-streakslot:empty { display: none; }
+    .room-train-streak {
+      display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline;
+      gap: 2px 12px; margin-top: 10px; font-size: 13.5px; color: var(--text-secondary);
+    }
+    .room-train-streak .rts-g { white-space: nowrap; }   /* break only at the logical group boundary (inv #7) */
+    .room-train-streak .rts-flame { color: var(--text-primary); font-weight: 700; }
+    .room-train-streak .rts-best { color: var(--text-secondary); opacity: .85; }
+    /* off-switch — a quiet text button, NOT a full-width primary (escape the global button{width:100%} trap) */
+    .room-train-streaktoggle {
+      width: auto !important; display: inline-block; margin: 14px auto 0; padding: 4px 8px;
+      background: none; border: none; box-shadow: none;
+      color: var(--text-secondary); font-size: 12px; opacity: .8; cursor: pointer;
+    }
+    .room-train-streaktoggle:hover { opacity: 1; text-decoration: underline; }
     /* Epic 4.3b Phase D4 — leech nudge (soft, opt-in): shown on reveal once a word has been missed enough. */
     .room-train-leech {
       display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px;
@@ -1164,7 +1185,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.39</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.40</span>
   </div>
 </footer>
 

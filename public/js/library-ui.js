@@ -578,11 +578,23 @@ function uiDirRoom() { return (document.documentElement && document.documentElem
 // (getSrsSchedule overdue, «ignore» excluded). Pure arithmetic lives in ReaderMorph.dueCounts (gated).
 // Scope = ALL your words (the daily-review habit is cross-text; serving them in any text is D2).
 let _dueCounts = null;
+let _streakView = null;   // D7 — last computed streak/goal (pure ReaderMorph.streakView over study_day)
+// D7 — TODAY as a LOCAL calendar day-string ('YYYY-MM-DD'). Computed in the UI layer ONLY (the engine
+// stays Date-free for determinism, invariant #5); injected into the pure streak fold.
+function _localDayStr(d) {
+  const x = d || new Date();
+  const m = String(x.getMonth() + 1).padStart(2, '0'), dd = String(x.getDate()).padStart(2, '0');
+  return x.getFullYear() + '-' + m + '-' + dd;
+}
+// D7 — the off-switch (the premium «no dark patterns» signal): a device-local view pref (like the other
+// Room prefs), NOT the streak DATA (that lives durably in OPFS, owner's choice).
+function streakHidden() { try { return localStorage.getItem('room.streakHidden') === '1'; } catch (_) { return false; } }
+function streakHiddenSet(v) { try { localStorage.setItem('room.streakHidden', v ? '1' : '0'); } catch (_) {} }
 function _dueBadgeEl(extraClass) {
   const box = el('div', { class: 'reader-aids-duebadge' + (extraClass ? ' ' + extraClass : ''), attrs: { 'data-due-badge': '1', dir: uiDirRoom() } });
   box.hidden = true;
   const grp = (labelKey, labelFb, numAttr) => {
-    const g = el('span', { class: 'db-group' });
+    const g = el('span', { class: 'db-group', attrs: { 'data-due-pair': '1' } });
     g.appendChild(el('span', { class: 'db-k', i18n: labelKey, text: tt(labelKey, labelFb) }));
     g.appendChild(el('span', { class: 'db-sep', text: ': ' }));
     g.appendChild(el('b', { class: 'db-n', text: '0', attrs: { [numAttr]: '1' } }));
@@ -590,15 +602,42 @@ function _dueBadgeEl(extraClass) {
   };
   box.appendChild(grp('room.morph.study.inProgress', 'В работе', 'data-due-inprogress'));
   box.appendChild(grp('room.morph.study.due', 'К повторению', 'data-due-now'));
+  // D7 — calm streak/goal group (one nowrap unit → breaks only at the logical boundary, invariant #7).
+  // «🔥 N · сегодня k/g» — secondary to the due counts, never a loud always-on flame.
+  const sg = el('span', { class: 'db-group db-streak', attrs: { 'data-streak-group': '1' } });
+  sg.hidden = true;
+  sg.appendChild(el('span', { class: 'db-streak-flame', text: '🔥 ' }));
+  sg.appendChild(el('b', { class: 'db-n', text: '0', attrs: { 'data-streak-cur': '1' } }));
+  sg.appendChild(el('span', { class: 'db-streak-goal', attrs: { 'data-streak-goal': '1' }, text: '' }));
+  box.appendChild(sg);
   return box;
 }
 function _paintDueBadge(box, c) {
-  const show = !!(c && (c.inProgress > 0 || c.dueNow > 0));
-  box.hidden = !show;
-  if (!show) return;
-  const ip = box.querySelector('[data-due-inprogress]'); if (ip) ip.textContent = String(c.inProgress);
-  const dn = box.querySelector('[data-due-now]'); if (dn) dn.textContent = String(c.dueNow);
-  box.classList.toggle('has-due', c.dueNow > 0);   // accent only when something is actually due now
+  const dueShow = !!(c && (c.inProgress > 0 || c.dueNow > 0));
+  box.querySelectorAll('[data-due-pair]').forEach((g) => { g.hidden = !dueShow; });   // due numbers hide together
+  if (dueShow) {
+    const ip = box.querySelector('[data-due-inprogress]'); if (ip) ip.textContent = String(c.inProgress);
+    const dn = box.querySelector('[data-due-now]'); if (dn) dn.textContent = String(c.dueNow);
+  }
+  box.classList.toggle('has-due', !!(c && c.dueNow > 0));   // accent only when something is actually due now
+  // D7 — streak/goal group (off-switch respected; shown once there is a streak or progress today).
+  const sg = box.querySelector('[data-streak-group]');
+  const sv = _streakView;
+  let streakShow = false;
+  if (sg) {
+    streakShow = !streakHidden() && !!sv && (sv.cur > 0 || sv.todayRecalls > 0);
+    sg.hidden = !streakShow;
+    if (streakShow) {
+      const cn = sg.querySelector('[data-streak-cur]'); if (cn) cn.textContent = String(sv.cur);
+      const g = sg.querySelector('[data-streak-goal]');
+      if (g) {
+        if (sv.todayRest) g.textContent = ' · ' + tt('room.morph.study.streakRestShort', 'отдых ✓');
+        else g.textContent = ' · ' + tt('room.morph.study.today', 'сегодня') + ' ' + sv.todayRecalls + '/' + (sv.todayGoal > 0 ? sv.todayGoal : sv.cap);
+      }
+      sg.classList.toggle('db-streak-done', !!sv.todayQualified);
+    }
+  }
+  box.hidden = !(dueShow || streakShow);
 }
 async function refreshDueBadge() {
   if (!window.ReaderMorph || typeof window.ReaderMorph.dueCounts !== 'function') return;
@@ -606,6 +645,11 @@ async function refreshDueBadge() {
   try { if (!states) states = (await ensureWordStates()) || {}; } catch (_) { states = states || {}; }
   try { schedule = (await localDb.getSrsSchedule()) || {}; } catch (_) { schedule = {}; }
   _dueCounts = window.ReaderMorph.dueCounts(states || {}, schedule, Date.now());
+  // D7 — streak/goal folded from the study_day ledger (today injected from the LOCAL date).
+  if (typeof window.ReaderMorph.streakView === 'function' && typeof localDb.getStudyDays === 'function') {
+    try { _streakView = window.ReaderMorph.streakView((await localDb.getStudyDays()) || [], window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr()); }
+    catch (_) { _streakView = null; }
+  }
   document.querySelectorAll('[data-due-badge]').forEach((b) => _paintDueBadge(b, _dueCounts));
 }
 // Humanize a future due-instant → { n, unit:'d'|'h' } for the «next review in …» summary line.
@@ -658,6 +702,7 @@ function ensureStudySheet() {
     const tile = t.closest('[data-train-tile]'); if (tile) { onTrainTile(tile); return; }
     const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
     if (t.closest('[data-train-again]')) { startTraining(); return; }
+    if (t.closest('[data-streak-toggle]')) { streakHiddenSet(!streakHidden()); try { refreshDueBadge(); } catch (_) {} renderTrainSummary(); return; }   // D7 — premium off-switch
     const tsp = t.closest('[data-train-speak]'); if (tsp) { try { speakWord(tsp.getAttribute('data-he') || ''); } catch (_) {} return; }
     if (t.closest('[data-train-rowspeak]')) { try { speakWord((_trainSession && _trainSession._built && _trainSession._built.sentence) || ''); } catch (_) {} return; }
     if (t.closest('[data-train-card]')) { onTrainCard(); return; }
@@ -978,7 +1023,15 @@ async function startTraining() {
     }
   }
   if (!_studySheet || _studySheet.hidden || _studyMode !== 'train') return;   // re-check after the await fan-out
-  _trainSession = { items, pool: all, idx: 0, total: items.length, correct: 0, levelUps: 0, answered: false };
+  // D7 — «available work today» = GENUINELY due/new items only, NOT buildTrainSession's not-yet-due
+  // padding (it backfills the session with words whose srs_due > now). Using the padded items.length would
+  // (a) mask the caught-up learner's honest rest-credit (available never hits 0) and (b) let the adaptive
+  // goal count not-yet-due reviews (R2 «never push ahead of schedule»). So count only the due/new portion.
+  const _nowDue = Date.now();
+  const dueAvail = items.filter((it) => !it._srs || !it._srs.due || it._srs.due <= _nowDue).length;
+  _trainSession = { items, pool: all, idx: 0, total: items.length, dueAvail: dueAvail, correct: 0, levelUps: 0, answered: false };
+  try { localDb.noteAvailable(_localDayStr(), dueAvail); } catch (_) {}   // dueAvail==0 → honest rest-credit
+  try { refreshDueBadge(); } catch (_) {}   // reflect today's goal denominator before the first question
   renderTrainItem();
 }
 // Sentence (he/he_niqqud/ru) for a row — readerRows is the fast path; fall back to the painted DOM
@@ -1201,10 +1254,16 @@ async function checkTrainAnswer(correct, skipped) {
   else if (correct) { s.correct++; }
   const moved = (next !== item.status) ? (statusLabel(item.status) + ' → ' + statusLabel(next)) : '';   // A9 — localized, not raw codes
   item._from = item.status; item.status = next;
+  // D7 — count this as a GENUINE recall toward today's goal/streak. A retrieval ATTEMPT counts whether
+  // right or wrong (a failed attempt still aids memory — testing effect); only a SKIP (refusing to try) is
+  // a soft no-recall and earns nothing (reuses «show≠recall»; teach-views write nothing either). Pass the
+  // genuinely-due count (NOT s.total) so the per-day MAX never re-inflates available with padding. Awaited
+  // so the session-summary's fresh ledger read can't race a step behind this write.
+  if (!skipped) { try { await localDb.recordRecall(_localDayStr(), s.dueAvail || 0); } catch (_) {} }
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}   // repaint the reader behind
-  try { refreshDueBadge(); } catch (_) {}    // D3 — schedule changed → badge + _dueCounts stay fresh for the summary
+  try { refreshDueBadge(); } catch (_) {}    // D3/D7 — schedule + ledger changed → badge + streak stay fresh for the summary
   // D4 — leech: this word has now been missed enough times → gently offer «отметить ignore?» (not yet ignored).
   const isLeech = !!(sched && (Number(sched.lapses) || 0) >= LEECH_LAPSES) && item.status !== 'ignore';
   renderTrainReveal(correct, moved, skipped, isLeech);
@@ -1274,6 +1333,28 @@ function renderTrainSummary() {
   const box = el('div', { class: 'room-train-summary' });
   box.appendChild(el('div', { class: 'room-train-score', text: tt('room.morph.study.done', 'Готово') + ': ' + s.correct + ' / ' + s.total }));
   if (s.levelUps) box.appendChild(el('div', { class: 'room-train-levelups', text: '↑ ' + s.levelUps + ' ' + tt('room.morph.study.levelUps', 'уровней') }));
+  // D7 — soft streak / daily-goal payoff (the emotional reward only for users who engaged). Filled async
+  // from the study_day ledger; respects the off-switch. Groups are nowrap → break only at the logical
+  // boundary (invariant #7). Plain textContent so applyI18n never clobbers the numbers.
+  const streakSlot = el('div', { class: 'room-train-streakslot' });
+  box.appendChild(streakSlot);
+  (async () => {
+    try {
+      if (streakHidden() || !window.ReaderMorph || !window.ReaderMorph.streakView || !localDb.getStudyDays) return;
+      if (!streakSlot.isConnected) return;
+      const sv = window.ReaderMorph.streakView((await localDb.getStudyDays()) || [], window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr());
+      if (!streakSlot.isConnected || !sv || (!sv.cur && !sv.todayRecalls)) return;
+      const line = el('div', { class: 'room-train-streak', attrs: { dir: uiDirRoom() } });
+      const g1 = el('span', { class: 'rts-g rts-flame' }); g1.textContent = '🔥 ' + sv.cur + ' ' + tt('room.morph.study.streakDays', 'дн.'); line.appendChild(g1);
+      const g2 = el('span', { class: 'rts-g' });
+      if (sv.todayRest) g2.textContent = tt('room.morph.study.streakRest', 'день отдыха — зачтено ✓');
+      else if (sv.todayQualified) g2.textContent = tt('room.morph.study.goalDone', 'цель дня выполнена ✓');
+      else g2.textContent = tt('room.morph.study.today', 'сегодня') + ' ' + sv.todayRecalls + '/' + (sv.todayGoal > 0 ? sv.todayGoal : sv.cap);
+      line.appendChild(g2);
+      if (sv.best > sv.cur) { const g3 = el('span', { class: 'rts-g rts-best' }); g3.textContent = tt('room.morph.study.streakBest', 'рекорд') + ': ' + sv.best; line.appendChild(g3); }
+      streakSlot.appendChild(line);
+    } catch (_) {}
+  })();
   // D3 — closure feedback: more due right now, else when the next batch returns by the SRS schedule.
   try { refreshDueBadge(); } catch (_) {}   // keep the head badge fresh after the session (fire-and-forget)
   if (_dueCounts) {
@@ -1289,6 +1370,10 @@ function renderTrainSummary() {
   actions.appendChild(el('button', { class: 'room-train-next', i18n: 'room.morph.study.again', text: tt('room.morph.study.again', '🎯 Ещё'), attrs: { type: 'button', 'data-train-again': '1' } }));
   actions.appendChild(el('button', { class: 'room-train-card', i18n: 'room.morph.study.toList', text: tt('room.morph.study.toList', '📋 Список'), attrs: { type: 'button', 'data-study-mode': 'list' } }));
   box.appendChild(actions);
+  // D7 — premium off-switch (always reachable from the summary): hide the streak entirely for learners
+  // who find streak pressure counterproductive (the Anki crowd) — the visible opt-out IS the anti-dark-pattern.
+  box.appendChild(el('button', { class: 'room-train-streaktoggle', attrs: { type: 'button', 'data-streak-toggle': '1' },
+    text: streakHidden() ? tt('room.morph.study.streakShow', '🔥 Показать стрик') : tt('room.morph.study.streakHide', '🔥 Скрыть стрик') }));
   body.appendChild(box);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
