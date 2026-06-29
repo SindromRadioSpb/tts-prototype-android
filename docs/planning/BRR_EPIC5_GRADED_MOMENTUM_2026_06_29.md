@@ -46,7 +46,7 @@
 | W | Компонент | Версия | Коммит | Гейт | Статус |
 |---|---|---|---|---|---|
 | W1 | continue-mark-read | v3.11.43 | _(текущий)_ | reader-resume(45/0, +atTextEnd/lastRowVisible) · reader-word-status(mig 061 + finished round-trip + UPSERT-preserve обе стороны) | ✅ SHIPPED |
-| W2 | end-of-text-handoff | — | — | reader-context/corpus-vocab | ⏳ |
+| W2 | end-of-text-handoff | v3.11.44 | _(текущий)_ | corpus-vocab(pickPersonalRail) · scaffold 234 · i18n 226 · parity · node 265/9 | ✅ SHIPPED |
 | W3 | difficulty-band | — | — | corpus-vocab | ⏳ |
 | W4 | in-text-coverage-chip | — | — | reader-morph | ⏳ |
 | W5 | niqqud-fade-graduation | — | — | reader-scaffold | ⏳ |
@@ -60,6 +60,14 @@
 - **i18n** ru/en/he (`room.resume.endOfText/markRead/readDone/unmark/markedRead/markReadTip`); CSS `.reader-end*`/`.continue-done` (auto-width escape global `button{100%}`); @380px свет+тёмная + RTL-карточка проверены.
 - **Adversarial review pass** — поймал 1 Important: авто-карточка НЕ всплывала при обычном скролл-чтении (`topVisibleRowIdx==n-1` достигается только когда последняя строка УШЛА за бар, чего низ документа не даёт; замер: на 40-строчном тексте `topVisibleRowIdx@низ=33`, не 39). Фикс: триггер = «последняя строка видна» (`lastRowVisible`), не «прокручена за бар». Эмпирически подтверждено в реальной раскладке браузера (false@верх→true@низ).
 - **Гейты:** reader-resume 45/0 · reader-word-status (mig 061 + finished-фильтр + UPSERT-preserve обе стороны) · reader-scaffold 234 · reader-morph/context/parity/i18n 226 · node --test 265/9 (==baseline) · api-smoke. ⚠ Прод/live-verify скролл-триггера — на реальном длинном baked-тексте (Kapture).
+
+### W2 — ✅ SHIPPED (v3.11.44)
+**end-of-text-handoff.** Решения владельца: i+1 gentlest-first inline-в-конце · **+«🔁 Повторить слова» CTA** · **топ-3** next-карты. Конца текста не было (`closeReader` сваливал в сетку); движок `pickPersonalRail` (796 ready) уже отгружён.
+- **library-ui (reuse, без нового движка):** `buildHandoffPicks(excludeTextKey)` — поднимает scored-цикл из `injectCorpusRails` (`coverageForWork` vs single-flight `ensureWordStates`, искл. текущий `text_key`) → `pickPersonalRail` → топ-3; fallback `ez` cold-start (top-3, author-cap). `appendHandoffPicks` — async-секция «🎯 Следующий для тебя»/🔥/🌱 (3× `renderCorpusCard` → tap=`openCorpusWork`); guard `readerTextId!==tid || !card.isConnected` + идемпотентность. `renderEndOfTextCard` += «🔁 Повторить слова» CTA → `startTextReviewFromHandoff` (открыть study-sheet в train-mode + `startTraining` по открытому тексту — reuse, та же in-text cloze).
+- **i18n** `room.resume.reviewWords` ×3 (заголовки переиспользуют `room.corpus.{next,challenge,coldStart}Title`); CSS `.reader-end-review`/`.reader-end-next*` (next-карты в колонку, @380px). **Без миграций, без правок движка/parity.**
+- **Adversarial review pass** — поймал 1 Important: заголовок-эмодзи 🎯/🔥/🌱 стирался `applyI18n` (`data-i18n` на элементе с emoji-текстом → перезапись на emoji-less ключ; ровно паттерн, который home-rail избегает). Фикс: emoji = текст-нода + заголовок = дочерний `[data-i18n]` span (эмодзи переживает + live-релокализация). **Эмпирически подтверждено против реального `applyI18n`:** fixed=«🎯 Следующий для тебя», buggy=«Следующий для тебя». Остальная поверхность (async-гонка/sheet-setup/exclusion/empty/стампида/parity/i18n/card-reuse) — чисто.
+- **Гейты:** corpus-vocab 15/0 · scaffold 234 · i18n 226 · reader-morph/context/parity · word-status · node 265/9 (==baseline) · api-smoke. @380px свет+тёмная (mark+review+3 next-карты, RTL). ⚠ live-verify за владельцем на реальном/одноразовом тексте (next-веер + «Повторить слова»).
+- **СЛЕДУЮЩЕЕ = W3 difficulty-band** (ez-тертиль .30/.67 + decoupled loadFlag, client-only, без ребилда).
 
 ## Источник измерений
 Полный grounded-прогон (6 агентов, file:line, реальные распределения) — рабочий артефакт сессии; ключевые факты сведены в таблицу выше. Независимо подтверждено: niqqud-дефолт `'full'`, `ez`@build-corpus-vocab.js:171 (нет `archaica`), `getContinueReading` без порога, `ready`=796.

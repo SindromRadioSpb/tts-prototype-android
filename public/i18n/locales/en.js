@@ -1937,6 +1937,7 @@ window.I18N_LOCALES.en = {
       unmark: "unmark",
       markedRead: "Marked as read",
       markReadTip: "Mark as read",
+      reviewWords: "🔁 Review words",
     },
     bookmark: {
       shelfTitle: "Bookmarks",

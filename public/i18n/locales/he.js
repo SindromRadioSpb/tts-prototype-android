@@ -1947,6 +1947,7 @@ window.I18N_LOCALES.he = {
       unmark: "בטל סימון",
       markedRead: "סומן כנקרא",
       markReadTip: "סמן כנקרא",
+      reviewWords: "🔁 חזרה על מילים",
     },
     bookmark: {
       shelfTitle: "סימניות",

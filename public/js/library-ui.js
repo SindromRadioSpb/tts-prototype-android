@@ -2062,10 +2062,99 @@ async function renderEndOfTextCard(tid) {
     actions.appendChild(mark);
   }
   card.appendChild(actions);
+  // W2 — «🔁 Повторить слова из этого текста»: one tap into the in-text cloze training (the text is
+  // open at its end → its collected words are right here). Closes learn→recall at the finish moment.
+  const review = el('button', { class: 'reader-end-review', i18n: 'room.resume.reviewWords', text: tt('room.resume.reviewWords', '🔁 Повторить слова') });
+  review.type = 'button';
+  review.addEventListener('click', () => { try { startTextReviewFromHandoff(); } catch (_) {} });
+  card.appendChild(review);
   const provNote = $('readerProvNote');
   if (provNote && provNote.parentNode === reader) reader.insertBefore(card, provNote);
   else reader.appendChild(card);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  // W2 — «🎯 Следующий для тебя»: append the i+1 next-text fan async (reuses the home-rail engine;
+  // cached single-flight states → fast). Fire-and-forget so the mark/review row shows immediately.
+  appendHandoffPicks(card, tid);
+}
+
+// ── BRR Epic 5 W2 — end-of-text-handoff: «что дальше» (next i+1 texts + review-words) ──────────
+// Score the 796 ready corpus works against the LIVE profile (SAME engine as the home rail —
+// CorpusVocab.pickPersonalRail, gentlest-first), excluding the just-read text, and surface the top 3
+// inline at the end-card (R8 «всегда что дальше», no dead-end into the grid). Empty/too-new profile →
+// ez cold-start fallback (never a fabricated «для тебя» list). Reuses ensureWordStates' single-flight
+// snapshot (no per-card DB fan-out — the S3 stampede lesson). Returns { kind, cards } or null.
+async function buildHandoffPicks(excludeTextKey) {
+  try {
+    const ready = (corpusIndex && corpusIndex.ready) || [];
+    if (!ready.length || !window.CorpusVocab) return null;
+    const v = await loadCorpusVocab();
+    if (!v || !v.works) return null;
+    const states = (await ensureWordStates()) || {};
+    const cardById = new Map();
+    const scored = [];
+    for (const c of ready) {
+      if (excludeTextKey && c.text_key === excludeTextKey) continue;   // never recommend the just-read text
+      const w = v.works[String(c.id)];
+      if (!w) continue;
+      const cov = window.CorpusVocab.coverageForWork(w, v.dict, states);
+      if (!cov) continue;
+      cardById.set(String(c.id), c);
+      scored.push({ id: String(c.id), author: c.author, cov: cov });
+    }
+    const decision = window.CorpusVocab.pickPersonalRail(scored);
+    if (decision && decision.kind) {
+      const cards = decision.ids.map((id) => cardById.get(String(id))).filter(Boolean).slice(0, 3);
+      if (cards.length) return { kind: decision.kind, cards: cards };
+    }
+    // cold-start fallback (profile-free intrinsic easiness ez), author-capped, top 3 — R8 no dead-end.
+    const cold = ready
+      .filter((c) => !(excludeTextKey && c.text_key === excludeTextKey))
+      .map((c) => ({ c: c, ez: (v.works[String(c.id)] || {}).ez || 0 }))
+      .filter((x) => x.ez > 0).sort((a, b) => b.ez - a.ez);
+    const per = {}, pick = [];
+    for (const x of cold) { const a = x.c.author || '?'; if ((per[a] || 0) >= 2) continue; per[a] = (per[a] || 0) + 1; pick.push(x.c); if (pick.length >= 3) break; }
+    if (pick.length) return { kind: 'coldstart', cards: pick };
+    return null;
+  } catch (_) { return null; }
+}
+
+// Append the «что дальше» fan to the end-card (async, guarded against navigation away).
+async function appendHandoffPicks(card, tid) {
+  let picks = null;
+  try { picks = await buildHandoffPicks(readerTextKey); } catch (_) { picks = null; }
+  if (!picks || !picks.cards.length) return;
+  if (readerTextId !== tid || !card.isConnected) return;   // navigated away / card replaced while scoring
+  if (card.querySelector('.reader-end-next')) return;       // idempotent
+  const meta = picks.kind === 'challenge'
+    ? { emoji: '🔥', key: 'room.corpus.challengeTitle', fb: 'Следующий вызов' }
+    : picks.kind === 'coldstart'
+      ? { emoji: '🌱', key: 'room.corpus.coldStartTitle', fb: 'С чего начать' }
+      : { emoji: '🎯', key: 'room.corpus.nextTitle', fb: 'Следующий для тебя' };
+  const sec = el('div', { class: 'reader-end-next' });
+  // Emoji as a TEXT NODE (applyI18n only rewrites the [data-i18n] child span, so the 🎯/🔥/🌱 kind-signal
+  // survives every re-localize — the home-rail title drops i18n entirely; this keeps live language-switch too).
+  const head = el('div', { class: 'reader-end-next-head' });
+  head.appendChild(document.createTextNode(meta.emoji + ' '));
+  head.appendChild(el('span', { i18n: meta.key, text: tt(meta.key, meta.fb) }));
+  sec.appendChild(head);
+  const rail = el('div', { class: 'reader-end-next-rail' });
+  for (const c of picks.cards) rail.appendChild(renderCorpusCard(c));   // tap → openCorpusWork (the next text)
+  sec.appendChild(rail);
+  card.appendChild(sec);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// «🔁 Повторить слова»: open the study sheet in train mode and launch the in-text cloze training over
+// the currently-open text's words (reuse startTraining — same flow as the «🎯 Тренировка» toggle).
+// Mirrors startDueReview's sheet setup, but trains on THIS text (not the cross-text due queue).
+async function startTextReviewFromHandoff() {
+  if (typeof ensureStudySheet === 'function') ensureStudySheet();
+  if (!_studySheet) return;
+  _studySheet.hidden = false; _studySheet.classList.add('room-study-open');
+  _studyMode = 'train'; _trainSession = null;
+  try { _studySheet.querySelectorAll('[data-study-mode]').forEach((b) => b.classList.toggle('on', b.getAttribute('data-study-mode') === 'train')); } catch (_) {}
+  try { _studyListChrome(false); } catch (_) {}
+  try { await startTraining(); } catch (_) {}
 }
 
 // BRR-P2-003 — passage bookmarks. A ☆/★ control is injected per row POST-render on the

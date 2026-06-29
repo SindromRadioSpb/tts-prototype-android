@@ -1951,6 +1951,7 @@ window.I18N_LOCALES.ru = {
       unmark: "снять отметку",
       markedRead: "Отмечено: прочитано",
       markReadTip: "Отметить прочитанным",
+      reviewWords: "🔁 Повторить слова",
     },
     bookmark: {
       shelfTitle: "Закладки",
