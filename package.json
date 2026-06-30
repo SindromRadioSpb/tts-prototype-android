@@ -1,6 +1,6 @@
 {
   "name": "tts-translator-dashboard",
-  "version": "3.11.64",
+  "version": "3.11.65",
   "description": "TTS & Translator Dashboard (Google Cloud Text-to-Speech + Gemini, Hebrew-Russian tables)",
   "main": "server.js",
   "scripts": {
@@ -134,6 +134,7 @@
     "build:author-nodes": "node scripts/premium/build-author-nodes.js",
     "build:search-qid": "node scripts/premium/build-search-qid.js",
     "build:fn-freq": "node scripts/premium/build-function-frequency.js",
+    "build:fn-usage-pealim": "node scripts/premium/build-function-usage-pealim.js",
     "smoke:corpus-vocab-engine": "node scripts/premium/corpus-vocab-engine-smoke.js",
     "build:corpus-vocab": "node scripts/premium/build-corpus-vocab.js",
     "build:corpus-fts": "node scripts/premium/build-corpus-fts.js",

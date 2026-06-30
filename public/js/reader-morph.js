@@ -731,6 +731,21 @@
         card.usage = window.FunctionUsage.lookup(card.word || surface, { stem: surface, lemma: card.lemma }) || null;
       } catch (_) { card.usage = null; }
     }
+    // Epic-3b fix — the curated usage entry carries the VERIFIED Pealim sense-id, which
+    // overrides the niqqud-stripped function-link map (it picked the wrong homograph:
+    // אל → 5261 אַל «не» instead of 2682 אֶל «к»). Using the curated id gives the correct
+    // dict link AND, for prepositions/existentials that decline, the correct pronominal
+    // paradigm — rendered by the SAME table+tap-to-speak machinery as verbs/nouns.
+    if (card.usage && card.usage.pealim_id) {
+      card.pealim_id = String(card.usage.pealim_id);
+      card.pealim_url = card.usage.pealim_url ||
+        ("https://www.pealim.com/ru/dict/" + encodeURIComponent(card.pealim_id) + "/");
+      card.pealim_direct = true;
+      if (card.usage.declension && eng.pidMap) {
+        var par = eng.pidMap.get(card.pealim_id);
+        if (par && par.cells && Object.keys(par.cells).length) { card.paradigm = par; card.usageParadigm = true; }
+      }
+    }
     return card;
   }
 
@@ -1200,7 +1215,7 @@
       var tbl = ""; try { tbl = window.InflectionRender.renderParadigm(card.paradigm, { highlightForm: card.niqqud }); } catch (_) { tbl = ""; }
       // F5 — when the reading isn't «точно», the table is for the resolver's best guess, not
       // a fact: label it «возможная парадигма» so it isn't read as the authoritative paradigm.
-      var conjSure = card.label === "exact";
+      var conjSure = card.label === "exact" || card.usageParadigm;   // curated function-word declension is authoritative
       var conjLabel = conjSure ? tt("room.morph.conj", "Спряжение / Склонение") : tt("room.morph.possibleParadigm", "возможная парадигма");
       if (tbl) conj = '<details class="rm-acc rm-acc-conj' + (conjSure ? "" : " rm-acc-uncertain") + '"><summary class="rm-acc-sum">' + escapeHtml(conjLabel) + "</summary>" +
         '<div class="rm-conj-body">' + tbl + "</div></details>";

@@ -83,6 +83,49 @@ for (const html of ['public/library.html', 'public/index.html']) {
   ok(/<script src="\/js\/function-usage\.js"><\/script>/.test(rd(html)), `${html} script-tags the loader`);
 }
 ok(/"\/js\/function-usage\.js"/.test(rd('public/sw.js')), 'sw precaches the loader');
-ok(/CACHE_VERSION = "v3\.11\.64"/.test(rd('public/sw.js')), 'sw CACHE_VERSION bumped to v3.11.64');
+ok(/CACHE_VERSION = "v3\.11\.6[5-9]"/.test(rd('public/sw.js')), 'sw CACHE_VERSION bumped (>= v3.11.65)');
 
-console.log(`function-usage-smoke: ${pass} checks passed | ${keys.length} entries, ${reachable.length} reachable, ${unreachable.length} Phase-2 (${unreachable.join('')})`);
+// ── 5. Pealim sense-id correctness (the homograph-link bug fix) ───────────────
+// Independently re-derive the correct sense from the offline dataset and assert the
+// baked pealim_id is sense-correct (NOT a content/negative homograph). This is the
+// regression test for אל → 2682 אֶל «к» (was 5261 אַל «не»).
+const zlib = require('zlib');
+const ds = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(ROOT, 'public/data/inflection/pealim-infl-v12.json.gz'))).toString('utf8'));
+const byId = {};
+for (const p of ds.paradigms) byId[String(p.pealim_id)] = p;
+const stripN = (s) => String(s == null ? '' : s).replace(/[֑-ׇ]/g, '');
+const pron = (c) => Object.keys(c || {}).filter((k) => /^P-/.test(k)).length;
+
+ok(store.pealim_enriched === true, 'store is pealim-enriched');
+// the bug: אל must NOT link to 5261 (אַל negative); must be 2682 (אֶל preposition)
+ok(store.usage['אל'] && store.usage['אל'].pealim_id === '2682', 'אל → 2682 (אֶל «к»), not 5261 (REGRESSION)');
+ok(byId['2682'] && stripN(byId['2682'].lemma_niqqud) === 'אל' && pron(byId['2682'].cells) >= 6, '2682 is אֶל with a pronominal paradigm');
+// other declension prepositions resolve to the sense WITH pronominal cells
+const DECL = { 'את': '2710', 'על': '6012', 'של': '2643', 'אל': '2682', 'עם': '4112', 'אין': '6052', 'עוד': '5241', 'מן': '6051', 'יש': '3244', 'בין': '5202' };
+for (const [w, id] of Object.entries(DECL)) {
+  const e = store.usage[w];
+  ok(e && e.pealim_id === id, `${w} → ${id}`);
+  ok(e.declension === true, `${w} is flagged declension`);
+  const p = byId[id];
+  ok(p && stripN(p.lemma_niqqud) === w, `${id} lemma_niqqud niqqud-strips to ${w}`);
+  ok(p && pron(p.cells) >= 6, `${id} has a pronominal (P-*) declension table`);
+}
+// every baked pealim_id must exist in the dataset and strip to its key (no orphan/homograph)
+for (const w of keys) {
+  if (w.length === 1) continue;
+  const e = store.usage[w];
+  if (e.pealim_id) {
+    ok(byId[e.pealim_id], `${w} pealim_id ${e.pealim_id} exists in dataset`);
+    ok(stripN(byId[e.pealim_id].lemma_niqqud) === w, `${w} pealim_id sense niqqud-strips back to ${w} (no homograph)`);
+  }
+}
+// honest search-fallback where the function sense is absent from the dataset
+for (const w of ['זו', 'כל']) ok(store.usage[w] && !store.usage[w].pealim_id, `${w} has no direct id (honest search fallback)`);
+
+// ── 6. reader-morph wires the curated id → link + paradigm ─────────────────────
+ok(/card\.usage && card\.usage\.pealim_id/.test(rm), 'reader-morph applies curated pealim_id');
+ok(/card\.usageParadigm = true/.test(rm), 'reader-morph sets usageParadigm for the declension table');
+ok(/card\.label === "exact" \|\| card\.usageParadigm/.test(rm), 'curated declension labelled authoritative (not «возможная парадигма»)');
+
+const declCount = keys.filter((w) => store.usage[w].declension).length;
+console.log(`function-usage-smoke: ${pass} checks passed | ${keys.length} entries, ${reachable.length} reachable, ${unreachable.length} Phase-2 | ${declCount} with Pealim declension (אל→2682 fixed)`);

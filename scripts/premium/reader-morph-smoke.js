@@ -104,7 +104,11 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // no leaf-noun table); genuine content words keep their full reading + paradigm.
     eq(eng.ein && eng.ein.functionWord === true && /нет/.test(eng.ein.meaning || "") && eng.ein.label === "function",
       "אֵין must gate to «нет» (function), got " + JSON.stringify(eng.ein && eng.ein.meaning));
-    eq(eng.ein && !eng.ein.paradigm, "gated אֵין must NOT carry a (wrong) conjugation table");
+    // Epic-3b: אֵין may now carry its OWN curated pronominal declension (אֵינֶנִּי…, the
+    // verified function sense 6052) — but NEVER a wrong content table/root. Honesty held:
+    // any paradigm present must be the curated one (usageParadigm), with no content root.
+    eq(eng.ein && eng.ein.root == null && (!eng.ein.paradigm || eng.ein.usageParadigm === true),
+      "gated אֵין must not carry a WRONG content table (only its curated declension is allowed)");
     eq(eng.aleinu && eng.aleinu.functionWord === true && /на нас/.test(eng.aleinu.meaning || ""),
       "עָלֵינוּ must gate to «на нас» (prep+suffix), got " + JSON.stringify(eng.aleinu && eng.aleinu.meaning));
     eq(eng.aleinu && !eng.aleinu.paradigm && !eng.aleinu.root, "gated עָלֵינוּ must drop the leaf-noun root/table");
