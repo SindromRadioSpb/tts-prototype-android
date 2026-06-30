@@ -2,8 +2,64 @@
   "schema": 1,
   "version": 1,
   "generated_from": "curated",
-  "_note": "BRR Epic-6 curated editorial store (R6/R7/R9). Hand-authored, keyed by STABLE id (author Wikidata QID / work id / collection id). Ships EMPTY until content is authored under R1/R7 sign-off; merged onto the derived authority at render with precedence curated>asserted>derived. Adding an entry is a DATA-ONLY edit — no code, no schema migration, no UI rework. Schema: authors[QID]={one_line,bio_md,entry_points[],era,display,portrait_url,curator}; works[id]={why_read,significance,curator}; collections[id]={title,rationale,era,item_ids[],curator}.",
-  "authors": {},
+  "_note": "BRR Epic-6 curated editorial store (R6/R7/R9). Hand-curated, keyed by STABLE id (author Wikidata QID / work id / collection id), merged onto derived authority at render (curated>asserted>derived). Author bios approved by the owner 2026-06-30 (assistant-drafted from encyclopedic facts, owner-approved). Adding an entry = a DATA-only edit + a CORPUS_AUTHORS_DATA_REV bump in library-ui.js. Schema: authors[QID]={one_line,bio_md,entry_points,era,display,portrait_url,curator}; works[id]={why_read,significance,curator}; collections[id]={title,rationale,era,item_ids,curator}.",
+  "authors": {
+    "Q359705": {
+      "one_line": "Национальный поэт ивритского возрождения",
+      "bio_md": "Хаим Нахман Бялик (1873–1934) — центральная фигура литературного возрождения иврита, прозванный «национальным поэтом». Писал стихи, поэмы, рассказы и эссе; вместе с Равницким составил антологию аггады «Сефер ха-Аггада».",
+      "curator": "Kolosei Peter"
+    },
+    "Q521410": {
+      "one_line": "Поэт возрождения: природа, эллинизм, сонет",
+      "bio_md": "Шаул Черниховский (1875–1943) — один из крупнейших поэтов ивритского возрождения, врач по профессии. Известен идиллиями, сонетами, природной и античной (эллинской) темой, а также переводами (в т.ч. Гомера).",
+      "curator": "Kolosei Peter"
+    },
+    "Q380425": {
+      "one_line": "Эссеист, основатель «духовного сионизма»",
+      "bio_md": "Ахад ха-Ам (псевдоним Ашера Гинцберга, 1856–1927) — мыслитель и эссеист, идеолог культурного («духовного») сионизма, видевший в Эрец-Исраэль духовный центр еврейского народа.",
+      "curator": "Kolosei Peter"
+    },
+    "Q1926717": {
+      "one_line": "Писатель и мыслитель, ницшеанский вызов",
+      "bio_md": "Миха Йосеф Бердичевский (Бин-Горион, 1865–1921) — писатель, эссеист и собиратель преданий; в полемике с Ахад ха-Амом отстаивал индивидуализм и «переоценку ценностей» в духе Ницше.",
+      "curator": "Kolosei Peter"
+    },
+    "Q705482": {
+      "one_line": "Писатель, критик, переводчик-новатор",
+      "bio_md": "Давид Фришман (1859–1922) — прозаик, поэт, влиятельный литературный критик, редактор и переводчик; один из зачинателей современной ивритской критики и фельетона.",
+      "curator": "Kolosei Peter"
+    },
+    "Q1376036": {
+      "one_line": "Ведущий поэт ивритской Хаскалы",
+      "bio_md": "Йехуда Лейб Гордон (ЯЛаГ, 1830–1892) — крупнейший поэт еврейского Просвещения (Хаскалы), сатирик; призывал к обновлению еврейской жизни и критиковал косность («Пробудись, народ мой»).",
+      "curator": "Kolosei Peter"
+    },
+    "Q399986": {
+      "one_line": "Мыслитель трудового сионизма, «религия труда»",
+      "bio_md": "Аарон Давид Гордон (1856–1922) — мыслитель Второй алии, проповедник «религии труда» и связи человека с природой и землёй; духовный авторитет халуцим.",
+      "curator": "Kolosei Peter"
+    },
+    "Q236094": {
+      "one_line": "Поэтесса и парашютистка, национальная героиня",
+      "bio_md": "Хана Сенеш (1921–1944) — поэтесса и десантница; заброшена в оккупированную Европу, схвачена и казнена. Автор знаменитых стихотворений («Эли, Эли» / «Прогулка в Кейсарию»).",
+      "curator": "Kolosei Peter"
+    },
+    "Q528647": {
+      "one_line": "Классик израильской прозы поколения Пальмаха",
+      "bio_md": "С. Изхар (Изхар Смилянский, 1916–2006) — один из крупнейших израильских прозаиков; известен повестью «Хирбет Хиза» и романом «Дни Циклага», лиричным языком и моральной остротой.",
+      "curator": "Kolosei Peter"
+    },
+    "Q3051140": {
+      "one_line": "Поэтесса ивритского модернизма",
+      "bio_md": "Элишева (Элишева Быховски, 1888–1949) — поэтесса и прозаик русского происхождения, писавшая на иврите; заметный женский голос в ивритской литературе межвоенного периода.",
+      "curator": "Kolosei Peter"
+    },
+    "Q2866491": {
+      "one_line": "Прозаик-реалист и редактор",
+      "bio_md": "Ашер Бараш (1889–1952) — прозаик и редактор, мастер реалистической ивритской новеллы; один из организаторов литературной жизни ишува.",
+      "curator": "Kolosei Peter"
+    }
+  },
   "works": {},
   "collections": {}
 }

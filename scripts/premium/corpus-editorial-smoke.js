@@ -27,7 +27,12 @@ console.log("corpus-editorial: curated namespace honesty gate + precedence merge
 const store = ED.normalizeEditorial(JSON.parse(fs.readFileSync(path.join(DATA, "corpus-editorial-v1.json"), "utf8")));
 const v = ED.validateEditorial(store);
 test("committed corpus-editorial-v1.json validates (ok)", v.ok, (v.errors[0] || ""));
-test("store is empty (content pending sign-off) — honest 0% coverage", v.stats.authors === 0 && v.stats.works === 0 && v.stats.collections === 0);
+test("committed store carries curated content with curators (R9 — no anonymous claim)", v.stats.authors > 0 && v.stats.missing_curator === 0, "authors=" + v.stats.authors + " missingCurator=" + v.stats.missing_curator);
+// every editorial author QID must resolve to a real author node, or the bio renders nowhere (orphan)
+const CV = (fs.readFileSync(path.join(REPO, "public", "js", "library-ui.js"), "utf8").match(/CORPUS_CATALOG_VERSION\s*=\s*(\d+)/) || [])[1] || "7";
+const nodeQids = new Set((JSON.parse(fs.readFileSync(path.join(DATA, "corpus-authors-v" + CV + ".json"), "utf8")).authors || []).map((n) => n.qid));
+const orphan = Object.keys(store.authors).find((q) => !nodeQids.has(q));
+test("every editorial author QID resolves to an author node (no orphan bio)", !orphan, orphan ? ("orphan " + orphan) : "");
 
 // ── validateEditorial teeth (fixtures) ─────────────────────────────────────────
 test("rejects a non-QID author key (must key on a stable identity)", !ED.validateEditorial(ED.normalizeEditorial({ authors: { "ביאליק": { one_line: "x", curator: "y" } } })).ok);
@@ -57,7 +62,7 @@ test("merge honest-null: absent bio/entry_points not attached", partial.editoria
 
 // ── applyEditorialToAuthors no-op on empty store ───────────────────────────────
 const nodes = [baseNode, { qid: "Q467161", display: "שמואל הנגיד", era: "medieval", works: 1857, prov: { era: "derived", identity: "asserted" } }];
-test("applyEditorialToAuthors is a no-op on the empty committed store", JSON.stringify(ED.applyEditorialToAuthors(nodes, store)) === JSON.stringify(nodes));
+test("applyEditorialToAuthors is a no-op on an EMPTY store", JSON.stringify(ED.applyEditorialToAuthors(nodes, ED.normalizeEditorial({}))) === JSON.stringify(nodes));
 const applied = ED.applyEditorialToAuthors(nodes, ED.normalizeEditorial({ authors: { Q359705: { one_line: "x", curator: "o" } } }));
 test("applyEditorialToAuthors merges only the matching QID", applied[0].editorial && !applied[1].editorial);
 

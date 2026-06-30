@@ -58,7 +58,7 @@ let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,
 let corpusVocabLoading = null;   // single-flight guard
 const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
 const CORPUS_SEARCH_DATA_REV = 1; // bump when corpus-search sidecar CONTENT changes within a catalog version (Epic-6=author qid `q`)
-const CORPUS_AUTHORS_DATA_REV = 1; // bump when corpus-authors OR corpus-editorial CONTENT changes within a catalog version (Epic-6 — e.g. a curated bio is authored, or build-author-nodes re-run); keeps force-cache (offline-first) fresh
+const CORPUS_AUTHORS_DATA_REV = 2; // bump when corpus-authors OR corpus-editorial CONTENT changes within a catalog version (rev2 = first approved author bios); keeps force-cache (offline-first) fresh
 const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS index CONTENT/FORMAT changes (rev 5 = 2-level prefix shards)
 const TRANSLIT_DATA_REV = 1;     // BRR-S18 — bump when build-translit-index output changes within a catalog version
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
