@@ -102,3 +102,30 @@ Version-triad (вместе): `package.json:3` + `public/sw.js:32` (CACHE_VERSIO
 
 ### §6.7. Один-строкой (вердикт критика)
 **Да — расширять Эпик 6, но построив ОДНУ вещь первой:** QID-keyed curated-data слой (author/work/collection sidecar) + re-bake precedence guard `curated>asserted>derived` + authority build-gate + один shared byline/slot renderer; промоутить даты авторов, которые УЖЕ есть офлайн (не тащить из Wikidata), и дальше каждый bio/intro/order растёт как защищённые данные. **Этот квартет — единственное, что останавливает возвраты к полировке; всё остальное — perpetual-контент, который нельзя называть «готовым».**
+
+---
+
+## §7. ЗАШИПЛЕНО — build-once квартет (Increments 1–3, v3.11.55→57, 2026-06-30)
+
+> Spike (verification) `docs/research/epic6-authority-spike/2026-06-30/` подтвердил blueprint на реальных 26K (фрагментация 14, **95.9% дат офлайн**, Q0-мердж 7 людей) → построен квартет, каждый инкремент adversarial-review'нут субагентом (поймал реальный баг в каждом), все гейты зелёные, prod-verified.
+
+### Increment 1 — QID author authority node + gate (v3.11.56 prod-side, `20ad315`)
+- **`db/premium/authorNodes.js`** (pure) — `buildAuthorNodes(index, eraMap)` схлопывает name-keyed per-era индекс в ОДИН узел на Wikidata-QID: промоутит даты из era-map (которые build:150 выбрасывал), **исключает Q0-sentinel** (мерджил 7 разных людей), co-author только по `;` (vav/comma = 44 false-positive surname'а, измерено), per-field prov `derived/asserted/partial`. `validateAuthorNodes` с **независимым works/ready/refs-оракулом** (зубы гейта — рег­рессия агрегации не пройдёт даже если lockstep совпал).
+- **`scripts/premium/build-author-nodes.js`** — standalone эмиттер `corpus-authors-v7.json` (846 узлов, 96% дат, из shipped-индекса, без полного ребилда) + нативная эмиссия в `build-corpus-catalog.js` (lockstep, root `authors_file`).
+- **Гейт `smoke:corpus-authority` (23)**. Бонус: починен stale `corpus-nav-smoke` (FB-волна).
+
+### Increment 2 — curated editorial namespace + precedence guard (`ba7889e`)
+- **`db/premium/editorialMeta.js`** — отдельный committed curated-store keyed by стабильный id; merge на derived authority с precedence `curated>asserted>derived` + per-field source; **anti-clobber by construction** (store не ре-деривится → re-bake не затрёт). `corpus-editorial-v1.json` ШИПИТСЯ ПУСТЫМ (контент — под sign-off). **Гейт `smoke:corpus-editorial` (19)** (validate-зубы + precedence + pure no-mutation + honest-null + no-op-on-empty).
+
+### Increment 3 — author-landing surface + L2 life-years (v3.11.57, `881dfdd`)
+- **`library-ui.js`** — `loadCorpusAuthors()` (lazy qid→merged-node Map, single-flight, retry-on-fail) + L3 **author-landing header** (`buildAuthorHeader`: display · era-chip · life-years BCE-aware · counts · self-hiding curated intro-slot · discreet Wikidata-link) + L2 per-row life-years (`decorateAuthorRows`). Parity-safe (post-render chrome). i18n `room.corpus.author.*` ×3.
+- **Adversarial-fix M1:** header-count из КЛИКНУТОЙ L2-строки (= что листает страница), НЕ из QID-агрегата (Bialik 500 не 507 — не обещать недостижимое); +retry-on-transient-fetch; +nowrap; +UI-direction-name. Все 8 гейтов + 380px light/dark + prod-verify.
+
+### §7.1. Payload (build-once достигнут)
+Добавить bio/one_line/entry_points/why-read/collection/era-override = **одна data-строка в `corpus-editorial-v1.json`** (keyed by QID/id) под R1/R7-sign-off → рендерится через готовый slot, защищён precedence-guard'ом от re-bake. **Ноль кода, ноль миграций, ноль re-gate, ноль re-polish.** Это и есть «не возвращаться».
+
+### §7.2. Сознательно ОТЛОЖЕНО (отдельные инкременты, с причиной — НЕ забытое)
+1. **Полный L2-list collapse-by-QID** (схлопнуть composites + 14 фрагментов в списке авторов) — **блокирован W4:** `corpus-search` строки `{id,t,a,e,g,l,r}` без QID → scoped-search матчит по author-СТРОКЕ; коллапс по QID сломал бы scoped-search. Нужен producer-инкремент: добавить `q` (qid) в search-sidecar (+регенерация corpus-search) → потом scoped-search + L2 по QID. Header/landing УЖЕ корректно схлопнут (узел).
+2. **Shared-byline-renderer консолидация** (свести 5 inline-byline'ов `renderWorkCard`/`renderCorpusCard`/`renderCorpusWorkRow`/`setReaderSubtitle`/`corpusProvBadge` в один) — maintainability-рефактор НАД только что отполированными (PC-1..12 + FB-1..21) поверхностями; риск регресса полировки без user-visible выигрыша → отдельный аккуратный инкремент (поверхности по отдельности уже премиальны — user-facing долга нет).
+3. **W1-b** (source-link на карточке) — clutter-риск vs PC-2 de-noise (W1-a уже даёт per-work атрибуцию в ридере) → hold. **W1-d** roadmap/moat микрокопи — отдельный content-drop.
+4. **Wave-2 контент** (author bios/life-dates-prose, why-read, editorial collections/reading-orders) — perpetual; HOME + slots готовы → дропается как данные под sign-off.
