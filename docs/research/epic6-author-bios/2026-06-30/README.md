@@ -1,4 +1,10 @@
-# Epic-6 Wave-2 (T6) — DRAFT author bios for review
+# Epic-6 Wave-2 (T6) — author bios
+
+> **✅ APPLIED 2026-06-30 (v3.11.60, `6a43f5f`).** All 11 drafts were owner-approved and moved into the live store `public/data/benyehuda/corpus-editorial-v1.json` (curator=owner); `CORPUS_AUTHORS_DATA_REV`→2; prod-verified rendering on the author-landing pages. This file is kept as the provenance record of the draft→approve. The **excluded** authors (politically-charged + niche, listed below) remain for future owner authoring.
+
+---
+
+## (original review brief) DRAFT author bios for review
 
 **What this is.** A DRAFT batch of curated author one-liners + short bios for the Reading-Room **author-landing header** (Epic 6). It exists so the editorial-content track starts as *approval*, not authoring: the assistant pre-drafted the well-established canon figures; **you review/edit/approve**, then they drop into the live store as data.
 
