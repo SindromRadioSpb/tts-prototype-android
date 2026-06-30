@@ -140,7 +140,9 @@ function main() {
       rows.push({
         surface: t.word, niqqud: t.niqqud || '', stratum: strat, depth,
         draft_proclitics: seq === '?' ? '(unclear)' : seq, stem: t.stem, posDicta: t.posDicta || '',
-        offline_agrees: offlineAgrees, needs_r1: needsR1 ? 'YES' : '', context: sentence.slice(0, 90),
+        // sanitize context: strip tab/quote/newline so the TSV stays cleanly tab-parseable
+        // (owner hit a CSV-quoting break that ate 22 ids — a literal " in the sentence).
+        offline_agrees: offlineAgrees, needs_r1: needsR1 ? 'YES' : '', context: sentence.slice(0, 90).replace(/["\t\r\n]/g, ' '),
       });
     }
   }
