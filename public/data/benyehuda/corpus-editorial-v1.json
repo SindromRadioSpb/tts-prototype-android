@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "version": 1,
+  "generated_from": "curated",
+  "_note": "BRR Epic-6 curated editorial store (R6/R7/R9). Hand-authored, keyed by STABLE id (author Wikidata QID / work id / collection id). Ships EMPTY until content is authored under R1/R7 sign-off; merged onto the derived authority at render with precedence curated>asserted>derived. Adding an entry is a DATA-ONLY edit — no code, no schema migration, no UI rework. Schema: authors[QID]={one_line,bio_md,entry_points[],era,display,portrait_url,curator}; works[id]={why_read,significance,curator}; collections[id]={title,rationale,era,item_ids[],curator}.",
+  "authors": {},
+  "works": {},
+  "collections": {}
+}

@@ -129,6 +129,7 @@
     "smoke:corpus-nav": "node scripts/premium/corpus-nav-smoke.js",
     "smoke:corpus-vocab": "node scripts/premium/corpus-vocab-smoke.js",
     "smoke:corpus-authority": "node scripts/premium/corpus-authority-smoke.js",
+    "smoke:corpus-editorial": "node scripts/premium/corpus-editorial-smoke.js",
     "build:author-nodes": "node scripts/premium/build-author-nodes.js",
     "smoke:corpus-vocab-engine": "node scripts/premium/corpus-vocab-engine-smoke.js",
     "build:corpus-vocab": "node scripts/premium/build-corpus-vocab.js",
