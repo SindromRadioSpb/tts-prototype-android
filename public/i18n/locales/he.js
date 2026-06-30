@@ -2131,6 +2131,8 @@ window.I18N_LOCALES.he = {
         heatRest: "מנוחה",
         heatLess: "פחות",
         heatMore: "יותר",
+        heatTitle: "לוח פעילות",
+        heatEmpty: "עדיין אין פעילות. עברו סבב תרגול «🎯» — וימי הפעילות יופיעו כאן כלוח.",
         chRead: "📖 קריאה",
         chListen: "🎧 שמיעה",
         chReverse: "🔤 RU→HE",

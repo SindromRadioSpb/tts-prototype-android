@@ -2135,6 +2135,8 @@ window.I18N_LOCALES.ru = {
         heatRest: "отдых",
         heatLess: "меньше",
         heatMore: "больше",
+        heatTitle: "Календарь активности",
+        heatEmpty: "Пока нет занятий. Пройди тренировку «🎯» — и дни активности появятся здесь календарём.",
         chRead: "📖 Чтение",
         chListen: "🎧 Аудио",
         chReverse: "🔤 RU→HE",

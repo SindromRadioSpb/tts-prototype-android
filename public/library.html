@@ -1192,6 +1192,19 @@
     body.theme-dark .rhm-l1 { background: rgba(34,197,94,.32); }
     body.theme-dark .rhm-l2 { background: rgba(34,197,94,.55); }
     body.theme-dark .rhm-l3 { background: #22c55e; }
+    /* D7.1 — heatmap bottom-sheet (reuses .list-picker) + the entry affordances */
+    .heatmap-sheet { text-align: center; }
+    .heatmap-sheet-body { display: flex; justify-content: center; padding: 8px 4px 14px; }
+    .heatmap-empty { font-size: 13px; line-height: 1.5; color: var(--text-secondary); padding: 22px 16px; max-width: 300px; margin: 0 auto; }
+    .db-streak[role="button"] { cursor: pointer; }
+    .db-streak-cal { opacity: .55; }
+    .db-streak[role="button"]:hover .db-streak-cal, .db-streak[role="button"]:focus-visible .db-streak-cal { opacity: 1; }
+    .room-study-cal {
+      width: auto !important; flex: none; appearance: none; cursor: pointer; line-height: 1;
+      background: var(--bg-muted); border: 1px solid var(--border-soft); border-radius: 8px;
+      padding: 4px 8px; font-size: 15px; margin-inline-start: 8px;
+    }
+    .room-study-cal:hover, .room-study-cal:focus-visible { border-color: var(--accent); }
     /* Epic 4.3b Phase D6 — extraction-channel selector (read/listen/reverse/dictate) + audio/reverse prompts.
        Pill buttons are auto-width (escape the global button{width:100%} trap); break only between pills. */
     .room-train-channels { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 12px; }
@@ -1486,7 +1499,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.60</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.61</span>
   </div>
 </footer>
 

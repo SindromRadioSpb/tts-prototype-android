@@ -2121,6 +2121,8 @@ window.I18N_LOCALES.en = {
         heatRest: "rest",
         heatLess: "less",
         heatMore: "more",
+        heatTitle: "Activity calendar",
+        heatEmpty: "No sessions yet. Do a «🎯» training round — your active days will show up here as a calendar.",
         chRead: "📖 Read",
         chListen: "🎧 Audio",
         chReverse: "🔤 RU→HE",

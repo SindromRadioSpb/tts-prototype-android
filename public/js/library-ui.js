@@ -811,11 +811,14 @@ function _dueBadgeEl(extraClass) {
   box.appendChild(grp('room.morph.study.due', 'К повторению', 'data-due-now'));
   // D7 — calm streak/goal group (one nowrap unit → breaks only at the logical boundary, invariant #7).
   // «🔥 N · сегодня k/g» — secondary to the due counts, never a loud always-on flame.
-  const sg = el('span', { class: 'db-group db-streak', attrs: { 'data-streak-group': '1' } });
+  const sg = el('span', { class: 'db-group db-streak', attrs: { 'data-streak-group': '1', role: 'button', tabindex: '0', 'aria-label': tt('room.morph.study.heatTitle', 'Календарь активности') } });
   sg.hidden = true;
   sg.appendChild(el('span', { class: 'db-streak-flame', text: '🔥 ' }));
   sg.appendChild(el('b', { class: 'db-n', text: '0', attrs: { 'data-streak-cur': '1' } }));
   sg.appendChild(el('span', { class: 'db-streak-goal', attrs: { 'data-streak-goal': '1' }, text: '' }));
+  sg.appendChild(el('span', { class: 'db-streak-cal', text: ' 📅' }));   // D7.1 — affordance: tap the streak → activity heatmap
+  sg.addEventListener('click', (e) => { e.stopPropagation(); openStudyHeatmap(); });
+  sg.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openStudyHeatmap(); } });
   box.appendChild(sg);
   return box;
 }
@@ -889,6 +892,11 @@ function ensureStudySheet() {
   const head = el('div', { class: 'room-study-head' });
   head.appendChild(el('span', { class: 'room-study-title', i18n: 'room.morph.study.title', text: tt('room.morph.study.title', '📚 Учить новые слова') }));
   head.appendChild(el('span', { class: 'room-study-total' }));   // «Новых слов: N»
+  // D7.1 — always-visible entry to the activity heatmap (findable even with no streak → honest empty state)
+  const calBtn = el('button', { class: 'room-study-cal', attrs: { type: 'button', 'aria-label': tt('room.morph.study.heatTitle', 'Календарь активности'), title: tt('room.morph.study.heatTitle', 'Календарь активности') } });
+  calBtn.textContent = '📅';
+  calBtn.addEventListener('click', () => openStudyHeatmap());
+  head.appendChild(calBtn);
   card.appendChild(head);
   card.appendChild(_dueBadgeEl('room-study-duebadge'));   // D3 — «В работе / К повторению» (both modes)
   // 4.3b — «Список / Тренировка» mode toggle (owner decision 4)
@@ -924,8 +932,7 @@ function ensureStudySheet() {
     const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
     if (t.closest('[data-train-again]')) { startTraining(); return; }
     if (t.closest('[data-streak-toggle]')) { streakHiddenSet(!streakHidden()); try { refreshDueBadge(); } catch (_) {} renderTrainSummary(); return; }   // D7 — premium off-switch
-    const hmT = t.closest('[data-heatmap-toggle]');   // D7.1 — tap the streak → toggle the activity heatmap
-    if (hmT) { const slot = hmT.parentElement && hmT.parentElement.querySelector('.room-heatmap-slot'); if (slot) { if (slot.firstChild) slot.innerHTML = ''; else buildStudyHeatmap(slot); } return; }
+    if (t.closest('[data-heatmap-toggle]')) { openStudyHeatmap(); return; }   // D7.1 — tap the streak → activity heatmap sheet
     const chSeg = t.closest('[data-train-channel]'); if (chSeg) { onTrainChannel(chSeg.getAttribute('data-train-channel')); return; }   // D6 — channel
     if (t.closest('[data-train-listen-row]')) { try { _playSentenceAudio(_trainSession && _trainSession._built); } catch (_) {} return; }   // D6 — replay sentence
     if (t.closest('[data-train-listen-word]')) { const b = _trainSession && _trainSession._built, it = _trainSession && _trainSession.items[_trainSession.idx]; try { speakWord((b && b.cz && b.cz.answer) || (it && (it.niqqud || it.surface)) || ''); } catch (_) {} return; }   // D6 — replay word (sentence-inflected form)
@@ -1714,9 +1721,8 @@ function renderTrainSummary() {
       else g2.textContent = tt('room.morph.study.today', 'сегодня') + ' ' + sv.todayRecalls + '/' + (sv.todayGoal > 0 ? sv.todayGoal : sv.cap);
       line.appendChild(g2);
       if (sv.best > sv.cur) { const g3 = el('span', { class: 'rts-g rts-best' }); g3.textContent = tt('room.morph.study.streakBest', 'рекорд') + ': ' + sv.best; line.appendChild(g3); }
-      line.appendChild(el('span', { class: 'rts-g rts-cal', text: '📅' }));   // D7.1 — tap → activity heatmap
+      line.appendChild(el('span', { class: 'rts-g rts-cal', text: '📅' }));   // D7.1 — tap → activity heatmap sheet
       streakSlot.appendChild(line);
-      streakSlot.appendChild(el('div', { class: 'room-heatmap-slot' }));
     } catch (_) {}
   })();
   // D3 — closure feedback: more due right now, else when the next batch returns by the SRS schedule.
@@ -1742,35 +1748,59 @@ function renderTrainSummary() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
-// D7.1 — month/contribution heatmap of study-day activity (GitHub-style: 7 weekday rows × week columns)
-// over the existing study_day ledger via the pure ReaderMorph.studyHeatmap fold. Honest: rest-days
-// (engaged, nothing due) are marked distinctly, never as 0; today is ringed; empty profile → empty grid.
-async function buildStudyHeatmap(slot) {
+// D7.1 — month/contribution heatmap (GitHub-style: 7 weekday rows × week columns) of study-day activity
+// via the pure ReaderMorph.studyHeatmap fold. Honest: rest-days (engaged, nothing due) marked distinctly,
+// never as 0; today ringed. The grid builder is reused by the bottom-sheet below.
+function buildHeatmapGrid(hm) {
+  const wrap = el('div', { class: 'room-heatmap' });
+  const grid = el('div', { class: 'room-heatmap-grid' });
+  if (hm.cells.length) for (let p = 0; p < hm.cells[0].dow; p++) grid.appendChild(el('span', { class: 'rhm-cell rhm-pad' }));   // align col 1 to the first cell's weekday
+  for (const c of hm.cells) {
+    const cell = el('span', { class: 'rhm-cell rhm-l' + c.level + (c.isToday ? ' rhm-today' : '') + (c.rest ? ' rhm-rest' : '') });
+    cell.title = c.day + (c.active ? ' · ' + c.recalls : (c.rest ? ' · ' + tt('room.morph.study.heatRest', 'отдых') : ''));
+    grid.appendChild(cell);
+  }
+  wrap.appendChild(grid);
+  const sum = el('div', { class: 'room-heatmap-sum', attrs: { dir: uiDirRoom() } });
+  sum.textContent = hm.activeDays + ' ' + tt('room.morph.study.heatActiveDays', 'активных дней') + ' · ' + hm.totalRecalls + ' ' + tt('room.morph.study.heatRecalls', 'повторений');
+  wrap.appendChild(sum);
+  const leg = el('div', { class: 'room-heatmap-legend' });
+  leg.appendChild(el('span', { class: 'rhm-leg-t', text: tt('room.morph.study.heatLess', 'меньше') }));
+  for (let l = 0; l <= 3; l++) leg.appendChild(el('span', { class: 'rhm-cell rhm-l' + l }));
+  leg.appendChild(el('span', { class: 'rhm-leg-t', text: tt('room.morph.study.heatMore', 'больше') }));
+  wrap.appendChild(leg);
+  return wrap;
+}
+// D7.1 — premium bottom-sheet for the activity heatmap. Reachable from the streak (home + study sheet)
+// AND the «📚 Учить» header (always, even with no streak → honest empty state). Mirrors openFinishedAllSheet.
+let _heatmapSheetOpen = false;
+async function openStudyHeatmap() {
+  if (_heatmapSheetOpen) return; _heatmapSheetOpen = true;
   try {
-    if (!slot || !window.ReaderMorph || typeof window.ReaderMorph.studyHeatmap !== 'function' || !localDb.getStudyDays) return;
-    const rows = (await localDb.getStudyDays()) || [];
-    if (!slot.isConnected) return;
-    const hm = window.ReaderMorph.studyHeatmap(rows, _localDayStr(), 84);
-    slot.innerHTML = '';
-    const wrap = el('div', { class: 'room-heatmap' });
-    const grid = el('div', { class: 'room-heatmap-grid' });
-    if (hm.cells.length) for (let p = 0; p < hm.cells[0].dow; p++) grid.appendChild(el('span', { class: 'rhm-cell rhm-pad' }));   // align col 1 to the first cell's weekday
-    for (const c of hm.cells) {
-      const cell = el('span', { class: 'rhm-cell rhm-l' + c.level + (c.isToday ? ' rhm-today' : '') + (c.rest ? ' rhm-rest' : '') });
-      cell.title = c.day + (c.active ? ' · ' + c.recalls : (c.rest ? ' · ' + tt('room.morph.study.heatRest', 'отдых') : ''));
-      grid.appendChild(cell);
-    }
-    wrap.appendChild(grid);
-    const sum = el('div', { class: 'room-heatmap-sum', attrs: { dir: uiDirRoom() } });
-    sum.textContent = hm.activeDays + ' ' + tt('room.morph.study.heatActiveDays', 'активных дней') + ' · ' + hm.totalRecalls + ' ' + tt('room.morph.study.heatRecalls', 'повторений');
-    wrap.appendChild(sum);
-    const leg = el('div', { class: 'room-heatmap-legend' });
-    leg.appendChild(el('span', { class: 'rhm-leg-t', text: tt('room.morph.study.heatLess', 'меньше') }));
-    for (let l = 0; l <= 3; l++) leg.appendChild(el('span', { class: 'rhm-cell rhm-l' + l }));
-    leg.appendChild(el('span', { class: 'rhm-leg-t', text: tt('room.morph.study.heatMore', 'больше') }));
-    wrap.appendChild(leg);
-    slot.appendChild(wrap);
-  } catch (_) {}
+  let rows = [];
+  try { rows = (typeof localDb.getStudyDays === 'function' ? (await localDb.getStudyDays()) : []) || []; } catch (_) { rows = []; }
+  const hm = (window.ReaderMorph && typeof window.ReaderMorph.studyHeatmap === 'function')
+    ? window.ReaderMorph.studyHeatmap(rows, _localDayStr(), 84)
+    : { cells: [], activeDays: 0, totalRecalls: 0 };
+  const ov = el('div', { class: 'list-picker-ov heatmap-sheet-ov' });
+  const box = el('div', { class: 'list-picker heatmap-sheet' });
+  box.appendChild(el('div', { class: 'list-picker-title', text: '📅 ' + tt('room.morph.study.heatTitle', 'Календарь активности') }));
+  const bodyWrap = el('div', { class: 'heatmap-sheet-body' });
+  if (!hm.activeDays) bodyWrap.appendChild(el('div', { class: 'heatmap-empty', attrs: { dir: uiDirRoom() }, text: tt('room.morph.study.heatEmpty', 'Пока нет занятий. Пройди тренировку «🎯» — и дни активности появятся здесь календарём.') }));
+  else bodyWrap.appendChild(buildHeatmapGrid(hm));
+  box.appendChild(bodyWrap);
+  const close = () => { _heatmapSheetOpen = false; try { ov.remove(); } catch (_) {} document.removeEventListener('keydown', onKey); };
+  const done = el('button', { class: 'list-picker-done', attrs: { type: 'button' } }); done.textContent = tt('room.corpus.lists.done', 'Готово');
+  done.addEventListener('click', close);
+  box.appendChild(done);
+  ov.appendChild(box);
+  ov.addEventListener('click', (e) => { if (e.target === ov) close(); });
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+  try { done.focus(); } catch (_) {}
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) { _heatmapSheetOpen = false; }   // build failed before the sheet wired its close → never wedge the guard
 }
 
 // ── note-formation: turn a tapped word into a word_study note (the «превращение») ──
