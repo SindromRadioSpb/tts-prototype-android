@@ -2013,6 +2013,7 @@ window.I18N_LOCALES.he = {
       readAloud: "הקראה",
       stopAloud: "עצור",
       find: { label: "חיפוש בטקסט", placeholder: "חיפוש בטקסט…", prev: "הקודם", next: "הבא", close: "סגירת חיפוש" },
+      context: { source: "מקור", sourceName: "פרויקט בן-יהודה" },
     },
     morph: {
       loading: "מנתח…",
@@ -2198,6 +2199,9 @@ window.I18N_LOCALES.he = {
       genre: {
         poetry: "שירה", prose: "פרוזה", article: "מאמר", memoir: "זכרונות",
         fables: "משלים", letters: "מכתבים", reference: "עיון", drama: "מחזה", lexicon: "מילון",
+      },
+      register: {
+        literary: "ספרותי", spoken: "דיבורי", archaic: "ארכאי", poetic: "פיוטי", mixed: "מעורב",
       },
     },
   },

@@ -2017,6 +2017,7 @@ window.I18N_LOCALES.ru = {
       readAloud: "Читать вслух",
       stopAloud: "Стоп",
       find: { label: "Найти в тексте", placeholder: "Найти в тексте…", prev: "Предыдущее", next: "Следующее", close: "Закрыть поиск" },
+      context: { source: "Источник", sourceName: "Проект Бен-Иегуда" },
     },
     morph: {
       loading: "Анализ…",
@@ -2202,6 +2203,9 @@ window.I18N_LOCALES.ru = {
       genre: {
         poetry: "поэзия", prose: "проза", article: "статья", memoir: "мемуары",
         fables: "басни", letters: "письма", reference: "справка", drama: "драма", lexicon: "лексикон",
+      },
+      register: {
+        literary: "литературный", spoken: "разговорный", archaic: "архаичный", poetic: "поэтический", mixed: "смешанный",
       },
     },
   },

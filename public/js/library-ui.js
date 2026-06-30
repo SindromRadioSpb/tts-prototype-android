@@ -2581,6 +2581,57 @@ function buildAidsPanel() {
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
+// ── Epic-6 W1-a — reader source attribution + header context (R6/R9) ──────────────
+// Honest surfacing of ALREADY-stored corpus metadata (source_meta_json.corpus, which
+// readerCore.openText already returns as res.text): author · era · register · the
+// per-work source link. Self-hides for personal/non-corpus texts and for every absent
+// field — never fabricates (R9 derived≠asserted). Post-render chrome (sibling of .reader-bar,
+// under #readerTitle); the parity-locked table builder is untouched (smoke:reader-parity green).
+const REGISTER_ENUM = ['literary', 'spoken', 'archaic', 'poetic', 'mixed'];   // mirror of corpusMeta.js REGISTER — gate the chip (R9)
+function readerCorpusMeta(textRow) {
+  if (!textRow) return null;
+  let sm = textRow.source_meta_json;
+  if (typeof sm === 'string') { try { sm = JSON.parse(sm); } catch (_) { return null; } }
+  return sm && typeof sm === 'object' && sm.corpus && typeof sm.corpus === 'object' ? sm.corpus : null;
+}
+function setReaderSubtitle(textRow) {
+  const box = $('readerSubtitle');
+  if (!box) return;
+  box.innerHTML = '';
+  const c = readerCorpusMeta(textRow);
+  if (!c) { box.hidden = true; return; }
+  let any = false;
+  const author = (c.author || '').trim();
+  if (author) {
+    box.appendChild(el('span', { class: 'reader-sub-author', text: author, dir: HEBREW_RE.test(author) ? 'rtl' : 'ltr' }));
+    any = true;
+  }
+  // miss-safe label — tt() returns the raw KEY on a missing locale entry (e.g. a stale SW serving an
+  // older locale); guard v!==key so a chip/link can never surface a raw i18n key string.
+  const lbl = (key, fb) => { const v = tt(key); return (v && v !== key) ? v : fb; };
+  // era — data-driven title from era_taxonomy; honest skip on unknown/absent OR an unresolved raw slug
+  // (taxonomy fetch failed → corpusRoot null → corpusEraTitle returns the slug; never print the machine slug).
+  if (c.era && c.era !== 'unknown') {
+    const etitle = corpusEraTitle(c.era);
+    if (etitle && etitle !== c.era) { box.appendChild(el('span', { class: 'reader-sub-chip', text: etitle })); any = true; }
+  }
+  // register — closed curatorial enum (mirror of corpusMeta.js REGISTER); skip when absent / out-of-enum.
+  // corpusMeta stores register as a FREE string, so an out-of-enum value is structurally reachable — gate it
+  // so it can never paint a raw key or a fabricated label (R9 derived≠asserted).
+  if (REGISTER_ENUM.includes(c.register)) {
+    box.appendChild(el('span', { class: 'reader-sub-chip', text: lbl('room.corpus.register.' + c.register, c.register) }));
+    any = true;
+  }
+  // per-work source link — the SPECIFIC work's page (R9 honest provenance), distinct from the global footer.
+  const url = c.provenance && c.provenance.url ? String(c.provenance.url).trim() : '';
+  if (/^https?:\/\//i.test(url)) {
+    const link = el('a', { class: 'reader-sub-source', attrs: { href: url, target: '_blank', rel: 'noopener' } });
+    link.textContent = lbl('room.reader.context.source', 'Источник') + ': ' + lbl('room.reader.context.sourceName', 'Проект Бен-Иегуда') + ' ↗';
+    box.appendChild(link); any = true;
+  }
+  box.hidden = !any;
+}
+
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
@@ -2595,6 +2646,7 @@ async function openReader(textId, title, opts) {
     titleEl.textContent = title || '';
     if (HEBREW_RE.test(title || '')) titleEl.setAttribute('dir', 'rtl'); else titleEl.removeAttribute('dir');
   }
+  setReaderSubtitle(null);   // Epic-6 W1-a — clear any prior byline until res arrives (no stale flash)
   try { window.scrollTo(0, 0); } catch (_) {}
   const mount = $('roomReaderTable');
   const res = await readerCore.openText(textId, {
@@ -2610,6 +2662,7 @@ async function openReader(textId, title, opts) {
   readerRows = res && res.ok ? res.rows : [];
   readerTextTitle = title || (res && res.text && res.text.title) || '';
   readerTextKey = (res && res.text && res.text.text_key) || null;
+  try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
     attachReaderAudio();
     try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
@@ -2670,6 +2723,7 @@ async function closeReader() {
   karaokeActive = false; setReadAloudBtn(false);   // BRR-P1-008 — reset karaoke on close
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge(); closeReaderFind(); _sessionMaxRow = -1; readerTextId = null;   // BRR-P2-002/005/S15 + Epic-5 W1/W4/W5 — stop recording + clear find/end-card/cov-chip/fade-nudge after close
   _bookmarkSet = null; readerTextTitle = ''; readerTextKey = null;   // BRR-P2-003 — reset bookmark state
+  try { setReaderSubtitle(null); } catch (_) {}   // Epic-6 W1-a — drop the per-work byline on close
   const rm = $('roomReaderTable');
   if (rm && revealHandler) { try { rm.removeEventListener('click', revealHandler, true); } catch (_) {} revealHandler = null; }
   const reader = $('roomReader'), content = $('roomContent');

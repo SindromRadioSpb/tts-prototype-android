@@ -2003,6 +2003,7 @@ window.I18N_LOCALES.en = {
       readAloud: "Read aloud",
       stopAloud: "Stop",
       find: { label: "Find in text", placeholder: "Find in text…", prev: "Previous", next: "Next", close: "Close find" },
+      context: { source: "Source", sourceName: "Project Ben-Yehuda" },
     },
     morph: {
       loading: "Analyzing…",
@@ -2188,6 +2189,9 @@ window.I18N_LOCALES.en = {
       genre: {
         poetry: "poetry", prose: "prose", article: "article", memoir: "memoir",
         fables: "fables", letters: "letters", reference: "reference", drama: "drama", lexicon: "lexicon",
+      },
+      register: {
+        literary: "literary", spoken: "colloquial", archaic: "archaic", poetic: "poetic", mixed: "mixed",
       },
     },
   },
