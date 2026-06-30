@@ -1770,6 +1770,35 @@
     return { cur: cur, best: fold.best, grace: fold.grace, alive: alive, cap: cap,
       todayRecalls: todayRecalls, todayGoal: todayGoal, todayRest: todayRest, todayQualified: todayQualified };
   }
+  // D7.1 — month/contribution heatmap fold over the study_day ledger. PURE + deterministic (today is
+  // injected; reuses _dayNum/_dayStr so it matches the streak engine and never reads the clock). Returns
+  // the last `days` calendar cells ENDING today, each { day, recalls, available, active, rest, isToday,
+  // dow (0=Sun..6=Sat), level 0–3 }, plus summary stats. Future-dated rows are excluded by construction
+  // (the window ends at today) — R11 do-no-harm. `rest` = an engaged day with nothing due (honest, not 0).
+  function studyHeatmap(rows, todayStr, days) {
+    days = days > 0 ? days : 84;
+    var byDay = {};
+    if (Array.isArray(rows)) for (var i = 0; i < rows.length; i++) {
+      var r = rows[i]; if (r && r.day) byDay[r.day] = { recalls: Math.max(0, Number(r.recalls) || 0), available: Math.max(0, Number(r.available) || 0) };
+    }
+    var td = _dayNum(todayStr);
+    if (td === null) return { cells: [], days: 0, maxRecalls: 0, activeDays: 0, totalRecalls: 0, restDays: 0, firstDay: null, lastDay: null };
+    var cells = [], maxRecalls = 0, activeDays = 0, totalRecalls = 0, restDays = 0;
+    for (var k = days - 1; k >= 0; k--) {
+      var dn = td - k, ds = _dayStr(dn), hit = byDay[ds];
+      var rec = hit ? hit.recalls : 0, avail = hit ? hit.available : 0;
+      if (rec > maxRecalls) maxRecalls = rec;
+      if (rec > 0) { activeDays++; totalRecalls += rec; }
+      var rest = !!hit && avail === 0 && rec === 0; if (rest) restDays++;
+      cells.push({ day: ds, recalls: rec, available: avail, active: rec > 0, rest: rest, isToday: k === 0, dow: ((dn % 7) + 7 + 4) % 7 });
+    }
+    for (var j = 0; j < cells.length; j++) {
+      var c = cells[j];
+      c.level = c.recalls <= 0 ? 0 : (maxRecalls <= 0 ? 1 : (c.recalls >= maxRecalls * 0.66 ? 3 : (c.recalls >= maxRecalls * 0.34 ? 2 : 1)));
+    }
+    return { cells: cells, days: days, maxRecalls: maxRecalls, activeDays: activeDays, totalRecalls: totalRecalls, restDays: restDays,
+      firstDay: cells.length ? cells[0].day : null, lastDay: cells.length ? cells[cells.length - 1].day : null };
+  }
   // Epic 4.3b Phase D6 — extraction-channel availability (R10 honest degradation). The SAME word can be
   // tested via different prompts: read (HE sentence shown), reverse (RU→HE, no audio), listen (hear the
   // sentence), dictate (hear the isolated word → write). read + reverse need NO audio → always offered.
@@ -1938,7 +1967,7 @@
     nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs,
     dueCounts: dueCounts, rankByWeakness: rankByWeakness,
     findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
-    streakFromDays: streakFromDays, streakView: streakView,
+    streakFromDays: streakFromDays, streakView: streakView, studyHeatmap: studyHeatmap,
     STREAK_GOAL_CAP: STREAK_GOAL_CAP, STREAK_GRACE_MAX: STREAK_GRACE_MAX,
     availableChannels: availableChannels,
   };

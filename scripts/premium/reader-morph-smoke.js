@@ -854,6 +854,32 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(stk.empty.cur === 0 && stk.empty.best === 0 && stk.empty.lastDay === null, "streakFromDays empty → 0/0/null, got " + JSON.stringify(stk.empty));
     eq(stk.nullSafe.cur === 0 && stk.nullSafe.best === 0 && stk.nullSafe.alive === false, "streakView null-safe → 0/0/not-alive, got " + JSON.stringify(stk.nullSafe));
 
+    // ── D7.1 — studyHeatmap (pure, deterministic; today injected; window ends at today). ──
+    const hm = await pg.evaluate(() => {
+      const R = window.ReaderMorph;
+      const D = (day, recalls, available) => ({ day, recalls, available });
+      return {
+        basic: R.studyHeatmap([D('2026-06-28', 5, 8), D('2026-06-30', 12, 12), D('2026-06-29', 0, 0)], '2026-06-30', 7),
+        empty: R.studyHeatmap([], '2026-06-30', 7),
+        nullSafe: R.studyHeatmap(null, '2026-06-30', 7),
+        badToday: R.studyHeatmap([D('2026-06-30', 5, 5)], 'not-a-day', 7),
+        fut: R.studyHeatmap([D('2026-07-05', 9, 9), D('2026-06-30', 4, 4)], '2026-06-30', 7),
+      };
+    });
+    const last = hm.basic.cells[hm.basic.cells.length - 1];
+    eq(hm.basic.cells.length === 7, "studyHeatmap: 7-day window → 7 cells, got " + hm.basic.cells.length);
+    eq(last.day === '2026-06-30' && last.isToday === true, "studyHeatmap: last cell is today, got " + JSON.stringify(last));
+    eq(last.recalls === 12 && last.level === 3, "studyHeatmap: today 12 (=max) → level 3, got " + JSON.stringify(last));
+    eq(hm.basic.activeDays === 2 && hm.basic.totalRecalls === 17 && hm.basic.maxRecalls === 12, "studyHeatmap: activeDays/total/max counted, got " + JSON.stringify({ a: hm.basic.activeDays, t: hm.basic.totalRecalls, m: hm.basic.maxRecalls }));
+    const restCell = hm.basic.cells.find((c) => c.day === '2026-06-29');
+    eq(restCell && restCell.rest === true && restCell.active === false && restCell.level === 0, "studyHeatmap: available=0 day = rest, not active, got " + JSON.stringify(restCell));
+    eq(hm.basic.cells[0].day === '2026-06-24', "studyHeatmap: window starts today-6 (06-24), got " + hm.basic.cells[0].day);
+    eq(hm.basic.cells.every((c) => c.dow >= 0 && c.dow <= 6) && hm.basic.cells.slice(1).every((c, i) => c.dow === (hm.basic.cells[i].dow + 1) % 7), "studyHeatmap: dow in [0,6] + increments 1/day, got " + hm.basic.cells.map((c) => c.dow).join(','));
+    eq(hm.empty.cells.length === 7 && hm.empty.activeDays === 0 && hm.empty.maxRecalls === 0, "studyHeatmap empty profile → 7 blank cells, got " + JSON.stringify({ n: hm.empty.cells.length, a: hm.empty.activeDays }));
+    eq(hm.nullSafe.cells.length === 7, "studyHeatmap null-safe → 7 cells, got " + hm.nullSafe.cells.length);
+    eq(hm.badToday.cells.length === 0, "studyHeatmap bad todayStr → empty, got " + hm.badToday.cells.length);
+    eq(hm.fut.activeDays === 1 && hm.fut.cells.every((c) => c.day <= '2026-06-30'), "studyHeatmap: future-dated rows excluded by the window, got " + JSON.stringify({ a: hm.fut.activeDays }));
+
     // ── Epic 4.3b Phase D6 — availableChannels (R10 honest audio degradation; pure). ──
     const ch = await pg.evaluate(() => {
       const R = window.ReaderMorph;

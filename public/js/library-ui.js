@@ -924,6 +924,8 @@ function ensureStudySheet() {
     const unb = t.closest('[data-train-unbuild]'); if (unb) { onTrainUnbuild(+unb.getAttribute('data-train-unbuild')); return; }
     if (t.closest('[data-train-again]')) { startTraining(); return; }
     if (t.closest('[data-streak-toggle]')) { streakHiddenSet(!streakHidden()); try { refreshDueBadge(); } catch (_) {} renderTrainSummary(); return; }   // D7 — premium off-switch
+    const hmT = t.closest('[data-heatmap-toggle]');   // D7.1 — tap the streak → toggle the activity heatmap
+    if (hmT) { const slot = hmT.parentElement && hmT.parentElement.querySelector('.room-heatmap-slot'); if (slot) { if (slot.firstChild) slot.innerHTML = ''; else buildStudyHeatmap(slot); } return; }
     const chSeg = t.closest('[data-train-channel]'); if (chSeg) { onTrainChannel(chSeg.getAttribute('data-train-channel')); return; }   // D6 — channel
     if (t.closest('[data-train-listen-row]')) { try { _playSentenceAudio(_trainSession && _trainSession._built); } catch (_) {} return; }   // D6 — replay sentence
     if (t.closest('[data-train-listen-word]')) { const b = _trainSession && _trainSession._built, it = _trainSession && _trainSession.items[_trainSession.idx]; try { speakWord((b && b.cz && b.cz.answer) || (it && (it.niqqud || it.surface)) || ''); } catch (_) {} return; }   // D6 — replay word (sentence-inflected form)
@@ -934,7 +936,10 @@ function ensureStudySheet() {
   document.addEventListener('keydown', (e) => {
     if (!_studySheet || _studySheet.hidden) return;
     if (e.key === 'Escape') { closeStudySheet(); return; }
-    if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('[data-train-input]')) { e.preventDefault(); onTrainSubmit(); }
+    if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('[data-train-input]')) { e.preventDefault(); onTrainSubmit(); return; }
+    // D7.1 — keyboard-activate the streak/heatmap toggle (div[role=button] doesn't synthesize click on Enter/Space)
+    const hk = e.target && e.target.closest && e.target.closest('[data-heatmap-toggle]');
+    if (hk && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); hk.click(); }
   });
   _studySheet = sheet;
   return sheet;
@@ -1701,7 +1706,7 @@ function renderTrainSummary() {
       if (!streakSlot.isConnected) return;
       const sv = window.ReaderMorph.streakView((await localDb.getStudyDays()) || [], window.ReaderMorph.STREAK_GOAL_CAP, _localDayStr());
       if (!streakSlot.isConnected || !sv || (!sv.cur && !sv.todayRecalls)) return;
-      const line = el('div', { class: 'room-train-streak', attrs: { dir: uiDirRoom() } });
+      const line = el('div', { class: 'room-train-streak', attrs: { dir: uiDirRoom(), role: 'button', tabindex: '0', 'data-heatmap-toggle': '1', 'aria-label': tt('room.morph.study.heatToggle', 'Календарь активности') } });
       const g1 = el('span', { class: 'rts-g rts-flame' }); g1.textContent = '🔥 ' + sv.cur + ' ' + tt('room.morph.study.streakDays', 'дн.'); line.appendChild(g1);
       const g2 = el('span', { class: 'rts-g' });
       if (sv.todayRest) g2.textContent = tt('room.morph.study.streakRest', 'день отдыха — зачтено ✓');
@@ -1709,7 +1714,9 @@ function renderTrainSummary() {
       else g2.textContent = tt('room.morph.study.today', 'сегодня') + ' ' + sv.todayRecalls + '/' + (sv.todayGoal > 0 ? sv.todayGoal : sv.cap);
       line.appendChild(g2);
       if (sv.best > sv.cur) { const g3 = el('span', { class: 'rts-g rts-best' }); g3.textContent = tt('room.morph.study.streakBest', 'рекорд') + ': ' + sv.best; line.appendChild(g3); }
+      line.appendChild(el('span', { class: 'rts-g rts-cal', text: '📅' }));   // D7.1 — tap → activity heatmap
       streakSlot.appendChild(line);
+      streakSlot.appendChild(el('div', { class: 'room-heatmap-slot' }));
     } catch (_) {}
   })();
   // D3 — closure feedback: more due right now, else when the next batch returns by the SRS schedule.
@@ -1733,6 +1740,37 @@ function renderTrainSummary() {
     text: streakHidden() ? tt('room.morph.study.streakShow', '🔥 Показать стрик') : tt('room.morph.study.streakHide', '🔥 Скрыть стрик') }));
   body.appendChild(box);
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
+// D7.1 — month/contribution heatmap of study-day activity (GitHub-style: 7 weekday rows × week columns)
+// over the existing study_day ledger via the pure ReaderMorph.studyHeatmap fold. Honest: rest-days
+// (engaged, nothing due) are marked distinctly, never as 0; today is ringed; empty profile → empty grid.
+async function buildStudyHeatmap(slot) {
+  try {
+    if (!slot || !window.ReaderMorph || typeof window.ReaderMorph.studyHeatmap !== 'function' || !localDb.getStudyDays) return;
+    const rows = (await localDb.getStudyDays()) || [];
+    if (!slot.isConnected) return;
+    const hm = window.ReaderMorph.studyHeatmap(rows, _localDayStr(), 84);
+    slot.innerHTML = '';
+    const wrap = el('div', { class: 'room-heatmap' });
+    const grid = el('div', { class: 'room-heatmap-grid' });
+    if (hm.cells.length) for (let p = 0; p < hm.cells[0].dow; p++) grid.appendChild(el('span', { class: 'rhm-cell rhm-pad' }));   // align col 1 to the first cell's weekday
+    for (const c of hm.cells) {
+      const cell = el('span', { class: 'rhm-cell rhm-l' + c.level + (c.isToday ? ' rhm-today' : '') + (c.rest ? ' rhm-rest' : '') });
+      cell.title = c.day + (c.active ? ' · ' + c.recalls : (c.rest ? ' · ' + tt('room.morph.study.heatRest', 'отдых') : ''));
+      grid.appendChild(cell);
+    }
+    wrap.appendChild(grid);
+    const sum = el('div', { class: 'room-heatmap-sum', attrs: { dir: uiDirRoom() } });
+    sum.textContent = hm.activeDays + ' ' + tt('room.morph.study.heatActiveDays', 'активных дней') + ' · ' + hm.totalRecalls + ' ' + tt('room.morph.study.heatRecalls', 'повторений');
+    wrap.appendChild(sum);
+    const leg = el('div', { class: 'room-heatmap-legend' });
+    leg.appendChild(el('span', { class: 'rhm-leg-t', text: tt('room.morph.study.heatLess', 'меньше') }));
+    for (let l = 0; l <= 3; l++) leg.appendChild(el('span', { class: 'rhm-cell rhm-l' + l }));
+    leg.appendChild(el('span', { class: 'rhm-leg-t', text: tt('room.morph.study.heatMore', 'больше') }));
+    wrap.appendChild(leg);
+    slot.appendChild(wrap);
+  } catch (_) {}
 }
 
 // ── note-formation: turn a tapped word into a word_study note (the «превращение») ──
@@ -2017,7 +2055,7 @@ function attachReaderAudio() {
 
 // BRR-P1-008 — continuous read-aloud (karaoke). Reuses the existing per-row .row-playing highlight;
 // adds a «Читать вслух» control, auto-advance (in reader-core), and auto-scroll that yields to manual scroll.
-let karaokeActive = false, karaokeUserScrolled = false, _karaokeScrollWired = false;
+let karaokeActive = false, karaokeUserScrolled = false, _karaokeScrollWired = false, _karaokeLeftBand = false;
 function setReadAloudBtn(active) {
   const m = $('roomReaderTable'); if (m) m.classList.toggle('karaoke-on', !!active);   // stronger current-line during karaoke
   const b = $('roomReadAloud'); if (!b) return;
@@ -2027,6 +2065,17 @@ function setReadAloudBtn(active) {
   b.setAttribute('data-i18n-title', key);
   b.title = tt(key, active ? 'Стоп' : 'Читать вслух');
 }
+// Re-engage signal: the playing row sits in the central band of the viewport → the user is
+// following playback again, so auto-centering should resume (vs. dying for the rest of the session).
+function _karaokeRowFollowable(tr) {
+  try {
+    const r = tr.getBoundingClientRect();
+    const vh = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (!vh) return false;
+    const center = (r.top + r.bottom) / 2;
+    return center > vh * 0.15 && center < vh * 0.85;
+  } catch (_) { return false; }
+}
 function onKaraokeRowChange(idx) {
   if (idx < 0) { karaokeActive = false; setReadAloudBtn(false); return; }   // playback ended → keep last marker
   recordProgress(idx);   // BRR-P2-002 — the read-aloud row is a strong progress signal
@@ -2034,9 +2083,19 @@ function onKaraokeRowChange(idx) {
   // .row-playing while audio plays (CSS :not(.row-playing)) and stays as the amber «here you
   // stopped» marker once playback ends (single-row end fires no -1; karaoke end leaves the last).
   highlightReaderRow(idx);
-  if (!karaokeActive || karaokeUserScrolled) return;
+  if (!karaokeActive) return;
   const mount = $('roomReaderTable');
   const tr = mount && mount.querySelector('tr[data-row-idx="' + idx + '"]');
+  // BRR-P1-008 re-engage fix — auto-scroll yields to a manual scroll, then RESUMES once playback's
+  // current row is centrally back in view, instead of staying off until the user presses ▶ again.
+  // Hysteresis (no yank on a small peek-ahead): re-arm ONLY after the playing row has actually LEFT
+  // the central band since the pause (user read elsewhere / playback drifted) and then returned —
+  // a tiny flick that keeps the row central never triggers a re-center.
+  if (karaokeUserScrolled) {
+    if (!(tr && _karaokeRowFollowable(tr))) { _karaokeLeftBand = true; return; }   // off-band → note it, stay out of the way
+    if (!_karaokeLeftBand) return;                                                 // small peek (still central) → don't yank back
+    karaokeUserScrolled = false; _karaokeLeftBand = false;                         // left then returned to band → resume centering
+  }
   if (tr && tr.scrollIntoView) { try { tr.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (_) {} }
 }
 function wireKaraokeScrollPause() {
@@ -2048,7 +2107,7 @@ function wireKaraokeScrollPause() {
 function toggleReadAloud() {
   if (!readerAudio) return;
   if (karaokeActive) { try { readerAudio.stop(); } catch (_) {} return; }   // stop() → onRowChange(-1) resets UI
-  karaokeActive = true; karaokeUserScrolled = false;
+  karaokeActive = true; karaokeUserScrolled = false; _karaokeLeftBand = false;
   wireKaraokeScrollPause();
   setReadAloudBtn(true);
   try { readerAudio.playAll(0); } catch (_) { karaokeActive = false; setReadAloudBtn(false); }
