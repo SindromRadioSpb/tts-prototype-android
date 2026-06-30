@@ -942,7 +942,8 @@ function ensureStudySheet() {
   });
   document.addEventListener('keydown', (e) => {
     if (!_studySheet || _studySheet.hidden) return;
-    if (e.key === 'Escape') { closeStudySheet(); return; }
+    // a layered sheet (heatmap / list-picker) on top owns Escape first — don't also close the study sheet under it
+    if (e.key === 'Escape') { if (document.querySelector('.list-picker-ov')) return; closeStudySheet(); return; }
     if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('[data-train-input]')) { e.preventDefault(); onTrainSubmit(); return; }
     // D7.1 — keyboard-activate the streak/heatmap toggle (div[role=button] doesn't synthesize click on Enter/Space)
     const hk = e.target && e.target.closest && e.target.closest('[data-heatmap-toggle]');
