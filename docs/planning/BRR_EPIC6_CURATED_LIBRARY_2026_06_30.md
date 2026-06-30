@@ -60,3 +60,45 @@ Version-triad (вместе): `package.json:3` + `public/sw.js:32` (CACHE_VERSIO
 **Deferred-polish (known-minor):** субтитр не ре-рендерится на live-смену языка (нет `data-i18n` → applyI18n его не трогает, что и защищает глиф ↗; но register/«Источник» остаются в старой локали до переоткрытия ридера). Низкая ценность (язык в сессии редко меняют mid-read), консистентно с прочими динамическими reader-элементами → defer.
 
 Затем по согласию — W1-b (card-attribution) / W1-c (author-row QID+era) / W1-d (roadmap/moat copy) как отдельные adversarial-reviewed инкременты. Wave-2 (author bios/dates, editorial order) — отдельный sign-off-трек, не сейчас.
+
+---
+
+## §6. ПРЕМИУМ-СЕВЕР + BUILD-ONCE АРХИТЕКТУРА (role-lens investigation 2026-06-30)
+
+> Запрос владельца: «довести до премиального состояния ОДИН раз, чтобы не возвращаться к полировке постоянно; стоит ли повторное ролевое исследование?» → проведён 4-агентный grounded role-lens прогон (R6+R9 authority · R4 surfaces · R5+R7 market/editorial → scope-discipline критик). Все claim'ы ИЗМЕРЕНЫ против живого кода. **Вердикт по исследованию: больше НЕ нужно** — три линзы сошлись на одном минимуме, прецеденты у проекта уже есть; дальнейший research только раздул бы бэклог (анти-цель). Вместо research — ~1-час producer-SPIKE (верификация, не исследование).
+
+### §6.1. Север (что значит «премиально/готово»)
+«Curated library» = **курируемый литературный imprint**, не дамп из 26 455 строк. Каждый автор/работа/коллекция — **стабильный УЗЕЛ по durable-id (QID)**; вся человеческая курация висит на узлах **как данные, не как код**. Открыл работу → byline-ссылка на реальную страницу автора (эпоха · даты · 1-строчная справка · Wikidata-якорь · «23 работы в Зале»), одинаковую из L2/поиска/ридера. Каждое курат-поле несёт provenance-тег **derived / asserted / curated** (планка честности Pealim/Reverso). **Offline-moat = дифференциатор**: весь editorial-слой запечён в shipped-файлы и работает офлайн в кармане — у Sefaria/LingQ/Yiddish-Book-Center всё online-only. «Готово» = imprint выглядит премиально на ЛЮБОМ покрытии курации (пустые слоты само-прячутся, паттерн W1-a `if(!any) hidden`) → 1% и 80% курации одинаково премиальны, контент только растёт.
+
+### §6.2. Граница finishable ↔ perpetual (контейнер vs содержимое) — ключевой вывод
+- **FINISHABLE (проектируется ОДИН раз, замораживается + гейтится → ОСТАётся готовым):** identity-модель (QID author/work/collection узлы) · curated/editorial DATA-схема + slot-контракт · merge-guard `curated>asserted>derived` · НАБОР поверхностей (один byline-renderer + author-landing + общий intro-слот) · authority build-gate.
+- **PERPETUAL по природе (НЕЛЬЗЯ называть «готовым»):** биографии · «зачем читать»/significance · reading-orders · коллекции · темы · difficulty · era/date-правки · описания. Тысячи авторов × 26 455 работ — растёт вечно. **Единственное честное утверждение про контент:** «каждое добавление стоит как первое — одна data-строка, ноль кода, ноль re-gate, защищено guard'ом от re-bake» — НЕ «контент завершён».
+- **Причина recurring-returns СТРУКТУРНА:** контент сейчас конфлантится с кодом — у курации нет id-стабильного дома, переживающего re-bake (продюсер регенерит весь каталог из CSV+era-map+эвристик; author-index keyed by **display-name**), а byline переписан INLINE на 4–5 поверхностях. Каждое добавление поля/правки → редактируешь каждую поверхность + re-screenshot 380px = «беговая дорожка полировки». Это тот же clobber-класс, что проект уже знает ([[feedback_shared_idempotency_key_equal_fidelity]] · [[feedback_upsert_preserve_columns]] · [[feedback_no_override_grounded_reading]] бекр→скот).
+
+### §6.3. МИНИМУМ build-once архитектуры (квартет — единственное, что останавливает возвраты)
+1. **Durable identity + curated DATA-дом (M):** промоутить УЖЕ вычисляемую QID-keyed запись автора в first-class sidecar `corpus-authors-v<N>.json` + поднять ОДИН curated/editorial namespace keyed by {author QID, work id/content_hash, collection-id} (зеркало versioned-additive паттерна `corpusMeta`). В том же шаге: id-join author-rows индекса **по QID** (схлопнуть измеренную **14-QID фрагментацию** — один человек = несколько «авторов»). UI биндить по QID, не по имени.
+2. **Re-bake precedence guard (M):** `curated > asserted > derived` + per-ENTITY source-тег, enforced в продюсере. Механизм, делающий «переприменить правку» невозможным by-construction. Лифт собственного do-no-harm урока проекта (бекр→скот / LEAN-clobbers-RICH / UPSERT-preserve) на курацию. **ДОЛЖЕН быть ДО любого обогащения, иначе обогащение само и есть clobber.**
+3. **ОДИН shared byline/intro-slot renderer + author-landing контейнер (M):** схлопнуть 4–5 inline byline-реализаций (`renderWorkCard`:179 · `renderCorpusCard`:271 · `setReaderSubtitle`:2597 · `corpusProvBadge`:3870 · `renderCorpusWorkRow`:4974) в ОДИН renderer + общий editorial-intro слот (обобщить `renderShelf`:232) + author-landing header (QID+era+dates+counts+intro-слот). Дальше новое поле/bio = одна data-правка через один путь. Room-only, parity-safe.
+4. **Authority-consistency build-gate (S):** расширить существующий `lies→process.exit(1)` (build-corpus-catalog.js): каждый QID индекса → ровно один узел; нет фрагментации; precedence держится; per-entity source present. Дешёвый keystone, держащий пп.1–2 enforced (именно так 14-фрагментация накопилась незаметно).
+
+### §6.4. GOLD-PLATING — что НЕ делать (это и есть защита от «бесконечной полировки»)
+- ✂️ **CUT: Wikidata SPARQL bulk-import.** ⚠ **Корректирует stale-claim §2 этого дока** («даты блокированы — нужен online Wikidata/новое producer-поле»): даты УЖЕ В РЕПО — `public/data/benyehuda/author-era-map-v1.json` несёт `{era,birth,death,floruit,confidence,source}` для **847/847 авторов (100%)**, keyed by QID, а `build-corpus-catalog.js:149-152` читает только `.era` и **выбрасывает остальное**. Author-landing с датами = почти-бесплатный «промоутить, что уже считаем», а НЕ deferred online-зависимость. (Опц. описания/occupations — позже, additive, после guard'а.)
+- ⏸ **DEFER: work_uri / work-QID** — нет консьюмера; спекулятивный future-graph. Не пинить identity, которую не к чему валидировать.
+- ⏸ **DEFER в perpetual: collections[] поле + shelfMeta-curated-collection/series TOC + reader chapter-handoff SURFACE** — это net-new L-capability, НЕ останавливает churn; reader-handoff пересекается с Эпиком 5 (пусть Эпик 5 владеет).
+- ✂️ **CUT: desktop master-detail IA** — чистое surface-gold-plating для этой цели; width-clamp адекватен.
+- ✂️ **Mostly CUT: рендер difficulty/theme scaffolding СЕЙЧАС** — типы запинены+валидны, но 0/796 заполнено; рендерить когда данные появятся.
+- ✂️ **TRIM: полная per-FIELD provenance+confidence матрица** → entity-level source-тег + горстка реально-override-имых полей (era/register/author/bio) достаточно.
+- 📝 **NOTE: W1-d roadmap/moat микрокопи** = одноразовый NEW-content copy-drop (×3 локали), НЕ build-once архитектура — шипать дёшево отдельно.
+
+### §6.5. Секвенция (lock-the-architecture, потом контент течёт additively)
+1. **HOME:** bump `CORPUS_SCHEMA_VERSION` + поднять QID-keyed curated/editorial sidecar namespace (зеркало corpusMeta versioned-additive + validateCorpus-style honesty-gate).
+2. **IDENTITY (до любого import):** промоутить author-era-map → first-class authors-sidecar; id-join индекса по QID; схлопнуть 14-фрагментацию. Узел стабилен ДО того, как что-то к нему крепится.
+3. **GUARD + POLICE (до любого контента/обогащения):** precedence-merge + per-entity source в build-corpus-catalog.js + расширить `lies→exit(1)` authority-инвариантами.
+4. **SURFACE CONTRACT:** ОДИН shared byline/intro renderer; ретрофит 5 поверхностей + author-landing на него. Гейт `smoke:reader-parity` + `smoke:i18n` + 380px light/dark; index.html не трогать. **Здесь W1-b/W1-c приземляются как ЧАСТЬ контракта** (не bolt-on inline).
+5. **THEN контент течёт additively, вечно, без кода/re-gate:** bio на ~50–100 canon-QID · why-read на ~796 ready-works first · reading-orders/collections как sidecar-строки · themes/difficulty батчем · era/date-правки как curated-override под guard'ом.
+
+### §6.6. ⚠ Расширение скоупа за пределы Room-only
+Квартет (особенно пп.1,2,4) трогает **producer/publish-слой** (`build-corpus-catalog.js`, `corpusMeta.js`, `shelfMeta.js`, re-publish над 26K, `publish-corpus-batch` skill), а не только Room-UI. Это больше прошлых Room-only инкрементов. Pre-flight = **~1-час producer-SPIKE** (верификация, не research): эмитнуть authors-sidecar + прогнать precedence-merge + новый authority-gate над полным 26K → подтвердить ноль фрагментации + ноль clobber на реальных данных, ДО UI.
+
+### §6.7. Один-строкой (вердикт критика)
+**Да — расширять Эпик 6, но построив ОДНУ вещь первой:** QID-keyed curated-data слой (author/work/collection sidecar) + re-bake precedence guard `curated>asserted>derived` + authority build-gate + один shared byline/slot renderer; промоутить даты авторов, которые УЖЕ есть офлайн (не тащить из Wikidata), и дальше каждый bio/intro/order растёт как защищённые данные. **Этот квартет — единственное, что останавливает возвраты к полировке; всё остальное — perpetual-контент, который нельзя называть «готовым».**
