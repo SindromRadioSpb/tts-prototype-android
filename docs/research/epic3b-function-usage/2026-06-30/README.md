@@ -6,7 +6,16 @@
 
 ## Files
 - **`draft-function-usage.json` — review this.** 3 entries across different grammatical roles (possession marker / definite-object marker / proclitic preposition), in the `function-usage.v1.json` shape.
+- **`function-word-frequency.json` — corpus measurement (producer output).** Frequency of function words over the local baked corpus (796 works / 556 537 Hebrew tokens). Drives authoring batch order/composition. Regenerate: `npm run build:fn-freq`. Source: `scripts/premium/build-function-frequency.js`. Honest caveats inline (`_meta.caveats`): proclitic counts are upper bounds (word-initial-letter over-counts); composition = closed class ranked by corpus; pronouns separated (scope-pending).
 - `README.md` — this file.
+
+## Owner decisions (CAPTURED 2026-06-30)
+1. **Authoring** → assistant pre-drafts the whole batch from established grammar (DRAFT-tagged) → owner/R1 verifies (as with the bios).
+2. **Schema depth** → **full** for every entry (role + governs + suffix_series + position + collocations + pitfalls + register + examples).
+3. **Register flag** → **yes** — `register` field marks archaic/high-register usages (corpus is 19th-c., R11).
+4. **Batch order/composition** → **corpus frequency** (this producer), not a textbook top-25.
+
+**Corpus result (frequency order):** proclitics first by morpheme impact — ה ＞ ב ＞ ל ＞ ו ＞ מ ＞ ש ＞ כ (7); then standalone — את ＞ על ＞ של ＞ לא ＞ כל ＞ כי ＞ גם ＞ זה ＞ אשר ＞ אל ＞ אם ＞ עם ＞ אין ＞ מה ＞ אך ＞ רק ＞ עוד ＞ עד ＞ מן ＞ יש ＞ או ＞ זו ＞ אבל ＞ בין ＞ אלה … The composition-check added `אבל / זו / אלה` (missed conjunctions/demonstratives) and flagged **personal pronouns** (הוא/היא/אני/הם …) as a distinct, scope-pending category — NOT folded into the 3b core batch.
 
 ## How it was generated
 Written by the assistant from **established Hebrew grammar** (textbook preposition government + pronominal-suffix series). Source commit: `9cc26ae`. Seed inventory it builds on: `reader-morph.js` FUNCTION_GLOSS (~200+ glosses) + `pealim-function-links.v1.json` (299 {id,pos}).
@@ -14,12 +23,8 @@ Written by the assistant from **established Hebrew grammar** (textbook prepositi
 ## R1 / honesty
 Every entry is `curator: "DRAFT — verify"` + `confidence`. **Verify each before approving** — preposition government is well-documented, but the lexicographer (R1) owns the final wording. Key R1/R2 convention: the model describes what each word **governs**, NOT morphological *case* (Hebrew has none); «род./винит. падеж» appears only as a learner analogy.
 
-## The decisions to sign off (full list in the recon doc §8)
-1. **Schema depth** — lean (role+governs+suffix_series+1 example) vs full (+collocations+pitfalls+register+examples).
-2. **Authoring** — assistant pre-drafts the batch (DRAFT, you verify) vs you/lexicographer author from scratch.
-3. **First batch scope** — the ~15–25 core governing prepositions/proclitics (recon §7).
-4. **Register flag** — mark archaic-vs-modern usages (corpus is 19th-c.)?
-5. **Examples** — corpus-sourced (ref→work id) vs textbook.
+## The decisions (§8) — RESOLVED above; one scope question remains for sign-off
+§8 #1–#5 are answered (see «Owner decisions»). **Open for the owner at DRAFT review:** do personal pronouns (הוא/היא/אני/הם, see `function-word-frequency.json` → `pronoun_diagnostic`) belong in 3b, or are they their own feature? Default taken in the DRAFT: **3b core = prepositions + conjunctions + particles + proclitics; pronouns deferred** (distinct paradigm). Examples (§8 #5): textbook in DRAFT, swap to corpus `ref→work id` as a later pass.
 
 ## What ships only AFTER sign-off
 `function-usage.v1.json` + R1-authored batch → lazy loader `function-usage.js` → reader-morph «Употребление» card section + honesty-gate + i18n → `smoke:function-usage` gate + audit → 380px + parity + deploy. No same-session ship (bottleneck = R1 content review).

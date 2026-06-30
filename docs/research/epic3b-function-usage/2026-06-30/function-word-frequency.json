@@ -1,0 +1,976 @@
+{
+  "_meta": {
+    "purpose": "Epic-3b — corpus frequency of Hebrew function words, to set authoring batch order/composition.",
+    "generated_from": "public/data/benyehuda/works/*.json (rows[].hebrew_plain), niqqud-stripped",
+    "source_command": "node scripts/premium/build-function-frequency.js",
+    "sample_works": 796,
+    "sample_files_scanned": 796,
+    "total_hebrew_tokens": 556537,
+    "caveats": {
+      "proclitic": "count_upper_bound = tokens whose FIRST letter is this morpheme; over-counts non-proclitic words (e.g. בית starts with ב). Reliable for RANK, not exact rate.",
+      "composition": "Composition is the linguistically-defined closed class; corpus frequency ranks it and sets the inclusion threshold. POS-free frequency cannot itself separate function from content words — see top_overall_diagnostic to confirm no frequent function word is missed.",
+      "pronouns": "Personal pronouns (pronoun_diagnostic) are function-class but a DISTINCT paradigm; NOT in suggested_batch. Owner-scope decision pending: include in 3b or treat as a separate feature. Note את is a homograph (object-marker vs \"you-f\"); its count sits under standalone.",
+      "sample": "Local baked subset (796 works); full corpus is ~26K. Closed-class RANK is stable at this volume; absolute rates are sample-relative."
+    }
+  },
+  "standalone": [
+    {
+      "word": "את",
+      "count": 10960,
+      "pct": 1.969
+    },
+    {
+      "word": "על",
+      "count": 6999,
+      "pct": 1.258
+    },
+    {
+      "word": "של",
+      "count": 6935,
+      "pct": 1.246
+    },
+    {
+      "word": "לא",
+      "count": 5889,
+      "pct": 1.058
+    },
+    {
+      "word": "כל",
+      "count": 3652,
+      "pct": 0.656
+    },
+    {
+      "word": "כי",
+      "count": 3573,
+      "pct": 0.642
+    },
+    {
+      "word": "גם",
+      "count": 3422,
+      "pct": 0.615
+    },
+    {
+      "word": "זה",
+      "count": 2580,
+      "pct": 0.464
+    },
+    {
+      "word": "אשר",
+      "count": 2486,
+      "pct": 0.447
+    },
+    {
+      "word": "אל",
+      "count": 2337,
+      "pct": 0.42
+    },
+    {
+      "word": "אם",
+      "count": 1820,
+      "pct": 0.327
+    },
+    {
+      "word": "עם",
+      "count": 1813,
+      "pct": 0.326
+    },
+    {
+      "word": "אין",
+      "count": 1784,
+      "pct": 0.321
+    },
+    {
+      "word": "מה",
+      "count": 1544,
+      "pct": 0.277
+    },
+    {
+      "word": "אך",
+      "count": 1501,
+      "pct": 0.27
+    },
+    {
+      "word": "רק",
+      "count": 1386,
+      "pct": 0.249
+    },
+    {
+      "word": "עוד",
+      "count": 1368,
+      "pct": 0.246
+    },
+    {
+      "word": "עד",
+      "count": 1353,
+      "pct": 0.243
+    },
+    {
+      "word": "מן",
+      "count": 1317,
+      "pct": 0.237
+    },
+    {
+      "word": "יש",
+      "count": 1305,
+      "pct": 0.234
+    },
+    {
+      "word": "או",
+      "count": 1276,
+      "pct": 0.229
+    },
+    {
+      "word": "זו",
+      "count": 1250,
+      "pct": 0.225
+    },
+    {
+      "word": "אבל",
+      "count": 1145,
+      "pct": 0.206
+    },
+    {
+      "word": "בין",
+      "count": 1017,
+      "pct": 0.183
+    },
+    {
+      "word": "אלה",
+      "count": 935,
+      "pct": 0.168
+    },
+    {
+      "word": "כן",
+      "count": 805,
+      "pct": 0.145
+    },
+    {
+      "word": "אז",
+      "count": 669,
+      "pct": 0.12
+    },
+    {
+      "word": "לפני",
+      "count": 663,
+      "pct": 0.119
+    },
+    {
+      "word": "זאת",
+      "count": 639,
+      "pct": 0.115
+    },
+    {
+      "word": "כבר",
+      "count": 585,
+      "pct": 0.105
+    },
+    {
+      "word": "הן",
+      "count": 578,
+      "pct": 0.104
+    },
+    {
+      "word": "אף",
+      "count": 559,
+      "pct": 0.1
+    },
+    {
+      "word": "אחר",
+      "count": 541,
+      "pct": 0.097
+    },
+    {
+      "word": "אחרי",
+      "count": 529,
+      "pct": 0.095
+    },
+    {
+      "word": "מי",
+      "count": 527,
+      "pct": 0.095
+    },
+    {
+      "word": "בלי",
+      "count": 480,
+      "pct": 0.086
+    },
+    {
+      "word": "מאד",
+      "count": 425,
+      "pct": 0.076
+    },
+    {
+      "word": "מאוד",
+      "count": 416,
+      "pct": 0.075
+    },
+    {
+      "word": "הנה",
+      "count": 364,
+      "pct": 0.065
+    },
+    {
+      "word": "כמו",
+      "count": 363,
+      "pct": 0.065
+    },
+    {
+      "word": "איך",
+      "count": 305,
+      "pct": 0.055
+    },
+    {
+      "word": "כאשר",
+      "count": 288,
+      "pct": 0.052
+    },
+    {
+      "word": "אולי",
+      "count": 258,
+      "pct": 0.046
+    },
+    {
+      "word": "הלא",
+      "count": 247,
+      "pct": 0.044
+    },
+    {
+      "word": "תחת",
+      "count": 244,
+      "pct": 0.044
+    },
+    {
+      "word": "למה",
+      "count": 238,
+      "pct": 0.043
+    },
+    {
+      "word": "נגד",
+      "count": 178,
+      "pct": 0.032
+    },
+    {
+      "word": "למען",
+      "count": 149,
+      "pct": 0.027
+    },
+    {
+      "word": "אצל",
+      "count": 145,
+      "pct": 0.026
+    },
+    {
+      "word": "אלו",
+      "count": 136,
+      "pct": 0.024
+    },
+    {
+      "word": "מדוע",
+      "count": 119,
+      "pct": 0.021
+    },
+    {
+      "word": "לכן",
+      "count": 104,
+      "pct": 0.019
+    },
+    {
+      "word": "אכן",
+      "count": 102,
+      "pct": 0.018
+    },
+    {
+      "word": "בלתי",
+      "count": 98,
+      "pct": 0.018
+    },
+    {
+      "word": "טרם",
+      "count": 62,
+      "pct": 0.011
+    },
+    {
+      "word": "מתי",
+      "count": 53,
+      "pct": 0.01
+    },
+    {
+      "word": "יען",
+      "count": 45,
+      "pct": 0.008
+    },
+    {
+      "word": "פן",
+      "count": 43,
+      "pct": 0.008
+    },
+    {
+      "word": "איפה",
+      "count": 15,
+      "pct": 0.003
+    },
+    {
+      "word": "אצלי",
+      "count": 14,
+      "pct": 0.003
+    },
+    {
+      "word": "בלעדי",
+      "count": 12,
+      "pct": 0.002
+    },
+    {
+      "word": "זולת",
+      "count": 4,
+      "pct": 0.001
+    }
+  ],
+  "proclitic": [
+    {
+      "morpheme": "ה",
+      "gloss": "определённый артикль / вопросит. частица",
+      "count_upper_bound": 99277,
+      "pct_upper_bound": 17.838
+    },
+    {
+      "morpheme": "ב",
+      "gloss": "предлог «в/на/при; посредством»",
+      "count_upper_bound": 49519,
+      "pct_upper_bound": 8.898
+    },
+    {
+      "morpheme": "ל",
+      "gloss": "предлог «к/для; дат.»",
+      "count_upper_bound": 48822,
+      "pct_upper_bound": 8.772
+    },
+    {
+      "morpheme": "ו",
+      "gloss": "союз «и/а/но»",
+      "count_upper_bound": 44543,
+      "pct_upper_bound": 8.004
+    },
+    {
+      "morpheme": "מ",
+      "gloss": "предлог «из/от» (מן-сокр.)",
+      "count_upper_bound": 42216,
+      "pct_upper_bound": 7.585
+    },
+    {
+      "morpheme": "ש",
+      "gloss": "релятив «который/что» / союз",
+      "count_upper_bound": 35104,
+      "pct_upper_bound": 6.308
+    },
+    {
+      "morpheme": "כ",
+      "gloss": "предлог «как/подобно»",
+      "count_upper_bound": 24309,
+      "pct_upper_bound": 4.368
+    }
+  ],
+  "pronoun_diagnostic": [
+    {
+      "word": "הוא",
+      "count": 3409,
+      "pct": 0.613
+    },
+    {
+      "word": "היא",
+      "count": 1713,
+      "pct": 0.308
+    },
+    {
+      "word": "הם",
+      "count": 1350,
+      "pct": 0.243
+    },
+    {
+      "word": "אני",
+      "count": 1284,
+      "pct": 0.231
+    },
+    {
+      "word": "אנו",
+      "count": 818,
+      "pct": 0.147
+    },
+    {
+      "word": "הנה",
+      "count": 364,
+      "pct": 0.065
+    },
+    {
+      "word": "אתה",
+      "count": 350,
+      "pct": 0.063
+    },
+    {
+      "word": "אנחנו",
+      "count": 312,
+      "pct": 0.056
+    },
+    {
+      "word": "אתם",
+      "count": 219,
+      "pct": 0.039
+    },
+    {
+      "word": "המה",
+      "count": 107,
+      "pct": 0.019
+    },
+    {
+      "word": "אנכי",
+      "count": 87,
+      "pct": 0.016
+    },
+    {
+      "word": "אתן",
+      "count": 16,
+      "pct": 0.003
+    }
+  ],
+  "top_overall_diagnostic": [
+    {
+      "token": "את",
+      "count": 10960,
+      "is_known_function": true
+    },
+    {
+      "token": "על",
+      "count": 6999,
+      "is_known_function": true
+    },
+    {
+      "token": "של",
+      "count": 6935,
+      "is_known_function": true
+    },
+    {
+      "token": "לא",
+      "count": 5889,
+      "is_known_function": true
+    },
+    {
+      "token": "כל",
+      "count": 3652,
+      "is_known_function": true
+    },
+    {
+      "token": "כי",
+      "count": 3573,
+      "is_known_function": true
+    },
+    {
+      "token": "גם",
+      "count": 3422,
+      "is_known_function": true
+    },
+    {
+      "token": "הוא",
+      "count": 3409,
+      "is_known_function": false
+    },
+    {
+      "token": "זה",
+      "count": 2580,
+      "is_known_function": true
+    },
+    {
+      "token": "אשר",
+      "count": 2486,
+      "is_known_function": true
+    },
+    {
+      "token": "אל",
+      "count": 2337,
+      "is_known_function": true
+    },
+    {
+      "token": "היה",
+      "count": 1904,
+      "is_known_function": false
+    },
+    {
+      "token": "אם",
+      "count": 1820,
+      "is_known_function": true
+    },
+    {
+      "token": "עם",
+      "count": 1813,
+      "is_known_function": true
+    },
+    {
+      "token": "אין",
+      "count": 1784,
+      "is_known_function": true
+    },
+    {
+      "token": "היא",
+      "count": 1713,
+      "is_known_function": false
+    },
+    {
+      "token": "לו",
+      "count": 1582,
+      "is_known_function": false
+    },
+    {
+      "token": "מה",
+      "count": 1544,
+      "is_known_function": true
+    },
+    {
+      "token": "אך",
+      "count": 1501,
+      "is_known_function": true
+    },
+    {
+      "token": "רק",
+      "count": 1386,
+      "is_known_function": true
+    },
+    {
+      "token": "עוד",
+      "count": 1368,
+      "is_known_function": true
+    },
+    {
+      "token": "עד",
+      "count": 1353,
+      "is_known_function": true
+    },
+    {
+      "token": "הם",
+      "count": 1350,
+      "is_known_function": false
+    },
+    {
+      "token": "מן",
+      "count": 1317,
+      "is_known_function": true
+    },
+    {
+      "token": "יש",
+      "count": 1305,
+      "is_known_function": true
+    },
+    {
+      "token": "אני",
+      "count": 1284,
+      "is_known_function": false
+    },
+    {
+      "token": "או",
+      "count": 1276,
+      "is_known_function": true
+    },
+    {
+      "token": "זו",
+      "count": 1250,
+      "is_known_function": true
+    },
+    {
+      "token": "אחד",
+      "count": 1226,
+      "is_known_function": false
+    },
+    {
+      "token": "ולא",
+      "count": 1167,
+      "is_known_function": false
+    },
+    {
+      "token": "אבל",
+      "count": 1145,
+      "is_known_function": true
+    },
+    {
+      "token": "לי",
+      "count": 1079,
+      "is_known_function": false
+    },
+    {
+      "token": "בין",
+      "count": 1017,
+      "is_known_function": true
+    },
+    {
+      "token": "ב",
+      "count": 985,
+      "is_known_function": false
+    },
+    {
+      "token": "הזה",
+      "count": 967,
+      "is_known_function": false
+    },
+    {
+      "token": "שם",
+      "count": 961,
+      "is_known_function": false
+    },
+    {
+      "token": "יותר",
+      "count": 937,
+      "is_known_function": false
+    },
+    {
+      "token": "אלה",
+      "count": 935,
+      "is_known_function": true
+    },
+    {
+      "token": "היו",
+      "count": 929,
+      "is_known_function": false
+    },
+    {
+      "token": "בו",
+      "count": 927,
+      "is_known_function": false
+    }
+  ],
+  "suggested_batch": [
+    {
+      "type": "proclitic",
+      "rank_by": 99277
+    },
+    {
+      "type": "proclitic",
+      "rank_by": 49519
+    },
+    {
+      "type": "proclitic",
+      "rank_by": 48822
+    },
+    {
+      "type": "proclitic",
+      "rank_by": 44543
+    },
+    {
+      "type": "proclitic",
+      "rank_by": 42216
+    },
+    {
+      "type": "proclitic",
+      "rank_by": 35104
+    },
+    {
+      "type": "proclitic",
+      "rank_by": 24309
+    },
+    {
+      "key": "את",
+      "type": "standalone",
+      "rank_by": 10960
+    },
+    {
+      "key": "על",
+      "type": "standalone",
+      "rank_by": 6999
+    },
+    {
+      "key": "של",
+      "type": "standalone",
+      "rank_by": 6935
+    },
+    {
+      "key": "לא",
+      "type": "standalone",
+      "rank_by": 5889
+    },
+    {
+      "key": "כל",
+      "type": "standalone",
+      "rank_by": 3652
+    },
+    {
+      "key": "כי",
+      "type": "standalone",
+      "rank_by": 3573
+    },
+    {
+      "key": "גם",
+      "type": "standalone",
+      "rank_by": 3422
+    },
+    {
+      "key": "זה",
+      "type": "standalone",
+      "rank_by": 2580
+    },
+    {
+      "key": "אשר",
+      "type": "standalone",
+      "rank_by": 2486
+    },
+    {
+      "key": "אל",
+      "type": "standalone",
+      "rank_by": 2337
+    },
+    {
+      "key": "אם",
+      "type": "standalone",
+      "rank_by": 1820
+    },
+    {
+      "key": "עם",
+      "type": "standalone",
+      "rank_by": 1813
+    },
+    {
+      "key": "אין",
+      "type": "standalone",
+      "rank_by": 1784
+    },
+    {
+      "key": "מה",
+      "type": "standalone",
+      "rank_by": 1544
+    },
+    {
+      "key": "אך",
+      "type": "standalone",
+      "rank_by": 1501
+    },
+    {
+      "key": "רק",
+      "type": "standalone",
+      "rank_by": 1386
+    },
+    {
+      "key": "עוד",
+      "type": "standalone",
+      "rank_by": 1368
+    },
+    {
+      "key": "עד",
+      "type": "standalone",
+      "rank_by": 1353
+    },
+    {
+      "key": "מן",
+      "type": "standalone",
+      "rank_by": 1317
+    },
+    {
+      "key": "יש",
+      "type": "standalone",
+      "rank_by": 1305
+    },
+    {
+      "key": "או",
+      "type": "standalone",
+      "rank_by": 1276
+    },
+    {
+      "key": "זו",
+      "type": "standalone",
+      "rank_by": 1250
+    },
+    {
+      "key": "אבל",
+      "type": "standalone",
+      "rank_by": 1145
+    },
+    {
+      "key": "בין",
+      "type": "standalone",
+      "rank_by": 1017
+    },
+    {
+      "key": "אלה",
+      "type": "standalone",
+      "rank_by": 935
+    },
+    {
+      "key": "כן",
+      "type": "standalone",
+      "rank_by": 805
+    },
+    {
+      "key": "אז",
+      "type": "standalone",
+      "rank_by": 669
+    },
+    {
+      "key": "לפני",
+      "type": "standalone",
+      "rank_by": 663
+    },
+    {
+      "key": "זאת",
+      "type": "standalone",
+      "rank_by": 639
+    },
+    {
+      "key": "כבר",
+      "type": "standalone",
+      "rank_by": 585
+    },
+    {
+      "key": "הן",
+      "type": "standalone",
+      "rank_by": 578
+    },
+    {
+      "key": "אף",
+      "type": "standalone",
+      "rank_by": 559
+    },
+    {
+      "key": "אחר",
+      "type": "standalone",
+      "rank_by": 541
+    },
+    {
+      "key": "אחרי",
+      "type": "standalone",
+      "rank_by": 529
+    },
+    {
+      "key": "מי",
+      "type": "standalone",
+      "rank_by": 527
+    },
+    {
+      "key": "בלי",
+      "type": "standalone",
+      "rank_by": 480
+    },
+    {
+      "key": "מאד",
+      "type": "standalone",
+      "rank_by": 425
+    },
+    {
+      "key": "מאוד",
+      "type": "standalone",
+      "rank_by": 416
+    },
+    {
+      "key": "הנה",
+      "type": "standalone",
+      "rank_by": 364
+    },
+    {
+      "key": "כמו",
+      "type": "standalone",
+      "rank_by": 363
+    },
+    {
+      "key": "איך",
+      "type": "standalone",
+      "rank_by": 305
+    },
+    {
+      "key": "כאשר",
+      "type": "standalone",
+      "rank_by": 288
+    },
+    {
+      "key": "אולי",
+      "type": "standalone",
+      "rank_by": 258
+    },
+    {
+      "key": "הלא",
+      "type": "standalone",
+      "rank_by": 247
+    },
+    {
+      "key": "תחת",
+      "type": "standalone",
+      "rank_by": 244
+    },
+    {
+      "key": "למה",
+      "type": "standalone",
+      "rank_by": 238
+    },
+    {
+      "key": "נגד",
+      "type": "standalone",
+      "rank_by": 178
+    },
+    {
+      "key": "למען",
+      "type": "standalone",
+      "rank_by": 149
+    },
+    {
+      "key": "אצל",
+      "type": "standalone",
+      "rank_by": 145
+    },
+    {
+      "key": "אלו",
+      "type": "standalone",
+      "rank_by": 136
+    },
+    {
+      "key": "מדוע",
+      "type": "standalone",
+      "rank_by": 119
+    },
+    {
+      "key": "לכן",
+      "type": "standalone",
+      "rank_by": 104
+    },
+    {
+      "key": "אכן",
+      "type": "standalone",
+      "rank_by": 102
+    },
+    {
+      "key": "בלתי",
+      "type": "standalone",
+      "rank_by": 98
+    },
+    {
+      "key": "טרם",
+      "type": "standalone",
+      "rank_by": 62
+    },
+    {
+      "key": "מתי",
+      "type": "standalone",
+      "rank_by": 53
+    },
+    {
+      "key": "יען",
+      "type": "standalone",
+      "rank_by": 45
+    },
+    {
+      "key": "פן",
+      "type": "standalone",
+      "rank_by": 43
+    },
+    {
+      "key": "איפה",
+      "type": "standalone",
+      "rank_by": 15
+    },
+    {
+      "key": "אצלי",
+      "type": "standalone",
+      "rank_by": 14
+    },
+    {
+      "key": "בלעדי",
+      "type": "standalone",
+      "rank_by": 12
+    },
+    {
+      "key": "זולת",
+      "type": "standalone",
+      "rank_by": 4
+    }
+  ]
+}

@@ -132,6 +132,7 @@
     "smoke:corpus-editorial": "node scripts/premium/corpus-editorial-smoke.js",
     "build:author-nodes": "node scripts/premium/build-author-nodes.js",
     "build:search-qid": "node scripts/premium/build-search-qid.js",
+    "build:fn-freq": "node scripts/premium/build-function-frequency.js",
     "smoke:corpus-vocab-engine": "node scripts/premium/corpus-vocab-engine-smoke.js",
     "build:corpus-vocab": "node scripts/premium/build-corpus-vocab.js",
     "build:corpus-fts": "node scripts/premium/build-corpus-fts.js",
