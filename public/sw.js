@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.63";
+const CACHE_VERSION = "v3.11.64";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -91,6 +91,8 @@ const PRECACHE_URLS = [
   "/js/inflection-dict.js",
   // Function-word → Pealim dict-page link map loader (map JSON is lazy via /data/inflection/)
   "/js/pealim-function-links.js",
+  // Epic-3b — curated function-word USAGE loader (store JSON is lazy via /data/usage/)
+  "/js/function-usage.js",
   // ②-note autogen resolver core (pure; shared with Node audit/parity smoke)
   "/js/notes-autogen.js",
   // BRR-P1-011 — Reading-Room light morphology-on-tap (reuses the three loaders above;

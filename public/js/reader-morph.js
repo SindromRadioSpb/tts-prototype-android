@@ -573,8 +573,9 @@
       }
       var index = ds.index, paradigms = ds.paradigms;
       var lookup = function (k, b) { var ix = index[String(k) + " " + String(b || "")]; return (ix != null && paradigms[ix]) ? paradigms[ix] : null; };
-      // warm function-word links (small, optional, graceful)
+      // warm function-word links + usage store (small, optional, graceful)
       try { if (window.PealimFunctionLinks) window.PealimFunctionLinks.ensureReady(); } catch (_) {}
+      try { if (window.FunctionUsage) window.FunctionUsage.ensureReady(); } catch (_) {}
       _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex };
       return _eng;
     })().catch(function (e) { _engPromise = null; throw e; });
@@ -716,6 +717,19 @@
         var um = await _attachOpts.lookupUserMeaning(card);
         if (um) { card.meaning = um; card.meaningSource = "user"; }
       } catch (_) {}
+    }
+    // Epic-3b — curated function-word USAGE (role/government/suffix series/collocations/
+    // pitfalls/register/examples). HONESTY GATE: attach ONLY to a confident closed-class
+    // reading (functionWord = the Epic-1 gate fired), and NOT when Dicta disputes the POS
+    // in context (contextPos ≠ pos → e.g. tap עד as «свидетель», not the preposition).
+    // The store self-hides any absent field; an unresolved/unloaded store leaves card.usage null.
+    card.usage = null;
+    if (card.functionWord && !(card.contextPos && card.contextPos !== card.pos) &&
+        typeof window !== "undefined" && window.FunctionUsage) {
+      try {
+        await window.FunctionUsage.ensureReady();
+        card.usage = window.FunctionUsage.lookup(card.word || surface, { stem: surface, lemma: card.lemma }) || null;
+      } catch (_) { card.usage = null; }
     }
     return card;
   }
@@ -1037,6 +1051,50 @@
     } catch (_) { /* keep the (now busy-cleared) card; a re-tap retries */ }
   }
 
+  // Epic-3b — curated «Употребление» (function-word usage) section. Shown only when the
+  // honesty gate attached card.usage (a confident closed-class reading with a curated entry).
+  // Every field self-hides when absent (R9). A "HE — RU" string is split so the Hebrew part
+  // renders RTL and the gloss LTR; examples sit in a collapsible <details>.
+  function usageHtml(card) {
+    var u = card && card.usage;
+    if (!u) return "";
+    var dir = uiDir();
+    var out = '<div class="rm-usage" dir="' + dir + '">';
+    out += '<div class="rm-usage-title">' + escapeHtml(tt("room.morph.usage.title", "Употребление")) + "</div>";
+    if (u.role) out += '<div class="rm-usage-role">' + escapeHtml(u.role) + "</div>";
+    var row = function (k, v) {
+      if (!v) return "";
+      return '<div class="rm-usage-row"><span class="rm-usage-k">' + escapeHtml(k) + ":</span> <span class=\"rm-usage-v\">" + escapeHtml(v) + "</span></div>";
+    };
+    out += row(tt("room.morph.usage.governs", "управляет"), u.governs);
+    // "HE — RU" → chip with RTL Hebrew + LTR gloss (suffix series + collocations).
+    var chips = function (label, arr) {
+      if (!arr || !arr.length) return "";
+      var cs = arr.map(function (s) {
+        var parts = String(s).split(" — ");
+        var he = parts.shift() || "", ru = parts.join(" — ");
+        return '<span class="rm-u-chip"><b dir="rtl" lang="he">' + escapeHtml(he) + "</b>" +
+          (ru ? ' <span dir="ltr">' + escapeHtml(ru) + "</span>" : "") + "</span>";
+      }).join("");
+      return '<div class="rm-usage-chips"><span class="rm-usage-k">' + escapeHtml(label) + ":</span> " + cs + "</div>";
+    };
+    if (u.suffix_series && u.suffix_series.examples) out += chips(tt("room.morph.usage.suffix", "склонение"), u.suffix_series.examples);
+    out += row(tt("room.morph.usage.position", "позиция"), u.position);
+    out += chips(tt("room.morph.usage.collocations", "сочетания"), u.collocations);
+    if (u.pitfalls) out += '<div class="rm-usage-pit"><span class="rm-usage-k">⚠ ' + escapeHtml(tt("room.morph.usage.pitfalls", "осторожно")) + ":</span> " + escapeHtml(u.pitfalls) + "</div>";
+    if (u.register) out += '<div class="rm-usage-reg">' + escapeHtml(tt("room.morph.usage.register", "регистр")) + ": " + escapeHtml(u.register) + "</div>";
+    if (u.examples && u.examples.length) {
+      out += '<details class="rm-usage-ex"><summary>' + escapeHtml(tt("room.morph.usage.examples", "Примеры")) + "</summary>";
+      out += u.examples.map(function (e) {
+        return '<div class="rm-usage-exrow"><span class="rm-u-he" dir="rtl" lang="he">' + escapeHtml(e.he || "") + "</span>" +
+          (e.ru ? '<span class="rm-u-ru" dir="ltr">' + escapeHtml(e.ru) + "</span>" : "") + "</div>";
+      }).join("");
+      out += "</details>";
+    }
+    out += "</div>";
+    return out;
+  }
+
   function renderCardHtml(card) {
     if (!card) return '<div class="rm-card-empty">' + escapeHtml(tt("room.morph.empty", "Слово не распознано.")) + "</div>";
     var label = LABEL_TEXT[card.label] || LABEL_TEXT.unknown;
@@ -1173,7 +1231,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + meaningEditor + altLine + ctxPosLine + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {

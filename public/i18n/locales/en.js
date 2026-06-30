@@ -2043,6 +2043,7 @@ window.I18N_LOCALES.en = {
       altReadings: "could also be",
       possibleParadigm: "possible paradigm",
       contextSuggests: "in context, maybe",
+      usage: { title: "Usage", governs: "governs", suffix: "declension", position: "position", collocations: "collocations", pitfalls: "watch out", register: "register", examples: "Examples" },
       prov: { exact: "exact", likely: "likely", guessed: "best guess", "function": "function word", context: "context (Dicta)", unknown: "not resolved offline" },
       niqqudMachine: "vocalization is machine-made (Dicta)",
       refine: "🎯 Refine by context",

@@ -2053,6 +2053,7 @@ window.I18N_LOCALES.he = {
       altReadings: "ייתכן גם",
       possibleParadigm: "פרדיגמה אפשרית",
       contextSuggests: "בהקשר, ייתכן",
+      usage: { title: "שימוש", governs: "שולט ב־", suffix: "נטייה", position: "מיקום", collocations: "צירופים", pitfalls: "שים לב", register: "משלב", examples: "דוגמאות" },
       prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", unknown: "לא זוהה במצב לא־מקוון" },
       niqqudMachine: "הניקוד ממוחשב (Dicta)",
       refine: "🎯 לדייק לפי הקשר",

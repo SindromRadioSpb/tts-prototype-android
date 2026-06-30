@@ -929,6 +929,34 @@
     /* F4 — rival readings of an ambiguous (homograph) cell; muted, secondary to the gloss. */
     .rm-alts { font-size: 13px; line-height: 1.35; color: var(--text-secondary); margin: -6px 0 12px; }
     .rm-alts-k { color: var(--text-faint); }
+    /* Epic-3b — curated «Употребление» (function-word usage) section, under the gloss.
+       Accent-tinted block; every field self-hides when the curated entry omits it. */
+    .rm-usage { margin: 4px 0 14px; padding: 10px 12px; border-radius: 10px;
+      background: color-mix(in srgb, var(--accent) 6%, var(--bg-muted));
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border-soft)); }
+    .rm-usage-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 6px; }
+    .rm-usage-role { font-size: 14px; line-height: 1.45; color: var(--text-primary); margin-bottom: 8px; }
+    .rm-usage-row { font-size: 13px; line-height: 1.4; margin: 4px 0; color: var(--text-secondary); }
+    .rm-usage-k { color: var(--text-faint); font-weight: 600; }
+    .rm-usage-v { color: var(--text-primary); }
+    .rm-usage-chips { font-size: 13px; margin: 7px 0; color: var(--text-faint); }
+    .rm-u-chip { display: inline-flex; gap: 5px; align-items: baseline; margin: 3px 4px 0 0;
+      padding: 3px 8px; border-radius: 7px; background: var(--bg-muted); border: 1px solid var(--border-soft);
+      color: var(--text-primary); }
+    .rm-u-chip b { font-size: 16px; font-weight: 600; }
+    .rm-u-chip span { color: var(--text-secondary); }
+    .rm-usage-pit { font-size: 13px; line-height: 1.4; margin: 8px 0 4px; padding: 7px 9px; border-radius: 8px;
+      color: var(--text-secondary);
+      background: color-mix(in srgb, #d29922 12%, transparent);
+      border: 1px solid color-mix(in srgb, #d29922 30%, transparent); }
+    .rm-usage-reg { font-size: 12px; color: var(--text-faint); font-style: italic; margin-top: 6px; }
+    .rm-usage-ex { margin-top: 8px; font-size: 13px; }
+    .rm-usage-ex > summary { cursor: pointer; font-weight: 600; color: var(--text-secondary); }
+    .rm-usage-exrow { display: flex; flex-direction: column; gap: 2px; margin: 7px 0; padding-inline-start: 8px;
+      border-inline-start: 2px solid var(--border-soft); }
+    .rm-u-he { font-size: 16px; color: var(--text-primary); }
+    .rm-u-ru { font-size: 13px; color: var(--text-secondary); }
     /* F5 — table shown under a non-«точно» reading is a possible paradigm, flagged amber. */
     .rm-acc-uncertain > .rm-acc-sum { color: #d29922; }
     .rm-rows { display: flex; flex-direction: column; gap: 6px; }
@@ -1500,7 +1528,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.63</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.64</span>
   </div>
 </footer>
 
@@ -1534,6 +1562,7 @@
 <script src="/js/notes-autogen.js"></script>
 <script src="/js/inflection-dict.js"></script>
 <script src="/js/pealim-function-links.js"></script>
+<script src="/js/function-usage.js"></script>
 <!-- BRR-P1-009 Stage 2: ported Pealim inflection-table renderer (1:1 with Studio). -->
 <script src="/js/inflection-render.js"></script>
 <script src="/js/reader-morph.js"></script>
