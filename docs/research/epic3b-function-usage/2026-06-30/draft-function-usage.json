@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "purpose": "Epic-3b — DRAFT curated USAGE for function words, in the proposed function-usage.v1.json shape. Demonstrates the depth/tone bar on 3 different grammatical roles for owner/R1 sign-off.",
+    "status": "DRAFT — for owner/R1 (Hebrew-lexicographer) review. NOT in any live store. Nothing here is shown to users until approved.",
+    "r1": "Written by the assistant from ESTABLISHED Hebrew grammar (textbook preposition government / pronominal-suffix series). Under R1 (curated != fabricated) NOT authoritative until verified. The model describes what each word GOVERNS — NOT morphological 'case' (Hebrew has none); 'род./винит. падеж' appears only as a learner-facing analogy, never as a claim that Hebrew inflects for case.",
+    "key": "niqqud-stripped lemma (like pealim-function-links). Fields self-hide when absent.",
+    "register_note": "The Reading-Room corpus is archaic (19th-c. Ben-Yehuda); the `register` field flags usages that differ in archaic vs modern Hebrew so a modern-usage note never misleads on an old text (R11)."
+  },
+  "usage": {
+    "של": {
+      "lemma": "של", "pos": "preposition",
+      "role": "Показатель принадлежности («родительный»-аналог): связывает обладаемое с обладателем. «X של Y» = «X, принадлежащий Y» (Y-ов X).",
+      "governs": "обладатель — существительное или местоимённый суффикс.",
+      "suffix_series": { "note": "склоняется с местоимёнными суффиксами", "examples": ["שֶׁלִּי — мой", "שֶׁלְּךָ — твой (м.р.)", "שֶׁלָּךְ — твой (ж.р.)", "שֶׁלּוֹ — его", "שֶׁלָּהּ — её", "שֶׁלָּנוּ — наш"] },
+      "position": "после обладаемого: הַסֵּפֶר שֶׁל הַיֶּלֶד.",
+      "collocations": [],
+      "pitfalls": "Принадлежность можно выразить и сопряжённой конструкцией (смихут: בֵּית הַסֵּפֶר) — без של.",
+      "register": "общеупотребительно (включая архаичный корпус).",
+      "examples": [ { "he": "הַבַּיִת שֶׁל הַמּוֹרֶה", "ru": "дом учителя", "ref": null } ],
+      "provenance": "curated", "curator": "DRAFT — verify", "confidence": "high"
+    },
+    "את": {
+      "lemma": "את", "pos": "particle",
+      "role": "Маркер ПРЯМОГО дополнения, когда оно ОПРЕДЕЛЁННОЕ (есть артикль ה, имя собственное или местоим. суффикс). Сам не переводится: רָאִיתִי אֶת הַיֶּלֶד = «я увидел (этого) мальчика».",
+      "governs": "определённое прямое дополнение.",
+      "suffix_series": { "note": "как маркер ОО склоняется (основа אוֹת־)", "examples": ["אוֹתִי — меня", "אוֹתְךָ — тебя (м.р.)", "אוֹתוֹ — его", "אוֹתָהּ — её", "אוֹתָנוּ — нас"] },
+      "position": "перед определённым прямым дополнением.",
+      "collocations": [],
+      "pitfalls": "Гомографы (различай по огласовке/контексту — Эпик-1 честный гейт): אַתְּ = «ты (ж.р.)» (местоимение); архаичное אֵת = «с, вместе» (= עם, склоняется אִתִּי/אִתְּךָ). При НЕопределённом дополнении את не ставится.",
+      "register": "маркер ОО — общеупотребительно; את = «с» — архаично / высокий регистр.",
+      "examples": [ { "he": "קָרָאתִי אֶת הַסֵּפֶר", "ru": "я прочитал (эту) книгу", "ref": null } ],
+      "provenance": "curated", "curator": "DRAFT — verify", "confidence": "high"
+    },
+    "ב": {
+      "lemma": "ב", "pos": "preposition",
+      "role": "Проклитика-приставка «в, на, при; посредством». Локатив (место/время) и инструменталис (средство): בַּבַּיִת = «в доме», בְּעֵט = «ручкой».",
+      "governs": "существительное (пишется слитно) или местоимённый суффикс.",
+      "suffix_series": { "note": "склоняется с местоимёнными суффиксами", "examples": ["בִּי — во мне", "בְּךָ — в тебе (м.р.)", "בּוֹ — в нём", "בָּהּ — в ней", "בָּנוּ — в нас"] },
+      "position": "приставка к слову; с артиклем сливается: בְּ+הַ → בַּ (בַּבַּיִת = «в (этом) доме»).",
+      "collocations": ["בָּטַח בְּ — доверять (кому/чему-л.)", "נָגַע בְּ — касаться (чего-л.)", "הִשְׁתַּמֵּשׁ בְּ — пользоваться (чем-л.)", "בָּחַר בְּ — выбрать (кого/что-л.)"],
+      "pitfalls": "Слияние с артиклем (בְּ+הַ = בַּ) с удвоением согласного; локатив vs инструменталис — по контексту.",
+      "register": "общеупотребительно.",
+      "examples": [ { "he": "הַיֶּלֶד מְשַׂחֵק בַּגַּן", "ru": "мальчик играет в саду", "ref": null } ],
+      "provenance": "curated", "curator": "DRAFT — verify", "confidence": "high"
+    }
+  }
+}
