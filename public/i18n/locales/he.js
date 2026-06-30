@@ -2203,6 +2203,7 @@ window.I18N_LOCALES.he = {
       register: {
         literary: "ספרותי", spoken: "דיבורי", archaic: "ארכאי", poetic: "פיוטי", mixed: "מעורב",
       },
+      author: { bce: "לפה״ס", born: "נ׳", died: "נפ׳", wikidata: "Wikidata" },
     },
   },
   teacher: {

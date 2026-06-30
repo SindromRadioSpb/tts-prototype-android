@@ -3006,6 +3006,110 @@ async function loadCorpusCatalog() {
 // Lazy sidecar (author index + ready rail + facet histograms) — fetched once, on the first
 // Корпус render. ~160KB (≈35KB gz over br) → it replaces parsing the 10MB of manifests for
 // L1/L2; NEVER precached (D5). Single-flight so concurrent renders share one request.
+// ── BRR Epic-6 — author authority + curated editorial (the build-once surface) ──────
+// Lazy-load the QID-keyed author authority sidecar (corpus-authors-v<N>.json, Increment 1)
+// merged with the curated editorial store (corpus-editorial-v1.json, Increment 2) into a
+// qid→node Map. Loaded once on first author drill (NOT precached), like the index. The merge
+// applies curated overrides with precedence (curated>asserted>derived) — a no-op while the
+// editorial store is empty, so surfaces render honest derived authority + self-hide every
+// absent curated slot (premium at 0% coverage; bios/intros drop in later as data, no code).
+let corpusAuthorsMap = null, corpusAuthorsLoading = null;
+const AUTHOR_QID_RE = /^Q[1-9]\d*$/;   // a real Wikidata QID (excludes the Q0 sentinel)
+
+// Browser mirror of editorialMeta.mergeAuthorNode (the precedence guard). Pure.
+function _mergeAuthorEditorial(node, ed) {
+  if (!node || !ed) return node;
+  const out = Object.assign({}, node, { prov: Object.assign({}, node.prov) });
+  if (ed.era != null) { out.era = ed.era; out.prov.era = 'curated'; }
+  if (ed.display != null) { out.display = ed.display; out.prov.display = 'curated'; }
+  const editorial = {};
+  if (ed.one_line) editorial.one_line = ed.one_line;
+  if (ed.bio_md) editorial.bio_md = ed.bio_md;
+  if (Array.isArray(ed.entry_points) && ed.entry_points.length) editorial.entry_points = ed.entry_points.slice();
+  if (ed.portrait_url) editorial.portrait_url = ed.portrait_url;
+  if (Object.keys(editorial).length) { editorial.source = 'curated'; editorial.curator = ed.curator || null; out.editorial = editorial; }
+  return out;
+}
+async function loadCorpusAuthors() {
+  if (corpusAuthorsMap) return corpusAuthorsMap;
+  if (corpusAuthorsLoading) return corpusAuthorsLoading;
+  const ver = CORPUS_CATALOG_VERSION;
+  const authorsFile = (corpusRoot && corpusRoot.authors_file) || ('corpus-authors-v' + ver + '.json');
+  corpusAuthorsLoading = (async () => {
+    const [auth, ed] = await Promise.all([
+      fetch('/data/benyehuda/' + authorsFile + '?v=' + ver, { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch('/data/benyehuda/corpus-editorial-v1.json?v=' + ver, { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+    ]);
+    if (!auth) throw new Error('corpus authors fetch failed');   // don't cache a transient failure → retry next drill (mirror loadCorpusIndex)
+    const edAuthors = (ed && ed.authors) || {};   // a failed editorial fetch is non-fatal → empty store, no-op merge
+    const map = new Map();
+    for (const n of auth.authors || []) map.set(n.qid, _mergeAuthorEditorial(n, edAuthors[n.qid]));
+    corpusAuthorsMap = map;
+    return map;
+  })();
+  try { return await corpusAuthorsLoading; } finally { corpusAuthorsLoading = null; }
+}
+function corpusAuthorNode(qid) { return (qid && corpusAuthorsMap) ? corpusAuthorsMap.get(qid) : null; }
+
+// Honest life-year formatting (R9: only what the authority actually has; negative = BCE).
+function corpusYear(y) { return Number(y) < 0 ? (Math.abs(Number(y)) + ' ' + tt('room.corpus.author.bce', 'до н.э.')) : String(y); }
+function corpusLifeYears(node) {
+  if (!node) return '';
+  if (node.birth != null && node.death != null) return corpusYear(node.birth) + '–' + corpusYear(node.death);
+  if (node.birth != null) return tt('room.corpus.author.born', 'р.') + ' ' + corpusYear(node.birth);
+  if (node.death != null) return tt('room.corpus.author.died', 'ум.') + ' ' + corpusYear(node.death);
+  return '';
+}
+
+// L3 author-landing header (R6/R9): display · era-chip · life-years · counts · curated
+// editorial slot (self-hiding) · discreet Wikidata authority link. Pure surfacing of the node.
+function buildAuthorHeader(node, author) {
+  const h = el('div', { class: 'corpus-author-header' });
+  // The name inherits the UI direction (left-aligned in the ru/en UI to match the era/years/counts
+  // meta + the L2 rows; right-aligned in the he UI) while the Hebrew still renders RTL internally —
+  // a coherent header block, not a name split off to the opposite side of its own metadata.
+  const name = el('h2', { class: 'corpus-author-h-name', text: node.display || '' });
+  h.appendChild(name);
+  const meta = el('div', { class: 'corpus-author-h-meta' });
+  if (node.era && node.era !== 'unknown') { const et = corpusEraTitle(node.era); if (et && et !== node.era) meta.appendChild(el('span', { class: 'corpus-author-h-chip', text: et })); }
+  const years = corpusLifeYears(node);
+  if (years) meta.appendChild(el('span', { class: 'corpus-author-h-years', text: years }));
+  // Counts come from the CLICKED L2 row (= exactly what the works body below lists), NOT the QID
+  // aggregate: a fragmented author (Bialik solo vs «ביאליק; רבניצקי») must not show a header total
+  // the page can't reach. era/dates/QID/editorial stay from the node (the stable identity).
+  const cw = author && author.works != null ? author.works : node.works;
+  const cr = author && author.ready != null ? author.ready : node.ready;
+  meta.appendChild(el('span', { class: 'corpus-author-h-counts', text: cw + ' ' + tt('room.corpus.worksN', 'работ') }));
+  if (cr > 0) meta.appendChild(el('span', { class: 'corpus-author-h-ready', text: '✓ ' + cr + ' ' + tt('room.corpus.readyN', 'готовы') }));
+  h.appendChild(meta);
+  // curated editorial slot — self-hides when absent (content drops in as data later)
+  if (node.editorial && node.editorial.one_line) {
+    h.appendChild(el('p', { class: 'corpus-author-h-oneline', text: node.editorial.one_line, dir: 'auto' }));
+  }
+  if (node.editorial && node.editorial.bio_md) {
+    h.appendChild(el('p', { class: 'corpus-author-h-bio', text: node.editorial.bio_md, dir: 'auto' }));
+  }
+  if (AUTHOR_QID_RE.test(node.qid || '')) {
+    const wd = el('a', { class: 'corpus-author-h-wd', attrs: { href: 'https://www.wikidata.org/wiki/' + node.qid, target: '_blank', rel: 'noopener' } });
+    wd.textContent = tt('room.corpus.author.wikidata', 'Wikidata') + ' ↗';
+    h.appendChild(wd);
+  }
+  return h;
+}
+// L2 — decorate the (sync-rendered) author rows with life-years once the sidecar is loaded
+// (the index has no dates; the node does). Idempotent post-pass, mirrors decorateFinishedBadges.
+function decorateAuthorRows(container) {
+  if (!corpusAuthorsMap || !container) return;
+  container.querySelectorAll('.corpus-author-row[data-qid]:not([data-author-dated])').forEach((row) => {
+    const node = corpusAuthorsMap.get(row.getAttribute('data-qid'));
+    row.setAttribute('data-author-dated', '1');
+    const years = node ? corpusLifeYears(node) : '';
+    if (!years) return;
+    const meta = row.querySelector('.corpus-author-meta');
+    if (meta) meta.insertBefore(el('span', { class: 'corpus-author-years', text: years }), meta.firstChild);
+  });
+}
+
 async function loadCorpusIndex() {
   if (corpusIndex) return corpusIndex;
   if (corpusIndexLoading) return corpusIndexLoading;
@@ -4815,6 +4919,7 @@ function renderCorpusAuthors(era, token) {
     wrap.appendChild(list);
     for (const a of authors) list.appendChild(renderAuthorRow(era, a)); // all rendered (anchors)
     main.appendChild(wrap);
+    loadCorpusAuthors().then(() => { if (token === corpusRenderToken) decorateAuthorRows(list); }).catch(() => {});   // Epic-6 — life-years
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
     return;
   }
@@ -4826,6 +4931,7 @@ function renderCorpusAuthors(era, token) {
     const upTo = Math.min(authors.length, corpusReveal + CORPUS_PAGE);
     for (let i = corpusReveal; i < upTo; i++) list.appendChild(renderAuthorRow(era, authors[i]));
     corpusReveal = upTo;
+    if (corpusAuthorsMap) decorateAuthorRows(list);   // Epic-6 — date the just-revealed rows
     moreWrap.innerHTML = '';
     if (corpusReveal < authors.length) {
       const btn = el('button', { class: 'corpus-more-btn', attrs: { type: 'button' } });
@@ -4837,6 +4943,7 @@ function renderCorpusAuthors(era, token) {
   corpusReveal = 0;
   slice();
   main.appendChild(wrap);
+  loadCorpusAuthors().then(() => { if (token === corpusRenderToken) decorateAuthorRows(list); }).catch(() => {});   // Epic-6 — life-years
   try { window.applyI18n && window.applyI18n(); } catch (_) {}
 }
 
@@ -4844,6 +4951,7 @@ function renderAuthorRow(era, a) {
   const row = el('div', { class: 'corpus-author-row', attrs: { role: 'button', tabindex: '0' } });
   const L = hebFirstLetter(a.name);
   if (L) row.setAttribute('data-letter', L);
+  if (a.qid) row.setAttribute('data-qid', a.qid);   // Epic-6 — anchor for the life-years decorate pass
   const name = el('span', { class: 'corpus-author-name', text: a.name || '(без автора)' });
   if (HEBREW_RE.test(a.name || '')) name.setAttribute('dir', 'rtl');
   row.appendChild(name);
@@ -4871,6 +4979,15 @@ async function renderCorpusWorks(era, author, token) {
     { label: corpusEraTitle(era), onClick: () => corpusNavTo('authors', era) },
     { label: author.name },
   ]));
+  // Epic-6 — author-landing header (era · life-years · QID · counts · curated intro slot). Async-filled
+  // from the authority sidecar; self-omits when the author has no resolvable QID node (honest).
+  const authorHeaderSlot = el('div', { class: 'corpus-author-header-slot' });
+  wrap.appendChild(authorHeaderSlot);
+  loadCorpusAuthors().then((map) => {
+    if (token !== corpusRenderToken) return;
+    const node = author.qid ? map.get(author.qid) : null;
+    if (node) authorHeaderSlot.appendChild(buildAuthorHeader(node, author));
+  }).catch(() => {});
   wrap.appendChild(buildScopeSearchRow({ author: author.name, era }));   // BRR-S11 — «🔍 искать у автора»
   const body = el('div', { class: 'corpus-works-body' });
   wrap.appendChild(body);

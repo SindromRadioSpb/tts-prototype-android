@@ -298,6 +298,22 @@
     .corpus-author-meta { flex: none; display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
     .corpus-author-ready { font-size: 12px; font-weight: 700; color: #166534; }
     .corpus-author-works { font-size: 13px; color: var(--text-faint); }
+    /* Epic-6 — author life-years on the L2 row (decorated from the authority sidecar) */
+    .corpus-author-years { font-size: 12px; color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    /* Epic-6 — L3 author-landing header (theme-var styled → dark inherits). */
+    .corpus-author-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border-soft); }
+    .corpus-author-h-name { margin: 0 0 6px; font-size: 19px; font-weight: 700; line-height: 1.2; }
+    .corpus-author-h-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 10px; font-size: 13px; color: var(--text-secondary); }
+    .corpus-author-h-chip { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--bg-muted); border: 1px solid var(--border-soft); color: var(--text-secondary); }
+    .corpus-author-h-years { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .corpus-author-h-counts, .corpus-author-h-ready { color: var(--text-faint); white-space: nowrap; }
+    .corpus-author-h-ready { color: #166534; font-weight: 600; }
+    @media (prefers-color-scheme: dark) { body:not(.theme-light) .corpus-author-h-ready { color: #bbf7d0; } }
+    body.theme-dark .corpus-author-h-ready { color: #bbf7d0; }
+    .corpus-author-h-oneline { margin: 9px 0 0; font-size: 14px; line-height: 1.45; color: var(--text-primary); }
+    .corpus-author-h-bio { margin: 6px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-secondary); white-space: pre-wrap; }
+    .corpus-author-h-wd { display: inline-block; margin-top: 9px; font-size: 12px; color: var(--text-faint); text-decoration: none; }
+    .corpus-author-h-wd:hover, .corpus-author-h-wd:focus-visible { color: var(--accent); text-decoration: underline; }
 
     /* work rows + sections (ready / catalog-later) */
     .corpus-work-section { margin-top: 6px; }
@@ -1443,7 +1459,7 @@
     <a href="https://github.com/SindromRadioSpb/tts-prototype-android" target="_blank" rel="noopener" data-i18n="footer.githubLink">GitHub</a>
     <a href="/docs/OPFS_USER_GUIDE.md" target="_blank" rel="noopener" data-i18n="footer.docsLink">Документация</a>
     <a href="#" id="roomAboutLink" data-i18n="room.footer.about">О Зале</a>
-    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.56</span>
+    <span class="room-footer-version" id="roomFooterVersion" data-i18n-title="room.footer.about" title="О Зале">v3.11.57</span>
   </div>
 </footer>
 

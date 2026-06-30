@@ -2193,6 +2193,7 @@ window.I18N_LOCALES.en = {
       register: {
         literary: "literary", spoken: "colloquial", archaic: "archaic", poetic: "poetic", mixed: "mixed",
       },
+      author: { bce: "BCE", born: "b.", died: "d.", wikidata: "Wikidata" },
     },
   },
   teacher: {

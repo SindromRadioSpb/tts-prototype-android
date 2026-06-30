@@ -2207,6 +2207,7 @@ window.I18N_LOCALES.ru = {
       register: {
         literary: "литературный", spoken: "разговорный", archaic: "архаичный", poetic: "поэтический", mixed: "смешанный",
       },
+      author: { bce: "до н.э.", born: "р.", died: "ум.", wikidata: "Wikidata" },
     },
   },
   teacher: {
