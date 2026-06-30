@@ -5210,6 +5210,9 @@ function corpusWorkSection(titleKey, icon, works, openable) {
   head.appendChild(el('span', { class: 'corpus-section-title', i18n: titleKey, text: tt(titleKey) }));
   head.appendChild(el('span', { class: 'corpus-section-count', text: '(' + works.length + ')' }));
   sec.appendChild(head);
+  // W1-d — honest roadmap framing under the «перевод позже» section: explain WHY (batched rollout) +
+  // the offline-first moat, so a not-yet-ready work doesn't read as broken (R5 framing, R9 honest).
+  if (!openable) sec.appendChild(el('div', { class: 'corpus-section-note', i18n: 'room.corpus.laterRoadmap', text: tt('room.corpus.laterRoadmap', 'Перевод и огласовка добавляются партиями — скоро дойдут и сюда. Оригинал уже в каталоге и читается офлайн.') }));
   const list = el('div', { class: 'corpus-work-list' });
   const moreWrap = el('div', { class: 'corpus-more' });
   sec.appendChild(list);
