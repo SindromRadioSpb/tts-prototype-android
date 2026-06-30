@@ -5,7 +5,8 @@
 **This is NOT live.** No usage store exists yet (`public/data/usage/` is absent). Nothing here is shown to users.
 
 ## Files
-- **`draft-function-usage.json` — review this.** 3 entries across different grammatical roles (possession marker / definite-object marker / proclitic preposition), in the `function-usage.v1.json` shape.
+- **`function-usage.draft.v1.json` — REVIEW THIS (the full DRAFT, 32 entries).** Corpus-frequency-ordered: 7 proclitics (ה ב ל ו מ כ ש) + 25 standalone. 3 entries (של/את/ב) are the prior owner-approved samples; 29 were authored by R1-lens subagents from established grammar, then **adversarially R1-verified** (fabricated-vocalization / case-language / homograph / register hunt — 27 ok, 2 auto-corrected: `אך` false-dagesh, `או` collocation-gloss, see each entry's `_review`). Every entry carries `curator: "DRAFT — verify"`. Regenerate the authoring: see `_meta.authoring_note`. Producer ordering: `npm run build:fn-freq`.
+- `draft-function-usage.json` — the original 3-entry bar sample (של/את/ב); superseded by the full DRAFT above (kept for provenance).
 - **`function-word-frequency.json` — corpus measurement (producer output).** Frequency of function words over the local baked corpus (796 works / 556 537 Hebrew tokens). Drives authoring batch order/composition. Regenerate: `npm run build:fn-freq`. Source: `scripts/premium/build-function-frequency.js`. Honest caveats inline (`_meta.caveats`): proclitic counts are upper bounds (word-initial-letter over-counts); composition = closed class ranked by corpus; pronouns separated (scope-pending).
 - `README.md` — this file.
 
