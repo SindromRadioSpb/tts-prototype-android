@@ -293,10 +293,14 @@ async function buildFullCatalog() {
   // The client niqqud-normalizes t once on load (no t_nrm shipped → single normalizer, no
   // Node/browser drift). A ready hit (r=1) is opened by joining its id to index.ready; an
   // unprocessed hit is a display-only row (honest «перевод позже», never openable).
-  const search = cards.map((c) => ({
-    id: c.id, t: c.title || "", a: c.author || "", e: c.era || "unknown",
-    g: c.genre || null, l: c.orig_language || "he", r: isReady(c) ? 1 : 0,
-  }));
+  const search = cards.map((c) => {
+    const sr = { id: c.id, t: c.title || "", a: c.author || "", e: c.era || "unknown", g: c.genre || null, l: c.orig_language || "he", r: isReady(c) ? 1 : 0 };
+    // BRR Epic-6 — author QID on each row so scoped-search can match a multi-variant/co-authored
+    // author by IDENTITY (not by exact author string), which unblocks the L2 collapse-by-QID. Only a
+    // REAL qid (Q0/malformed omitted) — a no-qid work then never matches a qid scope (correct).
+    if (authorNodes.QID_RE.test(c.author_qid || "")) sr.q = c.author_qid;
+    return sr;
+  });
 
   const rootBytes = Buffer.byteLength(JSON.stringify(root));
   const idxBytes = Buffer.byteLength(JSON.stringify(index));

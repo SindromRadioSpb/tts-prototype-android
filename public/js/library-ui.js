@@ -57,12 +57,14 @@ let corpusSearchLoading = null;  // single-flight guard
 let corpusVocab = null;          // BRR-P1-007 S2: { dict:[pid], works:{id:{ids,tok,m,n,ez}} } (lazy, NOT precached)
 let corpusVocabLoading = null;   // single-flight guard
 const CORPUS_VOCAB_DATA_REV = 2;  // bump when corpus-vocab sidecar CONTENT changes within a catalog version (S3=ez)
+const CORPUS_SEARCH_DATA_REV = 1; // bump when corpus-search sidecar CONTENT changes within a catalog version (Epic-6=author qid `q`)
+const CORPUS_AUTHORS_DATA_REV = 1; // bump when corpus-authors OR corpus-editorial CONTENT changes within a catalog version (Epic-6 — e.g. a curated bio is authored, or build-author-nodes re-run); keeps force-cache (offline-first) fresh
 const FTS_DATA_REV = 5;           // BRR-P2-001/006/006a — bump when the FTS index CONTENT/FORMAT changes (rev 5 = 2-level prefix shards)
 const TRANSLIT_DATA_REV = 1;     // BRR-S18 — bump when build-translit-index output changes within a catalog version
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusReadyByKey = null;     // Map(text_key -> full ready card) — W4: resolve the OPEN work's sidecar coverage
-let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search)
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search)
 let corpusSearchInputEl = null;     // S12 — ref so recent/suggestion chips can set the query
 let corpusRecentsEl = null;         // S12 — recents/suggestions row (under the filter bar)
 const RECENTS_KEY = 'corpus_recent_searches_v1';
@@ -80,13 +82,13 @@ function _setFiltersExpanded(v) { try { localStorage.setItem('corpus_filters_exp
 function getSavedSearches() { return _lsGet(SAVED_SEARCHES_KEY); }
 function saveCurrentSearch() {
   const f = corpusFilter; const name = corpusFilterSummary();
-  const entry = { name: name, f: { q: f.q, genre: f.genre, lang: f.lang, readyOnly: f.readyOnly, readableOnly: f.readableOnly, exactForm: f.exactForm, hasAudio: f.hasAudio, reviewed: f.reviewed, scopeAuthor: f.scopeAuthor, scopeEra: f.scopeEra } };
+  const entry = { name: name, f: { q: f.q, genre: f.genre, lang: f.lang, readyOnly: f.readyOnly, readableOnly: f.readableOnly, exactForm: f.exactForm, hasAudio: f.hasAudio, reviewed: f.reviewed, scopeAuthor: f.scopeAuthor, scopeAuthorQid: f.scopeAuthorQid, scopeEra: f.scopeEra } };
   const a = getSavedSearches().filter((x) => x.name !== name);   // dedup by human name
   a.unshift(entry); _lsSet(SAVED_SEARCHES_KEY, a.slice(0, 20));
 }
 function removeSavedSearch(name) { _lsSet(SAVED_SEARCHES_KEY, getSavedSearches().filter((x) => x.name !== name)); }
 function restoreSavedSearch(f) {
-  corpusFilter = Object.assign({ q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }, f || {});
+  corpusFilter = Object.assign({ q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }, f || {});
   if (corpusFilter.readableOnly) { ensureReadableSet().then(() => corpusNavTo('home')).catch(() => corpusNavTo('home')); }
   else corpusNavTo('home');
 }
@@ -3036,9 +3038,10 @@ async function loadCorpusAuthors() {
   const ver = CORPUS_CATALOG_VERSION;
   const authorsFile = (corpusRoot && corpusRoot.authors_file) || ('corpus-authors-v' + ver + '.json');
   corpusAuthorsLoading = (async () => {
+    const rev = ver + '.' + CORPUS_AUTHORS_DATA_REV;   // force-cache (offline-first) busted on content change within the catalog version
     const [auth, ed] = await Promise.all([
-      fetch('/data/benyehuda/' + authorsFile + '?v=' + ver, { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
-      fetch('/data/benyehuda/corpus-editorial-v1.json?v=' + ver, { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch('/data/benyehuda/' + authorsFile + '?v=' + rev, { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch('/data/benyehuda/corpus-editorial-v1.json?v=' + rev, { cache: 'force-cache' }).then((r) => r.ok ? r.json() : null).catch(() => null),
     ]);
     if (!auth) throw new Error('corpus authors fetch failed');   // don't cache a transient failure → retry next drill (mirror loadCorpusIndex)
     const edAuthors = (ed && ed.authors) || {};   // a failed editorial fetch is non-fatal → empty store, no-op merge
@@ -3050,6 +3053,31 @@ async function loadCorpusAuthors() {
   try { return await corpusAuthorsLoading; } finally { corpusAuthorsLoading = null; }
 }
 function corpusAuthorNode(qid) { return (qid && corpusAuthorsMap) ? corpusAuthorsMap.get(qid) : null; }
+
+// BRR Epic-6 — collapse the name-keyed per-era author index into ONE entry per real QID (display from
+// the authority node = the author's primary name, never an «A; B» composite, and the 14 fragmented
+// QIDs merge into one row). Works/ready summed, blocks unioned → renderCorpusWorks fetches the union
+// and filters by QID. Name-only / Q0 rows are kept as-is (honest — no stable identity to merge on).
+function collapseEraAuthors(era) {
+  const rows = (corpusIndex && corpusIndex.authors && corpusIndex.authors[era]) || [];
+  const byQid = new Map();
+  const out = [];
+  for (const r of rows) {
+    if (r && r.qid && AUTHOR_QID_RE.test(r.qid)) {
+      let m = byQid.get(r.qid);
+      if (!m) { m = { qid: r.qid, name: r.name, works: 0, ready: 0, blocks: new Set() }; byQid.set(r.qid, m); out.push(m); }
+      m.works += r.works || 0; m.ready += r.ready || 0;
+      for (const b of (Array.isArray(r.blocks) && r.blocks.length ? r.blocks : [null])) m.blocks.add(b);
+    } else {
+      out.push({ qid: null, name: r.name, works: r.works || 0, ready: r.ready || 0, blocks: Array.isArray(r.blocks) && r.blocks.length ? r.blocks.slice() : [null] });
+    }
+  }
+  for (const m of out) {
+    if (m.blocks instanceof Set) m.blocks = [...m.blocks];
+    if (m.qid) { const node = corpusAuthorNode(m.qid); if (node && node.display) m.name = node.display; }
+  }
+  return out;
+}
 
 // Honest life-year formatting (R9: only what the authority actually has; negative = BCE).
 function corpusYear(y) { return Number(y) < 0 ? (Math.abs(Number(y)) + ' ' + tt('room.corpus.author.bce', 'до н.э.')) : String(y); }
@@ -3148,7 +3176,9 @@ async function loadCorpusSearch() {
   if (corpusSearchLoading) return corpusSearchLoading;
   const file = (corpusRoot && corpusRoot.search_file) || 'corpus-search-v3.json';
   corpusSearchLoading = (async () => {
-    const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+    // ?v includes CORPUS_SEARCH_DATA_REV so adding the author `q` (Epic-6) busts force-cache for
+    // returning users WITHIN catalog v7 (the catalog `?v=` alone would serve a stale no-q copy).
+    const res = await fetch('/data/benyehuda/' + file + '?v=' + CORPUS_CATALOG_VERSION + '.' + CORPUS_SEARCH_DATA_REV, { cache: 'force-cache' });
     if (!res.ok) throw new Error('corpus search ' + res.status);
     const rows = await res.json();
     for (const r of rows) r._n = corpusNrm(r.t);
@@ -3897,7 +3927,14 @@ function corpusReadyKeyMap() {
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) if (c.text_key != null) corpusReadyByKey.set(String(c.text_key), c);
   return corpusReadyByKey;
 }
-function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeEra); }
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeAuthorQid || f.scopeEra); }
+// BRR Epic-6 — scoped-search by author: match by QID when we have one (catches every name-variant /
+// co-authored work of that author, the L2-collapse payoff), else fall back to the exact author string.
+function corpusScopeAuthorPass(sr, f) {
+  if (f.scopeAuthorQid) return sr && sr.q === f.scopeAuthorQid;
+  if (f.scopeAuthor) return (sr && sr.a || '') === f.scopeAuthor;
+  return true;
+}
 // BRR-S16 — provenance filters (audio / human-reviewed) are properties of the READY card (corpus-search
 // rows don't carry them), so they imply readable works: a non-ready row has no card → excluded honestly.
 function corpusAdvOk(row, readyMap) {
@@ -3916,7 +3953,7 @@ function corpusApplyFilter() {
   return rows.filter((row) => {
     if (f.readyOnly && !row.r) return false;
     if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // S7 — i+1 zone only
-    if (f.scopeAuthor && row.a !== f.scopeAuthor) return false;                              // S11 — scoped to one author
+    if (!corpusScopeAuthorPass(row, f)) return false;                                        // S11 — scoped to one author (by QID when available)
     if (f.scopeEra && row.e !== f.scopeEra) return false;                                    // S11 — scoped to one period
     if (f.genre && row.g !== f.genre) return false;
     if (f.lang && row.l !== f.lang) return false;
@@ -4386,7 +4423,7 @@ async function appendFtsGroup(body, q, titleHits, seq, summary) {
   const f = corpusFilter;
   const titleIds = new Set((titleHits || []).map((h) => String(h.id)));
   const advReadyMap = corpusReadyMap();
-  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && !(f.scopeAuthor && sr.a !== f.scopeAuthor) && !(f.scopeEra && sr.e !== f.scopeEra) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
+  const passFilter = (sr) => !!sr && !(f.readyOnly && !sr.r) && !(f.readableOnly && _readableSet && !_readableSet.has(String(sr.id))) && corpusScopeAuthorPass(sr, f) && !(f.scopeEra && sr.e !== f.scopeEra) && !((f.hasAudio || f.reviewed) && !corpusAdvOk(sr, advReadyMap)) && !(f.genre && sr.g !== f.genre) && !(f.lang && sr.l !== f.lang) && !titleIds.has(String(sr.id));
   let ftsCount = 0;
   const bumpCount = (done) => { if (summary && summary.countEl) { try { summary.countEl.textContent = corpusCountLabel(summary.titleN, ftsCount, done); } catch (_) {} } };
 
@@ -4541,10 +4578,19 @@ function paintRecents() {
 // drill). Robust to a missing era on the card by scanning the author index across all eras.
 function corpusNavToAuthor(era, name) {
   if (!name) return;
-  loadCorpusIndex().then(() => {
+  Promise.all([loadCorpusIndex(), loadCorpusAuthors().catch(() => null)]).then(() => {
     const authors = (corpusIndex && corpusIndex.authors) || {};
     const eras = era ? [era] : Object.keys(authors);
-    for (const e of eras) { const a = (authors[e] || []).find((x) => x.name === name); if (a) { corpusNavTo('works', e, a); return; } }
+    for (const e of eras) {
+      const raw = (authors[e] || []).find((x) => x.name === name);
+      if (!raw) continue;
+      // Epic-6 — navigate to the COLLAPSED entry (union blocks + node display + QID) so the works view
+      // gathers every name-variant by identity; fall back to the raw row for a name-only author.
+      const collapsed = collapseEraAuthors(e);
+      const entry = (raw.qid && AUTHOR_QID_RE.test(raw.qid) && collapsed.find((c) => c.qid === raw.qid)) || collapsed.find((c) => c.name === raw.name) || raw;
+      corpusNavTo('works', e, entry);
+      return;
+    }
   }).catch(() => {});
 }
 
@@ -4552,6 +4598,7 @@ function corpusNavToAuthor(era, name) {
 // input. The query (corpusFilter.q) persists across the drill, so an in-flight search re-runs scoped.
 function corpusScopeTo(opts) {
   corpusFilter.scopeAuthor = (opts && opts.author) || '';
+  corpusFilter.scopeAuthorQid = (opts && opts.authorQid) || '';   // Epic-6 — scope by identity (catches name-variants)
   corpusFilter.scopeEra = (opts && opts.era) || '';
   corpusNavTo('home');
   setTimeout(() => { try { corpusSearchInputEl && corpusSearchInputEl.focus(); } catch (_) {} }, 60);
@@ -4734,7 +4781,7 @@ function buildCorpusFilterBar() {
     const scLbl = el('span', { class: 'scope-label', text: label });
     if (HEBREW_RE.test(label)) scLbl.setAttribute('dir', 'rtl');
     sc.appendChild(scLbl);
-    sc.addEventListener('click', () => { corpusFilter.scopeAuthor = ''; corpusFilter.scopeEra = ''; renderCorpus(); });
+    sc.addEventListener('click', () => { corpusFilter.scopeAuthor = ''; corpusFilter.scopeAuthorQid = ''; corpusFilter.scopeEra = ''; renderCorpus(); });
     chips.appendChild(sc);
   }
   const ready = el('button', { class: 'corpus-facet-chip' + (corpusFilter.readyOnly ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusFilter.readyOnly), title: tt('room.corpus.facets.readyHint', 'С переводом — можно открыть и читать') } });
@@ -4816,7 +4863,7 @@ function buildCorpusFilterBar() {
   const clear = el('button', { class: 'corpus-facet-chip clear', attrs: { type: 'button' } });
   clear.textContent = '✕ ' + tt('room.corpus.facets.clear', 'Сбросить');
   clear.hidden = !corpusFilterActive();
-  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeEra: '' }; corpusNavTo('home'); });
+  clear.addEventListener('click', () => { corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }; corpusNavTo('home'); });
   corpusClearChip = clear;
   chips.appendChild(clear);
   bar.appendChild(chips);
@@ -4886,19 +4933,26 @@ function buildHebrewJumpBar(listEl, presentSet) {
 // from the sidecar); the sort toggle switches to alphabetical, which adds a Hebrew א–ת jump-bar
 // and renders ALL authors (so the letter anchors exist). Rich author detail is deferred
 // (benyehuda: lean list → rich page).
-function renderCorpusAuthors(era, token) {
+async function renderCorpusAuthors(era, token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
+  // Epic-6 — the QID-collapse needs the authority sidecar (display names + merge). Brief loading state
+  // on first author-list open (cached after); degrade to raw index names if the sidecar fetch fails.
+  if (!corpusAuthorsMap) { main.appendChild(stateBoxNode('room.state.loading', '⏳')); try { window.applyI18n && window.applyI18n(); } catch (_) {} await loadCorpusAuthors().catch(() => {}); if (token !== corpusRenderToken) return; main.innerHTML = ''; }
   const wrap = el('div', { class: 'corpus-nav' });
   wrap.appendChild(corpusCrumb([
     { label: tt('room.tabs.corpus', 'Корпус'), onClick: () => corpusNavTo('home') },
     { label: corpusEraTitle(era) },
   ]));
   wrap.appendChild(buildScopeSearchRow({ era }));   // BRR-S11 — «🔍 искать в периоде»
-  const base = (corpusIndex.authors && corpusIndex.authors[era]) || [];
+  const base = collapseEraAuthors(era);   // Epic-6 — one entry per human (QID-collapsed, display from node)
   const alpha = corpusAuthorSort === 'alpha';
-  const authors = alpha ? base.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), 'he')) : base;
+  // graduated re-sorts by the COLLAPSED totals (the merge changed each entry's ready/works, so the
+  // producer's pre-collapse order would be slightly off) — ready desc, then works desc, then name.
+  const authors = alpha
+    ? base.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), 'he'))
+    : base.slice().sort((a, b) => (b.ready - a.ready) || (b.works - a.works) || String(a.name).localeCompare(String(b.name), 'he'));
 
   const head = el('div', { class: 'corpus-list-head' });
   head.appendChild(el('span', { class: 'corpus-list-count', text: tt('room.corpus.authorsTitle', 'Авторы') + ' (' + authors.length + ')' }));
@@ -4988,7 +5042,7 @@ async function renderCorpusWorks(era, author, token) {
     const node = author.qid ? map.get(author.qid) : null;
     if (node) authorHeaderSlot.appendChild(buildAuthorHeader(node, author));
   }).catch(() => {});
-  wrap.appendChild(buildScopeSearchRow({ author: author.name, era }));   // BRR-S11 — «🔍 искать у автора»
+  wrap.appendChild(buildScopeSearchRow({ author: author.name, era, authorQid: author.qid }));   // BRR-S11 — «🔍 искать у автора» (by QID)
   const body = el('div', { class: 'corpus-works-body' });
   wrap.appendChild(body);
   main.appendChild(wrap);
@@ -5000,7 +5054,9 @@ async function renderCorpusWorks(era, author, token) {
     const files = blocks.map((b) => corpusManifestFile(era, b)).filter(Boolean);
     const lists = await Promise.all(files.map(fetchCorpusManifest));
     if (token !== corpusRenderToken) return;
-    works = [].concat(...lists).filter((w) => (w.author || '(без автора)') === author.name);
+    // Epic-6 — a collapsed author has a QID → gather ALL its works by IDENTITY (incl. co-authored
+    // «A; B» rows under a different name), not by the single clicked name. Name-only authors: by name.
+    works = [].concat(...lists).filter((w) => author.qid ? (w.author_qid === author.qid) : ((w.author || '(без автора)') === author.name));
   } catch (e) {
     if (token === corpusRenderToken) { body.innerHTML = ''; body.appendChild(stateBoxNode('room.state.error', '⚠️')); }
     return;

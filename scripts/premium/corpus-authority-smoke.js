@@ -72,5 +72,28 @@ test("validator catches a tampered works count (independent oracle, HIGH-1)", !t
 const trf = AN.validateAuthorNodes(nodes.map((n, i) => (i === 0 ? { ...n, refs: [{ era: "zzz", block: null }] } : n)), index.authors || {});
 test("validator catches a wrong refs set", !trf.ok && trf.errors.some((e) => /refs ≠ index/.test(e)));
 
+// ── Increment 4 — search-qid (scoped-search by identity + L2 collapse) ──────────
+const search = JSON.parse(fs.readFileSync(path.join(DATA, "corpus-search-v" + CV + ".json"), "utf8"));
+const qRows = search.filter((r) => r.q);
+const nodeQids = new Set(nodes.map((n) => n.qid));
+test("search rows carry q for ≥85% of works", qRows.length / search.length >= 0.85, (100 * qRows.length / search.length).toFixed(1) + "%");
+test("every search q is a real QID (no Q0)", qRows.every((r) => AN.QID_RE.test(r.q)));
+test("every search q resolves to an author node", qRows.every((r) => nodeQids.has(r.q)));
+// lockstep: re-derive q from the index (era,name join) and assert the shipped search matches
+const perEra = {};
+for (const era of Object.keys(index.authors || {})) { const m = {}; for (const a of index.authors[era] || []) if (a && a.name && AN.QID_RE.test(a.qid || "")) m[a.name] = a.qid; perEra[era] = m; }
+const driftRow = search.find((r) => { const want = (perEra[r.e] || {})[r.a] || null; return (r.q || null) !== want; });
+test("shipped search q in lockstep with index (re-run build-search-qid to refresh)", !driftRow, driftRow ? ("id " + driftRow.id) : "");
+// INDEPENDENT oracle (not the deriver's index name-join): each work's own author_qid in the era
+// manifests. This locks the by-name(header)↔by-qid(L3 list) reconciliation + covers the native
+// build-corpus-catalog emit path (c.author_qid), per the oracle-independence norm.
+const root = JSON.parse(fs.readFileSync(path.join(DATA, "corpus-catalog-v" + CV + ".json"), "utf8"));
+const id2qid = new Map();
+for (const m of root.manifests || []) {
+  try { const man = JSON.parse(fs.readFileSync(path.join(DATA, m.file), "utf8")); for (const w of man.works || []) if (AN.QID_RE.test(w.author_qid || "")) id2qid.set(String(w.id), w.author_qid); } catch (_) {}
+}
+const oracleBad = search.find((r) => (r.q || null) !== (id2qid.get(String(r.id)) || null));
+test("search q matches manifest author_qid per row (INDEPENDENT oracle)", !oracleBad, oracleBad ? ("id " + oracleBad.id + " q=" + oracleBad.q + " manifest=" + id2qid.get(String(oracleBad.id))) : "");
+
 console.log("\n[corpus-authority] " + passed + "/" + (passed + failed) + " passed");
 process.exit(failed ? 1 : 0);
