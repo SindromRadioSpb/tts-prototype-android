@@ -1,0 +1,78 @@
+{
+  "_meta": {
+    "purpose": "Epic-6 Wave-2 (T6) — DRAFT curated author one-liners + short bios for the Reading-Room author-landing header (the editorial slots one_line + bio_md, which are the ONLY two with a live render path today).",
+    "status": "DRAFT — for owner review. NOT in the live store. Nothing here is shown to users until you approve.",
+    "r1": "These drafts were written by the assistant from well-established encyclopedic facts + the shipped Wikidata dates/era. Under R1 (curated != fabricated) they are NOT authoritative until YOU verify and approve each. Edit freely; delete any you are unsure of.",
+    "scope": "Only the ~11 best-established literary-canon figures are pre-drafted. Politically-charged figures and less-famous authors were deliberately left out (see README) for you to author with sources.",
+    "shape": "Each entry is in the editorialMeta author shape (keyed by Wikidata QID). Fields prefixed _ (e.g. _display) are review-only metadata and are ignored on import. era is intentionally omitted (the derived era is already correct — do not override).",
+    "apply_on_approval": "Move approved entries (drop the _-prefixed keys, keep one_line/bio_md/curator) into public/data/benyehuda/corpus-editorial-v1.json under authors[QID]; set curator to your name; bump CORPUS_AUTHORS_DATA_REV in public/js/library-ui.js; run smoke:corpus-editorial + the Room gates; version-triad + deploy. Zero UI/code change."
+  },
+  "authors": {
+    "Q359705": {
+      "one_line": "Национальный поэт ивритского возрождения",
+      "bio_md": "Хаим Нахман Бялик (1873–1934) — центральная фигура литературного возрождения иврита, прозванный «национальным поэтом». Писал стихи, поэмы, рассказы и эссе; вместе с Равницким составил антологию аггады «Сефер ха-Аггада».",
+      "curator": "DRAFT — verify before approval",
+      "_display": "חיים נחמן ביאליק", "_dates": "1873–1934", "_confidence": "high"
+    },
+    "Q521410": {
+      "one_line": "Поэт возрождения: природа, эллинизм, сонет",
+      "bio_md": "Шаул Черниховский (1875–1943) — один из крупнейших поэтов ивритского возрождения, врач по профессии. Известен идиллиями, сонетами, природной и античной (эллинской) темой, а также переводами (в т.ч. Гомера).",
+      "curator": "DRAFT — verify before approval",
+      "_display": "שאול טשרניחובסקי", "_dates": "1875–1943", "_confidence": "high"
+    },
+    "Q380425": {
+      "one_line": "Эссеист, основатель «духовного сионизма»",
+      "bio_md": "Ахад ха-Ам (псевдоним Ашера Гинцберга, 1856–1927) — мыслитель и эссеист, идеолог культурного («духовного») сионизма, видевший в Эрец-Исраэль духовный центр еврейского народа.",
+      "curator": "DRAFT — verify before approval",
+      "_display": "אחד העם", "_dates": "1856–1927", "_confidence": "high"
+    },
+    "Q1926717": {
+      "one_line": "Писатель и мыслитель, ницшеанский вызов",
+      "bio_md": "Миха Йосеф Бердичевский (Бин-Горион, 1865–1921) — писатель, эссеист и собиратель преданий; в полемике с Ахад ха-Амом отстаивал индивидуализм и «переоценку ценностей» в духе Ницше.",
+      "curator": "DRAFT — verify before approval",
+      "_display": "מיכה יוסף ברדיצ'בסקי", "_dates": "1865–1921", "_confidence": "high"
+    },
+    "Q705482": {
+      "one_line": "Писатель, критик, переводчик-новатор",
+      "bio_md": "Давид Фришман (1859–1922) — прозаик, поэт, влиятельный литературный критик, редактор и переводчик; один из зачинателей современной ивритской критики и фельетона.",
+      "curator": "DRAFT — verify before approval",
+      "_display": "דוד פרישמן", "_dates": "1859–1922", "_confidence": "high"
+    },
+    "Q1376036": {
+      "one_line": "Ведущий поэт ивритской Хаскалы",
+      "bio_md": "Йехуда Лейб Гордон (ЯЛаГ, 1830–1892) — крупнейший поэт еврейского Просвещения (Хаскалы), сатирик; призывал к обновлению еврейской жизни и критиковал косность («Пробудись, народ мой»).",
+      "curator": "DRAFT — verify before approval",
+      "_display": "יהודה ליב גורדון", "_dates": "1830–1892", "_confidence": "high"
+    },
+    "Q399986": {
+      "one_line": "Мыслитель трудового сионизма, «религия труда»",
+      "bio_md": "Аарон Давид Гордон (1856–1922) — мыслитель Второй алии, проповедник «религии труда» и связи человека с природой и землёй; духовный авторитет халуцим.",
+      "curator": "DRAFT — verify before approval",
+      "_display": "אהרן דוד גורדון", "_dates": "1856–1922", "_confidence": "high"
+    },
+    "Q236094": {
+      "one_line": "Поэтесса и парашютистка, национальная героиня",
+      "bio_md": "Хана Сенеш (1921–1944) — поэтесса и десантница; заброшена в оккупированную Европу, схвачена и казнена. Автор знаменитых стихотворений («Эли, Эли» / «Прогулка в Кейсарию»).",
+      "curator": "DRAFT — verify before approval",
+      "_display": "חנה סנש", "_dates": "1921–1944", "_confidence": "high"
+    },
+    "Q528647": {
+      "one_line": "Классик израильской прозы поколения Пальмаха",
+      "bio_md": "С. Изхар (Изхар Смилянский, 1916–2006) — один из крупнейших израильских прозаиков; известен повестью «Хирбет Хиза» и романом «Дни Циклага», лиричным языком и моральной остротой.",
+      "curator": "DRAFT — verify before approval",
+      "_display": "ס. יזהר", "_dates": "1916–2006", "_confidence": "high"
+    },
+    "Q3051140": {
+      "one_line": "Поэтесса ивритского модернизма",
+      "bio_md": "Элишева (Элишева Быховски, 1888–1949) — поэтесса и прозаик русского происхождения, писавшая на иврите; заметный женский голос в ивритской литературе межвоенного периода.",
+      "curator": "DRAFT — verify before approval",
+      "_display": "אלישבע", "_dates": "1888–1949", "_confidence": "medium"
+    },
+    "Q2866491": {
+      "one_line": "Прозаик-реалист и редактор",
+      "bio_md": "Ашер Бараш (1889–1952) — прозаик и редактор, мастер реалистической ивритской новеллы; один из организаторов литературной жизни ишува.",
+      "curator": "DRAFT — verify before approval",
+      "_display": "אשר ברש", "_dates": "1889–1952", "_confidence": "medium"
+    }
+  }
+}
