@@ -135,6 +135,7 @@
     "build:search-qid": "node scripts/premium/build-search-qid.js",
     "build:fn-freq": "node scripts/premium/build-function-frequency.js",
     "build:fn-usage-pealim": "node scripts/premium/build-function-usage-pealim.js",
+    "build:proclitic-gold": "node scripts/premium/build-proclitic-gold.js",
     "smoke:corpus-vocab-engine": "node scripts/premium/corpus-vocab-engine-smoke.js",
     "build:corpus-vocab": "node scripts/premium/build-corpus-vocab.js",
     "build:corpus-fts": "node scripts/premium/build-corpus-fts.js",
