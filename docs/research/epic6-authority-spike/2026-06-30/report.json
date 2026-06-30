@@ -1,0 +1,444 @@
+{
+  "generated_for": "Epic-6 build-once architecture verification (measure-before-code)",
+  "source_commit_hint": "run `git rev-parse HEAD` at review time",
+  "inputs": {
+    "index": "corpus-index-v7.json",
+    "eraMap": "author-era-map-v1.json",
+    "works_total": 26455
+  },
+  "identity": {
+    "author_rows_total": 1203,
+    "rows_with_qid": 866,
+    "rows_name_only": 337,
+    "distinct_qids": 847,
+    "composite_coauthor_rows": 52,
+    "note": "name-only rows CANNOT become a stable QID node — they honestly stay name-keyed; QID rows become the build-once author node."
+  },
+  "fragmentation": {
+    "qids_fragmented_across_multiple_rows": 14,
+    "top_examples": [
+      {
+        "qid": "Q359705",
+        "rows": 2,
+        "names": [
+          "חיים נחמן ביאליק",
+          "חיים נחמן ביאליק; יהושע חנא רבניצקי"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "works": 507
+      },
+      {
+        "qid": "Q707511",
+        "rows": 2,
+        "names": [
+          "יצחק קצנלסון",
+          "יצחק קצנלסון; יצחק ברקמן"
+        ],
+        "eras": [
+          "mandate"
+        ],
+        "works": 460
+      },
+      {
+        "qid": "Q12405710",
+        "rows": 2,
+        "names": [
+          "דוד ילין",
+          "דוד ילין; יוסף מיוחס"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "works": 67
+      },
+      {
+        "qid": "Q16579983",
+        "rows": 2,
+        "names": [
+          "רחל מורפורגו",
+          "רחל מורפורגו; שמואל דוד לוצטו"
+        ],
+        "eras": [
+          "haskalah"
+        ],
+        "works": 55
+      },
+      {
+        "qid": "Q6936545",
+        "rows": 2,
+        "names": [
+          "יהושע חנא רבניצקי",
+          "יהושע חנא רבניצקי; חיים נחמן ביאליק"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "works": 37
+      },
+      {
+        "qid": "Q454433",
+        "rows": 2,
+        "names": [
+          "יניי",
+          "יניי; מנחם זולאי"
+        ],
+        "eras": [
+          "medieval"
+        ],
+        "works": 33
+      },
+      {
+        "qid": "Q0",
+        "rows": 7,
+        "names": [
+          "מנחם שמואלי",
+          "פסח קפלן",
+          "משה זכות",
+          "משה בן קלונימוס",
+          "היפוליט קרנא",
+          "נ' אוגניוב",
+          "צבי פרץ חיות"
+        ],
+        "eras": [
+          "unknown"
+        ],
+        "works": 33
+      },
+      {
+        "qid": "Q4167588",
+        "rows": 2,
+        "names": [
+          "חמדה בן־יהודה; נפתלי הרץ טור־סיני",
+          "חמדה בן־יהודה"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "works": 31
+      },
+      {
+        "qid": "Q16701254",
+        "rows": 2,
+        "names": [
+          "יהודה ליב קצנלסון",
+          "יהודה ליב קצנלסון; אחד העם; שמעון דובנוב"
+        ],
+        "eras": [
+          "haskalah"
+        ],
+        "works": 24
+      },
+      {
+        "qid": "Q7020587",
+        "rows": 2,
+        "names": [
+          "אהרן דוד מרקסון",
+          "אהרן דוד מרקסון; בנימין נחום סילקינר"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "works": 17
+      },
+      {
+        "qid": "Q692",
+        "rows": 2,
+        "names": [
+          "ויליאם שייקספיר",
+          "ויליאם שייקספיר; ג'ין לאנג"
+        ],
+        "eras": [
+          "medieval"
+        ],
+        "works": 15
+      },
+      {
+        "qid": "Q12407209",
+        "rows": 2,
+        "names": [
+          "זהרה לביָטוב",
+          "זהרה לביָטוב; שמואל קופמן"
+        ],
+        "eras": [
+          "modern"
+        ],
+        "works": 15
+      },
+      {
+        "qid": "Q12411832",
+        "rows": 2,
+        "names": [
+          "שמואל שרירא",
+          "שמואל שרירא; שמואל הר"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "works": 4
+      },
+      {
+        "qid": "Q37610",
+        "rows": 2,
+        "names": [
+          "דוד בן־גוריון",
+          "דוד בן־גוריון; יוסף חיים ברנר; נחום טברסקי"
+        ],
+        "eras": [
+          "mandate"
+        ],
+        "works": 2
+      }
+    ],
+    "interpretation": "Each is ONE human currently rendered as several 'authors'. The authority build-gate would fail on these; id-join by QID collapses them."
+  },
+  "free_dates": {
+    "distinct_index_qids": 847,
+    "qids_present_in_eramap": 847,
+    "qids_with_birth_and_death": 812,
+    "pct_of_qid_rows_datable": 95.9,
+    "works_under_datable_qids": 23601,
+    "works_with_qid_total": 23854,
+    "interpretation": "These dates are ALREADY in author-era-map-v1.json and merely discarded at build (build-corpus-catalog.js:150 reads only .era). Promoting them = free author-page dates, NOT an online-Wikidata dependency (corrects the recon §2 stale claim)."
+  },
+  "discarded_richness": {
+    "eramap_qids": 847,
+    "eramap_qids_with_dates": 812,
+    "eramap_qids_referenced_by_index": 847,
+    "fields_dropped_at_build": [
+      "birth",
+      "death",
+      "floruit",
+      "confidence",
+      "source"
+    ]
+  },
+  "candidate_nodes": {
+    "count": 847,
+    "sample_top10": [
+      {
+        "qid": "Q467161",
+        "display": "שמואל הנגיד",
+        "name_variants": [
+          "שמואל הנגיד"
+        ],
+        "eras": [
+          "medieval"
+        ],
+        "era": "medieval",
+        "birth": 993,
+        "death": 1055,
+        "floruit": 1028,
+        "date_source": "wikidata",
+        "works": 1857,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q270670",
+        "display": "אברהם אבן עזרא",
+        "name_variants": [
+          "אברהם אבן עזרא"
+        ],
+        "eras": [
+          "medieval"
+        ],
+        "era": "medieval",
+        "birth": 1092,
+        "death": 1167,
+        "floruit": 1127,
+        "date_source": "wikidata",
+        "works": 693,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q239355",
+        "display": "שלמה אבן גבירול",
+        "name_variants": [
+          "שלמה אבן גבירול"
+        ],
+        "eras": [
+          "medieval"
+        ],
+        "era": "medieval",
+        "birth": 1020,
+        "death": 1057,
+        "floruit": 1055,
+        "date_source": "wikidata",
+        "works": 669,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q299200",
+        "display": "יהודה הלוי",
+        "name_variants": [
+          "יהודה הלוי"
+        ],
+        "eras": [
+          "medieval"
+        ],
+        "era": "medieval",
+        "birth": 1075,
+        "death": 1141,
+        "floruit": 1110,
+        "date_source": "wikidata",
+        "works": 582,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q359705",
+        "display": "חיים נחמן ביאליק",
+        "name_variants": [
+          "חיים נחמן ביאליק",
+          "חיים נחמן ביאליק; יהושע חנא רבניצקי"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "era": "tehiya",
+        "birth": 1873,
+        "death": 1934,
+        "floruit": 1908,
+        "date_source": "wikidata",
+        "works": 507,
+        "ready": 17,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q2813345",
+        "display": "יהודה קרני",
+        "name_variants": [
+          "יהודה קרני"
+        ],
+        "eras": [
+          "tehiya"
+        ],
+        "era": "tehiya",
+        "birth": 1884,
+        "death": 1949,
+        "floruit": 1919,
+        "date_source": "wikidata",
+        "works": 471,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q707511",
+        "display": "יצחק קצנלסון",
+        "name_variants": [
+          "יצחק קצנלסון",
+          "יצחק קצנלסון; יצחק ברקמן"
+        ],
+        "eras": [
+          "mandate"
+        ],
+        "era": "mandate",
+        "birth": 1886,
+        "death": 1944,
+        "floruit": 1921,
+        "date_source": "wikidata",
+        "works": 460,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q786429",
+        "display": "ברל כצנלסון",
+        "name_variants": [
+          "ברל כצנלסון"
+        ],
+        "eras": [
+          "mandate"
+        ],
+        "era": "mandate",
+        "birth": 1887,
+        "death": 1944,
+        "floruit": 1922,
+        "date_source": "wikidata",
+        "works": 457,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q2866491",
+        "display": "אשר ברש",
+        "name_variants": [
+          "אשר ברש"
+        ],
+        "eras": [
+          "mandate"
+        ],
+        "era": "mandate",
+        "birth": 1889,
+        "death": 1952,
+        "floruit": 1924,
+        "date_source": "wikidata",
+        "works": 443,
+        "ready": 161,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      },
+      {
+        "qid": "Q719393",
+        "display": "משה אבן עזרא",
+        "name_variants": [
+          "משה אבן עזרא"
+        ],
+        "eras": [
+          "medieval"
+        ],
+        "era": "medieval",
+        "birth": 1058,
+        "death": 1138,
+        "floruit": 1093,
+        "date_source": "wikidata",
+        "works": 383,
+        "ready": 0,
+        "prov": {
+          "era": "derived",
+          "dates": "derived",
+          "author": "asserted"
+        }
+      }
+    ]
+  }
+}

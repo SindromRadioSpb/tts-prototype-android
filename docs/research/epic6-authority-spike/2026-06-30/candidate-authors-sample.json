@@ -1,0 +1,884 @@
+[
+  {
+    "qid": "Q467161",
+    "display": "שמואל הנגיד",
+    "name_variants": [
+      "שמואל הנגיד"
+    ],
+    "eras": [
+      "medieval"
+    ],
+    "era": "medieval",
+    "birth": 993,
+    "death": 1055,
+    "floruit": 1028,
+    "date_source": "wikidata",
+    "works": 1857,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q270670",
+    "display": "אברהם אבן עזרא",
+    "name_variants": [
+      "אברהם אבן עזרא"
+    ],
+    "eras": [
+      "medieval"
+    ],
+    "era": "medieval",
+    "birth": 1092,
+    "death": 1167,
+    "floruit": 1127,
+    "date_source": "wikidata",
+    "works": 693,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q239355",
+    "display": "שלמה אבן גבירול",
+    "name_variants": [
+      "שלמה אבן גבירול"
+    ],
+    "eras": [
+      "medieval"
+    ],
+    "era": "medieval",
+    "birth": 1020,
+    "death": 1057,
+    "floruit": 1055,
+    "date_source": "wikidata",
+    "works": 669,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q299200",
+    "display": "יהודה הלוי",
+    "name_variants": [
+      "יהודה הלוי"
+    ],
+    "eras": [
+      "medieval"
+    ],
+    "era": "medieval",
+    "birth": 1075,
+    "death": 1141,
+    "floruit": 1110,
+    "date_source": "wikidata",
+    "works": 582,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q359705",
+    "display": "חיים נחמן ביאליק",
+    "name_variants": [
+      "חיים נחמן ביאליק",
+      "חיים נחמן ביאליק; יהושע חנא רבניצקי"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1873,
+    "death": 1934,
+    "floruit": 1908,
+    "date_source": "wikidata",
+    "works": 507,
+    "ready": 17,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q2813345",
+    "display": "יהודה קרני",
+    "name_variants": [
+      "יהודה קרני"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1884,
+    "death": 1949,
+    "floruit": 1919,
+    "date_source": "wikidata",
+    "works": 471,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q707511",
+    "display": "יצחק קצנלסון",
+    "name_variants": [
+      "יצחק קצנלסון",
+      "יצחק קצנלסון; יצחק ברקמן"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1886,
+    "death": 1944,
+    "floruit": 1921,
+    "date_source": "wikidata",
+    "works": 460,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q786429",
+    "display": "ברל כצנלסון",
+    "name_variants": [
+      "ברל כצנלסון"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1887,
+    "death": 1944,
+    "floruit": 1922,
+    "date_source": "wikidata",
+    "works": 457,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q2866491",
+    "display": "אשר ברש",
+    "name_variants": [
+      "אשר ברש"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1889,
+    "death": 1952,
+    "floruit": 1924,
+    "date_source": "wikidata",
+    "works": 443,
+    "ready": 161,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q719393",
+    "display": "משה אבן עזרא",
+    "name_variants": [
+      "משה אבן עזרא"
+    ],
+    "eras": [
+      "medieval"
+    ],
+    "era": "medieval",
+    "birth": 1058,
+    "death": 1138,
+    "floruit": 1093,
+    "date_source": "wikidata",
+    "works": 383,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q521410",
+    "display": "שאול טשרניחובסקי",
+    "name_variants": [
+      "שאול טשרניחובסקי"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1875,
+    "death": 1943,
+    "floruit": 1910,
+    "date_source": "wikidata",
+    "works": 381,
+    "ready": 9,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q6119315",
+    "display": "יעקב שטיינברג",
+    "name_variants": [
+      "יעקב שטיינברג"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1887,
+    "death": 1947,
+    "floruit": 1922,
+    "date_source": "wikidata",
+    "works": 364,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q1376036",
+    "display": "יהודה ליב גורדון",
+    "name_variants": [
+      "יהודה ליב גורדון"
+    ],
+    "eras": [
+      "haskalah"
+    ],
+    "era": "haskalah",
+    "birth": 1830,
+    "death": 1892,
+    "floruit": 1865,
+    "date_source": "wikidata",
+    "works": 354,
+    "ready": 55,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q12403993",
+    "display": "אלכסנדר זיסקינד רבינוביץ'",
+    "name_variants": [
+      "אלכסנדר זיסקינד רבינוביץ'"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1854,
+    "death": 1945,
+    "floruit": 1889,
+    "date_source": "wikidata",
+    "works": 306,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q79071",
+    "display": "דוד פוגל",
+    "name_variants": [
+      "דוד פוגל"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1891,
+    "death": 1944,
+    "floruit": 1926,
+    "date_source": "wikidata",
+    "works": 295,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q939732",
+    "display": "יוסף חיים ברנר",
+    "name_variants": [
+      "יוסף חיים ברנר"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1881,
+    "death": 1921,
+    "floruit": 1916,
+    "date_source": "wikidata",
+    "works": 288,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q44403",
+    "display": "היינריך היינה",
+    "name_variants": [
+      "היינריך היינה"
+    ],
+    "eras": [
+      "haskalah"
+    ],
+    "era": "haskalah",
+    "birth": 1797,
+    "death": 1856,
+    "floruit": 1832,
+    "date_source": "wikidata",
+    "works": 263,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q6631385",
+    "display": "אברהם סולודר",
+    "name_variants": [
+      "אברהם סולודר"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1890,
+    "death": 1936,
+    "floruit": 1925,
+    "date_source": "wikidata",
+    "works": 258,
+    "ready": 168,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q705482",
+    "display": "דוד פרישמן",
+    "name_variants": [
+      "דוד פרישמן"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1859,
+    "death": 1922,
+    "floruit": 1894,
+    "date_source": "wikidata",
+    "works": 249,
+    "ready": 4,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q12408263",
+    "display": "יצחק לופבן",
+    "name_variants": [
+      "יצחק לופבן"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1888,
+    "death": 1948,
+    "floruit": 1923,
+    "date_source": "wikidata",
+    "works": 245,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q1926717",
+    "display": "מיכה יוסף ברדיצ'בסקי",
+    "name_variants": [
+      "מיכה יוסף ברדיצ'בסקי"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1865,
+    "death": 1921,
+    "floruit": 1900,
+    "date_source": "wikidata",
+    "works": 236,
+    "ready": 6,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q216576",
+    "display": "יעקב קלצקין",
+    "name_variants": [
+      "יעקב קלצקין"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1882,
+    "death": 1948,
+    "floruit": 1917,
+    "date_source": "wikidata",
+    "works": 233,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q12409280",
+    "display": "מנחם מבש\"ן",
+    "name_variants": [
+      "מנחם מבש\"ן"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1858,
+    "death": 1944,
+    "floruit": 1893,
+    "date_source": "wikidata",
+    "works": 232,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q1176303",
+    "display": "דוד רמז",
+    "name_variants": [
+      "דוד רמז"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1886,
+    "death": 1951,
+    "floruit": 1921,
+    "date_source": "wikidata",
+    "works": 226,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q6967447",
+    "display": "משה בילינסון",
+    "name_variants": [
+      "משה בילינסון"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1889,
+    "death": 1936,
+    "floruit": 1924,
+    "date_source": "wikidata",
+    "works": 207,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q5639304",
+    "display": "חיים לֶנסקי",
+    "name_variants": [
+      "חיים לֶנסקי"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1905,
+    "death": 1943,
+    "floruit": 1940,
+    "date_source": "wikidata",
+    "works": 204,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q12410637",
+    "display": "פניה ברגשטיין",
+    "name_variants": [
+      "פניה ברגשטיין"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1908,
+    "death": 1950,
+    "floruit": 1943,
+    "date_source": "wikidata",
+    "works": 204,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q12407187",
+    "display": "זאב יעבץ",
+    "name_variants": [
+      "זאב יעבץ"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1847,
+    "death": 1924,
+    "floruit": 1882,
+    "date_source": "wikidata",
+    "works": 197,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q2903095",
+    "display": "שלמה מנדלקרן",
+    "name_variants": [
+      "שלמה מנדלקרן"
+    ],
+    "eras": [
+      "haskalah"
+    ],
+    "era": "haskalah",
+    "birth": 1846,
+    "death": 1902,
+    "floruit": 1881,
+    "date_source": "wikidata",
+    "works": 189,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q7046816",
+    "display": "דוד סמילנסקי",
+    "name_variants": [
+      "דוד סמילנסקי"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1875,
+    "death": 1953,
+    "floruit": 1910,
+    "date_source": "wikidata",
+    "works": 185,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q241180",
+    "display": "רחל בלובשטיין",
+    "name_variants": [
+      "רחל בלובשטיין"
+    ],
+    "eras": [
+      "mandate"
+    ],
+    "era": "mandate",
+    "birth": 1890,
+    "death": 1931,
+    "floruit": 1925,
+    "date_source": "wikidata",
+    "works": 184,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q4526788",
+    "display": "יהודה שטיינברג",
+    "name_variants": [
+      "יהודה שטיינברג"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1863,
+    "death": 1908,
+    "floruit": 1898,
+    "date_source": "wikidata",
+    "works": 183,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q22001649",
+    "display": "צבי הירש מסליאנסקי",
+    "name_variants": [
+      "צבי הירש מסליאנסקי"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1856,
+    "death": 1943,
+    "floruit": 1891,
+    "date_source": "wikidata",
+    "works": 178,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q1390527",
+    "display": "שמעון שמואל פרוג",
+    "name_variants": [
+      "שמעון שמואל פרוג"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1860,
+    "death": 1916,
+    "floruit": 1895,
+    "date_source": "wikidata",
+    "works": 174,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q1706440",
+    "display": "יוסף אלמנצי",
+    "name_variants": [
+      "יוסף אלמנצי"
+    ],
+    "eras": [
+      "haskalah"
+    ],
+    "era": "haskalah",
+    "birth": 1801,
+    "death": 1860,
+    "floruit": 1836,
+    "date_source": "wikidata",
+    "works": 171,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q61126832",
+    "display": "אהרן ליבושיצקי",
+    "name_variants": [
+      "אהרן ליבושיצקי"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1874,
+    "death": 1942,
+    "floruit": 1909,
+    "date_source": "wikidata",
+    "works": 164,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q380425",
+    "display": "אחד העם",
+    "name_variants": [
+      "אחד העם"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1856,
+    "death": 1927,
+    "floruit": 1891,
+    "date_source": "wikidata",
+    "works": 162,
+    "ready": 5,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q425644",
+    "display": "יצחק ליבוש פרץ",
+    "name_variants": [
+      "יצחק ליבוש פרץ"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1852,
+    "death": 1915,
+    "floruit": 1887,
+    "date_source": "wikidata",
+    "works": 162,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q437809",
+    "display": "אלתר דרויאנוב",
+    "name_variants": [
+      "אלתר דרויאנוב"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1870,
+    "death": 1938,
+    "floruit": 1905,
+    "date_source": "wikidata",
+    "works": 161,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  },
+  {
+    "qid": "Q25498613",
+    "display": "ישעיהו קרניאל",
+    "name_variants": [
+      "ישעיהו קרניאל"
+    ],
+    "eras": [
+      "tehiya"
+    ],
+    "era": "tehiya",
+    "birth": 1881,
+    "death": 1942,
+    "floruit": 1916,
+    "date_source": "wikidata",
+    "works": 159,
+    "ready": 0,
+    "prov": {
+      "era": "derived",
+      "dates": "derived",
+      "author": "asserted"
+    }
+  }
+]
