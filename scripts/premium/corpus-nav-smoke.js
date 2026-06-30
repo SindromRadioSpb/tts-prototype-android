@@ -157,7 +157,7 @@ async function main() {
     await pg.waitForFunction(() => document.querySelectorAll(".corpus-work-row").length > 0, { timeout: 20000 }).catch(() => {});
     await sleep(300);
     const SR = await pg.evaluate(() => ({
-      count: parseInt((document.querySelector(".corpus-results-count") || {}).textContent || "0", 10),
+      count: Number((((document.querySelector(".corpus-results-count") || {}).textContent || "").match(/\d+/) || [0])[0]),
       hasAuthor: !!document.querySelector(".corpus-work-author"),
       ready: document.querySelectorAll('.corpus-work-row[role="button"]').length,
       later: document.querySelectorAll(".corpus-work-row.is-later").length,
@@ -169,11 +169,14 @@ async function main() {
     test("typing keeps the search input focused (in-place body refresh)", SR.focused);
     test("catalog (unprocessed) result rows are NOT openable", await pg.evaluate(() => document.querySelectorAll('.corpus-work-row.is-later[role="button"]').length) === 0);
 
-    // genre facet narrows the set
+    // genre facet narrows the set. FB filter-bar redesign — genre/lang selects now live behind the
+    // «Ещё фильтры» (⚙) advanced toggle, so expand it before reaching the (otherwise hidden) select.
     const beforeGenre = SR.count;
+    if (await pg.evaluate(() => { const a = document.querySelector(".corpus-facets-advanced"); return !!a && a.hidden; })) await pg.click(".corpus-facets-gear");
+    await pg.waitForSelector(".corpus-facets-advanced .corpus-facet-select select", { state: "visible", timeout: 8000 });
     await pg.selectOption(".corpus-facet-select select >> nth=0", { index: 1 });
     await sleep(300);
-    const AG = await pg.evaluate(() => parseInt((document.querySelector(".corpus-results-count") || {}).textContent || "0", 10));
+    const AG = await pg.evaluate(() => Number((((document.querySelector(".corpus-results-count") || {}).textContent || "").match(/\d+/) || [0])[0]));
     test("genre facet narrows the result set", AG > 0 && AG < beforeGenre, "before=" + beforeGenre + " after=" + AG);
 
     // clear → home
@@ -186,7 +189,7 @@ async function main() {
     await pg.waitForSelector(".corpus-work-row", { timeout: 10000 }).catch(() => {});
     await sleep(200);
     const RO = await pg.evaluate(() => ({
-      count: parseInt((document.querySelector(".corpus-results-count") || {}).textContent || "0", 10),
+      count: Number((((document.querySelector(".corpus-results-count") || {}).textContent || "").match(/\d+/) || [0])[0]),
       allOpenable: Array.from(document.querySelectorAll(".corpus-work-row")).every((r) => r.getAttribute("role") === "button"),
     }));
     test("«Готовые» facet → ready set, every row openable", RO.count > 0 && RO.allOpenable, "count=" + RO.count);

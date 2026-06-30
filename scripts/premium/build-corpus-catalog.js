@@ -34,6 +34,7 @@ const fs = require("fs");
 const path = require("path");
 const JSZip = require("../../public/db/jszip.min.js");
 const corpusMeta = require("../../db/premium/corpusMeta");
+const authorNodes = require("../../db/premium/authorNodes"); // BRR Epic-6: QID-keyed author authority nodes
 const by = require("./lib/benyehuda"); // BRR-P1-014 A2: parseCsv/cleanGenre/firstQid/eraForAuthor
 
 const REPO = path.resolve(__dirname, "..", "..");
@@ -249,6 +250,18 @@ async function buildFullCatalog() {
   }
   const INDEX_FILE = "corpus-index-v" + V + ".json";
   const SEARCH_FILE = "corpus-search-v" + V + ".json";
+  const AUTHORS_FILE = "corpus-authors-v" + V + ".json";
+  // BRR Epic-6 — QID-keyed AUTHOR AUTHORITY sidecar. Shared logic (db/premium/authorNodes.js)
+  // so this native emission and the standalone scripts/premium/build-author-nodes.js never drift;
+  // smoke:corpus-authority enforces the contract (one node per QID, Q0 excluded, dates promoted).
+  // NOTE: this native --full path is not directly diffed by a gate (a 26K build is heavy); its
+  // correctness is STRUCTURAL — `authorsByEra` here IS the object written as index.authors below,
+  // and the standalone gate rebuilds from that shipped index, so any drift surfaces loudly there.
+  const aNodes = authorNodes.buildAuthorNodes(authorsByEra, eraMap);
+  const aValid = authorNodes.validateAuthorNodes(aNodes, authorsByEra);
+  if (!aValid.ok) { console.error(`[full] ✗ AUTHORITY GATE FAILED — ${aValid.errors.length} author-node error(s); nothing written:`); for (const e of aValid.errors.slice(0, 20)) console.error("   " + e); process.exit(1); }
+  const authorsSidecar = { schema: 1, version: V, generated_from: "csv+era-map (authorNodes.js)", count: aNodes.length, authors: aNodes };
+  console.log(`[full] authority: ${aValid.stats.nodes} author nodes · ${aValid.stats.dated_pct}% dated · ${aValid.stats.coauthored_nodes} co-authored · ${aValid.stats.q0_or_invalid_rows} Q0/invalid excluded${aValid.warnings.length ? " · " + aValid.warnings.length + " warn" : ""}`);
   const root = {
     schema: 1, version: V, corpus_meta_version: corpusMeta.CORPUS_META_VERSION,
     origin: "benyehuda-ingest", generated_from: "csv+era-map+baked",
@@ -259,6 +272,7 @@ async function buildFullCatalog() {
     // search/facet use only (NOT precached, NOT on Корпус open).
     index_file: INDEX_FILE,
     search_file: SEARCH_FILE,
+    authors_file: AUTHORS_FILE,   // BRR Epic-6 — QID-keyed author authority nodes (lazy, like the index)
     counts: { works: cards.length, baked: bakedCount, by_era: byEraCount, by_genre: byGenre, by_lang: byLang, by_tier: byTier },
     era_taxonomy: eraTaxonomy,
     manifests,
@@ -298,7 +312,8 @@ async function buildFullCatalog() {
   fs.writeFileSync(path.join(OUT_DIR, "corpus-catalog-v" + V + ".json"), JSON.stringify(root));
   fs.writeFileSync(path.join(OUT_DIR, INDEX_FILE), JSON.stringify(index));
   fs.writeFileSync(path.join(OUT_DIR, SEARCH_FILE), JSON.stringify(search));
-  console.log(`[full] wrote corpus-catalog-v${V}.json + ${INDEX_FILE} + ${SEARCH_FILE} + ${writes.length} manifests → ${path.relative(REPO, OUT_DIR)}`);
+  fs.writeFileSync(path.join(OUT_DIR, AUTHORS_FILE), JSON.stringify(authorsSidecar));
+  console.log(`[full] wrote corpus-catalog-v${V}.json + ${INDEX_FILE} + ${SEARCH_FILE} + ${AUTHORS_FILE} + ${writes.length} manifests → ${path.relative(REPO, OUT_DIR)}`);
   console.log(`[full] NOTE: bump --catalog-version on re-publish; v2 stays live until A3 switches the client to v3.`);
 }
 
