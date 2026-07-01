@@ -174,16 +174,26 @@ async function bake() {
   if (!ids.length) { console.error("no baked works under " + path.relative(REPO, WORKS_DIR)); process.exit(1); }
   const pending = ids.filter((id) => only || has("force") || !(ledger.works[id] && ledger.works[id].status === "done"));
   const todo = LIMIT ? pending.slice(0, LIMIT) : pending;
-  console.log("[proclitic-overlay] bake: " + todo.length + " work(s) (of " + ids.length + " total, " + (ids.length - pending.length) + " done)");
-  let done = 0;
-  for (const id of todo) {
-    const res = await bakeWork(id);
-    if (!res) { ledger.works[id] = { status: "failed" }; continue; }
-    ledger.works[id] = { status: "done", entries: res.entries, rows: res.rows, conflicts: res.conflicts, degradedRows: res.degradedRows };
-    saveLedger(ledger); saveCache();
-    done++;
-    process.stdout.write("\r  baked " + done + "/" + todo.length + "  " + id + " (" + res.entries + " entries, " + res.degradedRows + " degraded rows)      ");
+  // Works are independent (own overlay file) → bake CONC of them concurrently. Each work's Dicta
+  // calls are still sequential, so CONC concurrent works ≈ CONC concurrent Dicta calls. A ~752-work
+  // full bake is ~5h sequential → ~1h at CONC=5. Ledger keys are per-work (no cross-work race).
+  const CONC = Math.max(1, num("concurrency", 5));
+  console.log("[proclitic-overlay] bake: " + todo.length + " work(s) (of " + ids.length + " total, " + (ids.length - pending.length) + " done) · concurrency=" + CONC);
+  let done = 0, idx = 0;
+  async function lane() {
+    while (true) {
+      const i = idx++; if (i >= todo.length) return;
+      const id = todo[i];
+      let res = null; try { res = await bakeWork(id); } catch (_) { res = null; }
+      if (!res) { ledger.works[id] = { status: "failed" }; }
+      else { ledger.works[id] = { status: "done", entries: res.entries, rows: res.rows, conflicts: res.conflicts, degradedRows: res.degradedRows }; }
+      done++;
+      if (done % 5 === 0 || done === todo.length) { saveLedger(ledger); saveCache(); }
+      process.stdout.write("\r  baked " + done + "/" + todo.length + "  (last " + id + (res ? " " + res.entries + "e/" + res.degradedRows + "deg" : " FAILED") + ")      ");
+    }
   }
+  await Promise.all(Array.from({ length: Math.min(CONC, todo.length) }, lane));
+  saveLedger(ledger); saveCache();
   process.stdout.write("\n");
   console.log("[proclitic-overlay] bake done: " + done + " work(s) → " + path.relative(REPO, OUT_DIR) + "/<id>.json");
 }
