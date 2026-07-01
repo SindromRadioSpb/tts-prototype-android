@@ -106,9 +106,12 @@
 
 **✅ ЗАДЕПЛОЕНО + АКТИВИРОВАНО НА ПРОД (2026-07-01):** v3.11.66 задеплоен (коммиты `1b74064`…`ac15b99`; прод sw=v3.11.66, proclitic-segment.js 200), rollout-плюминг ЗАШИПЛЕН (`push-proclitic-overlay.js` + route `POST /api/benyehuda/proclitic/upload` + static-mount `/data/benyehuda/proclitic` в server.js, клон works/ + `push:corpus-proclitic`), **44 работы забейканы+запушены на том** (21365 entries, 0 fail; overlays отдаются, un-baked→graceful 404). Деплой был застрял 3ч на СТАРОМ коммите 72b4552 (rolling-update hung) → отменён через Coolify UI (Kapture) → очередь пошла на ac15b99. Первые 5 push-фейлов = rolling-update окно (2 контейнера) → re-push --skip-existing закрыл. **Фича ЖИВАЯ на 44 работах.**
 
+**✅ PRODUCT LEVERS РЕШЕНЫ (замер, 2026-07-01):**
+- **Lever 1 (rich offline-hedge) — ОТКЛОНЁН, оставлен confident-only.** Замер rich-минорити (fused/ש/מ/subord/multi) офлайн vs gold: **95.0% precision, 89.5% core-seg** — честно, но с FP+label-ошибками, а полный bake покрывает корпус overlay'ем → hedge нужен только на un-baked/imported. Не стоит шума. `card.procliticsRaw` оставлен для будущего.
+- **Lever 2 (Dicta-attested-word recall boost) — ЗАШИПЛЕН + gated.** Продюсер `--attested` агрегирует Dicta-whole-words (prefixes="") из bake-кэша → `public/data/inflection/corpus-attested-words-v1.json.gz` (POS-routed: nominal=noun/adj для арт-гейта, content=+verb для residual-stop). `buildLexicon(…, {attested})` расширяет residual-stop. reader-morph грузит lazy (DecompressionStream) + гейт читает shipped-артефакт. **Замер: confident recall 20.7%→27.9% (+35% относит.), precision 100% (0 FP), artFP 0.** Растёт с полным корпус-кэшем. Gate 47/47.
+
 **🔵 ОСТАЛОСЬ (владелец, периодически):**
-1. **Bake полного корпуса:** `npm run build:proclitic-overlay -- --bake` (752 работы осталось, Dicta-батч ~часы, resume-able) → `AUDIO_UPLOAD_TOKEN=… npm run push:corpus-proclitic -- --skip-existing`. Каждая новая работа активирует чип-ряд.
-2. **Опц. wire в `publish-corpus-batch.js`** (bake produce-step + push-line) — сейчас decoupled (как FTS-push), достаточно.
-3. **Опц. решения:** (a) rich-офлайн-hedge (`procliticsRaw`, ~5.5% слов) или confident-only (сейчас); (b) recall-boost **Dicta-attested-whole-word лексикон** (замерен do-no-harm-clean; нужен корпус-vocab pass).
+1. **Bake полного корпуса ИДЁТ** (`--bake --concurrency=5`, ~752 работы, resume-able) → `push:corpus-proclitic --skip-existing`. Каждая новая работа активирует чип-ряд. После bake: пересобрать `--attested` из полного кэша → артефакт больше → recall выше.
+2. **Опц. wire в `publish-corpus-batch.js`** (bake+attested produce-step + push-line) — сейчас decoupled (как FTS-push), достаточно.
 
 **Инварианты соблюдены:** детектор АДДИТИВНЫЙ (byte-parity основы) · метрика vs НЕЗАВИСИМЫЙ frozen human-gold (не Dicta-vs-Dicta) · index.html нетронут · commit сделан, push — под решение владельца (outward-facing новая фича).

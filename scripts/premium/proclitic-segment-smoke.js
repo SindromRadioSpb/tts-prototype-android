@@ -42,8 +42,16 @@ const ok = (cond, msg) => { if (cond) { PASS++; } else { FAIL++; console.log("  
 const section = (t) => console.log("\n── " + t + " ──");
 
 // ── load fixtures + build the lexicon (single source: reader-morph gazetteers) ──
+// Includes the SHIPPED corpus-attested-words vocab (committed .gz) when present, so the gate
+// measures exactly what production runs — a future re-baked vocab that introduced a confident FP
+// would fail assert #2. Hermetic: the artifact is committed, not read from the .tmp Dicta cache.
 const ds = JSON.parse(zlib.gunzipSync(fs.readFileSync(DICT)).toString("utf8"));
-const lex = PS.buildLexicon(ds.paradigms, { names: Object.keys(RM.NAME_PROPER), func: Object.keys(RM.FUNCTION_GLOSS) });
+let attested = null;
+try { attested = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(REPO, "public", "data", "inflection", "corpus-attested-words-v1.json.gz"))).toString("utf8")); } catch (_) { attested = null; }
+const lex = PS.buildLexicon(ds.paradigms, {
+  names: Object.keys(RM.NAME_PROPER), func: Object.keys(RM.FUNCTION_GLOSS),
+  attested: attested ? { content: attested.content, nominal: attested.nominal } : null,
+});
 const gold = JSON.parse(fs.readFileSync(GOLD_F, "utf8")).gold;
 const fixture = JSON.parse(fs.readFileSync(FIX_F, "utf8")).fixture;
 const core = (v) => v.replace(/ה/g, "");   // article-agnostic core (ה is always the article among proclitics)

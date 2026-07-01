@@ -121,6 +121,12 @@
     addAll(func, opts.func);
     addAll(fossil, FOSSIL_LIST);
     addAll(fossil, opts.fossil);
+    // Corpus-attested whole words (Dicta saw them UN-segmented, pre="" → they are REAL words). This
+    // expands the residual-stop lexicon beyond Pealim → the overlay confirms more archaic stems Pealim
+    // lacks → higher CONFIDENT recall, do-no-harm-safe (measured 100% precision). POS-ROUTED: `content`
+    // widens residualIsStop; `nominal` (noun/adj only) alone gates the fused article, so a Dicta-verb
+    // never triggers a false article. { content:[…], nominal:[…] } — nominal ⊆ content.
+    if (opts.attested) { addAll(content, opts.attested.content); addAll(lemmas, opts.attested.content); addAll(nominal, opts.attested.nominal); }
     return { lemmas: lemmas, content: content, nominal: nominal, names: names, cellVA: cellVA, func: func, fossil: fossil };
   }
 

@@ -26,6 +26,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const REPO = path.resolve(__dirname, "..", "..");
 const RD = require(path.join(REPO, "public", "js", "reader-dicta.js"));
@@ -198,6 +199,40 @@ async function bake() {
   console.log("[proclitic-overlay] bake done: " + done + " work(s) → " + path.relative(REPO, OUT_DIR) + "/<id>.json");
 }
 
+// ── attested-words mode (corpus-vocab recall boost) ────────────────────────────
+// Aggregate every whole word Dicta saw UN-segmented (prefixes="") across the bake's Dicta cache →
+// a shipped skeleton lexicon that widens the detector's residual-stop set beyond Pealim (more
+// archaic stems the overlay can CONFIRM → higher confident recall, measured do-no-harm-clean).
+// POS-routed: nominal = Dicta noun/adj (safe for the article gate); content = + verbs.
+const ATTESTED = path.join(REPO, "public", "data", "inflection", "corpus-attested-words-v1.json.gz");
+function buildAttested() {
+  let cache = {};
+  try { cache = JSON.parse(fs.readFileSync(DICTA_CACHE, "utf8")); } catch (_) { cache = {}; }
+  const nominal = new Set(), content = new Set();
+  let toks = 0, whole = 0;
+  for (const arr of Object.values(cache)) for (const t of arr) {
+    toks++;
+    if ((t.pre || "") !== "") continue;                 // only Dicta-whole words (no proclitic stripped)
+    const w = PS.skeleton(t.word); if (!w || w.length < 2) continue;
+    whole++;
+    const pos = t.pos || "";
+    if (pos === "noun" || pos === "adjective") { nominal.add(w); content.add(w); }
+    else if (pos === "verb") { content.add(w); }         // verb → content (residual-stop) but NOT nominal (no false article)
+    // null / function / propernoun POS → skip (func + names are handled by their own gazetteers)
+  }
+  const out = {
+    _meta: {
+      purpose: "Corpus-attested whole words (Dicta prefixes='' ⇒ real words) — widens the proclitic detector's residual-stop lexicon for higher CONFIDENT recall (do-no-harm-safe, 100% precision measured).",
+      model: RD.MODEL_VERSION, source: "build-proclitic-overlay.js --attested", tokens: toks, whole_words: whole,
+      content: content.size, nominal: nominal.size,
+    },
+    content: Array.from(content).sort(), nominal: Array.from(nominal).sort(),
+  };
+  fs.mkdirSync(path.dirname(ATTESTED), { recursive: true });
+  fs.writeFileSync(ATTESTED, zlib.gzipSync(Buffer.from(JSON.stringify(out), "utf8")));
+  console.log("[proclitic-overlay] attested → " + path.relative(REPO, ATTESTED) + "  (" + content.size + " content, " + nominal.size + " nominal, from " + whole + " whole-word tokens)");
+}
+
 function status() {
   const ledger = loadLedger();
   const ids = listWorks();
@@ -211,6 +246,7 @@ function status() {
 (async () => {
   if (has("status")) return status();
   if (has("gold-fixture")) return buildGoldFixture();
+  if (has("attested")) return buildAttested();
   if (has("bake")) return bake();
   console.log("usage: build-proclitic-overlay.js [--gold-fixture | --bake | --status] [--limit=N] [--work=<id>] [--sleep=MS] [--force]");
 })().catch((e) => { console.error(e && e.stack || e); process.exit(1); });

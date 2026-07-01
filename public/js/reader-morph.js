@@ -582,9 +582,26 @@
       try { if (window.PealimFunctionLinks) window.PealimFunctionLinks.ensureReady(); } catch (_) {}
       try { if (window.FunctionUsage) window.FunctionUsage.ensureReady(); } catch (_) {}
       // Phase-3 proclitic detector lexicon (built once from the SAME gazetteers as the resolver
-      // → lock-step, no drift). Graceful: absent module → no proclitic chip-row (offline fallback).
+      // → lock-step, no drift) + the corpus-attested-words vocab (Dicta-whole words → widens the
+      // residual-stop lexicon for higher confident recall, do-no-harm-safe). Both graceful: absent
+      // module/vocab → the detector still works (baseline lexicon).
       var procLex = null;
-      try { if (window.ProcliticSegment) procLex = window.ProcliticSegment.buildLexicon(paradigms, { names: Object.keys(NAME_PROPER), func: Object.keys(FUNCTION_GLOSS) }); } catch (_) { procLex = null; }
+      try {
+        if (window.ProcliticSegment) {
+          var attested = null;
+          try {
+            var ar = await fetch("/data/inflection/corpus-attested-words-v1.json.gz", { cache: "no-cache" });   // revalidate: the vocab grows as the corpus is re-baked (same filename)
+            if (ar && ar.ok) {
+              if (typeof DecompressionStream === "function" && ar.body) attested = JSON.parse(await new Response(ar.body.pipeThrough(new DecompressionStream("gzip"))).text());
+              else attested = await ar.json();
+            }
+          } catch (_) { attested = null; }
+          procLex = window.ProcliticSegment.buildLexicon(paradigms, {
+            names: Object.keys(NAME_PROPER), func: Object.keys(FUNCTION_GLOSS),
+            attested: attested ? { content: attested.content, nominal: attested.nominal } : null,
+          });
+        }
+      } catch (_) { procLex = null; }
       _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex, procLex: procLex };
       return _eng;
     })().catch(function (e) { _engPromise = null; throw e; });
