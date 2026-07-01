@@ -55,22 +55,47 @@ try { dictaCache = JSON.parse(fs.readFileSync(DICTA_CACHE, "utf8")); } catch (_)
 let cacheDirty = 0;
 const saveCache = () => { try { fs.mkdirSync(TMP, { recursive: true }); fs.writeFileSync(DICTA_CACHE, JSON.stringify(dictaCache)); cacheDirty = 0; } catch (_) {} };
 
+// Rate-limit RESILIENCE (learned the hard way: an aggressive bake got Dicta to 503 everything).
+// On sustained failures we do NOT silently degrade hundreds of rows — we OPEN a circuit: pause the
+// WHOLE bake and probe Dicta until it recovers, then RETRY the row. A single shared recovery probe
+// serves all concurrent lanes (single-flight).
+let consecFail = 0, recoveryPromise = null;
+async function waitForDictaRecovery() {
+  for (let i = 0; ; i++) {
+    const wait = Math.min(120000, 15000 * (i + 1));   // 15s,30s,…,120s cap
+    process.stdout.write("\n  ⏸ Dicta unavailable (503/degraded) — pausing " + Math.round(wait / 1000) + "s (probe " + (i + 1) + ")…\n");
+    await sleep(wait);
+    let ok = false;
+    try { const r = await RD.analyzeSentence("בית שדה"); ok = !!(r && r.ok && !r.degraded && r.tokens && r.tokens.length); } catch (_) { ok = false; }
+    if (ok) { process.stdout.write("  ▶ Dicta recovered — resuming.\n"); return; }
+  }
+}
+function ensureRecovery() { if (!recoveryPromise) recoveryPromise = waitForDictaRecovery().finally(() => { recoveryPromise = null; consecFail = 0; }); return recoveryPromise; }
+
 async function analyze(sentence) {
   const key = String(sentence || "").trim();
   if (!key) return [];
   if (dictaCache[key]) return dictaCache[key];
-  let res = null;
-  for (let attempt = 0; attempt <= RETRIES; attempt++) {
-    try { res = await RD.analyzeSentence(key); } catch (e) { res = { ok: false, degraded: true, reason: String(e && e.message) }; }
-    if (res && res.ok && !res.degraded && Array.isArray(res.tokens)) break;
-    await sleep(400 * (attempt + 1));   // backoff on failure
+  while (true) {                                        // loop (not recursion) so a flapping Dicta can't grow the stack
+    let res = null;
+    for (let attempt = 0; attempt <= RETRIES; attempt++) {
+      try { res = await RD.analyzeSentence(key); } catch (e) { res = { ok: false, degraded: true, reason: String(e && e.message) }; }
+      if (res && res.ok && !res.degraded && Array.isArray(res.tokens)) break;
+      await sleep(Math.min(15000, 800 * Math.pow(2, attempt)));   // exp backoff 0.8→15s
+    }
+    if (res && res.ok && !res.degraded) {
+      consecFail = 0;
+      const toks = res.tokens.map((t) => ({ word: t.word, pre: t.prefixes || "", stem: t.stem || "", pos: t.posDicta || "", conf: !!t.confident }));
+      dictaCache[key] = toks;
+      if (++cacheDirty >= 20) saveCache();
+      await sleep(SLEEP);
+      return toks;
+    }
+    // Sustained failure ⇒ rate-limit/outage. After a few consecutive, PAUSE the bake until Dicta
+    // recovers, then RETRY this sentence (never leave the row degraded to a transient rate-limit).
+    if (++consecFail >= 4) { await ensureRecovery(); continue; }
+    return null;                                        // isolated hiccup → degrade just this row
   }
-  if (!res || !res.ok || res.degraded) return null;   // null = degraded (caller decides)
-  const toks = res.tokens.map((t) => ({ word: t.word, pre: t.prefixes || "", stem: t.stem || "", pos: t.posDicta || "", conf: !!t.confident }));
-  dictaCache[key] = toks;
-  if (++cacheDirty >= 20) saveCache();
-  await sleep(SLEEP);
-  return toks;
 }
 
 // ── overlay entry from a Dicta token (the shared core) ──────────────────────────
@@ -173,12 +198,21 @@ async function bake() {
   const ledger = loadLedger();
   let ids = only ? [only] : listWorks();
   if (!ids.length) { console.error("no baked works under " + path.relative(REPO, WORKS_DIR)); process.exit(1); }
-  const pending = ids.filter((id) => only || has("force") || !(ledger.works[id] && ledger.works[id].status === "done"));
+  // --redo-degraded: also re-bake works marked done but whose rows degraded (Dicta rate-limit),
+  // so a clean re-run (with the circuit-breaker + gentle rate) fills the gaps they left.
+  const redoDeg = has("redo-degraded");
+  const pending = ids.filter((id) => {
+    if (only || has("force")) return true;
+    const e = ledger.works[id];
+    if (!(e && e.status === "done")) return true;              // not done → bake
+    if (redoDeg && (e.degradedRows || 0) > 0) return true;     // done-but-degraded → re-bake
+    return false;
+  });
   const todo = LIMIT ? pending.slice(0, LIMIT) : pending;
   // Works are independent (own overlay file) → bake CONC of them concurrently. Each work's Dicta
   // calls are still sequential, so CONC concurrent works ≈ CONC concurrent Dicta calls. A ~752-work
   // full bake is ~5h sequential → ~1h at CONC=5. Ledger keys are per-work (no cross-work race).
-  const CONC = Math.max(1, num("concurrency", 5));
+  const CONC = Math.max(1, num("concurrency", 2));   // default 2 (concurrency=5 rate-limited Dicta to 503); circuit-breaker backs off further
   console.log("[proclitic-overlay] bake: " + todo.length + " work(s) (of " + ids.length + " total, " + (ids.length - pending.length) + " done) · concurrency=" + CONC);
   let done = 0, idx = 0;
   async function lane() {
