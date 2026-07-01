@@ -433,6 +433,28 @@
     if (!par) return false;
     return _parHasSkeleton(par, target);
   }
+  // Runtime lookup over a loaded context sidecar (pure, Node-testable; recon §3.3/§10 B2/B4).
+  // Returns:
+  //   { ctx }                — a provider-shaped baked fact on a key hit (offline, zero network);
+  //   { authoritative: true }— the sentence was FULLY evaluated at bake and no improvement was
+  //                            found → the offline reading stands (no live fallback needed);
+  //   null                   — unknown sentence / stale resolver / no overlay → the caller falls
+  //                            back to the live path (un-baked semantics).
+  function overlayContext(ov, sentence, surface) {
+    if (!ov || !ov.ctx) return null;
+    // B4: a sidecar baked under an OLDER resolver may under-select — its misses lose authority
+    // (entries — plain Dicta facts — would still be safe, but a uniform soft-miss is simpler
+    // and the re-bake to the current rev is cheap and local).
+    if (ov._meta && ov._meta.resolver && ov._meta.resolver !== RESOLVER_REV) return null;
+    var h = fnv1a(normSent(sentence));
+    var bucket = ov.ctx[h] || null;
+    var e = bucket ? bucket[stripNiqqud(surface || "")] : null;
+    if (e && (e.nq || e.pos)) {
+      return { ctx: { niqqud: e.nq || "", posDicta: e.pos || null, st: e.st || "", source: "baked", made: (ov._meta && ov._meta.made) || "" } };
+    }
+    if (!ov._sents) { try { ov._sents = new Set(ov.sents || []); } catch (_) { ov._sents = new Set(); } }
+    return ov._sents.has(h) ? { authoritative: true } : null;
+  }
 
   function provenanceLabel(r, pos) {
     if (!r) return "unknown";
@@ -697,10 +719,20 @@
     if (!surface) return null;
     var eng = await ensureEngine();
     var card = await resolveCore(eng, surface, niqqud);
-    if (ctx && ctx.niqqud) {
+    // The learner's status identity is the OFFLINE reading — the same card decorateWords paints
+    // with — so the save-key can never split from the paint-key when a context merge swaps or
+    // re-glosses the card (recon §10 R11-F3; the ktiv-parity lesson, now for context).
+    var preCtxCard = card;
+    // Baked overlay facts may be pos-only (legacy cache rows carry no niqqud): paths B/C need
+    // only the context POS; path A — and its resolveCore — additionally needs ctx.niqqud
+    // (recon §10, the P4 seam contract).
+    if (ctx && (ctx.niqqud || ctx.posDicta)) {
       try {
-        var ctxCard = await resolveCore(eng, surface, ctx.niqqud);
+        var ctxCard = ctx.niqqud ? await resolveCore(eng, surface, ctx.niqqud) : null;
         var pick = pickContextReading(card, ctxCard, ctx, surface);
+        // B3 segmentation-consistency guard — the SAME call the bake-time replay makes (lock-step):
+        // a promotion must land on a paradigm that inflects to the segment Dicta identified.
+        if (pick.use === "context" && !contextPromotionGuard(eng, surface, ctx.st || "", ctxCard)) pick = { use: "offline" };
         if (pick.use === "context") { ctxCard.label = "context"; ctxCard.contextUsed = true; card = ctxCard; }
         else if (pick.use === "gloss") {
           card.meaning = pick.gloss; card.pos = pick.pos || card.pos;
@@ -714,7 +746,9 @@
           if (card.label === "exact") card.label = "likely";
           card.ambiguous = true; card.contextUsed = true; card.contextPos = pick.pos || "";
         }
-      } catch (_) { /* Dicta hiccup → keep offline card (silent, no dead-end) */ }
+        // honest provenance split: precomputed (offline) vs live Dicta (recon §3.4/§10 R11-F7)
+        if (card.contextUsed) { card.contextSource = ctx.source || "live"; card.contextMade = ctx.made || ""; }
+      } catch (_) { /* ctx hiccup → keep offline card (silent, no dead-end) */ }
     }
     if (!card.pealim_url && window.PealimFunctionLinks) {
       try {
@@ -770,7 +804,8 @@
     }
     // Epic 4 — canonical lemma key (aligned with getKnownWordStates) + the RAW manual status, so
     // the card's one-tap level selector highlights what the user explicitly set (vs SRS-derived).
-    card.lemmaKey = statusKeyForCard(eng.NA, card, niqqud, surface);
+    // Keyed by the PRE-context offline card (stable identity == paint key; §10 R11-F3).
+    card.lemmaKey = statusKeyForCard(eng.NA, preCtxCard, niqqud, surface);
     card.manualStatus = "";
     if (card.lemmaKey && typeof _attachOpts.getWordStatus === "function") {
       try { card.manualStatus = (await _attachOpts.getWordStatus(card.lemmaKey)) || ""; } catch (_) {}
@@ -1233,6 +1268,10 @@
   function renderCardHtml(card) {
     if (!card) return '<div class="rm-card-empty">' + escapeHtml(tt("room.morph.empty", "Слово не распознано.")) + "</div>";
     var label = LABEL_TEXT[card.label] || LABEL_TEXT.unknown;
+    // baked context is OFFLINE + precomputed — it must not wear the live-network badge
+    // («контекст (Dicta)» implies an outbound call the baked path never makes; §10 R11-F7)
+    if (card.label === "context" && card.contextSource === "baked")
+      label = ["room.morph.prov.contextBaked", "контекст (офлайн, предвыч.)"];
     var rows = "";
     var add = function (k, v, he) { if (v) rows += '<div class="rm-row"><span class="rm-k">' + escapeHtml(k) + '</span><span class="rm-v"' + (he ? ' lang="he"' : "") + ">" + escapeHtml(v) + "</span></div>"; };
     add(tt("room.morph.root", "корень"), card.root, true);
@@ -2170,6 +2209,7 @@
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
     // context-overlay shared primitives (bake + runtime lock-step; recon §10)
     RESOLVER_REV: RESOLVER_REV, normSent: normSent, fnv1a: fnv1a, contextPromotionGuard: contextPromotionGuard,
+    overlayContext: overlayContext,
     // gazetteers (single source of truth — proclitic-segment.buildLexicon reads these so the
     // detector's name/function guard never drifts from the resolver's).
     NAME_PROPER: NAME_PROPER, FUNCTION_GLOSS: FUNCTION_GLOSS,

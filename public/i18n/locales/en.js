@@ -2044,7 +2044,7 @@ window.I18N_LOCALES.en = {
       possibleParadigm: "possible paradigm",
       contextSuggests: "in context, maybe",
       usage: { title: "Usage", governs: "governs", suffix: "declension", position: "position", collocations: "collocations", pitfalls: "watch out", register: "register", examples: "Examples" },
-      prov: { exact: "exact", likely: "likely", guessed: "best guess", "function": "function word", context: "context (Dicta)", unknown: "not resolved offline" },
+      prov: { exact: "exact", likely: "likely", guessed: "best guess", "function": "function word", context: "context (Dicta)", contextBaked: "context (offline, precomputed)", unknown: "not resolved offline" },
       niqqudMachine: "vocalization is machine-made (Dicta)",
       refine: "🎯 Refine by context",
       refineNote: "Sends this sentence to the Dicta cloud once to pick the context-correct meaning. Machine analysis, not a native speaker.",

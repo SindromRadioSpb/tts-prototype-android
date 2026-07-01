@@ -119,6 +119,23 @@ const FLOORS = {
     ok(decC.use === "soften", "A3: pos-only fact failed path C soften (got " + decC.use + ")");
   }
 
+  // ── A7: runtime lookup semantics (overlayContext — the provider-chain contract, §3.3/§10 B2/B4) ──
+  {
+    const sent = "בבית ישב איש";
+    const h = RM.fnv1a(RM.normSent(sent));
+    const ov = { _meta: { resolver: RM.RESOLVER_REV, made: "2026-07-02T00:00:00Z" }, sents: [h], ctx: {} };
+    ov.ctx[h] = { "איש": { nq: "אִישׁ", pos: "noun" } };
+    const hit = RM.overlayContext(ov, sent, "איש");
+    ok(hit && hit.ctx && hit.ctx.niqqud === "אִישׁ" && hit.ctx.source === "baked", "A7: key hit did not return a baked provider fact");
+    const miss = RM.overlayContext(ov, sent, "בבית");
+    ok(miss && miss.authoritative === true, "A7: fully-evaluated sentence without an entry must be an AUTHORITATIVE miss");
+    ok(RM.overlayContext(ov, "משפט שלא נאפה מעולם", "איש") === null, "A7: unknown sentence must fall to the live path (null)");
+    const stale = { _meta: { resolver: "ctx-r0-obsolete" }, sents: [h], ctx: ov.ctx };
+    ok(RM.overlayContext(stale, sent, "בבית") === null, "A7 (B4): stale-resolver sidecar must lose miss authority (soft miss)");
+    // whitespace/niqqud drift between the baked sentence and the tapped row must not break the key
+    ok(RM.overlayContext(ov, "  בבית   ישב איש ", "איש") !== null, "A7: normSent failed to absorb whitespace drift");
+  }
+
   // ── A5: shared key primitives (producer ↔ runtime lock-step) ──
   ok(RM.normSent("  שָׁלוֹם   עוֹלָם ") === "שלום עולם", "A5: normSent niqqud/whitespace normalization broken");
   ok(RM.fnv1a("") === "811c9dc5", "A5: fnv1a empty-string constant drifted");

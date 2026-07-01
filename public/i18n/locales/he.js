@@ -2054,7 +2054,7 @@ window.I18N_LOCALES.he = {
       possibleParadigm: "פרדיגמה אפשרית",
       contextSuggests: "בהקשר, ייתכן",
       usage: { title: "שימוש", governs: "שולט ב־", suffix: "נטייה", position: "מיקום", collocations: "צירופים", pitfalls: "שים לב", register: "משלב", examples: "דוגמאות" },
-      prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", unknown: "לא זוהה במצב לא־מקוון" },
+      prov: { exact: "מדויק", likely: "סביר", guessed: "השערה", "function": "מילת תפקוד", context: "הקשר (Dicta)", contextBaked: "הקשר (לא־מקוון, מחושב מראש)", unknown: "לא זוהה במצב לא־מקוון" },
       niqqudMachine: "הניקוד ממוחשב (Dicta)",
       refine: "🎯 לדייק לפי הקשר",
       refineNote: "שולח את המשפט פעם אחת לענן Dicta כדי לבחור את המשמעות בהקשר. ניתוח מכונה, לא דובר יליד.",

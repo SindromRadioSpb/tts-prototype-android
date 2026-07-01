@@ -2058,7 +2058,7 @@ window.I18N_LOCALES.ru = {
       possibleParadigm: "возможная парадигма",
       contextSuggests: "по контексту, возможно",
       usage: { title: "Употребление", governs: "управляет", suffix: "склонение", position: "позиция", collocations: "сочетания", pitfalls: "осторожно", register: "регистр", examples: "Примеры" },
-      prov: { exact: "точно", likely: "вероятно", guessed: "подобрано", "function": "служебное слово", context: "контекст (Dicta)", unknown: "не определено офлайн" },
+      prov: { exact: "точно", likely: "вероятно", guessed: "подобрано", "function": "служебное слово", context: "контекст (Dicta)", contextBaked: "контекст (офлайн, предвыч.)", unknown: "не определено офлайн" },
       niqqudMachine: "огласовка — машинная (Dicta)",
       refine: "🎯 Уточнить в контексте",
       refineNote: "Разово отправит это предложение в облако Dicta, чтобы выбрать значение по контексту. Машинный разбор, не носитель.",

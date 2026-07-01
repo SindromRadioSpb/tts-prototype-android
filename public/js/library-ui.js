@@ -548,10 +548,26 @@ function contextConsentSet(v) {
 }
 let _ctxCache = new Map();
 let _ctxConsentAsked = false;          // session debounce for the prompt
+// Context-overlay (strategic #1, recon §3.3/§10): the open work's BAKED context sidecar.
+// Set on work open (loadContextOverlay), reset on every open — never leaks across works.
+let _ctxOverlay = null;
+function setContextOverlay(ov) { _ctxOverlay = (ov && typeof ov === 'object') ? ov : null; }
 function makeContextProvider() {
   return async function (sentence, surface) {
     const consent = contextConsent();
+    // declined = the user opted OUT of context readings as such, not merely of the network —
+    // honored for the baked path too (recon §10 R11-F8).
     if (consent === 'declined') return null;
+    // 1) BAKED overlay first: offline, deterministic, zero outbound → no consent needed (D6).
+    //    An authoritative miss means the bake fully evaluated this sentence and found no
+    //    applicable improvement — the offline card stands, live is NOT consulted.
+    if (_ctxOverlay && window.ReaderMorph && window.ReaderMorph.overlayContext) {
+      const r = window.ReaderMorph.overlayContext(_ctxOverlay, String(sentence || ''), surface);
+      if (r && r.ctx) return r.ctx;
+      if (r && r.authoritative) return null;
+      // unknown sentence / stale resolver → fall through to the live path (un-baked semantics)
+    }
+    // 2) LIVE Dicta (un-baked/imported works, unknown sentences) — consent-gated as before.
     if (consent !== 'granted') { promptContextConsent(); return null; }   // undecided → ask once, offline this tap
     const key = String(sentence || '');
     if (!key || !window.ReaderDicta) return null;
@@ -560,7 +576,8 @@ function makeContextProvider() {
     const res = await p;
     if (!res || !res.ok || res.degraded || !Array.isArray(res.tokens)) return null;
     const tok = window.ReaderDicta.tokenForSurface(res.tokens, surface);
-    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma } : null;
+    // st = Dicta's stem segmentation — the promotion guard's input (identical to the baked path)
+    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma, st: tok.stem || '', source: 'live' } : null;
   };
 }
 // One-time consent prompt (R5): explains the outbound, then auto-fires on every tap if granted.
@@ -598,7 +615,7 @@ function makeRefineProvider() {
     const res = await p;
     if (!res || !res.ok || res.degraded || !Array.isArray(res.tokens)) return null;
     const tok = window.ReaderDicta.tokenForSurface(res.tokens, surface);
-    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma } : null;
+    return (tok && tok.niqqud) ? { niqqud: tok.niqqud, posDicta: tok.posDicta, lemma: tok.lemma, st: tok.stem || '', source: 'live' } : null;
   };
 }
 async function ensureWordStates() {
@@ -2742,6 +2759,23 @@ async function loadProcliticOverlay(textId, text) {
   } catch (_) { /* offline / no overlay → detector hedges honestly */ }
 }
 
+// Context-overlay — fetch the open work's baked context sidecar (strategic #1) and hand it to
+// the provider chain. Best-effort: an un-baked work (404) or offline leaves the live+consent
+// path exactly as before. Keyed by byehuda_id, like the proclitic overlay above.
+async function loadContextOverlay(textId, text) {
+  let bid = (text && (text.byehuda_id || (text.corpus && text.corpus.byehuda_id))) || '';
+  if (!bid) { const m = String(textId == null ? '' : textId).match(/(\d+)/); bid = m ? m[1] : ''; }
+  if (!bid) return;
+  const tid = textId;
+  try {
+    const res = await fetch('/data/benyehuda/context/' + encodeURIComponent(bid) + '.json?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+    if (!res.ok) return;                              // un-baked work → live+consent path unchanged
+    const j = await res.json();
+    if (readerTextId !== tid) return;                 // navigated away while fetching
+    if (j && j.ctx && Array.isArray(j.sents)) setContextOverlay(j);
+  } catch (_) { /* offline / no sidecar → live path (honest un-baked semantics) */ }
+}
+
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
@@ -2750,6 +2784,7 @@ async function openReader(textId, title, opts) {
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // BRR-P2-002/005 + Epic-5 W1/W4/W5 — never carry a stale banner/jump/end-card/cov-chip/fade-nudge across opens
   try { window.ReaderMorph && window.ReaderMorph.setProcliticOverlay(null); } catch (_) {}   // Phase-3 — drop the previous work's proclitic overlay (never leak across works)
+  setContextOverlay(null);              // context-overlay — same never-leak rule
   _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
@@ -2777,6 +2812,7 @@ async function openReader(textId, title, opts) {
   if (res && res.ok) {
     attachReaderAudio();
     try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
+    try { loadContextOverlay(readerTextId, res.text); } catch (_) {}     // context-overlay — this work's baked context facts (best-effort)
     try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint
