@@ -1,0 +1,19 @@
+{
+  "_meta": {
+    "purpose": "Measured path-A promote-rate: of candidate tokens (offline non-exact + Dicta content-POS + dict-reachable) replayed WITH full Dicta context tokens, how many pickContextReading actually promotes.",
+    "source": "promote-rate-measure.js over .tmp/benyehuda/reader-morph-audit-dicta-cache.json (398 sentences, Epic-1 audit cache, full parseToken shape)",
+    "date": "2026-07-02"
+  },
+  "sentences": 398,
+  "candidate_tokens": 398,
+  "promote_context_A": 104,
+  "promote_rate": "26.1%",
+  "soften_C": 78,
+  "stay_offline": 216,
+  "examples": [
+    "רושם guessed→context (впечатление)",
+    "עמוק guessed→context (глубокий)",
+    "לחשוב guessed→context (думать)",
+    "פנים likely→context (внутренность…)"
+  ]
+}

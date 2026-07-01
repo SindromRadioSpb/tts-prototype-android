@@ -1,0 +1,27 @@
+{
+  "_meta": {
+    "purpose": "P2 measure-before-code budget census — context-overlay selection over the cached Dicta analyses (docs/planning/BRR_CONTEXT_OVERLAY_RECON_2026_07_02.md §4).",
+    "producer": "build-context-overlay.js --budget",
+    "version": "context-overlay-v1",
+    "generated_by_commit": "see git log",
+    "note": "decisions replayed with the SHIPPED resolver (same exported functions the Room runs); cand_a = path-A candidates promotable once --enrich fills nq on legacy rows"
+  },
+  "works_total": 796,
+  "works_with_cache": 687,
+  "rows": 75914,
+  "sentences_analyzed": 47707,
+  "word_tokens": 347614,
+  "dicta_matched": 329085,
+  "offline_exact": 97879,
+  "entries_stored": 62820,
+  "by_reason": {
+    "gloss_B": 6835,
+    "context_A": 1515,
+    "soften_C": 10360,
+    "cand_A_pending_nq": 44110
+  },
+  "enrich_sentences_needed": 21364,
+  "size_bytes_total": 2568776,
+  "size_mb_total": 2.45,
+  "size_avg_bytes_per_work": 3227
+}

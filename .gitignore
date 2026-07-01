@@ -152,3 +152,4 @@ public/data/benyehuda/fts/
 # grow with coverage; volume-served (push-corpus-proclitic.js), NOT git. Re-bakeable via
 # build-proclitic-overlay.js --bake. The frozen gold overlay-fixture.json IS committed (research).
 public/data/benyehuda/proclitic/
+public/data/benyehuda/context/
