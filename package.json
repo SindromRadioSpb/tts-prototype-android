@@ -89,6 +89,7 @@
     "smoke:reniqqud": "node scripts/premium/reniqqud-smoke.js",
     "smoke:reader-dicta": "node scripts/premium/reader-dicta-smoke.js",
     "smoke:reader-context": "node scripts/premium/reader-context-smoke.js",
+    "smoke:reader-ctx-overlay": "node scripts/premium/context-overlay-smoke.js",
     "smoke:function-usage": "node scripts/premium/function-usage-smoke.js",
     "smoke:reader-tier3-regression": "node scripts/premium/reader-tier3-regression.js",
     "smoke:reader-word-status": "node scripts/premium/reader-word-status-smoke.js",

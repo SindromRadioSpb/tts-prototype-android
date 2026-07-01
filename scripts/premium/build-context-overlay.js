@@ -53,9 +53,13 @@ const RD = require(path.join(REPO, "public", "js", "reader-dicta.js"));
 
 const WORKS_DIR = path.join(REPO, "public", "data", "benyehuda", "works");
 const OUT_DIR = path.join(REPO, "public", "data", "benyehuda", "context");
+const GOLD_DIR = path.join(REPO, "docs", "research", "reader-morph-gold", "2026-06-25");
+const WORKSHEET = path.join(GOLD_DIR, "reader-morph-gold-worksheet.tsv");
+const CTX_FIXTURE = path.join(GOLD_DIR, "ctx-fixture.json");
 const DICT = path.join(REPO, "public", "data", "inflection", "pealim-infl-v12.json.gz");
 const TMP = path.join(REPO, ".tmp", "benyehuda");
 const DICTA_CACHE = path.join(TMP, "proclitic-overlay-dicta-cache.json");
+const AUDIT_CACHE = path.join(TMP, "reader-morph-audit-dicta-cache.json");
 const LOCK = path.join(TMP, "dicta-cache.lock");
 const LEDGER = path.join(TMP, "context-overlay-ledger.json");
 const WORKLIST = path.join(TMP, "context-overlay-enrich-worklist.json");
@@ -394,6 +398,88 @@ function snapshotCache() {
   } catch (e) { console.warn("⚠ cache snapshot failed: " + (e && e.message)); }
 }
 
+// ── gold ctx fixture (P3; recon §6 + §10 R9#5) ───────────────────────────────────
+// Freezes the Dicta context FACTS for every gold-worksheet row into a committed fixture in the
+// exact SIDECAR entry shape ({nq,pos,c,st}) — the hermetic input smoke:reader-context replays.
+// The gate never regenerates it (oracle-independence + freeze discipline): regeneration is an
+// explicit --refreeze that the owner reviews via the printed old-vs-new coverage delta.
+function parseWorksheet() {
+  const raw = fs.readFileSync(WORKSHEET, "utf8").replace(/^﻿/, "");
+  const lines = raw.split(/\r?\n/).filter((l) => l && !l.startsWith("#"));
+  const header = lines[0].split("\t");
+  const idx = {}; header.forEach((h, i) => { idx[h] = i; });
+  return lines.slice(1).map((l) => {
+    const c = l.split("\t");
+    return { id: c[idx.id], work: c[idx.work], row_id: c[idx.row_id], surface: c[idx.surface], niqqud: c[idx.niqqud],
+      stratum: c[idx.stratum], gold_pos: c[idx.gold_pos] || "", gold_lemma: c[idx.gold_lemma] || "",
+      offline_label: c[idx.offline_label] || "", verdict: c[idx.verdict] || "" };
+  }).filter((r) => r.id);
+}
+// normalize a cached token (audit shape {niqqud,posDicta,confident} OR bake shape {nq,pos,conf})
+// to the sidecar entry contract
+function entryFromToken(t) {
+  const nq = t.niqqud !== undefined ? t.niqqud : (t.nq || "");
+  const pos = t.posDicta !== undefined ? (t.posDicta || "") : (t.pos || "");
+  const e = {};
+  if (nq) e.nq = nq;
+  if (pos) e.pos = pos;
+  if (t.confident || t.conf) e.c = 1;
+  const w = strip(t.word);
+  if (t.stem && t.stem !== w) e.st = t.stem;
+  return (e.nq || e.pos) ? e : null;
+}
+function buildFixture() {
+  if (fs.existsSync(CTX_FIXTURE) && !has("refreeze")) {
+    console.error("⛔ ctx-fixture already exists (FROZEN). Regenerating shifts the gate's input — use --refreeze and review the printed coverage delta.");
+    process.exit(1);
+  }
+  const prev = fs.existsSync(CTX_FIXTURE) ? JSON.parse(fs.readFileSync(CTX_FIXTURE, "utf8")) : null;
+  let audit = {}; try { audit = JSON.parse(fs.readFileSync(AUDIT_CACHE, "utf8")); } catch (_) {}
+  const bakeCache = loadCache();
+  const rows = parseWorksheet();
+  const rowPlain = new Map();     // work → row_id → hebrew_plain
+  const fixture = {}; let covered = 0, noSentence = 0, noToken = 0;
+  for (const r of rows) {
+    if (!rowPlain.has(r.work)) {
+      const m = new Map();
+      try {
+        const w = JSON.parse(fs.readFileSync(path.join(WORKS_DIR, r.work + ".json"), "utf8"));
+        for (const tx of (w.library && w.library.texts) || []) for (const row of tx.rows || []) m.set(String(row.row_id), String(row.hebrew_plain || "").trim());
+      } catch (_) {}
+      rowPlain.set(r.work, m);
+    }
+    const plain = rowPlain.get(r.work).get(String(r.row_id));
+    if (!plain) { noSentence++; continue; }
+    const toks = audit[plain] || bakeCache[plain];
+    if (!toks || !toks.length) { noSentence++; continue; }
+    const s = strip(r.surface);
+    // two-pass, mirroring tokenForSurface/tokenForCached
+    let dt = null;
+    for (const t of toks) if (strip(t.word) === s) { dt = t; break; }
+    if (!dt) for (const t of toks) if (t.stem === s) { dt = t; break; }
+    if (!dt) { noToken++; continue; }
+    const e = entryFromToken(dt);
+    if (!e) { noToken++; continue; }
+    fixture[r.id] = e;
+    covered++;
+  }
+  const crypto = require("crypto");
+  const shaOf = (p) => { try { return crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex").slice(0, 16); } catch (_) { return null; } };
+  const out = {
+    _meta: {
+      purpose: "FROZEN Dicta context facts for the R1 human-gold worksheet — the hermetic input smoke:reader-context replays (no live Dicta, no regeneration inside the gate).",
+      v: VERSION, made: new Date().toISOString(), parser: RD.MODEL_VERSION, resolver: RM.RESOLVER_REV,
+      entry_shape: "{ nq: Dicta context niqqud, pos: Dicta context POS, c: 1=Dicta-confident, st: Dicta stem skeleton when segmented } — identical to a sidecar ctx entry",
+      sources: { audit_cache_sha: shaOf(AUDIT_CACHE), bake_cache_sha: shaOf(DICTA_CACHE) },
+      rows: rows.length, covered, no_sentence: noSentence, no_token: noToken,
+    },
+    fixture,
+  };
+  fs.writeFileSync(CTX_FIXTURE, JSON.stringify(out, null, 2) + "\n");
+  console.log("[context-overlay] ctx fixture → " + path.relative(REPO, CTX_FIXTURE) + "  (" + covered + "/" + rows.length + " covered; " + noSentence + " no-sentence, " + noToken + " no-token)");
+  if (prev) console.log("[context-overlay] REFREEZE delta: covered " + (prev._meta ? prev._meta.covered : "?") + " → " + covered + " — re-run smoke:reader-context and review the score delta before committing.");
+}
+
 function status() {
   const ledger = loadLedger();
   const ids = Object.keys(ledger.works || {});
@@ -411,11 +497,16 @@ function status() {
   if (lock && Date.now() - lock.ts < 10 * 60 * 1000) console.log("[context-overlay] cache lock held by pid " + lock.pid + " (" + lock.tag + ")");
 }
 
-(async () => {
+// lock-step reuse: smoke:reader-context imports the SAME engine builder / worksheet parser /
+// entry normalizer instead of re-implementing them (the autogen-parity lesson).
+module.exports = { buildEng, parseWorksheet, entryFromToken, tokenForCached, CONTENT_POS, VERSION, CTX_FIXTURE, WORKSHEET };
+
+if (require.main === module) (async () => {
   if (has("budget")) return bake({ budgetOnly: true });
   if (has("bake")) return bake({ budgetOnly: false });
+  if (has("fixture")) return buildFixture();
   if (has("enrich-dry")) return enrich(true);
   if (has("enrich")) return enrich(false);
   if (has("status")) return status();
-  console.log("usage: node scripts/premium/build-context-overlay.js --budget | --bake [--force] | --enrich[-dry] | --status  [--work=<id> --limit=N --sleep=MS --concurrency=N]");
+  console.log("usage: node scripts/premium/build-context-overlay.js --budget | --bake [--force] | --fixture [--refreeze] | --enrich[-dry] | --status  [--work=<id> --limit=N --sleep=MS --concurrency=N]");
 })().catch((e) => { console.error("fatal:", e && e.message || e); releaseLock(); process.exit(1); });
