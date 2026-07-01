@@ -756,16 +756,19 @@
       }
     }
     // Phase-3 — proclitic segmentation (ADDITIVE: attaches card.proclitics only; the stem reading
-    // above is UNTOUCHED — byte-parity gate). Offline FSA + the current work's Dicta overlay:
-    // overlay-confirmed → confident (tinted); offline-only → hedged («возможно приставка»). A
-    // whole-word/name is suppressed → no chip. Never blocks the card (best-effort).
-    card.proclitics = null;
+    // above is UNTOUCHED — byte-parity gate). Offline FSA + the current work's Dicta overlay. We
+    // surface ONLY the CONFIDENT (overlay-confirmed) tier: measured on real text, the offline-only
+    // tier hedges on ~22% of words — far too noisy for a premium surface, and the recon requires
+    // the FSA + bake-Dicta overlay to ship TOGETHER (offline alone, ~95%, must NOT surface). So an
+    // un-baked work shows nothing; the chip-row activates per-work as overlays are baked+pushed.
+    // (card.procliticsRaw keeps the offline hedge for a future opt-in surfacing decision.)
+    card.proclitics = null; card.procliticsRaw = null;
     try {
       if (eng.procLex && window.ProcliticSegment) {
         var pk = window.ProcliticSegment.skeleton(surface);
         var ov = (_procOverlay && pk) ? (_procOverlay[pk] || null) : null;
         var pr = window.ProcliticSegment.detect(surface, niqqud || card.niqqud || "", { lex: eng.procLex, overlay: ov });
-        if (pr && pr.hasProclitic) card.proclitics = pr;
+        if (pr && pr.hasProclitic) { card.procliticsRaw = pr; if (pr.confident) card.proclitics = pr; }
       }
     } catch (_) { card.proclitics = null; }
     return card;
