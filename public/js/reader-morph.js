@@ -534,6 +534,11 @@
 
   // ── Browser engine (lazy) ──────────────────────────────────────────────────
   var _eng = null, _engPromise = null;
+  // Phase-3 — the current work's Dicta proclitic overlay { skeleton → {pre,pn,conf} }, set by the
+  // Room when a work opens (library-ui fetches /data/benyehuda/proclitic/<id>.json). null → the
+  // detector runs offline-only (hedged). Reset on every work open so it never leaks across works.
+  var _procOverlay = null;
+  function setProcliticOverlay(map) { _procOverlay = (map && typeof map === "object") ? map : null; }
 
   // First-tap init: load + decompress the offline Pealim dataset (3.3 MB gz) ONCE,
   // build the resolver maps + pealim_id index, expose a sync paradigm lookup. Kept
@@ -576,7 +581,11 @@
       // warm function-word links + usage store (small, optional, graceful)
       try { if (window.PealimFunctionLinks) window.PealimFunctionLinks.ensureReady(); } catch (_) {}
       try { if (window.FunctionUsage) window.FunctionUsage.ensureReady(); } catch (_) {}
-      _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex };
+      // Phase-3 proclitic detector lexicon (built once from the SAME gazetteers as the resolver
+      // → lock-step, no drift). Graceful: absent module → no proclitic chip-row (offline fallback).
+      var procLex = null;
+      try { if (window.ProcliticSegment) procLex = window.ProcliticSegment.buildLexicon(paradigms, { names: Object.keys(NAME_PROPER), func: Object.keys(FUNCTION_GLOSS) }); } catch (_) { procLex = null; }
+      _eng = { NA: NA, maps: maps, pidMap: pidMap, lookup: lookup, rootIndex: rootIndex, procLex: procLex };
       return _eng;
     })().catch(function (e) { _engPromise = null; throw e; });
     return _engPromise;
@@ -746,6 +755,19 @@
         if (par && par.cells && Object.keys(par.cells).length) { card.paradigm = par; card.usageParadigm = true; }
       }
     }
+    // Phase-3 — proclitic segmentation (ADDITIVE: attaches card.proclitics only; the stem reading
+    // above is UNTOUCHED — byte-parity gate). Offline FSA + the current work's Dicta overlay:
+    // overlay-confirmed → confident (tinted); offline-only → hedged («возможно приставка»). A
+    // whole-word/name is suppressed → no chip. Never blocks the card (best-effort).
+    card.proclitics = null;
+    try {
+      if (eng.procLex && window.ProcliticSegment) {
+        var pk = window.ProcliticSegment.skeleton(surface);
+        var ov = (_procOverlay && pk) ? (_procOverlay[pk] || null) : null;
+        var pr = window.ProcliticSegment.detect(surface, niqqud || card.niqqud || "", { lex: eng.procLex, overlay: ov });
+        if (pr && pr.hasProclitic) card.proclitics = pr;
+      }
+    } catch (_) { card.proclitics = null; }
     return card;
   }
 
@@ -901,6 +923,8 @@
       if (t && t.closest && t.closest("[data-rm-meaning-cancel]")) { onMeaningEditToggle(false); return; }
       if (t && t.closest && (t.closest("[data-rm-meaning-add]") || t.closest("[data-rm-meaning-edit]"))) { onMeaningEditToggle(true); return; }
       if (t && t.closest && t.closest(".rm-save")) { onSaveClick(); return; }
+      var pchip = t && t.closest ? t.closest("[data-rm-proc]") : null;
+      if (pchip) { onProcliticChip(pchip.getAttribute("data-rm-proc")); return; }
       var chip = t && t.closest ? t.closest(".rm-rootfam-chip") : null;
       if (chip) { onChipClick(chip); return; }
       // conjugation cells voice themselves via inline onclick → window.v3ConjSpeak.
@@ -1110,6 +1134,41 @@
     return out;
   }
 
+  // Phase-3 — the secondary «Приставки» chip-row (morphological SCAFFOLD, never a gloss line and
+  // never next to «Употребление», which would read as «the whole word is a function word»). Each
+  // chip = the vocalized proclitic + its role, tappable → its own «Употребление» (3b store reuse).
+  // R2/R5 value-inverse-to-frequency: a bare high-frequency proclitic (ה/ל/ב/ו) renders compact/
+  // muted; the non-obvious minority (fused article · ש-relative · מ · subordinator · multi-clitic)
+  // is emphasised. Confidence gate (R1/R11): overlay-confirmed → «Dicta» tint; offline-only →
+  // «возможно · уточнить» hedge — NEVER a confident claim on the ~95% offline tier.
+  function procliticHtml(card) {
+    var p = card && card.proclitics;
+    if (!p || !p.hasProclitic || !(p.segments && p.segments.length)) return "";
+    var segs = p.segments;
+    var trivial = segs.length === 1 && !segs[0].fused && segs[0].kind !== "conj-narrative" &&
+      (segs[0].letter === "ה" || segs[0].letter === "ל" || segs[0].letter === "ב" || segs[0].letter === "ו");
+    var FU = (typeof window !== "undefined" && window.FunctionUsage) ? window.FunctionUsage : null;
+    var chips = segs.map(function (s) {
+      var hasUsage = false; try { hasUsage = !!(FU && FU.lookup(s.letter)); } catch (_) {}
+      var he = '<b class="rm-proc-he" dir="rtl" lang="he">' + escapeHtml(s.voc || s.letter) + "</b>";
+      var role = s.role ? '<span class="rm-proc-role">' + escapeHtml(s.role) + "</span>" : "";
+      var flag = s.fused ? '<span class="rm-proc-flag">' + escapeHtml(tt("room.morph.proc.fused", "восстановлен из огласовки")) + "</span>" : "";
+      var inner = he + role + flag;
+      var cls = "rm-proc-chip" + (s.fused ? " rm-proc-fused" : "");
+      return hasUsage
+        ? '<button type="button" class="' + cls + '" data-rm-proc="' + escapeHtml(s.letter) + '">' + inner + "</button>"
+        : '<span class="' + cls + '">' + inner + "</span>";
+    }).join("");
+    var title = tt(segs.length > 1 ? "room.morph.proc.titleN" : "room.morph.proc.title", segs.length > 1 ? "Приставки" : "Приставка");
+    var cnt = segs.length > 1 ? ' <span class="rm-proc-count">(' + segs.length + ")</span>" : "";
+    var prov = p.confident
+      ? '<span class="rm-proc-prov rm-proc-conf">' + escapeHtml(tt("room.morph.proc.dicta", "Dicta")) + "</span>"
+      : '<span class="rm-proc-prov rm-proc-hedge">' + escapeHtml(tt("room.morph.proc.maybe", "возможно · уточнить")) + "</span>";
+    return '<div class="rm-proclitics' + (trivial ? " rm-proc-trivial" : "") + '" dir="' + uiDir() + '">' +
+      '<div class="rm-proc-head"><span class="rm-proc-title">' + escapeHtml(title) + cnt + "</span>" + prov + "</div>" +
+      '<div class="rm-proc-chips" dir="rtl">' + chips + "</div></div>";
+  }
+
   function renderCardHtml(card) {
     if (!card) return '<div class="rm-card-empty">' + escapeHtml(tt("room.morph.empty", "Слово не распознано.")) + "</div>";
     var label = LABEL_TEXT[card.label] || LABEL_TEXT.unknown;
@@ -1246,7 +1305,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1331,6 +1390,26 @@
       _activeCard.meaning = val; _activeCard.meaningSource = "user";
       openCard(_activeCard, _activeOcc);   // re-render → meaning + «ваш» + «✓ В заметках»
     } catch (_) { if (btn) btn.disabled = false; }
+  }
+  // Phase-3 — tap a proclitic chip → open its «Употребление» (reuse the 3b function-usage store +
+  // the same card renderer). Synthesizes a minimal function-word card so usageHtml + the Pealim
+  // link light up; drills onto the stack so «‹ Назад» returns to the content word.
+  function onProcliticChip(letter) {
+    if (!letter) return;
+    var FU = (typeof window !== "undefined" && window.FunctionUsage) ? window.FunctionUsage : null;
+    var usage = null; try { usage = FU ? (FU.lookup(letter) || null) : null; } catch (_) { usage = null; }
+    var card = {
+      word: (usage && usage.word) || letter, niqqud: (usage && usage.niqqud) || letter,
+      root: null, binyan: "", pos: (usage && usage.pos) || "particle",
+      meaning: (usage && (usage.gloss || usage.meaning)) || "", lemma: "",
+      pealim_id: (usage && usage.pealim_id) ? String(usage.pealim_id) : "",
+      pealim_url: (usage && usage.pealim_url) || (usage && usage.pealim_id ? "https://www.pealim.com/ru/dict/" + encodeURIComponent(usage.pealim_id) + "/" : ""),
+      pealim_direct: !!(usage && usage.pealim_id), functionWord: true, label: "function",
+      ambiguous: false, alts: [], usage: usage, rootFamily: [], proclitics: null,
+    };
+    if (_activeCard) _cardStack.push({ card: _activeCard, occ: _activeOcc });   // drill → «‹ Назад» returns
+    _activeWordCtx = null;
+    openCard(card, null);
   }
   // Tap a root-family chip → open that related word's card (no occurrence context).
   async function onChipClick(chip) {
@@ -2028,10 +2107,14 @@
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
+    // gazetteers (single source of truth — proclitic-segment.buildLexicon reads these so the
+    // detector's name/function guard never drifts from the resolver's).
+    NAME_PROPER: NAME_PROPER, FUNCTION_GLOSS: FUNCTION_GLOSS,
     wrapCellHtml: wrapCellHtml, isWordChar: isWordChar, fadeDecision: fadeDecision,
     fadeGraduationReady: fadeGraduationReady, FADE_GRADUATION_MIN: FADE_GRADUATION_MIN,
     // browser
     ensureEngine: ensureEngine, resolveWordLight: resolveWordLight, attach: attach,
+    setProcliticOverlay: setProcliticOverlay,
     closeSheet: closeSheet, paintLearningStatus: paintLearningStatus, clearLearningStatus: clearLearningStatus,
     decorateWords: decorateWords, clearDecorations: clearDecorations, collectNewWords: collectNewWords,
     openWordCard: openWordCard,

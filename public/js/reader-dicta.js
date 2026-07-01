@@ -56,10 +56,17 @@
     }
     var top = morphList[0];
     var dec = decodeMorphId((Array.isArray(top) && top[0] != null) ? String(top[0]) : "");
+    // Dicta pipe-segments the vocalized form into proclitic PREFIX particle(s) + base: e.g.
+    // "בַּ|בַּיִת" → prefix ב, stem בית. The leading segments (all but the last) are the authoritative
+    // proclitic segmentation the Reading-Room overlay needs (build-proclitic-overlay.js). Empty
+    // when Dicta read no proclitic — the do-no-harm "this is a whole word" signal.
+    var segs = niqqudRaw.split("|");
+    var prefixes = segs.length > 1 ? stripNiqqud(segs.slice(0, -1).join("")) : "";
     return {
       word: word,
       niqqud: niqqudRaw.replace(/\|/g, ""),
-      stem: stripNiqqud(niqqudRaw.split("|").pop()),
+      stem: stripNiqqud(segs[segs.length - 1]),
+      prefixes: prefixes,
       lemma: lemmas[0] || "",
       lemmas: lemmas.slice(0, 5),
       posDicta: dec.pos,

@@ -1,0 +1,2008 @@
+{
+  "_meta": {
+    "purpose": "FROZEN Dicta proclitic overlay for the R1 gold — the hermetic Tier-2 input the smoke gate replays (no live Dicta in CI).",
+    "model": "dicta-morph-client-v1",
+    "source": "build-proclitic-overlay.js --gold-fixture",
+    "keyed_by": "gold id",
+    "entry": "{ pre: Dicta proclitic prefix skeleton (''=whole word), pn: proper-noun, conf: Dicta confidence }",
+    "rows": 332,
+    "covered": 332,
+    "context_hits": 320,
+    "standalone": 12,
+    "degraded": 0
+  },
+  "fixture": {
+    "1": {
+      "pre": "ול",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "2": {
+      "pre": "ב",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "3": {
+      "pre": "ב",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "4": {
+      "pre": "ב",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "5": {
+      "pre": "ה",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "6": {
+      "pre": "ה",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "7": {
+      "pre": "ו",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "8": {
+      "pre": "ו",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "9": {
+      "pre": "ו",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "10": {
+      "pre": "כ",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "11": {
+      "pre": "ל",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "12": {
+      "pre": "ל",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "13": {
+      "pre": "מ",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "14": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "15": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "16": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "17": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "18": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "19": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "20": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "21": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "22": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "23": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "24": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "25": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "26": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "27": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "28": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "29": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "30": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "31": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "32": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "33": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "34": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "35": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "36": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "37": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "38": {
+      "pre": "",
+      "pn": true,
+      "v": false,
+      "conf": false
+    },
+    "39": {
+      "pre": "ו",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "40": {
+      "pre": "ו",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "41": {
+      "pre": "ו",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "42": {
+      "pre": "ו",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "43": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "44": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "45": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "46": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "47": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "48": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "49": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "50": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "51": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "52": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "53": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "54": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "55": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "56": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "57": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "58": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "59": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "60": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "61": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "62": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "63": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "64": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "65": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "66": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "67": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "68": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "69": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "70": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "71": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "72": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "73": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "74": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "75": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "76": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "77": {
+      "pre": "כ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "78": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "79": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "80": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "81": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "82": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "83": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "84": {
+      "pre": "ש",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "85": {
+      "pre": "ש",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "86": {
+      "pre": "ש",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "87": {
+      "pre": "ש",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "88": {
+      "pre": "ש",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "89": {
+      "pre": "ש",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "90": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "91": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "92": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "93": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "94": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "95": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "96": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "97": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "98": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "99": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "100": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "101": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "102": {
+      "pre": "ולכשה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "103": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "104": {
+      "pre": "וה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "105": {
+      "pre": "מש",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "106": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "107": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "108": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "109": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "110": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "111": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "112": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "113": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "114": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "115": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "116": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "117": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "118": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "119": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "120": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "121": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "122": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "123": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "124": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "125": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "126": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "127": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "128": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "129": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "130": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "131": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "132": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "133": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "134": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "135": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "136": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "137": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "138": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "139": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "140": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "141": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "142": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "143": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "144": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "145": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "146": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "147": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "148": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "149": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "150": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "151": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "152": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "153": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "154": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "155": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "156": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "157": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "158": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "159": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "160": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "161": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "162": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "163": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "164": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "165": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "166": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "167": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "168": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "169": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "170": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "171": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "172": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "173": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "174": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "175": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "176": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "177": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "178": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "179": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "180": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "181": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "182": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "183": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "184": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "185": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "186": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "187": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "188": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "189": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "190": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "191": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "192": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "193": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "194": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "195": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "196": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "197": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "198": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "199": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "200": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "201": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "202": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "203": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "204": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "205": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "206": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "207": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "208": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "209": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "210": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "211": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "212": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "213": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "214": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "215": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "216": {
+      "pre": "ו",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "217": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "218": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "219": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "220": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "221": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "222": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "223": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "224": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "225": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "226": {
+      "pre": "כ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "227": {
+      "pre": "כ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "228": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "229": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "230": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "231": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "232": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "233": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "234": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "235": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "236": {
+      "pre": "ל",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "237": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "238": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "239": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "240": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "241": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "242": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "243": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "244": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "245": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "246": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "247": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "248": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "249": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "250": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "251": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "252": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "253": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "254": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "255": {
+      "pre": "מ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "256": {
+      "pre": "ש",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "257": {
+      "pre": "ש",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "258": {
+      "pre": "ש",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "259": {
+      "pre": "ש",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "260": {
+      "pre": "ש",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "261": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "262": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "263": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "264": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "265": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "266": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "267": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "268": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "269": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "270": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "271": {
+      "pre": "ב",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "272": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "273": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "274": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "275": {
+      "pre": "ה",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "276": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "277": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "278": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "279": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "280": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "281": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "282": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "283": {
+      "pre": "ה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "284": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "285": {
+      "pre": "ו",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "286": {
+      "pre": "וה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "287": {
+      "pre": "וה",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "288": {
+      "pre": "ו",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "289": {
+      "pre": "ול",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "290": {
+      "pre": "וש",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "291": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "292": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "293": {
+      "pre": "כ",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "294": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "295": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "296": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "297": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "298": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "299": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "300": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "301": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "302": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "303": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "304": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "305": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "306": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "307": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "308": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "309": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "310": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "311": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": true
+    },
+    "312": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "313": {
+      "pre": "ל",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "314": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": true
+    },
+    "315": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": true
+    },
+    "316": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "317": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "318": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "319": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "320": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "321": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "322": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "323": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": true
+    },
+    "324": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "325": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "326": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "327": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "328": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "329": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "330": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    },
+    "331": {
+      "pre": "",
+      "pn": false,
+      "v": true,
+      "conf": false
+    },
+    "332": {
+      "pre": "",
+      "pn": false,
+      "v": false,
+      "conf": false
+    }
+  }
+}

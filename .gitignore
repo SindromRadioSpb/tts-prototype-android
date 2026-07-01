@@ -148,3 +148,7 @@ public/data/benyehuda/works/
 # BRR-P2-001 full-text index SHARDS — tens of MB, grow with coverage; volume-served
 # (push-corpus-fts.js), NOT git. The thin manifest corpus-fts-v<N>.json DOES ship.
 public/data/benyehuda/fts/
+# BRR Phase-3 proclitic OVERLAYS — per-work Dicta segmentation sidecars, one per baked work,
+# grow with coverage; volume-served (push-corpus-proclitic.js), NOT git. Re-bakeable via
+# build-proclitic-overlay.js --bake. The frozen gold overlay-fixture.json IS committed (research).
+public/data/benyehuda/proclitic/

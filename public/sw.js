@@ -29,7 +29,7 @@
 // Bumping CACHE_VERSION invalidates all caches. The version is derived
 // from the deploy: bump on every release that ships new shell assets.
 
-const CACHE_VERSION = "v3.11.65";
+const CACHE_VERSION = "v3.11.66";
 const PRECACHE = `linguistpro-precache-${CACHE_VERSION}`;
 const RUNTIME = `linguistpro-runtime-${CACHE_VERSION}`;
 const CONFIG_CACHE = `linguistpro-config-${CACHE_VERSION}`;
@@ -108,6 +108,8 @@ const PRECACHE_URLS = [
   "/js/corpus-vocab.js",
   // BRR-P1-009 Stage 2 — ported Pealim inflection-table renderer (1:1 with Studio).
   "/js/inflection-render.js",
+  // BRR Phase-3 — proclitic segmentation detector (offline FSA + bake-Dicta overlay).
+  "/js/proclitic-segment.js",
   // BRR-P2-002 «Продолжить чтение» — pure resume helpers (window.ReaderProgress).
   "/js/reader-progress.js",
   // BRR-P2-001 full-text search — query engine + THIN manifest precached (era taxonomy of the

@@ -2724,6 +2724,24 @@ function setReaderSubtitle(textRow) {
   box.hidden = !any;
 }
 
+// Phase-3 — fetch the open work's Dicta proclitic overlay from the volume and hand it to
+// reader-morph. Best-effort + progressive: an un-baked work (404) or offline leaves the detector
+// on its offline-only (hedged) tier. Keyed by byehuda_id (== works/<id>.json == overlay filename).
+async function loadProcliticOverlay(textId, text) {
+  if (!(window.ReaderMorph && window.ReaderMorph.setProcliticOverlay)) return;
+  let bid = (text && (text.byehuda_id || (text.corpus && text.corpus.byehuda_id))) || '';
+  if (!bid) { const m = String(textId == null ? '' : textId).match(/(\d+)/); bid = m ? m[1] : ''; }
+  if (!bid) return;
+  const tid = textId;
+  try {
+    const res = await fetch('/data/benyehuda/proclitic/' + encodeURIComponent(bid) + '.json?v=' + CORPUS_CATALOG_VERSION, { cache: 'force-cache' });
+    if (!res.ok) return;                              // un-baked work → offline fallback (no chip tint)
+    const j = await res.json();
+    if (readerTextId !== tid) return;                 // navigated away while fetching
+    if (j && j.overlay && typeof j.overlay === 'object') window.ReaderMorph.setProcliticOverlay(j.overlay);
+  } catch (_) { /* offline / no overlay → detector hedges honestly */ }
+}
+
 async function openReader(textId, title, opts) {
   const reader = $('roomReader'), content = $('roomContent');
   if (!reader) return;
@@ -2731,6 +2749,7 @@ async function openReader(textId, title, opts) {
   reader.hidden = false;
   try { refreshDueBadge(); } catch (_) {}   // D2 — entering the reader hides the home «🔁 К повторению» CTA
   clearResumeBanner(); clearRowJump(); resetEndCard(); clearCovChip(); clearFadeGradNudge();   // BRR-P2-002/005 + Epic-5 W1/W4/W5 — never carry a stale banner/jump/end-card/cov-chip/fade-nudge across opens
+  try { window.ReaderMorph && window.ReaderMorph.setProcliticOverlay(null); } catch (_) {}   // Phase-3 — drop the previous work's proclitic overlay (never leak across works)
   _sessionMaxRow = -1;                  // BRR-P2-005 — furthest-row tracker resets per open
   readerTextId = textId != null ? String(textId) : null;
   const titleEl = $('readerTitle');
@@ -2757,6 +2776,7 @@ async function openReader(textId, title, opts) {
   try { setReaderSubtitle(res && res.ok && res.text ? res.text : null); } catch (_) {}   // Epic-6 W1-a — per-work source/context
   if (res && res.ok) {
     attachReaderAudio();
+    try { loadProcliticOverlay(readerTextId, res.text); } catch (_) {}   // Phase-3 — this work's Dicta proclitic overlay (best-effort)
     try { localDb.touchOpened(textId); } catch (_) {}    // recency for the Continue shelf
     try { tagReaderTableLang(mount); } catch (_) {}      // Epic 8b — sr-only/lang on the painted table (parity-safe)
     try { showReaderTip(); } catch (_) {}                // Epic 8a — first-open gesture hint

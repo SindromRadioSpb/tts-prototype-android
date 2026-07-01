@@ -957,6 +957,29 @@
       border-inline-start: 2px solid var(--border-soft); }
     .rm-u-he { font-size: 16px; color: var(--text-primary); }
     .rm-u-ru { font-size: 13px; color: var(--text-secondary); }
+    /* Phase-3 — «Приставки» chip-row: secondary morphological scaffold under the stem analysis.
+       Muted by default (value-inverse-to-frequency); the confidence tint + fused-dash carry signal. */
+    .rm-proclitics { margin: 10px 0 4px; padding: 9px 11px; border-radius: 10px;
+      background: var(--bg-muted); border: 1px solid var(--border-soft); }
+    .rm-proc-trivial { opacity: .7; padding: 6px 10px; }
+    .rm-proc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; }
+    .rm-proc-title { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text-faint); }
+    .rm-proc-count { color: var(--text-faint); font-weight: 600; }
+    .rm-proc-prov { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+    .rm-proc-conf { color: #1f883d; background: color-mix(in srgb, #1f883d 12%, transparent);
+      border: 1px solid color-mix(in srgb, #1f883d 30%, transparent); }
+    .rm-proc-hedge { color: #d29922; background: color-mix(in srgb, #d29922 12%, transparent);
+      border: 1px solid color-mix(in srgb, #d29922 28%, transparent); }
+    .rm-proc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .rm-proc-chip { appearance: none; width: auto; text-align: start; cursor: default; font: inherit;
+      display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 9px; border-radius: 8px;
+      background: var(--bg); color: var(--text-primary); border: 1px solid var(--border-soft); }
+    button.rm-proc-chip { cursor: pointer; }
+    button.rm-proc-chip:hover { border-color: var(--accent); }
+    .rm-proc-fused { border-style: dashed; }
+    .rm-proc-he { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+    .rm-proc-role { font-size: 12px; color: var(--text-secondary); }
+    .rm-proc-flag { font-size: 10px; color: var(--text-faint); font-style: italic; }
     /* F5 — table shown under a non-«точно» reading is a possible paradigm, flagged amber. */
     .rm-acc-uncertain > .rm-acc-sum { color: #d29922; }
     .rm-rows { display: flex; flex-direction: column; gap: 6px; }
@@ -1565,6 +1588,9 @@
 <script src="/js/function-usage.js"></script>
 <!-- BRR-P1-009 Stage 2: ported Pealim inflection-table renderer (1:1 with Studio). -->
 <script src="/js/inflection-render.js"></script>
+<!-- BRR Phase-3: proclitic segmentation-on-tap (offline FSA + bake-Dicta overlay). Before
+     reader-morph.js so ensureEngine can build its lexicon. -->
+<script src="/js/proclitic-segment.js"></script>
 <script src="/js/reader-morph.js"></script>
 <!-- Tier-3 «точный режим»: client-side Dicta context morphology (opt-in; no outbound until toggled on). -->
 <script src="/js/reader-dicta.js"></script>
