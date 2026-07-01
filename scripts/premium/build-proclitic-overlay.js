@@ -52,10 +52,25 @@ const SLEEP = num("sleep", 120), RETRIES = num("retries", 3), LIMIT = num("limit
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ── Dicta with retry + on-disk cache (sentence → tokens[]) ──────────────────────
+// Shared-file hygiene (context-overlay recon §10, R11-F4): the cache is co-owned with
+// build-context-overlay.js --enrich. Atomic writes (a crash mid-write must not truncate the
+// ~20h Dicta harvest) + a pid lockfile so two writers never run concurrently (each rewrites
+// the file from its own memory copy — last-writer-wins silently reverts the other's rows).
+const LOCK = path.join(TMP, "dicta-cache.lock");
+function atomicWrite(file, data) { const t = file + ".tmp-" + process.pid; fs.writeFileSync(t, data); fs.renameSync(t, file); }
+function readLock() { try { return JSON.parse(fs.readFileSync(LOCK, "utf8")); } catch (_) { return null; } }
+function acquireCacheLock(tag) {
+  const cur = readLock();
+  if (cur && cur.pid !== process.pid && Date.now() - cur.ts < 10 * 60 * 1000)
+    throw new Error("Dicta cache is locked by pid " + cur.pid + " (" + cur.tag + ", heartbeat " + Math.round((Date.now() - cur.ts) / 1000) + "s ago) — refusing to co-write.");
+  fs.mkdirSync(TMP, { recursive: true });
+  fs.writeFileSync(LOCK, JSON.stringify({ pid: process.pid, tag: tag, ts: Date.now() }));
+}
+function releaseCacheLock() { const cur = readLock(); if (cur && cur.pid === process.pid) { try { fs.unlinkSync(LOCK); } catch (_) {} } }
 let dictaCache = {};
 try { dictaCache = JSON.parse(fs.readFileSync(DICTA_CACHE, "utf8")); } catch (_) { dictaCache = {}; }
 let cacheDirty = 0;
-const saveCache = () => { try { fs.mkdirSync(TMP, { recursive: true }); fs.writeFileSync(DICTA_CACHE, JSON.stringify(dictaCache)); cacheDirty = 0; } catch (_) {} };
+const saveCache = () => { try { fs.mkdirSync(TMP, { recursive: true }); atomicWrite(DICTA_CACHE, JSON.stringify(dictaCache)); try { fs.writeFileSync(LOCK, JSON.stringify({ pid: process.pid, tag: "proclitic-bake", ts: Date.now() })); } catch (_) {} cacheDirty = 0; } catch (_) {} };
 
 // Rate-limit RESILIENCE (learned the hard way: an aggressive bake got Dicta to 503 everything).
 // On sustained failures we do NOT silently degrade hundreds of rows — we OPEN a circuit: pause the
@@ -89,7 +104,9 @@ async function analyze(sentence) {
       consecFail = 0;
       // Keep the FULL parsed token: nq/lem/lems/bin cost ~2× cache size but spare a second
       // full-corpus Dicta pass when the context-disambiguation overlay bakes from this cache.
-      const toks = res.tokens.map((t) => ({ word: t.word, pre: t.prefixes || "", stem: t.stem || "", pos: t.posDicta || "", conf: !!t.confident, nq: t.niqqud || "", lem: t.lemma || "", lems: t.lemmas || [], bin: t.binyan || null }));
+      // g/d = generation + fetch epoch-day (recon §10 R9#2/#8: distinguishes «Dicta answered
+      // empty» from «never fetched rich», and lets sidecars carry an honest fetched-census).
+      const toks = res.tokens.map((t) => ({ word: t.word, pre: t.prefixes || "", stem: t.stem || "", pos: t.posDicta || "", conf: !!t.confident, nq: t.niqqud || "", lem: t.lemma || "", lems: t.lemmas || [], bin: t.binyan || null, g: "r", d: Math.floor(Date.now() / 86400000) }));
       dictaCache[key] = toks;
       if (++cacheDirty >= 20) saveCache();
       await sleep(SLEEP);
@@ -283,8 +300,9 @@ function status() {
 
 (async () => {
   if (has("status")) return status();
-  if (has("gold-fixture")) return buildGoldFixture();
+  // cache-WRITING modes take the co-ownership lock (recon §10 R11-F4); --attested only reads.
+  if (has("gold-fixture")) { acquireCacheLock("proclitic-gold-fixture"); try { return await buildGoldFixture(); } finally { releaseCacheLock(); } }
   if (has("attested")) return buildAttested();
-  if (has("bake")) return bake();
+  if (has("bake")) { acquireCacheLock("proclitic-bake"); try { return await bake(); } finally { releaseCacheLock(); } }
   console.log("usage: build-proclitic-overlay.js [--gold-fixture | --bake | --status] [--limit=N] [--work=<id>] [--sleep=MS] [--force]");
 })().catch((e) => { console.error(e && e.stack || e); process.exit(1); });

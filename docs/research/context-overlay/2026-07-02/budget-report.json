@@ -1,27 +1,39 @@
 {
   "_meta": {
-    "purpose": "P2 measure-before-code budget census — context-overlay selection over the cached Dicta analyses (docs/planning/BRR_CONTEXT_OVERLAY_RECON_2026_07_02.md §4).",
+    "purpose": "P2 measure-before-code budget census — context-overlay selection over the cached Dicta analyses (recon §4/§10).",
     "producer": "build-context-overlay.js --budget",
-    "version": "context-overlay-v1",
-    "generated_by_commit": "see git log",
-    "note": "decisions replayed with the SHIPPED resolver (same exported functions the Room runs); cand_a = path-A candidates promotable once --enrich fills nq on legacy rows"
+    "version": "context-overlay-v2",
+    "resolver": "ctx-r1",
+    "made": "2026-07-01T22:24:40.941Z",
+    "note": "decisions replayed with the SHIPPED resolver; cand_A_pending_nq = promotable once --enrich fills nq (never-fetched legacy rows only); entries keyed by PLAIN skeleton + ktiv alias"
   },
   "works_total": 796,
   "works_with_cache": 687,
   "rows": 75914,
-  "sentences_analyzed": 47707,
-  "word_tokens": 347614,
-  "dicta_matched": 329085,
-  "offline_exact": 97879,
-  "entries_stored": 62820,
+  "sentences_analyzed": 48802,
+  "sentences_authoritative": 45877,
+  "sentences_partial": 2445,
+  "hash_collisions_dropped": 0,
+  "word_tokens": 349978,
+  "dicta_matched": 345235,
+  "dicta_unmatched": 4743,
+  "offline_exact": 102685,
+  "entries_stored": 122520,
+  "alias_keys": 4557,
+  "promotion_guard_rejected": 2,
   "by_reason": {
-    "gloss_B": 6835,
-    "context_A": 1515,
-    "soften_C": 10360,
-    "cand_A_pending_nq": 44110
+    "gloss_B": 6994,
+    "context_A": 2200,
+    "soften_C": 11007,
+    "cand_A_pending_nq": 102319
   },
-  "enrich_sentences_needed": 21364,
-  "size_bytes_total": 2568776,
-  "size_mb_total": 2.45,
-  "size_avg_bytes_per_work": 3227
+  "facts_generation": {
+    "legacy": 319988,
+    "rich": 25247,
+    "enriched": 0
+  },
+  "enrich_sentences_needed": 32992,
+  "size_bytes_total": 5268833,
+  "size_mb_total": 5.02,
+  "size_avg_bytes_per_work": 6619
 }

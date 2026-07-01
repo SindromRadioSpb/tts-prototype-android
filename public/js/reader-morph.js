@@ -393,6 +393,47 @@
     return { use: "offline" };   // no confident improvement → keep offline (no regression)
   }
 
+  // ── Context-overlay shared primitives (producer + runtime lock-step; recon §10) ──
+  // RESOLVER_REV: hand-bump on ANY resolver-behavior change that affects context-overlay
+  // SELECTION (pickContextReading paths, formFirstResolve semantics, functionGate scope,
+  // CONTEXT_GLOSS growth). Sidecars stamped with an older rev degrade their authoritative
+  // misses to soft misses at runtime (B4: a resolver improvement must never leave a baked
+  // work silently worse than an un-baked one).
+  var RESOLVER_REV = "ctx-r1";
+  // The ONE sentence-key normalization both the bake and the tap-time lookup use (B1/R10#8:
+  // two independent implementations WILL drift on maqaf/bidi rows). Plain text is already
+  // bare of niqqud — stripNiqqud here is defensive symmetry.
+  function normSent(s) { return stripNiqqud(String(s == null ? "" : s)).replace(/\s+/g, " ").trim(); }
+  // FNV-1a 32-bit over UTF-16 code units. Math.imul — a plain multiply overflows 2^53 and
+  // silently corrupts high-entropy hashes.
+  function fnv1a(s) {
+    var h = 0x811c9dc5;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    return ("0000000" + h.toString(16)).slice(-8);
+  }
+  // B3 segmentation-consistency guard (R1: «segmentation marriage» — a path-A promotion married
+  // Dicta's context POS to the lemma of a DIFFERENT segmentation: offline stripped a proclitic
+  // Dicta did not see, בעלות «владение» → cell עלות «затрата»). A promotion is allowed only when
+  // the promoted paradigm inflects to the very segment Dicta identified: the whole word when
+  // Dicta read it whole, its stem when Dicta segmented. Fail-closed: an unverifiable paradigm
+  // never promotes (do-no-harm beats coverage).
+  function _parHasSkeleton(par, sk) {
+    if (!par || !sk) return false;
+    if (stripNiqqud(par.lemma || "") === sk || stripNiqqud(par.form || "") === sk || stripNiqqud(par.lemma_niqqud || "") === sk) return true;
+    var cells = par.cells || {}, keys = Object.keys(cells);
+    for (var i = 0; i < keys.length; i++) { var c = cells[keys[i]]; if (c && c.he && stripNiqqud(c.he) === sk) return true; }
+    return false;
+  }
+  function contextPromotionGuard(eng, surface, dictaStem, ctxCard) {
+    var s = stripNiqqud(surface || "");
+    if (!s || !ctxCard || ctxCard.pealim_id == null || ctxCard.pealim_id === "") return true;   // nothing promoted → nothing to guard
+    var st = stripNiqqud(String(dictaStem || ""));
+    var target = (st && st !== s) ? st : s;
+    var par = (eng && eng.pidMap) ? eng.pidMap.get(String(ctxCard.pealim_id)) : null;
+    if (!par) return false;
+    return _parHasSkeleton(par, target);
+  }
+
   function provenanceLabel(r, pos) {
     if (!r) return "unknown";
     // «точно» only for a DECISIVE form-first cell. A multi-id (ambiguous) cell is a guess
@@ -2127,6 +2168,8 @@
     tokenize: tokenize, words: words, alignSurfaceNiqqud: alignSurfaceNiqqud,
     stripNiqqud: stripNiqqud, provenanceLabel: provenanceLabel, resolveCore: resolveCore,
     functionGate: functionGate, pickContextReading: pickContextReading, CONTEXT_GLOSS: CONTEXT_GLOSS,
+    // context-overlay shared primitives (bake + runtime lock-step; recon §10)
+    RESOLVER_REV: RESOLVER_REV, normSent: normSent, fnv1a: fnv1a, contextPromotionGuard: contextPromotionGuard,
     // gazetteers (single source of truth — proclitic-segment.buildLexicon reads these so the
     // detector's name/function guard never drifts from the resolver's).
     NAME_PROPER: NAME_PROPER, FUNCTION_GLOSS: FUNCTION_GLOSS,

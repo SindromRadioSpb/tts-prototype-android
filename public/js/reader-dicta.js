@@ -112,10 +112,15 @@
 
   // Convenience: pick the token whose stem matches a target surface (niqqud-stripped),
   // so the resolver can replace an ambiguous corpus niqqud with Dicta's context niqqud.
+  // TWO-PASS (recon §10, R1#4): exact word-match over the WHOLE list first, stem-match only
+  // as a fallback — a single pass let an early word's stem shadow a later exact word
+  // (standalone מרגיש bound to המרגיש's vocalization). Mirrored by the context-overlay
+  // producer's tokenForCached — keep in lock-step.
   function tokenForSurface(tokens, surface) {
     var s = stripNiqqud(surface);
     if (!s || !tokens) return null;
-    for (var i = 0; i < tokens.length; i++) { if (stripNiqqud(tokens[i].word) === s || tokens[i].stem === s) return tokens[i]; }
+    for (var i = 0; i < tokens.length; i++) { if (stripNiqqud(tokens[i].word) === s) return tokens[i]; }
+    for (var j = 0; j < tokens.length; j++) { if (tokens[j].stem === s) return tokens[j]; }
     return null;
   }
 
