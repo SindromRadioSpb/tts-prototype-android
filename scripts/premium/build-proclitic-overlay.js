@@ -22,7 +22,9 @@
 // Options: --limit=N  --work=<id>  --sleep=MS(120)  --retries=N(3)  --force
 //
 // Ledger (resume): .tmp/benyehuda/proclitic-overlay-ledger.json. Dicta cache: .tmp/benyehuda/
-// proclitic-overlay-dicta-cache.json (sentence → tokens; polite + resumable).
+// proclitic-overlay-dicta-cache.json (sentence → tokens; polite + resumable). Tokens are RICH
+// since 2026-07-02 (+nq/lem/lems/bin = context niqqud/lemma/lemmas/binyan — the raw material the
+// CONTEXT overlay producer needs); entries without `nq` are legacy reduced (pos-level signal only).
 
 const fs = require("fs");
 const path = require("path");
@@ -85,7 +87,9 @@ async function analyze(sentence) {
     }
     if (res && res.ok && !res.degraded) {
       consecFail = 0;
-      const toks = res.tokens.map((t) => ({ word: t.word, pre: t.prefixes || "", stem: t.stem || "", pos: t.posDicta || "", conf: !!t.confident }));
+      // Keep the FULL parsed token: nq/lem/lems/bin cost ~2× cache size but spare a second
+      // full-corpus Dicta pass when the context-disambiguation overlay bakes from this cache.
+      const toks = res.tokens.map((t) => ({ word: t.word, pre: t.prefixes || "", stem: t.stem || "", pos: t.posDicta || "", conf: !!t.confident, nq: t.niqqud || "", lem: t.lemma || "", lems: t.lemmas || [], bin: t.binyan || null }));
       dictaCache[key] = toks;
       if (++cacheDirty >= 20) saveCache();
       await sleep(SLEEP);
