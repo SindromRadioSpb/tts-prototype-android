@@ -177,6 +177,7 @@
     "build:canon-v3": "node scripts/premium/build-canon-v3.js",
     "push:canon-audio": "node scripts/premium/push-canon-audio.js",
     "push:corpus-fts": "node scripts/premium/push-corpus-fts.js",
+    "push:corpus-proclitic": "node scripts/premium/push-proclitic-overlay.js",
     "scrape:pealim": "node scripts/premium/scrape-pealim-all.js",
     "smoke:notes:suggest-panel": "node scripts/notes-ui/suggest-panel-smoke.js",
     "smoke:notes:srs-candidates": "node scripts/notes-ui/suggest-srs-candidate-smoke.js",

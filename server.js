@@ -433,6 +433,20 @@ app.use("/data/benyehuda/fts", express.static(path.join(DATA_DIR, "benyehuda", "
   },
 }));
 
+// BRR Phase-3 proclitic overlays — per-work Dicta segmentation sidecars on the SAME persistent
+// volume (DATA_DIR/benyehuda/proclitic/<id>.json), NOT git — one per baked work, grows with
+// coverage. Served KEYLESS at /data/benyehuda/proclitic/<id>.json?v=<catalogVersion>; the client
+// (library-ui.loadProcliticOverlay) fetches it best-effort, a miss falls through (offline-hedge).
+// Same fallthrough + immutable-cache pattern as works/ + fts/.
+app.use("/data/benyehuda/proclitic", express.static(path.join(DATA_DIR, "benyehuda", "proclitic"), {
+  fallthrough: true,
+  index: false,
+  setHeaders(res) {
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  },
+}));
+
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
@@ -3490,6 +3504,41 @@ app.post("/api/benyehuda/works/upload", rlWorksUpload, async (req, res) => {
   } catch (e) {
     console.error("POST /api/benyehuda/works/upload error:", e);
     return res.status(500).json({ ok: false, error: "WORKS_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
+  }
+});
+
+// POST /api/benyehuda/proclitic/upload — BRR Phase-3. Owner-token push of ONE per-work proclitic
+// overlay ({ _meta, overlay:{skeleton→{pre,pn,v,conf}} }) onto the volume → DATA_DIR/benyehuda/
+// proclitic/<id>.json, served KEYLESS at /data/benyehuda/proclitic/<id>.json (static mount above).
+// Same shared-owner-token gate + atomic overwrite + path-traversal guard as the works upload.
+app.post("/api/benyehuda/proclitic/upload", rlWorksUpload, async (req, res) => {
+  try {
+    if (!requireAudioUploadAuth(req, res)) return;
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const id = String(body.id || "").trim();
+    if (!WORKS_ID_RE.test(id)) return res.status(400).json({ ok: false, error: "BAD_WORK_ID" });
+    const ovl = body.json;
+    if (!ovl || typeof ovl !== "object" || !ovl.overlay || typeof ovl.overlay !== "object") {
+      return res.status(400).json({ ok: false, error: "BAD_OVERLAY_PAYLOAD", message: "expected { id, json: { overlay: {...} } }" });
+    }
+    const dir = path.join(DATA_DIR, "benyehuda", "proclitic");
+    const absPath = path.resolve(dir, id + ".json");
+    if (path.dirname(absPath) !== path.resolve(dir)) return res.status(400).json({ ok: false, error: "BAD_WORK_ID" });
+    const serialized = JSON.stringify(ovl);
+    if (Buffer.byteLength(serialized) > 10 * 1024 * 1024) return res.status(413).json({ ok: false, error: "OVERLAY_TOO_LARGE" });
+    try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+    const tmp = absPath + ".tmp-" + crypto.randomBytes(6).toString("hex");
+    try {
+      fs.writeFileSync(tmp, serialized, "utf8");
+      fs.renameSync(tmp, absPath); // atomic replace (re-publishable)
+    } catch (e) {
+      try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch (_) {}
+      return res.status(500).json({ ok: false, id, error: "WRITE_FAILED", details: e && e.message ? e.message : String(e) });
+    }
+    return res.json({ ok: true, id, bytes: Buffer.byteLength(serialized) });
+  } catch (e) {
+    console.error("POST /api/benyehuda/proclitic/upload error:", e);
+    return res.status(500).json({ ok: false, error: "OVERLAY_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
   }
 });
 
