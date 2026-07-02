@@ -92,6 +92,7 @@
     "smoke:reader-ctx-overlay": "node scripts/premium/context-overlay-smoke.js",
     "smoke:reader-mytexts": "node scripts/premium/mytexts-smoke.js",
     "smoke:studio-corpus": "node scripts/premium/studio-corpus-smoke.js",
+    "push:corpus-context": "node scripts/premium/push-context-overlay.js",
     "smoke:function-usage": "node scripts/premium/function-usage-smoke.js",
     "smoke:reader-tier3-regression": "node scripts/premium/reader-tier3-regression.js",
     "smoke:reader-word-status": "node scripts/premium/reader-word-status-smoke.js",

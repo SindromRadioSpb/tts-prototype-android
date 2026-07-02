@@ -447,6 +447,19 @@ app.use("/data/benyehuda/proclitic", express.static(path.join(DATA_DIR, "benyehu
   },
 }));
 
+// Context-disambiguation overlays (strategic #1, BRR_CONTEXT_OVERLAY_RECON_2026_07_02.md) —
+// per-work baked Dicta context FACTS on the volume (DATA_DIR/benyehuda/context/<id>.json), NOT
+// git. Served KEYLESS; the client (library-ui.loadContextOverlay) fetches best-effort — a 404
+// keeps the live+consent Tier-3 path (honest un-baked semantics). Same pattern as proclitic/.
+app.use("/data/benyehuda/context", express.static(path.join(DATA_DIR, "benyehuda", "context"), {
+  fallthrough: true,
+  index: false,
+  setHeaders(res) {
+    res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  },
+}));
+
 app.use(express.static(path.join(__dirname, "public"), {
   setHeaders(res, filePath) {
     res.setHeader("Cross-Origin-Resource-Policy", "same-origin");
@@ -3538,6 +3551,41 @@ app.post("/api/benyehuda/proclitic/upload", rlWorksUpload, async (req, res) => {
     return res.json({ ok: true, id, bytes: Buffer.byteLength(serialized) });
   } catch (e) {
     console.error("POST /api/benyehuda/proclitic/upload error:", e);
+    return res.status(500).json({ ok: false, error: "OVERLAY_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
+  }
+});
+
+// POST /api/benyehuda/context/upload — strategic #1 (context-disambiguation overlay). Owner-token
+// push of ONE per-work context sidecar ({ _meta, sents:[hash], ctx:{hash→{skel→{nq,pos,c,st}}} })
+// onto the volume → DATA_DIR/benyehuda/context/<id>.json, served KEYLESS at
+// /data/benyehuda/context/<id>.json (static mount above). Same gate/atomicity as proclitic.
+app.post("/api/benyehuda/context/upload", rlWorksUpload, async (req, res) => {
+  try {
+    if (!requireAudioUploadAuth(req, res)) return;
+    const body = (req.body && typeof req.body === "object") ? req.body : {};
+    const id = String(body.id || "").trim();
+    if (!WORKS_ID_RE.test(id)) return res.status(400).json({ ok: false, error: "BAD_WORK_ID" });
+    const ovl = body.json;
+    if (!ovl || typeof ovl !== "object" || !Array.isArray(ovl.sents) || !ovl.ctx || typeof ovl.ctx !== "object") {
+      return res.status(400).json({ ok: false, error: "BAD_CONTEXT_PAYLOAD", message: "expected { id, json: { sents:[…], ctx:{…} } }" });
+    }
+    const dir = path.join(DATA_DIR, "benyehuda", "context");
+    const absPath = path.resolve(dir, id + ".json");
+    if (path.dirname(absPath) !== path.resolve(dir)) return res.status(400).json({ ok: false, error: "BAD_WORK_ID" });
+    const serialized = JSON.stringify(ovl);
+    if (Buffer.byteLength(serialized) > 10 * 1024 * 1024) return res.status(413).json({ ok: false, error: "OVERLAY_TOO_LARGE" });
+    try { if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
+    const tmp = absPath + ".tmp-" + crypto.randomBytes(6).toString("hex");
+    try {
+      fs.writeFileSync(tmp, serialized, "utf8");
+      fs.renameSync(tmp, absPath); // atomic replace (re-publishable)
+    } catch (e) {
+      try { if (fs.existsSync(tmp)) fs.unlinkSync(tmp); } catch (_) {}
+      return res.status(500).json({ ok: false, id, error: "WRITE_FAILED", details: e && e.message ? e.message : String(e) });
+    }
+    return res.json({ ok: true, id, bytes: Buffer.byteLength(serialized) });
+  } catch (e) {
+    console.error("POST /api/benyehuda/context/upload error:", e);
     return res.status(500).json({ ok: false, error: "OVERLAY_UPLOAD_FAILED", details: e && e.message ? e.message : String(e) });
   }
 });
