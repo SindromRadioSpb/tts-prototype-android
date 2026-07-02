@@ -1068,6 +1068,26 @@
     if (prev) openCard(prev.card, prev.occ);
   }
 
+  // Retention P5.6 R-3 — quiet schedule-provenance line (R9: the ring's WHY must be inspectable).
+  // A scheduled word says when it returns; an engaged-but-unscheduled word (e.g. a legacy manual
+  // «знаю» from before R-2 seeding) honestly says it is not scheduled yet. Untracked words show
+  // nothing (no noise). card.srsRow is attached by the tap/openWordCard glue (getDueSchedule).
+  function srsLineHtml(card) {
+    if (!card || !card.lemmaKey) return "";
+    var row = card.srsRow;
+    if (row && row.due) {
+      var dueMs = Number(row.due) || 0;
+      var txt = dueMs <= Date.now()
+        ? tt("room.morph.srs.dueNow", "🔁 Повтор: сегодня")
+        : tt("room.morph.srs.dueIn", "🔁 Повтор: через ~{n} дн.").replace("{n}", String(Math.max(1, Math.ceil((dueMs - Date.now()) / 86400000))));
+      return '<div class="rm-srs-line" dir="' + uiDir() + '">' + escapeHtml(txt) + "</div>";
+    }
+    if (card.manualStatus && card.manualStatus !== "ignore" && card.manualStatus !== "new") {
+      return '<div class="rm-srs-line rm-srs-none" dir="' + uiDir() + '">' + escapeHtml(tt("room.morph.srs.none", "Пока не в расписании повторов")) + "</div>";
+    }
+    return "";
+  }
+
   // Epic 4 — one-tap manual status selector (new/1/2/3/4/known/ignore). Shown when a setWordStatus
   // handler is wired + we have a canonical lemmaKey. The active value is highlighted; re-tapping it
   // clears to «new». LingQ-style: known→clears the highlight, ignore→excluded from i+1.
@@ -1450,7 +1470,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + srsLineHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1476,7 +1496,17 @@
   async function openWordCard(surface, niqqud) {
     _activeWordCtx = null; _cardStack = []; _recallCtx = null;   // study-row card is never recall-mode
     openCardLoading();
-    try { var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud); openCard(card, null); }
+    try {
+      var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud);
+      // P5.6 R-3 — the study-row card carries the same quiet schedule line as a reader tap.
+      try {
+        if (card && card.lemmaKey && typeof _attachOpts.getDueSchedule === "function") {
+          var sAll = await _attachOpts.getDueSchedule();
+          card.srsRow = (sAll && sAll[card.lemmaKey]) || null;
+        }
+      } catch (_) {}
+      openCard(card, null);
+    }
     catch (_) { openCard(null, null); }
   }
   function lifecycleText(status) { var L = LIFECYCLE[status] || LIFECYCLE.created; return tt(L[0], L[1]); }
@@ -1650,12 +1680,15 @@
         // both the schedule and the grade glue. Everything else opens the normal card unchanged.
         _recallCtx = null;
         try {
-          if (card && card.lemmaKey && card.meaning && card.label === "exact" && !card.ambiguous &&
-              card.manualStatus !== "ignore" &&
-              typeof _attachOpts.getDueSchedule === "function" && typeof _attachOpts.gradeReadingTap === "function") {
+          if (card && card.lemmaKey && typeof _attachOpts.getDueSchedule === "function") {
             var schedAll = await _attachOpts.getDueSchedule();
-            var srow = schedAll ? schedAll[card.lemmaKey] : null;
-            if (srow && (Number(srow.due) || 0) <= Date.now()) _recallCtx = { card: card, prev: srow, revealed: false, graded: false };
+            // P5.6 R-3 — schedule provenance for the card's quiet «Повтор: …» line (any word).
+            card.srsRow = (schedAll && schedAll[card.lemmaKey]) || null;
+            if (card.srsRow && (Number(card.srsRow.due) || 0) <= Date.now() &&
+                card.meaning && card.label === "exact" && !card.ambiguous &&
+                card.manualStatus !== "ignore" && typeof _attachOpts.gradeReadingTap === "function") {
+              _recallCtx = { card: card, prev: card.srsRow, revealed: false, graded: false };
+            }
           }
         } catch (_) { _recallCtx = null; }
         if (_activeSpan === span) openCard(card, occ);
@@ -1777,7 +1810,10 @@
   function clearDecorations(mount) {
     if (!mount) return;
     var painted = mount.querySelectorAll("." + _RM_W_CLASSES.join(", ."));
-    for (var i = 0; i < painted.length; i++) painted[i].classList.remove.apply(painted[i].classList, _RM_W_CLASSES);
+    for (var i = 0; i < painted.length; i++) {
+      painted[i].classList.remove.apply(painted[i].classList, _RM_W_CLASSES);
+      if (painted[i].getAttribute("data-rm-due-tip")) { painted[i].removeAttribute("title"); painted[i].removeAttribute("data-rm-due-tip"); }
+    }
     var niq = mount.querySelectorAll('#proTable tbody td[data-col="niqqud"] .rm-w');
     for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null) niq[j].textContent = n; }
   }
@@ -1832,8 +1868,15 @@
         // Retention P5 — quiet due marker: a ring, never a background tint (the background IS the
         // manual-status axis). Key parity is free: lk is the SAME statusKeyForCard bytes the due
         // set was built from (save == paint == review). exact-only + unambiguous (R10 honesty).
+        if (span.getAttribute("data-rm-due-tip")) { span.removeAttribute("title"); span.removeAttribute("data-rm-due-tip"); }   // stale ring tooltip
         if (dueSet && lk && dueSet.has(lk)) {
-          if (card && card.label === "exact" && !card.ambiguous) { span.classList.add("rm-w-due"); dueMarked[lk] = 1; }
+          if (card && card.label === "exact" && !card.ambiguous) {
+            span.classList.add("rm-w-due"); dueMarked[lk] = 1;
+            // P5.6 R-1 — the ring must be self-explaining (discoverability): a desktop hover
+            // says what it means; touch users learn it from the recall card + the 🎨 hint.
+            span.title = tt("room.morph.due.tip", "К повторению — тапни и вспомни перевод");
+            span.setAttribute("data-rm-due-tip", "1");
+          }
           else dueSuppressed[lk] = 1;
         }
         if (isNiqqud) span.textContent = (fadeDecision(confident ? raw : undefined, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud;
@@ -2044,6 +2087,28 @@
       if ((Number(e.due) || 0) <= now) out.add(lk);
     }
     return out;
+  }
+  // Retention P5.6 (owner fork R-2(a), 2026-07-02) — manual level mark seeds the schedule so the
+  // reading-native loop engages WITHOUT the trainer. PURE mapping only (the Room glue owns the
+  // writes): l1..l4 → a synthetic SM2 snapshot {interval:I, reps:0, lapses:0} folded through the
+  // SAME seedFromSm2 the engine's replay() uses for seed rows — the stored projection is
+  // byte-derivable from the seed row alone, so the independent oracle stays closed with ZERO
+  // engine changes. known/ignore/new → null (known = cleared, no ring; per owner: NOT seeded).
+  // Intervals (R2): the asserted level IS the learner's claim of strength — first check comes
+  // sooner for fresh levels (l1 → tomorrow) and later for strong ones (l4 → a week).
+  var _MANUAL_SEED_DAYS = { l1: 1, l2: 2, l3: 4, l4: 7 };
+  function manualMarkSeed(FC, status, nowMs) {
+    if (!FC || typeof FC.seedFromSm2 !== "function") return null;
+    var days = _MANUAL_SEED_DAYS[String(status || "")];
+    if (!days) return null;
+    var now = Number(nowMs) || 0;
+    var seedMeta = { interval: days, reps: 0, lapses: 0, scheme: "manual-mark", level: String(status), seedAlgoVersion: 1 };
+    var state = FC.seedFromSm2(seedMeta, now);
+    return {
+      seedMeta: seedMeta,
+      sched: { due: FC.dueAt(state), interval: FC.intervalFor(state), reps: state.reps, lapses: state.lapses,
+        stability: state.stability, difficulty: state.difficulty, reviewedAt: now, scheme: "fsrs" },
+    };
   }
   // Retention P2 — the ONE SM2-lite→FSRS handover step (recon §4.3, owner go 2026-07-02 after the
   // P1.5 shadow-diff). PURE: FC (FsrsCore) is injected — Node gates pass it explicitly, the browser
@@ -2374,6 +2439,8 @@
     dueCounts: dueCounts, rankByWeakness: rankByWeakness,
     // Retention P5 — reading-native retrieval (quiet due marker + suppressed-marker tally)
     dueSetFromSchedule: dueSetFromSchedule, dueMarkStats: dueMarkStats,
+    // Retention P5.6 — owner fork R-2(a): manual l1–l4 mark seeds the schedule (pure mapping)
+    manualMarkSeed: manualMarkSeed,
     findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
     streakFromDays: streakFromDays, streakView: streakView, studyHeatmap: studyHeatmap,
     STREAK_GOAL_CAP: STREAK_GOAL_CAP, STREAK_GRACE_MAX: STREAK_GRACE_MAX,

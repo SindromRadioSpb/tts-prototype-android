@@ -2075,6 +2075,7 @@ window.I18N_LOCALES.en = {
       stopAloud: "Stop",
       find: { label: "Find in text", placeholder: "Find in text…", prev: "Previous", next: "Next", close: "Close find" },
       context: { source: "Source", sourceName: "Project Ben-Yehuda" },
+      niqqudNudge: "Tip: add vocalization in the Studio — word statuses and review get more accurate",
     },
     morph: {
       loading: "Analyzing…",
@@ -2099,7 +2100,7 @@ window.I18N_LOCALES.en = {
       yourMeaningHint: "your translation, not machine",
       meaningSavedToast: "Translation saved",
       statusToggle: "🎨 Word status",
-      statusHint: "Colour = your word status: violet — new; 1→4 — red→orange→green→blue (Anki-style); teal — known; grey — ignore. Only confidently-recognized learning words are highlighted; function words and ones not in the dictionary stay uncoloured.",
+      statusHint: "Colour = your word status: violet — new; 1→4 — red→orange→green→blue (Anki-style); teal — known; grey — ignore. Only confidently-recognized learning words are highlighted; function words and ones not in the dictionary stay uncoloured. A pink ring on a word means it is due for review: tap it and recall the meaning (appears on scheduled words).",
       statusNote: "Colour is shown on confidently-recognized learning words; function words and ones not in the dictionary stay uncoloured.",
       contextToggle: "🎯 Precise mode (Dicta)",
       contextHint: "Sends the sentence to Dicta for the context-correct meaning. Machine analysis, not a native speaker.",
@@ -2132,6 +2133,12 @@ window.I18N_LOCALES.en = {
         knew: "✓ I knew it",
         forgot: "✗ Didn't know",
         done: "✓ Recorded — schedule updated",
+      },
+      due: { tip: "Due for review — tap and recall the meaning" },
+      srs: {
+        dueNow: "🔁 Review: today",
+        dueIn: "🔁 Review: in ~{n} d.",
+        none: "Not on the review schedule yet",
       },
       study: {
         open: "📚 Study new words",

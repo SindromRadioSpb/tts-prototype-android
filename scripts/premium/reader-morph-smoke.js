@@ -910,6 +910,76 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(!nd.normal.recall && nd.normal.hasMeaning, "P5: a NON-due word must open the normal card with the gloss visible, got " + JSON.stringify(nd.normal));
     eq(!nd.homo.recall && nd.homo.hasMeaning, "P5 R10: a DUE homograph must open the NORMAL card (never recall-graded), got " + JSON.stringify(nd.homo));
 
+    // ── Retention P5.6 — owner fork R-2(a) + R-1/R-3 polish. ──
+    const p56 = await pg.evaluate(async () => {
+      const R = window.ReaderMorph, FC = window.FsrsCore;
+      const now = 1000000000000, day = 86400000;
+      // R-2(a) pure: l1..l4 seed a schedule (interval ladder 1/2/4/7), known/ignore/new do NOT.
+      const l1 = R.manualMarkSeed(FC, "l1", now), l4 = R.manualMarkSeed(FC, "l4", now);
+      const none = { known: R.manualMarkSeed(FC, "known", now), ignore: R.manualMarkSeed(FC, "ignore", now), nw: R.manualMarkSeed(FC, "new", now) };
+      // oracle-closure: the stored projection must equal replay of the seed row alone.
+      const seedRow = { kind: "seed", reviewed_at: new Date(now).toISOString(), meta_json: JSON.stringify(l4.seedMeta) };
+      const replayed = FC.replay([seedRow]);
+      const oracleOk = Math.abs(replayed.stability - l4.sched.stability) < 1e-9 &&
+        Math.abs(replayed.difficulty - l4.sched.difficulty) < 1e-9 && replayed.lastReviewedAt === l4.sched.reviewedAt;
+      // R-1: the marked due word carries a tooltip (dm mount is still around → repaint it)
+      const mount = document.querySelector("#rm-due");
+      const shalom = await R.resolveWordLight("שלום", "שָׁלוֹם");
+      await R.decorateWords(mount, {}, { color: true, fadeMode: "full", dueSet: new Set([shalom.lemmaKey]) });
+      const ringSpan = mount.querySelector(".rm-w-due");
+      const tipOn = ringSpan ? (ringSpan.getAttribute("title") || "") : "";
+      await R.decorateWords(mount, {}, { color: true, fadeMode: "full", dueSet: new Set() });   // no longer due → tooltip must clear
+      const tipOff = mount.querySelector('.rm-w[data-surface="שלום"]').getAttribute("title");
+      // R-3: FUTURE-scheduled word → normal card with the quiet «Повтор: ~N дн.» line;
+      // engaged-but-unscheduled (legacy manual known) → honest «не в расписании» line.
+      try { R.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-p56").forEach((n) => n.remove());
+      const r0 = { he: "שלום", he_niqqud: "שָׁלוֹם" };
+      const m2 = document.createElement("div"); m2.id = "rm-p56";
+      m2.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שלום</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁלוֹם</td></tr></tbody></table>';
+      document.body.appendChild(m2);
+      if (window.__rmP56) { try { window.__rmP56.detach(); } catch (_) {} }
+      window.__rmP56 = R.attach(m2, {
+        getRow: () => r0,
+        getWordStatus: async () => "l3",
+        getDueSchedule: async () => ({ [shalom.lemmaKey]: { due: Date.now() + 3 * day, interval: 3, reps: 1, lapses: 0, scheme: "fsrs" } }),
+        gradeReadingTap: async () => null,
+      });
+      const tapAndRead = async () => {
+        m2.querySelector('td[data-col="he"] .rm-w').click();
+        for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-prov")) break; await new Promise((r) => setTimeout(r, 100)); }
+        const line = document.querySelector(".rm-srs-line");
+        const res = { hasLine: !!line, noneCls: line ? line.classList.contains("rm-srs-none") : null, text: line ? line.textContent : "", recall: !!document.querySelector("[data-rm-recall-reveal]") };
+        try { R.closeSheet(); } catch (_) {}
+        return res;
+      };
+      const futureCard = await tapAndRead();
+      window.__rmP56.detach();
+      window.__rmP56 = R.attach(m2, {
+        getRow: () => r0,
+        getWordStatus: async () => "known",
+        getDueSchedule: async () => ({}),   // engaged (known) but never scheduled — the owner's לגור case
+        gradeReadingTap: async () => null,
+      });
+      const noneCard = await tapAndRead();
+      return { l1, l4, none, oracleOk, tipOn, tipOff, futureCard, noneCard };
+    });
+    eq(p56.l1 && p56.l1.sched.due === 1000000000000 + 86400000 && p56.l1.sched.stability === 1,
+      "P5.6 R-2: manualMarkSeed(l1) must schedule due=+1d stability=1, got " + JSON.stringify(p56.l1 && p56.l1.sched));
+    eq(p56.l4 && p56.l4.sched.due === 1000000000000 + 7 * 86400000 && p56.l4.sched.interval === 7 && p56.l4.sched.scheme === "fsrs",
+      "P5.6 R-2: manualMarkSeed(l4) must schedule due=+7d interval=7 scheme=fsrs, got " + JSON.stringify(p56.l4 && p56.l4.sched));
+    eq(p56.none.known === null && p56.none.ignore === null && p56.none.nw === null,
+      "P5.6 R-2: known/ignore/new must NOT seed (owner fork: known = cleared), got " + JSON.stringify(p56.none));
+    eq(p56.oracleOk, "P5.6 R-2: stored projection must equal replay(seed row) — oracle stays closed");
+    eq(/тапни|повтор/i.test(p56.tipOn), "P5.6 R-1: a ringed word must carry the explanatory tooltip, got " + JSON.stringify(p56.tipOn));
+    eq(p56.tipOff == null, "P5.6 R-1: the tooltip must clear when the word is no longer due, got " + JSON.stringify(p56.tipOff));
+    eq(p56.futureCard.hasLine && !p56.futureCard.noneCls && /через|Повтор/.test(p56.futureCard.text) && !p56.futureCard.recall,
+      "P5.6 R-3: a future-scheduled word must show the quiet «Повтор: через ~N дн.» line (normal card), got " + JSON.stringify(p56.futureCard));
+    eq(p56.noneCard.hasLine && p56.noneCard.noneCls === true,
+      "P5.6 R-3: an engaged-but-unscheduled word (legacy manual «знаю») must say «не в расписании», got " + JSON.stringify(p56.noneCard));
+
     // ── Epic 4.3b Phase D4 — rankByWeakness (stable lapse-desc; no-data identity). ──
     const wk = await pg.evaluate(() => {
       const R = window.ReaderMorph;

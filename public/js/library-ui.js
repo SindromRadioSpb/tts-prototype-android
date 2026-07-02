@@ -1178,7 +1178,7 @@ async function onStudyStatusSet(btn) {
   if (!lk) return;
   const val = btn.getAttribute('data-study-status');
   const st = (row.dataset.cur === val) ? '' : val;   // re-tap toggles off (→ new/unset)
-  try { await localDb.setWordStatus(lk, st); } catch (_) {}
+  try { await markWordStatus(lk, st); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
   row.dataset.cur = st;
   const w = _studyAll.find((x) => x.lemmaKey === lk); if (w) w._status = st;   // keep the row visible w/ new highlight (gentle; re-collect on re-open)
   row.querySelectorAll('.rm-status-btn').forEach((b) => b.classList.toggle('rm-status-active', b.getAttribute('data-study-status') === st));
@@ -1209,7 +1209,7 @@ async function onStudyBulk(status) {
   const shown = Math.min(_studyView.shown, filtered.length);
   const targets = filtered.slice(0, shown);
   if (!targets.length) return;
-  for (const w of targets) { try { await localDb.setWordStatus(w.lemmaKey, status); } catch (_) {} w._status = status; }
+  for (const w of targets) { try { await markWordStatus(w.lemmaKey, status); } catch (_) {} w._status = status; }   // P5.6 R-2(a)
   readerWordStates = null;
   try { invalidateReadableSet(); } catch (_) {}
   try { applyDecorations(); } catch (_) {}
@@ -2645,6 +2645,35 @@ function applyReveal(mount) {
   mount.addEventListener('click', revealHandler, true);
 }
 
+// Retention P5.6 — owner fork R-2(a), 2026-07-02: a MANUAL level mark (l1–l4) seeds the FSRS
+// schedule, so the reading-native loop engages without the trainer (the owner's לגור case:
+// mark-only words previously never earned a ring). known/ignore/new do NOT seed (known =
+// cleared). Oracle-clean by construction: the seed row (kind='seed', source='seed-manual')
+// replays through the SAME seedFromSm2 path as SM2 handover seeds — stored projection ==
+// replay(log) byte-for-byte. Seed-once by PK (`seed:<key>`); a word already scheduled (or ever
+// seeded before) is left untouched — its truth already lives in the log/schedule.
+async function markWordStatus(lemmaKey, status) {
+  try { await localDb.setWordStatus(lemmaKey, status); } catch (_) {}
+  try {
+    const R = window.ReaderMorph, FC = window.FsrsCore, LC = window.LemmaCanon;
+    if (!lemmaKey || !/^l[1-4]$/.test(String(status || '')) || !R || !R.manualMarkSeed || !FC || !LC) return;
+    const sched = (await localDb.getSrsSchedule()) || {};
+    if (sched[lemmaKey]) return;   // already scheduled — never move a stored due (do-no-harm)
+    const now = Date.now();
+    const seed = R.manualMarkSeed(FC, status, now);
+    if (!seed) return;
+    const res = await localDb.appendReviewLog({
+      id: 'seed:' + lemmaKey, item_key: lemmaKey, kind: 'seed',
+      reviewed_at: new Date(now).toISOString(), grade: null, source: 'seed-manual',
+      meta: { ...seed.seedMeta, keyer_version: LC.KEYER_VERSION },
+    });
+    // write the projection ONLY when the log accepted the seed (PK guard): a historic seed row
+    // means this word's state is already log-derived — fabricating a fresh sched would break
+    // the independent oracle.
+    if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, null);
+  } catch (_) {}
+}
+
 // Retention P5 — shown-vs-graded tally for the reveal-then-grade card (MNAR control, recon §6.2):
 // reading-tap enters the P6 calibration/weight-fit ONLY when abandonment (shown−graded)/shown is
 // below the precommitted threshold. Device-local diagnostics (like the marker tally) — counters,
@@ -2732,9 +2761,10 @@ function attachReaderMorph(mount) {
   // invalidate the cached states + repaint the text so the colour updates immediately.
   opts.getWordStatus = (lk) => localDb.getWordStatus(lk);
   opts.setWordStatus = async (lk, st) => {
-    try { await localDb.setWordStatus(lk, st); } catch (_) {}
+    try { await markWordStatus(lk, st); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
     readerWordStates = null;
     try { applyDecorations(); } catch (_) {}
+    try { refreshDueBadge(); } catch (_) {}   // seeding may change the future-due horizon
   };
   // T-b — manual translation for out-of-dict words: re-surface a saved user-meaning on re-open
   // (lookup) + persist a new one into the canonical word_study note (save, Anki-synced).
@@ -3021,7 +3051,28 @@ async function openReader(textId, title, opts) {
     // both the «last row visible» and the resume/karaoke-latch cases).
     try { setTimeout(() => { try { maybeShowEndOfText(); } catch (_) {} }, 450); } catch (_) {}
     try { maybeOfferFadeGraduation(); } catch (_) {}   // Epic-5 W5 — one-time opt-in to adaptive niqqud fade
+    try { maybeNudgeNiqqud(res.text); } catch (_) {}   // P5.6 R-6 — unvocalized own text → one-time hint
   }
+}
+
+// Retention P5.6 R-6 (owner 2026-07-02) — an OWN text without vocalization degrades the whole
+// premium loop (resolver confidence → status colouring → due rings → recall cards), not just
+// reading comfort. Nudge ONCE per text (quiet toast) when an own text (no corpus provenance) is
+// mostly unvocalized. Corpus works are always baked-vocalized — never nudged.
+function maybeNudgeNiqqud(text) {
+  if (!text || !Array.isArray(readerRows) || readerRows.length < 4) return;
+  try { const meta = text.source_meta_json ? JSON.parse(text.source_meta_json) : null; if (meta && meta.corpus) return; } catch (_) {}
+  const NIQ = /[֑-ׇ]/;
+  const voc = readerRows.filter((r) => r && NIQ.test(String(r.he_niqqud || ''))).length;
+  if (voc / readerRows.length >= 0.5) return;
+  const tk = String(readerTextKey || text.text_key || text.id || '');
+  if (!tk) return;
+  let seen = {};
+  try { seen = JSON.parse(localStorage.getItem('room.niqqudNudge.seen') || '{}'); } catch (_) {}
+  if (seen[tk]) return;
+  seen[tk] = 1;
+  try { localStorage.setItem('room.niqqudNudge.seen', JSON.stringify(seen)); } catch (_) {}
+  roomToast(tt('room.reader.niqqudNudge', 'Совет: добавьте огласовку в Студии — статусы слов и повторение станут точнее'));
 }
 
 // Jump to the row carrying a given sentence_id (robust to order_index gaps) — used when
