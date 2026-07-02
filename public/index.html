@@ -9828,7 +9828,8 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
       window.__localDBFollower = true;
       try { (window.v3OpfsTelemetryPush || function(){})({ kind: 'init.follower' }); } catch (_) {}
       try {
-        if (typeof window.v3ShowFollowerOverlay === 'function') window.v3ShowFollowerOverlay();
+        if (typeof window.v3FollowerOverlayDeferred === 'function') window.v3FollowerOverlayDeferred();
+        else if (typeof window.v3ShowFollowerOverlay === 'function') window.v3ShowFollowerOverlay();
         else window.__localDBFollowerPending = true;
       } catch (_) {}
       return;
@@ -25739,7 +25740,7 @@ function v3TabCoordRefreshBanner() {
   // banner — the DB is genuinely unavailable here, not just "risky".
   // P0-1 v2: a PROXIED follower is fully functional — never overlay it (live-caught bug:
   // acquireDbOwnership set __localDBFollower before the proxy handshake succeeded).
-  if (window.__localDBFollower && !window.__localDBProxy) { v3ShowFollowerOverlay(); return; }
+  if (window.__localDBFollower && !window.__localDBProxy) { v3FollowerOverlayDeferred(); return; }
   v3TabCoordBuildBanner();
   const el = v3TabCoord.bannerEl;
   if (!el) return;
@@ -25770,6 +25771,24 @@ function v3FollowerT(key, fallback) {
 
 // Premium "active in another tab" overlay. Theme-aware (uses --theme-*),
 // non-dismissable, with a takeover handshake + reload escape hatch.
+// P0-1 v2.1 (premium transient UX): a proxy-less follower is usually a RE-ELECTION RACE that
+// self-heals via the active late-join in seconds — a transient state must not wear a blocking
+// modal. Show a quiet toast now; escalate to the full overlay ONLY if the tab still has no
+// proxy route after the grace period (a genuinely stuck / old-build owner).
+let _v3FollowerDeferT = null;
+function v3FollowerOverlayDeferred() {
+  try { showToast(v3FollowerT("multitab.connecting", "⏳ LinguistPro открыт в другой вкладке — подключаемся…"), "info"); } catch (_) {}
+  if (_v3FollowerDeferT) return;
+  _v3FollowerDeferT = setTimeout(() => {
+    _v3FollowerDeferT = null;
+    // still a proxy-less follower? (a successful late-join reloads the page — we never get here)
+    if (window.__localDBProxy) return;
+    const db = window.__localDB;
+    const stillFollower = window.__localDBFollower ||
+      (db && typeof db.isFollower === "function" && db.isFollower() && !(typeof db.isProxy === "function" && db.isProxy()));
+    if (stillFollower) { try { v3ShowFollowerOverlay(); } catch (_) {} }
+  }, 25000);
+}
 function v3ShowFollowerOverlay() {
   let ov = document.getElementById("v3FollowerOverlay");
   if (ov) { ov.style.display = "flex"; return; }
@@ -25914,7 +25933,7 @@ function v3TabCoordInit() {
   // overlay function existed — honour the deferred flag.
   if (window.__localDBFollower || window.__localDBFollowerPending) {
     window.__localDBFollowerPending = false;
-    try { v3ShowFollowerOverlay(); } catch (_) {}
+    try { v3FollowerOverlayDeferred(); } catch (_) {}
   }
   try {
     v3TabCoord.channel = new BroadcastChannel(V3_TABCOORD_CHANNEL);

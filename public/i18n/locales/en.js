@@ -5,6 +5,7 @@ window.I18N_LOCALES.en = {
     title: "LinguistPro is already open in another tab",
     body: "The local database is used by one tab at a time so your data stays safe. This tab will switch to view-only mode.",
     autoConnect: "⏳ If the owner tab is still loading, this tab will connect to it automatically in a few seconds.",
+    connecting: "⏳ LinguistPro is open in another tab — connecting…",
     useHere: "Use here",
     reload: "Reload",
     takingOver: "Switching…",
