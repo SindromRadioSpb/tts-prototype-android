@@ -878,4 +878,17 @@ export const MIGRATIONS = [
   );
   CREATE INDEX IF NOT EXISTS ix_review_log_item ON review_log(item_key, reviewed_at);
   CREATE INDEX IF NOT EXISTS ix_review_log_time ON review_log(reviewed_at);`,
+
+  // 042_word_status_fsrs — Retention P2 (recon §3.4; owner go after the P1.5 shadow-diff).
+  // The DERIVED scheduler-state cache for the FSRS engine (fsrs-core.js) ON the word_status row:
+  // stability/difficulty (the DSR memory state), the last-review timestamp, and the scheme marker
+  // (NULL = legacy SM2-lite row not yet handed over | 'fsrs' = FSRS-owned). Additive + lazy-seed:
+  // NOTHING is rescheduled by this migration — a word converts at its NEXT recall (fsrsStep seeds
+  // from the SM2 snapshot and writes a 'seed' row into review_log, so replay(log) == state).
+  // Existing srs_due/interval/reps/lapses stay live as PROJECTIONS (updated on every FSRS review)
+  // — dueCounts / D2 queue / rankByWeakness / leech keep their semantics on fresh data.
+  `ALTER TABLE word_status ADD COLUMN srs_stability REAL;
+   ALTER TABLE word_status ADD COLUMN srs_difficulty REAL;
+   ALTER TABLE word_status ADD COLUMN srs_reviewed_at TEXT;
+   ALTER TABLE word_status ADD COLUMN srs_scheme TEXT;`,
 ];

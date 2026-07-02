@@ -1939,6 +1939,38 @@
     }
     return { inProgress: inProgress, dueNow: dueNow, nextDue: nextDue };
   }
+  // Retention P2 — the ONE SM2-lite→FSRS handover step (recon §4.3, owner go 2026-07-02 after the
+  // P1.5 shadow-diff). PURE: FC (FsrsCore) is injected — Node gates pass it explicitly, the browser
+  // passes window.FsrsCore. `prev` = the extended getSrsSchedule row (or null for a never-tested
+  // word). Behavior:
+  //   • prev.scheme==='fsrs' → resume the stored DSR state (no re-seed);
+  //   • legacy SM2 row (has a schedule, no scheme) → seedFromSm2 AT the review moment (t=0 —
+  //     exactly the variant the approved shadow-diff modeled; the caller writes the returned
+  //     seedMeta as a 'seed:<key>' review_log row at nowMs−1 so replay's watermark orders it
+  //     strictly before this review);
+  //   • prev==null → brand-new word, initState via nextState(null,…).
+  // Returns null when FC is unavailable (caller falls back to legacy nextSrs — honest degradation,
+  // the row simply stays scheme=sm2-lite until FC loads). sched carries the projections the
+  // srs_* consumers keep reading (dueCounts/D2/rankByWeakness/leech — consumers-sweep §3.4).
+  function fsrsStep(FC, prev, correct, nowMs) {
+    if (!FC || typeof FC.nextState !== "function") return null;
+    var p = prev || null;
+    var state = null, seeded = false, seedMeta = null;
+    if (p && p.scheme === "fsrs" && typeof p.stability === "number" && p.stability > 0) {
+      state = { stability: p.stability, difficulty: p.difficulty, reps: p.reps || 0, lapses: p.lapses || 0,
+        lastReviewedAt: p.reviewedAt != null ? p.reviewedAt : null };
+    } else if (p && p.due != null) {
+      seedMeta = { interval: p.interval || 0, reps: p.reps || 0, lapses: p.lapses || 0, scheme: "sm2-lite", seedAlgoVersion: 1 };
+      state = FC.seedFromSm2(seedMeta, nowMs);
+      seeded = true;
+    }
+    var next = FC.nextState(state, correct ? 3 : 1, nowMs);
+    return {
+      seeded: seeded, seedMeta: seedMeta, state: next,
+      sched: { due: next.dueMs, interval: next.intervalDays, reps: next.reps, lapses: next.lapses,
+        stability: next.stability, difficulty: next.difficulty, reviewedAt: nowMs, scheme: "fsrs" },
+    };
+  }
   // Epic 4.3b Phase D4 — weakness-weighting (R2 difficulty): STABLE reorder of a due candidate list so
   // words you fail more often (srs lapses) come first → effort goes where memory is weakest (Quizlet/FSRS
   // difficulty), not flat coverage. Reads item._srs.lapses (attached by the trainer). PURE + deterministic:
@@ -2232,7 +2264,7 @@
     openWordCard: openWordCard,
     // Epic 4.3b — recall-loop / cloze
     collectReviewItems: collectReviewItems, buildCloze: buildCloze, buildClozeForTarget: buildClozeForTarget,
-    nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs,
+    nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs, fsrsStep: fsrsStep,
     dueCounts: dueCounts, rankByWeakness: rankByWeakness,
     findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
     streakFromDays: streakFromDays, streakView: streakView, studyHeatmap: studyHeatmap,

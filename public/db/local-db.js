@@ -2291,13 +2291,21 @@ export async function setWordStatus(lemmaKey, status, sched, source) {
       const sid = src.sentenceId != null ? String(src.sentenceId) : null;
       const oix = src.orderIndex != null ? Number(src.orderIndex) : null;
       const surf = src.surface != null ? String(src.surface) : null;
-      await r(`INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface)
-               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?, ?, ?, ?, ?)
+      // Retention P2 — the FSRS derived-state cache rides on the same recall write (migration 042).
+      // COALESCE-guarded: a legacy-shaped sched (no stability) must never wipe FSRS columns.
+      const stab = sched.stability != null ? Number(sched.stability) : null;
+      const diff = sched.difficulty != null ? Number(sched.difficulty) : null;
+      const rvAt = sched.reviewedAt != null ? new Date(sched.reviewedAt).toISOString() : null;
+      const scheme = sched.scheme != null ? String(sched.scheme) : null;
+      await r(`INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme)
+               VALUES (?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                ON CONFLICT(lemma_key) DO UPDATE SET status=excluded.status, updated_at=excluded.updated_at,
                  srs_due=excluded.srs_due, srs_interval=excluded.srs_interval, srs_reps=excluded.srs_reps, srs_lapses=excluded.srs_lapses,
                  srs_text_key=COALESCE(excluded.srs_text_key, srs_text_key), srs_sentence_id=COALESCE(excluded.srs_sentence_id, srs_sentence_id),
-                 srs_order_index=COALESCE(excluded.srs_order_index, srs_order_index), srs_surface=COALESCE(excluded.srs_surface, srs_surface)`,
-        [lk, st, due, Number(sched.interval) || 0, Number(sched.reps) || 0, Number(sched.lapses) || 0, tk, sid, oix, surf]);
+                 srs_order_index=COALESCE(excluded.srs_order_index, srs_order_index), srs_surface=COALESCE(excluded.srs_surface, srs_surface),
+                 srs_stability=COALESCE(excluded.srs_stability, srs_stability), srs_difficulty=COALESCE(excluded.srs_difficulty, srs_difficulty),
+                 srs_reviewed_at=COALESCE(excluded.srs_reviewed_at, srs_reviewed_at), srs_scheme=COALESCE(excluded.srs_scheme, srs_scheme)`,
+        [lk, st, due, Number(sched.interval) || 0, Number(sched.reps) || 0, Number(sched.lapses) || 0, tk, sid, oix, surf, stab, diff, rvAt, scheme]);
     } else {
       // plain status set (list / long-press / card): UPSERT so any existing SRS schedule is PRESERVED
       // (INSERT OR REPLACE would wipe the srs_* columns — see C2).
@@ -2312,9 +2320,18 @@ export async function setWordStatus(lemmaKey, status, sched, source) {
 // { lemmaKey: { due(ms), interval, reps, lapses } }. Read-only; graceful {} if the column/table absent.
 export async function getSrsSchedule() {
   try {
-    const rows = await q(`SELECT lemma_key, srs_due, srs_interval, srs_reps, srs_lapses FROM word_status WHERE srs_due IS NOT NULL`, []);
+    // P2 — also carry the FSRS derived state (stability/difficulty/reviewedAt/scheme, migration 042)
+    // so fsrsStep can resume an FSRS-owned word without re-seeding. Legacy rows have them NULL.
+    const rows = await q(`SELECT lemma_key, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme FROM word_status WHERE srs_due IS NOT NULL`, []);
     const out = {};
-    for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = { due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0, reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0 };
+    for (const w of (rows || [])) if (w.lemma_key) out[String(w.lemma_key)] = {
+      due: w.srs_due ? Date.parse(w.srs_due) : 0, interval: Number(w.srs_interval) || 0,
+      reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0,
+      stability: w.srs_stability != null ? Number(w.srs_stability) : null,
+      difficulty: w.srs_difficulty != null ? Number(w.srs_difficulty) : null,
+      reviewedAt: w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null,
+      scheme: w.srs_scheme || null,
+    };
     return out;
   } catch (_) { return {}; }
 }
@@ -2325,7 +2342,8 @@ export async function getDueWithSource(nowMs) {
   const now = Number(nowMs) || 0;
   try {
     const rows = await q(`SELECT lemma_key, status, srs_due, srs_interval, srs_reps, srs_lapses,
-                                 srs_text_key, srs_sentence_id, srs_order_index, srs_surface
+                                 srs_text_key, srs_sentence_id, srs_order_index, srs_surface,
+                                 srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme
                             FROM word_status WHERE srs_due IS NOT NULL AND status != 'ignore'
                            ORDER BY srs_lapses DESC, srs_due ASC`, []);
     const out = [];
@@ -2335,7 +2353,11 @@ export async function getDueWithSource(nowMs) {
       if (!(due <= now)) continue;   // only DUE-now (honest «к повторению»; matches dueCounts.dueNow)
       out.push({
         lemmaKey: String(w.lemma_key), status: String(w.status || ""),
-        srs: { due, interval: Number(w.srs_interval) || 0, reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0 },
+        srs: { due, interval: Number(w.srs_interval) || 0, reps: Number(w.srs_reps) || 0, lapses: Number(w.srs_lapses) || 0,
+          stability: w.srs_stability != null ? Number(w.srs_stability) : null,
+          difficulty: w.srs_difficulty != null ? Number(w.srs_difficulty) : null,
+          reviewedAt: w.srs_reviewed_at ? Date.parse(w.srs_reviewed_at) : null,
+          scheme: w.srs_scheme || null },
         source: { textKey: w.srs_text_key || null, sentenceId: w.srs_sentence_id || null,
           orderIndex: (w.srs_order_index == null ? null : Number(w.srs_order_index)), surface: w.srs_surface || null },
       });
@@ -5287,14 +5309,18 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
     if (!lk || !st || !_WS_VALUES[st]) { out.word_status.dropped++; continue; }
     try {
       await r(
-        `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
          ON CONFLICT(lemma_key) DO UPDATE SET
            status = excluded.status, updated_at = excluded.updated_at,
            srs_due      = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_due      ELSE srs_due      END,
            srs_interval = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_interval ELSE srs_interval END,
            srs_reps     = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_reps     ELSE srs_reps     END,
            srs_lapses   = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_lapses   ELSE srs_lapses   END,
+           srs_stability   = CASE WHEN excluded.srs_due IS NOT NULL THEN COALESCE(excluded.srs_stability, srs_stability)     ELSE srs_stability   END,
+           srs_difficulty  = CASE WHEN excluded.srs_due IS NOT NULL THEN COALESCE(excluded.srs_difficulty, srs_difficulty)   ELSE srs_difficulty  END,
+           srs_reviewed_at = CASE WHEN excluded.srs_due IS NOT NULL THEN COALESCE(excluded.srs_reviewed_at, srs_reviewed_at) ELSE srs_reviewed_at END,
+           srs_scheme      = CASE WHEN excluded.srs_due IS NOT NULL THEN COALESCE(excluded.srs_scheme, srs_scheme)           ELSE srs_scheme      END,
            srs_text_key    = COALESCE(excluded.srs_text_key, srs_text_key),
            srs_sentence_id = COALESCE(excluded.srs_sentence_id, srs_sentence_id),
            srs_order_index = COALESCE(excluded.srs_order_index, srs_order_index),
@@ -5303,7 +5329,10 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
         [lk, st, w.updated_at || new Date().toISOString(), w.srs_due ?? null,
          Number(w.srs_interval) || 0, Number(w.srs_reps) || 0, Number(w.srs_lapses) || 0,
          w.srs_text_key ?? null, w.srs_sentence_id ?? null,
-         w.srs_order_index != null ? Number(w.srs_order_index) : null, w.srs_surface ?? null]
+         w.srs_order_index != null ? Number(w.srs_order_index) : null, w.srs_surface ?? null,
+         w.srs_stability != null ? Number(w.srs_stability) : null,
+         w.srs_difficulty != null ? Number(w.srs_difficulty) : null,
+         w.srs_reviewed_at ?? null, w.srs_scheme ?? null]
       );
       out.word_status.inserted++;
     } catch (_) { out.word_status.dropped++; }

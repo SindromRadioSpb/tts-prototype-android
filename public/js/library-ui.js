@@ -1421,20 +1421,26 @@ function _trainBuildCloze(item) {
   const R = window.ReaderMorph;
   const targetSkel = R.stripNiqqud(item.surface || item.niqqud || '');
   if (!targetSkel) return null;
-  let best = null, bestCount = -1;
+  // Collect ALL buildable occurrences, richest-context first (token count desc, rowIdx asc) —
+  // the previous behavior kept only the richest one.
+  const cands = [];
   for (const o of (item.occ || [])) {
     const data = _trainRowData(o.rowIdx);
     if (!data) continue;
     const sent = String(data.he_niqqud || data.he || '');
     const cz = R.buildClozeForTarget(R.tokenize(sent), targetSkel);
     if (!cz) continue;   // target not present in this sentence (offset drift / wrong row) → unusable
-    const count = R.words(sent).length;
-    if (count > bestCount || (count === bestCount && best && o.rowIdx < best.rowIdx)) {
-      const ak = (readerRows[o.rowIdx] && readerRows[o.rowIdx]._v3_audioAssetKey) || '';   // D6/D2 — baked row audio
-      best = { cz, ru: data.ru, sentence: sent, rowIdx: o.rowIdx, audioAssetKey: ak }; bestCount = count;
-    }
+    const ak = (readerRows[o.rowIdx] && readerRows[o.rowIdx]._v3_audioAssetKey) || '';   // D6/D2 — baked row audio
+    cands.push({ cz, ru: data.ru, sentence: sent, rowIdx: o.rowIdx, audioAssetKey: ak, _count: R.words(sent).length });
   }
-  return best;   // { cz:{answer,segments,count}, ru, sentence, rowIdx, audioAssetKey } | null
+  if (!cands.length) return null;
+  cands.sort((a, b) => b._count - a._count || a.rowIdx - b.rowIdx);
+  // Retention P2 — anchor ROTATION (recon §6.5, R2 M4/encoding-specificity): serving the SAME
+  // sentence on every review makes success measure sentence-memory, not word knowledge. Rotate
+  // deterministically by reps: reps=0 keeps the richest context (unchanged first encounter),
+  // each later review cycles to the next buildable occurrence. Single-occurrence words unchanged.
+  const reps = (item._srs && Number(item._srs.reps)) || 0;
+  return cands[reps % cands.length];   // { cz:{answer,segments,count}, ru, sentence, rowIdx, audioAssetKey } | null
 }
 // D5 — light first-encounter teach panel. Writes NOTHING (not counted as recall); just seeds the word
 // before its first scored test. Word + gloss + 🔊 + the word in its sentence (target VISIBLE) +
@@ -1681,18 +1687,31 @@ async function checkTrainAnswer(correct, skipped, mode) {
   const item = s.items[s.idx];
   const now = Date.now();   // ONE timestamp for schedule + log — the log row must describe exactly this step
   const next = window.ReaderMorph.nextLevel(item.status, correct);
-  const sched = window.ReaderMorph.nextSrs(item._srs, correct, now);   // C2 — schedule the next review
+  // Retention P2 — FSRS is the scheduler (owner go after the P1.5 shadow-diff): the ONE handover
+  // step resumes an fsrs-owned word or lazy-seeds a legacy SM2 row (seed materialized in the log
+  // below). If FsrsCore didn't load, fall back to legacy SM2-lite — the row honestly stays
+  // scheme=sm2-lite, nothing half-converts.
+  const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, item._srs, correct, now) : null;
+  const sched = fs ? fs.sched : window.ReaderMorph.nextSrs(item._srs, correct, now);
   // D2 — persist status + schedule + the SOURCE sentence (so the cross-text «due today» queue can re-cloze
   // this word later without opening its text). item._source set at session build (open-text or D2 itself).
   try { await localDb.setWordStatus(item.lemmaKey, next, sched, item._source || null); } catch (_) {}
-  // Retention P0 — append this attempt to review_log, the EVENT-TRUTH of word memory (recon §3.2).
+  // Retention P0/P2 — append this attempt to review_log, the EVENT-TRUTH of word memory (recon §3.2).
   // Binary loop → grade 3|1; a skip is kind='skip' (folded like Again, excluded from metrics). The id is
   // content-deterministic (LemmaCanon.reviewId) so re-appends/bundle merges dedupe by PK. postTeach marks
   // the immediate post-teach test (excluded from weight fitting/Brier — recall from working memory).
-  // Scheduler provenance = sm2-lite until the P2 FSRS switchover stamps 'fsrs'.
+  // A lazy-seed writes its 'seed:<key>' row at now−1ms so replay's watermark orders it strictly
+  // before this review (id 'seed:…' is the PK — a word can only ever seed once).
   try {
     const LC = window.LemmaCanon;
     if (LC && item.lemmaKey) {
+      if (fs && fs.seeded) {
+        await localDb.appendReviewLog({
+          id: 'seed:' + item.lemmaKey, item_key: item.lemmaKey, kind: 'seed',
+          reviewed_at: new Date(now - 1).toISOString(), grade: null, source: 'seed-sm2',
+          meta: { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION },
+        });
+      }
       const row = {
         item_key: item.lemmaKey,
         kind: skipped ? 'skip' : 'review',
@@ -1704,7 +1723,9 @@ async function checkTrainAnswer(correct, skipped, mode) {
           surface: item.surface || undefined,
           pos: item.pos || undefined,
           keyer_version: LC.KEYER_VERSION,
-          scheduler: { scheme: 'sm2-lite' },
+          scheduler: fs
+            ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
+            : { scheme: 'sm2-lite' },
           postTeach: item._taught ? 1 : undefined,
         },
       };

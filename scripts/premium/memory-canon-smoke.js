@@ -49,10 +49,11 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       out.hasLC = !!LC; out.hasNA = !!(NA && NA.lemmaKey);
       const one = async (sql, p) => (await ldb.dbQuery(sql, p || []))[0];
 
-      // ── A) migration 041 + label==index ────────────────────────────────────────────────
+      // ── A) migrations 041/042 + label==index ───────────────────────────────────────────
       const mig = await import("/db/migrations.js");
       out.migCount = mig.MIGRATIONS.length;
-      out.migLastIsReviewLog = /CREATE TABLE IF NOT EXISTS review_log/.test(String(mig.MIGRATIONS[mig.MIGRATIONS.length - 1] || ""));
+      out.mig041IsReviewLog = /CREATE TABLE IF NOT EXISTS review_log/.test(String(mig.MIGRATIONS[40] || ""));
+      out.mig042IsFsrs = /srs_stability/.test(String(mig.MIGRATIONS[41] || ""));
       out.migApplied = Number((await one("SELECT MAX(version) v FROM schema_migrations")).v) || 0;
       out.rlQueryable = !!(await ldb.dbQuery("SELECT COUNT(*) c FROM review_log"));
 
@@ -155,6 +156,48 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       const sd3 = await one("SELECT recalls, available FROM study_day WHERE day='2099-01-02'");
       out.mergeSdMax = !!(sd3 && Number(sd3.recalls) === 9 && Number(sd3.available) === 4);
 
+      // ── P2) FSRS flip: lazy-seed handover + seed-once + projections + INDEPENDENT ORACLE ─
+      // Mirrors checkTrainAnswer's exact write sequence at the localDb+engine level.
+      try {
+        const FC = window.FsrsCore, RM2 = window.ReaderMorph;
+        out.hasFC = !!(FC && FC.nextState && RM2.fsrsStep);
+        const PK = "pid:990p2";
+        const T = Date.parse("2099-05-01T12:00:00.000Z");
+        // legacy SM2 row (scheme NULL), due 3 days ago, interval 1
+        await ldb.setWordStatus(PK, "l2", { due: T - 3 * 86400000, interval: 1, reps: 1, lapses: 0 });
+        const sched1 = (await ldb.getSrsSchedule())[PK];
+        out.p2LegacyShape = !!(sched1 && sched1.scheme == null && sched1.interval === 1);
+        // review #1 (correct) — seeds
+        const st1 = RM2.fsrsStep(FC, sched1, true, T);
+        out.p2Seeded = !!(st1 && st1.seeded && st1.sched.scheme === "fsrs" && st1.sched.stability > 0);
+        await ldb.appendReviewLog({ id: "seed:" + PK, item_key: PK, kind: "seed", reviewed_at: new Date(T - 1).toISOString(), grade: null, source: "seed-sm2", meta: st1.seedMeta });
+        const r1 = { id: "", item_key: PK, kind: "review", reviewed_at: new Date(T).toISOString(), grade: 3, source: "room-recall", channel: "read:mc", meta: { scheduler: { scheme: "fsrs" } } };
+        r1.id = window.LemmaCanon.reviewId(r1);
+        await ldb.appendReviewLog(r1);
+        await ldb.setWordStatus(PK, "l3", st1.sched);
+        const sched2 = (await ldb.getSrsSchedule())[PK];
+        out.p2SchemeFlipped = !!(sched2 && sched2.scheme === "fsrs" && sched2.stability > 0 && sched2.reviewedAt === T);
+        // review #2 (wrong) an hour later — resumes stored state (NO re-seed), Again → due NOW
+        const st2 = RM2.fsrsStep(FC, sched2, false, T + 3600000);
+        out.p2NoReseed = !!(st2 && !st2.seeded);
+        out.p2AgainDueNow = !!(st2 && st2.sched.due === T + 3600000 && st2.sched.interval === 0 && st2.sched.lapses === 1);
+        const r2 = { id: "", item_key: PK, kind: "review", reviewed_at: new Date(T + 3600000).toISOString(), grade: 1, source: "room-recall", channel: "read:typed", meta: { scheduler: { scheme: "fsrs" } } };
+        r2.id = window.LemmaCanon.reviewId(r2);
+        await ldb.appendReviewLog(r2);
+        await ldb.setWordStatus(PK, "l2", st2.sched);
+        // plain status set must PRESERVE the fsrs columns (UPSERT-preserve)
+        await ldb.setWordStatus(PK, "l4");
+        const sched3 = (await ldb.getSrsSchedule())[PK];
+        out.p2PlainSetPreserves = !!(sched3 && sched3.scheme === "fsrs" && Math.abs(sched3.stability - st2.state.stability) < 1e-7);
+        // INDEPENDENT ORACLE (recon B4): replay the raw log → must equal the stored state
+        const oracle = FC.replay(await ldb.getReviewLog(PK));
+        out.p2Oracle = !!(oracle && Math.abs(oracle.stability - sched3.stability) < 1e-7 &&
+          Math.abs(oracle.difficulty - sched3.difficulty) < 1e-7 &&
+          oracle.reps === sched3.reps && oracle.lapses === sched3.lapses &&
+          oracle.lastReviewedAt === sched3.reviewedAt);
+        await ldb.setWordStatus(PK, "");   // cleanup (log rows remain — append-only by design)
+      } catch (e) { out.p2Err = String(e && e.message || e); }
+
       // ── E) Pass 8/12 id preservation: double re-import must not duplicate history ─────
       let sreOk = null, evOk = null, sreErr = null, sreStep = "";
       try {
@@ -189,9 +232,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     // ── assertions ──────────────────────────────────────────────────────────────────────
     eq(res.hasLC, "LemmaCanon global missing (script tag / load order)");
     eq(res.hasNA, "NotesAutoGen missing");
-    eq(res.migLastIsReviewLog, "041_review_log is not the last migration entry");
+    eq(res.mig041IsReviewLog, "041_review_log is not at index 40 (label==index broken)");
+    eq(res.mig042IsFsrs, "042_word_status_fsrs is not at index 41 (label==index broken)");
     eq(res.migApplied === res.migCount, `applied schema version ${res.migApplied} != MIGRATIONS.length ${res.migCount}`);
-    eq(res.migCount === 41, `MIGRATIONS.length ${res.migCount} != 41 — the 041 label no longer equals its real index (recon §3.6: label==index for new entries)`);
+    eq(res.migCount === 42, `MIGRATIONS.length ${res.migCount} != 42 — labels no longer equal real indexes (recon §3.6)`);
     eq(res.rlQueryable, "review_log not queryable");
     for (const k of res.keyConformance || []) eq(k.ok, `keyer conformance failed for ${k.a}`);
     eq(res.keyPid && res.keyStripped, "canonical key fixtures wrong");
@@ -215,16 +259,24 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.pass12NoDup === true, "events duplicated on re-import (Pass 12)");
     eq(res.studioLogged === true, "Studio reviewCard did not land in review_log under the canonical key");
     eq(res.studioLogIdempotent === true, "Studio sre:-row duplicated by bundle re-imports");
+    eq(res.hasFC === true, "FsrsCore/fsrsStep not loaded in library.html" + (res.p2Err ? " err:" + res.p2Err : ""));
+    eq(res.p2LegacyShape === true, "legacy schedule row lost its shape");
+    eq(res.p2Seeded === true, "fsrsStep did not seed a legacy row");
+    eq(res.p2SchemeFlipped === true, "recall write did not flip srs_scheme to fsrs / persist DSR state");
+    eq(res.p2NoReseed === true, "fsrs-owned word was RE-seeded on second review");
+    eq(res.p2AgainDueNow === true, "Again did not put the word due-now with interval projection 0");
+    eq(res.p2PlainSetPreserves === true, "plain status set WIPED the fsrs columns (UPSERT-preserve regression)");
+    eq(res.p2Oracle === true, "INDEPENDENT ORACLE failed: replay(review_log) != stored state" + (res.p2Err ? " err:" + res.p2Err : ""));
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 28;
+    const total = 37;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — migration 041 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle replay==stored)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);
