@@ -133,6 +133,9 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       await pg.waitForSelector(".corpus-switch-menu:not([hidden])", { timeout: 5000 }).catch(() => failures.push("switcher menu did not open"));
       await pg.evaluate(() => { const items = Array.from(document.querySelectorAll(".corpus-switch-item")); const by = items.find((i) => !i.classList.contains("on")); if (by) by.click(); });
       await pg.waitForSelector(".corpus-switchbar", { timeout: 15000 }).catch(() => failures.push("Ben-Yehuda home lacks the switchbar"));
+      // uniform retrieval contract: the SAME personal smart-rail on the Ben-Yehuda home
+      const byRail = await pg.evaluate(() => document.querySelectorAll(".corpus-smart-rail [data-smart]").length);
+      ok(byRail === 8, "Ben-Yehuda home smart rail expected 8 chips (uniform contract), got " + byRail);
       await pg.waitForSelector(".mytexts-shelf", { timeout: 15000 }).catch(() => failures.push("«Мои тексты» mini-rail missing on the Ben-Yehuda home"));
       const railHasWhole = await pg.evaluate(() => { const t = document.querySelector(".mytexts-shelf .mytexts-toggle"); return t ? t.textContent : ""; });
       ok(/→/.test(railHasWhole), "mini-rail «Весь корпус →» button missing");

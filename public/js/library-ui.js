@@ -65,7 +65,59 @@ const TRANSLIT_DATA_REV = 1;     // BRR-S18 — bump when build-translit-index o
 let corpusFtsSeq = 0;            // BRR-P2-006a — monotonic render token: a superseded FTS query's late results never paint
 let corpusReadyById = null;      // Map(id -> full ready card) for opening result rows
 let corpusReadyByKey = null;     // Map(text_key -> full ready card) — W4: resolve the OPEN work's sidecar coverage
-let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search)
+let corpusFilter = { q: '', genre: '', lang: '', readyOnly: false, readableOnly: false, exactForm: false, hasAudio: false, reviewed: false, scopeAuthor: '', scopeAuthorQid: '', scopeEra: '', smart: '' }; // active global filter (readableOnly = S7 i+1 zone; exactForm = S9 literal-form mode; hasAudio/reviewed = S16 provenance; scopeAuthor/scopeEra = S11 scoped search; smart = uniform personal smart-chip)
+// ── Uniform retrieval contract (BRR_MULTI_CORPUS_DESIGN §5): PERSONAL dimensions for the
+// Ben-Yehuda corpus — the same smart-chips / #tag semantics as «Мои тексты», driven by the SAME
+// localDb sets, applied to works MATERIALIZED on this device (an un-opened catalog work has no
+// personal state — honest scope, hinted in the UI). Cached single-flight; invalidated when a
+// work materializes (openCorpusWork).
+let _personalSets = null, _personalSetsLoading = null;
+function invalidatePersonalSets() { _personalSets = null; _personalSetsLoading = null; }
+async function ensurePersonalSets() {
+  if (_personalSets) return _personalSets;
+  if (_personalSetsLoading) return _personalSetsLoading;
+  _personalSetsLoading = (async () => {
+    const out = { idByKey: new Map(), lastOpenedByKey: new Map(), tagsByKey: new Map(),
+      smart: { struggling: new Set(), mastered: new Set(), fresh: new Set(), 'with-note': new Set(), 'audio-noted': new Set(), 'srs-noted': new Set(), templated: new Set() } };
+    try {
+      const rows = await localDb.dbQuery('SELECT id, text_key, last_opened_at, tags_json FROM texts WHERE is_archived = 0');
+      for (const r of (rows || [])) {
+        if (!r || !r.text_key) continue;
+        out.idByKey.set(String(r.text_key), String(r.id));
+        if (r.last_opened_at) out.lastOpenedByKey.set(String(r.text_key), r.last_opened_at);
+        try { const t = r.tags_json ? JSON.parse(r.tags_json) : []; if (Array.isArray(t) && t.length) out.tagsByKey.set(String(r.text_key), t.map(String)); } catch (_) {}
+      }
+    } catch (_) {}
+    // personal OVERLAY tags/meta (corpus texts; mig 061) override/extend the row tags
+    try { for (const m of (await localDb.listTextUserMeta() || [])) { try { const t = m.tags_json ? JSON.parse(m.tags_json) : []; if (Array.isArray(t) && t.length) out.tagsByKey.set(String(m.text_key), t.map(String)); } catch (_) {} } } catch (_) {}
+    try { for (const id of (await localDb.getStrugglingTexts({}) || [])) out.smart.struggling.add(String(id)); } catch (_) {}
+    try { for (const id of (await localDb.getMasteredTexts() || [])) out.smart.mastered.add(String(id)); } catch (_) {}
+    try {
+      const lastVisit = localStorage.getItem('roomMyTextsLastVisit_v1') || '';
+      if (lastVisit && typeof localDb.getTextsCreatedAfter === 'function') for (const id of (await localDb.getTextsCreatedAfter(lastVisit) || [])) out.smart.fresh.add(String(id));
+    } catch (_) {}
+    for (const kind of ['with-note', 'audio-noted', 'srs-noted', 'templated']) {
+      try { for (const id of (await localDb.getTextIdsForNotesSmartChip(kind) || [])) out.smart[kind].add(String(id)); } catch (_) {}
+    }
+    _personalSets = out;
+    return out;
+  })();
+  return _personalSetsLoading;
+}
+// #tag / tag: syntax (the SAME parse as «Мои тексты» — uniform PRO query line). Memoized per raw q.
+let _pqCache = { raw: null, textQ: '', tags: [] };
+function corpusPersonalQuery(raw) {
+  const s = String(raw || '');
+  if (_pqCache.raw === s) return _pqCache;
+  const textTokens = [], tags = [];
+  for (const p of s.trim().split(/\s+/).filter(Boolean)) {
+    if (p[0] === '#') { const t2 = p.slice(1).trim(); if (t2) tags.push(t2); }
+    else if (/^tag:/i.test(p)) { const t2 = p.slice(4).trim(); if (t2) tags.push(t2); }
+    else textTokens.push(p);
+  }
+  _pqCache = { raw: s, textQ: textTokens.join(' '), tags };
+  return _pqCache;
+}
 let corpusSearchInputEl = null;     // S12 — ref so recent/suggestion chips can set the query
 let corpusRecentsEl = null;         // S12 — recents/suggestions row (under the filter bar)
 const RECENTS_KEY = 'corpus_recent_searches_v1';
@@ -3021,6 +3073,7 @@ async function openCorpusWork(card, openOpts) {
     readerStateBox('room.state.error', '⚠️');
   } finally {
     corpusImporting = false;
+    invalidatePersonalSets();   // a work may have just materialized → personal chips see it fresh
   }
 }
 
@@ -4141,7 +4194,7 @@ function corpusReadyKeyMap() {
   for (const c of ((corpusIndex && corpusIndex.ready) || [])) if (c.text_key != null) corpusReadyByKey.set(String(c.text_key), c);
   return corpusReadyByKey;
 }
-function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeAuthorQid || f.scopeEra); }
+function corpusFilterActive() { const f = corpusFilter; return !!(String(f.q || '').trim() || f.genre || f.lang || f.readyOnly || f.readableOnly || f.hasAudio || f.reviewed || f.scopeAuthor || f.scopeAuthorQid || f.scopeEra || f.smart); }
 // BRR Epic-6 — scoped-search by author: match by QID when we have one (catches every name-variant /
 // co-authored work of that author, the L2-collapse payoff), else fall back to the exact author string.
 function corpusScopeAuthorPass(sr, f) {
@@ -4162,8 +4215,12 @@ function corpusAdvOk(row, readyMap) {
 }
 function corpusApplyFilter() {
   const rows = corpusSearch || [];
-  const f = corpusFilter; const q = corpusNrm(f.q);
+  const f = corpusFilter;
+  const pq = corpusPersonalQuery(f.q);          // #tag tokens ride the SAME query line (uniform contract)
+  const q = corpusNrm(pq.textQ);
   const readyMap = corpusReadyMap();
+  const ps = _personalSets;                     // renderResultsInto awaits ensurePersonalSets() when needed
+  const keyOf = (row) => { const c = readyMap.get(String(row.id)); return c ? String(c.text_key || '') : ''; };
   return rows.filter((row) => {
     if (f.readyOnly && !row.r) return false;
     if (f.readableOnly && _readableSet && !_readableSet.has(String(row.id))) return false;   // S7 — i+1 zone only
@@ -4172,6 +4229,24 @@ function corpusApplyFilter() {
     if (f.genre && row.g !== f.genre) return false;
     if (f.lang && row.l !== f.lang) return false;
     if ((f.hasAudio || f.reviewed) && !corpusAdvOk(row, readyMap)) return false;             // S16 — provenance
+    // uniform PERSONAL dimensions (materialized works only — honest device scope)
+    if (f.smart) {
+      if (!ps) return false;
+      const key = keyOf(row);
+      if (f.smart === 'recent') {
+        const lo = key && ps.lastOpenedByKey.get(key);
+        if (!lo || Date.parse(lo) < Date.now() - 7 * 24 * 3600 * 1000) return false;
+      } else {
+        const lid = key && ps.idByKey.get(key);
+        if (!lid || !(ps.smart[f.smart] && ps.smart[f.smart].has(lid))) return false;
+      }
+    }
+    if (pq.tags.length) {
+      if (!ps) return false;
+      const key = keyOf(row);
+      const mine = ((key && ps.tagsByKey.get(key)) || []).map((x) => x.toLowerCase());
+      if (!pq.tags.every((t2) => mine.includes(t2.toLowerCase()))) return false;   // ALL semantics (uniform default)
+    }
     if (q && !(String(row._n || '').includes(q) || corpusNrm(row.a).includes(q))) return false;
     return true;
   });
@@ -4192,6 +4267,8 @@ function corpusFilterSummary() {
   if (f.readableOnly) parts.push(tt('room.corpus.facets.readable', 'Читаемые для меня'));
   if (f.hasAudio) parts.push(tt('room.corpus.facets.hasAudio', 'С аудио'));
   if (f.reviewed) parts.push(tt('room.corpus.facets.reviewed', 'Проверено'));
+  if (f.smart) { const c = CORPUS_SMART_CHIPS.find((x) => x[0] === f.smart); if (c) parts.push(tt(c[1], c[2])); }
+  for (const tg of corpusPersonalQuery(f.q).tags) parts.push('#' + tg);
   return parts.join(' · ') || tt('room.corpus.search.results', 'Результаты');
 }
 // BRR-S6 — the results count, split so a «0» can't be misread. `titleN` = title/author matches;
@@ -4616,6 +4693,40 @@ async function renderMyTextsCorpus(token) {
 // body below toggles between the home content (ready rail + chronological period grid) and the
 // global RESULTS list, driven by corpusFilter — refreshed IN PLACE so the search input never
 // loses focus while typing.
+// Uniform retrieval contract — the personal smart-chips rail, IDENTICAL labels/semantics to the
+// «Мои тексты» corpus (same i18n keys, same localDb sets). Scope is honest: chips act on works
+// materialized on THIS device (hinted via title). Single-select toggle.
+const CORPUS_SMART_CHIPS = [
+  ['recent', 'room.mytexts.smartRecent', '⏱ Недавние'],
+  ['struggling', 'room.mytexts.smartStruggling', '🔥 Сложные'],
+  ['mastered', 'room.mytexts.smartMastered', '✓ Освоено'],
+  ['fresh', 'room.mytexts.smartNew', '✨ Новые'],
+  ['with-note', 'room.mytexts.smartWithNote', '📝 С заметкой'],
+  ['audio-noted', 'room.mytexts.smartAudio', '📍 Audio-noted'],
+  ['srs-noted', 'room.mytexts.smartSrs', '🎯 SRS-noted'],
+  ['templated', 'room.mytexts.smartTemplated', '⭐ Templated'],
+];
+function buildCorpusSmartRail() {
+  const rail = el('div', { class: 'corpus-sort mytexts-smart corpus-smart-rail', attrs: { title: tt('room.corpus.personalHint', 'Фильтры по вашей активности — работы, открытые на этом устройстве') } });
+  for (const [key, i18nKey, fb] of CORPUS_SMART_CHIPS) {
+    const on = corpusFilter.smart === key;
+    const b = el('button', { class: 'corpus-sort-btn' + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(on), 'data-smart': key } });
+    b.textContent = tt(i18nKey, fb);
+    b.addEventListener('click', () => {
+      corpusFilter.smart = on ? '' : key;
+      ensurePersonalSets().then(() => { corpusRefreshL1Body(); paintCorpusSmartRail(); }).catch(() => { corpusRefreshL1Body(); paintCorpusSmartRail(); });
+    });
+    rail.appendChild(b);
+  }
+  return rail;
+}
+let _corpusSmartRailEl = null;
+function paintCorpusSmartRail() {
+  if (!_corpusSmartRailEl || !_corpusSmartRailEl.isConnected) return;
+  const fresh = buildCorpusSmartRail();
+  _corpusSmartRailEl.replaceWith(fresh);
+  _corpusSmartRailEl = fresh;
+}
 function renderCorpusHome(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
@@ -4623,6 +4734,8 @@ function renderCorpusHome(token) {
   const wrap = el('div', { class: 'corpus-nav' });
   wrap.appendChild(corpusSwitcherBar('benyehuda'));   // «Библиотека ▸ ⟨🏛 … ▾⟩» (B+C hybrid)
   wrap.appendChild(buildCorpusFilterBar());
+  _corpusSmartRailEl = buildCorpusSmartRail();
+  wrap.appendChild(_corpusSmartRailEl);
   const body = el('div', { class: 'corpus-l1-body' });
   corpusL1Body = body;
   wrap.appendChild(body);
@@ -4680,17 +4793,22 @@ function corpusL1Len(h, readyMap) { const c = readyMap.get(String(h.id)); return
 function corpusL1Comparator(mode, readyMap) {
   if (mode === 'alpha') return (a, b) => String(a.t || '').localeCompare(String(b.t || ''));
   if (mode === 'length') return (a, b) => (corpusL1Len(b, readyMap) - corpusL1Len(a, readyMap)) || String(a.t || '').localeCompare(String(b.t || ''));
+  if (mode === 'opened') {
+    // uniform-contract sort: recently opened first (materialized works; the rest keep ready order)
+    const lo = (x) => { const c = readyMap.get(String(x.id)); const k = c && String(c.text_key || ''); const v = k && _personalSets && _personalSets.lastOpenedByKey.get(k); const t2 = v ? Date.parse(v) : 0; return Number.isFinite(t2) ? t2 : 0; };
+    return (a, b) => (lo(b) - lo(a)) || (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));
+  }
   return (a, b) => (b.r - a.r) || String(a.t || '').localeCompare(String(b.t || ''));   // 'ready' (default)
 }
 // FB-9 — the L1 results sort control (segmented, reuses the L2 .corpus-sort pattern). Re-renders L1.
 function buildL1SortControl() {
   const bar = el('div', { class: 'corpus-list-head corpus-l1-controls' });
   const sortWrap = el('div', { class: 'corpus-sort', attrs: { role: 'group', 'aria-label': tt('room.corpus.sort.label', 'Сортировка') } });
-  [['ready', 'room.corpus.sort.readyFirst', 'Сначала готовые'], ['length', 'room.corpus.sort.length', 'По длине'], ['alpha', 'room.corpus.sort.alpha', 'По алфавиту']]
+  [['ready', 'room.corpus.sort.readyFirst', 'Сначала готовые'], ['opened', 'room.mytexts.sortOpened', 'Последние открытые'], ['length', 'room.corpus.sort.length', 'По длине'], ['alpha', 'room.corpus.sort.alpha', 'По алфавиту']]
     .forEach(([mode, key, fb]) => {
       const b = el('button', { class: 'corpus-sort-btn' + (corpusL1Sort === mode ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(corpusL1Sort === mode) } });
       b.textContent = tt(key, fb);
-      b.addEventListener('click', () => { if (corpusL1Sort === mode) return; corpusL1Sort = mode; corpusRefreshL1Body(); });
+      b.addEventListener('click', () => { if (corpusL1Sort === mode) return; corpusL1Sort = mode; if (mode === 'opened') { ensurePersonalSets().then(() => corpusRefreshL1Body()).catch(() => corpusRefreshL1Body()); } else corpusRefreshL1Body(); });
       sortWrap.appendChild(b);
     });
   bar.appendChild(sortWrap);
@@ -4710,6 +4828,11 @@ async function renderResultsInto(body) {
   }
   if (corpusL1Body !== body) return;
   body.innerHTML = '';
+  // uniform personal dimensions need the localDb sets loaded BEFORE the sync filter runs
+  if (corpusFilter.smart || corpusPersonalQuery(corpusFilter.q).tags.length) {
+    try { await ensurePersonalSets(); } catch (_) {}
+    if (corpusL1Body !== body || mySeq !== corpusFtsSeq) return;
+  }
   const hits = corpusApplyFilter();
   const summary = el('div', { class: 'corpus-results-summary' });
   summary.appendChild(el('span', { class: 'corpus-results-label', text: corpusFilterSummary() }));

@@ -10,6 +10,22 @@
 //
 // Capability keys are HONEST product facts (R9 derived≠asserted): a corpus never wears a badge
 // for something it fakes. `i18n` keys resolve through the Room's t(); fallbacks are ru.
+//
+// ── UNIFORM RETRIEVAL CONTRACT (owner requirement 2026-07-02 — DEFAULT for every corpus) ──
+// Every corpus surface in the Room MUST ship the same premium retrieval set, in the corpus's
+// native form:
+//   1. PRO search line with the `#тег` / `tag:` personal-tag syntax (one shared parse);
+//   2. the PERSONAL smart-chips rail (⏱ Недавние · 🔥 Сложные · ✓ Освоено · ✨ Новые ·
+//      📝 С заметкой · 📍 Audio-noted · 🎯 SRS-noted · ⭐ Templated) — SAME i18n keys
+//      (room.mytexts.smart*) and SAME localDb sets (getStrugglingTexts / getMasteredTexts /
+//      getTextsCreatedAfter / getTextIdsForNotesSmartChip) so semantics can never drift;
+//   3. sorts: recently-opened + alphabetical as a minimum, plus the corpus's native sorts;
+//   4. facets native to the corpus taxonomy (levels/tags for user texts; era/genre/lang for
+//      baked catalogs; subject/topic for future topical corpora);
+//   5. honest scope: personal dimensions act on works materialized on THIS device — hint it
+//      (room.corpus.personalHint), never fake corpus-wide personal state (R9).
+// Reference implementations: renderMyTextsCorpus (local-db corpus) and the Ben-Yehuda home
+// (buildCorpusSmartRail + corpusApplyFilter personal dimensions) in library-ui.js.
 
 export const CORPORA = [
   {
