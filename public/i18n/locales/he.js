@@ -459,6 +459,17 @@ window.I18N_LOCALES.he = {
     smartBadgeStrugglingTitle: "סומן ידנית כקשה (Meta Edit)",
     smartBadgeMastered: "נשלט",
     smartBadgeMasteredTitle: "סומן ידנית כנשלט (Meta Edit)",
+    corpusLabel: "מאגר:",
+    corpusMine: "📖 שלי",
+    corpusBenyehuda: "🏛 בן־יהודה",
+    corpusAll: "הכול",
+    corpusBadge: "קאנון",
+    corpusBadgeTitle: "קאנון בן־יהודה: הכותרת והטקסט מוגנים; תגיות/רמה/נושא אישיים ניתנים לעריכה",
+    openInRoom: "פתח בחדר הקריאה",
+    openInRoomTitle: "קריאת הקאנון — בחדר הקריאה",
+    enrichCorpusBlocked: "התרגום הקאנוני מוגן — העשרה מחדש מושבתת",
+    removeLocal: "הסר מהמכשיר",
+    removeLocalTitle: "מוחק את העותק המקומי; היצירה תיפתח שוב מחדר הקריאה",
   },
   saveMeta: {
     title: "שמור לספרייה",
@@ -570,6 +581,7 @@ window.I18N_LOCALES.he = {
     smartTagAuto: "⚙ אוטומטי (לפי SRS)",
     smartTagStruggling: "🔥 קשה",
     smartTagMastered: "✓ נשלט",
+    canonLocked: "🏛 קאנון בן־יהודה — השדה מוגן",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n (HE)

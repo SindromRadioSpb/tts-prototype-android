@@ -831,4 +831,19 @@ export const MIGRATIONS = [
   // never clobbers it and a mark never lowers last_row_idx (UPSERT-preserve lesson, inv #2). getContinueReading
   // filters finished_at IS NULL; carried in the library bundle export/import for portability (R9). Device-local OPFS.
   `ALTER TABLE text_progress ADD COLUMN finished_at TEXT;`,
+
+  // 061_text_user_meta — Studio↔Room compat Ф1 (BRR_STUDIO_ROOM_COMPAT_2026_07_02.md, D-B).
+  // The learner's PERSONAL metadata layer over CORPUS texts (canon rows stay untouched — R9
+  // derived≠asserted): tags/level/тема/manual smart-tag override live here, keyed by the STABLE
+  // text_key so they survive a work's delete/re-import/re-shard (the bookmarks pattern; corpus
+  // sentence/text ids regenerate on re-import, text_key does not). Own (non-corpus) texts keep
+  // editing their `texts` row directly — no dual home for the same fact (the UPSERT lesson).
+  `CREATE TABLE IF NOT EXISTS text_user_meta (
+    text_key         TEXT PRIMARY KEY,
+    level            TEXT,
+    tags_json        TEXT,
+    topic            TEXT,
+    manual_smart_tag TEXT,
+    updated_at       TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+  );`,
 ];

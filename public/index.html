@@ -4356,6 +4356,24 @@ body:not(.theme-light) .v3-meta-smart-tag-btn.active { color: #0f172a; }
   border-color: var(--theme-success);
 }
 
+/* Studio↔Room compat Ф1 — corpus pills + canon provenance (ID selector: beats the mobile
+   global button{width:100%} trap without !important). */
+#v3LibraryCorpusPills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 8px 0; }
+#v3LibraryCorpusPills button { width: auto; }
+.v3-corpus-pills-label { font-size: 12px; color: #6b7280; font-weight: 600; }
+.v3-corpus-pill {
+  appearance: none; cursor: pointer; border: 1px solid #d1d5db; border-radius: 999px;
+  background: #fff; padding: 4px 12px; font-size: 12.5px; font-weight: 600; color: #374151;
+}
+.v3-corpus-pill.active { background: #2563eb; border-color: #2563eb; color: #fff; }
+.v3-corpus-pill:hover:not(.active) { border-color: #2563eb; color: #2563eb; }
+.v3-lib-corpus-badge {
+  display: inline-block; margin-inline-start: 6px; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid #e5e7eb; background: #f9fafb; color: #6b7280; font-size: 11px; font-weight: 600;
+  vertical-align: middle; white-space: nowrap;
+}
+.v3-meta-canon-locked { background: #f9fafb !important; color: #6b7280; cursor: not-allowed; }
+
 /* Direction 5: smart-filter chips for Library — Recently/Struggling/
    Mastered/New since last visit. Active state uses the accent color
    for clear visual feedback. Hover shows it's clickable. */
@@ -10893,6 +10911,14 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 
 <!-- Direction 5: smart-filter chips (Recently/Struggling/Mastered/New since visit) -->
 <!-- Phase 9.1.C Stage E: 4 new notes-driven chips after the originals. -->
+<!-- Studio↔Room compat Ф1 (S-A): corpus dimension — default «Мои» keeps the Studio list personal;
+     «Бен-Иегуда» surfaces the materialized Room canon for MANAGEMENT (personal meta overlay). -->
+<div class="v3-corpus-pills" id="v3LibraryCorpusPills" role="group" aria-label="Корпус">
+  <span class="v3-corpus-pills-label" data-i18n="library.corpusLabel">Корпус:</span>
+  <button type="button" class="v3-corpus-pill active" data-corpus="mine" onclick="v3LibrarySetCorpus('mine')" data-i18n="library.corpusMine">📖 Мои</button>
+  <button type="button" class="v3-corpus-pill" data-corpus="benyehuda" onclick="v3LibrarySetCorpus('benyehuda')" data-i18n="library.corpusBenyehuda">🏛 Бен-Иегуда</button>
+  <button type="button" class="v3-corpus-pill" data-corpus="all" onclick="v3LibrarySetCorpus('all')" data-i18n="library.corpusAll">Все</button>
+</div>
 <div class="v3-smart-chips" id="v3LibrarySmartChips">
   <button type="button" class="v3-smart-chip" data-smart="recent" onclick="v3LibrarySetSmartChip('recent')" data-i18n="library.smartRecent" data-i18n-title="library.smartRecentTitle" title="Недавно открытые">⏱ Недавние</button>
   <button type="button" class="v3-smart-chip" data-smart="struggling" onclick="v3LibrarySetSmartChip('struggling')" data-i18n="library.smartStruggling" data-i18n-title="library.smartStrugglingTitle" title="Сложные карточки">🔥 Сложные</button>
@@ -23475,7 +23501,31 @@ async function v3LibraryRefresh() {
     let raw;
     if (LOCAL_MODE) {
       const ldb = await ensureLocalDB();
-      raw = await ldb.listTexts({ limit: 200 });
+      // Studio↔Room compat Ф1: materialized corpus works share this table — limit 200 let them
+      // starve the user's own texts out of the list; 2000 covers both (default pill = «Мои»).
+      raw = await ldb.listTexts({ limit: 2000 });
+      // Mark corpus rows (source_meta.corpus — the canonical discriminator) and merge the
+      // PERSONAL overlay meta (text_user_meta, keyed by stable text_key; mig 061, R9:
+      // canon row untouched, личный слой поверх) so cards/filters/modal see one merged view.
+      try {
+        const overlay = new Map();
+        if (typeof ldb.listTextUserMeta === "function")
+          for (const m of (await ldb.listTextUserMeta() || [])) overlay.set(String(m.text_key), m);
+        for (const r of raw) {
+          let corpus = null;
+          try { const sm = r.source_meta_json ? JSON.parse(r.source_meta_json) : null; if (sm && sm.corpus) corpus = sm.corpus; } catch (_) {}
+          r._corpus = corpus || null;
+          if (corpus) {
+            const m = overlay.get(String(r.text_key));
+            if (m) {
+              if (m.level) r.level = m.level;
+              if (m.tags_json) r.tags_json = m.tags_json;
+              if (m.topic) r.topic = m.topic;
+              if (m.manual_smart_tag) r.manual_smart_tag = m.manual_smart_tag;
+            }
+          }
+        }
+      } catch (_) {}
     } else {
       const data = await v3GetJson("/api/library/texts?limit=200");
       raw = (data && data.texts) ? data.texts : [];
@@ -23890,6 +23940,20 @@ if (q.tagTokens && q.tagTokens.length) {
 // Direction 5: smart-chip state. One active chip at a time. Persisted
 // in URL hash (#smart=struggling) so deep-links restore filter state.
 let v3LibrarySmartChip = null;
+// Studio↔Room compat Ф1 — corpus pill state ('mine' | 'benyehuda' | 'all'); default keeps the
+// Studio list personal (materialized corpus works flooded limit-200 before this dimension).
+let v3LibraryCorpusMode = "mine";
+function v3LibrarySetCorpus(mode) {
+  const safe = (mode === "benyehuda" || mode === "all") ? mode : "mine";
+  if (v3LibraryCorpusMode === safe) return;
+  v3LibraryCorpusMode = safe;
+  try {
+    document.querySelectorAll("#v3LibraryCorpusPills .v3-corpus-pill").forEach((b) => b.classList.toggle("active", b.dataset.corpus === safe));
+  } catch (_) {}
+  v3LibraryLastRenderKey = null;
+  v3LibraryApplyFilter();
+}
+window.v3LibrarySetCorpus = v3LibrarySetCorpus;
 let v3LibrarySmartCache = null; // {struggling: Set, mastered: Set, new: Set}
 
 function v3LibrarySetSmartChip(kind) {
@@ -24122,6 +24186,10 @@ function v3LibraryApplyFilter() {
   // 1) Filter
   let filtered = v3LibraryTexts;
 
+  // 0) Studio↔Room compat Ф1 — corpus dimension (default 'mine': own texts only)
+  if (v3LibraryCorpusMode === "mine") filtered = filtered.filter((t) => !t._corpus);
+  else if (v3LibraryCorpusMode === "benyehuda") filtered = filtered.filter((t) => !!t._corpus);
+
   if (hasAny) {
     const out = [];
     for (let i = 0; i < v3LibraryTexts.length; i++) {
@@ -24247,6 +24315,12 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
       : _smartTag === "mastered"
       ? `<span class="v3-lib-smart-badge mastered" title="${v3EscapeHtml(t("library.smartBadgeMasteredTitle") || "Помечено вручную как освоенное")}" onclick="event.stopPropagation(); v3TextMetaOpen('${v3EscapeHtml(id)}');">✓ ${v3EscapeHtml(t("library.smartBadgeMastered") || "Освоено")}</span>`
       : "";
+    // Studio↔Room compat Ф1 — corpus provenance badge (R9: canon asserted by the Room catalog;
+    // the card's personal tags/level/тема ride the text_user_meta overlay, never the canon row).
+    const _isCorpusText = !!txt._corpus;
+    const _corpusBadgeHtml = _isCorpusText
+      ? `<span class="v3-lib-corpus-badge" title="${v3EscapeHtml(t("library.corpusBadgeTitle") || "Канон Бен-Иегуды: заголовок и текст защищены; личные теги/уровень/тема — редактируемы")}">🏛 ${v3EscapeHtml(t("library.corpusBadge") || "канон")}</span>`
+      : "";
 
     card.innerHTML = `
       <div class="v3-lib-card-top">
@@ -24254,7 +24328,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
           <input type="checkbox" data-act="select" ${isSelected ? "checked" : ""} style="width:20px; height:20px; cursor:pointer;" />
         </label>
         <div style="flex:1; min-width:0;">
-          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_smartBadgeHtml}<span class="v3-lib-enrich-badge" data-enrich-badge="${v3EscapeHtml(id)}"></span><button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button></div>
+          <div class="v3-lib-card-title">${textDeeplink ? `<a href="${v3EscapeHtml(textDeeplink)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation();">${v3EscapeHtml(title)}</a>` : v3EscapeHtml(title)}${topicHtml}${_corpusBadgeHtml}${_smartBadgeHtml}<span class="v3-lib-enrich-badge" data-enrich-badge="${v3EscapeHtml(id)}"></span><button type="button" class="v3-title-copy" data-text-id="${v3EscapeHtml(id)}" title="Копировать ссылку на текст" aria-label="${t('library.copyLinkTitle','Копировать ссылку на текст')}">🔗</button></div>
           <div class="v3-lib-card-meta">
              ${level ? (t("library.level") + ": <b>" + v3EscapeHtml(level) + "</b> · ") : ""}
 				${t("library.progressRow")} <b>${v3EscapeHtml(progressText)}</b><br/>
@@ -24287,8 +24361,17 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
 	const btnArchive = card.querySelector('button[data-act="archive"]');
     const btnDelete = card.querySelector('button[data-act="delete"]');
 
-    if (btnOpen) btnOpen.addEventListener("click", () => v3LibraryOpenText(id, { resume: false }));
-    if (btnResume) btnResume.addEventListener("click", () => v3LibraryOpenText(id, { resume: true }));
+    // Corpus texts read in the ROOM (deep-link; the Room's moats — morphology-on-tap, scaffold,
+    // overlays — live there). Own texts keep the Studio open path unchanged.
+    const _roomHref = "/library.html?open=" + encodeURIComponent(String(txt.text_key || ""));
+    if (btnOpen) btnOpen.addEventListener("click", () => { if (_isCorpusText) window.open(_roomHref, "_blank", "noopener"); else v3LibraryOpenText(id, { resume: false }); });
+    if (btnResume) btnResume.addEventListener("click", () => { if (_isCorpusText) window.open(_roomHref, "_blank", "noopener"); else v3LibraryOpenText(id, { resume: true }); });
+    if (_isCorpusText) {
+      if (btnResume) btnResume.style.display = "none";
+      if (btnOpen) { btnOpen.textContent = t("library.openInRoom") || "Открыть в Зале"; btnOpen.title = t("library.openInRoomTitle") || "Чтение канона — в Читальном зале"; }
+      if (btnEnrich) { btnEnrich.disabled = true; btnEnrich.title = t("library.enrichCorpusBlocked") || "Канонический перевод защищён — переобогащение отключено"; }
+      if (btnDelete) { btnDelete.textContent = t("library.removeLocal") || "Убрать с устройства"; btnDelete.title = t("library.removeLocalTitle") || "Удаляет локальную копию; работа снова откроется из Зала"; }
+    }
 	if (btnEdit) btnEdit.addEventListener("click", () => v3TextMetaOpen(id));
 	if (btnShare) btnShare.addEventListener("click", () => v3TextCardShareOpen(id));
 	if (btnEnrich) btnEnrich.addEventListener("click", async () => {
@@ -31237,6 +31320,7 @@ try { v3InitTagMatchModeUi(); } catch (_) {}
 // Week9 P1: Meta Edit mini-modal
 // ----------------------------
 let v3TextMetaEditingId = null;
+let v3TextMetaEditingCorpusKey = null;   // compat Ф1: non-null ⇒ save goes to the text_user_meta overlay
 
 function v3MetaEl(id) { return document.getElementById(id); }
 
@@ -31370,6 +31454,10 @@ async function v3TextMetaOpen(textId) {
   v3TextMetaEditingId = id;
 
   const t = v3FindTextById(id) || {};
+  // Studio↔Room compat Ф1: a CORPUS text edits only its PERSONAL overlay (text_user_meta by
+  // text_key); the canonical fields (title/source) are read-only with a provenance hint (R9).
+  const isCorpus = !!t._corpus;
+  v3TextMetaEditingCorpusKey = isCorpus ? String(t.text_key || "") : null;
 
   const title = String(t.title || t.name || "").trim();
   const level = String(t.level || "").trim();
@@ -31382,11 +31470,22 @@ async function v3TextMetaOpen(textId) {
   v3MetaEl("v3TextMetaTags").value = tagsCsv;
   v3MetaEl("v3TextMetaSource").value = source;
   v3MetaEl("v3TextMetaTopic").value = topic;
+  try {
+    const ttl = v3MetaEl("v3TextMetaTitle"), src = v3MetaEl("v3TextMetaSource");
+    ttl.readOnly = isCorpus; src.readOnly = isCorpus;
+    ttl.classList.toggle("v3-meta-canon-locked", isCorpus);
+    src.classList.toggle("v3-meta-canon-locked", isCorpus);
+    ttl.title = isCorpus ? (t("textMeta.canonLocked") || "🏛 Канон Бен-Иегуды — поле защищено") : "";
+    src.title = ttl.title;
+  } catch (_) {}
 
   // Direction 5: load current manual smart-tag (LOCAL_MODE only; server-mode
   // treats it as 'auto' since the column doesn't exist server-side).
+  // Corpus texts: the merged list item already carries the overlay's tag.
   v3TextMetaPendingSmartTag = null;
-  if (LOCAL_MODE) {
+  if (isCorpus) {
+    v3TextMetaPendingSmartTag = (t.manual_smart_tag === 'struggling' || t.manual_smart_tag === 'mastered') ? t.manual_smart_tag : null;
+  } else if (LOCAL_MODE) {
     try {
       const ldb = await ensureLocalDB();
       if (typeof ldb.getManualSmartTag === "function") {
@@ -31410,6 +31509,7 @@ async function v3TextMetaOpen(textId) {
 
 function v3TextMetaClose() {
   v3TextMetaEditingId = null;
+  v3TextMetaEditingCorpusKey = null;
   v3TextMetaSetStatus("", false);
   v3TextMetaShow(false);
 }
@@ -31427,6 +31527,24 @@ async function v3TextMetaSave() {
     const tags = v3NormalizeTagsInput(v3MetaEl("v3TextMetaTags").value || "");
     const source = String(v3MetaEl("v3TextMetaSource").value || "").trim();
     const topic = String(v3MetaEl("v3TextMetaTopic").value || "").trim();
+
+    // Studio↔Room compat Ф1 — corpus text: write the PERSONAL overlay only (canon row untouched).
+    if (v3TextMetaEditingCorpusKey) {
+      v3TextMetaSetStatus("Сохранение...", false);
+      const ldb = await ensureLocalDB();
+      await ldb.upsertTextUserMeta(v3TextMetaEditingCorpusKey, {
+        level: level || null,
+        tags_json: JSON.stringify(tags || []),
+        topic: topic || null,
+        manual_smart_tag: v3TextMetaPendingSmartTag,
+      });
+      try { v3Emit("smart_tag_override", { text_id: String(id), tag: v3TextMetaPendingSmartTag || "auto" }); } catch (_) {}
+      v3TextMetaSetStatus("Сохранено.", false);
+      v3TextMetaClose();
+      await v3LibraryRefresh();
+      if (btn) btn.disabled = false;
+      return;
+    }
 
     if (!title) {
       v3TextMetaSetStatus("Title обязателен.", true);

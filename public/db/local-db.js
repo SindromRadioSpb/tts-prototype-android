@@ -3391,8 +3391,12 @@ export async function getStrugglingTexts({ minReviews = 5, errorThreshold = 0.3 
         AND CAST(errors AS REAL) / reviews >= ?`,
     [minReviews, errorThreshold]
   );
-  const manualStruggling = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'struggling'`);
-  const manualMastered   = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'mastered'`);
+  // manual overrides: own texts carry manual_smart_tag in-row; CORPUS texts carry it in the
+  // text_user_meta overlay (mig 061, keyed by text_key) — union both homes (Studio↔Room compat Ф1)
+  const manualStruggling = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'struggling'
+    UNION SELECT t.id FROM texts t JOIN text_user_meta m ON m.text_key = t.text_key WHERE m.manual_smart_tag = 'struggling'`);
+  const manualMastered = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'mastered'
+    UNION SELECT t.id FROM texts t JOIN text_user_meta m ON m.text_key = t.text_key WHERE m.manual_smart_tag = 'mastered'`);
   const out = new Set();
   for (const r of auto) out.add(String(r.text_id));
   for (const r of manualStruggling) out.add(String(r.id));
@@ -3416,14 +3420,45 @@ export async function getMasteredTexts() {
       GROUP BY s.text_id
      HAVING total > 0 AND total = mastered`
   );
-  const manualMastered = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'mastered'`);
-  const manualStruggling = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'struggling'`);
+  // union in-row + overlay homes (see getStrugglingTexts note; Studio↔Room compat Ф1)
+  const manualMastered = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'mastered'
+    UNION SELECT t.id FROM texts t JOIN text_user_meta m ON m.text_key = t.text_key WHERE m.manual_smart_tag = 'mastered'`);
+  const manualStruggling = await q(`SELECT id FROM texts WHERE manual_smart_tag = 'struggling'
+    UNION SELECT t.id FROM texts t JOIN text_user_meta m ON m.text_key = t.text_key WHERE m.manual_smart_tag = 'struggling'`);
   const out = new Set();
   for (const r of auto) out.add(String(r.text_id));
   for (const r of manualMastered) out.add(String(r.id));
   // Explicit "struggling" override removes from mastered.
   for (const r of manualStruggling) out.delete(String(r.id));
   return Array.from(out);
+}
+
+// ── Studio↔Room compat Ф1 (D-B, mig 061): the personal metadata OVERLAY for corpus texts ──
+// Canon rows are never edited (R9 derived≠asserted); the learner's tags/level/тема/smart-override
+// live here keyed by the STABLE text_key (survives delete/re-import/re-shard — bookmarks pattern).
+// The Studio metadata modal writes ALL owned fields in one upsert (it always submits the full
+// personal set); nothing else writes this table — no partial-clobber window (UPSERT lesson).
+export async function getTextUserMeta(textKey) {
+  if (!textKey) return null;
+  const rows = await q('SELECT * FROM text_user_meta WHERE text_key = ?', [String(textKey)]);
+  return rows[0] ?? null;
+}
+export async function listTextUserMeta() {
+  return q('SELECT * FROM text_user_meta');
+}
+export async function upsertTextUserMeta(textKey, { level = null, tags_json = null, topic = null, manual_smart_tag = null } = {}) {
+  if (!textKey) throw new Error('upsertTextUserMeta: textKey is required');
+  const safeTag = (manual_smart_tag === 'struggling' || manual_smart_tag === 'mastered') ? manual_smart_tag : null;
+  const now = new Date().toISOString();
+  await r(
+    `INSERT INTO text_user_meta (text_key, level, tags_json, topic, manual_smart_tag, updated_at)
+     VALUES (?,?,?,?,?,?)
+     ON CONFLICT(text_key) DO UPDATE SET
+       level = excluded.level, tags_json = excluded.tags_json, topic = excluded.topic,
+       manual_smart_tag = excluded.manual_smart_tag, updated_at = excluded.updated_at`,
+    [String(textKey), level, tags_json, topic, safeTag, now]
+  );
+  return getTextUserMeta(textKey);
 }
 
 // PREMIUM Direction 5 enhancement: manual smart-tag setter/getter.

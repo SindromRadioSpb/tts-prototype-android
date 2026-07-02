@@ -5838,6 +5838,16 @@ async function boot() {
     setActiveTrack(activeTrack);
     try { refreshDueBadge(); } catch (_) {}   // D2 — surface the «🔁 К повторению» home CTA on first load
     maybeRunValidation();   // BRR-P1-007 §7: ?validate=1 runs on-device real-profile validation
+    // Studio↔Room compat Ф1 — deep-link «Открыть в Зале»: ?open=<text_key> resolves a locally
+    // MATERIALIZED text (own or corpus) and opens the Room reader. Unknown key → stay on home
+    // (honest no-op; the Studio only links texts it just listed from the same OPFS).
+    try {
+      const openKey = new URLSearchParams(location.search).get('open');
+      if (openKey) {
+        const rows = await localDb.dbQuery('SELECT id, title FROM texts WHERE text_key = ? LIMIT 1', [String(openKey)]);
+        if (rows && rows[0]) openReader(rows[0].id, rows[0].title, { resume: true });
+      }
+    } catch (_) {}
   } catch (e) {
     if (e instanceof localDb.DbUnavailableError) {
       _wkBootErr = 'DbUnavailable: ' + ((e && e.message) || '');

@@ -455,6 +455,17 @@ window.I18N_LOCALES.ru = {
     smartBadgeStrugglingTitle: "Помечено вручную как сложное (Meta Edit)",
     smartBadgeMastered: "Освоено",
     smartBadgeMasteredTitle: "Помечено вручную как освоенное (Meta Edit)",
+    corpusLabel: "Корпус:",
+    corpusMine: "📖 Мои",
+    corpusBenyehuda: "🏛 Бен-Иегуда",
+    corpusAll: "Все",
+    corpusBadge: "канон",
+    corpusBadgeTitle: "Канон Бен-Иегуды: заголовок и текст защищены; личные теги/уровень/тема — редактируемы",
+    openInRoom: "Открыть в Зале",
+    openInRoomTitle: "Чтение канона — в Читальном зале",
+    enrichCorpusBlocked: "Канонический перевод защищён — переобогащение отключено",
+    removeLocal: "Убрать с устройства",
+    removeLocalTitle: "Удаляет локальную копию; работа снова откроется из Зала",
   },
   saveMeta: {
     title: "Сохранить в библиотеку",
@@ -566,6 +577,7 @@ window.I18N_LOCALES.ru = {
     smartTagAuto: "⚙ Авто (по SRS)",
     smartTagStruggling: "🔥 Сложно",
     smartTagMastered: "✓ Освоено",
+    canonLocked: "🏛 Канон Бен-Иегуды — поле защищено",
   },
 
   // ── Direction 9 Premium Notes (Phase 9.1.E i18n finalization) ────────

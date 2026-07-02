@@ -454,6 +454,17 @@ window.I18N_LOCALES.en = {
     smartBadgeStrugglingTitle: "Manually flagged as struggling (Meta Edit)",
     smartBadgeMastered: "Mastered",
     smartBadgeMasteredTitle: "Manually flagged as mastered (Meta Edit)",
+    corpusLabel: "Corpus:",
+    corpusMine: "📖 Mine",
+    corpusBenyehuda: "🏛 Ben-Yehuda",
+    corpusAll: "All",
+    corpusBadge: "canon",
+    corpusBadgeTitle: "Ben-Yehuda canon: title and body are protected; your personal tags/level/topic are editable",
+    openInRoom: "Open in the Room",
+    openInRoomTitle: "Canon reading lives in the Reading Room",
+    enrichCorpusBlocked: "The canonical translation is protected — re-enrichment is disabled",
+    removeLocal: "Remove from device",
+    removeLocalTitle: "Deletes the local copy; the work re-opens from the Room",
   },
   saveMeta: {
     title: "Save to Library",
@@ -565,6 +576,7 @@ window.I18N_LOCALES.en = {
     smartTagAuto: "⚙ Auto (from SRS)",
     smartTagStruggling: "🔥 Struggling",
     smartTagMastered: "✓ Mastered",
+    canonLocked: "🏛 Ben-Yehuda canon — this field is protected",
   },
 
   // ── Direction 9 Premium Notes — Phase 9.1.E i18n
