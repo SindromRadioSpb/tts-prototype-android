@@ -784,6 +784,17 @@
     .corpus-switch-item:hover, .corpus-switch-item:focus-visible { background: var(--bg-soft); outline: none; }
     .corpus-switch-item.on { font-weight: 700; cursor: default; }
     .mytexts-facets { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
+    .mytexts-select {
+      flex: 1 1 150px; min-width: 140px; appearance: none; cursor: pointer;
+      border: 1px solid var(--border-soft); border-radius: 10px; background: var(--bg-soft);
+      padding: 6px 10px; font-size: 13px; color: inherit;
+    }
+    .mytexts-select:focus-visible { outline: none; border-color: var(--accent); }
+    .mytexts-smart { margin: 2px 0 4px; }
+    .mytexts-smart-badge {
+      display: inline-block; margin-inline-start: 5px; padding: 0 6px; border-radius: 999px;
+      background: var(--accent); color: var(--accent-contrast); font-size: 10.5px; font-weight: 700;
+    }
     /* FB-1 — «✓ Прочитанные» shelf: honest read-status badge (done vs marked-N%) + un-mark + «Показать все». */
     .corpus-finished .shelf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
     .shelf-showall {

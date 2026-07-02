@@ -89,11 +89,11 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       ok(!corpusText.includes("CORPUS-META TEXT"), "corpus-meta text LEAKED into «Мои тексты» (discriminator broken)");
       // search narrows
       await pg.fill(".mytexts-search", "Второй");
-      await sleep(150);
+      await sleep(450);   // > the 200ms input debounce
       let gridCount = await pg.evaluate(() => document.querySelectorAll(".mytexts-grid .mytext-card-v").length);
       ok(gridCount === 1, "search 'Второй' expected exactly 1 card, got " + gridCount);
       await pg.fill(".mytexts-search", "");
-      await sleep(150);
+      await sleep(450);
       // level facet filters
       await pg.evaluate(() => { const chips = Array.from(document.querySelectorAll(".mytexts-facets .corpus-sort-btn")); const alef = chips.find((c) => c.textContent.trim() === "alef"); if (alef) alef.click(); });
       await sleep(150);
@@ -101,6 +101,31 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       ok(gridCount === 1, "level facet 'alef' expected exactly 1 card, got " + gridCount);
       await pg.evaluate(() => { const chips = Array.from(document.querySelectorAll(".mytexts-facets .corpus-sort-btn")); const alef = chips.find((c) => /alef/.test(c.textContent)); if (alef) alef.click(); });
       await sleep(150);
+      // PRO parity with the Studio v3 search (feedback_feature_parity_inventory):
+      // #tag query syntax narrows by tag
+      await pg.fill(".mytexts-search", "#ульпан");
+      await sleep(400);
+      gridCount = await pg.evaluate(() => document.querySelectorAll(".mytexts-grid .mytext-card-v").length);
+      ok(gridCount === 1, "#tag query expected exactly 1 card, got " + gridCount);
+      // scope «только строки»: the query matches INSIDE a seeded sentence, not the metadata
+      await pg.fill(".mytexts-search", "טוב");
+      await pg.selectOption(".mytexts-select", "rows");
+      await sleep(500);
+      gridCount = await pg.evaluate(() => document.querySelectorAll(".mytexts-grid .mytext-card-v").length);
+      ok(gridCount === 1, "rows-scope search 'טוב' expected exactly 1 card (sentence hit), got " + gridCount);
+      await pg.selectOption(".mytexts-select", "texts");
+      await pg.fill(".mytexts-search", "");
+      await sleep(400);
+      // smart-chips rail renders all 8 (v3 parity); toggling one repaints without errors
+      const smartN = await pg.evaluate(() => document.querySelectorAll(".mytexts-smart [data-smart]").length);
+      ok(smartN === 8, "smart rail expected 8 chips, got " + smartN);
+      await pg.evaluate(() => { const c = document.querySelector('.mytexts-smart [data-smart="recent"]'); if (c) c.click(); });
+      await sleep(150);
+      await pg.evaluate(() => { const c = document.querySelector('.mytexts-smart [data-smart="recent"]'); if (c) c.click(); });
+      await sleep(150);
+      // sort select present with the v3 sort set
+      const sortOpts = await pg.evaluate(() => { const s = document.querySelectorAll(".mytexts-select")[1]; return s ? s.options.length : 0; });
+      ok(sortOpts === 5, "sort select expected 5 options, got " + sortOpts);
       await pg.screenshot({ path: SHOT_CORPUS });
 
       // 3) the switcher pill swaps to Ben-Yehuda in place; its home carries switchbar + mini-rail

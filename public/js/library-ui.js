@@ -4395,7 +4395,7 @@ async function renderCorpusHub(token) {
 }
 // «Мои тексты» as a FULL corpus (LocalDb-backed): identity header + native facets (level / tags /
 // sort) + client search + vertical grid. One listTexts query; facets computed in memory.
-let myCorpusState = { q: '', level: '', tag: '', sort: 'recent' };
+let myCorpusState = { q: '', level: '', tags: [], tagMode: 'all', scope: 'texts', sort: 'opened_desc', smart: '' };
 async function renderMyTextsCorpus(token) {
   const main = $('roomContent');
   if (!main || token !== corpusRenderToken) return;
@@ -4422,12 +4422,92 @@ async function renderMyTextsCorpus(token) {
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
     return;
   }
-  // controls: search + facets from the texts' OWN metadata (native taxonomy of this corpus)
+  // PRO retrieval — feature-parity with the Studio «Библиотека (v3)» search (the in-house
+  // benchmark; feedback_feature_parity_inventory): #tag / tag: query syntax, tags ALL/ANY,
+  // search SCOPE (texts metadata / +rows+notes / rows only / notes only — the same localDb
+  // searchSentences/searchNotes the Studio queries), v3 sort set, and the smart-chips rail
+  // driven by the SAME localDb APIs (getStrugglingTexts / getMasteredTexts /
+  // getTextsCreatedAfter / getTextIdsForNotesSmartChip) — semantics never drift from Studio.
+  const mineIds = new Set(mine.map((r) => String(r.id)));
+  const smartSets = { struggling: new Set(), mastered: new Set(), fresh: new Set(), 'with-note': new Set(), 'audio-noted': new Set(), 'srs-noted': new Set(), templated: new Set() };
+  try { for (const id of (await localDb.getStrugglingTexts({}) || [])) smartSets.struggling.add(String(id)); } catch (_) {}
+  try { for (const id of (await localDb.getMasteredTexts() || [])) smartSets.mastered.add(String(id)); } catch (_) {}
+  try {
+    const lastVisit = localStorage.getItem('roomMyTextsLastVisit_v1') || '';
+    if (lastVisit && typeof localDb.getTextsCreatedAfter === 'function') for (const id of (await localDb.getTextsCreatedAfter(lastVisit) || [])) smartSets.fresh.add(String(id));
+  } catch (_) {}
+  for (const kind of ['with-note', 'audio-noted', 'srs-noted', 'templated']) {
+    try { for (const id of (await localDb.getTextIdsForNotesSmartChip(kind) || [])) smartSets[kind].add(String(id)); } catch (_) {}
+  }
+  try { localStorage.setItem('roomMyTextsLastVisit_v1', new Date().toISOString()); } catch (_) {}
+  if (token !== corpusRenderToken) return;
+  const ms = (iso) => { const t = Date.parse(String(iso || '')); return Number.isFinite(t) ? t : 0; };
+  const RECENT_MS = 7 * 24 * 3600 * 1000;
+  const isRecent = (r) => ms(r.last_opened_at) > Date.now() - RECENT_MS;
+  const smartCount = (key) => key === 'recent' ? mine.filter(isRecent).length : mine.filter((r) => smartSets[key] && smartSets[key].has(String(r.id))).length;
+  // v3SplitQueryTokens mirror: #tag / tag:x → tag tokens, the rest → text tokens (AND).
+  const splitQuery = (raw) => {
+    const textTokens = [], tagTokens = [];
+    for (const p of String(raw || '').trim().split(/\s+/).filter(Boolean)) {
+      if (p[0] === '#') { const t2 = p.slice(1).trim(); if (t2) tagTokens.push(t2); }
+      else if (/^tag:/i.test(p)) { const t2 = p.slice(4).trim(); if (t2) tagTokens.push(t2); }
+      else textTokens.push(p);
+    }
+    return { textTokens, tagTokens };
+  };
+  // controls: PRO search line + scope/sort selects
   const controls = el('div', { class: 'mytexts-controls' });
-  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { type: 'search', placeholder: tt('room.mytexts.search', 'Поиск по моим текстам…'), 'aria-label': tt('room.mytexts.search', 'Поиск по моим текстам…') } });
+  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { type: 'search', placeholder: tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег'), 'aria-label': tt('room.mytexts.searchPro', 'Поиск (PRO): название / тема / уровень / #тег') } });
   inp.value = myCorpusState.q;
   controls.appendChild(inp);
   wrap.appendChild(controls);
+  const selects = el('div', { class: 'mytexts-controls' });
+  const mkSelect = (opts, value, aria, onChange) => {
+    const s = el('select', { class: 'mytexts-select', attrs: { 'aria-label': aria } });
+    for (const [v, key, fb] of opts) { const o = document.createElement('option'); o.value = v; o.textContent = tt(key, fb); s.appendChild(o); }
+    s.value = value;
+    s.addEventListener('change', () => onChange(s.value));
+    return s;
+  };
+  selects.appendChild(mkSelect([
+    ['texts', 'room.mytexts.scopeTexts', 'Поиск: тексты'],
+    ['both', 'room.mytexts.scopeBoth', 'Поиск: тексты+строки+заметки'],
+    ['rows', 'room.mytexts.scopeRows', 'Поиск: только строки'],
+    ['notes', 'room.mytexts.scopeNotes', 'Поиск: только заметки'],
+  ], myCorpusState.scope, tt('room.mytexts.scopeLabel', 'Область поиска'), (v) => { myCorpusState.scope = v; schedulePaint(); }));
+  selects.appendChild(mkSelect([
+    ['opened_desc', 'room.mytexts.sortOpened', 'Последние открытые'],
+    ['updated_desc', 'room.mytexts.sortUpdated', 'Последние изменённые'],
+    ['title_asc', 'room.mytexts.sortAZ', 'А–Я'],
+    ['title_desc', 'room.mytexts.sortZA', 'Я–А'],
+    ['topic_asc', 'room.mytexts.sortTopic', 'Тема А–Я'],
+  ], myCorpusState.sort, tt('room.corpus.sort.label', 'Сортировка'), (v) => { myCorpusState.sort = v; paint(); }));
+  wrap.appendChild(selects);
+  // smart-chips rail (single-select toggle, counts = intersection with OWN texts — honest)
+  const SMART = [
+    ['recent', 'room.mytexts.smartRecent', '⏱ Недавние', false],
+    ['struggling', 'room.mytexts.smartStruggling', '🔥 Сложные', false],
+    ['mastered', 'room.mytexts.smartMastered', '✓ Освоено', false],
+    ['fresh', 'room.mytexts.smartNew', '✨ Новые', false],
+    ['with-note', 'room.mytexts.smartWithNote', '📝 С заметкой', true],
+    ['audio-noted', 'room.mytexts.smartAudio', '📍 Audio-noted', true],
+    ['srs-noted', 'room.mytexts.smartSrs', '🎯 SRS-noted', true],
+    ['templated', 'room.mytexts.smartTemplated', '⭐ Templated', true],
+  ];
+  const smartRail = el('div', { class: 'corpus-sort mytexts-smart' });
+  const buildSmart = () => {
+    smartRail.textContent = '';
+    for (const [key, i18nKey, fb, badge] of SMART) {
+      const on = myCorpusState.smart === key;
+      const b = el('button', { class: 'corpus-sort-btn' + (on ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(on), 'data-smart': key } });
+      b.textContent = tt(i18nKey, fb);
+      if (badge) { const n = smartCount(key); if (n) { const bd = el('span', { class: 'mytexts-smart-badge', text: String(n) }); b.appendChild(bd); } }
+      b.addEventListener('click', () => { myCorpusState.smart = on ? '' : key; buildSmart(); paint(); });
+      smartRail.appendChild(b);
+    }
+  };
+  wrap.appendChild(smartRail);
+  // facets: level (single) + tags (MULTI + ALL/ANY mode, v3 parity)
   const levels = Array.from(new Set(mine.map((r) => String(r.level || '')).filter(Boolean))).sort();
   const tagCount = new Map();
   for (const r of mine) for (const tg of myTextTags(r)) tagCount.set(tg, (tagCount.get(tg) || 0) + 1);
@@ -4439,39 +4519,92 @@ async function renderMyTextsCorpus(token) {
     b.addEventListener('click', onClick);
     return b;
   };
-  const paintAll = () => { facets.textContent = ''; buildFacets(); paint(); };
   const buildFacets = () => {
-    const sortWrap = el('div', { class: 'corpus-sort' });
-    sortWrap.appendChild(chip(tt('room.mytexts.sortRecent', 'Недавние'), myCorpusState.sort === 'recent', () => { myCorpusState.sort = 'recent'; paintAll(); }));
-    sortWrap.appendChild(chip(tt('room.mytexts.sortAlpha', 'По алфавиту'), myCorpusState.sort === 'alpha', () => { myCorpusState.sort = 'alpha'; paintAll(); }));
-    facets.appendChild(sortWrap);
+    facets.textContent = '';
     if (levels.length) {
       const lw = el('div', { class: 'corpus-sort' });
-      for (const lv of levels) lw.appendChild(chip(lv, myCorpusState.level === lv, () => { myCorpusState.level = myCorpusState.level === lv ? '' : lv; paintAll(); }));
+      for (const lv of levels) lw.appendChild(chip(lv, myCorpusState.level === lv, () => { myCorpusState.level = myCorpusState.level === lv ? '' : lv; buildFacets(); paint(); }));
       facets.appendChild(lw);
     }
     if (tags.length) {
       const tw = el('div', { class: 'corpus-sort' });
-      for (const tg of tags) tw.appendChild(chip('#' + tg, myCorpusState.tag === tg, () => { myCorpusState.tag = myCorpusState.tag === tg ? '' : tg; paintAll(); }));
+      if (myCorpusState.tags.length >= 2) {
+        tw.appendChild(chip(tt('room.mytexts.tagsAll', 'Теги: ALL'), myCorpusState.tagMode === 'all', () => { myCorpusState.tagMode = 'all'; buildFacets(); paint(); }));
+        tw.appendChild(chip(tt('room.mytexts.tagsAny', 'Теги: ANY'), myCorpusState.tagMode === 'any', () => { myCorpusState.tagMode = 'any'; buildFacets(); paint(); }));
+      }
+      for (const tg of tags) {
+        const on = myCorpusState.tags.indexOf(tg) !== -1;
+        tw.appendChild(chip('#' + tg, on, () => {
+          if (on) myCorpusState.tags = myCorpusState.tags.filter((x) => x !== tg);
+          else myCorpusState.tags = myCorpusState.tags.concat([tg]);
+          buildFacets(); paint();
+        }));
+      }
       facets.appendChild(tw);
     }
   };
   wrap.appendChild(facets);
   const grid = el('div', { class: 'mytexts-grid' });
-  const paint = () => {
-    grid.textContent = '';
-    const q = myCorpusState.q.trim().toLowerCase();
+  // scope search (rows/notes) — async over localDb, cached per (scope,q); metadata stays sync
+  let scopeCache = { key: '', ids: null };
+  async function scopeIdsFor(scope, q) {
+    const key = scope + ' ' + q;
+    if (scopeCache.key === key) return scopeCache.ids;
+    const ids = new Set();
+    try {
+      if (scope === 'rows' || scope === 'both') for (const s of (await localDb.searchSentences(q, 300) || [])) if (s && s.text_id != null) ids.add(String(s.text_id));
+      if (scope === 'notes' || scope === 'both') {
+        for (const n of (await localDb.searchNotes(q, 300) || [])) if (n && n.text_id != null) ids.add(String(n.text_id));
+        try { for (const n of (await localDb.searchWordNotes(q, 300) || [])) if (n && n.text_id != null) ids.add(String(n.text_id)); } catch (_) {}
+      }
+    } catch (_) {}
+    scopeCache = { key, ids };
+    return ids;
+  }
+  let paintSeq = 0;
+  async function paint() {
+    const seq = ++paintSeq;
+    const { textTokens, tagTokens } = splitQuery(myCorpusState.q);
+    const qJoined = textTokens.join(' ').toLowerCase();
+    const needScope = myCorpusState.scope !== 'texts' && qJoined;
+    const extIds = needScope ? await scopeIdsFor(myCorpusState.scope, textTokens.join(' ')) : null;
+    if (seq !== paintSeq || token !== corpusRenderToken) return;
+    const effTags = myCorpusState.tags.concat(tagTokens);
     let found = mine.filter((r) => {
       if (myCorpusState.level && String(r.level || '') !== myCorpusState.level) return false;
-      if (myCorpusState.tag && myTextTags(r).indexOf(myCorpusState.tag) === -1) return false;
-      if (!q) return true;
-      return (String(r.title || '') + ' ' + myTextTags(r).join(' ') + ' ' + String(r.source || '') + ' ' + String(r.topic || '')).toLowerCase().includes(q);
+      if (effTags.length) {
+        const rt = myTextTags(r).map((x) => x.toLowerCase());
+        const want = effTags.map((x) => x.toLowerCase());
+        if (myCorpusState.tagMode === 'any') { if (!want.some((w) => rt.indexOf(w) !== -1)) return false; }
+        else { if (!want.every((w) => rt.indexOf(w) !== -1)) return false; }
+      }
+      if (myCorpusState.smart) {
+        if (myCorpusState.smart === 'recent') { if (!isRecent(r)) return false; }
+        else if (!(smartSets[myCorpusState.smart] && smartSets[myCorpusState.smart].has(String(r.id)))) return false;
+      }
+      if (!qJoined) return true;
+      const hay = (String(r.title || '') + ' ' + String(r.topic || '') + ' ' + String(r.source || '') + ' ' + String(r.level || '') + ' ' + myTextTags(r).join(' ')).toLowerCase();
+      const metaHit = textTokens.every((t2) => hay.includes(t2.toLowerCase()));
+      if (myCorpusState.scope === 'texts') return metaHit;
+      if (myCorpusState.scope === 'both') return metaHit || (extIds && extIds.has(String(r.id)));
+      return !!(extIds && extIds.has(String(r.id)));   // rows / notes only
     });
-    if (myCorpusState.sort === 'alpha') found = found.slice().sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+    const bySort = {
+      opened_desc: (a, b) => (ms(b.last_opened_at) || ms(b.updated_at) || ms(b.created_at)) - (ms(a.last_opened_at) || ms(a.updated_at) || ms(a.created_at)),
+      updated_desc: (a, b) => (ms(b.updated_at) || ms(b.created_at)) - (ms(a.updated_at) || ms(a.created_at)),
+      title_asc: (a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ru'),
+      title_desc: (a, b) => String(b.title || '').localeCompare(String(a.title || ''), 'ru'),
+      topic_asc: (a, b) => String(a.topic || '').localeCompare(String(b.topic || ''), 'ru') || String(a.title || '').localeCompare(String(b.title || ''), 'ru'),
+    };
+    found = found.slice().sort(bySort[myCorpusState.sort] || bySort.opened_desc);
+    grid.textContent = '';
     for (const it of found) grid.appendChild(renderMyTextCard(it, true));
     if (!found.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
-  };
-  inp.addEventListener('input', () => { myCorpusState.q = inp.value || ''; paint(); });
+  }
+  let paintTimer = null;
+  const schedulePaint = () => { if (paintTimer) clearTimeout(paintTimer); paintTimer = setTimeout(paint, 200); };
+  inp.addEventListener('input', () => { myCorpusState.q = inp.value || ''; schedulePaint(); });
+  buildSmart();
   buildFacets();
   paint();
   wrap.appendChild(grid);
