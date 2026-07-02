@@ -12131,6 +12131,12 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
 <script src="/js/function-usage.js"></script>
 <!-- ②-note autogen resolver core (pure, DOM-free; shared with Node audit/parity smoke) -->
 <script src="/js/notes-autogen.js"></script>
+<!-- Retention P3 — the Studio Trainer's scheduler is now FSRS-6 (recon §3.5/D5): the SAME pure
+     engine + canon keyer the Reading Room uses, so word memory is unified via review_log. UMD
+     globals only (window.FsrsCore / window.LemmaCanon); no side effects. reviewCard degrades to
+     legacy SM2 if these fail to load (honest fallback). -->
+<script src="/js/lemma-canon.js"></script>
+<script src="/js/fsrs-core.js"></script>
 
 <!-- v3.4 C1 — inline [[ autocomplete in the note editor (A-G1).
      Self-contained; read-only candidate search; links materialised

@@ -3901,18 +3901,51 @@ export const srs = {
     const card = rows[0];
     if (!card) throw new Error('Card not found: ' + cardId);
 
-    const { newState, newInterval, newEase } = computeSM2(card, rating);
     const now  = new Date().toISOString();
-    const due  = new Date(Date.now() + newInterval * 86400000).toISOString().slice(0, 10);
+    const nowMs = Date.now();
+
+    // Retention P3 (recon §3.5/§4.3, owner D7) — the Studio scheduler is now FSRS-6, the SAME pure
+    // engine the Reading Room uses. The DERIVED FSRS state lives in meta_json.fsrs (no ALTER, §3.4);
+    // the legacy columns (state/interval_days/due_date/reps/lapses) are PROJECTED from it so the
+    // Trainer queue (listTodayCards) + card display keep working unchanged. A card carrying legacy
+    // SM2 progress but no FSRS state yet is LAZY-SEEDED via seedFromSm2 (+ a seed row below, so the
+    // independent oracle stays closed). ease_factor is vestigial under FSRS (kept, unchanged).
+    // Honest degradation (recon §4.1): if FsrsCore didn't load, fall back to legacy computeSM2 —
+    // the card stays SM2, nothing half-converts.
+    const FC = (typeof window !== 'undefined') ? window.FsrsCore : null;
+    let prevMeta = {}; try { prevMeta = card.meta_json ? JSON.parse(card.meta_json) : {}; } catch (_) { prevMeta = {}; }
+    let newState, newInterval, newEase, fsrsMeta = null, seededMeta = null;
+    const usingFsrs = !!(FC && typeof FC.nextState === 'function');
+    if (usingFsrs) {
+      let fsrsState = (prevMeta && prevMeta.fsrs && typeof prevMeta.fsrs.stability === 'number' && prevMeta.fsrs.stability > 0)
+        ? { stability: prevMeta.fsrs.stability, difficulty: prevMeta.fsrs.difficulty, reps: prevMeta.fsrs.reps || 0, lapses: prevMeta.fsrs.lapses || 0, lastReviewedAt: prevMeta.fsrs.lastReviewedAt != null ? prevMeta.fsrs.lastReviewedAt : null }
+        : null;
+      if (!fsrsState && (Number(card.reps) > 0 || Number(card.interval_days) > 0)) {   // legacy SM2 card → seed
+        seededMeta = { interval: Number(card.interval_days) || 0, reps: Number(card.reps) || 0, lapses: Number(card.lapses) || 0, scheme: 'sm2', seedAlgoVersion: 1 };
+        fsrsState = FC.seedFromSm2(seededMeta, nowMs);
+      }
+      const next = FC.nextState(fsrsState, Number(rating) || 1, nowMs);
+      fsrsMeta = { stability: next.stability, difficulty: next.difficulty, reps: next.reps, lapses: next.lapses, lastReviewedAt: next.lastReviewedAt };
+      newInterval = next.intervalDays;
+      newEase = card.ease_factor;   // vestigial under FSRS — kept so the legacy column isn't wiped
+      newState = (Number(rating) === 1) ? (card.state === 'new' ? 'learning' : 'relearning') : 'review';
+    } else {
+      const sm = computeSM2(card, rating);
+      newState = sm.newState; newInterval = sm.newInterval; newEase = sm.newEase;
+    }
+    const due  = new Date(nowMs + newInterval * 86400000).toISOString().slice(0, 10);
+    const metaOut = { ...prevMeta };
+    if (fsrsMeta) metaOut.fsrs = fsrsMeta;
 
     await r(
       `UPDATE srs_cards SET state = ?, interval_days = ?, ease_factor = ?,
-         lapses = lapses + ?, reps = reps + 1, due_date = ?,
+         lapses = lapses + ?, reps = reps + 1, due_date = ?, meta_json = ?,
          updated_at = ?, last_review_at = ?
        WHERE id = ?`,
       [newState, newInterval, newEase,
        rating === 1 ? 1 : 0,
        newState === 'learning' ? null : due,
+       JSON.stringify(metaOut),
        now, now, cardId]
     );
 
@@ -3940,10 +3973,24 @@ export const srs = {
         itemKey = 'sent:' + card.sentence_text_key + '#' + card.sentence_order_index + '#' + String(card.template_id || '');
       }
       if (itemKey) {
+        const LC = (typeof window !== 'undefined') ? window.LemmaCanon : null;
+        // Retention P3 — a lazy-seed materializes the SM2→FSRS handover in the log itself (recon B4):
+        // seed row at now−1ms so replay's watermark orders it strictly before this review. PK
+        // 'seed:<item_key>' → seed-once; if the Room already seeded this lemma, OR IGNORE dedupes.
+        if (seededMeta) {
+          await appendReviewLog({
+            id: 'seed:' + itemKey, item_key: itemKey, kind: 'seed', reviewed_at: new Date(nowMs - 1).toISOString(),
+            grade: null, source: 'seed-sm2', meta: { ...seededMeta, keyer_version: LC ? LC.KEYER_VERSION : undefined },
+          });
+        }
         await appendReviewLog({
           id: 'sre:' + eventId, item_key: itemKey, kind: 'review', reviewed_at: now,
           grade: Number(rating) || 0, source: 'studio-trainer', channel: null,
-          meta: { scheduler: { scheme: 'sm2' }, card_id: cardId, note_id: card.source_note_id || undefined },
+          meta: {
+            scheduler: (usingFsrs && FC) ? { scheme: 'fsrs', engine_version: FC.ENGINE_VERSION, request_retention: FC.REQUEST_RETENTION } : { scheme: 'sm2' },
+            card_id: cardId, note_id: card.source_note_id || undefined,
+            keyer_version: LC ? LC.KEYER_VERSION : undefined,
+          },
         });
       }
     } catch (_) { /* best-effort */ }

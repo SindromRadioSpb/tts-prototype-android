@@ -211,7 +211,19 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         await ldb.srs.reviewCard(cid, 3);
         // Studio write path (P0): the review must land in review_log under the CANONICAL note key.
         const rlStudio = await ldb.getReviewLog("בית#noun");
+        let sMeta = {}; try { sMeta = JSON.parse(rlStudio[0].meta_json || "{}"); } catch (_) {}
         out.studioLogged = rlStudio.length === 1 && rlStudio[0].source === "studio-trainer" && String(rlStudio[0].id).startsWith("sre:") && Number(rlStudio[0].grade) === 3;
+        // Retention P3 — the Studio scheduler is now FSRS-6 (recon §3.5): scheme=fsrs in the log,
+        // FSRS state persisted in srs_cards.meta_json.fsrs, legacy columns PROJECTED, and the
+        // independent oracle holds for the Studio too (replay(log) == the card's stored DSR state).
+        out.studioScheme = !!(sMeta.scheduler && sMeta.scheduler.scheme === "fsrs");
+        const cardRow = await one("SELECT state, interval_days, due_date, meta_json FROM srs_cards WHERE id = ?", [cid]);
+        let cMeta = {}; try { cMeta = JSON.parse(cardRow.meta_json || "{}"); } catch (_) {}
+        out.studioCardFsrs = !!(cMeta.fsrs && cMeta.fsrs.stability > 0 && typeof cMeta.fsrs.difficulty === "number");
+        out.studioProjected = !!(cardRow.state === "review" && cardRow.due_date && Number(cardRow.interval_days) >= 1);
+        const oracleS = window.FsrsCore.replay(await ldb.getReviewLog("בית#noun"));
+        out.studioOracle = !!(oracleS && cMeta.fsrs && Math.abs(oracleS.stability - cMeta.fsrs.stability) < 1e-7 &&
+          Math.abs(oracleS.difficulty - cMeta.fsrs.difficulty) < 1e-7 && oracleS.reps === cMeta.fsrs.reps && oracleS.lapses === cMeta.fsrs.lapses);
         sreStep = "counts+reimport";
         const sre1 = Number((await one("SELECT COUNT(*) c FROM srs_review_events")).c);
         const ev1 = Number((await one("SELECT COUNT(*) c FROM events WHERE event_type='srs_review'")).c);
@@ -258,6 +270,10 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.pass8NoDup === true, "srs_review_events duplicated on re-import (Pass 8)" + (res.sreErr ? " err:" + res.sreErr : ""));
     eq(res.pass12NoDup === true, "events duplicated on re-import (Pass 12)");
     eq(res.studioLogged === true, "Studio reviewCard did not land in review_log under the canonical key");
+    eq(res.studioScheme === true, "P3: Studio review meta.scheduler.scheme is not 'fsrs' (FsrsCore not wired into the Studio path?)");
+    eq(res.studioCardFsrs === true, "P3: Studio card did not persist FSRS state in meta_json.fsrs");
+    eq(res.studioProjected === true, "P3: Studio FSRS review did not project state/due_date/interval onto the legacy columns");
+    eq(res.studioOracle === true, "P3: INDEPENDENT ORACLE (Studio) failed — replay(review_log) != stored meta_json.fsrs");
     eq(res.studioLogIdempotent === true, "Studio sre:-row duplicated by bundle re-imports");
     eq(res.hasFC === true, "FsrsCore/fsrsStep not loaded in library.html" + (res.p2Err ? " err:" + res.p2Err : ""));
     eq(res.p2LegacyShape === true, "legacy schedule row lost its shape");
@@ -269,14 +285,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.p2Oracle === true, "INDEPENDENT ORACLE failed: replay(review_log) != stored state" + (res.p2Err ? " err:" + res.p2Err : ""));
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 37;
+    const total = 41;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle replay==stored)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);
