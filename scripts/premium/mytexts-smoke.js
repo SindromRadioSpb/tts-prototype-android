@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 "use strict";
-// smoke:reader-mytexts — Эпик B «Мои тексты»: the user's own Studio texts as a native Room shelf.
-// Proves in a real browser @380px (mobile-first), seeding OPFS in-session (headless OPFS does not
-// survive reloads — feedback_headless_opfs_playwright; small writes are safe, importBundle is not):
-//   1) the shelf renders the user's OWN texts (non-corpus, non-archived) on the corpus home;
-//   2) a text carrying source_meta_json.corpus is EXCLUDED (the canonical discriminator);
-//   3) «Все (N)» expands to search+grid; the client-side search narrows to the match;
-//   4) tapping a card opens the SAME Room reader (title mounted, no pageerror);
-//   5) 380px screenshot for the UI-review norm.
+// smoke:reader-mytexts — multi-corpus surface (B+C «витрина + линза») + «Мои тексты» corpus.
+// Design: docs/planning/BRR_MULTI_CORPUS_DESIGN_2026_07_02.md. In a real browser @380px, OPFS
+// seeded in-session (headless OPFS does not survive reloads; small writes are safe):
+//   1) the «Библиотека» tab lands on the L0 HUB: corpus cards (Бен-Иегуда + Мои тексты) + teaser;
+//   2) the Мои-тексты hub card counts OWN texts only (corpus-meta text excluded);
+//   3) tapping the card opens the «Мои тексты» CORPUS: header + facets + search;
+//      search narrows; the level facet filters; corpus-meta text never appears;
+//   4) the switcher pill lists corpora and swaps to Ben-Yehuda IN PLACE (the C half);
+//      the Ben-Yehuda home carries the switchbar + the «Мои тексты» mini-rail;
+//   5) tapping an own-text card opens the SAME Room reader (no pageerror);
+//   6) 380px screenshots (hub + corpus).
 // Run: node scripts/premium/mytexts-smoke.js
 
 const path = require("path");
@@ -16,7 +19,8 @@ const { spawn, spawnSync } = require("child_process");
 
 const REPO = path.resolve(__dirname, "..", "..");
 const PORT = 3297, BASE = "http://127.0.0.1:" + PORT;
-const SHOT = path.join(REPO, ".tmp", "mytexts-380.png");
+const SHOT_HUB = path.join(REPO, ".tmp", "corpus-hub-380.png");
+const SHOT_CORPUS = path.join(REPO, ".tmp", "mytexts-380.png");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function startServer() {
@@ -43,42 +47,74 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     const pg = await ctx.newPage();
     const pageErrors = []; pg.on("pageerror", (e) => pageErrors.push(String(e)));
     await pg.goto(BASE + "/library.html", { waitUntil: "load" });
-    // corpus tab unhides once the catalog loads
     await pg.waitForFunction(() => { const t = document.getElementById("tabCorpus"); return t && !t.hidden; }, { timeout: 20000 });
 
-    // seed OPFS in-session: two OWN texts + one corpus-meta text (must be excluded)
+    // seed OPFS in-session: two OWN texts + one corpus-meta text (must be excluded everywhere)
     const seeded = await pg.evaluate(async () => {
       const db = await import("/db/local-db.js");
       await db.createText({ id: "mytexts-smoke-a", text_key: "mytexts-smoke-a", title: "שלום עולם — свой текст", source_text: "שלום עולם", level: "alef", tags_json: JSON.stringify(["ульпан"]) });
       await db.addSentence("mytexts-smoke-a", { id: "mytexts-smoke-a-s1", he_plain: "שלום עולם טוב", he_niqqud: "", ru: "привет добрый мир" });
-      await db.createText({ id: "mytexts-smoke-b", text_key: "mytexts-smoke-b", title: "Второй свой текст", source_text: "טקסט" });
+      await db.createText({ id: "mytexts-smoke-b", text_key: "mytexts-smoke-b", title: "Второй свой текст", source_text: "טקסט", level: "bet" });
       await db.createText({ id: "mytexts-smoke-c", text_key: "mytexts-smoke-c", title: "CORPUS-META TEXT", source_text: "x", source_meta_json: JSON.stringify({ corpus: { byehuda_id: "999999" } }) });
       return true;
     }).catch((e) => { failures.push("seed failed: " + e.message); return false; });
+
     if (seeded) {
-      // re-render the corpus home (tab away → back re-runs renderCorpus + injectHomeRails)
-      await pg.click("#tabAccessible");
+      // 1) the tab lands on the L0 hub
       await pg.click("#tabCorpus");
-      await pg.waitForSelector(".mytexts-shelf", { timeout: 15000 }).catch(() => failures.push("«Мои тексты» shelf did not render"));
+      await pg.waitForSelector(".hub-cards", { timeout: 15000 }).catch(() => failures.push("L0 hub did not render"));
+      const hub = await pg.evaluate(() => {
+        const cards = Array.from(document.querySelectorAll(".hub-card"));
+        const my = cards.find((c) => c.dataset.corpus === "mytexts");
+        return {
+          n: cards.filter((c) => c.dataset.corpus).length,
+          teaser: !!document.querySelector(".hub-teaser"),
+          myCounts: my ? (my.querySelector(".hub-card-counts") || {}).textContent || "" : "",
+          myBadges: my ? my.querySelectorAll(".hub-badge").length : 0,
+          myCta: my ? !!my.querySelector(".hub-cta") : false,
+        };
+      });
+      ok(hub.n === 2, "hub expected 2 corpus cards, got " + hub.n);
+      ok(hub.teaser, "hub roadmap teaser missing");
+      ok(/^2\b/.test(hub.myCounts.trim()), "mytexts hub count must be 2 (own only), got '" + hub.myCounts + "'");
+      ok(hub.myBadges >= 3, "mytexts capability badges missing");
+      ok(hub.myCta, "mytexts «+ Добавить текст» CTA missing");
+      await pg.screenshot({ path: SHOT_HUB });
 
-      const shelfText = await pg.evaluate(() => { const s = document.querySelector(".mytexts-shelf"); return s ? s.textContent : ""; });
-      ok(shelfText.includes("Второй свой текст"), "own text B missing from the shelf");
-      ok(shelfText.includes("שלום עולם — свой текст") || shelfText.includes("שלום עולם"), "own Hebrew-titled text A missing from the shelf");
-      ok(!shelfText.includes("CORPUS-META TEXT"), "corpus-meta text LEAKED into «Мои тексты» (discriminator broken)");
-
-      // expand → search narrows
-      await pg.click(".mytexts-toggle");
-      await pg.waitForSelector(".mytexts-search", { timeout: 5000 }).catch(() => failures.push("expanded search input did not render"));
+      // 2) open the «Мои тексты» corpus
+      await pg.click('.hub-card[data-corpus="mytexts"]');
+      await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 10000 }).catch(() => failures.push("mytexts corpus home did not render"));
+      const corpusText = await pg.evaluate(() => (document.querySelector(".mytexts-corpus") || {}).textContent || "");
+      ok(corpusText.includes("Второй свой текст"), "own text B missing from the corpus");
+      ok(!corpusText.includes("CORPUS-META TEXT"), "corpus-meta text LEAKED into «Мои тексты» (discriminator broken)");
+      // search narrows
       await pg.fill(".mytexts-search", "Второй");
       await sleep(150);
-      const gridCount = await pg.evaluate(() => document.querySelectorAll(".mytexts-grid .mytext-card-v").length);
+      let gridCount = await pg.evaluate(() => document.querySelectorAll(".mytexts-grid .mytext-card-v").length);
       ok(gridCount === 1, "search 'Второй' expected exactly 1 card, got " + gridCount);
       await pg.fill(".mytexts-search", "");
       await sleep(150);
+      // level facet filters
+      await pg.evaluate(() => { const chips = Array.from(document.querySelectorAll(".mytexts-facets .corpus-sort-btn")); const alef = chips.find((c) => c.textContent.trim() === "alef"); if (alef) alef.click(); });
+      await sleep(150);
+      gridCount = await pg.evaluate(() => document.querySelectorAll(".mytexts-grid .mytext-card-v").length);
+      ok(gridCount === 1, "level facet 'alef' expected exactly 1 card, got " + gridCount);
+      await pg.evaluate(() => { const chips = Array.from(document.querySelectorAll(".mytexts-facets .corpus-sort-btn")); const alef = chips.find((c) => /alef/.test(c.textContent)); if (alef) alef.click(); });
+      await sleep(150);
+      await pg.screenshot({ path: SHOT_CORPUS });
 
-      await pg.screenshot({ path: SHOT });
+      // 3) the switcher pill swaps to Ben-Yehuda in place; its home carries switchbar + mini-rail
+      await pg.click(".corpus-switch-pill");
+      await pg.waitForSelector(".corpus-switch-menu:not([hidden])", { timeout: 5000 }).catch(() => failures.push("switcher menu did not open"));
+      await pg.evaluate(() => { const items = Array.from(document.querySelectorAll(".corpus-switch-item")); const by = items.find((i) => !i.classList.contains("on")); if (by) by.click(); });
+      await pg.waitForSelector(".corpus-switchbar", { timeout: 15000 }).catch(() => failures.push("Ben-Yehuda home lacks the switchbar"));
+      await pg.waitForSelector(".mytexts-shelf", { timeout: 15000 }).catch(() => failures.push("«Мои тексты» mini-rail missing on the Ben-Yehuda home"));
+      const railHasWhole = await pg.evaluate(() => { const t = document.querySelector(".mytexts-shelf .mytexts-toggle"); return t ? t.textContent : ""; });
+      ok(/→/.test(railHasWhole), "mini-rail «Весь корпус →» button missing");
 
-      // tap a card → the SAME Room reader opens
+      // 4) back to the corpus via the mini-rail button, open a text in the Room reader
+      await pg.click(".mytexts-shelf .mytexts-toggle");
+      await pg.waitForSelector(".mytexts-corpus .mytexts-grid", { timeout: 10000 });
       await pg.evaluate(() => { const cards = Array.from(document.querySelectorAll(".mytexts-grid .mytext-card-v")); const a = cards.find((c) => c.textContent.includes("שלום")); if (a) a.click(); });
       await pg.waitForFunction(() => { const t = document.getElementById("readerTitle"); return t && /שלום/.test(t.textContent || ""); }, { timeout: 15000 }).catch(() => failures.push("tapping an own-text card did not open the Room reader"));
     }
@@ -86,6 +122,6 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
   } finally { await b.close(); await stop(srv.c); }
 
   if (failures.length) { console.error("FAIL — " + failures.length + " assertion(s):"); for (const f of failures) console.error("  ✗ " + f); process.exit(1); }
-  console.log("screenshot → " + path.relative(REPO, SHOT));
-  console.log("PASS — mytexts smoke green (shelf + corpus-exclusion + search + reader-open @380px)");
+  console.log("screenshots → " + path.relative(REPO, SHOT_HUB) + " · " + path.relative(REPO, SHOT_CORPUS));
+  console.log("PASS — multi-corpus smoke green (hub + mytexts corpus + facets + switcher + mini-rail + reader-open @380px)");
 })().catch((e) => { console.error("fatal:", e && e.stack || e); process.exit(1); });

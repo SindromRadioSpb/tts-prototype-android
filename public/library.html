@@ -739,6 +739,51 @@
     .mytexts-grid { display: flex; flex-direction: column; gap: 8px; }
     .mytexts-grid .mytext-card-v { width: auto; }
     .mytexts-empty { color: var(--text-faint); font-size: 14px; padding: 10px 2px; }
+    /* Multi-corpus (B+C «витрина + линза»): L0 hub cards + the in-corpus switcher pill. */
+    .hub-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+    .hub-card {
+      border: 1px solid var(--border-soft); border-radius: 14px; padding: 14px 16px;
+      background: var(--bg-card, var(--bg-soft)); cursor: pointer;
+    }
+    .hub-card:hover, .hub-card:focus-visible { border-color: var(--accent); outline: none; }
+    .hub-card-title { font-size: 17px; font-weight: 700; }
+    .hub-card-desc { margin: 4px 0 6px; color: var(--text-faint); font-size: 13px; }
+    .hub-card-counts { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .hub-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .hub-badge {
+      font-size: 11.5px; color: var(--text-faint); border: 1px solid var(--border-soft);
+      border-radius: 999px; padding: 2px 8px; white-space: nowrap;
+    }
+    .hub-cta {
+      display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 600;
+      color: var(--accent); text-decoration: none;
+    }
+    .hub-cta:hover, .hub-cta:focus-visible { text-decoration: underline; }
+    .hub-teaser { border-style: dashed; cursor: default; color: var(--text-faint); font-size: 14px; }
+    .hub-teaser:hover { border-color: var(--border-soft); }
+    .hub-corpus-header { margin: 8px 0 10px; }
+    .hub-corpus-title { margin: 0 0 2px; font-size: 18px; }
+    .corpus-switch { position: relative; display: inline-block; }
+    .corpus-switch-pill {
+      width: auto; appearance: none; cursor: pointer; border: 1px solid var(--border-soft);
+      border-radius: 999px; background: var(--bg-soft); padding: 3px 10px;
+      font-size: 13px; font-weight: 600; color: inherit;
+    }
+    .corpus-switch-pill:hover, .corpus-switch-pill:focus-visible { border-color: var(--accent); outline: none; }
+    .corpus-switch-menu {
+      position: absolute; z-index: 30; top: calc(100% + 4px); inset-inline-start: 0;
+      min-width: 220px; display: flex; flex-direction: column; gap: 2px; padding: 6px;
+      background: var(--bg-card, var(--bg, #fff)); border: 1px solid var(--border-soft);
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    }
+    .corpus-switch-menu[hidden] { display: none; }
+    .corpus-switch-item {
+      width: auto; appearance: none; cursor: pointer; border: 0; background: transparent;
+      text-align: start; font-size: 14px; padding: 8px 10px; border-radius: 8px; color: inherit;
+    }
+    .corpus-switch-item:hover, .corpus-switch-item:focus-visible { background: var(--bg-soft); outline: none; }
+    .corpus-switch-item.on { font-weight: 700; cursor: default; }
+    .mytexts-facets { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 10px; }
     /* FB-1 — «✓ Прочитанные» shelf: honest read-status badge (done vs marked-N%) + un-mark + «Показать все». */
     .corpus-finished .shelf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
     .shelf-showall {
@@ -1524,7 +1569,7 @@
   <div class="room-tabs" id="roomTabs" role="tablist">
     <button class="room-tab" id="tabAccessible" role="tab" aria-selected="true" data-track="accessible" data-i18n="room.tabs.accessible">Доступная</button>
     <button class="room-tab" id="tabLiterary" role="tab" aria-selected="false" data-track="literary" data-i18n="room.tabs.literary">Литературная</button>
-    <button class="room-tab" id="tabCorpus" role="tab" aria-selected="false" data-track="corpus" data-i18n="room.tabs.corpus" hidden>Корпус</button>
+    <button class="room-tab" id="tabCorpus" role="tab" aria-selected="false" data-track="corpus" data-i18n="room.tabs.corpus" hidden>Библиотека</button>
   </div>
   <!-- D2 — cross-text «due today» CTA: the daily-review habit entry, launchable WITHOUT opening a text.
        Shown on the home (reader closed) only when scheduled words are due now. Count set by JS. -->

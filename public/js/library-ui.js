@@ -11,6 +11,7 @@
 
 import * as localDb from '/db/local-db.js';
 import * as readerCore from '/js/reader-core.js';
+import { CORPORA, CAPABILITY_BADGES, corpusById } from '/js/corpus-registry.js';
 
 // BRR-P0-002b — the same-document embedded reader (warm-worker open) is the DEFAULT
 // Room open: parity-proven (smoke:reader-parity) + prod-verified, warm-open ~24-100ms
@@ -42,7 +43,7 @@ let corpusRoot = null;          // thin root: { era_taxonomy, manifests, counts,
 let corpusIndex = null;         // sidecar: { ready:[card], authors:{era:[{name,qid,works,ready,blocks}]}, facets }
 let corpusIndexLoading = null;  // single-flight guard for the lazy sidecar fetch
 const corpusManifestCache = new Map(); // manifest file path -> works[] (fetched block, cached)
-let corpusNav = { level: 'home', era: null, author: null }; // current drill position
+let corpusNav = { corpus: 'hub', level: 'home', era: null, author: null }; // drill position; corpus: 'hub' (L0 витрина) | 'benyehuda' | 'mytexts'
 let corpusReveal = 0;           // incremental-reveal cursor for the active long list
 let corpusRenderToken = 0;      // guards async renders against rapid navigation
 let corpusImporting = false;
@@ -2879,7 +2880,7 @@ async function closeReader() {
   if (content) content.hidden = false;
   try { refreshDueBadge(); } catch (_) {}   // D2 — back on the home → surface the «🔁 К повторению» CTA
   // Surface the just-read text in «Продолжить чтение» (corpus home only; results / other tabs untouched).
-  if (tid != null && activeTrack === 'corpus' && corpusNav.level === 'home' && !corpusFilterActive()) {
+  if (tid != null && activeTrack === 'corpus' && corpusNav.corpus === 'benyehuda' && corpusNav.level === 'home' && !corpusFilterActive()) {
     try { corpusRefreshL1Body(); } catch (_) {}
   }
 }
@@ -3615,19 +3616,26 @@ function renderContinueCard(item) {
 // stale/swapped body (a navigation or filter replaced the L1 home while the DB query was in flight).
 async function injectContinueReading(body) {
   try {
-    let items = [];
-    try { items = await localDb.getContinueReading(12); } catch (_) { items = []; }
-    if (!items || !items.length || corpusL1Body !== body || corpusFilterActive()) return;
-    const sec = el('section', { class: 'shelf corpus-continue' });
-    const head = el('div', { class: 'shelf-head' });
-    head.appendChild(el('h2', { class: 'shelf-title', text: '▶ ' + tt('room.resume.shelfTitle', 'Продолжить чтение') }));
-    sec.appendChild(head);
-    const rail = el('div', { class: 'shelf-rail' });
-    for (const it of items) rail.appendChild(renderContinueCard(it));
-    sec.appendChild(rail);
+    const sec = await buildContinueRailSection(12);
+    if (!sec || corpusL1Body !== body || corpusFilterActive()) return;
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
+}
+// Shared builder: the Continue rail is CROSS-corpus by nature (one localDb, one reading life) —
+// the hub (L0) shows it above the corpus витрина, the Ben-Yehuda home keeps its copy.
+async function buildContinueRailSection(limit) {
+  let items = [];
+  try { items = await localDb.getContinueReading(limit || 12); } catch (_) { items = []; }
+  if (!items || !items.length) return null;
+  const sec = el('section', { class: 'shelf corpus-continue' });
+  const head = el('div', { class: 'shelf-head' });
+  head.appendChild(el('h2', { class: 'shelf-title', text: '▶ ' + tt('room.resume.shelfTitle', 'Продолжить чтение') }));
+  sec.appendChild(head);
+  const rail = el('div', { class: 'shelf-rail' });
+  for (const it of items) rail.appendChild(renderContinueCard(it));
+  sec.appendChild(rail);
+  return sec;
 }
 
 // FB-3 — honest read-label for a finished text. finished_at is set by the end-card «✓ Прочитано» AND
@@ -3683,8 +3691,6 @@ function renderFinishedCard(item) {
 // export) deliberately stays in the Studio — a premium reading surface is not a management
 // console; the expanded view links there instead. ONE listTexts query, zero per-item fan-out
 // (feedback_test_with_nonempty_profile).
-let _myTextsExpanded = false;
-let _myTextsQuery = '';
 function isCorpusTextRow(r) {
   try { const sm = r && r.source_meta_json ? JSON.parse(r.source_meta_json) : null; return !!(sm && sm.corpus); } catch (_) { return false; }
 }
@@ -3710,34 +3716,8 @@ function renderMyTextCard(item, vertical) {
   node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
   return node;
 }
-function buildMyTextsBody(mine) {
-  const wrap = el('div', { class: 'mytexts-body' });
-  if (!_myTextsExpanded) {
-    const rail = el('div', { class: 'shelf-rail' });
-    for (const it of mine.slice(0, 12)) rail.appendChild(renderMyTextCard(it, false));
-    wrap.appendChild(rail);
-    return wrap;
-  }
-  const controls = el('div', { class: 'mytexts-controls' });
-  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { type: 'search', placeholder: tt('room.mytexts.search', 'Поиск по моим текстам…'), 'aria-label': tt('room.mytexts.search', 'Поиск по моим текстам…') } });
-  inp.value = _myTextsQuery;
-  controls.appendChild(inp);
-  controls.appendChild(el('a', { class: 'mytexts-manage', attrs: { href: '/' }, text: tt('room.mytexts.manage', 'Управлять — в Студии') }));
-  wrap.appendChild(controls);
-  const grid = el('div', { class: 'mytexts-grid' });
-  const paint = () => {
-    grid.textContent = '';
-    const q = _myTextsQuery.trim().toLowerCase();
-    const found = !q ? mine : mine.filter((r) =>
-      (String(r.title || '') + ' ' + myTextTags(r).join(' ') + ' ' + String(r.source || '') + ' ' + String(r.topic || '')).toLowerCase().includes(q));
-    for (const it of found) grid.appendChild(renderMyTextCard(it, true));
-    if (!found.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
-  };
-  inp.addEventListener('input', () => { _myTextsQuery = inp.value || ''; paint(); });
-  paint();
-  wrap.appendChild(grid);
-  return wrap;
-}
+// Mini-rail on the Ben-Yehuda home (quick access; the FULL surface is the «Мои тексты» CORPUS —
+// search/facets/CTA live there, reachable via «Весь корпус →» or the hub/switcher).
 async function injectMyTexts(body) {
   try {
     let rows = [];
@@ -3747,19 +3727,14 @@ async function injectMyTexts(body) {
     const sec = el('section', { class: 'shelf corpus-continue mytexts-shelf' });
     const head = el('div', { class: 'shelf-head' });
     head.appendChild(el('h2', { class: 'shelf-title', text: '📖 ' + tt('room.mytexts.shelfTitle', 'Мои тексты') }));
-    const toggle = el('button', { class: 'mytexts-toggle', attrs: { type: 'button', 'aria-expanded': String(_myTextsExpanded) } });
-    const toggleText = () => { toggle.textContent = _myTextsExpanded ? tt('room.mytexts.collapse', 'Свернуть') : tt('room.mytexts.all', 'Все') + ' (' + mine.length + ')'; };
-    toggleText();
-    toggle.addEventListener('click', () => {
-      _myTextsExpanded = !_myTextsExpanded;
-      toggle.setAttribute('aria-expanded', String(_myTextsExpanded));
-      toggleText();
-      const old = sec.querySelector('.mytexts-body');
-      if (old) old.replaceWith(buildMyTextsBody(mine));
-    });
-    head.appendChild(toggle);
+    const goCorpus = el('button', { class: 'mytexts-toggle', attrs: { type: 'button' } });
+    goCorpus.textContent = tt('room.mytexts.wholeCorpus', 'Весь корпус') + ' (' + mine.length + ') →';
+    goCorpus.addEventListener('click', () => corpusNavToCorpus('mytexts'));
+    head.appendChild(goCorpus);
     sec.appendChild(head);
-    sec.appendChild(buildMyTextsBody(mine));
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const it of mine.slice(0, 12)) rail.appendChild(renderMyTextCard(it, false));
+    sec.appendChild(rail);
     body.insertBefore(sec, body.firstChild);
     try { window.applyI18n && window.applyI18n(); } catch (_) {}
   } catch (_) {}
@@ -4265,7 +4240,16 @@ function stateBoxNode(i18nKey, icon) {
 
 // Navigate the drill; resets the incremental-reveal cursor + re-renders.
 function corpusNavTo(level, era, author) {
-  corpusNav = { level: level || 'home', era: era || null, author: author || null };
+  // era/author drills are Ben-Yehuda-native → a deep nav call implies that corpus; a plain
+  // 'home' keeps the current corpus (the hub included — its home IS the L0 витрина).
+  const corpus = (level && level !== 'home') ? 'benyehuda' : (corpusNav.corpus || 'hub');
+  corpusNav = { corpus, level: level || 'home', era: era || null, author: author || null };
+  corpusReveal = 0;
+  renderCorpus();
+}
+// Multi-corpus (B+C «витрина + линза», BRR_MULTI_CORPUS_DESIGN_2026_07_02.md): lateral switch.
+function corpusNavToCorpus(id) {
+  corpusNav = { corpus: id, level: 'home', era: null, author: null };
   corpusReveal = 0;
   renderCorpus();
 }
@@ -4294,11 +4278,14 @@ function corpusCrumb(parts) {
 }
 
 // Drill dispatcher. Lazy-loads the sidecar on first paint; guards async work against rapid
-// navigation with a render token.
+// navigation with a render token. Multi-corpus: 'hub' = the L0 corpora showcase; 'mytexts' =
+// the user's own-texts corpus (LocalDb-backed); default drill = Ben-Yehuda (baked catalog).
 async function renderCorpus() {
   const main = $('roomContent');
   if (!main) return;
   const token = ++corpusRenderToken;
+  if (corpusNav.corpus === 'hub') return renderCorpusHub(token);
+  if (corpusNav.corpus === 'mytexts') return renderMyTextsCorpus(token);
   if (!corpusRoot) { showState('room.shelf.emptyTrack', '📚'); return; }
   if (!corpusIndex) {
     showState('room.state.loading', '⏳');
@@ -4311,6 +4298,187 @@ async function renderCorpus() {
   return renderCorpusHome(token);
 }
 
+// ── Multi-corpus surface (owner-approved B+C: hub-витрина + switcher-линза) ─────────────────
+function corpusTitleOf(c) { return tt(c.title.key, c.title.fb); }
+function corpusBadgesRow(c) {
+  const row = el('div', { class: 'hub-badges' });
+  for (const cap of c.capabilities || []) {
+    const b = CAPABILITY_BADGES[cap];
+    if (!b) continue;
+    row.appendChild(el('span', { class: 'hub-badge', text: b.icon + ' ' + tt(b.key, b.fb) }));
+  }
+  return row;
+}
+// Breadcrumb with the corpus switcher pill: «← | Библиотека ▸ ⟨🏛 Бен-Иегуда ▾⟩». The pill is
+// the LEAF (the current corpus) and opens a lateral menu — no climb back to L0 needed (the C
+// half of the hybrid). ← and «Библиотека» both go to the hub (the B half).
+function corpusSwitcherBar(currentId) {
+  const bar = el('div', { class: 'corpus-crumb corpus-switchbar' });
+  const back = el('button', { class: 'corpus-back', attrs: { type: 'button', 'aria-label': tt('room.corpus.back', 'Назад') } });
+  back.textContent = '←';
+  back.addEventListener('click', () => corpusNavToCorpus('hub'));
+  bar.appendChild(back);
+  const trail = el('nav', { class: 'corpus-crumb-trail' });
+  const lib = el('button', { class: 'corpus-crumb-part', attrs: { type: 'button' } });
+  lib.textContent = tt('room.hub.crumb', 'Библиотека');
+  lib.addEventListener('click', () => corpusNavToCorpus('hub'));
+  trail.appendChild(lib);
+  trail.appendChild(el('span', { class: 'corpus-crumb-sep', text: '▸' }));
+  const cur = corpusById(currentId);
+  const wrap = el('span', { class: 'corpus-switch' });
+  const pill = el('button', { class: 'corpus-switch-pill', attrs: { type: 'button', 'aria-haspopup': 'menu', 'aria-expanded': 'false' } });
+  pill.textContent = (cur ? cur.icon + ' ' + corpusTitleOf(cur) : currentId) + ' ▾';
+  const menu = el('div', { class: 'corpus-switch-menu', attrs: { role: 'menu' } });
+  menu.hidden = true;
+  for (const c of CORPORA) {
+    const item = el('button', { class: 'corpus-switch-item' + (c.id === currentId ? ' on' : ''), attrs: { type: 'button', role: 'menuitem' } });
+    item.textContent = c.icon + ' ' + corpusTitleOf(c) + (c.id === currentId ? ' ✓' : '');
+    item.addEventListener('click', () => { if (c.id !== currentId) corpusNavToCorpus(c.id); });
+    menu.appendChild(item);
+  }
+  const close = () => { menu.hidden = true; pill.setAttribute('aria-expanded', 'false'); document.removeEventListener('click', away, true); };
+  const away = (e) => { if (!wrap.contains(e.target)) close(); };
+  pill.addEventListener('click', () => {
+    if (menu.hidden) { menu.hidden = false; pill.setAttribute('aria-expanded', 'true'); document.addEventListener('click', away, true); }
+    else close();
+  });
+  pill.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  wrap.appendChild(pill); wrap.appendChild(menu);
+  trail.appendChild(wrap);
+  bar.appendChild(trail);
+  return bar;
+}
+// The L0 hub — corpus витрина: identity cards (icon, description, honest counts + capability
+// badges, the import-funnel CTA for own texts) above nothing but the CROSS-corpus continue rail
+// (reading follows the learner across corpora; the per-corpus rails live inside each corpus).
+async function renderCorpusHub(token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  main.innerHTML = '';
+  const wrap = el('div', { class: 'corpus-nav corpus-hub' });
+  const cont = await buildContinueRailSection(12);
+  if (token !== corpusRenderToken) return;
+  if (cont) wrap.appendChild(cont);
+  const cards = el('div', { class: 'hub-cards' });
+  for (const c of CORPORA) {
+    const card = el('div', { class: 'hub-card', attrs: { role: 'button', tabindex: '0', 'data-corpus': c.id } });
+    card.appendChild(el('div', { class: 'hub-card-title', text: c.icon + ' ' + corpusTitleOf(c) }));
+    card.appendChild(el('p', { class: 'hub-card-desc', text: tt(c.desc.key, c.desc.fb) }));
+    const counts = el('div', { class: 'hub-card-counts' });
+    if (c.id === 'benyehuda') {
+      const ready = ((corpusIndex && corpusIndex.ready) || []).length;
+      const total = (corpusRoot && corpusRoot.counts && corpusRoot.counts.works) || 0;
+      counts.textContent = (ready ? ready + ' ' + tt('room.hub.ready', 'готово') + ' · ' : '') + (total ? total.toLocaleString('ru-RU') + ' ' + tt('room.hub.total', 'всего') : '');
+    } else if (c.id === 'mytexts') {
+      let n = 0;
+      try { const rows = await localDb.listTexts({ limit: 500 }); n = (rows || []).filter((r) => r && !isCorpusTextRow(r)).length; } catch (_) {}
+      if (token !== corpusRenderToken) return;
+      counts.textContent = n + ' ' + tt('room.hub.textsN', 'текст(ов)');
+    }
+    card.appendChild(counts);
+    card.appendChild(corpusBadgesRow(c));
+    if (c.cta === 'add') {
+      const cta = el('a', { class: 'hub-cta', attrs: { href: '/' }, text: tt('room.hub.addText', '+ Добавить текст') });
+      cta.addEventListener('click', (e) => e.stopPropagation());
+      card.appendChild(cta);
+    }
+    const open = () => corpusNavToCorpus(c.id);
+    card.addEventListener('click', open);
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+    cards.appendChild(card);
+  }
+  // roadmap teaser — honest «скоро», never a fake corpus (R9)
+  cards.appendChild(el('div', { class: 'hub-card hub-teaser', text: '🔬 ' + tt('room.hub.soon', 'Скоро: тематические корпуса') }));
+  wrap.appendChild(cards);
+  main.appendChild(wrap);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+// «Мои тексты» as a FULL corpus (LocalDb-backed): identity header + native facets (level / tags /
+// sort) + client search + vertical grid. One listTexts query; facets computed in memory.
+let myCorpusState = { q: '', level: '', tag: '', sort: 'recent' };
+async function renderMyTextsCorpus(token) {
+  const main = $('roomContent');
+  if (!main || token !== corpusRenderToken) return;
+  let rows = [];
+  try { rows = await localDb.listTexts({ limit: 500 }); } catch (_) { rows = []; }
+  const mine = (rows || []).filter((r) => r && !isCorpusTextRow(r));
+  if (token !== corpusRenderToken) return;
+  main.innerHTML = '';
+  const c = corpusById('mytexts');
+  const wrap = el('div', { class: 'corpus-nav mytexts-corpus' });
+  wrap.appendChild(corpusSwitcherBar('mytexts'));
+  const head = el('div', { class: 'hub-corpus-header' });
+  head.appendChild(el('h2', { class: 'hub-corpus-title', text: c.icon + ' ' + corpusTitleOf(c) + ' · ' + mine.length }));
+  head.appendChild(el('p', { class: 'hub-card-desc', text: tt(c.desc.key, c.desc.fb) }));
+  head.appendChild(corpusBadgesRow(c));
+  const manage = el('div', { class: 'mytexts-controls' });
+  manage.appendChild(el('a', { class: 'hub-cta', attrs: { href: '/' }, text: tt('room.hub.addText', '+ Добавить текст') }));
+  manage.appendChild(el('a', { class: 'mytexts-manage', attrs: { href: '/' }, text: tt('room.mytexts.manage', 'Управлять — в Студии') }));
+  head.appendChild(manage);
+  wrap.appendChild(head);
+  if (!mine.length) {
+    wrap.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.corpusEmpty', 'Здесь появятся ваши тексты из Студии — создайте или импортируйте первый.') }));
+    main.appendChild(wrap);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+    return;
+  }
+  // controls: search + facets from the texts' OWN metadata (native taxonomy of this corpus)
+  const controls = el('div', { class: 'mytexts-controls' });
+  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { type: 'search', placeholder: tt('room.mytexts.search', 'Поиск по моим текстам…'), 'aria-label': tt('room.mytexts.search', 'Поиск по моим текстам…') } });
+  inp.value = myCorpusState.q;
+  controls.appendChild(inp);
+  wrap.appendChild(controls);
+  const levels = Array.from(new Set(mine.map((r) => String(r.level || '')).filter(Boolean))).sort();
+  const tagCount = new Map();
+  for (const r of mine) for (const tg of myTextTags(r)) tagCount.set(tg, (tagCount.get(tg) || 0) + 1);
+  const tags = Array.from(tagCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 8).map((x) => x[0]);
+  const facets = el('div', { class: 'mytexts-facets' });
+  const chip = (label, isOn, onClick) => {
+    const b = el('button', { class: 'corpus-sort-btn' + (isOn ? ' on' : ''), attrs: { type: 'button', 'aria-pressed': String(isOn) } });
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  };
+  const paintAll = () => { facets.textContent = ''; buildFacets(); paint(); };
+  const buildFacets = () => {
+    const sortWrap = el('div', { class: 'corpus-sort' });
+    sortWrap.appendChild(chip(tt('room.mytexts.sortRecent', 'Недавние'), myCorpusState.sort === 'recent', () => { myCorpusState.sort = 'recent'; paintAll(); }));
+    sortWrap.appendChild(chip(tt('room.mytexts.sortAlpha', 'По алфавиту'), myCorpusState.sort === 'alpha', () => { myCorpusState.sort = 'alpha'; paintAll(); }));
+    facets.appendChild(sortWrap);
+    if (levels.length) {
+      const lw = el('div', { class: 'corpus-sort' });
+      for (const lv of levels) lw.appendChild(chip(lv, myCorpusState.level === lv, () => { myCorpusState.level = myCorpusState.level === lv ? '' : lv; paintAll(); }));
+      facets.appendChild(lw);
+    }
+    if (tags.length) {
+      const tw = el('div', { class: 'corpus-sort' });
+      for (const tg of tags) tw.appendChild(chip('#' + tg, myCorpusState.tag === tg, () => { myCorpusState.tag = myCorpusState.tag === tg ? '' : tg; paintAll(); }));
+      facets.appendChild(tw);
+    }
+  };
+  wrap.appendChild(facets);
+  const grid = el('div', { class: 'mytexts-grid' });
+  const paint = () => {
+    grid.textContent = '';
+    const q = myCorpusState.q.trim().toLowerCase();
+    let found = mine.filter((r) => {
+      if (myCorpusState.level && String(r.level || '') !== myCorpusState.level) return false;
+      if (myCorpusState.tag && myTextTags(r).indexOf(myCorpusState.tag) === -1) return false;
+      if (!q) return true;
+      return (String(r.title || '') + ' ' + myTextTags(r).join(' ') + ' ' + String(r.source || '') + ' ' + String(r.topic || '')).toLowerCase().includes(q);
+    });
+    if (myCorpusState.sort === 'alpha') found = found.slice().sort((a, b) => String(a.title || '').localeCompare(String(b.title || '')));
+    for (const it of found) grid.appendChild(renderMyTextCard(it, true));
+    if (!found.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
+  };
+  inp.addEventListener('input', () => { myCorpusState.q = inp.value || ''; paint(); });
+  buildFacets();
+  paint();
+  wrap.appendChild(grid);
+  main.appendChild(wrap);
+  try { window.applyI18n && window.applyI18n(); } catch (_) {}
+}
+
 // L1 — graduated landing with a PERSISTENT global filter bar (search + facets) on top. The
 // body below toggles between the home content (ready rail + chronological period grid) and the
 // global RESULTS list, driven by corpusFilter — refreshed IN PLACE so the search input never
@@ -4320,6 +4488,7 @@ function renderCorpusHome(token) {
   if (!main || token !== corpusRenderToken) return;
   main.innerHTML = '';
   const wrap = el('div', { class: 'corpus-nav' });
+  wrap.appendChild(corpusSwitcherBar('benyehuda'));   // «Библиотека ▸ ⟨🏛 … ▾⟩» (B+C hybrid)
   wrap.appendChild(buildCorpusFilterBar());
   const body = el('div', { class: 'corpus-l1-body' });
   corpusL1Body = body;
