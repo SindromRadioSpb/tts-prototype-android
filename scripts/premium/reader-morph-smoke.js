@@ -980,6 +980,79 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(p56.noneCard.hasLine && p56.noneCard.noneCls === true,
       "P5.6 R-3: an engaged-but-unscheduled word (legacy manual «знаю») must say «не в расписании», got " + JSON.stringify(p56.noneCard));
 
+    // ── Retention P5.7 Т1 — in-card CLOSURE after a level mark (owner 2026-07-02). Tapping a level
+    //    must (a) show the «✓ В повторении · вернётся …» confirmation, (b) teach the visual language
+    //    ONCE (firstTime explainer), (c) NOT show the confirm for known/ignore, (d) forward the
+    //    dueMs the Room glue returns. The confirm is driven purely by setWordStatus's return value —
+    //    no dependency on the 🎨 axis. ──
+    const p57 = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      try { localStorage.removeItem("room.loopCoach.seen"); } catch (_) {}
+      document.querySelectorAll("#rm-p57").forEach((n) => n.remove());
+      const r0 = { he: "שלום", he_niqqud: "שָׁלוֹם" };
+      const m = document.createElement("div"); m.id = "rm-p57";
+      m.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שלום</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁלוֹם</td></tr></tbody></table>';
+      document.body.appendChild(m);
+      const due = Date.now() + 86400000;
+      window.__p57 = { calls: [] };
+      if (window.__rmP57) { try { window.__rmP57.detach(); } catch (_) {} }
+      window.__rmP57 = R.attach(m, {
+        getRow: () => r0,
+        getWordStatus: async () => "",
+        // the Room glue contract: return {dueMs} for an l1–l4 mark, null otherwise.
+        setWordStatus: async (lk, st) => { window.__p57.calls.push([lk, st]); return /^l[1-4]$/.test(st) ? { dueMs: due } : null; },
+      });
+      const tapWord = async () => {
+        m.querySelector('td[data-col="he"] .rm-w').click();
+        for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-status")) break; await new Promise((r) => setTimeout(r, 100)); }
+      };
+      const readConfirm = () => {
+        const ok = document.querySelector(".rm-markok");
+        return {
+          has: !!ok,
+          head: ok ? (ok.querySelector(".rm-markok-head") || {}).textContent || "" : "",
+          explain: ok ? !!ok.querySelector(".rm-markok-explain") : false,
+          srsLine: !!document.querySelector(".rm-srs-line"),
+          pulsed: !!m.querySelector(".rm-w-pulse"),
+        };
+      };
+      await tapWord();
+      // mark l1 → confirm with the first-time explainer + pulse; the plain srsLine is REPLACED by it
+      document.querySelector('.rm-status-btn[data-rm-status="l1"]').click();
+      await new Promise((r) => setTimeout(r, 250));
+      const firstMark = readConfirm();
+      const coachFlag = (() => { try { return localStorage.getItem("room.loopCoach.seen"); } catch (_) { return null; } })();
+      // re-open + mark l2 → confirm again but NO explainer (already taught)
+      try { R.closeSheet(); } catch (_) {}
+      await tapWord();
+      document.querySelector('.rm-status-btn[data-rm-status="l2"]').click();
+      await new Promise((r) => setTimeout(r, 200));
+      const secondMark = readConfirm();
+      // re-open + mark known → NO scheduling confirm (setWordStatus returned null)
+      try { R.closeSheet(); } catch (_) {}
+      await tapWord();
+      document.querySelector('.rm-status-btn[data-rm-status="known"]').click();
+      await new Promise((r) => setTimeout(r, 200));
+      const knownMark = { has: !!document.querySelector(".rm-markok") };
+      // a FRESH tap (no mark) must not carry a stale confirm
+      try { R.closeSheet(); } catch (_) {}
+      await tapWord();
+      const freshOpen = { has: !!document.querySelector(".rm-markok") };
+      return { firstMark, coachFlag, secondMark, knownMark, freshOpen, lastCall: window.__p57.calls[window.__p57.calls.length - 1] };
+    });
+    eq(p57.firstMark.has && /В повторении|повторени/i.test(p57.firstMark.head) && /вернётся/i.test(p57.firstMark.head),
+      "P5.7 Т1: marking a level must show the «✓ В повторении · вернётся …» confirmation, got " + JSON.stringify(p57.firstMark));
+    eq(p57.firstMark.explain, "P5.7 Т1/Т2: the FIRST scheduling must show the one-time visual-language explainer");
+    eq(!p57.firstMark.srsLine, "P5.7 Т1: the confirmation REPLACES the passive schedule line (no duplication)");
+    eq(p57.firstMark.pulsed, "P5.7 Т1: the just-marked word must pulse in the text");
+    eq(p57.coachFlag === "1", "P5.7 Т2: the one-time coach flag must be set after the first explainer");
+    eq(p57.secondMark.has && !p57.secondMark.explain, "P5.7 Т2: a subsequent mark confirms but does NOT repeat the explainer, got " + JSON.stringify(p57.secondMark));
+    eq(!p57.knownMark.has, "P5.7 Т1: marking «знаю» (not scheduled) must NOT show a scheduling confirmation");
+    eq(!p57.freshOpen.has, "P5.7 Т1: a fresh tap (no mark) must not carry a stale confirmation");
+
     // ── Epic 4.3b Phase D4 — rankByWeakness (stable lapse-desc; no-data identity). ──
     const wk = await pg.evaluate(() => {
       const R = window.ReaderMorph;

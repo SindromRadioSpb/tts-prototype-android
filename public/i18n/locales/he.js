@@ -2150,6 +2150,13 @@ window.I18N_LOCALES.he = {
         dueIn: "🔁 חזרה: בעוד ~{n} ימ׳",
         none: "עדיין לא בלוח החזרות",
       },
+      mark: {
+        scheduled: "✓ בחזרות",
+        returnsToday: "יחזור היום",
+        returnsIn: "יחזור בעוד ~{n} ימ׳",
+        returnsInH: "יחזור בעוד ~{n} ש׳",
+        explain: "מילים צבועות — במעקב. טבעת מופיעה על מילה כשמגיע זמן החזרה עליה.",
+      },
       study: {
         open: "📚 ללמוד מילים חדשות",
         title: "📚 ללמוד מילים חדשות",
@@ -2196,6 +2203,9 @@ window.I18N_LOCALES.he = {
         inProgress: "בלימוד",
         due: "לחזרה",
         dueMore: "עוד לחזרה",
+        nextDue: "החזרה הקרובה",
+        inDays: "בעוד ~{n} ימ׳",
+        inHours: "בעוד ~{n} ש׳",
         nextReview: "החזרה הבאה בעוד",
         unitDays: "ימים",
         unitHours: "שעות",

@@ -899,6 +899,14 @@ function _dueBadgeEl(extraClass) {
   };
   box.appendChild(grp('room.morph.study.inProgress', 'В работе', 'data-due-inprogress'));
   box.appendChild(grp('room.morph.study.due', 'К повторению', 'data-due-now'));
+  // P5.7 Т3 — when nothing is due NOW, tell the user WHEN words return (trust: the queue is alive).
+  // One nowrap unit; shown only with a future due and something in progress (never over-claims).
+  const ng = el('span', { class: 'db-group db-next', attrs: { 'data-due-next': '1' } });
+  ng.hidden = true;
+  ng.appendChild(el('span', { class: 'db-k', i18n: 'room.morph.study.nextDue', text: tt('room.morph.study.nextDue', 'ближайший повтор') }));
+  ng.appendChild(el('span', { class: 'db-sep', text: ': ' }));
+  ng.appendChild(el('b', { class: 'db-n', attrs: { 'data-due-nextval': '1' }, text: '' }));
+  box.appendChild(ng);
   // D7 — calm streak/goal group (one nowrap unit → breaks only at the logical boundary, invariant #7).
   // «🔥 N · сегодня k/g» — secondary to the due counts, never a loud always-on flame.
   const sg = el('span', { class: 'db-group db-streak', attrs: { 'data-streak-group': '1', role: 'button', tabindex: '0', 'aria-label': tt('room.morph.study.heatTitle', 'Календарь активности') } });
@@ -918,6 +926,19 @@ function _paintDueBadge(box, c) {
   if (dueShow) {
     const ip = box.querySelector('[data-due-inprogress]'); if (ip) ip.textContent = String(c.inProgress);
     const dn = box.querySelector('[data-due-now]'); if (dn) dn.textContent = String(c.dueNow);
+  }
+  // P5.7 Т3 — «ближайший повтор: через ~N дн.» when nothing is due now but words are scheduled.
+  const ng = box.querySelector('[data-due-next]');
+  if (ng) {
+    const showNext = !!(c && c.dueNow === 0 && c.nextDue != null && c.inProgress > 0);
+    ng.hidden = !showNext;
+    if (showNext) {
+      const u = _humanizeUntil(c.nextDue, Date.now());
+      const val = ng.querySelector('[data-due-nextval]');
+      if (val) val.textContent = (u.unit === 'd')
+        ? tt('room.morph.study.inDays', 'через ~{n} дн.').replace('{n}', String(u.n))
+        : tt('room.morph.study.inHours', 'через ~{n} ч.').replace('{n}', String(u.n));
+    }
   }
   box.classList.toggle('has-due', !!(c && c.dueNow > 0));   // accent only when something is actually due now
   // D7 — streak/goal group (off-switch respected; shown once there is a streak or progress today).
@@ -1178,7 +1199,9 @@ async function onStudyStatusSet(btn) {
   if (!lk) return;
   const val = btn.getAttribute('data-study-status');
   const st = (row.dataset.cur === val) ? '' : val;   // re-tap toggles off (→ new/unset)
-  try { await markWordStatus(lk, st); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
+  let res = null;
+  try { res = await markWordStatus(lk, st); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
+  try { if (res && res.dueMs) roomToast('🔁 ' + _dueWhenText(res.dueMs)); } catch (_) {}   // P5.7 Т1 — closure in the study list
   row.dataset.cur = st;
   const w = _studyAll.find((x) => x.lemmaKey === lk); if (w) w._status = st;   // keep the row visible w/ new highlight (gentle; re-collect on re-open)
   row.querySelectorAll('.rm-status-btn').forEach((b) => b.classList.toggle('rm-status-active', b.getAttribute('data-study-status') === st));
@@ -2652,26 +2675,43 @@ function applyReveal(mount) {
 // replays through the SAME seedFromSm2 path as SM2 handover seeds — stored projection ==
 // replay(log) byte-for-byte. Seed-once by PK (`seed:<key>`); a word already scheduled (or ever
 // seeded before) is left untouched — its truth already lives in the log/schedule.
+// Returns the effective schedule for the in-card closure (P5.7 Т1): { dueMs } for an l1–l4 mark
+// (whether freshly seeded or already scheduled — do-no-harm), null otherwise. The caller shows
+// «✓ В повторении · вернётся <when>» from it, so the loop closes at the moment of action.
 async function markWordStatus(lemmaKey, status) {
   try { await localDb.setWordStatus(lemmaKey, status); } catch (_) {}
+  const isLevel = /^l[1-4]$/.test(String(status || ''));
   try {
     const R = window.ReaderMorph, FC = window.FsrsCore, LC = window.LemmaCanon;
-    if (!lemmaKey || !/^l[1-4]$/.test(String(status || '')) || !R || !R.manualMarkSeed || !FC || !LC) return;
-    const sched = (await localDb.getSrsSchedule()) || {};
-    if (sched[lemmaKey]) return;   // already scheduled — never move a stored due (do-no-harm)
-    const now = Date.now();
-    const seed = R.manualMarkSeed(FC, status, now);
-    if (!seed) return;
-    const res = await localDb.appendReviewLog({
-      id: 'seed:' + lemmaKey, item_key: lemmaKey, kind: 'seed',
-      reviewed_at: new Date(now).toISOString(), grade: null, source: 'seed-manual',
-      meta: { ...seed.seedMeta, keyer_version: LC.KEYER_VERSION },
-    });
-    // write the projection ONLY when the log accepted the seed (PK guard): a historic seed row
-    // means this word's state is already log-derived — fabricating a fresh sched would break
-    // the independent oracle.
-    if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, null);
+    if (isLevel && lemmaKey && R && R.manualMarkSeed && FC && LC) {
+      const sched = (await localDb.getSrsSchedule()) || {};
+      if (!sched[lemmaKey]) {   // not yet scheduled → seed it (never move a stored due)
+        const now = Date.now();
+        const seed = R.manualMarkSeed(FC, status, now);
+        if (seed) {
+          const res = await localDb.appendReviewLog({
+            id: 'seed:' + lemmaKey, item_key: lemmaKey, kind: 'seed',
+            reviewed_at: new Date(now).toISOString(), grade: null, source: 'seed-manual',
+            meta: { ...seed.seedMeta, keyer_version: LC.KEYER_VERSION },
+          });
+          // write the projection ONLY when the log accepted the seed (PK guard): a historic seed
+          // row means the state is already log-derived — a fresh sched would break the oracle.
+          if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, null);
+        }
+      }
+    }
   } catch (_) {}
+  if (!isLevel) return null;
+  try { const s = (await localDb.getSrsSchedule()) || {}; return s[lemmaKey] ? { dueMs: s[lemmaKey].due } : null; }
+  catch (_) { return null; }
+}
+// P5.7 Т1/Т3 — humanize a future due into «сегодня»/«через ~N дн.»/«через ~N ч.» for closures + badge.
+function _dueWhenText(dueMs) {
+  const d = (Number(dueMs) || 0) - Date.now();
+  if (d <= 0) return tt('room.morph.mark.returnsToday', 'вернётся сегодня');
+  const days = Math.round(d / 86400000);
+  if (days >= 1) return tt('room.morph.mark.returnsIn', 'вернётся через ~{n} дн.').replace('{n}', String(days));
+  return tt('room.morph.mark.returnsInH', 'вернётся через ~{n} ч.').replace('{n}', String(Math.max(1, Math.round(d / 3600000))));
 }
 
 // Retention P5 — shown-vs-graded tally for the reveal-then-grade card (MNAR control, recon §6.2):
@@ -2761,10 +2801,18 @@ function attachReaderMorph(mount) {
   // invalidate the cached states + repaint the text so the colour updates immediately.
   opts.getWordStatus = (lk) => localDb.getWordStatus(lk);
   opts.setWordStatus = async (lk, st) => {
-    try { await markWordStatus(lk, st); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
+    let res = null;
+    try { res = await markWordStatus(lk, st); } catch (_) {}   // P5.6 R-2(a): l1–l4 mark seeds the schedule
     readerWordStates = null;
     try { applyDecorations(); } catch (_) {}
     try { refreshDueBadge(); } catch (_) {}   // seeding may change the future-due horizon
+    // P5.7 Т1 — closure for the LONG-PRESS popover path (no card open to show the in-card confirm):
+    // a quiet toast. The card path returns `res` so ReaderMorph renders its richer in-card banner.
+    try {
+      const cardOpen = !!document.querySelector('.rm-sheet.rm-open');
+      if (!cardOpen && res && res.dueMs) roomToast('🔁 ' + _dueWhenText(res.dueMs));
+    } catch (_) {}
+    return res;
   };
   // T-b — manual translation for out-of-dict words: re-surface a saved user-meaning on re-open
   // (lookup) + persist a new one into the canonical word_study note (save, Anki-synced).

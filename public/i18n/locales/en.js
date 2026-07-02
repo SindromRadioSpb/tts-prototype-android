@@ -2140,6 +2140,13 @@ window.I18N_LOCALES.en = {
         dueIn: "🔁 Review: in ~{n} d.",
         none: "Not on the review schedule yet",
       },
+      mark: {
+        scheduled: "✓ In review",
+        returnsToday: "comes back today",
+        returnsIn: "comes back in ~{n} d.",
+        returnsInH: "comes back in ~{n} h.",
+        explain: "Coloured words are tracked. A ring appears on a word when it's due for review.",
+      },
       study: {
         open: "📚 Study new words",
         title: "📚 Study new words",
@@ -2186,6 +2193,9 @@ window.I18N_LOCALES.en = {
         inProgress: "Learning",
         due: "Due",
         dueMore: "More due",
+        nextDue: "next review",
+        inDays: "in ~{n} d.",
+        inHours: "in ~{n} h.",
         nextReview: "Next review in",
         unitDays: "d",
         unitHours: "h",

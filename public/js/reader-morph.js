@@ -1002,6 +1002,11 @@
   // { card, prev (extended schedule row), revealed, graded }. Null = normal card. Keyed by card
   // REFERENCE so a root-family drill renders its own normal card and «‹ Назад» resumes the recall.
   var _recallCtx = null;
+  // Retention P5.7 (owner 2026-07-02, Т1) — transient in-card CLOSURE after a level mark:
+  // { lemmaKey, dueMs, firstTime }. Renders the «✓ В повторении · вернётся завтра» confirmation
+  // (+ a one-time visual-language explainer) so the user SEES that the mark scheduled the word.
+  // Cleared on every fresh open / close — never persists across words.
+  var _markConfirm = null;
 
   function ensureSheet() {
     if (_sheet) return _sheet;
@@ -1059,6 +1064,7 @@
     // P5 — closing without a grade writes NOTHING (recon §6.2: abandonment was already tallied at
     // reveal via noteRecallShown; the missing grade is the MNAR signal, never a fabricated row).
     _recallCtx = null;
+    _markConfirm = null;   // P5.7 — the mark confirmation is transient to this word/session
     try { if (_cardReturnFocus && _cardReturnFocus.focus) _cardReturnFocus.focus(); } catch (_) {}   // WCAG 2.4.3 — restore focus
     _cardReturnFocus = null;
   }
@@ -1109,12 +1115,45 @@
     // Toggle on the ACTUAL stored status (not «new», which is now a real storable status): re-tap
     // the stored value → clear; otherwise store the tapped value (incl. «new» → purple).
     var st = (_activeCard.manualStatus === value) ? "" : value;
-    try { await _attachOpts.setWordStatus(_activeCard.lemmaKey, st); } catch (_) {}
+    _markConfirm = null;
+    // setWordStatus returns {dueMs} when the mark SCHEDULED the word (l1–l4 seed, recon P5.6) —
+    // independent of the 🎨 axis, so the closure shows even with colouring off.
+    var res = null;
+    try { res = await _attachOpts.setWordStatus(_activeCard.lemmaKey, st); } catch (_) {}
     _activeCard.manualStatus = st;
+    // P5.7 Т1 — a level mark scheduled the word → re-render with the in-card closure (confirmation +
+    // live schedule line + a one-time «what the colours/ring mean» explainer) + pulse the word.
+    if (/^l[1-4]$/.test(st) && res && res.dueMs) {
+      _activeCard.srsRow = { due: res.dueMs, scheme: "fsrs" };
+      var first = false;
+      try { first = (typeof localStorage !== "undefined") && localStorage.getItem("room.loopCoach.seen") !== "1"; } catch (_) {}
+      _markConfirm = { lemmaKey: _activeCard.lemmaKey, dueMs: res.dueMs, firstTime: first };
+      if (first) { try { localStorage.setItem("room.loopCoach.seen", "1"); } catch (_) {} }
+      if (_activeSpan) { var sp = _activeSpan; try { sp.classList.add("rm-w-pulse"); setTimeout(function () { try { sp.classList.remove("rm-w-pulse"); } catch (_) {} }, 1000); } catch (_) {} }
+      openCard(_activeCard, _activeOcc);
+      return;
+    }
     var isConf = _activeCard.label === "exact" || _activeCard.label === "likely";
     var active = st || (isConf ? "new" : "");
     var sel = _sheet && _sheet.querySelectorAll(".rm-status-btn");
     if (sel) for (var i = 0; i < sel.length; i++) sel[i].classList.toggle("rm-status-active", sel[i].getAttribute("data-rm-status") === active);
+  }
+  // P5.7 Т1 — the in-card closure banner (rendered in place of the passive srsLine right after a
+  // mark). «✓ В повторении · вернётся завтра» + one-time explainer teaching the visual language
+  // (colour = tracked, ring = due). firstTime is decided ONCE (localStorage) at mark time.
+  function markConfirmHtml(card) {
+    var mc = _markConfirm;
+    if (!mc || !card || card.lemmaKey !== mc.lemmaKey) return "";
+    var when = mc.dueMs
+      ? (mc.dueMs <= Date.now()
+          ? tt("room.morph.mark.returnsToday", "вернётся сегодня")
+          : tt("room.morph.mark.returnsIn", "вернётся через ~{n} дн.").replace("{n}", String(Math.max(1, Math.ceil((mc.dueMs - Date.now()) / 86400000)))))
+      : "";
+    var head = '<div class="rm-markok-head">' + escapeHtml(tt("room.morph.mark.scheduled", "✓ В повторении")) + (when ? " · " + escapeHtml(when) : "") + "</div>";
+    var explain = mc.firstTime
+      ? '<div class="rm-markok-explain">' + escapeHtml(tt("room.morph.mark.explain", "Цветные слова — на учёте. Кольцо появится у слова, когда придёт срок повтора.")) + "</div>"
+      : "";
+    return '<div class="rm-markok" dir="' + uiDir() + '">' + head + explain + "</div>";
   }
 
   // Epic 4.2 — in-text quick-status popover (long-press a word → set its level without opening the
@@ -1470,7 +1509,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + srsLineHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + ((_markConfirm && card.lemmaKey === _markConfirm.lemmaKey) ? markConfirmHtml(card) : srsLineHtml(card)) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1494,7 +1533,7 @@
   // context → no per-card refine (like a root-family chip card). _attachOpts (status/save/speak)
   // is whatever the reader wired via attach(); the card degrades gracefully if unwired.
   async function openWordCard(surface, niqqud) {
-    _activeWordCtx = null; _cardStack = []; _recallCtx = null;   // study-row card is never recall-mode
+    _activeWordCtx = null; _cardStack = []; _recallCtx = null; _markConfirm = null;   // study-row card is never recall/confirm mode
     openCardLoading();
     try {
       var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud);
@@ -1678,7 +1717,7 @@
         // like the quiet marker: exact-confident only (a suppressed homograph is never graded —
         // R10 §6.1), «ignore» excluded, a gloss to reveal must exist, and the Room must have wired
         // both the schedule and the grade glue. Everything else opens the normal card unchanged.
-        _recallCtx = null;
+        _recallCtx = null; _markConfirm = null;   // fresh tap → no stale mark confirmation
         try {
           if (card && card.lemmaKey && typeof _attachOpts.getDueSchedule === "function") {
             var schedAll = await _attachOpts.getDueSchedule();
