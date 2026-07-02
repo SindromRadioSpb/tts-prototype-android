@@ -1,5 +1,26 @@
 # SRS Strategy — v3.2 scope decision
 
+> ⚠️ **SUPERSEDED IN PART (2026-07-02) — the retention program shipped the deferred in-app SRS.**
+> The v3.2 decision below ("LinguistPro = creation+linkage, Anki = review, FSRS deferred") was a
+> deliberate v3.2 scope call. It has since been **evolved by
+> `docs/planning/RETENTION_PROGRAM_RECON_2026_07_02.md`** (owner sign-off 2026-07-02), now
+> SHIPPED+PROD (v3.11.81–86):
+> - **The product now owns the repetition loop.** FSRS-6 (`public/js/fsrs-core.js`, byte-parity vs
+>   ts-fsrs@5.4.1) is the ONE scheduler for BOTH the Reading Room recall loop AND the Studio Trainer
+>   — replacing the SM2-lite `nextSrs` and the SM2 stub `computeSM2` (kept only as an honest fallback).
+> - **Truth = an append-only event log** (`review_log`, migration 041), keyed by ONE canonical keyer
+>   (`public/js/lemma-canon.js`); scheduler state (S/D/due) is a derived cache recomputable via
+>   `replay()` (independent-oracle gate). Room + Studio reviews now fold into ONE log per word.
+> - **Reading-native retrieval** (the moat, no competitor has it): due words surface as a quiet ring
+>   in live reading + a reveal-then-grade recall card on tap.
+> - **Anki's role evolved** from "the review layer" to an **optional companion**: the universal .apkg
+>   export + local read-back remain, but conflicts are resolved by **merging histories into
+>   `review_log` + `replay()` recompute** (P4), never by overwriting state. Remote users (no
+>   AnkiConnect) are unaffected — export stays one-way.
+>
+> Read the recon doc first for anything SRS/retention/FSRS/Anki-merge. The sections below are the
+> ORIGINAL v3.2 rationale, kept for provenance.
+
 > **Status.** Approved by user 2026-05-12 (after R2.2 dogfood, before R5/R6).
 > **Companion docs.** `PREMIUM_NOTES_PLAN_v3_2.md`, `ULPAN_RESEARCH_PLAN_v3_2.md`, `CONTRACTS_ANALYTICS.md`.
 
