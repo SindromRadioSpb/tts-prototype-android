@@ -97,6 +97,7 @@
     "smoke:reader-tier3-regression": "node scripts/premium/reader-tier3-regression.js",
     "smoke:reader-word-status": "node scripts/premium/reader-word-status-smoke.js",
     "smoke:memory-canon": "node scripts/premium/memory-canon-smoke.js",
+    "smoke:fsrs": "node scripts/premium/fsrs-core-smoke.js",
     "smoke:finished-guard": "node scripts/premium/finished-texts-guard-smoke.js",
     "smoke:autogen-parity": "node scripts/premium/autogen-parity-smoke.js --gate",
     "smoke:autogen-persist": "node scripts/premium/autogen-persist-browser-smoke.js",
@@ -239,6 +240,7 @@
     "esbuild": "^0.21.0",
     "pixelmatch": "^5.3.0",
     "playwright": "^1.52.0",
-    "pngjs": "^7.0.0"
+    "pngjs": "^7.0.0",
+    "ts-fsrs": "^5.4.1"
   }
 }

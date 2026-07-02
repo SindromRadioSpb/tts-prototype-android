@@ -1,0 +1,610 @@
+{
+ "provenance": {
+  "reference": "ts-fsrs",
+  "reference_version": "5.4.1",
+  "generation": "FSRS-6.0",
+  "algo_banner": "v5.4.1 using FSRS-6.0",
+  "weights": [
+   0.212,
+   1.2931,
+   2.3065,
+   8.2956,
+   6.4133,
+   0.8334,
+   3.0194,
+   0.001,
+   1.8722,
+   0.1666,
+   0.796,
+   1.4835,
+   0.0614,
+   0.2629,
+   1.6483,
+   0.6014,
+   1.8729,
+   0.5425,
+   0.0912,
+   0.0658,
+   0.1542
+  ],
+  "decay": 0.1542,
+  "request_retention": 0.9,
+  "maximum_interval": 36500,
+  "scheduler": "long-term (enable_short_term=false, learning_steps=[], relearning_steps=[], enable_fuzz=false)",
+  "elapsed_semantics": "integer UTC calendar-day diff (ts-fsrs dateDiffInDays); all fixture timestamps at UTC midnight",
+  "generated_by": "scripts/premium/generate-fsrs-fixture.js",
+  "note": "committed fixture — smoke:fsrs asserts fsrs-core.js against these vectors; ts-fsrs itself is a devDependency used only by this generator"
+ },
+ "scenarios": [
+  {
+   "name": "init-again",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 1,
+     "stability": 0.212,
+     "difficulty": 6.4133,
+     "scheduled_days": 1,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "init-hard",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 2,
+     "stability": 1.2931,
+     "difficulty": 5.11217071,
+     "scheduled_days": 2,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "init-good",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "init-easy",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 4,
+     "stability": 8.2956,
+     "difficulty": 1,
+     "scheduled_days": 8,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "good-chain",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 3,
+     "grade": 3,
+     "stability": 13.82690327,
+     "difficulty": 2.11121424,
+     "scheduled_days": 14,
+     "reps": 2,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 14,
+     "grade": 3,
+     "stability": 56.95670978,
+     "difficulty": 2.1043314,
+     "scheduled_days": 57,
+     "reps": 3,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 44,
+     "grade": 3,
+     "stability": 172.08632469,
+     "difficulty": 2.09745544,
+     "scheduled_days": 172,
+     "reps": 4,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 120,
+     "grade": 3,
+     "stability": 439.84588704,
+     "difficulty": 2.09058635,
+     "scheduled_days": 440,
+     "reps": 5,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 300,
+     "grade": 3,
+     "stability": 1015.68306622,
+     "difficulty": 2.08372413,
+     "scheduled_days": 1016,
+     "reps": 6,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 700,
+     "grade": 3,
+     "stability": 2182.59726023,
+     "difficulty": 2.07686878,
+     "scheduled_days": 2183,
+     "reps": 7,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 1500,
+     "grade": 3,
+     "stability": 4387.02225986,
+     "difficulty": 2.07002028,
+     "scheduled_days": 4387,
+     "reps": 8,
+     "lapses": 0,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "again-heavy",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 3,
+     "grade": 1,
+     "stability": 0.63685069,
+     "difficulty": 7.39450274,
+     "scheduled_days": 1,
+     "reps": 2,
+     "lapses": 1,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 1,
+     "stability": 0.22627098,
+     "difficulty": 9.12881914,
+     "scheduled_days": 1,
+     "reps": 3,
+     "lapses": 2,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "stability": 0.9263283,
+     "difficulty": 9.11491869,
+     "scheduled_days": 3,
+     "reps": 4,
+     "lapses": 2,
+     "state": 2
+    },
+    {
+     "dt": 2,
+     "grade": 1,
+     "stability": 0.31758558,
+     "difficulty": 9.69430816,
+     "scheduled_days": 1,
+     "reps": 5,
+     "lapses": 3,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "stability": 0.86610159,
+     "difficulty": 9.67984222,
+     "scheduled_days": 3,
+     "reps": 6,
+     "lapses": 3,
+     "state": 2
+    },
+    {
+     "dt": 3,
+     "grade": 3,
+     "stability": 2.20964605,
+     "difficulty": 9.66539075,
+     "scheduled_days": 3,
+     "reps": 7,
+     "lapses": 3,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "same-day",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 2.3065,
+     "difficulty": 2.11121424,
+     "scheduled_days": 3,
+     "reps": 2,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 0,
+     "grade": 1,
+     "stability": 0.52348156,
+     "difficulty": 7.39223814,
+     "scheduled_days": 1,
+     "reps": 3,
+     "lapses": 1,
+     "state": 2
+    },
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 0.52348156,
+     "difficulty": 7.38007427,
+     "scheduled_days": 3,
+     "reps": 4,
+     "lapses": 1,
+     "state": 2
+    },
+    {
+     "dt": 0,
+     "grade": 4,
+     "stability": 0.52348156,
+     "difficulty": 6.48984555,
+     "scheduled_days": 4,
+     "reps": 5,
+     "lapses": 1,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "long-gap",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 60,
+     "grade": 3,
+     "stability": 45.3423714,
+     "difficulty": 2.11121424,
+     "scheduled_days": 45,
+     "reps": 2,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 365,
+     "grade": 1,
+     "stability": 3.95412151,
+     "difficulty": 7.39223814,
+     "scheduled_days": 4,
+     "reps": 3,
+     "lapses": 1,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "stability": 5.95247115,
+     "difficulty": 7.38007427,
+     "scheduled_days": 6,
+     "reps": 4,
+     "lapses": 1,
+     "state": 2
+    },
+    {
+     "dt": 500,
+     "grade": 3,
+     "stability": 56.14935628,
+     "difficulty": 7.36792257,
+     "scheduled_days": 56,
+     "reps": 5,
+     "lapses": 1,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "hard-easy",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 2,
+     "stability": 1.2931,
+     "difficulty": 5.11217071,
+     "scheduled_days": 2,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 5,
+     "grade": 4,
+     "stability": 17.84267471,
+     "difficulty": 3.4641143,
+     "scheduled_days": 18,
+     "reps": 2,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 17,
+     "grade": 2,
+     "stability": 43.87796547,
+     "difficulty": 5.64640287,
+     "scheduled_days": 44,
+     "reps": 3,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 2,
+     "grade": 4,
+     "stability": 52.04805677,
+     "difficulty": 4.17686196,
+     "scheduled_days": 52,
+     "reps": 4,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 40,
+     "grade": 3,
+     "stability": 133.64408693,
+     "difficulty": 4.16791347,
+     "scheduled_days": 134,
+     "reps": 5,
+     "lapses": 0,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "first-again-relearn",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 1,
+     "stability": 0.212,
+     "difficulty": 6.4133,
+     "scheduled_days": 1,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "stability": 1.88678762,
+     "difficulty": 6.40211507,
+     "scheduled_days": 3,
+     "reps": 2,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 3,
+     "grade": 3,
+     "stability": 7.63823104,
+     "difficulty": 6.39094132,
+     "scheduled_days": 8,
+     "reps": 3,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 9,
+     "grade": 1,
+     "stability": 1.21375192,
+     "difficulty": 8.79895532,
+     "scheduled_days": 1,
+     "reps": 4,
+     "lapses": 1,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 1,
+     "stability": 0.34825926,
+     "difficulty": 9.59045315,
+     "scheduled_days": 1,
+     "reps": 5,
+     "lapses": 2,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 3,
+     "stability": 0.95741208,
+     "difficulty": 9.57609107,
+     "scheduled_days": 3,
+     "reps": 6,
+     "lapses": 2,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "overdue",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 3,
+     "stability": 2.3065,
+     "difficulty": 2.11810397,
+     "scheduled_days": 3,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 30,
+     "grade": 3,
+     "stability": 37.42063886,
+     "difficulty": 2.11121424,
+     "scheduled_days": 37,
+     "reps": 2,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 400,
+     "grade": 3,
+     "stability": 372.86451662,
+     "difficulty": 2.1043314,
+     "scheduled_days": 373,
+     "reps": 3,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 1,
+     "grade": 1,
+     "stability": 5.31318709,
+     "difficulty": 7.38997579,
+     "scheduled_days": 5,
+     "reps": 4,
+     "lapses": 1,
+     "state": 2
+    },
+    {
+     "dt": 4000,
+     "grade": 3,
+     "stability": 67.90822781,
+     "difficulty": 7.37781418,
+     "scheduled_days": 68,
+     "reps": 5,
+     "lapses": 1,
+     "state": 2
+    }
+   ]
+  },
+  {
+   "name": "max-interval-cap",
+   "steps": [
+    {
+     "dt": 0,
+     "grade": 4,
+     "stability": 8.2956,
+     "difficulty": 1,
+     "scheduled_days": 8,
+     "reps": 1,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 20,
+     "grade": 4,
+     "stability": 111.58629425,
+     "difficulty": 1,
+     "scheduled_days": 112,
+     "reps": 2,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 200,
+     "grade": 4,
+     "stability": 868.31587959,
+     "difficulty": 1,
+     "scheduled_days": 868,
+     "reps": 3,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 2000,
+     "grade": 4,
+     "stability": 5722.7431462,
+     "difficulty": 1,
+     "scheduled_days": 5723,
+     "reps": 4,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 10000,
+     "grade": 4,
+     "stability": 25549.40434773,
+     "difficulty": 1,
+     "scheduled_days": 25549,
+     "reps": 5,
+     "lapses": 0,
+     "state": 2
+    },
+    {
+     "dt": 36500,
+     "grade": 4,
+     "stability": 36500,
+     "difficulty": 1,
+     "scheduled_days": 36502,
+     "reps": 6,
+     "lapses": 0,
+     "state": 2
+    }
+   ]
+  }
+ ]
+}
