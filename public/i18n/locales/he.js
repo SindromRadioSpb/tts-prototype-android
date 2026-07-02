@@ -466,6 +466,7 @@ window.I18N_LOCALES.he = {
     corpusBadge: "קאנון",
     corpusBadgeTitle: "קאנון בן־יהודה: הכותרת והטקסט מוגנים; תגיות/רמה/נושא אישיים ניתנים לעריכה",
     openInRoom: "פתח בחדר הקריאה",
+    openInRoomShort: "בחדר הקריאה",
     openInRoomTitle: "קריאת הקאנון — בחדר הקריאה",
     enrichCorpusBlocked: "התרגום הקאנוני מוגן — העשרה מחדש מושבתת",
     removeLocal: "הסר מהמכשיר",

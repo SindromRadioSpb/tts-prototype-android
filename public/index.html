@@ -24351,6 +24351,7 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
       <div class="v3-lib-card-actions">
         <button class="btn-success" data-act="resume">${t("library.resume")}</button>
         <button class="btn-primary" data-act="open">${t("library.open")}</button>
+        ${_isCorpusText ? "" : `<button class="btn-secondary" data-act="openroom" title="${v3EscapeHtml(_ttc("library.openInRoomTitle", "Чтение с морфологией-на-тапе — в Читальном зале"))}">${v3EscapeHtml(_ttc("library.openInRoomShort", "В Зале"))}</button>`}
         <button class="btn-secondary" data-act="edit">${t("library.edit")}</button>
         <button class="btn-secondary" data-act="share" title="${t("library.shareTitle")}">${t("library.share")}</button>
         <button class="btn-secondary" data-act="enrich" data-enrich-id="${v3EscapeHtml(id)}" title="${t("library.enrichTitle")}">${t("library.enrich")}</button>
@@ -24375,6 +24376,9 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     const _roomHref = "/library.html?open=" + encodeURIComponent(String(txt.text_key || ""));
     if (btnOpen) btnOpen.addEventListener("click", () => { if (_isCorpusText) window.open(_roomHref, "_blank", "noopener"); else v3LibraryOpenText(id, { resume: false }); });
     if (btnResume) btnResume.addEventListener("click", () => { if (_isCorpusText) window.open(_roomHref, "_blank", "noopener"); else v3LibraryOpenText(id, { resume: true }); });
+    // own texts: a secondary «В Зале» — the same reading surface the corpus uses (uniform contract)
+    const btnOpenRoom = card.querySelector('button[data-act="openroom"]');
+    if (btnOpenRoom) btnOpenRoom.addEventListener("click", () => window.open(_roomHref, "_blank", "noopener"));
     if (_isCorpusText) {
       if (btnResume) btnResume.style.display = "none";
       if (btnOpen) { btnOpen.textContent = _ttc("library.openInRoom", "Открыть в Зале"); btnOpen.title = _ttc("library.openInRoomTitle", "Чтение канона — в Читальном зале"); }

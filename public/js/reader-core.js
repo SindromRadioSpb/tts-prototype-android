@@ -371,7 +371,11 @@ export async function openText(textId, opts) {
   const localDb = opts.localDb, mount = opts.mount, config = opts.config || {};
   const emit = (s) => { try { if (opts.onState) opts.onState(s); } catch (_) {} };
   if (!localDb || !mount) return { ok: false, reason: "config" };
-  if (typeof localDb.isFollower === "function" && localDb.isFollower()) { emit({ kind: "dbBusy" }); return { ok: false, reason: "dbBusy" }; }
+  // P0-1 v2 (multi-tab unblock): a follower WITH a live proxy route reads through the owner
+  // tab's connection — only a proxy-less follower is genuinely dbBusy (live-caught: the reader
+  // dead-ended a fully functional proxied tab while the home behind it rendered fine).
+  if (typeof localDb.isFollower === "function" && localDb.isFollower()
+    && !(typeof localDb.isProxy === "function" && localDb.isProxy())) { emit({ kind: "dbBusy" }); return { ok: false, reason: "dbBusy" }; }
   emit({ kind: "loading" });
   let text, sentences;
   try {

@@ -461,6 +461,7 @@ window.I18N_LOCALES.en = {
     corpusBadge: "canon",
     corpusBadgeTitle: "Ben-Yehuda canon: title and body are protected; your personal tags/level/topic are editable",
     openInRoom: "Open in the Room",
+    openInRoomShort: "In the Room",
     openInRoomTitle: "Canon reading lives in the Reading Room",
     enrichCorpusBlocked: "The canonical translation is protected — re-enrichment is disabled",
     removeLocal: "Remove from device",

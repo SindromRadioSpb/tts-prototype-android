@@ -462,6 +462,7 @@ window.I18N_LOCALES.ru = {
     corpusBadge: "канон",
     corpusBadgeTitle: "Канон Бен-Иегуды: заголовок и текст защищены; личные теги/уровень/тема — редактируемы",
     openInRoom: "Открыть в Зале",
+    openInRoomShort: "В Зале",
     openInRoomTitle: "Чтение канона — в Читальном зале",
     enrichCorpusBlocked: "Канонический перевод защищён — переобогащение отключено",
     removeLocal: "Убрать с устройства",
