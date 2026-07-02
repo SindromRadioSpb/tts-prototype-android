@@ -1619,7 +1619,7 @@ function onTrainOption(btn) {
     if (b === btn && !correct) b.classList.add('room-train-bad');
     b.disabled = true;
   });
-  checkTrainAnswer(correct);
+  checkTrainAnswer(correct, false, 'mc');
 }
 function onTrainSubmit() {
   if (!_trainSession || _trainSession.answered) return;
@@ -1640,7 +1640,7 @@ function onTrainSubmit() {
   const accepted = _acceptedSkeletons(built.cz.answer, item.surface);   // B5 — form OR lemma, ± proclitic
   const correct = accepted.has(val) || accepted.has(_stripProclitic(val));
   if (target) target.classList.add(correct ? 'room-train-ok' : 'room-train-bad');
-  checkTrainAnswer(correct);
+  checkTrainAnswer(correct, false, buildEl ? 'tiles' : 'typed');
 }
 // C1 — tap-letters interactions: tap a tile → append to the build; tap a built letter → return it.
 function _renderBuild() {
@@ -1675,15 +1675,43 @@ function onTrainSkip() {
   if (inp) inp.disabled = true;
   checkTrainAnswer(false, true);
 }
-async function checkTrainAnswer(correct, skipped) {
+async function checkTrainAnswer(correct, skipped, mode) {
   const s = _trainSession; if (!s || s.answered) return;
   s.answered = true;
   const item = s.items[s.idx];
+  const now = Date.now();   // ONE timestamp for schedule + log — the log row must describe exactly this step
   const next = window.ReaderMorph.nextLevel(item.status, correct);
-  const sched = window.ReaderMorph.nextSrs(item._srs, correct, Date.now());   // C2 — schedule the next review
+  const sched = window.ReaderMorph.nextSrs(item._srs, correct, now);   // C2 — schedule the next review
   // D2 — persist status + schedule + the SOURCE sentence (so the cross-text «due today» queue can re-cloze
   // this word later without opening its text). item._source set at session build (open-text or D2 itself).
   try { await localDb.setWordStatus(item.lemmaKey, next, sched, item._source || null); } catch (_) {}
+  // Retention P0 — append this attempt to review_log, the EVENT-TRUTH of word memory (recon §3.2).
+  // Binary loop → grade 3|1; a skip is kind='skip' (folded like Again, excluded from metrics). The id is
+  // content-deterministic (LemmaCanon.reviewId) so re-appends/bundle merges dedupe by PK. postTeach marks
+  // the immediate post-teach test (excluded from weight fitting/Brier — recall from working memory).
+  // Scheduler provenance = sm2-lite until the P2 FSRS switchover stamps 'fsrs'.
+  try {
+    const LC = window.LemmaCanon;
+    if (LC && item.lemmaKey) {
+      const row = {
+        item_key: item.lemmaKey,
+        kind: skipped ? 'skip' : 'review',
+        reviewed_at: new Date(now).toISOString(),
+        grade: correct ? 3 : 1,
+        source: s.cross ? 'room-due-queue' : 'room-recall',
+        channel: String(s.channel || 'read') + (mode ? ':' + mode : ''),
+        meta: {
+          surface: item.surface || undefined,
+          pos: item.pos || undefined,
+          keyer_version: LC.KEYER_VERSION,
+          scheduler: { scheme: 'sm2-lite' },
+          postTeach: item._taught ? 1 : undefined,
+        },
+      };
+      row.id = LC.reviewId(row);
+      await localDb.appendReviewLog(row);
+    }
+  } catch (_) {}
   item._srs = sched;
   if (correct && next !== item.status) { s.correct++; s.levelUps++; }   // A8 — any promotion counts (incl. new→l1)
   else if (correct) { s.correct++; }

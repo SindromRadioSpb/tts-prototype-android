@@ -1334,7 +1334,9 @@ export async function convertNoteType(id, newType) {
   let droppedCardId = null;
   if (cur.srs_card_id) {
     droppedCardId = String(cur.srs_card_id);
-    try { await r('DELETE FROM srs_reviews WHERE card_id = ?', [droppedCardId]); } catch (_) {}
+    // P0 fix: the review-log table is srs_review_events ('srs_reviews' never existed — the old
+    // DELETE silently no-oped; the FK CASCADE made it survivable, the name is now correct).
+    try { await r('DELETE FROM srs_review_events WHERE card_id = ?', [droppedCardId]); } catch (_) {}
     try { await r('DELETE FROM srs_cards WHERE id = ?', [droppedCardId]); } catch (_) {}
   }
 
@@ -2105,10 +2107,17 @@ export async function getLearningStateOverlay() {
 function _noteLemmaKey(body) {
   if (!body || typeof body !== 'object') return '';
   if (body.pealim_id) return 'pid:' + String(body.pealim_id);
-  const lem = String(body.lemma || body.word || '').trim();
+  // Retention P0 (recon B1): DEFENSIVE niqqud strip — autogen bodies are pre-stripped (no-op),
+  // but hand-edited/T-b bodies may carry a vocalized lemma, which used to key a SECOND dialect
+  // (this fn skipped the strip that getKnownWordStates and NotesAutoGen.lemmaKey both apply).
+  // Keyer conformance across all write paths is asserted by smoke:memory-canon.
+  const lem = String(body.lemma || body.word || '').replace(/[֑-ׇ]/g, '').trim();
   if (!lem) return '';
   return lem + '#' + String(body.pos || body.part_of_speech || '');
 }
+// Retention P0 — public alias so the keyer-conformance gate (smoke:memory-canon) can assert
+// this path stays byte-identical to LemmaCanon.noteKey / NotesAutoGen.lemmaKey (recon B1).
+export function noteLemmaKey(body) { return _noteLemmaKey(body); }
 
 // R-3.9 — position-ownership reconcile after an autogen BUILD. The current build
 // OWNS each (sentence, word_offset) it covers; any OTHER autogen note occupying
@@ -2428,6 +2437,54 @@ export async function getStudyDays(sinceDayStr) {
       : await q(`SELECT day, recalls, available FROM study_day ORDER BY day ASC`, []);
     return (rows || []).map((w) => ({ day: String(w.day), recalls: Number(w.recalls) || 0, available: Number(w.available) || 0 }));
   } catch (_) { return []; }
+}
+
+// ── Retention P0 — review_log, the append-only EVENT-TRUTH of word memory (migration 041,
+// RETENTION_PROGRAM_RECON_2026_07_02.md §3.2). Rows arrive with a CONTENT-DETERMINISTIC id
+// (LemmaCanon.reviewId / 'anki:<reviewId>' / 'seed:<item_key>') so INSERT OR IGNORE is a true
+// cross-device merge: re-append, re-import and two-device union are all idempotent by PK.
+// This layer VALIDATES and stores; it never fabricates ids (an id-less row is refused — the
+// caller owns identity, recon B5). Scheduler state stays a derived cache on word_status.srs_*.
+const _RL_KINDS = { review: 1, skip: 1, seed: 1 };
+export async function appendReviewLog(rows) {
+  const list = Array.isArray(rows) ? rows : [rows];
+  let accepted = 0, refused = 0;
+  for (const row of list) {
+    const id = row && row.id != null ? String(row.id).trim() : "";
+    const itemKey = row && row.item_key != null ? String(row.item_key).trim() : "";
+    const at = row && row.reviewed_at != null ? String(row.reviewed_at).trim() : "";
+    const source = row && row.source != null ? String(row.source).trim() : "";
+    const kind = row && row.kind != null ? String(row.kind) : "review";
+    if (!id || !itemKey || !at || !source || !_RL_KINDS[kind]) { refused++; continue; }
+    const grade = row.grade == null ? null : (Number(row.grade) || 0);
+    if (kind !== "seed" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
+    const meta = typeof row.meta_json === "string" ? row.meta_json : JSON.stringify(row.meta || {});
+    try {
+      await r(
+        `INSERT OR IGNORE INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
+         VALUES (?,?,?,?,?,?,?,?,?)`,
+        [id, itemKey, kind, at, kind === "seed" ? null : grade, source,
+         row.channel != null ? String(row.channel) : null,
+         row.latency_ms != null ? (Number(row.latency_ms) || 0) : null, meta]);
+      accepted++;
+    } catch (_) { refused++; }
+  }
+  return { accepted, refused };
+}
+// Read-back for gates, replay (P2) and the retention report (P6). Ordered by reviewed_at then id
+// (the deterministic replay tie-break, recon §4.1). Graceful [] pre-migration.
+export async function getReviewLog(itemKey, limit) {
+  try {
+    const lim = Math.max(1, Math.min(100000, Number(limit) || 100000));
+    const rows = itemKey
+      ? await q(`SELECT * FROM review_log WHERE item_key = ? ORDER BY reviewed_at ASC, id ASC LIMIT ?`, [String(itemKey), lim])
+      : await q(`SELECT * FROM review_log ORDER BY reviewed_at ASC, id ASC LIMIT ?`, [lim]);
+    return rows || [];
+  } catch (_) { return []; }
+}
+export async function countReviewLog() {
+  try { const rows = await q(`SELECT COUNT(*) c FROM review_log`, []); return Number(rows && rows[0] && rows[0].c) || 0; }
+  catch (_) { return 0; }
 }
 
 // ⑤ Anki-sync A2b — full word_study note bodies for the client-side .apkg export (AnkiSrsExport parses
@@ -3755,7 +3812,7 @@ export const srs = {
       );
       let dropped = 0;
       for (const row of orphaned) {
-        try { await r('DELETE FROM srs_reviews WHERE card_id = ?', [row.card_id]); } catch (_) {}
+        try { await r('DELETE FROM srs_review_events WHERE card_id = ?', [row.card_id]); } catch (_) {}
         try { await r('DELETE FROM srs_cards WHERE id = ?', [row.card_id]); } catch (_) {}
         try { await r('UPDATE notes_v2 SET srs_card_id = NULL WHERE id = ? AND srs_card_id = ?', [row.note_id, row.card_id]); } catch (_) {}
         dropped++;
@@ -3807,10 +3864,15 @@ export const srs = {
   async reviewCard(cardId, rating) {
     // Include text_id via sentence FK so we can attribute the srs_review
     // event to a specific text without a follow-up query (Phase 11.0).
+    // Retention P0: also fetch order_index + text_key (sentence cards) and the note body
+    // (note cards) so this review can land in review_log under the CANONICAL item key.
     const rows = await q(
-      `SELECT c.*, s.text_id AS sentence_text_id
+      `SELECT c.*, s.text_id AS sentence_text_id, s.order_index AS sentence_order_index,
+              t.text_key AS sentence_text_key, n.body_json AS note_body_json
        FROM srs_cards c
        LEFT JOIN sentences s ON c.source_sentence_id = s.id
+       LEFT JOIN texts t ON s.text_id = t.id
+       LEFT JOIN notes_v2 n ON c.source_note_id = n.id
        WHERE c.id = ?`,
       [cardId]
     );
@@ -3840,6 +3902,29 @@ export const srs = {
       [eventId, cardId, rating, card.interval_days, newInterval,
        card.ease_factor, newEase, now]
     );
+
+    // Retention P0 — append to review_log, the canonical event-truth (recon §3.2). id reuses the
+    // srs_review_events uuid ('sre:<uuid>' — minted exactly once per review, preserved by bundle
+    // Pass 8/14, so merges dedupe by PK without a hash). item_key: note cards → canonical lemma
+    // key from the note body; sentence cards → the content-stable 'sent:<text_key>#<oix>#<tpl>'
+    // (recon B3 — card uuids do NOT survive bundle import, text_key+order_index do). An
+    // unmappable card is SKIPPED, never logged under a fabricated key. Best-effort like the
+    // events emit below — a log failure never blocks the review.
+    try {
+      let itemKey = '';
+      if (card.source_note_id && card.note_body_json) {
+        try { itemKey = _noteLemmaKey(JSON.parse(card.note_body_json)); } catch (_) {}
+      } else if (card.source_sentence_id && card.sentence_text_key != null && card.sentence_order_index != null) {
+        itemKey = 'sent:' + card.sentence_text_key + '#' + card.sentence_order_index + '#' + String(card.template_id || '');
+      }
+      if (itemKey) {
+        await appendReviewLog({
+          id: 'sre:' + eventId, item_key: itemKey, kind: 'review', reviewed_at: now,
+          grade: Number(rating) || 0, source: 'studio-trainer', channel: null,
+          meta: { scheduler: { scheme: 'sm2' }, card_id: cardId, note_id: card.source_note_id || undefined },
+        });
+      }
+    } catch (_) { /* best-effort */ }
 
     // Phase 11.0: emit srs_review into the unified events table for
     // analytics + research-mode aggregation. Best-effort — never blocks
@@ -4289,6 +4374,13 @@ async function _buildAdvancedNotesPayload(textIds) {
   const ankiWordExports     = await _all('SELECT * FROM anki_word_exports');
   const eventsRows          = await _all('SELECT * FROM events');
   const translationOverrides = await _all('SELECT * FROM translation_overrides');
+  // Retention P0 (recon B6): the word-memory tables were MISSING from the backup — a device
+  // migration silently lost the manual reading axis (l1..l4/known/ignore), the whole Room recall
+  // schedule and the streak ledger. All three ride in full; import merges them idempotently
+  // (review_log by content-PK, word_status newer-wins by column group, study_day per-day MAX).
+  const reviewLog           = await _all('SELECT * FROM review_log');
+  const wordStatusRows      = await _all('SELECT * FROM word_status');
+  const studyDayRows        = await _all('SELECT * FROM study_day');
 
   return {
     schema_version: 2,
@@ -4309,6 +4401,9 @@ async function _buildAdvancedNotesPayload(textIds) {
     anki_word_exports: ankiWordExports,
     events: eventsRows,
     translation_overrides: translationOverrides,
+    review_log: reviewLog,
+    word_status: wordStatusRows,
+    study_day: studyDayRows,
   };
 }
 
@@ -5049,7 +5144,12 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
     try { await r('UPDATE notes_v2 SET srs_card_id = ? WHERE id = ?', [newCardId, newNoteId]); } catch (_) {}
   }
 
-  // Pass 8 — srs_review_events (remap card_id; new id; idempotent via id PK).
+  // Pass 8 — srs_review_events (remap card_id; KEEP the original event id). Retention P0 fix
+  // (recon B5): a fresh uuid() here never conflicted, so "idempotent via id PK" was FALSE —
+  // re-importing the same bundle duplicated the whole review history onto the Pass-7-merged
+  // card, silently inflating reps for any replay consumer. Original ids are uuids minted at
+  // review time (unique across devices), so preserving them + INSERT OR IGNORE is both a real
+  // idempotency key and a real two-device merge.
   out.srs_review_events = { inserted: 0, dropped: 0 };
   for (const e of (Array.isArray(payload.srs_review_events) ? payload.srs_review_events : [])) {
     const cid = e && oldToNewCardId.get(String(e.card_id || ''));
@@ -5058,7 +5158,7 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
       await r(
         `INSERT OR IGNORE INTO srs_review_events (id, card_id, rating, interval_before, interval_after, ease_before, ease_after, review_time_ms, reviewed_at)
          VALUES (?,?,?,?,?,?,?,?,?)`,
-        [uuid(), cid, Number(e.rating) || 0, e.interval_before ?? null, e.interval_after ?? null,
+        [String(e.id || uuid()), cid, Number(e.rating) || 0, e.interval_before ?? null, e.interval_after ?? null,
          e.ease_before ?? null, e.ease_after ?? null, e.review_time_ms ?? null, e.reviewed_at || new Date().toISOString()]
       );
       out.srs_review_events.inserted++;
@@ -5117,7 +5217,11 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
   }
 
   // Pass 12 — events (remap typed FK ids; drop only when a PRESENT ref fails to
-  // remap; keep global events. New id; idempotent via id PK).
+  // remap; keep global events. Retention P0 fix (recon B5): KEEP the original event id —
+  // uuid() here destroyed the deterministic 'anki:<reviewId>' identity on a migrated device
+  // (recordAnkiReviews' INSERT OR IGNORE dedupe stopped working) and made re-imports duplicate
+  // history. Original ids are unique (uuid at creation / 'anki:<reviewId>'), so preserving
+  // them + OR IGNORE is the real idempotency key.
   out.events = { inserted: 0, dropped: 0 };
   for (const ev of (Array.isArray(payload.events) ? payload.events : [])) {
     if (!ev || typeof ev !== 'object') { out.events.dropped++; continue; }
@@ -5132,7 +5236,7 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
       await r(
         `INSERT OR IGNORE INTO events (id, ts, event_type, entity_type, entity_id, session_id, text_id, sentence_id, note_id, card_id, source, payload_json)
          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
-        [uuid(), ev.ts || new Date().toISOString(), String(ev.event_type || 'unknown'),
+        [String(ev.id || uuid()), ev.ts || new Date().toISOString(), String(ev.event_type || 'unknown'),
          ev.entity_type ?? null, ev.entity_id ?? null, ev.session_id ?? null,
          nText, nSent, nNote, nCard, ev.source ?? null,
          (typeof ev.payload_json === 'string' ? ev.payload_json : '{}')]
@@ -5155,6 +5259,76 @@ async function _applyAdvancedNotesPayload(payload, ctx) {
       );
       out.translation_overrides.inserted++;
     } catch (_) { out.translation_overrides.dropped++; }
+  }
+
+  // Pass 14 — review_log (Retention P0, recon §3.2). NO remap: item_key is the canonical lemma
+  // key (device-independent) and ids are content-deterministic/global — INSERT OR IGNORE by PK
+  // IS the merge. Malformed rows are refused by the same validation as appendReviewLog.
+  out.review_log = { inserted: 0, dropped: 0 };
+  {
+    const rlRows = Array.isArray(payload.review_log) ? payload.review_log : [];
+    if (rlRows.length) {
+      const before = await countReviewLog();
+      const res = await appendReviewLog(rlRows);
+      out.review_log.inserted = (await countReviewLog()) - before;
+      out.review_log.dropped = res.refused;
+    }
+  }
+
+  // Pass 15 — word_status (Retention P0, recon B6). Natural key lemma_key (no remap). Merge is
+  // newer-updated_at-wins BY COLUMN GROUP: the status axis follows the newer row; the srs_*
+  // schedule group is taken from the incoming row ONLY when it actually carries a schedule
+  // (srs_due present) — an incoming never-trained row must not wipe a local schedule (the
+  // UPSERT-preserve lesson); source anchors keep the COALESCE discipline of migration 060.
+  out.word_status = { inserted: 0, dropped: 0 };
+  for (const w of (Array.isArray(payload.word_status) ? payload.word_status : [])) {
+    const lk = w && w.lemma_key != null ? String(w.lemma_key).trim() : '';
+    const st = w && w.status != null ? String(w.status).trim() : '';
+    if (!lk || !st || !_WS_VALUES[st]) { out.word_status.dropped++; continue; }
+    try {
+      await r(
+        `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_text_key, srs_sentence_id, srs_order_index, srs_surface)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?)
+         ON CONFLICT(lemma_key) DO UPDATE SET
+           status = excluded.status, updated_at = excluded.updated_at,
+           srs_due      = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_due      ELSE srs_due      END,
+           srs_interval = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_interval ELSE srs_interval END,
+           srs_reps     = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_reps     ELSE srs_reps     END,
+           srs_lapses   = CASE WHEN excluded.srs_due IS NOT NULL THEN excluded.srs_lapses   ELSE srs_lapses   END,
+           srs_text_key    = COALESCE(excluded.srs_text_key, srs_text_key),
+           srs_sentence_id = COALESCE(excluded.srs_sentence_id, srs_sentence_id),
+           srs_order_index = COALESCE(excluded.srs_order_index, srs_order_index),
+           srs_surface     = COALESCE(excluded.srs_surface, srs_surface)
+         WHERE excluded.updated_at > word_status.updated_at`,
+        [lk, st, w.updated_at || new Date().toISOString(), w.srs_due ?? null,
+         Number(w.srs_interval) || 0, Number(w.srs_reps) || 0, Number(w.srs_lapses) || 0,
+         w.srs_text_key ?? null, w.srs_sentence_id ?? null,
+         w.srs_order_index != null ? Number(w.srs_order_index) : null, w.srs_surface ?? null]
+      );
+      out.word_status.inserted++;
+    } catch (_) { out.word_status.dropped++; }
+  }
+
+  // Pass 16 — study_day (Retention P0, recon B6). Natural key day; merge keeps the per-day MAX
+  // of both counters (the ledger semantic — recordRecall counts up, available is already a MAX),
+  // so a two-device union can only gain credit, never lose a streak day.
+  out.study_day = { inserted: 0, dropped: 0 };
+  for (const d of (Array.isArray(payload.study_day) ? payload.study_day : [])) {
+    const day = d && d.day != null ? String(d.day).trim() : '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) { out.study_day.dropped++; continue; }
+    try {
+      await r(
+        `INSERT INTO study_day (day, recalls, available, updated_at)
+         VALUES (?,?,?,?)
+         ON CONFLICT(day) DO UPDATE SET
+           recalls = MAX(study_day.recalls, excluded.recalls),
+           available = MAX(study_day.available, excluded.available),
+           updated_at = excluded.updated_at`,
+        [day, Math.max(0, Number(d.recalls) || 0), Math.max(0, Number(d.available) || 0),
+         d.updated_at || new Date().toISOString()]
+      );
+      out.study_day.inserted++;
+    } catch (_) { out.study_day.dropped++; }
   }
 
   return out;

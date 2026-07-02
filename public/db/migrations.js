@@ -846,4 +846,36 @@ export const MIGRATIONS = [
     manual_smart_tag TEXT,
     updated_at       TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
   );`,
+
+  // 041_review_log — Retention program P0 (RETENTION_PROGRAM_RECON_2026_07_02.md §3.2).
+  // ⚠ Label numbering reset: earlier "NNN_" labels are FICTION (this array has 40 entries before
+  // this one and the applied version = array index — the "061" label above is really version 40,
+  // and "061" is even doubled). From here labels equal the REAL index (this entry = version 41);
+  // smoke:memory-canon asserts label==index for new entries. Do not renumber old labels (comments
+  // only — renaming them changes nothing and risks confusion in old docs).
+  //
+  // The append-only EVENT-TRUTH of word memory: every genuine recall attempt (Room recall/due-queue,
+  // Studio trainer (P3), reading-tap (P5), Anki ingest (P4)) plus 'seed' snapshot rows that make the
+  // scheduler state fully replayable from this log alone (independent-oracle gate, recon B4).
+  // id is CONTENT-DETERMINISTIC + globally unique (LemmaCanon.reviewId 'app:<sha1-20>' |
+  // 'anki:<reviewId>' | 'seed:<item_key>') so bundle merge = INSERT OR IGNORE with zero loss and
+  // zero duplication across devices (recon B5). item_key = the canonical lemma key
+  // (lemma-canon.js; 'sent:<text_key>#<order_index>#<template>' for sentence cards, P3).
+  // kind: 'review' (scored attempt) | 'skip' (refusal — folded like Again by the ONE shared engine
+  // step, excluded from metrics/optimizer) | 'seed' (grade NULL; SM2 snapshot in meta_json).
+  // grade 1..4 (Again/Hard/Good/Easy); the binary Room loop writes 1|3. Scheduler state stays a
+  // DERIVED cache on word_status.srs_* — this table is the source of truth (derived≠asserted).
+  `CREATE TABLE IF NOT EXISTS review_log (
+    id          TEXT PRIMARY KEY,
+    item_key    TEXT NOT NULL,
+    kind        TEXT NOT NULL DEFAULT 'review',
+    reviewed_at TEXT NOT NULL,
+    grade       INTEGER,
+    source      TEXT NOT NULL,
+    channel     TEXT,
+    latency_ms  INTEGER,
+    meta_json   TEXT NOT NULL DEFAULT '{}'
+  );
+  CREATE INDEX IF NOT EXISTS ix_review_log_item ON review_log(item_key, reviewed_at);
+  CREATE INDEX IF NOT EXISTS ix_review_log_time ON review_log(reviewed_at);`,
 ];

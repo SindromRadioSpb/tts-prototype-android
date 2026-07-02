@@ -709,6 +709,15 @@
   // setWordStatus/getKnownWordStates exactly: niqqud-derived surface (ktiv male/chaser parity) +
   // function-link pid. NA = NotesAutoGen; returns "" when NA/lemmaKey is unavailable.
   function statusKeyForCard(NA, card, niqqud, surface) {
+    // Retention P0 (recon B1): delegate to the single exported canon keyer (lemma-canon.js) so
+    // every OTHER write path (Studio P3, Anki ingest P4, review_log) shares these exact bytes.
+    // The inline fallback below is kept byte-equal for load-order robustness; smoke:memory-canon
+    // asserts delegate == fallback on shared fixtures, so they cannot drift silently.
+    try {
+      if (typeof window !== "undefined" && window.LemmaCanon && card) {
+        return window.LemmaCanon.canonKey(NA, card, niqqud, surface) || "";
+      }
+    } catch (_) {}
     if (!NA || !NA.lemmaKey) return "";
     var ks = _statusKeyWord(card, niqqud, surface);
     try { return NA.lemmaKey({ pealim_id: _statusPid(card, ks), lemma: card.lemma, word: ks, pos: card.pos }) || ""; }
@@ -2229,6 +2238,9 @@
     streakFromDays: streakFromDays, streakView: streakView, studyHeatmap: studyHeatmap,
     STREAK_GOAL_CAP: STREAK_GOAL_CAP, STREAK_GRACE_MAX: STREAK_GRACE_MAX,
     availableChannels: availableChannels,
+    // Retention P0 — exported so smoke:memory-canon can assert the LemmaCanon delegate stays
+    // byte-identical to the inline fallback (keyer-conformance gate, recon B1).
+    statusKeyForCard: statusKeyForCard,
   };
 
   if (typeof window !== "undefined") window.ReaderMorph = API;
