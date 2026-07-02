@@ -9821,7 +9821,10 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
     // P0-1: follower tab — DB owned by another tab. Do NOT run integrity /
     // seed / research (no DB here). Show the premium "active elsewhere"
     // overlay; defer if the body script hasn't defined it yet.
-    if (typeof _ldb.isFollower === 'function' && _ldb.isFollower()) {
+    if (typeof _ldb.isFollower === 'function' && _ldb.isFollower()
+        && !(typeof _ldb.isProxy === 'function' && _ldb.isProxy())) {
+      // P0-1 v2: only a PROXY-LESS follower dead-ends here; a follower with a live proxy route
+      // (multi-tab unblock) proceeds as a fully functional tab (queries serialize via the owner).
       window.__localDBFollower = true;
       try { (window.v3OpfsTelemetryPush || function(){})({ kind: 'init.follower' }); } catch (_) {}
       try {
@@ -9829,6 +9832,9 @@ body.room-mode .room-prov-attr { font-size: 11px; color: var(--theme-text-second
         else window.__localDBFollowerPending = true;
       } catch (_) {}
       return;
+    }
+    if (typeof _ldb.isProxy === 'function' && _ldb.isProxy()) {
+      try { (window.v3OpfsTelemetryPush || function(){})({ kind: 'init.proxy' }); } catch (_) {}
     }
     const ms = Date.now() - _opfsInitT0;
     let info = null; try { info = _ldb.getVfsInfo(); } catch (_) {}
@@ -25738,8 +25744,8 @@ function v3TabCoordRefreshBanner() {
   }
   const total = n + 1;
   const msg =
-    "⚠️ Библиотека открыта в " + total + " вкладках. Это может вызвать рассинхронизацию данных. " +
-    "Закройте лишние вкладки.";
+    "ℹ️ Библиотека открыта в " + total + " вкладках. Запросы идут через одну вкладку-владельца; " +
+    "если данные в этой вкладке выглядят устаревшими — обновите её.";
   if (el.dataset.collapsed === "1") {
     el.dataset.full = msg;
     el.textContent = "⚠️ " + total + " вкладок";

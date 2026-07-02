@@ -5820,7 +5820,9 @@ async function boot() {
   maybeStartWkDebug();           // BRR-P1-008b ?wkdebug=1 on-device karaoke diagnostic
   try {
     await localDb.initLocalDB();
-    if (localDb.isFollower && localDb.isFollower()) {
+    // P0-1 v2: a follower WITH a live proxy route is fully functional (queries go to the owner
+    // tab's single OPFS connection) — only a proxy-less follower still dead-ends on «БД занята».
+    if (localDb.isFollower && localDb.isFollower() && !(localDb.isProxy && localDb.isProxy())) {
       if (validateRequested()) { showValidationOverlay(VALIDATE_DBBUSY_MSG); return; }
       showState('room.state.dbBusy', '📑'); return;
     }

@@ -120,16 +120,44 @@ async function main() {
     test("Tab A is owner (not follower)", aIsFollower === false, `isFollower=${aIsFollower}`);
     test("Tab A has no follower overlay", !aOverlay);
 
-    // ── Tab B — same origin → should be follower ──
+    // ── Tab B — same origin → follower, but fully FUNCTIONAL via the owner proxy (P0-1 v2:
+    // multi-tab unblock 2026-07-02; the dead-end overlay is now the proxy-less legacy path only) ──
     const pageB = await ctx.newPage();
     wireConsole(pageB, "B");
     await pageB.goto(`${BASE}/?localMode=1`, { waitUntil: "domcontentloaded" });
-    const bOverlay = await pageB.waitForSelector("#v3FollowerOverlay", { timeout: 20000 }).catch(() => null);
-    test("Tab B shows the follower overlay", !!bOverlay);
-    if (bOverlay) {
-      const hasTakeover = await pageB.$("#v3FollowerTakeover");
-      const hasReload = await pageB.$("#v3FollowerReload");
-      test("Follower overlay has 'Use here' + 'Reload' actions", !!hasTakeover && !!hasReload);
+    await pageB.waitForFunction(
+      () => window.__localDB && window.__localDB.isReady && window.__localDB.isReady(),
+      null, { timeout: 20000 }
+    ).catch(() => {});
+    const bState = await pageB.evaluate(async () => {
+      const db = window.__localDB;
+      const follower = !!(db && db.isFollower && db.isFollower());
+      const proxy = !!(db && db.isProxy && db.isProxy());
+      let queryOk = false, writeOk = false, err = "";
+      try { const r = await db.listTexts({ limit: 5 }); queryOk = Array.isArray(r); } catch (e) { err = "q:" + (e && e.message); }
+      try {
+        await db.createText({ id: "mt-proxy-t", text_key: "mt-proxy-t", title: "proxy-write", source_text: "x" });
+        const t = await db.getTextById("mt-proxy-t");
+        writeOk = !!(t && t.title === "proxy-write");
+      } catch (e) { err += " w:" + (e && e.message); }
+      return { follower, proxy, queryOk, writeOk, err };
+    });
+    test("Tab B is a follower WITH a live proxy route", bState.follower === true && bState.proxy === true, JSON.stringify(bState));
+    const bOverlay = await pageB.$("#v3FollowerOverlay");
+    test("Tab B shows NO dead-end overlay (multi-tab unblocked)", !bOverlay);
+    // Env-tolerant functional asserts (same convention as the crash section below): when the
+    // OWNER's OPFS itself crashed in this headless sandbox, the proxy must RELAY the typed
+    // DbUnavailableError (no hang, no raw wasm string) — that IS the pass. On a healthy env
+    // the queries must genuinely round-trip.
+    const aCrashed = await pageA.evaluate(() => {
+      try { const e = window.__localDB && window.__localDB.getDbError && window.__localDB.getDbError(); return !!e; } catch (_) { return false; }
+    });
+    if (aCrashed) {
+      const typedRelay = /temporarily unavailable|DB_/i.test(bState.err || "");
+      test("Owner OPFS crashed (headless env) → proxy relays the TYPED error", typedRelay, bState.err);
+    } else {
+      test("Tab B reads through the owner (listTexts via proxy)", bState.queryOk === true, bState.err);
+      test("Tab B write→read round-trip via proxy", bState.writeOk === true, bState.err);
     }
 
     // ── Core invariant: graceful degradation ──
@@ -161,14 +189,13 @@ async function main() {
     });
     test("Raw wasm string never shown in user-facing UI", rawInUi === false);
 
-    // ── Takeover handshake: B claims ownership, A yields ──
-    if (bOverlay) {
-      await pageB.click("#v3FollowerTakeover").catch(() => {});
-      // A should yield and show its own overlay; B reloads to become owner.
-      const aGotOverlay = await pageA.waitForSelector("#v3FollowerOverlay", { timeout: 12000 })
-        .catch(() => null);
-      test("After takeover, Tab A shows follower overlay (yielded ownership)", !!aGotOverlay);
-    }
+    // ── Failover unchanged: owner closes → the proxying follower reloads into ownership ──
+    await pageA.close();
+    const bBecameOwner = await pageB.waitForFunction(
+      () => window.__localDB && window.__localDB.isFollower && !window.__localDB.isFollower(),
+      null, { timeout: 15000 }
+    ).then(() => true).catch(() => false);
+    test("After the owner closes, Tab B becomes the owner (Web-Locks failover)", bBecameOwner);
 
     await ctx.close();
   } catch (e) {
