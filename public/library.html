@@ -32,6 +32,8 @@
       --ws-new-fill: rgba(124,58,237,.26);  --ws-l1-fill: rgba(207,75,67,.30);   --ws-l2-fill: rgba(211,128,31,.30);
       --ws-l3-fill: rgba(67,160,71,.30);    --ws-l4-fill: rgba(67,115,224,.28);  --ws-known-fill: rgba(13,148,136,.28);
       --ws-ignore-fill: rgba(100,116,139,.22);
+      /* Retention P5 — due-review ring (a hue OUTSIDE the status ramp: pink ≠ any level colour) */
+      --ws-due: #db2777;
       /* Epic 8d — confidence-pill text: LIGHT theme needs darker hues for ≥4.5:1 on the .16 fills. */
       --prov-exact: #15803d; --prov-likely: #1d4ed8; --prov-amber: #92660f; --prov-context: #6d28d9;
     }
@@ -50,6 +52,7 @@
         --ws-new-fill: rgba(139,92,246,.34);  --ws-l1-fill: rgba(224,99,92,.34);   --ws-l2-fill: rgba(230,150,55,.34);
         --ws-l3-fill: rgba(80,190,95,.32);    --ws-l4-fill: rgba(96,140,240,.32);  --ws-known-fill: rgba(20,184,166,.32);
         --ws-ignore-fill: rgba(140,150,165,.26);
+        --ws-due: #f472b6;
         --prov-exact: #3fb950; --prov-likely: #5a9bff; --prov-amber: #d29922; --prov-context: #a371f7;
       }
     }
@@ -61,6 +64,7 @@
       --ws-new-fill: rgba(139,92,246,.34);  --ws-l1-fill: rgba(224,99,92,.34);   --ws-l2-fill: rgba(230,150,55,.34);
       --ws-l3-fill: rgba(80,190,95,.32);    --ws-l4-fill: rgba(96,140,240,.32);  --ws-known-fill: rgba(20,184,166,.32);
       --ws-ignore-fill: rgba(140,150,165,.26);
+      --ws-due: #f472b6;
       --prov-exact: #3fb950; --prov-likely: #5a9bff; --prov-amber: #d29922; --prov-context: #a371f7;
     }
 
@@ -979,6 +983,20 @@
     .rm-refine-busy, .rm-refine-miss { font-size: 12px; color: var(--text-secondary); padding: 4px 2px; }
     .rm-meaning { font-size: 16px; line-height: 1.4; color: var(--text-primary); margin-bottom: 12px; }
     .rm-meaning-empty { color: var(--text-faint); font-style: italic; }
+    /* Retention P5 — reveal-then-grade recall strip («вспомни» mode). Auto-width buttons (escape
+       the global button{width:100%} trap); logical line-breaks: the prompt is its own full row,
+       the two grade buttons share one row (premium linebreak rule — never a mid-phrase wrap). */
+    .rm-recall {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 10px 0 12px;
+      padding: 10px 12px; border: 1.5px dashed var(--ws-due); border-radius: 10px;
+    }
+    .rm-recall-k { flex: 1 1 100%; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    .rm-recall-grade .rm-recall-k { flex: 1 1 100%; }
+    .rm-recall button { width: auto; appearance: none; cursor: pointer; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 700; padding: 9px 14px; }
+    .rm-recall-reveal { flex: 1 1 auto; background: var(--accent); color: var(--accent-contrast); border: 1px solid var(--accent); }
+    .rm-recall-yes { flex: 1 1 auto; background: var(--ws-l3-fill); border: 1px solid var(--ws-l3); color: var(--text-primary); }
+    .rm-recall-no { flex: 1 1 auto; background: var(--ws-l1-fill); border: 1px solid var(--ws-l1); color: var(--text-primary); }
+    .rm-recall-done { border-style: solid; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
     /* T-b — learner's own translation (out-of-dict words): «ваш» provenance + inline editor. */
     .rm-meaning-mine { font-size: 11px; font-weight: 700; font-style: normal; vertical-align: 2px;
       color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent);
@@ -1102,6 +1120,14 @@
     .rm-w-known { background: var(--ws-known-fill); border-radius: 3px; }
     .rm-w-ignore { background: var(--ws-ignore-fill); border-radius: 3px; }
     .rm-w-learning { background: var(--ws-l2-fill); border-radius: 3px; }   /* SRS-derived (Anki) → orange */
+    /* Retention P5 (recon §6.1) — quiet due-review marker: a small superscript RING at the word's
+       end (RTL → left), NEVER a background tint (the background IS the manual-status axis; a due
+       word keeps its level fill AND gains the ring). Marked only on exact-confident resolutions —
+       homographs/likely are silently suppressed + tallied (R10 honesty). Theme-safe via --ws-due. */
+    .rm-w-due::after {
+      content: ""; display: inline-block; width: 5px; height: 5px; margin: 0 2px;
+      border: 1.5px solid var(--ws-due); border-radius: 50%; vertical-align: super; opacity: .9;
+    }
     .rm-w.rm-w-active { background: var(--accent); color: var(--accent-contrast); }   /* tapped word wins over fill */
     /* BRR-P1-008 karaoke — stronger "current line" while reading aloud (reuses .row-playing). */
     #roomReaderTable.karaoke-on tr.row-playing:not(.row-error) td { background: rgba(90,155,255,.16); }

@@ -998,6 +998,10 @@
   // the user to close + re-tap). Reset on a fresh word tap (onActivate) and on close.
   var _cardStack = [];
   var _cardReturnFocus = null;   // Epic 8b — element to restore focus to when the card closes (WCAG 2.4.3)
+  // Retention P5 (recon §6.2, B7) — reveal-then-grade state for a tapped DUE word:
+  // { card, prev (extended schedule row), revealed, graded }. Null = normal card. Keyed by card
+  // REFERENCE so a root-family drill renders its own normal card and «‹ Назад» resumes the recall.
+  var _recallCtx = null;
 
   function ensureSheet() {
     if (_sheet) return _sheet;
@@ -1017,6 +1021,9 @@
       var t = e.target;
       if (t && t.closest && t.closest("[data-rm-close]")) { closeSheet(); return; }
       if (t && t.closest && t.closest("[data-rm-back]")) { onCardBack(); return; }
+      if (t && t.closest && t.closest("[data-rm-recall-reveal]")) { onRecallReveal(); return; }
+      var gbtn = t && t.closest ? t.closest("[data-rm-recall-grade]") : null;
+      if (gbtn) { onRecallGrade(gbtn.getAttribute("data-rm-recall-grade")); return; }
       var sbtn = t && t.closest ? t.closest("[data-rm-status]") : null;
       if (sbtn) { onStatusSet(sbtn.getAttribute("data-rm-status")); return; }
       if (t && t.closest && t.closest("[data-rm-speak]")) { onSpeak(); return; }
@@ -1049,6 +1056,9 @@
     if (_sheet) { _sheet.hidden = true; _sheet.classList.remove("rm-open"); }
     if (_activeSpan) { _activeSpan.classList.remove("rm-w-active"); _activeSpan = null; }
     _cardStack = [];   // drilling history dies with the sheet
+    // P5 — closing without a grade writes NOTHING (recon §6.2: abandonment was already tallied at
+    // reveal via noteRecallShown; the missing grade is the MNAR signal, never a fabricated row).
+    _recallCtx = null;
     try { if (_cardReturnFocus && _cardReturnFocus.focus) _cardReturnFocus.focus(); } catch (_) {}   // WCAG 2.4.3 — restore focus
     _cardReturnFocus = null;
   }
@@ -1307,6 +1317,32 @@
     var niqMark = (card.niqqud && /[֑-ׇ]/.test(card.niqqud))
       ? '<div class="rm-niqqud-prov" dir="' + uiDir() + '"><span class="rm-niqqud-prov-ic" aria-hidden="true">ⓜ</span> ' + escapeHtml(tt("room.morph.niqqudMachine", "огласовка — машинная (Dicta)")) + "</div>"
       : "";
+    // Retention P5 (recon §6.2, B7) — «вспомни» pre-reveal: the ANSWER is hidden (gloss, alt
+    // glosses, usage, Pealim link, root family — anything that leaks the meaning); only the word,
+    // its provenance and the reveal button show. Grade buttons exist ONLY after reveal —
+    // grade-before-reveal measures the illusion of knowing (Koriat & Bjork) and was REJECTED.
+    // Closing here writes nothing (R4 no-dead-ends: the ✕/backdrop exits are untouched).
+    var recall = (_recallCtx && _recallCtx.card === card) ? _recallCtx : null;
+    if (recall && !recall.revealed) {
+      return head + niqMark +
+        '<div class="rm-recall" dir="' + uiDir() + '">' +
+        '<div class="rm-recall-k">' + escapeHtml(tt("room.morph.recall.due", "🔁 К повторению — вспомни перевод")) + "</div>" +
+        '<button type="button" class="rm-recall-reveal" data-rm-recall-reveal>' + escapeHtml(tt("room.morph.recall.reveal", "Показать ответ")) + "</button>" +
+        "</div>" +
+        '<div class="rm-rows">' + rows + "</div>";
+    }
+    // Post-reveal: the full card + the grade bar (Знал 3 / Не знал 1) pinned under the gloss.
+    // After a grade the bar collapses into a confirmation — double-grade impossible by DOM.
+    var recallHtml = "";
+    if (recall && recall.revealed) {
+      recallHtml = recall.graded
+        ? '<div class="rm-recall rm-recall-done" dir="' + uiDir() + '">' + escapeHtml(tt("room.morph.recall.done", "✓ Записано — расписание обновлено")) + "</div>"
+        : '<div class="rm-recall rm-recall-grade" dir="' + uiDir() + '">' +
+          '<span class="rm-recall-k">' + escapeHtml(tt("room.morph.recall.q", "Вспомнил?")) + "</span>" +
+          '<button type="button" class="rm-recall-no" data-rm-recall-grade="1">' + escapeHtml(tt("room.morph.recall.forgot", "✗ Не знал")) + "</button>" +
+          '<button type="button" class="rm-recall-yes" data-rm-recall-grade="3">' + escapeHtml(tt("room.morph.recall.knew", "✓ Знал")) + "</button>" +
+          "</div>";
+    }
     // T-b — manual translation: when the resolver has no offline gloss, let the learner add
     // their OWN (a real word_study note, Anki-synced). A user-asserted meaning is tagged «ваш»
     // (R9 provenance ≠ machine) and stays editable; the inline editor is hidden until invoked.
@@ -1414,7 +1450,7 @@
     var backRow = _cardStack.length
       ? '<button type="button" class="rm-back" data-rm-back>‹ ' + escapeHtml(tt("room.morph.back", "Назад")) + "</button>"
       : "";
-    return backRow + head + legendHtml() + niqMark + meaning + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
+    return backRow + head + legendHtml() + niqMark + meaning + recallHtml + meaningEditor + altLine + ctxPosLine + usageHtml(card) + statusSelectorHtml(card) + '<div class="rm-rows">' + rows + "</div>" + procliticHtml(card) + '<div class="rm-actions">' + saveBtn + link + "</div>" + refineHtml + fam + conj;
   }
 
   function openCardLoading() {
@@ -1438,7 +1474,7 @@
   // context → no per-card refine (like a root-family chip card). _attachOpts (status/save/speak)
   // is whatever the reader wired via attach(); the card degrades gracefully if unwired.
   async function openWordCard(surface, niqqud) {
-    _activeWordCtx = null; _cardStack = [];
+    _activeWordCtx = null; _cardStack = []; _recallCtx = null;   // study-row card is never recall-mode
     openCardLoading();
     try { var card = await resolveWordLight(stripNiqqud(surface) || surface, niqqud); openCard(card, null); }
     catch (_) { openCard(null, null); }
@@ -1464,6 +1500,29 @@
     if (!_attachOpts.lookupNote) return;
     var info; try { info = await _attachOpts.lookupNote(card); } catch (_) { info = null; }
     if (_activeCard === card) applyLifecycle(info);
+  }
+  // Retention P5 — reveal the answer: from here the flow is a canonical flashcard
+  // (attempt → reveal → grade). The shown-counter feeds the MNAR abandonment gate (recon §6.2:
+  // reading-tap enters the P6 calibration only when shown-vs-graded abandonment is below the
+  // precommitted threshold), so it is bumped at REVEAL, not at grade.
+  function onRecallReveal() {
+    if (!_recallCtx || _recallCtx.revealed || _recallCtx.card !== _activeCard) return;
+    _recallCtx.revealed = true;
+    try { if (typeof _attachOpts.noteRecallShown === "function") _attachOpts.noteRecallShown(); } catch (_) {}
+    openCard(_activeCard, _activeOcc);
+  }
+  // Retention P5 — grade AFTER reveal (B7). The write itself is the Room's glue
+  // (opts.gradeReadingTap: review_log source='reading-tap' + FSRS via fsrsStep + schedule
+  // projection). D8(a): the manual level is NOT moved — self-report must not retire a word
+  // from i+1/sessions/the production tier. Guards make a double-grade impossible.
+  async function onRecallGrade(g) {
+    var rc = _recallCtx;
+    if (!rc || !rc.revealed || rc.graded || rc.card !== _activeCard) return;
+    if (typeof _attachOpts.gradeReadingTap !== "function") return;
+    rc.graded = true;
+    var correct = String(g) === "3";
+    try { await _attachOpts.gradeReadingTap(_activeCard, _activeOcc, correct, rc.prev); } catch (_) {}
+    if (_recallCtx === rc && _activeCard === rc.card) openCard(_activeCard, _activeOcc);
   }
   async function onSaveClick() {
     if (!_activeCard || !_attachOpts.saveWord) return;
@@ -1585,6 +1644,20 @@
           try { ctx = await _attachOpts.contextProvider(sentence, stripNiqqud(surface)); } catch (_) { ctx = null; }
         }
         var card = await resolveWordLight(surface, niqqud, ctx);
+        // Retention P5 (recon §6.2, D4(b)) — a DUE word opens in «вспомни» mode. Gated exactly
+        // like the quiet marker: exact-confident only (a suppressed homograph is never graded —
+        // R10 §6.1), «ignore» excluded, a gloss to reveal must exist, and the Room must have wired
+        // both the schedule and the grade glue. Everything else opens the normal card unchanged.
+        _recallCtx = null;
+        try {
+          if (card && card.lemmaKey && card.meaning && card.label === "exact" && !card.ambiguous &&
+              card.manualStatus !== "ignore" &&
+              typeof _attachOpts.getDueSchedule === "function" && typeof _attachOpts.gradeReadingTap === "function") {
+            var schedAll = await _attachOpts.getDueSchedule();
+            var srow = schedAll ? schedAll[card.lemmaKey] : null;
+            if (srow && (Number(srow.due) || 0) <= Date.now()) _recallCtx = { card: card, prev: srow, revealed: false, graded: false };
+          }
+        } catch (_) { _recallCtx = null; }
         if (_activeSpan === span) openCard(card, occ);
       } catch (e) { if (_activeSpan === span) openCard(null, occ); }
     };
@@ -1668,7 +1741,7 @@
   // Palette (cross-competitor standard): new=blue · l1..l4=amber gradient · known=NO tint (the
   // wall clears) · ignore=plain (faint dotted). The class is applied; the colour lives in CSS.
   var STATE_CLASS = { known: "rm-w-known", learning: "rm-w-learning", weak: "rm-w-learning", stale: "rm-w-learning", "new": "rm-w-new", l1: "rm-w-l1", l2: "rm-w-l2", l3: "rm-w-l3", l4: "rm-w-l4", ignore: "rm-w-ignore" };
-  var _RM_W_CLASSES = ["rm-w-known", "rm-w-learning", "rm-w-new", "rm-w-l1", "rm-w-l2", "rm-w-l3", "rm-w-l4", "rm-w-ignore"];
+  var _RM_W_CLASSES = ["rm-w-known", "rm-w-learning", "rm-w-new", "rm-w-l1", "rm-w-l2", "rm-w-l3", "rm-w-l4", "rm-w-ignore", "rm-w-due"];
   // "familiar" mirrors corpus-vocab CFG.KNOWN_STATES (saved=familiar; §7 — owner's saved vocab
   // sits in 'new'/Anki, so familiar = any engaged word, not just mastered). Manual levels + ignore
   // are engaged too → familiar (niqqud may fade on them).
@@ -1709,13 +1782,19 @@
     for (var j = 0; j < niq.length; j++) { var n = niq[j].getAttribute("data-niqqud"); if (n != null) niq[j].textContent = n; }
   }
 
-  // opts = { color: bool, fadeMode: 'full'|'adaptive'|'off' }. statesMap = {lemmaKey: state}.
+  // opts = { color: bool, fadeMode: 'full'|'adaptive'|'off', dueSet: Set<lemmaKey>|null }.
+  // statesMap = {lemmaKey: state}. dueSet (Retention P5, recon §6.1) = keys whose review time has
+  // arrived (dueSetFromSchedule): an EXACT-confident due word gets the quiet .rm-w-due ring; a due
+  // word the resolver can't decisively identify (homograph/likely/function) is SILENTLY skipped
+  // and tallied as suppressed — the retention-report's measure of lost recall opportunities (R10).
   async function decorateWords(mount, statesMap, opts) {
     if (!mount) return;
     opts = opts || {};
     var color = !!opts.color, fadeMode = opts.fadeMode || "full";
     if (!color && fadeMode !== "adaptive") { clearDecorations(mount); return; }   // nothing to resolve
     var states = statesMap || {};
+    var dueSet = (color && opts.dueSet) ? opts.dueSet : null;
+    var dueMarked = {}, dueSuppressed = {};   // unique keys per pass (a word repeats in-text)
     var NA = window.NotesAutoGen;
     var eng; try { eng = await ensureEngine(); } catch (_) { return; }
     // The status key of a FUNCTION word depends on its PealimFunctionLinks id (_statusPid). The map
@@ -1750,11 +1829,24 @@
           var cls = st ? STATE_CLASS[st] : "";
           if (cls) span.classList.add(cls);
         }
+        // Retention P5 — quiet due marker: a ring, never a background tint (the background IS the
+        // manual-status axis). Key parity is free: lk is the SAME statusKeyForCard bytes the due
+        // set was built from (save == paint == review). exact-only + unambiguous (R10 honesty).
+        if (dueSet && lk && dueSet.has(lk)) {
+          if (card && card.label === "exact" && !card.ambiguous) { span.classList.add("rm-w-due"); dueMarked[lk] = 1; }
+          else dueSuppressed[lk] = 1;
+        }
         if (isNiqqud) span.textContent = (fadeDecision(confident ? raw : undefined, card ? card.label : null, fadeMode) === "plain") ? surface : niqqud;
       }
       if (i < spans.length) await new Promise(function (r) { setTimeout(r, 0); });
     }
+    if (dueSet) _dueMarkStats = { marked: Object.keys(dueMarked).length, suppressed: Object.keys(dueSuppressed).length, at: Date.now() };
   }
+  // Retention P5 — last-pass marker tally: how many due words were visibly marked vs honestly
+  // suppressed (non-exact) in the current text. Read by the Room (per-day MAX → localStorage)
+  // and by the P6 retention-report's live Kapture mode as the «lost recall opportunities» measure.
+  var _dueMarkStats = { marked: 0, suppressed: 0, at: 0 };
+  function dueMarkStats() { return { marked: _dueMarkStats.marked, suppressed: _dueMarkStats.suppressed, at: _dueMarkStats.at }; }
 
   // ── Epic 4.3a+ — frontier-study collection (R2/R8 i+1) ──────────────────────
   // Gather the learner's NEXT words from the painted reader: confidently-resolved content words
@@ -1938,6 +2030,20 @@
       else if (nextDue === null || due < nextDue) nextDue = due;
     }
     return { inProgress: inProgress, dueNow: dueNow, nextDue: nextDue };
+  }
+  // Retention P5 (recon §6.1) — the due SET for the quiet in-text marker. PURE + deterministic
+  // (nowMs injected; Node-testable): the exact per-key mirror of dueCounts.dueNow — scheduled
+  // words whose review time has arrived (due<=now), «ignore» excluded — as a Set of lemma keys.
+  // decorateWords marks only the exact-confident members; the badge, the D2 queue and this set
+  // therefore can never disagree about WHO is due (they all read the same srs_due).
+  function dueSetFromSchedule(schedule, statusMap, nowMs) {
+    var now = Number(nowMs) || 0, out = new Set();
+    if (schedule) for (var lk in schedule) {
+      var e = schedule[lk]; if (!e) continue;
+      if (statusMap && statusMap[lk] === "ignore") continue;
+      if ((Number(e.due) || 0) <= now) out.add(lk);
+    }
+    return out;
   }
   // Retention P2 — the ONE SM2-lite→FSRS handover step (recon §4.3, owner go 2026-07-02 after the
   // P1.5 shadow-diff). PURE: FC (FsrsCore) is injected — Node gates pass it explicitly, the browser
@@ -2266,6 +2372,8 @@
     collectReviewItems: collectReviewItems, buildCloze: buildCloze, buildClozeForTarget: buildClozeForTarget,
     nextLevel: nextLevel, isMcLevel: isMcLevel, pickDistractors: pickDistractors, nextSrs: nextSrs, fsrsStep: fsrsStep,
     dueCounts: dueCounts, rankByWeakness: rankByWeakness,
+    // Retention P5 — reading-native retrieval (quiet due marker + suppressed-marker tally)
+    dueSetFromSchedule: dueSetFromSchedule, dueMarkStats: dueMarkStats,
     findSlot: findSlot, buildMcSlotOptions: buildMcSlotOptions,
     streakFromDays: streakFromDays, streakView: streakView, studyHeatmap: studyHeatmap,
     STREAK_GOAL_CAP: STREAK_GOAL_CAP, STREAK_GRACE_MAX: STREAK_GRACE_MAX,

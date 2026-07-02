@@ -700,7 +700,27 @@ async function applyDecorations() {
   const fadeMode = readerCfg.niqqudMode;            // 'full' | 'adaptive' | 'off'
   const need = color || fadeMode === 'adaptive';
   const states = need ? await ensureWordStates() : {};
-  try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode }); } catch (_) {}
+  // Retention P5 (recon §6.1) — the quiet due-marker set: schedule → due-now keys (ignore
+  // excluded), keyed by the SAME statusKeyForCard bytes the paint uses. Rides the status-axis
+  // toggle: markers (and the recall tap, via getDueSchedule) exist only when the axis is visible.
+  let dueSet = null;
+  if (color && typeof window.ReaderMorph.dueSetFromSchedule === 'function') {
+    try { dueSet = window.ReaderMorph.dueSetFromSchedule((await localDb.getSrsSchedule()) || {}, states || {}, Date.now()); } catch (_) { dueSet = null; }
+  }
+  try { await window.ReaderMorph.decorateWords(mount, states, { color, fadeMode, dueSet }); } catch (_) {}
+  // suppressed-marker tally → per-day MAX (repaints of the same text must not inflate it); the
+  // P6 retention-report reads this as the «lost recall opportunities» floor (recon §6.1/§7).
+  try {
+    if (dueSet && typeof window.ReaderMorph.dueMarkStats === 'function') {
+      const st = window.ReaderMorph.dueMarkStats();
+      const day = _localDayStr();
+      const prev = JSON.parse(localStorage.getItem('room.dueMarker.day') || '{}');
+      const rec = (prev && prev.day === day) ? prev : { day, marked: 0, suppressed: 0 };
+      rec.marked = Math.max(Number(rec.marked) || 0, st.marked);
+      rec.suppressed = Math.max(Number(rec.suppressed) || 0, st.suppressed);
+      localStorage.setItem('room.dueMarker.day', JSON.stringify(rec));
+    }
+  } catch (_) {}
   try { refreshCovChip(); } catch (_) {}   // W4 — keep the in-reader coverage chip in sync on open / status / config change
 }
 
@@ -2625,6 +2645,70 @@ function applyReveal(mount) {
   mount.addEventListener('click', revealHandler, true);
 }
 
+// Retention P5 — shown-vs-graded tally for the reveal-then-grade card (MNAR control, recon §6.2):
+// reading-tap enters the P6 calibration/weight-fit ONLY when abandonment (shown−graded)/shown is
+// below the precommitted threshold. Device-local diagnostics (like the marker tally) — counters,
+// not reviews; the review truth stays in review_log.
+function bumpTapStat(kind) {
+  try {
+    const s = JSON.parse(localStorage.getItem('room.readingTap.stats') || '{}');
+    s[kind] = (Number(s[kind]) || 0) + 1;
+    localStorage.setItem('room.readingTap.stats', JSON.stringify(s));
+  } catch (_) {}
+}
+// Retention P5 — THE write step of a reading-tap grade. Mirrors checkTrainAnswer's sequence
+// exactly (seed-row@now−1ms → review-row → setWordStatus(sched)) with two deliberate deltas:
+//   • D8(a): the manual level is NOT moved — nextLevel is NOT called; a self-report must not
+//     retire a word from i+1/sessions/the production tier. The stored status is re-written AS-IS
+//     (setWordStatus needs a status; '' would DELETE the row — hence the guard).
+//   • source='reading-tap', channel='reading:tap' — its own stratum for P6 (recon §4.4/§6.8:
+//     excluded from weight fitting until the abandonment gate passes; demotion threshold 15 п.п.
+//     precommitted). study_day: a post-reveal grade IS a genuine retrieval attempt → recordRecall
+//     (a tap without reveal+grade never reaches here — the streak can't be tapped for free).
+async function gradeReadingTap(card, occ, correct, prev) {
+  if (!card || !card.lemmaKey) return null;
+  const now = Date.now();
+  const fs = window.ReaderMorph.fsrsStep ? window.ReaderMorph.fsrsStep(window.FsrsCore, prev || null, correct, now) : null;
+  const sched = fs ? fs.sched : window.ReaderMorph.nextSrs(prev || null, correct, now);
+  let cur = card.manualStatus || '';
+  if (!cur) { try { cur = (await localDb.getWordStatus(card.lemmaKey)) || ''; } catch (_) {} }
+  if (cur && cur !== 'ignore') { try { await localDb.setWordStatus(card.lemmaKey, cur, sched, null); } catch (_) {} }
+  try {
+    const LC = window.LemmaCanon;
+    if (LC) {
+      if (fs && fs.seeded) {
+        await localDb.appendReviewLog({
+          id: 'seed:' + card.lemmaKey, item_key: card.lemmaKey, kind: 'seed',
+          reviewed_at: new Date(now - 1).toISOString(), grade: null, source: 'seed-sm2',
+          meta: { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION },
+        });
+      }
+      const row = {
+        item_key: card.lemmaKey, kind: 'review',
+        reviewed_at: new Date(now).toISOString(), grade: correct ? 3 : 1,
+        source: 'reading-tap', channel: 'reading:tap',
+        meta: {
+          surface: card.word || undefined,
+          pos: card.pos || undefined,
+          text_key: readerTextKey || undefined,
+          confidence: card.label || undefined,
+          keyer_version: LC.KEYER_VERSION,
+          scheduler: fs
+            ? { scheme: 'fsrs', engine_version: window.FsrsCore.ENGINE_VERSION, request_retention: window.FsrsCore.REQUEST_RETENTION }
+            : { scheme: 'sm2-lite' },
+        },
+      };
+      row.id = LC.reviewId(row);
+      await localDb.appendReviewLog(row);
+    }
+  } catch (_) {}
+  bumpTapStat('graded');
+  try { await localDb.recordRecall(_localDayStr(), (_dueCounts && _dueCounts.dueNow) || 0); } catch (_) {}
+  try { await applyDecorations(); } catch (_) {}   // the ring leaves this word now (due moved to the future)
+  try { refreshDueBadge(); } catch (_) {}          // D3/D7 — badge + streak reflect the write
+  return sched;
+}
+
 // Attach the light morphology-on-tap layer (reader-morph.js): wraps he/niqqud words
 // into tappable spans (post-render, parity-safe — the reader-core builder is untouched)
 // → a tap shows a light root/binyan/POS/gloss card with honest provenance. The 3.3 MB
@@ -2656,6 +2740,16 @@ function attachReaderMorph(mount) {
   // (lookup) + persist a new one into the canonical word_study note (save, Anki-synced).
   opts.lookupUserMeaning = roomLookupUserMeaning;
   opts.saveUserMeaning = roomSaveUserMeaning;
+  // Retention P5 — reading-native retrieval glue (recon §6, D4(b)+D8(a)): getDueSchedule feeds the
+  // recall-mode gate with the SAME extended rows fsrsStep resumes from, and rides the status-axis
+  // toggle so a hidden marker never springs a surprise recall card; noteRecallShown/gradeReadingTap
+  // own the shown-vs-graded tally + the one write step (review_log + FSRS; level untouched).
+  opts.getDueSchedule = async () => {
+    if (!wordStatusEnabled()) return null;
+    try { return (await localDb.getSrsSchedule()) || {}; } catch (_) { return null; }
+  };
+  opts.noteRecallShown = () => bumpTapStat('shown');
+  opts.gradeReadingTap = gradeReadingTap;
   try { readerMorph = window.ReaderMorph.attach(mount, opts); } catch (_) {}
   applyDecorations();   // colour (P1-009) + adaptive niqqud fade (P1-006) in one pass
 }

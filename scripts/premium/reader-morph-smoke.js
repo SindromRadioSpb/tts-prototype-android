@@ -768,6 +768,148 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(dc.empty.inProgress === 0 && dc.empty.dueNow === 0 && dc.empty.nextDue === null, "dueCounts empty → 0/0/null, got " + JSON.stringify(dc.empty));
     eq(dc.nullSafe.inProgress === 0 && dc.nullSafe.dueNow === 0 && dc.nullSafe.nextDue === null, "dueCounts null-safe → 0/0/null, got " + JSON.stringify(dc.nullSafe));
 
+    // ── Retention P5 §6.1 — quiet due-marker: pure due-set + exact-only + key-parity + homograph
+    //    suppression tally + colour-off clearing. The due set is keyed by the SAME resolveWordLight
+    //    lemmaKey (statusKeyForCard bytes) the paint uses — save == paint == review parity. ──
+    const dm = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      const now = 1000000000000, day = 86400000;
+      const pureSet = Array.from(R.dueSetFromSchedule(
+        { a: { due: now - 1 }, b: { due: now + day }, c: { due: now - 5 }, d: { due: now } },
+        { c: "ignore" }, now)).sort();
+      document.querySelectorAll("#rm-due").forEach((n) => n.remove());
+      const r0 = { he: "שלום שנה", he_niqqud: "שָׁלוֹם שָׁנָה" };
+      const mount = document.createElement("div"); mount.id = "rm-due";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">' + r0.he + '</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">' + r0.he_niqqud + '</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      if (window.__rmDM) { try { window.__rmDM.detach(); } catch (_) {} }
+      window.__rmDM = R.attach(mount, { getRow: () => r0 });
+      const shalom = await R.resolveWordLight("שלום", "שָׁלוֹם");   // exact → marked
+      const shana = await R.resolveWordLight("שנה", "שָׁנָה");     // homograph (likely) → suppressed
+      const dueSet = new Set([shalom.lemmaKey, shana.lemmaKey]);
+      await R.decorateWords(mount, {}, { color: true, fadeMode: "full", dueSet });
+      const clsOf = (surf) => { const s = mount.querySelector('td[data-col="he"] .rm-w[data-surface="' + surf + '"]'); return s ? s.className : ""; };
+      const marked = { shalom: clsOf("שלום"), shana: clsOf("שנה"), stats: R.dueMarkStats() };
+      await R.decorateWords(mount, {}, { color: false, fadeMode: "full", dueSet });   // colour off → cleared
+      const cleared = mount.querySelectorAll(".rm-w-due").length;
+      return { pureSet, marked, cleared, shalomKey: shalom.lemmaKey, shanaAmbiguous: shana.ambiguous, shanaLabel: shana.label };
+    });
+    eq(JSON.stringify(dm.pureSet) === JSON.stringify(["a", "d"]), "P5: dueSetFromSchedule must include due<=now, exclude future + «ignore», got " + JSON.stringify(dm.pureSet));
+    eq(/rm-w-due/.test(dm.marked.shalom), "P5: an EXACT-confident due word must wear .rm-w-due (key-parity with resolveWordLight), got " + JSON.stringify(dm.marked.shalom));
+    eq(dm.shanaAmbiguous === true && !/rm-w-due/.test(dm.marked.shana), "P5 R10: a DUE homograph (שנה, ambiguous/likely) must NOT be marked, got " + JSON.stringify({ cls: dm.marked.shana, label: dm.shanaLabel }));
+    eq(dm.marked.stats.marked === 1 && dm.marked.stats.suppressed === 1, "P5: dueMarkStats must tally 1 marked + 1 suppressed (the lost-opportunity measure), got " + JSON.stringify(dm.marked.stats));
+    eq(dm.cleared === 0, "P5: colour OFF must clear all .rm-w-due rings (marker rides the status axis), got " + dm.cleared);
+
+    // ── Retention P5 §6.2 — reveal-then-grade (B7): tap a DUE exact word → gloss HIDDEN + no grade
+    //    buttons; reveal → shown-tally + gloss + Знал/Не знал; grade → ONE gradeReadingTap call +
+    //    confirmation (double-grade impossible). D8(a) lives in the Room glue (gradeReadingTap —
+    //    live-verified on prod); here the harness proves the reader NEVER writes around the glue. ──
+    const rg = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-rg").forEach((n) => n.remove());
+      const r0 = { he: "שלום", he_niqqud: "שָׁלוֹם" };
+      const mount = document.createElement("div"); mount.id = "rm-rg";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">שלום</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">שָׁלוֹם</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      const card0 = await R.resolveWordLight("שלום", "שָׁלוֹם");
+      const prev = { due: Date.now() - 1000, interval: 3, reps: 2, lapses: 0, scheme: null };
+      window.__rgCalls = { shown: 0, grades: [] };
+      if (window.__rmRG) { try { window.__rmRG.detach(); } catch (_) {} }
+      window.__rmRG = R.attach(mount, {
+        getRow: () => r0,
+        getWordStatus: async () => "l2",
+        getDueSchedule: async () => ({ [card0.lemmaKey]: prev }),
+        noteRecallShown: () => { window.__rgCalls.shown++; },
+        gradeReadingTap: async (card, occ, correct, p) => { window.__rgCalls.grades.push({ key: card.lemmaKey, correct, prevDue: p && p.due }); return { due: Date.now() + 86400000 }; },
+      });
+      const tap = async () => {
+        mount.querySelector('td[data-col="he"] .rm-w').click();
+        for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-recall, .rm-sheet.rm-open .rm-prov")) break; await new Promise((r) => setTimeout(r, 100)); }
+      };
+      await tap();
+      const bodyText = () => (document.querySelector(".rm-sheet-body") || {}).textContent || "";
+      const pre = {
+        hasPrompt: !!document.querySelector("[data-rm-recall-reveal]"),
+        glossHidden: !/мир/.test(bodyText()),
+        noGradeYet: !document.querySelector("[data-rm-recall-grade]"),
+        noPealim: !document.querySelector(".rm-link"),
+        noStatusSel: !document.querySelector(".rm-status"),
+      };
+      const rb = document.querySelector("[data-rm-recall-reveal]");
+      if (rb) rb.click();
+      await new Promise((r) => setTimeout(r, 150));
+      const post = {
+        shown: window.__rgCalls.shown,
+        glossVisible: /мир/.test(bodyText()),
+        gradeBtns: document.querySelectorAll("[data-rm-recall-grade]").length,
+      };
+      const gb = document.querySelector('[data-rm-recall-grade="3"]');
+      if (gb) gb.click();
+      await new Promise((r) => setTimeout(r, 200));
+      const graded = {
+        calls: window.__rgCalls.grades.slice(),
+        done: !!document.querySelector(".rm-recall-done"),
+        btnsGone: document.querySelectorAll("[data-rm-recall-grade]").length === 0,
+      };
+      // MNAR abandonment path: re-tap → reveal → CLOSE without grading → shown grows, grades don't.
+      try { R.closeSheet(); } catch (_) {}
+      await tap();
+      const rb2 = document.querySelector("[data-rm-recall-reveal]");
+      if (rb2) rb2.click();
+      await new Promise((r) => setTimeout(r, 150));
+      try { R.closeSheet(); } catch (_) {}
+      return { key: card0.lemmaKey, pre, post, graded, shownTotal: window.__rgCalls.shown, gradeTotal: window.__rgCalls.grades.length };
+    });
+    eq(rg.pre.hasPrompt, "P5: tapping a DUE exact word must open the «вспомни» card with a reveal button");
+    eq(rg.pre.glossHidden, "P5 B7: the gloss must be HIDDEN before reveal (no «мир» pre-reveal)");
+    eq(rg.pre.noGradeYet, "P5 B7: grade buttons must NOT exist before reveal (grade-before-reveal was REJECTED)");
+    eq(rg.pre.noPealim && rg.pre.noStatusSel, "P5: the pre-reveal card must hide answer-leaking chrome (Pealim link, status selector), got " + JSON.stringify(rg.pre));
+    eq(rg.post.shown === 1 && rg.post.glossVisible && rg.post.gradeBtns === 2, "P5: reveal must bump the shown-tally + show the gloss + offer exactly Знал/Не знал, got " + JSON.stringify(rg.post));
+    eq(rg.graded.calls.length === 1 && rg.graded.calls[0].correct === true && rg.graded.calls[0].key === rg.key,
+      "P5: grading «Знал» must call gradeReadingTap(correct=true) ONCE with the canon key, got " + JSON.stringify(rg.graded.calls));
+    eq(rg.graded.done && rg.graded.btnsGone, "P5: after a grade the buttons collapse into a confirmation (double-grade impossible by DOM)");
+    eq(rg.shownTotal === 2 && rg.gradeTotal === 1, "P5 MNAR: reveal-then-CLOSE must count shown (2) but never fabricate a grade (still 1), got " + JSON.stringify({ shown: rg.shownTotal, grades: rg.gradeTotal }));
+
+    // ── Retention P5 — negative gates: a NON-due word opens the normal card (gloss immediately);
+    //    a DUE homograph opens the normal card too (suppressed — «не маркируется и не грейдится»). ──
+    const nd = await pg.evaluate(async () => {
+      const R = window.ReaderMorph;
+      try { R.closeSheet(); } catch (_) {}
+      document.querySelectorAll("#rm-nd").forEach((n) => n.remove());
+      const r0 = { he: "שלום שנה", he_niqqud: "שָׁלוֹם שָׁנָה" };
+      const mount = document.createElement("div"); mount.id = "rm-nd";
+      mount.innerHTML = '<table id="proTable"><tbody><tr data-row-idx="0">' +
+        '<td data-col="he" class="rtl rtl-he">' + r0.he + '</td>' +
+        '<td data-col="niqqud" class="rtl rtl-he-niqqud">' + r0.he_niqqud + '</td></tr></tbody></table>';
+      document.body.appendChild(mount);
+      const shana = await R.resolveWordLight("שנה", "שָׁנָה");
+      if (window.__rmND) { try { window.__rmND.detach(); } catch (_) {} }
+      window.__rmND = R.attach(mount, {
+        getRow: () => r0,
+        getDueSchedule: async () => ({ [shana.lemmaKey]: { due: Date.now() - 1000 } }),   // ONLY the homograph is due
+        gradeReadingTap: async () => null,
+      });
+      const spans = mount.querySelectorAll('td[data-col="he"] .rm-w');
+      const openAndRead = async (idx) => {
+        spans[idx].click();
+        for (let i = 0; i < 60; i++) { if (document.querySelector(".rm-sheet.rm-open .rm-prov")) break; await new Promise((r) => setTimeout(r, 100)); }
+        const body = (document.querySelector(".rm-sheet-body") || {}).textContent || "";
+        const res = { recall: !!document.querySelector(".rm-recall"), body: body.slice(0, 60), hasMeaning: !!document.querySelector(".rm-meaning") };
+        try { R.closeSheet(); } catch (_) {}
+        return res;
+      };
+      const normal = await openAndRead(0);   // שלום — exact but NOT due
+      const homo = await openAndRead(1);     // שנה — due but ambiguous
+      return { normal, homo };
+    });
+    eq(!nd.normal.recall && nd.normal.hasMeaning, "P5: a NON-due word must open the normal card with the gloss visible, got " + JSON.stringify(nd.normal));
+    eq(!nd.homo.recall && nd.homo.hasMeaning, "P5 R10: a DUE homograph must open the NORMAL card (never recall-graded), got " + JSON.stringify(nd.homo));
+
     // ── Epic 4.3b Phase D4 — rankByWeakness (stable lapse-desc; no-data identity). ──
     const wk = await pg.evaluate(() => {
       const R = window.ReaderMorph;

@@ -2125,6 +2125,14 @@ window.I18N_LOCALES.en = {
       refining: "Refining by context…",
       pronounce: "Pronounce",
       status: { title: "My status", "new": "new", known: "known", ignore: "ignore" },
+      recall: {
+        due: "🔁 Due for review — try to recall the meaning",
+        reveal: "Show answer",
+        q: "Did you recall it?",
+        knew: "✓ I knew it",
+        forgot: "✗ Didn't know",
+        done: "✓ Recorded — schedule updated",
+      },
       study: {
         open: "📚 Study new words",
         title: "📚 Study new words",
