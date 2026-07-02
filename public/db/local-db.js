@@ -2509,6 +2509,118 @@ export async function countReviewLog() {
   catch (_) { return 0; }
 }
 
+// ── Retention P4 — merge Anki reviews into the canon log + recompute state (recon §5, D3) ─────
+// The SECOND writer of word_status.srs_* (after the recall path). srs-ONLY UPSERT: it recomputes
+// the SCHEDULE from the merged review_log but NEVER touches the manual `status` axis (D8-style —
+// a review reschedules, it does not assert a manual level) nor the source anchors (COALESCE-safe).
+// A brand-new word (reviewed only in Anki, never tracked in the Room) is INSERTed with status
+// 'new' (tracked-but-unmarked). `sched` = the projected FSRS state (due ms / interval / reps /
+// lapses / stability / difficulty / reviewedAt ms / scheme). Consumers-sweep: getSrsSchedule,
+// getDueWithSource, dueCounts, rankByWeakness, the P5 ring/recall ALL read these columns → this
+// writer fills every one so none reads a stale projection.
+export async function updateSrsState(itemKey, sched) {
+  const lk = String(itemKey || "").trim();
+  if (!lk || !sched || typeof sched !== "object") return false;
+  const due = sched.due != null ? new Date(sched.due).toISOString() : null;
+  const rvAt = sched.reviewedAt != null ? new Date(sched.reviewedAt).toISOString() : null;
+  try {
+    await r(
+      `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme)
+       VALUES (?, 'new', strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(lemma_key) DO UPDATE SET
+         srs_due=excluded.srs_due, srs_interval=excluded.srs_interval, srs_reps=excluded.srs_reps, srs_lapses=excluded.srs_lapses,
+         srs_stability=excluded.srs_stability, srs_difficulty=excluded.srs_difficulty, srs_reviewed_at=excluded.srs_reviewed_at, srs_scheme=excluded.srs_scheme`,
+      [lk, due, Number(sched.interval) || 0, Number(sched.reps) || 0, Number(sched.lapses) || 0,
+       sched.stability != null ? Number(sched.stability) : null,
+       sched.difficulty != null ? Number(sched.difficulty) : null, rvAt,
+       sched.scheme != null ? String(sched.scheme) : "fsrs"]);
+    return true;
+  } catch (_) { return false; }
+}
+// Recompute each item's derived SRS state by REPLAYING its merged review_log (recon B4 oracle:
+// state is a fold of the raw log, so a cross-surface merge = replay). PURE fold via the injected
+// FsrsCore (browser global); no-op degradation when FC is unavailable (rows are already written —
+// the state simply stays until a recompute runs with FC loaded). item_keys that are sentence cards
+// ('sent:…') carry no word_status row and are skipped by updateSrsState's lemma-only contract.
+export async function recomputeSrsFromLog(itemKeys) {
+  const FC = (typeof window !== "undefined") ? window.FsrsCore : null;
+  if (!FC || typeof FC.replay !== "function") return { recomputed: 0 };
+  const keys = Array.from(new Set((Array.isArray(itemKeys) ? itemKeys : []).map((k) => String(k || "").trim()).filter(Boolean)));
+  let recomputed = 0;
+  for (const key of keys) {
+    if (key.indexOf("sent:") === 0) continue;   // sentence-card state lives in srs_cards.meta_json.fsrs, not word_status
+    try {
+      const rows = await getReviewLog(key);
+      const state = FC.replay(rows);
+      if (!state || !(state.stability > 0)) continue;
+      const sched = {
+        due: FC.dueAt(state), interval: FC.intervalFor(state),
+        reps: state.reps, lapses: state.lapses, stability: state.stability, difficulty: state.difficulty,
+        reviewedAt: state.lastReviewedAt, scheme: "fsrs",
+      };
+      if (await updateSrsState(key, sched)) recomputed++;
+    } catch (_) { /* per-key best-effort */ }
+  }
+  return { recomputed };
+}
+// Ingest AnkiConnect read-back reviews into the CANON review_log under the shared lemma key, then
+// recompute the affected words' state from the merged log (recon §5). Filters (the P0 fixes):
+// only real study reviews — type∈{0,1,2} (learn/review/relearn; manual-reschedule type 4 / cram
+// dropped + counted), ease∈1..4; the Anki review's OWN timestamp (future-ts clamped, never
+// fabricated); id 'anki:<reviewId>' from the payload (survives bundle import). `rows`:
+// [{ ankiReviewId, localNoteId, ankiCardId, ts, ease, type, ... }] — the same rows recordAnkiReviews
+// gets. Histories MERGE (both an Anki and a Room review of the same word count); state is never
+// overwritten, only re-folded. Remote users (no AnkiConnect) never reach here — export stays one-way.
+export async function ingestAnkiReviewsToLog(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  const out = { ingested: 0, dropped: 0, affected: 0 };
+  if (!list.length) return out;
+  const LC = (typeof window !== "undefined") ? window.LemmaCanon : null;
+  // batch-resolve localNoteId → canonical lemma key via the note body
+  const noteIds = Array.from(new Set(list.map((rv) => rv && rv.localNoteId != null ? String(rv.localNoteId) : "").filter(Boolean)));
+  const keyByNote = new Map();
+  for (const nid of noteIds) {
+    try {
+      const nr = await q("SELECT body_json FROM notes_v2 WHERE id = ?", [nid]);
+      if (nr && nr[0] && nr[0].body_json) { const k = _noteLemmaKey(JSON.parse(nr[0].body_json)); if (k) keyByNote.set(nid, k); }
+    } catch (_) {}
+  }
+  const nowMs = Date.now();
+  const affected = new Set();
+  for (const rv of list) {
+    if (!rv || rv.ankiReviewId == null) { out.dropped++; continue; }
+    const itemKey = rv.localNoteId != null ? keyByNote.get(String(rv.localNoteId)) : null;
+    const type = Number(rv.type);
+    const ease = Number(rv.ease);
+    if (!itemKey || !(type === 0 || type === 1 || type === 2) || !(ease >= 1 && ease <= 4)) { out.dropped++; continue; }
+    let tsMs = rv.ts ? Date.parse(rv.ts) : (Number(rv.ankiReviewId) || 0);   // review id IS an epoch-ms ts
+    if (!tsMs) { out.dropped++; continue; }
+    const id = "anki:" + String(rv.ankiReviewId);
+    // idempotency: an already-merged review is neither re-ingested nor recomputed (appendReviewLog's
+    // OR-IGNORE still reports "accepted", so a content pre-check is the only accurate new-vs-dup signal).
+    let exists = false;
+    try { const e = await q("SELECT 1 FROM review_log WHERE id = ? LIMIT 1", [id]); exists = !!(e && e.length); } catch (_) {}
+    if (exists) continue;
+    const clamped = tsMs > nowMs;
+    if (clamped) tsMs = nowMs;
+    const meta = {
+      anki_card_id: rv.ankiCardId != null ? rv.ankiCardId : undefined,
+      anki_type: type, scheduler: { scheme: "anki" },
+      keyer_version: LC ? LC.KEYER_VERSION : undefined,
+    };
+    if (clamped) meta.ts_clamped = 1;
+    const res = await appendReviewLog({
+      id, item_key: itemKey, kind: "review",
+      reviewed_at: new Date(tsMs).toISOString(), grade: ease, source: "anki", channel: null, meta,
+    });
+    if (res && res.accepted >= 1) { out.ingested++; affected.add(itemKey); }
+  }
+  // recompute the merged state for every touched word (replay → updateSrsState)
+  if (affected.size) { try { await recomputeSrsFromLog(Array.from(affected)); } catch (_) {} }
+  out.affected = affected.size;
+  return out;
+}
+
 // ⑤ Anki-sync A2b — full word_study note bodies for the client-side .apkg export (AnkiSrsExport parses
 // body_json + dedups by lemma). Returns [{ id, body_json }]. Read-only; graceful [] when notes absent.
 export async function listWordStudyNotesForExport() {

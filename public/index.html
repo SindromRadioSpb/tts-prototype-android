@@ -15498,7 +15498,11 @@ async function v3AnkiSyncFromAnki() {
         }
       }
       if (rows.length && typeof ldb.recordAnkiReviews === 'function') {
-        try { await ldb.recordAnkiReviews(rows); } catch (_) {}
+        try { await ldb.recordAnkiReviews(rows); } catch (_) {}   // events (research analytics)
+        // Retention P4 — merge these reviews into the CANON review_log under the shared lemma key
+        // + recompute the word's state from the merged log (recon §5). This is what unifies a word's
+        // memory across the Room and Anki (histories merge, state re-folded — never overwritten).
+        try { if (typeof ldb.ingestAnkiReviewsToLog === 'function') await ldb.ingestAnkiReviewsToLog(rows); } catch (_) {}
       }
     }
   } catch (_) { /* retention is a bonus — never fail the sync over it */ }

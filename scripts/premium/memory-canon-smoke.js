@@ -238,6 +238,42 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
       } catch (e) { sreErr = sreStep + ": " + String(e && e.message || e); }
       out.pass8NoDup = sreOk; out.pass12NoDup = evOk; out.sreErr = sreErr;
 
+      // ── P4) Anki merge → review_log + updateSrsState recompute fan-out (recon §5) ─────
+      try {
+        const FC = window.FsrsCore;
+        // a word tracked in the Room with a MANUAL level but NO schedule yet
+        const note = await ldb.createNote({ target_kind: "word", target_id: "w-anki-1", note_type: "word_study", body: { word: "מים", lemma: "מים", pos: "noun", meaning: "вода" } });
+        const nid = (note && note.id) || note;
+        const KEY = ldb.noteLemmaKey({ word: "מים", lemma: "מים", pos: "noun" });   // "מים#noun"
+        await ldb.setWordStatus(KEY, "l3");   // manual level, no srs schedule
+        const T = Date.parse("2099-08-01T10:00:00.000Z");
+        const rows = [
+          { ankiReviewId: T,               localNoteId: nid, ankiCardId: 111, ts: new Date(T).toISOString(),                 ease: 3, type: 1 },   // good review → ingest
+          { ankiReviewId: T + 3600000,     localNoteId: nid, ankiCardId: 111, ts: new Date(T + 3600000).toISOString(),       ease: 4, type: 2 },   // relearn easy → ingest
+          { ankiReviewId: T + 7200000,     localNoteId: nid, ankiCardId: 111, ts: new Date(T + 7200000).toISOString(),       ease: 0, type: 4 },   // manual-reschedule (type 4/ease 0) → DROP
+          { ankiReviewId: 9999999999999,   localNoteId: nid, ankiCardId: 111, ts: new Date(9999999999999).toISOString(),      ease: 3, type: 1 },   // far-future ts → clamp
+        ];
+        const ing = await ldb.ingestAnkiReviewsToLog(rows);
+        out.p4Ingested = ing.ingested === 3 && ing.dropped === 1 && ing.affected === 1;
+        const alog = await ldb.getReviewLog(KEY);
+        out.p4LoggedCanon = alog.length === 3 && alog.every((x) => x.source === "anki" && String(x.id).startsWith("anki:"));
+        out.p4Grades = alog.map((x) => Number(x.grade)).sort().join(",") === "3,3,4";
+        let clampMeta = false; for (const x of alog) { try { const m = JSON.parse(x.meta_json || "{}"); if (m.ts_clamped) clampMeta = true; if (!(m.scheduler && m.scheduler.scheme === "anki")) out.p4SchemeBad = true; } catch (_) {} }
+        out.p4Clamped = clampMeta;
+        const ws = await one("SELECT status, srs_scheme, srs_stability, srs_due FROM word_status WHERE lemma_key = ?", [KEY]);
+        out.p4StatusPreserved = !!(ws && ws.status === "l3");                    // srs-only writer must NOT touch the manual axis
+        out.p4Recomputed = !!(ws && ws.srs_scheme === "fsrs" && Number(ws.srs_stability) > 0 && ws.srs_due);   // schedule folded from the merged log
+        // INDEPENDENT ORACLE (Anki-merged): replay(review_log) == the stored word_status state
+        const oracleA = FC.replay(alog);
+        const sched = (await ldb.getSrsSchedule())[KEY];
+        out.p4Oracle = !!(oracleA && sched && Math.abs(oracleA.stability - sched.stability) < 1e-7 &&
+          Math.abs(oracleA.difficulty - sched.difficulty) < 1e-7 && oracleA.reps === sched.reps && oracleA.lapses === sched.lapses);
+        // idempotent re-ingest → no dup, state unchanged
+        const before = await ldb.countReviewLog();
+        const ing2 = await ldb.ingestAnkiReviewsToLog(rows);
+        out.p4Idempotent = ing2.ingested === 0 && (await ldb.getReviewLog(KEY)).length === 3 && (await ldb.countReviewLog()) === before;
+      } catch (e) { out.p4Err = String(e && e.message || e); }
+
       return out;
     });
 
@@ -275,6 +311,15 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.studioProjected === true, "P3: Studio FSRS review did not project state/due_date/interval onto the legacy columns");
     eq(res.studioOracle === true, "P3: INDEPENDENT ORACLE (Studio) failed — replay(review_log) != stored meta_json.fsrs");
     eq(res.studioLogIdempotent === true, "Studio sre:-row duplicated by bundle re-imports");
+    eq(res.p4Ingested === true, "P4: Anki ingest miscounted (expected 3 ingested / 1 dropped / 1 affected)" + (res.p4Err ? " err:" + res.p4Err : ""));
+    eq(res.p4LoggedCanon === true, "P4: Anki reviews not logged under the canon key with anki:-ids/source=anki");
+    eq(res.p4Grades === true, "P4: Anki ease→grade mapping wrong (expected grades 3,3,4)");
+    eq(res.p4Clamped === true, "P4: far-future Anki ts was not clamped (meta.ts_clamped)");
+    eq(res.p4SchemeBad !== true, "P4: Anki review_log meta.scheduler.scheme is not 'anki'");
+    eq(res.p4StatusPreserved === true, "P4: updateSrsState WIPED the manual status (must be srs-only)");
+    eq(res.p4Recomputed === true, "P4: word state not recomputed from the merged log (scheme=fsrs / stability / due)");
+    eq(res.p4Oracle === true, "P4: INDEPENDENT ORACLE (Anki-merged) failed — replay(review_log) != stored word_status state");
+    eq(res.p4Idempotent === true, "P4: re-ingesting the same Anki reviews duplicated rows / changed state");
     eq(res.hasFC === true, "FsrsCore/fsrsStep not loaded in library.html" + (res.p2Err ? " err:" + res.p2Err : ""));
     eq(res.p2LegacyShape === true, "legacy schedule row lost its shape");
     eq(res.p2Seeded === true, "fsrsStep did not seed a legacy row");
@@ -285,14 +330,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.p2Oracle === true, "INDEPENDENT ORACLE failed: replay(review_log) != stored state" + (res.p2Err ? " err:" + res.p2Err : ""));
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 41;
+    const total = 50;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);
