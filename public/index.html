@@ -25733,7 +25733,9 @@ function v3TabCoordBuildBanner() {
 function v3TabCoordRefreshBanner() {
   // P0-1: follower tabs get the full-screen overlay instead of the advisory
   // banner — the DB is genuinely unavailable here, not just "risky".
-  if (window.__localDBFollower) { v3ShowFollowerOverlay(); return; }
+  // P0-1 v2: a PROXIED follower is fully functional — never overlay it (live-caught bug:
+  // acquireDbOwnership set __localDBFollower before the proxy handshake succeeded).
+  if (window.__localDBFollower && !window.__localDBProxy) { v3ShowFollowerOverlay(); return; }
   v3TabCoordBuildBanner();
   const el = v3TabCoord.bannerEl;
   if (!el) return;

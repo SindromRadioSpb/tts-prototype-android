@@ -131,6 +131,9 @@ function _installOwnerReleaseHooks() {
 function _startProxyServer() {
   if (_proxyCh || typeof BroadcastChannel === 'undefined') return;
   try { _proxyCh = new BroadcastChannel(_PROXY_CH_NAME); } catch (_) { _proxyCh = null; return; }
+  // late-binding: a follower whose handshake timed out while THIS owner was still initializing
+  // (simultaneous open) hears 'hello' and reloads into a clean re-handshake.
+  try { _proxyCh.postMessage({ kind: 'hello' }); } catch (_) {}
   _proxyCh.onmessage = async ({ data }) => {
     if (!data || _followerMode) return;
     if (data.kind === 'ping') { try { _proxyCh.postMessage({ kind: 'pong' }); } catch (_) {} return; }
@@ -169,13 +172,26 @@ function _startProxyClient() {
   return new Promise((resolve) => {
     let tries = 0;
     const attempt = () => {
-      if (++tries > 4) { resolve(false); return; }
+      // ~5s window: an owner elected in the same instant may still be opening OPFS/worker —
+      // its proxy server only starts at init-complete (live-caught race, 2026-07-02).
+      if (++tries > 10) { resolve(false); _armProxyLateJoin(); return; }
       pongResolve = resolve;
       try { _proxyCh.postMessage({ kind: 'ping' }); } catch (_) { resolve(false); return; }
-      setTimeout(() => { if (pongResolve) attempt(); }, 300);
+      setTimeout(() => { if (pongResolve) attempt(); }, 500);
     };
     attempt();
   });
+}
+// Handshake gave up (owner still initializing / old build). Keep listening: the moment a
+// proxy-capable owner announces 'hello' (or answers anything), reload into a clean re-handshake.
+function _armProxyLateJoin() {
+  if (!_proxyCh) return;
+  const prev = _proxyCh.onmessage;
+  _proxyCh.onmessage = (ev) => {
+    const d = ev && ev.data;
+    if (d && (d.kind === 'hello' || d.kind === 'pong')) { try { window.location.reload(); } catch (_) {} return; }
+    if (typeof prev === 'function') prev(ev);
+  };
 }
 function _proxyCall(type, sql, params, opts) {
   return new Promise((resolve, reject) => {
@@ -379,7 +395,12 @@ export async function initLocalDB() {
     if (routed) {
       _proxyMode = true;
       _initialized = true;
-      if (typeof window !== 'undefined') { window.__localDBProxy = true; }
+      if (typeof window !== 'undefined') {
+        window.__localDBProxy = true;
+        // acquireDbOwnership set this BEFORE the handshake; a proxied tab is NOT a dead-end
+        // follower — clear it so secondary UI paths (Studio tab-coord overlay) don't fire.
+        window.__localDBFollower = false;
+      }
       return;
     }
     if (typeof window !== 'undefined') window.__localDBFollower = true;
