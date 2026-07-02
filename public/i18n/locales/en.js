@@ -4,6 +4,7 @@ window.I18N_LOCALES.en = {
   multitab: {
     title: "LinguistPro is already open in another tab",
     body: "The local database is used by one tab at a time so your data stays safe. This tab will switch to view-only mode.",
+    autoConnect: "⏳ If the owner tab is still loading, this tab will connect to it automatically in a few seconds.",
     useHere: "Use here",
     reload: "Reload",
     takingOver: "Switching…",
@@ -2024,7 +2025,7 @@ window.I18N_LOCALES.en = {
     state: {
       loading: "Loading…",
       publishing: "Preparing the library — fetching the canon…",
-      dbBusy: "The library is open in another tab — close it and reload.",
+      dbBusy: "The library is open in another tab. If that tab is still loading, this one will connect automatically; otherwise close it and reload.",
       error: "Could not load the library.",
     },
     prov: {

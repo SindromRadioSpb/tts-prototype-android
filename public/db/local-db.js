@@ -185,16 +185,26 @@ function _startProxyClient() {
     attempt();
   });
 }
-// Handshake gave up (owner still initializing / old build). Keep listening: the moment a
-// proxy-capable owner announces 'hello' (or answers anything), reload into a clean re-handshake.
+// Handshake gave up (owner still initializing / old build). Keep trying ACTIVELY: a one-shot
+// 'hello' can be missed while THIS tab is still booting (live-caught deadlock: both tabs reload
+// simultaneously, the owner's init on a large profile outlives the 5s window, hello broadcast
+// lands before our listener arms → the follower sat in the overlay until a manual reload).
+// The owner answers pings at ANY later moment → we reload into a clean re-handshake.
 function _armProxyLateJoin() {
   if (!_proxyCh) return;
   const prev = _proxyCh.onmessage;
+  let pinger = null;
+  const upgrade = () => {
+    try { if (pinger) clearInterval(pinger); } catch (_) {}
+    try { window.location.reload(); } catch (_) {}
+  };
   _proxyCh.onmessage = (ev) => {
     const d = ev && ev.data;
-    if (d && (d.kind === 'hello' || d.kind === 'pong')) { try { window.location.reload(); } catch (_) {} return; }
+    if (d && (d.kind === 'hello' || d.kind === 'pong')) { upgrade(); return; }
     if (typeof prev === 'function') prev(ev);
   };
+  pinger = setInterval(() => { try { _proxyCh.postMessage({ kind: 'ping' }); } catch (_) { try { clearInterval(pinger); } catch (_) {} } }, 2000);
+  setTimeout(() => { try { if (pinger) clearInterval(pinger); } catch (_) {} }, 5 * 60 * 1000);   // stop after 5 min (legacy owner — the overlay's manual actions apply)
 }
 function _proxyCall(type, sql, params, opts) {
   return new Promise((resolve, reject) => {
