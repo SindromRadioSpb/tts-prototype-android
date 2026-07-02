@@ -1939,6 +1939,16 @@ window.I18N_LOCALES.ru = {
       unavailable: "Текст недоступен",
       untitled: "Без названия",
     },
+    mytexts: {
+      shelfTitle: "Мои тексты",
+      all: "Все",
+      collapse: "Свернуть",
+      search: "Поиск по моим текстам…",
+      read: "Читать",
+      manage: "Управлять — в Студии",
+      empty: "Ничего не найдено",
+      progressRow: "строка",
+    },
     resume: {
       shelfTitle: "Продолжить чтение",
       continue: "Продолжить",

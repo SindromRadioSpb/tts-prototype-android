@@ -1935,6 +1935,16 @@ window.I18N_LOCALES.he = {
       unavailable: "הטקסט אינו זמין",
       untitled: "ללא כותרת",
     },
+    mytexts: {
+      shelfTitle: "הטקסטים שלי",
+      all: "הכול",
+      collapse: "כווץ",
+      search: "חיפוש בטקסטים שלי…",
+      read: "קרא",
+      manage: "ניהול — בסטודיו",
+      empty: "לא נמצא דבר",
+      progressRow: "שורה",
+    },
     resume: {
       shelfTitle: "המשך קריאה",
       continue: "המשך",

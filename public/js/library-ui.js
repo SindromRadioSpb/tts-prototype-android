@@ -3673,6 +3673,98 @@ function renderFinishedCard(item) {
   return node;
 }
 
+// ── Эпик B «Мои тексты» — the user's OWN Studio texts as a native Room shelf ─────────────────
+// The storage is ALREADY shared (one OPFS localDb): corpus works and Studio texts live in the
+// same `texts` table. A text is CORPUS iff source_meta_json.corpus is set (the canonical
+// discriminator, db/premium/corpusMeta.js) — «Мои тексты» = NOT corpus AND NOT archived.
+// Opening uses the SAME byte-parity Room reader; morphology-on-tap works offline on any text;
+// context/proclitic overlays are absent for own texts → the P4 provider chain falls to honest
+// un-baked semantics (live Tier-3 + consent) with no extra code. Management (edit/enrich/delete/
+// export) deliberately stays in the Studio — a premium reading surface is not a management
+// console; the expanded view links there instead. ONE listTexts query, zero per-item fan-out
+// (feedback_test_with_nonempty_profile).
+let _myTextsExpanded = false;
+let _myTextsQuery = '';
+function isCorpusTextRow(r) {
+  try { const sm = r && r.source_meta_json ? JSON.parse(r.source_meta_json) : null; return !!(sm && sm.corpus); } catch (_) { return false; }
+}
+function myTextTags(r) {
+  try { const t = r && r.tags_json ? JSON.parse(r.tags_json) : null; return Array.isArray(t) ? t.filter(Boolean).map(String) : []; } catch (_) { return []; }
+}
+function renderMyTextCard(item, vertical) {
+  const node = el('div', { class: 'work-card mytext-card' + (vertical ? ' mytext-card-v' : ''), attrs: { role: 'button', tabindex: '0' } });
+  const title = item.title || tt('room.work.untitled', 'Без названия');
+  const titleEl = el('span', { class: 'work-card-title', text: title });
+  if (HEBREW_RE.test(title)) titleEl.setAttribute('dir', 'rtl');
+  node.appendChild(titleEl);
+  const meta = el('div', { class: 'work-card-meta' });
+  if (item.level) meta.appendChild(el('span', { class: 'prov-badge mytext-level', text: String(item.level) }));
+  // progress = «строка N» (honest raw position; texts carry no row count → no fabricated %)
+  const started = item.last_row_idx != null && Number(item.last_row_idx) > 0;
+  if (started) meta.appendChild(el('span', { class: 'prov-badge continue-pct', text: tt('room.mytexts.progressRow', 'строка') + ' ' + (Number(item.last_row_idx) + 1) }));
+  for (const tg of myTextTags(item).slice(0, 2)) meta.appendChild(el('span', { class: 'prov-badge mytext-tag', text: '#' + tg }));
+  node.appendChild(meta);
+  node.appendChild(el('span', { class: 'work-card-cta', text: started ? tt('room.resume.continue', 'Продолжить') : tt('room.mytexts.read', 'Читать') }));
+  const open = () => openReader(item.id, item.title, { resume: started });
+  node.addEventListener('click', open);
+  node.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+  return node;
+}
+function buildMyTextsBody(mine) {
+  const wrap = el('div', { class: 'mytexts-body' });
+  if (!_myTextsExpanded) {
+    const rail = el('div', { class: 'shelf-rail' });
+    for (const it of mine.slice(0, 12)) rail.appendChild(renderMyTextCard(it, false));
+    wrap.appendChild(rail);
+    return wrap;
+  }
+  const controls = el('div', { class: 'mytexts-controls' });
+  const inp = el('input', { class: 'corpus-search-input mytexts-search', attrs: { type: 'search', placeholder: tt('room.mytexts.search', 'Поиск по моим текстам…'), 'aria-label': tt('room.mytexts.search', 'Поиск по моим текстам…') } });
+  inp.value = _myTextsQuery;
+  controls.appendChild(inp);
+  controls.appendChild(el('a', { class: 'mytexts-manage', attrs: { href: '/' }, text: tt('room.mytexts.manage', 'Управлять — в Студии') }));
+  wrap.appendChild(controls);
+  const grid = el('div', { class: 'mytexts-grid' });
+  const paint = () => {
+    grid.textContent = '';
+    const q = _myTextsQuery.trim().toLowerCase();
+    const found = !q ? mine : mine.filter((r) =>
+      (String(r.title || '') + ' ' + myTextTags(r).join(' ') + ' ' + String(r.source || '') + ' ' + String(r.topic || '')).toLowerCase().includes(q));
+    for (const it of found) grid.appendChild(renderMyTextCard(it, true));
+    if (!found.length) grid.appendChild(el('div', { class: 'mytexts-empty', text: tt('room.mytexts.empty', 'Ничего не найдено') }));
+  };
+  inp.addEventListener('input', () => { _myTextsQuery = inp.value || ''; paint(); });
+  paint();
+  wrap.appendChild(grid);
+  return wrap;
+}
+async function injectMyTexts(body) {
+  try {
+    let rows = [];
+    try { rows = await localDb.listTexts({ limit: 500 }); } catch (_) { rows = []; }
+    const mine = (rows || []).filter((r) => r && !isCorpusTextRow(r));
+    if (!mine.length || corpusL1Body !== body || corpusFilterActive()) return;   // self-hides: corpus-only users see no dead shelf
+    const sec = el('section', { class: 'shelf corpus-continue mytexts-shelf' });
+    const head = el('div', { class: 'shelf-head' });
+    head.appendChild(el('h2', { class: 'shelf-title', text: '📖 ' + tt('room.mytexts.shelfTitle', 'Мои тексты') }));
+    const toggle = el('button', { class: 'mytexts-toggle', attrs: { type: 'button', 'aria-expanded': String(_myTextsExpanded) } });
+    const toggleText = () => { toggle.textContent = _myTextsExpanded ? tt('room.mytexts.collapse', 'Свернуть') : tt('room.mytexts.all', 'Все') + ' (' + mine.length + ')'; };
+    toggleText();
+    toggle.addEventListener('click', () => {
+      _myTextsExpanded = !_myTextsExpanded;
+      toggle.setAttribute('aria-expanded', String(_myTextsExpanded));
+      toggleText();
+      const old = sec.querySelector('.mytexts-body');
+      if (old) old.replaceWith(buildMyTextsBody(mine));
+    });
+    head.appendChild(toggle);
+    sec.appendChild(head);
+    sec.appendChild(buildMyTextsBody(mine));
+    body.insertBefore(sec, body.firstChild);
+    try { window.applyI18n && window.applyI18n(); } catch (_) {}
+  } catch (_) {}
+}
+
 // FB-1 — the «✓ Прочитанные» shelf, directly below «Продолжить чтение». Self-hides when empty
 // (a new profile gets no dead-end). Fetches one over the rail cap so «Показать все» appears ONLY when
 // there genuinely are more than the rail shows. Same stale-body + filter-active guards as Continue.
@@ -3916,7 +4008,8 @@ async function injectHomeRails(body) {
   injectSavedSearches(body);
   injectReadingListShelves(body);
   await injectBookmarksShelf(body);
-  await injectFinishedReading(body);   // «✓ Прочитанные» — directly below «Продолжить чтение»
+  await injectFinishedReading(body);   // «✓ Прочитанные» — directly below «Мои тексты»
+  await injectMyTexts(body);           // Эпик B «Мои тексты» — the user's own Studio texts
   await injectContinueReading(body);   // «Продолжить чтение» leads
 }
 

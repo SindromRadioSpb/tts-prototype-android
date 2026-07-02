@@ -722,6 +722,23 @@
     }
     .continue-done:hover, .continue-done:focus-visible { color: var(--accent); border-color: var(--accent); outline: none; }
     .continue-done:disabled { opacity: 0.5; cursor: default; }
+    /* Эпик B «Мои тексты» — the user's own Studio texts as a native Room shelf (collapsed rail /
+       expanded search+grid). Reuses .work-card/.shelf language; management stays in the Studio. */
+    .mytexts-shelf .shelf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .mytexts-toggle {
+      width: auto; flex: none; appearance: none; cursor: pointer; background: transparent; border: 0;
+      color: var(--accent); font-size: 13px; font-weight: 600; padding: 2px 4px;
+    }
+    .mytexts-toggle:hover, .mytexts-toggle:focus-visible { text-decoration: underline; outline: none; }
+    .mytext-card .mytext-level { background: var(--bg-soft); border-color: var(--border-soft); text-transform: none; }
+    .mytext-card .mytext-tag { color: var(--text-faint); }
+    .mytexts-controls { display: flex; align-items: center; gap: 10px; margin: 4px 0 10px; flex-wrap: wrap; }
+    .mytexts-controls .mytexts-search { flex: 1 1 200px; min-width: 160px; }
+    .mytexts-manage { flex: none; color: var(--text-faint); font-size: 13px; text-decoration: none; }
+    .mytexts-manage:hover, .mytexts-manage:focus-visible { color: var(--accent); text-decoration: underline; }
+    .mytexts-grid { display: flex; flex-direction: column; gap: 8px; }
+    .mytexts-grid .mytext-card-v { width: auto; }
+    .mytexts-empty { color: var(--text-faint); font-size: 14px; padding: 10px 2px; }
     /* FB-1 — «✓ Прочитанные» shelf: honest read-status badge (done vs marked-N%) + un-mark + «Показать все». */
     .corpus-finished .shelf-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
     .shelf-showall {

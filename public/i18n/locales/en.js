@@ -1925,6 +1925,16 @@ window.I18N_LOCALES.en = {
       unavailable: "Text unavailable",
       untitled: "Untitled",
     },
+    mytexts: {
+      shelfTitle: "My texts",
+      all: "All",
+      collapse: "Collapse",
+      search: "Search my texts…",
+      read: "Read",
+      manage: "Manage — in the Studio",
+      empty: "Nothing found",
+      progressRow: "line",
+    },
     resume: {
       shelfTitle: "Continue reading",
       continue: "Continue",
