@@ -140,7 +140,8 @@ async function main() {
         const t = await db.getTextById("mt-proxy-t");
         writeOk = !!(t && t.title === "proxy-write");
       } catch (e) { err += " w:" + (e && e.message); }
-      return { follower, proxy, queryOk, writeOk, err };
+      let dbErr = null; try { const e = db.getDbError && db.getDbError(); dbErr = e ? String(e.code) : null; } catch (_) {}
+      return { follower, proxy, queryOk, writeOk, err, dbErr };
     });
     test("Tab B is a follower WITH a live proxy route", bState.follower === true && bState.proxy === true, JSON.stringify(bState));
     const bOverlay = await pageB.$("#v3FollowerOverlay");
@@ -158,6 +159,7 @@ async function main() {
     } else {
       test("Tab B reads through the owner (listTexts via proxy)", bState.queryOk === true, bState.err);
       test("Tab B write→read round-trip via proxy", bState.writeOk === true, bState.err);
+      test("Proxied tab carries NO active DB error (getDbError null)", bState.dbErr === null, String(bState.dbErr));
     }
 
     // ── Core invariant: graceful degradation ──

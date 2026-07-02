@@ -96,7 +96,10 @@ export function isFollower() { return _followerMode; }
 export function isProxy() { return _proxyMode; }   // follower with a live route to the owner's DB
 export function getDbError() {
   if (_workerCrashed) return new DbUnavailableError('DB_WORKER_CRASHED', 'Local database is temporarily unavailable.');
-  if (_followerMode) return new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Database is in use by another tab.');
+  // P0-1 v2: a PROXIED follower has a live route to the owner's DB — it carries NO active error
+  // (live-caught: the Studio library/SRS/Dashboard error panels consult getDbError and treated a
+  // healthy proxied tab as «Database is in use by another tab»).
+  if (_followerMode && !_proxyMode) return new DbUnavailableError('DB_OWNED_BY_OTHER_TAB', 'Database is in use by another tab.');
   return null;
 }
 
