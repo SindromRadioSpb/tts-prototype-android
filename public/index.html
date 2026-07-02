@@ -24317,9 +24317,12 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
       : "";
     // Studio↔Room compat Ф1 — corpus provenance badge (R9: canon asserted by the Room catalog;
     // the card's personal tags/level/тема ride the text_user_meta overlay, never the canon row).
+    // _ttc: t() returns the KEY when missing (e.g. a stale SW-cached locale) — `t(k) || fb`
+    // would render raw keys; guard on v !== k so we degrade to the ru fallback instead.
+    const _ttc = (k, fb) => { try { const v = t(k); return (v && v !== k) ? v : fb; } catch (_) { return fb; } };
     const _isCorpusText = !!txt._corpus;
     const _corpusBadgeHtml = _isCorpusText
-      ? `<span class="v3-lib-corpus-badge" title="${v3EscapeHtml(t("library.corpusBadgeTitle") || "Канон Бен-Иегуды: заголовок и текст защищены; личные теги/уровень/тема — редактируемы")}">🏛 ${v3EscapeHtml(t("library.corpusBadge") || "канон")}</span>`
+      ? `<span class="v3-lib-corpus-badge" title="${v3EscapeHtml(_ttc("library.corpusBadgeTitle", "Канон Бен-Иегуды: заголовок и текст защищены; личные теги/уровень/тема — редактируемы"))}">🏛 ${v3EscapeHtml(_ttc("library.corpusBadge", "канон"))}</span>`
       : "";
 
     card.innerHTML = `
@@ -24368,9 +24371,9 @@ const textDeeplink = (typeof v3DeeplinkBuildLink === "function" && typeof v3Deep
     if (btnResume) btnResume.addEventListener("click", () => { if (_isCorpusText) window.open(_roomHref, "_blank", "noopener"); else v3LibraryOpenText(id, { resume: true }); });
     if (_isCorpusText) {
       if (btnResume) btnResume.style.display = "none";
-      if (btnOpen) { btnOpen.textContent = t("library.openInRoom") || "Открыть в Зале"; btnOpen.title = t("library.openInRoomTitle") || "Чтение канона — в Читальном зале"; }
-      if (btnEnrich) { btnEnrich.disabled = true; btnEnrich.title = t("library.enrichCorpusBlocked") || "Канонический перевод защищён — переобогащение отключено"; }
-      if (btnDelete) { btnDelete.textContent = t("library.removeLocal") || "Убрать с устройства"; btnDelete.title = t("library.removeLocalTitle") || "Удаляет локальную копию; работа снова откроется из Зала"; }
+      if (btnOpen) { btnOpen.textContent = _ttc("library.openInRoom", "Открыть в Зале"); btnOpen.title = _ttc("library.openInRoomTitle", "Чтение канона — в Читальном зале"); }
+      if (btnEnrich) { btnEnrich.disabled = true; btnEnrich.title = _ttc("library.enrichCorpusBlocked", "Канонический перевод защищён — переобогащение отключено"); }
+      if (btnDelete) { btnDelete.textContent = _ttc("library.removeLocal", "Убрать с устройства"); btnDelete.title = _ttc("library.removeLocalTitle", "Удаляет локальную копию; работа снова откроется из Зала"); }
     }
 	if (btnEdit) btnEdit.addEventListener("click", () => v3TextMetaOpen(id));
 	if (btnShare) btnShare.addEventListener("click", () => v3TextCardShareOpen(id));
@@ -31475,7 +31478,7 @@ async function v3TextMetaOpen(textId) {
     ttl.readOnly = isCorpus; src.readOnly = isCorpus;
     ttl.classList.toggle("v3-meta-canon-locked", isCorpus);
     src.classList.toggle("v3-meta-canon-locked", isCorpus);
-    ttl.title = isCorpus ? (t("textMeta.canonLocked") || "🏛 Канон Бен-Иегуды — поле защищено") : "";
+    ttl.title = isCorpus ? ((() => { const v = t("textMeta.canonLocked"); return (v && v !== "textMeta.canonLocked") ? v : "🏛 Канон Бен-Иегуды — поле защищено"; })()) : "";
     src.title = ttl.title;
   } catch (_) {}
 
