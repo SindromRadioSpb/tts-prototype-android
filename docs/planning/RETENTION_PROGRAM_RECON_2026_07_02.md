@@ -38,7 +38,7 @@
 
 ### 2.2 Студия — стаб (подтверждено)
 - Trainer inline index.html (`v3SrsTrainer*` ~29000–29800): 4 оценки Again/Hard/Good/Easy → `srs.reviewCard` → `computeSM2` (local-db `:3939`, ease [1.3,4.0]) → `srs_cards` (state/due_date/interval_days/ease_factor/reps/lapses).
-- **У Студии ЕСТЬ настоящий review-лог:** `srs_review_events` (метки 010/013: card_id, rating 1–4, interval/ease до/после, review_time_ms, reviewed_at) + `srs_attempts`. НО: (а) объём НЕ измерен (вероятно ≈0 — Trainer-стаб; замер = пре-фаза P·0, §8); (б) `ON DELETE CASCADE` + `reconcileTextAutogenOccurrences` уже могли усечь историю; (в) importBundle Pass 8 пере-генерит id через `uuid()` → re-import ДУБЛИРУЕТ события (комментарий «idempotent via id PK» ложен).
+- **У Студии ЕСТЬ схема review-лога:** `srs_review_events` (метки 010/013: card_id, rating 1–4, interval/ease до/после, review_time_ms, reviewed_at) + `srs_attempts`. **P·0-замер 2026-07-02: обе таблицы и `srs_cards` ПУСТЫ (0 строк) — Trainer ни разу не использовался; бэкфилл вырезан из P0.** Дефекты схемы остаются актуальными для чужих профилей: (а) `ON DELETE CASCADE` + `reconcileTextAutogenOccurrences` могут усекать историю; (б) importBundle Pass 8 пере-генерит id через `uuid()` → re-import ДУБЛИРУЕТ события (комментарий «idempotent via id PK» ложен).
 - Anki read-back (B1/B2, local-only): `applyAnkiReviewStates` `:2463` зеркалит планировщик Anki в `srs_cards` + `meta_json.anki_managed` + гард local-newer; `recordAnkiReviews` `:2540` — лог в `events` (`id='anki:<reviewId>'`, INSERT OR IGNORE), но БЕЗ фильтра по типу ревью (`grade: Number(rv.ease)||0` — manual-reschedule type=4 даёт grade 0) и с `rv.ts || new Date()` (фабрикация ts); Pass 12 importBundle заменяет `events.id` на `uuid()` → `anki:<id>`-идемпотентность events разрушена на перенесённом профиле.
 - ⚠ Мёртвая ссылка: `DELETE FROM srs_reviews` (local-db `:1337`, `:3758`) — таблицы не существует (реальная = `srs_review_events`); молча no-op в try/catch. Чинится в P0.
 
@@ -198,7 +198,7 @@ srs_stability REAL, srs_difficulty REAL, srs_reviewed_at TEXT, srs_scheme TEXT
 
 | Фаза | Содержание | Размер | Риск |
 |---|---|---|---|
-| **P·0 замер (пре-фаза)** | Kapture-перепись живого профиля: COUNT/гистограммы `word_status.srs_*` (сколько строк, сколько в пост-lapse interval=0), COUNT `srs_review_events`/`srs_cards` по state. Решает: скоуп бэкфилла (≈0 → вырезать), валидирует seed-ветки | XS | — |
+| **P·0 замер — ✅ DONE 2026-07-02** | Результаты: `docs/research/retention-program/2026-07-02/P0_MEASURE.md`. Ключевое: srs_review_events=**0**, srs_cards=**0** (Trainer ни разу не использовался) → **бэкфилл Студии ВЫРЕЗАН из P0**, P3-сид = только seedFromSm2; SM2-состояние Зала = 37 строк (6 в interval=0) → shadow-diff тривиален, тайминг перехода идеальный; sourced=3; study_day=1 день | XS | — |
 | **P0 канон-лог** | мигр. 041 `review_log` + `lemma-canon.js` (единый кейер + конформанс) + 3 пишущих пути + бандл: +`review_log`+`word_status`+`study_day` + фиксы Pass 8/12 + бэкфилл (по итогам P·0) + фикс мёртвого `srs_reviews` + `smoke:memory-canon` | M | низкий (аддитивно, UX не меняется) |
 | **P1 движок** | `fsrs-core.js` + запиненная golden-фикстура + `smoke:fsrs` (не подключён) | M | нулевой (не wired) |
 | **P1.5 shadow-diff** | `srs-shadow-diff.js` на реальном профиле → отчёт владельцу → добро на флип | S | — |
