@@ -1,12 +1,17 @@
 # AI_MENTOR_RECON_2026_07_04 — AI-наставник + Cloud Learner Graph (программа-recon)
 
-> **Статус:** RECON **v2** — направление и все решения §13 **УТВЕРЖДЕНЫ владельцем
-> 2026-07-04** (sign-off-пакет вписан в §13 как решения); роли R12–R16 утверждены без
-> консолидации и встроены в `docs/PROJECT_ROLES.md`. В CLG-P0 осталось: adversarial
-> role-critique workflow → выжившие правки в этот док → старт CLG-P1.
+> **Статус:** RECON **v3** — CLG-P0 ЗАКРЫТ: направление и решения §13 утверждены владельцем
+> 2026-07-04; роли R12–R16 встроены в `docs/PROJECT_ROLES.md`; adversarial role-critique
+> проведена (8 линз, 13 BLOCKER / 38 MAJOR / 13 MINOR — все BLOCKER+MAJOR отработаны,
+> вердикты §14, полный отчёт `AI_MENTOR_CRITIQUE_2026_07_04.md`). Открыты только развилки
+> **D1–D3** (§14, с рекомендациями; НЕ блокируют CLG-P1). Следующий код: retention P4.1 →
+> CLG-P1 (identity).
 > **v2-правки владельца (7):** canon transition (§4.6) · dual-write prohibition (§4.7) ·
 > event schema versioning (§6) · migration dry-run gate (§9 CLG-P3) · SQLite operational
 > constraints (§4.5) · agent provenance schema (§7) · external-pilot gate (§9 G-EXT).
+> **v3 (критика):** carve-outs канона (§1.3) · UNIQUE(user_id,id)+принципал (§6) ·
+> четвёртая категория состояния (§4.7) · двунаправленный sync (§4.3) · грейдер+MNAR (§7) ·
+> tiers+meta-allowlist (§5) · hardening каналов (§8) · CLG-P5.5 + усиленные гейты (§9).
 > **Дата:** 2026-07-04. **Прод на момент написания:** v3.11.87.
 > **Как создан:** сессия 2026-07-04 — синтез двух внешних концепт-текстов советника
 > (v1 «LinguistPro Mentor / персональный языковой наставник», v2 «A-controlled / Cloud
@@ -71,10 +76,22 @@ replay-оракул и lossless-sync** (§9, гейт G-5).
 
 Эти инварианты пережили retention-программу (v3.11.81–87) и переносятся в облако как есть:
 
-1. **`review_log` append-only.** Событие никогда не редактируется и не удаляется;
+1. **`review_log` append-only** — с двумя явными carve-out (v3, критика B4/M-R11):
+   события никогда не редактируются и выборочно не удаляются В ПРЕДЕЛАХ живого аккаунта;
    слияние источников = только добавление строк (паттерн P4 Anki-ingest).
+   **Carve-out (а) forget-the-stream:** удаление аккаунта = физическое удаление ВСЕГО
+   стрима `user_id` (review_log, learner_events, projections, seed-строки) — GDPR-совместимо
+   и не противоречит канону: удаляется стрим целиком, не событие. **Carve-out (б)
+   компенсирующее событие:** ошибочная/отравленная строка (дефект грейдера, clock-skew)
+   аннулируется НЕ правкой, а событием `kind='annul'|'correction'` со ссылкой на id
+   исходной строки; редьюсер обязан его учитывать. Механизм определяется в CLG-P2 (схема),
+   ДО первого агентского write.
 2. **FSRS-state = derived projection.** `srs_*` — пересчитываемый кэш; оракул
-   `replay(log) == stored` обязателен и на сервере (расширение `smoke:memory-canon`).
+   `replay(log) == stored` обязателен и на сервере. **Оракул обязан быть независимым**
+   (v3, критика M-R11): «server replay == browser replay» на одном и том же `fsrs-core.js` —
+   тавтология («согласен сам с собой»); гейт CLG-P4 дополняется реплеем поверх запиненного
+   референса ts-fsrs@5.4.1 (уже в репо для `smoke:fsrs`) + committed golden-векторами
+   replay-over-log (out-of-order, mixed-source, seed+skip, смешанные форматы времени).
 3. **Агент не пишет state.** Ни при каких обстоятельствах не `word_status.known = true`;
    только событие в лог (`source: 'agent:telegram'`), state пересчитает редьюсер.
 4. **LLM объясняет — резолвер утверждает.** Морфологические факты (root/binyan/POS/формы/
@@ -140,7 +157,17 @@ AI-наставник — сопровождает МЕЖДУ сессиями: 
   hitpael vs hifil, смихут, согласование рода, артикль с прилагательными).
 - **Словарь по судьбе слова:** «להתקדם встречалось 4 раза; узнаёшь при чтении, ошибаешься
   в написании — сегодня только диктант».
-- **AI-рецензент:** «проверь мой иврит» → исправление + ошибки уходят тренировочными единицами.
+- **AI-рецензент** («проверь мой иврит») — **демотирован за горизонт программы (v3,
+  критика M-R5):** грейдинг свободной продукции = LLM в утверждающей роли (у резолвера нет
+  оракула для сочинённых предложений), что нарушает инвариант §1.3-4. Возможен только
+  post-R17, с механизмом supersede-событий и подтверждением до создания тренировочных единиц.
+
+**Data-зависимости сценариев (v3):** сценарии выше делятся на A-only (микро-сессии, миссии,
+недельный отчёт — работают с CLG-P7), A+B (возврат в контекст, объяснение МОИХ предложений,
+живой хвост — требуют CLG-P5.5 Artifact Sync) и A+B+C (Израиль-пакеты с реальными письмами —
+требуют C-consent-механики, за горизонтом ранних фаз). Примечание R2 к миссиям: «закрыть
+слово сегодня» несовместимо с движком (enable_short_term=false — same-day дрилл не двигает
+расписание); формулировки миссий — про подготовку к следующему интервалу, не «закрытие».
 
 ### 2.3 Принцип действия и анти-сценарии
 
@@ -176,7 +203,7 @@ event-sourcing уже отгружено и уже спроектировано 
 
 | Актив | Где | Роль в новой архитектуре |
 |---|---|---|
-| `review_log` (клиент, мигр. 41) | `public/db/migrations.js:868` | **Фундамент облачного лога.** Схема: `id` PK, `item_key`, `kind` (review/skip/seed), `reviewed_at`, `grade` 1–4, `source`, `channel`, `latency_ms`, `meta_json`. `id` — content-детерминированный и глобально-уникальный (`app:<sha1-20>` \| `anki:<reviewId>` \| `seed:<item_key>`) → **серверный ingest = INSERT OR IGNORE, дедуп между устройствами бесплатно.** |
+| `review_log` (клиент, мигр. 41) | `public/db/migrations.js:868` | **Фундамент облачного лога.** Схема: `id` PK, `item_key`, `kind` (review/skip/seed), `reviewed_at`, `grade` 1–4, `source`, `channel`, `latency_ms`, `meta_json`. **Полный id-инвентарь (v3, уточнено критикой):** `app:<sha1-20>` (content-детерминированный, БЕЗ user-scope) \| `anki:<reviewId>` (epoch-ms, уникален только внутри одной коллекции) \| `seed:<item_key>` (**identity**-детерминированный: коллидирует между устройствами И пользователями) \| `sre:<uuid>` (Studio-trainer, случайный). → Дедуп INSERT OR IGNORE бесплатен ТОЛЬКО для review/skip-строк И только в пределах одного пользователя; серверная уникальность = `UNIQUE(user_id, id)` (§6), merge-семантика seed — развилка D3 (§14). |
 | `fsrs-core.js` (FSRS-6) | `public/js/fsrs-core.js` | UMD, **Node-requirable**, детерминированный (nowMs инъецируется, без Date.now/Math.random), golden-гейт `smoke:fsrs` vs ts-fsrs@5.4.1. → **Серверный replay (фаза P4) = require ТОГО ЖЕ файла; parity by construction.** |
 | `lemma-canon.js` | `public/js/lemma-canon.js` | Единый кейер item_key для всех поверхностей; гейт `smoke:memory-canon` (replay==stored). Сервер использует тот же модуль. |
 | Anki-ingest паттерн (P4) | `index.html` (~15502), `ingestAnkiReviewsToLog` | **Готовый шаблон внешнего канала:** события чужого источника вливаются в канон-лог, state пересчитывается, живая кросс-экранная сверка (`updateSrsState`). Агент = ещё один такой канал (`source: 'agent:telegram'`). |
@@ -236,36 +263,61 @@ OPFS не выбрасывается: быстрый reader-cache · offline mod
 **pending event outbox** · sync cursor · last known projections · emergency fallback.
 Приложение остаётся быстрым и офлайн-способным; канон переезжает на сервер.
 
-### 4.3 Sync bridge (браузер ↔ сервер)
+### 4.3 Sync bridge (браузер ↔ сервер) — двунаправленный, v3
+
+**Вверх (клиент → сервер):**
 
 ```text
 Действие в браузере → локальная запись (OPFS, как сейчас) → outbox
-  → батч-ingest на сервер → server ack → cursor update → projection refresh
-Офлайн: события копятся в outbox → отправка пачкой → server dedupe по event id
+  → батч-ingest на сервер → server ack → cursor update
+Офлайн: события копятся → отправка пачкой → server dedupe (user-scoped, §6)
 ```
 
-Дедуп не требует новой механики: id `review_log` уже content-детерминированные (§3.1).
-Для `learner_events` — тот же принцип (детерминированный id из содержимого + device_id).
-Конфликт-модель тривиальна по построению: append-only лог не конфликтует, состояние —
-редьюсер поверх слитого лога (ровно та схема, что уже работает для Anki-merge).
+**Конструктив outbox (v3, критика M-R13):** outbox — НЕ отдельная очередь, а **cursor
+(rowid-watermark) по самому append-only `review_log`**. Тогда «писатель, не знающий об
+outbox» невозможен по построению — все 5+ существующих путей записи продолжают звать
+`appendReviewLog` без изменений. Cutover-процедура: full-scan ingest повторяется в момент
+включения моста; cursor инициализируется только после «повторный full-scan = 0 новых
+строк». Плюс постоянная фоновая reconciliation (count/checksum окна), не одноразовый гейт.
+
+**Вниз (сервер → клиент) — первоклассный механизм, не сноска (v3, критика M-R12/R13):**
+события, рождённые вне браузера (Telegram P7, Mini App P8), доставляются в OPFS тем же
+`INSERT OR IGNORE` тех же строк `review_log`; per-device server cursor; pull — на старте
+сессии и после push-нуджа; **локальные проекции пересчитываются после merge inbox ДО
+отрисовки due-кольца.**
+
+**Владение локальным кэшем `srs_*` (v3, критика M-R11):** локальный `srs_*` ВСЕГДА derived
+только от локальной реплики лога (локальный replay). Серверные проекции на клиент НЕ
+спускаются (их потребляют agent/push/Mini App); иначе возникает пост-P4 окно двух
+писателей одного кэша (стейл-pull воскрешает уже отвеченные офлайн слова).
+
+Конфликт-модель append-only потоков тривиальна (редьюсер поверх слитого лога — схема
+Anki-merge); для **mutable asserted-состояния** (ручные статусы, заметки, text_user_meta)
+она НЕ тривиальна — см. §4.7 (четвёртая категория) и развилку D3/§14 (seed).
 
 ### 4.4 Канон-цепочка состояния
 
 ```text
-learner_events ──┐
-                 ├─→ review_log ─→ FSRS replay (fsrs-core.js в Node) ─→ srs_projections ─→ agent_context
-клиенты/агент ───┘
+review_log ────→ FSRS replay (fsrs-core.js в Node) ─→ srs_projections ─┐
+                                                                        ├─→ agent_context
+learner_events ─→ аналитические проекции (weak_patterns, activity) ────┘
 ```
 
+**Два ПАРАЛЛЕЛЬНЫХ append-only потока** (v3, критика B7): `review_log` — ЕДИНСТВЕННЫЙ дом
+review-семантики (replay/память читают только его); `learner_events` — телеметрия/аналитика,
+review-факты в неё НЕ дублируются. Стрелки `learner_events → review_log` не существует.
+
 Запрещённый путь: `агент сказал «выучено» → word_status.known = true`. Правильная запись
-от агента — событие:
+от агента — событие (время — ТОЛЬКО канонический UTC-формат `toISOString()`, §6; провенанс
+грейдера обязателен):
 
 ```json
 {
   "id": "app:<sha1-20>", "item_key": "<lemma-canon key>", "kind": "review",
-  "reviewed_at": "2026-07-04T20:10:00+03:00", "grade": 1,
+  "reviewed_at": "2026-07-04T17:10:00.000Z", "grade": 1,
   "source": "agent:telegram", "channel": "dictation",
-  "meta_json": {"answer": "מתקדם", "expected": "להתקדם", "sentence_id": "s_456"}
+  "meta_json": {"answer": "מתקדם", "expected": "להתקדם", "sentence_id": "s_456",
+                "grader": "deterministic"}
 }
 ```
 
@@ -311,34 +363,76 @@ write-lock/busy_timeout начинает влиять на UX · teacher dashboa
 
 Считать сервер «каноном» на этапе P2 — ошибка: sync bridge ещё не доказал lossless-свойства.
 
-### 4.7 Dual-write prohibition
+### 4.7 Dual-write prohibition + четыре категории состояния (v3)
 
 Во время миграции **запрещено иметь двух независимых писателей одного и того же state**.
-Любое состояние в системе — ровно одно из трёх:
+Любое состояние в системе — ровно одно из четырёх:
 
 ```text
 - append-only event (лог);
 - derived projection (пересчитываемая из лога);
-- local cache (реплика канона).
+- local cache (реплика канона);
+- asserted user state (v3, критика B9) — ручные утверждения пользователя.
 ```
+
+**Asserted user state** — категория, которую v2-трихотомия не вмещала, а живой код имеет:
+ручная ось `word_status` (l1–l4/known/ignore — Track-any-word; known/ignore осознанно НЕ
+сидируются в лог, `reader-morph.js:2135`), ручные переводы, `text_user_meta`, заметки.
+Из review_log эта ось НЕВОССТАНОВИМА. Sync-модель для неё: **событие пометки**
+(`word_marked` / `kind='mark'`) с `created_at_client` + **LWW-редьюсер по
+`created_at_client`** поверх слитого потока пометок — состояние снова становится проекцией
+лога. Существующие `word_status`-строки при миграции бэкфиллятся синтетическими
+mark-событиями; ручная ось входит в dry-run гейт CLG-P3 (count + checksum + parity
+manual-overlay до/после). Mutable класс-B артефакты без конфликт-модели — вне scope sync v1.
 
 «Отдельная конкурирующая истина» (например, серверный state, правленный мимо лога, при
 живом клиентском state) — не существует как категория. Это прямое продолжение урока
 «два писателя `word_status.srs_*` → gate-consumers-sweep» на масштаб платформы.
+Граница «mirror ≠ dual-write»: зеркалирование (P2) — это доставка ТЕХ ЖЕ событий второй
+стороне, не второй независимый писатель state.
 
 ---
 
 ## §5. Классы данных и consent
 
+**Три tier-а продукта (v3, критика M-R5 — offline-first не умирает, а становится нижним tier-ом):**
+
+```text
+Tier 1 — Local-only (без аккаунта): всё как сегодня, OPFS-only, без агента/push/sync.
+         Поддерживаемый режим НАВСЕГДА; его регрессия — гейт каждой CLG-фазы.
+Tier 2 — Cloud-sync: аккаунт + Learner Graph + кросс-девайс + push.
+Tier 3 — Cloud + Agent: Tier 2 + наставник (Telegram/Mini App).
+```
+
+PRIVACY-дифференциатор «данные не покидают браузер» остаётся ИСТИННЫМ для Tier 1 и
+переформулируется для Tier 2/3 (см. §11, два уровня ревизии).
+
 | Класс | Содержимое | Политика |
 |---|---|---|
-| **A — учебное состояние** | user_id, devices, review_log, learner_events, srs_projections, derived known/learning/due, reading progress, agent settings, notification prefs, telegram pairing | Хранится на сервере всегда (это и есть Learner Graph) |
+| **A — учебное состояние** | user_id, devices, review_log, learner_events, srs_projections, asserted user state (§4.7), reading progress, agent settings, notification prefs, push-подписки, telegram pairing | Хранится на сервере всегда **при включённом cloud-аккаунте (Tier 2+)** |
 | **B — учебные артефакты** | созданные/обработанные тексты, sentence anchors, аннотации, переводы, никуд, транслит, ссылки на аудио, заметки, agent explanations, studio drafts | Хранится при включённом cloud sync (переключатель) |
 | **C — чувствительное содержимое** | полные личные тексты, письма, мед./юр. документы, загруженные файлы | ТОЛЬКО явный opt-in, гранулярно: ☐ синхронизировать личные тексты ☐ разрешить агенту видеть полный текст ☐ разрешить использовать для персональных уроков |
-| **D — временный LLM-контекст** | prompts, raw context packs, промежуточные объяснения, debug payloads | TTL или не хранить вообще; indefinite-хранение ЗАПРЕЩЕНО |
+| **D — временный LLM-контекст** | prompts, raw context packs, промежуточные объяснения, debug payloads | TTL или не хранить вообще; indefinite-хранение ЗАПРЕЩЕНО. **Enforcement (v3, критика M-R15):** класс D персистится ТОЛЬКО в выделенной таблице main-DB с `expires_at`; TTL-sweeper в main app + smoke-гейт «нет строк D старше TTL»; context packs НЕ логируются (agent-сервис stateless, проверка отсутствия payload в stdout/логах — часть гейта CLG-P6) |
+| **Переписка (agent_threads/messages)** (v3, критика M-R15/R12) | communication store, НЕ learner-state | Класс B по умолчанию, **C-capable**: содержимое inbound-сообщений из чата = класс C по умолчанию; без активного C-consent бот отвечает разово и НЕ персистит тело (или короткий auto-TTL до подтверждения) + one-tap consent прямо в чате с записью в consent_records. Собственный TTL/политика очистки; обязательно в export/delete |
 
 Каждое согласие — строка в `consent_records` (что, когда, какая версия текста согласия,
 отзыв). Экспорт данных и удаление аккаунта — обязательства с первого дня (P1), не «потом».
+
+**Семантика отзыва согласия (v3, критика M-R15):** отзыв C-consent → серверное удаление
+уже синхронизированных C-артефактов + каскад на derived (context packs, цитаты в
+agent_explanations — минимум пометка/purge); отзыв B — freeze или delete (зафиксировать в
+CLG-P1); `consent_records` хранит и факт исполнения (`purged_at`). Гейт CLG-P1/G-EXT:
+тест revoke→purge.
+
+**Контент-политика конверта события (v3, критика B5 — «класс A утаскивает класс C»):**
+живой код уже пишет в `meta_json` контент (`surface`, `answer/expected`, `text_key` в
+item_key sentence-карточек) — событие класса A может нести содержимое класса C. Правило:
+серверный ingest принимает `meta_json` только по **allowlist ключей** (grade-метаданные,
+keyer_version, scheduler, идентификаторы); контентные поля событий, чей источник —
+non-consented текст (класс B выкл / класс C без opt-in), при синке вырезаются или
+хэшируются (локальная копия остаётся полной). Прецедент в кодовой базе: research-mode
+recursive forbidden-field check. Consent-copy класса A раскрывает, что синк переносит
+леммы/item_key тренируемых слов. Ingest-валидация allowlist — гейт CLG-P2.
 
 **Context Pack** в этой архитектуре — не хранилище (как в отвергнутом B+), а **prompt
 artifact**: временная сборка ровно того контекста, который нужен агенту для конкретного
@@ -350,18 +444,39 @@ artifact**: временная сборка ровно того контекст
 
 ```text
 users, devices, user_sessions                 -- P1: identity
-learner_events                                 -- P2: общий поток (text_opened, sentence_read,
-                                               --      word_clicked, review_answered, audio_played,
-                                               --      dictation_answered, agent_task_completed, ...)
-review_log                                     -- P2: ЗЕРКАЛО клиентской схемы (мигр. 41)
-                                               --      + user_id, device_id, ingested_at
+learner_events                                 -- P2: телеметрия/аналитика (text_opened, sentence_read,
+                                               --      word_clicked, word_marked, audio_played,
+                                               --      message_sent/seen, agent_task_completed, ...)
+                                               --      БЕЗ review-фактов (v3, B7: review_answered/
+                                               --      dictation_answered живут ТОЛЬКО в review_log)
+review_log                                     -- P2: зеркало клиентской схемы (мигр. 41)
+                                               --      + user_id, device_id, ingested_at,
+                                               --      schema_version, source_client_version,
+                                               --      keyer_version (v3, M-R12/R13)
+ingest_batches                                 -- P2: батч-дедуп (idempotency_key, device_id, ...)
+                                               --      батч-поля живут ЗДЕСЬ, не в строке события
 srs_projections                                -- P4: derived, пересчитывается из review_log
+push_subscriptions                             -- P4.5: подписки Web Push (класс A, каскад delete)
 channel_links                                  -- P7: telegram_user_id/chat_id ↔ user_id, pairing
-notification_preferences                       -- P4.5/P7: режимы Silent/Coach/Intensive
-agent_profiles, agent_threads, agent_messages  -- P6: роль/стиль/цели; переписка
+notification_preferences                       -- P4.5+: ЕДИНЫЙ кросс-канальный бюджет (см. §8)
+agent_profiles, agent_threads, agent_messages  -- P6: роль/стиль/цели; переписка (класс — §5)
 agent_tasks, agent_explanations                -- P6: задачи агента + объяснения с провенансом
+llm_usage_ledger                               -- P6: cost ledger, pre-call check-and-reserve (§11)
 consent_records, audit_log                     -- P1: consent-история; критические действия
 ```
+
+**Уникальность и авторизация ingest (v3, критика B1/B2 — самые опасные находки):**
+
+- Клиентские id НЕ user-scoped (`seed:<item_key>` = буквально `seed:`+лемма) → на общей
+  таблице `PRIMARY KEY(id)` два пользователя, сидирующие одну лемму, молча теряют память
+  друг друга через INSERT OR IGNORE. Серверная уникальность = **`UNIQUE(user_id, id)`**,
+  вся идемпотентность и пре-чеки exists — user-scoped. Гейт CLG-P2: две учётки ингестят
+  одинаковый `seed:<item_key>` → ДВЕ строки.
+- Сервер выводит `user_id` **ТОЛЬКО из аутентифицированного принципала** (сессия /
+  делегированный токен пользователя с ограниченным scope для agent-сервиса); конвертное
+  поле user_id, не совпадающее с принципалом, → 403 (reject, НЕ молчаливый remap).
+  Инструменты §7 в сигнатурах не «принимают user_id», а получают его из контекста
+  принципала. Гейт CLG-P2: запрос с сессией A и телом user_id=B → 0 строк, 403.
 
 Принципиально: серверный `review_log` — **та же схема, что клиентский** (id/item_key/kind/
 reviewed_at/grade/source/channel/latency_ms/meta_json) плюс серверные колонки. Симметрия
@@ -385,6 +500,28 @@ ingested_at_server  -- когда сервер его принял
 серверного времени в учебной математике запрещено (офлайн-пачка, пришедшая через сутки,
 не должна сдвигать интервалы).
 
+**Канонический формат времени (v3, критика B10):** `reviewed_at`/`created_at_client` —
+ТОЛЬКО UTC ISO-8601 с суффиксом `Z` и миллисекундами (формат `toISOString()`, как весь
+живой канон) для ВСЕХ каналов включая агента; replay упорядочивает по распарсенному epoch
+с tie-break по id. Причина: смешение offset-форм (`+03:00` vs `Z`) ломает лексикографический
+`ORDER BY reviewed_at` — два ВЕРНЫХ события фолдятся в неверном порядке, и оракул
+«server==browser» этого не видит (обе стороны сортируют одинаково неверно). Ingest-валидация
+отклоняет/нормализует иные формы. Фикстура со смешанными offset-формами — в гейт CLG-P4.
+
+**Sanity-bound против clock-skew (v3, критика M-R11, carve-out к запрету серверного
+времени):** `ingested_at_server` разрешён как ВАЛИДАЦИОННАЯ граница на ingest
+(`created_at_client ≤ ingested_at_server + допуск`; future-dated нарушители — clamp или
+карантин с пометкой, единый режим для всех каналов), но по-прежнему запрещён как вход
+расписания. Отравленная строка, прошедшая до введения проверки, аннулируется
+компенсирующим событием (§1.3, carve-out б).
+
+**keyer_version — первоклассное поле конверта (v3, критика M-R13):** бамп KEYER_VERSION
+локально = re-key-миграция таблицы, но серверные события переписывать нельзя (§1.3).
+Решение: серверный re-key совместим с append-only через таблицу `key_alias`
+(old_key → new_key, keyer_version) — канонизация применяется на ЧТЕНИИ/replay, строки лога
+не трогаются; ingest-пачка со смешанными/устаревшими keyer_version — reject или карантин
+с translate-стадией, не молчаливый приём.
+
 ---
 
 ## §7. Agent Runtime: tool-based, не свободный LLM
@@ -392,16 +529,59 @@ ingested_at_server  -- когда сервер его принял
 LLM не получает прямой доступ к базе. Слой инструментов:
 
 ```text
-get_due_words(user_id, limit)          create_review_task(user_id, word_ids)
-get_recent_reading_context(user_id)    record_review_answer(...)        → событие в review_log
+get_due_words(limit)                   create_review_task(word_ids)
+get_recent_reading_context()           record_review_answer(...)   → событие в review_log
 get_sentence_context(sentence_id)      create_studio_draft(...)
-get_weak_patterns(user_id)             recommend_next_text(...)
-get_word_lifecycle(item_key)           explain_sentence(...)            → agent_explanations + провенанс
+get_weak_patterns()                    recommend_next_text(...)
+get_word_lifecycle(item_key)           explain_sentence(...)       → agent_explanations + провенанс
+synthesize_audio(text|item_key)        → TTS с кэш-провенансом (лимитируется, см. ниже)
 ```
+
+(`user_id` НЕ параметр инструментов — он выводится из аутентифицированного принципала,
+§6; v3, критика B2.)
+
+**Границы item_key (v3, критика M-R12):** кейер детерминирован, но его ВХОДЫ производит
+браузерный резолвер-стек (офлайн-словарь 3.3 МБ + notes-autogen + reader-morph), которого
+на сервере нет. До появления серверного keying/resolver-сервиса на том же датасете
+(pealim-infl-v12 + notes-autogen в Node; вписан в scope CLG-P5/P6) действует жёсткое
+правило: **агент оперирует ТОЛЬКО существующими item_key** из get_due_words /
+get_word_lifecycle; инструмента, создающего новые ключи, не существует.
 
 Цикл «Повтори меня»: `get_due_words → выбор режима → вопрос → ответ пользователя →
 record_review_answer → FSRS-replay пересчитывает → результат`. LLM никогда «сам не решает,
 что пользователь знает».
+
+**Грейдер (v3, критика B6 + M-R11 — самый опасный продуктовый риск):** право записи grade
+в канон получает только проверяемый грейдер.
+
+1. **Детерминированная нормализация ПЕРВОЙ:** сравнение ответа — skeleton без никуда +
+   эквивалентность ktiv male/haser через резолвер (норма проекта уже существует: cloze
+   keyed by skeleton). Для всех проверяемых форматов (диктант, cloze, reverse) грейд
+   присваивает детерминированный грейдер; **LLM никогда единолично не решает верность** —
+   только формулирует фидбек.
+2. **Провенанс оценки обязателен** в meta_json каждого агентского review-события:
+   `grader: deterministic | llm(+model) | self-report` (фиксируется в схеме на CLG-P2,
+   раньше P6).
+3. **Grader-accuracy gate в CLG-P7:** gold-набор ответов (ktiv-пары, огласовочные варианты,
+   near-miss формы) с порогом точности ДО права записи grade.
+4. Ошибочные grade-события аннулируются компенсирующим событием (§1.3, carve-out б), не
+   правкой лога.
+
+**Семантика неответа (v3, критика B-R2 — MNAR-принцип P5 распространяется на все агентские
+каналы):** неответ / [Позже] / доставлено-не-прочитано / пассивное аудио пишут **НИЧЕГО**
+в review_log (максимум learner_event для аналитики: message_sent, message_seen,
+audio_played). `kind='skip'` разрешён ТОЛЬКО на явный отказ внутри сессии, начатой
+пользователем. Недоступность пользователя — не сигнал памяти.
+
+**Входы учебных проекций (v3, критика M-R12 — анти-циркулярность):** проекции, влияющие
+на обучение (weak_patterns, misconception map, curriculum engine), derived ТОЛЬКО из
+graded-событий (review_log + learner_events). `agent_explanations` — аудит/UX-история/
+провенанс; **никогда не вход учебных проекций и не вход метрик качества агента** (иначе
+«согласен сам с собой»). Misconception map требует субстрата: контролируемый словарь
+construct-id (закрытый список: конфузионные пары предлогов, биньян-пары, смихут,
+род-согласование, артикль…), error-tag в meta_json от детерминированного классификатора
+(LLM-тегирование допустимо только с независимой агрегацией и порогом n) — «слабость недели»
+не может быть LLM-впечатлением.
 
 Разделение труда (инвариант 1.3-4): резолвер/датасеты утверждают факты; LLM — объясняет
 проще, даёт аналогию, связывает с русским, подбирает примеры из текстов пользователя,
@@ -412,8 +592,11 @@ record_review_answer → FSRS-replay пересчитывает → резуль
 **LLM-провайдер (решение §13.3): Gemini first, обязательная provider abstraction**
 (`agent_llm_provider: gemini | claude | mock`; `mock` — для гейтов и офлайн-тестов).
 Обязательные лимиты: max agent messages/day/user · max explain calls/day/user · max weekly
-digest tokens · cost ledger · **graceful degradation: без LLM агент всё равно показывает
-due, план, ссылки, review** (детерминированные инструменты не зависят от LLM).
+digest tokens · **max TTS chars/day/user** (v3, критика M-R16: диктант/listening/«только
+аудио» делают серверный TTS рабочей лошадью агента — та же единица учёта, что
+TTS_COST_PER_MILLION в server.js) · cost ledger (`llm_usage_ledger`, семантика §11) ·
+**graceful degradation: без LLM агент всё равно показывает due, план, ссылки, review**
+(детерминированные инструменты не зависят от LLM).
 
 **Провенанс объяснения — минимальная схема `agent_explanations`** (защита `derived ≠ asserted`):
 
@@ -438,15 +621,36 @@ due, план, ссылки, review** (детерминированные инс
 
 ## §8. Каналы
 
-- **Telegram Bot (P7).** Один официальный бот; webhook с secret-token; pairing-code
-  одноразовый, TTL, показывается во вкладке «AI-наставник»; связка `telegram_user_id +
-  chat_id ↔ user_id` в `channel_links`; подмена chat_id невозможна (проверка привязки на
-  каждом входящем). Команды MVP: `/start /plan /review /read /explain /settings`.
-- **Telegram Mini App (P8).** Обычный клиент Cloud API с валидацией `initData` (подпись
-  Telegram); тренировки due review/listening/dictation/cloze/reverse + прогресс.
+- **Telegram Bot (P7).** Один официальный бот. **Hardening (v3, критика B3/M-R14):**
+  pairing-code — высокая энтропия (≥128 бит, НЕ 6 цифр), одноразовый, TTL, привязан к
+  аутентифицированной веб-сессии, его сгенерировавшей, + двусторонний confirm (веб-UI
+  подтверждает ожидаемый chat_id); жёсткий лимит попыток на код и глобальный лимит /pair
+  **с момента P7, не G-EXT**. Webhook: `X-Telegram-Bot-Api-Secret-Token` — это bearer,
+  НЕ подпись payload (Telegram payload не подписывает) → секрет высокой энтропии только в
+  env, ротируется независимо от bot-токена, HTTPS-only, дедуп по `update_id` против replay;
+  авторизация — серверная проверка `channel_links`, никогда данные из тела. Связка
+  `telegram_user_id + chat_id ↔ user_id` в `channel_links`; подмена chat_id невозможна
+  (проверка привязки на каждом входящем). Команды MVP: `/start /plan /review /read
+  /explain /settings`.
+- **Telegram Mini App (P8).** Обычный клиент Cloud API с валидацией `initData` (HMAC от
+  bot-токена). **Hardening (v3, критика M-R14):** `auth_date` с коротким TTL (иначе
+  перехваченная initData валидна бессрочно — HMAC-ключ не ротируется); после первой
+  валидации выдаётся СВОЯ короткоживущая сессия, сырая initData не принимается на каждый
+  запрос; маппинг telegram_user_id→user_id — строго серверный (`channel_links`).
+  **Контекст-first (v3, критика B-R2, анти-каннибализация моата):** due-тренировка в
+  Mini App обязана показывать слово в его ИСХОДНОМ предложении (`sentence_id` уже в
+  meta_json / get_sentence_context) — гейт-требование CLG-P8, не пожелание; каждая
+  тренировка — с deep-link «прочитать в Зале»; канальный приоритет: агентским каналам —
+  просроченные/almost-lapsed слова, свежие due по умолчанию остаются чтению
+  (переопределяется пользователем). Метрика каннибализации (доля due вне чтения +
+  динамика reading-сессий) — CLG-P10.
 - **Web Push (P4.5).** Дешёвый первый return-trigger: серверные projections знают due —
   PWA-нудж «N слов ждут повторения» без содержимого. Первая видимая ценность пивота
-  задолго до Telegram.
+  задолго до Telegram. **Единый кросс-канальный бюджет уведомлений (v3, критика M-R2):**
+  `notification_preferences` = mode (Silent/Coach/Intensive) + суточный cap СУММАРНО по
+  (push + бот + digest) + timezone + quiet hours — push подчиняется режимам с P4.5, не
+  с P7; default = самый тихий содержательный режим (1 нудж/день), выбор — в Setup Wizard.
+  Гейт P4.5: «число в пуше == число в due-кольце после sync» (down-sync, §4.3).
 - **WhatsApp — исключён** (§1.4). Канальный адаптер в архитектуре предусмотрен, реализация
   отложена до зрелости Telegram-канала и/или организационного сценария (ульпан/школа).
 - **Вкладка «AI-наставник» (P9-смежное).** Статус подключения · Setup Wizard (мессенджер →
@@ -463,16 +667,17 @@ due, план, ссылки, review** (детерминированные инс
 
 | Фаза | Содержимое | Гейт выхода | Статус |
 |---|---|---|---|
-| **CLG-P0** | Этот recon + решения §13 ✅ + роли §12 ✅ + v2-правки ✅ + adversarial role-critique workflow по дизайну (норма проекта) | Sign-off владельца ✅ (2026-07-04) + критика отработана | 🟡 v2 — осталась критика |
-| **CLG-P1** | Identity & Account: users/sessions/devices, owner-only bootstrap (но схема сразу multi-tenant), consent_records, удаление/экспорт данных, ревокация устройств; попутно закрыть долг ротации AUDIO_UPLOAD_TOKEN | Аккаунт создаётся/удаляется/экспортируется; audit_log пишет | ⬜ |
-| **CLG-P2** | Cloud Event Log: серверные `review_log` + `learner_events`, ingest-endpoint с idempotency (готовые content-id), schema_version | Повторный ingest той же пачки = 0 новых строк | ⬜ |
-| **CLG-P3** | Browser Sync Bridge: OPFS outbox, cursor, ack, офлайн-пачки, dedupe | **Lossless-гейт:** клиент-лог == сервер-лог после sync (в обе стороны). **+ Migration dry-run** на РЕАЛЬНОМ OPFS-профиле владельца: count строк review_log · checksum упорядоченных строк · replay до/после идентичен · повторный ingest = 0 новых строк · rollback возвращает прежнюю local-only работу | ⬜ |
-| **CLG-P4** | Server-side FSRS replay + projections: `require('fsrs-core.js')` + `lemma-canon.js` в Node | **Оракул:** server replay == browser replay на реальном профиле владельца | ⬜ |
-| **CLG-P4.5** | Web Push due-нудж (первая видимая ценность) | Нудж приходит на телефон владельца, deep-link открывает due-кольцо | ⬜ |
-| **CLG-P5** | Learner Graph API: getDue/getReadingProgress/getKnownWords/getWeakPatterns/getRecentSentences/getNextRecommendedText/getAgentContext | API отдаёт то же, что видит Зал локально | ⬜ |
-| **CLG-P6** | Agent Runtime: planner/tutor/reviewer/explainer/recommender/grader, tool router, context pack builder, лимиты стоимости | Агент проходит §7-цикл на синтетике + владельце | ⬜ |
-| **CLG-P7** | Telegram Bot: pairing, команды, журнал действий во вкладке | Полный цикл «/review → ответ → review_log → Зал видит» | ⬜ |
-| **CLG-P8** | Telegram Mini App: тренировки + прогресс | Due review в Mini App пишет в тот же лог | ⬜ |
+| **CLG-P0** | Этот recon + решения §13 ✅ + роли §12 ✅ + v2-правки ✅ + adversarial role-critique ✅ (8 линз, 13 BLOCKER / 38 MAJOR / 13 MINOR → все BLOCKER и MAJOR отработаны в v3, §15) | Sign-off ✅ + критика ✅ | ✅ v3 (развилки D1–D3 → §14, не блокируют P1) |
+| **CLG-P1** | Identity & Account: users/sessions/devices, owner-only bootstrap (схема сразу multi-tenant), consent_records, удаление/экспорт, ревокация устройств; долг ротации AUDIO_UPLOAD_TOKEN. **v3:** bootstrap secret ≥128 бит + timing-safe + IP-fail-limiter с P1 (не G-EXT), секрет только в POST-теле/заголовке; session cookie SameSite+Secure+HttpOnly+CSRF-токен + sweep эндпоинтов (инвариант server.js:369 «нет сессий → нет CSRF» отменяется); disk-алёрт (порог ~80%) | Аккаунт создаётся/удаляется/экспортируется; **после delete: replay по user_id пуст, ни одна таблица не содержит его строк**; revoke→purge тест; audit_log пишет | ⬜ |
+| **CLG-P2** | Cloud Event Log: серверные `review_log` + `learner_events` (телеметрия, без review-фактов), `ingest_batches`, конверт §6 (+keyer_version), схема annul/correction-события, meta_json-allowlist | Повторный ingest той же пачки = 0 новых строк; **две учётки с одинаковым `seed:<item_key>` → 2 строки** (B1); **сессия A + тело user_id=B → 403, 0 строк** (B2); allowlist отклоняет неразрешённые meta-ключи; смешанные keyer_version → reject/карантин | ⬜ |
+| **CLG-P3** | Browser Sync Bridge: cursor-over-log outbox, ack, офлайн-пачки, dedupe, **down-sync server→OPFS** (§4.3), cutover + постоянная reconciliation | **Lossless-гейт (union-формулировка, v3):** после полного двустороннего синка КАЖДЫЙ клиентский лог == серверный == union всех; checksum по детерминированному порядку (epoch, id). **Migration dry-run** на РЕАЛЬНЫХ профилях владельца (**ПК+телефон, оба непустые**): count/checksum · replay(union) до/после · повторный ingest = 0 новых · **word_status manual-overlay parity** (§4.7) · rollback возвращает local-only. **+ под-гейты:** second-device onboarding (непустой дивергентный OPFS подключается к канону без потерь) · fresh-device bootstrap (пустое устройство → полная реплика → replay == десктоп) | ⬜ |
+| **CLG-P4** | Server-side FSRS replay + projections: `require('fsrs-core.js')` + `lemma-canon.js` в Node | **Оракул (независимый, v3):** server replay == browser replay == **реплей поверх запиненного ts-fsrs@5.4.1** на реальном профиле; committed golden-вектора replay-over-log (out-of-order, mixed-source, seed+skip, смешанные форматы времени) | ⬜ |
+| **CLG-P4.5** | Web Push due-нудж (первая видимая ценность); `push_subscriptions`; единый бюджет уведомлений (§8) | Нудж приходит на телефон владельца; **число в пуше == число в due-кольце после sync**; deep-link открывает кольцо на устройстве с живой репликой (fresh-device bootstrap из P3) | ⬜ |
+| **CLG-P5** | Learner Graph API: getDue/getReadingProgress/getKnownWords/getWeakPatterns/getRecentSentences/getNextRecommendedText/getAgentContext; серверный keying/resolver-стек (§7) | API отдаёт то же, что видит Зал локально (включая manual-overlay §4.7) | ⬜ |
+| **CLG-P5.5** | **Artifact Sync, класс B (v3, критика M-R5 — без него агент слеп к «МОИМ предложениям»):** таблицы texts/sentences/anchors, переключатель consent | `sentence_id` из push/агента резолвится на сервере в тот же текст, что видит Зал | ⬜ |
+| **CLG-P6** | Agent Runtime: planner/tutor/reviewer/explainer/recommender/grader, tool router, context pack builder, лимиты §7/§11 (pre-call reserve); **вход-условие: авто-prune docker-образов включён (§11)** | Агент проходит §7-цикл на синтетике + владельце; **prompt payload отсутствует в stdout/логах agent-сервиса**; лимиты срабатывают на burst-тесте | ⬜ |
+| **CLG-P7** | Telegram Bot: pairing (hardening §8), команды, журнал действий во вкладке | Полный цикл «/review → ответ → review_log → **строка появляется в ЛОКАЛЬНОМ OPFS-логе** (down-sync, не только API) → Зал видит»; **grader-accuracy gate:** gold-набор ответов (ktiv-пары, огласовки, near-miss) ≥ порога ДО права записи grade | ⬜ |
+| **CLG-P8** | Telegram Mini App: тренировки + прогресс; **контекст-first** (§8) | Due review в Mini App пишет в тот же лог; **слово показано в исходном предложении** + deep-link в Зал | ⬜ |
 | **CLG-P9** | Agent-кнопки в Зале/Студии: [Спросить агента][Объясни предложение][Добавь в тренировку][Создай мини-урок][Текст по слабым словам] + anchor-точность (text_key/sentence_id/order_index/token_index) | 380px light/dark, RTL, parity-гейты зелёные | ⬜ |
 | **CLG-P10** | Premium Analytics: weekly digest, misconception map, personal curriculum engine («12 знакомых слов + 4 из зоны ближайшего развития»), retention-метрики; teacher dashboard — за горизонтом | — | ⬜ |
 
@@ -483,15 +688,30 @@ due, план, ссылки, review** (детерминированные инс
 **Гейт G-EXT (external-pilot gate).** Owner-as-user допускается с CLG-P1. **Первый внешний
 пользователь — только после того, как готово всё:** полная privacy-ревизия (§11) ·
 экспорт данных протестирован · удаление аккаунта протестировано · per-user rate limits ·
-tenant-isolation тесты (А не видит Б) · backup-restore drill на learner-данных ·
-abuse/rate-limit policy. До прохождения G-EXT внешний пилот запрещён независимо от
-готовности функциональности.
+tenant-isolation тесты (А не видит Б) · backup-restore drill на learner-данных
+(**включая пункт «restore ПОСЛЕ delete не воскрешает удалённые данные»** — deletion-journal,
+§11) · abuse/rate-limit policy · consent-модель для несовершеннолетних/организаций
+(ульпан-сценарий). До прохождения G-EXT внешний пилот запрещён независимо от готовности
+функциональности.
+
+**Rollback после канон-флипа (v3, критика M-R13).** Единственный rollback-гейт v2 жил в
+CLG-P3 — в мире, где server-originated событий ещё не существует (тривиален по построению).
+После P6/P7 события `source='agent:*'` рождаются НА сервере; процедура отката обязана
+начинаться с финального полного server→client экспорта (down-sync §4.3) + verify
+«локальный лог ⊇ серверный», иначе Telegram-события гибнут. Rollback-процедура пост-флипа
+фиксируется до старта CLG-P6.
 
 **Отношение к текущей очереди (retention-программа) — ПОДТВЕРЖДЕНО владельцем (§13.6):**
 закрыть **P4.1** (дефект демоции 'new' в Anki-ingest) ДО CLG-P2 — этот ingest-путь
 становится фундаментом облачного лога, дефект нельзя копировать в облако. **P6-метрику
 ретеншена** — до/параллельно CLG-P0–P1: она даст baseline, без которого эффект агента
 будет неизмерим (R10). Telegram — строго после G-5.
+
+**Мотивационный контракт программы (v3, критика M-R5):** фазы P1–P4 для владельца невидимы;
+каждой фазе назначается честный owner-visible выхлоп (P2 — бейдж «облачная копия: N событий,
+синк вчера» + публичный restore-drill; P3 — «второе устройство работает»; P4.5 — первый
+нудж). Ни одной фазы длиннее нескольких сессий без видимого выхлопа; при срыве — точка
+пересборки плана, не тихое продолжение.
 
 ---
 
@@ -509,11 +729,20 @@ abuse/rate-limit policy. До прохождения G-EXT внешний пил
 - agent memory как источник истины (только производная проекция);
 - нарушение миграционных инвариантов (метка==индексу на клиенте; db:migrate на сервере);
 - новый писатель SRS-состояния без gate-consumers-sweep по всем поверхностям;
-- **два независимых писателя одного state во время миграции** (§4.7: event / projection / cache — третьего не дано);
+- **два независимых писателя одного state во время миграции** (§4.7: event / projection / cache / asserted-mark — пятого не дано);
 - **прямая запись agent-сервиса в SQLite** (только через Cloud API main-сервера, пока БД = SQLite);
 - **внешние клиенты действуют от имени learner-state до прохождения P3+P4** (§4.6);
-- **серверное время в учебной математике** (`ingested_at_server` — только аудит/sync; §6);
-- **внешний пилот до прохождения G-EXT** (§9).
+- **серверное время в учебной математике** (`ingested_at_server` — только аудит/sync и sanity-bound; §6);
+- **внешний пилот до прохождения G-EXT** (§9);
+- **user_id из тела запроса** (только из аутентифицированного принципала; §6, B2);
+- **review-факты вне review_log** (learner_events — телеметрия, replay её не читает; §4.4, B7);
+- **запись в review_log при неответе пользователя** (MNAR: недоступность ≠ память; §7);
+- **LLM единолично присваивает grade** (детерминированный грейдер + провенанс `grader`; §7, B6);
+- **agent_explanations как вход учебных проекций или метрик агента** (анти-циркулярность; §7);
+- **контентные meta-поля non-consented источников в облаке** (allowlist; §5, B5);
+- **не-UTC-Z формы времени в событиях** (§6, B10);
+- **новая user_id-таблица вне export/delete** — полнота проверяется авто-гейтом (итерация
+  по sqlite_master), перезапускаемым на КАЖДОЙ CLG-фазе, не только в P1/G-EXT (M-R15).
 
 ---
 
@@ -528,8 +757,32 @@ security · rate limits · мониторинг · миграция OPFS→cloud
 
 - **Ресурсы.** Контейнер: 1.5 cores / 1536 MB; на нём уже сервер+TTS-прокси. Agent runtime,
   webhook и планировщик должны влезть в бюджет или выехать в отдельный Coolify-сервис (§13.4).
-  Диск CX23 — свежий инцидент 100% (docker-образы, 2026-07-04): рост learner-данных требует
-  дискового бюджета и алёрта.
+  **v3 (критика R16):** решение «P1–P5 влезает» проверяется замером RAM/CPU-baseline ДО
+  CLG-P1 (R10 measure-before-code в ресурсной плоскости); отдельному agent-сервису
+  назначается свой RAM/CPU-лимит (не «безлимитный сосед» на 8 GB хосте).
+  **Диск — ДВА независимых пула (v3, критика M-R16):** (1) docker-образы — источник
+  инцидента 100% (2026-07-04, 41 образ); второй деплоящийся сервис УДВАИВАЕТ скорость
+  накопления → авто-prune/Coolify cleanup = входное условие CLG-P6, диск-алёрт (порог ~80%)
+  — уже в CLG-P1; (2) learner-данные — лимит размера БД + бэкапы (§4.5).
+- **Cost-enforcement (v3, критика M-R16).** Дом-прецедент (usage.json, markGeminiDailyLimitHit
+  в error-ветке) — ПОСТФАКТУМ-модель, для агента непригодна. Лимиты §7 enforce-ятся
+  **атомарным pre-call check-and-reserve** в SQLite-транзакции (`llm_usage_ledger` в той же
+  БД); фактический расход — постфактум-апдейт зарезервированной строки. Плюс глобальный
+  дневной бюджет (все пользователи суммарно) + kill-switch: исчерпание → graceful
+  degradation в LLM-less режим. Burst-тест лимитов — гейт CLG-P6. BYOK-раздел покрывает
+  все ТРИ ключа (Gemini / GCP TTS / GCP Translate).
+- **Бэкапы vs удаление (v3, критика M-R15).** Restore тома (ретенция 14 дней) не должен
+  воскрешать удалённого пользователя: deletion-journal (user_id + timestamp) вне
+  restore-скоупа, реиграется автоматически после любого restore; residual-окно бэкапов
+  (до 14 дней) раскрывается в privacy-текстах обоих уровней как штатное ограничение
+  удаления. Отдельно раскрывается: переписка с ботом живёт на серверах Telegram и
+  удалением аккаунта LinguistPro не удаляется (deletion-flow рвёт `channel_links` + шлёт
+  финальную инструкцию очистки чата); полные тела C-текстов агент не шлёт в чат без
+  необходимости. Retention/обучение на данных у LLM-провайдера для классов C/D —
+  проверить и зафиксировать в G-EXT.
+- **Кто платит (открыто, к G-EXT).** Пивот принимает постоянные per-user издержки
+  (LLM+TTS+хранение); модель покрытия для внешних пользователей (подписка / BYOK-каналы /
+  лимитированный free-tier) — решение до внешнего пилота, не сейчас.
 - **Security.** Пивот расширяет чек-лист `SECURITY_AUDIT_2026-06-13`: webhook-подпись,
   session security, tenant isolation, audit log. Давние долги (ротация AUDIO_UPLOAD_TOKEN,
   firewall :8000) закрываются в CLG-P1, не позже.
@@ -610,16 +863,68 @@ agent runtime).
 
 ---
 
-## §14. Следующие шаги
+## §14. Adversarial role-critique 2026-07-04 → v3 (вердикты)
+
+Workflow `wf_ab712645-12e`: 8 линз (R2, R5, R11, R12, R13, R14, R15, R16) × 1 агент,
+refute-режим, находки заземлялись в живом коде. **Итог: 13 BLOCKER / 38 MAJOR / 13 MINOR;
+все BLOCKER и MAJOR приняты и отработаны в v3** (агенты опровергли в т.ч. два ключевых
+утверждения v2: «дедуп между устройствами бесплатно» и независимость replay-оракула).
+Полный отчёт: **`docs/planning/AI_MENTOR_CRITIQUE_2026_07_04.md`** (сырой, не редактировать).
+
+### Куда легли кластеры
+
+| Кластер (роли) | Суть | Внесено |
+|---|---|---|
+| Tenant/id-scoping (R14, R11) | `seed:<item_key>` и content-id без user-scope → кросс-тенантная потеря памяти; ingest доверял user_id из тела; pairing-брутфорс | §6 UNIQUE(user_id,id) + принципал-only + гейты CLG-P2; §8 pairing ≥128 бит + лимиты с P7 |
+| GDPR vs канон (R15, R5) | append-only ↔ право на удаление; meta_json несёт класс C в классе A; бэкап воскрешает удалённого; TTL класса D никем не enforce-ился | §1.3 carve-out (а) forget-the-stream; §5 meta-allowlist + revoke-семантика + класс переписки; §11 deletion-journal; §5 класс D enforcement |
+| Грейдер (R2, R11) | машинный грейдер писал необратимые grade без гейта точности и механизма аннулирования | §7 детерминированный-первым + провенанс `grader` + accuracy-gate CLG-P7; §1.3 carve-out (б) annul/correction |
+| Два дома review-факта (R12) | review_answered в learner_events И review_log; диаграмма рисовала приток | §4.4 два параллельных потока; §6 learner_events без review-фактов |
+| Seed/мульти-девайс (R12, R11, R13) | seed identity-детерминирован, merge некоммутативен, оракул P4 непроходим при 2 устройствах; `sre:<uuid>` не был в инвентаре | §3.1 честный id-инвентарь; гейты P3 union/two-profile/second-device/fresh-device; развилка **D3** |
+| Asserted user state (R12, R13) | ручная ось word_status/заметки/text_user_meta вне трихотомии, без канала миграции | §4.7 четвёртая категория (mark-события + LWW) + dry-run parity в P3 |
+| Время (R11) | смешанные offset-формы ломают порядок replay; future-dated отравляет навсегда | §6 канонический UTC-Z + sanity-bound + annul; фикстуры в P4 |
+| Независимость оракула (R11) | server==browser на одном fsrs-core = «согласен сам с собой» | §1.3-2: ts-fsrs-реплей + golden-вектора в гейте P4 |
+| Sync-мост (R12, R13) | down-sync не специфицирован; outbox-очередь дырява; lossless одноразовый; rollback пост-флипа не существовал; keyer_version вне конверта | §4.3 (cursor-over-log, down-sync первоклассный, reconciliation); §6 keyer_version + key_alias; §9 rollback-процедура |
+| Педагогика (R2) | recognition/production в одном state; skip при неответе; Mini App каннибализирует чтение; misconception без субстрата; бюджет уведомлений разрознен | §7 MNAR-семантика неответа + construct-id субстрат; §8 контекст-first + единый бюджет + timezone; развилка **D1** |
+| Рынок/scope (R5) | класс B без таблиц и фазы; offline-first убит формулировкой; AI-рецензент нарушал инварианты; P4.5 deep-link в пустой OPFS; 4 невидимые фазы | §9 CLG-P5.5; §5 три tier-а; §2.2 демоция рецензента + data-зависимости; P3 fresh-device; §9 мотивационный контракт |
+| Безопасность каналов (R14) | cookie-CSRF (server.js:369 отменяется); bootstrap secret без порогов; webhook bearer≠подпись; initData бессрочна | §9 CLG-P1 hardening; §8 webhook/initData/pairing hardening |
+| Экономика (R16) | постфактум-модель лимитов; TTS вне лимитов; второй сервис удваивает docker-диск; RAM без baseline | §11 pre-call reserve + kill-switch + два дисковых пула + baseline-замер; §7 TTS-лимиты |
+
+MINOR-находки (13) учтены точечно: push_subscriptions в §6, ресурсный лимит agent-сервиса
+и baseline в §11, tool×consent-матрица — при CLG-P6, формулировки миссий в §2.2,
+несовершеннолетние/ульпан в G-EXT, LLM-retention у провайдера в G-EXT, звезда клиентов
+§4.1 (осознанно упрощена), «кто платит» в §11.
+
+### Развилки к решению владельца (НЕ блокируют CLG-P1)
+
+- **D1 (до CLG-P6) — recognition vs production.** Один item_key на лемму сливает рецептивное
+  и продуктивное знание: провал в диктанте рушит расписание чтения. Варианты: (а) фасет
+  модальности в item_key (раздельные расписания, как раздельные карточки Anki) vs
+  (б) channel-aware política грейда (production-провал на рецептивно-сильном слове → Hard,
+  не Again) + channel-aware агрегация для диагностики. **Рекомендация: (б)** — не удваивает
+  item-пространство, лог с channel-провенансом позволяет переинтерпретацию задним числом.
+- **D2 (до CLG-P2) — канон learner_events.** Клиентской таблицы learner_events не существует;
+  «server mirror» на P2 — зеркало чего? Варианты: (а) server-canon-from-birth телеметрия
+  best-effort (вне lossless-гейта; на неё опираются только аналитические проекции) vs
+  (б) клиентская таблица + outbox + миграция. **Рекомендация: (а)** — review-семантика и так
+  живёт только в review_log; телеметрия не заслуживает стоимости второго канона.
+- **D3 (до CLG-P2) — merge-семантика seed-строк.** `seed:<item_key>` коллидирует между
+  устройствами; watermark-replay делает слияние некоммутативным. Варианты: (а) content-hash
+  в id (`seed:<item_key>#<sha1(meta)>`) + правило replay при нескольких seed (earliest-wins;
+  поздний seed игнорируется, если между ними есть review-строки) vs (б) seed device-local
+  (не синкается) + серверное правило сидирования при первом ingest. **Рекомендация: (а)** —
+  сохраняет полную историю в union-логе; правило проверяется two-profile гейтом P3.
+
+## §15. Следующие шаги
 
 1. ✅ Решения владельца §13 + роли §12 получены и вписаны (v2, 2026-07-04).
 2. ✅ 7 v2-правок владельца внесены: §4.6 canon transition · §4.7 dual-write prohibition ·
    §6 event schema versioning · §9 CLG-P3 migration dry-run · §4.5 SQLite constraints ·
    §7 agent provenance schema · §9 G-EXT external-pilot gate.
-3. Adversarial role-critique workflow по этому дизайну (релевантные линзы из R1–R16,
-   1 агент/роль) — ДО первого кода; выжившие BLOCKER/MAJOR-находки → правки в этот док.
-4. CLG-P1 (identity) — первый код программы (после закрытия retention P4.1 / согласно
-   §13.6). Telegram — не раньше гейта G-5.
+3. ✅ Adversarial role-critique (8 линз) проведена; 13 BLOCKER + 38 MAJOR отработаны в v3
+   (§14); полный отчёт — `AI_MENTOR_CRITIQUE_2026_07_04.md`.
+4. Владелец: развилки **D1–D3** (§14; D2/D3 — до CLG-P2, D1 — до CLG-P6; рекомендации даны).
+5. Retention **P4.1** (по §13.6) → **CLG-P1** (identity) — первый код программы.
+   Telegram — не раньше гейта G-5.
 
 **Напутствие программы (владелец):** первый код должен быть «скучным, платформенным и
 почти невидимым» — identity, consent, event log, sync, replay, projections. Только после
