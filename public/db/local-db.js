@@ -2513,11 +2513,15 @@ export async function countReviewLog() {
 // The SECOND writer of word_status.srs_* (after the recall path). srs-ONLY UPSERT: it recomputes
 // the SCHEDULE from the merged review_log but NEVER touches the manual `status` axis (D8-style —
 // a review reschedules, it does not assert a manual level) nor the source anchors (COALESCE-safe).
-// A brand-new word (reviewed only in Anki, never tracked in the Room) is INSERTed with status
-// 'new' (tracked-but-unmarked). `sched` = the projected FSRS state (due ms / interval / reps /
-// lapses / stability / difficulty / reviewedAt ms / scheme). Consumers-sweep: getSrsSchedule,
-// getDueWithSource, dueCounts, rankByWeakness, the P5 ring/recall ALL read these columns → this
-// writer fills every one so none reads a stale projection.
+// A brand-new word (reviewed only in Anki, never tracked in the Room) is INSERTed with status ''
+// — a pure srs-carrier row whose manual axis stays UNSET (P4.1): the manual-wins overlay in
+// getKnownWordStates skips falsy statuses, so an SRS-derived 'known' is not demoted, and the
+// bundle merge (Pass 15) drops ''-rows so a carrier never clobbers another device's manual mark.
+// (The old 'new' INSERT read as an ASSERTED manual mark and demoted Anki-known words in coverage.)
+// `sched` = the projected FSRS state (due ms / interval / reps / lapses / stability / difficulty /
+// reviewedAt ms / scheme). Consumers-sweep: getSrsSchedule, getDueWithSource, dueCounts,
+// rankByWeakness, the P5 ring/recall ALL read these columns → this writer fills every one so none
+// reads a stale projection; ''-status passes every `status != 'ignore'` filter like 'new' did.
 export async function updateSrsState(itemKey, sched) {
   const lk = String(itemKey || "").trim();
   if (!lk || !sched || typeof sched !== "object") return false;
@@ -2526,7 +2530,7 @@ export async function updateSrsState(itemKey, sched) {
   try {
     await r(
       `INSERT INTO word_status (lemma_key, status, updated_at, srs_due, srs_interval, srs_reps, srs_lapses, srs_stability, srs_difficulty, srs_reviewed_at, srs_scheme)
-       VALUES (?, 'new', strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?, ?, ?, ?, ?)
+       VALUES (?, '', strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(lemma_key) DO UPDATE SET
          srs_due=excluded.srs_due, srs_interval=excluded.srs_interval, srs_reps=excluded.srs_reps, srs_lapses=excluded.srs_lapses,
          srs_stability=excluded.srs_stability, srs_difficulty=excluded.srs_difficulty, srs_reviewed_at=excluded.srs_reviewed_at, srs_scheme=excluded.srs_scheme`,

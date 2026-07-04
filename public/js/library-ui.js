@@ -2729,7 +2729,9 @@ function bumpTapStat(kind) {
 // exactly (seed-row@now−1ms → review-row → setWordStatus(sched)) with two deliberate deltas:
 //   • D8(a): the manual level is NOT moved — nextLevel is NOT called; a self-report must not
 //     retire a word from i+1/sessions/the production tier. The stored status is re-written AS-IS
-//     (setWordStatus needs a status; '' would DELETE the row — hence the guard).
+//     (setWordStatus needs a status; '' would DELETE the row — hence the guard). A word with NO
+//     manual status persists its schedule srs-only via updateSrsState (P4.1) — the oracle
+//     replay(log)==stored holds for Anki-carrier ('') and never-tracked words too.
 //   • source='reading-tap', channel='reading:tap' — its own stratum for P6 (recon §4.4/§6.8:
 //     excluded from weight fitting until the abandonment gate passes; demotion threshold 15 п.п.
 //     precommitted). study_day: a post-reveal grade IS a genuine retrieval attempt → recordRecall
@@ -2742,6 +2744,10 @@ async function gradeReadingTap(card, occ, correct, prev) {
   let cur = card.manualStatus || '';
   if (!cur) { try { cur = (await localDb.getWordStatus(card.lemmaKey)) || ''; } catch (_) {} }
   if (cur && cur !== 'ignore') { try { await localDb.setWordStatus(card.lemmaKey, cur, sched, null); } catch (_) {} }
+  // P4.1 — no manual status (srs-carrier row from the Anki merge, or a never-tracked word): persist
+  // the schedule srs-ONLY so replay(log)==stored still holds, WITHOUT asserting a manual level
+  // (setWordStatus with '' would DELETE the row; asserting 'new' would demote via manual-wins).
+  else if (!cur) { try { await localDb.updateSrsState(card.lemmaKey, sched); } catch (_) {} }
   try {
     const LC = window.LemmaCanon;
     if (LC) {

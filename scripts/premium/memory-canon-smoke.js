@@ -274,6 +274,47 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
         out.p4Idempotent = ing2.ingested === 0 && (await ldb.getReviewLog(KEY)).length === 3 && (await ldb.countReviewLog()) === before;
       } catch (e) { out.p4Err = String(e && e.message || e); }
 
+      // ── P4.1) srs-carrier row (status='') must NOT demote via manual-wins (defect fix) ──
+      // An Anki-KNOWN word the Room never tracked: word_study note + srs_cards state 'review'
+      // (getLearningStateOverlay → 'known'), NO word_status row. Before the fix, the Anki ingest's
+      // updateSrsState INSERTed status='new', and the manual-wins overlay in getKnownWordStates
+      // demoted the derived 'known' to 'new' in reading colour / coverage / i+1.
+      try {
+        const note2 = await ldb.createNote({ target_kind: "word", target_id: "w-anki-2", note_type: "word_study", body: { word: "ספר", lemma: "ספר", pos: "noun", meaning: "книга" } });
+        const nid2 = String((note2 && note2.id) || note2);
+        const KEY2 = ldb.noteLemmaKey({ word: "ספר", lemma: "ספר", pos: "noun" });   // "ספר#noun"
+        await ldb.dbRun(
+          `INSERT INTO srs_cards (id, entity_type, entity_id, template_id, source_note_id, state, due_date, interval_days, reps, lapses)
+           VALUES ('c-p41', 'note', ?, 'tpl_ru_to_he', ?, 'review', '2099-12-01T00:00:00.000Z', 30, 5, 0)`, [nid2, nid2]);
+        out.p41OverlayKnown = (await ldb.getKnownWordStates())[KEY2] === "known";   // precondition: SRS-derived state
+        const T2 = Date.parse("2099-09-01T10:00:00.000Z");
+        const ing41 = await ldb.ingestAnkiReviewsToLog([
+          { ankiReviewId: T2, localNoteId: nid2, ankiCardId: 222, ts: new Date(T2).toISOString(), ease: 3, type: 1 },
+        ]);
+        out.p41Ingested = !!(ing41 && ing41.ingested === 1 && ing41.affected === 1);
+        const ws41 = await one("SELECT status, srs_scheme, srs_stability, srs_due FROM word_status WHERE lemma_key = ?", [KEY2]);
+        out.p41CarrierRow = !!(ws41 && String(ws41.status) === "" && ws41.srs_scheme === "fsrs" && Number(ws41.srs_stability) > 0 && ws41.srs_due);
+        out.p41NoDemotion = (await ldb.getKnownWordStates())[KEY2] === "known";     // '' must NOT overlay
+        // the DELIBERATE manual 'new' (purple) still wins — only the carrier is exempt
+        await ldb.setWordStatus(KEY2, "new");
+        out.p41ManualStillWins = (await ldb.getKnownWordStates())[KEY2] === "new";
+        // clearing the manual mark deletes the row; recompute re-creates the srs-carrier ('')
+        await ldb.setWordStatus(KEY2, "");
+        await ldb.recomputeSrsFromLog([KEY2]);
+        const ws42 = await one("SELECT status, srs_scheme FROM word_status WHERE lemma_key = ?", [KEY2]);
+        out.p41RecomputeCarrier = !!(ws42 && String(ws42.status) === "" && ws42.srs_scheme === "fsrs");
+        // bundle merge: an incoming ''-carrier row must never clobber a local manual mark (Pass 15
+        // drops empty statuses — the cross-device face of the same demotion defect)
+        await ldb.setWordStatus(KEY2, "l3");
+        await ldb.importBundle({
+          manifest: { export_schema_version: 1 }, texts: [],
+          notes_advanced: { schema_version: 2, notes: [], review_log: [], study_day: [],
+            word_status: [{ lemma_key: KEY2, status: "", updated_at: "2099-12-31T00:00:00.000Z", srs_due: "2099-12-01T00:00:00.000Z", srs_interval: 2, srs_reps: 1, srs_lapses: 0 }] },
+        }, { mode: "skip" });
+        const ws43 = await one("SELECT status FROM word_status WHERE lemma_key = ?", [KEY2]);
+        out.p41CarrierMergeSafe = !!(ws43 && ws43.status === "l3");
+      } catch (e) { out.p41Err = String(e && e.message || e); }
+
       return out;
     });
 
@@ -320,6 +361,13 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.p4Recomputed === true, "P4: word state not recomputed from the merged log (scheme=fsrs / stability / due)");
     eq(res.p4Oracle === true, "P4: INDEPENDENT ORACLE (Anki-merged) failed — replay(review_log) != stored word_status state");
     eq(res.p4Idempotent === true, "P4: re-ingesting the same Anki reviews duplicated rows / changed state");
+    eq(res.p41OverlayKnown === true, "P4.1: precondition failed — srs_cards 'review' did not derive 'known'" + (res.p41Err ? " err:" + res.p41Err : ""));
+    eq(res.p41Ingested === true, "P4.1: single-review Anki ingest on an untracked word miscounted");
+    eq(res.p41CarrierRow === true, "P4.1: updateSrsState did not create the ''-carrier row (status must be '', schedule recomputed)");
+    eq(res.p41NoDemotion === true, "P4.1 DEFECT: Anki-known word demoted to 'new' via manual-wins (carrier status leaked into the overlay)");
+    eq(res.p41ManualStillWins === true, "P4.1: the deliberate manual 'new' no longer wins (overlay regression)");
+    eq(res.p41RecomputeCarrier === true, "P4.1: recomputeSrsFromLog did not re-create the ''-carrier after a manual clear");
+    eq(res.p41CarrierMergeSafe === true, "P4.1: an incoming ''-carrier bundle row CLOBBERED a local manual mark (Pass 15 must drop it)");
     eq(res.hasFC === true, "FsrsCore/fsrsStep not loaded in library.html" + (res.p2Err ? " err:" + res.p2Err : ""));
     eq(res.p2LegacyShape === true, "legacy schedule row lost its shape");
     eq(res.p2Seeded === true, "fsrsStep did not seed a legacy row");
@@ -330,14 +378,14 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.p2Oracle === true, "INDEPENDENT ORACLE failed: replay(review_log) != stored state" + (res.p2Err ? " err:" + res.p2Err : ""));
     eq(errs.length === 0, "page errors: " + errs.join(" | "));
 
-    const total = 50;
+    const total = 57;
     if (failures.length) {
       console.error(`smoke:memory-canon FAIL (${total - failures.length}/${total})`);
       for (const f of failures) console.error("  ✗ " + f);
       console.error(JSON.stringify(res, null, 1).slice(0, 4000));
       process.exitCode = 1;
     } else {
-      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle)`);
+      console.log(`smoke:memory-canon OK (${total}/${total}) — mig 041/042 · keyer conformance · content-id log · bundle 3-table merge · Pass 8/12 no-dup · P2 FSRS handover (seed-once · Again-due-now · plain-set-preserve · independent oracle) · P3 Studio→FSRS (scheme=fsrs · meta_json.fsrs · projections · Studio oracle) · P4 Anki-merge (canon-log ingest+filters · updateSrsState srs-only · recompute · Anki oracle) · P4.1 ''-carrier (no-demotion · manual-wins kept · recompute-carrier · merge-safe)`);
     }
   } catch (e) {
     console.error("smoke:memory-canon CRASH", e);
