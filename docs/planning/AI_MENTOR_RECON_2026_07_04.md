@@ -1,6 +1,12 @@
 # AI_MENTOR_RECON_2026_07_04 — AI-наставник + Cloud Learner Graph (программа-recon)
 
-> **Статус:** RECON — ждёт sign-off владельца по §13 (открытые вопросы) и §12 (новые роли).
+> **Статус:** RECON **v2** — направление и все решения §13 **УТВЕРЖДЕНЫ владельцем
+> 2026-07-04** (sign-off-пакет вписан в §13 как решения); роли R12–R16 утверждены без
+> консолидации и встроены в `docs/PROJECT_ROLES.md`. В CLG-P0 осталось: adversarial
+> role-critique workflow → выжившие правки в этот док → старт CLG-P1.
+> **v2-правки владельца (7):** canon transition (§4.6) · dual-write prohibition (§4.7) ·
+> event schema versioning (§6) · migration dry-run gate (§9 CLG-P3) · SQLite operational
+> constraints (§4.5) · agent provenance schema (§7) · external-pilot gate (§9 G-EXT).
 > **Дата:** 2026-07-04. **Прод на момент написания:** v3.11.87.
 > **Как создан:** сессия 2026-07-04 — синтез двух внешних концепт-текстов советника
 > (v1 «LinguistPro Mentor / персональный языковой наставник», v2 «A-controlled / Cloud
@@ -81,8 +87,13 @@ replay-оракул и lossless-sync** (§9, гейт G-5).
 
 ### 1.4 Решения периметра (зафиксированы вместе с пивотом)
 
-- **Один официальный Telegram-бот** (`@LinguistProMentorBot` или аналог), привязка по
-  одноразовому pairing-code. «Свой бот на пользователя» — только как advanced-режим, не в программе.
+- **Один официальный Telegram-бот**, привязка по одноразовому pairing-code. «Свой бот на
+  пользователя» — только как advanced-режим, не в программе. **Имя (решение §13.8):**
+  пробуем `@LinguistProMentorBot`, fallback-порядок `@LinguistProTutorBot` →
+  `@LinguistProHebrewBot` → `@LinguistProCoachBot`. **Владение:** бот создаётся с
+  проектно-контролируемого Telegram-аккаунта (не случайного личного) с 2FA и
+  подконтрольным recovery; токен — ТОЛЬКО в Coolify secrets/env, не в коде; процедура
+  ротации документируется; BotFather-ownership фиксируется в `.claude/PROD_OPS_PRIVATE.md`.
 - **WhatsApp исключён на старте** (business-платформа, тарификация per-message, 24-часовое
   service window — дорого для daily-nudge модели). Архитектурно предусмотрен как будущий
   channel adapter, не реализуется до зрелости Telegram-канала.
@@ -258,12 +269,62 @@ learner_events ──┐
 }
 ```
 
-### 4.5 Выбор серверной БД
+### 4.5 Выбор серверной БД — РЕШЕНО (§13.2): SQLite с эксплуатационными условиями
 
 Старт — существующий SQLite-стек (`db/`) на томе: миграции/бэкап/integrity уже есть,
-масштаб «владелец → десятки пользователей» он держит. Критерий пересмотра в сторону
-Postgres: конкурентная запись многих пользователей + agent runtime в отдельном процессе
-(single-writer SQLite станет узким местом). Решение фиксируется в P2, не сейчас.
+масштаб «владелец → десятки пользователей» он держит. **Обязательные условия старта:**
+
+- WAL mode + `busy_timeout`;
+- все ingest-пачки — только в транзакциях;
+- idempotent `INSERT OR IGNORE` (content-детерминированные id, §3.1);
+- ежедневный бэкап + integrity check (уже настроены: `db:backup` / `db:integrity` — расширить на learner-таблицы);
+- disk budget + алёрт (урок инцидента 100%-диска 2026-07-04);
+- явный лимит размера learner DB;
+- **single-writer дисциплина:** никакой второй сервис не пишет в SQLite напрямую —
+  agent runtime ходит только через Cloud API main-сервера (см. §13.4).
+
+**Postgres = explicit scale gate**, рассмотреть при любом из: внешний пилот >20–50 активных
+пользователей · отдельный agent runtime с высокочастотным writeback · p95
+write-lock/busy_timeout начинает влиять на UX · teacher dashboard / organization accounts ·
+потребность в горизонтальном масштабировании.
+
+### 4.6 Canon transition — когда сервер становится источником истины
+
+Пивот проходит по фазам; «сервер = канон» наступает НЕ в момент появления серверных таблиц:
+
+```text
+До CLG-P3:
+  OPFS остаётся operational source of truth для владельца;
+  сервер принимает read-only / mirror-копию событий (CLG-P2 = server mirror).
+
+После прохождения lossless-гейта CLG-P3:
+  сервер становится canonical source of truth для синхронизированного review_log;
+  OPFS становится локальной репликой с outbox/inbox.
+
+После прохождения replay-оракула CLG-P4:
+  сервер становится canonical source of truth для SRS projections.
+
+До прохождения P3+P4 (обоих):
+  никакие внешние клиенты — Telegram, Mini App, Web Push с персональными due-данными —
+  не имеют права писать или принимать решения от имени learner-state.
+```
+
+Считать сервер «каноном» на этапе P2 — ошибка: sync bridge ещё не доказал lossless-свойства.
+
+### 4.7 Dual-write prohibition
+
+Во время миграции **запрещено иметь двух независимых писателей одного и того же state**.
+Любое состояние в системе — ровно одно из трёх:
+
+```text
+- append-only event (лог);
+- derived projection (пересчитываемая из лога);
+- local cache (реплика канона).
+```
+
+«Отдельная конкурирующая истина» (например, серверный state, правленный мимо лога, при
+живом клиентском state) — не существует как категория. Это прямое продолжение урока
+«два писателя `word_status.srs_*` → gate-consumers-sweep» на масштаб платформы.
 
 ---
 
@@ -307,6 +368,23 @@ reviewed_at/grade/source/channel/latency_ms/meta_json) плюс серверны
 делает sync тривиальным, а replay — идентичным на обеих сторонах. `agent_memory` и
 `misconception map` — производные проекции поверх лога и объяснений, НЕ источник истины.
 
+**Обязательный конверт события (CLG-P2, event schema versioning):**
+
+```text
+event_id            -- content-детерминированный (принцип §3.1)
+idempotency_key     -- ключ дедупа ingest-пачки
+schema_version      -- версия схемы события
+source_client_version  -- версия клиента-источника (app version)
+device_id
+created_at_client   -- когда событие произошло у пользователя
+ingested_at_server  -- когда сервер его принял
+```
+
+Семантика двух времён строго разделена: **`created_at_client` — учебная семантика**
+(FSRS elapsed, расписание, отчёты), **`ingested_at_server` — аудит и sync**. Использование
+серверного времени в учебной математике запрещено (офлайн-пачка, пришедшая через сутки,
+не должна сдвигать интервалы).
+
 ---
 
 ## §7. Agent Runtime: tool-based, не свободный LLM
@@ -330,6 +408,31 @@ record_review_answer → FSRS-replay пересчитывает → резуль
 собирает микро-урок, выбирает порядок подачи. Оценка ответов (грейдер): результат проверки —
 это событие в логе; метрики качества агента считаются независимым проходом по логу, не
 самоотчётом агента (независимость оракула, R11).
+
+**LLM-провайдер (решение §13.3): Gemini first, обязательная provider abstraction**
+(`agent_llm_provider: gemini | claude | mock`; `mock` — для гейтов и офлайн-тестов).
+Обязательные лимиты: max agent messages/day/user · max explain calls/day/user · max weekly
+digest tokens · cost ledger · **graceful degradation: без LLM агент всё равно показывает
+due, план, ссылки, review** (детерминированные инструменты не зависят от LLM).
+
+**Провенанс объяснения — минимальная схема `agent_explanations`** (защита `derived ≠ asserted`):
+
+```json
+{
+  "explanation_id": "ae_...",
+  "user_id": "u_...",
+  "sentence_id": "s_...",
+  "facts_used": [
+    { "type": "morphology",  "source": "resolver",           "confidence": "asserted" },
+    { "type": "translation", "source": "studio_translation",  "confidence": "derived"  }
+  ],
+  "llm_model": "gemini-...",
+  "created_at": "..."
+}
+```
+
+Каждый языковой факт в объяснении обязан ссылаться на источник с уровнем доверия;
+факт без `facts_used`-записи в утверждающей роли — красный флаг ревью.
 
 ---
 
@@ -360,10 +463,10 @@ record_review_answer → FSRS-replay пересчитывает → резуль
 
 | Фаза | Содержимое | Гейт выхода | Статус |
 |---|---|---|---|
-| **CLG-P0** | Этот recon + adversarial role-critique workflow по дизайну (норма проекта) + решение открытых вопросов §13 + утверждение ролей §12 | Sign-off владельца | 🟡 RECON |
+| **CLG-P0** | Этот recon + решения §13 ✅ + роли §12 ✅ + v2-правки ✅ + adversarial role-critique workflow по дизайну (норма проекта) | Sign-off владельца ✅ (2026-07-04) + критика отработана | 🟡 v2 — осталась критика |
 | **CLG-P1** | Identity & Account: users/sessions/devices, owner-only bootstrap (но схема сразу multi-tenant), consent_records, удаление/экспорт данных, ревокация устройств; попутно закрыть долг ротации AUDIO_UPLOAD_TOKEN | Аккаунт создаётся/удаляется/экспортируется; audit_log пишет | ⬜ |
 | **CLG-P2** | Cloud Event Log: серверные `review_log` + `learner_events`, ingest-endpoint с idempotency (готовые content-id), schema_version | Повторный ingest той же пачки = 0 новых строк | ⬜ |
-| **CLG-P3** | Browser Sync Bridge: OPFS outbox, cursor, ack, офлайн-пачки, dedupe | **Lossless-гейт:** клиент-лог == сервер-лог после sync (в обе стороны) | ⬜ |
+| **CLG-P3** | Browser Sync Bridge: OPFS outbox, cursor, ack, офлайн-пачки, dedupe | **Lossless-гейт:** клиент-лог == сервер-лог после sync (в обе стороны). **+ Migration dry-run** на РЕАЛЬНОМ OPFS-профиле владельца: count строк review_log · checksum упорядоченных строк · replay до/после идентичен · повторный ingest = 0 новых строк · rollback возвращает прежнюю local-only работу | ⬜ |
 | **CLG-P4** | Server-side FSRS replay + projections: `require('fsrs-core.js')` + `lemma-canon.js` в Node | **Оракул:** server replay == browser replay на реальном профиле владельца | ⬜ |
 | **CLG-P4.5** | Web Push due-нудж (первая видимая ценность) | Нудж приходит на телефон владельца, deep-link открывает due-кольцо | ⬜ |
 | **CLG-P5** | Learner Graph API: getDue/getReadingProgress/getKnownWords/getWeakPatterns/getRecentSentences/getNextRecommendedText/getAgentContext | API отдаёт то же, что видит Зал локально | ⬜ |
@@ -377,11 +480,18 @@ record_review_answer → FSRS-replay пересчитывает → резуль
 не умеет всё пять: (1) принять review event; (2) пересчитать FSRS; (3) отдать due list;
 (4) пройти replay-оракул; (5) синхронизироваться с OPFS без потери данных.
 
-**Отношение к текущей очереди (retention-программа).** Рекомендация: закрыть **P4.1**
-(дефект демоции 'new' в Anki-ingest) ДО CLG-P2 — этот ingest-путь становится фундаментом
-облачного лога, дефект нельзя копировать в облако. **P6-метрику ретеншена** — до/параллельно
-CLG-P0–P1: она даст baseline, без которого эффект агента будет неизмерим (R10). Финальный
-порядок — за владельцем (§13.6).
+**Гейт G-EXT (external-pilot gate).** Owner-as-user допускается с CLG-P1. **Первый внешний
+пользователь — только после того, как готово всё:** полная privacy-ревизия (§11) ·
+экспорт данных протестирован · удаление аккаунта протестировано · per-user rate limits ·
+tenant-isolation тесты (А не видит Б) · backup-restore drill на learner-данных ·
+abuse/rate-limit policy. До прохождения G-EXT внешний пилот запрещён независимо от
+готовности функциональности.
+
+**Отношение к текущей очереди (retention-программа) — ПОДТВЕРЖДЕНО владельцем (§13.6):**
+закрыть **P4.1** (дефект демоции 'new' в Anki-ingest) ДО CLG-P2 — этот ingest-путь
+становится фундаментом облачного лога, дефект нельзя копировать в облако. **P6-метрику
+ретеншена** — до/параллельно CLG-P0–P1: она даст baseline, без которого эффект агента
+будет неизмерим (R10). Telegram — строго после G-5.
 
 ---
 
@@ -398,7 +508,12 @@ CLG-P0–P1: она даст baseline, без которого эффект аг
 - Telegram до прохождения гейта G-5;
 - agent memory как источник истины (только производная проекция);
 - нарушение миграционных инвариантов (метка==индексу на клиенте; db:migrate на сервере);
-- новый писатель SRS-состояния без gate-consumers-sweep по всем поверхностям.
+- новый писатель SRS-состояния без gate-consumers-sweep по всем поверхностям;
+- **два независимых писателя одного state во время миграции** (§4.7: event / projection / cache — третьего не дано);
+- **прямая запись agent-сервиса в SQLite** (только через Cloud API main-сервера, пока БД = SQLite);
+- **внешние клиенты действуют от имени learner-state до прохождения P3+P4** (§4.6);
+- **серверное время в учебной математике** (`ingested_at_server` — только аудит/sync; §6);
+- **внешний пилот до прохождения G-EXT** (§9).
 
 ---
 
@@ -418,9 +533,14 @@ security · rate limits · мониторинг · миграция OPFS→cloud
 - **Security.** Пивот расширяет чек-лист `SECURITY_AUDIT_2026-06-13`: webhook-подпись,
   session security, tenant isolation, audit log. Давние долги (ротация AUDIO_UPLOAD_TOKEN,
   firewall :8000) закрываются в CLG-P1, не позже.
-- **Thesis/OSF.** Формулировки прайваси в тезисе/PRIVACY.md писались под OPFS-only.
-  Агентские данные — отдельная подсистема от research-когорт (k=5), но публичные тексты
-  о приватности потребуют ревизии до внешних пользователей (§13.5).
+- **Privacy-тексты — два уровня ревизии (решение §13.5).** Формулировки в
+  тезисе/PRIVACY.md писались под OPFS-only. **Уровень 1 (в CLG-P1):** короткий
+  development-mode addendum — «LinguistPro начинает поддерживать cloud learner-state;
+  owner-only режим; внешним не предлагается; классы данных A–D; как удалить/экспортировать».
+  Документация обязана отражать dev-реальность с момента появления аккаунтов и
+  consent_records. **Уровень 2 (перед первым внешним пользователем, часть G-EXT):** полная
+  ревизия PRIVACY.md, terms/consent copy, research/thesis wording, UI consent screens,
+  export/delete wording. Агентские данные — отдельная подсистема от research-когорт (k=5).
 - **BYOK-напряжение.** Серверный агент не может использовать браузерный BYOK-ключ —
   для владельца работают env-ключи (как сейчас), для внешних пользователей нужен
   server-key + Cost Governor (лимиты: сообщений/день, LLM-бюджет/пользователь, graceful
@@ -431,11 +551,13 @@ security · rate limits · мониторинг · миграция OPFS→cloud
 
 ---
 
-## §12. Новые роли-линзы — ПРЕДЛОЖЕНО, ждёт утверждения владельцем
+## §12. Новые роли-линзы — УТВЕРЖДЕНЫ владельцем 2026-07-04
 
-По норме проекта (propose-new-role-first) роли НЕ встраиваются в `docs/PROJECT_ROLES.md`
-до явного «да». Нумерация продолжает канон R1–R11 (в концепт-тексте советника они шли как
-R20–R24 — перенумерованы):
+Решение: **утвердить R12–R16 как есть, БЕЗ консолидации R14/R15** (они ловят разные
+провалы: R14 — «может ли А увидеть Б / подменить chat_id / украсть session», R15 — «что
+хранится, сколько, как удалить/экспортировать, какое согласие»; объединение сделало бы
+роль слишком широкой и менее зубастой). Встроены в `docs/PROJECT_ROLES.md`. Нумерация
+продолжает канон R1–R11 (в концепт-тексте советника шли как R20–R24 — перенумерованы):
 
 - **R12 — Cloud Platform Architect:** разделение event log / projections / artifacts;
   agent memory не смешан с learner state; архитектура держит 20→200→2000 пользователей;
@@ -449,30 +571,56 @@ R20–R24 — перенумерованы):
 - **R16 — Cost Governor:** стоимость пользователя/день, digest, explain; лимиты; graceful
   degradation без LLM.
 
-Возможная консолидация R14+R15 в одну роль — на усмотрение владельца.
+**R17 — Agent Pedagogy / Grader Independence (заготовка, НЕ утверждена):** педагогика
+диалогового наставника + независимость грейдера от тьютора. Не блокирует CLG-P1;
+определение подготовить и утвердить по норме propose-first **перед CLG-P6** (первым кодом
+agent runtime).
 
 ---
 
-## §13. Открытые вопросы владельцу (блокируют CLG-P1+)
+## §13. Решения владельца (sign-off 2026-07-04)
 
-1. **Auth первой очереди:** owner-only токен-логин (быстрее) или сразу magic-link email
-   (правильнее для пилота)? Рекомендация: owner-only bootstrap на multi-tenant схеме.
-2. **БД:** старт на серверном SQLite-стеке (рекомендация, §4.5) — подтвердить.
-3. **LLM агента:** Gemini (уже в стеке, env-ключи) vs Claude API; бюджет и лимиты.
-4. **Топология:** agent runtime в том же контейнере или отдельный Coolify-сервис
-   (RAM-бюджет 1536 MB — главный аргумент за отдельный).
-5. **Privacy-тексты:** когда ревизовать PRIVACY.md/thesis-формулировки — при CLG-P1 или
-   перед первым внешним пользователем.
-6. **Очерёдность:** подтвердить рекомендацию §9 (retention P4.1 + P6-метрика до/параллельно
-   CLG-P0–P2).
-7. **Роли §12:** утвердить/консолидировать.
-8. **Имя бота** и владение BotFather-аккаунтом.
+1. **Auth: owner-only bootstrap на полноценной multi-tenant схеме.** users/devices/sessions
+   полноценные с первого дня; создаётся первый owner-user; вход owner-only через bootstrap
+   secret / invite code из env; после входа — нормальная session cookie; ВСЕ таблицы сразу
+   с `user_id`; все API — только через authenticated user context. НЕ «сырой вечный токен
+   как авторизация». Magic-link email — не первый код, но интерфейс закладывается так,
+   чтобы добавить без переписывания users/sessions/devices. Внешний пилот невозможен до
+   magic-link/email auth (+ G-EXT).
+2. **БД: SQLite подтверждён для CLG-P1–P4** с обязательными эксплуатационными условиями
+   (§4.5: WAL, busy_timeout, транзакционный ingest, idempotent INSERT OR IGNORE, backup,
+   integrity, disk alert, лимит размера, single-writer). **Postgres — только по explicit
+   scale gate** (§4.5).
+3. **LLM: Gemini first, обязательная provider abstraction** (`gemini | claude | mock`),
+   Claude — второй provider / adversarial-eval, НЕ блокер CLG-P6. Обязательные лимиты и
+   graceful degradation без LLM (§7).
+4. **Топология: CLG-P1–P5 — всё в основном контейнере; CLG-P6+ — agent runtime отдельным
+   Coolify-сервисом**, но БЕЗ прямой записи в SQLite: main app/API — единственный владелец
+   записи; agent service = stateless worker, все writeback-действия — через Cloud API
+   (`Telegram/Agent Service → Cloud API → main server → SQLite`).
+5. **Privacy: два уровня** — короткий dev-mode addendum в CLG-P1; полная публичная ревизия
+   перед внешним пилотом (§11, часть G-EXT).
+6. **Очерёдность: подтверждена** — retention P4.1 закрыть до CLG-P2; P6-метрика ретеншена
+   до/параллельно CLG-P0–P1; Telegram строго после G-5.
+7. **Роли: R12–R16 утверждены как есть, без консолидации R14/R15** (§12); R17 Agent
+   Pedagogy / Grader Independence подготовить перед CLG-P6.
+8. **Бот: пробовать `@LinguistProMentorBot`** (fallback §1.4); владение через
+   проектно-контролируемый Telegram-аккаунт с 2FA; токен только в secrets; ротация
+   документируется; ownership — в `.claude/PROD_OPS_PRIVATE.md`.
 
 ---
 
 ## §14. Следующие шаги
 
-1. Владелец: ответы на §13 + утверждение §12 → статус CLG-P0 → SIGN-OFF.
-2. Adversarial role-critique workflow по этому дизайну (R1–R11 + предложенные R12–R16,
-   1 агент/роль) — ДО первого кода; правки — в этот док.
-3. CLG-P1 (identity) — первый код программы. Telegram — не раньше гейта G-5.
+1. ✅ Решения владельца §13 + роли §12 получены и вписаны (v2, 2026-07-04).
+2. ✅ 7 v2-правок владельца внесены: §4.6 canon transition · §4.7 dual-write prohibition ·
+   §6 event schema versioning · §9 CLG-P3 migration dry-run · §4.5 SQLite constraints ·
+   §7 agent provenance schema · §9 G-EXT external-pilot gate.
+3. Adversarial role-critique workflow по этому дизайну (релевантные линзы из R1–R16,
+   1 агент/роль) — ДО первого кода; выжившие BLOCKER/MAJOR-находки → правки в этот док.
+4. CLG-P1 (identity) — первый код программы (после закрытия retention P4.1 / согласно
+   §13.6). Telegram — не раньше гейта G-5.
+
+**Напутствие программы (владелец):** первый код должен быть «скучным, платформенным и
+почти невидимым» — identity, consent, event log, sync, replay, projections. Только после
+этого агент станет премиальным продуктовым интерфейсом, а не опасной параллельной памятью.
