@@ -206,14 +206,27 @@
   }
 
   // Fold an item's ordered log rows (reviewed_at ASC, id ASC — getReviewLog's order) into its
-  // state. Rows BEFORE the last seed row are ignored for state (the seed watermark, recon B4):
-  // the seed snapshot subsumes them; they remain in the log for metrics.
+  // state. Rows BEFORE the seed watermark are ignored for state (recon B4): the seed snapshot
+  // subsumes them; they remain in the log for metrics.
+  //
+  // D3 (owner 2026-07-05, CLG-P3): a cross-device union can carry SEVERAL seed rows per item
+  // (content-hashed seed ids). Watermark = the EARLIEST seed in (reviewed_at, id) order;
+  // every LATER seed row is SKIPPED by the fold — honoring it would discard the graded history
+  // after the first seed (earliest-wins, AI_MENTOR_RECON §14 D3). Single-seed logs (every log
+  // minted before CLG-P3) fold byte-identically to the old "last seed" rule (first == last).
+  // kind='annul' rows are stored-but-NEUTRAL here until the CLG-P4 reducer semantics land.
   function replay(rows) {
     var list = Array.isArray(rows) ? rows : [];
-    var start = 0;
-    for (var i = list.length - 1; i >= 0; i--) { if (list[i] && list[i].kind === "seed") { start = i; break; } }
+    var start = -1;
+    for (var i = 0; i < list.length; i++) { if (list[i] && list[i].kind === "seed") { start = i; break; } }
     var state = null;
-    for (var j = start; j < list.length; j++) state = applyRow(state, list[j]);
+    for (var j = (start >= 0 ? start : 0); j < list.length; j++) {
+      var row = list[j];
+      if (!row) continue;
+      if (row.kind === "seed" && j !== start) continue;   // D3: later seeds skipped (earliest-wins)
+      if (row.kind === "annul") continue;                  // neutral until CLG-P4
+      state = applyRow(state, row);
+    }
     return state;
   }
 

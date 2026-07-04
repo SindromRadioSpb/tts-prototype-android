@@ -1,0 +1,238 @@
+#!/usr/bin/env node
+"use strict";
+// smoke:cloud-sync — CLG-P3 Browser Sync Bridge gate (AI_MENTOR_RECON_2026_07_04.md §9 CLG-P3).
+// Node-unit: D3 seedId (детерминизм + stable-key-order) · replay multi-seed earliest-wins ·
+// annul-нейтральность. Browser (playwright, THREE isolated contexts = три устройства одного
+// владельца против одного scratch-сервера):
+//   A: локальные seed+review → fullSync (cutover full-scan verify) → server==local, повторный
+//      sync идемпотентен, surface вырезан на сервере, но ЦЕЛ локально (§5 B5);
+//   B (second-device onboarding, ДИВЕРГЕНТНЫЙ до-sync профиль): свой content-hash seed того же
+//      item_key + свой review + ручной статус l2 → union: обе seed-строки живы, replay(union)
+//      детерминирован (earliest seed), проекция = replay (оракул), manual-ось не тронута;
+//   A второй sync → подтянул строки B: checksum(A) == checksum(B) == server count;
+//   C (fresh-device bootstrap, пустой OPFS): fullSync → полная реплика + replay parity с B;
+//   reconcile: equal=true.
+// Run: node scripts/premium/cloud-sync-smoke.js   (or npm run smoke:cloud-sync)
+
+const path = require("path");
+const fs = require("fs");
+const os = require("os");
+const { spawn, spawnSync } = require("child_process");
+const REPO = path.resolve(__dirname, "..", "..");
+const PORT = 3293, BASE = "http://127.0.0.1:" + PORT;
+const SECRET = "smoke-bootstrap-secret-0123456789abcdef";
+const KEY = "שלום#noun";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function startServer(dataDir) {
+  const c = spawn(process.execPath, ["server.js"], {
+    cwd: REPO, env: { ...process.env, PORT: String(PORT), DATA_DIR: dataDir, AUTH_BOOTSTRAP_SECRET: SECRET },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  const logs = []; c.stdout.on("data", (x) => logs.push(String(x))); c.stderr.on("data", (x) => logs.push(String(x)));
+  return { c, logs };
+}
+async function stop(c) {
+  if (!c || c.killed) return;
+  c.kill("SIGTERM");
+  const ok = await new Promise((r) => { const t = setTimeout(() => r(false), 5000); c.once("exit", () => { clearTimeout(t); r(true); }); });
+  if (!ok && process.platform === "win32") spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"], { stdio: "ignore" });
+}
+async function ready(srv, ms = 30000) {
+  const s = Date.now();
+  while (Date.now() - s < ms) {
+    // fail fast on a port orphan: an EADDRINUSE'd child means healthz would be answered by a
+    // STALE foreign server (the 2026-07-05 debugging lesson — every assert then lies)
+    if (srv.logs.some((l) => l.includes("EADDRINUSE"))) return false;
+    try {
+      const r = await fetch(BASE + "/healthz");
+      if (r.status === 200) { const j = await r.json(); if (j.db && j.db.ready && j.migrations && j.migrations.ready) return true; }
+    } catch (_) {}
+    await sleep(200);
+  }
+  return false;
+}
+
+(async () => {
+  const failures = []; const eq = (c, m) => { if (!c) failures.push(m); };
+
+  // ── Node-unit: D3 seedId + replay contracts ──────────────────────────────
+  const LC = require(path.join(REPO, "public", "js", "lemma-canon.js"));
+  const FC = require(path.join(REPO, "public", "js", "fsrs-core.js"));
+  eq(LC.seedId(KEY, { a: 1, b: 2 }) === LC.seedId(KEY, { b: 2, a: 1 }), "seedId must be stable-key-order deterministic");
+  eq(LC.seedId(KEY, { interval: 3 }) !== LC.seedId(KEY, { interval: 1 }), "different snapshots must hash to different seed ids");
+  eq(/^seed:.+#[0-9a-f]{12}$/.test(LC.seedId(KEY, {})), "seedId shape wrong");
+  const T1 = "2026-07-01T10:00:00.000Z", T2 = "2026-07-02T10:00:00.000Z", T3 = "2026-07-01T11:00:00.000Z", T4 = "2026-07-03T10:00:00.000Z";
+  const seedRow = (at, interval) => ({ id: LC.seedId(KEY, { interval }), item_key: KEY, kind: "seed", reviewed_at: at, grade: null, source: "seed-sm2", meta_json: JSON.stringify({ interval, reps: 1, lapses: 0, scheme: "sm2-lite" }) });
+  const revRow = (at, grade) => ({ id: LC.reviewId({ item_key: KEY, reviewed_at: at, grade, source: "x", channel: "" }), item_key: KEY, kind: "review", reviewed_at: at, grade, source: "x", meta_json: "{}" });
+  const ordered = (rows) => rows.slice().sort((a, b) => (a.reviewed_at < b.reviewed_at ? -1 : a.reviewed_at > b.reviewed_at ? 1 : (a.id < b.id ? -1 : 1)));
+  const multi = ordered([seedRow(T1, 10), revRow(T2, 3), seedRow(T3, 1), revRow(T4, 3)]);
+  const single = ordered([seedRow(T1, 10), revRow(T2, 3), revRow(T4, 3)]);
+  const sMulti = FC.replay(multi), sSingle = FC.replay(single);
+  eq(sMulti && sSingle && Math.abs(sMulti.stability - sSingle.stability) < 1e-9 && sMulti.reps === sSingle.reps,
+    "multi-seed replay must equal earliest-seed fold (later seed skipped)");
+  const withAnnul = ordered([seedRow(T1, 10), revRow(T2, 3), { id: "annul:x", item_key: KEY, kind: "annul", reviewed_at: T4, grade: null, source: "op", meta_json: JSON.stringify({ annul_of: "y" }) }]);
+  const noAnnul = ordered([seedRow(T1, 10), revRow(T2, 3)]);
+  const sA1 = FC.replay(withAnnul), sA0 = FC.replay(noAnnul);
+  eq(sA1 && sA0 && Math.abs(sA1.stability - sA0.stability) < 1e-9 && sA1.reps === sA0.reps, "annul row must be replay-neutral until CLG-P4");
+
+  // ── Browser: three devices, one owner ────────────────────────────────────
+  let pw; try { pw = require("playwright"); } catch (e) { console.error("no playwright"); process.exit(1); }
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "lp-cloudsync-"));
+  const srv = startServer(scratch);
+  const b = await pw.chromium.launch();
+  try {
+    if (!(await ready(srv))) { console.error("server failed (or port orphan)\n" + srv.logs.join("").slice(-2000)); process.exit(1); }
+
+    // Devices = isolated contexts (isolated OPFS/cookies). wa-sqlite WASM crashes ("memory access
+    // out of bounds") when a SECOND concurrent page holds its own OPFS handle headless → serialize:
+    // at most ONE open page at a time; OPFS persists for the context's lifetime, so a device's
+    // page can be closed and reopened between acts (headless-OPFS trap, feedback_headless_opfs).
+    const mkDevice = async () => b.newContext({ serviceWorkers: "block", viewport: { width: 380, height: 844 } });
+    const openOn = async (ctx, label) => {
+      const pg = await ctx.newPage();
+      pg.on("pageerror", (e) => failures.push("pageerror[" + label + "]: " + String(e)));
+      await pg.goto(BASE + "/library.html?canon=skip", { waitUntil: "load" });
+      await pg.evaluate(async () => { const ldb = await import("/db/local-db.js"); await ldb.initLocalDB(); window.__ldb = ldb; });
+      return pg;
+    };
+
+    // Device A — local history → first sync (cutover)
+    const ctxA = await mkDevice();
+    let pgA = await openOn(ctxA, "A");
+    const aRes = await pgA.evaluate(async ({ SECRET, KEY }) => {
+      const ldb = window.__ldb, LC = window.LemmaCanon, CS = window.CloudSync;
+      const out = {};
+      try {
+      const login = await CS.login(SECRET, "device-A");
+      out.login = login.ok === true;
+      const seedMeta = { interval: 3, reps: 2, lapses: 0, scheme: "sm2-lite", seedAlgoVersion: 1, keyer_version: 1 };
+      await ldb.appendReviewLog({ id: LC.seedId(KEY, seedMeta), item_key: KEY, kind: "seed", reviewed_at: "2026-07-01T10:00:00.000Z", grade: null, source: "seed-sm2", meta: seedMeta });
+      const r1 = { item_key: KEY, kind: "review", reviewed_at: "2026-07-02T10:00:00.000Z", grade: 3, source: "room-recall", channel: "read:mc", meta: { keyer_version: 1, scheduler: { scheme: "fsrs" }, surface: "שָׁלוֹם" } };
+      r1.id = LC.reviewId(r1);
+      await ldb.appendReviewLog(r1);
+      out.r1id = r1.id;
+      const s1 = await CS.fullSync(ldb);
+      out.sync1 = s1.ok === true;
+      out.sync1Raw = s1;
+      out.cutover = (await ldb.getSyncState("cutover_ok")) === "1";
+      const countsRes = await fetch("/api/learner/counts", { credentials: "same-origin" });
+      out.countsStatus = countsRes.status;
+      const countsText = await countsRes.text();
+      let counts = {}; try { counts = JSON.parse(countsText); } catch (_) { out.countsBody = countsText.slice(0, 200); }
+      out.serverCount = counts.review_log;
+      out.localCount = await ldb.countReviewLog();
+      const s2 = await CS.fullSync(ldb);
+      out.sync2Idempotent = s2.ok === true && s2.up.new === 0 && s2.down.pulled === 0;
+      // §5 B5: server copy has surface STRIPPED, local copy keeps it
+      const srvLogRes = await fetch("/api/learner/log?limit=100", { credentials: "same-origin" });
+      out.srvLogStatus = srvLogRes.status;
+      const srvLogText = await srvLogRes.text();
+      let srvLog = {}; try { srvLog = JSON.parse(srvLogText); } catch (_) { out.srvLogBody = srvLogText.slice(0, 200); }
+      const srvR1 = (srvLog.rows || []).find((w) => w.id === r1.id);
+      out.serverStripped = !!srvR1 && !("surface" in JSON.parse(srvR1.meta_json));
+      const localR1 = (await ldb.getReviewLog(KEY)).find((w) => w.id === r1.id);
+      out.localFull = !!localR1 && JSON.parse(localR1.meta_json).surface === "שָׁלוֹם";
+      } catch (e) { out.err = String(e && e.stack || e); }
+      return out;
+    }, { SECRET, KEY });
+    if (aRes.err) failures.push("A evaluate err: " + aRes.err + " | out: " + JSON.stringify(aRes).slice(0, 600));
+    eq(aRes.login, "A: login failed");
+    eq(aRes.sync1, "A: first fullSync failed: " + JSON.stringify(aRes.sync1Raw) + " counts:" + aRes.countsStatus + " " + (aRes.countsBody || ""));
+    eq(aRes.cutover, "A: cutover_ok not set after full-scan verify");
+    eq(aRes.serverCount === 2 && aRes.localCount === 2, "A: server/local counts wrong: " + JSON.stringify(aRes));
+    eq(aRes.sync2Idempotent, "A: second fullSync must be a no-op");
+    eq(aRes.serverStripped, "A: surface must be STRIPPED server-side");
+    eq(aRes.localFull, "A: local meta must keep surface (strip is upload-only)");
+    await pgA.close();   // release A's OPFS handle before device B opens (headless serialization)
+
+    // Device B — second-device onboarding with a DIVERGENT pre-sync profile
+    const ctxB = await mkDevice();
+    const pgB = await openOn(ctxB, "B");
+    const bRes = await pgB.evaluate(async ({ SECRET, KEY }) => {
+      const ldb = window.__ldb, LC = window.LemmaCanon, CS = window.CloudSync, FC = window.FsrsCore;
+      const out = {};
+      out.login = (await CS.login(SECRET, "device-B")).ok === true;
+      await ldb.setWordStatus(KEY, "l2");   // manual axis — sync must NOT touch it
+      const seedMetaB = { interval: 1, reps: 1, lapses: 0, scheme: "sm2-lite", seedAlgoVersion: 1, keyer_version: 1 };
+      await ldb.appendReviewLog({ id: LC.seedId(KEY, seedMetaB), item_key: KEY, kind: "seed", reviewed_at: "2026-07-01T11:00:00.000Z", grade: null, source: "seed-sm2", meta: seedMetaB });
+      const r2 = { item_key: KEY, kind: "review", reviewed_at: "2026-07-03T10:00:00.000Z", grade: 3, source: "reading-tap", channel: "reading:tap", meta: { keyer_version: 1, scheduler: { scheme: "fsrs" } } };
+      r2.id = LC.reviewId(r2);
+      await ldb.appendReviewLog(r2);
+      const s = await CS.fullSync(ldb);
+      out.sync = s.ok === true;
+      out.localCount = await ldb.countReviewLog();                     // union: A's 2 + B's 2
+      const hist = await ldb.getReviewLog(KEY);
+      out.seedsInUnion = hist.filter((w) => w.kind === "seed").length; // BOTH seeds survive (D3)
+      const replayState = FC.replay(hist);
+      out.replayStability = replayState ? replayState.stability : null;
+      const sched = (await ldb.getSrsSchedule())[KEY];
+      out.oracle = !!(replayState && sched && Math.abs(replayState.stability - sched.stability) < 1e-7);
+      out.manualIntact = (await ldb.getWordStatus(KEY)) === "l2";
+      const ck = await ldb.reviewLogChecksum(LC.sha1Hex);
+      out.checksum = ck.sha1; out.count = ck.count;
+      return out;
+    }, { SECRET, KEY });
+    eq(bRes.login, "B: login failed");
+    eq(bRes.sync, "B: fullSync failed");
+    eq(bRes.localCount === 4, "B: union must have 4 rows, got " + bRes.localCount);
+    eq(bRes.seedsInUnion === 2, "D3 FAILED: both devices' seeds must survive the union, got " + bRes.seedsInUnion);
+    eq(bRes.oracle, "B: projection must equal replay(union) after down-sync recompute");
+    eq(bRes.manualIntact, "B: manual status must be untouched by review_log sync");
+    await pgB.close();
+
+    // Device A — pulls B's rows; checksums converge (reopen A's page on its persisted OPFS)
+    pgA = await openOn(ctxA, "A2");
+    const aRes2 = await pgA.evaluate(async ({ KEY }) => {
+      const ldb = window.__ldb, LC = window.LemmaCanon, CS = window.CloudSync, FC = window.FsrsCore;
+      const s = await CS.fullSync(ldb);
+      const ck = await ldb.reviewLogChecksum(LC.sha1Hex);
+      const st = FC.replay(await ldb.getReviewLog(KEY));
+      const rec = await CS.reconcile(ldb);
+      return { ok: s.ok === true, count: ck.count, checksum: ck.sha1, stability: st ? st.stability : null, reconEqual: rec.ok === true && rec.equal === true };
+    }, { KEY });
+    eq(aRes2.ok, "A: pull sync failed");
+    eq(aRes2.count === 4 && aRes2.checksum === bRes.checksum, "LOSSLESS FAILED: checksum(A) != checksum(B) after full two-way sync");
+    eq(Math.abs((aRes2.stability || 0) - (bRes.replayStability || -1)) < 1e-9, "replay(union) must be identical on A and B");
+    eq(aRes2.reconEqual, "reconcile must report equal");
+    await pgA.close();
+
+    // Device C — fresh-device bootstrap (empty OPFS → full replica)
+    const ctxC = await mkDevice();
+    const pgC = await openOn(ctxC, "C");
+    const cRes = await pgC.evaluate(async ({ SECRET, KEY }) => {
+      const ldb = window.__ldb, LC = window.LemmaCanon, CS = window.CloudSync, FC = window.FsrsCore;
+      const out = {};
+      out.login = (await CS.login(SECRET, "device-C")).ok === true;
+      const s = await CS.fullSync(ldb);
+      out.sync = s.ok === true;
+      const ck = await ldb.reviewLogChecksum(LC.sha1Hex);
+      out.count = ck.count; out.checksum = ck.sha1;
+      const st = FC.replay(await ldb.getReviewLog(KEY));
+      out.stability = st ? st.stability : null;
+      const sched = (await ldb.getSrsSchedule())[KEY];
+      out.oracle = !!(st && sched && Math.abs(st.stability - sched.stability) < 1e-7);
+      return out;
+    }, { SECRET, KEY });
+    eq(cRes.login && cRes.sync, "C: bootstrap login/sync failed");
+    eq(cRes.count === 4 && cRes.checksum === bRes.checksum, "FRESH-DEVICE BOOTSTRAP FAILED: replica != union");
+    eq(cRes.oracle && Math.abs((cRes.stability || 0) - (bRes.replayStability || -1)) < 1e-9, "C: replay parity + oracle failed");
+    await pgC.close();
+
+    await ctxA.close(); await ctxB.close(); await ctxC.close();
+  } catch (e) {
+    failures.push("CRASH: " + (e && e.stack || e));
+  } finally {
+    await b.close().catch(() => {});
+    await stop(srv.c);
+    try { fs.rmSync(scratch, { recursive: true, force: true }); } catch (_) {}
+  }
+  const total = 23;
+  if (failures.length) {
+    console.error(`smoke:cloud-sync FAIL (${total - failures.length}/${total})`);
+    for (const f of failures) console.error("  ✗ " + f);
+    process.exitCode = 1;
+  } else {
+    console.log(`smoke:cloud-sync OK (${total}/${total}) — CLG-P3.1: D3 seedId+earliest-wins+annul-neutral · cutover full-scan verify · идемпотентный re-sync · client-side strip (локально цел) · second-device onboarding (union, оба seed живы, оракул, manual нетронут) · lossless checksum A==B==C · fresh-device bootstrap · reconcile equal`);
+  }
+})();

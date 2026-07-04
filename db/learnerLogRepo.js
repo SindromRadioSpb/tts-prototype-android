@@ -49,6 +49,8 @@ const META_ALLOW = new Set([
   "interval", "reps", "lapses", "sm2", "fsrs", "d0", "stability", "difficulty",
   "annul_of", "reason", "pos",
   "text_key", "sentence_id", "order_index",
+  // CLG-P3 sweep of REAL client meta keys (seed rows / Studio sre: rows) — identifiers, not content:
+  "seedAlgoVersion", "level", "card_id", "note_id",
 ]);
 // Known CONTENT keys → stripped (accepted row, cleaned meta). Everything else unknown → reject.
 const META_STRIP = new Set([

@@ -2467,7 +2467,9 @@ export async function getStudyDays(sinceDayStr) {
 // cross-device merge: re-append, re-import and two-device union are all idempotent by PK.
 // This layer VALIDATES and stores; it never fabricates ids (an id-less row is refused — the
 // caller owns identity, recon B5). Scheduler state stays a derived cache on word_status.srs_*.
-const _RL_KINDS = { review: 1, skip: 1, seed: 1 };
+// 'annul' (CLG-P2 схема, §1.3 carve-out б): компенсирующее событие с grade NULL — редьюсер
+// нейтрален к нему до CLG-P4; хранится, чтобы down-sync (CLG-P3) не терял серверные строки.
+const _RL_KINDS = { review: 1, skip: 1, seed: 1, annul: 1 };
 export async function appendReviewLog(rows) {
   const list = Array.isArray(rows) ? rows : [rows];
   let accepted = 0, refused = 0;
@@ -2479,13 +2481,13 @@ export async function appendReviewLog(rows) {
     const kind = row && row.kind != null ? String(row.kind) : "review";
     if (!id || !itemKey || !at || !source || !_RL_KINDS[kind]) { refused++; continue; }
     const grade = row.grade == null ? null : (Number(row.grade) || 0);
-    if (kind !== "seed" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
+    if (kind !== "seed" && kind !== "annul" && (grade == null || grade < 1 || grade > 4)) { refused++; continue; }
     const meta = typeof row.meta_json === "string" ? row.meta_json : JSON.stringify(row.meta || {});
     try {
       await r(
         `INSERT OR IGNORE INTO review_log (id, item_key, kind, reviewed_at, grade, source, channel, latency_ms, meta_json)
          VALUES (?,?,?,?,?,?,?,?,?)`,
-        [id, itemKey, kind, at, kind === "seed" ? null : grade, source,
+        [id, itemKey, kind, at, (kind === "seed" || kind === "annul") ? null : grade, source,
          row.channel != null ? String(row.channel) : null,
          row.latency_ms != null ? (Number(row.latency_ms) || 0) : null, meta]);
       accepted++;
@@ -2507,6 +2509,54 @@ export async function getReviewLog(itemKey, limit) {
 export async function countReviewLog() {
   try { const rows = await q(`SELECT COUNT(*) c FROM review_log`, []); return Number(rows && rows[0] && rows[0].c) || 0; }
   catch (_) { return 0; }
+}
+
+// ── CLG-P3 Browser Sync Bridge primitives (AI_MENTOR_RECON §4.3) ──────────────────────────────
+// The outbox IS the log: upload reads review_log by rowid-watermark, so every existing writer
+// (checkTrainAnswer, gradeReadingTap, markWordStatus, Studio reviewCard, Anki ingest) is in-scope
+// by construction — no separate queue a writer could miss.
+export async function getSyncState(k) {
+  try { const rows = await q(`SELECT v FROM sync_state WHERE k = ?`, [String(k)]); return rows && rows[0] ? rows[0].v : null; }
+  catch (_) { return null; }
+}
+export async function setSyncState(k, v) {
+  try {
+    await r(`INSERT INTO sync_state (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v`, [String(k), v == null ? null : String(v)]);
+    return true;
+  } catch (_) { return false; }
+}
+// Upload page: rows strictly after the rowid watermark, in rowid (= insertion) order.
+export async function listReviewLogAfterRowid(rowid, limit) {
+  try {
+    const lim = Math.max(1, Math.min(2000, Number(limit) || 400));
+    const rows = await q(`SELECT rowid AS rid, * FROM review_log WHERE rowid > ? ORDER BY rowid ASC LIMIT ?`, [Number(rowid) || 0, lim]);
+    return rows || [];
+  } catch (_) { return []; }
+}
+// Down-sync pre-check: appendReviewLog's OR IGNORE reports "accepted" for dups too, so the sync
+// engine needs a real new-vs-dup signal to know WHICH item_keys to recompute (§4.3).
+export async function hasReviewLogRow(id) {
+  try {
+    const rows = await q(`SELECT 1 x FROM review_log WHERE id = ? LIMIT 1`, [String(id || "")]);
+    return !!(rows && rows.length);
+  } catch (_) { return false; }
+}
+// D3 helper — seed-once is now an EXISTENCE check by item_key (content-hashed seed ids no longer
+// collide by PK, so the old 'seed:<key>' PK backstop can't enforce once-per-item).
+export async function hasSeedRow(itemKey) {
+  try {
+    const rows = await q(`SELECT 1 x FROM review_log WHERE item_key = ? AND kind = 'seed' LIMIT 1`, [String(itemKey || "")]);
+    return !!(rows && rows.length);
+  } catch (_) { return false; }
+}
+// Deterministic log fingerprint for the lossless/union gates and reconciliation: sha1 over
+// (id, reviewed_at) in (reviewed_at, id) order. Injected hasher keeps this module hash-free.
+export async function reviewLogChecksum(sha1Hex) {
+  try {
+    const rows = await q(`SELECT id, reviewed_at FROM review_log ORDER BY reviewed_at ASC, id ASC`, []);
+    const flat = (rows || []).map((w) => w.id + "@" + w.reviewed_at).join("\n");
+    return { count: (rows || []).length, sha1: typeof sha1Hex === "function" ? sha1Hex(flat) : null };
+  } catch (_) { return { count: 0, sha1: null }; }
 }
 
 // ── Retention P4 — merge Anki reviews into the canon log + recompute state (recon §5, D3) ─────
@@ -4091,12 +4141,17 @@ export const srs = {
       if (itemKey) {
         const LC = (typeof window !== 'undefined') ? window.LemmaCanon : null;
         // Retention P3 — a lazy-seed materializes the SM2→FSRS handover in the log itself (recon B4):
-        // seed row at now−1ms so replay's watermark orders it strictly before this review. PK
-        // 'seed:<item_key>' → seed-once; if the Room already seeded this lemma, OR IGNORE dedupes.
-        if (seededMeta) {
+        // seed row at now−1ms so replay's watermark orders it strictly before this review.
+        // D3 (CLG-P3): seed id is CONTENT-HASHED (LC.seedId) so a cross-device union keeps both
+        // devices' first-seeds; seed-once per item is now an EXPLICIT existence check (the old
+        // 'seed:<item_key>' PK backstop can't dedupe hashed ids) — if the Room already seeded
+        // this lemma, we skip exactly like OR IGNORE used to.
+        if (seededMeta && !(await hasSeedRow(itemKey))) {
+          const _seedMeta = { ...seededMeta, keyer_version: LC ? LC.KEYER_VERSION : undefined };
           await appendReviewLog({
-            id: 'seed:' + itemKey, item_key: itemKey, kind: 'seed', reviewed_at: new Date(nowMs - 1).toISOString(),
-            grade: null, source: 'seed-sm2', meta: { ...seededMeta, keyer_version: LC ? LC.KEYER_VERSION : undefined },
+            id: (LC && LC.seedId) ? LC.seedId(itemKey, _seedMeta) : ('seed:' + itemKey),
+            item_key: itemKey, kind: 'seed', reviewed_at: new Date(nowMs - 1).toISOString(),
+            grade: null, source: 'seed-sm2', meta: _seedMeta,
           });
         }
         await appendReviewLog({

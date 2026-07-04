@@ -131,6 +131,31 @@
     return "app:" + sha1Hex(itemKey + "|" + at + "|" + grade + "|" + source + "|" + channel).slice(0, 20);
   }
 
+  // D3 (owner 2026-07-05, CLG-P3) — CONTENT-HASHED seed id: the legacy identity id
+  // 'seed:<item_key>' collided across devices/users by PK, and a cross-device union silently
+  // dropped one snapshot (AI_MENTOR_RECON §14 D3). Hashing the seed's meta keeps BOTH rows in a
+  // union; fsrs-core.replay picks deterministically (earliest-wins watermark). Stable key order →
+  // the same snapshot hashes identically on every device/engine, so a same-content double-append
+  // still dedupes by PK (the old backstop survives for identical snapshots).
+  function stableJson(v) {
+    if (v == null || typeof v !== "object") return JSON.stringify(v === undefined ? null : v);
+    if (Array.isArray(v)) {
+      var parts = [];
+      for (var i = 0; i < v.length; i++) parts.push(stableJson(v[i]));
+      return "[" + parts.join(",") + "]";
+    }
+    var keys = Object.keys(v).sort();
+    var out = [];
+    for (var k = 0; k < keys.length; k++) {
+      if (v[keys[k]] === undefined) continue;
+      out.push(JSON.stringify(keys[k]) + ":" + stableJson(v[keys[k]]));
+    }
+    return "{" + out.join(",") + "}";
+  }
+  function seedId(itemKey, meta) {
+    return "seed:" + String(itemKey == null ? "" : itemKey) + "#" + sha1Hex(stableJson(meta || {})).slice(0, 12);
+  }
+
   return {
     KEYER_VERSION: KEYER_VERSION,
     stripNiqqud: stripNiqqud,
@@ -140,5 +165,7 @@
     canonKey: canonKey,
     sha1Hex: sha1Hex,
     reviewId: reviewId,
+    stableJson: stableJson,
+    seedId: seedId,
   };
 });

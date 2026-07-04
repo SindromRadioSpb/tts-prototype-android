@@ -891,4 +891,15 @@ export const MIGRATIONS = [
    ALTER TABLE word_status ADD COLUMN srs_difficulty REAL;
    ALTER TABLE word_status ADD COLUMN srs_reviewed_at TEXT;
    ALTER TABLE word_status ADD COLUMN srs_scheme TEXT;`,
+
+  // 043_sync_state — CLG-P3 Browser Sync Bridge (AI_MENTOR_RECON_2026_07_04.md §4.3). DEVICE-LOCAL
+  // sync cursors: up_cursor = rowid-watermark over the append-only review_log (outbox IS the log —
+  // no separate queue, so a writer that "doesn't know about the outbox" cannot exist), down_cursor =
+  // server ingested_at high-water mark, cutover_ok = the §4.3 cutover flag (set only after a
+  // full-scan re-ingest reports 0 new rows). Deliberately NOT exported in bundles (cursors are
+  // device identity, not learner data) and dies with an OPFS wipe (a fresh profile must full-sync).
+  `CREATE TABLE IF NOT EXISTS sync_state (
+    k TEXT PRIMARY KEY,
+    v TEXT
+  );`,
 ];

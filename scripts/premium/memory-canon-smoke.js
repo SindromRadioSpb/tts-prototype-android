@@ -324,7 +324,7 @@ async function ready(ms = 15000) { const s = Date.now(); while (Date.now() - s <
     eq(res.mig041IsReviewLog, "041_review_log is not at index 40 (label==index broken)");
     eq(res.mig042IsFsrs, "042_word_status_fsrs is not at index 41 (label==index broken)");
     eq(res.migApplied === res.migCount, `applied schema version ${res.migApplied} != MIGRATIONS.length ${res.migCount}`);
-    eq(res.migCount === 42, `MIGRATIONS.length ${res.migCount} != 42 — labels no longer equal real indexes (recon §3.6)`);
+    eq(res.migCount === 43, `MIGRATIONS.length ${res.migCount} != 43 — labels no longer equal real indexes (recon §3.6; 043_sync_state = CLG-P3)`);
     eq(res.rlQueryable, "review_log not queryable");
     for (const k of res.keyConformance || []) eq(k.ok, `keyer conformance failed for ${k.a}`);
     eq(res.keyPid && res.keyStripped, "canonical key fixtures wrong");

@@ -1748,11 +1748,15 @@ async function checkTrainAnswer(correct, skipped, mode) {
   try {
     const LC = window.LemmaCanon;
     if (LC && item.lemmaKey) {
-      if (fs && fs.seeded) {
+      // D3 (CLG-P3): content-hashed seed id + explicit seed-once (hasSeedRow replaces the old
+      // 'seed:<key>' PK backstop) — cross-device unions keep both devices' first-seeds.
+      if (fs && fs.seeded && !(await localDb.hasSeedRow(item.lemmaKey))) {
+        const seedMeta = { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION };
         await localDb.appendReviewLog({
-          id: 'seed:' + item.lemmaKey, item_key: item.lemmaKey, kind: 'seed',
+          id: LC.seedId ? LC.seedId(item.lemmaKey, seedMeta) : ('seed:' + item.lemmaKey),
+          item_key: item.lemmaKey, kind: 'seed',
           reviewed_at: new Date(now - 1).toISOString(), grade: null, source: 'seed-sm2',
-          meta: { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION },
+          meta: seedMeta,
         });
       }
       const row = {
@@ -2686,17 +2690,25 @@ async function markWordStatus(lemmaKey, status) {
     if (isLevel && lemmaKey && R && R.manualMarkSeed && FC && LC) {
       const sched = (await localDb.getSrsSchedule()) || {};
       if (!sched[lemmaKey]) {   // not yet scheduled → seed it (never move a stored due)
-        const now = Date.now();
-        const seed = R.manualMarkSeed(FC, status, now);
-        if (seed) {
-          const res = await localDb.appendReviewLog({
-            id: 'seed:' + lemmaKey, item_key: lemmaKey, kind: 'seed',
-            reviewed_at: new Date(now).toISOString(), grade: null, source: 'seed-manual',
-            meta: { ...seed.seedMeta, keyer_version: LC.KEYER_VERSION },
-          });
-          // write the projection ONLY when the log accepted the seed (PK guard): a historic seed
-          // row means the state is already log-derived — a fresh sched would break the oracle.
-          if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, null);
+        if (await localDb.hasSeedRow(lemmaKey)) {
+          // Historic seed without a schedule (word was cleared, or the row arrived via down-sync):
+          // the truth already lives in the log — RESTORE the projection from replay instead of
+          // minting a second seed (oracle-clean; D3 replaces the old 'seed:<key>' PK guard with
+          // this explicit existence check, since content-hashed ids no longer collide).
+          try { await localDb.recomputeSrsFromLog([lemmaKey]); } catch (_) {}
+        } else {
+          const now = Date.now();
+          const seed = R.manualMarkSeed(FC, status, now);
+          if (seed) {
+            const seedMeta = { ...seed.seedMeta, keyer_version: LC.KEYER_VERSION };
+            const res = await localDb.appendReviewLog({
+              id: LC.seedId ? LC.seedId(lemmaKey, seedMeta) : ('seed:' + lemmaKey),
+              item_key: lemmaKey, kind: 'seed',
+              reviewed_at: new Date(now).toISOString(), grade: null, source: 'seed-manual',
+              meta: seedMeta,
+            });
+            if (res && res.accepted === 1) await localDb.setWordStatus(lemmaKey, status, seed.sched, null);
+          }
         }
       }
     }
@@ -2751,11 +2763,14 @@ async function gradeReadingTap(card, occ, correct, prev) {
   try {
     const LC = window.LemmaCanon;
     if (LC) {
-      if (fs && fs.seeded) {
+      // D3 (CLG-P3): content-hashed seed id + explicit seed-once (see checkTrainAnswer)
+      if (fs && fs.seeded && !(await localDb.hasSeedRow(card.lemmaKey))) {
+        const seedMeta = { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION };
         await localDb.appendReviewLog({
-          id: 'seed:' + card.lemmaKey, item_key: card.lemmaKey, kind: 'seed',
+          id: LC.seedId ? LC.seedId(card.lemmaKey, seedMeta) : ('seed:' + card.lemmaKey),
+          item_key: card.lemmaKey, kind: 'seed',
           reviewed_at: new Date(now - 1).toISOString(), grade: null, source: 'seed-sm2',
-          meta: { ...fs.seedMeta, keyer_version: LC.KEYER_VERSION },
+          meta: seedMeta,
         });
       }
       const row = {
