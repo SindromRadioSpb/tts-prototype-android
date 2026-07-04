@@ -1209,7 +1209,26 @@ function probeMp3DurationMs(absPath) {
 // --------------------------------------------------------
 // 3.1 HEALTHZ (always 200; db status is informative)
 // --------------------------------------------------------
-app.get("/healthz", (req, res) => {
+// CLG-P1 — disk watermark for the DATA volume (recon §9 CLG-P1 / §11: диск-алёрт с порога
+// ~80% уже в P1 — урок инцидента 100%-диска 2026-07-04). Percentage only (no paths leaked);
+// UptimeRobot keyword-monitoring can alert on `"disk_warn":true`. Sampled at most once/min;
+// fs.statfs may be absent on old Node → null (never breaks liveness).
+const DISK_WARN_PCT = 80;
+let _diskSample = { at: 0, pctUsed: null };
+async function sampleDiskPct() {
+  const now = Date.now();
+  if (now - _diskSample.at < 60_000) return _diskSample.pctUsed;
+  _diskSample.at = now;
+  try {
+    const s = await fs.promises.statfs(DATA_DIR);
+    const total = Number(s.blocks) * Number(s.bsize);
+    const free = Number(s.bavail) * Number(s.bsize);
+    _diskSample.pctUsed = total > 0 ? Math.round((1 - free / total) * 100) : null;
+  } catch (_) { _diskSample.pctUsed = null; }
+  return _diskSample.pctUsed;
+}
+app.get("/healthz", async (req, res) => {
+  const diskPct = await sampleDiskPct();
   res.json({
     ok: true,
     uptimeSec: Math.round(process.uptime()),
@@ -1219,6 +1238,8 @@ app.get("/healthz", (req, res) => {
     // detailed health lives behind the admin token / /api/diag for the operator.
     db: { ready: getDbHealth().ready === true },
     migrations: { ready: getMigrationsHealth().ready === true },
+    disk_pct_used: diskPct,
+    disk_warn: diskPct != null && diskPct >= DISK_WARN_PCT,
   });
 });
 
@@ -1326,6 +1347,198 @@ function requireAudioUploadAuth(req, res) {
   res.status(verdict.status).json({ ok: false, error: verdict.error, message: verdict.message });
   return false;
 }
+
+// ============================================================================
+// CLG-P1 — Identity & Account (AI_MENTOR_RECON_2026_07_04.md §9 CLG-P1, §13.1).
+// Owner-only bootstrap login on a FULL multi-tenant schema (migration 020):
+// every future learner endpoint derives user_id ONLY from the validated session
+// (recon §6 B2 — a caller-supplied user_id is never authorization).
+//
+// Cookie model: lp_session = "<sessionId>.<secret>" (secret 256 bit, stored as
+// sha256), HttpOnly + SameSite=Lax + Secure (behind Traefik). CSRF: every
+// cookie-authenticated MUTATION requires X-LP-CSRF == the session's csrf_token
+// (double-submit; the old server.js "no sessions → no CSRF" invariant is retired
+// for THESE routes — the header-token endpoints stay CSRF-immune by construction,
+// and no pre-existing endpoint reads this cookie, so none becomes vulnerable).
+//
+// Bootstrap secret: AUTH_BOOTSTRAP_SECRET env, ≥22 chars (~128 bit) enforced
+// fail-closed; accepted ONLY from the POST body (never query/header → never in
+// access logs); timing-safe compare; tight per-IP fail limiter FROM DAY ONE
+// (recon: rate limits обязательны с введения каждого публичного эндпоинта).
+// ============================================================================
+const identityRepo = require("./db/identityRepo");
+const AUTH_BOOTSTRAP_MIN_LEN = 22;
+const AUTH_FAIL_WINDOW_MS = 600_000; // 10 min
+const AUTH_FAIL_MAX = 10;            // tighter than audio-upload's 20: login is pure secret-guessing surface
+const _authFails = new Map();        // ip -> [timestamps] (same bounded-sweep pattern as _audioUploadAuthFails)
+function _authFailsFresh(ip, now) {
+  const arr = (_authFails.get(ip) || []).filter((t) => now - t < AUTH_FAIL_WINDOW_MS);
+  if (_authFails.size > 5000) {
+    for (const [k, v] of _authFails) {
+      const keep = v.filter((t) => now - t < AUTH_FAIL_WINDOW_MS);
+      if (keep.length === 0) _authFails.delete(k);
+      else if (keep.length !== v.length) _authFails.set(k, keep);
+    }
+  }
+  return arr;
+}
+function authFailExceeded(ip) {
+  const now = Date.now();
+  const arr = _authFailsFresh(ip, now);
+  _authFails.set(ip, arr);
+  return arr.length >= AUTH_FAIL_MAX;
+}
+function authFailRecord(ip) {
+  const now = Date.now();
+  const arr = _authFailsFresh(ip, now);
+  arr.push(now);
+  _authFails.set(ip, arr);
+}
+
+function getSessionCookie(req) {
+  const h = String(req.headers.cookie || "");
+  for (const part of h.split(";")) {
+    const eq = part.indexOf("=");
+    if (eq <= 0) continue;
+    if (part.slice(0, eq).trim() === "lp_session") {
+      try { return decodeURIComponent(part.slice(eq + 1).trim()); } catch (_) { return part.slice(eq + 1).trim(); }
+    }
+  }
+  return "";
+}
+function setSessionCookie(req, res, value, maxAgeSec) {
+  const secure = req.secure || req.get("x-forwarded-proto") === "https";
+  res.append("Set-Cookie",
+    `lp_session=${encodeURIComponent(value)}; Path=/; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}; Max-Age=${Math.max(0, maxAgeSec | 0)}`);
+}
+
+// Session gate: writes 401 and returns null when unauthenticated.
+async function requireUser(req, res) {
+  const auth = await identityRepo.validateSession(getSessionCookie(req)).catch(() => null);
+  if (!auth) { res.status(401).json({ ok: false, error: "UNAUTHENTICATED" }); return null; }
+  return auth;
+}
+// CSRF gate for cookie-authenticated mutations (double-submit header).
+function requireCsrf(req, res, auth) {
+  const provided = String(req.get("X-LP-CSRF") || "");
+  if (!provided || !timingSafeStrEqual(provided, String(auth.session.csrf || ""))) {
+    res.status(403).json({ ok: false, error: "BAD_CSRF" });
+    return false;
+  }
+  return true;
+}
+
+app.post("/api/auth/bootstrap-login", async (req, res) => {
+  const secret = process.env.AUTH_BOOTSTRAP_SECRET || "";
+  if (!secret || secret.length < AUTH_BOOTSTRAP_MIN_LEN) {
+    return res.status(503).json({ ok: false, error: "AUTH_DISABLED", message: `Set AUTH_BOOTSTRAP_SECRET (≥${AUTH_BOOTSTRAP_MIN_LEN} chars) to enable login.` });
+  }
+  const ip = req.ip || "unknown";
+  if (authFailExceeded(ip)) {
+    res.set("Retry-After", String(Math.ceil(AUTH_FAIL_WINDOW_MS / 1000)));
+    return res.status(429).json({ ok: false, error: "TOO_MANY_AUTH_FAILURES" });
+  }
+  const provided = String((req.body && req.body.secret) || "");   // POST body ONLY — never query/header
+  if (!provided || !timingSafeStrEqual(provided, secret)) {
+    authFailRecord(ip);
+    identityRepo.audit("login_failed", null, {}, ip);
+    return res.status(401).json({ ok: false, error: "BAD_SECRET" });
+  }
+  try {
+    const user = await identityRepo.ensureOwnerUser();
+    const s = await identityRepo.createSession(user.id, {
+      deviceLabel: req.body && req.body.deviceLabel, ip, userAgent: req.get("user-agent"),
+    });
+    setSessionCookie(req, res, s.cookieValue, Math.floor(identityRepo.SESSION_TTL_MS / 1000));
+    identityRepo.audit("login", user.id, { sessionId: s.sessionId, deviceId: s.deviceId }, ip);
+    res.json({ ok: true, user: { id: user.id, role: user.role, displayName: user.display_name }, csrf: s.csrf, expiresAt: s.expiresAt });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: "LOGIN_FAILED", message: e.message });
+  }
+});
+
+app.get("/api/auth/me", async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  let consents = { current: {}, history: [] };
+  try { consents = await identityRepo.listConsents(auth.user.id); } catch (_) {}
+  res.json({
+    ok: true,
+    user: { id: auth.user.id, role: auth.user.role, displayName: auth.user.display_name, createdAt: auth.user.created_at },
+    session: { id: auth.session.id, deviceId: auth.session.deviceId, createdAt: auth.session.createdAt, expiresAt: auth.session.expiresAt },
+    csrf: auth.session.csrf,
+    consents: consents.current,
+  });
+});
+
+app.post("/api/auth/logout", async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  try { await identityRepo.revokeSession(auth.user.id, auth.session.id); } catch (_) {}
+  setSessionCookie(req, res, "", 0);
+  identityRepo.audit("logout", auth.user.id, { sessionId: auth.session.id }, req.ip);
+  res.json({ ok: true });
+});
+
+app.get("/api/auth/sessions", async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const rows = await identityRepo.listSessions(auth.user.id);
+    res.json({ ok: true, currentSessionId: auth.session.id, sessions: rows });
+  } catch (e) { res.status(500).json({ ok: false, error: "SESSIONS_FAILED", message: e.message }); }
+});
+
+app.post("/api/auth/sessions/revoke", async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const sid = String((req.body && req.body.sessionId) || "");
+  if (!sid) return res.status(400).json({ ok: false, error: "NO_SESSION_ID" });
+  try {
+    const done = await identityRepo.revokeSession(auth.user.id, sid);
+    identityRepo.audit("session_revoke", auth.user.id, { sessionId: sid, done }, req.ip);
+    res.json({ ok: true, revoked: done });
+  } catch (e) { res.status(500).json({ ok: false, error: "REVOKE_FAILED", message: e.message }); }
+});
+
+app.post("/api/auth/consent", async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const key = String((req.body && req.body.key) || "");
+  const granted = !!(req.body && req.body.granted);
+  const version = String((req.body && req.body.version) || "v1");
+  try {
+    await identityRepo.recordConsent(auth.user.id, key, granted, version);
+    identityRepo.audit(granted ? "consent_grant" : "consent_revoke", auth.user.id, { key, version }, req.ip);
+    const consents = await identityRepo.listConsents(auth.user.id);
+    res.json({ ok: true, consents: consents.current });
+  } catch (e) { res.status(400).json({ ok: false, error: "CONSENT_FAILED", message: e.message }); }
+});
+
+// Full user-stream export (recon §5 — working function from day one, not a promise).
+app.get("/api/account/export", async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const data = await identityRepo.exportUserData(auth.user.id);
+    identityRepo.audit("account_export", auth.user.id, { tables: data.table_list.length }, req.ip);
+    res.set("Content-Disposition", `attachment; filename="linguistpro-export-${auth.user.id}.json"`);
+    res.json({ ok: true, ...data });
+  } catch (e) { res.status(500).json({ ok: false, error: "EXPORT_FAILED", message: e.message }); }
+});
+
+// forget-the-stream account deletion (recon §1.3 carve-out (а) + §11 deletion-journal).
+// The durable record of the erasure is deletion_journal (audit_log cascade-deletes with the user).
+app.post("/api/account/delete", async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  if (String((req.body && req.body.confirm) || "") !== "DELETE") {
+    return res.status(400).json({ ok: false, error: "CONFIRM_REQUIRED", message: 'Pass {"confirm":"DELETE"}.' });
+  }
+  try {
+    const { tables } = await identityRepo.deleteUserData(auth.user.id);
+    identityRepo.audit("account_delete", null, { tables: tables.length }, req.ip);   // user_id=null: the row must survive the cascade
+    setSessionCookie(req, res, "", 0);
+    res.json({ ok: true, tablesPurged: tables });
+  } catch (e) { res.status(500).json({ ok: false, error: "DELETE_FAILED", message: e.message }); }
+});
 
 app.post("/api/tts/key", (req, res) => {
   if (!requireAdminToken(req, res)) return;
