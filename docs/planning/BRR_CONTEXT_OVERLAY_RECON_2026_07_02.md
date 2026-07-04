@@ -1,5 +1,12 @@
 # BRR Context-Overlay — ОФЛАЙН авторитетная контекст-морфология тап-карты · RECON (measure-before-code) · 2026-07-02
 
+> **✅ СТАТУС: ЗАВЕРШЁН + LIVE НА ПРОДЕ 2026-07-04.** proclitic-добейк 796/796 (0 deg) →
+> re-push 796 proclitic (100% live) → attested 34K → context enrich 32992 (177 skip) → bake →
+> `push:corpus-context` = **735 работ live, 61 held** (rollout-инвариант). Прод-верифи ✓
+> (12/12 ready=200, 4/4 held=404, RESOLVER_REV=ctx-r1 MATCH). Итог context_A промоций **46 502**
+> (×21 от старта). Do-no-harm guard 133×. Остаток: 61 held (594 канд.) → повторный enrich(177)+bake+push.
+> Историческая шапка ниже — на момент recon.
+>
 > **Статус: RECON → ждёт sign-off владельца по развилкам §8.** Задача №1 стратегического
 > шорт-листа (воркфлоу fable5-strategic-scope). Обобщение доказанного proclitic-overlay-паттерна
 > (Phase-3, `BRR_PROCLITIC_PHASE3_HANDOFF_2026_07_01.md`) на контекстную дизамбигуацию:
