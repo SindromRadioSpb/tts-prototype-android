@@ -1540,6 +1540,54 @@ app.post("/api/account/delete", async (req, res) => {
   } catch (e) { res.status(500).json({ ok: false, error: "DELETE_FAILED", message: e.message }); }
 });
 
+// ============================================================================
+// CLG-P2 — Cloud Event Log ingest + read-back (AI_MENTOR_RECON_2026_07_04.md §6/§9).
+// Server mirror until the CLG-P3 lossless gate (§4.6 canon transition): nothing
+// learner-facing reads these rows yet. user_id is derived ONLY from the session
+// principal; a batch carrying a foreign user_id is rejected wholesale (B2).
+// Rate-limited from day one (recon: лимиты обязательны с введения эндпоинта).
+// ============================================================================
+const learnerLogRepo = require("./db/learnerLogRepo");
+const rlLearnerIngest = makeRateLimiter({ windowMs: 60_000, max: 60, name: "learner-ingest" });
+const rlLearnerRead = makeRateLimiter({ windowMs: 60_000, max: 120, name: "learner-read" });
+
+app.post("/api/learner/ingest", rlLearnerIngest, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  if (!requireCsrf(req, res, auth)) return;
+  const body = req.body || {};
+  // B2 — a caller-supplied user_id is NEVER authorization: mismatch → 403, zero writes.
+  const claimed = [];
+  if (body.user_id != null) claimed.push(String(body.user_id));
+  for (const r of (Array.isArray(body.review_log) ? body.review_log : [])) if (r && r.user_id != null) claimed.push(String(r.user_id));
+  for (const e of (Array.isArray(body.learner_events) ? body.learner_events : [])) if (e && e.user_id != null) claimed.push(String(e.user_id));
+  if (claimed.some((u) => u !== auth.user.id)) {
+    return res.status(403).json({ ok: false, error: "USER_ID_MISMATCH", message: "user_id is derived from the session; do not send it." });
+  }
+  try {
+    const out = await learnerLogRepo.ingestBatch(auth.user.id, auth.session.deviceId, body);
+    if (out && out.ok === false) return res.status(400).json(out);
+    res.json(out);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: "INGEST_FAILED", message: e.message });
+  }
+});
+
+app.get("/api/learner/log", rlLearnerRead, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try {
+    const rows = await learnerLogRepo.readLog(auth.user.id, {
+      sinceIngestedAt: req.query.since || "", limit: req.query.limit,
+    });
+    res.json({ ok: true, rows, next_since: rows.length ? rows[rows.length - 1].ingested_at : null });
+  } catch (e) { res.status(500).json({ ok: false, error: "READ_FAILED", message: e.message }); }
+});
+
+app.get("/api/learner/counts", rlLearnerRead, async (req, res) => {
+  const auth = await requireUser(req, res); if (!auth) return;
+  try { res.json({ ok: true, ...(await learnerLogRepo.counts(auth.user.id)) }); }
+  catch (e) { res.status(500).json({ ok: false, error: "COUNTS_FAILED", message: e.message }); }
+});
+
 app.post("/api/tts/key", (req, res) => {
   if (!requireAdminToken(req, res)) return;
   try {

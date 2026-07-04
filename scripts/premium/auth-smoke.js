@@ -40,10 +40,18 @@ async function stop(c) {
   const ok = await new Promise((r) => { const t = setTimeout(() => r(false), 5000); c.once("exit", () => { clearTimeout(t); r(true); }); });
   if (!ok && process.platform === "win32") spawnSync("taskkill", ["/PID", String(c.pid), "/T", "/F"], { stdio: "ignore" });
 }
-async function ready(base, ms = 20000) {
+async function ready(base, ms = 30000) {
+  // healthz turns 200 BEFORE async migrations finish — wait for db+migrations ready, or the
+  // first login races "no such table: users".
   const s = Date.now();
   while (Date.now() - s < ms) {
-    try { const r = await fetch(base + "/healthz"); if (r.status === 200) return true; } catch (_) {}
+    try {
+      const r = await fetch(base + "/healthz");
+      if (r.status === 200) {
+        const j = await r.json();
+        if (j && j.db && j.db.ready && j.migrations && j.migrations.ready) return true;
+      }
+    } catch (_) {}
     await sleep(200);
   }
   return false;
